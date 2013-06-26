@@ -10,7 +10,7 @@ import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart'
        show Element, ClassElement;
 import '../../../sdk/lib/_internal/compiler/implementation/js_backend/js_backend.dart'
-       show TypeRepresentationGenerator;
+       show JavaScriptBackend, TypeRepresentationGenerator;
 
 void main() {
   testTypeRepresentations();
@@ -41,6 +41,14 @@ void testTypeRepresentations() {
         typeRepresentation.getTypeRepresentation(type, onVariable);
     Expect.stringEquals(expectedRepresentation, foundRepresentation);
   }
+
+  JavaScriptBackend backend = env.compiler.backend;
+  String func = backend.namer.functionTypeTag();
+  String retvoid = backend.namer.functionTypeVoidReturnTag();
+  String ret = backend.namer.functionTypeReturnTypeTag();
+  String args = backend.namer.functionTypeRequiredParametersTag();
+  String opt = backend.namer.functionTypeOptionalParametersTag();
+  String named = backend.namer.functionTypeNamedParametersTag();
 
   ClassElement List_ = env.getElement('List');
   TypeVariableType List_E = List_.typeVariables.head;
@@ -77,7 +85,7 @@ void testTypeRepresentations() {
   // List<int>
   expect('[$List_rep, $int_rep]', instantiate(List_, [int_]));
   // List<Typedef>
-  expect('[$List_rep, {func: true, retvoid: true}]',
+  expect('[$List_rep, {$func: "void_", $retvoid: true}]',
       instantiate(List_, [Typedef_]));
 
   // Map<K,V>
@@ -91,46 +99,51 @@ void testTypeRepresentations() {
       instantiate(Map_, [int_, String_]));
 
   // void m1() {}
-  expect("{func: true, retvoid: true}",
+  expect('{$func: "void_", $retvoid: true}',
       env.getElement('m1').computeType(env.compiler));
 
   // int m2() => 0;
-  expect("{func: true, ret: $int_rep}",
+  expect('{$func: "int_", $ret: $int_rep}',
       env.getElement('m2').computeType(env.compiler));
 
   // List<int> m3() => null;
-  expect("{func: true, ret: [$List_rep, $int_rep]}",
+  expect('{$func: "List_", $ret: [$List_rep, $int_rep]}',
       env.getElement('m3').computeType(env.compiler));
 
   // m4() {}
-  expect("{func: true}",
+  expect('{$func: "dynamic_"}',
       env.getElement('m4').computeType(env.compiler));
 
   // m5(int a, String b) {}
-  expect("{func: true, args: [$int_rep, $String_rep]}",
+  expect('{$func: "dynamic__int_String", $args: [$int_rep, $String_rep]}',
       env.getElement('m5').computeType(env.compiler));
 
   // m6(int a, [String b]) {}
-  expect("{func: true, args: [$int_rep], opt: [$String_rep]}",
+  expect('{$func: "dynamic__int__String", $args: [$int_rep],'
+         ' $opt: [$String_rep]}',
       env.getElement('m6').computeType(env.compiler));
 
   // m7(int a, String b, [List<int> c, d]) {}
-  expect("{func: true, args: [$int_rep, $String_rep],"
-         " opt: [[$List_rep, $int_rep], null]}",
+  expect('{$func: "dynamic__int_String__List_dynamic",'
+         ' $args: [$int_rep, $String_rep],'
+         ' $opt: [[$List_rep, $int_rep], null]}',
       env.getElement('m7').computeType(env.compiler));
 
   // m8(int a, {String b}) {}
-  expect("{func: true, args: [$int_rep], named: {b: $String_rep}}",
+  expect('{$func: "dynamic__int__String0",'
+         ' $args: [$int_rep], $named: {b: $String_rep}}',
       env.getElement('m8').computeType(env.compiler));
 
   // m9(int a, String b, {List<int> c, d}) {}
-  expect("{func: true, args: [$int_rep, $String_rep],"
-         " named: {c: [$List_rep, $int_rep], d: null}}",
+  expect('{$func: "dynamic__int_String__List_dynamic0",'
+         ' $args: [$int_rep, $String_rep],'
+         ' $named: {c: [$List_rep, $int_rep], d: null}}',
       env.getElement('m9').computeType(env.compiler));
 
   // m10(void f(int a, [b])) {}
-  expect("{func: true, args:"
-         " [{func: true, retvoid: true, args: [$int_rep], opt: [null]}]}",
+  expect('{$func: "dynamic__void__int__dynamic", $args:'
+         ' [{$func: "void__int__dynamic",'
+         ' $retvoid: true, $args: [$int_rep], $opt: [null]}]}',
       env.getElement('m10').computeType(env.compiler));
 }
 

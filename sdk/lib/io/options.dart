@@ -44,12 +44,17 @@ abstract class Options {
 
 
   /**
-   * Returns the version of the current dart runtime.
+   * Returns the version of the current Dart runtime.
    */
   String get version;
 }
 
 class _OptionsImpl implements Options {
+  List<String> _arguments = null;
+
+  // This arguments singleton is written to by the embedder if applicable.
+  static List<String> _nativeArguments = const [];
+
   List<String> get arguments {
     if (_arguments == null) {
       // On first access make a copy of the native arguments.
@@ -58,24 +63,7 @@ class _OptionsImpl implements Options {
     return _arguments;
   }
 
-  String get executable {
-    return _nativeExecutable;
-  }
-
-  String get script {
-    return _nativeScript;
-  }
-
-  external String get version;
-
-  List<String> _arguments = null;
-
-  // This arguments singleton is written to by the embedder if applicable.
-  static List<String> _nativeArguments = const [];
-
-  // This executable singleton is written to by the embedder if applicable.
-  static String _nativeExecutable = '';
-
-  // This script singleton is written to by the embedder if applicable.
-  static String _nativeScript = '';
+  String get executable => Platform.executable;
+  String get script => Platform.script;
+  String get version => Platform.version;
 }

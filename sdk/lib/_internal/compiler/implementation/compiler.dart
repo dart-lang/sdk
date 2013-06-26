@@ -126,7 +126,8 @@ abstract class Backend {
     return new ItemCompilationContext();
   }
 
-  bool needsRti(ClassElement cls);
+  bool classNeedsRti(ClassElement cls);
+  bool methodNeedsRti(FunctionElement function);
 
   // The following methods are hooks for the backend to register its
   // helper methods.
@@ -140,7 +141,7 @@ abstract class Backend {
   void registerThrowExpression(TreeElements elements) {}
   void registerLazyField(TreeElements elements) {}
   void registerTypeVariableExpression(TreeElements elements) {}
-  void registerTypeLiteral(TreeElements elements) {}
+  void registerTypeLiteral(Element element, TreeElements elements) {}
   void registerStackTraceInCatch(TreeElements elements) {}
   void registerIsCheck(DartType type,
                        Enqueuer enqueuer,
@@ -152,10 +153,30 @@ abstract class Backend {
   void registerFallThroughError(TreeElements elements) {}
   void registerSuperNoSuchMethod(TreeElements elements) {}
   void registerConstantMap(TreeElements elements) {}
-  void registerRuntimeType(TreeElements elements) {}
+  /**
+   * Call this to register that an instantiated generic class has a call
+   * method.
+   */
+  void registerGenericCallMethod(Element callMethod,
+                                 Enqueuer enqueuer,
+                                 TreeElements elements) {}
+  /**
+   * Call this to register that a getter exists for a function on an
+   * instantiated generic class.
+   */
+  void registerGenericClosure(Element closure,
+                              Enqueuer enqueuer,
+                              TreeElements elements) {}
+  /**
+   * Call this to register that the [:runtimeType:] property has been accessed.
+   */
+  void registerRuntimeType(Enqueuer enqueuer, TreeElements elements) {}
 
   void registerRequiredType(DartType type, Element enclosingElement) {}
   void registerClassUsingVariableExpression(ClassElement cls) {}
+
+  void registerConstSymbol(String name, TreeElements elements) {}
+  void registerNewSymbol(TreeElements elements) {}
 
   bool isNullImplementation(ClassElement cls) {
     return cls == compiler.nullClass;
@@ -183,9 +204,13 @@ abstract class Backend {
     return classElement == compiler.objectClass;
   }
 
-  void enableMirrors() {}
-
   void registerStaticUse(Element element, Enqueuer enqueuer) {}
+
+  void onLibraryScanned(LibraryElement library, Uri uri) {}
+
+  void registerMetadataInstantiatedType(DartType type, TreeElements elements) {}
+  void registerMetadataStaticUse(Element element) {}
+  void registerMetadataGetOfStaticFunction(FunctionElement element) {}
 }
 
 /**
@@ -529,8 +554,6 @@ abstract class Compiler implements DiagnosticListener {
 
   bool get hasBuildId => buildId != UNDETERMINED_BUILD_ID;
 
-  bool get mirrorsEnabled => mirrorSystemClass != null;
-
   bool get analyzeAll => analyzeAllFlag || compileAll;
 
   bool get compileAll => false;
@@ -674,11 +697,10 @@ abstract class Compiler implements DiagnosticListener {
     }
     if (uri == Uri.parse('dart:mirrors')) {
       mirrorSystemClass = library.find(const SourceString('MirrorSystem'));
-      backend.enableMirrors();
-      metadataHandler = constantHandler;
     } else if (uri == Uri.parse('dart:_collection-dev')) {
       symbolImplementationClass = library.find(const SourceString('Symbol'));
     }
+    backend.onLibraryScanned(library, uri);
   }
 
   void onClassResolved(ClassElement cls) {
@@ -757,6 +779,15 @@ abstract class Compiler implements DiagnosticListener {
     Selector callConstructor = new Selector.callConstructor(
         const SourceString(""), listClass.getLibrary());
     return _unnamedListConstructor =
+        listClass.lookupConstructor(callConstructor);
+  }
+
+  Element _filledListConstructor;
+  Element get filledListConstructor {
+    if (_filledListConstructor != null) return _filledListConstructor;
+    Selector callConstructor = new Selector.callConstructor(
+        const SourceString("filled"), listClass.getLibrary());
+    return _filledListConstructor =
         listClass.lookupConstructor(callConstructor);
   }
 
@@ -857,7 +888,6 @@ abstract class Compiler implements DiagnosticListener {
     // Elements required by enqueueHelpers are global dependencies
     // that are not pulled in by a particular element.
     backend.enqueueHelpers(enqueuer.resolution, globalDependencies);
-    resolveReflectiveDataIfNeeded();
     processQueue(enqueuer.resolution, main);
     enqueuer.resolution.logSummary(log);
 
@@ -887,7 +917,7 @@ abstract class Compiler implements DiagnosticListener {
       enqueuer.codegen.registerGetOfStaticFunction(mainApp.find(MAIN));
     }
     if (enabledNoSuchMethod) {
-      enqueuer.codegen.registerInvocation(NO_SUCH_METHOD, noSuchMethodSelector);
+      enqueuer.codegen.registerInvocation(noSuchMethodSelector);
       enqueuer.codegen.addToWorkList(createInvocationMirrorElement);
     }
     if (compileAll) {
@@ -901,17 +931,6 @@ abstract class Compiler implements DiagnosticListener {
     backend.assembleProgram();
 
     checkQueues();
-  }
-
-  void resolveReflectiveDataIfNeeded() {
-    // Only need reflective data when dart:mirrors is loaded.
-    if (!mirrorsEnabled) return;
-
-    for (LibraryElement library in libraries.values) {
-      for (Link link = library.metadata; !link.isEmpty; link = link.tail) {
-        link.head.ensureResolved(this);
-      }
-    }
   }
 
   void fullyEnqueueLibrary(LibraryElement library, Enqueuer world) {
@@ -1126,6 +1145,12 @@ abstract class Compiler implements DiagnosticListener {
     reportMessage(spanFromSpannable(node),
                   errorCode.error(arguments),
                   api.Diagnostic.INFO);
+  }
+
+  void reportInternalError(Spannable node, String message) {
+    reportMessage(spanFromSpannable(node),
+                  MessageKind.GENERIC.error({'text': message}),
+                  api.Diagnostic.ERROR);
   }
 
   void reportMessage(SourceSpan span, Diagnostic message, api.Diagnostic kind) {

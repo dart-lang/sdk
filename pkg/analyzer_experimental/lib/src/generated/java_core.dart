@@ -154,6 +154,16 @@ class JavaString {
       }
     });
   }
+  static int indexOf(String target, String str, int fromIndex) {
+    if (fromIndex > target.length) return -1;
+    if (fromIndex < 0) fromIndex = 0;
+    return target.indexOf(str, fromIndex);
+  }
+  static int lastIndexOf(String target, String str, int fromIndex) {
+    if (fromIndex > target.length) return -1;
+    if (fromIndex < 0) fromIndex = 0;
+    return target.lastIndexOf(str, fromIndex);
+  }
   static bool startsWithBefore(String s, String other, int start) {
     return s.indexOf(other, start) != -1;
   }

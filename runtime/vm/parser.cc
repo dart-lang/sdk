@@ -802,6 +802,9 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
     case RawFunction::kMethodExtractor:
       node_sequence = parser.ParseMethodExtractor(func);
       break;
+    case RawFunction::kNoSuchMethodDispatcher:
+      node_sequence = parser.ParseNoSuchMethodDispatcher(func);
+      break;
     default:
       UNREACHABLE();
   }
@@ -919,6 +922,21 @@ SequenceNode* Parser::ParseStaticConstGetter(const Function& func) {
   const Class& field_class = Class::Handle(func.Owner());
   const Field& field =
       Field::ZoneHandle(field_class.LookupStaticField(field_name));
+
+  if (!field.is_const() &&
+      (field.value() != Object::transition_sentinel().raw()) &&
+      (field.value() != Object::sentinel().raw())) {
+    // The field has already been initialized at compile time (this can
+    // happen, e.g., if we are recompiling for optimization).  There is no
+    // need to check for initialization and compile the potentially very
+    // large initialization code.  By skipping this code, the deoptimization
+    // ids will not line up with the original code, but this is safe because
+    // LoadStaticField does not deoptimize.
+    LoadStaticFieldNode* load_node = new LoadStaticFieldNode(ident_pos, field);
+    ReturnNode* return_node = new ReturnNode(ident_pos, load_node);
+    current_block_->statements->Add(return_node);
+    return CloseBlock();
+  }
 
   // Static const fields must have an initializer.
   ExpectToken(Token::kASSIGN);
@@ -1114,6 +1132,46 @@ SequenceNode* Parser::ParseMethodExtractor(const Function& func) {
       NULL);
 
   ReturnNode* return_node = new ReturnNode(ident_pos, closure);
+  current_block_->statements->Add(return_node);
+  return CloseBlock();
+}
+
+
+SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func) {
+  TRACE_PARSER("ParseNoSuchMethodDispatcher");
+  ParamList params;
+
+  ASSERT(func.IsNoSuchMethodDispatcher());
+  intptr_t token_pos = func.token_pos();
+  ASSERT(func.token_pos() == 0);
+  ASSERT(current_class().raw() == func.Owner());
+  params.AddReceiver(ReceiverType(token_pos));
+  ASSERT(func.num_fixed_parameters() == 1);  // Receiver.
+  ASSERT(!func.HasOptionalParameters());
+
+  // Build local scope for function and populate with the formal parameters.
+  OpenFunctionBlock(func);
+  LocalScope* scope = current_block_->scope;
+  AddFormalParamsToScope(&params, scope);
+
+  // Receiver is local 0.
+  LocalVariable* receiver = scope->VariableAt(0);
+  LoadLocalNode* load_receiver = new LoadLocalNode(token_pos, receiver);
+
+  ArgumentListNode* func_args = new ArgumentListNode(token_pos);
+  func_args->Add(load_receiver);
+  const String& func_name = String::ZoneHandle(func.name());
+  ArgumentListNode* arguments = BuildNoSuchMethodArguments(token_pos,
+                                                           func_name,
+                                                           *func_args);
+  const Function& no_such_method = Function::ZoneHandle(
+        Resolver::ResolveDynamicAnyArgs(Class::Handle(func.Owner()),
+                                        Symbols::NoSuchMethod()));
+  StaticCallNode* call =
+      new StaticCallNode(token_pos, no_such_method, arguments);
+
+
+  ReturnNode* return_node = new ReturnNode(token_pos, call);
   current_block_->statements->Add(return_node);
   return CloseBlock();
 }
@@ -4363,9 +4421,13 @@ RawObject* Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
     }
     ErrorMsg(token_pos, "no library handler registered");
   }
+  // Block class finalization attempts when calling into the library
+  // tag handler.
+  isolate()->BlockClassFinalization();
   Dart_Handle result = handler(tag,
                                Api::NewHandle(isolate(), library_.raw()),
                                Api::NewHandle(isolate(), url.raw()));
+  isolate()->UnblockClassFinalization();
   if (Dart_IsError(result)) {
     // In case of an error we append an explanatory error message to the
     // error obtained from the library tag handler.
@@ -8272,13 +8334,13 @@ RawObject* Parser::EvaluateConstConstructorCall(
     ASSERT(arg->IsLiteralNode());
     arg_values.SetAt((i + kNumExtraArgs), arg->AsLiteralNode()->literal());
   }
-  const Array& arg_descriptor =
+  const Array& args_descriptor =
       Array::Handle(ArgumentsDescriptor::New(num_arguments,
                                              arguments->names()));
   const Object& result =
       Object::Handle(DartEntry::InvokeFunction(constructor,
                                                arg_values,
-                                               arg_descriptor));
+                                               args_descriptor));
   if (result.IsError()) {
       // An exception may not occur in every parse attempt, i.e., the
       // generated AST is not deterministic. Therefore mark the function as

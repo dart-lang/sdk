@@ -22,12 +22,12 @@ abstract class Map<K, V> {
   /**
    * Returns whether this map contains the given [value].
    */
-  bool containsValue(V value);
+  bool containsValue(Object value);
 
   /**
    * Returns whether this map contains the given [key].
    */
-  bool containsKey(K key);
+  bool containsKey(Object key);
 
   /**
    * Returns the value for the given [key] or null if [key] is not
@@ -35,7 +35,7 @@ abstract class Map<K, V> {
    * use containsKey to distinguish between an absent key and a null
    * value, or use the [putIfAbsent] method.
    */
-  V operator [](K key);
+  V operator [](Object key);
 
   /**
    * Associates the [key] with the given [value].
@@ -69,7 +69,7 @@ abstract class Map<K, V> {
    * can be null and a returned null value does not always imply that the
    * key is absent.
    */
-  V remove(K key);
+  V remove(Object key);
 
   /**
    * Removes all pairs from the map.
@@ -86,7 +86,6 @@ abstract class Map<K, V> {
   /**
    * The keys of [this].
    */
-  // TODO(floitsch): this should return a [Set].
   Iterable<K> get keys;
 
   /**

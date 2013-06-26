@@ -7,6 +7,10 @@
 // Auto-generated dart:html library.
 
 /// The Dart HTML library.
+///
+/// For examples, see
+/// [Dart HTML5 Samples](https://github.com/dart-lang/dart-html5-samples)
+/// on Github.
 library dart.dom.html;
 
 import 'dart:async';
@@ -25,7 +29,7 @@ import 'dart:web_audio' as web_audio;
 import 'dart:web_gl' as gl;
 import 'dart:web_sql';
 import 'dart:_js_helper' show convertDartClosureToJS, Creates, JavaScriptIndexingBehavior, JSName, Null, Returns;
-import 'dart:_interceptors' show Interceptor;
+import 'dart:_interceptors' show Interceptor, JSExtendableArray;
 import 'dart:_isolate_helper' show IsolateNatives;
 import 'dart:_foreign_helper' show JS;
 
@@ -42,7 +46,6 @@ part '$AUXILIARY_DIR/KeyboardEventStream.dart';
 part '$AUXILIARY_DIR/KeyCode.dart';
 part '$AUXILIARY_DIR/KeyLocation.dart';
 part '$AUXILIARY_DIR/KeyName.dart';
-part '$AUXILIARY_DIR/PathObserver.dart';
 part '$AUXILIARY_DIR/Point.dart';
 part '$AUXILIARY_DIR/ReadyState.dart';
 part '$AUXILIARY_DIR/Rectangle.dart';

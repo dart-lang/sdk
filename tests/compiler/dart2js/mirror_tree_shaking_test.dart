@@ -16,7 +16,7 @@ import '../../../sdk/lib/_internal/compiler/compiler.dart'
 import 'dart:async';
 
 main() {
-  Uri script = currentDirectory.resolve(nativeToUriPath(new Options().script));
+  Uri script = currentDirectory.resolve(nativeToUriPath(Platform.script));
   Uri libraryRoot = script.resolve('../../../sdk/');
   Uri packageRoot = script.resolve('./packages/');
 
@@ -45,6 +45,7 @@ main() {
   Expect.isFalse(compiler.enqueuer.resolution.hasEnqueuedEverything);
   Expect.isFalse(compiler.enqueuer.codegen.hasEnqueuedEverything);
   Expect.isFalse(compiler.disableTypeInference);
+  Expect.isFalse(compiler.backend.hasRetainedMetadata);
 }
 
 const Map MEMORY_SOURCE_FILES = const {

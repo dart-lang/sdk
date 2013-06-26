@@ -13,8 +13,8 @@ main() {
   var port = new ReceivePort();
   Expect.isTrue(pid > 0);
   var futures = [];
-  futures.add(Process.start(new Options().executable,['--version']));
-  futures.add(Process.run(new Options().executable,['--version']));
+  futures.add(Process.start(Platform.executable,['--version']));
+  futures.add(Process.run(Platform.executable,['--version']));
   Future.wait(futures).then((results) {
     Expect.isTrue(results[0].pid > 0);
     Expect.isTrue(results[1].pid > 0);

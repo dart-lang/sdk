@@ -165,7 +165,7 @@ abstract class num implements Comparable<num> {
   double toDouble();
 
   /**
-   * Converts [this] to a [double] and then gives string representation with
+   * Converts `this` to a [double] and returns its string representation with
    * [fractionDigits] digits after the decimal point.
    *
    * The parameter [fractionDigits] must be an integer satisfying:
@@ -174,8 +174,9 @@ abstract class num implements Comparable<num> {
   String toStringAsFixed(int fractionDigits);
 
   /**
-   * Converts [this] to a [double] and then gives a string in decimal
-   * exponential notation with [fractionDigits] digits after the decimal point.
+   * Converts `this` to a [double] and returns its string representation in
+   * decimal exponential notation with [fractionDigits] digits after the decimal
+   * point.
    *
    * If [fractionDigits] is given then it must be an integer satisfying:
    * [:0 <= fractionDigits <= 20:]. Without the parameter the returned string
@@ -184,11 +185,49 @@ abstract class num implements Comparable<num> {
   String toStringAsExponential([int fractionDigits]);
 
   /**
-   * Converts [this] to a double and gives a string representation with
+   * Converts `this` to a double and returns its string representation with
    * [precision] significant digits.
    *
    * The parameter [precision] must be an integer satisfying:
    * [:1 <= precision <= 21:].
    */
   String toStringAsPrecision(int precision);
+
+  /**
+   * Computes the shortest string of digits that correctly represent the input
+   * number.
+   *
+   * [double]s in the range `10^-6` (inclusive) to `10^21` (exclusive)
+   * are converted to their decimal representation with at least one digit
+   * after the decimal point. For all other doubles,
+   * except for special values like `NaN` or `Infinity`, this method returns an
+   * exponential representation (see [toStringAsExponential]).
+   *
+   * Returns `"NaN"` for [double.NAN], `"Infinity"` for [double.INFINITY], and
+   * `"-Infinity"` for [double.MINUS_INFINITY].
+   *
+   * [int]s are always converted to their decimal representation.
+   *
+   * Examples:
+   *
+   *     (0.000001).toString(); // "0.000001"
+   *     (0.0000001).toString(); // "1e-7"
+   *     (111111111111111111111.0).toString(); // "111111111111111110000.0"
+   *     (100000000000000000000.0).toString(); // "100000000000000000000.0"
+   *     (1000000000000000000000.0).toString(); // "1e+21"
+   *     (1111111111111111111111.0).toString(); // "1.1111111111111111e+21"
+   *     1.toString(); // "1"
+   *     111111111111111111111.toString(); // "111111111111111110000"
+   *     100000000000000000000.toString(); // "100000000000000000000"
+   *     1000000000000000000000.toString(); // "1000000000000000000000"
+   *     1111111111111111111111.toString(); // "1111111111111111111111"
+   *
+   * Note: the conversion may round the output if the returned string
+   * is accurate enough to uniquely identify the input-number.
+   * For example the most precise representation of the [double] `9e59` equals
+   * `"899999999999999918767229449717619953810131273674690656206848"`, but
+   * this method returns the shorter (but still correct) `"9e59"`.
+   *
+   */
+  String toString();
 }

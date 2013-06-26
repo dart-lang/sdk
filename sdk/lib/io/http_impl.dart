@@ -994,10 +994,12 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
 
 // Transformer that transforms data to HTTP Chunked Encoding.
 class _ChunkedTransformer extends StreamEventTransformer<List<int>, List<int>> {
+  int _pendingFooter = 0;
+
   void handleData(List<int> data, EventSink<List<int>> sink) {
     sink.add(_chunkHeader(data.length));
     if (data.length > 0) sink.add(data);
-    sink.add(_chunkFooter);
+    _pendingFooter = 2;
   }
 
   void handleDone(EventSink<List<int>> sink) {
@@ -1005,25 +1007,41 @@ class _ChunkedTransformer extends StreamEventTransformer<List<int>, List<int>> {
     sink.close();
   }
 
-  static List<int> _chunkHeader(int length) {
+  List<int> _chunkHeader(int length) {
     const hexDigits = const [0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37,
                              0x38, 0x39, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46];
-    var header = [];
     if (length == 0) {
-      header.add(hexDigits[length]);
-    } else {
-      while (length > 0) {
-        header.insert(0, hexDigits[length % 16]);
-        length = length >> 4;
-      }
+      if (_pendingFooter == 2) return _footerAndChunk0Length;
+      return _chunk0Length;
     }
-    header.add(_CharCode.CR);
-    header.add(_CharCode.LF);
-    return header;
+    int size = _pendingFooter;
+    int len = length;
+    // Compute a fast integer version of (log(length + 1) / log(16)).ceil().
+    while (len > 0) {
+      size++;
+      len >>= 4;
+    }
+    var footerAndHeader = new Uint8List(size + 2);
+    if (_pendingFooter == 2) {
+      footerAndHeader[0] = _CharCode.CR;
+      footerAndHeader[1] = _CharCode.LF;
+    }
+    int index = size;
+    while (index > _pendingFooter) {
+      footerAndHeader[--index] = hexDigits[length & 15];
+      length = length >> 4;
+    }
+    footerAndHeader[size + 0] = _CharCode.CR;
+    footerAndHeader[size + 1] = _CharCode.LF;
+    return footerAndHeader;
   }
 
-  // Footer is just a CRLF.
-  static List<int> get _chunkFooter => const [_CharCode.CR, _CharCode.LF];
+  static List<int> get _footerAndChunk0Length => new Uint8List.fromList(
+      const [_CharCode.CR, _CharCode.LF, 0x30, _CharCode.CR, _CharCode.LF,
+             _CharCode.CR, _CharCode.LF]);
+
+  static List<int> get _chunk0Length => new Uint8List.fromList(
+      const [0x30, _CharCode.CR, _CharCode.LF, _CharCode.CR, _CharCode.LF]);
 }
 
 
@@ -2364,7 +2382,7 @@ class _RedirectInfo implements RedirectInfo {
 }
 
 String _getHttpVersion() {
-  var version = new Options().version;
+  var version = Platform.version;
   // Only include major and minor version numbers.
   int index = version.indexOf('.', version.indexOf('.') + 1);
   version = version.substring(0, index);

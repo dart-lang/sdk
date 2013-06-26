@@ -55,6 +55,7 @@ stringifyMethod(MethodMirror method) {
   if (method.isStatic) buffer.write(', static');
   if (method.isGetter) buffer.write(', getter');
   if (method.isSetter) buffer.write(', setter');
+  if (method.isConstructor) buffer.write(', constructor');
   return (buffer..write(')')).toString();
 }
 

@@ -26,6 +26,8 @@ class MessageKind {
       'additional argument');
   static const NAMED_ARGUMENT_NOT_FOUND = const MessageKind(
       "no named argument '#{argumentName}' found on method");
+  static const MEMBER_NOT_FOUND = const MessageKind(
+      'no member named #{memberName} in class #{className}');
   static const METHOD_NOT_FOUND = const MessageKind(
       'no method named #{memberName} in class #{className}');
   static const OPERATOR_NOT_FOUND = const MessageKind(
@@ -163,6 +165,8 @@ class MessageKind {
   static const TYPE_VARIABLE_WITHIN_STATIC_MEMBER = const MessageKind(
       'cannot refer to type variable #{typeVariableName} '
       'within a static member');
+  static const TYPE_VARIABLE_IN_CONSTANT = const MessageKind(
+      'Error: cannot refer to type variable in constant');
 
   static const INVALID_USE_OF_SUPER = const MessageKind(
       'super not allowed here');

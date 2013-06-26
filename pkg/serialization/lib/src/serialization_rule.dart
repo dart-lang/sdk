@@ -546,8 +546,9 @@ class _LazyMap implements Map {
   }
   operator []=(x, y) => _throw();
   putIfAbsent(x, y) => _throw();
-  remove(x) => _throw();
-  clear() => _throw();
+  bool remove(x) => _throw();
+  void clear() => _throw();
+  void addAll(Map other) => _throw();
 }
 
 /**
@@ -557,55 +558,20 @@ class _LazyMap implements Map {
  * looks like it's just a list of objects to a [CustomRule] without needing
  * to inflate all the references in advance.
  */
-class _LazyList extends IterableBase implements List {
+class _LazyList extends IterableBase with ListMixin implements List {
   _LazyList(this._raw, this._reader);
 
   final List _raw;
   final Reader _reader;
 
-  // This is the only operation that really matters.
-  operator [](x) => _reader.inflateReference(_raw[x]);
-
+  operator [](int x) => _reader.inflateReference(_raw[x]);
   int get length => _raw.length;
-  bool get isEmpty => _raw.isEmpty;
-  get first => _reader.inflateReference(_raw.first);
-  get last => _reader.inflateReference(_raw.last);
 
-  // These operations, and other inherited methods that iterate over the whole
-  // list will work, but may be expensive, and are probably
-  // best avoided.
-  Iterable get _inflated => _raw.map(_reader.inflateReference);
-  Iterator get iterator => _inflated.iterator;
-  indexOf(x, [pos = 0]) => _inflated.toList().indexOf(x);
-  lastIndexOf(x, [pos]) => _inflated.toList().lastIndexOf(x);
-  sublist(start, [end]) => _inflated.sublist(start, end);
+  void set length(int value) => _throw();
 
-  Map<int, dynamic> asMap() => _inflated.asMap();
+  void operator []=(int index, value) => _throw();
 
-  // These operations are all invalid
-  _throw() {
+  void _throw() {
     throw new UnsupportedError("Not modifiable");
   }
-  operator []=(x, y) => _throw();
-  add(x) => _throw();
-  addAll(x) => _throw();
-  sort([f]) => _throw();
-  clear() => _throw();
-  insert(x, y) => _throw();
-  insertAll(x, y) => _throw();
-  fillRange(x, y, [z]) => _throw();
-  removeAt(x) => _throw();
-  remove(x) => _throw();
-  removeLast() => _throw();
-  removeAll(x) => _throw();
-  retainAll(x) => _throw();
-  removeWhere(x) => _throw();
-  retainWhere(x) => _throw();
-  replaceRange(x, y, z) => _throw();
-  getRange(x, y) => _throw();
-  setRange(x, y, z, [a = 0]) => _throw();
-  setAll(x, y) => _throw();
-  removeRange(x, y) => _throw();
-  get reversed => _throw();
-  void set length(x) => _throw();
 }

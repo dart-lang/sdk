@@ -226,7 +226,7 @@ class ObjectPointerVisitor;
   V(NullThrownError, "NullThrownError")                                        \
   V(IsolateSpawnException, "IsolateSpawnException")                            \
   V(IsolateUnhandledException, "IsolateUnhandledException")                    \
-  V(FiftyThreeBitOverflowError, "FiftyThreeBitOverflowError")                  \
+  V(FiftyThreeBitOverflowError, "_FiftyThreeBitOverflowError")                 \
   V(_setupFullStackTrace, "_setupFullStackTrace")                              \
   V(BooleanExpression, "boolean expression")                                   \
   V(Malformed, "malformed")                                                    \

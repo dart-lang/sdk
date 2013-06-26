@@ -10,9 +10,6 @@ bad_named_parameters2_test: fail
 bad_named_parameters_test: fail
 bad_override_test/01: fail
 bad_override_test/02: fail
-bad_override_test/03: fail
-bad_override_test/04: fail
-bad_override_test/05: fail
 black_listed_test/11: fail
 body_less_constructor_wrong_arg_negative_test: fail
 built_in_identifier_prefix_test: fail
@@ -42,7 +39,6 @@ compile_time_constant_checked3_test/03: fail
 compile_time_constant_checked3_test/04: fail
 compile_time_constant_checked3_test/06: fail
 compile_time_constant_e_test: fail
-const_syntax_test/06: fail
 constructor2_negative_test: fail
 constructor3_negative_test: fail
 constructor_call_wrong_argument_count_negative_test: fail
@@ -64,8 +60,6 @@ factory2_test: fail
 factory5_test/00: fail
 factory_implementation_test/none: fail
 factory_redirection2_test/01: fail
-fauxverride_test/03: fail
-fauxverride_test/05: fail
 field_method4_negative_test: fail
 field_override_test/01: fail
 final_for_in_variable_test/01: fail
@@ -89,10 +83,7 @@ getters_setters_type_test/01: fail
 implicit_this_test/01: fail
 implicit_this_test/04: fail
 import_combinators_negative_test: fail
-inst_field_initializer1_negative_test: fail
 instance_call_wrong_argument_count_negative_test: fail
-instance_method2_negative_test: fail
-instance_method_negative_test: fail
 instantiate_type_variable_negative_test: fail
 interface_static_non_final_fields_negative_test: fail
 interface_test/00: fail
@@ -127,15 +118,9 @@ new_expression_type_args_test/02: fail
 no_such_method_negative_test: fail
 non_const_super_negative_test: fail
 number_identifier_negative_test: fail
-override_field_method1_negative_test: fail
-override_field_method2_negative_test: fail
-override_field_method4_negative_test: fail
-override_field_method5_negative_test: fail
 override_field_test/01: fail
 override_field_test/02: fail
 override_field_test/03: fail
-override_method_with_field_test/01: fail
-override_method_with_field_test/02: fail
 prefix10_negative_test: fail
 prefix11_negative_test: fail
 prefix12_negative_test: fail
@@ -154,7 +139,6 @@ private_member3_negative_test: fail
 pseudo_kw_illegal_test/14: fail
 pseudo_kw_test: fail
 redirecting_factory_infinite_steps_test/01: fail
-redirecting_factory_infinite_steps_test/02: fail
 scope_negative_test: fail
 setter3_test/01: fail
 setter3_test/02: fail
@@ -186,13 +170,8 @@ type_variable_bounds2_test/03: fail
 type_variable_bounds2_test/04: fail
 type_variable_bounds2_test/06: fail
 type_variable_bounds_test/00: fail
-type_variable_bounds_test/01: fail
-type_variable_bounds_test/02: fail
 type_variable_bounds_test/03: fail
 type_variable_bounds_test/04: fail
-type_variable_bounds_test/06: fail
-type_variable_bounds_test/07: fail
-type_variable_bounds_test/09: fail
 type_variable_identifier_expression_negative_test: fail
 type_variable_static_context_negative_test: fail
 unresolved_in_factory_negative_test: fail

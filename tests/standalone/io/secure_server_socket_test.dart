@@ -83,13 +83,13 @@ void testSimpleConnectFail(String certificate, bool cancelOnError) {
         Expect.fail("No client connection expected.");
       })
       .catchError((error) {
-        Expect.isTrue(error is SocketException);
+        Expect.isTrue(error is HandshakeException);
       });
     server.listen((serverEnd) {
       Expect.fail("No server connection expected.");
     },
     onError: (error) {
-      Expect.isTrue(error is SocketException);
+      Expect.isTrue(error is CertificateException);
       clientEndFuture.then((_) {
         if (!cancelOnError) server.close();
         port.close();
@@ -186,7 +186,7 @@ void testSimpleReadWrite() {
 }
 
 main() {
-  Path scriptDir = new Path(new Options().script).directoryPath;
+  Path scriptDir = new Path(Platform.script).directoryPath;
   Path certificateDatabase = scriptDir.append('pkcert');
   SecureSocket.initialize(database: certificateDatabase.toNativePath(),
                           password: 'dartdart',

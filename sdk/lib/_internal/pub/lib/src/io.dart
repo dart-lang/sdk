@@ -368,7 +368,7 @@ void createPackageSymlink(String name, String target, String symlink,
 
 /// Whether pub is running from within the Dart SDK, as opposed to from the Dart
 /// source repository.
-bool get runningFromSdk => path.extension(new Options().script) == '.snapshot';
+bool get runningFromSdk => path.extension(Platform.script) == '.snapshot';
 
 /// Resolves [target] relative to the path to pub's `resource` directory.
 String resourcePath(String target) {
@@ -591,19 +591,12 @@ Future _doProcess(Function fn, String executable, List<String> args,
     executable = "cmd";
   }
 
-  var env = null;
-  if (environment != null) {
-    env = new Map.from(Platform.environment);
-    environment.forEach((key, value) => env[key] = value);
-  }
-
-
   log.process(executable, args);
 
   return fn(executable,
             args,
             workingDirectory: workingDir,
-            environment: env);
+            environment: environment);
 }
 
 /// Wraps [input] to provide a timeout. If [input] completes before
@@ -772,7 +765,7 @@ ByteStream createTarGz(List contents, {baseDir}) {
     // Create the tar file.
     var tarFile = path.join(tempDir, "intermediate.tar");
     var args = ["a", "-w$baseDir", tarFile];
-    args.addAll(contents.map((entry) => '-i!"$entry"'));
+    args.addAll(contents.map((entry) => '-i!$entry'));
 
     // We're passing 'baseDir' both as '-w' and setting it as the working
     // directory explicitly here intentionally. The former ensures that the

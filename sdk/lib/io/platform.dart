@@ -9,27 +9,59 @@ part of dart.io;
  * system.
  */
 class Platform {
+  static final _numberOfProcessors = _Platform.numberOfProcessors;
+  static final _pathSeparator = _Platform.pathSeparator;
+  static final _operatingSystem = _Platform.operatingSystem;
+  static final _localHostname = _Platform.localHostname;
+  static final _version = _Platform.version;
+
+  // This executable singleton is written to by the embedder if applicable.
+  static String _nativeExecutable = '';
+
+  // This script singleton is written to by the embedder if applicable.
+  static String _nativeScript = '';
+
   /**
    * Get the number of processors of the machine.
    */
-  static int get numberOfProcessors => _Platform.numberOfProcessors;
+  static int get numberOfProcessors => _numberOfProcessors;
 
   /**
    * Get the path separator used by the operating system to separate
    * components in file paths.
    */
-  static String get pathSeparator => _Platform.pathSeparator;
+  static String get pathSeparator => _pathSeparator;
 
   /**
-   * Get a string ('macos', 'windows', 'linux') representing the
-   * operating system.
+   * Get a string (`linux`, `macos`, `windows` or `android`)
+   * representing the operating system.
    */
-  static String get operatingSystem => _Platform.operatingSystem;
+  static String get operatingSystem => _operatingSystem;
 
   /**
    * Get the local hostname for the system.
    */
-  static String get localHostname => _Platform.localHostname;
+  static String get localHostname => _localHostname;
+
+  /**
+   * Returns true if the operating system is Linux.
+   */
+  static bool get isLinux => _operatingSystem == "linux";
+
+  /**
+   * Returns true if the operating system is Mac OS.
+   */
+  static bool get isMacOS => _operatingSystem == "macos";
+
+  /**
+   * Returns true if the operating system is Windows.
+   */
+  static bool get isWindows => _operatingSystem == "windows";
+
+  /**
+   * Returns true if the operating system is Android.
+   */
+  static bool get isAndroid => _operatingSystem == "android";
 
   /**
    * Get the environment for this process.
@@ -40,4 +72,27 @@ class Platform {
    * a standard case-sensitive map.
    */
   static Map<String, String> get environment => _Platform.environment;
+
+  /**
+   * Returns the path of the executable used to run the script in this
+   * isolate.
+   *
+   * If the execution environment does not support [executable] an empty
+   * string is returned.
+   */
+  static String get executable => _nativeExecutable;
+
+  /**
+   * Returns the path of the script being run in this isolate.
+   *
+   * If the executable environment does not support [script] an empty
+   * string is returned.
+   */
+  static String get script => _nativeScript;
+
+
+  /**
+   * Returns the version of the current Dart runtime.
+   */
+  static String get version => _version;
 }

@@ -152,11 +152,7 @@ abstract class Enqueuer {
 
   void registerTypeLiteral(Element element, TreeElements elements) {
     registerInstantiatedClass(compiler.typeClass, elements);
-    compiler.backend.registerTypeLiteral(elements);
-    if (compiler.mirrorsEnabled) {
-      // In order to use reflectClass, we need to find the constructor.
-      registerInstantiatedClass(element, elements);
-    }
+    compiler.backend.registerTypeLiteral(element, elements);
   }
 
   bool checkNoEnqueuedInvokedInstanceMethods() {
@@ -177,9 +173,6 @@ abstract class Enqueuer {
     cls.implementation.forEachMember(processInstantiatedClassMember);
   }
 
-  /**
-   * Documentation wanted -- johnniwinther
-   */
   void processInstantiatedClassMember(ClassElement cls, Element member) {
     assert(invariant(member, member.isDeclaration));
     if (isProcessed(member)) return;
@@ -232,14 +225,14 @@ abstract class Enqueuer {
       if (member.name == Compiler.NO_SUCH_METHOD) {
         enableNoSuchMethod(member);
       }
+      if (member.name == Compiler.CALL_OPERATOR_NAME &&
+          !cls.typeVariables.isEmpty) {
+        registerGenericCallMethod(member, compiler.globalDependencies);
+      }
       // If there is a property access with the same name as a method we
       // need to emit the method.
       if (universe.hasInvokedGetter(member, compiler)) {
-        // We will emit a closure, so make sure the bound closure class is
-        // generated.
-        registerInstantiatedClass(compiler.boundClosureClass,
-                                  // Precise dependency is not important here.
-                                  compiler.globalDependencies);
+        registerClosurizedMember(member, compiler.globalDependencies);
         return addToWorkList(member);
       }
       // Store the member in [instanceFunctionsByName] to catch
@@ -298,13 +291,9 @@ abstract class Enqueuer {
     });
   }
 
-  void registerNewSelector(SourceString name,
-                           Selector selector,
+  void registerNewSelector(Selector selector,
                            Map<SourceString, Set<Selector>> selectorsMap) {
-    if (name != selector.name) {
-      String message = "$name != ${selector.name} (${selector.kind})";
-      compiler.internalError("Wrong selector name: $message.");
-    }
+    SourceString name = selector.name;
     Set<Selector> selectors =
         selectorsMap.putIfAbsent(name, () => new Set<Selector>());
     if (!selectors.contains(selector)) {
@@ -313,38 +302,27 @@ abstract class Enqueuer {
     }
   }
 
-  void registerInvocation(SourceString methodName, Selector selector) {
+  void registerInvocation(Selector selector) {
     task.measure(() {
-      registerNewSelector(methodName, selector, universe.invokedNames);
+      registerNewSelector(selector, universe.invokedNames);
     });
   }
 
-  void registerInvokedGetter(SourceString getterName, Selector selector) {
+  void registerInvokedGetter(Selector selector) {
     task.measure(() {
-      registerNewSelector(getterName, selector, universe.invokedGetters);
+      registerNewSelector(selector, universe.invokedGetters);
     });
   }
 
-  void registerInvokedSetter(SourceString setterName, Selector selector) {
+  void registerInvokedSetter(Selector selector) {
     task.measure(() {
-      registerNewSelector(setterName, selector, universe.invokedSetters);
+      registerNewSelector(selector, universe.invokedSetters);
     });
   }
 
   /// Called when [:const Symbol(name):] is seen.
   void registerConstSymbol(String name, TreeElements elements) {
-    // If dart:mirrors is loaded, a const symbol may be used to call a
-    // static/top-level method or accessor, instantiate a class, call
-    // an instance method or accessor with the given name.
-    if (!compiler.mirrorsEnabled) return;
-
-    task.ensureAllElementsByName();
-
-    for (var link = task.allElementsByName[name];
-         link != null && !link.isEmpty;
-         link = link.tail) {
-      pretendElementWasUsed(link.head, elements);
-    }
+    compiler.backend.registerConstSymbol(name, elements);
   }
 
   void pretendElementWasUsed(Element element, TreeElements elements) {
@@ -367,27 +345,28 @@ abstract class Enqueuer {
             element.asFunctionElement().requiredParameterCount(compiler);
         Selector selector =
             new Selector.call(element.name, element.getLibrary(), arity);
-        registerInvocation(element.name, selector);
+        registerInvocation(selector);
       } else if (element.isSetter()) {
         Selector selector =
             new Selector.setter(element.name, element.getLibrary());
-        registerInvokedSetter(element.name, selector);
+        registerInvokedSetter(selector);
       } else if (element.isGetter()) {
         Selector selector =
             new Selector.getter(element.name, element.getLibrary());
-        registerInvokedGetter(element.name, selector);
+        registerInvokedGetter(selector);
       } else if (element.isField()) {
         Selector selector =
             new Selector.setter(element.name, element.getLibrary());
-        registerInvokedSetter(element.name, selector);
+        registerInvokedSetter(selector);
         selector = new Selector.getter(element.name, element.getLibrary());
-        registerInvokedGetter(element.name, selector);
+        registerInvokedGetter(selector);
       }
     }
   }
 
   /// Called when [:new Symbol(...):] is seen.
   void registerNewSymbol(TreeElements elements) {
+    compiler.backend.registerNewSymbol(elements);
   }
 
   void enqueueEverything() {
@@ -408,11 +387,15 @@ abstract class Enqueuer {
     String memberName = n.slowToString();
     Link<Element> members = map[memberName];
     if (members != null) {
+      // [f] might add elements to [: map[memberName] :] during the loop below
+      // so we create a new list for [: map[memberName] :] and prepend the
+      // [remaining] members after the loop.
+      map[memberName] = const Link<Element>();
       LinkBuilder<Element> remaining = new LinkBuilder<Element>();
       for (; !members.isEmpty; members = members.tail) {
         if (!f(members.head)) remaining.addLast(members.head);
       }
-      map[memberName] = remaining.toLink();
+      map[memberName] = remaining.toLink(map[memberName]);
     }
   }
 
@@ -427,6 +410,9 @@ abstract class Enqueuer {
   void handleUnseenSelector(SourceString methodName, Selector selector) {
     processInstanceMembers(methodName, (Element member) {
       if (selector.appliesUnnamed(member, compiler)) {
+        if (member.isFunction() && selector.isGetter()) {
+          registerClosurizedMember(member, compiler.globalDependencies);
+        }
         if (member.isField() && member.getEnclosingClass().isNative()) {
           if (selector.isGetter() || selector.isCall()) {
             nativeEnqueuer.registerFieldLoad(member);
@@ -453,11 +439,7 @@ abstract class Enqueuer {
     if (selector.isGetter()) {
       processInstanceFunctions(methodName, (Element member) {
         if (selector.appliesUnnamed(member, compiler)) {
-          // We will emit a closure, so make sure the bound closure class is
-          // generated.
-          registerInstantiatedClass(compiler.boundClosureClass,
-                                    // Precise dependency is not important here.
-                                    compiler.globalDependencies);
+          registerBoundClosure();
           return true;
         }
         return false;
@@ -484,49 +466,27 @@ abstract class Enqueuer {
     universe.staticFunctionsNeedingGetter.add(element);
   }
 
-  void registerDynamicInvocation(SourceString methodName, Selector selector) {
+  void registerDynamicInvocation(Selector selector) {
     assert(selector != null);
-    registerInvocation(methodName, selector);
-  }
-
-  void registerDynamicInvocationOf(Element element, Selector selector) {
-    assert(selector.isCall()
-           || selector.isOperator()
-           || selector.isIndex()
-           || selector.isIndexSet());
-    if (element.isFunction() || element.isGetter()) {
-      addToWorkList(element);
-    } else if (element.isAbstractField()) {
-      AbstractFieldElement field = element;
-      // Since the invocation is a dynamic call on a getter, we only
-      // need to schedule the getter on the work list.
-      addToWorkList(field.getter);
-    } else {
-      assert(element.isField());
-    }
-    // We also need to add the selector to the invoked names map,
-    // because the emitter uses that map to generate parameter stubs.
-    Set<Selector> selectors = universe.invokedNames.putIfAbsent(
-        element.name, () => new Set<Selector>());
-    selectors.add(selector);
+    registerInvocation(selector);
   }
 
   void registerSelectorUse(Selector selector) {
     if (selector.isGetter()) {
-      registerInvokedGetter(selector.name, selector);
+      registerInvokedGetter(selector);
     } else if (selector.isSetter()) {
-      registerInvokedSetter(selector.name, selector);
+      registerInvokedSetter(selector);
     } else {
-      registerInvocation(selector.name, selector);
+      registerInvocation(selector);
     }
   }
 
-  void registerDynamicGetter(SourceString methodName, Selector selector) {
-    registerInvokedGetter(methodName, selector);
+  void registerDynamicGetter(Selector selector) {
+    registerInvokedGetter(selector);
   }
 
-  void registerDynamicSetter(SourceString methodName, Selector selector) {
-    registerInvokedSetter(methodName, selector);
+  void registerDynamicSetter(Selector selector) {
+    registerInvokedSetter(selector);
   }
 
   void registerFieldGetter(Element element) {
@@ -538,12 +498,12 @@ abstract class Enqueuer {
   }
 
   void registerIsCheck(DartType type, TreeElements elements) {
+    type = universe.registerIsCheck(type, compiler);
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check
     // against the type variable of a typedef.
     assert(type.kind != TypeKind.TYPE_VARIABLE ||
            !type.element.enclosingElement.isTypedef());
-    universe.isChecks.add(type);
     compiler.backend.registerIsCheck(type, this, elements);
   }
 
@@ -559,6 +519,32 @@ abstract class Enqueuer {
   void registerAsCheck(DartType type, TreeElements elements) {
     registerIsCheck(type, elements);
     compiler.backend.registerAsCheck(type, elements);
+  }
+
+  void registerGenericCallMethod(Element element, TreeElements elements) {
+    compiler.backend.registerGenericCallMethod(element, this, elements);
+    universe.genericCallMethods.add(element);
+  }
+
+  void registerBoundClosure() {
+    registerInstantiatedClass(compiler.boundClosureClass,
+                              // Precise dependency is not important here.
+                              compiler.globalDependencies);
+  }
+
+  void registerClosurizedMember(Element element, TreeElements elements) {
+    if (element.computeType(compiler).containsTypeVariables) {
+      registerClosurizedGenericMember(element, elements);
+    } else {
+      registerBoundClosure();
+    }
+    universe.closurizedMembers.add(element);
+  }
+
+  void registerClosurizedGenericMember(Element element, TreeElements elements) {
+    registerBoundClosure();
+    compiler.backend.registerGenericClosure(element, this, elements);
+    universe.closurizedGenericMembers.add(element);
   }
 
   void forEach(f(WorkItem work));
@@ -655,7 +641,7 @@ class ResolutionEnqueuer extends Enqueuer {
       // runtime type.
       compiler.enabledRuntimeType = true;
       // TODO(ahe): Record precise dependency here.
-      compiler.backend.registerRuntimeType(compiler.globalDependencies);
+      compiler.backend.registerRuntimeType(this, compiler.globalDependencies);
     } else if (element == compiler.functionApplyMethod) {
       compiler.enabledFunctionApply = true;
     } else if (element == compiler.invokeOnMethod) {
@@ -683,7 +669,7 @@ class ResolutionEnqueuer extends Enqueuer {
 
     Selector selector = compiler.noSuchMethodSelector;
     compiler.enabledNoSuchMethod = true;
-    registerInvocation(Compiler.NO_SUCH_METHOD, selector);
+    registerInvocation(selector);
 
     compiler.createInvocationMirrorElement =
         compiler.findHelper(Compiler.CREATE_INVOCATION_MIRROR);

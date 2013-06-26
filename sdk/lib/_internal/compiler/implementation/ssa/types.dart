@@ -120,14 +120,11 @@ abstract class HType {
   }
 
   // [type] is either an instance of [DartType] or special objects
-  // like [native.SpecialType.JsObject], or [native.SpecialType.JsArray].
+  // like [native.SpecialType.JsObject].
   static HType fromNativeType(type, Compiler compiler) {
     if (type == native.SpecialType.JsObject) {
       return new HType.nonNullExact(
           compiler.objectClass.computeType(compiler), compiler);
-    } else if (type == native.SpecialType.JsArray) {
-      JavaScriptBackend backend = compiler.backend;
-      return backend.readableArrayType;
     } else if (type.isVoid) {
       return HType.NULL;
     } else if (type.element == compiler.nullClass) {

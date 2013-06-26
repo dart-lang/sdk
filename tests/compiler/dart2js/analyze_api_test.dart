@@ -20,7 +20,7 @@ import 'analyze_helper.dart';
 // TODO(johnniwinther): Support canonical URIs as keys and message kinds as
 // values.
 const Map<String, List<String>> WHITE_LIST = const {
-  'html_dart2js.dart':
+  'path_observer.dart':
       const ['Warning: Using "new Symbol"', // Issue 10565.
             ],
 };

@@ -86,22 +86,22 @@ void generateIndividualMessageFile(String locale,
   var result = new StringBuffer();
   locale = new IntlMessage().escapeAndValidate(locale, locale);
   result.write(prologue(locale));
-  for (var each in translations) {
-    var message = each.originalMessage;
-    if (each.message != null) {
-      message.addTranslation(locale, each.message);
-    }
+  // Exclude messages with no translation and translations with no matching
+  // original message (e.g. if we're using some messages from a larger catalog)
+  var usableTranslations =  translations.where(
+      (each) => each.originalMessage != null && each.message != null).toList();
+  for (var each in usableTranslations) {
+      each.originalMessage.addTranslation(locale, each.message);
   }
-  var sorted = translations.where((each) => each.message != null).toList();
-  sorted.sort((a, b) =>
+  usableTranslations.sort((a, b) =>
       a.originalMessage.name.compareTo(b.originalMessage.name));
-  for (var each in sorted) {
+  for (var each in usableTranslations) {
     result.write("  ");
     result.write(each.originalMessage.toCode(locale));
     result.write("\n\n");
   }
   result.write("\n  final messages = const {\n");
-  var entries = sorted
+  var entries = usableTranslations
       .map((translation) => translation.originalMessage.name)
       .map((name) => "    \"$name\" : $name");
   result.write(entries.join(",\n"));

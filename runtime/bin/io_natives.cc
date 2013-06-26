@@ -21,7 +21,6 @@ namespace bin {
 // builtin_natives.cc instead.
 #define IO_NATIVE_LIST(V)                                                      \
   V(Common_IsBuiltinList, 1)                                                   \
-  V(Common_GetVersion, 1)                                                      \
   V(Crypto_GetRandomBytes, 1)                                                  \
   V(EventHandler_Start, 1)                                                     \
   V(EventHandler_SendData, 4)                                                  \
@@ -36,6 +35,7 @@ namespace bin {
   V(Platform_PathSeparator, 0)                                                 \
   V(Platform_LocalHostname, 0)                                                 \
   V(Platform_Environment, 0)                                                   \
+  V(Platform_GetVersion, 0)                                                    \
   V(Process_Start, 10)                                                         \
   V(Process_Kill, 3)                                                           \
   V(Process_SetExitCode, 1)                                                    \
@@ -47,7 +47,6 @@ namespace bin {
   V(Socket_CreateConnect, 3)                                                   \
   V(Socket_Available, 1)                                                       \
   V(Socket_Read, 2)                                                            \
-  V(Socket_ReadList, 4)                                                        \
   V(Socket_WriteList, 4)                                                       \
   V(Socket_GetPort, 1)                                                         \
   V(Socket_GetRemotePeer, 1)                                                   \
@@ -56,15 +55,16 @@ namespace bin {
   V(Socket_NewServicePort, 0)                                                  \
   V(Socket_GetType, 1)                                                         \
   V(Socket_SetOption, 3)                                                       \
-  V(SecureSocket_Connect, 8)                                                   \
+  V(SecureSocket_Connect, 9)                                                   \
   V(SecureSocket_Destroy, 1)                                                   \
   V(SecureSocket_Handshake, 1)                                                 \
   V(SecureSocket_Init, 1)                                                      \
   V(SecureSocket_PeerCertificate, 1)                                           \
-  V(SecureSocket_ProcessBuffer, 2)                                             \
   V(SecureSocket_RegisterBadCertificateCallback, 2)                            \
   V(SecureSocket_RegisterHandshakeCompleteCallback, 2)                         \
   V(SecureSocket_InitializeLibrary, 3)                                         \
+  V(SecureSocket_NewServicePort, 0)                                            \
+  V(SecureSocket_FilterPointer, 1)                                             \
   V(StringToSystemEncoding, 1)                                                 \
   V(SystemEncodingToString, 1)
 

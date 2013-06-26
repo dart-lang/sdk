@@ -242,6 +242,37 @@ TEST_CASE(InstanceValues) {
 }
 
 
+TEST_CASE(InstanceGetType) {
+  Isolate* isolate = Isolate::Current();
+  // Get the handle from a valid instance handle.
+  Dart_Handle type = Dart_InstanceGetType(Dart_Null());
+  EXPECT_VALID(type);
+  EXPECT(Dart_IsType(type));
+  const Type& null_type_obj = Api::UnwrapTypeHandle(isolate, type);
+  EXPECT(null_type_obj.raw() == Type::NullType());
+
+  Dart_Handle instance = Dart_True();
+  type = Dart_InstanceGetType(instance);
+  EXPECT_VALID(type);
+  EXPECT(Dart_IsType(type));
+  const Type& bool_type_obj = Api::UnwrapTypeHandle(isolate, type);
+  EXPECT(bool_type_obj.raw() == Type::BoolType());
+
+  // Errors propagate.
+  Dart_Handle error = Dart_NewApiError("MyError");
+  Dart_Handle error_type = Dart_InstanceGetType(error);
+  EXPECT_ERROR(error_type, "MyError");
+
+  // Get the handle from a non-instance handle
+  Dart_Handle obj = Api::NewHandle(isolate,
+                                   isolate->object_store()->type_class());
+  Dart_Handle type_type = Dart_InstanceGetType(obj);
+  EXPECT_ERROR(type_type,
+               "Dart_InstanceGetType expects argument 'instance' to be of "
+               "type Instance.");
+}
+
+
 TEST_CASE(InstanceGetClass) {
   // Get the handle from a valid instance handle.
   Dart_Handle instance = Dart_True();
@@ -2711,11 +2742,11 @@ TEST_CASE(ClassTypedefsEtc) {
                "class 'SomeClass' is not a function-type class.");
 }
 
-#define CHECK_ABSTRACT_CLASS(handle, name)                                     \
+#define CHECK_CLASS(handle, name)                                              \
   {                                                                            \
     Dart_Handle tmp = (handle);                                                \
     EXPECT_VALID(tmp);                                                         \
-    EXPECT(Dart_IsAbstractClass(tmp));                                         \
+    EXPECT(Dart_IsClass(tmp));                                                 \
     Dart_Handle intf_name = Dart_ClassName(tmp);                               \
     EXPECT_VALID(intf_name);                                                   \
     const char* intf_name_cstr = "";                                           \
@@ -2758,7 +2789,7 @@ TEST_CASE(ClassGetInterfaces) {
   len = -1;
   EXPECT_VALID(Dart_ClassGetInterfaceCount(cls1, &len));
   EXPECT_EQ(1, len);
-  CHECK_ABSTRACT_CLASS(Dart_ClassGetInterfaceAt(cls1, 0), "MyInterface1");
+  CHECK_CLASS(Dart_ClassGetInterfaceAt(cls1, 0), "MyInterface1");
 
   EXPECT_ERROR(Dart_ClassGetInterfaceAt(cls1, -1),
                "Dart_ClassGetInterfaceAt: argument 'index' out of bounds");
@@ -2770,8 +2801,8 @@ TEST_CASE(ClassGetInterfaces) {
   EXPECT_EQ(2, len);
 
   // TODO(turnidge): The test relies on the ordering here.  Sort this.
-  CHECK_ABSTRACT_CLASS(Dart_ClassGetInterfaceAt(cls2, 0), "MyInterface0");
-  CHECK_ABSTRACT_CLASS(Dart_ClassGetInterfaceAt(cls2, 1), "MyInterface1");
+  CHECK_CLASS(Dart_ClassGetInterfaceAt(cls2, 0), "MyInterface0");
+  CHECK_CLASS(Dart_ClassGetInterfaceAt(cls2, 1), "MyInterface1");
 
   len = -1;
   EXPECT_VALID(Dart_ClassGetInterfaceCount(intf0, &len));
@@ -2780,7 +2811,7 @@ TEST_CASE(ClassGetInterfaces) {
   len = -1;
   EXPECT_VALID(Dart_ClassGetInterfaceCount(intf1, &len));
   EXPECT_EQ(1, len);
-  CHECK_ABSTRACT_CLASS(Dart_ClassGetInterfaceAt(intf1, 0), "MyInterface0");
+  CHECK_CLASS(Dart_ClassGetInterfaceAt(intf1, 0), "MyInterface0");
 
   // Error cases.
   EXPECT_ERROR(Dart_ClassGetInterfaceCount(Dart_True(), &len),
@@ -2788,6 +2819,208 @@ TEST_CASE(ClassGetInterfaces) {
                "type Class.");
   EXPECT_ERROR(Dart_ClassGetInterfaceCount(Dart_NewApiError("MyError"), &len),
                "MyError");
+}
+
+
+TEST_CASE(TypeGetNonParamtericTypes) {
+  const char* kScriptChars =
+      "class MyClass0 {\n"
+      "}\n"
+      "\n"
+      "class MyClass1 implements MyInterface1 {\n"
+      "}\n"
+      "\n"
+      "class MyClass2 implements MyInterface0, MyInterface1 {\n"
+      "}\n"
+      "\n"
+      "abstract class MyInterface0 {\n"
+      "}\n"
+      "\n"
+      "abstract class MyInterface1 implements MyInterface0 {\n"
+      "}\n"
+      "MyClass0 getMyClass0() { return new MyClass0(); }\n"
+      "MyClass1 getMyClass1() { return new MyClass1(); }\n"
+      "MyClass2 getMyClass2() { return new MyClass2(); }\n"
+      "Type getMyClass0Type() { return new MyClass0().runtimeType; }\n"
+      "Type getMyClass1Type() { return new MyClass1().runtimeType; }\n"
+      "Type getMyClass2Type() { return new MyClass2().runtimeType; }\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  bool instanceof = false;
+
+  // First get the type objects of these non parameterized types.
+  Dart_Handle type0 = Dart_GetType(lib, NewString("MyClass0"), 0, NULL);
+  EXPECT_VALID(type0);
+  Dart_Handle type1 = Dart_GetType(lib, NewString("MyClass1"), 0, NULL);
+  EXPECT_VALID(type1);
+  Dart_Handle type2 = Dart_GetType(lib, NewString("MyClass2"), 0, NULL);
+  EXPECT_VALID(type2);
+  Dart_Handle type3 = Dart_GetType(lib, NewString("MyInterface0"), 0, NULL);
+  EXPECT_VALID(type3);
+  Dart_Handle type4 = Dart_GetType(lib, NewString("MyInterface1"), 0, NULL);
+  EXPECT_VALID(type4);
+
+  // Now create objects of these non parameterized types and check
+  // that the validity of the type of the created object.
+  // MyClass0 type.
+  Dart_Handle type0_obj = Dart_Invoke(lib, NewString("getMyClass0"), 0, NULL);
+  EXPECT_VALID(type0_obj);
+  EXPECT_VALID(Dart_ObjectIsType(type0_obj, type0, &instanceof));
+  EXPECT(instanceof);
+  EXPECT_VALID(Dart_ObjectIsType(type0_obj, type1, &instanceof));
+  EXPECT(!instanceof);
+  EXPECT_VALID(Dart_ObjectIsType(type0_obj, type2, &instanceof));
+  EXPECT(!instanceof);
+  EXPECT_VALID(Dart_ObjectIsType(type0_obj, type3, &instanceof));
+  EXPECT(!instanceof);
+  EXPECT_VALID(Dart_ObjectIsType(type0_obj, type4, &instanceof));
+  EXPECT(!instanceof);
+  type0_obj = Dart_Invoke(lib, NewString("getMyClass0Type"), 0, NULL);
+  EXPECT_VALID(type0_obj);
+  EXPECT(Dart_IdentityEquals(type0, type0_obj));
+
+  // MyClass1 type.
+  Dart_Handle type1_obj = Dart_Invoke(lib, NewString("getMyClass1"), 0, NULL);
+  EXPECT_VALID(type1_obj);
+  EXPECT_VALID(Dart_ObjectIsType(type1_obj, type1, &instanceof));
+  EXPECT(instanceof);
+  EXPECT_VALID(Dart_ObjectIsType(type1_obj, type0, &instanceof));
+  EXPECT(!instanceof);
+  EXPECT_VALID(Dart_ObjectIsType(type1_obj, type2, &instanceof));
+  EXPECT(!instanceof);
+  EXPECT_VALID(Dart_ObjectIsType(type1_obj, type3, &instanceof));
+  EXPECT(instanceof);
+  EXPECT_VALID(Dart_ObjectIsType(type1_obj, type4, &instanceof));
+  EXPECT(instanceof);
+  type1_obj = Dart_Invoke(lib, NewString("getMyClass1Type"), 0, NULL);
+  EXPECT_VALID(type1_obj);
+  EXPECT(Dart_IdentityEquals(type1, type1_obj));
+
+  // MyClass2 type.
+  Dart_Handle type2_obj = Dart_Invoke(lib, NewString("getMyClass2"), 0, NULL);
+  EXPECT_VALID(type2_obj);
+  EXPECT_VALID(Dart_ObjectIsType(type2_obj, type2, &instanceof));
+  EXPECT(instanceof);
+  EXPECT_VALID(Dart_ObjectIsType(type2_obj, type0, &instanceof));
+  EXPECT(!instanceof);
+  EXPECT_VALID(Dart_ObjectIsType(type2_obj, type1, &instanceof));
+  EXPECT(!instanceof);
+  EXPECT_VALID(Dart_ObjectIsType(type2_obj, type3, &instanceof));
+  EXPECT(instanceof);
+  EXPECT_VALID(Dart_ObjectIsType(type2_obj, type4, &instanceof));
+  EXPECT(instanceof);
+  type2_obj = Dart_Invoke(lib, NewString("getMyClass2Type"), 0, NULL);
+  EXPECT_VALID(type2_obj);
+  EXPECT(Dart_IdentityEquals(type2, type2_obj));
+}
+
+
+TEST_CASE(TypeGetParamterizedTypes) {
+  const char* kScriptChars =
+      "class MyClass0<A, B> {\n"
+      "}\n"
+      "\n"
+      "class MyClass1<A, C> {\n"
+      "}\n"
+      "MyClass0 getMyClass0() {\n"
+      "  return new MyClass0<int, double>();\n"
+      "}\n"
+      "Type getMyClass0Type() {\n"
+      "  return new MyClass0<int, double>().runtimeType;\n"
+      "}\n"
+      "MyClass1 getMyClass1() {\n"
+      "  return new MyClass1<List<int>, List>();\n"
+      "}\n"
+      "Type getMyClass1Type() {\n"
+      "  return new MyClass1<List<int>, List>().runtimeType;\n"
+      "}\n"
+      "MyClass0 getMyClass0_1() {\n"
+      "  return new MyClass0<double, int>();\n"
+      "}\n"
+      "Type getMyClass0_1Type() {\n"
+      "  return new MyClass0<double, int>().runtimeType;\n"
+      "}\n"
+      "MyClass1 getMyClass1_1() {\n"
+      "  return new MyClass1<List<int>, List<double>>();\n"
+      "}\n"
+      "Type getMyClass1_1Type() {\n"
+      "  return new MyClass1<List<int>, List<double>>().runtimeType;\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  bool instanceof = false;
+
+  // First get type objects of some of the basic types used in the test.
+  Dart_Handle int_type = Dart_GetType(lib, NewString("int"), 0, NULL);
+  EXPECT_VALID(int_type);
+  Dart_Handle double_type = Dart_GetType(lib, NewString("double"), 0, NULL);
+  EXPECT_VALID(double_type);
+  Dart_Handle list_type = Dart_GetType(lib, NewString("List"), 0, NULL);
+  EXPECT_VALID(list_type);
+  Dart_Handle type_args = Dart_NewList(1);
+  EXPECT_VALID(Dart_ListSetAt(type_args, 0, int_type));
+  Dart_Handle list_int_type = Dart_GetType(lib,
+                                           NewString("List"),
+                                           1,
+                                           &type_args);
+  EXPECT_VALID(list_int_type);
+
+  // Now instantiate MyClass0 and MyClass1 types with the same type arguments
+  // used in the code above.
+  type_args = Dart_NewList(2);
+  EXPECT_VALID(Dart_ListSetAt(type_args, 0, int_type));
+  EXPECT_VALID(Dart_ListSetAt(type_args, 1, double_type));
+  Dart_Handle myclass0_type = Dart_GetType(lib,
+                                           NewString("MyClass0"),
+                                           2,
+                                           &type_args);
+  EXPECT_VALID(myclass0_type);
+
+  type_args = Dart_NewList(2);
+  EXPECT_VALID(Dart_ListSetAt(type_args, 0, list_int_type));
+  EXPECT_VALID(Dart_ListSetAt(type_args, 1, list_type));
+  Dart_Handle myclass1_type = Dart_GetType(lib,
+                                           NewString("MyClass1"),
+                                           2,
+                                           &type_args);
+  EXPECT_VALID(myclass1_type);
+
+  // Now create objects of the type and validate the object type matches
+  // the one returned above. Also get the runtime type of the object and
+  // verify that it matches the type returned above.
+  // MyClass0<int, double> type.
+  Dart_Handle type0_obj = Dart_Invoke(lib, NewString("getMyClass0"), 0, NULL);
+  EXPECT_VALID(type0_obj);
+  EXPECT_VALID(Dart_ObjectIsType(type0_obj, myclass0_type, &instanceof));
+  EXPECT(instanceof);
+  type0_obj = Dart_Invoke(lib, NewString("getMyClass0Type"), 0, NULL);
+  EXPECT_VALID(type0_obj);
+  EXPECT(Dart_IdentityEquals(type0_obj, myclass0_type));
+
+  // MyClass1<List<int>, List> type.
+  Dart_Handle type1_obj = Dart_Invoke(lib, NewString("getMyClass1"), 0, NULL);
+  EXPECT_VALID(type1_obj);
+  EXPECT_VALID(Dart_ObjectIsType(type1_obj, myclass1_type, &instanceof));
+  EXPECT(instanceof);
+  type1_obj = Dart_Invoke(lib, NewString("getMyClass1Type"), 0, NULL);
+  EXPECT_VALID(type1_obj);
+  EXPECT(Dart_IdentityEquals(type1_obj, myclass1_type));
+
+  // MyClass0<double, int> type.
+  type0_obj = Dart_Invoke(lib, NewString("getMyClass0_1"), 0, NULL);
+  EXPECT_VALID(type0_obj);
+  EXPECT_VALID(Dart_ObjectIsType(type0_obj, myclass0_type, &instanceof));
+  EXPECT(!instanceof);
+  type0_obj = Dart_Invoke(lib, NewString("getMyClass0_1Type"), 0, NULL);
+  EXPECT_VALID(type0_obj);
+  EXPECT(!Dart_IdentityEquals(type0_obj, myclass0_type));
+
+  // MyClass1<List<int>, List<double>> type.
+  type1_obj = Dart_Invoke(lib, NewString("getMyClass1_1"), 0, NULL);
+  EXPECT_VALID(type1_obj);
+  EXPECT_VALID(Dart_ObjectIsType(type1_obj, myclass1_type, &instanceof));
+  EXPECT(instanceof);
+  type1_obj = Dart_Invoke(lib, NewString("getMyClass1_1Type"), 0, NULL);
+  EXPECT_VALID(type1_obj);
+  EXPECT(!Dart_IdentityEquals(type1_obj, myclass1_type));
 }
 
 
@@ -2923,8 +3156,8 @@ TEST_CASE(FieldAccess) {
 
   // Shared setup.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle cls = Dart_GetClass(lib, NewString("Fields"));
-  EXPECT_VALID(cls);
+  Dart_Handle type = Dart_GetType(lib, NewString("Fields"), 0, NULL);
+  EXPECT_VALID(type);
   Dart_Handle instance = Dart_Invoke(lib, NewString("test"), 0, NULL);
   EXPECT_VALID(instance);
   Dart_Handle name;
@@ -2943,144 +3176,144 @@ TEST_CASE(FieldAccess) {
   // Instance field.
   name = NewString("instance_fld");
   TestFieldNotFound(lib, name);
-  TestFieldNotFound(cls, name);
+  TestFieldNotFound(type, name);
   TestFieldOk(instance, name, false, "instance");
 
   // Hidden instance field.
   name = NewString("_instance_fld");
   TestFieldNotFound(lib, name);
-  TestFieldNotFound(cls, name);
+  TestFieldNotFound(type, name);
   TestFieldOk(instance, name, false, "hidden instance");
 
   // Final instance field.
   name = NewString("final_instance_fld");
   TestFieldNotFound(lib, name);
-  TestFieldNotFound(cls, name);
+  TestFieldNotFound(type, name);
   TestFieldOk(instance, name, true, "final instance");
 
   // Hidden final instance field.
   name = NewString("_final_instance_fld");
   TestFieldNotFound(lib, name);
-  TestFieldNotFound(cls, name);
+  TestFieldNotFound(type, name);
   TestFieldOk(instance, name, true, "hidden final instance");
 
   // Inherited field.
   name = NewString("inherited_fld");
   TestFieldNotFound(lib, name);
-  TestFieldNotFound(cls, name);
+  TestFieldNotFound(type, name);
   TestFieldOk(instance, name, false, "inherited");
 
   // Instance get/set field.
   name = NewString("instance_getset_fld");
   TestFieldNotFound(lib, name);
-  TestFieldNotFound(cls, name);
+  TestFieldNotFound(type, name);
   TestFieldOk(instance, name, false, "instance getset");
 
   // Hidden instance get/set field.
   name = NewString("_instance_getset_fld");
   TestFieldNotFound(lib, name);
-  TestFieldNotFound(cls, name);
+  TestFieldNotFound(type, name);
   TestFieldOk(instance, name, false, "hidden instance getset");
 
   // Static field.
   name = NewString("static_fld");
   TestFieldNotFound(lib, name);
   TestFieldNotFound(instance, name);
-  TestFieldOk(cls, name, false, "static");
+  TestFieldOk(type, name, false, "static");
 
   // Hidden static field.
   name = NewString("_static_fld");
   TestFieldNotFound(lib, name);
   TestFieldNotFound(instance, name);
-  TestFieldOk(cls, name, false, "hidden static");
+  TestFieldOk(type, name, false, "hidden static");
 
   // Static final field.
   name = NewString("const_static_fld");
   TestFieldNotFound(lib, name);
   TestFieldNotFound(instance, name);
-  TestFieldOk(cls, name, true, "const static");
+  TestFieldOk(type, name, true, "const static");
 
   // Hidden static const field.
   name = NewString("_const_static_fld");
   TestFieldNotFound(lib, name);
   TestFieldNotFound(instance, name);
-  TestFieldOk(cls, name, true, "hidden const static");
+  TestFieldOk(type, name, true, "hidden const static");
 
   // Static non-inherited field.  Not found at any level.
   name = NewString("non_inherited_fld");
   TestFieldNotFound(lib, name);
   TestFieldNotFound(instance, name);
-  TestFieldNotFound(cls, name);
+  TestFieldNotFound(type, name);
 
   // Static get/set field.
   name = NewString("static_getset_fld");
   TestFieldNotFound(lib, name);
   TestFieldNotFound(instance, name);
-  TestFieldOk(cls, name, false, "static getset");
+  TestFieldOk(type, name, false, "static getset");
 
   // Hidden static get/set field.
   name = NewString("_static_getset_fld");
   TestFieldNotFound(lib, name);
   TestFieldNotFound(instance, name);
-  TestFieldOk(cls, name, false, "hidden static getset");
+  TestFieldOk(type, name, false, "hidden static getset");
 
   // Top-Level field.
   name = NewString("top_fld");
-  TestFieldNotFound(cls, name);
+  TestFieldNotFound(type, name);
   TestFieldNotFound(instance, name);
   TestFieldOk(lib, name, false, "top");
 
   // Hidden top-level field.
   name = NewString("_top_fld");
-  TestFieldNotFound(cls, name);
+  TestFieldNotFound(type, name);
   TestFieldNotFound(instance, name);
   TestFieldOk(lib, name, false, "hidden top");
 
   // Top-Level final field.
   name = NewString("const_top_fld");
-  TestFieldNotFound(cls, name);
+  TestFieldNotFound(type, name);
   TestFieldNotFound(instance, name);
   TestFieldOk(lib, name, true, "const top");
 
   // Hidden top-level final field.
   name = NewString("_const_top_fld");
-  TestFieldNotFound(cls, name);
+  TestFieldNotFound(type, name);
   TestFieldNotFound(instance, name);
   TestFieldOk(lib, name, true, "hidden const top");
 
   // Top-Level get/set field.
   name = NewString("top_getset_fld");
-  TestFieldNotFound(cls, name);
+  TestFieldNotFound(type, name);
   TestFieldNotFound(instance, name);
   TestFieldOk(lib, name, false, "top getset");
 
   // Hidden top-level get/set field.
   name = NewString("_top_getset_fld");
-  TestFieldNotFound(cls, name);
+  TestFieldNotFound(type, name);
   TestFieldNotFound(instance, name);
   TestFieldOk(lib, name, false, "hidden top getset");
 
   // Imported top-Level field.
   name = NewString("imported_fld");
-  TestFieldNotFound(cls, name);
+  TestFieldNotFound(type, name);
   TestFieldNotFound(instance, name);
   TestFieldOk(lib, name, false, "imported");
 
   // Hidden imported top-level field.  Not found at any level.
   name = NewString("_imported_fld");
-  TestFieldNotFound(cls, name);
+  TestFieldNotFound(type, name);
   TestFieldNotFound(instance, name);
   TestFieldNotFound(lib, name);
 
   // Imported top-Level get/set field.
   name = NewString("imported_getset_fld");
-  TestFieldNotFound(cls, name);
+  TestFieldNotFound(type, name);
   TestFieldNotFound(instance, name);
   TestFieldOk(lib, name, false, "imported getset");
 
   // Hidden imported top-level get/set field.  Not found at any level.
   name = NewString("_imported_getset_fld");
-  TestFieldNotFound(cls, name);
+  TestFieldNotFound(type, name);
   TestFieldNotFound(instance, name);
   TestFieldNotFound(lib, name);
 }
@@ -3588,33 +3821,33 @@ TEST_CASE(GetStaticField_RunsInitializer) {
   Dart_Handle result;
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle cls = Dart_GetClass(lib, NewString("TestClass"));
-  EXPECT_VALID(cls);
+  Dart_Handle type = Dart_GetType(lib, NewString("TestClass"), 0, NULL);
+  EXPECT_VALID(type);
 
   // Invoke a function which returns an object.
-  result = Dart_Invoke(cls, NewString("testMain"), 0, NULL);
+  result = Dart_Invoke(type, NewString("testMain"), 0, NULL);
   EXPECT_VALID(result);
 
   // For uninitialized fields, the getter is returned
-  result = Dart_GetField(cls, NewString("fld1"));
+  result = Dart_GetField(type, NewString("fld1"));
   EXPECT_VALID(result);
   int64_t value = 0;
   result = Dart_IntegerToInt64(result, &value);
   EXPECT_EQ(7, value);
 
-  result = Dart_GetField(cls, NewString("fld2"));
+  result = Dart_GetField(type, NewString("fld2"));
   EXPECT_VALID(result);
   result = Dart_IntegerToInt64(result, &value);
   EXPECT_EQ(11, value);
 
   // Overwrite fld2
-  result = Dart_SetField(cls,
+  result = Dart_SetField(type,
                          NewString("fld2"),
                          Dart_NewInteger(13));
   EXPECT_VALID(result);
 
   // We now get the new value for fld2, not the initializer
-  result = Dart_GetField(cls, NewString("fld2"));
+  result = Dart_GetField(type, NewString("fld2"));
   EXPECT_VALID(result);
   result = Dart_IntegerToInt64(result, &value);
   EXPECT_EQ(13, value);
@@ -3633,10 +3866,10 @@ TEST_CASE(GetField_CheckIsolate) {
 
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle cls = Dart_GetClass(lib, NewString("TestClass"));
-  EXPECT_VALID(cls);
+  Dart_Handle type = Dart_GetType(lib, NewString("TestClass"), 0, NULL);
+  EXPECT_VALID(type);
 
-  result = Dart_GetField(cls, NewString("fld2"));
+  result = Dart_GetField(type, NewString("fld2"));
   EXPECT_VALID(result);
   result = Dart_IntegerToInt64(result, &value);
   EXPECT_EQ(11, value);
@@ -3655,13 +3888,13 @@ TEST_CASE(SetField_CheckIsolate) {
 
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle cls = Dart_GetClass(lib, NewString("TestClass"));
-  EXPECT_VALID(cls);
+  Dart_Handle type = Dart_GetType(lib, NewString("TestClass"), 0, NULL);
+  EXPECT_VALID(type);
 
-  result = Dart_SetField(cls, NewString("fld2"), Dart_NewInteger(13));
+  result = Dart_SetField(type, NewString("fld2"), Dart_NewInteger(13));
   EXPECT_VALID(result);
 
-  result = Dart_GetField(cls, NewString("fld2"));
+  result = Dart_GetField(type, NewString("fld2"));
   EXPECT_VALID(result);
   result = Dart_IntegerToInt64(result, &value);
   EXPECT_EQ(13, value);
@@ -3697,9 +3930,9 @@ TEST_CASE(New) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle cls = Dart_GetClass(lib, NewString("MyClass"));
-  EXPECT_VALID(cls);
-  Dart_Handle intf = Dart_GetClass(lib, NewString("MyInterface"));
+  Dart_Handle type = Dart_GetType(lib, NewString("MyClass"), 0, NULL);
+  EXPECT_VALID(type);
+  Dart_Handle intf = Dart_GetType(lib, NewString("MyInterface"), 0, NULL);
   EXPECT_VALID(intf);
   Dart_Handle args[1];
   args[0] = Dart_NewInteger(11);
@@ -3707,21 +3940,30 @@ TEST_CASE(New) {
   bad_args[0] = Dart_Error("myerror");
 
   // Invoke the unnamed constructor.
-  Dart_Handle result = Dart_New(cls, Dart_Null(), 0, NULL);
+  Dart_Handle result = Dart_New(type, Dart_Null(), 0, NULL);
   EXPECT_VALID(result);
   bool instanceof = false;
-  EXPECT_VALID(Dart_ObjectIsType(result, cls, &instanceof));
+  EXPECT_VALID(Dart_ObjectIsType(result, type, &instanceof));
   EXPECT(instanceof);
   int64_t int_value = 0;
   Dart_Handle foo = Dart_GetField(result, NewString("foo"));
   EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
   EXPECT_EQ(7, int_value);
 
-  // Invoke the unnamed constructor with an empty string.
-  result = Dart_New(cls, NewString(""), 0, NULL);
+  // Allocate without a constructor.
+  result = Dart_Allocate(type);
   EXPECT_VALID(result);
   instanceof = false;
-  EXPECT_VALID(Dart_ObjectIsType(result, cls, &instanceof));
+  EXPECT_VALID(Dart_ObjectIsType(result, type, &instanceof));
+  EXPECT(instanceof);
+  foo = Dart_GetField(result, NewString("foo"));
+  EXPECT(Dart_IsNull(foo));
+
+  // Invoke the unnamed constructor with an empty string.
+  result = Dart_New(type, NewString(""), 0, NULL);
+  EXPECT_VALID(result);
+  instanceof = false;
+  EXPECT_VALID(Dart_ObjectIsType(result, type, &instanceof));
   EXPECT(instanceof);
   int_value = 0;
   foo = Dart_GetField(result, NewString("foo"));
@@ -3729,9 +3971,9 @@ TEST_CASE(New) {
   EXPECT_EQ(7, int_value);
 
   // Invoke a named constructor.
-  result = Dart_New(cls, NewString("named"), 1, args);
+  result = Dart_New(type, NewString("named"), 1, args);
   EXPECT_VALID(result);
-  EXPECT_VALID(Dart_ObjectIsType(result, cls, &instanceof));
+  EXPECT_VALID(Dart_ObjectIsType(result, type, &instanceof));
   EXPECT(instanceof);
   int_value = 0;
   foo = Dart_GetField(result, NewString("foo"));
@@ -3739,9 +3981,9 @@ TEST_CASE(New) {
   EXPECT_EQ(11, int_value);
 
   // Invoke a hidden named constructor.
-  result = Dart_New(cls, NewString("_hidden"), 1, args);
+  result = Dart_New(type, NewString("_hidden"), 1, args);
   EXPECT_VALID(result);
-  EXPECT_VALID(Dart_ObjectIsType(result, cls, &instanceof));
+  EXPECT_VALID(Dart_ObjectIsType(result, type, &instanceof));
   EXPECT(instanceof);
   int_value = 0;
   foo = Dart_GetField(result, NewString("foo"));
@@ -3749,9 +3991,9 @@ TEST_CASE(New) {
   EXPECT_EQ(-11, int_value);
 
   // Invoke a factory constructor.
-  result = Dart_New(cls, NewString("multiply"), 1, args);
+  result = Dart_New(type, NewString("multiply"), 1, args);
   EXPECT_VALID(result);
-  EXPECT_VALID(Dart_ObjectIsType(result, cls, &instanceof));
+  EXPECT_VALID(Dart_ObjectIsType(result, type, &instanceof));
   EXPECT(instanceof);
   int_value = 0;
   foo = Dart_GetField(result, NewString("foo"));
@@ -3759,7 +4001,7 @@ TEST_CASE(New) {
   EXPECT_EQ(1100, int_value);
 
   // Invoke a factory constructor which returns null.
-  result = Dart_New(cls, NewString("nullo"), 0, NULL);
+  result = Dart_New(type, NewString("nullo"), 0, NULL);
   EXPECT_VALID(result);
   EXPECT(Dart_IsNull(result));
 
@@ -3769,44 +4011,44 @@ TEST_CASE(New) {
 
   // Pass a bad class object.
   result = Dart_New(Dart_Null(), NewString("named"), 1, args);
-  EXPECT_ERROR(result, "Dart_New expects argument 'clazz' to be non-null.");
+  EXPECT_ERROR(result, "Dart_New expects argument 'type' to be non-null.");
 
   // Pass a negative arg count.
-  result = Dart_New(cls, NewString("named"), -1, args);
+  result = Dart_New(type, NewString("named"), -1, args);
   EXPECT_ERROR(
       result,
       "Dart_New expects argument 'number_of_arguments' to be non-negative.");
 
   // Pass the wrong arg count.
-  result = Dart_New(cls, NewString("named"), 0, NULL);
+  result = Dart_New(type, NewString("named"), 0, NULL);
   EXPECT_ERROR(
       result,
       "Dart_New: wrong argument count for constructor 'MyClass.named': "
       "0 passed, 1 expected.");
 
   // Pass a bad argument.  Error is passed through.
-  result = Dart_New(cls, NewString("named"), 1, bad_args);
+  result = Dart_New(type, NewString("named"), 1, bad_args);
   EXPECT_ERROR(result, "myerror");
 
   // Pass a bad constructor name.
-  result = Dart_New(cls, Dart_NewInteger(55), 1, args);
+  result = Dart_New(type, Dart_NewInteger(55), 1, args);
   EXPECT_ERROR(
       result,
       "Dart_New expects argument 'constructor_name' to be of type String.");
 
   // Invoke a missing constructor.
-  result = Dart_New(cls, NewString("missing"), 1, args);
+  result = Dart_New(type, NewString("missing"), 1, args);
   EXPECT_ERROR(result,
                "Dart_New: could not find constructor 'MyClass.missing'.");
 
   // Invoke a constructor which throws an exception.
-  result = Dart_New(cls, NewString("exception"), 1, args);
+  result = Dart_New(type, NewString("exception"), 1, args);
   EXPECT_ERROR(result, "ConstructorDeath");
 
   // Invoke two-hop redirecting factory constructor.
   result = Dart_New(intf, NewString("named"), 1, args);
   EXPECT_VALID(result);
-  EXPECT_VALID(Dart_ObjectIsType(result, cls, &instanceof));
+  EXPECT_VALID(Dart_ObjectIsType(result, type, &instanceof));
   EXPECT(instanceof);
   int_value = 0;
   foo = Dart_GetField(result, NewString("foo"));
@@ -3816,7 +4058,7 @@ TEST_CASE(New) {
   // Invoke one-hop redirecting factory constructor.
   result = Dart_New(intf, NewString("multiply"), 1, args);
   EXPECT_VALID(result);
-  EXPECT_VALID(Dart_ObjectIsType(result, cls, &instanceof));
+  EXPECT_VALID(Dart_ObjectIsType(result, type, &instanceof));
   EXPECT(instanceof);
   int_value = 0;
   foo = Dart_GetField(result, NewString("foo"));
@@ -3831,7 +4073,7 @@ TEST_CASE(New) {
   // Invoke abstract constructor that is present in the interface.
   result = Dart_New(intf, NewString("notfound"), 1, args);
   EXPECT_VALID(result);
-  EXPECT_VALID(Dart_ObjectIsType(result, cls, &instanceof));
+  EXPECT_VALID(Dart_ObjectIsType(result, type, &instanceof));
   EXPECT(!instanceof);
 }
 
@@ -3842,13 +4084,13 @@ TEST_CASE(New_Issue2971) {
   // factories.
   Dart_Handle core_lib = Dart_LookupLibrary(NewString("dart:core"));
   EXPECT_VALID(core_lib);
-  Dart_Handle list_class = Dart_GetClass(core_lib, NewString("List"));
-  EXPECT_VALID(list_class);
+  Dart_Handle list_type = Dart_GetType(core_lib, NewString("List"), 0, NULL);
+  EXPECT_VALID(list_type);
 
   const int kNumArgs = 1;
   Dart_Handle args[kNumArgs];
   args[0] = Dart_NewInteger(1);
-  Dart_Handle list_obj = Dart_New(list_class, Dart_Null(), kNumArgs, args);
+  Dart_Handle list_obj = Dart_New(list_type, Dart_Null(), kNumArgs, args);
   EXPECT_VALID(list_obj);
   EXPECT(Dart_IsList(list_obj));
 }
@@ -3886,8 +4128,8 @@ TEST_CASE(Invoke) {
 
   // Shared setup.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle cls = Dart_GetClass(lib, NewString("Methods"));
-  EXPECT_VALID(cls);
+  Dart_Handle type = Dart_GetType(lib, NewString("Methods"), 0, NULL);
+  EXPECT_VALID(type);
   Dart_Handle instance = Dart_Invoke(lib, NewString("test"), 0, NULL);
   EXPECT_VALID(instance);
   Dart_Handle args[1];
@@ -3902,7 +4144,7 @@ TEST_CASE(Invoke) {
   // Instance method.
   name = NewString("instanceMethod");
   EXPECT(Dart_IsError(Dart_Invoke(lib, name, 1, args)));
-  EXPECT(Dart_IsError(Dart_Invoke(cls, name, 1, args)));
+  EXPECT(Dart_IsError(Dart_Invoke(type, name, 1, args)));
   result = Dart_Invoke(instance, name, 1, args);
   EXPECT_VALID(result);
   result = Dart_StringToCString(result, &str);
@@ -3915,7 +4157,7 @@ TEST_CASE(Invoke) {
 
   name = PrivateLibName(lib, "_instanceMethod");
   EXPECT(Dart_IsError(Dart_Invoke(lib, name, 1, args)));
-  EXPECT(Dart_IsError(Dart_Invoke(cls, name, 1, args)));
+  EXPECT(Dart_IsError(Dart_Invoke(type, name, 1, args)));
   result = Dart_Invoke(instance, name, 1, args);
   EXPECT_VALID(result);
   result = Dart_StringToCString(result, &str);
@@ -3924,7 +4166,7 @@ TEST_CASE(Invoke) {
   // Inherited method.
   name = NewString("inheritedMethod");
   EXPECT(Dart_IsError(Dart_Invoke(lib, name, 1, args)));
-  EXPECT(Dart_IsError(Dart_Invoke(cls, name, 1, args)));
+  EXPECT(Dart_IsError(Dart_Invoke(type, name, 1, args)));
   result = Dart_Invoke(instance, name, 1, args);
   EXPECT_VALID(result);
   result = Dart_StringToCString(result, &str);
@@ -3934,20 +4176,20 @@ TEST_CASE(Invoke) {
   name = NewString("staticMethod");
   EXPECT(Dart_IsError(Dart_Invoke(lib, name, 1, args)));
   EXPECT(Dart_IsError(Dart_Invoke(instance, name, 1, args)));
-  result = Dart_Invoke(cls, name, 1, args);
+  result = Dart_Invoke(type, name, 1, args);
   EXPECT_VALID(result);
   result = Dart_StringToCString(result, &str);
   EXPECT_STREQ("static !!!", str);
 
   // Static method, wrong arg count.
-  EXPECT_ERROR(Dart_Invoke(cls, name, 2, bad_args),
+  EXPECT_ERROR(Dart_Invoke(type, name, 2, bad_args),
                "did not find static method 'Methods.staticMethod'");
 
   // Hidden static method.
   name = PrivateLibName(lib, "_staticMethod");
   EXPECT(Dart_IsError(Dart_Invoke(lib, name, 1, args)));
   EXPECT(Dart_IsError(Dart_Invoke(instance, name, 1, args)));
-  result = Dart_Invoke(cls, name, 1, args);
+  result = Dart_Invoke(type, name, 1, args);
   EXPECT_VALID(result);
   result = Dart_StringToCString(result, &str);
   EXPECT_STREQ("hidden static !!!", str);
@@ -3956,11 +4198,11 @@ TEST_CASE(Invoke) {
   name = NewString("non_inheritedMethod");
   EXPECT(Dart_IsError(Dart_Invoke(lib, name, 1, args)));
   EXPECT(Dart_IsError(Dart_Invoke(instance, name, 1, args)));
-  EXPECT(Dart_IsError(Dart_Invoke(cls, name, 1, args)));
+  EXPECT(Dart_IsError(Dart_Invoke(type, name, 1, args)));
 
   // Top-Level method.
   name = NewString("topMethod");
-  EXPECT(Dart_IsError(Dart_Invoke(cls, name, 1, args)));
+  EXPECT(Dart_IsError(Dart_Invoke(type, name, 1, args)));
   EXPECT(Dart_IsError(Dart_Invoke(instance, name, 1, args)));
   result = Dart_Invoke(lib, name, 1, args);
   EXPECT_VALID(result);
@@ -3974,7 +4216,7 @@ TEST_CASE(Invoke) {
 
   // Hidden top-level method.
   name = PrivateLibName(lib, "_topMethod");
-  EXPECT(Dart_IsError(Dart_Invoke(cls, name, 1, args)));
+  EXPECT(Dart_IsError(Dart_Invoke(type, name, 1, args)));
   EXPECT(Dart_IsError(Dart_Invoke(instance, name, 1, args)));
   result = Dart_Invoke(lib, name, 1, args);
   EXPECT_VALID(result);
@@ -4091,11 +4333,11 @@ TEST_CASE(InvokeNoSuchMethod) {
   Dart_Handle instance;
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle cls = Dart_GetClass(lib, NewString("TestClass"));
-  EXPECT_VALID(cls);
+  Dart_Handle type = Dart_GetType(lib, NewString("TestClass"), 0, NULL);
+  EXPECT_VALID(type);
 
   // Invoke a function which returns an object.
-  instance = Dart_Invoke(cls, NewString("testMain"), 0, NULL);
+  instance = Dart_Invoke(type, NewString("testMain"), 0, NULL);
   EXPECT_VALID(instance);
 
   // Try to get a field that does not exist, should call noSuchMethod.
@@ -4110,7 +4352,7 @@ TEST_CASE(InvokeNoSuchMethod) {
   result = Dart_Invoke(instance, NewString("method"), 0, NULL);
   EXPECT_VALID(result);
 
-  result = Dart_GetField(cls, NewString("fld1"));
+  result = Dart_GetField(type, NewString("fld1"));
   EXPECT_VALID(result);
   int64_t value = 0;
   result = Dart_IntegerToInt64(result, &value);
@@ -4193,8 +4435,8 @@ TEST_CASE(ClosureFunction) {
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
-  Dart_Handle cls = Dart_GetClass(lib, NewString("Foo"));
-  EXPECT_VALID(cls);
+  Dart_Handle type = Dart_GetType(lib, NewString("Foo"), 0, NULL);
+  EXPECT_VALID(type);
 
   // Invoke a function which returns a closure.
   Dart_Handle retobj = Dart_Invoke(lib, NewString("getClosure"), 0, NULL);
@@ -4235,6 +4477,9 @@ TEST_CASE(ClosureFunction) {
   EXPECT(Dart_IsFunction(result));
   owner = Dart_FunctionOwner(result);
   EXPECT_VALID(owner);
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle cls = Api::NewHandle(
+      isolate, Api::UnwrapTypeHandle(isolate, type).type_class());
   defining_function = Dart_LookupFunction(cls,
                                           NewString("getInstanceClosure"));
   EXPECT(Dart_IdentityEquals(owner, defining_function));
@@ -4479,7 +4724,7 @@ TEST_CASE(GetNativeArgumentCount) {
 }
 
 
-TEST_CASE(GetClass) {
+TEST_CASE(GetType) {
   const char* kScriptChars =
       "class Class {\n"
       "  static var name = 'Class';\n"
@@ -4492,38 +4737,38 @@ TEST_CASE(GetClass) {
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
   // Lookup a class.
-  Dart_Handle cls = Dart_GetClass(lib, NewString("Class"));
-  EXPECT_VALID(cls);
-  Dart_Handle name = Dart_GetField(cls, NewString("name"));
+  Dart_Handle type = Dart_GetType(lib, NewString("Class"), 0, NULL);
+  EXPECT_VALID(type);
+  Dart_Handle name = Dart_GetField(type, NewString("name"));
   EXPECT_VALID(name);
   const char* name_cstr = "";
   EXPECT_VALID(Dart_StringToCString(name, &name_cstr));
   EXPECT_STREQ("Class", name_cstr);
 
   // Lookup a private class.
-  cls = Dart_GetClass(lib, NewString("_Class"));
-  EXPECT_VALID(cls);
-  name = Dart_GetField(cls, NewString("name"));
+  type = Dart_GetType(lib, NewString("_Class"), 0, NULL);
+  EXPECT_VALID(type);
+  name = Dart_GetField(type, NewString("name"));
   EXPECT_VALID(name);
   name_cstr = "";
   EXPECT_VALID(Dart_StringToCString(name, &name_cstr));
   EXPECT_STREQ("_Class", name_cstr);
 
   // Lookup a class that does not exist.
-  cls = Dart_GetClass(lib, NewString("DoesNotExist"));
-  EXPECT(Dart_IsError(cls));
-  EXPECT_STREQ("Class 'DoesNotExist' not found in library 'dart:test-lib'.",
-               Dart_GetError(cls));
+  type = Dart_GetType(lib, NewString("DoesNotExist"), 0, NULL);
+  EXPECT(Dart_IsError(type));
+  EXPECT_STREQ("Type 'DoesNotExist' not found in library 'dart:test-lib'.",
+               Dart_GetError(type));
 
   // Lookup a class from an error library.  The error propagates.
-  cls = Dart_GetClass(Api::NewError("myerror"), NewString("Class"));
-  EXPECT(Dart_IsError(cls));
-  EXPECT_STREQ("myerror", Dart_GetError(cls));
+  type = Dart_GetType(Api::NewError("myerror"), NewString("Class"), 0, NULL);
+  EXPECT(Dart_IsError(type));
+  EXPECT_STREQ("myerror", Dart_GetError(type));
 
-  // Lookup a class using an error class name.  The error propagates.
-  cls = Dart_GetClass(lib, Api::NewError("myerror"));
-  EXPECT(Dart_IsError(cls));
-  EXPECT_STREQ("myerror", Dart_GetError(cls));
+  // Lookup a type using an error class name.  The error propagates.
+  type = Dart_GetType(lib, Api::NewError("myerror"), 0, NULL);
+  EXPECT(Dart_IsError(type));
+  EXPECT_STREQ("myerror", Dart_GetError(type));
 }
 
 
@@ -5221,51 +5466,51 @@ TEST_CASE(InstanceOf) {
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
   // Fetch InstanceOfTest class.
-  Dart_Handle cls = Dart_GetClass(lib, NewString("InstanceOfTest"));
-  EXPECT_VALID(cls);
+  Dart_Handle type = Dart_GetType(lib, NewString("InstanceOfTest"), 0, NULL);
+  EXPECT_VALID(type);
 
   // Invoke a function which returns an object of type InstanceOf..
   Dart_Handle instanceOfTestObj =
-      Dart_Invoke(cls, NewString("testMain"), 0, NULL);
+      Dart_Invoke(type, NewString("testMain"), 0, NULL);
   EXPECT_VALID(instanceOfTestObj);
 
   // Now check instanceOfTestObj reported as an instance of
   // InstanceOfTest class.
   bool is_instance = false;
-  result = Dart_ObjectIsType(instanceOfTestObj, cls, &is_instance);
+  result = Dart_ObjectIsType(instanceOfTestObj, type, &is_instance);
   EXPECT_VALID(result);
   EXPECT(is_instance);
 
   // Fetch OtherClass and check if instanceOfTestObj is instance of it.
-  Dart_Handle otherClass = Dart_GetClass(lib, NewString("OtherClass"));
-  EXPECT_VALID(otherClass);
+  Dart_Handle otherType = Dart_GetType(lib, NewString("OtherClass"), 0, NULL);
+  EXPECT_VALID(otherType);
 
-  result = Dart_ObjectIsType(instanceOfTestObj, otherClass, &is_instance);
+  result = Dart_ObjectIsType(instanceOfTestObj, otherType, &is_instance);
   EXPECT_VALID(result);
   EXPECT(!is_instance);
 
   // Check that primitives are not instances of InstanceOfTest class.
-  result = Dart_ObjectIsType(NewString("a string"), otherClass,
+  result = Dart_ObjectIsType(NewString("a string"), otherType,
                              &is_instance);
   EXPECT_VALID(result);
   EXPECT(!is_instance);
 
-  result = Dart_ObjectIsType(Dart_NewInteger(42), otherClass, &is_instance);
+  result = Dart_ObjectIsType(Dart_NewInteger(42), otherType, &is_instance);
   EXPECT_VALID(result);
   EXPECT(!is_instance);
 
-  result = Dart_ObjectIsType(Dart_NewBoolean(true), otherClass, &is_instance);
+  result = Dart_ObjectIsType(Dart_NewBoolean(true), otherType, &is_instance);
   EXPECT_VALID(result);
   EXPECT(!is_instance);
 
   // Check that null is not an instance of InstanceOfTest class.
-  Dart_Handle null = Dart_Invoke(otherClass,
+  Dart_Handle null = Dart_Invoke(otherType,
                                  NewString("returnNull"),
                                  0,
                                  NULL);
   EXPECT_VALID(null);
 
-  result = Dart_ObjectIsType(null, otherClass, &is_instance);
+  result = Dart_ObjectIsType(null, otherType, &is_instance);
   EXPECT_VALID(result);
   EXPECT(!is_instance);
 
@@ -5968,9 +6213,9 @@ TEST_CASE(LoadSource_LateLoad) {
   EXPECT(Dart_IsLibrary(lib));
 
   // Call a dynamic function on OldClass.
-  Dart_Handle cls = Dart_GetClass(lib, NewString("OldClass"));
-  EXPECT_VALID(cls);
-  Dart_Handle recv = Dart_New(cls, Dart_Null(), 0, NULL);
+  Dart_Handle type = Dart_GetType(lib, NewString("OldClass"), 0, NULL);
+  EXPECT_VALID(type);
+  Dart_Handle recv = Dart_New(type, Dart_Null(), 0, NULL);
   Dart_Handle result = Dart_Invoke(recv, NewString("foo"), 0, NULL);
   EXPECT_VALID(result);
   EXPECT(Dart_IsString(result));
@@ -5984,9 +6229,9 @@ TEST_CASE(LoadSource_LateLoad) {
   EXPECT_VALID(Dart_LoadSource(lib, url, source));
 
   // Call a dynamic function on NewClass in the updated library.
-  cls = Dart_GetClass(lib, NewString("NewClass"));
-  EXPECT_VALID(cls);
-  recv = Dart_New(cls, Dart_Null(), 0, NULL);
+  type = Dart_GetType(lib, NewString("NewClass"), 0, NULL);
+  EXPECT_VALID(type);
+  recv = Dart_New(type, Dart_Null(), 0, NULL);
   result = Dart_Invoke(recv, NewString("bar"), 0, NULL);
   EXPECT_VALID(result);
   EXPECT(Dart_IsString(result));
@@ -6233,8 +6478,8 @@ TEST_CASE(SetNativeResolver) {
   Dart_Handle lib = Dart_LoadScript(url, source, 0, 0);
   EXPECT_VALID(lib);
   EXPECT(Dart_IsLibrary(lib));
-  Dart_Handle cls = Dart_GetClass(lib, NewString("Test"));
-  EXPECT_VALID(cls);
+  Dart_Handle type = Dart_GetType(lib, NewString("Test"), 0, NULL);
+  EXPECT_VALID(type);
 
   result = Dart_SetNativeResolver(Dart_Null(), &MyNativeResolver1);
   EXPECT(Dart_IsError(result));
@@ -6256,7 +6501,7 @@ TEST_CASE(SetNativeResolver) {
   EXPECT_VALID(result);
 
   // Call a function and make sure native resolution works.
-  result = Dart_Invoke(cls, NewString("foo"), 0, NULL);
+  result = Dart_Invoke(type, NewString("foo"), 0, NULL);
   EXPECT_VALID(result);
   EXPECT(Dart_IsInteger(result));
   int64_t value = 0;
@@ -6268,7 +6513,7 @@ TEST_CASE(SetNativeResolver) {
   EXPECT_VALID(result);
 
   // 'foo' has already been resolved so gets the old value.
-  result = Dart_Invoke(cls, NewString("foo"), 0, NULL);
+  result = Dart_Invoke(type, NewString("foo"), 0, NULL);
   EXPECT_VALID(result);
   EXPECT(Dart_IsInteger(result));
   value = 0;
@@ -6276,7 +6521,7 @@ TEST_CASE(SetNativeResolver) {
   EXPECT_EQ(654321, value);
 
   // 'bar' has not yet been resolved so gets the new value.
-  result = Dart_Invoke(cls, NewString("bar"), 0, NULL);
+  result = Dart_Invoke(type, NewString("bar"), 0, NULL);
   EXPECT_VALID(result);
   EXPECT(Dart_IsInteger(result));
   value = 0;
@@ -6287,7 +6532,7 @@ TEST_CASE(SetNativeResolver) {
   result = Dart_SetNativeResolver(lib, NULL);
   EXPECT_VALID(result);
 
-  EXPECT_ERROR(Dart_Invoke(cls, NewString("baz"), 0, NULL),
+  EXPECT_ERROR(Dart_Invoke(type, NewString("baz"), 0, NULL),
                "native function 'SomeNativeFunction3' cannot be found");
 }
 

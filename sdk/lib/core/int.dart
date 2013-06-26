@@ -111,6 +111,9 @@ abstract class int extends num {
    * sign, the [onError] is called with the [source] as argument, and its return
    * value is used instead. If no [onError] is provided, a [FormatException]
    * is thrown.
+   *
+   * The [onError] function is only invoked if [source] is a [String]. It is
+   * not invoked if the [source] is, for example, `null`.
    */
   external static int parse(String source,
                             { int radix,

@@ -108,17 +108,6 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* ClosureCallInstr::MakeLocationSummary() const {
-  const intptr_t kNumInputs = 0;
-  const intptr_t kNumTemps = 1;
-  LocationSummary* result =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
-  result->set_out(Location::RegisterLocation(EAX));
-  result->set_temp(0, Location::RegisterLocation(EDX));  // Arg. descriptor.
-  return result;
-}
-
-
 LocationSummary* LoadLocalInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 0;
   return LocationSummary::Make(kNumInputs,
@@ -346,7 +335,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                    token_pos);
   }
   const int kNumberOfArguments = 2;
-  const Array& kNoArgumentNames = Array::Handle();
+  const Array& kNoArgumentNames = Object::null_array();
   const int kNumArgumentsChecked = 2;
 
   const Immediate& raw_null =
@@ -368,8 +357,12 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
       equality_ic_data = original_ic_data.AsUnaryClassChecks();
     }
   } else {
+    const Array& arguments_descriptor =
+        Array::Handle(ArgumentsDescriptor::New(kNumberOfArguments,
+                                               kNoArgumentNames));
     equality_ic_data = ICData::New(compiler->parsed_function().function(),
                                    Symbols::EqualOperator(),
+                                   arguments_descriptor,
                                    deopt_id,
                                    kNumArgumentsChecked);
   }
@@ -496,7 +489,7 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
       }
     } else {
       const int kNumberOfArguments = 2;
-      const Array& kNoArgumentNames = Array::Handle();
+      const Array& kNoArgumentNames = Object::null_array();
       compiler->GenerateStaticCall(deopt_id,
                                    token_pos,
                                    target,
@@ -985,7 +978,7 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->EmitTestAndCall(ICData::Handle(ic_data()->AsUnaryClassChecks()),
                               EDI,  // Class id register.
                               kNumArguments,
-                              Array::Handle(),  // No named arguments.
+                              Object::null_array(),  // No named arguments.
                               deopt,  // Deoptimize target.
                               deopt_id(),
                               token_pos(),
@@ -1012,15 +1005,19 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       relational_ic_data = ic_data()->AsUnaryClassChecks();
     }
   } else {
+    const Array& arguments_descriptor =
+        Array::Handle(ArgumentsDescriptor::New(kNumArguments,
+                                               Object::null_array()));
     relational_ic_data = ICData::New(compiler->parsed_function().function(),
                                      function_name,
+                                     arguments_descriptor,
                                      deopt_id(),
                                      kNumArgsChecked);
   }
   compiler->GenerateInstanceCall(deopt_id(),
                                  token_pos(),
                                  kNumArguments,
-                                 Array::ZoneHandle(),  // No optional arguments.
+                                 Object::null_array(),  // No optional args.
                                  locs(),
                                  relational_ic_data);
 }
@@ -1772,6 +1769,11 @@ LocationSummary* LoadStaticFieldInstr::MakeLocationSummary() const {
 }
 
 
+// When the parser is building an implicit static getter for optimization,
+// it can generate a function body where deoptimization ids do not line up
+// with the unoptimized code.
+//
+// This is safe only so long as LoadStaticFieldInstr cannot deoptimize.
 void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register field = locs()->in(0).reg();
   Register result = locs()->out().reg();
@@ -2147,12 +2149,15 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ cmpl(ESP,
           Address::Absolute(Isolate::Current()->stack_limit_address()));
   __ j(BELOW_EQUAL, slow_path->entry_label());
-  if (FLAG_use_osr && !compiler->is_optimizing() && in_loop()) {
+  if (compiler->CanOSRFunction() && in_loop()) {
     // In unoptimized code check the usage counter to trigger OSR at loop
-    // stack checks.
+    // stack checks.  Use progressively higher thresholds for more deeply
+    // nested loops to attempt to hit outer loops with OSR when possible.
     __ LoadObject(EDI, compiler->parsed_function().function());
+    intptr_t threshold =
+        FLAG_optimization_counter_threshold * (loop_depth() + 1);
     __ cmpl(FieldAddress(EDI, Function::usage_counter_offset()),
-            Immediate(2 * FLAG_optimization_counter_threshold));
+            Immediate(threshold));
     __ j(GREATER_EQUAL, slow_path->entry_label());
   }
   __ Bind(slow_path->exit_label());
@@ -3723,7 +3728,7 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                instance_call()->token_pos(),
                                target,
                                kNumberOfArguments,
-                               Array::Handle(),  // No argument names.,
+                               Object::null_array(),  // No argument names.,
                                locs());
   __ Bind(&done);
 }
@@ -4643,6 +4648,17 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* ClosureCallInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* result =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  result->set_out(Location::RegisterLocation(EAX));
+  result->set_temp(0, Location::RegisterLocation(EDX));  // Arg. descriptor.
+  return result;
+}
+
+
 void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The arguments to the stub include the closure, as does the arguments
   // descriptor.
@@ -4652,6 +4668,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
                                                  argument_names()));
   __ LoadObject(temp_reg, arguments_descriptor);
+  ASSERT(temp_reg == EDX);
   compiler->GenerateDartCall(deopt_id(),
                              token_pos(),
                              &StubCode::CallClosureFunctionLabel(),

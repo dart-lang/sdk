@@ -48,6 +48,13 @@ class ClassBuilder {
   }
 }
 
+// Function signatures used in the generation of runtime type information.
+typedef void FunctionTypeSignatureEmitter(Element method,
+                                          FunctionType methodType);
+// TODO(johnniwinther): Clean up terminology for rti in the emitter.
+typedef void FunctionTypeTestEmitter(FunctionType functionType);
+typedef void SubstitutionEmitter(Element element, {bool emitNull});
+
 /**
  * Generates the code for all used classes in the program. Static fields (even
  * in classes) are ignored, since they can be treated as non-class elements.
@@ -75,6 +82,8 @@ class CodeEmitterTask extends CompilerTask {
   final List<ClassElement> nativeClasses = <ClassElement>[];
   final List<Selector> trivialNsmHandlers = <Selector>[];
   final Map<String, String> mangledFieldNames = <String, String>{};
+  final Set<String> recordedMangledNames = new Set<String>();
+  final Set<String> interceptorInvocationNames = new Set<String>();
 
   // TODO(ngeoffray): remove this field.
   Set<ClassElement> instantiatedClasses;
@@ -110,11 +119,26 @@ class CodeEmitterTask extends CompilerTask {
   Set<ClassElement> checkedClasses;
 
   /**
-   * Raw Typedef symbols occuring in is-checks and type assertions.  If the
-   * program contains `x is F<int>` and `x is F<bool>` then the TypedefElement
-   * `F` will occur once in [checkedTypedefs].
+   * The set of function types that checked, both explicity through tests of
+   * typedefs and implicitly through type annotations in checked mode.
    */
-  Set<TypedefElement> checkedTypedefs;
+  Set<FunctionType> checkedFunctionTypes;
+
+  Map<ClassElement, Set<FunctionType>> checkedGenericFunctionTypes =
+      new Map<ClassElement, Set<FunctionType>>();
+
+  Set<FunctionType> checkedNonGenericFunctionTypes =
+      new Set<FunctionType>();
+
+  void registerDynamicFunctionTypeCheck(FunctionType functionType) {
+    ClassElement classElement = Types.getClassContext(functionType);
+    if (classElement != null) {
+      checkedGenericFunctionTypes.putIfAbsent(classElement,
+          () => new Set<FunctionType>()).add(functionType);
+    } else {
+      checkedNonGenericFunctionTypes.add(functionType);
+    }
+  }
 
   final bool generateSourceMap;
 
@@ -145,18 +169,20 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   void computeRequiredTypeChecks() {
-    assert(checkedClasses == null && checkedTypedefs == null);
+    assert(checkedClasses == null && checkedFunctionTypes == null);
 
     backend.rti.addImplicitChecks(compiler.codegenWorld,
                                   classesUsingTypeVariableTests);
 
     checkedClasses = new Set<ClassElement>();
-    checkedTypedefs = new Set<TypedefElement>();
+    checkedFunctionTypes = new Set<FunctionType>();
     compiler.codegenWorld.isChecks.forEach((DartType t) {
-      if (t is InterfaceType) {
-        checkedClasses.add(t.element);
-      } else if (t is TypedefType) {
-        checkedTypedefs.add(t.element);
+      if (!t.isMalformed) {
+        if (t is InterfaceType) {
+          checkedClasses.add(t.element);
+        } else if (t is FunctionType) {
+          checkedFunctionTypes.add(t);
+        }
       }
     });
   }
@@ -615,7 +641,7 @@ class CodeEmitterTask extends CompilerTask {
            */
           js('var classData = desc[""], supr, name = cls, fields = classData'),
           optional(
-              compiler.mirrorsEnabled,
+              backend.hasRetainedMetadata,
               js.if_('typeof classData == "object" && '
                      'classData instanceof Array',
                      [js('classData = fields = classData[0]')])),
@@ -649,7 +675,7 @@ class CodeEmitterTask extends CompilerTask {
           ])),
 
           js('var constructor = defineClass(name, cls, fields, desc)'),
-          optional(compiler.mirrorsEnabled,
+          optional(backend.hasRetainedMetadata,
                    js('constructor["${namer.metadataField}"] = desc')),
           js('isolateProperties[cls] = constructor'),
           js.if_('supr', js('pendingClasses[cls] = supr'))
@@ -958,6 +984,7 @@ class CodeEmitterTask extends CompilerTask {
       count++;
       parametersBuffer[0] = new jsAst.Parameter(receiverArgumentName);
       argumentsBuffer[0] = js(receiverArgumentName);
+      interceptorInvocationNames.add(invocationName);
     }
 
     int optionalParameterStart = positionalArgumentCount + extraArgumentCount;
@@ -1015,6 +1042,11 @@ class CodeEmitterTask extends CompilerTask {
     jsAst.Fun function = js.fun(parametersBuffer, body);
 
     defineStub(invocationName, function);
+
+    String reflectionName = getReflectionName(selector, invocationName);
+    if (reflectionName != null) {
+      defineStub('+$reflectionName', js('0'));
+    }
   }
 
   void addParameterStubs(FunctionElement member,
@@ -1132,7 +1164,7 @@ class CodeEmitterTask extends CompilerTask {
   bool instanceFieldNeedsGetter(Element member) {
     assert(member.isField());
     if (fieldAccessNeverThrows(member)) return false;
-    return compiler.mirrorsEnabled
+    return backend.retainGetter(member)
         || compiler.codegenWorld.hasInvokedGetter(member, compiler);
   }
 
@@ -1140,7 +1172,7 @@ class CodeEmitterTask extends CompilerTask {
     assert(member.isField());
     if (fieldAccessNeverThrows(member)) return false;
     return (!member.modifiers.isFinalOrConst())
-        && (compiler.mirrorsEnabled
+        && (backend.retainSetter(member)
             || compiler.codegenWorld.hasInvokedSetter(member, compiler));
   }
 
@@ -1175,12 +1207,15 @@ class CodeEmitterTask extends CompilerTask {
       jsAst.Expression code = backend.generatedCode[member];
       if (code == null) return;
       String name = namer.getName(member);
+      if (backend.isInterceptedMethod(member)) {
+        interceptorInvocationNames.add(name);
+      }
       builder.addProperty(name, code);
       var metadata = buildMetadataFunction(member);
       if (metadata != null) {
         builder.addProperty('@$name', metadata);
       }
-      String reflectionName = getReflectionName(member);
+      String reflectionName = getReflectionName(member, name);
       if (reflectionName != null) {
         builder.addProperty('+$reflectionName', js('0'));
       }
@@ -1200,23 +1235,76 @@ class CodeEmitterTask extends CompilerTask {
     emitExtraAccessors(member, builder);
   }
 
-  String getReflectionName(Element element) {
-    if (!compiler.mirrorsEnabled) return null;
-    String name = element.name.slowToString();
-    if (element.isGetter()) return name;
-    if (element.isSetter()) return '$name=';
-    if (element.isFunction()) {
-      FunctionElement function = element;
-      int requiredParameterCount = function.requiredParameterCount(compiler);
-      int optionalParameterCount = function.optionalParameterCount(compiler);
-      String suffix = '$name:$requiredParameterCount:$optionalParameterCount';
-      return (function.isConstructor()) ? 'new $suffix' : suffix;
+  String getReflectionName(elementOrSelector, String mangledName) {
+    if (!backend.retainName(elementOrSelector.name)) return null;
+    // TODO(ahe): Enable the next line when I can tell the difference between
+    // an instance method and a global.  They may have the same mangled name.
+    // if (recordedMangledNames.contains(mangledName)) return null;
+    recordedMangledNames.add(mangledName);
+    return getReflectionNameInternal(elementOrSelector, mangledName);
+  }
+
+  String getReflectionNameInternal(elementOrSelector, String mangledName) {
+    String name = elementOrSelector.name.slowToString();
+    if (elementOrSelector.isGetter()) return name;
+    if (elementOrSelector.isSetter()) {
+      if (!mangledName.startsWith(namer.setterPrefix)) return '$name=';
+      String base = mangledName.substring(namer.setterPrefix.length);
+      String getter = '${namer.getterPrefix}$base';
+      mangledFieldNames[getter] = name;
+      recordedMangledNames.add(getter);
+      return null;
     }
+    if (elementOrSelector is Selector
+        || elementOrSelector.isFunction()
+        || elementOrSelector.isConstructor()) {
+      int requiredParameterCount;
+      int optionalParameterCount;
+      String namedArguments = '';
+      bool isConstructor;
+      if (elementOrSelector is Selector) {
+        Selector selector = elementOrSelector;
+        requiredParameterCount = selector.argumentCount;
+        optionalParameterCount = 0;
+        isConstructor = false;
+        namedArguments = namedParametersAsReflectionNames(selector);
+      } else {
+        FunctionElement function = elementOrSelector;
+        requiredParameterCount = function.requiredParameterCount(compiler);
+        optionalParameterCount = function.optionalParameterCount(compiler);
+        isConstructor = function.isConstructor();
+        FunctionSignature signature = function.computeSignature(compiler);
+        if (signature.optionalParametersAreNamed) {
+          var names = [];
+          for (Element e in signature.optionalParameters) {
+            names.add(e.name);
+          }
+          Selector selector = new Selector.call(
+              function.name,
+              function.getLibrary(),
+              requiredParameterCount,
+              names);
+          namedArguments = namedParametersAsReflectionNames(selector);
+        }
+      }
+      String suffix =
+          '$name:$requiredParameterCount:$optionalParameterCount'
+          '$namedArguments';
+      return (isConstructor) ? 'new $suffix' : suffix;
+    }
+    Element element = elementOrSelector;
     if (element.isGenerativeConstructorBody()) {
       return null;
     }
     throw compiler.internalErrorOnElement(
-        element, 'Do not know how to reflect on this');
+        element, 'Do not know how to reflect on this $element');
+  }
+
+  String namedParametersAsReflectionNames(Selector selector) {
+    if (selector.orderedNamedArguments.isEmpty) return '';
+    String names =
+        selector.orderedNamedArguments.map((x) => x.slowToString()).join(':');
+    return ':$names';
   }
 
   /**
@@ -1263,9 +1351,34 @@ class CodeEmitterTask extends CompilerTask {
       builder.addProperty(namer.operatorIs(other), js('true'));
     }
 
+    void generateIsFunctionTypeTest(FunctionType type) {
+      String operator = namer.operatorIsType(type);
+      builder.addProperty(operator, new jsAst.LiteralBool(true));
+    }
+
+    void generateFunctionTypeSignature(Element method, FunctionType type) {
+      assert(method.isImplementation);
+      String thisAccess = 'this';
+      Node node = method.parseNode(compiler);
+      ClosureClassMap closureData =
+          compiler.closureToClassMapper.closureMappingCache[node];
+      if (closureData != null) {
+        Element thisElement =
+            closureData.freeVariableMapping[closureData.thisElement];
+        if (thisElement != null) {
+          String thisName = backend.namer.getName(thisElement);
+          thisAccess = 'this.$thisName';
+        }
+      }
+      RuntimeTypes rti = backend.rti;
+      String encoding = rti.getSignatureEncoding(type, () => '$thisAccess');
+      String operatorSignature = namer.operatorSignature();
+      builder.addProperty(operatorSignature,
+          new jsAst.LiteralExpression(encoding));
+    }
+
     void generateSubstitution(Element other, {bool emitNull: false}) {
       RuntimeTypes rti = backend.rti;
-      // TODO(karlklose): support typedefs with variables.
       jsAst.Expression expression;
       bool needsNativeCheck = nativeEmitter.requiresNativeIsCheck(other);
       if (other.kind == ElementKind.CLASS) {
@@ -1282,7 +1395,9 @@ class CodeEmitterTask extends CompilerTask {
       }
     }
 
-    generateIsTestsOn(classElement, generateIsTest, generateSubstitution);
+    generateIsTestsOn(classElement, generateIsTest,
+        generateIsFunctionTypeTest, generateFunctionTypeSignature,
+        generateSubstitution);
   }
 
   void emitRuntimeTypeSupport(CodeBuffer buffer) {
@@ -1302,6 +1417,17 @@ class CodeEmitterTask extends CompilerTask {
         }
       };
     }
+
+    void addSignature(FunctionType type) {
+      String encoding = rti.getTypeEncoding(type);
+      buffer.add('${namer.signatureName(type)}$_=${_}$encoding$N');
+    }
+
+    checkedNonGenericFunctionTypes.forEach(addSignature);
+
+    checkedGenericFunctionTypes.forEach((_, Set<FunctionType> functionTypes) {
+      functionTypes.forEach(addSignature);
+    });
   }
 
   /**
@@ -1433,12 +1559,14 @@ class CodeEmitterTask extends CompilerTask {
     DartType type = member.computeType(compiler);
     // TODO(ahe): Generate a dynamic type error here.
     if (type.element.isErroneous()) return;
-    FunctionElement helperElement
-        = backend.getCheckedModeHelper(type, typeCast: false);
+    type = type.unalias(compiler);
+    CheckedModeHelper helper =
+        backend.getCheckedModeHelper(type, typeCast: false);
+    FunctionElement helperElement = helper.getElement(compiler);
     String helperName = namer.isolateAccess(helperElement);
     List<jsAst.Expression> arguments = <jsAst.Expression>[js('v')];
     if (helperElement.computeSignature(compiler).parameterCount != 1) {
-      arguments.add(js.string(namer.operatorIs(type.element)));
+      arguments.add(js.string(namer.operatorIsType(type)));
     }
 
     String setterName = namer.setterNameFromAccessorName(accessorName);
@@ -1467,16 +1595,12 @@ class CodeEmitterTask extends CompilerTask {
   void recordMangledField(Element member,
                           String accessorName,
                           String memberName) {
+    if (!backend.retainGetter(member)) return;
     String previousName = mangledFieldNames.putIfAbsent(
         '${namer.getterPrefix}$accessorName',
         () => memberName);
     assert(invariant(member, previousName == memberName,
                      message: '$previousName != ${memberName}'));
-    previousName = mangledFieldNames.putIfAbsent(
-        '${namer.setterPrefix}$accessorName',
-        () => '${memberName}=');
-    assert(invariant(member, previousName == '${memberName}=',
-                     message: '$previousName != ${memberName}='));
   }
 
   /// Returns `true` if fields added.
@@ -1512,18 +1636,14 @@ class CodeEmitterTask extends CompilerTask {
       if (!classIsNative || needsAccessor) {
         buffer.write(separator);
         separator = ',';
-        if (compiler.mirrorsEnabled) {
-          var metadata = buildMetadataFunction(member);
-          if (metadata != null) {
-            hasMetadata = true;
-          } else {
-            metadata = new jsAst.LiteralNull();
-          }
-          fieldMetadata.add(metadata);
+        var metadata = buildMetadataFunction(member);
+        if (metadata != null) {
+          hasMetadata = true;
+        } else {
+          metadata = new jsAst.LiteralNull();
         }
-        if (compiler.mirrorsEnabled) {
-          recordMangledField(member, accessorName, member.name.slowToString());
-        }
+        fieldMetadata.add(metadata);
+        recordMangledField(member, accessorName, member.name.slowToString());
         if (!needsAccessor) {
           // Emit field for constructor generation.
           assert(!classIsNative);
@@ -1560,7 +1680,12 @@ class CodeEmitterTask extends CompilerTask {
             assert(setterCode != 0);
           }
           int code = getterCode + (setterCode << 2);
-          buffer.write(FIELD_CODE_CHARACTERS[code - FIRST_FIELD_CODE]);
+          if (code == 0) {
+            compiler.reportInternalError(
+                member, 'Internal error: code is 0 ($classElement/$member)');
+          } else {
+            buffer.write(FIELD_CODE_CHARACTERS[code - FIRST_FIELD_CODE]);
+          }
         }
       }
     });
@@ -1649,6 +1774,9 @@ class CodeEmitterTask extends CompilerTask {
     }
     buffer.write('$className:$_');
     buffer.write(jsAst.prettyPrint(builder.toObjectInitializer(), compiler));
+    if (backend.retainName(classElement.name)) {
+      buffer.write(',$n$n"+${classElement.name.slowToString()}": 0');
+    }
   }
 
   bool get getterAndSetterCanBeImplementedByFieldSpec => true;
@@ -1671,14 +1799,27 @@ class CodeEmitterTask extends CompilerTask {
     return _selectorRank(selector1) - _selectorRank(selector2);
   }
 
-  Iterable<Element> getTypedefChecksOn(DartType type) {
-    bool isSubtype(TypedefElement typedef) {
-      FunctionType typedefType =
-          typedef.computeType(compiler).unalias(compiler);
-      return compiler.types.isSubtype(type, typedefType);
+  /**
+   * Returns a mapping containing all checked function types for which [type]
+   * can be a subtype. A function type is mapped to [:true:] if [type] is
+   * statically known to be a subtype of it and to [:false:] if [type] might
+   * be a subtype, provided with the right type arguments.
+   */
+  // TODO(johnniwinther): Change to return a mapping from function types to
+  // a set of variable points and use this to detect statically/dynamically
+  // known subtype relations.
+  Map<FunctionType, bool> getFunctionTypeChecksOn(DartType type) {
+    Map<FunctionType, bool> functionTypeMap =
+        new LinkedHashMap<FunctionType, bool>();
+    for (FunctionType functionType in checkedFunctionTypes) {
+      if (compiler.types.isSubtype(type, functionType)) {
+        functionTypeMap[functionType] = true;
+      } else if (compiler.types.isPotentialSubtype(type, functionType)) {
+        functionTypeMap[functionType] = false;
+      }
     }
-    return checkedTypedefs.where(isSubtype).toList()
-        ..sort(Elements.compareByPosition);
+    // TODO(johnniwinther): Ensure stable ordering of the keys.
+    return functionTypeMap;
   }
 
   /**
@@ -1690,7 +1831,9 @@ class CodeEmitterTask extends CompilerTask {
    */
   void generateIsTestsOn(ClassElement cls,
                          void emitIsTest(Element element),
-                         void emitSubstitution(Element element, {emitNull})) {
+                         FunctionTypeTestEmitter emitIsFunctionTypeTest,
+                         FunctionTypeSignatureEmitter emitFunctionTypeSignature,
+                         SubstitutionEmitter emitSubstitution) {
     if (checkedClasses.contains(cls)) {
       emitIsTest(cls);
       emitSubstitution(cls);
@@ -1713,7 +1856,7 @@ class CodeEmitterTask extends CompilerTask {
       Set<ClassElement> emitted = new Set<ClassElement>();
       // TODO(karlklose): move the computation of these checks to
       // RuntimeTypeInformation.
-      if (backend.needsRti(cls)) {
+      if (backend.classNeedsRti(cls)) {
         emitSubstitution(superclass, emitNull: true);
         emitted.add(superclass);
       }
@@ -1741,7 +1884,7 @@ class CodeEmitterTask extends CompilerTask {
     // A class that defines a [:call:] method implicitly implements
     // [Function] and needs checks for all typedefs that are used in is-checks.
     if (checkedClasses.contains(compiler.functionClass) ||
-        !checkedTypedefs.isEmpty) {
+        !checkedFunctionTypes.isEmpty) {
       Element call = cls.lookupLocalMember(Compiler.CALL_OPERATOR_NAME);
       if (call == null) {
         // If [cls] is a closure, it has a synthetic call operator method.
@@ -1752,8 +1895,12 @@ class CodeEmitterTask extends CompilerTask {
                                   emitIsTest,
                                   emitSubstitution,
                                   generated);
-        getTypedefChecksOn(call.computeType(compiler)).forEach(emitIsTest);
-      }
+        FunctionType callType = call.computeType(compiler);
+        Map<FunctionType, bool> functionTypeChecks =
+            getFunctionTypeChecksOn(callType);
+        generateFunctionTypeTests(call, callType, functionTypeChecks,
+            emitFunctionTypeSignature, emitIsFunctionTypeTest);
+     }
     }
 
     for (DartType interfaceType in cls.interfaces) {
@@ -1767,7 +1914,7 @@ class CodeEmitterTask extends CompilerTask {
    */
   void generateInterfacesIsTests(ClassElement cls,
                                  void emitIsTest(ClassElement element),
-                                 void emitSubstitution(ClassElement element),
+                                 SubstitutionEmitter emitSubstitution,
                                  Set<Element> alreadyGenerated) {
     void tryEmitTest(ClassElement check) {
       if (!alreadyGenerated.contains(check) && checkedClasses.contains(check)) {
@@ -1793,6 +1940,45 @@ class CodeEmitterTask extends CompilerTask {
       generateInterfacesIsTests(superclass, emitIsTest, emitSubstitution,
                                 alreadyGenerated);
     }
+  }
+
+  static const int MAX_FUNCTION_TYPE_PREDICATES = 10;
+
+  /**
+   * Generates function type checks on [method] with type [methodType] against
+   * the function type checks in [functionTypeChecks].
+   */
+  void generateFunctionTypeTests(
+      Element method,
+      FunctionType methodType,
+      Map<FunctionType, bool> functionTypeChecks,
+      FunctionTypeSignatureEmitter emitFunctionTypeSignature,
+      FunctionTypeTestEmitter emitIsFunctionTypeTest) {
+    bool hasDynamicFunctionTypeCheck = false;
+    int neededPredicates = 0;
+    functionTypeChecks.forEach((FunctionType functionType, bool knownSubtype) {
+      if (!knownSubtype) {
+        registerDynamicFunctionTypeCheck(functionType);
+        hasDynamicFunctionTypeCheck = true;
+      } else {
+        neededPredicates++;
+      }
+    });
+    bool alwaysUseSignature = false;
+    if (hasDynamicFunctionTypeCheck ||
+        neededPredicates > MAX_FUNCTION_TYPE_PREDICATES) {
+      emitFunctionTypeSignature(method, methodType);
+      alwaysUseSignature = true;
+    }
+    functionTypeChecks.forEach((FunctionType functionType, bool knownSubtype) {
+      if (knownSubtype) {
+        if (alwaysUseSignature) {
+          registerDynamicFunctionTypeCheck(functionType);
+        } else {
+          emitIsFunctionTypeTest(functionType);
+        }
+      }
+    });
   }
 
   /**
@@ -1879,6 +2065,10 @@ class CodeEmitterTask extends CompilerTask {
         buffer.write(',$n$n"@$name":$_');
         buffer.write(jsAst.prettyPrint(metadata, compiler));
       }
+      String reflectionName = getReflectionName(element, name);
+      if (reflectionName != null) {
+        buffer.write(',$n$n"+$reflectionName":${_}0');
+      }
       jsAst.Expression bailoutCode = backend.generatedBailoutCode[element];
       if (bailoutCode != null) {
         pendingElementsWithBailouts.remove(element);
@@ -1953,12 +2143,6 @@ class CodeEmitterTask extends CompilerTask {
 
       addParameterStubs(callElement, closureBuilder.addProperty);
 
-      DartType type = element.computeType(compiler);
-      getTypedefChecksOn(type).forEach((Element typedef) {
-        String operator = namer.operatorIs(typedef);
-        closureBuilder.addProperty(operator, js('true'));
-      });
-
       // TODO(ngeoffray): Cache common base classes for closures, bound
       // closures, and static closures that have common type checks.
       boundClosures.add(
@@ -1966,6 +2150,28 @@ class CodeEmitterTask extends CompilerTask {
               closureBuilder.toObjectInitializer()));
 
       staticGetters[element] = closureClassElement;
+
+      void emitFunctionTypeSignature(Element method, FunctionType methodType) {
+        RuntimeTypes rti = backend.rti;
+        // [:() => null:] is dummy encoding of [this] which is never needed for
+        // the encoding of the type of the static [method].
+        String encoding = rti.getSignatureEncoding(methodType, () => 'null');
+        String operatorSignature = namer.operatorSignature();
+        // TODO(johnniwinther): Make MiniJsParser support function expressions.
+        closureBuilder.addProperty(operatorSignature,
+            new jsAst.LiteralExpression(encoding));
+      }
+
+      void emitIsFunctionTypeTest(FunctionType functionType) {
+        String operator = namer.operatorIsType(functionType);
+        closureBuilder.addProperty(operator, js('true'));
+      }
+
+      FunctionType methodType = element.computeType(compiler);
+      Map<FunctionType, bool> functionTypeChecks =
+          getFunctionTypeChecksOn(methodType);
+      generateFunctionTypeTests(element, methodType, functionTypeChecks,
+          emitFunctionTypeSignature, emitIsFunctionTypeTest);
     }
   }
 
@@ -2023,12 +2229,14 @@ class CodeEmitterTask extends CompilerTask {
       fieldNames.add(namer.getName(field));
     });
 
-    Iterable<Element> typedefChecks =
-        getTypedefChecksOn(member.computeType(compiler));
-    bool hasTypedefChecks = !typedefChecks.isEmpty;
+    DartType memberType = member.computeType(compiler);
+    Map<FunctionType, bool> functionTypeChecks =
+        getFunctionTypeChecksOn(memberType);
+    bool hasFunctionTypeChecks = !functionTypeChecks.isEmpty;
 
-    bool canBeShared = !hasOptionalParameters && !hasTypedefChecks;
+    bool canBeShared = !hasOptionalParameters && !hasFunctionTypeChecks;
 
+    ClassElement classElement = member.getEnclosingClass();
     String closureClass = canBeShared ? cache[parameterCount] : null;
     if (closureClass == null) {
       // Either the class was not cached yet, or there are optional parameters.
@@ -2084,10 +2292,23 @@ class CodeEmitterTask extends CompilerTask {
       boundClosureBuilder.addProperty(invocationName, fun);
 
       addParameterStubs(callElement, boundClosureBuilder.addProperty);
-      typedefChecks.forEach((Element typedef) {
-        String operator = namer.operatorIs(typedef);
-        boundClosureBuilder.addProperty(operator, js('true'));
-      });
+
+      void emitFunctionTypeSignature(Element method, FunctionType methodType) {
+        String encoding = backend.rti.getSignatureEncoding(
+            methodType, () => 'this.${fieldNames[0]}');
+        String operatorSignature = namer.operatorSignature();
+        boundClosureBuilder.addProperty(operatorSignature,
+            new jsAst.LiteralExpression(encoding));
+      }
+
+      void emitIsFunctionTypeTest(FunctionType functionType) {
+        String operator = namer.operatorIsType(functionType);
+        boundClosureBuilder.addProperty(operator,
+            new jsAst.LiteralBool(true));
+      }
+
+      generateFunctionTypeTests(member, memberType, functionTypeChecks,
+          emitFunctionTypeSignature, emitIsFunctionTypeTest);
 
       boundClosures.add(
           js('$classesCollector.$mangledName = #',
@@ -2119,8 +2340,7 @@ class CodeEmitterTask extends CompilerTask {
     }
 
     jsAst.Expression getterFunction = js.fun(
-        parameters,
-        js.return_(js(closureClass).newWith(arguments)));
+        parameters, js.return_(js(closureClass).newWith(arguments)));
 
     defineStub(getterName, getterFunction);
   }
@@ -2160,7 +2380,6 @@ class CodeEmitterTask extends CompilerTask {
     // identical stubs for each we track untyped selectors which already have
     // stubs.
     Set<Selector> generatedSelectors = new Set<Selector>();
-
     for (Selector selector in selectors) {
       if (selector.applies(member, compiler)) {
         selector = selector.asUntyped;
@@ -2404,6 +2623,10 @@ class CodeEmitterTask extends CompilerTask {
         if (mask.willHit(selector, compiler)) continue;
         String jsName = namer.invocationMirrorInternalName(selector);
         addedJsNames[jsName] = selector;
+        String reflectionName = getReflectionName(selector, jsName);
+        if (reflectionName != null) {
+          mangledFieldNames[jsName] = reflectionName;
+        }
       }
     }
 
@@ -2761,6 +2984,15 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         rti.getClassesUsedInSubstitutions(backend, requiredChecks);
     addClassesWithSuperclasses(classesUsedInSubstitutions);
 
+    // 3c. Add classes that contain checked generic function types. These are
+    //     needed to store the signature encoding.
+    for (FunctionType type in checkedFunctionTypes) {
+      ClassElement contextClass = Types.getClassContext(type);
+      if (contextClass != null) {
+        neededClasses.add(contextClass);
+      }
+    }
+
     // 4. Finally, sort the classes.
     List<ClassElement> sortedClasses = Elements.sortedByPosition(neededClasses);
 
@@ -2977,18 +3209,21 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
    * method with an extra parameter.
    */
   void emitInterceptedNames(CodeBuffer buffer) {
+    // TODO(ahe): We should not generate the list of intercepted names at
+    // compile time, it can be generated automatically at runtime given
+    // subclasses of Interceptor (which can easily be identified).
     if (!compiler.enabledInvokeOn) return;
     String name = backend.namer.getName(backend.interceptedNames);
 
     int index = 0;
-    List<jsAst.ArrayElement> elements = backend.usedInterceptors.map(
-      (Selector selector) {
-        jsAst.Literal str = js.string(namer.invocationName(selector));
+    var invocationNames = interceptorInvocationNames.toList()..sort();
+    List<jsAst.ArrayElement> elements = invocationNames.map(
+      (String invocationName) {
+        jsAst.Literal str = js.string(invocationName);
         return new jsAst.ArrayElement(index++, str);
       }).toList();
-    jsAst.ArrayInitializer array = new jsAst.ArrayInitializer(
-        backend.usedInterceptors.length,
-        elements);
+    jsAst.ArrayInitializer array =
+        new jsAst.ArrayInitializer(invocationNames.length, elements);
 
     jsAst.Expression assignment = js('$isolateProperties.$name = #', array);
 
@@ -3017,17 +3252,27 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
   /// annotated with itself.  The metadata function is used by
   /// mirrors_patch to implement DeclarationMirror.metadata.
   jsAst.Fun buildMetadataFunction(Element element) {
-    if (!compiler.mirrorsEnabled) return null;
-    var metadata = [];
-    Link link = element.metadata;
-    // TODO(ahe): Why is metadata sometimes null?
-    if (link != null) {
-      for (; !link.isEmpty; link = link.tail) {
-        metadata.add(constantReference(link.head.value));
+    if (!backend.retainMetadataOf(element)) return null;
+    return compiler.withCurrentElement(element, () {
+      var metadata = [];
+      Link link = element.metadata;
+      // TODO(ahe): Why is metadata sometimes null?
+      if (link != null) {
+        for (; !link.isEmpty; link = link.tail) {
+          MetadataAnnotation annotation = link.head;
+          Constant value = annotation.value;
+          if (value == null) {
+            compiler.reportInternalError(
+                annotation, 'Internal error: value is null');
+          } else {
+            metadata.add(constantReference(value));
+          }
+        }
       }
-    }
-    if (metadata.isEmpty) return null;
-    return js.fun([], [js.return_(new jsAst.ArrayInitializer.from(metadata))]);
+      if (metadata.isEmpty) return null;
+      return js.fun(
+          [], [js.return_(new jsAst.ArrayInitializer.from(metadata))]);
+    });
   }
 
   String assembleProgram() {
@@ -3174,13 +3419,16 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       emitStaticFunctionGetters(mainBuffer);
 
       emitRuntimeTypeSupport(mainBuffer);
+      emitGetInterceptorMethods(mainBuffer);
+      // Constants in checked mode call into RTI code to set type information
+      // which may need getInterceptor methods, so we have to make sure that
+      // [emitGetInterceptorMethods] has been called.
       emitCompileTimeConstants(mainBuffer);
       // Static field initializations require the classes and compile-time
       // constants to be set up.
       emitStaticNonFinalFieldInitializations(mainBuffer);
       emitOneShotInterceptors(mainBuffer);
       emitInterceptedNames(mainBuffer);
-      emitGetInterceptorMethods(mainBuffer);
       emitLazilyInitializedStaticFields(mainBuffer);
 
       mainBuffer.add(nativeBuffer);
@@ -3333,8 +3581,12 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
 (function (reflectionData) {
   if (!init.libraries) init.libraries = [];
   if (!init.mangledNames) init.mangledNames = {};
+  if (!init.mangledGlobalNames) init.mangledGlobalNames = {};
+  init.getterPrefix = "${namer.getterPrefix}";
+  init.setterPrefix = "${namer.setterPrefix}";
   var libraries = init.libraries;
   var mangledNames = init.mangledNames;
+  var mangledGlobalNames = init.mangledGlobalNames;
   var hasOwnProperty = Object.prototype.hasOwnProperty;
   var length = reflectionData.length;
   for (var i = 0; i < length; i++) {
@@ -3348,18 +3600,23 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     for (var property in descriptor) {
       if (!hasOwnProperty.call(descriptor, property)) continue;
       var element = descriptor[property];
-      if (property.substring(0, 1) == "@") {
+      var firstChar = property.substring(0, 1);
+      var previousProperty;
+      if (firstChar == "+") {
+        mangledGlobalNames[previousProperty] = property.substring(1);
+      } else if (firstChar == "@") {
         property = property.substring(1);
         ${namer.CURRENT_ISOLATE}[property]["${namer.metadataField}"] = element;
       } else if (typeof element === "function") {
-        ${namer.CURRENT_ISOLATE}[property] = element;
+        ${namer.CURRENT_ISOLATE}[previousProperty = property] = element;
         functions.push(property);
       } else {
+        previousProperty = property;
         var newDesc = {};
         var previousProp;
         for (var prop in element) {
           if (!hasOwnProperty.call(element, prop)) continue;
-          var firstChar = prop.substring(0, 1);
+          firstChar = prop.substring(0, 1);
           if (firstChar == "+") {
             mangledNames[previousProp] = prop.substring(1);
           } else if (firstChar == "@" && prop != "@") {

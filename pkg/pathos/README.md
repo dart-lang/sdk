@@ -216,6 +216,44 @@ Removes a trailing extension from the last part of [path].
 
     withoutExtension('path/to/foo.dart'); // -> 'path/to/foo'
 
+### String fromUri(Uri uri)
+
+Returns the path represented by [uri]. For POSIX and Windows styles, [uri] must
+be a `file:` URI. For the URL style, this will just convert [uri] to a string.
+
+    // POSIX
+    path.fromUri(Uri.parse('file:///path/to/foo'))
+      // -> '/path/to/foo'
+
+    // Windows
+    path.fromUri(Uri.parse('file:///C:/path/to/foo'))
+      // -> r'C:\path\to\foo'
+
+    // URL
+    path.fromUri(Uri.parse('http://dartlang.org/path/to/foo'))
+      // -> 'http://dartlang.org/path/to/foo'
+
+### Uri toUri(String path)
+
+Returns the URI that represents [path]. For POSIX and Windows styles, this will
+return a `file:` URI. For the URL style, this will just convert [path] to a
+[Uri].
+
+This will always convert relative paths to absolute ones before converting
+to a URI.
+
+    // POSIX
+    path.toUri('/path/to/foo')
+      // -> Uri.parse('file:///path/to/foo')
+
+    // Windows
+    path.toUri(r'C:\path\to\foo')
+      // -> Uri.parse('file:///C:/path/to/foo')
+
+    // URL
+    path.toUri('http://dartlang.org/path/to/foo')
+      // -> Uri.parse('http://dartlang.org/path/to/foo')
+
 ## The path.Builder class
 
 In addition to the functions, path exposes a `path.Builder` class. This lets

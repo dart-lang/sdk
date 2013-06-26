@@ -82,9 +82,12 @@ class Duration implements Comparable<Duration> {
   /**
    * Multiplies this [Duration] by the given [factor] and returns the result
    * as a new [Duration].
+   *
+   * Note that when [factor] is a double, and the duration is greater than
+   * 53 bits, precision is lost because of double-precision arithmetic.
    */
-  Duration operator *(int factor) {
-    return new Duration(microseconds: _duration * factor);
+  Duration operator *(num factor) {
+    return new Duration(microseconds: (_duration * factor).round());
   }
 
   /**

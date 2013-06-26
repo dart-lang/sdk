@@ -255,8 +255,9 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
 
   SplayTreeMap._internal();
 
-  V operator [](K key) {
+  V operator [](Object key) {
     if (key == null) throw new ArgumentError(key);
+    if (key is! K) return null;
     if (_root != null) {
       int comp = _splay(key);
       if (comp == 0) {
@@ -337,11 +338,11 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
     _clear();
   }
 
-  bool containsKey(K key) {
-    return _splay(key) == 0;
+  bool containsKey(Object key) {
+    return key is K && _splay(key) == 0;
   }
 
-  bool containsValue(V value) {
+  bool containsValue(Object value) {
     bool found = false;
     int initialSplayCount = _splayCount;
     bool visit(_SplayTreeMapNode node) {

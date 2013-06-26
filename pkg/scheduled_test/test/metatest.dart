@@ -133,9 +133,9 @@ Future<bool> get _inChildIsolate {
 /// describing the results of that test run.
 Future<Map> _runInIsolate(String description) {
   // TODO(nweiz): Don't use path here once issue 8440 is fixed.
-  var future = spawnUri(path.join(path.current, new Options().script)).call({
+  var future = spawnUri(path.join(path.current, Platform.script)).call({
     'testToRun': description,
-    'executable': new Options().executable
+    'executable': Platform.executable
   });
   // TODO(nweiz): Remove this timeout once issue 8417 is fixed and we can
   // capture top-level exceptions.

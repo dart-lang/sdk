@@ -373,8 +373,7 @@ main() {
 
 ExportMap parse(List<String> libraries) {
   return new ExportMap.parse(
-      libraries.map(libPath)
-          .map(pathToFileUri),
+      libraries.map(libPath).map(pathos.toUri),
       pathos.join(tempDir, 'packages'));
 }
 

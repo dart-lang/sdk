@@ -4,7 +4,7 @@
 
 {
   'variables': {
-    'gen_source_dir': '<(LIB_DIR)',
+    'gen_source_dir': '<(SHARED_INTERMEDIATE_DIR)',
     'libgen_in_cc_file': '../lib/libgen_in.cc',
     'builtin_in_cc_file': '../bin/builtin_in.cc',
     'async_cc_file': '<(gen_source_dir)/async_gen.cc',
@@ -93,25 +93,25 @@
       'type': 'static_library',
       'toolsets':['host', 'target'],
       'dependencies': [
-        'generate_async_cc_file',
-        'generate_async_patch_cc_file',
-        'generate_corelib_cc_file',
-        'generate_corelib_patch_cc_file',
-        'generate_collection_cc_file',
-        'generate_collection_patch_cc_file',
-        'generate_collection_dev_cc_file',
-        'generate_collection_dev_patch_cc_file',
-        'generate_math_cc_file',
-        'generate_math_patch_cc_file',
-        'generate_isolate_cc_file',
-        'generate_isolate_patch_cc_file',
-        'generate_json_cc_file',
-        'generate_json_patch_cc_file',
-        'generate_mirrors_cc_file',
-        'generate_mirrors_patch_cc_file',
-        'generate_typed_data_cc_file',
-        'generate_typed_data_patch_cc_file',
-        'generate_utf_cc_file',
+        'generate_async_cc_file#host',
+        'generate_async_patch_cc_file#host',
+        'generate_corelib_cc_file#host',
+        'generate_corelib_patch_cc_file#host',
+        'generate_collection_cc_file#host',
+        'generate_collection_patch_cc_file#host',
+        'generate_collection_dev_cc_file#host',
+        'generate_collection_dev_patch_cc_file#host',
+        'generate_math_cc_file#host',
+        'generate_math_patch_cc_file#host',
+        'generate_isolate_cc_file#host',
+        'generate_isolate_patch_cc_file#host',
+        'generate_json_cc_file#host',
+        'generate_json_patch_cc_file#host',
+        'generate_mirrors_cc_file#host',
+        'generate_mirrors_patch_cc_file#host',
+        'generate_typed_data_cc_file#host',
+        'generate_typed_data_patch_cc_file#host',
+        'generate_utf_cc_file#host',
       ],
       'includes': [
         '../lib/async_sources.gypi',
@@ -172,7 +172,7 @@
     {
       'target_name': 'generate_async_cc_file',
       'type': 'none',
-      'toolsets':['host', 'target'],
+      'toolsets':['host'],
       'includes': [
         '../../sdk/lib/async/async_sources.gypi',
       ],
@@ -211,7 +211,7 @@
     {
       'target_name': 'generate_corelib_cc_file',
       'type': 'none',
-      'toolsets':['host', 'target'],
+      'toolsets':['host'],
       'includes': [
         # Load the shared core library sources.
         '../../sdk/lib/core/corelib_sources.gypi',
@@ -251,7 +251,7 @@
     {
       'target_name': 'generate_corelib_patch_cc_file',
       'type': 'none',
-      'toolsets':['host', 'target'],
+      'toolsets':['host'],
       'includes': [
         # Load the runtime implementation sources.
         '../lib/corelib_sources.gypi',
@@ -291,7 +291,7 @@
     {
       'target_name': 'generate_collection_cc_file',
       'type': 'none',
-      'toolsets':['host', 'target'],
+      'toolsets':['host'],
       'includes': [
         # Load the shared collection library sources.
         '../../sdk/lib/collection/collection_sources.gypi',
@@ -331,7 +331,7 @@
     {
       'target_name': 'generate_collection_dev_patch_cc_file',
       'type': 'none',
-      'toolsets':['host', 'target'],
+      'toolsets':['host'],
       'includes': [
         # Load the runtime implementation sources.
         '../lib/collection_dev_sources.gypi',
@@ -371,7 +371,7 @@
     {
       'target_name': 'generate_collection_dev_cc_file',
       'type': 'none',
-      'toolsets':['host', 'target'],
+      'toolsets':['host'],
       'includes': [
         # Load the shared collection_dev library sources.
         '../../sdk/lib/_collection_dev/collection_dev_sources.gypi',
@@ -411,7 +411,7 @@
     {
       'target_name': 'generate_math_cc_file',
       'type': 'none',
-      'toolsets':['host', 'target'],
+      'toolsets':['host'],
       'includes': [
         # Load the shared math library sources.
         '../../sdk/lib/math/math_sources.gypi',
@@ -451,7 +451,7 @@
     {
       'target_name': 'generate_math_patch_cc_file',
       'type': 'none',
-      'toolsets':['host', 'target'],
+      'toolsets':['host'],
       'includes': [
         # Load the shared math library sources.
         '../lib/math_sources.gypi',
@@ -491,7 +491,7 @@
     {
       'target_name': 'generate_mirrors_cc_file',
       'type': 'none',
-      'toolsets':['host', 'target'],
+      'toolsets':['host'],
       'includes': [
         # Load the shared core library sources.
         '../../sdk/lib/mirrors/mirrors_sources.gypi',
@@ -531,7 +531,7 @@
     {
       'target_name': 'generate_mirrors_patch_cc_file',
       'type': 'none',
-      'toolsets':['host', 'target'],
+      'toolsets':['host'],
       'includes': [
         # Load the patch sources.
         '../lib/mirrors_sources.gypi',
@@ -571,7 +571,7 @@
     {
       'target_name': 'generate_isolate_cc_file',
       'type': 'none',
-      'toolsets':['host', 'target'],
+      'toolsets':['host'],
       'includes': [
         # Load the runtime implementation sources.
         '../../sdk/lib/isolate/isolate_sources.gypi',
@@ -611,7 +611,7 @@
     {
       'target_name': 'generate_async_patch_cc_file',
       'type': 'none',
-      'toolsets':['host', 'target'],
+      'toolsets':['host'],
       'includes': [
         # Load the runtime implementation sources.
         '../lib/async_sources.gypi',
@@ -651,7 +651,7 @@
     {
       'target_name': 'generate_collection_patch_cc_file',
       'type': 'none',
-      'toolsets':['host', 'target'],
+      'toolsets':['host'],
       'includes': [
         # Load the runtime implementation sources.
         '../lib/collection_sources.gypi',
@@ -691,7 +691,7 @@
     {
       'target_name': 'generate_isolate_patch_cc_file',
       'type': 'none',
-      'toolsets':['host', 'target'],
+      'toolsets':['host'],
       'includes': [
         # Load the runtime implementation sources.
         '../lib/isolate_sources.gypi',
@@ -731,7 +731,7 @@
     {
       'target_name': 'generate_json_cc_file',
       'type': 'none',
-      'toolsets':['host', 'target'],
+      'toolsets':['host'],
       'includes': [
         # Load the shared json sources.
         '../../sdk/lib/json/json_sources.gypi',
@@ -764,7 +764,7 @@
     {
       'target_name': 'generate_json_patch_cc_file',
       'type': 'none',
-      'toolsets':['host', 'target'],
+      'toolsets':['host'],
       'includes': [
         # Load the shared json library sources.
         '../lib/json_sources.gypi',
@@ -804,7 +804,7 @@
     {
       'target_name': 'generate_typed_data_cc_file',
       'type': 'none',
-      'toolsets':['host', 'target'],
+      'toolsets':['host'],
       'includes': [
         # Load the shared library sources.
         '../../sdk/lib/typed_data/typed_data_sources.gypi',
@@ -844,7 +844,7 @@
     {
       'target_name': 'generate_typed_data_patch_cc_file',
       'type': 'none',
-      'toolsets':['host', 'target'],
+      'toolsets':['host'],
       'includes': [
         # Load the runtime implementation sources.
         '../lib/typed_data_sources.gypi',
@@ -884,7 +884,7 @@
     {
       'target_name': 'generate_utf_cc_file',
       'type': 'none',
-      'toolsets':['host', 'target'],
+      'toolsets':['host'],
       'includes': [
         # Load the shared utf sources.
         '../../sdk/lib/utf/utf_sources.gypi',
@@ -917,7 +917,7 @@
     {
       'target_name': 'generate_snapshot_test_dat_file',
       'type': 'none',
-      'toolsets':['host', 'target'],
+      'toolsets':['host'],
       'actions': [
         {
           'action_name': 'generate_snapshot_test_dat',

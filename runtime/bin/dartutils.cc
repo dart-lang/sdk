@@ -243,8 +243,8 @@ void DartUtils::CloseFile(void* stream) {
 }
 
 
-static Dart_Handle SingleArgDart_Invoke(Dart_Handle arg, Dart_Handle lib,
-                                        const char* method) {
+static Dart_Handle SingleArgDart_Invoke(Dart_Handle lib, const char* method,
+                                        Dart_Handle arg) {
   const int kNumArgs = 1;
   Dart_Handle dart_args[kNumArgs];
   dart_args[0] = arg;
@@ -253,10 +253,10 @@ static Dart_Handle SingleArgDart_Invoke(Dart_Handle arg, Dart_Handle lib,
 
 
 // TODO(iposva): Allocate from the zone instead of leaking error string
-// here. On the other hand the binary is about the exit anyway.
+// here. On the other hand the binary is about to exit anyway.
 #define SET_ERROR_MSG(error_msg, format, ...)                                  \
   intptr_t len = snprintf(NULL, 0, format, __VA_ARGS__);                       \
-  char *msg = reinterpret_cast<char*>(malloc(len + 1));                        \
+  char* msg = reinterpret_cast<char*>(malloc(len + 1));                        \
   snprintf(msg, len + 1, format, __VA_ARGS__);                                 \
   *error_msg = msg
 
@@ -267,19 +267,27 @@ Dart_Handle MakeHttpRequest(Dart_Handle uri, Dart_Handle builtin_lib,
   ASSERT(buffer != NULL);
   ASSERT(buffer_len != NULL);
   ASSERT(!Dart_HasLivePorts());
-  SingleArgDart_Invoke(uri, builtin_lib, "_makeHttpRequest");
+  SingleArgDart_Invoke(builtin_lib, "_makeHttpRequest", uri);
   // Run until all ports to isolate are closed.
   Dart_Handle result = Dart_RunLoop();
   if (Dart_IsError(result)) {
     return result;
   }
-  intptr_t responseCode =
-    DartUtils::GetIntegerField(builtin_lib, "_httpRequestResponseCode");
+  result = Dart_Invoke(builtin_lib,
+                       DartUtils::NewString("_getHttpRequestResponseCode"),
+                       0,
+                       NULL);
+  if (Dart_IsError(result)) {
+    return result;
+  }
+  intptr_t responseCode = DartUtils::GetIntegerValue(result);
   if (responseCode != HttpResponseCodeOK) {
     // Return error.
     Dart_Handle responseStatus =
-        Dart_GetField(builtin_lib,
-                      DartUtils::NewString("_httpRequestStatusString"));
+        Dart_Invoke(builtin_lib,
+                    DartUtils::NewString("_getHttpRequestStatusString"),
+                    0,
+                    NULL);
     if (Dart_IsError(responseStatus)) {
       return responseStatus;
     }
@@ -289,7 +297,8 @@ Dart_Handle MakeHttpRequest(Dart_Handle uri, Dart_Handle builtin_lib,
     return Dart_Error(DartUtils::GetStringValue(responseStatus));
   }
   Dart_Handle response =
-    Dart_GetField(builtin_lib, DartUtils::NewString("_httpRequestResponse"));
+      Dart_Invoke(builtin_lib, DartUtils::NewString("_getHttpRequestResponse"),
+                  0, NULL);
   if (Dart_IsError(response)) {
     return response;
   }
@@ -384,13 +393,17 @@ Dart_Handle DartUtils::ReadStringFromFile(const char* filename) {
 }
 
 
+Dart_Handle DartUtils::SetWorkingDirectory(Dart_Handle builtin_lib) {
+  Dart_Handle directory = NewString(original_working_directory);
+  return SingleArgDart_Invoke(builtin_lib, "_setWorkingDirectory", directory);
+}
+
+
 Dart_Handle DartUtils::ResolveScriptUri(Dart_Handle script_uri,
                                         Dart_Handle builtin_lib) {
-  const int kNumArgs = 3;
+  const int kNumArgs = 1;
   Dart_Handle dart_args[kNumArgs];
-  dart_args[0] = NewString(original_working_directory);
-  dart_args[1] = script_uri;
-  dart_args[2] = (IsWindowsHost() ? Dart_True() : Dart_False());
+  dart_args[0] = script_uri;
   return Dart_Invoke(builtin_lib,
                      NewString("_resolveScriptUri"),
                      kNumArgs,
@@ -400,10 +413,9 @@ Dart_Handle DartUtils::ResolveScriptUri(Dart_Handle script_uri,
 
 Dart_Handle DartUtils::FilePathFromUri(Dart_Handle script_uri,
                                        Dart_Handle builtin_lib) {
-  const int kNumArgs = 2;
+  const int kNumArgs = 1;
   Dart_Handle dart_args[kNumArgs];
   dart_args[0] = script_uri;
-  dart_args[1] = (IsWindowsHost() ? Dart_True() : Dart_False());
   return Dart_Invoke(builtin_lib,
                      NewString("_filePathFromUri"),
                      kNumArgs,
@@ -564,9 +576,6 @@ Dart_Handle DartUtils::LoadScriptHttp(Dart_Handle uri,
 
 Dart_Handle DartUtils::LoadScript(const char* script_uri,
                                   Dart_Handle builtin_lib) {
-  // Always call ResolveScriptUri because as a side effect it sets
-  // the script entry path which is used when automatically resolving
-  // package root.
   Dart_Handle resolved_script_uri =
       ResolveScriptUri(NewString(script_uri), builtin_lib);
   if (Dart_IsError(resolved_script_uri)) {
@@ -647,7 +656,7 @@ Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
                                                Dart_Handle builtin_lib) {
   // Setup the corelib 'print' function.
   Dart_Handle print = Dart_Invoke(
-      builtin_lib, NewString("_getPrintClosure"), 0, 0);
+      builtin_lib, NewString("_getPrintClosure"), 0, NULL);
   Dart_Handle corelib = Dart_LookupLibrary(NewString("dart:core"));
   Dart_Handle result = Dart_SetField(corelib,
                                      NewString("_printClosure"),
@@ -665,6 +674,21 @@ Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
   args[0] = timer_closure;
   DART_CHECK_VALID(Dart_Invoke(
       async_lib, NewString("_setTimerFactoryClosure"), 1, args));
+
+
+  if (IsWindowsHost()) {
+    // Set running on Windows flag.
+    result = Dart_Invoke(builtin_lib, NewString("_setWindows"), 0, NULL);
+    if (Dart_IsError(result)) {
+      return result;
+    }
+  }
+
+  // Set current working directory.
+  result = SetWorkingDirectory(builtin_lib);
+  if (Dart_IsError(result)) {
+    return result;
+  }
 
   // Set up package root if specified.
   if (package_root != NULL) {
@@ -737,10 +761,10 @@ bool DartUtils::PostInt32(Dart_Port port_id, int32_t value) {
 }
 
 
-Dart_Handle DartUtils::GetDartClass(const char* library_url,
-                                    const char* class_name) {
-  return Dart_GetClass(Dart_LookupLibrary(NewString(library_url)),
-                       NewString(class_name));
+Dart_Handle DartUtils::GetDartType(const char* library_url,
+                                   const char* class_name) {
+  return Dart_GetType(Dart_LookupLibrary(NewString(library_url)),
+                      NewString(class_name), 0, NULL);
 }
 
 
@@ -753,22 +777,24 @@ Dart_Handle DartUtils::NewDartOSError() {
 
 Dart_Handle DartUtils::NewDartOSError(OSError* os_error) {
   // Create a dart:io OSError object with the information retrieved from the OS.
-  Dart_Handle clazz = GetDartClass(kIOLibURL, "OSError");
+  Dart_Handle type = GetDartType(kIOLibURL, "OSError");
   Dart_Handle args[2];
   args[0] = NewString(os_error->message());
   args[1] = Dart_NewInteger(os_error->code());
-  return Dart_New(clazz, Dart_Null(), 2, args);
+  return Dart_New(type, Dart_Null(), 2, args);
 }
 
 
-Dart_Handle DartUtils::NewDartSocketException(const char* message,
-                                              Dart_Handle os_error) {
-  // Create a dart:io SocketException object.
-  Dart_Handle clazz = GetDartClass(kIOLibURL, "SocketException");
+Dart_Handle DartUtils::NewDartExceptionWithOSError(const char* library_url,
+                                                   const char* exception_name,
+                                                   const char* message,
+                                                   Dart_Handle os_error) {
+  // Create a Dart Exception object with a message and an OSError.
+  Dart_Handle type = GetDartType(library_url, exception_name);
   Dart_Handle args[2];
   args[0] = NewString(message);
   args[1] = os_error;
-  return Dart_New(clazz, Dart_Null(), 2, args);
+  return Dart_New(type, Dart_Null(), 2, args);
 }
 
 
@@ -776,13 +802,13 @@ Dart_Handle DartUtils::NewDartExceptionWithMessage(const char* library_url,
                                                    const char* exception_name,
                                                    const char* message) {
   // Create a Dart Exception object with a message.
-  Dart_Handle clazz = GetDartClass(library_url, exception_name);
+  Dart_Handle type = GetDartType(library_url, exception_name);
   if (message != NULL) {
     Dart_Handle args[1];
     args[0] = NewString(message);
-    return Dart_New(clazz, Dart_Null(), 1, args);
+    return Dart_New(type, Dart_Null(), 1, args);
   } else {
-    return Dart_New(clazz, Dart_Null(), 0, NULL);
+    return Dart_New(type, Dart_Null(), 0, NULL);
   }
 }
 
@@ -791,6 +817,17 @@ Dart_Handle DartUtils::NewDartArgumentError(const char* message) {
   return NewDartExceptionWithMessage(kCoreLibURL,
                                      "ArgumentError",
                                      message);
+}
+
+
+Dart_Handle DartUtils::NewDartIOException(const char* exception_name,
+                                          const char* message,
+                                          Dart_Handle os_error) {
+  // Create a dart:io exception object of the given type.
+  return NewDartExceptionWithOSError(kIOLibURL,
+                                     exception_name,
+                                     message,
+                                     os_error);
 }
 
 

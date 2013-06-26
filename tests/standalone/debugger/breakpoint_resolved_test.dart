@@ -6,14 +6,14 @@ import "debug_lib.dart";
 
 main() {
   if (RunScript(testScript)) return;
-  
+
   bar();
-  
+
   print("Hello from debuggee");
 }
 
 bar() {
-  
+
   print("bar");
 }
 

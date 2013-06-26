@@ -1,6 +1,7 @@
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+// VMOptions=--optimization_counter_threshold=10
 
 // Library tag to be able to run in html test framework.
 library byte_array_test;
@@ -2129,7 +2130,7 @@ class OptimizedByteArrayTest {
 }
 
 main() {
-  for (var i=0; i<1000; i++) {
+  for (var i=0; i<20; i++) {
     OptimizedByteArrayTest.testMain();
   }
 }

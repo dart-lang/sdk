@@ -1062,8 +1062,8 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Spilled: T1, T2, T3.
   // T0: Address being stored.
   __ lw(T2, FieldAddress(T0, Object::tags_offset()));
-  __ andi(T1, T2, Immediate(1 << RawObject::kRememberedBit));
-  __ beq(T1, ZR, &add_to_buffer);
+  __ andi(CMPRES, T2, Immediate(1 << RawObject::kRememberedBit));
+  __ beq(CMPRES, ZR, &add_to_buffer);
   __ lw(T1, Address(SP, 0 * kWordSize));
   __ lw(T2, Address(SP, 1 * kWordSize));
   __ lw(T3, Address(SP, 2 * kWordSize));
@@ -1092,7 +1092,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // T2: top_
   // T1: StoreBufferBlock
   Label L;
-  __ AddImmediate(T2, 1);
+  __ addiu(T2, T2, Immediate(1));
   __ sw(T2, Address(T1, StoreBufferBlock::top_offset()));
   __ addiu(CMPRES, T2, Immediate(-StoreBufferBlock::kSize));
   // Restore values.
@@ -1107,7 +1107,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ Bind(&L);
   // Setup frame, push callee-saved registers.
 
-  __ EnterCallRuntimeFrame(0 * kWordSize);
+  __ EnterCallRuntimeFrame(1 * kWordSize);
   __ lw(A0, FieldAddress(CTX, Context::isolate_offset()));
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry);
   __ TraceSimMsg("UpdateStoreBufferStub return");
@@ -1489,24 +1489,23 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
 
 //  T0: function object.
 //  S5: inline cache data object.
-//  S4: arguments descriptor array.
+// Cannot use function object from ICData as it may be the inlined
+// function and not the top-scope function.
 void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
   __ TraceSimMsg("OptimizedUsageCounterIncrement");
   Register ic_reg = S5;
   Register func_reg = T0;
   if (FLAG_trace_optimized_ic_calls) {
     __ EnterStubFrame();
-    __ addiu(SP, SP, Immediate(-5 * kWordSize));
-    __ sw(T0, Address(SP, 4 * kWordSize));
-    __ sw(S5, Address(SP, 3 * kWordSize));
-    __ sw(S4, Address(SP, 2 * kWordSize));  // Preserve.
+    __ addiu(SP, SP, Immediate(-4 * kWordSize));
+    __ sw(T0, Address(SP, 3 * kWordSize));
+    __ sw(S5, Address(SP, 2 * kWordSize));
     __ sw(ic_reg, Address(SP, 1 * kWordSize));  // Argument.
     __ sw(func_reg, Address(SP, 0 * kWordSize));  // Argument.
     __ CallRuntime(kTraceICCallRuntimeEntry);
-    __ lw(S4, Address(SP, 2 * kWordSize));  // Restore.
-    __ lw(S5, Address(SP, 3 * kWordSize));
-    __ lw(T0, Address(SP, 4 * kWordSize));
-    __ addiu(SP, SP, Immediate(5 * kWordSize));  // Discard argument;
+    __ lw(S5, Address(SP, 2 * kWordSize));
+    __ lw(T0, Address(SP, 3 * kWordSize));
+    __ addiu(SP, SP, Immediate(4 * kWordSize));  // Discard argument;
     __ LeaveStubFrame();
   }
   __ lw(T7, FieldAddress(func_reg, Function::usage_counter_offset()));
@@ -1553,7 +1552,6 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
 // Generate inline cache check for 'num_args'.
 //  RA: return address
 //  S5: Inline cache data object.
-//  S4: Arguments descriptor array.
 // Control flow:
 // - If receiver is null -> jump to IC miss.
 // - If receiver is Smi -> load Smi class.
@@ -1576,6 +1574,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   }
 #endif  // DEBUG
 
+  // Load argument descriptor into S4.
+  __ lw(S4, FieldAddress(S5, ICData::arguments_descriptor_offset()));
   // Preserve return address, since RA is needed for subroutine call.
   __ mov(T2, RA);
   // Loop that checks if there is an IC data match.
@@ -1743,7 +1743,6 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
 // cache miss handler. Stub for 1-argument check (receiver class).
 //  RA: Return address.
 //  S5: Inline cache data object.
-//  S4: Arguments descriptor array.
 // Inline cache data object structure:
 // 0: function-name
 // 1: N, number of arguments checked.
@@ -1799,13 +1798,83 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
 }
 
 
+// Intermediary stub between a static call and its target. ICData contains
+// the target function and the call count.
+// S5: ICData
+void StubCode::GenerateUnoptimizedStaticCallStub(Assembler* assembler) {
+  GenerateUsageCounterIncrement(assembler, T0);
+  __ TraceSimMsg("UnoptimizedStaticCallStub");
+#if defined(DEBUG)
+  { Label ok;
+    // Check that the IC data array has NumberOfArgumentsChecked() == 0.
+    // 'num_args_tested' is stored as an untagged int.
+    __ lw(T0, FieldAddress(S5, ICData::num_args_tested_offset()));
+    __ beq(T0, ZR, &ok);
+    __ Stop("Incorrect IC data for unoptimized static call");
+    __ Bind(&ok);
+  }
+#endif  // DEBUG
+
+  // S5: IC data object (preserved).
+  __ lw(T0, FieldAddress(S5, ICData::ic_data_offset()));
+  // T0: ic_data_array with entries: target functions and count.
+  __ AddImmediate(T0, Array::data_offset() - kHeapObjectTag);
+  // T0: points directly to the first ic data array element.
+  const intptr_t target_offset = ICData::TargetIndexFor(0) * kWordSize;
+  const intptr_t count_offset = ICData::CountIndexFor(0) * kWordSize;
+
+  // Increment count for this call.
+  Label increment_done;
+  __ lw(T4, Address(T0, count_offset));
+  __ AddImmediateDetectOverflow(T4, T4, Smi::RawValue(1), T5, T6);
+  __ bgez(T5, &increment_done);  // No overflow.
+  __ delay_slot()->sw(T4, Address(T0, count_offset));
+
+  __ LoadImmediate(T1, Smi::RawValue(Smi::kMaxValue));
+  __ sw(T1, Address(T0, count_offset));
+
+  __ Bind(&increment_done);
+
+  Label target_is_compiled;
+  // Get function and call it, if possible.
+  __ lw(T3, Address(T0, target_offset));
+  __ lw(T4, FieldAddress(T3, Function::code_offset()));
+  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
+  __ bne(T4, TMP, &target_is_compiled);
+
+  __ EnterStubFrame();
+  // Preserve target function and IC data object.
+  // Two preserved registers, one argument (function) => 3 slots.
+  __ addiu(SP, SP, Immediate(-3 * kWordSize));
+  __ sw(S5, Address(SP, 2 * kWordSize));  // Preserve IC data.
+  __ sw(T3, Address(SP, 1 * kWordSize));  // Preserve function.
+  __ sw(T3, Address(SP, 0 * kWordSize));  // Function argument.
+  __ CallRuntime(kCompileFunctionRuntimeEntry);
+  __ lw(T3, Address(SP, 1 * kWordSize));  // Restore function.
+  __ lw(S5, Address(SP, 2 * kWordSize));  // Restore IC data.
+  __ addiu(SP, SP, Immediate(3 * kWordSize));
+  // T3: target function.
+  __ lw(T4, FieldAddress(T3, Function::code_offset()));
+  __ LeaveStubFrame();
+
+  __ Bind(&target_is_compiled);
+  // T4: target code.
+  __ lw(T3, FieldAddress(T4, Code::instructions_offset()));
+  __ AddImmediate(T3, Instructions::HeaderSize() - kHeapObjectTag);
+  __ jr(T3);
+  // Load arguments descriptor into S4.
+  __ delay_slot()->
+      lw(S4,  FieldAddress(S5, ICData::arguments_descriptor_offset()));
+}
+
+
 void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
   __ Unimplemented("BreakpointRuntime stub");
 }
 
 
 //  RA: return address (Dart code).
-//  S4: Arguments descriptor array.
+//  S5: IC data (unoptimized static call).
 void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
   __ TraceSimMsg("BreakpointStaticStub");
   // Create a stub frame as we are pushing some objects on the stack before
@@ -1813,13 +1882,13 @@ void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
   __ EnterStubFrame();
   // Preserve arguments descriptor and make room for result.
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(S4, Address(SP, 1 * kWordSize));
+  __ sw(S5, Address(SP, 1 * kWordSize));
   __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
   __ sw(TMP, Address(SP, 0 * kWordSize));
   __ CallRuntime(kBreakpointStaticHandlerRuntimeEntry);
   // Pop code object result and restore arguments descriptor.
   __ lw(T0, Address(SP, 0 * kWordSize));
-  __ lw(S4, Address(SP, 1 * kWordSize));
+  __ lw(S5, Address(SP, 1 * kWordSize));
   __ addiu(SP, SP, Immediate(2 * kWordSize));
   __ LeaveStubFrame();
 
@@ -1827,6 +1896,8 @@ void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
   // ensures that the call target is compiled.
   __ lw(T0, FieldAddress(T0, Code::instructions_offset()));
   __ AddImmediate(T0, Instructions::HeaderSize() - kHeapObjectTag);
+  // Load arguments descriptor into S4.
+  __ lw(S4, FieldAddress(S5, ICData::arguments_descriptor_offset()));
   __ jr(T0);
 }
 
@@ -1850,19 +1921,14 @@ void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
 
 //  RA: return address (Dart code).
 //  S5: Inline cache data array.
-//  S4: Arguments descriptor array.
 void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ TraceSimMsg("BreakpointDynamicStub");
   __ EnterStubFrame();
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(S5, Address(SP, 1 * kWordSize));
-  __ sw(S4, Address(SP, 0 * kWordSize));
+  __ Push(S5);
   __ CallRuntime(kBreakpointDynamicHandlerRuntimeEntry);
-  __ lw(S4, Address(SP, 0 * kWordSize));
-  __ lw(S5, Address(SP, 1 * kWordSize));
-  __ addiu(SP, SP, Immediate(2 * kWordSize));
+  __ Pop(S5);
   __ LeaveStubFrame();
 
   // Find out which dispatch stub to call.

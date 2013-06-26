@@ -120,6 +120,10 @@ class FlowGraphBuilder: public ValueObject {
   void set_context_level(intptr_t value) { context_level_ = value; }
   intptr_t context_level() const { return context_level_; }
 
+  void IncrementLoopDepth() { ++loop_depth_; }
+  void DecrementLoopDepth() { --loop_depth_; }
+  intptr_t loop_depth() const { return loop_depth_; }
+
   // Each try in this function gets its own try index.
   intptr_t AllocateTryIndex() { return ++last_used_try_index_; }
 
@@ -169,6 +173,7 @@ class FlowGraphBuilder: public ValueObject {
   intptr_t context_level_;
   intptr_t last_used_try_index_;
   intptr_t try_index_;
+  intptr_t loop_depth_;
   GraphEntryInstr* graph_entry_;
 
   // Outgoing argument stack height.

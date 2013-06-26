@@ -6,6 +6,7 @@
 #define BIN_SOCKET_WIN_H_
 
 #include <winsock2.h>
+#include <iphlpapi.h>
 #include <ws2tcpip.h>
 #include <mswsock.h>
 

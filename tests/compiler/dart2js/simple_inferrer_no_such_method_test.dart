@@ -103,12 +103,12 @@ main() {
     var element = findElement(compiler, name);
     Expect.equals(
         type,
-        typesInferrer.internal.returnTypeOf[element].simplify(compiler),
+        typesInferrer.getReturnTypeOfElement(element).simplify(compiler),
         name);
   }
 
   checkReturn('test1', typesInferrer.intType);
-  checkReturn('test2', typesInferrer.dynamicType);
+  checkReturn('test2', typesInferrer.dynamicType.nonNullable());
   checkReturn('test3', typesInferrer.intType);
   checkReturn('test4', typesInferrer.mapType);
   checkReturn('test5', typesInferrer.dynamicType.nonNullable());
@@ -118,17 +118,13 @@ main() {
   compiler.runCompiler(uri);
   typesInferrer = compiler.typesTask.typesInferrer;
 
-  checkReturn('test1', typesInferrer.dynamicType);
+  checkReturn('test1', typesInferrer.dynamicType.nonNullable());
   checkReturn('test2', typesInferrer.mapType);
   checkReturn('test3', typesInferrer.mapType);
   checkReturn('test4', typesInferrer.mapType);
   checkReturn('test5', typesInferrer.mapType);
 
-  // TODO(ngeoffray): The reason for nullablity is because the
-  // inferrer thinks Object.noSuchMethod return null. Once we track
-  // aborting control flow in the analysis, we won't get the nullable
-  // anymore.
-  checkReturn('test6', typesInferrer.numType.nullable());
+  checkReturn('test6', typesInferrer.numType);
   checkReturn('test7', typesInferrer.intType);
   checkReturn('test8', typesInferrer.intType);
   checkReturn('test9', typesInferrer.intType);

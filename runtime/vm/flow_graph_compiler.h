@@ -258,6 +258,7 @@ class FlowGraphCompiler : public ValueObject {
   }
   static bool CanOptimize();
   bool CanOptimizeFunction() const;
+  bool CanOSRFunction() const;
   bool is_optimizing() const { return is_optimizing_; }
 
   const GrowableArray<BlockInfo*>& block_info() const { return block_info_; }
@@ -336,7 +337,6 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitOptimizedInstanceCall(ExternalLabel* target_label,
                                  const ICData& ic_data,
-                                 const Array& arguments_descriptor,
                                  intptr_t argument_count,
                                  intptr_t deopt_id,
                                  intptr_t token_pos,
@@ -344,14 +344,12 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitInstanceCall(ExternalLabel* target_label,
                         const ICData& ic_data,
-                        const Array& arguments_descriptor,
                         intptr_t argument_count,
                         intptr_t deopt_id,
                         intptr_t token_pos,
                         LocationSummary* locs);
 
   void EmitMegamorphicInstanceCall(const ICData& ic_data,
-                                   const Array& arguments_descriptor,
                                    intptr_t argument_count,
                                    intptr_t deopt_id,
                                    intptr_t token_pos,
@@ -481,12 +479,19 @@ class FlowGraphCompiler : public ValueObject {
   // Emit code to load a Value into register 'dst'.
   void LoadValue(Register dst, Value* value);
 
-  void EmitStaticCall(const Function& function,
-                      const Array& arguments_descriptor,
-                      intptr_t argument_count,
-                      intptr_t deopt_id,
-                      intptr_t token_pos,
-                      LocationSummary* locs);
+  void EmitOptimizedStaticCall(const Function& function,
+                               const Array& arguments_descriptor,
+                               intptr_t argument_count,
+                               intptr_t deopt_id,
+                               intptr_t token_pos,
+                               LocationSummary* locs);
+
+  void EmitUnoptimizedStaticCall(const Function& function,
+                                 const Array& arguments_descriptor,
+                                 intptr_t argument_count,
+                                 intptr_t deopt_id,
+                                 intptr_t token_pos,
+                                 LocationSummary* locs);
 
   // Type checking helper methods.
   void CheckClassIds(Register class_id_reg,

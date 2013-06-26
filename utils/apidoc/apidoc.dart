@@ -148,7 +148,7 @@ void main() {
       }
 
       if (new File.fromPath(libPath).existsSync()) {
-        apidocLibraries.add(_pathToFileUri(libPath.toNativePath()));
+        apidocLibraries.add(pathos.toUri(libPath.toNativePath()));
         includedLibraries.add(libName);
       } else {
         print('Warning: could not find package at $path');
@@ -162,7 +162,7 @@ void main() {
     for (var lib in extraLibraries) {
       var libPath = new Path('../../$lib');
       if (new File.fromPath(libPath).existsSync()) {
-        apidocLibraries.add(_pathToFileUri(libPath.toNativePath()));
+        apidocLibraries.add(pathos.toUri(libPath.toNativePath()));
         var libName = libPath.filename.replaceAll('.dart', '');
         includedLibraries.add(libName);
       }
@@ -211,11 +211,9 @@ class Apidoc extends Dartdoc {
    */
   String mdnUrl = null;
 
-  Apidoc(this.mdn, Path outputDir, int mode,
-         bool generateAppCache, [excludedLibraries, String version]) {
-    if (?excludedLibraries) {
-      this.excludedLibraries = excludedLibraries;
-    }
+  Apidoc(this.mdn, Path outputDir, int mode, bool generateAppCache,
+      [List<String> excludedLibraries, String version]) {
+    if (excludedLibraries != null) this.excludedLibraries = excludedLibraries;
     this.version = version;
     this.outputDir = outputDir;
     this.mode = mode;
@@ -478,16 +476,6 @@ class Apidoc extends Dartdoc {
     }
 
     return a(memberUrl(member), memberName);
-  }
-}
-
-/** Converts a local path string to a `file:` [Uri]. */
-Uri _pathToFileUri(String path) {
-  path = pathos.absolute(path);
-  if (Platform.operatingSystem != 'windows') {
-    return Uri.parse('file://$path');
-  } else {
-    return Uri.parse('file:///${path.replaceAll("\\", "/")}');
   }
 }
 

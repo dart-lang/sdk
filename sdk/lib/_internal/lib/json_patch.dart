@@ -5,6 +5,7 @@
 // Patch file for dart:json library.
 
 import 'dart:_foreign_helper' show JS;
+import 'dart:_interceptors' show JSExtendableArray;
 
 /**
  * Parses [json] and builds the corresponding parsed JSON value.
@@ -27,7 +28,9 @@ patch parse(String json, [reviver(var key, var value)]) {
 
   var parsed;
   try {
-    parsed = JS('=Object|=List|Null|bool|num|String', 'JSON.parse(#)', json);
+    parsed = JS('=Object|JSExtendableArray|Null|bool|num|String',
+                'JSON.parse(#)',
+                json);
   } catch (e) {
     throw new FormatException(JS('String', 'String(#)', e));
   }
@@ -54,7 +57,7 @@ _convertJsonToDart(json, reviver(key, value)) {
     // TODO(sra): Replace this test with cheaper '#.constructor === Array' when
     // bug 621 below is fixed.
     if (JS('bool', 'Object.getPrototypeOf(#) === Array.prototype', e)) {
-      var list = JS('=List', '#', e);  // Teach compiler the type is known.
+      var list = JS('JSExtendableArray', '#', e);  // Teach compiler the type is known.
       // In-place update of the elements since JS Array is a Dart List.
       for (int i = 0; i < list.length; i++) {
         // Use JS indexing to avoid range checks.  We know this is the only
@@ -69,7 +72,7 @@ _convertJsonToDart(json, reviver(key, value)) {
     }
 
     // Otherwise it is a plain Object, so copy to a Map.
-    var keys = JS('=List', 'Object.keys(#)', e);
+    var keys = JS('JSExtendableArray', 'Object.keys(#)', e);
     Map map = {};
     for (int i = 0; i < keys.length; i++) {
       String key = keys[i];

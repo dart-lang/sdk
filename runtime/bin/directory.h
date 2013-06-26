@@ -221,12 +221,12 @@ class SyncDirectoryListing: public DirectoryListing {
       : DirectoryListing(dir_name, recursive, follow_links),
         results_(results) {
     add_string_ = DartUtils::NewString("add");
-    directory_class_ =
-        DartUtils::GetDartClass(DartUtils::kIOLibURL, "Directory");
-    file_class_ =
-        DartUtils::GetDartClass(DartUtils::kIOLibURL, "File");
-    link_class_ =
-        DartUtils::GetDartClass(DartUtils::kIOLibURL, "Link");
+    directory_type_ =
+        DartUtils::GetDartType(DartUtils::kIOLibURL, "Directory");
+    file_type_ =
+        DartUtils::GetDartType(DartUtils::kIOLibURL, "File");
+    link_type_ =
+        DartUtils::GetDartType(DartUtils::kIOLibURL, "Link");
   }
   virtual ~SyncDirectoryListing() {}
   virtual bool HandleDirectory(char* dir_name);
@@ -237,9 +237,9 @@ class SyncDirectoryListing: public DirectoryListing {
  private:
   Dart_Handle results_;
   Dart_Handle add_string_;
-  Dart_Handle directory_class_;
-  Dart_Handle file_class_;
-  Dart_Handle link_class_;
+  Dart_Handle directory_type_;
+  Dart_Handle file_type_;
+  Dart_Handle link_type_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(SyncDirectoryListing);
 };

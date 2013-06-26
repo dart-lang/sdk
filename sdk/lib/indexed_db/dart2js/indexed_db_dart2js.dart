@@ -6,6 +6,7 @@ import 'dart:html_common';
 import 'dart:typed_data';
 import 'dart:_js_helper' show Creates, Returns, JSName, Null;
 import 'dart:_foreign_helper' show JS;
+import 'dart:_interceptors' show JSExtendableArray;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -128,8 +129,8 @@ _convertNativeToDart_IDBAny(object) {
   return convertNativeToDart_AcceptStructuredClone(object, mustCopy: false);
 }
 
-
-const String _idbKey = '=List|=Object|num|String';  // TODO(sra): Add DateTime.
+// TODO(sra): Add DateTime.
+const String _idbKey = 'JSExtendableArray|=Object|num|String';
 const _annotation_Creates_IDBKey = const Creates(_idbKey);
 const _annotation_Returns_IDBKey = const Returns(_idbKey);
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file

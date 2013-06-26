@@ -39,9 +39,6 @@ stacktrace_test: Pass, Fail # Assumes stack trace string ends in newline.
 *vm_negative_test: Skip
 
 [ $compiler == dart2js && $checked ]
-function_type_alias6_test: Crash # dartbug.com/9792
-
-prefix16_test: Fail # dartbug.com/7354
 default_factory2_test/01: Fail
 type_variable_bounds_test/01: Fail
 type_variable_bounds_test/02: Fail
@@ -56,13 +53,13 @@ f_bounded_quantification_test/01: Fail
 f_bounded_quantification_test/02: Fail
 closure_type_test: Fail # does not detect type error in checked mode.
 type_annotation_test/09: Fail # Named constructors interpreted as a type.
-prefix15_test: Fail # Issue 5022
-local_function2_test: Fail # Issue 5022
+function_subtype_setter0_test: Fail # dartbug.com/11273
 
 [ $compiler == dart2js && $unchecked ]
 factory_redirection_test/14: Fail # redirecting to redirecting factory
 type_checks_in_factory_method_test: Fail # Expect.equals(expected: <true>, actual: <false>) fails. -- checked mode test.
 
+prefix16_test: Fail # dartbug.com/9056
 assertion_test: Fail
 type_variable_bounds_test/07: Fail # Wrongly reports compile-time error.
 
@@ -87,6 +84,7 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dart2js ]
+function_type_alias6_test: Crash # dartbug.com/9792
 branch_canonicalization_test: Fail # Issue 638.
 div_with_power_of_two_test: Fail # Issue 8301.
 class_literal_test: Fail # Issue 7626.
@@ -122,30 +120,19 @@ metadata_test: Fail # Metadata on type parameters not supported.
 infinity_test: Fail # Issue 4984
 positive_bit_operations_test: Fail # (floitsch): This will be fixed when dart2js uses unsigned input for >>.
 
-compile_time_constant8_test: Fail # We don't take the generic type into account yet.
-canonical_const_test: Fail # We don't take the generic type into account yet.
 
 # Support for optional parameters not conform to latest spec.
-function_type_alias_test: Fail # http://dartbug.com/9058
-function_type_alias2_test: Fail
 named_parameters_type_test: Fail
 positional_parameters_type_test: Fail
 
 # Compilation errors.
 const_var_test: Fail # Map literals take 2 type arguments.
 map_literal3_test: Fail # Map literals take 2 type arguments.
-ct_const_test: Fail # We don't take the generic type into account yet.
-dynamic_test: Fail # cannot resolve type F1
 constructor_redirect2_test/03: Fail # redirecting ctor with initializing formal
-factory3_test: Fail # internal error: visitIs for type variables not implemented
-function_type_alias2_test: Fail # cannot resolve type f1
-function_type_alias3_test: Fail # cannot resolve type F
-function_type_alias4_test: Fail # cannot resolve type F
 function_type_alias5_test/00: Fail # visitIs for typedefs not implemented
 function_type_alias5_test/01: Fail # visitIs for typedefs not implemented
 function_type_alias5_test/02: Fail # visitIs for typedefs not implemented
 function_type_alias7_test/00: Fail # wrongly accepts default values in typedef
-function_type_alias_test: Fail # cannot resolve type Fun
 generic_test: Fail # cannot resolve type T
 get_set_syntax_test/00: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/01: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
@@ -241,9 +228,7 @@ instantiate_type_variable_negative_test: Pass  # For the wrong reason.
 interface_factory3_negative_test: Fail # Negative language test.
 interface_factory_constructor_negative_test: Fail # Negative language test.
 list_literal1_negative_test: Fail # Negative language test.
-list_literal2_negative_test: Fail # Negative language test.
 map_literal1_negative_test: Fail # Negative language test.
-map_literal2_negative_test: Fail # Negative language test.
 number_identifier_negative_test: Fail # Negative language test.
 operator1_negative_test: Fail # Negative language test.
 prefix23_negative_test: Fail # Negative language test.
@@ -262,7 +247,6 @@ static_top_level_test/07: Fail # Negative language test.
 string_interpolation7_negative_test: Fail # Negative language test.
 throw7_negative_test: Fail # Negative language test.
 
-disable_privacy_test: Fail, OK # VM specific test.
 numbers_test: Fail, OK # (unintended?) VM specific test.
 
 final_syntax_test/01: Fail # Missing error for uninitialized final field.
@@ -303,9 +287,9 @@ double_to_string_as_exponential3_test: Fail
 double_to_string_as_fixed_test: Fail
 double_to_string_as_precision3_test: Fail
 expect_test: Fail
-factory3_test: Fail
 stack_overflow_test: Fail
 stack_overflow_stacktrace_test: Fail
+inlined_throw_test: Fail # BUG(11480): Triage.
 
 
 [ $compiler == dart2js && $runtime == safari ]
@@ -327,3 +311,6 @@ stack_overflow_stacktrace_test: Fail
 string_interpolate_npe_test: Fail
 closure_call_wrong_argument_count_negative_test: Skip
 label_test: Skip
+
+[ $compiler == dart2js && $minified ]
+function_subtype_inline0_test: Fail # Issue 11469

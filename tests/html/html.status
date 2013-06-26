@@ -16,6 +16,9 @@ postmessage_structured_test/typed_arrays: Fail
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
 
+[ $compiler == dart2js && $checked ]
+template_element_test: Fail # BUG(11480): Triage.
+
 [ $compiler == dart2js && ($runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == opera || $runtime == drt || $runtime == dartium)]
 dom_isolates_test: Skip # Need to migrate to new spawnDomFunction.
 
@@ -137,6 +140,7 @@ url_test: Fail              # IE9 does not support createObjectURL (it is suppor
 window_open_test: Skip      # BUG(4016)
 canvasrenderingcontext2d_test/drawImage_video_element: Fail # IE does not support drawImage w/ video element
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does not support drawImage w/ video element
+canvasrenderingcontext2d_test/drawImage_image_element: Pass, Fail # Issue: 11416
 input_element_test/attributes: Fail # IE returns null while others ''
 
 # IE9 Feature support statuses-
@@ -366,9 +370,3 @@ js_interop_3_test: Skip            # Test cannot run under CSP restrictions (tim
 postmessage_structured_test: Skip  # Test cannot run under CSP restrictions (times out).
 safe_dom_test: Skip                # Test cannot run under CSP restrictions (times out).
 shadow_dom_layout_test: Fail, OK   # Test cannot run under CSP restrictions.
-
-[ $compiler == dartanalyzer ]
-path_observer_test: Fail
-
-[ $compiler == dart2analyzer ]
-path_observer_test: Fail

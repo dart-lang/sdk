@@ -31,15 +31,17 @@ TypeMask narrowType(TypeMask type,
  * Returns the least upper bound between [firstType] and
  * [secondType].
  */
- TypeMask computeLUB(TypeMask firstType,
-                     TypeMask secondType,
-                     Compiler compiler) {
+TypeMask computeLUB(TypeMask firstType,
+                    TypeMask secondType,
+                    Compiler compiler) {
   TypeMask dynamicType = compiler.typesTask.dynamicType;
   if (firstType == null) {
     return secondType;
   } else if (secondType == dynamicType) {
     return secondType;
   } else if (firstType == dynamicType) {
+    return firstType;
+  } else if (firstType == secondType) {
     return firstType;
   } else {
     TypeMask union = firstType.union(secondType, compiler);
@@ -60,11 +62,11 @@ class LocalsHandler {
   final Map<Element, TypeMask> fieldsInitializedInConstructor;
   final bool inTryBlock;
   bool isThisExposed;
-  bool seenReturn = false;
+  bool seenReturnOrThrow = false;
   bool seenBreakOrContinue = false;
 
   bool get aborts {
-    return seenReturn || seenBreakOrContinue;
+    return seenReturnOrThrow || seenBreakOrContinue;
   }
 
   LocalsHandler(this.inferrer, this.compiler)
@@ -183,7 +185,7 @@ class LocalsHandler {
       fieldsInitializedInConstructor.remove(element);
     });
     isThisExposed = isThisExposed || other.isThisExposed;
-    seenReturn = seenReturn && other.seenReturn;
+    seenReturnOrThrow = seenReturnOrThrow && other.seenReturnOrThrow;
     seenBreakOrContinue = seenBreakOrContinue && other.seenBreakOrContinue;
 
     return changed;
@@ -365,7 +367,7 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
       } else {
         if (!usePositive) continue;
       }
-      DartType type = elements.getType(node.typeAnnotationFromIsCheck);
+      DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
       Element element = elements[node.receiver];
       TypeMask existing = locals.use(element);
       TypeMask newType = narrowType(
@@ -591,7 +593,7 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
 
   TypeMask visitThrow(Throw node) {
     node.visitChildren(this);
-    locals.seenReturn = true;
+    locals.seenReturnOrThrow = true;
     return inferrer.dynamicType;
   }
 

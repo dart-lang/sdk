@@ -27,7 +27,7 @@ main() {
     Uri cwd = new Uri(
         scheme: 'file',
         path: appendSlash(new Path(new File('.').fullPathSync()).toString()));
-    Uri uri = cwd.resolve(new Path(new Options().script).toString());
+    Uri uri = cwd.resolve(new Path(Platform.script).toString());
     testLibraryUri(new Class(), uri);
   });
 }

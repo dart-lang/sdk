@@ -20,23 +20,23 @@ class UnionTypeMask implements TypeMask {
     return new UnionTypeMask._(disjoint);
   }
 
+  static TypeMask nonForwardingMask(mask) {
+    while (mask.isForwarding) mask = mask.forwardTo;
+    return mask;
+  }
+
   static void unionOfHelper(Iterable<TypeMask> masks,
                             List<FlatTypeMask> disjoint,
                             Compiler compiler) {
     for (TypeMask mask in masks) {
+      mask = nonForwardingMask(mask);
       if (mask.isUnion) {
         UnionTypeMask union = mask;
         unionOfHelper(union.disjointMasks, disjoint, compiler);
       } else if (mask.isEmpty && !mask.isNullable) {
         continue;
       } else {
-        FlatTypeMask flatMask;
-        if (mask.isContainer) {
-          ContainerTypeMask container = mask;
-          flatMask = container.asFlat;
-        } else {
-          flatMask = mask;
-        }
+        FlatTypeMask flatMask = mask;
         assert(flatMask.base == null
                || flatMask.base.element != compiler.dynamicClass);
         int inListIndex = -1;
@@ -146,7 +146,7 @@ class UnionTypeMask implements TypeMask {
   }
 
   TypeMask union(var other, Compiler compiler) {
-    if (other.isContainer) other = other.asFlat;
+    other = nonForwardingMask(other);
     if (!other.isUnion && disjointMasks.contains(other)) return this;
 
     List<FlatTypeMask> newList =
@@ -161,7 +161,7 @@ class UnionTypeMask implements TypeMask {
   }
 
   TypeMask intersection(var other, Compiler compiler) {
-    if (other.isContainer) other = other.asFlat;
+    other = nonForwardingMask(other);
     if (!other.isUnion && disjointMasks.contains(other)) return other;
 
     List<TypeMask> intersections = <TypeMask>[];
@@ -198,6 +198,8 @@ class UnionTypeMask implements TypeMask {
   bool get isExact => false;
   bool get isUnion => true;
   bool get isContainer => false;
+  bool get isForwarding => false;
+  bool get isElement => false;
 
   bool containsOnlyInt(Compiler compiler) => false;
   bool containsOnlyDouble(Compiler compiler) => false;

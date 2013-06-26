@@ -29,6 +29,14 @@ main() {
 }
 """;
 
+const String TEST4 = r"""
+main() {
+  var a = new List.filled(42, null);
+  a[0] = 42;
+  return a[0] + 42;
+}
+""";
+
 
 main() {
   String generated = compileAll(TEST1);
@@ -43,6 +51,10 @@ main() {
   Expect.isTrue(generated.contains('if (t1 == null)'));
 
   generated = compileAll(TEST3);
+  Expect.isFalse(generated.contains('if (typeof t1'));
+  Expect.isTrue(generated.contains('if (t1 == null)'));
+
+  generated = compileAll(TEST4);
   Expect.isFalse(generated.contains('if (typeof t1'));
   Expect.isTrue(generated.contains('if (t1 == null)'));
 }

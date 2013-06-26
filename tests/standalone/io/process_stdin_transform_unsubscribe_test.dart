@@ -35,5 +35,5 @@ main() {
     scriptFile = new File("../tests/standalone/io/$scriptName");
   }
   Expect.isTrue(scriptFile.existsSync());
-  test(Process.start(new Options().executable, [scriptFile.path]), 0);
+  test(Process.start(Platform.executable, [scriptFile.path]), 0);
 }

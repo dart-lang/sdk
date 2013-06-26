@@ -96,7 +96,7 @@ void writeString(File file, String text) {
  * If a URI cannot be converted, this will return `null`.
  */
 String importUriToPath(Uri uri, {String basePath, String packageRoot}) {
-  if (uri.scheme == 'file') return fileUriToPath(uri);
+  if (uri.scheme == 'file') return pathos.fromUri(uri);
 
   if (basePath != null && uri.scheme == '') {
     return pathos.normalize(pathos.absolute(pathos.join(basePath, uri.path)));
@@ -109,36 +109,6 @@ String importUriToPath(Uri uri, {String basePath, String packageRoot}) {
 
   // Ignore unsupported schemes.
   return null;
-}
-
-/** Converts a `file:` [Uri] to a local path string. */
-String fileUriToPath(Uri uri) {
-  if (uri.scheme != 'file') {
-    throw new ArgumentError("Uri $uri must have scheme 'file:'.");
-  }
-  if (Platform.operatingSystem != 'windows') return uri.path;
-  if (uri.path.startsWith("/")) {
-    // Drive-letter paths look like "file:///C:/path/to/file". The replaceFirst
-    // removes the extra initial slash.
-    return uri.path.replaceFirst("/", "").replaceAll("/", "\\");
-  } else {
-    // Network paths look like "file://hostname/path/to/file".
-    return "\\\\${uri.path.replaceAll("/", "\\")}";
-  }
-}
-
-/** Converts a local path string to a `file:` [Uri]. */
-Uri pathToFileUri(String pathString) {
-  pathString = pathos.absolute(pathString);
-  if (Platform.operatingSystem != 'windows') {
-    return Uri.parse('file://$pathString');
-  } else if (pathos.rootPrefix(pathString).startsWith('\\\\')) {
-    // Network paths become "file://hostname/path/to/file".
-    return Uri.parse('file:${pathString.replaceAll("\\", "/")}');
-  } else {
-    // Drive-letter paths become "file:///C:/path/to/file".
-    return Uri.parse('file:///${pathString.replaceAll("\\", "/")}');
-  }
 }
 
 /**

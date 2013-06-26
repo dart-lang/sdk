@@ -11,23 +11,30 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS_CURRENT_ISOLATE,
                                    JS_CURRENT_ISOLATE_CONTEXT,
                                    JS_DART_OBJECT_CONSTRUCTOR,
+                                   JS_FUNCTION_CLASS_NAME,
                                    JS_IS_INDEXABLE_FIELD_NAME,
                                    JS_OBJECT_CLASS_NAME,
                                    JS_OPERATOR_AS_PREFIX,
                                    JS_OPERATOR_IS_PREFIX,
+                                   JS_GLOBAL_OBJECT,
+                                   JS_SIGNATURE_NAME,
+                                   JS_HAS_EQUALS,
+                                   JS_FUNCTION_TYPE_TAG,
+                                   JS_FUNCTION_TYPE_VOID_RETURN_TAG,
+                                   JS_FUNCTION_TYPE_RETURN_TYPE_TAG,
+                                   JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG,
+                                   JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG,
+                                   JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG,
                                    RAW_DART_FUNCTION_REF;
 import 'dart:_interceptors';
-import "dart:_collection-dev" as _symbol_dev;
+import 'dart:_collection-dev' as _symbol_dev;
+import 'dart:_js_names' show mangledNames;
 
 part 'constant_map.dart';
 part 'native_helper.dart';
 part 'regexp_helper.dart';
 part 'string_helper.dart';
 part 'js_rti.dart';
-
-bool isJsArray(var value) {
-  return value != null && JS('bool', r'(#.constructor === Array)', value);
-}
 
 bool isJsIndexable(var object, var record) {
   if (record != null) {
@@ -56,8 +63,18 @@ String S(value) {
   return res;
 }
 
-createInvocationMirror(name, internalName, type, arguments, argumentNames) {
-  return new JSInvocationMirror(new _symbol_dev.Symbol.unvalidated(name),
+createInvocationMirror(String name, internalName, type, arguments,
+                       argumentNames) {
+  return new JSInvocationMirror(name,
+                                internalName,
+                                type,
+                                arguments,
+                                argumentNames);
+}
+
+createUnmangledInvocationMirror(Symbol symbol, internalName, type, arguments,
+                                argumentNames) {
+  return new JSInvocationMirror(symbol,
                                 internalName,
                                 type,
                                 arguments,
@@ -69,7 +86,9 @@ class JSInvocationMirror implements Invocation {
   static const GETTER = 1;
   static const SETTER = 2;
 
-  final Symbol memberName;
+  /// When [_memberName] is a String, it holds the mangled name of this
+  /// invocation.  When it is a Symbol, it holds the unmangled name.
+  var /* String or Symbol */ _memberName;
   final String _internalName;
   final int _kind;
   final List _arguments;
@@ -77,11 +96,22 @@ class JSInvocationMirror implements Invocation {
   /** Map from argument name to index in _arguments. */
   Map<String,dynamic> _namedIndices = null;
 
-  JSInvocationMirror(this.memberName,
+  JSInvocationMirror(this._memberName,
                      this._internalName,
                      this._kind,
                      this._arguments,
                      this._namedArgumentNames);
+
+  Symbol get memberName {
+    if (_memberName is Symbol) return _memberName;
+    String name = _memberName;
+    String unmangledName = mangledNames[name];
+    if (unmangledName != null) {
+      name = unmangledName.split(':')[0];
+    }
+    _memberName = new _symbol_dev.Symbol.unvalidated(name);
+    return _memberName;
+  }
 
   bool get isMethod => _kind == METHOD;
   bool get isGetter => _kind == GETTER;
@@ -121,7 +151,7 @@ class JSInvocationMirror implements Invocation {
     // to be a JavaScript object with intercepted names as property
     // instead of a JavaScript array.
     if (JS('int', '#.indexOf(#)', interceptedNames, name) == -1) {
-      if (!isJsArray(arguments)) arguments = new List.from(arguments);
+      if (arguments is! JSArray) arguments = new List.from(arguments);
     } else {
       arguments = [object]..addAll(arguments);
       receiver = interceptor;
@@ -186,7 +216,7 @@ class Primitives {
     JS('void', 'throw "Unable to print message: " + String(#)', string);
   }
 
-  static void _throwFormatException(String string) {
+  static _throwFormatException(String string) {
     throw new FormatException(string);
   }
 
@@ -196,7 +226,7 @@ class Primitives {
     if (handleError == null) handleError = _throwFormatException;
 
     checkString(source);
-    var match = JS('=List|Null',
+    var match = JS('JSExtendableArray|Null',
         r'/^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i.exec(#)',
         source);
     int digitsIndex = 1;
@@ -319,11 +349,11 @@ class Primitives {
   }
 
   static List newGrowableList(length) {
-    return JS('=List', r'new Array(#)', length);
+    return JS('JSExtendableArray', r'new Array(#)', length);
   }
 
   static List newFixedList(length) {
-    var result = JS('=List', r'new Array(#)', length);
+    var result = JS('JSFixedArray', r'new Array(#)', length);
     JS('void', r'#.fixed$length = #', result, true);
     return result;
   }
@@ -352,7 +382,7 @@ class Primitives {
       if (end <= kMaxApply) {
         subarray = array;
       } else {
-        subarray = JS('=List', r'#.slice(#, #)', array,
+        subarray = JS('JSExtendableArray', r'#.slice(#, #)', array,
                       i, i + kMaxApply < end ? i + kMaxApply : end);
       }
       result = JS('String', '# + String.fromCharCode.apply(#, #)',
@@ -566,7 +596,7 @@ class Primitives {
     return JS('var', '#.apply(#, #)', jsFunction, function, arguments);
   }
 
-  static getConstructor(String className) {
+  static getConstructorOrInterceptor(String className) {
     // TODO(ahe): Generalize this and improve test coverage of
     // reflecting on intercepted classes.
     if (JS('bool', '# == "String"', className)) return const JSString();
@@ -1022,9 +1052,6 @@ abstract class Dynamic_ {
  * one or more types, separated by vertical bars `|`.  There are some special
  * names:
  *
- * * `=List`. This means 'exactly List', which is the JavaScript Array
- *   implementation of [List] and no other implementation.
- *
  * * `=Object`. This means 'exactly Object', which is a plain JavaScript object
  *   with properties and none of the subtypes of Object.
  *
@@ -1059,11 +1086,11 @@ class Creates {
  *
  * Example: IndexedDB keys are numbers, strings and JavaScript Arrays of keys.
  *
- *     @Returns('String|num|=List')
+ *     @Returns('String|num|JSExtendableArray')
  *     dynamic key;
  *
  *     // Equivalent:
- *     @Returns('String') @Returns('num') @Returns('=List')
+ *     @Returns('String') @Returns('num') @Returns('JSExtendableArray')
  *     dynamic key;
  */
 class Returns {

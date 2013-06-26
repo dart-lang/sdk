@@ -9,7 +9,8 @@ import '../elements/elements.dart';
 import '../tree/tree.dart';
 import '../universe/universe.dart';
 import '../util/util.dart' show Link;
-import 'simple_types_inferrer.dart' show SimpleTypesInferrer, InferrerVisitor;
+import 'simple_types_inferrer.dart'
+    show SimpleTypesInferrer, InferrerVisitor, LocalsHandler;
 import 'types.dart';
 
 /**
@@ -95,6 +96,8 @@ class ContainerTracer extends CompilerTask {
       var internal = inferrer.internal;
       // Walk over all created [ContainerTypeMask].
       internal.concreteTypes.values.forEach((ContainerTypeMask mask) {
+        // The element type has already been set for const containers.
+        if (mask.elementType != null) return;
         mask.elementType = new TracerForConcreteContainer(
             mask, this, compiler, inferrer).run();
       });
@@ -162,9 +165,8 @@ class TracerForConcreteContainer {
 
     // [potentialType] can be null if we did not find any instruction
     // that adds elements to the list.
-    if (potentialType == null) return new TypeMask.empty();
+    if (potentialType == null) return new TypeMask.nonNullEmpty();
 
-    potentialType = potentialType.nullable();
     // Walk over the found constraints and update the type according
     // to the selectors of these constraints.
     for (Selector constraint in constraints) {
@@ -174,7 +176,7 @@ class TracerForConcreteContainer {
           inferrer.getTypeOfSelector(constraint), compiler);
     }
     if (_VERBOSE) {
-      print('$potentialType for $analyzedNode');
+      print('$potentialType for $analyzedNode $startElement');
     }
     return potentialType;
   }
@@ -257,13 +259,15 @@ class TracerForConcreteContainer {
 class ContainerTracerVisitor extends InferrerVisitor {
   final Element analyzedElement;
   final TracerForConcreteContainer tracer;
-  ContainerTracerVisitor(element, tracer)
-      : super(element, tracer.inferrer, tracer.compiler),
+  final bool visitingClosure;
+
+  ContainerTracerVisitor(element, tracer, [LocalsHandler locals])
+      : super(element, tracer.inferrer, tracer.compiler, locals),
         this.analyzedElement = element,
-        this.tracer = tracer;
+        this.tracer = tracer,
+        visitingClosure = locals != null;
 
   bool escaping = false;
-  bool visitingClosure = false;
   bool visitingInitializers = false;
 
   void run() {
@@ -334,20 +338,22 @@ class ContainerTracerVisitor extends InferrerVisitor {
   }
 
   TypeMask visitFunctionExpression(FunctionExpression node) {
-    bool oldVisitingClosure = visitingClosure;
     FunctionElement function = elements[node];
-    FunctionSignature signature = function.computeSignature(compiler);
-    signature.forEachParameter((element) {
-      locals.update(element, inferrer.getTypeOfElement(element));
-    });
-    visitingClosure = function != analyzedElement;
-    bool oldVisitingInitializers = visitingInitializers;
-    visitingInitializers = true;
-    visit(node.initializers);
-    visitingInitializers = oldVisitingInitializers;
-    visit(node.body);
-    visitingClosure = oldVisitingClosure;
-
+    if (function != analyzedElement) {
+      // Visiting a closure.
+      LocalsHandler closureLocals = new LocalsHandler.from(locals);
+      new ContainerTracerVisitor(function, tracer, closureLocals).run();
+    } else {
+      // Visiting [analyzedElement].
+      FunctionSignature signature = function.computeSignature(compiler);
+      signature.forEachParameter((element) {
+        locals.update(element, inferrer.getTypeOfElement(element));
+      });
+      visitingInitializers = true;
+      visit(node.initializers);
+      visitingInitializers = false;
+      visit(node.body);
+    }
     return inferrer.functionType;
   }
 
@@ -518,6 +524,32 @@ class ContainerTracerVisitor extends InferrerVisitor {
 
   TypeMask visitStaticSend(Send node) {
     Element element = elements[node];
+
+    if (Elements.isGrowableListConstructorCall(element, node, compiler)) {
+      visitArguments(node.arguments, element);
+      if (tracer.couldBeTheList(node)) {
+        escaping = true;
+      }
+      return inferrer.growableListType;
+    } else if (Elements.isFixedListConstructorCall(element, node, compiler)) {
+      tracer.unionPotentialTypeWith(inferrer.nullType);
+      visitArguments(node.arguments, element);
+      if (tracer.couldBeTheList(node)) {
+        escaping = true;
+      }
+      return inferrer.fixedListType;
+    } else if (Elements.isFilledListConstructorCall(element, node, compiler)) {
+      if (tracer.couldBeTheList(node)) {
+        escaping = true;
+        visit(node.arguments.head);
+        TypeMask fillWithType = visit(node.arguments.tail.head);
+        tracer.unionPotentialTypeWith(fillWithType);
+      } else {
+        visitArguments(node.arguments, element);
+      }
+      return inferrer.fixedListType;
+    }
+
     bool isEscaping = visitArguments(node.arguments, element);
 
     if (element.isForeign(compiler)) {
@@ -528,17 +560,7 @@ class ContainerTracerVisitor extends InferrerVisitor {
       escaping = true;
     }
 
-    if (Elements.isGrowableListConstructorCall(element, node, compiler)) {
-      if (tracer.couldBeTheList(node)) {
-        escaping = true;
-      }
-      return inferrer.growableListType;
-    } else if (Elements.isFixedListConstructorCall(element, node, compiler)) {
-      if (tracer.couldBeTheList(node)) {
-        escaping = true;
-      }
-      return inferrer.fixedListType;
-    } else if (element.isFunction() || element.isConstructor()) {
+    if (element.isFunction() || element.isConstructor()) {
       return inferrer.getReturnTypeOfElement(element);
     } else {
       // Closure call or unresolved.

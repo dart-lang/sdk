@@ -84,8 +84,10 @@ class JSSyntaxRegExp implements RegExp {
   }
 
   Match firstMatch(String str) {
-    List<String> m =
-        JS('=List|Null', r'#.exec(#)', _nativeRegExp, checkString(str));
+    List<String> m = JS('JSExtendableArray|Null',
+                        r'#.exec(#)',
+                        _nativeRegExp,
+                        checkString(str));
     if (m == null) return null;
     return new _MatchImplementation(this, m);
   }
@@ -108,7 +110,7 @@ class JSSyntaxRegExp implements RegExp {
   Match _execGlobal(String string, int start) {
     Object regexp = _nativeGlobalVersion;
     JS("void", "#.lastIndex = #", regexp, start);
-    List match = JS("=List|Null", "#.exec(#)", regexp, string);
+    List match = JS("JSExtendableArray|Null", "#.exec(#)", regexp, string);
     if (match == null) return null;
     return new _MatchImplementation(this, match);
   }
@@ -116,7 +118,7 @@ class JSSyntaxRegExp implements RegExp {
   Match _execAnchored(String string, int start) {
     Object regexp = _nativeAnchoredVersion;
     JS("void", "#.lastIndex = #", regexp, start);
-    List match = JS("=List|Null", "#.exec(#)", regexp, string);
+    List match = JS("JSExtendableArray|Null", "#.exec(#)", regexp, string);
     if (match == null) return null;
     // If the last capture group participated, the original regexp did not
     // match at the start position.

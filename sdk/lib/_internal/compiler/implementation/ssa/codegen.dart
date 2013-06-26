@@ -1550,12 +1550,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return receiverType.refine(selector, compiler);
   }
 
-  void registerInvoke(HInvokeDynamic node, Selector selector) {
-    if (node.isInterceptedCall) {
-      backend.addInterceptedSelector(selector);
-    }
-  }
-
   void registerMethodInvoke(HInvokeDynamic node) {
     Selector selector = getOptimizedSelectorFor(node, node.selector);
 
@@ -1568,35 +1562,22 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // may know something about the types of closures that need
       // the specific closure call method.
       Selector call = new Selector.callClosureFrom(selector);
-      world.registerDynamicInvocation(call.name, call);
+      world.registerDynamicInvocation(call);
     }
-
-    if (target != null) {
-      // If we know we're calling a specific method, register that
-      // method only.
-      world.registerDynamicInvocationOf(target, selector);
-    } else {
-      SourceString name = node.selector.name;
-      world.registerDynamicInvocation(name, selector);
-    }
-    registerInvoke(node, selector);
+    world.registerDynamicInvocation(selector);
   }
 
   void registerSetter(HInvokeDynamic node) {
     Selector selector = getOptimizedSelectorFor(node, node.selector);
-    world.registerDynamicSetter(selector.name, selector);
+    world.registerDynamicSetter(selector);
     HType valueType = node.isInterceptedCall
         ? node.inputs[2].instructionType
         : node.inputs[1].instructionType;
-    registerInvoke(node, selector);
   }
 
   void registerGetter(HInvokeDynamic node) {
     Selector selector = getOptimizedSelectorFor(node, node.selector);
-    world.registerDynamicGetter(selector.name, selector);
-    world.registerInstantiatedClass(
-        compiler.functionClass, work.resolutionTree);
-    registerInvoke(node, selector);
+    world.registerDynamicGetter(selector);
   }
 
   visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
@@ -1620,7 +1601,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                         backend.namer.invocationName(call),
                         visitArguments(node.inputs)),
          node);
-    world.registerDynamicInvocation(call.name, call);
+    world.registerDynamicInvocation(call);
   }
 
   visitInvokeStatic(HInvokeStatic node) {
@@ -1998,8 +1979,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void visitStatic(HStatic node) {
     Element element = node.element;
     if (element.isFunction()) {
-      world.registerInstantiatedClass(
-          compiler.functionClass, work.resolutionTree);
       push(new js.VariableUse(
           backend.namer.isolateStaticClosureAccess(node.element)));
     } else {
@@ -2223,7 +2202,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     assert(invariant(input, !type.isMalformed,
                      message: 'Attempt to check malformed type $type'));
     Element element = type.element;
-
     if (element == backend.jsArrayClass) {
       checkArray(input, negative ? '!==': '===');
       return;
@@ -2503,6 +2481,9 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       return;
     }
     if (node.isArgumentTypeCheck || node.isReceiverTypeCheck) {
+      // An int check if the input is not int or null, is not
+      // sufficient for doing a argument or receiver check.
+      assert(!node.isInteger() || node.checkedInput.isIntegerOrNull());
       js.Expression test = generateTest(node);
       js.Block oldContainer = currentContainer;
       js.Statement body = new js.Block.empty();
@@ -2524,6 +2505,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     assert(node.isCheckedModeCheck || node.isCastTypeCheck);
     DartType type = node.typeExpression;
+    assert(type.kind != TypeKind.TYPEDEF);
     if (type.kind == TypeKind.FUNCTION) {
       // TODO(5022): We currently generate $isFunction checks for
       // function types.
@@ -2532,53 +2514,17 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
     world.registerIsCheck(type, work.resolutionTree);
 
+    CheckedModeHelper helper;
     FunctionElement helperElement;
     if (node.isBooleanConversionCheck) {
-      helperElement =
-          compiler.findHelper(const SourceString('boolConversionCheck'));
+      helper =
+          const CheckedModeHelper(const SourceString('boolConversionCheck'));
     } else {
-      helperElement = backend.getCheckedModeHelper(type,
-          typeCast: node.isCastTypeCheck);
+      helper =
+          backend.getCheckedModeHelper(type, typeCast: node.isCastTypeCheck);
     }
-    world.registerStaticUse(helperElement);
-    List<js.Expression> arguments = <js.Expression>[];
-    use(node.checkedInput);
-    arguments.add(pop());
-    int parameterCount =
-        helperElement.computeSignature(compiler).parameterCount;
-    // TODO(johnniwinther): Refactor this to avoid using the parameter count
-    // to determine how the helper should be called.
-    if (node.typeExpression.kind == TypeKind.TYPE_VARIABLE) {
-      assert(parameterCount == 2);
-      use(node.typeRepresentation);
-      arguments.add(pop());
-    } else if (parameterCount == 2) {
-      // 2 arguments implies that the method is either [propertyTypeCheck],
-      // [propertyTypeCast] or [assertObjectIsSubtype].
-      assert(!type.isMalformed);
-      String additionalArgument = backend.namer.operatorIs(type.element);
-      arguments.add(js.string(additionalArgument));
-    } else if (parameterCount == 3) {
-      // 3 arguments implies that the method is [malformedTypeCheck].
-      assert(type.isMalformed);
-      String reasons = Types.fetchReasonsFromMalformedType(type);
-      arguments.add(js.string('$type'));
-      // TODO(johnniwinther): Handle escaping correctly.
-      arguments.add(js.string(reasons));
-    } else if (parameterCount == 4) {
-      Element element = type.element;
-      String isField = backend.namer.operatorIs(element);
-      arguments.add(js.string(isField));
-      use(node.typeRepresentation);
-      arguments.add(pop());
-      String asField = backend.namer.substitutionName(element);
-      arguments.add(js.string(asField));
-    } else {
-      assert(!type.isMalformed);
-      // No additional arguments needed.
-    }
-    String helperName = backend.namer.isolateAccess(helperElement);
-    push(new js.Call(new js.VariableUse(helperName), arguments));
+
+    push(helper.generateCall(this, node));
   }
 }
 

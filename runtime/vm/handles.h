@@ -228,6 +228,7 @@ class Handles {
   friend class HandleScope;
   friend class Dart;
   friend class ObjectStore;
+  friend class Isolate;
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Handles);
 };
@@ -338,7 +339,7 @@ class NoHandleScope : public ValueObject {
 #endif  // defined(DEBUG)
 
 // Macro to start a no handles scope in the code.
-#define NOHANDLESCOPE(isolate)                                                \
+#define NOHANDLESCOPE(isolate)                                                 \
     dart::NoHandleScope no_vm_internal_handles_scope_(isolate);
 
 }  // namespace dart

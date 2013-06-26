@@ -138,7 +138,6 @@ class CPUFeatures : public AllStatic {
  public:
   static void InitOnce() { }
   static bool double_truncate_round_supported() {
-    UNIMPLEMENTED();
     return false;
   }
 };
@@ -459,6 +458,11 @@ class Assembler : public ValueObject {
     FRegister fs = static_cast<FRegister>(ds * 2);
     FRegister fd = static_cast<FRegister>(dd * 2);
     EmitFpuRType(COP1, FMT_L, F0, fs, fd, COP1_CVT_D);
+  }
+
+  void cvtsd(FRegister fd, DRegister ds) {
+    FRegister fs = static_cast<FRegister>(ds * 2);
+    EmitFpuRType(COP1, FMT_D, F0, fs, fd, COP1_CVT_S);
   }
 
   void cvtwd(FRegister fd, DRegister ds) {

@@ -152,6 +152,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
                                                  argument_names()));
   __ LoadObject(temp_reg, arguments_descriptor);
+  ASSERT(temp_reg == R4);
   compiler->GenerateDartCall(deopt_id(),
                              token_pos(),
                              &StubCode::CallClosureFunctionLabel(),
@@ -385,7 +386,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                    token_pos);
   }
   const int kNumberOfArguments = 2;
-  const Array& kNoArgumentNames = Array::Handle();
+  const Array& kNoArgumentNames = Object::null_array();
   const int kNumArgumentsChecked = 2;
 
   Label check_identity;
@@ -407,8 +408,12 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
       equality_ic_data = original_ic_data.AsUnaryClassChecks();
     }
   } else {
+    const Array& arguments_descriptor =
+        Array::Handle(ArgumentsDescriptor::New(kNumberOfArguments,
+                                               kNoArgumentNames));
     equality_ic_data = ICData::New(compiler->parsed_function().function(),
                                    Symbols::EqualOperator(),
+                                   arguments_descriptor,
                                    deopt_id,
                                    kNumArgumentsChecked);
   }
@@ -545,7 +550,7 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
       }
     } else {
       const int kNumberOfArguments = 2;
-      const Array& kNoArgumentNames = Array::Handle();
+      const Array& kNoArgumentNames = Object::null_array();
       compiler->GenerateStaticCall(deopt_id,
                                    token_pos,
                                    target,
@@ -926,7 +931,7 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->EmitTestAndCall(ICData::Handle(ic_data()->AsUnaryClassChecks()),
                               R2,  // Class id register.
                               kNumArguments,
-                              Array::Handle(),  // No named arguments.
+                              Object::null_array(),  // No named arguments.
                               deopt,  // Deoptimize target.
                               deopt_id(),
                               token_pos(),
@@ -953,15 +958,19 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       relational_ic_data = ic_data()->AsUnaryClassChecks();
     }
   } else {
+    const Array& arguments_descriptor =
+        Array::Handle(ArgumentsDescriptor::New(kNumArguments,
+                                               Object::null_array()));
     relational_ic_data = ICData::New(compiler->parsed_function().function(),
                                      function_name,
+                                     arguments_descriptor,
                                      deopt_id(),
                                      kNumArgsChecked);
   }
   compiler->GenerateInstanceCall(deopt_id(),
                                  token_pos(),
                                  kNumArguments,
-                                 Array::ZoneHandle(),  // No optional arguments.
+                                 Object::null_array(),  // No optional args.
                                  locs(),
                                  relational_ic_data);
 }
@@ -1358,8 +1367,6 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
     case kTypedDataUint8ArrayCid:
     case kTypedDataUint8ClampedArrayCid:
     case kOneByteStringCid:
-      locs->set_in(2, Location::RegisterOrSmiConstant(value()));
-      break;
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid:
     case kTypedDataInt32ArrayCid:
@@ -1714,6 +1721,11 @@ LocationSummary* LoadStaticFieldInstr::MakeLocationSummary() const {
 }
 
 
+// When the parser is building an implicit static getter for optimization,
+// it can generate a function body where deoptimization ids do not line up
+// with the unoptimized code.
+//
+// This is safe only so long as LoadStaticFieldInstr cannot deoptimize.
 void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register field = locs()->in(0).reg();
   Register result = locs()->out().reg();
@@ -2151,8 +2163,8 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
                ShifterOperand(reinterpret_cast<int32_t>(Smi::New(max_right))));
         __ b(deopt, CS);
       }
-      __ SmiUntag(right);
-      __ Lsl(result, left, right);
+      __ Asr(IP, right, kSmiTagSize);  // SmiUntag right into IP.
+      __ Lsl(result, left, IP);
     }
     return;
   }
@@ -2173,11 +2185,11 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       __ cmp(right,
              ShifterOperand(reinterpret_cast<int32_t>(Smi::New(Smi::kBits))));
       __ mov(result, ShifterOperand(0), CS);
-      __ SmiUntag(right, CC);
-      __ Lsl(result, left, right, CC);
+      __ Asr(IP, right, kSmiTagSize, CC);  // SmiUntag right into IP if CC.
+      __ Lsl(result, left, IP, CC);
     } else {
-      __ SmiUntag(right);
-      __ Lsl(result, left, right);
+      __ Asr(IP, right, kSmiTagSize);  // SmiUntag right into IP.
+      __ Lsl(result, left, IP);
     }
   } else {
     if (right_needs_check) {
@@ -2188,13 +2200,14 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     }
     // Left is not a constant.
     // Check if count too large for handling it inlined.
-    __ SmiUntag(right);
-    // Overflow test (preserve left and right);
-    __ Lsl(IP, left, right);
-    __ cmp(left, ShifterOperand(IP, ASR, right));
+    __ Asr(IP, right, kSmiTagSize);  // SmiUntag right into IP.
+    // Overflow test (preserve left, right, and IP);
+    Register temp = locs.temp(0).reg();
+    __ Lsl(temp, left, IP);
+    __ cmp(left, ShifterOperand(temp, ASR, IP));
     __ b(deopt, NE);  // Overflow.
     // Shift for result now we know there is no overflow.
-    __ Lsl(result, left, right);
+    __ Lsl(result, left, IP);
   }
 }
 
@@ -2205,21 +2218,23 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   if (op_kind() == Token::kTRUNCDIV) {
+    summary->set_in(0, Location::RequiresRegister());
     if (RightIsPowerOfTwoConstant()) {
-      summary->set_in(0, Location::RequiresRegister());
       ConstantInstr* right_constant = right()->definition()->AsConstant();
       summary->set_in(1, Location::Constant(right_constant->value()));
-      summary->set_out(Location::RequiresRegister());
     } else {
-      // Both inputs must be writable because they will be untagged.
-      summary->set_in(0, Location::WritableRegister());
-      summary->set_in(1, Location::WritableRegister());
-      summary->set_out(Location::RequiresRegister());
+      summary->set_in(1, Location::RequiresRegister());
     }
+    summary->AddTemp(Location::RequiresRegister());
+    summary->set_out(Location::RequiresRegister());
     return summary;
   }
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, Location::RegisterOrSmiConstant(right()));
+  if (((op_kind() == Token::kSHL) && !is_truncating()) ||
+      (op_kind() == Token::kSHR)) {
+    summary->AddTemp(Location::RequiresRegister());
+  }
   // We make use of 3-operand instructions by not requiring result register
   // to be identical to first input register as on Intel.
   summary->set_out(Location::RequiresRegister());
@@ -2238,7 +2253,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out().reg();
   Label* deopt = NULL;
   if (CanDeoptimize()) {
-    deopt  = compiler->AddDeoptStub(deopt_id(), kDeoptBinarySmiOp);
+    deopt = compiler->AddDeoptStub(deopt_id(), kDeoptBinarySmiOp);
   }
 
   if (locs()->in(1).IsConstant()) {
@@ -2302,9 +2317,10 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         ASSERT(kSmiTagSize == 1);
         __ mov(IP, ShifterOperand(left, ASR, 31));
         ASSERT(shift_count > 1);  // 1, -1 case handled above.
-        __ add(left, left, ShifterOperand(IP, LSR, 32 - shift_count));
+        Register temp = locs()->temp(0).reg();
+        __ add(temp, left, ShifterOperand(IP, LSR, 32 - shift_count));
         ASSERT(shift_count > 0);
-        __ mov(result, ShifterOperand(left, ASR, shift_count));
+        __ mov(result, ShifterOperand(temp, ASR, shift_count));
         if (value < 0) {
           __ rsb(result, result, ShifterOperand(0));
         }
@@ -2397,11 +2413,11 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kMUL: {
-      __ SmiUntag(left);
+      __ Asr(IP, left, kSmiTagSize);  // SmiUntag left into IP.
       if (deopt == NULL) {
-        __ mul(result, left, right);
+        __ mul(result, IP, right);
       } else {
-        __ smull(result, IP, left, right);
+        __ smull(result, IP, IP, right);
         // IP: result bits 32..63.
         __ cmp(IP, ShifterOperand(result, ASR, 31));
         __ b(deopt, NE);
@@ -2427,12 +2443,13 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       // Handle divide by zero in runtime.
       __ cmp(right, ShifterOperand(0));
       __ b(deopt, EQ);
-      __ SmiUntag(left);
-      __ SmiUntag(right);
+      Register temp = locs()->temp(0).reg();
+      __ Asr(temp, left, kSmiTagSize);  // SmiUntag left into temp.
+      __ Asr(IP, right, kSmiTagSize);  // SmiUntag right into IP.
       if (!CPUFeatures::integer_division_supported()) {
         UNIMPLEMENTED();
       }
-      __ sdiv(result, left, right);
+      __ sdiv(result, temp, IP);
       // Check the corner case of dividing the 'MIN_SMI' with -1, in which
       // case we cannot tag the result.
       __ CompareImmediate(result, 0x40000000);
@@ -2445,17 +2462,18 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ CompareImmediate(right, 0);
         __ b(deopt, LT);
       }
-      __ SmiUntag(right);
+      __ Asr(IP, right, kSmiTagSize);  // SmiUntag right into IP.
       // sarl operation masks the count to 5 bits.
       const intptr_t kCountLimit = 0x1F;
       Range* right_range = this->right()->definition()->range();
       if ((right_range == NULL) ||
           !right_range->IsWithin(RangeBoundary::kMinusInfinity, kCountLimit)) {
-        __ CompareImmediate(right, kCountLimit);
-        __ LoadImmediate(right, kCountLimit, GT);
+        __ CompareImmediate(IP, kCountLimit);
+        __ LoadImmediate(IP, kCountLimit, GT);
       }
-      __ SmiUntag(left);
-      __ Asr(result, left, right);
+      Register temp = locs()->temp(0).reg();
+      __ Asr(temp, left, kSmiTagSize);  // SmiUntag left into temp.
+      __ Asr(result, temp, IP);
       __ SmiTag(result);
       break;
     }
@@ -3011,7 +3029,7 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                instance_call()->token_pos(),
                                target,
                                kNumberOfArguments,
-                               Array::Handle(),  // No argument names.,
+                               Object::null_array(),  // No argument names.,
                                locs());
   __ Bind(&done);
 }

@@ -79,5 +79,12 @@ void FUNCTION_NAME(Platform_Environment)(Dart_NativeArguments args) {
   Dart_ExitScope();
 }
 
+
+void FUNCTION_NAME(Platform_GetVersion)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_SetReturnValue(args, Dart_NewStringFromCString(Dart_VersionString()));
+  Dart_ExitScope();
+}
+
 }  // namespace bin
 }  // namespace dart

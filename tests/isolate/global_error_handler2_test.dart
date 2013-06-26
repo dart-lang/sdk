@@ -7,6 +7,7 @@ library test;
 import 'package:expect/expect.dart';
 import 'dart:async';
 import 'dart:isolate';
+import '../async_helper.dart';
 
 runTest() {
   SendPort mainIsolate;
@@ -34,9 +35,11 @@ main() {
   SendPort otherIsolate = spawnFunction(runTest, globalErrorHandler);
   otherIsolate.send(port.toSendPort());
   otherIsolate.send("message 2");
+  asyncStart();
   port.receive((msg, replyPort) {
     Expect.equals("received", msg);
     port.close();
     timer.cancel();
+    asyncEnd();
   });
 }

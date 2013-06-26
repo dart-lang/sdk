@@ -15,6 +15,7 @@ io/test_runner_test: Fail
 # Fails because checked-in dart executable is not up to date.
 # Skip this because it is leaving temp directories behind when it fails.
 io/skipping_dart2js_compilations_test: Skip
+io/web_socket_test: Pass, Crash # Issue 11502
 
 [ $runtime == vm ]
 package/package_isolate_test: Fail # http://dartbug.com/7520.
@@ -81,14 +82,23 @@ io/process_exit_negative_test: Fail  # This is a compilation-time negative test.
 
 
 [ $compiler == dartanalyzer ]
-io/file_constructor_test: fail
-io/http_cookie_date_test: fail
-io/http_headers_test: fail
-io/http_parser_test: fail
-io/process_exit_negative_test: fail
-io/url_encoding_test: fail
-io/web_socket_protocol_processor_test: fail
 53bit_overflow_literal_test/01: fail, ok
+
+# test issue https://code.google.com/p/dart/issues/detail?id=11518
+io/file_constructor_test: fail
+
+# The dart:io library is created at build time from separate files, and
+# there is no language-spec compatible way to run unit tests on the private
+# members and methods of dart:io.
+# Dart analyzer spots the misuse of 'part' directives in these unit tests.
+io/http_headers_test: Skip
+io/http_cookie_date_test: Skip
+io/url_encoding_test: Skip
+io/http_parser_test: Skip
+io/web_socket_protocol_processor_test: Skip
+
+# This is runtime test.
+io/process_exit_negative_test: Skip
 
 # Fails because checked-in dart executable is not up to date.
 io/test_runner_test: fail
@@ -153,22 +163,15 @@ medium_integer_test: Pass # The test only fails at runtime, not at compilation.
 [ $compiler == dart2js && $checked ]
 io/http_read_test: Skip # Timeout TODO(ngeoffray): investigate
 io/list_input_stream_test: Skip # Timeout TODO(ngeoffray): investigate
+io/http_parser_test: Fail # dartbug.com/11273
 
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
 *: Skip
 
 [ $arch == arm || $arch == simarm ]
-coverage_test: Crash # Issue: 11207
-debugger/basic_debugger_test: Crash # Issue: 11207
-debugger/closure_debugger_test: Crash # Issue: 11207
-http_launch_test: Fail, Crash # Issue: 11207
-left_shift_bit_and_op_test: Fail # Issue: 11207
-package/package_isolate_test: Pass, Crash # Issue: 11207
-out_of_memory_test: Pass, Crash # Issue: 11207 (Pass on Mac)
-typed_data_test: Timeout, Crash # Issue: 11207
-typed_data_isolate_test: Pass, Crash # Issue: 11207
-io/*: Skip # Skip IO tests for now as they are still quite flaky.
+*: Skip # Many of these tests are still flaky on arm, so skipping until we
+        # actually start working on implementing the needed features.
 
 [ $arch == mips ]
 *: Skip

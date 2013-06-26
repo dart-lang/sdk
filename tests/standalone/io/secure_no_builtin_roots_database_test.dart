@@ -14,7 +14,7 @@ void testGoogleUrl() {
       .then((request) => request.close())
       .then((response) => Expect.fail("Unexpected successful connection"))
       .catchError((error) {
-        Expect.isTrue(error is SocketException);
+        Expect.isTrue(error is HandshakeException);
         keepAlive.close();
         client.close();
       });
@@ -24,7 +24,7 @@ void InitializeSSL() {
   // If the built-in root certificates aren't loaded, the connection
   // should signal an error.  Even when an external database is loaded,
   // they should not be loaded.
-  Path scriptDir = new Path(new Options().script).directoryPath;
+  Path scriptDir = new Path(Platform.script).directoryPath;
   Path certificateDatabase = scriptDir.append('pkcert');
   SecureSocket.initialize(database: certificateDatabase.toNativePath(),
                           password: 'dartdart',

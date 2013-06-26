@@ -596,8 +596,14 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   HInstruction visitTypeConversion(HTypeConversion node) {
     HInstruction value = node.inputs[0];
     DartType type = node.typeExpression;
-    if (type != null && (!type.isRaw || type.kind == TypeKind.TYPE_VARIABLE)) {
-      return node;
+    if (type != null) {
+      if (!type.isRaw || type.kind == TypeKind.TYPE_VARIABLE) {
+        return node;
+      }
+      if (type.kind == TypeKind.FUNCTION) {
+        // TODO(johnniwinther): Optimize function type conversions.
+        return node;
+      }
     }
     HType convertedType = node.instructionType;
     if (convertedType.isUnknown()) return node;

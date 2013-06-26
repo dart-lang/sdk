@@ -470,6 +470,18 @@ class DynamicTypeMask implements TypeMask {
     throw new UnsupportedError("");
   }
 
+  bool get isContainer {
+    throw new UnsupportedError("");
+  }
+
+  bool get isForwarding {
+    throw new UnsupportedError("");
+  }
+
+  bool get isElement {
+    throw new UnsupportedError("");
+  }
+
   bool containsOnlyInt(Compiler compiler) {
     throw new UnsupportedError("");
   }
@@ -1142,9 +1154,6 @@ class ConcreteTypesInferrer extends TypesInferrer {
       // TODO(polux): track native types
       if (type == native.SpecialType.JsObject) {
         return unknownConcreteType;
-      } else if (type == native.SpecialType.JsArray) {
-        concreteType = singletonConcreteType(baseTypes.listBaseType);
-
       // at this point, we know that type is not a SpecialType and thus has to
       // be a DartType
       } else if (type.element == compiler.objectClass) {

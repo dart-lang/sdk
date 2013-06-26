@@ -174,9 +174,9 @@ abstract class CssClassSetImpl implements CssClassSet {
   Iterable<String> skip(int n) => readClasses().skip(n);
   Iterable<String> skipWhile(bool test(String value)) =>
       readClasses().skipWhile(test);
-  String firstWhere(bool test(String value), { String orElse() }) =>
+  dynamic firstWhere(bool test(String value), { Object orElse() }) =>
       readClasses().firstWhere(test, orElse: orElse);
-  String lastWhere(bool test(String value), {String orElse()}) =>
+  dynamic lastWhere(bool test(String value), { Object orElse()}) =>
       readClasses().lastWhere(test, orElse: orElse);
   String singleWhere(bool test(String value)) =>
       readClasses().singleWhere(test);

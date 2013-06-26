@@ -27,6 +27,8 @@ scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 # testing.
 webdriver/test/webdriver_test: Skip
 
+[ $compiler == dart2js && $runtime == ff ]
+unittest/test/unittest_test: Pass, Timeout # http://dartbug.com/11473
 
 [ $runtime == d8 || $runtime == jsshell ]
 unittest/test/unittest_test: Pass, Fail # http://dartbug.com/10109
@@ -48,6 +50,8 @@ intl/test/date_time_format_http_request_test: Fail # Issue 8983
 
 [ $runtime == safari ]
 fixnum/test/int_64_test: Pass, Fail # Bug in JSC.
+crypto/test/hmac_sha1_test: Fail # Issue 11407.
+crypto/test/sha1_test: Fail # Issue 11407.
 
 # Skip browser-specific tests on VM
 [ $runtime == vm ]
@@ -64,11 +68,17 @@ intl/test/message_extraction/message_extraction_test: Fail # Issue 9167
 analyzer_experimental/test/generated/ast_test: Fail, Slow # Issue 11230
 unittest/test/instance_test: Fail # http://dartbug.com/11191
 
+[ $compiler == dart2js && $checked ]
+mdv_observe/test/observable_map_test: Fail # BUG(11480): Triage.
+
 [ $compiler == dartc ]
 unittest/test/mock_regexp_negative_test: Fail
 unittest/test/mock_stepwise_negative_test: Fail
 
 [ $compiler == dartanalyzer ]
+# test issue https://code.google.com/p/dart/issues/detail?id=11517
+# These tests are not negetive statically.
+# Requested test fix or permission to mark 'fail, OK'
 unittest/test/mock_regexp_negative_test: fail
 unittest/test/mock_stepwise_negative_test: fail
 
@@ -83,12 +93,6 @@ serialization/test/serialization_test: Fail # Issue 6490
 serialization/test/no_library_test: Fail # Issue 6490
 
 [ $compiler == dart2js && $minified ]
-# The unittest package relies on getting the original (non-minified) method
-# names in Invocation.  You can't get that when minifying.
-# TODO(ahe/erikcorry): But soon you can, now that we use Symbol.
-unittest/test/mock_test: Fail
-unittest/test/mock_regexp_negative_test: Fail
-
 serialization/test/serialization_test: Fail # Issue 6490
 serialization/test/no_library_test: Fail # Issue 6490
 
@@ -105,15 +109,13 @@ pathos/test/pathos_dartium_test: Fail # Issue 6490
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
 
-[ $compiler == dart2js && $checked ]
-pathos/test/pathos_dartium_test: Crash
-
 [ $browser ]
 analyzer_experimental/test/error_test: Fail, OK # Uses dart:io.
 analyzer_experimental/test/generated/element_test: Fail, OK # Uses dart:io.
 analyzer_experimental/test/generated/resolver_test: Fail, OK # Uses dart:io.
 analyzer_experimental/test/options_test: Fail, OK # Uses dart:io.
 analyzer_experimental/test/services/formatter_test: Fail, OK # Uses dart:io.
+barback/test/*: Fail, OK # Uses dart:io.
 http/test/client_test: Fail, OK # Uses dart:io.
 http/test/http_test: Fail, OK # Uses dart:io.
 http/test/mock_client_test: Fail, OK # Uses dart:io.
@@ -121,6 +123,7 @@ http/test/multipart_test: Fail, OK # Uses dart:io.
 http/test/request_test: Fail, OK # Uses dart:io.
 http/test/response_test: Fail, OK # Uses dart:io.
 http/test/streamed_request_test: Fail, OK # Uses dart:io.
+http_server/test/*: Fail, OK # Uses dart:io.
 intl/test/date_time_format_file_even_test: Fail, OK # Uses dart:io.
 intl/test/date_time_format_file_odd_test: Fail, OK # Uses dart:io.
 intl/test/find_default_locale_standalone_test: Fail, OK # Uses dart:io.

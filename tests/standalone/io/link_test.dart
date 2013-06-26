@@ -173,7 +173,15 @@ testCreateLoopingLink() {
     new Directory.fromPath(base).delete(recursive: true));
 }
 
+void testLinkErrorSync() {
+  Expect.throws(() =>
+      new Link('some-dir-that-doent exist/some link file/bla/fisk').createSync(
+          'bla bla bla/b lalal/blfir/sdfred/es'),
+      (e) => e is LinkException);
+}
+
 main() {
   testCreateSync();
   testCreateLoopingLink();
+  testLinkErrorSync();
 }

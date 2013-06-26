@@ -10,7 +10,7 @@ class ImmutableMap<K, V> implements Map<K, V> {
       : kvPairs_ = keyValuePairs;
 
 
-  V operator [](K key) {
+  V operator [](Object key) {
     // TODO(hausner): Since the keys are sorted, we could do a binary
     // search. But is it worth it?
     for (int i = 0; i < kvPairs_.length - 1; i += 2) {
@@ -45,7 +45,7 @@ class ImmutableMap<K, V> implements Map<K, V> {
     return new _ImmutableMapValueIterable<V>(this);
   }
 
-  bool containsKey(K key) {
+  bool containsKey(Object key) {
     for (int i = 0; i < kvPairs_.length; i += 2) {
       if (key == kvPairs_[i]) {
         return true;
@@ -54,7 +54,7 @@ class ImmutableMap<K, V> implements Map<K, V> {
     return false;
   }
 
-  bool containsValue(V value) {
+  bool containsValue(Object value) {
     for (int i = 1; i < kvPairs_.length; i += 2) {
       if (value == kvPairs_[i]) {
         return true;
@@ -75,7 +75,7 @@ class ImmutableMap<K, V> implements Map<K, V> {
     throw new UnsupportedError("Cannot clear unmodifiable Map");
   }
 
-  V remove(K key) {
+  V remove(Object key) {
     throw new UnsupportedError("Cannot remove from unmodifiable Map");
   }
 

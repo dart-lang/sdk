@@ -1,0 +1,17 @@
+name: barback
+author: "Dart Team <misc@dartlang.org>"
+homepage: http://www.dartlang.org
+description: >
+  An asset build system.
+
+  Given a set of input files and a set of transformations (think compilers,
+  preprocessors and the like), will automatically apply the appropriate
+  transforms and generate output files. When inputs are modified, automatically
+  runs the transforms that are affected.
+
+  Runs transforms asynchronously and in parallel when possible to maximize
+  responsiveness.
+dependencies:
+  pathos: any
+dev_dependencies:
+  scheduled_test: any

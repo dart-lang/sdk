@@ -1901,6 +1901,12 @@ class ResolverVisitor extends MappingVisitor<Element> {
       }
       parameterNodes = parameterNodes.tail;
     });
+    if (inCheckContext) {
+      functionParameters.forEachParameter((Element element) {
+        compiler.enqueuer.resolution.registerIsCheck(
+            element.computeType(compiler), mapping);
+      });
+    }
   }
 
   visitCascade(Cascade node) {
@@ -1998,6 +2004,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     scope = oldScope;
     enclosingElement = previousEnclosingElement;
 
+    world.registerClosurizedMember(function, mapping);
     world.registerInstantiatedClass(compiler.functionClass, mapping);
   }
 
@@ -2076,7 +2083,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
         // We still need to register the invocation, because we might
         // call [:super.noSuchMethod:] which calls
         // [JSInvocationMirror._invokeOn].
-        world.registerDynamicInvocation(selector.name, selector);
+        world.registerDynamicInvocation(selector);
         compiler.backend.registerSuperNoSuchMethod(mapping);
       }
     } else if (Elements.isUnresolved(resolvedReceiver)) {
@@ -2104,7 +2111,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
         // [resolveSend] to select better warning messages for getters and
         // setters.
         MessageKind kind = (target == null)
-            ? MessageKind.METHOD_NOT_FOUND
+            ? MessageKind.MEMBER_NOT_FOUND
             : MessageKind.MEMBER_NOT_STATIC;
         return warnAndCreateErroneousElement(node, name, kind,
                                              {'className': receiverClass.name,
@@ -2250,6 +2257,10 @@ class ResolverVisitor extends MappingVisitor<Element> {
         assert(enclosingElement.getEnclosingClass() == cls);
         compiler.backend.registerClassUsingVariableExpression(cls);
         compiler.backend.registerTypeVariableExpression(mapping);
+        // Set the type of the node to [Type] to mark this send as a
+        // type variable expression.
+        mapping.setType(node, compiler.typeClass.computeType(compiler));
+        world.registerInstantiatedClass(compiler.typeClass, mapping);
       } else if (target.impliesType() && !sendIsMemberAccess) {
         // Set the type of the node to [Type] to mark this send as a
         // type literal.
@@ -2262,7 +2273,8 @@ class ResolverVisitor extends MappingVisitor<Element> {
     if (node.isOperator) {
       String operatorString = node.selector.asOperator().source.stringValue;
       if (operatorString == 'is') {
-        DartType type = resolveTypeRequired(node.typeAnnotationFromIsCheck);
+        DartType type =
+            resolveTypeRequired(node.typeAnnotationFromIsCheckOrCast);
         if (type != null) {
           compiler.enqueuer.resolution.registerIsCheck(type, mapping);
         }
@@ -2302,7 +2314,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
         // we need to register that fact that we may be calling a closure
         // with the same arguments.
         Selector call = new Selector.callClosureFrom(selector);
-        world.registerDynamicInvocation(call.name, call);
+        world.registerDynamicInvocation(call);
       } else if (target.impliesType()) {
         // We call 'call()' on a Type instance returned from the reference to a
         // class or typedef literal. We do not need to register this call as a
@@ -2412,7 +2424,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
       // the ++ and -- ones.  Also, if op= form is used, include op itself.
       void registerBinaryOperator(SourceString name) {
         Selector binop = new Selector.binaryOperator(name);
-        world.registerDynamicInvocation(binop.name, binop);
+        world.registerDynamicInvocation(binop);
         mapping.setOperatorSelectorInComplexSendSet(node, binop);
       }
       if (identical(source, '++')) {
@@ -2431,11 +2443,11 @@ class ResolverVisitor extends MappingVisitor<Element> {
   void registerSend(Selector selector, Element target) {
     if (target == null || target.isInstanceMember()) {
       if (selector.isGetter()) {
-        world.registerDynamicGetter(selector.name, selector);
+        world.registerDynamicGetter(selector);
       } else if (selector.isSetter()) {
-        world.registerDynamicSetter(selector.name, selector);
+        world.registerDynamicSetter(selector);
       } else {
-        world.registerDynamicInvocation(selector.name, selector);
+        world.registerDynamicInvocation(selector);
       }
     } else if (Elements.isStaticOrTopLevel(target)) {
       // TODO(kasperl): It seems like we're not supposed to register
@@ -2615,6 +2627,10 @@ class ResolverVisitor extends MappingVisitor<Element> {
     world.registerStaticUse(constructor.declaration);
     ClassElement cls = constructor.getEnclosingClass();
     InterfaceType type = mapping.getType(node);
+    if (node.isConst() && type.containsTypeVariables) {
+      compiler.reportErrorCode(node.send.selector,
+                               MessageKind.TYPE_VARIABLE_IN_CONSTANT);
+    }
     world.registerInstantiatedType(type, mapping);
     if (constructor.isFactoryConstructor() && !type.typeArguments.isEmpty) {
       world.registerFactoryWithTypeArguments(mapping);
@@ -2723,6 +2739,10 @@ class ResolverVisitor extends MappingVisitor<Element> {
     }
     DartType listType;
     if (typeArgument != null) {
+      if (node.isConst() && typeArgument.containsTypeVariables) {
+        compiler.reportErrorCode(arguments.nodes.head,
+            MessageKind.TYPE_VARIABLE_IN_CONSTANT);
+      }
       listType = new InterfaceType(compiler.listClass,
                                    new Link<DartType>.fromList([typeArgument]));
     } else {
@@ -2810,20 +2830,17 @@ class ResolverVisitor extends MappingVisitor<Element> {
 
   registerImplicitInvocation(SourceString name, int arity) {
     Selector selector = new Selector.call(name, null, arity);
-    world.registerDynamicInvocation(name, selector);
+    world.registerDynamicInvocation(selector);
   }
 
   visitForIn(ForIn node) {
     LibraryElement library = enclosingElement.getLibrary();
     mapping.setIteratorSelector(node, compiler.iteratorSelector);
-    world.registerDynamicGetter(compiler.iteratorSelector.name,
-                                compiler.iteratorSelector);
+    world.registerDynamicGetter(compiler.iteratorSelector);
     mapping.setCurrentSelector(node, compiler.currentSelector);
-    world.registerDynamicGetter(compiler.currentSelector.name,
-                                compiler.currentSelector);
+    world.registerDynamicGetter(compiler.currentSelector);
     mapping.setMoveNextSelector(node, compiler.moveNextSelector);
-    world.registerDynamicInvocation(compiler.moveNextSelector.name,
-                                    compiler.moveNextSelector);
+    world.registerDynamicInvocation(compiler.moveNextSelector);
 
     visit(node.expression);
     Scope blockScope = new BlockScope(scope);
@@ -2937,6 +2954,10 @@ class ResolverVisitor extends MappingVisitor<Element> {
     } else {
       compiler.mapClass.computeType(compiler);
       mapType = compiler.mapClass.rawType;
+    }
+    if (node.isConst() && mapType.containsTypeVariables) {
+      compiler.reportErrorCode(arguments,
+          MessageKind.TYPE_VARIABLE_IN_CONSTANT);
     }
     mapping.setType(node, mapType);
     world.registerInstantiatedClass(compiler.mapClass, mapping);

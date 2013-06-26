@@ -18,30 +18,6 @@
 
 namespace dart {
 
-CODEGEN_TEST_GENERATE(NativePatchStaticCall, test) {
-  SequenceNode* node_seq = test->node_sequence();
-  const String& native_name =
-      String::ZoneHandle(Symbols::New("TestStaticCallPatching"));
-  NativeFunction native_function =
-      reinterpret_cast<NativeFunction>(TestStaticCallPatching);
-  test->function().set_is_native(true);
-  node_seq->Add(new ReturnNode(Scanner::kDummyTokenIndex,
-                               new NativeBodyNode(Scanner::kDummyTokenIndex,
-                                                  test->function(),
-                                                  native_name,
-                                                  native_function)));
-}
-
-CODEGEN_TEST2_GENERATE(PatchStaticCall, function, test) {
-  SequenceNode* node_seq = test->node_sequence();
-  ArgumentListNode* arguments = new ArgumentListNode(Scanner::kDummyTokenIndex);
-  node_seq->Add(new ReturnNode(Scanner::kDummyTokenIndex,
-                               new StaticCallNode(Scanner::kDummyTokenIndex,
-                                                  function, arguments)));
-}
-
-CODEGEN_TEST2_RUN(PatchStaticCall, NativePatchStaticCall, Instance::null());
-
 #define __ assembler->
 
 ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
@@ -49,20 +25,21 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   const Script& script = Script::Handle();
   const Class& owner_class =
       Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
-  const String& function_name =
-      String::ZoneHandle(Symbols::New("callerFunction"));
-  const Function& function = Function::ZoneHandle(
+  const String& function_name = String::Handle(Symbols::New("callerFunction"));
+  const Function& function = Function::Handle(
       Function::New(function_name, RawFunction::kRegularFunction,
                     true, false, false, false, owner_class, 0));
 
   const String& target_name = String::Handle(String::New("targetFunction"));
-  const ICData& ic_data =
-      ICData::ZoneHandle(ICData::New(function, target_name, 15, 1));
-  const Array& arg_descriptor =
-      Array::ZoneHandle(ArgumentsDescriptor::New(1, Array::Handle()));
+  const Array& args_descriptor =
+      Array::Handle(ArgumentsDescriptor::New(1, Object::null_array()));
+  const ICData& ic_data = ICData::ZoneHandle(ICData::New(function,
+                                                         target_name,
+                                                         args_descriptor,
+                                                         15,
+                                                         1));
 
   __ LoadObject(RBX, ic_data);
-  __ LoadObject(R10, arg_descriptor);
   ExternalLabel target_label(
       "InlineCache", StubCode::OneArgCheckInlineCacheEntryPoint());
   __ call(&target_label);
@@ -73,7 +50,7 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
 ASSEMBLER_TEST_RUN(IcDataAccess, test) {
   uword return_address = test->entry() + CodePatcher::InstanceCallSizeInBytes();
   ICData& ic_data = ICData::Handle();
-  CodePatcher::GetInstanceCallAt(return_address, test->code(), &ic_data, NULL);
+  CodePatcher::GetInstanceCallAt(return_address, test->code(), &ic_data);
   EXPECT_STREQ("targetFunction",
       String::Handle(ic_data.target_name()).ToCString());
   EXPECT_EQ(1, ic_data.num_args_tested());

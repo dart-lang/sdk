@@ -135,18 +135,23 @@ class DartUtils {
   static bool PostNull(Dart_Port port_id);
   static bool PostInt32(Dart_Port port_id, int32_t value);
 
-  static Dart_Handle GetDartClass(const char* library_url,
-                                  const char* class_name);
+  static Dart_Handle GetDartType(const char* library_url,
+                                 const char* class_name);
   // Create a new Dart OSError object with the current OS error.
   static Dart_Handle NewDartOSError();
   // Create a new Dart OSError object with the provided OS error.
   static Dart_Handle NewDartOSError(OSError* os_error);
-  static Dart_Handle NewDartSocketException(const char* message,
-                                            Dart_Handle os_error);
+  static Dart_Handle NewDartExceptionWithOSError(const char* library_url,
+                                                 const char* exception_name,
+                                                 const char* message,
+                                                 Dart_Handle os_error);
   static Dart_Handle NewDartExceptionWithMessage(const char* library_url,
                                                  const char* exception_name,
                                                  const char* message);
   static Dart_Handle NewDartArgumentError(const char* message);
+  static Dart_Handle NewDartIOException(const char* exception_name,
+                                        const char* message,
+                                        Dart_Handle os_error);
 
   // Create a new Dart String object from a C String.
   static Dart_Handle NewString(const char* str) {
@@ -162,6 +167,8 @@ class DartUtils {
 
   static const char* MapLibraryUrl(CommandLineOptions* url_mapping,
                                    const char* url_string);
+
+  static Dart_Handle SetWorkingDirectory(Dart_Handle builtin_lib);
 
   static Dart_Handle ResolveScriptUri(Dart_Handle script_uri,
                                       Dart_Handle builtin_lib);

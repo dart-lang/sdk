@@ -178,7 +178,7 @@ class _TestSource implements Source {
 
   bool exists() => true;
 
-  bool isInSystemLibrary() => _unsupported();
+  bool get isInSystemLibrary => _unsupported();
 
   Source resolve(String uri) => _unsupported();
 

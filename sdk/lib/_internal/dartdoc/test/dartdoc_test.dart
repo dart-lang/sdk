@@ -194,7 +194,7 @@ void _testRunDartDoc(List<String> libraryPaths, void eval(ProcessResult)) {
 
 /// The path to the root directory of the dartdoc entrypoint.
 String get _dartdocDir {
-  var dir = path.absolute(new Options().script);
+  var dir = path.absolute(Platform.script);
   while (path.basename(dir) != 'dartdoc') {
     if (!path.absolute(dir).contains('dartdoc') || dir == path.dirname(dir)) {
       fail('Unable to find root dartdoc directory.');
@@ -217,7 +217,7 @@ String get _packageRoot {
   // is in the build output directory. We can find that directory relative to
   // the Dart executable, but that could be in one of two places: in
   // "$BUILD/dart" or "$BUILD/dart-sdk/bin/dart".
-  var executableDir = path.dirname(new Options().executable);
+  var executableDir = path.dirname(Platform.executable);
   if (new Directory(path.join(executableDir, 'dart-sdk')).existsSync()) {
     // The executable is in "$BUILD/dart".
     return path.absolute(path.join(executableDir, 'packages'));
@@ -230,7 +230,7 @@ String get _packageRoot {
 /// Runs dartdoc with the libraryPaths provided, and completes to dartdoc's
 /// ProcessResult.
 Future<ProcessResult> _runDartdoc(List<String> libraryPaths) {
-  var dartBin = new Options().executable;
+  var dartBin = Platform.executable;
 
   var dartdoc = path.join(_dartdocDir, 'bin/dartdoc.dart');
 

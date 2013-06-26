@@ -16,9 +16,8 @@ main() {
 set SCRIPTDIR=%~dp0
 %1 %2
       """);
-  var options = new Options();
-  var dart = options.executable;
-  var scriptDir = new Path(options.script).directoryPath;
+  var dart = Platform.executable;
+  var scriptDir = new Path(Platform.script).directoryPath;
   var script = scriptDir.append('windows_environment_script.dart');
   Process.run('cmd',
               ['/c', funkyFile.path, dart, script.toNativePath()]).then((p) {

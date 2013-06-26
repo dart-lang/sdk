@@ -36,6 +36,7 @@ class Range;
 // (class-name, function-name, recognized enum, fingerprint).
 // See intrinsifier for fingerprint computation.
 #define RECOGNIZED_LIST(V)                                                     \
+  V(Object, Object., ObjectConstructor, 464682336)                             \
   V(Object, get:_cid, ObjectCid, 732498573)                                    \
   V(_ObjectArray, get:length, ObjectArrayLength, 405297088)                    \
   V(_ImmutableArray, get:length, ImmutableArrayLength, 433698233)              \
@@ -640,7 +641,7 @@ class Instruction : public ZoneAllocated {
         previous_(NULL),
         next_(NULL),
         env_(NULL),
-        expr_id_(kNoExprId) { }
+        place_id_(kNoPlaceId) { }
 
   virtual Tag tag() const = 0;
 
@@ -731,6 +732,7 @@ class Instruction : public ZoneAllocated {
   virtual const char* DebugName() const = 0;
 
   // Printing support.
+  const char* ToCString() const;
   virtual void PrintTo(BufferFormatter* f) const;
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -823,11 +825,10 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   // Get the block entry for this instruction.
   virtual BlockEntryInstr* GetBlock() const;
 
-  // Id for load instructions used during load forwarding pass and later in
-  // LICM.
-  intptr_t expr_id() const { return expr_id_; }
-  void set_expr_id(intptr_t expr_id) { expr_id_ = expr_id; }
-  bool HasExprId() const { return expr_id_ != kNoExprId; }
+  // Place identifiers used by the load optimization pass.
+  intptr_t place_id() const { return place_id_; }
+  void set_place_id(intptr_t place_id) { place_id_ = place_id; }
+  bool HasPlaceId() const { return place_id_ != kNoPlaceId; }
 
   // Returns a hash code for use with hash maps.
   virtual intptr_t Hashcode() const;
@@ -927,7 +928,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
 
   enum {
-    kNoExprId = -1
+    kNoPlaceId = -1
   };
 
   intptr_t deopt_id_;
@@ -935,7 +936,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   Instruction* previous_;
   Instruction* next_;
   Environment* env_;
-  intptr_t expr_id_;
+  intptr_t place_id_;
 
   DISALLOW_COPY_AND_ASSIGN(Instruction);
 };
@@ -1379,6 +1380,7 @@ class JoinEntryInstr : public BlockEntryInstr {
   void RemoveDeadPhis(Definition* replacement);
 
   void InsertPhi(PhiInstr* phi);
+  void RemovePhi(PhiInstr* phi);
 
   virtual void PrintTo(BufferFormatter* f) const;
 
@@ -1701,6 +1703,7 @@ class PhiInstr : public Definition {
   // Phi is alive if it reaches a non-environment use.
   bool is_alive() const { return is_alive_; }
   void mark_alive() { is_alive_ = true; }
+  void mark_dead() { is_alive_ = false; }
 
   virtual Representation RequiredInputRepresentation(intptr_t i) const {
     return representation_;
@@ -2620,7 +2623,7 @@ class InstanceCallInstr : public TemplateDefinition<0> {
         checked_argument_count_(checked_argument_count) {
     ASSERT(function_name.IsNotTemporaryScopedHandle());
     ASSERT(!arguments->is_empty());
-    ASSERT(argument_names.IsZoneHandle());
+    ASSERT(argument_names.IsZoneHandle() || argument_names.InVMHeap());
     ASSERT(Token::IsBinaryOperator(token_kind) ||
            Token::IsPrefixOperator(token_kind) ||
            Token::IsIndexOperator(token_kind) ||
@@ -3069,15 +3072,23 @@ class StaticCallInstr : public TemplateDefinition<0> {
   StaticCallInstr(intptr_t token_pos,
                   const Function& function,
                   const Array& argument_names,
-                  ZoneGrowableArray<PushArgumentInstr*>* arguments)
-      : token_pos_(token_pos),
+                  ZoneGrowableArray<PushArgumentInstr*>* arguments,
+                  const Array& ic_data_array)
+      : ic_data_(GetICData(ic_data_array)),
+        token_pos_(token_pos),
         function_(function),
         argument_names_(argument_names),
         arguments_(arguments),
         result_cid_(kDynamicCid),
         is_known_list_constructor_(false) {
     ASSERT(function.IsZoneHandle());
-    ASSERT(argument_names.IsZoneHandle());
+    ASSERT(argument_names.IsZoneHandle() ||  argument_names.InVMHeap());
+  }
+
+  // ICData for static calls carries call count.
+  const ICData* ic_data() const { return ic_data_; }
+  bool HasICData() const {
+    return (ic_data() != NULL) && !ic_data()->IsNull();
   }
 
   DECLARE_INSTRUCTION(StaticCall)
@@ -3109,6 +3120,7 @@ class StaticCallInstr : public TemplateDefinition<0> {
   virtual bool MayThrow() const { return true; }
 
  private:
+  const ICData* ic_data_;
   const intptr_t token_pos_;
   const Function& function_;
   const Array& argument_names_;
@@ -5920,11 +5932,12 @@ class UnarySmiOpInstr : public TemplateDefinition<1> {
 
 class CheckStackOverflowInstr : public TemplateInstruction<0> {
  public:
-  CheckStackOverflowInstr(intptr_t token_pos, bool in_loop)
-      : token_pos_(token_pos), in_loop_(in_loop) {}
+  CheckStackOverflowInstr(intptr_t token_pos, intptr_t loop_depth)
+      : token_pos_(token_pos), loop_depth_(loop_depth) {}
 
   intptr_t token_pos() const { return token_pos_; }
-  bool in_loop() const { return in_loop_; }
+  bool in_loop() const { return loop_depth_ > 0; }
+  intptr_t loop_depth() const { return loop_depth_; }
 
   DECLARE_INSTRUCTION(CheckStackOverflow)
 
@@ -5940,7 +5953,7 @@ class CheckStackOverflowInstr : public TemplateInstruction<0> {
 
  private:
   const intptr_t token_pos_;
-  const bool in_loop_;
+  const intptr_t loop_depth_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckStackOverflowInstr);
 };

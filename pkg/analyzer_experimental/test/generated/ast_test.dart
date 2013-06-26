@@ -212,11 +212,11 @@ class VariableDeclarationTest extends ParserTestCase {
   }
 }
 /**
- * The class {@code ASTFactory} defines utility methods that can be used to create AST nodes. The
+ * The class `ASTFactory` defines utility methods that can be used to create AST nodes. The
  * nodes that are created are complete in the sense that all of the tokens that would have been
  * associated with the nodes by a parser are also created, but the token stream is not constructed.
  * None of the nodes are resolved.
- * <p>
+ *
  * The general pattern is for the name of the factory method to be the same as the name of the class
  * of AST node being created. There are two notable exceptions. The first is for methods creating
  * nodes that are part of a cascade expression. These methods are all prefixed with 'cascaded'. The
@@ -402,7 +402,7 @@ class ASTFactory {
   /**
    * Create a type name whose name has been resolved to the given element and whose type has been
    * resolved to the type of the given element.
-   * <p>
+   *
    * <b>Note:</b> This method does not correctly handle class elements that have type parameters.
    * @param element the element defining the type represented by the type name
    * @return the type name that was created
@@ -1950,7 +1950,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   /**
-   * Assert that a {@code ToSourceVisitor} will produce the expected source when visiting the given
+   * Assert that a `ToSourceVisitor` will produce the expected source when visiting the given
    * node.
    * @param expectedSource the source string that the visitor is expected to produce
    * @param node the AST node being visited to produce the actual source

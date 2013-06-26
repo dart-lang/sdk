@@ -42,7 +42,7 @@ abstract class Set<E> extends IterableBase<E> {
   /**
    * Returns true if [value] is in the set.
    */
-  bool contains(E value);
+  bool contains(Object value);
 
   /**
    * Adds [value] into the set.
@@ -69,12 +69,12 @@ abstract class Set<E> extends IterableBase<E> {
   /**
    * Removes each element of [elements] from this set.
    */
-  void removeAll(Iterable elements);
+  void removeAll(Iterable<Object> elements);
 
   /**
    * Removes all elements of this set that are not elements in [elements].
    */
-  void retainAll(Iterable elements);
+  void retainAll(Iterable<Object> elements);
 
   /**
    * Removes all elements of this set that satisfy [test].
@@ -89,7 +89,7 @@ abstract class Set<E> extends IterableBase<E> {
   /**
    * Returns whether this Set contains all the elements of [other].
    */
-  bool containsAll(Iterable<E> other);
+  bool containsAll(Iterable<Object> other);
 
   /**
    * Returns a new set which is the intersection between this set and [other].
@@ -97,7 +97,7 @@ abstract class Set<E> extends IterableBase<E> {
    * That is, the returned set contains all the elements of this `Set` that
    * are also elements of [other].
    */
-  Set<E> intersection(Set<E> other);
+  Set<E> intersection(Set<Object> other);
 
   /**
    * Returns a new set which contains all the elements of this set and [other].

@@ -87,7 +87,7 @@ void main() {
 
   checkReturn(String name, type) {
     var element = findElement(compiler, name);
-    Expect.equals(type, typesInferrer.internal.returnTypeOf[element]);
+    Expect.equals(type, typesInferrer.getReturnTypeOfElement(element));
   }
 
   checkReturn('returnInt1', typesInferrer.intType);

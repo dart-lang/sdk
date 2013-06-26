@@ -275,6 +275,45 @@ String relative(String path, {String from}) =>
 ///     withoutExtension('path/to/foo.dart'); // -> 'path/to/foo'
 String withoutExtension(String path) => _builder.withoutExtension(path);
 
+/// Returns the path represented by [uri].
+///
+/// For POSIX and Windows styles, [uri] must be a `file:` URI. For the URL
+/// style, this will just convert [uri] to a string.
+///
+///     // POSIX
+///     path.fromUri(Uri.parse('file:///path/to/foo'))
+///       // -> '/path/to/foo'
+///
+///     // Windows
+///     path.fromUri(Uri.parse('file:///C:/path/to/foo'))
+///       // -> r'C:\path\to\foo'
+///
+///     // URL
+///     path.fromUri(Uri.parse('http://dartlang.org/path/to/foo'))
+///       // -> 'http://dartlang.org/path/to/foo'
+String fromUri(Uri uri) => _builder.fromUri(uri);
+
+/// Returns the URI that represents [path].
+///
+/// For POSIX and Windows styles, this will return a `file:` URI. For the URL
+/// style, this will just convert [path] to a [Uri].
+///
+/// This will always convert relative paths to absolute ones before converting
+/// to a URI.
+///
+///     // POSIX
+///     path.toUri('/path/to/foo')
+///       // -> Uri.parse('file:///path/to/foo')
+///
+///     // Windows
+///     path.toUri(r'C:\path\to\foo')
+///       // -> Uri.parse('file:///C:/path/to/foo')
+///
+///     // URL
+///     path.toUri('http://dartlang.org/path/to/foo')
+///       // -> Uri.parse('http://dartlang.org/path/to/foo')
+Uri toUri(String path) => _builder.toUri(path);
+
 /// Validates that there are no non-null arguments following a null one and
 /// throws an appropriate [ArgumentError] on failure.
 _validateArgList(String method, List<String> args) {
@@ -436,7 +475,7 @@ class Builder {
   /// On POSIX systems, absolute paths start with a `/` (forward slash). On
   /// Windows, an absolute path starts with `\\`, or a drive letter followed by
   /// `:/` or `:\`.
-  bool isRelative(String path) => !isAbsolute(path);
+  bool isRelative(String path) => !this.isAbsolute(path);
 
   /// Returns `true` if [path] is a root-relative path and `false` if it's not.
   ///
@@ -673,6 +712,48 @@ class Builder {
     return parsed.toString();
   }
 
+  /// Returns the path represented by [uri].
+  ///
+  /// For POSIX and Windows styles, [uri] must be a `file:` URI. For the URL
+  /// style, this will just convert [uri] to a string.
+  ///
+  ///     // POSIX
+  ///     builder.fromUri(Uri.parse('file:///path/to/foo'))
+  ///       // -> '/path/to/foo'
+  ///
+  ///     // Windows
+  ///     builder.fromUri(Uri.parse('file:///C:/path/to/foo'))
+  ///       // -> r'C:\path\to\foo'
+  ///
+  ///     // URL
+  ///     builder.fromUri(Uri.parse('http://dartlang.org/path/to/foo'))
+  ///       // -> 'http://dartlang.org/path/to/foo'
+  String fromUri(Uri uri) => style.pathFromUri(uri);
+
+  /// Returns the URI that represents [path].
+  ///
+  /// For POSIX and Windows styles, this will return a `file:` URI. For the URL
+  /// style, this will just convert [path] to a [Uri].
+  ///
+  ///     // POSIX
+  ///     builder.toUri('/path/to/foo')
+  ///       // -> Uri.parse('file:///path/to/foo')
+  ///
+  ///     // Windows
+  ///     builder.toUri(r'C:\path\to\foo')
+  ///       // -> Uri.parse('file:///C:/path/to/foo')
+  ///
+  ///     // URL
+  ///     builder.toUri('http://dartlang.org/path/to/foo')
+  ///       // -> Uri.parse('http://dartlang.org/path/to/foo')
+  Uri toUri(String path) {
+    if (isRelative(path)) {
+      return Uri.parse(path.replaceAll(style.separatorPattern, '/'));
+    } else {
+      return style.pathToUri(join(root, path));
+    }
+  }
+
   _ParsedPath _parse(String path) {
     var before = path;
 
@@ -711,18 +792,17 @@ class Builder {
 }
 
 /// An enum type describing a "flavor" of path.
-class Style {
+abstract class Style {
   /// POSIX-style paths use "/" (forward slash) as separators. Absolute paths
   /// start with "/". Used by UNIX, Linux, Mac OS X, and others.
-  static final posix = new Style._('posix', '/', '/', r'[^/]$', '/');
+  static final posix = new _PosixStyle();
 
   /// Windows paths use "\" (backslash) as separators. Absolute paths start with
   /// a drive letter followed by a colon (example, "C:") or two backslashes
   /// ("\\") for UNC paths.
   // TODO(rnystrom): The UNC root prefix should include the drive name too, not
   // just the "\\".
-  static final windows = new Style._('windows', '\\', r'[/\\]', r'[^/\\]$',
-      r'\\\\|[a-zA-Z]:[/\\]');
+  static final windows = new _WindowsStyle();
 
   /// URLs aren't filesystem paths, but they're supported by Pathos to make it
   /// easier to manipulate URL paths in the browser.
@@ -730,30 +810,19 @@ class Style {
   /// URLs use "/" (forward slash) as separators. Absolute paths either start
   /// with a protocol and optional hostname (e.g. `http://dartlang.org`,
   /// `file://`) or with "/".
-  static final url = new Style._('url', '/', '/',
-      r"(^[a-zA-Z][-+.a-zA-Z\d]*://|[^/])$",
-      r"[a-zA-Z][-+.a-zA-Z\d]*://[^/]*", r"/");
-
-  Style._(this.name, this.separator, String separatorPattern,
-      String needsSeparatorPattern, String rootPattern,
-      [String relativeRootPattern])
-    : separatorPattern = new RegExp(separatorPattern),
-      needsSeparatorPattern = new RegExp(needsSeparatorPattern),
-      _rootPattern = new RegExp('^$rootPattern'),
-      _relativeRootPattern = relativeRootPattern == null ? null :
-          new RegExp('^$relativeRootPattern');
+  static final url = new _UrlStyle();
 
   /// The name of this path style. Will be "posix" or "windows".
-  final String name;
+  String get name;
 
   /// The path separator for this style. On POSIX, this is `/`. On Windows,
   /// it's `\`.
-  final String separator;
+  String get separator;
 
   /// The [Pattern] that can be used to match a separator for a path in this
-  /// style. Windows allows both "/" and "\" as path separators even though
-  /// "\" is the canonical one.
-  final Pattern separatorPattern;
+  /// style. Windows allows both "/" and "\" as path separators even though "\"
+  /// is the canonical one.
+  Pattern get separatorPattern;
 
   /// The [Pattern] that matches path components that need a separator after
   /// them.
@@ -763,24 +832,23 @@ class Style {
   /// separator between the root and the first component, even if the root
   /// already ends in a separator character. For example, to join "file://" and
   /// "usr", an additional "/" is needed (making "file:///usr").
-  final Pattern needsSeparatorPattern;
+  Pattern get needsSeparatorPattern;
 
-  // TODO(nweiz): make this a Pattern when issue 7080 is fixed.
-  /// The [RegExp] that can be used to match the root prefix of an absolute
+  /// The [Pattern] that can be used to match the root prefix of an absolute
   /// path in this style.
-  final RegExp _rootPattern;
+  Pattern get rootPattern;
 
-  /// The [RegExp] that can be used to match the root prefix of a root-relative
+  /// The [Pattern] that can be used to match the root prefix of a root-relative
   /// path in this style.
   ///
   /// This can be null to indicate that this style doesn't support root-relative
   /// paths.
-  final RegExp _relativeRootPattern;
+  final Pattern relativeRootPattern = null;
 
   /// Gets the root prefix of [path] if path is absolute. If [path] is relative,
   /// returns `null`.
   String getRoot(String path) {
-    var match = _rootPattern.firstMatch(path);
+    var match = rootPattern.firstMatch(path);
     if (match != null) return match[0];
     return getRelativeRoot(path);
   }
@@ -789,13 +857,144 @@ class Style {
   ///
   /// If [path] is relative or absolute and not root-relative, returns `null`.
   String getRelativeRoot(String path) {
-    if (_relativeRootPattern == null) return null;
-    var match = _relativeRootPattern.firstMatch(path);
+    if (relativeRootPattern == null) return null;
+    var match = relativeRootPattern.firstMatch(path);
     if (match == null) return null;
     return match[0];
   }
 
+  /// Returns the path represented by [uri] in this style.
+  String pathFromUri(Uri uri);
+
+  /// Returns the URI that represents [path].
+  ///
+  /// Pathos will always path an absolute path for [path]. Relative paths are
+  /// handled automatically by [Builder].
+  Uri pathToUri(String path);
+
   String toString() => name;
+}
+
+/// The style for POSIX paths.
+class _PosixStyle extends Style {
+  _PosixStyle();
+
+  static final _builder = new Builder(style: Style.posix);
+
+  final name = 'posix';
+  final separator = '/';
+  final separatorPattern = new RegExp(r'/');
+  final needsSeparatorPattern = new RegExp(r'[^/]$');
+  final rootPattern = new RegExp(r'^/');
+
+  String pathFromUri(Uri uri) {
+    if (uri.scheme == '' || uri.scheme == 'file') {
+      return Uri.decodeComponent(uri.path);
+    }
+    throw new ArgumentError("Uri $uri must have scheme 'file:'.");
+  }
+
+  Uri pathToUri(String path) {
+    var parsed = _builder._parse(path);
+
+    if (parsed.parts.isEmpty) {
+      // If the path is a bare root (e.g. "/"), [components] will
+      // currently be empty. We add two empty components so the URL constructor
+      // produces "file:///", with a trailing slash.
+      parsed.parts.addAll(["", ""]);
+    } else if (parsed.hasTrailingSeparator) {
+      // If the path has a trailing slash, add a single empty component so the
+      // URI has a trailing slash as well.
+      parsed.parts.add("");
+    }
+
+    return new Uri(scheme: 'file', pathSegments: parsed.parts);
+  }
+}
+
+/// The style for Windows paths.
+class _WindowsStyle extends Style {
+  _WindowsStyle();
+
+  static final _builder = new Builder(style: Style.windows);
+
+  final name = 'windows';
+  final separator = '\\';
+  final separatorPattern = new RegExp(r'[/\\]');
+  final needsSeparatorPattern = new RegExp(r'[^/\\]$');
+  final rootPattern = new RegExp(r'^(\\\\|[a-zA-Z]:[/\\])');
+
+  String pathFromUri(Uri uri) {
+    if (uri.scheme != '' && uri.scheme != 'file') {
+      throw new ArgumentError("Uri $uri must have scheme 'file:'.");
+    }
+
+    var path = uri.path;
+    if (uri.host == '') {
+      // Drive-letter paths look like "file:///C:/path/to/file". The
+      // replaceFirst removes the extra initial slash.
+      if (path.startsWith('/')) path = path.replaceFirst("/", "");
+    } else {
+      // Network paths look like "file://hostname/path/to/file".
+      path = '\\\\${uri.host}$path';
+    }
+    return Uri.decodeComponent(path.replaceAll("/", "\\"));
+  }
+
+  Uri pathToUri(String path) {
+    var parsed = _builder._parse(path);
+    if (parsed.root == r'\\') {
+      // Network paths become "file://hostname/path/to/file".
+
+      var host = parsed.parts.removeAt(0);
+
+      if (parsed.parts.isEmpty) {
+        // If the path is a bare root (e.g. "\\hostname"), [parsed.parts] will
+        // currently be empty. We add two empty components so the URL
+        // constructor produces "file://hostname/", with a trailing slash.
+        parsed.parts.addAll(["", ""]);
+      } else if (parsed.hasTrailingSeparator) {
+        // If the path has a trailing slash, add a single empty component so the
+        // URI has a trailing slash as well.
+        parsed.parts.add("");
+      }
+
+      return new Uri(scheme: 'file', host: host, pathSegments: parsed.parts);
+    } else {
+      // Drive-letter paths become "file:///C:/path/to/file".
+
+      // If the path is a bare root (e.g. "C:\"), [parsed.parts] will currently
+      // be empty. We add an empty component so the URL constructor produces
+      // "file:///C:/", with a trailing slash. We also add an empty component if
+      // the URL otherwise has a trailing slash.
+      if (parsed.parts.length == 0 || parsed.hasTrailingSeparator) {
+        parsed.parts.add("");
+      }
+
+      // Get rid of the trailing "\" in "C:\" because the URI constructor will
+      // add a separator on its own.
+      parsed.parts.insert(0, parsed.root.replaceAll(separatorPattern, ""));
+
+      return new Uri(scheme: 'file', pathSegments: parsed.parts);
+    }
+  }
+}
+
+/// The style for URL paths.
+class _UrlStyle extends Style {
+  _UrlStyle();
+
+  final name = 'url';
+  final separator = '/';
+  final separatorPattern = new RegExp(r'/');
+  final needsSeparatorPattern = new RegExp(
+      r"(^[a-zA-Z][-+.a-zA-Z\d]*://|[^/])$");
+  final rootPattern = new RegExp(r"[a-zA-Z][-+.a-zA-Z\d]*://[^/]*");
+  final relativeRootPattern = new RegExp(r"^/");
+
+  String pathFromUri(Uri uri) => uri.toString();
+
+  Uri pathToUri(String path) => Uri.parse(path);
 }
 
 // TODO(rnystrom): Make this public?
@@ -847,6 +1046,8 @@ class _ParsedPath {
     if (copy.parts.isEmpty) return root == null ? '' : root;
     return copy._splitExtension()[0];
   }
+
+  bool get hasTrailingSeparator => !parts.isEmpty && (parts.last == '' || separators.last != '');
 
   void removeTrailingSeparators() {
     while (!parts.isEmpty && parts.last == '') {

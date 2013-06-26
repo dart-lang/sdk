@@ -71,7 +71,7 @@ const API_LOCATION = 'http://api.dartlang.org/';
 // TODO(johnniwinther): Convert to final (lazily initialized) variables when
 // the feature is supported.
 Path get scriptDir =>
-    new Path(new Options().script).directoryPath;
+    new Path(Platform.script).directoryPath;
 
 /**
  * Deletes and recreates the output directory at [path] if it exists.
@@ -434,7 +434,7 @@ class Dartdoc {
     _exports = new ExportMap.parse(libraryList, packageRoot);
     var librariesToAnalyze = _exports.allExportedFiles.toList();
     librariesToAnalyze.addAll(libraryList.map((uri) {
-      if (uri.scheme == 'file') return fileUriToPath(uri);
+      if (uri.scheme == 'file') return pathos.fromUri(uri);
       // dart2js takes "dart:*" URIs as Path objects for some reason.
       return uri.toString();
     }));
@@ -771,11 +771,11 @@ class Dartdoc {
   /// Whether dartdoc is running from within the Dart SDK or the
   /// Dart source repository.
   bool get runningFromSdk =>
-    pathos.extension(new Options().script) == '.snapshot';
+    pathos.extension(Platform.script) == '.snapshot';
 
   /// Gets the path to the root directory of the SDK.
   String get sdkDir =>
-    pathos.dirname(pathos.dirname(new Options().executable));
+    pathos.dirname(pathos.dirname(Platform.executable));
 
   /// Gets the path to the dartdoc directory normalized for running in different
   /// places.
@@ -799,9 +799,8 @@ class Dartdoc {
         '''library client;
         import 'dart:html';
         import 'dart:json';
-        import r'${pathToFileUri(
-          pathos.join(clientDir, 'client-shared.dart'))}';
-        import r'${pathToFileUri(pathos.join(clientDir, 'dropdown.dart'))}';
+        import r'${pathos.toUri(pathos.join(clientDir, 'client-shared.dart'))}';
+        import r'${pathos.toUri(pathos.join(clientDir, 'dropdown.dart'))}';
 
         main() {
           setup();

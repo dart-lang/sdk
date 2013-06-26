@@ -257,6 +257,8 @@ library args;
 
 import 'src/parser.dart';
 import 'src/usage.dart';
+import 'src/options.dart';
+export 'src/options.dart';
 
 /**
  * A class for taking a list of raw command line arguments and parsing out
@@ -345,9 +347,20 @@ class ArgParser {
   /**
    * Parses [args], a list of command-line arguments, matches them against the
    * flags and options defined by this parser, and returns the result.
+   *
+   * If [allowTrailingOptions] is set, the parser will continue parsing even
+   * after it finds an argument that is neither an option nor a command.
+   * This allows options to be specified after regular arguments.
+   *
+   * [allowTrailingOptions] is false by default, so when a non-option,
+   * non-command argument is encountered, it and all remaining arguments,
+   * even those that look like options are passed to the innermost command.
    */
-  ArgResults parse(List<String> args) =>
-      new Parser(null, this, args.toList()).parse();
+  ArgResults parse(List<String> args, {bool allowTrailingOptions}) {
+    if (allowTrailingOptions == null) allowTrailingOptions = false;
+    return new Parser(null, this, args.toList(), null, null,
+        allowTrailingOptions: allowTrailingOptions).parse();
+  }
 
   /**
    * Generates a string displaying usage information for the defined options.
@@ -374,52 +387,6 @@ class ArgParser {
     return options.values.firstWhere((option) => option.abbreviation == abbr,
         orElse: () => null);
   }
-}
-
-/**
- * A command-line option. Includes both flags and options which take a value.
- */
-class Option {
-  final String name;
-  final String abbreviation;
-  final List<String> allowed;
-  final defaultValue;
-  final Function callback;
-  final String help;
-  final Map<String, String> allowedHelp;
-  final bool isFlag;
-  final bool negatable;
-  final bool allowMultiple;
-
-  Option(this.name, this.abbreviation, this.help, this.allowed,
-      this.allowedHelp, this.defaultValue, this.callback, {this.isFlag,
-      this.negatable, this.allowMultiple: false}) {
-
-    if (name.isEmpty) {
-      throw new ArgumentError('Name cannot be empty.');
-    } else if (name.startsWith('-')) {
-      throw new ArgumentError('Name $name cannot start with "-".');
-    }
-
-    // Ensure name does not contain any invalid characters.
-    if (_invalidChars.hasMatch(name)) {
-      throw new ArgumentError('Name "$name" contains invalid characters.');
-    }
-
-    if (abbreviation != null) {
-      if (abbreviation.length != 1) {
-        throw new ArgumentError('Abbreviation must be null or have length 1.');
-      } else if(abbreviation == '-') {
-        throw new ArgumentError('Abbreviation cannot be "-".');
-      }
-
-      if (_invalidChars.hasMatch(abbreviation)) {
-        throw new ArgumentError('Abbreviation is an invalid character.');
-      }
-    }
-  }
-
-  static final _invalidChars = new RegExp(r'''[ \t\r\n"'\\/]''');
 }
 
 /**

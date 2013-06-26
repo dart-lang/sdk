@@ -83,6 +83,10 @@ abstract class Process {
    * if an environment variable with code-points outside the US-ASCII range is
    * passed in.
    *
+   * If [includeParentEnvironment] is `true`, the process's environment will
+   * include the parent process's environment, with [environment] taking
+   * precedence. Default is `true`.
+   *
    * If [runInShell] is true, the process will be spawned through a system
    * shell. On Linux and Mac OS, [:/bin/sh:] is used, while
    * [:%WINDIR%\system32\cmd.exe:] is used on Windows.
@@ -97,6 +101,7 @@ abstract class Process {
       List<String> arguments,
       {String workingDirectory,
        Map<String, String> environment,
+       bool includeParentEnvironment: true,
        bool runInShell: false});
 
   /**
@@ -113,6 +118,10 @@ abstract class Process {
    * US-ASCII environment variables are supported and errors are likely to occur
    * if an environment variable with code-points outside the US-ASCII range is
    * passed in.
+   *
+   * If [includeParentEnvironment] is `true`, the process's environment will
+   * include the parent process's environment, with [environment] taking
+   * precedence. Default is `true`.
    *
    * If [runInShell] is true, the process will be spawned through a system
    * shell. On Linux and Mac OS, `/bin/sh` is used, while
@@ -133,6 +142,7 @@ abstract class Process {
       List<String> arguments,
       {String workingDirectory,
        Map<String, String> environment,
+       bool includeParentEnvironment: true,
        bool runInShell: false,
        Encoding stdoutEncoding: Encoding.SYSTEM,
        Encoding stderrEncoding: Encoding.SYSTEM});

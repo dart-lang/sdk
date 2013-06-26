@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of org_dartlang_compiler_util;
+part of dart2js.util;
 
 class Link<T> {
   T get head => null;
@@ -107,7 +107,12 @@ class Link<T> {
 abstract class LinkBuilder<T> {
   factory LinkBuilder() = LinkBuilderImplementation;
 
-  Link<T> toLink();
+  /**
+   * Prepends all elements added to the builder to [tail]. The resulting list is
+   * returned and the builder is cleared.
+   */
+  Link<T> toLink([Link<T> tail = const Link()]);
+
   void addLast(T t);
 
   final int length;

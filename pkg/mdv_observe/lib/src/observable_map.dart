@@ -94,11 +94,11 @@ class ObservableMap<K, V> extends ObservableBase implements Map<K, V> {
 
   bool get isNotEmpty => !isEmpty;
 
-  bool containsValue(V value) => _map.containsValue(value);
+  bool containsValue(Object value) => _map.containsValue(value);
 
-  bool containsKey(K key) => _map.containsKey(key);
+  bool containsKey(Object key) => _map.containsKey(key);
 
-  V operator [](K key) => _map[key];
+  V operator [](Object key) => _map[key];
 
   void operator []=(K key, V value) {
     int len = _map.length;
@@ -124,7 +124,7 @@ class ObservableMap<K, V> extends ObservableBase implements Map<K, V> {
     return result;
   }
 
-  V remove(K key) {
+  V remove(Object key) {
     int len = _map.length;
     V result =  _map.remove(key);
     if (hasObservers && len != _map.length) {

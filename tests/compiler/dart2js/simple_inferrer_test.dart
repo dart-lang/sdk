@@ -351,7 +351,22 @@ testBreak2() {
   return b;
 }
 
+testReturnElementOfConstList1() {
+  return const [42][0];
+}
+
+testReturnElementOfConstList2() {
+  return topLevelConstList[0];
+}
+
+testReturnItselfOrInt(a) {
+  if (a) return 42;
+  return testReturnItselfOrInt(a);
+}
+
 testReturnInvokeDynamicGetter() => new A().myFactory();
+
+var topLevelConstList = const [42];
 
 get topLevelGetter => 42;
 returnDynamic() => topLevelGetter(42);
@@ -459,6 +474,9 @@ main() {
          ..returnInt7()
          ..returnInt8()
          ..returnInt9();
+  testReturnElementOfConstList1();
+  testReturnElementOfConstList2();
+  testReturnItselfOrInt(topLevelGetter());
   testReturnInvokeDynamicGetter();
 }
 """;
@@ -473,7 +491,7 @@ void main() {
     var element = findElement(compiler, name);
     Expect.equals(
         type,
-        typesInferrer.internal.returnTypeOf[element].simplify(compiler),
+        typesInferrer.getReturnTypeOfElement(element).simplify(compiler),
         name);
   }
   var interceptorType =
@@ -532,13 +550,16 @@ void main() {
   checkReturn('testBreak1', interceptorType.nullable());
   checkReturn('testContinue2', interceptorType.nullable());
   checkReturn('testBreak2', typesInferrer.intType.nullable());
+  checkReturn('testReturnElementOfConstList1', typesInferrer.intType);
+  checkReturn('testReturnElementOfConstList2', typesInferrer.intType);
+  checkReturn('testReturnItselfOrInt', typesInferrer.intType);
   checkReturn('testReturnInvokeDynamicGetter', typesInferrer.dynamicType);
 
   checkReturnInClass(String className, String methodName, type) {
     var cls = findElement(compiler, className);
     var element = cls.lookupLocalMember(buildSourceString(methodName));
     Expect.equals(type,
-        typesInferrer.internal.returnTypeOf[element].simplify(compiler));
+        typesInferrer.getReturnTypeOfElement(element).simplify(compiler));
   }
 
   checkReturnInClass('A', 'returnInt1', typesInferrer.intType);
@@ -563,7 +584,7 @@ void main() {
     var cls = findElement(compiler, className);
     var element = cls.localLookup(buildSourceString(className));
     Expect.equals(new TypeMask.nonNullExact(cls.rawType),
-                  typesInferrer.internal.returnTypeOf[element]);
+                  typesInferrer.getReturnTypeOfElement(element));
   }
   checkFactoryConstructor('A');
 }

@@ -14,7 +14,7 @@ preserveNames() {}
 /// with some additional information, such as, number of required arguments.
 /// This map is for mangled names used as instance members.
 final Map<String, String> mangledNames =
-    computeMangledNames(JS('', 'init.mangledNames'));
+    computeMangledNames(JS('', 'init.mangledNames'), false);
 
 /// A map from "reflective" names to mangled names (the reverse of
 /// [mangledNames]).
@@ -24,7 +24,7 @@ final Map<String, String> reflectiveNames =
 /// A map from mangled names to "reflective" names (see [mangledNames]).  This
 /// map is for globals, that is, static and top-level members.
 final Map<String, String> mangledGlobalNames =
-    computeMangledNames(JS('', 'init.mangledGlobalNames'));
+    computeMangledNames(JS('', 'init.mangledGlobalNames'), true);
 
 /// A map from "reflective" names to mangled names (the reverse of
 /// [mangledGlobalNames]).
@@ -33,12 +33,21 @@ final Map<String, String> reflectiveGlobalNames =
 
 /// [jsMangledNames] is a JavaScript object literal.  The keys are the mangled
 /// names, and the values are the "reflective" names.
-Map<String, String> computeMangledNames(jsMangledNames) {
+Map<String, String> computeMangledNames(jsMangledNames, bool isGlobal) {
   preserveNames();
   var keys = extractKeys(jsMangledNames);
   var result = <String, String>{};
+  String getterPrefix = JS('String', 'init.getterPrefix');
+  int getterPrefixLength = getterPrefix.length;
+  String setterPrefix = JS('String', 'init.setterPrefix');
   for (String key in keys) {
-    result[key] = JS('String', '#[#]', jsMangledNames, key);
+    String value = JS('String', '#[#]', jsMangledNames, key);
+    result[key] = value;
+    if (!isGlobal) {
+      if (key.startsWith(getterPrefix)) {
+        result['$setterPrefix${key.substring(getterPrefixLength)}'] = '$value=';
+      }
+    }
   }
   return result;
 }

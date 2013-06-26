@@ -9,7 +9,7 @@ import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart"
     show SourceString;
 
 Map<String, String> generate(String code, [List<String> options = const []]) {
-  Uri script = currentDirectory.resolve(nativeToUriPath(new Options().script));
+  Uri script = currentDirectory.resolve(nativeToUriPath(Platform.script));
   Uri libraryRoot = script.resolve('../../../sdk/');
   Uri packageRoot = script.resolve('./packages/');
 

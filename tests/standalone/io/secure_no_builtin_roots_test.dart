@@ -14,7 +14,7 @@ void testGoogleUrl() {
       .then((request) => request.close())
       .then((response) => Expect.fail("Unexpected successful connection"))
       .catchError((error) {
-        Expect.isTrue(error is SocketException);
+        Expect.isTrue(error is HandshakeException);
         keepAlive.close();
         client.close();
       });

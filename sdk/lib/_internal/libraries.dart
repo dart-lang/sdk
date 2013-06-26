@@ -152,6 +152,12 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       category: "Internal",
       documented: false,
       platforms: DART2JS_PLATFORM),
+
+  "_js_names": const LibraryInfo(
+      "_internal/lib/js_names.dart",
+      category: "Internal",
+      documented: false,
+      platforms: DART2JS_PLATFORM),
 };
 
 /**

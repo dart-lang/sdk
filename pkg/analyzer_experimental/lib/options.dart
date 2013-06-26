@@ -153,7 +153,7 @@ class CommandLineOptions {
 
   static String _getVersion() {
     try {
-      Path path = new Path(new Options().script);
+      Path path = new Path(Platform.script);
       Path versionPath = path.directoryPath.append('..').append('version');
       File versionFile = new File.fromPath(versionPath);
       return versionFile.readAsStringSync().trim();
@@ -251,7 +251,6 @@ class _CommandLineParser {
       }
     }
 
-    print(filtered);
     return filtered;
   }
 

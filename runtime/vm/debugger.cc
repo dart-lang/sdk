@@ -585,7 +585,8 @@ void DebuggerStackTrace::AddActivation(ActivationFrame* frame) {
 
 static bool IsSafePoint(PcDescriptors::Kind kind) {
   return ((kind == PcDescriptors::kIcCall) ||
-          (kind == PcDescriptors::kFuncCall) ||
+          (kind == PcDescriptors::kOptStaticCall) ||
+          (kind == PcDescriptors::kUnoptStaticCall) ||
           (kind == PcDescriptors::kClosureCall) ||
           (kind == PcDescriptors::kReturn) ||
           (kind == PcDescriptors::kRuntimeCall));
@@ -658,12 +659,12 @@ void CodeBreakpoint::PatchCode() {
       const Code& code =
           Code::Handle(Function::Handle(function_).unoptimized_code());
       saved_bytes_.target_address_ =
-          CodePatcher::GetInstanceCallAt(pc_, code, NULL, NULL);
+          CodePatcher::GetInstanceCallAt(pc_, code, NULL);
       CodePatcher::PatchInstanceCallAt(pc_, code,
                                        StubCode::BreakpointDynamicEntryPoint());
       break;
     }
-    case PcDescriptors::kFuncCall: {
+    case PcDescriptors::kUnoptStaticCall: {
       const Code& code =
           Code::Handle(Function::Handle(function_).unoptimized_code());
       saved_bytes_.target_address_ =
@@ -702,7 +703,7 @@ void CodeBreakpoint::RestoreCode() {
                                        saved_bytes_.target_address_);
       break;
     }
-    case PcDescriptors::kFuncCall:
+    case PcDescriptors::kUnoptStaticCall:
     case PcDescriptors::kClosureCall:
     case PcDescriptors::kRuntimeCall: {
       const Code& code =
@@ -1178,6 +1179,7 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
     MakeCodeBreakpointsAt(closure, breakpoint_pos, source_bpt);
   }
   source_bpt->Enable();
+  SignalBpResolved(source_bpt);
   return source_bpt;
 }
 
@@ -1494,7 +1496,8 @@ bool Debugger::IsDebuggable(const Function& func) {
   if ((fkind == RawFunction::kImplicitGetter) ||
       (fkind == RawFunction::kImplicitSetter) ||
       (fkind == RawFunction::kConstImplicitGetter) ||
-      (fkind == RawFunction::kMethodExtractor)) {
+      (fkind == RawFunction::kMethodExtractor) ||
+      (fkind == RawFunction::kNoSuchMethodDispatcher)) {
     return false;
   }
   const Class& cls = Class::Handle(func.Owner());
@@ -1564,30 +1567,29 @@ void Debugger::SignalBpReached() {
     if (bpt->breakpoint_kind_ == PcDescriptors::kIcCall) {
       func_to_instrument = bpt->function();
       ICData& ic_data = ICData::Handle();
-      Array& descriptor = Array::Handle();
       const Code& code =
           Code::Handle(Function::Handle(bpt->function_).unoptimized_code());
-      CodePatcher::GetInstanceCallAt(bpt->pc_, code, &ic_data, &descriptor);
-      ArgumentsDescriptor arg_descriptor(descriptor);
+      CodePatcher::GetInstanceCallAt(bpt->pc_, code, &ic_data);
+      ArgumentsDescriptor
+          args_descriptor(Array::Handle(ic_data.arguments_descriptor()));
       ActivationFrame* top_frame = stack_trace->ActivationFrameAt(0);
-      intptr_t num_args = arg_descriptor.Count();
+      intptr_t num_args = args_descriptor.Count();
       Instance& receiver =
           Instance::Handle(top_frame->GetInstanceCallReceiver(num_args));
       Code& target_code =
-          Code::Handle(ResolveCompileInstanceCallTarget(receiver,
-                                                        ic_data,
-                                                        descriptor));
+          Code::Handle(ResolveCompileInstanceCallTarget(receiver, ic_data));
       if (!target_code.IsNull()) {
         Function& callee = Function::Handle(target_code.function());
         if (IsDebuggable(callee)) {
           func_to_instrument = callee.raw();
         }
       }
-    } else if (bpt->breakpoint_kind_ == PcDescriptors::kFuncCall) {
+    } else if (bpt->breakpoint_kind_ == PcDescriptors::kUnoptStaticCall) {
       func_to_instrument = bpt->function();
       const Code& code = Code::Handle(func_to_instrument.CurrentCode());
-      const Function& callee =
-          Function::Handle(code.GetStaticCallTargetFunctionAt(bpt->pc_));
+      ASSERT(!code.is_optimized());
+      const Function& callee = Function::Handle(
+          CodePatcher::GetUnoptimizedStaticCallAt(bpt->pc_, code, NULL));
       ASSERT(!callee.IsNull());
       if (IsDebuggable(callee)) {
         func_to_instrument = callee.raw();

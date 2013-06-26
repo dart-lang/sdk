@@ -937,6 +937,16 @@ void JoinEntryInstr::InsertPhi(PhiInstr* phi) {
   phis_->Add(phi);
 }
 
+void JoinEntryInstr::RemovePhi(PhiInstr* phi) {
+  ASSERT(phis_ != NULL);
+  for (intptr_t index = 0; index < phis_->length(); ++index) {
+    if (phi == (*phis_)[index]) {
+      (*phis_)[index] = phis_->Last();
+      phis_->RemoveLast();
+      return;
+    }
+  }
+}
 
 void JoinEntryInstr::RemoveDeadPhis(Definition* replacement) {
   if (phis_ == NULL) return;
@@ -1683,8 +1693,12 @@ LocationSummary* InstanceCallInstr::MakeLocationSummary() const {
 void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ICData& call_ic_data = ICData::ZoneHandle(ic_data()->raw());
   if (!FLAG_propagate_ic_data || !compiler->is_optimizing()) {
+    const Array& arguments_descriptor =
+        Array::Handle(ArgumentsDescriptor::New(ArgumentCount(),
+                                               argument_names()));
     call_ic_data = ICData::New(compiler->parsed_function().function(),
                                function_name(),
+                               arguments_descriptor,
                                deopt_id(),
                                checked_argument_count());
   }

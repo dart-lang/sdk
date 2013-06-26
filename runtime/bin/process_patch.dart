@@ -20,11 +20,13 @@ patch class Process {
       List<String> arguments,
       {String workingDirectory,
        Map<String, String> environment,
-       bool runInShell}) {
+       bool includeParentEnvironment: true,
+       bool runInShell: false}) {
     _ProcessImpl process = new _ProcessImpl(executable,
                                             arguments,
                                             workingDirectory,
                                             environment,
+                                            includeParentEnvironment,
                                             runInShell);
     return process._start();
   }
@@ -34,13 +36,15 @@ patch class Process {
       List<String> arguments,
       {String workingDirectory,
        Map<String, String> environment,
-       bool runInShell,
+       bool includeParentEnvironment: true,
+       bool runInShell: false,
        Encoding stdoutEncoding: Encoding.SYSTEM,
        Encoding stderrEncoding: Encoding.SYSTEM}) {
     return _runNonInteractiveProcess(executable,
                                      arguments,
                                      workingDirectory,
                                      environment,
+                                     includeParentEnvironment,
                                      runInShell,
                                      stdoutEncoding,
                                      stderrEncoding);
@@ -68,6 +72,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
                List<String> arguments,
                String this._workingDirectory,
                Map<String, String> environment,
+               bool includeParentEnvironment,
                bool runInShell) {
     runInShell = identical(runInShell, true);
     if (runInShell) {
@@ -92,8 +97,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
       }
       _arguments[i] = arguments[i];
       if (Platform.operatingSystem == 'windows') {
-        _arguments[i] = _windowsArgumentEscape(_arguments[i],
-                                               shellEscape: runInShell);
+        _arguments[i] = _windowsArgumentEscape(_arguments[i]);
       }
     }
 
@@ -102,20 +106,23 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
           "WorkingDirectory is not a String: $_workingDirectory");
     }
 
-    if (environment != null) {
-      var env = environment;
-      if (env is !Map) {
-        throw new ArgumentError("Environment is not a map: $env");
-      }
-      _environment = [];
-      env.forEach((key, value) {
-        if (key is !String || value is !String) {
-          throw new ArgumentError(
-              "Environment key or value is not a string: ($key, $value)");
-        }
-        _environment.add('$key=$value');
-      });
+    _environment = [];
+    if (environment == null) {
+      environment = {};
     }
+    if (environment is !Map) {
+      throw new ArgumentError("Environment is not a map: $environment");
+    }
+    if (identical(true, includeParentEnvironment)) {
+      environment = Platform.environment..addAll(environment);
+    }
+    environment.forEach((key, value) {
+      if (key is !String || value is !String) {
+        throw new ArgumentError(
+            "Environment key or value is not a string: ($key, $value)");
+      }
+      _environment.add('$key=$value');
+    });
 
     // stdin going to process.
     _stdin = new _StdSink(new _Socket._writePipe());
@@ -158,12 +165,11 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
     return shellArguments;
   }
 
-  String _windowsArgumentEscape(String argument, { bool shellEscape: false }) {
+  String _windowsArgumentEscape(String argument) {
     var result = argument;
     if (argument.contains('\t') ||
         argument.contains(' ') ||
-        // TODO(ajohnsen): Remove shellEscape.
-        (shellEscape && argument.contains('"'))) {
+        argument.contains('"')) {
       // Produce something that the C runtime on Windows will parse
       // back as this string.
 
@@ -333,6 +339,7 @@ Future<ProcessResult> _runNonInteractiveProcess(String path,
                                                 List<String> arguments,
                                                 String workingDirectory,
                                                 Map<String, String> environment,
+                                                bool includeParentEnvironment,
                                                 bool runInShell,
                                                 Encoding stdoutEncoding,
                                                 Encoding stderrEncoding) {
@@ -341,6 +348,7 @@ Future<ProcessResult> _runNonInteractiveProcess(String path,
                        arguments,
                        workingDirectory: workingDirectory,
                        environment: environment,
+                       includeParentEnvironment: includeParentEnvironment,
                        runInShell: runInShell).then((Process p) {
     int pid = p.pid;
 

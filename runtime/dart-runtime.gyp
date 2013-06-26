@@ -11,11 +11,7 @@
     'third_party/jscre/jscre.gypi',
   ],
   'variables': {
-    # TODO(zra): LIB_DIR is not defined by the ninja generator on Windows.
-    # Also, LIB_DIR is not toolset specific on Mac. If we want to do a ninja
-    # build on Windows, or cross-compile on Mac, we'll have to find some other
-    # way of getting generated source files into toolset specific locations.
-    'gen_source_dir': '<(LIB_DIR)',
+    'gen_source_dir': '<(SHARED_INTERMEDIATE_DIR)',
     'version_in_cc_file': 'vm/version_in.cc',
     'version_cc_file': '<(gen_source_dir)/version.cc',
 
@@ -42,7 +38,7 @@
         'libdart_vm',
         'libjscre',
         'libdouble_conversion',
-        'generate_version_cc_file',
+        'generate_version_cc_file#host',
       ],
       'include_dirs': [
         '.',
@@ -72,7 +68,7 @@
     {
       'target_name': 'generate_version_cc_file',
       'type': 'none',
-      'toolsets':['target','host'],
+      'toolsets':['host'],
       'dependencies': [
         'libdart_dependency_helper.target#target',
         'libdart_dependency_helper.host#host',

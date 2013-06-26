@@ -7,7 +7,7 @@ import 'dart:html_common';
 import 'dart:typed_data';
 import 'dart:_js_helper' show Creates, JSName, Null, Returns, convertDartClosureToJS;
 import 'dart:_foreign_helper' show JS;
-import 'dart:_interceptors' show Interceptor;
+import 'dart:_interceptors' show Interceptor, JSExtendableArray;
 // DO NOT EDIT - unless you are editing documentation as per:
 // https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
 // Auto-generated dart:web_gl library.
@@ -669,6 +669,11 @@ class ExtDrawBuffers native "EXTDrawBuffers" {
   @DomName('EXTDrawBuffers.MAX_DRAW_BUFFERS_EXT')
   @DocsEditable
   static const int MAX_DRAW_BUFFERS_EXT = 0x8824;
+
+  @JSName('drawBuffersEXT')
+  @DomName('EXTDrawBuffers.drawBuffersEXT')
+  @DocsEditable
+  void drawBuffersExt(List<int> buffers) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2320,8 +2325,8 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
 
   @DomName('WebGLRenderingContext.getParameter')
   @DocsEditable
-  @Creates('Null|num|String|bool|=List|Float32List|Int32List|Uint32List|Framebuffer|Renderbuffer|Texture')
-  @Returns('Null|num|String|bool|=List|Float32List|Int32List|Uint32List|Framebuffer|Renderbuffer|Texture')
+  @Creates('Null|num|String|bool|JSExtendableArray|Float32List|Int32List|Uint32List|Framebuffer|Renderbuffer|Texture')
+  @Returns('Null|num|String|bool|JSExtendableArray|Float32List|Int32List|Uint32List|Framebuffer|Renderbuffer|Texture')
   Object getParameter(int pname) native;
 
   @DomName('WebGLRenderingContext.getProgramInfoLog')
@@ -2370,8 +2375,8 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
 
   @DomName('WebGLRenderingContext.getUniform')
   @DocsEditable
-  @Creates('Null|num|String|bool|=List|Float32List|Int32List|Uint32List')
-  @Returns('Null|num|String|bool|=List|Float32List|Int32List|Uint32List')
+  @Creates('Null|num|String|bool|JSExtendableArray|Float32List|Int32List|Uint32List')
+  @Returns('Null|num|String|bool|JSExtendableArray|Float32List|Int32List|Uint32List')
   Object getUniform(Program program, UniformLocation location) native;
 
   @DomName('WebGLRenderingContext.getUniformLocation')

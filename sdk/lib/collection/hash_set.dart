@@ -7,8 +7,8 @@ part of dart.collection;
 /** Common parts of [HashSet] and [LinkedHashSet] implementations. */
 abstract class _HashSetBase<E> extends IterableBase<E> implements Set<E> {
   // Set.
-  bool containsAll(Iterable<E> other) {
-    for (E object in other) {
+  bool containsAll(Iterable<Object> other) {
+    for (Object object in other) {
       if (!this.contains(object)) return false;
     }
     return true;
@@ -17,10 +17,10 @@ abstract class _HashSetBase<E> extends IterableBase<E> implements Set<E> {
   /** Create a new Set of the same type as this. */
   Set _newSet();
 
-  Set<E> intersection(Set<E> other) {
+  Set<E> intersection(Set<Object> other) {
     Set<E> result = _newSet();
     if (other.length < this.length) {
-      for (E element in other) {
+      for (var element in other) {
         if (this.contains(element)) result.add(element);
       }
     } else {
@@ -95,7 +95,7 @@ class HashSet<E> extends _HashSetBase<E> {
 
   external bool remove(Object object);
 
-  external void removeAll(Iterable objectsToRemove);
+  external void removeAll(Iterable<Object> objectsToRemove);
 
   external void removeWhere(bool test(E element));
 

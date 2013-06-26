@@ -228,6 +228,49 @@ main() {
         'SHOUT: 8']));
     });
 
+    test('logging methods store exception', () {
+      root.level = Level.ALL;
+      var rootMessages = [];
+      root.onRecord.listen((r) {
+        rootMessages.add('${r.level}: ${r.message} ${r.exception}');
+      });
+
+      root.finest('1');
+      root.finer('2');
+      root.fine('3');
+      root.config('4');
+      root.info('5');
+      root.warning('6');
+      root.severe('7');
+      root.shout('8');
+      root.finest('1', 'a');
+      root.finer('2', 'b');
+      root.fine('3', ['c']);
+      root.config('4', 'd');
+      root.info('5', 'e');
+      root.warning('6', 'f');
+      root.severe('7', 'g');
+      root.shout('8', 'h');
+
+      expect(rootMessages, equals([
+        'FINEST: 1 null',
+        'FINER: 2 null',
+        'FINE: 3 null',
+        'CONFIG: 4 null',
+        'INFO: 5 null',
+        'WARNING: 6 null',
+        'SEVERE: 7 null',
+        'SHOUT: 8 null',
+        'FINEST: 1 a',
+        'FINER: 2 b',
+        'FINE: 3 [c]',
+        'CONFIG: 4 d',
+        'INFO: 5 e',
+        'WARNING: 6 f',
+        'SEVERE: 7 g',
+        'SHOUT: 8 h']));
+    });
+
     test('message logging - no hierarchy', () {
       root.level = Level.WARNING;
       var rootMessages = [];

@@ -436,7 +436,7 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
 
   // Find a Dart executable we can use to spawn. Use the same one that was
   // used to run this script itself.
-  var dartBin = new Options().executable;
+  var dartBin = Platform.executable;
 
   // If the executable looks like a path, get its full path. That way we
   // can still find it when we spawn it with a different working directory.
@@ -453,8 +453,7 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
 
   if (tokenEndpoint == null) tokenEndpoint = new Future.value();
   var environmentFuture = tokenEndpoint.then((tokenEndpoint) {
-    // TODO(nweiz): remove this when issue 9294 is fixed.
-    var environment = new Map.from(Platform.environment);
+    var environment = {};
     environment['_PUB_TESTING'] = 'true';
     environment['PUB_CACHE'] = pathInSandbox(cachePath);
     environment['DART_SDK'] = pathInSandbox(sdkPath);
@@ -556,7 +555,7 @@ class PubProcess extends ScheduledProcess {
 /// The path to the `packages` directory from which pub loads its dependencies.
 String get _packageRoot {
   return path.absolute(path.join(
-      path.dirname(new Options().executable), '..', '..', 'packages'));
+      path.dirname(Platform.executable), '..', '..', 'packages'));
 }
 
 /// Skips the current test if Git is not installed. This validates that the

@@ -625,4 +625,29 @@ main() {
     expect(builder.withoutExtension('a/b.c/'), 'a/b/');
     expect(builder.withoutExtension('a/b.c//'), 'a/b//');
   });
+
+
+  test('fromUri', () {
+    expect(builder.fromUri(Uri.parse('http://dartlang.org/path/to/foo')),
+        'http://dartlang.org/path/to/foo');
+    expect(builder.fromUri(Uri.parse('http://dartlang.org/path/to/foo/')),
+        'http://dartlang.org/path/to/foo/');
+    expect(builder.fromUri(Uri.parse('file:///path/to/foo')),
+        'file:///path/to/foo');
+    expect(builder.fromUri(Uri.parse('foo/bar')), 'foo/bar');
+    expect(builder.fromUri(Uri.parse('http://dartlang.org/path/to/foo%23bar')),
+        'http://dartlang.org/path/to/foo%23bar');
+  });
+
+  test('toUri', () {
+    expect(builder.toUri('http://dartlang.org/path/to/foo'),
+        Uri.parse('http://dartlang.org/path/to/foo'));
+    expect(builder.toUri('http://dartlang.org/path/to/foo/'),
+        Uri.parse('http://dartlang.org/path/to/foo/'));
+    expect(builder.toUri('file:///path/to/foo'),
+        Uri.parse('file:///path/to/foo'));
+    expect(builder.toUri('foo/bar'), Uri.parse('foo/bar'));
+    expect(builder.toUri('http://dartlang.org/path/to/foo%23bar'),
+        Uri.parse('http://dartlang.org/path/to/foo%23bar'));
+  });
 }

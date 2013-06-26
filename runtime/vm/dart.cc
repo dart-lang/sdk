@@ -193,6 +193,11 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   Object::VerifyBuiltinVtables();
 
   StubCode::Init(isolate);
+  if (snapshot_buffer == NULL) {
+    if (!isolate->object_store()->PreallocateObjects()) {
+      return isolate->object_store()->sticky_error();
+    }
+  }
   isolate->megamorphic_cache_table()->InitMissHandler();
 
   isolate->heap()->EnableGrowthControl();

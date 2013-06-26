@@ -60,6 +60,12 @@ static intptr_t ToInstructionEnd(intptr_t pos) {
 }
 
 
+static intptr_t NextInstructionPos(intptr_t pos) {
+  ASSERT(IsInstructionStartPosition(pos));
+  return pos + 2;
+}
+
+
 FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph)
   : flow_graph_(flow_graph),
     reaching_defs_(flow_graph),
@@ -512,6 +518,16 @@ void FlowGraphAllocator::BuildLiveRanges() {
         range->DefineAt(catch_entry->start_pos());  // Defined at block entry.
         ProcessInitialDefinition(defn, range, catch_entry);
       }
+      // Block the two registers used by CatchEntryInstr from the block start to
+      // until the end of the instruction so that they are preserved.
+      ASSERT(catch_entry->next()->IsCatchEntry());
+      intptr_t start = catch_entry->start_pos();
+      BlockLocation(Location::RegisterLocation(kExceptionObjectReg),
+                    start,
+                    ToInstructionEnd(NextInstructionPos(start)));
+      BlockLocation(Location::RegisterLocation(kStackTraceObjectReg),
+                    start,
+                    ToInstructionEnd(NextInstructionPos(start)));
     }
   }
 

@@ -660,7 +660,7 @@ class _HttpParser
           _index--;
           int dataAvailable = _buffer.length - _index;
           List<int> data;
-          if (_remainingContent == null ||
+          if (_remainingContent == -1 ||
               dataAvailable <= _remainingContent) {
             if (_index == 0) {
               data = _buffer;
@@ -673,7 +673,7 @@ class _HttpParser
             data.setRange(0, _remainingContent, _buffer, _index);
           }
           _bodyController.add(data);
-          if (_remainingContent != null) {
+          if (_remainingContent != -1) {
             _remainingContent -= data.length;
           }
           _index += data.length;
@@ -814,6 +814,8 @@ class _HttpParser
     _method_or_status_code = new List();
     _uri_or_reason_phrase = new List();
 
+    _statusCode = 0;
+
     _httpVersion = _HttpVersion.UNDETERMINED;
     _transferLength = -1;
     _persistentConnection = false;
@@ -822,7 +824,7 @@ class _HttpParser
 
     _noMessageBody = false;
     _responseToMethod = null;
-    _remainingContent = null;
+    _remainingContent = -1;
 
     _headers = null;
   }
@@ -961,21 +963,21 @@ class _HttpParser
   int _state;
   int _httpVersionIndex;
   int _messageType;
-  int _statusCode;
+  int _statusCode = 0;
   List _method_or_status_code;
   List _uri_or_reason_phrase;
   List _headerField;
   List _headerValue;
 
   int _httpVersion;
-  int _transferLength;
+  int _transferLength = -1;
   bool _persistentConnection;
   bool _connectionUpgrade;
   bool _chunked;
 
   bool _noMessageBody;
   String _responseToMethod;  // Indicates the method used for the request.
-  int _remainingContent;
+  int _remainingContent = -1;
 
   _HttpHeaders _headers;
 

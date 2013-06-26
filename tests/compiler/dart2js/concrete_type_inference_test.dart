@@ -34,7 +34,7 @@ void checkPrintType(String expression, checkType(compiler, type)) {
           printElement.computeSignature(compiler).requiredParameters.head;
         var type = compiler.typesTask.getGuaranteedTypeOfElement(parameter);
         var inferrer = compiler.typesTask.typesInferrer;
-        Expect.identical(inferrer.dynamicType, type);
+        Expect.identical(inferrer.dynamicType, type.simplify(compiler));
       });
 
   compileAndFind(
@@ -63,7 +63,7 @@ void testBasicTypes() {
   });
   checkPrintType('[]', (compiler, type) {
     var inferrer = compiler.typesTask.typesInferrer;
-    if (type.isContainer) type = type.asFlat;
+    if (type.isForwarding) type = type.forwardTo;
     Expect.identical(inferrer.growableListType, type);
   });
   checkPrintType('null', (compiler, type) {

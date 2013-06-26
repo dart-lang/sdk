@@ -74,7 +74,7 @@ void FUNCTION_NAME(InternetAddress_Fixed)(Dart_NativeArguments args) {
       if (Dart_IsError(error)) Dart_PropagateError(error);
       Dart_ThrowException(error);
   }
-  int len = SocketAddress::GetAddrLength(raw);
+  int len = SocketAddress::GetAddrLength(&raw);
   Dart_Handle result = Dart_NewTypedData(Dart_TypedData_kUint8, len);
   if (Dart_IsError(result)) Dart_PropagateError(result);
   Dart_ListSetAsBytes(result, 0, reinterpret_cast<uint8_t *>(&raw), len);
@@ -130,6 +130,7 @@ void FUNCTION_NAME(Socket_Available)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
   Dart_EnterScope();
+  static bool short_socket_reads = Dart_IsVMFlagSet("short_socket_read");
   Dart_Handle socket_obj = Dart_GetNativeArgument(args, 0);
   intptr_t socket = 0;
   Dart_Handle err = Socket::GetSocketIdNativeField(socket_obj, &socket);
@@ -142,6 +143,9 @@ void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
       if (length == -1 || available < length) {
         length = available;
       }
+      if (short_socket_reads) {
+        length = (length + 1) / 2;
+      }
       uint8_t* buffer = NULL;
       Dart_Handle result = IOBuffer::Allocate(length, &buffer);
       if (Dart_IsError(result)) Dart_PropagateError(result);
@@ -149,12 +153,19 @@ void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
       intptr_t bytes_read = Socket::Read(socket, buffer, length);
       if (bytes_read == length) {
         Dart_SetReturnValue(args, result);
-      } else if (bytes_read == 0) {
-        // On MacOS when reading from a tty Ctrl-D will result in one
-        // byte reported as available. Attempting to read it out will
-        // result in zero bytes read. When that happens there is no
-        // data which is indicated by a null return value.
-        Dart_SetReturnValue(args, Dart_Null());
+      } else if (bytes_read < length) {
+        // On MacOS when reading from a tty Ctrl-D will result in reading one
+        // less byte then reported as available.
+        if (bytes_read == 0) {
+          Dart_SetReturnValue(args, Dart_Null());
+        } else {
+          uint8_t* new_buffer = NULL;
+          Dart_Handle new_result = IOBuffer::Allocate(bytes_read, &new_buffer);
+          if (Dart_IsError(new_result)) Dart_PropagateError(new_result);
+          ASSERT(new_buffer != NULL);
+          memmove(new_buffer, buffer, bytes_read);
+          Dart_SetReturnValue(args, new_result);
+        }
       } else {
         ASSERT(bytes_read == -1);
         Dart_SetReturnValue(args, DartUtils::NewDartOSError());
@@ -169,57 +180,6 @@ void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
     Dart_SetReturnValue(args, Dart_Null());
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
-  }
-
-  Dart_ExitScope();
-}
-
-
-void FUNCTION_NAME(Socket_ReadList)(Dart_NativeArguments args) {
-  Dart_EnterScope();
-  static bool short_socket_reads = Dart_IsVMFlagSet("short_socket_read");
-  Dart_Handle socket_obj = Dart_GetNativeArgument(args, 0);
-  intptr_t socket = 0;
-  Dart_Handle err = Socket::GetSocketIdNativeField(socket_obj, &socket);
-  if (Dart_IsError(err)) Dart_PropagateError(err);
-  Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
-  int64_t offset = 0;
-  int64_t length = 0;
-  Dart_Handle offset_obj = Dart_GetNativeArgument(args, 2);
-  Dart_Handle length_obj = Dart_GetNativeArgument(args, 3);
-  if (Dart_IsList(buffer_obj) &&
-      DartUtils::GetInt64Value(offset_obj, &offset) &&
-      DartUtils::GetInt64Value(length_obj, &length)) {
-    intptr_t buffer_len = 0;
-    Dart_Handle result = Dart_ListLength(buffer_obj, &buffer_len);
-    if (Dart_IsError(result)) {
-      Dart_PropagateError(result);
-    }
-    ASSERT((offset + length) <= buffer_len);
-    if (short_socket_reads) {
-      length = (length + 1) / 2;
-    }
-    uint8_t* buffer = new uint8_t[length];
-    intptr_t bytes_read = Socket::Read(socket, buffer, length);
-    if (bytes_read > 0) {
-      Dart_Handle result =
-          Dart_ListSetAsBytes(buffer_obj, offset, buffer, bytes_read);
-      if (Dart_IsError(result)) {
-        delete[] buffer;
-        Dart_PropagateError(result);
-      }
-    }
-    delete[] buffer;
-    if (bytes_read >= 0) {
-      Dart_SetReturnValue(args, Dart_NewInteger(bytes_read));
-    } else {
-      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
-    }
-  } else {
-    OSError os_error(-1, "Invalid argument", OSError::kUnknown);
-    Dart_Handle err = DartUtils::NewDartOSError(&os_error);
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
   }
 
   Dart_ExitScope();
@@ -446,7 +406,7 @@ static CObject* LookupRequest(const CObjectArray& request) {
     CObjectInt32 type(request[2]);
     CObject* result = NULL;
     OSError* os_error = NULL;
-    SocketAddresses* addresses =
+    AddressList<SocketAddress>* addresses =
         Socket::LookupAddress(host.CString(), type.Value(), &os_error);
     if (addresses != NULL) {
       CObjectArray* array = new CObjectArray(
@@ -466,12 +426,87 @@ static CObject* LookupRequest(const CObjectArray& request) {
 
         RawAddr raw = addr->addr();
         CObjectUint8Array* data = new CObjectUint8Array(CObject::NewUint8Array(
-            SocketAddress::GetAddrLength(raw)));
+            SocketAddress::GetAddrLength(&raw)));
         memmove(data->Buffer(),
                 reinterpret_cast<void *>(&raw),
-                SocketAddress::GetAddrLength(raw));
+                SocketAddress::GetAddrLength(&raw));
 
         entry->SetAt(2, data);
+        array->SetAt(i + 1, entry);
+      }
+      result = array;
+      delete addresses;
+    } else {
+      result = CObject::NewOSError(os_error);
+      delete os_error;
+    }
+    return result;
+  }
+  return CObject::IllegalArgumentError();
+}
+
+
+static CObject* ReverseLookupRequest(const CObjectArray& request) {
+  if (request.Length() == 2 &&
+      request[1]->IsTypedData()) {
+    CObjectUint8Array addr_object(request[1]);
+    RawAddr addr;
+    memmove(reinterpret_cast<void *>(&addr),
+            addr_object.Buffer(),
+            addr_object.Length());
+    OSError* os_error = NULL;
+    const intptr_t kMaxHostLength = 1025;
+    char host[kMaxHostLength];
+    if (Socket::ReverseLookup(addr, host, kMaxHostLength, &os_error)) {
+      return new CObjectString(CObject::NewString(host));
+    } else {
+      CObject* result = CObject::NewOSError(os_error);
+      delete os_error;
+      return result;
+    }
+  }
+  return CObject::IllegalArgumentError();
+}
+
+
+
+static CObject* ListInterfacesRequest(const CObjectArray& request) {
+  if (request.Length() == 2 &&
+      request[1]->IsInt32()) {
+    CObjectInt32 type(request[1]);
+    CObject* result = NULL;
+    OSError* os_error = NULL;
+    AddressList<InterfaceSocketAddress>* addresses = Socket::ListInterfaces(
+        type.Value(), &os_error);
+    if (addresses != NULL) {
+      CObjectArray* array = new CObjectArray(
+          CObject::NewArray(addresses->count() + 1));
+      array->SetAt(0, new CObjectInt32(CObject::NewInt32(0)));
+      for (intptr_t i = 0; i < addresses->count(); i++) {
+        InterfaceSocketAddress* interface = addresses->GetAt(i);
+        SocketAddress* addr = interface->socket_address();
+        CObjectArray* entry = new CObjectArray(CObject::NewArray(4));
+
+        CObjectInt32* type = new CObjectInt32(
+            CObject::NewInt32(addr->GetType()));
+        entry->SetAt(0, type);
+
+        CObjectString* as_string = new CObjectString(CObject::NewString(
+            addr->as_string()));
+        entry->SetAt(1, as_string);
+
+        RawAddr raw = addr->addr();
+        CObjectUint8Array* data = new CObjectUint8Array(CObject::NewUint8Array(
+            SocketAddress::GetAddrLength(&raw)));
+        memmove(data->Buffer(),
+                reinterpret_cast<void *>(&raw),
+                SocketAddress::GetAddrLength(&raw));
+        entry->SetAt(2, data);
+
+        CObjectString* interface_name = new CObjectString(CObject::NewString(
+            interface->interface_name()));
+        entry->SetAt(3, interface_name);
+
         array->SetAt(i + 1, entry);
       }
       result = array;
@@ -497,6 +532,12 @@ void SocketService(Dart_Port dest_port_id,
       switch (request_type.Value()) {
         case Socket::kLookupRequest:
           response = LookupRequest(request);
+          break;
+        case Socket::kListInterfacesRequest:
+          response = ListInterfacesRequest(request);
+          break;
+        case Socket::kReverseLookupRequest:
+          response = ReverseLookupRequest(request);
           break;
         default:
           UNREACHABLE();

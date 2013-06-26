@@ -318,11 +318,11 @@ class Float32List extends TypedData implements JavaScriptIndexingBehavior, List<
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  num firstWhere(bool test(num value), { num orElse() }) {
+  dynamic firstWhere(bool test(num value), { Object orElse() }) {
     return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  num lastWhere(bool test(num value), {num orElse()}) {
+  dynamic lastWhere(bool test(num value), { Object orElse() }) {
     return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
@@ -540,11 +540,11 @@ class Float64List extends TypedData implements JavaScriptIndexingBehavior, List<
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  num firstWhere(bool test(num value), { num orElse() }) {
+  dynamic firstWhere(bool test(num value), { Object orElse() }) {
     return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  num lastWhere(bool test(num value), {num orElse()}) {
+  dynamic lastWhere(bool test(num value), { Object orElse() }) {
     return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
@@ -762,11 +762,11 @@ class Int16List extends TypedData implements JavaScriptIndexingBehavior, List<in
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  int firstWhere(bool test(int value), { int orElse() }) {
+  dynamic firstWhere(bool test(int value), { Object orElse() }) {
     return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  int lastWhere(bool test(int value), {int orElse()}) {
+  dynamic lastWhere(bool test(int value), { Object orElse() }) {
     return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
@@ -984,11 +984,11 @@ class Int32List extends TypedData implements JavaScriptIndexingBehavior, List<in
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  int firstWhere(bool test(int value), { int orElse() }) {
+  dynamic firstWhere(bool test(int value), { Object orElse() }) {
     return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  int lastWhere(bool test(int value), {int orElse()}) {
+  dynamic lastWhere(bool test(int value), { Object orElse() }) {
     return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
@@ -1206,11 +1206,11 @@ class Int8List extends TypedData implements JavaScriptIndexingBehavior, List<int
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  int firstWhere(bool test(int value), { int orElse() }) {
+  dynamic firstWhere(bool test(int value), { Object orElse() }) {
     return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  int lastWhere(bool test(int value), {int orElse()}) {
+  dynamic lastWhere(bool test(int value), { Object orElse() }) {
     return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
@@ -1428,11 +1428,11 @@ class Uint16List extends TypedData implements JavaScriptIndexingBehavior, List<i
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  int firstWhere(bool test(int value), { int orElse() }) {
+  dynamic firstWhere(bool test(int value), { Object orElse() }) {
     return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  int lastWhere(bool test(int value), {int orElse()}) {
+  dynamic lastWhere(bool test(int value), { Object orElse() }) {
     return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
@@ -1650,11 +1650,11 @@ class Uint32List extends TypedData implements JavaScriptIndexingBehavior, List<i
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  int firstWhere(bool test(int value), { int orElse() }) {
+  dynamic firstWhere(bool test(int value), { Object orElse() }) {
     return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  int lastWhere(bool test(int value), {int orElse()}) {
+  dynamic lastWhere(bool test(int value), { Object orElse() }) {
     return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
@@ -1871,11 +1871,11 @@ class Uint8ClampedList extends Uint8List implements JavaScriptIndexingBehavior, 
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  int firstWhere(bool test(int value), { int orElse() }) {
+  dynamic firstWhere(bool test(int value), { Object orElse() }) {
     return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  int lastWhere(bool test(int value), {int orElse()}) {
+  dynamic lastWhere(bool test(int value), { Object orElse() }) {
     return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
@@ -2093,11 +2093,11 @@ class Uint8List extends TypedData implements JavaScriptIndexingBehavior, List<in
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  int firstWhere(bool test(int value), { int orElse() }) {
+  dynamic firstWhere(bool test(int value), { Object orElse() }) {
     return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  int lastWhere(bool test(int value), {int orElse()}) {
+  dynamic lastWhere(bool test(int value), { Object orElse() }) {
     return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 

@@ -63,7 +63,7 @@ abstract class ListMixin<E> implements List<E> {
     return this[0];
   }
 
-  bool contains(E element) {
+  bool contains(Object element) {
     int length = this.length;
     for (int i = 0; i < length; i++) {
       if (this[i] == element) return true;
@@ -96,7 +96,7 @@ abstract class ListMixin<E> implements List<E> {
     return false;
   }
 
-  E firstWhere(bool test(E element), { E orElse() }) {
+  dynamic firstWhere(bool test(E element), { Object orElse() }) {
     int length = this.length;
     for (int i = 0; i < length; i++) {
       E element = this[i];
@@ -109,7 +109,7 @@ abstract class ListMixin<E> implements List<E> {
     throw new StateError("No matching element");
   }
 
-  E lastWhere(bool test(E element), { E orElse() }) {
+  dynamic lastWhere(bool test(E element), { Object orElse() }) {
     int length = this.length;
     for (int i = length - 1; i >= 0; i--) {
       E element = this[i];
@@ -385,7 +385,7 @@ abstract class ListMixin<E> implements List<E> {
     insertAll(start, newContents);
   }
 
-  int indexOf(E element, [int startIndex = 0]) {
+  int indexOf(Object element, [int startIndex = 0]) {
     if (startIndex >= this.length) {
       return -1;
     }
@@ -405,7 +405,7 @@ abstract class ListMixin<E> implements List<E> {
    * the search at index [startIndex] to 0.
    * Returns -1 if [element] is not found.
    */
-  int lastIndexOf(E element, [int startIndex]) {
+  int lastIndexOf(Object element, [int startIndex]) {
     if (startIndex == null) {
       startIndex = this.length - 1;
     } else {

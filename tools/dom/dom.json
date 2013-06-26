@@ -2153,7 +2153,8 @@
       "DRAW_BUFFER8_EXT": {},
       "DRAW_BUFFER9_EXT": {},
       "MAX_COLOR_ATTACHMENTS_EXT": {},
-      "MAX_DRAW_BUFFERS_EXT": {}
+      "MAX_DRAW_BUFFERS_EXT": {},
+      "drawBuffersEXT": {}
     },
     "support_level": "stable"
   },

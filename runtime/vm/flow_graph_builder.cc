@@ -59,6 +59,7 @@ FlowGraphBuilder::FlowGraphBuilder(ParsedFunction* parsed_function,
     context_level_(0),
     last_used_try_index_(CatchClauseNode::kInvalidTryIndex),
     try_index_(CatchClauseNode::kInvalidTryIndex),
+    loop_depth_(0),
     graph_entry_(NULL),
     args_pushed_(0),
     osr_id_(osr_id) { }
@@ -499,7 +500,7 @@ void EffectGraphVisitor::TieLoop(intptr_t token_pos,
     JoinEntryInstr* join =
         new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
     CheckStackOverflowInstr* check =
-        new CheckStackOverflowInstr(token_pos, true);
+        new CheckStackOverflowInstr(token_pos, owner()->loop_depth());
     join->LinkTo(check);
     check->LinkTo(test_fragment.entry());
     Goto(join);
@@ -978,7 +979,7 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
                                                   name,
                                                   node->kind(),
                                                   arguments,
-                                                  Array::ZoneHandle(),
+                                                  Object::null_array(),
                                                   2,
                                                   owner()->ic_data_array());
   ReturnDefinition(call);
@@ -1222,7 +1223,7 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
       PrivateCoreLibName(Symbols::_instanceOf()),
       node->kind(),
       arguments,
-      Array::ZoneHandle(),  // No argument names.
+      Object::null_array(),  // No argument names.
       kNumArgsChecked,
       owner()->ic_data_array());
   ReturnDefinition(call);
@@ -1292,7 +1293,7 @@ void ValueGraphVisitor::BuildTypeCast(ComparisonNode* node) {
         PrivateCoreLibName(Symbols::_as()),
         node->kind(),
         arguments,
-        Array::ZoneHandle(),  // No argument names.
+        Object::null_array(),  // No argument names.
         kNumArgsChecked,
         owner()->ic_data_array());
     ReturnDefinition(call);
@@ -1406,7 +1407,7 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
                                 Symbols::New(Token::Str(node->kind()))),
                             node->kind(),
                             arguments,
-                            Array::ZoneHandle(),
+                            Object::null_array(),
                             1,
                             owner()->ic_data_array());
   ReturnDefinition(call);
@@ -1601,6 +1602,7 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
 // f) loop-exit-target
 // g) break-join (optional)
 void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
+  owner()->IncrementLoopDepth();
   TestGraphVisitor for_test(owner(),
                             temp_index(),
                             node->condition()->token_pos());
@@ -1624,6 +1626,7 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
     Goto(join);
     exit_ = join;
   }
+  owner()->DecrementLoopDepth();
 }
 
 
@@ -1636,6 +1639,7 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
 // f) loop-exit-target
 // g) break-join
 void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
+  owner()->IncrementLoopDepth();
   // Traverse body first in order to generate continue and break labels.
   EffectGraphVisitor for_body(owner(), temp_index());
   node->body()->Visit(&for_body);
@@ -1660,7 +1664,7 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
                                 owner()->try_index());
     }
     CheckStackOverflowInstr* check =
-        new CheckStackOverflowInstr(node->token_pos(), true);
+        new CheckStackOverflowInstr(node->token_pos(), owner()->loop_depth());
     join->LinkTo(check);
     check->LinkTo(for_test.entry());
     if (body_exit != NULL) {
@@ -1676,6 +1680,7 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
     for_test.IfFalseGoto(join);
     exit_ = join;
   }
+  owner()->DecrementLoopDepth();
 }
 
 
@@ -1697,6 +1702,7 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
   Append(for_initializer);
   ASSERT(is_open());
 
+  owner()->IncrementLoopDepth();
   // Compose body to set any jump labels.
   EffectGraphVisitor for_body(owner(), temp_index());
   node->body()->Visit(&for_body);
@@ -1719,7 +1725,8 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
     }
     Goto(loop_entry);
     exit_ = loop_entry;
-    AddInstruction(new CheckStackOverflowInstr(node->token_pos(), true));
+    AddInstruction(
+        new CheckStackOverflowInstr(node->token_pos(), owner()->loop_depth()));
   }
 
   if (node->condition() == NULL) {
@@ -1743,6 +1750,7 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
       exit_ = node->label()->join_for_break();
     }
   }
+  owner()->DecrementLoopDepth();
 }
 
 
@@ -2106,7 +2114,8 @@ void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
       new StaticCallInstr(node->token_pos(),
                           node->function(),
                           node->arguments()->names(),
-                          arguments);
+                          arguments,
+                          owner()->ic_data_array());
   if (node->function().is_native()) {
     const intptr_t result_cid = GetResultCidOfNative(node->function());
     call->set_result_cid(result_cid);
@@ -2216,7 +2225,8 @@ void EffectGraphVisitor::BuildConstructorCall(
   Do(new StaticCallInstr(node->token_pos(),
                          node->constructor(),
                          node->arguments()->names(),
-                         arguments));
+                         arguments,
+                         owner()->ic_data_array()));
 }
 
 
@@ -2284,7 +2294,8 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
         new StaticCallInstr(node->token_pos(),
                             node->constructor(),
                             node->arguments()->names(),
-                            arguments);
+                            arguments,
+                            owner()->ic_data_array());
     const intptr_t result_cid = GetResultCidOfListFactory(node);
     if (result_cid != kDynamicCid) {
       call->set_result_cid(result_cid);
@@ -2512,7 +2523,7 @@ void EffectGraphVisitor::VisitInstanceGetterNode(InstanceGetterNode* node) {
       node->token_pos(),
       name,
       Token::kGET,
-      arguments, Array::ZoneHandle(),
+      arguments, Object::null_array(),
       1,
       owner()->ic_data_array());
   ReturnDefinition(call);
@@ -2552,7 +2563,7 @@ void EffectGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
                                                   name,
                                                   Token::kSET,
                                                   arguments,
-                                                  Array::ZoneHandle(),
+                                                  Object::null_array(),
                                                   2,  // Checked arg count.
                                                   owner()->ic_data_array());
   ReturnDefinition(call);
@@ -2569,7 +2580,7 @@ void ValueGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
                            name,
                            Token::kSET,
                            arguments,
-                           Array::ZoneHandle(),
+                           Object::null_array(),
                            2,  // Checked argument count.
                            owner()->ic_data_array()));
   ReturnDefinition(BuildLoadExprTemp());
@@ -2638,8 +2649,9 @@ void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
   ASSERT(!getter_function.IsNull());
   StaticCallInstr* call = new StaticCallInstr(node->token_pos(),
                                               getter_function,
-                                              Array::ZoneHandle(),  // No names.
-                                              arguments);
+                                              Object::null_array(),  // No names
+                                              arguments,
+                                              owner()->ic_data_array());
   ReturnDefinition(call);
 }
 
@@ -2705,8 +2717,9 @@ void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
 
     call = new StaticCallInstr(node->token_pos(),
                                setter_function,
-                               Array::ZoneHandle(),  // No names.
-                               arguments);
+                               Object::null_array(),  // No names.
+                               arguments,
+                               owner()->ic_data_array());
   }
   if (result_is_needed) {
     Do(call);
@@ -2926,8 +2939,9 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
     // Generate static call to super operator.
     StaticCallInstr* load = new StaticCallInstr(node->token_pos(),
                                                 *super_function,
-                                                Array::ZoneHandle(),
-                                                arguments);
+                                                Object::null_array(),
+                                                arguments,
+                                                owner()->ic_data_array());
     ReturnDefinition(load);
   } else {
     // Generate dynamic call to index operator.
@@ -2936,7 +2950,7 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
                                                     Symbols::IndexToken(),
                                                     Token::kINDEX,
                                                     arguments,
-                                                    Array::ZoneHandle(),
+                                                    Object::null_array(),
                                                     checked_argument_count,
                                                     owner()->ic_data_array());
     ReturnDefinition(load);
@@ -3005,8 +3019,9 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
     StaticCallInstr* store =
         new StaticCallInstr(node->token_pos(),
                             *super_function,
-                            Array::ZoneHandle(),
-                            arguments);
+                            Object::null_array(),
+                            arguments,
+                            owner()->ic_data_array());
     if (result_is_needed) {
       Do(store);
       return BuildLoadExprTemp();
@@ -3023,7 +3038,7 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
                               name,
                               Token::kASSIGN_INDEX,
                               arguments,
-                              Array::ZoneHandle(),
+                              Object::null_array(),
                               checked_argument_count,
                               owner()->ic_data_array());
     if (result_is_needed) {
@@ -3317,8 +3332,9 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
   BuildPushArguments(*args, push_arguments);
   return new StaticCallInstr(args_pos,
                              no_such_method_func,
-                             Array::ZoneHandle(),
-                             push_arguments);
+                             Object::null_array(),
+                             push_arguments,
+                             owner()->ic_data_array());
 }
 StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
     intptr_t token_pos,
@@ -3368,13 +3384,14 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
       Resolver::ResolveStatic(cls,
                               PrivateCoreLibName(Symbols::ThrowNew()),
                               arguments->length(),
-                              Array::ZoneHandle(),
+                              Object::null_array(),
                               Resolver::kIsQualified));
   ASSERT(!func.IsNull());
   return new StaticCallInstr(token_pos,
                              func,
-                             Array::ZoneHandle(),  // No names.
-                             arguments);
+                             Object::null_array(),  // No names.
+                             arguments,
+                             owner()->ic_data_array());
 }
 
 
@@ -3458,7 +3475,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   EffectGraphVisitor for_effect(this, 0);
   // This check may be deleted if the generated code is leaf.
   CheckStackOverflowInstr* check =
-      new CheckStackOverflowInstr(function.token_pos(), false);
+      new CheckStackOverflowInstr(function.token_pos(), 0);
   // If we are inlining don't actually attach the stack check. We must still
   // create the stack check in order to allocate a deopt id.
   if (!IsInlining()) for_effect.AddInstruction(check);

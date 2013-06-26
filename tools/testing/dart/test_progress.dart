@@ -128,9 +128,24 @@ List<String> _buildFailureOutput(TestCase test,
   }
   for (var i = 0; i < test.commands.length; i++) {
     var command = test.commands[i];
+    var commandOutput = test.commandOutputs[command];
     output.add('');
     output.add('Command[$i]: $command');
+    if (commandOutput != null) {
+      output.add('Took ${commandOutput.time}');
+    } else {
+      output.add('Did not run');
+    }
   }
+
+  var arguments = ['python', 'tools/test.py'];
+  arguments.addAll(test.configuration['_reproducing_arguments_']);
+  arguments.add(test.displayName);
+  var testPyCommandline = arguments.map(escapeCommandLineArgument).join(' ');
+
+  output.add('');
+  output.add('Short reproduction command (experimental):');
+  output.add("    $testPyCommandline");
   return output;
 }
 

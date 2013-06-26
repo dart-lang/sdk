@@ -399,4 +399,26 @@ main() {
     expect(builder.withoutExtension('a/b.c/'), 'a/b/');
     expect(builder.withoutExtension('a/b.c//'), 'a/b//');
   });
+
+  test('fromUri', () {
+    expect(builder.fromUri(Uri.parse('file:///path/to/foo')), '/path/to/foo');
+    expect(builder.fromUri(Uri.parse('file:///path/to/foo/')), '/path/to/foo/');
+    expect(builder.fromUri(Uri.parse('file:///')), '/');
+    expect(builder.fromUri(Uri.parse('foo/bar')), 'foo/bar');
+    expect(builder.fromUri(Uri.parse('/path/to/foo')), '/path/to/foo');
+    expect(builder.fromUri(Uri.parse('///path/to/foo')), '/path/to/foo');
+    expect(builder.fromUri(Uri.parse('file:///path/to/foo%23bar')),
+        '/path/to/foo#bar');
+    expect(() => builder.fromUri(Uri.parse('http://dartlang.org')),
+        throwsArgumentError);
+  });
+
+  test('toUri', () {
+    expect(builder.toUri('/path/to/foo'), Uri.parse('file:///path/to/foo'));
+    expect(builder.toUri('/path/to/foo/'), Uri.parse('file:///path/to/foo/'));
+    expect(builder.toUri('/'), Uri.parse('file:///'));
+    expect(builder.toUri('foo/bar'), Uri.parse('foo/bar'));
+    expect(builder.toUri('/path/to/foo#bar'),
+        Uri.parse('file:///path/to/foo%23bar'));
+  });
 }

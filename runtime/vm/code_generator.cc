@@ -38,7 +38,7 @@ DEFINE_FLAG(bool, trace_ic_miss_in_optimized, false,
     "Trace IC miss in optimized code");
 DEFINE_FLAG(bool, trace_patching, false, "Trace patching of code.");
 DEFINE_FLAG(bool, trace_runtime_calls, false, "Trace runtime calls");
-DEFINE_FLAG(int, optimization_counter_threshold, 3000,
+DEFINE_FLAG(int, optimization_counter_threshold, 15000,
     "Function's usage-counter value before it is optimized, -1 means never");
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, trace_type_checks);
@@ -729,8 +729,8 @@ DEFINE_RUNTIME_ENTRY(ReThrow, 2) {
 }
 
 
-// Patches static call with the target's entry point. Compiles target if
-// necessary.
+// Patches static call in optimized code with the target's entry point.
+// Compiles target if necessary.
 DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
   ASSERT(arguments.ArgCount() == kPatchStaticCallRuntimeEntry.argument_count());
   DartFrameIterator iterator;
@@ -738,6 +738,7 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
   ASSERT(caller_frame != NULL);
   const Code& caller_code = Code::Handle(caller_frame->LookupDartCode());
   ASSERT(!caller_code.IsNull());
+  ASSERT(caller_code.is_optimized());
   const Function& target_function = Function::Handle(
       caller_code.GetStaticCallTargetFunctionAt(caller_frame->pc()));
   if (!target_function.HasCode()) {
@@ -768,11 +769,10 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
 // Resolves and compiles the target function of an instance call, updates
 // function cache of the receiver's class and returns the compiled code or null.
 // Only the number of named arguments is checked, but not the actual names.
-RawCode* ResolveCompileInstanceCallTarget(
-    const Instance& receiver,
-    const ICData& ic_data,
-    const Array& arguments_descriptor_array) {
-  ArgumentsDescriptor arguments_descriptor(arguments_descriptor_array);
+RawCode* ResolveCompileInstanceCallTarget(const Instance& receiver,
+                                          const ICData& ic_data) {
+  ArgumentsDescriptor
+      arguments_descriptor(Array::Handle(ic_data.arguments_descriptor()));
   intptr_t num_arguments = arguments_descriptor.Count();
   int num_named_arguments = arguments_descriptor.NamedCount();
   String& function_name = String::Handle(ic_data.target_name());
@@ -836,8 +836,10 @@ DEFINE_RUNTIME_ENTRY(BreakpointStaticHandler, 0) {
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
   const Code& code = Code::Handle(caller_frame->LookupDartCode());
+  ASSERT(!code.is_optimized());
   const Function& function =
-      Function::Handle(code.GetStaticCallTargetFunctionAt(caller_frame->pc()));
+      Function::Handle(CodePatcher::GetUnoptimizedStaticCallAt(
+          caller_frame->pc(), code, NULL));
 
   if (!function.HasCode()) {
     const Error& error = Error::Handle(Compiler::CompileFunction(function));
@@ -871,18 +873,17 @@ DEFINE_RUNTIME_ENTRY(BreakpointDynamicHandler, 0) {
 static RawFunction* InlineCacheMissHandler(
     const GrowableArray<const Instance*>& args,
     const ICData& ic_data,
-    const Array& arg_descriptor_array) {
+    const Array& args_descriptor_array) {
   const Instance& receiver = *args[0];
   const Code& target_code =
-      Code::Handle(ResolveCompileInstanceCallTarget(receiver,
-                                                    ic_data,
-                                                    arg_descriptor_array));
+      Code::Handle(ResolveCompileInstanceCallTarget(receiver, ic_data));
   if (target_code.IsNull()) {
     // Let the megamorphic stub handle special cases: NoSuchMethod,
     // closure calls.
     if (FLAG_trace_ic) {
-      OS::PrintErr("InlineCacheMissHandler NULL code for receiver: %s\n",
-          receiver.ToCString());
+      OS::PrintErr("InlineCacheMissHandler NULL code for %s receiver: %s\n",
+                   String::Handle(ic_data.target_name()).ToCString(),
+                   receiver.ToCString());
     }
     return Function::null();
   }
@@ -1157,7 +1158,9 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
                                                getter_name,
                                                kNumArguments,
                                                kNumNamedArguments));
-  if (getter.IsNull() || getter.IsMethodExtractor()) {
+  if (getter.IsNull() ||
+      getter.IsMethodExtractor() ||
+      getter.IsNoSuchMethodDispatcher()) {
     return false;
   }
 
@@ -1179,6 +1182,41 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
   *result = DartEntry::InvokeClosure(arguments, arguments_descriptor);
   CheckResultError(*result);
   return true;
+}
+
+
+// Create a method for noSuchMethod invocation and attach it to the receiver
+// class.
+static RawFunction* CreateNoSuchMethodDispatcher(
+    const String& target_name,
+    const Class& receiver_class,
+    const Array& arguments_descriptor) {
+  Function& invocation = Function::Handle(
+      Function::New(String::Handle(Symbols::New(target_name)),
+                    RawFunction::kNoSuchMethodDispatcher,
+                    false,  // Not static.
+                    false,  // Not const.
+                    false,  // Not abstract.
+                    false,  // Not external.
+                    receiver_class,
+                    0));  // No token position.
+
+  // Initialize signature: receiver is a single fixed parameter.
+  const intptr_t kNumParameters = 1;
+  invocation.set_num_fixed_parameters(kNumParameters);
+  invocation.SetNumOptionalParameters(0, 0);
+  invocation.set_parameter_types(Array::Handle(Array::New(kNumParameters,
+                                                         Heap::kOld)));
+  invocation.set_parameter_names(Array::Handle(Array::New(kNumParameters,
+                                                         Heap::kOld)));
+  invocation.SetParameterTypeAt(0, Type::Handle(Type::DynamicType()));
+  invocation.SetParameterNameAt(0, Symbols::This());
+  invocation.set_result_type(Type::Handle(Type::DynamicType()));
+  invocation.set_is_visible(false);  // Not visible in stack trace.
+
+  receiver_class.AddFunction(invocation);
+
+  return invocation.raw();
 }
 
 
@@ -1216,13 +1254,75 @@ DEFINE_RUNTIME_ENTRY(InstanceFunctionLookup, 4) {
                                 args_descriptor,
                                 args,
                                 &result)) {
-    result = DartEntry::InvokeNoSuchMethod(receiver,
-                                           target_name,
-                                           args,
-                                           args_descriptor);
+    ArgumentsDescriptor desc(args_descriptor);
+    Function& target_function = Function::Handle(
+        Resolver::ResolveDynamicAnyArgs(receiver_class, target_name));
+    // Check number of arguments and check that there is not already a method
+    // with the same name present.
+    // TODO(fschneider): Handle multiple arguments.
+    if (target_function.IsNull() &&
+        (desc.Count() == 1) && (desc.PositionalCount() == 1)) {
+      // Create Function for noSuchMethodInvocation and add it to the class.
+      target_function ^= CreateNoSuchMethodDispatcher(target_name,
+                                                      receiver_class,
+                                                      args_descriptor);
+
+      // Update IC data.
+      ASSERT(!target_function.IsNull());
+      ic_data.AddReceiverCheck(receiver.GetClassId(), target_function);
+      if (FLAG_trace_ic) {
+        OS::PrintErr("NoSuchMethod IC miss: adding <%s> id:%"Pd" -> <%s>\n",
+            Class::Handle(receiver.clazz()).ToCString(),
+            receiver.GetClassId(),
+            target_function.ToCString());
+      }
+      result =
+          DartEntry::InvokeFunction(target_function, args, args_descriptor);
+    } else {
+      result = DartEntry::InvokeNoSuchMethod(receiver,
+                                             target_name,
+                                             args,
+                                             args_descriptor);
+    }
   }
   CheckResultError(result);
   arguments.SetReturn(result);
+}
+
+
+static bool CanOptimizeFunction(const Function& function, Isolate* isolate) {
+  const intptr_t kLowInvocationCount = -100000000;
+  if (isolate->debugger()->HasBreakpoint(function)) {
+    // We cannot set breakpoints in optimized code, so do not optimize
+    // the function.
+    function.set_usage_counter(0);
+    return false;
+  }
+  if (function.deoptimization_counter() >=
+      FLAG_deoptimization_counter_threshold) {
+    if (FLAG_trace_failed_optimization_attempts) {
+      OS::PrintErr("Too Many Deoptimizations: %s\n",
+          function.ToFullyQualifiedCString());
+    }
+    // TODO(srdjan): Investigate excessive deoptimization.
+    function.set_usage_counter(kLowInvocationCount);
+    return false;
+  }
+  if ((FLAG_optimization_filter != NULL) &&
+      (strstr(function.ToFullyQualifiedCString(),
+              FLAG_optimization_filter) == NULL)) {
+    function.set_usage_counter(kLowInvocationCount);
+    return false;
+  }
+  if (!function.is_optimizable()) {
+    if (FLAG_trace_failed_optimization_attempts) {
+      OS::PrintErr("Not Optimizable: %s\n", function.ToFullyQualifiedCString());
+    }
+    // TODO(5442338): Abort as this should not happen.
+    function.set_usage_counter(kLowInvocationCount);
+    return false;
+  }
+  return true;
 }
 
 
@@ -1278,13 +1378,14 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     StackFrame* frame = iterator.NextFrame();
     const Function& function = Function::Handle(frame->LookupDartFunction());
     ASSERT(!function.IsNull());
-    if (!function.is_optimizable()) return;
+    if (!CanOptimizeFunction(function, isolate)) return;
     intptr_t osr_id =
         Code::Handle(function.unoptimized_code()).GetDeoptIdForOsr(frame->pc());
     if (FLAG_trace_osr) {
-      OS::Print("Attempting OSR for %s at id=%"Pd"\n",
+      OS::Print("Attempting OSR for %s at id=%"Pd", count=%"Pd"\n",
                 function.ToFullyQualifiedCString(),
-                osr_id);
+                osr_id,
+                function.usage_counter());
     }
 
     const Code& original_code = Code::Handle(function.CurrentCode());
@@ -1332,35 +1433,10 @@ DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
 DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   ASSERT(arguments.ArgCount() ==
          kOptimizeInvokedFunctionRuntimeEntry.argument_count());
-  const intptr_t kLowInvocationCount = -100000000;
   const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
   ASSERT(!function.IsNull());
-  if (isolate->debugger()->HasBreakpoint(function)) {
-    // We cannot set breakpoints in optimized code, so do not optimize
-    // the function.
-    function.set_usage_counter(0);
-    arguments.SetReturn(Code::Handle(function.CurrentCode()));
-    return;
-  }
-  if (function.deoptimization_counter() >=
-      FLAG_deoptimization_counter_threshold) {
-    if (FLAG_trace_failed_optimization_attempts) {
-      OS::PrintErr("Too Many Deoptimizations: %s\n",
-          function.ToFullyQualifiedCString());
-    }
-    // TODO(srdjan): Investigate excessive deoptimization.
-    function.set_usage_counter(kLowInvocationCount);
-    arguments.SetReturn(Code::Handle(function.CurrentCode()));
-    return;
-  }
-  if ((FLAG_optimization_filter != NULL) &&
-      (strstr(function.ToFullyQualifiedCString(),
-              FLAG_optimization_filter) == NULL)) {
-    function.set_usage_counter(kLowInvocationCount);
-    arguments.SetReturn(Code::Handle(function.CurrentCode()));
-    return;
-  }
-  if (function.is_optimizable()) {
+
+  if (CanOptimizeFunction(function, isolate)) {
     const Error& error =
         Error::Handle(Compiler::CompileOptimizedFunction(function));
     if (!error.IsNull()) {
@@ -1370,12 +1446,6 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     ASSERT(!optimized_code.IsNull());
     // Reset usage counter for reoptimization.
     function.set_usage_counter(0);
-  } else {
-    if (FLAG_trace_failed_optimization_attempts) {
-      OS::PrintErr("Not Optimizable: %s\n", function.ToFullyQualifiedCString());
-    }
-    // TODO(5442338): Abort as this should not happen.
-    function.set_usage_counter(kLowInvocationCount);
   }
   arguments.SetReturn(Code::Handle(function.CurrentCode()));
 }
@@ -1400,6 +1470,7 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   }
   ASSERT(frame->IsDartFrame());
   const Code& caller_code = Code::Handle(frame->LookupDartCode());
+  ASSERT(caller_code.is_optimized());
   const Function& target_function = Function::Handle(
       caller_code.GetStaticCallTargetFunctionAt(frame->pc()));
   const Code& target_code = Code::Handle(target_function.CurrentCode());

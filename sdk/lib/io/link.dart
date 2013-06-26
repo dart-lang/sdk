@@ -146,7 +146,7 @@ class _Link extends FileSystemEntity implements Link {
       target = _makeWindowsLinkTarget(target);
     }
     var result = _File._createLink(path, target);
-    throwIfError(result, "Cannot create link '$path'");
+    throwIfError(result, "Cannot create link", path);
   }
 
   // Put target into the form "\??\C:\my\target\dir".
@@ -155,12 +155,16 @@ class _Link extends FileSystemEntity implements Link {
       return target;
     }
     if (!(target.length > 3 && target[1] == ':' && target[2] == '\\')) {
-      target = new File(target).fullPathSync();
+      try {
+        target = new File(target).fullPathSync();
+      } catch (e) {
+        throw new LinkException('Could not locate target', target, e.osError);
+      }
     }
     if (target.length > 3 && target[1] == ':' && target[2] == '\\') {
       target = '\\??\\$target';
     } else {
-      throw new ArgumentError(
+      throw new LinkException(
           'Target $target of Link.create on Windows cannot be converted' +
           ' to start with a drive letter.  Unexpected error.');
     }
@@ -188,7 +192,7 @@ class _Link extends FileSystemEntity implements Link {
 
   void deleteSync() {
     var result = _File._deleteLink(path);
-    throwIfError(result, "Cannot delete link '$path'");
+    throwIfError(result, "Cannot delete link", path);
   }
 
   Future<String> target() {
@@ -207,13 +211,13 @@ class _Link extends FileSystemEntity implements Link {
 
   String targetSync() {
     var result = _File._linkTarget(path);
-    throwIfError(result, "Cannot read link '$path'");
+    throwIfError(result, "Cannot read link", path);
     return result;
   }
 
-  static throwIfError(Object result, String msg) {
+  static throwIfError(Object result, String msg, [String path = ""]) {
     if (result is OSError) {
-      throw new LinkException(msg, result);
+      throw new LinkException(msg, path, result);
     }
   }
 
@@ -245,8 +249,8 @@ class _Link extends FileSystemEntity implements Link {
 
 class LinkException implements IOException {
   const LinkException([String this.message = "",
-                         String this.path = "",
-                         OSError this.osError = null]);
+                       String this.path = "",
+                       OSError this.osError = null]);
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write("LinkException");

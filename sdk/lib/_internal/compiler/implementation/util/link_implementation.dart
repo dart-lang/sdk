@@ -110,9 +110,9 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
 
   LinkBuilderImplementation();
 
-  Link<T> toLink() {
-    if (head == null) return const Link();
-    lastLink.tail = const Link();
+  Link<T> toLink([Link<T> tail = const Link()]) {
+    if (head == null) return tail;
+    lastLink.tail = tail;
     Link<T> link = head;
     lastLink = null;
     head = null;

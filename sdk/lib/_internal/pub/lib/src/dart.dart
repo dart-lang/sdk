@@ -41,9 +41,9 @@ Future<String> compile(String entrypoint, {String packageRoot,
     }
 
     return compiler.compile(
-        pathToFileUri(entrypoint),
-        pathToFileUri(appendSlash(_libPath)),
-        pathToFileUri(appendSlash(packageRoot)),
+        path.toUri(entrypoint),
+        path.toUri(appendSlash(_libPath)),
+        path.toUri(appendSlash(packageRoot)),
         provider.readStringFromUri,
         new FormattingDiagnosticHandler(provider).diagnosticHandler,
         options);

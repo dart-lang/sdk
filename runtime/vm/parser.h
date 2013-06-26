@@ -63,7 +63,8 @@ class ParsedFunction : public ZoneAllocated {
     return default_parameter_values_;
   }
   void set_default_parameter_values(const Array& default_parameter_values) {
-    ASSERT(default_parameter_values.IsZoneHandle());
+    ASSERT(default_parameter_values.IsZoneHandle() ||
+           default_parameter_values.InVMHeap());
     default_parameter_values_ = default_parameter_values.raw();
   }
 
@@ -438,6 +439,7 @@ class Parser : public ValueObject {
   SequenceNode* ParseInstanceSetter(const Function& func);
   SequenceNode* ParseStaticConstGetter(const Function& func);
   SequenceNode* ParseMethodExtractor(const Function& func);
+  SequenceNode* ParseNoSuchMethodDispatcher(const Function& func);
 
   void ChainNewBlock(LocalScope* outer_scope);
   void OpenBlock();

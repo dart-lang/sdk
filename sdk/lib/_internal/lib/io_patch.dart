@@ -168,6 +168,9 @@ patch class _Platform {
   patch static _environment() {
     throw new UnsupportedError("Platform._environment");
   }
+  patch static String _version() {
+    throw new UnsupportedError("Platform._version");
+  }
 }
 
 patch class _ProcessUtils {
@@ -191,6 +194,7 @@ patch class Process {
       List<String> arguments,
       {String workingDirectory,
        Map<String, String> environment,
+       bool includeParentEnvironment: true,
        bool runInShell: false}) {
     throw new UnsupportedError("Process.start");
   }
@@ -200,6 +204,7 @@ patch class Process {
       List<String> arguments,
       {String workingDirectory,
        Map<String, String> environment,
+       bool includeParentEnvironment: true,
        bool runInShell: false,
        Encoding stdoutEncoding: Encoding.SYSTEM,
        Encoding stderrEncoding: Encoding.SYSTEM}) {
@@ -223,6 +228,15 @@ patch class InternetAddress {
   patch static Future<List<InternetAddress>> lookup(
       String host, {InternetAddressType type: InternetAddressType.ANY}) {
     throw new UnsupportedError("InternetAddress.lookup");
+  }
+}
+
+patch class NetworkInterface {
+  patch static Future<List<NetworkInterface>> list({
+      bool includeLoopback: false,
+      bool includeLinkLocal: false,
+      InternetAddressType type: InternetAddressType.ANY}) {
+    throw new UnsupportedError("NetworkInterface.list");
   }
 }
 
@@ -272,6 +286,9 @@ patch class _SecureFilter {
   patch factory _SecureFilter() {
     throw new UnsupportedError("_SecureFilter._SecureFilter");
   }
+  patch static SendPort _newServicePort() {
+    throw new UnsupportedError("_SecureFilter._newServicePort");
+  }
 }
 
 patch class _StdIOUtils {
@@ -304,11 +321,5 @@ patch class _Filter {
   }
   patch static _Filter newZLibInflateFilter() {
     throw new UnsupportedError("newZLibInflateFilter");
-  }
-}
-
-patch class _OptionsImpl {
-  patch String get version {
-    throw new UnsupportedError("_OptionsImpl.version");
   }
 }

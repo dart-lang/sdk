@@ -173,6 +173,7 @@ class Namer implements ClosureNamer {
   }
 
   final String CURRENT_ISOLATE;
+  String get GLOBAL_OBJECT => CURRENT_ISOLATE;
 
   final String getterPrefix = r'get$';
   final String setterPrefix = r'set$';
@@ -766,6 +767,41 @@ class Namer implements ClosureNamer {
 
   String operatorAsPrefix() => r'$as';
 
+  String operatorSignature() => r'$signature';
+
+  String functionTypeTag() => r'func';
+
+  String functionTypeVoidReturnTag() => r'void';
+
+  String functionTypeReturnTypeTag() => r'ret';
+
+  String functionTypeRequiredParametersTag() => r'args';
+
+  String functionTypeOptionalParametersTag() => r'opt';
+
+  String functionTypeNamedParametersTag() => r'named';
+
+  Map<FunctionType,String> functionTypeNameMap =
+      new Map<FunctionType,String>();
+  FunctionTypeNamer functionTypeNamer = new FunctionTypeNamer();
+
+  String getFunctionTypeName(FunctionType functionType) {
+    return functionTypeNameMap.putIfAbsent(functionType, () {
+      String proposedName = functionTypeNamer.computeName(functionType);
+      String freshName = getFreshName(proposedName, usedInstanceNames,
+                                      suggestedInstanceNames, ensureSafe: true);
+      return freshName;
+    });
+  }
+
+  String operatorIsType(DartType type) {
+    if (type.kind == TypeKind.FUNCTION) {
+      // TODO(erikcorry): Reduce from $isx to ix when we are minifying.
+      return '${operatorIsPrefix()}_${getFunctionTypeName(type)}';
+    }
+    return operatorIs(type.element);
+  }
+
   String operatorIs(Element element) {
     // TODO(erikcorry): Reduce from $isx to ix when we are minifying.
     return '${operatorIsPrefix()}${getRuntimeTypeName(element)}';
@@ -785,6 +821,20 @@ class Namer implements ClosureNamer {
 
   String substitutionName(Element element) {
     return '${operatorAsPrefix()}${getName(element)}';
+  }
+
+  String signatureLocation(FunctionType type) {
+    ClassElement classElement = Types.getClassContext(type);
+    if (classElement != null) {
+      return '${isolateAccess(classElement)}';
+    } else {
+      return '${GLOBAL_OBJECT}';
+    }
+  }
+
+  String signatureName(FunctionType type) {
+    String signature = '${operatorSignature()}_${getFunctionTypeName(type)}';
+    return '${signatureLocation(type)}.$signature';
   }
 
   String safeName(String name) => _safeName(name, jsReserved);
@@ -840,7 +890,6 @@ class Namer implements ClosureNamer {
     }
   }
 }
-
 
 /**
  * Generator of names for [Constant] values.
@@ -1015,7 +1064,6 @@ class ConstantNamingVisitor implements ConstantVisitor {
   }
 }
 
-
 /**
  * Generates canonical hash values for [Constant]s.
  *
@@ -1159,5 +1207,58 @@ class ConstantCanonicalHasher implements ConstantVisitor<int> {
     hash = _MASK & (hash + (((_MASK >> 3) & hash) <<  3));
     hash = hash & (hash >> 11);
     return _MASK & (hash + (((_MASK >> 15) & hash) << 15));
+  }
+}
+
+class FunctionTypeNamer extends DartTypeVisitor {
+  StringBuffer sb;
+
+  String computeName(DartType type) {
+    sb = new StringBuffer();
+    visit(type);
+    return sb.toString();
+  }
+
+  visit(DartType type) {
+    type.accept(this, null);
+  }
+
+  visitType(DartType type, _) {
+    sb.write(type.name.slowToString());
+  }
+
+  visitFunctionType(FunctionType type, _) {
+    visit(type.returnType);
+    sb.write('_');
+    for (Link<DartType> link = type.parameterTypes;
+         !link.isEmpty;
+         link = link.tail) {
+      sb.write('_');
+      visit(link.head);
+    }
+    bool first = false;
+    for (Link<DartType> link = type.optionalParameterTypes;
+         !link.isEmpty;
+         link = link.tail) {
+      if (!first) {
+        sb.write('_');
+      }
+      sb.write('_');
+      visit(link.head);
+      first = true;
+    }
+    if (!type.namedParameterTypes.isEmpty) {
+      first = false;
+      for (Link<DartType> link = type.namedParameterTypes;
+          !link.isEmpty;
+          link = link.tail) {
+        if (!first) {
+          sb.write('_');
+        }
+        sb.write('_');
+        visit(link.head);
+        first = true;
+      }
+    }
   }
 }

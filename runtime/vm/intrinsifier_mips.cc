@@ -204,8 +204,8 @@ bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
     // Null value is valid for any type.
     __ LoadImmediate(T7, reinterpret_cast<int32_t>(Object::null()));
     __ beq(T2, T7, &checked_ok);
-    __ delay_slot()->lw(T1, Address(SP, 2 * kWordSize));  // Array.
 
+    __ lw(T1, Address(SP, 2 * kWordSize));  // Array.
     __ lw(T1, FieldAddress(T1, type_args_field_offset));
 
     // T1: Type arguments of array.
@@ -232,8 +232,8 @@ bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
   __ andi(CMPRES, T1, Immediate(kSmiTagMask));
   // Index not Smi.
   __ bne(CMPRES, ZR, &fall_through);
-  __ delay_slot()->lw(T0, Address(SP, 2 * kWordSize));  // Array.
 
+  __ lw(T0, Address(SP, 2 * kWordSize));  // Array.
   // Range check.
   __ lw(T3, FieldAddress(T0, Array::length_offset()));  // Array length.
   // Runtime throws exception.
@@ -248,7 +248,7 @@ bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
   __ StoreIntoObject(T0,
                      FieldAddress(T1, Array::data_offset()),
                      T2);
-  // Caller is responsible of preserving the value if necessary.
+  // Caller is responsible for preserving the value if necessary.
   __ Ret();
   __ Bind(&fall_through);
   return false;
@@ -864,10 +864,9 @@ bool Intrinsifier::Integer_shl(Assembler* assembler) {
 
   // Check for overflow by shifting left and shifting back arithmetically.
   // If the result is different from the original, there was overflow.
-  __ mov(T2, T1);
-  __ sllv(T1, T1, T0);
-  __ srlv(T1, T1, T0);
-  __ bne(T1, T2, &overflow);
+  __ sllv(TMP, T1, T0);
+  __ srav(TMP, TMP, T0);
+  __ bne(TMP, T1, &overflow);
 
   // No overflow, result in V0.
   __ Ret();
@@ -875,23 +874,23 @@ bool Intrinsifier::Integer_shl(Assembler* assembler) {
 
   __ Bind(&overflow);
   // Arguments are Smi but the shift produced an overflow to Mint.
-  __ bltz(T2, &fall_through);
-  __ SmiUntag(T2);
+  __ bltz(T1, &fall_through);
+  __ SmiUntag(T1);
 
-  // Pull off high bits that will be shifted off of T2 by making a mask
-  // ((1 << T0) - 1), shifting it to the right, masking T2, then shifting back.
-  // high bits = (((1 << T0) - 1) << (32 - T0)) & T2) >> (32 - T0)
-  // lo bits = T2 << T0
+  // Pull off high bits that will be shifted off of T1 by making a mask
+  // ((1 << T0) - 1), shifting it to the right, masking T1, then shifting back.
+  // high bits = (((1 << T0) - 1) << (32 - T0)) & T1) >> (32 - T0)
+  // lo bits = T1 << T0
   __ LoadImmediate(T3, 1);
   __ sllv(T3, T3, T0);  // T3 <- T3 << T0
   __ addiu(T3, T3, Immediate(-1));  // T3 <- T3 - 1
-  __ addu(T4, ZR, T0);  // T4 <- -T0
+  __ subu(T4, ZR, T0);  // T4 <- -T0
   __ addiu(T4, T4, Immediate(32));  // T4 <- 32 - T0
   __ sllv(T3, T3, T4);  // T3 <- T3 << T4
-  __ and_(T3, T3, T2);  // T3 <- T3 & T2
+  __ and_(T3, T3, T1);  // T3 <- T3 & T1
   __ srlv(T3, T3, T4);  // T3 <- T3 >> T4
-  // Now T3 has the bits that fall off of T2 on a left shift.
-  __ sllv(T0, T2, T0);  // T0 gets low bits.
+  // Now T3 has the bits that fall off of T1 on a left shift.
+  __ sllv(T0, T1, T0);  // T0 gets low bits.
 
   const Class& mint_class = Class::Handle(
       Isolate::Current()->object_store()->mint_class());
@@ -1338,16 +1337,15 @@ bool Intrinsifier::Double_getIsNaN(Assembler* assembler) {
 bool Intrinsifier::Double_getIsNegative(Assembler* assembler) {
   Label is_false, is_true, is_zero;
   __ lw(T0, Address(SP, 0 * kWordSize));
-  __ lwc1(F0, FieldAddress(T0, Double::value_offset()));
-  __ lwc1(F1, FieldAddress(T0, Double::value_offset() + kWordSize));
+  __ LoadDFromOffset(D0, T0, Double::value_offset() - kHeapObjectTag);
 
   __ cund(D0, D0);
   __ bc1t(&is_false);  // NaN -> false.
 
+  __ LoadImmediate(D1, 0.0);
   __ ceqd(D0, D1);
   __ bc1t(&is_zero);  // Check for negative zero.
 
-  __ LoadImmediate(D1, 0.0);
   __ coled(D1, D0);
   __ bc1t(&is_false);  // >= 0 -> false.
 
@@ -1372,14 +1370,17 @@ bool Intrinsifier::Double_getIsNegative(Assembler* assembler) {
 
 bool Intrinsifier::Double_toInt(Assembler* assembler) {
   __ lw(T0, Address(SP, 0 * kWordSize));
-  __ lwc1(F0, FieldAddress(T0, Double::value_offset()));
-  __ lwc1(F1, FieldAddress(T0, Double::value_offset() + kWordSize));
+  __ LoadDFromOffset(D0, T0, Double::value_offset() - kHeapObjectTag);
+
   __ cvtwd(F2, D0);
   __ mfc1(V0, F2);
+
   // Overflow is signaled with minint.
   Label fall_through;
   // Check for overflow and that it fits into Smi.
-  __ BranchSignedLess(V0, 0xC0000000, &fall_through);
+  __ LoadImmediate(TMP, 0xC0000000);
+  __ subu(CMPRES, V0, TMP);
+  __ bltz(CMPRES, &fall_through);
   __ Ret();
   __ delay_slot()->SmiTag(V0);
   __ Bind(&fall_through);
@@ -1448,24 +1449,25 @@ bool Intrinsifier::Random_nextState(Assembler* assembler) {
   __ lw(T1, FieldAddress(T0, state_field.Offset()));  // Field '_state'.
 
   // Addresses of _state[0] and _state[1].
-  const int64_t disp_0 =
-      FlowGraphCompiler::DataOffsetFor(kTypedDataUint32ArrayCid);
+  const Address& addr_0 = FieldAddress(T1,
+      FlowGraphCompiler::DataOffsetFor(kTypedDataUint32ArrayCid));
 
-  const int64_t disp_1 =
+  const Address& addr_1 = FieldAddress(T1,
       FlowGraphCompiler::ElementSizeFor(kTypedDataUint32ArrayCid) +
-      FlowGraphCompiler::DataOffsetFor(kTypedDataUint32ArrayCid);
+      FlowGraphCompiler::DataOffsetFor(kTypedDataUint32ArrayCid));
+
   __ LoadImmediate(T0, a_int32_value);
-  __ lw(T2, FieldAddress(T1, disp_0));
-  __ lw(T3, FieldAddress(T1, disp_1));
+  __ lw(T2, addr_0);
+  __ lw(T3, addr_1);
   __ sra(T6, T3, 31);  // Sign extend T3 into T6.
   __ mtlo(T3);
   __ mthi(T6);  // HI:LO <- T6:T3
   // 64-bit multiply and accumulate into T6:T3.
-  __ madd(T0, T2);  // HI:LO <- HI:LO + T0 * T3.
+  __ madd(T0, T2);  // HI:LO <- HI:LO + T0 * T2.
   __ mflo(T3);
   __ mfhi(T6);
-  __ sw(T3, FieldAddress(T1, disp_0));
-  __ sw(T6, FieldAddress(T1, disp_1));
+  __ sw(T3, addr_0);
+  __ sw(T6, addr_1);
   __ Ret();
   return true;
 }

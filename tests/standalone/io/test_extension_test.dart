@@ -37,10 +37,8 @@ Path getExtensionPath(Path buildDirectory) {
 }
 
 void main() {
-  Options options = new Options();
-
-  Path scriptDirectory = new Path(options.script).directoryPath;
-  Path buildDirectory = new Path(options.executable).directoryPath;
+  Path scriptDirectory = new Path(Platform.script).directoryPath;
+  Path buildDirectory = new Path(Platform.executable).directoryPath;
   Directory tempDirectory = new Directory('').createTempSync();
   Path testDirectory = new Path(tempDirectory.path);
 
@@ -56,7 +54,7 @@ void main() {
     return copyFileToDirectory(testExtensionTesterFile, testDirectory);
   }).then((_) {
     Path script = testDirectory.append('test_extension_tester.dart');
-    return Process.run(options.executable, [script.toNativePath()]);
+    return Process.run(Platform.executable, [script.toNativePath()]);
   })..then((ProcessResult result) {
     Expect.equals(0, result.exitCode);
     tempDirectory.deleteSync(recursive: true);

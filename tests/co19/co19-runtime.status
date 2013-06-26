@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $runtime == vm && $system == windows ]
+LibTest/core/Stopwatch/elapsed_A01_t01: Pass, Fail # Issue 11382.
+
 [ $runtime == vm ]
 Language/11_Expressions/33_Argument_Definition_Test_A02_t02: Crash, Pass # http://dartbug.com/9597
 Language/07_Classes/6_Constructors_A02_t01: Skip # co19 issue 415.
@@ -508,7 +511,6 @@ LibTest/math/tan_A01_t01: Pass, Fail
 LibTest/math/sin_A01_t01: Pass, Fail
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 LibTest/core/int/operator_unary_minus_A01_t01: Pass, Fail
-LibTest/math/Random/nextDouble_A01_t01: Pass, Fail
 
 
 [ $compiler == none && $runtime == vm && $arch == arm && $mode == debug ]
@@ -519,28 +521,39 @@ LibTest/core/double/ceil_A01_t02: Fail
 LibTest/core/double/floor_A01_t02: Fail
 LibTest/core/double/truncate_A01_t01: Fail
 
-
-[ $compiler == none && $runtime == vm && $arch == simarm ]
-LibTest/math/tan_A01_t01: Pass, Fail
-LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
-LibTest/core/int/operator_unary_minus_A01_t01: Fail, Pass # Pass on Mac
+[ $compiler == none && $runtime == vm && $arch == simarm && $mode == release ]
+LibTest/math/tan_A01_t01: Fail
 LibTest/math/cos_A01_t01: Pass, Fail # Fail on Mac
-LibTest/math/Random/nextDouble_A01_t01: Pass, Crash
-
+LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
+LibTest/core/int/operator_unary_minus_A01_t01: Fail
+LibTest/math/cos_A01_t01: Pass, Fail # Fail on Mac
 
 [ $compiler == none && $runtime == vm && $arch == simarm && $mode == debug ]
-LibTest/core/Expect/throws_A01_t04: Crash
+LibTest/math/tan_A01_t01: Fail
+LibTest/math/cos_A01_t01: Pass, Fail # Fail on Mac
 LibTest/core/List/sort_A01_t05: Crash
 LibTest/core/List/sort_A01_t06: Crash
-LibTest/core/double/ceil_A01_t02: Fail, Pass # Pass on Mac
-LibTest/core/double/floor_A01_t02: Fail, Pass # Pass on Mac
-LibTest/core/double/truncate_A01_t01: Fail, Pass # Pass on Mac
-
+LibTest/core/double/ceil_A01_t02: Fail, Pass # Passes on Mac.
+LibTest/core/double/floor_A01_t02: Fail, Pass # Passes on Mac.
+LibTest/core/double/truncate_A01_t01: Fail, Pass # Passes on Mac.
+LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
+LibTest/core/int/operator_unary_minus_A01_t01: Fail
 
 [ $compiler == none && $runtime == vm && $arch == mips ]
 *: Skip
 
 
-[ $compiler == none && $runtime == vm && $arch == simmips ]
-*: Skip
+[ $compiler == none && $runtime == vm && $arch == simmips && $mode == release ]
+LibTest/math/tan_A01_t01: Fail
+LibTest/math/cos_A01_t01: Pass, Fail # Fail on Mac
+LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
+LibTest/core/int/operator_unary_minus_A01_t01: Fail
 
+[ $compiler == none && $runtime == vm && $arch == simmips && $mode == debug ]
+LibTest/math/tan_A01_t01: Fail
+LibTest/math/cos_A01_t01: Pass, Fail # Fail on Mac
+LibTest/core/List/sort_A01_t04: Crash # Too far relative jump.
+LibTest/core/List/sort_A01_t05: Crash
+LibTest/core/List/sort_A01_t06: Crash
+LibTest/core/int/operator_unary_minus_A01_t01: Fail
+LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129

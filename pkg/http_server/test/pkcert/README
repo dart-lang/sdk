@@ -1,0 +1,16 @@
+This is a certificate database used by Dart for testing purposes.
+
+It is created as a certificate database by NSS (Network Security Services),
+a library from Mozilla, using the certutil tool.  It uses a cert9.db file,
+rather than a cert8.db file, so the database directory must be specified with
+"sql:" in front of the directory path, or the environment variable
+NSS_DEFAULT_DB_TYPE must be set to "sql".
+
+The password for the key database is "dartdart".
+
+The database contains a root certificate from Equifax, used to verify the
+client https connection to www.google.dk.  It contains a self-signed
+certificate for a local certificate authority myauthority_cert, and a
+server certificate for localhost called localhost_cert, signed by
+myauthority_cert.  It contains the key for localhost_cert, but
+not the key for myauthority_cert.

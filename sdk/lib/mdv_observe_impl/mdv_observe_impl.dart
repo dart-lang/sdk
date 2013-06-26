@@ -12,6 +12,8 @@ library dart.mdv_observe_impl;
 import 'dart:async';
 import 'dart:collection';
 
+part 'path_observer.dart';
+
 /**
  * Interface representing an observable object. This is used by data in
  * model-view architectures to notify interested parties of [changes].

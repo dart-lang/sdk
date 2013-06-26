@@ -16,13 +16,8 @@ namespace dart {
 TEST_CASE(FindCodeObject) {
 #if defined(TARGET_ARCH_IA32)
   const int kLoopCount = 50000;
-#elif defined(TARGET_ARCH_X64)
-  const int kLoopCount = 25000;
-#elif defined(TARGET_ARCH_MIPS)
-  // TODO(zra): Increase after we implement far branches on MIPS.
-  const int kLoopCount = 1818;
 #else
-  const int kLoopCount = 20000;
+  const int kLoopCount = 25000;
 #endif
   const int kScriptSize = 512 * KB;
   const int kNumFunctions = 1024;

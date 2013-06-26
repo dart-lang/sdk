@@ -20,28 +20,12 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/socket.h"
 #include "bin/utils.h"
+#include "bin/native_service.h"
 
 namespace dart {
 namespace bin {
-
-static void ThrowException(const char* message) {
-  Dart_Handle socket_exception =
-      DartUtils::NewDartSocketException(message, Dart_Null());
-  Dart_ThrowException(socket_exception);
-}
-
-
-/* Handle an error reported from the NSS library. */
-static void ThrowPRException(const char* message) {
-  PRErrorCode error_code = PR_GetError();
-  const char* error_message = PR_ErrorToString(error_code, PR_LANGUAGE_EN);
-  OSError os_error_struct(error_code, error_message, OSError::kNSS);
-  Dart_Handle os_error = DartUtils::NewDartOSError(&os_error_struct);
-  Dart_Handle socket_exception =
-      DartUtils::NewDartSocketException(message, os_error);
-  Dart_ThrowException(socket_exception);
-}
 
 /*
  * SSLFilter encapsulates the NSS SSL(TLS) code in a filter, that communicates
@@ -73,6 +57,7 @@ class SSLFilter {
 
   void Init(Dart_Handle dart_this);
   void Connect(const char* host,
+               RawAddr* raw_addr,
                int port,
                bool is_server,
                const char* certificate_name,
@@ -86,18 +71,27 @@ class SSLFilter {
   Dart_Handle bad_certificate_callback() {
     return Dart_HandleFromPersistent(bad_certificate_callback_);
   }
+  intptr_t ProcessReadPlaintextBuffer(int start, int end);
+  intptr_t ProcessWritePlaintextBuffer(int start1, int end1,
+                                       int start2, int end2);
+  intptr_t ProcessReadEncryptedBuffer(int start, int end);
+  intptr_t ProcessWriteEncryptedBuffer(int start, int end);
+  void ProcessAllBuffers(int starts[kNumBuffers],
+                         int ends[kNumBuffers],
+                         bool in_handshake);
+  Dart_Handle PeerCertificate();
   static void InitializeLibrary(const char* certificate_database,
                                 const char* password,
                                 bool use_builtin_root_certificates,
                                 bool report_duplicate_initialization = true);
-  intptr_t ProcessBuffer(int bufferIndex);
-  Dart_Handle PeerCertificate();
+  static Dart_Port GetServicePort();
 
  private:
   static const int kMemioBufferSize = 20 * KB;
   static bool library_initialized_;
   static const char* password_;
   static dart::Mutex mutex_;  // To protect library initialization.
+  static NativeService filter_service_;
 
   uint8_t* buffers_[kNumBuffers];
   int buffer_size_;
@@ -112,7 +106,7 @@ class SSLFilter {
   char* client_certificate_name_;
   PRFileDesc* filter_;
 
-  static bool isEncrypted(int i) {
+  static bool isBufferEncrypted(int i) {
     return static_cast<BufferIndex>(i) >= kFirstEncrypted;
   }
   void InitializeBuffers(Dart_Handle dart_this);

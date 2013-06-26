@@ -131,7 +131,11 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     }
 
     if (constantInterceptor == null) return null;
-    if (constantInterceptor == work.element.getEnclosingClass()) {
+
+    // If we just happen to be in an instance method of the constant
+    // interceptor, `this` is a shorter alias.
+    if (constantInterceptor == work.element.getEnclosingClass()
+        && graph.thisInstruction != null) {
       return graph.thisInstruction;
     }
 

@@ -127,6 +127,29 @@ class StringTest {
     Expect.isTrue("".startsWith(""));
     Expect.isFalse("".startsWith("s"));
 
+    Expect.isFalse("strstr".startsWith("s", 1));
+    Expect.isFalse("strstr".startsWith("s", 2));
+    Expect.isTrue("strstr".startsWith("s", 3));
+    Expect.isFalse("strstr".startsWith("s", 4));
+
+    Expect.isFalse("strstr".startsWith("st", 1));
+    Expect.isFalse("strstr".startsWith("st", 2));
+    Expect.isTrue("strstr".startsWith("st", 3));
+    Expect.isFalse("strstr".startsWith("st", 4));
+
+    Expect.isFalse("strstr".startsWith("str", 1));
+    Expect.isFalse("strstr".startsWith("str", 2));
+    Expect.isTrue("strstr".startsWith("str", 3));
+    Expect.isFalse("strstr".startsWith("str", 4));
+
+    Expect.isTrue("str".startsWith("", 0));
+    Expect.isTrue("str".startsWith("", 1));
+    Expect.isTrue("str".startsWith("", 2));
+    Expect.isTrue("str".startsWith("", 3));
+
+    Expect.throws(() => "str".startsWith("", -1));
+    Expect.throws(() => "str".startsWith("", 4));
+
     var regexp = new RegExp("s(?:tr?)?");
     Expect.isTrue("s".startsWith(regexp));
     Expect.isTrue("st".startsWith(regexp));
@@ -140,6 +163,30 @@ class StringTest {
 
     Expect.isTrue("".startsWith(new RegExp("")));
     Expect.isTrue("".startsWith(new RegExp("a?")));
+
+    Expect.isFalse("strstr".startsWith(regexp, 1));
+    Expect.isFalse("strstr".startsWith(regexp, 2));
+    Expect.isTrue("strstr".startsWith(regexp, 3));
+    Expect.isFalse("strstr".startsWith(regexp, 4));
+
+    Expect.isTrue("str".startsWith(new RegExp(""), 0));
+    Expect.isTrue("str".startsWith(new RegExp(""), 1));
+    Expect.isTrue("str".startsWith(new RegExp(""), 2));
+    Expect.isTrue("str".startsWith(new RegExp(""), 3));
+    Expect.isTrue("str".startsWith(new RegExp("a?"), 0));
+    Expect.isTrue("str".startsWith(new RegExp("a?"), 1));
+    Expect.isTrue("str".startsWith(new RegExp("a?"), 2));
+    Expect.isTrue("str".startsWith(new RegExp("a?"), 3));
+
+    Expect.throws(() => "str".startsWith(regexp, -1));
+    Expect.throws(() => "str".startsWith(regexp, 4));
+
+    regexp = new RegExp("^str");
+    Expect.isTrue("strstr".startsWith(regexp));
+    Expect.isTrue("strstr".startsWith(regexp, 0));
+    Expect.isFalse("strstr".startsWith(regexp, 1));
+    Expect.isFalse("strstr".startsWith(regexp, 2));
+    Expect.isFalse("strstr".startsWith(regexp, 3));  // Second "str" isn't at ^.
   }
 
   static testIndexOf() {

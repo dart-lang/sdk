@@ -6,9 +6,9 @@ import "debug_lib.dart";
 
 main() {
   if (RunScript(testScript)) return;
-  
+
   Foo foo = new Foo();
-  
+
   print("Hello from debuggee");
 }
 

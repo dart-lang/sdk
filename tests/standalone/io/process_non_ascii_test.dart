@@ -8,7 +8,7 @@ import 'dart:isolate';
 
 main() {
   var port = new ReceivePort();
-  var executable = new File(new Options().executable).fullPathSync();
+  var executable = new File(Platform.executable).fullPathSync();
   var tempDir = new Directory('').createTempSync();
   var nonAsciiDir = new Directory('${tempDir.path}/æøå');
   nonAsciiDir.createSync();

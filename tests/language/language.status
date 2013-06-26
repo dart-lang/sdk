@@ -459,7 +459,6 @@ constructor6_test: Fail
 closure_in_initializer_test: Fail
 super_first_constructor_test: Fail
 # VM specific tests.
-disable_privacy_test: Pass, Fail, Ok
 # This test hard codes name of file being run and precise position.
 generic_test: Fail, Ok
 # Minified mode failures.
@@ -515,6 +514,49 @@ execute_finally11_test: Fail # VM bug: issue 430
 bound_closure_equality_test: Fail # Issue 10849
 
 [ $compiler == dart2dart && $minified ]
+dynamic_test: Fail # dartbug.com/11468
+function_subtype_bound_closure0_test: Fail # dartbug.com/11468
+function_subtype_bound_closure1_test: Fail # dartbug.com/11468
+function_subtype_bound_closure2_test: Fail # dartbug.com/11468
+function_subtype_bound_closure5_test: Fail # dartbug.com/11468
+function_subtype_bound_closure6_test: Fail # dartbug.com/11468
+function_subtype_bound_closure7_test: Fail # dartbug.com/11468
+function_subtype_cast0_test: Fail # dartbug.com/11468
+function_subtype_cast1_test: Fail # dartbug.com/11468
+function_subtype_cast2_test: Fail # dartbug.com/11468
+function_subtype_cast3_test: Fail # dartbug.com/11468
+function_subtype_factory0_test: Fail # dartbug.com/11468
+function_subtype_local1_test: Fail # dartbug.com/11468
+function_subtype_local5_test: Fail # dartbug.com/11468
+function_subtype_not0_test: Fail # dartbug.com/11468
+function_subtype_not1_test: Fail # dartbug.com/11468
+function_subtype_not2_test: Fail # dartbug.com/11468
+function_subtype_not3_test: Fail # dartbug.com/11468
+function_subtype_top_level1_test: Fail # dartbug.com/11468
+function_type_alias2_test: Fail # dartbug.com/11468
+function_type_alias3_test: Fail # dartbug.com/11468
+function_type_alias4_test: Fail # dartbug.com/11468
+function_type_alias6_test: Fail # dartbug.com/11468
+function_type_alias_test: Fail # dartbug.com/11468
+method_override_test: Fail # dartbug.com/11468
+
+function_subtype0_test: Fail # dartbug.com/11467
+function_subtype1_test: Fail # dartbug.com/11467
+function_subtype_bound_closure3_test: Fail # dartbug.com/11467
+function_subtype_bound_closure4_test: Fail # dartbug.com/11467
+function_subtype_call0_test: Fail # dartbug.com/11467
+function_subtype_call1_test: Fail # dartbug.com/11467
+function_subtype_call2_test: Fail # dartbug.com/11467
+function_subtype_inline0_test: Fail # dartbug.com/11467
+function_subtype_local0_test: Fail # dartbug.com/11467
+function_subtype_local2_test: Fail # dartbug.com/11467
+function_subtype_local3_test: Fail # dartbug.com/11467
+function_subtype_local4_test: Fail # dartbug.com/11467
+function_subtype_named1_test: Fail # dartbug.com/11467
+function_subtype_named2_test: Fail # dartbug.com/11467
+function_subtype_optional1_test: Fail # dartbug.com/11467
+function_subtype_optional2_test: Fail # dartbug.com/11467
+function_subtype_top_level0_test: Fail # dartbug.com/11467
 
 super_getter_setter_test: Fail # Issue 11065.
 
@@ -526,44 +568,27 @@ prefix22_test: Pass
 invocation_mirror_test: Fail, OK # hardcoded names.
 super_call4_test: Fail, OK # hardcoded names.
 
+
 [ $arch == simarm || $arch == arm ]
-bit_operations_test: Crash, Fail
 deopt_smi_op_test: Fail
 gc_test: Crash
 invocation_mirror_test: Fail
-load_to_load_forwarding_vm_test: Fail
-named_parameters_with_conversions_test: Pass, Crash
-arithmetic_test: Pass, Crash, Fail # Fails on Mac
-left_shift_test: Pass, Fail # Fails on Mac
-positive_bit_operations_test: Pass, Fail, Crash # Fails and crashes on Mac
+named_parameters_with_conversions_test: Pass, Crash # Passes on Mac.
+stack_overflow_test: Crash, Pass # Passes on HW in release mode.
+stack_overflow_stacktrace_test: Crash, Pass # Passes on HW in release mode.
 
-
-# large_implicit_getter_test Passes on ReleaseARM, Crashes in SIMARM and
-# DebugARM. Should crash on ReleaseARM, but there is no exception on an
-# unaligned access. stack_overflow_test and  _stacktrace_test have the same
-# problem.
-large_implicit_getter_test: Crash, Pass
-stack_overflow_test: Crash, Pass
-stack_overflow_stacktrace_test: Crash, Pass
-
-[ ($arch == simarm || $arch == arm) && $mode == debug ]
-char_escape_test: Pass, Crash
 
 [ $arch == mips ]
 *: Skip
 
+
 [ $arch == simmips ]
-arithmetic_test: Fail, Crash
-bit_operations_test: Crash, Fail
-char_escape_test: Pass, Crash
+arithmetic_test: Crash  # Too far relative branch.
 deopt_smi_op_test: Fail
-div_with_power_of_two_test: Fail
 gc_test: Crash
 invocation_mirror_test: Fail
+large_implicit_getter_test: Crash
 load_to_load_forwarding_vm_test: Fail
 named_parameters_with_conversions_test: Pass, Crash
-positive_bit_operations_test: Pass, Fail, Crash
-left_shift_test: Pass, Fail
-large_implicit_getter_test: Crash, Pass
-stack_overflow_test: Crash, Pass
-stack_overflow_stacktrace_test: Crash, Pass
+stack_overflow_test: Crash
+stack_overflow_stacktrace_test: Crash

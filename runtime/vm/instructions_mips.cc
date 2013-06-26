@@ -129,7 +129,7 @@ RawICData* CallPattern::IcData() {
 }
 
 
-RawArray* CallPattern::ArgumentsDescriptor() {
+RawArray* CallPattern::ClosureArgumentsDescriptor() {
   if (args_desc_.IsNull()) {
     IcData();  // Loading of the ic_data must be decoded first, if not already.
     Register reg;

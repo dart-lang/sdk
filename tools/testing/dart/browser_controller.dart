@@ -15,12 +15,11 @@ abstract class Browser {
   StringBuffer _stdout = new StringBuffer();
   StringBuffer _stderr = new StringBuffer();
   StringBuffer _usageLog = new StringBuffer();
-  // This function is called when the process is closed.
-  Completer _processClosedCompleter = new Completer();
-  // This is called after the process is closed, after _processClosedCompleter
-  // has been called, but before onExit. Subclasses can use this to cleanup
-  // any browser specific resources (temp directories, profiles, etc)
-  // The function is expected to do it's work synchronously.
+  // This is called after the process is closed, before the done future
+  // is completed.
+  // Subclasses can use this to cleanup any browser specific resources
+  // (temp directories, profiles, etc). The function is expected to do
+  // it's work synchronously.
   Function _cleanup;
 
   /** The version of the browser - normally set when starting a browser */
@@ -42,9 +41,9 @@ abstract class Browser {
   /** Print everything (stdout, stderr, usageLog) whenever we add to it */
   bool debugPrint = false;
 
-  // This future will be lazily set when calling close() and will complete once
-  // the process did exit.
-  Future browserTerminationFuture;
+  // This future returns when the process exits. It is also the return value
+  // of close()
+  Future done;
 
   Browser();
 
@@ -90,30 +89,17 @@ abstract class Browser {
 
   Future close() {
     _logEvent("Close called on browser");
-    if (browserTerminationFuture == null) {
-      var completer = new Completer();
-      browserTerminationFuture = completer.future;
-
-      if (process != null) {
-        _processClosedCompleter.future.then((_) {
-          process = null;
-          completer.complete(true);
-          if (_cleanup != null) {
-            _cleanup();
-          }
-        });
-
-        if (process.kill(ProcessSignal.SIGKILL)) {
-          _logEvent("Successfully sent kill signal to process.");
-        } else {
-          _logEvent("Sending kill signal failed.");
-        }
+    if (process != null) {
+      if (process.kill(ProcessSignal.SIGKILL)) {
+        _logEvent("Successfully sent kill signal to process.");
       } else {
-        _logEvent("The process is already dead.");
-        completer.complete(true);
+        _logEvent("Sending kill signal failed.");
       }
+      return done;
+    } else {
+      _logEvent("The process is already dead.");
+      return new Future.immediate(true);
     }
-    return browserTerminationFuture;
   }
 
   /**
@@ -123,6 +109,11 @@ abstract class Browser {
   Future<bool> startBrowser(String command, List<String> arguments) {
     return Process.start(command, arguments).then((startedProcess) {
       process = startedProcess;
+      // Used to notify when exiting, and as a return value on calls to
+      // close().
+      var doneCompleter = new Completer();
+      done = doneCompleter.future;
+
       Completer stdoutDone = new Completer();
       Completer stderrDone = new Completer();
 
@@ -149,7 +140,11 @@ abstract class Browser {
       process.exitCode.then((exitCode) {
         _logEvent("Browser closed with exitcode $exitCode");
         Future.wait([stdoutDone.future, stderrDone.future]).then((_) {
-          _processClosedCompleter.complete(exitCode);
+          process = null;
+          if (_cleanup != null) {
+            _cleanup();
+          }
+          doneCompleter.complete(exitCode);
         });
       });
       return true;
@@ -183,6 +178,16 @@ class Safari extends Browser {
    */
   const String versionFile = "/Applications/Safari.app/Contents/version.plist";
 
+  /**
+   * Directories where safari stores state. We delete these if the deleteCache
+   * is set
+   */
+  static const List<String> CACHE_DIRECTORIES =
+      const ["Library/Caches/com.apple.Safari",
+             "Library/Safari",
+             "Library/Saved Application State/com.apple.Safari.savedState",
+             "Library/Caches/Metadata/Safari"];
+
 
   Future<bool> allowPopUps() {
     var command = "defaults";
@@ -191,12 +196,40 @@ class Safari extends Browser {
                 "WebKit2JavaScriptCanOpenWindowsAutomatically",
                 "1"];
     return Process.run(command, args).then((result) {
-        if (result.exitCode != 0) {
-          _logEvent("Could not disable pop-up blocking for safari");
-          return false;
-        }
-        return true;
+      if (result.exitCode != 0) {
+        _logEvent("Could not disable pop-up blocking for safari");
+        return false;
+      }
+      return true;
     });
+  }
+
+  Future<bool> deleteIfExists(Iterator<String> paths) {
+    if (!paths.moveNext()) return new Future.immediate(true);
+    Directory directory = new Directory(paths.current);
+    return directory.exists().then((exists) {
+      if (exists) {
+        _logEvent("Deleting ${paths.current}");
+        return directory.delete(recursive: true)
+	    .then((_) => deleteIfExists(paths))
+	    .catchError((error) {
+	      _logEvent("Failure trying to delete ${paths.current}: $error");
+	      return false;
+	    });
+      } else {
+        _logEvent("${paths.current} is not present");
+        return deleteIfExists(paths);
+      }
+    });
+  }
+
+  // Clears the cache if the static deleteCache flag is set.
+  // Returns false if the command to actually clear the cache did not complete.
+  Future<bool> clearCache() {
+    if (!deleteCache) return new Future.immediate(true);
+    var home = Platform.environment['HOME'];
+    Iterator iterator = CACHE_DIRECTORIES.map((s) => "$home/$s").iterator;
+    return deleteIfExists(iterator);
   }
 
   Future<String> getVersion() {
@@ -242,28 +275,38 @@ class Safari extends Browser {
 
   Future<bool> start(String url) {
     _logEvent("Starting Safari browser on: $url");
-    // Get the version and log that.
     return allowPopUps().then((success) {
       if (!success) {
-        return new Future.immediate(false);
-      }
-      return getVersion().then((version) {
-        _logEvent("Got version: $version");
-        var args = ["'$url'"];
-        return new Directory('').createTemp().then((userDir) {
-          _cleanup = () { userDir.deleteSync(recursive: true); };
-          _createLaunchHTML(userDir.path, url);
-          var args = ["${userDir.path}/launch.html"];
-          return startBrowser(binary, args);
-        });
-      }).catchError((e) {
-        _logEvent("Running $binary --version failed with $e");
         return false;
+      }
+      return clearCache().then((cleared) {
+        if (!cleared) {
+          _logEvent("Could not clear cache");
+          return false;
+        }
+        // Get the version and log that.
+        return getVersion().then((version) {
+          _logEvent("Got version: $version");
+          return new Directory('').createTemp().then((userDir) {
+            _cleanup = () { userDir.deleteSync(recursive: true); };
+            _createLaunchHTML(userDir.path, url);
+            var args = ["${userDir.path}/launch.html"];
+            return startBrowser(binary, args);
+          });
+        }).catchError((error) {
+          _logEvent("Running $binary --version failed with $error");
+          return false;
+        });
       });
     });
   }
 
   String toString() => "Safari";
+
+  // Delete the user specific browser cache and profile data.
+  // Safari only have one per user, and you can't specify one by command line.
+  static bool deleteCache = false;
+
 }
 
 
@@ -609,12 +652,7 @@ class BrowserTestRunner {
     status.timeout = true;
     timedOut.add(status.currentTest.url);
     var id = status.browser.id;
-    status.browser.close().then((closed) {
-      if (!closed) {
-        // Very bad, we could not kill the browser.
-        print("could not kill browser $id");
-        return;
-      }
+    status.browser.close().then((_) {
       // We don't want to start a new browser if we are terminating.
       if (underTermination) return;
       var browser;

@@ -295,7 +295,7 @@ abstract class List<E> implements Iterable<E> {
   List<E> sublist(int start, [int end]);
 
   /**
-   * Returns an [Iterable] that iterators over the elements in the range
+   * Returns an [Iterable] that iterates over the elements in the range
    * [start] to [end] exclusive. The result of this function
    * is backed by `this`.
    *

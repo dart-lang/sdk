@@ -35,7 +35,7 @@ abstract class FixedLengthListMixin<E>  {
         "Cannot add to a fixed-length list");
   }
 
-  bool remove(E element) {
+  bool remove(Object element) {
     throw new UnsupportedError(
         "Cannot remove from a fixed-length list");
   }
@@ -130,7 +130,7 @@ abstract class UnmodifiableListMixin<E> {
         "Cannot add to an unmodifiable list");
   }
 
-  bool remove(E element) {
+  bool remove(Object element) {
     throw new UnsupportedError(
         "Cannot remove from an unmodifiable list");
   }
@@ -239,7 +239,7 @@ class ListMapView<E> implements Map<int, E> {
 
   bool get isEmpty => _values.isEmpty;
   bool get isNotEmpty => _values.isNotEmpty;
-  bool containsValue(E value) => _values.contains(value);
+  bool containsValue(Object value) => _values.contains(value);
   bool containsKey(int key) => key is int && key >= 0 && key < length;
 
   void forEach(void f(int key, E value)) {

@@ -936,7 +936,8 @@ void FlowGraphCompiler::CopyParameters() {
       function.IsClosureFunction() ? Symbols::Call().raw() : function.name());
   const int kNumArgsChecked = 1;
   const ICData& ic_data = ICData::ZoneHandle(
-      ICData::New(function, name, Isolate::kNoDeoptId, kNumArgsChecked));
+      ICData::New(function, name, Object::null_array(),
+                  Isolate::kNoDeoptId, kNumArgsChecked));
   __ LoadObject(S5, ic_data);
   // FP - 4 : saved PP, object pool pointer of caller.
   // FP + 0 : previous frame pointer.
@@ -1116,7 +1117,8 @@ void FlowGraphCompiler::CompileGraph() {
     ASSERT(!parsed_function().function().HasOptionalParameters());
     const bool check_arguments = true;
 #else
-    const bool check_arguments = function.IsClosureFunction();
+    const bool check_arguments =
+        function.IsClosureFunction() || function.IsNoSuchMethodDispatcher();
 #endif
     if (check_arguments) {
       __ TraceSimMsg("Check argument count");
@@ -1131,7 +1133,7 @@ void FlowGraphCompiler::CompileGraph() {
                              ArgumentsDescriptor::positional_count_offset()));
       __ beq(T0, T1, &correct_num_arguments);
       __ Bind(&wrong_num_arguments);
-      if (function.IsClosureFunction()) {
+      if (function.IsClosureFunction() || function.IsNoSuchMethodDispatcher()) {
         if (StackSize() != 0) {
           // We need to unwind the space we reserved for locals and copied
           // parameters. The NoSuchMethodFunction stub does not expect to see
@@ -1142,10 +1144,15 @@ void FlowGraphCompiler::CompileGraph() {
         // dropped the spill slots.
         BitmapBuilder* empty_stack_bitmap = new BitmapBuilder();
 
-        // Invoke noSuchMethod function passing "call" as the function name.
+        // Invoke noSuchMethod function passing the original function name.
+        // For closure functions, use "call" as the original name.
+        const String& name =
+            String::Handle(function.IsClosureFunction()
+                             ? Symbols::Call().raw()
+                             : function.name());
         const int kNumArgsChecked = 1;
         const ICData& ic_data = ICData::ZoneHandle(
-            ICData::New(function, Symbols::Call(),
+            ICData::New(function, name, Object::null_array(),
                         Isolate::kNoDeoptId, kNumArgsChecked));
         __ LoadObject(S5, ic_data);
         // FP - 4 : saved PP, object pool pointer of caller.
@@ -1290,7 +1297,6 @@ void FlowGraphCompiler::GenerateCallRuntime(intptr_t token_pos,
 void FlowGraphCompiler::EmitOptimizedInstanceCall(
     ExternalLabel* target_label,
     const ICData& ic_data,
-    const Array& arguments_descriptor,
     intptr_t argument_count,
     intptr_t deopt_id,
     intptr_t token_pos,
@@ -1303,7 +1309,6 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(
   // Pass the function explicitly, it is used in IC stub.
   __ TraceSimMsg("OptimizedInstanceCall");
   __ LoadObject(T0, parsed_function().function());
-  __ LoadObject(S4, arguments_descriptor);
   __ LoadObject(S5, ic_data);
   GenerateDartCall(deopt_id,
                    token_pos,
@@ -1316,13 +1321,11 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(
 
 void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                                          const ICData& ic_data,
-                                         const Array& arguments_descriptor,
                                          intptr_t argument_count,
                                          intptr_t deopt_id,
                                          intptr_t token_pos,
                                          LocationSummary* locs) {
   __ TraceSimMsg("InstanceCall");
-  __ LoadObject(S4, arguments_descriptor);
   __ LoadObject(S5, ic_data);
   GenerateDartCall(deopt_id,
                    token_pos,
@@ -1336,13 +1339,15 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
 
 void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     const ICData& ic_data,
-    const Array& arguments_descriptor,
     intptr_t argument_count,
     intptr_t deopt_id,
     intptr_t token_pos,
     LocationSummary* locs) {
   MegamorphicCacheTable* table = Isolate::Current()->megamorphic_cache_table();
   const String& name = String::Handle(ic_data.target_name());
+  const Array& arguments_descriptor =
+      Array::ZoneHandle(ic_data.arguments_descriptor());
+  ASSERT(!arguments_descriptor.IsNull());
   const MegamorphicCache& cache =
       MegamorphicCache::ZoneHandle(table->Lookup(name, arguments_descriptor));
   Label not_smi, load_cache;
@@ -1404,12 +1409,13 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
 }
 
 
-void FlowGraphCompiler::EmitStaticCall(const Function& function,
-                                       const Array& arguments_descriptor,
-                                       intptr_t argument_count,
-                                       intptr_t deopt_id,
-                                       intptr_t token_pos,
-                                       LocationSummary* locs) {
+void FlowGraphCompiler::EmitOptimizedStaticCall(
+    const Function& function,
+    const Array& arguments_descriptor,
+    intptr_t argument_count,
+    intptr_t deopt_id,
+    intptr_t token_pos,
+    LocationSummary* locs) {
   __ TraceSimMsg("StaticCall");
   __ LoadObject(S4, arguments_descriptor);
   // Do not use the code from the function, but let the code be patched so that
@@ -1417,9 +1423,33 @@ void FlowGraphCompiler::EmitStaticCall(const Function& function,
   GenerateDartCall(deopt_id,
                    token_pos,
                    &StubCode::CallStaticFunctionLabel(),
-                   PcDescriptors::kFuncCall,
+                   PcDescriptors::kOptStaticCall,
                    locs);
   AddStaticCallTarget(function);
+  __ Drop(argument_count);
+}
+
+
+void FlowGraphCompiler::EmitUnoptimizedStaticCall(
+    const Function& target_function,
+    const Array& arguments_descriptor,
+    intptr_t argument_count,
+    intptr_t deopt_id,
+    intptr_t token_pos,
+    LocationSummary* locs) {
+  const ICData& ic_data = ICData::ZoneHandle(
+      ICData::New(parsed_function().function(),  // Caller function.
+                  String::Handle(target_function.name()),
+                  arguments_descriptor,
+                  deopt_id,
+                  0));  // No arguments checked.
+  ic_data.AddTarget(target_function);
+  __ LoadObject(S5, ic_data);
+  GenerateDartCall(deopt_id,
+                   token_pos,
+                   &StubCode::UnoptimizedStaticCallLabel(),
+                   PcDescriptors::kUnoptStaticCall,
+                   locs);
   __ Drop(argument_count);
 }
 
@@ -1579,6 +1609,7 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         intptr_t deopt_id,
                                         intptr_t token_index,
                                         LocationSummary* locs) {
+  ASSERT(is_optimizing());
   ASSERT(!ic_data.IsNull() && (ic_data.NumberOfChecks() > 0));
   Label match_found;
   const intptr_t len = ic_data.NumberOfChecks();
@@ -1605,7 +1636,7 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
     GenerateDartCall(deopt_id,
                      token_index,
                      &StubCode::CallStaticFunctionLabel(),
-                     PcDescriptors::kFuncCall,
+                     PcDescriptors::kOptStaticCall,
                      locs);
     const Function& function = *sorted[i].target;
     AddStaticCallTarget(function);

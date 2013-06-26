@@ -7,10 +7,9 @@ import "dart:isolate";
 
 void testRunShell() {
   test(args) {
-    var options = new Options();
-    var path = new Path(options.script);
+    var path = new Path(Platform.script);
     path = path.directoryPath.join(new Path("process_echo_util.dart"));
-    Process.run(options.executable,
+    Process.run(Platform.executable,
                 [path.toString()]..addAll(args),
                 runInShell: true)
         .then((result) {
@@ -44,8 +43,7 @@ void testRunShell() {
 
 void testBadRunShell() {
   test(exe, [args = const []]) {
-    var options = new Options();
-    var path = new Path(options.script);
+    var path = new Path(Platform.script);
     path = path.directoryPath.join(new Path("process_echo_util.dart"));
     Process.run(exe, args, runInShell: true)
         .then((result) {

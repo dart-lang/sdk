@@ -15,7 +15,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, disable_privacy, false, "Disable library privacy.");
 DEFINE_FLAG(bool, print_tokens, false, "Print scanned tokens.");
 
 void Scanner::InitKeywordTable() {
@@ -328,7 +327,7 @@ void Scanner::ScanIdentChars(bool allow_dollar) {
   current_token_.kind = Token::kIDENT;
   String& literal =
       String::ZoneHandle(Symbols::New(source_, ident_pos, ident_length));
-  if ((ident_char0 == kPrivateIdentifierStart) && !FLAG_disable_privacy) {
+  if (ident_char0 == kPrivateIdentifierStart) {
     // Private identifiers are mangled on a per script basis.
     literal = String::Concat(literal, private_key_);
     literal = Symbols::New(literal);
@@ -389,19 +388,6 @@ void Scanner::ScanNumber(bool dec_point_seen) {
         &String::ZoneHandle(
             String::SubString(source_, token_start_, len, Heap::kOld));
   }
-}
-
-
-RawString* Scanner::ConsumeIdentChars(bool allow_dollar) {
-  ASSERT(IsIdentStartChar(c0_));
-  ASSERT(allow_dollar || (c0_ != '$'));
-  int ident_length = 0;
-  int32_t ident_pos = lookahead_pos_;
-  while (IsIdentChar(c0_) && (allow_dollar || (c0_ != '$'))) {
-    ReadChar();
-    ident_length++;
-  }
-  return Symbols::New(source_, ident_pos, ident_length);
 }
 
 

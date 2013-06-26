@@ -54,6 +54,9 @@ int min_literal() {
   return min_literal;
 }
 
+// We don't test for the _FiftyThreeBitOverflowError since it's not visible.
+// It's should not be visible since it doesn't exist on dart2js.
+bool is53BitError(e) => e is Error && "$e".startsWith("53-bit Overflow:");
 
 main() {
   Expect.equals(0xFFFFFFFFFFFFF, max_literal());
@@ -61,20 +64,20 @@ main() {
 
   // Run the tests once before optimizations.
   dti_arg = 1.9e16;
-  Expect.throws(double_to_int, (e) => e is FiftyThreeBitOverflowError);
+  Expect.throws(double_to_int, is53BitError);
 
   ia_arg1 = (1 << 51);
   ia_arg2 = (1 << 51);
-  Expect.throws(integer_add, (e) => e is FiftyThreeBitOverflowError);
+  Expect.throws(integer_add, is53BitError);
 
   n_arg = -0xFFFFFFFFFFFFF - 1;
-  Expect.throws(negate, (e) => e is FiftyThreeBitOverflowError);
+  Expect.throws(negate, is53BitError);
 
   is_arg = (1 << 51);
-  Expect.throws(integer_shift, (e) => e is FiftyThreeBitOverflowError);
+  Expect.throws(integer_shift, is53BitError);
 
-  Expect.throws(max_add_throws, (e) => e is FiftyThreeBitOverflowError);
-  Expect.throws(min_sub_throws, (e) => e is FiftyThreeBitOverflowError);
+  Expect.throws(max_add_throws, is53BitError);
+  Expect.throws(min_sub_throws, is53BitError);
 
   for (int i = 0; i < 20; i++) {
     dti_arg = i.toDouble();
@@ -96,20 +99,20 @@ main() {
     Expect.equals(i << 1, f());
   }
 
-  // The optimized functions should now deoptimize and throw the error.
+   // The optimized functions should now deoptimize and throw the error.
   dti_arg = 1.9e16;
-  Expect.throws(double_to_int, (e) => e is FiftyThreeBitOverflowError);
+  Expect.throws(double_to_int, is53BitError);
 
   ia_arg1 = (1 << 51);
   ia_arg2 = (1 << 51);
-  Expect.throws(integer_add, (e) => e is FiftyThreeBitOverflowError);
+  Expect.throws(integer_add, is53BitError);
 
   n_arg = -0xFFFFFFFFFFFFF - 1;
-  Expect.throws(negate, (e) => e is FiftyThreeBitOverflowError);
+  Expect.throws(negate, is53BitError);
 
   is_arg = (1 << 51);
-  Expect.throws(integer_shift, (e) => e is FiftyThreeBitOverflowError);
+  Expect.throws(integer_shift, is53BitError);
 
-  Expect.throws(max_add_throws, (e) => e is FiftyThreeBitOverflowError);
-  Expect.throws(min_sub_throws, (e) => e is FiftyThreeBitOverflowError);
+  Expect.throws(max_add_throws, is53BitError);
+  Expect.throws(min_sub_throws, is53BitError);
 }

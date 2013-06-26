@@ -16,7 +16,7 @@ RawArray* CodePatcher::GetClosureArgDescAt(uword return_address,
                                            const Code& code) {
   ASSERT(code.ContainsInstructionAt(return_address));
   CallPattern call(return_address, code);
-  return call.ArgumentsDescriptor();
+  return call.ClosureArgumentsDescriptor();
 }
 
 
@@ -55,15 +55,11 @@ void CodePatcher::InsertCallAt(uword start, uword target) {
 
 uword CodePatcher::GetInstanceCallAt(uword return_address,
                                      const Code& code,
-                                     ICData* ic_data,
-                                     Array* arguments_descriptor) {
+                                     ICData* ic_data) {
   ASSERT(code.ContainsInstructionAt(return_address));
   CallPattern call(return_address, code);
   if (ic_data != NULL) {
     *ic_data = call.IcData();
-  }
-  if (arguments_descriptor != NULL) {
-    *arguments_descriptor = call.ArgumentsDescriptor();
   }
   return call.TargetAddress();
 }
@@ -73,6 +69,19 @@ intptr_t CodePatcher::InstanceCallSizeInBytes() {
   // The instance call instruction sequence has a variable size on ARM.
   UNREACHABLE();
   return 0;
+}
+
+
+RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(
+    uword return_address, const Code& code, ICData* ic_data_result) {
+  ASSERT(code.ContainsInstructionAt(return_address));
+  CallPattern static_call(return_address, code);
+  ICData& ic_data = ICData::Handle();
+  ic_data ^= static_call.IcData();
+  if (ic_data_result != NULL) {
+    *ic_data_result = ic_data.raw();
+  }
+  return ic_data.GetTargetAt(0);
 }
 
 }  // namespace dart

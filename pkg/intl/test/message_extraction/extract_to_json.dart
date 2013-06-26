@@ -34,9 +34,8 @@ main() {
   parser.addFlag("suppress-warnings", defaultsTo: false,
       callback: (x) => suppressWarnings = x);
 
-  void setTargetDir(value) => targetDir = value;
-
-  parser.addOption("output-dir", defaultsTo: '.', callback: setTargetDir);
+  parser.addOption("output-dir", defaultsTo: '.',
+      callback: (value) => targetDir = value);
   parser.parse(args);
   if (args.length == 0) {
     print('Usage: extract_to_json [--output-dir=<dir>] [files.dart]');

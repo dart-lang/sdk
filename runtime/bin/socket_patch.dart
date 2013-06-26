@@ -42,11 +42,25 @@ patch class InternetAddress {
   }
 }
 
+patch class NetworkInterface {
+  /* patch */ static Future<List<NetworkInterface>> list({
+      bool includeLoopback: false,
+      bool includeLinkLocal: false,
+      InternetAddressType type: InternetAddressType.ANY}) {
+    return _NativeSocket.listInterfaces(includeLoopback: includeLoopback,
+                                        includeLinkLocal: includeLinkLocal,
+                                        type: type);
+  }
+}
+
 class _InternetAddress implements InternetAddress {
   static const int _ADDRESS_LOOPBACK_IP_V4 = 0;
   static const int _ADDRESS_LOOPBACK_IP_V6 = 1;
   static const int _ADDRESS_ANY_IP_V4 = 2;
   static const int _ADDRESS_ANY_IP_V6 = 3;
+  static const int _IPV4_ADDR_OFFSET = 4;
+  static const int _IPV6_ADDR_OFFSET = 8;
+  static const int _IPV6_ADDR_LENGTH = 16;
 
   static _InternetAddress LOOPBACK_IP_V4 =
       new _InternetAddress.fixed(_ADDRESS_LOOPBACK_IP_V4);
@@ -61,6 +75,36 @@ class _InternetAddress implements InternetAddress {
   final String address;
   final String host;
   final Uint8List _sockaddr_storage;
+
+  bool get isLoopback {
+    switch (type) {
+      case InternetAddressType.IP_V4:
+        return _sockaddr_storage[_IPV4_ADDR_OFFSET] == 127;
+
+      case InternetAddressType.IP_V6:
+        for (int i = 0; i < _IPV6_ADDR_LENGTH - 1; i++) {
+          if (_sockaddr_storage[_IPV6_ADDR_OFFSET + i] != 0) return false;
+        }
+        int lastByteIndex = _IPV6_ADDR_OFFSET + _IPV6_ADDR_LENGTH - 1;
+        return _sockaddr_storage[lastByteIndex] == 1;
+    }
+  }
+
+  bool get isLinkLocal {
+    switch (type) {
+      case InternetAddressType.IP_V4:
+        // Checking for 169.254.0.0/16.
+        return _sockaddr_storage[_IPV4_ADDR_OFFSET] == 169 &&
+            _sockaddr_storage[_IPV4_ADDR_OFFSET + 1] == 254;
+
+      case InternetAddressType.IP_V6:
+        // Checking for fe80::/10.
+        return _sockaddr_storage[_IPV6_ADDR_OFFSET] == 0xFE &&
+            (_sockaddr_storage[_IPV6_ADDR_OFFSET + 1] & 0xB0) == 0x80;
+    }
+  }
+
+  Future<InternetAddress> reverse() => _NativeSocket.reverseLookup(this);
 
   _InternetAddress(InternetAddressType this.type,
                    String this.address,
@@ -88,11 +132,28 @@ class _InternetAddress implements InternetAddress {
     }
   }
 
+  // Create a clone of this _InternetAddress replacing the host.
+  _InternetAddress _cloneWithNewHost(String host) {
+    return new _InternetAddress(
+        type, address, host, new Uint8List.fromList(_sockaddr_storage));
+  }
+
   String toString() {
     return "InternetAddress('$address', ${type.name})";
   }
 
   static Uint8List _fixed(int id) native "InternetAddress_Fixed";
+}
+
+class _NetworkInterface implements NetworkInterface{
+  final String name;
+  final List<InternetAddress> addresses;
+
+  _NetworkInterface(String this.name, List<InternetAddress> this.addresses);
+
+  String toString() {
+    return "NetworkInterface('$name', $addresses)";
+  }
 }
 
 
@@ -131,6 +192,8 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
 
   // Native port messages.
   static const HOST_NAME_LOOKUP = 0;
+  static const LIST_INTERFACES = 1;
+  static const REVERSE_LOOKUP = 2;
 
   // Socket close state
   bool isClosed = false;
@@ -170,6 +233,49 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
               var type = new InternetAddressType._from(result[0]);
               return new _InternetAddress(type, result[1], host, result[2]);
             }).toList();
+          }
+        });
+  }
+
+  static Future<InternetAddress> reverseLookup(InternetAddress addr) {
+    ensureSocketService();
+    return socketService.call([REVERSE_LOOKUP, addr._sockaddr_storage])
+        .then((response) {
+          if (isErrorResponse(response)) {
+            throw createError(response, "Failed host name lookup");
+          } else {
+            return addr._cloneWithNewHost(response);
+          }
+        });
+  }
+
+  static Future<List<NetworkInterface>> listInterfaces({
+      bool includeLoopback: false,
+      bool includeLinkLocal: false,
+      InternetAddressType type: InternetAddressType.ANY}) {
+    ensureSocketService();
+    return socketService.call([LIST_INTERFACES, type._value])
+        .then((response) {
+          if (isErrorResponse(response)) {
+            throw createError(response, "Failed listing interfaces");
+          } else {
+            var list = new List<NetworkInterface>();
+            var map = response.skip(1)
+                .fold(new Map<String, List<InternetAddress>>(), (map, result) {
+                  var type = new InternetAddressType._from(result[0]);
+                  var name = result[3];
+                  var address = new _InternetAddress(
+                      type, result[1], "", result[2]);
+                  if (!includeLinkLocal && address.isLinkLocal) return map;
+                  if (!includeLoopback && address.isLoopback) return map;
+                  map.putIfAbsent(name, () => new List<InternetAddress>());
+                  map[name].add(address);
+                  return map;
+                })
+                .forEach((name, addresses) {
+                  list.add(new _NetworkInterface(name, addresses));
+                });
+            return list;
           }
         });
   }
@@ -624,6 +730,9 @@ class _RawSocket extends Stream<RawSocketEvent>
   bool _readEventsEnabled = true;
   bool _writeEventsEnabled = true;
 
+  // Flag to handle Ctrl-D closing of stdio on Mac OS.
+  bool _isMacOSTerminalInput = false;
+
   static Future<RawSocket> connect(host, int port) {
     return _NativeSocket.connect(host, port)
         .then((socket) => new _RawSocket(socket));
@@ -663,7 +772,11 @@ class _RawSocket extends Stream<RawSocketEvent>
     var native = new _NativeSocket.pipe();
     native.isClosedWrite = true;
     if (fd != null) _getStdioHandle(native, fd);
-    return new _RawSocket(native);
+    var result = new _RawSocket(native);
+    result._isMacOSTerminalInput =
+        Platform.isMacOS &&
+        _StdIOUtils._socketType(result._socket) == _STDIO_HANDLE_TYPE_TERMINAL;
+    return result;
   }
 
   StreamSubscription<RawSocketEvent> listen(void onData(RawSocketEvent event),
@@ -679,7 +792,21 @@ class _RawSocket extends Stream<RawSocketEvent>
 
   int available() => _socket.available();
 
-  List<int> read([int len]) => _socket.read(len);
+  List<int> read([int len]) {
+    if (_isMacOSTerminalInput) {
+      var available = available();
+      if (available == 0) return null;
+      var data = _socket.read(len);
+      if (data == null || data.length < available) {
+        // Reading less than available from a Mac OS terminal indicate Ctrl-D.
+        // This is interpreted as read closed.
+        runAsync(() => _controller.add(RawSocketEvent.READ_CLOSED));
+      }
+      return data;
+    } else {
+      return _socket.read(len);
+    }
+  }
 
   int write(List<int> buffer, [int offset, int count]) =>
       _socket.write(buffer, offset, count);

@@ -32,6 +32,7 @@ class Code;
 class DeoptInstr;
 class FinalizablePersistentHandle;
 class LocalScope;
+class ReusableHandleScope;
 class Symbols;
 
 #if defined(DEBUG)
@@ -169,6 +170,7 @@ class Symbols;
     return raw()->ptr();                                                       \
   }                                                                            \
   SNAPSHOT_READER_SUPPORT(object)                                              \
+  friend class Isolate;                                                        \
   friend class StackFrame;                                                     \
 
 // This macro is used to denote types that do not have a sub-type.
@@ -190,6 +192,7 @@ class Symbols;
     return raw()->ptr();                                                       \
   }                                                                            \
   SNAPSHOT_READER_SUPPORT(object)                                              \
+  friend class Isolate;                                                        \
   friend class StackFrame;                                                     \
 
 class Object {
@@ -591,6 +594,8 @@ class Object {
   friend class TwoByteString;
   friend class ExternalOneByteString;
   friend class ExternalTwoByteString;
+  friend class Isolate;
+  friend class ReusableHandleScope;
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Object);
@@ -1395,6 +1400,10 @@ class Function : public Object {
     return kind() == RawFunction::kMethodExtractor;
   }
 
+  bool IsNoSuchMethodDispatcher() const {
+    return kind() == RawFunction::kNoSuchMethodDispatcher;
+  }
+
   // Returns true iff an implicit closure function has been created
   // for this function.
   bool HasImplicitClosureFunction() const {
@@ -1439,6 +1448,7 @@ class Function : public Object {
       case RawFunction::kImplicitGetter:
       case RawFunction::kImplicitSetter:
       case RawFunction::kMethodExtractor:
+      case RawFunction::kNoSuchMethodDispatcher:
         return true;
       case RawFunction::kClosureFunction:
       case RawFunction::kConstructor:
@@ -2354,7 +2364,6 @@ class Library : public Object {
   friend class Class;
   friend class Debugger;
   friend class DictionaryIterator;
-  friend class Isolate;
   friend class Namespace;
   friend class Object;
 };
@@ -2390,7 +2399,6 @@ class LibraryPrefix : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(LibraryPrefix, Object);
   friend class Class;
-  friend class Isolate;
 };
 
 
@@ -2538,7 +2546,8 @@ class PcDescriptors : public Object {
     kPatchCode,        // Buffer for patching code entry.
     kLazyDeoptJump,    // Lazy deoptimization trampoline.
     kIcCall,           // IC call.
-    kFuncCall,         // Call to known target, e.g. static call.
+    kOptStaticCall,    // Call directly to known target, e.g. static call.
+    kUnoptStaticCall,  // Call to a known target via a stub.
     kClosureCall,      // Closure call.
     kRuntimeCall,      // Runtime call.
     kReturn,           // Return from function.
@@ -2982,11 +2991,6 @@ class Code : public Object {
   // Returns an array indexed by deopt id, containing the extracted ICData.
   RawArray* ExtractTypeFeedbackArray() const;
 
-  // Returns deopt-ids of all static calls that were never resolved, i.e.,
-  // never executed.
-  void ExtractUncalledStaticCallDeoptIds(
-      GrowableArray<intptr_t>* deopt_ids) const;
-
  private:
   // An object finder visitor interface.
   class FindRawCodeVisitor : public FindObjectVisitor {
@@ -3183,6 +3187,10 @@ class ICData : public Object {
     return raw_ptr()->target_name_;
   }
 
+  RawArray* arguments_descriptor() const {
+    return raw_ptr()->args_descriptor_;
+  }
+
   intptr_t num_args_tested() const {
     return raw_ptr()->num_args_tested_;
   }
@@ -3217,6 +3225,10 @@ class ICData : public Object {
     return OFFSET_OF(RawICData, num_args_tested_);
   }
 
+  static intptr_t arguments_descriptor_offset() {
+    return OFFSET_OF(RawICData, args_descriptor_);
+  }
+
   static intptr_t ic_data_offset() {
     return OFFSET_OF(RawICData, ic_data_);
   }
@@ -3228,6 +3240,9 @@ class ICData : public Object {
   static intptr_t is_closure_call_offset() {
     return OFFSET_OF(RawICData, is_closure_call_);
   }
+
+  // Used for unoptimized static calls when no class-ids are checked.
+  void AddTarget(const Function& target) const;
 
   // Adding checks.
 
@@ -3274,6 +3289,7 @@ class ICData : public Object {
 
   static RawICData* New(const Function& caller_function,
                         const String& target_name,
+                        const Array& arguments_descriptor,
                         intptr_t deopt_id,
                         intptr_t num_args_tested);
 
@@ -3294,6 +3310,7 @@ class ICData : public Object {
 
   void set_function(const Function& value) const;
   void set_target_name(const String& value) const;
+  void set_arguments_descriptor(const Array& value) const;
   void set_deopt_id(intptr_t value) const;
   void set_num_args_tested(intptr_t value) const;
   void set_ic_data(const Array& value) const;
@@ -5812,18 +5829,18 @@ RawClass* Object::clazz() const {
 }
 
 
-void Object::SetRaw(RawObject* value) {
+DART_FORCE_INLINE void Object::SetRaw(RawObject* value) {
   // NOTE: The assignment "raw_ = value" should be the first statement in
   // this function. Also do not use 'value' in this function after the
   // assignment (use 'raw_' instead).
   raw_ = value;
-  if ((reinterpret_cast<uword>(raw_) & kSmiTagMask) == kSmiTag) {
+  if ((reinterpret_cast<uword>(value) & kSmiTagMask) == kSmiTag) {
     set_vtable(Smi::handle_vtable_);
     return;
   }
-  intptr_t cid = raw_->GetClassId();
+  intptr_t cid = value->GetClassId();
   if (cid >= kNumPredefinedCids) {
-      cid = kInstanceCid;
+    cid = kInstanceCid;
   }
   set_vtable(builtin_vtables_[cid]);
 #if defined(DEBUG)

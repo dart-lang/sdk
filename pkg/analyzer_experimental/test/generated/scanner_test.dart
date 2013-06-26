@@ -53,67 +53,67 @@ class KeywordStateTest extends JUnitTestCase {
 }
 class TokenTypeTest extends EngineTestCase {
   void test_isOperator() {
-    JUnitTestCase.assertTrue(TokenType.AMPERSAND.isOperator());
-    JUnitTestCase.assertTrue(TokenType.AMPERSAND_AMPERSAND.isOperator());
-    JUnitTestCase.assertTrue(TokenType.AMPERSAND_EQ.isOperator());
-    JUnitTestCase.assertTrue(TokenType.BANG.isOperator());
-    JUnitTestCase.assertTrue(TokenType.BANG_EQ.isOperator());
-    JUnitTestCase.assertTrue(TokenType.BAR.isOperator());
-    JUnitTestCase.assertTrue(TokenType.BAR_BAR.isOperator());
-    JUnitTestCase.assertTrue(TokenType.BAR_EQ.isOperator());
-    JUnitTestCase.assertTrue(TokenType.CARET.isOperator());
-    JUnitTestCase.assertTrue(TokenType.CARET_EQ.isOperator());
-    JUnitTestCase.assertTrue(TokenType.EQ.isOperator());
-    JUnitTestCase.assertTrue(TokenType.EQ_EQ.isOperator());
-    JUnitTestCase.assertTrue(TokenType.GT.isOperator());
-    JUnitTestCase.assertTrue(TokenType.GT_EQ.isOperator());
-    JUnitTestCase.assertTrue(TokenType.GT_GT.isOperator());
-    JUnitTestCase.assertTrue(TokenType.GT_GT_EQ.isOperator());
-    JUnitTestCase.assertTrue(TokenType.INDEX.isOperator());
-    JUnitTestCase.assertTrue(TokenType.INDEX_EQ.isOperator());
-    JUnitTestCase.assertTrue(TokenType.IS.isOperator());
-    JUnitTestCase.assertTrue(TokenType.LT.isOperator());
-    JUnitTestCase.assertTrue(TokenType.LT_EQ.isOperator());
-    JUnitTestCase.assertTrue(TokenType.LT_LT.isOperator());
-    JUnitTestCase.assertTrue(TokenType.LT_LT_EQ.isOperator());
-    JUnitTestCase.assertTrue(TokenType.MINUS.isOperator());
-    JUnitTestCase.assertTrue(TokenType.MINUS_EQ.isOperator());
-    JUnitTestCase.assertTrue(TokenType.MINUS_MINUS.isOperator());
-    JUnitTestCase.assertTrue(TokenType.PERCENT.isOperator());
-    JUnitTestCase.assertTrue(TokenType.PERCENT_EQ.isOperator());
-    JUnitTestCase.assertTrue(TokenType.PERIOD_PERIOD.isOperator());
-    JUnitTestCase.assertTrue(TokenType.PLUS.isOperator());
-    JUnitTestCase.assertTrue(TokenType.PLUS_EQ.isOperator());
-    JUnitTestCase.assertTrue(TokenType.PLUS_PLUS.isOperator());
-    JUnitTestCase.assertTrue(TokenType.QUESTION.isOperator());
-    JUnitTestCase.assertTrue(TokenType.SLASH.isOperator());
-    JUnitTestCase.assertTrue(TokenType.SLASH_EQ.isOperator());
-    JUnitTestCase.assertTrue(TokenType.STAR.isOperator());
-    JUnitTestCase.assertTrue(TokenType.STAR_EQ.isOperator());
-    JUnitTestCase.assertTrue(TokenType.TILDE.isOperator());
-    JUnitTestCase.assertTrue(TokenType.TILDE_SLASH.isOperator());
-    JUnitTestCase.assertTrue(TokenType.TILDE_SLASH_EQ.isOperator());
+    JUnitTestCase.assertTrue(TokenType.AMPERSAND.isOperator);
+    JUnitTestCase.assertTrue(TokenType.AMPERSAND_AMPERSAND.isOperator);
+    JUnitTestCase.assertTrue(TokenType.AMPERSAND_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.BANG.isOperator);
+    JUnitTestCase.assertTrue(TokenType.BANG_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.BAR.isOperator);
+    JUnitTestCase.assertTrue(TokenType.BAR_BAR.isOperator);
+    JUnitTestCase.assertTrue(TokenType.BAR_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.CARET.isOperator);
+    JUnitTestCase.assertTrue(TokenType.CARET_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.EQ_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.GT.isOperator);
+    JUnitTestCase.assertTrue(TokenType.GT_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.GT_GT.isOperator);
+    JUnitTestCase.assertTrue(TokenType.GT_GT_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.INDEX.isOperator);
+    JUnitTestCase.assertTrue(TokenType.INDEX_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.IS.isOperator);
+    JUnitTestCase.assertTrue(TokenType.LT.isOperator);
+    JUnitTestCase.assertTrue(TokenType.LT_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.LT_LT.isOperator);
+    JUnitTestCase.assertTrue(TokenType.LT_LT_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.MINUS.isOperator);
+    JUnitTestCase.assertTrue(TokenType.MINUS_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.MINUS_MINUS.isOperator);
+    JUnitTestCase.assertTrue(TokenType.PERCENT.isOperator);
+    JUnitTestCase.assertTrue(TokenType.PERCENT_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.PERIOD_PERIOD.isOperator);
+    JUnitTestCase.assertTrue(TokenType.PLUS.isOperator);
+    JUnitTestCase.assertTrue(TokenType.PLUS_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.PLUS_PLUS.isOperator);
+    JUnitTestCase.assertTrue(TokenType.QUESTION.isOperator);
+    JUnitTestCase.assertTrue(TokenType.SLASH.isOperator);
+    JUnitTestCase.assertTrue(TokenType.SLASH_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.STAR.isOperator);
+    JUnitTestCase.assertTrue(TokenType.STAR_EQ.isOperator);
+    JUnitTestCase.assertTrue(TokenType.TILDE.isOperator);
+    JUnitTestCase.assertTrue(TokenType.TILDE_SLASH.isOperator);
+    JUnitTestCase.assertTrue(TokenType.TILDE_SLASH_EQ.isOperator);
   }
   void test_isUserDefinableOperator() {
-    JUnitTestCase.assertTrue(TokenType.AMPERSAND.isUserDefinableOperator());
-    JUnitTestCase.assertTrue(TokenType.BAR.isUserDefinableOperator());
-    JUnitTestCase.assertTrue(TokenType.CARET.isUserDefinableOperator());
-    JUnitTestCase.assertTrue(TokenType.EQ_EQ.isUserDefinableOperator());
-    JUnitTestCase.assertTrue(TokenType.GT.isUserDefinableOperator());
-    JUnitTestCase.assertTrue(TokenType.GT_EQ.isUserDefinableOperator());
-    JUnitTestCase.assertTrue(TokenType.GT_GT.isUserDefinableOperator());
-    JUnitTestCase.assertTrue(TokenType.INDEX.isUserDefinableOperator());
-    JUnitTestCase.assertTrue(TokenType.INDEX_EQ.isUserDefinableOperator());
-    JUnitTestCase.assertTrue(TokenType.LT.isUserDefinableOperator());
-    JUnitTestCase.assertTrue(TokenType.LT_EQ.isUserDefinableOperator());
-    JUnitTestCase.assertTrue(TokenType.LT_LT.isUserDefinableOperator());
-    JUnitTestCase.assertTrue(TokenType.MINUS.isUserDefinableOperator());
-    JUnitTestCase.assertTrue(TokenType.PERCENT.isUserDefinableOperator());
-    JUnitTestCase.assertTrue(TokenType.PLUS.isUserDefinableOperator());
-    JUnitTestCase.assertTrue(TokenType.SLASH.isUserDefinableOperator());
-    JUnitTestCase.assertTrue(TokenType.STAR.isUserDefinableOperator());
-    JUnitTestCase.assertTrue(TokenType.TILDE.isUserDefinableOperator());
-    JUnitTestCase.assertTrue(TokenType.TILDE_SLASH.isUserDefinableOperator());
+    JUnitTestCase.assertTrue(TokenType.AMPERSAND.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.BAR.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.CARET.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.EQ_EQ.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.GT.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.GT_EQ.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.GT_GT.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.INDEX.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.INDEX_EQ.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.LT.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.LT_EQ.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.LT_LT.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.MINUS.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.PERCENT.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.PLUS.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.SLASH.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.STAR.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.TILDE.isUserDefinableOperator);
+    JUnitTestCase.assertTrue(TokenType.TILDE_SLASH.isUserDefinableOperator);
   }
   static dartSuite() {
     _ut.group('TokenTypeTest', () {
@@ -129,7 +129,7 @@ class TokenTypeTest extends EngineTestCase {
   }
 }
 /**
- * The class {@code TokenFactory} defines utility methods that can be used to create tokens.
+ * The class `TokenFactory` defines utility methods that can be used to create tokens.
  */
 class TokenFactory {
   static Token token(Keyword keyword) => new KeywordToken(keyword, 0);
@@ -1474,7 +1474,7 @@ class StringScannerTest extends AbstractScannerTest {
   }
 }
 /**
- * Instances of the class {@code TokenStreamValidator} are used to validate the correct construction
+ * Instances of the class `TokenStreamValidator` are used to validate the correct construction
  * of a stream of tokens.
  */
 class TokenStreamValidator {
@@ -2156,7 +2156,7 @@ abstract class AbstractScannerTest extends JUnitTestCase {
   }
 }
 /**
- * Instances of the class {@code ExpectedLocation} encode information about the expected location
+ * Instances of the class `ExpectedLocation` encode information about the expected location
  * of a given offset in source code.
  */
 class AbstractScannerTest_ExpectedLocation {

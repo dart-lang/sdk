@@ -186,12 +186,7 @@ class CallSites : public FlowGraphVisitor {
       : FlowGraphVisitor(flow_graph->postorder()),  // We don't use this order.
         static_calls_(),
         closure_calls_(),
-        instance_calls_(),
-        skip_static_call_deopt_ids_() { }
-
-  const GrowableArray<StaticCallInstr*>& static_calls() const {
-    return static_calls_;
-  }
+        instance_calls_() { }
 
   const GrowableArray<ClosureCallInstr*>& closure_calls() const {
     return closure_calls_;
@@ -204,8 +199,19 @@ class CallSites : public FlowGraphVisitor {
         : call(call_arg), ratio(0.0) {}
   };
 
+  struct StaticCallInfo {
+    StaticCallInstr* call;
+    double ratio;
+    explicit StaticCallInfo(StaticCallInstr* value)
+        : call(value), ratio(0.0) {}
+  };
+
   const GrowableArray<InstanceCallInfo>& instance_calls() const {
     return instance_calls_;
+  }
+
+  const GrowableArray<StaticCallInfo>& static_calls() const {
+    return static_calls_;
   }
 
   bool HasCalls() const {
@@ -218,19 +224,52 @@ class CallSites : public FlowGraphVisitor {
     static_calls_.Clear();
     closure_calls_.Clear();
     instance_calls_.Clear();
-    skip_static_call_deopt_ids_.Clear();
+  }
+
+  void ComputeCallSiteRatio(intptr_t static_call_start_ix,
+                            intptr_t instance_call_start_ix) {
+    const intptr_t num_static_calls =
+        static_calls_.length() - static_call_start_ix;
+    const intptr_t num_instance_calls =
+        instance_calls_.length() - instance_call_start_ix;
+
+    intptr_t max_count = 0;
+    GrowableArray<intptr_t> instance_call_counts(num_instance_calls);
+    for (intptr_t i = 0; i < num_instance_calls; ++i) {
+      const intptr_t aggregate_count =
+          instance_calls_[i + instance_call_start_ix].
+              call->ic_data().AggregateCount();
+      instance_call_counts.Add(aggregate_count);
+      if (aggregate_count > max_count) max_count = aggregate_count;
+    }
+
+    GrowableArray<intptr_t> static_call_counts(num_static_calls);
+    for (intptr_t i = 0; i < num_static_calls; ++i) {
+      const intptr_t aggregate_count =
+          static_calls_[i + static_call_start_ix].
+              call->ic_data()->AggregateCount();
+      static_call_counts.Add(aggregate_count);
+      if (aggregate_count > max_count) max_count = aggregate_count;
+    }
+
+    // max_count can be 0 if none of the calls was executed.
+    for (intptr_t i = 0; i < num_instance_calls; ++i) {
+      const double ratio = (max_count == 0) ?
+          0.0 : static_cast<double>(instance_call_counts[i]) / max_count;
+      instance_calls_[i + instance_call_start_ix].ratio = ratio;
+    }
+    for (intptr_t i = 0; i < num_static_calls; ++i) {
+      const double ratio = (max_count == 0) ?
+          0.0 : static_cast<double>(static_call_counts[i]) / max_count;
+      static_calls_[i + static_call_start_ix].ratio = ratio;
+    }
   }
 
   void FindCallSites(FlowGraph* graph) {
     ASSERT(graph != NULL);
-    const Function& function = graph->parsed_function().function();
-    ASSERT(function.HasCode());
-    const Code& code = Code::Handle(function.unoptimized_code());
-
-    skip_static_call_deopt_ids_.Clear();
-    code.ExtractUncalledStaticCallDeoptIds(&skip_static_call_deopt_ids_);
 
     const intptr_t instance_call_start_ix = instance_calls_.length();
+    const intptr_t static_call_start_ix = static_calls_.length();
     for (BlockIterator block_it = graph->postorder_iterator();
          !block_it.Done();
          block_it.Advance()) {
@@ -240,24 +279,7 @@ class CallSites : public FlowGraphVisitor {
         it.Current()->Accept(this);
       }
     }
-    // Compute instance call site ratio.
-    const intptr_t num_instance_calls =
-        instance_calls_.length() - instance_call_start_ix;
-    intptr_t max_count = 0;
-    GrowableArray<intptr_t> call_counts(num_instance_calls);
-    for (intptr_t i = 0; i < num_instance_calls; ++i) {
-      const intptr_t aggregate_count =
-          instance_calls_[i + instance_call_start_ix].
-              call->ic_data().AggregateCount();
-      call_counts.Add(aggregate_count);
-      if (aggregate_count > max_count) max_count = aggregate_count;
-    }
-
-
-    for (intptr_t i = 0; i < num_instance_calls; ++i) {
-      const double ratio = static_cast<double>(call_counts[i]) / max_count;
-      instance_calls_[i + instance_call_start_ix].ratio = ratio;
-    }
+    ComputeCallSiteRatio(static_call_start_ix, instance_call_start_ix);
   }
 
   void VisitClosureCall(ClosureCallInstr* call) {
@@ -270,21 +292,13 @@ class CallSites : public FlowGraphVisitor {
 
   void VisitStaticCall(StaticCallInstr* call) {
     if (!call->function().IsInlineable()) return;
-    const intptr_t call_deopt_id = call->deopt_id();
-    for (intptr_t i = 0; i < skip_static_call_deopt_ids_.length(); i++) {
-      if (call_deopt_id == skip_static_call_deopt_ids_[i]) {
-        // Do not inline this call.
-        return;
-      }
-    }
-    static_calls_.Add(call);
+    static_calls_.Add(StaticCallInfo(call));
   }
 
  private:
-  GrowableArray<StaticCallInstr*> static_calls_;
+  GrowableArray<StaticCallInfo> static_calls_;
   GrowableArray<ClosureCallInstr*> closure_calls_;
   GrowableArray<InstanceCallInfo> instance_calls_;
-  GrowableArray<intptr_t> skip_static_call_deopt_ids_;
 
   DISALLOW_COPY_AND_ASSIGN(CallSites);
 };
@@ -713,11 +727,11 @@ class CallSiteInliner : public ValueObject {
   // if the incoming argument is a non-constant value.
   // TODO(srdjan): Fix inlining of List. factory.
   void InlineStaticCalls() {
-    const GrowableArray<StaticCallInstr*>& calls =
+    const GrowableArray<CallSites::StaticCallInfo>& call_info =
         inlining_call_sites_->static_calls();
-    TRACE_INLINING(OS::Print("  Static Calls (%d)\n", calls.length()));
-    for (intptr_t i = 0; i < calls.length(); ++i) {
-      StaticCallInstr* call = calls[i];
+    TRACE_INLINING(OS::Print("  Static Calls (%d)\n", call_info.length()));
+    for (intptr_t call_idx = 0; call_idx < call_info.length(); ++call_idx) {
+      StaticCallInstr* call = call_info[call_idx].call;
       if (call->function().name() == Symbols::ListFactory().raw()) {
         // Inline only if no arguments or a constant was passed.
         ASSERT(call->function().NumImplicitParameters() == 1);
@@ -729,6 +743,15 @@ class CallSiteInliner : public ValueObject {
           // Do not inline since a non-constant argument was passed.
           continue;
         }
+      }
+      if ((call_info[call_idx].ratio * 100) < FLAG_inlining_hotness) {
+        const Function& target = call->function();
+        TRACE_INLINING(OS::Print(
+            "  => %s (deopt count %d)\n     Bailout: cold %f\n",
+            target.ToCString(),
+            target.deoptimization_counter(),
+            call_info[call_idx].ratio));
+        continue;
       }
       GrowableArray<Value*> arguments(call->ArgumentCount());
       for (int i = 0; i < call->ArgumentCount(); ++i) {
@@ -1099,6 +1122,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
         const ICData& new_checks = ICData::ZoneHandle(
             ICData::New(Function::Handle(old_checks.function()),
                         String::Handle(old_checks.target_name()),
+                        Array::Handle(old_checks.arguments_descriptor()),
                         old_checks.deopt_id(),
                         1));  // Number of args tested.
         new_checks.AddReceiverCheck(inlined_variants_[i].cid,
@@ -1223,6 +1247,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
     const ICData& new_checks = ICData::ZoneHandle(
         ICData::New(Function::Handle(old_checks.function()),
                     String::Handle(old_checks.target_name()),
+                    Array::Handle(old_checks.arguments_descriptor()),
                     old_checks.deopt_id(),
                     1));  // Number of args tested.
     for (intptr_t i = 0; i < non_inlined_variants_.length(); ++i) {

@@ -187,7 +187,6 @@ class Scanner : ValueObject {
   void ScanEscapedCodePoint(int32_t* escaped_char);
 
   // Reads identifier.
-  RawString* ConsumeIdentChars(bool allow_dollar);
   void ScanIdentChars(bool allow_dollar);
   void ScanIdent() {
     ScanIdentChars(true);

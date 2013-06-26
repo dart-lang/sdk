@@ -6,7 +6,7 @@ import 'dart:io';
 
 import "package:expect/expect.dart";
 
-void test() {
+void testDefaultAddresses() {
   var loopback4 = InternetAddress.LOOPBACK_IP_V4;
   Expect.isNotNull(loopback4);
   Expect.equals(InternetAddressType.IP_V4, loopback4.type);
@@ -32,6 +32,23 @@ void test() {
   Expect.equals("::", any6.address);
 }
 
+void testReverseLookup() {
+  InternetAddress.lookup('localhost').then((addrs) {
+    addrs.first.reverse().then((addr) {
+      Expect.isNotNull(addr.host);
+    });
+  });
+
+  InternetAddress.lookup('127.0.0.1').then((addrs) {
+    Expect.equals('127.0.0.1', addrs.first.host);
+    addrs.first.reverse().then((addr) {
+      Expect.isNotNull(addr.host);
+      Expect.notEquals('127.0.0.1', addr.host);
+    });
+  });
+}
+
 void main() {
-  test();
+  testDefaultAddresses();
+  testReverseLookup();
 }
