@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'package:mdv_observe/mdv_observe.dart';
+import 'package:observe/observe.dart';
 import 'package:unittest/unittest.dart';
 import 'utils.dart';
 

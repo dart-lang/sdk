@@ -664,27 +664,6 @@ $else
 $endif
 
 $if DART2JS
-  @Creates('Null') // Set from Dart code; does not instantiate a native type.
-$endif
-  Map<String, StreamSubscription> _attributeBindings;
-
-  // TODO(jmesserly): I'm concerned about adding these to every element.
-  // Conceptually all of these belong on TemplateElement. They are here to
-  // support browsers that don't have <template> yet.
-  // However even in the polyfill they're restricted to certain tags
-  // (see [isTemplate]). So we can probably convert it to a (public) mixin, and
-  // only mix it in to the elements that need it.
-$if DART2JS
-  @Creates('Null')  // Set from Dart code; does not instantiate a native type.
-$endif
-  var _model;
-
-$if DART2JS
-  @Creates('Null')  // Set from Dart code; does not instantiate a native type.
-$endif
-  _TemplateIterator _templateIterator;
-
-$if DART2JS
   @Creates('Null')  // Set from Dart code; does not instantiate a native type.
 $endif
   Element _templateInstanceRef;
@@ -696,125 +675,6 @@ $endif
   DocumentFragment _templateContent;
 
   bool _templateIsDecorated;
-
-  // TODO(jmesserly): should path be optional, and default to empty path?
-  // It is used that way in at least one path in JS TemplateElement tests
-  // (see "BindImperative" test in original JS code).
-  @Experimental
-  void bind(String name, model, String path) {
-    _bindElement(this, name, model, path);
-  }
-
-  // TODO(jmesserly): this is static to work around http://dartbug.com/10166
-  // Similar issue for unbind/unbindAll below.
-  static void _bindElement(Element self, String name, model, String path) {
-    if (self._bindTemplate(name, model, path)) return;
-
-    if (self._attributeBindings == null) {
-      self._attributeBindings = new Map<String, StreamSubscription>();
-    }
-
-    self.xtag.attributes.remove(name);
-
-    var changed;
-    if (name.endsWith('?')) {
-      name = name.substring(0, name.length - 1);
-
-      changed = (value) {
-        if (_Bindings._toBoolean(value)) {
-          self.xtag.attributes[name] = '';
-        } else {
-          self.xtag.attributes.remove(name);
-        }
-      };
-    } else {
-      changed = (value) {
-        // TODO(jmesserly): escape value if needed to protect against XSS.
-        // See https://github.com/polymer-project/mdv/issues/58
-        self.xtag.attributes[name] = value == null ? '' : '$value';
-      };
-    }
-
-    self.unbind(name);
-
-    self._attributeBindings[name] =
-        new PathObserver(model, path).bindSync(changed);
-  }
-
-  @Experimental
-  void unbind(String name) {
-    _unbindElement(this, name);
-  }
-
-  static _unbindElement(Element self, String name) {
-    if (self._unbindTemplate(name)) return;
-    if (self._attributeBindings != null) {
-      var binding = self._attributeBindings.remove(name);
-      if (binding != null) binding.cancel();
-    }
-  }
-
-  @Experimental
-  void unbindAll() {
-    _unbindAllElement(this);
-  }
-
-  static void _unbindAllElement(Element self) {
-    self._unbindAllTemplate();
-
-    if (self._attributeBindings != null) {
-      for (var binding in self._attributeBindings.values) {
-        binding.cancel();
-      }
-      self._attributeBindings = null;
-    }
-  }
-
-  // TODO(jmesserly): unlike the JS polyfill, we can't mixin
-  // HTMLTemplateElement at runtime into things that are semantically template
-  // elements. So instead we implement it here with a runtime check.
-  // If the bind succeeds, we return true, otherwise we return false and let
-  // the normal Element.bind logic kick in.
-  bool _bindTemplate(String name, model, String path) {
-    if (isTemplate) {
-      switch (name) {
-        case 'bind':
-        case 'repeat':
-        case 'if':
-          _ensureTemplate();
-          if (_templateIterator == null) {
-            _templateIterator = new _TemplateIterator(this);
-          }
-          _templateIterator.inputs.bind(name, model, path);
-          return true;
-      }
-    }
-    return false;
-  }
-
-  bool _unbindTemplate(String name) {
-    if (isTemplate) {
-      switch (name) {
-        case 'bind':
-        case 'repeat':
-        case 'if':
-          _ensureTemplate();
-          if (_templateIterator != null) {
-            _templateIterator.inputs.unbind(name);
-          }
-          return true;
-      }
-    }
-    return false;
-  }
-
-  void _unbindAllTemplate() {
-    if (isTemplate) {
-      unbind('bind');
-      unbind('repeat');
-      unbind('if');
-    }
-  }
 
   /**
    * Gets the template this node refers to.
@@ -850,38 +710,20 @@ $endif
   @Experimental
   DocumentFragment createInstance() {
     _ensureTemplate();
-
-    var template = ref;
-    if (template == null) template = this;
-
-    var instance = _Bindings._createDeepCloneAndDecorateTemplates(
-        template.content, attributes['syntax']);
-
-    if (TemplateElement._instanceCreated != null) {
-      TemplateElement._instanceCreated.add(instance);
-    }
-    return instance;
+    return TemplateElement.mdvPackage(this).createInstance();
   }
 
   /**
    * The data model which is inherited through the tree.
    * This is only supported if [isTemplate] is true.
-   *
-   * Setting this will destructive propagate the value to all descendant nodes,
-   * and reinstantiate all of the nodes expanded by this template.
-   *
-   * Currently this does not support propagation through Shadow DOMs.
    */
   @Experimental
-  get model => _model;
+  get model => TemplateElement.mdvPackage(this).model;
 
   @Experimental
   void set model(value) {
     _ensureTemplate();
-
-    var syntax = TemplateElement.syntax[attributes['syntax']];
-    _model = value;
-    _Bindings._addBindings(this, model, syntax);
+    TemplateElement.mdvPackage(this).model = value;
   }
 
   // TODO(jmesserly): const set would be better

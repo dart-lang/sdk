@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart.mdv_observe_impl;
+part of observe;
 
 // This code is inspired by ChangeSummary:
 // https://github.com/rafaelw/ChangeSummary/blob/master/change_summary.js
@@ -171,7 +171,6 @@ class PathObserver {
   }
 }
 
-// TODO(jmesserly): these should go away in favor of mirrors!
 _getObjectProperty(object, property) {
   if (object is List && property is int) {
     if (property >= 0 && property < object.length) {
@@ -181,27 +180,45 @@ _getObjectProperty(object, property) {
     }
   }
 
-  // TODO(jmesserly): what about length?
-  if (object is Map) return object[property];
+  if (property is Symbol) {
+    var mirror = reflect(object);
+    try {
+      return mirror.getField(property).reflectee;
+    } catch (e) {}
+  }
 
-  if (object is Observable) return object.getValueWorkaround(property);
+  if (object is Map) {
+    return object[property];
+  }
 
   return null;
 }
 
 bool _setObjectProperty(object, property, value) {
   if (object is List && property is int) {
-    object[property] = value;
-  } else if (object is Map) {
-    object[property] = value;
-  } else if (object is Observable) {
-    (object as Observable).setValueWorkaround(property, value);
-  } else {
-    return false;
+    if (property >= 0 && property < object.length) {
+      object[property] = value;
+      return true;
+    } else {
+      return false;
+    }
   }
-  return true;
-}
 
+  if (property is Symbol) {
+    var mirror = reflect(object);
+    try {
+      mirror.setField(property, value);
+      return true;
+    } catch (e) {}
+  }
+
+  if (object is Map) {
+    object[property] = value;
+    return true;
+  }
+
+  return false;
+}
 
 class _PropertyObserver {
   final PathObserver _path;

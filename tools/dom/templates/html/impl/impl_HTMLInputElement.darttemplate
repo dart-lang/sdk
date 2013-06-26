@@ -39,65 +39,6 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS implements
     return e;
   }
 
-$if DART2JS
-  @Creates('Null')  // Set from Dart code; does not instantiate a native type.
-$endif
-  _ValueBinding _valueBinding;
-
-$if DART2JS
-  @Creates('Null')  // Set from Dart code; does not instantiate a native type.
-$endif
-  _CheckedBinding _checkedBinding;
-
-  @Experimental
-  void bind(String name, model, String path) {
-    switch (name) {
-      case 'value':
-        unbind('value');
-        attributes.remove('value');
-        _valueBinding = new _ValueBinding(this, model, path);
-        break;
-      case 'checked':
-        unbind('checked');
-        attributes.remove('checked');
-        _checkedBinding = new _CheckedBinding(this, model, path);
-        break;
-      default:
-        // TODO(jmesserly): this should be "super" (http://dartbug.com/10166).
-        // Similar issue for unbind/unbindAll below.
-        Element._bindElement(this, name, model, path);
-        break;
-    }
-  }
-
-  @Experimental
-  void unbind(String name) {
-    switch (name) {
-      case 'value':
-        if (_valueBinding != null) {
-          _valueBinding.unbind();
-          _valueBinding = null;
-        }
-        break;
-      case 'checked':
-        if (_checkedBinding != null) {
-          _checkedBinding.unbind();
-          _checkedBinding = null;
-        }
-        break;
-      default:
-        Element._unbindElement(this, name);
-        break;
-    }
-  }
-
-  @Experimental
-  void unbindAll() {
-    unbind('value');
-    unbind('checked');
-    Element._unbindAllElement(this);
-  }
-
 $!MEMBERS
 }
 

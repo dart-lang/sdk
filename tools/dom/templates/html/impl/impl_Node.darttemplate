@@ -178,6 +178,27 @@ $endif
   Node operator[](int index) => _this.$dom_childNodes[index];
 }
 
+/** Information about the instantiated template. */
+class TemplateInstance {
+  // TODO(rafaelw): firstNode & lastNode should be read-synchronous
+  // in cases where script has modified the template instance boundary.
+
+  /** The first node of this template instantiation. */
+  final Node firstNode;
+
+  /**
+   * The last node of this template instantiation.
+   * This could be identical to [firstNode] if the template only expanded to a
+   * single node.
+   */
+  final Node lastNode;
+
+  /** The model used to instantiate the template. */
+  final model;
+
+  TemplateInstance(this.firstNode, this.lastNode, this.model);
+}
+
 $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   List<Node> get nodes {
     return new _ChildNodeListLazy(this);
@@ -256,26 +277,24 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    */
   @Experimental
   void bind(String name, model, String path) {
-    // TODO(jmesserly): should we throw instead?
-    window.console.error('Unhandled binding to Node: '
-        '$this $name $model $path');
+    TemplateElement.mdvPackage(this).bind(name, model, path);
   }
 
   /** Unbinds the attribute [name]. */
   @Experimental
-  void unbind(String name) {}
+  void unbind(String name) {
+    TemplateElement.mdvPackage(this).unbind(name);
+  }
 
   /** Unbinds all bound attributes. */
   @Experimental
-  void unbindAll() {}
-
-  TemplateInstance _templateInstance;
+  void unbindAll() {
+    TemplateElement.mdvPackage(this).unbindAll();
+  }
 
   /** Gets the template instance that instantiated this node, if any. */
   @Experimental
-  TemplateInstance get templateInstance =>
-      _templateInstance != null ? _templateInstance :
-      (parent != null ? parent.templateInstance : null);
+  TemplateInstance get templateInstance => mdvPackage(this).templateInstance;
 
 $!MEMBERS
 }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:mdv_observe/mdv_observe.dart';
+import 'package:observe/observe.dart';
 import 'package:unittest/unittest.dart';
 
 // This file contains code ported from:
@@ -163,45 +163,43 @@ observePathTests() {
   });
 
   test('Path Observation', () {
-    var model = new TestModel(const Symbol('a'),
-        new TestModel(const Symbol('b'),
-            new TestModel(const Symbol('c'), 'hello, world')));
+    var model = new TestModel()..a =
+        (new TestModel()..b = (new TestModel()..c = 'hello, world'));
 
     var path = observePath(model, 'a.b.c');
     var lastValue = null;
     var sub = path.values.listen((v) { lastValue = v; });
 
-    model.value.value.value = 'hello, mom';
+    model.a.b.c = 'hello, mom';
 
     expect(lastValue, null);
     deliverChangeRecords();
     expect(lastValue, 'hello, mom');
 
-    model.value.value = new TestModel(const Symbol('c'), 'hello, dad');
+    model.a.b = new TestModel()..c = 'hello, dad';
     deliverChangeRecords();
     expect(lastValue, 'hello, dad');
 
-    model.value = new TestModel(const Symbol('b'),
-        new TestModel(const Symbol('c'), 'hello, you'));
+    model.a = new TestModel()..b =
+        (new TestModel()..c = 'hello, you');
     deliverChangeRecords();
     expect(lastValue, 'hello, you');
 
-    model.value.value = 1;
+    model.a.b = 1;
     deliverChangeRecords();
     expect(lastValue, null);
 
     // Stop observing
     sub.cancel();
 
-    model.value.value = new TestModel(const Symbol('c'),
-        'hello, back again -- but not observing');
+    model.a.b = new TestModel()..c = 'hello, back again -- but not observing';
     deliverChangeRecords();
     expect(lastValue, null);
 
     // Resume observing
     sub = path.values.listen((v) { lastValue = v; });
 
-    model.value.value.value = 'hello. Back for reals';
+    model.a.b.c = 'hello. Back for reals';
     deliverChangeRecords();
     expect(lastValue, 'hello. Back for reals');
   });
@@ -226,24 +224,25 @@ observePathTests() {
 }
 
 class TestModel extends ObservableBase {
-  final Symbol fieldName;
-  var _value;
+  var _a, _b, _c;
 
-  TestModel(this.fieldName, [initialValue]) : _value = initialValue;
+  TestModel();
 
-  get value => _value;
+  get a => _a;
 
-  void set value(newValue) {
-    _value = notifyPropertyChange(fieldName, _value, newValue);
+  void set a(newValue) {
+    _a = notifyPropertyChange(const Symbol('a'), _a, newValue);
   }
 
-  getValueWorkaround(key) {
-    if (key == fieldName) return value;
-    return null;
-  }
-  void setValueWorkaround(key, newValue) {
-    if (key == fieldName) value = newValue;
+  get b => _b;
+
+  void set b(newValue) {
+    _b = notifyPropertyChange(const Symbol('b'), _b, newValue);
   }
 
-  toString() => '#<$runtimeType $fieldName: $_value>';
+  get c => _c;
+
+  void set c(newValue) {
+    _c = notifyPropertyChange(const Symbol('c'), _c, newValue);
+  }
 }

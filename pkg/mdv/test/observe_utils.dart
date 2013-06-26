@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library mdv_observe_utils;
+library observe_utils;
 
-import 'package:mdv_observe/mdv_observe.dart';
+import 'package:observe/observe.dart';
 
 toSymbolMap(Map map) {
   var result = new ObservableMap.linked();

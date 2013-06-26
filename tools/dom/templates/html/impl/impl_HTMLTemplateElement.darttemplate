@@ -6,6 +6,99 @@
 
 part of $LIBRARYNAME;
 
+
+/**
+ * Model-Driven Views (MDV)'s native features enables a wide-range of use cases,
+ * but (by design) don't attempt to implement a wide array of specialized
+ * behaviors.
+ *
+ * Enabling these features in MDV is a matter of implementing and registering an
+ * MDV Custom Syntax. A Custom Syntax is an object which contains one or more
+ * delegation functions which implement specialized behavior. This object is
+ * registered with MDV via [TemplateElement.syntax]:
+ *
+ *
+ * HTML:
+ *     <template bind syntax="MySyntax">
+ *       {{ What!Ever('crazy')->thing^^^I+Want(data) }}
+ *     </template>
+ *
+ * Dart:
+ *     class MySyntax extends CustomBindingSyntax {
+ *       getBinding(model, path, name, node) {
+ *         // The magic happens here!
+ *       }
+ *     }
+ *
+ *     ...
+ *
+ *     TemplateElement.syntax['MySyntax'] = new MySyntax();
+ *
+ * See <https://github.com/polymer-project/mdv/blob/master/docs/syntax.md> for
+ * more information about Custom Syntax.
+ */
+// TODO(jmesserly): if this is just one method, a function type would make it
+// more Dart-friendly.
+@Experimental
+abstract class CustomBindingSyntax {
+  /**
+   * This syntax method allows for a custom interpretation of the contents of
+   * mustaches (`{{` ... `}}`).
+   *
+   * When a template is inserting an instance, it will invoke this method for
+   * each mustache which is encountered. The function is invoked with four
+   * arguments:
+   *
+   * - [model]: The data context for which this instance is being created.
+   * - [path]: The text contents (trimmed of outer whitespace) of the mustache.
+   * - [name]: The context in which the mustache occurs. Within element
+   *   attributes, this will be the name of the attribute. Within text,
+   *   this will be 'text'.
+   * - [node]: A reference to the node to which this binding will be created.
+   *
+   * If the method wishes to handle binding, it is required to return an object
+   * which has at least a `value` property that can be observed. If it does,
+   * then MDV will call [Node.bind on the node:
+   *
+   *     node.bind(name, retval, 'value');
+   *
+   * If the 'getBinding' does not wish to override the binding, it should return
+   * null.
+   */
+  // TODO(jmesserly): I had to remove type annotations from "name" and "node"
+  // Normally they are String and Node respectively. But sometimes it will pass
+  // (int name, CompoundBinding node). That seems very confusing; we may want
+  // to change this API.
+  getBinding(model, String path, name, node) => null;
+
+  /**
+   * This syntax method allows a syntax to provide an alterate model than the
+   * one the template would otherwise use when producing an instance.
+   *
+   * When a template is about to create an instance, it will invoke this method
+   * The function is invoked with two arguments:
+   *
+   * - [template]: The template element which is about to create and insert an
+   *   instance.
+   * - [model]: The data context for which this instance is being created.
+   *
+   * The template element will always use the return value of `getInstanceModel`
+   * as the model for the new instance. If the syntax does not wish to override
+   * the value, it should simply return the `model` value it was passed.
+   */
+  getInstanceModel(Element template, model) => model;
+
+  /**
+   * This syntax method allows a syntax to provide an alterate expansion of
+   * the [template] contents. When the template wants to create an instance,
+   * it will call this method with the template element.
+   *
+   * By default this will call `template.createInstance()`.
+   */
+  getInstanceFragment(Element template) => template.createInstance();
+}
+
+
 @Experimental
 $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 $!MEMBERS
@@ -15,24 +108,23 @@ $!MEMBERS
   @Experimental
   DocumentFragment get content => $dom_content;
 
-  static StreamController<DocumentFragment> _instanceCreated;
 
   /**
-   * *Warning*: This is an implementation helper for Model-Driven Views and
-   * should not be used in your code.
+   * The MDV package, if available.
    *
-   * This event is fired whenever a template is instantiated via
-   * [createInstance].
+   * This can be used to initialize MDV support via:
+   *
+   *     import 'dart:html';
+   *     import 'package:mdv/mdv.dart' as mdv;
+   *     main() {
+   *       mdv.initialize();
+   *     }
    */
-  // TODO(rafaelw): This is a hack, and is neccesary for the polyfill
-  // because custom elements are not upgraded during clone()
-  @Experimental
-  static Stream<DocumentFragment> get instanceCreated {
-    if (_instanceCreated == null) {
-      _instanceCreated = new StreamController<DocumentFragment>(sync: true);
-    }
-    return _instanceCreated.stream;
-  }
+  static Function mdvPackage = (node) {
+    throw new UnsupportedError("The MDV package is not available. "
+        "You can enable it with `import 'package:mdv/mdv.dart' as mdv;` and "
+        "`mdv.initialize()`");
+  };
 
   /**
    * Ensures proper API and content model for template elements.
@@ -55,7 +147,7 @@ $!MEMBERS
 
     // Create content
     if (template is! TemplateElement) {
-      var doc = _Bindings._getTemplateContentsOwner(template.document);
+      var doc = _getTemplateContentsOwner(template.document);
       template._templateContent = doc.createDocumentFragment();
     }
 
@@ -67,10 +159,78 @@ $!MEMBERS
     if (template is TemplateElement) {
       bootstrap(template.content);
     } else {
-      _Bindings._liftNonNativeChildrenIntoContent(template);
+      _liftNonNativeChildrenIntoContent(template);
     }
 
     return true;
+  }
+
+  // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/templates/index.html#dfn-template-contents-owner
+  static Document _getTemplateContentsOwner(HtmlDocument doc) {
+    if (doc.window == null) {
+      return doc;
+    }
+    var d = doc._templateContentsOwner;
+    if (d == null) {
+      // TODO(arv): This should either be a Document or HTMLDocument depending
+      // on doc.
+      d = doc.implementation.createHtmlDocument('');
+      while (d.lastChild != null) {
+        d.lastChild.remove();
+      }
+      doc._templateContentsOwner = d;
+    }
+    return d;
+  }
+
+  static Element _cloneAndSeperateAttributeTemplate(Element templateElement) {
+    var clone = templateElement.clone(false);
+    var attributes = templateElement.attributes;
+    for (var name in attributes.keys.toList()) {
+      switch (name) {
+        case 'template':
+        case 'repeat':
+        case 'bind':
+        case 'ref':
+          clone.attributes.remove(name);
+          break;
+        default:
+          attributes.remove(name);
+          break;
+      }
+    }
+
+    return clone;
+  }
+
+  static void _liftNonNativeChildrenIntoContent(Element templateElement) {
+    var content = templateElement.content;
+
+    if (!templateElement._isAttributeTemplate) {
+      var child;
+      while ((child = templateElement.firstChild) != null) {
+        content.append(child);
+      }
+      return;
+    }
+
+    // For attribute templates we copy the whole thing into the content and
+    // we move the non template attributes into the content.
+    //
+    //   <tr foo template>
+    //
+    // becomes
+    //
+    //   <tr template>
+    //   + #document-fragment
+    //     + <tr foo>
+    //
+    var newRoot = _cloneAndSeperateAttributeTemplate(templateElement);
+    var child;
+    while ((child = templateElement.firstChild) != null) {
+      newRoot.append(child);
+    }
+    content.append(newRoot);
   }
 
   /**
@@ -83,24 +243,25 @@ $!MEMBERS
   // TODO(rafaelw): Review whether this is the right public API.
   @Experimental
   static void bootstrap(Node content) {
-    _Bindings._bootstrapTemplatesRecursivelyFrom(content);
+    void _bootstrap(template) {
+      if (!TemplateElement.decorate(template)) {
+        bootstrap(template.content);
+      }
+    }
+
+    // Need to do this first as the contents may get lifted if |node| is
+    // template.
+    // TODO(jmesserly): content is DocumentFragment or Element
+    var descendents = (content as dynamic).queryAll(_allTemplatesSelectors);
+    if (content is Element && (content as Element).isTemplate) {
+      _bootstrap(content);
+    }
+
+    descendents.forEach(_bootstrap);
   }
 
-  /**
-   * Binds all mustaches recursively starting from the [root] node.
-   *
-   * Note: this is not an official Model-Driven-Views API; it is intended to
-   * support binding the [ShadowRoot]'s content to a model.
-   */
-  // TODO(jmesserly): this is needed to avoid two <template> nodes when using
-  // bindings in a custom element's template. See also:
-  // https://github.com/polymer-project/polymer/blob/master/src/bindMDV.js#L68
-  // Called from:
-  // https://github.com/polymer-project/polymer/blob/master/src/register.js#L99
-  @Experimental
-  static void bindModel(Node root, model, [CustomBindingSyntax syntax]) {
-    _Bindings._addBindings(root, model, syntax);
-  }
+  static final String _allTemplatesSelectors = 'template, option[template], ' +
+      Element._TABLE_TAGS.keys.map((k) => "$k[template]").join(", ");
 
   static bool _initStyles;
 

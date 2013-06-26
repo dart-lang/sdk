@@ -2,17 +2,51 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This library itself is undocumented and not supported for end use.
-// Because dart:html must use some of this functionality, it has to be available
-// via a dart:* library. The public APIs are reexported via package:mdv_observe.
-// Generally we try to keep this library minimal, with utility types and
-// functions in the package.
-library dart.mdv_observe_impl;
+/**
+ * *Warning*: this library is experimental, and APIs are subject to change.
+ *
+ * This library is used to observe changes to [Observable] types. It also
+ * has helpers to implement [Observable] objects.
+ *
+ * For example:
+ *
+ *     class Monster extends Unit with ObservableMixin {
+ *       int _health = 100;
+ *       get health => _health;
+ *       set health(value) {
+ *         _health = notifyChange(const Symbol('health'), _health, value);
+ *       }
+ *
+ *       void damage(int amount) {
+ *         print('$this takes $amount damage!');
+ *         health -= amount;
+ *       }
+ *
+ *       toString() => 'Monster with $health hit points';
+ *     }
+ *
+ *     main() {
+ *       var obj = new Monster();
+ *       obj.changes.listen((records) {
+ *         print('Changes to $obj were: $records');
+ *       });
+ *       // Schedules asynchronous delivery of these changes
+ *       obj.damage(10);
+ *       obj.damage(20);
+ *       print('done!');
+ *     }
+ */
+library observe;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:mirrors';
 
-part 'path_observer.dart';
+part 'src/compound_binding.dart';
+part 'src/observable_box.dart';
+part 'src/observable_list.dart';
+part 'src/observable_map.dart';
+part 'src/path_observer.dart';
 
 /**
  * Interface representing an observable object. This is used by data in
@@ -33,21 +67,6 @@ abstract class Observable {
    * [deliverChangeRecords] can be called to force delivery.
    */
   Stream<List<ChangeRecord>> get changes;
-
-  // TODO(jmesserly): remove these ASAP.
-  /**
-   * *Warning*: this method is temporary until dart2js supports mirrors.
-   * Gets the value of a field or index. This should return null if it was
-   * not found.
-   */
-  getValueWorkaround(key);
-
-  /**
-   * *Warning*: this method is temporary until dart2js supports mirrors.
-   * Sets the value of a field or index. This should have no effect if the field
-   * was not found.
-   */
-  void setValueWorkaround(key, Object value);
 }
 
 /**
@@ -226,3 +245,46 @@ void queueChangeRecords(void deliverChanges()) {
 }
 
 Queue _deliverCallbacks;
+
+
+/**
+ * Converts the [Iterable] or [Map] to an [ObservableList] or [ObservableMap],
+ * respectively. This is a convenience function to make it easier to convert
+ * literals into the corresponding observable collection type.
+ *
+ * If [value] is not one of those collection types, or is already [Observable],
+ * it will be returned unmodified.
+ *
+ * If [value] is a [Map], the resulting value will use the appropriate kind of
+ * backing map: either [HashMap], [LinkedHashMap], or [SplayTreeMap].
+ *
+ * By default this performs a deep conversion, but you can set [deep] to false
+ * for a shallow conversion. This does not handle circular data structures.
+ * If a conversion is peformed, mutations are only observed to the result of
+ * this function. Changing the original collection will not affect it.
+ */
+// TODO(jmesserly): ObservableSet?
+toObservable(value, {bool deep: true}) =>
+    deep ? _toObservableDeep(value) : _toObservableShallow(value);
+
+_toObservableShallow(value) {
+  if (value is Observable) return value;
+  if (value is Map) return new ObservableMap.from(value);
+  if (value is Iterable) return new ObservableList.from(value);
+  return value;
+}
+
+_toObservableDeep(value) {
+  if (value is Observable) return value;
+  if (value is Map) {
+    var result = new ObservableMap._createFromType(value);
+    value.forEach((k, v) {
+      result[_toObservableDeep(k)] = _toObservableDeep(v);
+    });
+    return result;
+  }
+  if (value is Iterable) {
+    return new ObservableList.from(value.map(_toObservableDeep));
+  }
+  return value;
+}

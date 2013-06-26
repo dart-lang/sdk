@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of mdv_observe;
+part of observe;
 
 /**
  * Represents an observable list of model values. If any items are added,
@@ -13,8 +13,6 @@ part of mdv_observe;
 class ObservableList<E> extends _ListBaseWorkaround with ObservableMixin
     implements List<E> {
   List<ListChangeRecord> _records;
-
-  static const _LENGTH = const Symbol('length');
 
   /** The inner [List<E>] with the actual storage. */
   final List<E> _list;
@@ -37,13 +35,6 @@ class ObservableList<E> extends _ListBaseWorkaround with ObservableMixin
    */
   factory ObservableList.from(Iterable<E> other) =>
       new ObservableList<E>()..addAll(other);
-
-  // TODO(jmesserly): remove once we have mirrors
-  getValueWorkaround(key) => key == _LENGTH ? length : null;
-
-  setValueWorkaround(key, value) {
-    if (key == _LENGTH) length = value;
-  }
 
   int get length => _list.length;
 
@@ -230,7 +221,7 @@ class ObservableList<E> extends _ListBaseWorkaround with ObservableMixin
     }
 
     if (length != oldLength) {
-      notifyPropertyChange(_LENGTH, oldLength, length);
+      notifyPropertyChange(const Symbol('length'), oldLength, length);
     }
 
     if (_records.length == 1) {

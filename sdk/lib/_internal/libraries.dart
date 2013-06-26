@@ -83,12 +83,6 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       documented: false,
       platforms: VM_PLATFORM),
 
-  "mdv_observe_impl": const LibraryInfo(
-      "mdv_observe_impl/mdv_observe_impl.dart",
-      category: "Client",
-      documented: false,
-      implementation: true),
-
   "typed_data": const LibraryInfo(
       "typed_data/typed_data.dart",
       dart2jsPath: "typed_data/dart2js/typed_data_dart2js.dart"),

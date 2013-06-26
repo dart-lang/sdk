@@ -8,10 +8,11 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:html';
 import 'dart:math' as math;
-import 'package:mdv_observe/mdv_observe.dart';
+import 'package:mdv/mdv.dart' as mdv;
+import 'package:observe/observe.dart';
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
-import 'mdv_observe_utils.dart';
+import 'observe_utils.dart';
 
 // Note: this file ported from
 // https://github.com/toolkitchen/mdv/blob/master/tests/template_element.js
@@ -20,6 +21,7 @@ import 'mdv_observe_utils.dart';
 // look for "assertNodesAre".
 
 main() {
+  mdv.initialize();
   useHtmlConfiguration();
   group('Template Element', templateElementTests);
 }
@@ -1212,14 +1214,15 @@ templateElementTests() {
         '</template>');
     var template = div.nodes.first;
 
+    // Note: this test data is a little different from the JS version, because
+    // we allow binding to the "length" field of the Map in preference to
+    // binding keys.
     var m = toSymbols({
       'a': [
-        {'length': 0},
-        {
-          'length': 1,
-          'b': {'length': 4}
-        },
-        {'length': 2}
+        [],
+        { 'b': [1,2,3,4] },
+        // Note: this will use the Map "length" property, not the "length" key.
+        {'length': 42, 'c': 123}
       ]
     });
     recursivelySetTemplateModel(div, m);
@@ -1324,7 +1327,7 @@ templateElementTests() {
     if (ShadowRoot.supported) {
       var root = createShadowTestHtml('Hi {{ name }}');
       var model = toSymbolMap({'name': 'Leela'});
-      TemplateElement.bindModel(root, model);
+      mdv.bindModel(root, model);
       deliverChangeRecords();
       expect(root.text, 'Hi Leela');
     }
@@ -1333,7 +1336,7 @@ templateElementTests() {
   test('bindModel to polyfilled shadow root', () {
     var root = createTestHtml('Hi {{ name }}');
     var model = toSymbolMap({'name': 'Leela'});
-    TemplateElement.bindModel(root, model);
+    mdv.bindModel(root, model);
     deliverChangeRecords();
     expect(root.text, 'Hi Leela');
   });
@@ -1445,7 +1448,7 @@ templateElementTests() {
 
   test('instanceCreated hack', () {
     var called = false;
-    var sub = TemplateElement.instanceCreated.listen((node) {
+    var sub = mdv.instanceCreated.listen((node) {
       called = true;
       expect(node.nodeType, Node.DOCUMENT_FRAGMENT_NODE);
     });

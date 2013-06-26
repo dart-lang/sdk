@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of mdv_observe;
+part of observe;
 
 // TODO(jmesserly): this needs to be faster. We currently require multiple
 // lookups per key to get the old value.
@@ -68,7 +68,7 @@ class ObservableMap<K, V> extends ObservableBase implements Map<K, V> {
    */
   factory ObservableMap.from(Map<K, V> other) {
     var result = new ObservableMap<K, V>._createFromType(other);
-    other.forEach((K key, V value) { result[key] = value; });
+    other.forEach((key, value) { result[key] = value; });
     return result;
   }
 

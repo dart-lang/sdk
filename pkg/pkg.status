@@ -194,6 +194,6 @@ serialization/test/no_library_test: Skip # Expected Failure
 [ ($runtime == dartium || $runtime == drt) && $compiler == none ]
 pathos/test/pathos_dart2js_test: Fail, OK # Issue 6490
 
-# Skip mdv_observe tests on command line VM, they only run in the browser.
+# Skip mdv tests on command line VM, they only run in the browser.
 [ $runtime == vm ]
-mdv_observe: Skip
+mdv: Skip

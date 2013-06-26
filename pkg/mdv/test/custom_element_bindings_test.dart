@@ -6,12 +6,14 @@ library custom_element_bindings_test;
 
 import 'dart:async';
 import 'dart:html';
-import 'package:mdv_observe/mdv_observe.dart';
+import 'package:mdv/mdv.dart' as mdv;
+import 'package:observe/observe.dart';
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
-import 'mdv_observe_utils.dart';
+import 'observe_utils.dart';
 
 main() {
+  mdv.initialize();
   useHtmlConfiguration();
   group('Custom Element Bindings', customElementBindingsTest);
 }
@@ -120,7 +122,7 @@ customElementBindingsTest() {
           '</my-custom-element>'
         '</template>');
 
-    TemplateElement.instanceCreated.listen((fragment) {
+    mdv.instanceCreated.listen((fragment) {
       for (var e in fragment.queryAll('my-custom-element')) {
         new MyCustomElement.attach(e);
       }
@@ -208,14 +210,12 @@ class MyCustomElement implements Element {
     switch (name) {
       case 'my-point':
         if (_sub1 != null) {
-          print('!!! unbind $name');
           _sub1.cancel();
           _sub1 = null;
         }
         return;
       case 'scary-monster':
         if (_sub2 != null) {
-          print('!!! unbind $name');
           _sub2.cancel();
           _sub2 = null;
         }

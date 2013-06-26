@@ -2,249 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of html;
+part of mdv;
 
 // This code is a port of Model-Driven-Views:
 // https://github.com/polymer-project/mdv
 // The code mostly comes from src/template_element.js
 
 typedef void _ChangeHandler(value);
-
-/**
- * Model-Driven Views (MDV)'s native features enables a wide-range of use cases,
- * but (by design) don't attempt to implement a wide array of specialized
- * behaviors.
- *
- * Enabling these features in MDV is a matter of implementing and registering an
- * MDV Custom Syntax. A Custom Syntax is an object which contains one or more
- * delegation functions which implement specialized behavior. This object is
- * registered with MDV via [TemplateElement.syntax]:
- *
- *
- * HTML:
- *     <template bind syntax="MySyntax">
- *       {{ What!Ever('crazy')->thing^^^I+Want(data) }}
- *     </template>
- *
- * Dart:
- *     class MySyntax extends CustomBindingSyntax {
- *       getBinding(model, path, name, node) {
- *         // The magic happens here!
- *       }
- *     }
- *
- *     ...
- *
- *     TemplateElement.syntax['MySyntax'] = new MySyntax();
- *
- * See <https://github.com/polymer-project/mdv/blob/master/docs/syntax.md> for more
- * information about Custom Syntax.
- */
-// TODO(jmesserly): if this is just one method, a function type would make it
-// more Dart-friendly.
-@Experimental
-abstract class CustomBindingSyntax {
-  /**
-   * This syntax method allows for a custom interpretation of the contents of
-   * mustaches (`{{` ... `}}`).
-   *
-   * When a template is inserting an instance, it will invoke this method for
-   * each mustache which is encountered. The function is invoked with four
-   * arguments:
-   *
-   * - [model]: The data context for which this instance is being created.
-   * - [path]: The text contents (trimmed of outer whitespace) of the mustache.
-   * - [name]: The context in which the mustache occurs. Within element
-   *   attributes, this will be the name of the attribute. Within text,
-   *   this will be 'text'.
-   * - [node]: A reference to the node to which this binding will be created.
-   *
-   * If the method wishes to handle binding, it is required to return an object
-   * which has at least a `value` property that can be observed. If it does,
-   * then MDV will call [Node.bind on the node:
-   *
-   *     node.bind(name, retval, 'value');
-   *
-   * If the 'getBinding' does not wish to override the binding, it should return
-   * null.
-   */
-  // TODO(jmesserly): I had to remove type annotations from "name" and "node"
-  // Normally they are String and Node respectively. But sometimes it will pass
-  // (int name, CompoundBinding node). That seems very confusing; we may want
-  // to change this API.
-  getBinding(model, String path, name, node) => null;
-
-  /**
-   * This syntax method allows a syntax to provide an alterate model than the
-   * one the template would otherwise use when producing an instance.
-   *
-   * When a template is about to create an instance, it will invoke this method
-   * The function is invoked with two arguments:
-   *
-   * - [template]: The template element which is about to create and insert an
-   *   instance.
-   * - [model]: The data context for which this instance is being created.
-   *
-   * The template element will always use the return value of `getInstanceModel`
-   * as the model for the new instance. If the syntax does not wish to override
-   * the value, it should simply return the `model` value it was passed.
-   */
-  getInstanceModel(Element template, model) => model;
-
-  /**
-   * This syntax method allows a syntax to provide an alterate expansion of
-   * the [template] contents. When the template wants to create an instance,
-   * it will call this method with the template element.
-   *
-   * By default this will call `template.createInstance()`.
-   */
-  getInstanceFragment(Element template) => template.createInstance();
-}
-
-/** The callback used in the [CompoundBinding.combinator] field. */
-@Experimental
-typedef Object CompoundBindingCombinator(Map objects);
-
-/** Information about the instantiated template. */
-@Experimental
-class TemplateInstance {
-  // TODO(rafaelw): firstNode & lastNode should be read-synchronous
-  // in cases where script has modified the template instance boundary.
-
-  /** The first node of this template instantiation. */
-  final Node firstNode;
-
-  /**
-   * The last node of this template instantiation.
-   * This could be identical to [firstNode] if the template only expanded to a
-   * single node.
-   */
-  final Node lastNode;
-
-  /** The model used to instantiate the template. */
-  final model;
-
-  TemplateInstance(this.firstNode, this.lastNode, this.model);
-}
-
-/**
- * Model-Driven Views contains a helper object which is useful for the
- * implementation of a Custom Syntax.
- *
- *     var binding = new CompoundBinding((values) {
- *       var combinedValue;
- *       // compute combinedValue based on the current values which are provided
- *       return combinedValue;
- *     });
- *     binding.bind('name1', obj1, path1);
- *     binding.bind('name2', obj2, path2);
- *     //...
- *     binding.bind('nameN', objN, pathN);
- *
- * CompoundBinding is an object which knows how to listen to multiple path
- * values (registered via [bind]) and invoke its [combinator] when one or more
- * of the values have changed and set its [value] property to the return value
- * of the function. When any value has changed, all current values are provided
- * to the [combinator] in the single `values` argument.
- *
- * See [CustomBindingSyntax] for more information.
- */
-// TODO(jmesserly): what is the public API surface here? I just guessed;
-// most of it seemed non-public.
-@Experimental
-class CompoundBinding extends ObservableBase {
-  CompoundBindingCombinator _combinator;
-
-  // TODO(jmesserly): ideally these would be String keys, but sometimes we
-  // use integers.
-  Map<dynamic, StreamSubscription> _bindings = new Map();
-  Map _values = new Map();
-  bool _scheduled = false;
-  bool _disposed = false;
-  Object _value;
-
-  CompoundBinding([CompoundBindingCombinator combinator]) {
-    // TODO(jmesserly): this is a tweak to the original code, it seemed to me
-    // that passing the combinator to the constructor should be equivalent to
-    // setting it via the property.
-    // I also added a null check to the combinator setter.
-    this.combinator = combinator;
-  }
-
-  CompoundBindingCombinator get combinator => _combinator;
-
-  set combinator(CompoundBindingCombinator combinator) {
-    _combinator = combinator;
-    if (combinator != null) _scheduleResolve();
-  }
-
-  static const _VALUE = const Symbol('value');
-
-  get value => _value;
-
-  void set value(newValue) {
-    _value = notifyPropertyChange(_VALUE, _value, newValue);
-  }
-
-  // TODO(jmesserly): remove these workarounds when dart2js supports mirrors!
-  getValueWorkaround(key) {
-    if (key == _VALUE) return value;
-    return null;
-  }
-  setValueWorkaround(key, val) {
-    if (key == _VALUE) value = val;
-  }
-
-  void bind(name, model, String path) {
-    unbind(name);
-
-    _bindings[name] = new PathObserver(model, path).bindSync((value) {
-      _values[name] = value;
-      _scheduleResolve();
-    });
-  }
-
-  void unbind(name, {bool suppressResolve: false}) {
-    var binding = _bindings.remove(name);
-    if (binding == null) return;
-
-    binding.cancel();
-    _values.remove(name);
-    if (!suppressResolve) _scheduleResolve();
-  }
-
-  // TODO(rafaelw): Is this the right processing model?
-  // TODO(rafaelw): Consider having a seperate ChangeSummary for
-  // CompoundBindings so to excess dirtyChecks.
-  void _scheduleResolve() {
-    if (_scheduled) return;
-    _scheduled = true;
-    queueChangeRecords(resolve);
-  }
-
-  void resolve() {
-    if (_disposed) return;
-    _scheduled = false;
-
-    if (_combinator == null) {
-      throw new StateError(
-          'CompoundBinding attempted to resolve without a combinator');
-    }
-
-    value = _combinator(_values);
-  }
-
-  void dispose() {
-    for (var binding in _bindings.values) {
-      binding.cancel();
-    }
-    _bindings.clear();
-    _values.clear();
-
-    _disposed = true;
-    value = null;
-  }
-}
 
 abstract class _InputBinding {
   final InputElement element;
@@ -310,7 +74,7 @@ class _CheckedBinding extends _InputBinding {
     // CheckedBinding manually.
     if (element is InputElement && element.type == 'radio') {
       for (var r in _getAssociatedRadioButtons(element)) {
-        var checkedBinding = r._checkedBinding;
+        var checkedBinding = _mdv(r)._checkedBinding;
         if (checkedBinding != null) {
           // Set the value directly to avoid an infinite call stack.
           checkedBinding.binding.value = false;
@@ -376,93 +140,6 @@ class _Bindings {
     }
     return clone;
   }
-
-  // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/templates/index.html#dfn-template-contents-owner
-  static Document _getTemplateContentsOwner(HtmlDocument doc) {
-    if (doc.window == null) {
-      return doc;
-    }
-    var d = doc._templateContentsOwner;
-    if (d == null) {
-      // TODO(arv): This should either be a Document or HTMLDocument depending
-      // on doc.
-      d = doc.implementation.createHtmlDocument('');
-      while (d.lastChild != null) {
-        d.lastChild.remove();
-      }
-      doc._templateContentsOwner = d;
-    }
-    return d;
-  }
-
-  static Element _cloneAndSeperateAttributeTemplate(Element templateElement) {
-    var clone = templateElement.clone(false);
-    var attributes = templateElement.attributes;
-    for (var name in attributes.keys.toList()) {
-      switch (name) {
-        case 'template':
-        case 'repeat':
-        case 'bind':
-        case 'ref':
-          clone.attributes.remove(name);
-          break;
-        default:
-          attributes.remove(name);
-          break;
-      }
-    }
-
-    return clone;
-  }
-
-  static void _liftNonNativeChildrenIntoContent(Element templateElement) {
-    var content = templateElement.content;
-
-    if (!templateElement._isAttributeTemplate) {
-      var child;
-      while ((child = templateElement.firstChild) != null) {
-        content.append(child);
-      }
-      return;
-    }
-
-    // For attribute templates we copy the whole thing into the content and
-    // we move the non template attributes into the content.
-    //
-    //   <tr foo template>
-    //
-    // becomes
-    //
-    //   <tr template>
-    //   + #document-fragment
-    //     + <tr foo>
-    //
-    var newRoot = _cloneAndSeperateAttributeTemplate(templateElement);
-    var child;
-    while ((child = templateElement.firstChild) != null) {
-      newRoot.append(child);
-    }
-    content.append(newRoot);
-  }
-
-  static void _bootstrapTemplatesRecursivelyFrom(Node node) {
-    void bootstrap(template) {
-      if (!TemplateElement.decorate(template)) {
-        _bootstrapTemplatesRecursivelyFrom(template.content);
-      }
-    }
-
-    // Need to do this first as the contents may get lifted if |node| is
-    // template.
-    // TODO(jmesserly): node is DocumentFragment or Element
-    var descendents = (node as dynamic).queryAll(_allTemplatesSelectors);
-    if (node is Element && (node as Element).isTemplate) bootstrap(node);
-
-    descendents.forEach(bootstrap);
-  }
-
-  static final String _allTemplatesSelectors = 'template, option[template], ' +
-      Element._TABLE_TAGS.keys.map((k) => "$k[template]").join(", ");
 
   static void _addBindings(Node node, model, [CustomBindingSyntax syntax]) {
     if (node is Element) {
@@ -596,7 +273,7 @@ class _Bindings {
 
     var node = instanceRecord.firstNode;
     while (node != null) {
-      node._templateInstance = instanceRecord;
+      _mdv(node)._templateInstance = instanceRecord;
       node = node.nextNode;
     }
   }
@@ -609,14 +286,14 @@ class _Bindings {
   }
 
   static void _removeChild(Node parent, Node child) {
-    child._templateInstance = null;
+    _mdv(child)._templateInstance = null;
     if (child is Element && (child as Element).isTemplate) {
       Element childElement = child;
       // Make sure we stop observing when we remove an element.
-      var templateIterator = childElement._templateIterator;
+      var templateIterator = _mdv(childElement)._templateIterator;
       if (templateIterator != null) {
         templateIterator.abandon();
-        childElement._templateIterator = null;
+        _mdv(childElement)._templateIterator = null;
       }
     }
     child.remove();
@@ -683,12 +360,14 @@ class _TemplateIterator {
   Node getTerminatorAt(int index) {
     if (index == -1) return _templateElement;
     var terminator = terminators[index];
-    if (terminator is! Element) return terminator;
+    if (terminator is Element && (terminator as Element).isTemplate) {
+      var subIterator = _mdv(terminator)._templateIterator;
+      if (subIterator != null) {
+        return subIterator.getTerminatorAt(subIterator.terminators.length - 1);
+      }
+    }
 
-    var subIterator = terminator._templateIterator;
-    if (subIterator == null) return terminator;
-
-    return subIterator.getTerminatorAt(subIterator.terminators.length - 1);
+    return terminator;
   }
 
   void insertInstanceAt(int index, Node fragment) {
@@ -749,7 +428,7 @@ class _TemplateIterator {
     return _templateElement.createInstance();
   }
 
-  void _handleChanges(List<ListChangeRecord> splices) {
+  void _handleChanges(List<ChangeRecord> splices) {
     var syntax = TemplateElement.syntax[_templateElement.attributes['syntax']];
 
     for (var splice in splices) {

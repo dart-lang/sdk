@@ -7,15 +7,17 @@ library binding_syntax_test;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:html';
-import 'package:mdv_observe/mdv_observe.dart';
+import 'package:mdv/mdv.dart' as mdv;
+import 'package:observe/observe.dart';
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
-import 'mdv_observe_utils.dart';
+import 'observe_utils.dart';
 
 // Note: this file ported from
 // https://github.com/toolkitchen/mdv/blob/master/tests/syntax.js
 
 main() {
+  mdv.initialize();
   useHtmlConfiguration();
   group('Syntax', syntaxTests);
 }

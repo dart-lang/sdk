@@ -1,0 +1,13 @@
+name: mdv
+author: "Web UI Team <web-ui-dev@dartlang.org>"
+homepage: https://github.com/dart-lang/web-ui
+description: >
+  Model-Driven-Views (MDV) extends HTML and the DOM APIs to support a sensible
+  separation between the UI (DOM) of a document or application and its
+  underlying data (model).
+  Updates to the model are reflected in the DOM and user input into the DOM is
+  immediately assigned to the model.
+dependencies:
+  observe: any
+dev_dependencies:
+  unittest: any

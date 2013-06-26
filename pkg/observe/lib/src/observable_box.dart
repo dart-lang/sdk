@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of mdv_observe;
+part of observe;
 
 // TODO(jmesserly): should the property name be configurable?
 // That would be more convenient.
@@ -13,8 +13,6 @@ part of mdv_observe;
  * [ObservableMixin]. The property name for changes is "value".
  */
 class ObservableBox<T> extends ObservableBase {
-  static const _VALUE = const Symbol('value');
-
   T _value;
 
   ObservableBox([T initialValue]) : _value = initialValue;
@@ -22,16 +20,8 @@ class ObservableBox<T> extends ObservableBase {
   T get value => _value;
 
   void set value(T newValue) {
-    _value = notifyPropertyChange(_VALUE, _value, newValue);
+    _value = notifyPropertyChange(const Symbol('value'), _value, newValue);
   }
 
   String toString() => '#<$runtimeType value: $value>';
-
-  getValueWorkaround(key) {
-    if (key == _VALUE) return value;
-    return null;
-  }
-  void setValueWorkaround(key, newValue) {
-    if (key == _VALUE) value = newValue;
-  }
 }
