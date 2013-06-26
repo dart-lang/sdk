@@ -361,7 +361,7 @@ int64_t EventHandlerImplementation::GetTimeout() {
 
 void EventHandlerImplementation::HandleTimeout() {
   if (timeout_ != kInfinityTimeout) {
-    intptr_t millis = timeout_ - TimerUtils::GetCurrentTimeMilliseconds();
+    int64_t millis = timeout_ - TimerUtils::GetCurrentTimeMilliseconds();
     if (millis <= 0) {
       DartUtils::PostNull(timeout_port_);
       timeout_ = kInfinityTimeout;
