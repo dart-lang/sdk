@@ -224,7 +224,8 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
 
 // Input parameters:
 //   R10: smi-tagged argument count, may be zero.
-static void PushArgumentsArray(Assembler* assembler, intptr_t arg_offset) {
+//   RBP[kParamEndSlotFromFp + 1]: last argument.
+static void PushArgumentsArray(Assembler* assembler) {
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
 
@@ -235,8 +236,10 @@ static void PushArgumentsArray(Assembler* assembler, intptr_t arg_offset) {
   // RAX: newly allocated array.
   // R10: length of the array (was preserved by the stub).
   __ pushq(RAX);  // Array is in RAX and on top of stack.
-  __ leaq(R12, Address(RSP, R10, TIMES_8, arg_offset));  // Addr of first arg.
+  __ leaq(R12, Address(RBP, R10, TIMES_8, kParamEndSlotFromFp * kWordSize));
   __ leaq(RBX, FieldAddress(RAX, Array::data_offset()));
+  // R12: address of first argument on stack.
+  // RBX: address of first argument in array.
   Label loop, loop_condition;
   __ jmp(&loop_condition, Assembler::kNearJump);
   __ Bind(&loop);
@@ -275,25 +278,12 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
 
   // Pass the call's arguments array.
   __ movq(R10, R13);  // Smi-tagged arguments array length.
-  PushArgumentsArray(assembler, (7 * kWordSize));
-  // Stack layout explaining "(7 * kWordSize)" offset.
-  // TOS + 0: Arguments array.
-  // TOS + 1: Arguments descriptor array.
-  // TOS + 2: IC data object.
-  // TOS + 3: Receiver.
-  // TOS + 4: Space for the result of the runtime call.
-  // TOS + 5: Stub's PC marker (0)
-  // TOS + 6: Saved FP
-  // TOS + 7: Dart code return address
-  // TOS + 8: Last argument of caller.
-  // ....
+  PushArgumentsArray(assembler);
 
   __ CallRuntime(kInstanceFunctionLookupRuntimeEntry);
+
   // Remove arguments.
-  __ popq(RAX);
-  __ popq(RAX);
-  __ popq(RAX);
-  __ popq(RAX);
+  __ Drop(4);
   __ popq(RAX);  // Get result into RAX.
   __ LeaveFrame();
   __ ret();
@@ -678,22 +668,12 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ pushq(R10);  // Arguments descriptor.
   // Load smi-tagged arguments array length, including the non-closure.
   __ movq(R10, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-  // See stack layout below explaining "wordSize * 5" offset.
-  PushArgumentsArray(assembler, (kWordSize * 5));
+  PushArgumentsArray(assembler);
 
-  // Stack:
-  // TOS + 0: Argument array.
-  // TOS + 1: Arguments descriptor array.
-  // TOS + 2: Place for result from the call.
-  // TOS + 3: PC marker => RawInstruction object.
-  // TOS + 4: Saved RBP of previous frame. <== RBP
-  // TOS + 5: Dart code return address
-  // TOS + 6: Last argument of caller.
-  // ....
   __ CallRuntime(kInvokeNonClosureRuntimeEntry);
+
   // Remove arguments.
-  __ popq(RAX);
-  __ popq(RAX);
+  __ Drop(2);
   __ popq(RAX);  // Get result into RAX.
 
   // Remove the stub frame as we are about to return.
@@ -1341,56 +1321,35 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
 }
 
 
-// Called for invoking noSuchMethod function from the entry code of a dart
-// function after an error in passed named arguments is detected.
+// Called for invoking "dynamic noSuchMethod(Invocation invocation)" function
+// from the entry code of a dart function after an error in passed argument
+// name or number is detected.
 // Input parameters:
-//   RBP - 8 : PC marker => RawInstruction object.
-//   RBP : points to previous frame pointer.
-//   RBP + 8 : points to return address.
-//   RBP + 16 : address of last argument (arg n-1).
-//   RBP + 16 + 8*(n-1) : address of first argument (arg 0).
+//   RSP : points to return address.
+//   RSP + 8 : address of last argument.
 //   RBX : ic-data.
 //   R10 : arguments descriptor array.
 void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
-  // The target function was not found, so invoke method
-  // "dynamic noSuchMethod(Invocation invocation)".
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  __ movq(R13, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-  __ movq(RAX, Address(RBP, R13, TIMES_4, kWordSize));  // Get receiver.
-
-  // Create a stub frame.
   __ EnterStubFrame();
 
+  // Load the receiver.
+  __ movq(R13, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
+  __ movq(RAX, Address(RBP, R13, TIMES_4, kParamEndSlotFromFp * kWordSize));
+
+  const Immediate& raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ pushq(raw_null);  // Setup space on stack for result from noSuchMethod.
   __ pushq(RAX);  // Receiver.
   __ pushq(RBX);  // IC data array.
   __ pushq(R10);  // Arguments descriptor array.
 
   __ movq(R10, R13);  // Smi-tagged arguments array length.
-  // See stack layout below explaining "wordSize * 10" offset.
-  PushArgumentsArray(assembler, (kWordSize * 10));
+  PushArgumentsArray(assembler);
 
-  // Stack:
-  // TOS + 0: Argument array.
-  // TOS + 1: Arguments descriptor array.
-  // TOS + 2: Ic-data array.
-  // TOS + 3: Receiver.
-  // TOS + 4: Place for result from noSuchMethod.
-  // TOS + 5: PC marker => RawInstruction object.
-  // TOS + 6: Saved RBP of previous frame. <== RBP
-  // TOS + 7: Dart callee (or stub) code return address
-  // TOS + 8: PC marker => RawInstruction object of dart caller frame.
-  // TOS + 9: Saved RBP of dart caller frame.
-  // TOS + 10: Dart caller code return address
-  // TOS + 11: Last argument of caller.
-  // ....
   __ CallRuntime(kInvokeNoSuchMethodFunctionRuntimeEntry);
+
   // Remove arguments.
-  __ popq(RAX);
-  __ popq(RAX);
-  __ popq(RAX);
-  __ popq(RAX);
+  __ Drop(4);
   __ popq(RAX);  // Get result into RAX.
 
   // Remove the stub frame as we are about to return.

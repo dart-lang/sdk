@@ -1281,8 +1281,12 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
 }
 
 
-// The target function was not found, so invoke method
-// "dynamic noSuchMethod(Invocation invocation)".
+// Called for invoking "dynamic noSuchMethod(Invocation invocation)" function
+// from the entry code of a dart function after an error in passed argument
+// name or number is detected.
+// Input parameters:
+//  LR : return address.
+//  SP : address of last argument.
 //  R5: inline cache data object.
 //  R4: arguments descriptor array.
 void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {

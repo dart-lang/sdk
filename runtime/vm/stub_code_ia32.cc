@@ -227,8 +227,9 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
 
 // Input parameters:
 //   EDX: smi-tagged argument count, may be zero.
+//   EBP[kParamEndSlotFromFp + 1]: last argument.
 // Uses EAX, EBX, ECX, EDX.
-static void PushArgumentsArray(Assembler* assembler, intptr_t arg_offset) {
+static void PushArgumentsArray(Assembler* assembler) {
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
 
@@ -239,8 +240,10 @@ static void PushArgumentsArray(Assembler* assembler, intptr_t arg_offset) {
   // EAX: newly allocated array.
   // EDX: length of the array (was preserved by the stub).
   __ pushl(EAX);  // Array is in EAX and on top of stack.
-  __ leal(EBX, Address(ESP, EDX, TIMES_4, arg_offset));  // Addr of first arg.
+  __ leal(EBX, Address(EBP, EDX, TIMES_4, kParamEndSlotFromFp * kWordSize));
   __ leal(ECX, FieldAddress(EAX, Array::data_offset()));
+  // EBX: address of first argument on stack.
+  // ECX: address of first argument in array.
   Label loop, loop_condition;
   __ jmp(&loop_condition, Assembler::kNearJump);
   __ Bind(&loop);
@@ -280,25 +283,12 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
 
   // Pass the call's arguments array.
   __ movl(EDX, EDI);  // Smi-tagged arguments array length.
-  PushArgumentsArray(assembler, (7 * kWordSize));
-  // Stack layout explaining "(7 * kWordSize)" offset.
-  // TOS + 0: Arguments array.
-  // TOS + 1: Arguments descriptor array.
-  // TOS + 2: IC data object.
-  // TOS + 3: Receiver.
-  // TOS + 4: Space for the result of the runtime call.
-  // TOS + 5: Stub's PC marker (0)
-  // TOS + 6: Saved FP
-  // TOS + 7: Dart code return address
-  // TOS + 8: Last argument of caller.
-  // ....
+  PushArgumentsArray(assembler);
 
   __ CallRuntime(kInstanceFunctionLookupRuntimeEntry);
+
   // Remove arguments.
-  __ popl(EAX);
-  __ popl(EAX);
-  __ popl(EAX);
-  __ popl(EAX);
+  __ Drop(4);
   __ popl(EAX);  // Get result into EAX.
   __ LeaveFrame();
   __ ret();
@@ -691,22 +681,11 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ pushl(EDX);  // Arguments descriptor.
   // Load smi-tagged arguments array length, including the non-closure.
   __ movl(EDX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
-  // See stack layout below explaining "wordSize * 5" offset.
-  PushArgumentsArray(assembler, (kWordSize * 5));
+  PushArgumentsArray(assembler);
 
-  // Stack:
-  // TOS + 0: Argument array.
-  // TOS + 1: Arguments descriptor array.
-  // TOS + 2: Place for result from the call.
-  // TOS + 3: PC marker => RawInstruction object.
-  // TOS + 4: Saved EBP of previous frame. <== EBP
-  // TOS + 5: Dart code return address
-  // TOS + 6: Last argument of caller.
-  // ....
   __ CallRuntime(kInvokeNonClosureRuntimeEntry);
   // Remove arguments.
-  __ popl(EAX);
-  __ popl(EAX);
+  __ Drop(2);
   __ popl(EAX);  // Get result into EAX.
 
   // Remove the stub frame as we are about to return.
@@ -1356,58 +1335,37 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
 }
 
 
-// Called for invoking noSuchMethod function from the entry code of a dart
-// function after an error in passed named arguments is detected.
+// Called for invoking "dynamic noSuchMethod(Invocation invocation)" function
+// from the entry code of a dart function after an error in passed argument
+// name or number is detected.
 // Input parameters:
-//   EBP - 4 : PC marker => RawInstruction object.
-//   EBP : points to previous frame pointer.
-//   EBP + 4 : points to return address.
-//   EBP + 8 : address of last argument (arg n-1).
-//   EBP + 8 + 4*(n-1) : address of first argument (arg 0).
+//   ESP : points to return address.
+//   ESP + 4 : address of last argument.
 //   ECX : ic-data.
 //   EDX : arguments descriptor array.
 // Uses EAX, EBX, EDI as temporary registers.
 void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
-  // The target function was not found, so invoke method
-  // "dynamic noSuchMethod(Invocation invocation)".
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  __ movl(EDI, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
-  __ movl(EAX, Address(EBP, EDI, TIMES_2, kWordSize));  // Get receiver.
-
-  // Create a stub frame as we are pushing some objects on the stack before
-  // calling into the runtime.
   __ EnterStubFrame();
 
+  // Load the receiver.
+  __ movl(EDI, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
+  __ movl(EAX, Address(EBP, EDI, TIMES_2, kParamEndSlotFromFp * kWordSize));
+
+  const Immediate& raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ pushl(raw_null);  // Setup space on stack for result from noSuchMethod.
   __ pushl(EAX);  // Receiver.
   __ pushl(ECX);  // IC data array.
   __ pushl(EDX);  // Arguments descriptor array.
 
   __ movl(EDX, EDI);
-  // See stack layout below explaining "wordSize * 10" offset.
-  PushArgumentsArray(assembler, (kWordSize * 10));
+  // EDX: Smi-tagged arguments array length.
+  PushArgumentsArray(assembler);
 
-  // Stack:
-  // TOS + 0: Argument array.
-  // TOS + 1: Arguments descriptor array.
-  // TOS + 2: Ic-data.
-  // TOS + 3: Receiver.
-  // TOS + 4: Place for result from noSuchMethod.
-  // TOS + 5: PC marker => RawInstruction object.
-  // TOS + 6: Saved EBP of previous frame. <== EBP
-  // TOS + 7: Dart callee (or stub) code return address
-  // TOS + 8: PC marker => RawInstruction object of dart caller frame.
-  // TOS + 9: Saved EBP of dart caller frame.
-  // TOS + 10: Dart caller code return address
-  // TOS + 11: Last argument of caller.
-  // ....
   __ CallRuntime(kInvokeNoSuchMethodFunctionRuntimeEntry);
+
   // Remove arguments.
-  __ popl(EAX);
-  __ popl(EAX);
-  __ popl(EAX);
-  __ popl(EAX);
+  __ Drop(4);
   __ popl(EAX);  // Get result into EAX.
 
   // Remove the stub frame as we are about to return.

@@ -486,6 +486,18 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
 }
 
 
+void Assembler::LeaveDartFrame() {
+  addiu(SP, FP, Immediate(-kWordSize));
+
+  lw(RA, Address(SP, 2 * kWordSize));
+  lw(FP, Address(SP, 1 * kWordSize));
+  lw(PP, Address(SP, 0 * kWordSize));
+
+  // Adjust SP for PC, RA, FP, PP pushed in EnterDartFrame.
+  addiu(SP, SP, Immediate(4 * kWordSize));
+}
+
+
 void Assembler::LeaveDartFrameAndReturn() {
   addiu(SP, FP, Immediate(-kWordSize));
 
@@ -493,7 +505,7 @@ void Assembler::LeaveDartFrameAndReturn() {
   lw(FP, Address(SP, 1 * kWordSize));
   lw(PP, Address(SP, 0 * kWordSize));
 
-  // Adjust SP for PC pushed in EnterDartFrame, and return.
+  // Adjust SP for PC, RA, FP, PP pushed in EnterDartFrame, and return.
   Ret();
   delay_slot()->addiu(SP, SP, Immediate(4 * kWordSize));
 }

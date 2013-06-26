@@ -1049,6 +1049,7 @@ class Assembler : public ValueObject {
   // enable easy access to the RawInstruction object of code corresponding
   // to this frame.
   void EnterDartFrame(intptr_t frame_size);
+  void LeaveDartFrame();
   void LeaveDartFrameAndReturn();
 
  private:
