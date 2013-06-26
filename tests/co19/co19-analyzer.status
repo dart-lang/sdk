@@ -31,9 +31,8 @@ Language/14_Types/3_Type_Declarations/1_Typedef_A07_t04: fail
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: fail
 Language/15_Reference/1_Lexical_Rules_A02_t06: fail
 
-
-# fails locally, passes on bot
-Language/13_Libraries_and_Scripts/3_Parts_A02_t03: skip
+# analyzer problem: forward reference of typedef with type parameters
+Language/13_Libraries_and_Scripts/3_Parts_A02_t03: fail
 
 # co19 issue #380, Strings class has been removed
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: fail, OK
@@ -104,7 +103,7 @@ Language/11_Expressions/08_Throw_A05_t01: fail, OK
 Language/11_Expressions/08_Throw_A05_t02: fail, OK
 Language/11_Expressions/08_Throw_A05_t03: fail, OK
 
-# infinite loop
+# analyzer issue https://code.google.com/p/dart/issues/detail?id=11534
 Language/14_Types/4_Interface_Types_A11_t01: skip
 Language/14_Types/4_Interface_Types_A11_t02: skip
 
