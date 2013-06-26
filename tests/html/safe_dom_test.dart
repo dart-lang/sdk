@@ -76,8 +76,8 @@ DocumentFragment createContextualFragment(String html, [String contextTag]) {
   } else {
     contextElement.innerHtml = html;
     var fragment = new DocumentFragment();;
-    while (contextElement.$dom_firstChild != null) {
-      fragment.append(contextElement.$dom_firstChild);
+    while (contextElement.firstChild != null) {
+      fragment.append(contextElement.firstChild);
     }
     return fragment;
   }

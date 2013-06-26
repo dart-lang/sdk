@@ -34,12 +34,12 @@ $if DART2JS
   }
 $else
   Node get first {
-    Node result = _this.$dom_firstChild;
+    Node result = _this.firstChild;
     if (result == null) throw new StateError("No elements");
     return result;
   }
   Node get last {
-    Node result = _this.$dom_lastChild;
+    Node result = _this.lastChild;
     if (result == null) throw new StateError("No elements");
     return result;
   }
@@ -47,7 +47,7 @@ $else
     int l = this.length;
     if (l == 0) throw new StateError("No elements");
     if (l > 1) throw new StateError("More than one element");
-    return _this.$dom_firstChild;
+    return _this.firstChild;
   }
 $endif
 
@@ -61,8 +61,7 @@ $endif
       if (!identical(otherList._this, _this)) {
         // Optimized route for copying between nodes.
         for (var i = 0, len = otherList.length; i < len; ++i) {
-          // Should use $dom_firstChild, Bug 8886.
-          _this.append(otherList[0]);
+          _this.append(otherList._this.firstChild);
         }
       }
       return;
@@ -120,7 +119,7 @@ $endif
     // This implementation of removeWhere/retainWhere is more efficient
     // than the default in ListBase. Child nodes can be removed in constant
     // time.
-    Node child = _this.$dom_firstChild;
+    Node child = _this.firstChild;
     while (child != null) {
       Node nextChild = child.nextNode;
       if (test(child) == removeMatching) {
@@ -237,8 +236,7 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
       // Optimized route for copying between nodes.
       for (var i = 0, len = otherList.length; i < len; ++i) {
-        // Should use $dom_firstChild, Bug 8886.
-        this.insertBefore(otherList[0], refChild);
+        this.insertBefore(otherList._this.firstChild, refChild);
       }
     } else {
       for (var node in newNodes) {

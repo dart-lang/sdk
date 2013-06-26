@@ -371,7 +371,7 @@ class _Bindings {
       }
     }
 
-    for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
+    for (var c = node.firstChild; c != null; c = c.nextNode) {
       clone.append(_createDeepCloneAndDecorateTemplates(c, syntax));
     }
     return clone;
@@ -387,8 +387,8 @@ class _Bindings {
       // TODO(arv): This should either be a Document or HTMLDocument depending
       // on doc.
       d = doc.implementation.createHtmlDocument('');
-      while (d.$dom_lastChild != null) {
-        d.$dom_lastChild.remove();
+      while (d.lastChild != null) {
+        d.lastChild.remove();
       }
       doc._templateContentsOwner = d;
     }
@@ -420,7 +420,7 @@ class _Bindings {
 
     if (!templateElement._isAttributeTemplate) {
       var child;
-      while ((child = templateElement.$dom_firstChild) != null) {
+      while ((child = templateElement.firstChild) != null) {
         content.append(child);
       }
       return;
@@ -439,7 +439,7 @@ class _Bindings {
     //
     var newRoot = _cloneAndSeperateAttributeTemplate(templateElement);
     var child;
-    while ((child = templateElement.$dom_firstChild) != null) {
+    while ((child = templateElement.firstChild) != null) {
       newRoot.append(child);
     }
     content.append(newRoot);
@@ -471,7 +471,7 @@ class _Bindings {
       _parseAndBind(node, 'text', node.text, model, syntax);
     }
 
-    for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
+    for (var c = node.firstChild; c != null; c = c.nextNode) {
       _addBindings(c, model, syntax);
     }
   }
@@ -587,12 +587,12 @@ class _Bindings {
   }
 
   static void _addTemplateInstanceRecord(fragment, model) {
-    if (fragment.$dom_firstChild == null) {
+    if (fragment.firstChild == null) {
       return;
     }
 
     var instanceRecord = new TemplateInstance(
-        fragment.$dom_firstChild, fragment.$dom_lastChild, model);
+        fragment.firstChild, fragment.lastChild, model);
 
     var node = instanceRecord.firstNode;
     while (node != null) {
@@ -603,7 +603,7 @@ class _Bindings {
 
   static void _removeAllBindingsRecursively(Node node) {
     _nodeOrCustom(node).unbindAll();
-    for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
+    for (var c = node.firstChild; c != null; c = c.nextNode) {
       _removeAllBindingsRecursively(c);
     }
   }
@@ -693,7 +693,7 @@ class _TemplateIterator {
 
   void insertInstanceAt(int index, Node fragment) {
     var previousTerminator = getTerminatorAt(index - 1);
-    var terminator = fragment.$dom_lastChild;
+    var terminator = fragment.lastChild;
     if (terminator == null) terminator = previousTerminator;
 
     terminators.insert(index, terminator);
