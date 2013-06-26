@@ -115,7 +115,7 @@ class EventHandlerImplementation {
   void Shutdown();
 
  private:
-  intptr_t GetTimeout();
+  int64_t GetTimeout();
   bool GetInterruptMessage(InterruptMessage* msg);
   void HandleEvents(struct kevent* events, int size);
   void HandleTimeout();

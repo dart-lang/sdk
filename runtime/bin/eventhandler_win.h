@@ -371,7 +371,7 @@ class EventHandlerImplementation {
 
   static void EventHandlerEntry(uword args);
 
-  DWORD GetTimeout();
+  int64_t GetTimeout();
   void HandleInterrupt(InterruptMessage* msg);
   void HandleTimeout();
   void HandleAccept(ListenSocket* listen_socket, IOBuffer* buffer);

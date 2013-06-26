@@ -350,11 +350,11 @@ void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
 }
 
 
-intptr_t EventHandlerImplementation::GetTimeout() {
+int64_t EventHandlerImplementation::GetTimeout() {
   if (timeout_ == kInfinityTimeout) {
     return kInfinityTimeout;
   }
-  intptr_t millis = timeout_ - TimerUtils::GetCurrentTimeMilliseconds();
+  int64_t millis = timeout_ - TimerUtils::GetCurrentTimeMilliseconds();
   return (millis < 0) ? 0 : millis;
 }
 
@@ -378,7 +378,9 @@ void EventHandlerImplementation::Poll(uword args) {
       reinterpret_cast<EventHandlerImplementation*>(args);
   ASSERT(handler != NULL);
   while (!handler->shutdown_) {
-    intptr_t millis = handler->GetTimeout();
+    int64_t millis = handler->GetTimeout();
+    ASSERT(millis == kInfinityTimeout || millis >= 0);
+    if (millis > kMaxInt32) millis = kMaxInt32;
     intptr_t result = TEMP_FAILURE_RETRY(epoll_wait(handler->epoll_fd_,
                                                     events,
                                                     kMaxEvents,
