@@ -694,7 +694,7 @@ abstract class BidirectionalIterator<T> implements Iterator<T> {
 class IterableMixinWorkaround {
   static bool contains(Iterable iterable, var element) {
     for (final e in iterable) {
-      if (element == e) return true;
+      if (e == element) return true;
     }
     return false;
   }
