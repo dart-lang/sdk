@@ -108,6 +108,9 @@ int_parse_radix_test: fail
 list_insert_test: fail
 list_removeat_test: fail
 
+[ $arch == arm ]
+collection_to_string_test: Pass, Crash # Issue: 11207
+
 [ $arch == simarm && $mode == debug ]
 collection_to_string_test: Pass, Crash # Issue: 11207
 
