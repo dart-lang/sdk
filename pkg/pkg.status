@@ -73,6 +73,9 @@ unittest/test/mock_regexp_negative_test: Fail
 unittest/test/mock_stepwise_negative_test: Fail
 
 [ $compiler == dartanalyzer ]
+# test issue https://code.google.com/p/dart/issues/detail?id=11517
+# These tests are not negetive statically.
+# Requested test fix or permission to mark 'fail, OK'
 unittest/test/mock_regexp_negative_test: fail
 unittest/test/mock_stepwise_negative_test: fail
 
