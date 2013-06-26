@@ -322,6 +322,17 @@ intptr_t ServerSocket::CreateBindListen(RawAddr addr,
     return -1;
   }
 
+  // Test for invalid socket port 65535 (some browsers disallow it).
+  if (port == 0 && Socket::GetPort(fd) == 65535) {
+    // Don't close fd until we have created new. By doing that we ensure another
+    // port.
+    intptr_t new_fd = CreateBindListen(addr, 0, backlog, v6_only);
+    int err = errno;
+    TEMP_FAILURE_RETRY(close(fd));
+    errno = err;
+    return new_fd;
+  }
+
   if (TEMP_FAILURE_RETRY(listen(fd, backlog > 0 ? backlog : SOMAXCONN)) != 0) {
     TEMP_FAILURE_RETRY(close(fd));
     return -1;
