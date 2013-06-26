@@ -224,7 +224,7 @@ class _Link extends FileSystemEntity implements Link {
     return _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(
-            response, "Cannot rename link '$_path' to '$newPath'");
+            response, "Cannot rename link '$path' to '$newPath'");
       }
       return new Link(newPath);
     });
