@@ -74,6 +74,8 @@ class Link<T> {
     return other.isEmpty;
   }
 
+  int get hashCode => throw new UnsupportedError('Link.hashCode');
+
   String toString() => "[]";
 
   get length {

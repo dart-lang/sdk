@@ -91,6 +91,8 @@ abstract class PrimitiveConstant extends Constant {
     return value == otherPrimitive.value;
   }
 
+  int get hashCode => throw new UnsupportedError('PrimitiveConstant.hashCode');
+
   String toString() => value.toString();
   // Primitive constants don't have dependencies.
   List<Constant> getDependencies() => const <Constant>[];

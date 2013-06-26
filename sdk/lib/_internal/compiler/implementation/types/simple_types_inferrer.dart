@@ -1338,6 +1338,8 @@ class ArgumentsTypes {
     return true;
   }
 
+  int get hashCode => throw new UnsupportedError('ArgumentsTypes.hashCode');
+
   bool hasNoArguments() => positional.isEmpty && named.isEmpty;
 
   bool hasOnePositionalArgumentWithType(TypeMask type) {

@@ -100,6 +100,8 @@ class LinkEntry<T> extends Link<T> {
     return myElements.isEmpty && other.isEmpty;
   }
 
+  int get hashCode => throw new UnsupportedError('LinkEntry.hashCode');
+
   int slowLength() => 1 + tail.slowLength();
 }
 

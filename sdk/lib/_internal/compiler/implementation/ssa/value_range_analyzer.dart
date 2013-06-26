@@ -148,6 +148,8 @@ class IntValue extends Value {
     return this.value == other.value;
   }
 
+  int get hashCode => throw new UnsupportedError('IntValue.hashCode');
+
   String toString() => 'IntValue $value';
   bool get isNegative => value < 0;
   bool get isPositive => value >= 0;
@@ -213,6 +215,8 @@ class InstructionValue extends Value {
     if (other is !InstructionValue) return false;
     return this.instruction == other.instruction;
   }
+
+  int get hashCode => throw new UnsupportedError('InstructionValue.hashCode');
 
   Value operator +(Value other) {
     if (other.isZero) return this;
@@ -283,6 +287,8 @@ class AddValue extends BinaryOperationValue {
       || (left == other.right && right == other.left);
   }
 
+  int get hashCode => throw new UnsupportedError('AddValue.hashCode');
+
   Value operator -() => -left - right;
 
   Value operator +(Value other) {
@@ -327,6 +333,8 @@ class SubtractValue extends BinaryOperationValue {
     if (other is !SubtractValue) return false;
     return left == other.left && right == other.right;
   }
+
+  int get hashCode => throw new UnsupportedError('SubtractValue.hashCode');
 
   Value operator -() => right - left;
 
@@ -373,6 +381,8 @@ class NegateValue extends Value {
     if (other is !NegateValue) return false;
     return value == other.value;
   }
+
+  int get hashCode => throw new UnsupportedError('Negate.hashCode');
 
   Value operator +(other) {
     if (other.isZero) return this;
@@ -505,6 +515,8 @@ class Range {
     if (other is! Range) return false;
     return other.lower == lower && other.upper == upper;
   }
+
+  int get hashCode => throw new UnsupportedError('Range.hashCode');
 
   bool operator <(Range other) {
     return upper != other.lower && upper.min(other.lower) == upper;

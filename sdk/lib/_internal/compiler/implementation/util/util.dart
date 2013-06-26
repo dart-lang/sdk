@@ -110,3 +110,10 @@ void writeJsonEscapedCharsOn(String string, buffer) {
   }
   buffer.write(string);
 }
+
+int computeHashCode(part1, [part2, part3, part4]) {
+  return (part1.hashCode
+          ^ part2.hashCode
+          ^ part3.hashCode
+          ^ part4.hashCode) & 0x3fffffff;
+}

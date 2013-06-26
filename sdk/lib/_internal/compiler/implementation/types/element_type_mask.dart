@@ -31,6 +31,8 @@ class ElementTypeMask extends ForwardingTypeMask {
     return element == other.element && isNullable == other.isNullable;
   }
 
+  int get hashCode => computeHashCode(element, isNullable);
+
   bool equalsDisregardNull(other) {
     if (other is! ElementTypeMask) return false;
     return element == other.element;

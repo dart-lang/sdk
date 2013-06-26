@@ -150,6 +150,8 @@ class Token implements Spannable {
       return slowToString().length;
     }
   }
+
+  int get hashCode => computeHashCode(charOffset, info, value);
 }
 
 /**
@@ -312,6 +314,8 @@ class PrecedenceInfo {
   const PrecedenceInfo(this.value, this.precedence, this.kind);
 
   toString() => 'PrecedenceInfo($value, $precedence, $kind)';
+
+  int get hashCode => computeHashCode(value, precedence, kind);
 }
 
 // TODO(ahe): The following are not tokens in Dart.

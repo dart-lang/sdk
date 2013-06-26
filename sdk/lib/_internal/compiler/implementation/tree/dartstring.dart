@@ -43,6 +43,9 @@ abstract class DartString extends IterableBase<int> {
     }
     return true;
   }
+
+  int get hashCode => throw new UnsupportedError('DartString.hashCode');
+
   String toString() => "DartString#${length}:${slowToString()}";
   SourceString get source;
 }

@@ -266,4 +266,12 @@ class UnionTypeMask implements TypeMask {
         && other.disjointMasks.length == disjointMasks.length
         && other.disjointMasks.every((e) => disjointMasks.contains(e));
   }
+
+  int get hashCode {
+    int hashCode = 43;
+    for (var mask in disjointMasks) {
+      hashCode = (hashCode ^ mask.hashCode) & 0x3fffffff;
+    }
+    return hashCode;
+  }
 }

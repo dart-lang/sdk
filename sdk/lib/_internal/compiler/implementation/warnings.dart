@@ -600,6 +600,8 @@ class Message {
     return (kind == other.kind) && (toString() == other.toString());
   }
 
+  int get hashCode => throw new UnsupportedError('Message.hashCode');
+
   String slowToString(object) {
     if (object is SourceString) {
       return object.slowToString();
