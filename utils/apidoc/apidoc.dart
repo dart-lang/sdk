@@ -211,11 +211,9 @@ class Apidoc extends Dartdoc {
    */
   String mdnUrl = null;
 
-  Apidoc(this.mdn, Path outputDir, int mode,
-         bool generateAppCache, [excludedLibraries, String version]) {
-    if (?excludedLibraries) {
-      this.excludedLibraries = excludedLibraries;
-    }
+  Apidoc(this.mdn, Path outputDir, int mode, bool generateAppCache,
+      [List<String> excludedLibraries, String version]) {
+    if (excludedLibraries != null) this.excludedLibraries = excludedLibraries;
     this.version = version;
     this.outputDir = outputDir;
     this.mode = mode;
