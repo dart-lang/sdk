@@ -894,16 +894,6 @@ void FlowGraphCompiler::CopyParameters() {
   }
 
   __ Bind(&wrong_num_arguments);
-  if (StackSize() != 0) {
-    // We need to unwind the space we reserved for locals and copied parameters.
-    // The NoSuchMethodFunction stub does not expect to see that area on the
-    // stack.
-    __ AddImmediate(SP, StackSize() * kWordSize);
-  }
-  // The call below has an empty stackmap because we have just
-  // dropped the spill slots.
-  BitmapBuilder* empty_stack_bitmap = new BitmapBuilder();
-
   // Invoke noSuchMethod function passing the original name of the function.
   // If the function is a closure function, use "call" as the original name.
   const String& name = String::Handle(
@@ -913,26 +903,10 @@ void FlowGraphCompiler::CopyParameters() {
       ICData::New(function, name, Object::null_array(),
                   Isolate::kNoDeoptId, kNumArgsChecked));
   __ LoadObject(R5, ic_data);
-  // FP - 4 : saved PP, object pool pointer of caller.
-  // FP + 0 : previous frame pointer.
-  // FP + 4 : return address.
-  // FP + 8 : PC marker, for easy identification of RawInstruction obj.
-  // FP + 12: last argument (arg n-1).
-  // SP + 0 : saved PP.
-  // SP + 16 + 4*(n-1) : first argument (arg 0).
-  // R5 : ic-data.
-  // R4 : arguments descriptor array.
-  __ BranchLink(&StubCode::CallNoSuchMethodFunctionLabel());
-  // Emit descriptors in order to provide correct postion in stacktrace.
-  AddCurrentDescriptor(PcDescriptors::kOther, -1, function.token_pos());
-  if (is_optimizing()) {
-    stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
-                                      empty_stack_bitmap,
-                                      0);  // No registers.
-  }
-  // The noSuchMethod call may return.
-  __ LeaveDartFrame();
-  __ Ret();
+  __ LeaveDartFrame();  // The arguments are still on the stack.
+  __ Branch(&StubCode::CallNoSuchMethodFunctionLabel());
+  // The noSuchMethod call may return to the caller, but not here.
+  __ bkpt(0);
 
   __ Bind(&all_arguments_processed);
   // Nullify originally passed arguments only after they have been copied and
@@ -1084,16 +1058,6 @@ void FlowGraphCompiler::CompileGraph() {
       __ b(&correct_num_arguments, EQ);
       __ Bind(&wrong_num_arguments);
       if (function.IsClosureFunction() || function.IsNoSuchMethodDispatcher()) {
-        if (StackSize() != 0) {
-          // We need to unwind the space we reserved for locals and copied
-          // parameters. The NoSuchMethodFunction stub does not expect to see
-          // that area on the stack.
-          __ AddImmediate(SP, StackSize() * kWordSize);
-        }
-        // The call below has an empty stackmap because we have just
-        // dropped the spill slots.
-        BitmapBuilder* empty_stack_bitmap = new BitmapBuilder();
-
         // Invoke noSuchMethod function passing the original function name.
         // For closure functions, use "call" as the original name.
         const String& name =
@@ -1105,26 +1069,10 @@ void FlowGraphCompiler::CompileGraph() {
             ICData::New(function, name, Object::null_array(),
                         Isolate::kNoDeoptId, kNumArgsChecked));
         __ LoadObject(R5, ic_data);
-        // FP - 4 : saved PP, object pool pointer of caller.
-        // FP + 0 : previous frame pointer.
-        // FP + 4 : return address.
-        // FP + 8 : PC marker, for easy identification of RawInstruction obj.
-        // FP + 12: last argument (arg n-1).
-        // SP + 0 : saved PP.
-        // SP + 16 + 4*(n-1) : first argument (arg 0).
-        // R5 : ic-data.
-        // R4 : arguments descriptor array.
-        __ BranchLink(&StubCode::CallNoSuchMethodFunctionLabel());
-        // Emit descriptors in order to provide correct postion in stacktrace.
-        AddCurrentDescriptor(PcDescriptors::kOther, -1, function.token_pos());
-        if (is_optimizing()) {
-          stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
-                                            empty_stack_bitmap,
-                                            0);  // No registers.
-        }
-        // The noSuchMethod call may return.
-        __ LeaveDartFrame();
-        __ Ret();
+        __ LeaveDartFrame();  // The arguments are still on the stack.
+        __ Branch(&StubCode::CallNoSuchMethodFunctionLabel());
+        // The noSuchMethod call may return to the caller, but not here.
+        __ bkpt(0);
       } else {
         __ Stop("Wrong number of arguments");
       }

@@ -572,8 +572,6 @@ super_call4_test: Fail, OK # hardcoded names.
 [ $arch == simarm || $arch == arm ]
 deopt_smi_op_test: Fail
 gc_test: Crash
-invocation_mirror_test: Fail
-named_parameters_with_conversions_test: Pass, Crash # Passes on Mac.
 stack_overflow_test: Crash, Pass # Passes on HW in release mode.
 stack_overflow_stacktrace_test: Crash, Pass # Passes on HW in release mode.
 
