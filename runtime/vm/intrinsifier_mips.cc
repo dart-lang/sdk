@@ -795,11 +795,12 @@ bool Intrinsifier::Integer_truncDivide(Assembler* assembler) {
 bool Intrinsifier::Integer_negate(Assembler* assembler) {
   Label fall_through;
 
-  __ lw(V0, Address(SP, + 0 * kWordSize));  // Grabs first argument.
-  __ andi(CMPRES, V0, Immediate(kSmiTagMask));  // Test for Smi.
+  __ lw(T0, Address(SP, + 0 * kWordSize));  // Grabs first argument.
+  __ andi(CMPRES, T0, Immediate(kSmiTagMask));  // Test for Smi.
   __ bne(CMPRES, ZR, &fall_through);  // Fall through if not a Smi.
+  __ SubuDetectOverflow(V0, ZR, T0, CMPRES);
+  __ bltz(CMPRES, &fall_through);  // There was overflow.
   __ Ret();
-  __ delay_slot()->subu(V0, ZR, V0);
   __ Bind(&fall_through);
   return false;
 }

@@ -788,11 +788,14 @@ bool Intrinsifier::Integer_truncDivide(Assembler* assembler) {
 
 
 bool Intrinsifier::Integer_negate(Assembler* assembler) {
+  Label fall_through;
   __ ldr(R0, Address(SP, + 0 * kWordSize));  // Grab first argument.
   __ tst(R0, ShifterOperand(kSmiTagMask));  // Test for Smi.
-  __ rsb(R0, R0, ShifterOperand(0), EQ);  // R0 is a Smi. R0 <- 0 - R0.
-  __ bx(LR, EQ);  // Return.
+  __ b(&fall_through, NE);
+  __ rsbs(R0, R0, ShifterOperand(0));  // R0 is a Smi. R0 <- 0 - R0.
+  __ bx(LR, VC);  // Return if there wasn't overflow, fall through otherwise.
   // R0 is not a Smi. Fall through.
+  __ Bind(&fall_through);
   return false;
 }
 
