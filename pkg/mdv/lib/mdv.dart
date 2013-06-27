@@ -15,6 +15,9 @@ import 'dart:html';
 import 'dart:math' as math;
 import 'package:observe/observe.dart';
 
+// TODO(jmesserly): get this from somewhere else. See http://dartbug.com/4161.
+import 'package:serialization/src/serialization_helpers.dart' show IdentityMap;
+
 part 'src/bindings.dart';
 part 'src/element.dart';
 part 'src/input_element.dart';

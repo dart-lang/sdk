@@ -73,6 +73,22 @@ templateElementTests() {
     target.dispatchEvent(new Event(type, cancelable: false));
   }
 
+  var expando = new Expando('test');
+  void addExpandos(node) {
+    while (node != null) {
+      expando[node] = node.text;
+      node = node.nextNode;
+    }
+  }
+
+  void checkExpandos(node) {
+    expect(node, isNotNull);
+    while (node != null) {
+      expect(expando[node], node.text);
+      node = node.nextNode;
+    }
+  }
+
   test('Template', () {
     var div = createTestHtml('<template bind={{}}>text</template>');
     recursivelySetTemplateModel(div, null);
@@ -265,6 +281,67 @@ templateElementTests() {
     model.removeRange(1, 2);
     deliverChanges(model);
     expect(div.nodes.length, 3);
+  });
+
+  test('Repeat - Reuse Instances', () {
+    var div = createTestHtml('<template repeat>{{ val }}</template>');
+
+    var model = toSymbols([
+      {'val': 10},
+      {'val': 5},
+      {'val': 2},
+      {'val': 8},
+      {'val': 1}
+    ]);
+    recursivelySetTemplateModel(div, model);
+
+    deliverChanges(model);
+    expect(div.nodes.length, 6);
+    var template = div.firstChild;
+
+    addExpandos(template.nextNode);
+    checkExpandos(template.nextNode);
+
+    final VAL = const Symbol('val');
+    model.sort((a, b) => a[VAL] - b[VAL]);
+    deliverChanges(model);
+    checkExpandos(template.nextNode);
+
+    model = toObservable(model.reversed);
+    recursivelySetTemplateModel(div, model);
+    deliverChanges(model);
+    checkExpandos(template.nextNode);
+
+    for (var item in model) {
+      item[VAL] += 1;
+    }
+
+    deliverChanges(model);
+    expect(div.nodes[1].text, "11");
+    expect(div.nodes[2].text, "9");
+    expect(div.nodes[3].text, "6");
+    expect(div.nodes[4].text, "3");
+    expect(div.nodes[5].text, "2");
+  });
+
+  test('Bind - Reuse Instance', () {
+    var div = createTestHtml(
+        '<template bind="{{ foo }}">{{ bar }}</template>');
+
+    var model = toObservable({ 'foo': { 'bar': 5 }});
+    recursivelySetTemplateModel(div, model);
+
+    deliverChanges(model);
+    expect(div.nodes.length, 2);
+    var template = div.firstChild;
+
+    addExpandos(template.nextNode);
+    checkExpandos(template.nextNode);
+
+    model = toObservable({'foo': model['foo']});
+    recursivelySetTemplateModel(div, model);
+    deliverChanges(model);
+    checkExpandos(template.nextNode);
   });
 
   test('Repeat-Empty', () {

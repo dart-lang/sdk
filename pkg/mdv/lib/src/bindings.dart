@@ -277,28 +277,6 @@ class _Bindings {
       node = node.nextNode;
     }
   }
-
-  static void _removeAllBindingsRecursively(Node node) {
-    _nodeOrCustom(node).unbindAll();
-    for (var c = node.firstChild; c != null; c = c.nextNode) {
-      _removeAllBindingsRecursively(c);
-    }
-  }
-
-  static void _removeChild(Node parent, Node child) {
-    _mdv(child)._templateInstance = null;
-    if (child is Element && (child as Element).isTemplate) {
-      Element childElement = child;
-      // Make sure we stop observing when we remove an element.
-      var templateIterator = _mdv(childElement)._templateIterator;
-      if (templateIterator != null) {
-        templateIterator.abandon();
-        _mdv(childElement)._templateIterator = null;
-      }
-    }
-    child.remove();
-    _removeAllBindingsRecursively(child);
-  }
 }
 
 class _BindingToken {
@@ -315,6 +293,7 @@ class _TemplateIterator {
   final List<Node> terminators = [];
   final CompoundBinding inputs;
   List iteratedValue;
+  Object _lastValue;
 
   StreamSubscription _sub;
   StreamSubscription _valueBinding;
@@ -342,19 +321,27 @@ class _TemplateIterator {
   }
 
   void valueChanged(value) {
-    clear();
-    if (value is! List) return;
+    // TODO(jmesserly): should PathObserver do this for us?
+    var oldValue = _lastValue;
+    _lastValue = value;
 
+    if (value is! List) {
+      value = [];
+    }
+
+    unobserve();
     iteratedValue = value;
 
     if (value is Observable) {
       _sub = value.changes.listen(_handleChanges);
     }
 
-    int len = iteratedValue.length;
-    if (len > 0) {
-      _handleChanges([new ListChangeRecord(0, addedCount: len)]);
-    }
+    int addedCount = iteratedValue.length;
+    var removedCount = oldValue is List ? (oldValue as List).length : 0;
+    if (addedCount == 0 && removedCount == 0) return; // nothing to do.
+
+    _handleChanges([new ListChangeRecord(0, addedCount: addedCount,
+        removedCount: removedCount)]);
   }
 
   Node getTerminatorAt(int index) {
@@ -370,17 +357,22 @@ class _TemplateIterator {
     return terminator;
   }
 
-  void insertInstanceAt(int index, Node fragment) {
+  void insertInstanceAt(int index, List<Node> instanceNodes) {
     var previousTerminator = getTerminatorAt(index - 1);
-    var terminator = fragment.lastChild;
-    if (terminator == null) terminator = previousTerminator;
+    var terminator = instanceNodes.length > 0 ? instanceNodes.last
+        : previousTerminator;
 
     terminators.insert(index, terminator);
+
     var parent = _templateElement.parentNode;
-    parent.insertBefore(fragment, previousTerminator.nextNode);
+    var insertBeforeNode = previousTerminator.nextNode;
+    for (var node in instanceNodes) {
+      parent.insertBefore(node, insertBeforeNode);
+    }
   }
 
-  void removeInstanceAt(int index) {
+  List<Node> extractInstanceAt(int index) {
+    var instanceNodes = <Node>[];
     var previousTerminator = getTerminatorAt(index - 1);
     var terminator = getTerminatorAt(index);
     terminators.removeAt(index);
@@ -389,29 +381,10 @@ class _TemplateIterator {
     while (terminator != previousTerminator) {
       var node = terminator;
       terminator = node.previousNode;
-      _Bindings._removeChild(parent, node);
+      node.remove();
+      instanceNodes.add(node);
     }
-  }
-
-  void removeAllInstances() {
-    if (terminators.length == 0) return;
-
-    var previousTerminator = _templateElement;
-    var terminator = getTerminatorAt(terminators.length - 1);
-    terminators.length = 0;
-
-    var parent = _templateElement.parentNode;
-    while (terminator != previousTerminator) {
-      var node = terminator;
-      terminator = node.previousNode;
-      _Bindings._removeChild(parent, node);
-    }
-  }
-
-  void clear() {
-    unobserve();
-    removeAllInstances();
-    iteratedValue = null;
+    return instanceNodes;
   }
 
   getInstanceModel(model, syntax) {
@@ -421,46 +394,71 @@ class _TemplateIterator {
     return model;
   }
 
-  getInstanceFragment(syntax) {
+  Node getInstanceFragment(syntax) {
     if (syntax != null) {
       return syntax.getInstanceFragment(_templateElement);
     }
     return _templateElement.createInstance();
   }
 
-  void _handleChanges(List<ChangeRecord> splices) {
+  List<Node> getInstanceNodes(model, syntax) {
+    // TODO(jmesserly): this line of code is jumping ahead of what MDV supports.
+    // It doesn't let the custom syntax override createInstance().
+    var fragment = getInstanceFragment(syntax);
+
+    _Bindings._addBindings(fragment, model, syntax);
+    _Bindings._addTemplateInstanceRecord(fragment, model);
+
+    var instanceNodes = fragment.nodes.toList();
+    fragment.nodes.clear();
+    return instanceNodes;
+  }
+
+  void _handleChanges(Iterable<ChangeRecord> splices) {
+    splices = splices.where((s) => s is ListChangeRecord);
+
     var template = _templateElement;
     var syntax = TemplateElement.syntax[template.attributes['syntax']];
 
     if (template.parentNode == null || template.document.window == null) {
-      // TODO(jmesserly): this is a little different than the MDV code, which
-      // removes _templateIterator from all instances (via the weak table).
-      // I think it has a similar effect. It might be a no-op.
-      removeAllInstances();
       abandon();
+      // TODO(jmesserly): MDV calls templateIteratorTable.delete(this) here,
+      // but I think that's a no-op because only nodes are used as keys.
+      // See https://github.com/Polymer/mdv/pull/114.
       return;
     }
 
+    // TODO(jmesserly): IdentityMap matches JS semantics, but it's O(N) right
+    // now. See http://dartbug.com/4161.
+    var instanceCache = new IdentityMap();
+    var removeDelta = 0;
     for (var splice in splices) {
-      if (splice is! ListChangeRecord) continue;
-
       for (int i = 0; i < splice.removedCount; i++) {
-        removeInstanceAt(splice.index);
+        var instanceNodes = extractInstanceAt(splice.index + removeDelta);
+        var model = _mdv(instanceNodes.first)._templateInstance.model;
+        instanceCache[model] = instanceNodes;
       }
 
+      removeDelta -= splice.addedCount;
+    }
+
+    for (var splice in splices) {
       for (var addIndex = splice.index;
           addIndex < splice.index + splice.addedCount;
           addIndex++) {
 
         var model = getInstanceModel(iteratedValue[addIndex], syntax);
 
-        var fragment = getInstanceFragment(syntax);
-
-        _Bindings._addBindings(fragment, model, syntax);
-        _Bindings._addTemplateInstanceRecord(fragment, model);
-
-        insertInstanceAt(addIndex, fragment);
+        var instanceNodes = instanceCache.remove(model);
+        if (instanceNodes == null) {
+          instanceNodes = getInstanceNodes(model, syntax);
+        }
+        insertInstanceAt(addIndex, instanceNodes);
       }
+    }
+
+    for (var instanceNodes in instanceCache.values) {
+      instanceNodes.forEach(_unbindAllRecursively);
     }
   }
 
@@ -475,5 +473,23 @@ class _TemplateIterator {
     _valueBinding.cancel();
     terminators.clear();
     inputs.dispose();
+  }
+
+  static void _unbindAllRecursively(Node node) {
+    var nodeExt = _mdv(node);
+    nodeExt._templateInstance = null;
+    if (node is Element && (node as Element).isTemplate) {
+      // Make sure we stop observing when we remove an element.
+      var templateIterator = nodeExt._templateIterator;
+      if (templateIterator != null) {
+        templateIterator.abandon();
+        nodeExt._templateIterator = null;
+      }
+    }
+
+    _Bindings._nodeOrCustom(node).unbindAll();
+    for (var c = node.firstChild; c != null; c = c.nextNode) {
+      _unbindAllRecursively(c);
+    }
   }
 }

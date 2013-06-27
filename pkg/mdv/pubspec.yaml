@@ -9,5 +9,7 @@ description: >
   immediately assigned to the model.
 dependencies:
   observe: any
+  # This is only for IdentityMap. See http://dartbug.com/4161.
+  serialization: any
 dev_dependencies:
   unittest: any
