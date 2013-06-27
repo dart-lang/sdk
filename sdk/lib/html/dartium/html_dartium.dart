@@ -8704,6 +8704,7 @@ abstract class Element extends Node implements ElementTraversal {
 
   bool _templateIsDecorated;
 
+
   /**
    * Gets the template this node refers to.
    * This is only supported if [isTemplate] is true.
@@ -8715,7 +8716,19 @@ abstract class Element extends Node implements ElementTraversal {
     Element ref = null;
     var refId = attributes['ref'];
     if (refId != null) {
-      ref = document.getElementById(refId);
+      var treeScope = this;
+      while (treeScope.parentNode != null) {
+        treeScope = treeScope.parentNode;
+      }
+
+      // Note: JS code tests that getElementById is present. We can't do that
+      // easily, so instead check for the types known to implement it.
+      if (treeScope is Document ||
+          treeScope is ShadowRoot ||
+          treeScope is svg.SvgSvgElement) {
+
+        ref = treeScope.getElementById(refId);
+      }
     }
 
     return ref != null ? ref : _templateInstanceRef;
@@ -8768,7 +8781,8 @@ abstract class Element extends Node implements ElementTraversal {
   };
 
   bool get _isAttributeTemplate => attributes.containsKey('template') &&
-      (localName == 'option' || _TABLE_TAGS.containsKey(localName));
+      (localName == 'option' || localName == 'optgroup' ||
+       _TABLE_TAGS.containsKey(localName));
 
   /**
    * Returns true if this node is a template.
@@ -8777,7 +8791,7 @@ abstract class Element extends Node implements ElementTraversal {
    * 'template' attribute and this tag supports attribute form for backwards
    * compatibility with existing HTML parsers. The nodes that can use attribute
    * form are table elments (THEAD, TBODY, TFOOT, TH, TR, TD, CAPTION, COLGROUP
-   * and COL) and OPTION.
+   * and COL), OPTION, and OPTGROUP.
    */
   // TODO(jmesserly): this is not a public MDV API, but it seems like a useful
   // place to document which tags our polyfill considers to be templates.
@@ -22825,7 +22839,8 @@ class TemplateElement extends _HTMLElement {
     descendents.forEach(_bootstrap);
   }
 
-  static final String _allTemplatesSelectors = 'template, option[template], ' +
+  static final String _allTemplatesSelectors =
+      'template, option[template], optgroup[template], ' +
       Element._TABLE_TAGS.keys.map((k) => "$k[template]").join(", ");
 
   static bool _initStyles;

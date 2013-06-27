@@ -1047,27 +1047,37 @@ templateElementTests() {
     expect(div.nodes[i++].text, 'Item 2');
   });
 
-  test('Attribute Template Option', () {
+  test('Attribute Template Option/Optgroup', () {
     var div = createTestHtml(
         '<template bind>'
           '<select>'
-            '<option template repeat>{{ val }}</option>'
+            '<optgroup template repeat="{{ groups }}" label="{{ name }}">'
+              '<option template repeat="{{ items }}">{{ val }}</option>'
+            '</optgroup>'
           '</select>'
         '</template>');
 
-    var m = toSymbols([{ 'val': 0 }, { 'val': 1 }]);
+    var m = toSymbols({
+      'selected': 1,
+      'groups': [{
+        'name': 'one', 'items': [{ 'val': 0 }, { 'val': 1 }]
+      }],
+    });
 
     recursivelySetTemplateModel(div, m);
     deliverChanges(m);
 
     var select = div.nodes[0].nextNode;
-    expect(select.nodes.length, 3);
+    expect(select.nodes.length, 2);
     expect(select.nodes[0].tagName, 'TEMPLATE');
-    expect(select.nodes[0].ref.content.nodes[0].tagName, 'OPTION');
-    expect(select.nodes[1].tagName, 'OPTION');
-    expect(select.nodes[1].text, '0');
-    expect(select.nodes[2].tagName, 'OPTION');
-    expect(select.nodes[2].text, '1');
+    expect(select.nodes[0].ref.content.nodes[0].tagName, 'OPTGROUP');
+
+    var optgroup = select.nodes[1];
+    expect(optgroup.nodes[0].tagName, 'TEMPLATE');
+    expect(optgroup.nodes[1].tagName, 'OPTION');
+    expect(optgroup.nodes[1].text, '0');
+    expect(optgroup.nodes[2].tagName, 'OPTION');
+    expect(optgroup.nodes[2].text, '1');
   });
 
   test('NestedIterateTableMixedSemanticNative', () {
@@ -1464,6 +1474,16 @@ templateElementTests() {
     mdv.bindModel(root, model);
     deliverChangeRecords();
     expect(root.text, 'Hi Leela');
+  });
+
+  test('BindShadowDOM Template Ref', () {
+    if (ShadowRoot.supported) {
+      var root = createShadowTestHtml(
+          '<template id=foo>Hi</template><template bind ref=foo></template>');
+      recursivelySetTemplateModel(root, toSymbolMap({}));
+      deliverChangeRecords();
+      expect(root.nodes.length, 3);
+    }
   });
 
   // https://github.com/toolkitchen/mdv/issues/8

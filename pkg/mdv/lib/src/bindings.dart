@@ -32,11 +32,29 @@ abstract class _InputBinding {
     _eventSub.cancel();
   }
 
+  static EventStreamProvider<Event> _checkboxEventType = () {
+    // Attempt to feature-detect which event (change or click) is fired first
+    // for checkboxes.
+    var div = new DivElement();
+    var checkbox = div.append(new InputElement());
+    checkbox.type = 'checkbox';
+    var fired = [];
+    checkbox.onClick.listen((e) {
+      fired.add(Element.clickEvent);
+    });
+    checkbox.onChange.listen((e) {
+      fired.add(Element.changeEvent);
+    });
+    checkbox.dispatchEvent(new MouseEvent('click', view: window));
+    // WebKit/Blink don't fire the change event if the element is outside the
+    // document, so assume 'change' for that case.
+    return fired.length == 1 ? Element.changeEvent : fired.first;
+  }();
 
   static Stream<Event> _getStreamForInputType(InputElement element) {
     switch (element.type) {
       case 'checkbox':
-        return element.onClick;
+        return _checkboxEventType.forTarget(element);
       case 'radio':
       case 'select-multiple':
       case 'select-one':

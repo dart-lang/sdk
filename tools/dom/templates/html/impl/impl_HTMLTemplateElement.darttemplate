@@ -273,7 +273,8 @@ $!MEMBERS
     descendents.forEach(_bootstrap);
   }
 
-  static final String _allTemplatesSelectors = 'template, option[template], ' +
+  static final String _allTemplatesSelectors =
+      'template, option[template], optgroup[template], ' +
       Element._TABLE_TAGS.keys.map((k) => "$k[template]").join(", ");
 
   static bool _initStyles;

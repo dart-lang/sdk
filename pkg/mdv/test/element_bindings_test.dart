@@ -189,7 +189,50 @@ elementBindingTests() {
 
     el.click();
     expect(model[sym('val')], false);
+
+    el.onClick.listen((_) {
+      expect(model[sym('val')], true);
+    });
+    el.onChange.listen((_) {
+      expect(model[sym('val')], true);
+    });
+
+    el.dispatchEvent(new MouseEvent('click', view: window));
   });
+
+  test('InputElementCheckbox - binding updated on click', () {
+    var model = toSymbolMap({'val': true});
+
+    var el = new InputElement();
+    testDiv.append(el);
+    el.type = 'checkbox';
+    el.bind('checked', model, 'val');
+    deliverChangeRecords();
+    expect(el.checked, true);
+
+    el.onClick.listen((_) {
+      expect(model[sym('val')], false);
+    });
+
+    el.dispatchEvent(new MouseEvent('click', view: window));
+  });
+
+  test('InputElementCheckbox - binding updated on change', () {
+    var model = toSymbolMap({'val': true});
+
+    var el = new InputElement();
+    testDiv.append(el);
+    el.type = 'checkbox';
+    el.bind('checked', model, 'val');
+    deliverChangeRecords();
+    expect(el.checked, true);
+
+    el.onChange.listen((_) {
+      expect(model[sym('val')], false);
+    });
+
+    el.dispatchEvent(new MouseEvent('click', view: window));
+   });
 
   test('InputElementRadio', () {
     var model = toSymbolMap({'val1': true, 'val2': false, 'val3': false,
