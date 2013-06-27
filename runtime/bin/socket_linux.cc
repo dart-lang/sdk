@@ -324,8 +324,8 @@ intptr_t ServerSocket::CreateBindListen(RawAddr addr,
 
   // Test for invalid socket port 65535 (some browsers disallow it).
   if (port == 0 && Socket::GetPort(fd) == 65535) {
-    // Don't close fd until we have created new. By doing that we ensure another
-    // port.
+    // Don't close the socket until we have created a new socket, ensuring
+    // that we do not get the bad port number again.
     intptr_t new_fd = CreateBindListen(addr, 0, backlog, v6_only);
     int err = errno;
     VOID_TEMP_FAILURE_RETRY(close(fd));
