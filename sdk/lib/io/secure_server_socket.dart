@@ -212,9 +212,17 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
   }
 
   void _onData(RawSocket connection) {
+    var remotePort;
+    try {
+      remotePort = connection.remotePort;
+    } catch (e) {
+      // If connection is already closed, remotePort throws an exception.
+      // Do nothing - connection is closed.
+      return;
+    }
     _RawSecureSocket.connect(
         connection.address,
-        connection.remotePort,
+        remotePort,
         certificateName,
         is_server: true,
         socket: connection,
