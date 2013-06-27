@@ -2028,7 +2028,7 @@ void Simulator::ExecuteDelaySlot() {
   delay_slot_ = true;
   icount_++;
   Instr* instr = Instr::At(pc_ + Instr::kInstrSize);
-  if (icount_ == FLAG_stop_sim_at) {
+  if ((FLAG_stop_sim_at != 0) && (icount_ == FLAG_stop_sim_at)) {
     SimulatorDebugger dbg(this);
     dbg.Stop(instr, "Instruction count reached");
   }
