@@ -2883,16 +2883,6 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
           js.if_(js('receiver instanceof #',
                     js(namer.isolateAccess(compiler.objectClass))),
                  js.return_(js('receiver'))));
-
-      // TODO(sra): Fold this 'Object' check into the `getNativeInterceptor`
-      // check by patching `Object.prototype` with a special hook function.
-      // TODO(9556): This test is needed in plain non-browser code because
-      // 'holders' are not Dart classes.
-      block.statements.add(
-          js.if_(
-              js('Object.getPrototypeOf(receiver) === Object.prototype'),
-              buildReturnInterceptor(backend.jsInterceptorClass)));
-
       block.statements.add(
           js.return_(
               js(namer.isolateAccess(backend.getNativeInterceptorMethod))(
