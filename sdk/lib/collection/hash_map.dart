@@ -18,8 +18,46 @@ part of dart.collection;
 class HashMap<K, V> implements Map<K, V> {
   external HashMap();
 
+  static _id(x) => x;
+
   factory HashMap.from(Map<K, V> other) {
     return new HashMap<K, V>()..addAll(other);
+  }
+
+  factory HashMap.fromIterable(Iterable iterable,
+      {K key(element), V value(element)}) {
+    HashMap<K, V> map = new HashMap<K, V>();
+
+    if (key == null) key = _id;
+    if (value == null) value = _id;
+
+    for (var element in iterable) {
+      map[key(element)] = value(element);
+    }
+
+    return map;
+  }
+
+  factory HashMap.fromIterables(Iterable<K> keys, Iterable<V> values) {
+    HashMap<K, V> map = new HashMap<K, V>();
+
+    Iterator<K> keyIterator = keys.iterator;
+    Iterator<V> valueIterator = values.iterator;
+
+    bool hasNextKey = keyIterator.moveNext();
+    bool hasNextValue = valueIterator.moveNext();
+
+    while (hasNextKey && hasNextValue) {
+      map[keyIterator.current] = valueIterator.current;
+      hasNextKey = keyIterator.moveNext();
+      hasNextValue = valueIterator.moveNext();
+    }
+
+    if (hasNextKey || hasNextValue) {
+      throw new ArgumentError("Iterables do not have same length.");
+    }
+
+    return map;
   }
 
   external int get length;
