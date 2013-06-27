@@ -5558,12 +5558,6 @@ void ConstantPropagator::VisitAssertBoolean(AssertBooleanInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitArgumentDefinitionTest(
-    ArgumentDefinitionTestInstr* instr) {
-  SetValue(instr, non_constant_);
-}
-
-
 void ConstantPropagator::VisitCurrentContext(CurrentContextInstr* instr) {
   SetValue(instr, non_constant_);
 }

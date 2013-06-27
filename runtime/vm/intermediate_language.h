@@ -523,7 +523,6 @@ class EmbeddedArray<T, 0> {
   M(Branch)                                                                    \
   M(AssertAssignable)                                                          \
   M(AssertBoolean)                                                             \
-  M(ArgumentDefinitionTest)                                                    \
   M(CurrentContext)                                                            \
   M(StoreContext)                                                              \
   M(ClosureCall)                                                               \
@@ -2511,42 +2510,6 @@ class AssertBooleanInstr : public TemplateDefinition<1> {
   const intptr_t token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(AssertBooleanInstr);
-};
-
-
-class ArgumentDefinitionTestInstr : public TemplateDefinition<1> {
- public:
-  ArgumentDefinitionTestInstr(ArgumentDefinitionTestNode* node,
-                              Value* saved_arguments_descriptor)
-      : ast_node_(*node) {
-    SetInputAt(0, saved_arguments_descriptor);
-  }
-
-  DECLARE_INSTRUCTION(ArgumentDefinitionTest)
-  virtual CompileType ComputeType() const;
-
-  intptr_t token_pos() const { return ast_node_.token_pos(); }
-  intptr_t formal_parameter_index() const {
-    return ast_node_.formal_parameter_index();
-  }
-  const String& formal_parameter_name() const {
-    return ast_node_.formal_parameter_name();
-  }
-
-  Value* saved_arguments_descriptor() const { return inputs_[0]; }
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  virtual bool CanDeoptimize() const { return true; }
-
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-
-  virtual bool MayThrow() const { return true; }
-
- private:
-  const ArgumentDefinitionTestNode& ast_node_;
-
-  DISALLOW_COPY_AND_ASSIGN(ArgumentDefinitionTestInstr);
 };
 
 

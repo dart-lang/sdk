@@ -329,14 +329,6 @@ void AssertBooleanInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void ArgumentDefinitionTestInstr::PrintOperandsTo(BufferFormatter* f) const {
-  saved_arguments_descriptor()->PrintTo(f);
-  f->Print(", ?%s @%"Pd"",
-           formal_parameter_name().ToCString(),
-           formal_parameter_index());
-}
-
-
 void ClosureCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     if (i > 0) f->Print(", ");

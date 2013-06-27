@@ -268,41 +268,6 @@ void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* ArgumentDefinitionTestInstr::MakeLocationSummary() const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(T0));
-  locs->set_out(Location::RegisterLocation(T0));
-  return locs;
-}
-
-
-void ArgumentDefinitionTestInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register saved_args_desc = locs()->in(0).reg();
-  Register result = locs()->out().reg();
-
-  __ TraceSimMsg("ArgumentDefinitionTestInstr");
-
-  __ addiu(SP, SP, Immediate(-4 * kWordSize));
-  // Push the result place holder initialized to NULL.
-  __ LoadObject(TMP1, Object::ZoneHandle());
-  __ sw(TMP1, Address(SP, 3 * kWordSize));
-  __ LoadImmediate(TMP1, Smi::RawValue(formal_parameter_index()));
-  __ sw(TMP1, Address(SP, 2 * kWordSize));
-  __ LoadObject(TMP1, formal_parameter_name());
-  __ sw(TMP1, Address(SP, 1 * kWordSize));
-  __ sw(saved_args_desc, Address(SP, 0 * kWordSize));
-  compiler->GenerateCallRuntime(token_pos(),
-                                deopt_id(),
-                                kArgumentDefinitionTestRuntimeEntry,
-                                locs());
-  __ lw(result, Address(SP, 3 * kWordSize));  // Pop bool result.
-  __ addiu(SP, SP, Immediate(4 * kWordSize));
-}
-
-
 LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   if (receiver_class_id() == kMintCid) {

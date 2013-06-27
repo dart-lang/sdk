@@ -1813,17 +1813,6 @@ void EffectGraphVisitor::VisitArgumentListNode(ArgumentListNode* node) {
 }
 
 
-void EffectGraphVisitor::VisitArgumentDefinitionTestNode(
-    ArgumentDefinitionTestNode* node) {
-  InlineBailout("EffectGraphVisitor::VisitArgumentDefinitionTestNode");
-  Definition* load = BuildLoadLocal(node->saved_arguments_descriptor());
-  Value* arguments_descriptor = Bind(load);
-  ArgumentDefinitionTestInstr* arg_def_test =
-      new ArgumentDefinitionTestInstr(node, arguments_descriptor);
-  ReturnDefinition(arg_def_test);
-}
-
-
 intptr_t EffectGraphVisitor::GetCurrentTempLocalIndex() const {
   return kFirstLocalSlotFromFp
       - owner()->num_stack_locals()
@@ -3117,15 +3106,9 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     if (node == owner()->parsed_function()->node_sequence()) {
       ASSERT(scope->context_level() == 1);
       const Function& function = owner()->parsed_function()->function();
-      int num_params = function.NumParameters();
+      const int num_params = function.NumParameters();
       int param_frame_index = (num_params == function.num_fixed_parameters()) ?
           (kParamEndSlotFromFp + num_params) : kFirstLocalSlotFromFp;
-      // Handle the saved arguments descriptor as an additional parameter.
-      if (owner()->parsed_function()->GetSavedArgumentsDescriptorVar() !=
-          NULL) {
-        ASSERT(param_frame_index == kFirstLocalSlotFromFp);
-        num_params++;
-      }
       for (int pos = 0; pos < num_params; param_frame_index--, pos++) {
         const LocalVariable& parameter = *scope->VariableAt(pos);
         ASSERT(parameter.owner() == scope);

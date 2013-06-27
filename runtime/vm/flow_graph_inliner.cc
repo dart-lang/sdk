@@ -549,16 +549,6 @@ class CallSiteInliner : public ValueObject {
                                     arguments,
                                     param_stubs,
                                     callee_graph);
-        // Add a bogus parameter at the end for the (unused) arguments
-        // descriptor slot. The parser allocates an extra slot between
-        // locals and parameters to hold the arguments descriptor in case it
-        // escapes.  We currently bailout if there are argument test
-        // expressions or escaping variables so this parameter and the stack
-        // slot are not used.
-        if (parsed_function->GetSavedArgumentsDescriptorVar() != NULL) {
-          param_stubs->Add(new ParameterInstr(
-              function.NumParameters(), callee_graph->graph_entry()));
-        }
       }
 
       // After treating optional parameters the actual/formal count must match.

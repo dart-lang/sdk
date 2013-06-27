@@ -32,7 +32,6 @@ namespace dart {
   V(ForNode, "for")                                                            \
   V(JumpNode, "jump")                                                          \
   V(ArgumentListNode, "args")                                                  \
-  V(ArgumentDefinitionTestNode, "defined")                                     \
   V(ArrayNode, "array")                                                        \
   V(ClosureNode, "closure")                                                    \
   V(InstanceCallNode, "instance call")                                         \
@@ -226,41 +225,6 @@ class ArgumentListNode : public AstNode {
   Array& names_;
 
   DISALLOW_COPY_AND_ASSIGN(ArgumentListNode);
-};
-
-
-class ArgumentDefinitionTestNode : public AstNode {
- public:
-  ArgumentDefinitionTestNode(intptr_t token_pos,
-                             intptr_t formal_parameter_index,
-                             const String& formal_parameter_name,
-                             LocalVariable* saved_arguments_descriptor)
-     : AstNode(token_pos),
-       formal_parameter_index_(formal_parameter_index),
-       formal_parameter_name_(formal_parameter_name),
-       saved_arguments_descriptor_(*saved_arguments_descriptor) {
-    ASSERT(formal_parameter_index_ >= 0);
-    ASSERT(formal_parameter_name_.IsZoneHandle());
-    ASSERT(formal_parameter_name_.IsSymbol());
-    ASSERT(saved_arguments_descriptor != NULL);
-  }
-
-  virtual void VisitChildren(AstNodeVisitor* visitor) const { }
-
-  intptr_t formal_parameter_index() const { return formal_parameter_index_; }
-  const String& formal_parameter_name() const { return formal_parameter_name_; }
-  const LocalVariable& saved_arguments_descriptor() const {
-    return saved_arguments_descriptor_;
-  }
-
-  DECLARE_COMMON_NODE_FUNCTIONS(ArgumentDefinitionTestNode);
-
- private:
-  const intptr_t formal_parameter_index_;
-  const String& formal_parameter_name_;
-  const LocalVariable& saved_arguments_descriptor_;
-
-  DISALLOW_COPY_AND_ASSIGN(ArgumentDefinitionTestNode);
 };
 
 

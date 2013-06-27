@@ -786,11 +786,6 @@ CompileType AssertBooleanInstr::ComputeType() const {
 }
 
 
-CompileType ArgumentDefinitionTestInstr::ComputeType() const {
-  return CompileType::Bool();
-}
-
-
 CompileType BooleanNegateInstr::ComputeType() const {
   return CompileType::Bool();
 }

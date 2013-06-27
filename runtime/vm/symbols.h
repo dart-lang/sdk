@@ -52,7 +52,6 @@ class ObjectPointerVisitor;
   V(Interpolate, "_interpolate")                                               \
   V(GetIterator, "iterator")                                                   \
   V(NoSuchMethod, "noSuchMethod")                                              \
-  V(SavedArgDescVarPrefix, ":saved_args_desc_var")                             \
   V(SavedCurrentContextVar, ":saved_current_context_var")                      \
   V(SavedEntryContextVar, ":saved_entry_context_var")                          \
   V(SavedTryContextVar, ":saved_try_context_var")                              \

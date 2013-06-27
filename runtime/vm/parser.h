@@ -87,10 +87,6 @@ class ParsedFunction : public ZoneAllocated {
     saved_entry_context_var_ = saved_entry_context_var;
   }
 
-  // Returns NULL if this function does not save the arguments descriptor on
-  // entry.
-  LocalVariable* GetSavedArgumentsDescriptorVar() const;
-
   LocalVariable* expression_temp_var() const {
     ASSERT(has_expression_temp_var());
     return expression_temp_var_;
@@ -533,7 +529,6 @@ class Parser : public ValueObject {
                            bool is_const,
                            const AbstractTypeArguments& type_arguments);
   AstNode* ParseNewOperator(Token::Kind op_kind);
-  AstNode* ParseArgumentDefinitionTest();
 
   // An implicit argument, if non-null, is prepended to the returned list.
   ArgumentListNode* ParseActualParameters(ArgumentListNode* implicit_arguments,
@@ -551,10 +546,6 @@ class Parser : public ValueObject {
                                   bool consume_cascades);
 
   LocalVariable* LookupLocalScope(const String& ident);
-  bool IsFormalParameter(const String& ident,
-                         Function* owner_function,
-                         LocalScope** owner_scope,
-                         intptr_t* local_index);
   void CheckInstanceFieldAccess(intptr_t field_pos, const String& field_name);
   bool ParsingStaticMember() const;
   const Type* ReceiverType(intptr_t type_pos) const;
