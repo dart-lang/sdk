@@ -117,7 +117,7 @@ int_parse_radix_test: Skip # Timeout
 
 [ $arch == simmips && $checked ]
 hash_map2_test: Crash # Too far PC relative branch.
-collection_length_test: Skip # Timeout.
+collection_length_test: Pass, Timeout
 
 [ $arch == simmips && $mode == debug ]
 collection_to_string_test: Pass, Crash # Issue: 11207

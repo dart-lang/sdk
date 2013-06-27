@@ -577,7 +577,6 @@ stack_overflow_stacktrace_test: Crash, Pass # Passes on HW in release mode.
 
 [ $arch == simmips ]
 arithmetic_test: Crash  # Too far relative branch.
-large_implicit_getter_test: Crash
-load_to_load_forwarding_vm_test: Fail
+large_implicit_getter_test: Crash  # Too far relative branch.
 stack_overflow_test: Crash
 stack_overflow_stacktrace_test: Crash

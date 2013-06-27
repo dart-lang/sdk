@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test correctness of side effects tracking used by load to load forwarding.
 
+// VMOptions=--optimization-counter-threshold=10
+
 import "package:expect/expect.dart";
 import "dart:typed_data";
 
@@ -206,7 +208,7 @@ main() {
 
   final obj = new X(new X(new X(null)));
 
-  for (var i = 0; i < 2000; i++) {
+  for (var i = 0; i < 20; i++) {
     Expect.listEquals([0x02010000, 0x03020100], foo(new A(0, 0)));
     Expect.listEquals([0x02010000, 0x03020100], bar(new A(0, 0), false));
     Expect.listEquals([0x04020000, 0x03020100], bar(new A(0, 0), true));

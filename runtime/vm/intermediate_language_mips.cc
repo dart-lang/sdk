@@ -2260,8 +2260,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       __ sltiu(CMPRES,
           right, Immediate(reinterpret_cast<int32_t>(Smi::New(Smi::kBits))));
       __ movz(result, ZR, CMPRES);  // result = right >= kBits ? 0 : result.
-      __ mov(TMP1, right);
-      __ SmiUntag(TMP1);
+      __ sra(TMP1, right, kSmiTagSize);
       __ sllv(TMP1, left, TMP1);
       // result = right < kBits ? left << right : result.
       __ movn(result, TMP1, CMPRES);
@@ -2284,7 +2283,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     __ srav(temp, temp, TMP);
     __ bne(temp, left, deopt);  // Overflow.
     // Shift for result now we know there is no overflow.
-    __ sll(result, left, TMP);
+    __ sllv(result, left, TMP);
   }
 }
 

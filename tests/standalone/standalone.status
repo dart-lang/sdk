@@ -169,6 +169,5 @@ out_of_memory_test: Crash
 
 [ $arch == simmips ]
 io/file_fuzz_test: Pass, Timeout
-left_shift_bit_and_op_test: Fail
 out_of_memory_test: Crash
 
