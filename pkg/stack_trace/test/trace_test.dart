@@ -4,6 +4,8 @@
 
 library trace_test;
 
+import 'dart:io';
+
 import 'package:pathos/path.dart' as path;
 import 'package:stack_trace/stack_trace.dart';
 import 'package:unittest/unittest.dart';
@@ -29,73 +31,61 @@ Trace getCurrentTrace([int level]) => new Trace.current(level);
 Trace nestedGetCurrentTrace(int level) => getCurrentTrace(level);
 
 void main() {
-  group('.parse', () {
-    test('.parse parses a VM stack trace correctly', () {
-      var trace = new Trace.parse(
-          '#0      Foo._bar (file:///home/nweiz/code/stuff.dart:42:21)\n'
-          '#1      zip.<anonymous closure>.zap (dart:async/future.dart:0:2)\n'
-          '#2      zip.<anonymous closure>.zap (http://pub.dartlang.org/thing.'
-              'dart:1:100)');
+  test('parses a stack trace correctly', () {
+    var trace = new Trace.parse('''
+#0      Foo._bar (file:///home/nweiz/code/stuff.dart:42:21)
+#1      zip.<anonymous closure>.zap (dart:async/future.dart:0:2)
+#2      zip.<anonymous closure>.zap (http://pub.dartlang.org/thing.dart:1:100)
+''');
 
-      expect(trace.frames[0].uri,
-          equals(Uri.parse("file:///home/nweiz/code/stuff.dart")));
-      expect(trace.frames[1].uri, equals(Uri.parse("dart:async/future.dart")));
-      expect(trace.frames[2].uri,
-          equals(Uri.parse("http://pub.dartlang.org/thing.dart")));
+    expect(trace.frames[0].uri,
+        equals(Uri.parse("file:///home/nweiz/code/stuff.dart")));
+    expect(trace.frames[1].uri, equals(Uri.parse("dart:async/future.dart")));
+    expect(trace.frames[2].uri,
+        equals(Uri.parse("http://pub.dartlang.org/thing.dart")));
+  });
+
+  test('parses a real stack trace correctly', () {
+    var trace = new Trace.parse(getStackTraceString());
+    // TODO(nweiz): use URL-style paths when such a thing exists.
+    var builder = new path.Builder(style: path.Style.posix);
+    expect(builder.basename(trace.frames.first.uri.path),
+        equals('trace_test.dart'));
+    expect(trace.frames.first.member, equals('getStackTraceString'));
+  });
+
+  test('converts from a native stack trace correctly', () {
+    var trace = new Trace.from(getStackTraceObject());
+    // TODO(nweiz): use URL-style paths when such a thing exists.
+    var builder = new path.Builder(style: path.Style.posix);
+    expect(builder.basename(trace.frames.first.uri.path),
+        equals('trace_test.dart'));
+    expect(trace.frames.first.member, equals('getStackTraceObject'));
+  });
+
+  group('.current()', () {
+    test('with no argument returns a trace starting at the current frame', () {
+      var trace = new Trace.current();
+      expect(trace.frames.first.member, equals('main.<fn>.<fn>'));
     });
 
-    test('parses a V8 stack trace correctly', () {
-      var trace = new Trace.parse(
-          'Error\n'
-          '    at Foo._bar (http://pub.dartlang.org/stuff.js:42:21)\n'
-          '    at http://pub.dartlang.org/stuff.js:0:2\n'
-          '    at zip.<anonymous>.zap '
-              '(http://pub.dartlang.org/thing.js:1:100)');
-
-      expect(trace.frames[0].uri,
-          equals(Uri.parse("http://pub.dartlang.org/stuff.js")));
-      expect(trace.frames[1].uri,
-          equals(Uri.parse("http://pub.dartlang.org/stuff.js")));
-      expect(trace.frames[2].uri,
-          equals(Uri.parse("http://pub.dartlang.org/thing.js")));
+    test('at level 0 returns a trace starting at the current frame', () {
+      var trace = new Trace.current(0);
+      expect(trace.frames.first.member, equals('main.<fn>.<fn>'));
     });
 
-    test('parses a Firefox stack trace correctly', () {
-      var trace = new Trace.parse(
-          'Foo._bar@http://pub.dartlang.org/stuff.js:42\n'
-          'zip/<@http://pub.dartlang.org/stuff.js:0\n'
-          'zip.zap(12, "@)()/<")@http://pub.dartlang.org/thing.js:1');
+    test('at level 1 returns a trace starting at the parent frame', () {
+      var trace = getCurrentTrace(1);
+      expect(trace.frames.first.member, equals('main.<fn>.<fn>'));
+    });
 
-      expect(trace.frames[0].uri,
-          equals(Uri.parse("http://pub.dartlang.org/stuff.js")));
-      expect(trace.frames[1].uri,
-          equals(Uri.parse("http://pub.dartlang.org/stuff.js")));
-      expect(trace.frames[2].uri,
-          equals(Uri.parse("http://pub.dartlang.org/thing.js")));
+    test('at level 2 returns a trace starting at the grandparent frame', () {
+      var trace = nestedGetCurrentTrace(2);
+      expect(trace.frames.first.member, equals('main.<fn>.<fn>'));
+    });
 
-      trace = new Trace.parse(
-          'zip/<@http://pub.dartlang.org/stuff.js:0\n'
-          'Foo._bar@http://pub.dartlang.org/stuff.js:42\n'
-          'zip.zap(12, "@)()/<")@http://pub.dartlang.org/thing.js:1');
-
-      expect(trace.frames[0].uri,
-          equals(Uri.parse("http://pub.dartlang.org/stuff.js")));
-      expect(trace.frames[1].uri,
-          equals(Uri.parse("http://pub.dartlang.org/stuff.js")));
-      expect(trace.frames[2].uri,
-          equals(Uri.parse("http://pub.dartlang.org/thing.js")));
-
-      trace = new Trace.parse(
-          'zip.zap(12, "@)()/<")@http://pub.dartlang.org/thing.js:1\n'
-          'zip/<@http://pub.dartlang.org/stuff.js:0\n'
-          'Foo._bar@http://pub.dartlang.org/stuff.js:42');
-
-      expect(trace.frames[0].uri,
-          equals(Uri.parse("http://pub.dartlang.org/thing.js")));
-      expect(trace.frames[1].uri,
-          equals(Uri.parse("http://pub.dartlang.org/stuff.js")));
-      expect(trace.frames[2].uri,
-          equals(Uri.parse("http://pub.dartlang.org/stuff.js")));
+    test('throws an ArgumentError for negative levels', () {
+      expect(() => new Trace.current(-1), throwsArgumentError);
     });
   });
 

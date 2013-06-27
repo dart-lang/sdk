@@ -12,13 +12,6 @@ import 'lazy_trace.dart';
 
 final _terseRegExp = new RegExp(r"(-patch)?(/.*)?$");
 
-/// A RegExp to match Firefox's stack traces.
-///
-/// Firefox's trace frames start with the name of the function in which the
-/// error occurred, possibly including its parameters inside `()`. For example,
-/// `.VW.call$0("arg")@http://pub.dartlang.org/stuff.dart.js:560`.
-final _firefoxTrace = new RegExp(r"^([.0-9A-Za-z_$/<]*|\(.*\))*@");
-
 /// A stack trace, comprised of a list of stack frames.
 class Trace implements StackTrace {
   /// The stack frames that comprise this stack trace.
@@ -64,29 +57,9 @@ class Trace implements StackTrace {
 
   /// Parses a string representation of a stack trace.
   ///
-  /// [trace] should be formatted in the same way as a Dart VM or browser stack
-  /// trace.
-  factory Trace.parse(String trace) {
-    if (trace.startsWith("Error\n")) return new Trace.parseV8(trace);
-    if (trace.contains(_firefoxTrace)) return new Trace.parseFirefox(trace);
-
-    // Default to parsing the stack trace as a VM trace. This is also hit on IE
-    // and Safari, where the stack trace is just an empty string (issue 11257).
-    return new Trace.parseVM(trace);
-  }
-
-  /// Parses a string representation of a Dart VM stack trace.
-  Trace.parseVM(String trace)
-      : this(trace.trim().split("\n").map((line) => new Frame.parseVM(line)));
-
-  /// Parses a string representation of a Chrome/V8 stack trace.
-  Trace.parseV8(String trace)
-      : this(trace.split("\n").skip(1).map((line) => new Frame.parseV8(line)));
-
-  /// Parses a string representation of a Firefox stack trace.
-  Trace.parseFirefox(String trace)
-      : this(trace.trim().split("\n")
-          .map((line) => new Frame.parseFirefox(line)));
+  /// [trace] should be formatted in the same way as native stack traces.
+  Trace.parse(String trace)
+      : this(trace.trim().split("\n").map((line) => new Frame.parse(line)));
 
   /// Returns a new [Trace] comprised of [frames].
   Trace(Iterable<Frame> frames)

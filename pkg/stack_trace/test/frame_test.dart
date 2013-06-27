@@ -4,176 +4,73 @@
 
 library frame_test;
 
+import 'dart:io';
+
 import 'package:pathos/path.dart' as path;
 import 'package:stack_trace/stack_trace.dart';
 import 'package:unittest/unittest.dart';
 
+String getStackFrame() {
+  try {
+    throw '';
+  } catch (_, stackTrace) {
+    return stackTrace.toString().split("\n").first;
+  }
+}
+
+Frame getCaller([int level]) {
+  if (level == null) return new Frame.caller();
+  return new Frame.caller(level);
+}
+
+Frame nestedGetCaller(int level) => getCaller(level);
+
 void main() {
-  group('.parseVM', () {
-    test('parses a stack frame correctly', () {
-      var frame = new Frame.parseVM("#1      Foo._bar "
-          "(file:///home/nweiz/code/stuff.dart:42:21)");
-      expect(frame.uri,
-          equals(Uri.parse("file:///home/nweiz/code/stuff.dart")));
-      expect(frame.line, equals(42));
-      expect(frame.column, equals(21));
-      expect(frame.member, equals('Foo._bar'));
-    });
-
-    test('converts "<anonymous closure>" to "<fn>"', () {
-      String parsedMember(String member) =>
-          new Frame.parseVM('#0 $member (foo:0:0)').member;
-
-      expect(parsedMember('Foo.<anonymous closure>'), equals('Foo.<fn>'));
-      expect(parsedMember('<anonymous closure>.<anonymous closure>.bar'),
-          equals('<fn>.<fn>.bar'));
-    });
-
-    test('throws a FormatException for malformed frames', () {
-      expect(() => new Frame.parseVM(''), throwsFormatException);
-      expect(() => new Frame.parseVM('#1'), throwsFormatException);
-      expect(() => new Frame.parseVM('#1      Foo'), throwsFormatException);
-      expect(() => new Frame.parseVM('#1      Foo (dart:async/future.dart)'),
-          throwsFormatException);
-      expect(() => new Frame.parseVM('#1      Foo (dart:async/future.dart:10)'),
-          throwsFormatException);
-      expect(() => new Frame.parseVM('#1      (dart:async/future.dart:10:15)'),
-          throwsFormatException);
-      expect(() => new Frame.parseVM('Foo (dart:async/future.dart:10:15)'),
-          throwsFormatException);
-    });
+  test('parses a stack frame correctly', () {
+    var frame = new Frame.parse("#1      Foo._bar "
+        "(file:///home/nweiz/code/stuff.dart:42:21)");
+    expect(frame.uri, equals(Uri.parse("file:///home/nweiz/code/stuff.dart")));
+    expect(frame.line, equals(42));
+    expect(frame.column, equals(21));
+    expect(frame.member, equals('Foo._bar'));
   });
 
-  group('.parseV8', () {
-    test('parses a stack frame correctly', () {
-      var frame = new Frame.parseV8("    at VW.call\$0 "
-          "(http://pub.dartlang.org/stuff.dart.js:560:28)");
-      expect(frame.uri,
-          equals(Uri.parse("http://pub.dartlang.org/stuff.dart.js")));
-      expect(frame.line, equals(560));
-      expect(frame.column, equals(28));
-      expect(frame.member, equals('VW.call\$0'));
-    });
-
-    test('parses an anonymous stack frame correctly', () {
-      var frame = new Frame.parseV8(
-          "    at http://pub.dartlang.org/stuff.dart.js:560:28");
-      expect(frame.uri,
-          equals(Uri.parse("http://pub.dartlang.org/stuff.dart.js")));
-      expect(frame.line, equals(560));
-      expect(frame.column, equals(28));
-      expect(frame.member, equals('<fn>'));
-    });
-
-    test('converts "<anonymous>" to "<fn>"', () {
-      String parsedMember(String member) =>
-          new Frame.parseV8('    at $member (foo:0:0)').member;
-
-      expect(parsedMember('Foo.<anonymous>'), equals('Foo.<fn>'));
-      expect(parsedMember('<anonymous>.<anonymous>.bar'),
-          equals('<fn>.<fn>.bar'));
-    });
-
-    test('throws a FormatException for malformed frames', () {
-      expect(() => new Frame.parseV8(''), throwsFormatException);
-      expect(() => new Frame.parseV8('    at'), throwsFormatException);
-      expect(() => new Frame.parseV8('    at Foo'), throwsFormatException);
-      expect(() => new Frame.parseV8('    at Foo (dart:async/future.dart)'),
-          throwsFormatException);
-      expect(() => new Frame.parseV8('    at Foo (dart:async/future.dart:10)'),
-          throwsFormatException);
-      expect(() => new Frame.parseV8('    at (dart:async/future.dart:10:15)'),
-          throwsFormatException);
-      expect(() => new Frame.parseV8('Foo (dart:async/future.dart:10:15)'),
-          throwsFormatException);
-      expect(() => new Frame.parseV8('    at dart:async/future.dart'),
-          throwsFormatException);
-      expect(() => new Frame.parseV8('    at dart:async/future.dart:10'),
-          throwsFormatException);
-      expect(() => new Frame.parseV8('dart:async/future.dart:10:15'),
-          throwsFormatException);
-    });
+  test('parses a real stack frame correctly', () {
+    var frame = new Frame.parse(getStackFrame());
+    // TODO(nweiz): use URL-style paths when such a thing exists.
+    var builder = new path.Builder(style: path.Style.posix);
+    expect(builder.basename(frame.uri.path), equals('frame_test.dart'));
+    expect(frame.line, equals(15));
+    expect(frame.column, equals(5));
+    expect(frame.member, equals('getStackFrame'));
   });
 
-  group('.parseFirefox', () {
-    test('parses a simple stack frame correctly', () {
-      var frame = new Frame.parseFirefox(
-          ".VW.call\$0@http://pub.dartlang.org/stuff.dart.js:560");
-      expect(frame.uri,
-          equals(Uri.parse("http://pub.dartlang.org/stuff.dart.js")));
-      expect(frame.line, equals(560));
-      expect(frame.column, isNull);
-      expect(frame.member, equals('VW.call\$0'));
-    });
+  test('converts "<anonymous closure>" to "<fn>"', () {
+    String parsedMember(String member) =>
+        new Frame.parse('#0 $member (foo:0:0)').member;
 
-    test('parses a simple anonymous stack frame correctly', () {
-      var frame = new Frame.parseFirefox(
-          "@http://pub.dartlang.org/stuff.dart.js:560");
-      expect(frame.uri,
-          equals(Uri.parse("http://pub.dartlang.org/stuff.dart.js")));
-      expect(frame.line, equals(560));
-      expect(frame.column, isNull);
-      expect(frame.member, equals("<fn>"));
-    });
+    expect(parsedMember('Foo.<anonymous closure>'), equals('Foo.<fn>'));
+    expect(parsedMember('<anonymous closure>.<anonymous closure>.bar'),
+        equals('<fn>.<fn>.bar'));
+  });
 
-    test('parses a nested anonymous stack frame correctly', () {
-      var frame = new Frame.parseFirefox(
-          ".foo/<@http://pub.dartlang.org/stuff.dart.js:560");
-      expect(frame.uri,
-          equals(Uri.parse("http://pub.dartlang.org/stuff.dart.js")));
-      expect(frame.line, equals(560));
-      expect(frame.column, isNull);
-      expect(frame.member, equals("foo.<fn>"));
-    });
-
-    test('parses a named nested anonymous stack frame correctly', () {
-      var frame = new Frame.parseFirefox(
-          ".foo/.name<@http://pub.dartlang.org/stuff.dart.js:560");
-      expect(frame.uri,
-          equals(Uri.parse("http://pub.dartlang.org/stuff.dart.js")));
-      expect(frame.line, equals(560));
-      expect(frame.column, isNull);
-      expect(frame.member, equals("foo.<fn>"));
-    });
-
-    test('parses a stack frame with parameters correctly', () {
-      var frame = new Frame.parseFirefox(
-          '.foo(12, "@)()/<")@http://pub.dartlang.org/stuff.dart.js:560');
-      expect(frame.uri,
-          equals(Uri.parse("http://pub.dartlang.org/stuff.dart.js")));
-      expect(frame.line, equals(560));
-      expect(frame.column, isNull);
-      expect(frame.member, equals("foo"));
-    });
-
-    test('parses a nested anonymous stack frame with parameters correctly', () {
-      var frame = new Frame.parseFirefox(
-          '.foo(12, "@)()/<")/.fn<@'
-          'http://pub.dartlang.org/stuff.dart.js:560');
-      expect(frame.uri,
-          equals(Uri.parse("http://pub.dartlang.org/stuff.dart.js")));
-      expect(frame.line, equals(560));
-      expect(frame.column, isNull);
-      expect(frame.member, equals("foo.<fn>"));
-    });
-
-    test('throws a FormatException for malformed frames', () {
-      expect(() => new Frame.parseFirefox(''), throwsFormatException);
-      expect(() => new Frame.parseFirefox('.foo'), throwsFormatException);
-      expect(() => new Frame.parseFirefox('.foo@dart:async/future.dart'),
-          throwsFormatException);
-      expect(() => new Frame.parseFirefox('.foo/@dart:async/future.dart:10'),
-          throwsFormatException);
-      expect(() => new Frame.parseFirefox('.foo(@dart:async/future.dart:10'),
-          throwsFormatException);
-      expect(() => new Frame.parseFirefox('@dart:async/future.dart'),
-          throwsFormatException);
-    });
+  test('throws a FormatException for malformed frames', () {
+    expect(() => new Frame.parse(''), throwsFormatException);
+    expect(() => new Frame.parse('#1'), throwsFormatException);
+    expect(() => new Frame.parse('#1      Foo'), throwsFormatException);
+    expect(() => new Frame.parse('#1      Foo (dart:async/future.dart)'),
+        throwsFormatException);
+    expect(() => new Frame.parse('#1      Foo (dart:async/future.dart:10)'),
+        throwsFormatException);
+    expect(() => new Frame.parse('#1      (dart:async/future.dart:10:15)'),
+        throwsFormatException);
+    expect(() => new Frame.parse('Foo (dart:async/future.dart:10:15)'),
+        throwsFormatException);
   });
 
   test('only considers dart URIs to be core', () {
     bool isCore(String library) =>
-      new Frame.parseVM('#0 Foo ($library:0:0)').isCore;
+      new Frame.parse('#0 Foo ($library:0:0)').isCore;
 
     expect(isCore('dart:core'), isTrue);
     expect(isCore('dart:async'), isTrue);
@@ -185,17 +82,39 @@ void main() {
     expect(isCore('bart:core/uri.dart'), isFalse);
   });
 
+  group('.caller()', () {
+    test('with no argument returns the parent frame', () {
+      expect(getCaller().member, equals('main.<fn>.<fn>'));
+    });
+
+    test('at level 0 returns the current frame', () {
+      expect(getCaller(0).member, equals('getCaller'));
+    });
+
+    test('at level 1 returns the current frame', () {
+      expect(getCaller(1).member, equals('main.<fn>.<fn>'));
+    });
+
+    test('at level 2 returns the grandparent frame', () {
+      expect(nestedGetCaller(2).member, equals('main.<fn>.<fn>'));
+    });
+
+    test('throws an ArgumentError for negative levels', () {
+      expect(() => new Frame.caller(-1), throwsArgumentError);
+    });
+  });
+
   group('.library', () {
     test('returns the URI string for non-file URIs', () {
-      expect(new Frame.parseVM('#0 Foo (dart:async/future.dart:0:0)').library,
+      expect(new Frame.parse('#0 Foo (dart:async/future.dart:0:0)').library,
           equals('dart:async/future.dart'));
-      expect(new Frame.parseVM('#0 Foo '
+      expect(new Frame.parse('#0 Foo '
               '(http://dartlang.org/stuff/thing.dart:0:0)').library,
           equals('http://dartlang.org/stuff/thing.dart'));
     });
 
     test('returns the relative path for file URIs', () {
-      expect(new Frame.parseVM('#0 Foo (foo/bar.dart:0:0)').library,
+      expect(new Frame.parse('#0 Foo (foo/bar.dart:0:0)').library,
           equals('foo/bar.dart'));
     });
   });
@@ -203,27 +122,27 @@ void main() {
   group('.location', () {
     test('returns the library and line/column numbers for non-core '
         'libraries', () {
-      expect(new Frame.parseVM('#0 Foo '
+      expect(new Frame.parse('#0 Foo '
               '(http://dartlang.org/thing.dart:5:10)').location,
           equals('http://dartlang.org/thing.dart 5:10'));
-      expect(new Frame.parseVM('#0 Foo (foo/bar.dart:1:2)').location,
+      expect(new Frame.parse('#0 Foo (foo/bar.dart:1:2)').location,
           equals('foo/bar.dart 1:2'));
     });
   });
 
   group('.package', () {
     test('returns null for non-package URIs', () {
-      expect(new Frame.parseVM('#0 Foo (dart:async/future.dart:0:0)').package,
+      expect(new Frame.parse('#0 Foo (dart:async/future.dart:0:0)').package,
           isNull);
-      expect(new Frame.parseVM('#0 Foo '
+      expect(new Frame.parse('#0 Foo '
               '(http://dartlang.org/stuff/thing.dart:0:0)').package,
           isNull);
     });
 
     test('returns the package name for package: URIs', () {
-      expect(new Frame.parseVM('#0 Foo (package:foo/foo.dart:0:0)').package,
+      expect(new Frame.parse('#0 Foo (package:foo/foo.dart:0:0)').package,
           equals('foo'));
-      expect(new Frame.parseVM('#0 Foo (package:foo/zap/bar.dart:0:0)').package,
+      expect(new Frame.parse('#0 Foo (package:foo/zap/bar.dart:0:0)').package,
           equals('foo'));
     });
   });
@@ -231,13 +150,13 @@ void main() {
   group('.toString()', () {
     test('returns the library and line/column numbers for non-core '
         'libraries', () {
-      expect(new Frame.parseVM('#0 Foo (http://dartlang.org/thing.dart:5:10)')
+      expect(new Frame.parse('#0 Foo (http://dartlang.org/thing.dart:5:10)')
               .toString(),
           equals('http://dartlang.org/thing.dart 5:10 in Foo'));
     });
 
     test('converts "<anonymous closure>" to "<fn>"', () {
-      expect(new Frame.parseVM('#0 Foo.<anonymous closure> '
+      expect(new Frame.parse('#0 Foo.<anonymous closure> '
               '(dart:core/uri.dart:5:10)').toString(),
           equals('dart:core/uri.dart 5:10 in Foo.<fn>'));
     });
