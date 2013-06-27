@@ -23,10 +23,6 @@ Language/11_Expressions/01_Constants_A16_t03: fail
 # final instance variable created instance of the enclosing class
 Language/11_Expressions/01_Constants_A17_t03: fail
 
-# \<newline> in multiline string
-Language/11_Expressions/05_Strings_A02_t46: fail
-Language/11_Expressions/05_Strings_A02_t48: fail
-
 # <dynamic> vs. type variable
 Language/11_Expressions/11_Instance_Creation/1_New_A13_t02: fail
 
