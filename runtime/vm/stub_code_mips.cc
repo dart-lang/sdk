@@ -2224,31 +2224,16 @@ DECLARE_LEAF_RUNTIME_ENTRY(intptr_t,
 
 // Does identical check (object references are equal or not equal) with special
 // checks for boxed numbers.
-// RA: return address.
-// SP + 4: left operand.
-// SP + 0: right operand.
-// Return: CMPRES is zero if equal, non-zero otherwise.
+// Returns: CMPRES is zero if equal, non-zero otherwise.
 // Note: A Mint cannot contain a value that would fit in Smi, a Bigint
 // cannot contain a value that fits in Mint or Smi.
-void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler) {
+void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
+                                                    const Register left,
+                                                    const Register right,
+                                                    const Register temp1,
+                                                    const Register temp2) {
   __ TraceSimMsg("IdenticalWithNumberCheckStub");
   __ Comment("IdenticalWithNumberCheckStub");
-  const Register temp1 = T2;
-  const Register temp2 = T3;
-  const Register left = T1;
-  const Register right = T0;
-  // Preserve left, right.
-  __ addiu(SP, SP, Immediate(-4 * kWordSize));
-  __ sw(temp1, Address(SP, 3 * kWordSize));
-  __ sw(temp2, Address(SP, 2 * kWordSize));
-  __ sw(left, Address(SP, 1 * kWordSize));
-  __ sw(right, Address(SP, 0 * kWordSize));
-  // TOS + 3: left argument.
-  // TOS + 2: right argument.
-  // TOS + 1: saved left
-  // TOS + 0: saved right
-  __ lw(left, Address(SP, 5 * kWordSize));
-  __ lw(right, Address(SP, 4 * kWordSize));
   Label reference_compare, done, check_mint, check_bigint;
   // If any of the arguments is Smi do reference compare.
   __ andi(temp1, left, Immediate(kSmiTagMask));
@@ -2317,6 +2302,48 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler) {
   __ Bind(&done);
   // A branch or test after this comparison will check CMPRES == TMP1.
   __ mov(TMP1, ZR);
+}
+
+
+// Called only from unoptimized code. All relevant registers have been saved.
+// RA: return address.
+// SP + 4: left operand.
+// SP + 0: right operand.
+// Returns: CMPRES is zero if equal, non-zero otherwise.
+void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
+    Assembler* assembler) {
+  const Register temp1 = T2;
+  const Register temp2 = T3;
+  const Register left = T1;
+  const Register right = T0;
+  // Preserve left, right.
+  __ lw(left, Address(SP, 1 * kWordSize));
+  __ lw(right, Address(SP, 0 * kWordSize));
+  GenerateIdenticalWithNumberCheckStub(assembler, left, right, temp1, temp2);
+  __ Ret();
+}
+
+
+// Called from otpimzied code only. Must preserve any registers that are
+// destroyed.
+// SP + 4: left operand.
+// SP + 0: right operand.
+// Returns: CMPRES is zero if equal, non-zero otherwise.
+void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
+    Assembler* assembler) {
+  const Register temp1 = T2;
+  const Register temp2 = T3;
+  const Register left = T1;
+  const Register right = T0;
+  // Preserve left, right.
+  __ addiu(SP, SP, Immediate(-4 * kWordSize));
+  __ sw(temp1, Address(SP, 3 * kWordSize));
+  __ sw(temp2, Address(SP, 2 * kWordSize));
+  __ sw(left, Address(SP, 1 * kWordSize));
+  __ sw(right, Address(SP, 0 * kWordSize));
+  __ lw(left, Address(SP, 5 * kWordSize));
+  __ lw(right, Address(SP, 4 * kWordSize));
+  GenerateIdenticalWithNumberCheckStub(assembler, left, right, temp1, temp2);
   __ lw(right, Address(SP, 0 * kWordSize));
   __ lw(left, Address(SP, 1 * kWordSize));
   __ lw(temp2, Address(SP, 2 * kWordSize));

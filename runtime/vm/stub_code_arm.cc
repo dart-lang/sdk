@@ -1978,24 +1978,14 @@ DECLARE_LEAF_RUNTIME_ENTRY(intptr_t,
 // Does identical check (object references are equal or not equal) with special
 // checks for boxed numbers.
 // LR: return address.
-// SP + 4: left operand.
-// SP + 0: right operand.
 // Return Zero condition flag set if equal.
 // Note: A Mint cannot contain a value that would fit in Smi, a Bigint
 // cannot contain a value that fits in Mint or Smi.
-void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler) {
-  const Register temp = R2;
-  const Register left = R1;
-  const Register right = R0;
-  // Preserve left, right and temp.
-  __ PushList((1 << R0) | (1 << R1) | (1 << R2));
-  // TOS + 4: left argument.
-  // TOS + 3: right argument.
-  // TOS + 2: saved temp
-  // TOS + 1: saved left
-  // TOS + 0: saved right
-  __ ldr(left, Address(SP, 4 * kWordSize));
-  __ ldr(right, Address(SP, 3 * kWordSize));
+void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
+                                                    const Register left,
+                                                    const Register right,
+                                                    const Register temp,
+                                                    const Register unused) {
   Label reference_compare, done, check_mint, check_bigint;
   // If any of the arguments is Smi do reference compare.
   __ tst(left, ShifterOperand(kSmiTagMask));
@@ -2050,6 +2040,42 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler) {
   __ Bind(&reference_compare);
   __ cmp(left, ShifterOperand(right));
   __ Bind(&done);
+}
+
+
+// Called only from unoptimized code. All relevant registers have been saved.
+// LR: return address.
+// SP + 4: left operand.
+// SP + 0: right operand.
+// Return Zero condition flag set if equal.
+void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
+    Assembler* assembler) {
+  const Register temp = R2;
+  const Register left = R1;
+  const Register right = R0;
+  __ ldr(left, Address(SP, 1 * kWordSize));
+  __ ldr(right, Address(SP, 0 * kWordSize));
+  GenerateIdenticalWithNumberCheckStub(assembler, left, right, temp);
+  __ Ret();
+}
+
+
+// Called from otpimzied code only. Must preserve any registers that are
+// destroyed.
+// LR: return address.
+// SP + 4: left operand.
+// SP + 0: right operand.
+// Return Zero condition flag set if equal.
+void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
+    Assembler* assembler) {
+  const Register temp = R2;
+  const Register left = R1;
+  const Register right = R0;
+  // Preserve left, right and temp.
+  __ PushList((1 << R0) | (1 << R1) | (1 << R2));
+  __ ldr(left, Address(SP, 4 * kWordSize));
+  __ ldr(right, Address(SP, 3 * kWordSize));
+  GenerateIdenticalWithNumberCheckStub(assembler, left, right, temp);
   __ PopList((1 << R0) | (1 << R1) | (1 << R2));
   __ Ret();
 }

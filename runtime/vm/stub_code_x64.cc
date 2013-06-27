@@ -2038,19 +2038,11 @@ DECLARE_LEAF_RUNTIME_ENTRY(intptr_t,
 // Return ZF set.
 // Note: A Mint cannot contain a value that would fit in Smi, a Bigint
 // cannot contain a value that fits in Mint or Smi.
-void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler) {
-  const Register left = RAX;
-  const Register right = RDX;
-  // Preserve left, right and temp.
-  __ pushq(left);
-  __ pushq(right);
-  // TOS + 0: saved right
-  // TOS + 1: saved left
-  // TOS + 2: return address
-  // TOS + 3: right argument.
-  // TOS + 4: left argument.
-  __ movq(left, Address(RSP, 4 * kWordSize));
-  __ movq(right, Address(RSP, 3 * kWordSize));
+void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
+                                                    const Register left,
+                                                    const Register right,
+                                                    const Register unused1,
+                                                    const Register unused2) {
   Label reference_compare, done, check_mint, check_bigint;
   // If any of the arguments is Smi do reference compare.
   __ testq(left, Immediate(kSmiTagMask));
@@ -2096,6 +2088,42 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler) {
   __ Bind(&reference_compare);
   __ cmpq(left, right);
   __ Bind(&done);
+}
+
+
+// Called only from unoptimized code. All relevant registers have been saved.
+// TOS + 0: return address
+// TOS + 1: right argument.
+// TOS + 2: left argument.
+// Returns ZF set.
+void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
+    Assembler* assembler) {
+  const Register left = RAX;
+  const Register right = RDX;
+
+  __ movq(left, Address(RSP, 2 * kWordSize));
+  __ movq(right, Address(RSP, 1 * kWordSize));
+  GenerateIdenticalWithNumberCheckStub(assembler, left, right);
+  __ ret();
+}
+
+
+// Called from otpimzied code only. Must preserve any registers that are
+// destroyed.
+// TOS + 0: return address
+// TOS + 1: right argument.
+// TOS + 2: left argument.
+// Returns ZF set.
+void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
+    Assembler* assembler) {
+  const Register left = RAX;
+  const Register right = RDX;
+  // Preserve left and right.
+  __ pushq(left);
+  __ pushq(right);
+  __ movq(left, Address(RSP, 4 * kWordSize));
+  __ movq(right, Address(RSP, 3 * kWordSize));
+  GenerateIdenticalWithNumberCheckStub(assembler, left, right);
   __ popq(right);
   __ popq(left);
   __ ret();

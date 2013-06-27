@@ -1432,7 +1432,11 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
   if (needs_number_check) {
     __ pushl(reg);
     __ PushObject(obj);
-    __ call(&StubCode::IdenticalWithNumberCheckLabel());
+    if (is_optimizing()) {
+      __ call(&StubCode::OptimizedIdenticalWithNumberCheckLabel());
+    } else {
+      __ call(&StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
+    }
     AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
                          Isolate::kNoDeoptId,
                          token_pos);
@@ -1452,7 +1456,11 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
   if (needs_number_check) {
     __ pushl(left);
     __ pushl(right);
-    __ call(&StubCode::IdenticalWithNumberCheckLabel());
+    if (is_optimizing()) {
+      __ call(&StubCode::OptimizedIdenticalWithNumberCheckLabel());
+    } else {
+      __ call(&StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
+    }
     AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
                          Isolate::kNoDeoptId,
                          token_pos);

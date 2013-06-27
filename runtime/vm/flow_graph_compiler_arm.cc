@@ -1338,7 +1338,11 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
       (obj.IsMint() || obj.IsDouble() || obj.IsBigint())) {
     __ Push(reg);
     __ PushObject(obj);
-    __ BranchLink(&StubCode::IdenticalWithNumberCheckLabel());
+    if (is_optimizing()) {
+      __ BranchLink(&StubCode::OptimizedIdenticalWithNumberCheckLabel());
+    } else {
+      __ BranchLink(&StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
+    }
     AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
                          Isolate::kNoDeoptId,
                          token_pos);
@@ -1358,7 +1362,11 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
   if (needs_number_check) {
     __ Push(left);
     __ Push(right);
-    __ BranchLink(&StubCode::IdenticalWithNumberCheckLabel());
+    if (is_optimizing()) {
+      __ BranchLink(&StubCode::OptimizedIdenticalWithNumberCheckLabel());
+    } else {
+      __ BranchLink(&StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
+    }
     AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
                          Isolate::kNoDeoptId,
                          token_pos);

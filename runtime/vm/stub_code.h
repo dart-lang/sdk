@@ -39,7 +39,8 @@ class RawCode;
   V(Subtype3TestCache)                                                         \
   V(GetStackPointer)                                                           \
   V(JumpToExceptionHandler)                                                    \
-  V(IdenticalWithNumberCheck)                                                  \
+  V(UnoptimizedIdenticalWithNumberCheck)                                       \
+  V(OptimizedIdenticalWithNumberCheck)                                         \
 
 // Is it permitted for the stubs above to refer to Object::null(), which is
 // allocated in the VM isolate and shared across all isolates.
@@ -197,6 +198,13 @@ class StubCode {
   static void GenerateUsageCounterIncrement(Assembler* assembler,
                                             Register temp_reg);
   static void GenerateOptimizedUsageCounterIncrement(Assembler* assembler);
+
+  static void GenerateIdenticalWithNumberCheckStub(
+      Assembler* assembler,
+      const Register left,
+      const Register right,
+      const Register temp1 = kNoRegister,
+      const Register temp2 = kNoRegister);
 };
 
 }  // namespace dart

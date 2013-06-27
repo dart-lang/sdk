@@ -2064,26 +2064,14 @@ DECLARE_LEAF_RUNTIME_ENTRY(intptr_t,
 
 // Does identical check (object references are equal or not equal) with special
 // checks for boxed numbers.
-// Left and right are pushed on stack.
 // Return ZF set.
 // Note: A Mint cannot contain a value that would fit in Smi, a Bigint
 // cannot contain a value that fits in Mint or Smi.
-void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler) {
-  const Register left = EAX;
-  const Register right = EDX;
-  const Register temp = ECX;
-  // Preserve left, right and temp.
-  __ pushl(left);
-  __ pushl(right);
-  __ pushl(temp);
-  // TOS + 0: saved temp
-  // TOS + 1: saved right
-  // TOS + 2: saved left
-  // TOS + 3: return address
-  // TOS + 4: right argument.
-  // TOS + 5: left argument.
-  __ movl(left, Address(ESP, 5 * kWordSize));
-  __ movl(right, Address(ESP, 4 * kWordSize));
+void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
+                                                    const Register left,
+                                                    const Register right,
+                                                    const Register temp,
+                                                    const Register unused) {
   Label reference_compare, done, check_mint, check_bigint;
   // If any of the arguments is Smi do reference compare.
   __ testl(left, Immediate(kSmiTagMask));
@@ -2135,6 +2123,44 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler) {
   __ Bind(&reference_compare);
   __ cmpl(left, right);
   __ Bind(&done);
+}
+
+
+// Called only from unoptimized code. All relevant registers have been saved.
+// TOS + 0: return address
+// TOS + 1: right argument.
+// TOS + 2: left argument.
+// Returns ZF set.
+void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
+    Assembler* assembler) {
+  const Register left = EAX;
+  const Register right = EDX;
+  const Register temp = ECX;
+  __ movl(left, Address(ESP, 2 * kWordSize));
+  __ movl(right, Address(ESP, 1 * kWordSize));
+  GenerateIdenticalWithNumberCheckStub(assembler, left, right, temp);
+  __ ret();
+}
+
+
+// Called from otpimzied code only. Must preserve any registers that are
+// destroyed.
+// TOS + 0: return address
+// TOS + 1: right argument.
+// TOS + 2: left argument.
+// Returns ZF set.
+void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
+    Assembler* assembler) {
+  const Register left = EAX;
+  const Register right = EDX;
+  const Register temp = ECX;
+  // Preserve left, right and temp.
+  __ pushl(left);
+  __ pushl(right);
+  __ pushl(temp);
+  __ movl(left, Address(ESP, 5 * kWordSize));
+  __ movl(right, Address(ESP, 4 * kWordSize));
+  GenerateIdenticalWithNumberCheckStub(assembler, left, right, temp);
   __ popl(temp);
   __ popl(right);
   __ popl(left);

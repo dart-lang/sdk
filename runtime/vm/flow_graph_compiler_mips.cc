@@ -1399,7 +1399,11 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
     __ sw(reg, Address(SP, 1 * kWordSize));
     __ LoadObject(TMP1, obj);
     __ sw(TMP1, Address(SP, 0 * kWordSize));
-    __ BranchLink(&StubCode::IdenticalWithNumberCheckLabel());
+    if (is_optimizing()) {
+      __ BranchLink(&StubCode::OptimizedIdenticalWithNumberCheckLabel());
+    } else {
+      __ BranchLink(&StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
+    }
     AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
                          Isolate::kNoDeoptId,
                          token_pos);
@@ -1422,7 +1426,11 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
     __ addiu(SP, SP, Immediate(-2 * kWordSize));
     __ sw(left, Address(SP, 1 * kWordSize));
     __ sw(right, Address(SP, 0 * kWordSize));
-    __ BranchLink(&StubCode::IdenticalWithNumberCheckLabel());
+    if (is_optimizing()) {
+      __ BranchLink(&StubCode::OptimizedIdenticalWithNumberCheckLabel());
+    } else {
+      __ BranchLink(&StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
+    }
     AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
                          Isolate::kNoDeoptId,
                          token_pos);
