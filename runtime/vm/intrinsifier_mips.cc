@@ -1508,9 +1508,8 @@ bool Intrinsifier::String_getLength(Assembler* assembler) {
 }
 
 
-// TODO(srdjan): Implement for two and four byte strings as well.
 bool Intrinsifier::String_codeUnitAt(Assembler* assembler) {
-  Label fall_through;
+  Label fall_through, try_two_byte_string;
 
   __ lw(T1, Address(SP, 0 * kWordSize));  // Index.
   __ lw(T0, Address(SP, 1 * kWordSize));  // String.
@@ -1522,7 +1521,7 @@ bool Intrinsifier::String_codeUnitAt(Assembler* assembler) {
   // Runtime throws exception.
   __ BranchUnsignedGreaterEqual(T1, T2, &fall_through);
   __ LoadClassId(TMP1, T0);  // Class ID check.
-  __ BranchNotEqual(TMP1, kOneByteStringCid, &fall_through);
+  __ BranchNotEqual(TMP1, kOneByteStringCid, &try_two_byte_string);
 
   // Grab byte and return.
   __ SmiUntag(T1);
@@ -1530,6 +1529,15 @@ bool Intrinsifier::String_codeUnitAt(Assembler* assembler) {
   __ lbu(V0, FieldAddress(T2, OneByteString::data_offset()));
   __ Ret();
   __ delay_slot()->SmiTag(V0);
+
+  __ Bind(&try_two_byte_string);
+  __ BranchNotEqual(TMP1, kTwoByteStringCid, &fall_through);
+  ASSERT(kSmiTagShift == 1);
+  __ addu(T2, T0, T1);
+  __ lhu(V0, FieldAddress(T2, OneByteString::data_offset()));
+  __ Ret();
+  __ delay_slot()->SmiTag(V0);
+
   __ Bind(&fall_through);
   return false;
 }

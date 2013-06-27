@@ -1441,9 +1441,8 @@ bool Intrinsifier::String_getLength(Assembler* assembler) {
 }
 
 
-// TODO(srdjan): Implement for two and four byte strings as well.
 bool Intrinsifier::String_codeUnitAt(Assembler* assembler) {
-  Label fall_through;
+  Label fall_through, try_two_byte_string;
 
   __ ldr(R1, Address(SP, 0 * kWordSize));  // Index.
   __ ldr(R0, Address(SP, 1 * kWordSize));  // String.
@@ -1454,12 +1453,22 @@ bool Intrinsifier::String_codeUnitAt(Assembler* assembler) {
   __ cmp(R1, ShifterOperand(R2));
   __ b(&fall_through, CS);  // Runtime throws exception.
   __ CompareClassId(R0, kOneByteStringCid, R3);
-  __ b(&fall_through, NE);
+  __ b(&try_two_byte_string, NE);
   __ SmiUntag(R1);
   __ AddImmediate(R0, OneByteString::data_offset() - kHeapObjectTag);
   __ ldrb(R0, Address(R0, R1));
   __ SmiTag(R0);
   __ Ret();
+
+  __ Bind(&try_two_byte_string);
+  __ CompareClassId(R0, kTwoByteStringCid, R3);
+  __ b(&fall_through, NE);
+  ASSERT(kSmiTagShift == 1);
+  __ AddImmediate(R0, OneByteString::data_offset() - kHeapObjectTag);
+  __ ldrh(R0, Address(R0, R1));
+  __ SmiTag(R0);
+  __ Ret();
+
   __ Bind(&fall_through);
   return false;
 }

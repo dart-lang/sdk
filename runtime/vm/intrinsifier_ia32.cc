@@ -1510,9 +1510,8 @@ bool Intrinsifier::String_getLength(Assembler* assembler) {
 }
 
 
-// TODO(srdjan): Implement for two and four byte strings as well.
 bool Intrinsifier::String_codeUnitAt(Assembler* assembler) {
-  Label fall_through;
+  Label fall_through, try_two_byte_string;
   __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Index.
   __ movl(EAX, Address(ESP, + 2 * kWordSize));  // String.
   __ testl(EBX, Immediate(kSmiTagMask));
@@ -1522,11 +1521,20 @@ bool Intrinsifier::String_codeUnitAt(Assembler* assembler) {
   // Runtime throws exception.
   __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
   __ CompareClassId(EAX, kOneByteStringCid, EDI);
-  __ j(NOT_EQUAL, &fall_through);
+  __ j(NOT_EQUAL, &try_two_byte_string, Assembler::kNearJump);
   __ SmiUntag(EBX);
   __ movzxb(EAX, FieldAddress(EAX, EBX, TIMES_1, OneByteString::data_offset()));
   __ SmiTag(EAX);
   __ ret();
+
+  __ Bind(&try_two_byte_string);
+  __ CompareClassId(EAX, kTwoByteStringCid, EDI);
+  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+  ASSERT(kSmiTagShift == 1);
+  __ movzxw(EAX, FieldAddress(EAX, EBX, TIMES_1, OneByteString::data_offset()));
+  __ SmiTag(EAX);
+  __ ret();
+
   __ Bind(&fall_through);
   return false;
 }
