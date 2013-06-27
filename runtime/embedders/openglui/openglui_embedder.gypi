@@ -24,7 +24,7 @@
               'libdart_vm',
               'libjscre',
               'libdouble_conversion',
-              'generate_version_cc_file',
+              'generate_version_cc_file#host',
             ],
             'include_dirs': [
               '../..',

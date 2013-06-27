@@ -12,7 +12,6 @@
 #include <sys/stat.h>  // NOLINT
 #include <unistd.h>  // NOLINT
 #include <netinet/tcp.h>  // NOLINT
-#include <ifaddrs.h>  // NOLINT
 
 #include "bin/fdutils.h"
 #include "bin/file.h"
@@ -246,50 +245,12 @@ bool Socket::ReverseLookup(RawAddr addr,
 }
 
 
-static bool ShouldIncludeIfaAddrs(struct ifaddrs* ifa, int lookup_family) {
-  int family = ifa->ifa_addr->sa_family;
-  if (lookup_family == family) return true;
-  if (lookup_family == AF_UNSPEC &&
-      (family == AF_INET || family == AF_INET6)) {
-    return true;
-  }
-  return false;
-}
-
-
 AddressList<InterfaceSocketAddress>* Socket::ListInterfaces(
     int type,
     OSError** os_error) {
-  struct ifaddrs* ifaddr;
-
-  int status = getifaddrs(&ifaddr);
-  if (status != 0) {
-    ASSERT(*os_error == NULL);
-    *os_error = new OSError(status,
-                            gai_strerror(status),
-                            OSError::kGetAddressInfo);
-    return NULL;
-  }
-
-  int lookup_family = SocketAddress::FromType(type);
-
-  intptr_t count = 0;
-  for (struct ifaddrs* ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
-    if (ShouldIncludeIfaAddrs(ifa, lookup_family)) count++;
-  }
-
-  AddressList<InterfaceSocketAddress>* addresses =
-      new AddressList<InterfaceSocketAddress>(count);
-  int i = 0;
-  for (struct ifaddrs* ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
-    if (ShouldIncludeIfaAddrs(ifa, lookup_family)) {
-      addresses->SetAt(i, new InterfaceSocketAddress(
-          ifa->ifa_addr, strdup(ifa->ifa_name)));
-      i++;
-    }
-  }
-  freeifaddrs(ifaddr);
-  return addresses;
+  // The ifaddrs.h header is not provided on Android.  An Android
+  // implementation would have to use IOCTL or netlink.
+  return NULL;
 }
 
 
