@@ -13,6 +13,7 @@
 #include <string.h>  // NOLINT
 #include <sys/event.h>  // NOLINT
 #include <unistd.h>  // NOLINT
+#include <fcntl.h>  // NOLINT
 
 #include "bin/dartutils.h"
 #include "bin/fdutils.h"
@@ -235,7 +236,15 @@ void EventHandlerImplementation::HandleInterruptFd() {
         // Close the socket and free system resources.
         RemoveFromKqueue(kqueue_fd_, sd);
         intptr_t fd = sd->fd();
-        sd->Close();
+        if (fd == STDOUT_FILENO) {
+          // If stdout, redirect fd to /dev/null.
+          int null_fd = TEMP_FAILURE_RETRY(open("/dev/null", O_WRONLY));
+          ASSERT(null_fd >= 0);
+          VOID_TEMP_FAILURE_RETRY(dup2(null_fd, STDOUT_FILENO));
+          VOID_TEMP_FAILURE_RETRY(close(null_fd));
+        } else {
+          sd->Close();
+        }
         socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
         delete sd;
       } else {
