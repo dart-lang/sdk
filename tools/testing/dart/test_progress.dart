@@ -188,7 +188,7 @@ class FlakyLogWriter extends EventListener {
 
   void _appendToFlakyFile(String msg) {
     var file = new File(TestUtils.flakyFileName());
-    var fd = file.openSync(FileMode.APPEND);
+    var fd = file.openSync(mode: FileMode.APPEND);
     fd.writeStringSync(msg);
     fd.closeSync();
   }

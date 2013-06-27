@@ -267,7 +267,7 @@ class Safari extends Browser {
 
   void _createLaunchHTML(var path, var url) {
     var file = new File("${path}/launch.html");
-    var randomFile = file.openSync(FileMode.WRITE);
+    var randomFile = file.openSync(mode: FileMode.WRITE);
     var content = '<script language="JavaScript">location = "$url"</script>';
     randomFile.writeStringSync(content);
     randomFile.close();
@@ -324,7 +324,7 @@ class Chrome extends Browser {
       if (versionResult.exitCode != 0) {
         _logEvent("Failed to chrome get version");
         _logEvent("Make sure $binary is a valid program for running chrome");
-        return new Future.immediate(false);
+        return new Future.value(false);
       }
       version = versionResult.stdout;
       _logEvent("Got version: $version");
@@ -406,7 +406,7 @@ class AndroidChrome extends Browser {
         return _adbDevice.killAll().then((_) => true);
       });
     }
-    return new Future.immediate(true);
+    return new Future.value(true);
   }
 
   String toString() => "chromeOnAndroid";
@@ -426,7 +426,7 @@ class Firefox extends Browser {
 
   Future _createPreferenceFile(var path) {
     var file = new File("${path.toString()}/user.js");
-    var randomFile = file.openSync(FileMode.WRITE);
+    var randomFile = file.openSync(mode: FileMode.WRITE);
     randomFile.writeStringSync(enablePopUp);
     randomFile.writeStringSync(disableDefaultCheck);
     randomFile.close();
@@ -440,7 +440,7 @@ class Firefox extends Browser {
       if (versionResult.exitCode != 0) {
         _logEvent("Failed to firefox get version");
         _logEvent("Make sure $binary is a valid program for running firefox");
-        return new Future.immediate(false);
+        return new Future.value(false);
       }
       version = versionResult.stdout;
       _logEvent("Got version: $version");
@@ -800,8 +800,8 @@ class BrowserTestingServer {
         DebugLogger.info("Handling request to: ${request.uri.path}");
         if (request.uri.path.startsWith(reportPath)) {
           var browserId = request.uri.path.substring(reportPath.length + 1);
-          var testId = int.parse(request.queryParameters["id"].split("=")[1]);
-
+          var testId = 
+              int.parse(request.uri.queryParameters["id"].split("=")[1]);
           handleReport(request, browserId, testId);
           // handleReport will asynchroniously fetch the data and will handle
           // the closing of the streams.
@@ -932,7 +932,6 @@ class BrowserTestingServer {
               // Don't do anything, we will be killed shortly.
             } else {
               var elapsed = new Date() - start;
-              reportError('Done getting task at: ' + elapsed);
               // TODO(ricow): Do something more clever here.
               if (nextTask != undefined) alert('This is really bad');
               // The task is send to us as:
@@ -940,6 +939,7 @@ class BrowserTestingServer {
               var split = this.responseText.split('#');
               var nextTask = split[0];
               current_id = split[1];
+              reportError('Done getting task : ' + elapsed);
               did_start = false;
               run(nextTask);
             }

@@ -220,7 +220,7 @@ Future doMultitest(Path filePath, String outputDir, Path suiteDir,
       final File file = new File.fromPath(multitestFilename);
 
       file.createSync();
-      RandomAccessFile openedFile = file.openSync(FileMode.WRITE);
+      RandomAccessFile openedFile = file.openSync(mode: FileMode.WRITE);
       openedFile.writeStringSync(tests[key]);
       openedFile.closeSync();
       Set<String> outcome = outcomes[key];

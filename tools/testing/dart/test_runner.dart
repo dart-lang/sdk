@@ -17,7 +17,6 @@ import "dart:collection" show Queue;
 // CommandOutput.exitCode in subclasses of CommandOutput.
 import "dart:io" as io;
 import "dart:isolate";
-import "dart:uri";
 import "browser_controller.dart";
 import "http_server.dart" as http_server;
 import "status_file_parser.dart";
@@ -123,7 +122,7 @@ class Command {
 
   String toString() => commandLine;
 
-  Future<bool> get outputIsUpToDate => new Future.immediate(false);
+  Future<bool> get outputIsUpToDate => new Future.value(false);
   io.Path get expectedOutputFile => null;
   bool get isPixelTest => false;
 }
@@ -141,19 +140,19 @@ class CompilationCommand extends Command {
       : super(executable, arguments);
 
   Future<bool> get outputIsUpToDate {
-    if (_neverSkipCompilation) return new Future.immediate(false);
+    if (_neverSkipCompilation) return new Future.value(false);
 
     Future<List<Uri>> readDepsFile(String path) {
       var file = new io.File(new io.Path(path).toNativePath());
       if (!file.existsSync()) {
-        return new Future.immediate(null);
+        return new Future.value(null);
       }
       return file.readAsLines().then((List<String> lines) {
         var dependencies = new List<Uri>();
         for (var line in lines) {
           line = line.trim();
           if (line.length > 0) {
-            dependencies.add(new Uri(line));
+            dependencies.add(Uri.parse(line));
           }
         }
         return dependencies;
@@ -164,7 +163,7 @@ class CompilationCommand extends Command {
       if (dependencies != null) {
         dependencies.addAll(_bootstrapDependencies);
         var jsOutputLastModified = TestUtils.lastModifiedCache.getLastModified(
-            new Uri.fromComponents(scheme: 'file', path: _outputFile));
+            new Uri(scheme: 'file', path: _outputFile));
         if (jsOutputLastModified != null) {
           for (var dependency in dependencies) {
             var dependencyLastModified =
@@ -1029,12 +1028,13 @@ class RunningProcess {
         compilationSkipped = true;
         _commandComplete(0);
       } else {
-        var processOptions = _createProcessOptions();
+        var processEnvironment = _createProcessEnvironment();
         var commandArguments = _modifySeleniumTimeout(command.arguments,
                                                       testCase.timeout);
-        Future processFuture = io.Process.start(command.executable,
-                                                commandArguments,
-                                                processOptions);
+        Future processFuture =
+            io.Process.start(command.executable,
+                             commandArguments,
+                             environment: processEnvironment);
         processFuture.then((io.Process process) {
           // Close stdin so that tests that try to block on input will fail.
           process.stdin.close();
@@ -1088,19 +1088,18 @@ class RunningProcess {
     source.listen(destination.addAll);
   }
 
-  io.ProcessOptions _createProcessOptions() {
+  Map<String, String> _createProcessEnvironment() {
     var baseEnvironment = command.environment != null ?
         command.environment : io.Platform.environment;
-    io.ProcessOptions options = new io.ProcessOptions();
-    options.environment = new Map<String, String>.from(baseEnvironment);
-    options.environment['DART_CONFIGURATION'] =
+    var environment = new Map<String, String>.from(baseEnvironment);
+    environment['DART_CONFIGURATION'] =
         TestUtils.configurationDir(testCase.configuration);
 
     for (var excludedEnvironmentVariable in EXCLUDED_ENVIRONMENT_VARIABLES) {
-      options.environment.remove(excludedEnvironmentVariable);
+      environment.remove(excludedEnvironmentVariable);
     }
 
-    return options;
+    return environment;
   }
 }
 
@@ -1160,7 +1159,7 @@ class BatchRunnerProcess {
   }
 
   Future terminate() {
-    if (_process == null) return new Future.immediate(true);
+    if (_process == null) return new Future.value(true);
     Completer completer = new Completer();
     Timer killTimer;
     _processExitHandler = (_) {
@@ -1664,7 +1663,7 @@ class ProcessQueue {
         io.exit(1);
       });
     }
-    return new Future.immediate(_browserTestRunners[runtime]);
+    return new Future.value(_browserTestRunners[runtime]);
   }
 
   void _startBrowserControllerTest(var test) {
