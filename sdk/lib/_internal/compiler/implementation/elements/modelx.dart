@@ -180,7 +180,7 @@ class ElementX implements Element {
     // For constructors, that doesn't work because they may have
     // named formed out of multiple tokens (named constructors) so
     // for those we search for the class name instead.
-    String needle = isConstructor() ? enclosingElement.name : name;
+    SourceString needle = isConstructor() ? enclosingElement.name : name;
     for (Token t = token; EOF_TOKEN != t.kind; t = t.next) {
       if (needle == t.value) return t;
     }
