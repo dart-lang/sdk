@@ -16406,7 +16406,8 @@ class Node extends EventTarget native "Node" {
 
   /** Gets the template instance that instantiated this node, if any. */
   @Experimental
-  TemplateInstance get templateInstance => mdvPackage(this).templateInstance;
+  TemplateInstance get templateInstance =>
+      TemplateElement.mdvPackage(this).templateInstance;
 
 
   @DomName('Node.ATTRIBUTE_NODE')

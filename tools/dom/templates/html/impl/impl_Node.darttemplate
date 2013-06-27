@@ -294,7 +294,8 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   /** Gets the template instance that instantiated this node, if any. */
   @Experimental
-  TemplateInstance get templateInstance => mdvPackage(this).templateInstance;
+  TemplateInstance get templateInstance =>
+      TemplateElement.mdvPackage(this).templateInstance;
 
 $!MEMBERS
 }

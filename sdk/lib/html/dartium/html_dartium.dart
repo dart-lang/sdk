@@ -17584,7 +17584,8 @@ class Node extends EventTarget {
 
   /** Gets the template instance that instantiated this node, if any. */
   @Experimental
-  TemplateInstance get templateInstance => mdvPackage(this).templateInstance;
+  TemplateInstance get templateInstance =>
+      TemplateElement.mdvPackage(this).templateInstance;
 
   Node.internal() : super.internal();
 
