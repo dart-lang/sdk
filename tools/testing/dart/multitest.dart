@@ -124,7 +124,7 @@ void ExtractTestsFromMultitest(Path filePath,
 
   // Copy all the tests into the output map tests, as multiline strings.
   for (String key in testsAsLines.keys) {
-    tests[key] = testsAsLines[key].join(line_separator).concat(line_separator);
+    tests[key] = testsAsLines[key].join(line_separator) + line_separator;
   }
 }
 

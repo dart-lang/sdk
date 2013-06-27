@@ -60,7 +60,7 @@ Future asynchronously(function()) {
 // TODO(rnystrom): Copied from web_components. Remove from here when it gets
 // added to dart:core. (See #6626.)
 class FutureGroup {
-  const _FINISHED = -1;
+  static const _FINISHED = -1;
   int _pending = 0;
   Completer<List> _completer = new Completer<List>();
   final List<Future> futures = <Future>[];
@@ -907,7 +907,7 @@ class StandardTestSuite extends TestSuite {
    */
   void enqueueBrowserTest(TestInformation info,
                           String testName,
-                          Object expectations,
+                          expectations,
                           bool isWrappingRequired) {
     // TODO(kustermann/ricow): This method should be refactored.
     Map optionsFromFile = info.optionsFromFile;
@@ -999,7 +999,7 @@ class StandardTestSuite extends TestSuite {
 
       // Variables for browser multi-tests.
       List<String> subtestNames = info.optionsFromFile['subtestNames'];
-      TestCase multitestParentTest;
+      BrowserTestCase multitestParentTest;
       int subtestIndex = 0;
       // Construct the command that executes the browser test
       do {

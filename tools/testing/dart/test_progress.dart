@@ -343,7 +343,7 @@ class LeftOverTempDirPrinter extends EventListener {
   }
 }
 
-class LineProgressIndicator extends EventListener implements ProgressIndicator {
+class LineProgressIndicator extends EventListener {
   void done(TestCase test) {
     var status = 'pass';
     if (test.lastCommandOutput.unexpectedOutput) {
@@ -395,25 +395,6 @@ class TestFailurePrinter extends EventListener {
 class ProgressIndicator extends EventListener {
   ProgressIndicator(this._startTime);
 
-  factory ProgressIndicator.fromName(String name,
-                                     DateTime startTime,
-                                     Formatter formatter) {
-    switch (name) {
-      case 'compact':
-        return new CompactProgressIndicator(startTime, formatter);
-      case 'line':
-        return new LineProgressIndicator();
-      case 'verbose':
-        return new VerboseProgressIndicator(startTime);
-      case 'status':
-        return new ProgressIndicator(startTime);
-      case 'buildbot':
-        return new BuildbotProgressIndicator(startTime);
-      default:
-        assert(false);
-        break;
-    }
-  }
 
   void testAdded() { _foundTests++; }
 
@@ -540,5 +521,26 @@ class BuildbotProgressIndicator extends ProgressIndicator {
       print('');
     }
     print(_buildSummaryEnd(_failedTests));
+  }
+}
+
+
+EventListener progressIndicatorFromName(String name,
+                                        DateTime startTime,
+                                        Formatter formatter) {
+  switch (name) {
+    case 'compact':
+      return new CompactProgressIndicator(startTime, formatter);
+    case 'line':
+      return new LineProgressIndicator();
+    case 'verbose':
+      return new VerboseProgressIndicator(startTime);
+    case 'status':
+      return new ProgressIndicator(startTime);
+    case 'buildbot':
+      return new BuildbotProgressIndicator(startTime);
+    default:
+      assert(false);
+      break;
   }
 }

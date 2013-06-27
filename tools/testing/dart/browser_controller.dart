@@ -98,7 +98,7 @@ abstract class Browser {
       return done;
     } else {
       _logEvent("The process is already dead.");
-      return new Future.immediate(true);
+      return new Future.value(true);
     }
   }
 
@@ -171,12 +171,13 @@ class Safari extends Browser {
    * The binary used to run safari - changing this can be nececcary for
    * testing or using non standard safari installation.
    */
-  const String binary = "/Applications/Safari.app/Contents/MacOS/Safari";
+  static const String binary = "/Applications/Safari.app/Contents/MacOS/Safari";
 
   /**
    * We get the safari version by parsing a version file
    */
-  const String versionFile = "/Applications/Safari.app/Contents/version.plist";
+  static const String versionFile =
+      "/Applications/Safari.app/Contents/version.plist";
 
   /**
    * Directories where safari stores state. We delete these if the deleteCache
@@ -205,7 +206,7 @@ class Safari extends Browser {
   }
 
   Future<bool> deleteIfExists(Iterator<String> paths) {
-    if (!paths.moveNext()) return new Future.immediate(true);
+    if (!paths.moveNext()) return new Future.value(true);
     Directory directory = new Directory(paths.current);
     return directory.exists().then((exists) {
       if (exists) {
@@ -226,7 +227,7 @@ class Safari extends Browser {
   // Clears the cache if the static deleteCache flag is set.
   // Returns false if the command to actually clear the cache did not complete.
   Future<bool> clearCache() {
-    if (!deleteCache) return new Future.immediate(true);
+    if (!deleteCache) return new Future.value(true);
     var home = Platform.environment['HOME'];
     Iterator iterator = CACHE_DIRECTORIES.map((s) => "$home/$s").iterator;
     return deleteIfExists(iterator);
@@ -315,7 +316,7 @@ class Chrome extends Browser {
    * The binary used to run chrome - changing this can be nececcary for
    * testing or using non standard chrome installation.
    */
-  const String binary = "google-chrome";
+  static const String binary = "google-chrome";
 
   Future<bool> start(String url) {
     _logEvent("Starting chrome browser on: $url");
@@ -347,12 +348,12 @@ class Chrome extends Browser {
 }
 
 class AndroidChrome extends Browser {
-  const String viewAction = 'android.intent.action.VIEW';
-  const String mainAction = 'android.intent.action.MAIN';
-  const String chromePackage = 'com.android.chrome';
-  const String browserPackage = 'com.android.browser';
-  const String firefoxPackage = 'org.mozilla.firefox';
-  const String turnScreenOnPackage = 'com.google.dart.turnscreenon';
+  static const String viewAction = 'android.intent.action.VIEW';
+  static const String mainAction = 'android.intent.action.MAIN';
+  static const String chromePackage = 'com.android.chrome';
+  static const String browserPackage = 'com.android.browser';
+  static const String firefoxPackage = 'org.mozilla.firefox';
+  static const String turnScreenOnPackage = 'com.google.dart.turnscreenon';
 
   AndroidEmulator _emulator;
   AdbDevice _adbDevice;
@@ -417,11 +418,11 @@ class Firefox extends Browser {
    * The binary used to run firefox - changing this can be nececcary for
    * testing or using non standard firefox installation.
    */
-  const String binary = "firefox";
+  static const String binary = "firefox";
 
-  const String enablePopUp =
+  static const String enablePopUp =
       'user_pref("dom.disable_open_during_load", false);';
-  const String disableDefaultCheck =
+  static const String disableDefaultCheck =
       'user_pref("browser.shell.checkDefaultBrowser", false);';
 
   Future _createPreferenceFile(var path) {
@@ -776,11 +777,11 @@ class BrowserTestingServer {
 
   final String local_ip;
 
-  const String driverPath = "/driver";
-  const String nextTestPath = "/next_test";
-  const String reportPath = "/report";
-  const String waitSignal = "WAIT";
-  const String terminateSignal = "TERMINATE";
+  static const String driverPath = "/driver";
+  static const String nextTestPath = "/next_test";
+  static const String reportPath = "/report";
+  static const String waitSignal = "WAIT";
+  static const String terminateSignal = "TERMINATE";
 
   var testCount = 0;
   var httpServer;

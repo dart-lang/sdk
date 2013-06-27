@@ -984,7 +984,6 @@ List<String> _modifySeleniumTimeout(List<String> arguments, int timeout) {
       return argument;
     }
   }).toList();
-  return;
 }
 
 
@@ -1207,7 +1206,7 @@ class BatchRunnerProcess {
 
   String _createArgumentsLine(List<String> arguments, int timeout) {
     arguments = _modifySeleniumTimeout(arguments, timeout);
-    return arguments.join(' ').concat('\n');
+    return arguments.join(' ') + '\n';
   }
 
   void _reportResult() {
@@ -1762,7 +1761,9 @@ class ProcessQueue {
             _numBrowserProcesses--;
           }
           eventFinishedTestCase(test_arg);
-          if (test_arg is BrowserTestCase) test_arg.notifyObservers();
+          if (test_arg is BrowserTestCase) {
+            (test_arg as BrowserTestCase).notifyObservers();
+          }
           oldCallback(test_arg);
           _tryRunTest();
         };
@@ -1789,7 +1790,9 @@ class ProcessQueue {
           if (isTestCaseFinished(testCase)) {
             testCase.completed();
             eventFinishedTestCase(testCase);
-            if (testCase is BrowserTestCase) testCase.notifyObservers();
+            if (testCase is BrowserTestCase) {
+              (testCase as BrowserTestCase).notifyObservers();
+            }
           } else {
             _tests.addFirst(testCase);
           }
