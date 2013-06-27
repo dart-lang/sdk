@@ -329,7 +329,7 @@ intptr_t ServerSocket::CreateBindListen(RawAddr addr,
     // port.
     intptr_t new_fd = CreateBindListen(addr, 0, backlog, v6_only);
     int err = errno;
-    TEMP_FAILURE_RETRY(close(fd));
+    VOID_TEMP_FAILURE_RETRY(close(fd));
     errno = err;
     return new_fd;
   }
