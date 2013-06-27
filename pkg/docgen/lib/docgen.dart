@@ -230,7 +230,7 @@ String _getComment(DeclarationMirror mirror) {
   });
   commentText = commentText == null ? '' : 
       markdown.markdownToHtml(commentText.trim(), linkResolver: linkResolver)
-      .replaceAll('\n', '');
+      .replaceAll('\n', ' ');
   return commentText;
 }
 
