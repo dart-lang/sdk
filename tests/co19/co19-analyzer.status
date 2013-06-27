@@ -7,12 +7,6 @@
 # not clear: may be assignment in the constructor is warning, not error
 Language/05_Variables/05_Variables_A05_t04: fail
 
-# func(final x())
-Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t06: fail
-
-# func(var x())
-Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t07: fail
-
 # void func({var _x}) {}
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: fail
 
