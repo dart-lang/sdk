@@ -4,6 +4,8 @@
 //
 // Dart test program for testing typed data.
 
+// VMOptions=--optimization_counter_threshold=10
+
 // Library tag to be able to run in html test framework.
 library TypedDataTest;
 
@@ -319,7 +321,7 @@ testCreationFromList() {
 }
 
 main() {
-  for (int i = 0; i < 2000; i++) {
+  for (int i = 0; i < 20; i++) {
     testCreateUint8TypedData();
     testCreateClampedUint8TypedData();
     testTypedDataRange(false);
