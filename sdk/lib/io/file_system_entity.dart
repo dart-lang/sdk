@@ -271,6 +271,27 @@ abstract class FileSystemEntity {
   bool existsSync();
 
   /**
+   * Renames this file system entity. Returns a `Future<FileSystemEntity>`
+   * that completes with a [FileSystemEntity] instance for the renamed
+   * file system entity.
+   *
+   * If [newPath] identifies an existing entity of the same type, that entity
+   * is replaced. If [newPath] identifies an existing entity of a different
+   * type, the operation fails and the future completes with an exception.
+   */
+  Future<FileSystemEntity> rename(String newPath);
+
+   /**
+   * Synchronously renames this file system entity. Returns a [FileSystemEntity]
+   * instance for the renamed entity.
+   *
+   * If [newPath] identifies an existing entity of the same type, that entity
+   * is replaced. If [newPath] identifies an existing entity of a different
+   * type, the operation fails and an exception is thrown.
+   */
+  FileSystemEntity renameSync(String newPath);
+
+  /**
    * Calls the operating system's stat() function on the [path] of this
    * [FileSystemEntity].  Identical to [:FileStat.stat(this.path):].
    *
