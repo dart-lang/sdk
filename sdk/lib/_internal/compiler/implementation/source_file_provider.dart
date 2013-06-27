@@ -94,7 +94,7 @@ class FormattingDiagnosticHandler {
     // This is used to suppress info about a warning when warnings are
     // suppressed, and similar for hints.
     var previousKind = lastKind;
-    if (previousKind != api.Diagnostic.INFO) {
+    if (kind != api.Diagnostic.INFO) {
       lastKind = kind;
     }
     var color;
