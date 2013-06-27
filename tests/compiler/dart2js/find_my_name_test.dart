@@ -7,18 +7,36 @@ import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dar
 import "mock_compiler.dart";
 import "parser_helper.dart";
 
-main() {
-  MockCompiler compiler = new MockCompiler();
-
-  String code = '''
+String TEST_0 = '''
 class Foo {
+  Foo();
+  Foo.named();
+  factory Foo._internal() => null;
   operator+(other) => null;
 }
 ''';
 
-  ClassElement foo = parseUnit(code, compiler, compiler.mainApp).head;
-  foo.parseNode(compiler);
-  for (Element e in foo.localMembers) {
-    Expect.equals(code.indexOf(e.name.slowToString()), e.position().charOffset);
+String TEST_1 = '''
+class Bar {
+  const Bar();
+  const Bar.named();
+  Map<int, List<int>> baz() => null;
+}
+''';
+
+main() {
+  MockCompiler compiler = new MockCompiler();
+  testClass(TEST_0, compiler);
+  testClass(TEST_1, compiler);
+}
+
+testClass(String code, MockCompiler compiler) {
+  int skip = code.indexOf('{');
+  ClassElement cls = parseUnit(code, compiler, compiler.mainApp).head;
+  cls.parseNode(compiler);
+  for (Element e in cls.localMembers) {
+    String name = e.name.slowToString();
+    if (e.isConstructor()) name = name.replaceFirst(r'$', '.');
+    Expect.equals(code.indexOf(name, skip), e.position().charOffset);
   }
 }

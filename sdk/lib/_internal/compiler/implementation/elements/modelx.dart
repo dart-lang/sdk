@@ -176,8 +176,13 @@ class ElementX implements Element {
   Token position() => null;
 
   Token findMyName(Token token) {
-    for (Token t = token; !identical(t.kind, EOF_TOKEN); t = t.next) {
-      if (t.value == name) return t;
+    // We search for the token that has the name of this element.
+    // For constructors, that doesn't work because they may have
+    // named formed out of multiple tokens (named constructors) so
+    // for those we search for the class name instead.
+    String needle = isConstructor() ? enclosingElement.name : name;
+    for (Token t = token; EOF_TOKEN != t.kind; t = t.next) {
+      if (needle == t.value) return t;
     }
     return token;
   }
