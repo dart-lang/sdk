@@ -8,7 +8,7 @@ import "compiler_helper.dart";
 import "parser_helper.dart";
 
 bool test(compiler, String name1, String name2, {bool expect}) {
-  Expect.isTrue(?expect, 'required parameter "expect" not given');
+  Expect.isTrue((expect != null), 'required parameter "expect" not given');
   var clazz = findElement(compiler, "Class");
   clazz.ensureResolved(compiler);
   var element1 = clazz.buildScope().lookup(buildSourceString(name1));
