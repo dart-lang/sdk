@@ -1676,7 +1676,7 @@ FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
                                                           intptr_t index_scale,
                                                           Register array,
                                                           Register index) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
   return FieldAddress(array, index);
 }
 
@@ -1685,7 +1685,7 @@ Address FlowGraphCompiler::ExternalElementAddressForIntIndex(
     intptr_t index_scale,
     Register array,
     intptr_t index) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
   return FieldAddress(array, index);
 }
 
@@ -1694,7 +1694,7 @@ Address FlowGraphCompiler::ExternalElementAddressForRegIndex(
     intptr_t index_scale,
     Register array,
     Register index) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
   return FieldAddress(array, index);
 }
 

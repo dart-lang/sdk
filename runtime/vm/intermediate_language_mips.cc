@@ -1129,13 +1129,17 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* LoadUntaggedInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  return LocationSummary::Make(kNumInputs,
+                               Location::RequiresRegister(),
+                               LocationSummary::kNoCall);
 }
 
 
 void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register object = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+  __ LoadFromOffset(result, object, offset() - kHeapObjectTag);
 }
 
 
@@ -1256,39 +1260,44 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Location index = locs()->in(1);
 
   Address element_address(kNoRegister, 0);
+
+  ASSERT(index.IsRegister());  // TODO(regis): Revisit.
+  // Note that index is expected smi-tagged, (i.e, times 2) for all arrays
+  // with index scale factor > 1. E.g., for Uint8Array and OneByteString the
+  // index is expected to be untagged before accessing.
+  ASSERT(kSmiTagShift == 1);
+  switch (index_scale()) {
+    case 1: {
+      __ SmiUntag(index.reg());
+      break;
+    }
+    case 2: {
+      break;
+    }
+    case 4: {
+      __ sll(index.reg(), index.reg(), 1);
+      break;
+    }
+    case 8: {
+      __ sll(index.reg(), index.reg(), 2);
+      break;
+    }
+    case 16: {
+      __ sll(index.reg(), index.reg(), 3);
+      break;
+    }
+    default:
+      UNREACHABLE();
+  }
+  __ addu(index.reg(), array, index.reg());
+
   if (IsExternal()) {
-    UNIMPLEMENTED();
+    element_address = Address(index.reg(), 0);
   } else {
     ASSERT(this->array()->definition()->representation() == kTagged);
-    ASSERT(index.IsRegister());  // TODO(regis): Revisit.
-    // Note that index is expected smi-tagged, (i.e, times 2) for all arrays
-    // with index scale factor > 1. E.g., for Uint8Array and OneByteString the
-    // index is expected to be untagged before accessing.
-    ASSERT(kSmiTagShift == 1);
-    switch (index_scale()) {
-      case 1: {
-        __ SmiUntag(index.reg());
-        break;
-      }
-      case 2: {
-        break;
-      }
-      case 4: {
-        __ sll(index.reg(), index.reg(), 1);
-        break;
-      }
-      case 8: {
-        __ sll(index.reg(), index.reg(), 2);
-        break;
-      }
-      case 16: {
-        __ sll(index.reg(), index.reg(), 3);
-        break;
-      }
-      default:
-        UNREACHABLE();
-    }
-    __ addu(index.reg(), array, index.reg());
+    // If the data offset doesn't fit into the 18 bits we get for the addressing
+    // mode, then we must load the offset into a register and add it to the
+    // index.
     element_address = Address(index.reg(),
         FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
   }
@@ -1454,39 +1463,40 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Location index = locs()->in(1);
 
   Address element_address(kNoRegister, 0);
+  ASSERT(index.IsRegister());  // TODO(regis): Revisit.
+  // Note that index is expected smi-tagged, (i.e, times 2) for all arrays
+  // with index scale factor > 1. E.g., for Uint8Array and OneByteString the
+  // index is expected to be untagged before accessing.
+  ASSERT(kSmiTagShift == 1);
+  switch (index_scale()) {
+    case 1: {
+      __ SmiUntag(index.reg());
+      break;
+    }
+    case 2: {
+      break;
+    }
+    case 4: {
+      __ sll(index.reg(), index.reg(), 1);
+      break;
+    }
+    case 8: {
+      __ sll(index.reg(), index.reg(), 2);
+      break;
+    }
+    case 16: {
+      __ sll(index.reg(), index.reg(), 3);
+      break;
+    }
+    default:
+      UNREACHABLE();
+  }
+  __ addu(index.reg(), array, index.reg());
+
   if (IsExternal()) {
-    UNIMPLEMENTED();
+    element_address = Address(index.reg(), 0);
   } else {
     ASSERT(this->array()->definition()->representation() == kTagged);
-    ASSERT(index.IsRegister());  // TODO(regis): Revisit.
-    // Note that index is expected smi-tagged, (i.e, times 2) for all arrays
-    // with index scale factor > 1. E.g., for Uint8Array and OneByteString the
-    // index is expected to be untagged before accessing.
-    ASSERT(kSmiTagShift == 1);
-    switch (index_scale()) {
-      case 1: {
-        __ SmiUntag(index.reg());
-        break;
-      }
-      case 2: {
-        break;
-      }
-      case 4: {
-        __ sll(index.reg(), index.reg(), 1);
-        break;
-      }
-      case 8: {
-        __ sll(index.reg(), index.reg(), 2);
-        break;
-      }
-      case 16: {
-        __ sll(index.reg(), index.reg(), 3);
-        break;
-      }
-      default:
-        UNREACHABLE();
-    }
-    __ addu(index.reg(), array, index.reg());
     element_address = Address(index.reg(),
         FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
   }
@@ -3107,13 +3117,48 @@ void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* DoubleToIntegerInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  result->set_in(0, Location::RegisterLocation(T1));
+  result->set_out(Location::RegisterLocation(V0));
+  return result;
 }
 
 
 void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register result = locs()->out().reg();
+  Register value_obj = locs()->in(0).reg();
+  ASSERT(result == V0);
+  ASSERT(result != value_obj);
+  __ LoadDFromOffset(DTMP, value_obj, Double::value_offset() - kHeapObjectTag);
+  __ cvtwd(STMP1, DTMP);
+  __ mfc1(result, STMP1);
+
+  // Overflow is signaled with minint.
+  Label do_call, done;
+  // Check for overflow and that it fits into Smi.
+  __ LoadImmediate(TMP, 0xC0000000);
+  __ subu(CMPRES, result, TMP);
+  __ bltz(CMPRES, &do_call);
+  __ SmiTag(result);
+  __ b(&done);
+  __ Bind(&do_call);
+  __ Push(value_obj);
+  ASSERT(instance_call()->HasICData());
+  const ICData& ic_data = *instance_call()->ic_data();
+  ASSERT((ic_data.NumberOfChecks() == 1));
+  const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
+
+  const intptr_t kNumberOfArguments = 1;
+  compiler->GenerateStaticCall(deopt_id(),
+                               instance_call()->token_pos(),
+                               target,
+                               kNumberOfArguments,
+                               Object::null_array(),  // No argument names.,
+                               locs());
+  __ Bind(&done);
 }
 
 

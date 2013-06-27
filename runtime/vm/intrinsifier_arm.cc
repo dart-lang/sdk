@@ -1424,7 +1424,6 @@ bool Intrinsifier::Object_equal(Assembler* assembler) {
 
 
 bool Intrinsifier::String_getHashCode(Assembler* assembler) {
-  __ Untested("Intrinsifier::String_getHashCode");
   __ ldr(R0, Address(SP, 0 * kWordSize));
   __ ldr(R0, FieldAddress(R0, String::hash_offset()));
   __ cmp(R0, ShifterOperand(0));

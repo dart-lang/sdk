@@ -170,11 +170,14 @@ io/http_parser_test: Fail # dartbug.com/11273
 *: Skip
 
 [ $arch == arm || $arch == simarm ]
-*: Skip # Many of these tests are still flaky on arm, so skipping until we
-        # actually start working on implementing the needed features.
+out_of_memory_test: Crash
+typed_data_test: Timeout
 
 [ $arch == mips ]
 *: Skip
 
 [ $arch == simmips ]
-*: Skip
+left_shift_bit_and_op_test: Fail
+out_of_memory_test: Crash
+typed_data_test: Timeout
+

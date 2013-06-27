@@ -1490,7 +1490,6 @@ bool Intrinsifier::Object_equal(Assembler* assembler) {
 
 bool Intrinsifier::String_getHashCode(Assembler* assembler) {
   Label fall_through;
-  __ Untested("Intrinsifier::String_getHashCode");
   __ lw(T0, Address(SP, 0 * kWordSize));
   __ lw(V0, FieldAddress(T0, String::hash_offset()));
   __ beq(V0, ZR, &fall_through);
