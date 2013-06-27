@@ -7,9 +7,6 @@
 # not clear: may be assignment in the constructor is warning, not error
 Language/05_Variables/05_Variables_A05_t04: fail
 
-# void func({var _x}) {}
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: fail
-
 # not clear: g([var foo = foo + 10]) is parameter 'foo' in the scope of its own initialzer?
 Language/06_Functions/2_Formal_Parameters_A02_t02: fail
 
