@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartanalyzer ]
+argument_definition_test/01: fail  # issue 11565
 abstract_factory_constructor_test/00: fail
 assign_instance_method_negative_test: fail
 assign_static_type_test/06: fail
