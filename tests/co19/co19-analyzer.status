@@ -188,8 +188,14 @@ Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t07: fail, 
 Language/11_Expressions/33_Argument_Definition_Test_A01_t14: fail, OK
 Language/11_Expressions/33_Argument_Definition_Test_A01_t18: fail, OK
 
-# co19 issue #435, AssertioError has not properties
+# co19 issue #435, AssertionError has not properties
 LibTest/core/AssertionError/column_A01_t02: fail, OK
 LibTest/core/AssertionError/failedAssertion_A01_t01: fail, OK
 LibTest/core/AssertionError/line_A01_t02: fail, OK
 LibTest/core/AssertionError/url_A01_t01: fail, OK
+
+# co19 issue #437, annotation should be constant _variable_ or constant constructor invocation
+Language/07_Classes/07_Classes_A01_t20: fail, OK
+Language/07_Classes/07_Classes_A02_t34: fail, OK
+Language/07_Classes/07_Classes_A03_t10: fail, OK
+Language/13_Libraries_and_Scripts/2_Exports_A01_t17: fail, OK
