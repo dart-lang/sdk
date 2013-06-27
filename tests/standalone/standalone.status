@@ -171,7 +171,7 @@ io/http_parser_test: Fail # dartbug.com/11273
 
 [ $arch == arm || $arch == simarm ]
 out_of_memory_test: Crash
-typed_data_test: Timeout
+typed_data_test: Pass, Timeout
 
 [ $arch == mips ]
 *: Skip
