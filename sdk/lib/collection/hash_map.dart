@@ -18,45 +18,47 @@ part of dart.collection;
 class HashMap<K, V> implements Map<K, V> {
   external HashMap();
 
-  static _id(x) => x;
-
+  /**
+   * Creates a [HashMap] that contains all key value pairs of [other].
+   */
   factory HashMap.from(Map<K, V> other) {
     return new HashMap<K, V>()..addAll(other);
   }
 
-  factory HashMap.fromIterable(Iterable iterable,
+  /**
+   * Creates a [HashMap] where the keys and values are computed from the
+   * [iterable].
+   *
+   * For each element of the [iterable] this constructor computes a key/value
+   * pair, by applying [key] and [value] respectively.
+   *
+   * The keys of the key/value pairs do not need to be unique. The last
+   * occurrence of a key will simply overwrite any previous value.
+   *
+   * If no values are specified for [key] and [value] the default is the
+   * identity function.
+   */
+  factory HashMap.fromIterable(Iterable<K> iterable,
       {K key(element), V value(element)}) {
     HashMap<K, V> map = new HashMap<K, V>();
-
-    if (key == null) key = _id;
-    if (value == null) value = _id;
-
-    for (var element in iterable) {
-      map[key(element)] = value(element);
-    }
-
+    Maps._fillMapWithMappedIterable(map, iterable, key, value);
     return map;
   }
 
+  /**
+   * Creates a [HashMap] associating the given [keys] to [values].
+   *
+   * This constructor iterates over [keys] and [values] and maps each element of
+   * [keys] to the corresponding element of [values].
+   *
+   * If [keys] contains the same object multiple times, the last occurrence
+   * overwrites the previous value.
+   *
+   * It is an error if the two [Iterable]s don't have the same length.
+   */
   factory HashMap.fromIterables(Iterable<K> keys, Iterable<V> values) {
     HashMap<K, V> map = new HashMap<K, V>();
-
-    Iterator<K> keyIterator = keys.iterator;
-    Iterator<V> valueIterator = values.iterator;
-
-    bool hasNextKey = keyIterator.moveNext();
-    bool hasNextValue = valueIterator.moveNext();
-
-    while (hasNextKey && hasNextValue) {
-      map[keyIterator.current] = valueIterator.current;
-      hasNextKey = keyIterator.moveNext();
-      hasNextValue = valueIterator.moveNext();
-    }
-
-    if (hasNextKey || hasNextValue) {
-      throw new ArgumentError("Iterables do not have same length.");
-    }
-
+    Maps._fillMapWithIterables(map, keys, values);
     return map;
   }
 

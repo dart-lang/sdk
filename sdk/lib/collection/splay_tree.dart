@@ -248,8 +248,49 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
   SplayTreeMap([int compare(K key1, K key2)])
       : _comparator = (compare == null) ? Comparable.compare : compare;
 
+  /**
+   * Creates a [SplayTreeMap] that contains all key value pairs of [other].
+   */
   factory SplayTreeMap.from(Map<K, V> other, [int compare(K key1, K key2)]) =>
       new SplayTreeMap(compare)..addAll(other);
+
+  /**
+   * Creates a [SplayTreeMap] where the keys and values are computed from the
+   * [iterable].
+   *
+   * For each element of the [iterable] this constructor computes a key/value
+   * pair, by applying [key] and [value] respectively.
+   *
+   * The keys of the key/value pairs do not need to be unique. The last
+   * occurrence of a key will simply overwrite any previous value.
+   *
+   * If no values are specified for [key] and [value] the default is the
+   * identity function.
+   */
+  factory SplayTreeMap.fromIterable(Iterable<K> iterable,
+      {K key(element), V value(element), int compare(K key1, K key2)}) {
+    SplayTreeMap<K, V> map = new SplayTreeMap<K, V>(compare);
+    Maps._fillMapWithMappedIterable(map, iterable, key, value);
+    return map;
+  }
+
+  /**
+   * Creates a [SplayTreeMap] associating the given [keys] to [values].
+   *
+   * This constructor iterates over [keys] and [values] and maps each element of
+   * [keys] to the corresponding element of [values].
+   *
+   * If [keys] contains the same object multiple times, the last occurrence
+   * overwrites the previous value.
+   *
+   * It is an error if the two [Iterable]s don't have the same length.
+   */
+  factory SplayTreeMap.fromIterables(Iterable<K> keys, Iterable<V> values,
+      [int compare(K key1, K key2)]) {
+    SplayTreeMap<K, V> map = new SplayTreeMap<K, V>(compare);
+    Maps._fillMapWithIterables(map, keys, values);
+    return map;
+  }
 
   int _compare(K key1, K key2) => _comparator(key1, key2);
 

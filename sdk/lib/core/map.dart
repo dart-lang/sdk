@@ -20,6 +20,21 @@ abstract class Map<K, V> {
   factory Map.from(Map<K, V> other) => new HashMap<K, V>.from(other);
 
   /**
+   * Creates a [Map] where the keys and values are computed from the [iterable].
+   *
+   * For each element of the [iterable] this constructor computes a key/value
+   * pair, by applying [key] and [value] respectively.
+   *
+   * The keys of the key/value pairs do not need to be unique. The last
+   * occurrence of a key will simply overwrite any previous value.
+   *
+   * If no values are specified for [key] and [value] the default is the
+   * identity function.
+   */
+  factory Map.fromIterable(Iterable<K> iterable,
+      {K key(element), V value(element)}) = HashMap<K, V>.fromIterable;
+
+  /**
    * Creates a [Map] associating the given [keys] to [values].
    *
    * This constructor iterates over [keys] and [values] and maps each element of
@@ -32,21 +47,6 @@ abstract class Map<K, V> {
    */
   factory Map.fromIterables(Iterable<K> keys, Iterable<V> values)
       = HashMap<K, V>.fromIterables;
-
-  /**
-   * Creates a [Map] where the keys and values are computed from the [iterable].
-   *
-   * For each element of the [iterable] this constructor computes a key/value
-   * pair, by applying [key] and [value] respectively.
-   *
-   * The keys of the key/value pairs do not need to be unique. The last
-   * occurrence of a key will simply overwrite any previous value.
-   *
-   * If no values are specified for [key] and [value] the default is the
-   * identity function.
-   */
-  factory Map.fromIterable(Iterable iterable,
-      {K key(element), V value(element)}) = HashMap<K, V>.fromIterable;
 
   /**
    * Returns whether this map contains the given [value].
