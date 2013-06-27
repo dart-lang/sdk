@@ -4047,6 +4047,34 @@ class AliasedSet : public ZoneAllocated {
 
   const PhiPlaceMoves* phi_moves() const { return phi_moves_; }
 
+  // Returns true if the result of AllocateObject can be aliased by some
+  // other SSA variable and false otherwise. Currently simply checks if
+  // this value is stored in a field, escapes to another function or
+  // participates in a phi.
+  static bool CanBeAliased(AllocateObjectInstr* alloc) {
+    if (alloc->identity() == AllocateObjectInstr::kUnknown) {
+      bool escapes = false;
+      for (Value* use = alloc->input_use_list();
+           use != NULL;
+           use = use->next_use()) {
+        Instruction* instr = use->instruction();
+        if (instr->IsPushArgument() ||
+            (instr->IsStoreVMField() && (use->use_index() != 1)) ||
+            (instr->IsStoreInstanceField() && (use->use_index() != 0)) ||
+            (instr->IsStoreStaticField()) ||
+            (instr->IsPhi())) {
+          escapes = true;
+          break;
+        }
+      }
+
+      alloc->set_identity(escapes ? AllocateObjectInstr::kAliased
+                                  : AllocateObjectInstr::kNotAliased);
+    }
+
+    return alloc->identity() != AllocateObjectInstr::kNotAliased;
+  }
+
  private:
   // Get id assigned to the given field. Assign a new id if the field is seen
   // for the first time.
@@ -4092,34 +4120,6 @@ class AliasedSet : public ZoneAllocated {
   intptr_t GetStaticFieldId(const Field& field) {
     ASSERT(field.is_static());
     return GetFieldId(kAnyInstance, field);
-  }
-
-  // Returns true if the result of AllocateObject can be aliased by some
-  // other SSA variable and false otherwise. Currently simply checks if
-  // this value is stored in a field, escapes to another function or
-  // participates in a phi.
-  bool CanBeAliased(AllocateObjectInstr* alloc) {
-    if (alloc->identity() == AllocateObjectInstr::kUnknown) {
-      bool escapes = false;
-      for (Value* use = alloc->input_use_list();
-           use != NULL;
-           use = use->next_use()) {
-        Instruction* instr = use->instruction();
-        if (instr->IsPushArgument() ||
-            (instr->IsStoreVMField() && (use->use_index() != 0)) ||
-            (instr->IsStoreInstanceField() && (use->use_index() != 0)) ||
-            (instr->IsStoreStaticField()) ||
-            (instr->IsPhi())) {
-          escapes = true;
-          break;
-        }
-      }
-
-      alloc->set_identity(escapes ? AllocateObjectInstr::kAliased
-                                  : AllocateObjectInstr::kNotAliased);
-    }
-
-    return alloc->identity() != AllocateObjectInstr::kNotAliased;
   }
 
   // Returns true if the given load is unaffected by external side-effects.
@@ -4507,9 +4507,8 @@ class LoadOptimizer : public ValueObject {
         }
 
         // For object allocation forward initial values of the fields to
-        // subsequent loads.
-        // For simplicity we ignore escaping objects and objects that have
-        // type arguments.
+        // subsequent loads. For simplicity we ignore escaping objects.
+        //
         // The reason to ignore escaping objects is that final fields are
         // initialized in constructor that potentially can be not inlined into
         // the function that we are currently optimizing. However at the same
@@ -4521,7 +4520,7 @@ class LoadOptimizer : public ValueObject {
         // escaping object.
         AllocateObjectInstr* alloc = instr->AsAllocateObject();
         if ((alloc != NULL) &&
-            (alloc->identity() == AllocateObjectInstr::kNotAliased) &&
+            !AliasedSet::CanBeAliased(alloc) &&
             HasSimpleTypeArguments(alloc)) {
           for (Value* use = alloc->input_use_list();
                use != NULL;
@@ -6964,11 +6963,8 @@ void AllocationSinking::Optimize() {
                     alloc->ssa_temp_index());
         }
 
-        if (alloc->identity() == AllocateObjectInstr::kAliased) {
-          // Allocation might have been classified as aliased earlier due to
-          // some operations that are now eliminated.
-          alloc->set_identity(AllocateObjectInstr::kNotAliased);
-        }
+        // All sinking candidate are known to be not aliased.
+        alloc->set_identity(AllocateObjectInstr::kNotAliased);
 
         candidates.Add(alloc);
       }

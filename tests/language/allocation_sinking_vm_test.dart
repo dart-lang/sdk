@@ -103,6 +103,41 @@ foo3(x) {
   return a.x - a.y;
 }
 
+class WithFinal {
+  final _x;
+  WithFinal(this._x);
+}
+
+testInitialValueForFinalField(x) {
+  new WithFinal(x);
+}
+
+testFinalField() {
+  for (var i = 0; i < 10000; i++) {
+   testInitialValueForFinalField(1);
+  }
+}
+
+class V {
+  var x = 0;
+}
+
+test_vm_field() {
+  var obj;
+  inner() => obj.x = 42;
+  var a = new V();
+  obj = a;
+  var t1 = a.x;
+  var t2 = inner();
+  return a.x + t1 + t2;
+}
+
+testVMField() {
+  Expect.equals(84, test_vm_field());
+  for (var i=0; i<15000; i++) test_vm_field();
+  Expect.equals(84, test_vm_field());
+}
+
 main() {
   var c = new C(new Point(0.1, 0.2));
 
@@ -147,4 +182,7 @@ main() {
   final z2 = testIdentity(new F(c.p));
   Expect.equals(z0, z1);
   Expect.equals(z0, z2);
+
+  testFinalField();
+  testVMField();
 }
