@@ -115,13 +115,7 @@ io/url_encoding_test: fail
 io/web_socket_protocol_processor_test: fail
 53bit_overflow_literal_test/01: fail, ok
 
-# Fails because checked-in dart executable is not up to date.
-io/test_runner_test: fail
-io/skipping_dart2js_compilations_test: fail
-
-
 [ $compiler == dart2js ]
-io/test_runner_test: Fail # Import Uri does not work
 number_identity_test: Skip # Bigints and int/double diff. not supported.
 typed_data_test: Skip # dart:typed_data support needed.
 bytedata_test: Skip # dart:typed_data support needed.
