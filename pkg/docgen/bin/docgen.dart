@@ -17,7 +17,7 @@ void main() {
   logger.onRecord.listen((record) => print(record.message));
   var results = initArgParser().parse(new Options().arguments);
   if (results['help']) return;  
-  new Docgen(results);
+  docgen(results);
 }
 
 /**
@@ -31,7 +31,7 @@ ArgParser initArgParser() {
       callback: (help) {
         if (help) {
           logger.info(parser.getUsage());
-          logger.info(usage);
+          logger.info(USAGE);
         }
       });
   parser.addFlag('verbose', abbr: 'v', 
