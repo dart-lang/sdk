@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dependency_validator;
+library pub.validator.dependency;
 
 import 'dart:async';
 
 import '../entrypoint.dart';
-import '../hosted_source.dart';
 import '../http.dart';
 import '../package.dart';
-import '../path_source.dart';
+import '../source/hosted.dart';
+import '../source/path.dart';
 import '../utils.dart';
 import '../validator.dart';
 import '../version.dart';

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library command_uploader;
+library pub.command.uploader;
 
 import 'dart:async';
 import 'dart:io';
@@ -10,15 +10,15 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:pathos/path.dart' as path;
 
-import 'command.dart';
-import 'entrypoint.dart';
-import 'exit_codes.dart' as exit_codes;
-import 'http.dart';
-import 'hosted_source.dart';
-import 'io.dart';
-import 'log.dart' as log;
-import 'oauth2.dart' as oauth2;
-import 'utils.dart';
+import '../command.dart';
+import '../entrypoint.dart';
+import '../exit_codes.dart' as exit_codes;
+import '../http.dart';
+import '../io.dart';
+import '../log.dart' as log;
+import '../oauth2.dart' as oauth2;
+import '../source/hosted.dart';
+import '../utils.dart';
 
 /// Handles the `uploader` pub command.
 class UploaderCommand extends PubCommand {

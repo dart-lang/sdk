@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library command_update;
+library pub.command.update;
 
 import 'dart:async';
 
 import 'package:args/args.dart';
 
-import 'command.dart';
-import 'entrypoint.dart';
-import 'log.dart' as log;
+import '../command.dart';
+import '../entrypoint.dart';
+import '../log.dart' as log;
 
 /// Handles the `update` pub command.
 class UpdateCommand extends PubCommand {

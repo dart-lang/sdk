@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library command_cache;
+library pub.command.cache;
 
 import 'dart:async';
 import 'dart:io';
 import 'dart:json' as json;
 
-import 'command.dart';
-import 'exit_codes.dart' as exit_codes;
-import 'log.dart' as log;
+import '../command.dart';
+import '../exit_codes.dart' as exit_codes;
+import '../log.dart' as log;
 
 /// Handles the `cache` pub command.
 class CacheCommand extends PubCommand {

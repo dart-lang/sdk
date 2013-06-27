@@ -2,21 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library system_cache;
+library pub.system_cache;
 
 import 'dart:io';
 import 'dart:async';
 
 import 'package:pathos/path.dart' as path;
 
-import 'git_source.dart';
-import 'hosted_source.dart';
 import 'io.dart';
 import 'io.dart' as io show createTempDir;
 import 'log.dart' as log;
 import 'package.dart';
-import 'path_source.dart';
 import 'pubspec.dart';
+import 'source/git.dart';
+import 'source/hosted.dart';
+import 'source/path.dart';
 import 'source.dart';
 import 'source_registry.dart';
 import 'utils.dart';

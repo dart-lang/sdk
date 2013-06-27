@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library pubspec_field_validator;
+library pub.validator.pubspec_field;
 
 import 'dart:async';
 

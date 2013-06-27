@@ -28,13 +28,13 @@ import '../lib/src/entrypoint.dart';
 // with the git descriptor method. Maybe we should try to clean up the top level
 // scope a bit?
 import '../lib/src/git.dart' as gitlib;
-import '../lib/src/git_source.dart';
-import '../lib/src/hosted_source.dart';
 import '../lib/src/http.dart';
 import '../lib/src/io.dart';
 import '../lib/src/log.dart' as log;
-import '../lib/src/path_source.dart';
 import '../lib/src/safe_http_server.dart';
+import '../lib/src/source/git.dart';
+import '../lib/src/source/hosted.dart';
+import '../lib/src/source/path.dart';
 import '../lib/src/system_cache.dart';
 import '../lib/src/utils.dart';
 import '../lib/src/validator.dart';

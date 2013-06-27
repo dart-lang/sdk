@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library utf8_readme_validator;
+library pub.validator.utf8_readme;
 
 import 'dart:async';
 import 'dart:utf';

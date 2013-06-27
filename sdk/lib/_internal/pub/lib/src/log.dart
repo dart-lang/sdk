@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Message logging.
-library log;
+library pub.log;
 
 import 'dart:io';
 import 'dart:async';

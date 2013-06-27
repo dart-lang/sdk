@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library command_deploy;
+library pub.command.deploy;
 
 import 'dart:async';
 import 'dart:math' as math;
@@ -10,11 +10,11 @@ import 'dart:math' as math;
 import 'package:analyzer_experimental/analyzer.dart';
 import 'package:pathos/path.dart' as path;
 
-import 'command.dart';
-import 'dart.dart' as dart;
-import 'io.dart';
-import 'log.dart' as log;
-import 'utils.dart';
+import '../command.dart';
+import '../dart.dart' as dart;
+import '../io.dart';
+import '../log.dart' as log;
+import '../utils.dart';
 
 final _arrow = getSpecial('\u2192', '=>');
 

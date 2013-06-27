@@ -2,19 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library git_source;
+library pub.source.git;
 
 import 'dart:async';
 
 import 'package:pathos/path.dart' as path;
 
-import 'git.dart' as git;
-import 'io.dart';
-import 'log.dart' as log;
-import 'package.dart';
-import 'source.dart';
-import 'source_registry.dart';
-import 'utils.dart';
+import '../git.dart' as git;
+import '../io.dart';
+import '../log.dart' as log;
+import '../package.dart';
+import '../source.dart';
+import '../source_registry.dart';
+import '../utils.dart';
 
 /// A package source that installs packages from Git repos.
 class GitSource extends Source {

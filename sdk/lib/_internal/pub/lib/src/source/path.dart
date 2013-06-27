@@ -2,21 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library path_source;
+library pub.source.path;
 
 import 'dart:async';
 import 'dart:io';
 
 import 'package:pathos/path.dart' as path;
 
-import 'log.dart' as log;
+import '../log.dart' as log;
 
-import 'io.dart';
-import 'package.dart';
-import 'pubspec.dart';
-import 'version.dart';
-import 'source.dart';
-import 'utils.dart';
+import '../io.dart';
+import '../package.dart';
+import '../pubspec.dart';
+import '../version.dart';
+import '../source.dart';
+import '../utils.dart';
 
 /// A package [Source] that installs packages from a given local file path.
 class PathSource extends Source {

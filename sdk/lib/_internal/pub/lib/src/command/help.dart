@@ -2,17 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library command_help;
+library pub.command.help;
 
 import 'dart:async';
 import 'dart:io' as io;
 
-import 'command.dart';
-import 'exit_codes.dart' as exit_codes;
-import 'io.dart';
-import 'log.dart' as log;
+import '../command.dart';
+import '../exit_codes.dart' as exit_codes;
+import '../io.dart';
+import '../log.dart' as log;
 
-/// Handles the `help` pub command. 
+/// Handles the `help` pub command.
 class HelpCommand extends PubCommand {
   String get description => "Display help information for Pub.";
   String get usage => 'pub help [command]';

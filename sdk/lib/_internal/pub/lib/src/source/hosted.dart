@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library hosted_source;
+library pub.source.hosted;
 
 import 'dart:async';
 import 'dart:io' as io;
@@ -11,15 +11,15 @@ import 'dart:json' as json;
 import 'package:http/http.dart' as http;
 import 'package:pathos/path.dart' as path;
 
-import 'http.dart';
-import 'io.dart';
-import 'log.dart' as log;
-import 'package.dart';
-import 'pubspec.dart';
-import 'source.dart';
-import 'source_registry.dart';
-import 'utils.dart';
-import 'version.dart';
+import '../http.dart';
+import '../io.dart';
+import '../log.dart' as log;
+import '../package.dart';
+import '../pubspec.dart';
+import '../source.dart';
+import '../source_registry.dart';
+import '../utils.dart';
+import '../version.dart';
 
 /// A package source that installs packages from a package hosting site that
 /// uses the same API as pub.dartlang.org.

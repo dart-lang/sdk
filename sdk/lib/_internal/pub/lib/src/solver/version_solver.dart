@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library version_solver;
+library pub.solver.version_solver;
 
 import 'dart:async';
 import 'dart:json' as json;
@@ -195,6 +195,8 @@ abstract class SolveFailure implements ApplicationException {
 
     return buffer.toString();
   }
+
+  String get message => toString();
 
   /// A message describing the specific kind of solve failure.
   String get _message {
