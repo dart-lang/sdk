@@ -1597,6 +1597,7 @@ void FlowGraphCompiler::EmitDoubleCompareBranch(Condition true_condition,
 
   switch (true_condition) {
     case EQ: assembler()->ceqd(left, right); break;
+    case NE: assembler()->ceqd(left, right); break;
     case LT: assembler()->coltd(left, right); break;
     case LE: assembler()->coled(left, right); break;
     case GT: assembler()->coltd(right, left); break;
@@ -1609,8 +1610,13 @@ void FlowGraphCompiler::EmitDoubleCompareBranch(Condition true_condition,
   }
 
   assembler()->LoadImmediate(TMP, 1);
-  assembler()->movf(CMPRES, TMP);
-  assembler()->movt(CMPRES, ZR);
+  if (true_condition == NE) {
+    assembler()->movf(CMPRES, ZR);
+    assembler()->movt(CMPRES, TMP);
+  } else {
+    assembler()->movf(CMPRES, TMP);
+    assembler()->movt(CMPRES, ZR);
+  }
   assembler()->mov(TMP, ZR);
 
   // EmitBranchOnCondition expects ordering to be described by CMPRES, TMP1.
@@ -1630,6 +1636,7 @@ void FlowGraphCompiler::EmitDoubleCompareBool(Condition true_condition,
 
   switch (true_condition) {
     case EQ: assembler()->ceqd(left, right); break;
+    case NE: assembler()->ceqd(left, right); break;
     case LT: assembler()->coltd(left, right); break;
     case LE: assembler()->coled(left, right); break;
     case GT: assembler()->coltd(right, left); break;
@@ -1641,7 +1648,11 @@ void FlowGraphCompiler::EmitDoubleCompareBool(Condition true_condition,
     }
   }
 
-  assembler()->bc1f(&done);  // False is already in result.
+  if (true_condition == NE) {
+    assembler()->bc1t(&done);  // False is already in result.
+  } else {
+    assembler()->bc1f(&done);
+  }
   assembler()->LoadObject(result, Bool::True());
   assembler()->Bind(&done);
 }
