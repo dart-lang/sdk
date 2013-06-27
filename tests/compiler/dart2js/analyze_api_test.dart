@@ -20,9 +20,6 @@ import 'analyze_helper.dart';
 // TODO(johnniwinther): Support canonical URIs as keys and message kinds as
 // values.
 const Map<String, List<String>> WHITE_LIST = const {
-  'path_observer.dart':
-      const ['Hint: Using "new Symbol"', // Issue 10565.
-            ],
   'sdk/lib/html/dart2js/html_dart2js.dart':
       const ['Hint: The class "Rect" overrides "operator==", '
              'but not "get hashCode".',
