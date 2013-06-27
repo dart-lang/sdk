@@ -76,7 +76,7 @@ RawFunction* Resolver::ResolveDynamicForReceiverClass(
 // When an expression obj.M is evaluated for the first time and receiver obj
 // does not have a getter called M but has a method called M then an extractor
 // is created and injected as a getter (under the name get:M) into the class
-// ownining method M.
+// owning method M.
 static RawFunction* CreateMethodExtractor(const String& getter_name,
                                           const Function& method) {
   const Function& closure_function =

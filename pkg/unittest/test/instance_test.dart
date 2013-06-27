@@ -21,7 +21,7 @@ main() {
       shouldPass(doesThrow, throwsA(equals('X')));
       shouldFail(doesThrow, throwsA(equals('Y')),
           "Expected: throws 'Y' "
-          "Actual: <Closure: (dynamic) => dynamic "
+          "Actual: <Closure: () => dynamic "
               "from Function 'doesThrow': static.> "
           "Which: threw 'X'");
     });

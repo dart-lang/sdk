@@ -23,7 +23,7 @@ void main() {
           throwsFormatException,
           matches(
               r"Expected: throws FormatException +"
-              r"Actual: <Closure(: \(dynamic\) => dynamic)?> +"
+              r"Actual: <Closure(: \(\) => dynamic)?> +"
               r"Which: threw \?:<Exception>"));
 
     });
@@ -35,7 +35,7 @@ void main() {
           throwsArgumentError,
           matches(
               r"Expected: throws ArgumentError +"
-              r"Actual: <Closure(: \(dynamic\) => dynamic)?> +"
+              r"Actual: <Closure(: \(\) => dynamic)?> +"
               r"Which: threw \?:<Exception>"));
     });
 
@@ -46,7 +46,7 @@ void main() {
           throwsRangeError,
           matches(
               r"Expected: throws RangeError +"
-              r"Actual: <Closure(: \(dynamic\) => dynamic)?> +"
+              r"Actual: <Closure(: \(\) => dynamic)?> +"
               r"Which: threw \?:<Exception>"));
     });
 
@@ -57,7 +57,7 @@ void main() {
           throwsNoSuchMethodError,
           matches(
               r"Expected: throws NoSuchMethodError +"
-              r"Actual: <Closure(: \(dynamic\) => dynamic)?> +"
+              r"Actual: <Closure(: \(\) => dynamic)?> +"
               r"Which: threw \?:<Exception>"));
     });
 
@@ -68,7 +68,7 @@ void main() {
           throwsUnimplementedError,
           matches(
               r"Expected: throws UnimplementedError +"
-              r"Actual: <Closure(: \(dynamic\) => dynamic)?> +"
+              r"Actual: <Closure(: \(\) => dynamic)?> +"
               r"Which: threw \?:<Exception>"));
     });
 
@@ -79,7 +79,7 @@ void main() {
           throwsUnsupportedError,
           matches(
               r"Expected: throws UnsupportedError +"
-              r"Actual: <Closure(: \(dynamic\) => dynamic)?> +"
+              r"Actual: <Closure(: \(\) => dynamic)?> +"
               r"Which: threw \?:<Exception>"));
     });
 
@@ -90,7 +90,7 @@ void main() {
           throwsStateError,
           matches(
               r"Expected: throws StateError +"
-              r"Actual: <Closure(: \(dynamic\) => dynamic)?> +"
+              r"Actual: <Closure(: \(\) => dynamic)?> +"
               r"Which: threw \?:<Exception>"));
     });
   });

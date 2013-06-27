@@ -65,7 +65,7 @@ void main() {
       shouldFail(doesNotThrow, throws,
           matches(
               r"Expected: throws"
-              r"  Actual: <Closure(: \(dynamic\) => dynamic "
+              r"  Actual: <Closure(: \(\) => dynamic "
               r"from Function 'doesNotThrow': static\.)?>"
               r"   Which: did not throw"));
       shouldPass(doesThrow, throws);
@@ -80,7 +80,7 @@ void main() {
       shouldFail(doesThrow, throwsA(equals('Y')),
           matches(
               r"Expected: throws 'Y'"
-              r"  Actual: <Closure(: \(dynamic\) => dynamic "
+              r"  Actual: <Closure(: \(\) => dynamic "
               r"from Function 'doesThrow': static\.)?>"
               r"   Which: threw 'X'"));
     });
@@ -90,7 +90,7 @@ void main() {
       shouldFail(doesThrow, returnsNormally,
           matches(
               r"Expected: return normally"
-              r"  Actual: <Closure(: \(dynamic\) => dynamic "
+              r"  Actual: <Closure(: \(\) => dynamic "
               r"from Function 'doesThrow': static\.)?>"
               r"   Which: threw 'X'"));
     });
