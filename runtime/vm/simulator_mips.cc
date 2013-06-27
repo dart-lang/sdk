@@ -1394,8 +1394,8 @@ void Simulator::DecodeSpecial2(Instr* instr) {
       uint32_t lo = get_lo_register();
       int32_t hi = get_hi_register();
       int64_t accum = Utils::LowHighTo64Bits(lo, hi);
-      int64_t rs = static_cast<int64_t>(get_register(instr->RsField()));
-      int64_t rt = static_cast<int64_t>(get_register(instr->RtField()));
+      int64_t rs = get_register(instr->RsField());
+      int64_t rt = get_register(instr->RtField());
       int64_t res = accum + rs * rt;
       set_hi_register(Utils::High32Bits(res));
       set_lo_register(Utils::Low32Bits(res));
@@ -1408,8 +1408,8 @@ void Simulator::DecodeSpecial2(Instr* instr) {
       uint32_t lo = get_lo_register();
       uint32_t hi = get_hi_register();
       uint64_t accum = Utils::LowHighTo64Bits(lo, hi);
-      uint64_t rs = static_cast<uint64_t>(get_register(instr->RsField()));
-      uint64_t rt = static_cast<uint64_t>(get_register(instr->RtField()));
+      uint64_t rs = static_cast<uint32_t>(get_register(instr->RsField()));
+      uint64_t rt = static_cast<uint32_t>(get_register(instr->RtField()));
       uint64_t res = accum + rs * rt;
       set_hi_register(Utils::High32Bits(res));
       set_lo_register(Utils::Low32Bits(res));

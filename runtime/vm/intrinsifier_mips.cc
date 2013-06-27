@@ -1459,11 +1459,10 @@ bool Intrinsifier::Random_nextState(Assembler* assembler) {
   __ LoadImmediate(T0, a_int32_value);
   __ lw(T2, addr_0);
   __ lw(T3, addr_1);
-  __ sra(T6, T3, 31);  // Sign extend T3 into T6.
   __ mtlo(T3);
-  __ mthi(T6);  // HI:LO <- T6:T3
+  __ mthi(ZR);  // HI:LO <- ZR:T3  Zero extend T3 into HI.
   // 64-bit multiply and accumulate into T6:T3.
-  __ madd(T0, T2);  // HI:LO <- HI:LO + T0 * T2.
+  __ maddu(T0, T2);  // HI:LO <- HI:LO + T0 * T2.
   __ mflo(T3);
   __ mfhi(T6);
   __ sw(T3, addr_0);
