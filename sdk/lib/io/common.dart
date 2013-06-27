@@ -23,7 +23,7 @@ bool _isErrorResponse(response) {
 /**
  * Returns an Exception or an Error
  */
-_exceptionFromResponse(response, String message) {
+_exceptionFromResponse(response, String message, String path) {
   assert(_isErrorResponse(response));
   switch (response[_ERROR_RESPONSE_ERROR_TYPE]) {
     case _ILLEGAL_ARGUMENT_RESPONSE:
@@ -31,9 +31,9 @@ _exceptionFromResponse(response, String message) {
     case _OSERROR_RESPONSE:
       var err = new OSError(response[_OSERROR_RESPONSE_MESSAGE],
                             response[_OSERROR_RESPONSE_ERROR_CODE]);
-      return new FileException(message, err);
+      return new FileException(message, path, err);
     case _FILE_CLOSED_RESPONSE:
-      return new FileException("File closed");
+      return new FileException("File closed", path);
     default:
       return new Exception("Unknown error");
   }

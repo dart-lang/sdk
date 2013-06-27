@@ -79,7 +79,8 @@ class FileStat {
     return service.call(request).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response,
-                                     "Error getting stat of '$path'");
+                                     "Error getting stat",
+                                     path);
       }
       // Unwrap the real list from the "I'm not an error" wrapper.
       List data = response[1];
@@ -185,8 +186,7 @@ abstract class FileSystemEntity {
     request[2] = followLinks;
     return service.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(response,
-                                     "Error getting type of '$path'");
+        throw _exceptionFromResponse(response, "Error getting type", path);
       }
       return response;
     });
@@ -214,7 +214,7 @@ abstract class FileSystemEntity {
     return service.call(request).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response,
-            "Error in FileSystemEntity.identical($path1, $path2)");
+            "Error in FileSystemEntity.identical($path1, $path2)", "");
       }
       return response;
     });

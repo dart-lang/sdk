@@ -154,8 +154,8 @@ class _Link extends FileSystemEntity implements Link {
     request[2] = target;
     return _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(response,
-            "Cannot create link '$path' to target '$target'");
+        throw _exceptionFromResponse(
+            response, "Cannot create link to target '$target'", path);
       }
       return this;
     });
@@ -204,7 +204,7 @@ class _Link extends FileSystemEntity implements Link {
     request[1] = path;
     return _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(response, "Cannot delete link '$path'");
+        throw _exceptionFromResponse(response, "Cannot delete link", path);
       }
       return this;
     });
@@ -224,7 +224,7 @@ class _Link extends FileSystemEntity implements Link {
     return _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(
-            response, "Cannot rename link '$path' to '$newPath'");
+            response, "Cannot rename link to '$newPath'", path);
       }
       return new Link(newPath);
     });
@@ -243,8 +243,8 @@ class _Link extends FileSystemEntity implements Link {
     request[1] = path;
     return _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(response,
-            "Cannot get target of link '$path'");
+        throw _exceptionFromResponse(
+            response, "Cannot get target of link", path);
       }
       return response;
     });
@@ -272,7 +272,7 @@ class _Link extends FileSystemEntity implements Link {
     }
   }
 
-  _exceptionFromResponse(response, String message) {
+  _exceptionFromResponse(response, String message, String path) {
     assert(_isErrorResponse(response));
     switch (response[_ERROR_RESPONSE_ERROR_TYPE]) {
       case _ILLEGAL_ARGUMENT_RESPONSE:
@@ -280,7 +280,7 @@ class _Link extends FileSystemEntity implements Link {
       case _OSERROR_RESPONSE:
         var err = new OSError(response[_OSERROR_RESPONSE_MESSAGE],
                               response[_OSERROR_RESPONSE_ERROR_CODE]);
-        return new LinkException(message, err);
+        return new LinkException(message, path, err);
       default:
         return new Exception("Unknown error");
     }
