@@ -429,7 +429,17 @@ class _TemplateIterator {
   }
 
   void _handleChanges(List<ChangeRecord> splices) {
-    var syntax = TemplateElement.syntax[_templateElement.attributes['syntax']];
+    var template = _templateElement;
+    var syntax = TemplateElement.syntax[template.attributes['syntax']];
+
+    if (template.parentNode == null || template.document.window == null) {
+      // TODO(jmesserly): this is a little different than the MDV code, which
+      // removes _templateIterator from all instances (via the weak table).
+      // I think it has a similar effect. It might be a no-op.
+      removeAllInstances();
+      abandon();
+      return;
+    }
 
     for (var splice in splices) {
       if (splice is! ListChangeRecord) continue;
@@ -463,6 +473,7 @@ class _TemplateIterator {
   void abandon() {
     unobserve();
     _valueBinding.cancel();
+    terminators.clear();
     inputs.dispose();
   }
 }

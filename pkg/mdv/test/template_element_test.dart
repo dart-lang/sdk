@@ -81,6 +81,31 @@ templateElementTests() {
     expect(div.nodes.last.text, 'text');
   });
 
+  test('Template bind, no parent', () {
+    var div = createTestHtml('<template bind>text</template>');
+    var template = div.nodes[0];
+    template.remove();
+
+    recursivelySetTemplateModel(template, toSymbolMap({}));
+    deliverChangeRecords();
+    expect(template.nodes.length, 0);
+    expect(template.nextNode, null);
+    // TODO(jmesserly): the JS tests assert that observer callbacks had no
+    // exceptions. How do we replicate this?
+  });
+
+  test('Template bind, no defaultView', () {
+    var div = createTestHtml('<template bind>text</template>');
+    var template = div.nodes[0];
+    var doc = document.implementation.createHtmlDocument('');
+    doc.adoptNode(div);
+    recursivelySetTemplateModel(template, toSymbolMap({}));
+    deliverChangeRecords();
+    expect(div.nodes.length, 1);
+    // TODO(jmesserly): the JS tests assert that observer callbacks had no
+    // exceptions. How do we replicate this?
+  });
+
   test('Template-Empty Bind', () {
     var div = createTestHtml('<template bind>text</template>');
     recursivelySetTemplateModel(div, null);
@@ -943,6 +968,29 @@ templateElementTests() {
     expect(div.nodes[i++].text, 'Item 1 changed');
     expect(div.nodes[i++].tagName, 'TEMPLATE');
     expect(div.nodes[i++].text, 'Item 2');
+  });
+
+  test('Attribute Template Option', () {
+    var div = createTestHtml(
+        '<template bind>'
+          '<select>'
+            '<option template repeat>{{ val }}</option>'
+          '</select>'
+        '</template>');
+
+    var m = toSymbols([{ 'val': 0 }, { 'val': 1 }]);
+
+    recursivelySetTemplateModel(div, m);
+    deliverChanges(m);
+
+    var select = div.nodes[0].nextNode;
+    expect(select.nodes.length, 3);
+    expect(select.nodes[0].tagName, 'TEMPLATE');
+    expect(select.nodes[0].ref.content.nodes[0].tagName, 'OPTION');
+    expect(select.nodes[1].tagName, 'OPTION');
+    expect(select.nodes[1].text, '0');
+    expect(select.nodes[2].tagName, 'OPTION');
+    expect(select.nodes[2].text, '1');
   });
 
   test('NestedIterateTableMixedSemanticNative', () {

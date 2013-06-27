@@ -22693,25 +22693,40 @@ class TemplateElement extends _HTMLElement {
     // == true check because it starts as a null field.
     if (template._templateIsDecorated == true) return false;
 
-    template._templateIsDecorated = true;
-
     _injectStylesheet();
 
-    // Create content
-    if (template is! TemplateElement) {
-      var doc = _getTemplateContentsOwner(template.document);
-      template._templateContent = doc.createDocumentFragment();
+    var templateElement = template;
+    var isNative = templateElement is TemplateElement;
+    var bootstrapContents = isNative;
+    var liftContents = !isNative;
+    var liftRoot = false;
+
+    if (!isNative && templateElement._isAttributeTemplate) {
+      if (instanceRef != null) {
+        // TODO(jmesserly): this is just an assert in MDV.
+        throw new ArgumentError('instanceRef should not be supplied for '
+            'attribute templates.');
+      }
+      templateElement = _extractTemplateFromAttributeTemplate(template);
+      isNative = templateElement is TemplateElement;
+      liftRoot = true;
+     }
+
+    templateElement._templateIsDecorated = true;
+
+    if (!isNative) {
+      var doc = _getTemplateContentsOwner(templateElement.document);
+      templateElement._templateContent = doc.createDocumentFragment();
     }
 
     if (instanceRef != null) {
-      template._templateInstanceRef = instanceRef;
-      return true; // content is empty.
-    }
-
-    if (template is TemplateElement) {
-      bootstrap(template.content);
-    } else {
-      _liftNonNativeChildrenIntoContent(template);
+      // template is contained within an instance, its direct content must be
+      // empty
+      templateElement._templateInstanceRef = instanceRef;
+    } else if (liftContents) {
+      _liftNonNativeChildrenIntoContent(templateElement, template, liftRoot);
+    } else if (bootstrapContents) {
+      bootstrap(templateElement.content);
     }
 
     return true;
@@ -22735,54 +22750,52 @@ class TemplateElement extends _HTMLElement {
     return d;
   }
 
-  static Element _cloneAndSeperateAttributeTemplate(Element templateElement) {
-    var clone = templateElement.clone(false);
-    var attributes = templateElement.attributes;
-    for (var name in attributes.keys.toList()) {
+  // For non-template browsers, the parser will disallow <template> in certain
+  // locations, so we allow "attribute templates" which combine the template
+  // element with the top-level container node of the content, e.g.
+  //
+  //   <tr template repeat="{{ foo }}"" class="bar"><td>Bar</td></tr>
+  //
+  // becomes
+  //
+  //   <template repeat="{{ foo }}">
+  //   + #document-fragment
+  //     + <tr class="bar">
+  //       + <td>Bar</td>
+  //
+  static Element _extractTemplateFromAttributeTemplate(Element el) {
+    var template = el.document.$dom_createElement('template');
+    el.parentNode.insertBefore(template, el);
+
+    for (var name in el.attributes.keys.toList()) {
       switch (name) {
         case 'template':
+          el.attributes.remove(name);
+          break;
         case 'repeat':
         case 'bind':
         case 'ref':
-          clone.attributes.remove(name);
-          break;
-        default:
-          attributes.remove(name);
+          template.attributes[name] = el.attributes.remove(name);
           break;
       }
     }
 
-    return clone;
+    return template;
   }
 
-  static void _liftNonNativeChildrenIntoContent(Element templateElement) {
-    var content = templateElement.content;
+  static void _liftNonNativeChildrenIntoContent(Element template, Element el,
+      bool useRoot) {
 
-    if (!templateElement._isAttributeTemplate) {
-      var child;
-      while ((child = templateElement.firstChild) != null) {
-        content.append(child);
-      }
+    var content = template.content;
+    if (useRoot) {
+      content.append(el);
       return;
     }
 
-    // For attribute templates we copy the whole thing into the content and
-    // we move the non template attributes into the content.
-    //
-    //   <tr foo template>
-    //
-    // becomes
-    //
-    //   <tr template>
-    //   + #document-fragment
-    //     + <tr foo>
-    //
-    var newRoot = _cloneAndSeperateAttributeTemplate(templateElement);
     var child;
-    while ((child = templateElement.firstChild) != null) {
-      newRoot.append(child);
+    while ((child = el.firstChild) != null) {
+      content.append(child);
     }
-    content.append(newRoot);
   }
 
   /**
