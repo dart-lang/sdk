@@ -1340,9 +1340,6 @@ TEST_CASE(BigintBitNot) {
 }
 
 
-#if defined(TARGET_ARCH_IA32) ||                                               \
-    defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM)
 static void TestBigintMultiplyDivide(const char* a,
                                      const char* b,
                                      const char* product) {
@@ -2134,7 +2131,6 @@ TEST_CASE(BigintMultiplyDivide) {
       "000000000000000000000000000000000000000000000000000000000000000000000000"
       "0000000000000000000000000000000000000000000000000000000001");
 }
-#endif
 
 
 static void TestBigintDivideRemainder(const char* a,
