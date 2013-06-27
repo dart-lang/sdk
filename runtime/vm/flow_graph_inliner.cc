@@ -19,6 +19,8 @@
 
 namespace dart {
 
+DEFINE_FLAG(int, deoptimization_counter_inlining_threshold, 12,
+    "How many times we allow deoptimization before we stop inlining.");
 DEFINE_FLAG(bool, trace_inlining, false, "Trace inlining");
 DEFINE_FLAG(charp, inlining_filter, NULL, "Inline only in named function");
 
@@ -387,6 +389,10 @@ class CallSiteInliner : public ValueObject {
   void InlineCalls() {
     // If inlining depth is less then one abort.
     if (FLAG_inlining_depth_threshold < 1) return;
+    if (caller_graph_->parsed_function().function().deoptimization_counter() >=
+        FLAG_deoptimization_counter_inlining_threshold) {
+      return;
+    }
     // Create two call site collections to swap between.
     CallSites sites1(caller_graph_);
     CallSites sites2(caller_graph_);

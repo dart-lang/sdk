@@ -48,6 +48,8 @@ DEFINE_FLAG(bool, allocation_sinking, true,
     "attempt to sink temporary allocations to side exits");
 DEFINE_FLAG(int, deoptimization_counter_threshold, 16,
     "How many times we allow deoptimization before we disallow optimization.");
+DEFINE_FLAG(int, deoptimization_counter_licm_threshold, 8,
+    "How many times we allow deoptimization before we disable LICM.");
 DEFINE_FLAG(bool, use_inlining, true, "Enable call-site inlining");
 DEFINE_FLAG(bool, range_analysis, true, "Enable range analysis");
 DEFINE_FLAG(bool, verify_compiler, false,
@@ -400,7 +402,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
       }
       if (FLAG_loop_invariant_code_motion &&
           (function.deoptimization_counter() <
-           (FLAG_deoptimization_counter_threshold - 1))) {
+           FLAG_deoptimization_counter_licm_threshold)) {
         LICM licm(flow_graph);
         licm.Optimize();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
