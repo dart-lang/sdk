@@ -530,6 +530,13 @@ void Assembler::smlal(Register rd_lo, Register rd_hi,
 }
 
 
+void Assembler::umlal(Register rd_lo, Register rd_hi,
+                      Register rn, Register rm, Condition cond) {
+  // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
+  EmitMulOp(cond, B23 | B21, rd_lo, rd_hi, rn, rm);
+}
+
+
 void Assembler::EmitDivOp(Condition cond, int32_t opcode,
                           Register rd, Register rn, Register rm) {
   ASSERT(CPUFeatures::integer_division_supported());

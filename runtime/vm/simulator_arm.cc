@@ -1697,33 +1697,22 @@ void Simulator::DecodeType01(Instr* instr) {
             }
             break;
           }
-          case 4: {
+          case 4:
             // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
             // Format(instr, "umull'cond's 'rd, 'rn, 'rm, 'rs");
-            uint64_t left_op  = static_cast<uint32_t>(rm_val);
-            uint64_t right_op = static_cast<uint32_t>(rs_val);
-            uint64_t result = left_op * right_op;
-            int32_t hi_res = Utils::High32Bits(result);
-            int32_t lo_res = Utils::Low32Bits(result);
-            set_register(rd, lo_res);
-            set_register(rn, hi_res);
-            if (instr->HasS()) {
-              if (lo_res != 0) {
-                // Collapse bits 0..31 into bit 32 so that 32-bit Z check works.
-                hi_res |= 1;
-              }
-              ASSERT((result == 0) == (hi_res == 0));  // Z bit
-              ASSERT(((result & (1LL << 63)) != 0) == (hi_res < 0));  // N bit
-              SetNZFlags(hi_res);
-            }
-            break;
-          }
           case 6: {
             // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
             // Format(instr, "smull'cond's 'rd, 'rn, 'rm, 'rs");
-            int64_t left_op  = static_cast<int32_t>(rm_val);
-            int64_t right_op = static_cast<int32_t>(rs_val);
-            int64_t result = left_op * right_op;
+            int64_t result;
+            if (instr->Bits(21, 3) == 4) {  // umull
+              uint64_t left_op  = static_cast<uint32_t>(rm_val);
+              uint64_t right_op = static_cast<uint32_t>(rs_val);
+              result = left_op * right_op;  // Unsigned nultiplication.
+            } else {  // smull
+              int64_t left_op  = static_cast<int32_t>(rm_val);
+              int64_t right_op = static_cast<int32_t>(rs_val);
+              result = left_op * right_op;  // Signed nultiplication.
+            }
             int32_t hi_res = Utils::High32Bits(result);
             int32_t lo_res = Utils::Low32Bits(result);
             set_register(rd, lo_res);
@@ -1739,17 +1728,27 @@ void Simulator::DecodeType01(Instr* instr) {
             }
             break;
           }
+          case 5:
+            // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
+            // Format(instr, "umlal'cond's 'rd, 'rn, 'rm, 'rs");
           case 7: {
             // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
             // Format(instr, "smlal'cond's 'rd, 'rn, 'rm, 'rs");
             int32_t rd_lo_val = get_register(rd);
             int32_t rd_hi_val = get_register(rn);
-            int64_t left_op  = static_cast<int32_t>(rm_val);
-            int64_t right_op = static_cast<int32_t>(rs_val);
             uint32_t accum_lo = static_cast<uint32_t>(rd_lo_val);
             int32_t accum_hi = static_cast<int32_t>(rd_hi_val);
             int64_t accum = Utils::LowHighTo64Bits(accum_lo, accum_hi);
-            int64_t result = accum + left_op * right_op;
+            int64_t result;
+            if (instr->Bits(21, 3) == 5) {  // umlal
+              uint64_t left_op  = static_cast<uint32_t>(rm_val);
+              uint64_t right_op = static_cast<uint32_t>(rs_val);
+              result = accum + left_op * right_op;  // Unsigned nultiplication.
+            } else {  // smlal
+              int64_t left_op  = static_cast<int32_t>(rm_val);
+              int64_t right_op = static_cast<int32_t>(rs_val);
+              result = accum + left_op * right_op;  // Signed nultiplication.
+            }
             int32_t hi_res = Utils::High32Bits(result);
             int32_t lo_res = Utils::Low32Bits(result);
             set_register(rd, lo_res);

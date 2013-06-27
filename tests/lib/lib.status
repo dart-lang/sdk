@@ -120,7 +120,6 @@ typed_data/float32x4_unbox_regress_test: Crash # Unimplemented
 typed_data/float32x4_unbox_phi_test: Crash # Unimplemented
 typed_data/float32x4_list_test: Crash # Unimplemented
 typed_data/float32x4_test: Crash # Unimplemented
-math/random_test: Fail # Bug
 
 [ $arch == mips ]
 *: Skip
