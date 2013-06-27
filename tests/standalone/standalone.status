@@ -100,11 +100,6 @@ io/web_socket_protocol_processor_test: Skip
 # This is runtime test.
 io/process_exit_negative_test: Skip
 
-# Fails because checked-in dart executable is not up to date.
-io/test_runner_test: fail
-io/skipping_dart2js_compilations_test: fail
-
-
 [ $compiler == dart2analyzer ]
 io/file_constructor_test: fail
 io/http_cookie_date_test: fail
