@@ -143,10 +143,9 @@ class Trace implements StackTrace {
 
   /// Returns a human-readable string representation of [this].
   String toString() {
-    if (frames.length == '') return '';
-
     // Figure out the longest path so we know how much to pad.
-    var longest = frames.map((frame) => frame.location.length).reduce(math.max);
+    var longest = frames.map((frame) => frame.location.length)
+        .fold(0, math.max);
 
     // Print out the stack trace nicely formatted.
     return frames.map((frame) {

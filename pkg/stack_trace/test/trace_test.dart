@@ -102,7 +102,9 @@ void main() {
     });
 
     test('parses an empty string correctly', () {
-      expect(new Trace.parse('').frames, isEmpty);
+      var trace = new Trace.parse('');
+      expect(trace.frames, isEmpty);
+      expect(trace.toString(), equals(''));
     });
   });
 
