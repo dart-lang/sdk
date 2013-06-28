@@ -61,8 +61,10 @@ class DoneEvent implements Event {
 /** Collector of events. */
 class Events implements EventSink {
   final List<Event> events = [];
+  bool trace = false;
 
   Events();
+
   Events.fromIterable(Iterable iterable) {
     for (var value in iterable) add(value);
     close();
@@ -74,14 +76,17 @@ class Events implements EventSink {
 
   // EventSink interface.
   void add(var value) {
+    if (trace) print("Events#$hashCode: add($value)");
     events.add(new DataEvent(value));
   }
 
   void addError(error) {
+    if (trace) print("Events#$hashCode: addError($error)");
     events.add(new ErrorEvent(error));
   }
 
   void close() {
+    if (trace) print("Events#$hashCode: close()");
     events.add(const DoneEvent());
   }
 
@@ -157,14 +162,17 @@ class CaptureEvents extends Events {
   }
 
   void pause([Future resumeSignal]) {
+    if (trace) print("Events#$hashCode: pause");
     subscription.pause(resumeSignal);
   }
 
   void resume() {
+    if (trace) print("Events#$hashCode: resume");
     subscription.resume();
   }
 
   void onDone(void action()) {
+    if (trace) print("Events#$hashCode: onDone");
     onDoneSignal.future.whenComplete(action);
   }
 }
