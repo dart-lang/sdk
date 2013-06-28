@@ -79,8 +79,8 @@ abstract class StreamController<T> implements StreamSink<T> {
     if (onListen == null && onPause == null &&
         onResume == null && onCancel == null) {
       return sync
-          ? new _NoCallbackSyncStreamController<T>()
-          : new _NoCallbackAsyncStreamController<T>();
+          ? new _NoCallbackSyncStreamController/*<T>*/()
+          : new _NoCallbackAsyncStreamController/*<T>*/();
     }
     return sync
          ? new _SyncStreamController<T>(onListen, onPause, onResume, onCancel)
@@ -566,10 +566,10 @@ abstract class _NoCallbacks {
   _NotificationHandler get _onCancel => null;
 }
 
-typedef _NoCallbackAsyncStreamController<T> = _StreamController<T>
+typedef _NoCallbackAsyncStreamController/*<T>*/ = _StreamController/*<T>*/
        with _AsyncStreamControllerDispatch/*<T>*/, _NoCallbacks;
 
-typedef _NoCallbackSyncStreamController<T> = _StreamController<T>
+typedef _NoCallbackSyncStreamController/*<T>*/ = _StreamController/*<T>*/
        with _SyncStreamControllerDispatch/*<T>*/, _NoCallbacks;
 
 typedef void _NotificationHandler();
