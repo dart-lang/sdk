@@ -211,6 +211,15 @@ void _outputLibrary(Library result) {
 }
 
 /**
+ * Returns a list of meta annotations assocated with a mirror. 
+ */
+List<String> _getAnnotations(DeclarationMirror mirror) {
+  var annotations = mirror.metadata.where((e) => 
+      e is dart2js.Dart2JsConstructedConstantMirror);
+  return annotations.map((e) => e.type.qualifiedName).toList();
+}
+
+/**
  * Returns any documentation comments associated with a mirror with
  * simple markdown converted to html.
  */
@@ -254,7 +263,7 @@ Map<String, Variable> _getVariables(Map<String, VariableMirror> mirrorMap) {
       _currentMember = mirror;
       data[mirrorName] = new Variable(mirrorName, mirror.qualifiedName, 
           mirror.isFinal, mirror.isStatic, mirror.type.qualifiedName, 
-          _getComment(mirror));
+          _getComment(mirror), _getAnnotations(mirror));
     }
   });
   return data;
@@ -271,7 +280,8 @@ Map<String, Method> _getMethods(Map<String, MethodMirror> mirrorMap) {
       data[mirrorName] = new Method(mirrorName, mirror.qualifiedName, 
           mirror.isSetter, mirror.isGetter, mirror.isConstructor, 
           mirror.isOperator, mirror.isStatic, mirror.returnType.qualifiedName, 
-          _getComment(mirror), _getParameters(mirror.parameters));
+          _getComment(mirror), _getParameters(mirror.parameters), 
+          _getAnnotations(mirror));
     }
   });
   return data;
@@ -292,7 +302,8 @@ Map<String, Class> _getClasses(Map<String, ClassMirror> mirrorMap) {
       data[mirrorName] = new Class(mirrorName, mirror.qualifiedName, 
           superclass, mirror.isAbstract, mirror.isTypedef, 
           _getComment(mirror), interfaces.toList(),
-          _getVariables(mirror.variables), _getMethods(mirror.methods));
+          _getVariables(mirror.variables), _getMethods(mirror.methods), 
+          _getAnnotations(mirror));
     }
   });
   return data;
@@ -308,7 +319,7 @@ Map<String, Parameter> _getParameters(List<ParameterMirror> mirrorList) {
     data[mirror.simpleName] = new Parameter(mirror.simpleName, 
         mirror.qualifiedName, mirror.isOptional, mirror.isNamed, 
         mirror.hasDefaultValue, mirror.type.qualifiedName, 
-        mirror.defaultValue);
+        mirror.defaultValue, _getAnnotations(mirror));
   });
   return data;
 }
@@ -397,10 +408,13 @@ class Class {
   String superclass;
   bool isAbstract;
   bool isTypedef;
+  
+  /// List of the meta annotations on the class. 
+  List<String> annotations;
  
   Class(this.name, this.qualifiedName, this.superclass, this.isAbstract, 
       this.isTypedef, this.comment, this.interfaces, this.variables, 
-      this.methods);
+      this.methods, this.annotations);
   
   /// Generates a map describing the [Class] object.
   Map toMap() {
@@ -414,6 +428,7 @@ class Class {
     classMap['implements'] = new List.from(interfaces);
     classMap['variables'] = recurseMap(variables);
     classMap['methods'] = recurseMap(methods);
+    classMap['annotations'] = new List.from(annotations);
     return classMap;
   }
 }
@@ -431,9 +446,12 @@ class Variable {
   bool isFinal;
   bool isStatic;
   String type;
+
+  /// List of the meta annotations on the variable. 
+  List<String> annotations;
   
   Variable(this.name, this.qualifiedName, this.isFinal, this.isStatic, 
-      this.type, this.comment);
+      this.type, this.comment, this.annotations);
   
   /// Generates a map describing the [Variable] object.
   Map toMap() {
@@ -444,6 +462,7 @@ class Variable {
     variableMap['final'] = isFinal.toString();
     variableMap['static'] = isStatic.toString();
     variableMap['type'] = type;
+    variableMap['annotations'] = new List.from(annotations);
     return variableMap;
   }
 }
@@ -468,9 +487,12 @@ class Method {
   bool isStatic;
   String returnType;
   
+  /// List of the meta annotations on the method.  
+  List<String> annotations;
+  
   Method(this.name, this.qualifiedName, this.isSetter, this.isGetter, 
       this.isConstructor, this.isOperator, this.isStatic, this.returnType, 
-      this.comment, this.parameters);
+      this.comment, this.parameters, this.annotations);
   
   /// Generates a map describing the [Method] object.
   Map toMap() {
@@ -483,6 +505,7 @@ class Method {
     methodMap['static'] = isStatic.toString();
     methodMap['return'] = returnType;
     methodMap['parameters'] = recurseMap(parameters);
+    methodMap['annotations'] = new List.from(annotations);
     return methodMap;
   }  
 }
@@ -500,8 +523,11 @@ class Parameter {
   String type;
   String defaultValue;
   
+  /// List of the meta annotations on the parameter. 
+  List<String> annotations;
+  
   Parameter(this.name, this.qualifiedName, this.isOptional, this.isNamed, 
-      this.hasDefaultValue, this.type, this.defaultValue);
+      this.hasDefaultValue, this.type, this.defaultValue, this.annotations);
   
   /// Generates a map describing the [Parameter] object.
   Map toMap() {
@@ -513,6 +539,7 @@ class Parameter {
     parameterMap['default'] = hasDefaultValue.toString();
     parameterMap['type'] = type;
     parameterMap['value'] = defaultValue;
+    parameterMap['annotations'] = new List.from(annotations);
     return parameterMap;
   } 
 }
