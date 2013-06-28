@@ -23,9 +23,6 @@ Language/11_Expressions/01_Constants_A16_t03: fail
 # final instance variable created instance of the enclosing class
 Language/11_Expressions/01_Constants_A17_t03: fail
 
-# <dynamic> vs. type variable
-Language/11_Expressions/11_Instance_Creation/1_New_A13_t02: fail
-
 # analyzer problem: forward reference of typedef with type parameters
 Language/13_Libraries_and_Scripts/3_Parts_A02_t03: skip
 
