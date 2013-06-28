@@ -2846,7 +2846,12 @@ class EqualityCompareInstr : public ComparisonInstr {
   bool HasICData() const {
     return (ic_data() != NULL) && !ic_data()->IsNull();
   }
-  void set_ic_data(const ICData* value) { ic_data_ = value; }
+  void set_ic_data(const ICData* value) {
+    ic_data_ = value;
+    if (HasICData()) {
+      unary_ic_data_ = &ICData::ZoneHandle(ic_data_->AsUnaryClassChecks());
+    }
+  }
 
   // Receiver class id is computed from collected ICData.
   void set_receiver_class_id(intptr_t value) { receiver_class_id_ = value; }
