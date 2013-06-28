@@ -15,7 +15,7 @@ namespace dart {
 DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, verify_compiler);
 
-#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
+#if defined(TARGET_ARCH_MIPS)
 DEFINE_FLAG(bool, optimize_try_catch, false, "Optimization of try-catch");
 #else
 DEFINE_FLAG(bool, optimize_try_catch, true, "Optimization of try-catch");
