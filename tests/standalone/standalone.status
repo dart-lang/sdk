@@ -13,11 +13,6 @@ package/invalid_uri_test: Fail, OK # Fails intentionally
 io/stdout_close_test: Pass, Fail # Issue 11593
 
 [ $runtime == vm ]
-# Fails because checked-in dart executable is not up to date.
-io/test_runner_test: Fail
-# Fails because checked-in dart executable is not up to date.
-# Skip this because it is leaving temp directories behind when it fails.
-io/skipping_dart2js_compilations_test: Skip
 io/web_socket_test: Pass, Crash # Issue 11502
 
 [ $runtime == vm ]
@@ -67,8 +62,6 @@ http_launch_test: Skip
 # package test issue 7392
 package/package1_test: Fail
 package/package_test: Fail
-io/test_runner_test: Fail # Library dart:uri removed.
-io/skipping_dart2js_compilations_test: Skip # Library dart:uri removed.
 
 
 # The dart:io library is created at build time from separate files, and
@@ -132,7 +125,6 @@ package/package_isolate_test: Skip # spawnUri does not work in dart2js. See issu
 debugger/*: Skip # Do not run standalone vm debugger tests with dart2js.
 left_shift_bit_and_op_test: Skip # Integers exceed dart2js precision.
 pow_test: Skip # Precision > 53 bits.
-io/skipping_dart2js_compilations_test: Skip # Library dart:uri removed.
 http_launch_test: Skip
 53bit_overflow_test: Skip
 53bit_overflow_literal_test: Skip
