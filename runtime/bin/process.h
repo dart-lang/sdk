@@ -38,12 +38,12 @@ class Process {
   static void TerminateExitCodeHandler();
 
   static int GlobalExitCode() {
-    MutexLocker ml(&global_exit_code_mutex_);
+    MutexLocker ml(global_exit_code_mutex_);
     return global_exit_code_;
   }
 
   static void SetGlobalExitCode(int exit_code) {
-    MutexLocker ml(&global_exit_code_mutex_);
+    MutexLocker ml(global_exit_code_mutex_);
     global_exit_code_ = exit_code;
   }
 
@@ -56,7 +56,7 @@ class Process {
 
  private:
   static int global_exit_code_;
-  static dart::Mutex global_exit_code_mutex_;
+  static dart::Mutex* global_exit_code_mutex_;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Process);
