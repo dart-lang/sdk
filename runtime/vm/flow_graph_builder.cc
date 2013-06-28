@@ -3227,45 +3227,52 @@ void EffectGraphVisitor::VisitCatchClauseNode(CatchClauseNode* node) {
 
 void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
   InlineBailout("EffectGraphVisitor::VisitTryCatchNode (exception)");
-  intptr_t old_try_index = owner()->try_index();
-  intptr_t try_index = owner()->AllocateTryIndex();
-  owner()->set_try_index(try_index);
+  intptr_t original_handler_index = owner()->try_index();
+  intptr_t try_handler_index = owner()->AllocateTryIndex();
+  owner()->set_try_index(try_handler_index);
 
   // Preserve CTX into local variable '%saved_context'.
   BuildStoreContext(node->context_var());
 
-  EffectGraphVisitor for_try_block(owner(), temp_index());
-  node->try_block()->Visit(&for_try_block);
+  EffectGraphVisitor for_try(owner(), temp_index());
+  node->try_block()->Visit(&for_try);
 
-  if (for_try_block.is_open()) {
+  if (for_try.is_open()) {
     JoinEntryInstr* after_try =
-        new JoinEntryInstr(owner()->AllocateBlockId(), old_try_index);
-    for_try_block.Goto(after_try);
-    for_try_block.exit_ = after_try;
+        new JoinEntryInstr(owner()->AllocateBlockId(), original_handler_index);
+    for_try.Goto(after_try);
+    for_try.exit_ = after_try;
   }
 
   JoinEntryInstr* try_entry =
-      new JoinEntryInstr(owner()->AllocateBlockId(), try_index);
+      new JoinEntryInstr(owner()->AllocateBlockId(), try_handler_index);
 
   Goto(try_entry);
-  AppendFragment(try_entry, for_try_block);
-  exit_ = for_try_block.exit_;
+  AppendFragment(try_entry, for_try);
+  exit_ = for_try.exit_;
 
   // We are done generating code for the try block.
-  owner()->set_try_index(old_try_index);
+  owner()->set_try_index(original_handler_index);
 
   CatchClauseNode* catch_block = node->catch_block();
+  SequenceNode* finally_block = node->finally_block();
   if (catch_block != NULL) {
-    EffectGraphVisitor for_catch_block(owner(), temp_index());
-    catch_block->Visit(&for_catch_block);
+    // If there is a finally block, it is the handler for code in the catch
+    // block.
+    intptr_t catch_handler_index = (finally_block == NULL)
+        ? original_handler_index
+        : owner()->AllocateTryIndex();
+    owner()->set_try_index(catch_handler_index);
+    EffectGraphVisitor for_catch(owner(), temp_index());
+    catch_block->Visit(&for_catch);
     CatchBlockEntryInstr* catch_entry =
         new CatchBlockEntryInstr(owner()->AllocateBlockId(),
-                                 old_try_index,
+                                 catch_handler_index,
                                  catch_block->handler_types(),
-                                 try_index);
+                                 try_handler_index);
     owner()->AddCatchEntry(catch_entry);
-    ASSERT(!for_catch_block.is_open());
-    AppendFragment(catch_entry, for_catch_block);
+    ASSERT(!for_catch.is_open());
+    AppendFragment(catch_entry, for_catch);
     if (node->end_catch_label() != NULL) {
       JoinEntryInstr* join = node->end_catch_label()->join_for_continue();
       if (join != NULL) {
@@ -3273,12 +3280,47 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
         exit_ = join;
       }
     }
+
+    if (finally_block != NULL) {
+      // Create a handler for the code in the catch block, containing the
+      // code in the finally block.
+      owner()->set_try_index(original_handler_index);
+      EffectGraphVisitor for_finally(owner(), temp_index());
+      for_finally.AddInstruction(
+          new CatchEntryInstr(catch_block->exception_var(),
+                              catch_block->stacktrace_var()));
+      for_finally.BuildLoadContext(catch_block->context_var());
+
+      finally_block->Visit(&for_finally);
+      if (for_finally.is_open()) {
+        // Rethrow the exception.  Manually build the graph for rethrow.
+        Value* exception = for_finally.Bind(
+            for_finally.BuildLoadLocal(catch_block->exception_var()));
+        for_finally.PushArgument(exception);
+        Value* stacktrace = for_finally.Bind(
+            for_finally.BuildLoadLocal(catch_block->stacktrace_var()));
+        for_finally.PushArgument(stacktrace);
+        for_finally.AddInstruction(new ReThrowInstr(catch_block->token_pos()));
+        for_finally.CloseFragment();
+      }
+      ASSERT(!for_finally.is_open());
+
+      const Array& types = Array::ZoneHandle(Array::New(1, Heap::kOld));
+      types.SetAt(0, Type::Handle(Type::DynamicType()));
+      CatchBlockEntryInstr* finally_entry =
+          new CatchBlockEntryInstr(owner()->AllocateBlockId(),
+                                   original_handler_index,
+                                   types,
+                                   catch_handler_index);
+      owner()->AddCatchEntry(finally_entry);
+      AppendFragment(finally_entry, for_finally);
+    }
   }
 
   // Generate code for the finally block if one exists.
-  if ((node->finally_block() != NULL) && is_open()) {
+  if ((finally_block != NULL) && is_open()) {
     EffectGraphVisitor for_finally_block(owner(), temp_index());
-    node->finally_block()->Visit(&for_finally_block);
+    finally_block->Visit(&for_finally_block);
     Append(for_finally_block);
   }
 }

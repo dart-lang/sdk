@@ -149,7 +149,6 @@ Language/12_Statements/09_Switch_A06_t02: Fail # Dart issue 5837
 Language/12_Statements/10_Try_A03_t01: Fail # Dart issue 7311
 Language/12_Statements/10_Try_A03_t02: Fail # Dart issue 7311
 Language/12_Statements/10_Try_A03_t03: Fail # Dart issue 7311
-Language/12_Statements/10_Try_A11_t01: Fail # Dart issue 430
 Language/12_Statements/12_Labels_A01_t03: Fail # Dart issue 2238
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail # Dart issue 5839
 Language/13_Libraries_and_Scripts/1_Imports_A05_t01: Fail # Dart issue 3206

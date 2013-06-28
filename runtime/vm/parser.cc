@@ -6389,13 +6389,6 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       node_to_inline = inner_try_block->GetNodeToInlineFinally(node_index);
       tokens_iterator_.SetCurrentPosition(finally_pos);
     }
-    if (!generic_catch_seen) {
-      // No generic catch handler exists so execute this finally block
-      // before rethrowing the exception.
-      finally_block = ParseFinallyBlock();
-      catch_handler_list->Add(finally_block);
-      tokens_iterator_.SetCurrentPosition(finally_pos);
-    }
     finally_block = ParseFinallyBlock();
   } else {
     if (!catch_seen) {
