@@ -8,6 +8,7 @@ import 'package:analyzer_experimental/src/generated/java_junit.dart';
 import 'package:analyzer_experimental/src/generated/source.dart';
 import 'package:analyzer_experimental/src/generated/error.dart';
 import 'package:analyzer_experimental/src/generated/scanner.dart';
+import 'package:analyzer_experimental/src/generated/ast.dart' show ASTNode, NodeLocator;
 import 'package:analyzer_experimental/src/generated/element.dart' show InterfaceType, MethodElement, PropertyAccessorElement;
 import 'package:analyzer_experimental/src/generated/engine.dart' show AnalysisContext, AnalysisContextImpl, RecordingErrorListener;
 import 'package:unittest/unittest.dart' as _ut;
@@ -47,24 +48,25 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * Initialize a newly created error listener to collect errors.
    */
   GatheringErrorListener() : super() {
-    _jtd_constructor_359_impl();
+    _jtd_constructor_364_impl();
   }
-  _jtd_constructor_359_impl() {
+  _jtd_constructor_364_impl() {
   }
 
   /**
    * Initialize a newly created error listener to collect errors.
    */
   GatheringErrorListener.con1(String rawSource2) {
-    _jtd_constructor_360_impl(rawSource2);
+    _jtd_constructor_365_impl(rawSource2);
   }
-  _jtd_constructor_360_impl(String rawSource2) {
+  _jtd_constructor_365_impl(String rawSource2) {
     this._rawSource = rawSource2;
     this._markedSource = rawSource2;
   }
 
   /**
    * Add all of the errors recorded by the given listener to this listener.
+   *
    * @param listener the listener that has recorded the errors to be added
    */
   void addAll(RecordingErrorListener listener) {
@@ -77,9 +79,10 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * Assert that the number of errors that have been gathered matches the number of errors that are
    * given and that they have the expected error codes and locations. The order in which the errors
    * were gathered is ignored.
+   *
    * @param errorCodes the errors that should have been gathered
    * @throws AssertionFailedError if a different number of errors have been gathered than were
-   * expected or if they do not have the same codes and locations
+   *           expected or if they do not have the same codes and locations
    */
   void assertErrors(List<AnalysisError> expectedErrors) {
     if (_errors.length != expectedErrors.length) {
@@ -100,9 +103,10 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * Assert that the number of errors that have been gathered matches the number of errors that are
    * given and that they have the expected error codes. The order in which the errors were gathered
    * is ignored.
+   *
    * @param expectedErrorCodes the error codes of the errors that should have been gathered
    * @throws AssertionFailedError if a different number of errors have been gathered than were
-   * expected
+   *           expected
    */
   void assertErrors2(List<ErrorCode> expectedErrorCodes) {
     JavaStringBuilder builder = new JavaStringBuilder();
@@ -184,9 +188,10 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * Assert that the number of errors that have been gathered matches the number of severities that
    * are given and that there are the same number of errors and warnings as specified by the
    * argument. The order in which the errors were gathered is ignored.
+   *
    * @param expectedSeverities the severities of the errors that should have been gathered
    * @throws AssertionFailedError if a different number of errors have been gathered than were
-   * expected
+   *           expected
    */
   void assertErrors3(List<ErrorSeverity> expectedSeverities) {
     int expectedErrorCount = 0;
@@ -214,6 +219,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
 
   /**
    * Assert that no errors have been gathered.
+   *
    * @throws AssertionFailedError if any errors have been gathered
    */
   void assertNoErrors() {
@@ -222,6 +228,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
 
   /**
    * Return the errors that were collected.
+   *
    * @return the errors that were collected
    */
   List<AnalysisError> get errors => _errors;
@@ -229,6 +236,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
   /**
    * Return the line information associated with the given source, or `null` if no line
    * information has been associated with the source.
+   *
    * @param source the source with which the line information is associated
    * @return the line information associated with the source
    */
@@ -236,6 +244,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
 
   /**
    * Return `true` if an error with the given error code has been gathered.
+   *
    * @param errorCode the error code being searched for
    * @return `true` if an error with the given error code has been gathered
    */
@@ -250,6 +259,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
 
   /**
    * Return `true` if at least one error has been gathered.
+   *
    * @return `true` if at least one error has been gathered
    */
   bool hasErrors() => _errors.length > 0;
@@ -264,6 +274,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
 
   /**
    * Set the line information associated with the given source to the given information.
+   *
    * @param source the source with which the line information is associated
    * @param lineStarts the line start information to be associated with the source
    */
@@ -273,6 +284,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
 
   /**
    * Set the line information associated with the given source to the given information.
+   *
    * @param source the source with which the line information is associated
    * @param lineInfo the line information to be associated with the source
    */
@@ -282,6 +294,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
 
   /**
    * Return `true` if the two errors are equivalent.
+   *
    * @param firstError the first error being compared
    * @param secondError the second error being compared
    * @return `true` if the two errors are equivalent
@@ -290,6 +303,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
 
   /**
    * Return `true` if the two sources are equivalent.
+   *
    * @param firstSource the first source being compared
    * @param secondSource the second source being compared
    * @return `true` if the two sources are equivalent
@@ -307,6 +321,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * Assert that the number of errors that have been gathered matches the number of errors that are
    * given and that they have the expected error codes. The order in which the errors were gathered
    * is ignored.
+   *
    * @param errorCodes the errors that should have been gathered
    * @throws AssertionFailedError with
    */
@@ -348,7 +363,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
 
   /**
    * Search through the given list of errors for an error that is equal to the target error. If one
-   * is found, remove it from the list and return `true`, otherwise return `false`without modifying the list.
+   * is found, remove it from the list and return `true`, otherwise return `false`
+   * without modifying the list.
+   *
    * @param errors the errors through which we are searching
    * @param targetError the error being searched for
    * @return `true` if the error is found and removed from the list
@@ -373,6 +390,7 @@ class EngineTestCase extends JUnitTestCase {
    * Assert that the tokens in the actual stream of tokens have the same types and lexemes as the
    * tokens in the expected stream of tokens. Note that this does not assert anything about the
    * offsets of the tokens (although the lengths will be equal).
+   *
    * @param expectedStream the head of the stream of tokens that were expected
    * @param actualStream the head of the stream of tokens that were actually found
    * @throws AssertionFailedError if the two streams of tokens are not the same
@@ -390,10 +408,11 @@ class EngineTestCase extends JUnitTestCase {
   /**
    * Assert that the given array is non-`null` and contains the expected elements. The
    * elements can appear in any order.
+   *
    * @param array the array being tested
    * @param expectedElements the expected elements
    * @throws AssertionFailedError if the array is `null` or does not contain the expected
-   * elements
+   *           elements
    */
   static void assertContains(List<Object> array, List<Object> expectedElements) {
     int expectedSize = expectedElements.length;
@@ -413,6 +432,7 @@ class EngineTestCase extends JUnitTestCase {
    * Assert that the array of actual values contain exactly the same values as those in the array of
    * expected value, with the exception that the order of the elements is not required to be the
    * same.
+   *
    * @param expectedValues the values that are expected to be found
    * @param actualValues the actual values that are being compared against the expected values
    */
@@ -441,6 +461,7 @@ class EngineTestCase extends JUnitTestCase {
 
   /**
    * Assert that a given String is equal to an expected value.
+   *
    * @param expected the expected String value
    * @param actual the actual String value
    */
@@ -467,6 +488,7 @@ class EngineTestCase extends JUnitTestCase {
 
   /**
    * Assert that the given list is non-`null` and has exactly expected elements.
+   *
    * @param list the list being tested
    * @param expectedElements the expected elements
    * @throws AssertionFailedError if the list is `null` or does not have the expected elements
@@ -490,10 +512,11 @@ class EngineTestCase extends JUnitTestCase {
 
   /**
    * Assert that the given array is non-`null` and has exactly expected elements.
+   *
    * @param array the array being tested
    * @param expectedElements the expected elements
    * @throws AssertionFailedError if the array is `null` or does not have the expected
-   * elements
+   *           elements
    */
   static void assertExactElements2(List<Object> array, List<Object> expectedElements) {
     int expectedSize = expectedElements.length;
@@ -514,6 +537,7 @@ class EngineTestCase extends JUnitTestCase {
 
   /**
    * Assert that the given list is non-`null` and has exactly expected elements.
+   *
    * @param set the list being tested
    * @param expectedElements the expected elements
    * @throws AssertionFailedError if the list is `null` or does not have the expected elements
@@ -536,6 +560,7 @@ class EngineTestCase extends JUnitTestCase {
 
   /**
    * Assert that the given object is an instance of the expected class.
+   *
    * @param expectedClass the class that the object is expected to be an instance of
    * @param object the object being tested
    * @return the object that was being tested
@@ -550,10 +575,11 @@ class EngineTestCase extends JUnitTestCase {
 
   /**
    * Assert that the given array is non-`null` and has the expected number of elements.
+   *
    * @param expectedLength the expected number of elements
    * @param array the array being tested
    * @throws AssertionFailedError if the array is `null` or does not have the expected number
-   * of elements
+   *           of elements
    */
   static void assertLength(int expectedLength, List<Object> array) {
     if (array == null) {
@@ -566,6 +592,7 @@ class EngineTestCase extends JUnitTestCase {
   /**
    * Assert that the actual token has the same type and lexeme as the expected token. Note that this
    * does not assert anything about the offsets of the tokens (although the lengths will be equal).
+   *
    * @param expectedToken the token that was expected
    * @param actualToken the token that was found
    * @throws AssertionFailedError if the two tokens are not the same
@@ -583,10 +610,11 @@ class EngineTestCase extends JUnitTestCase {
 
   /**
    * Assert that the given list is non-`null` and has the expected number of elements.
+   *
    * @param expectedSize the expected number of elements
    * @param list the list being tested
    * @throws AssertionFailedError if the list is `null` or does not have the expected number
-   * of elements
+   *           of elements
    */
   static void assertSize(int expectedSize, List<Object> list) {
     if (list == null) {
@@ -598,10 +626,11 @@ class EngineTestCase extends JUnitTestCase {
 
   /**
    * Assert that the given map is non-`null` and has the expected number of elements.
+   *
    * @param expectedSize the expected number of elements
    * @param map the map being tested
    * @throws AssertionFailedError if the map is `null` or does not have the expected number of
-   * elements
+   *           elements
    */
   static void assertSize2(int expectedSize, Map<Object, Object> map) {
     if (map == null) {
@@ -613,10 +642,11 @@ class EngineTestCase extends JUnitTestCase {
 
   /**
    * Assert that the given set is non-`null` and has the expected number of elements.
+   *
    * @param expectedSize the expected number of elements
    * @param set the set being tested
    * @throws AssertionFailedError if the set is `null` or does not have the expected number of
-   * elements
+   *           elements
    */
   static void assertSize3(int expectedSize, Set<Object> set) {
     if (set == null) {
@@ -628,6 +658,7 @@ class EngineTestCase extends JUnitTestCase {
 
   /**
    * Convert the given array of lines into a single source string.
+   *
    * @param lines the lines to be merged into a single source string
    * @return the source string composed of the given lines
    */
@@ -637,6 +668,18 @@ class EngineTestCase extends JUnitTestCase {
       writer.println(line);
     }
     return writer.toString();
+  }
+
+  /**
+   * @return the [ASTNode] with requested type at offset of the "prefix".
+   */
+  static ASTNode findNode(ASTNode root, String code, String prefix, Type clazz) {
+    int offset = code.indexOf(prefix);
+    if (offset == -1) {
+      throw new IllegalArgumentException("Not found '${prefix}'.");
+    }
+    ASTNode node = new NodeLocator.con1(offset).searchWithin(root);
+    return node.getAncestor(clazz);
   }
   static void assertContains2(List<Object> array, List<bool> found, Object element) {
     if (element == null) {
@@ -664,6 +707,7 @@ class EngineTestCase extends JUnitTestCase {
 
   /**
    * Calculate the offset where the given strings differ.
+   *
    * @param str1 the first String to compare
    * @param str2 the second String to compare
    * @return the offset at which the strings differ (or <code>-1</code> if they do not)
@@ -690,6 +734,7 @@ class EngineTestCase extends JUnitTestCase {
 
   /**
    * Return the getter in the given type with the given name. Inherited getters are ignored.
+   *
    * @param type the type in which the getter is declared
    * @param getterName the name of the getter to be returned
    * @return the property accessor element representing the getter with the given name
@@ -706,6 +751,7 @@ class EngineTestCase extends JUnitTestCase {
 
   /**
    * Return the method in the given type with the given name. Inherited methods are ignored.
+   *
    * @param type the type in which the method is declared
    * @param methodName the name of the method to be returned
    * @return the method element representing the method with the given name

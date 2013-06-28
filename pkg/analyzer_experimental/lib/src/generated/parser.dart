@@ -13,6 +13,7 @@ import 'utilities_dart.dart';
 /**
  * Instances of the class `CommentAndMetadata` implement a simple data-holder for a method
  * that needs to return multiple values.
+ *
  * @coverage dart.engine.parser
  */
 class CommentAndMetadata {
@@ -29,6 +30,7 @@ class CommentAndMetadata {
 
   /**
    * Initialize a newly created holder with the given data.
+   *
    * @param comment the documentation comment that was parsed
    * @param metadata the metadata that was parsed
    */
@@ -39,12 +41,14 @@ class CommentAndMetadata {
 
   /**
    * Return the documentation comment that was parsed, or `null` if none was given.
+   *
    * @return the documentation comment that was parsed
    */
   Comment get comment => _comment;
 
   /**
    * Return the metadata that was parsed. If there was no metadata, then the list will be empty.
+   *
    * @return the metadata that was parsed
    */
   List<Annotation> get metadata => _metadata;
@@ -52,6 +56,7 @@ class CommentAndMetadata {
 /**
  * Instances of the class `FinalConstVarOrType` implement a simple data-holder for a method
  * that needs to return multiple values.
+ *
  * @coverage dart.engine.parser
  */
 class FinalConstVarOrType {
@@ -68,6 +73,7 @@ class FinalConstVarOrType {
 
   /**
    * Initialize a newly created holder with the given data.
+   *
    * @param keyword the 'final', 'const' or 'var' keyword
    * @param type the type
    */
@@ -78,12 +84,14 @@ class FinalConstVarOrType {
 
   /**
    * Return the 'final', 'const' or 'var' keyword, or `null` if none was given.
+   *
    * @return the 'final', 'const' or 'var' keyword
    */
   Token get keyword => _keyword;
 
   /**
    * Return the type, of `null` if no type was specified.
+   *
    * @return the type
    */
   TypeName get type => _type;
@@ -91,6 +99,7 @@ class FinalConstVarOrType {
 /**
  * Instances of the class `Modifiers` implement a simple data-holder for a method that needs
  * to return multiple values.
+ *
  * @coverage dart.engine.parser
  */
 class Modifiers {
@@ -133,6 +142,7 @@ class Modifiers {
   /**
    * Return the token representing the keyword 'abstract', or `null` if the keyword was not
    * found.
+   *
    * @return the token representing the keyword 'abstract'
    */
   Token get abstractKeyword => _abstractKeyword;
@@ -140,6 +150,7 @@ class Modifiers {
   /**
    * Return the token representing the keyword 'const', or `null` if the keyword was not
    * found.
+   *
    * @return the token representing the keyword 'const'
    */
   Token get constKeyword => _constKeyword;
@@ -147,6 +158,7 @@ class Modifiers {
   /**
    * Return the token representing the keyword 'external', or `null` if the keyword was not
    * found.
+   *
    * @return the token representing the keyword 'external'
    */
   Token get externalKeyword => _externalKeyword;
@@ -154,6 +166,7 @@ class Modifiers {
   /**
    * Return the token representing the keyword 'factory', or `null` if the keyword was not
    * found.
+   *
    * @return the token representing the keyword 'factory'
    */
   Token get factoryKeyword => _factoryKeyword;
@@ -161,6 +174,7 @@ class Modifiers {
   /**
    * Return the token representing the keyword 'final', or `null` if the keyword was not
    * found.
+   *
    * @return the token representing the keyword 'final'
    */
   Token get finalKeyword => _finalKeyword;
@@ -168,18 +182,21 @@ class Modifiers {
   /**
    * Return the token representing the keyword 'static', or `null` if the keyword was not
    * found.
+   *
    * @return the token representing the keyword 'static'
    */
   Token get staticKeyword => _staticKeyword;
 
   /**
    * Return the token representing the keyword 'var', or `null` if the keyword was not found.
+   *
    * @return the token representing the keyword 'var'
    */
   Token get varKeyword => _varKeyword;
 
   /**
    * Set the token representing the keyword 'abstract' to the given token.
+   *
    * @param abstractKeyword the token representing the keyword 'abstract'
    */
   void set abstractKeyword(Token abstractKeyword2) {
@@ -188,6 +205,7 @@ class Modifiers {
 
   /**
    * Set the token representing the keyword 'const' to the given token.
+   *
    * @param constKeyword the token representing the keyword 'const'
    */
   void set constKeyword(Token constKeyword2) {
@@ -196,6 +214,7 @@ class Modifiers {
 
   /**
    * Set the token representing the keyword 'external' to the given token.
+   *
    * @param externalKeyword the token representing the keyword 'external'
    */
   void set externalKeyword(Token externalKeyword2) {
@@ -204,6 +223,7 @@ class Modifiers {
 
   /**
    * Set the token representing the keyword 'factory' to the given token.
+   *
    * @param factoryKeyword the token representing the keyword 'factory'
    */
   void set factoryKeyword(Token factoryKeyword2) {
@@ -212,6 +232,7 @@ class Modifiers {
 
   /**
    * Set the token representing the keyword 'final' to the given token.
+   *
    * @param finalKeyword the token representing the keyword 'final'
    */
   void set finalKeyword(Token finalKeyword2) {
@@ -220,6 +241,7 @@ class Modifiers {
 
   /**
    * Set the token representing the keyword 'static' to the given token.
+   *
    * @param staticKeyword the token representing the keyword 'static'
    */
   void set staticKeyword(Token staticKeyword2) {
@@ -228,6 +250,7 @@ class Modifiers {
 
   /**
    * Set the token representing the keyword 'var' to the given token.
+   *
    * @param varKeyword the token representing the keyword 'var'
    */
   void set varKeyword(Token varKeyword2) {
@@ -248,6 +271,7 @@ class Modifiers {
   /**
    * If the given keyword is not `null`, append it to the given builder, prefixing it with a
    * space if needed.
+   *
    * @param builder the builder to which the keyword will be appended
    * @param needsSpace `true` if the keyword needs to be prefixed with a space
    * @param keyword the keyword to be appended
@@ -266,6 +290,7 @@ class Modifiers {
 }
 /**
  * Instances of the class `Parser` are used to parse tokens into an AST structure.
+ *
  * @coverage dart.engine.parser
  */
 class Parser {
@@ -302,9 +327,10 @@ class Parser {
 
   /**
    * Initialize a newly created parser.
+   *
    * @param source the source being parsed
    * @param errorListener the error listener that will be informed of any errors that are found
-   * during the parse
+   *          during the parse
    */
   Parser(Source source, AnalysisErrorListener errorListener) {
     this._source = source;
@@ -313,6 +339,7 @@ class Parser {
 
   /**
    * Parse a compilation unit, starting with the given token.
+   *
    * @param token the first token of the compilation unit
    * @return the compilation unit that was parsed
    */
@@ -328,9 +355,10 @@ class Parser {
 
   /**
    * Parse an expression, starting with the given token.
+   *
    * @param token the first token of the expression
    * @return the expression that was parsed, or `null` if the tokens do not represent a
-   * recognizable expression
+   *         recognizable expression
    */
   Expression parseExpression(Token token) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("dart.engine.Parser.parseExpression");
@@ -344,9 +372,10 @@ class Parser {
 
   /**
    * Parse a statement, starting with the given token.
+   *
    * @param token the first token of the statement
    * @return the statement that was parsed, or `null` if the tokens do not represent a
-   * recognizable statement
+   *         recognizable statement
    */
   Statement parseStatement(Token token) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("dart.engine.Parser.parseStatement");
@@ -360,9 +389,10 @@ class Parser {
 
   /**
    * Parse a sequence of statements, starting with the given token.
+   *
    * @param token the first token of the sequence of statement
    * @return the statements that were parsed, or `null` if the tokens do not represent a
-   * recognizable sequence of statements
+   *         recognizable sequence of statements
    */
   List<Statement> parseStatements(Token token) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("dart.engine.Parser.parseStatements");
@@ -388,6 +418,7 @@ class Parser {
    * Append the character equivalent of the given scalar value to the given builder. Use the start
    * and end indices to report an error, and don't append anything to the builder, if the scalar
    * value is invalid.
+   *
    * @param builder the builder to which the scalar value is to be appended
    * @param escapeSequence the escape sequence that was parsed to produce the scalar value
    * @param scalarValue the value to be appended
@@ -408,6 +439,7 @@ class Parser {
 
   /**
    * Compute the content of a string with the given literal representation.
+   *
    * @param lexeme the literal representation of the string
    * @return the actual value of the string
    */
@@ -443,9 +475,10 @@ class Parser {
 
   /**
    * Convert the given method declaration into the nearest valid top-level function declaration.
+   *
    * @param method the method to be converted
    * @return the function declaration that most closely captures the components of the given method
-   * declaration
+   *         declaration
    */
   FunctionDeclaration convertToFunctionDeclaration(MethodDeclaration method) => new FunctionDeclaration.full(method.documentationComment, method.metadata, method.externalKeyword, method.returnType, method.propertyKeyword, method.name, new FunctionExpression.full(method.parameters, method.body));
 
@@ -453,6 +486,7 @@ class Parser {
    * Return `true` if the current token could be the start of a compilation unit member. This
    * method is used for recovery purposes to decide when to stop skipping tokens after finding an
    * error while parsing a compilation unit member.
+   *
    * @return `true` if the current token could be the start of a compilation unit member
    */
   bool couldBeStartOfCompilationUnitMember() {
@@ -481,39 +515,46 @@ class Parser {
 
   /**
    * Create a synthetic identifier.
+   *
    * @return the synthetic identifier that was created
    */
   SimpleIdentifier createSyntheticIdentifier() => new SimpleIdentifier.full(createSyntheticToken2(TokenType.IDENTIFIER));
 
   /**
    * Create a synthetic string literal.
+   *
    * @return the synthetic string literal that was created
    */
   SimpleStringLiteral createSyntheticStringLiteral() => new SimpleStringLiteral.full(createSyntheticToken2(TokenType.STRING), "");
 
   /**
    * Create a synthetic token representing the given keyword.
+   *
    * @return the synthetic token that was created
    */
-  Token createSyntheticToken(Keyword keyword) => new KeywordToken_10(keyword, _currentToken.offset);
+  Token createSyntheticToken(Keyword keyword) => new KeywordToken_11(keyword, _currentToken.offset);
 
   /**
    * Create a synthetic token with the given type.
+   *
    * @return the synthetic token that was created
    */
   Token createSyntheticToken2(TokenType type) => new StringToken(type, "", _currentToken.offset);
 
   /**
    * Check that the given expression is assignable and report an error if it isn't.
+   *
    * <pre>
    * assignableExpression ::=
-   * primary (arguments* assignableSelector)+
-   * | 'super' assignableSelector
-   * | identifier
+   *     primary (arguments* assignableSelector)+
+   *   | 'super' assignableSelector
+   *   | identifier
+   *
    * assignableSelector ::=
-   * '\[' expression '\]'
-   * | '.' identifier
+   *     '[' expression ']'
+   *   | '.' identifier
    * </pre>
+   *
    * @param expression the expression being checked
    */
   void ensureAssignable(Expression expression) {
@@ -525,6 +566,7 @@ class Parser {
   /**
    * If the current token is a keyword matching the given string, return it after advancing to the
    * next token. Otherwise report an error and return the current token without advancing.
+   *
    * @param keyword the keyword that is expected
    * @return the token that matched the given type
    */
@@ -539,6 +581,7 @@ class Parser {
   /**
    * If the current token has the expected type, return it after advancing to the next token.
    * Otherwise report an error and return the current token without advancing.
+   *
    * @param type the type of token that is expected
    * @return the token that matched the given type
    */
@@ -557,6 +600,7 @@ class Parser {
   /**
    * Search the given list of ranges for a range that contains the given index. Return the range
    * that was found, or `null` if none of the ranges contain the index.
+   *
    * @param ranges the ranges to be searched
    * @param index the index contained in the returned range
    * @return the range that was found
@@ -574,6 +618,7 @@ class Parser {
 
   /**
    * Advance to the next token in the token stream, making it the new current token.
+   *
    * @return the token that was current before this method was invoked
    */
   Token get andAdvance {
@@ -585,6 +630,7 @@ class Parser {
   /**
    * Return a list of the ranges of characters in the given comment string that should be treated as
    * code blocks.
+   *
    * @param comment the comment being processed
    * @return the ranges of characters that should be treated as code blocks
    */
@@ -627,6 +673,7 @@ class Parser {
   /**
    * Return the end token associated with the given begin token, or `null` if either the given
    * token is not a begin token or it does not have an end token associated with it.
+   *
    * @param beginToken the token that is expected to have an end token associated with it
    * @return the end token associated with the begin token
    */
@@ -642,8 +689,9 @@ class Parser {
    * by an identifier, possibly followed by a list of type parameters, followed by a
    * left-parenthesis. This is used by parseTypeAlias to determine whether or not to parse a return
    * type.
+   *
    * @return `true` if we can successfully parse the rest of a type alias if we first parse a
-   * return type.
+   *         return type.
    */
   bool hasReturnTypeInTypeAlias() {
     Token next = skipReturnType(_currentToken);
@@ -655,6 +703,7 @@ class Parser {
 
   /**
    * Return `true` if the current token appears to be the beginning of a function declaration.
+   *
    * @return `true` if the current token appears to be the beginning of a function declaration
    */
   bool isFunctionDeclaration() {
@@ -677,6 +726,7 @@ class Parser {
 
   /**
    * Return `true` if the given token appears to be the beginning of a function expression.
+   *
    * @param startToken the token that might be the start of a function expression
    * @return `true` if the given token appears to be the beginning of a function expression
    */
@@ -690,6 +740,7 @@ class Parser {
 
   /**
    * Return `true` if the given character is a valid hexadecimal digit.
+   *
    * @param character the character being tested
    * @return `true` if the character is a valid hexadecimal digit
    */
@@ -699,23 +750,29 @@ class Parser {
    * Return `true` if the current token is the first token in an initialized variable
    * declaration rather than an expression. This method assumes that we have already skipped past
    * any metadata that might be associated with the declaration.
+   *
    * <pre>
    * initializedVariableDeclaration ::=
-   * declaredIdentifier ('=' expression)? (',' initializedIdentifier)
+   *     declaredIdentifier ('=' expression)? (',' initializedIdentifier)*
+   *
    * declaredIdentifier ::=
-   * metadata finalConstVarOrType identifier
+   *     metadata finalConstVarOrType identifier
+   *
    * finalConstVarOrType ::=
-   * 'final' type?
-   * | 'const' type?
-   * | 'var'
-   * | type
+   *     'final' type?
+   *   | 'const' type?
+   *   | 'var'
+   *   | type
+   *
    * type ::=
-   * qualified typeArguments?
+   *     qualified typeArguments?
+   *
    * initializedIdentifier ::=
-   * identifier ('=' expression)?
+   *     identifier ('=' expression)?
    * </pre>
+   *
    * @return `true` if the current token is the first token in an initialized variable
-   * declaration
+   *         declaration
    */
   bool isInitializedVariableDeclaration() {
     if (matches(Keyword.FINAL) || matches(Keyword.VAR)) {
@@ -743,6 +800,7 @@ class Parser {
    *
    * This method uses the syntax described by the <a
    * href="http://daringfireball.net/projects/markdown/syntax">markdown</a> project.
+   *
    * @param comment the comment text in which the bracketed text was found
    * @param rightIndex the index of the right bracket
    * @return `true` if the bracketed text is followed by a link address
@@ -769,6 +827,7 @@ class Parser {
 
   /**
    * Return `true` if the given token appears to be the beginning of an operator declaration.
+   *
    * @param startToken the token that might be the start of an operator declaration
    * @return `true` if the given token appears to be the beginning of an operator declaration
    */
@@ -785,6 +844,7 @@ class Parser {
 
   /**
    * Return `true` if the current token appears to be the beginning of a switch member.
+   *
    * @return `true` if the current token appears to be the beginning of a switch member
    */
   bool isSwitchMember() {
@@ -804,6 +864,7 @@ class Parser {
    * is, return the left-most of all of the tokens. The arguments are allowed to be `null`.
    * Return the token with the smallest offset, or `null` if there are no arguments or if all
    * of the arguments are `null`.
+   *
    * @param tokens the tokens being compared
    * @return the token with the smallest offset
    */
@@ -824,6 +885,7 @@ class Parser {
 
   /**
    * Return `true` if the current token matches the given keyword.
+   *
    * @param keyword the keyword that can optionally appear in the current location
    * @return `true` if the current token matches the given keyword
    */
@@ -831,6 +893,7 @@ class Parser {
 
   /**
    * Return `true` if the current token matches the given identifier.
+   *
    * @param identifier the identifier that can optionally appear in the current location
    * @return `true` if the current token matches the given identifier
    */
@@ -838,6 +901,7 @@ class Parser {
 
   /**
    * Return `true` if the given token matches the given keyword.
+   *
    * @param token the token being tested
    * @param keyword the keyword that is being tested for
    * @return `true` if the given token matches the given keyword
@@ -846,6 +910,7 @@ class Parser {
 
   /**
    * Return `true` if the given token has the given type.
+   *
    * @param token the token being tested
    * @param type the type of token that is being tested for
    * @return `true` if the given token has the given type
@@ -857,6 +922,7 @@ class Parser {
    * other variants, will modify the token stream if possible to match a wider range of tokens. In
    * particular, if we are attempting to match a '>' and the next token is either a '>>' or '>>>',
    * the token stream will be re-written and `true` will be returned.
+   *
    * @param type the type of token that can optionally appear in the current location
    * @return `true` if the current token has the given type
    */
@@ -902,6 +968,7 @@ class Parser {
 
   /**
    * Return `true` if the given token has any one of the given types.
+   *
    * @param token the token being tested
    * @param types the types of token that are being tested for
    * @return `true` if the given token has any of the given types
@@ -919,6 +986,7 @@ class Parser {
   /**
    * Return `true` if the current token is a valid identifier. Valid identifiers include
    * built-in identifiers (pseudo-keywords).
+   *
    * @return `true` if the current token is a valid identifier
    */
   bool matchesIdentifier() => matchesIdentifier2(_currentToken);
@@ -926,12 +994,15 @@ class Parser {
   /**
    * Return `true` if the given token is a valid identifier. Valid identifiers include
    * built-in identifiers (pseudo-keywords).
+   *
    * @return `true` if the given token is a valid identifier
    */
   bool matchesIdentifier2(Token token) => matches4(token, TokenType.IDENTIFIER) || (matches4(token, TokenType.KEYWORD) && ((token as KeywordToken)).keyword.isPseudoKeyword);
 
   /**
-   * If the current token has the given type, then advance to the next token and return `true`. Otherwise, return `false` without advancing.
+   * If the current token has the given type, then advance to the next token and return `true`
+   * . Otherwise, return `false` without advancing.
+   *
    * @param type the type of token that can optionally appear in the current location
    * @return `true` if the current token has the given type
    */
@@ -945,11 +1016,13 @@ class Parser {
 
   /**
    * Parse an additive expression.
+   *
    * <pre>
    * additiveExpression ::=
-   * multiplicativeExpression (additiveOperator multiplicativeExpression)
-   * | 'super' (additiveOperator multiplicativeExpression)+
+   *     multiplicativeExpression (additiveOperator multiplicativeExpression)*
+   *   | 'super' (additiveOperator multiplicativeExpression)+
    * </pre>
+   *
    * @return the additive expression that was parsed
    */
   Expression parseAdditiveExpression() {
@@ -968,10 +1041,12 @@ class Parser {
 
   /**
    * Parse an annotation.
+   *
    * <pre>
    * annotation ::=
-   * '@' qualified ('.' identifier)? arguments?
+   *     '@' qualified ('.' identifier)? arguments?
    * </pre>
+   *
    * @return the annotation that was parsed
    */
   Annotation parseAnnotation() {
@@ -992,13 +1067,16 @@ class Parser {
 
   /**
    * Parse an argument.
+   *
    * <pre>
    * argument ::=
-   * namedArgument
-   * | expression
+   *     namedArgument
+   *   | expression
+   *
    * namedArgument ::=
-   * label expression
+   *     label expression
    * </pre>
+   *
    * @return the argument that was parsed
    */
   Expression parseArgument() {
@@ -1013,27 +1091,33 @@ class Parser {
 
   /**
    * Parse an argument definition test.
+   *
    * <pre>
    * argumentDefinitionTest ::=
-   * '?' identifier
+   *     '?' identifier
    * </pre>
+   *
    * @return the argument definition test that was parsed
    */
   ArgumentDefinitionTest parseArgumentDefinitionTest() {
     Token question = expect2(TokenType.QUESTION);
     SimpleIdentifier identifier = parseSimpleIdentifier();
+    reportError8(ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST, question, []);
     return new ArgumentDefinitionTest.full(question, identifier);
   }
 
   /**
    * Parse a list of arguments.
+   *
    * <pre>
    * arguments ::=
-   * '(' argumentList? ')'
+   *     '(' argumentList? ')'
+   *
    * argumentList ::=
-   * namedArgument (',' namedArgument)
-   * | expressionList (',' namedArgument)
+   *     namedArgument (',' namedArgument)*
+   *   | expressionList (',' namedArgument)*
    * </pre>
+   *
    * @return the argument list that was parsed
    */
   ArgumentList parseArgumentList() {
@@ -1064,10 +1148,12 @@ class Parser {
 
   /**
    * Parse an assert statement.
+   *
    * <pre>
    * assertStatement ::=
-   * 'assert' '(' conditionalExpression ')' ';'
+   *     'assert' '(' conditionalExpression ')' ';'
    * </pre>
+   *
    * @return the assert statement
    */
   AssertStatement parseAssertStatement() {
@@ -1081,14 +1167,16 @@ class Parser {
 
   /**
    * Parse an assignable expression.
+   *
    * <pre>
    * assignableExpression ::=
-   * primary (arguments* assignableSelector)+
-   * | 'super' assignableSelector
-   * | identifier
+   *     primary (arguments* assignableSelector)+
+   *   | 'super' assignableSelector
+   *   | identifier
    * </pre>
+   *
    * @param primaryAllowed `true` if the expression is allowed to be a primary without any
-   * assignable selector
+   *          assignable selector
    * @return the assignable expression that was parsed
    */
   Expression parseAssignableExpression(bool primaryAllowed) {
@@ -1130,11 +1218,13 @@ class Parser {
 
   /**
    * Parse an assignable selector.
+   *
    * <pre>
    * assignableSelector ::=
-   * '\[' expression '\]'
-   * | '.' identifier
+   *     '[' expression ']'
+   *   | '.' identifier
    * </pre>
+   *
    * @param prefix the expression preceding the selector
    * @param optional `true` if the selector is optional
    * @return the assignable selector that was parsed
@@ -1158,11 +1248,13 @@ class Parser {
 
   /**
    * Parse a bitwise and expression.
+   *
    * <pre>
    * bitwiseAndExpression ::=
-   * equalityExpression ('&' equalityExpression)
-   * | 'super' ('&' equalityExpression)+
+   *     equalityExpression ('&' equalityExpression)*
+   *   | 'super' ('&' equalityExpression)+
    * </pre>
+   *
    * @return the bitwise and expression that was parsed
    */
   Expression parseBitwiseAndExpression() {
@@ -1181,11 +1273,13 @@ class Parser {
 
   /**
    * Parse a bitwise or expression.
+   *
    * <pre>
    * bitwiseOrExpression ::=
-   * bitwiseXorExpression ('|' bitwiseXorExpression)
-   * | 'super' ('|' bitwiseXorExpression)+
+   *     bitwiseXorExpression ('|' bitwiseXorExpression)*
+   *   | 'super' ('|' bitwiseXorExpression)+
    * </pre>
+   *
    * @return the bitwise or expression that was parsed
    */
   Expression parseBitwiseOrExpression() {
@@ -1204,11 +1298,13 @@ class Parser {
 
   /**
    * Parse a bitwise exclusive-or expression.
+   *
    * <pre>
    * bitwiseXorExpression ::=
-   * bitwiseAndExpression ('^' bitwiseAndExpression)
-   * | 'super' ('^' bitwiseAndExpression)+
+   *     bitwiseAndExpression ('^' bitwiseAndExpression)*
+   *   | 'super' ('^' bitwiseAndExpression)+
    * </pre>
+   *
    * @return the bitwise exclusive-or expression that was parsed
    */
   Expression parseBitwiseXorExpression() {
@@ -1227,10 +1323,12 @@ class Parser {
 
   /**
    * Parse a block.
+   *
    * <pre>
    * block ::=
-   * '{' statements '}'
+   *     '{' statements '}'
    * </pre>
+   *
    * @return the block that was parsed
    */
   Block parseBlock() {
@@ -1254,10 +1352,12 @@ class Parser {
 
   /**
    * Parse a break statement.
+   *
    * <pre>
    * breakStatement ::=
-   * 'break' identifier? ';'
+   *     'break' identifier? ';'
    * </pre>
+   *
    * @return the break statement that was parsed
    */
   Statement parseBreakStatement() {
@@ -1275,15 +1375,19 @@ class Parser {
 
   /**
    * Parse a cascade section.
+   *
    * <pre>
    * cascadeSection ::=
-   * '..' (cascadeSelector arguments*) (assignableSelector arguments*)* cascadeAssignment?
+   *     '..' (cascadeSelector arguments*) (assignableSelector arguments*)* cascadeAssignment?
+   *
    * cascadeSelector ::=
-   * '\[' expression '\]'
-   * | identifier
+   *     '[' expression ']'
+   *   | identifier
+   *
    * cascadeAssignment ::=
-   * assignmentOperator expressionWithoutCascade
+   *     assignmentOperator expressionWithoutCascade
    * </pre>
+   *
    * @return the expression representing the cascaded method invocation
    */
   Expression parseCascadeSection() {
@@ -1340,13 +1444,15 @@ class Parser {
 
   /**
    * Parse a class declaration.
+   *
    * <pre>
    * classDeclaration ::=
-   * metadata 'abstract'? 'class' name typeParameterList? (extendsClause withClause?)? implementsClause? '{' classMembers '}'
+   *     metadata 'abstract'? 'class' name typeParameterList? (extendsClause withClause?)? implementsClause? '{' classMembers '}'
    * </pre>
+   *
    * @param commentAndMetadata the metadata to be associated with the member
    * @param abstractKeyword the token for the keyword 'abstract', or `null` if the keyword was
-   * not given
+   *          not given
    * @return the class declaration that was parsed
    */
   ClassDeclaration parseClassDeclaration(CommentAndMetadata commentAndMetadata, Token abstractKeyword) {
@@ -1419,14 +1525,16 @@ class Parser {
 
   /**
    * Parse a class member.
+   *
    * <pre>
    * classMemberDefinition ::=
-   * declaration ';'
-   * | methodSignature functionBody
+   *     declaration ';'
+   *   | methodSignature functionBody
    * </pre>
+   *
    * @param className the name of the class containing the member being parsed
    * @return the class member that was parsed, or `null` if what was found was not a valid
-   * class member
+   *         class member
    */
   ClassMember parseClassMember(String className) {
     CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
@@ -1528,13 +1636,15 @@ class Parser {
 
   /**
    * Parse a list of class members.
+   *
    * <pre>
    * classMembers ::=
-   * (metadata memberDefinition)
+   *     (metadata memberDefinition)*
    * </pre>
+   *
    * @param className the name of the class whose members are being parsed
    * @param closingBracket the closing bracket for the class, or `null` if the closing bracket
-   * is missing
+   *          is missing
    * @return the list of class members that were parsed
    */
   List<ClassMember> parseClassMembers(String className, Token closingBracket) {
@@ -1561,12 +1671,15 @@ class Parser {
 
   /**
    * Parse a class type alias.
+   *
    * <pre>
    * classTypeAlias ::=
-   * identifier typeParameters? '=' 'abstract'? mixinApplication
+   *     identifier typeParameters? '=' 'abstract'? mixinApplication
+   *
    * mixinApplication ::=
-   * type withClause implementsClause? ';'
+   *     type withClause implementsClause? ';'
    * </pre>
+   *
    * @param commentAndMetadata the metadata to be associated with the member
    * @param keyword the token representing the 'typedef' keyword
    * @return the class type alias that was parsed
@@ -1610,11 +1723,13 @@ class Parser {
 
   /**
    * Parse a list of combinators in a directive.
+   *
    * <pre>
    * combinator ::=
-   * 'show' identifier (',' identifier)
-   * | 'hide' identifier (',' identifier)
+   *     'show' identifier (',' identifier)*
+   *   | 'hide' identifier (',' identifier)*
    * </pre>
+   *
    * @return the combinators that were parsed
    */
   List<Combinator> parseCombinators() {
@@ -1636,10 +1751,12 @@ class Parser {
    * Parse the documentation comment and metadata preceeding a declaration. This method allows any
    * number of documentation comments to occur before, after or between the metadata, but only
    * returns the last (right-most) documentation comment that is found.
+   *
    * <pre>
    * metadata ::=
-   * annotation
+   *     annotation*
    * </pre>
+   *
    * @return the documentation comment and metadata that were parsed
    */
   CommentAndMetadata parseCommentAndMetadata() {
@@ -1657,12 +1774,14 @@ class Parser {
 
   /**
    * Parse a comment reference from the source between square brackets.
+   *
    * <pre>
    * commentReference ::=
-   * 'new'? prefixedIdentifier
+   *     'new'? prefixedIdentifier
    * </pre>
+   *
    * @param referenceSource the source occurring between the square brackets within a documentation
-   * comment
+   *          comment
    * @param sourceOffset the offset of the first character of the reference source
    * @return the comment reference that was parsed, or `null` if no reference could be found
    */
@@ -1672,7 +1791,7 @@ class Parser {
     }
     try {
       List<bool> errorFound = [false];
-      AnalysisErrorListener listener = new AnalysisErrorListener_11(errorFound);
+      AnalysisErrorListener listener = new AnalysisErrorListener_12(errorFound);
       StringScanner scanner = new StringScanner(null, referenceSource, listener);
       scanner.setSourceStart(1, 1, sourceOffset);
       Token firstToken = scanner.tokenize();
@@ -1710,12 +1829,15 @@ class Parser {
 
   /**
    * Parse all of the comment references occurring in the given array of documentation comments.
+   *
    * <pre>
    * commentReference ::=
-   * '\[' 'new'? qualified '\]' libraryReference?
+   *     '[' 'new'? qualified ']' libraryReference?
+   *
    * libraryReference ::=
-   * '(' stringLiteral ')'
+   *      '(' stringLiteral ')'
    * </pre>
+   *
    * @param tokens the comment tokens representing the documentation comments to be parsed
    * @return the comment references that were parsed
    */
@@ -1757,18 +1879,22 @@ class Parser {
    * Parse a compilation unit.
    *
    * Specified:
+   *
    * <pre>
    * compilationUnit ::=
-   * scriptTag? directive* topLevelDeclaration
+   *     scriptTag? directive* topLevelDeclaration*
    * </pre>
    * Actual:
+   *
    * <pre>
    * compilationUnit ::=
-   * scriptTag? topLevelElement
+   *     scriptTag? topLevelElement*
+   *
    * topLevelElement ::=
-   * directive
-   * | topLevelDeclaration
+   *     directive
+   *   | topLevelDeclaration
    * </pre>
+   *
    * @return the compilation unit that was parsed
    */
   CompilationUnit parseCompilationUnit2() {
@@ -1848,21 +1974,23 @@ class Parser {
 
   /**
    * Parse a compilation unit member.
+   *
    * <pre>
    * compilationUnitMember ::=
-   * classDefinition
-   * | functionTypeAlias
-   * | external functionSignature
-   * | external getterSignature
-   * | external setterSignature
-   * | functionSignature functionBody
-   * | returnType? getOrSet identifier formalParameterList functionBody
-   * | (final | const) type? staticFinalDeclarationList ';'
-   * | variableDeclaration ';'
+   *     classDefinition
+   *   | functionTypeAlias
+   *   | external functionSignature
+   *   | external getterSignature
+   *   | external setterSignature
+   *   | functionSignature functionBody
+   *   | returnType? getOrSet identifier formalParameterList functionBody
+   *   | (final | const) type? staticFinalDeclarationList ';'
+   *   | variableDeclaration ';'
    * </pre>
+   *
    * @param commentAndMetadata the metadata to be associated with the member
    * @return the compilation unit member that was parsed, or `null` if what was parsed could
-   * not be represented as a compilation unit member
+   *         not be represented as a compilation unit member
    */
   CompilationUnitMember parseCompilationUnitMember(CommentAndMetadata commentAndMetadata) {
     Modifiers modifiers = parseModifiers();
@@ -1931,10 +2059,12 @@ class Parser {
 
   /**
    * Parse a conditional expression.
+   *
    * <pre>
    * conditionalExpression ::=
-   * logicalOrExpression ('?' expressionWithoutCascade ':' expressionWithoutCascade)?
+   *     logicalOrExpression ('?' expressionWithoutCascade ':' expressionWithoutCascade)?
    * </pre>
+   *
    * @return the conditional expression that was parsed
    */
   Expression parseConditionalExpression() {
@@ -1951,12 +2081,14 @@ class Parser {
 
   /**
    * Parse a const expression.
+   *
    * <pre>
    * constExpression ::=
-   * instanceCreationExpression
-   * | listLiteral
-   * | mapLiteral
+   *     instanceCreationExpression
+   *   | listLiteral
+   *   | mapLiteral
    * </pre>
+   *
    * @return the const expression that was parsed
    */
   Expression parseConstExpression() {
@@ -2022,10 +2154,12 @@ class Parser {
 
   /**
    * Parse a field initializer within a constructor.
+   *
    * <pre>
    * fieldInitializer:
-   * ('this' '.')? identifier '=' conditionalExpression cascadeSection
+   *     ('this' '.')? identifier '=' conditionalExpression cascadeSection*
    * </pre>
+   *
    * @return the field initializer that was parsed
    */
   ConstructorFieldInitializer parseConstructorFieldInitializer() {
@@ -2055,10 +2189,12 @@ class Parser {
 
   /**
    * Parse the name of a constructor.
+   *
    * <pre>
    * constructorName:
-   * type ('.' identifier)?
+   *     type ('.' identifier)?
    * </pre>
+   *
    * @return the constructor name that was parsed
    */
   ConstructorName parseConstructorName() {
@@ -2074,10 +2210,12 @@ class Parser {
 
   /**
    * Parse a continue statement.
+   *
    * <pre>
    * continueStatement ::=
-   * 'continue' identifier? ';'
+   *     'continue' identifier? ';'
    * </pre>
+   *
    * @return the continue statement that was parsed
    */
   Statement parseContinueStatement() {
@@ -2098,13 +2236,15 @@ class Parser {
 
   /**
    * Parse a directive.
+   *
    * <pre>
    * directive ::=
-   * exportDirective
-   * | libraryDirective
-   * | importDirective
-   * | partDirective
+   *     exportDirective
+   *   | libraryDirective
+   *   | importDirective
+   *   | partDirective
    * </pre>
+   *
    * @param commentAndMetadata the metadata to be associated with the directive
    * @return the directive that was parsed
    */
@@ -2124,11 +2264,13 @@ class Parser {
 
   /**
    * Parse a documentation comment.
+   *
    * <pre>
    * documentationComment ::=
-   * multiLineComment?
-   * | singleLineComment
+   *     multiLineComment?
+   *   | singleLineComment*
    * </pre>
+   *
    * @return the documentation comment that was parsed, or `null` if there was no comment
    */
   Comment parseDocumentationComment() {
@@ -2160,10 +2302,12 @@ class Parser {
 
   /**
    * Parse a do statement.
+   *
    * <pre>
    * doStatement ::=
-   * 'do' statement 'while' '(' expression ')' ';'
+   *     'do' statement 'while' '(' expression ')' ';'
    * </pre>
+   *
    * @return the do statement that was parsed
    */
   Statement parseDoStatement() {
@@ -2185,21 +2329,25 @@ class Parser {
 
   /**
    * Parse an empty statement.
+   *
    * <pre>
    * emptyStatement ::=
-   * ';'
+   *     ';'
    * </pre>
+   *
    * @return the empty statement that was parsed
    */
   Statement parseEmptyStatement() => new EmptyStatement.full(andAdvance);
 
   /**
    * Parse an equality expression.
+   *
    * <pre>
    * equalityExpression ::=
-   * relationalExpression (equalityOperator relationalExpression)?
-   * | 'super' equalityOperator relationalExpression
+   *     relationalExpression (equalityOperator relationalExpression)?
+   *   | 'super' equalityOperator relationalExpression
    * </pre>
+   *
    * @return the equality expression that was parsed
    */
   Expression parseEqualityExpression() {
@@ -2209,19 +2357,26 @@ class Parser {
     } else {
       expression = parseRelationalExpression();
     }
+    bool leftEqualityExpression = false;
     while (_currentToken.type.isEqualityOperator) {
       Token operator = andAdvance;
+      if (leftEqualityExpression) {
+        reportError(ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND, expression, []);
+      }
       expression = new BinaryExpression.full(expression, operator, parseRelationalExpression());
+      leftEqualityExpression = true;
     }
     return expression;
   }
 
   /**
    * Parse an export directive.
+   *
    * <pre>
    * exportDirective ::=
-   * metadata 'export' stringLiteral combinator*';'
+   *     metadata 'export' stringLiteral combinator*';'
    * </pre>
+   *
    * @param commentAndMetadata the metadata to be associated with the directive
    * @return the export directive that was parsed
    */
@@ -2235,12 +2390,14 @@ class Parser {
 
   /**
    * Parse an expression that does not contain any cascades.
+   *
    * <pre>
    * expression ::=
-   * assignableExpression assignmentOperator expression
-   * | conditionalExpression cascadeSection
-   * | throwExpression
+   *     assignableExpression assignmentOperator expression
+   *   | conditionalExpression cascadeSection*
+   *   | throwExpression
    * </pre>
+   *
    * @return the expression that was parsed
    */
   Expression parseExpression2() {
@@ -2271,10 +2428,12 @@ class Parser {
 
   /**
    * Parse a list of expressions.
+   *
    * <pre>
    * expressionList ::=
-   * expression (',' expression)
+   *     expression (',' expression)*
    * </pre>
+   *
    * @return the expression that was parsed
    */
   List<Expression> parseExpressionList() {
@@ -2288,12 +2447,14 @@ class Parser {
 
   /**
    * Parse an expression that does not contain any cascades.
+   *
    * <pre>
    * expressionWithoutCascade ::=
-   * assignableExpression assignmentOperator expressionWithoutCascade
-   * | conditionalExpression
-   * | throwExpressionWithoutCascade
+   *     assignableExpression assignmentOperator expressionWithoutCascade
+   *   | conditionalExpression
+   *   | throwExpressionWithoutCascade
    * </pre>
+   *
    * @return the expression that was parsed
    */
   Expression parseExpressionWithoutCascade() {
@@ -2313,10 +2474,12 @@ class Parser {
 
   /**
    * Parse a class extends clause.
+   *
    * <pre>
    * classExtendsClause ::=
-   * 'extends' type
+   *     'extends' type
    * </pre>
+   *
    * @return the class extends clause that was parsed
    */
   ExtendsClause parseExtendsClause() {
@@ -2327,13 +2490,15 @@ class Parser {
 
   /**
    * Parse the 'final', 'const', 'var' or type preceding a variable declaration.
+   *
    * <pre>
    * finalConstVarOrType ::=
-   * | 'final' type?
-   * | 'const' type?
-   * | 'var'
-   * | type
+   *   | 'final' type?
+   *   | 'const' type?
+   *   | 'var'
+   *   | type
    * </pre>
+   *
    * @param optional `true` if the keyword and type are optional
    * @return the 'final', 'const', 'var' or type that was parsed
    */
@@ -2358,15 +2523,19 @@ class Parser {
   }
 
   /**
-   * Parse a formal parameter. At most one of `isOptional` and `isNamed` can be`true`.
+   * Parse a formal parameter. At most one of `isOptional` and `isNamed` can be
+   * `true`.
+   *
    * <pre>
    * defaultFormalParameter ::=
-   * normalFormalParameter ('=' expression)?
+   *     normalFormalParameter ('=' expression)?
+   *
    * defaultNamedParameter ::=
-   * normalFormalParameter (':' expression)?
+   *     normalFormalParameter (':' expression)?
    * </pre>
+   *
    * @param kind the kind of parameter being expected based on the presence or absence of group
-   * delimiters
+   *          delimiters
    * @return the formal parameter that was parsed
    */
   FormalParameter parseFormalParameter(ParameterKind kind) {
@@ -2397,21 +2566,27 @@ class Parser {
 
   /**
    * Parse a list of formal parameters.
+   *
    * <pre>
    * formalParameterList ::=
-   * '(' ')'
-   * | '(' normalFormalParameters (',' optionalFormalParameters)? ')'
-   * | '(' optionalFormalParameters ')'
+   *     '(' ')'
+   *   | '(' normalFormalParameters (',' optionalFormalParameters)? ')'
+   *   | '(' optionalFormalParameters ')'
+   *
    * normalFormalParameters ::=
-   * normalFormalParameter (',' normalFormalParameter)
+   *     normalFormalParameter (',' normalFormalParameter)*
+   *
    * optionalFormalParameters ::=
-   * optionalPositionalFormalParameters
-   * | namedFormalParameters
+   *     optionalPositionalFormalParameters
+   *   | namedFormalParameters
+   *
    * optionalPositionalFormalParameters ::=
-   * '\[' defaultFormalParameter (',' defaultFormalParameter)* '\]'
+   *     '[' defaultFormalParameter (',' defaultFormalParameter)* ']'
+   *
    * namedFormalParameters ::=
-   * '{' defaultNamedParameter (',' defaultNamedParameter)* '}'
+   *     '{' defaultNamedParameter (',' defaultNamedParameter)* '}'
    * </pre>
+   *
    * @return the formal parameters that were parsed
    */
   FormalParameterList parseFormalParameterList() {
@@ -2433,6 +2608,7 @@ class Parser {
     bool reportedMuliplePositionalGroups = false;
     bool reportedMulipleNamedGroups = false;
     bool reportedMixedGroups = false;
+    bool wasOptionalParameter = false;
     Token initialToken = null;
     do {
       if (firstParameter) {
@@ -2447,6 +2623,7 @@ class Parser {
       }
       initialToken = _currentToken;
       if (matches5(TokenType.OPEN_SQUARE_BRACKET)) {
+        wasOptionalParameter = true;
         if (leftSquareBracket != null && !reportedMuliplePositionalGroups) {
           reportError7(ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS, []);
           reportedMuliplePositionalGroups = true;
@@ -2459,6 +2636,7 @@ class Parser {
         currentParameters = positionalParameters;
         kind = ParameterKind.POSITIONAL;
       } else if (matches5(TokenType.OPEN_CURLY_BRACKET)) {
+        wasOptionalParameter = true;
         if (leftCurlyBracket != null && !reportedMulipleNamedGroups) {
           reportError7(ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS, []);
           reportedMulipleNamedGroups = true;
@@ -2474,6 +2652,9 @@ class Parser {
       FormalParameter parameter = parseFormalParameter(kind);
       parameters.add(parameter);
       currentParameters.add(parameter);
+      if (identical(kind, ParameterKind.REQUIRED) && wasOptionalParameter) {
+        reportError(ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS, parameter, []);
+      }
       if (matches5(TokenType.CLOSE_SQUARE_BRACKET)) {
         rightSquareBracket = andAdvance;
         currentParameters = normalParameters;
@@ -2520,17 +2701,21 @@ class Parser {
 
   /**
    * Parse a for statement.
+   *
    * <pre>
    * forStatement ::=
-   * 'for' '(' forLoopParts ')' statement
+   *     'for' '(' forLoopParts ')' statement
+   *
    * forLoopParts ::=
-   * forInitializerStatement expression? ';' expressionList?
-   * | declaredIdentifier 'in' expression
-   * | identifier 'in' expression
+   *     forInitializerStatement expression? ';' expressionList?
+   *   | declaredIdentifier 'in' expression
+   *   | identifier 'in' expression
+   *
    * forInitializerStatement ::=
-   * localVariableDeclaration ';'
-   * | expression? ';'
+   *     localVariableDeclaration ';'
+   *   | expression? ';'
    * </pre>
+   *
    * @return the for statement that was parsed
    */
   Statement parseForStatement() {
@@ -2595,18 +2780,21 @@ class Parser {
 
   /**
    * Parse a function body.
+   *
    * <pre>
    * functionBody ::=
-   * '=>' expression ';'
-   * | block
+   *     '=>' expression ';'
+   *   | block
+   *
    * functionExpressionBody ::=
-   * '=>' expression
-   * | block
+   *     '=>' expression
+   *   | block
    * </pre>
+   *
    * @param mayBeEmpty `true` if the function body is allowed to be empty
    * @param emptyErrorCode the error code to report if function body expecte, but not found
    * @param inExpression `true` if the function body is being parsed as part of an expression
-   * and therefore does not have a terminating semicolon
+   *          and therefore does not have a terminating semicolon
    * @return the function body that was parsed
    */
   FunctionBody parseFunctionBody(bool mayBeEmpty, ParserErrorCode emptyErrorCode, bool inExpression) {
@@ -2649,13 +2837,15 @@ class Parser {
 
   /**
    * Parse a function declaration.
+   *
    * <pre>
    * functionDeclaration ::=
-   * functionSignature functionBody
-   * | returnType? getOrSet identifier formalParameterList functionBody
+   *     functionSignature functionBody
+   *   | returnType? getOrSet identifier formalParameterList functionBody
    * </pre>
+   *
    * @param commentAndMetadata the documentation comment and metadata to be associated with the
-   * declaration
+   *          declaration
    * @param externalKeyword the 'external' keyword, or `null` if the function is not external
    * @param returnType the return type, or `null` if there is no return type
    * @param isStatement `true` if the function declaration is being parsed as a statement
@@ -2694,22 +2884,30 @@ class Parser {
 
   /**
    * Parse a function declaration statement.
+   *
    * <pre>
    * functionDeclarationStatement ::=
-   * functionSignature functionBody
+   *     functionSignature functionBody
    * </pre>
+   *
    * @return the function declaration statement that was parsed
    */
-  Statement parseFunctionDeclarationStatement() => parseFunctionDeclarationStatement2(parseCommentAndMetadata(), parseOptionalReturnType());
+  Statement parseFunctionDeclarationStatement() {
+    Modifiers modifiers = parseModifiers();
+    validateModifiersForFunctionDeclarationStatement(modifiers);
+    return parseFunctionDeclarationStatement2(parseCommentAndMetadata(), parseOptionalReturnType());
+  }
 
   /**
    * Parse a function declaration statement.
+   *
    * <pre>
    * functionDeclarationStatement ::=
-   * functionSignature functionBody
+   *     functionSignature functionBody
    * </pre>
+   *
    * @param commentAndMetadata the documentation comment and metadata to be associated with the
-   * declaration
+   *          declaration
    * @param returnType the return type, or `null` if there is no return type
    * @return the function declaration statement that was parsed
    */
@@ -2717,10 +2915,12 @@ class Parser {
 
   /**
    * Parse a function expression.
+   *
    * <pre>
    * functionExpression ::=
-   * formalParameterList functionExpressionBody
+   *     formalParameterList functionExpressionBody
    * </pre>
+   *
    * @return the function expression that was parsed
    */
   FunctionExpression parseFunctionExpression() {
@@ -2732,12 +2932,15 @@ class Parser {
 
   /**
    * Parse a function type alias.
+   *
    * <pre>
    * functionTypeAlias ::=
-   * functionPrefix typeParameterList? formalParameterList ';'
+   *     functionPrefix typeParameterList? formalParameterList ';'
+   *
    * functionPrefix ::=
-   * returnType? name
+   *     returnType? name
    * </pre>
+   *
    * @param commentAndMetadata the metadata to be associated with the member
    * @param keyword the token representing the 'typedef' keyword
    * @return the function type alias that was parsed
@@ -2769,18 +2972,21 @@ class Parser {
 
   /**
    * Parse a getter.
+   *
    * <pre>
    * getter ::=
-   * getterSignature functionBody?
+   *     getterSignature functionBody?
+   *
    * getterSignature ::=
-   * 'external'? 'static'? returnType? 'get' identifier
+   *     'external'? 'static'? returnType? 'get' identifier
    * </pre>
+   *
    * @param commentAndMetadata the documentation comment and metadata to be associated with the
-   * declaration
+   *          declaration
    * @param externalKeyword the 'external' token
    * @param staticKeyword the static keyword, or `null` if the getter is not static
    * @param the return type that has already been parsed, or `null` if there was no return
-   * type
+   *          type
    * @return the getter that was parsed
    */
   MethodDeclaration parseGetter(CommentAndMetadata commentAndMetadata, Token externalKeyword, Token staticKeyword, TypeName returnType) {
@@ -2800,10 +3006,12 @@ class Parser {
 
   /**
    * Parse a list of identifiers.
+   *
    * <pre>
    * identifierList ::=
-   * identifier (',' identifier)
+   *     identifier (',' identifier)*
    * </pre>
+   *
    * @return the list of identifiers that were parsed
    */
   List<SimpleIdentifier> parseIdentifierList() {
@@ -2818,10 +3026,12 @@ class Parser {
 
   /**
    * Parse an if statement.
+   *
    * <pre>
    * ifStatement ::=
-   * 'if' '(' expression ')' statement ('else' statement)?
+   *     'if' '(' expression ')' statement ('else' statement)?
    * </pre>
+   *
    * @return the if statement that was parsed
    */
   Statement parseIfStatement() {
@@ -2841,10 +3051,12 @@ class Parser {
 
   /**
    * Parse an implements clause.
+   *
    * <pre>
    * implementsClause ::=
-   * 'implements' type (',' type)
+   *     'implements' type (',' type)*
    * </pre>
+   *
    * @return the implements clause that was parsed
    */
   ImplementsClause parseImplementsClause() {
@@ -2859,10 +3071,12 @@ class Parser {
 
   /**
    * Parse an import directive.
+   *
    * <pre>
    * importDirective ::=
-   * metadata 'import' stringLiteral ('as' identifier)? combinator*';'
+   *     metadata 'import' stringLiteral ('as' identifier)? combinator*';'
    * </pre>
+   *
    * @param commentAndMetadata the metadata to be associated with the directive
    * @return the import directive that was parsed
    */
@@ -2882,20 +3096,24 @@ class Parser {
 
   /**
    * Parse a list of initialized identifiers.
+   *
    * <pre>
    * ?? ::=
-   * 'static'? ('var' | type) initializedIdentifierList ';'
-   * | 'final' type? initializedIdentifierList ';'
+   *     'static'? ('var' | type) initializedIdentifierList ';'
+   *   | 'final' type? initializedIdentifierList ';'
+   *
    * initializedIdentifierList ::=
-   * initializedIdentifier (',' initializedIdentifier)
+   *     initializedIdentifier (',' initializedIdentifier)*
+   *
    * initializedIdentifier ::=
-   * identifier ('=' expression)?
+   *     identifier ('=' expression)?
    * </pre>
+   *
    * @param commentAndMetadata the documentation comment and metadata to be associated with the
-   * declaration
+   *          declaration
    * @param staticKeyword the static keyword, or `null` if the getter is not static
    * @param keyword the token representing the 'final', 'const' or 'var' keyword, or `null` if
-   * there is no keyword
+   *          there is no keyword
    * @param type the type that has already been parsed, or `null` if 'var' was provided
    * @return the getter that was parsed
    */
@@ -2906,10 +3124,12 @@ class Parser {
 
   /**
    * Parse an instance creation expression.
+   *
    * <pre>
    * instanceCreationExpression ::=
-   * ('new' | 'const') type ('.' identifier)? argumentList
+   *     ('new' | 'const') type ('.' identifier)? argumentList
    * </pre>
+   *
    * @param keyword the 'new' or 'const' keyword that introduces the expression
    * @return the instance creation expression that was parsed
    */
@@ -2921,10 +3141,12 @@ class Parser {
 
   /**
    * Parse a library directive.
+   *
    * <pre>
    * libraryDirective ::=
-   * metadata 'library' identifier ';'
+   *     metadata 'library' identifier ';'
    * </pre>
+   *
    * @param commentAndMetadata the metadata to be associated with the directive
    * @return the library directive that was parsed
    */
@@ -2937,10 +3159,12 @@ class Parser {
 
   /**
    * Parse a library identifier.
+   *
    * <pre>
    * libraryIdentifier ::=
-   * identifier ('.' identifier)
+   *     identifier ('.' identifier)*
    * </pre>
+   *
    * @return the library identifier that was parsed
    */
   LibraryIdentifier parseLibraryIdentifier() {
@@ -2955,13 +3179,15 @@ class Parser {
 
   /**
    * Parse a library name.
+   *
    * <pre>
    * libraryName ::=
-   * libraryIdentifier
+   *     libraryIdentifier
    * </pre>
+   *
    * @param missingNameError the error code to be used if the library name is missing
    * @param missingNameToken the token associated with the error produced if the library name is
-   * missing
+   *          missing
    * @return the library name that was parsed
    */
   LibraryIdentifier parseLibraryName(ParserErrorCode missingNameError, Token missingNameToken) {
@@ -2980,14 +3206,16 @@ class Parser {
 
   /**
    * Parse a list literal.
+   *
    * <pre>
    * listLiteral ::=
-   * 'const'? typeArguments? '\[' (expressionList ','?)? '\]'
+   *     'const'? typeArguments? '[' (expressionList ','?)? ']'
    * </pre>
+   *
    * @param modifier the 'const' modifier appearing before the literal, or `null` if there is
-   * no modifier
+   *          no modifier
    * @param typeArguments the type arguments appearing before the literal, or `null` if there
-   * are no type arguments
+   *          are no type arguments
    * @return the list literal that was parsed
    */
   ListLiteral parseListLiteral(Token modifier, TypeArgumentList typeArguments) {
@@ -3019,13 +3247,15 @@ class Parser {
 
   /**
    * Parse a list or map literal.
+   *
    * <pre>
    * listOrMapLiteral ::=
-   * listLiteral
-   * | mapLiteral
+   *     listLiteral
+   *   | mapLiteral
    * </pre>
+   *
    * @param modifier the 'const' modifier appearing before the literal, or `null` if there is
-   * no modifier
+   *          no modifier
    * @return the list or map literal that was parsed
    */
   TypedLiteral parseListOrMapLiteral(Token modifier) {
@@ -3044,10 +3274,12 @@ class Parser {
 
   /**
    * Parse a logical and expression.
+   *
    * <pre>
    * logicalAndExpression ::=
-   * bitwiseOrExpression ('&&' bitwiseOrExpression)
+   *     bitwiseOrExpression ('&&' bitwiseOrExpression)*
    * </pre>
+   *
    * @return the logical and expression that was parsed
    */
   Expression parseLogicalAndExpression() {
@@ -3061,10 +3293,12 @@ class Parser {
 
   /**
    * Parse a logical or expression.
+   *
    * <pre>
    * logicalOrExpression ::=
-   * logicalAndExpression ('||' logicalAndExpression)
+   *     logicalAndExpression ('||' logicalAndExpression)*
    * </pre>
+   *
    * @return the logical or expression that was parsed
    */
   Expression parseLogicalOrExpression() {
@@ -3078,14 +3312,16 @@ class Parser {
 
   /**
    * Parse a map literal.
+   *
    * <pre>
    * mapLiteral ::=
-   * 'const'? typeArguments? '{' (mapLiteralEntry (',' mapLiteralEntry)* ','?)? '}'
+   *     'const'? typeArguments? '{' (mapLiteralEntry (',' mapLiteralEntry)* ','?)? '}'
    * </pre>
+   *
    * @param modifier the 'const' modifier appearing before the literal, or `null` if there is
-   * no modifier
+   *          no modifier
    * @param typeArguments the type arguments that were declared, or `null` if there are no
-   * type arguments
+   *          type arguments
    * @return the map literal that was parsed
    */
   MapLiteral parseMapLiteral(Token modifier, TypeArgumentList typeArguments) {
@@ -3113,10 +3349,12 @@ class Parser {
 
   /**
    * Parse a map literal entry.
+   *
    * <pre>
    * mapLiteralEntry ::=
-   * expression ':' expression
+   *     expression ':' expression
    * </pre>
+   *
    * @return the map literal entry that was parsed
    */
   MapLiteralEntry parseMapLiteralEntry() {
@@ -3128,13 +3366,15 @@ class Parser {
 
   /**
    * Parse a method declaration.
+   *
    * <pre>
    * functionDeclaration ::=
-   * 'external'? 'static'? functionSignature functionBody
-   * | 'external'? functionSignature ';'
+   *     'external'? 'static'? functionSignature functionBody
+   *   | 'external'? functionSignature ';'
    * </pre>
+   *
    * @param commentAndMetadata the documentation comment and metadata to be associated with the
-   * declaration
+   *          declaration
    * @param externalKeyword the 'external' token
    * @param staticKeyword the static keyword, or `null` if the getter is not static
    * @param returnType the return type of the method
@@ -3149,13 +3389,15 @@ class Parser {
 
   /**
    * Parse a method declaration.
+   *
    * <pre>
    * functionDeclaration ::=
-   * ('external' 'static'?)? functionSignature functionBody
-   * | 'external'? functionSignature ';'
+   *     ('external' 'static'?)? functionSignature functionBody
+   *   | 'external'? functionSignature ';'
    * </pre>
+   *
    * @param commentAndMetadata the documentation comment and metadata to be associated with the
-   * declaration
+   *          declaration
    * @param externalKeyword the 'external' token
    * @param staticKeyword the static keyword, or `null` if the getter is not static
    * @param returnType the return type of the method
@@ -3182,10 +3424,12 @@ class Parser {
    * order but does generate errors for duplicated modifiers. Checks for other problems, such as
    * having the modifiers appear in the wrong order or specifying both 'const' and 'final', are
    * reported in one of the methods whose name is prefixed with `validateModifiersFor`.
+   *
    * <pre>
    * modifiers ::=
-   * ('abstract' | 'const' | 'external' | 'factory' | 'final' | 'static' | 'var')
+   *     ('abstract' | 'const' | 'external' | 'factory' | 'final' | 'static' | 'var')*
    * </pre>
+   *
    * @return the modifiers that were parsed
    */
   Modifiers parseModifiers() {
@@ -3250,11 +3494,13 @@ class Parser {
 
   /**
    * Parse a multiplicative expression.
+   *
    * <pre>
    * multiplicativeExpression ::=
-   * unaryExpression (multiplicativeOperator unaryExpression)
-   * | 'super' (multiplicativeOperator unaryExpression)+
+   *     unaryExpression (multiplicativeOperator unaryExpression)*
+   *   | 'super' (multiplicativeOperator unaryExpression)+
    * </pre>
+   *
    * @return the multiplicative expression that was parsed
    */
   Expression parseMultiplicativeExpression() {
@@ -3273,33 +3519,37 @@ class Parser {
 
   /**
    * Parse a new expression.
+   *
    * <pre>
    * newExpression ::=
-   * instanceCreationExpression
+   *     instanceCreationExpression
    * </pre>
+   *
    * @return the new expression that was parsed
    */
   InstanceCreationExpression parseNewExpression() => parseInstanceCreationExpression(expect(Keyword.NEW));
 
   /**
    * Parse a non-labeled statement.
+   *
    * <pre>
    * nonLabeledStatement ::=
-   * block
-   * | assertStatement
-   * | breakStatement
-   * | continueStatement
-   * | doStatement
-   * | forStatement
-   * | ifStatement
-   * | returnStatement
-   * | switchStatement
-   * | tryStatement
-   * | whileStatement
-   * | variableDeclarationList ';'
-   * | expressionStatement
-   * | functionSignature functionBody
+   *     block
+   *   | assertStatement
+   *   | breakStatement
+   *   | continueStatement
+   *   | doStatement
+   *   | forStatement
+   *   | ifStatement
+   *   | returnStatement
+   *   | switchStatement
+   *   | tryStatement
+   *   | whileStatement
+   *   | variableDeclarationList ';'
+   *   | expressionStatement
+   *   | functionSignature functionBody
    * </pre>
+   *
    * @return the non-labeled statement that was parsed
    */
   Statement parseNonLabeledStatement() {
@@ -3390,19 +3640,24 @@ class Parser {
 
   /**
    * Parse a normal formal parameter.
+   *
    * <pre>
    * normalFormalParameter ::=
-   * functionSignature
-   * | fieldFormalParameter
-   * | simpleFormalParameter
+   *     functionSignature
+   *   | fieldFormalParameter
+   *   | simpleFormalParameter
+   *
    * functionSignature:
-   * metadata returnType? identifier formalParameterList
+   *     metadata returnType? identifier formalParameterList
+   *
    * fieldFormalParameter ::=
-   * metadata finalConstVarOrType? 'this' '.' identifier
+   *     metadata finalConstVarOrType? 'this' '.' identifier
+   *
    * simpleFormalParameter ::=
-   * declaredIdentifier
-   * | metadata identifier
+   *     declaredIdentifier
+   *   | metadata identifier
    * </pre>
+   *
    * @return the normal formal parameter that was parsed
    */
   NormalFormalParameter parseNormalFormalParameter() {
@@ -3416,6 +3671,9 @@ class Parser {
     }
     SimpleIdentifier identifier = parseSimpleIdentifier();
     if (matches5(TokenType.OPEN_PAREN)) {
+      if (holder.keyword != null) {
+        reportError8(ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, holder.keyword, []);
+      }
       if (thisKeyword != null) {
       }
       FormalParameterList parameters = parseFormalParameterList();
@@ -3433,17 +3691,20 @@ class Parser {
 
   /**
    * Parse an operator declaration.
+   *
    * <pre>
    * operatorDeclaration ::=
-   * operatorSignature (';' | functionBody)
+   *     operatorSignature (';' | functionBody)
+   *
    * operatorSignature ::=
-   * 'external'? returnType? 'operator' operator formalParameterList
+   *     'external'? returnType? 'operator' operator formalParameterList
    * </pre>
+   *
    * @param commentAndMetadata the documentation comment and metadata to be associated with the
-   * declaration
+   *          declaration
    * @param externalKeyword the 'external' token
    * @param the return type that has already been parsed, or `null` if there was no return
-   * type
+   *          type
    * @return the operator declaration that was parsed
    */
   MethodDeclaration parseOperator(CommentAndMetadata commentAndMetadata, Token externalKeyword, TypeName returnType) {
@@ -3476,6 +3737,7 @@ class Parser {
 
   /**
    * Parse a return type if one is given, otherwise return `null` without advancing.
+   *
    * @return the return type that was parsed
    */
   TypeName parseOptionalReturnType() {
@@ -3491,12 +3753,15 @@ class Parser {
 
   /**
    * Parse a part or part-of directive.
+   *
    * <pre>
    * partDirective ::=
-   * metadata 'part' stringLiteral ';'
+   *     metadata 'part' stringLiteral ';'
+   *
    * partOfDirective ::=
-   * metadata 'part' 'of' identifier ';'
+   *     metadata 'part' 'of' identifier ';'
    * </pre>
+   *
    * @param commentAndMetadata the metadata to be associated with the directive
    * @return the part or part-of directive that was parsed
    */
@@ -3515,14 +3780,17 @@ class Parser {
 
   /**
    * Parse a postfix expression.
+   *
    * <pre>
    * postfixExpression ::=
-   * assignableExpression postfixOperator
-   * | primary selector
+   *     assignableExpression postfixOperator
+   *   | primary selector*
+   *
    * selector ::=
-   * assignableSelector
-   * | argumentList
+   *     assignableSelector
+   *   | argumentList
    * </pre>
+   *
    * @return the postfix expression that was parsed
    */
   Expression parsePostfixExpression() {
@@ -3546,7 +3814,7 @@ class Parser {
     if (!_currentToken.type.isIncrementOperator) {
       return operand;
     }
-    if (operand is FunctionExpressionInvocation) {
+    if (operand is Literal || operand is FunctionExpressionInvocation) {
       reportError7(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, []);
     }
     Token operator = andAdvance;
@@ -3555,10 +3823,12 @@ class Parser {
 
   /**
    * Parse a prefixed identifier.
+   *
    * <pre>
    * prefixedIdentifier ::=
-   * identifier ('.' identifier)?
+   *     identifier ('.' identifier)?
    * </pre>
+   *
    * @return the prefixed identifier that was parsed
    */
   Identifier parsePrefixedIdentifier() {
@@ -3573,25 +3843,29 @@ class Parser {
 
   /**
    * Parse a primary expression.
+   *
    * <pre>
    * primary ::=
-   * thisExpression
-   * | 'super' assignableSelector
-   * | functionExpression
-   * | literal
-   * | identifier
-   * | newExpression
-   * | constObjectExpression
-   * | '(' expression ')'
-   * | argumentDefinitionTest
+   *     thisExpression
+   *   | 'super' assignableSelector
+   *   | functionExpression
+   *   | literal
+   *   | identifier
+   *   | newExpression
+   *   | constObjectExpression
+   *   | '(' expression ')'
+   *   | argumentDefinitionTest
+   *
    * literal ::=
-   * nullLiteral
-   * | booleanLiteral
-   * | numericLiteral
-   * | stringLiteral
-   * | mapLiteral
-   * | listLiteral
+   *     nullLiteral
+   *   | booleanLiteral
+   *   | numericLiteral
+   *   | stringLiteral
+   *   | symbolLiteral
+   *   | mapLiteral
+   *   | listLiteral
    * </pre>
+   *
    * @return the primary expression that was parsed
    */
   Expression parsePrimaryExpression() {
@@ -3657,6 +3931,8 @@ class Parser {
       reportError7(ParserErrorCode.UNEXPECTED_TOKEN, [_currentToken.lexeme]);
       advance();
       return parsePrimaryExpression();
+    } else if (matches5(TokenType.HASH)) {
+      return parseSymbolLiteral();
     } else {
       reportError7(ParserErrorCode.MISSING_IDENTIFIER, []);
       return createSyntheticIdentifier();
@@ -3665,10 +3941,12 @@ class Parser {
 
   /**
    * Parse a redirecting constructor invocation.
+   *
    * <pre>
    * redirectingConstructorInvocation ::=
-   * 'this' ('.' identifier)? arguments
+   *     'this' ('.' identifier)? arguments
    * </pre>
+   *
    * @return the redirecting constructor invocation that was parsed
    */
   RedirectingConstructorInvocation parseRedirectingConstructorInvocation() {
@@ -3685,11 +3963,13 @@ class Parser {
 
   /**
    * Parse a relational expression.
+   *
    * <pre>
    * relationalExpression ::=
-   * shiftExpression ('is' '!'? type | 'as' type | relationalOperator shiftExpression)?
-   * | 'super' relationalOperator shiftExpression
+   *     shiftExpression ('is' '!'? type | 'as' type | relationalOperator shiftExpression)?
+   *   | 'super' relationalOperator shiftExpression
    * </pre>
+   *
    * @return the relational expression that was parsed
    */
   Expression parseRelationalExpression() {
@@ -3719,20 +3999,24 @@ class Parser {
 
   /**
    * Parse a rethrow expression.
+   *
    * <pre>
    * rethrowExpression ::=
-   * 'rethrow'
+   *     'rethrow'
    * </pre>
+   *
    * @return the rethrow expression that was parsed
    */
   Expression parseRethrowExpression() => new RethrowExpression.full(expect(Keyword.RETHROW));
 
   /**
    * Parse a return statement.
+   *
    * <pre>
    * returnStatement ::=
-   * 'return' expression? ';'
+   *     'return' expression? ';'
    * </pre>
+   *
    * @return the return statement that was parsed
    */
   Statement parseReturnStatement() {
@@ -3747,11 +4031,13 @@ class Parser {
 
   /**
    * Parse a return type.
+   *
    * <pre>
    * returnType ::=
-   * 'void'
-   * | type
+   *     'void'
+   *   | type
    * </pre>
+   *
    * @return the return type that was parsed
    */
   TypeName parseReturnType() {
@@ -3764,18 +4050,21 @@ class Parser {
 
   /**
    * Parse a setter.
+   *
    * <pre>
    * setter ::=
-   * setterSignature functionBody?
+   *     setterSignature functionBody?
+   *
    * setterSignature ::=
-   * 'external'? 'static'? returnType? 'set' identifier formalParameterList
+   *     'external'? 'static'? returnType? 'set' identifier formalParameterList
    * </pre>
+   *
    * @param commentAndMetadata the documentation comment and metadata to be associated with the
-   * declaration
+   *          declaration
    * @param externalKeyword the 'external' token
    * @param staticKeyword the static keyword, or `null` if the setter is not static
    * @param the return type that has already been parsed, or `null` if there was no return
-   * type
+   *          type
    * @return the setter that was parsed
    */
   MethodDeclaration parseSetter(CommentAndMetadata commentAndMetadata, Token externalKeyword, Token staticKeyword, TypeName returnType) {
@@ -3792,11 +4081,13 @@ class Parser {
 
   /**
    * Parse a shift expression.
+   *
    * <pre>
    * shiftExpression ::=
-   * additiveExpression (shiftOperator additiveExpression)
-   * | 'super' (shiftOperator additiveExpression)+
+   *     additiveExpression (shiftOperator additiveExpression)*
+   *   | 'super' (shiftOperator additiveExpression)+
    * </pre>
+   *
    * @return the shift expression that was parsed
    */
   Expression parseShiftExpression() {
@@ -3815,10 +4106,12 @@ class Parser {
 
   /**
    * Parse a simple identifier.
+   *
    * <pre>
    * identifier ::=
-   * IDENTIFIER
+   *     IDENTIFIER
    * </pre>
+   *
    * @return the simple identifier that was parsed
    */
   SimpleIdentifier parseSimpleIdentifier() {
@@ -3831,10 +4124,12 @@ class Parser {
 
   /**
    * Parse a statement.
+   *
    * <pre>
    * statement ::=
-   * label* nonLabeledStatement
+   *     label* nonLabeledStatement
    * </pre>
+   *
    * @return the statement that was parsed
    */
   Statement parseStatement2() {
@@ -3853,10 +4148,12 @@ class Parser {
 
   /**
    * Parse a list of statements within a switch statement.
+   *
    * <pre>
    * statements ::=
-   * statement
+   *     statement*
    * </pre>
+   *
    * @return the statements that were parsed
    */
   List<Statement> parseStatements2() {
@@ -3875,6 +4172,7 @@ class Parser {
 
   /**
    * Parse a string literal that contains interpolations.
+   *
    * @return the string literal that was parsed
    */
   StringInterpolation parseStringInterpolation(Token string) {
@@ -3906,11 +4204,13 @@ class Parser {
 
   /**
    * Parse a string literal.
+   *
    * <pre>
    * stringLiteral ::=
-   * MULTI_LINE_STRING+
-   * | SINGLE_LINE_STRING+
+   *     MULTI_LINE_STRING+
+   *   | SINGLE_LINE_STRING+
    * </pre>
+   *
    * @return the string literal that was parsed
    */
   StringLiteral parseStringLiteral() {
@@ -3935,10 +4235,12 @@ class Parser {
 
   /**
    * Parse a super constructor invocation.
+   *
    * <pre>
    * superConstructorInvocation ::=
-   * 'super' ('.' identifier)? arguments
+   *     'super' ('.' identifier)? arguments
    * </pre>
+   *
    * @return the super constructor invocation that was parsed
    */
   SuperConstructorInvocation parseSuperConstructorInvocation() {
@@ -3955,14 +4257,18 @@ class Parser {
 
   /**
    * Parse a switch statement.
+   *
    * <pre>
    * switchStatement ::=
-   * 'switch' '(' expression ')' '{' switchCase* defaultCase? '}'
+   *     'switch' '(' expression ')' '{' switchCase* defaultCase? '}'
+   *
    * switchCase ::=
-   * label* ('case' expression ':') statements
+   *     label* ('case' expression ':') statements
+   *
    * defaultCase ::=
-   * label* 'default' ':' statements
+   *     label* 'default' ':' statements
    * </pre>
+   *
    * @return the switch statement that was parsed
    */
   SwitchStatement parseSwitchStatement() {
@@ -4020,11 +4326,45 @@ class Parser {
   }
 
   /**
+   * Parse a symbol literal.
+   *
+   * <pre>
+   * symbolLiteral ::=
+   *     '#' identifier ('.' identifier)*
+   * </pre>
+   *
+   * @return the symbol literal that was parsed
+   */
+  SymbolLiteral parseSymbolLiteral() {
+    Token poundSign = andAdvance;
+    List<SimpleIdentifier> components = new List<SimpleIdentifier>();
+    if (matches5(TokenType.IDENTIFIER)) {
+      components.add(parseSimpleIdentifier());
+      while (matches5(TokenType.PERIOD)) {
+        advance();
+        if (matches5(TokenType.IDENTIFIER)) {
+          components.add(parseSimpleIdentifier());
+        } else {
+          reportError7(ParserErrorCode.MISSING_IDENTIFIER, []);
+          components.add(createSyntheticIdentifier());
+          break;
+        }
+      }
+    } else {
+      reportError7(ParserErrorCode.MISSING_IDENTIFIER, []);
+      components.add(createSyntheticIdentifier());
+    }
+    return new SymbolLiteral.full(poundSign, components);
+  }
+
+  /**
    * Parse a throw expression.
+   *
    * <pre>
    * throwExpression ::=
-   * 'throw' expression
+   *     'throw' expression
    * </pre>
+   *
    * @return the throw expression that was parsed
    */
   Expression parseThrowExpression() {
@@ -4039,10 +4379,12 @@ class Parser {
 
   /**
    * Parse a throw expression.
+   *
    * <pre>
    * throwExpressionWithoutCascade ::=
-   * 'throw' expressionWithoutCascade
+   *     'throw' expressionWithoutCascade
    * </pre>
+   *
    * @return the throw expression that was parsed
    */
   Expression parseThrowExpressionWithoutCascade() {
@@ -4057,17 +4399,22 @@ class Parser {
 
   /**
    * Parse a try statement.
+   *
    * <pre>
    * tryStatement ::=
-   * 'try' block (onPart+ finallyPart? | finallyPart)
+   *     'try' block (onPart+ finallyPart? | finallyPart)
+   *
    * onPart ::=
-   * catchPart block
-   * | 'on' type catchPart? block
+   *     catchPart block
+   *   | 'on' type catchPart? block
+   *
    * catchPart ::=
-   * 'catch' '(' identifier (',' identifier)? ')'
+   *     'catch' '(' identifier (',' identifier)? ')'
+   *
    * finallyPart ::=
-   * 'finally' block
+   *     'finally' block
    * </pre>
+   *
    * @return the try statement that was parsed
    */
   Statement parseTryStatement() {
@@ -4115,21 +4462,28 @@ class Parser {
 
   /**
    * Parse a type alias.
+   *
    * <pre>
    * typeAlias ::=
-   * 'typedef' typeAliasBody
+   *     'typedef' typeAliasBody
+   *
    * typeAliasBody ::=
-   * classTypeAlias
-   * | functionTypeAlias
+   *     classTypeAlias
+   *   | functionTypeAlias
+   *
    * classTypeAlias ::=
-   * identifier typeParameters? '=' 'abstract'? mixinApplication
+   *     identifier typeParameters? '=' 'abstract'? mixinApplication
+   *
    * mixinApplication ::=
-   * qualified withClause implementsClause? ';'
+   *     qualified withClause implementsClause? ';'
+   *
    * functionTypeAlias ::=
-   * functionPrefix typeParameterList? formalParameterList ';'
+   *     functionPrefix typeParameterList? formalParameterList ';'
+   *
    * functionPrefix ::=
-   * returnType? name
+   *     returnType? name
    * </pre>
+   *
    * @param commentAndMetadata the metadata to be associated with the member
    * @return the type alias that was parsed
    */
@@ -4151,12 +4505,15 @@ class Parser {
 
   /**
    * Parse a list of type arguments.
+   *
    * <pre>
    * typeArguments ::=
-   * '<' typeList '>'
+   *     '<' typeList '>'
+   *
    * typeList ::=
-   * type (',' type)
+   *     type (',' type)*
    * </pre>
+   *
    * @return the type argument list that was parsed
    */
   TypeArgumentList parseTypeArgumentList() {
@@ -4172,10 +4529,12 @@ class Parser {
 
   /**
    * Parse a type name.
+   *
    * <pre>
    * type ::=
-   * qualified typeArguments?
+   *     qualified typeArguments?
    * </pre>
+   *
    * @return the type name that was parsed
    */
   TypeName parseTypeName() {
@@ -4198,10 +4557,12 @@ class Parser {
 
   /**
    * Parse a type parameter.
+   *
    * <pre>
    * typeParameter ::=
-   * metadata name ('extends' bound)?
+   *     metadata name ('extends' bound)?
    * </pre>
+   *
    * @return the type parameter that was parsed
    */
   TypeParameter parseTypeParameter() {
@@ -4217,10 +4578,12 @@ class Parser {
 
   /**
    * Parse a list of type parameters.
+   *
    * <pre>
    * typeParameterList ::=
-   * '<' typeParameter (',' typeParameter)* '>'
+   *     '<' typeParameter (',' typeParameter)* '>'
    * </pre>
+   *
    * @return the list of type parameters that were parsed
    */
   TypeParameterList parseTypeParameterList() {
@@ -4236,14 +4599,16 @@ class Parser {
 
   /**
    * Parse a unary expression.
+   *
    * <pre>
    * unaryExpression ::=
-   * prefixOperator unaryExpression
-   * | postfixExpression
-   * | unaryOperator 'super'
-   * | '-' 'super'
-   * | incrementOperator assignableExpression
+   *     prefixOperator unaryExpression
+   *   | postfixExpression
+   *   | unaryOperator 'super'
+   *   | '-' 'super'
+   *   | incrementOperator assignableExpression
    * </pre>
+   *
    * @return the unary expression that was parsed
    */
   Expression parseUnaryExpression() {
@@ -4285,10 +4650,12 @@ class Parser {
 
   /**
    * Parse a variable declaration.
+   *
    * <pre>
    * variableDeclaration ::=
-   * identifier ('=' expression)?
+   *     identifier ('=' expression)?
    * </pre>
+   *
    * @return the variable declaration that was parsed
    */
   VariableDeclaration parseVariableDeclaration() {
@@ -4305,10 +4672,12 @@ class Parser {
 
   /**
    * Parse a variable declaration list.
+   *
    * <pre>
    * variableDeclarationList ::=
-   * finalConstVarOrType variableDeclaration (',' variableDeclaration)
+   *     finalConstVarOrType variableDeclaration (',' variableDeclaration)*
    * </pre>
+   *
    * @param commentAndMetadata the metadata to be associated with the variable declaration list
    * @return the variable declaration list that was parsed
    */
@@ -4319,13 +4688,16 @@ class Parser {
 
   /**
    * Parse a variable declaration list.
+   *
    * <pre>
    * variableDeclarationList ::=
-   * finalConstVarOrType variableDeclaration (',' variableDeclaration)
+   *     finalConstVarOrType variableDeclaration (',' variableDeclaration)*
    * </pre>
-   * @param commentAndMetadata the metadata to be associated with the variable declaration list, or`null` if there is no attempt at parsing the comment and metadata
+   *
+   * @param commentAndMetadata the metadata to be associated with the variable declaration list, or
+   *          `null` if there is no attempt at parsing the comment and metadata
    * @param keyword the token representing the 'final', 'const' or 'var' keyword, or `null` if
-   * there is no keyword
+   *          there is no keyword
    * @param type the type of the variables in the list
    * @return the variable declaration list that was parsed
    */
@@ -4341,12 +4713,14 @@ class Parser {
 
   /**
    * Parse a variable declaration statement.
+   *
    * <pre>
    * variableDeclarationStatement ::=
-   * variableDeclarationList ';'
+   *     variableDeclarationList ';'
    * </pre>
+   *
    * @param commentAndMetadata the metadata to be associated with the variable declaration
-   * statement, or `null` if there is no attempt at parsing the comment and metadata
+   *          statement, or `null` if there is no attempt at parsing the comment and metadata
    * @return the variable declaration statement that was parsed
    */
   VariableDeclarationStatement parseVariableDeclarationStatement(CommentAndMetadata commentAndMetadata) {
@@ -4357,14 +4731,16 @@ class Parser {
 
   /**
    * Parse a variable declaration statement.
+   *
    * <pre>
    * variableDeclarationStatement ::=
-   * variableDeclarationList ';'
+   *     variableDeclarationList ';'
    * </pre>
+   *
    * @param commentAndMetadata the metadata to be associated with the variable declaration
-   * statement, or `null` if there is no attempt at parsing the comment and metadata
+   *          statement, or `null` if there is no attempt at parsing the comment and metadata
    * @param keyword the token representing the 'final', 'const' or 'var' keyword, or `null` if
-   * there is no keyword
+   *          there is no keyword
    * @param type the type of the variables in the list
    * @return the variable declaration statement that was parsed
    */
@@ -4376,10 +4752,12 @@ class Parser {
 
   /**
    * Parse a while statement.
+   *
    * <pre>
    * whileStatement ::=
-   * 'while' '(' expression ')' statement
+   *     'while' '(' expression ')' statement
    * </pre>
+   *
    * @return the while statement that was parsed
    */
   Statement parseWhileStatement() {
@@ -4399,10 +4777,12 @@ class Parser {
 
   /**
    * Parse a with clause.
+   *
    * <pre>
    * withClause ::=
-   * 'with' typeName (',' typeName)
+   *     'with' typeName (',' typeName)*
    * </pre>
+   *
    * @return the with clause that was parsed
    */
   WithClause parseWithClause() {
@@ -4416,14 +4796,18 @@ class Parser {
   }
 
   /**
-   * Return the token that is immediately after the current token. This is equivalent to[peek].
+   * Return the token that is immediately after the current token. This is equivalent to
+   * [peek].
+   *
    * @return the token that is immediately after the current token
    */
   Token peek() => _currentToken.next;
 
   /**
    * Return the token that is the given distance after the current token.
-   * @param distance the number of tokens to look ahead, where `0` is the current token,`1` is the next token, etc.
+   *
+   * @param distance the number of tokens to look ahead, where `0` is the current token,
+   *          `1` is the next token, etc.
    * @return the token that is the given distance after the current token
    */
   Token peek2(int distance) {
@@ -4436,6 +4820,7 @@ class Parser {
 
   /**
    * Report an error with the given error code and arguments.
+   *
    * @param errorCode the error code of the error to be reported
    * @param node the node specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
@@ -4446,6 +4831,7 @@ class Parser {
 
   /**
    * Report an error with the given error code and arguments.
+   *
    * @param errorCode the error code of the error to be reported
    * @param arguments the arguments to the error, used to compose the error message
    */
@@ -4455,6 +4841,7 @@ class Parser {
 
   /**
    * Report an error with the given error code and arguments.
+   *
    * @param errorCode the error code of the error to be reported
    * @param token the token specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
@@ -4468,13 +4855,15 @@ class Parser {
    * given token, without actually creating a type or changing the current token. Return the token
    * following the type that was parsed, or `null` if the given token is not the first token
    * in a valid type.
+   *
    * <pre>
    * finalConstVarOrType ::=
-   * | 'final' type?
-   * | 'const' type?
-   * | 'var'
-   * | type
+   *   | 'final' type?
+   *   | 'const' type?
+   *   | 'var'
+   *   | type
    * </pre>
+   *
    * @param startToken the token at which parsing is to begin
    * @return the token following the type that was parsed
    */
@@ -4508,21 +4897,27 @@ class Parser {
    * the closing parenthesis.
    *
    * This method must be kept in sync with [parseFormalParameterList].
+   *
    * <pre>
    * formalParameterList ::=
-   * '(' ')'
-   * | '(' normalFormalParameters (',' optionalFormalParameters)? ')'
-   * | '(' optionalFormalParameters ')'
+   *     '(' ')'
+   *   | '(' normalFormalParameters (',' optionalFormalParameters)? ')'
+   *   | '(' optionalFormalParameters ')'
+   *
    * normalFormalParameters ::=
-   * normalFormalParameter (',' normalFormalParameter)
+   *     normalFormalParameter (',' normalFormalParameter)*
+   *
    * optionalFormalParameters ::=
-   * optionalPositionalFormalParameters
-   * | namedFormalParameters
+   *     optionalPositionalFormalParameters
+   *   | namedFormalParameters
+   *
    * optionalPositionalFormalParameters ::=
-   * '\[' defaultFormalParameter (',' defaultFormalParameter)* '\]'
+   *     '[' defaultFormalParameter (',' defaultFormalParameter)* ']'
+   *
    * namedFormalParameters ::=
-   * '{' defaultNamedParameter (',' defaultNamedParameter)* '}'
+   *     '{' defaultNamedParameter (',' defaultNamedParameter)* '}'
    * </pre>
+   *
    * @param startToken the token at which parsing is to begin
    * @return the token following the formal parameter list that was parsed
    */
@@ -4556,6 +4951,7 @@ class Parser {
   /**
    * If the given token is a begin token with an associated end token, then return the token
    * following the end token. Otherwise, return `null`.
+   *
    * @param startToken the token that is assumed to be a being token
    * @return the token following the matching end token
    */
@@ -4577,10 +4973,12 @@ class Parser {
    * identifier.
    *
    * This method must be kept in sync with [parsePrefixedIdentifier].
+   *
    * <pre>
    * prefixedIdentifier ::=
-   * identifier ('.' identifier)?
+   *     identifier ('.' identifier)?
    * </pre>
+   *
    * @param startToken the token at which parsing is to begin
    * @return the token following the prefixed identifier that was parsed
    */
@@ -4596,14 +4994,17 @@ class Parser {
 
   /**
    * Parse a return type, starting at the given token, without actually creating a return type or
-   * changing the current token. Return the token following the return type that was parsed, or`null` if the given token is not the first token in a valid return type.
+   * changing the current token. Return the token following the return type that was parsed, or
+   * `null` if the given token is not the first token in a valid return type.
    *
    * This method must be kept in sync with [parseReturnType].
+   *
    * <pre>
    * returnType ::=
-   * 'void'
-   * | type
+   *     'void'
+   *   | type
    * </pre>
+   *
    * @param startToken the token at which parsing is to begin
    * @return the token following the return type that was parsed
    */
@@ -4622,10 +5023,12 @@ class Parser {
    * identifier.
    *
    * This method must be kept in sync with [parseSimpleIdentifier].
+   *
    * <pre>
    * identifier ::=
-   * IDENTIFIER
+   *     IDENTIFIER
    * </pre>
+   *
    * @param startToken the token at which parsing is to begin
    * @return the token following the simple identifier that was parsed
    */
@@ -4643,6 +5046,7 @@ class Parser {
    * in a valid string literal.
    *
    * This method must be kept in sync with [parseStringInterpolation].
+   *
    * @param startToken the token at which parsing is to begin
    * @return the string literal that was parsed
    */
@@ -4695,11 +5099,13 @@ class Parser {
    * or `null` if the given token is not the first token in a valid string literal.
    *
    * This method must be kept in sync with [parseStringLiteral].
+   *
    * <pre>
    * stringLiteral ::=
-   * MULTI_LINE_STRING+
-   * | SINGLE_LINE_STRING+
+   *     MULTI_LINE_STRING+
+   *   | SINGLE_LINE_STRING+
    * </pre>
+   *
    * @param startToken the token at which parsing is to begin
    * @return the token following the string literal that was parsed
    */
@@ -4724,12 +5130,15 @@ class Parser {
    * or `null` if the given token is not the first token in a valid type argument list.
    *
    * This method must be kept in sync with [parseTypeArgumentList].
+   *
    * <pre>
    * typeArguments ::=
-   * '<' typeList '>'
+   *     '<' typeList '>'
+   *
    * typeList ::=
-   * type (',' type)
+   *     type (',' type)*
    * </pre>
+   *
    * @param startToken the token at which parsing is to begin
    * @return the token following the type argument list that was parsed
    */
@@ -4760,13 +5169,16 @@ class Parser {
 
   /**
    * Parse a type name, starting at the given token, without actually creating a type name or
-   * changing the current token. Return the token following the type name that was parsed, or`null` if the given token is not the first token in a valid type name.
+   * changing the current token. Return the token following the type name that was parsed, or
+   * `null` if the given token is not the first token in a valid type name.
    *
    * This method must be kept in sync with [parseTypeName].
+   *
    * <pre>
    * type ::=
-   * qualified typeArguments?
+   *     qualified typeArguments?
    * </pre>
+   *
    * @param startToken the token at which parsing is to begin
    * @return the token following the type name that was parsed
    */
@@ -4788,10 +5200,12 @@ class Parser {
    * parameter list.
    *
    * This method must be kept in sync with [parseTypeParameterList].
+   *
    * <pre>
    * typeParameterList ::=
-   * '<' typeParameter (',' typeParameter)* '>'
+   *     '<' typeParameter (',' typeParameter)* '>'
    * </pre>
+   *
    * @param startToken the token at which parsing is to begin
    * @return the token following the type parameter list that was parsed
    */
@@ -4835,6 +5249,7 @@ class Parser {
   /**
    * Translate the characters at the given index in the given string, appending the translated
    * character to the given builder. The index is assumed to be valid.
+   *
    * @param builder the builder to which the translated character is to be appended
    * @param lexeme the string containing the character(s) to be translated
    * @param index the index of the character to be translated
@@ -4940,6 +5355,7 @@ class Parser {
 
   /**
    * Validate that the given parameter list does not contain any field initializers.
+   *
    * @param parameterList the parameter list to be validated
    */
   void validateFormalParameterList(FormalParameterList parameterList) {
@@ -4953,6 +5369,7 @@ class Parser {
   /**
    * Validate that the given set of modifiers is appropriate for a class and return the 'abstract'
    * keyword if there is one.
+   *
    * @param modifiers the modifiers being validated
    */
   Token validateModifiersForClass(Modifiers modifiers) {
@@ -4975,6 +5392,7 @@ class Parser {
   /**
    * Validate that the given set of modifiers is appropriate for a constructor and return the
    * 'const' keyword if there is one.
+   *
    * @param modifiers the modifiers being validated
    * @return the 'const' or 'final' keyword associated with the constructor
    */
@@ -5006,6 +5424,7 @@ class Parser {
   /**
    * Validate that the given set of modifiers is appropriate for a field and return the 'final',
    * 'const' or 'var' keyword if there is one.
+   *
    * @param modifiers the modifiers being validated
    * @return the 'final', 'const' or 'var' keyword associated with the field
    */
@@ -5047,7 +5466,19 @@ class Parser {
   }
 
   /**
+   * Validate that the given set of modifiers is appropriate for a local function.
+   *
+   * @param modifiers the modifiers being validated
+   */
+  void validateModifiersForFunctionDeclarationStatement(Modifiers modifiers) {
+    if (modifiers.abstractKeyword != null || modifiers.constKeyword != null || modifiers.externalKeyword != null || modifiers.factoryKeyword != null || modifiers.finalKeyword != null || modifiers.staticKeyword != null || modifiers.varKeyword != null) {
+      reportError7(ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, []);
+    }
+  }
+
+  /**
    * Validate that the given set of modifiers is appropriate for a getter, setter, or method.
+   *
    * @param modifiers the modifiers being validated
    */
   void validateModifiersForGetterOrSetterOrMethod(Modifiers modifiers) {
@@ -5075,6 +5506,7 @@ class Parser {
 
   /**
    * Validate that the given set of modifiers is appropriate for a getter, setter, or method.
+   *
    * @param modifiers the modifiers being validated
    */
   void validateModifiersForOperator(Modifiers modifiers) {
@@ -5100,6 +5532,7 @@ class Parser {
 
   /**
    * Validate that the given set of modifiers is appropriate for a top-level declaration.
+   *
    * @param modifiers the modifiers being validated
    */
   void validateModifiersForTopLevelDeclaration(Modifiers modifiers) {
@@ -5113,6 +5546,7 @@ class Parser {
 
   /**
    * Validate that the given set of modifiers is appropriate for a top-level function.
+   *
    * @param modifiers the modifiers being validated
    */
   void validateModifiersForTopLevelFunction(Modifiers modifiers) {
@@ -5134,6 +5568,7 @@ class Parser {
   /**
    * Validate that the given set of modifiers is appropriate for a field and return the 'final',
    * 'const' or 'var' keyword if there is one.
+   *
    * @param modifiers the modifiers being validated
    * @return the 'final', 'const' or 'var' keyword associated with the field
    */
@@ -5166,6 +5601,7 @@ class Parser {
   /**
    * Validate that the given set of modifiers is appropriate for a class and return the 'abstract'
    * keyword if there is one.
+   *
    * @param modifiers the modifiers being validated
    */
   void validateModifiersForTypedef(Modifiers modifiers) {
@@ -5187,13 +5623,13 @@ class Parser {
     }
   }
 }
-class KeywordToken_10 extends KeywordToken {
-  KeywordToken_10(Keyword arg0, int arg1) : super(arg0, arg1);
+class KeywordToken_11 extends KeywordToken {
+  KeywordToken_11(Keyword arg0, int arg1) : super(arg0, arg1);
   int get length => 0;
 }
-class AnalysisErrorListener_11 implements AnalysisErrorListener {
+class AnalysisErrorListener_12 implements AnalysisErrorListener {
   List<bool> errorFound;
-  AnalysisErrorListener_11(this.errorFound);
+  AnalysisErrorListener_12(this.errorFound);
   void onError(AnalysisError error) {
     errorFound[0] = true;
   }
@@ -5203,6 +5639,7 @@ class AnalysisErrorListener_11 implements AnalysisErrorListener {
  * parser. The convention for this class is for the name of the error code to indicate the problem
  * that caused the error to be generated and for the error message to explain what is wrong and,
  * when appropriate, how the problem can be corrected.
+ *
  * @coverage dart.engine.parser
  */
 class ParserErrorCode implements Comparable<ParserErrorCode>, ErrorCode {
@@ -5226,106 +5663,110 @@ class ParserErrorCode implements Comparable<ParserErrorCode>, ErrorCode {
   static final ParserErrorCode DIRECTIVE_AFTER_DECLARATION = new ParserErrorCode.con2('DIRECTIVE_AFTER_DECLARATION', 17, "Directives must appear before any declarations");
   static final ParserErrorCode DUPLICATE_LABEL_IN_SWITCH_STATEMENT = new ParserErrorCode.con2('DUPLICATE_LABEL_IN_SWITCH_STATEMENT', 18, "The label %s was already used in this switch statement");
   static final ParserErrorCode DUPLICATED_MODIFIER = new ParserErrorCode.con2('DUPLICATED_MODIFIER', 19, "The modifier '%s' was already specified.");
-  static final ParserErrorCode EXPECTED_CASE_OR_DEFAULT = new ParserErrorCode.con2('EXPECTED_CASE_OR_DEFAULT', 20, "Expected 'case' or 'default'");
-  static final ParserErrorCode EXPECTED_CLASS_MEMBER = new ParserErrorCode.con2('EXPECTED_CLASS_MEMBER', 21, "Expected a class member");
-  static final ParserErrorCode EXPECTED_EXECUTABLE = new ParserErrorCode.con2('EXPECTED_EXECUTABLE', 22, "Expected a method, getter, setter or operator declaration");
-  static final ParserErrorCode EXPECTED_LIST_OR_MAP_LITERAL = new ParserErrorCode.con2('EXPECTED_LIST_OR_MAP_LITERAL', 23, "Expected a list or map literal");
-  static final ParserErrorCode EXPECTED_STRING_LITERAL = new ParserErrorCode.con2('EXPECTED_STRING_LITERAL', 24, "Expected a string literal");
-  static final ParserErrorCode EXPECTED_TOKEN = new ParserErrorCode.con2('EXPECTED_TOKEN', 25, "Expected to find '%s'");
-  static final ParserErrorCode EXPECTED_TWO_MAP_TYPE_ARGUMENTS = new ParserErrorCode.con2('EXPECTED_TWO_MAP_TYPE_ARGUMENTS', 26, "Map literal requires exactly two type arguments or none, but %d found");
-  static final ParserErrorCode EXPECTED_TYPE_NAME = new ParserErrorCode.con2('EXPECTED_TYPE_NAME', 27, "Expected a type name");
-  static final ParserErrorCode EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE = new ParserErrorCode.con2('EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE', 28, "Export directives must preceed part directives");
-  static final ParserErrorCode EXTERNAL_AFTER_CONST = new ParserErrorCode.con2('EXTERNAL_AFTER_CONST', 29, "The modifier 'external' should be before the modifier 'const'");
-  static final ParserErrorCode EXTERNAL_AFTER_FACTORY = new ParserErrorCode.con2('EXTERNAL_AFTER_FACTORY', 30, "The modifier 'external' should be before the modifier 'factory'");
-  static final ParserErrorCode EXTERNAL_AFTER_STATIC = new ParserErrorCode.con2('EXTERNAL_AFTER_STATIC', 31, "The modifier 'external' should be before the modifier 'static'");
-  static final ParserErrorCode EXTERNAL_CLASS = new ParserErrorCode.con2('EXTERNAL_CLASS', 32, "Classes cannot be declared to be 'external'");
-  static final ParserErrorCode EXTERNAL_CONSTRUCTOR_WITH_BODY = new ParserErrorCode.con2('EXTERNAL_CONSTRUCTOR_WITH_BODY', 33, "External constructors cannot have a body");
-  static final ParserErrorCode EXTERNAL_FIELD = new ParserErrorCode.con2('EXTERNAL_FIELD', 34, "Fields cannot be declared to be 'external'");
-  static final ParserErrorCode EXTERNAL_GETTER_WITH_BODY = new ParserErrorCode.con2('EXTERNAL_GETTER_WITH_BODY', 35, "External getters cannot have a body");
-  static final ParserErrorCode EXTERNAL_METHOD_WITH_BODY = new ParserErrorCode.con2('EXTERNAL_METHOD_WITH_BODY', 36, "External methods cannot have a body");
-  static final ParserErrorCode EXTERNAL_OPERATOR_WITH_BODY = new ParserErrorCode.con2('EXTERNAL_OPERATOR_WITH_BODY', 37, "External operators cannot have a body");
-  static final ParserErrorCode EXTERNAL_SETTER_WITH_BODY = new ParserErrorCode.con2('EXTERNAL_SETTER_WITH_BODY', 38, "External setters cannot have a body");
-  static final ParserErrorCode EXTERNAL_TYPEDEF = new ParserErrorCode.con2('EXTERNAL_TYPEDEF', 39, "Type aliases cannot be declared to be 'external'");
-  static final ParserErrorCode FACTORY_TOP_LEVEL_DECLARATION = new ParserErrorCode.con2('FACTORY_TOP_LEVEL_DECLARATION', 40, "Top-level declarations cannot be declared to be 'factory'");
-  static final ParserErrorCode FACTORY_WITHOUT_BODY = new ParserErrorCode.con2('FACTORY_WITHOUT_BODY', 41, "A non-redirecting 'factory' constructor must have a body");
-  static final ParserErrorCode FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR = new ParserErrorCode.con2('FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR', 42, "Field initializers can only be used in a constructor");
-  static final ParserErrorCode FINAL_AND_VAR = new ParserErrorCode.con2('FINAL_AND_VAR', 43, "Members cannot be declared to be both 'final' and 'var'");
-  static final ParserErrorCode FINAL_CLASS = new ParserErrorCode.con2('FINAL_CLASS', 44, "Classes cannot be declared to be 'final'");
-  static final ParserErrorCode FINAL_CONSTRUCTOR = new ParserErrorCode.con2('FINAL_CONSTRUCTOR', 45, "A constructor cannot be declared to be 'final'");
-  static final ParserErrorCode FINAL_METHOD = new ParserErrorCode.con2('FINAL_METHOD', 46, "Getters, setters and methods cannot be declared to be 'final'");
-  static final ParserErrorCode FINAL_TYPEDEF = new ParserErrorCode.con2('FINAL_TYPEDEF', 47, "Type aliases cannot be declared to be 'final'");
-  static final ParserErrorCode GETTER_WITH_PARAMETERS = new ParserErrorCode.con2('GETTER_WITH_PARAMETERS', 48, "Getter should be declared without a parameter list");
-  static final ParserErrorCode ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE = new ParserErrorCode.con2('ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE', 49, "Illegal assignment to non-assignable expression");
-  static final ParserErrorCode IMPLEMENTS_BEFORE_EXTENDS = new ParserErrorCode.con2('IMPLEMENTS_BEFORE_EXTENDS', 50, "The extends clause must be before the implements clause");
-  static final ParserErrorCode IMPLEMENTS_BEFORE_WITH = new ParserErrorCode.con2('IMPLEMENTS_BEFORE_WITH', 51, "The with clause must be before the implements clause");
-  static final ParserErrorCode IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE = new ParserErrorCode.con2('IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE', 52, "Import directives must preceed part directives");
-  static final ParserErrorCode INITIALIZED_VARIABLE_IN_FOR_EACH = new ParserErrorCode.con2('INITIALIZED_VARIABLE_IN_FOR_EACH', 53, "The loop variable in a for-each loop cannot be initialized");
-  static final ParserErrorCode INVALID_CODE_POINT = new ParserErrorCode.con2('INVALID_CODE_POINT', 54, "The escape sequence '%s' is not a valid code point");
-  static final ParserErrorCode INVALID_COMMENT_REFERENCE = new ParserErrorCode.con2('INVALID_COMMENT_REFERENCE', 55, "Comment references should contain a possibly prefixed identifier and can start with 'new', but should not contain anything else");
-  static final ParserErrorCode INVALID_HEX_ESCAPE = new ParserErrorCode.con2('INVALID_HEX_ESCAPE', 56, "An escape sequence starting with '\\x' must be followed by 2 hexidecimal digits");
-  static final ParserErrorCode INVALID_OPERATOR = new ParserErrorCode.con2('INVALID_OPERATOR', 57, "The string '%s' is not a valid operator");
-  static final ParserErrorCode INVALID_OPERATOR_FOR_SUPER = new ParserErrorCode.con2('INVALID_OPERATOR_FOR_SUPER', 58, "The operator '%s' cannot be used with 'super'");
-  static final ParserErrorCode INVALID_UNICODE_ESCAPE = new ParserErrorCode.con2('INVALID_UNICODE_ESCAPE', 59, "An escape sequence starting with '\\u' must be followed by 4 hexidecimal digits or from 1 to 6 digits between '{' and '}'");
-  static final ParserErrorCode LIBRARY_DIRECTIVE_NOT_FIRST = new ParserErrorCode.con2('LIBRARY_DIRECTIVE_NOT_FIRST', 60, "The library directive must appear before all other directives");
-  static final ParserErrorCode MISSING_ASSIGNABLE_SELECTOR = new ParserErrorCode.con2('MISSING_ASSIGNABLE_SELECTOR', 61, "Missing selector such as \".<identifier>\" or \"[0]\"");
-  static final ParserErrorCode MISSING_CATCH_OR_FINALLY = new ParserErrorCode.con2('MISSING_CATCH_OR_FINALLY', 62, "A try statement must have either a catch or finally clause");
-  static final ParserErrorCode MISSING_CLASS_BODY = new ParserErrorCode.con2('MISSING_CLASS_BODY', 63, "A class definition must have a body, even if it is empty");
-  static final ParserErrorCode MISSING_CLOSING_PARENTHESIS = new ParserErrorCode.con2('MISSING_CLOSING_PARENTHESIS', 64, "The closing parenthesis is missing");
-  static final ParserErrorCode MISSING_CONST_FINAL_VAR_OR_TYPE = new ParserErrorCode.con2('MISSING_CONST_FINAL_VAR_OR_TYPE', 65, "Variables must be declared using the keywords 'const', 'final', 'var' or a type name");
-  static final ParserErrorCode MISSING_EXPRESSION_IN_THROW = new ParserErrorCode.con2('MISSING_EXPRESSION_IN_THROW', 66, "Throw expressions must compute the object to be thrown");
-  static final ParserErrorCode MISSING_FUNCTION_BODY = new ParserErrorCode.con2('MISSING_FUNCTION_BODY', 67, "A function body must be provided");
-  static final ParserErrorCode MISSING_FUNCTION_PARAMETERS = new ParserErrorCode.con2('MISSING_FUNCTION_PARAMETERS', 68, "Functions must have an explicit list of parameters");
-  static final ParserErrorCode MISSING_IDENTIFIER = new ParserErrorCode.con2('MISSING_IDENTIFIER', 69, "Expected an identifier");
-  static final ParserErrorCode MISSING_KEYWORD_OPERATOR = new ParserErrorCode.con2('MISSING_KEYWORD_OPERATOR', 70, "Operator declarations must be preceeded by the keyword 'operator'");
-  static final ParserErrorCode MISSING_NAME_IN_LIBRARY_DIRECTIVE = new ParserErrorCode.con2('MISSING_NAME_IN_LIBRARY_DIRECTIVE', 71, "Library directives must include a library name");
-  static final ParserErrorCode MISSING_NAME_IN_PART_OF_DIRECTIVE = new ParserErrorCode.con2('MISSING_NAME_IN_PART_OF_DIRECTIVE', 72, "Library directives must include a library name");
-  static final ParserErrorCode MISSING_STATEMENT = new ParserErrorCode.con2('MISSING_STATEMENT', 73, "Expected a statement");
-  static final ParserErrorCode MISSING_TERMINATOR_FOR_PARAMETER_GROUP = new ParserErrorCode.con2('MISSING_TERMINATOR_FOR_PARAMETER_GROUP', 74, "There is no '%s' to close the parameter group");
-  static final ParserErrorCode MISSING_TYPEDEF_PARAMETERS = new ParserErrorCode.con2('MISSING_TYPEDEF_PARAMETERS', 75, "Type aliases for functions must have an explicit list of parameters");
-  static final ParserErrorCode MISSING_VARIABLE_IN_FOR_EACH = new ParserErrorCode.con2('MISSING_VARIABLE_IN_FOR_EACH', 76, "A loop variable must be declared in a for-each loop before the 'in', but none were found");
-  static final ParserErrorCode MIXED_PARAMETER_GROUPS = new ParserErrorCode.con2('MIXED_PARAMETER_GROUPS', 77, "Cannot have both positional and named parameters in a single parameter list");
-  static final ParserErrorCode MULTIPLE_EXTENDS_CLAUSES = new ParserErrorCode.con2('MULTIPLE_EXTENDS_CLAUSES', 78, "Each class definition can have at most one extends clause");
-  static final ParserErrorCode MULTIPLE_IMPLEMENTS_CLAUSES = new ParserErrorCode.con2('MULTIPLE_IMPLEMENTS_CLAUSES', 79, "Each class definition can have at most one implements clause");
-  static final ParserErrorCode MULTIPLE_LIBRARY_DIRECTIVES = new ParserErrorCode.con2('MULTIPLE_LIBRARY_DIRECTIVES', 80, "Only one library directive may be declared in a file");
-  static final ParserErrorCode MULTIPLE_NAMED_PARAMETER_GROUPS = new ParserErrorCode.con2('MULTIPLE_NAMED_PARAMETER_GROUPS', 81, "Cannot have multiple groups of named parameters in a single parameter list");
-  static final ParserErrorCode MULTIPLE_PART_OF_DIRECTIVES = new ParserErrorCode.con2('MULTIPLE_PART_OF_DIRECTIVES', 82, "Only one part-of directive may be declared in a file");
-  static final ParserErrorCode MULTIPLE_POSITIONAL_PARAMETER_GROUPS = new ParserErrorCode.con2('MULTIPLE_POSITIONAL_PARAMETER_GROUPS', 83, "Cannot have multiple groups of positional parameters in a single parameter list");
-  static final ParserErrorCode MULTIPLE_VARIABLES_IN_FOR_EACH = new ParserErrorCode.con2('MULTIPLE_VARIABLES_IN_FOR_EACH', 84, "A single loop variable must be declared in a for-each loop before the 'in', but %s were found");
-  static final ParserErrorCode MULTIPLE_WITH_CLAUSES = new ParserErrorCode.con2('MULTIPLE_WITH_CLAUSES', 85, "Each class definition can have at most one with clause");
-  static final ParserErrorCode NAMED_FUNCTION_EXPRESSION = new ParserErrorCode.con2('NAMED_FUNCTION_EXPRESSION', 86, "Function expressions cannot be named");
-  static final ParserErrorCode NAMED_PARAMETER_OUTSIDE_GROUP = new ParserErrorCode.con2('NAMED_PARAMETER_OUTSIDE_GROUP', 87, "Named parameters must be enclosed in curly braces ('{' and '}')");
-  static final ParserErrorCode NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE = new ParserErrorCode.con2('NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE', 88, "Native functions can only be declared in the SDK and code that is loaded through native extensions");
-  static final ParserErrorCode NON_CONSTRUCTOR_FACTORY = new ParserErrorCode.con2('NON_CONSTRUCTOR_FACTORY', 89, "Only constructors can be declared to be a 'factory'");
-  static final ParserErrorCode NON_IDENTIFIER_LIBRARY_NAME = new ParserErrorCode.con2('NON_IDENTIFIER_LIBRARY_NAME', 90, "The name of a library must be an identifier");
-  static final ParserErrorCode NON_PART_OF_DIRECTIVE_IN_PART = new ParserErrorCode.con2('NON_PART_OF_DIRECTIVE_IN_PART', 91, "The part-of directive must be the only directive in a part");
-  static final ParserErrorCode NON_USER_DEFINABLE_OPERATOR = new ParserErrorCode.con2('NON_USER_DEFINABLE_OPERATOR', 92, "The operator '%s' is not user definable");
-  static final ParserErrorCode POSITIONAL_AFTER_NAMED_ARGUMENT = new ParserErrorCode.con2('POSITIONAL_AFTER_NAMED_ARGUMENT', 93, "Positional arguments must occur before named arguments");
-  static final ParserErrorCode POSITIONAL_PARAMETER_OUTSIDE_GROUP = new ParserErrorCode.con2('POSITIONAL_PARAMETER_OUTSIDE_GROUP', 94, "Positional parameters must be enclosed in square brackets ('[' and ']')");
-  static final ParserErrorCode STATIC_AFTER_CONST = new ParserErrorCode.con2('STATIC_AFTER_CONST', 95, "The modifier 'static' should be before the modifier 'const'");
-  static final ParserErrorCode STATIC_AFTER_FINAL = new ParserErrorCode.con2('STATIC_AFTER_FINAL', 96, "The modifier 'static' should be before the modifier 'final'");
-  static final ParserErrorCode STATIC_AFTER_VAR = new ParserErrorCode.con2('STATIC_AFTER_VAR', 97, "The modifier 'static' should be before the modifier 'var'");
-  static final ParserErrorCode STATIC_CONSTRUCTOR = new ParserErrorCode.con2('STATIC_CONSTRUCTOR', 98, "Constructors cannot be static");
-  static final ParserErrorCode STATIC_GETTER_WITHOUT_BODY = new ParserErrorCode.con2('STATIC_GETTER_WITHOUT_BODY', 99, "A 'static' getter must have a body");
-  static final ParserErrorCode STATIC_OPERATOR = new ParserErrorCode.con2('STATIC_OPERATOR', 100, "Operators cannot be static");
-  static final ParserErrorCode STATIC_SETTER_WITHOUT_BODY = new ParserErrorCode.con2('STATIC_SETTER_WITHOUT_BODY', 101, "A 'static' setter must have a body");
-  static final ParserErrorCode STATIC_TOP_LEVEL_DECLARATION = new ParserErrorCode.con2('STATIC_TOP_LEVEL_DECLARATION', 102, "Top-level declarations cannot be declared to be 'static'");
-  static final ParserErrorCode SWITCH_HAS_CASE_AFTER_DEFAULT_CASE = new ParserErrorCode.con2('SWITCH_HAS_CASE_AFTER_DEFAULT_CASE', 103, "The 'default' case should be the last case in a switch statement");
-  static final ParserErrorCode SWITCH_HAS_MULTIPLE_DEFAULT_CASES = new ParserErrorCode.con2('SWITCH_HAS_MULTIPLE_DEFAULT_CASES', 104, "The 'default' case can only be declared once");
-  static final ParserErrorCode TOP_LEVEL_OPERATOR = new ParserErrorCode.con2('TOP_LEVEL_OPERATOR', 105, "Operators must be declared within a class");
-  static final ParserErrorCode UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP = new ParserErrorCode.con2('UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP', 106, "There is no '%s' to open a parameter group");
-  static final ParserErrorCode UNEXPECTED_TOKEN = new ParserErrorCode.con2('UNEXPECTED_TOKEN', 107, "Unexpected token '%s'");
-  static final ParserErrorCode WITH_BEFORE_EXTENDS = new ParserErrorCode.con2('WITH_BEFORE_EXTENDS', 108, "The extends clause must be before the with clause");
-  static final ParserErrorCode WITH_WITHOUT_EXTENDS = new ParserErrorCode.con2('WITH_WITHOUT_EXTENDS', 109, "The with clause cannot be used without an extends clause");
-  static final ParserErrorCode WRONG_SEPARATOR_FOR_NAMED_PARAMETER = new ParserErrorCode.con2('WRONG_SEPARATOR_FOR_NAMED_PARAMETER', 110, "The default value of a named parameter should be preceeded by ':'");
-  static final ParserErrorCode WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER = new ParserErrorCode.con2('WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER', 111, "The default value of a positional parameter should be preceeded by '='");
-  static final ParserErrorCode WRONG_TERMINATOR_FOR_PARAMETER_GROUP = new ParserErrorCode.con2('WRONG_TERMINATOR_FOR_PARAMETER_GROUP', 112, "Expected '%s' to close parameter group");
-  static final ParserErrorCode VAR_AS_TYPE_NAME = new ParserErrorCode.con2('VAR_AS_TYPE_NAME', 113, "The keyword 'var' cannot be used as a type name");
-  static final ParserErrorCode VAR_CLASS = new ParserErrorCode.con2('VAR_CLASS', 114, "Classes cannot be declared to be 'var'");
-  static final ParserErrorCode VAR_RETURN_TYPE = new ParserErrorCode.con2('VAR_RETURN_TYPE', 115, "The return type cannot be 'var'");
-  static final ParserErrorCode VAR_TYPEDEF = new ParserErrorCode.con2('VAR_TYPEDEF', 116, "Type aliases cannot be declared to be 'var'");
-  static final ParserErrorCode VOID_PARAMETER = new ParserErrorCode.con2('VOID_PARAMETER', 117, "Parameters cannot have a type of 'void'");
-  static final ParserErrorCode VOID_VARIABLE = new ParserErrorCode.con2('VOID_VARIABLE', 118, "Variables cannot have a type of 'void'");
-  static final List<ParserErrorCode> values = [ABSTRACT_CLASS_MEMBER, ABSTRACT_STATIC_METHOD, ABSTRACT_TOP_LEVEL_FUNCTION, ABSTRACT_TOP_LEVEL_VARIABLE, ABSTRACT_TYPEDEF, BREAK_OUTSIDE_OF_LOOP, CONST_AND_FINAL, CONST_AND_VAR, CONST_CLASS, CONST_CONSTRUCTOR_WITH_BODY, CONST_FACTORY, CONST_METHOD, CONST_TYPEDEF, CONSTRUCTOR_WITH_RETURN_TYPE, CONTINUE_OUTSIDE_OF_LOOP, CONTINUE_WITHOUT_LABEL_IN_CASE, DEPRECATED_ARGUMENT_DEFINITION_TEST, DIRECTIVE_AFTER_DECLARATION, DUPLICATE_LABEL_IN_SWITCH_STATEMENT, DUPLICATED_MODIFIER, EXPECTED_CASE_OR_DEFAULT, EXPECTED_CLASS_MEMBER, EXPECTED_EXECUTABLE, EXPECTED_LIST_OR_MAP_LITERAL, EXPECTED_STRING_LITERAL, EXPECTED_TOKEN, EXPECTED_TWO_MAP_TYPE_ARGUMENTS, EXPECTED_TYPE_NAME, EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, EXTERNAL_AFTER_CONST, EXTERNAL_AFTER_FACTORY, EXTERNAL_AFTER_STATIC, EXTERNAL_CLASS, EXTERNAL_CONSTRUCTOR_WITH_BODY, EXTERNAL_FIELD, EXTERNAL_GETTER_WITH_BODY, EXTERNAL_METHOD_WITH_BODY, EXTERNAL_OPERATOR_WITH_BODY, EXTERNAL_SETTER_WITH_BODY, EXTERNAL_TYPEDEF, FACTORY_TOP_LEVEL_DECLARATION, FACTORY_WITHOUT_BODY, FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, FINAL_AND_VAR, FINAL_CLASS, FINAL_CONSTRUCTOR, FINAL_METHOD, FINAL_TYPEDEF, GETTER_WITH_PARAMETERS, ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, IMPLEMENTS_BEFORE_EXTENDS, IMPLEMENTS_BEFORE_WITH, IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, INITIALIZED_VARIABLE_IN_FOR_EACH, INVALID_CODE_POINT, INVALID_COMMENT_REFERENCE, INVALID_HEX_ESCAPE, INVALID_OPERATOR, INVALID_OPERATOR_FOR_SUPER, INVALID_UNICODE_ESCAPE, LIBRARY_DIRECTIVE_NOT_FIRST, MISSING_ASSIGNABLE_SELECTOR, MISSING_CATCH_OR_FINALLY, MISSING_CLASS_BODY, MISSING_CLOSING_PARENTHESIS, MISSING_CONST_FINAL_VAR_OR_TYPE, MISSING_EXPRESSION_IN_THROW, MISSING_FUNCTION_BODY, MISSING_FUNCTION_PARAMETERS, MISSING_IDENTIFIER, MISSING_KEYWORD_OPERATOR, MISSING_NAME_IN_LIBRARY_DIRECTIVE, MISSING_NAME_IN_PART_OF_DIRECTIVE, MISSING_STATEMENT, MISSING_TERMINATOR_FOR_PARAMETER_GROUP, MISSING_TYPEDEF_PARAMETERS, MISSING_VARIABLE_IN_FOR_EACH, MIXED_PARAMETER_GROUPS, MULTIPLE_EXTENDS_CLAUSES, MULTIPLE_IMPLEMENTS_CLAUSES, MULTIPLE_LIBRARY_DIRECTIVES, MULTIPLE_NAMED_PARAMETER_GROUPS, MULTIPLE_PART_OF_DIRECTIVES, MULTIPLE_POSITIONAL_PARAMETER_GROUPS, MULTIPLE_VARIABLES_IN_FOR_EACH, MULTIPLE_WITH_CLAUSES, NAMED_FUNCTION_EXPRESSION, NAMED_PARAMETER_OUTSIDE_GROUP, NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, NON_CONSTRUCTOR_FACTORY, NON_IDENTIFIER_LIBRARY_NAME, NON_PART_OF_DIRECTIVE_IN_PART, NON_USER_DEFINABLE_OPERATOR, POSITIONAL_AFTER_NAMED_ARGUMENT, POSITIONAL_PARAMETER_OUTSIDE_GROUP, STATIC_AFTER_CONST, STATIC_AFTER_FINAL, STATIC_AFTER_VAR, STATIC_CONSTRUCTOR, STATIC_GETTER_WITHOUT_BODY, STATIC_OPERATOR, STATIC_SETTER_WITHOUT_BODY, STATIC_TOP_LEVEL_DECLARATION, SWITCH_HAS_CASE_AFTER_DEFAULT_CASE, SWITCH_HAS_MULTIPLE_DEFAULT_CASES, TOP_LEVEL_OPERATOR, UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, UNEXPECTED_TOKEN, WITH_BEFORE_EXTENDS, WITH_WITHOUT_EXTENDS, WRONG_SEPARATOR_FOR_NAMED_PARAMETER, WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER, WRONG_TERMINATOR_FOR_PARAMETER_GROUP, VAR_AS_TYPE_NAME, VAR_CLASS, VAR_RETURN_TYPE, VAR_TYPEDEF, VOID_PARAMETER, VOID_VARIABLE];
+  static final ParserErrorCode EQUALITY_CANNOT_BE_EQUALITY_OPERAND = new ParserErrorCode.con2('EQUALITY_CANNOT_BE_EQUALITY_OPERAND', 20, "Equality expression cannot be operand of another equality expression.");
+  static final ParserErrorCode EXPECTED_CASE_OR_DEFAULT = new ParserErrorCode.con2('EXPECTED_CASE_OR_DEFAULT', 21, "Expected 'case' or 'default'");
+  static final ParserErrorCode EXPECTED_CLASS_MEMBER = new ParserErrorCode.con2('EXPECTED_CLASS_MEMBER', 22, "Expected a class member");
+  static final ParserErrorCode EXPECTED_EXECUTABLE = new ParserErrorCode.con2('EXPECTED_EXECUTABLE', 23, "Expected a method, getter, setter or operator declaration");
+  static final ParserErrorCode EXPECTED_LIST_OR_MAP_LITERAL = new ParserErrorCode.con2('EXPECTED_LIST_OR_MAP_LITERAL', 24, "Expected a list or map literal");
+  static final ParserErrorCode EXPECTED_STRING_LITERAL = new ParserErrorCode.con2('EXPECTED_STRING_LITERAL', 25, "Expected a string literal");
+  static final ParserErrorCode EXPECTED_TOKEN = new ParserErrorCode.con2('EXPECTED_TOKEN', 26, "Expected to find '%s'");
+  static final ParserErrorCode EXPECTED_TWO_MAP_TYPE_ARGUMENTS = new ParserErrorCode.con2('EXPECTED_TWO_MAP_TYPE_ARGUMENTS', 27, "Map literal requires exactly two type arguments or none, but %d found");
+  static final ParserErrorCode EXPECTED_TYPE_NAME = new ParserErrorCode.con2('EXPECTED_TYPE_NAME', 28, "Expected a type name");
+  static final ParserErrorCode EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE = new ParserErrorCode.con2('EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE', 29, "Export directives must preceed part directives");
+  static final ParserErrorCode EXTERNAL_AFTER_CONST = new ParserErrorCode.con2('EXTERNAL_AFTER_CONST', 30, "The modifier 'external' should be before the modifier 'const'");
+  static final ParserErrorCode EXTERNAL_AFTER_FACTORY = new ParserErrorCode.con2('EXTERNAL_AFTER_FACTORY', 31, "The modifier 'external' should be before the modifier 'factory'");
+  static final ParserErrorCode EXTERNAL_AFTER_STATIC = new ParserErrorCode.con2('EXTERNAL_AFTER_STATIC', 32, "The modifier 'external' should be before the modifier 'static'");
+  static final ParserErrorCode EXTERNAL_CLASS = new ParserErrorCode.con2('EXTERNAL_CLASS', 33, "Classes cannot be declared to be 'external'");
+  static final ParserErrorCode EXTERNAL_CONSTRUCTOR_WITH_BODY = new ParserErrorCode.con2('EXTERNAL_CONSTRUCTOR_WITH_BODY', 34, "External constructors cannot have a body");
+  static final ParserErrorCode EXTERNAL_FIELD = new ParserErrorCode.con2('EXTERNAL_FIELD', 35, "Fields cannot be declared to be 'external'");
+  static final ParserErrorCode EXTERNAL_GETTER_WITH_BODY = new ParserErrorCode.con2('EXTERNAL_GETTER_WITH_BODY', 36, "External getters cannot have a body");
+  static final ParserErrorCode EXTERNAL_METHOD_WITH_BODY = new ParserErrorCode.con2('EXTERNAL_METHOD_WITH_BODY', 37, "External methods cannot have a body");
+  static final ParserErrorCode EXTERNAL_OPERATOR_WITH_BODY = new ParserErrorCode.con2('EXTERNAL_OPERATOR_WITH_BODY', 38, "External operators cannot have a body");
+  static final ParserErrorCode EXTERNAL_SETTER_WITH_BODY = new ParserErrorCode.con2('EXTERNAL_SETTER_WITH_BODY', 39, "External setters cannot have a body");
+  static final ParserErrorCode EXTERNAL_TYPEDEF = new ParserErrorCode.con2('EXTERNAL_TYPEDEF', 40, "Type aliases cannot be declared to be 'external'");
+  static final ParserErrorCode FACTORY_TOP_LEVEL_DECLARATION = new ParserErrorCode.con2('FACTORY_TOP_LEVEL_DECLARATION', 41, "Top-level declarations cannot be declared to be 'factory'");
+  static final ParserErrorCode FACTORY_WITHOUT_BODY = new ParserErrorCode.con2('FACTORY_WITHOUT_BODY', 42, "A non-redirecting 'factory' constructor must have a body");
+  static final ParserErrorCode FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR = new ParserErrorCode.con2('FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR', 43, "Field initializers can only be used in a constructor");
+  static final ParserErrorCode FINAL_AND_VAR = new ParserErrorCode.con2('FINAL_AND_VAR', 44, "Members cannot be declared to be both 'final' and 'var'");
+  static final ParserErrorCode FINAL_CLASS = new ParserErrorCode.con2('FINAL_CLASS', 45, "Classes cannot be declared to be 'final'");
+  static final ParserErrorCode FINAL_CONSTRUCTOR = new ParserErrorCode.con2('FINAL_CONSTRUCTOR', 46, "A constructor cannot be declared to be 'final'");
+  static final ParserErrorCode FINAL_METHOD = new ParserErrorCode.con2('FINAL_METHOD', 47, "Getters, setters and methods cannot be declared to be 'final'");
+  static final ParserErrorCode FINAL_TYPEDEF = new ParserErrorCode.con2('FINAL_TYPEDEF', 48, "Type aliases cannot be declared to be 'final'");
+  static final ParserErrorCode FUNCTION_TYPED_PARAMETER_VAR = new ParserErrorCode.con2('FUNCTION_TYPED_PARAMETER_VAR', 49, "Function typed parameters cannot specify 'const', 'final' or 'var' instead of return type");
+  static final ParserErrorCode GETTER_WITH_PARAMETERS = new ParserErrorCode.con2('GETTER_WITH_PARAMETERS', 50, "Getter should be declared without a parameter list");
+  static final ParserErrorCode ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE = new ParserErrorCode.con2('ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE', 51, "Illegal assignment to non-assignable expression");
+  static final ParserErrorCode IMPLEMENTS_BEFORE_EXTENDS = new ParserErrorCode.con2('IMPLEMENTS_BEFORE_EXTENDS', 52, "The extends clause must be before the implements clause");
+  static final ParserErrorCode IMPLEMENTS_BEFORE_WITH = new ParserErrorCode.con2('IMPLEMENTS_BEFORE_WITH', 53, "The with clause must be before the implements clause");
+  static final ParserErrorCode IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE = new ParserErrorCode.con2('IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE', 54, "Import directives must preceed part directives");
+  static final ParserErrorCode INITIALIZED_VARIABLE_IN_FOR_EACH = new ParserErrorCode.con2('INITIALIZED_VARIABLE_IN_FOR_EACH', 55, "The loop variable in a for-each loop cannot be initialized");
+  static final ParserErrorCode INVALID_CODE_POINT = new ParserErrorCode.con2('INVALID_CODE_POINT', 56, "The escape sequence '%s' is not a valid code point");
+  static final ParserErrorCode INVALID_COMMENT_REFERENCE = new ParserErrorCode.con2('INVALID_COMMENT_REFERENCE', 57, "Comment references should contain a possibly prefixed identifier and can start with 'new', but should not contain anything else");
+  static final ParserErrorCode INVALID_HEX_ESCAPE = new ParserErrorCode.con2('INVALID_HEX_ESCAPE', 58, "An escape sequence starting with '\\x' must be followed by 2 hexidecimal digits");
+  static final ParserErrorCode INVALID_OPERATOR = new ParserErrorCode.con2('INVALID_OPERATOR', 59, "The string '%s' is not a valid operator");
+  static final ParserErrorCode INVALID_OPERATOR_FOR_SUPER = new ParserErrorCode.con2('INVALID_OPERATOR_FOR_SUPER', 60, "The operator '%s' cannot be used with 'super'");
+  static final ParserErrorCode INVALID_UNICODE_ESCAPE = new ParserErrorCode.con2('INVALID_UNICODE_ESCAPE', 61, "An escape sequence starting with '\\u' must be followed by 4 hexidecimal digits or from 1 to 6 digits between '{' and '}'");
+  static final ParserErrorCode LIBRARY_DIRECTIVE_NOT_FIRST = new ParserErrorCode.con2('LIBRARY_DIRECTIVE_NOT_FIRST', 62, "The library directive must appear before all other directives");
+  static final ParserErrorCode LOCAL_FUNCTION_DECLARATION_MODIFIER = new ParserErrorCode.con2('LOCAL_FUNCTION_DECLARATION_MODIFIER', 63, "Local function declarations cannot specify any modifier");
+  static final ParserErrorCode MISSING_ASSIGNABLE_SELECTOR = new ParserErrorCode.con2('MISSING_ASSIGNABLE_SELECTOR', 64, "Missing selector such as \".<identifier>\" or \"[0]\"");
+  static final ParserErrorCode MISSING_CATCH_OR_FINALLY = new ParserErrorCode.con2('MISSING_CATCH_OR_FINALLY', 65, "A try statement must have either a catch or finally clause");
+  static final ParserErrorCode MISSING_CLASS_BODY = new ParserErrorCode.con2('MISSING_CLASS_BODY', 66, "A class definition must have a body, even if it is empty");
+  static final ParserErrorCode MISSING_CLOSING_PARENTHESIS = new ParserErrorCode.con2('MISSING_CLOSING_PARENTHESIS', 67, "The closing parenthesis is missing");
+  static final ParserErrorCode MISSING_CONST_FINAL_VAR_OR_TYPE = new ParserErrorCode.con2('MISSING_CONST_FINAL_VAR_OR_TYPE', 68, "Variables must be declared using the keywords 'const', 'final', 'var' or a type name");
+  static final ParserErrorCode MISSING_EXPRESSION_IN_THROW = new ParserErrorCode.con2('MISSING_EXPRESSION_IN_THROW', 69, "Throw expressions must compute the object to be thrown");
+  static final ParserErrorCode MISSING_FUNCTION_BODY = new ParserErrorCode.con2('MISSING_FUNCTION_BODY', 70, "A function body must be provided");
+  static final ParserErrorCode MISSING_FUNCTION_PARAMETERS = new ParserErrorCode.con2('MISSING_FUNCTION_PARAMETERS', 71, "Functions must have an explicit list of parameters");
+  static final ParserErrorCode MISSING_IDENTIFIER = new ParserErrorCode.con2('MISSING_IDENTIFIER', 72, "Expected an identifier");
+  static final ParserErrorCode MISSING_KEYWORD_OPERATOR = new ParserErrorCode.con2('MISSING_KEYWORD_OPERATOR', 73, "Operator declarations must be preceeded by the keyword 'operator'");
+  static final ParserErrorCode MISSING_NAME_IN_LIBRARY_DIRECTIVE = new ParserErrorCode.con2('MISSING_NAME_IN_LIBRARY_DIRECTIVE', 74, "Library directives must include a library name");
+  static final ParserErrorCode MISSING_NAME_IN_PART_OF_DIRECTIVE = new ParserErrorCode.con2('MISSING_NAME_IN_PART_OF_DIRECTIVE', 75, "Library directives must include a library name");
+  static final ParserErrorCode MISSING_STATEMENT = new ParserErrorCode.con2('MISSING_STATEMENT', 76, "Expected a statement");
+  static final ParserErrorCode MISSING_TERMINATOR_FOR_PARAMETER_GROUP = new ParserErrorCode.con2('MISSING_TERMINATOR_FOR_PARAMETER_GROUP', 77, "There is no '%s' to close the parameter group");
+  static final ParserErrorCode MISSING_TYPEDEF_PARAMETERS = new ParserErrorCode.con2('MISSING_TYPEDEF_PARAMETERS', 78, "Type aliases for functions must have an explicit list of parameters");
+  static final ParserErrorCode MISSING_VARIABLE_IN_FOR_EACH = new ParserErrorCode.con2('MISSING_VARIABLE_IN_FOR_EACH', 79, "A loop variable must be declared in a for-each loop before the 'in', but none were found");
+  static final ParserErrorCode MIXED_PARAMETER_GROUPS = new ParserErrorCode.con2('MIXED_PARAMETER_GROUPS', 80, "Cannot have both positional and named parameters in a single parameter list");
+  static final ParserErrorCode MULTIPLE_EXTENDS_CLAUSES = new ParserErrorCode.con2('MULTIPLE_EXTENDS_CLAUSES', 81, "Each class definition can have at most one extends clause");
+  static final ParserErrorCode MULTIPLE_IMPLEMENTS_CLAUSES = new ParserErrorCode.con2('MULTIPLE_IMPLEMENTS_CLAUSES', 82, "Each class definition can have at most one implements clause");
+  static final ParserErrorCode MULTIPLE_LIBRARY_DIRECTIVES = new ParserErrorCode.con2('MULTIPLE_LIBRARY_DIRECTIVES', 83, "Only one library directive may be declared in a file");
+  static final ParserErrorCode MULTIPLE_NAMED_PARAMETER_GROUPS = new ParserErrorCode.con2('MULTIPLE_NAMED_PARAMETER_GROUPS', 84, "Cannot have multiple groups of named parameters in a single parameter list");
+  static final ParserErrorCode MULTIPLE_PART_OF_DIRECTIVES = new ParserErrorCode.con2('MULTIPLE_PART_OF_DIRECTIVES', 85, "Only one part-of directive may be declared in a file");
+  static final ParserErrorCode MULTIPLE_POSITIONAL_PARAMETER_GROUPS = new ParserErrorCode.con2('MULTIPLE_POSITIONAL_PARAMETER_GROUPS', 86, "Cannot have multiple groups of positional parameters in a single parameter list");
+  static final ParserErrorCode MULTIPLE_VARIABLES_IN_FOR_EACH = new ParserErrorCode.con2('MULTIPLE_VARIABLES_IN_FOR_EACH', 87, "A single loop variable must be declared in a for-each loop before the 'in', but %s were found");
+  static final ParserErrorCode MULTIPLE_WITH_CLAUSES = new ParserErrorCode.con2('MULTIPLE_WITH_CLAUSES', 88, "Each class definition can have at most one with clause");
+  static final ParserErrorCode NAMED_FUNCTION_EXPRESSION = new ParserErrorCode.con2('NAMED_FUNCTION_EXPRESSION', 89, "Function expressions cannot be named");
+  static final ParserErrorCode NAMED_PARAMETER_OUTSIDE_GROUP = new ParserErrorCode.con2('NAMED_PARAMETER_OUTSIDE_GROUP', 90, "Named parameters must be enclosed in curly braces ('{' and '}')");
+  static final ParserErrorCode NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE = new ParserErrorCode.con2('NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE', 91, "Native functions can only be declared in the SDK and code that is loaded through native extensions");
+  static final ParserErrorCode NON_CONSTRUCTOR_FACTORY = new ParserErrorCode.con2('NON_CONSTRUCTOR_FACTORY', 92, "Only constructors can be declared to be a 'factory'");
+  static final ParserErrorCode NON_IDENTIFIER_LIBRARY_NAME = new ParserErrorCode.con2('NON_IDENTIFIER_LIBRARY_NAME', 93, "The name of a library must be an identifier");
+  static final ParserErrorCode NON_PART_OF_DIRECTIVE_IN_PART = new ParserErrorCode.con2('NON_PART_OF_DIRECTIVE_IN_PART', 94, "The part-of directive must be the only directive in a part");
+  static final ParserErrorCode NON_USER_DEFINABLE_OPERATOR = new ParserErrorCode.con2('NON_USER_DEFINABLE_OPERATOR', 95, "The operator '%s' is not user definable");
+  static final ParserErrorCode NORMAL_BEFORE_OPTIONAL_PARAMETERS = new ParserErrorCode.con2('NORMAL_BEFORE_OPTIONAL_PARAMETERS', 96, "Normal parameters must occur before optional parameters");
+  static final ParserErrorCode POSITIONAL_AFTER_NAMED_ARGUMENT = new ParserErrorCode.con2('POSITIONAL_AFTER_NAMED_ARGUMENT', 97, "Positional arguments must occur before named arguments");
+  static final ParserErrorCode POSITIONAL_PARAMETER_OUTSIDE_GROUP = new ParserErrorCode.con2('POSITIONAL_PARAMETER_OUTSIDE_GROUP', 98, "Positional parameters must be enclosed in square brackets ('[' and ']')");
+  static final ParserErrorCode STATIC_AFTER_CONST = new ParserErrorCode.con2('STATIC_AFTER_CONST', 99, "The modifier 'static' should be before the modifier 'const'");
+  static final ParserErrorCode STATIC_AFTER_FINAL = new ParserErrorCode.con2('STATIC_AFTER_FINAL', 100, "The modifier 'static' should be before the modifier 'final'");
+  static final ParserErrorCode STATIC_AFTER_VAR = new ParserErrorCode.con2('STATIC_AFTER_VAR', 101, "The modifier 'static' should be before the modifier 'var'");
+  static final ParserErrorCode STATIC_CONSTRUCTOR = new ParserErrorCode.con2('STATIC_CONSTRUCTOR', 102, "Constructors cannot be static");
+  static final ParserErrorCode STATIC_GETTER_WITHOUT_BODY = new ParserErrorCode.con2('STATIC_GETTER_WITHOUT_BODY', 103, "A 'static' getter must have a body");
+  static final ParserErrorCode STATIC_OPERATOR = new ParserErrorCode.con2('STATIC_OPERATOR', 104, "Operators cannot be static");
+  static final ParserErrorCode STATIC_SETTER_WITHOUT_BODY = new ParserErrorCode.con2('STATIC_SETTER_WITHOUT_BODY', 105, "A 'static' setter must have a body");
+  static final ParserErrorCode STATIC_TOP_LEVEL_DECLARATION = new ParserErrorCode.con2('STATIC_TOP_LEVEL_DECLARATION', 106, "Top-level declarations cannot be declared to be 'static'");
+  static final ParserErrorCode SWITCH_HAS_CASE_AFTER_DEFAULT_CASE = new ParserErrorCode.con2('SWITCH_HAS_CASE_AFTER_DEFAULT_CASE', 107, "The 'default' case should be the last case in a switch statement");
+  static final ParserErrorCode SWITCH_HAS_MULTIPLE_DEFAULT_CASES = new ParserErrorCode.con2('SWITCH_HAS_MULTIPLE_DEFAULT_CASES', 108, "The 'default' case can only be declared once");
+  static final ParserErrorCode TOP_LEVEL_OPERATOR = new ParserErrorCode.con2('TOP_LEVEL_OPERATOR', 109, "Operators must be declared within a class");
+  static final ParserErrorCode UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP = new ParserErrorCode.con2('UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP', 110, "There is no '%s' to open a parameter group");
+  static final ParserErrorCode UNEXPECTED_TOKEN = new ParserErrorCode.con2('UNEXPECTED_TOKEN', 111, "Unexpected token '%s'");
+  static final ParserErrorCode WITH_BEFORE_EXTENDS = new ParserErrorCode.con2('WITH_BEFORE_EXTENDS', 112, "The extends clause must be before the with clause");
+  static final ParserErrorCode WITH_WITHOUT_EXTENDS = new ParserErrorCode.con2('WITH_WITHOUT_EXTENDS', 113, "The with clause cannot be used without an extends clause");
+  static final ParserErrorCode WRONG_SEPARATOR_FOR_NAMED_PARAMETER = new ParserErrorCode.con2('WRONG_SEPARATOR_FOR_NAMED_PARAMETER', 114, "The default value of a named parameter should be preceeded by ':'");
+  static final ParserErrorCode WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER = new ParserErrorCode.con2('WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER', 115, "The default value of a positional parameter should be preceeded by '='");
+  static final ParserErrorCode WRONG_TERMINATOR_FOR_PARAMETER_GROUP = new ParserErrorCode.con2('WRONG_TERMINATOR_FOR_PARAMETER_GROUP', 116, "Expected '%s' to close parameter group");
+  static final ParserErrorCode VAR_AS_TYPE_NAME = new ParserErrorCode.con2('VAR_AS_TYPE_NAME', 117, "The keyword 'var' cannot be used as a type name");
+  static final ParserErrorCode VAR_CLASS = new ParserErrorCode.con2('VAR_CLASS', 118, "Classes cannot be declared to be 'var'");
+  static final ParserErrorCode VAR_RETURN_TYPE = new ParserErrorCode.con2('VAR_RETURN_TYPE', 119, "The return type cannot be 'var'");
+  static final ParserErrorCode VAR_TYPEDEF = new ParserErrorCode.con2('VAR_TYPEDEF', 120, "Type aliases cannot be declared to be 'var'");
+  static final ParserErrorCode VOID_PARAMETER = new ParserErrorCode.con2('VOID_PARAMETER', 121, "Parameters cannot have a type of 'void'");
+  static final ParserErrorCode VOID_VARIABLE = new ParserErrorCode.con2('VOID_VARIABLE', 122, "Variables cannot have a type of 'void'");
+  static final List<ParserErrorCode> values = [ABSTRACT_CLASS_MEMBER, ABSTRACT_STATIC_METHOD, ABSTRACT_TOP_LEVEL_FUNCTION, ABSTRACT_TOP_LEVEL_VARIABLE, ABSTRACT_TYPEDEF, BREAK_OUTSIDE_OF_LOOP, CONST_AND_FINAL, CONST_AND_VAR, CONST_CLASS, CONST_CONSTRUCTOR_WITH_BODY, CONST_FACTORY, CONST_METHOD, CONST_TYPEDEF, CONSTRUCTOR_WITH_RETURN_TYPE, CONTINUE_OUTSIDE_OF_LOOP, CONTINUE_WITHOUT_LABEL_IN_CASE, DEPRECATED_ARGUMENT_DEFINITION_TEST, DIRECTIVE_AFTER_DECLARATION, DUPLICATE_LABEL_IN_SWITCH_STATEMENT, DUPLICATED_MODIFIER, EQUALITY_CANNOT_BE_EQUALITY_OPERAND, EXPECTED_CASE_OR_DEFAULT, EXPECTED_CLASS_MEMBER, EXPECTED_EXECUTABLE, EXPECTED_LIST_OR_MAP_LITERAL, EXPECTED_STRING_LITERAL, EXPECTED_TOKEN, EXPECTED_TWO_MAP_TYPE_ARGUMENTS, EXPECTED_TYPE_NAME, EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, EXTERNAL_AFTER_CONST, EXTERNAL_AFTER_FACTORY, EXTERNAL_AFTER_STATIC, EXTERNAL_CLASS, EXTERNAL_CONSTRUCTOR_WITH_BODY, EXTERNAL_FIELD, EXTERNAL_GETTER_WITH_BODY, EXTERNAL_METHOD_WITH_BODY, EXTERNAL_OPERATOR_WITH_BODY, EXTERNAL_SETTER_WITH_BODY, EXTERNAL_TYPEDEF, FACTORY_TOP_LEVEL_DECLARATION, FACTORY_WITHOUT_BODY, FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, FINAL_AND_VAR, FINAL_CLASS, FINAL_CONSTRUCTOR, FINAL_METHOD, FINAL_TYPEDEF, FUNCTION_TYPED_PARAMETER_VAR, GETTER_WITH_PARAMETERS, ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, IMPLEMENTS_BEFORE_EXTENDS, IMPLEMENTS_BEFORE_WITH, IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, INITIALIZED_VARIABLE_IN_FOR_EACH, INVALID_CODE_POINT, INVALID_COMMENT_REFERENCE, INVALID_HEX_ESCAPE, INVALID_OPERATOR, INVALID_OPERATOR_FOR_SUPER, INVALID_UNICODE_ESCAPE, LIBRARY_DIRECTIVE_NOT_FIRST, LOCAL_FUNCTION_DECLARATION_MODIFIER, MISSING_ASSIGNABLE_SELECTOR, MISSING_CATCH_OR_FINALLY, MISSING_CLASS_BODY, MISSING_CLOSING_PARENTHESIS, MISSING_CONST_FINAL_VAR_OR_TYPE, MISSING_EXPRESSION_IN_THROW, MISSING_FUNCTION_BODY, MISSING_FUNCTION_PARAMETERS, MISSING_IDENTIFIER, MISSING_KEYWORD_OPERATOR, MISSING_NAME_IN_LIBRARY_DIRECTIVE, MISSING_NAME_IN_PART_OF_DIRECTIVE, MISSING_STATEMENT, MISSING_TERMINATOR_FOR_PARAMETER_GROUP, MISSING_TYPEDEF_PARAMETERS, MISSING_VARIABLE_IN_FOR_EACH, MIXED_PARAMETER_GROUPS, MULTIPLE_EXTENDS_CLAUSES, MULTIPLE_IMPLEMENTS_CLAUSES, MULTIPLE_LIBRARY_DIRECTIVES, MULTIPLE_NAMED_PARAMETER_GROUPS, MULTIPLE_PART_OF_DIRECTIVES, MULTIPLE_POSITIONAL_PARAMETER_GROUPS, MULTIPLE_VARIABLES_IN_FOR_EACH, MULTIPLE_WITH_CLAUSES, NAMED_FUNCTION_EXPRESSION, NAMED_PARAMETER_OUTSIDE_GROUP, NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, NON_CONSTRUCTOR_FACTORY, NON_IDENTIFIER_LIBRARY_NAME, NON_PART_OF_DIRECTIVE_IN_PART, NON_USER_DEFINABLE_OPERATOR, NORMAL_BEFORE_OPTIONAL_PARAMETERS, POSITIONAL_AFTER_NAMED_ARGUMENT, POSITIONAL_PARAMETER_OUTSIDE_GROUP, STATIC_AFTER_CONST, STATIC_AFTER_FINAL, STATIC_AFTER_VAR, STATIC_CONSTRUCTOR, STATIC_GETTER_WITHOUT_BODY, STATIC_OPERATOR, STATIC_SETTER_WITHOUT_BODY, STATIC_TOP_LEVEL_DECLARATION, SWITCH_HAS_CASE_AFTER_DEFAULT_CASE, SWITCH_HAS_MULTIPLE_DEFAULT_CASES, TOP_LEVEL_OPERATOR, UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, UNEXPECTED_TOKEN, WITH_BEFORE_EXTENDS, WITH_WITHOUT_EXTENDS, WRONG_SEPARATOR_FOR_NAMED_PARAMETER, WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER, WRONG_TERMINATOR_FOR_PARAMETER_GROUP, VAR_AS_TYPE_NAME, VAR_CLASS, VAR_RETURN_TYPE, VAR_TYPEDEF, VOID_PARAMETER, VOID_VARIABLE];
 
   /// The name of this enum constant, as declared in the enum declaration.
   final String name;
@@ -5345,26 +5786,28 @@ class ParserErrorCode implements Comparable<ParserErrorCode>, ErrorCode {
 
   /**
    * Initialize a newly created error code to have the given severity and message.
+   *
    * @param severity the severity of the error
    * @param message the message template used to create the message to be displayed for the error
    */
   ParserErrorCode.con1(this.name, this.ordinal, ErrorSeverity severity2, String message2) {
-    _jtd_constructor_311_impl(severity2, message2);
+    _jtd_constructor_316_impl(severity2, message2);
   }
-  _jtd_constructor_311_impl(ErrorSeverity severity2, String message2) {
+  _jtd_constructor_316_impl(ErrorSeverity severity2, String message2) {
     this._severity = severity2;
     this._message = message2;
   }
 
   /**
    * Initialize a newly created error code to have the given message and a severity of ERROR.
+   *
    * @param message the message template used to create the message to be displayed for the error
    */
   ParserErrorCode.con2(this.name, this.ordinal, String message) {
-    _jtd_constructor_312_impl(message);
+    _jtd_constructor_317_impl(message);
   }
-  _jtd_constructor_312_impl(String message) {
-    _jtd_constructor_311_impl(ErrorSeverity.ERROR, message);
+  _jtd_constructor_317_impl(String message) {
+    _jtd_constructor_316_impl(ErrorSeverity.ERROR, message);
   }
   ErrorSeverity get errorSeverity => _severity;
   String get message => _message;
@@ -5389,6 +5832,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
   /**
    * Initialize a newly created visitor to write source code representing the visited nodes to the
    * given writer.
+   *
    * @param writer the writer to which the source is to be written
    */
   ToFormattedSourceVisitor(PrintWriter writer) {
@@ -6062,6 +6506,11 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     _writer.print('}');
     return null;
   }
+  Object visitSymbolLiteral(SymbolLiteral node) {
+    _writer.print("#");
+    visitList5(node.components, ".");
+    return null;
+  }
   Object visitThisExpression(ThisExpression node) {
     _writer.print("this");
     return null;
@@ -6153,6 +6602,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
 
   /**
    * Safely visit the given node.
+   *
    * @param node the node to be visited
    */
   void visit(ASTNode node) {
@@ -6163,6 +6613,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
 
   /**
    * Safely visit the given node, printing the suffix after the node if it is non-<code>null</code>.
+   *
    * @param suffix the suffix to be printed if there is a node to visit
    * @param node the node to be visited
    */
@@ -6176,6 +6627,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
   /**
    * Safely visit the given node, printing the prefix before the node if it is non-<code>null</code>
    * .
+   *
    * @param prefix the prefix to be printed if there is a node to visit
    * @param node the node to be visited
    */
@@ -6188,6 +6640,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
 
   /**
    * Safely visit the given node, printing the suffix after the node if it is non-<code>null</code>.
+   *
    * @param suffix the suffix to be printed if there is a node to visit
    * @param node the node to be visited
    */
@@ -6200,6 +6653,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
 
   /**
    * Print a list of nodes without any separation.
+   *
    * @param nodes the nodes to be printed
    * @param separator the separator to be printed between adjacent nodes
    */
@@ -6209,6 +6663,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
 
   /**
    * Print a list of nodes, separated by the given separator.
+   *
    * @param nodes the nodes to be printed
    * @param separator the separator to be printed between adjacent nodes
    */
@@ -6229,6 +6684,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
 
   /**
    * Print a list of nodes, separated by the given separator.
+   *
    * @param nodes the nodes to be printed
    * @param separator the separator to be printed between adjacent nodes
    * @param suffix the suffix to be printed if the list is not empty
@@ -6250,6 +6706,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
 
   /**
    * Print a list of nodes, separated by the given separator.
+   *
    * @param prefix the prefix to be printed if the list is not empty
    * @param nodes the nodes to be printed
    * @param separator the separator to be printed between adjacent nodes

@@ -3,151 +3,63 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2analyzer ]
-Language/05_Variables/05_Variables_A05_t04: fail
-Language/06_Functions/06_Functions_A01_t31: fail
-Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t06: fail
-Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t07: fail
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: fail
-Language/06_Functions/2_Formal_Parameters_A01_t02: fail
-Language/06_Functions/2_Formal_Parameters_A01_t09: fail
-Language/06_Functions/2_Formal_Parameters_A02_t02: fail
-Language/07_Classes/07_Classes_A01_t20: fail
-Language/07_Classes/07_Classes_A09_t01: fail
-Language/07_Classes/07_Classes_A09_t02: fail
-Language/07_Classes/07_Classes_A09_t03: fail
-Language/07_Classes/07_Classes_A09_t04: fail
-Language/07_Classes/2_Getters_A04_t03: fail
-Language/07_Classes/2_Getters_A04_t04: fail
-Language/07_Classes/2_Getters_A04_t05: fail
-Language/07_Classes/2_Getters_A04_t07: fail
-Language/07_Classes/3_Setters_A03_t02: fail
-Language/07_Classes/3_Setters_A03_t04: fail
-Language/07_Classes/3_Setters_A03_t06: fail
-Language/07_Classes/3_Setters_A03_t08: fail
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: fail
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: fail
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A11_t09: fail
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A14_t01: fail
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A14_t04: fail
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t07: fail
-Language/07_Classes/6_Constructors/2_Factories_A06_t01: fail
-Language/07_Classes/6_Constructors/2_Factories_A06_t02: fail
-Language/07_Classes/6_Constructors/2_Factories_A06_t04: fail
-Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: fail
-Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: fail
-Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t03: fail
-Language/07_Classes/7_Static_Methods_A01_t01: fail
-Language/09_Generics/09_Generics_A04_t07: fail
-Language/11_Expressions/01_Constants_A01_t01: fail
-Language/11_Expressions/01_Constants_A11_t03: fail
-Language/11_Expressions/01_Constants_A15_t07: fail
-Language/11_Expressions/01_Constants_A15_t08: fail
-Language/11_Expressions/01_Constants_A16_t01: fail
-Language/11_Expressions/01_Constants_A16_t02: fail
-Language/11_Expressions/01_Constants_A16_t03: fail
-Language/11_Expressions/01_Constants_A17_t03: fail
-Language/11_Expressions/01_Constants_A19_t04: fail
-Language/11_Expressions/03_Numbers_A01_t01: fail
-Language/11_Expressions/03_Numbers_A01_t02: fail
-Language/11_Expressions/03_Numbers_A01_t03: fail
-Language/11_Expressions/03_Numbers_A01_t04: fail
-Language/11_Expressions/03_Numbers_A01_t08: fail
-Language/11_Expressions/03_Numbers_A01_t10: fail
-Language/11_Expressions/05_Strings/1_String_Interpolation_A03_t01: fail
-Language/11_Expressions/05_Strings/1_String_Interpolation_A04_t01: fail
-Language/11_Expressions/05_Strings_A02_t46: fail
-Language/11_Expressions/05_Strings_A02_t48: fail
-Language/11_Expressions/06_Lists_A03_t01: fail
-Language/11_Expressions/06_Lists_A06_t01: fail
-Language/11_Expressions/11_Instance_Creation/1_New_A13_t02: fail
-Language/11_Expressions/11_Instance_Creation/2_Const_A06_t01: fail
-Language/11_Expressions/11_Instance_Creation/2_Const_A10_t01: fail
-Language/11_Expressions/11_Instance_Creation_A05_t02: fail
-Language/11_Expressions/14_Function_Invocation/1_Actual_Argument_List_Evaluation_A02_t01: fail
-Language/11_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t05: fail
-Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A02_t01: fail
-Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t01: fail
-Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A04_t01: fail
-Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A08_t01: fail
-Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t01: fail
-Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t07: fail
-Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t05: fail
-Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A06_t02: fail
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: fail
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A03_t01: fail
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A03_t02: fail
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A03_t03: fail
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A03_t04: fail
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A08_t02: fail
-Language/11_Expressions/22_Equality_A01_t15: fail
-Language/11_Expressions/22_Equality_A01_t16: fail
-Language/11_Expressions/28_Postfix_Expressions_A01_t06: fail
-Language/11_Expressions/33_Argument_Definition_Test_A01_t14: fail
-Language/11_Expressions/33_Argument_Definition_Test_A01_t18: fail
-Language/12_Statements/02_Expression_Statements_A01_t06: fail
-Language/12_Statements/09_Switch_A04_t01: fail
-Language/13_Libraries_and_Scripts/1_Imports_A04_t03: fail
-Language/13_Libraries_and_Scripts/1_Imports_A05_t01: fail
-Language/13_Libraries_and_Scripts/2_Exports_A05_t01: fail
-Language/13_Libraries_and_Scripts/5_URIs_A01_t24: fail
-Language/13_Libraries_and_Scripts/5_URIs_A01_t25: fail
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t01: fail
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t02: fail
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t03: fail
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t04: fail
-Language/14_Types/4_Interface_Types_A10_t03: fail
-Language/14_Types/4_Interface_Types_A10_t04: fail
-Language/14_Types/4_Interface_Types_A10_t09: fail
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: fail
-Language/15_Reference/1_Lexical_Rules_A01_t10: fail
-Language/15_Reference/1_Lexical_Rules_A02_t06: fail
-LibTest/core/AssertionError/column_A01_t02: fail
-LibTest/core/AssertionError/failedAssertion_A01_t01: fail
-LibTest/core/AssertionError/line_A01_t02: fail
-LibTest/core/AssertionError/url_A01_t01: fail
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t02: fail
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A04_t01: fail
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: fail
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: fail
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: fail
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A07_t01: fail
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A08_t01: fail
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A08_t02: fail
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A09_t01: fail
-LibTest/core/Set/isSubsetOf_A01_t01: fail
-LibTest/core/Set/isSubsetOf_A01_t02: fail
-LibTest/core/String/String_class_A01_t01: fail
-LibTest/core/String/charCodeAt_A01_t01: fail
-LibTest/core/String/charCodeAt_A02_t01: fail
-LibTest/core/String/charCodeAt_A03_t01: fail
-LibTest/core/String/charCodes_A01_t01: fail
-LibTest/core/String/concat_A01_t01: fail
-LibTest/core/String/concat_A02_t01: fail
-LibTest/core/String/hashCode_A01_t01: fail
-LibTest/core/String/splitChars_A01_t01: fail
-LibTest/core/StringBuffer/addAll_A01_t01: fail
-LibTest/core/StringBuffer/addAll_A01_t02: fail
-LibTest/core/StringBuffer/addAll_A03_t01: fail
-LibTest/core/StringBuffer/add_A01_t01: fail
-LibTest/core/StringBuffer/add_A01_t02: fail
-LibTest/core/StringBuffer/isEmpty_A01_t01: fail
-LibTest/core/StringBuffer/toString_A01_t01: fail
-LibTest/core/double/ceil_A01_t05: fail
-LibTest/core/double/floor_A01_t05: fail
-LibTest/core/int/operator_division_A01_t01: fail
 
-# fails locally, passes on bot
+# not clear: g([var foo = foo + 10]) is parameter 'foo' in the scope of its own initialzer?
+Language/06_Functions/2_Formal_Parameters_A02_t02: fail
+
+# not clear: null..[1](1)[2](2).foo(3, bar: 4)=5 - it seems that verything before =5 it not assignable
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: fail
+
+# not initialized final instance variable, should be static warning
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: fail
+
+# invalid argument for constant constructor
+Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: fail
+Language/11_Expressions/01_Constants_A16_t03: fail
+
+# final instance variable created instance of the enclosing class
+Language/11_Expressions/01_Constants_A17_t03: fail
+
+# analyzer problem: forward reference of typedef with type parameters
 Language/13_Libraries_and_Scripts/3_Parts_A02_t03: skip
 
+
+
+
+# co19 issue #380, Strings class has been removed
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: fail, OK
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: fail, OK
+
+# co19 issue #382, Deprecated parts of String interface is being removed.
+LibTest/core/String/charCodes_A01_t01: fail, OK
+LibTest/core/String/charCodeAt_A02_t01: fail, OK
+LibTest/core/String/charCodeAt_A03_t01: fail, OK
+LibTest/core/String/charCodeAt_A01_t01: fail, OK
+LibTest/core/String/splitChars_A01_t01: fail, OK
+
+# co19 issue #389, ceil, floor, truncate and round return integers
+LibTest/core/int/operator_division_A01_t01: fail
+
+# co19 issue #395, uses dart:io API (outdated)
+Language/15_Reference/1_Lexical_Rules_A01_t10: Fail, OK
+
 # co19 issue #397, List.addLast removed
+Language/11_Expressions/06_Lists_A06_t01: fail, OK
 LibTest/core/Iterable/where_A01_t07: fail, OK
 LibTest/core/List/addLast_A01_t01: fail, OK
 LibTest/core/List/addLast_A01_t03: fail, OK
 LibTest/core/List/addLast_A02_t01: fail, OK
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: fail, OK
 
 # co19 issue #400, collection library reorg
 LibTest/core/List/List.fixedLength_A01_t01: fail, OK
 LibTest/core/List/operator_subscript_A01_t02: fail, OK
+LibTest/core/String/String_class_A01_t01: fail, OK
+LibTest/core/String/concat_A01_t01: fail, OK
+LibTest/core/String/concat_A02_t01: fail, OK
+LibTest/core/String/hashCode_A01_t01: fail, OK
+LibTest/core/Set/isSubsetOf_A01_t01: fail, OK
+LibTest/core/Set/isSubsetOf_A01_t02: fail, OK
 
 # co19 issue #403
 LibTest/core/List/List_A01_t02: fail, OK
@@ -183,7 +95,7 @@ Language/11_Expressions/08_Throw_A05_t01: fail, OK
 Language/11_Expressions/08_Throw_A05_t02: fail, OK
 Language/11_Expressions/08_Throw_A05_t03: fail, OK
 
-# infinite loop
+# analyzer issue https://code.google.com/p/dart/issues/detail?id=11534
 Language/14_Types/4_Interface_Types_A11_t01: skip
 Language/14_Types/4_Interface_Types_A11_t02: skip
 
@@ -206,3 +118,95 @@ Language/05_Variables/05_Variables_A12_t01: fail, OK
 Language/05_Variables/05_Variables_A12_t06: fail, OK
 Language/05_Variables/05_Variables_A13_t01: fail, OK
 Language/07_Classes/07_Classes_A02_t11: fail, OK
+
+# co19 issue #429, It is a compile-time error if a formal parameter is declared as a constant variable
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t07: fail, OK
+
+# co19 issue #430, return not subtype from factory
+Language/07_Classes/6_Constructors/2_Factories_A06_t01: fail, OK
+Language/07_Classes/6_Constructors/2_Factories_A06_t02: fail, OK
+Language/07_Classes/6_Constructors/2_Factories_A06_t04: fail, OK
+
+# co19 issue #431, it is OK to use 'double' argument for const constructor
+Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: fail, OK
+Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t03: fail, OK
+
+# co19 issue #428, number literals with a + prefix
+Language/11_Expressions/01_Constants_A01_t01: fail, OK
+Language/11_Expressions/03_Numbers_A01_t01: fail, OK
+Language/11_Expressions/03_Numbers_A01_t02: fail, OK
+Language/11_Expressions/03_Numbers_A01_t03: fail, OK
+Language/11_Expressions/03_Numbers_A01_t04: fail, OK
+Language/11_Expressions/03_Numbers_A01_t08: fail, OK
+Language/11_Expressions/03_Numbers_A01_t10: fail, OK
+Language/12_Statements/02_Expression_Statements_A01_t06: fail, OK
+LibTest/core/double/ceil_A01_t05: fail, OK
+LibTest/core/double/floor_A01_t05: fail, OK
+
+# co19 issue #385, library name is not required
+Language/13_Libraries_and_Scripts/1_Imports_A04_t03: fail, OK
+Language/13_Libraries_and_Scripts/2_Exports_A05_t01: fail, OK
+
+# co19 issue #388, StringBuffer renamed add to write
+Language/11_Expressions/05_Strings/1_String_Interpolation_A03_t01: fail, OK
+Language/11_Expressions/05_Strings/1_String_Interpolation_A04_t01: fail, OK
+Language/11_Expressions/14_Function_Invocation/1_Actual_Argument_List_Evaluation_A02_t01: fail, OK
+Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A04_t01: fail, OK
+Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t05: fail, OK
+Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: fail, OK
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t02: fail, OK
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A04_t01: fail, OK
+LibTest/core/StringBuffer/addAll_A03_t01: fail, OK
+LibTest/core/StringBuffer/add_A01_t01: fail, OK
+LibTest/core/StringBuffer/add_A01_t02: fail, OK
+LibTest/core/StringBuffer/addAll_A01_t01: fail, OK
+LibTest/core/StringBuffer/addAll_A01_t02: fail, OK
+LibTest/core/StringBuffer/isEmpty_A01_t01: fail, OK
+LibTest/core/StringBuffer/toString_A01_t01: fail, OK
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A07_t01: fail, OK
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A08_t01: fail, OK
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A08_t02: fail, OK
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A09_t01: fail, OK
+
+#co19 issue #432, missing @static-warning annotation
+Language/14_Types/8_Parameterized_Types_A03_t03: fail,OK
+Language/14_Types/8_Parameterized_Types_A03_t05: fail,OK
+
+# co19 issue #433, missing @static-warning annotation
+Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t01: fail, OK
+Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t07: fail, OK
+
+# co19 issue #434, argument definition was dropped
+Language/11_Expressions/33_Argument_Definition_Test_A01_t02: fail, OK
+#Language/11_Expressions/33_Argument_Definition_Test_A01_t14: fail, OK (this is passing for the wrong reason)
+#Language/11_Expressions/33_Argument_Definition_Test_A01_t18: fail, OK (this is passing for the wrong reason)
+Language/11_Expressions/33_Argument_Definition_Test_A02_t01: fail, OK
+Language/11_Expressions/33_Argument_Definition_Test_A02_t02: fail, OK
+Language/11_Expressions/33_Argument_Definition_Test_A03_t01: fail, OK
+Language/11_Expressions/33_Argument_Definition_Test_A03_t02: fail, OK
+
+# co19 issue #435, AssertionError has not properties
+LibTest/core/AssertionError/column_A01_t02: fail, OK
+LibTest/core/AssertionError/failedAssertion_A01_t01: fail, OK
+LibTest/core/AssertionError/line_A01_t02: fail, OK
+LibTest/core/AssertionError/url_A01_t01: fail, OK
+
+# co19 issue #437, annotation should be constant _variable_ or constant constructor invocation
+Language/07_Classes/07_Classes_A01_t20: fail, OK
+Language/07_Classes/07_Classes_A02_t34: fail, OK
+Language/07_Classes/07_Classes_A03_t10: fail, OK
+Language/13_Libraries_and_Scripts/2_Exports_A01_t17: fail, OK
+
+# co19 issue 438, Static variables are initialized lazily, need not be constants
+Language/11_Expressions/01_Constants_A16_t01: fail, OK
+Language/11_Expressions/01_Constants_A16_t02: fail, OK
+
+# co19 issue 439, it is warning, not error to import two different libraries with the same name
+Language/13_Libraries_and_Scripts/1_Imports_A05_t01: fail, OK
+
+# co19 issue #440, adj strings is not a string interpolation
+Language/13_Libraries_and_Scripts/5_URIs_A01_t24: fail, OK
+Language/13_Libraries_and_Scripts/5_URIs_A01_t25: fail, OK
+
+# co19 issue #441, assignment in constructor is not initializing
+Language/05_Variables/05_Variables_A05_t04: fail, OK

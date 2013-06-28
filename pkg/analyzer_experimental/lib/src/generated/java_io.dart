@@ -15,7 +15,7 @@ class JavaSystemIO {
       return Platform.operatingSystem;
     }
     if (name == 'line.separator') {
-      if (Platform.operatingSystem == 'windows') {
+      if (Platform.isWindows) {
         return '\r\n';
       }
       return '\n';

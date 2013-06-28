@@ -21,6 +21,26 @@ import 'test_support.dart';
 import 'ast_test.dart' show ASTFactory;
 import 'element_test.dart' show ElementFactory;
 class TypePropagationTest extends ResolverTestCase {
+  void fail_functionExpression_asInvocationArgument_functionExpressionInvocation() {
+    String code = EngineTestCase.createSource(["main() {", "  (f(String value)) {} ((v) {", "    v;", "  });", "}"]);
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors();
+    verify([source]);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    Type2 dynamicType = typeProvider.dynamicType;
+    Type2 stringType = typeProvider.stringType;
+    FormalParameter vParameter = EngineTestCase.findNode(unit, code, "v)", FormalParameter);
+    JUnitTestCase.assertSame(stringType, vParameter.identifier.propagatedType);
+    JUnitTestCase.assertSame(dynamicType, vParameter.identifier.staticType);
+    SimpleIdentifier vIdentifier = EngineTestCase.findNode(unit, code, "v;", SimpleIdentifier);
+    JUnitTestCase.assertSame(stringType, vIdentifier.propagatedType);
+    JUnitTestCase.assertSame(dynamicType, vIdentifier.staticType);
+  }
+  void fail_propagatedReturnType_functionExpression() {
+    String code = EngineTestCase.createSource(["main() {", "  var v = (() {return 42;})();", "}"]);
+    check_propagatedReturnType(code, typeProvider.dynamicType, typeProvider.intType);
+  }
   void test_as() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  bool get g => true;", "}", "A f(var p) {", "  if ((p as A).g) {", "    return p;", "  } else {", "    return null;", "  }", "}"]));
     LibraryElement library = resolve(source);
@@ -75,19 +95,98 @@ class TypePropagationTest extends ResolverTestCase {
     JUnitTestCase.assertSame(typeProvider.doubleType, variableName.propagatedType);
   }
   void test_forEach() {
-    Source source = addSource(EngineTestCase.createSource(["class A {}", "A f(List<A> p) {", "  for (var e in p) {", "    return e;", "  }", "}"]));
+    String code = EngineTestCase.createSource(["f(List<String> p) {", "  for (var e in p) {", "    e;", "  }", "}"]);
+    Source source = addSource(code);
     LibraryElement library = resolve(source);
     assertNoErrors();
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
-    ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
-    InterfaceType typeA = classA.element.type;
-    FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
-    BlockFunctionBody body = function.functionExpression.body as BlockFunctionBody;
-    ForEachStatement forStatement = body.block.statements[0] as ForEachStatement;
-    ReturnStatement statement = ((forStatement.body as Block)).statements[0] as ReturnStatement;
-    SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
-    JUnitTestCase.assertSame(typeA, variableName.propagatedType);
+    InterfaceType stringType = typeProvider.stringType;
+    {
+      SimpleIdentifier identifier = EngineTestCase.findNode(unit, code, "e in", SimpleIdentifier);
+      JUnitTestCase.assertSame(stringType, identifier.propagatedType);
+    }
+    {
+      SimpleIdentifier identifier = EngineTestCase.findNode(unit, code, "e;", SimpleIdentifier);
+      JUnitTestCase.assertSame(stringType, identifier.propagatedType);
+    }
+  }
+  void test_functionExpression_asInvocationArgument() {
+    String code = EngineTestCase.createSource(["class MyMap<K, V> {", "  forEach(f(K key, V value)) {}", "}", "f(MyMap<int, String> m) {", "  m.forEach((k, v) {", "    k;", "    v;", "  });", "}"]);
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors();
+    verify([source]);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    Type2 intType = typeProvider.intType;
+    FormalParameter kParameter = EngineTestCase.findNode(unit, code, "k, ", SimpleFormalParameter);
+    JUnitTestCase.assertSame(intType, kParameter.identifier.propagatedType);
+    SimpleIdentifier kIdentifier = EngineTestCase.findNode(unit, code, "k;", SimpleIdentifier);
+    JUnitTestCase.assertSame(intType, kIdentifier.propagatedType);
+    JUnitTestCase.assertSame(typeProvider.dynamicType, kIdentifier.staticType);
+    Type2 stringType = typeProvider.stringType;
+    FormalParameter vParameter = EngineTestCase.findNode(unit, code, "v)", SimpleFormalParameter);
+    JUnitTestCase.assertSame(stringType, vParameter.identifier.propagatedType);
+    SimpleIdentifier vIdentifier = EngineTestCase.findNode(unit, code, "v;", SimpleIdentifier);
+    JUnitTestCase.assertSame(stringType, vIdentifier.propagatedType);
+    JUnitTestCase.assertSame(typeProvider.dynamicType, vIdentifier.staticType);
+  }
+  void test_functionExpression_asInvocationArgument_fromInferredInvocation() {
+    String code = EngineTestCase.createSource(["class MyMap<K, V> {", "  forEach(f(K key, V value)) {}", "}", "f(MyMap<int, String> m) {", "  var m2 = m;", "  m2.forEach((k, v) {});", "}"]);
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors();
+    verify([source]);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    Type2 intType = typeProvider.intType;
+    FormalParameter kParameter = EngineTestCase.findNode(unit, code, "k, ", SimpleFormalParameter);
+    JUnitTestCase.assertSame(intType, kParameter.identifier.propagatedType);
+    Type2 stringType = typeProvider.stringType;
+    FormalParameter vParameter = EngineTestCase.findNode(unit, code, "v)", SimpleFormalParameter);
+    JUnitTestCase.assertSame(stringType, vParameter.identifier.propagatedType);
+  }
+  void test_functionExpression_asInvocationArgument_keepIfLessSpecific() {
+    String code = EngineTestCase.createSource(["class MyList {", "  forEach(f(Object value)) {}", "}", "f(MyList list) {", "  list.forEach((int v) {", "    v;", "  });", "}"]);
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors();
+    verify([source]);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    Type2 intType = typeProvider.intType;
+    FormalParameter vParameter = EngineTestCase.findNode(unit, code, "v)", SimpleFormalParameter);
+    JUnitTestCase.assertSame(null, vParameter.identifier.propagatedType);
+    JUnitTestCase.assertSame(intType, vParameter.identifier.staticType);
+    SimpleIdentifier vIdentifier = EngineTestCase.findNode(unit, code, "v;", SimpleIdentifier);
+    JUnitTestCase.assertSame(intType, vIdentifier.staticType);
+    JUnitTestCase.assertSame(null, vIdentifier.propagatedType);
+  }
+  void test_functionExpression_asInvocationArgument_replaceIfMoreSpecific() {
+    String code = EngineTestCase.createSource(["class MyList<E> {", "  forEach(f(E value)) {}", "}", "f(MyList<String> list) {", "  list.forEach((Object v) {", "    v;", "  });", "}"]);
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors();
+    verify([source]);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    Type2 stringType = typeProvider.stringType;
+    FormalParameter vParameter = EngineTestCase.findNode(unit, code, "v)", SimpleFormalParameter);
+    JUnitTestCase.assertSame(stringType, vParameter.identifier.propagatedType);
+    JUnitTestCase.assertSame(typeProvider.objectType, vParameter.identifier.staticType);
+    SimpleIdentifier vIdentifier = EngineTestCase.findNode(unit, code, "v;", SimpleIdentifier);
+    JUnitTestCase.assertSame(stringType, vIdentifier.propagatedType);
+  }
+  void test_Future_then() {
+    String code = EngineTestCase.createSource(["import 'dart:async';", "main(Future<int> firstFuture) {", "  firstFuture.then((p1) {", "    return 1.0;", "  }).then((p2) {", "    return new Future<String>.value('str');", "  }).then((p3) {", "  });", "}"]);
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors();
+    verify([source]);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    FormalParameter p1 = EngineTestCase.findNode(unit, code, "p1) {", SimpleFormalParameter);
+    JUnitTestCase.assertSame(typeProvider.intType, p1.identifier.propagatedType);
+    FormalParameter p2 = EngineTestCase.findNode(unit, code, "p2) {", SimpleFormalParameter);
+    JUnitTestCase.assertSame(typeProvider.doubleType, p2.identifier.propagatedType);
+    FormalParameter p3 = EngineTestCase.findNode(unit, code, "p3) {", SimpleFormalParameter);
+    JUnitTestCase.assertSame(typeProvider.stringType, p3.identifier.propagatedType);
   }
   void test_initializer() {
     Source source = addSource(EngineTestCase.createSource(["f() {", "  var v = 0;", "  return v;", "}"]));
@@ -97,9 +196,18 @@ class TypePropagationTest extends ResolverTestCase {
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
     BlockFunctionBody body = function.functionExpression.body as BlockFunctionBody;
-    ReturnStatement statement = body.block.statements[1] as ReturnStatement;
-    SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
-    JUnitTestCase.assertSame(typeProvider.intType, variableName.propagatedType);
+    NodeList<Statement> statements = body.block.statements;
+    {
+      VariableDeclarationStatement statement = statements[0] as VariableDeclarationStatement;
+      SimpleIdentifier variableName = statement.variables.variables[0].name;
+      JUnitTestCase.assertSame(typeProvider.dynamicType, variableName.staticType);
+      JUnitTestCase.assertSame(typeProvider.intType, variableName.propagatedType);
+    }
+    {
+      ReturnStatement statement = statements[1] as ReturnStatement;
+      SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
+      JUnitTestCase.assertSame(typeProvider.intType, variableName.propagatedType);
+    }
   }
   void test_initializer_dereference() {
     Source source = addSource(EngineTestCase.createSource(["f() {", "  var v = 'String';", "  v.", "}"]));
@@ -357,6 +465,34 @@ class TypePropagationTest extends ResolverTestCase {
     JUnitTestCase.assertSame(typeProvider.stringType, typeArguments[0]);
     JUnitTestCase.assertSame(typeProvider.intType, typeArguments[1]);
   }
+  void test_propagatedReturnType_function_hasReturnType_returnsNull() {
+    String code = EngineTestCase.createSource(["String f() => null;", "main() {", "  var v = f();", "}"]);
+    check_propagatedReturnType(code, typeProvider.dynamicType, typeProvider.stringType);
+  }
+  void test_propagatedReturnType_function_lessSpecificStaticReturnType() {
+    String code = EngineTestCase.createSource(["Object f() => 42;", "main() {", "  var v = f();", "}"]);
+    check_propagatedReturnType(code, typeProvider.dynamicType, typeProvider.intType);
+  }
+  void test_propagatedReturnType_function_moreSpecificStaticReturnType() {
+    String code = EngineTestCase.createSource(["int f() => (42 as Object);", "main() {", "  var v = f();", "}"]);
+    check_propagatedReturnType(code, typeProvider.dynamicType, typeProvider.intType);
+  }
+  void test_propagatedReturnType_function_noReturnTypeName_blockBody_multipleReturns() {
+    String code = EngineTestCase.createSource(["f() {", "  if (true) return 0;", "  return 1.0;", "}", "main() {", "  var v = f();", "}"]);
+    check_propagatedReturnType(code, typeProvider.dynamicType, typeProvider.numType);
+  }
+  void test_propagatedReturnType_function_noReturnTypeName_blockBody_oneReturn() {
+    String code = EngineTestCase.createSource(["f() {", "  var z = 42;", "  return z;", "}", "main() {", "  var v = f();", "}"]);
+    check_propagatedReturnType(code, typeProvider.dynamicType, typeProvider.intType);
+  }
+  void test_propagatedReturnType_function_noReturnTypeName_expressionBody() {
+    String code = EngineTestCase.createSource(["f() => 42;", "main() {", "  var v = f();", "}"]);
+    check_propagatedReturnType(code, typeProvider.dynamicType, typeProvider.intType);
+  }
+  void test_propagatedReturnType_localFunction() {
+    String code = EngineTestCase.createSource(["main() {", "  f() => 42;", "  var v = f();", "}"]);
+    check_propagatedReturnType(code, typeProvider.dynamicType, typeProvider.intType);
+  }
   void test_query() {
     Source source = addSource(EngineTestCase.createSource(["import 'dart:html';", "", "main() {", "  var v1 = query('a');", "  var v2 = query('A');", "  var v3 = query('body:active');", "  var v4 = query('button[foo=\"bar\"]');", "  var v5 = query('div.class');", "  var v6 = query('input#id');", "  var v7 = query('select#id');", "  // invocation of method", "  var m1 = document.query('div');", " // unsupported currently", "  var b1 = query('noSuchTag');", "  var b2 = query('DART_EDITOR_NO_SUCH_TYPE');", "  var b3 = query('body div');", "  return [v1, v2, v3, v4, v5, v6, v7, m1, b1, b2, b3];", "}"]));
     LibraryElement library = resolve(source);
@@ -379,8 +515,27 @@ class TypePropagationTest extends ResolverTestCase {
     JUnitTestCase.assertEquals("Element", elements[9].propagatedType.name);
     JUnitTestCase.assertEquals("Element", elements[10].propagatedType.name);
   }
+
+  /**
+   * @param code the code that assigns the value to the variable "v", no matter how. We check that
+   *          "v" has expected static and propagated type.
+   */
+  void check_propagatedReturnType(String code, Type2 expectedStaticType, Type2 expectedPropagatedType) {
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors();
+    verify([source]);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    SimpleIdentifier identifier = EngineTestCase.findNode(unit, code, "v = ", SimpleIdentifier);
+    JUnitTestCase.assertSame(expectedStaticType, identifier.staticType);
+    JUnitTestCase.assertSame(expectedPropagatedType, identifier.propagatedType);
+  }
   static dartSuite() {
     _ut.group('TypePropagationTest', () {
+      _ut.test('test_Future_then', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_Future_then);
+      });
       _ut.test('test_as', () {
         final __test = new TypePropagationTest();
         runJUnitTest(__test, __test.test_as);
@@ -400,6 +555,22 @@ class TypePropagationTest extends ResolverTestCase {
       _ut.test('test_forEach', () {
         final __test = new TypePropagationTest();
         runJUnitTest(__test, __test.test_forEach);
+      });
+      _ut.test('test_functionExpression_asInvocationArgument', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_functionExpression_asInvocationArgument);
+      });
+      _ut.test('test_functionExpression_asInvocationArgument_fromInferredInvocation', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_functionExpression_asInvocationArgument_fromInferredInvocation);
+      });
+      _ut.test('test_functionExpression_asInvocationArgument_keepIfLessSpecific', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_functionExpression_asInvocationArgument_keepIfLessSpecific);
+      });
+      _ut.test('test_functionExpression_asInvocationArgument_replaceIfMoreSpecific', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_functionExpression_asInvocationArgument_replaceIfMoreSpecific);
       });
       _ut.test('test_initializer', () {
         final __test = new TypePropagationTest();
@@ -477,6 +648,34 @@ class TypePropagationTest extends ResolverTestCase {
         final __test = new TypePropagationTest();
         runJUnitTest(__test, __test.test_mapLiteral_same);
       });
+      _ut.test('test_propagatedReturnType_function_hasReturnType_returnsNull', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_propagatedReturnType_function_hasReturnType_returnsNull);
+      });
+      _ut.test('test_propagatedReturnType_function_lessSpecificStaticReturnType', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_propagatedReturnType_function_lessSpecificStaticReturnType);
+      });
+      _ut.test('test_propagatedReturnType_function_moreSpecificStaticReturnType', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_propagatedReturnType_function_moreSpecificStaticReturnType);
+      });
+      _ut.test('test_propagatedReturnType_function_noReturnTypeName_blockBody_multipleReturns', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_propagatedReturnType_function_noReturnTypeName_blockBody_multipleReturns);
+      });
+      _ut.test('test_propagatedReturnType_function_noReturnTypeName_blockBody_oneReturn', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_propagatedReturnType_function_noReturnTypeName_blockBody_oneReturn);
+      });
+      _ut.test('test_propagatedReturnType_function_noReturnTypeName_expressionBody', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_propagatedReturnType_function_noReturnTypeName_expressionBody);
+      });
+      _ut.test('test_propagatedReturnType_localFunction', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_propagatedReturnType_localFunction);
+      });
       _ut.test('test_query', () {
         final __test = new TypePropagationTest();
         runJUnitTest(__test, __test.test_query);
@@ -512,19 +711,19 @@ class NonErrorResolverTest extends ResolverTestCase {
   void test_argumentDefinitionTestNonParameter_formalParameter() {
     Source source = addSource(EngineTestCase.createSource(["f(var v) {", "  return ?v;", "}"]));
     resolve(source);
-    assertNoErrors();
+    assertErrors([ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST]);
     verify([source]);
   }
   void test_argumentDefinitionTestNonParameter_namedParameter() {
     Source source = addSource(EngineTestCase.createSource(["f({var v : 0}) {", "  return ?v;", "}"]));
     resolve(source);
-    assertNoErrors();
+    assertErrors([ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST]);
     verify([source]);
   }
   void test_argumentDefinitionTestNonParameter_optionalParameter() {
     Source source = addSource(EngineTestCase.createSource(["f([var v]) {", "  return ?v;", "}"]));
     resolve(source);
-    assertNoErrors();
+    assertErrors([ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST]);
     verify([source]);
   }
   void test_argumentTypeNotAssignable_classWithCall_Function() {
@@ -662,6 +861,19 @@ class NonErrorResolverTest extends ResolverTestCase {
   }
   void test_constConstructorWithNonFinalField_syntheticField() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  const A();", "  set x(value) {}", "  get x {return 0;}", "}"]));
+    resolve(source);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_constEval_propertyExtraction_fieldStatic_targetType() {
+    addSource2("/math.dart", EngineTestCase.createSource(["library math;", "const PI = 3.14;"]));
+    Source source = addSource(EngineTestCase.createSource(["import 'math.dart' as math;", "const C = math.PI;"]));
+    resolve(source);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_constEval_propertyExtraction_methodStatic_targetType() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  const A();", "  static m() {}", "}", "const C = A.m;"]));
     resolve(source);
     assertNoErrors();
     verify([source]);
@@ -929,6 +1141,32 @@ class NonErrorResolverTest extends ResolverTestCase {
     assertNoErrors();
     verify([source]);
   }
+  void test_instanceMemberAccessFromStatic_fromComment() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  m() {}", "  /// [m]", "  static foo() {", "  }", "}"]));
+    resolve(source);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_invalidAnnotation_constantVariable() {
+    Source source = addSource(EngineTestCase.createSource(["const C = 0;", "@C", "main() {", "}"]));
+    resolve(source);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_invalidAnnotation_importWithPrefix_constantVariable() {
+    addSource2("/lib.dart", EngineTestCase.createSource(["library lib;", "const C = 0;"]));
+    Source source = addSource(EngineTestCase.createSource(["import 'lib.dart' as p;", "@p.C", "main() {", "}"]));
+    resolve(source);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_invalidAnnotation_importWithPrefix_constConstructor() {
+    addSource2("/lib.dart", EngineTestCase.createSource(["library lib;", "class A {", "  const A.named(int p);", "}"]));
+    Source source = addSource(EngineTestCase.createSource(["import 'lib.dart' as p;", "@p.A.named(42)", "main() {", "}"]));
+    resolve(source);
+    assertNoErrors();
+    verify([source]);
+  }
   void test_invalidAssignment() {
     Source source = addSource(EngineTestCase.createSource(["f() {", "  var x;", "  var y;", "  x = y;", "}"]));
     resolve(source);
@@ -1069,6 +1307,24 @@ class NonErrorResolverTest extends ResolverTestCase {
   }
   void test_invocationOfNonFunction_localVariable() {
     Source source = addSource(EngineTestCase.createSource(["f() {", "  var g;", "  g();", "}"]));
+    resolve(source);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_invocationOfNonFunction_localVariable_dynamic() {
+    Source source = addSource(EngineTestCase.createSource(["f() {}", "main() {", "  var v = f;", "  v();", "}"]));
+    resolve(source);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_invocationOfNonFunction_localVariable_dynamic2() {
+    Source source = addSource(EngineTestCase.createSource(["f() {}", "main() {", "  var v = f;", "  v = 1;", "  v();", "}"]));
+    resolve(source);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_invocationOfNonFunction_Object() {
+    Source source = addSource(EngineTestCase.createSource(["main() {", "  Object v = null;", "  v();", "}"]));
     resolve(source);
     assertNoErrors();
     verify([source]);
@@ -1244,7 +1500,7 @@ class NonErrorResolverTest extends ResolverTestCase {
   void test_nonConstValueInInitializer_binary_bool() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  final v;", "  const A.a1(bool p) : v = p && true;", "  const A.a2(bool p) : v = true && p;", "  const A.b1(bool p) : v = p || true;", "  const A.b2(bool p) : v = true || p;", "}"]));
     resolve(source);
-    assertNoErrors();
+    assertErrors([AuditCode.DEAD_CODE]);
     verify([source]);
   }
   void test_nonConstValueInInitializer_binary_dynamic() {
@@ -1427,6 +1683,12 @@ class NonErrorResolverTest extends ResolverTestCase {
     assertNoErrors();
     verify([source]);
   }
+  void test_returnOfInvalidType_dynamicAsTypeArgument() {
+    Source source = addSource(EngineTestCase.createSource(["class I<T> {", "  factory I() => new A<T>();", "}", "class A<T> implements I {", "}"]));
+    resolve(source);
+    assertNoErrors();
+    verify([source]);
+  }
   void test_returnOfInvalidType_subtype() {
     Source source = addSource(EngineTestCase.createSource(["class A {}", "class B extends A {}", "A f(B b) { return b; }"]));
     resolve(source);
@@ -1457,6 +1719,12 @@ class NonErrorResolverTest extends ResolverTestCase {
     assertNoErrors();
     verify([source]);
   }
+  void test_staticAccessToInstanceMember_annotation() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  const A.name();", "}", "@A.name()", "main() {", "}"]));
+    resolve(source);
+    assertNoErrors();
+    verify([source]);
+  }
   void test_staticAccessToInstanceMember_method() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  static m() {}", "}", "main() {", "  A.m;", "  A.m();", "}"]));
     resolve(source);
@@ -1481,6 +1749,12 @@ class NonErrorResolverTest extends ResolverTestCase {
     assertNoErrors();
     verify([source]);
   }
+  void test_typeAliasCannotReferenceItself_returnClass_withTypeAlias() {
+    Source source = addSource(EngineTestCase.createSource(["typedef B A();", "class B {", "  A a;", "}"]));
+    resolve(source);
+    assertNoErrors();
+    verify([source]);
+  }
   void test_typeArgumentNotMatchingBounds_const() {
     Source source = addSource(EngineTestCase.createSource(["class A {}", "class B extends A {}", "class G<E extends A> {", "  const G();", "}", "f() { return const G<B>(); }"]));
     resolve(source);
@@ -1489,6 +1763,24 @@ class NonErrorResolverTest extends ResolverTestCase {
   }
   void test_typeArgumentNotMatchingBounds_new() {
     Source source = addSource(EngineTestCase.createSource(["class A {}", "class B extends A {}", "class G<E extends A> {}", "f() { return new G<B>(); }"]));
+    resolve(source);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_typeArgumentNotMatchingBounds_typeArgumentList_0() {
+    Source source = addSource(EngineTestCase.createSource(["abstract class A<T extends A>{}"]));
+    resolve(source);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_typeArgumentNotMatchingBounds_typeArgumentList_1() {
+    Source source = addSource(EngineTestCase.createSource(["abstract class A<T extends A<A>>{}"]));
+    resolve(source);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_typeArgumentNotMatchingBounds_typeArgumentList_20() {
+    Source source = addSource(EngineTestCase.createSource(["abstract class A<T extends A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A>>>>>>>>>>>>>>>>>>>>>{}"]));
     resolve(source);
     assertNoErrors();
     verify([source]);
@@ -1564,6 +1856,16 @@ class NonErrorResolverTest extends ResolverTestCase {
     assertNoErrors();
     verify([source]);
   }
+  void test_undefinedMethod_functionExpression_callMethod() {
+    Source source = addSource(EngineTestCase.createSource(["main() {", "  (() => null).call();", "}"]));
+    resolve(source);
+    assertNoErrors();
+  }
+  void test_undefinedMethod_functionExpression_directCall() {
+    Source source = addSource(EngineTestCase.createSource(["main() {", "  (() => null)();", "}"]));
+    resolve(source);
+    assertNoErrors();
+  }
   void test_undefinedMethod_noSuchMethod() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  noSuchMethod(invocation) {}", "}", "f() {", "  (new A()).m();", "}"]));
     resolve(source);
@@ -1585,6 +1887,18 @@ class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  noSuchMethod(invocation) {}", "}", "f() {", "  (new A()).s = 1;", "}"]));
     resolve(source);
     assertNoErrors();
+  }
+  void test_undefinedSuperMethod_field() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  var m;", "}", "class B extends A {", "  f() {", "    super.m();", "  }", "}"]));
+    resolve(source);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_undefinedSuperMethod_method() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  m() {}", "}", "class B extends A {", "  f() {", "    super.m();", "  }", "}"]));
+    resolve(source);
+    assertNoErrors();
+    verify([source]);
   }
   void test_wrongNumberOfParametersForOperator_index() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  operator []=(a, b) {}", "}"]));
@@ -1755,6 +2069,14 @@ class NonErrorResolverTest extends ResolverTestCase {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_constEvalTypeBoolNumString_notEqual);
       });
+      _ut.test('test_constEval_propertyExtraction_fieldStatic_targetType', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_constEval_propertyExtraction_fieldStatic_targetType);
+      });
+      _ut.test('test_constEval_propertyExtraction_methodStatic_targetType', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_constEval_propertyExtraction_methodStatic_targetType);
+      });
       _ut.test('test_constWithNonConstantArgument_literals', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_constWithNonConstantArgument_literals);
@@ -1919,6 +2241,22 @@ class NonErrorResolverTest extends ResolverTestCase {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_initializingFormalForNonExistantField);
       });
+      _ut.test('test_instanceMemberAccessFromStatic_fromComment', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_instanceMemberAccessFromStatic_fromComment);
+      });
+      _ut.test('test_invalidAnnotation_constantVariable', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_invalidAnnotation_constantVariable);
+      });
+      _ut.test('test_invalidAnnotation_importWithPrefix_constConstructor', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_invalidAnnotation_importWithPrefix_constConstructor);
+      });
+      _ut.test('test_invalidAnnotation_importWithPrefix_constantVariable', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_invalidAnnotation_importWithPrefix_constantVariable);
+      });
       _ut.test('test_invalidAssignment', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_invalidAssignment);
@@ -2003,6 +2341,10 @@ class NonErrorResolverTest extends ResolverTestCase {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_invalidTypeArgumentInConstMap);
       });
+      _ut.test('test_invocationOfNonFunction_Object', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_invocationOfNonFunction_Object);
+      });
       _ut.test('test_invocationOfNonFunction_dynamic', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_invocationOfNonFunction_dynamic);
@@ -2014,6 +2356,14 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_invocationOfNonFunction_localVariable', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_invocationOfNonFunction_localVariable);
+      });
+      _ut.test('test_invocationOfNonFunction_localVariable_dynamic', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_invocationOfNonFunction_localVariable_dynamic);
+      });
+      _ut.test('test_invocationOfNonFunction_localVariable_dynamic2', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_invocationOfNonFunction_localVariable_dynamic2);
       });
       _ut.test('test_memberWithClassName_setter', () {
         final __test = new NonErrorResolverTest();
@@ -2251,6 +2601,10 @@ class NonErrorResolverTest extends ResolverTestCase {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_returnOfInvalidType_dynamic);
       });
+      _ut.test('test_returnOfInvalidType_dynamicAsTypeArgument', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_returnOfInvalidType_dynamicAsTypeArgument);
+      });
       _ut.test('test_returnOfInvalidType_subtype', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_returnOfInvalidType_subtype);
@@ -2271,6 +2625,10 @@ class NonErrorResolverTest extends ResolverTestCase {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_returnWithoutValue_void);
       });
+      _ut.test('test_staticAccessToInstanceMember_annotation', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_staticAccessToInstanceMember_annotation);
+      });
       _ut.test('test_staticAccessToInstanceMember_method', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_staticAccessToInstanceMember_method);
@@ -2287,6 +2645,10 @@ class NonErrorResolverTest extends ResolverTestCase {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_superInInvalidContext);
       });
+      _ut.test('test_typeAliasCannotReferenceItself_returnClass_withTypeAlias', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_typeAliasCannotReferenceItself_returnClass_withTypeAlias);
+      });
       _ut.test('test_typeArgumentNotMatchingBounds_const', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_const);
@@ -2294,6 +2656,18 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_typeArgumentNotMatchingBounds_new', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_new);
+      });
+      _ut.test('test_typeArgumentNotMatchingBounds_typeArgumentList_0', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_typeArgumentList_0);
+      });
+      _ut.test('test_typeArgumentNotMatchingBounds_typeArgumentList_1', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_typeArgumentList_1);
+      });
+      _ut.test('test_typeArgumentNotMatchingBounds_typeArgumentList_20', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_typeArgumentList_20);
       });
       _ut.test('test_undefinedConstructorInInitializer_explicit_named', () {
         final __test = new NonErrorResolverTest();
@@ -2343,6 +2717,14 @@ class NonErrorResolverTest extends ResolverTestCase {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_undefinedIdentifier_show);
       });
+      _ut.test('test_undefinedMethod_functionExpression_callMethod', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_undefinedMethod_functionExpression_callMethod);
+      });
+      _ut.test('test_undefinedMethod_functionExpression_directCall', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_undefinedMethod_functionExpression_directCall);
+      });
       _ut.test('test_undefinedMethod_noSuchMethod', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_undefinedMethod_noSuchMethod);
@@ -2358,6 +2740,14 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_undefinedSetter_noSuchMethod', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_undefinedSetter_noSuchMethod);
+      });
+      _ut.test('test_undefinedSuperMethod_field', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_undefinedSuperMethod_field);
+      });
+      _ut.test('test_undefinedSuperMethod_method', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_undefinedSuperMethod_method);
       });
       _ut.test('test_wrongNumberOfParametersForOperator1', () {
         final __test = new NonErrorResolverTest();
@@ -2406,42 +2796,12 @@ class LibraryTest extends EngineTestCase {
     _errorListener = new GatheringErrorListener();
     _library5 = library("/lib.dart");
   }
-  void test_addExport() {
-    Library exportLibrary = library("/exported.dart");
-    _library5.addExport(ASTFactory.exportDirective2("exported.dart", []), exportLibrary);
-    List<Library> exports = _library5.exports;
-    EngineTestCase.assertLength(1, exports);
-    JUnitTestCase.assertSame(exportLibrary, exports[0]);
-    _errorListener.assertNoErrors();
-  }
-  void test_addImport() {
-    Library importLibrary = library("/imported.dart");
-    _library5.addImport(ASTFactory.importDirective2("imported.dart", null, []), importLibrary);
-    List<Library> imports = _library5.imports;
-    EngineTestCase.assertLength(1, imports);
-    JUnitTestCase.assertSame(importLibrary, imports[0]);
-    _errorListener.assertNoErrors();
-  }
   void test_getExplicitlyImportsCore() {
     JUnitTestCase.assertFalse(_library5.explicitlyImportsCore);
     _errorListener.assertNoErrors();
   }
-  void test_getExport() {
-    ExportDirective directive = ASTFactory.exportDirective2("exported.dart", []);
-    Library exportLibrary = library("/exported.dart");
-    _library5.addExport(directive, exportLibrary);
-    JUnitTestCase.assertSame(exportLibrary, _library5.getExport(directive));
-    _errorListener.assertNoErrors();
-  }
   void test_getExports() {
     EngineTestCase.assertLength(0, _library5.exports);
-    _errorListener.assertNoErrors();
-  }
-  void test_getImport() {
-    ImportDirective directive = ASTFactory.importDirective2("imported.dart", null, []);
-    Library importLibrary = library("/imported.dart");
-    _library5.addImport(directive, importLibrary);
-    JUnitTestCase.assertSame(importLibrary, _library5.getImport(directive));
     _errorListener.assertNoErrors();
   }
   void test_getImports() {
@@ -2449,8 +2809,8 @@ class LibraryTest extends EngineTestCase {
     _errorListener.assertNoErrors();
   }
   void test_getImportsAndExports() {
-    _library5.addImport(ASTFactory.importDirective2("imported.dart", null, []), library("/imported.dart"));
-    _library5.addExport(ASTFactory.exportDirective2("exported.dart", []), library("/exported.dart"));
+    _library5.importedLibraries = <Library> [library("/imported.dart")];
+    _library5.exportedLibraries = <Library> [library("/exported.dart")];
     EngineTestCase.assertLength(2, _library5.importsAndExports);
     _errorListener.assertNoErrors();
   }
@@ -2469,6 +2829,22 @@ class LibraryTest extends EngineTestCase {
     JUnitTestCase.assertTrue(_library5.explicitlyImportsCore);
     _errorListener.assertNoErrors();
   }
+  void test_setExportedLibraries() {
+    Library exportLibrary = library("/exported.dart");
+    _library5.exportedLibraries = <Library> [exportLibrary];
+    List<Library> exports = _library5.exports;
+    EngineTestCase.assertLength(1, exports);
+    JUnitTestCase.assertSame(exportLibrary, exports[0]);
+    _errorListener.assertNoErrors();
+  }
+  void test_setImportedLibraries() {
+    Library importLibrary = library("/imported.dart");
+    _library5.importedLibraries = <Library> [importLibrary];
+    List<Library> imports = _library5.imports;
+    EngineTestCase.assertLength(1, imports);
+    JUnitTestCase.assertSame(importLibrary, imports[0]);
+    _errorListener.assertNoErrors();
+  }
   void test_setLibraryElement() {
     LibraryElementImpl element = new LibraryElementImpl(_analysisContext, ASTFactory.libraryIdentifier2(["lib"]));
     _library5.libraryElement = element;
@@ -2477,29 +2853,13 @@ class LibraryTest extends EngineTestCase {
   Library library(String definingCompilationUnitPath) => new Library(_analysisContext, _errorListener, new FileBasedSource.con1(_sourceFactory.contentCache, FileUtilities2.createFile(definingCompilationUnitPath)));
   static dartSuite() {
     _ut.group('LibraryTest', () {
-      _ut.test('test_addExport', () {
-        final __test = new LibraryTest();
-        runJUnitTest(__test, __test.test_addExport);
-      });
-      _ut.test('test_addImport', () {
-        final __test = new LibraryTest();
-        runJUnitTest(__test, __test.test_addImport);
-      });
       _ut.test('test_getExplicitlyImportsCore', () {
         final __test = new LibraryTest();
         runJUnitTest(__test, __test.test_getExplicitlyImportsCore);
       });
-      _ut.test('test_getExport', () {
-        final __test = new LibraryTest();
-        runJUnitTest(__test, __test.test_getExport);
-      });
       _ut.test('test_getExports', () {
         final __test = new LibraryTest();
         runJUnitTest(__test, __test.test_getExports);
-      });
-      _ut.test('test_getImport', () {
-        final __test = new LibraryTest();
-        runJUnitTest(__test, __test.test_getImport);
       });
       _ut.test('test_getImports', () {
         final __test = new LibraryTest();
@@ -2521,6 +2881,14 @@ class LibraryTest extends EngineTestCase {
         final __test = new LibraryTest();
         runJUnitTest(__test, __test.test_setExplicitlyImportsCore);
       });
+      _ut.test('test_setExportedLibraries', () {
+        final __test = new LibraryTest();
+        runJUnitTest(__test, __test.test_setExportedLibraries);
+      });
+      _ut.test('test_setImportedLibraries', () {
+        final __test = new LibraryTest();
+        runJUnitTest(__test, __test.test_setImportedLibraries);
+      });
       _ut.test('test_setLibraryElement', () {
         final __test = new LibraryTest();
         runJUnitTest(__test, __test.test_setLibraryElement);
@@ -2535,22 +2903,10 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
     assertErrors([StaticTypeWarningCode.INACCESSIBLE_SETTER]);
     verify([source]);
   }
-  void fail_nonTypeAsTypeArgument() {
-    Source source = addSource(EngineTestCase.createSource(["int A;", "class B<E> {}", "f(B<A> b) {}"]));
-    resolve(source);
-    assertErrors([StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT]);
-    verify([source]);
-  }
   void fail_redirectWithInvalidTypeParameters() {
     Source source = addSource(EngineTestCase.createSource([]));
     resolve(source);
     assertErrors([StaticTypeWarningCode.REDIRECT_WITH_INVALID_TYPE_PARAMETERS]);
-    verify([source]);
-  }
-  void fail_typeArgumentViolatesBounds() {
-    Source source = addSource(EngineTestCase.createSource([]));
-    resolve(source);
-    assertErrors([StaticTypeWarningCode.TYPE_ARGUMENT_VIOLATES_BOUNDS]);
     verify([source]);
   }
   void test_inconsistentMethodInheritance_paramCount() {
@@ -2658,6 +3014,18 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
     assertErrors([StaticTypeWarningCode.NON_BOOL_EXPRESSION]);
     verify([source]);
   }
+  void test_nonTypeAsTypeArgument_notAType() {
+    Source source = addSource(EngineTestCase.createSource(["int A;", "class B<E> {}", "f(B<A> b) {}"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT]);
+    verify([source]);
+  }
+  void test_nonTypeAsTypeArgument_undefinedIdentifier() {
+    Source source = addSource(EngineTestCase.createSource(["class B<E> {}", "f(B<A> b) {}"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT]);
+    verify([source]);
+  }
   void test_returnOfInvalidType_expressionFunctionBody_function() {
     Source source = addSource(EngineTestCase.createSource(["int f() => '0';"]));
     resolve(source);
@@ -2718,14 +3086,98 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
     assertErrors([StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
     verify([source]);
   }
-  void test_typeArgumentNotMatchingBounds_const() {
-    Source source = addSource(EngineTestCase.createSource(["class A {}", "class B {}", "class G<E extends A> {", "  const G();", "}", "f() { return const G<B>(); }"]));
+  void test_typeArgumentNotMatchingBounds_classTypeAlias() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class B {}", "class C {}", "class G<E extends A> {}", "typedef D = G<B> with C;"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+    verify([source]);
+  }
+  void test_typeArgumentNotMatchingBounds_extends() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class B {}", "class G<E extends A> {}", "class C extends G<B>{}"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+    verify([source]);
+  }
+  void test_typeArgumentNotMatchingBounds_fieldFormalParameter() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class B {}", "class G<E extends A> {}", "class C {", "  var f;", "  C(G<B> this.f) {}", "}"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+    verify([source]);
+  }
+  void test_typeArgumentNotMatchingBounds_functionReturnType() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class B {}", "class G<E extends A> {}", "G<B> f() {}"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+    verify([source]);
+  }
+  void test_typeArgumentNotMatchingBounds_functionTypeAlias() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class B {}", "class G<E extends A> {}", "typedef G<B> f();"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+    verify([source]);
+  }
+  void test_typeArgumentNotMatchingBounds_functionTypedFormalParameter() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class B {}", "class G<E extends A> {}", "f(G<B> h()) {}"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+    verify([source]);
+  }
+  void test_typeArgumentNotMatchingBounds_implements() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class B {}", "class G<E extends A> {}", "class C implements G<B>{}"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+    verify([source]);
+  }
+  void test_typeArgumentNotMatchingBounds_is() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class B {}", "class G<E extends A> {}", "var b = 1 is G<B>;"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+    verify([source]);
+  }
+  void test_typeArgumentNotMatchingBounds_methodReturnType() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class B {}", "class G<E extends A> {}", "class C {", "  G<B> m() {}", "}"]));
     resolve(source);
     assertErrors([StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
     verify([source]);
   }
   void test_typeArgumentNotMatchingBounds_new() {
     Source source = addSource(EngineTestCase.createSource(["class A {}", "class B {}", "class G<E extends A> {}", "f() { return new G<B>(); }"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+    verify([source]);
+  }
+  void test_typeArgumentNotMatchingBounds_new_superTypeOfUpperBound() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class B extends A {}", "class C extends B {}", "class G<E extends B> {}", "f() { return new G<A>(); }"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+    verify([source]);
+  }
+  void test_typeArgumentNotMatchingBounds_parameter() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class B {}", "class G<E extends A> {}", "f(G<B> g) {}"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+    verify([source]);
+  }
+  void test_typeArgumentNotMatchingBounds_typeArgumentList() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class B {}", "class C<E> {}", "class D<E extends A> {}", "C<D<B>> Var;"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+    verify([source]);
+  }
+  void test_typeArgumentNotMatchingBounds_typeParameter() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class B {}", "class C {}", "class G<E extends A> {}", "class D<F extends G<B>> {}"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+    verify([source]);
+  }
+  void test_typeArgumentNotMatchingBounds_variableDeclaration() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class B {}", "class G<E extends A> {}", "G<B> g;"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+    verify([source]);
+  }
+  void test_typeArgumentNotMatchingBounds_with() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class B {}", "class G<E extends A> {}", "class C extends Object with G<B>{}"]));
     resolve(source);
     assertErrors([StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
     verify([source]);
@@ -2798,6 +3250,18 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
   void test_wrongNumberOfTypeArguments_tooMany() {
     Source source = addSource(EngineTestCase.createSource(["class A<E> {}", "A<A, A> a = null;"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
+    verify([source]);
+  }
+  void test_wrongNumberOfTypeArguments_typeTest_tooFew() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C<K, V> {}", "f(p) {", "  return p is C<A>;", "}"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
+    verify([source]);
+  }
+  void test_wrongNumberOfTypeArguments_typeTest_tooMany() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C<E> {}", "f(p) {", "  return p is C<A, A>;", "}"]));
     resolve(source);
     assertErrors([StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
     verify([source]);
@@ -2876,6 +3340,14 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
         final __test = new StaticTypeWarningCodeTest();
         runJUnitTest(__test, __test.test_nonBoolExpression);
       });
+      _ut.test('test_nonTypeAsTypeArgument_notAType', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_nonTypeAsTypeArgument_notAType);
+      });
+      _ut.test('test_nonTypeAsTypeArgument_undefinedIdentifier', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_nonTypeAsTypeArgument_undefinedIdentifier);
+      });
       _ut.test('test_returnOfInvalidType_expressionFunctionBody_function', () {
         final __test = new StaticTypeWarningCodeTest();
         runJUnitTest(__test, __test.test_returnOfInvalidType_expressionFunctionBody_function);
@@ -2916,13 +3388,69 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
         final __test = new StaticTypeWarningCodeTest();
         runJUnitTest(__test, __test.test_returnOfInvalidType_void);
       });
-      _ut.test('test_typeArgumentNotMatchingBounds_const', () {
+      _ut.test('test_typeArgumentNotMatchingBounds_classTypeAlias', () {
         final __test = new StaticTypeWarningCodeTest();
-        runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_const);
+        runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_classTypeAlias);
+      });
+      _ut.test('test_typeArgumentNotMatchingBounds_extends', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_extends);
+      });
+      _ut.test('test_typeArgumentNotMatchingBounds_fieldFormalParameter', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_fieldFormalParameter);
+      });
+      _ut.test('test_typeArgumentNotMatchingBounds_functionReturnType', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_functionReturnType);
+      });
+      _ut.test('test_typeArgumentNotMatchingBounds_functionTypeAlias', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_functionTypeAlias);
+      });
+      _ut.test('test_typeArgumentNotMatchingBounds_functionTypedFormalParameter', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_functionTypedFormalParameter);
+      });
+      _ut.test('test_typeArgumentNotMatchingBounds_implements', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_implements);
+      });
+      _ut.test('test_typeArgumentNotMatchingBounds_is', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_is);
+      });
+      _ut.test('test_typeArgumentNotMatchingBounds_methodReturnType', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_methodReturnType);
       });
       _ut.test('test_typeArgumentNotMatchingBounds_new', () {
         final __test = new StaticTypeWarningCodeTest();
         runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_new);
+      });
+      _ut.test('test_typeArgumentNotMatchingBounds_new_superTypeOfUpperBound', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_new_superTypeOfUpperBound);
+      });
+      _ut.test('test_typeArgumentNotMatchingBounds_parameter', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_parameter);
+      });
+      _ut.test('test_typeArgumentNotMatchingBounds_typeArgumentList', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_typeArgumentList);
+      });
+      _ut.test('test_typeArgumentNotMatchingBounds_typeParameter', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_typeParameter);
+      });
+      _ut.test('test_typeArgumentNotMatchingBounds_variableDeclaration', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_variableDeclaration);
+      });
+      _ut.test('test_typeArgumentNotMatchingBounds_with', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_with);
       });
       _ut.test('test_undefinedFunction', () {
         final __test = new StaticTypeWarningCodeTest();
@@ -2979,6 +3507,14 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
       _ut.test('test_wrongNumberOfTypeArguments_tooMany', () {
         final __test = new StaticTypeWarningCodeTest();
         runJUnitTest(__test, __test.test_wrongNumberOfTypeArguments_tooMany);
+      });
+      _ut.test('test_wrongNumberOfTypeArguments_typeTest_tooFew', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_wrongNumberOfTypeArguments_typeTest_tooFew);
+      });
+      _ut.test('test_wrongNumberOfTypeArguments_typeTest_tooMany', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_wrongNumberOfTypeArguments_typeTest_tooMany);
       });
     });
   }
@@ -3134,7 +3670,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
   }
   void test_visitSimpleFormalParameter_noType() {
     FormalParameter node = ASTFactory.simpleFormalParameter3("p");
-    node.identifier.element = new ParameterElementImpl(ASTFactory.identifier3("p"));
+    node.identifier.element = new ParameterElementImpl.con1(ASTFactory.identifier3("p"));
     JUnitTestCase.assertSame(_typeProvider.dynamicType, resolve6(node, []));
     _listener.assertNoErrors();
   }
@@ -3143,7 +3679,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
     ClassElement intElement = intType.element;
     FormalParameter node = ASTFactory.simpleFormalParameter4(ASTFactory.typeName(intElement, []), "p");
     SimpleIdentifier identifier = node.identifier;
-    ParameterElementImpl element = new ParameterElementImpl(identifier);
+    ParameterElementImpl element = new ParameterElementImpl.con1(identifier);
     identifier.element = element;
     JUnitTestCase.assertSame(intType, resolve6(node, [intElement]));
     _listener.assertNoErrors();
@@ -3193,11 +3729,12 @@ class TypeResolverVisitorTest extends EngineTestCase {
    * Analyze the given catch clause and assert that the types of the parameters have been set to the
    * given types. The types can be null if the catch clause does not have the corresponding
    * parameter.
+   *
    * @param node the catch clause to be analyzed
    * @param exceptionType the expected type of the exception parameter
    * @param stackTraceType the expected type of the stack trace parameter
    * @param definedElements the elements that are to be defined in the scope in which the element is
-   * being resolved
+   *          being resolved
    */
   void resolve(CatchClause node, InterfaceType exceptionType, InterfaceType stackTraceType, List<Element> definedElements) {
     resolveNode(node, definedElements);
@@ -3214,9 +3751,10 @@ class TypeResolverVisitorTest extends EngineTestCase {
   /**
    * Return the type associated with the given parameter after the static type analyzer has computed
    * a type for it.
+   *
    * @param node the parameter with which the type is associated
    * @param definedElements the elements that are to be defined in the scope in which the element is
-   * being resolved
+   *          being resolved
    * @return the type associated with the parameter
    */
   Type2 resolve6(FormalParameter node, List<Element> definedElements) {
@@ -3227,9 +3765,10 @@ class TypeResolverVisitorTest extends EngineTestCase {
   /**
    * Return the element associated with the given identifier after the resolver has resolved the
    * identifier.
+   *
    * @param node the expression to be resolved
    * @param definedElements the elements that are to be defined in the scope in which the element is
-   * being resolved
+   *          being resolved
    * @return the element to which the expression was resolved
    */
   void resolveNode(ASTNode node, List<Element> definedElements) {
@@ -3294,7 +3833,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
 class ResolverTestCase extends EngineTestCase {
 
   /**
-   * The source factory used to create [Source sources].
+   * The source factory used to create [Source].
    */
   SourceFactory _sourceFactory;
 
@@ -3308,6 +3847,7 @@ class ResolverTestCase extends EngineTestCase {
 
   /**
    * Add a source file to the content provider.
+   *
    * @param contents the contents to be returned by the content provider for the specified file
    * @return the source object representing the added file
    */
@@ -3315,6 +3855,7 @@ class ResolverTestCase extends EngineTestCase {
 
   /**
    * Add a source file to the content provider. The file path should be absolute.
+   *
    * @param filePath the path of the file being added
    * @param contents the contents to be returned by the content provider for the specified file
    * @return the source object representing the added file
@@ -3331,9 +3872,10 @@ class ResolverTestCase extends EngineTestCase {
    * Assert that the number of errors that have been gathered matches the number of errors that are
    * given and that they have the expected error codes. The order in which the errors were gathered
    * is ignored.
+   *
    * @param expectedErrorCodes the error codes of the errors that should have been gathered
    * @throws AssertionFailedError if a different number of errors have been gathered than were
-   * expected
+   *           expected
    */
   void assertErrors(List<ErrorCode> expectedErrorCodes) {
     GatheringErrorListener errorListener = new GatheringErrorListener();
@@ -3347,6 +3889,7 @@ class ResolverTestCase extends EngineTestCase {
 
   /**
    * Assert that no errors have been gathered.
+   *
    * @throws AssertionFailedError if any errors have been gathered
    */
   void assertNoErrors() {
@@ -3362,6 +3905,7 @@ class ResolverTestCase extends EngineTestCase {
   /**
    * Cache the source file content in the source factory but don't add the source to the analysis
    * context. The file path should be absolute.
+   *
    * @param filePath the path of the file being cached
    * @param contents the contents to be returned by the content provider for the specified file
    * @return the source object representing the cached file
@@ -3375,6 +3919,7 @@ class ResolverTestCase extends EngineTestCase {
   /**
    * Create a library element that represents a library named `"test"` containing a single
    * empty compilation unit.
+   *
    * @return the library element that was created
    */
   LibraryElementImpl createTestLibrary() => createTestLibrary2(new AnalysisContextImpl(), "test", []);
@@ -3382,6 +3927,7 @@ class ResolverTestCase extends EngineTestCase {
   /**
    * Create a library element that represents a library with the given name containing a single
    * empty compilation unit.
+   *
    * @param libraryName the name of the library to be created
    * @return the library element that was created
    */
@@ -3410,6 +3956,7 @@ class ResolverTestCase extends EngineTestCase {
 
   /**
    * Return a type provider that can be used to test the results of resolution.
+   *
    * @return a type provider
    */
   TypeProvider get typeProvider {
@@ -3431,6 +3978,7 @@ class ResolverTestCase extends EngineTestCase {
    * Given a library and all of its parts, resolve the contents of the library and the contents of
    * the parts. This assumes that the sources for the library and its parts have already been added
    * to the content provider using the method [addSource].
+   *
    * @param librarySource the source for the compilation unit that defines the library
    * @return the element representing the resolved library
    * @throws AnalysisException if the analysis could not be performed
@@ -3439,6 +3987,7 @@ class ResolverTestCase extends EngineTestCase {
 
   /**
    * Return the resolved compilation unit corresponding to the given source in the given library.
+   *
    * @param source the source of the compilation unit to be returned
    * @param library the library in which the compilation unit is to be resolved
    * @return the resolved compilation unit
@@ -3449,8 +3998,9 @@ class ResolverTestCase extends EngineTestCase {
   /**
    * Verify that all of the identifiers in the compilation units associated with the given sources
    * have been resolved.
+   *
    * @param resolvedElementMap a table mapping the AST nodes that have been resolved to the element
-   * to which they were resolved
+   *          to which they were resolved
    * @param sources the sources identifying the compilation units to be verified
    * @throws Exception if the contents of the compilation unit cannot be accessed
    */
@@ -3464,6 +4014,7 @@ class ResolverTestCase extends EngineTestCase {
 
   /**
    * Create a source object representing a file with the given name and give it an empty content.
+   *
    * @param fileName the name of the file for which a source is to be created
    * @return the source that was created
    */
@@ -3489,9 +4040,10 @@ class TypeProviderImplTest extends EngineTestCase {
     InterfaceType mapType = classElement("Map", objectType, ["K", "V"]).type;
     InterfaceType stackTraceType = classElement("StackTrace", objectType, []).type;
     InterfaceType stringType = classElement("String", objectType, []).type;
+    InterfaceType symbolType = classElement("Symbol", objectType, []).type;
     InterfaceType typeType = classElement("Type", objectType, []).type;
     CompilationUnitElementImpl unit = new CompilationUnitElementImpl("lib.dart");
-    unit.types = <ClassElement> [boolType.element, doubleType.element, functionType.element, intType.element, listType.element, mapType.element, objectType.element, stackTraceType.element, stringType.element, typeType.element];
+    unit.types = <ClassElement> [boolType.element, doubleType.element, functionType.element, intType.element, listType.element, mapType.element, objectType.element, stackTraceType.element, stringType.element, symbolType.element, typeType.element];
     LibraryElementImpl library = new LibraryElementImpl(new AnalysisContextImpl(), ASTFactory.libraryIdentifier2(["lib"]));
     library.definingCompilationUnit = unit;
     TypeProviderImpl provider = new TypeProviderImpl(library);
@@ -3506,6 +4058,7 @@ class TypeProviderImplTest extends EngineTestCase {
     JUnitTestCase.assertSame(objectType, provider.objectType);
     JUnitTestCase.assertSame(stackTraceType, provider.stackTraceType);
     JUnitTestCase.assertSame(stringType, provider.stringType);
+    JUnitTestCase.assertSame(symbolType, provider.symbolType);
     JUnitTestCase.assertSame(typeType, provider.typeType);
   }
   ClassElement classElement(String typeName, InterfaceType superclassType, List<String> parameterNames) {
@@ -3858,6 +4411,7 @@ class InheritanceManagerTest extends EngineTestCase {
 
   /**
    * Create the inheritance manager used by the tests.
+   *
    * @return the inheritance manager that was created
    */
   InheritanceManager createInheritanceManager() {
@@ -3999,36 +4553,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors([CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION]);
     verify([source]);
   }
-  void fail_duplicateDefinition() {
-    Source source = addSource(EngineTestCase.createSource(["f() {", "  int m = 0;", "  m(a) {}", "}"]));
-    resolve(source);
-    assertErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
-    verify([source]);
-  }
-  void fail_duplicateMemberError_classMembers_fields() {
-    Source librarySource = addSource(EngineTestCase.createSource(["class A {", "  int a;", "  int a;", "}"]));
-    resolve(librarySource);
-    assertErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
-    verify([librarySource]);
-  }
-  void fail_duplicateMemberError_localFields() {
-    Source librarySource = addSource(EngineTestCase.createSource(["class A {", "  m() {", "    int a;", "    int a;", "  }", "}"]));
-    resolve(librarySource);
-    assertErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
-    verify([librarySource]);
-  }
-  void fail_duplicateMemberName() {
-    Source source = addSource(EngineTestCase.createSource(["class A {", "  int x = 0;", "  int x() {}", "}"]));
-    resolve(source);
-    assertErrors([CompileTimeErrorCode.DUPLICATE_MEMBER_NAME]);
-    verify([source]);
-  }
-  void fail_duplicateMemberNameInstanceStatic() {
-    Source source = addSource(EngineTestCase.createSource(["class A {", "  int x;", "  static int x;", "}"]));
-    resolve(source);
-    assertErrors([CompileTimeErrorCode.DUPLICATE_MEMBER_NAME_INSTANCE_STATIC]);
-    verify([source]);
-  }
   void fail_extendsOrImplementsDisallowedClass_extends_null() {
     Source source = addSource(EngineTestCase.createSource(["class A extends Null {}"]));
     resolve(source);
@@ -4039,12 +4563,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(EngineTestCase.createSource(["class A implements Null {}"]));
     resolve(source);
     assertErrors([CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
-    verify([source]);
-  }
-  void fail_invalidOverrideDefaultValue() {
-    Source source = addSource(EngineTestCase.createSource(["class A {", "  m([a = 0]) {}", "}", "class B extends A {", "  m([a = 1]) {}", "}"]));
-    resolve(source);
-    assertErrors([CompileTimeErrorCode.INVALID_OVERRIDE_DEFAULT_VALUE]);
     verify([source]);
   }
   void fail_mixinDeclaresConstructor() {
@@ -4111,42 +4629,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  final int i;", "}"]));
     resolve(source);
     assertErrors([CompileTimeErrorCode.UNINITIALIZED_FINAL_FIELD]);
-    verify([source]);
-  }
-  void fail_wrongNumberOfTypeArguments_creation_const_tooFew() {
-    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C<K, V> {}", "f(p) {", "  return const C<A>();", "}"]));
-    resolve(source);
-    assertErrors([CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
-    verify([source]);
-  }
-  void fail_wrongNumberOfTypeArguments_creation_const_tooMany() {
-    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C<E> {}", "f(p) {", "  return const C<A, A>();", "}"]));
-    resolve(source);
-    assertErrors([CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
-    verify([source]);
-  }
-  void fail_wrongNumberOfTypeArguments_creation_new_tooFew() {
-    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C<K, V> {}", "f(p) {", "  return new C<A>();", "}"]));
-    resolve(source);
-    assertErrors([CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
-    verify([source]);
-  }
-  void fail_wrongNumberOfTypeArguments_creation_new_tooMany() {
-    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C<E> {}", "f(p) {", "  return new C<A, A>();", "}"]));
-    resolve(source);
-    assertErrors([CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
-    verify([source]);
-  }
-  void fail_wrongNumberOfTypeArguments_typeTest_tooFew() {
-    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C<K, V> {}", "f(p) {", "  return p is C<A>;", "}"]));
-    resolve(source);
-    assertErrors([CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
-    verify([source]);
-  }
-  void fail_wrongNumberOfTypeArguments_typeTest_tooMany() {
-    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C<E> {}", "f(p) {", "  return p is C<A, A>;", "}"]));
-    resolve(source);
-    assertErrors([CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
     verify([source]);
   }
   void test_ambiguousExport() {
@@ -4230,7 +4712,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
   void test_argumentDefinitionTestNonParameter() {
     Source source = addSource(EngineTestCase.createSource(["f() {", " var v = 0;", " return ?v;", "}"]));
     resolve(source);
-    assertErrors([CompileTimeErrorCode.ARGUMENT_DEFINITION_TEST_NON_PARAMETER]);
+    assertErrors([ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST, CompileTimeErrorCode.ARGUMENT_DEFINITION_TEST_NON_PARAMETER]);
     verify([source]);
   }
   void test_builtInIdentifierAsType() {
@@ -4264,7 +4746,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
   void test_caseExpressionTypeImplementsEquals() {
-    Source source = addSource(EngineTestCase.createSource(["class IntWrapper {", "  final int value;", "  const IntWrapper(this.value);", "  bool operator ==(IntWrapper x) {", "    return value == x.value;", "  }", "}", "", "f(IntWrapper a) {", "  switch(a) {", "    case(const IntWrapper(1)) : return 1;", "    default: return 0;", "  }", "}"]));
+    Source source = addSource(EngineTestCase.createSource(["class IntWrapper {", "  final int value;", "  const IntWrapper(this.value);", "  bool operator ==(IntWrapper x) {", "    return value == x.value;", "  }", "}", "", "f(var a) {", "  switch(a) {", "    case(const IntWrapper(1)) : return 1;", "    default: return 0;", "  }", "}"]));
     resolve(source);
     assertErrors([CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
     verify([source]);
@@ -4279,6 +4761,30 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  const A.x();", "  void x() {}", "}"]));
     resolve(source);
     assertErrors([CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD]);
+    verify([source]);
+  }
+  void test_conflictingGetterAndMethod_field_method() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  int m;", "}", "class B extends A {", "  m() {}", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD]);
+    verify([source]);
+  }
+  void test_conflictingGetterAndMethod_getter_method() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  get m => 0;", "}", "class B extends A {", "  m() {}", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD]);
+    verify([source]);
+  }
+  void test_conflictingGetterAndMethod_method_field() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  m() {}", "}", "class B extends A {", "  int m;", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER]);
+    verify([source]);
+  }
+  void test_conflictingGetterAndMethod_method_getter() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  m() {}", "}", "class B extends A {", "  get m => 0;", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER]);
     verify([source]);
   }
   void test_constConstructorWithNonFinalField_mixin() {
@@ -4299,6 +4805,24 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors([CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD]);
     verify([source]);
   }
+  void test_constEval_newInstance_constConstructor() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  const A();", "}", "const a = new A();"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    verify([source]);
+  }
+  void test_constEval_propertyExtraction_methodInstance() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  const A();", "  m() {}", "}", "final a = const A();", "const C = a.m;"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    verify([source]);
+  }
+  void test_constEval_propertyExtraction_methodStatic_targetInstance() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  const A();", "  static m() {}", "}", "final a = const A();", "const C = a.m;"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    verify([source]);
+  }
   void test_constEvalThrowsException_binaryMinus_null() {
     check_constEvalThrowsException_binary_null("null - 5", false);
     check_constEvalThrowsException_binary_null("5 - null", true);
@@ -4306,6 +4830,12 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
   void test_constEvalThrowsException_binaryPlus_null() {
     check_constEvalThrowsException_binary_null("null + 5", false);
     check_constEvalThrowsException_binary_null("5 + null", true);
+  }
+  void test_constEvalThrowsException_divisionByZero() {
+    Source source = addSource("const C = 1 ~/ 0;");
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE]);
+    verify([source]);
   }
   void test_constEvalThrowsException_unaryBitNot_null() {
     Source source = addSource("const C = ~null;");
@@ -4326,6 +4856,12 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
   void test_constEvalTypeBool_binary() {
     check_constEvalTypeBool_withParameter_binary("p && ''");
     check_constEvalTypeBool_withParameter_binary("p || ''");
+  }
+  void test_constEvalTypeBool_binary_leftTrue() {
+    Source source = addSource("const C = (true || 0);");
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, AuditCode.DEAD_CODE]);
+    verify([source]);
   }
   void test_constEvalTypeBoolNumString_equal() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  const A();", "}", "class B {", "  final a;", "  const B(num p) : a = p == const A();", "}"]));
@@ -4400,13 +4936,31 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors([CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS]);
     verify([source]);
   }
+  void test_constWithInvalidTypeParameters_tooFew() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C<K, V> {", "  const C();", "}", "f(p) {", "  return const C<A>();", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS]);
+    verify([source]);
+  }
+  void test_constWithInvalidTypeParameters_tooMany() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C<E> {", "  const C();", "}", "f(p) {", "  return const C<A, A>();", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS]);
+    verify([source]);
+  }
   void test_constWithNonConst() {
     Source source = addSource(EngineTestCase.createSource(["class T {", "  T(a, b, {c, d}) {}", "}", "f() { return const T(0, 1, c: 2, d: 3); }"]));
     resolve(source);
     assertErrors([CompileTimeErrorCode.CONST_WITH_NON_CONST]);
     verify([source]);
   }
-  void test_constWithNonConstantArgument() {
+  void test_constWithNonConstantArgument_annotation() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  const A(int p);", "}", "var v = 42;", "@A(v)", "main() {", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT]);
+    verify([source]);
+  }
+  void test_constWithNonConstantArgument_instanceCreation() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  const A(a);", "}", "f(p) { return const A(p); }"]));
     resolve(source);
     assertErrors([CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT]);
@@ -4417,6 +4971,14 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors([CompileTimeErrorCode.CONST_WITH_NON_TYPE]);
     verify([source]);
+  }
+  void test_constWithNonType_fromLibrary() {
+    Source source1 = addSource2("lib.dart", "");
+    Source source2 = addSource2("lib2.dart", EngineTestCase.createSource(["import 'lib.dart' as lib;", "void f() {", "  const lib.A();", "}"]));
+    resolve(source1);
+    resolve(source2);
+    assertErrors([CompileTimeErrorCode.CONST_WITH_NON_TYPE]);
+    verify([source1]);
   }
   void test_constWithTypeParameters_direct() {
     Source source = addSource(EngineTestCase.createSource(["class A<T> {", "  static const V = const A<T>();", "  const A();", "}"]));
@@ -4459,6 +5021,44 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors([CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT]);
     verify([source]);
   }
+  void test_duplicateDefinition() {
+    Source source = addSource(EngineTestCase.createSource(["f() {", "  int m = 0;", "  m(a) {}", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION, CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+    verify([source]);
+  }
+  void test_duplicateDefinition_acrossLibraries() {
+    Source librarySource = addSource2("/lib.dart", EngineTestCase.createSource(["library lib;", "", "part 'a.dart';", "part 'b.dart';"]));
+    Source sourceA = addSource2("/a.dart", EngineTestCase.createSource(["part of lib;", "", "class A {}"]));
+    Source sourceB = addSource2("/b.dart", EngineTestCase.createSource(["part of lib;", "", "class A {}"]));
+    resolve(librarySource);
+    assertErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+    verify([librarySource, sourceA, sourceB]);
+  }
+  void test_duplicateDefinition_classMembers_fields() {
+    Source librarySource = addSource(EngineTestCase.createSource(["class A {", "  int a;", "  int a;", "}"]));
+    resolve(librarySource);
+    assertErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION, CompileTimeErrorCode.DUPLICATE_DEFINITION, CompileTimeErrorCode.DUPLICATE_DEFINITION, CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+    verify([librarySource]);
+  }
+  void test_duplicateDefinition_classMembers_fields_oneStatic() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  int x;", "  static int x;", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION, CompileTimeErrorCode.DUPLICATE_DEFINITION, CompileTimeErrorCode.DUPLICATE_DEFINITION, CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+    verify([source]);
+  }
+  void test_duplicateDefinition_classMembers_methods() {
+    Source librarySource = addSource(EngineTestCase.createSource(["class A {", "  m() {}", "  m() {}", "}"]));
+    resolve(librarySource);
+    assertErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION, CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+    verify([librarySource]);
+  }
+  void test_duplicateDefinition_localFields() {
+    Source librarySource = addSource(EngineTestCase.createSource(["class A {", "  m() {", "    int a;", "    int a;", "  }", "}"]));
+    resolve(librarySource);
+    assertErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION, CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+    verify([librarySource]);
+  }
   void test_duplicateDefinition_parameterWithFunctionName_local() {
     Source source = addSource(EngineTestCase.createSource(["main() {", "  f(f) {}", "}"]));
     resolve(source);
@@ -4471,19 +5071,17 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION, CompileTimeErrorCode.DUPLICATE_DEFINITION]);
     verify([source]);
   }
-  void test_duplicateMemberError() {
-    Source librarySource = addSource2("/lib.dart", EngineTestCase.createSource(["library lib;", "", "part 'a.dart';", "part 'b.dart';"]));
-    Source sourceA = addSource2("/a.dart", EngineTestCase.createSource(["part of lib;", "", "class A {}"]));
-    Source sourceB = addSource2("/b.dart", EngineTestCase.createSource(["part of lib;", "", "class A {}"]));
-    resolve(librarySource);
-    assertErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
-    verify([librarySource, sourceA, sourceB]);
+  void test_duplicateDefinitionInheritance_instanceMethod_staticMethod() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  x() {}", "}", "class B extends A {", "  static x() {}", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
+    verify([source]);
   }
-  void test_duplicateMemberError_classMembers_methods() {
-    Source librarySource = addSource(EngineTestCase.createSource(["class A {", "  m() {}", "  m() {}", "}"]));
-    resolve(librarySource);
-    assertErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION, CompileTimeErrorCode.DUPLICATE_DEFINITION]);
-    verify([librarySource]);
+  void test_duplicateDefinitionInheritance_instanceMethodAbstract_staticMethod() {
+    Source source = addSource(EngineTestCase.createSource(["abstract class A {", "  x();", "}", "abstract class B extends A {", "  static x() {}", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
+    verify([source]);
   }
   void test_duplicateNamedArgument() {
     Source source = addSource(EngineTestCase.createSource(["f({a, b}) {}", "main() {", "  f(a: 1, a: 2);", "}"]));
@@ -4513,31 +5111,31 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
   void test_extendsOrImplementsDisallowedClass_extends_bool() {
     Source source = addSource(EngineTestCase.createSource(["class A extends bool {}"]));
     resolve(source);
-    assertErrors([CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    assertErrors([CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
     verify([source]);
   }
   void test_extendsOrImplementsDisallowedClass_extends_double() {
     Source source = addSource(EngineTestCase.createSource(["class A extends double {}"]));
     resolve(source);
-    assertErrors([CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    assertErrors([CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
     verify([source]);
   }
   void test_extendsOrImplementsDisallowedClass_extends_int() {
     Source source = addSource(EngineTestCase.createSource(["class A extends int {}"]));
     resolve(source);
-    assertErrors([CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    assertErrors([CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
     verify([source]);
   }
   void test_extendsOrImplementsDisallowedClass_extends_num() {
     Source source = addSource(EngineTestCase.createSource(["class A extends num {}"]));
     resolve(source);
-    assertErrors([CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    assertErrors([CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
     verify([source]);
   }
   void test_extendsOrImplementsDisallowedClass_extends_String() {
     Source source = addSource(EngineTestCase.createSource(["class A extends String {}"]));
     resolve(source);
-    assertErrors([CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    assertErrors([CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
     verify([source]);
   }
   void test_extendsOrImplementsDisallowedClass_implements_bool() {
@@ -4739,6 +5337,12 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors([CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER]);
     verify([source]);
   }
+  void test_implicitThisReferenceInInitializer_field2() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  final x = 0;", "  final y = x;", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER]);
+    verify([source]);
+  }
   void test_implicitThisReferenceInInitializer_invocation() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  var v;", "  A() : v = f();", "  f() {}", "}"]));
     resolve(source);
@@ -4821,6 +5425,69 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  static int x;", "  A([this.x]) {}", "}"]));
     resolve(source);
     assertErrors([CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD]);
+    verify([source]);
+  }
+  void test_instanceMemberAccessFromStatic_field() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  int f;", "  static foo() {", "    f;", "  }", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC]);
+    verify([source]);
+  }
+  void test_instanceMemberAccessFromStatic_getter() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  get g => null;", "  static foo() {", "    g;", "  }", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC]);
+    verify([source]);
+  }
+  void test_instanceMemberAccessFromStatic_method() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  m() {}", "  static foo() {", "    m();", "  }", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC]);
+    verify([source]);
+  }
+  void test_invalidAnnotation_getter() {
+    Source source = addSource(EngineTestCase.createSource(["get V => 0;", "@V", "main() {", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.INVALID_ANNOTATION]);
+    verify([source]);
+  }
+  void test_invalidAnnotation_importWithPrefix_getter() {
+    addSource2("/lib.dart", EngineTestCase.createSource(["library lib;", "get V => 0;"]));
+    Source source = addSource(EngineTestCase.createSource(["import 'lib.dart' as p;", "@p.V", "main() {", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.INVALID_ANNOTATION]);
+    verify([source]);
+  }
+  void test_invalidAnnotation_importWithPrefix_notConstantVariable() {
+    addSource2("/lib.dart", EngineTestCase.createSource(["library lib;", "final V = 0;"]));
+    Source source = addSource(EngineTestCase.createSource(["import 'lib.dart' as p;", "@p.V", "main() {", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.INVALID_ANNOTATION]);
+    verify([source]);
+  }
+  void test_invalidAnnotation_importWithPrefix_notVariableOrConstructorInvocation() {
+    addSource2("/lib.dart", EngineTestCase.createSource(["library lib;", "typedef V();"]));
+    Source source = addSource(EngineTestCase.createSource(["import 'lib.dart' as p;", "@p.V", "main() {", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.INVALID_ANNOTATION]);
+    verify([source]);
+  }
+  void test_invalidAnnotation_notConstantVariable() {
+    Source source = addSource(EngineTestCase.createSource(["final V = 0;", "@V", "main() {", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.INVALID_ANNOTATION]);
+    verify([source]);
+  }
+  void test_invalidAnnotation_notVariableOrConstructorInvocation() {
+    Source source = addSource(EngineTestCase.createSource(["typedef V();", "@V", "main() {", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.INVALID_ANNOTATION]);
+    verify([source]);
+  }
+  void test_invalidAnnotation_staticMethodReference() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  static f() {}", "}", "@A.f", "main() {", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.INVALID_ANNOTATION]);
     verify([source]);
   }
   void test_invalidConstructorName_notEnclosingClassName() {
@@ -5075,6 +5742,54 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors([CompileTimeErrorCode.NEW_WITH_INVALID_TYPE_PARAMETERS]);
     verify([source]);
   }
+  void test_newWithInvalidTypeParameters_tooFew() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C<K, V> {}", "f(p) {", "  return new C<A>();", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.NEW_WITH_INVALID_TYPE_PARAMETERS]);
+    verify([source]);
+  }
+  void test_newWithInvalidTypeParameters_tooMany() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class C<E> {}", "f(p) {", "  return new C<A, A>();", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.NEW_WITH_INVALID_TYPE_PARAMETERS]);
+    verify([source]);
+  }
+  void test_noAnnotationConstructorArguments() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  const A();", "}", "@A", "main() {", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS]);
+    verify([source]);
+  }
+  void test_noDefaultSuperConstructorExplicit() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  A(p);", "}", "class B extends A {", "  B() {}", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT]);
+    verify([source]);
+  }
+  void test_noDefaultSuperConstructorImplicit_superHasParameters() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  A(p);", "}", "class B extends A {", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    verify([source]);
+  }
+  void test_noDefaultSuperConstructorImplicit_superOnlyNamed() {
+    Source source = addSource(EngineTestCase.createSource(["class A { A.named() {} }", "class B extends A {}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    verify([source]);
+  }
+  void test_nonConstantAnnotationConstructor_named() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  A.fromInt() {}", "}", "@A.fromInt()", "main() {", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR]);
+    verify([source]);
+  }
+  void test_nonConstantAnnotationConstructor_unnamed() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  A() {}", "}", "@A()", "main() {", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR]);
+    verify([source]);
+  }
   void test_nonConstantDefaultValue_function_named() {
     Source source = addSource(EngineTestCase.createSource(["int y;", "f({x : y}) {}"]));
     resolve(source);
@@ -5201,6 +5916,12 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors([CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR]);
     verify([source]);
   }
+  void test_nonGenerativeConstructor_implicit2() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  factory A() {}", "}", "class B extends A {", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR]);
+    verify([source]);
+  }
   void test_notEnoughRequiredArguments_const() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  const A(int p);", "}", "main() {", "  const A();", "}"]));
     resolve(source);
@@ -5255,6 +5976,18 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
   void test_privateOptionalParameter() {
+    Source source = addSource(EngineTestCase.createSource(["f({var _p}) {}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER]);
+    verify([source]);
+  }
+  void test_privateOptionalParameter_fieldFormal() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  var _p;", "  A({this._p: 0});", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER]);
+    verify([source]);
+  }
+  void test_privateOptionalParameter_withDefaultValue() {
     Source source = addSource(EngineTestCase.createSource(["f({_p : 0}) {}"]));
     resolve(source);
     assertErrors([CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER]);
@@ -5455,6 +6188,48 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors([CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR]);
     verify([source]);
   }
+  void test_typeAliasCannotReferenceItself_parameterType_named() {
+    Source source = addSource(EngineTestCase.createSource(["typedef A({A a});"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
+    verify([source]);
+  }
+  void test_typeAliasCannotReferenceItself_parameterType_positional() {
+    Source source = addSource(EngineTestCase.createSource(["typedef A([A a]);"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
+    verify([source]);
+  }
+  void test_typeAliasCannotReferenceItself_parameterType_required() {
+    Source source = addSource(EngineTestCase.createSource(["typedef A(A a);"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
+    verify([source]);
+  }
+  void test_typeAliasCannotReferenceItself_returnType() {
+    Source source = addSource(EngineTestCase.createSource(["typedef A A();"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
+    verify([source]);
+  }
+  void test_typeAliasCannotReferenceItself_returnType_indirect() {
+    Source source = addSource(EngineTestCase.createSource(["typedef B A();", "typedef A B();"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
+    verify([source]);
+  }
+  void test_typeAliasCannotReferenceItself_typeVariableBounds() {
+    Source source = addSource(EngineTestCase.createSource(["typedef A<T extends A>();"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
+    verify([source]);
+  }
+  void test_typeArgumentNotMatchingBounds_const() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class B {}", "class G<E extends A> {", "  const G();", "}", "f() { return const G<B>(); }"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+    verify([source]);
+  }
   void test_undefinedClass_const() {
     Source source = addSource(EngineTestCase.createSource(["f() {", "  return const A();", "}"]));
     resolve(source);
@@ -5536,6 +6311,18 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     check_wrongNumberOfParametersForOperator1(">>");
     check_wrongNumberOfParametersForOperator1("[]");
   }
+  void test_wrongNumberOfParametersForSetter_function_named() {
+    Source source = addSource("set x({p}) {}");
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER]);
+    verify([source]);
+  }
+  void test_wrongNumberOfParametersForSetter_function_optional() {
+    Source source = addSource("set x([p]) {}");
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER]);
+    verify([source]);
+  }
   void test_wrongNumberOfParametersForSetter_function_tooFew() {
     Source source = addSource("set x() {}");
     resolve(source);
@@ -5544,6 +6331,18 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
   void test_wrongNumberOfParametersForSetter_function_tooMany() {
     Source source = addSource("set x(a, b) {}");
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER]);
+    verify([source]);
+  }
+  void test_wrongNumberOfParametersForSetter_method_named() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  set x({p}) {}", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER]);
+    verify([source]);
+  }
+  void test_wrongNumberOfParametersForSetter_method_optional() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  set x([p]) {}", "}"]));
     resolve(source);
     assertErrors([CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER]);
     verify([source]);
@@ -5685,6 +6484,22 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_conflictingConstructorNameAndMember_method);
       });
+      _ut.test('test_conflictingGetterAndMethod_field_method', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_conflictingGetterAndMethod_field_method);
+      });
+      _ut.test('test_conflictingGetterAndMethod_getter_method', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_conflictingGetterAndMethod_getter_method);
+      });
+      _ut.test('test_conflictingGetterAndMethod_method_field', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_conflictingGetterAndMethod_method_field);
+      });
+      _ut.test('test_conflictingGetterAndMethod_method_getter', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_conflictingGetterAndMethod_method_getter);
+      });
       _ut.test('test_constConstructorWithNonFinalField_mixin', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_constConstructorWithNonFinalField_mixin);
@@ -5704,6 +6519,10 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
       _ut.test('test_constEvalThrowsException_binaryPlus_null', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_constEvalThrowsException_binaryPlus_null);
+      });
+      _ut.test('test_constEvalThrowsException_divisionByZero', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_constEvalThrowsException_divisionByZero);
       });
       _ut.test('test_constEvalThrowsException_unaryBitNot_null', () {
         final __test = new CompileTimeErrorCodeTest();
@@ -5729,6 +6548,10 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_constEvalTypeBool_binary);
       });
+      _ut.test('test_constEvalTypeBool_binary_leftTrue', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_constEvalTypeBool_binary_leftTrue);
+      });
       _ut.test('test_constEvalTypeInt_binary', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_constEvalTypeInt_binary);
@@ -5736,6 +6559,18 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
       _ut.test('test_constEvalTypeNum_binary', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_constEvalTypeNum_binary);
+      });
+      _ut.test('test_constEval_newInstance_constConstructor', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_constEval_newInstance_constConstructor);
+      });
+      _ut.test('test_constEval_propertyExtraction_methodInstance', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_constEval_propertyExtraction_methodInstance);
+      });
+      _ut.test('test_constEval_propertyExtraction_methodStatic_targetInstance', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_constEval_propertyExtraction_methodStatic_targetInstance);
       });
       _ut.test('test_constFormalParameter_fieldFormalParameter', () {
         final __test = new CompileTimeErrorCodeTest();
@@ -5765,17 +6600,33 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_constWithInvalidTypeParameters);
       });
+      _ut.test('test_constWithInvalidTypeParameters_tooFew', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_constWithInvalidTypeParameters_tooFew);
+      });
+      _ut.test('test_constWithInvalidTypeParameters_tooMany', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_constWithInvalidTypeParameters_tooMany);
+      });
       _ut.test('test_constWithNonConst', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_constWithNonConst);
       });
-      _ut.test('test_constWithNonConstantArgument', () {
+      _ut.test('test_constWithNonConstantArgument_annotation', () {
         final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_constWithNonConstantArgument);
+        runJUnitTest(__test, __test.test_constWithNonConstantArgument_annotation);
+      });
+      _ut.test('test_constWithNonConstantArgument_instanceCreation', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_constWithNonConstantArgument_instanceCreation);
       });
       _ut.test('test_constWithNonType', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_constWithNonType);
+      });
+      _ut.test('test_constWithNonType_fromLibrary', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_constWithNonType_fromLibrary);
       });
       _ut.test('test_constWithTypeParameters_direct', () {
         final __test = new CompileTimeErrorCodeTest();
@@ -5805,6 +6656,38 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_duplicateConstructorName_unnamed);
       });
+      _ut.test('test_duplicateDefinition', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_duplicateDefinition);
+      });
+      _ut.test('test_duplicateDefinitionInheritance_instanceMethodAbstract_staticMethod', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_duplicateDefinitionInheritance_instanceMethodAbstract_staticMethod);
+      });
+      _ut.test('test_duplicateDefinitionInheritance_instanceMethod_staticMethod', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_duplicateDefinitionInheritance_instanceMethod_staticMethod);
+      });
+      _ut.test('test_duplicateDefinition_acrossLibraries', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_duplicateDefinition_acrossLibraries);
+      });
+      _ut.test('test_duplicateDefinition_classMembers_fields', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_duplicateDefinition_classMembers_fields);
+      });
+      _ut.test('test_duplicateDefinition_classMembers_fields_oneStatic', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_duplicateDefinition_classMembers_fields_oneStatic);
+      });
+      _ut.test('test_duplicateDefinition_classMembers_methods', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_duplicateDefinition_classMembers_methods);
+      });
+      _ut.test('test_duplicateDefinition_localFields', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_duplicateDefinition_localFields);
+      });
       _ut.test('test_duplicateDefinition_parameterWithFunctionName_local', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_duplicateDefinition_parameterWithFunctionName_local);
@@ -5812,14 +6695,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
       _ut.test('test_duplicateDefinition_parameterWithFunctionName_topLevel', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_duplicateDefinition_parameterWithFunctionName_topLevel);
-      });
-      _ut.test('test_duplicateMemberError', () {
-        final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_duplicateMemberError);
-      });
-      _ut.test('test_duplicateMemberError_classMembers_methods', () {
-        final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_duplicateMemberError_classMembers_methods);
       });
       _ut.test('test_duplicateNamedArgument', () {
         final __test = new CompileTimeErrorCodeTest();
@@ -5977,6 +6852,10 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_implicitThisReferenceInInitializer_field);
       });
+      _ut.test('test_implicitThisReferenceInInitializer_field2', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_implicitThisReferenceInInitializer_field2);
+      });
       _ut.test('test_implicitThisReferenceInInitializer_invocation', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_implicitThisReferenceInInitializer_invocation);
@@ -6032,6 +6911,46 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
       _ut.test('test_initializingFormalForNonExistantField_static', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_initializingFormalForNonExistantField_static);
+      });
+      _ut.test('test_instanceMemberAccessFromStatic_field', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_instanceMemberAccessFromStatic_field);
+      });
+      _ut.test('test_instanceMemberAccessFromStatic_getter', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_instanceMemberAccessFromStatic_getter);
+      });
+      _ut.test('test_instanceMemberAccessFromStatic_method', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_instanceMemberAccessFromStatic_method);
+      });
+      _ut.test('test_invalidAnnotation_getter', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_invalidAnnotation_getter);
+      });
+      _ut.test('test_invalidAnnotation_importWithPrefix_getter', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_invalidAnnotation_importWithPrefix_getter);
+      });
+      _ut.test('test_invalidAnnotation_importWithPrefix_notConstantVariable', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_invalidAnnotation_importWithPrefix_notConstantVariable);
+      });
+      _ut.test('test_invalidAnnotation_importWithPrefix_notVariableOrConstructorInvocation', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_invalidAnnotation_importWithPrefix_notVariableOrConstructorInvocation);
+      });
+      _ut.test('test_invalidAnnotation_notConstantVariable', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_invalidAnnotation_notConstantVariable);
+      });
+      _ut.test('test_invalidAnnotation_notVariableOrConstructorInvocation', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_invalidAnnotation_notVariableOrConstructorInvocation);
+      });
+      _ut.test('test_invalidAnnotation_staticMethodReference', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_invalidAnnotation_staticMethodReference);
       });
       _ut.test('test_invalidConstructorName_notEnclosingClassName', () {
         final __test = new CompileTimeErrorCodeTest();
@@ -6209,6 +7128,30 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_newWithInvalidTypeParameters);
       });
+      _ut.test('test_newWithInvalidTypeParameters_tooFew', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_newWithInvalidTypeParameters_tooFew);
+      });
+      _ut.test('test_newWithInvalidTypeParameters_tooMany', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_newWithInvalidTypeParameters_tooMany);
+      });
+      _ut.test('test_noAnnotationConstructorArguments', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_noAnnotationConstructorArguments);
+      });
+      _ut.test('test_noDefaultSuperConstructorExplicit', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_noDefaultSuperConstructorExplicit);
+      });
+      _ut.test('test_noDefaultSuperConstructorImplicit_superHasParameters', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_noDefaultSuperConstructorImplicit_superHasParameters);
+      });
+      _ut.test('test_noDefaultSuperConstructorImplicit_superOnlyNamed', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_noDefaultSuperConstructorImplicit_superOnlyNamed);
+      });
       _ut.test('test_nonConstCaseExpression', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_nonConstCaseExpression);
@@ -6261,6 +7204,14 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_nonConstValueInInitializer_super);
       });
+      _ut.test('test_nonConstantAnnotationConstructor_named', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_nonConstantAnnotationConstructor_named);
+      });
+      _ut.test('test_nonConstantAnnotationConstructor_unnamed', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_nonConstantAnnotationConstructor_unnamed);
+      });
       _ut.test('test_nonConstantDefaultValue_function_named', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_nonConstantDefaultValue_function_named);
@@ -6292,6 +7243,10 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
       _ut.test('test_nonGenerativeConstructor_implicit', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_nonGenerativeConstructor_implicit);
+      });
+      _ut.test('test_nonGenerativeConstructor_implicit2', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_nonGenerativeConstructor_implicit2);
       });
       _ut.test('test_notEnoughRequiredArguments_const', () {
         final __test = new CompileTimeErrorCodeTest();
@@ -6328,6 +7283,14 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
       _ut.test('test_privateOptionalParameter', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_privateOptionalParameter);
+      });
+      _ut.test('test_privateOptionalParameter_fieldFormal', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_privateOptionalParameter_fieldFormal);
+      });
+      _ut.test('test_privateOptionalParameter_withDefaultValue', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_privateOptionalParameter_withDefaultValue);
       });
       _ut.test('test_recursiveConstructorRedirect', () {
         final __test = new CompileTimeErrorCodeTest();
@@ -6461,6 +7424,34 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_superInRedirectingConstructor_superRedirection);
       });
+      _ut.test('test_typeAliasCannotReferenceItself_parameterType_named', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_typeAliasCannotReferenceItself_parameterType_named);
+      });
+      _ut.test('test_typeAliasCannotReferenceItself_parameterType_positional', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_typeAliasCannotReferenceItself_parameterType_positional);
+      });
+      _ut.test('test_typeAliasCannotReferenceItself_parameterType_required', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_typeAliasCannotReferenceItself_parameterType_required);
+      });
+      _ut.test('test_typeAliasCannotReferenceItself_returnType', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_typeAliasCannotReferenceItself_returnType);
+      });
+      _ut.test('test_typeAliasCannotReferenceItself_returnType_indirect', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_typeAliasCannotReferenceItself_returnType_indirect);
+      });
+      _ut.test('test_typeAliasCannotReferenceItself_typeVariableBounds', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_typeAliasCannotReferenceItself_typeVariableBounds);
+      });
+      _ut.test('test_typeArgumentNotMatchingBounds_const', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_const);
+      });
       _ut.test('test_undefinedClass_const', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_undefinedClass_const);
@@ -6513,6 +7504,14 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_wrongNumberOfParametersForOperator_tilde);
       });
+      _ut.test('test_wrongNumberOfParametersForSetter_function_named', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_wrongNumberOfParametersForSetter_function_named);
+      });
+      _ut.test('test_wrongNumberOfParametersForSetter_function_optional', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_wrongNumberOfParametersForSetter_function_optional);
+      });
       _ut.test('test_wrongNumberOfParametersForSetter_function_tooFew', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_wrongNumberOfParametersForSetter_function_tooFew);
@@ -6520,6 +7519,14 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
       _ut.test('test_wrongNumberOfParametersForSetter_function_tooMany', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_wrongNumberOfParametersForSetter_function_tooMany);
+      });
+      _ut.test('test_wrongNumberOfParametersForSetter_method_named', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_wrongNumberOfParametersForSetter_method_named);
+      });
+      _ut.test('test_wrongNumberOfParametersForSetter_method_optional', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_wrongNumberOfParametersForSetter_method_optional);
       });
       _ut.test('test_wrongNumberOfParametersForSetter_method_tooFew', () {
         final __test = new CompileTimeErrorCodeTest();
@@ -6664,6 +7671,122 @@ class StaticTypeVerifier extends GeneralizingASTVisitor<Object> {
       }
     }
     return "<unknown file- ASTNode is null>";
+  }
+}
+class AuditCodeTest extends ResolverTestCase {
+  void test_deadCode_deadBlock_conditionalElse() {
+    Source source = addSource(EngineTestCase.createSource(["f() {", "  true ? 1 : 2;", "}"]));
+    resolve(source);
+    assertErrors([AuditCode.DEAD_CODE]);
+    verify([source]);
+  }
+  void test_deadCode_deadBlock_conditionalIf() {
+    Source source = addSource(EngineTestCase.createSource(["f() {", "  false ? 1 : 2;", "}"]));
+    resolve(source);
+    assertErrors([AuditCode.DEAD_CODE]);
+    verify([source]);
+  }
+  void test_deadCode_deadBlock_else() {
+    Source source = addSource(EngineTestCase.createSource(["f() {", "  if(true) {", "  } else {", "  }", "}"]));
+    resolve(source);
+    assertErrors([AuditCode.DEAD_CODE]);
+    verify([source]);
+  }
+  void test_deadCode_deadBlock_if() {
+    Source source = addSource(EngineTestCase.createSource(["f() {", "  if(false) {}", "}"]));
+    resolve(source);
+    assertErrors([AuditCode.DEAD_CODE]);
+    verify([source]);
+  }
+  void test_deadCode_deadBlock_while() {
+    Source source = addSource(EngineTestCase.createSource(["f() {", "  while(false) {}", "}"]));
+    resolve(source);
+    assertErrors([AuditCode.DEAD_CODE]);
+    verify([source]);
+  }
+  void test_deadCode_deadOperandLHS_and() {
+    Source source = addSource(EngineTestCase.createSource(["f(bool b) {", "  bool c = false && b;", "}"]));
+    resolve(source);
+    assertErrors([AuditCode.DEAD_CODE]);
+    verify([source]);
+  }
+  void test_deadCode_deadOperandLHS_or() {
+    Source source = addSource(EngineTestCase.createSource(["f(bool b) {", "  bool c = true || b;", "}"]));
+    resolve(source);
+    assertErrors([AuditCode.DEAD_CODE]);
+    verify([source]);
+  }
+  void test_deadCode_statementAfterReturn_function() {
+    Source source = addSource(EngineTestCase.createSource(["f() {", "  var one = 1;", "  return;", "  var two = 2;", "}"]));
+    resolve(source);
+    assertErrors([AuditCode.DEAD_CODE]);
+    verify([source]);
+  }
+  void test_deadCode_statementAfterReturn_ifStatement() {
+    Source source = addSource(EngineTestCase.createSource(["f(bool b) {", "  if(b) {", "    var one = 1;", "    return;", "    var two = 2;", "  }", "}"]));
+    resolve(source);
+    assertErrors([AuditCode.DEAD_CODE]);
+    verify([source]);
+  }
+  void test_deadCode_statementAfterReturn_method() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  m() {", "    var one = 1;", "    return;", "    var two = 2;", "  }", "}"]));
+    resolve(source);
+    assertErrors([AuditCode.DEAD_CODE]);
+    verify([source]);
+  }
+  void test_deadCode_statementAfterReturn_twoReturns() {
+    Source source = addSource(EngineTestCase.createSource(["f() {", "  var one = 1;", "  return;", "  var two = 2;", "  return;", "  var three = 3;", "}"]));
+    resolve(source);
+    assertErrors([AuditCode.DEAD_CODE]);
+    verify([source]);
+  }
+  static dartSuite() {
+    _ut.group('AuditCodeTest', () {
+      _ut.test('test_deadCode_deadBlock_conditionalElse', () {
+        final __test = new AuditCodeTest();
+        runJUnitTest(__test, __test.test_deadCode_deadBlock_conditionalElse);
+      });
+      _ut.test('test_deadCode_deadBlock_conditionalIf', () {
+        final __test = new AuditCodeTest();
+        runJUnitTest(__test, __test.test_deadCode_deadBlock_conditionalIf);
+      });
+      _ut.test('test_deadCode_deadBlock_else', () {
+        final __test = new AuditCodeTest();
+        runJUnitTest(__test, __test.test_deadCode_deadBlock_else);
+      });
+      _ut.test('test_deadCode_deadBlock_if', () {
+        final __test = new AuditCodeTest();
+        runJUnitTest(__test, __test.test_deadCode_deadBlock_if);
+      });
+      _ut.test('test_deadCode_deadBlock_while', () {
+        final __test = new AuditCodeTest();
+        runJUnitTest(__test, __test.test_deadCode_deadBlock_while);
+      });
+      _ut.test('test_deadCode_deadOperandLHS_and', () {
+        final __test = new AuditCodeTest();
+        runJUnitTest(__test, __test.test_deadCode_deadOperandLHS_and);
+      });
+      _ut.test('test_deadCode_deadOperandLHS_or', () {
+        final __test = new AuditCodeTest();
+        runJUnitTest(__test, __test.test_deadCode_deadOperandLHS_or);
+      });
+      _ut.test('test_deadCode_statementAfterReturn_function', () {
+        final __test = new AuditCodeTest();
+        runJUnitTest(__test, __test.test_deadCode_statementAfterReturn_function);
+      });
+      _ut.test('test_deadCode_statementAfterReturn_ifStatement', () {
+        final __test = new AuditCodeTest();
+        runJUnitTest(__test, __test.test_deadCode_statementAfterReturn_ifStatement);
+      });
+      _ut.test('test_deadCode_statementAfterReturn_method', () {
+        final __test = new AuditCodeTest();
+        runJUnitTest(__test, __test.test_deadCode_statementAfterReturn_method);
+      });
+      _ut.test('test_deadCode_statementAfterReturn_twoReturns', () {
+        final __test = new AuditCodeTest();
+        runJUnitTest(__test, __test.test_deadCode_statementAfterReturn_twoReturns);
+      });
+    });
   }
 }
 /**
@@ -7203,6 +8326,7 @@ class ElementResolverTest extends EngineTestCase {
 
   /**
    * Create the resolver used by the tests.
+   *
    * @return the resolver that was created
    */
   ElementResolver createResolver() {
@@ -7228,6 +8352,7 @@ class ElementResolverTest extends EngineTestCase {
   /**
    * Return the element associated with the label of the given statement after the resolver has
    * resolved the statement.
+   *
    * @param statement the statement to be resolved
    * @param labelElement the label element to be defined in the statement's label scope
    * @return the element to which the statement's label was resolved
@@ -7240,6 +8365,7 @@ class ElementResolverTest extends EngineTestCase {
   /**
    * Return the element associated with the label of the given statement after the resolver has
    * resolved the statement.
+   *
    * @param statement the statement to be resolved
    * @param labelElement the label element to be defined in the statement's label scope
    * @return the element to which the statement's label was resolved
@@ -7252,9 +8378,10 @@ class ElementResolverTest extends EngineTestCase {
   /**
    * Return the element associated with the given identifier after the resolver has resolved the
    * identifier.
+   *
    * @param node the expression to be resolved
    * @param definedElements the elements that are to be defined in the scope in which the element is
-   * being resolved
+   *          being resolved
    * @return the element to which the expression was resolved
    */
   Element resolve4(Identifier node, List<Element> definedElements) {
@@ -7265,9 +8392,10 @@ class ElementResolverTest extends EngineTestCase {
   /**
    * Return the element associated with the given expression after the resolver has resolved the
    * expression.
+   *
    * @param node the expression to be resolved
    * @param definedElements the elements that are to be defined in the scope in which the element is
-   * being resolved
+   *          being resolved
    * @return the element to which the expression was resolved
    */
   Element resolve5(IndexExpression node, List<Element> definedElements) {
@@ -7278,6 +8406,7 @@ class ElementResolverTest extends EngineTestCase {
   /**
    * Return the element associated with the given identifier after the resolver has resolved the
    * identifier.
+   *
    * @param node the expression to be resolved
    * @param enclosingClass the element representing the class enclosing the identifier
    * @return the element to which the expression was resolved
@@ -7302,9 +8431,10 @@ class ElementResolverTest extends EngineTestCase {
   /**
    * Return the element associated with the given identifier after the resolver has resolved the
    * identifier.
+   *
    * @param node the expression to be resolved
    * @param definedElements the elements that are to be defined in the scope in which the element is
-   * being resolved
+   *          being resolved
    * @return the element to which the expression was resolved
    */
   void resolveNode(ASTNode node, List<Element> definedElements) {
@@ -7328,6 +8458,7 @@ class ElementResolverTest extends EngineTestCase {
   /**
    * Return the element associated with the label of the given statement after the resolver has
    * resolved the statement.
+   *
    * @param statement the statement to be resolved
    * @param labelElement the label element to be defined in the statement's label scope
    * @return the element to which the statement's label was resolved
@@ -7814,6 +8945,18 @@ class StaticWarningCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors([StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
+  void test_argumentTypeNotAssignable_annotation_namedConstructor() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  const A.fromInt(int p);", "}", "@A.fromInt('0')", "main() {", "}"]));
+    resolve(source);
+    assertErrors([StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+  void test_argumentTypeNotAssignable_annotation_unnamedConstructor() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  const A(int p);", "}", "@A('0')", "main() {", "}"]));
+    resolve(source);
+    assertErrors([StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
   void test_argumentTypeNotAssignable_binary() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  operator +(int p) {}", "}", "f(A a) {", "  a + '0';", "}"]));
     resolve(source);
@@ -8173,13 +9316,13 @@ class StaticWarningCodeTest extends ResolverTestCase {
     verify([source]);
   }
   void test_instanceMethodNameCollidesWithSuperclassStatic_setter() {
-    Source source = addSource(EngineTestCase.createSource(["class A {", "  int i = 0;", "  static set n(int x) {i = x;}", "}", "class B extends A {", "  void n() {}", "}"]));
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  static set n(int x) {}", "}", "class B extends A {", "  void n() {}", "}"]));
     resolve(source);
     assertErrors([StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC]);
     verify([source]);
   }
   void test_instanceMethodNameCollidesWithSuperclassStatic_setter2() {
-    Source source = addSource(EngineTestCase.createSource(["class A {", "  int i = 0;", "  static set n(int x) {i = x;}", "}", "class B extends A {", "}", "class C extends B {", "  void n() {}", "}"]));
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  static set n(int x) {}", "}", "class B extends A {", "}", "class C extends B {", "  void n() {}", "}"]));
     resolve(source);
     assertErrors([StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC]);
     verify([source]);
@@ -8286,6 +9429,14 @@ class StaticWarningCodeTest extends ResolverTestCase {
     assertErrors([StaticWarningCode.NEW_WITH_NON_TYPE]);
     verify([source]);
   }
+  void test_newWithNonType_fromLibrary() {
+    Source source1 = addSource2("lib.dart", "");
+    Source source2 = addSource2("lib2.dart", EngineTestCase.createSource(["import 'lib.dart' as lib;", "void f() {", "  var a = new lib.A();", "}"]));
+    resolve(source1);
+    resolve(source2);
+    assertErrors([StaticWarningCode.NEW_WITH_NON_TYPE]);
+    verify([source1]);
+  }
   void test_newWithUndefinedConstructor() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  A() {}", "}", "f() {", "  new A.name();", "}"]));
     resolve(source);
@@ -8295,24 +9446,6 @@ class StaticWarningCodeTest extends ResolverTestCase {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  A.name() {}", "}", "f() {", "  new A();", "}"]));
     resolve(source);
     assertErrors([StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT]);
-    verify([source]);
-  }
-  void test_noDefaultSuperConstructorExplicit() {
-    Source source = addSource(EngineTestCase.createSource(["class A {", "  A(p);", "}", "class B extends A {", "  B() {}", "}"]));
-    resolve(source);
-    assertErrors([StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT]);
-    verify([source]);
-  }
-  void test_noDefaultSuperConstructorImplicit_superHasParameters() {
-    Source source = addSource(EngineTestCase.createSource(["class A {", "  A(p);", "}", "class B extends A {", "}"]));
-    resolve(source);
-    assertErrors([StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
-    verify([source]);
-  }
-  void test_noDefaultSuperConstructorImplicit_superOnlyNamed() {
-    Source source = addSource(EngineTestCase.createSource(["class A { A.named() {} }", "class B extends A {}"]));
-    resolve(source);
-    assertErrors([StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
     verify([source]);
   }
   void test_nonAbstractClassInheritsAbstractMemberFivePlus() {
@@ -8458,7 +9591,13 @@ class StaticWarningCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors([StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR]);
   }
-  void test_redirectToNonClass() {
+  void test_redirectToNonClass_notAType() {
+    Source source = addSource(EngineTestCase.createSource(["class B {", "  int A;", "  B() = A;", "}"]));
+    resolve(source);
+    assertErrors([StaticWarningCode.REDIRECT_TO_NON_CLASS]);
+    verify([source]);
+  }
+  void test_redirectToNonClass_undefinedIdentifier() {
     Source source = addSource(EngineTestCase.createSource(["class B {", "  B() = A;", "}"]));
     resolve(source);
     assertErrors([StaticWarningCode.REDIRECT_TO_NON_CLASS]);
@@ -8527,6 +9666,14 @@ class StaticWarningCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors([StaticWarningCode.UNDEFINED_CLASS_BOOLEAN]);
   }
+  void test_undefinedGetter_fromLibrary() {
+    Source source1 = addSource2("lib.dart", "");
+    Source source2 = addSource2("lib2.dart", EngineTestCase.createSource(["import 'lib.dart' as lib;", "void f() {", "  var g = lib.gg;", "}"]));
+    resolve(source1);
+    resolve(source2);
+    assertErrors([StaticWarningCode.UNDEFINED_GETTER]);
+    verify([source1]);
+  }
   void test_undefinedIdentifier_initializer() {
     Source source = addSource(EngineTestCase.createSource(["var a = b;"]));
     resolve(source);
@@ -8556,6 +9703,14 @@ class StaticWarningCodeTest extends ResolverTestCase {
       _ut.test('test_ambiguousImport_typeArgument_annotation', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_ambiguousImport_typeArgument_annotation);
+      });
+      _ut.test('test_argumentTypeNotAssignable_annotation_namedConstructor', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_argumentTypeNotAssignable_annotation_namedConstructor);
+      });
+      _ut.test('test_argumentTypeNotAssignable_annotation_unnamedConstructor', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_argumentTypeNotAssignable_annotation_unnamedConstructor);
       });
       _ut.test('test_argumentTypeNotAssignable_binary', () {
         final __test = new StaticWarningCodeTest();
@@ -8869,6 +10024,10 @@ class StaticWarningCodeTest extends ResolverTestCase {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_newWithNonType);
       });
+      _ut.test('test_newWithNonType_fromLibrary', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_newWithNonType_fromLibrary);
+      });
       _ut.test('test_newWithUndefinedConstructor', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_newWithUndefinedConstructor);
@@ -8876,18 +10035,6 @@ class StaticWarningCodeTest extends ResolverTestCase {
       _ut.test('test_newWithUndefinedConstructorDefault', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_newWithUndefinedConstructorDefault);
-      });
-      _ut.test('test_noDefaultSuperConstructorExplicit', () {
-        final __test = new StaticWarningCodeTest();
-        runJUnitTest(__test, __test.test_noDefaultSuperConstructorExplicit);
-      });
-      _ut.test('test_noDefaultSuperConstructorImplicit_superHasParameters', () {
-        final __test = new StaticWarningCodeTest();
-        runJUnitTest(__test, __test.test_noDefaultSuperConstructorImplicit_superHasParameters);
-      });
-      _ut.test('test_noDefaultSuperConstructorImplicit_superOnlyNamed', () {
-        final __test = new StaticWarningCodeTest();
-        runJUnitTest(__test, __test.test_noDefaultSuperConstructorImplicit_superOnlyNamed);
       });
       _ut.test('test_nonAbstractClassInheritsAbstractMemberFivePlus', () {
         final __test = new StaticWarningCodeTest();
@@ -8985,9 +10132,13 @@ class StaticWarningCodeTest extends ResolverTestCase {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_redirectToMissingConstructor_unnamed);
       });
-      _ut.test('test_redirectToNonClass', () {
+      _ut.test('test_redirectToNonClass_notAType', () {
         final __test = new StaticWarningCodeTest();
-        runJUnitTest(__test, __test.test_redirectToNonClass);
+        runJUnitTest(__test, __test.test_redirectToNonClass_notAType);
+      });
+      _ut.test('test_redirectToNonClass_undefinedIdentifier', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_redirectToNonClass_undefinedIdentifier);
       });
       _ut.test('test_returnWithoutValue', () {
         final __test = new StaticWarningCodeTest();
@@ -9032,6 +10183,10 @@ class StaticWarningCodeTest extends ResolverTestCase {
       _ut.test('test_undefinedClass_variableDeclaration', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_undefinedClass_variableDeclaration);
+      });
+      _ut.test('test_undefinedGetter_fromLibrary', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_undefinedGetter_fromLibrary);
       });
       _ut.test('test_undefinedIdentifier_initializer', () {
         final __test = new StaticWarningCodeTest();
@@ -9155,6 +10310,11 @@ class TestTypeProvider implements TypeProvider {
   InterfaceType _stringType;
 
   /**
+   * The type representing the built-in type 'Symbol'.
+   */
+  InterfaceType _symbolType;
+
+  /**
    * The type representing the built-in type 'Type'.
    */
   InterfaceType _typeType;
@@ -9199,7 +10359,7 @@ class TestTypeProvider implements TypeProvider {
       ClassElementImpl iterableElement = ElementFactory.classElement2("Iterable", ["E"]);
       _iterableType = iterableElement.type;
       Type2 eType = iterableElement.typeVariables[0].type;
-      iterableElement.accessors = <PropertyAccessorElement> [ElementFactory.getterElement("iterator", false, iteratorType.substitute5(<Type2> [eType])), ElementFactory.getterElement("last", false, eType)];
+      iterableElement.accessors = <PropertyAccessorElement> [ElementFactory.getterElement("iterator", false, iteratorType.substitute4(<Type2> [eType])), ElementFactory.getterElement("last", false, eType)];
       propagateTypeArguments(iterableElement);
     }
     return _iterableType;
@@ -9220,8 +10380,8 @@ class TestTypeProvider implements TypeProvider {
       listElement.constructors = <ConstructorElement> [ElementFactory.constructorElement(listElement, null)];
       _listType = listElement.type;
       Type2 eType = listElement.typeVariables[0].type;
-      InterfaceType supertype = iterableType.substitute5(<Type2> [eType]);
-      listElement.supertype = supertype;
+      InterfaceType iterableType = this.iterableType.substitute4(<Type2> [eType]);
+      listElement.interfaces = <InterfaceType> [iterableType];
       listElement.accessors = <PropertyAccessorElement> [ElementFactory.getterElement("length", false, intType)];
       listElement.methods = <MethodElement> [ElementFactory.methodElement("[]", eType, [intType]), ElementFactory.methodElement("[]=", VoidTypeImpl.instance, [intType, eType]), ElementFactory.methodElement("add", VoidTypeImpl.instance, [eType])];
       propagateTypeArguments(listElement);
@@ -9265,10 +10425,16 @@ class TestTypeProvider implements TypeProvider {
     if (_stringType == null) {
       _stringType = ElementFactory.classElement2("String", []).type;
       ClassElementImpl stringElement = _stringType.element as ClassElementImpl;
-      stringElement.accessors = <PropertyAccessorElement> [ElementFactory.getterElement("isEmpty", false, boolType), ElementFactory.getterElement("length", false, intType), ElementFactory.getterElement("codeUnits", false, listType.substitute5(<Type2> [intType]))];
+      stringElement.accessors = <PropertyAccessorElement> [ElementFactory.getterElement("isEmpty", false, boolType), ElementFactory.getterElement("length", false, intType), ElementFactory.getterElement("codeUnits", false, listType.substitute4(<Type2> [intType]))];
       stringElement.methods = <MethodElement> [ElementFactory.methodElement("toLowerCase", _stringType, []), ElementFactory.methodElement("toUpperCase", _stringType, [])];
     }
     return _stringType;
+  }
+  InterfaceType get symbolType {
+    if (_symbolType == null) {
+      _symbolType = ElementFactory.classElement2("Symbol", []).type;
+    }
+    return _symbolType;
   }
   InterfaceType get typeType {
     if (_typeType == null) {
@@ -9306,6 +10472,7 @@ class TestTypeProvider implements TypeProvider {
   /**
    * Given a class element representing a class with type parameters, propagate those type
    * parameters to all of the accessors, methods and constructors defined for the class.
+   *
    * @param classElement the element representing the class with type parameters
    */
   void propagateTypeArguments(ClassElementImpl classElement) {
@@ -9332,6 +10499,7 @@ class AnalysisContextFactory {
 
   /**
    * Create an analysis context that has a fake core library already resolved.
+   *
    * @return the analysis context that was created
    */
   static AnalysisContextImpl contextWithCore() {
@@ -9524,10 +10692,10 @@ class ResolutionVerifier extends RecursiveASTVisitor<Object> {
    * structures that are expected to have been resolved have an element associated with them.
    */
   ResolutionVerifier() {
-    _jtd_constructor_361_impl();
+    _jtd_constructor_366_impl();
   }
-  _jtd_constructor_361_impl() {
-    _jtd_constructor_362_impl(null);
+  _jtd_constructor_366_impl() {
+    _jtd_constructor_367_impl(null);
   }
 
   /**
@@ -9535,13 +10703,14 @@ class ResolutionVerifier extends RecursiveASTVisitor<Object> {
    * structures that are expected to have been resolved have an element associated with them. Nodes
    * in the set of known exceptions are not expected to have been resolved, even if they normally
    * would have been expected to have been resolved.
+   *
    * @param knownExceptions a set containing nodes that are known to not be resolvable and should
-   * therefore not cause the test to fail
-   */
+   *          therefore not cause the test to fail
+   **/
   ResolutionVerifier.con1(Set<ASTNode> knownExceptions2) {
-    _jtd_constructor_362_impl(knownExceptions2);
+    _jtd_constructor_367_impl(knownExceptions2);
   }
-  _jtd_constructor_362_impl(Set<ASTNode> knownExceptions2) {
+  _jtd_constructor_367_impl(Set<ASTNode> knownExceptions2) {
     this._knownExceptions = knownExceptions2;
   }
 
@@ -10031,7 +11200,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     InterfaceType listType = _typeProvider.listType;
     MethodElement methodElement = getMethod(listType, "[]");
     SimpleIdentifier identifier = ASTFactory.identifier3("list");
-    InterfaceType listOfIntType = listType.substitute5(<Type2> [intType]);
+    InterfaceType listOfIntType = listType.substitute4(<Type2> [intType]);
     identifier.staticType = listOfIntType;
     IndexExpression indexExpression = ASTFactory.indexExpression(identifier, ASTFactory.integer(0));
     MethodElement indexMethod = MethodMember.from(methodElement, listOfIntType);
@@ -10045,7 +11214,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     InterfaceType listType = _typeProvider.listType;
     MethodElement methodElement = getMethod(listType, "[]=");
     SimpleIdentifier identifier = ASTFactory.identifier3("list");
-    InterfaceType listOfIntType = listType.substitute5(<Type2> [intType]);
+    InterfaceType listOfIntType = listType.substitute4(<Type2> [intType]);
     identifier.staticType = listOfIntType;
     IndexExpression indexExpression = ASTFactory.indexExpression(identifier, ASTFactory.integer(0));
     MethodElement indexMethod = MethodMember.from(methodElement, listOfIntType);
@@ -10077,7 +11246,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     FunctionTypeImpl constructorType = new FunctionTypeImpl.con1(constructor);
     constructor.type = constructorType;
     TypeName typeName = ASTFactory.typeName(elementC, [ASTFactory.typeName(elementI, [])]);
-    typeName.type = elementC.type.substitute5(<Type2> [elementI.type]);
+    typeName.type = elementC.type.substitute4(<Type2> [elementI.type]);
     InstanceCreationExpression node = ASTFactory.instanceCreationExpression2(null, typeName, []);
     node.element = constructor;
     InterfaceType interfaceType = analyze(node) as InterfaceType;
@@ -10116,25 +11285,25 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   void test_visitListLiteral_empty() {
     Expression node = ASTFactory.listLiteral([]);
     Type2 resultType = analyze(node);
-    assertType2(_typeProvider.listType.substitute5(<Type2> [_typeProvider.dynamicType]), resultType);
+    assertType2(_typeProvider.listType.substitute4(<Type2> [_typeProvider.dynamicType]), resultType);
     _listener.assertNoErrors();
   }
   void test_visitListLiteral_nonEmpty() {
     Expression node = ASTFactory.listLiteral([resolvedInteger(0)]);
     Type2 resultType = analyze(node);
-    assertType2(_typeProvider.listType.substitute5(<Type2> [_typeProvider.dynamicType]), resultType);
+    assertType2(_typeProvider.listType.substitute4(<Type2> [_typeProvider.dynamicType]), resultType);
     _listener.assertNoErrors();
   }
   void test_visitMapLiteral_empty() {
     Expression node = ASTFactory.mapLiteral2([]);
     Type2 resultType = analyze(node);
-    assertType2(_typeProvider.mapType.substitute5(<Type2> [_typeProvider.dynamicType, _typeProvider.dynamicType]), resultType);
+    assertType2(_typeProvider.mapType.substitute4(<Type2> [_typeProvider.dynamicType, _typeProvider.dynamicType]), resultType);
     _listener.assertNoErrors();
   }
   void test_visitMapLiteral_nonEmpty() {
     Expression node = ASTFactory.mapLiteral2([ASTFactory.mapLiteralEntry("k", resolvedInteger(0))]);
     Type2 resultType = analyze(node);
-    assertType2(_typeProvider.mapType.substitute5(<Type2> [_typeProvider.dynamicType, _typeProvider.dynamicType]), resultType);
+    assertType2(_typeProvider.mapType.substitute4(<Type2> [_typeProvider.dynamicType, _typeProvider.dynamicType]), resultType);
     _listener.assertNoErrors();
   }
   void test_visitNamedExpression() {
@@ -10283,6 +11452,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   /**
    * Return the type associated with the given expression after the static type analyzer has
    * computed a type for it.
+   *
    * @param node the expression with which the type is associated
    * @return the type associated with the expression
    */
@@ -10291,6 +11461,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   /**
    * Return the type associated with the given expression after the static type analyzer has
    * computed a type for it.
+   *
    * @param node the expression with which the type is associated
    * @param thisType the type of 'this'
    * @return the type associated with the expression
@@ -10308,6 +11479,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   /**
    * Return the type associated with the given parameter after the static type analyzer has computed
    * a type for it.
+   *
    * @param node the parameter with which the type is associated
    * @return the type associated with the parameter
    */
@@ -10318,6 +11490,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   /**
    * Assert that the actual type is a function type with the expected characteristics.
+   *
    * @param expectedReturnType the expected return type of the function
    * @param expectedNormalTypes the expected types of the normal parameters
    * @param expectedOptionalTypes the expected types of the optional parameters
@@ -10378,6 +11551,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   /**
    * Create the analyzer used by the tests.
+   *
    * @return the analyzer to be used by the tests
    */
   StaticTypeAnalyzer createAnalyzer() {
@@ -10402,6 +11576,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   /**
    * Return an integer literal that has been resolved to the correct type.
+   *
    * @param value the value of the literal
    * @return an integer literal that has been resolved to the correct type
    */
@@ -10413,21 +11588,26 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   /**
    * Create a function expression that has an element associated with it, where the element has an
-   * incomplete type associated with it (just like the one[ElementBuilder#visitFunctionExpression] would have built if we had
+   * incomplete type associated with it (just like the one
+   * [ElementBuilder#visitFunctionExpression] would have built if we had
    * run it).
+   *
    * @param parameters the parameters to the function
    * @param body the body of the function
    * @return a resolved function expression
    */
   FunctionExpression resolvedFunctionExpression(FormalParameterList parameters2, FunctionBody body) {
+    List<ParameterElement> parameterElements = new List<ParameterElement>();
     for (FormalParameter parameter in parameters2.parameters) {
-      ParameterElementImpl element = new ParameterElementImpl(parameter.identifier);
+      ParameterElementImpl element = new ParameterElementImpl.con1(parameter.identifier);
       element.parameterKind = parameter.kind;
       element.type = _typeProvider.dynamicType;
       parameter.identifier.element = element;
+      parameterElements.add(element);
     }
     FunctionExpression node = ASTFactory.functionExpression2(parameters2, body);
     FunctionElementImpl element = new FunctionElementImpl.con1(null);
+    element.parameters = new List.from(parameterElements);
     element.type = new FunctionTypeImpl.con1(element);
     node.element = element;
     return node;
@@ -10435,6 +11615,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   /**
    * Return an integer literal that has been resolved to the correct type.
+   *
    * @param value the value of the literal
    * @return an integer literal that has been resolved to the correct type
    */
@@ -10446,6 +11627,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   /**
    * Return a string literal that has been resolved to the correct type.
+   *
    * @param value the value of the literal
    * @return a string literal that has been resolved to the correct type
    */
@@ -10457,6 +11639,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   /**
    * Return a simple identifier that has been resolved to a variable element with the given type.
+   *
    * @param type the type of the variable being represented
    * @param variableName the name of the variable
    * @return a simple identifier that has been resolved to a variable element with the given type
@@ -10480,6 +11663,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   /**
    * Set the type of the given parameter to the given type.
+   *
    * @param parameter the parameter whose type is to be set
    * @param type the new type of the given parameter
    */
@@ -10487,7 +11671,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     SimpleIdentifier identifier = parameter.identifier;
     Element element = identifier.element;
     if (element is! ParameterElement) {
-      element = new ParameterElementImpl(identifier);
+      element = new ParameterElementImpl.con1(identifier);
       identifier.element = element;
     }
     ((element as ParameterElementImpl)).type = type2;
@@ -10765,7 +11949,7 @@ class EnclosedScopeTest extends ResolverTestCase {
   void test_define_duplicate() {
     LibraryElement definingLibrary2 = createTestLibrary();
     GatheringErrorListener errorListener2 = new GatheringErrorListener();
-    Scope rootScope = new Scope_16(definingLibrary2, errorListener2);
+    Scope rootScope = new Scope_17(definingLibrary2, errorListener2);
     EnclosedScope scope = new EnclosedScope(rootScope);
     VariableElement element1 = ElementFactory.localVariableElement(ASTFactory.identifier3("v1"));
     VariableElement element2 = ElementFactory.localVariableElement(ASTFactory.identifier3("v1"));
@@ -10776,7 +11960,7 @@ class EnclosedScopeTest extends ResolverTestCase {
   void test_define_normal() {
     LibraryElement definingLibrary3 = createTestLibrary();
     GatheringErrorListener errorListener3 = new GatheringErrorListener();
-    Scope rootScope = new Scope_17(definingLibrary3, errorListener3);
+    Scope rootScope = new Scope_18(definingLibrary3, errorListener3);
     EnclosedScope outerScope = new EnclosedScope(rootScope);
     EnclosedScope innerScope = new EnclosedScope(outerScope);
     VariableElement element1 = ElementFactory.localVariableElement(ASTFactory.identifier3("v1"));
@@ -10798,18 +11982,18 @@ class EnclosedScopeTest extends ResolverTestCase {
     });
   }
 }
-class Scope_16 extends Scope {
+class Scope_17 extends Scope {
   LibraryElement definingLibrary2;
   GatheringErrorListener errorListener2;
-  Scope_16(this.definingLibrary2, this.errorListener2) : super();
+  Scope_17(this.definingLibrary2, this.errorListener2) : super();
   LibraryElement get definingLibrary => definingLibrary2;
   AnalysisErrorListener get errorListener => errorListener2;
   Element lookup3(Identifier identifier, String name, LibraryElement referencingLibrary) => null;
 }
-class Scope_17 extends Scope {
+class Scope_18 extends Scope {
   LibraryElement definingLibrary3;
   GatheringErrorListener errorListener3;
-  Scope_17(this.definingLibrary3, this.errorListener3) : super();
+  Scope_18(this.definingLibrary3, this.errorListener3) : super();
   LibraryElement get definingLibrary => definingLibrary3;
   AnalysisErrorListener get errorListener => errorListener3;
   Element lookup3(Identifier identifier, String name, LibraryElement referencingLibrary) => null;
@@ -10817,7 +12001,7 @@ class Scope_17 extends Scope {
 class LibraryElementBuilderTest extends EngineTestCase {
 
   /**
-   * The source factory used to create [Source sources].
+   * The source factory used to create [Source].
    */
   SourceFactory _sourceFactory;
   void setUp() {
@@ -10901,6 +12085,7 @@ class LibraryElementBuilderTest extends EngineTestCase {
 
   /**
    * Add a source file to the content provider. The file path should be absolute.
+   *
    * @param filePath the path of the file being added
    * @param contents the contents to be returned by the content provider for the specified file
    * @return the source object representing the added file
@@ -10913,6 +12098,7 @@ class LibraryElementBuilderTest extends EngineTestCase {
 
   /**
    * Ensure that there are elements representing all of the types in the given array of type names.
+   *
    * @param unit the compilation unit containing the types
    * @param typeNames the names of the types that should be found
    */
@@ -10937,9 +12123,10 @@ class LibraryElementBuilderTest extends EngineTestCase {
 
   /**
    * Build the element model for the library whose defining compilation unit has the given source.
+   *
    * @param librarySource the source of the defining compilation unit for the library
    * @param expectedErrorCodes the errors that are expected to be found while building the element
-   * model
+   *          model
    * @return the element model that was built for the library
    * @throws Exception if the element model could not be built
    */
@@ -11407,10 +12594,11 @@ class SimpleResolverTest extends ResolverTestCase {
    * which the argument expression was resolved is the parameter in the invoked method's list of
    * parameters at that index. Arguments that should not be resolved to a parameter because of an
    * error can be denoted by including a negative index in the array of indices.
+   *
    * @param source the source to be resolved
    * @param indices the array of indices used to associate arguments with parameters
    * @throws Exception if the source could not be resolved or if the structure of the source is not
-   * valid
+   *           valid
    */
   void validateArgumentResolution(Source source, List<int> indices) {
     LibraryElement library = resolve(source);
@@ -11632,6 +12820,7 @@ main() {
 //  LibraryImportScopeTest.dartSuite();
 //  LibraryScopeTest.dartSuite();
 //  ScopeTest.dartSuite();
+//  AuditCodeTest.dartSuite();
 //  CompileTimeErrorCodeTest.dartSuite();
 //  ErrorResolverTest.dartSuite();
 //  NonErrorResolverTest.dartSuite();

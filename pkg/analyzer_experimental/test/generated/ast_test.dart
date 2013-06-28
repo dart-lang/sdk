@@ -388,6 +388,13 @@ class ASTFactory {
   static SwitchDefault switchDefault(List<Label> labels, List<Statement> statements) => new SwitchDefault.full(labels, TokenFactory.token(Keyword.DEFAULT), TokenFactory.token3(TokenType.COLON), list(statements));
   static SwitchDefault switchDefault2(List<Statement> statements) => switchDefault(new List<Label>(), statements);
   static SwitchStatement switchStatement(Expression expression, List<SwitchMember> members) => new SwitchStatement.full(TokenFactory.token(Keyword.SWITCH), TokenFactory.token3(TokenType.OPEN_PAREN), expression, TokenFactory.token3(TokenType.CLOSE_PAREN), TokenFactory.token3(TokenType.OPEN_CURLY_BRACKET), list(members), TokenFactory.token3(TokenType.CLOSE_CURLY_BRACKET));
+  static SymbolLiteral symbolLiteral(List<String> components) {
+    List<SimpleIdentifier> identifierList = new List<SimpleIdentifier>();
+    for (String component in components) {
+      identifierList.add(identifier3(component));
+    }
+    return new SymbolLiteral.full(TokenFactory.token3(TokenType.HASH), identifierList);
+  }
   static ThisExpression thisExpression() => new ThisExpression.full(TokenFactory.token(Keyword.THIS));
   static ThrowExpression throwExpression() => throwExpression2(null);
   static ThrowExpression throwExpression2(Expression expression) => new ThrowExpression.full(TokenFactory.token(Keyword.THROW), expression);
@@ -404,6 +411,7 @@ class ASTFactory {
    * resolved to the type of the given element.
    *
    * <b>Note:</b> This method does not correctly handle class elements that have type parameters.
+   *
    * @param element the element defining the type represented by the type name
    * @return the type name that was created
    */
@@ -594,6 +602,7 @@ class SimpleIdentifierTest extends ParserTestCase {
 
   /**
    * Return the top-most node in the AST structure containing the given identifier.
+   *
    * @param identifier the identifier in the AST structure being traversed
    * @return the root of the AST structure containing the identifier
    */
@@ -735,7 +744,7 @@ class BreadthFirstVisitorTest extends ParserTestCase {
     String source = EngineTestCase.createSource(["class A {", "  bool get g => true;", "}", "class B {", "  int f() {", "    num q() {", "      return 3;", "    }", "  return q() + 4;", "  }", "}", "A f(var p) {", "  if ((p as A).g) {", "    return p;", "  } else {", "    return null;", "  }", "}"]);
     CompilationUnit unit = ParserTestCase.parseCompilationUnit(source, []);
     List<ASTNode> nodes = new List<ASTNode>();
-    BreadthFirstVisitor<Object> visitor = new BreadthFirstVisitor_14(nodes);
+    BreadthFirstVisitor<Object> visitor = new BreadthFirstVisitor_15(nodes);
     visitor.visitAllNodes(unit);
     EngineTestCase.assertSize(59, nodes);
     EngineTestCase.assertInstanceOf(CompilationUnit, nodes[0]);
@@ -753,9 +762,9 @@ class BreadthFirstVisitorTest extends ParserTestCase {
     });
   }
 }
-class BreadthFirstVisitor_14 extends BreadthFirstVisitor<Object> {
+class BreadthFirstVisitor_15 extends BreadthFirstVisitor<Object> {
   List<ASTNode> nodes;
-  BreadthFirstVisitor_14(this.nodes) : super();
+  BreadthFirstVisitor_15(this.nodes) : super();
   Object visitNode(ASTNode node) {
     nodes.add(node);
     return super.visitNode(node);
@@ -1858,6 +1867,12 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitSwitchStatement() {
     assertSource("switch (a) {case 'b': {} default: {}}", ASTFactory.switchStatement(ASTFactory.identifier3("a"), [ASTFactory.switchCase(ASTFactory.string2("b"), [ASTFactory.block([])]), ASTFactory.switchDefault2([ASTFactory.block([])])]));
   }
+  void test_visitSymbolLiteral_multiple() {
+    assertSource("#a.b.c", ASTFactory.symbolLiteral(["a", "b", "c"]));
+  }
+  void test_visitSymbolLiteral_single() {
+    assertSource("#a", ASTFactory.symbolLiteral(["a"]));
+  }
   void test_visitThisExpression() {
     assertSource("this", ASTFactory.thisExpression());
   }
@@ -1952,6 +1967,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   /**
    * Assert that a `ToSourceVisitor` will produce the expected source when visiting the given
    * node.
+   *
    * @param expectedSource the source string that the visitor is expected to produce
    * @param node the AST node being visited to produce the actual source
    * @throws AFE if the visitor does not produce the expected source for the given node
@@ -2810,6 +2826,14 @@ class ToSourceVisitorTest extends EngineTestCase {
       _ut.test('test_visitSwitchStatement', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitSwitchStatement);
+      });
+      _ut.test('test_visitSymbolLiteral_multiple', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitSymbolLiteral_multiple);
+      });
+      _ut.test('test_visitSymbolLiteral_single', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitSymbolLiteral_single);
       });
       _ut.test('test_visitThisExpression', () {
         final __test = new ToSourceVisitorTest();
