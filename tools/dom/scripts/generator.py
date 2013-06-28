@@ -511,9 +511,9 @@ _serialize_SSV = Conversion('convertDartToNative_SerializedScriptValue',
 
 dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
     'Date get':
-      Conversion('_convertNativeToDart_DateTime', 'dynamic', 'DateTime'),
+      Conversion('convertNativeToDart_DateTime', 'dynamic', 'DateTime'),
     'Date set':
-      Conversion('_convertDartToNative_DateTime', 'DateTime', 'dynamic'),
+      Conversion('convertDartToNative_DateTime', 'DateTime', 'dynamic'),
     # Wrap non-local Windows.  We need to check EventTarget (the base type)
     # as well.  Note, there are no functions that take a non-local Window
     # as a parameter / setter.

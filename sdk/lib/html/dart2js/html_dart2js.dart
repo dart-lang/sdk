@@ -10243,7 +10243,7 @@ class FieldSetElement extends _HTMLElement native "HTMLFieldSetElement" {
 @DomName('File')
 class File extends Blob native "File" {
 
-  DateTime get lastModifiedDate => _convertNativeToDart_DateTime(this._get_lastModifiedDate);
+  DateTime get lastModifiedDate => convertNativeToDart_DateTime(this._get_lastModifiedDate);
   @JSName('lastModifiedDate')
   @DomName('File.lastModifiedDate')
   @DocsEditable
@@ -12711,7 +12711,7 @@ class InputElement extends _HTMLElement implements
   @DocsEditable
   String value;
 
-  DateTime get valueAsDate => _convertNativeToDart_DateTime(this._get_valueAsDate);
+  DateTime get valueAsDate => convertNativeToDart_DateTime(this._get_valueAsDate);
   @JSName('valueAsDate')
   @DomName('HTMLInputElement.valueAsDate')
   @DocsEditable
@@ -12719,7 +12719,7 @@ class InputElement extends _HTMLElement implements
   final dynamic _get_valueAsDate;
 
   void set valueAsDate(DateTime value) {
-    this._set_valueAsDate = _convertDartToNative_DateTime(value);
+    this._set_valueAsDate = convertDartToNative_DateTime(value);
   }
   void set _set_valueAsDate(/*dynamic*/ value) {
     JS("void", "#.valueAsDate = #", this, value);
@@ -15215,7 +15215,7 @@ class MetaElement extends _HTMLElement native "HTMLMetaElement" {
 @Experimental
 class Metadata native "Metadata" {
 
-  DateTime get modificationTime => _convertNativeToDart_DateTime(this._get_modificationTime);
+  DateTime get modificationTime => convertNativeToDart_DateTime(this._get_modificationTime);
   @JSName('modificationTime')
   @DomName('Metadata.modificationTime')
   @DocsEditable
@@ -19029,7 +19029,7 @@ class RtcStatsReport native "RTCStatsReport" {
   @DocsEditable
   final RtcStatsReport remote;
 
-  DateTime get timestamp => _convertNativeToDart_DateTime(this._get_timestamp);
+  DateTime get timestamp => convertNativeToDart_DateTime(this._get_timestamp);
   @JSName('timestamp')
   @DomName('RTCStatsReport.timestamp')
   @DocsEditable
@@ -28533,15 +28533,6 @@ class _WrappedIterator<E> implements Iterator<E> {
 // We omit an unwrapper for Window as no methods take a non-local
 // window as a parameter.
 
-
-DateTime _convertNativeToDart_DateTime(date) {
-  var millisSinceEpoch = JS('int', '#.getTime()', date);
-  return new DateTime.fromMillisecondsSinceEpoch(millisSinceEpoch, isUtc: true);
-}
-
-_convertDartToNative_DateTime(DateTime date) {
-  return JS('', 'new Date(#)', date.millisecondsSinceEpoch);
-}
 
 WindowBase _convertNativeToDart_Window(win) {
   if (win == null) return null;

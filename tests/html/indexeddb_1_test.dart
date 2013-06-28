@@ -104,20 +104,16 @@ testReadWriteTyped(key, value, matcher,
     });
 };
 
-tests_dynamic() {
-  test('test1', testReadWrite(123, 'Hoot!', equals('Hoot!')));
-  test('test2', testReadWrite(123, 12345, equals(12345)));
-  test('test3', testReadWrite(123, [1, 2, 3], equals([1, 2, 3])));
-  test('test4', testReadWrite(123, [2, 3, 4], equals([2, 3, 4])));
-  test('test4', testReadWrite(123, false, equals(false)));
-}
-
-tests_typed() {
-  test('test1', testReadWriteTyped(123, 'Hoot!', equals('Hoot!')));
-  test('test2', testReadWriteTyped(123, 12345, equals(12345)));
-  test('test3', testReadWriteTyped(123, [1, 2, 3], equals([1, 2, 3])));
-  test('test4', testReadWriteTyped(123, [2, 3, 4], equals([2, 3, 4])));
-  test('test4', testReadWriteTyped(123, false, equals(false)));
+void testTypes(testFunction) {
+  test('String', testFunction(123, 'Hoot!', equals('Hoot!')));
+  test('int', testFunction(123, 12345, equals(12345)));
+  test('List', testFunction(123, [1, 2, 3], equals([1, 2, 3])));
+  test('List 2', testFunction(123, [2, 3, 4], equals([2, 3, 4])));
+  test('bool', testFunction(123, [true, false], equals([true, false])));
+  var now = new DateTime.now();
+  test('DateTime', testFunction(123, now,
+    predicate((date) =>
+      date.millisecondsSinceEpoch == now.millisecondsSinceEpoch)));
 }
 
 main() {
@@ -151,8 +147,12 @@ main() {
     // Don't bother with these tests if it's unsupported.
     if (idb.IdbFactory.supported) {
       test('upgrade', testUpgrade);
-      tests_dynamic();
-      tests_typed();
+      group('dynamic', () {
+        testTypes(testReadWrite);
+      });
+      group('typed', () {
+        testTypes(testReadWriteTyped);
+      });
     }
   });
 }
