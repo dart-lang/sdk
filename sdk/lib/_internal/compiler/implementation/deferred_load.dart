@@ -54,26 +54,7 @@ class DeferredLoadTask extends CompilerTask {
   String get name => 'Deferred Loading';
 
   /// DeferredLibrary from dart:async
-  ClassElement get deferredLibraryClass {
-    if (cachedDeferredLibraryClass == null) {
-      cachedDeferredLibraryClass = findDeferredLibraryClass();
-    }
-    return cachedDeferredLibraryClass;
-  }
-
-  ClassElement findDeferredLibraryClass() {
-    var uri = new Uri(scheme: 'dart', path: 'async');
-    LibraryElement asyncLibrary =
-        compiler.libraryLoader.loadLibrary(uri, null, uri);
-    var element = asyncLibrary.find(const SourceString('DeferredLibrary'));
-    if (element == null) {
-      compiler.internalErrorOnElement(
-          asyncLibrary,
-          'dart:async library does not contain required class: '
-          'DeferredLibrary');
-    }
-    return element;
-  }
+  ClassElement get deferredLibraryClass => compiler.deferredLibraryClass;
 
   bool isDeferred(Element element) {
     element = element.implementation;
