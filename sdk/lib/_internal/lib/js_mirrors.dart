@@ -79,6 +79,9 @@ class JsMirrorSystem implements MirrorSystem {
     }
     return result;
   }
+
+  // TODO(ahe): Implement this.
+  IsolateMirror get isolate => throw new UnimplementedError();
 }
 
 abstract class JsMirror {
@@ -87,6 +90,9 @@ abstract class JsMirror {
   abstract String get _prettyName;
 
   String toString() => _prettyName;
+
+  // TODO(ahe): Remove this method from the API.
+  MirrorSystem get mirrors => currentJsMirrorSystem;
 }
 
 abstract class JsDeclarationMirror extends JsMirror
@@ -102,6 +108,9 @@ abstract class JsDeclarationMirror extends JsMirror
   bool get isTopLevel => owner != null && owner is LibraryMirror;
 
   String toString() => "$_prettyName on '${n(simpleName)}'";
+
+  // TODO(ahe): Implement this.
+  SourceLocation get location => throw new UnimplementedError();
 }
 
 class JsTypeMirror extends JsDeclarationMirror implements TypeMirror {
@@ -114,6 +123,9 @@ class JsTypeMirror extends JsDeclarationMirror implements TypeMirror {
 
   // TODO(ahe): Doesn't match the specification, see http://dartbug.com/11569.
   bool get isTopLevel => true;
+
+  // TODO(ahe): Implement this.
+  List<InstanceMirror> get metadata => throw new UnimplementedError();
 }
 
 class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
@@ -223,6 +235,14 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
     preserveMetadata();
     return _metadata.map(reflect).toList();
   }
+
+  // TODO(ahe): Implement these.
+  DeclarationMirror get owner => throw new UnimplementedError();
+  InstanceMirror invoke(Symbol memberName,
+                        List positionalArguments,
+                        [Map<Symbol,dynamic> namedArguments]) {
+    throw new UnimplementedError();
+  }
 }
 
 String n(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
@@ -301,6 +321,13 @@ abstract class JsObjectMirror implements ObjectMirror {
   Future<InstanceMirror> getFieldAsync(Symbol fieldName) {
     return new Future<InstanceMirror>(() => this.getField(fieldName));
   }
+
+  Future<InstanceMirror> invokeAsync(Symbol memberName,
+                                     List positionalArguments,
+                                     [Map<Symbol, dynamic> namedArguments]) {
+    return new Future<InstanceMirror>(
+        () => this.invoke(memberName, positionalArguments, namedArguments));
+  }
 }
 
 class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
@@ -368,6 +395,9 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
   }
 
   String toString() => 'InstanceMirror on ${Error.safeToString(reflectee)}';
+
+  // TODO(ahe): Remove this method from the API.
+  MirrorSystem get mirrors => currentJsMirrorSystem;
 }
 
 class JsClassMirror extends JsTypeMirror with JsObjectMirror
@@ -593,6 +623,21 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     }
     return _superclass == this ? null : _superclass;
   }
+
+  // TODO(ahe): Implement these;
+  InstanceMirror invoke(Symbol memberName,
+                        List positionalArguments,
+                        [Map<Symbol,dynamic> namedArguments]) {
+    throw new UnimplementedError();
+  }
+  List<ClassMirror> get superinterfaces => throw new UnimplementedError();
+  Map<Symbol, TypeVariableMirror> get typeVariables
+      => throw new UnimplementedError();
+  Map<Symbol, TypeMirror> get typeArguments => throw new UnimplementedError();
+  bool get isOriginalDeclaration => throw new UnimplementedError();
+  ClassMirror get originalDeclaration => throw new UnimplementedError();
+  bool get isClass => throw new UnimplementedError();
+  ClassMirror get defaultFactory => throw new UnimplementedError();
 }
 
 class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
@@ -703,6 +748,11 @@ function(reflectee) {
   }
 
   String toString() => "ClosureMirror on '${Error.safeToString(reflectee)}'";
+
+  // TODO(ahe): Implement these.
+  String get source => throw new UnimplementedError();
+  Future<InstanceMirror> findInContext(Symbol name)
+      => throw new UnimplementedError();
 }
 
 class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
@@ -783,6 +833,16 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
     }
     return _metadata.map(reflect).toList();
   }
+
+  // TODO(ahe): Implement these.
+  bool get isAbstract => throw new UnimplementedError();
+  bool get isRegularMethod => throw new UnimplementedError();
+  bool get isOperator => throw new UnimplementedError();
+  Symbol get constructorName => throw new UnimplementedError();
+  bool get isConstConstructor => throw new UnimplementedError();
+  bool get isGenerativeConstructor => throw new UnimplementedError();
+  bool get isRedirectingConstructor => throw new UnimplementedError();
+  bool get isFactoryConstructor => throw new UnimplementedError();
 }
 
 class JsParameterMirror extends JsDeclarationMirror implements ParameterMirror {
