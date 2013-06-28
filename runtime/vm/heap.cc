@@ -19,6 +19,7 @@
 #include "vm/stack_frame.h"
 #include "vm/verifier.h"
 #include "vm/virtual_memory.h"
+#include "vm/weak_table.h"
 
 namespace dart {
 
@@ -35,7 +36,13 @@ DEFINE_FLAG(int, old_gen_heap_size, Heap::kHeapSizeInMB,
             "old gen heap size in MB,"
             "e.g: --old_gen_heap_size=1024 allocates a 1024MB old gen heap");
 
-Heap::Heap() : read_only_(false), gc_in_progress_(false) {
+  Heap::Heap() : read_only_(false), gc_in_progress_(false) {
+  for (WeakSelector sel = static_cast<WeakSelector>(0);
+       sel < kNumWeakSelectors;
+       sel++) {
+    new_weak_tables_[sel] = new WeakTable(0);
+    old_weak_tables_[sel] = new WeakTable(0);
+  }
   new_space_ = new Scavenger(this,
                              (FLAG_new_gen_heap_size * MB),
                              kNewObjectAlignmentOffset);
@@ -360,27 +367,33 @@ const char* Heap::GCReasonToString(GCReason gc_reason) {
 }
 
 
-void Heap::SetPeer(RawObject* raw_obj, void* peer) {
-  if (raw_obj->IsNewObject()) {
-    new_space_->SetPeer(raw_obj, peer);
-  } else {
-    ASSERT(raw_obj->IsOldObject());
-    old_space_->SetPeer(raw_obj, peer);
-  }
+int64_t Heap::PeerCount() const {
+  return new_weak_tables_[kPeers]->count() + old_weak_tables_[kPeers]->count();
 }
 
 
-void* Heap::GetPeer(RawObject* raw_obj) {
+int64_t Heap::HashCount() const {
+  return
+      new_weak_tables_[kHashes]->count() + old_weak_tables_[kHashes]->count();
+}
+
+
+intptr_t Heap::GetWeakEntry(RawObject* raw_obj, WeakSelector sel) const {
   if (raw_obj->IsNewObject()) {
-    return new_space_->GetPeer(raw_obj);
+    return new_weak_tables_[sel]->GetValue(raw_obj);
   }
   ASSERT(raw_obj->IsOldObject());
-  return old_space_->GetPeer(raw_obj);
+  return old_weak_tables_[sel]->GetValue(raw_obj);
 }
 
 
-int64_t Heap::PeerCount() const {
-  return new_space_->PeerCount() + old_space_->PeerCount();
+void Heap::SetWeakEntry(RawObject* raw_obj, WeakSelector sel, intptr_t val) {
+  if (raw_obj->IsNewObject()) {
+    new_weak_tables_[sel] = new_weak_tables_[sel]->SetValue(raw_obj, val);
+  } else {
+    ASSERT(raw_obj->IsOldObject());
+    old_weak_tables_[sel] = old_weak_tables_[sel]->SetValue(raw_obj, val);
+  }
 }
 
 

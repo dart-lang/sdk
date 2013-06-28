@@ -16,6 +16,7 @@
 #include "vm/store_buffer.h"
 #include "vm/verifier.h"
 #include "vm/visitor.h"
+#include "vm/weak_table.h"
 
 namespace dart {
 
@@ -556,19 +557,26 @@ uword Scavenger::ProcessWeakProperty(RawWeakProperty* raw_weak,
 }
 
 
-void Scavenger::ProcessPeerReferents() {
-  PeerTable prev;
-  std::swap(prev, peer_table_);
-  for (PeerTable::iterator it = prev.begin(); it != prev.end(); ++it) {
-    RawObject* raw_obj = it->first;
-    ASSERT(raw_obj->IsHeapObject());
-    uword raw_addr = RawObject::ToAddr(raw_obj);
-    uword header = *reinterpret_cast<uword*>(raw_addr);
-    if (IsForwarding(header)) {
-      // The object has survived.  Preserve its record.
-      uword new_addr = ForwardedAddr(header);
-      raw_obj = RawObject::FromAddr(new_addr);
-      heap_->SetPeer(raw_obj, it->second);
+void Scavenger::ProcessWeakTables() {
+  for (Heap::WeakSelector sel = static_cast<Heap::WeakSelector>(0);
+       sel < Heap::kNumWeakSelectors;
+       sel++) {
+    WeakTable* table = heap_->GetWeakTable(Heap::kNew, sel);
+    intptr_t size = table->size();
+    heap_->SetWeakTable(Heap::kNew, sel, WeakTable::NewFrom(table));
+    for (intptr_t i = 0; i < size; i++) {
+      if (table->IsValidEntryAt(i)) {
+        RawObject* raw_obj = table->ObjectAt(i);
+        ASSERT(raw_obj->IsHeapObject());
+        uword raw_addr = RawObject::ToAddr(raw_obj);
+        uword header = *reinterpret_cast<uword*>(raw_addr);
+        if (IsForwarding(header)) {
+          // The object has survived.  Preserve its record.
+          uword new_addr = ForwardedAddr(header);
+          raw_obj = RawObject::FromAddr(new_addr);
+          heap_->SetWeakEntry(raw_obj, sel, table->ValueAt(i));
+        }
+      }
     }
   }
 }
@@ -625,7 +633,7 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   ScavengerWeakVisitor weak_visitor(this);
   IterateWeakRoots(isolate, &weak_visitor, invoke_api_callbacks);
   visitor.Finalize();
-  ProcessPeerReferents();
+  ProcessWeakTables();
   int64_t end = OS::GetCurrentTimeMicros();
   heap_->RecordTime(kProcessToSpace, middle - start);
   heap_->RecordTime(kIterateWeaks, end - middle);
@@ -648,24 +656,5 @@ void Scavenger::WriteProtect(bool read_only) {
       read_only ? VirtualMemory::kReadOnly : VirtualMemory::kReadWrite);
 }
 
-
-void Scavenger::SetPeer(RawObject* raw_obj, void* peer) {
-  if (peer == NULL) {
-    peer_table_.erase(raw_obj);
-  } else {
-    peer_table_[raw_obj] = peer;
-  }
-}
-
-
-void* Scavenger::GetPeer(RawObject* raw_obj) {
-  PeerTable::iterator it = peer_table_.find(raw_obj);
-  return (it == peer_table_.end()) ? NULL : it->second;
-}
-
-
-int64_t Scavenger::PeerCount() const {
-  return static_cast<int64_t>(peer_table_.size());
-}
 
 }  // namespace dart
