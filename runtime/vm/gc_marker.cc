@@ -380,10 +380,11 @@ void GCMarker::ProcessWeakProperty(RawWeakProperty* raw_weak,
 
 
 void GCMarker::ProcessWeakTables(PageSpace* page_space) {
-  for (Heap::WeakSelector sel = static_cast<Heap::WeakSelector>(0);
+  for (int sel = 0;
        sel < Heap::kNumWeakSelectors;
        sel++) {
-    WeakTable* table = heap_->GetWeakTable(Heap::kOld, sel);
+    WeakTable* table = heap_->GetWeakTable(
+        Heap::kOld, static_cast<Heap::WeakSelector>(sel));
     intptr_t size = table->size();
     for (intptr_t i = 0; i < size; i++) {
       if (table->IsValidEntryAt(i)) {

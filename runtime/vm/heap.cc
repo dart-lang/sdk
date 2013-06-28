@@ -37,7 +37,7 @@ DEFINE_FLAG(int, old_gen_heap_size, Heap::kHeapSizeInMB,
             "e.g: --old_gen_heap_size=1024 allocates a 1024MB old gen heap");
 
   Heap::Heap() : read_only_(false), gc_in_progress_(false) {
-  for (WeakSelector sel = static_cast<WeakSelector>(0);
+  for (int sel = 0;
        sel < kNumWeakSelectors;
        sel++) {
     new_weak_tables_[sel] = new WeakTable(0);

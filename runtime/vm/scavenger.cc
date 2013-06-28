@@ -558,12 +558,15 @@ uword Scavenger::ProcessWeakProperty(RawWeakProperty* raw_weak,
 
 
 void Scavenger::ProcessWeakTables() {
-  for (Heap::WeakSelector sel = static_cast<Heap::WeakSelector>(0);
+  for (int sel = 0;
        sel < Heap::kNumWeakSelectors;
        sel++) {
-    WeakTable* table = heap_->GetWeakTable(Heap::kNew, sel);
+    WeakTable* table = heap_->GetWeakTable(
+        Heap::kNew, static_cast<Heap::WeakSelector>(sel));
     intptr_t size = table->size();
-    heap_->SetWeakTable(Heap::kNew, sel, WeakTable::NewFrom(table));
+    heap_->SetWeakTable(Heap::kNew,
+                        static_cast<Heap::WeakSelector>(sel),
+                        WeakTable::NewFrom(table));
     for (intptr_t i = 0; i < size; i++) {
       if (table->IsValidEntryAt(i)) {
         RawObject* raw_obj = table->ObjectAt(i);
@@ -574,7 +577,9 @@ void Scavenger::ProcessWeakTables() {
           // The object has survived.  Preserve its record.
           uword new_addr = ForwardedAddr(header);
           raw_obj = RawObject::FromAddr(new_addr);
-          heap_->SetWeakEntry(raw_obj, sel, table->ValueAt(i));
+          heap_->SetWeakEntry(raw_obj,
+                              static_cast<Heap::WeakSelector>(sel),
+                              table->ValueAt(i));
         }
       }
     }
