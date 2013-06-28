@@ -225,9 +225,17 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   const Class& type_class = Class::ZoneHandle(type.type_class());
   ASSERT(type_class.HasTypeArguments());
   const Register kInstanceReg = A0;
-  // A Smi object cannot be the instance of a parameterized class.
+  Error& malformed_error = Error::Handle();
+  const Type& int_type = Type::Handle(Type::IntType());
+  const bool smi_is_ok = int_type.IsSubtypeOf(type, &malformed_error);
+  // Malforrmed type should have been handled at graph construction time.
+  ASSERT(smi_is_ok || malformed_error.IsNull());
   __ andi(CMPRES, kInstanceReg, Immediate(kSmiTagMask));
-  __ beq(CMPRES, ZR, is_not_instance_lbl);
+  if (smi_is_ok) {
+    __ beq(CMPRES, ZR, is_instance_lbl);
+  } else {
+    __ beq(CMPRES, ZR, is_not_instance_lbl);
+  }
   const AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::ZoneHandle(type.arguments());
   const bool is_raw_type = type_arguments.IsNull() ||
@@ -499,7 +507,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
   }
   if (type.IsInstantiated()) {
     const Class& type_class = Class::ZoneHandle(type.type_class());
-    // A Smi object cannot be the instance of a parameterized class.
     // A class equality check is only applicable with a dst type of a
     // non-parameterized class or with a raw dst type of a parameterized class.
     if (type_class.HasTypeArguments()) {
