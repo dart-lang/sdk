@@ -8,7 +8,6 @@
     'async.dart',
     # The above file needs to be first as it lists the parts below.
     'async_error.dart',
-    'broadcast_stream_controller.dart',
     'deferred_load.dart',
     'event_loop.dart',
     'future.dart',

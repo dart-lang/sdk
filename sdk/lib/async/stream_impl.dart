@@ -719,11 +719,8 @@ class _AsBroadcastStream<T> extends Stream<T> {
                                      onError: _controller.addError,
                                      onDone: _controller.close);
     }
-    if (onData == null) onData = _nullDataHandler;
-    if (onError == null) onError = _nullErrorHandler;
-    if (onDone == null) onDone = _nullDoneHandler;
-    cancelOnError = identical(true, cancelOnError);
-    return _controller._subscribe(onData, onError, onDone, cancelOnError);
+    return _controller.stream.listen(onData, onError: onError, onDone: onDone,
+                                     cancelOnError: cancelOnError);
   }
 
   void _onCancel() {

@@ -925,6 +925,19 @@ class StreamView<T> extends Stream<T> {
   }
 }
 
+/**
+ * [EventSink] wrapper that only exposes the [EventSink] interface.
+ */
+class _EventSinkView<T> extends EventSink<T> {
+  final EventSink<T> _sink;
+
+  _EventSinkView(this._sink);
+
+  void add(T value) { _sink.add(value); }
+  void addError(error) { _sink.addError(error); }
+  void close() { _sink.close(); }
+}
+
 
 /**
  * The target of a [Stream.pipe] call.

@@ -49,12 +49,12 @@ abstract class _Completer<T> implements Completer<T> {
 class _AsyncCompleter<T> extends _Completer<T> {
   void _setFutureValue(T value) {
     _FutureImpl future = this.future;
-    future._asyncSetValue(value);
+    runAsync(() { future._setValue(value); });
   }
 
   void _setFutureError(error) {
     _FutureImpl future = this.future;
-    future._asyncSetError(error);
+    runAsync(() { future._setError(error); });
   }
 }
 
@@ -94,8 +94,8 @@ class _FutureListenerWrapper<T> implements _FutureListener<T> {
   _FutureImpl future;
   _FutureListener _nextListener;
   _FutureListenerWrapper(this.future);
-  _sendValue(T value) { future._setValueUnchecked(value); }
-  _sendError(error) { future._setErrorUnchecked(error); }
+  _sendValue(T value) { future._setValue(value); }
+  _sendError(error) { future._setError(error); }
   bool _inSameErrorZone(_Zone otherZone) => future._inSameErrorZone(otherZone);
 }
 
@@ -162,29 +162,26 @@ class _FutureImpl<T> implements Future<T> {
   /// [resultOrListeners] field holds a single-linked list of
   /// [FutureListener] listeners.
   static const int _INCOMPLETE = 0;
-  /// Pending completion. Set when completed using [_asyncSetValue] or
-  /// [_asyncSetError]. It is an error to try to complete it again.
-  static const int _PENDING_COMPLETE = 1;
   /// The future has been chained to another future. The result of that
   /// other future becomes the result of this future as well.
   /// In this state, the [resultOrListeners] field holds the future that
   /// will give the result to this future. Both existing and new listeners are
   /// forwarded directly to the other future.
-  static const int _CHAINED = 2;
+  static const int _CHAINED = 1;
   /// The future has been chained to another future, but there hasn't been
   /// any listeners added to this future yet. If it is completed with an
   /// error, the error will be considered unhandled.
-  static const int _CHAINED_UNLISTENED = 6;
+  static const int _CHAINED_UNLISTENED = 3;
   /// The future has been completed with a value result.
-  static const int _VALUE = 8;
+  static const int _VALUE = 4;
   /// The future has been completed with an error result.
-  static const int _ERROR = 12;
+  static const int _ERROR = 6;
   /// Extra bit set when the future has been completed with an error result.
   /// but no listener has been scheduled to receive the error.
   /// If the bit is still set when a [runAsync] call triggers, the error will
   /// be reported to the top-level handler.
   /// Assigning a listener before that time will clear the bit.
-  static const int _UNHANDLED_ERROR = 16;
+  static const int _UNHANDLED_ERROR = 8;
 
   /** Whether the future is complete, and as what. */
   int _state = _INCOMPLETE;
@@ -194,7 +191,6 @@ class _FutureImpl<T> implements Future<T> {
   bool get _isChained => (_state & _CHAINED) != 0;
   bool get _hasChainedListener => _state == _CHAINED;
   bool get _isComplete => _state >= _VALUE;
-  bool get _mayComplete => _state == _INCOMPLETE;
   bool get _hasValue => _state == _VALUE;
   bool get _hasError => _state >= _ERROR;
   bool get _hasUnhandledError => _state >= _UNHANDLED_ERROR;
@@ -294,11 +290,7 @@ class _FutureImpl<T> implements Future<T> {
   }
 
   void _setValue(T value) {
-    if (!_mayComplete) throw new StateError("Future already completed");
-    _setValueUnchecked(value);
-  }
-
-  void _setValueUnchecked(T value) {
+    if (_isComplete) throw new StateError("Future already completed");
     _FutureListener listeners = _isChained ? null : _removeListeners();
     _state = _VALUE;
     _resultOrListeners = value;
@@ -310,12 +302,9 @@ class _FutureImpl<T> implements Future<T> {
     }
   }
 
-  void _setError(Object error) {
-    if (!_mayComplete) throw new StateError("Future already completed");
-    _setErrorUnchecked(error);
-  }
+  void _setError(error) {
+    if (_isComplete) throw new StateError("Future already completed");
 
-  void _setErrorUnchecked(Object error) {
     _FutureListener listeners;
     bool hasListeners;
     if (_isChained) {
@@ -339,18 +328,6 @@ class _FutureImpl<T> implements Future<T> {
       listener._nextListener = null;
       listener._sendError(error);
     }
-  }
-
-  void _asyncSetValue(T value) {
-    if (!_mayComplete) throw new StateError("Future already completed");
-    _state = _PENDING_COMPLETE;
-    runAsync(() { _setValueUnchecked(value); });
-  }
-
-  void _asyncSetError(Object error) {
-    if (!_mayComplete) throw new StateError("Future already completed");
-    _state = _PENDING_COMPLETE;
-    runAsync(() { _setErrorUnchecked(error); });
   }
 
   void _scheduleUnhandledError() {
