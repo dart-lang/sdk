@@ -11,6 +11,8 @@
 #include <winsock2.h>  // NOLINT
 #include <ws2tcpip.h>  // NOLINT
 #include <mswsock.h>  // NOLINT
+#include <io.h>  // NOLINT
+#include <fcntl.h>  // NOLINT
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
@@ -323,6 +325,18 @@ void FileHandle::EnsureInitialized(EventHandlerImplementation* event_handler) {
 
 bool FileHandle::IsClosed() {
   return false;
+}
+
+
+void FileHandle::DoClose() {
+  if (GetStdHandle(STD_OUTPUT_HANDLE) == handle_) {
+    int fd = _open("NUL", _O_WRONLY);
+    ASSERT(fd >= 0);
+    _dup2(fd, _fileno(stdout));
+    close(fd);
+  } else {
+    Handle::DoClose();
+  }
 }
 
 
