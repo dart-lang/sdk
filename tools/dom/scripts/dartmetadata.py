@@ -261,8 +261,8 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
     ],
 
     'WebGLRenderingContext.getShaderParameter': [
-      "@Creates('int|Null')",
-      "@Returns('int|Null')",
+      "@Creates('int|bool|Null')",
+      "@Returns('int|bool|Null')",
     ],
 
     'WebGLRenderingContext.getTexParameter': [
