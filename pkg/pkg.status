@@ -32,6 +32,7 @@ unittest/test/unittest_test: Pass, Timeout # http://dartbug.com/11473
 
 [ $runtime == d8 || $runtime == jsshell ]
 unittest/test/unittest_test: Pass, Fail # http://dartbug.com/10109
+stack_trace/test/vm_test: Fail, OK # VM-specific traces
 
 [$compiler == dart2dart]
 *: Skip
@@ -106,6 +107,7 @@ crypto/test/sha1_test: Fail # V8 bug: https://code.google.com/p/v8/issues/detail
 
 [ $compiler == dart2js && $browser ]
 pathos/test/pathos_dartium_test: Fail # Issue 6490
+stack_trace/test/vm_test: Fail, OK # VM-specific traces
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
 
@@ -133,6 +135,7 @@ oauth2/test/client_test: Fail, OK # Uses dart:io.
 oauth2/test/credentials_test: Fail, OK # Uses dart:io.
 oauth2/test/handle_access_token_response_test: Fail, OK # Uses dart:io.
 pathos/test/pathos_io_test: Fail, OK # Uses dart:io.
+stack_trace/test/vm_test: Fail, OK # VM-specific method names.
 
 scheduled_test/test/descriptor/async_test: Fail # http://dartbug.com/8440
 scheduled_test/test/descriptor/directory_test: Fail # http://dartbug.com/8440
@@ -156,9 +159,6 @@ scheduled_test/test/scheduled_test/task_return_value_test: Fail # http://dartbug
 scheduled_test/test/scheduled_test/timeout_test: Fail # http://dartbug.com/8440
 scheduled_test/test/scheduled_test/wrap_async_test: Fail # http://dartbug.com/8440
 scheduled_test/test/scheduled_test/wrap_future_test: Fail # http://dartbug.com/8440
-
-stack_trace/test/frame_test: Fail # http://dartbug.com/6943
-stack_trace/test/trace_test: Fail # http://dartbug.com/6943
 
 
 [ $runtime == safari]
