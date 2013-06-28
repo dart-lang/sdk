@@ -4,9 +4,6 @@
 
 [ $compiler == dartanalyzer ]
 
-# not clear: may be assignment in the constructor is warning, not error
-Language/05_Variables/05_Variables_A05_t04: fail
-
 # not clear: g([var foo = foo + 10]) is parameter 'foo' in the scope of its own initialzer?
 Language/06_Functions/2_Formal_Parameters_A02_t02: fail
 
@@ -205,3 +202,6 @@ Language/13_Libraries_and_Scripts/1_Imports_A05_t01: fail, OK
 # co19 issue #440, adj strings is not a string interpolation
 Language/13_Libraries_and_Scripts/5_URIs_A01_t24: fail, OK
 Language/13_Libraries_and_Scripts/5_URIs_A01_t25: fail, OK
+
+# co19 issue #441, assignment in constructor is not initializing
+Language/05_Variables/05_Variables_A05_t04: fail, OK
