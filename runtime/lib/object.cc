@@ -5,7 +5,6 @@
 #include "vm/bootstrap_natives.h"
 
 #include "vm/exceptions.h"
-#include "vm/heap.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/stack_frame.h"
@@ -19,22 +18,6 @@ DECLARE_FLAG(bool, enable_type_checks);
 DEFINE_NATIVE_ENTRY(Object_cid, 1) {
   const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
   return Smi::New(instance.GetClassId());
-}
-
-
-DEFINE_NATIVE_ENTRY(Object_getHash, 1) {
-  const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
-  Heap* heap = isolate->heap();
-  return Smi::New(heap->GetHash(instance.raw()));
-}
-
-
-DEFINE_NATIVE_ENTRY(Object_setHash, 2) {
-  const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, hash, arguments->NativeArgAt(1));
-  Heap* heap = isolate->heap();
-  heap->SetHash(instance.raw(), hash.Value());
-  return Object::null();
 }
 
 

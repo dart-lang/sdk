@@ -335,8 +335,6 @@
     'visitor.h',
     'vtune.cc',
     'vtune.h',
-    'weak_table.cc',
-    'weak_table.h',
     'zone.cc',
     'zone.h',
     'zone_test.cc',
