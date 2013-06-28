@@ -8,7 +8,7 @@ library test.intercepted_class_test;
 
 import 'dart:mirrors';
 
-import 'reflect_model_test.dart' show stringify, expect;
+import 'stringify.dart' show stringify, expect;
 
 import 'intercepted_class_test.dart' show checkClassMirror;
 

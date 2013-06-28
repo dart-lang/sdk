@@ -85,6 +85,13 @@ class CodeEmitterTask extends CompilerTask {
   final Set<String> recordedMangledNames = new Set<String>();
   final Set<String> interceptorInvocationNames = new Set<String>();
 
+  /// A list of JS expressions that represent metadata, parameter names and
+  /// type, and return types.
+  final List<String> globalMetadata = [];
+
+  /// A map used to canonicalize the entries of globalMetadata.
+  final Map<String, int> globalMetadataMap = <String, int>{};
+
   // TODO(ngeoffray): remove this field.
   Set<ClassElement> instantiatedClasses;
 
@@ -1207,11 +1214,8 @@ class CodeEmitterTask extends CompilerTask {
       if (backend.isInterceptedMethod(member)) {
         interceptorInvocationNames.add(name);
       }
+      code = extendWithMetadata(member, code);
       builder.addProperty(name, code);
-      var metadata = buildMetadataFunction(member);
-      if (metadata != null) {
-        builder.addProperty('@$name', metadata);
-      }
       String reflectionName = getReflectionName(member, name);
       if (reflectionName != null) {
         builder.addProperty('+$reflectionName', js('0'));
@@ -2056,12 +2060,8 @@ class CodeEmitterTask extends CompilerTask {
       CodeBuffer buffer = bufferForElement(element, eagerBuffer);
       jsAst.Expression code = backend.generatedCode[element];
       String name = namer.getName(element);
+      code = extendWithMetadata(element, code);
       emitStaticFunction(buffer, name, code);
-      var metadata = buildMetadataFunction(element);
-      if (metadata != null) {
-        buffer.write(',$n$n"@$name":$_');
-        buffer.write(jsAst.prettyPrint(metadata, compiler));
-      }
       String reflectionName = getReflectionName(element, name);
       if (reflectionName != null) {
         buffer.write(',$n$n"+$reflectionName":${_}0');
@@ -3262,6 +3262,76 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     });
   }
 
+  int reifyMetadata(MetadataAnnotation annotation) {
+    Constant value = annotation.value;
+    if (value == null) {
+      compiler.reportInternalError(
+          annotation, 'Internal error: value is null');
+      return -1;
+    }
+    return addGlobalMetadata(
+        jsAst.prettyPrint(constantReference(value), compiler).getText());
+  }
+
+  int reifyType(DartType type) {
+    // TODO(ahe): Handle type variables correctly instead of using "#".
+    String representation = backend.rti.getTypeRepresentation(type, (_) {});
+    return addGlobalMetadata(representation.replaceAll('#', 'null'));
+  }
+
+  int reifyName(SourceString name) {
+    return addGlobalMetadata('"${name.slowToString()}"');
+  }
+
+  int addGlobalMetadata(String string) {
+    return globalMetadataMap.putIfAbsent(string, () {
+      globalMetadata.add(string);
+      return globalMetadata.length - 1;
+    });
+  }
+
+  jsAst.Fun extendWithMetadata(FunctionElement element, jsAst.Fun code) {
+    if (!backend.retainMetadataOf(element)) return code;
+    return compiler.withCurrentElement(element, () {
+      List<int> metadata = <int>[];
+      FunctionSignature signature = element.functionSignature;
+      if (element.isConstructor()) {
+        metadata.add(reifyType(element.getEnclosingClass().thisType));
+      } else {
+        metadata.add(reifyType(signature.returnType));
+      }
+      signature.forEachParameter((Element parameter) {
+        metadata
+            ..add(reifyName(parameter.name))
+            ..add(reifyType(parameter.computeType(compiler)));
+      });
+      Link link = element.metadata;
+      // TODO(ahe): Why is metadata sometimes null?
+      if (link != null) {
+        for (; !link.isEmpty; link = link.tail) {
+          metadata.add(reifyMetadata(link.head));
+        }
+      }
+      code.body.statements.add(js.string(metadata.join(',')).toStatement());
+      return code;
+    });
+  }
+
+  void emitMetadata(CodeBuffer buffer) {
+    buffer.write('init.metadata$_=$_[');
+    for (var metadata in globalMetadata) {
+      if (metadata is String) {
+        if (metadata != 'null') {
+          buffer.write(metadata);
+        }
+      } else {
+        throw 'Unexpected value in metadata: ${Error.safeToString(metadata)}';
+      }
+      buffer.write(',$n');
+    }
+    buffer.write('];$n');
+  }
+
   String assembleProgram() {
     measure(() {
       // Compute the required type checks to know which classes need a
@@ -3420,6 +3490,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
 
       mainBuffer.add(nativeBuffer);
 
+      emitMetadata(mainBuffer);
 
       isolateProperties = isolatePropertiesName;
       // The following code should not use the short-hand for the

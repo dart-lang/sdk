@@ -8,7 +8,7 @@ import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
 
-import 'reflect_model_test.dart';
+import 'stringify.dart';
 
 class Foo {
 }
@@ -45,4 +45,11 @@ main() {
          ' Biz.named: Method(s(Biz.named) in s(Biz), constructor)}',
          bizConstructors);
   print(bizConstructors);
+
+  expect('[]', fooConstructors.values.single.parameters);
+  expect('[]', barConstructors.values.single.parameters);
+  expect('[]', bazConstructors.values.single.parameters);
+  for (var constructor in bizConstructors.values) {
+    expect('[]', constructor.parameters);
+  }
 }

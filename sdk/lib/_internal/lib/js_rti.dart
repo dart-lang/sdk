@@ -132,9 +132,11 @@ String runtimeTypeToString(var type) {
   } else if (isJsArray(type)) {
     // A list representing a type with arguments.
     return getRuntimeTypeAsString(type);
-  } else {
+  } else if (isJsFunction(type)) {
     // A reference to the constructor.
     return getConstructorName(type);
+  } else {
+    return null;
   }
 }
 

@@ -9,66 +9,9 @@ import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
 import 'model.dart';
+import 'stringify.dart';
 
 isNoSuchMethodError(e) => e is NoSuchMethodError;
-
-name(DeclarationMirror mirror) {
-  return (mirror == null) ? '<null>' : stringify(mirror.simpleName);
-}
-
-stringifyMap(Map map) {
-  var buffer = new StringBuffer('{');
-  bool first = true;
-  for (String key in map.keys.map(MirrorSystem.getName).toList()..sort()) {
-    if (!first) buffer.write(', ');
-    first = false;
-    buffer.write(key);
-    buffer.write(': ');
-    buffer.write(stringify(map[new Symbol(key)]));
-  }
-  return (buffer..write('}')).toString();
-}
-
-stringifySymbol(Symbol symbol) => 's(${MirrorSystem.getName(symbol)})';
-
-writeDeclarationOn(DeclarationMirror mirror, StringBuffer buffer) {
-  buffer.write(stringify(mirror.simpleName));
-  if (mirror.owner != null) {
-    buffer.write(' in ');
-    buffer.write(name(mirror.owner));
-  }
-  if (mirror.isPrivate) buffer.write(', private');
-  if (mirror.isTopLevel) buffer.write(', top-level');
-}
-
-stringifyVariable(VariableMirror variable) {
-  var buffer = new StringBuffer('Variable(');
-  writeDeclarationOn(variable, buffer);
-  if (variable.isStatic) buffer.write(', static');
-  if (variable.isFinal) buffer.write(', final');
-  return (buffer..write(')')).toString();
-}
-
-stringifyMethod(MethodMirror method) {
-  var buffer = new StringBuffer('Method(');
-  writeDeclarationOn(method, buffer);
-  if (method.isStatic) buffer.write(', static');
-  if (method.isGetter) buffer.write(', getter');
-  if (method.isSetter) buffer.write(', setter');
-  if (method.isConstructor) buffer.write(', constructor');
-  return (buffer..write(')')).toString();
-}
-
-stringify(value) {
-  if (value is Map) return stringifyMap(value);
-  if (value is VariableMirror) return stringifyVariable(value);
-  if (value is MethodMirror) return stringifyMethod(value);
-  if (value is Symbol) return stringifySymbol(value);
-  if (value == null) return '<null>';
-  throw 'Unexpected value: $value';
-}
-
-expect(expected, actual) => Expect.stringEquals(expected, stringify(actual));
 
 main() {
   var unnamed = new Symbol('');
