@@ -746,6 +746,84 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
                            Scanner::kDummyTokenIndex);
     }
     AllocateRegistersLocally(instr);
+  } else if (instr->MayThrow()  &&
+             (CurrentTryIndex() != CatchClauseNode::kInvalidTryIndex)) {
+    // Optimized try-block: Sync locals to fixed stack locations.
+    EmitTrySync(instr, CurrentTryIndex());
+  }
+}
+
+
+// TODO(regis): Pass an offset instead of an Address to avoid addressing
+// mode restrictions and remove Operand::Equals() on IA32/X64 and
+// Address::Equals() on ARM/MIPS.
+void FlowGraphCompiler::EmitTrySyncMove(Address dest,
+                                        Location loc,
+                                        bool* push_emitted) {
+  if (loc.IsConstant()) {
+    if (!*push_emitted) {
+      __ Push(T0);
+      *push_emitted = true;
+    }
+    __ LoadObject(T0, loc.constant());
+    __ sw(T0, dest);
+  } else if (loc.IsRegister()) {
+    if (*push_emitted && loc.reg() == T0) {
+      __ lw(T0, Address(SP, 0));
+      __ sw(T0, dest);
+    } else {
+      __ sw(loc.reg(), dest);
+    }
+  } else {
+    Address src = loc.ToStackSlotAddress();
+    if (!src.Equals(dest)) {
+      if (!*push_emitted) {
+        __ Push(T0);
+        *push_emitted = true;
+      }
+      __ lw(T0, src);
+      __ sw(T0, dest);
+    }
+  }
+}
+
+
+void FlowGraphCompiler::EmitTrySync(Instruction* instr, intptr_t try_index) {
+  ASSERT(is_optimizing());
+  Environment* env = instr->env();
+  CatchBlockEntryInstr* catch_block =
+      flow_graph().graph_entry()->GetCatchEntry(try_index);
+  const GrowableArray<Definition*>* idefs = catch_block->initial_definitions();
+  // Parameters.
+  intptr_t i = 0;
+  bool push_emitted = false;
+  const intptr_t num_non_copied_params = flow_graph().num_non_copied_params();
+  const intptr_t param_base =
+      kParamEndSlotFromFp + num_non_copied_params;
+  for (; i < num_non_copied_params; ++i) {
+    if ((*idefs)[i]->IsConstant()) continue;  // Common constants
+    Location loc = env->LocationAt(i);
+    Address dest(FP, (param_base - i) * kWordSize);
+    EmitTrySyncMove(dest, loc, &push_emitted);
+  }
+
+  // Process locals. Skip exception_var and stacktrace_var.
+  CatchEntryInstr* catch_entry = catch_block->next()->AsCatchEntry();
+  intptr_t local_base = kFirstLocalSlotFromFp + num_non_copied_params;
+  intptr_t ex_idx = local_base - catch_entry->exception_var().index();
+  intptr_t st_idx = local_base - catch_entry->stacktrace_var().index();
+  for (; i < flow_graph().variable_count(); ++i) {
+    if (i == ex_idx || i == st_idx) continue;
+    if ((*idefs)[i]->IsConstant()) continue;
+    Location loc = env->LocationAt(i);
+    Address dest(FP, (local_base - i) * kWordSize);
+    EmitTrySyncMove(dest, loc, &push_emitted);
+    // Update safepoint bitmap to indicate that the target location
+    // now contains a pointer.
+    instr->locs()->stack_bitmap()->Set(i - num_non_copied_params, true);
+  }
+  if (push_emitted) {
+    __ Pop(T0);
   }
 }
 
@@ -1058,7 +1136,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
                          0);  // No token position.
   }
   __ Comment("Enter frame");
-  __ EnterDartFrame((StackSize() * kWordSize));
+  __ EnterDartFrame(StackSize() * kWordSize);
 }
 
 
