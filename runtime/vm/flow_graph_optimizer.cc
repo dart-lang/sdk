@@ -5698,7 +5698,7 @@ void ConstantPropagator::VisitEqualityCompare(EqualityCompareInstr* instr) {
   if (instr->left()->definition() == instr->right()->definition()) {
     // Fold x == x, and x != x to true/false for numbers and checked strict
     // comparisons.
-    if (instr->is_checked_strict_equal() ||
+    if (instr->IsCheckedStrictEqual() ||
         RawObject::IsIntegerClassId(instr->receiver_class_id())) {
       return SetValue(instr,
                       (instr->kind() == Token::kEQ)

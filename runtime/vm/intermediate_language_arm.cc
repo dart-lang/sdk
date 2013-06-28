@@ -313,7 +313,7 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
     locs->set_out(Location::RequiresRegister());
     return locs;
   }
-  if (is_checked_strict_equal()) {
+  if (IsCheckedStrictEqual()) {
     const intptr_t kNumTemps = 1;
     LocationSummary* locs =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -756,7 +756,7 @@ void EqualityCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     EmitDoubleComparisonOp(compiler, *locs(), kind(), kNoBranch);
     return;
   }
-  if (is_checked_strict_equal()) {
+  if (IsCheckedStrictEqual()) {
     EmitCheckedStrictEqual(compiler, *ic_data(), *locs(), kind(), kNoBranch,
                            deopt_id());
     return;
@@ -797,7 +797,7 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
     EmitDoubleComparisonOp(compiler, *locs(), kind(), branch);
     return;
   }
-  if (is_checked_strict_equal()) {
+  if (IsCheckedStrictEqual()) {
     EmitCheckedStrictEqual(compiler, *ic_data(), *locs(), kind(), branch,
                            deopt_id());
     return;

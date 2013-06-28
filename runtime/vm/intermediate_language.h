@@ -2830,8 +2830,12 @@ class EqualityCompareInstr : public ComparisonInstr {
                        const Array& ic_data_array)
       : ComparisonInstr(token_pos, kind, left, right),
         ic_data_(GetICData(ic_data_array)),
+        unary_ic_data_(NULL),
         receiver_class_id_(kIllegalCid) {
     ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
+    if (HasICData()) {
+      unary_ic_data_ = &ICData::ZoneHandle(ic_data_->AsUnaryClassChecks());
+    }
   }
 
   DECLARE_INSTRUCTION(EqualityCompare)
@@ -2854,9 +2858,7 @@ class EqualityCompareInstr : public ComparisonInstr {
         || (receiver_class_id() == kSmiCid);
   }
 
-  bool is_checked_strict_equal() const {
-    return HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid);
-  }
+  bool IsCheckedStrictEqual() const;
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -2885,11 +2887,12 @@ class EqualityCompareInstr : public ComparisonInstr {
   }
 
   virtual bool MayThrow() const {
-    return !IsInlinedNumericComparison() && !is_checked_strict_equal();
+    return !IsInlinedNumericComparison() && !IsCheckedStrictEqual();
   }
 
  private:
   const ICData* ic_data_;
+  ICData* unary_ic_data_;
   intptr_t receiver_class_id_;  // Set by optimizer.
 
   DISALLOW_COPY_AND_ASSIGN(EqualityCompareInstr);

@@ -21,6 +21,9 @@
 
 namespace dart {
 
+DEFINE_FLAG(int, max_equality_polymorphic_checks, 32,
+    "Maximum number of polymorphic checks in equality operator,"
+    " otherwise use megamorphic dispatch.");
 DEFINE_FLAG(bool, new_identity_spec, true,
     "Use new identity check rules for numbers.");
 DEFINE_FLAG(bool, propagate_ic_data, true,
@@ -1031,6 +1034,14 @@ bool EqualityCompareInstr::IsPolymorphic() const {
   return HasICData() &&
       (ic_data()->NumberOfChecks() > 0) &&
       (ic_data()->NumberOfChecks() <= FLAG_max_polymorphic_checks);
+}
+
+
+bool EqualityCompareInstr::IsCheckedStrictEqual() const {
+  if (!HasICData()) return false;
+  return ic_data()->AllTargetsHaveSameOwner(kInstanceCid) &&
+         (unary_ic_data_->NumberOfChecks() <=
+             FLAG_max_equality_polymorphic_checks);
 }
 
 
