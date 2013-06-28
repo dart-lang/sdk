@@ -834,11 +834,20 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
     return _metadata.map(reflect).toList();
   }
 
+  Symbol get constructorName {
+    // TODO(ahe): I believe it is more appropriate to throw an exception or
+    // return null.
+    if (!isConstructor) return const Symbol('');
+    String name = n(simpleName);
+    int index = name.indexOf('.');
+    if (index == -1) return const Symbol('');
+    return s(name.substring(index + 1));
+  }
+
   // TODO(ahe): Implement these.
   bool get isAbstract => throw new UnimplementedError();
   bool get isRegularMethod => throw new UnimplementedError();
   bool get isOperator => throw new UnimplementedError();
-  Symbol get constructorName => throw new UnimplementedError();
   bool get isConstConstructor => throw new UnimplementedError();
   bool get isGenerativeConstructor => throw new UnimplementedError();
   bool get isRedirectingConstructor => throw new UnimplementedError();

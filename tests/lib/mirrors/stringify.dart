@@ -103,3 +103,7 @@ stringify(value) {
 }
 
 expect(expected, actual) => Expect.stringEquals(expected, stringify(actual));
+
+compareSymbols(Symbol a, Symbol b) {
+  return MirrorSystem.getName(a).compareTo(MirrorSystem.getName(b));
+}

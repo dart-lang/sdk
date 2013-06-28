@@ -52,4 +52,14 @@ main() {
   for (var constructor in bizConstructors.values) {
     expect('[]', constructor.parameters);
   }
+
+  expect('[s()]',
+         fooConstructors.values.map((m) => m.constructorName).toList());
+  expect('[s()]',
+         barConstructors.values.map((m) => m.constructorName).toList());
+  expect('[s(named)]',
+         bazConstructors.values.map((m) => m.constructorName).toList());
+  expect('[s(), s(named)]',
+         bizConstructors.values.map((m) => m.constructorName).toList()
+             ..sort(compareSymbols));
 }
