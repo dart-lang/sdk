@@ -185,6 +185,43 @@ void main() {
     });
   });
 
+  group('.parseFriendly', () {
+    test('parses a simple stack frame correctly', () {
+      var frame = new Frame.parseFriendly(
+          "http://dartlang.org/foo/bar.dart 10:11  Foo.<fn>.bar");
+      expect(frame.uri, equals(Uri.parse("http://dartlang.org/foo/bar.dart")));
+      expect(frame.line, equals(10));
+      expect(frame.column, equals(11));
+      expect(frame.member, equals('Foo.<fn>.bar'));
+    });
+
+    test('parses a stack frame with no line or column correctly', () {
+      var frame = new Frame.parseFriendly(
+          "http://dartlang.org/foo/bar.dart  Foo.<fn>.bar");
+      expect(frame.uri, equals(Uri.parse("http://dartlang.org/foo/bar.dart")));
+      expect(frame.line, isNull);
+      expect(frame.column, isNull);
+      expect(frame.member, equals('Foo.<fn>.bar'));
+    });
+
+    test('parses a stack frame with a relative path correctly', () {
+      var frame = new Frame.parseFriendly("foo/bar.dart 10:11    Foo.<fn>.bar");
+      expect(frame.uri, equals(
+          path.toUri(path.absolute(path.join('foo', 'bar.dart')))));
+      expect(frame.line, equals(10));
+      expect(frame.column, equals(11));
+      expect(frame.member, equals('Foo.<fn>.bar'));
+    });
+
+    test('throws a FormatException for malformed frames', () {
+      expect(() => new Frame.parseFriendly(''), throwsFormatException);
+      expect(() => new Frame.parseFriendly('foo/bar.dart'),
+          throwsFormatException);
+      expect(() => new Frame.parseFriendly('foo/bar.dart 10:11'),
+          throwsFormatException);
+    });
+  });
+
   test('only considers dart URIs to be core', () {
     bool isCore(String library) =>
       new Frame.parseVM('#0 Foo ($library:0:0)').isCore;

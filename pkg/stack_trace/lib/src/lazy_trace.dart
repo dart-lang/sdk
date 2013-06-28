@@ -25,8 +25,7 @@ class LazyTrace implements Trace {
   }
 
   List<Frame> get frames => _trace.frames;
-  String get stackTrace => _trace.stackTrace;
-  String get fullStackTrace => _trace.fullStackTrace;
+  StackTrace get vmTrace => _trace.vmTrace;
   Trace get terse => new LazyTrace(() => _trace.terse);
   Trace foldFrames(bool predicate(frame)) =>
     new LazyTrace(() => _trace.foldFrames(predicate));
