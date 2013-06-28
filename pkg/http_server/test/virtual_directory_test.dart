@@ -171,34 +171,36 @@ void main() {
         }), completion(contains('Index of /')));
       });
 
-      test('recursive-link', () {
-        expect(HttpServer.bind('localhost', 0).then((server) {
-          var dir = new Directory('').createTempSync();
-          var link = new Link('${dir.path}/recursive')..createSync('.');
-          var virDir = new VirtualDirectory(dir.path);
-          virDir.allowDirectoryListing = true;
+      if (!Platform.isWindows) {
+        test('recursive-link', () {
+          expect(HttpServer.bind('localhost', 0).then((server) {
+            var dir = new Directory('').createTempSync();
+            var link = new Link('${dir.path}/recursive')..createSync('.');
+            var virDir = new VirtualDirectory(dir.path);
+            virDir.allowDirectoryListing = true;
 
-          virDir.serve(server);
+            virDir.serve(server);
 
-          return Future.wait([
-              getAsString(server.port, '/').then(
-                  (s) => s.contains('recursive/')),
-              getAsString(server.port, '/').then(
-                  (s) => !s.contains('../')),
-              getAsString(server.port, '/').then(
-                  (s) => s.contains('Index of /')),
-              getAsString(server.port, '/recursive').then(
-                  (s) => s.contains('recursive/')),
-              getAsString(server.port, '/recursive').then(
-                  (s) => s.contains('../')),
-              getAsString(server.port, '/recursive').then(
-                  (s) => s.contains('Index of /recursive'))])
-              .whenComplete(() {
-                server.close();
-                dir.deleteSync(recursive: true);
-              });
-        }), completion(equals([true, true, true, true, true, true])));
-      });
+            return Future.wait([
+                getAsString(server.port, '/').then(
+                    (s) => s.contains('recursive/')),
+                getAsString(server.port, '/').then(
+                    (s) => !s.contains('../')),
+                getAsString(server.port, '/').then(
+                    (s) => s.contains('Index of /')),
+                getAsString(server.port, '/recursive').then(
+                    (s) => s.contains('recursive/')),
+                getAsString(server.port, '/recursive').then(
+                    (s) => s.contains('../')),
+                getAsString(server.port, '/recursive').then(
+                    (s) => s.contains('Index of /recursive'))])
+                .whenComplete(() {
+                  server.close();
+                  dir.deleteSync(recursive: true);
+                });
+          }), completion(equals([true, true, true, true, true, true])));
+        });
+      }
     });
 
     group('custom', () {
