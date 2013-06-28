@@ -36,7 +36,8 @@ namespace dart {
 namespace bin {
 
 bool SSLFilter::library_initialized_ = false;
-dart::Mutex SSLFilter::mutex_;  // To protect library initialization.
+// To protect library initialization.
+dart::Mutex* SSLFilter::mutex_ = new dart::Mutex();
 // The password is needed when creating secure server sockets.  It can
 // be null if only secure client sockets are used.
 const char* SSLFilter::password_ = NULL;
@@ -527,7 +528,7 @@ void SSLFilter::InitializeLibrary(const char* certificate_database,
                                   const char* password,
                                   bool use_builtin_root_certificates,
                                   bool report_duplicate_initialization) {
-  MutexLocker locker(&mutex_);
+  MutexLocker locker(mutex_);
   SECStatus status;
   if (!library_initialized_) {
     password_ = strdup(password);  // This one copy persists until Dart exits.
@@ -536,7 +537,7 @@ void SSLFilter::InitializeLibrary(const char* certificate_database,
     if (certificate_database == NULL || certificate_database[0] == '\0') {
       status = NSS_NoDB_Init(NULL);
       if (status != SECSuccess) {
-        mutex_.Unlock();  // MutexLocker destructor not called when throwing.
+        mutex_->Unlock();  // MutexLocker destructor not called when throwing.
         ThrowPRException("TlsException",
                          "Failed NSS_NoDB_Init call.");
       }
@@ -544,7 +545,7 @@ void SSLFilter::InitializeLibrary(const char* certificate_database,
         SECMODModule* module = SECMOD_LoadUserModule(
             const_cast<char*>(builtin_roots_module), NULL, PR_FALSE);
         if (!module) {
-          mutex_.Unlock();  // MutexLocker destructor not called when throwing.
+          mutex_->Unlock();  // MutexLocker destructor not called when throwing.
           ThrowPRException("TlsException",
                            "Failed to load builtin root certificates.");
         }
@@ -560,7 +561,7 @@ void SSLFilter::InitializeLibrary(const char* certificate_database,
                               SECMOD_DB,
                               init_flags);
       if (status != SECSuccess) {
-        mutex_.Unlock();  // MutexLocker destructor not called when throwing.
+        mutex_->Unlock();  // MutexLocker destructor not called when throwing.
         ThrowPRException("TlsException",
                          "Failed NSS_Init call.");
       }
@@ -569,26 +570,26 @@ void SSLFilter::InitializeLibrary(const char* certificate_database,
 
     status = NSS_SetDomesticPolicy();
     if (status != SECSuccess) {
-      mutex_.Unlock();  // MutexLocker destructor not called when throwing.
+      mutex_->Unlock();  // MutexLocker destructor not called when throwing.
       ThrowPRException("TlsException",
                        "Failed NSS_SetDomesticPolicy call.");
     }
     // Enable TLS, as well as SSL3 and SSL2.
     status = SSL_OptionSetDefault(SSL_ENABLE_TLS, PR_TRUE);
     if (status != SECSuccess) {
-      mutex_.Unlock();  // MutexLocker destructor not called when throwing.
+      mutex_->Unlock();  // MutexLocker destructor not called when throwing.
       ThrowPRException("TlsException",
                        "Failed SSL_OptionSetDefault enable TLS call.");
     }
     status = SSL_ConfigServerSessionIDCache(0, 0, 0, NULL);
     if (status != SECSuccess) {
-      mutex_.Unlock();  // MutexLocker destructor not called when throwing.
+      mutex_->Unlock();  // MutexLocker destructor not called when throwing.
       ThrowPRException("TlsException",
                        "Failed SSL_ConfigServerSessionIDCache call.");
     }
 
   } else if (report_duplicate_initialization) {
-    mutex_.Unlock();  // MutexLocker destructor not called when throwing.
+    mutex_->Unlock();  // MutexLocker destructor not called when throwing.
     // Like ThrowPRException, without adding an OSError.
     Dart_ThrowException(DartUtils::NewDartIOException("TlsException",
         "Called SecureSocket.initialize more than once",

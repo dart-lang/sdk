@@ -149,21 +149,22 @@ class Version {
 
   Future<int> getRevision() {
     if (repositoryType == RepositoryType.UNKNOWN) {
-      return new Future.immediate(0);
+      return new Future.value(0);
     }
     var isSvn = repositoryType == RepositoryType.SVN;
     var command = isSvn ? "svn" : "git";
     command = "$command${getExecutableSuffix()}";
     var arguments = isSvn ? ["info"] : ["svn", "info"];
-    ProcessOptions options = new ProcessOptions();
     // Run the command from the root to get the last changed revision for this
     // "branch". Since we have both trunk and bleeding edge in the same
     // repository and since we always build TOT we need this to get the
     // right version number.
     Path toolsDirectory = new Path(_versionFileName).directoryPath;
     Path root = toolsDirectory.join(new Path(".."));
-    options.workingDirectory = root.toNativePath();
-    return Process.run(command, arguments, options).then((result) {
+    var workingDirectory = root.toNativePath();
+    return Process.run(command,
+                       arguments,
+                       workingDirectory: workingDirectory).then((result) {
       if (result.exitCode != 0) {
         return 0;
       }
@@ -201,7 +202,7 @@ class Version {
       return "$absolutePath" == '/';
     }
 
-    var currentPath = new Path(new Directory.current().path);
+    var currentPath = new Path(Directory.current.path);
     while (true) {
       if (hasDirectory(currentPath, '.svn')) {
         return RepositoryType.SVN;

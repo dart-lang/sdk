@@ -1111,21 +1111,19 @@ class Comment {
  *
  * Example usage:
  *
- * [:
- * @MirrorsUsed(symbols: 'foo', override: '*')
- * import 'dart:mirrors';
+ *     @MirrorsUsed(symbols: 'foo', override: '*')
+ *     import 'dart:mirrors';
  *
- * class Foo {
- *   noSuchMethod(Invocation invocation) {
- *     print(Mirrors.getName(invocation.memberName));
- *   }
- * }
+ *     class Foo {
+ *       noSuchMethod(Invocation invocation) {
+ *         print(Mirrors.getName(invocation.memberName));
+ *       }
+ *     }
  *
- * main() {
- *   new Foo().foo(); // Prints "foo".
- *   new Foo().bar(); // Might print an arbitrary (mangled) name, "bar".
- * }
- * :]
+ *     main() {
+ *       new Foo().foo(); // Prints "foo".
+ *       new Foo().bar(); // Might print an arbitrary (mangled) name, "bar".
+ *     }
  */
 // TODO(ahe): Remove ", override: '*'" when it isn't necessary anymore.
 class MirrorsUsed {

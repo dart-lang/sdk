@@ -85,6 +85,7 @@
             '--package-root=<(PRODUCT_DIR)/packages',
             '--mode=static',
             '--exclude-lib=analyzer_experimental',
+            '--exclude-lib=barback',
             '--exclude-lib=browser',
             '--exclude-lib=dartdoc',
             '--exclude-lib=docgen',

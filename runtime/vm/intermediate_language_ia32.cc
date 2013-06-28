@@ -213,35 +213,6 @@ void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* ArgumentDefinitionTestInstr::MakeLocationSummary() const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(EAX));
-  locs->set_out(Location::RegisterLocation(EAX));
-  return locs;
-}
-
-
-void ArgumentDefinitionTestInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register saved_args_desc = locs()->in(0).reg();
-  Register result = locs()->out().reg();
-
-  // Push the result place holder initialized to NULL.
-  __ PushObject(Object::ZoneHandle());
-  __ pushl(Immediate(Smi::RawValue(formal_parameter_index())));
-  __ PushObject(formal_parameter_name());
-  __ pushl(saved_args_desc);
-  compiler->GenerateCallRuntime(token_pos(),
-                                deopt_id(),
-                                kArgumentDefinitionTestRuntimeEntry,
-                                locs());
-  __ Drop(3);
-  __ popl(result);  // Pop bool result.
-}
-
-
 static Condition TokenKindToSmiCondition(Token::Kind kind) {
   switch (kind) {
     case Token::kEQ: return EQUAL;
@@ -292,7 +263,7 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
     locs->set_out(Location::RequiresRegister());
     return locs;
   }
-  if (is_checked_strict_equal()) {
+  if (IsCheckedStrictEqual()) {
     const intptr_t kNumTemps = 1;
     LocationSummary* locs =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -835,7 +806,7 @@ void EqualityCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     EmitDoubleComparisonOp(compiler, *locs(), kind(), kNoBranch);
     return;
   }
-  if (is_checked_strict_equal()) {
+  if (IsCheckedStrictEqual()) {
     EmitCheckedStrictEqual(compiler, *ic_data(), *locs(), kind(), kNoBranch,
                            deopt_id());
     return;
@@ -875,7 +846,7 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
     EmitDoubleComparisonOp(compiler, *locs(), kind(), branch);
     return;
   }
-  if (is_checked_strict_equal()) {
+  if (IsCheckedStrictEqual()) {
     EmitCheckedStrictEqual(compiler, *ic_data(), *locs(), kind(), branch,
                            deopt_id());
     return;

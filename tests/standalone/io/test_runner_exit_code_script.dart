@@ -10,7 +10,7 @@ import "../../../tools/testing/dart/test_runner.dart";
 import "../../../tools/testing/dart/test_options.dart";
 
 main() {
-  var progressType = Platform.arguments[0];
+  var progressType = new Options().arguments[0];
   // Build a progress indicator.
   var startTime = new DateTime.now();
   var progress =

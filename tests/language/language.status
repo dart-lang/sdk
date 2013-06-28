@@ -85,9 +85,6 @@ mixin_illegal_object_test/02: Crash # Issue 10952
 type_variable_field_initializer_closure_test: Crash # issue 8847
 
 
-execute_finally10_test: Fail # Issue 430
-execute_finally11_test: Fail # Issue 430
-
 [ $compiler == none && $unchecked ]
 
 # Only checked mode reports an error on type assignment
@@ -405,9 +402,6 @@ bad_constructor_test/04: Fail
 bad_constructor_test/05: Fail
 bad_constructor_test/06: Fail
 argument_definition_test/*: Skip # Not implemented.
-argument_definition2_test: Skip # Not implemented. Fails in minified tests.
-argument_definition3_test: Skip # Not implemented. Fails in minified tests.
-argument_definition4_test: Skip # Not implemented. Fails in minified tests.
 const_var_test: Pass, Fail # Map literals take 2 type arguments.
 map_literal3_test: Fail # Map literals take 2 type arguments.
 class_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
@@ -508,9 +502,6 @@ type_parameter_literal_test: Fail
 type_variable_field_initializer_closure_test: Crash # VM bug: issue 8847
 
 
-execute_finally10_test: Fail # VM bug: issue 430
-execute_finally11_test: Fail # VM bug: issue 430
-
 bound_closure_equality_test: Fail # Issue 10849
 
 [ $compiler == dart2dart && $minified ]
@@ -570,8 +561,6 @@ super_call4_test: Fail, OK # hardcoded names.
 
 
 [ $arch == simarm || $arch == arm ]
-deopt_smi_op_test: Fail
-gc_test: Crash
 stack_overflow_test: Crash, Pass # Passes on HW in release mode.
 stack_overflow_stacktrace_test: Crash, Pass # Passes on HW in release mode.
 
@@ -582,11 +571,6 @@ stack_overflow_stacktrace_test: Crash, Pass # Passes on HW in release mode.
 
 [ $arch == simmips ]
 arithmetic_test: Crash  # Too far relative branch.
-deopt_smi_op_test: Fail
-gc_test: Crash
-invocation_mirror_test: Fail
-large_implicit_getter_test: Crash
-load_to_load_forwarding_vm_test: Fail
-named_parameters_with_conversions_test: Pass, Crash
+large_implicit_getter_test: Crash  # Too far relative branch.
 stack_overflow_test: Crash
 stack_overflow_stacktrace_test: Crash

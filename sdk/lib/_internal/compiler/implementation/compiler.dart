@@ -370,6 +370,9 @@ abstract class Compiler implements DiagnosticListener {
   // Initialized when symbolImplementationClass has been resolved.
   FunctionElement symbolValidatedConstructor;
 
+  // Initialized when dart:mirrors is loaded.
+  ClassElement deferredLibraryClass;
+
   ClassElement jsInvocationMirrorClass;
   /// Document class from dart:mirrors.
   ClassElement documentClass;
@@ -695,12 +698,28 @@ abstract class Compiler implements DiagnosticListener {
         library.addToScope(dynamicClass, this);
       });
     }
-    if (uri == Uri.parse('dart:mirrors')) {
-      mirrorSystemClass = library.find(const SourceString('MirrorSystem'));
-    } else if (uri == Uri.parse('dart:_collection-dev')) {
-      symbolImplementationClass = library.find(const SourceString('Symbol'));
+    if (uri == new Uri(scheme: 'dart', path: 'dart:mirrors')) {
+      mirrorSystemClass =
+          findRequiredElement(library, const SourceString('MirrorSystem'));
+    } else if (uri == new Uri(scheme: 'dart', path: '_collection-dev')) {
+      symbolImplementationClass =
+          findRequiredElement(library, const SourceString('Symbol'));
+    } else if (uri == new Uri(scheme: 'dart', path: 'async')) {
+      deferredLibraryClass =
+          findRequiredElement(library, const SourceString('DeferredLibrary'));
     }
     backend.onLibraryScanned(library, uri);
+  }
+
+  Element findRequiredElement(LibraryElement library, SourceString name) {
+    var element = library.find(name);
+    if (element == null) {
+      internalErrorOnElement(
+          library,
+          'The library "${library.canonicalUri}" does not contain required '
+          'element: ${name.slowToString()}');
+      }
+    return element;
   }
 
   void onClassResolved(ClassElement cls) {

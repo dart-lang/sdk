@@ -4626,7 +4626,7 @@ RawString* Function::QualifiedUserVisibleName() const {
   const Class& cls = Class::Handle(Owner());
 
   if (IsClosureFunction()) {
-    if (IsLocalFunction()) {
+    if (IsLocalFunction() && !IsImplicitClosureFunction()) {
       const Function& parent = Function::Handle(parent_function());
       tmp = parent.QualifiedUserVisibleName();
     } else {
@@ -13289,7 +13289,7 @@ const char* ExternalTypedData::ToCString() const {
 const char* Closure::ToCString(const Instance& closure) {
   const Function& fun = Function::Handle(Closure::function(closure));
   const bool is_implicit_closure = fun.IsImplicitClosureFunction();
-  const char* fun_sig = String::Handle(fun.Signature()).ToCString();
+  const char* fun_sig = String::Handle(fun.UserVisibleSignature()).ToCString();
   const char* from = is_implicit_closure ? " from " : "";
   const char* fun_desc = is_implicit_closure ? fun.ToCString() : "";
   const char* format = "Closure: %s%s%s";

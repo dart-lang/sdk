@@ -2351,8 +2351,8 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
 
   @DomName('WebGLRenderingContext.getShaderParameter')
   @DocsEditable
-  @Creates('int|Null')
-  @Returns('int|Null')
+  @Creates('int|bool|Null')
+  @Returns('int|bool|Null')
   Object getShaderParameter(Shader shader, int pname) native;
 
   @DomName('WebGLRenderingContext.getShaderPrecisionFormat')

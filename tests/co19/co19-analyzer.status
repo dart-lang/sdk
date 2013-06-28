@@ -3,37 +3,28 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartanalyzer ]
-Language/05_Variables/05_Variables_A05_t04: fail
-Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t06: fail
-Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t07: fail
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: fail
+
+# not clear: g([var foo = foo + 10]) is parameter 'foo' in the scope of its own initialzer?
 Language/06_Functions/2_Formal_Parameters_A02_t02: fail
+
+# not clear: null..[1](1)[2](2).foo(3, bar: 4)=5 - it seems that verything before =5 it not assignable
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: fail
+
+# not initialized final instance variable, should be static warning
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: fail
+
+# invalid argument for constant constructor
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: fail
-Language/11_Expressions/01_Constants_A16_t01: fail
-Language/11_Expressions/01_Constants_A16_t02: fail
 Language/11_Expressions/01_Constants_A16_t03: fail
+
+# final instance variable created instance of the enclosing class
 Language/11_Expressions/01_Constants_A17_t03: fail
-Language/11_Expressions/05_Strings_A02_t46: fail
-Language/11_Expressions/05_Strings_A02_t48: fail
-Language/11_Expressions/11_Instance_Creation/1_New_A13_t02: fail
-Language/11_Expressions/11_Instance_Creation_A05_t02: fail
-Language/11_Expressions/22_Equality_A01_t15: fail
-Language/11_Expressions/22_Equality_A01_t16: fail
-Language/13_Libraries_and_Scripts/1_Imports_A05_t01: fail
-Language/13_Libraries_and_Scripts/5_URIs_A01_t24: fail
-Language/13_Libraries_and_Scripts/5_URIs_A01_t25: fail
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t01: fail
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t02: fail
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t03: fail
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t04: fail
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: fail
-Language/15_Reference/1_Lexical_Rules_A02_t06: fail
 
-
-# fails locally, passes on bot
+# analyzer problem: forward reference of typedef with type parameters
 Language/13_Libraries_and_Scripts/3_Parts_A02_t03: skip
+
+
+
 
 # co19 issue #380, Strings class has been removed
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: fail, OK
@@ -104,7 +95,7 @@ Language/11_Expressions/08_Throw_A05_t01: fail, OK
 Language/11_Expressions/08_Throw_A05_t02: fail, OK
 Language/11_Expressions/08_Throw_A05_t03: fail, OK
 
-# infinite loop
+# analyzer issue https://code.google.com/p/dart/issues/detail?id=11534
 Language/14_Types/4_Interface_Types_A11_t01: skip
 Language/14_Types/4_Interface_Types_A11_t02: skip
 
@@ -189,8 +180,28 @@ Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t07: fail, 
 Language/11_Expressions/33_Argument_Definition_Test_A01_t14: fail, OK
 Language/11_Expressions/33_Argument_Definition_Test_A01_t18: fail, OK
 
-# co19 issue #435, AssertioError has not properties
+# co19 issue #435, AssertionError has not properties
 LibTest/core/AssertionError/column_A01_t02: fail, OK
 LibTest/core/AssertionError/failedAssertion_A01_t01: fail, OK
 LibTest/core/AssertionError/line_A01_t02: fail, OK
 LibTest/core/AssertionError/url_A01_t01: fail, OK
+
+# co19 issue #437, annotation should be constant _variable_ or constant constructor invocation
+Language/07_Classes/07_Classes_A01_t20: fail, OK
+Language/07_Classes/07_Classes_A02_t34: fail, OK
+Language/07_Classes/07_Classes_A03_t10: fail, OK
+Language/13_Libraries_and_Scripts/2_Exports_A01_t17: fail, OK
+
+# co19 issue 438, Static variables are initialized lazily, need not be constants
+Language/11_Expressions/01_Constants_A16_t01: fail, OK
+Language/11_Expressions/01_Constants_A16_t02: fail, OK
+
+# co19 issue 439, it is warning, not error to import two different libraries with the same name
+Language/13_Libraries_and_Scripts/1_Imports_A05_t01: fail, OK
+
+# co19 issue #440, adj strings is not a string interpolation
+Language/13_Libraries_and_Scripts/5_URIs_A01_t24: fail, OK
+Language/13_Libraries_and_Scripts/5_URIs_A01_t25: fail, OK
+
+# co19 issue #441, assignment in constructor is not initializing
+Language/05_Variables/05_Variables_A05_t04: fail, OK

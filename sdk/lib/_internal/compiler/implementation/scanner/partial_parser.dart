@@ -34,7 +34,9 @@ class PartialParser extends Parser {
           (identical(value, ',')) ||
           (identical(value, ']')))
         return token;
-      if (identical(value, '=')) {
+      if (identical(value, '=') ||
+          identical(value, '?') ||
+          identical(value, ':')) {
         var nextValue = token.next.stringValue;
         if (identical(nextValue, 'const')) {
           token = token.next;
@@ -45,6 +47,7 @@ class PartialParser extends Parser {
           // class Foo {
           //   var map;
           //   Foo() : map = {};
+          //   Foo.x() : map = true ? {} : {};
           // }
           BeginGroupToken begin = token.next;
           token = (begin.endGroup != null) ? begin.endGroup : token;
@@ -56,6 +59,7 @@ class PartialParser extends Parser {
           // class Foo {
           //   var map;
           //   Foo() : map = <String, Foo>{};
+          //   Foo.x() : map = true ? <String, Foo>{} : <String, Foo>{};
           // }
           BeginGroupToken begin = token.next;
           token = (begin.endGroup != null) ? begin.endGroup : token;

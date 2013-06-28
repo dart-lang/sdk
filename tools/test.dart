@@ -238,9 +238,9 @@ void testConfigurations(List<Map> configurations) {
       var printFailureSummary = progressIndicator != 'buildbot';
       eventListener.add(new TestFailurePrinter(printFailureSummary, formatter));
     }
-    eventListener.add(new ProgressIndicator.fromName(progressIndicator,
-                                                     startTime,
-                                                     formatter));
+    eventListener.add(progressIndicatorFromName(progressIndicator,
+                                                startTime,
+                                                formatter));
     if (printTiming) {
       eventListener.add(new TimingPrinter(startTime));
     }
@@ -302,7 +302,7 @@ Future deleteTemporaryDartDirectories() {
           }
         }
       }
-    }, onDone: completer.complete());
+    }, onDone: completer.complete);
   } else {
     completer.complete();
   }

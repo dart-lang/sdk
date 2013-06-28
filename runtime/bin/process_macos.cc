@@ -56,7 +56,7 @@ class ProcessInfo {
 class ProcessInfoList {
  public:
   static void AddProcess(pid_t pid, intptr_t fd) {
-    MutexLocker locker(&mutex_);
+    MutexLocker locker(mutex_);
     ProcessInfo* info = new ProcessInfo(pid, fd);
     info->set_next(active_processes_);
     active_processes_ = info;
@@ -64,7 +64,7 @@ class ProcessInfoList {
 
 
   static intptr_t LookupProcessExitFd(pid_t pid) {
-    MutexLocker locker(&mutex_);
+    MutexLocker locker(mutex_);
     ProcessInfo* current = active_processes_;
     while (current != NULL) {
       if (current->pid() == pid) {
@@ -77,7 +77,7 @@ class ProcessInfoList {
 
 
   static void RemoveProcess(pid_t pid) {
-    MutexLocker locker(&mutex_);
+    MutexLocker locker(mutex_);
     ProcessInfo* prev = NULL;
     ProcessInfo* current = active_processes_;
     while (current != NULL) {
@@ -101,12 +101,12 @@ class ProcessInfoList {
   static ProcessInfo* active_processes_;
   // Mutex protecting all accesses to the linked list of active
   // processes.
-  static dart::Mutex mutex_;
+  static dart::Mutex* mutex_;
 };
 
 
 ProcessInfo* ProcessInfoList::active_processes_ = NULL;
-dart::Mutex ProcessInfoList::mutex_;
+dart::Mutex* ProcessInfoList::mutex_ = new dart::Mutex();
 
 
 // The exit code handler sets up a separate thread which is signalled
@@ -120,7 +120,7 @@ class ExitCodeHandler {
     // Multiple isolates could be starting processes at the same
     // time. Make sure that only one of them initializes the
     // ExitCodeHandler.
-    MutexLocker locker(&mutex_);
+    MutexLocker locker(mutex_);
     if (initialized_) {
       return true;
     }
@@ -156,7 +156,7 @@ class ExitCodeHandler {
   }
 
   static void TerminateExitCodeThread() {
-    MutexLocker locker(&mutex_);
+    MutexLocker locker(mutex_);
     if (!initialized_) {
       return;
     }
@@ -169,7 +169,7 @@ class ExitCodeHandler {
     }
 
     {
-      MonitorLocker terminate_locker(&thread_terminate_monitor_);
+      MonitorLocker terminate_locker(thread_terminate_monitor_);
       while (!thread_terminated_) {
         terminate_locker.Wait();
       }
@@ -177,7 +177,7 @@ class ExitCodeHandler {
   }
 
   static void ExitCodeThreadTerminated() {
-    MonitorLocker locker(&thread_terminate_monitor_);
+    MonitorLocker locker(thread_terminate_monitor_);
     thread_terminated_ = true;
     locker.Notify();
   }
@@ -252,19 +252,19 @@ class ExitCodeHandler {
     }
   }
 
-  static dart::Mutex mutex_;
+  static dart::Mutex* mutex_;
   static bool initialized_;
   static int sig_chld_fds_[2];
   static bool thread_terminated_;
-  static dart::Monitor thread_terminate_monitor_;
+  static dart::Monitor* thread_terminate_monitor_;
 };
 
 
-dart::Mutex ExitCodeHandler::mutex_;
+dart::Mutex* ExitCodeHandler::mutex_ = new dart::Mutex();
 bool ExitCodeHandler::initialized_ = false;
 int ExitCodeHandler::sig_chld_fds_[2] = { 0, 0 };
 bool ExitCodeHandler::thread_terminated_ = false;
-dart::Monitor ExitCodeHandler::thread_terminate_monitor_;
+dart::Monitor* ExitCodeHandler::thread_terminate_monitor_ = new dart::Monitor();
 
 
 static void SetChildOsErrorMessage(char** os_error_message) {

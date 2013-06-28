@@ -397,6 +397,6 @@ class ArgResults {
   }
 
   /** Get the names of the options as a [Collection]. */
-  Collection<String> get options => _options.keys.toList();
+  List<String> get options => _options.keys.toList();
 }
 

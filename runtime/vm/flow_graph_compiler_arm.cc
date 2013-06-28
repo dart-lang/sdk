@@ -1035,8 +1035,6 @@ void FlowGraphCompiler::CompileGraph() {
   // the presence of optional parameters.
   // No such checking code is generated if only fixed parameters are declared,
   // unless we are in debug mode or unless we are compiling a closure.
-  LocalVariable* saved_args_desc_var =
-      parsed_function().GetSavedArgumentsDescriptorVar();
   if (num_copied_params == 0) {
 #ifdef DEBUG
     ASSERT(!parsed_function().function().HasOptionalParameters());
@@ -1078,26 +1076,12 @@ void FlowGraphCompiler::CompileGraph() {
       }
       __ Bind(&correct_num_arguments);
     }
-    // The arguments descriptor is never saved in the absence of optional
-    // parameters, since any argument definition test would always yield true.
-    ASSERT(saved_args_desc_var == NULL);
   } else {
-    if (saved_args_desc_var != NULL) {
-      __ Comment("Save arguments descriptor");
-      const Register kArgumentsDescriptorReg = R4;
-      // The saved_args_desc_var is allocated one slot before the first local.
-      const intptr_t slot = parsed_function().first_stack_local_index() + 1;
-      // If the saved_args_desc_var is captured, it is first moved to the stack
-      // and later to the context, once the context is allocated.
-      ASSERT(saved_args_desc_var->is_captured() ||
-             (saved_args_desc_var->index() == slot));
-      __ str(kArgumentsDescriptorReg, Address(FP, slot * kWordSize));
-    }
     CopyParameters();
   }
 
   // In unoptimized code, initialize (non-argument) stack allocated slots to
-  // null. This does not cover the saved_args_desc_var slot.
+  // null.
   if (!is_optimizing() && (num_locals > 0)) {
     __ Comment("Initialize spill slots");
     const intptr_t slot_base = parsed_function().first_stack_local_index();
@@ -1354,7 +1338,11 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
       (obj.IsMint() || obj.IsDouble() || obj.IsBigint())) {
     __ Push(reg);
     __ PushObject(obj);
-    __ BranchLink(&StubCode::IdenticalWithNumberCheckLabel());
+    if (is_optimizing()) {
+      __ BranchLink(&StubCode::OptimizedIdenticalWithNumberCheckLabel());
+    } else {
+      __ BranchLink(&StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
+    }
     AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
                          Isolate::kNoDeoptId,
                          token_pos);
@@ -1374,7 +1362,11 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
   if (needs_number_check) {
     __ Push(left);
     __ Push(right);
-    __ BranchLink(&StubCode::IdenticalWithNumberCheckLabel());
+    if (is_optimizing()) {
+      __ BranchLink(&StubCode::OptimizedIdenticalWithNumberCheckLabel());
+    } else {
+      __ BranchLink(&StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
+    }
     AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
                          Isolate::kNoDeoptId,
                          token_pos);
@@ -1566,7 +1558,7 @@ Address FlowGraphCompiler::ExternalElementAddressForIntIndex(
     intptr_t index_scale,
     Register array,
     intptr_t index) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
   return FieldAddress(array, index);
 }
 
@@ -1575,7 +1567,7 @@ Address FlowGraphCompiler::ExternalElementAddressForRegIndex(
     intptr_t index_scale,
     Register array,
     Register index) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
   return FieldAddress(array, index);
 }
 

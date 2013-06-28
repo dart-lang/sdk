@@ -80,7 +80,7 @@ class ProcessInfoList {
     // is signaled.  The callback runs in a independent thread from the OS pool.
     // Because the callback depends on the process list containing
     // the process, lock the mutex until the process is added to the list.
-    MutexLocker locker(&mutex_);
+    MutexLocker locker(mutex_);
     HANDLE wait_handle = INVALID_HANDLE_VALUE;
     BOOL success = RegisterWaitForSingleObject(
         &wait_handle,
@@ -102,7 +102,7 @@ class ProcessInfoList {
                             HANDLE* handle,
                             HANDLE* wait_handle,
                             HANDLE* pipe) {
-    MutexLocker locker(&mutex_);
+    MutexLocker locker(mutex_);
     ProcessInfo* current = active_processes_;
     while (current != NULL) {
       if (current->pid() == pid) {
@@ -117,7 +117,7 @@ class ProcessInfoList {
   }
 
   static void RemoveProcess(DWORD pid) {
-    MutexLocker locker(&mutex_);
+    MutexLocker locker(mutex_);
     ProcessInfo* prev = NULL;
     ProcessInfo* current = active_processes_;
     while (current != NULL) {
@@ -186,12 +186,12 @@ class ProcessInfoList {
   static ProcessInfo* active_processes_;
   // Mutex protecting all accesses to the linked list of active
   // processes.
-  static dart::Mutex mutex_;
+  static dart::Mutex* mutex_;
 };
 
 
 ProcessInfo* ProcessInfoList::active_processes_ = NULL;
-dart::Mutex ProcessInfoList::mutex_;
+dart::Mutex* ProcessInfoList::mutex_ = new dart::Mutex();
 
 
 // Types of pipes to create.
@@ -343,10 +343,10 @@ static DeleteProcThreadAttrListFn delete_proc_thread_attr_list = NULL;
 
 static bool EnsureInitialized() {
   static bool load_attempted = false;
-  static dart::Mutex mutex;
+  static dart::Mutex* mutex = new dart::Mutex();
   HMODULE kernel32_module = GetModuleHandleW(L"kernel32.dll");
   if (!load_attempted) {
-    MutexLocker locker(&mutex);
+    MutexLocker locker(mutex);
     if (load_attempted) return delete_proc_thread_attr_list != NULL;
     init_proc_thread_attr_list = reinterpret_cast<InitProcThreadAttrListFn>(
         GetProcAddress(kernel32_module, "InitializeProcThreadAttributeList"));

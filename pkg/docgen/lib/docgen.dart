@@ -33,275 +33,311 @@ import '../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirro
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/source_file_provider.dart';
+import '../../../sdk/lib/_internal/libraries.dart';
 
 var logger = new Logger('Docgen');
 
-const String usage = 'Usage: dart docgen.dart [OPTIONS] [fooDir/barFile]';
+const String USAGE = 'Usage: dart docgen.dart [OPTIONS] [fooDir/barFile]';
+
+/// Current library being documented to be used for comment links.
+LibraryMirror _currentLibrary;
+
+/// Current class being documented to be used for comment links.
+ClassMirror _currentClass;
+
+/// Current member being documented to be used for comment links.
+MemberMirror _currentMember;
+
+/// Resolves reference links in doc comments. 
+markdown.Resolver linkResolver;
+
+/// Package directory of directory being analyzed. 
+String packageDir;
+
+bool outputToYaml;
+bool outputToJson;
+bool includePrivate;
+/// State for whether imported SDK libraries should also be outputted.
+bool includeSdk;
+/// State for whether all SDK libraries should be outputted. 
+bool parseSdk;
 
 /**
- * This class documents a list of libraries.
+ * Docgen constructor initializes the link resolver for markdown parsing.
+ * Also initializes the command line arguments. 
  */
-class Docgen {
-
-  /// Libraries to be documented.
-  List<LibraryMirror> _libraries;
-
-  /// Current library being documented to be used for comment links.
-  LibraryMirror _currentLibrary;
+void docgen(ArgResults argResults) {  
+  _setCommandLineArguments(argResults);
   
-  /// Current class being documented to be used for comment links.
-  ClassMirror _currentClass;
+  linkResolver = (name) => 
+      fixReference(name, _currentLibrary, _currentClass, _currentMember);
   
-  /// Current member being documented to be used for comment links.
-  MemberMirror _currentMember;
-  
-  /// Resolves reference links in doc comments. 
-  markdown.Resolver linkResolver;
-  
-  /// Package directory of directory being analyzed. 
-  String packageDir;
-  
-  bool outputToYaml;
-  bool outputToJson;
-  bool includePrivate;
-  /// State for whether or not the SDK libraries should also be outputted.
-  bool includeSdk;
-
-  /**
-   * Docgen constructor initializes the link resolver for markdown parsing.
-   * Also initializes the command line arguments. 
-   */
-  Docgen(ArgResults argResults) {  
-    if (argResults['output-format'] == null) {
-      outputToYaml = 
-          (argResults['yaml'] == false && argResults['json'] == false) ?
-              true : argResults['yaml'];
-    } else {
-      if ((argResults['output-format'] == 'yaml' && 
-          argResults['json'] == true) || 
-          (argResults['output-format'] == 'json' && 
-          argResults['yaml'] == true)) {
-        throw new UnsupportedError('Cannot have contradictory output flags.');
-      }
-      outputToYaml = argResults['output-format'] == 'yaml' ? true : false;
+  getMirrorSystem(argResults.rest).then((MirrorSystem mirrorSystem) {
+    if (mirrorSystem.libraries.values.isEmpty) {
+      throw new StateError('No Library Mirrors.');
     }
-    outputToJson = !outputToYaml;
-    includePrivate = argResults['include-private'];
-    includeSdk = argResults['include-sdk'];
-    
-    this.linkResolver = (name) => 
-        fixReference(name, _currentLibrary, _currentClass, _currentMember);
-    
-    analyze(argResults.rest);
-  }
-  
-  List<String> listLibraries(List<String> args) {
-    // TODO(janicejl): At the moment, only have support to have either one file,
-    // or one directory. This is because there can only be one package directory
-    // since only one docgen is created per run. 
-    if (args.length != 1) throw new UnsupportedError(usage);
-    var libraries = new List<String>();
-    var type = FileSystemEntity.typeSync(args[0]);
-    
-    if (type == FileSystemEntityType.FILE) {
-      libraries.add(path.absolute(args[0]));
-      logger.info('Added to libraries: ${libraries.last}');
-    } else {
-      libraries.addAll(listDartFromDir(args[0]));
-    } 
-    logger.info('Package Directory: $packageDir');
-    return libraries;
-  }
+    _documentLibraries(mirrorSystem.libraries.values);
+  });
+}
 
-  List<String> listDartFromDir(String args) {
-    var files = listDir(args, recursive: true);
-    packageDir = files.firstWhere((f) => 
-        f.endsWith('/pubspec.yaml'), orElse: () => '');
-    if (packageDir != '') packageDir = path.dirname(packageDir) + '/packages';
-    return files.where((f) => 
-        f.endsWith('.dart') && !f.contains('/packages')).toList()
-        ..forEach((lib) => logger.info('Added to libraries: $lib'));
+void _setCommandLineArguments(ArgResults argResults) {
+  outputToYaml = argResults['yaml'] || argResults['output-format'] == 'yaml';
+  outputToJson = argResults['json'] || argResults['output-format'] == 'json';
+  if (outputToYaml && outputToJson) {
+    throw new ArgumentError('Cannot have contradictory output flags.');
   }
+  outputToYaml = outputToYaml || !outputToJson;
+  includePrivate = argResults['include-private'];
+  parseSdk = argResults['parse-sdk'];
+  includeSdk = parseSdk || argResults['include-sdk'];
+}
 
-  /**
-   * Analyzes set of libraries by getting a mirror system and triggers the 
-   * documentation of the libraries. 
-   */
-  void analyze(List<String> args) {
-    var libraries = listLibraries(args);
-    if (libraries.isEmpty) throw new StateError('No Libraries.');
-    // DART_SDK should be set to the root of the SDK library. 
-    var sdkRoot = Platform.environment['DART_SDK'];
-    if (sdkRoot != null) {
-      logger.info('Using DART_SDK to find SDK at $sdkRoot');
-    } else {
-      // If DART_SDK is not defined in the environment, 
-      // assuming the dart executable is from the Dart SDK folder inside bin. 
-      sdkRoot = path.dirname(path.dirname(new Options().executable));
-      logger.info('SDK Root: ${sdkRoot}');
-    }
-    
-    getMirrorSystem(libraries, sdkRoot, packageRoot: packageDir)
-        .then((MirrorSystem mirrorSystem) {
-          if (mirrorSystem.libraries.values.isEmpty) {
-            throw new UnsupportedError('No Library Mirrors.');
-          } 
-          this.libraries = mirrorSystem.libraries.values;
-          documentLibraries();
-        });
-  }
+List<String> _listLibraries(List<String> args) {
+  // TODO(janicejl): At the moment, only have support to have either one file,
+  // or one directory. This is because there can only be one package directory
+  // since only one docgen is created per run. 
+  if (args.length != 1) throw new UnsupportedError(USAGE);
+  var libraries = new List<String>();
+  var type = FileSystemEntity.typeSync(args[0]);
   
-  /**
-   * Analyzes set of libraries and provides a mirror system which can be used 
-   * for static inspection of the source code.
-   */
-  Future<MirrorSystem> getMirrorSystem(List<String> libraries,
-        String libraryRoot, {String packageRoot}) {
-    SourceFileProvider provider = new SourceFileProvider();
-    api.DiagnosticHandler diagnosticHandler =
-          new FormattingDiagnosticHandler(provider).diagnosticHandler;
-    Uri libraryUri = currentDirectory.resolve(appendSlash('$libraryRoot'));
-    Uri packageUri = null;
-    if (packageRoot != null) {
-      packageUri = currentDirectory.resolve(appendSlash('$packageRoot'));
-    }
-    List<Uri> librariesUri = <Uri>[];
-    libraries.forEach((library) {
-      librariesUri.add(currentDirectory.resolve(library));
-    });
-    return dart2js.analyze(librariesUri, libraryUri, packageUri,
-        provider.readStringFromUri, diagnosticHandler,
-        ['--preserve-comments', '--categories=Client,Server']);
-  }
-  
-  /**
-   * Creates documentation for filtered libraries.
-   */
-  void documentLibraries() {
-    _libraries.forEach((library) {
-      // Files belonging to the SDK have a uri that begins with 'dart:'.
-      if (includeSdk || !library.uri.toString().startsWith('dart:')) {
-        _currentLibrary = library;
-        var result = new Library(library.qualifiedName, _getComment(library),
-            _getVariables(library.variables), _getMethods(library.functions),
-            _getClasses(library.classes));
-        if (outputToJson) {
-          _writeToFile(stringify(result.toMap()), '${result.name}.json');
-        } 
-        if (outputToYaml) {
-          _writeToFile(getYamlString(result.toMap()), '${result.name}.yaml');
-        }
-     }
-    });
-   }
-
-  /// Saves list of libraries for Docgen object.
-  void set libraries(value){
-    _libraries = value;
-  }
-  
-  /**
-   * Returns any documentation comments associated with a mirror with
-   * simple markdown converted to html.
-   */
-  String _getComment(DeclarationMirror mirror) {
-    String commentText;
-    mirror.metadata.forEach((metadata) {
-      if (metadata is CommentInstanceMirror) {
-        CommentInstanceMirror comment = metadata;
-        if (comment.isDocComment) {
-          if (commentText == null) {
-            commentText = comment.trimmedText;
-          } else {
-            commentText = '$commentText ${comment.trimmedText}';
-          }
-        } 
-      }
-    });
-    commentText = commentText == null ? '' : 
-        markdown.markdownToHtml(commentText.trim(), linkResolver: linkResolver)
-        .replaceAll('\n', '');
-    return commentText;
-  }
-
-  /**
-   * Converts all [_] references in comments to <code>_</code>.
-   */
-  // TODO(tmandel): Create proper links for [_] style markdown based
-  // on scope once layout of viewer is finished.
-  markdown.Node fixReference(String name, LibraryMirror currentLibrary, 
-      ClassMirror currentClass, MemberMirror currentMember) {
-    return new markdown.Element.text('code', name);
-  }
-  
-  /**
-   * Returns a map of [Variable] objects constructed from inputted mirrors.
-   */
-  Map<String, Variable> _getVariables(Map<String, VariableMirror> mirrorMap) {
-    var data = {};
-    mirrorMap.forEach((String mirrorName, VariableMirror mirror) {
-      if (includePrivate || !mirror.isPrivate) {
-        _currentMember = mirror;
-        data[mirrorName] = new Variable(mirrorName, mirror.qualifiedName, 
-            mirror.isFinal, mirror.isStatic, mirror.type.qualifiedName, 
-            _getComment(mirror));
-      }
-    });
-    return data;
-  }
-  
-  /**
-   * Returns a map of [Method] objects constructed from inputted mirrors.
-   */
-  Map<String, Method> _getMethods(Map<String, MethodMirror> mirrorMap) {
-    var data = {};
-    mirrorMap.forEach((String mirrorName, MethodMirror mirror) {
-      if (includePrivate || !mirror.isPrivate) {
-        _currentMember = mirror;
-        data[mirrorName] = new Method(mirrorName, mirror.qualifiedName, 
-            mirror.isSetter, mirror.isGetter, mirror.isConstructor, 
-            mirror.isOperator, mirror.isStatic, mirror.returnType.qualifiedName, 
-            _getComment(mirror), _getParameters(mirror.parameters));
-      }
-    });
-    return data;
+  if (type == FileSystemEntityType.FILE) {
+    libraries.add(path.absolute(args[0]));
+    logger.info('Added to libraries: ${libraries.last}');
+  } else {
+    libraries.addAll(_listDartFromDir(args[0]));
   } 
-  
-  /**
-   * Returns a map of [Class] objects constructed from inputted mirrors.
-   */
-  Map<String, Class> _getClasses(Map<String, ClassMirror> mirrorMap) {
-    var data = {};
-    mirrorMap.forEach((String mirrorName, ClassMirror mirror) {
-      if (includePrivate || !mirror.isPrivate) {
-        _currentClass = mirror;
-        var superclass = (mirror.superclass != null) ? 
-            mirror.superclass.qualifiedName : '';
-        var interfaces = 
-            mirror.superinterfaces.map((interface) => interface.qualifiedName);
-        data[mirrorName] = new Class(mirrorName, mirror.qualifiedName, 
-            superclass, mirror.isAbstract, mirror.isTypedef, 
-            _getComment(mirror), interfaces.toList(),
-            _getVariables(mirror.variables), _getMethods(mirror.methods));
-      }
-    });
-    return data;
+  logger.info('Package Directory: $packageDir');
+  return libraries;
+}
+
+List<String> _listDartFromDir(String args) {
+  var files = listDir(args, recursive: true);
+  packageDir = files.firstWhere((f) => 
+      f.endsWith('/pubspec.yaml'), orElse: () => '');
+  if (packageDir != '') packageDir = path.dirname(packageDir) + '/packages';
+  return files.where((f) => 
+      f.endsWith('.dart') && !f.contains('/packages')).toList()
+      ..forEach((lib) => logger.info('Added to libraries: $lib'));
+}
+
+List<String> _listSdk() {
+  var sdk = new List<String>();
+  LIBRARIES.forEach((String name, LibraryInfo info) {
+    if (info.documented) { 
+      sdk.add('dart:$name');
+      logger.info('Add to SDK: ${sdk.last}');
+    }
+  });
+  return sdk;
+}
+
+/**
+ * Analyzes set of libraries by getting a mirror system and triggers the 
+ * documentation of the libraries. 
+ */
+Future<MirrorSystem> getMirrorSystem(List<String> args) {
+  var libraries = !parseSdk ? _listLibraries(args) : _listSdk();
+  if (libraries.isEmpty) throw new StateError('No Libraries.');
+  // DART_SDK should be set to the root of the SDK library. 
+  var sdkRoot = Platform.environment['DART_SDK'];
+  if (sdkRoot != null) {
+    logger.info('Using DART_SDK to find SDK at $sdkRoot');
+  } else {
+    // If DART_SDK is not defined in the environment, 
+    // assuming the dart executable is from the Dart SDK folder inside bin. 
+    sdkRoot = path.dirname(path.dirname(new Options().executable));
+    logger.info('SDK Root: ${sdkRoot}');
   }
   
-  /**
-   * Returns a map of [Parameter] objects constructed from inputted mirrors.
-   */
-  Map<String, Parameter> _getParameters(List<ParameterMirror> mirrorList) {
-    var data = {};
-    mirrorList.forEach((ParameterMirror mirror) {
+  return _getMirrorSystemHelper(libraries, sdkRoot, packageRoot: packageDir);
+}
+
+/**
+ * Analyzes set of libraries and provides a mirror system which can be used 
+ * for static inspection of the source code.
+ */
+Future<MirrorSystem> _getMirrorSystemHelper(List<String> libraries,
+      String libraryRoot, {String packageRoot}) {
+  SourceFileProvider provider = new SourceFileProvider();
+  api.DiagnosticHandler diagnosticHandler =
+        new FormattingDiagnosticHandler(provider).diagnosticHandler;
+  Uri libraryUri = currentDirectory.resolve(appendSlash('$libraryRoot'));
+  Uri packageUri = null;
+  if (packageRoot != null) {
+    packageUri = currentDirectory.resolve(appendSlash('$packageRoot'));
+  }
+  List<Uri> librariesUri = <Uri>[];
+  libraries.forEach((library) {
+    librariesUri.add(currentDirectory.resolve(library));
+  });
+  return dart2js.analyze(librariesUri, libraryUri, packageUri,
+      provider.readStringFromUri, diagnosticHandler,
+      ['--preserve-comments', '--categories=Client,Server']);
+}
+
+/**
+ * Creates documentation for filtered libraries.
+ */
+void _documentLibraries(List<LibraryMirror> libraries) {
+  libraries.forEach((lib) {
+    // Files belonging to the SDK have a uri that begins with 'dart:'.
+    if (includeSdk || !lib.uri.toString().startsWith('dart:')) {
+      var library = generateLibrary(lib);
+      _outputLibrary(library);
+    }
+  });
+  // Outputs a text file with a list of files available after creating all 
+  // the libraries. This will help the viewer know what files are available 
+  // to read in. 
+  _writeToFile(listDir("docs").join('\n'), 'library_list.txt');
+}
+
+Library generateLibrary(dart2js.Dart2JsLibraryMirror library) {
+  _currentLibrary = library;
+  var result = new Library(library.qualifiedName, _getComment(library),
+      _getVariables(library.variables), _getMethods(library.functions),
+      _getClasses(library.classes));
+  logger.fine('Generated library for ${result.name}');
+  return result;
+}
+
+void _outputLibrary(Library result) {
+  if (outputToJson) {
+    _writeToFile(stringify(result.toMap()), '${result.name}.json');
+  } 
+  if (outputToYaml) {
+    _writeToFile(getYamlString(result.toMap()), '${result.name}.yaml');
+  }
+}
+
+/**
+ * Returns a list of meta annotations assocated with a mirror. 
+ */
+List<String> _getAnnotations(DeclarationMirror mirror) {
+  var annotations = mirror.metadata.where((e) => 
+      e is dart2js.Dart2JsConstructedConstantMirror);
+  return annotations.map((e) => e.type.qualifiedName).toList();
+}
+
+/**
+ * Returns any documentation comments associated with a mirror with
+ * simple markdown converted to html.
+ */
+String _getComment(DeclarationMirror mirror) {
+  String commentText;
+  mirror.metadata.forEach((metadata) {
+    if (metadata is CommentInstanceMirror) {
+      CommentInstanceMirror comment = metadata;
+      if (comment.isDocComment) {
+        if (commentText == null) {
+          commentText = comment.trimmedText;
+        } else {
+          commentText = '$commentText ${comment.trimmedText}';
+        }
+      } 
+    }
+  });
+  commentText = commentText == null ? '' : 
+      markdown.markdownToHtml(commentText.trim(), linkResolver: linkResolver)
+      .replaceAll('\n', ' ');
+  return commentText;
+}
+
+/**
+ * Converts all [_] references in comments to <code>_</code>.
+ */
+// TODO(tmandel): Create proper links for [_] style markdown based
+// on scope once layout of viewer is finished.
+markdown.Node fixReference(String name, LibraryMirror currentLibrary, 
+    ClassMirror currentClass, MemberMirror currentMember) {
+  return new markdown.Element.text('code', name);
+}
+
+/**
+ * Returns a map of [Variable] objects constructed from inputted mirrors.
+ */
+Map<String, Variable> _getVariables(Map<String, VariableMirror> mirrorMap) {
+  var data = {};
+  mirrorMap.forEach((String mirrorName, VariableMirror mirror) {
+    if (includePrivate || !mirror.isPrivate) {
       _currentMember = mirror;
-      data[mirror.simpleName] = new Parameter(mirror.simpleName, 
-          mirror.qualifiedName, mirror.isOptional, mirror.isNamed, 
-          mirror.hasDefaultValue, mirror.type.qualifiedName, 
-          mirror.defaultValue);
-    });
-    return data;
+      data[mirrorName] = new Variable(mirrorName, mirror.qualifiedName, 
+          mirror.isFinal, mirror.isStatic, mirror.type.qualifiedName, 
+          _getComment(mirror), _getAnnotations(mirror));
+    }
+  });
+  return data;
+}
+
+/**
+ * Returns a map of [Method] objects constructed from inputted mirrors.
+ */
+Map<String, Method> _getMethods(Map<String, MethodMirror> mirrorMap) {
+  var data = {};
+  mirrorMap.forEach((String mirrorName, MethodMirror mirror) {
+    if (includePrivate || !mirror.isPrivate) {
+      _currentMember = mirror;
+      data[mirrorName] = new Method(mirrorName, mirror.qualifiedName, 
+          mirror.isSetter, mirror.isGetter, mirror.isConstructor, 
+          mirror.isOperator, mirror.isStatic, mirror.returnType.qualifiedName, 
+          _getComment(mirror), _getParameters(mirror.parameters), 
+          _getAnnotations(mirror));
+    }
+  });
+  return data;
+} 
+
+/**
+ * Returns a map of [Class] objects constructed from inputted mirrors.
+ */
+Map<String, Class> _getClasses(Map<String, ClassMirror> mirrorMap) {
+  var data = {};
+  mirrorMap.forEach((String mirrorName, ClassMirror mirror) {
+    if (includePrivate || !mirror.isPrivate) {
+      _currentClass = mirror;
+      var superclass = (mirror.superclass != null) ? 
+          mirror.superclass.qualifiedName : '';
+      var interfaces = 
+          mirror.superinterfaces.map((interface) => interface.qualifiedName);
+      data[mirrorName] = new Class(mirrorName, mirror.qualifiedName, 
+          superclass, mirror.isAbstract, mirror.isTypedef, 
+          _getComment(mirror), interfaces.toList(),
+          _getVariables(mirror.variables), _getMethods(mirror.methods), 
+          _getAnnotations(mirror));
+    }
+  });
+  return data;
+}
+
+/**
+ * Returns a map of [Parameter] objects constructed from inputted mirrors.
+ */
+Map<String, Parameter> _getParameters(List<ParameterMirror> mirrorList) {
+  var data = {};
+  mirrorList.forEach((ParameterMirror mirror) {
+    _currentMember = mirror;
+    data[mirror.simpleName] = new Parameter(mirror.simpleName, 
+        mirror.qualifiedName, mirror.isOptional, mirror.isNamed, 
+        mirror.hasDefaultValue, mirror.type.qualifiedName, 
+        mirror.defaultValue, _getAnnotations(mirror));
+  });
+  return data;
+}
+
+/**
+ * Writes text to a file in the 'docs' directory.
+ */
+void _writeToFile(String text, String filename) {
+  Directory dir = new Directory('docs');
+  if (!dir.existsSync()) {
+    dir.createSync();
   }
+  File file = new File('docs/$filename');
+  if (!file.existsSync()) {
+    file.createSync();
+  }
+  file.openSync();
+  file.writeAsString(text);
 }
 
 /**
@@ -372,9 +408,13 @@ class Class {
   String superclass;
   bool isAbstract;
   bool isTypedef;
+  
+  /// List of the meta annotations on the class. 
+  List<String> annotations;
  
-  Class(this.name, this.qualifiedName, this.superclass, this.isAbstract, this.isTypedef,
-      this.comment, this.interfaces, this.variables, this.methods);
+  Class(this.name, this.qualifiedName, this.superclass, this.isAbstract, 
+      this.isTypedef, this.comment, this.interfaces, this.variables, 
+      this.methods, this.annotations);
   
   /// Generates a map describing the [Class] object.
   Map toMap() {
@@ -388,6 +428,7 @@ class Class {
     classMap['implements'] = new List.from(interfaces);
     classMap['variables'] = recurseMap(variables);
     classMap['methods'] = recurseMap(methods);
+    classMap['annotations'] = new List.from(annotations);
     return classMap;
   }
 }
@@ -405,9 +446,12 @@ class Variable {
   bool isFinal;
   bool isStatic;
   String type;
+
+  /// List of the meta annotations on the variable. 
+  List<String> annotations;
   
   Variable(this.name, this.qualifiedName, this.isFinal, this.isStatic, 
-      this.type, this.comment);
+      this.type, this.comment, this.annotations);
   
   /// Generates a map describing the [Variable] object.
   Map toMap() {
@@ -418,6 +462,7 @@ class Variable {
     variableMap['final'] = isFinal.toString();
     variableMap['static'] = isStatic.toString();
     variableMap['type'] = type;
+    variableMap['annotations'] = new List.from(annotations);
     return variableMap;
   }
 }
@@ -442,9 +487,12 @@ class Method {
   bool isStatic;
   String returnType;
   
+  /// List of the meta annotations on the method.  
+  List<String> annotations;
+  
   Method(this.name, this.qualifiedName, this.isSetter, this.isGetter, 
       this.isConstructor, this.isOperator, this.isStatic, this.returnType, 
-      this.comment, this.parameters);
+      this.comment, this.parameters, this.annotations);
   
   /// Generates a map describing the [Method] object.
   Map toMap() {
@@ -457,6 +505,7 @@ class Method {
     methodMap['static'] = isStatic.toString();
     methodMap['return'] = returnType;
     methodMap['parameters'] = recurseMap(parameters);
+    methodMap['annotations'] = new List.from(annotations);
     return methodMap;
   }  
 }
@@ -474,8 +523,11 @@ class Parameter {
   String type;
   String defaultValue;
   
-  Parameter(this.name, this.qualifiedName, this.isOptional, this.isNamed, this.hasDefaultValue,
-      this.type, this.defaultValue);
+  /// List of the meta annotations on the parameter. 
+  List<String> annotations;
+  
+  Parameter(this.name, this.qualifiedName, this.isOptional, this.isNamed, 
+      this.hasDefaultValue, this.type, this.defaultValue, this.annotations);
   
   /// Generates a map describing the [Parameter] object.
   Map toMap() {
@@ -487,22 +539,7 @@ class Parameter {
     parameterMap['default'] = hasDefaultValue.toString();
     parameterMap['type'] = type;
     parameterMap['value'] = defaultValue;
+    parameterMap['annotations'] = new List.from(annotations);
     return parameterMap;
   } 
-}
-
-/**
- * Writes text to a file in the 'docs' directory.
- */
-void _writeToFile(String text, String filename) {
-  Directory dir = new Directory('docs');
-  if (!dir.existsSync()) {
-    dir.createSync();
-  }
-  File file = new File('docs/$filename');
-  if (!file.existsSync()) {
-    file.createSync();
-  }
-  file.openSync();
-  file.writeAsString(text);
 }

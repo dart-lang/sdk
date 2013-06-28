@@ -21,7 +21,6 @@ import 'dart:indexed_db';
 import 'dart:isolate';
 import 'dart:json' as json;
 import 'dart:math';
-import 'dart:mdv_observe_impl';
 import 'dart:typed_data';
 // Not actually used, but imported since dart:html can generate these objects.
 import 'dart:svg' as svg;
@@ -49,7 +48,6 @@ part '$AUXILIARY_DIR/KeyName.dart';
 part '$AUXILIARY_DIR/Point.dart';
 part '$AUXILIARY_DIR/ReadyState.dart';
 part '$AUXILIARY_DIR/Rectangle.dart';
-part '$AUXILIARY_DIR/TemplateBindings.dart';
 part '$AUXILIARY_DIR/_HttpRequestUtils.dart';
 part '$AUXILIARY_DIR/Isolates.dart';
 part '$AUXILIARY_DIR/Microtask.dart';

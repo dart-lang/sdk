@@ -297,10 +297,10 @@ void main() {
     var metaWithMaps = metaSerializationUsingMaps();
     for (var eachFormat in formats) {
       for (var eachMeta in [meta, metaWithMaps]) {
-        var serialized = eachMeta.write(s, eachFormat);
-        var reader = new Reader(eachMeta, eachFormat);
-        var newSerialization = reader.read(serialized,
-           {"serialization_test.Node" : reflect(new Node('')).type});
+        var serialized = eachMeta.write(s, format: eachFormat);
+        var newSerialization = eachMeta.read(serialized, format: eachFormat,
+            externals: {"serialization_test.Node" : reflect(new Node('')).type}
+        );
         runRoundTripTest((x) => newSerialization);
       }
     }
@@ -339,9 +339,7 @@ void main() {
     var s = new Serialization()
       ..selfDescribing = false
       ..addRuleFor(n1, constructorFields: ["name"]);
-    var w = new Writer(s);
-    var r = new Reader(s);
-    var m1 = r.read(w.write(n1));
+    var m1 = writeAndReadBack(s, null, n1);
     var m2 = m1.children.first;
     var m3 = m1.children.last;
     expect(m1, m2);
@@ -437,8 +435,7 @@ void main() {
     for (var eachFormat in formats) {
       var w = s.newWriter(eachFormat);
       var output = w.write({"stuff" : p1});
-      var r = s.newReader(w.format);
-      var result = r.read(output);
+      var result = s.read(output, format: w.format);
       var p2 = result["stuff"];
       expect(p2.name, "Alice");
       var a2 = p2.address;
@@ -482,10 +479,9 @@ void main() {
       ..addRuleFor(a1)
       ..addRuleFor(p1).configureForMaps()
       ..namedObjects["foo"] = a1;
-    var writer = s.newWriter(const SimpleJsonFormat(storeRoundTripInfo: true));
-    var out = writer.write(p1);
-    var reader = s.newReader(const SimpleJsonFormat(storeRoundTripInfo: true));
-    var p2 = reader.read(out, {"foo" : 12});
+    var format = const SimpleJsonFormat(storeRoundTripInfo: true);
+    var out = s.write(p1, format: format);
+    var p2 = s.read(out, format: format, externals: {"foo" : 12});
     expect(p2.name, "Alice");
     var a2 = p2.address;
     expect(a2, 12);
@@ -499,9 +495,8 @@ void main() {
     data[p1] = a1;
     data[a1] = p1;
     for (var eachFormat in formats) {
-      var output = s.write(data, eachFormat);
-      var reader = s.newReader(eachFormat);
-      var input = reader.read(output);
+      var output = s.write(data, format: eachFormat);
+      var input = s.read(output, format: eachFormat);
       expect(input["simple data"], data["simple data"]);
       var p2 = input.keys.firstWhere((x) => x is Person);
       var a2 = input.keys.firstWhere((x) => x is Address);
@@ -528,7 +523,7 @@ void main() {
     var s = new Serialization()..addRuleFor(new Person());
     var data = {"abc" : 1, "def" : "ghi"};
     data["person"] = new Person()..name = "Foo";
-    var output = s.write(data, const InternalMapFormat());
+    var output = s.write(data, format: const InternalMapFormat());
     var mapRule = s.rules.firstWhere((x) => x is MapRule);
     var map = output["data"][mapRule.number][0];
     expect(map is Map, isTrue);
@@ -563,8 +558,7 @@ void main() {
  */
 void verify(input) {
   var s2 = nodeSerializerReflective(new Node("a"));
-  var reader = new Reader(s2);
-  var m2 = reader.read(input);
+  var m2 = s2.read(input);
   var m1 = m2.parent;
   expect(m1 is Node, isTrue);
   var children = m1.children;
@@ -583,10 +577,8 @@ void verify(input) {
  ******************************************************************************/
 
 writeAndReadBack(Serialization s, Format format, object) {
-  var w = s.newWriter(format);
-  var output = w.write(object);
-  var r = s.newReader(w.format);
-  return r.read(output);
+  var output = s.write(object, format: format);
+  return s.read(output, format: format);
 }
 
 /** Create a Serialization for serializing Serializations. */
@@ -726,8 +718,7 @@ void runRoundTripTest(Function serializerSetUp) {
   var s = serializerSetUp(n1);
   var output = s.write(n2);
   var s2 = serializerSetUp(n1);
-  var reader = new Reader(s2);
-  var m2 = reader.read(output);
+  var m2 = s2.read(output);
   var m1 = m2.parent;
   expect(m1 is Node, isTrue);
   var children = m1.children;
@@ -750,11 +741,10 @@ void runRoundTripTestFlat(serializerSetUp) {
   n2.parent = n1;
   n3.parent = n1;
   var s = serializerSetUp(n1);
-  var output = s.write(n2, const SimpleFlatFormat());
+  var output = s.write(n2, format: const SimpleFlatFormat());
   expect(output is List, isTrue);
   var s2 = serializerSetUp(n1);
-  var reader = new Reader(s2, const SimpleFlatFormat());
-  var m2 = reader.read(output);
+  var m2 = s2.read(output, format: const SimpleFlatFormat());
   var m1 = m2.parent;
   expect(m1 is Node, isTrue);
   var children = m1.children;

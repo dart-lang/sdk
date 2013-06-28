@@ -51,7 +51,7 @@ def BuildAndroid(build_info):
     # broken on Android.
     if os.path.exists('./out/lastHooksTargetOS.txt'):
       os.remove('./out/lastHooksTargetOS.txt')
-    targets = ['samples']
+    targets = ['runtime']
     args = [sys.executable, './tools/build.py', '--mode=' + build_info.mode,
             '--os=android'] + targets
     print 'Building Android: %s' % (' '.join(args))

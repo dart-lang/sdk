@@ -663,6 +663,11 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
     builder.write('null');
   }
 
+  visitVoidType(VoidType type, _) {
+    // TODO(ahe): Reify void type ("null" means "dynamic").
+    builder.write('null');
+  }
+
   visitType(DartType type, _) {
     compiler.internalError('Unexpected type: $type (${type.kind})');
   }

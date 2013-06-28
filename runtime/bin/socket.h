@@ -191,7 +191,7 @@ class Socket {
   static Dart_Handle GetSocketIdNativeField(Dart_Handle socket, intptr_t* id);
 
  private:
-  static dart::Mutex mutex_;
+  static dart::Mutex* mutex_;
   static int service_ports_size_;
   static Dart_Port* service_ports_;
   static int service_ports_index_;

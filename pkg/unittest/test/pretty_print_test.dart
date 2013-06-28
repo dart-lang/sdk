@@ -12,7 +12,7 @@ void main() {
     expect(prettyPrint(true), equals('<true>'));
     expect(prettyPrint(null), equals('<null>'));
     expect(prettyPrint(() => 12),
-        matches(r'<Closure(: \(dynamic\) => dynamic)?>'));
+        matches(r'<Closure(: \(\) => dynamic)?>'));
   });
 
   group('with a string', () {

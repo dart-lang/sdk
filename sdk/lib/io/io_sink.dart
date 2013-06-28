@@ -26,7 +26,9 @@ abstract class IOSink implements StreamSink<List<int>>, StringSink {
   Encoding encoding;
 
   /**
-   * Writes the bytes uninterpreted to the consumer.
+   * Writes the bytes uninterpreted to the consumer. While the call is
+   * synchronous, the data may be buffered until the underlying resource is
+   * ready. The data should not be modified after a call to [add].
    */
   void add(List<int> data);
 

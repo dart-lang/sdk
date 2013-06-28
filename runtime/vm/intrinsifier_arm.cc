@@ -237,7 +237,6 @@ bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
 
   // Note that R1 is Smi, i.e, times 2.
   ASSERT(kSmiTagShift == 1);
-  // Destroy R2 as we will not continue in the function.
   __ ldr(R2, Address(SP, 0 * kWordSize));  // Value.
   __ add(R1, R0, ShifterOperand(R1, LSL, 1));  // R1 is Smi.
   __ StoreIntoObject(R0,
@@ -788,11 +787,14 @@ bool Intrinsifier::Integer_truncDivide(Assembler* assembler) {
 
 
 bool Intrinsifier::Integer_negate(Assembler* assembler) {
+  Label fall_through;
   __ ldr(R0, Address(SP, + 0 * kWordSize));  // Grab first argument.
   __ tst(R0, ShifterOperand(kSmiTagMask));  // Test for Smi.
-  __ rsb(R0, R0, ShifterOperand(0), EQ);  // R0 is a Smi. R0 <- 0 - R0.
-  __ bx(LR, EQ);  // Return.
+  __ b(&fall_through, NE);
+  __ rsbs(R0, R0, ShifterOperand(0));  // R0 is a Smi. R0 <- 0 - R0.
+  __ bx(LR, VC);  // Return if there wasn't overflow, fall through otherwise.
   // R0 is not a Smi. Fall through.
+  __ Bind(&fall_through);
   return false;
 }
 
@@ -1400,9 +1402,9 @@ bool Intrinsifier::Random_nextState(Assembler* assembler) {
   __ LoadImmediate(R0, a_int32_value);
   __ LoadFromOffset(kLoadWord, R2, R1, disp_0 - kHeapObjectTag);
   __ LoadFromOffset(kLoadWord, R3, R1, disp_1 - kHeapObjectTag);
-  __ mov(R6, ShifterOperand(R3, ASR, 31));  // Sign extend into R6.
-  // 64-bit multiply and accumulate into R6:R3.
-  __ smlal(R3, R6, R0, R2);  // R6:R3 <- R6:R3 + R0 * R2.
+  __ mov(R6, ShifterOperand(0));  // Zero extend unsigned _state[kSTATE_HI].
+  // Unsigned 32-bit multiply and 64-bit accumulate into R6:R3.
+  __ umlal(R3, R6, R0, R2);  // R6:R3 <- R6:R3 + R0 * R2.
   __ StoreToOffset(kStoreWord, R3, R1, disp_0 - kHeapObjectTag);
   __ StoreToOffset(kStoreWord, R6, R1, disp_1 - kHeapObjectTag);
   __ Ret();
@@ -1422,7 +1424,6 @@ bool Intrinsifier::Object_equal(Assembler* assembler) {
 
 
 bool Intrinsifier::String_getHashCode(Assembler* assembler) {
-  __ Untested("Intrinsifier::String_getHashCode");
   __ ldr(R0, Address(SP, 0 * kWordSize));
   __ ldr(R0, FieldAddress(R0, String::hash_offset()));
   __ cmp(R0, ShifterOperand(0));
@@ -1439,9 +1440,8 @@ bool Intrinsifier::String_getLength(Assembler* assembler) {
 }
 
 
-// TODO(srdjan): Implement for two and four byte strings as well.
 bool Intrinsifier::String_codeUnitAt(Assembler* assembler) {
-  Label fall_through;
+  Label fall_through, try_two_byte_string;
 
   __ ldr(R1, Address(SP, 0 * kWordSize));  // Index.
   __ ldr(R0, Address(SP, 1 * kWordSize));  // String.
@@ -1452,12 +1452,22 @@ bool Intrinsifier::String_codeUnitAt(Assembler* assembler) {
   __ cmp(R1, ShifterOperand(R2));
   __ b(&fall_through, CS);  // Runtime throws exception.
   __ CompareClassId(R0, kOneByteStringCid, R3);
-  __ b(&fall_through, NE);
+  __ b(&try_two_byte_string, NE);
   __ SmiUntag(R1);
   __ AddImmediate(R0, OneByteString::data_offset() - kHeapObjectTag);
   __ ldrb(R0, Address(R0, R1));
   __ SmiTag(R0);
   __ Ret();
+
+  __ Bind(&try_two_byte_string);
+  __ CompareClassId(R0, kTwoByteStringCid, R3);
+  __ b(&fall_through, NE);
+  ASSERT(kSmiTagShift == 1);
+  __ AddImmediate(R0, OneByteString::data_offset() - kHeapObjectTag);
+  __ ldrh(R0, Address(R0, R1));
+  __ SmiTag(R0);
+  __ Ret();
+
   __ Bind(&fall_through);
   return false;
 }

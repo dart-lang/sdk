@@ -94,10 +94,6 @@ abstract class DartType {
    */
   bool forEachMalformedType(bool f(MalformedType type)) => true;
 
-  // TODO(ahe): This is implicitly inherited from Object.  What is the purpose
-  // of duplicating it here?
-  bool operator ==(other);
-
   /**
    * Is [: true :] if this type has no explict type arguments.
    */
@@ -346,10 +342,6 @@ class MalformedType extends DartType {
     return visitor.visitMalformedType(this, argument);
   }
 
-  // TODO(ahe): This is the default implementation that would be inherited if
-  // DartType didn't declare an abstract method.  What is the purpose?
-  bool operator ==(other) => identical(this, other);
-
   String toString() {
     var sb = new StringBuffer();
     if (typeArguments != null) {
@@ -456,7 +448,8 @@ abstract class GenericType extends DartType {
 
   bool operator ==(other) {
     if (other is !GenericType) return false;
-    return identical(element, other.element)
+    return kind == other.kind
+        && element == other.element
         && typeArguments == other.typeArguments;
   }
 
@@ -465,7 +458,6 @@ abstract class GenericType extends DartType {
   GenericType asRaw() => element.rawType;
 }
 
-// TODO(johnniwinther): Add common supertype for InterfaceType and TypedefType.
 class InterfaceType extends GenericType {
   final ClassElement element;
 
@@ -551,17 +543,6 @@ class InterfaceType extends GenericType {
       }
     }
     return null;
-  }
-
-  bool operator ==(other) {
-    // TODO(johnniwinther,karlklose): This is a bad implementation of
-    // operator==.  This implementation is not compatible with the
-    // implementation in the superclass: another subclass of GenericType might
-    // compare equal to an instance of this class if the other subclass forgets
-    // to implement operator==.  This is brittle and easy to avoid, ask ahe@
-    // for concrete suggestions.
-    if (other is !InterfaceType) return false;
-    return super == other;
   }
 
   int get hashCode => super.hashCode;
@@ -824,12 +805,6 @@ class TypedefType extends GenericType {
     DartType definition = element.alias.unalias(compiler);
     TypedefType declaration = element.computeType(compiler);
     return definition.subst(typeArguments, declaration.typeArguments);
-  }
-
-  bool operator ==(other) {
-    // TODO(johnniwinther,karlklose): See InterfaceType.operator==.
-    if (other is !TypedefType) return false;
-    return super == other;
   }
 
   int get hashCode => super.hashCode;

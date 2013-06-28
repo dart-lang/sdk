@@ -25,7 +25,7 @@ import 'dart:_interceptors' show Interceptor;
 @DomName('AnalyserNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AnalyserNode
 @Experimental
-class AnalyserNode extends AudioNode native "AnalyserNode" {
+class AnalyserNode extends AudioNode native "AnalyserNode,RealtimeAnalyserNode" {
 
   @DomName('AnalyserNode.fftSize')
   @DocsEditable
@@ -626,7 +626,7 @@ class BiquadFilterNode extends AudioNode native "BiquadFilterNode" {
 @DomName('ChannelMergerNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#ChannelMergerNode-section
 @Experimental
-class ChannelMergerNode extends AudioNode native "ChannelMergerNode" {
+class ChannelMergerNode extends AudioNode native "ChannelMergerNode,AudioChannelMerger" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -637,7 +637,7 @@ class ChannelMergerNode extends AudioNode native "ChannelMergerNode" {
 @DomName('ChannelSplitterNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#ChannelSplitterNode-section
 @Experimental
-class ChannelSplitterNode extends AudioNode native "ChannelSplitterNode" {
+class ChannelSplitterNode extends AudioNode native "ChannelSplitterNode,AudioChannelSplitter" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -717,7 +717,7 @@ class DynamicsCompressorNode extends AudioNode native "DynamicsCompressorNode" {
 @DomName('GainNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#GainNode
 @Experimental
-class GainNode extends AudioNode native "GainNode" {
+class GainNode extends AudioNode native "GainNode,AudioGainNode" {
 
   @DomName('GainNode.gain')
   @DocsEditable
@@ -811,7 +811,7 @@ class OfflineAudioContext extends AudioContext implements EventTarget native "Of
 @DomName('OscillatorNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#dfn-OscillatorNode
 @Experimental
-class OscillatorNode extends AudioSourceNode native "OscillatorNode" {
+class OscillatorNode extends AudioSourceNode native "OscillatorNode,Oscillator" {
 
   @DomName('OscillatorNode.CUSTOM')
   @DocsEditable
@@ -904,7 +904,7 @@ class OscillatorNode extends AudioSourceNode native "OscillatorNode" {
 @DomName('PannerNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#PannerNode
 @Experimental
-class PannerNode extends AudioNode native "PannerNode" {
+class PannerNode extends AudioNode native "PannerNode,AudioPannerNode" {
 
   @DomName('PannerNode.EQUALPOWER')
   @DocsEditable
@@ -994,7 +994,7 @@ class PannerNode extends AudioNode native "PannerNode" {
 @DomName('ScriptProcessorNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#ScriptProcessorNode
 @Experimental
-class ScriptProcessorNode extends AudioNode native "ScriptProcessorNode" {
+class ScriptProcessorNode extends AudioNode native "ScriptProcessorNode,JavaScriptAudioNode" {
   Stream<AudioProcessingEvent> _eventStream;
 
   /**

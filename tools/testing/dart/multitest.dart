@@ -124,7 +124,7 @@ void ExtractTestsFromMultitest(Path filePath,
 
   // Copy all the tests into the output map tests, as multiline strings.
   for (String key in testsAsLines.keys) {
-    tests[key] = testsAsLines[key].join(line_separator).concat(line_separator);
+    tests[key] = testsAsLines[key].join(line_separator) + line_separator;
   }
 }
 
@@ -220,7 +220,7 @@ Future doMultitest(Path filePath, String outputDir, Path suiteDir,
       final File file = new File.fromPath(multitestFilename);
 
       file.createSync();
-      RandomAccessFile openedFile = file.openSync(FileMode.WRITE);
+      RandomAccessFile openedFile = file.openSync(mode: FileMode.WRITE);
       openedFile.writeStringSync(tests[key]);
       openedFile.closeSync();
       Set<String> outcome = outcomes[key];

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// A simple library for rendering a list of files as a directory tree.
-library directory_tree;
+library pub.directory_tree;
 
 import 'package:pathos/path.dart' as path;
 

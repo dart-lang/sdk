@@ -35,11 +35,8 @@ Future _executeCommandRaw(String executable,
                           List<String> args,
                           [String stdin = ""]) {
   Future<String> getOutput(Stream<List<int>> stream) {
-    return stream.transform(new StringDecoder())
-        .reduce(new StringBuffer(), (buf, data) {
-          buf.write(data);
-          return buf;
-    }).then((buf) => buf.toString());
+    return stream.transform(new StringDecoder()).toList()
+        .then((data) => data.join(""));
   }
 
   DebugLogger.info("Running: '\$ $executable ${args.join(' ')}'");

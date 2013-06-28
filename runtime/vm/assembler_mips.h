@@ -995,6 +995,26 @@ class Assembler : public ValueObject {
     sra(reg, reg, kSmiTagSize);
   }
 
+  void LoadFromOffset(Register reg, Register base, int32_t offset) {
+    if (Utils::IsInt(kImmBits, offset)) {
+      lw(reg, Address(base, offset));
+    } else {
+      LoadImmediate(TMP, offset);
+      addu(TMP, base, TMP);
+      lw(reg, Address(TMP, 0));
+    }
+  }
+
+  void StoreToOffset(Register reg, Register base, int32_t offset) {
+    if (Utils::IsInt(kImmBits, offset)) {
+      sw(reg, Address(base, offset));
+    } else {
+      LoadImmediate(TMP, offset);
+      addu(TMP, base, TMP);
+      sw(reg, Address(TMP, 0));
+    }
+  }
+
   void StoreDToOffset(DRegister reg, Register base, int32_t offset) {
     FRegister lo = static_cast<FRegister>(reg * 2);
     FRegister hi = static_cast<FRegister>(reg * 2 + 1);
@@ -1049,6 +1069,7 @@ class Assembler : public ValueObject {
   // enable easy access to the RawInstruction object of code corresponding
   // to this frame.
   void EnterDartFrame(intptr_t frame_size);
+  void LeaveDartFrame();
   void LeaveDartFrameAndReturn();
 
  private:

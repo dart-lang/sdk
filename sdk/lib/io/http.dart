@@ -55,11 +55,31 @@ abstract class HttpStatus {
 
 
 /**
- * HTTP server.
+ * The [HttpServer] class implements the server side of the HTTP
+ * protocol. The [HttpServer] is a [Stream] of [HttpRequest]s. Each
+ * [HttpRequest] has an associated [HttpResponse] object as its
+ * [HttpRequest.response] member, and the server responds to a request by
+ * writing to that [HttpResponse] object.
+ *
+ * Incomplete requests where all or parts of the header is missing, are
+ * ignored and no exceptions or [HttpRequest] objects are generated for them.
+ * Likewise, when writing to a [HttpResponse], any [Socket] exceptions are
+ * ignored and any future writes are ignored.
+ *
+ * The [HttpRequest] exposes the request headers, and provides the request body,
+ * if it exists, as a stream of data. If the body is unread, it'll be drained
+ * when the [HttpResponse] is being written to or closed.
+ *
+ * The following example shows how to bind a [HttpServer] to a IPv6
+ * [InternetAddress] on port 80, and listening to requests.
+ *
+ *   HttpServer.bind(InternetAddress.ANY_IP_V6, 80).then((server) {
+ *     server.listen((HttpRequest request) {
+ *       // Handle requests.
+ *     });
+ *   });
  */
 abstract class HttpServer implements Stream<HttpRequest> {
-  // TODO(ajohnsen): Document with example, once the stream API is final.
-  // TODO(ajohnsen): Add HttpServer.secure.
   /**
    * Starts listening for HTTP requests on the specified [address] and
    * [port].

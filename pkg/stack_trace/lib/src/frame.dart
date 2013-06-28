@@ -9,8 +9,22 @@ import 'package:pathos/path.dart' as path;
 
 import 'trace.dart';
 
-final _nativeFrameRegExp = new RegExp(
+// #1      Foo._bar (file:///home/nweiz/code/stuff.dart:42:21)
+final _vmFrame = new RegExp(
     r'^#\d+\s+([^\s].*) \((.+):(\d+):(\d+)\)$');
+
+//     at VW.call$0 (http://pub.dartlang.org/stuff.dart.js:560:28)
+//     at http://pub.dartlang.org/stuff.dart.js:560:28
+final _v8Frame = new RegExp(
+    r'^\s*at (?:([^\s].*) \((.+):(\d+):(\d+)\)|(.+):(\d+):(\d+))$');
+
+// .VW.call$0@http://pub.dartlang.org/stuff.dart.js:560
+// .VW.call$0("arg")@http://pub.dartlang.org/stuff.dart.js:560
+// .VW.call$0/name<@http://pub.dartlang.org/stuff.dart.js:560
+final _firefoxFrame = new RegExp(
+    r'^([^@(/]*)(?:\(.*\))?(/[^<]*<?)?(?:\(.*\))?@(.*):(\d+)$');
+
+final _initialDot = new RegExp(r"^\.");
 
 /// A single stack frame. Each frame points to a precise location in Dart code.
 class Frame {
@@ -76,18 +90,58 @@ class Frame {
     return new Trace.current(level + 1).frames.first;
   }
 
-  /// Parses a string representation of a stack frame.
-  ///
-  /// [frame] should be formatted in the same way as a native stack trace frame.
-  factory Frame.parse(String frame) {
-    var match = _nativeFrameRegExp.firstMatch(frame);
+  /// Parses a string representation of a Dart VM stack frame.
+  factory Frame.parseVM(String frame) {
+    var match = _vmFrame.firstMatch(frame);
     if (match == null) {
-      throw new FormatException("Couldn't parse stack trace line '$frame'.");
+      throw new FormatException("Couldn't parse VM stack trace line '$frame'.");
     }
 
     var uri = Uri.parse(match[2]);
     var member = match[1].replaceAll("<anonymous closure>", "<fn>");
     return new Frame(uri, int.parse(match[3]), int.parse(match[4]), member);
+  }
+
+  /// Parses a string representation of a Chrome/V8 stack frame.
+  factory Frame.parseV8(String frame) {
+    var match = _v8Frame.firstMatch(frame);
+    if (match == null) {
+      throw new FormatException("Couldn't parse V8 stack trace line '$frame'.");
+    }
+
+    // V8 stack frames can be in two forms.
+    if (match[2] != null) {
+      // The first form looks like "  at FUNCTION (URI:LINE:COL)"
+      var uri = Uri.parse(match[2]);
+      var member = match[1].replaceAll("<anonymous>", "<fn>");
+      return new Frame(uri, int.parse(match[3]), int.parse(match[4]), member);
+    } else {
+      // The second form looks like " at URI:LINE:COL", and is used for
+      // anonymous functions.
+      var uri = Uri.parse(match[5]);
+      return new Frame(uri, int.parse(match[6]), int.parse(match[7]), "<fn>");
+    }
+  }
+
+  /// Parses a string representation of a Firefox stack frame.
+  factory Frame.parseFirefox(String frame) {
+    var match = _firefoxFrame.firstMatch(frame);
+    if (match == null) {
+      throw new FormatException(
+          "Couldn't parse Firefox stack trace line '$frame'.");
+    }
+
+    var uri = Uri.parse(match[3]);
+    var member = match[1];
+    if (member == "") {
+      member = "<fn>";
+    } else if (match[2] != null) {
+      member = "$member.<fn>";
+    }
+    // Some Firefox members have initial dots. We remove them for consistency
+    // with other platforms.
+    member = member.replaceFirst(_initialDot, '');
+    return new Frame(uri, int.parse(match[4]), null, member);
   }
 
   Frame(this.uri, this.line, this.column, this.member);

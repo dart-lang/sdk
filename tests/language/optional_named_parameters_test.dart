@@ -49,11 +49,11 @@ class OptionalNamedParametersTest {
   }
 
   static int F41(int a, {int b: 20, int c, int d: 40}) {
-    return 100*(100*(100*a + b) + (?c ? c : 0)) + d;
+    return 100*(100*(100*a + b) + ((c != null) ? c : 0)) + d;
   }
 
   int f52(int a, {int b: 20, int c, int d: 40}) {
-    return 100*(100*(100*a + b) + (?c ? c : 0)) + d;
+    return 100*(100*(100*a + b) + ((c != null) ? c : 0)) + d;
   }
 
   static void test() {

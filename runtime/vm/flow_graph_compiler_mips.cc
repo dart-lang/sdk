@@ -920,16 +920,6 @@ void FlowGraphCompiler::CopyParameters() {
   }
 
   __ Bind(&wrong_num_arguments);
-  if (StackSize() != 0) {
-    // We need to unwind the space we reserved for locals and copied parameters.
-    // The NoSuchMethodFunction stub does not expect to see that area on the
-    // stack.
-    __ AddImmediate(SP, StackSize() * kWordSize);
-  }
-  // The call below has an empty stackmap because we have just
-  // dropped the spill slots.
-  BitmapBuilder* empty_stack_bitmap = new BitmapBuilder();
-
   // Invoke noSuchMethod function passing the original name of the function.
   // If the function is a closure function, use "call" as the original name.
   const String& name = String::Handle(
@@ -939,25 +929,10 @@ void FlowGraphCompiler::CopyParameters() {
       ICData::New(function, name, Object::null_array(),
                   Isolate::kNoDeoptId, kNumArgsChecked));
   __ LoadObject(S5, ic_data);
-  // FP - 4 : saved PP, object pool pointer of caller.
-  // FP + 0 : previous frame pointer.
-  // FP + 4 : return address.
-  // FP + 8 : PC marker, for easy identification of RawInstruction obj.
-  // FP + 12: last argument (arg n-1).
-  // SP + 0 : saved PP.
-  // SP + 16 + 4*(n-1) : first argument (arg 0).
-  // S5 : ic-data.
-  // S4 : arguments descriptor array.
-  __ BranchLink(&StubCode::CallNoSuchMethodFunctionLabel());
-  // Emit descriptors in order to provide correct postion in stacktrace.
-  AddCurrentDescriptor(PcDescriptors::kOther, -1, function.token_pos());
-  if (is_optimizing()) {
-    stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
-                                      empty_stack_bitmap,
-                                      0);  // No registers.
-  }
-  // The noSuchMethod call may return.
-  __ LeaveDartFrameAndReturn();
+  __ LeaveDartFrame();  // The arguments are still on the stack.
+  __ Branch(&StubCode::CallNoSuchMethodFunctionLabel());
+  // The noSuchMethod call may return to the caller, but not here.
+  __ break_(0);
 
   __ Bind(&all_arguments_processed);
   // Nullify originally passed arguments only after they have been copied and
@@ -1110,8 +1085,6 @@ void FlowGraphCompiler::CompileGraph() {
   // the presence of optional parameters.
   // No such checking code is generated if only fixed parameters are declared,
   // unless we are in debug mode or unless we are compiling a closure.
-  LocalVariable* saved_args_desc_var =
-      parsed_function().GetSavedArgumentsDescriptorVar();
   if (num_copied_params == 0) {
 #ifdef DEBUG
     ASSERT(!parsed_function().function().HasOptionalParameters());
@@ -1134,16 +1107,6 @@ void FlowGraphCompiler::CompileGraph() {
       __ beq(T0, T1, &correct_num_arguments);
       __ Bind(&wrong_num_arguments);
       if (function.IsClosureFunction() || function.IsNoSuchMethodDispatcher()) {
-        if (StackSize() != 0) {
-          // We need to unwind the space we reserved for locals and copied
-          // parameters. The NoSuchMethodFunction stub does not expect to see
-          // that area on the stack.
-          __ AddImmediate(SP, StackSize() * kWordSize);
-        }
-        // The call below has an empty stackmap because we have just
-        // dropped the spill slots.
-        BitmapBuilder* empty_stack_bitmap = new BitmapBuilder();
-
         // Invoke noSuchMethod function passing the original function name.
         // For closure functions, use "call" as the original name.
         const String& name =
@@ -1155,50 +1118,21 @@ void FlowGraphCompiler::CompileGraph() {
             ICData::New(function, name, Object::null_array(),
                         Isolate::kNoDeoptId, kNumArgsChecked));
         __ LoadObject(S5, ic_data);
-        // FP - 4 : saved PP, object pool pointer of caller.
-        // FP + 0 : previous frame pointer.
-        // FP + 4 : return address.
-        // FP + 8 : PC marker, for easy identification of RawInstruction obj.
-        // FP + 12: last argument (arg n-1).
-        // SP + 0 : saved PP.
-        // SP + 16 + 4*(n-1) : first argument (arg 0).
-        // S5 : ic-data.
-        // S4 : arguments descriptor array.
-        __ BranchLink(&StubCode::CallNoSuchMethodFunctionLabel());
-        // Emit descriptors in order to provide correct postion in stacktrace.
-        AddCurrentDescriptor(PcDescriptors::kOther, -1, function.token_pos());
-        if (is_optimizing()) {
-          stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
-                                            empty_stack_bitmap,
-                                            0);  // No registers.
-        }
-        // The noSuchMethod call may return.
-        __ LeaveDartFrameAndReturn();
+        __ LeaveDartFrame();  // The arguments are still on the stack.
+        __ Branch(&StubCode::CallNoSuchMethodFunctionLabel());
+        // The noSuchMethod call may return to the caller, but not here.
+        __ break_(0);
       } else {
         __ Stop("Wrong number of arguments");
       }
       __ Bind(&correct_num_arguments);
     }
-    // The arguments descriptor is never saved in the absence of optional
-    // parameters, since any argument definition test would always yield true.
-    ASSERT(saved_args_desc_var == NULL);
   } else {
-    if (saved_args_desc_var != NULL) {
-      __ Comment("Save arguments descriptor");
-      const Register kArgumentsDescriptorReg = S4;
-      // The saved_args_desc_var is allocated one slot before the first local.
-      const intptr_t slot = parsed_function().first_stack_local_index() + 1;
-      // If the saved_args_desc_var is captured, it is first moved to the stack
-      // and later to the context, once the context is allocated.
-      ASSERT(saved_args_desc_var->is_captured() ||
-             (saved_args_desc_var->index() == slot));
-      __ sw(kArgumentsDescriptorReg, Address(FP, slot * kWordSize));
-    }
     CopyParameters();
   }
 
   // In unoptimized code, initialize (non-argument) stack allocated slots to
-  // null. This does not cover the saved_args_desc_var slot.
+  // null.
   if (!is_optimizing() && (num_locals > 0)) {
     __ TraceSimMsg("Initialize spill slots");
     __ Comment("Initialize spill slots");
@@ -1465,7 +1399,11 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
     __ sw(reg, Address(SP, 1 * kWordSize));
     __ LoadObject(TMP1, obj);
     __ sw(TMP1, Address(SP, 0 * kWordSize));
-    __ BranchLink(&StubCode::IdenticalWithNumberCheckLabel());
+    if (is_optimizing()) {
+      __ BranchLink(&StubCode::OptimizedIdenticalWithNumberCheckLabel());
+    } else {
+      __ BranchLink(&StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
+    }
     AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
                          Isolate::kNoDeoptId,
                          token_pos);
@@ -1488,7 +1426,11 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
     __ addiu(SP, SP, Immediate(-2 * kWordSize));
     __ sw(left, Address(SP, 1 * kWordSize));
     __ sw(right, Address(SP, 0 * kWordSize));
-    __ BranchLink(&StubCode::IdenticalWithNumberCheckLabel());
+    if (is_optimizing()) {
+      __ BranchLink(&StubCode::OptimizedIdenticalWithNumberCheckLabel());
+    } else {
+      __ BranchLink(&StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
+    }
     AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
                          Isolate::kNoDeoptId,
                          token_pos);
@@ -1663,6 +1605,7 @@ void FlowGraphCompiler::EmitDoubleCompareBranch(Condition true_condition,
 
   switch (true_condition) {
     case EQ: assembler()->ceqd(left, right); break;
+    case NE: assembler()->ceqd(left, right); break;
     case LT: assembler()->coltd(left, right); break;
     case LE: assembler()->coled(left, right); break;
     case GT: assembler()->coltd(right, left); break;
@@ -1675,8 +1618,13 @@ void FlowGraphCompiler::EmitDoubleCompareBranch(Condition true_condition,
   }
 
   assembler()->LoadImmediate(TMP, 1);
-  assembler()->movf(CMPRES, TMP);
-  assembler()->movt(CMPRES, ZR);
+  if (true_condition == NE) {
+    assembler()->movf(CMPRES, ZR);
+    assembler()->movt(CMPRES, TMP);
+  } else {
+    assembler()->movf(CMPRES, TMP);
+    assembler()->movt(CMPRES, ZR);
+  }
   assembler()->mov(TMP, ZR);
 
   // EmitBranchOnCondition expects ordering to be described by CMPRES, TMP1.
@@ -1696,6 +1644,7 @@ void FlowGraphCompiler::EmitDoubleCompareBool(Condition true_condition,
 
   switch (true_condition) {
     case EQ: assembler()->ceqd(left, right); break;
+    case NE: assembler()->ceqd(left, right); break;
     case LT: assembler()->coltd(left, right); break;
     case LE: assembler()->coled(left, right); break;
     case GT: assembler()->coltd(right, left); break;
@@ -1707,7 +1656,11 @@ void FlowGraphCompiler::EmitDoubleCompareBool(Condition true_condition,
     }
   }
 
-  assembler()->bc1f(&done);  // False is already in result.
+  if (true_condition == NE) {
+    assembler()->bc1t(&done);  // False is already in result.
+  } else {
+    assembler()->bc1f(&done);
+  }
   assembler()->LoadObject(result, Bool::True());
   assembler()->Bind(&done);
 }
@@ -1726,7 +1679,7 @@ FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
                                                           intptr_t index_scale,
                                                           Register array,
                                                           Register index) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
   return FieldAddress(array, index);
 }
 
@@ -1735,7 +1688,7 @@ Address FlowGraphCompiler::ExternalElementAddressForIntIndex(
     intptr_t index_scale,
     Register array,
     intptr_t index) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
   return FieldAddress(array, index);
 }
 
@@ -1744,7 +1697,7 @@ Address FlowGraphCompiler::ExternalElementAddressForRegIndex(
     intptr_t index_scale,
     Register array,
     Register index) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
   return FieldAddress(array, index);
 }
 

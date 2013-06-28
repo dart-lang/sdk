@@ -144,7 +144,8 @@ class _Timer extends LinkedListEntry<_Timer> implements Timer {
           // null.
           if (timer._callback != null) {
             timer._callback(timer);
-            if (timer._repeating) {
+            // Re-insert repeating timer if not canceled.
+            if (timer._repeating && timer._callback != null) {
               timer._advanceWakeupTime();
               timer._addTimerToList();
             }

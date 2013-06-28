@@ -402,6 +402,8 @@ class Assembler : public ValueObject {
              Condition cond = AL);
   void smlal(Register rd_lo, Register rd_hi, Register rn, Register rm,
              Condition cond = AL);
+  void umlal(Register rd_lo, Register rd_hi, Register rn, Register rm,
+             Condition cond = AL);
 
   // Division instructions.
   void sdiv(Register rd, Register rn, Register rm, Condition cond = AL);

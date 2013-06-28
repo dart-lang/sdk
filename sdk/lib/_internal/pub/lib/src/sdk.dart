@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Operations relative to the user's installed Dart SDK.
-library sdk;
+library pub.sdk;
 
 import 'dart:io';
 

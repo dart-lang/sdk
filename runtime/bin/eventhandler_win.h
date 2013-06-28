@@ -251,6 +251,7 @@ class FileHandle : public Handle {
 
   virtual void EnsureInitialized(EventHandlerImplementation* event_handler);
   virtual bool IsClosed();
+  virtual void DoClose();
 };
 
 

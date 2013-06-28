@@ -523,7 +523,6 @@ class EmbeddedArray<T, 0> {
   M(Branch)                                                                    \
   M(AssertAssignable)                                                          \
   M(AssertBoolean)                                                             \
-  M(ArgumentDefinitionTest)                                                    \
   M(CurrentContext)                                                            \
   M(StoreContext)                                                              \
   M(ClosureCall)                                                               \
@@ -2514,42 +2513,6 @@ class AssertBooleanInstr : public TemplateDefinition<1> {
 };
 
 
-class ArgumentDefinitionTestInstr : public TemplateDefinition<1> {
- public:
-  ArgumentDefinitionTestInstr(ArgumentDefinitionTestNode* node,
-                              Value* saved_arguments_descriptor)
-      : ast_node_(*node) {
-    SetInputAt(0, saved_arguments_descriptor);
-  }
-
-  DECLARE_INSTRUCTION(ArgumentDefinitionTest)
-  virtual CompileType ComputeType() const;
-
-  intptr_t token_pos() const { return ast_node_.token_pos(); }
-  intptr_t formal_parameter_index() const {
-    return ast_node_.formal_parameter_index();
-  }
-  const String& formal_parameter_name() const {
-    return ast_node_.formal_parameter_name();
-  }
-
-  Value* saved_arguments_descriptor() const { return inputs_[0]; }
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  virtual bool CanDeoptimize() const { return true; }
-
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-
-  virtual bool MayThrow() const { return true; }
-
- private:
-  const ArgumentDefinitionTestNode& ast_node_;
-
-  DISALLOW_COPY_AND_ASSIGN(ArgumentDefinitionTestInstr);
-};
-
-
 // Denotes the current context, normally held in a register.  This is
 // a computation, not a value, because it's mutable.
 class CurrentContextInstr : public TemplateDefinition<0> {
@@ -2867,8 +2830,12 @@ class EqualityCompareInstr : public ComparisonInstr {
                        const Array& ic_data_array)
       : ComparisonInstr(token_pos, kind, left, right),
         ic_data_(GetICData(ic_data_array)),
+        unary_ic_data_(NULL),
         receiver_class_id_(kIllegalCid) {
     ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
+    if (HasICData()) {
+      unary_ic_data_ = &ICData::ZoneHandle(ic_data_->AsUnaryClassChecks());
+    }
   }
 
   DECLARE_INSTRUCTION(EqualityCompare)
@@ -2879,7 +2846,12 @@ class EqualityCompareInstr : public ComparisonInstr {
   bool HasICData() const {
     return (ic_data() != NULL) && !ic_data()->IsNull();
   }
-  void set_ic_data(const ICData* value) { ic_data_ = value; }
+  void set_ic_data(const ICData* value) {
+    ic_data_ = value;
+    if (HasICData()) {
+      unary_ic_data_ = &ICData::ZoneHandle(ic_data_->AsUnaryClassChecks());
+    }
+  }
 
   // Receiver class id is computed from collected ICData.
   void set_receiver_class_id(intptr_t value) { receiver_class_id_ = value; }
@@ -2891,9 +2863,7 @@ class EqualityCompareInstr : public ComparisonInstr {
         || (receiver_class_id() == kSmiCid);
   }
 
-  bool is_checked_strict_equal() const {
-    return HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid);
-  }
+  bool IsCheckedStrictEqual() const;
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -2922,11 +2892,12 @@ class EqualityCompareInstr : public ComparisonInstr {
   }
 
   virtual bool MayThrow() const {
-    return !IsInlinedNumericComparison() && !is_checked_strict_equal();
+    return !IsInlinedNumericComparison() && !IsCheckedStrictEqual();
   }
 
  private:
   const ICData* ic_data_;
+  ICData* unary_ic_data_;
   intptr_t receiver_class_id_;  // Set by optimizer.
 
   DISALLOW_COPY_AND_ASSIGN(EqualityCompareInstr);

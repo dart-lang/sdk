@@ -361,7 +361,7 @@ class Serialization {
    * The [format] parameter determines the form of the result. The default
    * format returns a String in [json] format.
    */
-  write(Object object, [Format format]) {
+  write(Object object, {Format format}) {
     return newWriter(format).write(object);
   }
 
@@ -370,13 +370,14 @@ class Serialization {
    * want to do something more complex with the writer than just returning
    * the final result.
    */
-  Writer newWriter([Format format]) =>
-      new Writer(this, format);
+  Writer newWriter([Format format]) => new Writer(this, format);
 
   /**
    * Read the serialized data from [input] and return the root object
    * from the result. The [input] can be of any type that the [Format]
    * reads/writes, but normally will be a [List], [Map], or a simple type.
+   * The [format] parameter determines the form of the result. The default
+   * format returns a String in [json] format.
    * If there are objects that need to be resolved
    * in the current context, they should be provided in [externals] as a
    * Map from names to values. In particular, in the current implementation
@@ -384,8 +385,8 @@ class Serialization {
    * class name as a key. In addition to the [externals] map provided here,
    * values will be looked up in the [namedObjects] map.
    */
-  read(input, [Map externals = const {}]) {
-    return newReader().read(input, externals);
+  read(input, {Format format, Map externals: const {}}) {
+    return newReader(format).read(input, externals);
   }
 
   /**
@@ -500,6 +501,6 @@ class Serialization {
  */
 class SerializationException implements Exception {
   final String message;
-  const SerializationException([this.message]);
-  toString() => "SerializationException($message)";
+  const SerializationException(this.message);
+  String toString() => "SerializationException($message)";
 }

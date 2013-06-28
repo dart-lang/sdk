@@ -20,7 +20,7 @@ namespace bin {
 
 static const int kSocketIdNativeField = 0;
 
-dart::Mutex Socket::mutex_;
+dart::Mutex* Socket::mutex_ = new dart::Mutex();
 int Socket::service_ports_size_ = 0;
 Dart_Port* Socket::service_ports_ = NULL;
 int Socket::service_ports_index_ = 0;
@@ -550,7 +550,7 @@ void SocketService(Dart_Port dest_port_id,
 
 
 Dart_Port Socket::GetServicePort() {
-  MutexLocker lock(&mutex_);
+  MutexLocker lock(mutex_);
   if (service_ports_size_ == 0) {
     ASSERT(service_ports_ == NULL);
     service_ports_size_ = 16;

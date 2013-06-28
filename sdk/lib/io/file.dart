@@ -525,21 +525,30 @@ abstract class RandomAccessFile {
 
 
 class FileException implements IOException {
+  final String message;
+  final String path;
+  final OSError osError;
   const FileException([String this.message = "",
-                         OSError this.osError = null]);
+                       String this.path = "",
+                       OSError this.osError]);
+
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write("FileException");
     if (!message.isEmpty) {
       sb.write(": $message");
+      if (path != null) {
+        sb.write(", path = $path");
+      }
       if (osError != null) {
         sb.write(" ($osError)");
       }
     } else if (osError != null) {
       sb.write(": osError");
+      if (path != null) {
+        sb.write(", path = $path");
+      }
     }
     return sb.toString();
   }
-  final String message;
-  final OSError osError;
 }

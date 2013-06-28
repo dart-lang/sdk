@@ -2,20 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library pub.command;
+
 import 'dart:io';
 import 'dart:async';
 
 import 'package:args/args.dart';
 import 'package:pathos/path.dart' as path;
 
-import 'command_cache.dart';
-import 'command_deploy.dart';
-import 'command_help.dart';
-import 'command_install.dart';
-import 'command_lish.dart';
-import 'command_update.dart';
-import 'command_uploader.dart';
-import 'command_version.dart';
+import 'command/cache.dart';
+import 'command/deploy.dart';
+import 'command/help.dart';
+import 'command/install.dart';
+import 'command/lish.dart';
+import 'command/update.dart';
+import 'command/uploader.dart';
+import 'command/version.dart';
 import 'entrypoint.dart';
 import 'exit_codes.dart' as exit_codes;
 import 'http.dart';

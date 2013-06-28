@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Helper functionality for invoking Git.
-library git;
+library pub.git;
 
 import 'dart:async';
 import 'io.dart';

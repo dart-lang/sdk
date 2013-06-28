@@ -53,11 +53,6 @@ string_base_vm_test: Fail, OK # VM specific test.
 
 string_replace_func_test: Skip # Bug 6554 - doesn't terminate.
 
-[ $compiler == dart2js || $compiler == dart2dart ]
-apply_test: Fail, OK # Depends on ?parameter check.
-iterable_join_test: Fail, OK # Depends on ?parameter check.
-list_fill_range_test: Fail, OK # Depends on ?parameter check.
-
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
@@ -108,6 +103,9 @@ int_parse_radix_test: fail
 list_insert_test: fail
 list_removeat_test: fail
 
+[ $arch == arm ]
+collection_to_string_test: Pass, Crash # Issue: 11207
+
 [ $arch == simarm && $mode == debug ]
 collection_to_string_test: Pass, Crash # Issue: 11207
 
@@ -119,7 +117,7 @@ int_parse_radix_test: Skip # Timeout
 
 [ $arch == simmips && $checked ]
 hash_map2_test: Crash # Too far PC relative branch.
-collection_length_test: Skip # Timeout.
+collection_length_test: Pass, Timeout
 
 [ $arch == simmips && $mode == debug ]
 collection_to_string_test: Pass, Crash # Issue: 11207

@@ -17,7 +17,7 @@ void main() {
   logger.onRecord.listen((record) => print(record.message));
   var results = initArgParser().parse(new Options().arguments);
   if (results['help']) return;  
-  new Docgen(results);
+  docgen(results);
 }
 
 /**
@@ -31,7 +31,7 @@ ArgParser initArgParser() {
       callback: (help) {
         if (help) {
           logger.info(parser.getUsage());
-          logger.info(usage);
+          logger.info(USAGE);
         }
       });
   parser.addFlag('verbose', abbr: 'v', 
@@ -52,6 +52,9 @@ ArgParser initArgParser() {
       help: 'Flag to include private declarations.', negatable: false);
   parser.addFlag('include-sdk', 
       help: 'Flag to parse SDK Library files.', negatable: false);
+  parser.addFlag('parse-sdk', 
+      help: 'Parses the SDK libraries only.', 
+      defaultsTo: false, negatable: false);
   
   return parser;
 }

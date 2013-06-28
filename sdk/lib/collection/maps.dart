@@ -77,4 +77,45 @@ class Maps {
    * simply return the results of this method applied to the collection.
    */
   static String mapToString(Map m) => ToString.mapToString(m);
+
+  static _id(x) => x;
+
+  /**
+   * Fills a map with key/value pairs computed from [iterable].
+   *
+   * This method is used by Map classes in the named constructor fromIterable.
+   */
+  static void _fillMapWithMappedIterable(Map map, Iterable iterable,
+                                         key(element), value(element)) {
+    if (key == null) key = _id;
+    if (value == null) value = _id;
+
+    for (var element in iterable) {
+      map[key(element)] = value(element);
+    }
+  }
+
+  /**
+   * Fills a map by associating the [keys] to [values].
+   *
+   * This method is used by Map classes in the named constructor fromIterables.
+   */
+  static void _fillMapWithIterables(Map map, Iterable keys,
+                                    Iterable values) {
+    Iterator keyIterator = keys.iterator;
+    Iterator valueIterator = values.iterator;
+
+    bool hasNextKey = keyIterator.moveNext();
+    bool hasNextValue = valueIterator.moveNext();
+
+    while (hasNextKey && hasNextValue) {
+      map[keyIterator.current] = valueIterator.current;
+      hasNextKey = keyIterator.moveNext();
+      hasNextValue = valueIterator.moveNext();
+    }
+
+    if (hasNextKey || hasNextValue) {
+      throw new ArgumentError("Iterables do not have same length.");
+    }
+  }
 }

@@ -115,7 +115,7 @@ class SimpleMapFormat extends InternalMapFormat {
    * of [Reference] objects instead of the [Reference] so that the structure
    * can be serialized between isolates and json easily.
    */
-  forAllStates(ReaderOrWriter w, bool predicate(value),
+  void forAllStates(ReaderOrWriter w, bool predicate(value),
                void transform(value)) {
     for (var eachRule in w.rules) {
       var ruleData = w.states[eachRule.number];
@@ -214,7 +214,7 @@ class SimpleJsonFormat extends SimpleMapFormat {
    * of Reference objects and to add rule numbers if [storeRoundTripInfo]
    * is true.
    */
-  jsonify(Writer w) {
+  void jsonify(Writer w) {
     for (var eachRule in w.rules) {
       var ruleData = w.states[eachRule.number];
       jsonifyForRule(ruleData, w, eachRule);
@@ -224,7 +224,7 @@ class SimpleJsonFormat extends SimpleMapFormat {
   /**
    * For a particular [rule] modify the [ruleData] to conform to this format.
    */
-  jsonifyForRule(List ruleData, Writer w, SerializationRule rule) {
+  void jsonifyForRule(List ruleData, Writer w, SerializationRule rule) {
     for (var i = 0; i < ruleData.length; i++) {
       var each = ruleData[i];
       if (each is List) {
@@ -241,7 +241,7 @@ class SimpleJsonFormat extends SimpleMapFormat {
    * For one particular entry, which is either a Map or a List, update it
    * to turn References into a nested List/Map.
    */
-  jsonifyEntry(map, Writer w) {
+  void jsonifyEntry(map, Writer w) {
     // Note, if this is a Map, and the key might be a reference, we need to
     // bend over backwards to avoid concurrent modifications. Non-string keys
     // won't actually work if we try to write this to json, but might happen
@@ -496,7 +496,7 @@ class SimpleFlatFormat extends Format {
    * Read data for [rule] from [input] with [length] number of entries,
    * creating lists from the results.
    */
-  readLists(Iterator input, SerializationRule rule, int length, Reader r) {
+  List readLists(Iterator input, SerializationRule rule, int length, Reader r) {
     var ruleData = [];
     for (var i = 0; i < length; i++) {
       var subLength =
@@ -514,7 +514,7 @@ class SimpleFlatFormat extends Format {
    * Read data for [rule] from [input] with [length] number of entries,
    * creating maps from the results.
    */
-  readMaps(Iterator input, SerializationRule rule, int length, Reader r) {
+  List readMaps(Iterator input, SerializationRule rule, int length, Reader r) {
     var ruleData = [];
     for (var i = 0; i < length; i++) {
       var subLength =
@@ -534,7 +534,7 @@ class SimpleFlatFormat extends Format {
    * Read data for [rule] from [input] with [length] number of entries,
    * treating the data as primitives that can be returned directly.
    */
-  readPrimitives(Iterator input, SerializationRule rule, int length) {
+  List readPrimitives(Iterator input, SerializationRule rule, int length) {
     var ruleData = [];
     for (var i = 0; i < length; i++) {
       ruleData.add(_next(input));

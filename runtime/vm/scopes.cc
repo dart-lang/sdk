@@ -282,7 +282,6 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
         desc.info.index = var->index();
         vars->Add(desc);
       }
-      // The saved arguments descriptor variable is not currently collected.
     }
   }
   LocalScope* child = this->child();

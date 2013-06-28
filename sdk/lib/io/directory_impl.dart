@@ -168,8 +168,8 @@ class _Directory implements Directory {
     request[1] = _path;
     return _directoryService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        throw _exceptionOrErrorFromResponse(response,
-                                      "Creation of temporary directory failed");
+        throw _exceptionOrErrorFromResponse(
+            response, "Creation of temporary directory failed");
       }
       return new Directory(response);
     });
@@ -182,8 +182,8 @@ class _Directory implements Directory {
     var result = _createTemp(path);
     if (result is OSError) {
       throw new DirectoryException("Creation of temporary directory failed",
-                                     _path,
-                                     result);
+                                   _path,
+                                   result);
     }
     return new Directory(result);
   }

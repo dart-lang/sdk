@@ -8,127 +8,53 @@ import "dart:io";
 import "dart:isolate";
 
 void testReadInvalidArgs(arg) {
-  var port = new ReceivePort();
   String filename = getFilename("tests/vm/data/fixed_length_file");
   var file = (new File(filename)).openSync();
-  try {
-    file.readSync(arg);
-    Expect.fail('exception expected');
-  } catch (e) {
-    Expect.isTrue(e is FileException);
-    Expect.isTrue(e.toString().contains('Invalid arguments'));
-  }
+  Expect.throws(() => file.readSync(arg),
+                (e) => e is ArgumentError);
 
-  var errors = 0;
-  var readFuture = file.read(arg);
-  readFuture.then((bytes) {
-    Expect.fail('exception expected');
-  }).catchError((error) {
-    errors++;
-    Expect.isTrue(error is FileException);
-    Expect.isTrue(error.toString().contains('Invalid arguments'));
-    file.close().then((ignore) {
-      Expect.equals(1, errors);
-      port.close();
-    });
-  });
+  Expect.throws(() => file.read(arg),
+                (e) => e is ArgumentError);
 }
 
 void testReadIntoInvalidArgs(buffer, start, end) {
-  var port = new ReceivePort();
   String filename = getFilename("tests/vm/data/fixed_length_file");
   var file = (new File(filename)).openSync();
-  try {
-    file.readIntoSync(buffer, start, end);
-    Expect.fail('exception expected');
-  } catch (e) {
-    Expect.isTrue(e is FileException);
-    Expect.isTrue(e.toString().contains('Invalid arguments'));
-  }
+  Expect.throws(() => file.readIntoSync(buffer, start, end),
+                (e) => e is ArgumentError);
 
-  var errors = 0;
-  var readIntoFuture = file.readInto(buffer, start, end);
-  readIntoFuture.then((bytes) {
-    Expect.fail('exception expected');
-  }).catchError((error) {
-    errors++;
-    Expect.isTrue(error is FileException);
-    Expect.isTrue(error.toString().contains('Invalid arguments'));
-    file.close().then((ignore) {
-      Expect.equals(1, errors);
-      port.close();
-    });
-  });
+  Expect.throws(() => file.readInto(buffer, start, end),
+                (e) => e is ArgumentError);
 }
 
 void testWriteByteInvalidArgs(value) {
-  var port = new ReceivePort();
   String filename = getFilename("tests/vm/data/fixed_length_file");
   var file = (new File("${filename}_out")).openSync(mode: FileMode.WRITE);
-  try {
-    file.writeByteSync(value);
-    Expect.fail('exception expected');
-  } catch (e) {
-    Expect.isTrue(e is FileException);
-    Expect.isTrue(e.toString().contains('Invalid argument'));
-  }
+  Expect.throws(() => file.writeByteSync(value),
+                (e) => e is ArgumentError);
 
-  var writeByteFuture = file.writeByte(value);
-  writeByteFuture.then((ignore) {
-    Expect.fail('exception expected');
-  }).catchError((error) {
-    Expect.isTrue(error is FileException);
-    Expect.isTrue(error.toString().contains('Invalid argument'));
-    file.close().then((ignore) {
-      port.close();
-    });
-  });
+  Expect.throws(() => file.writeByte(value),
+                (e) => e is ArgumentError);
 }
 
 void testWriteFromInvalidArgs(buffer, start, end) {
-  var port = new ReceivePort();
   String filename = getFilename("tests/vm/data/fixed_length_file");
   var file = (new File("${filename}_out")).openSync(mode: FileMode.WRITE);
-  try {
-    file.writeFromSync(buffer, start, end);
-    Expect.fail('exception expected');
-  } catch (e) {
-    Expect.isTrue(e is FileException);
-    Expect.isTrue(e.toString().contains('Invalid arguments'));
-  }
+  Expect.throws(() => file.writeFromSync(buffer, start, end),
+                (e) => e is ArgumentError);
 
-  var writeFromFuture = file.writeFrom(buffer, start, end);
-  writeFromFuture.then((ignore) {
-    Expect.fail('exception expected');
-  }).catchError((error) {
-    Expect.isTrue(error is FileException);
-    Expect.isTrue(error.toString().contains('Invalid arguments'));
-    file.close().then((ignore) {
-      port.close();
-    });
-  });
+  Expect.throws(() => file.writeFrom(buffer, start, end),
+                (e) => e is ArgumentError);
 }
 
 void testWriteStringInvalidArgs(string, encoding) {
-  var port = new ReceivePort();
   String filename = getFilename("tests/vm/data/fixed_length_file");
   var file = new File("${filename}_out").openSync(mode: FileMode.WRITE);
-  try {
-    file.writeStringSync(string, encoding: encoding);
-    Expect.fail('exception expected');
-  } catch (e) {
-    Expect.isTrue(e is FileException);
-  }
+  Expect.throws(() => file.writeStringSync(string, encoding: encoding),
+                (e) => e is ArgumentError);
 
-  var writeStringFuture = file.writeString(string, encoding: encoding);
-  writeStringFuture.then((ignore) {
-    Expect.fail('exception expected');
-  }).catchError((error) {
-    Expect.isTrue(error is FileException);
-    file.close().then((ignore) {
-      port.close();
-    });
-  });
+  Expect.throws(() => file.writeString(string, encoding: encoding),
+                (e) => e is ArgumentError);
 }
 
 Future futureThrows(Future result) {

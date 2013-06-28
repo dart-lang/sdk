@@ -264,36 +264,6 @@ void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* ArgumentDefinitionTestInstr::MakeLocationSummary() const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(R0));
-  locs->set_out(Location::RegisterLocation(R0));
-  return locs;
-}
-
-
-void ArgumentDefinitionTestInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register saved_args_desc = locs()->in(0).reg();
-  Register result = locs()->out().reg();
-
-  // Push the result place holder initialized to NULL.
-  __ PushObject(Object::ZoneHandle());
-  __ LoadImmediate(IP, Smi::RawValue(formal_parameter_index()));
-  __ Push(IP);
-  __ PushObject(formal_parameter_name());
-  __ Push(saved_args_desc);
-  compiler->GenerateCallRuntime(token_pos(),
-                                deopt_id(),
-                                kArgumentDefinitionTestRuntimeEntry,
-                                locs());
-  __ Drop(3);
-  __ Pop(result);  // Pop bool result.
-}
-
-
 static Condition TokenKindToSmiCondition(Token::Kind kind) {
   switch (kind) {
     case Token::kEQ: return EQ;
@@ -343,7 +313,7 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
     locs->set_out(Location::RequiresRegister());
     return locs;
   }
-  if (is_checked_strict_equal()) {
+  if (IsCheckedStrictEqual()) {
     const intptr_t kNumTemps = 1;
     LocationSummary* locs =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -786,7 +756,7 @@ void EqualityCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     EmitDoubleComparisonOp(compiler, *locs(), kind(), kNoBranch);
     return;
   }
-  if (is_checked_strict_equal()) {
+  if (IsCheckedStrictEqual()) {
     EmitCheckedStrictEqual(compiler, *ic_data(), *locs(), kind(), kNoBranch,
                            deopt_id());
     return;
@@ -827,7 +797,7 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
     EmitDoubleComparisonOp(compiler, *locs(), kind(), branch);
     return;
   }
-  if (is_checked_strict_equal()) {
+  if (IsCheckedStrictEqual()) {
     EmitCheckedStrictEqual(compiler, *ic_data(), *locs(), kind(), branch,
                            deopt_id());
     return;
@@ -1193,42 +1163,41 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Location index = locs()->in(1);
 
   Address element_address(kNoRegister, 0);
-  if (IsExternal()) {
-    UNIMPLEMENTED();
-  } else {
-    ASSERT(this->array()->definition()->representation() == kTagged);
-    ASSERT(index.IsRegister());  // TODO(regis): Revisit.
-    // Note that index is expected smi-tagged, (i.e, times 2) for all arrays
-    // with index scale factor > 1. E.g., for Uint8Array and OneByteString the
-    // index is expected to be untagged before accessing.
-    ASSERT(kSmiTagShift == 1);
-    switch (index_scale()) {
-      case 1: {
-        __ SmiUntag(index.reg());
-        break;
-      }
-      case 2: {
-        break;
-      }
-      case 4: {
-        __ mov(index.reg(), ShifterOperand(index.reg(), LSL, 1));
-        break;
-      }
-      case 8: {
-        __ mov(index.reg(), ShifterOperand(index.reg(), LSL, 2));
-        break;
-      }
-      case 16: {
-        __ mov(index.reg(), ShifterOperand(index.reg(), LSL, 3));
-        break;
-      }
-      default:
-        UNREACHABLE();
+  ASSERT(index.IsRegister());  // TODO(regis): Revisit.
+  // Note that index is expected smi-tagged, (i.e, times 2) for all arrays
+  // with index scale factor > 1. E.g., for Uint8Array and OneByteString the
+  // index is expected to be untagged before accessing.
+  ASSERT(kSmiTagShift == 1);
+  switch (index_scale()) {
+    case 1: {
+      __ SmiUntag(index.reg());
+      break;
     }
+    case 2: {
+      break;
+    }
+    case 4: {
+      __ mov(index.reg(), ShifterOperand(index.reg(), LSL, 1));
+      break;
+    }
+    case 8: {
+      __ mov(index.reg(), ShifterOperand(index.reg(), LSL, 2));
+      break;
+    }
+    case 16: {
+      __ mov(index.reg(), ShifterOperand(index.reg(), LSL, 3));
+      break;
+    }
+    default:
+      UNREACHABLE();
+  }
+
+  if (!IsExternal()) {
+    ASSERT(this->array()->definition()->representation() == kTagged);
     __ AddImmediate(index.reg(),
         FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
-    element_address = Address(array, index.reg(), LSL, 0);
   }
+  element_address = Address(array, index.reg(), LSL, 0);
 
   if ((representation() == kUnboxedDouble) ||
       (representation() == kUnboxedMint) ||
@@ -1391,42 +1360,40 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Location index = locs()->in(1);
 
   Address element_address(kNoRegister, 0);
-  if (IsExternal()) {
-    UNIMPLEMENTED();
-  } else {
-    ASSERT(this->array()->definition()->representation() == kTagged);
-    ASSERT(index.IsRegister());  // TODO(regis): Revisit.
-    // Note that index is expected smi-tagged, (i.e, times 2) for all arrays
-    // with index scale factor > 1. E.g., for Uint8Array and OneByteString the
-    // index is expected to be untagged before accessing.
-    ASSERT(kSmiTagShift == 1);
-    switch (index_scale()) {
-      case 1: {
-        __ SmiUntag(index.reg());
-        break;
-      }
-      case 2: {
-        break;
-      }
-      case 4: {
-        __ mov(index.reg(), ShifterOperand(index.reg(), LSL, 1));
-        break;
-      }
-      case 8: {
-        __ mov(index.reg(), ShifterOperand(index.reg(), LSL, 2));
-        break;
-      }
-      case 16: {
-        __ mov(index.reg(), ShifterOperand(index.reg(), LSL, 3));
-        break;
-      }
-      default:
-        UNREACHABLE();
+  ASSERT(index.IsRegister());  // TODO(regis): Revisit.
+  // Note that index is expected smi-tagged, (i.e, times 2) for all arrays
+  // with index scale factor > 1. E.g., for Uint8Array and OneByteString the
+  // index is expected to be untagged before accessing.
+  ASSERT(kSmiTagShift == 1);
+  switch (index_scale()) {
+    case 1: {
+      __ SmiUntag(index.reg());
+      break;
     }
+    case 2: {
+      break;
+    }
+    case 4: {
+      __ mov(index.reg(), ShifterOperand(index.reg(), LSL, 1));
+      break;
+    }
+    case 8: {
+      __ mov(index.reg(), ShifterOperand(index.reg(), LSL, 2));
+      break;
+    }
+    case 16: {
+      __ mov(index.reg(), ShifterOperand(index.reg(), LSL, 3));
+      break;
+    }
+    default:
+      UNREACHABLE();
+  }
+  if (!IsExternal()) {
+    ASSERT(this->array()->definition()->representation() == kTagged);
     __ AddImmediate(index.reg(),
         FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
-    element_address = Address(array, index.reg(), LSL, 0);
   }
+  element_address = Address(array, index.reg(), LSL, 0);
 
   switch (class_id()) {
     case kArrayCid:

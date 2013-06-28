@@ -241,7 +241,6 @@ bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
 
   // Note that T1 is Smi, i.e, times 2.
   ASSERT(kSmiTagShift == 1);
-  // Destroy T2 as we will not continue in the function.
   __ lw(T2, Address(SP, 0 * kWordSize));  // Value.
   __ sll(T1, T1, 1);  // T1 is Smi.
   __ addu(T1, T0, T1);
@@ -795,11 +794,12 @@ bool Intrinsifier::Integer_truncDivide(Assembler* assembler) {
 bool Intrinsifier::Integer_negate(Assembler* assembler) {
   Label fall_through;
 
-  __ lw(V0, Address(SP, + 0 * kWordSize));  // Grabs first argument.
-  __ andi(CMPRES, V0, Immediate(kSmiTagMask));  // Test for Smi.
+  __ lw(T0, Address(SP, + 0 * kWordSize));  // Grabs first argument.
+  __ andi(CMPRES, T0, Immediate(kSmiTagMask));  // Test for Smi.
   __ bne(CMPRES, ZR, &fall_through);  // Fall through if not a Smi.
+  __ SubuDetectOverflow(V0, ZR, T0, CMPRES);
+  __ bltz(CMPRES, &fall_through);  // There was overflow.
   __ Ret();
-  __ delay_slot()->subu(V0, ZR, V0);
   __ Bind(&fall_through);
   return false;
 }
@@ -1459,11 +1459,10 @@ bool Intrinsifier::Random_nextState(Assembler* assembler) {
   __ LoadImmediate(T0, a_int32_value);
   __ lw(T2, addr_0);
   __ lw(T3, addr_1);
-  __ sra(T6, T3, 31);  // Sign extend T3 into T6.
   __ mtlo(T3);
-  __ mthi(T6);  // HI:LO <- T6:T3
+  __ mthi(ZR);  // HI:LO <- ZR:T3  Zero extend T3 into HI.
   // 64-bit multiply and accumulate into T6:T3.
-  __ madd(T0, T2);  // HI:LO <- HI:LO + T0 * T2.
+  __ maddu(T0, T2);  // HI:LO <- HI:LO + T0 * T2.
   __ mflo(T3);
   __ mfhi(T6);
   __ sw(T3, addr_0);
@@ -1490,7 +1489,6 @@ bool Intrinsifier::Object_equal(Assembler* assembler) {
 
 bool Intrinsifier::String_getHashCode(Assembler* assembler) {
   Label fall_through;
-  __ Untested("Intrinsifier::String_getHashCode");
   __ lw(T0, Address(SP, 0 * kWordSize));
   __ lw(V0, FieldAddress(T0, String::hash_offset()));
   __ beq(V0, ZR, &fall_through);
@@ -1508,9 +1506,8 @@ bool Intrinsifier::String_getLength(Assembler* assembler) {
 }
 
 
-// TODO(srdjan): Implement for two and four byte strings as well.
 bool Intrinsifier::String_codeUnitAt(Assembler* assembler) {
-  Label fall_through;
+  Label fall_through, try_two_byte_string;
 
   __ lw(T1, Address(SP, 0 * kWordSize));  // Index.
   __ lw(T0, Address(SP, 1 * kWordSize));  // String.
@@ -1522,7 +1519,7 @@ bool Intrinsifier::String_codeUnitAt(Assembler* assembler) {
   // Runtime throws exception.
   __ BranchUnsignedGreaterEqual(T1, T2, &fall_through);
   __ LoadClassId(TMP1, T0);  // Class ID check.
-  __ BranchNotEqual(TMP1, kOneByteStringCid, &fall_through);
+  __ BranchNotEqual(TMP1, kOneByteStringCid, &try_two_byte_string);
 
   // Grab byte and return.
   __ SmiUntag(T1);
@@ -1530,6 +1527,15 @@ bool Intrinsifier::String_codeUnitAt(Assembler* assembler) {
   __ lbu(V0, FieldAddress(T2, OneByteString::data_offset()));
   __ Ret();
   __ delay_slot()->SmiTag(V0);
+
+  __ Bind(&try_two_byte_string);
+  __ BranchNotEqual(TMP1, kTwoByteStringCid, &fall_through);
+  ASSERT(kSmiTagShift == 1);
+  __ addu(T2, T0, T1);
+  __ lhu(V0, FieldAddress(T2, OneByteString::data_offset()));
+  __ Ret();
+  __ delay_slot()->SmiTag(V0);
+
   __ Bind(&fall_through);
   return false;
 }

@@ -530,6 +530,13 @@ void Assembler::smlal(Register rd_lo, Register rd_hi,
 }
 
 
+void Assembler::umlal(Register rd_lo, Register rd_hi,
+                      Register rn, Register rm, Condition cond) {
+  // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
+  EmitMulOp(cond, B23 | B21, rd_lo, rd_hi, rn, rm);
+}
+
+
 void Assembler::EmitDivOp(Condition cond, int32_t opcode,
                           Register rd, Register rn, Register rm) {
   ASSERT(CPUFeatures::integer_division_supported());
@@ -1375,12 +1382,16 @@ void Assembler::StoreIntoObject(Register object,
     StoreIntoObjectFilterNoSmi(object, value, &done);
   }
   // A store buffer update is required.
-  if (value != R0) Push(R0);  // Preserve R0.
+  RegList regs = (1 << LR);
+  if (value != R0) {
+    regs |= (1 << R0);  // Preserve R0.
+  }
+  PushList(regs);
   if (object != R0) {
     mov(R0, ShifterOperand(object));
   }
   BranchLink(&StubCode::UpdateStoreBufferLabel());
-  if (value != R0) Pop(R0);  // Restore R0.
+  PopList(regs);
   Bind(&done);
 }
 

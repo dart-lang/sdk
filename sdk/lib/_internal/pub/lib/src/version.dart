@@ -5,7 +5,7 @@
 /// Handles version numbers, following the [Semantic Versioning][semver] spec.
 ///
 /// [semver]: http://semver.org/
-library version;
+library pub.version;
 
 import 'dart:math';
 

@@ -2815,8 +2815,8 @@ TEST_CASE(ClassGetInterfaces) {
 
   // Error cases.
   EXPECT_ERROR(Dart_ClassGetInterfaceCount(Dart_True(), &len),
-               "Dart_ClassGetInterfaceCount expects argument 'clazz' to be of "
-               "type Class.");
+               "Dart_ClassGetInterfaceCount expects argument 'object' to be of "
+               "type Class/Type.");
   EXPECT_ERROR(Dart_ClassGetInterfaceCount(Dart_NewApiError("MyError"), &len),
                "MyError");
 }

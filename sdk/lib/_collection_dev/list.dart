@@ -267,6 +267,10 @@ class ListMapView<E> implements Map<int, E> {
   void clear() {
     throw new UnsupportedError("Cannot modify an unmodifiable map");
   }
+
+  void addAll(Map<int, E> other) {
+    throw new UnsupportedError("Cannot modify an unmodifiable map");
+  }
 }
 
 class ReversedListIterable<E> extends ListIterable<E> {

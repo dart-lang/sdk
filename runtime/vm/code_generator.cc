@@ -30,29 +30,32 @@ namespace dart {
 DEFINE_FLAG(bool, deoptimize_alot, false,
     "Deoptimizes all live frames when we are about to return to Dart code from"
     " native entries.");
+DEFINE_FLAG(int, max_subtype_cache_entries, 100,
+    "Maximum number of subtype cache entries (number of checks cached).");
+DEFINE_FLAG(int, optimization_counter_threshold, 15000,
+    "Function's usage-counter value before it is optimized, -1 means never");
+DEFINE_FLAG(charp, optimization_filter, NULL, "Optimize only named function");
+DEFINE_FLAG(int, reoptimization_counter_threshold, 2000,
+    "Counter threshold before a function gets reoptimized.");
+DEFINE_FLAG(bool, stop_on_excessive_deoptimization, false,
+    "Debugging: stops program if deoptimizing same function too often");
 DEFINE_FLAG(bool, trace_deoptimization, false, "Trace deoptimization");
 DEFINE_FLAG(bool, trace_deoptimization_verbose, false,
     "Trace deoptimization verbose");
+DEFINE_FLAG(bool, trace_failed_optimization_attempts, false,
+    "Traces all failed optimization attempts");
 DEFINE_FLAG(bool, trace_ic, false, "Trace IC handling");
 DEFINE_FLAG(bool, trace_ic_miss_in_optimized, false,
     "Trace IC miss in optimized code");
-DEFINE_FLAG(bool, trace_patching, false, "Trace patching of code.");
-DEFINE_FLAG(bool, trace_runtime_calls, false, "Trace runtime calls");
-DEFINE_FLAG(int, optimization_counter_threshold, 15000,
-    "Function's usage-counter value before it is optimized, -1 means never");
-DECLARE_FLAG(bool, enable_type_checks);
-DECLARE_FLAG(bool, trace_type_checks);
-DECLARE_FLAG(bool, report_usage_count);
-DECLARE_FLAG(int, deoptimization_counter_threshold);
-DEFINE_FLAG(charp, optimization_filter, NULL, "Optimize only named function");
-DEFINE_FLAG(bool, trace_failed_optimization_attempts, false,
-    "Traces all failed optimization attempts");
 DEFINE_FLAG(bool, trace_optimized_ic_calls, false,
     "Trace IC calls in optimized code.");
-DEFINE_FLAG(int, reoptimization_counter_threshold, 2000,
-    "Counter threshold before a function gets reoptimized.");
-DEFINE_FLAG(int, max_subtype_cache_entries, 100,
-    "Maximum number of subtype cache entries (number of checks cached).");
+DEFINE_FLAG(bool, trace_patching, false, "Trace patching of code.");
+DEFINE_FLAG(bool, trace_runtime_calls, false, "Trace runtime calls");
+
+DECLARE_FLAG(int, deoptimization_counter_threshold);
+DECLARE_FLAG(bool, enable_type_checks);
+DECLARE_FLAG(bool, report_usage_count);
+DECLARE_FLAG(bool, trace_type_checks);
 
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 DEFINE_FLAG(bool, use_osr, true, "Use on-stack replacement.");
@@ -1297,9 +1300,13 @@ static bool CanOptimizeFunction(const Function& function, Isolate* isolate) {
   }
   if (function.deoptimization_counter() >=
       FLAG_deoptimization_counter_threshold) {
-    if (FLAG_trace_failed_optimization_attempts) {
+    if (FLAG_trace_failed_optimization_attempts ||
+        FLAG_stop_on_excessive_deoptimization) {
       OS::PrintErr("Too Many Deoptimizations: %s\n",
           function.ToFullyQualifiedCString());
+      if (FLAG_stop_on_excessive_deoptimization) {
+        FATAL("Stop on excessive deoptimization");
+      }
     }
     // TODO(srdjan): Investigate excessive deoptimization.
     function.set_usage_counter(kLowInvocationCount);

@@ -7,11 +7,7 @@ import "dart:collection";
 
 test(List list, int start, int end, [fillValue]) {
   List copy = list.toList();
-  if (?fillValue) {
-    list.fillRange(start, end, fillValue);
-  } else {
-    list.fillRange(start, end, fillValue);
-  }
+  list.fillRange(start, end, fillValue);
   Expect.equals(copy.length, list.length);
   for (int i = 0; i < start; i++) {
     Expect.equals(copy[i], list[i]);

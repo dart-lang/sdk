@@ -986,16 +986,6 @@ void FlowGraphCompiler::CopyParameters() {
   }
 
   __ Bind(&wrong_num_arguments);
-  if (StackSize() != 0) {
-    // We need to unwind the space we reserved for locals and copied parameters.
-    // The NoSuchMethodFunction stub does not expect to see that area on the
-    // stack.
-    __ addq(RSP, Immediate(StackSize() * kWordSize));
-  }
-  // The call below has an empty stackmap because we have just
-  // dropped the spill slots.
-  BitmapBuilder* empty_stack_bitmap = new BitmapBuilder();
-
   // Invoke noSuchMethod function passing the original name of the function.
   // If the function is a closure function, use "call" as the original name.
   const String& name = String::Handle(
@@ -1005,24 +995,10 @@ void FlowGraphCompiler::CopyParameters() {
       ICData::New(function, name, Object::null_array(),
                   Isolate::kNoDeoptId, kNumArgsChecked));
   __ LoadObject(RBX, ic_data);
-  // RBP - 8 : PC marker, allows easy identification of RawInstruction obj.
-  // RBP : points to previous frame pointer.
-  // RBP + 8 : points to return address.
-  // RBP + 16 : address of last argument (arg n-1).
-  // RSP + 16 + 8*(n-1) : address of first argument (arg 0).
-  // RBX : ic-data.
-  // R10 : arguments descriptor array.
-  __ call(&StubCode::CallNoSuchMethodFunctionLabel());
-  // Emit descriptors in order to provide correct postion in stacktrace.
-  AddCurrentDescriptor(PcDescriptors::kOther, -1, function.token_pos());
-  if (is_optimizing()) {
-    stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
-                                      empty_stack_bitmap,
-                                      0);  // No registers.
-  }
-  // The noSuchMethod call may return.
-  __ LeaveFrame();
-  __ ret();
+  __ LeaveFrame();  // The arguments are still on the stack.
+  __ jmp(&StubCode::CallNoSuchMethodFunctionLabel());
+  // The noSuchMethod call may return to the caller, but not here.
+  __ int3();
 
   __ Bind(&all_arguments_processed);
   // Nullify originally passed arguments only after they have been copied and
@@ -1137,8 +1113,6 @@ void FlowGraphCompiler::CompileGraph() {
   // the presence of optional parameters.
   // No such checking code is generated if only fixed parameters are declared,
   // unless we are in debug mode or unless we are compiling a closure.
-  LocalVariable* saved_args_desc_var =
-      parsed_function().GetSavedArgumentsDescriptorVar();
   if (num_copied_params == 0) {
 #ifdef DEBUG
     ASSERT(!parsed_function().function().HasOptionalParameters());
@@ -1162,16 +1136,6 @@ void FlowGraphCompiler::CompileGraph() {
 
       __ Bind(&wrong_num_arguments);
       if (function.IsClosureFunction() || function.IsNoSuchMethodDispatcher()) {
-        if (StackSize() != 0) {
-          // We need to unwind the space we reserved for locals and copied
-          // parameters. The NoSuchMethodFunction stub does not expect to see
-          // that area on the stack.
-          __ addq(RSP, Immediate(StackSize() * kWordSize));
-        }
-        // The call below has an empty stackmap because we have just
-        // dropped the spill slots.
-        BitmapBuilder* empty_stack_bitmap = new BitmapBuilder();
-
         // Invoke noSuchMethod function passing the original function name.
         // For closure functions, use "call" as the original name.
         const String& name =
@@ -1183,49 +1147,21 @@ void FlowGraphCompiler::CompileGraph() {
             ICData::New(function, name, Object::null_array(),
                         Isolate::kNoDeoptId, kNumArgsChecked));
         __ LoadObject(RBX, ic_data);
-        // RBP - 8 : PC marker, for easy identification of RawInstruction obj.
-        // RBP : points to previous frame pointer.
-        // RBP + 8 : points to return address.
-        // RBP + 16 : address of last argument (arg n-1).
-        // RSP + 16 + 8*(n-1) : address of first argument (arg 0).
-        // RBX : ic-data.
-        // R10 : arguments descriptor array.
-        __ call(&StubCode::CallNoSuchMethodFunctionLabel());
-        // Emit descriptors in order to provide correct postion in stacktrace.
-        AddCurrentDescriptor(PcDescriptors::kOther, -1, function.token_pos());
-        if (is_optimizing()) {
-          stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
-                                            empty_stack_bitmap,
-                                            0);  // No registers.
-        }
-        // The noSuchMethod call may return.
-        __ LeaveFrame();
-        __ ret();
+        __ LeaveFrame();  // The arguments are still on the stack.
+        __ jmp(&StubCode::CallNoSuchMethodFunctionLabel());
+        // The noSuchMethod call may return to the caller, but not here.
+        __ int3();
       } else {
         __ Stop("Wrong number of arguments");
       }
       __ Bind(&correct_num_arguments);
     }
-    // The arguments descriptor is never saved in the absence of optional
-    // parameters, since any argument definition test would always yield true.
-    ASSERT(saved_args_desc_var == NULL);
   } else if (!flow_graph().IsCompiledForOsr()) {
-    if (saved_args_desc_var != NULL) {
-      __ Comment("Save arguments descriptor");
-      const Register kArgumentsDescriptorReg = R10;
-      // The saved_args_desc_var is allocated one slot before the first local.
-      const intptr_t slot = parsed_function().first_stack_local_index() + 1;
-      // If the saved_args_desc_var is captured, it is first moved to the stack
-      // and later to the context, once the context is allocated.
-      ASSERT(saved_args_desc_var->is_captured() ||
-             (saved_args_desc_var->index() == slot));
-      __ movq(Address(RBP, slot * kWordSize), kArgumentsDescriptorReg);
-    }
     CopyParameters();
   }
 
   // In unoptimized code, initialize (non-argument) stack allocated slots to
-  // null. This does not cover the saved_args_desc_var slot.
+  // null.
   if (!is_optimizing() && (num_locals > 0)) {
     __ Comment("Initialize spill slots");
     const intptr_t slot_base = parsed_function().first_stack_local_index();
@@ -1491,7 +1427,11 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
   if (needs_number_check) {
     __ pushq(reg);
     __ PushObject(obj);
-    __ call(&StubCode::IdenticalWithNumberCheckLabel());
+    if (is_optimizing()) {
+      __ call(&StubCode::OptimizedIdenticalWithNumberCheckLabel());
+    } else {
+      __ call(&StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
+    }
     AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
                          Isolate::kNoDeoptId,
                          token_pos);
@@ -1511,7 +1451,11 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
   if (needs_number_check) {
     __ pushq(left);
     __ pushq(right);
-    __ call(&StubCode::IdenticalWithNumberCheckLabel());
+    if (is_optimizing()) {
+      __ call(&StubCode::OptimizedIdenticalWithNumberCheckLabel());
+    } else {
+      __ call(&StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
+    }
     AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
                          Isolate::kNoDeoptId,
                          token_pos);

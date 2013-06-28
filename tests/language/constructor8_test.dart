@@ -9,12 +9,6 @@ import "package:expect/expect.dart";
 class A {
   var b;
 
-  // The parameter check here used to confuse the SSA builder when it
-  // created the call to the constructor body.
-  A([Map a]) : b = ?a {
-    Expect.isTrue(b);
-  }
-
   // The closure in the constructor body used to confuse the SSA builder
   // when it created the call to the constructor body.
   A.withClosure(Map a) {
@@ -27,8 +21,6 @@ class A {
 }
 
 main() {
-  new A(null);
-  new A({});
   new A.withClosure(null);
   new A.withClosure({});
 }

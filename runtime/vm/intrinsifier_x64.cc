@@ -189,7 +189,7 @@ bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
   __ j(ABOVE_EQUAL, &fall_through);
   // Note that RBX is Smi, i.e, times 2.
   ASSERT(kSmiTagShift == 1);
-  // Destroy RCX as we will not continue in the function.
+  // Destroy RCX (ic data) as we will not continue in the function.
   __ StoreIntoObject(RAX,
                      FieldAddress(RAX, RCX, TIMES_4, Array::data_offset()),
                      RDX);
@@ -1426,9 +1426,8 @@ bool Intrinsifier::String_getLength(Assembler* assembler) {
 }
 
 
-// TODO(srdjan): Implement for two and four byte strings as well.
 bool Intrinsifier::String_codeUnitAt(Assembler* assembler) {
-  Label fall_through;
+  Label fall_through, try_two_byte_string;
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Index.
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // String.
   __ testq(RCX, Immediate(kSmiTagMask));
@@ -1438,11 +1437,20 @@ bool Intrinsifier::String_codeUnitAt(Assembler* assembler) {
   // Runtime throws exception.
   __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
   __ CompareClassId(RAX, kOneByteStringCid);
-  __ j(NOT_EQUAL, &fall_through);
+  __ j(NOT_EQUAL, &try_two_byte_string, Assembler::kNearJump);
   __ SmiUntag(RCX);
   __ movzxb(RAX, FieldAddress(RAX, RCX, TIMES_1, OneByteString::data_offset()));
   __ SmiTag(RAX);
   __ ret();
+
+  __ Bind(&try_two_byte_string);
+  __ CompareClassId(RAX, kTwoByteStringCid);
+  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+  ASSERT(kSmiTagShift == 1);
+  __ movzxw(RAX, FieldAddress(RAX, RCX, TIMES_1, OneByteString::data_offset()));
+  __ SmiTag(RAX);
+  __ ret();
+
   __ Bind(&fall_through);
   return false;
 }

@@ -27,9 +27,8 @@ Future testUpgrade() {
     }).then((_) {
       return html.window.indexedDB.open(dbName, version: 2,
           onUpgradeNeeded: (e) {
-            // Bug 8265, we're getting the wrong type here.
-            //expect(e.oldVersion, 1);
-            //expect(e.newVersion, 2);
+            expect(e.oldVersion, 1);
+            expect(e.newVersion, 2);
             upgraded = true;
           });
     }).then((_) {

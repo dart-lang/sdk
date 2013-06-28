@@ -14,6 +14,7 @@
 #include <sys/epoll.h>  // NOLINT
 #include <sys/stat.h>  // NOLINT
 #include <unistd.h>  // NOLINT
+#include <fcntl.h>  // NOLINT
 
 #include "bin/dartutils.h"
 #include "bin/fdutils.h"
@@ -215,7 +216,15 @@ void EventHandlerImplementation::HandleInterruptFd() {
         // next message.
         RemoveFromEpollInstance(epoll_fd_, sd);
         intptr_t fd = sd->fd();
-        sd->Close();
+        if (fd == STDOUT_FILENO) {
+          // If stdout, redirect fd to /dev/null.
+          int null_fd = TEMP_FAILURE_RETRY(open("/dev/null", O_WRONLY));
+          ASSERT(null_fd >= 0);
+          VOID_TEMP_FAILURE_RETRY(dup2(null_fd, STDOUT_FILENO));
+          VOID_TEMP_FAILURE_RETRY(close(null_fd));
+        } else {
+          sd->Close();
+        }
         socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
         delete sd;
       } else {

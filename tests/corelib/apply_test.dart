@@ -16,9 +16,6 @@ int test1a(int i, {int a}) => i + a;
 int test2(int i, int j) => i + j;
 int test2a(int i, int j, {int a}) => i + j + a;
 
-bool testPassed1([int x]) => ?x;
-bool testPassedX({int x}) => ?x;
-
 class C {
   int x = 10;
   int foo(y) => this.x + y;
@@ -59,14 +56,6 @@ main() {
   test(42, test1a, [20], {"a": 22});
   testList(42, test2, [20, 22]);
   test(42, test2a, [10, 15], {"a" : 17});
-
-  testList(false, testPassed1, null);
-  testList(false, testPassed1, []);
-  testList(true, testPassed1, [42]);
-
-  testMap(false, testPassedX, null);
-  testMap(false, testPassedX, {});
-  testMap(true, testPassedX, {"x": 42});
 
   // Test that "this" is correct when calling closurized functions.
   var cfoo = new C().foo;

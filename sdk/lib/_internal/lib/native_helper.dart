@@ -17,15 +17,6 @@ String typeNameInSafari(obj) {
 
 String typeNameInWebKitCommon(tag) {
   String name = JS('String', '#', tag);
-  if (name == 'CanvasPixelArray') return 'Uint8ClampedArray';
-  if (name == 'AudioChannelMerger') return 'ChannelMergerNode';
-  if (name == 'AudioChannelSplitter') return 'ChannelSplitterNode';
-  if (name == 'AudioGainNode') return 'GainNode';
-  if (name == 'AudioPannerNode') return 'PannerNode';
-  if (name == 'JavaScriptAudioNode') return 'ScriptProcessorNode';
-  if (name == 'Oscillator') return 'OscillatorNode';
-  if (name == 'RealtimeAnalyserNode') return 'AnalyserNode';
-  if (name == 'IDBVersionChangeRequest') return 'IDBOpenDBRequest';
   return name;
 }
 
@@ -37,9 +28,7 @@ String typeNameInOpera(obj) {
 String typeNameInFirefox(obj) {
   String name = JS('String', '#', constructorNameFallback(obj));
   if (name == 'BeforeUnloadEvent') return 'Event';
-  if (name == 'CSS2Properties') return 'CSSStyleDeclaration';
   if (name == 'DataTransfer') return 'Clipboard';
-  if (name == 'DragEvent') return 'MouseEvent';
   if (name == 'GeoGeolocation') return 'Geolocation';
   if (name == 'WorkerMessageEvent') return 'MessageEvent';
   if (name == 'XMLDocument') return 'Document';
@@ -55,15 +44,10 @@ String typeNameInIE(obj) {
     return 'HTMLDocument';
   }
   if (name == 'BeforeUnloadEvent') return 'Event';
-  if (name == 'CanvasPixelArray') return 'Uint8ClampedArray';
   if (name == 'DataTransfer') return 'Clipboard';
-  if (name == 'DragEvent') return 'MouseEvent';
   if (name == 'HTMLDDElement') return 'HTMLElement';
   if (name == 'HTMLDTElement') return 'HTMLElement';
-  if (name == 'HTMLTableDataCellElement') return 'HTMLTableCellElement';
-  if (name == 'HTMLTableHeaderCellElement') return 'HTMLTableCellElement';
   if (name == 'HTMLPhraseElement') return 'HTMLElement';
-  if (name == 'MSStyleCSSProperties') return 'CSSStyleDeclaration';
   if (name == 'Position') return 'Geoposition';
 
   // Patches for types which report themselves as Objects.

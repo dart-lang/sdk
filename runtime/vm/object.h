@@ -1324,6 +1324,17 @@ class Function : public Object {
     return BuildSignature(instantiate, kInternalName, TypeArguments::Handle());
   }
 
+  // Build a string of the form '(T, {b: B, c: C}) => R' representing the
+  // user visible signature of the given function. In this example, T and R are
+  // type parameters of class C, the owner of the function.
+  // Implicit parameters are hidden, as well as the prefix denoting the
+  // signature class and its type parameters.
+  RawString* UserVisibleSignature() const {
+    const bool instantiate = false;
+    return BuildSignature(
+        instantiate, kUserVisibleName, TypeArguments::Handle());
+  }
+
   // Build a string of the form '(A, {b: B, c: C}) => D' representing the
   // signature of the given function, where all generic types (e.g. '<T, R>' in
   // 'C<T, R>(T, {b: B, c: C}) => R') are instantiated using the given

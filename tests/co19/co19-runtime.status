@@ -2,6 +2,13 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == none]
+Language/11_Expressions/33_Argument_Definition_Test_A01_t02: Fail, OK # co19 issue 436
+Language/11_Expressions/33_Argument_Definition_Test_A02_t01: Fail, OK # co19 issue 436
+Language/11_Expressions/33_Argument_Definition_Test_A02_t02: Fail, OK # co19 issue 436
+Language/11_Expressions/33_Argument_Definition_Test_A03_t01: Fail, OK # co19 issue 436
+Language/11_Expressions/33_Argument_Definition_Test_A03_t02: Fail, OK # co19 issue 436
+
 [ $runtime == vm && $system == windows ]
 LibTest/core/Stopwatch/elapsed_A01_t01: Pass, Fail # Issue 11382.
 
@@ -142,7 +149,6 @@ Language/12_Statements/09_Switch_A06_t02: Fail # Dart issue 5837
 Language/12_Statements/10_Try_A03_t01: Fail # Dart issue 7311
 Language/12_Statements/10_Try_A03_t02: Fail # Dart issue 7311
 Language/12_Statements/10_Try_A03_t03: Fail # Dart issue 7311
-Language/12_Statements/10_Try_A11_t01: Fail # Dart issue 430
 Language/12_Statements/12_Labels_A01_t03: Fail # Dart issue 2238
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail # Dart issue 5839
 Language/13_Libraries_and_Scripts/1_Imports_A05_t01: Fail # Dart issue 3206
@@ -161,7 +167,6 @@ LibTest/core/double/parse_A02_t01: Fail # co19 issue 418
 LibTest/math/pow_A01_t01: Fail # Dart issue 7318
 LibTest/math/pow_A11_t01: Fail # Dart issue 449
 LibTest/math/pow_A13_t01: Fail # Dart issue 449
-LibTest/math/sin_A01_t01: Fail # Dart issue 7318
 
 Language/05_Variables/05_Variables_A05_t04: Fail # Dart issue 5881
 Language/05_Variables/05_Variables_A05_t11: Fail # Dart issue 5885
@@ -263,7 +268,7 @@ LibTest/core/RegExp/firstMatch_A01_t01: Fail
 LibTest/core/double/toRadixString_A01_t01: Fail # Issue 463
 LibTest/core/int/toRadixString_A01_t01: Fail # Issue 461
 
-LibTest/math/sin_A01_t01: Fail, OK # Issue co19 - 44
+LibTest/math/sin_A01_t01: Pass, Fail, OK # Issue co19 - 44
 
 LibTest/core/Date/toString_A02_t01: Fail # Argument error. Year 999999 is out of range. Needs to be specified (and then potentially reported to co19): issue 1878.
 LibTest/core/Date/year_A01_t01: Fail # Year out of range. Needs to be specified: issue 8808. Possibly a co19 bug.
@@ -480,7 +485,6 @@ LibTest/async/Future/catchError_A01_t02: Fail # No AsyncError anymore. Issue 407
 [ $compiler == none && $runtime == vm && $mode == debug ]
 LibTest/isolate/isolate_api/spawnFunction_A02_t01: Crash
 
-
 [ $compiler == none && $runtime == vm && $system == macos ]
 LibTest/math/exp_A01_t01: Fail, OK # Issue co19 - 44
 LibTest/math/acos_A01_t01: Fail, OK # Issue co19 - 44
@@ -488,64 +492,35 @@ LibTest/math/asin_A01_t01: Fail, OK # Issue co19 - 44
 LibTest/math/atan_A01_t01: Fail, OK # Issue co19 - 44
 LibTest/math/tan_A01_t01: Fail, OK  # Issue co19 - 44
 
-
 [ $compiler == none && $runtime == vm && $system == linux ]
 LibTest/math/exp_A01_t01: Fail
 
-
-[ $compiler == none && $runtime == vm && $system == linux && $arch == ia32 ]
-LibTest/math/sin_A01_t01: Fail
+[ $compiler == none && $runtime == vm && $system != windows && $arch != x64 && $arch != arm ]
 LibTest/math/tan_A01_t01: Fail
 
-
-[ $compiler == none && $runtime == vm && $arch == x64 && $mode == debug ]
-LibTest/core/Map/Map_class_A01_t04: Skip # Timeout
-
-
-[ $compiler == none && $runtime == vm && $arch == ia32 ]
+[ $compiler == none && $runtime == vm && $arch != x64 ]
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
-
-
-[ $compiler == none && $runtime == vm && $arch == arm ]
-LibTest/math/tan_A01_t01: Pass, Fail
-LibTest/math/sin_A01_t01: Pass, Fail
-LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
-LibTest/core/int/operator_unary_minus_A01_t01: Pass, Fail
 
 
 [ $compiler == none && $runtime == vm && $arch == arm && $mode == debug ]
-LibTest/core/List/sort_A01_t05: Crash
-LibTest/core/List/sort_A01_t06: Crash
+LibTest/core/List/sort_A01_t05: Crash # Too far relative jump.
+LibTest/core/List/sort_A01_t06: Crash # Too far relative jump.
 
-[ $compiler == none && $runtime == vm && $arch == simarm && $mode == release ]
-LibTest/math/tan_A01_t01: Fail
+[ $compiler == none && $runtime == vm && $arch == simarm ]
 LibTest/math/cos_A01_t01: Pass, Fail # Fail on Mac
-LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
-LibTest/core/int/operator_unary_minus_A01_t01: Fail
 
 [ $compiler == none && $runtime == vm && $arch == simarm && $mode == debug ]
-LibTest/math/tan_A01_t01: Fail
-LibTest/math/cos_A01_t01: Pass, Fail # Fail on Mac
-LibTest/core/List/sort_A01_t05: Crash
-LibTest/core/List/sort_A01_t06: Crash
-LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
-LibTest/core/int/operator_unary_minus_A01_t01: Fail
+LibTest/core/List/sort_A01_t05: Crash # Too far relative jump.
+LibTest/core/List/sort_A01_t06: Crash # Too far relative jump.
+
 
 [ $compiler == none && $runtime == vm && $arch == mips ]
 *: Skip
 
-
-[ $compiler == none && $runtime == vm && $arch == simmips && $mode == release ]
-LibTest/math/tan_A01_t01: Fail
+[ $compiler == none && $runtime == vm && $arch == simmips ]
 LibTest/math/cos_A01_t01: Pass, Fail # Fail on Mac
-LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
-LibTest/core/int/operator_unary_minus_A01_t01: Fail
 
 [ $compiler == none && $runtime == vm && $arch == simmips && $mode == debug ]
-LibTest/math/tan_A01_t01: Fail
-LibTest/math/cos_A01_t01: Pass, Fail # Fail on Mac
 LibTest/core/List/sort_A01_t04: Crash # Too far relative jump.
 LibTest/core/List/sort_A01_t05: Crash
 LibTest/core/List/sort_A01_t06: Crash
-LibTest/core/int/operator_unary_minus_A01_t01: Fail
-LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
