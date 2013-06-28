@@ -7883,6 +7883,151 @@ abstract class Element extends Node implements ElementTraversal native "Element"
   factory Element.tag(String tag) =>
       _ElementFactoryProvider.createElement_tag(tag);
 
+  /// Creates a new `<a>` element.
+  ///
+  /// This is identical to calling `new Element.tag('a')`.
+  factory Element.a() => new Element.tag('a');
+
+  /// Creates a new `<article>` element.
+  ///
+  /// This is identical to calling `new Element.tag('article')`.
+  factory Element.article() => new Element.tag('article');
+
+  /// Creates a new `<aside>` element.
+  ///
+  /// This is identical to calling `new Element.tag('aside')`.
+  factory Element.aside() => new Element.tag('aside');
+
+  /// Creates a new `<audio>` element.
+  ///
+  /// This is identical to calling `new Element.tag('audio')`.
+  factory Element.audio() => new Element.tag('audio');
+
+  /// Creates a new `<br>` element.
+  ///
+  /// This is identical to calling `new Element.tag('br')`.
+  factory Element.br() => new Element.tag('br');
+
+  /// Creates a new `<canvas>` element.
+  ///
+  /// This is identical to calling `new Element.tag('canvas')`.
+  factory Element.canvas() => new Element.tag('canvas');
+
+  /// Creates a new `<div>` element.
+  ///
+  /// This is identical to calling `new Element.tag('div')`.
+  factory Element.div() => new Element.tag('div');
+
+  /// Creates a new `<footer>` element.
+  ///
+  /// This is identical to calling `new Element.tag('footer')`.
+  factory Element.footer() => new Element.tag('footer');
+
+  /// Creates a new `<header>` element.
+  ///
+  /// This is identical to calling `new Element.tag('header')`.
+  factory Element.header() => new Element.tag('header');
+
+  /// Creates a new `<hr>` element.
+  ///
+  /// This is identical to calling `new Element.tag('hr')`.
+  factory Element.hr() => new Element.tag('hr');
+
+  /// Creates a new `<iframe>` element.
+  ///
+  /// This is identical to calling `new Element.tag('iframe')`.
+  factory Element.iframe() => new Element.tag('iframe');
+
+  /// Creates a new `<img>` element.
+  ///
+  /// This is identical to calling `new Element.tag('img')`.
+  factory Element.img() => new Element.tag('img');
+
+  /// Creates a new `<li>` element.
+  ///
+  /// This is identical to calling `new Element.tag('li')`.
+  factory Element.li() => new Element.tag('li');
+
+  /// Creates a new `<nav>` element.
+  ///
+  /// This is identical to calling `new Element.tag('nav')`.
+  factory Element.nav() => new Element.tag('nav');
+
+  /// Creates a new `<ol>` element.
+  ///
+  /// This is identical to calling `new Element.tag('ol')`.
+  factory Element.ol() => new Element.tag('ol');
+
+  /// Creates a new `<option>` element.
+  ///
+  /// This is identical to calling `new Element.tag('option')`.
+  factory Element.option() => new Element.tag('option');
+
+  /// Creates a new `<p>` element.
+  ///
+  /// This is identical to calling `new Element.tag('p')`.
+  factory Element.p() => new Element.tag('p');
+
+  /// Creates a new `<pre>` element.
+  ///
+  /// This is identical to calling `new Element.tag('pre')`.
+  factory Element.pre() => new Element.tag('pre');
+
+  /// Creates a new `<section>` element.
+  ///
+  /// This is identical to calling `new Element.tag('section')`.
+  factory Element.section() => new Element.tag('section');
+
+  /// Creates a new `<select>` element.
+  ///
+  /// This is identical to calling `new Element.tag('select')`.
+  factory Element.select() => new Element.tag('select');
+
+  /// Creates a new `<span>` element.
+  ///
+  /// This is identical to calling `new Element.tag('span')`.
+  factory Element.span() => new Element.tag('span');
+
+  /// Creates a new `<svg>` element.
+  ///
+  /// This is identical to calling `new Element.tag('svg')`.
+  factory Element.svg() => new Element.tag('svg');
+
+  /// Creates a new `<table>` element.
+  ///
+  /// This is identical to calling `new Element.tag('table')`.
+  factory Element.table() => new Element.tag('table');
+
+  /// Creates a new `<td>` element.
+  ///
+  /// This is identical to calling `new Element.tag('td')`.
+  factory Element.td() => new Element.tag('td');
+
+  /// Creates a new `<textarea>` element.
+  ///
+  /// This is identical to calling `new Element.tag('textarea')`.
+  factory Element.textarea() => new Element.tag('textarea');
+
+  /// Creates a new `<th>` element.
+  ///
+  /// This is identical to calling `new Element.tag('th')`.
+  factory Element.th() => new Element.tag('th');
+
+  /// Creates a new `<tr>` element.
+  ///
+  /// This is identical to calling `new Element.tag('tr')`.
+  factory Element.tr() => new Element.tag('tr');
+
+  /// Creates a new `<ul>` element.
+  ///
+  /// This is identical to calling `new Element.tag('ul')`.
+  factory Element.ul() => new Element.tag('ul');
+
+  /// Creates a new `<video>` element.
+  ///
+  /// This is identical to calling `new Element.tag('video')`.
+  factory Element.video() => new Element.tag('video');
+
   /**
    * All attributes on this element.
    *
