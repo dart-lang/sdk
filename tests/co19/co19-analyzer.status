@@ -177,8 +177,13 @@ Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t01: fail, 
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t07: fail, OK
 
 # co19 issue #434, argument definition was dropped
-Language/11_Expressions/33_Argument_Definition_Test_A01_t14: fail, OK
-Language/11_Expressions/33_Argument_Definition_Test_A01_t18: fail, OK
+Language/11_Expressions/33_Argument_Definition_Test_A01_t02: fail, OK
+#Language/11_Expressions/33_Argument_Definition_Test_A01_t14: fail, OK (this is passing for the wrong reason)
+#Language/11_Expressions/33_Argument_Definition_Test_A01_t18: fail, OK (this is passing for the wrong reason)
+Language/11_Expressions/33_Argument_Definition_Test_A02_t01: fail, OK
+Language/11_Expressions/33_Argument_Definition_Test_A02_t02: fail, OK
+Language/11_Expressions/33_Argument_Definition_Test_A03_t01: fail, OK
+Language/11_Expressions/33_Argument_Definition_Test_A03_t02: fail, OK
 
 # co19 issue #435, AssertionError has not properties
 LibTest/core/AssertionError/column_A01_t02: fail, OK

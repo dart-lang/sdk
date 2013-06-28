@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartanalyzer ]
-argument_definition_test/01: fail  # issue 11565
+#argument_definition_test/01: fail  # issue 11565 (passing for the wrong reason)
 abstract_factory_constructor_test/00: fail
 assign_instance_method_negative_test: fail
 assign_static_type_test/06: fail
@@ -43,6 +43,7 @@ compile_time_constant_e_test: fail
 constructor2_negative_test: fail
 constructor3_negative_test: fail
 constructor_call_wrong_argument_count_negative_test: fail
+constructor_initializer_test: fail # uses argument definition test
 constructor_negative_test: fail
 constructor_return_with_arrow_negative_test: fail
 constructor_return_with_init_and_arrow_negative_test: fail
