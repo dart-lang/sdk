@@ -46,6 +46,13 @@ abstract class VirtualDirectory {
   void serveRequest(HttpRequest request);
 
   /**
+   * Set the [callback] to override the default directory listing. The
+   * [callback] will be called with the [Directory] to be listed and the
+   * [HttpRequest].
+   */
+  void setDirectoryHandler(void callback(Directory dir, HttpRequest request));
+
+  /**
    * Set the [callback] to override the error page handler. When [callback] is
    * invoked, the `statusCode` property of the response is set.
    */
@@ -59,6 +66,7 @@ class _VirtualDirectory implements VirtualDirectory {
   bool followLinks = true;
 
   Function _errorCallback;
+  Function _dirCallback;
 
   _VirtualDirectory(this.root);
 
@@ -81,10 +89,16 @@ class _VirtualDirectory implements VirtualDirectory {
           }
           if (entity is File) {
             _serveFile(entity, request);
+          } else if (entity is Directory) {
+            _serveDirectory(entity, request);
           } else {
             _serveErrorPage(HttpStatus.NOT_FOUND, request);
           }
         });
+  }
+
+  void setDirectoryHandler(void callback(Directory dir, HttpRequest request)) {
+    _dirCallback = callback;
   }
 
   void setErrorPageHandler(void callback(HttpRequest request)) {
@@ -118,10 +132,13 @@ class _VirtualDirectory implements VirtualDirectory {
                     .then((target) {
                       var targetPath = new Path(target).canonicalize();
                       if (targetPath.isAbsolute) return null;
-                      targetPath = path.directoryPath.join(targetPath)
-                          .canonicalize();
+                      targetPath =
+                          path.directoryPath.join(targetPath).canonicalize();
                       if (targetPath.segments().isEmpty ||
                           targetPath.segments().first == '..') return null;
+                      if (segments.isEmpty) {
+                        return _locateResource(targetPath, []);
+                      }
                       return _locateResource(targetPath.append(segments.first),
                                              segments.skip(1));
                     });
@@ -197,6 +214,86 @@ class _VirtualDirectory implements VirtualDirectory {
     });
   }
 
+  void _serveDirectory(Directory dir, HttpRequest request) {
+    if (_dirCallback != null) {
+      _dirCallback(dir, request);
+      return;
+    }
+    var response = request.response;
+    dir.stat().then((stats) {
+      if (request.headers.ifModifiedSince != null &&
+          !stats.modified.isAfter(request.headers.ifModifiedSince)) {
+        response.statusCode = HttpStatus.NOT_MODIFIED;
+        response.close();
+        return;
+      }
+
+      response.headers.set(HttpHeaders.LAST_MODIFIED, stats.modified);
+      var path = request.uri.path;
+      var header =
+'''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Index of $path</title>
+</head>
+<body>
+<h1>Index of $path</h1>
+<table>
+  <tr>
+    <td>Name</td>
+    <td>Last modified</td>
+    <td>Size</td>
+  </tr>
+''';
+      var server = response.headers.value(HttpHeaders.SERVER);
+      if (server == null) server = "";
+      var footer =
+'''</table>
+$server
+</body>
+</html>
+''';
+
+      response.write(header);
+
+      void add(String name, String modified, var size) {
+        if (size == null) size = "-";
+        if (modified == null) modified = "";
+        var p = new Path(path).append(name).canonicalize().toString();
+        var entry =
+'''  <tr>
+    <td><a href="$p">$name</a></td>
+    <td>$modified</td>
+    <td style="text-align: right">$size</td>
+  </tr>''';
+        response.write(entry);
+      }
+
+      if (path != '/') {
+        add('../', null, null);
+      }
+
+      dir.list(followLinks: true).listen((entity) {
+        // TODO(ajohnsen): Consider async dir listing.
+        if (entity is File) {
+          var stat = entity.statSync();
+          add(new Path(entity.path).filename,
+              stat.modified.toString(),
+              stat.size);
+        } else if (entity is Directory) {
+          add(new Path(entity.path).filename + '/',
+              entity.statSync().modified.toString(),
+              null);
+        }
+      }, onError: (e) {
+      }, onDone: () {
+        response.write(footer);
+        response.close();
+      });
+    }, onError: (e) => response.close());
+  }
+
   void _serveErrorPage(int error, HttpRequest request) {
     var response = request.response;
     response.statusCode = error;
@@ -207,22 +304,22 @@ class _VirtualDirectory implements VirtualDirectory {
     // Default error page.
     var path = request.uri.path;
     var reason = response.reasonPhrase;
-    response.write(
-        '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"\n');
-    response.writeln(
-        '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">');
-    response.writeln('<html xmlns="http://www.w3.org/1999/xhtml">');
-    response.writeln('<head>');
-    response.writeln('<title>$reason: $path</title>');
-    response.writeln('</head>');
-    response.writeln('<body>');
-    response.writeln('<h1>Error $error at \'$path\': $reason</h1>');
+
     var server = response.headers.value(HttpHeaders.SERVER);
-    if (server != null) {
-      response.writeln(server);
-    }
-    response.writeln('</body>');
-    response.writeln('</html>');
+    if (server == null) server = "";
+    var page =
+'''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>$reason: $path</title>
+</head>
+<body>
+<h1>Error $error at \'$path\': $reason</h1>
+$server
+</body>
+</html>''';
+    response.write(page);
     response.close();
   }
 }

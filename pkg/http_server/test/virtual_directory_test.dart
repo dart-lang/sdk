@@ -115,6 +115,117 @@ void main() {
     });
   });
 
+  group('serve-dir', () {
+    group('top-level', () {
+      test('simple', () {
+        expect(HttpServer.bind('localhost', 0).then((server) {
+          var dir = new Directory('').createTempSync();
+          var virDir = new VirtualDirectory(dir.path);
+          virDir.allowDirectoryListing = true;
+
+          virDir.serve(server);
+
+          return getAsString(server.port, '/')
+          .whenComplete(() {
+            server.close();
+            dir.deleteSync();
+          });
+        }), completion(contains('Index of /')));
+      });
+
+      test('files', () {
+        expect(HttpServer.bind('localhost', 0).then((server) {
+          var dir = new Directory('').createTempSync();
+          var virDir = new VirtualDirectory(dir.path);
+          for (int i = 0; i < 10; i++) {
+            new File('${dir.path}/$i').createSync();
+          }
+          virDir.allowDirectoryListing = true;
+
+          virDir.serve(server);
+
+          return getAsString(server.port, '/')
+          .whenComplete(() {
+            server.close();
+            dir.deleteSync(recursive: true);
+          });
+        }), completion(contains('Index of /')));
+      });
+
+      test('dirs', () {
+        expect(HttpServer.bind('localhost', 0).then((server) {
+          var dir = new Directory('').createTempSync();
+          var virDir = new VirtualDirectory(dir.path);
+          for (int i = 0; i < 10; i++) {
+            new Directory('${dir.path}/$i').createSync();
+          }
+          virDir.allowDirectoryListing = true;
+
+          virDir.serve(server);
+
+          return getAsString(server.port, '/')
+          .whenComplete(() {
+            server.close();
+            dir.deleteSync(recursive: true);
+          });
+        }), completion(contains('Index of /')));
+      });
+
+      test('recursive-link', () {
+        expect(HttpServer.bind('localhost', 0).then((server) {
+          var dir = new Directory('').createTempSync();
+          var link = new Link('${dir.path}/recursive')..createSync('.');
+          var virDir = new VirtualDirectory(dir.path);
+          virDir.allowDirectoryListing = true;
+
+          virDir.serve(server);
+
+          return Future.wait([
+              getAsString(server.port, '/').then(
+                  (s) => s.contains('recursive/')),
+              getAsString(server.port, '/').then(
+                  (s) => !s.contains('../')),
+              getAsString(server.port, '/').then(
+                  (s) => s.contains('Index of /')),
+              getAsString(server.port, '/recursive').then(
+                  (s) => s.contains('recursive/')),
+              getAsString(server.port, '/recursive').then(
+                  (s) => s.contains('../')),
+              getAsString(server.port, '/recursive').then(
+                  (s) => s.contains('Index of /recursive'))])
+              .whenComplete(() {
+                server.close();
+                dir.deleteSync(recursive: true);
+              });
+        }), completion(equals([true, true, true, true, true, true])));
+      });
+    });
+
+    group('custom', () {
+      test('simple', () {
+        expect(HttpServer.bind('localhost', 0).then((server) {
+          var dir = new Directory('').createTempSync();
+          var virDir = new VirtualDirectory(dir.path);
+          virDir.allowDirectoryListing = true;
+          virDir.setDirectoryHandler((dir2, request) {
+            expect(dir2, isNotNull);
+            expect(FileSystemEntity.identicalSync(dir.path, dir2.path), isTrue);
+            request.response.write('My handler ${request.uri.path}');
+            request.response.close();
+          });
+
+          virDir.serve(server);
+
+          return getAsString(server.port, '/')
+          .whenComplete(() {
+            server.close();
+            dir.deleteSync();
+          });
+        }), completion(contains('My handler /')));
+      });
+    });
+  });
+
   group('links', () {
     if (!Platform.isWindows) {
       group('follow-links', () {
