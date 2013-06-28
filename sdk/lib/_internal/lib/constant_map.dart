@@ -51,6 +51,7 @@ class ConstantMap<V> implements Map<String, V> {
   V putIfAbsent(String key, V ifAbsent()) => _throwUnmodifiable();
   V remove(String key) => _throwUnmodifiable();
   void clear() => _throwUnmodifiable();
+  void addAll(Map<String, V> other) => _throwUnmodifiable();
 }
 
 // This class has no constructor. This is on purpose since the instantiation
