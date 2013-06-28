@@ -72,9 +72,6 @@ final_variable_assignment_test/03: fail
 final_variable_assignment_test/04: fail
 first_class_types_constants_test: fail
 for_in2_test: fail
-function_type_alias5_test/00: fail
-function_type_alias5_test/01: fail
-function_type_alias5_test/02: fail
 getter_no_setter2_test/00: fail
 getter_no_setter2_test/03: fail
 getter_no_setter_test/00: fail

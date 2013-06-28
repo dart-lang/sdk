@@ -26,12 +26,6 @@ Language/11_Expressions/01_Constants_A17_t03: fail
 # <dynamic> vs. type variable
 Language/11_Expressions/11_Instance_Creation/1_New_A13_t02: fail
 
-# typedef self-reference without class declartion in chain
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t01: fail
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t02: fail
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t03: fail
-Language/14_Types/3_Type_Declarations/1_Typedef_A07_t04: fail
-
 # analyzer problem: forward reference of typedef with type parameters
 Language/13_Libraries_and_Scripts/3_Parts_A02_t03: skip
 
