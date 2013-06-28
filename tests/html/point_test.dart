@@ -103,4 +103,13 @@ main() {
     expect(b.x is int, isTrue);
     expect(b.y is int, isTrue);
   });
+
+  test('hashCode', () {
+    var a = new Point(0, 1);
+    var b = new Point(0, 1);
+    expect(a.hashCode, b.hashCode);
+
+    var c = new Point(1, 0);
+    expect(a.hashCode == c.hashCode, isFalse);
+  });
 }

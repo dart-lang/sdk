@@ -26189,6 +26189,9 @@ class _ClientRect extends NativeFieldWrapperClass1 implements Rect {
         height == other.height;
   }
 
+  int get hashCode => JenkinsSmiHash.hash4(left.hashCode, top.hashCode,
+      width.hashCode, height.hashCode);
+
   /**
    * Computes the intersection of this rectangle and the rectangle parameter.
    * Returns null if there is no intersection.
@@ -29613,6 +29616,8 @@ class Point {
     return x == other.x && y == other.y;
   }
 
+  int get hashCode => JenkinsSmiHash.hash2(x.hashCode, y.hashCode);
+
   Point operator +(Point other) {
     return new Point(x + other.x, y + other.y);
   }
@@ -29734,6 +29739,9 @@ class Rect {
     return left == other.left && top == other.top && width == other.width &&
         height == other.height;
   }
+
+  int get hashCode => JenkinsSmiHash.hash4(left.hashCode, top.hashCode,
+      width.hashCode, height.hashCode);
 
   /**
    * Computes the intersection of this rectangle and the rectangle parameter.

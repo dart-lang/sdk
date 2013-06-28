@@ -20,6 +20,8 @@ class Point {
     return x == other.x && y == other.y;
   }
 
+  int get hashCode => JenkinsSmiHash.hash2(x.hashCode, y.hashCode);
+
   Point operator +(Point other) {
     return new Point(x + other.x, y + other.y);
   }
