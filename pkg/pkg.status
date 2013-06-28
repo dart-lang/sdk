@@ -135,7 +135,6 @@ oauth2/test/client_test: Fail, OK # Uses dart:io.
 oauth2/test/credentials_test: Fail, OK # Uses dart:io.
 oauth2/test/handle_access_token_response_test: Fail, OK # Uses dart:io.
 pathos/test/pathos_io_test: Fail, OK # Uses dart:io.
-stack_trace/test/vm_test: Fail, OK # VM-specific method names.
 
 scheduled_test/test/descriptor/async_test: Fail # http://dartbug.com/8440
 scheduled_test/test/descriptor/directory_test: Fail # http://dartbug.com/8440
