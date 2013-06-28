@@ -335,7 +335,6 @@ Language/12_Statements/09_Switch_A03_t02: Fail # Inherited from dart2js
 Language/12_Statements/09_Switch_A06_t02: Fail # Inherited from VM (does not throw NSME).
 Language/12_Statements/10_Try_A06_t01: Fail, Pass # Passes in conservative renaming mode. Test depends on function names.
 Language/12_Statements/10_Try_A07_t03: Fail # Test depends on out file name.
-Language/12_Statements/10_Try_A11_t01: Fail # Inherited from VM.
 Language/12_Statements/11_Return_A05_t01: Fail # Inherited from dart2js
 Language/12_Statements/11_Return_A05_t02: Fail # Inherited from dart2js
 Language/12_Statements/11_Return_A05_t03: Fail # Inherited from dart2js
