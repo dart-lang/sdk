@@ -254,8 +254,9 @@ void FUNCTION_NAME(File_WriteFrom)(Dart_NativeArguments args) {
   Dart_EnterScope();
   File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
   ASSERT(file != NULL);
+
   Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
-  ASSERT(Dart_IsList(buffer_obj));
+
   // Offset and length arguments are checked in Dart code to be
   // integers and have the property that (offset + length) <=
   // list.length. Therefore, it is safe to extract their value as
@@ -264,24 +265,33 @@ void FUNCTION_NAME(File_WriteFrom)(Dart_NativeArguments args) {
       DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 2));
   intptr_t end =
       DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 3));
+
+  // The buffer object passed in has to be an Int8List or Uint8List object.
+  // Acquire a direct pointer to the data area of the buffer object.
+  Dart_TypedData_Type type;
   intptr_t length = end - start;
   intptr_t buffer_len = 0;
-  Dart_Handle result = Dart_ListLength(buffer_obj, &buffer_len);
+  void* buffer = NULL;
+  Dart_Handle result =
+      Dart_TypedDataAcquireData(buffer_obj, &type, &buffer, &buffer_len);
   if (Dart_IsError(result)) Dart_PropagateError(result);
+
+  ASSERT(type == Dart_TypedData_kUint8 || type == Dart_TypedData_kInt8);
   ASSERT(end <= buffer_len);
-  uint8_t* buffer = new uint8_t[length];
-  result = Dart_ListGetAsBytes(buffer_obj, start, buffer, length);
-  if (Dart_IsError(result)) {
-    delete[] buffer;
-    Dart_PropagateError(result);
-  }
+  ASSERT(buffer != NULL);
+
+  // Write the data out into the file.
   int64_t bytes_written = file->Write(reinterpret_cast<void*>(buffer), length);
+
+  // Release the direct pointer acquired above.
+  result = Dart_TypedDataReleaseData(buffer_obj);
+  if (Dart_IsError(result)) Dart_PropagateError(result);
+
   if (bytes_written != length) {
     Dart_Handle err = DartUtils::NewDartOSError();
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  delete[] buffer;
   Dart_ExitScope();
 }
 

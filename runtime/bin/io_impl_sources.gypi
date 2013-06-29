@@ -6,7 +6,6 @@
 # implementation files are in builtin_impl_sources.gypi.
 {
   'sources': [
-    'common.cc',
     'crypto.cc',
     'crypto_android.cc',
     'crypto_linux.cc',

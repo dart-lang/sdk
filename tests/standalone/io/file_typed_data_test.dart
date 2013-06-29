@@ -12,16 +12,21 @@ import 'dart:typed_data';
 
 void testWriteInt8ListAndView() {
   ReceivePort port = new ReceivePort();
-  Int8List list = new Int8List(8);
-  for (int i = 0; i < 8; i++) list[i] = i;
-  var view = new Int8List.view(list.buffer, 2, 4);
+  const int LIST_LENGTH = 8;
+  const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Int8List.BYTES_PER_ELEMENT;
+  const int VIEW_LENGTH = 4;
+  Int8List list = new Int8List(LIST_LENGTH);
+  for (int i = 0; i < LIST_LENGTH; i++) list[i] = i;
+  var view = new Int8List.view(list.buffer,
+                               OFFSET_IN_BYTES_FOR_VIEW,
+                               VIEW_LENGTH);
 
   new Directory('').createTemp().then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
-      return raf.writeFrom(list, 0, 8);
+      return raf.writeFrom(list, 0, LIST_LENGTH);
     }).then((raf) {
-      return raf.writeFrom(view, 0, 4);
+      return raf.writeFrom(view, 0, VIEW_LENGTH);
     }).then((raf) {
       return raf.close();
     }).then((_) {
@@ -39,16 +44,21 @@ void testWriteInt8ListAndView() {
 
 void testWriteUint8ListAndView() {
   ReceivePort port = new ReceivePort();
-  Uint8List list = new Uint8List(8);
-  for (int i = 0; i < 8; i++) list[i] = i;
-  var view = new Uint8List.view(list.buffer, 2, 4);
+  const int LIST_LENGTH = 8;
+  const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Uint8List.BYTES_PER_ELEMENT;
+  const int VIEW_LENGTH = 4;
+  Uint8List list = new Uint8List(LIST_LENGTH);
+  for (int i = 0; i < LIST_LENGTH; i++) list[i] = i;
+  var view = new Uint8List.view(list.buffer,
+                                OFFSET_IN_BYTES_FOR_VIEW,
+                                VIEW_LENGTH);
 
   new Directory('').createTemp().then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
-      return raf.writeFrom(list, 0, 8);
+      return raf.writeFrom(list, 0, LIST_LENGTH);
     }).then((raf) {
-      return raf.writeFrom(view, 0, 4);
+      return raf.writeFrom(view, 0, VIEW_LENGTH);
     }).then((raf) {
       return raf.close();
     }).then((_) {
@@ -66,16 +76,21 @@ void testWriteUint8ListAndView() {
 
 void testWriteUint8ClampedListAndView() {
   ReceivePort port = new ReceivePort();
-  Uint8ClampedList list = new Uint8ClampedList(8);
-  for (int i = 0; i < 8; i++) list[i] = i;
-  var view = new Uint8ClampedList.view(list.buffer, 2, 4);
+  const int LIST_LENGTH = 8;
+  const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Uint8ClampedList.BYTES_PER_ELEMENT;
+  const int VIEW_LENGTH = 4;
+  Uint8ClampedList list = new Uint8ClampedList(LIST_LENGTH);
+  for (int i = 0; i < LIST_LENGTH; i++) list[i] = i;
+  var view = new Uint8ClampedList.view(list.buffer,
+                                       OFFSET_IN_BYTES_FOR_VIEW,
+                                       VIEW_LENGTH);
 
   new Directory('').createTemp().then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
-      return raf.writeFrom(list, 0, 8);
+      return raf.writeFrom(list, 0, LIST_LENGTH);
     }).then((raf) {
-      return raf.writeFrom(view, 0, 4);
+      return raf.writeFrom(view, 0, VIEW_LENGTH);
     }).then((raf) {
       return raf.close();
     }).then((_) {
@@ -93,16 +108,29 @@ void testWriteUint8ClampedListAndView() {
 
 void testWriteInt16ListAndView() {
   ReceivePort port = new ReceivePort();
-  var list = new Int16List(8);
-  for (int i = 0; i < 8; i++) list[i] = i;
-  var view = new Int16List.view(list.buffer, 2, 4);
+  const int LIST_LENGTH = 8;
+  const int LIST_LENGTH_IN_BYTES = LIST_LENGTH * Int16List.BYTES_PER_ELEMENT;
+  const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Int16List.BYTES_PER_ELEMENT;
+  const int VIEW_LENGTH = 4;
+  const int VIEW_LENGTH_IN_BYTES = VIEW_LENGTH * Int16List.BYTES_PER_ELEMENT;
+  var list = new Int16List(LIST_LENGTH);
+  for (int i = 0; i < LIST_LENGTH; i++) list[i] = i;
+  var view = new Int16List.view(list.buffer,
+                                OFFSET_IN_BYTES_FOR_VIEW,
+                                VIEW_LENGTH);
 
   new Directory('').createTemp().then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
-      return raf.writeFrom(list, 0, 8);
+      return raf.writeFrom(new Uint8List.view(list.buffer),
+                           0,
+                           LIST_LENGTH_IN_BYTES);
     }).then((raf) {
-      return raf.writeFrom(view, 0, 4);
+      return raf.writeFrom(new Uint8List.view(view.buffer,
+                                              view.offsetInBytes,
+                                              view.lengthInBytes),
+                           0,
+                           VIEW_LENGTH_IN_BYTES);
     }).then((raf) {
       return raf.close();
     }).then((_) {
@@ -124,16 +152,29 @@ void testWriteInt16ListAndView() {
 
 void testWriteUint16ListAndView() {
   ReceivePort port = new ReceivePort();
-  var list = new Uint16List(8);
-  for (int i = 0; i < 8; i++) list[i] = i;
-  var view = new Uint16List.view(list.buffer, 2, 4);
+  const int LIST_LENGTH = 8;
+  const int LIST_LENGTH_IN_BYTES = LIST_LENGTH * Uint16List.BYTES_PER_ELEMENT;
+  const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Uint16List.BYTES_PER_ELEMENT;
+  const int VIEW_LENGTH = 4;
+  const int VIEW_LENGTH_IN_BYTES = VIEW_LENGTH * Uint16List.BYTES_PER_ELEMENT;
+  var list = new Uint16List(LIST_LENGTH);
+  for (int i = 0; i < LIST_LENGTH; i++) list[i] = i;
+  var view = new Uint16List.view(list.buffer,
+                                 OFFSET_IN_BYTES_FOR_VIEW,
+                                 VIEW_LENGTH);
 
   new Directory('').createTemp().then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
-      return raf.writeFrom(list, 0, 8);
+      return raf.writeFrom(new Uint8List.view(list.buffer),
+                           0,
+                           LIST_LENGTH_IN_BYTES);
     }).then((raf) {
-      return raf.writeFrom(view, 0, 4);
+      return raf.writeFrom(new Uint8List.view(view.buffer,
+                                              view.offsetInBytes,
+                                              view.lengthInBytes),
+                           0,
+                           VIEW_LENGTH_IN_BYTES);
     }).then((raf) {
       return raf.close();
     }).then((_) {
@@ -155,16 +196,29 @@ void testWriteUint16ListAndView() {
 
 void testWriteInt32ListAndView() {
   ReceivePort port = new ReceivePort();
-  var list = new Int32List(8);
-  for (int i = 0; i < 8; i++) list[i] = i;
-  var view = new Int32List.view(list.buffer, 2, 4);
+  const int LIST_LENGTH = 8;
+  const int LIST_LENGTH_IN_BYTES = LIST_LENGTH * Int32List.BYTES_PER_ELEMENT;
+  const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Int32List.BYTES_PER_ELEMENT;
+  const int VIEW_LENGTH = 4;
+  const int VIEW_LENGTH_IN_BYTES = VIEW_LENGTH * Int32List.BYTES_PER_ELEMENT;
+  var list = new Int32List(LIST_LENGTH);
+  for (int i = 0; i < LIST_LENGTH; i++) list[i] = i;
+  var view = new Int32List.view(list.buffer,
+                                OFFSET_IN_BYTES_FOR_VIEW,
+                                VIEW_LENGTH);
 
   new Directory('').createTemp().then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
-      return raf.writeFrom(list, 0, 8);
+      return raf.writeFrom(new Uint8List.view(list.buffer),
+                           0,
+                           LIST_LENGTH_IN_BYTES);
     }).then((raf) {
-      return raf.writeFrom(view, 0, 4);
+      return raf.writeFrom(new Uint8List.view(view.buffer,
+                                              view.offsetInBytes,
+                                              view.lengthInBytes),
+                           0,
+                           VIEW_LENGTH_IN_BYTES);
     }).then((raf) {
       return raf.close();
     }).then((_) {
@@ -186,16 +240,29 @@ void testWriteInt32ListAndView() {
 
 void testWriteUint32ListAndView() {
   ReceivePort port = new ReceivePort();
-  var list = new Uint32List(8);
-  for (int i = 0; i < 8; i++) list[i] = i;
-  var view = new Uint32List.view(list.buffer, 2, 4);
+  const int LIST_LENGTH = 8;
+  const int LIST_LENGTH_IN_BYTES = LIST_LENGTH * Int32List.BYTES_PER_ELEMENT;
+  const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Int32List.BYTES_PER_ELEMENT;
+  const int VIEW_LENGTH = 4;
+  const int VIEW_LENGTH_IN_BYTES = VIEW_LENGTH * Int32List.BYTES_PER_ELEMENT;
+  var list = new Uint32List(LIST_LENGTH);
+  for (int i = 0; i < LIST_LENGTH; i++) list[i] = i;
+  var view = new Uint32List.view(list.buffer,
+                                 OFFSET_IN_BYTES_FOR_VIEW,
+                                 VIEW_LENGTH);
 
   new Directory('').createTemp().then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
-      return raf.writeFrom(list, 0, 8);
+      return raf.writeFrom(new Uint8List.view(list.buffer),
+                           0,
+                           LIST_LENGTH_IN_BYTES);
     }).then((raf) {
-      return raf.writeFrom(view, 0, 4);
+      return raf.writeFrom(new Uint8List.view(view.buffer,
+                                              view.offsetInBytes,
+                                              view.lengthInBytes),
+                           0,
+                           VIEW_LENGTH_IN_BYTES);
     }).then((raf) {
       return raf.close();
     }).then((_) {
@@ -217,22 +284,35 @@ void testWriteUint32ListAndView() {
 
 void testWriteInt64ListAndView() {
   ReceivePort port = new ReceivePort();
-  var list = new Int64List(8);
-  for (int i = 0; i < 8; i++) list[i] = i;
-  var view = new Int64List.view(list.buffer, 2, 4);
+  const int LIST_LENGTH = 8;
+  const int LIST_LENGTH_IN_BYTES = LIST_LENGTH * Int64List.BYTES_PER_ELEMENT;
+  const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Int64List.BYTES_PER_ELEMENT;
+  const int VIEW_LENGTH = 4;
+  const int VIEW_LENGTH_IN_BYTES = VIEW_LENGTH * Int64List.BYTES_PER_ELEMENT;
+  var list = new Int64List(LIST_LENGTH);
+  for (int i = 0; i < LIST_LENGTH; i++) list[i] = i;
+  var view = new Int64List.view(list.buffer,
+                                OFFSET_IN_BYTES_FOR_VIEW,
+                                VIEW_LENGTH);
 
   new Directory('').createTemp().then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
-      return raf.writeFrom(list, 0, 8);
+      return raf.writeFrom(new Uint8List.view(list.buffer),
+                           0,
+                           LIST_LENGTH_IN_BYTES);
     }).then((raf) {
-        //      return raf.writeList(view, 0, 4);
-        //}).then((raf) {
+      return raf.writeFrom(new Uint8List.view(view.buffer,
+                                              view.offsetInBytes,
+                                              view.lengthInBytes),
+                           0,
+                           VIEW_LENGTH_IN_BYTES);
+    }).then((raf) {
       return raf.close();
     }).then((_) {
       var expected = [];
       expected.addAll(list);
-      //expected.addAll(view);
+      expected.addAll(view);
       var content = file.readAsBytesSync();
       var typed_data_content = new Uint8List(content.length);
       for (int i = 0; i < content.length; i++) {
@@ -248,16 +328,29 @@ void testWriteInt64ListAndView() {
 
 void testWriteUint64ListAndView() {
   ReceivePort port = new ReceivePort();
-  var list = new Uint64List(8);
-  for (int i = 0; i < 8; i++) list[i] = i;
-  var view = new Uint64List.view(list.buffer, 2, 4);
+  const int LIST_LENGTH = 8;
+  const int LIST_LENGTH_IN_BYTES = LIST_LENGTH * Uint64List.BYTES_PER_ELEMENT;
+  const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Uint64List.BYTES_PER_ELEMENT;
+  const int VIEW_LENGTH = 4;
+  const int VIEW_LENGTH_IN_BYTES = VIEW_LENGTH * Uint64List.BYTES_PER_ELEMENT;
+  var list = new Uint64List(LIST_LENGTH);
+  for (int i = 0; i < LIST_LENGTH; i++) list[i] = i;
+  var view = new Uint64List.view(list.buffer,
+                                 OFFSET_IN_BYTES_FOR_VIEW,
+                                 VIEW_LENGTH);
 
   new Directory('').createTemp().then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
-      return raf.writeFrom(list, 0, 8);
+      return raf.writeFrom(new Uint8List.view(list.buffer),
+                           0,
+                           LIST_LENGTH_IN_BYTES);
     }).then((raf) {
-      return raf.writeFrom(view, 0, 4);
+      return raf.writeFrom(new Uint8List.view(view.buffer,
+                                              view.offsetInBytes,
+                                              view.lengthInBytes),
+                           0,
+                           VIEW_LENGTH_IN_BYTES);
     }).then((raf) {
       return raf.close();
     }).then((_) {

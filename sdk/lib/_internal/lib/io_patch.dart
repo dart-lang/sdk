@@ -2,12 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-patch class _BufferUtils {
-  patch static bool _isBuiltinList(List buffer) {
-    throw new UnsupportedError("_isBuiltinList");
-  }
-}
-
 patch class _Directory {
   patch static String _current() {
     throw new UnsupportedError("Directory._current");
