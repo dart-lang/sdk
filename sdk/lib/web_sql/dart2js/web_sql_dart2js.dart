@@ -81,7 +81,7 @@ typedef void SqlTransactionErrorCallback(SqlError error);
 @Experimental
 // http://www.w3.org/TR/webdatabase/#asynchronous-database-api
 @Experimental // deprecated
-class SqlDatabase native "Database" {
+class SqlDatabase extends Interceptor native "Database" {
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.openDatabase)');
@@ -123,7 +123,7 @@ class SqlDatabase native "Database" {
 @DomName('SQLError')
 // http://www.w3.org/TR/webdatabase/#sqlerror
 @Experimental // deprecated
-class SqlError native "SQLError" {
+class SqlError extends Interceptor native "SQLError" {
 
   @DomName('SQLError.CONSTRAINT_ERR')
   @DocsEditable
@@ -174,7 +174,7 @@ class SqlError native "SQLError" {
 @DomName('SQLException')
 // http://www.w3.org/TR/webdatabase/#sqlexception
 @Experimental // deprecated
-class SqlException native "SQLException" {
+class SqlException extends Interceptor native "SQLException" {
 
   @DomName('SQLException.CONSTRAINT_ERR')
   @DocsEditable
@@ -225,7 +225,7 @@ class SqlException native "SQLException" {
 @DomName('SQLResultSet')
 // http://www.w3.org/TR/webdatabase/#sqlresultset
 @Experimental // deprecated
-class SqlResultSet native "SQLResultSet" {
+class SqlResultSet extends Interceptor native "SQLResultSet" {
 
   @DomName('SQLResultSet.insertId')
   @DocsEditable
@@ -322,7 +322,7 @@ class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableList
 @Experimental
 // http://www.w3.org/TR/webdatabase/#sqltransaction
 @deprecated // deprecated
-class SqlTransaction native "SQLTransaction" {
+class SqlTransaction extends Interceptor native "SQLTransaction" {
 
   @DomName('SQLTransaction.executeSql')
   @DocsEditable
@@ -340,5 +340,5 @@ class SqlTransaction native "SQLTransaction" {
 @Experimental
 // http://www.w3.org/TR/webdatabase/#sqltransactionsync
 @Experimental // deprecated
-abstract class _SQLTransactionSync native "SQLTransactionSync" {
+abstract class _SQLTransactionSync extends Interceptor native "SQLTransactionSync" {
 }

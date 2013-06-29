@@ -540,8 +540,13 @@ class HtmlDartInterfaceGenerator(object):
         self._library_name, self._interface, None, '')
 
     class_modifiers = ''
-    if self._renamer.ShouldSuppressInterface(self._interface):
+    if (self._renamer.ShouldSuppressInterface(self._interface) or
+        IsPureInterface(self._interface.id)):
       class_modifiers = 'abstract '
+
+    native_spec = ''
+    if not IsPureInterface(self._interface.id):
+      native_spec = self._backend.NativeSpec()
 
     self._implementation_members_emitter = implementation_emitter.Emit(
         self._backend.ImplementationTemplate(),
@@ -553,7 +558,7 @@ class HtmlDartInterfaceGenerator(object):
         IMPLEMENTS=implements_str,
         MIXINS=mixins_str,
         DOMNAME=self._interface.doc_js_name,
-        NATIVESPEC=self._backend.NativeSpec())
+        NATIVESPEC=native_spec)
     self._backend.StartInterface(self._implementation_members_emitter)
 
     self._backend.EmitHelpers(base_class)
@@ -632,9 +637,6 @@ class Dart2JSBackend(HtmlDartGenerator):
     return ' native "%s"' % native_spec
 
   def ImplementationTemplate(self):
-    if IsPureInterface(self._interface.id):
-      return self._template_loader.Load('pure_interface.darttemplate')
-
     template_file = ('impl_%s.darttemplate' %
                      self._interface.doc_js_name)
     return (self._template_loader.TryLoad(template_file) or
@@ -896,6 +898,9 @@ class Dart2JSBackend(HtmlDartGenerator):
 
   def AmendIndexer(self, element_type):
     pass
+
+  def RootClassName(self):
+    return 'Interceptor'
 
   def EmitOperation(self, info, html_name):
     """

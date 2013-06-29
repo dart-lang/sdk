@@ -326,7 +326,6 @@ const int ZERO = RenderingContext.ZERO;
 @DomName('WebGLActiveInfo')
 @Unstable
 class ActiveInfo extends NativeFieldWrapperClass1 {
-  ActiveInfo.internal();
 
   @DomName('WebGLActiveInfo.name')
   @DocsEditable
@@ -352,7 +351,6 @@ class ActiveInfo extends NativeFieldWrapperClass1 {
 @DomName('WebGLBuffer')
 @Unstable
 class Buffer extends NativeFieldWrapperClass1 {
-  Buffer.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -367,7 +365,6 @@ class Buffer extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_atc/
 @Experimental
 class CompressedTextureAtc extends NativeFieldWrapperClass1 {
-  CompressedTextureAtc.internal();
 
   @DomName('WebGLCompressedTextureATC.COMPRESSED_RGBA_ATC_EXPLICIT_ALPHA_WEBGL')
   @DocsEditable
@@ -394,7 +391,6 @@ class CompressedTextureAtc extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_pvrtc/
 @Experimental // experimental
 class CompressedTexturePvrtc extends NativeFieldWrapperClass1 {
-  CompressedTexturePvrtc.internal();
 
   @DomName('WebGLCompressedTexturePVRTC.COMPRESSED_RGBA_PVRTC_2BPPV1_IMG')
   @DocsEditable
@@ -425,7 +421,6 @@ class CompressedTexturePvrtc extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_s3tc/
 @Experimental // experimental
 class CompressedTextureS3TC extends NativeFieldWrapperClass1 {
-  CompressedTextureS3TC.internal();
 
   @DomName('WebGLCompressedTextureS3TC.COMPRESSED_RGBA_S3TC_DXT1_EXT')
   @DocsEditable
@@ -455,7 +450,6 @@ class CompressedTextureS3TC extends NativeFieldWrapperClass1 {
 @DomName('WebGLContextAttributes')
 @Unstable
 class ContextAttributes extends NativeFieldWrapperClass1 {
-  ContextAttributes.internal();
 
   @DomName('WebGLContextAttributes.alpha')
   @DocsEditable
@@ -517,7 +511,8 @@ class ContextAttributes extends NativeFieldWrapperClass1 {
 @DomName('WebGLContextEvent')
 @Unstable
 class ContextEvent extends Event {
-  ContextEvent.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory ContextEvent._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('WebGLContextEvent.statusMessage')
   @DocsEditable
@@ -536,7 +531,6 @@ class ContextEvent extends Event {
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_debug_renderer_info/
 @Experimental // experimental
 class DebugRendererInfo extends NativeFieldWrapperClass1 {
-  DebugRendererInfo.internal();
 
   @DomName('WebGLDebugRendererInfo.UNMASKED_RENDERER_WEBGL')
   @DocsEditable
@@ -559,7 +553,6 @@ class DebugRendererInfo extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_debug_shaders/
 @Experimental // experimental
 class DebugShaders extends NativeFieldWrapperClass1 {
-  DebugShaders.internal();
 
   @DomName('WebGLDebugShaders.getTranslatedShaderSource')
   @DocsEditable
@@ -578,7 +571,6 @@ class DebugShaders extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_depth_texture/
 @Experimental // experimental
 class DepthTexture extends NativeFieldWrapperClass1 {
-  DepthTexture.internal();
 
   @DomName('WebGLDepthTexture.UNSIGNED_INT_24_8_WEBGL')
   @DocsEditable
@@ -597,7 +589,6 @@ class DepthTexture extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/specs/latest/
 @Experimental // stable
 class ExtDrawBuffers extends NativeFieldWrapperClass1 {
-  ExtDrawBuffers.internal();
 
   @DomName('EXTDrawBuffers.COLOR_ATTACHMENT0_EXT')
   @DocsEditable
@@ -752,7 +743,6 @@ class ExtDrawBuffers extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/EXT_frag_depth/
 @Experimental
 class ExtFragDepth extends NativeFieldWrapperClass1 {
-  ExtFragDepth.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -767,7 +757,6 @@ class ExtFragDepth extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/EXT_texture_filter_anisotropic/
 @Experimental
 class ExtTextureFilterAnisotropic extends NativeFieldWrapperClass1 {
-  ExtTextureFilterAnisotropic.internal();
 
   @DomName('EXTTextureFilterAnisotropic.MAX_TEXTURE_MAX_ANISOTROPY_EXT')
   @DocsEditable
@@ -789,7 +778,6 @@ class ExtTextureFilterAnisotropic extends NativeFieldWrapperClass1 {
 @DomName('WebGLFramebuffer')
 @Unstable
 class Framebuffer extends NativeFieldWrapperClass1 {
-  Framebuffer.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -804,7 +792,6 @@ class Framebuffer extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_lose_context/
 @Experimental
 class LoseContext extends NativeFieldWrapperClass1 {
-  LoseContext.internal();
 
   @DomName('WebGLLoseContext.loseContext')
   @DocsEditable
@@ -827,7 +814,6 @@ class LoseContext extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/OES_element_index_uint/
 @Experimental // experimental
 class OesElementIndexUint extends NativeFieldWrapperClass1 {
-  OesElementIndexUint.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -842,7 +828,6 @@ class OesElementIndexUint extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/OES_standard_derivatives/
 @Experimental // experimental
 class OesStandardDerivatives extends NativeFieldWrapperClass1 {
-  OesStandardDerivatives.internal();
 
   @DomName('OESStandardDerivatives.FRAGMENT_SHADER_DERIVATIVE_HINT_OES')
   @DocsEditable
@@ -861,7 +846,6 @@ class OesStandardDerivatives extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/OES_texture_float/
 @Experimental // experimental
 class OesTextureFloat extends NativeFieldWrapperClass1 {
-  OesTextureFloat.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -876,7 +860,6 @@ class OesTextureFloat extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/OES_texture_float_linear/
 @Experimental
 class OesTextureFloatLinear extends NativeFieldWrapperClass1 {
-  OesTextureFloatLinear.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -891,7 +874,6 @@ class OesTextureFloatLinear extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/OES_texture_half_float/
 @Experimental // experimental
 class OesTextureHalfFloat extends NativeFieldWrapperClass1 {
-  OesTextureHalfFloat.internal();
 
   @DomName('OESTextureHalfFloat.HALF_FLOAT_OES')
   @DocsEditable
@@ -910,7 +892,6 @@ class OesTextureHalfFloat extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/OES_texture_half_float_linear/
 @Experimental
 class OesTextureHalfFloatLinear extends NativeFieldWrapperClass1 {
-  OesTextureHalfFloatLinear.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -925,7 +906,6 @@ class OesTextureHalfFloatLinear extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/OES_vertex_array_object/
 @Experimental // experimental
 class OesVertexArrayObject extends NativeFieldWrapperClass1 {
-  OesVertexArrayObject.internal();
 
   @DomName('OESVertexArrayObject.VERTEX_ARRAY_BINDING_OES')
   @DocsEditable
@@ -959,7 +939,6 @@ class OesVertexArrayObject extends NativeFieldWrapperClass1 {
 @DomName('WebGLProgram')
 @Unstable
 class Program extends NativeFieldWrapperClass1 {
-  Program.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -973,7 +952,6 @@ class Program extends NativeFieldWrapperClass1 {
 @DomName('WebGLRenderbuffer')
 @Unstable
 class Renderbuffer extends NativeFieldWrapperClass1 {
-  Renderbuffer.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -990,7 +968,8 @@ class Renderbuffer extends NativeFieldWrapperClass1 {
 @Experimental
 @Unstable
 class RenderingContext extends CanvasRenderingContext {
-  RenderingContext.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory RenderingContext._() { throw new UnsupportedError("Not supported"); }
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -2828,7 +2807,6 @@ class RenderingContext extends CanvasRenderingContext {
 @DocsEditable
 @DomName('WebGLShader')
 class Shader extends NativeFieldWrapperClass1 {
-  Shader.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2841,7 +2819,6 @@ class Shader extends NativeFieldWrapperClass1 {
 @DocsEditable
 @DomName('WebGLShaderPrecisionFormat')
 class ShaderPrecisionFormat extends NativeFieldWrapperClass1 {
-  ShaderPrecisionFormat.internal();
 
   @DomName('WebGLShaderPrecisionFormat.precision')
   @DocsEditable
@@ -2866,7 +2843,6 @@ class ShaderPrecisionFormat extends NativeFieldWrapperClass1 {
 @DocsEditable
 @DomName('WebGLTexture')
 class Texture extends NativeFieldWrapperClass1 {
-  Texture.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2879,7 +2855,6 @@ class Texture extends NativeFieldWrapperClass1 {
 @DocsEditable
 @DomName('WebGLUniformLocation')
 class UniformLocation extends NativeFieldWrapperClass1 {
-  UniformLocation.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2894,6 +2869,5 @@ class UniformLocation extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/OES_vertex_array_object/
 @Experimental // experimental
 class VertexArrayObject extends NativeFieldWrapperClass1 {
-  VertexArrayObject.internal();
 
 }

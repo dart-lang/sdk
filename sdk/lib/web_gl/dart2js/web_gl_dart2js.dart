@@ -325,7 +325,7 @@ const int ZERO = RenderingContext.ZERO;
 @DocsEditable
 @DomName('WebGLActiveInfo')
 @Unstable
-class ActiveInfo native "WebGLActiveInfo" {
+class ActiveInfo extends Interceptor native "WebGLActiveInfo" {
 
   @DomName('WebGLActiveInfo.name')
   @DocsEditable
@@ -347,7 +347,7 @@ class ActiveInfo native "WebGLActiveInfo" {
 @DocsEditable
 @DomName('WebGLBuffer')
 @Unstable
-class Buffer native "WebGLBuffer" {
+class Buffer extends Interceptor native "WebGLBuffer" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -358,7 +358,7 @@ class Buffer native "WebGLBuffer" {
 @DomName('WebGLCompressedTextureATC')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_atc/
 @Experimental
-class CompressedTextureAtc native "WebGLCompressedTextureATC" {
+class CompressedTextureAtc extends Interceptor native "WebGLCompressedTextureATC" {
 
   @DomName('WebGLCompressedTextureATC.COMPRESSED_RGBA_ATC_EXPLICIT_ALPHA_WEBGL')
   @DocsEditable
@@ -381,7 +381,7 @@ class CompressedTextureAtc native "WebGLCompressedTextureATC" {
 @DomName('WebGLCompressedTexturePVRTC')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_pvrtc/
 @Experimental // experimental
-class CompressedTexturePvrtc native "WebGLCompressedTexturePVRTC" {
+class CompressedTexturePvrtc extends Interceptor native "WebGLCompressedTexturePVRTC" {
 
   @DomName('WebGLCompressedTexturePVRTC.COMPRESSED_RGBA_PVRTC_2BPPV1_IMG')
   @DocsEditable
@@ -408,7 +408,7 @@ class CompressedTexturePvrtc native "WebGLCompressedTexturePVRTC" {
 @DomName('WebGLCompressedTextureS3TC')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_s3tc/
 @Experimental // experimental
-class CompressedTextureS3TC native "WebGLCompressedTextureS3TC" {
+class CompressedTextureS3TC extends Interceptor native "WebGLCompressedTextureS3TC" {
 
   @DomName('WebGLCompressedTextureS3TC.COMPRESSED_RGBA_S3TC_DXT1_EXT')
   @DocsEditable
@@ -434,7 +434,7 @@ class CompressedTextureS3TC native "WebGLCompressedTextureS3TC" {
 @DocsEditable
 @DomName('WebGLContextAttributes')
 @Unstable
-class ContextAttributes native "WebGLContextAttributes" {
+class ContextAttributes extends Interceptor native "WebGLContextAttributes" {
 
   @DomName('WebGLContextAttributes.alpha')
   @DocsEditable
@@ -469,6 +469,8 @@ class ContextAttributes native "WebGLContextAttributes" {
 @DomName('WebGLContextEvent')
 @Unstable
 class ContextEvent extends Event native "WebGLContextEvent" {
+  // To suppress missing implicit constructor warnings.
+  factory ContextEvent._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('WebGLContextEvent.statusMessage')
   @DocsEditable
@@ -483,7 +485,7 @@ class ContextEvent extends Event native "WebGLContextEvent" {
 @DomName('WebGLDebugRendererInfo')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_debug_renderer_info/
 @Experimental // experimental
-class DebugRendererInfo native "WebGLDebugRendererInfo" {
+class DebugRendererInfo extends Interceptor native "WebGLDebugRendererInfo" {
 
   @DomName('WebGLDebugRendererInfo.UNMASKED_RENDERER_WEBGL')
   @DocsEditable
@@ -502,7 +504,7 @@ class DebugRendererInfo native "WebGLDebugRendererInfo" {
 @DomName('WebGLDebugShaders')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_debug_shaders/
 @Experimental // experimental
-class DebugShaders native "WebGLDebugShaders" {
+class DebugShaders extends Interceptor native "WebGLDebugShaders" {
 
   @DomName('WebGLDebugShaders.getTranslatedShaderSource')
   @DocsEditable
@@ -517,7 +519,7 @@ class DebugShaders native "WebGLDebugShaders" {
 @DomName('WebGLDepthTexture')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_depth_texture/
 @Experimental // experimental
-class DepthTexture native "WebGLDepthTexture" {
+class DepthTexture extends Interceptor native "WebGLDepthTexture" {
 
   @DomName('WebGLDepthTexture.UNSIGNED_INT_24_8_WEBGL')
   @DocsEditable
@@ -532,7 +534,7 @@ class DepthTexture native "WebGLDepthTexture" {
 @DomName('EXTDrawBuffers')
 // http://www.khronos.org/registry/webgl/specs/latest/
 @Experimental // stable
-class ExtDrawBuffers native "EXTDrawBuffers" {
+class ExtDrawBuffers extends Interceptor native "EXTDrawBuffers" {
 
   @DomName('EXTDrawBuffers.COLOR_ATTACHMENT0_EXT')
   @DocsEditable
@@ -684,7 +686,7 @@ class ExtDrawBuffers native "EXTDrawBuffers" {
 @DomName('EXTFragDepth')
 // http://www.khronos.org/registry/webgl/extensions/EXT_frag_depth/
 @Experimental
-class ExtFragDepth native "EXTFragDepth" {
+class ExtFragDepth extends Interceptor native "EXTFragDepth" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -695,7 +697,7 @@ class ExtFragDepth native "EXTFragDepth" {
 @DomName('EXTTextureFilterAnisotropic')
 // http://www.khronos.org/registry/webgl/extensions/EXT_texture_filter_anisotropic/
 @Experimental
-class ExtTextureFilterAnisotropic native "EXTTextureFilterAnisotropic" {
+class ExtTextureFilterAnisotropic extends Interceptor native "EXTTextureFilterAnisotropic" {
 
   @DomName('EXTTextureFilterAnisotropic.MAX_TEXTURE_MAX_ANISOTROPY_EXT')
   @DocsEditable
@@ -713,7 +715,7 @@ class ExtTextureFilterAnisotropic native "EXTTextureFilterAnisotropic" {
 @DocsEditable
 @DomName('WebGLFramebuffer')
 @Unstable
-class Framebuffer native "WebGLFramebuffer" {
+class Framebuffer extends Interceptor native "WebGLFramebuffer" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -724,7 +726,7 @@ class Framebuffer native "WebGLFramebuffer" {
 @DomName('WebGLLoseContext')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_lose_context/
 @Experimental
-class LoseContext native "WebGLLoseContext" {
+class LoseContext extends Interceptor native "WebGLLoseContext" {
 
   @DomName('WebGLLoseContext.loseContext')
   @DocsEditable
@@ -743,7 +745,7 @@ class LoseContext native "WebGLLoseContext" {
 @DomName('OESElementIndexUint')
 // http://www.khronos.org/registry/webgl/extensions/OES_element_index_uint/
 @Experimental // experimental
-class OesElementIndexUint native "OESElementIndexUint" {
+class OesElementIndexUint extends Interceptor native "OESElementIndexUint" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -754,7 +756,7 @@ class OesElementIndexUint native "OESElementIndexUint" {
 @DomName('OESStandardDerivatives')
 // http://www.khronos.org/registry/webgl/extensions/OES_standard_derivatives/
 @Experimental // experimental
-class OesStandardDerivatives native "OESStandardDerivatives" {
+class OesStandardDerivatives extends Interceptor native "OESStandardDerivatives" {
 
   @DomName('OESStandardDerivatives.FRAGMENT_SHADER_DERIVATIVE_HINT_OES')
   @DocsEditable
@@ -769,7 +771,7 @@ class OesStandardDerivatives native "OESStandardDerivatives" {
 @DomName('OESTextureFloat')
 // http://www.khronos.org/registry/webgl/extensions/OES_texture_float/
 @Experimental // experimental
-class OesTextureFloat native "OESTextureFloat" {
+class OesTextureFloat extends Interceptor native "OESTextureFloat" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -780,7 +782,7 @@ class OesTextureFloat native "OESTextureFloat" {
 @DomName('OESTextureFloatLinear')
 // http://www.khronos.org/registry/webgl/extensions/OES_texture_float_linear/
 @Experimental
-class OesTextureFloatLinear native "OESTextureFloatLinear" {
+class OesTextureFloatLinear extends Interceptor native "OESTextureFloatLinear" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -791,7 +793,7 @@ class OesTextureFloatLinear native "OESTextureFloatLinear" {
 @DomName('OESTextureHalfFloat')
 // http://www.khronos.org/registry/webgl/extensions/OES_texture_half_float/
 @Experimental // experimental
-class OesTextureHalfFloat native "OESTextureHalfFloat" {
+class OesTextureHalfFloat extends Interceptor native "OESTextureHalfFloat" {
 
   @DomName('OESTextureHalfFloat.HALF_FLOAT_OES')
   @DocsEditable
@@ -806,7 +808,7 @@ class OesTextureHalfFloat native "OESTextureHalfFloat" {
 @DomName('OESTextureHalfFloatLinear')
 // http://www.khronos.org/registry/webgl/extensions/OES_texture_half_float_linear/
 @Experimental
-class OesTextureHalfFloatLinear native "OESTextureHalfFloatLinear" {
+class OesTextureHalfFloatLinear extends Interceptor native "OESTextureHalfFloatLinear" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -817,7 +819,7 @@ class OesTextureHalfFloatLinear native "OESTextureHalfFloatLinear" {
 @DomName('OESVertexArrayObject')
 // http://www.khronos.org/registry/webgl/extensions/OES_vertex_array_object/
 @Experimental // experimental
-class OesVertexArrayObject native "OESVertexArrayObject" {
+class OesVertexArrayObject extends Interceptor native "OESVertexArrayObject" {
 
   @DomName('OESVertexArrayObject.VERTEX_ARRAY_BINDING_OES')
   @DocsEditable
@@ -851,7 +853,7 @@ class OesVertexArrayObject native "OESVertexArrayObject" {
 @DocsEditable
 @DomName('WebGLProgram')
 @Unstable
-class Program native "WebGLProgram" {
+class Program extends Interceptor native "WebGLProgram" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -861,7 +863,7 @@ class Program native "WebGLProgram" {
 @DocsEditable
 @DomName('WebGLRenderbuffer')
 @Unstable
-class Renderbuffer native "WebGLRenderbuffer" {
+class Renderbuffer extends Interceptor native "WebGLRenderbuffer" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -875,6 +877,8 @@ class Renderbuffer native "WebGLRenderbuffer" {
 @Experimental
 @Unstable
 class RenderingContext extends CanvasRenderingContext native "WebGLRenderingContext" {
+  // To suppress missing implicit constructor warnings.
+  factory RenderingContext._() { throw new UnsupportedError("Not supported"); }
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.WebGLRenderingContext)');
@@ -2722,7 +2726,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
 
 @DocsEditable
 @DomName('WebGLShader')
-class Shader native "WebGLShader" {
+class Shader extends Interceptor native "WebGLShader" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2731,7 +2735,7 @@ class Shader native "WebGLShader" {
 
 @DocsEditable
 @DomName('WebGLShaderPrecisionFormat')
-class ShaderPrecisionFormat native "WebGLShaderPrecisionFormat" {
+class ShaderPrecisionFormat extends Interceptor native "WebGLShaderPrecisionFormat" {
 
   @DomName('WebGLShaderPrecisionFormat.precision')
   @DocsEditable
@@ -2752,7 +2756,7 @@ class ShaderPrecisionFormat native "WebGLShaderPrecisionFormat" {
 
 @DocsEditable
 @DomName('WebGLTexture')
-class Texture native "WebGLTexture" {
+class Texture extends Interceptor native "WebGLTexture" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2761,7 +2765,7 @@ class Texture native "WebGLTexture" {
 
 @DocsEditable
 @DomName('WebGLUniformLocation')
-class UniformLocation native "WebGLUniformLocation" {
+class UniformLocation extends Interceptor native "WebGLUniformLocation" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2772,5 +2776,5 @@ class UniformLocation native "WebGLUniformLocation" {
 @DomName('WebGLVertexArrayObjectOES')
 // http://www.khronos.org/registry/webgl/extensions/OES_vertex_array_object/
 @Experimental // experimental
-class VertexArrayObject native "WebGLVertexArrayObjectOES" {
+class VertexArrayObject extends Interceptor native "WebGLVertexArrayObjectOES" {
 }

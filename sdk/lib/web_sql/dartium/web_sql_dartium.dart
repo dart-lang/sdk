@@ -82,7 +82,6 @@ typedef void SqlTransactionErrorCallback(SqlError error);
 // http://www.w3.org/TR/webdatabase/#asynchronous-database-api
 @Experimental // deprecated
 class SqlDatabase extends NativeFieldWrapperClass1 {
-  SqlDatabase.internal();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -128,7 +127,6 @@ class SqlDatabase extends NativeFieldWrapperClass1 {
 // http://www.w3.org/TR/webdatabase/#sqlerror
 @Experimental // deprecated
 class SqlError extends NativeFieldWrapperClass1 {
-  SqlError.internal();
 
   @DomName('SQLError.CONSTRAINT_ERR')
   @DocsEditable
@@ -183,7 +181,6 @@ class SqlError extends NativeFieldWrapperClass1 {
 // http://www.w3.org/TR/webdatabase/#sqlexception
 @Experimental // deprecated
 class SqlException extends NativeFieldWrapperClass1 {
-  SqlException.internal();
 
   @DomName('SQLException.CONSTRAINT_ERR')
   @DocsEditable
@@ -238,7 +235,6 @@ class SqlException extends NativeFieldWrapperClass1 {
 // http://www.w3.org/TR/webdatabase/#sqlresultset
 @Experimental // deprecated
 class SqlResultSet extends NativeFieldWrapperClass1 {
-  SqlResultSet.internal();
 
   @DomName('SQLResultSet.insertId')
   @DocsEditable
@@ -265,7 +261,6 @@ class SqlResultSet extends NativeFieldWrapperClass1 {
 // http://www.w3.org/TR/webdatabase/#sqlresultsetrowlist
 @Experimental // deprecated
 class SqlResultSetRowList extends NativeFieldWrapperClass1 with ListMixin<Map>, ImmutableListMixin<Map> implements List<Map> {
-  SqlResultSetRowList.internal();
 
   @DomName('SQLResultSetRowList.length')
   @DocsEditable
@@ -336,7 +331,6 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 with ListMixin<Map>, 
 // http://www.w3.org/TR/webdatabase/#sqltransaction
 @deprecated // deprecated
 class SqlTransaction extends NativeFieldWrapperClass1 {
-  SqlTransaction.internal();
 
   @DomName('SQLTransaction.executeSql')
   @DocsEditable
@@ -358,6 +352,5 @@ class SqlTransaction extends NativeFieldWrapperClass1 {
 // http://www.w3.org/TR/webdatabase/#sqltransactionsync
 @Experimental // deprecated
 abstract class _SQLTransactionSync extends NativeFieldWrapperClass1 {
-  _SQLTransactionSync.internal();
 
 }

@@ -25,7 +25,8 @@ import 'dart:typed_data';
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AnalyserNode
 @Experimental
 class AnalyserNode extends AudioNode {
-  AnalyserNode.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory AnalyserNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('AnalyserNode.fftSize')
   @DocsEditable
@@ -88,7 +89,6 @@ class AnalyserNode extends AudioNode {
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioBuffer-section
 @Experimental
 class AudioBuffer extends NativeFieldWrapperClass1 {
-  AudioBuffer.internal();
 
   @DomName('AudioBuffer.duration')
   @DocsEditable
@@ -142,7 +142,8 @@ typedef void AudioBufferCallback(AudioBuffer audioBuffer);
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioBufferSourceNode-section
 @Experimental
 class AudioBufferSourceNode extends AudioSourceNode {
-  AudioBufferSourceNode.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory AudioBufferSourceNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('AudioBufferSourceNode.FINISHED_STATE')
   @DocsEditable
@@ -252,7 +253,8 @@ class AudioBufferSourceNode extends AudioSourceNode {
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioContext-section
 @Experimental
 class AudioContext extends EventTarget {
-  AudioContext.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory AudioContext._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('AudioContext.completeEvent')
   @DocsEditable
@@ -459,7 +461,8 @@ class AudioContext extends EventTarget {
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioDestinationNode-section
 @Experimental
 class AudioDestinationNode extends AudioNode {
-  AudioDestinationNode.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory AudioDestinationNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('AudioDestinationNode.maxChannelCount')
   @DocsEditable
@@ -478,7 +481,6 @@ class AudioDestinationNode extends AudioNode {
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioListener-section
 @Experimental
 class AudioListener extends NativeFieldWrapperClass1 {
-  AudioListener.internal();
 
   @DomName('AudioListener.dopplerFactor')
   @DocsEditable
@@ -521,7 +523,8 @@ class AudioListener extends NativeFieldWrapperClass1 {
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioNode-section
 @Experimental
 class AudioNode extends EventTarget {
-  AudioNode.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory AudioNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('AudioNode.channelCount')
   @DocsEditable
@@ -604,7 +607,6 @@ class AudioNode extends EventTarget {
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioParam
 @Experimental
 class AudioParam extends NativeFieldWrapperClass1 {
-  AudioParam.internal();
 
   @DomName('AudioParam.defaultValue')
   @DocsEditable
@@ -675,7 +677,8 @@ class AudioParam extends NativeFieldWrapperClass1 {
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioProcessingEvent-section
 @Experimental
 class AudioProcessingEvent extends Event {
-  AudioProcessingEvent.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory AudioProcessingEvent._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('AudioProcessingEvent.inputBuffer')
   @DocsEditable
@@ -698,7 +701,8 @@ class AudioProcessingEvent extends Event {
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html
 @Experimental
 class AudioSourceNode extends AudioNode {
-  AudioSourceNode.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory AudioSourceNode._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -713,7 +717,8 @@ class AudioSourceNode extends AudioNode {
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#BiquadFilterNode-section
 @Experimental
 class BiquadFilterNode extends AudioNode {
-  BiquadFilterNode.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory BiquadFilterNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('BiquadFilterNode.ALLPASS')
   @DocsEditable
@@ -788,7 +793,8 @@ class BiquadFilterNode extends AudioNode {
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#ChannelMergerNode-section
 @Experimental
 class ChannelMergerNode extends AudioNode {
-  ChannelMergerNode.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory ChannelMergerNode._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -803,7 +809,8 @@ class ChannelMergerNode extends AudioNode {
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#ChannelSplitterNode-section
 @Experimental
 class ChannelSplitterNode extends AudioNode {
-  ChannelSplitterNode.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory ChannelSplitterNode._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -818,7 +825,8 @@ class ChannelSplitterNode extends AudioNode {
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#ConvolverNode
 @Experimental
 class ConvolverNode extends AudioNode {
-  ConvolverNode.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory ConvolverNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('ConvolverNode.buffer')
   @DocsEditable
@@ -849,7 +857,8 @@ class ConvolverNode extends AudioNode {
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#DelayNode
 @Experimental
 class DelayNode extends AudioNode {
-  DelayNode.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory DelayNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('DelayNode.delayTime')
   @DocsEditable
@@ -868,7 +877,8 @@ class DelayNode extends AudioNode {
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#DynamicsCompressorNode
 @Experimental
 class DynamicsCompressorNode extends AudioNode {
-  DynamicsCompressorNode.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory DynamicsCompressorNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('DynamicsCompressorNode.attack')
   @DocsEditable
@@ -907,7 +917,8 @@ class DynamicsCompressorNode extends AudioNode {
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#GainNode
 @Experimental
 class GainNode extends AudioNode {
-  GainNode.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory GainNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('GainNode.gain')
   @DocsEditable
@@ -926,7 +937,8 @@ class GainNode extends AudioNode {
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#MediaElementAudioSourceNode
 @Experimental
 class MediaElementAudioSourceNode extends AudioSourceNode {
-  MediaElementAudioSourceNode.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory MediaElementAudioSourceNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('MediaElementAudioSourceNode.mediaElement')
   @DocsEditable
@@ -946,7 +958,8 @@ class MediaElementAudioSourceNode extends AudioSourceNode {
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#MediaStreamAudioDestinationNode
 @Experimental
 class MediaStreamAudioDestinationNode extends AudioSourceNode {
-  MediaStreamAudioDestinationNode.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory MediaStreamAudioDestinationNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('MediaStreamAudioDestinationNode.stream')
   @DocsEditable
@@ -965,7 +978,8 @@ class MediaStreamAudioDestinationNode extends AudioSourceNode {
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#MediaStreamAudioSourceNode
 @Experimental
 class MediaStreamAudioSourceNode extends AudioSourceNode {
-  MediaStreamAudioSourceNode.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory MediaStreamAudioSourceNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('MediaStreamAudioSourceNode.mediaStream')
   @DocsEditable
@@ -984,7 +998,8 @@ class MediaStreamAudioSourceNode extends AudioSourceNode {
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#OfflineAudioCompletionEvent-section
 @Experimental
 class OfflineAudioCompletionEvent extends Event {
-  OfflineAudioCompletionEvent.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory OfflineAudioCompletionEvent._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('OfflineAudioCompletionEvent.renderedBuffer')
   @DocsEditable
@@ -1003,7 +1018,8 @@ class OfflineAudioCompletionEvent extends Event {
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#OfflineAudioContext-section
 @Experimental
 class OfflineAudioContext extends AudioContext implements EventTarget {
-  OfflineAudioContext.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory OfflineAudioContext._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('OfflineAudioContext.OfflineAudioContext')
   @DocsEditable
@@ -1027,7 +1043,8 @@ class OfflineAudioContext extends AudioContext implements EventTarget {
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#dfn-OscillatorNode
 @Experimental
 class OscillatorNode extends AudioSourceNode {
-  OscillatorNode.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory OscillatorNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('OscillatorNode.CUSTOM')
   @DocsEditable
@@ -1128,7 +1145,8 @@ class OscillatorNode extends AudioSourceNode {
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#PannerNode
 @Experimental
 class PannerNode extends AudioNode {
-  PannerNode.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory PannerNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('PannerNode.EQUALPOWER')
   @DocsEditable
@@ -1280,7 +1298,8 @@ class ScriptProcessorNode extends AudioNode {
   }
 
 
-  ScriptProcessorNode.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory ScriptProcessorNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('ScriptProcessorNode.bufferSize')
   @DocsEditable
@@ -1304,7 +1323,8 @@ class ScriptProcessorNode extends AudioNode {
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#dfn-WaveShaperNode
 @Experimental
 class WaveShaperNode extends AudioNode {
-  WaveShaperNode.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory WaveShaperNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('WaveShaperNode.curve')
   @DocsEditable
@@ -1335,6 +1355,5 @@ class WaveShaperNode extends AudioNode {
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#WaveTable-section
 @Experimental
 class WaveTable extends NativeFieldWrapperClass1 {
-  WaveTable.internal();
 
 }

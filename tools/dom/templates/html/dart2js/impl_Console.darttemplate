@@ -4,7 +4,7 @@
 
 part of $LIBRARYNAME;
 
-$(ANNOTATIONS)class Console {
+$(ANNOTATIONS)$(CLASS_MODIFIERS)class Console {
 
   static Console _safeConsole = new Console();
 

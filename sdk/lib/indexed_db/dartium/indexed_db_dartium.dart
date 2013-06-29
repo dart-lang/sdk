@@ -59,8 +59,7 @@ class Cursor extends NativeFieldWrapperClass1 {
     }
   }
 
-    Cursor.internal();
-
+  
   @DomName('IDBCursor.direction')
   @DocsEditable
   String get direction native "IDBCursor_direction_Getter";
@@ -106,7 +105,8 @@ class Cursor extends NativeFieldWrapperClass1 {
 @DomName('IDBCursorWithValue')
 @Unstable
 class CursorWithValue extends Cursor {
-  CursorWithValue.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory CursorWithValue._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('IDBCursorWithValue.value')
   @DocsEditable
@@ -142,7 +142,8 @@ class Database extends EventTarget {
   }
 
 
-  Database.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory Database._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('IDBDatabase.abortEvent')
   @DocsEditable
@@ -312,7 +313,6 @@ class IdbFactory extends NativeFieldWrapperClass1 {
     return true;
   }
 
-  IdbFactory.internal();
 
   @DomName('IDBFactory.cmp')
   @DocsEditable
@@ -458,8 +458,7 @@ class Index extends NativeFieldWrapperClass1 {
     return ObjectStore._cursorStreamFromResult(request, autoAdvance);
   }
 
-    Index.internal();
-
+  
   @DomName('IDBIndex.keyPath')
   @DocsEditable
   dynamic get keyPath native "IDBIndex_keyPath_Getter";
@@ -577,7 +576,6 @@ class KeyRange extends NativeFieldWrapperClass1 {
       _KeyRangeFactoryProvider.createKeyRange_bound(
           lower, upper, lowerOpen, upperOpen);
 
-  KeyRange.internal();
 
   @DomName('IDBKeyRange.lower')
   @DocsEditable
@@ -756,7 +754,6 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     return $dom_createIndex(name, keyPath, options);
   }
 
-  ObjectStore.internal();
 
   @DomName('IDBObjectStore.autoIncrement')
   @DocsEditable
@@ -909,7 +906,8 @@ class ObjectStore extends NativeFieldWrapperClass1 {
 @DomName('IDBOpenDBRequest')
 @Unstable
 class OpenDBRequest extends Request implements EventTarget {
-  OpenDBRequest.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory OpenDBRequest._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('IDBOpenDBRequest.blockedEvent')
   @DocsEditable
@@ -939,7 +937,8 @@ class OpenDBRequest extends Request implements EventTarget {
 @DomName('IDBRequest')
 @Unstable
 class Request extends EventTarget {
-  Request.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory Request._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('IDBRequest.errorEvent')
   @DocsEditable
@@ -1031,7 +1030,8 @@ class Transaction extends EventTarget {
     return completer.future;
   }
 
-  Transaction.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory Transaction._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('IDBTransaction.abortEvent')
   @DocsEditable
@@ -1108,7 +1108,8 @@ class Transaction extends EventTarget {
 @DomName('IDBVersionChangeEvent')
 @Unstable
 class VersionChangeEvent extends Event {
-  VersionChangeEvent.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory VersionChangeEvent._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('IDBVersionChangeEvent.newVersion')
   @DocsEditable
@@ -1130,6 +1131,5 @@ class VersionChangeEvent extends Event {
 @DomName('IDBAny')
 @deprecated // nonstandard
 abstract class _IDBAny extends NativeFieldWrapperClass1 {
-  _IDBAny.internal();
 
 }

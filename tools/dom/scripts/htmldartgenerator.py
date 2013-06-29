@@ -491,7 +491,15 @@ class HtmlDartGenerator(object):
         ORIGINAL_FUNCTION = html_name)
 
   def EmitHelpers(self, base_class):
-    pass
+    if not self._members_emitter:
+      return
+
+    if base_class != self.RootClassName():
+      self._members_emitter.Emit(
+          '  // To suppress missing implicit constructor warnings.\n'
+          '  factory $CLASSNAME._() { '
+          'throw new UnsupportedError("Not supported"); }\n',
+          CLASSNAME=self._interface_type_info.implementation_name())
 
   def DeclareAttribute(self, attribute, type_name, attr_name, read_only):
     """ Declares an attribute but does not include the code to invoke it.
