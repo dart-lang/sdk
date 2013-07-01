@@ -67,37 +67,17 @@ class TestCase {
 
   bool get isComplete => !enabled || result != null;
 
-  void _prepTest() {
-    _config.onTestStart(this);
-    _startTime = new DateTime.now();
-    _runningTime = null;
-  }
-
-  Future _runTest() {
-    _prepTest();
-    // Increment/decrement callbackFunctionsOutstanding to prevent
-    // synchronous 'async' callbacks from causing the  test to be
-    // marked as complete before the body is completely executed.
-    ++_callbackFunctionsOutstanding;
-    var f = testFunction();
-    --_callbackFunctionsOutstanding;
-    if (f is Future) {
-      return f.then((_) => _finishTest())
-        .catchError((error) {
-          var stack = getAttachedStackTrace(error);
-          _registerException(this, error, stack);
-        });
-    } else {
-      _finishTest();
-      return null;
+  errorHandler(stage) => (e) {
+    var stack = getAttachedStackTrace(e);
+    stack = (stack == null) ? '' : '$stack';
+    if (result == null || result == PASS) {
+      if (e is TestFailure) {
+        fail("$e", stack);
+      } else {
+        error("$stage failed: Caught $e", stack);
+      }
     }
-  }
-
-  void _finishTest() {
-    if (result == null && _callbackFunctionsOutstanding == 0) {
-      pass();
-    }
-  }
+  };
 
   /**
    * Perform any associated [_setUp] function and run the test. Returns
@@ -106,43 +86,38 @@ class TestCase {
    * tell unittest to schedule the next test immediately.
    */
   Future _run() {
-    if (!enabled) return null;
+    if (!enabled) return new Future.value();
 
     _result = _stackTrace = null;
     _message = '';
-    _doneTeardown = false;
-    var rtn = setUp == null ? null : setUp();
-    if (rtn is Future) {
-      rtn.then((_) => _runTest())
-         .catchError((e) {
-          _prepTest();
-          // Calling error() will result in the tearDown being done.
-          // One could debate whether tearDown should be done after
-          // a failed setUp. There is no right answer, but doing it
-          // seems to be the more conservative approach, because
-          // unittest will not stop at a test failure.
-          var stack = getAttachedStackTrace(e);
-          if (stack == null) stack = '';
-          error("$description: Test setup failed: $e", "$stack");
-        });
-    } else {
-      var f = _runTest();
-      if (f != null) {
-        return f;
-      }
-    }
-    if (result == null) { // Not complete.
-      _testComplete = new Completer();
-      return _testComplete.future;
-    }
-    return null;
-  }
 
-  void _notifyComplete() {
-    if (_testComplete != null) {
-      _testComplete.complete(this);
-      _testComplete = null;
-    }
+    var f = (setUp == null) ? new Future.value() : new Future(setUp);
+    return f.catchError(errorHandler('Setup'))
+        .then((_) {
+          // Skip the test if setup failed.
+          if (result != null) return new Future.value();
+          _config.onTestStart(this);
+          _startTime = new DateTime.now();
+          _runningTime = null;
+          ++_callbackFunctionsOutstanding;
+          return testFunction();
+        })
+        .catchError(errorHandler('Test'))
+        .then((_) {
+          _markCallbackComplete();
+          if (result == null) {
+            // Outstanding callbacks exist; we need to return a Future.
+            _testComplete = new Completer();
+            return _testComplete.future.whenComplete(() {
+              if (tearDown != null) {
+                return tearDown();
+              }
+            }).catchError(errorHandler('Teardown'));
+          } else if (tearDown != null) {
+            return tearDown();
+          }
+        })
+        .catchError(errorHandler('Teardown'));
   }
 
   // Set the results, notify the config, and return true if this
@@ -172,27 +147,11 @@ class TestCase {
       }
     }
     _setResult(testResult, messageText, stack);
-    if (!_doneTeardown) {
-      _doneTeardown = true;
-      if (tearDown != null) {
-        var rtn = tearDown();
-        if (rtn is Future) {
-          rtn.then((_) {
-            _notifyComplete();
-          })
-          .catchError((error) {
-            var trace = getAttachedStackTrace(error);
-            // We don't call fail() as that will potentially result in
-            // spurious messages like 'test failed more than once'.
-            _setResult(ERROR, "$description: Test teardown failed: ${error}",
-                trace == null ? "" : trace.toString());
-            _notifyComplete();
-          });
-          return;
-        }
-      }
+    if (_testComplete != null) {
+      var t = _testComplete;
+      _testComplete = null;
+      t.complete(this);
     }
-    _notifyComplete();
   }
 
   void pass() {
