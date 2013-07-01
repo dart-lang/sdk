@@ -1531,6 +1531,7 @@ ASSEMBLER_TEST_RUN(Sdiv_corner, test) {
 
 
 ASSEMBLER_TEST_GENERATE(IntDiv_supported, assembler) {
+#if defined(USING_SIMULATOR)
   bool orig = CPUFeatures::integer_division_supported();
   CPUFeatures::set_integer_division_supported(true);
   __ mov(R0, ShifterOperand(27));
@@ -1538,6 +1539,12 @@ ASSEMBLER_TEST_GENERATE(IntDiv_supported, assembler) {
   __ IntegerDivide(R0, R0, R1, D0, D1);
   CPUFeatures::set_integer_division_supported(orig);
   __ bx(LR);
+#else
+  __ mov(R0, ShifterOperand(27));
+  __ mov(R1, ShifterOperand(9));
+  __ IntegerDivide(R0, R0, R1, D0, D1);
+  __ bx(LR);
+#endif
 }
 
 
@@ -1549,6 +1556,7 @@ ASSEMBLER_TEST_RUN(IntDiv_supported, test) {
 
 
 ASSEMBLER_TEST_GENERATE(IntDiv_unsupported, assembler) {
+#if defined(USING_SIMULATOR)
   bool orig = CPUFeatures::integer_division_supported();
   CPUFeatures::set_integer_division_supported(false);
   __ mov(R0, ShifterOperand(27));
@@ -1556,6 +1564,12 @@ ASSEMBLER_TEST_GENERATE(IntDiv_unsupported, assembler) {
   __ IntegerDivide(R0, R0, R1, D0, D1);
   CPUFeatures::set_integer_division_supported(orig);
   __ bx(LR);
+#else
+  __ mov(R0, ShifterOperand(27));
+  __ mov(R1, ShifterOperand(9));
+  __ IntegerDivide(R0, R0, R1, D0, D1);
+  __ bx(LR);
+#endif
 }
 
 
