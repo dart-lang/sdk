@@ -19,6 +19,15 @@ worker_test/functional: Pass, Crash # Issue 9929.
 [ $compiler == dart2js && $checked ]
 template_element_test: Fail # BUG(11480): Triage.
 
+[ $compiler == dart2js ]
+check_native_type_argument_test: Fail # Issue 11275
+
+[ $compiler == dart2js && $host_checked ]
+check_native_type_argument_test: Crash # Issue 11275
+
+[ $compiler == dart2js && $checked && $host_checked ]
+documentfragment_test: Crash # Issue 11275
+
 [ $compiler == dart2js && ($runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == opera || $runtime == drt || $runtime == dartium)]
 dom_isolates_test: Skip # Need to migrate to new spawnDomFunction.
 
