@@ -72,20 +72,11 @@ unittest/test/instance_test: Fail # http://dartbug.com/11191
 [ $compiler == dart2js && $checked ]
 mdv_observe/test/observable_map_test: Fail # BUG(11480): Triage.
 
-[ $compiler == dartc ]
-unittest/test/mock_regexp_negative_test: Fail
-unittest/test/mock_stepwise_negative_test: Fail
-
-[ $compiler == dartanalyzer ]
-# test issue https://code.google.com/p/dart/issues/detail?id=11517
-# These tests are not negetive statically.
-# Requested test fix or permission to mark 'fail, OK'
-unittest/test/mock_regexp_negative_test: fail
-unittest/test/mock_stepwise_negative_test: fail
-
-[ $compiler == dart2analyzer ]
-unittest/test/mock_regexp_negative_test: fail
-unittest/test/mock_stepwise_negative_test: fail
+[ $compiler == dartc || $compiler == dartanalyzer || $compiler == dart2analyzer]
+# These tests are runtime negative but statically positive, so we skip
+# them in the analyzer.
+unittest/test/mock_regexp_negative_test: Skip
+unittest/test/mock_stepwise_negative_test: Skip
 
 [ $compiler == dart2js && $csp ]
 unittest/test/unittest_test: Pass, Crash # Issue 10935
