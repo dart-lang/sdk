@@ -4,6 +4,7 @@
 
 #include "include/dart_debugger_api.h"
 
+#include "vm/class_finalizer.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
 #include "vm/debugger.h"
@@ -502,6 +503,47 @@ DART_EXPORT Dart_Handle Dart_GetSuperclass(Dart_Handle cls_in) {
   DARTSCOPE(isolate);
   UNWRAP_AND_CHECK_PARAM(Class, cls, cls_in);
   return Api::NewHandle(isolate, cls.SuperClass());
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetSupertype(Dart_Handle type_in) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+
+  UNWRAP_AND_CHECK_PARAM(Type, type, type_in);
+  const Class& cls= Class::Handle(type.type_class());
+  intptr_t num_expected_type_arguments = cls.NumTypeParameters();
+  if (num_expected_type_arguments == 0) {
+    // The super type has no type parameters or it is already instantiated
+    // just return it.
+    const AbstractType& type = AbstractType::Handle(cls.super_type());
+    if (type.IsNull()) {
+      return Dart_Null();
+    }
+    return Api::NewHandle(isolate, type.Canonicalize());
+  }
+  // Set up the type arguments array for the super class type.
+  const Class& super_cls = Class::Handle(cls.SuperClass());
+  num_expected_type_arguments = super_cls.NumTypeParameters();
+  const AbstractTypeArguments& type_args_array =
+      AbstractTypeArguments::Handle(type.arguments());
+  const TypeArguments& super_type_args_array =
+      TypeArguments::Handle(TypeArguments::New(num_expected_type_arguments));
+  AbstractType& type_arg = AbstractType::Handle();
+  intptr_t index_offset =
+      super_cls.NumTypeArguments() - num_expected_type_arguments;
+  for (intptr_t i = 0; i < num_expected_type_arguments; i++) {
+    type_arg ^= type_args_array.TypeAt(i + index_offset);
+    super_type_args_array.SetTypeAt(i, type_arg);
+  }
+
+  // Construct the super type object, canonicalize it and return.
+  Type& instantiated_type = Type::Handle(
+      Type::New(super_cls, super_type_args_array, Scanner::kDummyTokenIndex));
+  ASSERT(!instantiated_type.IsNull());
+  instantiated_type ^= ClassFinalizer::FinalizeType(
+      super_cls, instantiated_type, ClassFinalizer::kCanonicalize);
+  return Api::NewHandle(isolate, instantiated_type.raw());
 }
 
 

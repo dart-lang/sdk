@@ -1447,4 +1447,94 @@ TEST_CASE(Debug_StackTraceDump2) {
   EXPECT_EQ(1, breakpoint_hit_counter);
 }
 
+
+TEST_CASE(Debug_GetSupertype) {
+  const char* kScriptChars =
+      "class Test {\n"
+      "}\n"
+      "class Test1 extends Test {\n"
+      "}\n"
+      "class Test2<T> {\n"
+      "}\n"
+      "class Test3 extends Test2<int> {\n"
+      "}\n"
+      "class Test4<A, B> extends Test2<A> {\n"
+      "}\n"
+      "class Test5<A, B, C> extends Test4<A, B> {\n"
+      "}\n"
+      "int main() {\n"
+      "}\n";
+
+  Isolate* isolate = Isolate::Current();
+  LoadScript(kScriptChars);
+  ASSERT(script_lib != NULL);
+  ASSERT(Dart_IsLibrary(script_lib));
+  Dart_Handle core_lib = Dart_LookupLibrary(NewString("dart:core"));
+
+  Dart_Handle Test_name = Dart_NewStringFromCString("Test");
+  Dart_Handle Test1_name = Dart_NewStringFromCString("Test1");
+  Dart_Handle Test2_name = Dart_NewStringFromCString("Test2");
+  Dart_Handle Test3_name = Dart_NewStringFromCString("Test3");
+  Dart_Handle Test4_name = Dart_NewStringFromCString("Test4");
+  Dart_Handle Test5_name = Dart_NewStringFromCString("Test5");
+  Dart_Handle object_name = Dart_NewStringFromCString("Object");
+  Dart_Handle int_name = Dart_NewStringFromCString("int");
+
+  Dart_Handle object_type = Dart_GetType(core_lib, object_name, 0, NULL);
+  Dart_Handle int_type = Dart_GetType(core_lib, int_name, 0, NULL);
+  EXPECT_VALID(int_type);
+  Dart_Handle Test_type = Dart_GetType(script_lib, Test_name, 0, NULL);
+  Dart_Handle Test1_type = Dart_GetType(script_lib, Test1_name, 0, NULL);
+  Dart_Handle type_args = Dart_NewList(1);
+  Dart_ListSetAt(type_args, 0, int_type);
+  Dart_Handle Test2_int_type = Dart_GetType(script_lib,
+                                            Test2_name,
+                                            1,
+                                            &type_args);
+  Dart_Handle Test3_type = Dart_GetType(script_lib, Test3_name, 0, NULL);
+  type_args = Dart_NewList(2);
+  Dart_ListSetAt(type_args, 0, int_type);
+  Dart_ListSetAt(type_args, 1, int_type);
+  Dart_Handle Test4_int_type = Dart_GetType(script_lib,
+                                            Test4_name,
+                                            2,
+                                            &type_args);
+  type_args = Dart_NewList(3);
+  Dart_ListSetAt(type_args, 0, int_type);
+  Dart_ListSetAt(type_args, 1, int_type);
+  Dart_ListSetAt(type_args, 2, int_type);
+  Dart_Handle Test5_int_type = Dart_GetType(script_lib,
+                                            Test5_name,
+                                            3,
+                                            &type_args);
+  {
+    Dart_Handle super_type = Dart_GetSupertype(object_type);
+    EXPECT(super_type == Dart_Null());
+  }
+  {
+    Dart_Handle super_type = Dart_GetSupertype(Test1_type);
+    const Type& expected_type = Api::UnwrapTypeHandle(isolate, Test_type);
+    const Type& actual_type = Api::UnwrapTypeHandle(isolate, super_type);
+    EXPECT(expected_type.raw() == actual_type.raw());
+  }
+  {
+    Dart_Handle super_type = Dart_GetSupertype(Test3_type);
+    const Type& expected_type = Api::UnwrapTypeHandle(isolate, Test2_int_type);
+    const Type& actual_type = Api::UnwrapTypeHandle(isolate, super_type);
+    EXPECT(expected_type.raw() == actual_type.raw());
+  }
+  {
+    Dart_Handle super_type = Dart_GetSupertype(Test4_int_type);
+    const Type& expected_type = Api::UnwrapTypeHandle(isolate, Test2_int_type);
+    const Type& actual_type = Api::UnwrapTypeHandle(isolate, super_type);
+    EXPECT(expected_type.raw() == actual_type.raw());
+  }
+  {
+    Dart_Handle super_type = Dart_GetSupertype(Test5_int_type);
+    const Type& expected_type = Api::UnwrapTypeHandle(isolate, Test4_int_type);
+    const Type& actual_type = Api::UnwrapTypeHandle(isolate, super_type);
+    EXPECT(expected_type.raw() == actual_type.raw());
+  }
+}
+
 }  // namespace dart
