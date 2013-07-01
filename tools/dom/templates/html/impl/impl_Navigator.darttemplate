@@ -24,7 +24,7 @@ $endif
    *     window.navigator.getUserMedia(audio: true, video: true).then((stream) {
    *       var video = new VideoElement()
    *         ..autoplay = true
-   *         ..src = Url.createObjectUrl(stream);
+   *         ..src = Url.createObjectUrlFromStream(stream);
    *       document.body.append(video);
    *     });
    *

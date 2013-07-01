@@ -153,7 +153,6 @@ interface WebGLRenderingContext {
 
   [Custom] any getExtension(DOMString name);
   [Suppressed, StrictTypeChecking, Custom] void getExtension(DOMString name);
-  [Custom] DOMString[] getSupportedExtensions();
   [Suppressed, StrictTypeChecking, Custom] void getSupportedExtensions();
 
   [Custom] any getTexParameter(unsigned long target, unsigned long pname);

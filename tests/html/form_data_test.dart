@@ -53,7 +53,7 @@ void main() {
         form.append('test', '1');
         form.append('username', 'Elmo');
         form.append('address', '1 Sesame Street');
-        form.append('password', '123456', 'foo');
+        form.append('password', '123456');
         expect(form, isNotNull);
       });
 
@@ -62,7 +62,7 @@ void main() {
         var blob = new Blob(
             ['Indescribable... Indestructible! Nothing can stop it!'],
             'text/plain');
-        form.append('theBlob', blob, 'theBlob.txt');
+        form.appendBlob('theBlob', blob, 'theBlob.txt');
       });
 
       test('send', () {
@@ -72,7 +72,7 @@ void main() {
         var blob = new Blob(
             [blobString],
             'text/plain');
-        form.append('theBlob', blob, 'theBlob.txt');
+        form.appendBlob('theBlob', blob, 'theBlob.txt');
 
         var xhr = new HttpRequest();
         xhr.open('POST',

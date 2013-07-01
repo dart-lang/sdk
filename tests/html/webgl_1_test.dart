@@ -6,6 +6,7 @@ library web_gl_test;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
+import 'dart:typed_data';
 import 'dart:web_gl';
 import 'dart:web_gl' as gl;
 
@@ -52,6 +53,40 @@ main() {
         context = canvas.getContext3d(depth: false);
         expect(context, isNotNull);
         expect(context, new isInstanceOf<RenderingContext>());
+      });
+
+      test('texImage2D', () {
+        var canvas = new CanvasElement();
+        var context = canvas.getContext3d();
+        var pixels = new Uint8List.fromList([0,0,3,255,0,0,0,0,0,0]);
+        context.texImage2D(1, 1, 1, 1, 10, 10, 1, 1, pixels);
+
+        canvas = new CanvasElement();
+        document.body.children.add(canvas);
+        var context2 = canvas.getContext('2d');
+        context.texImage2DData(1, 1, 1, 1, 10,
+            context2.getImageData(10, 10, 10, 10));
+
+        context.texImage2DImage(1, 1, 1, 1, 10, new ImageElement());
+        context.texImage2DCanvas(1, 1, 1, 1, 10, new CanvasElement());
+        context.texImage2DVideo(1, 1, 1, 1, 10, new VideoElement());
+      });
+
+      test('texSubImage2D', () {
+        var canvas = new CanvasElement();
+        var context = canvas.getContext3d();
+        var pixels = new Uint8List.fromList([0,0,3,255,0,0,0,0,0,0]);
+        context.texSubImage2D(1, 1, 1, 1, 10, 10, 1, 1, pixels);
+
+        canvas = new CanvasElement();
+        document.body.children.add(canvas);
+        var context2 = canvas.getContext('2d');
+        context.texSubImage2DData(1, 1, 1, 1, 1, 10,
+            context2.getImageData(10, 10, 10, 10));
+
+        context.texSubImage2DImage(1, 1, 1, 1, 1, 10, new ImageElement());
+        context.texSubImage2DCanvas(1, 1, 1, 1, 1, 10, new CanvasElement());
+        context.texSubImage2DVideo(1, 1, 1, 1, 1, 10, new VideoElement());
       });
     }
   });

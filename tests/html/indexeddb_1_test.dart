@@ -52,7 +52,7 @@ testReadWrite(key, value, matcher,
           onUpgradeNeeded: createObjectStore);
     }).then((result) {
       db = result;
-      var transaction = db.transaction([storeName], 'readwrite');
+      var transaction = db.transactionList([storeName], 'readwrite');
       transaction.objectStore(storeName).put(value, key);
       return transaction.completed;
     }).then((_) {
@@ -86,7 +86,7 @@ testReadWriteTyped(key, value, matcher,
         onUpgradeNeeded: createObjectStore);
     }).then((idb.Database result) {
       db = result;
-      idb.Transaction transaction = db.transaction([storeName], 'readwrite');
+      idb.Transaction transaction = db.transactionList([storeName], 'readwrite');
       transaction.objectStore(storeName).put(value, key);
 
       return transaction.completed;
