@@ -8916,9 +8916,9 @@ abstract class Element extends Node implements ElementTraversal {
    * This is only supported if [isTemplate] is true.
    */
   @Experimental()
-  DocumentFragment createInstance() {
+  DocumentFragment createInstance(model, String syntax) {
     _ensureTemplate();
-    return TemplateElement.mdvPackage(this).createInstance();
+    return TemplateElement.mdvPackage(this).createInstance(model, syntax);
   }
 
   /**
@@ -22755,7 +22755,7 @@ class TableSectionElement extends _HTMLElement {
   @DocsEditable()
   Element $dom_insertRow(int index) native "HTMLTableSectionElement_insertRow_Callback";
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22843,15 +22843,6 @@ abstract class CustomBindingSyntax {
    * the value, it should simply return the `model` value it was passed.
    */
   getInstanceModel(Element template, model) => model;
-
-  /**
-   * This syntax method allows a syntax to provide an alterate expansion of
-   * the [template] contents. When the template wants to create an instance,
-   * it will call this method with the template element.
-   *
-   * By default this will call `template.createInstance()`.
-   */
-  getInstanceFragment(Element template) => template.createInstance();
 }
 
 

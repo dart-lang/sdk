@@ -866,9 +866,9 @@ $endif
    * This is only supported if [isTemplate] is true.
    */
   @Experimental()
-  DocumentFragment createInstance() {
+  DocumentFragment createInstance(model, String syntax) {
     _ensureTemplate();
-    return TemplateElement.mdvPackage(this).createInstance();
+    return TemplateElement.mdvPackage(this).createInstance(model, syntax);
   }
 
   /**

@@ -27,7 +27,7 @@ class _ElementExtension extends _NodeExtension {
       name = name.substring(0, name.length - 1);
 
       changed = (value) {
-        if (_Bindings._toBoolean(value)) {
+        if (_toBoolean(value)) {
           node.xtag.attributes[name] = '';
         } else {
           node.xtag.attributes.remove(name);

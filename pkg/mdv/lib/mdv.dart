@@ -61,7 +61,7 @@ Stream<DocumentFragment> get instanceCreated {
 // Called from:
 // https://github.com/polymer-project/polymer/blob/master/src/register.js#L99
 void bindModel(Node root, model, [CustomBindingSyntax syntax]) {
-  _Bindings._addBindings(root, model, syntax);
+  _addBindings(root, model, syntax);
 }
 
 

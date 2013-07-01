@@ -81,7 +81,7 @@ class _CheckedBinding extends _InputBinding {
   _CheckedBinding(element, model, path) : super(element, model, path);
 
   void valueChanged(value) {
-    element.checked = _Bindings._toBoolean(value);
+    element.checked = _toBoolean(value);
   }
 
   void updateBinding(e) {
@@ -136,164 +136,162 @@ class _CheckedBinding extends _InputBinding {
   }
 }
 
-class _Bindings {
-  // TODO(jmesserly): not sure what kind of boolean conversion rules to
-  // apply for template data-binding. HTML attributes are true if they're
-  // present. However Dart only treats "true" as true. Since this is HTML we'll
-  // use something closer to the HTML rules: null (missing) and false are false,
-  // everything else is true. See: https://github.com/polymer-project/mdv/issues/59
-  static bool _toBoolean(value) => null != value && false != value;
+// TODO(jmesserly): not sure what kind of boolean conversion rules to
+// apply for template data-binding. HTML attributes are true if they're
+// present. However Dart only treats "true" as true. Since this is HTML we'll
+// use something closer to the HTML rules: null (missing) and false are false,
+// everything else is true. See: https://github.com/polymer-project/mdv/issues/59
+bool _toBoolean(value) => null != value && false != value;
 
-  static Node _createDeepCloneAndDecorateTemplates(Node node, String syntax) {
-    var clone = node.clone(false); // Shallow clone.
-    if (clone is Element && clone.isTemplate) {
-      TemplateElement.decorate(clone, node);
-      if (syntax != null) {
-        clone.attributes.putIfAbsent('syntax', () => syntax);
-      }
-    }
-
-    for (var c = node.firstChild; c != null; c = c.nextNode) {
-      clone.append(_createDeepCloneAndDecorateTemplates(c, syntax));
-    }
-    return clone;
-  }
-
-  static void _addBindings(Node node, model, [CustomBindingSyntax syntax]) {
-    if (node is Element) {
-      _addAttributeBindings(node, model, syntax);
-    } else if (node is Text) {
-      _parseAndBind(node, 'text', node.text, model, syntax);
-    }
-
-    for (var c = node.firstChild; c != null; c = c.nextNode) {
-      _addBindings(c, model, syntax);
+Node _createDeepCloneAndDecorateTemplates(Node node, String syntax) {
+  var clone = node.clone(false); // Shallow clone.
+  if (clone is Element && clone.isTemplate) {
+    TemplateElement.decorate(clone, node);
+    if (syntax != null) {
+      clone.attributes.putIfAbsent('syntax', () => syntax);
     }
   }
 
-  static void _addAttributeBindings(Element element, model, syntax) {
-    element.attributes.forEach((name, value) {
-      if (value == '' && (name == 'bind' || name == 'repeat')) {
-        value = '{{}}';
-      }
-      _parseAndBind(element, name, value, model, syntax);
-    });
+  for (var c = node.firstChild; c != null; c = c.nextNode) {
+    clone.append(_createDeepCloneAndDecorateTemplates(c, syntax));
+  }
+  return clone;
+}
+
+void _addBindings(Node node, model, [CustomBindingSyntax delegate]) {
+  if (node is Element) {
+    _addAttributeBindings(node, model, delegate);
+  } else if (node is Text) {
+    _parseAndBind(node, 'text', node.text, model, delegate);
   }
 
-  static void _parseAndBind(Node node, String name, String text, model,
-      CustomBindingSyntax syntax) {
+  for (var c = node.firstChild; c != null; c = c.nextNode) {
+    _addBindings(c, model, delegate);
+  }
+}
 
-    var tokens = _parseMustacheTokens(text);
-    if (tokens.length == 0 || (tokens.length == 1 && tokens[0].isText)) {
-      return;
+void _addAttributeBindings(Element element, model, delegate) {
+  element.attributes.forEach((name, value) {
+    if (value == '' && (name == 'bind' || name == 'repeat')) {
+      value = '{{}}';
     }
+    _parseAndBind(element, name, value, model, delegate);
+  });
+}
 
-    // If this is a custom element, give the .xtag a change to bind.
-    node = _nodeOrCustom(node);
+void _parseAndBind(Node node, String name, String text, model,
+    CustomBindingSyntax delegate) {
 
-    if (tokens.length == 1 && tokens[0].isBinding) {
-      _bindOrDelegate(node, name, model, tokens[0].value, syntax);
-      return;
+  var tokens = _parseMustacheTokens(text);
+  if (tokens.length == 0 || (tokens.length == 1 && tokens[0].isText)) {
+    return;
+  }
+
+  // If this is a custom element, give the .xtag a change to bind.
+  node = _nodeOrCustom(node);
+
+  if (tokens.length == 1 && tokens[0].isBinding) {
+    _bindOrDelegate(node, name, model, tokens[0].value, delegate);
+    return;
+  }
+
+  var replacementBinding = new CompoundBinding();
+  for (var i = 0; i < tokens.length; i++) {
+    var token = tokens[i];
+    if (token.isBinding) {
+      _bindOrDelegate(replacementBinding, i, model, token.value, delegate);
     }
+  }
 
-    var replacementBinding = new CompoundBinding();
+  replacementBinding.combinator = (values) {
+    var newValue = new StringBuffer();
+
     for (var i = 0; i < tokens.length; i++) {
       var token = tokens[i];
-      if (token.isBinding) {
-        _bindOrDelegate(replacementBinding, i, model, token.value, syntax);
-      }
-    }
-
-    replacementBinding.combinator = (values) {
-      var newValue = new StringBuffer();
-
-      for (var i = 0; i < tokens.length; i++) {
-        var token = tokens[i];
-        if (token.isText) {
-          newValue.write(token.value);
-        } else {
-          var value = values[i];
-          if (value != null) {
-            newValue.write(value);
-          }
-        }
-      }
-
-      return newValue.toString();
-    };
-
-    node.bind(name, replacementBinding, 'value');
-  }
-
-  static void _bindOrDelegate(node, name, model, String path,
-      CustomBindingSyntax syntax) {
-
-    if (syntax != null) {
-      var delegateBinding = syntax.getBinding(model, path, name, node);
-      if (delegateBinding != null) {
-        model = delegateBinding;
-        path = 'value';
-      }
-    }
-
-    node.bind(name, model, path);
-  }
-
-  /**
-   * Gets the [node]'s custom [Element.xtag] if present, otherwise returns
-   * the node. This is used so nodes can override [Node.bind], [Node.unbind],
-   * and [Node.unbindAll] like InputElement does.
-   */
-  // TODO(jmesserly): remove this when we can extend Element for real.
-  static _nodeOrCustom(node) => node is Element ? node.xtag : node;
-
-  static List<_BindingToken> _parseMustacheTokens(String s) {
-    var result = [];
-    var length = s.length;
-    var index = 0, lastIndex = 0;
-    while (lastIndex < length) {
-      index = s.indexOf('{{', lastIndex);
-      if (index < 0) {
-        result.add(new _BindingToken(s.substring(lastIndex)));
-        break;
+      if (token.isText) {
+        newValue.write(token.value);
       } else {
-        // There is a non-empty text run before the next path token.
-        if (index > 0 && lastIndex < index) {
-          result.add(new _BindingToken(s.substring(lastIndex, index)));
+        var value = values[i];
+        if (value != null) {
+          newValue.write(value);
         }
-        lastIndex = index + 2;
-        index = s.indexOf('}}', lastIndex);
-        if (index < 0) {
-          var text = s.substring(lastIndex - 2);
-          if (result.length > 0 && result.last.isText) {
-            result.last.value += text;
-          } else {
-            result.add(new _BindingToken(text));
-          }
-          break;
-        }
-
-        var value = s.substring(lastIndex, index).trim();
-        result.add(new _BindingToken(value, isBinding: true));
-        lastIndex = index + 2;
       }
     }
-    return result;
+
+    return newValue.toString();
+  };
+
+  node.bind(name, replacementBinding, 'value');
+}
+
+void _bindOrDelegate(node, name, model, String path,
+    CustomBindingSyntax delegate) {
+
+  if (delegate != null) {
+    var delegateBinding = delegate.getBinding(model, path, name, node);
+    if (delegateBinding != null) {
+      model = delegateBinding;
+      path = 'value';
+    }
   }
 
-  static void _addTemplateInstanceRecord(fragment, model) {
-    if (fragment.firstChild == null) {
-      return;
-    }
+  node.bind(name, model, path);
+}
 
-    var instanceRecord = new TemplateInstance(
-        fragment.firstChild, fragment.lastChild, model);
+/**
+ * Gets the [node]'s custom [Element.xtag] if present, otherwise returns
+ * the node. This is used so nodes can override [Node.bind], [Node.unbind],
+ * and [Node.unbindAll] like InputElement does.
+ */
+// TODO(jmesserly): remove this when we can extend Element for real.
+_nodeOrCustom(node) => node is Element ? node.xtag : node;
 
-    var node = instanceRecord.firstNode;
-    while (node != null) {
-      _mdv(node)._templateInstance = instanceRecord;
-      node = node.nextNode;
+List<_BindingToken> _parseMustacheTokens(String s) {
+  var result = [];
+  var length = s.length;
+  var index = 0, lastIndex = 0;
+  while (lastIndex < length) {
+    index = s.indexOf('{{', lastIndex);
+    if (index < 0) {
+      result.add(new _BindingToken(s.substring(lastIndex)));
+      break;
+    } else {
+      // There is a non-empty text run before the next path token.
+      if (index > 0 && lastIndex < index) {
+        result.add(new _BindingToken(s.substring(lastIndex, index)));
+      }
+      lastIndex = index + 2;
+      index = s.indexOf('}}', lastIndex);
+      if (index < 0) {
+        var text = s.substring(lastIndex - 2);
+        if (result.length > 0 && result.last.isText) {
+          result.last.value += text;
+        } else {
+          result.add(new _BindingToken(text));
+        }
+        break;
+      }
+
+      var value = s.substring(lastIndex, index).trim();
+      result.add(new _BindingToken(value, isBinding: true));
+      lastIndex = index + 2;
     }
+  }
+  return result;
+}
+
+void _addTemplateInstanceRecord(fragment, model) {
+  if (fragment.firstChild == null) {
+    return;
+  }
+
+  var instanceRecord = new TemplateInstance(
+      fragment.firstChild, fragment.lastChild, model);
+
+  var node = instanceRecord.firstNode;
+  while (node != null) {
+    _mdv(node)._templateInstance = instanceRecord;
+    node = node.nextNode;
   }
 }
 
@@ -323,7 +321,7 @@ class _TemplateIterator {
   }
 
   static Object resolveInputs(Map values) {
-    if (values.containsKey('if') && !_Bindings._toBoolean(values['if'])) {
+    if (values.containsKey('if') && !_toBoolean(values['if'])) {
       return null;
     }
 
@@ -405,29 +403,20 @@ class _TemplateIterator {
     return instanceNodes;
   }
 
-  getInstanceModel(model, syntax) {
-    if (syntax != null) {
-      return syntax.getInstanceModel(_templateElement, model);
+  getInstanceModel(model, String syntax) {
+    var delegate = TemplateElement.syntax[syntax];
+    if (delegate != null) {
+      return delegate.getInstanceModel(_templateElement, model);
     }
     return model;
   }
 
-  Node getInstanceFragment(syntax) {
-    if (syntax != null) {
-      return syntax.getInstanceFragment(_templateElement);
-    }
-    return _templateElement.createInstance();
-  }
+  List<Node> getInstanceNodes(model, String syntax, IdentityMap instanceCache) {
+    var instanceNodes = instanceCache.remove(model);
+    if (instanceNodes != null) return instanceNodes;
 
-  List<Node> getInstanceNodes(model, syntax) {
-    // TODO(jmesserly): this line of code is jumping ahead of what MDV supports.
-    // It doesn't let the custom syntax override createInstance().
-    var fragment = getInstanceFragment(syntax);
-
-    _Bindings._addBindings(fragment, model, syntax);
-    _Bindings._addTemplateInstanceRecord(fragment, model);
-
-    var instanceNodes = fragment.nodes.toList();
+    var fragment = _templateElement.createInstance(model, syntax);
+    instanceNodes = fragment.nodes.toList();
     fragment.nodes.clear();
     return instanceNodes;
   }
@@ -436,7 +425,7 @@ class _TemplateIterator {
     splices = splices.where((s) => s is ListChangeRecord);
 
     var template = _templateElement;
-    var syntax = TemplateElement.syntax[template.attributes['syntax']];
+    var syntax = template.attributes['syntax'];
 
     if (template.parentNode == null || template.document.window == null) {
       abandon();
@@ -467,10 +456,7 @@ class _TemplateIterator {
 
         var model = getInstanceModel(iteratedValue[addIndex], syntax);
 
-        var instanceNodes = instanceCache.remove(model);
-        if (instanceNodes == null) {
-          instanceNodes = getInstanceNodes(model, syntax);
-        }
+        var instanceNodes = getInstanceNodes(model, syntax, instanceCache);
         insertInstanceAt(addIndex, instanceNodes);
       }
     }
@@ -505,7 +491,7 @@ class _TemplateIterator {
       }
     }
 
-    _Bindings._nodeOrCustom(node).unbindAll();
+    _nodeOrCustom(node).unbindAll();
     for (var c = node.firstChild; c != null; c = c.nextNode) {
       _unbindAllRecursively(c);
     }
