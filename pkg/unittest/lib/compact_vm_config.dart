@@ -11,9 +11,7 @@
 library compact_vm_config;
 
 import 'dart:io';
-
 import 'unittest.dart';
-import 'src/utils.dart';
 import 'vm_config.dart';
 
 const String _GREEN = '\u001b[32m';
@@ -50,13 +48,17 @@ class CompactVMConfiguration extends VMConfiguration {
       _progressLine(_start, _pass, _fail, test.description);
       print('');
       if (test.message != '') {
-        print(indent(test.message));
+        print(_indent(test.message));
       }
 
-      if (test.stackTrace != null) {
-        print(indent(test.stackTrace.toString()));
+      if (test.stackTrace != null && test.stackTrace != '') {
+        print(_indent(test.stackTrace));
       }
     }
+  }
+
+  String _indent(String str) {
+    return str.split("\n").map((line) => "  $line").join("\n");
   }
 
   void onSummary(int passed, int failed, int errors, List<TestCase> results,

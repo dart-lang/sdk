@@ -199,7 +199,7 @@ class TestRunnerChildConfiguration extends Configuration {
       List<TestCase> results, String uncaughtError) {
     TestCase test = results[0];
     parentPort.send([test.result, test.runningTime.inMilliseconds,
-                     test.message, test.stackTrace.toString()]);
+                     test.message, test.stackTrace]);
   }
 }
 

@@ -76,7 +76,6 @@ io/process_exit_negative_test: Fail  # This is a compilation-time negative test.
 
 [ $compiler == dartanalyzer ]
 53bit_overflow_literal_test/01: fail, ok
-package/package_isolate_test: fail # issue 11647
 
 # test issue https://code.google.com/p/dart/issues/detail?id=11518
 io/file_constructor_test: fail

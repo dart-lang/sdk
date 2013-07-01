@@ -20,9 +20,6 @@ library unittest_interactive_html_config;
 import 'dart:html';
 import 'dart:async';
 import 'dart:math';
-
-import 'package:stack_trace/stack_trace.dart';
-
 import 'unittest.dart';
 
 /** The messages exchanged between parent and child. */
@@ -150,25 +147,17 @@ class ChildInteractiveHtmlConfiguration extends HtmlConfiguration {
   }
 
   /**
-   * Get the elapsed time for the test, and post the test result back to the
-   * parent window. If the test failed due to an exception the stack is posted
-   * back too (before the test result).
+   * Get the elapsed time for the test, anbd post the test result
+   * back to the parent window. If the test failed due to an exception
+   * the stack is posted back too (before the test result).
    */
   void onTestResult(TestCase testCase) {
     super.onTestResult(testCase);
     DateTime end = new DateTime.now();
     int elapsed = end.difference(_testStarts[testCase.id]).inMilliseconds;
     if (testCase.stackTrace != null) {
-      var message = json.stringify(testCase.stackTrace.frames.map((frame) {
-        return <String>{
-          "uri": frame.uri.toString(),
-          "line": frame.line,
-          "column": frame.column,
-          "member": frame.member
-        };
-      }).toList());
       parentWindow.postMessage(
-          _Message.text(_Message.STACK, elapsed, message), '*');
+          _Message.text(_Message.STACK, elapsed, testCase.stackTrace), '*');
     }
     parentWindow.postMessage(
         _Message.text(testCase.result, elapsed, testCase.message), '*');
@@ -191,7 +180,7 @@ class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
 
 
   /** The stack that was posted back from the child, if any. */
-  Trace _stack;
+  String _stack;
 
   int _testTime;
   /**
@@ -235,13 +224,7 @@ class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
     if (msg.messageType == _Message.LOG) {
       logMessage(e.data);
     } else if (msg.messageType == _Message.STACK) {
-      _stack = new Trace(json.parse(msg.body).map((frame) {
-        return new Frame(
-            Uri.parse(frame['uri']),
-            frame['line'],
-            frame['column'],
-            frame['member']);
-      }));
+      _stack = msg.body;
     } else {
       _testTime = msg.elapsed;
       logMessage(_Message.text(_Message.LOG, _testTime, 'Complete'));

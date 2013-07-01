@@ -41,9 +41,7 @@ class CommandLineConfiguration extends Configuration {
       print(_indent(testCase.message));
     }
 
-    if (testCase.stackTrace != null) {
-      print(_indent(testCase.stackTrace.toString()));
-    }
+    _printStackTrace(testCase.stackTrace);
 
     super.onTestResult(testCase);
   }
@@ -69,5 +67,94 @@ class CommandLineConfiguration extends Configuration {
 
   void onDone(bool success) {
     if (!success) exit(1);
+  }
+
+  void _printStackTrace(String stackTrace) {
+    if (stackTrace == null || stackTrace == '') return;
+
+    print('');
+
+    // Parse out each stack entry.
+    var stack = [];
+    for (var line in stackTrace.split('\n')) {
+      if (line.trim() == '') continue;
+      stack.add(new _StackFrame(line));
+    }
+
+    if (stack.length == 0) return;
+
+    // Figure out the longest path so we know how much to pad.
+    int longest = stack.map((frame) => frame.location.length).reduce(math.max);
+
+    // Print out the stack trace nicely formatted.
+    for (var frame in stack) {
+      print('  ${_padLeft(frame.location, longest)}  ${frame.member}');
+    }
+
+    print('');
+  }
+
+  String _padLeft(String string, int length) {
+    if (string.length >= length) return string;
+
+    var result = new StringBuffer();
+    result.write(string);
+    for (var i = 0; i < length - string.length; i++) {
+      result.write(' ');
+    }
+
+    return result.toString();
+  }
+
+  String _indent(String str) =>
+    str.replaceAll(new RegExp("^", multiLine: true), "  ");
+}
+
+class _StackFrame {
+  static final fileRegExp = new RegExp(
+      r'#\d+\s+(.*) \(file://(/.+):(\d+):(\d+)\)');
+  static final coreRegExp = new RegExp(r'#\d+\s+(.*) \((.+):(\d+):(\d+)\)');
+
+  /// If `true`, then this stack frame is for a library built into Dart and
+  /// not a regular file path.
+  final bool isCore;
+
+  /// The path to the library or the library name if a core library.
+  String library;
+
+  /// The line number.
+  final String line;
+
+  /// The column number.
+  final String column;
+
+  /// The member where the error occurred.
+  final String member;
+
+  /// A formatted description of the code location.
+  String get location => '$library $line:$column';
+
+  _StackFrame._(this.isCore, this.library, this.line, this.column, this.member);
+
+  factory _StackFrame(String text) {
+    var match = fileRegExp.firstMatch(text);
+    var isCore = false;
+
+    if (match == null) {
+      match = coreRegExp.firstMatch(text);
+      if (match == null) {
+        throw new FormatException("Couldn't parse stack trace line '$text'.");
+      }
+      isCore = true;
+    }
+
+    var library = match[2];
+    if (!isCore) {
+      // Make the library path relative to the entrypoint.
+      library = path.relative(library);
+    }
+
+    var member = match[1].replaceAll("<anonymous closure>", _lambda);
+    return new _StackFrame._(isCore, library, match[3], match[4], member);
   }
 }

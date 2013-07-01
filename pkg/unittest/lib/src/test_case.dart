@@ -41,9 +41,9 @@ class TestCase {
    */
   String get result => _result;
 
-  Trace _stackTrace;
+  String _stackTrace;
   /** Stack trace associated with this test, or [null] if it succeeded. */
-  Trace get stackTrace => _stackTrace;
+  String get stackTrace => _stackTrace;
 
   /** The group (or groups) under which this test is running. */
   final String currentGroup;
@@ -69,6 +69,7 @@ class TestCase {
 
   Function _errorHandler(String stage) => (e) {
     var stack = getAttachedStackTrace(e);
+    stack = (stack == null) ? '' : '$stack';
     if (result == null || result == PASS) {
       if (e is TestFailure) {
         fail("$e", stack);
@@ -121,9 +122,9 @@ class TestCase {
 
   // Set the results, notify the config, and return true if this
   // is the first time the result is being set.
-  void _setResult(String testResult, String messageText, stack) {
+  void _setResult(String testResult, String messageText, String stack) {
     _message = messageText;
-    _stackTrace = _getTrace(stack);
+    _stackTrace = _formatStack(stack);
     if (result == null) {
       _result = testResult;
       _config.onTestResult(this);
@@ -133,7 +134,9 @@ class TestCase {
     }
   }
 
-  void _complete(String testResult, [String messageText = '', stack]) {
+  void _complete(String testResult,
+                [String messageText = '',
+                 String stack = '']) {
     if (runningTime == null) {
       // The startTime can be `null` if an error happened during setup. In this
       // case we simply report a running time of 0.
@@ -155,7 +158,8 @@ class TestCase {
     _complete(PASS);
   }
 
-  void fail(String messageText, [stack]) {
+  void fail(String messageText, [String stack = '']) {
+    assert(stack != null);
     if (result != null) {
       String newMessage = (result == PASS)
           ? 'Test failed after initially passing: $messageText'
@@ -167,7 +171,8 @@ class TestCase {
     }
   }
 
-  void error(String messageText, [stack]) {
+  void error(String messageText, [String stack = '']) {
+    assert(stack != null);
     _complete(ERROR, messageText, stack);
   }
 
