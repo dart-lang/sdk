@@ -372,7 +372,7 @@ elementBindingTests() {
     expect(model[sym('a')][sym('b')], false);
   });
 
-  test('Select selectedIndex', function() {
+  test('Select selectedIndex', () {
     var select = new SelectElement();
     testDiv.append(select);
     var option0 = select.append(new OptionElement());
