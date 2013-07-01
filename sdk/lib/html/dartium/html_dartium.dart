@@ -9510,9 +9510,8 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.webkitMatchesSelector')
   @DocsEditable()
-  @Experimental()()
-  // http://dev.w3.org/2006/webapi/selectors-api2/#matches
   @Experimental()
+  // http://dev.w3.org/2006/webapi/selectors-api2/#matches
   bool matches(String selectors) native "Element_webkitMatchesSelector_Callback";
 
   @DomName('Element.webkitRequestFullScreen')
