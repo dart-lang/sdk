@@ -549,6 +549,13 @@ class Assembler : public ValueObject {
   // Compare rn with signed immediate value. May clobber IP.
   void CompareImmediate(Register rn, int32_t value, Condition cond = AL);
 
+  // Signed integer division of left by right. Checks to see if integer
+  // division is supported. If not, uses the FPU for division with
+  // temporary registers tmpl and tmpr. tmpl and tmpr must be different
+  // registers.
+  void IntegerDivide(Register result, Register left, Register right,
+                     DRegister tmpl, DRegister tmpr);
+
   // Load and Store. May clobber IP.
   void LoadImmediate(Register rd, int32_t value, Condition cond = AL);
   void LoadSImmediate(SRegister sd, float value, Condition cond = AL);

@@ -2189,10 +2189,12 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
     if (RightIsPowerOfTwoConstant()) {
       ConstantInstr* right_constant = right()->definition()->AsConstant();
       summary->set_in(1, Location::Constant(right_constant->value()));
+      summary->AddTemp(Location::RequiresRegister());
     } else {
       summary->set_in(1, Location::RequiresRegister());
+      summary->AddTemp(Location::RequiresRegister());
+      summary->AddTemp(Location::RequiresFpuRegister());
     }
-    summary->AddTemp(Location::RequiresRegister());
     summary->set_out(Location::RequiresRegister());
     return summary;
   }
@@ -2411,12 +2413,12 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ cmp(right, ShifterOperand(0));
       __ b(deopt, EQ);
       Register temp = locs()->temp(0).reg();
+      DRegister dtemp = locs()->temp(1).fpu_reg();
       __ Asr(temp, left, kSmiTagSize);  // SmiUntag left into temp.
       __ Asr(IP, right, kSmiTagSize);  // SmiUntag right into IP.
-      if (!CPUFeatures::integer_division_supported()) {
-        UNIMPLEMENTED();
-      }
-      __ sdiv(result, temp, IP);
+
+      __ IntegerDivide(result, temp, IP, dtemp, DTMP);
+
       // Check the corner case of dividing the 'MIN_SMI' with -1, in which
       // case we cannot tag the result.
       __ CompareImmediate(result, 0x40000000);

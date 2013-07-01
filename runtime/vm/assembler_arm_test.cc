@@ -1530,6 +1530,42 @@ ASSEMBLER_TEST_RUN(Sdiv_corner, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(IntDiv_supported, assembler) {
+  bool orig = CPUFeatures::integer_division_supported();
+  CPUFeatures::set_integer_division_supported(true);
+  __ mov(R0, ShifterOperand(27));
+  __ mov(R1, ShifterOperand(9));
+  __ IntegerDivide(R0, R0, R1, D0, D1);
+  CPUFeatures::set_integer_division_supported(orig);
+  __ bx(LR);
+}
+
+
+ASSEMBLER_TEST_RUN(IntDiv_supported, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(3, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(IntDiv_unsupported, assembler) {
+  bool orig = CPUFeatures::integer_division_supported();
+  CPUFeatures::set_integer_division_supported(false);
+  __ mov(R0, ShifterOperand(27));
+  __ mov(R1, ShifterOperand(9));
+  __ IntegerDivide(R0, R0, R1, D0, D1);
+  CPUFeatures::set_integer_division_supported(orig);
+  __ bx(LR);
+}
+
+
+ASSEMBLER_TEST_RUN(IntDiv_unsupported, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(3, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
 ASSEMBLER_TEST_GENERATE(Muls, assembler) {
   __ mov(R0, ShifterOperand(3));
   __ LoadImmediate(R1, -9);
