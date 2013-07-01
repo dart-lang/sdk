@@ -183,7 +183,15 @@ Future<MirrorSystem> _getMirrorSystemHelper(List<String> libraries,
   });
   return dart2js.analyze(librariesUri, libraryUri, packageUri,
       provider.readStringFromUri, diagnosticHandler,
-      ['--preserve-comments', '--categories=Client,Server']);
+      ['--preserve-comments', '--categories=Client,Server'])
+      ..catchError((error) {
+        logger.severe('Error: Failed to create mirror system. ');
+        // TODO(janicejl): Use the stack trace package when bug is resolved. 
+        // Currently, a string is thrown when it fails to create a mirror 
+        // system, and it is not possible to use the stack trace. BUG(#11622)
+        // To avoid printing the stack trace. 
+        exit(1);
+      });
 }
 
 /**
