@@ -28,7 +28,7 @@ testReadWrite(key, value, check,
         onUpgradeNeeded: createObjectStore);
     })).then(expectAsync1((result) {
       db = result;
-      var transaction = db.transactionList([storeName], 'readwrite');
+      var transaction = db.transaction([storeName], 'readwrite');
       transaction.objectStore(storeName).put(value, key);
 
       return transaction.completed;

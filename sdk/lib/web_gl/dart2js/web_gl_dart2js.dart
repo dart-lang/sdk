@@ -2119,29 +2119,13 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   @DocsEditable()
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) native;
 
-  @JSName('bufferData')
   @DomName('WebGLRenderingContext.bufferData')
   @DocsEditable()
-  void bufferByteData(int target, ByteBuffer data, int usage) native;
+  void bufferData(int target, data_OR_size, int usage) native;
 
-  @DomName('WebGLRenderingContext.bufferData')
-  @DocsEditable()
-  void bufferData(int target, int size, int usage) native;
-
-  @JSName('bufferSubData')
   @DomName('WebGLRenderingContext.bufferSubData')
   @DocsEditable()
-  void bufferSubByteData(int target, int offset, ByteBuffer data) native;
-
-  @JSName('bufferSubData')
-  @DomName('WebGLRenderingContext.bufferSubData')
-  @DocsEditable()
-  void bufferSubTypedData(int target, int offset, TypedData data) native;
-
-  @JSName('bufferData')
-  @DomName('WebGLRenderingContext.bufferData')
-  @DocsEditable()
-  void bufferTypedData(int target, TypedData data, int usage) native;
+  void bufferSubData(int target, int offset, data) native;
 
   @DomName('WebGLRenderingContext.checkFramebufferStatus')
   @DocsEditable()
@@ -2511,35 +2495,50 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
 
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
-  void texImage2D(int target, int level, int internalformat, int format, int type, ImageData pixels) {
-    var pixels_1 = convertDartToNative_ImageData(pixels);
-    _texImage2D_1(target, level, internalformat, format, type, pixels_1);
-    return;
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, TypedData pixels]) {
+    if (pixels != null && type != null && format != null && (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null)) {
+      _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && format == null && type == null && pixels == null) {
+      var pixels_1 = convertDartToNative_ImageData(border_OR_canvas_OR_image_OR_pixels_OR_video);
+      _texImage2D_2(target, level, internalformat, format_OR_width, height_OR_type, pixels_1);
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && format == null && type == null && pixels == null) {
+      _texImage2D_3(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && format == null && type == null && pixels == null) {
+      _texImage2D_4(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && format == null && type == null && pixels == null) {
+      _texImage2D_5(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('texImage2D')
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
-  void _texImage2D_1(target, level, internalformat, format, type, pixels) native;
-
+  void _texImage2D_1(target, level, internalformat, width, height, int border, format, type, TypedData pixels) native;
   @JSName('texImage2D')
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
-  void texImage2DCanvas(int target, int level, int internalformat, int format, int type, CanvasElement canvas) native;
-
+  void _texImage2D_2(target, level, internalformat, format, type, pixels) native;
   @JSName('texImage2D')
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
-  void texImage2DImage(int target, int level, int internalformat, int format, int type, ImageElement image) native;
-
+  void _texImage2D_3(target, level, internalformat, format, type, ImageElement image) native;
   @JSName('texImage2D')
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
-  void texImage2DTypedData(int target, int level, int internalformat, int width, int height, int border, int format, int type, TypedData pixels) native;
-
+  void _texImage2D_4(target, level, internalformat, format, type, CanvasElement canvas) native;
   @JSName('texImage2D')
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
-  void texImage2DVideo(int target, int level, int internalformat, int format, int type, VideoElement video) native;
+  void _texImage2D_5(target, level, internalformat, format, type, VideoElement video) native;
 
   @DomName('WebGLRenderingContext.texParameterf')
   @DocsEditable()
@@ -2551,35 +2550,50 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
 
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format, int type, ImageData pixels) {
-    var pixels_1 = convertDartToNative_ImageData(pixels);
-    _texSubImage2D_1(target, level, xoffset, yoffset, format, type, pixels_1);
-    return;
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, TypedData pixels]) {
+    if (pixels != null && type != null && (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null)) {
+      _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && type == null && pixels == null) {
+      var pixels_1 = convertDartToNative_ImageData(canvas_OR_format_OR_image_OR_pixels_OR_video);
+      _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width, height_OR_type, pixels_1);
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && type == null && pixels == null) {
+      _texSubImage2D_3(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && type == null && pixels == null) {
+      _texSubImage2D_4(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && type == null && pixels == null) {
+      _texSubImage2D_5(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('texSubImage2D')
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
-  void _texSubImage2D_1(target, level, xoffset, yoffset, format, type, pixels) native;
-
+  void _texSubImage2D_1(target, level, xoffset, yoffset, width, height, int format, type, TypedData pixels) native;
   @JSName('texSubImage2D')
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
-  void texSubImage2DCanvas(int target, int level, int xoffset, int yoffset, int format, int type, CanvasElement canvas) native;
-
+  void _texSubImage2D_2(target, level, xoffset, yoffset, format, type, pixels) native;
   @JSName('texSubImage2D')
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
-  void texSubImage2DImage(int target, int level, int xoffset, int yoffset, int format, int type, ImageElement image) native;
-
+  void _texSubImage2D_3(target, level, xoffset, yoffset, format, type, ImageElement image) native;
   @JSName('texSubImage2D')
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
-  void texSubImage2DTypedData(int target, int level, int xoffset, int yoffset, int width, int height, int format, int type, TypedData pixels) native;
-
+  void _texSubImage2D_4(target, level, xoffset, yoffset, format, type, CanvasElement canvas) native;
   @JSName('texSubImage2D')
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
-  void texSubImage2DVideo(int target, int level, int xoffset, int yoffset, int format, int type, VideoElement video) native;
+  void _texSubImage2D_5(target, level, xoffset, yoffset, format, type, VideoElement video) native;
 
   @DomName('WebGLRenderingContext.uniform1f')
   @DocsEditable()

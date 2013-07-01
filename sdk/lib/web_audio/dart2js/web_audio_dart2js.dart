@@ -255,12 +255,7 @@ class AudioContext extends EventTarget native "AudioContext" {
 
   @DomName('AudioContext.createBuffer')
   @DocsEditable()
-  AudioBuffer createBuffer(int numberOfChannels, int numberOfFrames, num sampleRate) native;
-
-  @JSName('createBuffer')
-  @DomName('AudioContext.createBuffer')
-  @DocsEditable()
-  AudioBuffer createBufferFromBuffer(ByteBuffer buffer, bool mixToMono) native;
+  AudioBuffer createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [num sampleRate]) native;
 
   @DomName('AudioContext.createBufferSource')
   @DocsEditable()
@@ -418,6 +413,7 @@ class AudioListener extends Interceptor native "AudioListener" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DocsEditable()
 @DomName('AudioNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioNode-section
 @Experimental()
@@ -454,10 +450,9 @@ class AudioNode extends EventTarget native "AudioNode" {
   @DocsEditable()
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @JSName('connect')
   @DomName('AudioNode.connect')
   @DocsEditable()
-  void $dom_connect(destination, int output, [int input]) native;
+  void connect(destination, int output, [int input]) native;
 
   @DomName('AudioNode.disconnect')
   @DocsEditable()
@@ -471,14 +466,6 @@ class AudioNode extends EventTarget native "AudioNode" {
   @DomName('AudioNode.removeEventListener')
   @DocsEditable()
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  @DomName('AudioNode.connect')
-  void connectNode(AudioNode destination, [int output = 0, int input = 0]) =>
-      $dom_connect(destination, output, input);
-
-  @DomName('AudioNode.connect')
-  void connectParam(AudioParam destination, [int output = 0]) =>
-      $dom_connect(destination, output);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

@@ -46,9 +46,6 @@ class Dict(MonitoredCollection):
     self._used_keys.add(key)
     return self._map.get(key, default)
 
-  def keys(self):
-    return self._map.keys()
-
   def CheckUsage(self):
     for v in sorted(self._map.keys()):
       if v not in self._used_keys:

@@ -668,10 +668,5 @@ main() {
       expect(other.width, 15);
       expect(other.height, 15);
     });
-
-    test('createPattern', () {
-      var pattern = context.createPattern(new CanvasElement(), '');
-      var pattern2 = context.createPatternFromImage(new ImageElement(), '');
-    });
   });
 }

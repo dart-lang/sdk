@@ -151,8 +151,7 @@ convert_to_future_members = monitored.Set(
 # Members from the standard dom that should not be exposed publicly in dart:html
 # but need to be exposed internally to implement dart:html on top of a standard
 # browser.
-private_html_members = monitored.Set('htmlrenamer.private_html_members', [
-  'AudioNode.connect',
+_private_html_members = monitored.Set('htmlrenamer._private_html_members', [
   'CanvasRenderingContext2D.arc',
   'CompositionEvent.initCompositionEvent',
   'CustomEvent.initCustomEvent',
@@ -347,89 +346,6 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     #'WorkerContext.webkitRequestFileSystemSync': '_requestFileSystemSync',
 })
 
-# Members that have multiple definitions, but their types are vary, so we rename
-# them to make them distinct.
-renamed_overloads = monitored.Dict('htmldartgenreator.renamed_overloads', {
-  'AudioContext.createBuffer(ArrayBuffer buffer, boolean mixToMono)':
-      'createBufferFromBuffer',
-  'CSS.supports(DOMString conditionText)': 'supportsCondition',
-  'CanvasRenderingContext2D.createPattern(HTMLImageElement image, '
-      'DOMString repetitionType)': 'createPatternFromImage',
-  'DataTransferItemList.add(File file)': 'addFile',
-  'DataTransferItemList.add(DOMString data, DOMString type)': 'addData',
-  'FormData.append(DOMString name, Blob value, DOMString filename)':
-      'appendBlob',
-  'IDBDatabase.transaction(DOMStringList storeNames, DOMString mode)':
-      'transactionStores',
-  'IDBDatabase.transaction(sequence<DOMString> storeNames, DOMString mode)':
-      'transactionList',
-  'IDBDatabase.transaction(DOMString storeName, DOMString mode)':
-      'transactionStore',
-  'RTCDataChannel.send(ArrayBuffer data)': 'sendByteBuffer',
-  'RTCDataChannel.send(ArrayBufferView data)': 'sendTypedData',
-  'RTCDataChannel.send(Blob data)': 'sendBlob',
-  'RTCDataChannel.send(DOMString data)': 'sendString',
-  'URL.createObjectURL(WebKitMediaSource source)':
-      'createObjectUrlFromSource',
-  'URL.createObjectURL(MediaStream stream)': 'createObjectUrlFromStream',
-  'URL.createObjectURL(Blob blob)': 'createObjectUrlFromBlob',
-  'WebGLRenderingContext.texImage2D(unsigned long target, long level, '
-      'unsigned long internalformat, long width, long height, long border, '
-      'unsigned long format, unsigned long type, ArrayBufferView pixels)':
-      'texImage2DTypedData',
-  'WebGLRenderingContext.texImage2D(unsigned long target, long level, '
-      'unsigned long internalformat, unsigned long format, unsigned long '
-      'type, HTMLImageElement image)': 'texImage2DImage',
-  'WebGLRenderingContext.texImage2D(unsigned long target, long level, '
-      'unsigned long internalformat, unsigned long format, unsigned long '
-      'type, HTMLCanvasElement canvas)': 'texImage2DCanvas',
-  'WebGLRenderingContext.texImage2D(unsigned long target, long level, '
-      'unsigned long internalformat, unsigned long format, unsigned long '
-      'type, HTMLVideoElement video)': 'texImage2DVideo',
-  'WebGLRenderingContext.texSubImage2D(unsigned long target, long level, '
-      'long xoffset, long yoffset, long width, long height, unsigned long '
-      'format, unsigned long type, ArrayBufferView pixels)':
-      'texSubImage2DTypedData',
-  'WebGLRenderingContext.texSubImage2D(unsigned long target, long level, '
-      'long xoffset, long yoffset, unsigned long format, unsigned long type, '
-      'HTMLImageElement image)': 'texSubImage2DImage',
-  'WebGLRenderingContext.texSubImage2D(unsigned long target, long level, '
-      'long xoffset, long yoffset, unsigned long format, unsigned long type, '
-      'HTMLCanvasElement canvas)': 'texSubImage2DCanvas',
-  'WebGLRenderingContext.texSubImage2D(unsigned long target, long level, '
-      'long xoffset, long yoffset, unsigned long format, unsigned long type, '
-      'HTMLVideoElement video)': 'texSubImage2DVideo',
-  'WebGLRenderingContext.bufferData(unsigned long target, ArrayBuffer data, '
-      'unsigned long usage)': 'bufferByteData',
-  'WebGLRenderingContext.bufferData(unsigned long target, '
-      'ArrayBufferView data, unsigned long usage)': 'bufferTypedData',
-  'WebGLRenderingContext.bufferSubData(unsigned long target, '
-      'long long offset, ArrayBuffer data)': 'bufferSubByteData',
-  'WebGLRenderingContext.bufferSubData(unsigned long target, '
-      'long long offset, ArrayBufferView data)': 'bufferSubTypedData',
-  'WebSocket.send(ArrayBuffer data)': 'sendByteBuffer',
-  'WebSocket.send(ArrayBufferView data)': 'sendTypeData',
-  'WebSocket.send(DOMString data)': 'sendString',
-  'WebSocket.send(Blob data)': 'sendBlob'
-})
-
-# Members that have multiple definitions, but their types are identical (only
-# number of arguments vary), so we do not rename them as a _raw method.
-keep_overloaded_members = monitored.Set(
-    'htmldartgenerator.keep_overloaded_members', [
-  'AudioBufferSourceNode.start',
-  'CanvasRenderingContext2D.putImageData',
-  'CanvasRenderingContext2D.webkitPutImageDataHD',
-  'DataTransferItemList.add',
-  'HTMLInputElement.setRangeText',
-  'HTMLTextAreaElement.setRangeText',
-  'IDBDatabase.transaction',
-  'RTCDataChannel.send',
-  'URL.createObjectURL',
-  'WebSocket.send',
-  'XMLHttpRequest.send'
-])
-
 for member in convert_to_future_members:
   if member in renamed_html_members:
     renamed_html_members[member] = '_' + renamed_html_members[member]
@@ -443,7 +359,7 @@ for member in convert_to_future_members:
 # Using get: and set: is optional and should only be used when a getter needs
 # to be suppressed but not the setter, etc.
 # TODO(jacobr): cleanup and augment this list.
-removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
+_removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'AudioBufferSourceNode.looping', # TODO(vsm): Use deprecated IDL annotation
     'CSSStyleDeclaration.getPropertyCSSValue',
     'CanvasRenderingContext2D.clearShadow',
@@ -757,7 +673,7 @@ class HtmlRenamer(object):
         renamed_html_members)
 
     target_name = renamed_html_members[name] if name else member
-    if self._FindMatch(interface, member, member_prefix, private_html_members):
+    if self._FindMatch(interface, member, member_prefix, _private_html_members):
       if not target_name.startswith('$dom_'):  # e.g. $dom_svgClassName
         target_name = '$dom_' + target_name
 
@@ -771,7 +687,8 @@ class HtmlRenamer(object):
 
   def ShouldSuppressMember(self, interface, member, member_prefix=''):
     """ Returns true if the member should be suppressed."""
-    if self._FindMatch(interface, member, member_prefix, removed_html_members):
+    if self._FindMatch(interface, member, member_prefix,
+        _removed_html_members):
       return True
     if interface.id in _removed_html_interfaces:
       return True

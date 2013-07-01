@@ -298,13 +298,19 @@ class AudioContext extends EventTarget {
   @DocsEditable()
   BiquadFilterNode createBiquadFilter() native "AudioContext_createBiquadFilter_Callback";
 
-  @DomName('AudioContext.createBuffer')
-  @DocsEditable()
-  AudioBuffer createBuffer(int numberOfChannels, int numberOfFrames, num sampleRate) native "AudioContext_createBuffer_Callback";
+  AudioBuffer createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [num sampleRate]) {
+    if ((sampleRate is num || sampleRate == null) && (mixToMono_OR_numberOfFrames is int || mixToMono_OR_numberOfFrames == null) && (buffer_OR_numberOfChannels is int || buffer_OR_numberOfChannels == null)) {
+      return _createBuffer_1(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, sampleRate);
+    }
+    if ((mixToMono_OR_numberOfFrames is bool || mixToMono_OR_numberOfFrames == null) && (buffer_OR_numberOfChannels is ByteBuffer || buffer_OR_numberOfChannels == null) && sampleRate == null) {
+      return _createBuffer_2(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
-  @DomName('AudioContext.createBufferFromBuffer')
-  @DocsEditable()
-  AudioBuffer createBufferFromBuffer(ByteBuffer buffer, bool mixToMono) native "AudioContext_createBufferFromBuffer_Callback";
+  AudioBuffer _createBuffer_1(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, sampleRate) native "AudioContext__createBuffer_1_Callback";
+
+  AudioBuffer _createBuffer_2(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames) native "AudioContext__createBuffer_2_Callback";
 
   @DomName('AudioContext.createBufferSource')
   @DocsEditable()
@@ -509,7 +515,10 @@ class AudioListener extends NativeFieldWrapperClass1 {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
 
+
+@DocsEditable()
 @DomName('AudioNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioNode-section
 @Experimental()
@@ -557,7 +566,7 @@ class AudioNode extends EventTarget {
   @DocsEditable()
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "AudioNode_addEventListener_Callback";
 
-  void $dom_connect(destination, int output, [int input]) {
+  void connect(destination, int output, [int input]) {
     if ((input is int || input == null) && (output is int || output == null) && (destination is AudioNode || destination == null)) {
       _connect_1(destination, output, input);
       return;
@@ -585,13 +594,6 @@ class AudioNode extends EventTarget {
   @DocsEditable()
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "AudioNode_removeEventListener_Callback";
 
-  @DomName('AudioNode.connect')
-  void connectNode(AudioNode destination, [int output = 0, int input = 0]) =>
-      $dom_connect(destination, output, input);
-
-  @DomName('AudioNode.connect')
-  void connectParam(AudioParam destination, [int output = 0]) =>
-      $dom_connect(destination, output);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

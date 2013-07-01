@@ -35,9 +35,9 @@ main() {
   }
 
   group('blob', () {
-    test('createObjectUrlFromBlob', () {
+    test('createObjectUrl', () {
       var blob = createImageBlob();
-      var url = Url.createObjectUrlFromBlob(blob);
+      var url = Url.createObjectUrl(blob);
       expect(url.length, greaterThan(0));
       expect(url, startsWith('blob:'));
 
@@ -55,7 +55,7 @@ main() {
 
     test('revokeObjectUrl', () {
       var blob = createImageBlob();
-      var url = Url.createObjectUrlFromBlob(blob);
+      var url = Url.createObjectUrl(blob);
       expect(url, startsWith('blob:'));
       Url.revokeObjectUrl(url);
 

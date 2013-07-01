@@ -40,7 +40,7 @@ main() {
         return window.navigator.getUserMedia(video: true).then((stream) {
           expect(stream,  isNotNull);
 
-          var url = Url.createObjectUrlFromStream(stream);
+          var url = Url.createObjectUrl(stream);
           expect(url,  isNotNull);
 
           var video = new VideoElement()
@@ -71,7 +71,7 @@ main() {
             }).then((stream) {
           expect(stream,  isNotNull);
 
-          var url = Url.createObjectUrlFromStream(stream);
+          var url = Url.createObjectUrl(stream);
           expect(url,  isNotNull);
 
           var video = new VideoElement()

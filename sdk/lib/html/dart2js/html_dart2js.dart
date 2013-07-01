@@ -1207,12 +1207,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
 
   @DomName('CanvasRenderingContext2D.createPattern')
   @DocsEditable()
-  CanvasPattern createPattern(CanvasElement canvas, String repetitionType) native;
-
-  @JSName('createPattern')
-  @DomName('CanvasRenderingContext2D.createPattern')
-  @DocsEditable()
-  CanvasPattern createPatternFromImage(ImageElement image, String repetitionType) native;
+  CanvasPattern createPattern(canvas_OR_image, String repetitionType) native;
 
   @DomName('CanvasRenderingContext2D.createRadialGradient')
   @DocsEditable()
@@ -1966,12 +1961,7 @@ class Css extends Interceptor native "CSS" {
 
   @DomName('CSS.supports')
   @DocsEditable()
-  bool supports(String property, String value) native;
-
-  @JSName('supports')
-  @DomName('CSS.supports')
-  @DocsEditable()
-  bool supportsCondition(String conditionText) native;
+  bool supports(String conditionText_OR_property, [String value]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6233,16 +6223,6 @@ class DataTransferItemList extends Interceptor native "DataTransferItemList" {
   @DocsEditable()
   void add(data_OR_file, [String type]) native;
 
-  @JSName('add')
-  @DomName('DataTransferItemList.add')
-  @DocsEditable()
-  void addData(String data, String type) native;
-
-  @JSName('add')
-  @DomName('DataTransferItemList.add')
-  @DocsEditable()
-  void addFile(File file) native;
-
   @DomName('DataTransferItemList.clear')
   @DocsEditable()
   void clear() native;
@@ -6491,38 +6471,38 @@ class DirectoryEntry extends Entry native "DirectoryEntry" {
   void __getDirectory(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
     if (errorCallback != null) {
       var options_1 = convertDartToNative_Dictionary(options);
-      __getDirectory_1(path, options_1, successCallback, errorCallback);
+      ___getDirectory_1(path, options_1, successCallback, errorCallback);
       return;
     }
     if (successCallback != null) {
       var options_2 = convertDartToNative_Dictionary(options);
-      __getDirectory_2(path, options_2, successCallback);
+      ___getDirectory_2(path, options_2, successCallback);
       return;
     }
     if (options != null) {
       var options_3 = convertDartToNative_Dictionary(options);
-      __getDirectory_3(path, options_3);
+      ___getDirectory_3(path, options_3);
       return;
     }
-    __getDirectory_4(path);
+    ___getDirectory_4(path);
     return;
   }
   @JSName('getDirectory')
   @DomName('DirectoryEntry.getDirectory')
   @DocsEditable()
-  void __getDirectory_1(path, options, _EntryCallback successCallback, _ErrorCallback errorCallback) native;
+  void ___getDirectory_1(path, options, _EntryCallback successCallback, _ErrorCallback errorCallback) native;
   @JSName('getDirectory')
   @DomName('DirectoryEntry.getDirectory')
   @DocsEditable()
-  void __getDirectory_2(path, options, _EntryCallback successCallback) native;
+  void ___getDirectory_2(path, options, _EntryCallback successCallback) native;
   @JSName('getDirectory')
   @DomName('DirectoryEntry.getDirectory')
   @DocsEditable()
-  void __getDirectory_3(path, options) native;
+  void ___getDirectory_3(path, options) native;
   @JSName('getDirectory')
   @DomName('DirectoryEntry.getDirectory')
   @DocsEditable()
-  void __getDirectory_4(path) native;
+  void ___getDirectory_4(path) native;
 
   @JSName('getDirectory')
   @DomName('DirectoryEntry.getDirectory')
@@ -6540,38 +6520,38 @@ class DirectoryEntry extends Entry native "DirectoryEntry" {
   void __getFile(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
     if (errorCallback != null) {
       var options_1 = convertDartToNative_Dictionary(options);
-      __getFile_1(path, options_1, successCallback, errorCallback);
+      ___getFile_1(path, options_1, successCallback, errorCallback);
       return;
     }
     if (successCallback != null) {
       var options_2 = convertDartToNative_Dictionary(options);
-      __getFile_2(path, options_2, successCallback);
+      ___getFile_2(path, options_2, successCallback);
       return;
     }
     if (options != null) {
       var options_3 = convertDartToNative_Dictionary(options);
-      __getFile_3(path, options_3);
+      ___getFile_3(path, options_3);
       return;
     }
-    __getFile_4(path);
+    ___getFile_4(path);
     return;
   }
   @JSName('getFile')
   @DomName('DirectoryEntry.getFile')
   @DocsEditable()
-  void __getFile_1(path, options, _EntryCallback successCallback, _ErrorCallback errorCallback) native;
+  void ___getFile_1(path, options, _EntryCallback successCallback, _ErrorCallback errorCallback) native;
   @JSName('getFile')
   @DomName('DirectoryEntry.getFile')
   @DocsEditable()
-  void __getFile_2(path, options, _EntryCallback successCallback) native;
+  void ___getFile_2(path, options, _EntryCallback successCallback) native;
   @JSName('getFile')
   @DomName('DirectoryEntry.getFile')
   @DocsEditable()
-  void __getFile_3(path, options) native;
+  void ___getFile_3(path, options) native;
   @JSName('getFile')
   @DomName('DirectoryEntry.getFile')
   @DocsEditable()
-  void __getFile_4(path) native;
+  void ___getFile_4(path) native;
 
   @JSName('getFile')
   @DomName('DirectoryEntry.getFile')
@@ -11084,12 +11064,7 @@ class FormData extends Interceptor native "FormData" {
 
   @DomName('FormData.append')
   @DocsEditable()
-  void append(String name, String value) native;
-
-  @JSName('append')
-  @DomName('FormData.append')
-  @DocsEditable()
-  void appendBlob(String name, Blob value, [String filename]) native;
+  void append(String name, value, [String filename]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16075,13 +16050,13 @@ class MutationObserver extends Interceptor native "MutationObserver,WebKitMutati
   @DocsEditable()
   void _observe(Node target, Map options) {
     var options_1 = convertDartToNative_Dictionary(options);
-    _observe_1(target, options_1);
+    __observe_1(target, options_1);
     return;
   }
   @JSName('observe')
   @DomName('MutationObserver.observe')
   @DocsEditable()
-  void _observe_1(Node target, options) native;
+  void __observe_1(Node target, options) native;
 
   @DomName('MutationObserver.takeRecords')
   @DocsEditable()
@@ -16315,7 +16290,7 @@ class Navigator extends Interceptor native "Navigator" {
    *     window.navigator.getUserMedia(audio: true, video: true).then((stream) {
    *       var video = new VideoElement()
    *         ..autoplay = true
-   *         ..src = Url.createObjectUrlFromStream(stream);
+   *         ..src = Url.createObjectUrl(stream);
    *       document.body.append(video);
    *     });
    *
@@ -18796,26 +18771,6 @@ class RtcDataChannel extends EventTarget native "RTCDataChannel,DataChannel" {
   @DocsEditable()
   void send(data) native;
 
-  @JSName('send')
-  @DomName('RTCDataChannel.send')
-  @DocsEditable()
-  void sendBlob(Blob data) native;
-
-  @JSName('send')
-  @DomName('RTCDataChannel.send')
-  @DocsEditable()
-  void sendByteBuffer(ByteBuffer data) native;
-
-  @JSName('send')
-  @DomName('RTCDataChannel.send')
-  @DocsEditable()
-  void sendString(String data) native;
-
-  @JSName('send')
-  @DomName('RTCDataChannel.send')
-  @DocsEditable()
-  void sendTypedData(TypedData data) native;
-
   @DomName('RTCDataChannel.onclose')
   @DocsEditable()
   Stream<Event> get onClose => closeEvent.forTarget(this);
@@ -19121,20 +19076,20 @@ class RtcPeerConnection extends EventTarget native "RTCPeerConnection,mozRTCPeer
   void _createAnswer(_RtcSessionDescriptionCallback successCallback, [_RtcErrorCallback failureCallback, Map mediaConstraints]) {
     if (mediaConstraints != null) {
       var mediaConstraints_1 = convertDartToNative_Dictionary(mediaConstraints);
-      _createAnswer_1(successCallback, failureCallback, mediaConstraints_1);
+      __createAnswer_1(successCallback, failureCallback, mediaConstraints_1);
       return;
     }
-    _createAnswer_2(successCallback, failureCallback);
+    __createAnswer_2(successCallback, failureCallback);
     return;
   }
   @JSName('createAnswer')
   @DomName('RTCPeerConnection.createAnswer')
   @DocsEditable()
-  void _createAnswer_1(_RtcSessionDescriptionCallback successCallback, _RtcErrorCallback failureCallback, mediaConstraints) native;
+  void __createAnswer_1(_RtcSessionDescriptionCallback successCallback, _RtcErrorCallback failureCallback, mediaConstraints) native;
   @JSName('createAnswer')
   @DomName('RTCPeerConnection.createAnswer')
   @DocsEditable()
-  void _createAnswer_2(_RtcSessionDescriptionCallback successCallback, _RtcErrorCallback failureCallback) native;
+  void __createAnswer_2(_RtcSessionDescriptionCallback successCallback, _RtcErrorCallback failureCallback) native;
 
   @JSName('createDTMFSender')
   @DomName('RTCPeerConnection.createDTMFSender')
@@ -19164,20 +19119,20 @@ class RtcPeerConnection extends EventTarget native "RTCPeerConnection,mozRTCPeer
   void _createOffer(_RtcSessionDescriptionCallback successCallback, [_RtcErrorCallback failureCallback, Map mediaConstraints]) {
     if (mediaConstraints != null) {
       var mediaConstraints_1 = convertDartToNative_Dictionary(mediaConstraints);
-      _createOffer_1(successCallback, failureCallback, mediaConstraints_1);
+      __createOffer_1(successCallback, failureCallback, mediaConstraints_1);
       return;
     }
-    _createOffer_2(successCallback, failureCallback);
+    __createOffer_2(successCallback, failureCallback);
     return;
   }
   @JSName('createOffer')
   @DomName('RTCPeerConnection.createOffer')
   @DocsEditable()
-  void _createOffer_1(_RtcSessionDescriptionCallback successCallback, _RtcErrorCallback failureCallback, mediaConstraints) native;
+  void __createOffer_1(_RtcSessionDescriptionCallback successCallback, _RtcErrorCallback failureCallback, mediaConstraints) native;
   @JSName('createOffer')
   @DomName('RTCPeerConnection.createOffer')
   @DocsEditable()
-  void _createOffer_2(_RtcSessionDescriptionCallback successCallback, _RtcErrorCallback failureCallback) native;
+  void __createOffer_2(_RtcSessionDescriptionCallback successCallback, _RtcErrorCallback failureCallback) native;
 
   @DomName('RTCPeerConnection.dispatchEvent')
   @DocsEditable()
@@ -21848,7 +21803,7 @@ class TextAreaElement extends _HTMLElement native "HTMLTextAreaElement" {
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/association-of-controls-and-forms.html#dom-textarea/input-setrangetext
   @Experimental()
-  void setRangeText(String replacement, {int start, int end, String selectionMode}) native;
+  void setRangeText(String replacement, [int start, int end, String selectionMode]) native;
 
   @DomName('HTMLTextAreaElement.setSelectionRange')
   @DocsEditable()
@@ -22838,16 +22793,7 @@ class Url extends Interceptor native "URL" {
   static String createObjectUrl(blob_OR_source_OR_stream) =>
       JS('String',
          '(self.URL || self.webkitURL).createObjectURL(#)',
-          blob_OR_source_OR_stream);
-
-  static String createObjectUrlFromSource(MediaSource source) =>
-      JS('String', '(self.URL || self.webkitURL).createObjectURL(#)', source);
-  
-  static String createObjectUrlFromStream(MediaStream stream) =>
-      JS('String', '(self.URL || self.webkitURL).createObjectURL(#)', stream);
-  
-  static String createObjectUrlFromBlob(Blob blob) =>
-      JS('String', '(self.URL || self.webkitURL).createObjectURL(#)', blob);
+         blob_OR_source_OR_stream);
 
   static void revokeObjectUrl(String url) =>
       JS('void',
@@ -23177,26 +23123,6 @@ class WebSocket extends EventTarget native "WebSocket" {
   @DomName('WebSocket.send')
   @DocsEditable()
   void send(data) native;
-
-  @JSName('send')
-  @DomName('WebSocket.send')
-  @DocsEditable()
-  void sendBlob(Blob data) native;
-
-  @JSName('send')
-  @DomName('WebSocket.send')
-  @DocsEditable()
-  void sendByteBuffer(ByteBuffer data) native;
-
-  @JSName('send')
-  @DomName('WebSocket.send')
-  @DocsEditable()
-  void sendString(String data) native;
-
-  @JSName('send')
-  @DomName('WebSocket.send')
-  @DocsEditable()
-  void sendTypeData(TypedData data) native;
 
   @DomName('WebSocket.onclose')
   @DocsEditable()
@@ -24033,10 +23959,10 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
   @Returns('Window|=Object')
   WindowBase __getter__(index_OR_name) {
     if ((index_OR_name is int || index_OR_name == null)) {
-      return _convertNativeToDart_Window(__getter___1(index_OR_name));
+      return _convertNativeToDart_Window(___getter___1(index_OR_name));
     }
     if ((index_OR_name is String || index_OR_name == null)) {
-      return _convertNativeToDart_Window(__getter___2(index_OR_name));
+      return _convertNativeToDart_Window(___getter___2(index_OR_name));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -24045,13 +23971,13 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
   @DocsEditable()
   @Creates('Window|=Object')
   @Returns('Window|=Object')
-  __getter___1(int index) native;
+  ___getter___1(int index) native;
   @JSName('__getter__')
   @DomName('Window.__getter__')
   @DocsEditable()
   @Creates('Window|=Object')
   @Returns('Window|=Object')
-  __getter___2(String name) native;
+  ___getter___2(String name) native;
 
   @JSName('addEventListener')
   @DomName('Window.addEventListener')

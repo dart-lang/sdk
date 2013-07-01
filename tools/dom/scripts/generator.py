@@ -11,7 +11,8 @@ import json
 import monitored
 import os
 import re
-from htmlrenamer import html_interface_renames, typed_array_renames
+from htmlrenamer import html_interface_renames, renamed_html_members, \
+     typed_array_renames
 
 _pure_interfaces = monitored.Set('generator._pure_interfaces', [
     # TODO(sra): DOMStringMap should be a class implementing Map<String,String>.
@@ -60,7 +61,6 @@ _methods_with_named_formals = monitored.Set(
   'Entry.copyTo',
   'Entry.moveTo',
   'HTMLInputElement.setRangeText',
-  'HTMLTextAreaElement.setRangeText',
   'XMLHttpRequest.open',
   ])
 

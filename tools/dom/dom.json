@@ -114,7 +114,6 @@
       "createAnalyser": {},
       "createBiquadFilter": {},
       "createBuffer": {},
-      "createBufferFromBuffer": {},
       "createBufferSource": {},
       "createChannelMerger": {},
       "createChannelSplitter": {},
@@ -122,7 +121,6 @@
       "createDelay": {},
       "createDelayNode": {},
       "createDynamicsCompressor": {},
-      "createEmptyBuffer": {},
       "createGain": {},
       "createGainNode": {},
       "createJavaScriptNode": {},
@@ -290,9 +288,7 @@
     "comment": "http://www.w3.org/TR/css3-conditional/#the-css-interface",
     "dart_action": "experimental",
     "members": {
-      "supports": {},
-      "supportsCondition": {},
-      "supportsProperty": {}
+      "supports": {}
     }
   },
   "CSSCharsetRule": {
@@ -711,8 +707,6 @@
       "createImageDataFromImageData": {},
       "createLinearGradient": {},
       "createPattern": {},
-      "createPatternFromCanvas": {},
-      "createPatternFromImage": {},
       "createRadialGradient": {},
       "currentPath": {
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#path-objects",
@@ -759,8 +753,6 @@
       "setFillColor": {
         "support_level": "nonstandard"
       },
-      "setFillColorCmyk": {},
-      "setFillColorRgb": {},
       "setLineCap": {
         "support_level": "nonstandard"
       },
@@ -777,13 +769,9 @@
       "setShadow": {
         "support_level": "nonstandard"
       },
-      "setShadowCmyk": {},
-      "setShadowRgb": {},
       "setStrokeColor": {
         "support_level": "nonstandard"
       },
-      "setStrokeColorCmyk": {},
-      "setStrokeColorRgb": {},
       "setTransform": {},
       "shadowBlur": {},
       "shadowColor": {},
@@ -1601,8 +1589,6 @@
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#the-datatransferitemlist-interface",
     "members": {
       "add": {},
-      "addData": {},
-      "addFile": {},
       "clear": {},
       "item": {},
       "length": {}
@@ -3008,9 +2994,7 @@
     "comment": "http://www.w3.org/TR/XMLHttpRequest2/#interface-formdata",
     "members": {
       "FormData": {},
-      "append": {},
-      "appendBlob": {},
-      "appendString": {}
+      "append": {}
     },
     "support_level": "stable"
   },
@@ -5048,9 +5032,6 @@
       "onversionchange": {},
       "removeEventListener": {},
       "transaction": {},
-      "transactionList": {},
-      "transactionStore": {},
-      "transactionStores": {},
       "version": {}
     },
     "support_level": "stable"
@@ -6646,11 +6627,7 @@
       "readyState": {},
       "reliable": {},
       "removeEventListener": {},
-      "send": {},
-      "sendBlob": {},
-      "sendByteBuffer": {},
-      "sendString": {},
-      "sendTypedData": {}
+      "send": {}
     },
     "support_level": "experimental"
   },
@@ -10711,9 +10688,6 @@
     "comment": "http://www.w3.org/TR/FileAPI/#URL-object",
     "members": {
       "createObjectURL": {},
-      "createObjectUrlFromBlob": {},
-      "createObjectUrlFromSource": {},
-      "createObjectUrlFromStream": {},
       "revokeObjectURL": {}
     },
     "support_level": "stable"
@@ -11227,13 +11201,8 @@
       "blendEquationSeparate": {},
       "blendFunc": {},
       "blendFuncSeparate": {},
-      "bufferByteData": {},
       "bufferData": {},
-      "bufferEmptyData": {},
-      "bufferSubByteData": {},
       "bufferSubData": {},
-      "bufferSubTypedData": {},
-      "bufferTypedData": {},
       "checkFramebufferStatus": {},
       "clear": {},
       "clearColor": {},
@@ -11328,19 +11297,9 @@
       "stencilOp": {},
       "stencilOpSeparate": {},
       "texImage2D": {},
-      "texImage2DCanvas": {},
-      "texImage2DData": {},
-      "texImage2DImage": {},
-      "texImage2DTypedData": {},
-      "texImage2DVideo": {},
       "texParameterf": {},
       "texParameteri": {},
       "texSubImage2D": {},
-      "texSubImage2DCanvas": {},
-      "texSubImage2DData": {},
-      "texSubImage2DImage": {},
-      "texSubImage2DTypedData": {},
-      "texSubImage2DVideo": {},
       "uniform1f": {},
       "uniform1fv": {},
       "uniform1i": {},
@@ -11473,10 +11432,6 @@
       "readyState": {},
       "removeEventListener": {},
       "send": {},
-      "sendBlob": {},
-      "sendByteBuffer": {},
-      "sendString": {},
-      "sendTypeData": {},
       "url": {}
     },
     "support_level": "stable"

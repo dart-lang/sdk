@@ -36,31 +36,6 @@ $if DART2JS
     return _transaction(storeName_OR_storeNames, mode);
   }
 
-  Transaction transactionStore(String storeName, String mode) {
-    if (mode != 'readonly' && mode != 'readwrite') {
-      throw new ArgumentError(mode);
-    }
-    // Try and create a transaction with a string mode.  Browsers that expect a
-    // numeric mode tend to convert the string into a number.  This fails
-    // silently, resulting in zero ('readonly').
-    return _transaction(storeName, mode);
-  }
-
-  Transaction transactionList(List<String> storeNames, String mode) {
-    if (mode != 'readonly' && mode != 'readwrite') {
-      throw new ArgumentError(mode);
-    }
-    List storeNames_1 = convertDartToNative_StringArray(storeNames);
-    return _transaction(storeNames_1, mode);
-  }
-  
-  Transaction transactionStores(DomStringList storeNames, String mode) {
-    if (mode != 'readonly' && mode != 'readwrite') {
-      throw new ArgumentError(mode);
-    }
-    return _transaction(storeNames_1, mode);
-  }
-
   @JSName('transaction')
   Transaction _transaction(stores, mode) native;
 $endif

@@ -9,16 +9,7 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   static String createObjectUrl(blob_OR_source_OR_stream) =>
       JS('String',
          '(self.URL || self.webkitURL).createObjectURL(#)',
-          blob_OR_source_OR_stream);
-
-  static String createObjectUrlFromSource(MediaSource source) =>
-      JS('String', '(self.URL || self.webkitURL).createObjectURL(#)', source);
-  
-  static String createObjectUrlFromStream(MediaStream stream) =>
-      JS('String', '(self.URL || self.webkitURL).createObjectURL(#)', stream);
-  
-  static String createObjectUrlFromBlob(Blob blob) =>
-      JS('String', '(self.URL || self.webkitURL).createObjectURL(#)', blob);
+         blob_OR_source_OR_stream);
 
   static void revokeObjectUrl(String url) =>
       JS('void',

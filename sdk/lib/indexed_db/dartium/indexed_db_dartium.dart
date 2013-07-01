@@ -212,18 +212,6 @@ class Database extends EventTarget {
 
   Transaction _transaction_3(storeName_OR_storeNames, mode) native "IDBDatabase__transaction_3_Callback";
 
-  @DomName('IDBDatabase.transactionList')
-  @DocsEditable()
-  Transaction transactionList(List<String> storeNames, String mode) native "IDBDatabase_transactionList_Callback";
-
-  @DomName('IDBDatabase.transactionStore')
-  @DocsEditable()
-  Transaction transactionStore(String storeName, String mode) native "IDBDatabase_transactionStore_Callback";
-
-  @DomName('IDBDatabase.transactionStores')
-  @DocsEditable()
-  Transaction transactionStores(List<String> storeNames, String mode) native "IDBDatabase_transactionStores_Callback";
-
   @DomName('IDBDatabase.onabort')
   @DocsEditable()
   Stream<Event> get onAbort => abortEvent.forTarget(this);
