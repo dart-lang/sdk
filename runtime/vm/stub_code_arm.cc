@@ -1399,6 +1399,19 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   }
 #endif  // DEBUG
 
+  // Check single stepping.
+  Label not_stepping;
+  __ ldr(R6, FieldAddress(CTX, Context::isolate_offset()));
+  __ ldrb(R6, Address(R6, Isolate::single_step_offset()));
+  __ CompareImmediate(R6, 0);
+  __ b(&not_stepping, EQ);
+  __ EnterStubFrame();
+  __ Push(R5);  // Preserve IC data.
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry);
+  __ Pop(R5);
+  __ LeaveStubFrame();
+  __ Bind(&not_stepping);
+
   // Load arguments descriptor into R4.
   __ ldr(R4, FieldAddress(R5, ICData::arguments_descriptor_offset()));
   // Preserve return address, since LR is needed for subroutine call.
@@ -1613,6 +1626,19 @@ void StubCode::GenerateUnoptimizedStaticCallStub(Assembler* assembler) {
     __ Bind(&ok);
   }
 #endif  // DEBUG
+
+  // Check single stepping.
+  Label not_stepping;
+  __ ldr(R6, FieldAddress(CTX, Context::isolate_offset()));
+  __ ldrb(R6, Address(R6, Isolate::single_step_offset()));
+  __ CompareImmediate(R6, 0);
+  __ b(&not_stepping, EQ);
+  __ EnterStubFrame();
+  __ Push(R5);  // Preserve IC data.
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry);
+  __ Pop(R5);
+  __ LeaveStubFrame();
+  __ Bind(&not_stepping);
 
   // R5: IC data object (preserved).
   __ ldr(R6, FieldAddress(R5, ICData::ic_data_offset()));
@@ -2050,6 +2076,17 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
 // Return Zero condition flag set if equal.
 void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
+  // Check single stepping.
+  Label not_stepping;
+  __ ldr(R1, FieldAddress(CTX, Context::isolate_offset()));
+  __ ldrb(R1, Address(R1, Isolate::single_step_offset()));
+  __ CompareImmediate(R1, 0);
+  __ b(&not_stepping, EQ);
+  __ EnterStubFrame();
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry);
+  __ LeaveStubFrame();
+  __ Bind(&not_stepping);
+
   const Register temp = R2;
   const Register left = R1;
   const Register right = R0;

@@ -873,6 +873,14 @@ DEFINE_RUNTIME_ENTRY(BreakpointDynamicHandler, 0) {
 }
 
 
+DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
+  ASSERT(arguments.ArgCount() ==
+         kSingleStepHandlerRuntimeEntry.argument_count());
+  ASSERT(isolate->debugger() != NULL);
+  isolate->debugger()->SingleStepCallback();
+}
+
+
 static RawFunction* InlineCacheMissHandler(
     const GrowableArray<const Instance*>& args,
     const ICData& ic_data,
@@ -1292,9 +1300,10 @@ DEFINE_RUNTIME_ENTRY(InstanceFunctionLookup, 4) {
 
 static bool CanOptimizeFunction(const Function& function, Isolate* isolate) {
   const intptr_t kLowInvocationCount = -100000000;
-  if (isolate->debugger()->HasBreakpoint(function)) {
-    // We cannot set breakpoints in optimized code, so do not optimize
-    // the function.
+  if (isolate->debugger()->IsStepping() ||
+      isolate->debugger()->HasBreakpoint(function)) {
+    // We cannot set breakpoints and single step in optimized code,
+    // so do not optimize the function.
     function.set_usage_counter(0);
     return false;
   }

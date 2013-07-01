@@ -773,6 +773,7 @@ Debugger::Debugger()
       code_breakpoints_(NULL),
       resume_action_(kContinue),
       ignore_breakpoints_(false),
+      in_event_notification_(false),
       exc_pause_info_(kNoPauseOnExceptions) {
 }
 
@@ -780,6 +781,7 @@ Debugger::Debugger()
 Debugger::~Debugger() {
   PortMap::ClosePort(isolate_id_);
   isolate_id_ = ILLEGAL_ISOLATE_ID;
+  ASSERT(!in_event_notification_);
   ASSERT(src_breakpoints_ == NULL);
   ASSERT(code_breakpoints_ == NULL);
   ASSERT(stack_trace_ == NULL);
@@ -815,6 +817,20 @@ static RawFunction* ResolveLibraryFunction(
   return Function::null();
 }
 
+void Debugger::SetSingleStep() {
+  isolate_->set_single_step(true);
+  resume_action_ = kSingleStep;
+}
+
+void Debugger::SetStepOver() {
+  isolate_->set_single_step(false);
+  resume_action_ = kStepOver;
+}
+
+void Debugger::SetStepOut() {
+  isolate_->set_single_step(false);
+  resume_action_ = kStepOut;
+}
 
 RawFunction* Debugger::ResolveFunction(const Library& library,
                                        const String& class_name,
@@ -869,6 +885,10 @@ void Debugger::DeoptimizeWorld() {
 
 
 void Debugger::InstrumentForStepping(const Function& target_function) {
+  if (target_function.is_native()) {
+    // Can't instrument native functions.
+    return;
+  }
   if (!target_function.HasCode()) {
     Compiler::CompileFunction(target_function);
     // If there were any errors, ignore them silently and return without
@@ -966,6 +986,24 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
 }
 
 
+ActivationFrame* Debugger::TopDartFrame() const {
+  StackFrameIterator iterator(false);
+  StackFrame* frame = iterator.NextFrame();
+  while ((frame != NULL) && !frame->IsDartFrame()) {
+    frame = iterator.NextFrame();
+  }
+  Code& code = Code::Handle(isolate_, frame->LookupDartCode());
+  ActivationFrame* activation =
+      new ActivationFrame(frame->pc(), frame->fp(), frame->sp(), code);
+  return activation;
+}
+
+
+DebuggerStackTrace* Debugger::StackTrace() {
+  return (stack_trace_ != NULL) ? stack_trace_ : CollectStackTrace();
+}
+
+
 void Debugger::SetExceptionPauseInfo(Dart_ExceptionPauseInfo pause_info) {
   ASSERT((pause_info == kNoPauseOnExceptions) ||
          (pause_info == kPauseOnUnhandledExceptions) ||
@@ -1007,7 +1045,7 @@ void Debugger::SignalExceptionThrown(const Instance& exc) {
   // breakpoint or exception event, or if the debugger is not
   // interested in exception events.
   if (ignore_breakpoints_ ||
-      (stack_trace_ != NULL) ||
+      in_event_notification_ ||
       (event_handler_ == NULL) ||
       (exc_pause_info_ == kNoPauseOnExceptions)) {
     return;
@@ -1023,7 +1061,6 @@ void Debugger::SignalExceptionThrown(const Instance& exc) {
   DebuggerEvent event;
   event.type = kExceptionThrown;
   event.exception = &exc;
-  ASSERT(event_handler_ != NULL);
   (*event_handler_)(&event);
   stack_trace_ = NULL;
   obj_cache_ = NULL;  // Remote object cache is zone allocated.
@@ -1506,11 +1543,69 @@ bool Debugger::IsDebuggable(const Function& func) {
 }
 
 
+void Debugger::SignalPausedEvent(ActivationFrame* top_frame) {
+  resume_action_ = kContinue;
+  isolate_->set_single_step(false);
+  ASSERT(!in_event_notification_);
+  ASSERT(obj_cache_ == NULL);
+  in_event_notification_ = true;
+  obj_cache_ = new RemoteObjectCache(64);
+  DebuggerEvent event;
+  event.type = kBreakpointReached;
+  event.top_frame = top_frame;
+  (*event_handler_)(&event);
+  in_event_notification_ = false;
+  obj_cache_ = NULL;  // Remote object cache is zone allocated.
+}
+
+
+void Debugger::SingleStepCallback() {
+  ASSERT(resume_action_ == kSingleStep);
+  ASSERT(isolate_->single_step());
+  // We can't get here unless the debugger event handler enabled
+  // single stepping.
+  ASSERT(event_handler_ != NULL);
+  // Don't pause recursively.
+  if (in_event_notification_) return;
+
+  // Check whether we are in a Dart function that the user is
+  // interested in.
+  ActivationFrame* frame = TopDartFrame();
+  ASSERT(frame != NULL);
+  const Function& func = frame->function();
+  if (!IsDebuggable(func)) {
+    return;
+  }
+
+  if (FLAG_verbose_debug) {
+    OS::Print(">>> single step break at %s:%"Pd" (func %s token %"Pd")\n",
+              String::Handle(frame->SourceUrl()).ToCString(),
+              frame->LineNumber(),
+              String::Handle(frame->QualifiedFunctionName()).ToCString(),
+              frame->TokenPos());
+  }
+
+  stack_trace_ = CollectStackTrace();
+  SignalPausedEvent(frame);
+
+  RemoveInternalBreakpoints();
+  if (resume_action_ == kStepOver) {
+    InstrumentForStepping(func);
+  } else if (resume_action_ == kStepOut) {
+    if (stack_trace_->Length() > 1) {
+      ActivationFrame* caller_frame = stack_trace_->ActivationFrameAt(1);
+      InstrumentForStepping(caller_frame->function());
+    }
+  }
+  stack_trace_ = NULL;
+}
+
+
 void Debugger::SignalBpReached() {
   // We ignore this breakpoint when the VM is executing code invoked
   // by the debugger to evaluate variables values, or when we see a nested
   // breakpoint or exception event.
-  if (ignore_breakpoints_ || (stack_trace_ != NULL)) {
+  if (ignore_breakpoints_ || in_event_notification_) {
     return;
   }
   DebuggerStackTrace* stack_trace = CollectStackTrace();
@@ -1519,9 +1614,15 @@ void Debugger::SignalBpReached() {
   ASSERT(top_frame != NULL);
   CodeBreakpoint* bpt = GetCodeBreakpoint(top_frame->pc());
   ASSERT(bpt != NULL);
+
+  bool report_bp = true;
+  if (bpt->IsInternal() && !IsDebuggable(top_frame->function())) {
+    report_bp = false;
+  }
   if (FLAG_verbose_debug) {
-    OS::Print(">>> hit %s breakpoint at %s:%"Pd" "
+    OS::Print(">>> %s %s breakpoint at %s:%"Pd" "
               "(token %"Pd") (address %#"Px")\n",
+              report_bp ? "hit" : "ignore",
               bpt->IsInternal() ? "internal" : "user",
               String::Handle(bpt->SourceUrl()).ToCString(),
               bpt->LineNumber(),
@@ -1529,117 +1630,34 @@ void Debugger::SignalBpReached() {
               top_frame->pc());
   }
 
-  resume_action_ = kContinue;
-  if (event_handler_ != NULL) {
-    ASSERT(stack_trace_ == NULL);
-    ASSERT(obj_cache_ == NULL);
-    obj_cache_ = new RemoteObjectCache(64);
+  if (report_bp && (event_handler_ != NULL)) {
     stack_trace_ = stack_trace;
-    DebuggerEvent event;
-    event.type = kBreakpointReached;
-    ASSERT(stack_trace->Length() > 0);
-    event.top_frame = stack_trace->ActivationFrameAt(0);
-    (*event_handler_)(&event);
+    SignalPausedEvent(top_frame);
     stack_trace_ = NULL;
-    obj_cache_ = NULL;  // Remote object cache is zone allocated.
   }
 
-  Function& currently_instrumented_func = Function::Handle();
-  if (bpt->IsInternal()) {
-    currently_instrumented_func = bpt->function();
-  }
   Function& func_to_instrument = Function::Handle();
-  if (resume_action_ == kContinue) {
-    // Nothing to do here, any potential instrumentation will be removed
-    // below.
-  } else if (resume_action_ == kStepOver) {
-    func_to_instrument = bpt->function();
+  if (resume_action_ == kStepOver) {
     if (bpt->breakpoint_kind_ == PcDescriptors::kReturn) {
-      // If we are at the function return, do a StepOut action.
-      if (stack_trace->Length() > 1) {
-        ActivationFrame* caller_frame = stack_trace->ActivationFrameAt(1);
-        func_to_instrument = caller_frame->function().raw();
-      }
-    }
-  } else if (resume_action_ == kStepInto) {
-    // If the call target is not debuggable, we treat StepInto like
-    // a StepOver, that is we instrument the current function.
-    if (bpt->breakpoint_kind_ == PcDescriptors::kIcCall) {
-      func_to_instrument = bpt->function();
-      ICData& ic_data = ICData::Handle();
-      const Code& code =
-          Code::Handle(Function::Handle(bpt->function_).unoptimized_code());
-      CodePatcher::GetInstanceCallAt(bpt->pc_, code, &ic_data);
-      ArgumentsDescriptor
-          args_descriptor(Array::Handle(ic_data.arguments_descriptor()));
-      ActivationFrame* top_frame = stack_trace->ActivationFrameAt(0);
-      intptr_t num_args = args_descriptor.Count();
-      Instance& receiver =
-          Instance::Handle(top_frame->GetInstanceCallReceiver(num_args));
-      Code& target_code =
-          Code::Handle(ResolveCompileInstanceCallTarget(receiver, ic_data));
-      if (!target_code.IsNull()) {
-        Function& callee = Function::Handle(target_code.function());
-        if (IsDebuggable(callee)) {
-          func_to_instrument = callee.raw();
-        }
-      }
-    } else if (bpt->breakpoint_kind_ == PcDescriptors::kUnoptStaticCall) {
-      func_to_instrument = bpt->function();
-      const Code& code = Code::Handle(func_to_instrument.CurrentCode());
-      ASSERT(!code.is_optimized());
-      const Function& callee = Function::Handle(
-          CodePatcher::GetUnoptimizedStaticCallAt(bpt->pc_, code, NULL));
-      ASSERT(!callee.IsNull());
-      if (IsDebuggable(callee)) {
-        func_to_instrument = callee.raw();
-      }
-    } else if (bpt->breakpoint_kind_ == PcDescriptors::kClosureCall) {
-      func_to_instrument = bpt->function();
-      const Code& code = Code::Handle(func_to_instrument.CurrentCode());
-      ArgumentsDescriptor args_desc(Array::Handle(
-          CodePatcher::GetClosureArgDescAt(bpt->pc_, code)));
-      ActivationFrame* top_frame = stack_trace->ActivationFrameAt(0);
-      const Object& receiver =
-          Object::Handle(top_frame->GetClosureObject(args_desc.Count()));
-      if (!receiver.IsNull()) {
-        // Verify that the class of receiver is a closure class
-        // by checking that signature_function() is not null.
-        const Class& receiver_class = Class::Handle(receiver.clazz());
-        if (receiver_class.IsSignatureClass()) {
-          Function& closure_func =
-              Function::Handle(Closure::function(Instance::Cast(receiver)));
-          if (IsDebuggable(closure_func)) {
-            func_to_instrument = closure_func.raw();
-          }
-        }
-        // If the receiver is not a closure, then the runtime will attempt
-        // to invoke the "call" method on the object if one exists.
-        // TODO(hausner): find call method and intrument it for stepping.
-      }
-    } else if (bpt->breakpoint_kind_ == PcDescriptors::kRuntimeCall) {
-      // This is just a call to the runtime, not Dart code. Stepping
-      // into not possible, just treat like StepOver.
-      func_to_instrument = bpt->function();
+      // Step over return is converted into a single step so we break at
+      // the caller.
+      SetSingleStep();
     } else {
-      ASSERT(bpt->breakpoint_kind_ == PcDescriptors::kReturn);
-      // Treat like stepping out to caller.
-      if (stack_trace->Length() > 1) {
-        ActivationFrame* caller_frame = stack_trace->ActivationFrameAt(1);
-        func_to_instrument = caller_frame->function().raw();
-      }
+      func_to_instrument = bpt->function();
     }
-  } else {
-    ASSERT(resume_action_ == kStepOut);
-    // Set stepping breakpoints in the caller.
+  } else if (resume_action_ == kStepOut) {
     if (stack_trace->Length() > 1) {
       ActivationFrame* caller_frame = stack_trace->ActivationFrameAt(1);
       func_to_instrument = caller_frame->function().raw();
     }
+  } else {
+    ASSERT((resume_action_ == kContinue) || (resume_action_ == kSingleStep));
+    // Nothing to do here. Any potential instrumentation will be removed
+    // below. Single stepping is handled by the single step callback.
   }
 
   if (func_to_instrument.IsNull() ||
-      (func_to_instrument.raw() != currently_instrumented_func.raw())) {
+      (func_to_instrument.raw() != bpt->function())) {
     RemoveInternalBreakpoints();  // *bpt is now invalid.
     if (!func_to_instrument.IsNull()) {
       InstrumentForStepping(func_to_instrument);

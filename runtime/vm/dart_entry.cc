@@ -6,6 +6,7 @@
 
 #include "vm/code_generator.h"
 #include "vm/compiler.h"
+#include "vm/debugger.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 #include "vm/simulator.h"
@@ -421,6 +422,12 @@ RawObject* DartLibraryCalls::HandleMessage(const Object& receive_port,
   args.SetAt(0, receive_port);
   args.SetAt(1, Integer::Handle(isolate, Integer::New(reply_port_id)));
   args.SetAt(2, message);
+  if (isolate->debugger()->IsStepping()) {
+    // If the isolate is being debugged and the debugger was stepping
+    // through code, enable single stepping so debugger will stop
+    // at the first location the user is interested in.
+    isolate->debugger()->SetSingleStep();
+  }
   const Object& result =
       Object::Handle(isolate, DartEntry::InvokeFunction(function, args));
   ASSERT(result.IsNull() || result.IsError());

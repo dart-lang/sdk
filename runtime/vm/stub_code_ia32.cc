@@ -1432,6 +1432,20 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   }
 #endif  // DEBUG
 
+  // Check single stepping.
+  Label not_stepping;
+  __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
+  __ movzxb(EAX, Address(EAX, Isolate::single_step_offset()));
+  __ cmpl(EAX, Immediate(0));
+  __ j(EQUAL, &not_stepping, Assembler::kNearJump);
+
+  __ EnterStubFrame();
+  __ pushl(ECX);
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry);
+  __ popl(ECX);
+  __ LeaveFrame();
+  __ Bind(&not_stepping);
+
   // Load arguments descriptor into EDX.
   __ movl(EDX, FieldAddress(ECX, ICData::arguments_descriptor_offset()));
   // Loop that checks if there is an IC data match.
@@ -1654,6 +1668,20 @@ void StubCode::GenerateUnoptimizedStaticCallStub(Assembler* assembler) {
     __ Bind(&ok);
   }
 #endif  // DEBUG
+
+  // Check single stepping.
+  Label not_stepping;
+  __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
+  __ movzxb(EAX, Address(EAX, Isolate::single_step_offset()));
+  __ cmpl(EAX, Immediate(0));
+  __ j(EQUAL, &not_stepping, Assembler::kNearJump);
+
+  __ EnterStubFrame();
+  __ pushl(ECX);
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry);
+  __ popl(ECX);
+  __ LeaveFrame();
+  __ Bind(&not_stepping);
 
   // ECX: IC data object (preserved).
   __ movl(EBX, FieldAddress(ECX, ICData::ic_data_offset()));
@@ -2133,6 +2161,18 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
 // Returns ZF set.
 void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
+  // Check single stepping.
+  Label not_stepping;
+  __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
+  __ movzxb(EAX, Address(EAX, Isolate::single_step_offset()));
+  __ cmpl(EAX, Immediate(0));
+  __ j(EQUAL, &not_stepping, Assembler::kNearJump);
+
+  __ EnterStubFrame();
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry);
+  __ LeaveFrame();
+  __ Bind(&not_stepping);
+
   const Register left = EAX;
   const Register right = EDX;
   const Register temp = ECX;

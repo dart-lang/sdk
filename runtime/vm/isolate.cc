@@ -389,6 +389,7 @@ Isolate::Isolate()
       api_state_(NULL),
       stub_code_(NULL),
       debugger_(NULL),
+      single_step_(false),
       simulator_(NULL),
       long_jump_base_(NULL),
       timer_list_(),

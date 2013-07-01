@@ -434,6 +434,12 @@ class Isolate : public BaseIsolate {
 
   Debugger* debugger() const { return debugger_; }
 
+  void set_single_step(bool value) { single_step_ = value; }
+  bool single_step() const { return single_step_; }
+  static intptr_t single_step_offset() {
+    return OFFSET_OF(Isolate, single_step_);
+  }
+
   Simulator* simulator() const { return simulator_; }
   void set_simulator(Simulator* value) { simulator_ = value; }
 
@@ -648,6 +654,7 @@ class Isolate : public BaseIsolate {
   ApiState* api_state_;
   StubCode* stub_code_;
   Debugger* debugger_;
+  bool single_step_;
   Simulator* simulator_;
   LongJump* long_jump_base_;
   TimerList timer_list_;

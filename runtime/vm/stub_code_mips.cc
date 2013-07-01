@@ -1578,6 +1578,22 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   }
 #endif  // DEBUG
 
+
+  // Check single stepping.
+  Label not_stepping;
+  __ lw(T0, FieldAddress(CTX, Context::isolate_offset()));
+  __ lbu(T0, Address(T0, Isolate::single_step_offset()));
+  __ BranchEqual(T0, 0, &not_stepping);
+  // Call single step callback in debugger.
+  __ addiu(SP, SP, Immediate(-2 * kWordSize));
+  __ sw(S5, Address(SP, 1 * kWordSize));  // Preserve IC data.
+  __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry);
+  __ lw(RA, Address(SP, 0 * kWordSize));
+  __ lw(S5, Address(SP, 1 * kWordSize));
+  __ addiu(SP, SP, Immediate(2 * kWordSize));
+  __ Bind(&not_stepping);
+
   // Load argument descriptor into S4.
   __ lw(S4, FieldAddress(S5, ICData::arguments_descriptor_offset()));
   // Preserve return address, since RA is needed for subroutine call.
@@ -1818,6 +1834,22 @@ void StubCode::GenerateUnoptimizedStaticCallStub(Assembler* assembler) {
     __ Bind(&ok);
   }
 #endif  // DEBUG
+
+  // Check single stepping.
+  Label not_stepping;
+  __ lw(T0, FieldAddress(CTX, Context::isolate_offset()));
+  __ lbu(T0, Address(T0, Isolate::single_step_offset()));
+  __ BranchEqual(T0, 0, &not_stepping);
+  // Call single step callback in debugger.
+  __ addiu(SP, SP, Immediate(-2 * kWordSize));
+  __ sw(S5, Address(SP, 1 * kWordSize));  // Preserve IC data.
+  __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry);
+  __ lw(RA, Address(SP, 0 * kWordSize));
+  __ lw(S5, Address(SP, 1 * kWordSize));
+  __ addiu(SP, SP, Immediate(2 * kWordSize));
+  __ Bind(&not_stepping);
+
 
   // S5: IC data object (preserved).
   __ lw(T0, FieldAddress(S5, ICData::ic_data_offset()));
@@ -2312,6 +2344,19 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
 // Returns: CMPRES is zero if equal, non-zero otherwise.
 void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
+  // Check single stepping.
+  Label not_stepping;
+  __ lw(T0, FieldAddress(CTX, Context::isolate_offset()));
+  __ lbu(T0, Address(T0, Isolate::single_step_offset()));
+  __ BranchEqual(T0, 0, &not_stepping);
+  // Call single step callback in debugger.
+  __ addiu(SP, SP, Immediate(-1 * kWordSize));
+  __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry);
+  __ lw(RA, Address(SP, 0 * kWordSize));
+  __ addiu(SP, SP, Immediate(1 * kWordSize));
+  __ Bind(&not_stepping);
+
   const Register temp1 = T2;
   const Register temp2 = T3;
   const Register left = T1;

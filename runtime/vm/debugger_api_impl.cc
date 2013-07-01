@@ -423,7 +423,7 @@ DART_EXPORT Dart_Handle Dart_SetStepOver() {
 DART_EXPORT Dart_Handle Dart_SetStepInto() {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  isolate->debugger()->SetStepInto();
+  isolate->debugger()->SetSingleStep();
   return Api::Success();
 }
 
