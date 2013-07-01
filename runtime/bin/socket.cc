@@ -220,8 +220,15 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
   if (!Dart_IsError(result)) {
     buffer += offset;
     bytes_written = Socket::Write(socket, buffer, length);
-    if (bytes_written > 0) total_bytes_written = bytes_written;
-    Dart_TypedDataReleaseData(buffer_obj);
+    if (bytes_written >= 0) {
+      total_bytes_written = bytes_written;
+      Dart_TypedDataReleaseData(buffer_obj);
+    } else {
+      // Extract OSError before we release data, as it may override the error.
+      OSError os_error;
+      Dart_TypedDataReleaseData(buffer_obj);
+      Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    }
   } else {
     // Send data in chunks of maximum 16KB.
     const intptr_t max_chunk_length =
@@ -240,14 +247,16 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
       }
       bytes_written =
           Socket::Write(socket, reinterpret_cast<void*>(buffer), chunk_length);
-      if (bytes_written > 0) total_bytes_written += bytes_written;
+      if (bytes_written >= 0) {
+        total_bytes_written += bytes_written;
+      } else {
+        Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+      }
     } while (bytes_written > 0 && total_bytes_written < length);
     delete[] buffer;
   }
   if (bytes_written >= 0) {
     Dart_SetReturnValue(args, Dart_NewInteger(total_bytes_written));
-  } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
   Dart_ExitScope();
 }
