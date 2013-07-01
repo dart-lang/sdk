@@ -145,7 +145,7 @@ Map _generateJsonFromLibraries(MirrorSystem mirrors) {
 
 /// Filter out mirrors that are private, or which are not part of this docs
 /// process. That is, ones without the DocsEditable annotation.
-/// If [ignoreDocsEditable] is true, relax the restriction on @DocsEditable.
+/// If [ignoreDocsEditable] is true, relax the restriction on @DocsEditable().
 /// This is to account for classes that are defined in a template, but whose
 /// members are generated.
 List<DeclarationMirror> _sortAndFilterMirrors(List<DeclarationMirror> mirrors,

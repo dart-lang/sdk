@@ -47,7 +47,7 @@ $!MEMBERS
   @DomName('MouseEvent.movementY')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
+  @Experimental()
   Point get movement => new Point($dom_webkitMovementX, $dom_webkitMovementY);
 
   /**

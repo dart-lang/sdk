@@ -275,25 +275,25 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    * Binds the attribute [name] to the [path] of the [model].
    * Path is a String of accessors such as `foo.bar.baz`.
    */
-  @Experimental
+  @Experimental()
   void bind(String name, model, String path) {
     TemplateElement.mdvPackage(this).bind(name, model, path);
   }
 
   /** Unbinds the attribute [name]. */
-  @Experimental
+  @Experimental()
   void unbind(String name) {
     TemplateElement.mdvPackage(this).unbind(name);
   }
 
   /** Unbinds all bound attributes. */
-  @Experimental
+  @Experimental()
   void unbindAll() {
     TemplateElement.mdvPackage(this).unbindAll();
   }
 
   /** Gets the template instance that instantiated this node, if any. */
-  @Experimental
+  @Experimental()
   TemplateInstance get templateInstance =>
       TemplateElement.mdvPackage(this).templateInstance;
 

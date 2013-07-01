@@ -69,7 +69,7 @@ $endif
    */
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
+  @Experimental()
   @DomName('Document.getCSSCanvasContext')
   CanvasRenderingContext getCssCanvasContext(String contextId, String name,
       int width, int height) {
@@ -108,7 +108,7 @@ $endif
   @DomName('Document.webkitCancelFullScreen')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
+  @Experimental()
   void cancelFullScreen() {
     $dom_webkitCancelFullScreen();
   }
@@ -116,7 +116,7 @@ $endif
   @DomName('Document.webkitExitFullscreen')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
+  @Experimental()
   void exitFullscreen() {
     $dom_webkitExitFullscreen();
   }
@@ -124,7 +124,7 @@ $endif
   @DomName('Document.webkitExitPointerLock')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
+  @Experimental()
   void exitPointerLock() {
     $dom_webkitExitPointerLock();
   }
@@ -132,38 +132,38 @@ $endif
   @DomName('Document.webkitFullscreenElement')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
+  @Experimental()
   Element get fullscreenElement => $dom_webkitFullscreenElement;
 
   @DomName('Document.webkitFullscreenEnabled')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
+  @Experimental()
   bool get fullscreenEnabled => $dom_webkitFullscreenEnabled;
 
   @DomName('Document.webkitHidden')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
+  @Experimental()
   bool get hidden => $dom_webkitHidden;
 
   @DomName('Document.webkitIsFullScreen')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
+  @Experimental()
   bool get isFullScreen => $dom_webkitIsFullScreen;
 
   @DomName('Document.webkitPointerLockElement')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
+  @Experimental()
   Element get pointerLockElement =>
       $dom_webkitPointerLockElement;
 
   @DomName('Document.webkitVisibilityState')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
+  @Experimental()
   String get visibilityState => $dom_webkitVisibilityState;
 
 

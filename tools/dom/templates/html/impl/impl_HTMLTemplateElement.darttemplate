@@ -39,7 +39,7 @@ part of $LIBRARYNAME;
  */
 // TODO(jmesserly): if this is just one method, a function type would make it
 // more Dart-friendly.
-@Experimental
+@Experimental()
 abstract class CustomBindingSyntax {
   /**
    * This syntax method allows for a custom interpretation of the contents of
@@ -99,13 +99,13 @@ abstract class CustomBindingSyntax {
 }
 
 
-@Experimental
+@Experimental()
 $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 $!MEMBERS
 
   // For real TemplateElement use the actual DOM .content field instead of
   // our polyfilled expando.
-  @Experimental
+  @Experimental()
   DocumentFragment get content => $dom_content;
 
 
@@ -136,7 +136,7 @@ $!MEMBERS
    * Returns true if this template was just decorated, or false if it was
    * already decorated.
    */
-  @Experimental
+  @Experimental()
   static bool decorate(Element template, [Element instanceRef]) {
     // == true check because it starts as a null field.
     if (template._templateIsDecorated == true) return false;
@@ -254,7 +254,7 @@ $!MEMBERS
    * decorate an entire tree recursively.
    */
   // TODO(rafaelw): Review whether this is the right public API.
-  @Experimental
+  @Experimental()
   static void bootstrap(Node content) {
     void _bootstrap(template) {
       if (!TemplateElement.decorate(template)) {
@@ -305,6 +305,6 @@ option[template] {
    * A mapping of names to Custom Syntax objects. See [CustomBindingSyntax] for
    * more information.
    */
-  @Experimental
+  @Experimental()
   static Map<String, CustomBindingSyntax> syntax = {};
 }

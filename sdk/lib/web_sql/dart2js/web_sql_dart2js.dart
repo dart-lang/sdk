@@ -34,7 +34,7 @@ import 'dart:_interceptors' show Interceptor;
 
 @DomName('SQLStatementCallback')
 // http://www.w3.org/TR/webdatabase/#sqlstatementcallback
-@Experimental // deprecated
+@Experimental() // deprecated
 typedef void SqlStatementCallback(SqlTransaction transaction, SqlResultSet resultSet);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -45,7 +45,7 @@ typedef void SqlStatementCallback(SqlTransaction transaction, SqlResultSet resul
 
 @DomName('SQLStatementErrorCallback')
 // http://www.w3.org/TR/webdatabase/#sqlstatementerrorcallback
-@Experimental // deprecated
+@Experimental() // deprecated
 typedef void SqlStatementErrorCallback(SqlTransaction transaction, SqlError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -56,7 +56,7 @@ typedef void SqlStatementErrorCallback(SqlTransaction transaction, SqlError erro
 
 @DomName('SQLTransactionCallback')
 // http://www.w3.org/TR/webdatabase/#sqltransactioncallback
-@Experimental // deprecated
+@Experimental() // deprecated
 typedef void SqlTransactionCallback(SqlTransaction transaction);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -67,27 +67,27 @@ typedef void SqlTransactionCallback(SqlTransaction transaction);
 
 @DomName('SQLTransactionErrorCallback')
 // http://www.w3.org/TR/webdatabase/#sqltransactionerrorcallback
-@Experimental // deprecated
+@Experimental() // deprecated
 typedef void SqlTransactionErrorCallback(SqlError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('Database')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental
+@Experimental()
 // http://www.w3.org/TR/webdatabase/#asynchronous-database-api
-@Experimental // deprecated
+@Experimental() // deprecated
 class SqlDatabase extends Interceptor native "Database" {
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.openDatabase)');
 
   @DomName('Database.version')
-  @DocsEditable
+  @DocsEditable()
   final String version;
 
   /**
@@ -103,15 +103,15 @@ class SqlDatabase extends Interceptor native "Database" {
    * * [Database.changeVersion](http://www.w3.org/TR/webdatabase/#dom-database-changeversion) from W3C.
    */
   @DomName('Database.changeVersion')
-  @DocsEditable
+  @DocsEditable()
   void changeVersion(String oldVersion, String newVersion, [SqlTransactionCallback callback, SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
 
   @DomName('Database.readTransaction')
-  @DocsEditable
+  @DocsEditable()
   void readTransaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
 
   @DomName('Database.transaction')
-  @DocsEditable
+  @DocsEditable()
   void transaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -119,50 +119,50 @@ class SqlDatabase extends Interceptor native "Database" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SQLError')
 // http://www.w3.org/TR/webdatabase/#sqlerror
-@Experimental // deprecated
+@Experimental() // deprecated
 class SqlError extends Interceptor native "SQLError" {
 
   @DomName('SQLError.CONSTRAINT_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int CONSTRAINT_ERR = 6;
 
   @DomName('SQLError.DATABASE_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int DATABASE_ERR = 1;
 
   @DomName('SQLError.QUOTA_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int QUOTA_ERR = 4;
 
   @DomName('SQLError.SYNTAX_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int SYNTAX_ERR = 5;
 
   @DomName('SQLError.TIMEOUT_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int TIMEOUT_ERR = 7;
 
   @DomName('SQLError.TOO_LARGE_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int TOO_LARGE_ERR = 3;
 
   @DomName('SQLError.UNKNOWN_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int UNKNOWN_ERR = 0;
 
   @DomName('SQLError.VERSION_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int VERSION_ERR = 2;
 
   @DomName('SQLError.code')
-  @DocsEditable
+  @DocsEditable()
   final int code;
 
   @DomName('SQLError.message')
-  @DocsEditable
+  @DocsEditable()
   final String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -170,50 +170,50 @@ class SqlError extends Interceptor native "SQLError" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SQLException')
 // http://www.w3.org/TR/webdatabase/#sqlexception
-@Experimental // deprecated
+@Experimental() // deprecated
 class SqlException extends Interceptor native "SQLException" {
 
   @DomName('SQLException.CONSTRAINT_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int CONSTRAINT_ERR = 6;
 
   @DomName('SQLException.DATABASE_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int DATABASE_ERR = 1;
 
   @DomName('SQLException.QUOTA_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int QUOTA_ERR = 4;
 
   @DomName('SQLException.SYNTAX_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int SYNTAX_ERR = 5;
 
   @DomName('SQLException.TIMEOUT_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int TIMEOUT_ERR = 7;
 
   @DomName('SQLException.TOO_LARGE_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int TOO_LARGE_ERR = 3;
 
   @DomName('SQLException.UNKNOWN_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int UNKNOWN_ERR = 0;
 
   @DomName('SQLException.VERSION_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int VERSION_ERR = 2;
 
   @DomName('SQLException.code')
-  @DocsEditable
+  @DocsEditable()
   final int code;
 
   @DomName('SQLException.message')
-  @DocsEditable
+  @DocsEditable()
   final String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -221,22 +221,22 @@ class SqlException extends Interceptor native "SQLException" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SQLResultSet')
 // http://www.w3.org/TR/webdatabase/#sqlresultset
-@Experimental // deprecated
+@Experimental() // deprecated
 class SqlResultSet extends Interceptor native "SQLResultSet" {
 
   @DomName('SQLResultSet.insertId')
-  @DocsEditable
+  @DocsEditable()
   final int insertId;
 
   @DomName('SQLResultSet.rows')
-  @DocsEditable
+  @DocsEditable()
   final SqlResultSetRowList rows;
 
   @DomName('SQLResultSet.rowsAffected')
-  @DocsEditable
+  @DocsEditable()
   final int rowsAffected;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -244,14 +244,14 @@ class SqlResultSet extends Interceptor native "SQLResultSet" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SQLResultSetRowList')
 // http://www.w3.org/TR/webdatabase/#sqlresultsetrowlist
-@Experimental // deprecated
+@Experimental() // deprecated
 class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableListMixin<Map> implements JavaScriptIndexingBehavior, List<Map> native "SQLResultSetRowList" {
 
   @DomName('SQLResultSetRowList.length')
-  @DocsEditable
+  @DocsEditable()
   int get length => JS("int", "#.length", this);
 
   Map operator[](int index) {
@@ -299,14 +299,14 @@ class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableList
   // -- end List<Map> mixins.
 
   @DomName('SQLResultSetRowList.item')
-  @DocsEditable
+  @DocsEditable()
   @Creates('=Object')
   Map item(int index) {
     return convertNativeToDart_Dictionary(_item_1(index));
   }
   @JSName('item')
   @DomName('SQLResultSetRowList.item')
-  @DocsEditable
+  @DocsEditable()
   @Creates('=Object')
   _item_1(index) native;
 }
@@ -315,17 +315,17 @@ class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableList
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SQLTransaction')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental
+@Experimental()
 // http://www.w3.org/TR/webdatabase/#sqltransaction
 @deprecated // deprecated
 class SqlTransaction extends Interceptor native "SQLTransaction" {
 
   @DomName('SQLTransaction.executeSql')
-  @DocsEditable
+  @DocsEditable()
   void executeSql(String sqlStatement, List arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -333,12 +333,12 @@ class SqlTransaction extends Interceptor native "SQLTransaction" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SQLTransactionSync')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental
+@Experimental()
 // http://www.w3.org/TR/webdatabase/#sqltransactionsync
-@Experimental // deprecated
+@Experimental() // deprecated
 abstract class _SQLTransactionSync extends Interceptor native "SQLTransactionSync" {
 }

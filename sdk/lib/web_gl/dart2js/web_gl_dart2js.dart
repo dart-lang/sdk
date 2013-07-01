@@ -322,21 +322,21 @@ const int ZERO = RenderingContext.ZERO;
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('WebGLActiveInfo')
-@Unstable
+@Unstable()
 class ActiveInfo extends Interceptor native "WebGLActiveInfo" {
 
   @DomName('WebGLActiveInfo.name')
-  @DocsEditable
+  @DocsEditable()
   final String name;
 
   @DomName('WebGLActiveInfo.size')
-  @DocsEditable
+  @DocsEditable()
   final int size;
 
   @DomName('WebGLActiveInfo.type')
-  @DocsEditable
+  @DocsEditable()
   final int type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -344,9 +344,9 @@ class ActiveInfo extends Interceptor native "WebGLActiveInfo" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('WebGLBuffer')
-@Unstable
+@Unstable()
 class Buffer extends Interceptor native "WebGLBuffer" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -354,22 +354,22 @@ class Buffer extends Interceptor native "WebGLBuffer" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('WebGLCompressedTextureATC')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_atc/
-@Experimental
+@Experimental()
 class CompressedTextureAtc extends Interceptor native "WebGLCompressedTextureATC" {
 
   @DomName('WebGLCompressedTextureATC.COMPRESSED_RGBA_ATC_EXPLICIT_ALPHA_WEBGL')
-  @DocsEditable
+  @DocsEditable()
   static const int COMPRESSED_RGBA_ATC_EXPLICIT_ALPHA_WEBGL = 0x8C93;
 
   @DomName('WebGLCompressedTextureATC.COMPRESSED_RGBA_ATC_INTERPOLATED_ALPHA_WEBGL')
-  @DocsEditable
+  @DocsEditable()
   static const int COMPRESSED_RGBA_ATC_INTERPOLATED_ALPHA_WEBGL = 0x87EE;
 
   @DomName('WebGLCompressedTextureATC.COMPRESSED_RGB_ATC_WEBGL')
-  @DocsEditable
+  @DocsEditable()
   static const int COMPRESSED_RGB_ATC_WEBGL = 0x8C92;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -377,26 +377,26 @@ class CompressedTextureAtc extends Interceptor native "WebGLCompressedTextureATC
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('WebGLCompressedTexturePVRTC')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_pvrtc/
-@Experimental // experimental
+@Experimental() // experimental
 class CompressedTexturePvrtc extends Interceptor native "WebGLCompressedTexturePVRTC" {
 
   @DomName('WebGLCompressedTexturePVRTC.COMPRESSED_RGBA_PVRTC_2BPPV1_IMG')
-  @DocsEditable
+  @DocsEditable()
   static const int COMPRESSED_RGBA_PVRTC_2BPPV1_IMG = 0x8C03;
 
   @DomName('WebGLCompressedTexturePVRTC.COMPRESSED_RGBA_PVRTC_4BPPV1_IMG')
-  @DocsEditable
+  @DocsEditable()
   static const int COMPRESSED_RGBA_PVRTC_4BPPV1_IMG = 0x8C02;
 
   @DomName('WebGLCompressedTexturePVRTC.COMPRESSED_RGB_PVRTC_2BPPV1_IMG')
-  @DocsEditable
+  @DocsEditable()
   static const int COMPRESSED_RGB_PVRTC_2BPPV1_IMG = 0x8C01;
 
   @DomName('WebGLCompressedTexturePVRTC.COMPRESSED_RGB_PVRTC_4BPPV1_IMG')
-  @DocsEditable
+  @DocsEditable()
   static const int COMPRESSED_RGB_PVRTC_4BPPV1_IMG = 0x8C00;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -404,26 +404,26 @@ class CompressedTexturePvrtc extends Interceptor native "WebGLCompressedTextureP
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('WebGLCompressedTextureS3TC')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_s3tc/
-@Experimental // experimental
+@Experimental() // experimental
 class CompressedTextureS3TC extends Interceptor native "WebGLCompressedTextureS3TC" {
 
   @DomName('WebGLCompressedTextureS3TC.COMPRESSED_RGBA_S3TC_DXT1_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1;
 
   @DomName('WebGLCompressedTextureS3TC.COMPRESSED_RGBA_S3TC_DXT3_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int COMPRESSED_RGBA_S3TC_DXT3_EXT = 0x83F2;
 
   @DomName('WebGLCompressedTextureS3TC.COMPRESSED_RGBA_S3TC_DXT5_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int COMPRESSED_RGBA_S3TC_DXT5_EXT = 0x83F3;
 
   @DomName('WebGLCompressedTextureS3TC.COMPRESSED_RGB_S3TC_DXT1_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int COMPRESSED_RGB_S3TC_DXT1_EXT = 0x83F0;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -431,33 +431,33 @@ class CompressedTextureS3TC extends Interceptor native "WebGLCompressedTextureS3
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('WebGLContextAttributes')
-@Unstable
+@Unstable()
 class ContextAttributes extends Interceptor native "WebGLContextAttributes" {
 
   @DomName('WebGLContextAttributes.alpha')
-  @DocsEditable
+  @DocsEditable()
   bool alpha;
 
   @DomName('WebGLContextAttributes.antialias')
-  @DocsEditable
+  @DocsEditable()
   bool antialias;
 
   @DomName('WebGLContextAttributes.depth')
-  @DocsEditable
+  @DocsEditable()
   bool depth;
 
   @DomName('WebGLContextAttributes.premultipliedAlpha')
-  @DocsEditable
+  @DocsEditable()
   bool premultipliedAlpha;
 
   @DomName('WebGLContextAttributes.preserveDrawingBuffer')
-  @DocsEditable
+  @DocsEditable()
   bool preserveDrawingBuffer;
 
   @DomName('WebGLContextAttributes.stencil')
-  @DocsEditable
+  @DocsEditable()
   bool stencil;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -465,15 +465,15 @@ class ContextAttributes extends Interceptor native "WebGLContextAttributes" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('WebGLContextEvent')
-@Unstable
+@Unstable()
 class ContextEvent extends Event native "WebGLContextEvent" {
   // To suppress missing implicit constructor warnings.
   factory ContextEvent._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('WebGLContextEvent.statusMessage')
-  @DocsEditable
+  @DocsEditable()
   final String statusMessage;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -481,18 +481,18 @@ class ContextEvent extends Event native "WebGLContextEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('WebGLDebugRendererInfo')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_debug_renderer_info/
-@Experimental // experimental
+@Experimental() // experimental
 class DebugRendererInfo extends Interceptor native "WebGLDebugRendererInfo" {
 
   @DomName('WebGLDebugRendererInfo.UNMASKED_RENDERER_WEBGL')
-  @DocsEditable
+  @DocsEditable()
   static const int UNMASKED_RENDERER_WEBGL = 0x9246;
 
   @DomName('WebGLDebugRendererInfo.UNMASKED_VENDOR_WEBGL')
-  @DocsEditable
+  @DocsEditable()
   static const int UNMASKED_VENDOR_WEBGL = 0x9245;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -500,14 +500,14 @@ class DebugRendererInfo extends Interceptor native "WebGLDebugRendererInfo" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('WebGLDebugShaders')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_debug_shaders/
-@Experimental // experimental
+@Experimental() // experimental
 class DebugShaders extends Interceptor native "WebGLDebugShaders" {
 
   @DomName('WebGLDebugShaders.getTranslatedShaderSource')
-  @DocsEditable
+  @DocsEditable()
   String getTranslatedShaderSource(Shader shader) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -515,14 +515,14 @@ class DebugShaders extends Interceptor native "WebGLDebugShaders" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('WebGLDepthTexture')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_depth_texture/
-@Experimental // experimental
+@Experimental() // experimental
 class DepthTexture extends Interceptor native "WebGLDepthTexture" {
 
   @DomName('WebGLDepthTexture.UNSIGNED_INT_24_8_WEBGL')
-  @DocsEditable
+  @DocsEditable()
   static const int UNSIGNED_INT_24_8_WEBGL = 0x84FA;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -530,151 +530,151 @@ class DepthTexture extends Interceptor native "WebGLDepthTexture" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('EXTDrawBuffers')
 // http://www.khronos.org/registry/webgl/specs/latest/
-@Experimental // stable
+@Experimental() // stable
 class ExtDrawBuffers extends Interceptor native "EXTDrawBuffers" {
 
   @DomName('EXTDrawBuffers.COLOR_ATTACHMENT0_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int COLOR_ATTACHMENT0_EXT = 0x8CE0;
 
   @DomName('EXTDrawBuffers.COLOR_ATTACHMENT10_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int COLOR_ATTACHMENT10_EXT = 0x8CEA;
 
   @DomName('EXTDrawBuffers.COLOR_ATTACHMENT11_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int COLOR_ATTACHMENT11_EXT = 0x8CEB;
 
   @DomName('EXTDrawBuffers.COLOR_ATTACHMENT12_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int COLOR_ATTACHMENT12_EXT = 0x8CEC;
 
   @DomName('EXTDrawBuffers.COLOR_ATTACHMENT13_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int COLOR_ATTACHMENT13_EXT = 0x8CED;
 
   @DomName('EXTDrawBuffers.COLOR_ATTACHMENT14_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int COLOR_ATTACHMENT14_EXT = 0x8CEE;
 
   @DomName('EXTDrawBuffers.COLOR_ATTACHMENT15_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int COLOR_ATTACHMENT15_EXT = 0x8CEF;
 
   @DomName('EXTDrawBuffers.COLOR_ATTACHMENT1_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int COLOR_ATTACHMENT1_EXT = 0x8CE1;
 
   @DomName('EXTDrawBuffers.COLOR_ATTACHMENT2_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int COLOR_ATTACHMENT2_EXT = 0x8CE2;
 
   @DomName('EXTDrawBuffers.COLOR_ATTACHMENT3_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int COLOR_ATTACHMENT3_EXT = 0x8CE3;
 
   @DomName('EXTDrawBuffers.COLOR_ATTACHMENT4_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int COLOR_ATTACHMENT4_EXT = 0x8CE4;
 
   @DomName('EXTDrawBuffers.COLOR_ATTACHMENT5_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int COLOR_ATTACHMENT5_EXT = 0x8CE5;
 
   @DomName('EXTDrawBuffers.COLOR_ATTACHMENT6_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int COLOR_ATTACHMENT6_EXT = 0x8CE6;
 
   @DomName('EXTDrawBuffers.COLOR_ATTACHMENT7_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int COLOR_ATTACHMENT7_EXT = 0x8CE7;
 
   @DomName('EXTDrawBuffers.COLOR_ATTACHMENT8_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int COLOR_ATTACHMENT8_EXT = 0x8CE8;
 
   @DomName('EXTDrawBuffers.COLOR_ATTACHMENT9_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int COLOR_ATTACHMENT9_EXT = 0x8CE9;
 
   @DomName('EXTDrawBuffers.DRAW_BUFFER0_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int DRAW_BUFFER0_EXT = 0x8825;
 
   @DomName('EXTDrawBuffers.DRAW_BUFFER10_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int DRAW_BUFFER10_EXT = 0x882F;
 
   @DomName('EXTDrawBuffers.DRAW_BUFFER11_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int DRAW_BUFFER11_EXT = 0x8830;
 
   @DomName('EXTDrawBuffers.DRAW_BUFFER12_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int DRAW_BUFFER12_EXT = 0x8831;
 
   @DomName('EXTDrawBuffers.DRAW_BUFFER13_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int DRAW_BUFFER13_EXT = 0x8832;
 
   @DomName('EXTDrawBuffers.DRAW_BUFFER14_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int DRAW_BUFFER14_EXT = 0x8833;
 
   @DomName('EXTDrawBuffers.DRAW_BUFFER15_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int DRAW_BUFFER15_EXT = 0x8834;
 
   @DomName('EXTDrawBuffers.DRAW_BUFFER1_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int DRAW_BUFFER1_EXT = 0x8826;
 
   @DomName('EXTDrawBuffers.DRAW_BUFFER2_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int DRAW_BUFFER2_EXT = 0x8827;
 
   @DomName('EXTDrawBuffers.DRAW_BUFFER3_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int DRAW_BUFFER3_EXT = 0x8828;
 
   @DomName('EXTDrawBuffers.DRAW_BUFFER4_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int DRAW_BUFFER4_EXT = 0x8829;
 
   @DomName('EXTDrawBuffers.DRAW_BUFFER5_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int DRAW_BUFFER5_EXT = 0x882A;
 
   @DomName('EXTDrawBuffers.DRAW_BUFFER6_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int DRAW_BUFFER6_EXT = 0x882B;
 
   @DomName('EXTDrawBuffers.DRAW_BUFFER7_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int DRAW_BUFFER7_EXT = 0x882C;
 
   @DomName('EXTDrawBuffers.DRAW_BUFFER8_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int DRAW_BUFFER8_EXT = 0x882D;
 
   @DomName('EXTDrawBuffers.DRAW_BUFFER9_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int DRAW_BUFFER9_EXT = 0x882E;
 
   @DomName('EXTDrawBuffers.MAX_COLOR_ATTACHMENTS_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int MAX_COLOR_ATTACHMENTS_EXT = 0x8CDF;
 
   @DomName('EXTDrawBuffers.MAX_DRAW_BUFFERS_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int MAX_DRAW_BUFFERS_EXT = 0x8824;
 
   @JSName('drawBuffersEXT')
   @DomName('EXTDrawBuffers.drawBuffersEXT')
-  @DocsEditable
+  @DocsEditable()
   void drawBuffersExt(List<int> buffers) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -682,10 +682,10 @@ class ExtDrawBuffers extends Interceptor native "EXTDrawBuffers" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('EXTFragDepth')
 // http://www.khronos.org/registry/webgl/extensions/EXT_frag_depth/
-@Experimental
+@Experimental()
 class ExtFragDepth extends Interceptor native "EXTFragDepth" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -693,18 +693,18 @@ class ExtFragDepth extends Interceptor native "EXTFragDepth" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('EXTTextureFilterAnisotropic')
 // http://www.khronos.org/registry/webgl/extensions/EXT_texture_filter_anisotropic/
-@Experimental
+@Experimental()
 class ExtTextureFilterAnisotropic extends Interceptor native "EXTTextureFilterAnisotropic" {
 
   @DomName('EXTTextureFilterAnisotropic.MAX_TEXTURE_MAX_ANISOTROPY_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
 
   @DomName('EXTTextureFilterAnisotropic.TEXTURE_MAX_ANISOTROPY_EXT')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE_MAX_ANISOTROPY_EXT = 0x84FE;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -712,9 +712,9 @@ class ExtTextureFilterAnisotropic extends Interceptor native "EXTTextureFilterAn
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('WebGLFramebuffer')
-@Unstable
+@Unstable()
 class Framebuffer extends Interceptor native "WebGLFramebuffer" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -722,18 +722,18 @@ class Framebuffer extends Interceptor native "WebGLFramebuffer" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('WebGLLoseContext')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_lose_context/
-@Experimental
+@Experimental()
 class LoseContext extends Interceptor native "WebGLLoseContext" {
 
   @DomName('WebGLLoseContext.loseContext')
-  @DocsEditable
+  @DocsEditable()
   void loseContext() native;
 
   @DomName('WebGLLoseContext.restoreContext')
-  @DocsEditable
+  @DocsEditable()
   void restoreContext() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -741,10 +741,10 @@ class LoseContext extends Interceptor native "WebGLLoseContext" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('OESElementIndexUint')
 // http://www.khronos.org/registry/webgl/extensions/OES_element_index_uint/
-@Experimental // experimental
+@Experimental() // experimental
 class OesElementIndexUint extends Interceptor native "OESElementIndexUint" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -752,14 +752,14 @@ class OesElementIndexUint extends Interceptor native "OESElementIndexUint" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('OESStandardDerivatives')
 // http://www.khronos.org/registry/webgl/extensions/OES_standard_derivatives/
-@Experimental // experimental
+@Experimental() // experimental
 class OesStandardDerivatives extends Interceptor native "OESStandardDerivatives" {
 
   @DomName('OESStandardDerivatives.FRAGMENT_SHADER_DERIVATIVE_HINT_OES')
-  @DocsEditable
+  @DocsEditable()
   static const int FRAGMENT_SHADER_DERIVATIVE_HINT_OES = 0x8B8B;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -767,10 +767,10 @@ class OesStandardDerivatives extends Interceptor native "OESStandardDerivatives"
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('OESTextureFloat')
 // http://www.khronos.org/registry/webgl/extensions/OES_texture_float/
-@Experimental // experimental
+@Experimental() // experimental
 class OesTextureFloat extends Interceptor native "OESTextureFloat" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -778,10 +778,10 @@ class OesTextureFloat extends Interceptor native "OESTextureFloat" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('OESTextureFloatLinear')
 // http://www.khronos.org/registry/webgl/extensions/OES_texture_float_linear/
-@Experimental
+@Experimental()
 class OesTextureFloatLinear extends Interceptor native "OESTextureFloatLinear" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -789,14 +789,14 @@ class OesTextureFloatLinear extends Interceptor native "OESTextureFloatLinear" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('OESTextureHalfFloat')
 // http://www.khronos.org/registry/webgl/extensions/OES_texture_half_float/
-@Experimental // experimental
+@Experimental() // experimental
 class OesTextureHalfFloat extends Interceptor native "OESTextureHalfFloat" {
 
   @DomName('OESTextureHalfFloat.HALF_FLOAT_OES')
-  @DocsEditable
+  @DocsEditable()
   static const int HALF_FLOAT_OES = 0x8D61;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -804,10 +804,10 @@ class OesTextureHalfFloat extends Interceptor native "OESTextureHalfFloat" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('OESTextureHalfFloatLinear')
 // http://www.khronos.org/registry/webgl/extensions/OES_texture_half_float_linear/
-@Experimental
+@Experimental()
 class OesTextureHalfFloatLinear extends Interceptor native "OESTextureHalfFloatLinear" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -815,34 +815,34 @@ class OesTextureHalfFloatLinear extends Interceptor native "OESTextureHalfFloatL
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('OESVertexArrayObject')
 // http://www.khronos.org/registry/webgl/extensions/OES_vertex_array_object/
-@Experimental // experimental
+@Experimental() // experimental
 class OesVertexArrayObject extends Interceptor native "OESVertexArrayObject" {
 
   @DomName('OESVertexArrayObject.VERTEX_ARRAY_BINDING_OES')
-  @DocsEditable
+  @DocsEditable()
   static const int VERTEX_ARRAY_BINDING_OES = 0x85B5;
 
   @JSName('bindVertexArrayOES')
   @DomName('OESVertexArrayObject.bindVertexArrayOES')
-  @DocsEditable
+  @DocsEditable()
   void bindVertexArray(VertexArrayObject arrayObject) native;
 
   @JSName('createVertexArrayOES')
   @DomName('OESVertexArrayObject.createVertexArrayOES')
-  @DocsEditable
+  @DocsEditable()
   VertexArrayObject createVertexArray() native;
 
   @JSName('deleteVertexArrayOES')
   @DomName('OESVertexArrayObject.deleteVertexArrayOES')
-  @DocsEditable
+  @DocsEditable()
   void deleteVertexArray(VertexArrayObject arrayObject) native;
 
   @JSName('isVertexArrayOES')
   @DomName('OESVertexArrayObject.isVertexArrayOES')
-  @DocsEditable
+  @DocsEditable()
   bool isVertexArray(VertexArrayObject arrayObject) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -850,9 +850,9 @@ class OesVertexArrayObject extends Interceptor native "OESVertexArrayObject" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('WebGLProgram')
-@Unstable
+@Unstable()
 class Program extends Interceptor native "WebGLProgram" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -860,9 +860,9 @@ class Program extends Interceptor native "WebGLProgram" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('WebGLRenderbuffer')
-@Unstable
+@Unstable()
 class Renderbuffer extends Interceptor native "WebGLRenderbuffer" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -870,12 +870,12 @@ class Renderbuffer extends Interceptor native "WebGLRenderbuffer" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('WebGLRenderingContext')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
-@Experimental
-@Unstable
+@Experimental()
+@Unstable()
 class RenderingContext extends CanvasRenderingContext native "WebGLRenderingContext" {
   // To suppress missing implicit constructor warnings.
   factory RenderingContext._() { throw new UnsupportedError("Not supported"); }
@@ -884,1617 +884,1617 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   static bool get supported => JS('bool', '!!(window.WebGLRenderingContext)');
 
   @DomName('WebGLRenderingContext.ACTIVE_ATTRIBUTES')
-  @DocsEditable
+  @DocsEditable()
   static const int ACTIVE_ATTRIBUTES = 0x8B89;
 
   @DomName('WebGLRenderingContext.ACTIVE_TEXTURE')
-  @DocsEditable
+  @DocsEditable()
   static const int ACTIVE_TEXTURE = 0x84E0;
 
   @DomName('WebGLRenderingContext.ACTIVE_UNIFORMS')
-  @DocsEditable
+  @DocsEditable()
   static const int ACTIVE_UNIFORMS = 0x8B86;
 
   @DomName('WebGLRenderingContext.ALIASED_LINE_WIDTH_RANGE')
-  @DocsEditable
+  @DocsEditable()
   static const int ALIASED_LINE_WIDTH_RANGE = 0x846E;
 
   @DomName('WebGLRenderingContext.ALIASED_POINT_SIZE_RANGE')
-  @DocsEditable
+  @DocsEditable()
   static const int ALIASED_POINT_SIZE_RANGE = 0x846D;
 
   @DomName('WebGLRenderingContext.ALPHA')
-  @DocsEditable
+  @DocsEditable()
   static const int ALPHA = 0x1906;
 
   @DomName('WebGLRenderingContext.ALPHA_BITS')
-  @DocsEditable
+  @DocsEditable()
   static const int ALPHA_BITS = 0x0D55;
 
   @DomName('WebGLRenderingContext.ALWAYS')
-  @DocsEditable
+  @DocsEditable()
   static const int ALWAYS = 0x0207;
 
   @DomName('WebGLRenderingContext.ARRAY_BUFFER')
-  @DocsEditable
+  @DocsEditable()
   static const int ARRAY_BUFFER = 0x8892;
 
   @DomName('WebGLRenderingContext.ARRAY_BUFFER_BINDING')
-  @DocsEditable
+  @DocsEditable()
   static const int ARRAY_BUFFER_BINDING = 0x8894;
 
   @DomName('WebGLRenderingContext.ATTACHED_SHADERS')
-  @DocsEditable
+  @DocsEditable()
   static const int ATTACHED_SHADERS = 0x8B85;
 
   @DomName('WebGLRenderingContext.BACK')
-  @DocsEditable
+  @DocsEditable()
   static const int BACK = 0x0405;
 
   @DomName('WebGLRenderingContext.BLEND')
-  @DocsEditable
+  @DocsEditable()
   static const int BLEND = 0x0BE2;
 
   @DomName('WebGLRenderingContext.BLEND_COLOR')
-  @DocsEditable
+  @DocsEditable()
   static const int BLEND_COLOR = 0x8005;
 
   @DomName('WebGLRenderingContext.BLEND_DST_ALPHA')
-  @DocsEditable
+  @DocsEditable()
   static const int BLEND_DST_ALPHA = 0x80CA;
 
   @DomName('WebGLRenderingContext.BLEND_DST_RGB')
-  @DocsEditable
+  @DocsEditable()
   static const int BLEND_DST_RGB = 0x80C8;
 
   @DomName('WebGLRenderingContext.BLEND_EQUATION')
-  @DocsEditable
+  @DocsEditable()
   static const int BLEND_EQUATION = 0x8009;
 
   @DomName('WebGLRenderingContext.BLEND_EQUATION_ALPHA')
-  @DocsEditable
+  @DocsEditable()
   static const int BLEND_EQUATION_ALPHA = 0x883D;
 
   @DomName('WebGLRenderingContext.BLEND_EQUATION_RGB')
-  @DocsEditable
+  @DocsEditable()
   static const int BLEND_EQUATION_RGB = 0x8009;
 
   @DomName('WebGLRenderingContext.BLEND_SRC_ALPHA')
-  @DocsEditable
+  @DocsEditable()
   static const int BLEND_SRC_ALPHA = 0x80CB;
 
   @DomName('WebGLRenderingContext.BLEND_SRC_RGB')
-  @DocsEditable
+  @DocsEditable()
   static const int BLEND_SRC_RGB = 0x80C9;
 
   @DomName('WebGLRenderingContext.BLUE_BITS')
-  @DocsEditable
+  @DocsEditable()
   static const int BLUE_BITS = 0x0D54;
 
   @DomName('WebGLRenderingContext.BOOL')
-  @DocsEditable
+  @DocsEditable()
   static const int BOOL = 0x8B56;
 
   @DomName('WebGLRenderingContext.BOOL_VEC2')
-  @DocsEditable
+  @DocsEditable()
   static const int BOOL_VEC2 = 0x8B57;
 
   @DomName('WebGLRenderingContext.BOOL_VEC3')
-  @DocsEditable
+  @DocsEditable()
   static const int BOOL_VEC3 = 0x8B58;
 
   @DomName('WebGLRenderingContext.BOOL_VEC4')
-  @DocsEditable
+  @DocsEditable()
   static const int BOOL_VEC4 = 0x8B59;
 
   @DomName('WebGLRenderingContext.BROWSER_DEFAULT_WEBGL')
-  @DocsEditable
+  @DocsEditable()
   static const int BROWSER_DEFAULT_WEBGL = 0x9244;
 
   @DomName('WebGLRenderingContext.BUFFER_SIZE')
-  @DocsEditable
+  @DocsEditable()
   static const int BUFFER_SIZE = 0x8764;
 
   @DomName('WebGLRenderingContext.BUFFER_USAGE')
-  @DocsEditable
+  @DocsEditable()
   static const int BUFFER_USAGE = 0x8765;
 
   @DomName('WebGLRenderingContext.BYTE')
-  @DocsEditable
+  @DocsEditable()
   static const int BYTE = 0x1400;
 
   @DomName('WebGLRenderingContext.CCW')
-  @DocsEditable
+  @DocsEditable()
   static const int CCW = 0x0901;
 
   @DomName('WebGLRenderingContext.CLAMP_TO_EDGE')
-  @DocsEditable
+  @DocsEditable()
   static const int CLAMP_TO_EDGE = 0x812F;
 
   @DomName('WebGLRenderingContext.COLOR_ATTACHMENT0')
-  @DocsEditable
+  @DocsEditable()
   static const int COLOR_ATTACHMENT0 = 0x8CE0;
 
   @DomName('WebGLRenderingContext.COLOR_BUFFER_BIT')
-  @DocsEditable
+  @DocsEditable()
   static const int COLOR_BUFFER_BIT = 0x00004000;
 
   @DomName('WebGLRenderingContext.COLOR_CLEAR_VALUE')
-  @DocsEditable
+  @DocsEditable()
   static const int COLOR_CLEAR_VALUE = 0x0C22;
 
   @DomName('WebGLRenderingContext.COLOR_WRITEMASK')
-  @DocsEditable
+  @DocsEditable()
   static const int COLOR_WRITEMASK = 0x0C23;
 
   @DomName('WebGLRenderingContext.COMPILE_STATUS')
-  @DocsEditable
+  @DocsEditable()
   static const int COMPILE_STATUS = 0x8B81;
 
   @DomName('WebGLRenderingContext.COMPRESSED_TEXTURE_FORMATS')
-  @DocsEditable
+  @DocsEditable()
   static const int COMPRESSED_TEXTURE_FORMATS = 0x86A3;
 
   @DomName('WebGLRenderingContext.CONSTANT_ALPHA')
-  @DocsEditable
+  @DocsEditable()
   static const int CONSTANT_ALPHA = 0x8003;
 
   @DomName('WebGLRenderingContext.CONSTANT_COLOR')
-  @DocsEditable
+  @DocsEditable()
   static const int CONSTANT_COLOR = 0x8001;
 
   @DomName('WebGLRenderingContext.CONTEXT_LOST_WEBGL')
-  @DocsEditable
+  @DocsEditable()
   static const int CONTEXT_LOST_WEBGL = 0x9242;
 
   @DomName('WebGLRenderingContext.CULL_FACE')
-  @DocsEditable
+  @DocsEditable()
   static const int CULL_FACE = 0x0B44;
 
   @DomName('WebGLRenderingContext.CULL_FACE_MODE')
-  @DocsEditable
+  @DocsEditable()
   static const int CULL_FACE_MODE = 0x0B45;
 
   @DomName('WebGLRenderingContext.CURRENT_PROGRAM')
-  @DocsEditable
+  @DocsEditable()
   static const int CURRENT_PROGRAM = 0x8B8D;
 
   @DomName('WebGLRenderingContext.CURRENT_VERTEX_ATTRIB')
-  @DocsEditable
+  @DocsEditable()
   static const int CURRENT_VERTEX_ATTRIB = 0x8626;
 
   @DomName('WebGLRenderingContext.CW')
-  @DocsEditable
+  @DocsEditable()
   static const int CW = 0x0900;
 
   @DomName('WebGLRenderingContext.DECR')
-  @DocsEditable
+  @DocsEditable()
   static const int DECR = 0x1E03;
 
   @DomName('WebGLRenderingContext.DECR_WRAP')
-  @DocsEditable
+  @DocsEditable()
   static const int DECR_WRAP = 0x8508;
 
   @DomName('WebGLRenderingContext.DELETE_STATUS')
-  @DocsEditable
+  @DocsEditable()
   static const int DELETE_STATUS = 0x8B80;
 
   @DomName('WebGLRenderingContext.DEPTH_ATTACHMENT')
-  @DocsEditable
+  @DocsEditable()
   static const int DEPTH_ATTACHMENT = 0x8D00;
 
   @DomName('WebGLRenderingContext.DEPTH_BITS')
-  @DocsEditable
+  @DocsEditable()
   static const int DEPTH_BITS = 0x0D56;
 
   @DomName('WebGLRenderingContext.DEPTH_BUFFER_BIT')
-  @DocsEditable
+  @DocsEditable()
   static const int DEPTH_BUFFER_BIT = 0x00000100;
 
   @DomName('WebGLRenderingContext.DEPTH_CLEAR_VALUE')
-  @DocsEditable
+  @DocsEditable()
   static const int DEPTH_CLEAR_VALUE = 0x0B73;
 
   @DomName('WebGLRenderingContext.DEPTH_COMPONENT')
-  @DocsEditable
+  @DocsEditable()
   static const int DEPTH_COMPONENT = 0x1902;
 
   @DomName('WebGLRenderingContext.DEPTH_COMPONENT16')
-  @DocsEditable
+  @DocsEditable()
   static const int DEPTH_COMPONENT16 = 0x81A5;
 
   @DomName('WebGLRenderingContext.DEPTH_FUNC')
-  @DocsEditable
+  @DocsEditable()
   static const int DEPTH_FUNC = 0x0B74;
 
   @DomName('WebGLRenderingContext.DEPTH_RANGE')
-  @DocsEditable
+  @DocsEditable()
   static const int DEPTH_RANGE = 0x0B70;
 
   @DomName('WebGLRenderingContext.DEPTH_STENCIL')
-  @DocsEditable
+  @DocsEditable()
   static const int DEPTH_STENCIL = 0x84F9;
 
   @DomName('WebGLRenderingContext.DEPTH_STENCIL_ATTACHMENT')
-  @DocsEditable
+  @DocsEditable()
   static const int DEPTH_STENCIL_ATTACHMENT = 0x821A;
 
   @DomName('WebGLRenderingContext.DEPTH_TEST')
-  @DocsEditable
+  @DocsEditable()
   static const int DEPTH_TEST = 0x0B71;
 
   @DomName('WebGLRenderingContext.DEPTH_WRITEMASK')
-  @DocsEditable
+  @DocsEditable()
   static const int DEPTH_WRITEMASK = 0x0B72;
 
   @DomName('WebGLRenderingContext.DITHER')
-  @DocsEditable
+  @DocsEditable()
   static const int DITHER = 0x0BD0;
 
   @DomName('WebGLRenderingContext.DONT_CARE')
-  @DocsEditable
+  @DocsEditable()
   static const int DONT_CARE = 0x1100;
 
   @DomName('WebGLRenderingContext.DST_ALPHA')
-  @DocsEditable
+  @DocsEditable()
   static const int DST_ALPHA = 0x0304;
 
   @DomName('WebGLRenderingContext.DST_COLOR')
-  @DocsEditable
+  @DocsEditable()
   static const int DST_COLOR = 0x0306;
 
   @DomName('WebGLRenderingContext.DYNAMIC_DRAW')
-  @DocsEditable
+  @DocsEditable()
   static const int DYNAMIC_DRAW = 0x88E8;
 
   @DomName('WebGLRenderingContext.ELEMENT_ARRAY_BUFFER')
-  @DocsEditable
+  @DocsEditable()
   static const int ELEMENT_ARRAY_BUFFER = 0x8893;
 
   @DomName('WebGLRenderingContext.ELEMENT_ARRAY_BUFFER_BINDING')
-  @DocsEditable
+  @DocsEditable()
   static const int ELEMENT_ARRAY_BUFFER_BINDING = 0x8895;
 
   @DomName('WebGLRenderingContext.EQUAL')
-  @DocsEditable
+  @DocsEditable()
   static const int EQUAL = 0x0202;
 
   @DomName('WebGLRenderingContext.FASTEST')
-  @DocsEditable
+  @DocsEditable()
   static const int FASTEST = 0x1101;
 
   @DomName('WebGLRenderingContext.FLOAT')
-  @DocsEditable
+  @DocsEditable()
   static const int FLOAT = 0x1406;
 
   @DomName('WebGLRenderingContext.FLOAT_MAT2')
-  @DocsEditable
+  @DocsEditable()
   static const int FLOAT_MAT2 = 0x8B5A;
 
   @DomName('WebGLRenderingContext.FLOAT_MAT3')
-  @DocsEditable
+  @DocsEditable()
   static const int FLOAT_MAT3 = 0x8B5B;
 
   @DomName('WebGLRenderingContext.FLOAT_MAT4')
-  @DocsEditable
+  @DocsEditable()
   static const int FLOAT_MAT4 = 0x8B5C;
 
   @DomName('WebGLRenderingContext.FLOAT_VEC2')
-  @DocsEditable
+  @DocsEditable()
   static const int FLOAT_VEC2 = 0x8B50;
 
   @DomName('WebGLRenderingContext.FLOAT_VEC3')
-  @DocsEditable
+  @DocsEditable()
   static const int FLOAT_VEC3 = 0x8B51;
 
   @DomName('WebGLRenderingContext.FLOAT_VEC4')
-  @DocsEditable
+  @DocsEditable()
   static const int FLOAT_VEC4 = 0x8B52;
 
   @DomName('WebGLRenderingContext.FRAGMENT_SHADER')
-  @DocsEditable
+  @DocsEditable()
   static const int FRAGMENT_SHADER = 0x8B30;
 
   @DomName('WebGLRenderingContext.FRAMEBUFFER')
-  @DocsEditable
+  @DocsEditable()
   static const int FRAMEBUFFER = 0x8D40;
 
   @DomName('WebGLRenderingContext.FRAMEBUFFER_ATTACHMENT_OBJECT_NAME')
-  @DocsEditable
+  @DocsEditable()
   static const int FRAMEBUFFER_ATTACHMENT_OBJECT_NAME = 0x8CD1;
 
   @DomName('WebGLRenderingContext.FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE')
-  @DocsEditable
+  @DocsEditable()
   static const int FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE = 0x8CD0;
 
   @DomName('WebGLRenderingContext.FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE')
-  @DocsEditable
+  @DocsEditable()
   static const int FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE = 0x8CD3;
 
   @DomName('WebGLRenderingContext.FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL')
-  @DocsEditable
+  @DocsEditable()
   static const int FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL = 0x8CD2;
 
   @DomName('WebGLRenderingContext.FRAMEBUFFER_BINDING')
-  @DocsEditable
+  @DocsEditable()
   static const int FRAMEBUFFER_BINDING = 0x8CA6;
 
   @DomName('WebGLRenderingContext.FRAMEBUFFER_COMPLETE')
-  @DocsEditable
+  @DocsEditable()
   static const int FRAMEBUFFER_COMPLETE = 0x8CD5;
 
   @DomName('WebGLRenderingContext.FRAMEBUFFER_INCOMPLETE_ATTACHMENT')
-  @DocsEditable
+  @DocsEditable()
   static const int FRAMEBUFFER_INCOMPLETE_ATTACHMENT = 0x8CD6;
 
   @DomName('WebGLRenderingContext.FRAMEBUFFER_INCOMPLETE_DIMENSIONS')
-  @DocsEditable
+  @DocsEditable()
   static const int FRAMEBUFFER_INCOMPLETE_DIMENSIONS = 0x8CD9;
 
   @DomName('WebGLRenderingContext.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT')
-  @DocsEditable
+  @DocsEditable()
   static const int FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT = 0x8CD7;
 
   @DomName('WebGLRenderingContext.FRAMEBUFFER_UNSUPPORTED')
-  @DocsEditable
+  @DocsEditable()
   static const int FRAMEBUFFER_UNSUPPORTED = 0x8CDD;
 
   @DomName('WebGLRenderingContext.FRONT')
-  @DocsEditable
+  @DocsEditable()
   static const int FRONT = 0x0404;
 
   @DomName('WebGLRenderingContext.FRONT_AND_BACK')
-  @DocsEditable
+  @DocsEditable()
   static const int FRONT_AND_BACK = 0x0408;
 
   @DomName('WebGLRenderingContext.FRONT_FACE')
-  @DocsEditable
+  @DocsEditable()
   static const int FRONT_FACE = 0x0B46;
 
   @DomName('WebGLRenderingContext.FUNC_ADD')
-  @DocsEditable
+  @DocsEditable()
   static const int FUNC_ADD = 0x8006;
 
   @DomName('WebGLRenderingContext.FUNC_REVERSE_SUBTRACT')
-  @DocsEditable
+  @DocsEditable()
   static const int FUNC_REVERSE_SUBTRACT = 0x800B;
 
   @DomName('WebGLRenderingContext.FUNC_SUBTRACT')
-  @DocsEditable
+  @DocsEditable()
   static const int FUNC_SUBTRACT = 0x800A;
 
   @DomName('WebGLRenderingContext.GENERATE_MIPMAP_HINT')
-  @DocsEditable
+  @DocsEditable()
   static const int GENERATE_MIPMAP_HINT = 0x8192;
 
   @DomName('WebGLRenderingContext.GEQUAL')
-  @DocsEditable
+  @DocsEditable()
   static const int GEQUAL = 0x0206;
 
   @DomName('WebGLRenderingContext.GREATER')
-  @DocsEditable
+  @DocsEditable()
   static const int GREATER = 0x0204;
 
   @DomName('WebGLRenderingContext.GREEN_BITS')
-  @DocsEditable
+  @DocsEditable()
   static const int GREEN_BITS = 0x0D53;
 
   @DomName('WebGLRenderingContext.HIGH_FLOAT')
-  @DocsEditable
+  @DocsEditable()
   static const int HIGH_FLOAT = 0x8DF2;
 
   @DomName('WebGLRenderingContext.HIGH_INT')
-  @DocsEditable
+  @DocsEditable()
   static const int HIGH_INT = 0x8DF5;
 
   @DomName('WebGLRenderingContext.INCR')
-  @DocsEditable
+  @DocsEditable()
   static const int INCR = 0x1E02;
 
   @DomName('WebGLRenderingContext.INCR_WRAP')
-  @DocsEditable
+  @DocsEditable()
   static const int INCR_WRAP = 0x8507;
 
   @DomName('WebGLRenderingContext.INT')
-  @DocsEditable
+  @DocsEditable()
   static const int INT = 0x1404;
 
   @DomName('WebGLRenderingContext.INT_VEC2')
-  @DocsEditable
+  @DocsEditable()
   static const int INT_VEC2 = 0x8B53;
 
   @DomName('WebGLRenderingContext.INT_VEC3')
-  @DocsEditable
+  @DocsEditable()
   static const int INT_VEC3 = 0x8B54;
 
   @DomName('WebGLRenderingContext.INT_VEC4')
-  @DocsEditable
+  @DocsEditable()
   static const int INT_VEC4 = 0x8B55;
 
   @DomName('WebGLRenderingContext.INVALID_ENUM')
-  @DocsEditable
+  @DocsEditable()
   static const int INVALID_ENUM = 0x0500;
 
   @DomName('WebGLRenderingContext.INVALID_FRAMEBUFFER_OPERATION')
-  @DocsEditable
+  @DocsEditable()
   static const int INVALID_FRAMEBUFFER_OPERATION = 0x0506;
 
   @DomName('WebGLRenderingContext.INVALID_OPERATION')
-  @DocsEditable
+  @DocsEditable()
   static const int INVALID_OPERATION = 0x0502;
 
   @DomName('WebGLRenderingContext.INVALID_VALUE')
-  @DocsEditable
+  @DocsEditable()
   static const int INVALID_VALUE = 0x0501;
 
   @DomName('WebGLRenderingContext.INVERT')
-  @DocsEditable
+  @DocsEditable()
   static const int INVERT = 0x150A;
 
   @DomName('WebGLRenderingContext.KEEP')
-  @DocsEditable
+  @DocsEditable()
   static const int KEEP = 0x1E00;
 
   @DomName('WebGLRenderingContext.LEQUAL')
-  @DocsEditable
+  @DocsEditable()
   static const int LEQUAL = 0x0203;
 
   @DomName('WebGLRenderingContext.LESS')
-  @DocsEditable
+  @DocsEditable()
   static const int LESS = 0x0201;
 
   @DomName('WebGLRenderingContext.LINEAR')
-  @DocsEditable
+  @DocsEditable()
   static const int LINEAR = 0x2601;
 
   @DomName('WebGLRenderingContext.LINEAR_MIPMAP_LINEAR')
-  @DocsEditable
+  @DocsEditable()
   static const int LINEAR_MIPMAP_LINEAR = 0x2703;
 
   @DomName('WebGLRenderingContext.LINEAR_MIPMAP_NEAREST')
-  @DocsEditable
+  @DocsEditable()
   static const int LINEAR_MIPMAP_NEAREST = 0x2701;
 
   @DomName('WebGLRenderingContext.LINES')
-  @DocsEditable
+  @DocsEditable()
   static const int LINES = 0x0001;
 
   @DomName('WebGLRenderingContext.LINE_LOOP')
-  @DocsEditable
+  @DocsEditable()
   static const int LINE_LOOP = 0x0002;
 
   @DomName('WebGLRenderingContext.LINE_STRIP')
-  @DocsEditable
+  @DocsEditable()
   static const int LINE_STRIP = 0x0003;
 
   @DomName('WebGLRenderingContext.LINE_WIDTH')
-  @DocsEditable
+  @DocsEditable()
   static const int LINE_WIDTH = 0x0B21;
 
   @DomName('WebGLRenderingContext.LINK_STATUS')
-  @DocsEditable
+  @DocsEditable()
   static const int LINK_STATUS = 0x8B82;
 
   @DomName('WebGLRenderingContext.LOW_FLOAT')
-  @DocsEditable
+  @DocsEditable()
   static const int LOW_FLOAT = 0x8DF0;
 
   @DomName('WebGLRenderingContext.LOW_INT')
-  @DocsEditable
+  @DocsEditable()
   static const int LOW_INT = 0x8DF3;
 
   @DomName('WebGLRenderingContext.LUMINANCE')
-  @DocsEditable
+  @DocsEditable()
   static const int LUMINANCE = 0x1909;
 
   @DomName('WebGLRenderingContext.LUMINANCE_ALPHA')
-  @DocsEditable
+  @DocsEditable()
   static const int LUMINANCE_ALPHA = 0x190A;
 
   @DomName('WebGLRenderingContext.MAX_COMBINED_TEXTURE_IMAGE_UNITS')
-  @DocsEditable
+  @DocsEditable()
   static const int MAX_COMBINED_TEXTURE_IMAGE_UNITS = 0x8B4D;
 
   @DomName('WebGLRenderingContext.MAX_CUBE_MAP_TEXTURE_SIZE')
-  @DocsEditable
+  @DocsEditable()
   static const int MAX_CUBE_MAP_TEXTURE_SIZE = 0x851C;
 
   @DomName('WebGLRenderingContext.MAX_FRAGMENT_UNIFORM_VECTORS')
-  @DocsEditable
+  @DocsEditable()
   static const int MAX_FRAGMENT_UNIFORM_VECTORS = 0x8DFD;
 
   @DomName('WebGLRenderingContext.MAX_RENDERBUFFER_SIZE')
-  @DocsEditable
+  @DocsEditable()
   static const int MAX_RENDERBUFFER_SIZE = 0x84E8;
 
   @DomName('WebGLRenderingContext.MAX_TEXTURE_IMAGE_UNITS')
-  @DocsEditable
+  @DocsEditable()
   static const int MAX_TEXTURE_IMAGE_UNITS = 0x8872;
 
   @DomName('WebGLRenderingContext.MAX_TEXTURE_SIZE')
-  @DocsEditable
+  @DocsEditable()
   static const int MAX_TEXTURE_SIZE = 0x0D33;
 
   @DomName('WebGLRenderingContext.MAX_VARYING_VECTORS')
-  @DocsEditable
+  @DocsEditable()
   static const int MAX_VARYING_VECTORS = 0x8DFC;
 
   @DomName('WebGLRenderingContext.MAX_VERTEX_ATTRIBS')
-  @DocsEditable
+  @DocsEditable()
   static const int MAX_VERTEX_ATTRIBS = 0x8869;
 
   @DomName('WebGLRenderingContext.MAX_VERTEX_TEXTURE_IMAGE_UNITS')
-  @DocsEditable
+  @DocsEditable()
   static const int MAX_VERTEX_TEXTURE_IMAGE_UNITS = 0x8B4C;
 
   @DomName('WebGLRenderingContext.MAX_VERTEX_UNIFORM_VECTORS')
-  @DocsEditable
+  @DocsEditable()
   static const int MAX_VERTEX_UNIFORM_VECTORS = 0x8DFB;
 
   @DomName('WebGLRenderingContext.MAX_VIEWPORT_DIMS')
-  @DocsEditable
+  @DocsEditable()
   static const int MAX_VIEWPORT_DIMS = 0x0D3A;
 
   @DomName('WebGLRenderingContext.MEDIUM_FLOAT')
-  @DocsEditable
+  @DocsEditable()
   static const int MEDIUM_FLOAT = 0x8DF1;
 
   @DomName('WebGLRenderingContext.MEDIUM_INT')
-  @DocsEditable
+  @DocsEditable()
   static const int MEDIUM_INT = 0x8DF4;
 
   @DomName('WebGLRenderingContext.MIRRORED_REPEAT')
-  @DocsEditable
+  @DocsEditable()
   static const int MIRRORED_REPEAT = 0x8370;
 
   @DomName('WebGLRenderingContext.NEAREST')
-  @DocsEditable
+  @DocsEditable()
   static const int NEAREST = 0x2600;
 
   @DomName('WebGLRenderingContext.NEAREST_MIPMAP_LINEAR')
-  @DocsEditable
+  @DocsEditable()
   static const int NEAREST_MIPMAP_LINEAR = 0x2702;
 
   @DomName('WebGLRenderingContext.NEAREST_MIPMAP_NEAREST')
-  @DocsEditable
+  @DocsEditable()
   static const int NEAREST_MIPMAP_NEAREST = 0x2700;
 
   @DomName('WebGLRenderingContext.NEVER')
-  @DocsEditable
+  @DocsEditable()
   static const int NEVER = 0x0200;
 
   @DomName('WebGLRenderingContext.NICEST')
-  @DocsEditable
+  @DocsEditable()
   static const int NICEST = 0x1102;
 
   @DomName('WebGLRenderingContext.NONE')
-  @DocsEditable
+  @DocsEditable()
   static const int NONE = 0;
 
   @DomName('WebGLRenderingContext.NOTEQUAL')
-  @DocsEditable
+  @DocsEditable()
   static const int NOTEQUAL = 0x0205;
 
   @DomName('WebGLRenderingContext.NO_ERROR')
-  @DocsEditable
+  @DocsEditable()
   static const int NO_ERROR = 0;
 
   @DomName('WebGLRenderingContext.ONE')
-  @DocsEditable
+  @DocsEditable()
   static const int ONE = 1;
 
   @DomName('WebGLRenderingContext.ONE_MINUS_CONSTANT_ALPHA')
-  @DocsEditable
+  @DocsEditable()
   static const int ONE_MINUS_CONSTANT_ALPHA = 0x8004;
 
   @DomName('WebGLRenderingContext.ONE_MINUS_CONSTANT_COLOR')
-  @DocsEditable
+  @DocsEditable()
   static const int ONE_MINUS_CONSTANT_COLOR = 0x8002;
 
   @DomName('WebGLRenderingContext.ONE_MINUS_DST_ALPHA')
-  @DocsEditable
+  @DocsEditable()
   static const int ONE_MINUS_DST_ALPHA = 0x0305;
 
   @DomName('WebGLRenderingContext.ONE_MINUS_DST_COLOR')
-  @DocsEditable
+  @DocsEditable()
   static const int ONE_MINUS_DST_COLOR = 0x0307;
 
   @DomName('WebGLRenderingContext.ONE_MINUS_SRC_ALPHA')
-  @DocsEditable
+  @DocsEditable()
   static const int ONE_MINUS_SRC_ALPHA = 0x0303;
 
   @DomName('WebGLRenderingContext.ONE_MINUS_SRC_COLOR')
-  @DocsEditable
+  @DocsEditable()
   static const int ONE_MINUS_SRC_COLOR = 0x0301;
 
   @DomName('WebGLRenderingContext.OUT_OF_MEMORY')
-  @DocsEditable
+  @DocsEditable()
   static const int OUT_OF_MEMORY = 0x0505;
 
   @DomName('WebGLRenderingContext.PACK_ALIGNMENT')
-  @DocsEditable
+  @DocsEditable()
   static const int PACK_ALIGNMENT = 0x0D05;
 
   @DomName('WebGLRenderingContext.POINTS')
-  @DocsEditable
+  @DocsEditable()
   static const int POINTS = 0x0000;
 
   @DomName('WebGLRenderingContext.POLYGON_OFFSET_FACTOR')
-  @DocsEditable
+  @DocsEditable()
   static const int POLYGON_OFFSET_FACTOR = 0x8038;
 
   @DomName('WebGLRenderingContext.POLYGON_OFFSET_FILL')
-  @DocsEditable
+  @DocsEditable()
   static const int POLYGON_OFFSET_FILL = 0x8037;
 
   @DomName('WebGLRenderingContext.POLYGON_OFFSET_UNITS')
-  @DocsEditable
+  @DocsEditable()
   static const int POLYGON_OFFSET_UNITS = 0x2A00;
 
   @DomName('WebGLRenderingContext.RED_BITS')
-  @DocsEditable
+  @DocsEditable()
   static const int RED_BITS = 0x0D52;
 
   @DomName('WebGLRenderingContext.RENDERBUFFER')
-  @DocsEditable
+  @DocsEditable()
   static const int RENDERBUFFER = 0x8D41;
 
   @DomName('WebGLRenderingContext.RENDERBUFFER_ALPHA_SIZE')
-  @DocsEditable
+  @DocsEditable()
   static const int RENDERBUFFER_ALPHA_SIZE = 0x8D53;
 
   @DomName('WebGLRenderingContext.RENDERBUFFER_BINDING')
-  @DocsEditable
+  @DocsEditable()
   static const int RENDERBUFFER_BINDING = 0x8CA7;
 
   @DomName('WebGLRenderingContext.RENDERBUFFER_BLUE_SIZE')
-  @DocsEditable
+  @DocsEditable()
   static const int RENDERBUFFER_BLUE_SIZE = 0x8D52;
 
   @DomName('WebGLRenderingContext.RENDERBUFFER_DEPTH_SIZE')
-  @DocsEditable
+  @DocsEditable()
   static const int RENDERBUFFER_DEPTH_SIZE = 0x8D54;
 
   @DomName('WebGLRenderingContext.RENDERBUFFER_GREEN_SIZE')
-  @DocsEditable
+  @DocsEditable()
   static const int RENDERBUFFER_GREEN_SIZE = 0x8D51;
 
   @DomName('WebGLRenderingContext.RENDERBUFFER_HEIGHT')
-  @DocsEditable
+  @DocsEditable()
   static const int RENDERBUFFER_HEIGHT = 0x8D43;
 
   @DomName('WebGLRenderingContext.RENDERBUFFER_INTERNAL_FORMAT')
-  @DocsEditable
+  @DocsEditable()
   static const int RENDERBUFFER_INTERNAL_FORMAT = 0x8D44;
 
   @DomName('WebGLRenderingContext.RENDERBUFFER_RED_SIZE')
-  @DocsEditable
+  @DocsEditable()
   static const int RENDERBUFFER_RED_SIZE = 0x8D50;
 
   @DomName('WebGLRenderingContext.RENDERBUFFER_STENCIL_SIZE')
-  @DocsEditable
+  @DocsEditable()
   static const int RENDERBUFFER_STENCIL_SIZE = 0x8D55;
 
   @DomName('WebGLRenderingContext.RENDERBUFFER_WIDTH')
-  @DocsEditable
+  @DocsEditable()
   static const int RENDERBUFFER_WIDTH = 0x8D42;
 
   @DomName('WebGLRenderingContext.RENDERER')
-  @DocsEditable
+  @DocsEditable()
   static const int RENDERER = 0x1F01;
 
   @DomName('WebGLRenderingContext.REPEAT')
-  @DocsEditable
+  @DocsEditable()
   static const int REPEAT = 0x2901;
 
   @DomName('WebGLRenderingContext.REPLACE')
-  @DocsEditable
+  @DocsEditable()
   static const int REPLACE = 0x1E01;
 
   @DomName('WebGLRenderingContext.RGB')
-  @DocsEditable
+  @DocsEditable()
   static const int RGB = 0x1907;
 
   @DomName('WebGLRenderingContext.RGB565')
-  @DocsEditable
+  @DocsEditable()
   static const int RGB565 = 0x8D62;
 
   @DomName('WebGLRenderingContext.RGB5_A1')
-  @DocsEditable
+  @DocsEditable()
   static const int RGB5_A1 = 0x8057;
 
   @DomName('WebGLRenderingContext.RGBA')
-  @DocsEditable
+  @DocsEditable()
   static const int RGBA = 0x1908;
 
   @DomName('WebGLRenderingContext.RGBA4')
-  @DocsEditable
+  @DocsEditable()
   static const int RGBA4 = 0x8056;
 
   @DomName('WebGLRenderingContext.SAMPLER_2D')
-  @DocsEditable
+  @DocsEditable()
   static const int SAMPLER_2D = 0x8B5E;
 
   @DomName('WebGLRenderingContext.SAMPLER_CUBE')
-  @DocsEditable
+  @DocsEditable()
   static const int SAMPLER_CUBE = 0x8B60;
 
   @DomName('WebGLRenderingContext.SAMPLES')
-  @DocsEditable
+  @DocsEditable()
   static const int SAMPLES = 0x80A9;
 
   @DomName('WebGLRenderingContext.SAMPLE_ALPHA_TO_COVERAGE')
-  @DocsEditable
+  @DocsEditable()
   static const int SAMPLE_ALPHA_TO_COVERAGE = 0x809E;
 
   @DomName('WebGLRenderingContext.SAMPLE_BUFFERS')
-  @DocsEditable
+  @DocsEditable()
   static const int SAMPLE_BUFFERS = 0x80A8;
 
   @DomName('WebGLRenderingContext.SAMPLE_COVERAGE')
-  @DocsEditable
+  @DocsEditable()
   static const int SAMPLE_COVERAGE = 0x80A0;
 
   @DomName('WebGLRenderingContext.SAMPLE_COVERAGE_INVERT')
-  @DocsEditable
+  @DocsEditable()
   static const int SAMPLE_COVERAGE_INVERT = 0x80AB;
 
   @DomName('WebGLRenderingContext.SAMPLE_COVERAGE_VALUE')
-  @DocsEditable
+  @DocsEditable()
   static const int SAMPLE_COVERAGE_VALUE = 0x80AA;
 
   @DomName('WebGLRenderingContext.SCISSOR_BOX')
-  @DocsEditable
+  @DocsEditable()
   static const int SCISSOR_BOX = 0x0C10;
 
   @DomName('WebGLRenderingContext.SCISSOR_TEST')
-  @DocsEditable
+  @DocsEditable()
   static const int SCISSOR_TEST = 0x0C11;
 
   @DomName('WebGLRenderingContext.SHADER_TYPE')
-  @DocsEditable
+  @DocsEditable()
   static const int SHADER_TYPE = 0x8B4F;
 
   @DomName('WebGLRenderingContext.SHADING_LANGUAGE_VERSION')
-  @DocsEditable
+  @DocsEditable()
   static const int SHADING_LANGUAGE_VERSION = 0x8B8C;
 
   @DomName('WebGLRenderingContext.SHORT')
-  @DocsEditable
+  @DocsEditable()
   static const int SHORT = 0x1402;
 
   @DomName('WebGLRenderingContext.SRC_ALPHA')
-  @DocsEditable
+  @DocsEditable()
   static const int SRC_ALPHA = 0x0302;
 
   @DomName('WebGLRenderingContext.SRC_ALPHA_SATURATE')
-  @DocsEditable
+  @DocsEditable()
   static const int SRC_ALPHA_SATURATE = 0x0308;
 
   @DomName('WebGLRenderingContext.SRC_COLOR')
-  @DocsEditable
+  @DocsEditable()
   static const int SRC_COLOR = 0x0300;
 
   @DomName('WebGLRenderingContext.STATIC_DRAW')
-  @DocsEditable
+  @DocsEditable()
   static const int STATIC_DRAW = 0x88E4;
 
   @DomName('WebGLRenderingContext.STENCIL_ATTACHMENT')
-  @DocsEditable
+  @DocsEditable()
   static const int STENCIL_ATTACHMENT = 0x8D20;
 
   @DomName('WebGLRenderingContext.STENCIL_BACK_FAIL')
-  @DocsEditable
+  @DocsEditable()
   static const int STENCIL_BACK_FAIL = 0x8801;
 
   @DomName('WebGLRenderingContext.STENCIL_BACK_FUNC')
-  @DocsEditable
+  @DocsEditable()
   static const int STENCIL_BACK_FUNC = 0x8800;
 
   @DomName('WebGLRenderingContext.STENCIL_BACK_PASS_DEPTH_FAIL')
-  @DocsEditable
+  @DocsEditable()
   static const int STENCIL_BACK_PASS_DEPTH_FAIL = 0x8802;
 
   @DomName('WebGLRenderingContext.STENCIL_BACK_PASS_DEPTH_PASS')
-  @DocsEditable
+  @DocsEditable()
   static const int STENCIL_BACK_PASS_DEPTH_PASS = 0x8803;
 
   @DomName('WebGLRenderingContext.STENCIL_BACK_REF')
-  @DocsEditable
+  @DocsEditable()
   static const int STENCIL_BACK_REF = 0x8CA3;
 
   @DomName('WebGLRenderingContext.STENCIL_BACK_VALUE_MASK')
-  @DocsEditable
+  @DocsEditable()
   static const int STENCIL_BACK_VALUE_MASK = 0x8CA4;
 
   @DomName('WebGLRenderingContext.STENCIL_BACK_WRITEMASK')
-  @DocsEditable
+  @DocsEditable()
   static const int STENCIL_BACK_WRITEMASK = 0x8CA5;
 
   @DomName('WebGLRenderingContext.STENCIL_BITS')
-  @DocsEditable
+  @DocsEditable()
   static const int STENCIL_BITS = 0x0D57;
 
   @DomName('WebGLRenderingContext.STENCIL_BUFFER_BIT')
-  @DocsEditable
+  @DocsEditable()
   static const int STENCIL_BUFFER_BIT = 0x00000400;
 
   @DomName('WebGLRenderingContext.STENCIL_CLEAR_VALUE')
-  @DocsEditable
+  @DocsEditable()
   static const int STENCIL_CLEAR_VALUE = 0x0B91;
 
   @DomName('WebGLRenderingContext.STENCIL_FAIL')
-  @DocsEditable
+  @DocsEditable()
   static const int STENCIL_FAIL = 0x0B94;
 
   @DomName('WebGLRenderingContext.STENCIL_FUNC')
-  @DocsEditable
+  @DocsEditable()
   static const int STENCIL_FUNC = 0x0B92;
 
   @DomName('WebGLRenderingContext.STENCIL_INDEX')
-  @DocsEditable
+  @DocsEditable()
   static const int STENCIL_INDEX = 0x1901;
 
   @DomName('WebGLRenderingContext.STENCIL_INDEX8')
-  @DocsEditable
+  @DocsEditable()
   static const int STENCIL_INDEX8 = 0x8D48;
 
   @DomName('WebGLRenderingContext.STENCIL_PASS_DEPTH_FAIL')
-  @DocsEditable
+  @DocsEditable()
   static const int STENCIL_PASS_DEPTH_FAIL = 0x0B95;
 
   @DomName('WebGLRenderingContext.STENCIL_PASS_DEPTH_PASS')
-  @DocsEditable
+  @DocsEditable()
   static const int STENCIL_PASS_DEPTH_PASS = 0x0B96;
 
   @DomName('WebGLRenderingContext.STENCIL_REF')
-  @DocsEditable
+  @DocsEditable()
   static const int STENCIL_REF = 0x0B97;
 
   @DomName('WebGLRenderingContext.STENCIL_TEST')
-  @DocsEditable
+  @DocsEditable()
   static const int STENCIL_TEST = 0x0B90;
 
   @DomName('WebGLRenderingContext.STENCIL_VALUE_MASK')
-  @DocsEditable
+  @DocsEditable()
   static const int STENCIL_VALUE_MASK = 0x0B93;
 
   @DomName('WebGLRenderingContext.STENCIL_WRITEMASK')
-  @DocsEditable
+  @DocsEditable()
   static const int STENCIL_WRITEMASK = 0x0B98;
 
   @DomName('WebGLRenderingContext.STREAM_DRAW')
-  @DocsEditable
+  @DocsEditable()
   static const int STREAM_DRAW = 0x88E0;
 
   @DomName('WebGLRenderingContext.SUBPIXEL_BITS')
-  @DocsEditable
+  @DocsEditable()
   static const int SUBPIXEL_BITS = 0x0D50;
 
   @DomName('WebGLRenderingContext.TEXTURE')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE = 0x1702;
 
   @DomName('WebGLRenderingContext.TEXTURE0')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE0 = 0x84C0;
 
   @DomName('WebGLRenderingContext.TEXTURE1')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE1 = 0x84C1;
 
   @DomName('WebGLRenderingContext.TEXTURE10')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE10 = 0x84CA;
 
   @DomName('WebGLRenderingContext.TEXTURE11')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE11 = 0x84CB;
 
   @DomName('WebGLRenderingContext.TEXTURE12')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE12 = 0x84CC;
 
   @DomName('WebGLRenderingContext.TEXTURE13')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE13 = 0x84CD;
 
   @DomName('WebGLRenderingContext.TEXTURE14')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE14 = 0x84CE;
 
   @DomName('WebGLRenderingContext.TEXTURE15')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE15 = 0x84CF;
 
   @DomName('WebGLRenderingContext.TEXTURE16')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE16 = 0x84D0;
 
   @DomName('WebGLRenderingContext.TEXTURE17')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE17 = 0x84D1;
 
   @DomName('WebGLRenderingContext.TEXTURE18')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE18 = 0x84D2;
 
   @DomName('WebGLRenderingContext.TEXTURE19')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE19 = 0x84D3;
 
   @DomName('WebGLRenderingContext.TEXTURE2')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE2 = 0x84C2;
 
   @DomName('WebGLRenderingContext.TEXTURE20')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE20 = 0x84D4;
 
   @DomName('WebGLRenderingContext.TEXTURE21')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE21 = 0x84D5;
 
   @DomName('WebGLRenderingContext.TEXTURE22')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE22 = 0x84D6;
 
   @DomName('WebGLRenderingContext.TEXTURE23')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE23 = 0x84D7;
 
   @DomName('WebGLRenderingContext.TEXTURE24')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE24 = 0x84D8;
 
   @DomName('WebGLRenderingContext.TEXTURE25')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE25 = 0x84D9;
 
   @DomName('WebGLRenderingContext.TEXTURE26')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE26 = 0x84DA;
 
   @DomName('WebGLRenderingContext.TEXTURE27')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE27 = 0x84DB;
 
   @DomName('WebGLRenderingContext.TEXTURE28')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE28 = 0x84DC;
 
   @DomName('WebGLRenderingContext.TEXTURE29')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE29 = 0x84DD;
 
   @DomName('WebGLRenderingContext.TEXTURE3')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE3 = 0x84C3;
 
   @DomName('WebGLRenderingContext.TEXTURE30')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE30 = 0x84DE;
 
   @DomName('WebGLRenderingContext.TEXTURE31')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE31 = 0x84DF;
 
   @DomName('WebGLRenderingContext.TEXTURE4')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE4 = 0x84C4;
 
   @DomName('WebGLRenderingContext.TEXTURE5')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE5 = 0x84C5;
 
   @DomName('WebGLRenderingContext.TEXTURE6')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE6 = 0x84C6;
 
   @DomName('WebGLRenderingContext.TEXTURE7')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE7 = 0x84C7;
 
   @DomName('WebGLRenderingContext.TEXTURE8')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE8 = 0x84C8;
 
   @DomName('WebGLRenderingContext.TEXTURE9')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE9 = 0x84C9;
 
   @DomName('WebGLRenderingContext.TEXTURE_2D')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE_2D = 0x0DE1;
 
   @DomName('WebGLRenderingContext.TEXTURE_BINDING_2D')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE_BINDING_2D = 0x8069;
 
   @DomName('WebGLRenderingContext.TEXTURE_BINDING_CUBE_MAP')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE_BINDING_CUBE_MAP = 0x8514;
 
   @DomName('WebGLRenderingContext.TEXTURE_CUBE_MAP')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE_CUBE_MAP = 0x8513;
 
   @DomName('WebGLRenderingContext.TEXTURE_CUBE_MAP_NEGATIVE_X')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE_CUBE_MAP_NEGATIVE_X = 0x8516;
 
   @DomName('WebGLRenderingContext.TEXTURE_CUBE_MAP_NEGATIVE_Y')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE_CUBE_MAP_NEGATIVE_Y = 0x8518;
 
   @DomName('WebGLRenderingContext.TEXTURE_CUBE_MAP_NEGATIVE_Z')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE_CUBE_MAP_NEGATIVE_Z = 0x851A;
 
   @DomName('WebGLRenderingContext.TEXTURE_CUBE_MAP_POSITIVE_X')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE_CUBE_MAP_POSITIVE_X = 0x8515;
 
   @DomName('WebGLRenderingContext.TEXTURE_CUBE_MAP_POSITIVE_Y')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE_CUBE_MAP_POSITIVE_Y = 0x8517;
 
   @DomName('WebGLRenderingContext.TEXTURE_CUBE_MAP_POSITIVE_Z')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE_CUBE_MAP_POSITIVE_Z = 0x8519;
 
   @DomName('WebGLRenderingContext.TEXTURE_MAG_FILTER')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE_MAG_FILTER = 0x2800;
 
   @DomName('WebGLRenderingContext.TEXTURE_MIN_FILTER')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE_MIN_FILTER = 0x2801;
 
   @DomName('WebGLRenderingContext.TEXTURE_WRAP_S')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE_WRAP_S = 0x2802;
 
   @DomName('WebGLRenderingContext.TEXTURE_WRAP_T')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTURE_WRAP_T = 0x2803;
 
   @DomName('WebGLRenderingContext.TRIANGLES')
-  @DocsEditable
+  @DocsEditable()
   static const int TRIANGLES = 0x0004;
 
   @DomName('WebGLRenderingContext.TRIANGLE_FAN')
-  @DocsEditable
+  @DocsEditable()
   static const int TRIANGLE_FAN = 0x0006;
 
   @DomName('WebGLRenderingContext.TRIANGLE_STRIP')
-  @DocsEditable
+  @DocsEditable()
   static const int TRIANGLE_STRIP = 0x0005;
 
   @DomName('WebGLRenderingContext.UNPACK_ALIGNMENT')
-  @DocsEditable
+  @DocsEditable()
   static const int UNPACK_ALIGNMENT = 0x0CF5;
 
   @DomName('WebGLRenderingContext.UNPACK_COLORSPACE_CONVERSION_WEBGL')
-  @DocsEditable
+  @DocsEditable()
   static const int UNPACK_COLORSPACE_CONVERSION_WEBGL = 0x9243;
 
   @DomName('WebGLRenderingContext.UNPACK_FLIP_Y_WEBGL')
-  @DocsEditable
+  @DocsEditable()
   static const int UNPACK_FLIP_Y_WEBGL = 0x9240;
 
   @DomName('WebGLRenderingContext.UNPACK_PREMULTIPLY_ALPHA_WEBGL')
-  @DocsEditable
+  @DocsEditable()
   static const int UNPACK_PREMULTIPLY_ALPHA_WEBGL = 0x9241;
 
   @DomName('WebGLRenderingContext.UNSIGNED_BYTE')
-  @DocsEditable
+  @DocsEditable()
   static const int UNSIGNED_BYTE = 0x1401;
 
   @DomName('WebGLRenderingContext.UNSIGNED_INT')
-  @DocsEditable
+  @DocsEditable()
   static const int UNSIGNED_INT = 0x1405;
 
   @DomName('WebGLRenderingContext.UNSIGNED_SHORT')
-  @DocsEditable
+  @DocsEditable()
   static const int UNSIGNED_SHORT = 0x1403;
 
   @DomName('WebGLRenderingContext.UNSIGNED_SHORT_4_4_4_4')
-  @DocsEditable
+  @DocsEditable()
   static const int UNSIGNED_SHORT_4_4_4_4 = 0x8033;
 
   @DomName('WebGLRenderingContext.UNSIGNED_SHORT_5_5_5_1')
-  @DocsEditable
+  @DocsEditable()
   static const int UNSIGNED_SHORT_5_5_5_1 = 0x8034;
 
   @DomName('WebGLRenderingContext.UNSIGNED_SHORT_5_6_5')
-  @DocsEditable
+  @DocsEditable()
   static const int UNSIGNED_SHORT_5_6_5 = 0x8363;
 
   @DomName('WebGLRenderingContext.VALIDATE_STATUS')
-  @DocsEditable
+  @DocsEditable()
   static const int VALIDATE_STATUS = 0x8B83;
 
   @DomName('WebGLRenderingContext.VENDOR')
-  @DocsEditable
+  @DocsEditable()
   static const int VENDOR = 0x1F00;
 
   @DomName('WebGLRenderingContext.VERSION')
-  @DocsEditable
+  @DocsEditable()
   static const int VERSION = 0x1F02;
 
   @DomName('WebGLRenderingContext.VERTEX_ATTRIB_ARRAY_BUFFER_BINDING')
-  @DocsEditable
+  @DocsEditable()
   static const int VERTEX_ATTRIB_ARRAY_BUFFER_BINDING = 0x889F;
 
   @DomName('WebGLRenderingContext.VERTEX_ATTRIB_ARRAY_ENABLED')
-  @DocsEditable
+  @DocsEditable()
   static const int VERTEX_ATTRIB_ARRAY_ENABLED = 0x8622;
 
   @DomName('WebGLRenderingContext.VERTEX_ATTRIB_ARRAY_NORMALIZED')
-  @DocsEditable
+  @DocsEditable()
   static const int VERTEX_ATTRIB_ARRAY_NORMALIZED = 0x886A;
 
   @DomName('WebGLRenderingContext.VERTEX_ATTRIB_ARRAY_POINTER')
-  @DocsEditable
+  @DocsEditable()
   static const int VERTEX_ATTRIB_ARRAY_POINTER = 0x8645;
 
   @DomName('WebGLRenderingContext.VERTEX_ATTRIB_ARRAY_SIZE')
-  @DocsEditable
+  @DocsEditable()
   static const int VERTEX_ATTRIB_ARRAY_SIZE = 0x8623;
 
   @DomName('WebGLRenderingContext.VERTEX_ATTRIB_ARRAY_STRIDE')
-  @DocsEditable
+  @DocsEditable()
   static const int VERTEX_ATTRIB_ARRAY_STRIDE = 0x8624;
 
   @DomName('WebGLRenderingContext.VERTEX_ATTRIB_ARRAY_TYPE')
-  @DocsEditable
+  @DocsEditable()
   static const int VERTEX_ATTRIB_ARRAY_TYPE = 0x8625;
 
   @DomName('WebGLRenderingContext.VERTEX_SHADER')
-  @DocsEditable
+  @DocsEditable()
   static const int VERTEX_SHADER = 0x8B31;
 
   @DomName('WebGLRenderingContext.VIEWPORT')
-  @DocsEditable
+  @DocsEditable()
   static const int VIEWPORT = 0x0BA2;
 
   @DomName('WebGLRenderingContext.ZERO')
-  @DocsEditable
+  @DocsEditable()
   static const int ZERO = 0;
 
   @DomName('WebGLRenderingContext.drawingBufferHeight')
-  @DocsEditable
+  @DocsEditable()
   final int drawingBufferHeight;
 
   @DomName('WebGLRenderingContext.drawingBufferWidth')
-  @DocsEditable
+  @DocsEditable()
   final int drawingBufferWidth;
 
   @DomName('WebGLRenderingContext.activeTexture')
-  @DocsEditable
+  @DocsEditable()
   void activeTexture(int texture) native;
 
   @DomName('WebGLRenderingContext.attachShader')
-  @DocsEditable
+  @DocsEditable()
   void attachShader(Program program, Shader shader) native;
 
   @DomName('WebGLRenderingContext.bindAttribLocation')
-  @DocsEditable
+  @DocsEditable()
   void bindAttribLocation(Program program, int index, String name) native;
 
   @DomName('WebGLRenderingContext.bindBuffer')
-  @DocsEditable
+  @DocsEditable()
   void bindBuffer(int target, Buffer buffer) native;
 
   @DomName('WebGLRenderingContext.bindFramebuffer')
-  @DocsEditable
+  @DocsEditable()
   void bindFramebuffer(int target, Framebuffer framebuffer) native;
 
   @DomName('WebGLRenderingContext.bindRenderbuffer')
-  @DocsEditable
+  @DocsEditable()
   void bindRenderbuffer(int target, Renderbuffer renderbuffer) native;
 
   @DomName('WebGLRenderingContext.bindTexture')
-  @DocsEditable
+  @DocsEditable()
   void bindTexture(int target, Texture texture) native;
 
   @DomName('WebGLRenderingContext.blendColor')
-  @DocsEditable
+  @DocsEditable()
   void blendColor(num red, num green, num blue, num alpha) native;
 
   @DomName('WebGLRenderingContext.blendEquation')
-  @DocsEditable
+  @DocsEditable()
   void blendEquation(int mode) native;
 
   @DomName('WebGLRenderingContext.blendEquationSeparate')
-  @DocsEditable
+  @DocsEditable()
   void blendEquationSeparate(int modeRGB, int modeAlpha) native;
 
   @DomName('WebGLRenderingContext.blendFunc')
-  @DocsEditable
+  @DocsEditable()
   void blendFunc(int sfactor, int dfactor) native;
 
   @DomName('WebGLRenderingContext.blendFuncSeparate')
-  @DocsEditable
+  @DocsEditable()
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) native;
 
   @DomName('WebGLRenderingContext.bufferData')
-  @DocsEditable
+  @DocsEditable()
   void bufferData(int target, data_OR_size, int usage) native;
 
   @DomName('WebGLRenderingContext.bufferSubData')
-  @DocsEditable
+  @DocsEditable()
   void bufferSubData(int target, int offset, data) native;
 
   @DomName('WebGLRenderingContext.checkFramebufferStatus')
-  @DocsEditable
+  @DocsEditable()
   int checkFramebufferStatus(int target) native;
 
   @DomName('WebGLRenderingContext.clear')
-  @DocsEditable
+  @DocsEditable()
   void clear(int mask) native;
 
   @DomName('WebGLRenderingContext.clearColor')
-  @DocsEditable
+  @DocsEditable()
   void clearColor(num red, num green, num blue, num alpha) native;
 
   @DomName('WebGLRenderingContext.clearDepth')
-  @DocsEditable
+  @DocsEditable()
   void clearDepth(num depth) native;
 
   @DomName('WebGLRenderingContext.clearStencil')
-  @DocsEditable
+  @DocsEditable()
   void clearStencil(int s) native;
 
   @DomName('WebGLRenderingContext.colorMask')
-  @DocsEditable
+  @DocsEditable()
   void colorMask(bool red, bool green, bool blue, bool alpha) native;
 
   @DomName('WebGLRenderingContext.compileShader')
-  @DocsEditable
+  @DocsEditable()
   void compileShader(Shader shader) native;
 
   @DomName('WebGLRenderingContext.compressedTexImage2D')
-  @DocsEditable
+  @DocsEditable()
   void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, TypedData data) native;
 
   @DomName('WebGLRenderingContext.compressedTexSubImage2D')
-  @DocsEditable
+  @DocsEditable()
   void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, TypedData data) native;
 
   @DomName('WebGLRenderingContext.copyTexImage2D')
-  @DocsEditable
+  @DocsEditable()
   void copyTexImage2D(int target, int level, int internalformat, int x, int y, int width, int height, int border) native;
 
   @DomName('WebGLRenderingContext.copyTexSubImage2D')
-  @DocsEditable
+  @DocsEditable()
   void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x, int y, int width, int height) native;
 
   @DomName('WebGLRenderingContext.createBuffer')
-  @DocsEditable
+  @DocsEditable()
   Buffer createBuffer() native;
 
   @DomName('WebGLRenderingContext.createFramebuffer')
-  @DocsEditable
+  @DocsEditable()
   Framebuffer createFramebuffer() native;
 
   @DomName('WebGLRenderingContext.createProgram')
-  @DocsEditable
+  @DocsEditable()
   Program createProgram() native;
 
   @DomName('WebGLRenderingContext.createRenderbuffer')
-  @DocsEditable
+  @DocsEditable()
   Renderbuffer createRenderbuffer() native;
 
   @DomName('WebGLRenderingContext.createShader')
-  @DocsEditable
+  @DocsEditable()
   Shader createShader(int type) native;
 
   @DomName('WebGLRenderingContext.createTexture')
-  @DocsEditable
+  @DocsEditable()
   Texture createTexture() native;
 
   @DomName('WebGLRenderingContext.cullFace')
-  @DocsEditable
+  @DocsEditable()
   void cullFace(int mode) native;
 
   @DomName('WebGLRenderingContext.deleteBuffer')
-  @DocsEditable
+  @DocsEditable()
   void deleteBuffer(Buffer buffer) native;
 
   @DomName('WebGLRenderingContext.deleteFramebuffer')
-  @DocsEditable
+  @DocsEditable()
   void deleteFramebuffer(Framebuffer framebuffer) native;
 
   @DomName('WebGLRenderingContext.deleteProgram')
-  @DocsEditable
+  @DocsEditable()
   void deleteProgram(Program program) native;
 
   @DomName('WebGLRenderingContext.deleteRenderbuffer')
-  @DocsEditable
+  @DocsEditable()
   void deleteRenderbuffer(Renderbuffer renderbuffer) native;
 
   @DomName('WebGLRenderingContext.deleteShader')
-  @DocsEditable
+  @DocsEditable()
   void deleteShader(Shader shader) native;
 
   @DomName('WebGLRenderingContext.deleteTexture')
-  @DocsEditable
+  @DocsEditable()
   void deleteTexture(Texture texture) native;
 
   @DomName('WebGLRenderingContext.depthFunc')
-  @DocsEditable
+  @DocsEditable()
   void depthFunc(int func) native;
 
   @DomName('WebGLRenderingContext.depthMask')
-  @DocsEditable
+  @DocsEditable()
   void depthMask(bool flag) native;
 
   @DomName('WebGLRenderingContext.depthRange')
-  @DocsEditable
+  @DocsEditable()
   void depthRange(num zNear, num zFar) native;
 
   @DomName('WebGLRenderingContext.detachShader')
-  @DocsEditable
+  @DocsEditable()
   void detachShader(Program program, Shader shader) native;
 
   @DomName('WebGLRenderingContext.disable')
-  @DocsEditable
+  @DocsEditable()
   void disable(int cap) native;
 
   @DomName('WebGLRenderingContext.disableVertexAttribArray')
-  @DocsEditable
+  @DocsEditable()
   void disableVertexAttribArray(int index) native;
 
   @DomName('WebGLRenderingContext.drawArrays')
-  @DocsEditable
+  @DocsEditable()
   void drawArrays(int mode, int first, int count) native;
 
   @DomName('WebGLRenderingContext.drawElements')
-  @DocsEditable
+  @DocsEditable()
   void drawElements(int mode, int count, int type, int offset) native;
 
   @DomName('WebGLRenderingContext.enable')
-  @DocsEditable
+  @DocsEditable()
   void enable(int cap) native;
 
   @DomName('WebGLRenderingContext.enableVertexAttribArray')
-  @DocsEditable
+  @DocsEditable()
   void enableVertexAttribArray(int index) native;
 
   @DomName('WebGLRenderingContext.finish')
-  @DocsEditable
+  @DocsEditable()
   void finish() native;
 
   @DomName('WebGLRenderingContext.flush')
-  @DocsEditable
+  @DocsEditable()
   void flush() native;
 
   @DomName('WebGLRenderingContext.framebufferRenderbuffer')
-  @DocsEditable
+  @DocsEditable()
   void framebufferRenderbuffer(int target, int attachment, int renderbuffertarget, Renderbuffer renderbuffer) native;
 
   @DomName('WebGLRenderingContext.framebufferTexture2D')
-  @DocsEditable
+  @DocsEditable()
   void framebufferTexture2D(int target, int attachment, int textarget, Texture texture, int level) native;
 
   @DomName('WebGLRenderingContext.frontFace')
-  @DocsEditable
+  @DocsEditable()
   void frontFace(int mode) native;
 
   @DomName('WebGLRenderingContext.generateMipmap')
-  @DocsEditable
+  @DocsEditable()
   void generateMipmap(int target) native;
 
   @DomName('WebGLRenderingContext.getActiveAttrib')
-  @DocsEditable
+  @DocsEditable()
   ActiveInfo getActiveAttrib(Program program, int index) native;
 
   @DomName('WebGLRenderingContext.getActiveUniform')
-  @DocsEditable
+  @DocsEditable()
   ActiveInfo getActiveUniform(Program program, int index) native;
 
   @DomName('WebGLRenderingContext.getAttachedShaders')
-  @DocsEditable
+  @DocsEditable()
   void getAttachedShaders(Program program) native;
 
   @DomName('WebGLRenderingContext.getAttribLocation')
-  @DocsEditable
+  @DocsEditable()
   int getAttribLocation(Program program, String name) native;
 
   @DomName('WebGLRenderingContext.getBufferParameter')
-  @DocsEditable
+  @DocsEditable()
   @Creates('int|Null')
   @Returns('int|Null')
   Object getBufferParameter(int target, int pname) native;
 
   @DomName('WebGLRenderingContext.getContextAttributes')
-  @DocsEditable
+  @DocsEditable()
   ContextAttributes getContextAttributes() native;
 
   @DomName('WebGLRenderingContext.getError')
-  @DocsEditable
+  @DocsEditable()
   int getError() native;
 
   @DomName('WebGLRenderingContext.getExtension')
-  @DocsEditable
+  @DocsEditable()
   Object getExtension(String name) native;
 
   @DomName('WebGLRenderingContext.getFramebufferAttachmentParameter')
-  @DocsEditable
+  @DocsEditable()
   @Creates('int|Renderbuffer|Texture|Null')
   @Returns('int|Renderbuffer|Texture|Null')
   Object getFramebufferAttachmentParameter(int target, int attachment, int pname) native;
 
   @DomName('WebGLRenderingContext.getParameter')
-  @DocsEditable
+  @DocsEditable()
   @Creates('Null|num|String|bool|JSExtendableArray|Float32List|Int32List|Uint32List|Framebuffer|Renderbuffer|Texture')
   @Returns('Null|num|String|bool|JSExtendableArray|Float32List|Int32List|Uint32List|Framebuffer|Renderbuffer|Texture')
   Object getParameter(int pname) native;
 
   @DomName('WebGLRenderingContext.getProgramInfoLog')
-  @DocsEditable
+  @DocsEditable()
   String getProgramInfoLog(Program program) native;
 
   @DomName('WebGLRenderingContext.getProgramParameter')
-  @DocsEditable
+  @DocsEditable()
   @Creates('int|bool|Null')
   @Returns('int|bool|Null')
   Object getProgramParameter(Program program, int pname) native;
 
   @DomName('WebGLRenderingContext.getRenderbufferParameter')
-  @DocsEditable
+  @DocsEditable()
   @Creates('int|Null')
   @Returns('int|Null')
   Object getRenderbufferParameter(int target, int pname) native;
 
   @DomName('WebGLRenderingContext.getShaderInfoLog')
-  @DocsEditable
+  @DocsEditable()
   String getShaderInfoLog(Shader shader) native;
 
   @DomName('WebGLRenderingContext.getShaderParameter')
-  @DocsEditable
+  @DocsEditable()
   @Creates('int|bool|Null')
   @Returns('int|bool|Null')
   Object getShaderParameter(Shader shader, int pname) native;
 
   @DomName('WebGLRenderingContext.getShaderPrecisionFormat')
-  @DocsEditable
+  @DocsEditable()
   ShaderPrecisionFormat getShaderPrecisionFormat(int shadertype, int precisiontype) native;
 
   @DomName('WebGLRenderingContext.getShaderSource')
-  @DocsEditable
+  @DocsEditable()
   String getShaderSource(Shader shader) native;
 
   @DomName('WebGLRenderingContext.getSupportedExtensions')
-  @DocsEditable
+  @DocsEditable()
   List<String> getSupportedExtensions() native;
 
   @DomName('WebGLRenderingContext.getTexParameter')
-  @DocsEditable
+  @DocsEditable()
   @Creates('int|Null')
   @Returns('int|Null')
   Object getTexParameter(int target, int pname) native;
 
   @DomName('WebGLRenderingContext.getUniform')
-  @DocsEditable
+  @DocsEditable()
   @Creates('Null|num|String|bool|JSExtendableArray|Float32List|Int32List|Uint32List')
   @Returns('Null|num|String|bool|JSExtendableArray|Float32List|Int32List|Uint32List')
   Object getUniform(Program program, UniformLocation location) native;
 
   @DomName('WebGLRenderingContext.getUniformLocation')
-  @DocsEditable
+  @DocsEditable()
   UniformLocation getUniformLocation(Program program, String name) native;
 
   @DomName('WebGLRenderingContext.getVertexAttrib')
-  @DocsEditable
+  @DocsEditable()
   @Creates('Null|num|bool|Float32List|Buffer')
   @Returns('Null|num|bool|Float32List|Buffer')
   Object getVertexAttrib(int index, int pname) native;
 
   @DomName('WebGLRenderingContext.getVertexAttribOffset')
-  @DocsEditable
+  @DocsEditable()
   int getVertexAttribOffset(int index, int pname) native;
 
   @DomName('WebGLRenderingContext.hint')
-  @DocsEditable
+  @DocsEditable()
   void hint(int target, int mode) native;
 
   @DomName('WebGLRenderingContext.isBuffer')
-  @DocsEditable
+  @DocsEditable()
   bool isBuffer(Buffer buffer) native;
 
   @DomName('WebGLRenderingContext.isContextLost')
-  @DocsEditable
+  @DocsEditable()
   bool isContextLost() native;
 
   @DomName('WebGLRenderingContext.isEnabled')
-  @DocsEditable
+  @DocsEditable()
   bool isEnabled(int cap) native;
 
   @DomName('WebGLRenderingContext.isFramebuffer')
-  @DocsEditable
+  @DocsEditable()
   bool isFramebuffer(Framebuffer framebuffer) native;
 
   @DomName('WebGLRenderingContext.isProgram')
-  @DocsEditable
+  @DocsEditable()
   bool isProgram(Program program) native;
 
   @DomName('WebGLRenderingContext.isRenderbuffer')
-  @DocsEditable
+  @DocsEditable()
   bool isRenderbuffer(Renderbuffer renderbuffer) native;
 
   @DomName('WebGLRenderingContext.isShader')
-  @DocsEditable
+  @DocsEditable()
   bool isShader(Shader shader) native;
 
   @DomName('WebGLRenderingContext.isTexture')
-  @DocsEditable
+  @DocsEditable()
   bool isTexture(Texture texture) native;
 
   @DomName('WebGLRenderingContext.lineWidth')
-  @DocsEditable
+  @DocsEditable()
   void lineWidth(num width) native;
 
   @DomName('WebGLRenderingContext.linkProgram')
-  @DocsEditable
+  @DocsEditable()
   void linkProgram(Program program) native;
 
   @DomName('WebGLRenderingContext.pixelStorei')
-  @DocsEditable
+  @DocsEditable()
   void pixelStorei(int pname, int param) native;
 
   @DomName('WebGLRenderingContext.polygonOffset')
-  @DocsEditable
+  @DocsEditable()
   void polygonOffset(num factor, num units) native;
 
   @DomName('WebGLRenderingContext.readPixels')
-  @DocsEditable
+  @DocsEditable()
   void readPixels(int x, int y, int width, int height, int format, int type, TypedData pixels) native;
 
   @DomName('WebGLRenderingContext.renderbufferStorage')
-  @DocsEditable
+  @DocsEditable()
   void renderbufferStorage(int target, int internalformat, int width, int height) native;
 
   @DomName('WebGLRenderingContext.sampleCoverage')
-  @DocsEditable
+  @DocsEditable()
   void sampleCoverage(num value, bool invert) native;
 
   @DomName('WebGLRenderingContext.scissor')
-  @DocsEditable
+  @DocsEditable()
   void scissor(int x, int y, int width, int height) native;
 
   @DomName('WebGLRenderingContext.shaderSource')
-  @DocsEditable
+  @DocsEditable()
   void shaderSource(Shader shader, String string) native;
 
   @DomName('WebGLRenderingContext.stencilFunc')
-  @DocsEditable
+  @DocsEditable()
   void stencilFunc(int func, int ref, int mask) native;
 
   @DomName('WebGLRenderingContext.stencilFuncSeparate')
-  @DocsEditable
+  @DocsEditable()
   void stencilFuncSeparate(int face, int func, int ref, int mask) native;
 
   @DomName('WebGLRenderingContext.stencilMask')
-  @DocsEditable
+  @DocsEditable()
   void stencilMask(int mask) native;
 
   @DomName('WebGLRenderingContext.stencilMaskSeparate')
-  @DocsEditable
+  @DocsEditable()
   void stencilMaskSeparate(int face, int mask) native;
 
   @DomName('WebGLRenderingContext.stencilOp')
-  @DocsEditable
+  @DocsEditable()
   void stencilOp(int fail, int zfail, int zpass) native;
 
   @DomName('WebGLRenderingContext.stencilOpSeparate')
-  @DocsEditable
+  @DocsEditable()
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
 
   @DomName('WebGLRenderingContext.texImage2D')
-  @DocsEditable
+  @DocsEditable()
   void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, TypedData pixels]) {
     if (pixels != null && type != null && format != null && (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null)) {
       _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
@@ -2521,35 +2521,35 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   }
   @JSName('texImage2D')
   @DomName('WebGLRenderingContext.texImage2D')
-  @DocsEditable
+  @DocsEditable()
   void _texImage2D_1(target, level, internalformat, width, height, int border, format, type, TypedData pixels) native;
   @JSName('texImage2D')
   @DomName('WebGLRenderingContext.texImage2D')
-  @DocsEditable
+  @DocsEditable()
   void _texImage2D_2(target, level, internalformat, format, type, pixels) native;
   @JSName('texImage2D')
   @DomName('WebGLRenderingContext.texImage2D')
-  @DocsEditable
+  @DocsEditable()
   void _texImage2D_3(target, level, internalformat, format, type, ImageElement image) native;
   @JSName('texImage2D')
   @DomName('WebGLRenderingContext.texImage2D')
-  @DocsEditable
+  @DocsEditable()
   void _texImage2D_4(target, level, internalformat, format, type, CanvasElement canvas) native;
   @JSName('texImage2D')
   @DomName('WebGLRenderingContext.texImage2D')
-  @DocsEditable
+  @DocsEditable()
   void _texImage2D_5(target, level, internalformat, format, type, VideoElement video) native;
 
   @DomName('WebGLRenderingContext.texParameterf')
-  @DocsEditable
+  @DocsEditable()
   void texParameterf(int target, int pname, num param) native;
 
   @DomName('WebGLRenderingContext.texParameteri')
-  @DocsEditable
+  @DocsEditable()
   void texParameteri(int target, int pname, int param) native;
 
   @DomName('WebGLRenderingContext.texSubImage2D')
-  @DocsEditable
+  @DocsEditable()
   void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, TypedData pixels]) {
     if (pixels != null && type != null && (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null)) {
       _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
@@ -2576,147 +2576,147 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   }
   @JSName('texSubImage2D')
   @DomName('WebGLRenderingContext.texSubImage2D')
-  @DocsEditable
+  @DocsEditable()
   void _texSubImage2D_1(target, level, xoffset, yoffset, width, height, int format, type, TypedData pixels) native;
   @JSName('texSubImage2D')
   @DomName('WebGLRenderingContext.texSubImage2D')
-  @DocsEditable
+  @DocsEditable()
   void _texSubImage2D_2(target, level, xoffset, yoffset, format, type, pixels) native;
   @JSName('texSubImage2D')
   @DomName('WebGLRenderingContext.texSubImage2D')
-  @DocsEditable
+  @DocsEditable()
   void _texSubImage2D_3(target, level, xoffset, yoffset, format, type, ImageElement image) native;
   @JSName('texSubImage2D')
   @DomName('WebGLRenderingContext.texSubImage2D')
-  @DocsEditable
+  @DocsEditable()
   void _texSubImage2D_4(target, level, xoffset, yoffset, format, type, CanvasElement canvas) native;
   @JSName('texSubImage2D')
   @DomName('WebGLRenderingContext.texSubImage2D')
-  @DocsEditable
+  @DocsEditable()
   void _texSubImage2D_5(target, level, xoffset, yoffset, format, type, VideoElement video) native;
 
   @DomName('WebGLRenderingContext.uniform1f')
-  @DocsEditable
+  @DocsEditable()
   void uniform1f(UniformLocation location, num x) native;
 
   @DomName('WebGLRenderingContext.uniform1fv')
-  @DocsEditable
+  @DocsEditable()
   void uniform1fv(UniformLocation location, Float32List v) native;
 
   @DomName('WebGLRenderingContext.uniform1i')
-  @DocsEditable
+  @DocsEditable()
   void uniform1i(UniformLocation location, int x) native;
 
   @DomName('WebGLRenderingContext.uniform1iv')
-  @DocsEditable
+  @DocsEditable()
   void uniform1iv(UniformLocation location, Int32List v) native;
 
   @DomName('WebGLRenderingContext.uniform2f')
-  @DocsEditable
+  @DocsEditable()
   void uniform2f(UniformLocation location, num x, num y) native;
 
   @DomName('WebGLRenderingContext.uniform2fv')
-  @DocsEditable
+  @DocsEditable()
   void uniform2fv(UniformLocation location, Float32List v) native;
 
   @DomName('WebGLRenderingContext.uniform2i')
-  @DocsEditable
+  @DocsEditable()
   void uniform2i(UniformLocation location, int x, int y) native;
 
   @DomName('WebGLRenderingContext.uniform2iv')
-  @DocsEditable
+  @DocsEditable()
   void uniform2iv(UniformLocation location, Int32List v) native;
 
   @DomName('WebGLRenderingContext.uniform3f')
-  @DocsEditable
+  @DocsEditable()
   void uniform3f(UniformLocation location, num x, num y, num z) native;
 
   @DomName('WebGLRenderingContext.uniform3fv')
-  @DocsEditable
+  @DocsEditable()
   void uniform3fv(UniformLocation location, Float32List v) native;
 
   @DomName('WebGLRenderingContext.uniform3i')
-  @DocsEditable
+  @DocsEditable()
   void uniform3i(UniformLocation location, int x, int y, int z) native;
 
   @DomName('WebGLRenderingContext.uniform3iv')
-  @DocsEditable
+  @DocsEditable()
   void uniform3iv(UniformLocation location, Int32List v) native;
 
   @DomName('WebGLRenderingContext.uniform4f')
-  @DocsEditable
+  @DocsEditable()
   void uniform4f(UniformLocation location, num x, num y, num z, num w) native;
 
   @DomName('WebGLRenderingContext.uniform4fv')
-  @DocsEditable
+  @DocsEditable()
   void uniform4fv(UniformLocation location, Float32List v) native;
 
   @DomName('WebGLRenderingContext.uniform4i')
-  @DocsEditable
+  @DocsEditable()
   void uniform4i(UniformLocation location, int x, int y, int z, int w) native;
 
   @DomName('WebGLRenderingContext.uniform4iv')
-  @DocsEditable
+  @DocsEditable()
   void uniform4iv(UniformLocation location, Int32List v) native;
 
   @DomName('WebGLRenderingContext.uniformMatrix2fv')
-  @DocsEditable
+  @DocsEditable()
   void uniformMatrix2fv(UniformLocation location, bool transpose, Float32List array) native;
 
   @DomName('WebGLRenderingContext.uniformMatrix3fv')
-  @DocsEditable
+  @DocsEditable()
   void uniformMatrix3fv(UniformLocation location, bool transpose, Float32List array) native;
 
   @DomName('WebGLRenderingContext.uniformMatrix4fv')
-  @DocsEditable
+  @DocsEditable()
   void uniformMatrix4fv(UniformLocation location, bool transpose, Float32List array) native;
 
   @DomName('WebGLRenderingContext.useProgram')
-  @DocsEditable
+  @DocsEditable()
   void useProgram(Program program) native;
 
   @DomName('WebGLRenderingContext.validateProgram')
-  @DocsEditable
+  @DocsEditable()
   void validateProgram(Program program) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib1f')
-  @DocsEditable
+  @DocsEditable()
   void vertexAttrib1f(int indx, num x) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib1fv')
-  @DocsEditable
+  @DocsEditable()
   void vertexAttrib1fv(int indx, Float32List values) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib2f')
-  @DocsEditable
+  @DocsEditable()
   void vertexAttrib2f(int indx, num x, num y) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib2fv')
-  @DocsEditable
+  @DocsEditable()
   void vertexAttrib2fv(int indx, Float32List values) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib3f')
-  @DocsEditable
+  @DocsEditable()
   void vertexAttrib3f(int indx, num x, num y, num z) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib3fv')
-  @DocsEditable
+  @DocsEditable()
   void vertexAttrib3fv(int indx, Float32List values) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib4f')
-  @DocsEditable
+  @DocsEditable()
   void vertexAttrib4f(int indx, num x, num y, num z, num w) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib4fv')
-  @DocsEditable
+  @DocsEditable()
   void vertexAttrib4fv(int indx, Float32List values) native;
 
   @DomName('WebGLRenderingContext.vertexAttribPointer')
-  @DocsEditable
+  @DocsEditable()
   void vertexAttribPointer(int indx, int size, int type, bool normalized, int stride, int offset) native;
 
   @DomName('WebGLRenderingContext.viewport')
-  @DocsEditable
+  @DocsEditable()
   void viewport(int x, int y, int width, int height) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2724,7 +2724,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('WebGLShader')
 class Shader extends Interceptor native "WebGLShader" {
 }
@@ -2733,20 +2733,20 @@ class Shader extends Interceptor native "WebGLShader" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('WebGLShaderPrecisionFormat')
 class ShaderPrecisionFormat extends Interceptor native "WebGLShaderPrecisionFormat" {
 
   @DomName('WebGLShaderPrecisionFormat.precision')
-  @DocsEditable
+  @DocsEditable()
   final int precision;
 
   @DomName('WebGLShaderPrecisionFormat.rangeMax')
-  @DocsEditable
+  @DocsEditable()
   final int rangeMax;
 
   @DomName('WebGLShaderPrecisionFormat.rangeMin')
-  @DocsEditable
+  @DocsEditable()
   final int rangeMin;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2754,7 +2754,7 @@ class ShaderPrecisionFormat extends Interceptor native "WebGLShaderPrecisionForm
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('WebGLTexture')
 class Texture extends Interceptor native "WebGLTexture" {
 }
@@ -2763,7 +2763,7 @@ class Texture extends Interceptor native "WebGLTexture" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('WebGLUniformLocation')
 class UniformLocation extends Interceptor native "WebGLUniformLocation" {
 }
@@ -2772,9 +2772,9 @@ class UniformLocation extends Interceptor native "WebGLUniformLocation" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('WebGLVertexArrayObjectOES')
 // http://www.khronos.org/registry/webgl/extensions/OES_vertex_array_object/
-@Experimental // experimental
+@Experimental() // experimental
 class VertexArrayObject extends Interceptor native "WebGLVertexArrayObjectOES" {
 }

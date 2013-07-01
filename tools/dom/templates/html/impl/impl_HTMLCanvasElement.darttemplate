@@ -19,7 +19,7 @@ $endif
 
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
-  @Experimental
+  @Experimental()
   gl.RenderingContext getContext3d({alpha: true, depth: true, stencil: false,
     antialias: true, premultipliedAlpha: true, preserveDrawingBuffer: false}) {
 

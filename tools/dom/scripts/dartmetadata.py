@@ -299,19 +299,19 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
 
 _blink_experimental_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
-  "@Experimental",
+  "@Experimental()",
 ]
 
 _indexed_db_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
   "@SupportedBrowser(SupportedBrowser.FIREFOX, '15')",
   "@SupportedBrowser(SupportedBrowser.IE, '10')",
-  "@Experimental",
+  "@Experimental()",
 ]
 
 _file_system_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
-  "@Experimental",
+  "@Experimental()",
 ]
 
 _all_but_ie9_annotations = [
@@ -337,17 +337,17 @@ _performance_annotations = [
 
 _rtc_annotations = [ # Note: Firefox nightly builds also support this.
   "@SupportedBrowser(SupportedBrowser.CHROME)",
-  "@Experimental",
+  "@Experimental()",
 ]
 
 _shadow_dom_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME, '26')",
-  "@Experimental",
+  "@Experimental()",
 ]
 
 _speech_recognition_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
-  "@Experimental",
+  "@Experimental()",
 ]
 
 _svg_annotations = _all_but_ie9_annotations;
@@ -355,19 +355,19 @@ _svg_annotations = _all_but_ie9_annotations;
 _web_sql_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
   "@SupportedBrowser(SupportedBrowser.SAFARI)",
-  "@Experimental",
+  "@Experimental()",
 ]
 
 _webgl_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
   "@SupportedBrowser(SupportedBrowser.FIREFOX)",
-  "@Experimental",
+  "@Experimental()",
 ]
 
 _webkit_experimental_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
   "@SupportedBrowser(SupportedBrowser.SAFARI)",
-  "@Experimental",
+  "@Experimental()",
 ]
 
 # Annotations to be placed on generated members.
@@ -401,10 +401,10 @@ _annotations = monitored.Dict('dartmetadata._annotations', {
   'Element.ontransitionend': _all_but_ie9_annotations,
   # Placeholder to add experimental flag, implementation for this is
   # pending in a separate CL.
-  'Element.webkitMatchesSelector': ['@Experimental()'],
+  'Element.webkitMatchesSelector': ['@Experimental()()'],
   'Element.webkitCreateShadowRoot': [
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
-    "@Experimental",
+    "@Experimental()",
   ],
   'Event.clipboardData': _webkit_experimental_annotations,
   'FormData': _all_but_ie9_annotations,
@@ -449,7 +449,7 @@ _annotations = monitored.Dict('dartmetadata._annotations', {
     "@SupportedBrowser(SupportedBrowser.CHROME)",
     "@SupportedBrowser(SupportedBrowser.FIREFOX)",
     "@SupportedBrowser(SupportedBrowser.SAFARI)",
-    "@Experimental",
+    "@Experimental()",
   ],
   'NotificationCenter': _webkit_experimental_annotations,
   'Performance': _performance_annotations,
@@ -590,7 +590,7 @@ class DartMetadata(object):
     # Only add this for members, so we don't add DocsEditable to templated
     # classes (they get it from the default class template)
     if member_name:
-      annotations.append('@DocsEditable');
+      annotations.append('@DocsEditable()');
 
     if key in _annotations:
       annotations.extend(_annotations[key])
@@ -717,11 +717,11 @@ class DartMetadata(object):
 
     if dart_action:
       if dart_action == 'unstable':
-        annotations.append('@Unstable')
+        annotations.append('@Unstable()')
       elif dart_action == 'experimental':
         if comment:
           annotations.append('// %s' % comment)
-        annotations.append('@Experimental // %s' % support_level)
+        annotations.append('@Experimental() // %s' % support_level)
       elif dart_action == 'suppress':
         if comment:
           annotations.append('// %s' % comment)
@@ -733,15 +733,15 @@ class DartMetadata(object):
       else:
         _logger.warn('Unknown dart_action - %s:%s' % (interface_id, member_id))
     elif support_level == 'untriaged':
-      annotations.append('@Experimental // untriaged')
+      annotations.append('@Experimental() // untriaged')
     elif support_level == 'experimental':
       if comment:
         annotations.append('// %s' % comment)
-      annotations.append('@Experimental')
+      annotations.append('@Experimental()')
     elif support_level == 'nonstandard':
       if comment:
         annotations.append('// %s' % comment)
-      annotations.append('@Experimental // non-standard')
+      annotations.append('@Experimental() // non-standard')
     elif support_level == 'stable':
       pass
     elif support_level == 'deprecated':

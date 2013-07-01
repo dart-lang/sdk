@@ -32,7 +32,7 @@ import 'dart:nativewrappers';
 
 @DomName('SQLStatementCallback')
 // http://www.w3.org/TR/webdatabase/#sqlstatementcallback
-@Experimental // deprecated
+@Experimental() // deprecated
 typedef void SqlStatementCallback(SqlTransaction transaction, SqlResultSet resultSet);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -43,7 +43,7 @@ typedef void SqlStatementCallback(SqlTransaction transaction, SqlResultSet resul
 
 @DomName('SQLStatementErrorCallback')
 // http://www.w3.org/TR/webdatabase/#sqlstatementerrorcallback
-@Experimental // deprecated
+@Experimental() // deprecated
 typedef void SqlStatementErrorCallback(SqlTransaction transaction, SqlError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -54,7 +54,7 @@ typedef void SqlStatementErrorCallback(SqlTransaction transaction, SqlError erro
 
 @DomName('SQLTransactionCallback')
 // http://www.w3.org/TR/webdatabase/#sqltransactioncallback
-@Experimental // deprecated
+@Experimental() // deprecated
 typedef void SqlTransactionCallback(SqlTransaction transaction);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -65,7 +65,7 @@ typedef void SqlTransactionCallback(SqlTransaction transaction);
 
 @DomName('SQLTransactionErrorCallback')
 // http://www.w3.org/TR/webdatabase/#sqltransactionerrorcallback
-@Experimental // deprecated
+@Experimental() // deprecated
 typedef void SqlTransactionErrorCallback(SqlError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -74,20 +74,20 @@ typedef void SqlTransactionErrorCallback(SqlError error);
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('Database')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental
+@Experimental()
 // http://www.w3.org/TR/webdatabase/#asynchronous-database-api
-@Experimental // deprecated
+@Experimental() // deprecated
 class SqlDatabase extends NativeFieldWrapperClass1 {
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('Database.version')
-  @DocsEditable
+  @DocsEditable()
   String get version native "Database_version_Getter";
 
   /**
@@ -103,15 +103,15 @@ class SqlDatabase extends NativeFieldWrapperClass1 {
    * * [Database.changeVersion](http://www.w3.org/TR/webdatabase/#dom-database-changeversion) from W3C.
    */
   @DomName('Database.changeVersion')
-  @DocsEditable
+  @DocsEditable()
   void changeVersion(String oldVersion, String newVersion, [SqlTransactionCallback callback, SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native "Database_changeVersion_Callback";
 
   @DomName('Database.readTransaction')
-  @DocsEditable
+  @DocsEditable()
   void readTransaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native "Database_readTransaction_Callback";
 
   @DomName('Database.transaction')
-  @DocsEditable
+  @DocsEditable()
   void transaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native "Database_transaction_Callback";
 
 }
@@ -122,50 +122,50 @@ class SqlDatabase extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SQLError')
 // http://www.w3.org/TR/webdatabase/#sqlerror
-@Experimental // deprecated
+@Experimental() // deprecated
 class SqlError extends NativeFieldWrapperClass1 {
 
   @DomName('SQLError.CONSTRAINT_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int CONSTRAINT_ERR = 6;
 
   @DomName('SQLError.DATABASE_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int DATABASE_ERR = 1;
 
   @DomName('SQLError.QUOTA_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int QUOTA_ERR = 4;
 
   @DomName('SQLError.SYNTAX_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int SYNTAX_ERR = 5;
 
   @DomName('SQLError.TIMEOUT_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int TIMEOUT_ERR = 7;
 
   @DomName('SQLError.TOO_LARGE_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int TOO_LARGE_ERR = 3;
 
   @DomName('SQLError.UNKNOWN_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int UNKNOWN_ERR = 0;
 
   @DomName('SQLError.VERSION_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int VERSION_ERR = 2;
 
   @DomName('SQLError.code')
-  @DocsEditable
+  @DocsEditable()
   int get code native "SQLError_code_Getter";
 
   @DomName('SQLError.message')
-  @DocsEditable
+  @DocsEditable()
   String get message native "SQLError_message_Getter";
 
 }
@@ -176,50 +176,50 @@ class SqlError extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SQLException')
 // http://www.w3.org/TR/webdatabase/#sqlexception
-@Experimental // deprecated
+@Experimental() // deprecated
 class SqlException extends NativeFieldWrapperClass1 {
 
   @DomName('SQLException.CONSTRAINT_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int CONSTRAINT_ERR = 6;
 
   @DomName('SQLException.DATABASE_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int DATABASE_ERR = 1;
 
   @DomName('SQLException.QUOTA_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int QUOTA_ERR = 4;
 
   @DomName('SQLException.SYNTAX_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int SYNTAX_ERR = 5;
 
   @DomName('SQLException.TIMEOUT_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int TIMEOUT_ERR = 7;
 
   @DomName('SQLException.TOO_LARGE_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int TOO_LARGE_ERR = 3;
 
   @DomName('SQLException.UNKNOWN_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int UNKNOWN_ERR = 0;
 
   @DomName('SQLException.VERSION_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int VERSION_ERR = 2;
 
   @DomName('SQLException.code')
-  @DocsEditable
+  @DocsEditable()
   int get code native "SQLException_code_Getter";
 
   @DomName('SQLException.message')
-  @DocsEditable
+  @DocsEditable()
   String get message native "SQLException_message_Getter";
 
 }
@@ -230,22 +230,22 @@ class SqlException extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SQLResultSet')
 // http://www.w3.org/TR/webdatabase/#sqlresultset
-@Experimental // deprecated
+@Experimental() // deprecated
 class SqlResultSet extends NativeFieldWrapperClass1 {
 
   @DomName('SQLResultSet.insertId')
-  @DocsEditable
+  @DocsEditable()
   int get insertId native "SQLResultSet_insertId_Getter";
 
   @DomName('SQLResultSet.rows')
-  @DocsEditable
+  @DocsEditable()
   SqlResultSetRowList get rows native "SQLResultSet_rows_Getter";
 
   @DomName('SQLResultSet.rowsAffected')
-  @DocsEditable
+  @DocsEditable()
   int get rowsAffected native "SQLResultSet_rowsAffected_Getter";
 
 }
@@ -256,14 +256,14 @@ class SqlResultSet extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SQLResultSetRowList')
 // http://www.w3.org/TR/webdatabase/#sqlresultsetrowlist
-@Experimental // deprecated
+@Experimental() // deprecated
 class SqlResultSetRowList extends NativeFieldWrapperClass1 with ListMixin<Map>, ImmutableListMixin<Map> implements List<Map> {
 
   @DomName('SQLResultSetRowList.length')
-  @DocsEditable
+  @DocsEditable()
   int get length native "SQLResultSetRowList_length_Getter";
 
   Map operator[](int index) {
@@ -312,7 +312,7 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 with ListMixin<Map>, 
   // -- end List<Map> mixins.
 
   @DomName('SQLResultSetRowList.item')
-  @DocsEditable
+  @DocsEditable()
   Map item(int index) native "SQLResultSetRowList_item_Callback";
 
 }
@@ -323,17 +323,17 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 with ListMixin<Map>, 
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SQLTransaction')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental
+@Experimental()
 // http://www.w3.org/TR/webdatabase/#sqltransaction
 @deprecated // deprecated
 class SqlTransaction extends NativeFieldWrapperClass1 {
 
   @DomName('SQLTransaction.executeSql')
-  @DocsEditable
+  @DocsEditable()
   void executeSql(String sqlStatement, List arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) native "SQLTransaction_executeSql_Callback";
 
 }
@@ -344,13 +344,13 @@ class SqlTransaction extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SQLTransactionSync')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental
+@Experimental()
 // http://www.w3.org/TR/webdatabase/#sqltransactionsync
-@Experimental // deprecated
+@Experimental() // deprecated
 abstract class _SQLTransactionSync extends NativeFieldWrapperClass1 {
 
 }

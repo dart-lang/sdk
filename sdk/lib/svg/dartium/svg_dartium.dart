@@ -60,87 +60,87 @@ class _SvgSvgElementFactoryProvider {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAElement')
-@Unstable
+@Unstable()
 class AElement extends StyledElement implements UriReference, Tests, Transformable, ExternalResourcesRequired, LangSpace {
   // To suppress missing implicit constructor warnings.
   factory AElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAElement.SVGAElement')
-  @DocsEditable
+  @DocsEditable()
   factory AElement() => _SvgElementFactoryProvider.createSvgElement_tag("a");
 
   @DomName('SVGAElement.target')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get target native "SVGAElement_target_Getter";
 
   @DomName('SVGAElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGAElement_externalResourcesRequired_Getter";
 
   @DomName('SVGAElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String get xmllang native "SVGAElement_xmllang_Getter";
 
   @DomName('SVGAElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   void set xmllang(String value) native "SVGAElement_xmllang_Setter";
 
   @DomName('SVGAElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String get xmlspace native "SVGAElement_xmlspace_Getter";
 
   @DomName('SVGAElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   void set xmlspace(String value) native "SVGAElement_xmlspace_Setter";
 
   @DomName('SVGAElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get farthestViewportElement native "SVGAElement_farthestViewportElement_Getter";
 
   @DomName('SVGAElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get nearestViewportElement native "SVGAElement_nearestViewportElement_Getter";
 
   @DomName('SVGAElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native "SVGAElement_getBBox_Callback";
 
   @DomName('SVGAElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native "SVGAElement_getCTM_Callback";
 
   @DomName('SVGAElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native "SVGAElement_getScreenCTM_Callback";
 
   @DomName('SVGAElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native "SVGAElement_getTransformToElement_Callback";
 
   @DomName('SVGAElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredExtensions native "SVGAElement_requiredExtensions_Getter";
 
   @DomName('SVGAElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredFeatures native "SVGAElement_requiredFeatures_Getter";
 
   @DomName('SVGAElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   StringList get systemLanguage native "SVGAElement_systemLanguage_Getter";
 
   @DomName('SVGAElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native "SVGAElement_hasExtension_Callback";
 
   @DomName('SVGAElement.transform')
-  @DocsEditable
+  @DocsEditable()
   AnimatedTransformList get transform native "SVGAElement_transform_Getter";
 
   @DomName('SVGAElement.href')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get href native "SVGAElement_href_Getter";
 
 }
@@ -151,41 +151,41 @@ class AElement extends StyledElement implements UriReference, Tests, Transformab
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAltGlyphElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class AltGlyphElement extends TextPositioningElement implements UriReference {
   // To suppress missing implicit constructor warnings.
   factory AltGlyphElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAltGlyphElement.SVGAltGlyphElement')
-  @DocsEditable
+  @DocsEditable()
   factory AltGlyphElement() => _SvgElementFactoryProvider.createSvgElement_tag("altGlyph");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('SVGAltGlyphElement.format')
-  @DocsEditable
+  @DocsEditable()
   String get format native "SVGAltGlyphElement_format_Getter";
 
   @DomName('SVGAltGlyphElement.format')
-  @DocsEditable
+  @DocsEditable()
   void set format(String value) native "SVGAltGlyphElement_format_Setter";
 
   @DomName('SVGAltGlyphElement.glyphRef')
-  @DocsEditable
+  @DocsEditable()
   String get glyphRef native "SVGAltGlyphElement_glyphRef_Getter";
 
   @DomName('SVGAltGlyphElement.glyphRef')
-  @DocsEditable
+  @DocsEditable()
   void set glyphRef(String value) native "SVGAltGlyphElement_glyphRef_Setter";
 
   @DomName('SVGAltGlyphElement.href')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get href native "SVGAltGlyphElement_href_Getter";
 
 }
@@ -196,65 +196,65 @@ class AltGlyphElement extends TextPositioningElement implements UriReference {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAngle')
-@Unstable
+@Unstable()
 class Angle extends NativeFieldWrapperClass1 {
 
   @DomName('SVGAngle.SVG_ANGLETYPE_DEG')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_ANGLETYPE_DEG = 2;
 
   @DomName('SVGAngle.SVG_ANGLETYPE_GRAD')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_ANGLETYPE_GRAD = 4;
 
   @DomName('SVGAngle.SVG_ANGLETYPE_RAD')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_ANGLETYPE_RAD = 3;
 
   @DomName('SVGAngle.SVG_ANGLETYPE_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_ANGLETYPE_UNKNOWN = 0;
 
   @DomName('SVGAngle.SVG_ANGLETYPE_UNSPECIFIED')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_ANGLETYPE_UNSPECIFIED = 1;
 
   @DomName('SVGAngle.unitType')
-  @DocsEditable
+  @DocsEditable()
   int get unitType native "SVGAngle_unitType_Getter";
 
   @DomName('SVGAngle.value')
-  @DocsEditable
+  @DocsEditable()
   num get value native "SVGAngle_value_Getter";
 
   @DomName('SVGAngle.value')
-  @DocsEditable
+  @DocsEditable()
   void set value(num value) native "SVGAngle_value_Setter";
 
   @DomName('SVGAngle.valueAsString')
-  @DocsEditable
+  @DocsEditable()
   String get valueAsString native "SVGAngle_valueAsString_Getter";
 
   @DomName('SVGAngle.valueAsString')
-  @DocsEditable
+  @DocsEditable()
   void set valueAsString(String value) native "SVGAngle_valueAsString_Setter";
 
   @DomName('SVGAngle.valueInSpecifiedUnits')
-  @DocsEditable
+  @DocsEditable()
   num get valueInSpecifiedUnits native "SVGAngle_valueInSpecifiedUnits_Getter";
 
   @DomName('SVGAngle.valueInSpecifiedUnits')
-  @DocsEditable
+  @DocsEditable()
   void set valueInSpecifiedUnits(num value) native "SVGAngle_valueInSpecifiedUnits_Setter";
 
   @DomName('SVGAngle.convertToSpecifiedUnits')
-  @DocsEditable
+  @DocsEditable()
   void convertToSpecifiedUnits(int unitType) native "SVGAngle_convertToSpecifiedUnits_Callback";
 
   @DomName('SVGAngle.newValueSpecifiedUnits')
-  @DocsEditable
+  @DocsEditable()
   void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) native "SVGAngle_newValueSpecifiedUnits_Callback";
 
 }
@@ -265,18 +265,18 @@ class Angle extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimateElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class AnimateElement extends AnimationElement {
   // To suppress missing implicit constructor warnings.
   factory AnimateElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAnimateElement.SVGAnimateElement')
-  @DocsEditable
+  @DocsEditable()
   factory AnimateElement() => _SvgElementFactoryProvider.createSvgElement_tag("animate");
 
   /// Checks if this type is supported on the current platform.
@@ -290,18 +290,18 @@ class AnimateElement extends AnimationElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimateMotionElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class AnimateMotionElement extends AnimationElement {
   // To suppress missing implicit constructor warnings.
   factory AnimateMotionElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAnimateMotionElement.SVGAnimateMotionElement')
-  @DocsEditable
+  @DocsEditable()
   factory AnimateMotionElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateMotion");
 
   /// Checks if this type is supported on the current platform.
@@ -315,18 +315,18 @@ class AnimateMotionElement extends AnimationElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimateTransformElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class AnimateTransformElement extends AnimationElement {
   // To suppress missing implicit constructor warnings.
   factory AnimateTransformElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAnimateTransformElement.SVGAnimateTransformElement')
-  @DocsEditable
+  @DocsEditable()
   factory AnimateTransformElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateTransform");
 
   /// Checks if this type is supported on the current platform.
@@ -340,17 +340,17 @@ class AnimateTransformElement extends AnimationElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimatedAngle')
-@Unstable
+@Unstable()
 class AnimatedAngle extends NativeFieldWrapperClass1 {
 
   @DomName('SVGAnimatedAngle.animVal')
-  @DocsEditable
+  @DocsEditable()
   Angle get animVal native "SVGAnimatedAngle_animVal_Getter";
 
   @DomName('SVGAnimatedAngle.baseVal')
-  @DocsEditable
+  @DocsEditable()
   Angle get baseVal native "SVGAnimatedAngle_baseVal_Getter";
 
 }
@@ -361,21 +361,21 @@ class AnimatedAngle extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimatedBoolean')
-@Unstable
+@Unstable()
 class AnimatedBoolean extends NativeFieldWrapperClass1 {
 
   @DomName('SVGAnimatedBoolean.animVal')
-  @DocsEditable
+  @DocsEditable()
   bool get animVal native "SVGAnimatedBoolean_animVal_Getter";
 
   @DomName('SVGAnimatedBoolean.baseVal')
-  @DocsEditable
+  @DocsEditable()
   bool get baseVal native "SVGAnimatedBoolean_baseVal_Getter";
 
   @DomName('SVGAnimatedBoolean.baseVal')
-  @DocsEditable
+  @DocsEditable()
   void set baseVal(bool value) native "SVGAnimatedBoolean_baseVal_Setter";
 
 }
@@ -386,21 +386,21 @@ class AnimatedBoolean extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimatedEnumeration')
-@Unstable
+@Unstable()
 class AnimatedEnumeration extends NativeFieldWrapperClass1 {
 
   @DomName('SVGAnimatedEnumeration.animVal')
-  @DocsEditable
+  @DocsEditable()
   int get animVal native "SVGAnimatedEnumeration_animVal_Getter";
 
   @DomName('SVGAnimatedEnumeration.baseVal')
-  @DocsEditable
+  @DocsEditable()
   int get baseVal native "SVGAnimatedEnumeration_baseVal_Getter";
 
   @DomName('SVGAnimatedEnumeration.baseVal')
-  @DocsEditable
+  @DocsEditable()
   void set baseVal(int value) native "SVGAnimatedEnumeration_baseVal_Setter";
 
 }
@@ -411,21 +411,21 @@ class AnimatedEnumeration extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimatedInteger')
-@Unstable
+@Unstable()
 class AnimatedInteger extends NativeFieldWrapperClass1 {
 
   @DomName('SVGAnimatedInteger.animVal')
-  @DocsEditable
+  @DocsEditable()
   int get animVal native "SVGAnimatedInteger_animVal_Getter";
 
   @DomName('SVGAnimatedInteger.baseVal')
-  @DocsEditable
+  @DocsEditable()
   int get baseVal native "SVGAnimatedInteger_baseVal_Getter";
 
   @DomName('SVGAnimatedInteger.baseVal')
-  @DocsEditable
+  @DocsEditable()
   void set baseVal(int value) native "SVGAnimatedInteger_baseVal_Setter";
 
 }
@@ -436,17 +436,17 @@ class AnimatedInteger extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimatedLength')
-@Unstable
+@Unstable()
 class AnimatedLength extends NativeFieldWrapperClass1 {
 
   @DomName('SVGAnimatedLength.animVal')
-  @DocsEditable
+  @DocsEditable()
   Length get animVal native "SVGAnimatedLength_animVal_Getter";
 
   @DomName('SVGAnimatedLength.baseVal')
-  @DocsEditable
+  @DocsEditable()
   Length get baseVal native "SVGAnimatedLength_baseVal_Getter";
 
 }
@@ -457,17 +457,17 @@ class AnimatedLength extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimatedLengthList')
-@Unstable
+@Unstable()
 class AnimatedLengthList extends NativeFieldWrapperClass1 {
 
   @DomName('SVGAnimatedLengthList.animVal')
-  @DocsEditable
+  @DocsEditable()
   LengthList get animVal native "SVGAnimatedLengthList_animVal_Getter";
 
   @DomName('SVGAnimatedLengthList.baseVal')
-  @DocsEditable
+  @DocsEditable()
   LengthList get baseVal native "SVGAnimatedLengthList_baseVal_Getter";
 
 }
@@ -478,21 +478,21 @@ class AnimatedLengthList extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimatedNumber')
-@Unstable
+@Unstable()
 class AnimatedNumber extends NativeFieldWrapperClass1 {
 
   @DomName('SVGAnimatedNumber.animVal')
-  @DocsEditable
+  @DocsEditable()
   num get animVal native "SVGAnimatedNumber_animVal_Getter";
 
   @DomName('SVGAnimatedNumber.baseVal')
-  @DocsEditable
+  @DocsEditable()
   num get baseVal native "SVGAnimatedNumber_baseVal_Getter";
 
   @DomName('SVGAnimatedNumber.baseVal')
-  @DocsEditable
+  @DocsEditable()
   void set baseVal(num value) native "SVGAnimatedNumber_baseVal_Setter";
 
 }
@@ -503,17 +503,17 @@ class AnimatedNumber extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimatedNumberList')
-@Unstable
+@Unstable()
 class AnimatedNumberList extends NativeFieldWrapperClass1 {
 
   @DomName('SVGAnimatedNumberList.animVal')
-  @DocsEditable
+  @DocsEditable()
   NumberList get animVal native "SVGAnimatedNumberList_animVal_Getter";
 
   @DomName('SVGAnimatedNumberList.baseVal')
-  @DocsEditable
+  @DocsEditable()
   NumberList get baseVal native "SVGAnimatedNumberList_baseVal_Getter";
 
 }
@@ -524,17 +524,17 @@ class AnimatedNumberList extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimatedPreserveAspectRatio')
-@Unstable
+@Unstable()
 class AnimatedPreserveAspectRatio extends NativeFieldWrapperClass1 {
 
   @DomName('SVGAnimatedPreserveAspectRatio.animVal')
-  @DocsEditable
+  @DocsEditable()
   PreserveAspectRatio get animVal native "SVGAnimatedPreserveAspectRatio_animVal_Getter";
 
   @DomName('SVGAnimatedPreserveAspectRatio.baseVal')
-  @DocsEditable
+  @DocsEditable()
   PreserveAspectRatio get baseVal native "SVGAnimatedPreserveAspectRatio_baseVal_Getter";
 
 }
@@ -545,17 +545,17 @@ class AnimatedPreserveAspectRatio extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimatedRect')
-@Unstable
+@Unstable()
 class AnimatedRect extends NativeFieldWrapperClass1 {
 
   @DomName('SVGAnimatedRect.animVal')
-  @DocsEditable
+  @DocsEditable()
   Rect get animVal native "SVGAnimatedRect_animVal_Getter";
 
   @DomName('SVGAnimatedRect.baseVal')
-  @DocsEditable
+  @DocsEditable()
   Rect get baseVal native "SVGAnimatedRect_baseVal_Getter";
 
 }
@@ -566,21 +566,21 @@ class AnimatedRect extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimatedString')
-@Unstable
+@Unstable()
 class AnimatedString extends NativeFieldWrapperClass1 {
 
   @DomName('SVGAnimatedString.animVal')
-  @DocsEditable
+  @DocsEditable()
   String get animVal native "SVGAnimatedString_animVal_Getter";
 
   @DomName('SVGAnimatedString.baseVal')
-  @DocsEditable
+  @DocsEditable()
   String get baseVal native "SVGAnimatedString_baseVal_Getter";
 
   @DomName('SVGAnimatedString.baseVal')
-  @DocsEditable
+  @DocsEditable()
   void set baseVal(String value) native "SVGAnimatedString_baseVal_Setter";
 
 }
@@ -591,17 +591,17 @@ class AnimatedString extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimatedTransformList')
-@Unstable
+@Unstable()
 class AnimatedTransformList extends NativeFieldWrapperClass1 {
 
   @DomName('SVGAnimatedTransformList.animVal')
-  @DocsEditable
+  @DocsEditable()
   TransformList get animVal native "SVGAnimatedTransformList_animVal_Getter";
 
   @DomName('SVGAnimatedTransformList.baseVal')
-  @DocsEditable
+  @DocsEditable()
   TransformList get baseVal native "SVGAnimatedTransformList_baseVal_Getter";
 
 }
@@ -612,67 +612,67 @@ class AnimatedTransformList extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimationElement')
-@Unstable
+@Unstable()
 class AnimationElement extends SvgElement implements Tests, ElementTimeControl, ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory AnimationElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAnimationElement.SVGAnimationElement')
-  @DocsEditable
+  @DocsEditable()
   factory AnimationElement() => _SvgElementFactoryProvider.createSvgElement_tag("animation");
 
   @DomName('SVGAnimationElement.targetElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get targetElement native "SVGAnimationElement_targetElement_Getter";
 
   @DomName('SVGAnimationElement.getCurrentTime')
-  @DocsEditable
+  @DocsEditable()
   num getCurrentTime() native "SVGAnimationElement_getCurrentTime_Callback";
 
   @DomName('SVGAnimationElement.getSimpleDuration')
-  @DocsEditable
+  @DocsEditable()
   num getSimpleDuration() native "SVGAnimationElement_getSimpleDuration_Callback";
 
   @DomName('SVGAnimationElement.getStartTime')
-  @DocsEditable
+  @DocsEditable()
   num getStartTime() native "SVGAnimationElement_getStartTime_Callback";
 
   @DomName('SVGAnimationElement.beginElement')
-  @DocsEditable
+  @DocsEditable()
   void beginElement() native "SVGAnimationElement_beginElement_Callback";
 
   @DomName('SVGAnimationElement.beginElementAt')
-  @DocsEditable
+  @DocsEditable()
   void beginElementAt(num offset) native "SVGAnimationElement_beginElementAt_Callback";
 
   @DomName('SVGAnimationElement.endElement')
-  @DocsEditable
+  @DocsEditable()
   void endElement() native "SVGAnimationElement_endElement_Callback";
 
   @DomName('SVGAnimationElement.endElementAt')
-  @DocsEditable
+  @DocsEditable()
   void endElementAt(num offset) native "SVGAnimationElement_endElementAt_Callback";
 
   @DomName('SVGAnimationElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGAnimationElement_externalResourcesRequired_Getter";
 
   @DomName('SVGAnimationElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredExtensions native "SVGAnimationElement_requiredExtensions_Getter";
 
   @DomName('SVGAnimationElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredFeatures native "SVGAnimationElement_requiredFeatures_Getter";
 
   @DomName('SVGAnimationElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   StringList get systemLanguage native "SVGAnimationElement_systemLanguage_Getter";
 
   @DomName('SVGAnimationElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native "SVGAnimationElement_hasExtension_Callback";
 
 }
@@ -683,91 +683,91 @@ class AnimationElement extends SvgElement implements Tests, ElementTimeControl, 
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGCircleElement')
-@Unstable
+@Unstable()
 class CircleElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   // To suppress missing implicit constructor warnings.
   factory CircleElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGCircleElement.SVGCircleElement')
-  @DocsEditable
+  @DocsEditable()
   factory CircleElement() => _SvgElementFactoryProvider.createSvgElement_tag("circle");
 
   @DomName('SVGCircleElement.cx')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get cx native "SVGCircleElement_cx_Getter";
 
   @DomName('SVGCircleElement.cy')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get cy native "SVGCircleElement_cy_Getter";
 
   @DomName('SVGCircleElement.r')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get r native "SVGCircleElement_r_Getter";
 
   @DomName('SVGCircleElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGCircleElement_externalResourcesRequired_Getter";
 
   @DomName('SVGCircleElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String get xmllang native "SVGCircleElement_xmllang_Getter";
 
   @DomName('SVGCircleElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   void set xmllang(String value) native "SVGCircleElement_xmllang_Setter";
 
   @DomName('SVGCircleElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String get xmlspace native "SVGCircleElement_xmlspace_Getter";
 
   @DomName('SVGCircleElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   void set xmlspace(String value) native "SVGCircleElement_xmlspace_Setter";
 
   @DomName('SVGCircleElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get farthestViewportElement native "SVGCircleElement_farthestViewportElement_Getter";
 
   @DomName('SVGCircleElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get nearestViewportElement native "SVGCircleElement_nearestViewportElement_Getter";
 
   @DomName('SVGCircleElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native "SVGCircleElement_getBBox_Callback";
 
   @DomName('SVGCircleElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native "SVGCircleElement_getCTM_Callback";
 
   @DomName('SVGCircleElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native "SVGCircleElement_getScreenCTM_Callback";
 
   @DomName('SVGCircleElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native "SVGCircleElement_getTransformToElement_Callback";
 
   @DomName('SVGCircleElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredExtensions native "SVGCircleElement_requiredExtensions_Getter";
 
   @DomName('SVGCircleElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredFeatures native "SVGCircleElement_requiredFeatures_Getter";
 
   @DomName('SVGCircleElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   StringList get systemLanguage native "SVGCircleElement_systemLanguage_Getter";
 
   @DomName('SVGCircleElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native "SVGCircleElement_hasExtension_Callback";
 
   @DomName('SVGCircleElement.transform')
-  @DocsEditable
+  @DocsEditable()
   AnimatedTransformList get transform native "SVGCircleElement_transform_Getter";
 
 }
@@ -778,83 +778,83 @@ class CircleElement extends StyledElement implements Transformable, Tests, Exter
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGClipPathElement')
-@Unstable
+@Unstable()
 class ClipPathElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   // To suppress missing implicit constructor warnings.
   factory ClipPathElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGClipPathElement.SVGClipPathElement')
-  @DocsEditable
+  @DocsEditable()
   factory ClipPathElement() => _SvgElementFactoryProvider.createSvgElement_tag("clipPath");
 
   @DomName('SVGClipPathElement.clipPathUnits')
-  @DocsEditable
+  @DocsEditable()
   AnimatedEnumeration get clipPathUnits native "SVGClipPathElement_clipPathUnits_Getter";
 
   @DomName('SVGClipPathElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGClipPathElement_externalResourcesRequired_Getter";
 
   @DomName('SVGClipPathElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String get xmllang native "SVGClipPathElement_xmllang_Getter";
 
   @DomName('SVGClipPathElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   void set xmllang(String value) native "SVGClipPathElement_xmllang_Setter";
 
   @DomName('SVGClipPathElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String get xmlspace native "SVGClipPathElement_xmlspace_Getter";
 
   @DomName('SVGClipPathElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   void set xmlspace(String value) native "SVGClipPathElement_xmlspace_Setter";
 
   @DomName('SVGClipPathElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get farthestViewportElement native "SVGClipPathElement_farthestViewportElement_Getter";
 
   @DomName('SVGClipPathElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get nearestViewportElement native "SVGClipPathElement_nearestViewportElement_Getter";
 
   @DomName('SVGClipPathElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native "SVGClipPathElement_getBBox_Callback";
 
   @DomName('SVGClipPathElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native "SVGClipPathElement_getCTM_Callback";
 
   @DomName('SVGClipPathElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native "SVGClipPathElement_getScreenCTM_Callback";
 
   @DomName('SVGClipPathElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native "SVGClipPathElement_getTransformToElement_Callback";
 
   @DomName('SVGClipPathElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredExtensions native "SVGClipPathElement_requiredExtensions_Getter";
 
   @DomName('SVGClipPathElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredFeatures native "SVGClipPathElement_requiredFeatures_Getter";
 
   @DomName('SVGClipPathElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   StringList get systemLanguage native "SVGClipPathElement_systemLanguage_Getter";
 
   @DomName('SVGClipPathElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native "SVGClipPathElement_hasExtension_Callback";
 
   @DomName('SVGClipPathElement.transform')
-  @DocsEditable
+  @DocsEditable()
   AnimatedTransformList get transform native "SVGClipPathElement_transform_Getter";
 
 }
@@ -865,79 +865,79 @@ class ClipPathElement extends StyledElement implements Transformable, Tests, Ext
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGDefsElement')
-@Unstable
+@Unstable()
 class DefsElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   // To suppress missing implicit constructor warnings.
   factory DefsElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGDefsElement.SVGDefsElement')
-  @DocsEditable
+  @DocsEditable()
   factory DefsElement() => _SvgElementFactoryProvider.createSvgElement_tag("defs");
 
   @DomName('SVGDefsElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGDefsElement_externalResourcesRequired_Getter";
 
   @DomName('SVGDefsElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String get xmllang native "SVGDefsElement_xmllang_Getter";
 
   @DomName('SVGDefsElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   void set xmllang(String value) native "SVGDefsElement_xmllang_Setter";
 
   @DomName('SVGDefsElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String get xmlspace native "SVGDefsElement_xmlspace_Getter";
 
   @DomName('SVGDefsElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   void set xmlspace(String value) native "SVGDefsElement_xmlspace_Setter";
 
   @DomName('SVGDefsElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get farthestViewportElement native "SVGDefsElement_farthestViewportElement_Getter";
 
   @DomName('SVGDefsElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get nearestViewportElement native "SVGDefsElement_nearestViewportElement_Getter";
 
   @DomName('SVGDefsElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native "SVGDefsElement_getBBox_Callback";
 
   @DomName('SVGDefsElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native "SVGDefsElement_getCTM_Callback";
 
   @DomName('SVGDefsElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native "SVGDefsElement_getScreenCTM_Callback";
 
   @DomName('SVGDefsElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native "SVGDefsElement_getTransformToElement_Callback";
 
   @DomName('SVGDefsElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredExtensions native "SVGDefsElement_requiredExtensions_Getter";
 
   @DomName('SVGDefsElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredFeatures native "SVGDefsElement_requiredFeatures_Getter";
 
   @DomName('SVGDefsElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   StringList get systemLanguage native "SVGDefsElement_systemLanguage_Getter";
 
   @DomName('SVGDefsElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native "SVGDefsElement_hasExtension_Callback";
 
   @DomName('SVGDefsElement.transform')
-  @DocsEditable
+  @DocsEditable()
   AnimatedTransformList get transform native "SVGDefsElement_transform_Getter";
 
 }
@@ -948,31 +948,31 @@ class DefsElement extends StyledElement implements Transformable, Tests, Externa
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGDescElement')
-@Unstable
+@Unstable()
 class DescElement extends StyledElement implements LangSpace {
   // To suppress missing implicit constructor warnings.
   factory DescElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGDescElement.SVGDescElement')
-  @DocsEditable
+  @DocsEditable()
   factory DescElement() => _SvgElementFactoryProvider.createSvgElement_tag("desc");
 
   @DomName('SVGDescElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String get xmllang native "SVGDescElement_xmllang_Getter";
 
   @DomName('SVGDescElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   void set xmllang(String value) native "SVGDescElement_xmllang_Setter";
 
   @DomName('SVGDescElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String get xmlspace native "SVGDescElement_xmlspace_Getter";
 
   @DomName('SVGDescElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   void set xmlspace(String value) native "SVGDescElement_xmlspace_Setter";
 
 }
@@ -983,367 +983,367 @@ class DescElement extends StyledElement implements LangSpace {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGElementInstance')
-@Unstable
+@Unstable()
 class ElementInstance extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory ElementInstance._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGElementInstance.abortEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
 
   @DomName('SVGElementInstance.beforecopyEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> beforeCopyEvent = const EventStreamProvider<Event>('beforecopy');
 
   @DomName('SVGElementInstance.beforecutEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> beforeCutEvent = const EventStreamProvider<Event>('beforecut');
 
   @DomName('SVGElementInstance.beforepasteEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> beforePasteEvent = const EventStreamProvider<Event>('beforepaste');
 
   @DomName('SVGElementInstance.blurEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
 
   @DomName('SVGElementInstance.changeEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
 
   @DomName('SVGElementInstance.clickEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<MouseEvent> clickEvent = const EventStreamProvider<MouseEvent>('click');
 
   @DomName('SVGElementInstance.contextmenuEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<MouseEvent> contextMenuEvent = const EventStreamProvider<MouseEvent>('contextmenu');
 
   @DomName('SVGElementInstance.copyEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> copyEvent = const EventStreamProvider<Event>('copy');
 
   @DomName('SVGElementInstance.cutEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> cutEvent = const EventStreamProvider<Event>('cut');
 
   @DomName('SVGElementInstance.dblclickEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> doubleClickEvent = const EventStreamProvider<Event>('dblclick');
 
   @DomName('SVGElementInstance.dragEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<MouseEvent> dragEvent = const EventStreamProvider<MouseEvent>('drag');
 
   @DomName('SVGElementInstance.dragendEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<MouseEvent> dragEndEvent = const EventStreamProvider<MouseEvent>('dragend');
 
   @DomName('SVGElementInstance.dragenterEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<MouseEvent> dragEnterEvent = const EventStreamProvider<MouseEvent>('dragenter');
 
   @DomName('SVGElementInstance.dragleaveEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<MouseEvent> dragLeaveEvent = const EventStreamProvider<MouseEvent>('dragleave');
 
   @DomName('SVGElementInstance.dragoverEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<MouseEvent> dragOverEvent = const EventStreamProvider<MouseEvent>('dragover');
 
   @DomName('SVGElementInstance.dragstartEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<MouseEvent> dragStartEvent = const EventStreamProvider<MouseEvent>('dragstart');
 
   @DomName('SVGElementInstance.dropEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<MouseEvent> dropEvent = const EventStreamProvider<MouseEvent>('drop');
 
   @DomName('SVGElementInstance.errorEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
   @DomName('SVGElementInstance.focusEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
 
   @DomName('SVGElementInstance.inputEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> inputEvent = const EventStreamProvider<Event>('input');
 
   @DomName('SVGElementInstance.keydownEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<KeyboardEvent> keyDownEvent = const EventStreamProvider<KeyboardEvent>('keydown');
 
   @DomName('SVGElementInstance.keypressEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<KeyboardEvent> keyPressEvent = const EventStreamProvider<KeyboardEvent>('keypress');
 
   @DomName('SVGElementInstance.keyupEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<KeyboardEvent> keyUpEvent = const EventStreamProvider<KeyboardEvent>('keyup');
 
   @DomName('SVGElementInstance.loadEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
 
   @DomName('SVGElementInstance.mousedownEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<MouseEvent> mouseDownEvent = const EventStreamProvider<MouseEvent>('mousedown');
 
   @DomName('SVGElementInstance.mousemoveEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<MouseEvent> mouseMoveEvent = const EventStreamProvider<MouseEvent>('mousemove');
 
   @DomName('SVGElementInstance.mouseoutEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<MouseEvent> mouseOutEvent = const EventStreamProvider<MouseEvent>('mouseout');
 
   @DomName('SVGElementInstance.mouseoverEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<MouseEvent> mouseOverEvent = const EventStreamProvider<MouseEvent>('mouseover');
 
   @DomName('SVGElementInstance.mouseupEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<MouseEvent> mouseUpEvent = const EventStreamProvider<MouseEvent>('mouseup');
 
   @DomName('SVGElementInstance.mousewheelEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<WheelEvent> mouseWheelEvent = const EventStreamProvider<WheelEvent>('mousewheel');
 
   @DomName('SVGElementInstance.pasteEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> pasteEvent = const EventStreamProvider<Event>('paste');
 
   @DomName('SVGElementInstance.resetEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> resetEvent = const EventStreamProvider<Event>('reset');
 
   @DomName('SVGElementInstance.resizeEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
 
   @DomName('SVGElementInstance.scrollEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> scrollEvent = const EventStreamProvider<Event>('scroll');
 
   @DomName('SVGElementInstance.searchEvent')
-  @DocsEditable
+  @DocsEditable()
   // http://www.w3.org/TR/html-markup/input.search.html
-  @Experimental
+  @Experimental()
   static const EventStreamProvider<Event> searchEvent = const EventStreamProvider<Event>('search');
 
   @DomName('SVGElementInstance.selectEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> selectEvent = const EventStreamProvider<Event>('select');
 
   @DomName('SVGElementInstance.selectstartEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> selectStartEvent = const EventStreamProvider<Event>('selectstart');
 
   @DomName('SVGElementInstance.submitEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> submitEvent = const EventStreamProvider<Event>('submit');
 
   @DomName('SVGElementInstance.unloadEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
 
   @DomName('SVGElementInstance.childNodes')
-  @DocsEditable
+  @DocsEditable()
   List<ElementInstance> get childNodes native "SVGElementInstance_childNodes_Getter";
 
   @DomName('SVGElementInstance.correspondingElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get correspondingElement native "SVGElementInstance_correspondingElement_Getter";
 
   @DomName('SVGElementInstance.correspondingUseElement')
-  @DocsEditable
+  @DocsEditable()
   UseElement get correspondingUseElement native "SVGElementInstance_correspondingUseElement_Getter";
 
   @DomName('SVGElementInstance.firstChild')
-  @DocsEditable
+  @DocsEditable()
   ElementInstance get firstChild native "SVGElementInstance_firstChild_Getter";
 
   @DomName('SVGElementInstance.lastChild')
-  @DocsEditable
+  @DocsEditable()
   ElementInstance get lastChild native "SVGElementInstance_lastChild_Getter";
 
   @DomName('SVGElementInstance.nextSibling')
-  @DocsEditable
+  @DocsEditable()
   ElementInstance get nextSibling native "SVGElementInstance_nextSibling_Getter";
 
   @DomName('SVGElementInstance.parentNode')
-  @DocsEditable
+  @DocsEditable()
   ElementInstance get parentNode native "SVGElementInstance_parentNode_Getter";
 
   @DomName('SVGElementInstance.previousSibling')
-  @DocsEditable
+  @DocsEditable()
   ElementInstance get previousSibling native "SVGElementInstance_previousSibling_Getter";
 
   @DomName('SVGElementInstance.onabort')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onAbort => abortEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onbeforecopy')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onBeforeCopy => beforeCopyEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onbeforecut')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onBeforeCut => beforeCutEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onbeforepaste')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onBeforePaste => beforePasteEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onblur')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onBlur => blurEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onchange')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onChange => changeEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onclick')
-  @DocsEditable
+  @DocsEditable()
   Stream<MouseEvent> get onClick => clickEvent.forTarget(this);
 
   @DomName('SVGElementInstance.oncontextmenu')
-  @DocsEditable
+  @DocsEditable()
   Stream<MouseEvent> get onContextMenu => contextMenuEvent.forTarget(this);
 
   @DomName('SVGElementInstance.oncopy')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onCopy => copyEvent.forTarget(this);
 
   @DomName('SVGElementInstance.oncut')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onCut => cutEvent.forTarget(this);
 
   @DomName('SVGElementInstance.ondblclick')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onDoubleClick => doubleClickEvent.forTarget(this);
 
   @DomName('SVGElementInstance.ondrag')
-  @DocsEditable
+  @DocsEditable()
   Stream<MouseEvent> get onDrag => dragEvent.forTarget(this);
 
   @DomName('SVGElementInstance.ondragend')
-  @DocsEditable
+  @DocsEditable()
   Stream<MouseEvent> get onDragEnd => dragEndEvent.forTarget(this);
 
   @DomName('SVGElementInstance.ondragenter')
-  @DocsEditable
+  @DocsEditable()
   Stream<MouseEvent> get onDragEnter => dragEnterEvent.forTarget(this);
 
   @DomName('SVGElementInstance.ondragleave')
-  @DocsEditable
+  @DocsEditable()
   Stream<MouseEvent> get onDragLeave => dragLeaveEvent.forTarget(this);
 
   @DomName('SVGElementInstance.ondragover')
-  @DocsEditable
+  @DocsEditable()
   Stream<MouseEvent> get onDragOver => dragOverEvent.forTarget(this);
 
   @DomName('SVGElementInstance.ondragstart')
-  @DocsEditable
+  @DocsEditable()
   Stream<MouseEvent> get onDragStart => dragStartEvent.forTarget(this);
 
   @DomName('SVGElementInstance.ondrop')
-  @DocsEditable
+  @DocsEditable()
   Stream<MouseEvent> get onDrop => dropEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onerror')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onError => errorEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onfocus')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onFocus => focusEvent.forTarget(this);
 
   @DomName('SVGElementInstance.oninput')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onInput => inputEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onkeydown')
-  @DocsEditable
+  @DocsEditable()
   Stream<KeyboardEvent> get onKeyDown => keyDownEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onkeypress')
-  @DocsEditable
+  @DocsEditable()
   Stream<KeyboardEvent> get onKeyPress => keyPressEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onkeyup')
-  @DocsEditable
+  @DocsEditable()
   Stream<KeyboardEvent> get onKeyUp => keyUpEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onload')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onLoad => loadEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onmousedown')
-  @DocsEditable
+  @DocsEditable()
   Stream<MouseEvent> get onMouseDown => mouseDownEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onmousemove')
-  @DocsEditable
+  @DocsEditable()
   Stream<MouseEvent> get onMouseMove => mouseMoveEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onmouseout')
-  @DocsEditable
+  @DocsEditable()
   Stream<MouseEvent> get onMouseOut => mouseOutEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onmouseover')
-  @DocsEditable
+  @DocsEditable()
   Stream<MouseEvent> get onMouseOver => mouseOverEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onmouseup')
-  @DocsEditable
+  @DocsEditable()
   Stream<MouseEvent> get onMouseUp => mouseUpEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onmousewheel')
-  @DocsEditable
+  @DocsEditable()
   Stream<WheelEvent> get onMouseWheel => mouseWheelEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onpaste')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onPaste => pasteEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onreset')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onReset => resetEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onresize')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onResize => resizeEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onscroll')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onScroll => scrollEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onsearch')
-  @DocsEditable
+  @DocsEditable()
   // http://www.w3.org/TR/html-markup/input.search.html
-  @Experimental
+  @Experimental()
   Stream<Event> get onSearch => searchEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onselect')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onSelect => selectEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onselectstart')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onSelectStart => selectStartEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onsubmit')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onSubmit => submitEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onunload')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onUnload => unloadEvent.forTarget(this);
 
 }
@@ -1354,95 +1354,95 @@ class ElementInstance extends EventTarget {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGEllipseElement')
-@Unstable
+@Unstable()
 class EllipseElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   // To suppress missing implicit constructor warnings.
   factory EllipseElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGEllipseElement.SVGEllipseElement')
-  @DocsEditable
+  @DocsEditable()
   factory EllipseElement() => _SvgElementFactoryProvider.createSvgElement_tag("ellipse");
 
   @DomName('SVGEllipseElement.cx')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get cx native "SVGEllipseElement_cx_Getter";
 
   @DomName('SVGEllipseElement.cy')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get cy native "SVGEllipseElement_cy_Getter";
 
   @DomName('SVGEllipseElement.rx')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get rx native "SVGEllipseElement_rx_Getter";
 
   @DomName('SVGEllipseElement.ry')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get ry native "SVGEllipseElement_ry_Getter";
 
   @DomName('SVGEllipseElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGEllipseElement_externalResourcesRequired_Getter";
 
   @DomName('SVGEllipseElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String get xmllang native "SVGEllipseElement_xmllang_Getter";
 
   @DomName('SVGEllipseElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   void set xmllang(String value) native "SVGEllipseElement_xmllang_Setter";
 
   @DomName('SVGEllipseElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String get xmlspace native "SVGEllipseElement_xmlspace_Getter";
 
   @DomName('SVGEllipseElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   void set xmlspace(String value) native "SVGEllipseElement_xmlspace_Setter";
 
   @DomName('SVGEllipseElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get farthestViewportElement native "SVGEllipseElement_farthestViewportElement_Getter";
 
   @DomName('SVGEllipseElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get nearestViewportElement native "SVGEllipseElement_nearestViewportElement_Getter";
 
   @DomName('SVGEllipseElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native "SVGEllipseElement_getBBox_Callback";
 
   @DomName('SVGEllipseElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native "SVGEllipseElement_getCTM_Callback";
 
   @DomName('SVGEllipseElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native "SVGEllipseElement_getScreenCTM_Callback";
 
   @DomName('SVGEllipseElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native "SVGEllipseElement_getTransformToElement_Callback";
 
   @DomName('SVGEllipseElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredExtensions native "SVGEllipseElement_requiredExtensions_Getter";
 
   @DomName('SVGEllipseElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredFeatures native "SVGEllipseElement_requiredFeatures_Getter";
 
   @DomName('SVGEllipseElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   StringList get systemLanguage native "SVGEllipseElement_systemLanguage_Getter";
 
   @DomName('SVGEllipseElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native "SVGEllipseElement_hasExtension_Callback";
 
   @DomName('SVGEllipseElement.transform')
-  @DocsEditable
+  @DocsEditable()
   AnimatedTransformList get transform native "SVGEllipseElement_transform_Getter";
 
 }
@@ -1453,16 +1453,16 @@ class EllipseElement extends StyledElement implements Transformable, Tests, Exte
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGExternalResourcesRequired')
-@Unstable
+@Unstable()
 abstract class ExternalResourcesRequired extends NativeFieldWrapperClass1 {
 
   /// Checks if this type is supported on the current platform.
   static bool supported(SvgElement element) => true;
 
   @DomName('SVGExternalResourcesRequired.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGExternalResourcesRequired_externalResourcesRequired_Getter";
 
 }
@@ -1473,78 +1473,78 @@ abstract class ExternalResourcesRequired extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEBlendElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEBlendElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FEBlendElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEBlendElement.SVGFEBlendElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEBlendElement() => _SvgElementFactoryProvider.createSvgElement_tag("feBlend");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('SVGFEBlendElement.SVG_FEBLEND_MODE_DARKEN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FEBLEND_MODE_DARKEN = 4;
 
   @DomName('SVGFEBlendElement.SVG_FEBLEND_MODE_LIGHTEN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FEBLEND_MODE_LIGHTEN = 5;
 
   @DomName('SVGFEBlendElement.SVG_FEBLEND_MODE_MULTIPLY')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FEBLEND_MODE_MULTIPLY = 2;
 
   @DomName('SVGFEBlendElement.SVG_FEBLEND_MODE_NORMAL')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FEBLEND_MODE_NORMAL = 1;
 
   @DomName('SVGFEBlendElement.SVG_FEBLEND_MODE_SCREEN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FEBLEND_MODE_SCREEN = 3;
 
   @DomName('SVGFEBlendElement.SVG_FEBLEND_MODE_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FEBLEND_MODE_UNKNOWN = 0;
 
   @DomName('SVGFEBlendElement.in1')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get in1 native "SVGFEBlendElement_in1_Getter";
 
   @DomName('SVGFEBlendElement.in2')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get in2 native "SVGFEBlendElement_in2_Getter";
 
   @DomName('SVGFEBlendElement.mode')
-  @DocsEditable
+  @DocsEditable()
   AnimatedEnumeration get mode native "SVGFEBlendElement_mode_Getter";
 
   @DomName('SVGFEBlendElement.height')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get height native "SVGFEBlendElement_height_Getter";
 
   @DomName('SVGFEBlendElement.result')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get result native "SVGFEBlendElement_result_Getter";
 
   @DomName('SVGFEBlendElement.width')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get width native "SVGFEBlendElement_width_Getter";
 
   @DomName('SVGFEBlendElement.x')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x native "SVGFEBlendElement_x_Getter";
 
   @DomName('SVGFEBlendElement.y')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y native "SVGFEBlendElement_y_Getter";
 
 }
@@ -1555,74 +1555,74 @@ class FEBlendElement extends StyledElement implements FilterPrimitiveStandardAtt
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEColorMatrixElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEColorMatrixElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FEColorMatrixElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEColorMatrixElement.SVGFEColorMatrixElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEColorMatrixElement() => _SvgElementFactoryProvider.createSvgElement_tag("feColorMatrix");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('SVGFEColorMatrixElement.SVG_FECOLORMATRIX_TYPE_HUEROTATE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FECOLORMATRIX_TYPE_HUEROTATE = 3;
 
   @DomName('SVGFEColorMatrixElement.SVG_FECOLORMATRIX_TYPE_LUMINANCETOALPHA')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FECOLORMATRIX_TYPE_LUMINANCETOALPHA = 4;
 
   @DomName('SVGFEColorMatrixElement.SVG_FECOLORMATRIX_TYPE_MATRIX')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FECOLORMATRIX_TYPE_MATRIX = 1;
 
   @DomName('SVGFEColorMatrixElement.SVG_FECOLORMATRIX_TYPE_SATURATE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FECOLORMATRIX_TYPE_SATURATE = 2;
 
   @DomName('SVGFEColorMatrixElement.SVG_FECOLORMATRIX_TYPE_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FECOLORMATRIX_TYPE_UNKNOWN = 0;
 
   @DomName('SVGFEColorMatrixElement.in1')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get in1 native "SVGFEColorMatrixElement_in1_Getter";
 
   @DomName('SVGFEColorMatrixElement.type')
-  @DocsEditable
+  @DocsEditable()
   AnimatedEnumeration get type native "SVGFEColorMatrixElement_type_Getter";
 
   @DomName('SVGFEColorMatrixElement.values')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumberList get values native "SVGFEColorMatrixElement_values_Getter";
 
   @DomName('SVGFEColorMatrixElement.height')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get height native "SVGFEColorMatrixElement_height_Getter";
 
   @DomName('SVGFEColorMatrixElement.result')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get result native "SVGFEColorMatrixElement_result_Getter";
 
   @DomName('SVGFEColorMatrixElement.width')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get width native "SVGFEColorMatrixElement_width_Getter";
 
   @DomName('SVGFEColorMatrixElement.x')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x native "SVGFEColorMatrixElement_x_Getter";
 
   @DomName('SVGFEColorMatrixElement.y')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y native "SVGFEColorMatrixElement_y_Getter";
 
 }
@@ -1633,46 +1633,46 @@ class FEColorMatrixElement extends StyledElement implements FilterPrimitiveStand
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEComponentTransferElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEComponentTransferElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FEComponentTransferElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEComponentTransferElement.SVGFEComponentTransferElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEComponentTransferElement() => _SvgElementFactoryProvider.createSvgElement_tag("feComponentTransfer");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('SVGFEComponentTransferElement.in1')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get in1 native "SVGFEComponentTransferElement_in1_Getter";
 
   @DomName('SVGFEComponentTransferElement.height')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get height native "SVGFEComponentTransferElement_height_Getter";
 
   @DomName('SVGFEComponentTransferElement.result')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get result native "SVGFEComponentTransferElement_result_Getter";
 
   @DomName('SVGFEComponentTransferElement.width')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get width native "SVGFEComponentTransferElement_width_Getter";
 
   @DomName('SVGFEComponentTransferElement.x')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x native "SVGFEComponentTransferElement_x_Getter";
 
   @DomName('SVGFEComponentTransferElement.y')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y native "SVGFEComponentTransferElement_y_Getter";
 
 }
@@ -1683,87 +1683,87 @@ class FEComponentTransferElement extends StyledElement implements FilterPrimitiv
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFECompositeElement')
-@Unstable
+@Unstable()
 class FECompositeElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FECompositeElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFECompositeElement.SVG_FECOMPOSITE_OPERATOR_ARITHMETIC')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FECOMPOSITE_OPERATOR_ARITHMETIC = 6;
 
   @DomName('SVGFECompositeElement.SVG_FECOMPOSITE_OPERATOR_ATOP')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FECOMPOSITE_OPERATOR_ATOP = 4;
 
   @DomName('SVGFECompositeElement.SVG_FECOMPOSITE_OPERATOR_IN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FECOMPOSITE_OPERATOR_IN = 2;
 
   @DomName('SVGFECompositeElement.SVG_FECOMPOSITE_OPERATOR_OUT')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FECOMPOSITE_OPERATOR_OUT = 3;
 
   @DomName('SVGFECompositeElement.SVG_FECOMPOSITE_OPERATOR_OVER')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FECOMPOSITE_OPERATOR_OVER = 1;
 
   @DomName('SVGFECompositeElement.SVG_FECOMPOSITE_OPERATOR_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FECOMPOSITE_OPERATOR_UNKNOWN = 0;
 
   @DomName('SVGFECompositeElement.SVG_FECOMPOSITE_OPERATOR_XOR')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FECOMPOSITE_OPERATOR_XOR = 5;
 
   @DomName('SVGFECompositeElement.in1')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get in1 native "SVGFECompositeElement_in1_Getter";
 
   @DomName('SVGFECompositeElement.in2')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get in2 native "SVGFECompositeElement_in2_Getter";
 
   @DomName('SVGFECompositeElement.k1')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get k1 native "SVGFECompositeElement_k1_Getter";
 
   @DomName('SVGFECompositeElement.k2')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get k2 native "SVGFECompositeElement_k2_Getter";
 
   @DomName('SVGFECompositeElement.k3')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get k3 native "SVGFECompositeElement_k3_Getter";
 
   @DomName('SVGFECompositeElement.k4')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get k4 native "SVGFECompositeElement_k4_Getter";
 
   @DomName('SVGFECompositeElement.operator')
-  @DocsEditable
+  @DocsEditable()
   AnimatedEnumeration get operator native "SVGFECompositeElement_operator_Getter";
 
   @DomName('SVGFECompositeElement.height')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get height native "SVGFECompositeElement_height_Getter";
 
   @DomName('SVGFECompositeElement.result')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get result native "SVGFECompositeElement_result_Getter";
 
   @DomName('SVGFECompositeElement.width')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get width native "SVGFECompositeElement_width_Getter";
 
   @DomName('SVGFECompositeElement.x')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x native "SVGFECompositeElement_x_Getter";
 
   @DomName('SVGFECompositeElement.y')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y native "SVGFECompositeElement_y_Getter";
 
 }
@@ -1774,106 +1774,106 @@ class FECompositeElement extends StyledElement implements FilterPrimitiveStandar
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEConvolveMatrixElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEConvolveMatrixElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FEConvolveMatrixElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEConvolveMatrixElement.SVGFEConvolveMatrixElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEConvolveMatrixElement() => _SvgElementFactoryProvider.createSvgElement_tag("feConvolveMatrix");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('SVGFEConvolveMatrixElement.SVG_EDGEMODE_DUPLICATE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_EDGEMODE_DUPLICATE = 1;
 
   @DomName('SVGFEConvolveMatrixElement.SVG_EDGEMODE_NONE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_EDGEMODE_NONE = 3;
 
   @DomName('SVGFEConvolveMatrixElement.SVG_EDGEMODE_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_EDGEMODE_UNKNOWN = 0;
 
   @DomName('SVGFEConvolveMatrixElement.SVG_EDGEMODE_WRAP')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_EDGEMODE_WRAP = 2;
 
   @DomName('SVGFEConvolveMatrixElement.bias')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get bias native "SVGFEConvolveMatrixElement_bias_Getter";
 
   @DomName('SVGFEConvolveMatrixElement.divisor')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get divisor native "SVGFEConvolveMatrixElement_divisor_Getter";
 
   @DomName('SVGFEConvolveMatrixElement.edgeMode')
-  @DocsEditable
+  @DocsEditable()
   AnimatedEnumeration get edgeMode native "SVGFEConvolveMatrixElement_edgeMode_Getter";
 
   @DomName('SVGFEConvolveMatrixElement.in1')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get in1 native "SVGFEConvolveMatrixElement_in1_Getter";
 
   @DomName('SVGFEConvolveMatrixElement.kernelMatrix')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumberList get kernelMatrix native "SVGFEConvolveMatrixElement_kernelMatrix_Getter";
 
   @DomName('SVGFEConvolveMatrixElement.kernelUnitLengthX')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get kernelUnitLengthX native "SVGFEConvolveMatrixElement_kernelUnitLengthX_Getter";
 
   @DomName('SVGFEConvolveMatrixElement.kernelUnitLengthY')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get kernelUnitLengthY native "SVGFEConvolveMatrixElement_kernelUnitLengthY_Getter";
 
   @DomName('SVGFEConvolveMatrixElement.orderX')
-  @DocsEditable
+  @DocsEditable()
   AnimatedInteger get orderX native "SVGFEConvolveMatrixElement_orderX_Getter";
 
   @DomName('SVGFEConvolveMatrixElement.orderY')
-  @DocsEditable
+  @DocsEditable()
   AnimatedInteger get orderY native "SVGFEConvolveMatrixElement_orderY_Getter";
 
   @DomName('SVGFEConvolveMatrixElement.preserveAlpha')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get preserveAlpha native "SVGFEConvolveMatrixElement_preserveAlpha_Getter";
 
   @DomName('SVGFEConvolveMatrixElement.targetX')
-  @DocsEditable
+  @DocsEditable()
   AnimatedInteger get targetX native "SVGFEConvolveMatrixElement_targetX_Getter";
 
   @DomName('SVGFEConvolveMatrixElement.targetY')
-  @DocsEditable
+  @DocsEditable()
   AnimatedInteger get targetY native "SVGFEConvolveMatrixElement_targetY_Getter";
 
   @DomName('SVGFEConvolveMatrixElement.height')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get height native "SVGFEConvolveMatrixElement_height_Getter";
 
   @DomName('SVGFEConvolveMatrixElement.result')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get result native "SVGFEConvolveMatrixElement_result_Getter";
 
   @DomName('SVGFEConvolveMatrixElement.width')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get width native "SVGFEConvolveMatrixElement_width_Getter";
 
   @DomName('SVGFEConvolveMatrixElement.x')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x native "SVGFEConvolveMatrixElement_x_Getter";
 
   @DomName('SVGFEConvolveMatrixElement.y')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y native "SVGFEConvolveMatrixElement_y_Getter";
 
 }
@@ -1884,62 +1884,62 @@ class FEConvolveMatrixElement extends StyledElement implements FilterPrimitiveSt
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEDiffuseLightingElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEDiffuseLightingElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FEDiffuseLightingElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEDiffuseLightingElement.SVGFEDiffuseLightingElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEDiffuseLightingElement() => _SvgElementFactoryProvider.createSvgElement_tag("feDiffuseLighting");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('SVGFEDiffuseLightingElement.diffuseConstant')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get diffuseConstant native "SVGFEDiffuseLightingElement_diffuseConstant_Getter";
 
   @DomName('SVGFEDiffuseLightingElement.in1')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get in1 native "SVGFEDiffuseLightingElement_in1_Getter";
 
   @DomName('SVGFEDiffuseLightingElement.kernelUnitLengthX')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get kernelUnitLengthX native "SVGFEDiffuseLightingElement_kernelUnitLengthX_Getter";
 
   @DomName('SVGFEDiffuseLightingElement.kernelUnitLengthY')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get kernelUnitLengthY native "SVGFEDiffuseLightingElement_kernelUnitLengthY_Getter";
 
   @DomName('SVGFEDiffuseLightingElement.surfaceScale')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get surfaceScale native "SVGFEDiffuseLightingElement_surfaceScale_Getter";
 
   @DomName('SVGFEDiffuseLightingElement.height')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get height native "SVGFEDiffuseLightingElement_height_Getter";
 
   @DomName('SVGFEDiffuseLightingElement.result')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get result native "SVGFEDiffuseLightingElement_result_Getter";
 
   @DomName('SVGFEDiffuseLightingElement.width')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get width native "SVGFEDiffuseLightingElement_width_Getter";
 
   @DomName('SVGFEDiffuseLightingElement.x')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x native "SVGFEDiffuseLightingElement_x_Getter";
 
   @DomName('SVGFEDiffuseLightingElement.y')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y native "SVGFEDiffuseLightingElement_y_Getter";
 
 }
@@ -1950,82 +1950,82 @@ class FEDiffuseLightingElement extends StyledElement implements FilterPrimitiveS
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEDisplacementMapElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEDisplacementMapElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FEDisplacementMapElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEDisplacementMapElement.SVGFEDisplacementMapElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEDisplacementMapElement() => _SvgElementFactoryProvider.createSvgElement_tag("feDisplacementMap");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('SVGFEDisplacementMapElement.SVG_CHANNEL_A')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_CHANNEL_A = 4;
 
   @DomName('SVGFEDisplacementMapElement.SVG_CHANNEL_B')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_CHANNEL_B = 3;
 
   @DomName('SVGFEDisplacementMapElement.SVG_CHANNEL_G')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_CHANNEL_G = 2;
 
   @DomName('SVGFEDisplacementMapElement.SVG_CHANNEL_R')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_CHANNEL_R = 1;
 
   @DomName('SVGFEDisplacementMapElement.SVG_CHANNEL_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_CHANNEL_UNKNOWN = 0;
 
   @DomName('SVGFEDisplacementMapElement.in1')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get in1 native "SVGFEDisplacementMapElement_in1_Getter";
 
   @DomName('SVGFEDisplacementMapElement.in2')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get in2 native "SVGFEDisplacementMapElement_in2_Getter";
 
   @DomName('SVGFEDisplacementMapElement.scale')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get scale native "SVGFEDisplacementMapElement_scale_Getter";
 
   @DomName('SVGFEDisplacementMapElement.xChannelSelector')
-  @DocsEditable
+  @DocsEditable()
   AnimatedEnumeration get xChannelSelector native "SVGFEDisplacementMapElement_xChannelSelector_Getter";
 
   @DomName('SVGFEDisplacementMapElement.yChannelSelector')
-  @DocsEditable
+  @DocsEditable()
   AnimatedEnumeration get yChannelSelector native "SVGFEDisplacementMapElement_yChannelSelector_Getter";
 
   @DomName('SVGFEDisplacementMapElement.height')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get height native "SVGFEDisplacementMapElement_height_Getter";
 
   @DomName('SVGFEDisplacementMapElement.result')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get result native "SVGFEDisplacementMapElement_result_Getter";
 
   @DomName('SVGFEDisplacementMapElement.width')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get width native "SVGFEDisplacementMapElement_width_Getter";
 
   @DomName('SVGFEDisplacementMapElement.x')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x native "SVGFEDisplacementMapElement_x_Getter";
 
   @DomName('SVGFEDisplacementMapElement.y')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y native "SVGFEDisplacementMapElement_y_Getter";
 
 }
@@ -2036,30 +2036,30 @@ class FEDisplacementMapElement extends StyledElement implements FilterPrimitiveS
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEDistantLightElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEDistantLightElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory FEDistantLightElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEDistantLightElement.SVGFEDistantLightElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEDistantLightElement() => _SvgElementFactoryProvider.createSvgElement_tag("feDistantLight");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('SVGFEDistantLightElement.azimuth')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get azimuth native "SVGFEDistantLightElement_azimuth_Getter";
 
   @DomName('SVGFEDistantLightElement.elevation')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get elevation native "SVGFEDistantLightElement_elevation_Getter";
 
 }
@@ -2070,42 +2070,42 @@ class FEDistantLightElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEFloodElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEFloodElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FEFloodElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEFloodElement.SVGFEFloodElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEFloodElement() => _SvgElementFactoryProvider.createSvgElement_tag("feFlood");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('SVGFEFloodElement.height')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get height native "SVGFEFloodElement_height_Getter";
 
   @DomName('SVGFEFloodElement.result')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get result native "SVGFEFloodElement_result_Getter";
 
   @DomName('SVGFEFloodElement.width')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get width native "SVGFEFloodElement_width_Getter";
 
   @DomName('SVGFEFloodElement.x')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x native "SVGFEFloodElement_x_Getter";
 
   @DomName('SVGFEFloodElement.y')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y native "SVGFEFloodElement_y_Getter";
 
 }
@@ -2116,19 +2116,19 @@ class FEFloodElement extends StyledElement implements FilterPrimitiveStandardAtt
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEFuncAElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEFuncAElement extends _SVGComponentTransferFunctionElement {
   // To suppress missing implicit constructor warnings.
   factory FEFuncAElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEFuncAElement.SVGFEFuncAElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEFuncAElement() => _SvgElementFactoryProvider.createSvgElement_tag("feFuncA");
 
   /// Checks if this type is supported on the current platform.
@@ -2142,19 +2142,19 @@ class FEFuncAElement extends _SVGComponentTransferFunctionElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEFuncBElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEFuncBElement extends _SVGComponentTransferFunctionElement {
   // To suppress missing implicit constructor warnings.
   factory FEFuncBElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEFuncBElement.SVGFEFuncBElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEFuncBElement() => _SvgElementFactoryProvider.createSvgElement_tag("feFuncB");
 
   /// Checks if this type is supported on the current platform.
@@ -2168,19 +2168,19 @@ class FEFuncBElement extends _SVGComponentTransferFunctionElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEFuncGElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEFuncGElement extends _SVGComponentTransferFunctionElement {
   // To suppress missing implicit constructor warnings.
   factory FEFuncGElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEFuncGElement.SVGFEFuncGElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEFuncGElement() => _SvgElementFactoryProvider.createSvgElement_tag("feFuncG");
 
   /// Checks if this type is supported on the current platform.
@@ -2194,19 +2194,19 @@ class FEFuncGElement extends _SVGComponentTransferFunctionElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEFuncRElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEFuncRElement extends _SVGComponentTransferFunctionElement {
   // To suppress missing implicit constructor warnings.
   factory FEFuncRElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEFuncRElement.SVGFEFuncRElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEFuncRElement() => _SvgElementFactoryProvider.createSvgElement_tag("feFuncR");
 
   /// Checks if this type is supported on the current platform.
@@ -2220,58 +2220,58 @@ class FEFuncRElement extends _SVGComponentTransferFunctionElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEGaussianBlurElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEGaussianBlurElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FEGaussianBlurElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEGaussianBlurElement.SVGFEGaussianBlurElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEGaussianBlurElement() => _SvgElementFactoryProvider.createSvgElement_tag("feGaussianBlur");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('SVGFEGaussianBlurElement.in1')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get in1 native "SVGFEGaussianBlurElement_in1_Getter";
 
   @DomName('SVGFEGaussianBlurElement.stdDeviationX')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get stdDeviationX native "SVGFEGaussianBlurElement_stdDeviationX_Getter";
 
   @DomName('SVGFEGaussianBlurElement.stdDeviationY')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get stdDeviationY native "SVGFEGaussianBlurElement_stdDeviationY_Getter";
 
   @DomName('SVGFEGaussianBlurElement.setStdDeviation')
-  @DocsEditable
+  @DocsEditable()
   void setStdDeviation(num stdDeviationX, num stdDeviationY) native "SVGFEGaussianBlurElement_setStdDeviation_Callback";
 
   @DomName('SVGFEGaussianBlurElement.height')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get height native "SVGFEGaussianBlurElement_height_Getter";
 
   @DomName('SVGFEGaussianBlurElement.result')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get result native "SVGFEGaussianBlurElement_result_Getter";
 
   @DomName('SVGFEGaussianBlurElement.width')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get width native "SVGFEGaussianBlurElement_width_Getter";
 
   @DomName('SVGFEGaussianBlurElement.x')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x native "SVGFEGaussianBlurElement_x_Getter";
 
   @DomName('SVGFEGaussianBlurElement.y')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y native "SVGFEGaussianBlurElement_y_Getter";
 
 }
@@ -2282,70 +2282,70 @@ class FEGaussianBlurElement extends StyledElement implements FilterPrimitiveStan
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEImageElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEImageElement extends StyledElement implements FilterPrimitiveStandardAttributes, UriReference, ExternalResourcesRequired, LangSpace {
   // To suppress missing implicit constructor warnings.
   factory FEImageElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEImageElement.SVGFEImageElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEImageElement() => _SvgElementFactoryProvider.createSvgElement_tag("feImage");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('SVGFEImageElement.preserveAspectRatio')
-  @DocsEditable
+  @DocsEditable()
   AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGFEImageElement_preserveAspectRatio_Getter";
 
   @DomName('SVGFEImageElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGFEImageElement_externalResourcesRequired_Getter";
 
   @DomName('SVGFEImageElement.height')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get height native "SVGFEImageElement_height_Getter";
 
   @DomName('SVGFEImageElement.result')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get result native "SVGFEImageElement_result_Getter";
 
   @DomName('SVGFEImageElement.width')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get width native "SVGFEImageElement_width_Getter";
 
   @DomName('SVGFEImageElement.x')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x native "SVGFEImageElement_x_Getter";
 
   @DomName('SVGFEImageElement.y')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y native "SVGFEImageElement_y_Getter";
 
   @DomName('SVGFEImageElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String get xmllang native "SVGFEImageElement_xmllang_Getter";
 
   @DomName('SVGFEImageElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   void set xmllang(String value) native "SVGFEImageElement_xmllang_Setter";
 
   @DomName('SVGFEImageElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String get xmlspace native "SVGFEImageElement_xmlspace_Getter";
 
   @DomName('SVGFEImageElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   void set xmlspace(String value) native "SVGFEImageElement_xmlspace_Setter";
 
   @DomName('SVGFEImageElement.href')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get href native "SVGFEImageElement_href_Getter";
 
 }
@@ -2356,42 +2356,42 @@ class FEImageElement extends StyledElement implements FilterPrimitiveStandardAtt
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEMergeElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEMergeElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FEMergeElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEMergeElement.SVGFEMergeElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEMergeElement() => _SvgElementFactoryProvider.createSvgElement_tag("feMerge");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('SVGFEMergeElement.height')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get height native "SVGFEMergeElement_height_Getter";
 
   @DomName('SVGFEMergeElement.result')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get result native "SVGFEMergeElement_result_Getter";
 
   @DomName('SVGFEMergeElement.width')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get width native "SVGFEMergeElement_width_Getter";
 
   @DomName('SVGFEMergeElement.x')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x native "SVGFEMergeElement_x_Getter";
 
   @DomName('SVGFEMergeElement.y')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y native "SVGFEMergeElement_y_Getter";
 
 }
@@ -2402,26 +2402,26 @@ class FEMergeElement extends StyledElement implements FilterPrimitiveStandardAtt
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEMergeNodeElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEMergeNodeElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory FEMergeNodeElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEMergeNodeElement.SVGFEMergeNodeElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEMergeNodeElement() => _SvgElementFactoryProvider.createSvgElement_tag("feMergeNode");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('SVGFEMergeNodeElement.in1')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get in1 native "SVGFEMergeNodeElement_in1_Getter";
 
 }
@@ -2432,67 +2432,67 @@ class FEMergeNodeElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEMorphologyElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEMorphologyElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FEMorphologyElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEMorphologyElement.SVG_MORPHOLOGY_OPERATOR_DILATE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_MORPHOLOGY_OPERATOR_DILATE = 2;
 
   @DomName('SVGFEMorphologyElement.SVG_MORPHOLOGY_OPERATOR_ERODE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_MORPHOLOGY_OPERATOR_ERODE = 1;
 
   @DomName('SVGFEMorphologyElement.SVG_MORPHOLOGY_OPERATOR_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_MORPHOLOGY_OPERATOR_UNKNOWN = 0;
 
   @DomName('SVGFEMorphologyElement.in1')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get in1 native "SVGFEMorphologyElement_in1_Getter";
 
   @DomName('SVGFEMorphologyElement.operator')
-  @DocsEditable
+  @DocsEditable()
   AnimatedEnumeration get operator native "SVGFEMorphologyElement_operator_Getter";
 
   @DomName('SVGFEMorphologyElement.radiusX')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get radiusX native "SVGFEMorphologyElement_radiusX_Getter";
 
   @DomName('SVGFEMorphologyElement.radiusY')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get radiusY native "SVGFEMorphologyElement_radiusY_Getter";
 
   @DomName('SVGFEMorphologyElement.setRadius')
-  @DocsEditable
+  @DocsEditable()
   void setRadius(num radiusX, num radiusY) native "SVGFEMorphologyElement_setRadius_Callback";
 
   @DomName('SVGFEMorphologyElement.height')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get height native "SVGFEMorphologyElement_height_Getter";
 
   @DomName('SVGFEMorphologyElement.result')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get result native "SVGFEMorphologyElement_result_Getter";
 
   @DomName('SVGFEMorphologyElement.width')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get width native "SVGFEMorphologyElement_width_Getter";
 
   @DomName('SVGFEMorphologyElement.x')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x native "SVGFEMorphologyElement_x_Getter";
 
   @DomName('SVGFEMorphologyElement.y')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y native "SVGFEMorphologyElement_y_Getter";
 
 }
@@ -2503,54 +2503,54 @@ class FEMorphologyElement extends StyledElement implements FilterPrimitiveStanda
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEOffsetElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEOffsetElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FEOffsetElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEOffsetElement.SVGFEOffsetElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEOffsetElement() => _SvgElementFactoryProvider.createSvgElement_tag("feOffset");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('SVGFEOffsetElement.dx')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get dx native "SVGFEOffsetElement_dx_Getter";
 
   @DomName('SVGFEOffsetElement.dy')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get dy native "SVGFEOffsetElement_dy_Getter";
 
   @DomName('SVGFEOffsetElement.in1')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get in1 native "SVGFEOffsetElement_in1_Getter";
 
   @DomName('SVGFEOffsetElement.height')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get height native "SVGFEOffsetElement_height_Getter";
 
   @DomName('SVGFEOffsetElement.result')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get result native "SVGFEOffsetElement_result_Getter";
 
   @DomName('SVGFEOffsetElement.width')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get width native "SVGFEOffsetElement_width_Getter";
 
   @DomName('SVGFEOffsetElement.x')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x native "SVGFEOffsetElement_x_Getter";
 
   @DomName('SVGFEOffsetElement.y')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y native "SVGFEOffsetElement_y_Getter";
 
 }
@@ -2561,34 +2561,34 @@ class FEOffsetElement extends StyledElement implements FilterPrimitiveStandardAt
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEPointLightElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEPointLightElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory FEPointLightElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEPointLightElement.SVGFEPointLightElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEPointLightElement() => _SvgElementFactoryProvider.createSvgElement_tag("fePointLight");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('SVGFEPointLightElement.x')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get x native "SVGFEPointLightElement_x_Getter";
 
   @DomName('SVGFEPointLightElement.y')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get y native "SVGFEPointLightElement_y_Getter";
 
   @DomName('SVGFEPointLightElement.z')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get z native "SVGFEPointLightElement_z_Getter";
 
 }
@@ -2599,58 +2599,58 @@ class FEPointLightElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFESpecularLightingElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FESpecularLightingElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FESpecularLightingElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFESpecularLightingElement.SVGFESpecularLightingElement')
-  @DocsEditable
+  @DocsEditable()
   factory FESpecularLightingElement() => _SvgElementFactoryProvider.createSvgElement_tag("feSpecularLighting");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('SVGFESpecularLightingElement.in1')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get in1 native "SVGFESpecularLightingElement_in1_Getter";
 
   @DomName('SVGFESpecularLightingElement.specularConstant')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get specularConstant native "SVGFESpecularLightingElement_specularConstant_Getter";
 
   @DomName('SVGFESpecularLightingElement.specularExponent')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get specularExponent native "SVGFESpecularLightingElement_specularExponent_Getter";
 
   @DomName('SVGFESpecularLightingElement.surfaceScale')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get surfaceScale native "SVGFESpecularLightingElement_surfaceScale_Getter";
 
   @DomName('SVGFESpecularLightingElement.height')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get height native "SVGFESpecularLightingElement_height_Getter";
 
   @DomName('SVGFESpecularLightingElement.result')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get result native "SVGFESpecularLightingElement_result_Getter";
 
   @DomName('SVGFESpecularLightingElement.width')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get width native "SVGFESpecularLightingElement_width_Getter";
 
   @DomName('SVGFESpecularLightingElement.x')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x native "SVGFESpecularLightingElement_x_Getter";
 
   @DomName('SVGFESpecularLightingElement.y')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y native "SVGFESpecularLightingElement_y_Getter";
 
 }
@@ -2661,54 +2661,54 @@ class FESpecularLightingElement extends StyledElement implements FilterPrimitive
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFESpotLightElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FESpotLightElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory FESpotLightElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFESpotLightElement.SVGFESpotLightElement')
-  @DocsEditable
+  @DocsEditable()
   factory FESpotLightElement() => _SvgElementFactoryProvider.createSvgElement_tag("feSpotLight");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('SVGFESpotLightElement.limitingConeAngle')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get limitingConeAngle native "SVGFESpotLightElement_limitingConeAngle_Getter";
 
   @DomName('SVGFESpotLightElement.pointsAtX')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get pointsAtX native "SVGFESpotLightElement_pointsAtX_Getter";
 
   @DomName('SVGFESpotLightElement.pointsAtY')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get pointsAtY native "SVGFESpotLightElement_pointsAtY_Getter";
 
   @DomName('SVGFESpotLightElement.pointsAtZ')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get pointsAtZ native "SVGFESpotLightElement_pointsAtZ_Getter";
 
   @DomName('SVGFESpotLightElement.specularExponent')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get specularExponent native "SVGFESpotLightElement_specularExponent_Getter";
 
   @DomName('SVGFESpotLightElement.x')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get x native "SVGFESpotLightElement_x_Getter";
 
   @DomName('SVGFESpotLightElement.y')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get y native "SVGFESpotLightElement_y_Getter";
 
   @DomName('SVGFESpotLightElement.z')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get z native "SVGFESpotLightElement_z_Getter";
 
 }
@@ -2719,46 +2719,46 @@ class FESpotLightElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFETileElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FETileElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FETileElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFETileElement.SVGFETileElement')
-  @DocsEditable
+  @DocsEditable()
   factory FETileElement() => _SvgElementFactoryProvider.createSvgElement_tag("feTile");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('SVGFETileElement.in1')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get in1 native "SVGFETileElement_in1_Getter";
 
   @DomName('SVGFETileElement.height')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get height native "SVGFETileElement_height_Getter";
 
   @DomName('SVGFETileElement.result')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get result native "SVGFETileElement_result_Getter";
 
   @DomName('SVGFETileElement.width')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get width native "SVGFETileElement_width_Getter";
 
   @DomName('SVGFETileElement.x')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x native "SVGFETileElement_x_Getter";
 
   @DomName('SVGFETileElement.y')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y native "SVGFETileElement_y_Getter";
 
 }
@@ -2769,90 +2769,90 @@ class FETileElement extends StyledElement implements FilterPrimitiveStandardAttr
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFETurbulenceElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FETurbulenceElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FETurbulenceElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFETurbulenceElement.SVGFETurbulenceElement')
-  @DocsEditable
+  @DocsEditable()
   factory FETurbulenceElement() => _SvgElementFactoryProvider.createSvgElement_tag("feTurbulence");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('SVGFETurbulenceElement.SVG_STITCHTYPE_NOSTITCH')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_STITCHTYPE_NOSTITCH = 2;
 
   @DomName('SVGFETurbulenceElement.SVG_STITCHTYPE_STITCH')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_STITCHTYPE_STITCH = 1;
 
   @DomName('SVGFETurbulenceElement.SVG_STITCHTYPE_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_STITCHTYPE_UNKNOWN = 0;
 
   @DomName('SVGFETurbulenceElement.SVG_TURBULENCE_TYPE_FRACTALNOISE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_TURBULENCE_TYPE_FRACTALNOISE = 1;
 
   @DomName('SVGFETurbulenceElement.SVG_TURBULENCE_TYPE_TURBULENCE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_TURBULENCE_TYPE_TURBULENCE = 2;
 
   @DomName('SVGFETurbulenceElement.SVG_TURBULENCE_TYPE_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_TURBULENCE_TYPE_UNKNOWN = 0;
 
   @DomName('SVGFETurbulenceElement.baseFrequencyX')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get baseFrequencyX native "SVGFETurbulenceElement_baseFrequencyX_Getter";
 
   @DomName('SVGFETurbulenceElement.baseFrequencyY')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get baseFrequencyY native "SVGFETurbulenceElement_baseFrequencyY_Getter";
 
   @DomName('SVGFETurbulenceElement.numOctaves')
-  @DocsEditable
+  @DocsEditable()
   AnimatedInteger get numOctaves native "SVGFETurbulenceElement_numOctaves_Getter";
 
   @DomName('SVGFETurbulenceElement.seed')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get seed native "SVGFETurbulenceElement_seed_Getter";
 
   @DomName('SVGFETurbulenceElement.stitchTiles')
-  @DocsEditable
+  @DocsEditable()
   AnimatedEnumeration get stitchTiles native "SVGFETurbulenceElement_stitchTiles_Getter";
 
   @DomName('SVGFETurbulenceElement.type')
-  @DocsEditable
+  @DocsEditable()
   AnimatedEnumeration get type native "SVGFETurbulenceElement_type_Getter";
 
   @DomName('SVGFETurbulenceElement.height')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get height native "SVGFETurbulenceElement_height_Getter";
 
   @DomName('SVGFETurbulenceElement.result')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get result native "SVGFETurbulenceElement_result_Getter";
 
   @DomName('SVGFETurbulenceElement.width')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get width native "SVGFETurbulenceElement_width_Getter";
 
   @DomName('SVGFETurbulenceElement.x')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x native "SVGFETurbulenceElement_x_Getter";
 
   @DomName('SVGFETurbulenceElement.y')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y native "SVGFETurbulenceElement_y_Getter";
 
 }
@@ -2863,82 +2863,82 @@ class FETurbulenceElement extends StyledElement implements FilterPrimitiveStanda
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFilterElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FilterElement extends StyledElement implements UriReference, ExternalResourcesRequired, LangSpace {
   // To suppress missing implicit constructor warnings.
   factory FilterElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFilterElement.SVGFilterElement')
-  @DocsEditable
+  @DocsEditable()
   factory FilterElement() => _SvgElementFactoryProvider.createSvgElement_tag("filter");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('SVGFilterElement.filterResX')
-  @DocsEditable
+  @DocsEditable()
   AnimatedInteger get filterResX native "SVGFilterElement_filterResX_Getter";
 
   @DomName('SVGFilterElement.filterResY')
-  @DocsEditable
+  @DocsEditable()
   AnimatedInteger get filterResY native "SVGFilterElement_filterResY_Getter";
 
   @DomName('SVGFilterElement.filterUnits')
-  @DocsEditable
+  @DocsEditable()
   AnimatedEnumeration get filterUnits native "SVGFilterElement_filterUnits_Getter";
 
   @DomName('SVGFilterElement.height')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get height native "SVGFilterElement_height_Getter";
 
   @DomName('SVGFilterElement.primitiveUnits')
-  @DocsEditable
+  @DocsEditable()
   AnimatedEnumeration get primitiveUnits native "SVGFilterElement_primitiveUnits_Getter";
 
   @DomName('SVGFilterElement.width')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get width native "SVGFilterElement_width_Getter";
 
   @DomName('SVGFilterElement.x')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x native "SVGFilterElement_x_Getter";
 
   @DomName('SVGFilterElement.y')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y native "SVGFilterElement_y_Getter";
 
   @DomName('SVGFilterElement.setFilterRes')
-  @DocsEditable
+  @DocsEditable()
   void setFilterRes(int filterResX, int filterResY) native "SVGFilterElement_setFilterRes_Callback";
 
   @DomName('SVGFilterElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGFilterElement_externalResourcesRequired_Getter";
 
   @DomName('SVGFilterElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String get xmllang native "SVGFilterElement_xmllang_Getter";
 
   @DomName('SVGFilterElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   void set xmllang(String value) native "SVGFilterElement_xmllang_Setter";
 
   @DomName('SVGFilterElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String get xmlspace native "SVGFilterElement_xmlspace_Getter";
 
   @DomName('SVGFilterElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   void set xmlspace(String value) native "SVGFilterElement_xmlspace_Setter";
 
   @DomName('SVGFilterElement.href')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get href native "SVGFilterElement_href_Getter";
 
 }
@@ -2949,29 +2949,29 @@ class FilterElement extends StyledElement implements UriReference, ExternalResou
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFilterPrimitiveStandardAttributes')
-@Unstable
+@Unstable()
 abstract class FilterPrimitiveStandardAttributes extends NativeFieldWrapperClass1 {
 
   @DomName('SVGFilterPrimitiveStandardAttributes.height')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get height native "SVGFilterPrimitiveStandardAttributes_height_Getter";
 
   @DomName('SVGFilterPrimitiveStandardAttributes.result')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get result native "SVGFilterPrimitiveStandardAttributes_result_Getter";
 
   @DomName('SVGFilterPrimitiveStandardAttributes.width')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get width native "SVGFilterPrimitiveStandardAttributes_width_Getter";
 
   @DomName('SVGFilterPrimitiveStandardAttributes.x')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x native "SVGFilterPrimitiveStandardAttributes_x_Getter";
 
   @DomName('SVGFilterPrimitiveStandardAttributes.y')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y native "SVGFilterPrimitiveStandardAttributes_y_Getter";
 
 }
@@ -2982,17 +2982,17 @@ abstract class FilterPrimitiveStandardAttributes extends NativeFieldWrapperClass
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFitToViewBox')
-@Unstable
+@Unstable()
 abstract class FitToViewBox extends NativeFieldWrapperClass1 {
 
   @DomName('SVGFitToViewBox.preserveAspectRatio')
-  @DocsEditable
+  @DocsEditable()
   AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGFitToViewBox_preserveAspectRatio_Getter";
 
   @DomName('SVGFitToViewBox.viewBox')
-  @DocsEditable
+  @DocsEditable()
   AnimatedRect get viewBox native "SVGFitToViewBox_viewBox_Getter";
 
 }
@@ -3003,101 +3003,101 @@ abstract class FitToViewBox extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGForeignObjectElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class ForeignObjectElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   // To suppress missing implicit constructor warnings.
   factory ForeignObjectElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGForeignObjectElement.SVGForeignObjectElement')
-  @DocsEditable
+  @DocsEditable()
   factory ForeignObjectElement() => _SvgElementFactoryProvider.createSvgElement_tag("foreignObject");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('SVGForeignObjectElement.height')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get height native "SVGForeignObjectElement_height_Getter";
 
   @DomName('SVGForeignObjectElement.width')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get width native "SVGForeignObjectElement_width_Getter";
 
   @DomName('SVGForeignObjectElement.x')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x native "SVGForeignObjectElement_x_Getter";
 
   @DomName('SVGForeignObjectElement.y')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y native "SVGForeignObjectElement_y_Getter";
 
   @DomName('SVGForeignObjectElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGForeignObjectElement_externalResourcesRequired_Getter";
 
   @DomName('SVGForeignObjectElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String get xmllang native "SVGForeignObjectElement_xmllang_Getter";
 
   @DomName('SVGForeignObjectElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   void set xmllang(String value) native "SVGForeignObjectElement_xmllang_Setter";
 
   @DomName('SVGForeignObjectElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String get xmlspace native "SVGForeignObjectElement_xmlspace_Getter";
 
   @DomName('SVGForeignObjectElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   void set xmlspace(String value) native "SVGForeignObjectElement_xmlspace_Setter";
 
   @DomName('SVGForeignObjectElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get farthestViewportElement native "SVGForeignObjectElement_farthestViewportElement_Getter";
 
   @DomName('SVGForeignObjectElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get nearestViewportElement native "SVGForeignObjectElement_nearestViewportElement_Getter";
 
   @DomName('SVGForeignObjectElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native "SVGForeignObjectElement_getBBox_Callback";
 
   @DomName('SVGForeignObjectElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native "SVGForeignObjectElement_getCTM_Callback";
 
   @DomName('SVGForeignObjectElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native "SVGForeignObjectElement_getScreenCTM_Callback";
 
   @DomName('SVGForeignObjectElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native "SVGForeignObjectElement_getTransformToElement_Callback";
 
   @DomName('SVGForeignObjectElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredExtensions native "SVGForeignObjectElement_requiredExtensions_Getter";
 
   @DomName('SVGForeignObjectElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredFeatures native "SVGForeignObjectElement_requiredFeatures_Getter";
 
   @DomName('SVGForeignObjectElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   StringList get systemLanguage native "SVGForeignObjectElement_systemLanguage_Getter";
 
   @DomName('SVGForeignObjectElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native "SVGForeignObjectElement_hasExtension_Callback";
 
   @DomName('SVGForeignObjectElement.transform')
-  @DocsEditable
+  @DocsEditable()
   AnimatedTransformList get transform native "SVGForeignObjectElement_transform_Getter";
 
 }
@@ -3108,79 +3108,79 @@ class ForeignObjectElement extends StyledElement implements Transformable, Tests
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGGElement')
-@Unstable
+@Unstable()
 class GElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   // To suppress missing implicit constructor warnings.
   factory GElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGGElement.SVGGElement')
-  @DocsEditable
+  @DocsEditable()
   factory GElement() => _SvgElementFactoryProvider.createSvgElement_tag("g");
 
   @DomName('SVGGElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGGElement_externalResourcesRequired_Getter";
 
   @DomName('SVGGElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String get xmllang native "SVGGElement_xmllang_Getter";
 
   @DomName('SVGGElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   void set xmllang(String value) native "SVGGElement_xmllang_Setter";
 
   @DomName('SVGGElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String get xmlspace native "SVGGElement_xmlspace_Getter";
 
   @DomName('SVGGElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   void set xmlspace(String value) native "SVGGElement_xmlspace_Setter";
 
   @DomName('SVGGElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get farthestViewportElement native "SVGGElement_farthestViewportElement_Getter";
 
   @DomName('SVGGElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get nearestViewportElement native "SVGGElement_nearestViewportElement_Getter";
 
   @DomName('SVGGElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native "SVGGElement_getBBox_Callback";
 
   @DomName('SVGGElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native "SVGGElement_getCTM_Callback";
 
   @DomName('SVGGElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native "SVGGElement_getScreenCTM_Callback";
 
   @DomName('SVGGElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native "SVGGElement_getTransformToElement_Callback";
 
   @DomName('SVGGElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredExtensions native "SVGGElement_requiredExtensions_Getter";
 
   @DomName('SVGGElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredFeatures native "SVGGElement_requiredFeatures_Getter";
 
   @DomName('SVGGElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   StringList get systemLanguage native "SVGGElement_systemLanguage_Getter";
 
   @DomName('SVGGElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native "SVGGElement_hasExtension_Callback";
 
   @DomName('SVGGElement.transform')
-  @DocsEditable
+  @DocsEditable()
   AnimatedTransformList get transform native "SVGGElement_transform_Getter";
 
 }
@@ -3191,103 +3191,103 @@ class GElement extends StyledElement implements Transformable, Tests, ExternalRe
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGImageElement')
-@Unstable
+@Unstable()
 class ImageElement extends StyledElement implements UriReference, Tests, Transformable, ExternalResourcesRequired, LangSpace {
   // To suppress missing implicit constructor warnings.
   factory ImageElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGImageElement.SVGImageElement')
-  @DocsEditable
+  @DocsEditable()
   factory ImageElement() => _SvgElementFactoryProvider.createSvgElement_tag("image");
 
   @DomName('SVGImageElement.height')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get height native "SVGImageElement_height_Getter";
 
   @DomName('SVGImageElement.preserveAspectRatio')
-  @DocsEditable
+  @DocsEditable()
   AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGImageElement_preserveAspectRatio_Getter";
 
   @DomName('SVGImageElement.width')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get width native "SVGImageElement_width_Getter";
 
   @DomName('SVGImageElement.x')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x native "SVGImageElement_x_Getter";
 
   @DomName('SVGImageElement.y')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y native "SVGImageElement_y_Getter";
 
   @DomName('SVGImageElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGImageElement_externalResourcesRequired_Getter";
 
   @DomName('SVGImageElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String get xmllang native "SVGImageElement_xmllang_Getter";
 
   @DomName('SVGImageElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   void set xmllang(String value) native "SVGImageElement_xmllang_Setter";
 
   @DomName('SVGImageElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String get xmlspace native "SVGImageElement_xmlspace_Getter";
 
   @DomName('SVGImageElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   void set xmlspace(String value) native "SVGImageElement_xmlspace_Setter";
 
   @DomName('SVGImageElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get farthestViewportElement native "SVGImageElement_farthestViewportElement_Getter";
 
   @DomName('SVGImageElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get nearestViewportElement native "SVGImageElement_nearestViewportElement_Getter";
 
   @DomName('SVGImageElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native "SVGImageElement_getBBox_Callback";
 
   @DomName('SVGImageElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native "SVGImageElement_getCTM_Callback";
 
   @DomName('SVGImageElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native "SVGImageElement_getScreenCTM_Callback";
 
   @DomName('SVGImageElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native "SVGImageElement_getTransformToElement_Callback";
 
   @DomName('SVGImageElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredExtensions native "SVGImageElement_requiredExtensions_Getter";
 
   @DomName('SVGImageElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredFeatures native "SVGImageElement_requiredFeatures_Getter";
 
   @DomName('SVGImageElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   StringList get systemLanguage native "SVGImageElement_systemLanguage_Getter";
 
   @DomName('SVGImageElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native "SVGImageElement_hasExtension_Callback";
 
   @DomName('SVGImageElement.transform')
-  @DocsEditable
+  @DocsEditable()
   AnimatedTransformList get transform native "SVGImageElement_transform_Getter";
 
   @DomName('SVGImageElement.href')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get href native "SVGImageElement_href_Getter";
 
 }
@@ -3298,28 +3298,28 @@ class ImageElement extends StyledElement implements UriReference, Tests, Transfo
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGLangSpace')
-@Unstable
+@Unstable()
 abstract class LangSpace extends NativeFieldWrapperClass1 {
 
   /// Checks if this type is supported on the current platform.
   static bool supported(SvgElement element) => true;
 
   @DomName('SVGLangSpace.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String get xmllang native "SVGLangSpace_xmllang_Getter";
 
   @DomName('SVGLangSpace.xmllang')
-  @DocsEditable
+  @DocsEditable()
   void set xmllang(String value) native "SVGLangSpace_xmllang_Setter";
 
   @DomName('SVGLangSpace.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String get xmlspace native "SVGLangSpace_xmlspace_Getter";
 
   @DomName('SVGLangSpace.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   void set xmlspace(String value) native "SVGLangSpace_xmlspace_Setter";
 
 }
@@ -3330,89 +3330,89 @@ abstract class LangSpace extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGLength')
-@Unstable
+@Unstable()
 class Length extends NativeFieldWrapperClass1 {
 
   @DomName('SVGLength.SVG_LENGTHTYPE_CM')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_LENGTHTYPE_CM = 6;
 
   @DomName('SVGLength.SVG_LENGTHTYPE_EMS')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_LENGTHTYPE_EMS = 3;
 
   @DomName('SVGLength.SVG_LENGTHTYPE_EXS')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_LENGTHTYPE_EXS = 4;
 
   @DomName('SVGLength.SVG_LENGTHTYPE_IN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_LENGTHTYPE_IN = 8;
 
   @DomName('SVGLength.SVG_LENGTHTYPE_MM')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_LENGTHTYPE_MM = 7;
 
   @DomName('SVGLength.SVG_LENGTHTYPE_NUMBER')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_LENGTHTYPE_NUMBER = 1;
 
   @DomName('SVGLength.SVG_LENGTHTYPE_PC')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_LENGTHTYPE_PC = 10;
 
   @DomName('SVGLength.SVG_LENGTHTYPE_PERCENTAGE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_LENGTHTYPE_PERCENTAGE = 2;
 
   @DomName('SVGLength.SVG_LENGTHTYPE_PT')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_LENGTHTYPE_PT = 9;
 
   @DomName('SVGLength.SVG_LENGTHTYPE_PX')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_LENGTHTYPE_PX = 5;
 
   @DomName('SVGLength.SVG_LENGTHTYPE_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_LENGTHTYPE_UNKNOWN = 0;
 
   @DomName('SVGLength.unitType')
-  @DocsEditable
+  @DocsEditable()
   int get unitType native "SVGLength_unitType_Getter";
 
   @DomName('SVGLength.value')
-  @DocsEditable
+  @DocsEditable()
   num get value native "SVGLength_value_Getter";
 
   @DomName('SVGLength.value')
-  @DocsEditable
+  @DocsEditable()
   void set value(num value) native "SVGLength_value_Setter";
 
   @DomName('SVGLength.valueAsString')
-  @DocsEditable
+  @DocsEditable()
   String get valueAsString native "SVGLength_valueAsString_Getter";
 
   @DomName('SVGLength.valueAsString')
-  @DocsEditable
+  @DocsEditable()
   void set valueAsString(String value) native "SVGLength_valueAsString_Setter";
 
   @DomName('SVGLength.valueInSpecifiedUnits')
-  @DocsEditable
+  @DocsEditable()
   num get valueInSpecifiedUnits native "SVGLength_valueInSpecifiedUnits_Getter";
 
   @DomName('SVGLength.valueInSpecifiedUnits')
-  @DocsEditable
+  @DocsEditable()
   void set valueInSpecifiedUnits(num value) native "SVGLength_valueInSpecifiedUnits_Setter";
 
   @DomName('SVGLength.convertToSpecifiedUnits')
-  @DocsEditable
+  @DocsEditable()
   void convertToSpecifiedUnits(int unitType) native "SVGLength_convertToSpecifiedUnits_Callback";
 
   @DomName('SVGLength.newValueSpecifiedUnits')
-  @DocsEditable
+  @DocsEditable()
   void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) native "SVGLength_newValueSpecifiedUnits_Callback";
 
 }
@@ -3423,13 +3423,13 @@ class Length extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGLengthList')
-@Unstable
+@Unstable()
 class LengthList extends NativeFieldWrapperClass1 with ListMixin<Length>, ImmutableListMixin<Length> implements List<Length> {
 
   @DomName('SVGLengthList.numberOfItems')
-  @DocsEditable
+  @DocsEditable()
   int get numberOfItems native "SVGLengthList_numberOfItems_Getter";
 
   Length operator[](int index) {
@@ -3480,31 +3480,31 @@ class LengthList extends NativeFieldWrapperClass1 with ListMixin<Length>, Immuta
   // -- end List<Length> mixins.
 
   @DomName('SVGLengthList.appendItem')
-  @DocsEditable
+  @DocsEditable()
   Length appendItem(Length item) native "SVGLengthList_appendItem_Callback";
 
   @DomName('SVGLengthList.clear')
-  @DocsEditable
+  @DocsEditable()
   void clear() native "SVGLengthList_clear_Callback";
 
   @DomName('SVGLengthList.getItem')
-  @DocsEditable
+  @DocsEditable()
   Length getItem(int index) native "SVGLengthList_getItem_Callback";
 
   @DomName('SVGLengthList.initialize')
-  @DocsEditable
+  @DocsEditable()
   Length initialize(Length item) native "SVGLengthList_initialize_Callback";
 
   @DomName('SVGLengthList.insertItemBefore')
-  @DocsEditable
+  @DocsEditable()
   Length insertItemBefore(Length item, int index) native "SVGLengthList_insertItemBefore_Callback";
 
   @DomName('SVGLengthList.removeItem')
-  @DocsEditable
+  @DocsEditable()
   Length removeItem(int index) native "SVGLengthList_removeItem_Callback";
 
   @DomName('SVGLengthList.replaceItem')
-  @DocsEditable
+  @DocsEditable()
   Length replaceItem(Length item, int index) native "SVGLengthList_replaceItem_Callback";
 
 }
@@ -3515,95 +3515,95 @@ class LengthList extends NativeFieldWrapperClass1 with ListMixin<Length>, Immuta
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGLineElement')
-@Unstable
+@Unstable()
 class LineElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   // To suppress missing implicit constructor warnings.
   factory LineElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGLineElement.SVGLineElement')
-  @DocsEditable
+  @DocsEditable()
   factory LineElement() => _SvgElementFactoryProvider.createSvgElement_tag("line");
 
   @DomName('SVGLineElement.x1')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x1 native "SVGLineElement_x1_Getter";
 
   @DomName('SVGLineElement.x2')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x2 native "SVGLineElement_x2_Getter";
 
   @DomName('SVGLineElement.y1')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y1 native "SVGLineElement_y1_Getter";
 
   @DomName('SVGLineElement.y2')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y2 native "SVGLineElement_y2_Getter";
 
   @DomName('SVGLineElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGLineElement_externalResourcesRequired_Getter";
 
   @DomName('SVGLineElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String get xmllang native "SVGLineElement_xmllang_Getter";
 
   @DomName('SVGLineElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   void set xmllang(String value) native "SVGLineElement_xmllang_Setter";
 
   @DomName('SVGLineElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String get xmlspace native "SVGLineElement_xmlspace_Getter";
 
   @DomName('SVGLineElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   void set xmlspace(String value) native "SVGLineElement_xmlspace_Setter";
 
   @DomName('SVGLineElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get farthestViewportElement native "SVGLineElement_farthestViewportElement_Getter";
 
   @DomName('SVGLineElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get nearestViewportElement native "SVGLineElement_nearestViewportElement_Getter";
 
   @DomName('SVGLineElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native "SVGLineElement_getBBox_Callback";
 
   @DomName('SVGLineElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native "SVGLineElement_getCTM_Callback";
 
   @DomName('SVGLineElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native "SVGLineElement_getScreenCTM_Callback";
 
   @DomName('SVGLineElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native "SVGLineElement_getTransformToElement_Callback";
 
   @DomName('SVGLineElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredExtensions native "SVGLineElement_requiredExtensions_Getter";
 
   @DomName('SVGLineElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredFeatures native "SVGLineElement_requiredFeatures_Getter";
 
   @DomName('SVGLineElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   StringList get systemLanguage native "SVGLineElement_systemLanguage_Getter";
 
   @DomName('SVGLineElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native "SVGLineElement_hasExtension_Callback";
 
   @DomName('SVGLineElement.transform')
-  @DocsEditable
+  @DocsEditable()
   AnimatedTransformList get transform native "SVGLineElement_transform_Getter";
 
 }
@@ -3614,31 +3614,31 @@ class LineElement extends StyledElement implements Transformable, Tests, Externa
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGLinearGradientElement')
-@Unstable
+@Unstable()
 class LinearGradientElement extends _GradientElement {
   // To suppress missing implicit constructor warnings.
   factory LinearGradientElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGLinearGradientElement.SVGLinearGradientElement')
-  @DocsEditable
+  @DocsEditable()
   factory LinearGradientElement() => _SvgElementFactoryProvider.createSvgElement_tag("linearGradient");
 
   @DomName('SVGLinearGradientElement.x1')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x1 native "SVGLinearGradientElement_x1_Getter";
 
   @DomName('SVGLinearGradientElement.x2')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x2 native "SVGLinearGradientElement_x2_Getter";
 
   @DomName('SVGLinearGradientElement.y1')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y1 native "SVGLinearGradientElement_y1_Getter";
 
   @DomName('SVGLinearGradientElement.y2')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y2 native "SVGLinearGradientElement_y2_Getter";
 
 }
@@ -3649,33 +3649,33 @@ class LinearGradientElement extends _GradientElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGLocatable')
-@Unstable
+@Unstable()
 abstract class Locatable extends NativeFieldWrapperClass1 {
 
   @DomName('SVGLocatable.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get farthestViewportElement native "SVGLocatable_farthestViewportElement_Getter";
 
   @DomName('SVGLocatable.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get nearestViewportElement native "SVGLocatable_nearestViewportElement_Getter";
 
   @DomName('SVGLocatable.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native "SVGLocatable_getBBox_Callback";
 
   @DomName('SVGLocatable.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native "SVGLocatable_getCTM_Callback";
 
   @DomName('SVGLocatable.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native "SVGLocatable_getScreenCTM_Callback";
 
   @DomName('SVGLocatable.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native "SVGLocatable_getTransformToElement_Callback";
 
 }
@@ -3686,103 +3686,103 @@ abstract class Locatable extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGMarkerElement')
-@Unstable
+@Unstable()
 class MarkerElement extends StyledElement implements FitToViewBox, ExternalResourcesRequired, LangSpace {
   // To suppress missing implicit constructor warnings.
   factory MarkerElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGMarkerElement.SVGMarkerElement')
-  @DocsEditable
+  @DocsEditable()
   factory MarkerElement() => _SvgElementFactoryProvider.createSvgElement_tag("marker");
 
   @DomName('SVGMarkerElement.SVG_MARKERUNITS_STROKEWIDTH')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_MARKERUNITS_STROKEWIDTH = 2;
 
   @DomName('SVGMarkerElement.SVG_MARKERUNITS_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_MARKERUNITS_UNKNOWN = 0;
 
   @DomName('SVGMarkerElement.SVG_MARKERUNITS_USERSPACEONUSE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_MARKERUNITS_USERSPACEONUSE = 1;
 
   @DomName('SVGMarkerElement.SVG_MARKER_ORIENT_ANGLE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_MARKER_ORIENT_ANGLE = 2;
 
   @DomName('SVGMarkerElement.SVG_MARKER_ORIENT_AUTO')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_MARKER_ORIENT_AUTO = 1;
 
   @DomName('SVGMarkerElement.SVG_MARKER_ORIENT_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_MARKER_ORIENT_UNKNOWN = 0;
 
   @DomName('SVGMarkerElement.markerHeight')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get markerHeight native "SVGMarkerElement_markerHeight_Getter";
 
   @DomName('SVGMarkerElement.markerUnits')
-  @DocsEditable
+  @DocsEditable()
   AnimatedEnumeration get markerUnits native "SVGMarkerElement_markerUnits_Getter";
 
   @DomName('SVGMarkerElement.markerWidth')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get markerWidth native "SVGMarkerElement_markerWidth_Getter";
 
   @DomName('SVGMarkerElement.orientAngle')
-  @DocsEditable
+  @DocsEditable()
   AnimatedAngle get orientAngle native "SVGMarkerElement_orientAngle_Getter";
 
   @DomName('SVGMarkerElement.orientType')
-  @DocsEditable
+  @DocsEditable()
   AnimatedEnumeration get orientType native "SVGMarkerElement_orientType_Getter";
 
   @DomName('SVGMarkerElement.refX')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get refX native "SVGMarkerElement_refX_Getter";
 
   @DomName('SVGMarkerElement.refY')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get refY native "SVGMarkerElement_refY_Getter";
 
   @DomName('SVGMarkerElement.setOrientToAngle')
-  @DocsEditable
+  @DocsEditable()
   void setOrientToAngle(Angle angle) native "SVGMarkerElement_setOrientToAngle_Callback";
 
   @DomName('SVGMarkerElement.setOrientToAuto')
-  @DocsEditable
+  @DocsEditable()
   void setOrientToAuto() native "SVGMarkerElement_setOrientToAuto_Callback";
 
   @DomName('SVGMarkerElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGMarkerElement_externalResourcesRequired_Getter";
 
   @DomName('SVGMarkerElement.preserveAspectRatio')
-  @DocsEditable
+  @DocsEditable()
   AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGMarkerElement_preserveAspectRatio_Getter";
 
   @DomName('SVGMarkerElement.viewBox')
-  @DocsEditable
+  @DocsEditable()
   AnimatedRect get viewBox native "SVGMarkerElement_viewBox_Getter";
 
   @DomName('SVGMarkerElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String get xmllang native "SVGMarkerElement_xmllang_Getter";
 
   @DomName('SVGMarkerElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   void set xmllang(String value) native "SVGMarkerElement_xmllang_Setter";
 
   @DomName('SVGMarkerElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String get xmlspace native "SVGMarkerElement_xmlspace_Getter";
 
   @DomName('SVGMarkerElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   void set xmlspace(String value) native "SVGMarkerElement_xmlspace_Setter";
 
 }
@@ -3793,75 +3793,75 @@ class MarkerElement extends StyledElement implements FitToViewBox, ExternalResou
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGMaskElement')
-@Unstable
+@Unstable()
 class MaskElement extends StyledElement implements Tests, ExternalResourcesRequired, LangSpace {
   // To suppress missing implicit constructor warnings.
   factory MaskElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGMaskElement.SVGMaskElement')
-  @DocsEditable
+  @DocsEditable()
   factory MaskElement() => _SvgElementFactoryProvider.createSvgElement_tag("mask");
 
   @DomName('SVGMaskElement.height')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get height native "SVGMaskElement_height_Getter";
 
   @DomName('SVGMaskElement.maskContentUnits')
-  @DocsEditable
+  @DocsEditable()
   AnimatedEnumeration get maskContentUnits native "SVGMaskElement_maskContentUnits_Getter";
 
   @DomName('SVGMaskElement.maskUnits')
-  @DocsEditable
+  @DocsEditable()
   AnimatedEnumeration get maskUnits native "SVGMaskElement_maskUnits_Getter";
 
   @DomName('SVGMaskElement.width')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get width native "SVGMaskElement_width_Getter";
 
   @DomName('SVGMaskElement.x')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x native "SVGMaskElement_x_Getter";
 
   @DomName('SVGMaskElement.y')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y native "SVGMaskElement_y_Getter";
 
   @DomName('SVGMaskElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGMaskElement_externalResourcesRequired_Getter";
 
   @DomName('SVGMaskElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String get xmllang native "SVGMaskElement_xmllang_Getter";
 
   @DomName('SVGMaskElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   void set xmllang(String value) native "SVGMaskElement_xmllang_Setter";
 
   @DomName('SVGMaskElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String get xmlspace native "SVGMaskElement_xmlspace_Getter";
 
   @DomName('SVGMaskElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   void set xmlspace(String value) native "SVGMaskElement_xmlspace_Setter";
 
   @DomName('SVGMaskElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredExtensions native "SVGMaskElement_requiredExtensions_Getter";
 
   @DomName('SVGMaskElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredFeatures native "SVGMaskElement_requiredFeatures_Getter";
 
   @DomName('SVGMaskElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   StringList get systemLanguage native "SVGMaskElement_systemLanguage_Getter";
 
   @DomName('SVGMaskElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native "SVGMaskElement_hasExtension_Callback";
 
 }
@@ -3872,101 +3872,101 @@ class MaskElement extends StyledElement implements Tests, ExternalResourcesRequi
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGMatrix')
-@Unstable
+@Unstable()
 class Matrix extends NativeFieldWrapperClass1 {
 
   @DomName('SVGMatrix.a')
-  @DocsEditable
+  @DocsEditable()
   num get a native "SVGMatrix_a_Getter";
 
   @DomName('SVGMatrix.a')
-  @DocsEditable
+  @DocsEditable()
   void set a(num value) native "SVGMatrix_a_Setter";
 
   @DomName('SVGMatrix.b')
-  @DocsEditable
+  @DocsEditable()
   num get b native "SVGMatrix_b_Getter";
 
   @DomName('SVGMatrix.b')
-  @DocsEditable
+  @DocsEditable()
   void set b(num value) native "SVGMatrix_b_Setter";
 
   @DomName('SVGMatrix.c')
-  @DocsEditable
+  @DocsEditable()
   num get c native "SVGMatrix_c_Getter";
 
   @DomName('SVGMatrix.c')
-  @DocsEditable
+  @DocsEditable()
   void set c(num value) native "SVGMatrix_c_Setter";
 
   @DomName('SVGMatrix.d')
-  @DocsEditable
+  @DocsEditable()
   num get d native "SVGMatrix_d_Getter";
 
   @DomName('SVGMatrix.d')
-  @DocsEditable
+  @DocsEditable()
   void set d(num value) native "SVGMatrix_d_Setter";
 
   @DomName('SVGMatrix.e')
-  @DocsEditable
+  @DocsEditable()
   num get e native "SVGMatrix_e_Getter";
 
   @DomName('SVGMatrix.e')
-  @DocsEditable
+  @DocsEditable()
   void set e(num value) native "SVGMatrix_e_Setter";
 
   @DomName('SVGMatrix.f')
-  @DocsEditable
+  @DocsEditable()
   num get f native "SVGMatrix_f_Getter";
 
   @DomName('SVGMatrix.f')
-  @DocsEditable
+  @DocsEditable()
   void set f(num value) native "SVGMatrix_f_Setter";
 
   @DomName('SVGMatrix.flipX')
-  @DocsEditable
+  @DocsEditable()
   Matrix flipX() native "SVGMatrix_flipX_Callback";
 
   @DomName('SVGMatrix.flipY')
-  @DocsEditable
+  @DocsEditable()
   Matrix flipY() native "SVGMatrix_flipY_Callback";
 
   @DomName('SVGMatrix.inverse')
-  @DocsEditable
+  @DocsEditable()
   Matrix inverse() native "SVGMatrix_inverse_Callback";
 
   @DomName('SVGMatrix.multiply')
-  @DocsEditable
+  @DocsEditable()
   Matrix multiply(Matrix secondMatrix) native "SVGMatrix_multiply_Callback";
 
   @DomName('SVGMatrix.rotate')
-  @DocsEditable
+  @DocsEditable()
   Matrix rotate(num angle) native "SVGMatrix_rotate_Callback";
 
   @DomName('SVGMatrix.rotateFromVector')
-  @DocsEditable
+  @DocsEditable()
   Matrix rotateFromVector(num x, num y) native "SVGMatrix_rotateFromVector_Callback";
 
   @DomName('SVGMatrix.scale')
-  @DocsEditable
+  @DocsEditable()
   Matrix scale(num scaleFactor) native "SVGMatrix_scale_Callback";
 
   @DomName('SVGMatrix.scaleNonUniform')
-  @DocsEditable
+  @DocsEditable()
   Matrix scaleNonUniform(num scaleFactorX, num scaleFactorY) native "SVGMatrix_scaleNonUniform_Callback";
 
   @DomName('SVGMatrix.skewX')
-  @DocsEditable
+  @DocsEditable()
   Matrix skewX(num angle) native "SVGMatrix_skewX_Callback";
 
   @DomName('SVGMatrix.skewY')
-  @DocsEditable
+  @DocsEditable()
   Matrix skewY(num angle) native "SVGMatrix_skewY_Callback";
 
   @DomName('SVGMatrix.translate')
-  @DocsEditable
+  @DocsEditable()
   Matrix translate(num x, num y) native "SVGMatrix_translate_Callback";
 
 }
@@ -3977,9 +3977,9 @@ class Matrix extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGMetadataElement')
-@Unstable
+@Unstable()
 class MetadataElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory MetadataElement._() { throw new UnsupportedError("Not supported"); }
@@ -3992,17 +3992,17 @@ class MetadataElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGNumber')
-@Unstable
+@Unstable()
 class Number extends NativeFieldWrapperClass1 {
 
   @DomName('SVGNumber.value')
-  @DocsEditable
+  @DocsEditable()
   num get value native "SVGNumber_value_Getter";
 
   @DomName('SVGNumber.value')
-  @DocsEditable
+  @DocsEditable()
   void set value(num value) native "SVGNumber_value_Setter";
 
 }
@@ -4013,13 +4013,13 @@ class Number extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGNumberList')
-@Unstable
+@Unstable()
 class NumberList extends NativeFieldWrapperClass1 with ListMixin<Number>, ImmutableListMixin<Number> implements List<Number> {
 
   @DomName('SVGNumberList.numberOfItems')
-  @DocsEditable
+  @DocsEditable()
   int get numberOfItems native "SVGNumberList_numberOfItems_Getter";
 
   Number operator[](int index) {
@@ -4070,31 +4070,31 @@ class NumberList extends NativeFieldWrapperClass1 with ListMixin<Number>, Immuta
   // -- end List<Number> mixins.
 
   @DomName('SVGNumberList.appendItem')
-  @DocsEditable
+  @DocsEditable()
   Number appendItem(Number item) native "SVGNumberList_appendItem_Callback";
 
   @DomName('SVGNumberList.clear')
-  @DocsEditable
+  @DocsEditable()
   void clear() native "SVGNumberList_clear_Callback";
 
   @DomName('SVGNumberList.getItem')
-  @DocsEditable
+  @DocsEditable()
   Number getItem(int index) native "SVGNumberList_getItem_Callback";
 
   @DomName('SVGNumberList.initialize')
-  @DocsEditable
+  @DocsEditable()
   Number initialize(Number item) native "SVGNumberList_initialize_Callback";
 
   @DomName('SVGNumberList.insertItemBefore')
-  @DocsEditable
+  @DocsEditable()
   Number insertItemBefore(Number item, int index) native "SVGNumberList_insertItemBefore_Callback";
 
   @DomName('SVGNumberList.removeItem')
-  @DocsEditable
+  @DocsEditable()
   Number removeItem(int index) native "SVGNumberList_removeItem_Callback";
 
   @DomName('SVGNumberList.replaceItem')
-  @DocsEditable
+  @DocsEditable()
   Number replaceItem(Number item, int index) native "SVGNumberList_replaceItem_Callback";
 
 }
@@ -4105,187 +4105,187 @@ class NumberList extends NativeFieldWrapperClass1 with ListMixin<Number>, Immuta
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathElement')
-@Unstable
+@Unstable()
 class PathElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   // To suppress missing implicit constructor warnings.
   factory PathElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathElement.SVGPathElement')
-  @DocsEditable
+  @DocsEditable()
   factory PathElement() => _SvgElementFactoryProvider.createSvgElement_tag("path");
 
   @DomName('SVGPathElement.animatedNormalizedPathSegList')
-  @DocsEditable
+  @DocsEditable()
   PathSegList get animatedNormalizedPathSegList native "SVGPathElement_animatedNormalizedPathSegList_Getter";
 
   @DomName('SVGPathElement.animatedPathSegList')
-  @DocsEditable
+  @DocsEditable()
   PathSegList get animatedPathSegList native "SVGPathElement_animatedPathSegList_Getter";
 
   @DomName('SVGPathElement.normalizedPathSegList')
-  @DocsEditable
+  @DocsEditable()
   PathSegList get normalizedPathSegList native "SVGPathElement_normalizedPathSegList_Getter";
 
   @DomName('SVGPathElement.pathLength')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get pathLength native "SVGPathElement_pathLength_Getter";
 
   @DomName('SVGPathElement.pathSegList')
-  @DocsEditable
+  @DocsEditable()
   PathSegList get pathSegList native "SVGPathElement_pathSegList_Getter";
 
   @DomName('SVGPathElement.createSVGPathSegArcAbs')
-  @DocsEditable
+  @DocsEditable()
   PathSegArcAbs createSvgPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native "SVGPathElement_createSVGPathSegArcAbs_Callback";
 
   @DomName('SVGPathElement.createSVGPathSegArcRel')
-  @DocsEditable
+  @DocsEditable()
   PathSegArcRel createSvgPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native "SVGPathElement_createSVGPathSegArcRel_Callback";
 
   @DomName('SVGPathElement.createSVGPathSegClosePath')
-  @DocsEditable
+  @DocsEditable()
   PathSegClosePath createSvgPathSegClosePath() native "SVGPathElement_createSVGPathSegClosePath_Callback";
 
   @DomName('SVGPathElement.createSVGPathSegCurvetoCubicAbs')
-  @DocsEditable
+  @DocsEditable()
   PathSegCurvetoCubicAbs createSvgPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2) native "SVGPathElement_createSVGPathSegCurvetoCubicAbs_Callback";
 
   @DomName('SVGPathElement.createSVGPathSegCurvetoCubicRel')
-  @DocsEditable
+  @DocsEditable()
   PathSegCurvetoCubicRel createSvgPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2) native "SVGPathElement_createSVGPathSegCurvetoCubicRel_Callback";
 
   @DomName('SVGPathElement.createSVGPathSegCurvetoCubicSmoothAbs')
-  @DocsEditable
+  @DocsEditable()
   PathSegCurvetoCubicSmoothAbs createSvgPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2) native "SVGPathElement_createSVGPathSegCurvetoCubicSmoothAbs_Callback";
 
   @DomName('SVGPathElement.createSVGPathSegCurvetoCubicSmoothRel')
-  @DocsEditable
+  @DocsEditable()
   PathSegCurvetoCubicSmoothRel createSvgPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2) native "SVGPathElement_createSVGPathSegCurvetoCubicSmoothRel_Callback";
 
   @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticAbs')
-  @DocsEditable
+  @DocsEditable()
   PathSegCurvetoQuadraticAbs createSvgPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1) native "SVGPathElement_createSVGPathSegCurvetoQuadraticAbs_Callback";
 
   @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticRel')
-  @DocsEditable
+  @DocsEditable()
   PathSegCurvetoQuadraticRel createSvgPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1) native "SVGPathElement_createSVGPathSegCurvetoQuadraticRel_Callback";
 
   @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothAbs')
-  @DocsEditable
+  @DocsEditable()
   PathSegCurvetoQuadraticSmoothAbs createSvgPathSegCurvetoQuadraticSmoothAbs(num x, num y) native "SVGPathElement_createSVGPathSegCurvetoQuadraticSmoothAbs_Callback";
 
   @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothRel')
-  @DocsEditable
+  @DocsEditable()
   PathSegCurvetoQuadraticSmoothRel createSvgPathSegCurvetoQuadraticSmoothRel(num x, num y) native "SVGPathElement_createSVGPathSegCurvetoQuadraticSmoothRel_Callback";
 
   @DomName('SVGPathElement.createSVGPathSegLinetoAbs')
-  @DocsEditable
+  @DocsEditable()
   PathSegLinetoAbs createSvgPathSegLinetoAbs(num x, num y) native "SVGPathElement_createSVGPathSegLinetoAbs_Callback";
 
   @DomName('SVGPathElement.createSVGPathSegLinetoHorizontalAbs')
-  @DocsEditable
+  @DocsEditable()
   PathSegLinetoHorizontalAbs createSvgPathSegLinetoHorizontalAbs(num x) native "SVGPathElement_createSVGPathSegLinetoHorizontalAbs_Callback";
 
   @DomName('SVGPathElement.createSVGPathSegLinetoHorizontalRel')
-  @DocsEditable
+  @DocsEditable()
   PathSegLinetoHorizontalRel createSvgPathSegLinetoHorizontalRel(num x) native "SVGPathElement_createSVGPathSegLinetoHorizontalRel_Callback";
 
   @DomName('SVGPathElement.createSVGPathSegLinetoRel')
-  @DocsEditable
+  @DocsEditable()
   PathSegLinetoRel createSvgPathSegLinetoRel(num x, num y) native "SVGPathElement_createSVGPathSegLinetoRel_Callback";
 
   @DomName('SVGPathElement.createSVGPathSegLinetoVerticalAbs')
-  @DocsEditable
+  @DocsEditable()
   PathSegLinetoVerticalAbs createSvgPathSegLinetoVerticalAbs(num y) native "SVGPathElement_createSVGPathSegLinetoVerticalAbs_Callback";
 
   @DomName('SVGPathElement.createSVGPathSegLinetoVerticalRel')
-  @DocsEditable
+  @DocsEditable()
   PathSegLinetoVerticalRel createSvgPathSegLinetoVerticalRel(num y) native "SVGPathElement_createSVGPathSegLinetoVerticalRel_Callback";
 
   @DomName('SVGPathElement.createSVGPathSegMovetoAbs')
-  @DocsEditable
+  @DocsEditable()
   PathSegMovetoAbs createSvgPathSegMovetoAbs(num x, num y) native "SVGPathElement_createSVGPathSegMovetoAbs_Callback";
 
   @DomName('SVGPathElement.createSVGPathSegMovetoRel')
-  @DocsEditable
+  @DocsEditable()
   PathSegMovetoRel createSvgPathSegMovetoRel(num x, num y) native "SVGPathElement_createSVGPathSegMovetoRel_Callback";
 
   @DomName('SVGPathElement.getPathSegAtLength')
-  @DocsEditable
+  @DocsEditable()
   int getPathSegAtLength(num distance) native "SVGPathElement_getPathSegAtLength_Callback";
 
   @DomName('SVGPathElement.getPointAtLength')
-  @DocsEditable
+  @DocsEditable()
   Point getPointAtLength(num distance) native "SVGPathElement_getPointAtLength_Callback";
 
   @DomName('SVGPathElement.getTotalLength')
-  @DocsEditable
+  @DocsEditable()
   num getTotalLength() native "SVGPathElement_getTotalLength_Callback";
 
   @DomName('SVGPathElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGPathElement_externalResourcesRequired_Getter";
 
   @DomName('SVGPathElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String get xmllang native "SVGPathElement_xmllang_Getter";
 
   @DomName('SVGPathElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   void set xmllang(String value) native "SVGPathElement_xmllang_Setter";
 
   @DomName('SVGPathElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String get xmlspace native "SVGPathElement_xmlspace_Getter";
 
   @DomName('SVGPathElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   void set xmlspace(String value) native "SVGPathElement_xmlspace_Setter";
 
   @DomName('SVGPathElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get farthestViewportElement native "SVGPathElement_farthestViewportElement_Getter";
 
   @DomName('SVGPathElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get nearestViewportElement native "SVGPathElement_nearestViewportElement_Getter";
 
   @DomName('SVGPathElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native "SVGPathElement_getBBox_Callback";
 
   @DomName('SVGPathElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native "SVGPathElement_getCTM_Callback";
 
   @DomName('SVGPathElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native "SVGPathElement_getScreenCTM_Callback";
 
   @DomName('SVGPathElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native "SVGPathElement_getTransformToElement_Callback";
 
   @DomName('SVGPathElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredExtensions native "SVGPathElement_requiredExtensions_Getter";
 
   @DomName('SVGPathElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredFeatures native "SVGPathElement_requiredFeatures_Getter";
 
   @DomName('SVGPathElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   StringList get systemLanguage native "SVGPathElement_systemLanguage_Getter";
 
   @DomName('SVGPathElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native "SVGPathElement_hasExtension_Callback";
 
   @DomName('SVGPathElement.transform')
-  @DocsEditable
+  @DocsEditable()
   AnimatedTransformList get transform native "SVGPathElement_transform_Getter";
 
 }
@@ -4296,97 +4296,97 @@ class PathElement extends StyledElement implements Transformable, Tests, Externa
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSeg')
-@Unstable
+@Unstable()
 class PathSeg extends NativeFieldWrapperClass1 {
 
   @DomName('SVGPathSeg.PATHSEG_ARC_ABS')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_ARC_ABS = 10;
 
   @DomName('SVGPathSeg.PATHSEG_ARC_REL')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_ARC_REL = 11;
 
   @DomName('SVGPathSeg.PATHSEG_CLOSEPATH')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_CLOSEPATH = 1;
 
   @DomName('SVGPathSeg.PATHSEG_CURVETO_CUBIC_ABS')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_CURVETO_CUBIC_ABS = 6;
 
   @DomName('SVGPathSeg.PATHSEG_CURVETO_CUBIC_REL')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_CURVETO_CUBIC_REL = 7;
 
   @DomName('SVGPathSeg.PATHSEG_CURVETO_CUBIC_SMOOTH_ABS')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_CURVETO_CUBIC_SMOOTH_ABS = 16;
 
   @DomName('SVGPathSeg.PATHSEG_CURVETO_CUBIC_SMOOTH_REL')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_CURVETO_CUBIC_SMOOTH_REL = 17;
 
   @DomName('SVGPathSeg.PATHSEG_CURVETO_QUADRATIC_ABS')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_CURVETO_QUADRATIC_ABS = 8;
 
   @DomName('SVGPathSeg.PATHSEG_CURVETO_QUADRATIC_REL')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_CURVETO_QUADRATIC_REL = 9;
 
   @DomName('SVGPathSeg.PATHSEG_CURVETO_QUADRATIC_SMOOTH_ABS')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_CURVETO_QUADRATIC_SMOOTH_ABS = 18;
 
   @DomName('SVGPathSeg.PATHSEG_CURVETO_QUADRATIC_SMOOTH_REL')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_CURVETO_QUADRATIC_SMOOTH_REL = 19;
 
   @DomName('SVGPathSeg.PATHSEG_LINETO_ABS')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_LINETO_ABS = 4;
 
   @DomName('SVGPathSeg.PATHSEG_LINETO_HORIZONTAL_ABS')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_LINETO_HORIZONTAL_ABS = 12;
 
   @DomName('SVGPathSeg.PATHSEG_LINETO_HORIZONTAL_REL')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_LINETO_HORIZONTAL_REL = 13;
 
   @DomName('SVGPathSeg.PATHSEG_LINETO_REL')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_LINETO_REL = 5;
 
   @DomName('SVGPathSeg.PATHSEG_LINETO_VERTICAL_ABS')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_LINETO_VERTICAL_ABS = 14;
 
   @DomName('SVGPathSeg.PATHSEG_LINETO_VERTICAL_REL')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_LINETO_VERTICAL_REL = 15;
 
   @DomName('SVGPathSeg.PATHSEG_MOVETO_ABS')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_MOVETO_ABS = 2;
 
   @DomName('SVGPathSeg.PATHSEG_MOVETO_REL')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_MOVETO_REL = 3;
 
   @DomName('SVGPathSeg.PATHSEG_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_UNKNOWN = 0;
 
   @DomName('SVGPathSeg.pathSegType')
-  @DocsEditable
+  @DocsEditable()
   int get pathSegType native "SVGPathSeg_pathSegType_Getter";
 
   @DomName('SVGPathSeg.pathSegTypeAsLetter')
-  @DocsEditable
+  @DocsEditable()
   String get pathSegTypeAsLetter native "SVGPathSeg_pathSegTypeAsLetter_Getter";
 
 }
@@ -4397,67 +4397,67 @@ class PathSeg extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegArcAbs')
-@Unstable
+@Unstable()
 class PathSegArcAbs extends PathSeg {
   // To suppress missing implicit constructor warnings.
   factory PathSegArcAbs._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegArcAbs.angle')
-  @DocsEditable
+  @DocsEditable()
   num get angle native "SVGPathSegArcAbs_angle_Getter";
 
   @DomName('SVGPathSegArcAbs.angle')
-  @DocsEditable
+  @DocsEditable()
   void set angle(num value) native "SVGPathSegArcAbs_angle_Setter";
 
   @DomName('SVGPathSegArcAbs.largeArcFlag')
-  @DocsEditable
+  @DocsEditable()
   bool get largeArcFlag native "SVGPathSegArcAbs_largeArcFlag_Getter";
 
   @DomName('SVGPathSegArcAbs.largeArcFlag')
-  @DocsEditable
+  @DocsEditable()
   void set largeArcFlag(bool value) native "SVGPathSegArcAbs_largeArcFlag_Setter";
 
   @DomName('SVGPathSegArcAbs.r1')
-  @DocsEditable
+  @DocsEditable()
   num get r1 native "SVGPathSegArcAbs_r1_Getter";
 
   @DomName('SVGPathSegArcAbs.r1')
-  @DocsEditable
+  @DocsEditable()
   void set r1(num value) native "SVGPathSegArcAbs_r1_Setter";
 
   @DomName('SVGPathSegArcAbs.r2')
-  @DocsEditable
+  @DocsEditable()
   num get r2 native "SVGPathSegArcAbs_r2_Getter";
 
   @DomName('SVGPathSegArcAbs.r2')
-  @DocsEditable
+  @DocsEditable()
   void set r2(num value) native "SVGPathSegArcAbs_r2_Setter";
 
   @DomName('SVGPathSegArcAbs.sweepFlag')
-  @DocsEditable
+  @DocsEditable()
   bool get sweepFlag native "SVGPathSegArcAbs_sweepFlag_Getter";
 
   @DomName('SVGPathSegArcAbs.sweepFlag')
-  @DocsEditable
+  @DocsEditable()
   void set sweepFlag(bool value) native "SVGPathSegArcAbs_sweepFlag_Setter";
 
   @DomName('SVGPathSegArcAbs.x')
-  @DocsEditable
+  @DocsEditable()
   num get x native "SVGPathSegArcAbs_x_Getter";
 
   @DomName('SVGPathSegArcAbs.x')
-  @DocsEditable
+  @DocsEditable()
   void set x(num value) native "SVGPathSegArcAbs_x_Setter";
 
   @DomName('SVGPathSegArcAbs.y')
-  @DocsEditable
+  @DocsEditable()
   num get y native "SVGPathSegArcAbs_y_Getter";
 
   @DomName('SVGPathSegArcAbs.y')
-  @DocsEditable
+  @DocsEditable()
   void set y(num value) native "SVGPathSegArcAbs_y_Setter";
 
 }
@@ -4468,67 +4468,67 @@ class PathSegArcAbs extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegArcRel')
-@Unstable
+@Unstable()
 class PathSegArcRel extends PathSeg {
   // To suppress missing implicit constructor warnings.
   factory PathSegArcRel._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegArcRel.angle')
-  @DocsEditable
+  @DocsEditable()
   num get angle native "SVGPathSegArcRel_angle_Getter";
 
   @DomName('SVGPathSegArcRel.angle')
-  @DocsEditable
+  @DocsEditable()
   void set angle(num value) native "SVGPathSegArcRel_angle_Setter";
 
   @DomName('SVGPathSegArcRel.largeArcFlag')
-  @DocsEditable
+  @DocsEditable()
   bool get largeArcFlag native "SVGPathSegArcRel_largeArcFlag_Getter";
 
   @DomName('SVGPathSegArcRel.largeArcFlag')
-  @DocsEditable
+  @DocsEditable()
   void set largeArcFlag(bool value) native "SVGPathSegArcRel_largeArcFlag_Setter";
 
   @DomName('SVGPathSegArcRel.r1')
-  @DocsEditable
+  @DocsEditable()
   num get r1 native "SVGPathSegArcRel_r1_Getter";
 
   @DomName('SVGPathSegArcRel.r1')
-  @DocsEditable
+  @DocsEditable()
   void set r1(num value) native "SVGPathSegArcRel_r1_Setter";
 
   @DomName('SVGPathSegArcRel.r2')
-  @DocsEditable
+  @DocsEditable()
   num get r2 native "SVGPathSegArcRel_r2_Getter";
 
   @DomName('SVGPathSegArcRel.r2')
-  @DocsEditable
+  @DocsEditable()
   void set r2(num value) native "SVGPathSegArcRel_r2_Setter";
 
   @DomName('SVGPathSegArcRel.sweepFlag')
-  @DocsEditable
+  @DocsEditable()
   bool get sweepFlag native "SVGPathSegArcRel_sweepFlag_Getter";
 
   @DomName('SVGPathSegArcRel.sweepFlag')
-  @DocsEditable
+  @DocsEditable()
   void set sweepFlag(bool value) native "SVGPathSegArcRel_sweepFlag_Setter";
 
   @DomName('SVGPathSegArcRel.x')
-  @DocsEditable
+  @DocsEditable()
   num get x native "SVGPathSegArcRel_x_Getter";
 
   @DomName('SVGPathSegArcRel.x')
-  @DocsEditable
+  @DocsEditable()
   void set x(num value) native "SVGPathSegArcRel_x_Setter";
 
   @DomName('SVGPathSegArcRel.y')
-  @DocsEditable
+  @DocsEditable()
   num get y native "SVGPathSegArcRel_y_Getter";
 
   @DomName('SVGPathSegArcRel.y')
-  @DocsEditable
+  @DocsEditable()
   void set y(num value) native "SVGPathSegArcRel_y_Setter";
 
 }
@@ -4539,9 +4539,9 @@ class PathSegArcRel extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegClosePath')
-@Unstable
+@Unstable()
 class PathSegClosePath extends PathSeg {
   // To suppress missing implicit constructor warnings.
   factory PathSegClosePath._() { throw new UnsupportedError("Not supported"); }
@@ -4554,59 +4554,59 @@ class PathSegClosePath extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegCurvetoCubicAbs')
-@Unstable
+@Unstable()
 class PathSegCurvetoCubicAbs extends PathSeg {
   // To suppress missing implicit constructor warnings.
   factory PathSegCurvetoCubicAbs._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegCurvetoCubicAbs.x')
-  @DocsEditable
+  @DocsEditable()
   num get x native "SVGPathSegCurvetoCubicAbs_x_Getter";
 
   @DomName('SVGPathSegCurvetoCubicAbs.x')
-  @DocsEditable
+  @DocsEditable()
   void set x(num value) native "SVGPathSegCurvetoCubicAbs_x_Setter";
 
   @DomName('SVGPathSegCurvetoCubicAbs.x1')
-  @DocsEditable
+  @DocsEditable()
   num get x1 native "SVGPathSegCurvetoCubicAbs_x1_Getter";
 
   @DomName('SVGPathSegCurvetoCubicAbs.x1')
-  @DocsEditable
+  @DocsEditable()
   void set x1(num value) native "SVGPathSegCurvetoCubicAbs_x1_Setter";
 
   @DomName('SVGPathSegCurvetoCubicAbs.x2')
-  @DocsEditable
+  @DocsEditable()
   num get x2 native "SVGPathSegCurvetoCubicAbs_x2_Getter";
 
   @DomName('SVGPathSegCurvetoCubicAbs.x2')
-  @DocsEditable
+  @DocsEditable()
   void set x2(num value) native "SVGPathSegCurvetoCubicAbs_x2_Setter";
 
   @DomName('SVGPathSegCurvetoCubicAbs.y')
-  @DocsEditable
+  @DocsEditable()
   num get y native "SVGPathSegCurvetoCubicAbs_y_Getter";
 
   @DomName('SVGPathSegCurvetoCubicAbs.y')
-  @DocsEditable
+  @DocsEditable()
   void set y(num value) native "SVGPathSegCurvetoCubicAbs_y_Setter";
 
   @DomName('SVGPathSegCurvetoCubicAbs.y1')
-  @DocsEditable
+  @DocsEditable()
   num get y1 native "SVGPathSegCurvetoCubicAbs_y1_Getter";
 
   @DomName('SVGPathSegCurvetoCubicAbs.y1')
-  @DocsEditable
+  @DocsEditable()
   void set y1(num value) native "SVGPathSegCurvetoCubicAbs_y1_Setter";
 
   @DomName('SVGPathSegCurvetoCubicAbs.y2')
-  @DocsEditable
+  @DocsEditable()
   num get y2 native "SVGPathSegCurvetoCubicAbs_y2_Getter";
 
   @DomName('SVGPathSegCurvetoCubicAbs.y2')
-  @DocsEditable
+  @DocsEditable()
   void set y2(num value) native "SVGPathSegCurvetoCubicAbs_y2_Setter";
 
 }
@@ -4617,59 +4617,59 @@ class PathSegCurvetoCubicAbs extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegCurvetoCubicRel')
-@Unstable
+@Unstable()
 class PathSegCurvetoCubicRel extends PathSeg {
   // To suppress missing implicit constructor warnings.
   factory PathSegCurvetoCubicRel._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegCurvetoCubicRel.x')
-  @DocsEditable
+  @DocsEditable()
   num get x native "SVGPathSegCurvetoCubicRel_x_Getter";
 
   @DomName('SVGPathSegCurvetoCubicRel.x')
-  @DocsEditable
+  @DocsEditable()
   void set x(num value) native "SVGPathSegCurvetoCubicRel_x_Setter";
 
   @DomName('SVGPathSegCurvetoCubicRel.x1')
-  @DocsEditable
+  @DocsEditable()
   num get x1 native "SVGPathSegCurvetoCubicRel_x1_Getter";
 
   @DomName('SVGPathSegCurvetoCubicRel.x1')
-  @DocsEditable
+  @DocsEditable()
   void set x1(num value) native "SVGPathSegCurvetoCubicRel_x1_Setter";
 
   @DomName('SVGPathSegCurvetoCubicRel.x2')
-  @DocsEditable
+  @DocsEditable()
   num get x2 native "SVGPathSegCurvetoCubicRel_x2_Getter";
 
   @DomName('SVGPathSegCurvetoCubicRel.x2')
-  @DocsEditable
+  @DocsEditable()
   void set x2(num value) native "SVGPathSegCurvetoCubicRel_x2_Setter";
 
   @DomName('SVGPathSegCurvetoCubicRel.y')
-  @DocsEditable
+  @DocsEditable()
   num get y native "SVGPathSegCurvetoCubicRel_y_Getter";
 
   @DomName('SVGPathSegCurvetoCubicRel.y')
-  @DocsEditable
+  @DocsEditable()
   void set y(num value) native "SVGPathSegCurvetoCubicRel_y_Setter";
 
   @DomName('SVGPathSegCurvetoCubicRel.y1')
-  @DocsEditable
+  @DocsEditable()
   num get y1 native "SVGPathSegCurvetoCubicRel_y1_Getter";
 
   @DomName('SVGPathSegCurvetoCubicRel.y1')
-  @DocsEditable
+  @DocsEditable()
   void set y1(num value) native "SVGPathSegCurvetoCubicRel_y1_Setter";
 
   @DomName('SVGPathSegCurvetoCubicRel.y2')
-  @DocsEditable
+  @DocsEditable()
   num get y2 native "SVGPathSegCurvetoCubicRel_y2_Getter";
 
   @DomName('SVGPathSegCurvetoCubicRel.y2')
-  @DocsEditable
+  @DocsEditable()
   void set y2(num value) native "SVGPathSegCurvetoCubicRel_y2_Setter";
 
 }
@@ -4680,43 +4680,43 @@ class PathSegCurvetoCubicRel extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegCurvetoCubicSmoothAbs')
-@Unstable
+@Unstable()
 class PathSegCurvetoCubicSmoothAbs extends PathSeg {
   // To suppress missing implicit constructor warnings.
   factory PathSegCurvetoCubicSmoothAbs._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.x')
-  @DocsEditable
+  @DocsEditable()
   num get x native "SVGPathSegCurvetoCubicSmoothAbs_x_Getter";
 
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.x')
-  @DocsEditable
+  @DocsEditable()
   void set x(num value) native "SVGPathSegCurvetoCubicSmoothAbs_x_Setter";
 
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.x2')
-  @DocsEditable
+  @DocsEditable()
   num get x2 native "SVGPathSegCurvetoCubicSmoothAbs_x2_Getter";
 
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.x2')
-  @DocsEditable
+  @DocsEditable()
   void set x2(num value) native "SVGPathSegCurvetoCubicSmoothAbs_x2_Setter";
 
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.y')
-  @DocsEditable
+  @DocsEditable()
   num get y native "SVGPathSegCurvetoCubicSmoothAbs_y_Getter";
 
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.y')
-  @DocsEditable
+  @DocsEditable()
   void set y(num value) native "SVGPathSegCurvetoCubicSmoothAbs_y_Setter";
 
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.y2')
-  @DocsEditable
+  @DocsEditable()
   num get y2 native "SVGPathSegCurvetoCubicSmoothAbs_y2_Getter";
 
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.y2')
-  @DocsEditable
+  @DocsEditable()
   void set y2(num value) native "SVGPathSegCurvetoCubicSmoothAbs_y2_Setter";
 
 }
@@ -4727,43 +4727,43 @@ class PathSegCurvetoCubicSmoothAbs extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegCurvetoCubicSmoothRel')
-@Unstable
+@Unstable()
 class PathSegCurvetoCubicSmoothRel extends PathSeg {
   // To suppress missing implicit constructor warnings.
   factory PathSegCurvetoCubicSmoothRel._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegCurvetoCubicSmoothRel.x')
-  @DocsEditable
+  @DocsEditable()
   num get x native "SVGPathSegCurvetoCubicSmoothRel_x_Getter";
 
   @DomName('SVGPathSegCurvetoCubicSmoothRel.x')
-  @DocsEditable
+  @DocsEditable()
   void set x(num value) native "SVGPathSegCurvetoCubicSmoothRel_x_Setter";
 
   @DomName('SVGPathSegCurvetoCubicSmoothRel.x2')
-  @DocsEditable
+  @DocsEditable()
   num get x2 native "SVGPathSegCurvetoCubicSmoothRel_x2_Getter";
 
   @DomName('SVGPathSegCurvetoCubicSmoothRel.x2')
-  @DocsEditable
+  @DocsEditable()
   void set x2(num value) native "SVGPathSegCurvetoCubicSmoothRel_x2_Setter";
 
   @DomName('SVGPathSegCurvetoCubicSmoothRel.y')
-  @DocsEditable
+  @DocsEditable()
   num get y native "SVGPathSegCurvetoCubicSmoothRel_y_Getter";
 
   @DomName('SVGPathSegCurvetoCubicSmoothRel.y')
-  @DocsEditable
+  @DocsEditable()
   void set y(num value) native "SVGPathSegCurvetoCubicSmoothRel_y_Setter";
 
   @DomName('SVGPathSegCurvetoCubicSmoothRel.y2')
-  @DocsEditable
+  @DocsEditable()
   num get y2 native "SVGPathSegCurvetoCubicSmoothRel_y2_Getter";
 
   @DomName('SVGPathSegCurvetoCubicSmoothRel.y2')
-  @DocsEditable
+  @DocsEditable()
   void set y2(num value) native "SVGPathSegCurvetoCubicSmoothRel_y2_Setter";
 
 }
@@ -4774,43 +4774,43 @@ class PathSegCurvetoCubicSmoothRel extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegCurvetoQuadraticAbs')
-@Unstable
+@Unstable()
 class PathSegCurvetoQuadraticAbs extends PathSeg {
   // To suppress missing implicit constructor warnings.
   factory PathSegCurvetoQuadraticAbs._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegCurvetoQuadraticAbs.x')
-  @DocsEditable
+  @DocsEditable()
   num get x native "SVGPathSegCurvetoQuadraticAbs_x_Getter";
 
   @DomName('SVGPathSegCurvetoQuadraticAbs.x')
-  @DocsEditable
+  @DocsEditable()
   void set x(num value) native "SVGPathSegCurvetoQuadraticAbs_x_Setter";
 
   @DomName('SVGPathSegCurvetoQuadraticAbs.x1')
-  @DocsEditable
+  @DocsEditable()
   num get x1 native "SVGPathSegCurvetoQuadraticAbs_x1_Getter";
 
   @DomName('SVGPathSegCurvetoQuadraticAbs.x1')
-  @DocsEditable
+  @DocsEditable()
   void set x1(num value) native "SVGPathSegCurvetoQuadraticAbs_x1_Setter";
 
   @DomName('SVGPathSegCurvetoQuadraticAbs.y')
-  @DocsEditable
+  @DocsEditable()
   num get y native "SVGPathSegCurvetoQuadraticAbs_y_Getter";
 
   @DomName('SVGPathSegCurvetoQuadraticAbs.y')
-  @DocsEditable
+  @DocsEditable()
   void set y(num value) native "SVGPathSegCurvetoQuadraticAbs_y_Setter";
 
   @DomName('SVGPathSegCurvetoQuadraticAbs.y1')
-  @DocsEditable
+  @DocsEditable()
   num get y1 native "SVGPathSegCurvetoQuadraticAbs_y1_Getter";
 
   @DomName('SVGPathSegCurvetoQuadraticAbs.y1')
-  @DocsEditable
+  @DocsEditable()
   void set y1(num value) native "SVGPathSegCurvetoQuadraticAbs_y1_Setter";
 
 }
@@ -4821,43 +4821,43 @@ class PathSegCurvetoQuadraticAbs extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegCurvetoQuadraticRel')
-@Unstable
+@Unstable()
 class PathSegCurvetoQuadraticRel extends PathSeg {
   // To suppress missing implicit constructor warnings.
   factory PathSegCurvetoQuadraticRel._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegCurvetoQuadraticRel.x')
-  @DocsEditable
+  @DocsEditable()
   num get x native "SVGPathSegCurvetoQuadraticRel_x_Getter";
 
   @DomName('SVGPathSegCurvetoQuadraticRel.x')
-  @DocsEditable
+  @DocsEditable()
   void set x(num value) native "SVGPathSegCurvetoQuadraticRel_x_Setter";
 
   @DomName('SVGPathSegCurvetoQuadraticRel.x1')
-  @DocsEditable
+  @DocsEditable()
   num get x1 native "SVGPathSegCurvetoQuadraticRel_x1_Getter";
 
   @DomName('SVGPathSegCurvetoQuadraticRel.x1')
-  @DocsEditable
+  @DocsEditable()
   void set x1(num value) native "SVGPathSegCurvetoQuadraticRel_x1_Setter";
 
   @DomName('SVGPathSegCurvetoQuadraticRel.y')
-  @DocsEditable
+  @DocsEditable()
   num get y native "SVGPathSegCurvetoQuadraticRel_y_Getter";
 
   @DomName('SVGPathSegCurvetoQuadraticRel.y')
-  @DocsEditable
+  @DocsEditable()
   void set y(num value) native "SVGPathSegCurvetoQuadraticRel_y_Setter";
 
   @DomName('SVGPathSegCurvetoQuadraticRel.y1')
-  @DocsEditable
+  @DocsEditable()
   num get y1 native "SVGPathSegCurvetoQuadraticRel_y1_Getter";
 
   @DomName('SVGPathSegCurvetoQuadraticRel.y1')
-  @DocsEditable
+  @DocsEditable()
   void set y1(num value) native "SVGPathSegCurvetoQuadraticRel_y1_Setter";
 
 }
@@ -4868,27 +4868,27 @@ class PathSegCurvetoQuadraticRel extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegCurvetoQuadraticSmoothAbs')
-@Unstable
+@Unstable()
 class PathSegCurvetoQuadraticSmoothAbs extends PathSeg {
   // To suppress missing implicit constructor warnings.
   factory PathSegCurvetoQuadraticSmoothAbs._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.x')
-  @DocsEditable
+  @DocsEditable()
   num get x native "SVGPathSegCurvetoQuadraticSmoothAbs_x_Getter";
 
   @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.x')
-  @DocsEditable
+  @DocsEditable()
   void set x(num value) native "SVGPathSegCurvetoQuadraticSmoothAbs_x_Setter";
 
   @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.y')
-  @DocsEditable
+  @DocsEditable()
   num get y native "SVGPathSegCurvetoQuadraticSmoothAbs_y_Getter";
 
   @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.y')
-  @DocsEditable
+  @DocsEditable()
   void set y(num value) native "SVGPathSegCurvetoQuadraticSmoothAbs_y_Setter";
 
 }
@@ -4899,27 +4899,27 @@ class PathSegCurvetoQuadraticSmoothAbs extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegCurvetoQuadraticSmoothRel')
-@Unstable
+@Unstable()
 class PathSegCurvetoQuadraticSmoothRel extends PathSeg {
   // To suppress missing implicit constructor warnings.
   factory PathSegCurvetoQuadraticSmoothRel._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegCurvetoQuadraticSmoothRel.x')
-  @DocsEditable
+  @DocsEditable()
   num get x native "SVGPathSegCurvetoQuadraticSmoothRel_x_Getter";
 
   @DomName('SVGPathSegCurvetoQuadraticSmoothRel.x')
-  @DocsEditable
+  @DocsEditable()
   void set x(num value) native "SVGPathSegCurvetoQuadraticSmoothRel_x_Setter";
 
   @DomName('SVGPathSegCurvetoQuadraticSmoothRel.y')
-  @DocsEditable
+  @DocsEditable()
   num get y native "SVGPathSegCurvetoQuadraticSmoothRel_y_Getter";
 
   @DomName('SVGPathSegCurvetoQuadraticSmoothRel.y')
-  @DocsEditable
+  @DocsEditable()
   void set y(num value) native "SVGPathSegCurvetoQuadraticSmoothRel_y_Setter";
 
 }
@@ -4930,27 +4930,27 @@ class PathSegCurvetoQuadraticSmoothRel extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegLinetoAbs')
-@Unstable
+@Unstable()
 class PathSegLinetoAbs extends PathSeg {
   // To suppress missing implicit constructor warnings.
   factory PathSegLinetoAbs._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegLinetoAbs.x')
-  @DocsEditable
+  @DocsEditable()
   num get x native "SVGPathSegLinetoAbs_x_Getter";
 
   @DomName('SVGPathSegLinetoAbs.x')
-  @DocsEditable
+  @DocsEditable()
   void set x(num value) native "SVGPathSegLinetoAbs_x_Setter";
 
   @DomName('SVGPathSegLinetoAbs.y')
-  @DocsEditable
+  @DocsEditable()
   num get y native "SVGPathSegLinetoAbs_y_Getter";
 
   @DomName('SVGPathSegLinetoAbs.y')
-  @DocsEditable
+  @DocsEditable()
   void set y(num value) native "SVGPathSegLinetoAbs_y_Setter";
 
 }
@@ -4961,19 +4961,19 @@ class PathSegLinetoAbs extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegLinetoHorizontalAbs')
-@Unstable
+@Unstable()
 class PathSegLinetoHorizontalAbs extends PathSeg {
   // To suppress missing implicit constructor warnings.
   factory PathSegLinetoHorizontalAbs._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegLinetoHorizontalAbs.x')
-  @DocsEditable
+  @DocsEditable()
   num get x native "SVGPathSegLinetoHorizontalAbs_x_Getter";
 
   @DomName('SVGPathSegLinetoHorizontalAbs.x')
-  @DocsEditable
+  @DocsEditable()
   void set x(num value) native "SVGPathSegLinetoHorizontalAbs_x_Setter";
 
 }
@@ -4984,19 +4984,19 @@ class PathSegLinetoHorizontalAbs extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegLinetoHorizontalRel')
-@Unstable
+@Unstable()
 class PathSegLinetoHorizontalRel extends PathSeg {
   // To suppress missing implicit constructor warnings.
   factory PathSegLinetoHorizontalRel._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegLinetoHorizontalRel.x')
-  @DocsEditable
+  @DocsEditable()
   num get x native "SVGPathSegLinetoHorizontalRel_x_Getter";
 
   @DomName('SVGPathSegLinetoHorizontalRel.x')
-  @DocsEditable
+  @DocsEditable()
   void set x(num value) native "SVGPathSegLinetoHorizontalRel_x_Setter";
 
 }
@@ -5007,27 +5007,27 @@ class PathSegLinetoHorizontalRel extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegLinetoRel')
-@Unstable
+@Unstable()
 class PathSegLinetoRel extends PathSeg {
   // To suppress missing implicit constructor warnings.
   factory PathSegLinetoRel._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegLinetoRel.x')
-  @DocsEditable
+  @DocsEditable()
   num get x native "SVGPathSegLinetoRel_x_Getter";
 
   @DomName('SVGPathSegLinetoRel.x')
-  @DocsEditable
+  @DocsEditable()
   void set x(num value) native "SVGPathSegLinetoRel_x_Setter";
 
   @DomName('SVGPathSegLinetoRel.y')
-  @DocsEditable
+  @DocsEditable()
   num get y native "SVGPathSegLinetoRel_y_Getter";
 
   @DomName('SVGPathSegLinetoRel.y')
-  @DocsEditable
+  @DocsEditable()
   void set y(num value) native "SVGPathSegLinetoRel_y_Setter";
 
 }
@@ -5038,19 +5038,19 @@ class PathSegLinetoRel extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegLinetoVerticalAbs')
-@Unstable
+@Unstable()
 class PathSegLinetoVerticalAbs extends PathSeg {
   // To suppress missing implicit constructor warnings.
   factory PathSegLinetoVerticalAbs._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegLinetoVerticalAbs.y')
-  @DocsEditable
+  @DocsEditable()
   num get y native "SVGPathSegLinetoVerticalAbs_y_Getter";
 
   @DomName('SVGPathSegLinetoVerticalAbs.y')
-  @DocsEditable
+  @DocsEditable()
   void set y(num value) native "SVGPathSegLinetoVerticalAbs_y_Setter";
 
 }
@@ -5061,19 +5061,19 @@ class PathSegLinetoVerticalAbs extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegLinetoVerticalRel')
-@Unstable
+@Unstable()
 class PathSegLinetoVerticalRel extends PathSeg {
   // To suppress missing implicit constructor warnings.
   factory PathSegLinetoVerticalRel._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegLinetoVerticalRel.y')
-  @DocsEditable
+  @DocsEditable()
   num get y native "SVGPathSegLinetoVerticalRel_y_Getter";
 
   @DomName('SVGPathSegLinetoVerticalRel.y')
-  @DocsEditable
+  @DocsEditable()
   void set y(num value) native "SVGPathSegLinetoVerticalRel_y_Setter";
 
 }
@@ -5084,13 +5084,13 @@ class PathSegLinetoVerticalRel extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegList')
-@Unstable
+@Unstable()
 class PathSegList extends NativeFieldWrapperClass1 with ListMixin<PathSeg>, ImmutableListMixin<PathSeg> implements List<PathSeg> {
 
   @DomName('SVGPathSegList.numberOfItems')
-  @DocsEditable
+  @DocsEditable()
   int get numberOfItems native "SVGPathSegList_numberOfItems_Getter";
 
   PathSeg operator[](int index) {
@@ -5141,31 +5141,31 @@ class PathSegList extends NativeFieldWrapperClass1 with ListMixin<PathSeg>, Immu
   // -- end List<PathSeg> mixins.
 
   @DomName('SVGPathSegList.appendItem')
-  @DocsEditable
+  @DocsEditable()
   PathSeg appendItem(PathSeg newItem) native "SVGPathSegList_appendItem_Callback";
 
   @DomName('SVGPathSegList.clear')
-  @DocsEditable
+  @DocsEditable()
   void clear() native "SVGPathSegList_clear_Callback";
 
   @DomName('SVGPathSegList.getItem')
-  @DocsEditable
+  @DocsEditable()
   PathSeg getItem(int index) native "SVGPathSegList_getItem_Callback";
 
   @DomName('SVGPathSegList.initialize')
-  @DocsEditable
+  @DocsEditable()
   PathSeg initialize(PathSeg newItem) native "SVGPathSegList_initialize_Callback";
 
   @DomName('SVGPathSegList.insertItemBefore')
-  @DocsEditable
+  @DocsEditable()
   PathSeg insertItemBefore(PathSeg newItem, int index) native "SVGPathSegList_insertItemBefore_Callback";
 
   @DomName('SVGPathSegList.removeItem')
-  @DocsEditable
+  @DocsEditable()
   PathSeg removeItem(int index) native "SVGPathSegList_removeItem_Callback";
 
   @DomName('SVGPathSegList.replaceItem')
-  @DocsEditable
+  @DocsEditable()
   PathSeg replaceItem(PathSeg newItem, int index) native "SVGPathSegList_replaceItem_Callback";
 
 }
@@ -5176,27 +5176,27 @@ class PathSegList extends NativeFieldWrapperClass1 with ListMixin<PathSeg>, Immu
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegMovetoAbs')
-@Unstable
+@Unstable()
 class PathSegMovetoAbs extends PathSeg {
   // To suppress missing implicit constructor warnings.
   factory PathSegMovetoAbs._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegMovetoAbs.x')
-  @DocsEditable
+  @DocsEditable()
   num get x native "SVGPathSegMovetoAbs_x_Getter";
 
   @DomName('SVGPathSegMovetoAbs.x')
-  @DocsEditable
+  @DocsEditable()
   void set x(num value) native "SVGPathSegMovetoAbs_x_Setter";
 
   @DomName('SVGPathSegMovetoAbs.y')
-  @DocsEditable
+  @DocsEditable()
   num get y native "SVGPathSegMovetoAbs_y_Getter";
 
   @DomName('SVGPathSegMovetoAbs.y')
-  @DocsEditable
+  @DocsEditable()
   void set y(num value) native "SVGPathSegMovetoAbs_y_Setter";
 
 }
@@ -5207,27 +5207,27 @@ class PathSegMovetoAbs extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegMovetoRel')
-@Unstable
+@Unstable()
 class PathSegMovetoRel extends PathSeg {
   // To suppress missing implicit constructor warnings.
   factory PathSegMovetoRel._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegMovetoRel.x')
-  @DocsEditable
+  @DocsEditable()
   num get x native "SVGPathSegMovetoRel_x_Getter";
 
   @DomName('SVGPathSegMovetoRel.x')
-  @DocsEditable
+  @DocsEditable()
   void set x(num value) native "SVGPathSegMovetoRel_x_Setter";
 
   @DomName('SVGPathSegMovetoRel.y')
-  @DocsEditable
+  @DocsEditable()
   num get y native "SVGPathSegMovetoRel_y_Getter";
 
   @DomName('SVGPathSegMovetoRel.y')
-  @DocsEditable
+  @DocsEditable()
   void set y(num value) native "SVGPathSegMovetoRel_y_Setter";
 
 }
@@ -5238,91 +5238,91 @@ class PathSegMovetoRel extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPatternElement')
-@Unstable
+@Unstable()
 class PatternElement extends StyledElement implements FitToViewBox, UriReference, Tests, ExternalResourcesRequired, LangSpace {
   // To suppress missing implicit constructor warnings.
   factory PatternElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPatternElement.SVGPatternElement')
-  @DocsEditable
+  @DocsEditable()
   factory PatternElement() => _SvgElementFactoryProvider.createSvgElement_tag("pattern");
 
   @DomName('SVGPatternElement.height')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get height native "SVGPatternElement_height_Getter";
 
   @DomName('SVGPatternElement.patternContentUnits')
-  @DocsEditable
+  @DocsEditable()
   AnimatedEnumeration get patternContentUnits native "SVGPatternElement_patternContentUnits_Getter";
 
   @DomName('SVGPatternElement.patternTransform')
-  @DocsEditable
+  @DocsEditable()
   AnimatedTransformList get patternTransform native "SVGPatternElement_patternTransform_Getter";
 
   @DomName('SVGPatternElement.patternUnits')
-  @DocsEditable
+  @DocsEditable()
   AnimatedEnumeration get patternUnits native "SVGPatternElement_patternUnits_Getter";
 
   @DomName('SVGPatternElement.width')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get width native "SVGPatternElement_width_Getter";
 
   @DomName('SVGPatternElement.x')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x native "SVGPatternElement_x_Getter";
 
   @DomName('SVGPatternElement.y')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y native "SVGPatternElement_y_Getter";
 
   @DomName('SVGPatternElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGPatternElement_externalResourcesRequired_Getter";
 
   @DomName('SVGPatternElement.preserveAspectRatio')
-  @DocsEditable
+  @DocsEditable()
   AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGPatternElement_preserveAspectRatio_Getter";
 
   @DomName('SVGPatternElement.viewBox')
-  @DocsEditable
+  @DocsEditable()
   AnimatedRect get viewBox native "SVGPatternElement_viewBox_Getter";
 
   @DomName('SVGPatternElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String get xmllang native "SVGPatternElement_xmllang_Getter";
 
   @DomName('SVGPatternElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   void set xmllang(String value) native "SVGPatternElement_xmllang_Setter";
 
   @DomName('SVGPatternElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String get xmlspace native "SVGPatternElement_xmlspace_Getter";
 
   @DomName('SVGPatternElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   void set xmlspace(String value) native "SVGPatternElement_xmlspace_Setter";
 
   @DomName('SVGPatternElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredExtensions native "SVGPatternElement_requiredExtensions_Getter";
 
   @DomName('SVGPatternElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredFeatures native "SVGPatternElement_requiredFeatures_Getter";
 
   @DomName('SVGPatternElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   StringList get systemLanguage native "SVGPatternElement_systemLanguage_Getter";
 
   @DomName('SVGPatternElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native "SVGPatternElement_hasExtension_Callback";
 
   @DomName('SVGPatternElement.href')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get href native "SVGPatternElement_href_Getter";
 
 }
@@ -5333,29 +5333,29 @@ class PatternElement extends StyledElement implements FitToViewBox, UriReference
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPoint')
-@Unstable
+@Unstable()
 class Point extends NativeFieldWrapperClass1 {
 
   @DomName('SVGPoint.x')
-  @DocsEditable
+  @DocsEditable()
   num get x native "SVGPoint_x_Getter";
 
   @DomName('SVGPoint.x')
-  @DocsEditable
+  @DocsEditable()
   void set x(num value) native "SVGPoint_x_Setter";
 
   @DomName('SVGPoint.y')
-  @DocsEditable
+  @DocsEditable()
   num get y native "SVGPoint_y_Getter";
 
   @DomName('SVGPoint.y')
-  @DocsEditable
+  @DocsEditable()
   void set y(num value) native "SVGPoint_y_Setter";
 
   @DomName('SVGPoint.matrixTransform')
-  @DocsEditable
+  @DocsEditable()
   Point matrixTransform(Matrix matrix) native "SVGPoint_matrixTransform_Callback";
 
 }
@@ -5366,41 +5366,41 @@ class Point extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPointList')
-@Unstable
+@Unstable()
 class PointList extends NativeFieldWrapperClass1 {
 
   @DomName('SVGPointList.numberOfItems')
-  @DocsEditable
+  @DocsEditable()
   int get numberOfItems native "SVGPointList_numberOfItems_Getter";
 
   @DomName('SVGPointList.appendItem')
-  @DocsEditable
+  @DocsEditable()
   Point appendItem(Point item) native "SVGPointList_appendItem_Callback";
 
   @DomName('SVGPointList.clear')
-  @DocsEditable
+  @DocsEditable()
   void clear() native "SVGPointList_clear_Callback";
 
   @DomName('SVGPointList.getItem')
-  @DocsEditable
+  @DocsEditable()
   Point getItem(int index) native "SVGPointList_getItem_Callback";
 
   @DomName('SVGPointList.initialize')
-  @DocsEditable
+  @DocsEditable()
   Point initialize(Point item) native "SVGPointList_initialize_Callback";
 
   @DomName('SVGPointList.insertItemBefore')
-  @DocsEditable
+  @DocsEditable()
   Point insertItemBefore(Point item, int index) native "SVGPointList_insertItemBefore_Callback";
 
   @DomName('SVGPointList.removeItem')
-  @DocsEditable
+  @DocsEditable()
   Point removeItem(int index) native "SVGPointList_removeItem_Callback";
 
   @DomName('SVGPointList.replaceItem')
-  @DocsEditable
+  @DocsEditable()
   Point replaceItem(Point item, int index) native "SVGPointList_replaceItem_Callback";
 
 }
@@ -5411,87 +5411,87 @@ class PointList extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPolygonElement')
-@Unstable
+@Unstable()
 class PolygonElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   // To suppress missing implicit constructor warnings.
   factory PolygonElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPolygonElement.SVGPolygonElement')
-  @DocsEditable
+  @DocsEditable()
   factory PolygonElement() => _SvgElementFactoryProvider.createSvgElement_tag("polygon");
 
   @DomName('SVGPolygonElement.animatedPoints')
-  @DocsEditable
+  @DocsEditable()
   PointList get animatedPoints native "SVGPolygonElement_animatedPoints_Getter";
 
   @DomName('SVGPolygonElement.points')
-  @DocsEditable
+  @DocsEditable()
   PointList get points native "SVGPolygonElement_points_Getter";
 
   @DomName('SVGPolygonElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGPolygonElement_externalResourcesRequired_Getter";
 
   @DomName('SVGPolygonElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String get xmllang native "SVGPolygonElement_xmllang_Getter";
 
   @DomName('SVGPolygonElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   void set xmllang(String value) native "SVGPolygonElement_xmllang_Setter";
 
   @DomName('SVGPolygonElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String get xmlspace native "SVGPolygonElement_xmlspace_Getter";
 
   @DomName('SVGPolygonElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   void set xmlspace(String value) native "SVGPolygonElement_xmlspace_Setter";
 
   @DomName('SVGPolygonElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get farthestViewportElement native "SVGPolygonElement_farthestViewportElement_Getter";
 
   @DomName('SVGPolygonElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get nearestViewportElement native "SVGPolygonElement_nearestViewportElement_Getter";
 
   @DomName('SVGPolygonElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native "SVGPolygonElement_getBBox_Callback";
 
   @DomName('SVGPolygonElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native "SVGPolygonElement_getCTM_Callback";
 
   @DomName('SVGPolygonElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native "SVGPolygonElement_getScreenCTM_Callback";
 
   @DomName('SVGPolygonElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native "SVGPolygonElement_getTransformToElement_Callback";
 
   @DomName('SVGPolygonElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredExtensions native "SVGPolygonElement_requiredExtensions_Getter";
 
   @DomName('SVGPolygonElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredFeatures native "SVGPolygonElement_requiredFeatures_Getter";
 
   @DomName('SVGPolygonElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   StringList get systemLanguage native "SVGPolygonElement_systemLanguage_Getter";
 
   @DomName('SVGPolygonElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native "SVGPolygonElement_hasExtension_Callback";
 
   @DomName('SVGPolygonElement.transform')
-  @DocsEditable
+  @DocsEditable()
   AnimatedTransformList get transform native "SVGPolygonElement_transform_Getter";
 
 }
@@ -5502,87 +5502,87 @@ class PolygonElement extends StyledElement implements Transformable, Tests, Exte
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPolylineElement')
-@Unstable
+@Unstable()
 class PolylineElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   // To suppress missing implicit constructor warnings.
   factory PolylineElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPolylineElement.SVGPolylineElement')
-  @DocsEditable
+  @DocsEditable()
   factory PolylineElement() => _SvgElementFactoryProvider.createSvgElement_tag("polyline");
 
   @DomName('SVGPolylineElement.animatedPoints')
-  @DocsEditable
+  @DocsEditable()
   PointList get animatedPoints native "SVGPolylineElement_animatedPoints_Getter";
 
   @DomName('SVGPolylineElement.points')
-  @DocsEditable
+  @DocsEditable()
   PointList get points native "SVGPolylineElement_points_Getter";
 
   @DomName('SVGPolylineElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGPolylineElement_externalResourcesRequired_Getter";
 
   @DomName('SVGPolylineElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String get xmllang native "SVGPolylineElement_xmllang_Getter";
 
   @DomName('SVGPolylineElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   void set xmllang(String value) native "SVGPolylineElement_xmllang_Setter";
 
   @DomName('SVGPolylineElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String get xmlspace native "SVGPolylineElement_xmlspace_Getter";
 
   @DomName('SVGPolylineElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   void set xmlspace(String value) native "SVGPolylineElement_xmlspace_Setter";
 
   @DomName('SVGPolylineElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get farthestViewportElement native "SVGPolylineElement_farthestViewportElement_Getter";
 
   @DomName('SVGPolylineElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get nearestViewportElement native "SVGPolylineElement_nearestViewportElement_Getter";
 
   @DomName('SVGPolylineElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native "SVGPolylineElement_getBBox_Callback";
 
   @DomName('SVGPolylineElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native "SVGPolylineElement_getCTM_Callback";
 
   @DomName('SVGPolylineElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native "SVGPolylineElement_getScreenCTM_Callback";
 
   @DomName('SVGPolylineElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native "SVGPolylineElement_getTransformToElement_Callback";
 
   @DomName('SVGPolylineElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredExtensions native "SVGPolylineElement_requiredExtensions_Getter";
 
   @DomName('SVGPolylineElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredFeatures native "SVGPolylineElement_requiredFeatures_Getter";
 
   @DomName('SVGPolylineElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   StringList get systemLanguage native "SVGPolylineElement_systemLanguage_Getter";
 
   @DomName('SVGPolylineElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native "SVGPolylineElement_hasExtension_Callback";
 
   @DomName('SVGPolylineElement.transform')
-  @DocsEditable
+  @DocsEditable()
   AnimatedTransformList get transform native "SVGPolylineElement_transform_Getter";
 
 }
@@ -5593,81 +5593,81 @@ class PolylineElement extends StyledElement implements Transformable, Tests, Ext
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPreserveAspectRatio')
-@Unstable
+@Unstable()
 class PreserveAspectRatio extends NativeFieldWrapperClass1 {
 
   @DomName('SVGPreserveAspectRatio.SVG_MEETORSLICE_MEET')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_MEETORSLICE_MEET = 1;
 
   @DomName('SVGPreserveAspectRatio.SVG_MEETORSLICE_SLICE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_MEETORSLICE_SLICE = 2;
 
   @DomName('SVGPreserveAspectRatio.SVG_MEETORSLICE_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_MEETORSLICE_UNKNOWN = 0;
 
   @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_NONE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_PRESERVEASPECTRATIO_NONE = 1;
 
   @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_PRESERVEASPECTRATIO_UNKNOWN = 0;
 
   @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_XMAXYMAX')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_PRESERVEASPECTRATIO_XMAXYMAX = 10;
 
   @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_XMAXYMID')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_PRESERVEASPECTRATIO_XMAXYMID = 7;
 
   @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_XMAXYMIN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_PRESERVEASPECTRATIO_XMAXYMIN = 4;
 
   @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_XMIDYMAX')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_PRESERVEASPECTRATIO_XMIDYMAX = 9;
 
   @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_XMIDYMID')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_PRESERVEASPECTRATIO_XMIDYMID = 6;
 
   @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_XMIDYMIN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_PRESERVEASPECTRATIO_XMIDYMIN = 3;
 
   @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_XMINYMAX')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_PRESERVEASPECTRATIO_XMINYMAX = 8;
 
   @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_XMINYMID')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_PRESERVEASPECTRATIO_XMINYMID = 5;
 
   @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_XMINYMIN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_PRESERVEASPECTRATIO_XMINYMIN = 2;
 
   @DomName('SVGPreserveAspectRatio.align')
-  @DocsEditable
+  @DocsEditable()
   int get align native "SVGPreserveAspectRatio_align_Getter";
 
   @DomName('SVGPreserveAspectRatio.align')
-  @DocsEditable
+  @DocsEditable()
   void set align(int value) native "SVGPreserveAspectRatio_align_Setter";
 
   @DomName('SVGPreserveAspectRatio.meetOrSlice')
-  @DocsEditable
+  @DocsEditable()
   int get meetOrSlice native "SVGPreserveAspectRatio_meetOrSlice_Getter";
 
   @DomName('SVGPreserveAspectRatio.meetOrSlice')
-  @DocsEditable
+  @DocsEditable()
   void set meetOrSlice(int value) native "SVGPreserveAspectRatio_meetOrSlice_Setter";
 
 }
@@ -5678,39 +5678,39 @@ class PreserveAspectRatio extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGRadialGradientElement')
-@Unstable
+@Unstable()
 class RadialGradientElement extends _GradientElement {
   // To suppress missing implicit constructor warnings.
   factory RadialGradientElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGRadialGradientElement.SVGRadialGradientElement')
-  @DocsEditable
+  @DocsEditable()
   factory RadialGradientElement() => _SvgElementFactoryProvider.createSvgElement_tag("radialGradient");
 
   @DomName('SVGRadialGradientElement.cx')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get cx native "SVGRadialGradientElement_cx_Getter";
 
   @DomName('SVGRadialGradientElement.cy')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get cy native "SVGRadialGradientElement_cy_Getter";
 
   @DomName('SVGRadialGradientElement.fr')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get fr native "SVGRadialGradientElement_fr_Getter";
 
   @DomName('SVGRadialGradientElement.fx')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get fx native "SVGRadialGradientElement_fx_Getter";
 
   @DomName('SVGRadialGradientElement.fy')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get fy native "SVGRadialGradientElement_fy_Getter";
 
   @DomName('SVGRadialGradientElement.r')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get r native "SVGRadialGradientElement_r_Getter";
 
 }
@@ -5721,41 +5721,41 @@ class RadialGradientElement extends _GradientElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGRect')
-@Unstable
+@Unstable()
 class Rect extends NativeFieldWrapperClass1 {
 
   @DomName('SVGRect.height')
-  @DocsEditable
+  @DocsEditable()
   num get height native "SVGRect_height_Getter";
 
   @DomName('SVGRect.height')
-  @DocsEditable
+  @DocsEditable()
   void set height(num value) native "SVGRect_height_Setter";
 
   @DomName('SVGRect.width')
-  @DocsEditable
+  @DocsEditable()
   num get width native "SVGRect_width_Getter";
 
   @DomName('SVGRect.width')
-  @DocsEditable
+  @DocsEditable()
   void set width(num value) native "SVGRect_width_Setter";
 
   @DomName('SVGRect.x')
-  @DocsEditable
+  @DocsEditable()
   num get x native "SVGRect_x_Getter";
 
   @DomName('SVGRect.x')
-  @DocsEditable
+  @DocsEditable()
   void set x(num value) native "SVGRect_x_Setter";
 
   @DomName('SVGRect.y')
-  @DocsEditable
+  @DocsEditable()
   num get y native "SVGRect_y_Getter";
 
   @DomName('SVGRect.y')
-  @DocsEditable
+  @DocsEditable()
   void set y(num value) native "SVGRect_y_Setter";
 
 }
@@ -5766,103 +5766,103 @@ class Rect extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGRectElement')
-@Unstable
+@Unstable()
 class RectElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   // To suppress missing implicit constructor warnings.
   factory RectElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGRectElement.SVGRectElement')
-  @DocsEditable
+  @DocsEditable()
   factory RectElement() => _SvgElementFactoryProvider.createSvgElement_tag("rect");
 
   @DomName('SVGRectElement.height')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get height native "SVGRectElement_height_Getter";
 
   @DomName('SVGRectElement.rx')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get rx native "SVGRectElement_rx_Getter";
 
   @DomName('SVGRectElement.ry')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get ry native "SVGRectElement_ry_Getter";
 
   @DomName('SVGRectElement.width')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get width native "SVGRectElement_width_Getter";
 
   @DomName('SVGRectElement.x')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x native "SVGRectElement_x_Getter";
 
   @DomName('SVGRectElement.y')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y native "SVGRectElement_y_Getter";
 
   @DomName('SVGRectElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGRectElement_externalResourcesRequired_Getter";
 
   @DomName('SVGRectElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String get xmllang native "SVGRectElement_xmllang_Getter";
 
   @DomName('SVGRectElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   void set xmllang(String value) native "SVGRectElement_xmllang_Setter";
 
   @DomName('SVGRectElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String get xmlspace native "SVGRectElement_xmlspace_Getter";
 
   @DomName('SVGRectElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   void set xmlspace(String value) native "SVGRectElement_xmlspace_Setter";
 
   @DomName('SVGRectElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get farthestViewportElement native "SVGRectElement_farthestViewportElement_Getter";
 
   @DomName('SVGRectElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get nearestViewportElement native "SVGRectElement_nearestViewportElement_Getter";
 
   @DomName('SVGRectElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native "SVGRectElement_getBBox_Callback";
 
   @DomName('SVGRectElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native "SVGRectElement_getCTM_Callback";
 
   @DomName('SVGRectElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native "SVGRectElement_getScreenCTM_Callback";
 
   @DomName('SVGRectElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native "SVGRectElement_getTransformToElement_Callback";
 
   @DomName('SVGRectElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredExtensions native "SVGRectElement_requiredExtensions_Getter";
 
   @DomName('SVGRectElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredFeatures native "SVGRectElement_requiredFeatures_Getter";
 
   @DomName('SVGRectElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   StringList get systemLanguage native "SVGRectElement_systemLanguage_Getter";
 
   @DomName('SVGRectElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native "SVGRectElement_hasExtension_Callback";
 
   @DomName('SVGRectElement.transform')
-  @DocsEditable
+  @DocsEditable()
   AnimatedTransformList get transform native "SVGRectElement_transform_Getter";
 
 }
@@ -5873,33 +5873,33 @@ class RectElement extends StyledElement implements Transformable, Tests, Externa
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGRenderingIntent')
-@Unstable
+@Unstable()
 class RenderingIntent extends NativeFieldWrapperClass1 {
 
   @DomName('SVGRenderingIntent.RENDERING_INTENT_ABSOLUTE_COLORIMETRIC')
-  @DocsEditable
+  @DocsEditable()
   static const int RENDERING_INTENT_ABSOLUTE_COLORIMETRIC = 5;
 
   @DomName('SVGRenderingIntent.RENDERING_INTENT_AUTO')
-  @DocsEditable
+  @DocsEditable()
   static const int RENDERING_INTENT_AUTO = 1;
 
   @DomName('SVGRenderingIntent.RENDERING_INTENT_PERCEPTUAL')
-  @DocsEditable
+  @DocsEditable()
   static const int RENDERING_INTENT_PERCEPTUAL = 2;
 
   @DomName('SVGRenderingIntent.RENDERING_INTENT_RELATIVE_COLORIMETRIC')
-  @DocsEditable
+  @DocsEditable()
   static const int RENDERING_INTENT_RELATIVE_COLORIMETRIC = 3;
 
   @DomName('SVGRenderingIntent.RENDERING_INTENT_SATURATION')
-  @DocsEditable
+  @DocsEditable()
   static const int RENDERING_INTENT_SATURATION = 4;
 
   @DomName('SVGRenderingIntent.RENDERING_INTENT_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int RENDERING_INTENT_UNKNOWN = 0;
 
 }
@@ -5910,31 +5910,31 @@ class RenderingIntent extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGScriptElement')
-@Unstable
+@Unstable()
 class ScriptElement extends SvgElement implements UriReference, ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory ScriptElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGScriptElement.SVGScriptElement')
-  @DocsEditable
+  @DocsEditable()
   factory ScriptElement() => _SvgElementFactoryProvider.createSvgElement_tag("script");
 
   @DomName('SVGScriptElement.type')
-  @DocsEditable
+  @DocsEditable()
   String get type native "SVGScriptElement_type_Getter";
 
   @DomName('SVGScriptElement.type')
-  @DocsEditable
+  @DocsEditable()
   void set type(String value) native "SVGScriptElement_type_Setter";
 
   @DomName('SVGScriptElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGScriptElement_externalResourcesRequired_Getter";
 
   @DomName('SVGScriptElement.href')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get href native "SVGScriptElement_href_Getter";
 
 }
@@ -5945,18 +5945,18 @@ class ScriptElement extends SvgElement implements UriReference, ExternalResource
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGSetElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class SetElement extends AnimationElement {
   // To suppress missing implicit constructor warnings.
   factory SetElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGSetElement.SVGSetElement')
-  @DocsEditable
+  @DocsEditable()
   factory SetElement() => _SvgElementFactoryProvider.createSvgElement_tag("set");
 
   /// Checks if this type is supported on the current platform.
@@ -5970,19 +5970,19 @@ class SetElement extends AnimationElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGStopElement')
-@Unstable
+@Unstable()
 class StopElement extends StyledElement {
   // To suppress missing implicit constructor warnings.
   factory StopElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGStopElement.SVGStopElement')
-  @DocsEditable
+  @DocsEditable()
   factory StopElement() => _SvgElementFactoryProvider.createSvgElement_tag("stop");
 
   @DomName('SVGStopElement.offset')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumber get gradientOffset native "SVGStopElement_offset_Getter";
 
 }
@@ -5993,13 +5993,13 @@ class StopElement extends StyledElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGStringList')
-@Unstable
+@Unstable()
 class StringList extends NativeFieldWrapperClass1 with ListMixin<String>, ImmutableListMixin<String> implements List<String> {
 
   @DomName('SVGStringList.numberOfItems')
-  @DocsEditable
+  @DocsEditable()
   int get numberOfItems native "SVGStringList_numberOfItems_Getter";
 
   String operator[](int index) {
@@ -6050,31 +6050,31 @@ class StringList extends NativeFieldWrapperClass1 with ListMixin<String>, Immuta
   // -- end List<String> mixins.
 
   @DomName('SVGStringList.appendItem')
-  @DocsEditable
+  @DocsEditable()
   String appendItem(String item) native "SVGStringList_appendItem_Callback";
 
   @DomName('SVGStringList.clear')
-  @DocsEditable
+  @DocsEditable()
   void clear() native "SVGStringList_clear_Callback";
 
   @DomName('SVGStringList.getItem')
-  @DocsEditable
+  @DocsEditable()
   String getItem(int index) native "SVGStringList_getItem_Callback";
 
   @DomName('SVGStringList.initialize')
-  @DocsEditable
+  @DocsEditable()
   String initialize(String item) native "SVGStringList_initialize_Callback";
 
   @DomName('SVGStringList.insertItemBefore')
-  @DocsEditable
+  @DocsEditable()
   String insertItemBefore(String item, int index) native "SVGStringList_insertItemBefore_Callback";
 
   @DomName('SVGStringList.removeItem')
-  @DocsEditable
+  @DocsEditable()
   String removeItem(int index) native "SVGStringList_removeItem_Callback";
 
   @DomName('SVGStringList.replaceItem')
-  @DocsEditable
+  @DocsEditable()
   String replaceItem(String item, int index) native "SVGStringList_replaceItem_Callback";
 
 }
@@ -6085,64 +6085,64 @@ class StringList extends NativeFieldWrapperClass1 with ListMixin<String>, Immuta
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGStyleElement')
 // http://www.w3.org/TR/SVG/types.html#InterfaceSVGStylable
-@Experimental // nonstandard
+@Experimental() // nonstandard
 class StyleElement extends SvgElement implements LangSpace {
   // To suppress missing implicit constructor warnings.
   factory StyleElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGStyleElement.SVGStyleElement')
-  @DocsEditable
+  @DocsEditable()
   factory StyleElement() => _SvgElementFactoryProvider.createSvgElement_tag("style");
 
   @DomName('SVGStyleElement.disabled')
-  @DocsEditable
+  @DocsEditable()
   bool get disabled native "SVGStyleElement_disabled_Getter";
 
   @DomName('SVGStyleElement.disabled')
-  @DocsEditable
+  @DocsEditable()
   void set disabled(bool value) native "SVGStyleElement_disabled_Setter";
 
   @DomName('SVGStyleElement.media')
-  @DocsEditable
+  @DocsEditable()
   String get media native "SVGStyleElement_media_Getter";
 
   @DomName('SVGStyleElement.media')
-  @DocsEditable
+  @DocsEditable()
   void set media(String value) native "SVGStyleElement_media_Setter";
 
   @DomName('SVGStyleElement.title')
-  @DocsEditable
+  @DocsEditable()
   String get title native "SVGStyleElement_title_Getter";
 
   @DomName('SVGStyleElement.title')
-  @DocsEditable
+  @DocsEditable()
   void set title(String value) native "SVGStyleElement_title_Setter";
 
   @DomName('SVGStyleElement.type')
-  @DocsEditable
+  @DocsEditable()
   String get type native "SVGStyleElement_type_Getter";
 
   @DomName('SVGStyleElement.type')
-  @DocsEditable
+  @DocsEditable()
   void set type(String value) native "SVGStyleElement_type_Setter";
 
   @DomName('SVGStyleElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String get xmllang native "SVGStyleElement_xmllang_Getter";
 
   @DomName('SVGStyleElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   void set xmllang(String value) native "SVGStyleElement_xmllang_Setter";
 
   @DomName('SVGStyleElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String get xmlspace native "SVGStyleElement_xmlspace_Getter";
 
   @DomName('SVGStyleElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   void set xmlspace(String value) native "SVGStyleElement_xmlspace_Setter";
 
 }
@@ -6153,19 +6153,19 @@ class StyleElement extends SvgElement implements LangSpace {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGStyledElement')
-@Unstable
+@Unstable()
 class StyledElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory StyledElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGStyledElement.className')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get $dom_svgClassName native "SVGStyledElement_className_Getter";
 
   @DomName('SVGStyledElement.style')
-  @DocsEditable
+  @DocsEditable()
   CssStyleDeclaration get style native "SVGStyledElement_style_Getter";
 
 }
@@ -6176,19 +6176,19 @@ class StyledElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGDocument')
-@Unstable
+@Unstable()
 class SvgDocument extends Document {
   // To suppress missing implicit constructor warnings.
   factory SvgDocument._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGDocument.rootElement')
-  @DocsEditable
+  @DocsEditable()
   SvgSvgElement get rootElement native "SVGDocument_rootElement_Getter";
 
   @DomName('SVGDocument.createEvent')
-  @DocsEditable
+  @DocsEditable()
   Event $dom_createEvent(String eventType) native "SVGDocument_createEvent_Callback";
 
 }
@@ -6224,7 +6224,7 @@ class _AttributeClassSet extends CssClassSetImpl {
 }
 
 @DomName('SVGElement')
-@Unstable
+@Unstable()
 class SvgElement extends Element {
   factory SvgElement.tag(String tag) =>
       _SvgElementFactoryProvider.createSvgElement_tag(tag);
@@ -6308,27 +6308,27 @@ class SvgElement extends Element {
   factory SvgElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGElement.id')
-  @DocsEditable
+  @DocsEditable()
   String get id native "SVGElement_id_Getter";
 
   @DomName('SVGElement.id')
-  @DocsEditable
+  @DocsEditable()
   void set id(String value) native "SVGElement_id_Setter";
 
   @DomName('SVGElement.ownerSVGElement')
-  @DocsEditable
+  @DocsEditable()
   SvgSvgElement get ownerSvgElement native "SVGElement_ownerSVGElement_Getter";
 
   @DomName('SVGElement.viewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get viewportElement native "SVGElement_viewportElement_Getter";
 
   @DomName('SVGElement.xmlbase')
-  @DocsEditable
+  @DocsEditable()
   String get xmlbase native "SVGElement_xmlbase_Getter";
 
   @DomName('SVGElement.xmlbase')
-  @DocsEditable
+  @DocsEditable()
   void set xmlbase(String value) native "SVGElement_xmlbase_Setter";
 
 }
@@ -6339,39 +6339,39 @@ class SvgElement extends Element {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGException')
-@Unstable
+@Unstable()
 class SvgException extends NativeFieldWrapperClass1 {
 
   @DomName('SVGException.SVG_INVALID_VALUE_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_INVALID_VALUE_ERR = 1;
 
   @DomName('SVGException.SVG_MATRIX_NOT_INVERTABLE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_MATRIX_NOT_INVERTABLE = 2;
 
   @DomName('SVGException.SVG_WRONG_TYPE_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_WRONG_TYPE_ERR = 0;
 
   @DomName('SVGException.code')
-  @DocsEditable
+  @DocsEditable()
   int get code native "SVGException_code_Getter";
 
   @DomName('SVGException.message')
-  @DocsEditable
-  @Experimental // nonstandard
+  @DocsEditable()
+  @Experimental() // nonstandard
   String get message native "SVGException_message_Getter";
 
   @DomName('SVGException.name')
-  @DocsEditable
-  @Experimental // nonstandard
+  @DocsEditable()
+  @Experimental() // nonstandard
   String get name native "SVGException_name_Getter";
 
   @DomName('SVGException.toString')
-  @DocsEditable
+  @DocsEditable()
   String toString() native "SVGException_toString_Callback";
 
 }
@@ -6381,7 +6381,7 @@ class SvgException extends NativeFieldWrapperClass1 {
 
 
 @DomName('SVGSVGElement')
-@Unstable
+@Unstable()
 class SvgSvgElement extends StyledElement implements FitToViewBox, Transformable, Tests, ExternalResourcesRequired, ZoomAndPan, LangSpace {
   factory SvgSvgElement() => _SvgSvgElementFactoryProvider.createSvgSvgElement();
 
@@ -6389,247 +6389,247 @@ class SvgSvgElement extends StyledElement implements FitToViewBox, Transformable
   factory SvgSvgElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGSVGElement.contentScriptType')
-  @DocsEditable
+  @DocsEditable()
   String get contentScriptType native "SVGSVGElement_contentScriptType_Getter";
 
   @DomName('SVGSVGElement.contentScriptType')
-  @DocsEditable
+  @DocsEditable()
   void set contentScriptType(String value) native "SVGSVGElement_contentScriptType_Setter";
 
   @DomName('SVGSVGElement.contentStyleType')
-  @DocsEditable
+  @DocsEditable()
   String get contentStyleType native "SVGSVGElement_contentStyleType_Getter";
 
   @DomName('SVGSVGElement.contentStyleType')
-  @DocsEditable
+  @DocsEditable()
   void set contentStyleType(String value) native "SVGSVGElement_contentStyleType_Setter";
 
   @DomName('SVGSVGElement.currentScale')
-  @DocsEditable
+  @DocsEditable()
   num get currentScale native "SVGSVGElement_currentScale_Getter";
 
   @DomName('SVGSVGElement.currentScale')
-  @DocsEditable
+  @DocsEditable()
   void set currentScale(num value) native "SVGSVGElement_currentScale_Setter";
 
   @DomName('SVGSVGElement.currentTranslate')
-  @DocsEditable
+  @DocsEditable()
   Point get currentTranslate native "SVGSVGElement_currentTranslate_Getter";
 
   @DomName('SVGSVGElement.currentView')
-  @DocsEditable
+  @DocsEditable()
   ViewSpec get currentView native "SVGSVGElement_currentView_Getter";
 
   @DomName('SVGSVGElement.height')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get height native "SVGSVGElement_height_Getter";
 
   @DomName('SVGSVGElement.pixelUnitToMillimeterX')
-  @DocsEditable
+  @DocsEditable()
   num get pixelUnitToMillimeterX native "SVGSVGElement_pixelUnitToMillimeterX_Getter";
 
   @DomName('SVGSVGElement.pixelUnitToMillimeterY')
-  @DocsEditable
+  @DocsEditable()
   num get pixelUnitToMillimeterY native "SVGSVGElement_pixelUnitToMillimeterY_Getter";
 
   @DomName('SVGSVGElement.screenPixelToMillimeterX')
-  @DocsEditable
+  @DocsEditable()
   num get screenPixelToMillimeterX native "SVGSVGElement_screenPixelToMillimeterX_Getter";
 
   @DomName('SVGSVGElement.screenPixelToMillimeterY')
-  @DocsEditable
+  @DocsEditable()
   num get screenPixelToMillimeterY native "SVGSVGElement_screenPixelToMillimeterY_Getter";
 
   @DomName('SVGSVGElement.useCurrentView')
-  @DocsEditable
+  @DocsEditable()
   bool get useCurrentView native "SVGSVGElement_useCurrentView_Getter";
 
   @DomName('SVGSVGElement.viewport')
-  @DocsEditable
+  @DocsEditable()
   Rect get viewport native "SVGSVGElement_viewport_Getter";
 
   @DomName('SVGSVGElement.width')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get width native "SVGSVGElement_width_Getter";
 
   @DomName('SVGSVGElement.x')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x native "SVGSVGElement_x_Getter";
 
   @DomName('SVGSVGElement.y')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y native "SVGSVGElement_y_Getter";
 
   @DomName('SVGSVGElement.animationsPaused')
-  @DocsEditable
+  @DocsEditable()
   bool animationsPaused() native "SVGSVGElement_animationsPaused_Callback";
 
   @DomName('SVGSVGElement.checkEnclosure')
-  @DocsEditable
+  @DocsEditable()
   bool checkEnclosure(SvgElement element, Rect rect) native "SVGSVGElement_checkEnclosure_Callback";
 
   @DomName('SVGSVGElement.checkIntersection')
-  @DocsEditable
+  @DocsEditable()
   bool checkIntersection(SvgElement element, Rect rect) native "SVGSVGElement_checkIntersection_Callback";
 
   @DomName('SVGSVGElement.createSVGAngle')
-  @DocsEditable
+  @DocsEditable()
   Angle createSvgAngle() native "SVGSVGElement_createSVGAngle_Callback";
 
   @DomName('SVGSVGElement.createSVGLength')
-  @DocsEditable
+  @DocsEditable()
   Length createSvgLength() native "SVGSVGElement_createSVGLength_Callback";
 
   @DomName('SVGSVGElement.createSVGMatrix')
-  @DocsEditable
+  @DocsEditable()
   Matrix createSvgMatrix() native "SVGSVGElement_createSVGMatrix_Callback";
 
   @DomName('SVGSVGElement.createSVGNumber')
-  @DocsEditable
+  @DocsEditable()
   Number createSvgNumber() native "SVGSVGElement_createSVGNumber_Callback";
 
   @DomName('SVGSVGElement.createSVGPoint')
-  @DocsEditable
+  @DocsEditable()
   Point createSvgPoint() native "SVGSVGElement_createSVGPoint_Callback";
 
   @DomName('SVGSVGElement.createSVGRect')
-  @DocsEditable
+  @DocsEditable()
   Rect createSvgRect() native "SVGSVGElement_createSVGRect_Callback";
 
   @DomName('SVGSVGElement.createSVGTransform')
-  @DocsEditable
+  @DocsEditable()
   Transform createSvgTransform() native "SVGSVGElement_createSVGTransform_Callback";
 
   @DomName('SVGSVGElement.createSVGTransformFromMatrix')
-  @DocsEditable
+  @DocsEditable()
   Transform createSvgTransformFromMatrix(Matrix matrix) native "SVGSVGElement_createSVGTransformFromMatrix_Callback";
 
   @DomName('SVGSVGElement.deselectAll')
-  @DocsEditable
+  @DocsEditable()
   void deselectAll() native "SVGSVGElement_deselectAll_Callback";
 
   @DomName('SVGSVGElement.forceRedraw')
-  @DocsEditable
+  @DocsEditable()
   void forceRedraw() native "SVGSVGElement_forceRedraw_Callback";
 
   @DomName('SVGSVGElement.getCurrentTime')
-  @DocsEditable
+  @DocsEditable()
   num getCurrentTime() native "SVGSVGElement_getCurrentTime_Callback";
 
   @DomName('SVGSVGElement.getElementById')
-  @DocsEditable
+  @DocsEditable()
   Element getElementById(String elementId) native "SVGSVGElement_getElementById_Callback";
 
   @DomName('SVGSVGElement.getEnclosureList')
-  @DocsEditable
+  @DocsEditable()
   List<Node> getEnclosureList(Rect rect, SvgElement referenceElement) native "SVGSVGElement_getEnclosureList_Callback";
 
   @DomName('SVGSVGElement.getIntersectionList')
-  @DocsEditable
+  @DocsEditable()
   List<Node> getIntersectionList(Rect rect, SvgElement referenceElement) native "SVGSVGElement_getIntersectionList_Callback";
 
   @DomName('SVGSVGElement.pauseAnimations')
-  @DocsEditable
+  @DocsEditable()
   void pauseAnimations() native "SVGSVGElement_pauseAnimations_Callback";
 
   @DomName('SVGSVGElement.setCurrentTime')
-  @DocsEditable
+  @DocsEditable()
   void setCurrentTime(num seconds) native "SVGSVGElement_setCurrentTime_Callback";
 
   @DomName('SVGSVGElement.suspendRedraw')
-  @DocsEditable
+  @DocsEditable()
   int suspendRedraw(int maxWaitMilliseconds) native "SVGSVGElement_suspendRedraw_Callback";
 
   @DomName('SVGSVGElement.unpauseAnimations')
-  @DocsEditable
+  @DocsEditable()
   void unpauseAnimations() native "SVGSVGElement_unpauseAnimations_Callback";
 
   @DomName('SVGSVGElement.unsuspendRedraw')
-  @DocsEditable
+  @DocsEditable()
   void unsuspendRedraw(int suspendHandleId) native "SVGSVGElement_unsuspendRedraw_Callback";
 
   @DomName('SVGSVGElement.unsuspendRedrawAll')
-  @DocsEditable
+  @DocsEditable()
   void unsuspendRedrawAll() native "SVGSVGElement_unsuspendRedrawAll_Callback";
 
   @DomName('SVGSVGElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGSVGElement_externalResourcesRequired_Getter";
 
   @DomName('SVGSVGElement.preserveAspectRatio')
-  @DocsEditable
+  @DocsEditable()
   AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGSVGElement_preserveAspectRatio_Getter";
 
   @DomName('SVGSVGElement.viewBox')
-  @DocsEditable
+  @DocsEditable()
   AnimatedRect get viewBox native "SVGSVGElement_viewBox_Getter";
 
   @DomName('SVGSVGElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String get xmllang native "SVGSVGElement_xmllang_Getter";
 
   @DomName('SVGSVGElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   void set xmllang(String value) native "SVGSVGElement_xmllang_Setter";
 
   @DomName('SVGSVGElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String get xmlspace native "SVGSVGElement_xmlspace_Getter";
 
   @DomName('SVGSVGElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   void set xmlspace(String value) native "SVGSVGElement_xmlspace_Setter";
 
   @DomName('SVGSVGElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get farthestViewportElement native "SVGSVGElement_farthestViewportElement_Getter";
 
   @DomName('SVGSVGElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get nearestViewportElement native "SVGSVGElement_nearestViewportElement_Getter";
 
   @DomName('SVGSVGElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native "SVGSVGElement_getBBox_Callback";
 
   @DomName('SVGSVGElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native "SVGSVGElement_getCTM_Callback";
 
   @DomName('SVGSVGElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native "SVGSVGElement_getScreenCTM_Callback";
 
   @DomName('SVGSVGElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native "SVGSVGElement_getTransformToElement_Callback";
 
   @DomName('SVGSVGElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredExtensions native "SVGSVGElement_requiredExtensions_Getter";
 
   @DomName('SVGSVGElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredFeatures native "SVGSVGElement_requiredFeatures_Getter";
 
   @DomName('SVGSVGElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   StringList get systemLanguage native "SVGSVGElement_systemLanguage_Getter";
 
   @DomName('SVGSVGElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native "SVGSVGElement_hasExtension_Callback";
 
   @DomName('SVGSVGElement.transform')
-  @DocsEditable
+  @DocsEditable()
   AnimatedTransformList get transform native "SVGSVGElement_transform_Getter";
 
   @DomName('SVGSVGElement.zoomAndPan')
-  @DocsEditable
+  @DocsEditable()
   int get zoomAndPan native "SVGSVGElement_zoomAndPan_Getter";
 
   @DomName('SVGSVGElement.zoomAndPan')
-  @DocsEditable
+  @DocsEditable()
   void set zoomAndPan(int value) native "SVGSVGElement_zoomAndPan_Setter";
 
 }
@@ -6640,79 +6640,79 @@ class SvgSvgElement extends StyledElement implements FitToViewBox, Transformable
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGSwitchElement')
-@Unstable
+@Unstable()
 class SwitchElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   // To suppress missing implicit constructor warnings.
   factory SwitchElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGSwitchElement.SVGSwitchElement')
-  @DocsEditable
+  @DocsEditable()
   factory SwitchElement() => _SvgElementFactoryProvider.createSvgElement_tag("switch");
 
   @DomName('SVGSwitchElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGSwitchElement_externalResourcesRequired_Getter";
 
   @DomName('SVGSwitchElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String get xmllang native "SVGSwitchElement_xmllang_Getter";
 
   @DomName('SVGSwitchElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   void set xmllang(String value) native "SVGSwitchElement_xmllang_Setter";
 
   @DomName('SVGSwitchElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String get xmlspace native "SVGSwitchElement_xmlspace_Getter";
 
   @DomName('SVGSwitchElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   void set xmlspace(String value) native "SVGSwitchElement_xmlspace_Setter";
 
   @DomName('SVGSwitchElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get farthestViewportElement native "SVGSwitchElement_farthestViewportElement_Getter";
 
   @DomName('SVGSwitchElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get nearestViewportElement native "SVGSwitchElement_nearestViewportElement_Getter";
 
   @DomName('SVGSwitchElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native "SVGSwitchElement_getBBox_Callback";
 
   @DomName('SVGSwitchElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native "SVGSwitchElement_getCTM_Callback";
 
   @DomName('SVGSwitchElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native "SVGSwitchElement_getScreenCTM_Callback";
 
   @DomName('SVGSwitchElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native "SVGSwitchElement_getTransformToElement_Callback";
 
   @DomName('SVGSwitchElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredExtensions native "SVGSwitchElement_requiredExtensions_Getter";
 
   @DomName('SVGSwitchElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredFeatures native "SVGSwitchElement_requiredFeatures_Getter";
 
   @DomName('SVGSwitchElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   StringList get systemLanguage native "SVGSwitchElement_systemLanguage_Getter";
 
   @DomName('SVGSwitchElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native "SVGSwitchElement_hasExtension_Callback";
 
   @DomName('SVGSwitchElement.transform')
-  @DocsEditable
+  @DocsEditable()
   AnimatedTransformList get transform native "SVGSwitchElement_transform_Getter";
 
 }
@@ -6723,43 +6723,43 @@ class SwitchElement extends StyledElement implements Transformable, Tests, Exter
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGSymbolElement')
-@Unstable
+@Unstable()
 class SymbolElement extends StyledElement implements FitToViewBox, ExternalResourcesRequired, LangSpace {
   // To suppress missing implicit constructor warnings.
   factory SymbolElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGSymbolElement.SVGSymbolElement')
-  @DocsEditable
+  @DocsEditable()
   factory SymbolElement() => _SvgElementFactoryProvider.createSvgElement_tag("symbol");
 
   @DomName('SVGSymbolElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGSymbolElement_externalResourcesRequired_Getter";
 
   @DomName('SVGSymbolElement.preserveAspectRatio')
-  @DocsEditable
+  @DocsEditable()
   AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGSymbolElement_preserveAspectRatio_Getter";
 
   @DomName('SVGSymbolElement.viewBox')
-  @DocsEditable
+  @DocsEditable()
   AnimatedRect get viewBox native "SVGSymbolElement_viewBox_Getter";
 
   @DomName('SVGSymbolElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String get xmllang native "SVGSymbolElement_xmllang_Getter";
 
   @DomName('SVGSymbolElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   void set xmllang(String value) native "SVGSymbolElement_xmllang_Setter";
 
   @DomName('SVGSymbolElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String get xmlspace native "SVGSymbolElement_xmlspace_Getter";
 
   @DomName('SVGSymbolElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   void set xmlspace(String value) native "SVGSymbolElement_xmlspace_Setter";
 
 }
@@ -6770,15 +6770,15 @@ class SymbolElement extends StyledElement implements FitToViewBox, ExternalResou
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGTSpanElement')
-@Unstable
+@Unstable()
 class TSpanElement extends TextPositioningElement {
   // To suppress missing implicit constructor warnings.
   factory TSpanElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGTSpanElement.SVGTSpanElement')
-  @DocsEditable
+  @DocsEditable()
   factory TSpanElement() => _SvgElementFactoryProvider.createSvgElement_tag("tspan");
 
 }
@@ -6789,25 +6789,25 @@ class TSpanElement extends TextPositioningElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGTests')
-@Unstable
+@Unstable()
 abstract class Tests extends NativeFieldWrapperClass1 {
 
   @DomName('SVGTests.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredExtensions native "SVGTests_requiredExtensions_Getter";
 
   @DomName('SVGTests.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredFeatures native "SVGTests_requiredFeatures_Getter";
 
   @DomName('SVGTests.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   StringList get systemLanguage native "SVGTests_systemLanguage_Getter";
 
   @DomName('SVGTests.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native "SVGTests_hasExtension_Callback";
 
 }
@@ -6818,103 +6818,103 @@ abstract class Tests extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGTextContentElement')
-@Unstable
+@Unstable()
 class TextContentElement extends StyledElement implements Tests, ExternalResourcesRequired, LangSpace {
   // To suppress missing implicit constructor warnings.
   factory TextContentElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGTextContentElement.LENGTHADJUST_SPACING')
-  @DocsEditable
+  @DocsEditable()
   static const int LENGTHADJUST_SPACING = 1;
 
   @DomName('SVGTextContentElement.LENGTHADJUST_SPACINGANDGLYPHS')
-  @DocsEditable
+  @DocsEditable()
   static const int LENGTHADJUST_SPACINGANDGLYPHS = 2;
 
   @DomName('SVGTextContentElement.LENGTHADJUST_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int LENGTHADJUST_UNKNOWN = 0;
 
   @DomName('SVGTextContentElement.lengthAdjust')
-  @DocsEditable
+  @DocsEditable()
   AnimatedEnumeration get lengthAdjust native "SVGTextContentElement_lengthAdjust_Getter";
 
   @DomName('SVGTextContentElement.textLength')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get textLength native "SVGTextContentElement_textLength_Getter";
 
   @DomName('SVGTextContentElement.getCharNumAtPosition')
-  @DocsEditable
+  @DocsEditable()
   int getCharNumAtPosition(Point point) native "SVGTextContentElement_getCharNumAtPosition_Callback";
 
   @DomName('SVGTextContentElement.getComputedTextLength')
-  @DocsEditable
+  @DocsEditable()
   num getComputedTextLength() native "SVGTextContentElement_getComputedTextLength_Callback";
 
   @DomName('SVGTextContentElement.getEndPositionOfChar')
-  @DocsEditable
+  @DocsEditable()
   Point getEndPositionOfChar(int offset) native "SVGTextContentElement_getEndPositionOfChar_Callback";
 
   @DomName('SVGTextContentElement.getExtentOfChar')
-  @DocsEditable
+  @DocsEditable()
   Rect getExtentOfChar(int offset) native "SVGTextContentElement_getExtentOfChar_Callback";
 
   @DomName('SVGTextContentElement.getNumberOfChars')
-  @DocsEditable
+  @DocsEditable()
   int getNumberOfChars() native "SVGTextContentElement_getNumberOfChars_Callback";
 
   @DomName('SVGTextContentElement.getRotationOfChar')
-  @DocsEditable
+  @DocsEditable()
   num getRotationOfChar(int offset) native "SVGTextContentElement_getRotationOfChar_Callback";
 
   @DomName('SVGTextContentElement.getStartPositionOfChar')
-  @DocsEditable
+  @DocsEditable()
   Point getStartPositionOfChar(int offset) native "SVGTextContentElement_getStartPositionOfChar_Callback";
 
   @DomName('SVGTextContentElement.getSubStringLength')
-  @DocsEditable
+  @DocsEditable()
   num getSubStringLength(int offset, int length) native "SVGTextContentElement_getSubStringLength_Callback";
 
   @DomName('SVGTextContentElement.selectSubString')
-  @DocsEditable
+  @DocsEditable()
   void selectSubString(int offset, int length) native "SVGTextContentElement_selectSubString_Callback";
 
   @DomName('SVGTextContentElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGTextContentElement_externalResourcesRequired_Getter";
 
   @DomName('SVGTextContentElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String get xmllang native "SVGTextContentElement_xmllang_Getter";
 
   @DomName('SVGTextContentElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   void set xmllang(String value) native "SVGTextContentElement_xmllang_Setter";
 
   @DomName('SVGTextContentElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String get xmlspace native "SVGTextContentElement_xmlspace_Getter";
 
   @DomName('SVGTextContentElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   void set xmlspace(String value) native "SVGTextContentElement_xmlspace_Setter";
 
   @DomName('SVGTextContentElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredExtensions native "SVGTextContentElement_requiredExtensions_Getter";
 
   @DomName('SVGTextContentElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredFeatures native "SVGTextContentElement_requiredFeatures_Getter";
 
   @DomName('SVGTextContentElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   StringList get systemLanguage native "SVGTextContentElement_systemLanguage_Getter";
 
   @DomName('SVGTextContentElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native "SVGTextContentElement_hasExtension_Callback";
 
 }
@@ -6925,43 +6925,43 @@ class TextContentElement extends StyledElement implements Tests, ExternalResourc
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGTextElement')
-@Unstable
+@Unstable()
 class TextElement extends TextPositioningElement implements Transformable {
   // To suppress missing implicit constructor warnings.
   factory TextElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGTextElement.SVGTextElement')
-  @DocsEditable
+  @DocsEditable()
   factory TextElement() => _SvgElementFactoryProvider.createSvgElement_tag("text");
 
   @DomName('SVGTextElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get farthestViewportElement native "SVGTextElement_farthestViewportElement_Getter";
 
   @DomName('SVGTextElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get nearestViewportElement native "SVGTextElement_nearestViewportElement_Getter";
 
   @DomName('SVGTextElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native "SVGTextElement_getBBox_Callback";
 
   @DomName('SVGTextElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native "SVGTextElement_getCTM_Callback";
 
   @DomName('SVGTextElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native "SVGTextElement_getScreenCTM_Callback";
 
   @DomName('SVGTextElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native "SVGTextElement_getTransformToElement_Callback";
 
   @DomName('SVGTextElement.transform')
-  @DocsEditable
+  @DocsEditable()
   AnimatedTransformList get transform native "SVGTextElement_transform_Getter";
 
 }
@@ -6972,51 +6972,51 @@ class TextElement extends TextPositioningElement implements Transformable {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGTextPathElement')
-@Unstable
+@Unstable()
 class TextPathElement extends TextContentElement implements UriReference {
   // To suppress missing implicit constructor warnings.
   factory TextPathElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGTextPathElement.TEXTPATH_METHODTYPE_ALIGN')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTPATH_METHODTYPE_ALIGN = 1;
 
   @DomName('SVGTextPathElement.TEXTPATH_METHODTYPE_STRETCH')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTPATH_METHODTYPE_STRETCH = 2;
 
   @DomName('SVGTextPathElement.TEXTPATH_METHODTYPE_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTPATH_METHODTYPE_UNKNOWN = 0;
 
   @DomName('SVGTextPathElement.TEXTPATH_SPACINGTYPE_AUTO')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTPATH_SPACINGTYPE_AUTO = 1;
 
   @DomName('SVGTextPathElement.TEXTPATH_SPACINGTYPE_EXACT')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTPATH_SPACINGTYPE_EXACT = 2;
 
   @DomName('SVGTextPathElement.TEXTPATH_SPACINGTYPE_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTPATH_SPACINGTYPE_UNKNOWN = 0;
 
   @DomName('SVGTextPathElement.method')
-  @DocsEditable
+  @DocsEditable()
   AnimatedEnumeration get method native "SVGTextPathElement_method_Getter";
 
   @DomName('SVGTextPathElement.spacing')
-  @DocsEditable
+  @DocsEditable()
   AnimatedEnumeration get spacing native "SVGTextPathElement_spacing_Getter";
 
   @DomName('SVGTextPathElement.startOffset')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get startOffset native "SVGTextPathElement_startOffset_Getter";
 
   @DomName('SVGTextPathElement.href')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get href native "SVGTextPathElement_href_Getter";
 
 }
@@ -7027,31 +7027,31 @@ class TextPathElement extends TextContentElement implements UriReference {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGTextPositioningElement')
-@Unstable
+@Unstable()
 class TextPositioningElement extends TextContentElement {
   // To suppress missing implicit constructor warnings.
   factory TextPositioningElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGTextPositioningElement.dx')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLengthList get dx native "SVGTextPositioningElement_dx_Getter";
 
   @DomName('SVGTextPositioningElement.dy')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLengthList get dy native "SVGTextPositioningElement_dy_Getter";
 
   @DomName('SVGTextPositioningElement.rotate')
-  @DocsEditable
+  @DocsEditable()
   AnimatedNumberList get rotate native "SVGTextPositioningElement_rotate_Getter";
 
   @DomName('SVGTextPositioningElement.x')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLengthList get x native "SVGTextPositioningElement_x_Getter";
 
   @DomName('SVGTextPositioningElement.y')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLengthList get y native "SVGTextPositioningElement_y_Getter";
 
 }
@@ -7062,31 +7062,31 @@ class TextPositioningElement extends TextContentElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGTitleElement')
-@Unstable
+@Unstable()
 class TitleElement extends StyledElement implements LangSpace {
   // To suppress missing implicit constructor warnings.
   factory TitleElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGTitleElement.SVGTitleElement')
-  @DocsEditable
+  @DocsEditable()
   factory TitleElement() => _SvgElementFactoryProvider.createSvgElement_tag("title");
 
   @DomName('SVGTitleElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String get xmllang native "SVGTitleElement_xmllang_Getter";
 
   @DomName('SVGTitleElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   void set xmllang(String value) native "SVGTitleElement_xmllang_Setter";
 
   @DomName('SVGTitleElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String get xmlspace native "SVGTitleElement_xmlspace_Getter";
 
   @DomName('SVGTitleElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   void set xmlspace(String value) native "SVGTitleElement_xmlspace_Setter";
 
 }
@@ -7097,73 +7097,73 @@ class TitleElement extends StyledElement implements LangSpace {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGTransform')
-@Unstable
+@Unstable()
 class Transform extends NativeFieldWrapperClass1 {
 
   @DomName('SVGTransform.SVG_TRANSFORM_MATRIX')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_TRANSFORM_MATRIX = 1;
 
   @DomName('SVGTransform.SVG_TRANSFORM_ROTATE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_TRANSFORM_ROTATE = 4;
 
   @DomName('SVGTransform.SVG_TRANSFORM_SCALE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_TRANSFORM_SCALE = 3;
 
   @DomName('SVGTransform.SVG_TRANSFORM_SKEWX')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_TRANSFORM_SKEWX = 5;
 
   @DomName('SVGTransform.SVG_TRANSFORM_SKEWY')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_TRANSFORM_SKEWY = 6;
 
   @DomName('SVGTransform.SVG_TRANSFORM_TRANSLATE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_TRANSFORM_TRANSLATE = 2;
 
   @DomName('SVGTransform.SVG_TRANSFORM_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_TRANSFORM_UNKNOWN = 0;
 
   @DomName('SVGTransform.angle')
-  @DocsEditable
+  @DocsEditable()
   num get angle native "SVGTransform_angle_Getter";
 
   @DomName('SVGTransform.matrix')
-  @DocsEditable
+  @DocsEditable()
   Matrix get matrix native "SVGTransform_matrix_Getter";
 
   @DomName('SVGTransform.type')
-  @DocsEditable
+  @DocsEditable()
   int get type native "SVGTransform_type_Getter";
 
   @DomName('SVGTransform.setMatrix')
-  @DocsEditable
+  @DocsEditable()
   void setMatrix(Matrix matrix) native "SVGTransform_setMatrix_Callback";
 
   @DomName('SVGTransform.setRotate')
-  @DocsEditable
+  @DocsEditable()
   void setRotate(num angle, num cx, num cy) native "SVGTransform_setRotate_Callback";
 
   @DomName('SVGTransform.setScale')
-  @DocsEditable
+  @DocsEditable()
   void setScale(num sx, num sy) native "SVGTransform_setScale_Callback";
 
   @DomName('SVGTransform.setSkewX')
-  @DocsEditable
+  @DocsEditable()
   void setSkewX(num angle) native "SVGTransform_setSkewX_Callback";
 
   @DomName('SVGTransform.setSkewY')
-  @DocsEditable
+  @DocsEditable()
   void setSkewY(num angle) native "SVGTransform_setSkewY_Callback";
 
   @DomName('SVGTransform.setTranslate')
-  @DocsEditable
+  @DocsEditable()
   void setTranslate(num tx, num ty) native "SVGTransform_setTranslate_Callback";
 
 }
@@ -7174,13 +7174,13 @@ class Transform extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGTransformList')
-@Unstable
+@Unstable()
 class TransformList extends NativeFieldWrapperClass1 with ListMixin<Transform>, ImmutableListMixin<Transform> implements List<Transform> {
 
   @DomName('SVGTransformList.numberOfItems')
-  @DocsEditable
+  @DocsEditable()
   int get numberOfItems native "SVGTransformList_numberOfItems_Getter";
 
   Transform operator[](int index) {
@@ -7231,39 +7231,39 @@ class TransformList extends NativeFieldWrapperClass1 with ListMixin<Transform>, 
   // -- end List<Transform> mixins.
 
   @DomName('SVGTransformList.appendItem')
-  @DocsEditable
+  @DocsEditable()
   Transform appendItem(Transform item) native "SVGTransformList_appendItem_Callback";
 
   @DomName('SVGTransformList.clear')
-  @DocsEditable
+  @DocsEditable()
   void clear() native "SVGTransformList_clear_Callback";
 
   @DomName('SVGTransformList.consolidate')
-  @DocsEditable
+  @DocsEditable()
   Transform consolidate() native "SVGTransformList_consolidate_Callback";
 
   @DomName('SVGTransformList.createSVGTransformFromMatrix')
-  @DocsEditable
+  @DocsEditable()
   Transform createSvgTransformFromMatrix(Matrix matrix) native "SVGTransformList_createSVGTransformFromMatrix_Callback";
 
   @DomName('SVGTransformList.getItem')
-  @DocsEditable
+  @DocsEditable()
   Transform getItem(int index) native "SVGTransformList_getItem_Callback";
 
   @DomName('SVGTransformList.initialize')
-  @DocsEditable
+  @DocsEditable()
   Transform initialize(Transform item) native "SVGTransformList_initialize_Callback";
 
   @DomName('SVGTransformList.insertItemBefore')
-  @DocsEditable
+  @DocsEditable()
   Transform insertItemBefore(Transform item, int index) native "SVGTransformList_insertItemBefore_Callback";
 
   @DomName('SVGTransformList.removeItem')
-  @DocsEditable
+  @DocsEditable()
   Transform removeItem(int index) native "SVGTransformList_removeItem_Callback";
 
   @DomName('SVGTransformList.replaceItem')
-  @DocsEditable
+  @DocsEditable()
   Transform replaceItem(Transform item, int index) native "SVGTransformList_replaceItem_Callback";
 
 }
@@ -7274,37 +7274,37 @@ class TransformList extends NativeFieldWrapperClass1 with ListMixin<Transform>, 
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGTransformable')
-@Unstable
+@Unstable()
 abstract class Transformable extends NativeFieldWrapperClass1 implements Locatable {
 
   @DomName('SVGTransformable.transform')
-  @DocsEditable
+  @DocsEditable()
   AnimatedTransformList get transform native "SVGTransformable_transform_Getter";
 
   @DomName('SVGTransformable.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get farthestViewportElement native "SVGTransformable_farthestViewportElement_Getter";
 
   @DomName('SVGTransformable.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get nearestViewportElement native "SVGTransformable_nearestViewportElement_Getter";
 
   @DomName('SVGTransformable.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native "SVGTransformable_getBBox_Callback";
 
   @DomName('SVGTransformable.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native "SVGTransformable_getCTM_Callback";
 
   @DomName('SVGTransformable.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native "SVGTransformable_getScreenCTM_Callback";
 
   @DomName('SVGTransformable.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native "SVGTransformable_getTransformToElement_Callback";
 
 }
@@ -7315,21 +7315,21 @@ abstract class Transformable extends NativeFieldWrapperClass1 implements Locatab
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGUnitTypes')
-@Unstable
+@Unstable()
 class UnitTypes extends NativeFieldWrapperClass1 {
 
   @DomName('SVGUnitTypes.SVG_UNIT_TYPE_OBJECTBOUNDINGBOX')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_UNIT_TYPE_OBJECTBOUNDINGBOX = 2;
 
   @DomName('SVGUnitTypes.SVG_UNIT_TYPE_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_UNIT_TYPE_UNKNOWN = 0;
 
   @DomName('SVGUnitTypes.SVG_UNIT_TYPE_USERSPACEONUSE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_UNIT_TYPE_USERSPACEONUSE = 1;
 
 }
@@ -7340,13 +7340,13 @@ class UnitTypes extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGURIReference')
-@Unstable
+@Unstable()
 abstract class UriReference extends NativeFieldWrapperClass1 {
 
   @DomName('SVGURIReference.href')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get href native "SVGURIReference_href_Getter";
 
 }
@@ -7357,107 +7357,107 @@ abstract class UriReference extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGUseElement')
-@Unstable
+@Unstable()
 class UseElement extends StyledElement implements UriReference, Tests, Transformable, ExternalResourcesRequired, LangSpace {
   // To suppress missing implicit constructor warnings.
   factory UseElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGUseElement.SVGUseElement')
-  @DocsEditable
+  @DocsEditable()
   factory UseElement() => _SvgElementFactoryProvider.createSvgElement_tag("use");
 
   @DomName('SVGUseElement.animatedInstanceRoot')
-  @DocsEditable
+  @DocsEditable()
   ElementInstance get animatedInstanceRoot native "SVGUseElement_animatedInstanceRoot_Getter";
 
   @DomName('SVGUseElement.height')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get height native "SVGUseElement_height_Getter";
 
   @DomName('SVGUseElement.instanceRoot')
-  @DocsEditable
+  @DocsEditable()
   ElementInstance get instanceRoot native "SVGUseElement_instanceRoot_Getter";
 
   @DomName('SVGUseElement.width')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get width native "SVGUseElement_width_Getter";
 
   @DomName('SVGUseElement.x')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get x native "SVGUseElement_x_Getter";
 
   @DomName('SVGUseElement.y')
-  @DocsEditable
+  @DocsEditable()
   AnimatedLength get y native "SVGUseElement_y_Getter";
 
   @DomName('SVGUseElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGUseElement_externalResourcesRequired_Getter";
 
   @DomName('SVGUseElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String get xmllang native "SVGUseElement_xmllang_Getter";
 
   @DomName('SVGUseElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   void set xmllang(String value) native "SVGUseElement_xmllang_Setter";
 
   @DomName('SVGUseElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String get xmlspace native "SVGUseElement_xmlspace_Getter";
 
   @DomName('SVGUseElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   void set xmlspace(String value) native "SVGUseElement_xmlspace_Setter";
 
   @DomName('SVGUseElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get farthestViewportElement native "SVGUseElement_farthestViewportElement_Getter";
 
   @DomName('SVGUseElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get nearestViewportElement native "SVGUseElement_nearestViewportElement_Getter";
 
   @DomName('SVGUseElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native "SVGUseElement_getBBox_Callback";
 
   @DomName('SVGUseElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native "SVGUseElement_getCTM_Callback";
 
   @DomName('SVGUseElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native "SVGUseElement_getScreenCTM_Callback";
 
   @DomName('SVGUseElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native "SVGUseElement_getTransformToElement_Callback";
 
   @DomName('SVGUseElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredExtensions native "SVGUseElement_requiredExtensions_Getter";
 
   @DomName('SVGUseElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   StringList get requiredFeatures native "SVGUseElement_requiredFeatures_Getter";
 
   @DomName('SVGUseElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   StringList get systemLanguage native "SVGUseElement_systemLanguage_Getter";
 
   @DomName('SVGUseElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native "SVGUseElement_hasExtension_Callback";
 
   @DomName('SVGUseElement.transform')
-  @DocsEditable
+  @DocsEditable()
   AnimatedTransformList get transform native "SVGUseElement_transform_Getter";
 
   @DomName('SVGUseElement.href')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get href native "SVGUseElement_href_Getter";
 
 }
@@ -7468,39 +7468,39 @@ class UseElement extends StyledElement implements UriReference, Tests, Transform
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGViewElement')
-@Unstable
+@Unstable()
 class ViewElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, ZoomAndPan {
   // To suppress missing implicit constructor warnings.
   factory ViewElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGViewElement.SVGViewElement')
-  @DocsEditable
+  @DocsEditable()
   factory ViewElement() => _SvgElementFactoryProvider.createSvgElement_tag("view");
 
   @DomName('SVGViewElement.viewTarget')
-  @DocsEditable
+  @DocsEditable()
   StringList get viewTarget native "SVGViewElement_viewTarget_Getter";
 
   @DomName('SVGViewElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGViewElement_externalResourcesRequired_Getter";
 
   @DomName('SVGViewElement.preserveAspectRatio')
-  @DocsEditable
+  @DocsEditable()
   AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGViewElement_preserveAspectRatio_Getter";
 
   @DomName('SVGViewElement.viewBox')
-  @DocsEditable
+  @DocsEditable()
   AnimatedRect get viewBox native "SVGViewElement_viewBox_Getter";
 
   @DomName('SVGViewElement.zoomAndPan')
-  @DocsEditable
+  @DocsEditable()
   int get zoomAndPan native "SVGViewElement_zoomAndPan_Getter";
 
   @DomName('SVGViewElement.zoomAndPan')
-  @DocsEditable
+  @DocsEditable()
   void set zoomAndPan(int value) native "SVGViewElement_zoomAndPan_Setter";
 
 }
@@ -7511,53 +7511,53 @@ class ViewElement extends SvgElement implements FitToViewBox, ExternalResourcesR
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGViewSpec')
-@Unstable
+@Unstable()
 class ViewSpec extends NativeFieldWrapperClass1 {
 
   @DomName('SVGViewSpec.preserveAspectRatio')
-  @DocsEditable
-  @Experimental // nonstandard
+  @DocsEditable()
+  @Experimental() // nonstandard
   AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGViewSpec_preserveAspectRatio_Getter";
 
   @DomName('SVGViewSpec.preserveAspectRatioString')
-  @DocsEditable
+  @DocsEditable()
   String get preserveAspectRatioString native "SVGViewSpec_preserveAspectRatioString_Getter";
 
   @DomName('SVGViewSpec.transform')
-  @DocsEditable
+  @DocsEditable()
   TransformList get transform native "SVGViewSpec_transform_Getter";
 
   @DomName('SVGViewSpec.transformString')
-  @DocsEditable
+  @DocsEditable()
   String get transformString native "SVGViewSpec_transformString_Getter";
 
   @DomName('SVGViewSpec.viewBox')
-  @DocsEditable
-  @Experimental // nonstandard
+  @DocsEditable()
+  @Experimental() // nonstandard
   AnimatedRect get viewBox native "SVGViewSpec_viewBox_Getter";
 
   @DomName('SVGViewSpec.viewBoxString')
-  @DocsEditable
+  @DocsEditable()
   String get viewBoxString native "SVGViewSpec_viewBoxString_Getter";
 
   @DomName('SVGViewSpec.viewTarget')
-  @DocsEditable
+  @DocsEditable()
   SvgElement get viewTarget native "SVGViewSpec_viewTarget_Getter";
 
   @DomName('SVGViewSpec.viewTargetString')
-  @DocsEditable
+  @DocsEditable()
   String get viewTargetString native "SVGViewSpec_viewTargetString_Getter";
 
   @DomName('SVGViewSpec.zoomAndPan')
-  @DocsEditable
-  @Experimental // nonstandard
+  @DocsEditable()
+  @Experimental() // nonstandard
   int get zoomAndPan native "SVGViewSpec_zoomAndPan_Getter";
 
   @DomName('SVGViewSpec.zoomAndPan')
-  @DocsEditable
-  @Experimental // nonstandard
+  @DocsEditable()
+  @Experimental() // nonstandard
   void set zoomAndPan(int value) native "SVGViewSpec_zoomAndPan_Setter";
 
 }
@@ -7568,29 +7568,29 @@ class ViewSpec extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGZoomAndPan')
-@Unstable
+@Unstable()
 abstract class ZoomAndPan extends NativeFieldWrapperClass1 {
 
   @DomName('SVGZoomAndPan.SVG_ZOOMANDPAN_DISABLE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_ZOOMANDPAN_DISABLE = 1;
 
   @DomName('SVGZoomAndPan.SVG_ZOOMANDPAN_MAGNIFY')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_ZOOMANDPAN_MAGNIFY = 2;
 
   @DomName('SVGZoomAndPan.SVG_ZOOMANDPAN_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_ZOOMANDPAN_UNKNOWN = 0;
 
   @DomName('SVGZoomAndPan.zoomAndPan')
-  @DocsEditable
+  @DocsEditable()
   int get zoomAndPan native "SVGZoomAndPan_zoomAndPan_Getter";
 
   @DomName('SVGZoomAndPan.zoomAndPan')
-  @DocsEditable
+  @DocsEditable()
   void set zoomAndPan(int value) native "SVGZoomAndPan_zoomAndPan_Setter";
 
 }
@@ -7601,31 +7601,31 @@ abstract class ZoomAndPan extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGZoomEvent')
-@Unstable
+@Unstable()
 class ZoomEvent extends UIEvent {
   // To suppress missing implicit constructor warnings.
   factory ZoomEvent._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGZoomEvent.newScale')
-  @DocsEditable
+  @DocsEditable()
   num get newScale native "SVGZoomEvent_newScale_Getter";
 
   @DomName('SVGZoomEvent.newTranslate')
-  @DocsEditable
+  @DocsEditable()
   Point get newTranslate native "SVGZoomEvent_newTranslate_Getter";
 
   @DomName('SVGZoomEvent.previousScale')
-  @DocsEditable
+  @DocsEditable()
   num get previousScale native "SVGZoomEvent_previousScale_Getter";
 
   @DomName('SVGZoomEvent.previousTranslate')
-  @DocsEditable
+  @DocsEditable()
   Point get previousTranslate native "SVGZoomEvent_previousTranslate_Getter";
 
   @DomName('SVGZoomEvent.zoomRectScreen')
-  @DocsEditable
+  @DocsEditable()
   Rect get zoomRectScreen native "SVGZoomEvent_zoomRectScreen_Getter";
 
 }
@@ -7636,13 +7636,13 @@ class ZoomEvent extends UIEvent {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGElementInstanceList')
-@Unstable
+@Unstable()
 class _ElementInstanceList extends NativeFieldWrapperClass1 with ListMixin<ElementInstance>, ImmutableListMixin<ElementInstance> implements List<ElementInstance> {
 
   @DomName('SVGElementInstanceList.length')
-  @DocsEditable
+  @DocsEditable()
   int get length native "SVGElementInstanceList_length_Getter";
 
   ElementInstance operator[](int index) {
@@ -7691,7 +7691,7 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 with ListMixin<Eleme
   // -- end List<ElementInstance> mixins.
 
   @DomName('SVGElementInstanceList.item')
-  @DocsEditable
+  @DocsEditable()
   ElementInstance item(int index) native "SVGElementInstanceList_item_Callback";
 
 }
@@ -7702,47 +7702,47 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 with ListMixin<Eleme
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGGradientElement')
-@Unstable
+@Unstable()
 class _GradientElement extends StyledElement implements UriReference, ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory _GradientElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGGradientElement.SVG_SPREADMETHOD_PAD')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_SPREADMETHOD_PAD = 1;
 
   @DomName('SVGGradientElement.SVG_SPREADMETHOD_REFLECT')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_SPREADMETHOD_REFLECT = 2;
 
   @DomName('SVGGradientElement.SVG_SPREADMETHOD_REPEAT')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_SPREADMETHOD_REPEAT = 3;
 
   @DomName('SVGGradientElement.SVG_SPREADMETHOD_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_SPREADMETHOD_UNKNOWN = 0;
 
   @DomName('SVGGradientElement.gradientTransform')
-  @DocsEditable
+  @DocsEditable()
   AnimatedTransformList get gradientTransform native "SVGGradientElement_gradientTransform_Getter";
 
   @DomName('SVGGradientElement.gradientUnits')
-  @DocsEditable
+  @DocsEditable()
   AnimatedEnumeration get gradientUnits native "SVGGradientElement_gradientUnits_Getter";
 
   @DomName('SVGGradientElement.spreadMethod')
-  @DocsEditable
+  @DocsEditable()
   AnimatedEnumeration get spreadMethod native "SVGGradientElement_spreadMethod_Getter";
 
   @DomName('SVGGradientElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGGradientElement_externalResourcesRequired_Getter";
 
   @DomName('SVGGradientElement.href')
-  @DocsEditable
+  @DocsEditable()
   AnimatedString get href native "SVGGradientElement_href_Getter";
 
 }
@@ -7753,9 +7753,9 @@ class _GradientElement extends StyledElement implements UriReference, ExternalRe
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAltGlyphDefElement')
-@Unstable
+@Unstable()
 abstract class _SVGAltGlyphDefElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory _SVGAltGlyphDefElement._() { throw new UnsupportedError("Not supported"); }
@@ -7768,9 +7768,9 @@ abstract class _SVGAltGlyphDefElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAltGlyphItemElement')
-@Unstable
+@Unstable()
 abstract class _SVGAltGlyphItemElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory _SVGAltGlyphItemElement._() { throw new UnsupportedError("Not supported"); }
@@ -7783,9 +7783,9 @@ abstract class _SVGAltGlyphItemElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimateColorElement')
-@Unstable
+@Unstable()
 abstract class _SVGAnimateColorElement extends AnimationElement {
   // To suppress missing implicit constructor warnings.
   factory _SVGAnimateColorElement._() { throw new UnsupportedError("Not supported"); }
@@ -7798,9 +7798,9 @@ abstract class _SVGAnimateColorElement extends AnimationElement {
 
 // Hack because the baseclass is private in dart:html, and we want to omit this
 // type entirely but can't.
-@DocsEditable
+@DocsEditable()
 @DomName('SVGColor')
-@Unstable
+@Unstable()
 abstract class _SVGColor {
   _SVGColor.internal();
 }
@@ -7811,9 +7811,9 @@ abstract class _SVGColor {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGComponentTransferFunctionElement')
-@Unstable
+@Unstable()
 abstract class _SVGComponentTransferFunctionElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory _SVGComponentTransferFunctionElement._() { throw new UnsupportedError("Not supported"); }
@@ -7826,15 +7826,15 @@ abstract class _SVGComponentTransferFunctionElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGCursorElement')
-@Unstable
+@Unstable()
 abstract class _SVGCursorElement extends SvgElement implements UriReference, Tests, ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory _SVGCursorElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGCursorElement.SVGCursorElement')
-  @DocsEditable
+  @DocsEditable()
   factory _SVGCursorElement() => _SvgElementFactoryProvider.createSvgElement_tag("cursor");
 
   /// Checks if this type is supported on the current platform.
@@ -7848,9 +7848,9 @@ abstract class _SVGCursorElement extends SvgElement implements UriReference, Tes
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEDropShadowElement')
-@Experimental // nonstandard
+@Experimental() // nonstandard
 abstract class _SVGFEDropShadowElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory _SVGFEDropShadowElement._() { throw new UnsupportedError("Not supported"); }
@@ -7863,9 +7863,9 @@ abstract class _SVGFEDropShadowElement extends StyledElement implements FilterPr
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFontElement')
-@Unstable
+@Unstable()
 abstract class _SVGFontElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory _SVGFontElement._() { throw new UnsupportedError("Not supported"); }
@@ -7878,9 +7878,9 @@ abstract class _SVGFontElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFontFaceElement')
-@Unstable
+@Unstable()
 abstract class _SVGFontFaceElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory _SVGFontFaceElement._() { throw new UnsupportedError("Not supported"); }
@@ -7893,9 +7893,9 @@ abstract class _SVGFontFaceElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFontFaceFormatElement')
-@Unstable
+@Unstable()
 abstract class _SVGFontFaceFormatElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory _SVGFontFaceFormatElement._() { throw new UnsupportedError("Not supported"); }
@@ -7908,9 +7908,9 @@ abstract class _SVGFontFaceFormatElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFontFaceNameElement')
-@Unstable
+@Unstable()
 abstract class _SVGFontFaceNameElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory _SVGFontFaceNameElement._() { throw new UnsupportedError("Not supported"); }
@@ -7923,9 +7923,9 @@ abstract class _SVGFontFaceNameElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFontFaceSrcElement')
-@Unstable
+@Unstable()
 abstract class _SVGFontFaceSrcElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory _SVGFontFaceSrcElement._() { throw new UnsupportedError("Not supported"); }
@@ -7938,9 +7938,9 @@ abstract class _SVGFontFaceSrcElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFontFaceUriElement')
-@Unstable
+@Unstable()
 abstract class _SVGFontFaceUriElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory _SVGFontFaceUriElement._() { throw new UnsupportedError("Not supported"); }
@@ -7953,15 +7953,15 @@ abstract class _SVGFontFaceUriElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGGlyphElement')
-@Unstable
+@Unstable()
 abstract class _SVGGlyphElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory _SVGGlyphElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGGlyphElement.SVGGlyphElement')
-  @DocsEditable
+  @DocsEditable()
   factory _SVGGlyphElement() => _SvgElementFactoryProvider.createSvgElement_tag("glyph");
 
 }
@@ -7972,9 +7972,9 @@ abstract class _SVGGlyphElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGGlyphRefElement')
-@Unstable
+@Unstable()
 abstract class _SVGGlyphRefElement extends StyledElement implements UriReference {
   // To suppress missing implicit constructor warnings.
   factory _SVGGlyphRefElement._() { throw new UnsupportedError("Not supported"); }
@@ -7987,15 +7987,15 @@ abstract class _SVGGlyphRefElement extends StyledElement implements UriReference
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGHKernElement')
-@Unstable
+@Unstable()
 abstract class _SVGHKernElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory _SVGHKernElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGHKernElement.SVGHKernElement')
-  @DocsEditable
+  @DocsEditable()
   factory _SVGHKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("hkern");
 
 }
@@ -8006,14 +8006,14 @@ abstract class _SVGHKernElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGMPathElement')
 abstract class _SVGMPathElement extends SvgElement implements UriReference, ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory _SVGMPathElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGMPathElement.SVGMPathElement')
-  @DocsEditable
+  @DocsEditable()
   factory _SVGMPathElement() => _SvgElementFactoryProvider.createSvgElement_tag("mpath");
 
 }
@@ -8024,9 +8024,9 @@ abstract class _SVGMPathElement extends SvgElement implements UriReference, Exte
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGMissingGlyphElement')
-@Unstable
+@Unstable()
 abstract class _SVGMissingGlyphElement extends StyledElement {
   // To suppress missing implicit constructor warnings.
   factory _SVGMissingGlyphElement._() { throw new UnsupportedError("Not supported"); }
@@ -8039,9 +8039,9 @@ abstract class _SVGMissingGlyphElement extends StyledElement {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPaint')
-@Unstable
+@Unstable()
 abstract class _SVGPaint extends _SVGColor {
   // To suppress missing implicit constructor warnings.
   factory _SVGPaint._() { throw new UnsupportedError("Not supported"); }
@@ -8054,15 +8054,15 @@ abstract class _SVGPaint extends _SVGColor {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGTRefElement')
-@Unstable
+@Unstable()
 abstract class _SVGTRefElement extends TextPositioningElement implements UriReference {
   // To suppress missing implicit constructor warnings.
   factory _SVGTRefElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGTRefElement.SVGTRefElement')
-  @DocsEditable
+  @DocsEditable()
   factory _SVGTRefElement() => _SvgElementFactoryProvider.createSvgElement_tag("tref");
 
 }
@@ -8073,15 +8073,15 @@ abstract class _SVGTRefElement extends TextPositioningElement implements UriRefe
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGVKernElement')
-@Unstable
+@Unstable()
 abstract class _SVGVKernElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory _SVGVKernElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGVKernElement.SVGVKernElement')
-  @DocsEditable
+  @DocsEditable()
   factory _SVGVKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("vkern");
 
 }

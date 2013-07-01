@@ -203,7 +203,7 @@ $if DART2JS
   @SupportedBrowser(SupportedBrowser.CHROME, '23.0')
   @SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
   @SupportedBrowser(SupportedBrowser.IE, '10.0')
-  @Experimental
+  @Experimental()
   IdbFactory get indexedDB =>
       JS('IdbFactory|Null',  // If not supported, returns `null`.
          '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
@@ -245,7 +245,7 @@ $endif
   @DomName('DOMWindow.convertPointFromNodeToPage')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
+  @Experimental()
   Point convertPointFromNodeToPage(Node node, Point point) {
     var result = _convertPointFromNodeToPage(node,
         new _DomPoint(point.x, point.y));
@@ -255,7 +255,7 @@ $endif
   @DomName('DOMWindow.convertPointFromPageToNode')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
+  @Experimental()
   Point convertPointFromPageToNode(Node node, Point point) {
     var result = _convertPointFromPageToNode(node,
         new _DomPoint(point.x, point.y));
@@ -270,12 +270,12 @@ $endif
 $!MEMBERS
 
   @DomName('DOMWindow.beforeunloadEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<BeforeUnloadEvent> beforeUnloadEvent =
       const _BeforeUnloadEventStreamProvider('beforeunload');
 
   @DomName('DOMWindow.onbeforeunload')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
 }
 

@@ -582,7 +582,7 @@ $(ANNOTATIONS)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   /**
    * Called by the DOM when this element has been instantiated.
    */
-  @Experimental
+  @Experimental()
   void onCreated() {}
 
   // Hooks to support custom WebComponents.
@@ -613,11 +613,11 @@ $endif
   }
 
   @DomName('Element.localName')
-  @DocsEditable
+  @DocsEditable()
   String get localName => $dom_localName;
 
   @DomName('Element.namespaceUri')
-  @DocsEditable
+  @DocsEditable()
   String get namespaceUri => $dom_namespaceUri;
 
   String toString() => localName;
@@ -792,7 +792,7 @@ $if DART2JS
   /**
    * Checks if this element matches the CSS selectors.
    */
-  @Experimental
+  @Experimental()
   bool matches(String selectors) {
     if (JS('bool', '!!#.matches', this)) {
       return JS('bool', '#.matches(#)', this, selectors);
@@ -826,7 +826,7 @@ $endif
    * Gets the template this node refers to.
    * This is only supported if [isTemplate] is true.
    */
-  @Experimental
+  @Experimental()
   Element get ref {
     _ensureTemplate();
 
@@ -855,7 +855,7 @@ $endif
    * Gets the content of this template.
    * This is only supported if [isTemplate] is true.
    */
-  @Experimental
+  @Experimental()
   DocumentFragment get content {
     _ensureTemplate();
     return _templateContent;
@@ -865,7 +865,7 @@ $endif
    * Creates an instance of the template.
    * This is only supported if [isTemplate] is true.
    */
-  @Experimental
+  @Experimental()
   DocumentFragment createInstance() {
     _ensureTemplate();
     return TemplateElement.mdvPackage(this).createInstance();
@@ -875,10 +875,10 @@ $endif
    * The data model which is inherited through the tree.
    * This is only supported if [isTemplate] is true.
    */
-  @Experimental
+  @Experimental()
   get model => TemplateElement.mdvPackage(this).model;
 
-  @Experimental
+  @Experimental()
   void set model(value) {
     _ensureTemplate();
     TemplateElement.mdvPackage(this).model = value;
@@ -914,7 +914,7 @@ $endif
   // place to document which tags our polyfill considers to be templates.
   // Otherwise I'd be repeating it in several other places.
   // See if we can replace this with a TemplateMixin.
-  @Experimental
+  @Experimental()
   bool get isTemplate => tagName == 'TEMPLATE' || _isAttributeTemplate;
 
   void _ensureTemplate() {

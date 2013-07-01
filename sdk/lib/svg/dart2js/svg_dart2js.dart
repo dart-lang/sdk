@@ -61,93 +61,93 @@ class _SvgSvgElementFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAElement')
-@Unstable
+@Unstable()
 class AElement extends StyledElement implements UriReference, Tests, Transformable, ExternalResourcesRequired, LangSpace native "SVGAElement" {
   // To suppress missing implicit constructor warnings.
   factory AElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAElement.SVGAElement')
-  @DocsEditable
+  @DocsEditable()
   factory AElement() => _SvgElementFactoryProvider.createSvgElement_tag("a");
 
   @DomName('SVGAElement.target')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString target;
 
   // From SVGExternalResourcesRequired
 
   @DomName('SVGAElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
   @DomName('SVGAElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String xmllang;
 
   @DomName('SVGAElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String xmlspace;
 
   // From SVGLocatable
 
   @DomName('SVGAElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement farthestViewportElement;
 
   @DomName('SVGAElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement nearestViewportElement;
 
   @DomName('SVGAElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native;
 
   @JSName('getCTM')
   @DomName('SVGAElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native;
 
   @JSName('getScreenCTM')
   @DomName('SVGAElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native;
 
   @DomName('SVGAElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGTests
 
   @DomName('SVGAElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredExtensions;
 
   @DomName('SVGAElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredFeatures;
 
   @DomName('SVGAElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   final StringList systemLanguage;
 
   @DomName('SVGAElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
   @DomName('SVGAElement.transform')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedTransformList transform;
 
   // From SVGURIReference
 
   @DomName('SVGAElement.href')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -155,35 +155,35 @@ class AElement extends StyledElement implements UriReference, Tests, Transformab
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAltGlyphElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class AltGlyphElement extends TextPositioningElement implements UriReference native "SVGAltGlyphElement" {
   // To suppress missing implicit constructor warnings.
   factory AltGlyphElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAltGlyphElement.SVGAltGlyphElement')
-  @DocsEditable
+  @DocsEditable()
   factory AltGlyphElement() => _SvgElementFactoryProvider.createSvgElement_tag("altGlyph");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => SvgElement.isTagSupported('altGlyph') && (new SvgElement.tag('altGlyph') is AltGlyphElement);
 
   @DomName('SVGAltGlyphElement.format')
-  @DocsEditable
+  @DocsEditable()
   String format;
 
   @DomName('SVGAltGlyphElement.glyphRef')
-  @DocsEditable
+  @DocsEditable()
   String glyphRef;
 
   // From SVGURIReference
 
   @DomName('SVGAltGlyphElement.href')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -191,53 +191,53 @@ class AltGlyphElement extends TextPositioningElement implements UriReference nat
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAngle')
-@Unstable
+@Unstable()
 class Angle extends Interceptor native "SVGAngle" {
 
   @DomName('SVGAngle.SVG_ANGLETYPE_DEG')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_ANGLETYPE_DEG = 2;
 
   @DomName('SVGAngle.SVG_ANGLETYPE_GRAD')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_ANGLETYPE_GRAD = 4;
 
   @DomName('SVGAngle.SVG_ANGLETYPE_RAD')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_ANGLETYPE_RAD = 3;
 
   @DomName('SVGAngle.SVG_ANGLETYPE_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_ANGLETYPE_UNKNOWN = 0;
 
   @DomName('SVGAngle.SVG_ANGLETYPE_UNSPECIFIED')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_ANGLETYPE_UNSPECIFIED = 1;
 
   @DomName('SVGAngle.unitType')
-  @DocsEditable
+  @DocsEditable()
   final int unitType;
 
   @DomName('SVGAngle.value')
-  @DocsEditable
+  @DocsEditable()
   num value;
 
   @DomName('SVGAngle.valueAsString')
-  @DocsEditable
+  @DocsEditable()
   String valueAsString;
 
   @DomName('SVGAngle.valueInSpecifiedUnits')
-  @DocsEditable
+  @DocsEditable()
   num valueInSpecifiedUnits;
 
   @DomName('SVGAngle.convertToSpecifiedUnits')
-  @DocsEditable
+  @DocsEditable()
   void convertToSpecifiedUnits(int unitType) native;
 
   @DomName('SVGAngle.newValueSpecifiedUnits')
-  @DocsEditable
+  @DocsEditable()
   void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -245,18 +245,18 @@ class Angle extends Interceptor native "SVGAngle" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimateElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class AnimateElement extends AnimationElement native "SVGAnimateElement" {
   // To suppress missing implicit constructor warnings.
   factory AnimateElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAnimateElement.SVGAnimateElement')
-  @DocsEditable
+  @DocsEditable()
   factory AnimateElement() => _SvgElementFactoryProvider.createSvgElement_tag("animate");
 
   /// Checks if this type is supported on the current platform.
@@ -267,18 +267,18 @@ class AnimateElement extends AnimationElement native "SVGAnimateElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimateMotionElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class AnimateMotionElement extends AnimationElement native "SVGAnimateMotionElement" {
   // To suppress missing implicit constructor warnings.
   factory AnimateMotionElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAnimateMotionElement.SVGAnimateMotionElement')
-  @DocsEditable
+  @DocsEditable()
   factory AnimateMotionElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateMotion");
 
   /// Checks if this type is supported on the current platform.
@@ -289,18 +289,18 @@ class AnimateMotionElement extends AnimationElement native "SVGAnimateMotionElem
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimateTransformElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class AnimateTransformElement extends AnimationElement native "SVGAnimateTransformElement" {
   // To suppress missing implicit constructor warnings.
   factory AnimateTransformElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAnimateTransformElement.SVGAnimateTransformElement')
-  @DocsEditable
+  @DocsEditable()
   factory AnimateTransformElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateTransform");
 
   /// Checks if this type is supported on the current platform.
@@ -311,17 +311,17 @@ class AnimateTransformElement extends AnimationElement native "SVGAnimateTransfo
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimatedAngle')
-@Unstable
+@Unstable()
 class AnimatedAngle extends Interceptor native "SVGAnimatedAngle" {
 
   @DomName('SVGAnimatedAngle.animVal')
-  @DocsEditable
+  @DocsEditable()
   final Angle animVal;
 
   @DomName('SVGAnimatedAngle.baseVal')
-  @DocsEditable
+  @DocsEditable()
   final Angle baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -329,17 +329,17 @@ class AnimatedAngle extends Interceptor native "SVGAnimatedAngle" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimatedBoolean')
-@Unstable
+@Unstable()
 class AnimatedBoolean extends Interceptor native "SVGAnimatedBoolean" {
 
   @DomName('SVGAnimatedBoolean.animVal')
-  @DocsEditable
+  @DocsEditable()
   final bool animVal;
 
   @DomName('SVGAnimatedBoolean.baseVal')
-  @DocsEditable
+  @DocsEditable()
   bool baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -347,17 +347,17 @@ class AnimatedBoolean extends Interceptor native "SVGAnimatedBoolean" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimatedEnumeration')
-@Unstable
+@Unstable()
 class AnimatedEnumeration extends Interceptor native "SVGAnimatedEnumeration" {
 
   @DomName('SVGAnimatedEnumeration.animVal')
-  @DocsEditable
+  @DocsEditable()
   final int animVal;
 
   @DomName('SVGAnimatedEnumeration.baseVal')
-  @DocsEditable
+  @DocsEditable()
   int baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -365,17 +365,17 @@ class AnimatedEnumeration extends Interceptor native "SVGAnimatedEnumeration" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimatedInteger')
-@Unstable
+@Unstable()
 class AnimatedInteger extends Interceptor native "SVGAnimatedInteger" {
 
   @DomName('SVGAnimatedInteger.animVal')
-  @DocsEditable
+  @DocsEditable()
   final int animVal;
 
   @DomName('SVGAnimatedInteger.baseVal')
-  @DocsEditable
+  @DocsEditable()
   int baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -383,17 +383,17 @@ class AnimatedInteger extends Interceptor native "SVGAnimatedInteger" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimatedLength')
-@Unstable
+@Unstable()
 class AnimatedLength extends Interceptor native "SVGAnimatedLength" {
 
   @DomName('SVGAnimatedLength.animVal')
-  @DocsEditable
+  @DocsEditable()
   final Length animVal;
 
   @DomName('SVGAnimatedLength.baseVal')
-  @DocsEditable
+  @DocsEditable()
   final Length baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -401,17 +401,17 @@ class AnimatedLength extends Interceptor native "SVGAnimatedLength" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimatedLengthList')
-@Unstable
+@Unstable()
 class AnimatedLengthList extends Interceptor native "SVGAnimatedLengthList" {
 
   @DomName('SVGAnimatedLengthList.animVal')
-  @DocsEditable
+  @DocsEditable()
   final LengthList animVal;
 
   @DomName('SVGAnimatedLengthList.baseVal')
-  @DocsEditable
+  @DocsEditable()
   final LengthList baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -419,17 +419,17 @@ class AnimatedLengthList extends Interceptor native "SVGAnimatedLengthList" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimatedNumber')
-@Unstable
+@Unstable()
 class AnimatedNumber extends Interceptor native "SVGAnimatedNumber" {
 
   @DomName('SVGAnimatedNumber.animVal')
-  @DocsEditable
+  @DocsEditable()
   final num animVal;
 
   @DomName('SVGAnimatedNumber.baseVal')
-  @DocsEditable
+  @DocsEditable()
   num baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -437,17 +437,17 @@ class AnimatedNumber extends Interceptor native "SVGAnimatedNumber" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimatedNumberList')
-@Unstable
+@Unstable()
 class AnimatedNumberList extends Interceptor native "SVGAnimatedNumberList" {
 
   @DomName('SVGAnimatedNumberList.animVal')
-  @DocsEditable
+  @DocsEditable()
   final NumberList animVal;
 
   @DomName('SVGAnimatedNumberList.baseVal')
-  @DocsEditable
+  @DocsEditable()
   final NumberList baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -455,17 +455,17 @@ class AnimatedNumberList extends Interceptor native "SVGAnimatedNumberList" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimatedPreserveAspectRatio')
-@Unstable
+@Unstable()
 class AnimatedPreserveAspectRatio extends Interceptor native "SVGAnimatedPreserveAspectRatio" {
 
   @DomName('SVGAnimatedPreserveAspectRatio.animVal')
-  @DocsEditable
+  @DocsEditable()
   final PreserveAspectRatio animVal;
 
   @DomName('SVGAnimatedPreserveAspectRatio.baseVal')
-  @DocsEditable
+  @DocsEditable()
   final PreserveAspectRatio baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -473,17 +473,17 @@ class AnimatedPreserveAspectRatio extends Interceptor native "SVGAnimatedPreserv
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimatedRect')
-@Unstable
+@Unstable()
 class AnimatedRect extends Interceptor native "SVGAnimatedRect" {
 
   @DomName('SVGAnimatedRect.animVal')
-  @DocsEditable
+  @DocsEditable()
   final Rect animVal;
 
   @DomName('SVGAnimatedRect.baseVal')
-  @DocsEditable
+  @DocsEditable()
   final Rect baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -491,17 +491,17 @@ class AnimatedRect extends Interceptor native "SVGAnimatedRect" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimatedString')
-@Unstable
+@Unstable()
 class AnimatedString extends Interceptor native "SVGAnimatedString" {
 
   @DomName('SVGAnimatedString.animVal')
-  @DocsEditable
+  @DocsEditable()
   final String animVal;
 
   @DomName('SVGAnimatedString.baseVal')
-  @DocsEditable
+  @DocsEditable()
   String baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -509,17 +509,17 @@ class AnimatedString extends Interceptor native "SVGAnimatedString" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimatedTransformList')
-@Unstable
+@Unstable()
 class AnimatedTransformList extends Interceptor native "SVGAnimatedTransformList" {
 
   @DomName('SVGAnimatedTransformList.animVal')
-  @DocsEditable
+  @DocsEditable()
   final TransformList animVal;
 
   @DomName('SVGAnimatedTransformList.baseVal')
-  @DocsEditable
+  @DocsEditable()
   final TransformList baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -527,73 +527,73 @@ class AnimatedTransformList extends Interceptor native "SVGAnimatedTransformList
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimationElement')
-@Unstable
+@Unstable()
 class AnimationElement extends SvgElement implements Tests, ElementTimeControl, ExternalResourcesRequired native "SVGAnimationElement" {
   // To suppress missing implicit constructor warnings.
   factory AnimationElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAnimationElement.SVGAnimationElement')
-  @DocsEditable
+  @DocsEditable()
   factory AnimationElement() => _SvgElementFactoryProvider.createSvgElement_tag("animation");
 
   @DomName('SVGAnimationElement.targetElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement targetElement;
 
   @DomName('SVGAnimationElement.getCurrentTime')
-  @DocsEditable
+  @DocsEditable()
   num getCurrentTime() native;
 
   @DomName('SVGAnimationElement.getSimpleDuration')
-  @DocsEditable
+  @DocsEditable()
   num getSimpleDuration() native;
 
   @DomName('SVGAnimationElement.getStartTime')
-  @DocsEditable
+  @DocsEditable()
   num getStartTime() native;
 
   // From ElementTimeControl
 
   @DomName('SVGAnimationElement.beginElement')
-  @DocsEditable
+  @DocsEditable()
   void beginElement() native;
 
   @DomName('SVGAnimationElement.beginElementAt')
-  @DocsEditable
+  @DocsEditable()
   void beginElementAt(num offset) native;
 
   @DomName('SVGAnimationElement.endElement')
-  @DocsEditable
+  @DocsEditable()
   void endElement() native;
 
   @DomName('SVGAnimationElement.endElementAt')
-  @DocsEditable
+  @DocsEditable()
   void endElementAt(num offset) native;
 
   // From SVGExternalResourcesRequired
 
   @DomName('SVGAnimationElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGTests
 
   @DomName('SVGAnimationElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredExtensions;
 
   @DomName('SVGAnimationElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredFeatures;
 
   @DomName('SVGAnimationElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   final StringList systemLanguage;
 
   @DomName('SVGAnimationElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -601,95 +601,95 @@ class AnimationElement extends SvgElement implements Tests, ElementTimeControl, 
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGCircleElement')
-@Unstable
+@Unstable()
 class CircleElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "SVGCircleElement" {
   // To suppress missing implicit constructor warnings.
   factory CircleElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGCircleElement.SVGCircleElement')
-  @DocsEditable
+  @DocsEditable()
   factory CircleElement() => _SvgElementFactoryProvider.createSvgElement_tag("circle");
 
   @DomName('SVGCircleElement.cx')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength cx;
 
   @DomName('SVGCircleElement.cy')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength cy;
 
   @DomName('SVGCircleElement.r')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength r;
 
   // From SVGExternalResourcesRequired
 
   @DomName('SVGCircleElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
   @DomName('SVGCircleElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String xmllang;
 
   @DomName('SVGCircleElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String xmlspace;
 
   // From SVGLocatable
 
   @DomName('SVGCircleElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement farthestViewportElement;
 
   @DomName('SVGCircleElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement nearestViewportElement;
 
   @DomName('SVGCircleElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native;
 
   @JSName('getCTM')
   @DomName('SVGCircleElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native;
 
   @JSName('getScreenCTM')
   @DomName('SVGCircleElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native;
 
   @DomName('SVGCircleElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGTests
 
   @DomName('SVGCircleElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredExtensions;
 
   @DomName('SVGCircleElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredFeatures;
 
   @DomName('SVGCircleElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   final StringList systemLanguage;
 
   @DomName('SVGCircleElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
   @DomName('SVGCircleElement.transform')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -697,87 +697,87 @@ class CircleElement extends StyledElement implements Transformable, Tests, Exter
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGClipPathElement')
-@Unstable
+@Unstable()
 class ClipPathElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "SVGClipPathElement" {
   // To suppress missing implicit constructor warnings.
   factory ClipPathElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGClipPathElement.SVGClipPathElement')
-  @DocsEditable
+  @DocsEditable()
   factory ClipPathElement() => _SvgElementFactoryProvider.createSvgElement_tag("clipPath");
 
   @DomName('SVGClipPathElement.clipPathUnits')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedEnumeration clipPathUnits;
 
   // From SVGExternalResourcesRequired
 
   @DomName('SVGClipPathElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
   @DomName('SVGClipPathElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String xmllang;
 
   @DomName('SVGClipPathElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String xmlspace;
 
   // From SVGLocatable
 
   @DomName('SVGClipPathElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement farthestViewportElement;
 
   @DomName('SVGClipPathElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement nearestViewportElement;
 
   @DomName('SVGClipPathElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native;
 
   @JSName('getCTM')
   @DomName('SVGClipPathElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native;
 
   @JSName('getScreenCTM')
   @DomName('SVGClipPathElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native;
 
   @DomName('SVGClipPathElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGTests
 
   @DomName('SVGClipPathElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredExtensions;
 
   @DomName('SVGClipPathElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredFeatures;
 
   @DomName('SVGClipPathElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   final StringList systemLanguage;
 
   @DomName('SVGClipPathElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
   @DomName('SVGClipPathElement.transform')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -785,83 +785,83 @@ class ClipPathElement extends StyledElement implements Transformable, Tests, Ext
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGDefsElement')
-@Unstable
+@Unstable()
 class DefsElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "SVGDefsElement" {
   // To suppress missing implicit constructor warnings.
   factory DefsElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGDefsElement.SVGDefsElement')
-  @DocsEditable
+  @DocsEditable()
   factory DefsElement() => _SvgElementFactoryProvider.createSvgElement_tag("defs");
 
   // From SVGExternalResourcesRequired
 
   @DomName('SVGDefsElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
   @DomName('SVGDefsElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String xmllang;
 
   @DomName('SVGDefsElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String xmlspace;
 
   // From SVGLocatable
 
   @DomName('SVGDefsElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement farthestViewportElement;
 
   @DomName('SVGDefsElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement nearestViewportElement;
 
   @DomName('SVGDefsElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native;
 
   @JSName('getCTM')
   @DomName('SVGDefsElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native;
 
   @JSName('getScreenCTM')
   @DomName('SVGDefsElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native;
 
   @DomName('SVGDefsElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGTests
 
   @DomName('SVGDefsElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredExtensions;
 
   @DomName('SVGDefsElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredFeatures;
 
   @DomName('SVGDefsElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   final StringList systemLanguage;
 
   @DomName('SVGDefsElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
   @DomName('SVGDefsElement.transform')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -869,25 +869,25 @@ class DefsElement extends StyledElement implements Transformable, Tests, Externa
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGDescElement')
-@Unstable
+@Unstable()
 class DescElement extends StyledElement implements LangSpace native "SVGDescElement" {
   // To suppress missing implicit constructor warnings.
   factory DescElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGDescElement.SVGDescElement')
-  @DocsEditable
+  @DocsEditable()
   factory DescElement() => _SvgElementFactoryProvider.createSvgElement_tag("desc");
 
   // From SVGLangSpace
 
   @DomName('SVGDescElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String xmllang;
 
   @DomName('SVGDescElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String xmlspace;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -895,369 +895,369 @@ class DescElement extends StyledElement implements LangSpace native "SVGDescElem
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGElementInstance')
-@Unstable
+@Unstable()
 class ElementInstance extends EventTarget native "SVGElementInstance" {
   // To suppress missing implicit constructor warnings.
   factory ElementInstance._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGElementInstance.abortEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
 
   @DomName('SVGElementInstance.beforecopyEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> beforeCopyEvent = const EventStreamProvider<Event>('beforecopy');
 
   @DomName('SVGElementInstance.beforecutEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> beforeCutEvent = const EventStreamProvider<Event>('beforecut');
 
   @DomName('SVGElementInstance.beforepasteEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> beforePasteEvent = const EventStreamProvider<Event>('beforepaste');
 
   @DomName('SVGElementInstance.blurEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
 
   @DomName('SVGElementInstance.changeEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
 
   @DomName('SVGElementInstance.clickEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<MouseEvent> clickEvent = const EventStreamProvider<MouseEvent>('click');
 
   @DomName('SVGElementInstance.contextmenuEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<MouseEvent> contextMenuEvent = const EventStreamProvider<MouseEvent>('contextmenu');
 
   @DomName('SVGElementInstance.copyEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> copyEvent = const EventStreamProvider<Event>('copy');
 
   @DomName('SVGElementInstance.cutEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> cutEvent = const EventStreamProvider<Event>('cut');
 
   @DomName('SVGElementInstance.dblclickEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> doubleClickEvent = const EventStreamProvider<Event>('dblclick');
 
   @DomName('SVGElementInstance.dragEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<MouseEvent> dragEvent = const EventStreamProvider<MouseEvent>('drag');
 
   @DomName('SVGElementInstance.dragendEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<MouseEvent> dragEndEvent = const EventStreamProvider<MouseEvent>('dragend');
 
   @DomName('SVGElementInstance.dragenterEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<MouseEvent> dragEnterEvent = const EventStreamProvider<MouseEvent>('dragenter');
 
   @DomName('SVGElementInstance.dragleaveEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<MouseEvent> dragLeaveEvent = const EventStreamProvider<MouseEvent>('dragleave');
 
   @DomName('SVGElementInstance.dragoverEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<MouseEvent> dragOverEvent = const EventStreamProvider<MouseEvent>('dragover');
 
   @DomName('SVGElementInstance.dragstartEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<MouseEvent> dragStartEvent = const EventStreamProvider<MouseEvent>('dragstart');
 
   @DomName('SVGElementInstance.dropEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<MouseEvent> dropEvent = const EventStreamProvider<MouseEvent>('drop');
 
   @DomName('SVGElementInstance.errorEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
   @DomName('SVGElementInstance.focusEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
 
   @DomName('SVGElementInstance.inputEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> inputEvent = const EventStreamProvider<Event>('input');
 
   @DomName('SVGElementInstance.keydownEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<KeyboardEvent> keyDownEvent = const EventStreamProvider<KeyboardEvent>('keydown');
 
   @DomName('SVGElementInstance.keypressEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<KeyboardEvent> keyPressEvent = const EventStreamProvider<KeyboardEvent>('keypress');
 
   @DomName('SVGElementInstance.keyupEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<KeyboardEvent> keyUpEvent = const EventStreamProvider<KeyboardEvent>('keyup');
 
   @DomName('SVGElementInstance.loadEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
 
   @DomName('SVGElementInstance.mousedownEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<MouseEvent> mouseDownEvent = const EventStreamProvider<MouseEvent>('mousedown');
 
   @DomName('SVGElementInstance.mousemoveEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<MouseEvent> mouseMoveEvent = const EventStreamProvider<MouseEvent>('mousemove');
 
   @DomName('SVGElementInstance.mouseoutEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<MouseEvent> mouseOutEvent = const EventStreamProvider<MouseEvent>('mouseout');
 
   @DomName('SVGElementInstance.mouseoverEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<MouseEvent> mouseOverEvent = const EventStreamProvider<MouseEvent>('mouseover');
 
   @DomName('SVGElementInstance.mouseupEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<MouseEvent> mouseUpEvent = const EventStreamProvider<MouseEvent>('mouseup');
 
   @DomName('SVGElementInstance.mousewheelEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<WheelEvent> mouseWheelEvent = const EventStreamProvider<WheelEvent>('mousewheel');
 
   @DomName('SVGElementInstance.pasteEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> pasteEvent = const EventStreamProvider<Event>('paste');
 
   @DomName('SVGElementInstance.resetEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> resetEvent = const EventStreamProvider<Event>('reset');
 
   @DomName('SVGElementInstance.resizeEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
 
   @DomName('SVGElementInstance.scrollEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> scrollEvent = const EventStreamProvider<Event>('scroll');
 
   @DomName('SVGElementInstance.searchEvent')
-  @DocsEditable
+  @DocsEditable()
   // http://www.w3.org/TR/html-markup/input.search.html
-  @Experimental
+  @Experimental()
   static const EventStreamProvider<Event> searchEvent = const EventStreamProvider<Event>('search');
 
   @DomName('SVGElementInstance.selectEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> selectEvent = const EventStreamProvider<Event>('select');
 
   @DomName('SVGElementInstance.selectstartEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> selectStartEvent = const EventStreamProvider<Event>('selectstart');
 
   @DomName('SVGElementInstance.submitEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> submitEvent = const EventStreamProvider<Event>('submit');
 
   @DomName('SVGElementInstance.unloadEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
 
   @DomName('SVGElementInstance.childNodes')
-  @DocsEditable
+  @DocsEditable()
   @Returns('_ElementInstanceList')
   @Creates('_ElementInstanceList')
   final List<ElementInstance> childNodes;
 
   @DomName('SVGElementInstance.correspondingElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement correspondingElement;
 
   @DomName('SVGElementInstance.correspondingUseElement')
-  @DocsEditable
+  @DocsEditable()
   final UseElement correspondingUseElement;
 
   @DomName('SVGElementInstance.firstChild')
-  @DocsEditable
+  @DocsEditable()
   final ElementInstance firstChild;
 
   @DomName('SVGElementInstance.lastChild')
-  @DocsEditable
+  @DocsEditable()
   final ElementInstance lastChild;
 
   @DomName('SVGElementInstance.nextSibling')
-  @DocsEditable
+  @DocsEditable()
   final ElementInstance nextSibling;
 
   @DomName('SVGElementInstance.parentNode')
-  @DocsEditable
+  @DocsEditable()
   final ElementInstance parentNode;
 
   @DomName('SVGElementInstance.previousSibling')
-  @DocsEditable
+  @DocsEditable()
   final ElementInstance previousSibling;
 
   @DomName('SVGElementInstance.onabort')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onAbort => abortEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onbeforecopy')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onBeforeCopy => beforeCopyEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onbeforecut')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onBeforeCut => beforeCutEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onbeforepaste')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onBeforePaste => beforePasteEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onblur')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onBlur => blurEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onchange')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onChange => changeEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onclick')
-  @DocsEditable
+  @DocsEditable()
   Stream<MouseEvent> get onClick => clickEvent.forTarget(this);
 
   @DomName('SVGElementInstance.oncontextmenu')
-  @DocsEditable
+  @DocsEditable()
   Stream<MouseEvent> get onContextMenu => contextMenuEvent.forTarget(this);
 
   @DomName('SVGElementInstance.oncopy')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onCopy => copyEvent.forTarget(this);
 
   @DomName('SVGElementInstance.oncut')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onCut => cutEvent.forTarget(this);
 
   @DomName('SVGElementInstance.ondblclick')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onDoubleClick => doubleClickEvent.forTarget(this);
 
   @DomName('SVGElementInstance.ondrag')
-  @DocsEditable
+  @DocsEditable()
   Stream<MouseEvent> get onDrag => dragEvent.forTarget(this);
 
   @DomName('SVGElementInstance.ondragend')
-  @DocsEditable
+  @DocsEditable()
   Stream<MouseEvent> get onDragEnd => dragEndEvent.forTarget(this);
 
   @DomName('SVGElementInstance.ondragenter')
-  @DocsEditable
+  @DocsEditable()
   Stream<MouseEvent> get onDragEnter => dragEnterEvent.forTarget(this);
 
   @DomName('SVGElementInstance.ondragleave')
-  @DocsEditable
+  @DocsEditable()
   Stream<MouseEvent> get onDragLeave => dragLeaveEvent.forTarget(this);
 
   @DomName('SVGElementInstance.ondragover')
-  @DocsEditable
+  @DocsEditable()
   Stream<MouseEvent> get onDragOver => dragOverEvent.forTarget(this);
 
   @DomName('SVGElementInstance.ondragstart')
-  @DocsEditable
+  @DocsEditable()
   Stream<MouseEvent> get onDragStart => dragStartEvent.forTarget(this);
 
   @DomName('SVGElementInstance.ondrop')
-  @DocsEditable
+  @DocsEditable()
   Stream<MouseEvent> get onDrop => dropEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onerror')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onError => errorEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onfocus')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onFocus => focusEvent.forTarget(this);
 
   @DomName('SVGElementInstance.oninput')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onInput => inputEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onkeydown')
-  @DocsEditable
+  @DocsEditable()
   Stream<KeyboardEvent> get onKeyDown => keyDownEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onkeypress')
-  @DocsEditable
+  @DocsEditable()
   Stream<KeyboardEvent> get onKeyPress => keyPressEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onkeyup')
-  @DocsEditable
+  @DocsEditable()
   Stream<KeyboardEvent> get onKeyUp => keyUpEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onload')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onLoad => loadEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onmousedown')
-  @DocsEditable
+  @DocsEditable()
   Stream<MouseEvent> get onMouseDown => mouseDownEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onmousemove')
-  @DocsEditable
+  @DocsEditable()
   Stream<MouseEvent> get onMouseMove => mouseMoveEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onmouseout')
-  @DocsEditable
+  @DocsEditable()
   Stream<MouseEvent> get onMouseOut => mouseOutEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onmouseover')
-  @DocsEditable
+  @DocsEditable()
   Stream<MouseEvent> get onMouseOver => mouseOverEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onmouseup')
-  @DocsEditable
+  @DocsEditable()
   Stream<MouseEvent> get onMouseUp => mouseUpEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onmousewheel')
-  @DocsEditable
+  @DocsEditable()
   Stream<WheelEvent> get onMouseWheel => mouseWheelEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onpaste')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onPaste => pasteEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onreset')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onReset => resetEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onresize')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onResize => resizeEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onscroll')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onScroll => scrollEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onsearch')
-  @DocsEditable
+  @DocsEditable()
   // http://www.w3.org/TR/html-markup/input.search.html
-  @Experimental
+  @Experimental()
   Stream<Event> get onSearch => searchEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onselect')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onSelect => selectEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onselectstart')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onSelectStart => selectStartEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onsubmit')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onSubmit => submitEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onunload')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onUnload => unloadEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1265,99 +1265,99 @@ class ElementInstance extends EventTarget native "SVGElementInstance" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGEllipseElement')
-@Unstable
+@Unstable()
 class EllipseElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "SVGEllipseElement" {
   // To suppress missing implicit constructor warnings.
   factory EllipseElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGEllipseElement.SVGEllipseElement')
-  @DocsEditable
+  @DocsEditable()
   factory EllipseElement() => _SvgElementFactoryProvider.createSvgElement_tag("ellipse");
 
   @DomName('SVGEllipseElement.cx')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength cx;
 
   @DomName('SVGEllipseElement.cy')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength cy;
 
   @DomName('SVGEllipseElement.rx')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength rx;
 
   @DomName('SVGEllipseElement.ry')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength ry;
 
   // From SVGExternalResourcesRequired
 
   @DomName('SVGEllipseElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
   @DomName('SVGEllipseElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String xmllang;
 
   @DomName('SVGEllipseElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String xmlspace;
 
   // From SVGLocatable
 
   @DomName('SVGEllipseElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement farthestViewportElement;
 
   @DomName('SVGEllipseElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement nearestViewportElement;
 
   @DomName('SVGEllipseElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native;
 
   @JSName('getCTM')
   @DomName('SVGEllipseElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native;
 
   @JSName('getScreenCTM')
   @DomName('SVGEllipseElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native;
 
   @DomName('SVGEllipseElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGTests
 
   @DomName('SVGEllipseElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredExtensions;
 
   @DomName('SVGEllipseElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredFeatures;
 
   @DomName('SVGEllipseElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   final StringList systemLanguage;
 
   @DomName('SVGEllipseElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
   @DomName('SVGEllipseElement.transform')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1365,9 +1365,9 @@ class EllipseElement extends StyledElement implements Transformable, Tests, Exte
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGExternalResourcesRequired')
-@Unstable
+@Unstable()
 abstract class ExternalResourcesRequired extends Interceptor {
 
   /// Checks if this type is supported on the current platform.
@@ -1380,80 +1380,80 @@ abstract class ExternalResourcesRequired extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEBlendElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEBlendElement extends StyledElement implements FilterPrimitiveStandardAttributes native "SVGFEBlendElement" {
   // To suppress missing implicit constructor warnings.
   factory FEBlendElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEBlendElement.SVGFEBlendElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEBlendElement() => _SvgElementFactoryProvider.createSvgElement_tag("feBlend");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => SvgElement.isTagSupported('feBlend') && (new SvgElement.tag('feBlend') is FEBlendElement);
 
   @DomName('SVGFEBlendElement.SVG_FEBLEND_MODE_DARKEN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FEBLEND_MODE_DARKEN = 4;
 
   @DomName('SVGFEBlendElement.SVG_FEBLEND_MODE_LIGHTEN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FEBLEND_MODE_LIGHTEN = 5;
 
   @DomName('SVGFEBlendElement.SVG_FEBLEND_MODE_MULTIPLY')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FEBLEND_MODE_MULTIPLY = 2;
 
   @DomName('SVGFEBlendElement.SVG_FEBLEND_MODE_NORMAL')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FEBLEND_MODE_NORMAL = 1;
 
   @DomName('SVGFEBlendElement.SVG_FEBLEND_MODE_SCREEN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FEBLEND_MODE_SCREEN = 3;
 
   @DomName('SVGFEBlendElement.SVG_FEBLEND_MODE_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FEBLEND_MODE_UNKNOWN = 0;
 
   @DomName('SVGFEBlendElement.in1')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString in1;
 
   @DomName('SVGFEBlendElement.in2')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString in2;
 
   @DomName('SVGFEBlendElement.mode')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedEnumeration mode;
 
   // From SVGFilterPrimitiveStandardAttributes
 
   @DomName('SVGFEBlendElement.height')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength height;
 
   @DomName('SVGFEBlendElement.result')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString result;
 
   @DomName('SVGFEBlendElement.width')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength width;
 
   @DomName('SVGFEBlendElement.x')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength x;
 
   @DomName('SVGFEBlendElement.y')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1461,76 +1461,76 @@ class FEBlendElement extends StyledElement implements FilterPrimitiveStandardAtt
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEColorMatrixElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEColorMatrixElement extends StyledElement implements FilterPrimitiveStandardAttributes native "SVGFEColorMatrixElement" {
   // To suppress missing implicit constructor warnings.
   factory FEColorMatrixElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEColorMatrixElement.SVGFEColorMatrixElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEColorMatrixElement() => _SvgElementFactoryProvider.createSvgElement_tag("feColorMatrix");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => SvgElement.isTagSupported('feColorMatrix') && (new SvgElement.tag('feColorMatrix') is FEColorMatrixElement);
 
   @DomName('SVGFEColorMatrixElement.SVG_FECOLORMATRIX_TYPE_HUEROTATE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FECOLORMATRIX_TYPE_HUEROTATE = 3;
 
   @DomName('SVGFEColorMatrixElement.SVG_FECOLORMATRIX_TYPE_LUMINANCETOALPHA')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FECOLORMATRIX_TYPE_LUMINANCETOALPHA = 4;
 
   @DomName('SVGFEColorMatrixElement.SVG_FECOLORMATRIX_TYPE_MATRIX')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FECOLORMATRIX_TYPE_MATRIX = 1;
 
   @DomName('SVGFEColorMatrixElement.SVG_FECOLORMATRIX_TYPE_SATURATE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FECOLORMATRIX_TYPE_SATURATE = 2;
 
   @DomName('SVGFEColorMatrixElement.SVG_FECOLORMATRIX_TYPE_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FECOLORMATRIX_TYPE_UNKNOWN = 0;
 
   @DomName('SVGFEColorMatrixElement.in1')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString in1;
 
   @DomName('SVGFEColorMatrixElement.type')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedEnumeration type;
 
   @DomName('SVGFEColorMatrixElement.values')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumberList values;
 
   // From SVGFilterPrimitiveStandardAttributes
 
   @DomName('SVGFEColorMatrixElement.height')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength height;
 
   @DomName('SVGFEColorMatrixElement.result')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString result;
 
   @DomName('SVGFEColorMatrixElement.width')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength width;
 
   @DomName('SVGFEColorMatrixElement.x')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength x;
 
   @DomName('SVGFEColorMatrixElement.y')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1538,48 +1538,48 @@ class FEColorMatrixElement extends StyledElement implements FilterPrimitiveStand
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEComponentTransferElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEComponentTransferElement extends StyledElement implements FilterPrimitiveStandardAttributes native "SVGFEComponentTransferElement" {
   // To suppress missing implicit constructor warnings.
   factory FEComponentTransferElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEComponentTransferElement.SVGFEComponentTransferElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEComponentTransferElement() => _SvgElementFactoryProvider.createSvgElement_tag("feComponentTransfer");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => SvgElement.isTagSupported('feComponentTransfer') && (new SvgElement.tag('feComponentTransfer') is FEComponentTransferElement);
 
   @DomName('SVGFEComponentTransferElement.in1')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString in1;
 
   // From SVGFilterPrimitiveStandardAttributes
 
   @DomName('SVGFEComponentTransferElement.height')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength height;
 
   @DomName('SVGFEComponentTransferElement.result')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString result;
 
   @DomName('SVGFEComponentTransferElement.width')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength width;
 
   @DomName('SVGFEComponentTransferElement.x')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength x;
 
   @DomName('SVGFEComponentTransferElement.y')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1587,89 +1587,89 @@ class FEComponentTransferElement extends StyledElement implements FilterPrimitiv
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFECompositeElement')
-@Unstable
+@Unstable()
 class FECompositeElement extends StyledElement implements FilterPrimitiveStandardAttributes native "SVGFECompositeElement" {
   // To suppress missing implicit constructor warnings.
   factory FECompositeElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFECompositeElement.SVG_FECOMPOSITE_OPERATOR_ARITHMETIC')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FECOMPOSITE_OPERATOR_ARITHMETIC = 6;
 
   @DomName('SVGFECompositeElement.SVG_FECOMPOSITE_OPERATOR_ATOP')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FECOMPOSITE_OPERATOR_ATOP = 4;
 
   @DomName('SVGFECompositeElement.SVG_FECOMPOSITE_OPERATOR_IN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FECOMPOSITE_OPERATOR_IN = 2;
 
   @DomName('SVGFECompositeElement.SVG_FECOMPOSITE_OPERATOR_OUT')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FECOMPOSITE_OPERATOR_OUT = 3;
 
   @DomName('SVGFECompositeElement.SVG_FECOMPOSITE_OPERATOR_OVER')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FECOMPOSITE_OPERATOR_OVER = 1;
 
   @DomName('SVGFECompositeElement.SVG_FECOMPOSITE_OPERATOR_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FECOMPOSITE_OPERATOR_UNKNOWN = 0;
 
   @DomName('SVGFECompositeElement.SVG_FECOMPOSITE_OPERATOR_XOR')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_FECOMPOSITE_OPERATOR_XOR = 5;
 
   @DomName('SVGFECompositeElement.in1')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString in1;
 
   @DomName('SVGFECompositeElement.in2')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString in2;
 
   @DomName('SVGFECompositeElement.k1')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber k1;
 
   @DomName('SVGFECompositeElement.k2')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber k2;
 
   @DomName('SVGFECompositeElement.k3')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber k3;
 
   @DomName('SVGFECompositeElement.k4')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber k4;
 
   @DomName('SVGFECompositeElement.operator')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedEnumeration operator;
 
   // From SVGFilterPrimitiveStandardAttributes
 
   @DomName('SVGFECompositeElement.height')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength height;
 
   @DomName('SVGFECompositeElement.result')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString result;
 
   @DomName('SVGFECompositeElement.width')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength width;
 
   @DomName('SVGFECompositeElement.x')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength x;
 
   @DomName('SVGFECompositeElement.y')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1677,108 +1677,108 @@ class FECompositeElement extends StyledElement implements FilterPrimitiveStandar
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEConvolveMatrixElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEConvolveMatrixElement extends StyledElement implements FilterPrimitiveStandardAttributes native "SVGFEConvolveMatrixElement" {
   // To suppress missing implicit constructor warnings.
   factory FEConvolveMatrixElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEConvolveMatrixElement.SVGFEConvolveMatrixElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEConvolveMatrixElement() => _SvgElementFactoryProvider.createSvgElement_tag("feConvolveMatrix");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => SvgElement.isTagSupported('feConvolveMatrix') && (new SvgElement.tag('feConvolveMatrix') is FEConvolveMatrixElement);
 
   @DomName('SVGFEConvolveMatrixElement.SVG_EDGEMODE_DUPLICATE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_EDGEMODE_DUPLICATE = 1;
 
   @DomName('SVGFEConvolveMatrixElement.SVG_EDGEMODE_NONE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_EDGEMODE_NONE = 3;
 
   @DomName('SVGFEConvolveMatrixElement.SVG_EDGEMODE_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_EDGEMODE_UNKNOWN = 0;
 
   @DomName('SVGFEConvolveMatrixElement.SVG_EDGEMODE_WRAP')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_EDGEMODE_WRAP = 2;
 
   @DomName('SVGFEConvolveMatrixElement.bias')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber bias;
 
   @DomName('SVGFEConvolveMatrixElement.divisor')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber divisor;
 
   @DomName('SVGFEConvolveMatrixElement.edgeMode')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedEnumeration edgeMode;
 
   @DomName('SVGFEConvolveMatrixElement.in1')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString in1;
 
   @DomName('SVGFEConvolveMatrixElement.kernelMatrix')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumberList kernelMatrix;
 
   @DomName('SVGFEConvolveMatrixElement.kernelUnitLengthX')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber kernelUnitLengthX;
 
   @DomName('SVGFEConvolveMatrixElement.kernelUnitLengthY')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber kernelUnitLengthY;
 
   @DomName('SVGFEConvolveMatrixElement.orderX')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedInteger orderX;
 
   @DomName('SVGFEConvolveMatrixElement.orderY')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedInteger orderY;
 
   @DomName('SVGFEConvolveMatrixElement.preserveAlpha')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedBoolean preserveAlpha;
 
   @DomName('SVGFEConvolveMatrixElement.targetX')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedInteger targetX;
 
   @DomName('SVGFEConvolveMatrixElement.targetY')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedInteger targetY;
 
   // From SVGFilterPrimitiveStandardAttributes
 
   @DomName('SVGFEConvolveMatrixElement.height')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength height;
 
   @DomName('SVGFEConvolveMatrixElement.result')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString result;
 
   @DomName('SVGFEConvolveMatrixElement.width')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength width;
 
   @DomName('SVGFEConvolveMatrixElement.x')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength x;
 
   @DomName('SVGFEConvolveMatrixElement.y')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1786,64 +1786,64 @@ class FEConvolveMatrixElement extends StyledElement implements FilterPrimitiveSt
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEDiffuseLightingElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEDiffuseLightingElement extends StyledElement implements FilterPrimitiveStandardAttributes native "SVGFEDiffuseLightingElement" {
   // To suppress missing implicit constructor warnings.
   factory FEDiffuseLightingElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEDiffuseLightingElement.SVGFEDiffuseLightingElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEDiffuseLightingElement() => _SvgElementFactoryProvider.createSvgElement_tag("feDiffuseLighting");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => SvgElement.isTagSupported('feDiffuseLighting') && (new SvgElement.tag('feDiffuseLighting') is FEDiffuseLightingElement);
 
   @DomName('SVGFEDiffuseLightingElement.diffuseConstant')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber diffuseConstant;
 
   @DomName('SVGFEDiffuseLightingElement.in1')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString in1;
 
   @DomName('SVGFEDiffuseLightingElement.kernelUnitLengthX')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber kernelUnitLengthX;
 
   @DomName('SVGFEDiffuseLightingElement.kernelUnitLengthY')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber kernelUnitLengthY;
 
   @DomName('SVGFEDiffuseLightingElement.surfaceScale')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber surfaceScale;
 
   // From SVGFilterPrimitiveStandardAttributes
 
   @DomName('SVGFEDiffuseLightingElement.height')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength height;
 
   @DomName('SVGFEDiffuseLightingElement.result')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString result;
 
   @DomName('SVGFEDiffuseLightingElement.width')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength width;
 
   @DomName('SVGFEDiffuseLightingElement.x')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength x;
 
   @DomName('SVGFEDiffuseLightingElement.y')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1851,84 +1851,84 @@ class FEDiffuseLightingElement extends StyledElement implements FilterPrimitiveS
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEDisplacementMapElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEDisplacementMapElement extends StyledElement implements FilterPrimitiveStandardAttributes native "SVGFEDisplacementMapElement" {
   // To suppress missing implicit constructor warnings.
   factory FEDisplacementMapElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEDisplacementMapElement.SVGFEDisplacementMapElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEDisplacementMapElement() => _SvgElementFactoryProvider.createSvgElement_tag("feDisplacementMap");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => SvgElement.isTagSupported('feDisplacementMap') && (new SvgElement.tag('feDisplacementMap') is FEDisplacementMapElement);
 
   @DomName('SVGFEDisplacementMapElement.SVG_CHANNEL_A')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_CHANNEL_A = 4;
 
   @DomName('SVGFEDisplacementMapElement.SVG_CHANNEL_B')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_CHANNEL_B = 3;
 
   @DomName('SVGFEDisplacementMapElement.SVG_CHANNEL_G')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_CHANNEL_G = 2;
 
   @DomName('SVGFEDisplacementMapElement.SVG_CHANNEL_R')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_CHANNEL_R = 1;
 
   @DomName('SVGFEDisplacementMapElement.SVG_CHANNEL_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_CHANNEL_UNKNOWN = 0;
 
   @DomName('SVGFEDisplacementMapElement.in1')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString in1;
 
   @DomName('SVGFEDisplacementMapElement.in2')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString in2;
 
   @DomName('SVGFEDisplacementMapElement.scale')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber scale;
 
   @DomName('SVGFEDisplacementMapElement.xChannelSelector')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedEnumeration xChannelSelector;
 
   @DomName('SVGFEDisplacementMapElement.yChannelSelector')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedEnumeration yChannelSelector;
 
   // From SVGFilterPrimitiveStandardAttributes
 
   @DomName('SVGFEDisplacementMapElement.height')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength height;
 
   @DomName('SVGFEDisplacementMapElement.result')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString result;
 
   @DomName('SVGFEDisplacementMapElement.width')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength width;
 
   @DomName('SVGFEDisplacementMapElement.x')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength x;
 
   @DomName('SVGFEDisplacementMapElement.y')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1936,30 +1936,30 @@ class FEDisplacementMapElement extends StyledElement implements FilterPrimitiveS
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEDistantLightElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEDistantLightElement extends SvgElement native "SVGFEDistantLightElement" {
   // To suppress missing implicit constructor warnings.
   factory FEDistantLightElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEDistantLightElement.SVGFEDistantLightElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEDistantLightElement() => _SvgElementFactoryProvider.createSvgElement_tag("feDistantLight");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => SvgElement.isTagSupported('feDistantLight') && (new SvgElement.tag('feDistantLight') is FEDistantLightElement);
 
   @DomName('SVGFEDistantLightElement.azimuth')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber azimuth;
 
   @DomName('SVGFEDistantLightElement.elevation')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber elevation;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1967,19 +1967,19 @@ class FEDistantLightElement extends SvgElement native "SVGFEDistantLightElement"
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEFloodElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEFloodElement extends StyledElement implements FilterPrimitiveStandardAttributes native "SVGFEFloodElement" {
   // To suppress missing implicit constructor warnings.
   factory FEFloodElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEFloodElement.SVGFEFloodElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEFloodElement() => _SvgElementFactoryProvider.createSvgElement_tag("feFlood");
 
   /// Checks if this type is supported on the current platform.
@@ -1988,23 +1988,23 @@ class FEFloodElement extends StyledElement implements FilterPrimitiveStandardAtt
   // From SVGFilterPrimitiveStandardAttributes
 
   @DomName('SVGFEFloodElement.height')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength height;
 
   @DomName('SVGFEFloodElement.result')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString result;
 
   @DomName('SVGFEFloodElement.width')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength width;
 
   @DomName('SVGFEFloodElement.x')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength x;
 
   @DomName('SVGFEFloodElement.y')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2012,19 +2012,19 @@ class FEFloodElement extends StyledElement implements FilterPrimitiveStandardAtt
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEFuncAElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEFuncAElement extends _SVGComponentTransferFunctionElement native "SVGFEFuncAElement" {
   // To suppress missing implicit constructor warnings.
   factory FEFuncAElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEFuncAElement.SVGFEFuncAElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEFuncAElement() => _SvgElementFactoryProvider.createSvgElement_tag("feFuncA");
 
   /// Checks if this type is supported on the current platform.
@@ -2035,19 +2035,19 @@ class FEFuncAElement extends _SVGComponentTransferFunctionElement native "SVGFEF
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEFuncBElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEFuncBElement extends _SVGComponentTransferFunctionElement native "SVGFEFuncBElement" {
   // To suppress missing implicit constructor warnings.
   factory FEFuncBElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEFuncBElement.SVGFEFuncBElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEFuncBElement() => _SvgElementFactoryProvider.createSvgElement_tag("feFuncB");
 
   /// Checks if this type is supported on the current platform.
@@ -2058,19 +2058,19 @@ class FEFuncBElement extends _SVGComponentTransferFunctionElement native "SVGFEF
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEFuncGElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEFuncGElement extends _SVGComponentTransferFunctionElement native "SVGFEFuncGElement" {
   // To suppress missing implicit constructor warnings.
   factory FEFuncGElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEFuncGElement.SVGFEFuncGElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEFuncGElement() => _SvgElementFactoryProvider.createSvgElement_tag("feFuncG");
 
   /// Checks if this type is supported on the current platform.
@@ -2081,19 +2081,19 @@ class FEFuncGElement extends _SVGComponentTransferFunctionElement native "SVGFEF
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEFuncRElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEFuncRElement extends _SVGComponentTransferFunctionElement native "SVGFEFuncRElement" {
   // To suppress missing implicit constructor warnings.
   factory FEFuncRElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEFuncRElement.SVGFEFuncRElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEFuncRElement() => _SvgElementFactoryProvider.createSvgElement_tag("feFuncR");
 
   /// Checks if this type is supported on the current platform.
@@ -2104,60 +2104,60 @@ class FEFuncRElement extends _SVGComponentTransferFunctionElement native "SVGFEF
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEGaussianBlurElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEGaussianBlurElement extends StyledElement implements FilterPrimitiveStandardAttributes native "SVGFEGaussianBlurElement" {
   // To suppress missing implicit constructor warnings.
   factory FEGaussianBlurElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEGaussianBlurElement.SVGFEGaussianBlurElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEGaussianBlurElement() => _SvgElementFactoryProvider.createSvgElement_tag("feGaussianBlur");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => SvgElement.isTagSupported('feGaussianBlur') && (new SvgElement.tag('feGaussianBlur') is FEGaussianBlurElement);
 
   @DomName('SVGFEGaussianBlurElement.in1')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString in1;
 
   @DomName('SVGFEGaussianBlurElement.stdDeviationX')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber stdDeviationX;
 
   @DomName('SVGFEGaussianBlurElement.stdDeviationY')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber stdDeviationY;
 
   @DomName('SVGFEGaussianBlurElement.setStdDeviation')
-  @DocsEditable
+  @DocsEditable()
   void setStdDeviation(num stdDeviationX, num stdDeviationY) native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
   @DomName('SVGFEGaussianBlurElement.height')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength height;
 
   @DomName('SVGFEGaussianBlurElement.result')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString result;
 
   @DomName('SVGFEGaussianBlurElement.width')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength width;
 
   @DomName('SVGFEGaussianBlurElement.x')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength x;
 
   @DomName('SVGFEGaussianBlurElement.y')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2165,70 +2165,70 @@ class FEGaussianBlurElement extends StyledElement implements FilterPrimitiveStan
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEImageElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEImageElement extends StyledElement implements FilterPrimitiveStandardAttributes, UriReference, ExternalResourcesRequired, LangSpace native "SVGFEImageElement" {
   // To suppress missing implicit constructor warnings.
   factory FEImageElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEImageElement.SVGFEImageElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEImageElement() => _SvgElementFactoryProvider.createSvgElement_tag("feImage");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => SvgElement.isTagSupported('feImage') && (new SvgElement.tag('feImage') is FEImageElement);
 
   @DomName('SVGFEImageElement.preserveAspectRatio')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedPreserveAspectRatio preserveAspectRatio;
 
   // From SVGExternalResourcesRequired
 
   @DomName('SVGFEImageElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGFilterPrimitiveStandardAttributes
 
   @DomName('SVGFEImageElement.height')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength height;
 
   @DomName('SVGFEImageElement.result')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString result;
 
   @DomName('SVGFEImageElement.width')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength width;
 
   @DomName('SVGFEImageElement.x')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength x;
 
   @DomName('SVGFEImageElement.y')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength y;
 
   // From SVGLangSpace
 
   @DomName('SVGFEImageElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String xmllang;
 
   @DomName('SVGFEImageElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String xmlspace;
 
   // From SVGURIReference
 
   @DomName('SVGFEImageElement.href')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2236,19 +2236,19 @@ class FEImageElement extends StyledElement implements FilterPrimitiveStandardAtt
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEMergeElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEMergeElement extends StyledElement implements FilterPrimitiveStandardAttributes native "SVGFEMergeElement" {
   // To suppress missing implicit constructor warnings.
   factory FEMergeElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEMergeElement.SVGFEMergeElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEMergeElement() => _SvgElementFactoryProvider.createSvgElement_tag("feMerge");
 
   /// Checks if this type is supported on the current platform.
@@ -2257,23 +2257,23 @@ class FEMergeElement extends StyledElement implements FilterPrimitiveStandardAtt
   // From SVGFilterPrimitiveStandardAttributes
 
   @DomName('SVGFEMergeElement.height')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength height;
 
   @DomName('SVGFEMergeElement.result')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString result;
 
   @DomName('SVGFEMergeElement.width')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength width;
 
   @DomName('SVGFEMergeElement.x')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength x;
 
   @DomName('SVGFEMergeElement.y')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2281,26 +2281,26 @@ class FEMergeElement extends StyledElement implements FilterPrimitiveStandardAtt
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEMergeNodeElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEMergeNodeElement extends SvgElement native "SVGFEMergeNodeElement" {
   // To suppress missing implicit constructor warnings.
   factory FEMergeNodeElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEMergeNodeElement.SVGFEMergeNodeElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEMergeNodeElement() => _SvgElementFactoryProvider.createSvgElement_tag("feMergeNode");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => SvgElement.isTagSupported('feMergeNode') && (new SvgElement.tag('feMergeNode') is FEMergeNodeElement);
 
   @DomName('SVGFEMergeNodeElement.in1')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString in1;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2308,69 +2308,69 @@ class FEMergeNodeElement extends SvgElement native "SVGFEMergeNodeElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEMorphologyElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEMorphologyElement extends StyledElement implements FilterPrimitiveStandardAttributes native "SVGFEMorphologyElement" {
   // To suppress missing implicit constructor warnings.
   factory FEMorphologyElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEMorphologyElement.SVG_MORPHOLOGY_OPERATOR_DILATE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_MORPHOLOGY_OPERATOR_DILATE = 2;
 
   @DomName('SVGFEMorphologyElement.SVG_MORPHOLOGY_OPERATOR_ERODE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_MORPHOLOGY_OPERATOR_ERODE = 1;
 
   @DomName('SVGFEMorphologyElement.SVG_MORPHOLOGY_OPERATOR_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_MORPHOLOGY_OPERATOR_UNKNOWN = 0;
 
   @DomName('SVGFEMorphologyElement.in1')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString in1;
 
   @DomName('SVGFEMorphologyElement.operator')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedEnumeration operator;
 
   @DomName('SVGFEMorphologyElement.radiusX')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber radiusX;
 
   @DomName('SVGFEMorphologyElement.radiusY')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber radiusY;
 
   @DomName('SVGFEMorphologyElement.setRadius')
-  @DocsEditable
+  @DocsEditable()
   void setRadius(num radiusX, num radiusY) native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
   @DomName('SVGFEMorphologyElement.height')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength height;
 
   @DomName('SVGFEMorphologyElement.result')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString result;
 
   @DomName('SVGFEMorphologyElement.width')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength width;
 
   @DomName('SVGFEMorphologyElement.x')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength x;
 
   @DomName('SVGFEMorphologyElement.y')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2378,56 +2378,56 @@ class FEMorphologyElement extends StyledElement implements FilterPrimitiveStanda
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEOffsetElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEOffsetElement extends StyledElement implements FilterPrimitiveStandardAttributes native "SVGFEOffsetElement" {
   // To suppress missing implicit constructor warnings.
   factory FEOffsetElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEOffsetElement.SVGFEOffsetElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEOffsetElement() => _SvgElementFactoryProvider.createSvgElement_tag("feOffset");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => SvgElement.isTagSupported('feOffset') && (new SvgElement.tag('feOffset') is FEOffsetElement);
 
   @DomName('SVGFEOffsetElement.dx')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber dx;
 
   @DomName('SVGFEOffsetElement.dy')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber dy;
 
   @DomName('SVGFEOffsetElement.in1')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString in1;
 
   // From SVGFilterPrimitiveStandardAttributes
 
   @DomName('SVGFEOffsetElement.height')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength height;
 
   @DomName('SVGFEOffsetElement.result')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString result;
 
   @DomName('SVGFEOffsetElement.width')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength width;
 
   @DomName('SVGFEOffsetElement.x')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength x;
 
   @DomName('SVGFEOffsetElement.y')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2435,34 +2435,34 @@ class FEOffsetElement extends StyledElement implements FilterPrimitiveStandardAt
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEPointLightElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FEPointLightElement extends SvgElement native "SVGFEPointLightElement" {
   // To suppress missing implicit constructor warnings.
   factory FEPointLightElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEPointLightElement.SVGFEPointLightElement')
-  @DocsEditable
+  @DocsEditable()
   factory FEPointLightElement() => _SvgElementFactoryProvider.createSvgElement_tag("fePointLight");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => SvgElement.isTagSupported('fePointLight') && (new SvgElement.tag('fePointLight') is FEPointLightElement);
 
   @DomName('SVGFEPointLightElement.x')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber x;
 
   @DomName('SVGFEPointLightElement.y')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber y;
 
   @DomName('SVGFEPointLightElement.z')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber z;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2470,60 +2470,60 @@ class FEPointLightElement extends SvgElement native "SVGFEPointLightElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFESpecularLightingElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FESpecularLightingElement extends StyledElement implements FilterPrimitiveStandardAttributes native "SVGFESpecularLightingElement" {
   // To suppress missing implicit constructor warnings.
   factory FESpecularLightingElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFESpecularLightingElement.SVGFESpecularLightingElement')
-  @DocsEditable
+  @DocsEditable()
   factory FESpecularLightingElement() => _SvgElementFactoryProvider.createSvgElement_tag("feSpecularLighting");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => SvgElement.isTagSupported('feSpecularLighting') && (new SvgElement.tag('feSpecularLighting') is FESpecularLightingElement);
 
   @DomName('SVGFESpecularLightingElement.in1')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString in1;
 
   @DomName('SVGFESpecularLightingElement.specularConstant')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber specularConstant;
 
   @DomName('SVGFESpecularLightingElement.specularExponent')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber specularExponent;
 
   @DomName('SVGFESpecularLightingElement.surfaceScale')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber surfaceScale;
 
   // From SVGFilterPrimitiveStandardAttributes
 
   @DomName('SVGFESpecularLightingElement.height')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength height;
 
   @DomName('SVGFESpecularLightingElement.result')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString result;
 
   @DomName('SVGFESpecularLightingElement.width')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength width;
 
   @DomName('SVGFESpecularLightingElement.x')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength x;
 
   @DomName('SVGFESpecularLightingElement.y')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2531,54 +2531,54 @@ class FESpecularLightingElement extends StyledElement implements FilterPrimitive
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFESpotLightElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FESpotLightElement extends SvgElement native "SVGFESpotLightElement" {
   // To suppress missing implicit constructor warnings.
   factory FESpotLightElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFESpotLightElement.SVGFESpotLightElement')
-  @DocsEditable
+  @DocsEditable()
   factory FESpotLightElement() => _SvgElementFactoryProvider.createSvgElement_tag("feSpotLight");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => SvgElement.isTagSupported('feSpotLight') && (new SvgElement.tag('feSpotLight') is FESpotLightElement);
 
   @DomName('SVGFESpotLightElement.limitingConeAngle')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber limitingConeAngle;
 
   @DomName('SVGFESpotLightElement.pointsAtX')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber pointsAtX;
 
   @DomName('SVGFESpotLightElement.pointsAtY')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber pointsAtY;
 
   @DomName('SVGFESpotLightElement.pointsAtZ')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber pointsAtZ;
 
   @DomName('SVGFESpotLightElement.specularExponent')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber specularExponent;
 
   @DomName('SVGFESpotLightElement.x')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber x;
 
   @DomName('SVGFESpotLightElement.y')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber y;
 
   @DomName('SVGFESpotLightElement.z')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber z;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2586,48 +2586,48 @@ class FESpotLightElement extends SvgElement native "SVGFESpotLightElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFETileElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FETileElement extends StyledElement implements FilterPrimitiveStandardAttributes native "SVGFETileElement" {
   // To suppress missing implicit constructor warnings.
   factory FETileElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFETileElement.SVGFETileElement')
-  @DocsEditable
+  @DocsEditable()
   factory FETileElement() => _SvgElementFactoryProvider.createSvgElement_tag("feTile");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => SvgElement.isTagSupported('feTile') && (new SvgElement.tag('feTile') is FETileElement);
 
   @DomName('SVGFETileElement.in1')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString in1;
 
   // From SVGFilterPrimitiveStandardAttributes
 
   @DomName('SVGFETileElement.height')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength height;
 
   @DomName('SVGFETileElement.result')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString result;
 
   @DomName('SVGFETileElement.width')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength width;
 
   @DomName('SVGFETileElement.x')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength x;
 
   @DomName('SVGFETileElement.y')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2635,92 +2635,92 @@ class FETileElement extends StyledElement implements FilterPrimitiveStandardAttr
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFETurbulenceElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FETurbulenceElement extends StyledElement implements FilterPrimitiveStandardAttributes native "SVGFETurbulenceElement" {
   // To suppress missing implicit constructor warnings.
   factory FETurbulenceElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFETurbulenceElement.SVGFETurbulenceElement')
-  @DocsEditable
+  @DocsEditable()
   factory FETurbulenceElement() => _SvgElementFactoryProvider.createSvgElement_tag("feTurbulence");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => SvgElement.isTagSupported('feTurbulence') && (new SvgElement.tag('feTurbulence') is FETurbulenceElement);
 
   @DomName('SVGFETurbulenceElement.SVG_STITCHTYPE_NOSTITCH')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_STITCHTYPE_NOSTITCH = 2;
 
   @DomName('SVGFETurbulenceElement.SVG_STITCHTYPE_STITCH')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_STITCHTYPE_STITCH = 1;
 
   @DomName('SVGFETurbulenceElement.SVG_STITCHTYPE_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_STITCHTYPE_UNKNOWN = 0;
 
   @DomName('SVGFETurbulenceElement.SVG_TURBULENCE_TYPE_FRACTALNOISE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_TURBULENCE_TYPE_FRACTALNOISE = 1;
 
   @DomName('SVGFETurbulenceElement.SVG_TURBULENCE_TYPE_TURBULENCE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_TURBULENCE_TYPE_TURBULENCE = 2;
 
   @DomName('SVGFETurbulenceElement.SVG_TURBULENCE_TYPE_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_TURBULENCE_TYPE_UNKNOWN = 0;
 
   @DomName('SVGFETurbulenceElement.baseFrequencyX')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber baseFrequencyX;
 
   @DomName('SVGFETurbulenceElement.baseFrequencyY')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber baseFrequencyY;
 
   @DomName('SVGFETurbulenceElement.numOctaves')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedInteger numOctaves;
 
   @DomName('SVGFETurbulenceElement.seed')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber seed;
 
   @DomName('SVGFETurbulenceElement.stitchTiles')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedEnumeration stitchTiles;
 
   @DomName('SVGFETurbulenceElement.type')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedEnumeration type;
 
   // From SVGFilterPrimitiveStandardAttributes
 
   @DomName('SVGFETurbulenceElement.height')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength height;
 
   @DomName('SVGFETurbulenceElement.result')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString result;
 
   @DomName('SVGFETurbulenceElement.width')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength width;
 
   @DomName('SVGFETurbulenceElement.x')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength x;
 
   @DomName('SVGFETurbulenceElement.y')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2728,80 +2728,80 @@ class FETurbulenceElement extends StyledElement implements FilterPrimitiveStanda
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFilterElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class FilterElement extends StyledElement implements UriReference, ExternalResourcesRequired, LangSpace native "SVGFilterElement" {
   // To suppress missing implicit constructor warnings.
   factory FilterElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFilterElement.SVGFilterElement')
-  @DocsEditable
+  @DocsEditable()
   factory FilterElement() => _SvgElementFactoryProvider.createSvgElement_tag("filter");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => SvgElement.isTagSupported('filter') && (new SvgElement.tag('filter') is FilterElement);
 
   @DomName('SVGFilterElement.filterResX')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedInteger filterResX;
 
   @DomName('SVGFilterElement.filterResY')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedInteger filterResY;
 
   @DomName('SVGFilterElement.filterUnits')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedEnumeration filterUnits;
 
   @DomName('SVGFilterElement.height')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength height;
 
   @DomName('SVGFilterElement.primitiveUnits')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedEnumeration primitiveUnits;
 
   @DomName('SVGFilterElement.width')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength width;
 
   @DomName('SVGFilterElement.x')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength x;
 
   @DomName('SVGFilterElement.y')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength y;
 
   @DomName('SVGFilterElement.setFilterRes')
-  @DocsEditable
+  @DocsEditable()
   void setFilterRes(int filterResX, int filterResY) native;
 
   // From SVGExternalResourcesRequired
 
   @DomName('SVGFilterElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
   @DomName('SVGFilterElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String xmllang;
 
   @DomName('SVGFilterElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String xmlspace;
 
   // From SVGURIReference
 
   @DomName('SVGFilterElement.href')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2809,9 +2809,9 @@ class FilterElement extends StyledElement implements UriReference, ExternalResou
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFilterPrimitiveStandardAttributes')
-@Unstable
+@Unstable()
 abstract class FilterPrimitiveStandardAttributes extends Interceptor {
 
   AnimatedLength height;
@@ -2829,9 +2829,9 @@ abstract class FilterPrimitiveStandardAttributes extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFitToViewBox')
-@Unstable
+@Unstable()
 abstract class FitToViewBox extends Interceptor {
 
   AnimatedPreserveAspectRatio preserveAspectRatio;
@@ -2843,105 +2843,105 @@ abstract class FitToViewBox extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGForeignObjectElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class ForeignObjectElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "SVGForeignObjectElement" {
   // To suppress missing implicit constructor warnings.
   factory ForeignObjectElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGForeignObjectElement.SVGForeignObjectElement')
-  @DocsEditable
+  @DocsEditable()
   factory ForeignObjectElement() => _SvgElementFactoryProvider.createSvgElement_tag("foreignObject");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => SvgElement.isTagSupported('foreignObject') && (new SvgElement.tag('foreignObject') is ForeignObjectElement);
 
   @DomName('SVGForeignObjectElement.height')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength height;
 
   @DomName('SVGForeignObjectElement.width')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength width;
 
   @DomName('SVGForeignObjectElement.x')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength x;
 
   @DomName('SVGForeignObjectElement.y')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength y;
 
   // From SVGExternalResourcesRequired
 
   @DomName('SVGForeignObjectElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
   @DomName('SVGForeignObjectElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String xmllang;
 
   @DomName('SVGForeignObjectElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String xmlspace;
 
   // From SVGLocatable
 
   @DomName('SVGForeignObjectElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement farthestViewportElement;
 
   @DomName('SVGForeignObjectElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement nearestViewportElement;
 
   @DomName('SVGForeignObjectElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native;
 
   @JSName('getCTM')
   @DomName('SVGForeignObjectElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native;
 
   @JSName('getScreenCTM')
   @DomName('SVGForeignObjectElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native;
 
   @DomName('SVGForeignObjectElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGTests
 
   @DomName('SVGForeignObjectElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredExtensions;
 
   @DomName('SVGForeignObjectElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredFeatures;
 
   @DomName('SVGForeignObjectElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   final StringList systemLanguage;
 
   @DomName('SVGForeignObjectElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
   @DomName('SVGForeignObjectElement.transform')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2949,83 +2949,83 @@ class ForeignObjectElement extends StyledElement implements Transformable, Tests
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGGElement')
-@Unstable
+@Unstable()
 class GElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "SVGGElement" {
   // To suppress missing implicit constructor warnings.
   factory GElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGGElement.SVGGElement')
-  @DocsEditable
+  @DocsEditable()
   factory GElement() => _SvgElementFactoryProvider.createSvgElement_tag("g");
 
   // From SVGExternalResourcesRequired
 
   @DomName('SVGGElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
   @DomName('SVGGElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String xmllang;
 
   @DomName('SVGGElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String xmlspace;
 
   // From SVGLocatable
 
   @DomName('SVGGElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement farthestViewportElement;
 
   @DomName('SVGGElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement nearestViewportElement;
 
   @DomName('SVGGElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native;
 
   @JSName('getCTM')
   @DomName('SVGGElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native;
 
   @JSName('getScreenCTM')
   @DomName('SVGGElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native;
 
   @DomName('SVGGElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGTests
 
   @DomName('SVGGElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredExtensions;
 
   @DomName('SVGGElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredFeatures;
 
   @DomName('SVGGElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   final StringList systemLanguage;
 
   @DomName('SVGGElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
   @DomName('SVGGElement.transform')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3033,109 +3033,109 @@ class GElement extends StyledElement implements Transformable, Tests, ExternalRe
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGImageElement')
-@Unstable
+@Unstable()
 class ImageElement extends StyledElement implements UriReference, Tests, Transformable, ExternalResourcesRequired, LangSpace native "SVGImageElement" {
   // To suppress missing implicit constructor warnings.
   factory ImageElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGImageElement.SVGImageElement')
-  @DocsEditable
+  @DocsEditable()
   factory ImageElement() => _SvgElementFactoryProvider.createSvgElement_tag("image");
 
   @DomName('SVGImageElement.height')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength height;
 
   @DomName('SVGImageElement.preserveAspectRatio')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedPreserveAspectRatio preserveAspectRatio;
 
   @DomName('SVGImageElement.width')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength width;
 
   @DomName('SVGImageElement.x')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength x;
 
   @DomName('SVGImageElement.y')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength y;
 
   // From SVGExternalResourcesRequired
 
   @DomName('SVGImageElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
   @DomName('SVGImageElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String xmllang;
 
   @DomName('SVGImageElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String xmlspace;
 
   // From SVGLocatable
 
   @DomName('SVGImageElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement farthestViewportElement;
 
   @DomName('SVGImageElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement nearestViewportElement;
 
   @DomName('SVGImageElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native;
 
   @JSName('getCTM')
   @DomName('SVGImageElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native;
 
   @JSName('getScreenCTM')
   @DomName('SVGImageElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native;
 
   @DomName('SVGImageElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGTests
 
   @DomName('SVGImageElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredExtensions;
 
   @DomName('SVGImageElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredFeatures;
 
   @DomName('SVGImageElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   final StringList systemLanguage;
 
   @DomName('SVGImageElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
   @DomName('SVGImageElement.transform')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedTransformList transform;
 
   // From SVGURIReference
 
   @DomName('SVGImageElement.href')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3143,9 +3143,9 @@ class ImageElement extends StyledElement implements UriReference, Tests, Transfo
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGLangSpace')
-@Unstable
+@Unstable()
 abstract class LangSpace extends Interceptor {
 
   /// Checks if this type is supported on the current platform.
@@ -3160,77 +3160,77 @@ abstract class LangSpace extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGLength')
-@Unstable
+@Unstable()
 class Length extends Interceptor native "SVGLength" {
 
   @DomName('SVGLength.SVG_LENGTHTYPE_CM')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_LENGTHTYPE_CM = 6;
 
   @DomName('SVGLength.SVG_LENGTHTYPE_EMS')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_LENGTHTYPE_EMS = 3;
 
   @DomName('SVGLength.SVG_LENGTHTYPE_EXS')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_LENGTHTYPE_EXS = 4;
 
   @DomName('SVGLength.SVG_LENGTHTYPE_IN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_LENGTHTYPE_IN = 8;
 
   @DomName('SVGLength.SVG_LENGTHTYPE_MM')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_LENGTHTYPE_MM = 7;
 
   @DomName('SVGLength.SVG_LENGTHTYPE_NUMBER')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_LENGTHTYPE_NUMBER = 1;
 
   @DomName('SVGLength.SVG_LENGTHTYPE_PC')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_LENGTHTYPE_PC = 10;
 
   @DomName('SVGLength.SVG_LENGTHTYPE_PERCENTAGE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_LENGTHTYPE_PERCENTAGE = 2;
 
   @DomName('SVGLength.SVG_LENGTHTYPE_PT')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_LENGTHTYPE_PT = 9;
 
   @DomName('SVGLength.SVG_LENGTHTYPE_PX')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_LENGTHTYPE_PX = 5;
 
   @DomName('SVGLength.SVG_LENGTHTYPE_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_LENGTHTYPE_UNKNOWN = 0;
 
   @DomName('SVGLength.unitType')
-  @DocsEditable
+  @DocsEditable()
   final int unitType;
 
   @DomName('SVGLength.value')
-  @DocsEditable
+  @DocsEditable()
   num value;
 
   @DomName('SVGLength.valueAsString')
-  @DocsEditable
+  @DocsEditable()
   String valueAsString;
 
   @DomName('SVGLength.valueInSpecifiedUnits')
-  @DocsEditable
+  @DocsEditable()
   num valueInSpecifiedUnits;
 
   @DomName('SVGLength.convertToSpecifiedUnits')
-  @DocsEditable
+  @DocsEditable()
   void convertToSpecifiedUnits(int unitType) native;
 
   @DomName('SVGLength.newValueSpecifiedUnits')
-  @DocsEditable
+  @DocsEditable()
   void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3238,13 +3238,13 @@ class Length extends Interceptor native "SVGLength" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGLengthList')
-@Unstable
+@Unstable()
 class LengthList extends Interceptor with ListMixin<Length>, ImmutableListMixin<Length> implements JavaScriptIndexingBehavior, List<Length> native "SVGLengthList" {
 
   @DomName('SVGLengthList.numberOfItems')
-  @DocsEditable
+  @DocsEditable()
   final int numberOfItems;
 
   Length operator[](int index) {
@@ -3294,31 +3294,31 @@ class LengthList extends Interceptor with ListMixin<Length>, ImmutableListMixin<
   // -- end List<Length> mixins.
 
   @DomName('SVGLengthList.appendItem')
-  @DocsEditable
+  @DocsEditable()
   Length appendItem(Length item) native;
 
   @DomName('SVGLengthList.clear')
-  @DocsEditable
+  @DocsEditable()
   void clear() native;
 
   @DomName('SVGLengthList.getItem')
-  @DocsEditable
+  @DocsEditable()
   Length getItem(int index) native;
 
   @DomName('SVGLengthList.initialize')
-  @DocsEditable
+  @DocsEditable()
   Length initialize(Length item) native;
 
   @DomName('SVGLengthList.insertItemBefore')
-  @DocsEditable
+  @DocsEditable()
   Length insertItemBefore(Length item, int index) native;
 
   @DomName('SVGLengthList.removeItem')
-  @DocsEditable
+  @DocsEditable()
   Length removeItem(int index) native;
 
   @DomName('SVGLengthList.replaceItem')
-  @DocsEditable
+  @DocsEditable()
   Length replaceItem(Length item, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3326,99 +3326,99 @@ class LengthList extends Interceptor with ListMixin<Length>, ImmutableListMixin<
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGLineElement')
-@Unstable
+@Unstable()
 class LineElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "SVGLineElement" {
   // To suppress missing implicit constructor warnings.
   factory LineElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGLineElement.SVGLineElement')
-  @DocsEditable
+  @DocsEditable()
   factory LineElement() => _SvgElementFactoryProvider.createSvgElement_tag("line");
 
   @DomName('SVGLineElement.x1')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength x1;
 
   @DomName('SVGLineElement.x2')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength x2;
 
   @DomName('SVGLineElement.y1')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength y1;
 
   @DomName('SVGLineElement.y2')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength y2;
 
   // From SVGExternalResourcesRequired
 
   @DomName('SVGLineElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
   @DomName('SVGLineElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String xmllang;
 
   @DomName('SVGLineElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String xmlspace;
 
   // From SVGLocatable
 
   @DomName('SVGLineElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement farthestViewportElement;
 
   @DomName('SVGLineElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement nearestViewportElement;
 
   @DomName('SVGLineElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native;
 
   @JSName('getCTM')
   @DomName('SVGLineElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native;
 
   @JSName('getScreenCTM')
   @DomName('SVGLineElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native;
 
   @DomName('SVGLineElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGTests
 
   @DomName('SVGLineElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredExtensions;
 
   @DomName('SVGLineElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredFeatures;
 
   @DomName('SVGLineElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   final StringList systemLanguage;
 
   @DomName('SVGLineElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
   @DomName('SVGLineElement.transform')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3426,31 +3426,31 @@ class LineElement extends StyledElement implements Transformable, Tests, Externa
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGLinearGradientElement')
-@Unstable
+@Unstable()
 class LinearGradientElement extends _GradientElement native "SVGLinearGradientElement" {
   // To suppress missing implicit constructor warnings.
   factory LinearGradientElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGLinearGradientElement.SVGLinearGradientElement')
-  @DocsEditable
+  @DocsEditable()
   factory LinearGradientElement() => _SvgElementFactoryProvider.createSvgElement_tag("linearGradient");
 
   @DomName('SVGLinearGradientElement.x1')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength x1;
 
   @DomName('SVGLinearGradientElement.x2')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength x2;
 
   @DomName('SVGLinearGradientElement.y1')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength y1;
 
   @DomName('SVGLinearGradientElement.y2')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength y2;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3458,9 +3458,9 @@ class LinearGradientElement extends _GradientElement native "SVGLinearGradientEl
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGLocatable')
-@Unstable
+@Unstable()
 abstract class Locatable extends Interceptor {
 
   SvgElement farthestViewportElement;
@@ -3480,101 +3480,101 @@ abstract class Locatable extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGMarkerElement')
-@Unstable
+@Unstable()
 class MarkerElement extends StyledElement implements FitToViewBox, ExternalResourcesRequired, LangSpace native "SVGMarkerElement" {
   // To suppress missing implicit constructor warnings.
   factory MarkerElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGMarkerElement.SVGMarkerElement')
-  @DocsEditable
+  @DocsEditable()
   factory MarkerElement() => _SvgElementFactoryProvider.createSvgElement_tag("marker");
 
   @DomName('SVGMarkerElement.SVG_MARKERUNITS_STROKEWIDTH')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_MARKERUNITS_STROKEWIDTH = 2;
 
   @DomName('SVGMarkerElement.SVG_MARKERUNITS_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_MARKERUNITS_UNKNOWN = 0;
 
   @DomName('SVGMarkerElement.SVG_MARKERUNITS_USERSPACEONUSE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_MARKERUNITS_USERSPACEONUSE = 1;
 
   @DomName('SVGMarkerElement.SVG_MARKER_ORIENT_ANGLE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_MARKER_ORIENT_ANGLE = 2;
 
   @DomName('SVGMarkerElement.SVG_MARKER_ORIENT_AUTO')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_MARKER_ORIENT_AUTO = 1;
 
   @DomName('SVGMarkerElement.SVG_MARKER_ORIENT_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_MARKER_ORIENT_UNKNOWN = 0;
 
   @DomName('SVGMarkerElement.markerHeight')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength markerHeight;
 
   @DomName('SVGMarkerElement.markerUnits')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedEnumeration markerUnits;
 
   @DomName('SVGMarkerElement.markerWidth')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength markerWidth;
 
   @DomName('SVGMarkerElement.orientAngle')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedAngle orientAngle;
 
   @DomName('SVGMarkerElement.orientType')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedEnumeration orientType;
 
   @DomName('SVGMarkerElement.refX')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength refX;
 
   @DomName('SVGMarkerElement.refY')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength refY;
 
   @DomName('SVGMarkerElement.setOrientToAngle')
-  @DocsEditable
+  @DocsEditable()
   void setOrientToAngle(Angle angle) native;
 
   @DomName('SVGMarkerElement.setOrientToAuto')
-  @DocsEditable
+  @DocsEditable()
   void setOrientToAuto() native;
 
   // From SVGExternalResourcesRequired
 
   @DomName('SVGMarkerElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGFitToViewBox
 
   @DomName('SVGMarkerElement.preserveAspectRatio')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedPreserveAspectRatio preserveAspectRatio;
 
   @DomName('SVGMarkerElement.viewBox')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedRect viewBox;
 
   // From SVGLangSpace
 
   @DomName('SVGMarkerElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String xmllang;
 
   @DomName('SVGMarkerElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String xmlspace;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3582,73 +3582,73 @@ class MarkerElement extends StyledElement implements FitToViewBox, ExternalResou
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGMaskElement')
-@Unstable
+@Unstable()
 class MaskElement extends StyledElement implements Tests, ExternalResourcesRequired, LangSpace native "SVGMaskElement" {
   // To suppress missing implicit constructor warnings.
   factory MaskElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGMaskElement.SVGMaskElement')
-  @DocsEditable
+  @DocsEditable()
   factory MaskElement() => _SvgElementFactoryProvider.createSvgElement_tag("mask");
 
   @DomName('SVGMaskElement.height')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength height;
 
   @DomName('SVGMaskElement.maskContentUnits')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedEnumeration maskContentUnits;
 
   @DomName('SVGMaskElement.maskUnits')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedEnumeration maskUnits;
 
   @DomName('SVGMaskElement.width')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength width;
 
   @DomName('SVGMaskElement.x')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength x;
 
   @DomName('SVGMaskElement.y')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength y;
 
   // From SVGExternalResourcesRequired
 
   @DomName('SVGMaskElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
   @DomName('SVGMaskElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String xmllang;
 
   @DomName('SVGMaskElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String xmlspace;
 
   // From SVGTests
 
   @DomName('SVGMaskElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredExtensions;
 
   @DomName('SVGMaskElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredFeatures;
 
   @DomName('SVGMaskElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   final StringList systemLanguage;
 
   @DomName('SVGMaskElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3656,77 +3656,77 @@ class MaskElement extends StyledElement implements Tests, ExternalResourcesRequi
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGMatrix')
-@Unstable
+@Unstable()
 class Matrix extends Interceptor native "SVGMatrix" {
 
   @DomName('SVGMatrix.a')
-  @DocsEditable
+  @DocsEditable()
   num a;
 
   @DomName('SVGMatrix.b')
-  @DocsEditable
+  @DocsEditable()
   num b;
 
   @DomName('SVGMatrix.c')
-  @DocsEditable
+  @DocsEditable()
   num c;
 
   @DomName('SVGMatrix.d')
-  @DocsEditable
+  @DocsEditable()
   num d;
 
   @DomName('SVGMatrix.e')
-  @DocsEditable
+  @DocsEditable()
   num e;
 
   @DomName('SVGMatrix.f')
-  @DocsEditable
+  @DocsEditable()
   num f;
 
   @DomName('SVGMatrix.flipX')
-  @DocsEditable
+  @DocsEditable()
   Matrix flipX() native;
 
   @DomName('SVGMatrix.flipY')
-  @DocsEditable
+  @DocsEditable()
   Matrix flipY() native;
 
   @DomName('SVGMatrix.inverse')
-  @DocsEditable
+  @DocsEditable()
   Matrix inverse() native;
 
   @DomName('SVGMatrix.multiply')
-  @DocsEditable
+  @DocsEditable()
   Matrix multiply(Matrix secondMatrix) native;
 
   @DomName('SVGMatrix.rotate')
-  @DocsEditable
+  @DocsEditable()
   Matrix rotate(num angle) native;
 
   @DomName('SVGMatrix.rotateFromVector')
-  @DocsEditable
+  @DocsEditable()
   Matrix rotateFromVector(num x, num y) native;
 
   @DomName('SVGMatrix.scale')
-  @DocsEditable
+  @DocsEditable()
   Matrix scale(num scaleFactor) native;
 
   @DomName('SVGMatrix.scaleNonUniform')
-  @DocsEditable
+  @DocsEditable()
   Matrix scaleNonUniform(num scaleFactorX, num scaleFactorY) native;
 
   @DomName('SVGMatrix.skewX')
-  @DocsEditable
+  @DocsEditable()
   Matrix skewX(num angle) native;
 
   @DomName('SVGMatrix.skewY')
-  @DocsEditable
+  @DocsEditable()
   Matrix skewY(num angle) native;
 
   @DomName('SVGMatrix.translate')
-  @DocsEditable
+  @DocsEditable()
   Matrix translate(num x, num y) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3734,9 +3734,9 @@ class Matrix extends Interceptor native "SVGMatrix" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGMetadataElement')
-@Unstable
+@Unstable()
 class MetadataElement extends SvgElement native "SVGMetadataElement" {
   // To suppress missing implicit constructor warnings.
   factory MetadataElement._() { throw new UnsupportedError("Not supported"); }
@@ -3746,13 +3746,13 @@ class MetadataElement extends SvgElement native "SVGMetadataElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGNumber')
-@Unstable
+@Unstable()
 class Number extends Interceptor native "SVGNumber" {
 
   @DomName('SVGNumber.value')
-  @DocsEditable
+  @DocsEditable()
   num value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3760,13 +3760,13 @@ class Number extends Interceptor native "SVGNumber" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGNumberList')
-@Unstable
+@Unstable()
 class NumberList extends Interceptor with ListMixin<Number>, ImmutableListMixin<Number> implements JavaScriptIndexingBehavior, List<Number> native "SVGNumberList" {
 
   @DomName('SVGNumberList.numberOfItems')
-  @DocsEditable
+  @DocsEditable()
   final int numberOfItems;
 
   Number operator[](int index) {
@@ -3816,31 +3816,31 @@ class NumberList extends Interceptor with ListMixin<Number>, ImmutableListMixin<
   // -- end List<Number> mixins.
 
   @DomName('SVGNumberList.appendItem')
-  @DocsEditable
+  @DocsEditable()
   Number appendItem(Number item) native;
 
   @DomName('SVGNumberList.clear')
-  @DocsEditable
+  @DocsEditable()
   void clear() native;
 
   @DomName('SVGNumberList.getItem')
-  @DocsEditable
+  @DocsEditable()
   Number getItem(int index) native;
 
   @DomName('SVGNumberList.initialize')
-  @DocsEditable
+  @DocsEditable()
   Number initialize(Number item) native;
 
   @DomName('SVGNumberList.insertItemBefore')
-  @DocsEditable
+  @DocsEditable()
   Number insertItemBefore(Number item, int index) native;
 
   @DomName('SVGNumberList.removeItem')
-  @DocsEditable
+  @DocsEditable()
   Number removeItem(int index) native;
 
   @DomName('SVGNumberList.replaceItem')
-  @DocsEditable
+  @DocsEditable()
   Number replaceItem(Number item, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3848,210 +3848,210 @@ class NumberList extends Interceptor with ListMixin<Number>, ImmutableListMixin<
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathElement')
-@Unstable
+@Unstable()
 class PathElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "SVGPathElement" {
   // To suppress missing implicit constructor warnings.
   factory PathElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathElement.SVGPathElement')
-  @DocsEditable
+  @DocsEditable()
   factory PathElement() => _SvgElementFactoryProvider.createSvgElement_tag("path");
 
   @DomName('SVGPathElement.animatedNormalizedPathSegList')
-  @DocsEditable
+  @DocsEditable()
   final PathSegList animatedNormalizedPathSegList;
 
   @DomName('SVGPathElement.animatedPathSegList')
-  @DocsEditable
+  @DocsEditable()
   final PathSegList animatedPathSegList;
 
   @DomName('SVGPathElement.normalizedPathSegList')
-  @DocsEditable
+  @DocsEditable()
   final PathSegList normalizedPathSegList;
 
   @DomName('SVGPathElement.pathLength')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber pathLength;
 
   @DomName('SVGPathElement.pathSegList')
-  @DocsEditable
+  @DocsEditable()
   final PathSegList pathSegList;
 
   @JSName('createSVGPathSegArcAbs')
   @DomName('SVGPathElement.createSVGPathSegArcAbs')
-  @DocsEditable
+  @DocsEditable()
   PathSegArcAbs createSvgPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native;
 
   @JSName('createSVGPathSegArcRel')
   @DomName('SVGPathElement.createSVGPathSegArcRel')
-  @DocsEditable
+  @DocsEditable()
   PathSegArcRel createSvgPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native;
 
   @JSName('createSVGPathSegClosePath')
   @DomName('SVGPathElement.createSVGPathSegClosePath')
-  @DocsEditable
+  @DocsEditable()
   PathSegClosePath createSvgPathSegClosePath() native;
 
   @JSName('createSVGPathSegCurvetoCubicAbs')
   @DomName('SVGPathElement.createSVGPathSegCurvetoCubicAbs')
-  @DocsEditable
+  @DocsEditable()
   PathSegCurvetoCubicAbs createSvgPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2) native;
 
   @JSName('createSVGPathSegCurvetoCubicRel')
   @DomName('SVGPathElement.createSVGPathSegCurvetoCubicRel')
-  @DocsEditable
+  @DocsEditable()
   PathSegCurvetoCubicRel createSvgPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2) native;
 
   @JSName('createSVGPathSegCurvetoCubicSmoothAbs')
   @DomName('SVGPathElement.createSVGPathSegCurvetoCubicSmoothAbs')
-  @DocsEditable
+  @DocsEditable()
   PathSegCurvetoCubicSmoothAbs createSvgPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2) native;
 
   @JSName('createSVGPathSegCurvetoCubicSmoothRel')
   @DomName('SVGPathElement.createSVGPathSegCurvetoCubicSmoothRel')
-  @DocsEditable
+  @DocsEditable()
   PathSegCurvetoCubicSmoothRel createSvgPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2) native;
 
   @JSName('createSVGPathSegCurvetoQuadraticAbs')
   @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticAbs')
-  @DocsEditable
+  @DocsEditable()
   PathSegCurvetoQuadraticAbs createSvgPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1) native;
 
   @JSName('createSVGPathSegCurvetoQuadraticRel')
   @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticRel')
-  @DocsEditable
+  @DocsEditable()
   PathSegCurvetoQuadraticRel createSvgPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1) native;
 
   @JSName('createSVGPathSegCurvetoQuadraticSmoothAbs')
   @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothAbs')
-  @DocsEditable
+  @DocsEditable()
   PathSegCurvetoQuadraticSmoothAbs createSvgPathSegCurvetoQuadraticSmoothAbs(num x, num y) native;
 
   @JSName('createSVGPathSegCurvetoQuadraticSmoothRel')
   @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothRel')
-  @DocsEditable
+  @DocsEditable()
   PathSegCurvetoQuadraticSmoothRel createSvgPathSegCurvetoQuadraticSmoothRel(num x, num y) native;
 
   @JSName('createSVGPathSegLinetoAbs')
   @DomName('SVGPathElement.createSVGPathSegLinetoAbs')
-  @DocsEditable
+  @DocsEditable()
   PathSegLinetoAbs createSvgPathSegLinetoAbs(num x, num y) native;
 
   @JSName('createSVGPathSegLinetoHorizontalAbs')
   @DomName('SVGPathElement.createSVGPathSegLinetoHorizontalAbs')
-  @DocsEditable
+  @DocsEditable()
   PathSegLinetoHorizontalAbs createSvgPathSegLinetoHorizontalAbs(num x) native;
 
   @JSName('createSVGPathSegLinetoHorizontalRel')
   @DomName('SVGPathElement.createSVGPathSegLinetoHorizontalRel')
-  @DocsEditable
+  @DocsEditable()
   PathSegLinetoHorizontalRel createSvgPathSegLinetoHorizontalRel(num x) native;
 
   @JSName('createSVGPathSegLinetoRel')
   @DomName('SVGPathElement.createSVGPathSegLinetoRel')
-  @DocsEditable
+  @DocsEditable()
   PathSegLinetoRel createSvgPathSegLinetoRel(num x, num y) native;
 
   @JSName('createSVGPathSegLinetoVerticalAbs')
   @DomName('SVGPathElement.createSVGPathSegLinetoVerticalAbs')
-  @DocsEditable
+  @DocsEditable()
   PathSegLinetoVerticalAbs createSvgPathSegLinetoVerticalAbs(num y) native;
 
   @JSName('createSVGPathSegLinetoVerticalRel')
   @DomName('SVGPathElement.createSVGPathSegLinetoVerticalRel')
-  @DocsEditable
+  @DocsEditable()
   PathSegLinetoVerticalRel createSvgPathSegLinetoVerticalRel(num y) native;
 
   @JSName('createSVGPathSegMovetoAbs')
   @DomName('SVGPathElement.createSVGPathSegMovetoAbs')
-  @DocsEditable
+  @DocsEditable()
   PathSegMovetoAbs createSvgPathSegMovetoAbs(num x, num y) native;
 
   @JSName('createSVGPathSegMovetoRel')
   @DomName('SVGPathElement.createSVGPathSegMovetoRel')
-  @DocsEditable
+  @DocsEditable()
   PathSegMovetoRel createSvgPathSegMovetoRel(num x, num y) native;
 
   @DomName('SVGPathElement.getPathSegAtLength')
-  @DocsEditable
+  @DocsEditable()
   int getPathSegAtLength(num distance) native;
 
   @DomName('SVGPathElement.getPointAtLength')
-  @DocsEditable
+  @DocsEditable()
   Point getPointAtLength(num distance) native;
 
   @DomName('SVGPathElement.getTotalLength')
-  @DocsEditable
+  @DocsEditable()
   num getTotalLength() native;
 
   // From SVGExternalResourcesRequired
 
   @DomName('SVGPathElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
   @DomName('SVGPathElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String xmllang;
 
   @DomName('SVGPathElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String xmlspace;
 
   // From SVGLocatable
 
   @DomName('SVGPathElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement farthestViewportElement;
 
   @DomName('SVGPathElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement nearestViewportElement;
 
   @DomName('SVGPathElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native;
 
   @JSName('getCTM')
   @DomName('SVGPathElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native;
 
   @JSName('getScreenCTM')
   @DomName('SVGPathElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native;
 
   @DomName('SVGPathElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGTests
 
   @DomName('SVGPathElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredExtensions;
 
   @DomName('SVGPathElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredFeatures;
 
   @DomName('SVGPathElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   final StringList systemLanguage;
 
   @DomName('SVGPathElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
   @DomName('SVGPathElement.transform')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4059,97 +4059,97 @@ class PathElement extends StyledElement implements Transformable, Tests, Externa
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSeg')
-@Unstable
+@Unstable()
 class PathSeg extends Interceptor native "SVGPathSeg" {
 
   @DomName('SVGPathSeg.PATHSEG_ARC_ABS')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_ARC_ABS = 10;
 
   @DomName('SVGPathSeg.PATHSEG_ARC_REL')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_ARC_REL = 11;
 
   @DomName('SVGPathSeg.PATHSEG_CLOSEPATH')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_CLOSEPATH = 1;
 
   @DomName('SVGPathSeg.PATHSEG_CURVETO_CUBIC_ABS')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_CURVETO_CUBIC_ABS = 6;
 
   @DomName('SVGPathSeg.PATHSEG_CURVETO_CUBIC_REL')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_CURVETO_CUBIC_REL = 7;
 
   @DomName('SVGPathSeg.PATHSEG_CURVETO_CUBIC_SMOOTH_ABS')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_CURVETO_CUBIC_SMOOTH_ABS = 16;
 
   @DomName('SVGPathSeg.PATHSEG_CURVETO_CUBIC_SMOOTH_REL')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_CURVETO_CUBIC_SMOOTH_REL = 17;
 
   @DomName('SVGPathSeg.PATHSEG_CURVETO_QUADRATIC_ABS')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_CURVETO_QUADRATIC_ABS = 8;
 
   @DomName('SVGPathSeg.PATHSEG_CURVETO_QUADRATIC_REL')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_CURVETO_QUADRATIC_REL = 9;
 
   @DomName('SVGPathSeg.PATHSEG_CURVETO_QUADRATIC_SMOOTH_ABS')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_CURVETO_QUADRATIC_SMOOTH_ABS = 18;
 
   @DomName('SVGPathSeg.PATHSEG_CURVETO_QUADRATIC_SMOOTH_REL')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_CURVETO_QUADRATIC_SMOOTH_REL = 19;
 
   @DomName('SVGPathSeg.PATHSEG_LINETO_ABS')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_LINETO_ABS = 4;
 
   @DomName('SVGPathSeg.PATHSEG_LINETO_HORIZONTAL_ABS')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_LINETO_HORIZONTAL_ABS = 12;
 
   @DomName('SVGPathSeg.PATHSEG_LINETO_HORIZONTAL_REL')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_LINETO_HORIZONTAL_REL = 13;
 
   @DomName('SVGPathSeg.PATHSEG_LINETO_REL')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_LINETO_REL = 5;
 
   @DomName('SVGPathSeg.PATHSEG_LINETO_VERTICAL_ABS')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_LINETO_VERTICAL_ABS = 14;
 
   @DomName('SVGPathSeg.PATHSEG_LINETO_VERTICAL_REL')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_LINETO_VERTICAL_REL = 15;
 
   @DomName('SVGPathSeg.PATHSEG_MOVETO_ABS')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_MOVETO_ABS = 2;
 
   @DomName('SVGPathSeg.PATHSEG_MOVETO_REL')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_MOVETO_REL = 3;
 
   @DomName('SVGPathSeg.PATHSEG_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int PATHSEG_UNKNOWN = 0;
 
   @DomName('SVGPathSeg.pathSegType')
-  @DocsEditable
+  @DocsEditable()
   final int pathSegType;
 
   @DomName('SVGPathSeg.pathSegTypeAsLetter')
-  @DocsEditable
+  @DocsEditable()
   final String pathSegTypeAsLetter;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4157,39 +4157,39 @@ class PathSeg extends Interceptor native "SVGPathSeg" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegArcAbs')
-@Unstable
+@Unstable()
 class PathSegArcAbs extends PathSeg native "SVGPathSegArcAbs" {
   // To suppress missing implicit constructor warnings.
   factory PathSegArcAbs._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegArcAbs.angle')
-  @DocsEditable
+  @DocsEditable()
   num angle;
 
   @DomName('SVGPathSegArcAbs.largeArcFlag')
-  @DocsEditable
+  @DocsEditable()
   bool largeArcFlag;
 
   @DomName('SVGPathSegArcAbs.r1')
-  @DocsEditable
+  @DocsEditable()
   num r1;
 
   @DomName('SVGPathSegArcAbs.r2')
-  @DocsEditable
+  @DocsEditable()
   num r2;
 
   @DomName('SVGPathSegArcAbs.sweepFlag')
-  @DocsEditable
+  @DocsEditable()
   bool sweepFlag;
 
   @DomName('SVGPathSegArcAbs.x')
-  @DocsEditable
+  @DocsEditable()
   num x;
 
   @DomName('SVGPathSegArcAbs.y')
-  @DocsEditable
+  @DocsEditable()
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4197,39 +4197,39 @@ class PathSegArcAbs extends PathSeg native "SVGPathSegArcAbs" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegArcRel')
-@Unstable
+@Unstable()
 class PathSegArcRel extends PathSeg native "SVGPathSegArcRel" {
   // To suppress missing implicit constructor warnings.
   factory PathSegArcRel._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegArcRel.angle')
-  @DocsEditable
+  @DocsEditable()
   num angle;
 
   @DomName('SVGPathSegArcRel.largeArcFlag')
-  @DocsEditable
+  @DocsEditable()
   bool largeArcFlag;
 
   @DomName('SVGPathSegArcRel.r1')
-  @DocsEditable
+  @DocsEditable()
   num r1;
 
   @DomName('SVGPathSegArcRel.r2')
-  @DocsEditable
+  @DocsEditable()
   num r2;
 
   @DomName('SVGPathSegArcRel.sweepFlag')
-  @DocsEditable
+  @DocsEditable()
   bool sweepFlag;
 
   @DomName('SVGPathSegArcRel.x')
-  @DocsEditable
+  @DocsEditable()
   num x;
 
   @DomName('SVGPathSegArcRel.y')
-  @DocsEditable
+  @DocsEditable()
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4237,9 +4237,9 @@ class PathSegArcRel extends PathSeg native "SVGPathSegArcRel" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegClosePath')
-@Unstable
+@Unstable()
 class PathSegClosePath extends PathSeg native "SVGPathSegClosePath" {
   // To suppress missing implicit constructor warnings.
   factory PathSegClosePath._() { throw new UnsupportedError("Not supported"); }
@@ -4249,35 +4249,35 @@ class PathSegClosePath extends PathSeg native "SVGPathSegClosePath" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegCurvetoCubicAbs')
-@Unstable
+@Unstable()
 class PathSegCurvetoCubicAbs extends PathSeg native "SVGPathSegCurvetoCubicAbs" {
   // To suppress missing implicit constructor warnings.
   factory PathSegCurvetoCubicAbs._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegCurvetoCubicAbs.x')
-  @DocsEditable
+  @DocsEditable()
   num x;
 
   @DomName('SVGPathSegCurvetoCubicAbs.x1')
-  @DocsEditable
+  @DocsEditable()
   num x1;
 
   @DomName('SVGPathSegCurvetoCubicAbs.x2')
-  @DocsEditable
+  @DocsEditable()
   num x2;
 
   @DomName('SVGPathSegCurvetoCubicAbs.y')
-  @DocsEditable
+  @DocsEditable()
   num y;
 
   @DomName('SVGPathSegCurvetoCubicAbs.y1')
-  @DocsEditable
+  @DocsEditable()
   num y1;
 
   @DomName('SVGPathSegCurvetoCubicAbs.y2')
-  @DocsEditable
+  @DocsEditable()
   num y2;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4285,35 +4285,35 @@ class PathSegCurvetoCubicAbs extends PathSeg native "SVGPathSegCurvetoCubicAbs" 
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegCurvetoCubicRel')
-@Unstable
+@Unstable()
 class PathSegCurvetoCubicRel extends PathSeg native "SVGPathSegCurvetoCubicRel" {
   // To suppress missing implicit constructor warnings.
   factory PathSegCurvetoCubicRel._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegCurvetoCubicRel.x')
-  @DocsEditable
+  @DocsEditable()
   num x;
 
   @DomName('SVGPathSegCurvetoCubicRel.x1')
-  @DocsEditable
+  @DocsEditable()
   num x1;
 
   @DomName('SVGPathSegCurvetoCubicRel.x2')
-  @DocsEditable
+  @DocsEditable()
   num x2;
 
   @DomName('SVGPathSegCurvetoCubicRel.y')
-  @DocsEditable
+  @DocsEditable()
   num y;
 
   @DomName('SVGPathSegCurvetoCubicRel.y1')
-  @DocsEditable
+  @DocsEditable()
   num y1;
 
   @DomName('SVGPathSegCurvetoCubicRel.y2')
-  @DocsEditable
+  @DocsEditable()
   num y2;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4321,27 +4321,27 @@ class PathSegCurvetoCubicRel extends PathSeg native "SVGPathSegCurvetoCubicRel" 
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegCurvetoCubicSmoothAbs')
-@Unstable
+@Unstable()
 class PathSegCurvetoCubicSmoothAbs extends PathSeg native "SVGPathSegCurvetoCubicSmoothAbs" {
   // To suppress missing implicit constructor warnings.
   factory PathSegCurvetoCubicSmoothAbs._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.x')
-  @DocsEditable
+  @DocsEditable()
   num x;
 
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.x2')
-  @DocsEditable
+  @DocsEditable()
   num x2;
 
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.y')
-  @DocsEditable
+  @DocsEditable()
   num y;
 
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.y2')
-  @DocsEditable
+  @DocsEditable()
   num y2;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4349,27 +4349,27 @@ class PathSegCurvetoCubicSmoothAbs extends PathSeg native "SVGPathSegCurvetoCubi
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegCurvetoCubicSmoothRel')
-@Unstable
+@Unstable()
 class PathSegCurvetoCubicSmoothRel extends PathSeg native "SVGPathSegCurvetoCubicSmoothRel" {
   // To suppress missing implicit constructor warnings.
   factory PathSegCurvetoCubicSmoothRel._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegCurvetoCubicSmoothRel.x')
-  @DocsEditable
+  @DocsEditable()
   num x;
 
   @DomName('SVGPathSegCurvetoCubicSmoothRel.x2')
-  @DocsEditable
+  @DocsEditable()
   num x2;
 
   @DomName('SVGPathSegCurvetoCubicSmoothRel.y')
-  @DocsEditable
+  @DocsEditable()
   num y;
 
   @DomName('SVGPathSegCurvetoCubicSmoothRel.y2')
-  @DocsEditable
+  @DocsEditable()
   num y2;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4377,27 +4377,27 @@ class PathSegCurvetoCubicSmoothRel extends PathSeg native "SVGPathSegCurvetoCubi
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegCurvetoQuadraticAbs')
-@Unstable
+@Unstable()
 class PathSegCurvetoQuadraticAbs extends PathSeg native "SVGPathSegCurvetoQuadraticAbs" {
   // To suppress missing implicit constructor warnings.
   factory PathSegCurvetoQuadraticAbs._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegCurvetoQuadraticAbs.x')
-  @DocsEditable
+  @DocsEditable()
   num x;
 
   @DomName('SVGPathSegCurvetoQuadraticAbs.x1')
-  @DocsEditable
+  @DocsEditable()
   num x1;
 
   @DomName('SVGPathSegCurvetoQuadraticAbs.y')
-  @DocsEditable
+  @DocsEditable()
   num y;
 
   @DomName('SVGPathSegCurvetoQuadraticAbs.y1')
-  @DocsEditable
+  @DocsEditable()
   num y1;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4405,27 +4405,27 @@ class PathSegCurvetoQuadraticAbs extends PathSeg native "SVGPathSegCurvetoQuadra
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegCurvetoQuadraticRel')
-@Unstable
+@Unstable()
 class PathSegCurvetoQuadraticRel extends PathSeg native "SVGPathSegCurvetoQuadraticRel" {
   // To suppress missing implicit constructor warnings.
   factory PathSegCurvetoQuadraticRel._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegCurvetoQuadraticRel.x')
-  @DocsEditable
+  @DocsEditable()
   num x;
 
   @DomName('SVGPathSegCurvetoQuadraticRel.x1')
-  @DocsEditable
+  @DocsEditable()
   num x1;
 
   @DomName('SVGPathSegCurvetoQuadraticRel.y')
-  @DocsEditable
+  @DocsEditable()
   num y;
 
   @DomName('SVGPathSegCurvetoQuadraticRel.y1')
-  @DocsEditable
+  @DocsEditable()
   num y1;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4433,19 +4433,19 @@ class PathSegCurvetoQuadraticRel extends PathSeg native "SVGPathSegCurvetoQuadra
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegCurvetoQuadraticSmoothAbs')
-@Unstable
+@Unstable()
 class PathSegCurvetoQuadraticSmoothAbs extends PathSeg native "SVGPathSegCurvetoQuadraticSmoothAbs" {
   // To suppress missing implicit constructor warnings.
   factory PathSegCurvetoQuadraticSmoothAbs._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.x')
-  @DocsEditable
+  @DocsEditable()
   num x;
 
   @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.y')
-  @DocsEditable
+  @DocsEditable()
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4453,19 +4453,19 @@ class PathSegCurvetoQuadraticSmoothAbs extends PathSeg native "SVGPathSegCurveto
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegCurvetoQuadraticSmoothRel')
-@Unstable
+@Unstable()
 class PathSegCurvetoQuadraticSmoothRel extends PathSeg native "SVGPathSegCurvetoQuadraticSmoothRel" {
   // To suppress missing implicit constructor warnings.
   factory PathSegCurvetoQuadraticSmoothRel._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegCurvetoQuadraticSmoothRel.x')
-  @DocsEditable
+  @DocsEditable()
   num x;
 
   @DomName('SVGPathSegCurvetoQuadraticSmoothRel.y')
-  @DocsEditable
+  @DocsEditable()
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4473,19 +4473,19 @@ class PathSegCurvetoQuadraticSmoothRel extends PathSeg native "SVGPathSegCurveto
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegLinetoAbs')
-@Unstable
+@Unstable()
 class PathSegLinetoAbs extends PathSeg native "SVGPathSegLinetoAbs" {
   // To suppress missing implicit constructor warnings.
   factory PathSegLinetoAbs._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegLinetoAbs.x')
-  @DocsEditable
+  @DocsEditable()
   num x;
 
   @DomName('SVGPathSegLinetoAbs.y')
-  @DocsEditable
+  @DocsEditable()
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4493,15 +4493,15 @@ class PathSegLinetoAbs extends PathSeg native "SVGPathSegLinetoAbs" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegLinetoHorizontalAbs')
-@Unstable
+@Unstable()
 class PathSegLinetoHorizontalAbs extends PathSeg native "SVGPathSegLinetoHorizontalAbs" {
   // To suppress missing implicit constructor warnings.
   factory PathSegLinetoHorizontalAbs._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegLinetoHorizontalAbs.x')
-  @DocsEditable
+  @DocsEditable()
   num x;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4509,15 +4509,15 @@ class PathSegLinetoHorizontalAbs extends PathSeg native "SVGPathSegLinetoHorizon
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegLinetoHorizontalRel')
-@Unstable
+@Unstable()
 class PathSegLinetoHorizontalRel extends PathSeg native "SVGPathSegLinetoHorizontalRel" {
   // To suppress missing implicit constructor warnings.
   factory PathSegLinetoHorizontalRel._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegLinetoHorizontalRel.x')
-  @DocsEditable
+  @DocsEditable()
   num x;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4525,19 +4525,19 @@ class PathSegLinetoHorizontalRel extends PathSeg native "SVGPathSegLinetoHorizon
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegLinetoRel')
-@Unstable
+@Unstable()
 class PathSegLinetoRel extends PathSeg native "SVGPathSegLinetoRel" {
   // To suppress missing implicit constructor warnings.
   factory PathSegLinetoRel._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegLinetoRel.x')
-  @DocsEditable
+  @DocsEditable()
   num x;
 
   @DomName('SVGPathSegLinetoRel.y')
-  @DocsEditable
+  @DocsEditable()
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4545,15 +4545,15 @@ class PathSegLinetoRel extends PathSeg native "SVGPathSegLinetoRel" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegLinetoVerticalAbs')
-@Unstable
+@Unstable()
 class PathSegLinetoVerticalAbs extends PathSeg native "SVGPathSegLinetoVerticalAbs" {
   // To suppress missing implicit constructor warnings.
   factory PathSegLinetoVerticalAbs._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegLinetoVerticalAbs.y')
-  @DocsEditable
+  @DocsEditable()
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4561,15 +4561,15 @@ class PathSegLinetoVerticalAbs extends PathSeg native "SVGPathSegLinetoVerticalA
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegLinetoVerticalRel')
-@Unstable
+@Unstable()
 class PathSegLinetoVerticalRel extends PathSeg native "SVGPathSegLinetoVerticalRel" {
   // To suppress missing implicit constructor warnings.
   factory PathSegLinetoVerticalRel._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegLinetoVerticalRel.y')
-  @DocsEditable
+  @DocsEditable()
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4577,13 +4577,13 @@ class PathSegLinetoVerticalRel extends PathSeg native "SVGPathSegLinetoVerticalR
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegList')
-@Unstable
+@Unstable()
 class PathSegList extends Interceptor with ListMixin<PathSeg>, ImmutableListMixin<PathSeg> implements JavaScriptIndexingBehavior, List<PathSeg> native "SVGPathSegList" {
 
   @DomName('SVGPathSegList.numberOfItems')
-  @DocsEditable
+  @DocsEditable()
   final int numberOfItems;
 
   PathSeg operator[](int index) {
@@ -4633,31 +4633,31 @@ class PathSegList extends Interceptor with ListMixin<PathSeg>, ImmutableListMixi
   // -- end List<PathSeg> mixins.
 
   @DomName('SVGPathSegList.appendItem')
-  @DocsEditable
+  @DocsEditable()
   PathSeg appendItem(PathSeg newItem) native;
 
   @DomName('SVGPathSegList.clear')
-  @DocsEditable
+  @DocsEditable()
   void clear() native;
 
   @DomName('SVGPathSegList.getItem')
-  @DocsEditable
+  @DocsEditable()
   PathSeg getItem(int index) native;
 
   @DomName('SVGPathSegList.initialize')
-  @DocsEditable
+  @DocsEditable()
   PathSeg initialize(PathSeg newItem) native;
 
   @DomName('SVGPathSegList.insertItemBefore')
-  @DocsEditable
+  @DocsEditable()
   PathSeg insertItemBefore(PathSeg newItem, int index) native;
 
   @DomName('SVGPathSegList.removeItem')
-  @DocsEditable
+  @DocsEditable()
   PathSeg removeItem(int index) native;
 
   @DomName('SVGPathSegList.replaceItem')
-  @DocsEditable
+  @DocsEditable()
   PathSeg replaceItem(PathSeg newItem, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4665,19 +4665,19 @@ class PathSegList extends Interceptor with ListMixin<PathSeg>, ImmutableListMixi
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegMovetoAbs')
-@Unstable
+@Unstable()
 class PathSegMovetoAbs extends PathSeg native "SVGPathSegMovetoAbs" {
   // To suppress missing implicit constructor warnings.
   factory PathSegMovetoAbs._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegMovetoAbs.x')
-  @DocsEditable
+  @DocsEditable()
   num x;
 
   @DomName('SVGPathSegMovetoAbs.y')
-  @DocsEditable
+  @DocsEditable()
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4685,19 +4685,19 @@ class PathSegMovetoAbs extends PathSeg native "SVGPathSegMovetoAbs" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPathSegMovetoRel')
-@Unstable
+@Unstable()
 class PathSegMovetoRel extends PathSeg native "SVGPathSegMovetoRel" {
   // To suppress missing implicit constructor warnings.
   factory PathSegMovetoRel._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegMovetoRel.x')
-  @DocsEditable
+  @DocsEditable()
   num x;
 
   @DomName('SVGPathSegMovetoRel.y')
-  @DocsEditable
+  @DocsEditable()
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4705,93 +4705,93 @@ class PathSegMovetoRel extends PathSeg native "SVGPathSegMovetoRel" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPatternElement')
-@Unstable
+@Unstable()
 class PatternElement extends StyledElement implements FitToViewBox, UriReference, Tests, ExternalResourcesRequired, LangSpace native "SVGPatternElement" {
   // To suppress missing implicit constructor warnings.
   factory PatternElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPatternElement.SVGPatternElement')
-  @DocsEditable
+  @DocsEditable()
   factory PatternElement() => _SvgElementFactoryProvider.createSvgElement_tag("pattern");
 
   @DomName('SVGPatternElement.height')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength height;
 
   @DomName('SVGPatternElement.patternContentUnits')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedEnumeration patternContentUnits;
 
   @DomName('SVGPatternElement.patternTransform')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedTransformList patternTransform;
 
   @DomName('SVGPatternElement.patternUnits')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedEnumeration patternUnits;
 
   @DomName('SVGPatternElement.width')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength width;
 
   @DomName('SVGPatternElement.x')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength x;
 
   @DomName('SVGPatternElement.y')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength y;
 
   // From SVGExternalResourcesRequired
 
   @DomName('SVGPatternElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGFitToViewBox
 
   @DomName('SVGPatternElement.preserveAspectRatio')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedPreserveAspectRatio preserveAspectRatio;
 
   @DomName('SVGPatternElement.viewBox')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedRect viewBox;
 
   // From SVGLangSpace
 
   @DomName('SVGPatternElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String xmllang;
 
   @DomName('SVGPatternElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String xmlspace;
 
   // From SVGTests
 
   @DomName('SVGPatternElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredExtensions;
 
   @DomName('SVGPatternElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredFeatures;
 
   @DomName('SVGPatternElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   final StringList systemLanguage;
 
   @DomName('SVGPatternElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native;
 
   // From SVGURIReference
 
   @DomName('SVGPatternElement.href')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4799,21 +4799,21 @@ class PatternElement extends StyledElement implements FitToViewBox, UriReference
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPoint')
-@Unstable
+@Unstable()
 class Point extends Interceptor native "SVGPoint" {
 
   @DomName('SVGPoint.x')
-  @DocsEditable
+  @DocsEditable()
   num x;
 
   @DomName('SVGPoint.y')
-  @DocsEditable
+  @DocsEditable()
   num y;
 
   @DomName('SVGPoint.matrixTransform')
-  @DocsEditable
+  @DocsEditable()
   Point matrixTransform(Matrix matrix) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4821,41 +4821,41 @@ class Point extends Interceptor native "SVGPoint" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPointList')
-@Unstable
+@Unstable()
 class PointList extends Interceptor native "SVGPointList" {
 
   @DomName('SVGPointList.numberOfItems')
-  @DocsEditable
+  @DocsEditable()
   final int numberOfItems;
 
   @DomName('SVGPointList.appendItem')
-  @DocsEditable
+  @DocsEditable()
   Point appendItem(Point item) native;
 
   @DomName('SVGPointList.clear')
-  @DocsEditable
+  @DocsEditable()
   void clear() native;
 
   @DomName('SVGPointList.getItem')
-  @DocsEditable
+  @DocsEditable()
   Point getItem(int index) native;
 
   @DomName('SVGPointList.initialize')
-  @DocsEditable
+  @DocsEditable()
   Point initialize(Point item) native;
 
   @DomName('SVGPointList.insertItemBefore')
-  @DocsEditable
+  @DocsEditable()
   Point insertItemBefore(Point item, int index) native;
 
   @DomName('SVGPointList.removeItem')
-  @DocsEditable
+  @DocsEditable()
   Point removeItem(int index) native;
 
   @DomName('SVGPointList.replaceItem')
-  @DocsEditable
+  @DocsEditable()
   Point replaceItem(Point item, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4863,91 +4863,91 @@ class PointList extends Interceptor native "SVGPointList" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPolygonElement')
-@Unstable
+@Unstable()
 class PolygonElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "SVGPolygonElement" {
   // To suppress missing implicit constructor warnings.
   factory PolygonElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPolygonElement.SVGPolygonElement')
-  @DocsEditable
+  @DocsEditable()
   factory PolygonElement() => _SvgElementFactoryProvider.createSvgElement_tag("polygon");
 
   @DomName('SVGPolygonElement.animatedPoints')
-  @DocsEditable
+  @DocsEditable()
   final PointList animatedPoints;
 
   @DomName('SVGPolygonElement.points')
-  @DocsEditable
+  @DocsEditable()
   final PointList points;
 
   // From SVGExternalResourcesRequired
 
   @DomName('SVGPolygonElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
   @DomName('SVGPolygonElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String xmllang;
 
   @DomName('SVGPolygonElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String xmlspace;
 
   // From SVGLocatable
 
   @DomName('SVGPolygonElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement farthestViewportElement;
 
   @DomName('SVGPolygonElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement nearestViewportElement;
 
   @DomName('SVGPolygonElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native;
 
   @JSName('getCTM')
   @DomName('SVGPolygonElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native;
 
   @JSName('getScreenCTM')
   @DomName('SVGPolygonElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native;
 
   @DomName('SVGPolygonElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGTests
 
   @DomName('SVGPolygonElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredExtensions;
 
   @DomName('SVGPolygonElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredFeatures;
 
   @DomName('SVGPolygonElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   final StringList systemLanguage;
 
   @DomName('SVGPolygonElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
   @DomName('SVGPolygonElement.transform')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4955,91 +4955,91 @@ class PolygonElement extends StyledElement implements Transformable, Tests, Exte
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPolylineElement')
-@Unstable
+@Unstable()
 class PolylineElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "SVGPolylineElement" {
   // To suppress missing implicit constructor warnings.
   factory PolylineElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPolylineElement.SVGPolylineElement')
-  @DocsEditable
+  @DocsEditable()
   factory PolylineElement() => _SvgElementFactoryProvider.createSvgElement_tag("polyline");
 
   @DomName('SVGPolylineElement.animatedPoints')
-  @DocsEditable
+  @DocsEditable()
   final PointList animatedPoints;
 
   @DomName('SVGPolylineElement.points')
-  @DocsEditable
+  @DocsEditable()
   final PointList points;
 
   // From SVGExternalResourcesRequired
 
   @DomName('SVGPolylineElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
   @DomName('SVGPolylineElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String xmllang;
 
   @DomName('SVGPolylineElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String xmlspace;
 
   // From SVGLocatable
 
   @DomName('SVGPolylineElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement farthestViewportElement;
 
   @DomName('SVGPolylineElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement nearestViewportElement;
 
   @DomName('SVGPolylineElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native;
 
   @JSName('getCTM')
   @DomName('SVGPolylineElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native;
 
   @JSName('getScreenCTM')
   @DomName('SVGPolylineElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native;
 
   @DomName('SVGPolylineElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGTests
 
   @DomName('SVGPolylineElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredExtensions;
 
   @DomName('SVGPolylineElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredFeatures;
 
   @DomName('SVGPolylineElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   final StringList systemLanguage;
 
   @DomName('SVGPolylineElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
   @DomName('SVGPolylineElement.transform')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5047,73 +5047,73 @@ class PolylineElement extends StyledElement implements Transformable, Tests, Ext
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPreserveAspectRatio')
-@Unstable
+@Unstable()
 class PreserveAspectRatio extends Interceptor native "SVGPreserveAspectRatio" {
 
   @DomName('SVGPreserveAspectRatio.SVG_MEETORSLICE_MEET')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_MEETORSLICE_MEET = 1;
 
   @DomName('SVGPreserveAspectRatio.SVG_MEETORSLICE_SLICE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_MEETORSLICE_SLICE = 2;
 
   @DomName('SVGPreserveAspectRatio.SVG_MEETORSLICE_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_MEETORSLICE_UNKNOWN = 0;
 
   @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_NONE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_PRESERVEASPECTRATIO_NONE = 1;
 
   @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_PRESERVEASPECTRATIO_UNKNOWN = 0;
 
   @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_XMAXYMAX')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_PRESERVEASPECTRATIO_XMAXYMAX = 10;
 
   @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_XMAXYMID')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_PRESERVEASPECTRATIO_XMAXYMID = 7;
 
   @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_XMAXYMIN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_PRESERVEASPECTRATIO_XMAXYMIN = 4;
 
   @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_XMIDYMAX')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_PRESERVEASPECTRATIO_XMIDYMAX = 9;
 
   @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_XMIDYMID')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_PRESERVEASPECTRATIO_XMIDYMID = 6;
 
   @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_XMIDYMIN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_PRESERVEASPECTRATIO_XMIDYMIN = 3;
 
   @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_XMINYMAX')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_PRESERVEASPECTRATIO_XMINYMAX = 8;
 
   @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_XMINYMID')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_PRESERVEASPECTRATIO_XMINYMID = 5;
 
   @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_XMINYMIN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_PRESERVEASPECTRATIO_XMINYMIN = 2;
 
   @DomName('SVGPreserveAspectRatio.align')
-  @DocsEditable
+  @DocsEditable()
   int align;
 
   @DomName('SVGPreserveAspectRatio.meetOrSlice')
-  @DocsEditable
+  @DocsEditable()
   int meetOrSlice;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5121,39 +5121,39 @@ class PreserveAspectRatio extends Interceptor native "SVGPreserveAspectRatio" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGRadialGradientElement')
-@Unstable
+@Unstable()
 class RadialGradientElement extends _GradientElement native "SVGRadialGradientElement" {
   // To suppress missing implicit constructor warnings.
   factory RadialGradientElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGRadialGradientElement.SVGRadialGradientElement')
-  @DocsEditable
+  @DocsEditable()
   factory RadialGradientElement() => _SvgElementFactoryProvider.createSvgElement_tag("radialGradient");
 
   @DomName('SVGRadialGradientElement.cx')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength cx;
 
   @DomName('SVGRadialGradientElement.cy')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength cy;
 
   @DomName('SVGRadialGradientElement.fr')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength fr;
 
   @DomName('SVGRadialGradientElement.fx')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength fx;
 
   @DomName('SVGRadialGradientElement.fy')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength fy;
 
   @DomName('SVGRadialGradientElement.r')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength r;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5161,25 +5161,25 @@ class RadialGradientElement extends _GradientElement native "SVGRadialGradientEl
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGRect')
-@Unstable
+@Unstable()
 class Rect extends Interceptor native "SVGRect" {
 
   @DomName('SVGRect.height')
-  @DocsEditable
+  @DocsEditable()
   num height;
 
   @DomName('SVGRect.width')
-  @DocsEditable
+  @DocsEditable()
   num width;
 
   @DomName('SVGRect.x')
-  @DocsEditable
+  @DocsEditable()
   num x;
 
   @DomName('SVGRect.y')
-  @DocsEditable
+  @DocsEditable()
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5187,107 +5187,107 @@ class Rect extends Interceptor native "SVGRect" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGRectElement')
-@Unstable
+@Unstable()
 class RectElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "SVGRectElement" {
   // To suppress missing implicit constructor warnings.
   factory RectElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGRectElement.SVGRectElement')
-  @DocsEditable
+  @DocsEditable()
   factory RectElement() => _SvgElementFactoryProvider.createSvgElement_tag("rect");
 
   @DomName('SVGRectElement.height')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength height;
 
   @DomName('SVGRectElement.rx')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength rx;
 
   @DomName('SVGRectElement.ry')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength ry;
 
   @DomName('SVGRectElement.width')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength width;
 
   @DomName('SVGRectElement.x')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength x;
 
   @DomName('SVGRectElement.y')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength y;
 
   // From SVGExternalResourcesRequired
 
   @DomName('SVGRectElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
   @DomName('SVGRectElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String xmllang;
 
   @DomName('SVGRectElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String xmlspace;
 
   // From SVGLocatable
 
   @DomName('SVGRectElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement farthestViewportElement;
 
   @DomName('SVGRectElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement nearestViewportElement;
 
   @DomName('SVGRectElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native;
 
   @JSName('getCTM')
   @DomName('SVGRectElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native;
 
   @JSName('getScreenCTM')
   @DomName('SVGRectElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native;
 
   @DomName('SVGRectElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGTests
 
   @DomName('SVGRectElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredExtensions;
 
   @DomName('SVGRectElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredFeatures;
 
   @DomName('SVGRectElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   final StringList systemLanguage;
 
   @DomName('SVGRectElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
   @DomName('SVGRectElement.transform')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5295,33 +5295,33 @@ class RectElement extends StyledElement implements Transformable, Tests, Externa
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGRenderingIntent')
-@Unstable
+@Unstable()
 class RenderingIntent extends Interceptor native "SVGRenderingIntent" {
 
   @DomName('SVGRenderingIntent.RENDERING_INTENT_ABSOLUTE_COLORIMETRIC')
-  @DocsEditable
+  @DocsEditable()
   static const int RENDERING_INTENT_ABSOLUTE_COLORIMETRIC = 5;
 
   @DomName('SVGRenderingIntent.RENDERING_INTENT_AUTO')
-  @DocsEditable
+  @DocsEditable()
   static const int RENDERING_INTENT_AUTO = 1;
 
   @DomName('SVGRenderingIntent.RENDERING_INTENT_PERCEPTUAL')
-  @DocsEditable
+  @DocsEditable()
   static const int RENDERING_INTENT_PERCEPTUAL = 2;
 
   @DomName('SVGRenderingIntent.RENDERING_INTENT_RELATIVE_COLORIMETRIC')
-  @DocsEditable
+  @DocsEditable()
   static const int RENDERING_INTENT_RELATIVE_COLORIMETRIC = 3;
 
   @DomName('SVGRenderingIntent.RENDERING_INTENT_SATURATION')
-  @DocsEditable
+  @DocsEditable()
   static const int RENDERING_INTENT_SATURATION = 4;
 
   @DomName('SVGRenderingIntent.RENDERING_INTENT_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int RENDERING_INTENT_UNKNOWN = 0;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5329,31 +5329,31 @@ class RenderingIntent extends Interceptor native "SVGRenderingIntent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGScriptElement')
-@Unstable
+@Unstable()
 class ScriptElement extends SvgElement implements UriReference, ExternalResourcesRequired native "SVGScriptElement" {
   // To suppress missing implicit constructor warnings.
   factory ScriptElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGScriptElement.SVGScriptElement')
-  @DocsEditable
+  @DocsEditable()
   factory ScriptElement() => _SvgElementFactoryProvider.createSvgElement_tag("script");
 
   @DomName('SVGScriptElement.type')
-  @DocsEditable
+  @DocsEditable()
   String type;
 
   // From SVGExternalResourcesRequired
 
   @DomName('SVGScriptElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGURIReference
 
   @DomName('SVGScriptElement.href')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5361,18 +5361,18 @@ class ScriptElement extends SvgElement implements UriReference, ExternalResource
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGSetElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable
+@Unstable()
 class SetElement extends AnimationElement native "SVGSetElement" {
   // To suppress missing implicit constructor warnings.
   factory SetElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGSetElement.SVGSetElement')
-  @DocsEditable
+  @DocsEditable()
   factory SetElement() => _SvgElementFactoryProvider.createSvgElement_tag("set");
 
   /// Checks if this type is supported on the current platform.
@@ -5383,20 +5383,20 @@ class SetElement extends AnimationElement native "SVGSetElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGStopElement')
-@Unstable
+@Unstable()
 class StopElement extends StyledElement native "SVGStopElement" {
   // To suppress missing implicit constructor warnings.
   factory StopElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGStopElement.SVGStopElement')
-  @DocsEditable
+  @DocsEditable()
   factory StopElement() => _SvgElementFactoryProvider.createSvgElement_tag("stop");
 
   @JSName('offset')
   @DomName('SVGStopElement.offset')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumber gradientOffset;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5404,13 +5404,13 @@ class StopElement extends StyledElement native "SVGStopElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGStringList')
-@Unstable
+@Unstable()
 class StringList extends Interceptor with ListMixin<String>, ImmutableListMixin<String> implements JavaScriptIndexingBehavior, List<String> native "SVGStringList" {
 
   @DomName('SVGStringList.numberOfItems')
-  @DocsEditable
+  @DocsEditable()
   final int numberOfItems;
 
   String operator[](int index) {
@@ -5460,31 +5460,31 @@ class StringList extends Interceptor with ListMixin<String>, ImmutableListMixin<
   // -- end List<String> mixins.
 
   @DomName('SVGStringList.appendItem')
-  @DocsEditable
+  @DocsEditable()
   String appendItem(String item) native;
 
   @DomName('SVGStringList.clear')
-  @DocsEditable
+  @DocsEditable()
   void clear() native;
 
   @DomName('SVGStringList.getItem')
-  @DocsEditable
+  @DocsEditable()
   String getItem(int index) native;
 
   @DomName('SVGStringList.initialize')
-  @DocsEditable
+  @DocsEditable()
   String initialize(String item) native;
 
   @DomName('SVGStringList.insertItemBefore')
-  @DocsEditable
+  @DocsEditable()
   String insertItemBefore(String item, int index) native;
 
   @DomName('SVGStringList.removeItem')
-  @DocsEditable
+  @DocsEditable()
   String removeItem(int index) native;
 
   @DomName('SVGStringList.replaceItem')
-  @DocsEditable
+  @DocsEditable()
   String replaceItem(String item, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5492,24 +5492,24 @@ class StringList extends Interceptor with ListMixin<String>, ImmutableListMixin<
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGStyleElement')
 // http://www.w3.org/TR/SVG/types.html#InterfaceSVGStylable
-@Experimental // nonstandard
+@Experimental() // nonstandard
 class StyleElement extends SvgElement implements LangSpace native "SVGStyleElement" {
   // To suppress missing implicit constructor warnings.
   factory StyleElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGStyleElement.SVGStyleElement')
-  @DocsEditable
+  @DocsEditable()
   factory StyleElement() => _SvgElementFactoryProvider.createSvgElement_tag("style");
 
   @DomName('SVGStyleElement.disabled')
-  @DocsEditable
+  @DocsEditable()
   bool disabled;
 
   @DomName('SVGStyleElement.media')
-  @DocsEditable
+  @DocsEditable()
   String media;
 
   // Shadowing definition.
@@ -5520,17 +5520,17 @@ class StyleElement extends SvgElement implements LangSpace native "SVGStyleEleme
   }
 
   @DomName('SVGStyleElement.type')
-  @DocsEditable
+  @DocsEditable()
   String type;
 
   // From SVGLangSpace
 
   @DomName('SVGStyleElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String xmllang;
 
   @DomName('SVGStyleElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String xmlspace;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5538,9 +5538,9 @@ class StyleElement extends SvgElement implements LangSpace native "SVGStyleEleme
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGStyledElement')
-@Unstable
+@Unstable()
 class StyledElement extends SvgElement native "SVGStyledElement" {
   // To suppress missing implicit constructor warnings.
   factory StyledElement._() { throw new UnsupportedError("Not supported"); }
@@ -5556,20 +5556,20 @@ class StyledElement extends SvgElement native "SVGStyledElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGDocument')
-@Unstable
+@Unstable()
 class SvgDocument extends Document native "SVGDocument" {
   // To suppress missing implicit constructor warnings.
   factory SvgDocument._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGDocument.rootElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgSvgElement rootElement;
 
   @JSName('createEvent')
   @DomName('SVGDocument.createEvent')
-  @DocsEditable
+  @DocsEditable()
   Event $dom_createEvent(String eventType) native;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -5604,7 +5604,7 @@ class _AttributeClassSet extends CssClassSetImpl {
 }
 
 @DomName('SVGElement')
-@Unstable
+@Unstable()
 class SvgElement extends Element native "SVGElement" {
   factory SvgElement.tag(String tag) =>
       _SvgElementFactoryProvider.createSvgElement_tag(tag);
@@ -5696,15 +5696,15 @@ class SvgElement extends Element native "SVGElement" {
 
   @JSName('ownerSVGElement')
   @DomName('SVGElement.ownerSVGElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgSvgElement ownerSvgElement;
 
   @DomName('SVGElement.viewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement viewportElement;
 
   @DomName('SVGElement.xmlbase')
-  @DocsEditable
+  @DocsEditable()
   String xmlbase;
 
 }
@@ -5713,39 +5713,39 @@ class SvgElement extends Element native "SVGElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGException')
-@Unstable
+@Unstable()
 class SvgException extends Interceptor native "SVGException" {
 
   @DomName('SVGException.SVG_INVALID_VALUE_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_INVALID_VALUE_ERR = 1;
 
   @DomName('SVGException.SVG_MATRIX_NOT_INVERTABLE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_MATRIX_NOT_INVERTABLE = 2;
 
   @DomName('SVGException.SVG_WRONG_TYPE_ERR')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_WRONG_TYPE_ERR = 0;
 
   @DomName('SVGException.code')
-  @DocsEditable
+  @DocsEditable()
   final int code;
 
   @DomName('SVGException.message')
-  @DocsEditable
-  @Experimental // nonstandard
+  @DocsEditable()
+  @Experimental() // nonstandard
   final String message;
 
   @DomName('SVGException.name')
-  @DocsEditable
-  @Experimental // nonstandard
+  @DocsEditable()
+  @Experimental() // nonstandard
   final String name;
 
   @DomName('SVGException.toString')
-  @DocsEditable
+  @DocsEditable()
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5754,7 +5754,7 @@ class SvgException extends Interceptor native "SVGException" {
 
 
 @DomName('SVGSVGElement')
-@Unstable
+@Unstable()
 class SvgSvgElement extends StyledElement implements FitToViewBox, Transformable, Tests, ExternalResourcesRequired, ZoomAndPan, LangSpace native "SVGSVGElement" {
   factory SvgSvgElement() => _SvgSvgElementFactoryProvider.createSvgSvgElement();
 
@@ -5762,251 +5762,251 @@ class SvgSvgElement extends StyledElement implements FitToViewBox, Transformable
   factory SvgSvgElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGSVGElement.contentScriptType')
-  @DocsEditable
+  @DocsEditable()
   String contentScriptType;
 
   @DomName('SVGSVGElement.contentStyleType')
-  @DocsEditable
+  @DocsEditable()
   String contentStyleType;
 
   @DomName('SVGSVGElement.currentScale')
-  @DocsEditable
+  @DocsEditable()
   num currentScale;
 
   @DomName('SVGSVGElement.currentTranslate')
-  @DocsEditable
+  @DocsEditable()
   final Point currentTranslate;
 
   @DomName('SVGSVGElement.currentView')
-  @DocsEditable
+  @DocsEditable()
   final ViewSpec currentView;
 
   @DomName('SVGSVGElement.height')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength height;
 
   @DomName('SVGSVGElement.pixelUnitToMillimeterX')
-  @DocsEditable
+  @DocsEditable()
   final num pixelUnitToMillimeterX;
 
   @DomName('SVGSVGElement.pixelUnitToMillimeterY')
-  @DocsEditable
+  @DocsEditable()
   final num pixelUnitToMillimeterY;
 
   @DomName('SVGSVGElement.screenPixelToMillimeterX')
-  @DocsEditable
+  @DocsEditable()
   final num screenPixelToMillimeterX;
 
   @DomName('SVGSVGElement.screenPixelToMillimeterY')
-  @DocsEditable
+  @DocsEditable()
   final num screenPixelToMillimeterY;
 
   @DomName('SVGSVGElement.useCurrentView')
-  @DocsEditable
+  @DocsEditable()
   final bool useCurrentView;
 
   @DomName('SVGSVGElement.viewport')
-  @DocsEditable
+  @DocsEditable()
   final Rect viewport;
 
   @DomName('SVGSVGElement.width')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength width;
 
   @DomName('SVGSVGElement.x')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength x;
 
   @DomName('SVGSVGElement.y')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength y;
 
   @DomName('SVGSVGElement.animationsPaused')
-  @DocsEditable
+  @DocsEditable()
   bool animationsPaused() native;
 
   @DomName('SVGSVGElement.checkEnclosure')
-  @DocsEditable
+  @DocsEditable()
   bool checkEnclosure(SvgElement element, Rect rect) native;
 
   @DomName('SVGSVGElement.checkIntersection')
-  @DocsEditable
+  @DocsEditable()
   bool checkIntersection(SvgElement element, Rect rect) native;
 
   @JSName('createSVGAngle')
   @DomName('SVGSVGElement.createSVGAngle')
-  @DocsEditable
+  @DocsEditable()
   Angle createSvgAngle() native;
 
   @JSName('createSVGLength')
   @DomName('SVGSVGElement.createSVGLength')
-  @DocsEditable
+  @DocsEditable()
   Length createSvgLength() native;
 
   @JSName('createSVGMatrix')
   @DomName('SVGSVGElement.createSVGMatrix')
-  @DocsEditable
+  @DocsEditable()
   Matrix createSvgMatrix() native;
 
   @JSName('createSVGNumber')
   @DomName('SVGSVGElement.createSVGNumber')
-  @DocsEditable
+  @DocsEditable()
   Number createSvgNumber() native;
 
   @JSName('createSVGPoint')
   @DomName('SVGSVGElement.createSVGPoint')
-  @DocsEditable
+  @DocsEditable()
   Point createSvgPoint() native;
 
   @JSName('createSVGRect')
   @DomName('SVGSVGElement.createSVGRect')
-  @DocsEditable
+  @DocsEditable()
   Rect createSvgRect() native;
 
   @JSName('createSVGTransform')
   @DomName('SVGSVGElement.createSVGTransform')
-  @DocsEditable
+  @DocsEditable()
   Transform createSvgTransform() native;
 
   @JSName('createSVGTransformFromMatrix')
   @DomName('SVGSVGElement.createSVGTransformFromMatrix')
-  @DocsEditable
+  @DocsEditable()
   Transform createSvgTransformFromMatrix(Matrix matrix) native;
 
   @DomName('SVGSVGElement.deselectAll')
-  @DocsEditable
+  @DocsEditable()
   void deselectAll() native;
 
   @DomName('SVGSVGElement.forceRedraw')
-  @DocsEditable
+  @DocsEditable()
   void forceRedraw() native;
 
   @DomName('SVGSVGElement.getCurrentTime')
-  @DocsEditable
+  @DocsEditable()
   num getCurrentTime() native;
 
   @DomName('SVGSVGElement.getElementById')
-  @DocsEditable
+  @DocsEditable()
   Element getElementById(String elementId) native;
 
   @DomName('SVGSVGElement.getEnclosureList')
-  @DocsEditable
+  @DocsEditable()
   @Returns('NodeList')
   @Creates('NodeList')
   List<Node> getEnclosureList(Rect rect, SvgElement referenceElement) native;
 
   @DomName('SVGSVGElement.getIntersectionList')
-  @DocsEditable
+  @DocsEditable()
   @Returns('NodeList')
   @Creates('NodeList')
   List<Node> getIntersectionList(Rect rect, SvgElement referenceElement) native;
 
   @DomName('SVGSVGElement.pauseAnimations')
-  @DocsEditable
+  @DocsEditable()
   void pauseAnimations() native;
 
   @DomName('SVGSVGElement.setCurrentTime')
-  @DocsEditable
+  @DocsEditable()
   void setCurrentTime(num seconds) native;
 
   @DomName('SVGSVGElement.suspendRedraw')
-  @DocsEditable
+  @DocsEditable()
   int suspendRedraw(int maxWaitMilliseconds) native;
 
   @DomName('SVGSVGElement.unpauseAnimations')
-  @DocsEditable
+  @DocsEditable()
   void unpauseAnimations() native;
 
   @DomName('SVGSVGElement.unsuspendRedraw')
-  @DocsEditable
+  @DocsEditable()
   void unsuspendRedraw(int suspendHandleId) native;
 
   @DomName('SVGSVGElement.unsuspendRedrawAll')
-  @DocsEditable
+  @DocsEditable()
   void unsuspendRedrawAll() native;
 
   // From SVGExternalResourcesRequired
 
   @DomName('SVGSVGElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGFitToViewBox
 
   @DomName('SVGSVGElement.preserveAspectRatio')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedPreserveAspectRatio preserveAspectRatio;
 
   @DomName('SVGSVGElement.viewBox')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedRect viewBox;
 
   // From SVGLangSpace
 
   @DomName('SVGSVGElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String xmllang;
 
   @DomName('SVGSVGElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String xmlspace;
 
   // From SVGLocatable
 
   @DomName('SVGSVGElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement farthestViewportElement;
 
   @DomName('SVGSVGElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement nearestViewportElement;
 
   @DomName('SVGSVGElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native;
 
   @JSName('getCTM')
   @DomName('SVGSVGElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native;
 
   @JSName('getScreenCTM')
   @DomName('SVGSVGElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native;
 
   @DomName('SVGSVGElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGTests
 
   @DomName('SVGSVGElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredExtensions;
 
   @DomName('SVGSVGElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredFeatures;
 
   @DomName('SVGSVGElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   final StringList systemLanguage;
 
   @DomName('SVGSVGElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
   @DomName('SVGSVGElement.transform')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedTransformList transform;
 
   // From SVGZoomAndPan
 
   @DomName('SVGSVGElement.zoomAndPan')
-  @DocsEditable
+  @DocsEditable()
   int zoomAndPan;
 
 }
@@ -6015,83 +6015,83 @@ class SvgSvgElement extends StyledElement implements FitToViewBox, Transformable
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGSwitchElement')
-@Unstable
+@Unstable()
 class SwitchElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "SVGSwitchElement" {
   // To suppress missing implicit constructor warnings.
   factory SwitchElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGSwitchElement.SVGSwitchElement')
-  @DocsEditable
+  @DocsEditable()
   factory SwitchElement() => _SvgElementFactoryProvider.createSvgElement_tag("switch");
 
   // From SVGExternalResourcesRequired
 
   @DomName('SVGSwitchElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
   @DomName('SVGSwitchElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String xmllang;
 
   @DomName('SVGSwitchElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String xmlspace;
 
   // From SVGLocatable
 
   @DomName('SVGSwitchElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement farthestViewportElement;
 
   @DomName('SVGSwitchElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement nearestViewportElement;
 
   @DomName('SVGSwitchElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native;
 
   @JSName('getCTM')
   @DomName('SVGSwitchElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native;
 
   @JSName('getScreenCTM')
   @DomName('SVGSwitchElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native;
 
   @DomName('SVGSwitchElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGTests
 
   @DomName('SVGSwitchElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredExtensions;
 
   @DomName('SVGSwitchElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredFeatures;
 
   @DomName('SVGSwitchElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   final StringList systemLanguage;
 
   @DomName('SVGSwitchElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
   @DomName('SVGSwitchElement.transform')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6099,41 +6099,41 @@ class SwitchElement extends StyledElement implements Transformable, Tests, Exter
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGSymbolElement')
-@Unstable
+@Unstable()
 class SymbolElement extends StyledElement implements FitToViewBox, ExternalResourcesRequired, LangSpace native "SVGSymbolElement" {
   // To suppress missing implicit constructor warnings.
   factory SymbolElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGSymbolElement.SVGSymbolElement')
-  @DocsEditable
+  @DocsEditable()
   factory SymbolElement() => _SvgElementFactoryProvider.createSvgElement_tag("symbol");
 
   // From SVGExternalResourcesRequired
 
   @DomName('SVGSymbolElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGFitToViewBox
 
   @DomName('SVGSymbolElement.preserveAspectRatio')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedPreserveAspectRatio preserveAspectRatio;
 
   @DomName('SVGSymbolElement.viewBox')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedRect viewBox;
 
   // From SVGLangSpace
 
   @DomName('SVGSymbolElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String xmllang;
 
   @DomName('SVGSymbolElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String xmlspace;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6141,15 +6141,15 @@ class SymbolElement extends StyledElement implements FitToViewBox, ExternalResou
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGTSpanElement')
-@Unstable
+@Unstable()
 class TSpanElement extends TextPositioningElement native "SVGTSpanElement" {
   // To suppress missing implicit constructor warnings.
   factory TSpanElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGTSpanElement.SVGTSpanElement')
-  @DocsEditable
+  @DocsEditable()
   factory TSpanElement() => _SvgElementFactoryProvider.createSvgElement_tag("tspan");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6157,9 +6157,9 @@ class TSpanElement extends TextPositioningElement native "SVGTSpanElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGTests')
-@Unstable
+@Unstable()
 abstract class Tests extends Interceptor {
 
   StringList requiredExtensions;
@@ -6175,101 +6175,101 @@ abstract class Tests extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGTextContentElement')
-@Unstable
+@Unstable()
 class TextContentElement extends StyledElement implements Tests, ExternalResourcesRequired, LangSpace native "SVGTextContentElement" {
   // To suppress missing implicit constructor warnings.
   factory TextContentElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGTextContentElement.LENGTHADJUST_SPACING')
-  @DocsEditable
+  @DocsEditable()
   static const int LENGTHADJUST_SPACING = 1;
 
   @DomName('SVGTextContentElement.LENGTHADJUST_SPACINGANDGLYPHS')
-  @DocsEditable
+  @DocsEditable()
   static const int LENGTHADJUST_SPACINGANDGLYPHS = 2;
 
   @DomName('SVGTextContentElement.LENGTHADJUST_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int LENGTHADJUST_UNKNOWN = 0;
 
   @DomName('SVGTextContentElement.lengthAdjust')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedEnumeration lengthAdjust;
 
   @DomName('SVGTextContentElement.textLength')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength textLength;
 
   @DomName('SVGTextContentElement.getCharNumAtPosition')
-  @DocsEditable
+  @DocsEditable()
   int getCharNumAtPosition(Point point) native;
 
   @DomName('SVGTextContentElement.getComputedTextLength')
-  @DocsEditable
+  @DocsEditable()
   num getComputedTextLength() native;
 
   @DomName('SVGTextContentElement.getEndPositionOfChar')
-  @DocsEditable
+  @DocsEditable()
   Point getEndPositionOfChar(int offset) native;
 
   @DomName('SVGTextContentElement.getExtentOfChar')
-  @DocsEditable
+  @DocsEditable()
   Rect getExtentOfChar(int offset) native;
 
   @DomName('SVGTextContentElement.getNumberOfChars')
-  @DocsEditable
+  @DocsEditable()
   int getNumberOfChars() native;
 
   @DomName('SVGTextContentElement.getRotationOfChar')
-  @DocsEditable
+  @DocsEditable()
   num getRotationOfChar(int offset) native;
 
   @DomName('SVGTextContentElement.getStartPositionOfChar')
-  @DocsEditable
+  @DocsEditable()
   Point getStartPositionOfChar(int offset) native;
 
   @DomName('SVGTextContentElement.getSubStringLength')
-  @DocsEditable
+  @DocsEditable()
   num getSubStringLength(int offset, int length) native;
 
   @DomName('SVGTextContentElement.selectSubString')
-  @DocsEditable
+  @DocsEditable()
   void selectSubString(int offset, int length) native;
 
   // From SVGExternalResourcesRequired
 
   @DomName('SVGTextContentElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
   @DomName('SVGTextContentElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String xmllang;
 
   @DomName('SVGTextContentElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String xmlspace;
 
   // From SVGTests
 
   @DomName('SVGTextContentElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredExtensions;
 
   @DomName('SVGTextContentElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredFeatures;
 
   @DomName('SVGTextContentElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   final StringList systemLanguage;
 
   @DomName('SVGTextContentElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6277,49 +6277,49 @@ class TextContentElement extends StyledElement implements Tests, ExternalResourc
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGTextElement')
-@Unstable
+@Unstable()
 class TextElement extends TextPositioningElement implements Transformable native "SVGTextElement" {
   // To suppress missing implicit constructor warnings.
   factory TextElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGTextElement.SVGTextElement')
-  @DocsEditable
+  @DocsEditable()
   factory TextElement() => _SvgElementFactoryProvider.createSvgElement_tag("text");
 
   // From SVGLocatable
 
   @DomName('SVGTextElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement farthestViewportElement;
 
   @DomName('SVGTextElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement nearestViewportElement;
 
   @DomName('SVGTextElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native;
 
   @JSName('getCTM')
   @DomName('SVGTextElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native;
 
   @JSName('getScreenCTM')
   @DomName('SVGTextElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native;
 
   @DomName('SVGTextElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGTransformable
 
   @DomName('SVGTextElement.transform')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6327,53 +6327,53 @@ class TextElement extends TextPositioningElement implements Transformable native
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGTextPathElement')
-@Unstable
+@Unstable()
 class TextPathElement extends TextContentElement implements UriReference native "SVGTextPathElement" {
   // To suppress missing implicit constructor warnings.
   factory TextPathElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGTextPathElement.TEXTPATH_METHODTYPE_ALIGN')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTPATH_METHODTYPE_ALIGN = 1;
 
   @DomName('SVGTextPathElement.TEXTPATH_METHODTYPE_STRETCH')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTPATH_METHODTYPE_STRETCH = 2;
 
   @DomName('SVGTextPathElement.TEXTPATH_METHODTYPE_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTPATH_METHODTYPE_UNKNOWN = 0;
 
   @DomName('SVGTextPathElement.TEXTPATH_SPACINGTYPE_AUTO')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTPATH_SPACINGTYPE_AUTO = 1;
 
   @DomName('SVGTextPathElement.TEXTPATH_SPACINGTYPE_EXACT')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTPATH_SPACINGTYPE_EXACT = 2;
 
   @DomName('SVGTextPathElement.TEXTPATH_SPACINGTYPE_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int TEXTPATH_SPACINGTYPE_UNKNOWN = 0;
 
   @DomName('SVGTextPathElement.method')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedEnumeration method;
 
   @DomName('SVGTextPathElement.spacing')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedEnumeration spacing;
 
   @DomName('SVGTextPathElement.startOffset')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength startOffset;
 
   // From SVGURIReference
 
   @DomName('SVGTextPathElement.href')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6381,31 +6381,31 @@ class TextPathElement extends TextContentElement implements UriReference native 
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGTextPositioningElement')
-@Unstable
+@Unstable()
 class TextPositioningElement extends TextContentElement native "SVGTextPositioningElement" {
   // To suppress missing implicit constructor warnings.
   factory TextPositioningElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGTextPositioningElement.dx')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLengthList dx;
 
   @DomName('SVGTextPositioningElement.dy')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLengthList dy;
 
   @DomName('SVGTextPositioningElement.rotate')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedNumberList rotate;
 
   @DomName('SVGTextPositioningElement.x')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLengthList x;
 
   @DomName('SVGTextPositioningElement.y')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLengthList y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6413,25 +6413,25 @@ class TextPositioningElement extends TextContentElement native "SVGTextPositioni
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGTitleElement')
-@Unstable
+@Unstable()
 class TitleElement extends StyledElement implements LangSpace native "SVGTitleElement" {
   // To suppress missing implicit constructor warnings.
   factory TitleElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGTitleElement.SVGTitleElement')
-  @DocsEditable
+  @DocsEditable()
   factory TitleElement() => _SvgElementFactoryProvider.createSvgElement_tag("title");
 
   // From SVGLangSpace
 
   @DomName('SVGTitleElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String xmllang;
 
   @DomName('SVGTitleElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String xmlspace;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6439,73 +6439,73 @@ class TitleElement extends StyledElement implements LangSpace native "SVGTitleEl
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGTransform')
-@Unstable
+@Unstable()
 class Transform extends Interceptor native "SVGTransform" {
 
   @DomName('SVGTransform.SVG_TRANSFORM_MATRIX')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_TRANSFORM_MATRIX = 1;
 
   @DomName('SVGTransform.SVG_TRANSFORM_ROTATE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_TRANSFORM_ROTATE = 4;
 
   @DomName('SVGTransform.SVG_TRANSFORM_SCALE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_TRANSFORM_SCALE = 3;
 
   @DomName('SVGTransform.SVG_TRANSFORM_SKEWX')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_TRANSFORM_SKEWX = 5;
 
   @DomName('SVGTransform.SVG_TRANSFORM_SKEWY')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_TRANSFORM_SKEWY = 6;
 
   @DomName('SVGTransform.SVG_TRANSFORM_TRANSLATE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_TRANSFORM_TRANSLATE = 2;
 
   @DomName('SVGTransform.SVG_TRANSFORM_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_TRANSFORM_UNKNOWN = 0;
 
   @DomName('SVGTransform.angle')
-  @DocsEditable
+  @DocsEditable()
   final num angle;
 
   @DomName('SVGTransform.matrix')
-  @DocsEditable
+  @DocsEditable()
   final Matrix matrix;
 
   @DomName('SVGTransform.type')
-  @DocsEditable
+  @DocsEditable()
   final int type;
 
   @DomName('SVGTransform.setMatrix')
-  @DocsEditable
+  @DocsEditable()
   void setMatrix(Matrix matrix) native;
 
   @DomName('SVGTransform.setRotate')
-  @DocsEditable
+  @DocsEditable()
   void setRotate(num angle, num cx, num cy) native;
 
   @DomName('SVGTransform.setScale')
-  @DocsEditable
+  @DocsEditable()
   void setScale(num sx, num sy) native;
 
   @DomName('SVGTransform.setSkewX')
-  @DocsEditable
+  @DocsEditable()
   void setSkewX(num angle) native;
 
   @DomName('SVGTransform.setSkewY')
-  @DocsEditable
+  @DocsEditable()
   void setSkewY(num angle) native;
 
   @DomName('SVGTransform.setTranslate')
-  @DocsEditable
+  @DocsEditable()
   void setTranslate(num tx, num ty) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6513,13 +6513,13 @@ class Transform extends Interceptor native "SVGTransform" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGTransformList')
-@Unstable
+@Unstable()
 class TransformList extends Interceptor with ListMixin<Transform>, ImmutableListMixin<Transform> implements List<Transform>, JavaScriptIndexingBehavior native "SVGTransformList" {
 
   @DomName('SVGTransformList.numberOfItems')
-  @DocsEditable
+  @DocsEditable()
   final int numberOfItems;
 
   Transform operator[](int index) {
@@ -6569,40 +6569,40 @@ class TransformList extends Interceptor with ListMixin<Transform>, ImmutableList
   // -- end List<Transform> mixins.
 
   @DomName('SVGTransformList.appendItem')
-  @DocsEditable
+  @DocsEditable()
   Transform appendItem(Transform item) native;
 
   @DomName('SVGTransformList.clear')
-  @DocsEditable
+  @DocsEditable()
   void clear() native;
 
   @DomName('SVGTransformList.consolidate')
-  @DocsEditable
+  @DocsEditable()
   Transform consolidate() native;
 
   @JSName('createSVGTransformFromMatrix')
   @DomName('SVGTransformList.createSVGTransformFromMatrix')
-  @DocsEditable
+  @DocsEditable()
   Transform createSvgTransformFromMatrix(Matrix matrix) native;
 
   @DomName('SVGTransformList.getItem')
-  @DocsEditable
+  @DocsEditable()
   Transform getItem(int index) native;
 
   @DomName('SVGTransformList.initialize')
-  @DocsEditable
+  @DocsEditable()
   Transform initialize(Transform item) native;
 
   @DomName('SVGTransformList.insertItemBefore')
-  @DocsEditable
+  @DocsEditable()
   Transform insertItemBefore(Transform item, int index) native;
 
   @DomName('SVGTransformList.removeItem')
-  @DocsEditable
+  @DocsEditable()
   Transform removeItem(int index) native;
 
   @DomName('SVGTransformList.replaceItem')
-  @DocsEditable
+  @DocsEditable()
   Transform replaceItem(Transform item, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6610,9 +6610,9 @@ class TransformList extends Interceptor with ListMixin<Transform>, ImmutableList
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGTransformable')
-@Unstable
+@Unstable()
 abstract class Transformable extends Interceptor implements Locatable {
 
   AnimatedTransformList transform;
@@ -6636,21 +6636,21 @@ abstract class Transformable extends Interceptor implements Locatable {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGUnitTypes')
-@Unstable
+@Unstable()
 class UnitTypes extends Interceptor native "SVGUnitTypes" {
 
   @DomName('SVGUnitTypes.SVG_UNIT_TYPE_OBJECTBOUNDINGBOX')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_UNIT_TYPE_OBJECTBOUNDINGBOX = 2;
 
   @DomName('SVGUnitTypes.SVG_UNIT_TYPE_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_UNIT_TYPE_UNKNOWN = 0;
 
   @DomName('SVGUnitTypes.SVG_UNIT_TYPE_USERSPACEONUSE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_UNIT_TYPE_USERSPACEONUSE = 1;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6658,9 +6658,9 @@ class UnitTypes extends Interceptor native "SVGUnitTypes" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGURIReference')
-@Unstable
+@Unstable()
 abstract class UriReference extends Interceptor {
 
   AnimatedString href;
@@ -6670,113 +6670,113 @@ abstract class UriReference extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGUseElement')
-@Unstable
+@Unstable()
 class UseElement extends StyledElement implements UriReference, Tests, Transformable, ExternalResourcesRequired, LangSpace native "SVGUseElement" {
   // To suppress missing implicit constructor warnings.
   factory UseElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGUseElement.SVGUseElement')
-  @DocsEditable
+  @DocsEditable()
   factory UseElement() => _SvgElementFactoryProvider.createSvgElement_tag("use");
 
   @DomName('SVGUseElement.animatedInstanceRoot')
-  @DocsEditable
+  @DocsEditable()
   final ElementInstance animatedInstanceRoot;
 
   @DomName('SVGUseElement.height')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength height;
 
   @DomName('SVGUseElement.instanceRoot')
-  @DocsEditable
+  @DocsEditable()
   final ElementInstance instanceRoot;
 
   @DomName('SVGUseElement.width')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength width;
 
   @DomName('SVGUseElement.x')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength x;
 
   @DomName('SVGUseElement.y')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedLength y;
 
   // From SVGExternalResourcesRequired
 
   @DomName('SVGUseElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
   @DomName('SVGUseElement.xmllang')
-  @DocsEditable
+  @DocsEditable()
   String xmllang;
 
   @DomName('SVGUseElement.xmlspace')
-  @DocsEditable
+  @DocsEditable()
   String xmlspace;
 
   // From SVGLocatable
 
   @DomName('SVGUseElement.farthestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement farthestViewportElement;
 
   @DomName('SVGUseElement.nearestViewportElement')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement nearestViewportElement;
 
   @DomName('SVGUseElement.getBBox')
-  @DocsEditable
+  @DocsEditable()
   Rect getBBox() native;
 
   @JSName('getCTM')
   @DomName('SVGUseElement.getCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getCtm() native;
 
   @JSName('getScreenCTM')
   @DomName('SVGUseElement.getScreenCTM')
-  @DocsEditable
+  @DocsEditable()
   Matrix getScreenCtm() native;
 
   @DomName('SVGUseElement.getTransformToElement')
-  @DocsEditable
+  @DocsEditable()
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGTests
 
   @DomName('SVGUseElement.requiredExtensions')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredExtensions;
 
   @DomName('SVGUseElement.requiredFeatures')
-  @DocsEditable
+  @DocsEditable()
   final StringList requiredFeatures;
 
   @DomName('SVGUseElement.systemLanguage')
-  @DocsEditable
+  @DocsEditable()
   final StringList systemLanguage;
 
   @DomName('SVGUseElement.hasExtension')
-  @DocsEditable
+  @DocsEditable()
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
   @DomName('SVGUseElement.transform')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedTransformList transform;
 
   // From SVGURIReference
 
   @DomName('SVGUseElement.href')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6784,41 +6784,41 @@ class UseElement extends StyledElement implements UriReference, Tests, Transform
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGViewElement')
-@Unstable
+@Unstable()
 class ViewElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, ZoomAndPan native "SVGViewElement" {
   // To suppress missing implicit constructor warnings.
   factory ViewElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGViewElement.SVGViewElement')
-  @DocsEditable
+  @DocsEditable()
   factory ViewElement() => _SvgElementFactoryProvider.createSvgElement_tag("view");
 
   @DomName('SVGViewElement.viewTarget')
-  @DocsEditable
+  @DocsEditable()
   final StringList viewTarget;
 
   // From SVGExternalResourcesRequired
 
   @DomName('SVGViewElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGFitToViewBox
 
   @DomName('SVGViewElement.preserveAspectRatio')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedPreserveAspectRatio preserveAspectRatio;
 
   @DomName('SVGViewElement.viewBox')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedRect viewBox;
 
   // From SVGZoomAndPan
 
   @DomName('SVGViewElement.zoomAndPan')
-  @DocsEditable
+  @DocsEditable()
   int zoomAndPan;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6826,48 +6826,48 @@ class ViewElement extends SvgElement implements FitToViewBox, ExternalResourcesR
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGViewSpec')
-@Unstable
+@Unstable()
 class ViewSpec extends Interceptor native "SVGViewSpec" {
 
   @DomName('SVGViewSpec.preserveAspectRatio')
-  @DocsEditable
-  @Experimental // nonstandard
+  @DocsEditable()
+  @Experimental() // nonstandard
   final AnimatedPreserveAspectRatio preserveAspectRatio;
 
   @DomName('SVGViewSpec.preserveAspectRatioString')
-  @DocsEditable
+  @DocsEditable()
   final String preserveAspectRatioString;
 
   @DomName('SVGViewSpec.transform')
-  @DocsEditable
+  @DocsEditable()
   final TransformList transform;
 
   @DomName('SVGViewSpec.transformString')
-  @DocsEditable
+  @DocsEditable()
   final String transformString;
 
   @DomName('SVGViewSpec.viewBox')
-  @DocsEditable
-  @Experimental // nonstandard
+  @DocsEditable()
+  @Experimental() // nonstandard
   final AnimatedRect viewBox;
 
   @DomName('SVGViewSpec.viewBoxString')
-  @DocsEditable
+  @DocsEditable()
   final String viewBoxString;
 
   @DomName('SVGViewSpec.viewTarget')
-  @DocsEditable
+  @DocsEditable()
   final SvgElement viewTarget;
 
   @DomName('SVGViewSpec.viewTargetString')
-  @DocsEditable
+  @DocsEditable()
   final String viewTargetString;
 
   @DomName('SVGViewSpec.zoomAndPan')
-  @DocsEditable
-  @Experimental // nonstandard
+  @DocsEditable()
+  @Experimental() // nonstandard
   int zoomAndPan;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6875,21 +6875,21 @@ class ViewSpec extends Interceptor native "SVGViewSpec" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGZoomAndPan')
-@Unstable
+@Unstable()
 abstract class ZoomAndPan extends Interceptor {
 
   @DomName('SVGZoomAndPan.SVG_ZOOMANDPAN_DISABLE')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_ZOOMANDPAN_DISABLE = 1;
 
   @DomName('SVGZoomAndPan.SVG_ZOOMANDPAN_MAGNIFY')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_ZOOMANDPAN_MAGNIFY = 2;
 
   @DomName('SVGZoomAndPan.SVG_ZOOMANDPAN_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_ZOOMANDPAN_UNKNOWN = 0;
 
   int zoomAndPan;
@@ -6899,31 +6899,31 @@ abstract class ZoomAndPan extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGZoomEvent')
-@Unstable
+@Unstable()
 class ZoomEvent extends UIEvent native "SVGZoomEvent" {
   // To suppress missing implicit constructor warnings.
   factory ZoomEvent._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGZoomEvent.newScale')
-  @DocsEditable
+  @DocsEditable()
   final num newScale;
 
   @DomName('SVGZoomEvent.newTranslate')
-  @DocsEditable
+  @DocsEditable()
   final Point newTranslate;
 
   @DomName('SVGZoomEvent.previousScale')
-  @DocsEditable
+  @DocsEditable()
   final num previousScale;
 
   @DomName('SVGZoomEvent.previousTranslate')
-  @DocsEditable
+  @DocsEditable()
   final Point previousTranslate;
 
   @DomName('SVGZoomEvent.zoomRectScreen')
-  @DocsEditable
+  @DocsEditable()
   final Rect zoomRectScreen;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6931,13 +6931,13 @@ class ZoomEvent extends UIEvent native "SVGZoomEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGElementInstanceList')
-@Unstable
+@Unstable()
 class _ElementInstanceList extends Interceptor with ListMixin<ElementInstance>, ImmutableListMixin<ElementInstance> implements JavaScriptIndexingBehavior, List<ElementInstance> native "SVGElementInstanceList" {
 
   @DomName('SVGElementInstanceList.length')
-  @DocsEditable
+  @DocsEditable()
   int get length => JS("int", "#.length", this);
 
   ElementInstance operator[](int index) {
@@ -6985,7 +6985,7 @@ class _ElementInstanceList extends Interceptor with ListMixin<ElementInstance>, 
   // -- end List<ElementInstance> mixins.
 
   @DomName('SVGElementInstanceList.item')
-  @DocsEditable
+  @DocsEditable()
   ElementInstance item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6993,51 +6993,51 @@ class _ElementInstanceList extends Interceptor with ListMixin<ElementInstance>, 
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGGradientElement')
-@Unstable
+@Unstable()
 class _GradientElement extends StyledElement implements UriReference, ExternalResourcesRequired native "SVGGradientElement" {
   // To suppress missing implicit constructor warnings.
   factory _GradientElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGGradientElement.SVG_SPREADMETHOD_PAD')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_SPREADMETHOD_PAD = 1;
 
   @DomName('SVGGradientElement.SVG_SPREADMETHOD_REFLECT')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_SPREADMETHOD_REFLECT = 2;
 
   @DomName('SVGGradientElement.SVG_SPREADMETHOD_REPEAT')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_SPREADMETHOD_REPEAT = 3;
 
   @DomName('SVGGradientElement.SVG_SPREADMETHOD_UNKNOWN')
-  @DocsEditable
+  @DocsEditable()
   static const int SVG_SPREADMETHOD_UNKNOWN = 0;
 
   @DomName('SVGGradientElement.gradientTransform')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedTransformList gradientTransform;
 
   @DomName('SVGGradientElement.gradientUnits')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedEnumeration gradientUnits;
 
   @DomName('SVGGradientElement.spreadMethod')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedEnumeration spreadMethod;
 
   // From SVGExternalResourcesRequired
 
   @DomName('SVGGradientElement.externalResourcesRequired')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGURIReference
 
   @DomName('SVGGradientElement.href')
-  @DocsEditable
+  @DocsEditable()
   final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7045,9 +7045,9 @@ class _GradientElement extends StyledElement implements UriReference, ExternalRe
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAltGlyphDefElement')
-@Unstable
+@Unstable()
 abstract class _SVGAltGlyphDefElement extends SvgElement native "SVGAltGlyphDefElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGAltGlyphDefElement._() { throw new UnsupportedError("Not supported"); }
@@ -7057,9 +7057,9 @@ abstract class _SVGAltGlyphDefElement extends SvgElement native "SVGAltGlyphDefE
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAltGlyphItemElement')
-@Unstable
+@Unstable()
 abstract class _SVGAltGlyphItemElement extends SvgElement native "SVGAltGlyphItemElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGAltGlyphItemElement._() { throw new UnsupportedError("Not supported"); }
@@ -7069,9 +7069,9 @@ abstract class _SVGAltGlyphItemElement extends SvgElement native "SVGAltGlyphIte
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGAnimateColorElement')
-@Unstable
+@Unstable()
 abstract class _SVGAnimateColorElement extends AnimationElement native "SVGAnimateColorElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGAnimateColorElement._() { throw new UnsupportedError("Not supported"); }
@@ -7083,9 +7083,9 @@ abstract class _SVGAnimateColorElement extends AnimationElement native "SVGAnima
 
 // Hack because the baseclass is private in dart:html, and we want to omit this
 // type entirely but can't.
-@DocsEditable
+@DocsEditable()
 @DomName('SVGColor')
-@Unstable
+@Unstable()
 abstract class _SVGColor native "SVGColor" {
   _SVGColor.internal();
 }
@@ -7094,9 +7094,9 @@ abstract class _SVGColor native "SVGColor" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGComponentTransferFunctionElement')
-@Unstable
+@Unstable()
 abstract class _SVGComponentTransferFunctionElement extends SvgElement native "SVGComponentTransferFunctionElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGComponentTransferFunctionElement._() { throw new UnsupportedError("Not supported"); }
@@ -7106,15 +7106,15 @@ abstract class _SVGComponentTransferFunctionElement extends SvgElement native "S
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGCursorElement')
-@Unstable
+@Unstable()
 abstract class _SVGCursorElement extends SvgElement implements UriReference, Tests, ExternalResourcesRequired native "SVGCursorElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGCursorElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGCursorElement.SVGCursorElement')
-  @DocsEditable
+  @DocsEditable()
   factory _SVGCursorElement() => _SvgElementFactoryProvider.createSvgElement_tag("cursor");
 
   /// Checks if this type is supported on the current platform.
@@ -7131,9 +7131,9 @@ abstract class _SVGCursorElement extends SvgElement implements UriReference, Tes
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFEDropShadowElement')
-@Experimental // nonstandard
+@Experimental() // nonstandard
 abstract class _SVGFEDropShadowElement extends StyledElement implements FilterPrimitiveStandardAttributes native "SVGFEDropShadowElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGFEDropShadowElement._() { throw new UnsupportedError("Not supported"); }
@@ -7145,9 +7145,9 @@ abstract class _SVGFEDropShadowElement extends StyledElement implements FilterPr
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFontElement')
-@Unstable
+@Unstable()
 abstract class _SVGFontElement extends SvgElement native "SVGFontElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGFontElement._() { throw new UnsupportedError("Not supported"); }
@@ -7157,9 +7157,9 @@ abstract class _SVGFontElement extends SvgElement native "SVGFontElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFontFaceElement')
-@Unstable
+@Unstable()
 abstract class _SVGFontFaceElement extends SvgElement native "SVGFontFaceElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGFontFaceElement._() { throw new UnsupportedError("Not supported"); }
@@ -7169,9 +7169,9 @@ abstract class _SVGFontFaceElement extends SvgElement native "SVGFontFaceElement
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFontFaceFormatElement')
-@Unstable
+@Unstable()
 abstract class _SVGFontFaceFormatElement extends SvgElement native "SVGFontFaceFormatElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGFontFaceFormatElement._() { throw new UnsupportedError("Not supported"); }
@@ -7181,9 +7181,9 @@ abstract class _SVGFontFaceFormatElement extends SvgElement native "SVGFontFaceF
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFontFaceNameElement')
-@Unstable
+@Unstable()
 abstract class _SVGFontFaceNameElement extends SvgElement native "SVGFontFaceNameElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGFontFaceNameElement._() { throw new UnsupportedError("Not supported"); }
@@ -7193,9 +7193,9 @@ abstract class _SVGFontFaceNameElement extends SvgElement native "SVGFontFaceNam
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFontFaceSrcElement')
-@Unstable
+@Unstable()
 abstract class _SVGFontFaceSrcElement extends SvgElement native "SVGFontFaceSrcElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGFontFaceSrcElement._() { throw new UnsupportedError("Not supported"); }
@@ -7205,9 +7205,9 @@ abstract class _SVGFontFaceSrcElement extends SvgElement native "SVGFontFaceSrcE
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGFontFaceUriElement')
-@Unstable
+@Unstable()
 abstract class _SVGFontFaceUriElement extends SvgElement native "SVGFontFaceUriElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGFontFaceUriElement._() { throw new UnsupportedError("Not supported"); }
@@ -7217,15 +7217,15 @@ abstract class _SVGFontFaceUriElement extends SvgElement native "SVGFontFaceUriE
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGGlyphElement')
-@Unstable
+@Unstable()
 abstract class _SVGGlyphElement extends SvgElement native "SVGGlyphElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGGlyphElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGGlyphElement.SVGGlyphElement')
-  @DocsEditable
+  @DocsEditable()
   factory _SVGGlyphElement() => _SvgElementFactoryProvider.createSvgElement_tag("glyph");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7233,9 +7233,9 @@ abstract class _SVGGlyphElement extends SvgElement native "SVGGlyphElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGGlyphRefElement')
-@Unstable
+@Unstable()
 abstract class _SVGGlyphRefElement extends StyledElement implements UriReference native "SVGGlyphRefElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGGlyphRefElement._() { throw new UnsupportedError("Not supported"); }
@@ -7247,15 +7247,15 @@ abstract class _SVGGlyphRefElement extends StyledElement implements UriReference
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGHKernElement')
-@Unstable
+@Unstable()
 abstract class _SVGHKernElement extends SvgElement native "SVGHKernElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGHKernElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGHKernElement.SVGHKernElement')
-  @DocsEditable
+  @DocsEditable()
   factory _SVGHKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("hkern");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7263,14 +7263,14 @@ abstract class _SVGHKernElement extends SvgElement native "SVGHKernElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGMPathElement')
 abstract class _SVGMPathElement extends SvgElement implements UriReference, ExternalResourcesRequired native "SVGMPathElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGMPathElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGMPathElement.SVGMPathElement')
-  @DocsEditable
+  @DocsEditable()
   factory _SVGMPathElement() => _SvgElementFactoryProvider.createSvgElement_tag("mpath");
 
   // From SVGExternalResourcesRequired
@@ -7282,9 +7282,9 @@ abstract class _SVGMPathElement extends SvgElement implements UriReference, Exte
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGMissingGlyphElement')
-@Unstable
+@Unstable()
 abstract class _SVGMissingGlyphElement extends StyledElement native "SVGMissingGlyphElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGMissingGlyphElement._() { throw new UnsupportedError("Not supported"); }
@@ -7294,9 +7294,9 @@ abstract class _SVGMissingGlyphElement extends StyledElement native "SVGMissingG
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGPaint')
-@Unstable
+@Unstable()
 abstract class _SVGPaint extends _SVGColor native "SVGPaint" {
   // To suppress missing implicit constructor warnings.
   factory _SVGPaint._() { throw new UnsupportedError("Not supported"); }
@@ -7306,15 +7306,15 @@ abstract class _SVGPaint extends _SVGColor native "SVGPaint" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGTRefElement')
-@Unstable
+@Unstable()
 abstract class _SVGTRefElement extends TextPositioningElement implements UriReference native "SVGTRefElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGTRefElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGTRefElement.SVGTRefElement')
-  @DocsEditable
+  @DocsEditable()
   factory _SVGTRefElement() => _SvgElementFactoryProvider.createSvgElement_tag("tref");
 
   // From SVGURIReference
@@ -7324,14 +7324,14 @@ abstract class _SVGTRefElement extends TextPositioningElement implements UriRefe
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('SVGVKernElement')
-@Unstable
+@Unstable()
 abstract class _SVGVKernElement extends SvgElement native "SVGVKernElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGVKernElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGVKernElement.SVGVKernElement')
-  @DocsEditable
+  @DocsEditable()
   factory _SVGVKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("vkern");
 }

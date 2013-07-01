@@ -6,7 +6,7 @@
 
 part of $LIBRARYNAME;
 
-@DocsEditable
+@DocsEditable()
 $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$MIXINS$IMPLEMENTS {
 $!MEMBERS
 }

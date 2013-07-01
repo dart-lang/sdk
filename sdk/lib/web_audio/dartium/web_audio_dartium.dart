@@ -20,60 +20,60 @@ import 'dart:typed_data';
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('AnalyserNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AnalyserNode
-@Experimental
+@Experimental()
 class AnalyserNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory AnalyserNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('AnalyserNode.fftSize')
-  @DocsEditable
+  @DocsEditable()
   int get fftSize native "AnalyserNode_fftSize_Getter";
 
   @DomName('AnalyserNode.fftSize')
-  @DocsEditable
+  @DocsEditable()
   void set fftSize(int value) native "AnalyserNode_fftSize_Setter";
 
   @DomName('AnalyserNode.frequencyBinCount')
-  @DocsEditable
+  @DocsEditable()
   int get frequencyBinCount native "AnalyserNode_frequencyBinCount_Getter";
 
   @DomName('AnalyserNode.maxDecibels')
-  @DocsEditable
+  @DocsEditable()
   num get maxDecibels native "AnalyserNode_maxDecibels_Getter";
 
   @DomName('AnalyserNode.maxDecibels')
-  @DocsEditable
+  @DocsEditable()
   void set maxDecibels(num value) native "AnalyserNode_maxDecibels_Setter";
 
   @DomName('AnalyserNode.minDecibels')
-  @DocsEditable
+  @DocsEditable()
   num get minDecibels native "AnalyserNode_minDecibels_Getter";
 
   @DomName('AnalyserNode.minDecibels')
-  @DocsEditable
+  @DocsEditable()
   void set minDecibels(num value) native "AnalyserNode_minDecibels_Setter";
 
   @DomName('AnalyserNode.smoothingTimeConstant')
-  @DocsEditable
+  @DocsEditable()
   num get smoothingTimeConstant native "AnalyserNode_smoothingTimeConstant_Getter";
 
   @DomName('AnalyserNode.smoothingTimeConstant')
-  @DocsEditable
+  @DocsEditable()
   void set smoothingTimeConstant(num value) native "AnalyserNode_smoothingTimeConstant_Setter";
 
   @DomName('AnalyserNode.getByteFrequencyData')
-  @DocsEditable
+  @DocsEditable()
   void getByteFrequencyData(Uint8List array) native "AnalyserNode_getByteFrequencyData_Callback";
 
   @DomName('AnalyserNode.getByteTimeDomainData')
-  @DocsEditable
+  @DocsEditable()
   void getByteTimeDomainData(Uint8List array) native "AnalyserNode_getByteTimeDomainData_Callback";
 
   @DomName('AnalyserNode.getFloatFrequencyData')
-  @DocsEditable
+  @DocsEditable()
   void getFloatFrequencyData(Float32List array) native "AnalyserNode_getFloatFrequencyData_Callback";
 
 }
@@ -84,38 +84,38 @@ class AnalyserNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('AudioBuffer')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioBuffer-section
-@Experimental
+@Experimental()
 class AudioBuffer extends NativeFieldWrapperClass1 {
 
   @DomName('AudioBuffer.duration')
-  @DocsEditable
+  @DocsEditable()
   num get duration native "AudioBuffer_duration_Getter";
 
   @DomName('AudioBuffer.gain')
-  @DocsEditable
+  @DocsEditable()
   num get gain native "AudioBuffer_gain_Getter";
 
   @DomName('AudioBuffer.gain')
-  @DocsEditable
+  @DocsEditable()
   void set gain(num value) native "AudioBuffer_gain_Setter";
 
   @DomName('AudioBuffer.length')
-  @DocsEditable
+  @DocsEditable()
   int get length native "AudioBuffer_length_Getter";
 
   @DomName('AudioBuffer.numberOfChannels')
-  @DocsEditable
+  @DocsEditable()
   int get numberOfChannels native "AudioBuffer_numberOfChannels_Getter";
 
   @DomName('AudioBuffer.sampleRate')
-  @DocsEditable
+  @DocsEditable()
   num get sampleRate native "AudioBuffer_sampleRate_Getter";
 
   @DomName('AudioBuffer.getChannelData')
-  @DocsEditable
+  @DocsEditable()
   Float32List getChannelData(int channelIndex) native "AudioBuffer_getChannelData_Callback";
 
 }
@@ -128,7 +128,7 @@ class AudioBuffer extends NativeFieldWrapperClass1 {
 
 @DomName('AudioBufferCallback')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioBuffer-section
-@Experimental
+@Experimental()
 typedef void AudioBufferCallback(AudioBuffer audioBuffer);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -137,84 +137,84 @@ typedef void AudioBufferCallback(AudioBuffer audioBuffer);
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('AudioBufferSourceNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioBufferSourceNode-section
-@Experimental
+@Experimental()
 class AudioBufferSourceNode extends AudioSourceNode {
   // To suppress missing implicit constructor warnings.
   factory AudioBufferSourceNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('AudioBufferSourceNode.FINISHED_STATE')
-  @DocsEditable
+  @DocsEditable()
   static const int FINISHED_STATE = 3;
 
   @DomName('AudioBufferSourceNode.PLAYING_STATE')
-  @DocsEditable
+  @DocsEditable()
   static const int PLAYING_STATE = 2;
 
   @DomName('AudioBufferSourceNode.SCHEDULED_STATE')
-  @DocsEditable
+  @DocsEditable()
   static const int SCHEDULED_STATE = 1;
 
   @DomName('AudioBufferSourceNode.UNSCHEDULED_STATE')
-  @DocsEditable
+  @DocsEditable()
   static const int UNSCHEDULED_STATE = 0;
 
   @DomName('AudioBufferSourceNode.buffer')
-  @DocsEditable
+  @DocsEditable()
   AudioBuffer get buffer native "AudioBufferSourceNode_buffer_Getter";
 
   @DomName('AudioBufferSourceNode.buffer')
-  @DocsEditable
+  @DocsEditable()
   void set buffer(AudioBuffer value) native "AudioBufferSourceNode_buffer_Setter";
 
   @DomName('AudioBufferSourceNode.gain')
-  @DocsEditable
+  @DocsEditable()
   AudioParam get gain native "AudioBufferSourceNode_gain_Getter";
 
   @DomName('AudioBufferSourceNode.loop')
-  @DocsEditable
+  @DocsEditable()
   bool get loop native "AudioBufferSourceNode_loop_Getter";
 
   @DomName('AudioBufferSourceNode.loop')
-  @DocsEditable
+  @DocsEditable()
   void set loop(bool value) native "AudioBufferSourceNode_loop_Setter";
 
   @DomName('AudioBufferSourceNode.loopEnd')
-  @DocsEditable
+  @DocsEditable()
   num get loopEnd native "AudioBufferSourceNode_loopEnd_Getter";
 
   @DomName('AudioBufferSourceNode.loopEnd')
-  @DocsEditable
+  @DocsEditable()
   void set loopEnd(num value) native "AudioBufferSourceNode_loopEnd_Setter";
 
   @DomName('AudioBufferSourceNode.loopStart')
-  @DocsEditable
+  @DocsEditable()
   num get loopStart native "AudioBufferSourceNode_loopStart_Getter";
 
   @DomName('AudioBufferSourceNode.loopStart')
-  @DocsEditable
+  @DocsEditable()
   void set loopStart(num value) native "AudioBufferSourceNode_loopStart_Setter";
 
   @DomName('AudioBufferSourceNode.playbackRate')
-  @DocsEditable
+  @DocsEditable()
   AudioParam get playbackRate native "AudioBufferSourceNode_playbackRate_Getter";
 
   @DomName('AudioBufferSourceNode.playbackState')
-  @DocsEditable
+  @DocsEditable()
   int get playbackState native "AudioBufferSourceNode_playbackState_Getter";
 
   @DomName('AudioBufferSourceNode.noteGrainOn')
-  @DocsEditable
+  @DocsEditable()
   void noteGrainOn(num when, num grainOffset, num grainDuration) native "AudioBufferSourceNode_noteGrainOn_Callback";
 
   @DomName('AudioBufferSourceNode.noteOff')
-  @DocsEditable
+  @DocsEditable()
   void noteOff(num when) native "AudioBufferSourceNode_noteOff_Callback";
 
   @DomName('AudioBufferSourceNode.noteOn')
-  @DocsEditable
+  @DocsEditable()
   void noteOn(num when) native "AudioBufferSourceNode_noteOn_Callback";
 
   void start(num when, [num grainOffset, num grainDuration]) {
@@ -240,7 +240,7 @@ class AudioBufferSourceNode extends AudioSourceNode {
   void _start_3(when, grainOffset, grainDuration) native "AudioBufferSourceNode__start_3_Callback";
 
   @DomName('AudioBufferSourceNode.stop')
-  @DocsEditable
+  @DocsEditable()
   void stop(num when) native "AudioBufferSourceNode_stop_Callback";
 
 }
@@ -251,51 +251,51 @@ class AudioBufferSourceNode extends AudioSourceNode {
 
 @DomName('AudioContext')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioContext-section
-@Experimental
+@Experimental()
 class AudioContext extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory AudioContext._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('AudioContext.completeEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> completeEvent = const EventStreamProvider<Event>('complete');
 
   @DomName('AudioContext.AudioContext')
-  @DocsEditable
+  @DocsEditable()
   factory AudioContext() => _create();
 
-  @DocsEditable
+  @DocsEditable()
   static AudioContext _create() native "AudioContext_constructorCallback";
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('AudioContext.activeSourceCount')
-  @DocsEditable
+  @DocsEditable()
   int get activeSourceCount native "AudioContext_activeSourceCount_Getter";
 
   @DomName('AudioContext.currentTime')
-  @DocsEditable
+  @DocsEditable()
   num get currentTime native "AudioContext_currentTime_Getter";
 
   @DomName('AudioContext.destination')
-  @DocsEditable
+  @DocsEditable()
   AudioDestinationNode get destination native "AudioContext_destination_Getter";
 
   @DomName('AudioContext.listener')
-  @DocsEditable
+  @DocsEditable()
   AudioListener get listener native "AudioContext_listener_Getter";
 
   @DomName('AudioContext.sampleRate')
-  @DocsEditable
+  @DocsEditable()
   num get sampleRate native "AudioContext_sampleRate_Getter";
 
   @DomName('AudioContext.createAnalyser')
-  @DocsEditable
+  @DocsEditable()
   AnalyserNode createAnalyser() native "AudioContext_createAnalyser_Callback";
 
   @DomName('AudioContext.createBiquadFilter')
-  @DocsEditable
+  @DocsEditable()
   BiquadFilterNode createBiquadFilter() native "AudioContext_createBiquadFilter_Callback";
 
   AudioBuffer createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [num sampleRate]) {
@@ -313,7 +313,7 @@ class AudioContext extends EventTarget {
   AudioBuffer _createBuffer_2(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames) native "AudioContext__createBuffer_2_Callback";
 
   @DomName('AudioContext.createBufferSource')
-  @DocsEditable
+  @DocsEditable()
   AudioBufferSourceNode createBufferSource() native "AudioContext_createBufferSource_Callback";
 
   ChannelMergerNode createChannelMerger([int numberOfInputs]) {
@@ -339,7 +339,7 @@ class AudioContext extends EventTarget {
   ChannelSplitterNode _createChannelSplitter_2() native "AudioContext__createChannelSplitter_2_Callback";
 
   @DomName('AudioContext.createConvolver')
-  @DocsEditable
+  @DocsEditable()
   ConvolverNode createConvolver() native "AudioContext_createConvolver_Callback";
 
   DelayNode createDelay([num maxDelayTime]) {
@@ -365,15 +365,15 @@ class AudioContext extends EventTarget {
   DelayNode _createDelayNode_2() native "AudioContext__createDelayNode_2_Callback";
 
   @DomName('AudioContext.createDynamicsCompressor')
-  @DocsEditable
+  @DocsEditable()
   DynamicsCompressorNode createDynamicsCompressor() native "AudioContext_createDynamicsCompressor_Callback";
 
   @DomName('AudioContext.createGain')
-  @DocsEditable
+  @DocsEditable()
   GainNode createGain() native "AudioContext_createGain_Callback";
 
   @DomName('AudioContext.createGainNode')
-  @DocsEditable
+  @DocsEditable()
   GainNode createGainNode() native "AudioContext_createGainNode_Callback";
 
   ScriptProcessorNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) {
@@ -393,23 +393,23 @@ class AudioContext extends EventTarget {
   ScriptProcessorNode _createJavaScriptNode_3(bufferSize) native "AudioContext__createJavaScriptNode_3_Callback";
 
   @DomName('AudioContext.createMediaElementSource')
-  @DocsEditable
+  @DocsEditable()
   MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement) native "AudioContext_createMediaElementSource_Callback";
 
   @DomName('AudioContext.createMediaStreamDestination')
-  @DocsEditable
+  @DocsEditable()
   MediaStreamAudioDestinationNode createMediaStreamDestination() native "AudioContext_createMediaStreamDestination_Callback";
 
   @DomName('AudioContext.createMediaStreamSource')
-  @DocsEditable
+  @DocsEditable()
   MediaStreamAudioSourceNode createMediaStreamSource(MediaStream mediaStream) native "AudioContext_createMediaStreamSource_Callback";
 
   @DomName('AudioContext.createOscillator')
-  @DocsEditable
+  @DocsEditable()
   OscillatorNode createOscillator() native "AudioContext_createOscillator_Callback";
 
   @DomName('AudioContext.createPanner')
-  @DocsEditable
+  @DocsEditable()
   PannerNode createPanner() native "AudioContext_createPanner_Callback";
 
   ScriptProcessorNode createScriptProcessor(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) {
@@ -429,23 +429,23 @@ class AudioContext extends EventTarget {
   ScriptProcessorNode _createScriptProcessor_3(bufferSize) native "AudioContext__createScriptProcessor_3_Callback";
 
   @DomName('AudioContext.createWaveShaper')
-  @DocsEditable
+  @DocsEditable()
   WaveShaperNode createWaveShaper() native "AudioContext_createWaveShaper_Callback";
 
   @DomName('AudioContext.createWaveTable')
-  @DocsEditable
+  @DocsEditable()
   WaveTable createWaveTable(Float32List real, Float32List imag) native "AudioContext_createWaveTable_Callback";
 
   @DomName('AudioContext.decodeAudioData')
-  @DocsEditable
+  @DocsEditable()
   void decodeAudioData(ByteBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) native "AudioContext_decodeAudioData_Callback";
 
   @DomName('AudioContext.startRendering')
-  @DocsEditable
+  @DocsEditable()
   void startRendering() native "AudioContext_startRendering_Callback";
 
   @DomName('AudioContext.oncomplete')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onComplete => completeEvent.forTarget(this);
 
 }
@@ -456,16 +456,16 @@ class AudioContext extends EventTarget {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('AudioDestinationNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioDestinationNode-section
-@Experimental
+@Experimental()
 class AudioDestinationNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory AudioDestinationNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('AudioDestinationNode.maxChannelCount')
-  @DocsEditable
+  @DocsEditable()
   int get maxChannelCount native "AudioDestinationNode_maxChannelCount_Getter";
 
 }
@@ -476,38 +476,38 @@ class AudioDestinationNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('AudioListener')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioListener-section
-@Experimental
+@Experimental()
 class AudioListener extends NativeFieldWrapperClass1 {
 
   @DomName('AudioListener.dopplerFactor')
-  @DocsEditable
+  @DocsEditable()
   num get dopplerFactor native "AudioListener_dopplerFactor_Getter";
 
   @DomName('AudioListener.dopplerFactor')
-  @DocsEditable
+  @DocsEditable()
   void set dopplerFactor(num value) native "AudioListener_dopplerFactor_Setter";
 
   @DomName('AudioListener.speedOfSound')
-  @DocsEditable
+  @DocsEditable()
   num get speedOfSound native "AudioListener_speedOfSound_Getter";
 
   @DomName('AudioListener.speedOfSound')
-  @DocsEditable
+  @DocsEditable()
   void set speedOfSound(num value) native "AudioListener_speedOfSound_Setter";
 
   @DomName('AudioListener.setOrientation')
-  @DocsEditable
+  @DocsEditable()
   void setOrientation(num x, num y, num z, num xUp, num yUp, num zUp) native "AudioListener_setOrientation_Callback";
 
   @DomName('AudioListener.setPosition')
-  @DocsEditable
+  @DocsEditable()
   void setPosition(num x, num y, num z) native "AudioListener_setPosition_Callback";
 
   @DomName('AudioListener.setVelocity')
-  @DocsEditable
+  @DocsEditable()
   void setVelocity(num x, num y, num z) native "AudioListener_setVelocity_Callback";
 
 }
@@ -518,52 +518,52 @@ class AudioListener extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('AudioNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioNode-section
-@Experimental
+@Experimental()
 class AudioNode extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory AudioNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('AudioNode.channelCount')
-  @DocsEditable
+  @DocsEditable()
   int get channelCount native "AudioNode_channelCount_Getter";
 
   @DomName('AudioNode.channelCount')
-  @DocsEditable
+  @DocsEditable()
   void set channelCount(int value) native "AudioNode_channelCount_Setter";
 
   @DomName('AudioNode.channelCountMode')
-  @DocsEditable
+  @DocsEditable()
   String get channelCountMode native "AudioNode_channelCountMode_Getter";
 
   @DomName('AudioNode.channelCountMode')
-  @DocsEditable
+  @DocsEditable()
   void set channelCountMode(String value) native "AudioNode_channelCountMode_Setter";
 
   @DomName('AudioNode.channelInterpretation')
-  @DocsEditable
+  @DocsEditable()
   String get channelInterpretation native "AudioNode_channelInterpretation_Getter";
 
   @DomName('AudioNode.channelInterpretation')
-  @DocsEditable
+  @DocsEditable()
   void set channelInterpretation(String value) native "AudioNode_channelInterpretation_Setter";
 
   @DomName('AudioNode.context')
-  @DocsEditable
+  @DocsEditable()
   AudioContext get context native "AudioNode_context_Getter";
 
   @DomName('AudioNode.numberOfInputs')
-  @DocsEditable
+  @DocsEditable()
   int get numberOfInputs native "AudioNode_numberOfInputs_Getter";
 
   @DomName('AudioNode.numberOfOutputs')
-  @DocsEditable
+  @DocsEditable()
   int get numberOfOutputs native "AudioNode_numberOfOutputs_Getter";
 
   @DomName('AudioNode.addEventListener')
-  @DocsEditable
+  @DocsEditable()
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "AudioNode_addEventListener_Callback";
 
   void connect(destination, int output, [int input]) {
@@ -583,15 +583,15 @@ class AudioNode extends EventTarget {
   void _connect_2(destination, output) native "AudioNode__connect_2_Callback";
 
   @DomName('AudioNode.disconnect')
-  @DocsEditable
+  @DocsEditable()
   void disconnect(int output) native "AudioNode_disconnect_Callback";
 
   @DomName('AudioNode.dispatchEvent')
-  @DocsEditable
+  @DocsEditable()
   bool dispatchEvent(Event event) native "AudioNode_dispatchEvent_Callback";
 
   @DomName('AudioNode.removeEventListener')
-  @DocsEditable
+  @DocsEditable()
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "AudioNode_removeEventListener_Callback";
 
 }
@@ -602,66 +602,66 @@ class AudioNode extends EventTarget {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('AudioParam')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioParam
-@Experimental
+@Experimental()
 class AudioParam extends NativeFieldWrapperClass1 {
 
   @DomName('AudioParam.defaultValue')
-  @DocsEditable
+  @DocsEditable()
   num get defaultValue native "AudioParam_defaultValue_Getter";
 
   @DomName('AudioParam.maxValue')
-  @DocsEditable
+  @DocsEditable()
   num get maxValue native "AudioParam_maxValue_Getter";
 
   @DomName('AudioParam.minValue')
-  @DocsEditable
+  @DocsEditable()
   num get minValue native "AudioParam_minValue_Getter";
 
   @DomName('AudioParam.name')
-  @DocsEditable
+  @DocsEditable()
   String get name native "AudioParam_name_Getter";
 
   @DomName('AudioParam.units')
-  @DocsEditable
+  @DocsEditable()
   int get units native "AudioParam_units_Getter";
 
   @DomName('AudioParam.value')
-  @DocsEditable
+  @DocsEditable()
   num get value native "AudioParam_value_Getter";
 
   @DomName('AudioParam.value')
-  @DocsEditable
+  @DocsEditable()
   void set value(num value) native "AudioParam_value_Setter";
 
   @DomName('AudioParam.cancelScheduledValues')
-  @DocsEditable
+  @DocsEditable()
   void cancelScheduledValues(num startTime) native "AudioParam_cancelScheduledValues_Callback";
 
   @DomName('AudioParam.exponentialRampToValueAtTime')
-  @DocsEditable
+  @DocsEditable()
   void exponentialRampToValueAtTime(num value, num time) native "AudioParam_exponentialRampToValueAtTime_Callback";
 
   @DomName('AudioParam.linearRampToValueAtTime')
-  @DocsEditable
+  @DocsEditable()
   void linearRampToValueAtTime(num value, num time) native "AudioParam_linearRampToValueAtTime_Callback";
 
   @DomName('AudioParam.setTargetAtTime')
-  @DocsEditable
+  @DocsEditable()
   void setTargetAtTime(num target, num time, num timeConstant) native "AudioParam_setTargetAtTime_Callback";
 
   @DomName('AudioParam.setTargetValueAtTime')
-  @DocsEditable
+  @DocsEditable()
   void setTargetValueAtTime(num targetValue, num time, num timeConstant) native "AudioParam_setTargetValueAtTime_Callback";
 
   @DomName('AudioParam.setValueAtTime')
-  @DocsEditable
+  @DocsEditable()
   void setValueAtTime(num value, num time) native "AudioParam_setValueAtTime_Callback";
 
   @DomName('AudioParam.setValueCurveAtTime')
-  @DocsEditable
+  @DocsEditable()
   void setValueCurveAtTime(Float32List values, num time, num duration) native "AudioParam_setValueCurveAtTime_Callback";
 
 }
@@ -672,20 +672,20 @@ class AudioParam extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('AudioProcessingEvent')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioProcessingEvent-section
-@Experimental
+@Experimental()
 class AudioProcessingEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory AudioProcessingEvent._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('AudioProcessingEvent.inputBuffer')
-  @DocsEditable
+  @DocsEditable()
   AudioBuffer get inputBuffer native "AudioProcessingEvent_inputBuffer_Getter";
 
   @DomName('AudioProcessingEvent.outputBuffer')
-  @DocsEditable
+  @DocsEditable()
   AudioBuffer get outputBuffer native "AudioProcessingEvent_outputBuffer_Getter";
 
 }
@@ -696,10 +696,10 @@ class AudioProcessingEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('AudioSourceNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html
-@Experimental
+@Experimental()
 class AudioSourceNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory AudioSourceNode._() { throw new UnsupportedError("Not supported"); }
@@ -712,72 +712,72 @@ class AudioSourceNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('BiquadFilterNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#BiquadFilterNode-section
-@Experimental
+@Experimental()
 class BiquadFilterNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory BiquadFilterNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('BiquadFilterNode.ALLPASS')
-  @DocsEditable
+  @DocsEditable()
   static const int ALLPASS = 7;
 
   @DomName('BiquadFilterNode.BANDPASS')
-  @DocsEditable
+  @DocsEditable()
   static const int BANDPASS = 2;
 
   @DomName('BiquadFilterNode.HIGHPASS')
-  @DocsEditable
+  @DocsEditable()
   static const int HIGHPASS = 1;
 
   @DomName('BiquadFilterNode.HIGHSHELF')
-  @DocsEditable
+  @DocsEditable()
   static const int HIGHSHELF = 4;
 
   @DomName('BiquadFilterNode.LOWPASS')
-  @DocsEditable
+  @DocsEditable()
   static const int LOWPASS = 0;
 
   @DomName('BiquadFilterNode.LOWSHELF')
-  @DocsEditable
+  @DocsEditable()
   static const int LOWSHELF = 3;
 
   @DomName('BiquadFilterNode.NOTCH')
-  @DocsEditable
+  @DocsEditable()
   static const int NOTCH = 6;
 
   @DomName('BiquadFilterNode.PEAKING')
-  @DocsEditable
+  @DocsEditable()
   static const int PEAKING = 5;
 
   @DomName('BiquadFilterNode.Q')
-  @DocsEditable
+  @DocsEditable()
   AudioParam get Q native "BiquadFilterNode_Q_Getter";
 
   @DomName('BiquadFilterNode.detune')
-  @DocsEditable
+  @DocsEditable()
   AudioParam get detune native "BiquadFilterNode_detune_Getter";
 
   @DomName('BiquadFilterNode.frequency')
-  @DocsEditable
+  @DocsEditable()
   AudioParam get frequency native "BiquadFilterNode_frequency_Getter";
 
   @DomName('BiquadFilterNode.gain')
-  @DocsEditable
+  @DocsEditable()
   AudioParam get gain native "BiquadFilterNode_gain_Getter";
 
   @DomName('BiquadFilterNode.type')
-  @DocsEditable
+  @DocsEditable()
   String get type native "BiquadFilterNode_type_Getter";
 
   @DomName('BiquadFilterNode.type')
-  @DocsEditable
+  @DocsEditable()
   void set type(String value) native "BiquadFilterNode_type_Setter";
 
   @DomName('BiquadFilterNode.getFrequencyResponse')
-  @DocsEditable
+  @DocsEditable()
   void getFrequencyResponse(Float32List frequencyHz, Float32List magResponse, Float32List phaseResponse) native "BiquadFilterNode_getFrequencyResponse_Callback";
 
 }
@@ -788,10 +788,10 @@ class BiquadFilterNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('ChannelMergerNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#ChannelMergerNode-section
-@Experimental
+@Experimental()
 class ChannelMergerNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory ChannelMergerNode._() { throw new UnsupportedError("Not supported"); }
@@ -804,10 +804,10 @@ class ChannelMergerNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('ChannelSplitterNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#ChannelSplitterNode-section
-@Experimental
+@Experimental()
 class ChannelSplitterNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory ChannelSplitterNode._() { throw new UnsupportedError("Not supported"); }
@@ -820,28 +820,28 @@ class ChannelSplitterNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('ConvolverNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#ConvolverNode
-@Experimental
+@Experimental()
 class ConvolverNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory ConvolverNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('ConvolverNode.buffer')
-  @DocsEditable
+  @DocsEditable()
   AudioBuffer get buffer native "ConvolverNode_buffer_Getter";
 
   @DomName('ConvolverNode.buffer')
-  @DocsEditable
+  @DocsEditable()
   void set buffer(AudioBuffer value) native "ConvolverNode_buffer_Setter";
 
   @DomName('ConvolverNode.normalize')
-  @DocsEditable
+  @DocsEditable()
   bool get normalize native "ConvolverNode_normalize_Getter";
 
   @DomName('ConvolverNode.normalize')
-  @DocsEditable
+  @DocsEditable()
   void set normalize(bool value) native "ConvolverNode_normalize_Setter";
 
 }
@@ -852,16 +852,16 @@ class ConvolverNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('DelayNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#DelayNode
-@Experimental
+@Experimental()
 class DelayNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory DelayNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('DelayNode.delayTime')
-  @DocsEditable
+  @DocsEditable()
   AudioParam get delayTime native "DelayNode_delayTime_Getter";
 
 }
@@ -872,36 +872,36 @@ class DelayNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('DynamicsCompressorNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#DynamicsCompressorNode
-@Experimental
+@Experimental()
 class DynamicsCompressorNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory DynamicsCompressorNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('DynamicsCompressorNode.attack')
-  @DocsEditable
+  @DocsEditable()
   AudioParam get attack native "DynamicsCompressorNode_attack_Getter";
 
   @DomName('DynamicsCompressorNode.knee')
-  @DocsEditable
+  @DocsEditable()
   AudioParam get knee native "DynamicsCompressorNode_knee_Getter";
 
   @DomName('DynamicsCompressorNode.ratio')
-  @DocsEditable
+  @DocsEditable()
   AudioParam get ratio native "DynamicsCompressorNode_ratio_Getter";
 
   @DomName('DynamicsCompressorNode.reduction')
-  @DocsEditable
+  @DocsEditable()
   AudioParam get reduction native "DynamicsCompressorNode_reduction_Getter";
 
   @DomName('DynamicsCompressorNode.release')
-  @DocsEditable
+  @DocsEditable()
   AudioParam get release native "DynamicsCompressorNode_release_Getter";
 
   @DomName('DynamicsCompressorNode.threshold')
-  @DocsEditable
+  @DocsEditable()
   AudioParam get threshold native "DynamicsCompressorNode_threshold_Getter";
 
 }
@@ -912,16 +912,16 @@ class DynamicsCompressorNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('GainNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#GainNode
-@Experimental
+@Experimental()
 class GainNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory GainNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('GainNode.gain')
-  @DocsEditable
+  @DocsEditable()
   AudioParam get gain native "GainNode_gain_Getter";
 
 }
@@ -932,17 +932,17 @@ class GainNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('MediaElementAudioSourceNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#MediaElementAudioSourceNode
-@Experimental
+@Experimental()
 class MediaElementAudioSourceNode extends AudioSourceNode {
   // To suppress missing implicit constructor warnings.
   factory MediaElementAudioSourceNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('MediaElementAudioSourceNode.mediaElement')
-  @DocsEditable
-  @Experimental // non-standard
+  @DocsEditable()
+  @Experimental() // non-standard
   MediaElement get mediaElement native "MediaElementAudioSourceNode_mediaElement_Getter";
 
 }
@@ -953,16 +953,16 @@ class MediaElementAudioSourceNode extends AudioSourceNode {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('MediaStreamAudioDestinationNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#MediaStreamAudioDestinationNode
-@Experimental
+@Experimental()
 class MediaStreamAudioDestinationNode extends AudioSourceNode {
   // To suppress missing implicit constructor warnings.
   factory MediaStreamAudioDestinationNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('MediaStreamAudioDestinationNode.stream')
-  @DocsEditable
+  @DocsEditable()
   MediaStream get stream native "MediaStreamAudioDestinationNode_stream_Getter";
 
 }
@@ -973,16 +973,16 @@ class MediaStreamAudioDestinationNode extends AudioSourceNode {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('MediaStreamAudioSourceNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#MediaStreamAudioSourceNode
-@Experimental
+@Experimental()
 class MediaStreamAudioSourceNode extends AudioSourceNode {
   // To suppress missing implicit constructor warnings.
   factory MediaStreamAudioSourceNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('MediaStreamAudioSourceNode.mediaStream')
-  @DocsEditable
+  @DocsEditable()
   MediaStream get mediaStream native "MediaStreamAudioSourceNode_mediaStream_Getter";
 
 }
@@ -993,16 +993,16 @@ class MediaStreamAudioSourceNode extends AudioSourceNode {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('OfflineAudioCompletionEvent')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#OfflineAudioCompletionEvent-section
-@Experimental
+@Experimental()
 class OfflineAudioCompletionEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory OfflineAudioCompletionEvent._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('OfflineAudioCompletionEvent.renderedBuffer')
-  @DocsEditable
+  @DocsEditable()
   AudioBuffer get renderedBuffer native "OfflineAudioCompletionEvent_renderedBuffer_Getter";
 
 }
@@ -1013,21 +1013,21 @@ class OfflineAudioCompletionEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('OfflineAudioContext')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#OfflineAudioContext-section
-@Experimental
+@Experimental()
 class OfflineAudioContext extends AudioContext implements EventTarget {
   // To suppress missing implicit constructor warnings.
   factory OfflineAudioContext._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('OfflineAudioContext.OfflineAudioContext')
-  @DocsEditable
+  @DocsEditable()
   factory OfflineAudioContext(int numberOfChannels, int numberOfFrames, num sampleRate) {
     return OfflineAudioContext._create_1(numberOfChannels, numberOfFrames, sampleRate);
   }
 
-  @DocsEditable
+  @DocsEditable()
   static OfflineAudioContext _create_1(numberOfChannels, numberOfFrames, sampleRate) native "OfflineAudioContext__create_1constructorCallback";
 
 }
@@ -1038,98 +1038,98 @@ class OfflineAudioContext extends AudioContext implements EventTarget {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('OscillatorNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#dfn-OscillatorNode
-@Experimental
+@Experimental()
 class OscillatorNode extends AudioSourceNode {
   // To suppress missing implicit constructor warnings.
   factory OscillatorNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('OscillatorNode.CUSTOM')
-  @DocsEditable
+  @DocsEditable()
   // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
   @deprecated // deprecated
   static const int CUSTOM = 4;
 
   @DomName('OscillatorNode.FINISHED_STATE')
-  @DocsEditable
+  @DocsEditable()
   static const int FINISHED_STATE = 3;
 
   @DomName('OscillatorNode.PLAYING_STATE')
-  @DocsEditable
+  @DocsEditable()
   static const int PLAYING_STATE = 2;
 
   @DomName('OscillatorNode.SAWTOOTH')
-  @DocsEditable
+  @DocsEditable()
   // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
   @deprecated // deprecated
   static const int SAWTOOTH = 2;
 
   @DomName('OscillatorNode.SCHEDULED_STATE')
-  @DocsEditable
+  @DocsEditable()
   static const int SCHEDULED_STATE = 1;
 
   @DomName('OscillatorNode.SINE')
-  @DocsEditable
+  @DocsEditable()
   // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
   @deprecated // deprecated
   static const int SINE = 0;
 
   @DomName('OscillatorNode.SQUARE')
-  @DocsEditable
+  @DocsEditable()
   // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
   @deprecated // deprecated
   static const int SQUARE = 1;
 
   @DomName('OscillatorNode.TRIANGLE')
-  @DocsEditable
+  @DocsEditable()
   // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
   @deprecated // deprecated
   static const int TRIANGLE = 3;
 
   @DomName('OscillatorNode.UNSCHEDULED_STATE')
-  @DocsEditable
+  @DocsEditable()
   static const int UNSCHEDULED_STATE = 0;
 
   @DomName('OscillatorNode.detune')
-  @DocsEditable
+  @DocsEditable()
   AudioParam get detune native "OscillatorNode_detune_Getter";
 
   @DomName('OscillatorNode.frequency')
-  @DocsEditable
+  @DocsEditable()
   AudioParam get frequency native "OscillatorNode_frequency_Getter";
 
   @DomName('OscillatorNode.playbackState')
-  @DocsEditable
+  @DocsEditable()
   int get playbackState native "OscillatorNode_playbackState_Getter";
 
   @DomName('OscillatorNode.type')
-  @DocsEditable
+  @DocsEditable()
   String get type native "OscillatorNode_type_Getter";
 
   @DomName('OscillatorNode.type')
-  @DocsEditable
+  @DocsEditable()
   void set type(String value) native "OscillatorNode_type_Setter";
 
   @DomName('OscillatorNode.noteOff')
-  @DocsEditable
+  @DocsEditable()
   void noteOff(num when) native "OscillatorNode_noteOff_Callback";
 
   @DomName('OscillatorNode.noteOn')
-  @DocsEditable
+  @DocsEditable()
   void noteOn(num when) native "OscillatorNode_noteOn_Callback";
 
   @DomName('OscillatorNode.setWaveTable')
-  @DocsEditable
+  @DocsEditable()
   void setWaveTable(WaveTable waveTable) native "OscillatorNode_setWaveTable_Callback";
 
   @DomName('OscillatorNode.start')
-  @DocsEditable
+  @DocsEditable()
   void start(num when) native "OscillatorNode_start_Callback";
 
   @DomName('OscillatorNode.stop')
-  @DocsEditable
+  @DocsEditable()
   void stop(num when) native "OscillatorNode_stop_Callback";
 
 }
@@ -1140,124 +1140,124 @@ class OscillatorNode extends AudioSourceNode {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('PannerNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#PannerNode
-@Experimental
+@Experimental()
 class PannerNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory PannerNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('PannerNode.EQUALPOWER')
-  @DocsEditable
+  @DocsEditable()
   // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
   @deprecated // deprecated
   static const int EQUALPOWER = 0;
 
   @DomName('PannerNode.EXPONENTIAL_DISTANCE')
-  @DocsEditable
+  @DocsEditable()
   // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
   @deprecated // deprecated
   static const int EXPONENTIAL_DISTANCE = 2;
 
   @DomName('PannerNode.HRTF')
-  @DocsEditable
+  @DocsEditable()
   // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
   @deprecated // deprecated
   static const int HRTF = 1;
 
   @DomName('PannerNode.INVERSE_DISTANCE')
-  @DocsEditable
+  @DocsEditable()
   // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
   @deprecated // deprecated
   static const int INVERSE_DISTANCE = 1;
 
   @DomName('PannerNode.LINEAR_DISTANCE')
-  @DocsEditable
+  @DocsEditable()
   // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
   @deprecated // deprecated
   static const int LINEAR_DISTANCE = 0;
 
   @DomName('PannerNode.SOUNDFIELD')
-  @DocsEditable
+  @DocsEditable()
   // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
   @deprecated // deprecated
   static const int SOUNDFIELD = 2;
 
   @DomName('PannerNode.coneInnerAngle')
-  @DocsEditable
+  @DocsEditable()
   num get coneInnerAngle native "PannerNode_coneInnerAngle_Getter";
 
   @DomName('PannerNode.coneInnerAngle')
-  @DocsEditable
+  @DocsEditable()
   void set coneInnerAngle(num value) native "PannerNode_coneInnerAngle_Setter";
 
   @DomName('PannerNode.coneOuterAngle')
-  @DocsEditable
+  @DocsEditable()
   num get coneOuterAngle native "PannerNode_coneOuterAngle_Getter";
 
   @DomName('PannerNode.coneOuterAngle')
-  @DocsEditable
+  @DocsEditable()
   void set coneOuterAngle(num value) native "PannerNode_coneOuterAngle_Setter";
 
   @DomName('PannerNode.coneOuterGain')
-  @DocsEditable
+  @DocsEditable()
   num get coneOuterGain native "PannerNode_coneOuterGain_Getter";
 
   @DomName('PannerNode.coneOuterGain')
-  @DocsEditable
+  @DocsEditable()
   void set coneOuterGain(num value) native "PannerNode_coneOuterGain_Setter";
 
   @DomName('PannerNode.distanceModel')
-  @DocsEditable
+  @DocsEditable()
   String get distanceModel native "PannerNode_distanceModel_Getter";
 
   @DomName('PannerNode.distanceModel')
-  @DocsEditable
+  @DocsEditable()
   void set distanceModel(String value) native "PannerNode_distanceModel_Setter";
 
   @DomName('PannerNode.maxDistance')
-  @DocsEditable
+  @DocsEditable()
   num get maxDistance native "PannerNode_maxDistance_Getter";
 
   @DomName('PannerNode.maxDistance')
-  @DocsEditable
+  @DocsEditable()
   void set maxDistance(num value) native "PannerNode_maxDistance_Setter";
 
   @DomName('PannerNode.panningModel')
-  @DocsEditable
+  @DocsEditable()
   String get panningModel native "PannerNode_panningModel_Getter";
 
   @DomName('PannerNode.panningModel')
-  @DocsEditable
+  @DocsEditable()
   void set panningModel(String value) native "PannerNode_panningModel_Setter";
 
   @DomName('PannerNode.refDistance')
-  @DocsEditable
+  @DocsEditable()
   num get refDistance native "PannerNode_refDistance_Getter";
 
   @DomName('PannerNode.refDistance')
-  @DocsEditable
+  @DocsEditable()
   void set refDistance(num value) native "PannerNode_refDistance_Setter";
 
   @DomName('PannerNode.rolloffFactor')
-  @DocsEditable
+  @DocsEditable()
   num get rolloffFactor native "PannerNode_rolloffFactor_Getter";
 
   @DomName('PannerNode.rolloffFactor')
-  @DocsEditable
+  @DocsEditable()
   void set rolloffFactor(num value) native "PannerNode_rolloffFactor_Setter";
 
   @DomName('PannerNode.setOrientation')
-  @DocsEditable
+  @DocsEditable()
   void setOrientation(num x, num y, num z) native "PannerNode_setOrientation_Callback";
 
   @DomName('PannerNode.setPosition')
-  @DocsEditable
+  @DocsEditable()
   void setPosition(num x, num y, num z) native "PannerNode_setPosition_Callback";
 
   @DomName('PannerNode.setVelocity')
-  @DocsEditable
+  @DocsEditable()
   void setVelocity(num x, num y, num z) native "PannerNode_setVelocity_Callback";
 
 }
@@ -1268,7 +1268,7 @@ class PannerNode extends AudioNode {
 
 @DomName('ScriptProcessorNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#ScriptProcessorNode
-@Experimental
+@Experimental()
 class ScriptProcessorNode extends AudioNode {
   Stream<AudioProcessingEvent> _eventStream;
 
@@ -1302,12 +1302,12 @@ class ScriptProcessorNode extends AudioNode {
   factory ScriptProcessorNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('ScriptProcessorNode.bufferSize')
-  @DocsEditable
+  @DocsEditable()
   int get bufferSize native "ScriptProcessorNode_bufferSize_Getter";
 
   @DomName('ScriptProcessorNode._setEventListener')
-  @DocsEditable
-  @Experimental // non-standard
+  @DocsEditable()
+  @Experimental() // non-standard
   void _setEventListener(EventListener eventListener) native "ScriptProcessorNode__setEventListener_Callback";
 
 }
@@ -1318,28 +1318,28 @@ class ScriptProcessorNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('WaveShaperNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#dfn-WaveShaperNode
-@Experimental
+@Experimental()
 class WaveShaperNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory WaveShaperNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('WaveShaperNode.curve')
-  @DocsEditable
+  @DocsEditable()
   Float32List get curve native "WaveShaperNode_curve_Getter";
 
   @DomName('WaveShaperNode.curve')
-  @DocsEditable
+  @DocsEditable()
   void set curve(Float32List value) native "WaveShaperNode_curve_Setter";
 
   @DomName('WaveShaperNode.oversample')
-  @DocsEditable
+  @DocsEditable()
   String get oversample native "WaveShaperNode_oversample_Getter";
 
   @DomName('WaveShaperNode.oversample')
-  @DocsEditable
+  @DocsEditable()
   void set oversample(String value) native "WaveShaperNode_oversample_Setter";
 
 }
@@ -1350,10 +1350,10 @@ class WaveShaperNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('WaveTable')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#WaveTable-section
-@Experimental
+@Experimental()
 class WaveTable extends NativeFieldWrapperClass1 {
 
 }

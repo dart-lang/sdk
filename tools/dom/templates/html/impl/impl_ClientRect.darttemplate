@@ -4,7 +4,7 @@
 
 part of $LIBRARYNAME;
 
-@DocsEditable
+@DocsEditable()
 $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements Rect$IMPLEMENTS$NATIVESPEC {
 
   // NOTE! All code below should be common with Rect.

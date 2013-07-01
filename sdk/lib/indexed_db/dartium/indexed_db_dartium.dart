@@ -39,7 +39,7 @@ class _KeyRangeFactoryProvider {
 
 
 @DomName('IDBCursor')
-@Unstable
+@Unstable()
 class Cursor extends NativeFieldWrapperClass1 {
   @DomName('IDBCursor.delete')
   Future delete() {
@@ -61,36 +61,36 @@ class Cursor extends NativeFieldWrapperClass1 {
 
   
   @DomName('IDBCursor.direction')
-  @DocsEditable
+  @DocsEditable()
   String get direction native "IDBCursor_direction_Getter";
 
   @DomName('IDBCursor.key')
-  @DocsEditable
+  @DocsEditable()
   Object get key native "IDBCursor_key_Getter";
 
   @DomName('IDBCursor.primaryKey')
-  @DocsEditable
+  @DocsEditable()
   Object get primaryKey native "IDBCursor_primaryKey_Getter";
 
   @DomName('IDBCursor.source')
-  @DocsEditable
+  @DocsEditable()
   dynamic get source native "IDBCursor_source_Getter";
 
   @DomName('IDBCursor.advance')
-  @DocsEditable
+  @DocsEditable()
   void advance(int count) native "IDBCursor_advance_Callback";
 
   @DomName('IDBCursor.delete')
-  @DocsEditable
+  @DocsEditable()
   Request $dom_delete() native "IDBCursor_delete_Callback";
 
   @DomName('IDBCursor.next')
-  @DocsEditable
-  @Experimental // non-standard
+  @DocsEditable()
+  @Experimental() // non-standard
   void next([Object key]) native "IDBCursor_next_Callback";
 
   @DomName('IDBCursor.update')
-  @DocsEditable
+  @DocsEditable()
   Request $dom_update(Object value) native "IDBCursor_update_Callback";
 
 }
@@ -101,15 +101,15 @@ class Cursor extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('IDBCursorWithValue')
-@Unstable
+@Unstable()
 class CursorWithValue extends Cursor {
   // To suppress missing implicit constructor warnings.
   factory CursorWithValue._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('IDBCursorWithValue.value')
-  @DocsEditable
+  @DocsEditable()
   Object get value native "IDBCursorWithValue_value_Getter";
 
 }
@@ -118,16 +118,16 @@ class CursorWithValue extends Cursor {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('IDBDatabase')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX, '15')
 @SupportedBrowser(SupportedBrowser.IE, '10')
-@Experimental
-@Unstable
+@Experimental()
+@Unstable()
 class Database extends EventTarget {
   @DomName('IDBDatabase.createObjectStore')
-  @DocsEditable
+  @DocsEditable()
   ObjectStore createObjectStore(String name,
       {String keyPath, bool autoIncrement}) {
     var options = {};
@@ -146,51 +146,51 @@ class Database extends EventTarget {
   factory Database._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('IDBDatabase.abortEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
 
   @DomName('IDBDatabase.errorEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
   @DomName('IDBDatabase.versionchangeEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<VersionChangeEvent> versionChangeEvent = const EventStreamProvider<VersionChangeEvent>('versionchange');
 
   @DomName('IDBDatabase.name')
-  @DocsEditable
+  @DocsEditable()
   String get name native "IDBDatabase_name_Getter";
 
   @DomName('IDBDatabase.objectStoreNames')
-  @DocsEditable
+  @DocsEditable()
   List<String> get objectStoreNames native "IDBDatabase_objectStoreNames_Getter";
 
   @DomName('IDBDatabase.version')
-  @DocsEditable
+  @DocsEditable()
   dynamic get version native "IDBDatabase_version_Getter";
 
   @DomName('IDBDatabase.addEventListener')
-  @DocsEditable
+  @DocsEditable()
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "IDBDatabase_addEventListener_Callback";
 
   @DomName('IDBDatabase.close')
-  @DocsEditable
+  @DocsEditable()
   void close() native "IDBDatabase_close_Callback";
 
   @DomName('IDBDatabase.createObjectStore')
-  @DocsEditable
+  @DocsEditable()
   ObjectStore $dom_createObjectStore(String name, [Map options]) native "IDBDatabase_createObjectStore_Callback";
 
   @DomName('IDBDatabase.deleteObjectStore')
-  @DocsEditable
+  @DocsEditable()
   void deleteObjectStore(String name) native "IDBDatabase_deleteObjectStore_Callback";
 
   @DomName('IDBDatabase.dispatchEvent')
-  @DocsEditable
+  @DocsEditable()
   bool dispatchEvent(Event evt) native "IDBDatabase_dispatchEvent_Callback";
 
   @DomName('IDBDatabase.removeEventListener')
-  @DocsEditable
+  @DocsEditable()
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBDatabase_removeEventListener_Callback";
 
   Transaction transaction(storeName_OR_storeNames, String mode) {
@@ -213,15 +213,15 @@ class Database extends EventTarget {
   Transaction _transaction_3(storeName_OR_storeNames, mode) native "IDBDatabase__transaction_3_Callback";
 
   @DomName('IDBDatabase.onabort')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onAbort => abortEvent.forTarget(this);
 
   @DomName('IDBDatabase.onerror')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onError => errorEvent.forTarget(this);
 
   @DomName('IDBDatabase.onversionchange')
-  @DocsEditable
+  @DocsEditable()
   Stream<VersionChangeEvent> get onVersionChange => versionChangeEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -233,8 +233,8 @@ class Database extends EventTarget {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX, '15')
 @SupportedBrowser(SupportedBrowser.IE, '10')
-@Experimental
-@Unstable
+@Experimental()
+@Unstable()
 class IdbFactory extends NativeFieldWrapperClass1 {
   /**
    * Checks to see if Indexed DB is supported on the current platform.
@@ -295,7 +295,7 @@ class IdbFactory extends NativeFieldWrapperClass1 {
 
   @DomName('IDBFactory.getDatabaseNames')
   @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental
+  @Experimental()
   Future<List<String>> getDatabaseNames() {
     try {
       var request = $dom_webkitGetDatabaseNames();
@@ -315,11 +315,11 @@ class IdbFactory extends NativeFieldWrapperClass1 {
 
 
   @DomName('IDBFactory.cmp')
-  @DocsEditable
+  @DocsEditable()
   int cmp(Object first, Object second) native "IDBFactory_cmp_Callback";
 
   @DomName('IDBFactory.deleteDatabase')
-  @DocsEditable
+  @DocsEditable()
   OpenDBRequest $dom_deleteDatabase(String name) native "IDBFactory_deleteDatabase_Callback";
 
   OpenDBRequest $dom_open(String name, [int version]) {
@@ -334,10 +334,10 @@ class IdbFactory extends NativeFieldWrapperClass1 {
   OpenDBRequest _open_2(name) native "IDBFactory__open_2_Callback";
 
   @DomName('IDBFactory.webkitGetDatabaseNames')
-  @DocsEditable
+  @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
+  @Experimental()
   Request $dom_webkitGetDatabaseNames() native "IDBFactory_webkitGetDatabaseNames_Callback";
 
 }
@@ -365,7 +365,7 @@ Future _completeRequest(Request request) {
 
 
 @DomName('IDBIndex')
-@Unstable
+@Unstable()
 class Index extends NativeFieldWrapperClass1 {
   @DomName('IDBIndex.count')
   Future<int> count([key_OR_range]) {
@@ -460,23 +460,23 @@ class Index extends NativeFieldWrapperClass1 {
 
   
   @DomName('IDBIndex.keyPath')
-  @DocsEditable
+  @DocsEditable()
   dynamic get keyPath native "IDBIndex_keyPath_Getter";
 
   @DomName('IDBIndex.multiEntry')
-  @DocsEditable
+  @DocsEditable()
   bool get multiEntry native "IDBIndex_multiEntry_Getter";
 
   @DomName('IDBIndex.name')
-  @DocsEditable
+  @DocsEditable()
   String get name native "IDBIndex_name_Getter";
 
   @DomName('IDBIndex.objectStore')
-  @DocsEditable
+  @DocsEditable()
   ObjectStore get objectStore native "IDBIndex_objectStore_Getter";
 
   @DomName('IDBIndex.unique')
-  @DocsEditable
+  @DocsEditable()
   bool get unique native "IDBIndex_unique_Getter";
 
   Request $dom_count([key_OR_range]) {
@@ -556,7 +556,7 @@ class Index extends NativeFieldWrapperClass1 {
 
 
 @DomName('IDBKeyRange')
-@Unstable
+@Unstable()
 class KeyRange extends NativeFieldWrapperClass1 {
   @DomName('IDBKeyRange.only')
   factory KeyRange.only(/*Key*/ value) =>
@@ -578,39 +578,39 @@ class KeyRange extends NativeFieldWrapperClass1 {
 
 
   @DomName('IDBKeyRange.lower')
-  @DocsEditable
+  @DocsEditable()
   Object get lower native "IDBKeyRange_lower_Getter";
 
   @DomName('IDBKeyRange.lowerOpen')
-  @DocsEditable
+  @DocsEditable()
   bool get lowerOpen native "IDBKeyRange_lowerOpen_Getter";
 
   @DomName('IDBKeyRange.upper')
-  @DocsEditable
+  @DocsEditable()
   Object get upper native "IDBKeyRange_upper_Getter";
 
   @DomName('IDBKeyRange.upperOpen')
-  @DocsEditable
+  @DocsEditable()
   bool get upperOpen native "IDBKeyRange_upperOpen_Getter";
 
   @DomName('IDBKeyRange.bound_')
-  @DocsEditable
-  @Experimental // non-standard
+  @DocsEditable()
+  @Experimental() // non-standard
   static KeyRange bound_(Object lower, Object upper, [bool lowerOpen, bool upperOpen]) native "IDBKeyRange_bound__Callback";
 
   @DomName('IDBKeyRange.lowerBound_')
-  @DocsEditable
-  @Experimental // non-standard
+  @DocsEditable()
+  @Experimental() // non-standard
   static KeyRange lowerBound_(Object bound, [bool open]) native "IDBKeyRange_lowerBound__Callback";
 
   @DomName('IDBKeyRange.only_')
-  @DocsEditable
-  @Experimental // non-standard
+  @DocsEditable()
+  @Experimental() // non-standard
   static KeyRange only_(Object value) native "IDBKeyRange_only__Callback";
 
   @DomName('IDBKeyRange.upperBound_')
-  @DocsEditable
-  @Experimental // non-standard
+  @DocsEditable()
+  @Experimental() // non-standard
   static KeyRange upperBound_(Object bound, [bool open]) native "IDBKeyRange_upperBound__Callback";
 
 }
@@ -620,7 +620,7 @@ class KeyRange extends NativeFieldWrapperClass1 {
 
 
 @DomName('IDBObjectStore')
-@Unstable
+@Unstable()
 class ObjectStore extends NativeFieldWrapperClass1 {
 
   @DomName('IDBObjectStore.add')
@@ -756,31 +756,31 @@ class ObjectStore extends NativeFieldWrapperClass1 {
 
 
   @DomName('IDBObjectStore.autoIncrement')
-  @DocsEditable
+  @DocsEditable()
   bool get autoIncrement native "IDBObjectStore_autoIncrement_Getter";
 
   @DomName('IDBObjectStore.indexNames')
-  @DocsEditable
+  @DocsEditable()
   List<String> get indexNames native "IDBObjectStore_indexNames_Getter";
 
   @DomName('IDBObjectStore.keyPath')
-  @DocsEditable
+  @DocsEditable()
   dynamic get keyPath native "IDBObjectStore_keyPath_Getter";
 
   @DomName('IDBObjectStore.name')
-  @DocsEditable
+  @DocsEditable()
   String get name native "IDBObjectStore_name_Getter";
 
   @DomName('IDBObjectStore.transaction')
-  @DocsEditable
+  @DocsEditable()
   Transaction get transaction native "IDBObjectStore_transaction_Getter";
 
   @DomName('IDBObjectStore.add')
-  @DocsEditable
+  @DocsEditable()
   Request $dom_add(Object value, [Object key]) native "IDBObjectStore_add_Callback";
 
   @DomName('IDBObjectStore.clear')
-  @DocsEditable
+  @DocsEditable()
   Request $dom_clear() native "IDBObjectStore_clear_Callback";
 
   Request $dom_count([key_OR_range]) {
@@ -826,7 +826,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   Request _delete_2(key_OR_keyRange) native "IDBObjectStore__delete_2_Callback";
 
   @DomName('IDBObjectStore.deleteIndex')
-  @DocsEditable
+  @DocsEditable()
   void deleteIndex(String name) native "IDBObjectStore_deleteIndex_Callback";
 
   Request $dom_get(key) {
@@ -844,7 +844,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   Request _get_2(key) native "IDBObjectStore__get_2_Callback";
 
   @DomName('IDBObjectStore.index')
-  @DocsEditable
+  @DocsEditable()
   Index index(String name) native "IDBObjectStore_index_Callback";
 
   Request $dom_openCursor([key_OR_range, String direction]) {
@@ -862,7 +862,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   Request _openCursor_2(key_OR_range, direction) native "IDBObjectStore__openCursor_2_Callback";
 
   @DomName('IDBObjectStore.put')
-  @DocsEditable
+  @DocsEditable()
   Request $dom_put(Object value, [Object key]) native "IDBObjectStore_put_Callback";
 
 
@@ -902,27 +902,27 @@ class ObjectStore extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('IDBOpenDBRequest')
-@Unstable
+@Unstable()
 class OpenDBRequest extends Request implements EventTarget {
   // To suppress missing implicit constructor warnings.
   factory OpenDBRequest._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('IDBOpenDBRequest.blockedEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> blockedEvent = const EventStreamProvider<Event>('blocked');
 
   @DomName('IDBOpenDBRequest.upgradeneededEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<VersionChangeEvent> upgradeNeededEvent = const EventStreamProvider<VersionChangeEvent>('upgradeneeded');
 
   @DomName('IDBOpenDBRequest.onblocked')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onBlocked => blockedEvent.forTarget(this);
 
   @DomName('IDBOpenDBRequest.onupgradeneeded')
-  @DocsEditable
+  @DocsEditable()
   Stream<VersionChangeEvent> get onUpgradeNeeded => upgradeNeededEvent.forTarget(this);
 
 }
@@ -933,66 +933,66 @@ class OpenDBRequest extends Request implements EventTarget {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('IDBRequest')
-@Unstable
+@Unstable()
 class Request extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory Request._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('IDBRequest.errorEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
   @DomName('IDBRequest.successEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> successEvent = const EventStreamProvider<Event>('success');
 
   @DomName('IDBRequest.error')
-  @DocsEditable
+  @DocsEditable()
   DomError get error native "IDBRequest_error_Getter";
 
   @DomName('IDBRequest.readyState')
-  @DocsEditable
+  @DocsEditable()
   String get readyState native "IDBRequest_readyState_Getter";
 
   @DomName('IDBRequest.result')
-  @DocsEditable
+  @DocsEditable()
   dynamic get result native "IDBRequest_result_Getter";
 
   @DomName('IDBRequest.source')
-  @DocsEditable
+  @DocsEditable()
   dynamic get source native "IDBRequest_source_Getter";
 
   @DomName('IDBRequest.transaction')
-  @DocsEditable
+  @DocsEditable()
   Transaction get transaction native "IDBRequest_transaction_Getter";
 
   @DomName('IDBRequest.webkitErrorMessage')
-  @DocsEditable
+  @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
+  @Experimental()
   String get errorMessage native "IDBRequest_webkitErrorMessage_Getter";
 
   @DomName('IDBRequest.addEventListener')
-  @DocsEditable
+  @DocsEditable()
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "IDBRequest_addEventListener_Callback";
 
   @DomName('IDBRequest.dispatchEvent')
-  @DocsEditable
+  @DocsEditable()
   bool dispatchEvent(Event evt) native "IDBRequest_dispatchEvent_Callback";
 
   @DomName('IDBRequest.removeEventListener')
-  @DocsEditable
+  @DocsEditable()
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBRequest_removeEventListener_Callback";
 
   @DomName('IDBRequest.onerror')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onError => errorEvent.forTarget(this);
 
   @DomName('IDBRequest.onsuccess')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onSuccess => successEvent.forTarget(this);
 
 }
@@ -1002,7 +1002,7 @@ class Request extends EventTarget {
 
 
 @DomName('IDBTransaction')
-@Unstable
+@Unstable()
 class Transaction extends EventTarget {
 
   /**
@@ -1034,66 +1034,66 @@ class Transaction extends EventTarget {
   factory Transaction._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('IDBTransaction.abortEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
 
   @DomName('IDBTransaction.completeEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> completeEvent = const EventStreamProvider<Event>('complete');
 
   @DomName('IDBTransaction.errorEvent')
-  @DocsEditable
+  @DocsEditable()
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
   @DomName('IDBTransaction.db')
-  @DocsEditable
+  @DocsEditable()
   Database get db native "IDBTransaction_db_Getter";
 
   @DomName('IDBTransaction.error')
-  @DocsEditable
+  @DocsEditable()
   DomError get error native "IDBTransaction_error_Getter";
 
   @DomName('IDBTransaction.mode')
-  @DocsEditable
+  @DocsEditable()
   String get mode native "IDBTransaction_mode_Getter";
 
   @DomName('IDBTransaction.webkitErrorMessage')
-  @DocsEditable
+  @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
+  @Experimental()
   String get errorMessage native "IDBTransaction_webkitErrorMessage_Getter";
 
   @DomName('IDBTransaction.abort')
-  @DocsEditable
+  @DocsEditable()
   void abort() native "IDBTransaction_abort_Callback";
 
   @DomName('IDBTransaction.addEventListener')
-  @DocsEditable
+  @DocsEditable()
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "IDBTransaction_addEventListener_Callback";
 
   @DomName('IDBTransaction.dispatchEvent')
-  @DocsEditable
+  @DocsEditable()
   bool dispatchEvent(Event evt) native "IDBTransaction_dispatchEvent_Callback";
 
   @DomName('IDBTransaction.objectStore')
-  @DocsEditable
+  @DocsEditable()
   ObjectStore objectStore(String name) native "IDBTransaction_objectStore_Callback";
 
   @DomName('IDBTransaction.removeEventListener')
-  @DocsEditable
+  @DocsEditable()
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBTransaction_removeEventListener_Callback";
 
   @DomName('IDBTransaction.onabort')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onAbort => abortEvent.forTarget(this);
 
   @DomName('IDBTransaction.oncomplete')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onComplete => completeEvent.forTarget(this);
 
   @DomName('IDBTransaction.onerror')
-  @DocsEditable
+  @DocsEditable()
   Stream<Event> get onError => errorEvent.forTarget(this);
 
 }
@@ -1104,19 +1104,19 @@ class Transaction extends EventTarget {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('IDBVersionChangeEvent')
-@Unstable
+@Unstable()
 class VersionChangeEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory VersionChangeEvent._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('IDBVersionChangeEvent.newVersion')
-  @DocsEditable
+  @DocsEditable()
   dynamic get newVersion native "IDBVersionChangeEvent_newVersion_Getter";
 
   @DomName('IDBVersionChangeEvent.oldVersion')
-  @DocsEditable
+  @DocsEditable()
   dynamic get oldVersion native "IDBVersionChangeEvent_oldVersion_Getter";
 
 }
@@ -1127,7 +1127,7 @@ class VersionChangeEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('IDBAny')
 @deprecated // nonstandard
 abstract class _IDBAny extends NativeFieldWrapperClass1 {

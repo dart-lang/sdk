@@ -206,7 +206,7 @@ class DartiumBackend(HtmlDartGenerator):
       argument_count = len(constructor_info.param_infos)
 
     self._members_emitter.Emit(
-        '\n  @DocsEditable\n'
+        '\n  @DocsEditable()\n'
         '  static $INTERFACE_NAME $FACTORY_METHOD_NAME($PARAMETERS) '
             'native "$ID";\n',
         INTERFACE_NAME=self._interface_type_info.interface_name(),

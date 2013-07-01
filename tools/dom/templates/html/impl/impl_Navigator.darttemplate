@@ -49,7 +49,7 @@ $endif
    */
   @DomName('Navigator.webkitGetUserMedia')
   @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental
+  @Experimental()
   Future<MediaStream> getUserMedia({audio: false, video: false}) {
     var completer = new Completer<MediaStream>();
     var options = {
