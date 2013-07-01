@@ -90,6 +90,8 @@ void _setCommandLineArguments(ArgResults argResults) {
   includePrivate = argResults['include-private'];
   parseSdk = argResults['parse-sdk'];
   includeSdk = parseSdk || argResults['include-sdk'];
+  packageDir = argResults['package-root'];
+  if (packageDir != null) logger.info('Package Root: ${packageDir}');
 }
 
 List<String> _listLibraries(List<String> args) {
@@ -106,17 +108,22 @@ List<String> _listLibraries(List<String> args) {
   } else {
     libraries.addAll(_listDartFromDir(args[0]));
   } 
-  logger.info('Package Directory: $packageDir');
   return libraries;
 }
 
 List<String> _listDartFromDir(String args) {
   var files = listDir(args, recursive: true);
-  packageDir = files.firstWhere((f) => 
-      f.endsWith('/pubspec.yaml'), orElse: () => '');
-  if (packageDir != '') packageDir = path.dirname(packageDir) + '/packages';
-  return files.where((f) => 
-      f.endsWith('.dart') && !f.contains('/packages')).toList()
+  if (packageDir == null) {
+    packageDir = files.firstWhere((f) => 
+        f.endsWith('/pubspec.yaml'), orElse: () => '');
+    if (packageDir != '') packageDir = path.dirname(packageDir) + '/packages';
+    logger.info('Package Directory: $packageDir');
+  }
+  // To avoid anaylzing package files twice, only files with paths not 
+  // containing '/packages' will be added. The only exception is if the file to
+  // analyze already has a '/package' in its path. 
+  return files.where((f) => f.endsWith('.dart') && 
+      (!f.contains('/packages') || args.contains('/packages'))).toList()
       ..forEach((lib) => logger.info('Added to libraries: $lib'));
 }
 
@@ -152,6 +159,10 @@ Future<MirrorSystem> getMirrorSystem(List<String> args) {
   return _getMirrorSystemHelper(libraries, sdkRoot, packageRoot: packageDir);
 }
 
+// TODO(janicejl): Should make docgen fail gracefully, or output a friendly
+// error message letting them know why it is failing to create a mirror system.
+// If there is conflicting library names, should modify it with a hash at the 
+// end of it's library name. 
 /**
  * Analyzes set of libraries and provides a mirror system which can be used 
  * for static inspection of the source code.

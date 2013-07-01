@@ -55,6 +55,8 @@ ArgParser initArgParser() {
   parser.addFlag('parse-sdk', 
       help: 'Parses the SDK libraries only.', 
       defaultsTo: false, negatable: false);
+  parser.addOption('package-root', 
+      help: "Sets the package root of the library being analyzed.");
   
   return parser;
 }
