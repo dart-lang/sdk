@@ -48,7 +48,8 @@ main() {
                 testOperatorsAssignability,
                 testFieldInitializers,
                 testTypeVariableExpressions,
-                testInitializers];
+                testInitializers,
+                testTypeLiteral];
   for (Function test in tests) {
     setup();
     test();
@@ -1240,6 +1241,38 @@ void testInitializers() {
             }
             method(int a) => new Class<String>(a);
             ''', MessageKind.NOT_ASSIGNABLE);
+}
+
+void testTypeLiteral() {
+  final String source = r"""class Class {
+                              static var field = null;
+                              static method() {}
+                            }""";
+  compiler.parseScript(source);
+
+  // Check direct access.
+  analyze('Type m() => int;');
+  analyze('int m() => int;', MessageKind.NOT_ASSIGNABLE);
+
+  // Check access in assignment.
+  analyze('m(Type val) => val = Class;');
+  analyze('m(int val) => val = Class;', MessageKind.NOT_ASSIGNABLE);
+
+  // Check access as argument.
+  analyze('m(Type val) => m(int);');
+  analyze('m(int val) => m(int);', MessageKind.NOT_ASSIGNABLE);
+
+  // Check access as argument in member access.
+  analyze('m(Type val) => m(int).foo;');
+  analyze('m(int val) => m(int).foo;', MessageKind.NOT_ASSIGNABLE);
+
+  // Check static property access.
+  analyze('m() => Class.field;');
+  analyze('m() => (Class).field;', MessageKind.PROPERTY_NOT_FOUND);
+
+  // Check static method access.
+  analyze('m() => Class.method();');
+  analyze('m() => (Class).method();', MessageKind.METHOD_NOT_FOUND);
 }
 
 const CLASS_WITH_METHODS = '''
