@@ -138,6 +138,9 @@ mandel_isolate_stream_test: Pass, Fail, Timeout # Issue 7952
 [ $compiler == dart2js && ( $runtime == ff || $runtime == safari ) ]
 isolate_stress_test: Pass, Timeout # http://dartbug.com/10697
 
+[ $compiler == dart2js && ( $runtime == drt || $runtime == chrome ) ]
+isolate_stress_test: Pass, Timeout # issue 11648
+
 [ $arch == arm || $arch == simarm ]
 *: Skip
 
