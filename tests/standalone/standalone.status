@@ -154,10 +154,11 @@ io/http_parser_test: Fail # dartbug.com/11273
 *: Skip # Shared libraries problem.
 
 [ $arch == simarm ]
-
+out_of_memory_test: Skip # passes on Mac, crashes on Linux
 
 [ $arch == mips ]
 *: Skip
 
 [ $arch == simmips ]
 io/file_fuzz_test: Pass, Timeout
+out_of_memory_test: Skip # passes on Mac, crashes on Linux
