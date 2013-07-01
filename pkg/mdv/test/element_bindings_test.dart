@@ -372,6 +372,24 @@ elementBindingTests() {
     expect(model[sym('a')][sym('b')], false);
   });
 
+  test('Select selectedIndex', function() {
+    var select = new SelectElement();
+    testDiv.append(select);
+    var option0 = select.append(new OptionElement());
+    var option1 = select.append(new OptionElement());
+    var option2 = select.append(new OptionElement());
+
+    var model = toSymbolMap({'val': 2});
+
+    select.bind('selectedIndex', model, 'val');
+    deliverChangeRecords();
+    expect(select.selectedIndex, 2);
+
+    select.selectedIndex = 1;
+    dispatchEvent('change', select);
+    expect(model[sym('val')], 1);
+  });
+
   test('MultipleReferences', () {
     var el = new DivElement();
     var template = new Element.html('<template bind>');

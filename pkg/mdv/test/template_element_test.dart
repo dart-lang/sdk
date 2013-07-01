@@ -1050,7 +1050,7 @@ templateElementTests() {
   test('Attribute Template Option/Optgroup', () {
     var div = createTestHtml(
         '<template bind>'
-          '<select>'
+          '<select selectedIndex="{{ selected }}">'
             '<optgroup template repeat="{{ groups }}" label="{{ name }}">'
               '<option template repeat="{{ items }}">{{ val }}</option>'
             '</optgroup>'
@@ -1069,6 +1069,13 @@ templateElementTests() {
 
     var select = div.nodes[0].nextNode;
     expect(select.nodes.length, 2);
+
+    runAsync(expectAsync0(() {
+      runAsync(expectAsync0(() {
+        // TODO(jmesserly): this should be called sooner.
+        expect(select.selectedIndex, 1);
+      }));
+    }));
     expect(select.nodes[0].tagName, 'TEMPLATE');
     expect(select.nodes[0].ref.content.nodes[0].tagName, 'OPTGROUP');
 

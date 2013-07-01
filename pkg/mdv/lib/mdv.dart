@@ -22,6 +22,7 @@ part 'src/bindings.dart';
 part 'src/element.dart';
 part 'src/input_element.dart';
 part 'src/node.dart';
+part 'src/select_element.dart';
 part 'src/template.dart';
 part 'src/text.dart';
 
@@ -83,6 +84,8 @@ _mdv(node) {
 
   if (node is InputElement) {
     wrapper = new _InputElementExtension(node);
+  } else if (node is SelectElement) {
+    wrapper = new _SelectElementExtension(node);
   } else if (node is Element) {
     if (node.isTemplate) {
       wrapper = new _TemplateExtension(node);
