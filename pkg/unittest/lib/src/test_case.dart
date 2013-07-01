@@ -67,7 +67,7 @@ class TestCase {
 
   bool get isComplete => !enabled || result != null;
 
-  errorHandler(stage) => (e) {
+  Function _errorHandler(String stage) => (e) {
     var stack = getAttachedStackTrace(e);
     if (result == null || result == PASS) {
       if (e is TestFailure) {
@@ -91,7 +91,7 @@ class TestCase {
     _message = '';
 
     var f = (setUp == null) ? new Future.value() : new Future(setUp);
-    return f.catchError(errorHandler('Setup'))
+    return f.catchError(_errorHandler('Setup'))
         .then((_) {
           // Skip the test if setup failed.
           if (result != null) return new Future.value();
@@ -101,7 +101,7 @@ class TestCase {
           ++_callbackFunctionsOutstanding;
           return testFunction();
         })
-        .catchError(errorHandler('Test'))
+        .catchError(_errorHandler('Test'))
         .then((_) {
           _markCallbackComplete();
           if (result == null) {
@@ -111,12 +111,12 @@ class TestCase {
               if (tearDown != null) {
                 return tearDown();
               }
-            }).catchError(errorHandler('Teardown'));
+            }).catchError(_errorHandler('Teardown'));
           } else if (tearDown != null) {
             return tearDown();
           }
         })
-        .catchError(errorHandler('Teardown'));
+        .catchError(_errorHandler('Teardown'));
   }
 
   // Set the results, notify the config, and return true if this
