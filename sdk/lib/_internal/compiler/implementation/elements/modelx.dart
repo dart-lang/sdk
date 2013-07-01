@@ -968,14 +968,6 @@ class FieldParameterElementX extends VariableElementX
                          VariableListElement variables,
                          Node node)
       : super(name, variables, ElementKind.FIELD_PARAMETER, node);
-
-  DartType computeType(Compiler compiler) {
-    VariableDefinitions definitions = variables.parseNode(compiler);
-    if (definitions.type == null && !definitions.modifiers.isVar()) {
-      return fieldElement.computeType(compiler);
-    }
-    return super.computeType(compiler);
-  }
 }
 
 // This element represents a list of variable or field declaration.

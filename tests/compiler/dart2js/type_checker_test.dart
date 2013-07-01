@@ -47,9 +47,7 @@ main() {
                 testSuper,
                 testOperatorsAssignability,
                 testFieldInitializers,
-                testTypeVariableExpressions,
-                testInitializers,
-                testTypeLiteral];
+                testTypeVariableExpressions];
   for (Function test in tests) {
     setup();
     test();
@@ -210,22 +208,11 @@ void testConstructorInvocationArgumentTypes() {
   compiler.parseScript("""
     class C1 { C1(x); }
     class C2 { C2(int x); }
-    class C3 {
-      int field;
-      C3(this.field);
-      C3.named(this.field);
-    }
   """);
   analyze("new C1(42);");
   analyze("new C1('string');");
   analyze("new C2(42);");
   analyze("new C2('string');",
-          MessageKind.NOT_ASSIGNABLE);
-  analyze("new C3(42);");
-  analyze("new C3('string');",
-          MessageKind.NOT_ASSIGNABLE);
-  analyze("new C3.named(42);");
-  analyze("new C3.named('string');",
           MessageKind.NOT_ASSIGNABLE);
 }
 
@@ -736,7 +723,7 @@ testSuper() {
     class A {
       String field = "42";
     }
-
+    
     class B extends A {
       Object field = 42;
       void method() {}
@@ -1059,222 +1046,6 @@ void testTypeVariableExpressions() {
   analyzeIn(method, "{ T + 1; }", MessageKind.OPERATOR_NOT_FOUND);
 }
 
-void testInitializers() {
-  check(String text, [expectedWarnings]) {
-    analyzeTopLevel(text, expectedWarnings);
-  }
-
-  // Check initializers.
-  check(r'''class Class {
-              var a;
-              Class(this.a);
-            }
-            ''');
-  check(r'''class Class {
-              int a;
-              Class(this.a);
-            }
-            ''');
-  check(r'''class Class {
-              var a;
-              Class(int this.a);
-            }
-            ''');
-  check(r'''class Class {
-              String a;
-              Class(int this.a);
-            }
-            ''', MessageKind.NOT_ASSIGNABLE);
-  check(r'''class Class {
-              var a;
-              Class(int a) : this.a = a;
-            }
-            ''');
-  check(r'''class Class {
-              String a;
-              Class(int a) : this.a = a;
-            }
-            ''', MessageKind.NOT_ASSIGNABLE);
-
-  // Check this-calls.
-  check(r'''class Class {
-              var a;
-              Class(this.a);
-              Class.named(int a) : this(a);
-            }
-            ''');
-  check(r'''class Class {
-              String a;
-              Class(this.a);
-              Class.named(int a) : this(a);
-            }
-            ''', MessageKind.NOT_ASSIGNABLE);
-  check(r'''class Class {
-              String a;
-              Class(var a) : this.a = a;
-              Class.named(int a) : this(a);
-            }
-            ''');
-  check(r'''class Class {
-              String a;
-              Class(String a) : this.a = a;
-              Class.named(int a) : this(a);
-            }
-            ''', MessageKind.NOT_ASSIGNABLE);
-
-  // Check super-calls.
-  check(r'''class Super {
-              var a;
-              Super(this.a);
-            }
-            class Class extends Super {
-              Class.named(int a) : super(a);
-            }
-            ''');
-  check(r'''class Super {
-              String a;
-              Super(this.a);
-            }
-            class Class extends Super {
-              Class.named(int a) : super(a);
-            }
-            ''', MessageKind.NOT_ASSIGNABLE);
-  check(r'''class Super {
-              String a;
-              Super(var a) : this.a = a;
-            }
-            class Class extends Super {
-              Class.named(int a) : super(a);
-            }
-            ''');
-  check(r'''class Super {
-              String a;
-              Super(String a) : this.a = a;
-            }
-            class Class extends Super {
-              Class.named(int a) : super(a);
-            }
-            ''', MessageKind.NOT_ASSIGNABLE);
-
-  // Check super-calls involving generics.
-  check(r'''class Super<T> {
-              var a;
-              Super(this.a);
-            }
-            class Class extends Super<String> {
-              Class.named(int a) : super(a);
-            }
-            ''');
-  check(r'''class Super<T> {
-              T a;
-              Super(this.a);
-            }
-            class Class extends Super<String> {
-              Class.named(int a) : super(a);
-            }
-            ''', MessageKind.NOT_ASSIGNABLE);
-  check(r'''class Super<T> {
-              T a;
-              Super(var a) : this.a = a;
-            }
-            class Class extends Super<String> {
-              Class.named(int a) : super(a);
-            }
-            ''');
-  check(r'''class Super<T> {
-              T a;
-              Super(T a) : this.a = a;
-            }
-            class Class extends Super<String> {
-              Class.named(int a) : super(a);
-            }
-            ''', MessageKind.NOT_ASSIGNABLE);
-
-  // Check instance creations.
-  check(r'''class Class {
-              var a;
-              Class(this.a);
-            }
-            method(int a) => new Class(a);
-            ''');
-  check(r'''class Class {
-              String a;
-              Class(this.a);
-            }
-            method(int a) => new Class(a);
-            ''', MessageKind.NOT_ASSIGNABLE);
-  check(r'''class Class {
-              String a;
-              Class(var a) : this.a = a;
-            }
-            method(int a) => new Class(a);
-            ''');
-  check(r'''class Class {
-              String a;
-              Class(String a) : this.a = a;
-            }
-            method(int a) => new Class(a);
-            ''', MessageKind.NOT_ASSIGNABLE);
-
-  // Check instance creations involving generics.
-  check(r'''class Class<T> {
-              var a;
-              Class(this.a);
-            }
-            method(int a) => new Class<String>(a);
-            ''');
-  check(r'''class Class<T> {
-              T a;
-              Class(this.a);
-            }
-            method(int a) => new Class<String>(a);
-            ''', MessageKind.NOT_ASSIGNABLE);
-  check(r'''class Class<T> {
-              T a;
-              Class(var a) : this.a = a;
-            }
-            method(int a) => new Class<String>(a);
-            ''');
-  check(r'''class Class<T> {
-              T a;
-              Class(String a) : this.a = a;
-            }
-            method(int a) => new Class<String>(a);
-            ''', MessageKind.NOT_ASSIGNABLE);
-}
-
-void testTypeLiteral() {
-  final String source = r"""class Class {
-                              static var field = null;
-                              static method() {}
-                            }""";
-  compiler.parseScript(source);
-
-  // Check direct access.
-  analyze('Type m() => int;');
-  analyze('int m() => int;', MessageKind.NOT_ASSIGNABLE);
-
-  // Check access in assignment.
-  analyze('m(Type val) => val = Class;');
-  analyze('m(int val) => val = Class;', MessageKind.NOT_ASSIGNABLE);
-
-  // Check access as argument.
-  analyze('m(Type val) => m(int);');
-  analyze('m(int val) => m(int);', MessageKind.NOT_ASSIGNABLE);
-
-  // Check access as argument in member access.
-  analyze('m(Type val) => m(int).foo;');
-  analyze('m(int val) => m(int).foo;', MessageKind.NOT_ASSIGNABLE);
-
-  // Check static property access.
-  analyze('m() => Class.field;');
-  analyze('m() => (Class).field;', MessageKind.PROPERTY_NOT_FOUND);
-
-  // Check static method access.
-  analyze('m() => Class.method();');
-  analyze('m() => (Class).method();', MessageKind.METHOD_NOT_FOUND);
-}
-
 const CLASS_WITH_METHODS = '''
 class ClassWithMethods {
   untypedNoArgumentMethod() {}
@@ -1378,38 +1149,28 @@ analyzeTopLevel(String text, [expectedWarnings]) {
 
   LibraryElement library = mockLibrary(compiler, text);
 
-  Link<Element> topLevelElements = parseUnit(text, compiler, library).reverse();
+  Link<Element> topLevelElements = parseUnit(text, compiler, library);
 
-  Element element = null;
-  Node node;
-  TreeElements mapping;
-  // Resolve all declarations and members.
   for (Link<Element> elements = topLevelElements;
        !elements.isEmpty;
        elements = elements.tail) {
-    element = elements.head;
+    Element element = elements.head;
     if (element.isClass()) {
       ClassElement classElement = element;
       classElement.ensureResolved(compiler);
+      // Analyze last class member.
       classElement.forEachLocalMember((Element e) {
-        if (!e.isSynthesized) {
-          element = e;
-          node = element.parseNode(compiler);
-          mapping = compiler.resolver.resolve(element);
-        }
+        if (!e.isSynthesized) element = e;
       });
-    } else {
-      node = element.parseNode(compiler);
-      mapping = compiler.resolver.resolve(element);
     }
+    Node node = element.parseNode(compiler);
+    TreeElements mapping = compiler.resolver.resolve(element);
+    TypeCheckerVisitor checker =
+        new TypeCheckerVisitor(compiler, mapping, types);
+    compiler.clearWarnings();
+    checker.analyze(node);
+    compareWarningKinds(text, expectedWarnings, compiler.warnings);
   }
-  // Type check last class declaration or member.
-  TypeCheckerVisitor checker =
-      new TypeCheckerVisitor(compiler, mapping, types);
-  compiler.clearWarnings();
-  checker.analyze(node);
-  compareWarningKinds(text, expectedWarnings, compiler.warnings);
-
   compiler.diagnosticHandler = null;
 }
 

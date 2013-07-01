@@ -2295,10 +2295,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     }
 
     if (!resolvedArguments) {
-      oldSendIsMemberAccess = sendIsMemberAccess;
-      sendIsMemberAccess = false;
       resolveArguments(node.argumentsNode);
-      sendIsMemberAccess = oldSendIsMemberAccess;
     }
 
     // If the selector is null, it means that we will not be generating
