@@ -198,31 +198,43 @@ final _pureIsolatePrintClosure = (s) {
 
 final _forwardingPrintClosure = _Utils.forwardingPrint;
 
-class _Timer implements Timer {
-  final canceller;
+ class _Timer implements Timer{
+  var _canceler;
 
-  _Timer(this.canceller);
+  _Timer(int milliSeconds, void callback(Timer timer), bool repeating) {
 
-  void cancel() { canceller(); }
+    if (repeating) {
+      int id = window._setInterval(() {
+        callback(this);
+      }, milliSeconds);)
+      _canceler = () => window._clearInterval(id);
+    } else {
+      int id = window._setTimeout(() {
+        _canceler = null;
+        callback(this);
+      }, milliSeconds);)
+      _canceler = () => window._clearTimeout(id);
+    }
+  }
+
+  void cancel() {
+    if (_canceler != null) {
+      _canceler();
+    }
+    _canceler = null;
+  }
+
+  bool get isActive => _canceler != null;
 }
 
-get _timerFactoryClosure => (int milliSeconds, void callback(Timer timer), bool repeating) {
-  var maker;
-  var canceller;
-  if (repeating) {
-    maker = window._setInterval;
-    canceller = window._clearInterval;
-  } else {
-    maker = window._setTimeout;
-    canceller = window._clearTimeout;
-  }
-  Timer timer;
-  final int id = maker(() { callback(timer); }, milliSeconds);
-  timer = new _Timer(() { canceller(id); });
-  return timer;
+get _timerFactoryClosure =>
+    (int milliSeconds, void callback(Timer timer), bool repeating) {
+  return new _Timer(milliseconds, callback, repeating);
 };
 
+
 class _PureIsolateTimer implements Timer {
+  bool _isActive = true;
   final ReceivePort _port = new ReceivePort();
   SendPort _sendPort; // Effectively final.
 
@@ -232,6 +244,7 @@ class _PureIsolateTimer implements Timer {
     _sendPort = _port.toSendPort();
     _port.receive((msg, replyTo) {
       assert(msg == _TIMER_PING);
+      _isActive = repeating;
       callback(this);
       if (!repeating) _cancel();
     });
@@ -245,12 +258,15 @@ class _PureIsolateTimer implements Timer {
   }
 
   void _cancel() {
+    _isActive = false;
     _port.close();
   }
 
   _send(msg) {
     _sendToHelperIsolate(msg, _sendPort);
   }
+
+  bool get isActive => _isActive;
 }
 
 get _pureIsolateTimerFactoryClosure =>
