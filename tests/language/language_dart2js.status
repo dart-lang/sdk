@@ -86,6 +86,7 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dart2js ]
+const_constructor_super_test/01: Fail # Const ctor calls non-const super ctor
 function_type_alias6_test: Crash # dartbug.com/9792
 branch_canonicalization_test: Fail # Issue 638.
 div_with_power_of_two_test: Fail # Issue 8301.

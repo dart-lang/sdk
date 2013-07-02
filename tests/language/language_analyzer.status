@@ -28,6 +28,7 @@ cast_test/04: fail
 cast_test/05: fail
 class_cycle_test/03: fail
 closure_call_wrong_argument_count_negative_test: fail
+const_constructor_super_test/01: fail
 compile_time_constant10_test/none: fail
 compile_time_constant_c_test/01: fail
 compile_time_constant_c_test/02: fail

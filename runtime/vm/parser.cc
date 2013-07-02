@@ -1805,6 +1805,10 @@ void Parser::GenerateSuperConstructorCall(const Class& cls,
                "unresolved implicit call to super constructor '%s()'",
                String::Handle(super_class.Name()).ToCString());
   }
+  if (current_function().is_const() && !super_ctor.is_const()) {
+    ErrorMsg(supercall_pos, "implicit call to non-const super constructor");
+  }
+
   String& error_message = String::Handle();
   if (!super_ctor.AreValidArguments(arguments->length(),
                                     arguments->names(),
@@ -1862,6 +1866,9 @@ AstNode* Parser::ParseSuperInitializer(const Class& cls,
     ErrorMsg(supercall_pos,
              "super class constructor '%s' not found",
              ctor_name.ToCString());
+  }
+  if (current_function().is_const() && !super_ctor.is_const()) {
+    ErrorMsg(supercall_pos, "super constructor must be const");
   }
   String& error_message = String::Handle();
   if (!super_ctor.AreValidArguments(arguments->length(),
