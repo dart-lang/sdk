@@ -3276,6 +3276,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return pop();
   }
 
+  // TODO(karlklose): this is needed to avoid a bug where the resolved type is
+  // not stored on a type annotation in the closure translator. Remove when
+  // fixed.
+  bool hasDirectLocal(Element element) {
+    return !localsHandler.isAccessedDirectly(element) ||
+        localsHandler.directLocals[element] != null;
+  }
+
   /**
    * Helper to create an instruction that gets the value of a type variable.
    */
@@ -3288,10 +3296,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       member = member.getOutermostEnclosingMemberOrTopLevel();
     }
     bool isInConstructorContext = member.isConstructor() ||
-        member.isGenerativeConstructorBody() ||
-        member.isField();
+        member.isGenerativeConstructorBody();
     if (isClosure) {
-      if (member.isFactoryConstructor()) {
+      if (member.isFactoryConstructor() ||
+          (isInConstructorContext && hasDirectLocal(type.element))) {
         // The type variable is used from a closure in a factory constructor.
         // The value of the type argument is stored as a local on the closure
         // itself.
@@ -3299,8 +3307,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       } else if (member.isFunction() ||
           member.isGetter() ||
           member.isSetter() ||
-          member.isConstructor() ||
-          member.isGenerativeConstructorBody()) {
+          isInConstructorContext) {
         // The type variable is stored on the "enclosing object" and needs to be
         // accessed using the this-reference in the closure.
         return readTypeVariable(member.getEnclosingClass(), type.element);
@@ -3309,7 +3316,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         // The type variable is stored in a parameter of the method.
         return localsHandler.readLocal(type.element);
       }
-    } else if (isInConstructorContext) {
+    } else if (isInConstructorContext || member.isField()) {
       // The type variable is stored in a parameter of the method.
       return localsHandler.readLocal(type.element);
     } else if (member.isInstanceMember()) {

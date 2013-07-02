@@ -19,4 +19,8 @@ class A<T> {
 main() {
   Expect.isTrue((new A.factory()).closure() is List);
   Expect.isTrue((new A()).closure() is List);
+  Expect.isTrue((new A<int>.factory()).closure() is List<int>);
+  Expect.isTrue((new A<int>()).closure() is List<int>);
+  Expect.isFalse((new A<int>.factory()).closure() is List<String>);
+  Expect.isFalse((new A<int>()).closure() is List<String>);
 }

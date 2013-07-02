@@ -494,7 +494,11 @@ class ClosureTranslator extends Visitor {
     } else {
       Element element = elements[node];
       if (element != null && element.kind == ElementKind.TYPE_VARIABLE) {
-        registerNeedsThis();
+        if (outermostElement.isConstructor()) {
+          useLocal(element);
+        } else {
+          registerNeedsThis();
+        }
       }
     }
     node.visitChildren(this);
@@ -504,6 +508,9 @@ class ClosureTranslator extends Visitor {
     Element element = elements[node];
     if (Elements.isLocal(element)) {
       useLocal(element);
+    } else if (element != null && element.isTypeVariable()) {
+      TypeVariableElement variable = element;
+      analyzeType(variable.type);
     } else if (node.receiver == null &&
                Elements.isInstanceSend(node, elements)) {
       registerNeedsThis();
@@ -512,9 +519,7 @@ class ClosureTranslator extends Visitor {
     } else if (node.isTypeTest || node.isTypeCast) {
       TypeAnnotation annotation = node.typeAnnotationFromIsCheckOrCast;
       DartType type = elements.getType(annotation);
-      if (type != null && type.containsTypeVariables) {
-        registerNeedsThis();
-      }
+      analyzeType(type);
     } else if (node.isTypeTest) {
       DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
       analyzeType(type);
@@ -545,11 +550,13 @@ class ClosureTranslator extends Visitor {
 
   void analyzeTypeVariables(DartType type) {
     type.forEachTypeVariable((TypeVariableType typeVariable) {
-      useLocal(typeVariable.element);
       // Field initializers are inlined and access the type variable as
       // normal parameters.
-      if (!outermostElement.isField()) {
+      if (!outermostElement.isField() &&
+          !outermostElement.isConstructor()) {
         registerNeedsThis();
+      } else {
+        useLocal(typeVariable.element);
       }
     });
   }

@@ -83,6 +83,7 @@ mixin_illegal_object_test/01: Crash # Issue 10952
 mixin_illegal_object_test/02: Crash # Issue 10952
 
 type_variable_field_initializer_closure_test: Crash # issue 8847
+closures_initializer_test: Crash # issue 8847
 
 
 [ $compiler == none && $unchecked ]
@@ -500,7 +501,7 @@ type_error_test: Fail, OK # VM bug: http://dartbug.com/5280
 type_parameter_literal_test: Fail
 
 type_variable_field_initializer_closure_test: Crash # VM bug: issue 8847
-
+closures_initializer_test: Crash # VM bug: issue 8847
 
 bound_closure_equality_test: Fail # Issue 10849
 
