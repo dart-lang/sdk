@@ -1659,9 +1659,9 @@ void Debugger::SignalBpReached() {
   if (func_to_instrument.IsNull() ||
       (func_to_instrument.raw() != bpt->function())) {
     RemoveInternalBreakpoints();  // *bpt is now invalid.
-    if (!func_to_instrument.IsNull()) {
-      InstrumentForStepping(func_to_instrument);
-    }
+  }
+  if (!func_to_instrument.IsNull()) {
+    InstrumentForStepping(func_to_instrument);
   }
 }
 
