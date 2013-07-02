@@ -300,6 +300,7 @@ super_operator_index_test/04: Fail
 
 [ $compiler == none && $runtime == drt ]
 type_variable_field_initializer_closure_test: Fail # issue 8847
+closures_initializer_test: Fail # VM bug: issue 8847
 final_variable_assignment_test/01: Fail
 final_variable_assignment_test/02: Fail
 final_variable_assignment_test/03: Fail
