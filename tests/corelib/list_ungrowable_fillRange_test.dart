@@ -20,25 +20,25 @@ main() {
 
 void testFloat32FillRange() {
   Float32List list = new Float32List(4);
-  list.fillRange(0, 4, 0);
+  list.fillRange(0, 4, 0.0);
   Expect.listEquals([0, 0, 0, 0], list);
-  list.fillRange(0, 0, -6);
+  list.fillRange(0, 0, -6.0);
   Expect.listEquals([0, 0, 0, 0], list);
-  list.fillRange(4, 4, 6);
+  list.fillRange(4, 4, 6.0);
   Expect.listEquals([0, 0, 0, 0], list);
-  list.fillRange(1, 3, -6);
+  list.fillRange(1, 3, -6.0);
   Expect.listEquals([0, -6, -6, 0], list);
 }
 
 void testFloat64FillRange() {
   Float64List list = new Float64List(4);
-  list.fillRange(0, 4, 0);
+  list.fillRange(0, 4, 0.0);
   Expect.listEquals([0, 0, 0, 0], list);
-  list.fillRange(0, 0, -6);
+  list.fillRange(0, 0, -6.0);
   Expect.listEquals([0, 0, 0, 0], list);
-  list.fillRange(4, 4, -6);
+  list.fillRange(4, 4, -6.0);
   Expect.listEquals([0, 0, 0, 0], list);
-  list.fillRange(1, 3, -6);
+  list.fillRange(1, 3, -6.0);
   Expect.listEquals([0, -6, -6, 0], list);
 }
 
