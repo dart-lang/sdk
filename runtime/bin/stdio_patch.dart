@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 patch class _StdIOUtils {
-  static Stdio _getStdioInputStream() {
+  static Stdin _getStdioInputStream() {
     switch (_getStdioHandleType(0)) {
       case _STDIO_HANDLE_TYPE_TERMINAL:
       case _STDIO_HANDLE_TYPE_PIPE:

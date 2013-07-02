@@ -103,7 +103,7 @@ class Stdin extends _StdStream {
    *
    * If at end of file, -1 is returned.
    */
-  int readByteSync();
+  external int readByteSync();
 }
 
 
@@ -198,6 +198,6 @@ StdioType stdioType(object) {
 
 class _StdIOUtils {
   external static IOSink _getStdioOutputStream(int fd);
-  external static Stdio _getStdioInputStream();
+  external static Stdin _getStdioInputStream();
   external static int _socketType(nativeSocket);
 }

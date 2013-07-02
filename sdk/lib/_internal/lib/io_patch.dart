@@ -289,7 +289,7 @@ patch class _SecureFilter {
 }
 
 patch class _StdIOUtils {
-  patch static Stdio _getStdioInputStream() {
+  patch static Stdin _getStdioInputStream() {
     throw new UnsupportedError("StdIOUtils._getStdioInputStream");
   }
   patch static IOSink _getStdioOutputStream(int fd) {
