@@ -954,14 +954,11 @@ class Program extends NativeFieldWrapperClass1 {
 class Renderbuffer extends NativeFieldWrapperClass1 {
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
-@DocsEditable()
 @DomName('WebGLRenderingContext')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -2596,7 +2593,7 @@ class RenderingContext extends CanvasRenderingContext {
   @DocsEditable()
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native "WebGLRenderingContext_stencilOpSeparate_Callback";
 
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, TypedData pixels]) {
+  void _texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, TypedData pixels]) {
     if ((pixels is TypedData || pixels == null) && (type is int || type == null) && (format is int || format == null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null)) {
       _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
       return;
@@ -2638,7 +2635,7 @@ class RenderingContext extends CanvasRenderingContext {
   @DocsEditable()
   void texParameteri(int target, int pname, int param) native "WebGLRenderingContext_texParameteri_Callback";
 
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, TypedData pixels]) {
+  void _texSubImageImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, TypedData pixels]) {
     if ((pixels is TypedData || pixels == null) && (type is int || type == null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null)) {
       _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
       return;
@@ -2796,6 +2793,57 @@ class RenderingContext extends CanvasRenderingContext {
   @DocsEditable()
   void viewport(int x, int y, int width, int height) native "WebGLRenderingContext_viewport_Callback";
 
+
+  /**
+   * Sets the currently bound texture to [data].
+   *
+   * [data] can be either an [ImageElement], a
+   * [CanvasElement], a [VideoElement], or an [ImageData] object.
+   *
+   * To use [texImage2d] with a TypedData object, use [texImage2dTyped].
+   *
+   */
+  @DomName('WebGLRenderingContext.texImage2D')
+  void texImage2D(int targetTexture, int levelOfDetail, int internalFormat,
+      int format, int type, data) {
+    _texImage2D(targetTexture, levelOfDetail, internalFormat,
+        format, type, data);
+  }
+
+  /**
+   * Sets the currently bound texture to [data].
+   */
+  void texImage2DTyped(int targetTexture, int levelOfDetail, int internalFormat,
+      int width, int height, int border, int format, int type, TypedData data) {
+    _texImage2D(targetTexture, levelOfDetail, internalFormat,
+        width, height, border, format, type, data);
+  }
+
+  /**
+   * Updates a sub-rectangle of the currently bound texture to [data].
+   *
+   * [data] can be either an [ImageElement], a
+   * [CanvasElement], a [VideoElement], or an [ImageData] object.
+   *
+   * To use [texSubImage2d] with a TypedData object, use [texSubImage2dTyped].
+   *
+   */
+  @DomName('WebGLRenderingContext.texSubImage2D')
+  void texSubImage2D(int targetTexture, int levelOfDetail, int internalFormat,
+      int format, int type, data) {
+    _texSubImage2D(targetTexture, levelOfDetail, internalFormat,
+        format, type, data);
+  }
+
+  /**
+   * Updates a sub-rectangle of the currently bound texture to [data].
+   */
+  void texSubImage2DTyped(int targetTexture, int levelOfDetail,
+      int internalFormat, int width, int height, int border, int format,
+      int type, TypedData data) {
+    _texSubImage2D(targetTexture, levelOfDetail, internalFormat,
+        width, height, border, format, type, data);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

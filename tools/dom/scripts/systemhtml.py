@@ -67,6 +67,8 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'ScriptProcessorNode._setEventListener',
     'URL.createObjectURL',
     'URL.revokeObjectURL',
+    'WebGLRenderingContext.texImage2D',
+    'WebGLRenderingContext.texSubImage2D',
     'WheelEvent.deltaMode',
     'WheelEvent.wheelDeltaX',
     'WheelEvent.wheelDeltaY',

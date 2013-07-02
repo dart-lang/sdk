@@ -340,6 +340,8 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'SVGStopElement.offset': 'gradientOffset',
     'URL.createObjectURL': 'createObjectUrl',
     'URL.revokeObjectURL': 'revokeObjectUrl',
+    'WebGLRenderingContext.texImage2D': '_texImage2D',
+    'WebGLRenderingContext.texSubImage2D': '_texSubImageImage2D',
     'WheelEvent.wheelDeltaX': '_wheelDeltaX',
     'WheelEvent.wheelDeltaY': '_wheelDeltaY',
     #'WorkerContext.webkitRequestFileSystem': '_requestFileSystem',
