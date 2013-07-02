@@ -10,6 +10,7 @@ const int _STDIO_HANDLE_TYPE_FILE = 2;
 const int _STDIO_HANDLE_TYPE_SOCKET = 3;
 const int _STDIO_HANDLE_TYPE_OTHER = 4;
 
+
 class _StdStream extends Stream<List<int>> {
   final Stream<List<int>> _stream;
 
@@ -26,6 +27,85 @@ class _StdStream extends Stream<List<int>> {
         cancelOnError: cancelOnError);
   }
 }
+
+
+class _StdinEventSink {
+  Function add;
+  Function addError;
+  Function close;
+  _StdinEventSink(this.add, this.addError, this.close);
+}
+
+/**
+ * [Stdin] allows both synchronous and asynchronous reads from the standard
+ * input stream.
+ *
+ * Mixing synchronous and asynchronous reads is undefined.
+ */
+class Stdin extends _StdStream {
+  Stdin._(Stream<List<int>> stream) : super(stream);
+
+  /**
+   * Synchronously read a line from stdin. This call will block until a full
+   * line is available. The line will contain the newline character(s).
+   *
+   * If end-of-file is reached, `null` is returned.
+   *
+   * If end-of-file is reached after some data has already been read, that data
+   * is returned.
+   */
+  String readLineSync({Encoding encoding: Encoding.SYSTEM,
+                       bool retainNewlines: false}) {
+    var decoder = new StringDecoder(encoding)._decoder;
+    var line = new StringBuffer();
+    bool end = false;
+    bool lastCharWasCR = false;
+    var sink = new _StdinEventSink(
+        (char) {
+          if (!retainNewlines && char == '\r') {
+            if (lastCharWasCR) line.write('\r');
+            lastCharWasCR = true;
+            return;
+          } else if (char == '\n') {
+            end = true;
+            if (!retainNewlines) return;
+          } else if (lastCharWasCR) {
+            lastCharWasCR = false;
+            line.write('\r');
+          }
+          line.write(char);
+        },
+        (error) {
+          throw error;
+        }, () {
+          if (lastCharWasCR) line.write('\r');
+        });
+
+    bool empty = true;
+    while (!end) {
+      int b = readByteSync();
+      if (b >= 0) {
+        empty = false;
+        decoder.handleData([b], sink);
+      } else {
+        decoder.handleDone(sink);
+        break;
+      }
+    }
+
+    if (empty) return null;
+    return line.toString();
+  }
+
+  /**
+   * Synchronously read a byte from stdin. This call will block until a byte is
+   * available.
+   *
+   * If at end of file, -1 is returned.
+   */
+  int readByteSync();
+}
+
 
 class _StdSink implements IOSink {
   final IOSink _sink;
@@ -58,7 +138,7 @@ class StdioType {
 }
 
 
-Stream<List<int>> _stdin;
+Stdin _stdin;
 IOSink _stdout;
 IOSink _stderr;
 
@@ -118,6 +198,6 @@ StdioType stdioType(object) {
 
 class _StdIOUtils {
   external static IOSink _getStdioOutputStream(int fd);
-  external static Stream<List<int>> _getStdioInputStream();
+  external static Stdio _getStdioInputStream();
   external static int _socketType(nativeSocket);
 }

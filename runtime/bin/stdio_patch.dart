@@ -3,14 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 patch class _StdIOUtils {
-  static Stream<List<int>> _getStdioInputStream() {
+  static Stdio _getStdioInputStream() {
     switch (_getStdioHandleType(0)) {
       case _STDIO_HANDLE_TYPE_TERMINAL:
       case _STDIO_HANDLE_TYPE_PIPE:
       case _STDIO_HANDLE_TYPE_SOCKET:
-        return new _StdStream(new _Socket._readPipe(0));
+        return new Stdin._(new _Socket._readPipe(0));
       case _STDIO_HANDLE_TYPE_FILE:
-        return new _StdStream(new _FileStream.forStdin());
+        return new Stdin._(new _FileStream.forStdin());
       default:
         throw new FileException("Unsupported stdin type");
     }
@@ -37,6 +37,10 @@ patch class _StdIOUtils {
     }
     return result;
   }
+}
+
+patch class Stdin {
+  /* patch */ int readByteSync() native "Stdin_ReadByte";
 }
 
 

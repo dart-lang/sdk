@@ -289,7 +289,7 @@ patch class _SecureFilter {
 }
 
 patch class _StdIOUtils {
-  patch static Stream<List<int>> _getStdioInputStream() {
+  patch static Stdio _getStdioInputStream() {
     throw new UnsupportedError("StdIOUtils._getStdioInputStream");
   }
   patch static IOSink _getStdioOutputStream(int fd) {
@@ -318,5 +318,11 @@ patch class _Filter {
   }
   patch static _Filter newZLibInflateFilter() {
     throw new UnsupportedError("newZLibInflateFilter");
+  }
+}
+
+patch class Stdin {
+  patch int readByteSync() {
+    throw new UnsupportedError("Stdin.readByteSync");
   }
 }
