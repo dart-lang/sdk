@@ -206,13 +206,13 @@ final _forwardingPrintClosure = _Utils.forwardingPrint;
     if (repeating) {
       int id = window._setInterval(() {
         callback(this);
-      }, milliSeconds);)
+      }, milliSeconds);
       _canceler = () => window._clearInterval(id);
     } else {
       int id = window._setTimeout(() {
         _canceler = null;
         callback(this);
-      }, milliSeconds);)
+      }, milliSeconds);
       _canceler = () => window._clearTimeout(id);
     }
   }
