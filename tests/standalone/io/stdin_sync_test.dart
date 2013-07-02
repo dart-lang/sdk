@@ -37,7 +37,12 @@ void main() {
 
   test("hej\rhej\nhej\r", ['hej\rhej', 'hej\r']);
 
-  test("hej\r\r\nhej\r\nhej\r", ['hej\r', 'hej', 'hej\r']);
+  if (Platform.isWindows) {
+    // Windows trim one of the \r.
+    test("hej\r\r\r\nhej\r\nhej\r", ['hej\r', 'hej', 'hej\r']);
+  } else {
+    test("hej\r\r\nhej\r\nhej\r", ['hej\r', 'hej', 'hej\r']);
+  }
 
   test("hej", ['hej']);
 }

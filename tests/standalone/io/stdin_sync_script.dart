@@ -9,7 +9,7 @@ void main() {
   var arguments = new Options().arguments;
   int i = 0;
   String line;
-  while ((line = stdin.readLineSync()) != null) {
+  while ((line = stdin.readLineSync(encoding: Encoding.UTF_8)) != null) {
     if (parse(arguments[i]) != line) throw "bad line at $i: ${line.codeUnits}";
     i++;
   }
