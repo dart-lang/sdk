@@ -2646,4 +2646,20 @@ void RawWeakProperty::WriteTo(SnapshotWriter* writer,
   writer->Write<RawObject*>(ptr()->value_);
 }
 
+
+RawMirrorReference* MirrorReference::ReadFrom(SnapshotReader* reader,
+                                          intptr_t object_id,
+                                          intptr_t tags,
+                                          Snapshot::Kind kind) {
+  UNREACHABLE();
+  return MirrorReference::null();
+}
+
+
+void RawMirrorReference::WriteTo(SnapshotWriter* writer,
+                                 intptr_t object_id,
+                                 Snapshot::Kind kind) {
+  UNREACHABLE();
+}
+
 }  // namespace dart

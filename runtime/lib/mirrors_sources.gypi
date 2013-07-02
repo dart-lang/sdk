@@ -10,5 +10,6 @@
     'mirrors.h',
     'mirrors_patch.dart',
     'mirrors_impl.dart',
+    'mirror_reference.dart',
   ],
 }

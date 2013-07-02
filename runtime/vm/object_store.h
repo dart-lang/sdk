@@ -242,6 +242,13 @@ class ObjectStore {
     weak_property_class_ = value.raw();
   }
 
+  RawClass* mirror_reference_class() const {
+    return mirror_reference_class_;
+  }
+  void set_mirror_reference_class(const Class& value) {
+    mirror_reference_class_ = value.raw();
+  }
+
   RawArray* symbol_table() const { return symbol_table_; }
   void set_symbol_table(const Array& value) { symbol_table_ = value.raw(); }
 
@@ -446,6 +453,7 @@ class ObjectStore {
   RawClass* stacktrace_class_;
   RawClass* jsregexp_class_;
   RawClass* weak_property_class_;
+  RawClass* mirror_reference_class_;
   RawArray* symbol_table_;
   RawArray* canonical_type_arguments_;
   RawLibrary* async_library_;

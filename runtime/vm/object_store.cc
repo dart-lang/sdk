@@ -45,6 +45,7 @@ ObjectStore::ObjectStore()
     stacktrace_class_(Class::null()),
     jsregexp_class_(Class::null()),
     weak_property_class_(Class::null()),
+    mirror_reference_class_(Class::null()),
     symbol_table_(Array::null()),
     canonical_type_arguments_(Array::null()),
     async_library_(Library::null()),

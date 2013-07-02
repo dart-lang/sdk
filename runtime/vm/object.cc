@@ -929,6 +929,22 @@ RawError* Object::Init(Isolate* isolate) {
   object_store->set_weak_property_class(cls);
   RegisterPrivateClass(cls, Symbols::_WeakProperty(), core_lib);
 
+  // Pre-register the mirrors library so we can place the vm class
+  // MirrorReference there rather than the core library.
+  lib = Library::LookupLibrary(Symbols::DartMirrors());
+  if (lib.IsNull()) {
+    lib = Library::NewLibraryHelper(Symbols::DartMirrors(), true);
+    lib.Register();
+    isolate->object_store()->set_bootstrap_library(ObjectStore::kMirrors,
+                                                   lib);
+  }
+  ASSERT(!lib.IsNull());
+  ASSERT(lib.raw() == Library::MirrorsLibrary());
+
+  cls = Class::New<MirrorReference>();
+  object_store->set_mirror_reference_class(cls);
+  RegisterPrivateClass(cls, Symbols::_MirrorReference(), lib);
+
   // Setup some default native field classes which can be extended for
   // specifying native fields in dart classes.
   Library::InitNativeWrappersLibrary(isolate);
@@ -1199,6 +1215,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   cls = Class::New<WeakProperty>();
   object_store->set_weak_property_class(cls);
+
+  cls = Class::New<MirrorReference>();
+  object_store->set_mirror_reference_class(cls);
 }
 
 
@@ -13670,5 +13689,21 @@ RawWeakProperty* WeakProperty::New(Heap::Space space) {
 const char* WeakProperty::ToCString() const {
   return "_WeakProperty";
 }
+
+
+RawMirrorReference* MirrorReference::New(Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->mirror_reference_class()
+         != Class::null());
+  RawObject* raw = Object::Allocate(MirrorReference::kClassId,
+                                    MirrorReference::InstanceSize(),
+                                    space);
+  return reinterpret_cast<RawMirrorReference*>(raw);
+}
+
+
+const char* MirrorReference::ToCString() const {
+  return "_MirrorReference";
+}
+
 
 }  // namespace dart

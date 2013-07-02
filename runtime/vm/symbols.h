@@ -205,6 +205,7 @@ class ObjectPointerVisitor;
   V(ByteDataDotview, "ByteData.view")                                          \
   V(_ByteDataView, "_ByteDataView")                                            \
   V(_WeakProperty, "_WeakProperty")                                            \
+  V(_MirrorReference, "_MirrorReference")                                      \
   V(InvocationMirror, "_InvocationMirror")                                     \
   V(AllocateInvocationMirror, "_allocateInvocationMirror")                     \
   V(toString, "toString")                                                      \

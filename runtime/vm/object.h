@@ -5830,6 +5830,28 @@ class WeakProperty : public Instance {
 };
 
 
+class MirrorReference : public Instance {
+ public:
+  RawObject* referent() const {
+    return raw_ptr()->referent_;
+  }
+
+  void set_referent(const Object& referent) const {
+    StorePointer(&raw_ptr()->referent_, referent.raw());
+  }
+
+  static RawMirrorReference* New(Heap::Space space = Heap::kNew);
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawMirrorReference));
+  }
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(MirrorReference, Instance);
+  friend class Class;
+};
+
+
 // Breaking cycles and loops.
 RawClass* Object::clazz() const {
   uword raw_value = reinterpret_cast<uword>(raw_);

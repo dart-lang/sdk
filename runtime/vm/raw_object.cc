@@ -807,4 +807,13 @@ intptr_t RawWeakProperty::VisitWeakPropertyPointers(
   return WeakProperty::InstanceSize();
 }
 
+
+intptr_t RawMirrorReference::VisitMirrorReferencePointers(
+    RawMirrorReference* raw_obj, ObjectPointerVisitor* visitor) {
+  // Make sure that we got here with the tagged pointer as this.
+  ASSERT(raw_obj->IsHeapObject());
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return MirrorReference::InstanceSize();
+}
+
 }  // namespace dart
