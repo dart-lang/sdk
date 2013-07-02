@@ -671,7 +671,7 @@ main() {
 
     test('createPattern', () {
       var pattern = context.createPattern(new CanvasElement(), '');
-      var pattern2 = context.createPatternFromImage(new ImageElement(), '');
+      //var pattern2 = context.createPatternFromImage(new ImageElement(), '');
     });
   });
 }
