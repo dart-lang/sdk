@@ -8,7 +8,7 @@
  * IFrame, so the configuration consists of two parts - a 'parent'
  * config that manages all the tests, and a 'child' config for the
  * IFrame that runs the individual tests.
- * 
+ *
  * Note: this unit test configuration will not work with the debugger (the tests
  * are executed in a separate IFrame).
  */
@@ -23,7 +23,6 @@ import 'dart:math';
 import 'unittest.dart';
 
 /** The messages exchanged between parent and child. */
-
 class _Message {
   static const START = 'start';
   static const LOG = 'log';
@@ -31,25 +30,31 @@ class _Message {
   static const PASS = 'pass';
   static const FAIL = 'fail';
   static const ERROR = 'error';
+  static const _PREFIX = 'TestMsg:';
 
-  String messageType;
-  int elapsed;
-  String body;
+  final String messageType;
+  final int elapsed;
+  final String body;
 
   static String text(String messageType,
                      [int elapsed = 0, String body = '']) =>
-      '$messageType $elapsed $body';
+      '$_PREFIX$messageType $elapsed $body';
 
   _Message(this.messageType, [this.elapsed = 0, this.body = '']);
 
-  _Message.fromString(String msg) {
-    int idx = msg.indexOf(' ');
-    messageType = msg.substring(0, idx);
+  factory _Message.fromString(String msg) {
+    if(!msg.startsWith(_PREFIX)) {
+      return null;
+    }
+    int idx = msg.indexOf(' ', _PREFIX.length);
+    var messageType = msg.substring(_PREFIX.length, idx);
     ++idx;
     int idx2 = msg.indexOf(' ', idx);
-    elapsed = int.parse(msg.substring(idx, idx2));
+    var elapsed = int.parse(msg.substring(idx, idx2));
     ++idx2;
-    body = msg.substring(idx2);
+    var body = msg.substring(idx2);
+
+    return new _Message(messageType, elapsed, body);
   }
 
   String toString() => text(messageType, elapsed, body);
@@ -84,10 +89,10 @@ class HtmlConfiguration extends Configuration {
 class ChildInteractiveHtmlConfiguration extends HtmlConfiguration {
 
   /** The window to which results must be posted. */
-  WindowBase parentWindow;
+  WindowBase _parentWindow;
 
   /** The time at which tests start. */
-  Map<int,DateTime> _testStarts;
+  final Map<int,DateTime> _testStarts;
 
   ChildInteractiveHtmlConfiguration() :
       _testStarts = new Map<int,DateTime>();
@@ -107,8 +112,8 @@ class ChildInteractiveHtmlConfiguration extends HtmlConfiguration {
     window.onMessage.listen((MessageEvent e) {
       // Get the result, do any logging, then do a pass/fail.
       var m = new _Message.fromString(e.data);
-      if (m.messageType == _Message.START) {
-        parentWindow = e.source;
+      if (m != null && m.messageType == _Message.START) {
+        _parentWindow = e.source;
         String search = window.location.search;
         int pos = search.indexOf('t=');
         String ids = search.substring(pos+2);
@@ -142,7 +147,7 @@ class ChildInteractiveHtmlConfiguration extends HtmlConfiguration {
       DateTime end = new DateTime.now();
       elapsed = end.difference(_testStarts[testCase.id]).inMilliseconds;
     }
-    parentWindow.postMessage(
+    _parentWindow.postMessage(
       _Message.text(_Message.LOG, elapsed, message).toString(), '*');
   }
 
@@ -156,10 +161,10 @@ class ChildInteractiveHtmlConfiguration extends HtmlConfiguration {
     DateTime end = new DateTime.now();
     int elapsed = end.difference(_testStarts[testCase.id]).inMilliseconds;
     if (testCase.stackTrace != null) {
-      parentWindow.postMessage(
+      _parentWindow.postMessage(
           _Message.text(_Message.STACK, elapsed, testCase.stackTrace), '*');
     }
-    parentWindow.postMessage(
+    _parentWindow.postMessage(
         _Message.text(testCase.result, elapsed, testCase.message), '*');
   }
   void onSummary(int passed, int failed, int errors, List<TestCase> results,
@@ -176,7 +181,7 @@ class ChildInteractiveHtmlConfiguration extends HtmlConfiguration {
  * in new functions that create child IFrames and run the real tests.
  */
 class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
-  Map<int,DateTime> _testStarts;
+  final Map<int,DateTime> _testStarts;
 
 
   /** The stack that was posted back from the child, if any. */
@@ -197,9 +202,9 @@ class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
 
   // We need to block until the test is done, so we make a
   // dummy async callback that we will use to flag completion.
-  Function completeTest = null;
+  Function _completeTest = null;
 
-  wrapTest(TestCase testCase) {
+  Function _wrapTest(TestCase testCase) {
     String baseUrl = window.location.toString();
     String url = '${baseUrl}?t=${testCase.id}';
     return () {
@@ -210,7 +215,7 @@ class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
           <iframe id='childFrame${testCase.id}' src='$url' style='display:none'>
           </iframe>""");
       childDiv.nodes.add(child);
-      completeTest = expectAsync0((){ });
+      _completeTest = expectAsync0((){ });
       // Kick off the test when the IFrame is loaded.
       child.onLoad.listen((e) {
         child.contentWindow.postMessage(_Message.text(_Message.START), '*');
@@ -221,6 +226,10 @@ class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
   void _handleMessage(MessageEvent e) {
     // Get the result, do any logging, then do a pass/fail.
     var msg = new _Message.fromString(e.data);
+
+    if(msg == null) {
+      return;
+    }
     if (msg.messageType == _Message.LOG) {
       logMessage(e.data);
     } else if (msg.messageType == _Message.STACK) {
@@ -235,7 +244,7 @@ class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
       } else if (msg.messageType == _Message.ERROR) {
         currentTestCase.error(msg.body, _stack);
       }
-      completeTest();
+      _completeTest();
     }
   }
 
@@ -249,7 +258,7 @@ class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
     if (!_doneWrap) {
       _doneWrap = true;
       for (int i = 0; i < testCases.length; i++) {
-        testCases[i].testFunction = wrapTest(testCases[i]);
+        testCases[i].testFunction = _wrapTest(testCases[i]);
         testCases[i].setUp = null;
         testCases[i].tearDown = null;
       }
@@ -467,7 +476,7 @@ void _prepareDom() {
 /**
  * Allocate a Configuration. We allocate either a parent or child, depending on
  * whether the URL has a search part.
- * 
+ *
  * Note: this unit test configuration will not work with the debugger (the tests
  * are executed in a separate IFrame).
  */
@@ -483,7 +492,7 @@ void useInteractiveHtmlConfiguration() {
 final _singletonParent = new ParentInteractiveHtmlConfiguration();
 final _singletonChild = new ChildInteractiveHtmlConfiguration();
 
-String _CSS = """
+const String _CSS = """
 body {
 font-family: Arial, sans-serif;
 margin: 0;
@@ -680,5 +689,4 @@ list-style-type: disc;
 -webkit-margin-end: 0px;
 -webkit-padding-start: 40px;
 }
-
-  """;
+""";
