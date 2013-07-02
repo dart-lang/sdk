@@ -686,13 +686,11 @@ Language/07_Classes/2_Getters_A01_t05: Fail # Checks that a compile-time error i
 Language/07_Classes/4_Abstract_Instance_Members_A04_t01: Fail # Checks that a compile-time error is produced when the overriding abstract method has fewer named parameters than the instance method being overridden (2 vs 3) and neither  have any required parameters.
 Language/07_Classes/4_Abstract_Instance_Members_A04_t05: Fail # Checks that a compile-time error is produced when the overriding non-abstract  instance method has the same set of named parameters as the abstract method being overriden,  but in a different order.
 Language/07_Classes/4_Abstract_Instance_Members_A04_t06: Fail # Checks that a compile-time error is produced when the overriding non-abstract  instance method has almost the same set of named parameters as the abstract method being overriden,  except for one that has a different name.
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A03_t05: Fail # Checks that redirecting constructor can not have initializing formals.
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: Fail # Checks that error is produced if a final variable is not initialized in one  of the specified ways.
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A03_t01: Fail # Checks that a compile-time error is produced when a class with constant  constructor also declares a non-final instance variable.
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A03_t02: Fail # Checks that compile-time error is produced when a class with constant constructor inherits a non-final instance variable.
 Language/07_Classes/6_Constructors_A01_t01: Fail # Checks that a compile-error is produced when a constructor's id coincides with the name of a field in the same class.
 Language/07_Classes/6_Constructors_A02_t01: Fail # Checks that a compile-error is produced when a named constructor definition does not begin with the name of its class.
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A16_t07: Fail # http://dartbug.com/6242
 Language/11_Expressions/01_Constants_A16_t01: Fail # Checks that an IntegerDivisionByZeroException raised during evaluation  of a compile-time constant causes a compile-time error.
 Language/11_Expressions/01_Constants_A16_t02: Fail # Checks that an OutOfMemoryException raised during evaluation of a compile-time constant causes a compile-time error.
 Language/11_Expressions/05_Strings_A02_t46: Fail # Checks that multi-line strings that contain characters and sequences prohibited by this grammar, cause compile-time errors.

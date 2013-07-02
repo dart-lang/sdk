@@ -130,7 +130,6 @@ positional_parameters_type_test: Fail
 # Compilation errors.
 const_var_test: Fail # Map literals take 2 type arguments.
 map_literal3_test: Fail # Map literals take 2 type arguments.
-constructor_redirect2_test/03: Fail # redirecting ctor with initializing formal
 function_type_alias5_test/00: Fail # visitIs for typedefs not implemented
 function_type_alias5_test/01: Fail # visitIs for typedefs not implemented
 function_type_alias5_test/02: Fail # visitIs for typedefs not implemented

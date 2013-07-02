@@ -330,7 +330,6 @@ call_test: Fail # Issue 1604
 
 [ $compiler == dart2dart ]
 built_in_identifier_prefix_test: Fail # Inherited from dart2js.
-constructor_redirect2_test/03: Fail
 constructor_initializer_test: Fail # VM issue
 factory3_test: Fail
 type_checks_in_factory_method_test: Fail
