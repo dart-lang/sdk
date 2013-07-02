@@ -229,7 +229,7 @@ final _forwardingPrintClosure = _Utils.forwardingPrint;
 
 get _timerFactoryClosure =>
     (int milliSeconds, void callback(Timer timer), bool repeating) {
-  return new _Timer(milliseconds, callback, repeating);
+  return new _Timer(milliSeconds, callback, repeating);
 };
 
 
