@@ -4,6 +4,7 @@
 
 #include "platform/assert.h"
 #include "platform/json.h"
+#include "vm/json_stream.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -115,5 +116,107 @@ TEST_CASE(JSON_TextBuffer) {
   EXPECT_EQ(r.Type(), JSONReader::kString);
   EXPECT(r.IsStringLiteral("stopIt"));
 }
+
+
+TEST_CASE(JSON_JSONStream_Primitives) {
+  TextBuffer tb(256);
+  JSONStream js(&tb);
+
+  js.OpenObject();
+  js.CloseObject();
+
+  EXPECT_STREQ("{}", tb.buf());
+
+  js.Clear();
+  js.OpenArray();
+  js.CloseArray();
+  EXPECT_STREQ("[]", tb.buf());
+
+  js.Clear();
+  js.PrintValueBool(true);
+  EXPECT_STREQ("true", tb.buf());
+
+  js.Clear();
+  js.PrintValueBool(false);
+  EXPECT_STREQ("false", tb.buf());
+
+  js.Clear();
+  js.PrintValue((intptr_t)4);
+  EXPECT_STREQ("4", tb.buf());
+
+  js.Clear();
+  js.PrintValue(1.0);
+  EXPECT_STREQ("1.000000", tb.buf());
+
+  js.Clear();
+  js.PrintValue("hello");
+  EXPECT_STREQ("\"hello\"", tb.buf());
+}
+
+
+TEST_CASE(JSON_JSONStream_Array) {
+  TextBuffer tb(256);
+  JSONStream js(&tb);
+  js.Clear();
+  js.OpenArray();
+  js.PrintValueBool(true);
+  js.PrintValueBool(false);
+  js.CloseArray();
+  EXPECT_STREQ("[true,false]", tb.buf());
+}
+
+
+TEST_CASE(JSON_JSONStream_Object) {
+  TextBuffer tb(256);
+  JSONStream js(&tb);
+  js.Clear();
+  js.OpenObject();
+  js.PrintProperty("key1", "a");
+  js.PrintProperty("key2", "b");
+  js.CloseObject();
+  EXPECT_STREQ("{\"key1\":\"a\",\"key2\":\"b\"}", tb.buf());
+}
+
+TEST_CASE(JSON_JSONStream_NestedObject) {
+  TextBuffer tb(256);
+  JSONStream js(&tb);
+  js.OpenObject();
+  js.OpenObject("key");
+  js.PrintProperty("key1", "d");
+  js.CloseObject();
+  js.CloseObject();
+  EXPECT_STREQ("{\"key\":{\"key1\":\"d\"}}", tb.buf());
+}
+
+
+TEST_CASE(JSON_JSONStream_ObjectArray) {
+  TextBuffer tb(256);
+  JSONStream js(&tb);
+  js.OpenArray();
+  js.OpenObject();
+  js.PrintProperty("key", "e");
+  js.CloseObject();
+  js.OpenObject();
+  js.PrintProperty("yek", "f");
+  js.CloseObject();
+  js.CloseArray();
+  EXPECT_STREQ("[{\"key\":\"e\"},{\"yek\":\"f\"}]", tb.buf());
+}
+
+
+TEST_CASE(JSON_JSONStream_ArrayArray) {
+  TextBuffer tb(256);
+  JSONStream js(&tb);
+  js.OpenArray();
+  js.OpenArray();
+  js.PrintValue((intptr_t)4);
+  js.CloseArray();
+  js.OpenArray();
+  js.PrintValueBool(false);
+  js.CloseArray();
+  js.CloseArray();
+  EXPECT_STREQ("[[4],[false]]", tb.buf());
+}
+
 
 }  // namespace dart

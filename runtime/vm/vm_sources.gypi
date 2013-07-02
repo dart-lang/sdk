@@ -207,6 +207,8 @@
     'isolate.cc',
     'isolate.h',
     'isolate_test.cc',
+    'json_stream.h',
+    'json_stream.cc',
     'json_test.cc',
     'locations.cc',
     'locations.h',
