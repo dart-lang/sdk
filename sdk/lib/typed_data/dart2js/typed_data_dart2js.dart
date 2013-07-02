@@ -430,7 +430,7 @@ class Float32List extends TypedData implements JavaScriptIndexingBehavior, List<
   }
 
   void fillRange(int start, int end, [num fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
+    IterableMixinWorkaround.fillRangeList(this, start, end, fillValue);
   }
 
   Iterable<num> getRange(int start, int end) =>
@@ -652,7 +652,7 @@ class Float64List extends TypedData implements JavaScriptIndexingBehavior, List<
   }
 
   void fillRange(int start, int end, [num fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
+    IterableMixinWorkaround.fillRangeList(this, start, end, fillValue);
   }
 
   Iterable<num> getRange(int start, int end) =>
@@ -874,7 +874,7 @@ class Int16List extends TypedData implements JavaScriptIndexingBehavior, List<in
   }
 
   void fillRange(int start, int end, [int fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
+    IterableMixinWorkaround.fillRangeList(this, start, end, fillValue);
   }
 
   Iterable<int> getRange(int start, int end) =>
@@ -1096,7 +1096,7 @@ class Int32List extends TypedData implements JavaScriptIndexingBehavior, List<in
   }
 
   void fillRange(int start, int end, [int fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
+    IterableMixinWorkaround.fillRangeList(this, start, end, fillValue);
   }
 
   Iterable<int> getRange(int start, int end) =>
@@ -1318,7 +1318,7 @@ class Int8List extends TypedData implements JavaScriptIndexingBehavior, List<int
   }
 
   void fillRange(int start, int end, [int fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
+    IterableMixinWorkaround.fillRangeList(this, start, end, fillValue);
   }
 
   Iterable<int> getRange(int start, int end) =>
@@ -1540,7 +1540,7 @@ class Uint16List extends TypedData implements JavaScriptIndexingBehavior, List<i
   }
 
   void fillRange(int start, int end, [int fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
+    IterableMixinWorkaround.fillRangeList(this, start, end, fillValue);
   }
 
   Iterable<int> getRange(int start, int end) =>
@@ -1762,7 +1762,7 @@ class Uint32List extends TypedData implements JavaScriptIndexingBehavior, List<i
   }
 
   void fillRange(int start, int end, [int fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
+    IterableMixinWorkaround.fillRangeList(this, start, end, fillValue);
   }
 
   Iterable<int> getRange(int start, int end) =>
@@ -1983,7 +1983,7 @@ class Uint8ClampedList extends Uint8List implements JavaScriptIndexingBehavior, 
   }
 
   void fillRange(int start, int end, [int fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
+    IterableMixinWorkaround.fillRangeList(this, start, end, fillValue);
   }
 
   Iterable<int> getRange(int start, int end) =>
@@ -2205,7 +2205,7 @@ class Uint8List extends TypedData implements JavaScriptIndexingBehavior, List<in
   }
 
   void fillRange(int start, int end, [int fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
+    IterableMixinWorkaround.fillRangeList(this, start, end, fillValue);
   }
 
   Iterable<int> getRange(int start, int end) =>
