@@ -417,17 +417,6 @@ LibTest/core/String/indexOf_A01_t02: Fail # Issue 427
 LibTest/core/String/lastIndexOf_A01_t02: Fail # Issue 427
 
 [ $compiler == dart2dart && $minified ]
-Language/14_Types/5_Function_Types_A01_t07: Fail # dartbug.com/11467
-Language/14_Types/5_Function_Types_A01_t08: Fail # dartbug.com/11467
-Language/14_Types/5_Function_Types_A01_t09: Fail # dartbug.com/11467
-Language/14_Types/5_Function_Types_A01_t11: Fail # dartbug.com/11467
-Language/14_Types/5_Function_Types_A02_t05: Fail # dartbug.com/11467
-Language/14_Types/5_Function_Types_A02_t09: Fail # dartbug.com/11467
-Language/14_Types/5_Function_Types_A02_t10: Fail # dartbug.com/11467
-Language/14_Types/5_Function_Types_A03_t06: Fail # dartbug.com/11467
-Language/14_Types/5_Function_Types_A03_t10: Fail # dartbug.com/11467
-Language/14_Types/5_Function_Types_A03_t11: Fail # dartbug.com/11467
-
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: Fail, OK # co19 issue 396
 Language/11_Expressions/17_Getter_Invocation_A02_t01: Fail, OK # co19 issue 396
 Language/11_Expressions/18_Assignment_A05_t02: Fail, OK # co19 issue 396

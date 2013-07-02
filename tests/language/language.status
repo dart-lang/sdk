@@ -507,50 +507,6 @@ closures_initializer_test: Crash # VM bug: issue 8847
 bound_closure_equality_test: Fail # Issue 10849
 
 [ $compiler == dart2dart && $minified ]
-dynamic_test: Fail # dartbug.com/11468
-function_subtype_bound_closure0_test: Fail # dartbug.com/11468
-function_subtype_bound_closure1_test: Fail # dartbug.com/11468
-function_subtype_bound_closure2_test: Fail # dartbug.com/11468
-function_subtype_bound_closure5_test: Fail # dartbug.com/11468
-function_subtype_bound_closure6_test: Fail # dartbug.com/11468
-function_subtype_bound_closure7_test: Fail # dartbug.com/11468
-function_subtype_cast0_test: Fail # dartbug.com/11468
-function_subtype_cast1_test: Fail # dartbug.com/11468
-function_subtype_cast2_test: Fail # dartbug.com/11468
-function_subtype_cast3_test: Fail # dartbug.com/11468
-function_subtype_factory0_test: Fail # dartbug.com/11468
-function_subtype_local1_test: Fail # dartbug.com/11468
-function_subtype_local5_test: Fail # dartbug.com/11468
-function_subtype_not0_test: Fail # dartbug.com/11468
-function_subtype_not1_test: Fail # dartbug.com/11468
-function_subtype_not2_test: Fail # dartbug.com/11468
-function_subtype_not3_test: Fail # dartbug.com/11468
-function_subtype_top_level1_test: Fail # dartbug.com/11468
-function_type_alias2_test: Fail # dartbug.com/11468
-function_type_alias3_test: Fail # dartbug.com/11468
-function_type_alias4_test: Fail # dartbug.com/11468
-function_type_alias6_test: Fail # dartbug.com/11468
-function_type_alias_test: Fail # dartbug.com/11468
-method_override_test: Fail # dartbug.com/11468
-
-function_subtype0_test: Fail # dartbug.com/11467
-function_subtype1_test: Fail # dartbug.com/11467
-function_subtype_bound_closure3_test: Fail # dartbug.com/11467
-function_subtype_bound_closure4_test: Fail # dartbug.com/11467
-function_subtype_call0_test: Fail # dartbug.com/11467
-function_subtype_call1_test: Fail # dartbug.com/11467
-function_subtype_call2_test: Fail # dartbug.com/11467
-function_subtype_inline0_test: Fail # dartbug.com/11467
-function_subtype_local0_test: Fail # dartbug.com/11467
-function_subtype_local2_test: Fail # dartbug.com/11467
-function_subtype_local3_test: Fail # dartbug.com/11467
-function_subtype_local4_test: Fail # dartbug.com/11467
-function_subtype_named1_test: Fail # dartbug.com/11467
-function_subtype_named2_test: Fail # dartbug.com/11467
-function_subtype_optional1_test: Fail # dartbug.com/11467
-function_subtype_optional2_test: Fail # dartbug.com/11467
-function_subtype_top_level0_test: Fail # dartbug.com/11467
-
 super_getter_setter_test: Fail # Issue 11065.
 
 # TODO(tball): Assign proper bug numbers.
