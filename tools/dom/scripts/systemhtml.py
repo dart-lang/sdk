@@ -58,6 +58,9 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'DOMException.name',
     'HTMLTableElement.createTBody',
     'IDBDatabase.transaction',
+    'IDBDatabase.transactionList',
+    'IDBDatabase.transactionStore',
+    'IDBDatabase.transactionStores',
     'KeyboardEvent.initKeyboardEvent',
     'Location.origin',
     'MouseEvent.offsetX',
@@ -66,6 +69,9 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'Navigator.webkitGetUserMedia',
     'ScriptProcessorNode._setEventListener',
     'URL.createObjectURL',
+    'URL.createObjectUrlFromSource',
+    'URL.createObjectUrlFromStream',
+    'URL.createObjectUrlFromBlob',
     'URL.revokeObjectURL',
     'WebGLRenderingContext.texImage2D',
     'WebGLRenderingContext.texSubImage2D',
@@ -962,7 +968,8 @@ class Dart2JSBackend(HtmlDartGenerator):
 
     def GenerateCall(
         stmts_emitter, call_emitter, version, operation, argument_count):
-      target = '_%s_%d' % (html_name, version);
+      target = '_%s_%d' % (
+          html_name[1:] if html_name.startswith('_') else html_name, version);
       arguments = []
       target_parameters = []
       for position, arg in enumerate(operation.arguments[:argument_count]):

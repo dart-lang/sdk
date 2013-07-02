@@ -2118,13 +2118,29 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   @DocsEditable()
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) native;
 
+  @JSName('bufferData')
   @DomName('WebGLRenderingContext.bufferData')
   @DocsEditable()
-  void bufferData(int target, data_OR_size, int usage) native;
+  void bufferByteData(int target, ByteBuffer data, int usage) native;
 
+  @DomName('WebGLRenderingContext.bufferData')
+  @DocsEditable()
+  void bufferData(int target, int size, int usage) native;
+
+  @JSName('bufferData')
+  @DomName('WebGLRenderingContext.bufferData')
+  @DocsEditable()
+  void bufferDataTyped(int target, TypedData data, int usage) native;
+
+  @JSName('bufferSubData')
   @DomName('WebGLRenderingContext.bufferSubData')
   @DocsEditable()
-  void bufferSubData(int target, int offset, data) native;
+  void bufferSubByteData(int target, int offset, ByteBuffer data) native;
+
+  @JSName('bufferSubData')
+  @DomName('WebGLRenderingContext.bufferSubData')
+  @DocsEditable()
+  void bufferSubDataTyped(int target, int offset, TypedData data) native;
 
   @DomName('WebGLRenderingContext.checkFramebufferStatus')
   @DocsEditable()
@@ -2492,6 +2508,33 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   @DocsEditable()
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
 
+  @JSName('texImage2D')
+  @DomName('WebGLRenderingContext.texImage2D')
+  @DocsEditable()
+  void texImage2DCanvas(int target, int level, int internalformat, int format, int type, CanvasElement canvas) native;
+
+  @JSName('texImage2D')
+  @DomName('WebGLRenderingContext.texImage2D')
+  @DocsEditable()
+  void texImage2DImage(int target, int level, int internalformat, int format, int type, ImageElement image) native;
+
+  @DomName('WebGLRenderingContext.texImage2D')
+  @DocsEditable()
+  void texImage2DImageData(int target, int level, int internalformat, int format, int type, ImageData pixels) {
+    var pixels_1 = convertDartToNative_ImageData(pixels);
+    _texImage2DImageData_1(target, level, internalformat, format, type, pixels_1);
+    return;
+  }
+  @JSName('texImage2D')
+  @DomName('WebGLRenderingContext.texImage2D')
+  @DocsEditable()
+  void _texImage2DImageData_1(target, level, internalformat, format, type, pixels) native;
+
+  @JSName('texImage2D')
+  @DomName('WebGLRenderingContext.texImage2D')
+  @DocsEditable()
+  void texImage2DVideo(int target, int level, int internalformat, int format, int type, VideoElement video) native;
+
   @DomName('WebGLRenderingContext.texParameterf')
   @DocsEditable()
   void texParameterf(int target, int pname, num param) native;
@@ -2499,6 +2542,33 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   @DomName('WebGLRenderingContext.texParameteri')
   @DocsEditable()
   void texParameteri(int target, int pname, int param) native;
+
+  @JSName('texSubImage2D')
+  @DomName('WebGLRenderingContext.texSubImage2D')
+  @DocsEditable()
+  void texSubImage2DCanvas(int target, int level, int xoffset, int yoffset, int format, int type, CanvasElement canvas) native;
+
+  @JSName('texSubImage2D')
+  @DomName('WebGLRenderingContext.texSubImage2D')
+  @DocsEditable()
+  void texSubImage2DImage(int target, int level, int xoffset, int yoffset, int format, int type, ImageElement image) native;
+
+  @DomName('WebGLRenderingContext.texSubImage2D')
+  @DocsEditable()
+  void texSubImage2DImageData(int target, int level, int xoffset, int yoffset, int format, int type, ImageData pixels) {
+    var pixels_1 = convertDartToNative_ImageData(pixels);
+    _texSubImage2DImageData_1(target, level, xoffset, yoffset, format, type, pixels_1);
+    return;
+  }
+  @JSName('texSubImage2D')
+  @DomName('WebGLRenderingContext.texSubImage2D')
+  @DocsEditable()
+  void _texSubImage2DImageData_1(target, level, xoffset, yoffset, format, type, pixels) native;
+
+  @JSName('texSubImage2D')
+  @DomName('WebGLRenderingContext.texSubImage2D')
+  @DocsEditable()
+  void texSubImage2DVideo(int target, int level, int xoffset, int yoffset, int format, int type, VideoElement video) native;
 
   @DomName('WebGLRenderingContext.uniform1f')
   @DocsEditable()

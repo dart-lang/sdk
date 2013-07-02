@@ -10,7 +10,15 @@ import emitter
 from generator import AnalyzeOperation, ConstantOutputOrder, \
     DartDomNameOfAttribute, FindMatchingAttribute, IsDartCollectionType, \
     IsPureInterface, TypeOrNothing, ConvertToFuture, GetCallbackInfo
-from htmlrenamer import convert_to_future_members
+from copy import deepcopy
+from htmlrenamer import convert_to_future_members, keep_overloaded_members, \
+    private_html_members, renamed_html_members, renamed_overloads, \
+    removed_html_members
+import logging
+import monitored
+import sys
+
+_logger = logging.getLogger('htmldartgenerator')
 
 # Types that are accessible cross-frame in a limited fashion.
 # In these cases, the base type (e.g., WindowBase) provides restricted access
@@ -83,6 +91,7 @@ class HtmlDartGenerator(object):
           break
 
     # Group overloaded operations by name.
+    self._AddRenamedOverloads(interface)
     operationsByName = self._OperationsByName(interface)
 
     # Generate operations.
@@ -118,6 +127,71 @@ class HtmlDartGenerator(object):
           info = AnalyzeOperation(interface, operations)
           self.SecondaryContext(parent_interface)
           self.AddOperation(info)
+
+  def _AddRenamedOverloads(self, interface):
+    """The IDL has a number of functions with the same name but that accept
+    different types. This is fine for JavaScript, but results in vague type
+    signatures for Dart. We rename some of these (by adding a new identical
+    operation with a different DartName), and leave the original version in a
+    few specific instances."""
+    potential_added_operations = set()
+    operations_by_name = self._OperationsByName(interface)
+    already_renamed = [operation.ext_attrs['DartName'] if 'DartName' in
+        operation.ext_attrs else '' for operation in interface.operations]
+
+    for operation in interface.operations:
+      full_operation_str = self._GetStringRepresentation(interface, operation)
+      if (full_operation_str in renamed_overloads and
+          renamed_overloads[full_operation_str] not in already_renamed):
+        operation.ext_attrs['DartName'] = renamed_overloads[
+            full_operation_str]
+        potential_added_operations.add(operation.id)
+      self._EnsureNoMultipleTypeSignatures(interface, operation,
+          operations_by_name)
+    self._AddDesiredOverloadedOperations(potential_added_operations, interface,
+        operations_by_name)
+
+  def _AddDesiredOverloadedOperations(self, potential_added_operations,
+      interface, original_operations_by_name):
+    """For some cases we desire to keep the overloaded version in dart, for
+    simplicity of API, and explain the parameters accepted in documentation."""
+    updated_operations_by_name = self._OperationsByName(interface)
+    for operation_id in potential_added_operations:
+      if (operation_id not in updated_operations_by_name and
+          '%s.%s' % (interface.id, operation_id) in keep_overloaded_members):
+        for operation in original_operations_by_name[operation_id]:
+          cloned_operation = deepcopy(operation)
+          cloned_operation.ext_attrs['DartName'] = operation_id
+          interface.operations.append(cloned_operation)
+
+  def _EnsureNoMultipleTypeSignatures(self, interface, operation,
+      operations_by_name):
+    """Make sure that there is now at most one operation with a particular
+    operation.id. If not, stop library generation, and throw an error, requiring
+    programmer input about the best name change before proceeding."""
+    operation_str = '%s.%s' % (interface.id, operation.id)
+    if (operation.id in operations_by_name and
+        len(operations_by_name[operation.id]) > 1 and
+        len(filter(lambda overload: overload.startswith(operation_str),
+            renamed_overloads.keys())) == 0 and
+        operation_str not in keep_overloaded_members and
+        operation_str not in renamed_html_members and
+        operation_str not in private_html_members and
+        operation_str not in removed_html_members and
+        operation.id != '__getter__' and
+        operation.id != '__setter__' and
+        operation.id != '__delete__'):
+      _logger.error('Multiple type signatures for %s.%s' % (
+          interface.id, operation.id))
+      raise Exception('Rename one of the methods in renamed_overloads or add it'
+          ' to  keep_overloaded_members.\n'
+          'Generation UNsuccessful.')
+
+  def _GetStringRepresentation(self, interface, operation):
+    """Given an IDLOperation, return a object-independent representation of the
+    operations's signature."""
+    return '%s.%s(%s)' % (interface.id, operation.id, ', '.join(
+        ['%s %s' % (arg.type.id, arg.id) for arg in operation.arguments]))
 
   def _OperationsByName(self, interface):
     operationsByName = {}

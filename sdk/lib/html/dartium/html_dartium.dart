@@ -1464,19 +1464,13 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DocsEditable()
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native "CanvasRenderingContext2D_createLinearGradient_Callback";
 
-  CanvasPattern createPattern(canvas_OR_image, String repetitionType) {
-    if ((repetitionType is String || repetitionType == null) && (canvas_OR_image is CanvasElement || canvas_OR_image == null)) {
-      return _createPattern_1(canvas_OR_image, repetitionType);
-    }
-    if ((repetitionType is String || repetitionType == null) && (canvas_OR_image is ImageElement || canvas_OR_image == null)) {
-      return _createPattern_2(canvas_OR_image, repetitionType);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
+  @DomName('CanvasRenderingContext2D.createPattern')
+  @DocsEditable()
+  CanvasPattern createPattern(CanvasElement canvas, String repetitionType) native "CanvasRenderingContext2D_createPattern_Callback";
 
-  CanvasPattern _createPattern_1(canvas_OR_image, repetitionType) native "CanvasRenderingContext2D__createPattern_1_Callback";
-
-  CanvasPattern _createPattern_2(canvas_OR_image, repetitionType) native "CanvasRenderingContext2D__createPattern_2_Callback";
+  @DomName('CanvasRenderingContext2D.createPatternFromImage')
+  @DocsEditable()
+  CanvasPattern createPatternFromImage(ImageElement image, String repetitionType) native "CanvasRenderingContext2D_createPatternFromImage_Callback";
 
   @DomName('CanvasRenderingContext2D.createRadialGradient')
   @DocsEditable()
@@ -2310,19 +2304,13 @@ class Crypto extends NativeFieldWrapperClass1 {
 @Experimental() // None
 class Css extends NativeFieldWrapperClass1 {
 
-  bool supports(String conditionText_OR_property, [String value]) {
-    if ((value is String || value == null) && (conditionText_OR_property is String || conditionText_OR_property == null)) {
-      return _supports_1(conditionText_OR_property, value);
-    }
-    if ((conditionText_OR_property is String || conditionText_OR_property == null) && value == null) {
-      return _supports_2(conditionText_OR_property);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
+  @DomName('CSS.supports')
+  @DocsEditable()
+  bool supports(String property, String value) native "CSS_supports_Callback";
 
-  bool _supports_1(conditionText_OR_property, value) native "CSS__supports_1_Callback";
-
-  bool _supports_2(conditionText_OR_property) native "CSS__supports_2_Callback";
+  @DomName('CSS.supportsCondition')
+  @DocsEditable()
+  bool supportsCondition(String conditionText) native "CSS_supportsCondition_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6762,6 +6750,14 @@ class DataTransferItemList extends NativeFieldWrapperClass1 {
   void _add_1(data_OR_file) native "DataTransferItemList__add_1_Callback";
 
   void _add_2(data_OR_file, type) native "DataTransferItemList__add_2_Callback";
+
+  @DomName('DataTransferItemList.addData')
+  @DocsEditable()
+  void addData(String data, String type) native "DataTransferItemList_addData_Callback";
+
+  @DomName('DataTransferItemList.addFile')
+  @DocsEditable()
+  void addFile(File file) native "DataTransferItemList_addFile_Callback";
 
   @DomName('DataTransferItemList.clear')
   @DocsEditable()
@@ -17293,7 +17289,7 @@ class Navigator extends NativeFieldWrapperClass1 {
    *     window.navigator.getUserMedia(audio: true, video: true).then((stream) {
    *       var video = new VideoElement()
    *         ..autoplay = true
-   *         ..src = Url.createObjectUrl(stream);
+   *         ..src = Url.createObjectUrlFromStream(stream);
    *       document.body.append(video);
    *     });
    *
@@ -19972,6 +19968,22 @@ class RtcDataChannel extends EventTarget {
   void _send_3(data) native "RTCDataChannel__send_3_Callback";
 
   void _send_4(data) native "RTCDataChannel__send_4_Callback";
+
+  @DomName('RTCDataChannel.sendBlob')
+  @DocsEditable()
+  void sendBlob(Blob data) native "RTCDataChannel_sendBlob_Callback";
+
+  @DomName('RTCDataChannel.sendByteBuffer')
+  @DocsEditable()
+  void sendByteBuffer(ByteBuffer data) native "RTCDataChannel_sendByteBuffer_Callback";
+
+  @DomName('RTCDataChannel.sendString')
+  @DocsEditable()
+  void sendString(String data) native "RTCDataChannel_sendString_Callback";
+
+  @DomName('RTCDataChannel.sendTypedData')
+  @DocsEditable()
+  void sendTypedData(TypedData data) native "RTCDataChannel_sendTypedData_Callback";
 
   @DomName('RTCDataChannel.onclose')
   @DocsEditable()
@@ -23290,7 +23302,7 @@ class TextAreaElement extends _HTMLElement {
   @DocsEditable()
   void setCustomValidity(String error) native "HTMLTextAreaElement_setCustomValidity_Callback";
 
-  void setRangeText(String replacement, [int start, int end, String selectionMode]) {
+  void setRangeText(String replacement, {int start, int end, String selectionMode}) {
     if ((replacement is String || replacement == null) && start == null && end == null && selectionMode == null) {
       _setRangeText_1(replacement);
       return;
@@ -24406,6 +24418,18 @@ class Url extends NativeFieldWrapperClass1 {
   static String _createObjectURL_2(blob_OR_source_OR_stream) native "URL__createObjectURL_2_Callback";
 
   static String _createObjectURL_3(blob_OR_source_OR_stream) native "URL__createObjectURL_3_Callback";
+
+  @DomName('URL.createObjectUrlFromBlob')
+  @DocsEditable()
+  static String createObjectUrlFromBlob(Blob blob) native "URL_createObjectUrlFromBlob_Callback";
+
+  @DomName('URL.createObjectUrlFromSource')
+  @DocsEditable()
+  static String createObjectUrlFromSource(MediaSource source) native "URL_createObjectUrlFromSource_Callback";
+
+  @DomName('URL.createObjectUrlFromStream')
+  @DocsEditable()
+  static String createObjectUrlFromStream(MediaStream stream) native "URL_createObjectUrlFromStream_Callback";
 
   @DomName('URL.revokeObjectURL')
   @DocsEditable()
@@ -31009,23 +31033,22 @@ final _pureIsolatePrintClosure = (s) {
 
 final _forwardingPrintClosure = _Utils.forwardingPrint;
 
- class _Timer implements Timer {
-  final _canceler;
+ class _Timer implements Timer{
+  var _canceler;
 
   _Timer(int milliSeconds, void callback(Timer timer), bool repeating) {
 
     if (repeating) {
       int id = window._setInterval(() {
-        _canceler = null;
         callback(this);
-      }, milliSeconds);)
+      }, milliSeconds);
       _canceler = () => window._clearInterval(id);
     } else {
       int id = window._setTimeout(() {
         _canceler = null;
         callback(this);
-      }, milliSeconds); )
-      _canceler = window._clearTimeout(id);
+      }, milliSeconds);
+      _canceler = () => window._clearTimeout(id);
     }
   }
 
@@ -31041,12 +31064,12 @@ final _forwardingPrintClosure = _Utils.forwardingPrint;
 
 get _timerFactoryClosure =>
     (int milliSeconds, void callback(Timer timer), bool repeating) {
-  return new _Timer(milliseconds, callback, repeating);
+  return new _Timer(milliSeconds, callback, repeating);
 };
 
 
 class _PureIsolateTimer implements Timer {
-  bool _isDone = false;
+  bool _isActive = true;
   final ReceivePort _port = new ReceivePort();
   SendPort _sendPort; // Effectively final.
 
@@ -31056,7 +31079,7 @@ class _PureIsolateTimer implements Timer {
     _sendPort = _port.toSendPort();
     _port.receive((msg, replyTo) {
       assert(msg == _TIMER_PING);
-      _isDone = !repeating;
+      _isActive = repeating;
       callback(this);
       if (!repeating) _cancel();
     });
@@ -31070,7 +31093,7 @@ class _PureIsolateTimer implements Timer {
   }
 
   void _cancel() {
-    _isDone = true;
+    _isActive = false;
     _port.close();
   }
 
@@ -31078,7 +31101,7 @@ class _PureIsolateTimer implements Timer {
     _sendToHelperIsolate(msg, _sendPort);
   }
 
-  bool get isActive => !_isDone;
+  bool get isActive => _isActive;
 }
 
 get _pureIsolateTimerFactoryClosure =>
