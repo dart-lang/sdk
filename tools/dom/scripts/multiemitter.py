@@ -88,7 +88,7 @@ def _WriteFile(path, lines):
     f = open(path, 'w')
     f.writelines(lines)
     f.close()
-  except OSError as error:
+  except IOError as error:
     # FIXME(kustermann): Remove this later on.
     # We try to get more debugging information to figure out why we sometimes
     # get a "Permission denied" error when opening the file for writing.
