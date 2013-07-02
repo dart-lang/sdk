@@ -12,6 +12,10 @@
 import "debug_lib.dart";
 
 bar(x) {
+  var localStr = "foo";
+  int localInt = 1;
+  double localDouble = 1.1;
+  
   print(x);
 }
 
@@ -36,11 +40,13 @@ var testScript = [
   MatchFrame(0, "main"),  // Top frame in trace is function "main".
   Step(),
   MatchFrame(0, "main"),  // Should still be in "main".
-  SetBreakpoint(15),  // Set breakpoint a line 15, in function bar.
+  SetBreakpoint(19),  // Set breakpoint a line 19, in function bar.
   Resume(),
   MatchFrames(["bar", "foo", "main"]),
   MatchFrame(1, "foo"),
-  SetBreakpoint(18),  // Set breakpoint a line 18, in function bam.
+  MatchLocals({"localStr": '"foo"', "localInt": "1", "localDouble": "1.1", 
+      "x": '"baz"'}),
+  SetBreakpoint(22),  // Set breakpoint a line 22, in function bam.
   Resume(),
   MatchFrames(["bam", "main"]),
   Resume(),

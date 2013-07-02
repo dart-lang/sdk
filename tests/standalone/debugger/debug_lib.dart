@@ -426,6 +426,7 @@ class Debugger {
         shutdownEventSeen = true;
         if (!script.isEmpty) {
           error("Error: premature isolate shutdown event seen.");
+          error("Next expected event: ${script.currentEntry}");
         }
       }
     } else if (msg["event"] == "breakpointResolved") {
