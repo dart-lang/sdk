@@ -476,5 +476,134 @@ void main() {
       }), completion(equals('my-page 404')));
     });
   });
+
+  group('escape-root', () {
+    test('escape1', () {
+      expect(HttpServer.bind('localhost', 0).then((server) {
+        var dir = new Directory('').createTempSync();
+        var virDir = new VirtualDirectory(dir.path);
+        virDir.allowDirectoryListing = true;
+
+        virDir.serve(server);
+
+        return getStatusCode(server.port, '/../')
+            .whenComplete(() {
+              server.close();
+              dir.deleteSync();
+            });
+      }), completion(equals(HttpStatus.NOT_FOUND)));
+    });
+
+    test('escape2', () {
+      expect(HttpServer.bind('localhost', 0).then((server) {
+        var dir = new Directory('').createTempSync();
+        new Directory('${dir.path}/dir').createSync();
+        var virDir = new VirtualDirectory(dir.path);
+        virDir.allowDirectoryListing = true;
+
+        virDir.serve(server);
+
+        return getStatusCode(server.port, '/dir/../../')
+            .whenComplete(() {
+              server.close();
+              dir.deleteSync(recursive: true);
+            });
+      }), completion(equals(HttpStatus.NOT_FOUND)));
+    });
+  });
+
+  group('url-decode', () {
+    test('with-space', () {
+      expect(HttpServer.bind('localhost', 0).then((server) {
+        var dir = new Directory('').createTempSync();
+        var file = new File('${dir.path}/my file')..createSync();
+        var virDir = new VirtualDirectory(dir.path);
+
+        virDir.serve(server);
+
+        return getStatusCode(server.port, '/my file')
+            .whenComplete(() {
+              server.close();
+              dir.deleteSync(recursive: true);
+            });
+      }), completion(equals(HttpStatus.OK)));
+    });
+
+    test('encoded-space', () {
+      expect(HttpServer.bind('localhost', 0).then((server) {
+        var dir = new Directory('').createTempSync();
+        var file = new File('${dir.path}/my file')..createSync();
+        var virDir = new VirtualDirectory(dir.path);
+
+        virDir.serve(server);
+
+        return getStatusCode(server.port, '/my%20file')
+            .whenComplete(() {
+              server.close();
+              dir.deleteSync(recursive: true);
+            });
+      }), completion(equals(HttpStatus.NOT_FOUND)));
+    });
+
+    test('encoded-path-separator', () {
+      expect(HttpServer.bind('localhost', 0).then((server) {
+        var dir = new Directory('').createTempSync();
+        new Directory('${dir.path}/a').createSync();
+        new Directory('${dir.path}/a/b').createSync();
+        new Directory('${dir.path}/a/b/c').createSync();
+        var virDir = new VirtualDirectory(dir.path);
+        virDir.allowDirectoryListing = true;
+
+        virDir.serve(server);
+
+        return getStatusCode(server.port, '/a%2fb/c', rawPath: true)
+            .whenComplete(() {
+              server.close();
+              dir.deleteSync(recursive: true);
+            });
+      }), completion(equals(HttpStatus.NOT_FOUND)));
+    });
+
+    test('encoded-null', () {
+      expect(HttpServer.bind('localhost', 0).then((server) {
+        var dir = new Directory('').createTempSync();
+        var virDir = new VirtualDirectory(dir.path);
+        virDir.allowDirectoryListing = true;
+
+        virDir.serve(server);
+
+        return getStatusCode(server.port, '/%00', rawPath: true)
+            .whenComplete(() {
+              server.close();
+              dir.deleteSync(recursive: true);
+            });
+      }), completion(equals(HttpStatus.NOT_FOUND)));
+    });
+
+    testEncoding(name, expected, [bool create = true]) {
+      test('encode-$name', () {
+        expect(HttpServer.bind('localhost', 0).then((server) {
+        var dir = new Directory('').createTempSync();
+          if (create) new File('${dir.path}/$name').createSync();
+          var virDir = new VirtualDirectory(dir.path);
+          virDir.allowDirectoryListing = true;
+
+          virDir.serve(server);
+
+          return getStatusCode(server.port, '/$name')
+              .whenComplete(() {
+                server.close();
+                dir.deleteSync(recursive: true);
+              });
+        }), completion(equals(expected)));
+      });
+    }
+    testEncoding('..', HttpStatus.NOT_FOUND, false);
+    testEncoding('%2e%2e', HttpStatus.OK);
+    testEncoding('%252e%252e', HttpStatus.OK);
+    testEncoding('/', HttpStatus.OK, false);
+    testEncoding('%2f', HttpStatus.NOT_FOUND, false);
+    testEncoding('%2f', HttpStatus.OK, true);
+  });
 }
 
