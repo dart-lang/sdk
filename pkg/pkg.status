@@ -27,6 +27,9 @@ scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 # testing.
 webdriver/test/webdriver_test: Skip
 
+[ $compiler == none && $runtime == drt && $mode == debug]
+mdv/test/custom_element_bindings_test: Fail # Issue 11657
+
 [ $compiler == dart2js && $runtime == ff ]
 unittest/test/unittest_test: Pass, Timeout # http://dartbug.com/11473
 
