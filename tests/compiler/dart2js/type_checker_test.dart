@@ -47,7 +47,8 @@ main() {
                 testSuper,
                 testOperatorsAssignability,
                 testFieldInitializers,
-                testTypeVariableExpressions];
+                testTypeVariableExpressions,
+                testTypeLiteral];
   for (Function test in tests) {
     setup();
     test();
@@ -723,7 +724,7 @@ testSuper() {
     class A {
       String field = "42";
     }
-    
+
     class B extends A {
       Object field = 42;
       void method() {}
@@ -1044,6 +1045,38 @@ void testTypeVariableExpressions() {
   analyzeIn(method, "{ T.foo; }", MessageKind.PROPERTY_NOT_FOUND);
   analyzeIn(method, "{ T.foo(); }", MessageKind.METHOD_NOT_FOUND);
   analyzeIn(method, "{ T + 1; }", MessageKind.OPERATOR_NOT_FOUND);
+}
+
+void testTypeLiteral() {
+  final String source = r"""class Class {
+                              static var field = null;
+                              static method() {}
+                            }""";
+  compiler.parseScript(source);
+
+  // Check direct access.
+  analyze('Type m() => int;');
+  analyze('int m() => int;', MessageKind.NOT_ASSIGNABLE);
+
+  // Check access in assignment.
+  analyze('m(Type val) => val = Class;');
+  analyze('m(int val) => val = Class;', MessageKind.NOT_ASSIGNABLE);
+
+  // Check access as argument.
+  analyze('m(Type val) => m(int);');
+  analyze('m(int val) => m(int);', MessageKind.NOT_ASSIGNABLE);
+
+  // Check access as argument in member access.
+  analyze('m(Type val) => m(int).foo;');
+  analyze('m(int val) => m(int).foo;', MessageKind.NOT_ASSIGNABLE);
+
+  // Check static property access.
+  analyze('m() => Class.field;');
+  analyze('m() => (Class).field;', MessageKind.PROPERTY_NOT_FOUND);
+
+  // Check static method access.
+  analyze('m() => Class.method();');
+  analyze('m() => (Class).method();', MessageKind.METHOD_NOT_FOUND);
 }
 
 const CLASS_WITH_METHODS = '''
