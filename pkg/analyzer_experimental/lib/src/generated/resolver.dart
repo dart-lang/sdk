@@ -295,6 +295,14 @@ class ElementBuilder extends RecursiveASTVisitor<Object> {
         element.labels = holder.labels;
         element.localVariables = holder.localVariables;
         element.parameters = holder.parameters;
+        if (_inFunction) {
+          Block enclosingBlock = node.getAncestor(Block);
+          if (enclosingBlock != null) {
+            int functionEnd = node.offset + node.length;
+            int blockEnd = enclosingBlock.offset + enclosingBlock.length;
+            element.setVisibleRange(functionEnd, blockEnd - functionEnd - 1);
+          }
+        }
         _currentHolder.addFunction(element);
         expression.element = element;
         functionName.element = element;
@@ -4271,7 +4279,7 @@ class Library {
    * @throws AnalysisException if an AST structure could not be created for the defining compilation
    *           unit
    */
-  CompilationUnit get definingCompilationUnit => getAST(librarySource);
+  CompilationUnit get definingCompilationUnit => getAST(_librarySource);
 
   /**
    * Return `true` if this library explicitly imports core.
@@ -4398,7 +4406,7 @@ class Library {
    * @param unit the AST structure associated with the defining compilation unit for this library
    */
   void set definingCompilationUnit(CompilationUnit unit) {
-    _astMap[librarySource] = unit;
+    _astMap[_librarySource] = unit;
   }
 
   /**
@@ -4657,10 +4665,10 @@ class LibraryResolver {
   InternalAnalysisContext _analysisContext;
 
   /**
-   * A flag indicating whether analysis is to generate audit results (e.g. type inference based
+   * A flag indicating whether analysis is to generate hint results (e.g. type inference based
    * information and pub best practices).
    */
-  bool _audit = false;
+  bool _enableHints = false;
 
   /**
    * The listener to which analysis errors will be reported, this error listener is either
@@ -4703,7 +4711,7 @@ class LibraryResolver {
     this._analysisContext = analysisContext;
     this._errorListener = new RecordingErrorListener();
     _coreLibrarySource = analysisContext.sourceFactory.forUri(DartSdk.DART_CORE);
-    _audit = analysisContext.analysisOptions.audit;
+    _enableHints = analysisContext.analysisOptions.hint;
   }
 
   /**
@@ -5262,8 +5270,8 @@ class LibraryResolver {
       unit.accept(constantVerifier);
       ErrorVerifier errorVerifier = new ErrorVerifier(errorReporter, library.libraryElement, _typeProvider, library.inheritanceManager);
       unit.accept(errorVerifier);
-      if (_audit) {
-        new AuditVerifier(_analysisContext, errorReporter).visitCompilationUnit(unit);
+      if (_enableHints) {
+        new HintVerifier(_analysisContext, errorReporter).visitCompilationUnit(unit);
       }
     }
   }
@@ -5316,9 +5324,6 @@ class ResolverVisitor extends ScopedVisitor {
    * @param typeProvider the object used to access the types from the core library
    */
   ResolverVisitor.con1(Library library, Source source, TypeProvider typeProvider) : super.con1(library, source, typeProvider) {
-    _jtd_constructor_277_impl(library, source, typeProvider);
-  }
-  _jtd_constructor_277_impl(Library library, Source source, TypeProvider typeProvider) {
     this._inheritanceManager = library.inheritanceManager;
     this._elementResolver = new ElementResolver(this);
     this._typeAnalyzer = new StaticTypeAnalyzer(this);
@@ -5334,11 +5339,8 @@ class ResolverVisitor extends ScopedVisitor {
    * @param errorListener the error listener that will be informed of any errors that are found
    *          during resolution
    */
-  ResolverVisitor.con2(LibraryElement definingLibrary, Source source, TypeProvider typeProvider, InheritanceManager inheritanceManager2, AnalysisErrorListener errorListener) : super.con2(definingLibrary, source, typeProvider, errorListener) {
-    _jtd_constructor_278_impl(definingLibrary, source, typeProvider, inheritanceManager2, errorListener);
-  }
-  _jtd_constructor_278_impl(LibraryElement definingLibrary, Source source, TypeProvider typeProvider, InheritanceManager inheritanceManager2, AnalysisErrorListener errorListener) {
-    this._inheritanceManager = inheritanceManager2;
+  ResolverVisitor.con2(LibraryElement definingLibrary, Source source, TypeProvider typeProvider, InheritanceManager inheritanceManager, AnalysisErrorListener errorListener) : super.con2(definingLibrary, source, typeProvider, errorListener) {
+    this._inheritanceManager = inheritanceManager;
     this._elementResolver = new ElementResolver(this);
     this._typeAnalyzer = new StaticTypeAnalyzer(this);
   }
@@ -6092,16 +6094,13 @@ abstract class ScopedVisitor extends GeneralizingASTVisitor<Object> {
    * @param source the source representing the compilation unit being visited
    * @param typeProvider the object used to access the types from the core library
    */
-  ScopedVisitor.con1(Library library, Source source2, TypeProvider typeProvider2) {
-    _jtd_constructor_279_impl(library, source2, typeProvider2);
-  }
-  _jtd_constructor_279_impl(Library library, Source source2, TypeProvider typeProvider2) {
+  ScopedVisitor.con1(Library library, Source source, TypeProvider typeProvider) {
     this._definingLibrary = library.libraryElement;
-    this._source = source2;
+    this._source = source;
     LibraryScope libraryScope = library.libraryScope;
     this._errorListener = libraryScope.errorListener;
     this._nameScope = libraryScope;
-    this._typeProvider = typeProvider2;
+    this._typeProvider = typeProvider;
   }
 
   /**
@@ -6114,15 +6113,12 @@ abstract class ScopedVisitor extends GeneralizingASTVisitor<Object> {
    * @param errorListener the error listener that will be informed of any errors that are found
    *          during resolution
    */
-  ScopedVisitor.con2(LibraryElement definingLibrary2, Source source2, TypeProvider typeProvider2, AnalysisErrorListener errorListener2) {
-    _jtd_constructor_280_impl(definingLibrary2, source2, typeProvider2, errorListener2);
-  }
-  _jtd_constructor_280_impl(LibraryElement definingLibrary2, Source source2, TypeProvider typeProvider2, AnalysisErrorListener errorListener2) {
-    this._definingLibrary = definingLibrary2;
-    this._source = source2;
-    this._errorListener = errorListener2;
-    this._nameScope = new LibraryScope(definingLibrary2, errorListener2);
-    this._typeProvider = typeProvider2;
+  ScopedVisitor.con2(LibraryElement definingLibrary, Source source, TypeProvider typeProvider, AnalysisErrorListener errorListener) {
+    this._definingLibrary = definingLibrary;
+    this._source = source;
+    this._errorListener = errorListener;
+    this._nameScope = new LibraryScope(definingLibrary, errorListener);
+    this._typeProvider = typeProvider;
   }
 
   /**
@@ -8515,9 +8511,6 @@ class TypeResolverVisitor extends ScopedVisitor {
    * @param typeProvider the object used to access the types from the core library
    */
   TypeResolverVisitor.con1(Library library, Source source, TypeProvider typeProvider) : super.con1(library, source, typeProvider) {
-    _jtd_constructor_285_impl(library, source, typeProvider);
-  }
-  _jtd_constructor_285_impl(Library library, Source source, TypeProvider typeProvider) {
     _dynamicType = typeProvider.dynamicType;
   }
 
@@ -8532,9 +8525,6 @@ class TypeResolverVisitor extends ScopedVisitor {
    *          during resolution
    */
   TypeResolverVisitor.con2(LibraryElement definingLibrary, Source source, TypeProvider typeProvider, AnalysisErrorListener errorListener) : super.con2(definingLibrary, source, typeProvider, errorListener) {
-    _jtd_constructor_286_impl(definingLibrary, source, typeProvider, errorListener);
-  }
-  _jtd_constructor_286_impl(LibraryElement definingLibrary, Source source, TypeProvider typeProvider, AnalysisErrorListener errorListener) {
     _dynamicType = typeProvider.dynamicType;
   }
   Object visitCatchClause(CatchClause node) {
@@ -9514,12 +9504,7 @@ class LabelScope {
    *          statement
    * @param onSwitchMember `true` if this label is associated with a `switch` member
    */
-  LabelScope.con1(LabelScope outerScope, bool onSwitchStatement, bool onSwitchMember) {
-    _jtd_constructor_291_impl(outerScope, onSwitchStatement, onSwitchMember);
-  }
-  _jtd_constructor_291_impl(LabelScope outerScope, bool onSwitchStatement, bool onSwitchMember) {
-    _jtd_constructor_292_impl(outerScope, EMPTY_LABEL, new LabelElementImpl(_EMPTY_LABEL_IDENTIFIER, onSwitchStatement, onSwitchMember));
-  }
+  LabelScope.con1(LabelScope outerScope, bool onSwitchStatement, bool onSwitchMember) : this.con2(outerScope, EMPTY_LABEL, new LabelElementImpl(_EMPTY_LABEL_IDENTIFIER, onSwitchStatement, onSwitchMember));
 
   /**
    * Initialize a newly created scope to represent the given label.
@@ -9528,13 +9513,10 @@ class LabelScope {
    * @param label the label defined in this scope
    * @param element the element to which the label resolves
    */
-  LabelScope.con2(LabelScope outerScope2, String label2, LabelElement element2) {
-    _jtd_constructor_292_impl(outerScope2, label2, element2);
-  }
-  _jtd_constructor_292_impl(LabelScope outerScope2, String label2, LabelElement element2) {
-    this._outerScope = outerScope2;
-    this._label = label2;
-    this._element = element2;
+  LabelScope.con2(LabelScope outerScope, String label, LabelElement element) {
+    this._outerScope = outerScope;
+    this._label = label;
+    this._element = element;
   }
 
   /**
@@ -10210,21 +10192,6 @@ abstract class Scope {
   }
 }
 /**
- * Instances of the class `AuditVerifier` traverse an AST structure looking for additional
- * additional suggestions not mentioned in the Dart Language Specification.
- *
- * @coverage dart.engine.resolver
- */
-class AuditVerifier {
-  DeadCodeVerifier _deadCodeVerifier;
-  AuditVerifier(AnalysisContext context, ErrorReporter errorReporter) {
-    _deadCodeVerifier = new DeadCodeVerifier(errorReporter);
-  }
-  void visitCompilationUnit(CompilationUnit node) {
-    node.accept(_deadCodeVerifier);
-  }
-}
-/**
  * Instances of the class `ConstantVerifier` traverse an AST structure looking for additional
  * errors and warnings not covered by the parser and resolver. In particular, it looks for errors
  * and warnings related to constant expressions.
@@ -10564,7 +10531,7 @@ class ConstantVisitor_10 extends ConstantVisitor {
 }
 /**
  * Instances of the class `DeadCodeVerifier` traverse an AST structure looking for cases of
- * [AuditCode#DEAD_CODE].
+ * [HintCode#DEAD_CODE].
  *
  * @coverage dart.engine.resolver
  */
@@ -10587,37 +10554,59 @@ class DeadCodeVerifier extends RecursiveASTVisitor<Object> {
     sc.Token operator = node.operator;
     bool isAmpAmp = identical(operator.type, sc.TokenType.AMPERSAND_AMPERSAND);
     bool isBarBar = identical(operator.type, sc.TokenType.BAR_BAR);
-    bool foundError = false;
     if (isAmpAmp || isBarBar) {
       Expression lhsCondition = node.leftOperand;
       ValidResult lhsResult = getConstantBooleanValue(lhsCondition);
       if (lhsResult != null) {
         if (identical(lhsResult, ValidResult.RESULT_TRUE) && isBarBar) {
-          _errorReporter.reportError2(AuditCode.DEAD_CODE, node.rightOperand, []);
-          foundError = true;
+          _errorReporter.reportError2(HintCode.DEAD_CODE, node.rightOperand, []);
+          safelyVisit(lhsCondition);
+          return null;
         } else if (identical(lhsResult, ValidResult.RESULT_FALSE) && isAmpAmp) {
-          _errorReporter.reportError2(AuditCode.DEAD_CODE, node.rightOperand, []);
-          foundError = true;
+          _errorReporter.reportError2(HintCode.DEAD_CODE, node.rightOperand, []);
+          safelyVisit(lhsCondition);
+          return null;
         }
       }
     }
-    if (foundError) {
-      return null;
-    }
     return super.visitBinaryExpression(node);
   }
+
+  /**
+   * For each [Block], this method reports and error on all statements between the end of the
+   * block and the first return statement (assuming there it is not at the end of the block.)
+   *
+   * @param node the block to evaluate
+   */
   Object visitBlock(Block node) {
-    checkForDeadCodeStatementsAfterReturn(node);
-    return super.visitBlock(node);
+    NodeList<Statement> statements = node.statements;
+    int size = statements.length;
+    for (int i = 0; i < size; i++) {
+      Statement currentStatement = statements[i];
+      safelyVisit(currentStatement);
+      if (currentStatement is ReturnStatement && i != size - 1) {
+        Statement nextStatement = statements[i + 1];
+        Statement lastStatement = statements[size - 1];
+        int offset = nextStatement.offset;
+        int length = lastStatement.end - offset;
+        _errorReporter.reportError3(HintCode.DEAD_CODE, offset, length, []);
+        return null;
+      }
+    }
+    return null;
   }
   Object visitConditionalExpression(ConditionalExpression node) {
     Expression conditionExpression = node.condition;
     ValidResult result = getConstantBooleanValue(conditionExpression);
     if (result != null) {
       if (identical(result, ValidResult.RESULT_TRUE)) {
-        _errorReporter.reportError2(AuditCode.DEAD_CODE, node.elseExpression, []);
+        _errorReporter.reportError2(HintCode.DEAD_CODE, node.elseExpression, []);
+        safelyVisit(node.thenExpression);
+        return null;
       } else {
-        _errorReporter.reportError2(AuditCode.DEAD_CODE, node.thenExpression, []);
+        _errorReporter.reportError2(HintCode.DEAD_CODE, node.thenExpression, []);
+        safelyVisit(node.elseExpression);
+        return null;
       }
     }
     return super.visitConditionalExpression(node);
@@ -10629,50 +10618,79 @@ class DeadCodeVerifier extends RecursiveASTVisitor<Object> {
       if (identical(result, ValidResult.RESULT_TRUE)) {
         Statement elseStatement = node.elseStatement;
         if (elseStatement != null) {
-          _errorReporter.reportError2(AuditCode.DEAD_CODE, elseStatement, []);
+          _errorReporter.reportError2(HintCode.DEAD_CODE, elseStatement, []);
+          safelyVisit(node.thenStatement);
+          return null;
         }
       } else {
-        _errorReporter.reportError2(AuditCode.DEAD_CODE, node.thenStatement, []);
+        _errorReporter.reportError2(HintCode.DEAD_CODE, node.thenStatement, []);
+        safelyVisit(node.elseStatement);
+        return null;
       }
     }
     return super.visitIfStatement(node);
   }
+  Object visitTryStatement(TryStatement node) {
+    safelyVisit(node.body);
+    safelyVisit(node.finallyClause);
+    NodeList<CatchClause> catchClauses = node.catchClauses;
+    int numOfCatchClauses = catchClauses.length;
+    List<Type2> visitedTypes = new List<Type2>();
+    for (int i = 0; i < numOfCatchClauses; i++) {
+      CatchClause catchClause = catchClauses[i];
+      if (catchClause.onKeyword != null) {
+        TypeName typeName = catchClause.exceptionType;
+        if (typeName != null && typeName.type != null) {
+          Type2 currentType = typeName.type;
+          if (currentType.isObject) {
+            safelyVisit(catchClause);
+            if (i + 1 != numOfCatchClauses) {
+              CatchClause nextCatchClause = catchClauses[i + 1];
+              CatchClause lastCatchClause = catchClauses[numOfCatchClauses - 1];
+              int offset = nextCatchClause.offset;
+              int length = lastCatchClause.end - offset;
+              _errorReporter.reportError3(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, offset, length, []);
+              return null;
+            }
+          }
+          for (Type2 type in visitedTypes) {
+            if (currentType.isSubtypeOf(type)) {
+              CatchClause lastCatchClause = catchClauses[numOfCatchClauses - 1];
+              int offset = catchClause.offset;
+              int length = lastCatchClause.end - offset;
+              _errorReporter.reportError3(HintCode.DEAD_CODE_ON_CATCH_SUBTYPE, offset, length, [currentType.displayName, type.displayName]);
+              return null;
+            }
+          }
+          visitedTypes.add(currentType);
+        }
+        safelyVisit(catchClause);
+      } else {
+        safelyVisit(catchClause);
+        if (i + 1 != numOfCatchClauses) {
+          CatchClause nextCatchClause = catchClauses[i + 1];
+          CatchClause lastCatchClause = catchClauses[numOfCatchClauses - 1];
+          int offset = nextCatchClause.offset;
+          int length = lastCatchClause.end - offset;
+          _errorReporter.reportError3(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, offset, length, []);
+          return null;
+        }
+      }
+    }
+    return null;
+  }
   Object visitWhileStatement(WhileStatement node) {
     Expression conditionExpression = node.condition;
+    safelyVisit(conditionExpression);
     ValidResult result = getConstantBooleanValue(conditionExpression);
     if (result != null) {
       if (identical(result, ValidResult.RESULT_FALSE)) {
-        _errorReporter.reportError2(AuditCode.DEAD_CODE, node.body, []);
+        _errorReporter.reportError2(HintCode.DEAD_CODE, node.body, []);
+        return null;
       }
     }
-    return super.visitWhileStatement(node);
-  }
-
-  /**
-   * Given some [Block], this method reports and error on all statements between the end of
-   * the block and the first return statement (assuming there it is not at the end of the block.)
-   *
-   * @param node the block to evaluate
-   * @return `true` if and only if an error code is generated on the passed node
-   */
-  bool checkForDeadCodeStatementsAfterReturn(Block node) {
-    NodeList<Statement> statements = node.statements;
-    int size = statements.length;
-    if (size == 0) {
-      return false;
-    }
-    for (int i = 0; i < size; i++) {
-      Statement currentStatement = statements[i];
-      if (currentStatement is ReturnStatement && i != size - 1) {
-        Statement nextStatement = statements[i + 1];
-        Statement lastStatement = statements[size - 1];
-        int offset = nextStatement.offset;
-        int length = lastStatement.end - offset;
-        _errorReporter.reportError3(AuditCode.DEAD_CODE, offset, length, []);
-        return true;
-      }
-    }
-    return false;
+    safelyVisit(node.body);
+    return null;
   }
 
   /**
@@ -10700,6 +10718,17 @@ class DeadCodeVerifier extends RecursiveASTVisitor<Object> {
         return ValidResult.RESULT_FALSE;
       }
       return null;
+    }
+  }
+
+  /**
+   * If the given node is not `null`, visit this instance of the dead code verifier.
+   *
+   * @param node the node to be visited
+   */
+  void safelyVisit(ASTNode node) {
+    if (node != null) {
+      node.accept(this);
     }
   }
 }
@@ -14135,11 +14164,25 @@ class INIT_STATE implements Comparable<INIT_STATE> {
 
   /// The position in the enum declaration.
   final int ordinal;
-  INIT_STATE(this.name, this.ordinal) {
-  }
+  INIT_STATE(this.name, this.ordinal);
   int compareTo(INIT_STATE other) => ordinal - other.ordinal;
   int get hashCode => ordinal;
   String toString() => name;
+}
+/**
+ * Instances of the class `HintVerifier` traverse an AST structure looking for additional
+ * additional suggestions not mentioned in the Dart Language Specification.
+ *
+ * @coverage dart.engine.resolver
+ */
+class HintVerifier {
+  DeadCodeVerifier _deadCodeVerifier;
+  HintVerifier(AnalysisContext context, ErrorReporter errorReporter) {
+    _deadCodeVerifier = new DeadCodeVerifier(errorReporter);
+  }
+  void visitCompilationUnit(CompilationUnit node) {
+    node.accept(_deadCodeVerifier);
+  }
 }
 /**
  * Instances of the class `PubVerifier` traverse an AST structure looking for deviations from

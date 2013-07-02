@@ -94,14 +94,24 @@ io/web_socket_protocol_processor_test: Skip
 io/process_exit_negative_test: Skip
 
 [ $compiler == dart2analyzer ]
-io/file_constructor_test: fail
-io/http_cookie_date_test: fail
-io/http_headers_test: fail
-io/http_parser_test: fail
-io/process_exit_negative_test: fail
-io/url_encoding_test: fail
-io/web_socket_protocol_processor_test: fail
 53bit_overflow_literal_test/01: fail, ok
+package/package_isolate_test: fail # issue 11647
+
+# test issue https://code.google.com/p/dart/issues/detail?id=11518
+io/file_constructor_test: fail
+
+# The dart:io library is created at build time from separate files, and
+# there is no language-spec compatible way to run unit tests on the private
+# members and methods of dart:io.
+# Dart analyzer spots the misuse of 'part' directives in these unit tests.
+io/http_headers_test: Skip
+io/http_cookie_date_test: Skip
+io/url_encoding_test: Skip
+io/http_parser_test: Skip
+io/web_socket_protocol_processor_test: Skip
+
+# This is runtime test.
+io/process_exit_negative_test: Skip
 
 [ $compiler == dart2js ]
 number_identity_test: Skip # Bigints and int/double diff. not supported.

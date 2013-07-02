@@ -477,6 +477,11 @@ class SimpleIdentifierTest extends ParserTestCase {
     SimpleIdentifier identifier = ASTFactory.constructorDeclaration(ASTFactory.identifier3("C"), "c", null, null).name;
     JUnitTestCase.assertTrue(identifier.inDeclarationContext());
   }
+  void test_inDeclarationContext_declaredIdentifier() {
+    DeclaredIdentifier declaredIdentifier = ASTFactory.declaredIdentifier3("v");
+    SimpleIdentifier identifier = declaredIdentifier.identifier;
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+  }
   void test_inDeclarationContext_fieldFormalParameter() {
     SimpleIdentifier identifier = ASTFactory.fieldFormalParameter2("p").identifier;
     JUnitTestCase.assertFalse(identifier.inDeclarationContext());
@@ -641,6 +646,10 @@ class SimpleIdentifierTest extends ParserTestCase {
         final __test = new SimpleIdentifierTest();
         runJUnitTest(__test, __test.test_inDeclarationContext_constructorDeclaration);
       });
+      _ut.test('test_inDeclarationContext_declaredIdentifier', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_inDeclarationContext_declaredIdentifier);
+      });
       _ut.test('test_inDeclarationContext_fieldFormalParameter', () {
         final __test = new SimpleIdentifierTest();
         runJUnitTest(__test, __test.test_inDeclarationContext_fieldFormalParameter);
@@ -714,8 +723,7 @@ class AssignmentKind implements Comparable<AssignmentKind> {
 
   /// The position in the enum declaration.
   final int ordinal;
-  AssignmentKind(this.name, this.ordinal) {
-  }
+  AssignmentKind(this.name, this.ordinal);
   int compareTo(AssignmentKind other) => ordinal - other.ordinal;
   int get hashCode => ordinal;
   String toString() => name;
@@ -733,8 +741,7 @@ class WrapperKind implements Comparable<WrapperKind> {
 
   /// The position in the enum declaration.
   final int ordinal;
-  WrapperKind(this.name, this.ordinal) {
-  }
+  WrapperKind(this.name, this.ordinal);
   int compareTo(WrapperKind other) => ordinal - other.ordinal;
   int get hashCode => ordinal;
   String toString() => name;

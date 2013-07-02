@@ -33,12 +33,9 @@ class SourceFactory {
    * @param contentCache the cache holding content used to override the default content of a source
    * @param resolvers the resolvers used to resolve absolute URI's
    */
-  SourceFactory.con1(ContentCache contentCache2, List<UriResolver> resolvers2) {
-    _jtd_constructor_347_impl(contentCache2, resolvers2);
-  }
-  _jtd_constructor_347_impl(ContentCache contentCache2, List<UriResolver> resolvers2) {
-    this._contentCache = contentCache2;
-    this._resolvers = resolvers2;
+  SourceFactory.con1(ContentCache contentCache, List<UriResolver> resolvers) {
+    this._contentCache = contentCache;
+    this._resolvers = resolvers;
   }
 
   /**
@@ -46,12 +43,7 @@ class SourceFactory {
    *
    * @param resolvers the resolvers used to resolve absolute URI's
    */
-  SourceFactory.con2(List<UriResolver> resolvers) {
-    _jtd_constructor_348_impl(resolvers);
-  }
-  _jtd_constructor_348_impl(List<UriResolver> resolvers) {
-    _jtd_constructor_347_impl(new ContentCache(), resolvers);
-  }
+  SourceFactory.con2(List<UriResolver> resolvers) : this.con1(new ContentCache(), resolvers);
 
   /**
    * Return a source object representing the given absolute URI, or `null` if the URI is not a
@@ -459,8 +451,7 @@ class SourceKind implements Comparable<SourceKind> {
 
   /// The position in the enum declaration.
   final int ordinal;
-  SourceKind(this.name, this.ordinal) {
-  }
+  SourceKind(this.name, this.ordinal);
   int compareTo(SourceKind other) => ordinal - other.ordinal;
   int get hashCode => ordinal;
   String toString() => name;

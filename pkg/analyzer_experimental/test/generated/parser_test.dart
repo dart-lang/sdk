@@ -6105,6 +6105,9 @@ class ComplexParserTest extends ParserTestCase {
     BinaryExpression expression = ParserTestCase.parseExpression("super >> 4 << 3", []);
     EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
   }
+  void test_topLevelVariable_withMetadata() {
+    ParserTestCase.parseCompilationUnit("String @A string;", []);
+  }
   static dartSuite() {
     _ut.group('ComplexParserTest', () {
       _ut.test('test_additiveExpression_noSpaces', () {
@@ -6290,6 +6293,10 @@ class ComplexParserTest extends ParserTestCase {
       _ut.test('test_shiftExpression_super', () {
         final __test = new ComplexParserTest();
         runJUnitTest(__test, __test.test_shiftExpression_super);
+      });
+      _ut.test('test_topLevelVariable_withMetadata', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_topLevelVariable_withMetadata);
       });
     });
   }
@@ -6611,7 +6618,7 @@ class ParserTestCase extends EngineTestCase {
  * sequences to ensure that the correct recovery steps are taken in the parser.
  */
 class RecoveryParserTest extends ParserTestCase {
-  void fail_incompleteReturnType() {
+  void fail_incomplete_returnType() {
     ParserTestCase.parseCompilationUnit(EngineTestCase.createSource(["Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {", "  if (map == null) return null;", "  Map<Symbol, dynamic> result = new Map<Symbol, dynamic>();", "  map.forEach((name, value) {", "    result[new Symbol(name)] = value;", "  });", "  return result;", "}"]), []);
   }
   void test_additiveExpression_missing_LHS() {
@@ -6845,6 +6852,17 @@ class RecoveryParserTest extends ParserTestCase {
     Expression syntheticExpression = result[3];
     EngineTestCase.assertInstanceOf(SimpleIdentifier, syntheticExpression);
     JUnitTestCase.assertTrue(syntheticExpression.isSynthetic);
+  }
+  void test_incomplete_topLevelVariable() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit("String", [ParserErrorCode.EXPECTED_EXECUTABLE]);
+    NodeList<CompilationUnitMember> declarations = unit.declarations;
+    EngineTestCase.assertSize(1, declarations);
+    CompilationUnitMember member = declarations[0];
+    EngineTestCase.assertInstanceOf(TopLevelVariableDeclaration, member);
+    NodeList<VariableDeclaration> variables = ((member as TopLevelVariableDeclaration)).variables.variables;
+    EngineTestCase.assertSize(1, variables);
+    SimpleIdentifier name = variables[0].name;
+    JUnitTestCase.assertTrue(name.isSynthetic);
   }
   void test_isExpression_noType() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit("class Bar<T extends Foo> {m(x){if (x is ) return;if (x is !)}}", [ParserErrorCode.EXPECTED_TYPE_NAME, ParserErrorCode.EXPECTED_TYPE_NAME, ParserErrorCode.MISSING_STATEMENT]);
@@ -7198,6 +7216,10 @@ class RecoveryParserTest extends ParserTestCase {
       _ut.test('test_expressionList_multiple_start', () {
         final __test = new RecoveryParserTest();
         runJUnitTest(__test, __test.test_expressionList_multiple_start);
+      });
+      _ut.test('test_incomplete_topLevelVariable', () {
+        final __test = new RecoveryParserTest();
+        runJUnitTest(__test, __test.test_incomplete_topLevelVariable);
       });
       _ut.test('test_isExpression_noType', () {
         final __test = new RecoveryParserTest();

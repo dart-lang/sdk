@@ -294,12 +294,7 @@ class Keyword implements Comparable<Keyword> {
    *
    * @param syntax the lexeme for the keyword
    */
-  Keyword.con1(this.name, this.ordinal, String syntax) {
-    _jtd_constructor_323_impl(syntax);
-  }
-  _jtd_constructor_323_impl(String syntax) {
-    _jtd_constructor_324_impl(syntax, false);
-  }
+  Keyword.con1(String name, int ordinal, String syntax) : this.con2(name, ordinal, syntax, false);
 
   /**
    * Initialize a newly created keyword to have the given syntax. The keyword is a pseudo-keyword if
@@ -308,11 +303,8 @@ class Keyword implements Comparable<Keyword> {
    * @param syntax the lexeme for the keyword
    * @param isPseudoKeyword `true` if this keyword is a pseudo-keyword
    */
-  Keyword.con2(this.name, this.ordinal, String syntax2, bool isPseudoKeyword) {
-    _jtd_constructor_324_impl(syntax2, isPseudoKeyword);
-  }
-  _jtd_constructor_324_impl(String syntax2, bool isPseudoKeyword) {
-    this._syntax = syntax2;
+  Keyword.con2(this.name, this.ordinal, String syntax, bool isPseudoKeyword) {
+    this._syntax = syntax;
     this._isPseudoKeyword2 = isPseudoKeyword;
   }
 
@@ -1847,17 +1839,9 @@ class TokenClass implements Comparable<TokenClass> {
    * operator.
    */
   int _precedence = 0;
-  TokenClass.con1(this.name, this.ordinal) {
-    _jtd_constructor_333_impl();
-  }
-  _jtd_constructor_333_impl() {
-    _jtd_constructor_334_impl(0);
-  }
-  TokenClass.con2(this.name, this.ordinal, int precedence2) {
-    _jtd_constructor_334_impl(precedence2);
-  }
-  _jtd_constructor_334_impl(int precedence2) {
-    this._precedence = precedence2;
+  TokenClass.con1(String name, int ordinal) : this.con2(name, ordinal, 0);
+  TokenClass.con2(this.name, this.ordinal, int precedence) {
+    this._precedence = precedence;
   }
 
   /**
@@ -1994,18 +1978,10 @@ class TokenType implements Comparable<TokenType> {
    * lexeme for this type of token.
    */
   String _lexeme;
-  TokenType.con1(this.name, this.ordinal) {
-    _jtd_constructor_335_impl();
-  }
-  _jtd_constructor_335_impl() {
-    _jtd_constructor_336_impl(TokenClass.NO_CLASS, null);
-  }
-  TokenType.con2(this.name, this.ordinal, TokenClass tokenClass2, String lexeme2) {
-    _jtd_constructor_336_impl(tokenClass2, lexeme2);
-  }
-  _jtd_constructor_336_impl(TokenClass tokenClass2, String lexeme2) {
-    this._tokenClass = tokenClass2 == null ? TokenClass.NO_CLASS : tokenClass2;
-    this._lexeme = lexeme2;
+  TokenType.con1(String name, int ordinal) : this.con2(name, ordinal, TokenClass.NO_CLASS, null);
+  TokenType.con2(this.name, this.ordinal, TokenClass tokenClass, String lexeme) {
+    this._tokenClass = tokenClass == null ? TokenClass.NO_CLASS : tokenClass;
+    this._lexeme = lexeme;
   }
 
   /**

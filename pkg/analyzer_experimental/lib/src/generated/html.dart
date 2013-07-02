@@ -48,12 +48,7 @@ class Token {
    * @param type the token type (not `null`)
    * @param offset the offset from the beginning of the file to the first character in the token
    */
-  Token.con1(TokenType type, int offset) {
-    _jtd_constructor_157_impl(type, offset);
-  }
-  _jtd_constructor_157_impl(TokenType type, int offset) {
-    _jtd_constructor_158_impl(type, offset, type.lexeme);
-  }
+  Token.con1(TokenType type, int offset) : this.con2(type, offset, type.lexeme);
 
   /**
    * Initialize a newly created token.
@@ -62,13 +57,10 @@ class Token {
    * @param offset the offset from the beginning of the file to the first character in the token
    * @param value the lexeme represented by this token (not `null`)
    */
-  Token.con2(TokenType type2, int offset2, String value2) {
-    _jtd_constructor_158_impl(type2, offset2, value2);
-  }
-  _jtd_constructor_158_impl(TokenType type2, int offset2, String value2) {
-    this._type = type2;
-    this._value = StringUtilities.intern(value2);
-    this._offset = offset2;
+  Token.con2(TokenType type, int offset, String value) {
+    this._type = type;
+    this._value = StringUtilities.intern(value);
+    this._offset = offset;
   }
 
   /**
@@ -1630,8 +1622,7 @@ class HtmlParser extends XmlParser {
    *
    * @param source the source being parsed
    */
-  HtmlParser(Source source) : super(source) {
-  }
+  HtmlParser(Source source) : super(source);
 
   /**
    * Parse the tokens specified by the given scan result.

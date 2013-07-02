@@ -2624,8 +2624,7 @@ abstract class ClassMember extends Declaration {
    * @param comment the documentation comment associated with this member
    * @param metadata the annotations associated with this member
    */
-  ClassMember.full(Comment comment, List<Annotation> metadata) : super.full(comment, metadata) {
-  }
+  ClassMember.full(Comment comment, List<Annotation> metadata) : super.full(comment, metadata);
 
   /**
    * Initialize a newly created member of a class.
@@ -3073,8 +3072,7 @@ class CommentType implements Comparable<CommentType> {
 
   /// The position in the enum declaration.
   final int ordinal;
-  CommentType(this.name, this.ordinal) {
-  }
+  CommentType(this.name, this.ordinal);
   int compareTo(CommentType other) => ordinal - other.ordinal;
   int get hashCode => ordinal;
   String toString() => name;
@@ -3463,8 +3461,7 @@ abstract class CompilationUnitMember extends Declaration {
    * @param comment the documentation comment associated with this member
    * @param metadata the annotations associated with this member
    */
-  CompilationUnitMember.full(Comment comment, List<Annotation> metadata) : super.full(comment, metadata) {
-  }
+  CompilationUnitMember.full(Comment comment, List<Annotation> metadata) : super.full(comment, metadata);
 
   /**
    * Initialize a newly created generic compilation unit member.
@@ -4469,8 +4466,7 @@ abstract class Declaration extends AnnotatedNode {
    * @param comment the documentation comment associated with this declaration
    * @param metadata the annotations associated with this declaration
    */
-  Declaration.full(Comment comment, List<Annotation> metadata) : super.full(comment, metadata) {
-  }
+  Declaration.full(Comment comment, List<Annotation> metadata) : super.full(comment, metadata);
 
   /**
    * Initialize a newly created declaration.
@@ -4804,8 +4800,7 @@ abstract class Directive extends AnnotatedNode {
    * @param comment the documentation comment associated with this directive
    * @param metadata the annotations associated with the directive
    */
-  Directive.full(Comment comment, List<Annotation> metadata) : super.full(comment, metadata) {
-  }
+  Directive.full(Comment comment, List<Annotation> metadata) : super.full(comment, metadata);
 
   /**
    * Initialize a newly create directive.
@@ -5266,8 +5261,7 @@ class ExportDirective extends NamespaceDirective {
    * @param combinators the combinators used to control which names are exported
    * @param semicolon the semicolon terminating the directive
    */
-  ExportDirective.full(Comment comment, List<Annotation> metadata, Token keyword, StringLiteral libraryUri, List<Combinator> combinators, Token semicolon) : super.full(comment, metadata, keyword, libraryUri, combinators, semicolon) {
-  }
+  ExportDirective.full(Comment comment, List<Annotation> metadata, Token keyword, StringLiteral libraryUri, List<Combinator> combinators, Token semicolon) : super.full(comment, metadata, keyword, libraryUri, combinators, semicolon);
 
   /**
    * Initialize a newly created export directive.
@@ -7979,8 +7973,11 @@ class IndexExpression extends Expression {
    * @param index the expression used to compute the index
    * @param rightBracket the right square bracket
    */
-  IndexExpression.forTarget_full(Expression target2, Token leftBracket2, Expression index2, Token rightBracket2) {
-    _jtd_constructor_58_impl(target2, leftBracket2, index2, rightBracket2);
+  IndexExpression.forTarget_full(Expression target, Token leftBracket, Expression index, Token rightBracket) {
+    this._target = becomeParentOf(target);
+    this._leftBracket = leftBracket;
+    this._index = becomeParentOf(index);
+    this._rightBracket = rightBracket;
   }
 
   /**
@@ -7991,12 +7988,21 @@ class IndexExpression extends Expression {
    * @param index the expression used to compute the index
    * @param rightBracket the right square bracket
    */
-  IndexExpression.forTarget({Expression target2, Token leftBracket2, Expression index2, Token rightBracket2}) : this.forTarget_full(target2, leftBracket2, index2, rightBracket2);
-  _jtd_constructor_58_impl(Expression target2, Token leftBracket2, Expression index2, Token rightBracket2) {
-    this._target = becomeParentOf(target2);
-    this._leftBracket = leftBracket2;
-    this._index = becomeParentOf(index2);
-    this._rightBracket = rightBracket2;
+  IndexExpression.forTarget({Expression target, Token leftBracket, Expression index, Token rightBracket}) : this.forTarget_full(target, leftBracket, index, rightBracket);
+
+  /**
+   * Initialize a newly created index expression.
+   *
+   * @param period the period ("..") before a cascaded index expression
+   * @param leftBracket the left square bracket
+   * @param index the expression used to compute the index
+   * @param rightBracket the right square bracket
+   */
+  IndexExpression.forCascade_full(Token period, Token leftBracket, Expression index, Token rightBracket) {
+    this._period = period;
+    this._leftBracket = leftBracket;
+    this._index = becomeParentOf(index);
+    this._rightBracket = rightBracket;
   }
 
   /**
@@ -8007,25 +8013,7 @@ class IndexExpression extends Expression {
    * @param index the expression used to compute the index
    * @param rightBracket the right square bracket
    */
-  IndexExpression.forCascade_full(Token period2, Token leftBracket2, Expression index2, Token rightBracket2) {
-    _jtd_constructor_59_impl(period2, leftBracket2, index2, rightBracket2);
-  }
-
-  /**
-   * Initialize a newly created index expression.
-   *
-   * @param period the period ("..") before a cascaded index expression
-   * @param leftBracket the left square bracket
-   * @param index the expression used to compute the index
-   * @param rightBracket the right square bracket
-   */
-  IndexExpression.forCascade({Token period2, Token leftBracket2, Expression index2, Token rightBracket2}) : this.forCascade_full(period2, leftBracket2, index2, rightBracket2);
-  _jtd_constructor_59_impl(Token period2, Token leftBracket2, Expression index2, Token rightBracket2) {
-    this._period = period2;
-    this._leftBracket = leftBracket2;
-    this._index = becomeParentOf(index2);
-    this._rightBracket = rightBracket2;
-  }
+  IndexExpression.forCascade({Token period, Token leftBracket, Expression index, Token rightBracket}) : this.forCascade_full(period, leftBracket, index, rightBracket);
   accept(ASTVisitor visitor) => visitor.visitIndexExpression(this);
 
   /**
@@ -12063,6 +12051,8 @@ class SimpleIdentifier extends Identifier {
       return identical(this, ((parent as ClassTypeAlias)).name);
     } else if (parent is ConstructorDeclaration) {
       return identical(this, ((parent as ConstructorDeclaration)).name);
+    } else if (parent is DeclaredIdentifier) {
+      return identical(this, ((parent as DeclaredIdentifier)).identifier);
     } else if (parent is FunctionDeclaration) {
       return identical(this, ((parent as FunctionDeclaration)).name);
     } else if (parent is FunctionTypeAlias) {
@@ -12746,8 +12736,7 @@ class SwitchDefault extends SwitchMember {
    * @param colon the colon separating the keyword or the expression from the statements
    * @param statements the statements that will be executed if this switch member is selected
    */
-  SwitchDefault.full(List<Label> labels, Token keyword, Token colon, List<Statement> statements) : super.full(labels, keyword, colon, statements) {
-  }
+  SwitchDefault.full(List<Label> labels, Token keyword, Token colon, List<Statement> statements) : super.full(labels, keyword, colon, statements);
 
   /**
    * Initialize a newly created switch default.
@@ -15355,12 +15344,7 @@ class NodeLocator extends GeneralizingASTVisitor<Object> {
    *
    * @param offset the offset used to identify the node
    */
-  NodeLocator.con1(int offset) {
-    _jtd_constructor_121_impl(offset);
-  }
-  _jtd_constructor_121_impl(int offset) {
-    _jtd_constructor_122_impl(offset, offset);
-  }
+  NodeLocator.con1(int offset) : this.con2(offset, offset);
 
   /**
    * Initialize a newly created locator to locate one or more [ASTNode] by locating
@@ -15371,9 +15355,6 @@ class NodeLocator extends GeneralizingASTVisitor<Object> {
    * @param end the end offset of the range used to identify the node
    */
   NodeLocator.con2(int start, int end) {
-    _jtd_constructor_122_impl(start, end);
-  }
-  _jtd_constructor_122_impl(int start, int end) {
     this._startOffset = start;
     this._endOffset = end;
   }

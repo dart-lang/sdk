@@ -273,8 +273,7 @@ class InstrumentationLevel implements Comparable<InstrumentationLevel> {
     }
     throw new IllegalArgumentException("Unrecognised InstrumentationLevel");
   }
-  InstrumentationLevel(this.name, this.ordinal) {
-  }
+  InstrumentationLevel(this.name, this.ordinal);
   int compareTo(InstrumentationLevel other) => ordinal - other.ordinal;
   int get hashCode => ordinal;
   String toString() => name;

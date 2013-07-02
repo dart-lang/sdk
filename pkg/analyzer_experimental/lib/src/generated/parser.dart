@@ -2046,9 +2046,19 @@ class Parser {
     } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
       reportError8(ParserErrorCode.TOP_LEVEL_OPERATOR, _currentToken, []);
       return convertToFunctionDeclaration(parseOperator(commentAndMetadata, modifiers.externalKeyword, returnType));
+    } else if (matches5(TokenType.AT)) {
+      return new TopLevelVariableDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, parseVariableDeclarationList2(null, validateModifiersForTopLevelVariable(modifiers), returnType), expect2(TokenType.SEMICOLON));
     } else if (!matchesIdentifier()) {
       reportError8(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
-      return null;
+      Token semicolon;
+      if (matches5(TokenType.SEMICOLON)) {
+        semicolon = andAdvance;
+      } else {
+        semicolon = createSyntheticToken2(TokenType.SEMICOLON);
+      }
+      List<VariableDeclaration> variables = new List<VariableDeclaration>();
+      variables.add(new VariableDeclaration.full(null, null, createSyntheticIdentifier(), null, null));
+      return new TopLevelVariableDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, new VariableDeclarationList.full(null, null, null, returnType, variables), semicolon);
     }
     if (matchesAny(peek(), [TokenType.OPEN_PAREN, TokenType.FUNCTION, TokenType.OPEN_CURLY_BRACKET])) {
       validateModifiersForTopLevelFunction(modifiers);
@@ -5790,12 +5800,9 @@ class ParserErrorCode implements Comparable<ParserErrorCode>, ErrorCode {
    * @param severity the severity of the error
    * @param message the message template used to create the message to be displayed for the error
    */
-  ParserErrorCode.con1(this.name, this.ordinal, ErrorSeverity severity2, String message2) {
-    _jtd_constructor_316_impl(severity2, message2);
-  }
-  _jtd_constructor_316_impl(ErrorSeverity severity2, String message2) {
-    this._severity = severity2;
-    this._message = message2;
+  ParserErrorCode.con1(this.name, this.ordinal, ErrorSeverity severity, String message) {
+    this._severity = severity;
+    this._message = message;
   }
 
   /**
@@ -5803,12 +5810,7 @@ class ParserErrorCode implements Comparable<ParserErrorCode>, ErrorCode {
    *
    * @param message the message template used to create the message to be displayed for the error
    */
-  ParserErrorCode.con2(this.name, this.ordinal, String message) {
-    _jtd_constructor_317_impl(message);
-  }
-  _jtd_constructor_317_impl(String message) {
-    _jtd_constructor_316_impl(ErrorSeverity.ERROR, message);
-  }
+  ParserErrorCode.con2(String name, int ordinal, String message) : this.con1(name, ordinal, ErrorSeverity.ERROR, message);
   ErrorSeverity get errorSeverity => _severity;
   String get message => _message;
   ErrorType get type => ErrorType.SYNTACTIC_ERROR;

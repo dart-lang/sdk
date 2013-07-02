@@ -43,12 +43,7 @@ class FileBasedSource implements Source {
    * @param contentCache the content cache used to access the contents of this source
    * @param file the file represented by this source
    */
-  FileBasedSource.con1(ContentCache contentCache, JavaFile file) {
-    _jtd_constructor_343_impl(contentCache, file);
-  }
-  _jtd_constructor_343_impl(ContentCache contentCache, JavaFile file) {
-    _jtd_constructor_344_impl(contentCache, file, UriKind.FILE_URI);
-  }
+  FileBasedSource.con1(ContentCache contentCache, JavaFile file) : this.con2(contentCache, file, UriKind.FILE_URI);
 
   /**
    * Initialize a newly created source object.
@@ -57,14 +52,11 @@ class FileBasedSource implements Source {
    * @param file the file represented by this source
    * @param flags `true` if this source is in one of the system libraries
    */
-  FileBasedSource.con2(ContentCache contentCache2, JavaFile file2, UriKind uriKind2) {
-    _jtd_constructor_344_impl(contentCache2, file2, uriKind2);
-  }
-  _jtd_constructor_344_impl(ContentCache contentCache2, JavaFile file2, UriKind uriKind2) {
-    this._contentCache = contentCache2;
-    this._file = file2;
-    this._uriKind = uriKind2;
-    this._encoding = "${uriKind2.encoding}${file2.toURI().toString()}";
+  FileBasedSource.con2(ContentCache contentCache, JavaFile file, UriKind uriKind) {
+    this._contentCache = contentCache;
+    this._file = file;
+    this._uriKind = uriKind;
+    this._encoding = "${uriKind.encoding}${file.toURI().toString()}";
   }
   bool operator ==(Object object) => object != null && this.runtimeType == object.runtimeType && _file == ((object as FileBasedSource))._file;
   bool exists() => _contentCache.getContents(this) != null || (_file.exists() && !_file.isDirectory());
@@ -280,12 +272,7 @@ class DirectoryBasedSourceContainer implements SourceContainer {
    *
    * @param directory the directory (not `null`)
    */
-  DirectoryBasedSourceContainer.con1(JavaFile directory) {
-    _jtd_constructor_341_impl(directory);
-  }
-  _jtd_constructor_341_impl(JavaFile directory) {
-    _jtd_constructor_342_impl(directory.getPath());
-  }
+  DirectoryBasedSourceContainer.con1(JavaFile directory) : this.con2(directory.getPath());
 
   /**
    * Construct a container representing the specified path and containing any sources whose
@@ -293,11 +280,8 @@ class DirectoryBasedSourceContainer implements SourceContainer {
    *
    * @param path the path (not `null` and not empty)
    */
-  DirectoryBasedSourceContainer.con2(String path2) {
-    _jtd_constructor_342_impl(path2);
-  }
-  _jtd_constructor_342_impl(String path2) {
-    this._path = appendFileSeparator(path2);
+  DirectoryBasedSourceContainer.con2(String path) {
+    this._path = appendFileSeparator(path);
   }
   bool contains(Source source) => source.fullName.startsWith(_path);
   bool operator ==(Object obj) => (obj is DirectoryBasedSourceContainer) && ((obj as DirectoryBasedSourceContainer)).path == path;

@@ -105,7 +105,11 @@ class JavaFile {
   }
   Uri toURI() => new Uri(path: _path.toString());
   String readAsStringSync() => _newFile().readAsStringSync();
-  int lastModified() => _newFile().lastModifiedSync().millisecondsSinceEpoch;
+  int lastModified() {
+    if (!_newFile().existsSync()) return 0;
+    return _newFile().lastModifiedSync().millisecondsSinceEpoch;
+
+  }
   List<JavaFile> listFiles() {
     List<JavaFile> files = [];
     List<FileSystemEntity> entities = _newDirectory().listSync();
