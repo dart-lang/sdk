@@ -119,10 +119,9 @@ typed_data_test: Skip # dart:typed_data support needed.
 bytedata_test: Skip # dart:typed_data support needed.
 typed_data_view_test: Skip # dart:typed_data support needed.
 typed_data_isolate_test: Skip # dart:typed_data support needed.
-typed_array_test: Skip # dart:typed_data support needed.
+typed_array_int64_uint64_test: Skip # dart:typed_data on dart2js does not support 64-bit ints.
 float_array_test: Skip # dart:typed_data support needed.
 int_array_test: Skip  # dart:typed_data support needed.
-byte_array_view_optimized_test: Skip # dart:typed_data support needed.
 io/web_socket_protocol_processor_test: Skip  # Importing code with external keyword
 io/url_encoding_test: Skip  # Importing code with external keyword
 int_array_load_elimination_test: Skip  # This is a VM test
