@@ -15,15 +15,20 @@ import '../lib/docgen.dart';
  */
 void main() {
   logger.onRecord.listen((record) => print(record.message));
-  var results = initArgParser().parse(new Options().arguments);
-  if (results['help']) return;  
-  docgen(results);
+  var results = _initArgParser().parse(new Options().arguments);
+  
+  docgen(results.rest, 
+      packageRoot: results['package-root'], 
+      outputToYaml: !results['json'],  
+      includePrivate: results['include-private'], 
+      includeSdk: results['parse-sdk'] || results['include-sdk'], 
+      parseSdk: results['parse-sdk']);
 }
 
 /**
  * Creates parser for docgen command line arguments. 
  */
-ArgParser initArgParser() {
+ArgParser _initArgParser() {
   var parser = new ArgParser();
   parser.addFlag('help', abbr: 'h', 
       help: 'Prints help and usage information.', 
@@ -32,6 +37,7 @@ ArgParser initArgParser() {
         if (help) {
           logger.info(parser.getUsage());
           logger.info(USAGE);
+          exit(0);
         }
       });
   parser.addFlag('verbose', abbr: 'v', 
@@ -39,15 +45,9 @@ ArgParser initArgParser() {
       callback: (verbose) {
         if (verbose) Logger.root.level = Level.FINEST;
       });
-  parser.addOption('output-format', abbr: 'o', 
-      help: 'Sets the output format.', 
-      allowed: ['yaml', 'json'], 
-      allowedHelp: {'yaml' : 'Outputs to YAML. (Default)', 
-        'json' : 'Outputs to JSON.'});
-  parser.addFlag('yaml', abbr: 'y', 
-      help: 'Same as output-format=yaml.', negatable: false);
   parser.addFlag('json', abbr: 'j', 
-      help: 'Same as output-format=json.', negatable: false);
+      help: 'Outputs to JSON. Files are outputted to YAML by default.', 
+      negatable: true);
   parser.addFlag('include-private', 
       help: 'Flag to include private declarations.', negatable: false);
   parser.addFlag('include-sdk', 
