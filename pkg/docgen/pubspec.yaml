@@ -4,5 +4,6 @@ dependencies:
   args: any
   logging: any
   markdown: any
+  pathos: any
   scheduled_test: any
   unittest: any
