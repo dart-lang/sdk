@@ -7,4 +7,5 @@ dependencies:
   analyzer_experimental: any
   pathos: any
 dev_dependencies:
+  serialization: any
   unittest: any

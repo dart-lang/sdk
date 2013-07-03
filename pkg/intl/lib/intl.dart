@@ -71,7 +71,7 @@ part 'number_format.dart';
  *           '''I see ${Intl.plural(num_people,
  *             {'0': 'no one at all',
  *              '1': 'one other person',
- *              'other': '$num_people other people'})} in $place.'''',
+ *              'other': '$num_people other people'})} in $place.''',
  *          name: 'msg',
  *          args: [num_people, place],
  *          desc: 'Description of how many people are seen as program start.',
@@ -238,12 +238,42 @@ class Intl {
   }
 
   /**
-   * Support method for message formatting. Select the correct plural form from
-   * [cases] given [howMany].
+   * Format a message differently depending on [howMany]. Normally used
+   * as part of an `Intl.message` text that is to be translated.
+   * Selects the correct plural form from
+   * the provided alternatives. The [other] named argument is mandatory.
    */
-  static String plural(var howMany, Map cases, [num offset=0]) {
-    // TODO(efortuna): Deal with "few" and "many" cases, offset, and others!
-    return select(howMany.toString(), cases);
+  static String plural(int howMany, {zero, one, two, few, many, other}) {
+    if (other == null) {
+      throw new ArgumentError("The 'other' named argument must be provided");
+    }
+    // TODO(alanknight): This algorithm needs to be locale-dependent.
+    switch (howMany) {
+      case 0 : return (zero == null) ? other : zero;
+      case 1 : return (one == null) ? other : one;
+      case 2: return (two == null) ? ((few == null) ? other : few) : two;
+      default:
+        if (howMany == 3 || howMany == 4 && few != null) return few;
+        if (howMany > 10 && howMany < 100 && many != null) return many;
+        return other;
+    }
+    throw new ArgumentError("Invalid plural usage for $howMany");
+  }
+
+  /**
+   * Format a message differently depending on [gender]. Normally used as part
+   * of an Intl.message message that is to be translated.
+   */
+  static String gender(String gender,
+      {String male, String female, String other}) {
+    if (other == null) {
+      throw new ArgumentError("The 'other' named argument must be specified");
+    }
+    switch(gender) {
+      case "female" : return female == null ? other : female;
+      case "male" : return male == null ? other : male;
+      default: return other;
+    }
   }
 
   /**
@@ -274,13 +304,10 @@ class Intl {
    * usually) form from [cases] given the user [choice].
    */
   static String select(String choice, Map cases) {
-    if (cases.containsKey(choice)) {
-      return cases[choice];
-    } else if (cases.containsKey('other')){
-      return cases['other'];
-    } else {
-      return '';
-    }
+    var exact = cases[choice];
+    if (exact != null) return exact;
+    var other = cases["other"];
+    return (other == null) ? '' : other;
   }
 
   /**

@@ -27,7 +27,7 @@ class UninitializedLocaleData<F> {
 
   String lookupMessage(String message_str, [final String desc='',
       final Map examples=const {}, String locale,
-      String name, List<String> args]) => _throwException();
+      String name, List<String> args]) => message_str;
 
   List get keys => _throwException();
 

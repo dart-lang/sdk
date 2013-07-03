@@ -57,18 +57,20 @@ main() {
  * store it to the file in Dart interpolation syntax, so the transformation
  * is trivial.
  */
-String leaveTheInterpolationsInDartForm(IntlMessage msg, chunk) =>
-    (chunk is String) ? chunk : "\$${msg.arguments[chunk]}";
+String leaveTheInterpolationsInDartForm(MainMessage msg, chunk) {
+  if (chunk is String) return chunk;
+  if (chunk is int) return "\$${msg.arguments[chunk]}";
+  return chunk.toCode();
+}
 
 /**
- * Convert the [IntlMessage] to a trivial JSON format.
+ * Convert the [MainMessage] to a trivial JSON format.
  */
-Map toJson(IntlMessage message) {
-  return {
-    "name" : message.name,
-    "description" : message.description,
-    "message" : message.fullMessage(leaveTheInterpolationsInDartForm),
-    "examples" : message.examples,
-    "arguments" : message.arguments
-  };
+Map toJson(MainMessage message) {
+  var result = new Map<String, Object>();
+  for (var attribute in message.attributeNames) {
+    result[attribute] = message[attribute];
+  }
+  result["message"] = message.expanded(leaveTheInterpolationsInDartForm);
+  return result;
 }

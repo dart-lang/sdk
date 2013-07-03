@@ -61,14 +61,25 @@ String generatedFilePrefix = '';
  * mechanisms are expected to subclass this.
  */
 abstract class TranslatedMessage {
-  /** The identifier for this message. In the simplest case, this is the name.*/
-  var id;
+  /**
+   * The identifier for this message. In the simplest case, this is the name
+   * parameter from the Intl.message call,
+   * but it can be any identifier that this program and the output of the
+   * translation can agree on as identifying a message.
+   */
+  String id;
 
-  String translatedString;
-  IntlMessage originalMessage;
-  TranslatedMessage(this.id, this.translatedString);
+  /** Our translated version of [originalMessage]. */
+  Message translated;
 
-  String get message => translatedString;
+  /** The original message that we are a translation of. */
+  MainMessage originalMessage;
+
+  TranslatedMessage(this.id, this.translated);
+
+  Message get message => translated;
+
+  toString() => id.toString();
 }
 
 /**
@@ -78,13 +89,13 @@ abstract class TranslatedMessage {
 String asLibraryName(String x) => x.replaceAll('-', '_');
 
 /**
- * Generate a file messages_<locale>.dart for the [translations] in
- * [locale].
+ * Generate a file <[generated_file_prefix]>_messages_<[locale]>.dart
+ * for the [translations] in [locale] and put it in [targetDir].
  */
 void generateIndividualMessageFile(String locale,
     Iterable<TranslatedMessage> translations, String targetDir) {
   var result = new StringBuffer();
-  locale = new IntlMessage().escapeAndValidate(locale, locale);
+  locale = new MainMessage().escapeAndValidateString(locale);
   result.write(prologue(locale));
   // Exclude messages with no translation and translations with no matching
   // original message (e.g. if we're using some messages from a larger catalog)
@@ -95,9 +106,9 @@ void generateIndividualMessageFile(String locale,
   }
   usableTranslations.sort((a, b) =>
       a.originalMessage.name.compareTo(b.originalMessage.name));
-  for (var each in usableTranslations) {
+  for (var translation in usableTranslations) {
     result.write("  ");
-    result.write(each.originalMessage.toCode(locale));
+    result.write(translation.originalMessage.toCodeForLocale(locale));
     result.write("\n\n");
   }
   result.write("\n  final messages = const {\n");
