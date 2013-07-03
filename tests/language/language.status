@@ -233,6 +233,8 @@ interface_factory_constructor_negative_test: Fail
 method_override2_test/00: Fail
 method_override2_test/02: Fail
 method_override2_test/03: Fail
+method_override4_test: Fail
+method_override5_test: Fail
 operator1_negative_test: Fail
 static_final_field_negative_test: Fail
 static_top_level_test/00: Fail
