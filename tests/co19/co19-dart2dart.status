@@ -592,6 +592,9 @@ LibTest/core/List/removeRange_A02_t01: Fail # Issue 400
 LibTest/core/Set/isSubsetOf_A01_t01: Fail # Issue 400
 LibTest/core/Set/isSubsetOf_A01_t02: Fail # Issue 400
 
+LibTest/core/FallThroughError/toString_A01_t01: Fail # FallThroughError is no longer const. Issue 459
+LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail # FallThroughError is no longer const. Issue 459
+
 Language/11_Expressions/33_Argument_Definition_Test_A01_t02: Fail, OK # co19 issue 436
 Language/11_Expressions/33_Argument_Definition_Test_A02_t01: Fail, OK # co19 issue 436
 Language/11_Expressions/33_Argument_Definition_Test_A02_t02: Fail, OK # co19 issue 436

@@ -119,6 +119,10 @@ Language/05_Variables/05_Variables_A12_t06: fail, OK
 Language/05_Variables/05_Variables_A13_t01: fail, OK
 Language/07_Classes/07_Classes_A02_t11: fail, OK
 
+# co19 issue 459, FallThroughError is no longer const
+LibTest/core/FallThroughError/toString_A01_t01: Fail
+LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail
+
 # co19 issue #429, It is a compile-time error if a formal parameter is declared as a constant variable
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t07: fail, OK
 

@@ -277,6 +277,8 @@ Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t06: Fail
 Language/11_Expressions/17_Getter_Invocation_A02_t01: Fail, OK # co19 issue 405
 Language/11_Expressions/17_Getter_Invocation_A02_t02: Fail, OK # co19 issue 405
 
+LibTest/core/FallThroughError/toString_A01_t01: Fail # FallThroughError is no longer const. Issue 459
+LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail # FallThroughError is no longer const. Issue 459
 
 [ $runtime == drt && $compiler == none ]
 *: Skip

@@ -16,7 +16,7 @@ library dart.json;
  * [cause] field. If the call returns an object that isn't directly
  * serializable, the [cause] will be null.
  */
-class JsonUnsupportedObjectError implements Error {
+class JsonUnsupportedObjectError extends Error {
   /** The object that could not be serialized. */
   final unsupportedObject;
   /** The exception thrown by object's [:toJson:] method, if any. */

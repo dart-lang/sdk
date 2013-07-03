@@ -956,7 +956,7 @@ SequenceNode* Parser::ParseStaticConstGetter(const Function& func) {
             ident_pos,
             field,
             new LiteralNode(ident_pos, Instance::ZoneHandle())));
-    // TODO(regis): Exception to throw is not specified by spec.
+    // TODO(regis, 5802): Exception to throw is not specified by spec.
     const String& circular_error = String::ZoneHandle(
         Symbols::New("circular dependency in field initialization"));
     report_circular->Add(

@@ -191,6 +191,10 @@ LibTest/core/AssertionError/failedAssertion_A01_t01: fail, OK
 LibTest/core/AssertionError/line_A01_t02: fail, OK
 LibTest/core/AssertionError/url_A01_t01: fail, OK
 
+# co19 issue 459, FallThroughError is no longer const
+LibTest/core/FallThroughError/toString_A01_t01: Fail
+LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail
+
 # co19 issue #437, annotation should be constant _variable_ or constant constructor invocation
 Language/07_Classes/07_Classes_A01_t20: fail, OK
 Language/07_Classes/07_Classes_A02_t34: fail, OK

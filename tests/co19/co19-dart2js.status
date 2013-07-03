@@ -544,6 +544,9 @@ LibTest/core/RegExp/allMatches_A01_t01: Fail # co19 Issue 400, 422
 LibTest/core/String/indexOf_A01_t02: Fail # Issue 427
 LibTest/core/String/lastIndexOf_A01_t02: Fail # Issue 427
 
+LibTest/core/FallThroughError/toString_A01_t01: Fail # FallThroughError is no longer const. Issue 459
+LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail # FallThroughError is no longer const. Issue 459
+
 [ $compiler == dart2js && $unchecked ]
 LibTest/core/List/setRange_A05_t01: Fail # setRange throws StateError if there aren't enough elements in the iterable. Issue 402
 

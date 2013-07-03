@@ -41,6 +41,8 @@ unicode_test: Fail
 
 [ $runtime == vm ]
 string_trim_unicode_test: Fail  # Bug 6569
+error_stack_trace_test: Fail  # Bug http://dartbug.com/11680
+error_stack_trace2_test: Fail  # Bug 5802
 
 [ $compiler == dart2js ]
 math_parse_double_test: Fail # Expect.equals(expected: <78187493520>, actual: <0>)
@@ -52,6 +54,9 @@ compare_to2_test: Fail, OK    # Requires bigint support.
 string_base_vm_test: Fail, OK # VM specific test.
 
 string_replace_func_test: Skip # Bug 6554 - doesn't terminate.
+
+error_stack_trace_test: Fail  # Bug http://dartbug.com/11681
+error_stack_trace2_test: Fail  # Bug http://dartbug.com/11681
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.

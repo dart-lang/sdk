@@ -114,6 +114,9 @@ patch class Error {
   patch static String _objectToString(Object object) {
     return Primitives.objectToString(object);
   }
+
+  // TODO(11681): implement stackTrace in error object.
+  patch StackTrace get stackTrace => null;
 }
 
 

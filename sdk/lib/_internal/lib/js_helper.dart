@@ -679,7 +679,7 @@ checkString(value) {
  * object out of the wrapper again.
  */
 wrapException(ex) {
-  if (ex == null) ex = const NullThrownError();
+  if (ex == null) ex = new NullThrownError();
   var wrapper = new DartError(ex);
 
   if (JS('bool', '!!Error.captureStackTrace')) {
@@ -1023,7 +1023,7 @@ jsPropertyAccess(var jsObject, String property) {
  * Called at the end of unaborted switch cases to get the singleton
  * FallThroughError exception that will be thrown.
  */
-getFallThroughError() => const FallThroughErrorImplementation();
+getFallThroughError() => new FallThroughErrorImplementation();
 
 /**
  * Represents the type dynamic. The compiler treats this specially.
@@ -1439,8 +1439,8 @@ class CastErrorImplementation implements CastError {
   String toString() => message;
 }
 
-class FallThroughErrorImplementation implements FallThroughError {
-  const FallThroughErrorImplementation();
+class FallThroughErrorImplementation extends FallThroughError {
+  FallThroughErrorImplementation();
   String toString() => "Switch case fall-through.";
 }
 
@@ -1478,7 +1478,7 @@ void throwCyclicInit(String staticName) {
 /**
  * Error thrown when a runtime error occurs.
  */
-class RuntimeError implements Error {
+class RuntimeError extends Error {
   final message;
   RuntimeError(this.message);
   String toString() => "RuntimeError: $message";
