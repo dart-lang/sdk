@@ -59,18 +59,28 @@ markdown.Resolver linkResolver;
  * also be documented. 
  * If [parseSdk] is 'true', then all Dart SDK libraries will be documented. 
  * This option is useful when only the SDK libraries are needed. 
+ * 
+ * Returns true if docgen sucessfuly completes. 
  */
-void docgen(List<String> files, {String packageRoot, bool outputToYaml: true, 
-  bool includePrivate: false, bool includeSdk: false, bool parseSdk: false}) {  
+Future<bool> docgen(List<String> files, {String packageRoot, 
+    bool outputToYaml: true, bool includePrivate: false, bool includeSdk: false,
+    bool parseSdk: false}) {    
   if (packageRoot == null && !parseSdk) {
-    packageRoot = _findPackageRoot(files.first);
+    // TODO(janicejl): At the moment, if a single file is passed it, it is 
+    // assumed that it does not have a package root unless it is passed in by 
+    // the user. In future, find a better way to find the packageRoot and also 
+    // fully test finding the packageRoot. 
+    if (FileSystemEntity.typeSync(files.first) 
+        == FileSystemEntityType.DIRECTORY) {
+      packageRoot = _findPackageRoot(files.first);
+    }
   }
   logger.info('Package Root: ${packageRoot}');
   
   linkResolver = (name) => 
       fixReference(name, _currentLibrary, _currentClass, _currentMember);
   
-  getMirrorSystem(files, packageRoot, parseSdk: parseSdk)
+  return getMirrorSystem(files, packageRoot, parseSdk: parseSdk)
     .then((MirrorSystem mirrorSystem) {
       if (mirrorSystem.libraries.isEmpty) {
         throw new StateError('No library mirrors were created.');
@@ -78,6 +88,8 @@ void docgen(List<String> files, {String packageRoot, bool outputToYaml: true,
       _documentLibraries(mirrorSystem.libraries.values, 
           includeSdk: includeSdk, includePrivate: includePrivate, 
           outputToYaml: outputToYaml);
+      
+      return true;
     });
 }
 
