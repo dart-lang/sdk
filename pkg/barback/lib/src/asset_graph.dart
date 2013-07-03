@@ -24,8 +24,8 @@ class AssetGraph {
 
   final _phases = <Phase>[];
 
-  Stream<ProcessResult> get results => _resultsController.stream;
-  final _resultsController = new StreamController<ProcessResult>.broadcast();
+  Stream<BuildResult> get results => _resultsController.stream;
+  final _resultsController = new StreamController<BuildResult>.broadcast();
 
   /// A future that completes when the currently running build process finishes.
   ///
@@ -94,9 +94,7 @@ class AssetGraph {
       }
 
       // Couldn't find it.
-      var error = new AssetNotFoundException(id);
-      reportError(error);
-      throw error;
+      throw new AssetNotFoundException(id);
     });
   }
 
@@ -122,7 +120,7 @@ class AssetGraph {
 
   /// Reports a process result with the given error then throws it.
   void reportError(error) {
-    _resultsController.add(new ProcessResult(error));
+    _resultsController.add(new BuildResult(error));
   }
 
   /// Starts the build process asynchronously if there is work to be done.
@@ -134,7 +132,11 @@ class AssetGraph {
   /// to discard it.
   Future _waitForProcess() {
     if (_processDone != null) return _processDone;
-    return _processDone = _process().catchError((error) {
+    return _processDone = _process().then((_) {
+      // Report the build completion.
+      // TODO(rnystrom): Put some useful data in here.
+      _resultsController.add(new BuildResult());
+    }).catchError((error) {
       // If we get here, it's an unexpected error. Runtime errors like missing
       // assets should be handled earlier. Errors from transformers or other
       // external code that barback calls into should be caught at that API
@@ -146,9 +148,6 @@ class AssetGraph {
       _resultsController.addError(error);
     }).whenComplete(() {
       _processDone = null;
-      // Report the build completion.
-      // TODO(rnystrom): Put some useful data in here.
-      _resultsController.add(new ProcessResult());
     });
   }
 
@@ -217,9 +216,12 @@ class AssetGraph {
 
 /// Used to report build results back from the asynchronous build process
 /// running in the background.
-class ProcessResult {
+class BuildResult {
   /// The error that occurred, or `null` if the result is not an error.
   final error;
 
-  ProcessResult([this.error]);
+  /// `true` if this result is for a successful build.
+  bool get succeeded => error == null;
+
+  BuildResult([this.error]);
 }
