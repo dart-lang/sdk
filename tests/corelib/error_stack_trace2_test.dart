@@ -4,7 +4,12 @@
 
 import "package:expect/expect.dart";
 
-var cyclicStatic = cyclicStatic + 1;
+class A {
+  get foo => cyclicStatic;
+}
+
+var a = new A();
+var cyclicStatic = (() => a.foo + 1)();
 
 cyclicInitialization() {
   return cyclicStatic;
@@ -14,7 +19,9 @@ main() {
   bool hasThrown = false;
   try {
     cyclicStatic + 1;
-  } catch(e) {
+  } catch(e2) {
+    // Work around bug in analyzer that assigns "Object" type to caught error.
+    var e = e2;
     hasThrown = true;
     Expect.isTrue(e.stackTrace is StackTrace,
                   "$e doesn't have a non-null stack trace");
