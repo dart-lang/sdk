@@ -6,7 +6,7 @@
 library source_maps.span;
 
 import 'dart:utf' show stringToCodepoints;
-import 'dart:math' show min;
+import 'dart:math' show min, max;
 
 import 'src/utils.dart';
 
@@ -216,24 +216,18 @@ class SourceFile {
   Location location(int offset) => new FileLocation(this, offset);
 
   /// Gets the 0-based line corresponding to an offset.
-  int getLine(int offset) {
-    return binarySearch(_lineStarts, (o) => o > offset) - 1;
-  }
+  int getLine(int offset) => binarySearch(_lineStarts, (o) => o > offset) - 1;
 
   /// Gets the 0-based column corresponding to an offset.
-  int getColumn(int line, int offset) {
-    return offset - _lineStarts[line];
-  }
+  int getColumn(int line, int offset) => offset - _lineStarts[line];
 
   /// Get the offset for a given line and column
-  int getOffset(int line, int column) {
-    return _lineStarts[min(line, _lineStarts.length - 1)] + column;
-  }
+  int getOffset(int line, int column) =>
+      _lineStarts[max(min(line, _lineStarts.length - 1), 0)] + column;
 
   /// Gets the text at the given offsets.
-  String getText(int start, [int end]) {
-    return new String.fromCharCodes(_decodedChars.sublist(start, end));
-  }
+  String getText(int start, [int end]) =>
+      new String.fromCharCodes(_decodedChars.sublist(max(start, 0), end));
 
   /// Create a pretty string representation from a span.
   String getLocationMessage(String message, int start, int end,
@@ -253,16 +247,12 @@ class SourceFile {
 
     var buf = new StringBuffer(msg);
     buf.write('\n');
-    var textLine;
 
     // +1 for 0-indexing, +1 again to avoid the last line
-    if ((line + 2) < _lineStarts.length) {
-      textLine = getText(_lineStarts[line], _lineStarts[line + 1]);
-    } else {
-      textLine = getText(_lineStarts[line]);
-      textLine = '$textLine\n';
-    }
+    var textLine = getText(getOffset(line, 0), getOffset(line + 1, 0));
 
+
+    column = min(column, textLine.length - 1);
     int toColumn = min(column + end - start, textLine.length);
     if (useColors) {
       if (color == null) {
@@ -301,30 +291,52 @@ class SourceFileSegment extends SourceFile {
   final int _baseLine;
   final int _baseColumn;
 
+  // TODO(sigmund): consider providing an end-offset to correctly truncate
+  // values passed the end of the segment.
   SourceFileSegment(String url, String textSegment, Location startOffset)
       : _baseOffset = startOffset.offset,
         _baseLine = startOffset.line,
         _baseColumn = startOffset.column,
         super.text(url, textSegment);
 
+  /// Craete a span, where [start] is relative to this segment's base offset.
+  /// The returned span stores the real offset on the file, so that error
+  /// messages are reported at the real location.
   Span span(int start, [int end, bool isIdentifier = false]) =>
       super.span(start + _baseOffset,
           end == null ? null : end + _baseOffset, isIdentifier);
 
+  /// Create a location, where [offset] relative to this segment's base offset.
+  /// The returned span stores the real offset on the file, so that error
+  /// messages are reported at the real location.
   Location location(int offset) => super.location(offset + _baseOffset);
 
+  /// Return the line on the underlying file associated with the [offset] of the
+  /// underlying file. This method operates on the real offsets from the
+  /// original file, so that error messages can be reported accurately.
   int getLine(int offset) =>
-      super.getLine(offset - _baseOffset) + _baseLine;
+      super.getLine(max(offset - _baseOffset, 0)) + _baseLine;
 
+  /// Return the column on the underlying file associated with [line] and
+  /// [offset], where [line] is absolute from the beginning of the underlying
+  /// file. This method operates on the real offsets from the original file, so
+  /// that error messages can be reported accurately.
   int getColumn(int line, int offset) {
-    var col = super.getColumn(line - _baseLine, offset - _baseOffset);
+    var col = super.getColumn(line - _baseLine, max(offset - _baseOffset, 0));
     return line == _baseLine ? col + _baseColumn : col;
   }
 
+  /// Return the offset associated with a line and column. This method operates
+  /// on the real offsets from the original file, so that error messages can be
+  /// reported accurately.
   int getOffset(int line, int column) =>
       super.getOffset(line - _baseLine,
          line == _baseLine ? column - _baseColumn : column) + _baseOffset;
 
+  /// Retrieve the text associated with the specified range. This method
+  /// operates on the real offsets from the original file, so that error
+  /// messages can be reported accurately.
   String getText(int start, [int end]) =>
-      super.getText(start - _baseOffset, end - _baseOffset);
+      super.getText(start - _baseOffset,
+          end == null ? null : end - _baseOffset);
 }
