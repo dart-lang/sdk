@@ -4100,9 +4100,12 @@ const char* Function::ToFullyQualifiedCString() const {
 bool Function::HasCompatibleParametersWith(const Function& other) const {
   const intptr_t num_fixed_params = num_fixed_parameters();
   const intptr_t num_opt_pos_params = NumOptionalPositionalParameters();
+  const intptr_t num_opt_named_params = NumOptionalNamedParameters();
   const intptr_t other_num_fixed_params = other.num_fixed_parameters();
   const intptr_t other_num_opt_pos_params =
       other.NumOptionalPositionalParameters();
+  const intptr_t other_num_opt_named_params =
+      other.NumOptionalNamedParameters();
   // A generative constructor may be compared to a redirecting factory and be
   // compatible although it has an additional phase parameter.
   const intptr_t num_ignored_params =
@@ -4112,8 +4115,35 @@ bool Function::HasCompatibleParametersWith(const Function& other) const {
   // arguments or more.
   if (((num_fixed_params - num_ignored_params) > other_num_fixed_params) ||
       ((num_fixed_params - num_ignored_params) + num_opt_pos_params <
-       other_num_fixed_params + other_num_opt_pos_params)) {
+       other_num_fixed_params + other_num_opt_pos_params) ||
+      (num_opt_named_params < other_num_opt_named_params)) {
     return false;
+  }
+  if (other_num_opt_named_params == 0) {
+    return true;
+  }
+  // Check that for each optional named parameter of the other function there
+  // exists an optional named parameter of this function with an identical
+  // name.
+  // Note that SetParameterNameAt() guarantees that names are symbols, so we
+  // can compare their raw pointers.
+  const int num_params = num_fixed_params + num_opt_named_params;
+  const int other_num_params =
+      other_num_fixed_params + other_num_opt_named_params;
+  bool found_param_name;
+  String& other_param_name = String::Handle();
+  for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
+    other_param_name = other.ParameterNameAt(i);
+    found_param_name = false;
+    for (intptr_t j = num_fixed_params; j < num_params; j++) {
+      if (ParameterNameAt(j) == other_param_name.raw()) {
+        found_param_name = true;
+        break;
+      }
+    }
+    if (!found_param_name) {
+      return false;
+    }
   }
   return true;
 }

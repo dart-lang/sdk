@@ -51,8 +51,6 @@ math_parse_double_test: Fail # Expect.equals(expected: <78187493520>, actual: <0
 math_test: Fail # issue 3333
 surrogate_pair_toUpper_test: Fail # Issue 6707
 
-method_override3_test: Fail # Issue 11496
-
 big_integer_vm_test: Fail, OK # VM specific test.
 compare_to2_test: Fail, OK    # Requires bigint support.
 string_base_vm_test: Fail, OK # VM specific test.
@@ -103,7 +101,6 @@ symbol_test/03: Fail
 int_parse_radix_test: fail
 list_insert_test: fail
 list_removeat_test: fail
-method_override_test: fail # issue 11497
 
 [ $compiler == dart2analyzer ]
 symbol_test/01: Fail
