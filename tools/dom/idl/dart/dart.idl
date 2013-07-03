@@ -183,6 +183,11 @@ interface IDBIndex {
 };
 
 [Supplemental]
+interface HTMLMediaElement {
+  DOMString canPlayType([Default=Undefined] optional DOMString type, [Default=Undefined, TreatNullAs=NullString, TreatUndefinedAs=NullString, ForceOptional] optional DOMString keySystem);
+};
+
+[Supplemental]
 interface IDBKeyRange {
   [DartName=only_] static IDBKeyRange only(any value);
   [DartName=lowerBound_] static IDBKeyRange lowerBound(any bound, [ForceOptional] optional boolean open);

@@ -14410,7 +14410,7 @@ class MediaElement extends _HTMLElement native "HTMLMediaElement" {
   @DomName('HTMLMediaElement.canPlayType')
   @DocsEditable()
   @Unstable()
-  String canPlayType(String type, String keySystem) native;
+  String canPlayType(String type, [String keySystem]) native;
 
   @DomName('HTMLMediaElement.load')
   @DocsEditable()
