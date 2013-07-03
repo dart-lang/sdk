@@ -327,14 +327,14 @@ class RewriteTransformer extends Transformer {
     if (!_started.isCompleted) _started.complete();
     _runningTransforms++;
     return transform.primaryInput.then((input) {
-      for (var extension in to.split(" ")) {
+      return Future.wait(to.split(" ").map((extension) {
         var id = transform.primaryId.changeExtension(".$extension");
-        var content = input.readAsString() + ".$extension";
-        transform.addOutput(id, new MockAsset(id, content));
-
-      }
-
-      if (_wait != null) return _wait.future;
+        return input.readAsString().then((content) {
+          transform.addOutput(id, new MockAsset(id, "$content.$extension"));
+        });
+      })).then((_) {
+        if (_wait != null) return _wait.future;
+      });
     }).whenComplete(() {
       _runningTransforms--;
     });
@@ -364,10 +364,12 @@ class OneToManyTransformer extends Transformer {
   Future apply(Transform transform) {
     numRuns++;
     return transform.primaryInput.then((input) {
-      for (var line in input.readAsString().split(",")) {
-        var id = new AssetId(transform.primaryId.package, line);
-        transform.addOutput(id, new MockAsset(id, "spread $extension"));
-      }
+      return input.readAsString().then((lines) {
+        for (var line in lines.split(",")) {
+          var id = new AssetId(transform.primaryId.package, line);
+          transform.addOutput(id, new MockAsset(id, "spread $extension"));
+        }
+      });
     });
   }
 
@@ -397,17 +399,25 @@ class ManyToOneTransformer extends Transformer {
   Future apply(Transform transform) {
     numRuns++;
     return transform.primaryInput.then((primary) {
-      // Get all of the included inputs.
-      var inputs = primary.readAsString().split(",").map((path) {
-        var id = new AssetId(transform.primaryId.package, path);
-        return transform.getInput(id);
-      });
+      return primary.readAsString().then((contents) {
+        // Get all of the included inputs.
+        var inputs = contents.split(",").map((path) {
+          var id = new AssetId(transform.primaryId.package, path);
+          return transform.getInput(id);
+        });
 
-      // Concatenate them to one output.
-      return Future.wait(inputs).then((inputs) {
-        var id = transform.primaryId.changeExtension(".out");
-        var contents = inputs.map((input) => input.readAsString()).join();
-        transform.addOutput(id, new MockAsset(id, contents));
+        return Future.wait(inputs);
+      }).then((inputs) {
+        // Concatenate them to one output.
+        var output = "";
+        return Future.forEach(inputs, (input) {
+          return input.readAsString().then((contents) {
+            output += contents;
+          });
+        }).then((_) {
+          var id = transform.primaryId.changeExtension(".out");
+          transform.addOutput(id, new MockAsset(id, output));
+        });
       });
     });
   }
@@ -448,7 +458,7 @@ class MockAsset implements Asset {
 
   MockAsset(this._id, this._contents);
 
-  String readAsString() => _contents;
+  Future<String> readAsString() => new Future.value(_contents);
   Stream<List<int>> read() => throw new UnimplementedError();
 
   serialize() => throw new UnimplementedError();
