@@ -103,6 +103,7 @@ symbol_test/03: Fail
 int_parse_radix_test: fail
 list_insert_test: fail
 list_removeat_test: fail
+method_override_test: fail # issue 11497
 
 [ $compiler == dart2analyzer ]
 symbol_test/01: Fail
