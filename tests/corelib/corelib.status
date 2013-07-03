@@ -89,11 +89,6 @@ map_values2_test: Fail # Generic types aren't right
 iterable_to_list_test: Fail
 iterable_to_set_test: Fail
 
-[ $compiler == dartc ]
-symbol_test/01: Fail
-symbol_test/02: Fail
-symbol_test/03: Fail
-
 [ $compiler == dartanalyzer ]
 symbol_test/01: Fail
 symbol_test/02: Fail

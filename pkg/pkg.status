@@ -75,7 +75,7 @@ unittest/test/instance_test: Fail # http://dartbug.com/11191
 [ $compiler == dart2js && $checked ]
 mdv_observe/test/observable_map_test: Fail # BUG(11480): Triage.
 
-[ $compiler == dartc || $compiler == dartanalyzer || $compiler == dart2analyzer]
+[ $compiler == dartanalyzer || $compiler == dart2analyzer]
 # These tests are runtime negative but statically positive, so we skip
 # them in the analyzer.
 unittest/test/mock_regexp_negative_test: Skip

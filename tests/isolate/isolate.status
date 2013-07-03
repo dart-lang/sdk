@@ -24,18 +24,6 @@ serialization_test: Skip  # tests dart2js-specific serialization code
 spawn_uri_test: Skip # uses a .js extension (not for dartium)
 spawn_uri_negative_test: Skip # ditto
 
-[ $compiler == dartc ]
-isolate_negative_test: Fail    # status change with --check-only
-isolate2_negative_test: Fail   # status change with --check-only
-spawn_function_negative_test: Fail, OK # Fails at runtime.
-spawn_uri_negative_test: Fail, OK # Fails at runtime.
-spawn_uri_vm_negative_test: Fail, OK # Fails at runtime.
-unresolved_ports_negative_test: Fail, OK # Fails at runtime.
-
-# test issue 6512
-isolate2_negative_test: Pass
-compute_this_script_browser_test: Pass
-
 [ $compiler == dartanalyzer ]
 isolate2_negative_test: fail
 isolate_import_negative_test: fail

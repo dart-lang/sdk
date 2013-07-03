@@ -8,8 +8,6 @@
 [ $runtime == safari && ($system == linux || $system == windows) ]
 *: Skip
 
-[ $compiler == dartc ]
-
 [ $runtime == vm ]
 *: Skip
 

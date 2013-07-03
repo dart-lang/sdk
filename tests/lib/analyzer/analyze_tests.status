@@ -2,40 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dartc ]
-
-# VM adds fields failedAssertion, url, line and column to AssertionError.
-# Issue 10144.
-standalone/assert_test: Fail
-
-# Uses mirrors which is are not fully implemented.
-standalone/package/package_isolate_test: Fail
-
-# Static type errors by design.
-standalone/io/directory_invalid_arguments_test: Fail
-standalone/io/file_fuzz_test: Fail
-standalone/io/file_constructor_test: Fail
-standalone/io/process_invalid_arguments_test: Fail
-standalone/io/secure_socket_argument_test: Fail
-standalone/io/stdout_bad_argument_test: Fail
-standalone/io/raw_secure_server_socket_argument_test: Fail
-
-# Test runner does not use the latest VM.
-standalone/io/test_runner_test: Skip
-standalone/io/skipping_dart2js_compilations_test: Skip
-
-# Implicit downcast.
-standalone/typed_data_view_test: Fail
-
-# Tests using fake "part" and/or "part of" directive.
-standalone/typed_data_test: Fail
-standalone/io/http_cookie_date_test: Fail
-standalone/io/http_headers_test: Fail
-standalone/io/http_parser_test: Fail
-standalone/io/web_socket_protocol_processor_test: Fail
-standalone/io/url_encoding_test: Fail
-
-
 [ $compiler == dartanalyzer ]
 standalone/io/process_exit_negative_test: fail
 53bit_overflow_literal_test/01: fail, ok
