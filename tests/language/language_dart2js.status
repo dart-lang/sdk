@@ -41,6 +41,7 @@ stacktrace_test: Pass, Fail # Assumes stack trace string ends in newline.
 *vm_negative_test: Skip
 
 [ $compiler == dart2js && $checked ]
+checked_setter2_test: Fail # dartbug.com/11273
 default_factory2_test/01: Fail
 type_variable_bounds_test/01: Fail
 type_variable_bounds_test/02: Fail
