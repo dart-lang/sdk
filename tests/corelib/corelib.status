@@ -13,6 +13,7 @@ symbol_test/01: Fail
 symbol_test/02: Fail
 symbol_test/03: Fail
 
+[ $compiler == none || $compiler == dart2dart ]
 error_stack_trace_test: Fail  # Bug http://dartbug.com/11680
 error_stack_trace2_test: Fail  # Bug 5802
 
