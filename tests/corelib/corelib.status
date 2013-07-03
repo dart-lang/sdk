@@ -13,6 +13,9 @@ symbol_test/01: Fail
 symbol_test/02: Fail
 symbol_test/03: Fail
 
+error_stack_trace_test: Fail  # Bug http://dartbug.com/11680
+error_stack_trace2_test: Fail  # Bug 5802
+
 [ $runtime == ff || $runtime == ie9 || $runtime == jsshell ]
 unicode_test: Fail
 
@@ -41,8 +44,6 @@ unicode_test: Fail
 
 [ $runtime == vm ]
 string_trim_unicode_test: Fail  # Bug 6569
-error_stack_trace_test: Fail  # Bug http://dartbug.com/11680
-error_stack_trace2_test: Fail  # Bug 5802
 
 [ $compiler == dart2js ]
 math_parse_double_test: Fail # Expect.equals(expected: <78187493520>, actual: <0>)
