@@ -274,7 +274,11 @@ class ElementBuilder extends RecursiveASTVisitor<Object> {
       _currentHolder.addParameter(parameter);
       parameterName.element = parameter;
     }
-    return super.visitFieldFormalParameter(node);
+    ElementHolder holder = new ElementHolder();
+    visitChildren(holder, node);
+    ((node.element as ParameterElementImpl)).parameters = holder.parameters;
+    holder.validate();
+    return null;
   }
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     FunctionExpression expression = node.functionExpression;
@@ -8622,14 +8626,19 @@ class TypeResolverVisitor extends ScopedVisitor {
     Element element = node.identifier.element;
     if (element is ParameterElementImpl) {
       ParameterElementImpl parameter = element as ParameterElementImpl;
-      Type2 type;
-      TypeName typeName = node.type;
-      if (typeName == null) {
-        type = _dynamicType;
+      FormalParameterList parameterList = node.parameters;
+      if (parameterList == null) {
+        Type2 type;
+        TypeName typeName = node.type;
+        if (typeName == null) {
+          type = _dynamicType;
+        } else {
+          type = getType3(typeName);
+        }
+        parameter.type = type;
       } else {
-        type = getType3(typeName);
+        setFunctionTypedParameterType(parameter, node.type, node.parameters);
       }
-      parameter.type = type;
     } else {
     }
     return null;
@@ -8654,30 +8663,11 @@ class TypeResolverVisitor extends ScopedVisitor {
   }
   Object visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     super.visitFunctionTypedFormalParameter(node);
-    ParameterElementImpl element = node.identifier.element as ParameterElementImpl;
-    List<ParameterElement> parameters = getElements(node.parameters);
-    FunctionTypeAliasElementImpl aliasElement = new FunctionTypeAliasElementImpl(null);
-    aliasElement.synthetic = true;
-    aliasElement.parameters = parameters;
-    aliasElement.returnType = computeReturnType(node.returnType);
-    FunctionTypeImpl type = new FunctionTypeImpl.con2(aliasElement);
-    ClassElement definingClass = element.getAncestor(ClassElement);
-    if (definingClass != null) {
-      aliasElement.typeVariables = definingClass.typeVariables;
-      type.typeArguments = definingClass.type.typeArguments;
+    Element element = node.identifier.element;
+    if (element is ParameterElementImpl) {
+      setFunctionTypedParameterType((element as ParameterElementImpl), node.returnType, node.parameters);
     } else {
-      FunctionTypeAliasElement alias = element.getAncestor(FunctionTypeAliasElement);
-      while (alias != null && alias.isSynthetic) {
-        alias = alias.getAncestor(FunctionTypeAliasElement);
-      }
-      if (alias != null) {
-        aliasElement.typeVariables = alias.typeVariables;
-        type.typeArguments = alias.type.typeArguments;
-      } else {
-        type.typeArguments = TypeVariableTypeImpl.EMPTY_ARRAY;
-      }
     }
-    element.type = type;
     return null;
   }
   Object visitMethodDeclaration(MethodDeclaration node) {
@@ -9289,6 +9279,40 @@ class TypeResolverVisitor extends ScopedVisitor {
         }
       }
     }
+  }
+
+  /**
+   * Given a parameter element, create a function type based on the given return type and parameter
+   * list and associate the created type with the element.
+   *
+   * @param element the parameter element whose type is to be set
+   * @param returnType the (possibly `null`) return type of the function
+   * @param parameterList the list of parameters to the function
+   */
+  void setFunctionTypedParameterType(ParameterElementImpl element, TypeName returnType2, FormalParameterList parameterList) {
+    List<ParameterElement> parameters = getElements(parameterList);
+    FunctionTypeAliasElementImpl aliasElement = new FunctionTypeAliasElementImpl(null);
+    aliasElement.synthetic = true;
+    aliasElement.parameters = parameters;
+    aliasElement.returnType = computeReturnType(returnType2);
+    FunctionTypeImpl type = new FunctionTypeImpl.con2(aliasElement);
+    ClassElement definingClass = element.getAncestor(ClassElement);
+    if (definingClass != null) {
+      aliasElement.typeVariables = definingClass.typeVariables;
+      type.typeArguments = definingClass.type.typeArguments;
+    } else {
+      FunctionTypeAliasElement alias = element.getAncestor(FunctionTypeAliasElement);
+      while (alias != null && alias.isSynthetic) {
+        alias = alias.getAncestor(FunctionTypeAliasElement);
+      }
+      if (alias != null) {
+        aliasElement.typeVariables = alias.typeVariables;
+        type.typeArguments = alias.type.typeArguments;
+      } else {
+        type.typeArguments = TypeVariableTypeImpl.EMPTY_ARRAY;
+      }
+    }
+    element.type = type;
   }
 }
 /**
@@ -10802,6 +10826,12 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
   bool _isInCatchClause = false;
 
   /**
+   * This is set to `true` iff the visitor is currently visiting a static variable
+   * declaration.
+   */
+  bool _isInStaticVariableDeclaration = false;
+
+  /**
    * This is set to `true` iff the visitor is currently visiting an instance variable
    * declaration.
    */
@@ -10820,7 +10850,9 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
   bool _isInConstructorInitializer = false;
 
   /**
-   * This is set to `true` iff the visitor is currently visiting a static method.
+   * This is set to `true` iff the visitor is currently visiting a static method. By "method"
+   * here getter, setter and operator declarations are also implied since they are all represented
+   * with a [MethodDeclaration] in the AST structure.
    */
   bool _isInStaticMethod = false;
 
@@ -10891,6 +10923,11 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
     _strictMode = currentLibrary.context.analysisOptions.strictMode;
     _isEnclosingConstructorConst = false;
     _isInCatchClause = false;
+    _isInStaticVariableDeclaration = false;
+    _isInInstanceVariableDeclaration = false;
+    _isInInstanceVariableInitializer = false;
+    _isInConstructorInitializer = false;
+    _isInStaticMethod = false;
     _dynamicType = typeProvider.dynamicType;
     _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT = <InterfaceType> [typeProvider.numType, typeProvider.intType, typeProvider.doubleType, typeProvider.boolType, typeProvider.stringType];
   }
@@ -11036,10 +11073,12 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
         _errorReporter.reportError4(CompileTimeErrorCode.CONST_INSTANCE_FIELD, variables.keyword, []);
       }
     }
-    _isInInstanceVariableDeclaration = !node.isStatic;
+    _isInStaticVariableDeclaration = node.isStatic;
+    _isInInstanceVariableDeclaration = !_isInStaticVariableDeclaration;
     try {
       return super.visitFieldDeclaration(node);
     } finally {
+      _isInStaticVariableDeclaration = false;
       _isInInstanceVariableDeclaration = false;
     }
   }
@@ -11264,6 +11303,7 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
   }
   Object visitTypeName(TypeName node) {
     checkForTypeArgumentNotMatchingBounds(node);
+    checkForTypeParameterReferencedByStatic(node);
     return super.visitTypeName(node);
   }
   Object visitTypeParameter(TypeParameter node) {
@@ -13839,6 +13879,25 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
       }
     }
     return foundError;
+  }
+
+  /**
+   * This checks that if the passed type name is a type parameter being used to define a static
+   * member.
+   *
+   * @param node the type name to evaluate
+   * @return `true` if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#TYPE_PARAMETER_REFERENCED_BY_STATIC
+   */
+  bool checkForTypeParameterReferencedByStatic(TypeName node) {
+    if (_isInStaticMethod || _isInStaticVariableDeclaration) {
+      Type2 type = node.type;
+      if (type is TypeVariableType) {
+        _errorReporter.reportError2(StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, node, []);
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

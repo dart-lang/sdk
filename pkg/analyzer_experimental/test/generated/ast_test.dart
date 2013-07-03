@@ -279,8 +279,9 @@ class ASTFactory {
   static ExtendsClause extendsClause(TypeName type) => new ExtendsClause.full(TokenFactory.token(Keyword.EXTENDS), type);
   static FieldDeclaration fieldDeclaration(bool isStatic, Keyword keyword, TypeName type, List<VariableDeclaration> variables) => new FieldDeclaration.full(null, null, isStatic ? TokenFactory.token(Keyword.STATIC) : null, variableDeclarationList(keyword, type, variables), TokenFactory.token3(TokenType.SEMICOLON));
   static FieldDeclaration fieldDeclaration2(bool isStatic, Keyword keyword, List<VariableDeclaration> variables) => fieldDeclaration(isStatic, keyword, null, variables);
-  static FieldFormalParameter fieldFormalParameter(Keyword keyword, TypeName type, String identifier) => new FieldFormalParameter.full(null, null, keyword == null ? null : TokenFactory.token(keyword), type, TokenFactory.token(Keyword.THIS), TokenFactory.token3(TokenType.PERIOD), identifier3(identifier));
-  static FieldFormalParameter fieldFormalParameter2(String identifier) => fieldFormalParameter(null, null, identifier);
+  static FieldFormalParameter fieldFormalParameter(Keyword keyword, TypeName type, String identifier) => new FieldFormalParameter.full(null, null, keyword == null ? null : TokenFactory.token(keyword), type, TokenFactory.token(Keyword.THIS), TokenFactory.token3(TokenType.PERIOD), identifier3(identifier), null);
+  static FieldFormalParameter fieldFormalParameter2(Keyword keyword, TypeName type, String identifier, FormalParameterList parameterList) => new FieldFormalParameter.full(null, null, keyword == null ? null : TokenFactory.token(keyword), type, TokenFactory.token(Keyword.THIS), TokenFactory.token3(TokenType.PERIOD), identifier3(identifier), parameterList);
+  static FieldFormalParameter fieldFormalParameter3(String identifier) => fieldFormalParameter(null, null, identifier);
   static ForEachStatement forEachStatement(DeclaredIdentifier loopVariable, Expression iterator, Statement body) => new ForEachStatement.full(TokenFactory.token(Keyword.FOR), TokenFactory.token3(TokenType.OPEN_PAREN), loopVariable, TokenFactory.token(Keyword.IN), iterator, TokenFactory.token3(TokenType.CLOSE_PAREN), body);
   static FormalParameterList formalParameterList(List<FormalParameter> parameters) => new FormalParameterList.full(TokenFactory.token3(TokenType.OPEN_PAREN), list(parameters), null, null, TokenFactory.token3(TokenType.CLOSE_PAREN));
   static ForStatement forStatement(Expression initialization, Expression condition, List<Expression> updaters, Statement body) => new ForStatement.full(TokenFactory.token(Keyword.FOR), TokenFactory.token3(TokenType.OPEN_PAREN), null, initialization, TokenFactory.token3(TokenType.SEMICOLON), condition, TokenFactory.token3(TokenType.SEMICOLON), updaters, TokenFactory.token3(TokenType.CLOSE_PAREN), body);
@@ -483,7 +484,7 @@ class SimpleIdentifierTest extends ParserTestCase {
     JUnitTestCase.assertTrue(identifier.inDeclarationContext());
   }
   void test_inDeclarationContext_fieldFormalParameter() {
-    SimpleIdentifier identifier = ASTFactory.fieldFormalParameter2("p").identifier;
+    SimpleIdentifier identifier = ASTFactory.fieldFormalParameter3("p").identifier;
     JUnitTestCase.assertFalse(identifier.inDeclarationContext());
   }
   void test_inDeclarationContext_functionDeclaration() {
@@ -1498,6 +1499,9 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitFieldDeclaration_static() {
     assertSource("static var a;", ASTFactory.fieldDeclaration2(true, Keyword.VAR, [ASTFactory.variableDeclaration("a")]));
   }
+  void test_visitFieldFormalParameter_functionTyped() {
+    assertSource("A this.a(b)", ASTFactory.fieldFormalParameter2(null, ASTFactory.typeName4("A", []), "a", ASTFactory.formalParameterList([ASTFactory.simpleFormalParameter3("b")])));
+  }
   void test_visitFieldFormalParameter_keyword() {
     assertSource("var this.a", ASTFactory.fieldFormalParameter(Keyword.VAR, null, "a"));
   }
@@ -2333,6 +2337,10 @@ class ToSourceVisitorTest extends EngineTestCase {
       _ut.test('test_visitFieldDeclaration_static', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitFieldDeclaration_static);
+      });
+      _ut.test('test_visitFieldFormalParameter_functionTyped', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitFieldFormalParameter_functionTyped);
       });
       _ut.test('test_visitFieldFormalParameter_keyword', () {
         final __test = new ToSourceVisitorTest();

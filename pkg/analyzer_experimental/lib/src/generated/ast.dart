@@ -5825,7 +5825,7 @@ class FieldDeclaration extends ClassMember {
  *
  * <pre>
  * fieldFormalParameter ::=
- *     ('final' [TypeName] | 'const' [TypeName] | 'var' | [TypeName])? 'this' '.' [SimpleIdentifier]
+ *     ('final' [TypeName] | 'const' [TypeName] | 'var' | [TypeName])? 'this' '.' [SimpleIdentifier] [FormalParameterList]?
  * </pre>
  *
  * @coverage dart.engine.ast
@@ -5855,6 +5855,11 @@ class FieldFormalParameter extends NormalFormalParameter {
   Token _period;
 
   /**
+   * The parameters of the function-typed parameter.
+   */
+  FormalParameterList _parameters;
+
+  /**
    * Initialize a newly created formal parameter.
    *
    * @param comment the documentation comment associated with this parameter
@@ -5864,12 +5869,15 @@ class FieldFormalParameter extends NormalFormalParameter {
    * @param thisToken the token representing the 'this' keyword
    * @param period the token representing the period
    * @param identifier the name of the parameter being declared
+   * @param parameters the parameters of the function-typed parameter, or `null` if this is
+   *          not a function-typed field formal parameter
    */
-  FieldFormalParameter.full(Comment comment, List<Annotation> metadata, Token keyword, TypeName type, Token thisToken, Token period, SimpleIdentifier identifier) : super.full(comment, metadata, identifier) {
+  FieldFormalParameter.full(Comment comment, List<Annotation> metadata, Token keyword, TypeName type, Token thisToken, Token period, SimpleIdentifier identifier, FormalParameterList parameters) : super.full(comment, metadata, identifier) {
     this._keyword = keyword;
     this._type = becomeParentOf(type);
     this._thisToken = thisToken;
     this._period = period;
+    this._parameters = becomeParentOf(parameters);
   }
 
   /**
@@ -5882,8 +5890,10 @@ class FieldFormalParameter extends NormalFormalParameter {
    * @param thisToken the token representing the 'this' keyword
    * @param period the token representing the period
    * @param identifier the name of the parameter being declared
+   * @param parameters the parameters of the function-typed parameter, or `null` if this is
+   *          not a function-typed field formal parameter
    */
-  FieldFormalParameter({Comment comment, List<Annotation> metadata, Token keyword, TypeName type, Token thisToken, Token period, SimpleIdentifier identifier}) : this.full(comment, metadata, keyword, type, thisToken, period, identifier);
+  FieldFormalParameter({Comment comment, List<Annotation> metadata, Token keyword, TypeName type, Token thisToken, Token period, SimpleIdentifier identifier, FormalParameterList parameters}) : this.full(comment, metadata, keyword, type, thisToken, period, identifier, parameters);
   accept(ASTVisitor visitor) => visitor.visitFieldFormalParameter(this);
   Token get beginToken {
     if (_keyword != null) {
@@ -5903,6 +5913,14 @@ class FieldFormalParameter extends NormalFormalParameter {
   Token get keyword => _keyword;
 
   /**
+   * Return the parameters of the function-typed parameter, or `null` if this is not a
+   * function-typed field formal parameter.
+   *
+   * @return the parameters of the function-typed parameter
+   */
+  FormalParameterList get parameters => _parameters;
+
+  /**
    * Return the token representing the period.
    *
    * @return the token representing the period
@@ -5918,7 +5936,8 @@ class FieldFormalParameter extends NormalFormalParameter {
 
   /**
    * Return the name of the declared type of the parameter, or `null` if the parameter does
-   * not have a declared type.
+   * not have a declared type. Note that if this is a function-typed field formal parameter this is
+   * the return type of the function.
    *
    * @return the name of the declared type of the parameter
    */
@@ -5933,6 +5952,15 @@ class FieldFormalParameter extends NormalFormalParameter {
    */
   void set keyword(Token keyword2) {
     this._keyword = keyword2;
+  }
+
+  /**
+   * Set the parameters of the function-typed parameter to the given parameters.
+   *
+   * @param parameters the parameters of the function-typed parameter
+   */
+  void set parameters(FormalParameterList parameters2) {
+    this._parameters = becomeParentOf(parameters2);
   }
 
   /**
@@ -5965,6 +5993,7 @@ class FieldFormalParameter extends NormalFormalParameter {
     super.visitChildren(visitor);
     safelyVisitChild(_type, visitor);
     safelyVisitChild(identifier, visitor);
+    safelyVisitChild(_parameters, visitor);
   }
 }
 /**
@@ -16208,6 +16237,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     visit2(node.type, " ");
     _writer.print("this.");
     visit(node.identifier);
+    visit(node.parameters);
     return null;
   }
   Object visitForEachStatement(ForEachStatement node) {
@@ -16847,7 +16877,7 @@ class ASTCloner implements ASTVisitor<ASTNode> {
   ExpressionStatement visitExpressionStatement(ExpressionStatement node) => new ExpressionStatement.full(clone2(node.expression), node.semicolon);
   ExtendsClause visitExtendsClause(ExtendsClause node) => new ExtendsClause.full(node.keyword, clone2(node.superclass));
   FieldDeclaration visitFieldDeclaration(FieldDeclaration node) => new FieldDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.fields), node.semicolon);
-  FieldFormalParameter visitFieldFormalParameter(FieldFormalParameter node) => new FieldFormalParameter.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.type), node.thisToken, node.period, clone2(node.identifier));
+  FieldFormalParameter visitFieldFormalParameter(FieldFormalParameter node) => new FieldFormalParameter.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.type), node.thisToken, node.period, clone2(node.identifier), clone2(node.parameters));
   ForEachStatement visitForEachStatement(ForEachStatement node) => new ForEachStatement.full(node.forKeyword, node.leftParenthesis, clone2(node.loopVariable), node.inKeyword, clone2(node.iterator), node.rightParenthesis, clone2(node.body));
   FormalParameterList visitFormalParameterList(FormalParameterList node) => new FormalParameterList.full(node.leftParenthesis, clone3(node.parameters), node.leftDelimiter, node.rightDelimiter, node.rightParenthesis);
   ForStatement visitForStatement(ForStatement node) => new ForStatement.full(node.forKeyword, node.leftParenthesis, clone2(node.variables), clone2(node.initialization), node.leftSeparator, clone2(node.condition), node.rightSeparator, clone3(node.updaters), node.rightParenthesis, clone2(node.body));

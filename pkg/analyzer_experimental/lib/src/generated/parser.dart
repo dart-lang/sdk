@@ -3681,20 +3681,22 @@ class Parser {
     }
     SimpleIdentifier identifier = parseSimpleIdentifier();
     if (matches5(TokenType.OPEN_PAREN)) {
-      if (holder.keyword != null) {
-        reportError8(ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, holder.keyword, []);
-      }
-      if (thisKeyword != null) {
-      }
       FormalParameterList parameters = parseFormalParameterList();
-      return new FunctionTypedFormalParameter.full(commentAndMetadata.comment, commentAndMetadata.metadata, holder.type, identifier, parameters);
+      if (thisKeyword == null) {
+        if (holder.keyword != null) {
+          reportError8(ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, holder.keyword, []);
+        }
+        return new FunctionTypedFormalParameter.full(commentAndMetadata.comment, commentAndMetadata.metadata, holder.type, identifier, parameters);
+      } else {
+        return new FieldFormalParameter.full(commentAndMetadata.comment, commentAndMetadata.metadata, holder.keyword, holder.type, thisKeyword, period, identifier, parameters);
+      }
     }
     TypeName type = holder.type;
     if (type != null && matches3(type.name.beginToken, Keyword.VOID)) {
       reportError8(ParserErrorCode.VOID_PARAMETER, type.name.beginToken, []);
     }
     if (thisKeyword != null) {
-      return new FieldFormalParameter.full(commentAndMetadata.comment, commentAndMetadata.metadata, holder.keyword, holder.type, thisKeyword, period, identifier);
+      return new FieldFormalParameter.full(commentAndMetadata.comment, commentAndMetadata.metadata, holder.keyword, holder.type, thisKeyword, period, identifier, null);
     }
     return new SimpleFormalParameter.full(commentAndMetadata.comment, commentAndMetadata.metadata, holder.keyword, holder.type, identifier);
   }
@@ -6117,6 +6119,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     visit6(node.type, " ");
     _writer.print("this.");
     visit(node.identifier);
+    visit(node.parameters);
     return null;
   }
   Object visitForEachStatement(ForEachStatement node) {

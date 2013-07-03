@@ -2632,42 +2632,67 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(parameter.keyword);
     JUnitTestCase.assertNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
+    JUnitTestCase.assertNull(parameter.parameters);
   }
   void test_parseNormalFormalParameter_field_const_type() {
     FieldFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "const A this.a)", []);
     JUnitTestCase.assertNotNull(parameter.keyword);
     JUnitTestCase.assertNotNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
+    JUnitTestCase.assertNull(parameter.parameters);
   }
   void test_parseNormalFormalParameter_field_final_noType() {
     FieldFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "final this.a)", []);
     JUnitTestCase.assertNotNull(parameter.keyword);
     JUnitTestCase.assertNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
+    JUnitTestCase.assertNull(parameter.parameters);
   }
   void test_parseNormalFormalParameter_field_final_type() {
     FieldFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "final A this.a)", []);
     JUnitTestCase.assertNotNull(parameter.keyword);
     JUnitTestCase.assertNotNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
+    JUnitTestCase.assertNull(parameter.parameters);
+  }
+  void test_parseNormalFormalParameter_field_function_nested() {
+    FieldFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "this.a(B b))", []);
+    JUnitTestCase.assertNull(parameter.keyword);
+    JUnitTestCase.assertNull(parameter.type);
+    JUnitTestCase.assertNotNull(parameter.identifier);
+    FormalParameterList parameterList = parameter.parameters;
+    JUnitTestCase.assertNotNull(parameterList);
+    EngineTestCase.assertSize(1, parameterList.parameters);
+  }
+  void test_parseNormalFormalParameter_field_function_noNested() {
+    FieldFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "this.a())", []);
+    JUnitTestCase.assertNull(parameter.keyword);
+    JUnitTestCase.assertNull(parameter.type);
+    JUnitTestCase.assertNotNull(parameter.identifier);
+    FormalParameterList parameterList = parameter.parameters;
+    JUnitTestCase.assertNotNull(parameterList);
+    EngineTestCase.assertSize(0, parameterList.parameters);
   }
   void test_parseNormalFormalParameter_field_noType() {
     FieldFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "this.a)", []);
     JUnitTestCase.assertNull(parameter.keyword);
     JUnitTestCase.assertNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
+    JUnitTestCase.assertNull(parameter.parameters);
   }
   void test_parseNormalFormalParameter_field_type() {
     FieldFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "A this.a)", []);
     JUnitTestCase.assertNull(parameter.keyword);
     JUnitTestCase.assertNotNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
+    JUnitTestCase.assertNull(parameter.parameters);
   }
   void test_parseNormalFormalParameter_field_var() {
     FieldFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "var this.a)", []);
     JUnitTestCase.assertNotNull(parameter.keyword);
     JUnitTestCase.assertNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
+    JUnitTestCase.assertNull(parameter.parameters);
   }
   void test_parseNormalFormalParameter_function_noType() {
     FunctionTypedFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "a())", []);
@@ -5255,6 +5280,14 @@ class SimpleParserTest extends ParserTestCase {
       _ut.test('test_parseNormalFormalParameter_field_final_type', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseNormalFormalParameter_field_final_type);
+      });
+      _ut.test('test_parseNormalFormalParameter_field_function_nested', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseNormalFormalParameter_field_function_nested);
+      });
+      _ut.test('test_parseNormalFormalParameter_field_function_noNested', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseNormalFormalParameter_field_function_noNested);
       });
       _ut.test('test_parseNormalFormalParameter_field_noType', () {
         final __test = new SimpleParserTest();

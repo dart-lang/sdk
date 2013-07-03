@@ -3801,16 +3801,6 @@ class TypeResolverVisitorTest extends EngineTestCase {
     JUnitTestCase.fail("Not yet tested");
     _listener.assertNoErrors();
   }
-  void fail_visitFieldFormalParameter_noType() {
-    FormalParameter node = ASTFactory.fieldFormalParameter(Keyword.VAR, null, "p");
-    JUnitTestCase.assertSame(_typeProvider.dynamicType, resolve6(node, []));
-    _listener.assertNoErrors();
-  }
-  void fail_visitFieldFormalParameter_type() {
-    FormalParameter node = ASTFactory.fieldFormalParameter(null, ASTFactory.typeName4("int", []), "p");
-    JUnitTestCase.assertSame(_typeProvider.intType, resolve6(node, []));
-    _listener.assertNoErrors();
-  }
   void fail_visitFunctionDeclaration() {
     JUnitTestCase.fail("Not yet tested");
     _listener.assertNoErrors();
@@ -3922,6 +3912,38 @@ class TypeResolverVisitorTest extends EngineTestCase {
     List<InterfaceType> interfaces = elementA.interfaces;
     EngineTestCase.assertLength(1, interfaces);
     JUnitTestCase.assertSame(elementD.type, interfaces[0]);
+    _listener.assertNoErrors();
+  }
+  void test_visitFieldFormalParameter_functionType() {
+    InterfaceType intType = _typeProvider.intType;
+    TypeName intTypeName = ASTFactory.typeName4("int", []);
+    String innerParameterName = "a";
+    SimpleFormalParameter parameter = ASTFactory.simpleFormalParameter3(innerParameterName);
+    parameter.identifier.element = ElementFactory.requiredParameter(innerParameterName);
+    String outerParameterName = "p";
+    FormalParameter node = ASTFactory.fieldFormalParameter2(null, intTypeName, outerParameterName, ASTFactory.formalParameterList([parameter]));
+    node.identifier.element = ElementFactory.requiredParameter(outerParameterName);
+    Type2 parameterType = resolve6(node, [intType.element]);
+    EngineTestCase.assertInstanceOf(FunctionType, parameterType);
+    FunctionType functionType = parameterType as FunctionType;
+    JUnitTestCase.assertSame(intType, functionType.returnType);
+    EngineTestCase.assertLength(1, functionType.parameters);
+    _listener.assertNoErrors();
+  }
+  void test_visitFieldFormalParameter_noType() {
+    String parameterName = "p";
+    FormalParameter node = ASTFactory.fieldFormalParameter(Keyword.VAR, null, parameterName);
+    node.identifier.element = ElementFactory.requiredParameter(parameterName);
+    JUnitTestCase.assertSame(_typeProvider.dynamicType, resolve6(node, []));
+    _listener.assertNoErrors();
+  }
+  void test_visitFieldFormalParameter_type() {
+    InterfaceType intType = _typeProvider.intType;
+    TypeName intTypeName = ASTFactory.typeName4("int", []);
+    String parameterName = "p";
+    FormalParameter node = ASTFactory.fieldFormalParameter(null, intTypeName, parameterName);
+    node.identifier.element = ElementFactory.requiredParameter(parameterName);
+    JUnitTestCase.assertSame(intType, resolve6(node, [intType.element]));
     _listener.assertNoErrors();
   }
   void test_visitSimpleFormalParameter_noType() {
@@ -4058,6 +4080,18 @@ class TypeResolverVisitorTest extends EngineTestCase {
       _ut.test('test_visitClassTypeAlias', () {
         final __test = new TypeResolverVisitorTest();
         runJUnitTest(__test, __test.test_visitClassTypeAlias);
+      });
+      _ut.test('test_visitFieldFormalParameter_functionType', () {
+        final __test = new TypeResolverVisitorTest();
+        runJUnitTest(__test, __test.test_visitFieldFormalParameter_functionType);
+      });
+      _ut.test('test_visitFieldFormalParameter_noType', () {
+        final __test = new TypeResolverVisitorTest();
+        runJUnitTest(__test, __test.test_visitFieldFormalParameter_noType);
+      });
+      _ut.test('test_visitFieldFormalParameter_type', () {
+        final __test = new TypeResolverVisitorTest();
+        runJUnitTest(__test, __test.test_visitFieldFormalParameter_type);
       });
       _ut.test('test_visitSimpleFormalParameter_noType', () {
         final __test = new TypeResolverVisitorTest();
@@ -5239,13 +5273,13 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
   void test_constWithTypeParameters_direct() {
     Source source = addSource(EngineTestCase.createSource(["class A<T> {", "  static const V = const A<T>();", "  const A();", "}"]));
     resolve(source);
-    assertErrors([CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS]);
+    assertErrors([CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
     verify([source]);
   }
   void test_constWithTypeParameters_indirect() {
     Source source = addSource(EngineTestCase.createSource(["class A<T> {", "  static const V = const A<List<T>>();", "  const A();", "}"]));
     resolve(source);
-    assertErrors([CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS]);
+    assertErrors([CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
     verify([source]);
   }
   void test_constWithUndefinedConstructor() {
@@ -8212,7 +8246,7 @@ class ElementResolverTest extends EngineTestCase {
     String fieldName = "f";
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     classA.fields = <FieldElement> [ElementFactory.fieldElement(fieldName, false, false, false, intType)];
-    FieldFormalParameter parameter = ASTFactory.fieldFormalParameter2(fieldName);
+    FieldFormalParameter parameter = ASTFactory.fieldFormalParameter3(fieldName);
     parameter.identifier.element = ElementFactory.fieldFormalParameter(parameter.identifier);
     resolveInClass(parameter, classA);
     JUnitTestCase.assertSame(intType, parameter.element.type);
@@ -9773,6 +9807,42 @@ class StaticWarningCodeTest extends ResolverTestCase {
     assertErrors([StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE]);
     verify([source]);
   }
+  void test_typeParameterReferencedByStatic_field() {
+    Source source = addSource(EngineTestCase.createSource(["class A<K> {", "  static K k;", "}"]));
+    resolve(source);
+    assertErrors([StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
+    verify([source]);
+  }
+  void test_typeParameterReferencedByStatic_getter() {
+    Source source = addSource(EngineTestCase.createSource(["class A<K> {", "  static K get k => 0;", "}"]));
+    resolve(source);
+    assertErrors([StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
+    verify([source]);
+  }
+  void test_typeParameterReferencedByStatic_methodBodyReference() {
+    Source source = addSource(EngineTestCase.createSource(["class A<K> {", "  static m() {", "    K k;", "  }", "}"]));
+    resolve(source);
+    assertErrors([StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
+    verify([source]);
+  }
+  void test_typeParameterReferencedByStatic_methodParameter() {
+    Source source = addSource(EngineTestCase.createSource(["class A<K> {", "  static m(K k) {}", "}"]));
+    resolve(source);
+    assertErrors([StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
+    verify([source]);
+  }
+  void test_typeParameterReferencedByStatic_methodReturn() {
+    Source source = addSource(EngineTestCase.createSource(["class A<K> {", "  static K m() {}", "}"]));
+    resolve(source);
+    assertErrors([StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
+    verify([source]);
+  }
+  void test_typeParameterReferencedByStatic_setter() {
+    Source source = addSource(EngineTestCase.createSource(["class A<K> {", "  static set s(K k) {}", "}"]));
+    resolve(source);
+    assertErrors([StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
+    verify([source]);
+  }
   void test_typeTestNonType() {
     Source source = addSource(EngineTestCase.createSource(["var A = 0;", "f(var p) {", "  if (p is A) {", "  }", "}"]));
     resolve(source);
@@ -10295,6 +10365,30 @@ class StaticWarningCodeTest extends ResolverTestCase {
       _ut.test('test_switchExpressionNotAssignable', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_switchExpressionNotAssignable);
+      });
+      _ut.test('test_typeParameterReferencedByStatic_field', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_typeParameterReferencedByStatic_field);
+      });
+      _ut.test('test_typeParameterReferencedByStatic_getter', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_typeParameterReferencedByStatic_getter);
+      });
+      _ut.test('test_typeParameterReferencedByStatic_methodBodyReference', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_typeParameterReferencedByStatic_methodBodyReference);
+      });
+      _ut.test('test_typeParameterReferencedByStatic_methodParameter', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_typeParameterReferencedByStatic_methodParameter);
+      });
+      _ut.test('test_typeParameterReferencedByStatic_methodReturn', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_typeParameterReferencedByStatic_methodReturn);
+      });
+      _ut.test('test_typeParameterReferencedByStatic_setter', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_typeParameterReferencedByStatic_setter);
       });
       _ut.test('test_typeTestNonType', () {
         final __test = new StaticWarningCodeTest();
