@@ -9,8 +9,8 @@ event_test: Skip  # Issue 1996
 custom_elements_test: Skip # Not yet implemented.
 interactive_test: Skip # Must be run manually.
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug ]
-audiobuffersourcenode_test: Fail, Crash # http://crbug.com/256601
+[ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug && $system == macos]
+audiobuffersourcenode_test: Pass, Fail, Crash # http://crbug.com/256601
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 # postMessage in dartium always transfers the typed array buffer, never a view
