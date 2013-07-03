@@ -489,6 +489,7 @@ class InterfaceType extends GenericType {
    * otherwise.
    */
   DartType asInstanceOf(ClassElement other) {
+    other = other.declaration;
     if (element == other) return this;
     for (InterfaceType supertype in element.allSupertypes) {
       ClassElement superclass = supertype.element;

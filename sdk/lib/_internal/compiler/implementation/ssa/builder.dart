@@ -1313,8 +1313,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   /**
    * Documentation wanted -- johnniwinther
    *
-   * Invariant: [constructor] and [constructors] must all be implementation
-   * elements.
+   * Invariant: [constructors] must contain only implementation elements.
    */
   void inlineSuperOrRedirect(FunctionElement constructor,
                              Selector selector,
@@ -1348,7 +1347,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         // type parameters. Those values are in the [supertype]
         // declaration of [subclass].
         ClassElement subclass = inlinedFromElement.getEnclosingClass();
-        InterfaceType supertype = subclass.supertype;
+        InterfaceType supertype = subclass.thisType.asInstanceOf(superclass);
         Link<DartType> typeVariables = superclass.typeVariables;
         supertype.typeArguments.forEach((DartType argument) {
           localsHandler.updateLocal(typeVariables.head.element,
