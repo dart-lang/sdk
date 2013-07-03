@@ -448,11 +448,9 @@ struct ParamList {
     this->parameters->Add(param);
   }
 
-  void AddReceiver(const Type* receiver_type) {
+  void AddReceiver(const Type* receiver_type, intptr_t token_pos) {
     ASSERT(this->parameters->is_empty());
-    AddFinalParameter(receiver_type->token_pos(),
-                      &Symbols::This(),
-                      receiver_type);
+    AddFinalParameter(token_pos, &Symbols::This(), receiver_type);
   }
 
   void SetImplicitlyFinal() {
@@ -1008,7 +1006,7 @@ SequenceNode* Parser::ParseInstanceGetter(const Function& func) {
   // func.token_pos() points to the name of the field.
   intptr_t ident_pos = func.token_pos();
   ASSERT(current_class().raw() == func.Owner());
-  params.AddReceiver(ReceiverType(ident_pos));
+  params.AddReceiver(ReceiverType(ident_pos), ident_pos);
   ASSERT(func.num_fixed_parameters() == 1);  // receiver.
   ASSERT(!func.HasOptionalParameters());
   ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
@@ -1052,7 +1050,7 @@ SequenceNode* Parser::ParseInstanceSetter(const Function& func) {
 
   ParamList params;
   ASSERT(current_class().raw() == func.Owner());
-  params.AddReceiver(ReceiverType(ident_pos));
+  params.AddReceiver(ReceiverType(ident_pos), ident_pos);
   params.AddFinalParameter(ident_pos,
                            &Symbols::Value(),
                            &field_type);
@@ -1085,7 +1083,7 @@ SequenceNode* Parser::ParseMethodExtractor(const Function& func) {
   const intptr_t ident_pos = func.token_pos();
   ASSERT(func.token_pos() == 0);
   ASSERT(current_class().raw() == func.Owner());
-  params.AddReceiver(ReceiverType(ident_pos));
+  params.AddReceiver(ReceiverType(ident_pos), ident_pos);
   ASSERT(func.num_fixed_parameters() == 1);  // Receiver.
   ASSERT(!func.HasOptionalParameters());
 
@@ -1117,7 +1115,7 @@ SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func) {
   intptr_t token_pos = func.token_pos();
   ASSERT(func.token_pos() == 0);
   ASSERT(current_class().raw() == func.Owner());
-  params.AddReceiver(ReceiverType(token_pos));
+  params.AddReceiver(ReceiverType(token_pos), token_pos);
   ASSERT(func.num_fixed_parameters() == 1);  // Receiver.
   ASSERT(!func.HasOptionalParameters());
 
@@ -2222,7 +2220,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   // Add implicit receiver parameter which is passed the allocated
   // but uninitialized instance to construct.
   ASSERT(current_class().raw() == func.Owner());
-  params.AddReceiver(ReceiverType(TokenPos()));
+  params.AddReceiver(ReceiverType(TokenPos()), func.token_pos());
 
   // Add implicit parameter for construction phase.
   params.AddFinalParameter(
@@ -2481,7 +2479,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   } else if (!func.is_static()) {
     // Static functions do not have a receiver.
     ASSERT(current_class().raw() == func.Owner());
-    params.AddReceiver(ReceiverType(TokenPos()));
+    params.AddReceiver(ReceiverType(TokenPos()), func.token_pos());
   } else if (func.IsFactory()) {
     // The first parameter of a factory is the AbstractTypeArguments vector of
     // the type of the instance to be allocated.
@@ -2698,7 +2696,8 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   // The first parameter of a factory is the AbstractTypeArguments vector of
   // the type of the instance to be allocated.
   if (!method->has_static || method->IsConstructor()) {
-    method->params.AddReceiver(ReceiverType(formal_param_pos));
+    method->params.AddReceiver(ReceiverType(formal_param_pos),
+                               formal_param_pos);
   } else if (method->IsFactory()) {
     method->params.AddFinalParameter(
         formal_param_pos,
@@ -3049,7 +3048,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
                              field->name_pos);
       ParamList params;
       ASSERT(current_class().raw() == getter.Owner());
-      params.AddReceiver(ReceiverType(TokenPos()));
+      params.AddReceiver(ReceiverType(TokenPos()), field->name_pos);
       getter.set_result_type(*field->type);
       AddFormalParamsToFunction(&params, getter);
       members->AddFunction(getter);
@@ -3065,7 +3064,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
                                field->name_pos);
         ParamList params;
         ASSERT(current_class().raw() == setter.Owner());
-        params.AddReceiver(ReceiverType(TokenPos()));
+        params.AddReceiver(ReceiverType(TokenPos()), field->name_pos);
         params.AddFinalParameter(TokenPos(),
                                  &Symbols::Value(),
                                  field->type);
@@ -3552,7 +3551,7 @@ void Parser::AddImplicitConstructor(const Class& cls) {
   // Add implicit 'this' parameter. We don't care about the specific type
   // and just specify dynamic.
   const Type& receiver_type = Type::Handle(Type::DynamicType());
-  params.AddReceiver(&receiver_type);
+  params.AddReceiver(&receiver_type, cls.token_pos());
   // Add implicit parameter for construction phase.
   params.AddFinalParameter(cls.token_pos(),
                            &Symbols::PhaseParameter(),
