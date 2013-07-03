@@ -81,6 +81,8 @@ def _WriteFile(path, lines):
   if os.path.exists(path):
     _logger.info('Removing - %s' % path)
     os.remove(path)
+    if os.path.exists(path):
+      _logger.info('Warning: File still exists- %s' % path)
 
   # Write the file.
   try:
@@ -99,7 +101,7 @@ def _WriteFile(path, lines):
       handle_file = r'E:\handle.exe'
       if os.path.exists(handle_file):
         _logger.info('Running handle.exe for debugging purposes')
-        subprocess.call([handle_file])
+        subprocess.call([handle_file, '-a', r'E:\b\build\slave'])
       else:
         _logger.info("Couldn't find %s. Not printing open handles."
                      % handle_file)
