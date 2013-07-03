@@ -595,6 +595,10 @@ LibTest/core/Set/isSubsetOf_A01_t02: Fail # Issue 400
 LibTest/core/FallThroughError/toString_A01_t01: Fail # FallThroughError is no longer const. Issue 459
 LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail # FallThroughError is no longer const. Issue 459
 
+Language/07_Classes/4_Abstract_Instance_Members_A04_t01: Fail # Override rules have been relaxed. Issue
+Language/07_Classes/1_Instance_Methods_A02_t02: Fail # Override rules have been relaxed. Issue
+Language/07_Classes/1_Instance_Methods_A02_t05: Fail # Override rules have been relaxed. Issue
+
 Language/11_Expressions/33_Argument_Definition_Test_A01_t02: Fail, OK # co19 issue 436
 Language/11_Expressions/33_Argument_Definition_Test_A02_t01: Fail, OK # co19 issue 436
 Language/11_Expressions/33_Argument_Definition_Test_A02_t02: Fail, OK # co19 issue 436
