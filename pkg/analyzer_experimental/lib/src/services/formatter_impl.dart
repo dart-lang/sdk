@@ -11,7 +11,7 @@ import 'package:analyzer_experimental/analyzer.dart';
 import 'package:analyzer_experimental/src/generated/parser.dart';
 import 'package:analyzer_experimental/src/generated/scanner.dart';
 import 'package:analyzer_experimental/src/generated/source.dart';
-
+import 'package:analyzer_experimental/src/services/writer.dart';
 
 /// OS line separator. --- TODO(pquitslund): may not be necessary
 const NEW_LINE = '\n' ; //Platform.pathSeparator;
@@ -22,15 +22,17 @@ class FormatterOptions {
   /// Create formatter options with defaults derived (where defined) from
   /// the style guide: <http://www.dartlang.org/articles/style-guide/>.
   const FormatterOptions({this.initialIndentationLevel: 0,
-                 this.indentPerLevel: 2,
+                 this.spacesPerIndent: 2,
                  this.lineSeparator: NEW_LINE,
                  this.pageWidth: 80,
+                 this.tabsForIndent: false,
                  this.tabSize: 2});
 
   final String lineSeparator;
   final int initialIndentationLevel;
-  final int indentPerLevel;
+  final int spacesPerIndent;
   final int tabSize;
+  final bool tabsForIndent;
   final int pageWidth;
 }
 
@@ -83,11 +85,9 @@ abstract class CodeFormatter {
 class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
 
   final FormatterOptions options;
-  final EditRecorder recorder;
   final errors = <AnalysisError>[];
 
-  CodeFormatterImpl(FormatterOptions options) : this.options = options,
-      recorder = new EditRecorder(options);
+  CodeFormatterImpl(this.options);
 
   String format(CodeKind kind, String source, {int offset, int end,
       int indentationLevel:0}) {
@@ -98,8 +98,10 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
     var node = parse(kind, start);
     checkForErrors();
 
-    var formatter = new FormattingEngine(options);
-    return formatter.format(source, node, start, kind, recorder);
+    var formatter = new SourceVisitor(options);
+    node.accept(formatter);
+
+    return formatter.writer.toString();
   }
 
   ASTNode parse(CodeKind kind, Token start) {
@@ -134,454 +136,810 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
 }
 
 
-/// Records a sequence of edits to a source string that will cause the string
-/// to be formatted when applied.
-class EditRecorder {
-
-  final FormatterOptions options;
-  final EditStore editStore;
-
-  int column = 0;
-
-  int sourceIndex = 0;
-  String source = '';
-
-  Token currentToken;
-
-  int numberOfIndentations = 0;
-
-  bool needsIndent = false;
-
-  EditRecorder(this.options): editStore = new EditStore();
-
-  /// Add an [Edit] that describes a textual [replacement] of a text
-  /// interval starting at the given [offset] spanning the given [length].
-  void addEdit(int offset, int length, String replacement) {
-    editStore.addEdit(offset, length, replacement);
-  }
-
-  /// Advance past the given expected [token] (or fail if not matched).
-  void advance(Token token) {
-    if (currentToken.lexeme == token.lexeme) {
-
-      // TODO(pquitslund) emit comments
-//      if (needsIndent) {
-//        advanceIndent();
-//        needsIndent = false;
-//      }
-      // Record writing a token at the current edit location
-      advanceChars(token.length);
-      currentToken = currentToken.next;
-    } else {
-      wrongToken(token.lexeme);
-    }
-  }
-
-  /// Move indices past indent, adding an edit if needed to adjust indentation
-  void advanceIndent() {
-//    var indentWidth = options.indentPerLevel * indentationLevel;
-//    var indentString = getIndentString(indentWidth);
-//    var sourceIndentWidth = 0;
-//    for (var i = 0; i < source.length; i++) {
-//      if (isIndentChar(source[sourceIndex + i])) {
-//        sourceIndentWidth += 1;
-//      } else {
-//        break;
-//      }
-//    }
-//    var hasSameIndent = sourceIndentWidth == indentWidth;
-//    if (hasSameIndent) {
-//      for (var i = 0; i < indentWidth; i++) {
-//        if (source[sourceIndex + i] != indentString[i]) {
-//          hasSameIndent = false;
-//          break;
-//        }
-//      }
-//      if (hasSameIndent) {
-//        advanceChars(indentWidth);
-//        return;
-//      }
-//    }
-//    addEdit(sourceIndex, sourceIndentWidth, indentString);
-//    column += indentWidth;
-//    sourceIndex += sourceIndentWidth;
-
-    var indent = options.indentPerLevel * numberOfIndentations;
-
-    spaces(indent);
-  }
-
-  String getIndentString(int indentWidth) {
-
-    // TODO(pquitslund) a temporary workaround
-    if (indentWidth < 0) {
-      return '';
-    }
-
-    // TODO(pquitslund) allow indent with tab chars
-
-    // Fetch a precomputed indent string
-    if (indentWidth < SPACES.length) {
-      return SPACES[indentWidth];
-    }
-
-    // Build un-precomputed strings dynamically
-    var sb = new StringBuffer();
-    for (var i = 0; i < indentWidth; ++i) {
-      sb.write(' ');
-    }
-    return sb.toString();
-  }
-
-  /// Advance past the given expected [token] (or fail if not matched).
-  void advanceToken(String token) {
-    if (currentToken.lexeme == token) {
-      advance(currentToken);
-    } else {
-      wrongToken(token);
-    }
-  }
-
-  /// Advance [column] and [sourceIndex] indices by [len] characters.
-  void advanceChars(int len) {
-    column += len;
-    sourceIndex += len;
-  }
-
-  /// Count the number of whitespace chars beginning at the current
-  /// [sourceIndex].
-  int countWhitespace() {
-    var count = 0;
-    for (var i = sourceIndex; i < source.length; ++i) {
-      if (isIndentChar(source[i])) {
-        ++count;
-      } else {
-        break;
-      }
-    }
-    return count;
-  }
-
-  /// Update indent indices.
-  void indent() {
-    numberOfIndentations++;
-  }
-
-  /// Test if there is a newline at the given source [index].
-  bool isNewlineAt(int index) {
-    if (index < 0 || index + NEW_LINE.length > source.length) {
-      return false;
-    }
-    for (var i = 0; i < NEW_LINE.length; i++) {
-      if (source[index] != NEW_LINE[i]) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /// Newline.
-  void newline() {
-    // TODO(pquitslund) emit comments
-    needsIndent = true;
-    // If there is a newline before the edit location, do nothing.
-    if (isNewlineAt(sourceIndex - NEW_LINE.length)) {
-      return;
-    }
-    // If there is a newline after the edit location, advance over it.
-    if (isNewlineAt(sourceIndex)) {
-      advanceChars(NEW_LINE.length);
-      return;
-    }
-    // Otherwise, replace whitespace with a newline.
-    var charsToReplace = countWhitespace();
-    if (isNewlineAt(sourceIndex + charsToReplace)) {
-      charsToReplace += NEW_LINE.length;
-    }
-    addEdit(sourceIndex, charsToReplace, NEW_LINE);
-    advanceChars(charsToReplace);
-  }
-
-
-  /// Un-indent.
-  void unindent() {
-    numberOfIndentations--;
-  }
-
-  /// Space.
-  void space() {
-    // TODO(pquitslund) emit comments
-//    // If there is a space before the edit location, do nothing.
-//    if (isSpaceAt(sourceIndex - 1)) {
-//      return;
-//    }
-//    // If there is a space after the edit location, advance over it.
-//    if (isSpaceAt(sourceIndex)) {
-//      advance(1);
-//      return;
-//    }
-    // Otherwise, replace spaces with a single space.
-    spaces(1);
-  }
-
-  /// Spaces.
-  void spaces(int num) {
-    var charsToReplace = countWhitespace();
-    addEdit(sourceIndex, charsToReplace, SPACES[num]);
-    advanceChars(charsToReplace);
-  }
-
-  wrongToken(String token) {
-    throw new FormatterException('expected token: "${token}", '
-                                 'actual: "${currentToken}"');
-  }
-
-  String toString() =>
-      new EditOperation().apply(editStore.edits,
-                                source.substring(0, sourceIndex));
-
-}
-
-const SPACE = ' ';
-final SPACES = [
-          '',
-          ' ',
-          '  ',
-          '   ',
-          '    ',
-          '     ',
-          '      ',
-          '       ',
-          '        ',
-          '         ',
-          '          ',
-          '           ',
-          '            ',
-          '             ',
-          '              ',
-          '               ',
-          '                ',
-];
-
-
-bool isIndentChar(String ch) => ch == SPACE; // TODO(pquitslund) also check tab
-
-
-/// Manages stored [Edit]s.
-class EditStore {
-
-  const EditStore();
-
-  /// The underlying sequence of [Edit]s.
-  final edits = <Edit>[];
-
-  /// Add the given [Edit] to the end of the edit sequence.
-  void add(Edit edit) {
-    edits.add(edit);
-  }
-
-  /// Add an [Edit] that describes a textual [replacement] of a text interval
-  /// starting at the given [offset] spanning the given [length].
-  void addEdit(int offset, int length, String replacement) {
-    add(new Edit(offset, length, replacement));
-  }
-
-  /// Get the index of the current edit (for use in caching location
-  /// information).
-  int getCurrentEditIndex() =>  edits.length - 1;
-
-  /// Get the last edit.
-  Edit getLastEdit() => edits.isEmpty ? null : edits.last;
-
-  /// Add an [Edit] that describes an insertion of text starting at the given
-  /// [offset].
-  void insert(int offset, String insertedString) {
-    addEdit(offset, 0, insertedString);
-  }
-
-  /// Reset cached state.
-  void reset() {
-    edits.clear();
-  }
-
-  String toString() => 'EditStore( ${edits.toString()} )';
-
-}
-
-
-/// Describes a text edit.
-class Edit {
-
-  /// The offset at which to apply the edit.
-  final int offset;
-
-  /// The length of the text interval to replace.
-  final int length;
-
-  /// The replacement text.
-  final String replacement;
-
-  /// Create an edit.
-  const Edit(this.offset, this.length, this.replacement);
-
-  /// Create an edit for the given [range].
-  Edit.forRange(SourceRange range, String replacement):
-    this(range.offset, range.length, replacement);
-
-  String toString() => '${offset < 0 ? '(' : 'X('} offset: ${offset} , '
-                         'length ${length}, replacement :> ${replacement} <:)';
-
-}
-
-/// Applies a sequence of [edits] to a [document].
-class EditOperation {
-
-  String apply(List<Edit> edits, String document) {
-
-    var edit;
-    for (var i = edits.length - 1; i >= 0; --i) {
-      edit = edits[i];
-      document = replace(document, edit.offset,
-                         edit.offset + edit.length, edit.replacement);
-    }
-
-    return document;
-  }
-
-}
-
-
-String replace(String str, int start, int end, String replacement) =>
-    str.substring(0, start) + replacement + str.substring(end);
-
 
 /// An AST visitor that drives formatting heuristics.
-class FormattingEngine extends RecursiveASTVisitor {
+class SourceVisitor implements ASTVisitor {
 
-  final FormatterOptions options;
+  /// The writer to which the source is to be written.
+  SourceWriter writer;
 
-  CodeKind kind;
-  EditRecorder recorder;
+  /// Initialize a newly created visitor to write source code representing
+  /// the visited nodes to the given [writer].
+  SourceVisitor(FormatterOptions options) :
+      writer = new SourceWriter(initialIndent: options.initialIndentationLevel,
+                                lineSeparator: options.lineSeparator);
 
-  FormattingEngine(this.options);
-
-  String format(String source, ASTNode node, Token start, CodeKind kind,
-      EditRecorder recorder) {
-
-    this.kind = kind;
-    this.recorder = recorder;
-
-    recorder..source = source
-            ..currentToken = start;
-
-    node.accept(this);
-
-    var editor = new EditOperation();
-    return editor.apply(recorder.editStore.edits, source);
+  visitAdjacentStrings(AdjacentStrings node) {
+    visitList(node.strings, ' ');
   }
 
-
-  visitClassDeclaration(ClassDeclaration node) {
-
-    recorder.advanceIndent();
-
-    if (node.documentationComment != null) {
-      node.documentationComment.accept(this);
-    }
-
-    recorder..advance(node.classKeyword)..space();
-
-    node.name.accept(this);
-
-    if (node.typeParameters != null) {
-      node.typeParameters.accept(this);
-    }
-    recorder.space();
-
-    if (node.extendsClause != null) {
-      node.extendsClause.accept(this);
-      recorder.space();
-    }
-
-    if (node.implementsClause != null) {
-      node.implementsClause.accept(this);
-      recorder.space();
-    }
-
-    recorder..advance(node.leftBracket)
-            ..indent();
-
-    for (var member in node.members) {
-      recorder..newline()
-              ..advanceIndent();
-      member.accept(this);
-    }
-
-    recorder..unindent()
-            ..newline()
-            ..advanceIndent()
-            ..advance(node.rightBracket);
+  visitAnnotation(Annotation node) {
+    writer.print('@');
+    visit(node.name);
+    visitPrefixed('.', node.constructorName);
+    visit(node.arguments);
   }
 
+  visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
+    writer.print('?');
+    visit(node.identifier);
+  }
+
+  visitArgumentList(ArgumentList node) {
+    writer.print('(');
+    visitList(node.arguments, ', ');
+    writer.print(')');
+  }
+
+  visitAsExpression(AsExpression node) {
+    visit(node.expression);
+    writer.print(' as ');
+    visit(node.type);
+  }
+
+  visitAssertStatement(AssertStatement node) {
+    writer.print('assert (');
+    visit(node.condition);
+    writer.print(');');
+  }
+
+  visitAssignmentExpression(AssignmentExpression node) {
+    visit(node.leftHandSide);
+    writer.print(' ');
+    writer.print(node.operator.lexeme);
+    writer.print(' ');
+    visit(node.rightHandSide);
+  }
+
+  visitBinaryExpression(BinaryExpression node) {
+    visit(node.leftOperand);
+    writer.print(' ');
+    writer.print(node.operator.lexeme);
+    writer.print(' ');
+    visit(node.rightOperand);
+  }
+
+  visitBlock(Block node) {
+    writer.print('{');
+    writer.indent();
+
+    for (var stmt in node.statements) {
+      writer.newline();
+      visit(stmt);
+    }
+
+    writer.unindent();
+    writer.newline();
+    writer.print('}');
+  }
 
   visitBlockFunctionBody(BlockFunctionBody node) {
-    node.block.accept(this);
+    visit(node.block);
   }
 
-
-  visitBlock(Block block) {
-    recorder..advance(block.leftBracket)
-            ..indent()
-            ..newline();
-    // ...
-    recorder..unindent()
-            ..advanceIndent()
-            ..advance(block.rightBracket);
+  visitBooleanLiteral(BooleanLiteral node) {
+    writer.print(node.literal.lexeme);
   }
 
+  visitBreakStatement(BreakStatement node) {
+    writer.print('break');
+    visitPrefixed(' ', node.label);
+    writer.print(';');
+  }
+
+  visitCascadeExpression(CascadeExpression node) {
+    visit(node.target);
+    visitList(node.cascadeSections);
+  }
+
+  visitCatchClause(CatchClause node) {
+    visitPrefixed('on ', node.exceptionType);
+    if (node.catchKeyword != null) {
+      if (node.exceptionType != null) {
+        writer.print(' ');
+      }
+      writer.print('catch (');
+      visit(node.exceptionParameter);
+      visitPrefixed(', ', node.stackTraceParameter);
+      writer.print(') ');
+    } else {
+      writer.print(' ');
+    }
+    visit(node.body);
+  }
+
+  visitClassDeclaration(ClassDeclaration node) {
+    visitToken(node.abstractKeyword, ' ');
+    writer.print('class ');
+    visit(node.name);
+    visit(node.typeParameters);
+    visitPrefixed(' ', node.extendsClause);
+    visitPrefixed(' ', node.withClause);
+    visitPrefixed(' ', node.implementsClause);
+    writer.print(' {');
+    writer.indent();
+    for (var member in node.members) {
+      writer.newline();
+      visit(member);
+    }
+
+    writer.unindent();
+    writer.newline();
+    writer.print('}');
+  }
+
+  visitClassTypeAlias(ClassTypeAlias node) {
+    writer.print('typedef ');
+    visit(node.name);
+    visit(node.typeParameters);
+    writer.print(' = ');
+    if (node.abstractKeyword != null) {
+      writer.print('abstract ');
+    }
+    visit(node.superclass);
+    visitPrefixed(' ', node.withClause);
+    visitPrefixed(' ', node.implementsClause);
+    writer.print(';');
+  }
+
+  visitComment(Comment node) => null;
+
+  visitCommentReference(CommentReference node) => null;
+
+  visitCompilationUnit(CompilationUnit node) {
+    var scriptTag = node.scriptTag;
+    var directives = node.directives;
+    visit(scriptTag);
+    var prefix = scriptTag == null ? '' : ' ';
+    visitPrefixedList(prefix, directives, ' ');
+    prefix = scriptTag == null && directives.isEmpty ? '' : ' ';
+    visitPrefixedList(prefix, node.declarations, ' ');
+  }
+
+  visitConditionalExpression(ConditionalExpression node) {
+    visit(node.condition);
+    writer.print(' ? ');
+    visit(node.thenExpression);
+    writer.print(' : ');
+    visit(node.elseExpression);
+  }
+
+  visitConstructorDeclaration(ConstructorDeclaration node) {
+    visitToken(node.externalKeyword, ' ');
+    visitToken(node.constKeyword, ' ');
+    visitToken(node.factoryKeyword, ' ');
+    visit(node.returnType);
+    visitPrefixed('.', node.name);
+    visit(node.parameters);
+    visitPrefixedList(' : ', node.initializers, ', ');
+    visitPrefixed(' = ', node.redirectedConstructor);
+    visitPrefixedBody(' ', node.body);
+  }
+
+  visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    visitToken(node.keyword, '.');
+    visit(node.fieldName);
+    writer.print(' = ');
+    visit(node.expression);
+  }
+
+  visitConstructorName(ConstructorName node) {
+    visit(node.type);
+    visitPrefixed('.', node.name);
+  }
+
+  visitContinueStatement(ContinueStatement node) {
+    writer.print('continue');
+    visitPrefixed(' ', node.label);
+    writer.print(';');
+  }
+
+  visitDeclaredIdentifier(DeclaredIdentifier node) {
+    visitToken(node.keyword, ' ');
+    visitSuffixed(node.type, ' ');
+    visit(node.identifier);
+  }
+
+  visitDefaultFormalParameter(DefaultFormalParameter node) {
+    visit(node.parameter);
+    if (node.separator != null) {
+      writer.print(' ');
+      writer.print(node.separator.lexeme);
+      visitPrefixed(' ', node.defaultValue);
+    }
+  }
+
+  visitDoStatement(DoStatement node) {
+    writer.print('do ');
+    visit(node.body);
+    writer.print(' while (');
+    visit(node.condition);
+    writer.print(');');
+  }
+
+  visitDoubleLiteral(DoubleLiteral node) {
+    writer.print(node.literal.lexeme);
+  }
+
+  visitEmptyFunctionBody(EmptyFunctionBody node) {
+    writer.print(';');
+  }
+
+  visitEmptyStatement(EmptyStatement node) {
+    writer.print(';');
+  }
+
+  visitExportDirective(ExportDirective node) {
+    writer.print('export ');
+    visit(node.uri);
+    visitPrefixedList(' ', node.combinators, ' ');
+    writer.print(';');
+  }
 
   visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    recorder..advance(node.functionDefinition)
-            ..indent()
-            ..newline();
-    node.expression.accept(this);
-    recorder..unindent()
-            ..advanceIndent()
-            ..advance(node.semicolon);
+    writer.print('=> ');
+    visit(node.expression);
+    if (node.semicolon != null) {
+      writer.print(';');
+    }
   }
 
-
-  visitMethodDeclaration(MethodDeclaration node) {
-
-    if (node.modifierKeyword != null) {
-      recorder.advance(node.modifierKeyword);
-      recorder.space();
-    }
-
-    if (node.returnType != null) {
-      node.returnType.accept(this);
-      recorder.space();
-    }
-
-    recorder.advance(node.name.beginToken);
-
-    node.parameters.accept(this);
-
-    recorder.space();
-
-    node.body.accept(this);
+  visitExpressionStatement(ExpressionStatement node) {
+    visit(node.expression);
+    writer.print(';');
   }
 
+  visitExtendsClause(ExtendsClause node) {
+    writer.print('extends ');
+    visit(node.superclass);
+  }
+
+  visitFieldDeclaration(FieldDeclaration node) {
+    visitToken(node.keyword, ' ');
+    visit(node.fields);
+    writer.print(';');
+  }
+
+  visitFieldFormalParameter(FieldFormalParameter node) {
+    visitToken(node.keyword, ' ');
+    visitSuffixed(node.type, ' ');
+    writer.print('this.');
+    visit(node.identifier);
+    visit(node.parameters);
+  }
+
+  visitForEachStatement(ForEachStatement node) {
+    writer.print('for (');
+    visit(node.loopVariable);
+    writer.print(' in ');
+    visit(node.iterator);
+    writer.print(') ');
+    visit(node.body);
+  }
 
   visitFormalParameterList(FormalParameterList node) {
-    recorder.advance(node.beginToken);
-    //...
-    recorder.advance(node.endToken);
+    var groupEnd = null;
+    writer.print('(');
+    var parameters = node.parameters;
+    var size = parameters.length;
+    for (var i = 0; i < size; i++) {
+      var parameter = parameters[i];
+      if (i > 0) {
+        writer.print(', ');
+      }
+      if (groupEnd == null && parameter is DefaultFormalParameter) {
+        if (identical(parameter.kind, ParameterKind.NAMED)) {
+          groupEnd = '}';
+          writer.print('{');
+        } else {
+          groupEnd = ']';
+          writer.print('[');
+        }
+      }
+      parameter.accept(this);
+    }
+    if (groupEnd != null) {
+      writer.print(groupEnd);
+    }
+    writer.print(')');
   }
 
+  visitForStatement(ForStatement node) {
+    var initialization = node.initialization;
+    writer.print('for (');
+    if (initialization != null) {
+      visit(initialization);
+    } else {
+      visit(node.variables);
+    }
+    writer.print(';');
+    visitPrefixed(' ', node.condition);
+    writer.print(';');
+    visitPrefixedList(' ', node.updaters, ', ');
+    writer.print(') ');
+    visit(node.body);
+  }
+
+  visitFunctionDeclaration(FunctionDeclaration node) {
+    visitSuffixed(node.returnType, ' ');
+    visitToken(node.propertyKeyword, ' ');
+    visit(node.name);
+    visit(node.functionExpression);
+  }
+
+  visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
+    visit(node.functionDeclaration);
+    writer.print(';');
+  }
+
+  visitFunctionExpression(FunctionExpression node) {
+    visit(node.parameters);
+    writer.print(' ');
+    visit(node.body);
+  }
+
+  visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    visit(node.function);
+    visit(node.argumentList);
+  }
+
+  visitFunctionTypeAlias(FunctionTypeAlias node) {
+    writer.print('typedef ');
+    visitSuffixed(node.returnType, ' ');
+    visit(node.name);
+    visit(node.typeParameters);
+    visit(node.parameters);
+    writer.print(';');
+  }
+
+  visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    visitSuffixed(node.returnType, ' ');
+    visit(node.identifier);
+    visit(node.parameters);
+  }
+
+  visitHideCombinator(HideCombinator node) {
+    writer.print('hide ');
+    visitList(node.hiddenNames, ', ');
+  }
+
+  visitIfStatement(IfStatement node) {
+    writer.print('if (');
+    visit(node.condition);
+    writer.print(') ');
+    visit(node.thenStatement);
+    visitPrefixed(' else ', node.elseStatement);
+  }
+
+  visitImplementsClause(ImplementsClause node) {
+    writer.print('implements ');
+    visitList(node.interfaces, ', ');
+  }
+
+  visitImportDirective(ImportDirective node) {
+    writer.print('import ');
+    visit(node.uri);
+    visitPrefixed(' as ', node.prefix);
+    visitPrefixedList(' ', node.combinators, ' ');
+    writer.print(';');
+  }
+
+  visitIndexExpression(IndexExpression node) {
+    if (node.isCascaded) {
+      writer.print('..');
+    } else {
+      visit(node.array);
+    }
+    writer.print('[');
+    visit(node.index);
+    writer.print(']');
+  }
+
+  visitInstanceCreationExpression(InstanceCreationExpression node) {
+    visitToken(node.keyword, ' ');
+    visit(node.constructorName);
+    visit(node.argumentList);
+  }
+
+  visitIntegerLiteral(IntegerLiteral node) {
+    writer.print(node.literal.lexeme);
+  }
+
+  visitInterpolationExpression(InterpolationExpression node) {
+    if (node.rightBracket != null) {
+      writer.print('\${');
+      visit(node.expression);
+      writer.print('}');
+    } else {
+      writer.print('\$');
+      visit(node.expression);
+    }
+  }
+
+  visitInterpolationString(InterpolationString node) {
+    writer.print(node.contents.lexeme);
+  }
+
+  visitIsExpression(IsExpression node) {
+    visit(node.expression);
+    if (node.notOperator == null) {
+      writer.print(' is ');
+    } else {
+      writer.print(' is! ');
+    }
+    visit(node.type);
+  }
+
+  visitLabel(Label node) {
+    visit(node.label);
+    writer.print(':');
+  }
+
+  visitLabeledStatement(LabeledStatement node) {
+    visitSuffixedList(node.labels, ' ', ' ');
+    visit(node.statement);
+  }
+
+  visitLibraryDirective(LibraryDirective node) {
+    writer.print('library ');
+    visit(node.name);
+    writer.print(';');
+  }
+
+  visitLibraryIdentifier(LibraryIdentifier node) {
+    writer.print(node.name);
+  }
+
+  visitListLiteral(ListLiteral node) {
+    if (node.modifier != null) {
+      writer.print(node.modifier.lexeme);
+      writer.print(' ');
+    }
+    visitSuffixed(node.typeArguments, ' ');
+    writer.print('[');
+    visitList(node.elements, ', ');
+    writer.print(']');
+  }
+
+  visitMapLiteral(MapLiteral node) {
+    if (node.modifier != null) {
+      writer.print(node.modifier.lexeme);
+      writer.print(' ');
+    }
+    visitSuffixed(node.typeArguments, ' ');
+    writer.print('{');
+    visitList(node.entries, ', ');
+    writer.print('}');
+  }
+
+  visitMapLiteralEntry(MapLiteralEntry node) {
+    visit(node.key);
+    writer.print(' : ');
+    visit(node.value);
+  }
+
+  visitMethodDeclaration(MethodDeclaration node) {
+    visitToken(node.externalKeyword, ' ');
+    visitToken(node.modifierKeyword, ' ');
+    visitSuffixed(node.returnType, ' ');
+    visitToken(node.propertyKeyword, ' ');
+    visitToken(node.operatorKeyword, ' ');
+    visit(node.name);
+    if (!node.isGetter) {
+      visit(node.parameters);
+    }
+    visitPrefixedBody(' ', node.body);
+  }
+
+  visitMethodInvocation(MethodInvocation node) {
+    if (node.isCascaded) {
+      writer.print('..');
+    } else {
+      visitSuffixed(node.target, '.');
+    }
+    visit(node.methodName);
+    visit(node.argumentList);
+  }
+
+  visitNamedExpression(NamedExpression node) {
+    visit(node.name);
+    visitPrefixed(' ', node.expression);
+  }
+
+  visitNativeFunctionBody(NativeFunctionBody node) {
+    writer.print('native ');
+    visit(node.stringLiteral);
+    writer.print(';');
+  }
+
+  visitNullLiteral(NullLiteral node) {
+    writer.print('null');
+  }
+
+  visitParenthesizedExpression(ParenthesizedExpression node) {
+    writer.print('(');
+    visit(node.expression);
+    writer.print(')');
+  }
+
+  visitPartDirective(PartDirective node) {
+    writer.print('part ');
+    visit(node.uri);
+    writer.print(';');
+  }
+
+  visitPartOfDirective(PartOfDirective node) {
+    writer.print('part of ');
+    visit(node.libraryName);
+    writer.print(';');
+  }
+
+  visitPostfixExpression(PostfixExpression node) {
+    visit(node.operand);
+    writer.print(node.operator.lexeme);
+  }
+
+  visitPrefixedIdentifier(PrefixedIdentifier node) {
+    visit(node.prefix);
+    writer.print('.');
+    visit(node.identifier);
+  }
+
+  visitPrefixExpression(PrefixExpression node) {
+    writer.print(node.operator.lexeme);
+    visit(node.operand);
+  }
+
+  visitPropertyAccess(PropertyAccess node) {
+    if (node.isCascaded) {
+      writer.print('..');
+    } else {
+      visit(node.target);
+      writer.print('.');
+    }
+    visit(node.propertyName);
+  }
+
+  visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+    writer.print('this');
+    visitPrefixed('.', node.constructorName);
+    visit(node.argumentList);
+  }
+
+  visitRethrowExpression(RethrowExpression node) {
+    writer.print('rethrow');
+  }
+
+  visitReturnStatement(ReturnStatement node) {
+    var expression = node.expression;
+    if (expression == null) {
+      writer.print('return;');
+    } else {
+      writer.print('return ');
+      expression.accept(this);
+      writer.print(';');
+    }
+  }
+
+  visitScriptTag(ScriptTag node) {
+    writer.print(node.scriptTag.lexeme);
+  }
+
+  visitShowCombinator(ShowCombinator node) {
+    writer.print('show ');
+    visitList(node.shownNames, ', ');
+  }
+
+  visitSimpleFormalParameter(SimpleFormalParameter node) {
+    visitToken(node.keyword, ' ');
+    visitSuffixed(node.type, ' ');
+    visit(node.identifier);
+  }
 
   visitSimpleIdentifier(SimpleIdentifier node) {
-    recorder.advance(node.token);
+    writer.print(node.token.lexeme);
+  }
+
+  visitSimpleStringLiteral(SimpleStringLiteral node) {
+    writer.print(node.literal.lexeme);
+  }
+
+  visitStringInterpolation(StringInterpolation node) {
+    visitList(node.elements);
+  }
+
+  visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    writer.print('super');
+    visitPrefixed('.', node.constructorName);
+    visit(node.argumentList);
+  }
+
+  visitSuperExpression(SuperExpression node) {
+    writer.print('super');
+  }
+
+  visitSwitchCase(SwitchCase node) {
+    visitSuffixedList(node.labels, ' ', ' ');
+    writer.print('case ');
+    visit(node.expression);
+    writer.print(': ');
+    visitList(node.statements, ' ');
+  }
+
+  visitSwitchDefault(SwitchDefault node) {
+    visitSuffixedList(node.labels, ' ', ' ');
+    writer.print('default: ');
+    visitList(node.statements, ' ');
+  }
+
+  visitSwitchStatement(SwitchStatement node) {
+    writer.print('switch (');
+    visit(node.expression);
+    writer.print(') {');
+    visitList(node.members, ' ');
+    writer.print('}');
+  }
+
+  visitSymbolLiteral(SymbolLiteral node) {
+     // No-op ?
+  }
+
+  visitThisExpression(ThisExpression node) {
+    writer.print('this');
+  }
+
+  visitThrowExpression(ThrowExpression node) {
+    writer.print('throw ');
+    visit(node.expression);
+  }
+
+  visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    visitSuffixed(node.variables, ';');
+  }
+
+  visitTryStatement(TryStatement node) {
+    writer.print('try ');
+    visit(node.body);
+    visitPrefixedList(' ', node.catchClauses, ' ');
+    visitPrefixed(' finally ', node.finallyClause);
+  }
+
+  visitTypeArgumentList(TypeArgumentList node) {
+    writer.print('<');
+    visitList(node.arguments, ', ');
+    writer.print('>');
+  }
+
+  visitTypeName(TypeName node) {
+    visit(node.name);
+    visit(node.typeArguments);
+  }
+
+  visitTypeParameter(TypeParameter node) {
+    visit(node.name);
+    visitPrefixed(' extends ', node.bound);
+  }
+
+  visitTypeParameterList(TypeParameterList node) {
+    writer.print('<');
+    visitList(node.typeParameters, ', ');
+    writer.print('>');
+  }
+
+  visitVariableDeclaration(VariableDeclaration node) {
+    visit(node.name);
+    visitPrefixed(' = ', node.initializer);
+  }
+
+  visitVariableDeclarationList(VariableDeclarationList node) {
+    visitToken(node.keyword, ' ');
+    visitSuffixed(node.type, ' ');
+    visitList(node.variables, ', ');
+  }
+
+  visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+    visit(node.variables);
+    writer.print(';');
+  }
+
+  visitWhileStatement(WhileStatement node) {
+    writer.print('while (');
+    visit(node.condition);
+    writer.print(') ');
+    visit(node.body);
+  }
+
+  visitWithClause(WithClause node) {
+    writer.print('with ');
+    visitList(node.mixinTypes, ', ');
+  }
+
+  /// Safely visit the given [node].
+  visit(ASTNode node) {
+    if (node != null) {
+      node.accept(this);
+    }
+  }
+
+  /// Safely visit the given [node], printing the [suffix] after the node if it
+  /// is non-null.
+  visitSuffixed(ASTNode node, String suffix) {
+    if (node != null) {
+      node.accept(this);
+      writer.print(suffix);
+    }
+  }
+
+  /// Safely visit the given [node], printing the [prefix] before the node if
+  /// it is non-null.
+  visitPrefixed(String prefix, ASTNode node) {
+    if (node != null) {
+      writer.print(prefix);
+      node.accept(this);
+    }
+  }
+
+  /// Visit the given function [body], printing the [prefix] before if given
+  /// body is not empty.
+  visitPrefixedBody(String prefix, FunctionBody body) {
+    if (body is! EmptyFunctionBody) {
+      writer.print(prefix);
+    }
+    visit(body);
+  }
+
+  /// Safely visit the given [token], printing the suffix after the [token]
+  /// node if it is non-null.
+  visitToken(Token token, String suffix) {
+    if (token != null) {
+      writer.print(token.lexeme);
+      writer.print(suffix);
+    }
+  }
+
+  /// Print a list of [nodes], separated by the given [separator].
+  visitList(NodeList<ASTNode> nodes, [String separator = '']) {
+    if (nodes != null) {
+      var size = nodes.length;
+      for (var i = 0; i < size; i++) {
+        if (i > 0) {
+          writer.print(separator);
+        }
+        nodes[i].accept(this);
+      }
+    }
+  }
+
+  /// Print a list of [nodes], separated by the given [separator].
+  visitSuffixedList(NodeList<ASTNode> nodes, String separator, String suffix) {
+    if (nodes != null) {
+      var size = nodes.length;
+      if (size > 0) {
+        for (var i = 0; i < size; i++) {
+          if (i > 0) {
+            writer.print(separator);
+          }
+          nodes[i].accept(this);
+        }
+        writer.print(suffix);
+      }
+    }
+  }
+
+  /// Print a list of [nodes], separated by the given [separator].
+  visitPrefixedList(String prefix, NodeList<ASTNode> nodes, String separator) {
+    if (nodes != null) {
+      var size = nodes.length;
+      if (size > 0) {
+        writer.print(prefix);
+        for (var i = 0; i < size; i++) {
+          if (i > 0) {
+            writer.print(separator);
+          }
+          nodes[i].accept(this);
+        }
+      }
+    }
   }
 
 }
