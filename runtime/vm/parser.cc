@@ -1904,6 +1904,10 @@ AstNode* Parser::ParseInitializer(const Class& cls,
   }
   receiver->set_invisible(false);
   SetAllowFunctionLiterals(saved_mode);
+  if (current_function().is_const() && !init_expr->IsPotentiallyConst()) {
+    ErrorMsg(field_pos,
+             "initializer expression must be compile time constant.");
+  }
   Field& field = Field::ZoneHandle(cls.LookupInstanceField(field_name));
   if (field.IsNull()) {
     ErrorMsg(field_pos, "unresolved reference to instance field '%s'",
