@@ -676,6 +676,9 @@ class Namer implements ClosureNamer {
    * [isolateAccess]/[isolateBailoutAccess] or [isolatePropertyAccess] instead.
    */
   String getName(Element element) {
+    if (element.hasFixedBackendName()) {
+      return element.fixedBackendName();
+    }
     if (element.isInstanceMember()) {
       if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY
           || element.kind == ElementKind.FUNCTION) {
