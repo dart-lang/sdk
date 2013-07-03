@@ -220,6 +220,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Geolocation.getCurrentPosition',
   'Geolocation.watchPosition',
   'HashChangeEvent.initHashChangeEvent',
+  'HTMLCanvasElement.toDataURL',
   'HTMLTableElement.createCaption',
   'HTMLTableElement.createTBody',
   'HTMLTableElement.createTFoot',

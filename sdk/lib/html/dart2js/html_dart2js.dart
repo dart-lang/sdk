@@ -906,7 +906,7 @@ class CanvasElement extends _HTMLElement implements CanvasImageSource native "HT
    */
   @DomName('HTMLCanvasElement.toDataURL')
   @DocsEditable()
-  String toDataUrl(String type, [num quality]) native;
+  String $dom_toDataUrl(String type, [num quality]) native;
 
   @DomName('HTMLCanvasElement.onwebglcontextlost')
   @DocsEditable()
@@ -943,6 +943,9 @@ class CanvasElement extends _HTMLElement implements CanvasImageSource native "HT
     }
     return context;
   }
+
+  String toDataUrl([String type = 'image/png', num quality]) => 
+      $dom_toDataUrl(type, quality);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

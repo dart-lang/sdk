@@ -34,7 +34,7 @@ main() {
     context.fillStyle = 'red';
     context.fill();
 
-    var url = canvas.toDataUrl('image/png');
+    var url = canvas.toDataUrl();
 
     var img = new ImageElement();
     img.onLoad.listen(expectAsync1((_) {

@@ -37,4 +37,7 @@ $endif
     }
     return context;
   }
+
+  String toDataUrl([String type = 'image/png', num quality]) => 
+      $dom_toDataUrl(type, quality);
 }
