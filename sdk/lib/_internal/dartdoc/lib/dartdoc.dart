@@ -975,7 +975,6 @@ class Dartdoc {
     }
     _totalLibraries++;
     _currentLibrary = library;
-    _currentType = null;
 
     startFile(libraryUrl(library));
     writeHeader('${displayName(library)} Library',
@@ -1032,6 +1031,8 @@ class Dartdoc {
 
       docType(type);
     }
+
+    _currentLibrary = null;
   }
 
   void docTypes(List types, String header) {
@@ -1102,6 +1103,8 @@ class Dartdoc {
     writeTypeFooter();
     writeFooter();
     endFile();
+
+    _currentType = null;
   }
 
   /** Override this to write additional content at the end of a type's page. */
@@ -1575,6 +1578,8 @@ class Dartdoc {
     writeln('</div>');
 
     writeln('</div>');
+
+    _currentMember = null;
   }
 
   void docField(ContainerMirror host, VariableMirror field,
@@ -1660,6 +1665,8 @@ class Dartdoc {
     writeln('</div>');
 
     writeln('</div>');
+
+    _currentMember = null;
   }
 
   void docParamList(ContainerMirror enclosingType,
@@ -2010,6 +2017,23 @@ class Dartdoc {
       anchor.attributes['href'] = relativePath(href);
       anchor.attributes['class'] = 'crossref';
       return anchor;
+    }
+
+    DeclarationMirror declaration = currentMember;
+    if (declaration == null) declaration = currentType;
+    if (declaration == null) declaration = currentLibrary;
+    if (declaration != null) {
+      declaration = lookupQualifiedInScope(declaration, name);
+    }
+
+    if (declaration != null) {
+      if (declaration is TypeVariableMirror) {
+        return makeLink(typeUrl(declaration.owner));
+      } if (declaration is TypeMirror) {
+        return makeLink(typeUrl(declaration));
+      } else if (declaration is MethodMirror) {
+        return makeLink(memberUrl(declaration));
+      }
     }
 
     // See if it's a parameter of the current method.
