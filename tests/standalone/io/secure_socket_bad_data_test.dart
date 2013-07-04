@@ -114,6 +114,10 @@ void test(bool hostnameInConnect) {
           break;
         default: throw "Unexpected event $event";
       }
+    },
+    onError: (e) {
+      Expect.isTrue(e is IOException);
+      completer.complete(null);
     });
     return completer.future;
   }
