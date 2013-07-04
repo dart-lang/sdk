@@ -393,7 +393,12 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   int write(List<int> buffer, int offset, int bytes) {
     if (buffer is! List) throw new ArgumentError();
     if (offset == null) offset = 0;
-    if (bytes == null) bytes = buffer.length;
+    if (bytes == null) {
+      if (offset > buffer.length) {
+        throw new RangeError.value(offset);
+      }
+      bytes = buffer.length - offset;
+    }
     if (offset < 0) throw new RangeError.value(offset);
     if (bytes < 0) throw new RangeError.value(bytes);
     if ((offset + bytes) > buffer.length) {

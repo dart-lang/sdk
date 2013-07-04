@@ -734,7 +734,9 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   }
 
   void _reportError(e) {
-    if (_connectPending) {
+    if (_status == CLOSED) {
+      return;
+    } else if (_connectPending) {
       // _connectPending is true after the underlying connection has been
       // made, but before the handshake has completed.
       if (e is! TlsException) {
@@ -947,6 +949,9 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     }
 
     return _filterService.call(args).then((response) {
+      if (response.length == 2) {
+        _reportError(new TlsException('${response[1]} error ${response[0]}'));
+      }
       bool wasInHandshake = response[1];
       int start(int index) => response[2 * index + 2];
       int end(int index) => response[2 * index + 3];

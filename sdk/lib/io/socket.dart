@@ -345,6 +345,9 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
    * the socket. The number of successfully written bytes is returned. This
    * function is non-blocking and will only write data if buffer space is
    * available in the socket.
+   *
+   * The default value for [offset] is 0, and the default value for [count] is
+   * [:buffer.length - offset:].
    */
   int write(List<int> buffer, [int offset, int count]);
 

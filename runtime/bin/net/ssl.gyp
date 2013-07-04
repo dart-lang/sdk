@@ -104,6 +104,7 @@
       'defines!': [
         # Regrettably, NSS can't be compiled with NO_NSPR_10_SUPPORT yet.
         'NO_NSPR_10_SUPPORT',
+        'DEBUG',
       ],
       'dependencies': [
         # Changed by Dart.
