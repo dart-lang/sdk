@@ -465,6 +465,24 @@ testSendToThis2() {
   result.checkNodeHasType('x', [result.base('B')]);
 }
 
+testSendToThis3() {
+  final String source = r"""
+      class A {
+        bar() => 42;
+        foo() => bar();
+      }
+      class B extends A {
+        bar() => "abc";
+      }
+      main() {
+        var x = new B().foo();
+        x;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('x', [result.string]);
+}
+
 testConstructor() {
   final String source = r"""
       class A {
@@ -1462,6 +1480,7 @@ void main() {
   // testSendToClosureField();  // closures are not yet supported
   testSendToThis1();
   testSendToThis2();
+  testSendToThis3();
   testConstructor();
   testGetters();
   testSetters();

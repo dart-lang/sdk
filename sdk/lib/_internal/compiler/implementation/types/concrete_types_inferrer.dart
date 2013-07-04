@@ -2232,8 +2232,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   ConcreteType visitDynamicSend(Send node) {
     ConcreteType receiverType = (node.receiver != null)
         ? analyze(node.receiver)
-        : inferrer.singletonConcreteType(
-            new ClassBaseType(currentMethodOrField.getEnclosingClass()));
+        : environment.lookupTypeOfThis();
     SourceString name =
         canonicalizeMethodName(node.selector.asIdentifier().source);
     ArgumentsTypes argumentsTypes = analyzeArguments(node.arguments);
