@@ -90,6 +90,13 @@ void test(bool hostnameInConnect) {
     RawSocket baseSocket = sockets[0];
     RawSecureSocket socket = sockets[1];
     final completer = new Completer();
+    bool completed = false;
+    void tryComplete() {
+      if (!completed) {
+        completed = true;
+        completer.complete(null);
+      }
+    }
     final data = createTestData();
     int bytesWritten = 0;
     socket.listen((event) {
@@ -110,14 +117,14 @@ void test(bool hostnameInConnect) {
           }
           break;
         case RawSocketEvent.READ_CLOSED:
-          completer.complete(null);
+          tryComplete();
           break;
         default: throw "Unexpected event $event";
       }
     },
     onError: (e) {
       Expect.isTrue(e is IOException);
-      completer.complete(null);
+      tryComplete();
     });
     return completer.future;
   }
