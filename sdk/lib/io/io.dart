@@ -13,6 +13,7 @@
 library dart.io;
 
 import 'dart:async';
+import 'dart:_collection-dev';
 import 'dart:collection' show LinkedHashSet,
                               LinkedList,
                               LinkedListEntry;

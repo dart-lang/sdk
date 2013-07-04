@@ -8,6 +8,10 @@ part of dart._collection.dev;
 // This is a hack to make @deprecated work in dart:io. Don't remove or use this,
 // unless coordinated with either me or the core library team. Thanks!
 // TODO(ajohnsen): Remove at the 11th of Auguest 2013.
+// TODO(ajohnsen): Remove hide in sdk/lib/web_sql/dart2js/web_sql_dart2js.dart.
+// TODO(ajohnsen): Remove hide in sdk/lib/html/dart2js/html_dart2js.dart.
+// TODO(ajohnsen): Remove hide in
+//     sdk/lib/web_audio/dart2js/web_audio_dart2js.dart.
 const deprecated = 0;
 
 /**
