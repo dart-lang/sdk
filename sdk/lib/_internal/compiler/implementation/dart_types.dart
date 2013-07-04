@@ -73,10 +73,12 @@ abstract class DartType {
   /**
    * Finds the method, field or property named [name] declared or inherited
    * on this type.
+   *
+   * If [isSetter] is [:true:] the member is interpreted as a setter access.
    */
   // TODO(johnniwinther): Implement this for [TypeVariableType], [FunctionType],
   // and [TypedefType].
-  Member lookupMember(SourceString name) => null;
+  Member lookupMember(SourceString name, {bool isSetter: false}) => null;
 
   /**
    * A type is malformed if it is itself a malformed type or contains a
@@ -509,16 +511,36 @@ class InterfaceType extends GenericType {
    * Finds the method, field or property named [name] declared or inherited
    * on this interface type.
    */
-  Member lookupMember(SourceString name) {
+  Member lookupMember(SourceString name, {bool isSetter: false}) {
+    // Abstract field returned when setter was needed but only a getter was
+    // present and vice-versa.
+    Member fallbackAbstractField;
 
-    Member createMember(InterfaceType receiver, InterfaceType declarer,
-                        Element member) {
-      if (member.kind == ElementKind.FUNCTION ||
-          member.kind == ElementKind.ABSTRACT_FIELD ||
-          member.kind == ElementKind.FIELD) {
-        return new Member(receiver, declarer, member);
+    Member createMember(ClassElement classElement,
+                        InterfaceType receiver, InterfaceType declarer) {
+      Element member = classElement.implementation.lookupLocalMember(name);
+      if (member == null) return null;
+      if (member.isConstructor() || member.isPrefix()) return null;
+      assert(member.isFunction() || 
+             member.isAbstractField() || 
+             member.isField());
+    
+      if (member.isAbstractField()) {
+        AbstractFieldElement abstractFieldElement = member;
+        if (fallbackAbstractField == null) {
+          fallbackAbstractField =
+              new Member(receiver, declarer, member, isSetter: isSetter);
+        }
+        if (isSetter && abstractFieldElement.setter == null) {
+          // Keep searching further up the hierarchy.
+          member = null;
+        } else if (!isSetter && abstractFieldElement.getter == null) {
+          // Keep searching further up the hierarchy.
+          member = null;
+        }
       }
-      return null;
+      return member != null 
+          ? new Member(receiver, declarer, member, isSetter: isSetter) : null;
     }
 
     ClassElement classElement = element;
@@ -526,10 +548,9 @@ class InterfaceType extends GenericType {
     InterfaceType declarer = receiver;
     // TODO(johnniwinther): Lookup and callers should handle private members and
     // injected members.
-    Element member = classElement.implementation.lookupLocalMember(name);
-    if (member != null) {
-      return createMember(receiver, declarer, member);
-    }
+    Member member = createMember(classElement, receiver, declarer);
+    if (member != null) return member;
+
     assert(invariant(element, classElement.allSupertypes != null,
         message: 'Supertypes not computed for $classElement'));
     for (InterfaceType supertype in classElement.allSupertypes) {
@@ -538,12 +559,11 @@ class InterfaceType extends GenericType {
       if (supertype.element.isMixinApplication) continue;
       declarer = supertype;
       ClassElement lookupTarget = declarer.element;
-      member = lookupTarget.implementation.lookupLocalMember(name);
-      if (member != null) {
-        return createMember(receiver, declarer, member);
-      }
+      Member member = createMember(lookupTarget, receiver, declarer);
+      if (member != null) return member;
     }
-    return null;
+
+    return fallbackAbstractField;
   }
 
   int get hashCode => super.hashCode;
@@ -851,13 +871,16 @@ class DynamicType extends InterfaceType {
  * between [: A<E> :] and [: A<F> :], and then [: F :] by [: String :] using the
  * relation between [: B<F> :] and [: B<String> :].
  */
+// TODO(johnniwinther): Add [isReadable] and [isWritable] predicates.
 class Member {
   final InterfaceType receiver;
   final InterfaceType declarer;
   final Element element;
   DartType cachedType;
+  final bool isSetter;
 
-  Member(this.receiver, this.declarer, this.element) {
+  Member(this.receiver, this.declarer, this.element,
+         {bool this.isSetter: false}) {
     assert(invariant(element, element.isAbstractField() ||
                               element.isField() ||
                               element.isFunction(),
@@ -869,11 +892,10 @@ class Member {
       DartType type;
       if (element.isAbstractField()) {
         AbstractFieldElement abstractFieldElement = element;
-        if (abstractFieldElement.getter != null) {
-          FunctionType functionType =
-              abstractFieldElement.getter.computeType(compiler);
-          type = functionType.returnType;
-        } else {
+        // Use setter if present and required or if no getter is available.
+        if ((isSetter && abstractFieldElement.setter != null) || 
+            abstractFieldElement.getter == null) {
+          // TODO(johnniwinther): Add check of read of field with no getter.
           FunctionType functionType =
               abstractFieldElement.setter.computeType(
                   compiler);
@@ -881,6 +903,12 @@ class Member {
           if (type == null) {
             type = compiler.types.dynamicType;
           }
+        } else {
+          // TODO(johnniwinther): Add check of assignment to field with no
+          // setter.
+          FunctionType functionType =
+              abstractFieldElement.getter.computeType(compiler);
+          type = functionType.returnType;
         }
       } else {
         type = element.computeType(compiler);

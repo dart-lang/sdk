@@ -27,7 +27,8 @@ class TypeCheckerTask extends CompilerTask {
 class MemberKind {
   static const MemberKind METHOD = const MemberKind("method");
   static const MemberKind OPERATOR = const MemberKind("operator");
-  static const MemberKind PROPERTY = const MemberKind("property");
+  static const MemberKind GETTER = const MemberKind("getter");
+  static const MemberKind SETTER = const MemberKind("setter");
 
   final String name;
 
@@ -396,7 +397,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     if (identical(type, types.dynamicType)) {
       return const DynamicAccess();
     }
-    Member member = type.lookupMember(name);
+    Member member = type.lookupMember(name,
+        isSetter: identical(memberKind, MemberKind.SETTER));
     if (member != null) {
       checkPrivateAccess(node, member.element, name);
       return new MemberAccess(member);
@@ -410,7 +412,11 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         reportTypeWarning(node, MessageKind.OPERATOR_NOT_FOUND,
             {'className': type.name, 'memberName': name});
         break;
-      case MemberKind.PROPERTY:
+      case MemberKind.GETTER:
+        reportTypeWarning(node, MessageKind.MEMBER_NOT_FOUND,
+            {'className': type.name, 'memberName': name});
+        break;
+      case MemberKind.SETTER:
         reportTypeWarning(node, MessageKind.PROPERTY_NOT_FOUND,
             {'className': type.name, 'memberName': name});
         break;
@@ -733,7 +739,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       return resultType;
     } else if (node.isPropertyAccess) {
       ElementAccess access =
-          computeAccess(node, selector.source, element, MemberKind.PROPERTY);
+          computeAccess(node, selector.source, element, MemberKind.GETTER);
       return access.computeType(compiler);
     } else if (node.isFunctionObjectInvocation) {
       return unhandledExpression();
@@ -768,13 +774,16 @@ class TypeCheckerVisitor extends Visitor<DartType> {
                                    Node valueNode,
                                    DartType value) {
     assert(invariant(node, !node.isIndex));
-    Element element = elements[node];
+    Element setterElement = elements[node];
+    Element getterElement = elements[node.selector];
     Identifier selector = node.selector;
-    DartType target =
-        computeAccessType(node, selector.source, element, MemberKind.PROPERTY);
+    DartType getter = computeAccessType(
+        node, selector.source, getterElement, MemberKind.GETTER);
+    DartType setter = computeAccessType(
+        node, selector.source, setterElement, MemberKind.SETTER);
     // [operator] is the type of operator+ or operator- on [target].
     DartType operator =
-        lookupMemberType(node, target, operatorName, MemberKind.OPERATOR);
+        lookupMemberType(node, getter, operatorName, MemberKind.OPERATOR);
     if (operator is FunctionType) {
       FunctionType operatorType = operator;
       // [result] is the type of target o value.
@@ -784,9 +793,9 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       bool validValue = checkAssignable(valueNode, value, operatorArgument);
       if (validValue || !(node.isPrefix || node.isPostfix)) {
         // Check target = result.
-        checkAssignable(node.assignmentOperator, result, target);
+        checkAssignable(node.assignmentOperator, result, setter);
       }
-      return node.isPostfix ? target : result;
+      return node.isPostfix ? getter : result;
     }
     return types.dynamicType;
   }
@@ -879,7 +888,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       } else {
         // target = value
         DartType target = computeAccessType(node, selector.source,
-                                            element, MemberKind.PROPERTY);
+                                            element, MemberKind.SETTER);
         final Node valueNode = node.arguments.head;
         final DartType value = analyze(valueNode);
         checkAssignable(node.assignmentOperator, value, target);

@@ -39,6 +39,7 @@ main() {
                 testMethodInvocationArgumentCount,
                 testMethodInvocations,
                 testMethodInvocationsInClass,
+                testGetterSetterInvocation,
                 testControlFlow,
                 // testNewExpression,
                 testConditionalExpression,
@@ -565,9 +566,9 @@ testMethodInvocationsInClass() {
   check(c, "(e)();");
   check(c, "(e)(1);");
   check(c, "(e)('string');");
-  check(c, "(foo)();", MessageKind.PROPERTY_NOT_FOUND);
-  check(c, "(foo)(1);", MessageKind.PROPERTY_NOT_FOUND);
-  check(c, "(foo)('string');", MessageKind.PROPERTY_NOT_FOUND);
+  check(c, "(foo)();", MessageKind.MEMBER_NOT_FOUND);
+  check(c, "(foo)(1);", MessageKind.MEMBER_NOT_FOUND);
+  check(c, "(foo)('string');", MessageKind.MEMBER_NOT_FOUND);
 
   // Invocations on function expressions.
   check(c, "(foo){}();", MessageKind.MISSING_ARGUMENT);
@@ -1054,7 +1055,8 @@ void testTypeVariableExpressions() {
   analyzeIn(method, "{ int type = T; }", MessageKind.NOT_ASSIGNABLE);
 
   analyzeIn(method, "{ String typeName = T.toString(); }");
-  analyzeIn(method, "{ T.foo; }", MessageKind.PROPERTY_NOT_FOUND);
+  analyzeIn(method, "{ T.foo; }", MessageKind.MEMBER_NOT_FOUND);
+  analyzeIn(method, "{ T.foo = 0; }", MessageKind.PROPERTY_NOT_FOUND);
   analyzeIn(method, "{ T.foo(); }", MessageKind.METHOD_NOT_FOUND);
   analyzeIn(method, "{ T + 1; }", MessageKind.OPERATOR_NOT_FOUND);
 }
@@ -1084,7 +1086,7 @@ void testTypeLiteral() {
 
   // Check static property access.
   analyze('m() => Class.field;');
-  analyze('m() => (Class).field;', MessageKind.PROPERTY_NOT_FOUND);
+  analyze('m() => (Class).field;', MessageKind.MEMBER_NOT_FOUND);
 
   // Check static method access.
   analyze('m() => Class.method();');
@@ -1275,6 +1277,105 @@ void testInitializers() {
             ''', MessageKind.NOT_ASSIGNABLE);
 }
 
+void testGetterSetterInvocation() {
+  compiler.parseScript(r'''int get variable => 0;
+                           void set variable(String s) {}
+
+                           class Class {
+                             int get instanceField => 0;
+                             void set instanceField(String s) {}
+
+                             static int get staticField => 0;
+                             static void set staticField(String s) {}
+
+                             int overriddenField;
+                             int get getterField => 0;
+                             void set setterField(int v) {}
+                           }
+
+                           class GetterClass extends Class {
+                             int get overriddenField => super.overriddenField;
+                             int get setterField => 0;
+                           }
+
+                           class SetterClass extends Class {
+                             void set overriddenField(int v) {}
+                             void set getterField(int v) {}
+                           }
+
+                           Class c;
+                           GetterClass gc;
+                           SetterClass sc;
+                           ''');
+
+  check(String text, [expectedWarnings]) {
+    analyze('{ $text }', expectedWarnings);
+  }
+
+  check("variable = '';");
+  check("int v = variable;");
+  check("variable = 0;", MessageKind.NOT_ASSIGNABLE);
+  check("String v = variable;", MessageKind.NOT_ASSIGNABLE);
+  // num is not assignable to String (the type of the setter).
+  check("variable += 0;", MessageKind.NOT_ASSIGNABLE);
+  // String is not assignable to int (the argument type of the operator + on the
+  // getter) and num (the result type of the operation) is not assignable to
+  // String (the type of the setter).
+  check("variable += '';",
+      [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+
+  check("c.instanceField = '';");
+  check("int v = c.instanceField;");
+  check("c.instanceField = 0;", MessageKind.NOT_ASSIGNABLE);
+  check("String v = c.instanceField;", MessageKind.NOT_ASSIGNABLE);
+
+  // num is not assignable to String (the type of the setter).
+  check("c.instanceField += 0;", MessageKind.NOT_ASSIGNABLE);
+  // String is not assignable to int (the argument type of the operator + on the
+  // getter) and num (the result type of the operation) is not assignable to
+  // String (the type of the setter).
+  check("c.instanceField += '';",
+      [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+
+  check("Class.staticField = '';");
+  check("int v = Class.staticField;");
+  check("Class.staticField = 0;", MessageKind.NOT_ASSIGNABLE);
+  check("String v = Class.staticField;", MessageKind.NOT_ASSIGNABLE);
+
+  // num is not assignable to String (the type of the setter).
+  check("Class.staticField += 0;", MessageKind.NOT_ASSIGNABLE);
+  // String is not assignable to int (the argument type of the operator + on the
+  // getter) and num (the result type of the operation) is not assignable to
+  // String (the type of the setter).
+  check("Class.staticField += '';",
+        [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+
+  check("int v = c.overriddenField;");
+  check("c.overriddenField = 0;");
+  check("int v = c.getterField;");
+  // TODO(johnniwinther): Check write of property without setter.
+  //check("c.getterField = 0;", MessageKind.CANNOT_RESOLVE_SETTER);
+  // TODO(johnniwinther): Check read of property without getter.
+  //check("int v = c.setterField;", MessageKind.CANNOT_RESOLVE_GETTER);
+  check("c.setterField = 0;");
+
+  check("int v = gc.overriddenField;");
+  check("gc.overriddenField = 0;");
+  check("int v = gc.setterField;");
+  check("gc.setterField = 0;");
+  check("int v = gc.getterField;");
+  // TODO(johnniwinther): Check write of property without setter.
+  //check("gc.getterField = 0;", MessageKind.CANNOT_RESOLVE_SETTER);
+
+  check("int v = sc.overriddenField;");
+  check("sc.overriddenField = 0;");
+  check("int v = sc.getterField;");
+  check("sc.getterField = 0;");
+  // TODO(johnniwinther): Check read of property without getter.
+  //check("int v = sc.setterField;", MessageKind.CANNOT_RESOLVE_GETTER);
+  check("sc.setterField = 0;");
+}
+
 const CLASS_WITH_METHODS = '''
 class ClassWithMethods {
   untypedNoArgumentMethod() {}
@@ -1343,15 +1444,24 @@ abstract class int extends num {
 }
 ''';
 
+const String STRING_SOURCE = '''
+class String implements Pattern {
+  String operator +(String other) => this;
+}
+''';
+
 void setup() {
   RegExp classNum = new RegExp(r'abstract class num {}');
   Expect.isTrue(DEFAULT_CORELIB.contains(classNum));
   RegExp classInt = new RegExp(r'abstract class int extends num { }');
   Expect.isTrue(DEFAULT_CORELIB.contains(classInt));
+  RegExp classString = new RegExp('class String implements Pattern {}');
+  Expect.isTrue(DEFAULT_CORELIB.contains(classString));
 
   String CORE_SOURCE = DEFAULT_CORELIB
       .replaceAll(classNum, NUM_SOURCE)
-      .replaceAll(classInt, INT_SOURCE);
+      .replaceAll(classInt, INT_SOURCE)
+      .replaceAll(classString, STRING_SOURCE);
 
   compiler = new MockCompiler(coreSource: CORE_SOURCE);
   types = compiler.types;
