@@ -314,6 +314,3 @@ stack_overflow_stacktrace_test: Fail
 string_interpolate_npe_test: Fail
 closure_call_wrong_argument_count_negative_test: Skip
 label_test: Skip
-
-[ $compiler == dart2js && $minified ]
-function_subtype_inline0_test: Fail # Issue 11469

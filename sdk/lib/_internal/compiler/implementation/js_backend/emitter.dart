@@ -1367,7 +1367,8 @@ class CodeEmitterTask extends CompilerTask {
         Element thisElement =
             closureData.freeVariableMapping[closureData.thisElement];
         if (thisElement != null) {
-          String thisName = backend.namer.getName(thisElement);
+          assert(thisElement.hasFixedBackendName());
+          String thisName = thisElement.fixedBackendName();
           thisAccess = 'this.$thisName';
         }
       }
