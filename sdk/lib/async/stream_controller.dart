@@ -664,8 +664,6 @@ class _SyncBroadcastStreamController<T> extends _BroadcastStreamController<T> {
     if (_isEmpty) return;
     _forEachListener((_BroadcastSubscription<T> subscription) {
       subscription._close();
-      subscription._eventState |=
-          _BroadcastSubscription._STATE_REMOVE_AFTER_FIRING;
     });
   }
 }

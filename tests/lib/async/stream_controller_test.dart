@@ -106,11 +106,8 @@ testMultiController() {
           handleData: (v, s) { s.addError(v); },
           handleError: (e, s) { s.add(e); },
           handleDone: (s) {
-
             s.add("foo");
-
             s.close();
-
           })));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);

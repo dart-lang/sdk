@@ -225,10 +225,6 @@ class _ErrorGroupStream extends Stream {
   /// The underlying [StreamController] for [this].
   final StreamController _controller;
 
-  /// The controller's [Stream]. May be different than `_controller.stream` if
-  /// the wrapped stream is a broadcasting stream.
-  Stream _stream;
-
   /// The [StreamSubscription] that connects the wrapped [Stream] to
   /// [_controller].
   StreamSubscription _subscription;
@@ -239,10 +235,9 @@ class _ErrorGroupStream extends Stream {
   /// Creates a new [_ErrorGroupFuture] that's a child of [_group] and wraps
   /// [inner].
   _ErrorGroupStream(this._group, Stream inner)
-    : _controller = new StreamController(sync: true) {
-    this._stream = inner.isBroadcast
-        ? _controller.stream.asBroadcastStream()
-        : _controller.stream;
+    : _controller =
+          inner.isBroadcast ? new StreamController.broadcast(sync: true)
+                            : new StreamController(sync: true) {
     _subscription = inner.listen((v) {
       _controller.add(v);
     }, onError: (e) {
@@ -257,7 +252,7 @@ class _ErrorGroupStream extends Stream {
   StreamSubscription listen(void onData(value),
       {void onError(var error), void onDone(),
        bool cancelOnError}) {
-    return _stream.listen(onData,
+    return _controller.stream.listen(onData,
         onError: onError,
         onDone: onDone,
         cancelOnError: true);

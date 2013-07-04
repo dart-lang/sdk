@@ -26636,7 +26636,9 @@ class _EventStream<T extends Event> extends Stream<T> {
   _EventStream(this._target, this._eventType, this._useCapture);
 
   // DOM events are inherently multi-subscribers.
-  Stream<T> asBroadcastStream() => this;
+  Stream<T> asBroadcastStream({void onListen(StreamSubscription subscription),
+                               void onCancel(StreamSubscription subscription)})
+      => this;
   bool get isBroadcast => true;
 
   StreamSubscription<T> listen(void onData(T event),

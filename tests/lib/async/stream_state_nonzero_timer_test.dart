@@ -13,17 +13,15 @@ import "stream_state_helper.dart";
 
 const ms5 = const Duration(milliseconds: 5);
 
-main() {
-  mainTest(false);
-  // TODO(floitsch): reenable?
-  // mainTest(true);
-}
+// Testing pause/resume, some with non-zero duration. This only makes sense for
+// non-broadcast streams, since broadcast stream subscriptions handle their
+// own pauses.
 
-mainTest(bool broadcast) {
-  var p = broadcast ? "BC" : "SC";
+main() {
+  var p = "StreamController";
 
   test("$p-sub-data/pause/resume/pause/resume-done", () {
-    var t = new StreamProtocolTest(broadcast: broadcast);
+    var t = new StreamProtocolTest();
     t..expectListen()
      ..expectData(42, () {
          t.pause();
@@ -33,26 +31,26 @@ mainTest(bool broadcast) {
      ..expectPause(() { t.resume(); })
      ..expectResume(() { t.close(); })
      ..expectDone()
-     ..expectCancel();
+     ..expectCancel(t.terminate);
     t..listen()..add(42);
   });
 
   test("$p-sub-data/pause-done", () {
-    var t = new StreamProtocolTest(broadcast: broadcast);
+    var t = new StreamProtocolTest();
     t..expectListen()
      ..expectData(42, () {
          t.pause(new Future.delayed(ms5, () => null));
        })
      ..expectPause()
      ..expectDone()
-     ..expectCancel();
+     ..expectCancel(t.terminate);
      // We are calling "close" while the controller is actually paused,
      // and it will stay paused until the pending events are sent.
     t..listen()..add(42)..close();
   });
 
   test("$p-sub-data/pause-resume/done", () {
-    var t = new StreamProtocolTest(broadcast: broadcast);
+    var t = new StreamProtocolTest();
     t..expectListen()
      ..expectData(42, () {
          t.pause(new Future.delayed(ms5, () => null));
@@ -60,12 +58,12 @@ mainTest(bool broadcast) {
      ..expectPause()
      ..expectResume(t.close)
      ..expectDone()
-     ..expectCancel();
+     ..expectCancel(t.terminate);
     t..listen()..add(42);
   });
 
   test("$p-sub-data/data+pause-data-resume-done", () {
-    var t = new StreamProtocolTest(broadcast: broadcast);
+    var t = new StreamProtocolTest();
     t..expectListen()
      ..expectData(42, () {
          t.add(43);
@@ -78,12 +76,12 @@ mainTest(bool broadcast) {
      ..expectData(43)
      ..expectResume(t.close)
      ..expectDone()
-     ..expectCancel();
+     ..expectCancel(t.terminate);
     t..listen()..add(42);
   });
 
   test("$p-pause-during-callback", () {
-    var t = new StreamProtocolTest(broadcast: broadcast);
+    var t = new StreamProtocolTest();
     t..expectListen()
      ..expectData(42, () {
        t.pause();
@@ -97,7 +95,7 @@ mainTest(bool broadcast) {
        t.close();
      })
      ..expectDone()
-     ..expectCancel();
+     ..expectCancel(t.terminate);
     t..listen()
      ..add(42);
   });

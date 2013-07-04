@@ -12,11 +12,13 @@ import '../../../pkg/unittest/lib/unittest.dart';
 import 'event_helper.dart';
 import 'stream_state_helper.dart';
 
+void cancelSub(StreamSubscription sub) { sub.cancel(); }
+
 testController() {
   // Test fold
   test("StreamController.fold", () {
     StreamController c = new StreamController();
-    Stream stream = c.stream.asBroadcastStream();
+    Stream stream = c.stream.asBroadcastStream(onCancel: cancelSub);
     stream.fold(0, (a,b) => a + b)
      .then(expectAsync1((int v) {
         Expect.equals(42, v);
@@ -28,7 +30,7 @@ testController() {
 
   test("StreamController.fold throws", () {
     StreamController c = new StreamController();
-    Stream stream = c.stream.asBroadcastStream();
+    Stream stream = c.stream.asBroadcastStream(onCancel: cancelSub);
     stream.fold(0, (a,b) { throw "Fnyf!"; })
      .catchError(expectAsync1((error) { Expect.equals("Fnyf!", error); }));
     c.add(42);
@@ -267,6 +269,7 @@ testExtraMethods() {
 
 testPause() {
   test("pause event-unpause", () {
+
     StreamProtocolTest test = new StreamProtocolTest();
     Completer completer = new Completer();
     test..expectListen()
@@ -277,7 +280,7 @@ testPause() {
         ..expectData(43)
         ..expectData(44)
         ..expectDone()
-        ..expectCancel();
+        ..expectCancel(test.terminate);
     test.listen();
     test.add(42);
     test.add(43);
@@ -301,7 +304,7 @@ testPause() {
         ..expectData(43)
         ..expectData(44)
         ..expectDone()
-        ..expectCancel();
+        ..expectCancel(test.terminate);
     test..listen()
         ..add(42)
         ..add(43)
@@ -323,7 +326,7 @@ testPause() {
         ..expectData(43)
         ..expectData(44)
         ..expectDone()
-        ..expectCancel();
+        ..expectCancel(test.terminate);
     test..listen()
         ..add(42)
         ..add(43)
@@ -349,7 +352,7 @@ testPause() {
         ..expectData(43)
         ..expectData(44)
         ..expectDone()
-        ..expectCancel();
+        ..expectCancel(test.terminate);
     test..listen()
         ..add(42);
   });
@@ -359,7 +362,6 @@ class TestError { const TestError(); }
 
 testRethrow() {
   TestError error = const TestError();
-
 
   testStream(name, streamValueTransform) {
     test("rethrow-$name-value", () {
@@ -498,6 +500,74 @@ void testBroadcastController() {
   });
 }
 
+void testAsBroadcast() {
+  test("asBroadcast-not-canceled", () {
+    StreamProtocolTest test = new StreamProtocolTest.asBroadcast();
+    var sub;
+    test..expectListen()
+        ..expectBroadcastListen((_) {
+            test.add(42);
+          })
+        ..expectData(42, () {
+            sub.cancel();
+          })
+        ..expectBroadcastCancel((_) {
+            sub = test.listen();
+          })
+        ..expectBroadcastListen((_) {
+            test.terminate();
+          });
+    sub = test.listen();
+  });
+
+  test("asBroadcast-canceled", () {
+    StreamProtocolTest test = new StreamProtocolTest.asBroadcast();
+    var sub;
+    test..expectListen()
+        ..expectBroadcastListen((_) {
+            test.add(42);
+          })
+        ..expectData(42, () {
+            sub.cancel();
+          })
+        ..expectBroadcastCancel((originalSub) {
+            originalSub.cancel();
+          })
+        ..expectCancel(test.terminate);
+    sub = test.listen();
+  });
+
+  test("asBroadcast-pause-original", () {
+    StreamProtocolTest test = new StreamProtocolTest.asBroadcast();
+    var sub;
+    test..expectListen()
+        ..expectBroadcastListen((_) {
+            test.add(42);
+            test.add(43);
+          })
+        ..expectData(42, () {
+            sub.cancel();
+          })
+        ..expectBroadcastCancel((originalSub) {
+            originalSub.pause();  // Pause before sending 43 from original sub.
+          })
+        ..expectPause(() {
+            sub = test.listen();
+          })
+        ..expectBroadcastListen((originalSub) {
+            originalSub.resume();
+          })
+        ..expectData(43)
+        ..expectResume(() {
+            test.close();
+          })
+        ..expectDone()
+        ..expectBroadcastCancel()
+        ..expectCancel(test.terminate);
+    sub = test.listen();
+  });
+}
+
 main() {
   testController();
   testSingleController();
@@ -505,4 +575,5 @@ main() {
   testPause();
   testRethrow();
   testBroadcastController();
+  testAsBroadcast();
 }

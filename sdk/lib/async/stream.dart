@@ -154,16 +154,32 @@ abstract class Stream<T> {
   /**
    * Returns a multi-subscription stream that produces the same events as this.
    *
+   * If this stream is already a broadcast stream, it is returned unmodified.
+   *
    * If this stream is single-subscription, return a new stream that allows
    * multiple subscribers. It will subscribe to this stream when its first
-   * subscriber is added, and unsubscribe again when the last subscription is
-   * canceled.
+   * subscriber is added, and will stay subscribed until this stream ends,
+   * or a callback cancels the subscription.
    *
-   * If this stream is already a broadcast stream, it is returned unmodified.
+   * If [onListen] is provided, it is called with a subscription-like object
+   * that represents the underlying subscription to this stream. It is
+   * possible to pause, resume or cancel the subscription during the call
+   * to [onListen]. It is not possible to change the event handlers, including
+   * using [StreamSubscription.asFuture].
+   *
+   * If [onCancel] is provided, it is called in a similar way to [onListen]
+   * when the returned stream stops having listener. If it later gets
+   * a new listener, the [onListen] function is called again.
+   *
+   * Use the callbacks, for example, for pausing the underlying subscription
+   * while having no subscribers to prevent losing events, or canceling the
+   * subscription when there are no listeners.
    */
-  Stream<T> asBroadcastStream() {
+  Stream<T> asBroadcastStream({
+      void onListen(StreamSubscription<T> subscription),
+      void onCancel(StreamSubscription<T> subscription) }) {
     if (isBroadcast) return this;
-    return new _AsBroadcastStream<T>(this);
+    return new _AsBroadcastStream<T>(this, onListen, onCancel);
   }
 
   /**
@@ -914,7 +930,9 @@ class StreamView<T> extends Stream<T> {
 
   bool get isBroadcast => _stream.isBroadcast;
 
-  Stream<T> asBroadcastStream() => _stream.asBroadcastStream();
+  Stream<T> asBroadcastStream({void onListen(StreamSubscription subscription),
+                               void onCancel(StreamSubscription subscription)})
+      => _stream.asBroadcastStream(onListen: onListen, onCancel: onCancel);
 
   StreamSubscription<T> listen(void onData(T value),
                                { void onError(error),
