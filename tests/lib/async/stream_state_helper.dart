@@ -519,11 +519,6 @@ class CancelCallbackEvent extends Event {
   String toString() => "[Cancelled]";
 }
 
-class _BroadcastEventCallback extends Event {
-  Function _action;
-  _BroadcastEventCallback();
-}
-
 class BroadcastCancelCallbackEvent extends Event {
   BroadcastCancelCallbackEvent(void action(StreamSubscription sub))
     : super.broadcast(action);
