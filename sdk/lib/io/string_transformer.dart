@@ -261,8 +261,8 @@ List<int> _encodeString(String string, [Encoding encoding = Encoding.UTF_8]) {
 
 
 class LineTransformer extends StreamEventTransformer<String, String> {
-  const int _LF = 10;
-  const int _CR = 13;
+  static const int _LF = 10;
+  static const int _CR = 13;
 
   StringBuffer _buffer = new StringBuffer();
   String _carry;

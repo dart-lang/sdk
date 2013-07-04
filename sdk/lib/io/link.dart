@@ -177,7 +177,7 @@ class _Link extends FileSystemEntity implements Link {
     if (!(target.length > 3 && target[1] == ':' && target[2] == '\\')) {
       try {
         target = new File(target).fullPathSync();
-      } catch (e) {
+      } on FileException catch (e) {
         throw new LinkException('Could not locate target', target, e.osError);
       }
     }

@@ -636,8 +636,8 @@ class _HttpOutboundConsumer implements StreamConsumer {
 
 
 class _BufferTransformer extends StreamEventTransformer<List<int>, List<int>> {
-  const int MIN_CHUNK_SIZE = 4 * 1024;
-  const int MAX_BUFFER_SIZE = 16 * 1024;
+  static const int MIN_CHUNK_SIZE = 4 * 1024;
+  static const int MAX_BUFFER_SIZE = 16 * 1024;
 
   final _BufferList _buffer = new _BufferList();
 
