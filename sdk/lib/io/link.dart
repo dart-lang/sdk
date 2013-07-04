@@ -17,6 +17,7 @@ abstract class Link implements FileSystemEntity {
   /**
    * Creates a Link object from a Path object.
    */
+  @deprecated
   factory Link.fromPath(Path path) => new _Link.fromPath(path);
 
   /**

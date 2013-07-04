@@ -11,7 +11,11 @@ part of dart.io;
  * '/' as a path separator, and vice versa.
  *
  * Joining of paths and path normalization handle '.' and '..' in the usual way.
+ *
+ * *Path is deprecated. Use package pathos. Path will be removed the 11th of
+ * August 2013.*
  */
+@deprecated
 abstract class Path {
   /**
    * Creates a Path from a String that uses the native filesystem's conventions.
@@ -36,6 +40,7 @@ abstract class Path {
    *     share.toNativePath() == r'\\share\a\b\c'
    *     share.append('final').isWindowsShare == true
    */
+  @deprecated
   factory Path(String source) => new _Path(source);
 
   /**
@@ -43,6 +48,7 @@ abstract class Path {
    * the string does not consist of segments separated by forward slashes, the
    * behavior may not be as expected.  Paths are immutable.
    */
+  @deprecated
   factory Path.raw(String source) => new _Path.raw(source);
 
   /**

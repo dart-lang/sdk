@@ -4,6 +4,12 @@
 
 part of dart._collection.dev;
 
+
+// This is a hack to make @deprecated work in dart:io. Don't remove or use this,
+// unless coordinated with either me or the core library team. Thanks!
+// TODO(ajohnsen): Remove at the 11th of Auguest 2013.
+const deprecated = 0;
+
 /**
  * An [Iterable] for classes that have efficient [length] and [elementAt].
  *

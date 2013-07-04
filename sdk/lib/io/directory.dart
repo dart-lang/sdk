@@ -20,6 +20,7 @@ abstract class Directory implements FileSystemEntity {
    * an absolute path, or it is a relative path which is interpreted
    * relative to the directory in which the Dart VM was started.
    */
+  @deprecated
   factory Directory.fromPath(Path path) => new _Directory.fromPath(path);
 
   /**
