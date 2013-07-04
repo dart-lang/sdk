@@ -45,6 +45,7 @@ class AnalysisResult {
   BaseType bool;
   BaseType string;
   BaseType list;
+  BaseType growableList;
   BaseType map;
   BaseType nullType;
 
@@ -56,6 +57,7 @@ class AnalysisResult {
     bool = inferrer.baseTypes.boolBaseType;
     string = inferrer.baseTypes.stringBaseType;
     list = inferrer.baseTypes.listBaseType;
+    growableList = inferrer.baseTypes.growableListBaseType;
     map = inferrer.baseTypes.mapBaseType;
     nullType = const NullBaseType();
     Element mainElement = compiler.mainApp.find(buildSourceString('main'));
@@ -159,13 +161,10 @@ const String CORELIB = r'''
   class Object {}
   class Function {}
   abstract class List<E> {
-    factory List([int length]) {
-      return JS('JSExtendableArray', r'new Array(#)', length);
-    }
+    factory List([int length]) {}
   }
   abstract class Map<K, V> {}
   class Closure {}
-  class Null {}
   class Type {}
   class StackTrace {}
   class Dynamic_ {}
@@ -721,8 +720,8 @@ testListLiterals() {
       }
       """;
   AnalysisResult result = analyze(source);
-  result.checkNodeHasType('x', [result.list]);
-  result.checkNodeHasType('y', [result.list]);
+  result.checkNodeHasType('x', [result.growableList]);
+  result.checkNodeHasType('y', [result.growableList]);
   result.checkFieldHasType('A', 'x', [result.int]);
 }
 
@@ -1015,7 +1014,6 @@ testFieldInitialization3() {
 testLists() {
   final String source = r"""
     main() {
-      new List();
       var l1 = [1.2];
       var l2 = [];
       l1['a'] = 42;  // raises an error, so int should not be recorded
@@ -1036,7 +1034,7 @@ testListWithCapacity() {
   final String source = r"""
     main() {
       var l = new List(10);
-      var x = l[0];
+      var x = [][0];
       x;
     }""";
   AnalysisResult result = analyze(source);
@@ -1052,6 +1050,36 @@ testEmptyList() {
     }""";
   AnalysisResult result = analyze(source);
   result.checkNodeHasType('x', []);
+}
+
+// Assuming the mock compiler's interceptor library faithfully reflects the
+// real interceptor library, this test boils down to checking that
+// JSExtendableArray and JSFixedArray don't override JSArray's square bracket
+// operators.
+testListHierarchy() {
+  final String source1 = r"""
+    import 'dart:interceptors';
+
+    main() {
+      var l = new JSExtendableArray();
+      l[0] = 'foo';
+      var x = l[0];
+      x;
+    }""";
+  AnalysisResult result1 = analyze(source1);
+  result1.checkNodeHasType('x', [result1.string]);
+
+  final String source2 = r"""
+    import 'dart:interceptors';
+
+    main() {
+      var l = new JSFixedArray();
+      l[0] = 'foo';
+      var x = l[0];
+      x;
+    }""";
+  AnalysisResult result2 = analyze(source1);
+  result2.checkNodeHasType('x', [result2.string]);
 }
 
 testSendWithWrongArity() {
@@ -1125,46 +1153,96 @@ testDynamicIsAbsorbing() {
 testJsCall() {
   final String source = r"""
     import 'dart:foreign';
+    import 'dart:helper' show Null;
     import 'dart:interceptors';
 
-    class A {}
+    abstract class AbstractA {}
+    class A extends AbstractA {}
     class B extends A {}
     class BB extends B {}
     class C extends A {}
-    class D extends A {}
+    class D implements A {}
+    class E extends A {}
 
     class X {}
 
     main () {
-      // we don't create any D on purpose
-      new B(); new BB(); new C();
+      // we don't create any E on purpose
+      new B(); new BB(); new C(); new D();
 
       var a = JS('', '1');
       var b = JS('Object', '1');
       var c = JS('JSExtendableArray', '1');
+      var cNull = JS('JSExtendableArray|Null', '1');
       var d = JS('String', '1');
+      var dNull = JS('String|Null', '1');
       var e = JS('int', '1');
+      var eNull = JS('int|Null', '1');
       var f = JS('double', '1');
+      var fNull = JS('double|Null', '1');
       var g = JS('num', '1');
+      var gNull = JS('num|Null', '1');
       var h = JS('bool', '1');
-      var i = JS('A', '1');
+      var hNull = JS('bool|Null', '1');
+      var i = JS('AbstractA', '1');
+      var iNull = JS('AbstractA|Null', '1');
       var j = JS('X', '1');
-      a; b; c; d; e; f; g; h; i; j;
+
+      a; b; c; cNull; d; dNull; e; eNull; f; fNull; g; gNull; h; hNull; i;
+      iNull; j;
     }
     """;
   AnalysisResult result = analyze(source);
+  List maybe(List types) => new List.from(types)..add(result.nullType);
   result.checkNodeHasUnknownType('a');
   result.checkNodeHasUnknownType('b');
-  // TODO(polux): Fix this test.
-  // result.checkNodeHasType('c', [result.nullType, result.list]);
-  result.checkNodeHasType('d', [result.nullType, result.string]);
-  result.checkNodeHasType('e', [result.nullType, result.int]);
-  result.checkNodeHasType('f', [result.nullType, result.double]);
-  result.checkNodeHasType('g', [result.nullType, result.num]);
-  result.checkNodeHasType('h', [result.nullType, result.bool]);
-  result.checkNodeHasType('i', [result.nullType, result.base('B'),
-                                result.base('BB'), result.base('C')]);
-  result.checkNodeHasType('j', [result.nullType]);
+  final expectedCType = [result.growableList];
+  result.checkNodeHasType('c', expectedCType);
+  result.checkNodeHasType('cNull', maybe(expectedCType));
+  final expectedDType = [result.string];
+  result.checkNodeHasType('d', expectedDType);
+  result.checkNodeHasType('dNull', maybe(expectedDType));
+  final expectedEType = [result.int];
+  result.checkNodeHasType('e', expectedEType);
+  result.checkNodeHasType('eNull', maybe(expectedEType));
+  final expectedFType = [result.double];
+  result.checkNodeHasType('f', expectedFType);
+  result.checkNodeHasType('fNull', maybe(expectedFType));
+  final expectedGType = [result.num];
+  result.checkNodeHasType('g', expectedGType);
+  result.checkNodeHasType('gNull', maybe(expectedGType));
+  final expectedHType = [result.bool];
+  result.checkNodeHasType('h', expectedHType);
+  result.checkNodeHasType('hNull', maybe(expectedHType));
+  final expectedIType = [result.base('A'), result.base('B'),
+                         result.base('BB'), result.base('C'),
+                         result.base('D')];
+  result.checkNodeHasType('i', expectedIType);
+  result.checkNodeHasType('iNull', maybe(expectedIType));
+  result.checkNodeHasType('j', []);
+}
+
+testJsCallAugmentsSeenClasses() {
+  final String source1 = r"""
+    main () {
+      var x = "__dynamic_for_test".truncate();
+      x;
+    }
+    """;
+  AnalysisResult result1 = analyze(source1);
+  result1.checkNodeHasType('x', []);
+
+  final String source2 = r"""
+    import 'dart:foreign';
+
+    main () {
+      var x = "__dynamic_for_test".truncate();
+      JS('double', 'foo');
+      x;
+    }
+    """;
+  AnalysisResult result2 = analyze(source2);
+  result2.checkNodeHasType('x', [result2.int]);
 }
 
 testIsCheck() {
@@ -1410,7 +1488,9 @@ void main() {
   testLists();
   testListWithCapacity();
   testEmptyList();
+  testListHierarchy();
   testJsCall();
+  testJsCallAugmentsSeenClasses();
   testIsCheck();
   testSeenClasses();
   testIntDoubleNum();

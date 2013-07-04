@@ -302,6 +302,9 @@ class BaseTypes {
   final ClassBaseType boolBaseType;
   final ClassBaseType stringBaseType;
   final ClassBaseType listBaseType;
+  final ClassBaseType growableListBaseType;
+  final ClassBaseType fixedListBaseType;
+  final ClassBaseType constListBaseType;
   final ClassBaseType mapBaseType;
   final ClassBaseType objectBaseType;
   final ClassBaseType typeBaseType;
@@ -313,6 +316,12 @@ class BaseTypes {
     boolBaseType = new ClassBaseType(compiler.backend.boolImplementation),
     stringBaseType = new ClassBaseType(compiler.backend.stringImplementation),
     listBaseType = new ClassBaseType(compiler.backend.listImplementation),
+    growableListBaseType =
+        new ClassBaseType(compiler.backend.growableListImplementation),
+    fixedListBaseType =
+        new ClassBaseType(compiler.backend.fixedListImplementation),
+    constListBaseType =
+        new ClassBaseType(compiler.backend.constListImplementation),
     mapBaseType = new ClassBaseType(compiler.backend.mapImplementation),
     objectBaseType = new ClassBaseType(compiler.objectClass),
     typeBaseType = new ClassBaseType(compiler.backend.typeImplementation);
@@ -594,8 +603,21 @@ class ConcreteTypesInferrer extends TypesInferrer {
    */
   FunctionElement listConstructor;
 
-  /// The small set of corelib classes whose annotations we trust.
-  Set<ClassElement> trustedClasses;
+  /**
+   * Constant mapping between types returned by native calls and concrete types.
+   */
+  Map<ClassElement, ConcreteType> nativeTypesToConcreteTypes;
+
+  /**
+   * Constant mapping between types returned by native calls and the set of
+   * classes that should augment [seenClasses] when encountered.
+   */
+  Map<ClassElement, List<ClassElement>> nativeTypesToSeenClasses;
+
+  /**
+   * Constant list of concrete classes seen by the resolver.
+   */
+  List<ClassElement> concreteSeenClasses;
 
   /**
    * A cache from (function x argument base types) to concrete types,
@@ -604,6 +626,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
    * Product Algorithm - Simple and Precise Type Inference of Parametric
    * Polymorphism" by Ole Agesen.
    */
+  // TODO(polux): rename and build a better abstraction.
   final Map<FunctionElement, Map<ConcreteTypesEnvironment, ConcreteType>> cache;
 
   /** A map from expressions to their inferred concrete types. */
@@ -703,7 +726,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
     // TODO(polux): memoize?
     var result = new List<Element>();
     for (ClassElement cls in seenClasses) {
-      Element elem = cls.lookupLocalMember(methodName);
+      Element elem = cls.lookupMember(methodName);
       if (elem != null) {
         result.add(elem.implementation);
       }
@@ -804,13 +827,13 @@ class ConcreteTypesInferrer extends TypesInferrer {
   void augmentSeenClasses(ClassElement cls) {
     if (!seenClasses.contains(cls)) {
       seenClasses.add(cls);
-      cls.forEachLocalMember((Element member) {
+      cls.forEachMember((_, Element member) {
         Set<FunctionElement> functions = dynamicCallers[member.name];
         if (functions == null) return;
         for (FunctionElement function in functions) {
           invalidate(function);
         }
-      });
+      }, includeSuperAndInjectedMembers: true);
     }
   }
 
@@ -884,6 +907,17 @@ class ConcreteTypesInferrer extends TypesInferrer {
         });
       }
     }
+  }
+
+  /**
+   * Returns the template associated to [function] in cache or create an
+   * empty template for [function] in cache and returns it.
+   */
+  Map<ConcreteTypesEnvironment, ConcreteType>
+      getTemplatesOrEmpty(FunctionElement function) {
+    return cache.putIfAbsent(
+        function,
+        () => new Map<ConcreteTypesEnvironment, ConcreteType>());
   }
 
   // -- query --
@@ -1121,11 +1155,8 @@ class ConcreteTypesInferrer extends TypesInferrer {
   ConcreteType getMonomorphicSendReturnType(
       FunctionElement function,
       ConcreteTypesEnvironment environment) {
-    Map<ConcreteTypesEnvironment, ConcreteType> template = cache[function];
-    if (template == null) {
-      template = new Map<ConcreteTypesEnvironment, ConcreteType>();
-      cache[function] = template;
-    }
+    Map<ConcreteTypesEnvironment, ConcreteType> template =
+        getTemplatesOrEmpty(function);
     ConcreteType type = template[environment];
     ConcreteType specialType = getSpecialCaseReturnType(function, environment);
     if (type != null) {
@@ -1143,44 +1174,44 @@ class ConcreteTypesInferrer extends TypesInferrer {
   ConcreteType getNativeCallReturnType(Send node) {
     native.NativeBehavior nativeBehavior =
         compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
-    if (nativeBehavior == null) return unknownConcreteType;
+    assert(nativeBehavior != null);
     List typesReturned = nativeBehavior.typesReturned;
     if (typesReturned.isEmpty) return unknownConcreteType;
 
-    ConcreteType result = nullConcreteType;
-    for (final type in typesReturned) {
-      var concreteType;
+    ConcreteType result = emptyConcreteType;
+    void registerClass(ClassElement element) {
+      if (!element.isAbstract(compiler)) {
+        result =
+            result.union(singletonConcreteType(new ClassBaseType(element)));
+        augmentSeenClasses(element);
+      }
+    }
+    void registerDynamic() {
+      result = unknownConcreteType;
+      concreteSeenClasses.forEach(augmentSeenClasses);
+    }
 
-      // TODO(polux): track native types
+    for (final type in typesReturned) {
       if (type == native.SpecialType.JsObject) {
-        return unknownConcreteType;
-      // at this point, we know that type is not a SpecialType and thus has to
-      // be a DartType
-      } else if (type.element == compiler.objectClass) {
-        // We don't want to return all the subtypes of object here.
-        return unknownConcreteType;
-      } else if (type.element == compiler.stringClass){
-        concreteType = singletonConcreteType(baseTypes.stringBaseType);
-      } else if (type.element == compiler.intClass) {
-        concreteType = singletonConcreteType(baseTypes.intBaseType);
-      } else if (type.element == compiler.doubleClass) {
-        concreteType = singletonConcreteType(baseTypes.doubleBaseType);
-      } else if (type.element == compiler.numClass) {
-        concreteType = singletonConcreteType(baseTypes.numBaseType);
-      } else if (type.element == compiler.boolClass) {
-        concreteType = singletonConcreteType(baseTypes.boolBaseType);
+        registerDynamic();
+      } else if (type.isDynamic) {
+        registerDynamic();
       } else {
-        Set<ClassElement> subtypes = compiler.world.subtypesOf(type.element);
-        if (subtypes == null) continue;
-        concreteType = emptyConcreteType;
-        for (ClassElement subtype in subtypes) {
-          concreteType = concreteType.union(
-              singletonConcreteType(new ClassBaseType(subtype)));
+        ClassElement element = type.element;
+        ConcreteType concreteType = nativeTypesToConcreteTypes[element];
+        if (concreteType != null) {
+          result = result.union(concreteType);
+          nativeTypesToSeenClasses[element].forEach(augmentSeenClasses);
+        } else {
+          if (compiler.enqueuer.resolution.seenClasses.contains(element)) {
+            registerClass(element);
+          }
+          Set<ClassElement> subtypes = compiler.world.subtypesOf(element);
+          if (subtypes != null) {
+            subtypes.forEach(registerClass);
+          }
         }
       }
-
-      result = result.union(concreteType);
-      if (result.isUnknown()) return result;
     }
     return result;
   }
@@ -1424,6 +1455,31 @@ class ConcreteTypesInferrer extends TypesInferrer {
                                                baseTypes);
     nullConcreteType = singletonConcreteType(const NullBaseType());
     listElementType = emptyConcreteType;
+    concreteSeenClasses = compiler.enqueuer.resolution
+        .seenClasses
+        .where((cls) => !cls.isAbstract(compiler))
+        .toList()
+        ..add(baseTypes.numBaseType.element);
+    nativeTypesToConcreteTypes = new Map<ClassElement, ConcreteType>()
+        ..[compiler.nullClass] = nullConcreteType
+        ..[compiler.objectClass] = unknownConcreteType
+        ..[compiler.stringClass] =
+            singletonConcreteType(baseTypes.stringBaseType)
+        ..[compiler.intClass] = singletonConcreteType(baseTypes.intBaseType)
+        ..[compiler.doubleClass] =
+            singletonConcreteType(baseTypes.doubleBaseType)
+        ..[compiler.numClass] = singletonConcreteType(baseTypes.numBaseType)
+        ..[compiler.boolClass] = singletonConcreteType(baseTypes.boolBaseType);
+    nativeTypesToSeenClasses = new Map<dynamic, List<ClassElement>>()
+        ..[compiler.nullClass] = []
+        ..[compiler.objectClass] = concreteSeenClasses
+        ..[compiler.stringClass] = [baseTypes.stringBaseType.element]
+        ..[compiler.intClass] = [baseTypes.intBaseType.element]
+        ..[compiler.doubleClass] = [baseTypes.doubleBaseType.element]
+        ..[compiler.numClass] = [baseTypes.numBaseType.element,
+                                 baseTypes.intBaseType.element,
+                                 baseTypes.doubleBaseType.element]
+        ..[compiler.boolClass] = [baseTypes.boolBaseType.element];
   }
 
   /**
@@ -1432,19 +1488,24 @@ class ConcreteTypesInferrer extends TypesInferrer {
    */
   bool analyzeMain(Element element) {
     initialize();
-    cache[element] = new Map<ConcreteTypesEnvironment, ConcreteType>();
     try {
       workQueue.addLast(
           new InferenceWorkItem(element, new ConcreteTypesEnvironment(this)));
       while (!workQueue.isEmpty) {
         InferenceWorkItem item = workQueue.removeFirst();
-        ConcreteType concreteType =
-            analyze(null, item.methodOrField, item.environment);
-        if (item.methodOrField.isField()) continue;
-        var template = cache[item.methodOrField];
-        if (template[item.environment] == concreteType) continue;
-        template[item.environment] = concreteType;
-        invalidateCallers(item.methodOrField);
+        if (item.methodOrField.isField()) {
+          analyze(null, item.methodOrField, item.environment);
+        } else {
+          Map<ConcreteTypesEnvironment, ConcreteType> template =
+              getTemplatesOrEmpty(item.methodOrField);
+          template.putIfAbsent(item.environment, () => emptyConcreteType);
+          ConcreteType concreteType =
+              analyze(null, item.methodOrField, item.environment);
+          if (template[item.environment] != concreteType) {
+            template[item.environment] = concreteType;
+            invalidateCallers(item.methodOrField);
+          }
+        }
       }
       return true;
     } on CancelTypeInferenceException catch(e) {
@@ -1465,6 +1526,10 @@ class ConcreteTypesInferrer extends TypesInferrer {
     }
     print("callers:");
     callers.forEach((k,v) {
+      print("  $k: $v");
+    });
+    print("dynamic callers:");
+    dynamicCallers.forEach((k,v) {
       print("  $k: $v");
     });
     print("readers:");
@@ -1863,7 +1928,8 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     }
     inferrer.augmentListElementType(elementsType);
     inferrer.augmentSeenClasses(backend.listImplementation);
-    return inferrer.singletonConcreteType(inferrer.baseTypes.listBaseType);
+    return inferrer.singletonConcreteType(
+        inferrer.baseTypes.growableListBaseType);
   }
 
   ConcreteType visitNodeList(NodeList node) {
