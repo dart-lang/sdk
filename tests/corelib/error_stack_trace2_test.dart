@@ -20,7 +20,6 @@ main() {
   try {
     cyclicStatic + 1;
   } catch(e2) {
-    // Work around bug in analyzer that assigns "Object" type to caught error.
     var e = e2;
     hasThrown = true;
     Expect.isTrue(e.stackTrace is StackTrace,
