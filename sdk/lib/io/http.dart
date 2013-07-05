@@ -1399,10 +1399,19 @@ abstract class DetachedSocket {
 
 class HttpException implements IOException {
   final String message;
+  final Uri uri;
 
-  const HttpException([String this.message = ""]);
+  const HttpException(String this.message, {Uri this.uri});
 
-  String toString() => "HttpException: $message";
+  String toString() {
+    var b = new StringBuffer();
+    b.write('HttpException: ');
+    b.write(message);
+    if (uri != null) {
+      b.write(', uri = $uri');
+    }
+    return b.toString();
+  }
 }
 
 

@@ -41,10 +41,14 @@ class _HttpIncoming extends Stream<List<int>> {
                                         void onDone(),
                                         bool cancelOnError}) {
     hasSubscriber = true;
-    return _stream.listen(onData,
-                          onError: onError,
-                          onDone: onDone,
-                          cancelOnError: cancelOnError);
+    return _stream
+        .handleError((error) {
+          throw new HttpException(error.message, uri: uri);
+        })
+        .listen(onData,
+                onError: onError,
+                onDone: onDone,
+                cancelOnError: cancelOnError);
   }
 
   // Is completed once all data have been received.
@@ -160,7 +164,10 @@ class _HttpClientResponse
   _HttpClientResponse(_HttpIncoming _incoming,
                       _HttpClientRequest this._httpRequest,
                       _HttpClient this._httpClient)
-      : super(_incoming);
+      : super(_incoming) {
+    // Set uri for potential exceptions.
+    _incoming.uri = _httpRequest.uri;
+  }
 
   int get statusCode => _incoming.statusCode;
   String get reasonPhrase => _incoming.reasonPhrase;
@@ -395,10 +402,13 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
   IOSink _dataSink;
 
   final _HttpOutgoing _outgoing;
+  final Uri _uri;
 
   final _HttpHeaders headers;
 
-  _HttpOutboundMessage(String protocolVersion, _HttpOutgoing outgoing)
+  _HttpOutboundMessage(Uri this._uri,
+                       String protocolVersion,
+                       _HttpOutgoing outgoing)
       : _outgoing = outgoing,
         _headersSink = new IOSink(outgoing, encoding: Encoding.ASCII),
         headers = new _HttpHeaders(protocolVersion) {
@@ -511,7 +521,7 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
             stream = stream.transform(new _ChunkedTransformer());
           } else if (contentLength >= 0) {
             stream = stream.transform(
-                new _ContentLengthValidator(contentLength));
+                new _ContentLengthValidator(contentLength, _uri));
           }
           return _headersSink.addStream(stream);
         });
@@ -531,7 +541,8 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
         _headersSink.close().catchError((_) {});
         return new Future.error(new HttpException(
             "No content while contentLength was specified to be greater "
-            " than 0: ${headers.contentLength}."));
+            " than 0: ${headers.contentLength}.",
+            uri: _uri));
       }
     }
     return _writeHeaders().then((_) => _headersSink.close());
@@ -676,10 +687,11 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
   List<Cookie> _cookies;
   _HttpRequest _httpRequest;
 
-  _HttpResponse(String protocolVersion,
+  _HttpResponse(Uri uri,
+                String protocolVersion,
                 _HttpOutgoing _outgoing,
                 String serverHeader)
-      : super(protocolVersion, _outgoing) {
+      : super(uri, protocolVersion, _outgoing) {
     if (serverHeader != null) headers.set('Server', serverHeader);
   }
 
@@ -844,12 +856,13 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
   List<RedirectInfo> _responseRedirects = [];
 
   _HttpClientRequest(_HttpOutgoing outgoing,
-                     Uri this.uri,
+                     Uri uri,
                      String this.method,
                      _Proxy this._proxy,
                      _HttpClient this._httpClient,
                      _HttpClientConnection this._httpClientConnection)
-      : super("1.1", outgoing) {
+      : super(uri, "1.1", outgoing),
+        uri = uri {
     // GET and HEAD have 'content-length: 0' by default.
     if (method == "GET" || method == "HEAD") {
       contentLength = 0;
@@ -1049,9 +1062,10 @@ class _ChunkedTransformer extends StreamEventTransformer<List<int>, List<int>> {
 class _ContentLengthValidator
     extends StreamEventTransformer<List<int>, List<int>> {
   final int expectedContentLength;
+  final Uri uri;
   int _bytesWritten = 0;
 
-  _ContentLengthValidator(int this.expectedContentLength);
+  _ContentLengthValidator(int this.expectedContentLength, Uri this.uri);
 
   void handleData(List<int> data, EventSink<List<int>> sink) {
     _bytesWritten += data.length;
@@ -1060,7 +1074,8 @@ class _ContentLengthValidator
           "Content size exceeds specified contentLength. "
           "$_bytesWritten bytes written while expected "
           "$expectedContentLength. "
-          "[${new String.fromCharCodes(data)}]"));
+          "[${new String.fromCharCodes(data)}]",
+          uri: uri));
       sink.close();
     } else {
       sink.add(data);
@@ -1072,7 +1087,8 @@ class _ContentLengthValidator
       sink.addError(new HttpException(
           "Content size below specified contentLength. "
           " $_bytesWritten bytes written while expected "
-          "$expectedContentLength."));
+          "$expectedContentLength.",
+          uri: uri));
     }
     sink.close();
   }
@@ -1112,6 +1128,7 @@ class _HttpClientConnection {
   bool _dispose = false;
   Timer _idleTimer;
   bool closed = false;
+  Uri _currentUri;
 
   Completer<_HttpIncoming> _nextResponseCompleter;
   Future _streamFuture;
@@ -1132,21 +1149,23 @@ class _HttpClientConnection {
           _subscription.pause();
           // We assume the response is not here, until we have send the request.
           if (_nextResponseCompleter == null) {
-            throw new HttpException("Unexpected response.");
+            throw new HttpException("Unexpected response.", uri: _currentUri);
           }
           _nextResponseCompleter.complete(incoming);
           _nextResponseCompleter = null;
         },
         onError: (error) {
           if (_nextResponseCompleter != null) {
-            _nextResponseCompleter.completeError(error);
+            _nextResponseCompleter.completeError(
+                new HttpException(error.message, uri: _currentUri));
             _nextResponseCompleter = null;
           }
         },
         onDone: () {
           if (_nextResponseCompleter != null) {
             _nextResponseCompleter.completeError(new HttpException(
-                "Connection closed before response was received"));
+                "Connection closed before response was received",
+                uri: _currentUri));
             _nextResponseCompleter = null;
           }
           close();
@@ -1155,8 +1174,10 @@ class _HttpClientConnection {
 
   _HttpClientRequest send(Uri uri, int port, String method, _Proxy proxy) {
     if (closed) {
-      throw new HttpException("Socket closed before request was sent");
+      throw new HttpException(
+          "Socket closed before request was sent", uri: uri);
     }
+    _currentUri = uri;
     // Start with pausing the parser.
     _subscription.pause();
     _ProxyCredentials proxyCreds;  // Credentials used to authorize proxy.
@@ -1211,6 +1232,7 @@ class _HttpClientConnection {
           // Listen for response.
           _nextResponseCompleter.future
               .then((incoming) {
+                _currentUri = null;
                 incoming.dataDone.then((_) {
                   if (!_dispose &&
                       incoming.headers.persistentConnection &&
@@ -1255,7 +1277,7 @@ class _HttpClientConnection {
               // element.
               .catchError((error) {
                 throw new HttpException(
-                    "Connection closed before data was received");
+                    "Connection closed before data was received", uri);
               }, test: (error) => error is StateError)
               .catchError((error) {
                 // We are done with the socket.
@@ -1783,7 +1805,8 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection> {
           _subscription.pause();
           _state = _ACTIVE;
           var outgoing = new _HttpOutgoing(_socket);
-          var response = new _HttpResponse(incoming.headers.protocolVersion,
+          var response = new _HttpResponse(incoming.uri,
+                                           incoming.headers.protocolVersion,
                                            outgoing,
                                            _httpServer.serverHeader);
           var request = new _HttpRequest(response, incoming, _httpServer, this);
