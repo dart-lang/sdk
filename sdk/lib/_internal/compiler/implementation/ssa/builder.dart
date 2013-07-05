@@ -1347,6 +1347,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         // type parameters. Those values are in the [supertype]
         // declaration of [subclass].
         ClassElement subclass = inlinedFromElement.getEnclosingClass();
+        // If [inlinedFromElement] is a generative constructor then [superclass] 
+        // is a superclass of [subclass]. If [inlinedFromElement] is a 
+        // redirecting constructor then [superclass] is the same as [subclass]. 
+        // Using [DartType.asInstanceOf] handles both these cases.
         InterfaceType supertype = subclass.thisType.asInstanceOf(superclass);
         Link<DartType> typeVariables = superclass.typeVariables;
         supertype.typeArguments.forEach((DartType argument) {
