@@ -9,12 +9,12 @@ unicode_test: Fail        # Bug 6706
 *dartc_test: Skip
 compare_to2_test: Fail    # Bug 4018
 
-symbol_test/none: Fail # bug 11669
 symbol_test/01: Fail, Pass # bug 11669
 symbol_test/02: Fail, Pass # bug 11669
 symbol_test/03: Fail, Pass # bug 11669
 
 [ $compiler == none || $compiler == dart2dart ]
+symbol_test/none: Fail # bug 11669
 error_stack_trace_test: Fail  # Bug http://dartbug.com/11680
 error_stack_trace2_test: Fail  # Bug 5802
 
