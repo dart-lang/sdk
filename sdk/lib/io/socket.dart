@@ -467,8 +467,16 @@ abstract class Socket implements Stream<List<int>>, IOSink {
 
 
 class SocketException implements IOException {
-  const SocketException([String this.message = "",
-                         OSError this.osError = null]);
+  final String message;
+  final OSError osError;
+  final InternetAddress address;
+  final int port;
+
+  const SocketException(String this.message,
+                        {OSError this.osError,
+                         InternetAddress this.address,
+                         int this.port});
+
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write("SocketException");
@@ -480,8 +488,16 @@ class SocketException implements IOException {
     } else if (osError != null) {
       sb.write(": $osError");
     }
+    if (address != null) {
+      if (address.host.isNotEmpty) {
+        sb.write(", address = ${address.host}");
+      } else {
+        sb.write(", address = ${address.address}");
+      }
+    }
+    if (port != null) {
+      sb.write(", port = $port");
+    }
     return sb.toString();
   }
-  final String message;
-  final OSError osError;
 }

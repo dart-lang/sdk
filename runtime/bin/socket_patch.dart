@@ -227,7 +227,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     return socketService.call([HOST_NAME_LOOKUP, host, type._value])
         .then((response) {
           if (isErrorResponse(response)) {
-            throw createError(response, "Failed host name lookup");
+            throw createError(response, "Failed host lookup: '$host'");
           } else {
             return response.skip(1).map((result) {
               var type = new InternetAddressType._from(result[0]);
@@ -242,7 +242,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     return socketService.call([REVERSE_LOOKUP, addr._sockaddr_storage])
         .then((response) {
           if (isErrorResponse(response)) {
-            throw createError(response, "Failed host name lookup");
+            throw createError(response, "Failed reverse host lookup", addr);
           } else {
             return addr._cloneWithNewHost(response);
           }
@@ -287,7 +287,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
           return lookup(host)
               .then((list) {
                 if (list.length == 0) {
-                  throw createError(response, "Failed host name lookup");
+                  throw createError(response, "Failed host lookup: '$host'");
                 }
                 return list[0];
               });
@@ -299,7 +299,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
           var result = socket.nativeCreateConnect(
               address._sockaddr_storage, port);
           if (result is OSError) {
-            throw createError(result, "Connection failed");
+            throw createError(result, "Connection failed", address, port);
           } else {
             var completer = new Completer();
             // Setup handlers for receiving the first write event which
@@ -311,7 +311,8 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
                 },
                 error: (e) {
                   socket.close();
-                  completer.completeError(createError(e, "Connection failed"));
+                  completer.completeError(
+                      createError(e, "Connection failed", address, port));
                 }
             );
             socket.setListening(read: false, write: true);
@@ -330,7 +331,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
           return lookup(host)
               .then((list) {
                 if (list.length == 0) {
-                  throw createError(response, "Failed host name lookup");
+                  throw createError(response, "Failed host lookup: '$host'");
                 }
                 return list[0];
               });
@@ -343,8 +344,10 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
                                                      backlog,
                                                      v6Only);
           if (result is OSError) {
-            throw new SocketException(
-                "Failed to create server socket", result);
+            throw new SocketException("Failed to create server socket",
+                                      osError: result,
+                                      address: address,
+                                      port: port);
           }
           if (port != 0) socket.localPort = port;
           return socket;
@@ -599,27 +602,33 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
 
   // Create the appropriate error/exception from different returned
   // error objects.
-  static createError(error, String message) {
+  static createError(error,
+                     String message,
+                     [InternetAddress address,
+                      int port]) {
     if (error is OSError) {
-      return new SocketException(message, error);
+      return new SocketException(
+          message, osError: error, address: address, port: port);
     } else if (error is List) {
       assert(isErrorResponse(error));
       switch (error[0]) {
         case _ILLEGAL_ARGUMENT_RESPONSE:
           return new ArgumentError();
         case _OSERROR_RESPONSE:
-          return new SocketException(
-              message, new OSError(error[2], error[1]));
+          return new SocketException(message,
+                                     osError: new OSError(error[2], error[1]),
+                                     address: address,
+                                     port: port);
         default:
           return new Exception("Unknown error");
       }
     } else {
-      return new SocketException(message);
+      return new SocketException(message, address: address, port: port);
     }
   }
 
   void reportError(error, String message) {
-    var e = createError(error, message);
+    var e = createError(error, message, address, localPort);
     // Invoke the error handler if any.
     if (eventHandlers[ERROR_EVENT] != null) {
       eventHandlers[ERROR_EVENT](e);
