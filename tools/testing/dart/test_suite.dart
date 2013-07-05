@@ -615,11 +615,10 @@ class StandardTestSuite extends TestSuite {
 
     // Only run the tests that match the pattern.
     RegExp pattern = configuration['selectors'][suiteName];
-    if (!pattern.hasMatch('$filePath')) return;
     if (filePath.filename.endsWith('test_config.dart')) return;
 
     var optionsFromFile = readOptionsFromFile(filePath);
-    CreateTest createTestCase = makeTestCaseCreator(optionsFromFile);
+    CreateTest createTestCase = makeTestCaseCreator(pattern, optionsFromFile);
 
     if (optionsFromFile['isMultitest']) {
       group.add(doMultitest(filePath, buildDir, suiteDir, createTestCase));
@@ -808,23 +807,25 @@ class StandardTestSuite extends TestSuite {
     }
   }
 
-  CreateTest makeTestCaseCreator(Map optionsFromFile) {
+  CreateTest makeTestCaseCreator(RegExp pattern, Map optionsFromFile) {
     return (Path filePath,
             bool hasCompileError,
             bool hasRuntimeError,
             {bool isNegativeIfChecked: false,
              bool hasFatalTypeErrors: false,
              Set<String> multitestOutcome: null}) {
-      // Cache the test information for each test case.
-      var info = new TestInformation(filePath,
-                                     optionsFromFile,
-                                     hasCompileError,
-                                     hasRuntimeError,
-                                     isNegativeIfChecked,
-                                     hasFatalTypeErrors,
-                                     multitestOutcome);
-      cachedTests.add(info);
-      enqueueTestCaseFromTestInformation(info);
+      if (pattern.hasMatch('$filePath')) {
+        // Cache the test information for each test case.
+        var info = new TestInformation(filePath,
+                                       optionsFromFile,
+                                       hasCompileError,
+                                       hasRuntimeError,
+                                       isNegativeIfChecked,
+                                       hasFatalTypeErrors,
+                                       multitestOutcome);
+        cachedTests.add(info);
+        enqueueTestCaseFromTestInformation(info);
+      }
     };
   }
 
