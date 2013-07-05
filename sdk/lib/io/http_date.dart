@@ -202,114 +202,9 @@ class HttpDate {
     expectEnd();
     return new DateTime.utc(year, month + 1, day, hours, minutes, seconds, 0);
   }
-}
 
-class _HttpUtils {
-  static String decodeUrlEncodedString(
-      String urlEncoded,
-      {Encoding encoding: Encoding.UTF_8}) {
-    // First check the string for any encoding.
-    int index = 0;
-    bool encoded = false;
-    while (!encoded && index < urlEncoded.length) {
-      encoded = urlEncoded[index] == "+" || urlEncoded[index] == "%";
-      index++;
-    }
-    if (!encoded) return urlEncoded;
-    index--;
-
-    // Start decoding from the first encoded character.
-    List<int> bytes = new List<int>();
-    for (int i = 0; i < index; i++) bytes.add(urlEncoded.codeUnitAt(i));
-    for (int i = index; i < urlEncoded.length; i++) {
-      if (urlEncoded[i] == "+") {
-        bytes.add(32);
-      } else if (urlEncoded[i] == "%") {
-        if (urlEncoded.length - i < 2) {
-          throw new HttpException("Invalid URL encoding");
-        }
-        int byte = 0;
-        for (int j = 0; j < 2; j++) {
-          var charCode = urlEncoded.codeUnitAt(i + j + 1);
-          if (0x30 <= charCode && charCode <= 0x39) {
-            byte = byte * 16 + charCode - 0x30;
-          } else {
-            // Check ranges A-F (0x41-0x46) and a-f (0x61-0x66).
-            charCode |= 0x20;
-            if (0x61 <= charCode && charCode <= 0x66) {
-              byte = byte * 16 + charCode - 0x57;
-            } else {
-              throw new ArgumentError("Invalid URL encoding");
-            }
-          }
-        }
-        bytes.add(byte);
-        i += 2;
-      } else {
-        bytes.add(urlEncoded.codeUnitAt(i));
-      }
-    }
-    return _decodeString(bytes, encoding);
-  }
-
-  static Map<String, String> splitQueryString(
-      String queryString,
-      {Encoding encoding: Encoding.UTF_8}) {
-    Map<String, String> result = new Map<String, String>();
-    int currentPosition = 0;
-    int length = queryString.length;
-
-    while (currentPosition < length) {
-
-      // Find the first equals character between current position and
-      // the provided end.
-      int indexOfEquals(int end) {
-        int index = currentPosition;
-        while (index < end) {
-          if (queryString.codeUnitAt(index) == _CharCode.EQUAL) return index;
-          index++;
-        }
-        return -1;
-      }
-
-      // Find the next separator (either & or ;), see
-      // http://www.w3.org/TR/REC-html40/appendix/notes.html#ampersands-in-uris
-      // relating the ; separator. If no separator is found returns
-      // the length of the query string.
-      int indexOfSeparator() {
-        int end = length;
-        int index = currentPosition;
-        while (index < end) {
-          int codeUnit = queryString.codeUnitAt(index);
-          if (codeUnit == _CharCode.AMPERSAND ||
-              codeUnit == _CharCode.SEMI_COLON) {
-            return index;
-          }
-          index++;
-        }
-        return end;
-      }
-
-      int seppos = indexOfSeparator();
-      int equalspos = indexOfEquals(seppos);
-      String name;
-      String value;
-      if (equalspos == -1) {
-        name = queryString.substring(currentPosition, seppos);
-        value = '';
-      } else {
-        name = queryString.substring(currentPosition, equalspos);
-        value = queryString.substring(equalspos + 1, seppos);
-      }
-      currentPosition = seppos + 1;  // This also works when seppos == length.
-      if (name == '') continue;
-      result[_HttpUtils.decodeUrlEncodedString(name, encoding: encoding)] =
-        _HttpUtils.decodeUrlEncodedString(value, encoding: encoding);
-    }
-    return result;
-  }
-
-  static DateTime parseCookieDate(String date) {
+  // Parse a cookie date string.
+  static DateTime _parseCookieDate(String date) {
     const List monthsLowerCase = const ["jan", "feb", "mar", "apr", "may",
                                         "jun", "jul", "aug", "sep", "oct",
                                         "nov", "dec"];
@@ -417,42 +312,5 @@ class _HttpUtils {
     if (second > 59) error();
 
     return new DateTime.utc(year, month, dayOfMonth, hour, minute, second, 0);
-  }
-
-  // Decode a string with HTTP entities. Returns null if the string ends in the
-  // middle of a http entity.
-  static String decodeHttpEntityString(String input) {
-    int amp = input.lastIndexOf('&');
-    if (amp < 0) return input;
-    int end = input.lastIndexOf(';');
-    if (end < amp) return null;
-
-    var buffer = new StringBuffer();
-    int offset = 0;
-
-    parse(amp, end) {
-      switch (input[amp + 1]) {
-        case '#':
-          if (input[amp + 2] == 'x') {
-            buffer.writeCharCode(
-                int.parse(input.substring(amp + 3, end), radix: 16));
-          } else {
-            buffer.writeCharCode(int.parse(input.substring(amp + 2, end)));
-          }
-          break;
-
-        default:
-          throw new HttpException('Unhandled HTTP entity token');
-      }
-    }
-
-    while ((amp = input.indexOf('&', offset)) >= 0) {
-      buffer.write(input.substring(offset, amp));
-      int end = input.indexOf(';', amp);
-      parse(amp, end);
-      offset = end + 1;
-    }
-    buffer.write(input.substring(offset));
-    return buffer.toString();
   }
 }

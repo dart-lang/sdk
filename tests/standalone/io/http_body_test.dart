@@ -255,7 +255,22 @@ File content\r
 
   test('application/x-www-form-urlencoded',
        'a=%F8+%26%23548%3B'.codeUnits,
-       { 'a' : '\u{FFFD}&#548;' },
+       { 'a' : '\u{FFFD} &#548;' },
+       "form");
+
+  test('application/x-www-form-urlencoded',
+       'a=%C0%A0'.codeUnits,
+       { 'a' : '\u{FFFD}' },
+       "form");
+
+  test('application/x-www-form-urlencoded',
+       'a=x%A0x'.codeUnits,
+       { 'a' : 'x\u{FFFD}x' },
+       "form");
+
+  test('application/x-www-form-urlencoded',
+       'a=x%C0x'.codeUnits,
+       { 'a' : 'x\u{FFFD}x' },
        "form");
 
   test('application/x-www-form-urlencoded',

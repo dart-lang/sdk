@@ -67,7 +67,6 @@ io/file_constructor_test: fail
 # Dart analyzer spots the misuse of 'part' directives in these unit tests.
 io/http_headers_test: Skip
 io/http_cookie_date_test: Skip
-io/url_encoding_test: Skip
 io/http_parser_test: Skip
 io/web_socket_protocol_processor_test: Skip
 
@@ -86,7 +85,6 @@ io/file_constructor_test: fail
 # Dart analyzer spots the misuse of 'part' directives in these unit tests.
 io/http_headers_test: Skip
 io/http_cookie_date_test: Skip
-io/url_encoding_test: Skip
 io/http_parser_test: Skip
 io/web_socket_protocol_processor_test: Skip
 
@@ -103,7 +101,6 @@ typed_array_int64_uint64_test: Skip # dart:typed_data on dart2js does not suppor
 float_array_test: Skip # dart:typed_data support needed.
 int_array_test: Skip  # dart:typed_data support needed.
 io/web_socket_protocol_processor_test: Skip  # Importing code with external keyword
-io/url_encoding_test: Skip  # Importing code with external keyword
 int_array_load_elimination_test: Skip  # This is a VM test
 medium_integer_test: Fail, OK # Test fails with JS number semantics: issue 1533.
 io/process_exit_negative_test: Fail, OK # relies on a static error that is a warning now.
