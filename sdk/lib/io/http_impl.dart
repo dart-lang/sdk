@@ -1277,7 +1277,7 @@ class _HttpClientConnection {
               // element.
               .catchError((error) {
                 throw new HttpException(
-                    "Connection closed before data was received", uri);
+                    "Connection closed before data was received", uri: uri);
               }, test: (error) => error is StateError)
               .catchError((error) {
                 // We are done with the socket.
