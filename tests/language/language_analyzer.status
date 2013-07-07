@@ -12,7 +12,6 @@ bad_named_parameters_test: fail
 bad_override_test/01: fail
 bad_override_test/02: fail
 black_listed_test/11: fail
-body_less_constructor_wrong_arg_negative_test: fail
 built_in_identifier_prefix_test: fail
 call_constructor_on_unresolvable_class_test/01: fail
 call_constructor_on_unresolvable_class_test/02: fail
@@ -32,14 +31,10 @@ const_constructor_super_test/01: fail
 compile_time_constant10_test/none: fail
 compile_time_constant_c_test/01: fail
 compile_time_constant_c_test/02: fail
-compile_time_constant_checked2_test/02: fail
 compile_time_constant_checked2_test/03: fail
 compile_time_constant_checked2_test/04: fail
-compile_time_constant_checked2_test/06: fail
-compile_time_constant_checked3_test/02: fail
 compile_time_constant_checked3_test/03: fail
 compile_time_constant_checked3_test/04: fail
-compile_time_constant_checked3_test/06: fail
 compile_time_constant_e_test: fail
 constructor2_negative_test: fail
 constructor3_negative_test: fail

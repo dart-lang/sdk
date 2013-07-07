@@ -214,3 +214,7 @@ Language/13_Libraries_and_Scripts/5_URIs_A01_t25: fail, OK
 
 # co19 issue #441, assignment in constructor is not initializing
 Language/05_Variables/05_Variables_A05_t04: fail, OK
+
+# co19 issue #462, const instance creation with invalid arguments is error
+Language/11_Expressions/11_Instance_Creation/2_Const_A09_t02: fail, OK
+Language/11_Expressions/11_Instance_Creation/2_Const_A09_t03: fail, OK
