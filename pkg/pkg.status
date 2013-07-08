@@ -192,3 +192,7 @@ pathos/test/pathos_dart2js_test: Fail, OK # Issue 6490
 # Skip mdv tests on command line VM, they only run in the browser.
 [ $runtime == vm ]
 mdv: Skip
+
+[ $runtime == safari || $runtime == chrome || $runtime == ie9 || $runtime == ff || $runtime == dartium || $runtime == drt ]
+docgen/test/single_library_test: Skip # Uses dart:io
+
