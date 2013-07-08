@@ -34,7 +34,6 @@ mainTest({bool sync, bool asBroadcast}) {
   test("$p-data-done-sub-sync", () {
     var t = asBroadcast ? new StreamProtocolTest.asBroadcast(sync: sync)
                         : new StreamProtocolTest(sync: sync);
-    t.trace = true;
     t..expectListen()
      ..expectBroadcastListenOpt()
      ..expectData(42)
