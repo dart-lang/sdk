@@ -10,9 +10,6 @@ Language/06_Functions/2_Formal_Parameters_A02_t02: fail
 # not clear: null..[1](1)[2](2).foo(3, bar: 4)=5 - it seems that verything before =5 it not assignable
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: fail
 
-# not initialized final instance variable, should be static warning
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: fail
-
 # invalid argument for constant constructor
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: fail
 Language/11_Expressions/01_Constants_A16_t03: fail
@@ -218,3 +215,6 @@ Language/05_Variables/05_Variables_A05_t04: fail, OK
 # co19 issue #462, const instance creation with invalid arguments is error
 Language/11_Expressions/11_Instance_Creation/2_Const_A09_t02: fail, OK
 Language/11_Expressions/11_Instance_Creation/2_Const_A09_t03: fail, OK
+
+# co19 issue #464, not initialized final instance variable is warning, not error
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: fail
