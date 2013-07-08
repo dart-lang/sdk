@@ -2349,6 +2349,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
     }
   }
   OpenBlock();  // Block to collect constructor body nodes.
+  intptr_t body_pos = TokenPos();
 
   // Insert the implicit super call to the super constructor body.
   if (super_call != NULL) {
@@ -2356,15 +2357,15 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
     const Function& super_ctor = super_call->function();
     // Patch the initializer call so it only executes the super initializer.
     initializer_args->SetNodeAt(1,
-        new LiteralNode(TokenPos(),
+        new LiteralNode(body_pos,
                         Smi::ZoneHandle(Smi::New(Function::kCtorPhaseInit))));
 
-    ArgumentListNode* super_call_args = new ArgumentListNode(TokenPos());
+    ArgumentListNode* super_call_args = new ArgumentListNode(body_pos);
     // First argument is the receiver.
-    super_call_args->Add(new LoadLocalNode(TokenPos(), receiver));
+    super_call_args->Add(new LoadLocalNode(body_pos, receiver));
     // Second argument is the construction phase argument.
     AstNode* phase_parameter =
-        new LiteralNode(TokenPos(),
+        new LiteralNode(body_pos,
                         Smi::ZoneHandle(Smi::New(Function::kCtorPhaseBody)));
     super_call_args->Add(phase_parameter);
     super_call_args->set_names(initializer_args->names());
@@ -2372,15 +2373,15 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
       AstNode* arg = initializer_args->NodeAt(i);
       if (arg->IsLiteralNode()) {
         LiteralNode* lit = arg->AsLiteralNode();
-        super_call_args->Add(new LiteralNode(TokenPos(), lit->literal()));
+        super_call_args->Add(new LiteralNode(body_pos, lit->literal()));
       } else {
         ASSERT(arg->IsLoadLocalNode() || arg->IsStoreLocalNode());
         if (arg->IsLoadLocalNode()) {
           const LocalVariable& temp = arg->AsLoadLocalNode()->local();
-          super_call_args->Add(new LoadLocalNode(TokenPos(), &temp));
+          super_call_args->Add(new LoadLocalNode(body_pos, &temp));
         } else if (arg->IsStoreLocalNode()) {
           const LocalVariable& temp = arg->AsStoreLocalNode()->local();
-          super_call_args->Add(new LoadLocalNode(TokenPos(), &temp));
+          super_call_args->Add(new LoadLocalNode(body_pos, &temp));
         }
       }
     }
@@ -2388,7 +2389,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
                                         super_call_args->names(),
                                         NULL));
     current_block_->statements->Add(
-        new StaticCallNode(TokenPos(), super_ctor, super_call_args));
+        new StaticCallNode(body_pos, super_ctor, super_call_args));
   }
 
   if (CurrentToken() == Token::kLBRACE) {
@@ -2410,19 +2411,19 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   if (ctor_block->length() > 0) {
     // Generate guard around the constructor body code.
     LocalVariable* phase_param = LookupPhaseParameter();
-    AstNode* phase_value = new LoadLocalNode(TokenPos(), phase_param);
+    AstNode* phase_value = new LoadLocalNode(body_pos, phase_param);
     AstNode* phase_check =
-        new BinaryOpNode(TokenPos(), Token::kBIT_AND,
+        new BinaryOpNode(body_pos, Token::kBIT_AND,
             phase_value,
-            new LiteralNode(TokenPos(),
+            new LiteralNode(body_pos,
                 Smi::ZoneHandle(Smi::New(Function::kCtorPhaseBody))));
     AstNode* comparison =
-       new ComparisonNode(TokenPos(), Token::kNE_STRICT,
+       new ComparisonNode(body_pos, Token::kNE_STRICT,
                          phase_check,
-                         new LiteralNode(TokenPos(),
+                         new LiteralNode(body_pos,
                                          Smi::ZoneHandle(Smi::New(0))));
     AstNode* guarded_block_statements =
-        new IfNode(TokenPos(), comparison, ctor_block, NULL);
+        new IfNode(body_pos, comparison, ctor_block, NULL);
     current_block_->statements->Add(guarded_block_statements);
   }
 
@@ -4880,6 +4881,8 @@ LocalVariable* Parser::LookupTypeArgumentsParameter(LocalScope* from_scope,
   return from_scope->LookupVariable(Symbols::TypeArgumentsParameter(),
                                     test_only);
 }
+
+
 LocalVariable* Parser::LookupPhaseParameter() {
   const bool kTestOnly = false;
   return current_block_->scope->LookupVariable(Symbols::PhaseParameter(),
