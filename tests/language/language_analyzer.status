@@ -30,7 +30,6 @@ closure_call_wrong_argument_count_negative_test: fail
 const_constructor_super_test/01: fail
 compile_time_constant10_test/none: fail
 compile_time_constant_c_test/01: fail
-compile_time_constant_c_test/02: fail
 compile_time_constant_checked2_test/03: fail
 compile_time_constant_checked2_test/04: fail
 compile_time_constant_checked3_test/03: fail
