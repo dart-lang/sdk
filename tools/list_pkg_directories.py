@@ -4,20 +4,23 @@
 # BSD-style license that can be found in the LICENSE file.
 
 '''Tool for listing the directories under pkg, with their lib directories.
-Used in pkg.gyp. Lists all of the directories in the current directory
-which have a lib subdirectory.
+Used in pkg.gyp. Lists all of the directories in the directory passed in as an
+argument to this script which have a lib subdirectory.
 
 Usage:
-  python tools/list_pkg_directories.py
+  python tools/list_pkg_directories.py directory_to_list
 '''
 
 import os
 import sys
 
 def main(argv):
-  paths = map(lambda x: x + '/lib', filter(os.path.isdir, os.listdir(argv[1])))
-  for lib in filter(lambda x: os.path.exists(x), paths):
-    print lib
+  directory = argv[1]
+  paths = map(lambda x: x + '/lib', filter(lambda x: os.path.isdir(
+      os.path.join(directory, x)), os.listdir(directory)))
+  for lib in filter(lambda x: os.path.exists(os.path.join(directory, x)),
+      paths):
+    print os.path.join(directory, lib)
 
 if __name__ == '__main__':
   sys.exit(main(sys.argv))
