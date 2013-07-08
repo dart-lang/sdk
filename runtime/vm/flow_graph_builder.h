@@ -37,7 +37,7 @@ class ParsedFunction;
   V(_Float32x4ArrayFactory, kTypedDataFloat32x4ArrayCid, 1739837241)           \
 
 
-// An class to collect the exits from an inlined function during graph
+// A class to collect the exits from an inlined function during graph
 // construction so they can be plugged into the caller's flow graph.
 class InlineExitCollector: public ZoneAllocated {
  public:

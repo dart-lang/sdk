@@ -76,11 +76,7 @@ DEFINE_NATIVE_ENTRY(GrowableObjectArray_setLength, 2) {
   const GrowableObjectArray& array =
       GrowableObjectArray::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(1));
-  if ((length.Value() < 0) || (length.Value() > array.Capacity())) {
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, length);
-    Exceptions::ThrowByType(Exceptions::kRange, args);
-  }
+  ASSERT((length.Value() >= 0) && (length.Value() <= array.Capacity()));
   array.SetLength(length.Value());
   return Object::null();
 }
