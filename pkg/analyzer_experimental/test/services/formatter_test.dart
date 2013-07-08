@@ -69,57 +69,85 @@ main() {
           '}'
         );
     });
-//
-//    test('CU (method indent - 2)', () {
-//      expectCUFormatsTo(
-//          'class A {\n'
-//          ' static  bool x(){ return true; }\n'
-//          ' }',
-//          'class A {\n'
-//          '  static bool x() {\n'
-//          '    return true;\n'
-//          '  }\n'
-//          '}'
-//        );
-//    });
-//
-//    test('CU (method indent - 3)', () {
-//      expectCUFormatsTo(
-//          'class A {\n'
-//          ' int x() =>   42   + 3 ;  \n'
-//          '   }',
-//          'class A {\n'
-//          '  int x() => 42 + 3;\n'
-//          '}'
-//        );
-//    });
-//
-//    test('CU (method indent - 4)', () {
-//      expectCUFormatsTo(
-//          'class A {\n'
-//          ' int x() { \n'
-//          'if (true) {return 42;\n'
-//          '} else { return false; }\n'
-//          '   }'
-//          '}',
-//          'class A {\n'
-//          ' int x() {\n'
-//          '   if (true) {\n'
-//          '     return 42;\n'
-//          '   } else {\n'
-//          '     return false;\n'
-//          '   }\n'
-//          '}'
-//        );
-//    });
+
+    test('CU (method indent - 2)', () {
+      expectCUFormatsTo(
+          'class A {\n'
+          ' static  bool x(){ return true; }\n'
+          ' }',
+          'class A {\n'
+          '  static bool x() {\n'
+          '    return true;\n'
+          '  }\n'
+          '}'
+        );
+    });
+
+    test('CU (method indent - 3)', () {
+      expectCUFormatsTo(
+          'class A {\n'
+          ' int x() =>   42   + 3 ;  \n'
+          '   }',
+          'class A {\n'
+          '  int x() => 42 + 3;\n'
+          '}'
+        );
+    });
+
+    test('CU (method indent - 4)', () {
+      expectCUFormatsTo(
+          'class A {\n'
+          ' int x() { \n'
+          'if (true) {return 42;\n'
+          '} else { return false; }\n'
+          '   }'
+          '}',
+          'class A {\n'
+          '  int x() {\n'
+          '    if (true) {\n'
+          '      return 42;\n'
+          '    } else {\n'
+          '      return false;\n'
+          '    }\n'
+          '  }\n'
+          '}'
+        );
+    });
+
+    test('stmt', () {
+      expectStmtFormatsTo(
+         'if (true){\n'
+         'if (true){\n'
+         'if (true){\n'
+         'return true;\n'
+         '} else{\n'
+         'return false;\n'
+         '}\n'
+         '}\n'
+         '}else{\n'
+         'return false;\n'
+         '}',
+         'if (true) {\n'
+         '  if (true) {\n'
+         '    if (true) {\n'
+         '      return true;\n'
+         '    } else {\n'
+         '      return false;\n'
+         '    }\n'
+         '  }\n'
+         '} else {\n'
+         '  return false;\n'
+         '}'
+        );
+    });
 
 
-//    test('initialIndent', () {
-//      var formatter = new CodeFormatter(
-//          new FormatterOptions(initialIndentationLevel: 2));
-//      var formattedSource = formatter.format(CodeKind.STATEMENT, 'var x;');
-//      expect(formattedSource, startsWith('  '));
-//    });
+    test('initialIndent', () {
+      var formatter = new CodeFormatter(
+          new FormatterOptions(initialIndentationLevel: 2));
+      var formattedSource = formatter.format(CodeKind.STATEMENT, 'var x;');
+      expect(formattedSource, startsWith('    '));
+    });
 
   });
 
@@ -238,4 +266,10 @@ Token chain(List<Token> tokens) {
 String formatCU(src, {options: const FormatterOptions()}) =>
     new CodeFormatter(options).format(CodeKind.COMPILATION_UNIT, src);
 
+String formatStatement(src, {options: const FormatterOptions()}) =>
+    new CodeFormatter(options).format(CodeKind.STATEMENT, src);
+
 expectCUFormatsTo(src, expected) => expect(formatCU(src), equals(expected));
+
+expectStmtFormatsTo(src, expected) => expect(formatStatement(src),
+    equals(expected));
