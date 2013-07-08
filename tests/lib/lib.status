@@ -10,7 +10,7 @@ async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug
 async/run_async4_test: Pass, Fail # no global exception handler in isolates. http://dartbug.com/9012
 async/run_async6_test: Fail # global error handling is not supported. http://dartbug.com/5958
 
-lib/async/stream_state_test: Fail # Issue 11722
+async/stream_state_test: Fail # Issue 11722
 
 # SIMD is unsupported on dart2js.
 typed_data/float32x4_test: Fail, OK
@@ -53,7 +53,8 @@ async/timer_isolate_test: Fail, OK # Needs Timer to run.
 async/timer_repeat_test: Fail,OK # Needs Timer to run.
 async/timer_test: Fail,OK # Needs Timer to run.
 
-[ $compiler == dart2js && ($jscl || $runtime == d8) ]async/stream_controller_async_test: Fail # Timer interface not supported; dartbug.com/7728.
+[ $compiler == dart2js && ($jscl || $runtime == d8) ]
+async/stream_controller_async_test: Fail # Timer interface not supported; dartbug.com/7728.
 async/stream_periodic_test: Fail # Timer interface not supported; dartbug.com/7728.
 async/stream_periodic2_test: Fail # Timer interface not supported; dartbug.com/7728.
 async/stream_periodic3_test: Fail # Timer interface not supported; dartbug.com/7728.
