@@ -4,20 +4,26 @@
 
 patch class Object {
 
-  // Helpers used to implement hashCode. If a hashCode is used we remember it
-  // using an Expando object. A new hashCode value is calculated using a Random
+  // Helpers used to implement hashCode. If a hashCode is used, we remember it
+  // in a weak table in the VM. A new hashCode value is calculated using a
   // number generator.
-  static Expando _hashCodeExp = new Expando("Object.hashCode");
-  static Random _hashCodeRnd = new Random();
+  static final _hashCodeRnd = new Random();
+
+  static _getHash(obj) native "Object_getHash";
+  static _setHash(obj, hash) native "Object_setHash";
 
   /* patch */ int get hashCode {
     if (this == null) {
       return 2011;  // The year Dart was announced and a prime.
     }
-    var result = _hashCodeExp[this];
-    if (result == null) {
-      result = _hashCodeRnd.nextInt(0x40000000);  // Stay in Smi range.
-      _hashCodeExp[this] = result;
+    var result = _getHash(this);
+    if (result == 0) {
+      // We want the hash to be a Smi value greater than 0.
+      result = _hashCodeRnd.nextInt(0x40000000);
+      while (result == 0) {
+        result = _hashCodeRnd.nextInt(0x40000000);
+      }
+      _setHash(this, result);
     }
     return result;
   }
