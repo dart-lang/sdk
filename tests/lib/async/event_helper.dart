@@ -22,7 +22,7 @@ class DataEvent implements Event {
   bool operator==(Object other) {
     if (other is! DataEvent) return false;
     DataEvent otherEvent = other;
-    return data == other.data;
+    return data == otherEvent.data;
   }
 
   String toString() => "DataEvent: $data";
@@ -40,7 +40,7 @@ class ErrorEvent implements Event {
   bool operator==(Object other) {
     if (other is! ErrorEvent) return false;
     ErrorEvent otherEvent = other;
-    return error == other.error;
+    return error == otherEvent.error;
   }
 
   String toString() => "ErrorEvent: ${error}";
