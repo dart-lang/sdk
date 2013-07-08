@@ -2180,8 +2180,9 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
       ICData::CountIndexFor(kNumArgsTested) * kWordSize;
   Label no_overflow;
   __ lw(T1, Address(T6, count_offset));
-  __ AddImmediateDetectOverflow(T1, T1, Smi::RawValue(1), CMPRES, T6);
+  __ AddImmediateDetectOverflow(T1, T1, Smi::RawValue(1), CMPRES, T5);
   __ bgez(CMPRES, &no_overflow);
+  __ delay_slot()->sw(T1, Address(T6, count_offset));
   __ LoadImmediate(TMP1, Smi::RawValue(Smi::kMaxValue));
   __ sw(TMP1, Address(T6, count_offset));  // If overflow.
   __ Bind(&no_overflow);
