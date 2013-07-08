@@ -153,7 +153,6 @@ interface WebGLRenderingContext {
 
   [Custom] any getExtension(DOMString name);
   [Suppressed, StrictTypeChecking, Custom] void getExtension(DOMString name);
-  [Custom] DOMString[] getSupportedExtensions();
   [Suppressed, StrictTypeChecking, Custom] void getSupportedExtensions();
 
   [Custom] any getTexParameter(unsigned long target, unsigned long pname);
@@ -181,6 +180,11 @@ interface IDBIndex {
 
     [CallWith=ScriptExecutionContext, RaisesException] IDBRequest count([ForceOptional] optional IDBKeyRange? range);
     [CallWith=ScriptExecutionContext, RaisesException] IDBRequest count(any key);
+};
+
+[Supplemental]
+interface HTMLMediaElement {
+  DOMString canPlayType([Default=Undefined] optional DOMString type, [Default=Undefined, TreatNullAs=NullString, TreatUndefinedAs=NullString, ForceOptional] optional DOMString keySystem);
 };
 
 [Supplemental]

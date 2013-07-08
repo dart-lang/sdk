@@ -4,7 +4,7 @@
 // Errors are created and thrown by DartVM only.
 // Changes here should also be reflected in corelib/error.dart as well
 
-class AssertionErrorImplementation implements AssertionError {
+class AssertionErrorImplementation extends AssertionError {
   factory AssertionErrorImplementation._uninstantiable() {
     throw new UnsupportedError(
         "AssertionError can only be allocated by the VM");
@@ -71,7 +71,7 @@ class CastErrorImplementation
   }
 }
 
-class FallThroughErrorImplementation implements FallThroughError {
+class FallThroughErrorImplementation extends FallThroughError {
   factory FallThroughErrorImplementation._uninstantiable() {
     throw new UnsupportedError(
         "FallThroughError can only be allocated by the VM");
@@ -92,7 +92,7 @@ class InternalError {
 
 
 class AbstractClassInstantiationErrorImplementation
-    implements AbstractClassInstantiationError {
+    extends AbstractClassInstantiationError {
 
   factory AbstractClassInstantiationErrorImplementation._uninstantiable() {
     throw new UnsupportedError(

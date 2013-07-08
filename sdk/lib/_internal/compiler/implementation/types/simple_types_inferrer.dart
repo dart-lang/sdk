@@ -82,7 +82,7 @@ abstract class TypeInformation {
   void addCaller(Element element) {
     callers.add(element);
   }
-  
+
   void addAssignment(Node node, TypeMask mask) {
     assignments[node] = mask;
   }
@@ -428,7 +428,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     if (hasAnalyzedAll) return;
     if (analyzed < numberOfElementsToAnalyze) return;
     hasAnalyzedAll = true;
-   
+
     // If we have analyzed all the world, we know all assigments to
     // fields and parameters, and can therefore infer a type for them.
     typeInfo.forEach((element, TypeInformation info) {
@@ -662,7 +662,9 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     if (compiler.trustTypeAnnotations
         // Parameters are being checked by the method, and we can
         // therefore only trust their type after the checks.
-        || (compiler.enableTypeAssertions && !analyzedElement.isParameter())) {
+        || (compiler.enableTypeAssertions &&
+            !analyzedElement.isParameter() &&
+            !analyzedElement.isFieldParameter())) {
       var annotation = analyzedElement.computeType(compiler);
       if (analyzedElement.isGetter()
           || analyzedElement.isFunction()

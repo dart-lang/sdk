@@ -4,7 +4,7 @@
 
 part of $LIBRARYNAME;
 
-$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 $if DART2JS
   factory $CLASSNAME(Map rtcIceServers, [Map mediaConstraints]) {
     var constructorName = JS('RtcPeerConnection', 'window[#]',
@@ -29,7 +29,7 @@ $if DART2JS
     // Currently in Firefox some of the RTC elements are defined but throw an
     // error unless the user has specifically enabled them in their
     // about:config. So we have to construct an element to actually test if RTC
-    // is supported at the given time. 
+    // is supported at the given time.
     try {
       new RtcPeerConnection(
           {"iceServers": [ {"url":"stun:localhost"}]});

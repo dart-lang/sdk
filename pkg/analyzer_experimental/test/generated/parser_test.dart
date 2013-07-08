@@ -276,7 +276,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertEquals(lexeme, identifier.name);
   }
   void test_parseArgumentDefinitionTest() {
-    ArgumentDefinitionTest test = ParserTestCase.parse5("parseArgumentDefinitionTest", "?x", []);
+    ArgumentDefinitionTest test = ParserTestCase.parse5("parseArgumentDefinitionTest", "?x", [ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST]);
     JUnitTestCase.assertNotNull(test.question);
     JUnitTestCase.assertNotNull(test.identifier);
   }
@@ -2632,42 +2632,67 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(parameter.keyword);
     JUnitTestCase.assertNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
+    JUnitTestCase.assertNull(parameter.parameters);
   }
   void test_parseNormalFormalParameter_field_const_type() {
     FieldFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "const A this.a)", []);
     JUnitTestCase.assertNotNull(parameter.keyword);
     JUnitTestCase.assertNotNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
+    JUnitTestCase.assertNull(parameter.parameters);
   }
   void test_parseNormalFormalParameter_field_final_noType() {
     FieldFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "final this.a)", []);
     JUnitTestCase.assertNotNull(parameter.keyword);
     JUnitTestCase.assertNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
+    JUnitTestCase.assertNull(parameter.parameters);
   }
   void test_parseNormalFormalParameter_field_final_type() {
     FieldFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "final A this.a)", []);
     JUnitTestCase.assertNotNull(parameter.keyword);
     JUnitTestCase.assertNotNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
+    JUnitTestCase.assertNull(parameter.parameters);
+  }
+  void test_parseNormalFormalParameter_field_function_nested() {
+    FieldFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "this.a(B b))", []);
+    JUnitTestCase.assertNull(parameter.keyword);
+    JUnitTestCase.assertNull(parameter.type);
+    JUnitTestCase.assertNotNull(parameter.identifier);
+    FormalParameterList parameterList = parameter.parameters;
+    JUnitTestCase.assertNotNull(parameterList);
+    EngineTestCase.assertSize(1, parameterList.parameters);
+  }
+  void test_parseNormalFormalParameter_field_function_noNested() {
+    FieldFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "this.a())", []);
+    JUnitTestCase.assertNull(parameter.keyword);
+    JUnitTestCase.assertNull(parameter.type);
+    JUnitTestCase.assertNotNull(parameter.identifier);
+    FormalParameterList parameterList = parameter.parameters;
+    JUnitTestCase.assertNotNull(parameterList);
+    EngineTestCase.assertSize(0, parameterList.parameters);
   }
   void test_parseNormalFormalParameter_field_noType() {
     FieldFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "this.a)", []);
     JUnitTestCase.assertNull(parameter.keyword);
     JUnitTestCase.assertNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
+    JUnitTestCase.assertNull(parameter.parameters);
   }
   void test_parseNormalFormalParameter_field_type() {
     FieldFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "A this.a)", []);
     JUnitTestCase.assertNull(parameter.keyword);
     JUnitTestCase.assertNotNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
+    JUnitTestCase.assertNull(parameter.parameters);
   }
   void test_parseNormalFormalParameter_field_var() {
     FieldFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "var this.a)", []);
     JUnitTestCase.assertNotNull(parameter.keyword);
     JUnitTestCase.assertNull(parameter.type);
     JUnitTestCase.assertNotNull(parameter.identifier);
+    JUnitTestCase.assertNull(parameter.parameters);
   }
   void test_parseNormalFormalParameter_function_noType() {
     FunctionTypedFormalParameter parameter = ParserTestCase.parse5("parseNormalFormalParameter", "a())", []);
@@ -3127,6 +3152,22 @@ class SimpleParserTest extends ParserTestCase {
     EngineTestCase.assertSize(1, statement.members);
     EngineTestCase.assertSize(3, statement.members[0].statements);
     JUnitTestCase.assertNotNull(statement.rightBracket);
+  }
+  void test_parseSymbolLiteral_multiple() {
+    SymbolLiteral literal = ParserTestCase.parse5("parseSymbolLiteral", "#a.b.c", []);
+    JUnitTestCase.assertNotNull(literal.poundSign);
+    NodeList<SimpleIdentifier> components = literal.components;
+    EngineTestCase.assertSize(3, components);
+    JUnitTestCase.assertEquals("a", components[0].name);
+    JUnitTestCase.assertEquals("b", components[1].name);
+    JUnitTestCase.assertEquals("c", components[2].name);
+  }
+  void test_parseSymbolLiteral_single() {
+    SymbolLiteral literal = ParserTestCase.parse5("parseSymbolLiteral", "#a", []);
+    JUnitTestCase.assertNotNull(literal.poundSign);
+    NodeList<SimpleIdentifier> components = literal.components;
+    EngineTestCase.assertSize(1, components);
+    JUnitTestCase.assertEquals("a", components[0].name);
   }
   void test_parseThrowExpression() {
     ThrowExpression expression = ParserTestCase.parse5("parseThrowExpression", "throw x;", []);
@@ -3669,12 +3710,13 @@ class SimpleParserTest extends ParserTestCase {
 
   /**
    * Invoke the method [Parser#computeStringValue] with the given argument.
+   *
    * @param lexeme the argument to the method
    * @return the result of invoking the method
    * @throws Exception if the method could not be invoked or throws an exception
    */
   String computeStringValue(String lexeme) {
-    AnalysisErrorListener listener = new AnalysisErrorListener_19();
+    AnalysisErrorListener listener = new AnalysisErrorListener_20();
     Parser parser = new Parser(null, listener);
     return invokeParserMethodImpl(parser, "computeStringValue", <Object> [lexeme], null) as String;
   }
@@ -3682,6 +3724,7 @@ class SimpleParserTest extends ParserTestCase {
   /**
    * Invoke the method [Parser#createSyntheticIdentifier] with the parser set to the token
    * stream produced by scanning the given source.
+   *
    * @param source the source to be scanned to produce the token stream being tested
    * @return the result of invoking the method
    * @throws Exception if the method could not be invoked or throws an exception
@@ -3694,6 +3737,7 @@ class SimpleParserTest extends ParserTestCase {
   /**
    * Invoke the method [Parser#createSyntheticIdentifier] with the parser set to the token
    * stream produced by scanning the given source.
+   *
    * @param source the source to be scanned to produce the token stream being tested
    * @return the result of invoking the method
    * @throws Exception if the method could not be invoked or throws an exception
@@ -3706,6 +3750,7 @@ class SimpleParserTest extends ParserTestCase {
   /**
    * Invoke the method [Parser#isFunctionDeclaration] with the parser set to the token
    * stream produced by scanning the given source.
+   *
    * @param source the source to be scanned to produce the token stream being tested
    * @return the result of invoking the method
    * @throws Exception if the method could not be invoked or throws an exception
@@ -3718,6 +3763,7 @@ class SimpleParserTest extends ParserTestCase {
   /**
    * Invoke the method [Parser#isFunctionExpression] with the parser set to the token stream
    * produced by scanning the given source.
+   *
    * @param source the source to be scanned to produce the token stream being tested
    * @return the result of invoking the method
    * @throws Exception if the method could not be invoked or throws an exception
@@ -3733,6 +3779,7 @@ class SimpleParserTest extends ParserTestCase {
   /**
    * Invoke the method [Parser#isInitializedVariableDeclaration] with the parser set to the
    * token stream produced by scanning the given source.
+   *
    * @param source the source to be scanned to produce the token stream being tested
    * @return the result of invoking the method
    * @throws Exception if the method could not be invoked or throws an exception
@@ -3745,6 +3792,7 @@ class SimpleParserTest extends ParserTestCase {
   /**
    * Invoke the method [Parser#isSwitchMember] with the parser set to the token stream
    * produced by scanning the given source.
+   *
    * @param source the source to be scanned to produce the token stream being tested
    * @return the result of invoking the method
    * @throws Exception if the method could not be invoked or throws an exception
@@ -3757,6 +3805,7 @@ class SimpleParserTest extends ParserTestCase {
   /**
    * Invoke a "skip" method in [Parser]. The method is assumed to take a token as it's
    * parameter and is given the first token in the scanned source.
+   *
    * @param methodName the name of the method that should be invoked
    * @param source the source to be processed by the method
    * @return the result of invoking the method
@@ -5232,6 +5281,14 @@ class SimpleParserTest extends ParserTestCase {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseNormalFormalParameter_field_final_type);
       });
+      _ut.test('test_parseNormalFormalParameter_field_function_nested', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseNormalFormalParameter_field_function_nested);
+      });
+      _ut.test('test_parseNormalFormalParameter_field_function_noNested', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseNormalFormalParameter_field_function_noNested);
+      });
       _ut.test('test_parseNormalFormalParameter_field_noType', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseNormalFormalParameter_field_noType);
@@ -5540,6 +5597,14 @@ class SimpleParserTest extends ParserTestCase {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseSwitchStatement_labeledStatementInCase);
       });
+      _ut.test('test_parseSymbolLiteral_multiple', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseSymbolLiteral_multiple);
+      });
+      _ut.test('test_parseSymbolLiteral_single', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseSymbolLiteral_single);
+      });
       _ut.test('test_parseThrowExpression', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseThrowExpression);
@@ -5847,7 +5912,7 @@ class SimpleParserTest extends ParserTestCase {
     });
   }
 }
-class AnalysisErrorListener_19 implements AnalysisErrorListener {
+class AnalysisErrorListener_20 implements AnalysisErrorListener {
   void onError(AnalysisError event) {
     JUnitTestCase.fail("Unexpected compilation error: ${event.message} (${event.offset}, ${event.length})");
   }
@@ -5993,7 +6058,7 @@ class ComplexParserTest extends ParserTestCase {
     EngineTestCase.assertSize(1, declarations);
   }
   void test_equalityExpression_normal() {
-    BinaryExpression expression = ParserTestCase.parseExpression("x == y != z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("x == y != z", [ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND]);
     EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
   }
   void test_equalityExpression_precedence_relational_left() {
@@ -6005,7 +6070,7 @@ class ComplexParserTest extends ParserTestCase {
     EngineTestCase.assertInstanceOf(IsExpression, expression.rightOperand);
   }
   void test_equalityExpression_super() {
-    BinaryExpression expression = ParserTestCase.parseExpression("super == y != z", []);
+    BinaryExpression expression = ParserTestCase.parseExpression("super == y != z", [ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND]);
     EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
   }
   void test_logicalAndExpression() {
@@ -6072,6 +6137,9 @@ class ComplexParserTest extends ParserTestCase {
   void test_shiftExpression_super() {
     BinaryExpression expression = ParserTestCase.parseExpression("super >> 4 << 3", []);
     EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
+  }
+  void test_topLevelVariable_withMetadata() {
+    ParserTestCase.parseCompilationUnit("String @A string;", []);
   }
   static dartSuite() {
     _ut.group('ComplexParserTest', () {
@@ -6259,6 +6327,10 @@ class ComplexParserTest extends ParserTestCase {
         final __test = new ComplexParserTest();
         runJUnitTest(__test, __test.test_shiftExpression_super);
       });
+      _ut.test('test_topLevelVariable_withMetadata', () {
+        final __test = new ComplexParserTest();
+        runJUnitTest(__test, __test.test_topLevelVariable_withMetadata);
+      });
     });
   }
 }
@@ -6295,6 +6367,7 @@ class ASTValidator extends GeneralizingASTVisitor<Object> {
 
   /**
    * Validate that the given AST node is correctly constructed.
+   *
    * @param node the AST node being validated
    */
   void validate(ASTNode node) {
@@ -6345,6 +6418,7 @@ class ParserTestCase extends EngineTestCase {
    *
    * The given source is scanned and the parser is initialized to start with the first token in the
    * source before the parse method is invoked.
+   *
    * @param methodName the name of the parse method that should be invoked to parse the source
    * @param objects the values of the arguments to the method
    * @param source the source to be parsed by the parse method
@@ -6360,6 +6434,7 @@ class ParserTestCase extends EngineTestCase {
    *
    * The given source is scanned and the parser is initialized to start with the first token in the
    * source before the parse method is invoked.
+   *
    * @param methodName the name of the parse method that should be invoked to parse the source
    * @param objects the values of the arguments to the method
    * @param source the source to be parsed by the parse method
@@ -6367,7 +6442,7 @@ class ParserTestCase extends EngineTestCase {
    * @return the result of invoking the method
    * @throws Exception if the method could not be invoked or throws an exception
    * @throws AssertionFailedError if the result is `null` or the errors produced while
-   * scanning and parsing the source do not match the expected errors
+   *           scanning and parsing the source do not match the expected errors
    */
   static Object parse3(String methodName, List<Object> objects, String source, List<AnalysisError> errors) {
     GatheringErrorListener listener = new GatheringErrorListener();
@@ -6382,6 +6457,7 @@ class ParserTestCase extends EngineTestCase {
    *
    * The given source is scanned and the parser is initialized to start with the first token in the
    * source before the parse method is invoked.
+   *
    * @param methodName the name of the parse method that should be invoked to parse the source
    * @param objects the values of the arguments to the method
    * @param source the source to be parsed by the parse method
@@ -6389,7 +6465,7 @@ class ParserTestCase extends EngineTestCase {
    * @return the result of invoking the method
    * @throws Exception if the method could not be invoked or throws an exception
    * @throws AssertionFailedError if the result is `null` or the errors produced while
-   * scanning and parsing the source do not match the expected errors
+   *           scanning and parsing the source do not match the expected errors
    */
   static Object parse4(String methodName, List<Object> objects, String source, List<ErrorCode> errorCodes) {
     GatheringErrorListener listener = new GatheringErrorListener();
@@ -6403,23 +6479,25 @@ class ParserTestCase extends EngineTestCase {
    *
    * The given source is scanned and the parser is initialized to start with the first token in the
    * source before the parse method is invoked.
+   *
    * @param methodName the name of the parse method that should be invoked to parse the source
    * @param source the source to be parsed by the parse method
    * @param errorCodes the error codes of the errors that should be generated
    * @return the result of invoking the method
    * @throws Exception if the method could not be invoked or throws an exception
    * @throws AssertionFailedError if the result is `null` or the errors produced while
-   * scanning and parsing the source do not match the expected errors
+   *           scanning and parsing the source do not match the expected errors
    */
   static Object parse5(String methodName, String source, List<ErrorCode> errorCodes) => parse4(methodName, _EMPTY_ARGUMENTS, source, errorCodes);
 
   /**
    * Parse the given source as a compilation unit.
+   *
    * @param source the source to be parsed
    * @param errorCodes the error codes of the errors that are expected to be found
    * @return the compilation unit that was parsed
    * @throws Exception if the source could not be parsed, if the compilation errors in the source do
-   * not match those that are expected, or if the result would have been `null`
+   *           not match those that are expected, or if the result would have been `null`
    */
   static CompilationUnit parseCompilationUnit(String source, List<ErrorCode> errorCodes) {
     GatheringErrorListener listener = new GatheringErrorListener();
@@ -6435,11 +6513,12 @@ class ParserTestCase extends EngineTestCase {
 
   /**
    * Parse the given source as an expression.
+   *
    * @param source the source to be parsed
    * @param errorCodes the error codes of the errors that are expected to be found
    * @return the expression that was parsed
    * @throws Exception if the source could not be parsed, if the compilation errors in the source do
-   * not match those that are expected, or if the result would have been `null`
+   *           not match those that are expected, or if the result would have been `null`
    */
   static Expression parseExpression(String source, List<ErrorCode> errorCodes) {
     GatheringErrorListener listener = new GatheringErrorListener();
@@ -6455,11 +6534,12 @@ class ParserTestCase extends EngineTestCase {
 
   /**
    * Parse the given source as a statement.
+   *
    * @param source the source to be parsed
    * @param errorCodes the error codes of the errors that are expected to be found
    * @return the statement that was parsed
    * @throws Exception if the source could not be parsed, if the compilation errors in the source do
-   * not match those that are expected, or if the result would have been `null`
+   *           not match those that are expected, or if the result would have been `null`
    */
   static Statement parseStatement(String source, List<ErrorCode> errorCodes) {
     GatheringErrorListener listener = new GatheringErrorListener();
@@ -6475,13 +6555,14 @@ class ParserTestCase extends EngineTestCase {
 
   /**
    * Parse the given source as a sequence of statements.
+   *
    * @param source the source to be parsed
    * @param expectedCount the number of statements that are expected
    * @param errorCodes the error codes of the errors that are expected to be found
    * @return the statements that were parsed
    * @throws Exception if the source could not be parsed, if the number of statements does not match
-   * the expected count, if the compilation errors in the source do not match those that
-   * are expected, or if the result would have been `null`
+   *           the expected count, if the compilation errors in the source do not match those that
+   *           are expected, or if the result would have been `null`
    */
   static List<Statement> parseStatements(String source, int expectedCount, List<ErrorCode> errorCodes) {
     GatheringErrorListener listener = new GatheringErrorListener();
@@ -6501,6 +6582,7 @@ class ParserTestCase extends EngineTestCase {
    *
    * The given source is scanned and the parser is initialized to start with the first token in the
    * source before the method is invoked.
+   *
    * @param methodName the name of the method that should be invoked
    * @param objects the values of the arguments to the method
    * @param source the source to be processed by the parse method
@@ -6508,7 +6590,7 @@ class ParserTestCase extends EngineTestCase {
    * @return the result of invoking the method
    * @throws Exception if the method could not be invoked or throws an exception
    * @throws AssertionFailedError if the result is `null` or the errors produced while
-   * scanning and parsing the source do not match the expected errors
+   *           scanning and parsing the source do not match the expected errors
    */
   static Object invokeParserMethod(String methodName, List<Object> objects, String source, GatheringErrorListener listener) {
     StringScanner scanner = new StringScanner(null, source, listener);
@@ -6527,18 +6609,20 @@ class ParserTestCase extends EngineTestCase {
    *
    * The given source is scanned and the parser is initialized to start with the first token in the
    * source before the method is invoked.
+   *
    * @param methodName the name of the method that should be invoked
    * @param source the source to be processed by the parse method
    * @param listener the error listener that will be used for both scanning and parsing
    * @return the result of invoking the method
    * @throws Exception if the method could not be invoked or throws an exception
    * @throws AssertionFailedError if the result is `null` or the errors produced while
-   * scanning and parsing the source do not match the expected errors
+   *           scanning and parsing the source do not match the expected errors
    */
   static Object invokeParserMethod2(String methodName, String source, GatheringErrorListener listener) => invokeParserMethod(methodName, _EMPTY_ARGUMENTS, source, listener);
 
   /**
    * Return a CommentAndMetadata object with the given values that can be used for testing.
+   *
    * @param comment the comment to be wrapped in the object
    * @param annotations the annotations to be wrapped in the object
    * @return a CommentAndMetadata object that can be used for testing
@@ -6553,6 +6637,7 @@ class ParserTestCase extends EngineTestCase {
 
   /**
    * Return an empty CommentAndMetadata object that can be used for testing.
+   *
    * @return an empty CommentAndMetadata object that can be used for testing
    */
   CommentAndMetadata emptyCommentAndMetadata() => new CommentAndMetadata(null, new List<Annotation>());
@@ -6566,7 +6651,7 @@ class ParserTestCase extends EngineTestCase {
  * sequences to ensure that the correct recovery steps are taken in the parser.
  */
 class RecoveryParserTest extends ParserTestCase {
-  void fail_incompleteReturnType() {
+  void fail_incomplete_returnType() {
     ParserTestCase.parseCompilationUnit(EngineTestCase.createSource(["Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {", "  if (map == null) return null;", "  Map<Symbol, dynamic> result = new Map<Symbol, dynamic>();", "  map.forEach((name, value) {", "    result[new Symbol(name)] = value;", "  });", "  return result;", "}"]), []);
   }
   void test_additiveExpression_missing_LHS() {
@@ -6777,7 +6862,7 @@ class RecoveryParserTest extends ParserTestCase {
     EngineTestCase.assertInstanceOf(IsExpression, expression.rightOperand);
   }
   void test_equalityExpression_super() {
-    BinaryExpression expression = ParserTestCase.parseExpression("super ==  ==", [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.MISSING_IDENTIFIER]);
+    BinaryExpression expression = ParserTestCase.parseExpression("super ==  ==", [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND]);
     EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
   }
   void test_expressionList_multiple_end() {
@@ -6800,6 +6885,17 @@ class RecoveryParserTest extends ParserTestCase {
     Expression syntheticExpression = result[3];
     EngineTestCase.assertInstanceOf(SimpleIdentifier, syntheticExpression);
     JUnitTestCase.assertTrue(syntheticExpression.isSynthetic);
+  }
+  void test_incomplete_topLevelVariable() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit("String", [ParserErrorCode.EXPECTED_EXECUTABLE]);
+    NodeList<CompilationUnitMember> declarations = unit.declarations;
+    EngineTestCase.assertSize(1, declarations);
+    CompilationUnitMember member = declarations[0];
+    EngineTestCase.assertInstanceOf(TopLevelVariableDeclaration, member);
+    NodeList<VariableDeclaration> variables = ((member as TopLevelVariableDeclaration)).variables.variables;
+    EngineTestCase.assertSize(1, variables);
+    SimpleIdentifier name = variables[0].name;
+    JUnitTestCase.assertTrue(name.isSynthetic);
   }
   void test_isExpression_noType() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit("class Bar<T extends Foo> {m(x){if (x is ) return;if (x is !)}}", [ParserErrorCode.EXPECTED_TYPE_NAME, ParserErrorCode.EXPECTED_TYPE_NAME, ParserErrorCode.MISSING_STATEMENT]);
@@ -6897,7 +6993,7 @@ class RecoveryParserTest extends ParserTestCase {
     EngineTestCase.assertInstanceOf(PrefixExpression, expression.rightOperand);
   }
   void test_multiplicativeExpression_super() {
-    BinaryExpression expression = ParserTestCase.parseExpression("super ==  ==", [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.MISSING_IDENTIFIER]);
+    BinaryExpression expression = ParserTestCase.parseExpression("super ==  ==", [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND]);
     EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
   }
   void test_prefixExpression_missing_operand_minus() {
@@ -7153,6 +7249,10 @@ class RecoveryParserTest extends ParserTestCase {
       _ut.test('test_expressionList_multiple_start', () {
         final __test = new RecoveryParserTest();
         runJUnitTest(__test, __test.test_expressionList_multiple_start);
+      });
+      _ut.test('test_incomplete_topLevelVariable', () {
+        final __test = new RecoveryParserTest();
+        runJUnitTest(__test, __test.test_incomplete_topLevelVariable);
       });
       _ut.test('test_isExpression_noType', () {
         final __test = new RecoveryParserTest();
@@ -7464,6 +7564,15 @@ class ErrorParserTest extends ParserTestCase {
   void test_duplicateLabelInSwitchStatement() {
     ParserTestCase.parse5("parseSwitchStatement", "switch (e) {l1: case 0: break; l1: case 1: break;}", [ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT]);
   }
+  void test_equalityCannotBeEqualityOperand_eq_eq() {
+    ParserTestCase.parseExpression("1 == 2 == 3", [ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND]);
+  }
+  void test_equalityCannotBeEqualityOperand_eq_neq() {
+    ParserTestCase.parseExpression("1 == 2 != 3", [ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND]);
+  }
+  void test_equalityCannotBeEqualityOperand_neq_eq() {
+    ParserTestCase.parseExpression("1 != 2 == 3", [ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND]);
+  }
   void test_expectedCaseOrDefault() {
     ParserTestCase.parse5("parseSwitchStatement", "switch (e) {break;}", [ParserErrorCode.EXPECTED_CASE_OR_DEFAULT]);
   }
@@ -7590,6 +7699,15 @@ class ErrorParserTest extends ParserTestCase {
   void test_finalTypedef() {
     ParserTestCase.parseCompilationUnit("final typedef F();", [ParserErrorCode.FINAL_TYPEDEF]);
   }
+  void test_functionTypedParameter_const() {
+    ParserTestCase.parseCompilationUnit("void f(const x()) {}", [ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR]);
+  }
+  void test_functionTypedParameter_final() {
+    ParserTestCase.parseCompilationUnit("void f(final x()) {}", [ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR]);
+  }
+  void test_functionTypedParameter_var() {
+    ParserTestCase.parseCompilationUnit("void f(var x()) {}", [ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR]);
+  }
   void test_getterWithParameters() {
     ParserTestCase.parse4("parseClassMember", <Object> ["C"], "int get x() {}", [ParserErrorCode.GETTER_WITH_PARAMETERS]);
   }
@@ -7651,8 +7769,32 @@ class ErrorParserTest extends ParserTestCase {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit("part 'a.dart';\nlibrary l;", [ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST]);
     JUnitTestCase.assertNotNull(unit);
   }
+  void test_localFunctionDeclarationModifier_abstract() {
+    ParserTestCase.parseStatement("abstract f() {}", [ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER]);
+  }
+  void test_localFunctionDeclarationModifier_external() {
+    ParserTestCase.parseStatement("external f() {}", [ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER]);
+  }
+  void test_localFunctionDeclarationModifier_factory() {
+    ParserTestCase.parseStatement("factory f() {}", [ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER]);
+  }
+  void test_localFunctionDeclarationModifier_static() {
+    ParserTestCase.parseStatement("static f() {}", [ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER]);
+  }
   void test_missingAssignableSelector_identifiersAssigned() {
     ParserTestCase.parseExpression("x.y = y;", []);
+  }
+  void test_missingAssignableSelector_postfix_minusMinus_literal() {
+    ParserTestCase.parseExpression("0--", [ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR]);
+  }
+  void test_missingAssignableSelector_postfix_plusPlus_literal() {
+    ParserTestCase.parseExpression("0++", [ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR]);
+  }
+  void test_missingAssignableSelector_prefix_minusMinus_literal() {
+    ParserTestCase.parseExpression("--0", [ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR]);
+  }
+  void test_missingAssignableSelector_prefix_plusPlus_literal() {
+    ParserTestCase.parseExpression("++0", [ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR]);
   }
   void test_missingAssignableSelector_primarySelectorPostfix() {
     ParserTestCase.parseExpression("x(y)(z)++", [ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR]);
@@ -7715,6 +7857,12 @@ class ErrorParserTest extends ParserTestCase {
   }
   void test_missingIdentifier_functionDeclaration_returnTypeWithoutName() {
     ParserTestCase.parse5("parseFunctionDeclarationStatement", "A<T> () {}", [ParserErrorCode.MISSING_IDENTIFIER]);
+  }
+  void test_missingIdentifier_inSymbol_afterPeriod() {
+    ParserTestCase.parse5("parseSymbolLiteral", "#a.", [ParserErrorCode.MISSING_IDENTIFIER]);
+  }
+  void test_missingIdentifier_inSymbol_first() {
+    ParserTestCase.parse5("parseSymbolLiteral", "#", [ParserErrorCode.MISSING_IDENTIFIER]);
   }
   void test_missingIdentifier_number() {
     SimpleIdentifier expression = ParserTestCase.parse5("parseSimpleIdentifier", "1", [ParserErrorCode.MISSING_IDENTIFIER]);
@@ -7796,6 +7944,12 @@ class ErrorParserTest extends ParserTestCase {
   void test_nonUserDefinableOperator() {
     ParserTestCase.parse4("parseClassMember", <Object> ["C"], "operator +=(int x) => x + 1;", [ParserErrorCode.NON_USER_DEFINABLE_OPERATOR]);
   }
+  void test_optionalAfterNormalParameters_named() {
+    ParserTestCase.parseCompilationUnit("f({a}, b) {}", [ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS]);
+  }
+  void test_optionalAfterNormalParameters_positional() {
+    ParserTestCase.parseCompilationUnit("f([a], b) {}", [ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS]);
+  }
   void test_positionalAfterNamedArgument() {
     ParserTestCase.parse5("parseArgumentList", "(x: 1, 2)", [ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT]);
   }
@@ -7828,6 +7982,9 @@ class ErrorParserTest extends ParserTestCase {
   }
   void test_staticTopLevelDeclaration_class() {
     ParserTestCase.parseCompilationUnit("static class C {}", [ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION]);
+  }
+  void test_staticTopLevelDeclaration_function() {
+    ParserTestCase.parseCompilationUnit("static f() {}", [ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION]);
   }
   void test_staticTopLevelDeclaration_typedef() {
     ParserTestCase.parseCompilationUnit("static typedef F();", [ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION]);
@@ -8094,6 +8251,18 @@ class ErrorParserTest extends ParserTestCase {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_duplicatedModifier_var);
       });
+      _ut.test('test_equalityCannotBeEqualityOperand_eq_eq', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_equalityCannotBeEqualityOperand_eq_eq);
+      });
+      _ut.test('test_equalityCannotBeEqualityOperand_eq_neq', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_equalityCannotBeEqualityOperand_eq_neq);
+      });
+      _ut.test('test_equalityCannotBeEqualityOperand_neq_eq', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_equalityCannotBeEqualityOperand_neq_eq);
+      });
       _ut.test('test_expectedCaseOrDefault', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_expectedCaseOrDefault);
@@ -8258,6 +8427,18 @@ class ErrorParserTest extends ParserTestCase {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_finalTypedef);
       });
+      _ut.test('test_functionTypedParameter_const', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_functionTypedParameter_const);
+      });
+      _ut.test('test_functionTypedParameter_final', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_functionTypedParameter_final);
+      });
+      _ut.test('test_functionTypedParameter_var', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_functionTypedParameter_var);
+      });
       _ut.test('test_getterWithParameters', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_getterWithParameters);
@@ -8338,9 +8519,41 @@ class ErrorParserTest extends ParserTestCase {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_libraryDirectiveNotFirst_afterPart);
       });
+      _ut.test('test_localFunctionDeclarationModifier_abstract', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_localFunctionDeclarationModifier_abstract);
+      });
+      _ut.test('test_localFunctionDeclarationModifier_external', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_localFunctionDeclarationModifier_external);
+      });
+      _ut.test('test_localFunctionDeclarationModifier_factory', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_localFunctionDeclarationModifier_factory);
+      });
+      _ut.test('test_localFunctionDeclarationModifier_static', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_localFunctionDeclarationModifier_static);
+      });
       _ut.test('test_missingAssignableSelector_identifiersAssigned', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_missingAssignableSelector_identifiersAssigned);
+      });
+      _ut.test('test_missingAssignableSelector_postfix_minusMinus_literal', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_missingAssignableSelector_postfix_minusMinus_literal);
+      });
+      _ut.test('test_missingAssignableSelector_postfix_plusPlus_literal', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_missingAssignableSelector_postfix_plusPlus_literal);
+      });
+      _ut.test('test_missingAssignableSelector_prefix_minusMinus_literal', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_missingAssignableSelector_prefix_minusMinus_literal);
+      });
+      _ut.test('test_missingAssignableSelector_prefix_plusPlus_literal', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_missingAssignableSelector_prefix_plusPlus_literal);
       });
       _ut.test('test_missingAssignableSelector_primarySelectorPostfix', () {
         final __test = new ErrorParserTest();
@@ -8421,6 +8634,14 @@ class ErrorParserTest extends ParserTestCase {
       _ut.test('test_missingIdentifier_functionDeclaration_returnTypeWithoutName', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_missingIdentifier_functionDeclaration_returnTypeWithoutName);
+      });
+      _ut.test('test_missingIdentifier_inSymbol_afterPeriod', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_missingIdentifier_inSymbol_afterPeriod);
+      });
+      _ut.test('test_missingIdentifier_inSymbol_first', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_missingIdentifier_inSymbol_first);
       });
       _ut.test('test_missingIdentifier_number', () {
         final __test = new ErrorParserTest();
@@ -8522,6 +8743,14 @@ class ErrorParserTest extends ParserTestCase {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_nonUserDefinableOperator);
       });
+      _ut.test('test_optionalAfterNormalParameters_named', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_optionalAfterNormalParameters_named);
+      });
+      _ut.test('test_optionalAfterNormalParameters_positional', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_optionalAfterNormalParameters_positional);
+      });
       _ut.test('test_positionalAfterNamedArgument', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_positionalAfterNamedArgument);
@@ -8565,6 +8794,10 @@ class ErrorParserTest extends ParserTestCase {
       _ut.test('test_staticTopLevelDeclaration_class', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_staticTopLevelDeclaration_class);
+      });
+      _ut.test('test_staticTopLevelDeclaration_function', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_staticTopLevelDeclaration_function);
       });
       _ut.test('test_staticTopLevelDeclaration_typedef', () {
         final __test = new ErrorParserTest();
@@ -8809,6 +9042,7 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'parseStringLiteral_0': new MethodTrampoline(0, (Parser target) => target.parseStringLiteral()),
   'parseSuperConstructorInvocation_0': new MethodTrampoline(0, (Parser target) => target.parseSuperConstructorInvocation()),
   'parseSwitchStatement_0': new MethodTrampoline(0, (Parser target) => target.parseSwitchStatement()),
+  'parseSymbolLiteral_0': new MethodTrampoline(0, (Parser target) => target.parseSymbolLiteral()),
   'parseThrowExpression_0': new MethodTrampoline(0, (Parser target) => target.parseThrowExpression()),
   'parseThrowExpressionWithoutCascade_0': new MethodTrampoline(0, (Parser target) => target.parseThrowExpressionWithoutCascade()),
   'parseTryStatement_0': new MethodTrampoline(0, (Parser target) => target.parseTryStatement()),
@@ -8845,6 +9079,7 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'validateModifiersForClass_1': new MethodTrampoline(1, (Parser target, arg0) => target.validateModifiersForClass(arg0)),
   'validateModifiersForConstructor_1': new MethodTrampoline(1, (Parser target, arg0) => target.validateModifiersForConstructor(arg0)),
   'validateModifiersForField_1': new MethodTrampoline(1, (Parser target, arg0) => target.validateModifiersForField(arg0)),
+  'validateModifiersForFunctionDeclarationStatement_1': new MethodTrampoline(1, (Parser target, arg0) => target.validateModifiersForFunctionDeclarationStatement(arg0)),
   'validateModifiersForGetterOrSetterOrMethod_1': new MethodTrampoline(1, (Parser target, arg0) => target.validateModifiersForGetterOrSetterOrMethod(arg0)),
   'validateModifiersForOperator_1': new MethodTrampoline(1, (Parser target, arg0) => target.validateModifiersForOperator(arg0)),
   'validateModifiersForTopLevelDeclaration_1': new MethodTrampoline(1, (Parser target, arg0) => target.validateModifiersForTopLevelDeclaration(arg0)),

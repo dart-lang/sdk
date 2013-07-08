@@ -4,5 +4,5 @@
 
 patch class Symbol {
   /* patch */ const Symbol(String name)
-      : this._name = validate(name);
+      : this._name = name;
 }

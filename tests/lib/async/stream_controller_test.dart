@@ -9,7 +9,7 @@ import "package:expect/expect.dart";
 import 'dart:async';
 import 'event_helper.dart';
 
-testMultiController() {
+void testMultiController() {
   // Test normal flow.
   var c = new StreamController(sync: true);
   Events expectedEvents = new Events()
@@ -106,11 +106,8 @@ testMultiController() {
           handleData: (v, s) { s.addError(v); },
           handleError: (e, s) { s.add(e); },
           handleDone: (s) {
-
             s.add("foo");
-
             s.close();
-
           })));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
@@ -408,7 +405,7 @@ testExtraMethods() {
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 }
 
-testClosed() {
+void testClosed() {
   StreamController c = new StreamController(sync: true);
   Expect.isFalse(c.isClosed);
   c.add(42);

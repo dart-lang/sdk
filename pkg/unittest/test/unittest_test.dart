@@ -406,8 +406,8 @@ main() {
     'single correct test': buildStatusString(1, 0, 0, 'single correct test'),
     'single failing test': buildStatusString(0, 1, 0, 'single failing test',
         message: 'Expected: <5> Actual: <4>'),
-    'exception test': buildStatusString(0, 1, 0, 'exception test',
-        message: 'Caught Exception: Fail.'),
+    'exception test': buildStatusString(0, 0, 1, 'exception test',
+        message: 'Test failed: Caught Exception: Fail.'),
     'group name test': buildStatusString(2, 0, 0, 'a a::a b b'),
     'setup test': buildStatusString(1, 0, 0, 'a setup test',
         count: 0, setup: 'setup'),
@@ -430,12 +430,12 @@ main() {
         'testOne::testTwo:Expected: false Actual: <true>:testThree'),
     'async setup/teardown test': buildStatusString(2, 0, 3,
         'good setup/good teardown foo1::'
-        'good setup/bad teardown foo2:good setup/bad teardown '
-        'foo2: Test teardown failed: Failed to complete tearDown:'
-        'bad setup/good teardown foo3:bad setup/good teardown '
-        'foo3: Test setup failed: Failed to complete setUp:'
-        'bad setup/bad teardown foo4:bad setup/bad teardown '
-        'foo4: Test teardown failed: Failed to complete tearDown:'
+        'good setup/bad teardown foo2:'
+            'Teardown failed: Caught Failed to complete tearDown:'
+        'bad setup/good teardown foo3:'
+            'Setup failed: Caught Failed to complete setUp:'
+        'bad setup/bad teardown foo4:'
+            'Setup failed: Caught Failed to complete setUp:'
         'post groups'),
     'test returning future': buildStatusString(2, 4, 0,
         'successful::'

@@ -2,6 +2,10 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $runtime == drt && $compiler == none && $mode == debug ]
+spawn_uri_vm_test: Fail # Issue 11656
+spawn_uri_nested_vm_test: Fail # Issue 11656
+
 [ $runtime == vm ]
 isolate2_negative_test: Skip  # Need to resolve correct behaviour.
 isolate3_negative_test: Skip  # test depends on isolate error exiting process.
@@ -19,18 +23,6 @@ isolate3_negative_test: Skip  # Inherited from VM.
 serialization_test: Skip  # tests dart2js-specific serialization code
 spawn_uri_test: Skip # uses a .js extension (not for dartium)
 spawn_uri_negative_test: Skip # ditto
-
-[ $compiler == dartc ]
-isolate_negative_test: Fail    # status change with --check-only
-isolate2_negative_test: Fail   # status change with --check-only
-spawn_function_negative_test: Fail, OK # Fails at runtime.
-spawn_uri_negative_test: Fail, OK # Fails at runtime.
-spawn_uri_vm_negative_test: Fail, OK # Fails at runtime.
-unresolved_ports_negative_test: Fail, OK # Fails at runtime.
-
-# test issue 6512
-isolate2_negative_test: Pass
-compute_this_script_browser_test: Pass
 
 [ $compiler == dartanalyzer ]
 isolate2_negative_test: fail
@@ -137,6 +129,9 @@ mandel_isolate_stream_test: Pass, Fail, Timeout # Issue 7952
 
 [ $compiler == dart2js && ( $runtime == ff || $runtime == safari ) ]
 isolate_stress_test: Pass, Timeout # http://dartbug.com/10697
+
+[ $compiler == dart2js && ( $runtime == drt || $runtime == chrome ) ]
+isolate_stress_test: Pass, Timeout # issue 11648
 
 [ $arch == arm || $arch == simarm ]
 *: Skip

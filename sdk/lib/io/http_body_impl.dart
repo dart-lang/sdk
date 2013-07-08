@@ -120,8 +120,8 @@ class _HttpBodyHandler {
           case "x-www-form-urlencoded":
             return asText(Encoding.ASCII)
                 .then((body) {
-                  var map = _HttpUtils.splitQueryString(
-                      body.body, encoding: defaultEncoding);
+                  var map = Uri.splitQueryString(body.body,
+                      decode: (s) => _decodeString(s, defaultEncoding));
                   var result = {};
                   for (var key in map.keys) {
                     result[key] = map[key];

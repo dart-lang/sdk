@@ -42,25 +42,25 @@ main() {
 
   var value = {'name_index': 'one', 'value': 'add_value'};
   test('add/delete', () {
-    var transaction = db.transaction([storeName], 'readwrite');
+    var transaction = db.transaction(storeName, 'readwrite');
     var key;
     return transaction.objectStore(storeName).add(value).then((addedKey) {
       key = addedKey;
     }).then((_) {
       return transaction.completed;
     }).then((_) {
-      transaction = db.transaction([storeName], 'readonly');
+      transaction = db.transaction(storeName, 'readonly');
       return transaction.objectStore(storeName).getObject(key);
     }).then((readValue) {
       expect(readValue['value'], value['value']);
       return transaction.completed;
     }).then((_) {
-      transaction = db.transaction([storeName], 'readwrite');
+      transaction = db.transactionList([storeName], 'readwrite');
       return transaction.objectStore(storeName).delete(key);
     }).then((_) {
       return transaction.completed;
     }).then((_) {
-      var transaction = db.transaction([storeName], 'readonly');
+      var transaction = db.transactionList([storeName], 'readonly');
       return transaction.objectStore(storeName).count();
     }).then((count) {
       expect(count, 0);
@@ -68,22 +68,22 @@ main() {
   });
 
   test('clear/count', () {
-    var transaction = db.transaction([storeName], 'readwrite');
+    var transaction = db.transaction(storeName, 'readwrite');
     transaction.objectStore(storeName).add(value);
 
     return transaction.completed.then((_) {
-      transaction = db.transaction([storeName], 'readonly');
+      transaction = db.transaction(storeName, 'readonly');
       return transaction.objectStore(storeName).count();
     }).then((count) {
       expect(count, 1);
     }).then((_) {
       return transaction.completed;
     }).then((_) {
-      transaction = db.transaction([storeName], 'readwrite');
+      transaction = db.transactionList([storeName], 'readwrite');
       transaction.objectStore(storeName).clear();
       return transaction.completed;
     }).then((_) {
-      var transaction = db.transaction([storeName], 'readonly');
+      var transaction = db.transactionList([storeName], 'readonly');
       return transaction.objectStore(storeName).count();
     }).then((count) {
       expect(count, 0);
@@ -91,42 +91,42 @@ main() {
   });
 
   test('index', () {
-    var transaction = db.transaction([storeName], 'readwrite');
+    var transaction = db.transaction(storeName, 'readwrite');
     transaction.objectStore(storeName).add(value);
     transaction.objectStore(storeName).add(value);
     transaction.objectStore(storeName).add(value);
     transaction.objectStore(storeName).add(value);
 
     return transaction.completed.then((_) {
-      transaction = db.transaction([storeName], 'readonly');
+      transaction = db.transactionList([storeName], 'readonly');
       var index = transaction.objectStore(storeName).index(indexName);
       return index.count();
     }).then((count) {
       expect(count, 4);
       return transaction.completed;
     }).then((_) {
-      transaction = db.transaction([storeName], 'readonly');
+      transaction = db.transaction(storeName, 'readonly');
       var index = transaction.objectStore(storeName).index(indexName);
       return index.openCursor(autoAdvance: true).length;
     }).then((cursorsLength) {
       expect(cursorsLength, 4);
       return transaction.completed;
     }).then((_) {
-      transaction = db.transaction([storeName], 'readonly');
+      transaction = db.transaction(storeName, 'readonly');
       var index = transaction.objectStore(storeName).index(indexName);
       return index.openKeyCursor(autoAdvance: true).length;
     }).then((cursorsLength) {
       expect(cursorsLength, 4);
       return transaction.completed;
     }).then((_) {
-      transaction = db.transaction([storeName], 'readonly');
+      transaction = db.transaction(storeName, 'readonly');
       var index = transaction.objectStore(storeName).index(indexName);
       return index.get('one');
     }).then((readValue) {
       expect(readValue['value'], value['value']);
       return transaction.completed;
     }).then((_) {
-      transaction = db.transaction([storeName], 'readwrite');
+      transaction = db.transaction(storeName, 'readwrite');
       transaction.objectStore(storeName).clear();
       return transaction.completed;
     });
@@ -136,13 +136,13 @@ main() {
   var updateValue = {'name_index': 'three', 'value': 'update_value'};
   var updatedValue = {'name_index': 'three', 'value': 'updated_value'};
   test('cursor', () {
-    var transaction = db.transaction([storeName], 'readwrite');
+    var transaction = db.transaction(storeName, 'readwrite');
     transaction.objectStore(storeName).add(value);
     transaction.objectStore(storeName).add(deleteValue);
     transaction.objectStore(storeName).add(updateValue);
 
     return transaction.completed.then((_) {
-      transaction = db.transaction([storeName], 'readwrite');
+      transaction = db.transactionList([storeName], 'readwrite');
       var index = transaction.objectStore(storeName).index(indexName);
       var cursors = index.openCursor().asBroadcastStream();
 
@@ -165,14 +165,14 @@ main() {
     }).then((_) {
       return transaction.completed;
     }).then((_) {
-      transaction = db.transaction([storeName], 'readonly');
+      transaction = db.transaction(storeName, 'readonly');
       var index = transaction.objectStore(storeName).index(indexName);
       return index.get('three');
     }).then((readValue) {
       expect(readValue['value'], 'updated_value');
       return transaction.completed;
     }).then((_) {
-      transaction = db.transaction([storeName], 'readonly');
+      transaction = db.transaction(storeName, 'readonly');
       var index = transaction.objectStore(storeName).index(indexName);
       return index.get('two');
     }).then((readValue) {

@@ -120,8 +120,9 @@ class MessageKind {
       "super call arguments and constructor parameters don't match");
   static const NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT = const MessageKind(
       "implicit super call arguments and constructor parameters don't match");
-  static const FIELD_PARAMETER_NOT_ALLOWED = const MessageKind(
-      'a field parameter is only allowed in generative constructors');
+  static const INITIALIZING_FORMAL_NOT_ALLOWED = const MessageKind(
+      'an initializing formal parameter is only allowed in '
+      'non-redirecting generative constructors');
   static const INVALID_PARAMETER = const MessageKind(
       "cannot resolve parameter");
   static const NOT_INSTANCE_FIELD = const MessageKind(

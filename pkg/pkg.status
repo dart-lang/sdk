@@ -27,6 +27,9 @@ scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 # testing.
 webdriver/test/webdriver_test: Skip
 
+[ $compiler == none && $runtime == drt && $mode == debug]
+mdv/test/custom_element_bindings_test: Fail # Issue 11657
+
 [ $compiler == dart2js && $runtime == ff ]
 unittest/test/unittest_test: Pass, Timeout # http://dartbug.com/11473
 
@@ -72,20 +75,11 @@ unittest/test/instance_test: Fail # http://dartbug.com/11191
 [ $compiler == dart2js && $checked ]
 mdv_observe/test/observable_map_test: Fail # BUG(11480): Triage.
 
-[ $compiler == dartc ]
-unittest/test/mock_regexp_negative_test: Fail
-unittest/test/mock_stepwise_negative_test: Fail
-
-[ $compiler == dartanalyzer ]
-# test issue https://code.google.com/p/dart/issues/detail?id=11517
-# These tests are not negetive statically.
-# Requested test fix or permission to mark 'fail, OK'
-unittest/test/mock_regexp_negative_test: fail
-unittest/test/mock_stepwise_negative_test: fail
-
-[ $compiler == dart2analyzer ]
-unittest/test/mock_regexp_negative_test: fail
-unittest/test/mock_stepwise_negative_test: fail
+[ $compiler == dartanalyzer || $compiler == dart2analyzer]
+# These tests are runtime negative but statically positive, so we skip
+# them in the analyzer.
+unittest/test/mock_regexp_negative_test: Skip
+unittest/test/mock_stepwise_negative_test: Skip
 
 [ $compiler == dart2js && $csp ]
 unittest/test/unittest_test: Pass, Crash # Issue 10935
@@ -96,6 +90,7 @@ serialization/test/no_library_test: Fail # Issue 6490
 [ $compiler == dart2js && $minified ]
 serialization/test/serialization_test: Fail # Issue 6490
 serialization/test/no_library_test: Fail # Issue 6490
+stack_trace/test/trace_test: Pass, Timeout # Issue 11645
 
 # The unminified unittest tests test that the real names of Dart types are
 # printed. Minified versions of these tests exist that test the behavior when

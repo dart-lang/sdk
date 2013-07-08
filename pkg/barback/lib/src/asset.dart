@@ -36,7 +36,7 @@ abstract class Asset {
 
   /// Returns the contents of the asset as a string.
   // TODO(rnystrom): Figure out how binary assets should be handled.
-  String readAsString();
+  Future<String> readAsString();
 
   /// Streams the contents of the asset.
   Stream<List<int>> read();
@@ -51,7 +51,7 @@ class _FileAsset implements Asset {
   final File _file;
   _FileAsset(this._file);
 
-  String readAsString() => _file.readAsStringSync();
+  Future<String> readAsString() => _file.readAsString();
   Stream<List<int>> read() => _file.openRead();
 
   String toString() => 'File "${_file.path}"';
@@ -66,7 +66,7 @@ class _StringAsset implements Asset {
 
   _StringAsset(this._contents);
 
-  String readAsString() => _contents;
+  Future<String> readAsString() => new Future.value(_contents);
 
   // TODO(rnystrom): Implement this and handle encoding.
   Stream<List<int>> read() => throw new UnimplementedError();

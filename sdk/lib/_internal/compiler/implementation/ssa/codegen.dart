@@ -2232,13 +2232,15 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // Hack in interceptor.  Ideally the interceptor would occur at the
     // instruction level to allow optimizations, and checks would be broken into
     // several smaller tests.
-    String interceptorName =
-        backend.namer.getName(backend.getInterceptorMethod);
+    // This code is a slice of visitInterceptor for the univeral interceptor.
+    String interceptorName = backend.namer.getInterceptorName(
+        backend.getInterceptorMethod, backend.interceptedClasses);
+    backend.registerSpecializedGetInterceptor(backend.interceptedClasses);
+    backend.registerUseInterceptor(world);
 
     var isolate = new js.VariableUse(backend.namer.CURRENT_ISOLATE);
     List<js.Expression> arguments = <js.Expression>[pop()];
     push(jsPropertyCall(isolate, interceptorName, arguments));
-    backend.registerUseInterceptor(world);
     world.registerIsCheck(type, work.resolutionTree);
 
     js.PropertyAccess field =

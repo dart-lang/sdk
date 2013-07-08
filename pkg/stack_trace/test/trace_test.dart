@@ -101,6 +101,22 @@ void main() {
           equals(Uri.parse("http://pub.dartlang.org/stuff.js")));
     });
 
+    test('parses a package:stack_trace stack trace correctly', () {
+      var trace = new Trace.parse(
+          'http://dartlang.org/foo/bar.dart 10:11  Foo.<fn>.bar\n'
+          'http://dartlang.org/foo/baz.dart        Foo.<fn>.bar');
+
+      expect(trace.frames[0].uri,
+          equals(Uri.parse("http://dartlang.org/foo/bar.dart")));
+      expect(trace.frames[1].uri,
+          equals(Uri.parse("http://dartlang.org/foo/baz.dart")));
+    });
+
+    test('parses a real package:stack_trace stack trace correctly', () {
+      var traceString = new Trace.current().toString();
+      expect(new Trace.parse(traceString).toString(), equals(traceString));
+    });
+
     test('parses an empty string correctly', () {
       var trace = new Trace.parse('');
       expect(trace.frames, isEmpty);
@@ -122,14 +138,18 @@ http://pub.dartlang.org/thing.dart 1:100  zip.<fn>.zap
 '''));
   });
 
-  test('.stackTrace forwards to .toString()', () {
-    var trace = new Trace.current();
-    expect(trace.stackTrace, equals(trace.toString()));
-  });
+  test('.vmTrace returns a native-style trace', () {
+    var uri = path.toUri(path.absolute('foo'));
+    var trace = new Trace([
+      new Frame(uri, 10, 20, 'Foo.<fn>'),
+      new Frame(Uri.parse('http://dartlang.org/foo.dart'), null, null, 'bar'),
+      new Frame(Uri.parse('dart:async'), 15, null, 'baz'),
+    ]);
 
-  test('.fullStackTrace forwards to .toString()', () {
-    var trace = new Trace.current();
-    expect(trace.fullStackTrace, equals(trace.toString()));
+    expect(trace.vmTrace.toString(), equals(
+        '#1      Foo.<anonymous closure> ($uri:10:20)\n'
+        '#2      bar (http://dartlang.org/foo.dart:0:0)\n'
+        '#3      baz (dart:async:15:0)\n'));
   });
 
   test('.terse folds core frames together bottom-up', () {

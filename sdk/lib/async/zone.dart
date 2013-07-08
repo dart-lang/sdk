@@ -436,7 +436,6 @@ class _ZoneTimer implements Timer {
   final _Zone _zone;
   final _TimerCallback _callback;
   Timer _timer;
-  bool _isDone = false;
 
   _ZoneTimer(this._zone, Duration duration, this._callback) {
     _zone.expectCallback();
@@ -444,15 +443,15 @@ class _ZoneTimer implements Timer {
   }
 
   void _run() {
-    _isDone = true;
     _zone.executeCallbackGuarded(_callback);
   }
 
   void cancel() {
-    if (!_isDone) _zone.cancelCallbackExpectation();
-    _isDone = true;
+    if (_timer.isActive) _zone.cancelCallbackExpectation();
     _timer.cancel();
   }
+
+  bool get isActive => _timer.isActive;
 }
 
 typedef void _PeriodicTimerCallback(Timer timer);
@@ -464,7 +463,6 @@ class _PeriodicZoneTimer implements Timer {
   final _Zone _zone;
   final _PeriodicTimerCallback _callback;
   Timer _timer;
-  bool _isDone = false;
 
   _PeriodicZoneTimer(this._zone, Duration duration, this._callback) {
     _zone.expectCallback();
@@ -477,10 +475,11 @@ class _PeriodicZoneTimer implements Timer {
   }
 
   void cancel() {
-    if (!_isDone) _zone.cancelCallbackExpectation();
-    _isDone = true;
+    if (_timer.isActive) _zone.cancelCallbackExpectation();
     _timer.cancel();
   }
+
+  bool get isActive => _timer.isActive;
 }
 
 /**

@@ -61,6 +61,8 @@ class Range;
   V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 780994886)           \
   V(_GrowableObjectArray, get:length, GrowableArrayLength, 725548050)          \
   V(_GrowableObjectArray, get:_capacity, GrowableArrayCapacity, 725548050)     \
+  V(_GrowableObjectArray, _setData, GrowableArraySetData, 629110947)           \
+  V(_GrowableObjectArray, _setLength, GrowableArraySetLength, 796709584)       \
   V(_StringBase, get:length, StringBaseLength, 320803993)                      \
   V(_StringBase, get:isEmpty, StringBaseIsEmpty, 110631520)                    \
   V(_StringBase, codeUnitAt, StringBaseCodeUnitAt, 984449525)                  \

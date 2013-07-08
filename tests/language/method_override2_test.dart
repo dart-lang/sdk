@@ -5,7 +5,7 @@
 // Checks that an overriding method has compatible parameters.
 
 abstract class I {
-  m({a, b});
+  m(x, {a, b});
 }
 
 abstract class J extends I { }
@@ -15,8 +15,8 @@ abstract class K extends J {
 }
 
 class C implements I {
-  m({a, b}) {
-    print("$a $b");
+  m(x, {a, b}) {
+    print("$x $a $b");
   }
 }
 
@@ -33,7 +33,7 @@ class D
 
 int main() {
   var c = new C();
-  c.m(a: "hello", b: "world");
+  c.m(1, a: "hello", b: "world");
   var d = new D();
   d.m(c: "hello", d: "world");
   print("${c is I} ${d is I} ${d is I} ${d is J}");

@@ -87,7 +87,7 @@ abstract class Future<T> {
 
   /**
    * Creates a future containing the result of calling [computation]
-   * asynchronously with [runAsync].
+   * asynchronously with [Timer.run].
    *
    * if the result of executing [computation] throws, the returned future is
    * completed with the error. If a thrown value is an [AsyncError], it is used
@@ -102,7 +102,7 @@ abstract class Future<T> {
   factory Future(computation()) {
     _ThenFuture<dynamic, T> future =
         new _ThenFuture<dynamic, T>((_) => computation());
-    runAsync(() => future._sendValue(null));
+    Timer.run(() => future._sendValue(null));
     return future;
   }
 

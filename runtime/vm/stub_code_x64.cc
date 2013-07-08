@@ -1416,6 +1416,19 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   }
 #endif  // DEBUG
 
+  // Check single stepping.
+  Label not_stepping;
+  __ movq(RAX, FieldAddress(CTX, Context::isolate_offset()));
+  __ movzxb(RAX, Address(RAX, Isolate::single_step_offset()));
+  __ cmpq(RAX, Immediate(0));
+  __ j(EQUAL, &not_stepping, Assembler::kNearJump);
+  __ EnterStubFrame();
+  __ pushq(RBX);
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry);
+  __ popq(RBX);
+  __ LeaveFrame();
+  __ Bind(&not_stepping);
+
   // Load arguments descriptor into R10.
   __ movq(R10, FieldAddress(RBX, ICData::arguments_descriptor_offset()));
   // Loop that checks if there is an IC data match.
@@ -1635,6 +1648,19 @@ void StubCode::GenerateUnoptimizedStaticCallStub(Assembler* assembler) {
     __ Bind(&ok);
   }
 #endif  // DEBUG
+
+  // Check single stepping.
+  Label not_stepping;
+  __ movq(RAX, FieldAddress(CTX, Context::isolate_offset()));
+  __ movzxb(RAX, Address(RAX, Isolate::single_step_offset()));
+  __ cmpq(RAX, Immediate(0));
+  __ j(EQUAL, &not_stepping, Assembler::kNearJump);
+  __ EnterStubFrame();
+  __ pushq(RBX);  // Preserve IC data object.
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry);
+  __ popq(RBX);
+  __ LeaveFrame();
+  __ Bind(&not_stepping);
 
   // RBX: IC data object (preserved).
   __ movq(R12, FieldAddress(RBX, ICData::ic_data_offset()));
@@ -2098,6 +2124,17 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
 // Returns ZF set.
 void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
+  // Check single stepping.
+  Label not_stepping;
+  __ movq(RAX, FieldAddress(CTX, Context::isolate_offset()));
+  __ movzxb(RAX, Address(RAX, Isolate::single_step_offset()));
+  __ cmpq(RAX, Immediate(0));
+  __ j(EQUAL, &not_stepping, Assembler::kNearJump);
+  __ EnterStubFrame();
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry);
+  __ LeaveFrame();
+  __ Bind(&not_stepping);
+
   const Register left = RAX;
   const Register right = RDX;
 

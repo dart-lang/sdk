@@ -172,10 +172,8 @@ Language/07_Classes/3_Setters_A04_t07: Fail # inherited from VM
 Language/07_Classes/4_Abstract_Instance_Members_A04_t01: Fail # http://dartbug.com/5519
 Language/07_Classes/4_Abstract_Instance_Members_A04_t05: Fail # inherited from VM
 Language/07_Classes/4_Abstract_Instance_Members_A04_t06: Fail # inherited from VM
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A03_t05: Fail # http://dartbug.com/5519
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: Fail # http://dartbug.com/5519
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t07: Fail # inherited from VM
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A16_t07: Fail # http://dartbug.com/6242
 Language/07_Classes/6_Constructors/2_Factories_A01_t05: Fail # Inherited from dartjs
 Language/07_Classes/6_Constructors/2_Factories_A07_t01: Fail # inherited from VM
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A03_t01: Fail # http://dartbug.com/5519
@@ -417,17 +415,6 @@ LibTest/core/String/indexOf_A01_t02: Fail # Issue 427
 LibTest/core/String/lastIndexOf_A01_t02: Fail # Issue 427
 
 [ $compiler == dart2dart && $minified ]
-Language/14_Types/5_Function_Types_A01_t07: Fail # dartbug.com/11467
-Language/14_Types/5_Function_Types_A01_t08: Fail # dartbug.com/11467
-Language/14_Types/5_Function_Types_A01_t09: Fail # dartbug.com/11467
-Language/14_Types/5_Function_Types_A01_t11: Fail # dartbug.com/11467
-Language/14_Types/5_Function_Types_A02_t05: Fail # dartbug.com/11467
-Language/14_Types/5_Function_Types_A02_t09: Fail # dartbug.com/11467
-Language/14_Types/5_Function_Types_A02_t10: Fail # dartbug.com/11467
-Language/14_Types/5_Function_Types_A03_t06: Fail # dartbug.com/11467
-Language/14_Types/5_Function_Types_A03_t10: Fail # dartbug.com/11467
-Language/14_Types/5_Function_Types_A03_t11: Fail # dartbug.com/11467
-
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: Fail, OK # co19 issue 396
 Language/11_Expressions/17_Getter_Invocation_A02_t01: Fail, OK # co19 issue 396
 Language/11_Expressions/18_Assignment_A05_t02: Fail, OK # co19 issue 396
@@ -604,6 +591,13 @@ LibTest/core/List/removeLast_A02_t01: Fail # Issue 400
 LibTest/core/List/removeRange_A02_t01: Fail # Issue 400
 LibTest/core/Set/isSubsetOf_A01_t01: Fail # Issue 400
 LibTest/core/Set/isSubsetOf_A01_t02: Fail # Issue 400
+
+LibTest/core/FallThroughError/toString_A01_t01: Fail # FallThroughError is no longer const. Issue 459
+LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail # FallThroughError is no longer const. Issue 459
+
+Language/07_Classes/4_Abstract_Instance_Members_A04_t01: Fail # Override rules have been relaxed. Issue
+Language/07_Classes/1_Instance_Methods_A02_t02: Fail # Override rules have been relaxed. Issue
+Language/07_Classes/1_Instance_Methods_A02_t05: Fail # Override rules have been relaxed. Issue
 
 Language/11_Expressions/33_Argument_Definition_Test_A01_t02: Fail, OK # co19 issue 436
 Language/11_Expressions/33_Argument_Definition_Test_A02_t01: Fail, OK # co19 issue 436

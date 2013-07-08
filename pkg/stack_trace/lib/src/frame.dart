@@ -24,6 +24,11 @@ final _v8Frame = new RegExp(
 final _firefoxFrame = new RegExp(
     r'^([^@(/]*)(?:\(.*\))?(/[^<]*<?)?(?:\(.*\))?@(.*):(\d+)$');
 
+// foo/bar.dart 10:11 in Foo._bar
+// http://dartlang.org/foo/bar.dart in Foo._bar
+final _friendlyFrame = new RegExp(
+    r'^([^\s]+)(?: (\d+):(\d+))?\s+([^\d][^\s]*)$');
+
 final _initialDot = new RegExp(r"^\.");
 
 /// A single stack frame. Each frame points to a precise location in Dart code.
@@ -142,6 +147,26 @@ class Frame {
     // with other platforms.
     member = member.replaceFirst(_initialDot, '');
     return new Frame(uri, int.parse(match[4]), null, member);
+  }
+
+  /// Parses this package's string representation of a stack frame.
+  factory Frame.parseFriendly(String frame) {
+    var match = _friendlyFrame.firstMatch(frame);
+    if (match == null) {
+      throw new FormatException(
+          "Couldn't parse package:stack_trace stack trace line '$frame'.");
+    }
+
+    var uri = Uri.parse(match[1]);
+    // If there's no scheme, this is a relative URI. We should interpret it as
+    // relative to the current working directory.
+    if (uri.scheme == '') {
+      uri = path.toUri(path.absolute(path.fromUri(uri)));
+    }
+
+    var line = match[2] == null ? null : int.parse(match[2]);
+    var column = match[3] == null ? null : int.parse(match[3]);
+    return new Frame(uri, line, column, match[4]);
   }
 
   Frame(this.uri, this.line, this.column, this.member);

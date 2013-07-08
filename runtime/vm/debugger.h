@@ -266,9 +266,10 @@ class Debugger {
   void RemoveBreakpoint(intptr_t bp_id);
   SourceBreakpoint* GetBreakpointById(intptr_t id);
 
-  void SetStepOver() { resume_action_ = kStepOver; }
-  void SetStepInto() { resume_action_ = kStepInto; }
-  void SetStepOut() { resume_action_ = kStepOut; }
+  void SetStepOver();
+  void SetSingleStep();
+  void SetStepOut();
+  bool IsStepping() const { return resume_action_ != kContinue; }
 
   void SetExceptionPauseInfo(Dart_ExceptionPauseInfo pause_info);
   Dart_ExceptionPauseInfo GetExceptionPauseInfo();
@@ -282,7 +283,7 @@ class Debugger {
   // Checks for both user-defined and internal temporary breakpoints.
   bool HasBreakpoint(const Function& func);
 
-  DebuggerStackTrace* StackTrace() const { return stack_trace_; }
+  DebuggerStackTrace* StackTrace();
 
   RawArray* GetInstanceFields(const Instance& obj);
   RawArray* GetStaticFields(const Class& cls);
@@ -307,6 +308,8 @@ class Debugger {
                             const String& field_name);
 
   void SignalBpReached();
+  void SingleStepCallback();
+
   void SignalExceptionThrown(const Instance& exc);
   static void SignalIsolateEvent(EventType type);
 
@@ -316,8 +319,8 @@ class Debugger {
   enum ResumeAction {
     kContinue,
     kStepOver,
-    kStepInto,
-    kStepOut
+    kStepOut,
+    kSingleStep
   };
 
   intptr_t ResolveBreakpointPos(const Function& func,
@@ -342,8 +345,10 @@ class Debugger {
 
   void SyncBreakpoint(SourceBreakpoint* bpt);
 
+  ActivationFrame* TopDartFrame() const;
   static DebuggerStackTrace* CollectStackTrace();
   void SignalBpResolved(SourceBreakpoint *bpt);
+  void SignalPausedEvent(ActivationFrame* top_frame);
 
   bool IsDebuggable(const Function& func);
 
@@ -380,9 +385,12 @@ class Debugger {
   // be run as a side effect of getting values of fields.
   bool ignore_breakpoints_;
 
+  // True while debugger calls event_handler_. Used to prevent recursive
+  // debugger events.
+  bool in_event_notification_;
+
   Dart_ExceptionPauseInfo exc_pause_info_;
 
-  static BreakpointHandler* bp_handler_;
   static EventHandler* event_handler_;
 
   friend class Isolate;

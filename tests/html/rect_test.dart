@@ -147,4 +147,13 @@ main() {
     expect(b.width is int, isTrue);
     expect(b.height is int, isTrue);
   });
+
+  test('hashCode', () {
+    var a = new Rect(0, 1, 2, 3);
+    var b = new Rect(0, 1, 2, 3);
+    expect(a.hashCode, b.hashCode);
+
+    var c = new Rect(1, 0, 2, 3);
+    expect(a.hashCode == c.hashCode, isFalse);
+  });
 }

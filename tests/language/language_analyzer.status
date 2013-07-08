@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartanalyzer ]
-argument_definition_test/01: fail  # issue 11565
+#argument_definition_test/01: fail  # issue 11565 (passing for the wrong reason)
 abstract_factory_constructor_test/00: fail
 assign_instance_method_negative_test: fail
 assign_static_type_test/06: fail
@@ -12,7 +12,6 @@ bad_named_parameters_test: fail
 bad_override_test/01: fail
 bad_override_test/02: fail
 black_listed_test/11: fail
-body_less_constructor_wrong_arg_negative_test: fail
 built_in_identifier_prefix_test: fail
 call_constructor_on_unresolvable_class_test/01: fail
 call_constructor_on_unresolvable_class_test/02: fail
@@ -28,24 +27,19 @@ cast_test/04: fail
 cast_test/05: fail
 class_cycle_test/03: fail
 closure_call_wrong_argument_count_negative_test: fail
+const_constructor_super_test/01: fail
 compile_time_constant10_test/none: fail
 compile_time_constant_c_test/01: fail
-compile_time_constant_c_test/02: fail
-compile_time_constant_checked2_test/02: fail
 compile_time_constant_checked2_test/03: fail
 compile_time_constant_checked2_test/04: fail
-compile_time_constant_checked2_test/06: fail
-compile_time_constant_checked3_test/02: fail
 compile_time_constant_checked3_test/03: fail
 compile_time_constant_checked3_test/04: fail
-compile_time_constant_checked3_test/06: fail
 compile_time_constant_e_test: fail
 constructor2_negative_test: fail
 constructor3_negative_test: fail
 constructor_call_wrong_argument_count_negative_test: fail
+constructor_initializer_test: fail # uses argument definition test
 constructor_negative_test: fail
-constructor_return_with_arrow_negative_test: fail
-constructor_return_with_init_and_arrow_negative_test: fail
 cyclic_type_variable_test/01: fail
 cyclic_type_variable_test/02: fail
 cyclic_type_variable_test/03: fail
@@ -242,6 +236,10 @@ metadata_test: fail
 # Test issue 11564, named parameter starts with '_'
 named_parameters_with_object_property_names_test: fail
 
+method_override3_test: fail # issue 11497
+method_override4_test: fail # issue 11497
+method_override5_test: fail # issue 11497
+method_override6_test: fail # issue 11497
 
 [ $compiler == dartanalyzer && $checked ]
 factory1_test/00: fail

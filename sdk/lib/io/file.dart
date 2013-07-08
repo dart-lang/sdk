@@ -43,6 +43,7 @@ abstract class File implements FileSystemEntity {
   /**
    * Create a File object from a Path object.
    */
+  @deprecated
   factory File.fromPath(Path path) => new _File.fromPath(path);
 
   /**

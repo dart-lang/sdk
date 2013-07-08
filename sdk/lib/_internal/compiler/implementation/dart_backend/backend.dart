@@ -149,63 +149,17 @@ class DartBackend extends Backend {
       return false;
     }
 
-    void processTypeArguments(Element classElement, NodeList typeArguments) {
-      if (typeArguments == null) return;
-      for (Node typeArgument in typeArguments.nodes) {
-        if (typeArgument is TypeVariable) {
-          TypeVariable typeVariable = typeArgument;
-          typeArgument = typeVariable.bound;
-        }
-        if (typeArgument == null) continue;
-        assert(typeArgument is TypeAnnotation);
-        DartType argumentType =
-            compiler.resolveTypeAnnotation(classElement, typeArgument);
-        assert(argumentType != null);
-        workQueue.add(argumentType);
-      }
-    }
-
-    void processTypeAnnotationList(Element classElement, NodeList annotations) {
-      for (Link link = annotations.nodes; !link.isEmpty; link = link.tail) {
-        TypeAnnotation typeAnnotation = link.head;
-        NodeList typeArguments = typeAnnotation.typeArguments;
-        processTypeArguments(classElement, typeArguments);
-      }
-    }
-
-    void processSuperclassTypeArguments(Element classElement, Node superclass) {
-      if (superclass == null) return;
-      MixinApplication superMixinApplication = superclass.asMixinApplication();
-      if (superMixinApplication != null) {
-        processTypeAnnotationList(classElement, superMixinApplication.mixins);
-      } else {
-        TypeAnnotation typeAnnotation = superclass;
-        NodeList typeArguments = typeAnnotation.typeArguments;
-        processTypeArguments(classElement, typeArguments);
-      }
-    }
-
     while (!workQueue.isEmpty) {
       DartType type = workQueue.removeLast();
       if (processedTypes.contains(type)) continue;
       processedTypes.add(type);
+      if (type is FunctionType) return false;
       if (type is TypedefType) return false;
       if (type is InterfaceType) {
+        InterfaceType interfaceType = type;
+        // Check all type arguments.
+        workQueue.addAll(interfaceType.typeArguments.toList());
         ClassElement element = type.element;
-        Node node = element.parseNode(compiler);
-        if (node is ClassNode) {
-          ClassNode classNode = node;
-          processTypeArguments(element, classNode.typeParameters);
-          processSuperclassTypeArguments(element, classNode.superclass);
-          processTypeAnnotationList(element, classNode.interfaces);
-        } else {
-          MixinApplication mixinNode = node;
-          processSuperclassTypeArguments(element, mixinNode.superclass);
-          if (mixinNode is NamedMixinApplication) {
-            NamedMixinApplication namedMixinNode = mixinNode;
-            processTypeArguments(element, namedMixinNode.typeParameters);
-          }
-        }
         // Check all supertypes.
         if (element.allSupertypes != null) {
           workQueue.addAll(element.allSupertypes.toList());
@@ -400,7 +354,7 @@ class DartBackend extends Backend {
       // TODO(antonm): check with AAR team if there is better approach.
       // As an idea: provide template as a Dart code---class C { C.name(); }---
       // and then overwrite necessary parts.
-      ClassNode classNode = classElement.parseNode(compiler);
+      var classNode = classElement.parseNode(compiler);
       SynthesizedConstructorElementX constructor =
           new SynthesizedConstructorElementX(classElement);
       constructor.type = new FunctionType(

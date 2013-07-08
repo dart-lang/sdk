@@ -87,6 +87,8 @@ Location Location::AnyOrConstant(Value* value) {
 }
 
 
+// TODO(regis): Remove all occurences of Address in the architecture independent
+// portion of the vm.
 Address Location::ToStackSlotAddress() const {
   const intptr_t index = stack_index();
   if (index < 0) {

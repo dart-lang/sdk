@@ -314,17 +314,24 @@ static void ProcessFilter(Dart_Port dest_port_id,
     ends[i] = CObjectInt32(args[2 * i + 3]).Value();
   }
 
-  filter->ProcessAllBuffers(starts, ends, in_handshake);
-
-  for (int i = 0; i < SSLFilter::kNumBuffers; ++i) {
-    args[2 * i + 2]->AsApiCObject()->value.as_int32 = starts[i];
-    args[2 * i + 3]->AsApiCObject()->value.as_int32 = ends[i];
+  if (filter->ProcessAllBuffers(starts, ends, in_handshake)) {
+    for (int i = 0; i < SSLFilter::kNumBuffers; ++i) {
+      args[2 * i + 2]->AsApiCObject()->value.as_int32 = starts[i];
+      args[2 * i + 3]->AsApiCObject()->value.as_int32 = ends[i];
+    }
+    Dart_PostCObject(reply_port_id, args.AsApiCObject());
+  } else {
+    PRErrorCode error_code = PR_GetError();
+    const char* error_message = PR_ErrorToString(error_code, PR_LANGUAGE_EN);
+    CObjectArray* result = new CObjectArray(CObject::NewArray(2));
+    result->SetAt(0, new CObjectInt32(CObject::NewInt32(error_code)));
+    result->SetAt(1, new CObjectString(CObject::NewString(error_message)));
+    Dart_PostCObject(reply_port_id, result->AsApiCObject());
   }
-  Dart_PostCObject(reply_port_id, args.AsApiCObject());
 }
 
 
-void SSLFilter::ProcessAllBuffers(int starts[kNumBuffers],
+bool SSLFilter::ProcessAllBuffers(int starts[kNumBuffers],
                                   int ends[kNumBuffers],
                                   bool in_handshake) {
   for (int i = 0; i < kNumBuffers; ++i) {
@@ -349,6 +356,7 @@ void SSLFilter::ProcessAllBuffers(int starts[kNumBuffers],
           int bytes = (i == kReadPlaintext) ?
               ProcessReadPlaintextBuffer(end, buffer_end) :
               ProcessWriteEncryptedBuffer(end, buffer_end);
+          if (bytes < 0) return false;
           end += bytes;
           ASSERT(end <= size);
           if (end == size) end = 0;
@@ -357,6 +365,7 @@ void SSLFilter::ProcessAllBuffers(int starts[kNumBuffers],
           int bytes =  (i == kReadPlaintext) ?
               ProcessReadPlaintextBuffer(end, start - 1) :
               ProcessWriteEncryptedBuffer(end, start - 1);
+          if (bytes < 0) return false;
           end += bytes;
           ASSERT(end < start);
         }
@@ -368,12 +377,14 @@ void SSLFilter::ProcessAllBuffers(int starts[kNumBuffers],
           // Data may be split into two segments.  In this case,
           // the first is [start, size).
           int bytes = ProcessReadEncryptedBuffer(start, size);
+          if (bytes < 0) return false;
           start += bytes;
           ASSERT(start <= size);
           if (start == size) start = 0;
         }
         if (start < end) {
           int bytes = ProcessReadEncryptedBuffer(start, end);
+          if (bytes < 0) return false;
           start += bytes;
           ASSERT(start <= end);
         }
@@ -383,10 +394,12 @@ void SSLFilter::ProcessAllBuffers(int starts[kNumBuffers],
         if (end < start) {
           // Data is split into two segments, [start, size) and [0, end).
           int bytes = ProcessWritePlaintextBuffer(start, size, 0, end);
+          if (bytes < 0) return false;
           start += bytes;
           if (start >= size) start -= size;
         } else {
           int bytes = ProcessWritePlaintextBuffer(start, end, 0, 0);
+          if (bytes < 0) return false;
           start += bytes;
           ASSERT(start <= end);
         }
@@ -396,6 +409,7 @@ void SSLFilter::ProcessAllBuffers(int starts[kNumBuffers],
         UNREACHABLE();
     }
   }
+  return true;
 }
 
 
@@ -838,8 +852,7 @@ intptr_t SSLFilter::ProcessReadPlaintextBuffer(int start, int end) {
       ASSERT(bytes_processed == -1);
       PRErrorCode pr_error = PR_GetError();
       if (PR_WOULD_BLOCK_ERROR != pr_error) {
-        // TODO(11383): Handle unexpected errors here.
-        FATAL("Error reading plaintext from SSLFilter");
+        return -1;
       }
       bytes_processed = 0;
     }
@@ -861,8 +874,7 @@ intptr_t SSLFilter::ProcessWritePlaintextBuffer(int start1, int end1,
     ASSERT(bytes_processed == -1);
     PRErrorCode pr_error = PR_GetError();
     if (PR_WOULD_BLOCK_ERROR != pr_error) {
-      // TODO(11383): Handle unexpected errors here.
-      FATAL("Error reading plaintext from SSLFilter");
+      return -1;
     }
     bytes_processed = 0;
   }

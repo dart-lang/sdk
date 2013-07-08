@@ -38,7 +38,9 @@ class SupportedBrowser {
  *
  * * [W3C recommendation](http://en.wikipedia.org/wiki/W3C_recommendation)
  */
-class Experimental {}
+class Experimental {
+  const Experimental();
+}
 
 
 /**
@@ -58,11 +60,15 @@ class DomName {
  * Metadata that specifies that that member is editable through generated
  * files.
  */
-class DocsEditable {}
+class DocsEditable {
+  const DocsEditable();
+}
 
 
 /**
  * Annotation that indicates that an API is not expected to change but has
  * not undergone enough testing to be considered stable.
  */
-class Unstable {}
+class Unstable {
+  const Unstable();
+}

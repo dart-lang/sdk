@@ -12,10 +12,19 @@ Future<int> getStatusCode(int port,
                           String path,
                           {String host,
                            bool secure: false,
-                           DateTime ifModifiedSince}) {
-  var uri = (secure ?
-      new Uri.https('localhost:$port', path) :
-      new Uri.http('localhost:$port', path));
+                           DateTime ifModifiedSince,
+                           bool rawPath: false}) {
+  var uri;
+  if (rawPath) {
+    uri = new Uri(scheme: secure ? 'https' : 'http',
+                  host: 'localhost',
+                  port: port,
+                  path: path);
+  } else {
+    uri = (secure ?
+        new Uri.https('localhost:$port', path) :
+        new Uri.http('localhost:$port', path));
+  }
   return new HttpClient().getUrl(uri)
       .then((request) {
         if (host != null) request.headers.host = host;

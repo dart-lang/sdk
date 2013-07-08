@@ -50,16 +50,17 @@ class _TemplateExtension extends _ElementExtension {
   /**
    * Creates an instance of the template.
    */
-  DocumentFragment createInstance() {
+  DocumentFragment createInstance(model, String syntax) {
     var template = node.ref;
     if (template == null) template = node;
 
-    var instance = _Bindings._createDeepCloneAndDecorateTemplates(
-        template.content, node.attributes['syntax']);
+    var instance = _createDeepCloneAndDecorateTemplates(
+        template.content, syntax);
 
-    if (_instanceCreated != null) {
-      _instanceCreated.add(instance);
-    }
+    if (_instanceCreated != null) _instanceCreated.add(instance);
+
+    _addBindings(instance, model, TemplateElement.syntax[syntax]);
+    _addTemplateInstanceRecord(instance, model);
     return instance;
   }
 
@@ -71,6 +72,6 @@ class _TemplateExtension extends _ElementExtension {
   void set model(value) {
     var syntax = TemplateElement.syntax[node.attributes['syntax']];
     _model = value;
-    _Bindings._addBindings(node, model, syntax);
+    _addBindings(node, model, syntax);
   }
 }

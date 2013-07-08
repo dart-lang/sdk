@@ -1050,7 +1050,7 @@ templateElementTests() {
   test('Attribute Template Option/Optgroup', () {
     var div = createTestHtml(
         '<template bind>'
-          '<select>'
+          '<select selectedIndex="{{ selected }}">'
             '<optgroup template repeat="{{ groups }}" label="{{ name }}">'
               '<option template repeat="{{ items }}">{{ val }}</option>'
             '</optgroup>'
@@ -1069,6 +1069,13 @@ templateElementTests() {
 
     var select = div.nodes[0].nextNode;
     expect(select.nodes.length, 2);
+
+    runAsync(expectAsync0(() {
+      runAsync(expectAsync0(() {
+        // TODO(jmesserly): this should be called sooner.
+        expect(select.selectedIndex, 1);
+      }));
+    }));
     expect(select.nodes[0].tagName, 'TEMPLATE');
     expect(select.nodes[0].ref.content.nodes[0].tagName, 'OPTGROUP');
 
@@ -1542,19 +1549,28 @@ templateElementTests() {
   });
 
   test('CreateInstance', () {
-    var div = createTestHtml(
-      '<template bind="{{a}}">'
-        '<template bind="{{b}}">'
-          '{{text}}'
-        '</template>'
-      '</template>');
-    var outer = div.nodes.first;
+    TemplateElement.syntax['Test'] = new TestBindingSyntax();
+    try {
+      var div = createTestHtml(
+        '<template bind="{{a}}">'
+          '<template bind="{{b}}">'
+            '{{ foo }}:{{ replaceme }}'
+          '</template>'
+        '</template>');
+      var outer = div.nodes.first;
+      var model = toSymbolMap({'b': {'foo': 'bar'}});
 
-    var instance = outer.createInstance();
-    expect(outer.content.nodes.first, instance.nodes.first.ref);
+      var host = new DivElement();
+      var instance = outer.createInstance(model, 'Test');
+      expect(outer.content.nodes.first, instance.nodes.first.ref);
+      expect(instance.firstChild.attributes['syntax'], 'Test');
 
-    var instance2 =  outer.createInstance();
-    expect(instance2.nodes.first.ref, instance.nodes.first.ref);
+      host.append(instance);
+      deliverChangeRecords();
+      expect(host.firstChild.nextNode.text, 'bar:replaced');
+    } finally {
+      TemplateElement.syntax.remove('Test');
+    }
   });
 
   test('Bootstrap', () {
@@ -1607,6 +1623,13 @@ templateElementTests() {
 
     sub.cancel();
   });
+}
+
+class TestBindingSyntax extends CustomBindingSyntax {
+  getBinding(model, String path, name, node) {
+    if (path.trim() == 'replaceme') return new ObservableBox('replaced');
+    return null;
+  }
 }
 
 class UnbindingInNestedBindSyntax extends CustomBindingSyntax {
@@ -1666,4 +1689,3 @@ _deepToSymbol(value) {
   }
   return value;
 }
-

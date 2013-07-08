@@ -14,6 +14,23 @@ import 'dart:io';
 import 'dart:json' as json;
 import 'package:pathos/path.dart' as path;
 import 'package:args/args.dart';
+import 'package:intl/src/intl_message.dart';
+import 'package:serialization/serialization.dart';
+
+/**
+ * A serialization so that we can write out the more complex plural and
+ * gender examples to JSON easily. This is a stopgap and should be replaced
+ * with a commonly used translation file format.
+ */
+get serialization => new Serialization()
+  ..addRuleFor(new VariableSubstitution(0, null),
+      constructorFields: ["index", "parent"])
+  ..addRuleFor(new LiteralString("a", null),
+      constructorFields: ["string", "parent"])
+  ..addRuleFor(new CompositeMessage([], null), constructor: "parent",
+      constructorFields: ["parent"]);
+var format = const SimpleFlatFormat();
+get writer => serialization.newWriter(format);
 
 /** A list of the French translations that we will produce. */
 var french = {
@@ -35,13 +52,39 @@ var french = {
   "notAlwaysTranslated" : "Ce manque certaines traductions",
   "thisNameIsNotInTheOriginal" : "Could this lead to something malicious?",
   "originalNotInBMP" : "Anciens caractères grecs jeux du pendu: 𐅆𐅇.",
-  "plural" : """Une des choses difficiles est \${Intl.plural(num,
-      {
-        '0' : 'la forme plurielle',
-        '1' : 'la forme plurielle',
-        'other' : 'des formes plurielles'})}""",
-   "namedArgs" : "La chose est, \$thing",
-   "escapable" : "Escapes: \n\r\f\b\t\v."
+  "escapable" : "Escapes: \n\r\f\b\t\v.",
+  "plurals" : writer.write(new Plural.from("num",
+      [
+        ["zero", "Est-ce que nulle est pluriel?"],
+        ["one", "C'est singulier"],
+        ["other", "C'est pluriel (\$num)."]
+      ], null)),
+  // TODO(alanknight): These are pretty horrible to write out manually. Provide
+  // a better way of reading/writing translations. A real format would be good.
+  "whereTheyWent" : writer.write(new Gender.from("gender",
+    [
+      ["male", [0, " est allé à sa ", 2]],
+      ["female", [0, " est allée à sa ", 2]],
+      ["other", [0, " est allé à sa ", 2]]
+    ], null)),
+  // Gratuitously different translation for testing. Ignoring gender of place.
+  "nestedMessage" : writer.write(new Gender.from("combinedGender",
+    [
+      ["other", new Plural.from("number",
+        [
+          ["zero", "Personne n'avait allé à la \$place"],
+          ["one", "\${names} était allé à la \$place"],
+          ["other",  "\${names} étaient allés à la \$place"],
+        ], null)
+      ],
+      ["female", new Plural.from("number",
+        [
+          ["one", "\$names était allée à la \$place"],
+          ["other", "\$names étaient allées à la \$place"],
+        ], null)
+      ]
+    ], null
+  ))
 };
 
 /** A list of the German translations that we will produce. */
@@ -61,14 +104,40 @@ var german = {
   "nonLambda" : "Diese Methode ist nicht eine Lambda",
   "staticMessage" : "Dies ergibt sich aus einer statischen Methode",
   "originalNotInBMP" : "Antike griechische Galgenmännchen Zeichen: 𐅆𐅇",
-  "plurals" : """\${Intl.plural(num,
-      {
-        '0' : 'Einer der knifflige Dinge ist der Plural',
-        '1' : 'Einer der knifflige Dinge ist der Plural',
-        'other' : 'Zu den kniffligen Dinge Pluralformen'
-      })}""",
-   "namedArgs" : "Die Sache ist, \$thing",
-   "escapable" : "Escapes: \n\r\f\b\t\v."
+  "escapable" : "Escapes: \n\r\f\b\t\v.",
+  "plurals" : writer.write(new Plural.from("num",
+    [
+      ["zero", "Ist Null Plural?"],
+      ["one", "Dies ist einmalig"],
+      ["other", "Dies ist Plural (\$num)."]
+    ], null)),
+  // TODO(alanknight): These are pretty horrible to write out manually. Provide
+  // a better way of reading/writing translations. A real format would be good.
+  "whereTheyWent" : writer.write(new Gender.from("gender",
+    [
+      ["male", [0, " ging zu seinem ", 2]],
+      ["female", [0, " ging zu ihrem ", 2]],
+      ["other", [0, " ging zu seinem ", 2]]
+    ], null)),
+  //Note that we're only using the gender of the people. The gender of the
+  //place also matters, but we're not dealing with that here.
+  "nestedMessage" : writer.write(new Gender.from("combinedGender",
+    [
+      ["other", new Plural.from("number",
+        [
+          ["zero", "Niemand ging zu \$place"],
+          ["one", "\${names} ging zum \$place"],
+          ["other", "\${names} gingen zum \$place"],
+        ], null)
+      ],
+      ["female", new Plural.from("number",
+        [
+          ["one", "\$names ging in dem \$place"],
+          ["other", "\$names gingen zum \$place"],
+        ], null)
+      ]
+    ], null
+  ))
 };
 
 /** The output directory for translated files. */
@@ -92,7 +161,7 @@ main() {
   var args = new Options().arguments;
   if (args.length == 0) {
     print('Usage: generate_hardcoded_translation [--output-dir=<dir>] '
-        '[originalFile.dart]');
+        '[originalFile.json]');
     exit(0);
   }
   var parser = new ArgParser();

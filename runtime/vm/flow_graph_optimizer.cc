@@ -1677,6 +1677,37 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(target);
 
+  if ((recognized_kind == MethodRecognizer::kGrowableArraySetData) &&
+      (ic_data.NumberOfChecks() == 1) &&
+      (class_ids[0] == kGrowableObjectArrayCid)) {
+    // This is an internal method, no need to check argument types.
+    Definition* array = call->ArgumentAt(0);
+    Definition* value = call->ArgumentAt(1);
+    StoreVMFieldInstr* store = new StoreVMFieldInstr(
+        new Value(array),
+        GrowableObjectArray::data_offset(),
+        new Value(value),
+        Type::ZoneHandle());
+    ReplaceCall(call, store);
+    return true;
+  }
+
+  if ((recognized_kind == MethodRecognizer::kGrowableArraySetLength) &&
+      (ic_data.NumberOfChecks() == 1) &&
+      (class_ids[0] == kGrowableObjectArrayCid)) {
+    // This is an internal method, no need to check argument types nor
+    // range.
+    Definition* array = call->ArgumentAt(0);
+    Definition* value = call->ArgumentAt(1);
+    StoreVMFieldInstr* store = new StoreVMFieldInstr(
+        new Value(array),
+        GrowableObjectArray::length_offset(),
+        new Value(value),
+        Type::ZoneHandle());
+    ReplaceCall(call, store);
+    return true;
+  }
+
   if ((recognized_kind == MethodRecognizer::kStringBaseCodeUnitAt) &&
       (ic_data.NumberOfChecks() == 1) &&
       ((class_ids[0] == kOneByteStringCid) ||

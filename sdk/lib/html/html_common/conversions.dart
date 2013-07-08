@@ -62,6 +62,15 @@ List convertDartToNative_StringArray(List<String> input) {
   return input;
 }
 
+DateTime convertNativeToDart_DateTime(date) {
+  var millisSinceEpoch = JS('int', '#.getTime()', date);
+  return new DateTime.fromMillisecondsSinceEpoch(millisSinceEpoch, isUtc: true);
+}
+
+convertDartToNative_DateTime(DateTime date) {
+  return JS('', 'new Date(#)', date.millisecondsSinceEpoch);
+}
+
 
 // -----------------------------------------------------------------------------
 
@@ -119,8 +128,7 @@ _convertDartToNative_PrepareForStructuredClone(value) {
     if (e is num) return e;
     if (e is String) return e;
     if (e is DateTime) {
-      // TODO(sra).
-      throw new UnimplementedError('structured clone of DateTime');
+      return convertDartToNative_DateTime(e);
     }
     if (e is RegExp) {
       // TODO(sra).
@@ -237,8 +245,7 @@ convertNativeToDart_AcceptStructuredClone(object, {mustCopy = false}) {
     if (e is String) return e;
 
     if (isJavaScriptDate(e)) {
-      // TODO(sra).
-      throw new UnimplementedError('structured clone of DateTime');
+      return convertNativeToDart_DateTime(e);
     }
 
     if (isJavaScriptRegExp(e)) {

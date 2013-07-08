@@ -65,6 +65,8 @@ class _VirtualDirectory implements VirtualDirectory {
   bool allowDirectoryListing = false;
   bool followLinks = true;
 
+  final RegExp _invalidPathRegExp = new RegExp("[\\\/\x00]");
+
   Function _errorCallback;
   Function _dirCallback;
 
@@ -75,13 +77,7 @@ class _VirtualDirectory implements VirtualDirectory {
   }
 
   void serveRequest(HttpRequest request) {
-    var path = new Path(request.uri.path).canonicalize();
-
-    if (!path.isAbsolute) {
-      return _serveErrorPage(HttpStatus.NOT_FOUND, request);
-    }
-
-    _locateResource(new Path('.'), path.segments())
+    _locateResource(new Path('.'), request.uri.pathSegments.iterator..moveNext())
         .then((entity) {
           if (entity == null) {
             _serveErrorPage(HttpStatus.NOT_FOUND, request);
@@ -106,23 +102,28 @@ class _VirtualDirectory implements VirtualDirectory {
   }
 
   Future<FileSystemEntity> _locateResource(Path path,
-                                           Iterable<String> segments) {
+                                           Iterator<String> segments) {
+    path = path.canonicalize();
+    if (path.segments().first == "..") return new Future.value(null);
     Path fullPath() => new Path(root).join(path);
     return FileSystemEntity.type(fullPath().toNativePath(), followLinks: false)
         .then((type) {
           switch (type) {
             case FileSystemEntityType.FILE:
-              if (segments.isEmpty) return new File.fromPath(fullPath());
+              if (segments.current == null) {
+                return new File.fromPath(fullPath());
+              }
               break;
 
             case FileSystemEntityType.DIRECTORY:
-              if (segments.isEmpty) {
+              if (segments.current == null) {
                 if (allowDirectoryListing) {
                   return new Directory.fromPath(fullPath());
                 }
               } else {
-                return _locateResource(path.append(segments.first),
-                                       segments.skip(1));
+                if (_invalidPathRegExp.hasMatch(segments.current)) break;
+                return _locateResource(path.append(segments.current),
+                                       segments..moveNext());
               }
               break;
 
@@ -132,15 +133,8 @@ class _VirtualDirectory implements VirtualDirectory {
                     .then((target) {
                       var targetPath = new Path(target).canonicalize();
                       if (targetPath.isAbsolute) return null;
-                      targetPath =
-                          path.directoryPath.join(targetPath).canonicalize();
-                      if (targetPath.segments().isEmpty ||
-                          targetPath.segments().first == '..') return null;
-                      if (segments.isEmpty) {
-                        return _locateResource(targetPath, []);
-                      }
-                      return _locateResource(targetPath.append(segments.first),
-                                             segments.skip(1));
+                      targetPath = path.directoryPath.join(targetPath);
+                      return _locateResource(targetPath, segments);
                     });
               }
               break;

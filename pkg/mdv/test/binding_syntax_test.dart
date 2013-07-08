@@ -115,37 +115,6 @@ syntaxTests() {
     }
   });
 
-  // Note: this test was original, not a port of an existing test.
-  test('getInstanceFragment', () {
-    var model = toSymbolMap({'foo': 'bar'});
-
-    var testSyntax = new WhitespaceRemover();
-    TemplateElement.syntax['Test'] = testSyntax;
-    try {
-      var div = createTestHtml(
-          '''<template bind syntax="Test">
-            {{ foo }}
-            <template bind>
-              {{ foo }}
-            </template>
-          </template>''');
-
-      recursivelySetTemplateModel(div, model);
-      deliverChangeRecords();
-
-      expect(testSyntax.trimmed, 2);
-      expect(testSyntax.removed, 1);
-
-      expect(div.nodes.length, 4);
-      expect(div.nodes.last.text, 'bar');
-      expect(div.nodes[2].tagName, 'TEMPLATE');
-      expect(div.nodes[2].attributes['syntax'], 'Test');
-
-    } finally {
-      TemplateElement.syntax.remove('Test');
-    }
-  });
-
   test('Basic', () {
     var model = toSymbolMap({'foo': 2, 'bar': 4});
 

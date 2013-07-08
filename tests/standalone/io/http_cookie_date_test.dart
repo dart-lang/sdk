@@ -12,11 +12,11 @@ part "../../../sdk/lib/io/io_sink.dart";
 part "../../../sdk/lib/io/http.dart";
 part "../../../sdk/lib/io/http_impl.dart";
 part "../../../sdk/lib/io/http_parser.dart";
-part "../../../sdk/lib/io/http_utils.dart";
+part "../../../sdk/lib/io/http_date.dart";
 part "../../../sdk/lib/io/socket.dart";
 
 void testParseHttpCookieDate() {
-  Expect.throws(() => _HttpUtils.parseCookieDate(""));
+  Expect.throws(() => HttpDate._parseCookieDate(""));
 
   test(int year,
        int month,
@@ -26,7 +26,7 @@ void testParseHttpCookieDate() {
        int seconds,
        String formatted) {
     DateTime date = new DateTime.utc(year, month, day, hours, minutes, seconds, 0);
-    Expect.equals(date, _HttpUtils.parseCookieDate(formatted));
+    Expect.equals(date, HttpDate._parseCookieDate(formatted));
   }
 
   test(2012, DateTime.JUNE, 19, 14, 15, 01, "tue, 19-jun-12 14:15:01 gmt");

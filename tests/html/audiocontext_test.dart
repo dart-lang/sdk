@@ -36,7 +36,7 @@ main() {
           // Test that native overload is chosen correctly. Native
           // implementation should throw 'SyntaxError' DomException because the
           // buffer is empty.
-          AudioBuffer buffer = ctx.createBuffer(view.buffer, false);
+          AudioBuffer buffer = ctx.createBufferFromBuffer(view.buffer, false);
         } catch (e) {
           expect(e.name, DomException.SYNTAX);
         }
@@ -47,7 +47,7 @@ main() {
       if(AudioContext.supported) {
         AudioContext context = new AudioContext();
         GainNode gainNode = context.createGain();
-        gainNode.connect(context.destination, 0, 0);
+        gainNode.connectNode(context.destination);
         expect(gainNode is GainNode, isTrue);
 
         expect(context.createAnalyser() is AnalyserNode, isTrue);
@@ -65,7 +65,7 @@ main() {
         var completer = new Completer<bool>();
         var context = new AudioContext();
         var scriptProcessor = context.createScriptProcessor(1024, 1, 2);
-        scriptProcessor.connect(context.destination, 0, 0);
+        scriptProcessor.connectNode(context.destination);
         bool alreadyCalled = false;
         scriptProcessor.onAudioProcess.listen((event) {
           if (!alreadyCalled) {

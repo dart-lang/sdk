@@ -4,7 +4,7 @@
 
 part of $LIBRARYNAME;
 
-$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   static const String INDEX_SIZE = 'IndexSizeError';
   static const String HIERARCHY_REQUEST = 'HierarchyRequestError';

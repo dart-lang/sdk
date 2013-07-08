@@ -137,10 +137,10 @@ typedef void StreamCanceller();
 /// the wrapped stream. Unlike [StreamSubscription], this canceller will send a
 /// "done" message to the wrapped stream.
 Pair<Stream, StreamCanceller> streamWithCanceller(Stream stream) {
-  var controller = new StreamController(sync: true);
-  var controllerStream = stream.isBroadcast ?
-      controller.stream.asBroadcastStream() :
-      controller.stream;
+  var controller =
+      stream.isBroadcast ? new StreamController.broadcast(sync: true)
+                         : new StreamController(sync: true);
+  var controllerStream = controller.stream;
   var subscription = stream.listen((value) {
     if (!controller.isClosed) controller.add(value);
   }, onError: (error) {

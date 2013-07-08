@@ -10,10 +10,10 @@ import 'dart:collection';
 part '../../../sdk/lib/io/common.dart';
 part "../../../sdk/lib/io/io_sink.dart";
 part "../../../sdk/lib/io/http.dart";
+part "../../../sdk/lib/io/http_date.dart";
 part "../../../sdk/lib/io/http_headers.dart";
 part "../../../sdk/lib/io/http_impl.dart";
 part "../../../sdk/lib/io/http_parser.dart";
-part "../../../sdk/lib/io/http_utils.dart";
 part "../../../sdk/lib/io/socket.dart";
 
 void testMultiValue() {

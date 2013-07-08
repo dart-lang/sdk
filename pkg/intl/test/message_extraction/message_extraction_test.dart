@@ -159,10 +159,19 @@ verifyResult(results) {
   verify("This comes from a static method");
   verify("This is missing some translations");
   verify("Ancient Greek hangman characters: 𐅆𐅇.");
-//  verify("The thing is, well");
-//  verify("One of the tricky things is the plural form");
-//  verify("One of the tricky things is plural forms");
   verify("Escapable characters here: ");
+
+  verify('Is zero plural?');
+  verify('This is singular.');
+  verify('This is plural (2).');
+  verify('Alice went to her house');
+  verify('Bob went to his house');
+  verify('cat went to its litter box');
+  verify('Alice, Bob sont allés au magasin');
+  verify('Alice est allée au magasin');
+  verify('Personne n\'est allé au magasin');
+  verify('Bob, Bob sont allés au magasin');
+  verify('Alice, Alice sont allées au magasin');
 
   var fr_lines = lines.skip(1).skipWhile(
       (line) => !line.contains('----')).toList();
@@ -187,12 +196,20 @@ verifyResult(results) {
   verify("Cela vient d'une méthode statique");
   verify("Ce manque certaines traductions");
   verify("Anciens caractères grecs jeux du pendu: 𐅆𐅇.");
-//  verify("La chose est, well");
-//  verify("Une des choses difficiles est la forme plurielle");
-//  verify("Une des choses difficiles est les formes plurielles");
   verify("Escapes: ");
   verify("\r\f\b\t\v.");
 
+  verify('Est-ce que nulle est pluriel?');
+  verify('C\'est singulier');
+  verify('C\'est pluriel (2).');
+  verify('Alice est allée à sa house');
+  verify('Bob est allé à sa house');
+  verify('cat est allé à sa litter box');
+  verify('Alice, Bob étaient allés à la magasin');
+  verify('Alice était allée à la magasin');
+  verify('Personne n\'avait allé à la magasin');
+  verify('Bob, Bob étaient allés à la magasin');
+  verify('Alice, Alice étaient allées à la magasin');
 
   var de_lines = fr_lines.skip(1).skipWhile(
       (line) => !line.contains('----')).toList();
@@ -217,9 +234,18 @@ verifyResult(results) {
   verify("Dies ergibt sich aus einer statischen Methode");
   verify("This is missing some translations");
   verify("Antike griechische Galgenmännchen Zeichen: 𐅆𐅇");
-//  verify("Die Sache ist, well");
-//  expect("Einer der knifflige Dinge ist der Plural");
-//  expect("Zu den kniffligen Dinge Pluralformen");
   verify("Escapes: ");
   verify("\r\f\b\t\v.");
+
+  verify('Ist Null Plural?');
+  verify('Dies ist einmalig');
+  verify('Dies ist Plural (2).');
+  verify('Alice ging zu ihrem house');
+  verify('Bob ging zu seinem house');
+  verify('cat ging zu seinem litter box');
+  verify('Alice, Bob gingen zum magasin');
+  verify('Alice ging in dem magasin');
+  verify('Niemand ging zu magasin');
+  verify('Bob, Bob gingen zum magasin');
+  verify('Alice, Alice gingen zum magasin');
 }

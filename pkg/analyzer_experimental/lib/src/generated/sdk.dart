@@ -12,54 +12,64 @@ abstract class SdkLibrary {
 
   /**
    * Return the name of the category containing the library.
+   *
    * @return the name of the category containing the library
    */
   String get category;
 
   /**
-   * Return the path to the file defining the library. The path is relative to the `lib`directory within the SDK.
+   * Return the path to the file defining the library. The path is relative to the `lib`
+   * directory within the SDK.
+   *
    * @return the path to the file defining the library
    */
   String get path;
 
   /**
    * Return the short name of the library. This is the name used after `dart:` in a URI.
+   *
    * @return the short name of the library
    */
   String get shortName;
 
   /**
    * Return `true` if this library can be compiled to JavaScript by dart2js.
+   *
    * @return `true` if this library can be compiled to JavaScript by dart2js
    */
   bool get isDart2JsLibrary;
 
   /**
    * Return `true` if the library is documented.
+   *
    * @return `true` if the library is documented
    */
   bool get isDocumented;
 
   /**
    * Return `true` if the library is an implementation library.
+   *
    * @return `true` if the library is an implementation library
    */
   bool get isImplementation;
 
   /**
    * Return `true` if library is internal can be used only by other SDK libraries.
+   *
    * @return `true` if library is internal can be used only by other SDK libraries
    */
   bool get isInternal;
 
   /**
    * Return `true` if library can be used for both client and server.
+   *
    * @return `true` if this library can be used for both client and server.
    */
   bool get isShared;
 
   /**
    * Return `true` if this library can be run on the VM.
+   *
    * @return `true` if this library can be run on the VM
    */
   bool get isVmLibrary;
@@ -67,6 +77,7 @@ abstract class SdkLibrary {
 /**
  * Instances of the class `SdkLibrary` represent the information known about a single library
  * within the SDK.
+ *
  * @coverage dart.engine.sdk
  */
 class SdkLibraryImpl implements SdkLibrary {
@@ -117,6 +128,7 @@ class SdkLibraryImpl implements SdkLibrary {
 
   /**
    * Initialize a newly created library to represent the library with the given name.
+   *
    * @param name the short name of the library
    */
   SdkLibraryImpl(String name) {
@@ -137,12 +149,14 @@ class SdkLibraryImpl implements SdkLibrary {
 
   /**
    * Return `true` if this library can be run on the VM.
+   *
    * @return `true` if this library can be run on the VM
    */
   bool get isVmLibrary => (_platforms & VM_PLATFORM) != 0;
 
   /**
    * Set the name of the category containing the library to the given name.
+   *
    * @param category the name of the category containing the library
    */
   void set category(String category2) {
@@ -158,6 +172,7 @@ class SdkLibraryImpl implements SdkLibrary {
 
   /**
    * Set whether the library is documented to match the given value.
+   *
    * @param documented `true` if the library is documented
    */
   void set documented(bool documented2) {
@@ -166,6 +181,7 @@ class SdkLibraryImpl implements SdkLibrary {
 
   /**
    * Set whether the library is an implementation library to match the given value.
+   *
    * @param implementation `true` if the library is an implementation library
    */
   void set implementation(bool implementation2) {
@@ -173,7 +189,9 @@ class SdkLibraryImpl implements SdkLibrary {
   }
 
   /**
-   * Set the path to the file defining the library to the given path. The path is relative to the`lib` directory within the SDK.
+   * Set the path to the file defining the library to the given path. The path is relative to the
+   * `lib` directory within the SDK.
+   *
    * @param path the path to the file defining the library
    */
   void set path(String path2) {
@@ -188,7 +206,9 @@ class SdkLibraryImpl implements SdkLibrary {
   }
 }
 /**
- * Instances of the class `LibraryMap` map Dart library URI's to the [SdkLibraryImpllibrary].
+ * Instances of the class `LibraryMap` map Dart library URI's to the [SdkLibraryImpl
+ ].
+ *
  * @coverage dart.engine.sdk
  */
 class LibraryMap {
@@ -200,6 +220,7 @@ class LibraryMap {
 
   /**
    * Return the library with the given URI, or `null` if the URI does not map to a library.
+   *
    * @param dartUri the URI of the library to be returned
    * @return the library with the given URI
    */
@@ -207,18 +228,21 @@ class LibraryMap {
 
   /**
    * Return an array containing all the sdk libraries [SdkLibraryImpl] in the mapping
+   *
    * @return the sdk libraries in the mapping
    */
   List<SdkLibrary> get sdkLibraries => new List.from(_libraryMap.values);
 
   /**
    * Return an array containing the library URI's for which a mapping is available.
+   *
    * @return the library URI's for which a mapping is available
    */
   List<String> get uris => new List.from(_libraryMap.keys.toSet());
 
   /**
    * Return the library with the given URI, or `null` if the URI does not map to a library.
+   *
    * @param dartUri the URI of the library to be returned
    * @param library the library with the given URI
    */
@@ -228,12 +252,14 @@ class LibraryMap {
 
   /**
    * Return the number of library URI's for which a mapping is available.
+   *
    * @return the number of library URI's for which a mapping is available
    */
   int size() => _libraryMap.length;
 }
 /**
  * Instances of the class `DartSdk` represent a Dart SDK installed in a specified location.
+ *
  * @coverage dart.engine.sdk
  */
 abstract class DartSdk {
@@ -255,9 +281,10 @@ abstract class DartSdk {
 
   /**
    * Return the source representing the file with the given URI.
+   *
    * @param contentCache the content cache used to access the contents of the mapped source
    * @param kind the kind of URI that was originally resolved in order to produce an encoding with
-   * the given URI
+   *          the given URI
    * @param uri the URI of the file to be returned
    * @return the source representing the specified file
    */
@@ -265,18 +292,22 @@ abstract class DartSdk {
 
   /**
    * Return the [AnalysisContext] used for all of the sources in this [DartSdk].
+   *
    * @return the [AnalysisContext] used for all of the sources in this [DartSdk]
    */
   AnalysisContext get context;
 
   /**
    * Return an array containing all of the libraries defined in this SDK.
+   *
    * @return the libraries defined in this SDK
    */
   List<SdkLibrary> get sdkLibraries;
 
   /**
-   * Return the library representing the library with the given `dart:` URI, or `null`if the given URI does not denote a library in this SDK.
+   * Return the library representing the library with the given `dart:` URI, or `null`
+   * if the given URI does not denote a library in this SDK.
+   *
    * @param dartUri the URI of the library to be returned
    * @return the SDK library object
    */
@@ -285,12 +316,14 @@ abstract class DartSdk {
   /**
    * Return the revision number of this SDK, or `"0"` if the revision number cannot be
    * discovered.
+   *
    * @return the revision number of this SDK
    */
   String get sdkVersion;
 
   /**
    * Return an array containing the library URI's for the libraries defined in this SDK.
+   *
    * @return the library URI's for the libraries defined in this SDK
    */
   List<String> get uris;
@@ -298,6 +331,7 @@ abstract class DartSdk {
   /**
    * Return the source representing the library with the given `dart:` URI, or `null` if
    * the given URI does not denote a library in this SDK.
+   *
    * @param contentCache the content cache used to access the contents of the mapped source
    * @param dartUri the URI of the library to be returned
    * @return the source representing the specified library

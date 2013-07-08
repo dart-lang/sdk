@@ -1243,6 +1243,15 @@ class InitializerResolver {
           if (!initializers.tail.isEmpty) {
             error(call, MessageKind.REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER);
           }
+          // Check that there are no field initializing parameters.
+          Compiler compiler = visitor.compiler;
+          FunctionSignature signature = constructor.computeSignature(compiler);
+          signature.forEachParameter((Element parameter) {
+            if (parameter.isFieldParameter()) {
+              Node node = parameter.parseNode(compiler);
+              error(node, MessageKind.INITIALIZING_FORMAL_NOT_ALLOWED);
+            }
+          });
           return resolveSuperOrThisForSend(constructor, functionNode, call);
         } else {
           visitor.error(call, MessageKind.CONSTRUCTOR_CALL_EXPECTED);
@@ -2295,7 +2304,10 @@ class ResolverVisitor extends MappingVisitor<Element> {
     }
 
     if (!resolvedArguments) {
+      oldSendIsMemberAccess = sendIsMemberAccess;
+      sendIsMemberAccess = false;
       resolveArguments(node.argumentsNode);
+      sendIsMemberAccess = oldSendIsMemberAccess;
     }
 
     // If the selector is null, it means that we will not be generating
@@ -3760,7 +3772,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
       error(node, MessageKind.INVALID_PARAMETER);
     } else if (!identical(enclosingElement.kind,
                           ElementKind.GENERATIVE_CONSTRUCTOR)) {
-      error(node, MessageKind.FIELD_PARAMETER_NOT_ALLOWED);
+      error(node, MessageKind.INITIALIZING_FORMAL_NOT_ALLOWED);
     } else {
       SourceString name = getParameterName(node);
       Element fieldElement = currentClass.lookupLocalMember(name);

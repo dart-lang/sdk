@@ -76,7 +76,7 @@ class SSLFilter {
                                        int start2, int end2);
   intptr_t ProcessReadEncryptedBuffer(int start, int end);
   intptr_t ProcessWriteEncryptedBuffer(int start, int end);
-  void ProcessAllBuffers(int starts[kNumBuffers],
+  bool ProcessAllBuffers(int starts[kNumBuffers],
                          int ends[kNumBuffers],
                          bool in_handshake);
   Dart_Handle PeerCertificate();

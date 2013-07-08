@@ -54,6 +54,9 @@ class Rect {
         height == other.height;
   }
 
+  int get hashCode => JenkinsSmiHash.hash4(left.hashCode, top.hashCode,
+      width.hashCode, height.hashCode);
+
   /**
    * Computes the intersection of this rectangle and the rectangle parameter.
    * Returns null if there is no intersection.

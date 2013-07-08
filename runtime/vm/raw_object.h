@@ -66,6 +66,7 @@ namespace dart {
     V(Stacktrace)                                                              \
     V(JSRegExp)                                                                \
     V(WeakProperty)                                                            \
+    V(MirrorReference)                                                         \
     V(DartFunction)                                                            \
     V(Float32x4)                                                               \
     V(Uint32x4)                                                                \
@@ -1524,6 +1525,20 @@ class RawWeakProperty : public RawInstance {
   friend class MarkingVisitor;
   friend class Scavenger;
   friend class ScavengerVisitor;
+};
+
+// MirrorReferences are used by mirrors to hold reflectees that are VM
+// internal objects, such as libraries, classes, functions or types.
+class RawMirrorReference : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(MirrorReference);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->referent_);
+  }
+  RawObject* referent_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->referent_);
+  }
 };
 
 

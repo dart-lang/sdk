@@ -39,6 +39,7 @@ main() {
                 testMethodInvocationArgumentCount,
                 testMethodInvocations,
                 testMethodInvocationsInClass,
+                testGetterSetterInvocation,
                 testControlFlow,
                 // testNewExpression,
                 testConditionalExpression,
@@ -47,7 +48,9 @@ main() {
                 testSuper,
                 testOperatorsAssignability,
                 testFieldInitializers,
-                testTypeVariableExpressions];
+                testTypeVariableExpressions,
+                testTypeLiteral,
+                testInitializers];
   for (Function test in tests) {
     setup();
     test();
@@ -208,11 +211,22 @@ void testConstructorInvocationArgumentTypes() {
   compiler.parseScript("""
     class C1 { C1(x); }
     class C2 { C2(int x); }
+    class C3 {
+      int field;
+      C3(this.field);
+      C3.named(this.field);
+    }
   """);
   analyze("new C1(42);");
   analyze("new C1('string');");
   analyze("new C2(42);");
   analyze("new C2('string');",
+          MessageKind.NOT_ASSIGNABLE);
+  analyze("new C3(42);");
+  analyze("new C3('string');",
+          MessageKind.NOT_ASSIGNABLE);
+  analyze("new C3.named(42);");
+  analyze("new C3.named('string');",
           MessageKind.NOT_ASSIGNABLE);
 }
 
@@ -552,9 +566,9 @@ testMethodInvocationsInClass() {
   check(c, "(e)();");
   check(c, "(e)(1);");
   check(c, "(e)('string');");
-  check(c, "(foo)();", MessageKind.PROPERTY_NOT_FOUND);
-  check(c, "(foo)(1);", MessageKind.PROPERTY_NOT_FOUND);
-  check(c, "(foo)('string');", MessageKind.PROPERTY_NOT_FOUND);
+  check(c, "(foo)();", MessageKind.MEMBER_NOT_FOUND);
+  check(c, "(foo)(1);", MessageKind.MEMBER_NOT_FOUND);
+  check(c, "(foo)('string');", MessageKind.MEMBER_NOT_FOUND);
 
   // Invocations on function expressions.
   check(c, "(foo){}();", MessageKind.MISSING_ARGUMENT);
@@ -723,7 +737,7 @@ testSuper() {
     class A {
       String field = "42";
     }
-    
+
     class B extends A {
       Object field = 42;
       void method() {}
@@ -1041,9 +1055,325 @@ void testTypeVariableExpressions() {
   analyzeIn(method, "{ int type = T; }", MessageKind.NOT_ASSIGNABLE);
 
   analyzeIn(method, "{ String typeName = T.toString(); }");
-  analyzeIn(method, "{ T.foo; }", MessageKind.PROPERTY_NOT_FOUND);
+  analyzeIn(method, "{ T.foo; }", MessageKind.MEMBER_NOT_FOUND);
+  analyzeIn(method, "{ T.foo = 0; }", MessageKind.PROPERTY_NOT_FOUND);
   analyzeIn(method, "{ T.foo(); }", MessageKind.METHOD_NOT_FOUND);
   analyzeIn(method, "{ T + 1; }", MessageKind.OPERATOR_NOT_FOUND);
+}
+
+void testTypeLiteral() {
+  final String source = r"""class Class {
+                              static var field = null;
+                              static method() {}
+                            }""";
+  compiler.parseScript(source);
+
+  // Check direct access.
+  analyze('Type m() => int;');
+  analyze('int m() => int;', MessageKind.NOT_ASSIGNABLE);
+
+  // Check access in assignment.
+  analyze('m(Type val) => val = Class;');
+  analyze('m(int val) => val = Class;', MessageKind.NOT_ASSIGNABLE);
+
+  // Check access as argument.
+  analyze('m(Type val) => m(int);');
+  analyze('m(int val) => m(int);', MessageKind.NOT_ASSIGNABLE);
+
+  // Check access as argument in member access.
+  analyze('m(Type val) => m(int).foo;');
+  analyze('m(int val) => m(int).foo;', MessageKind.NOT_ASSIGNABLE);
+
+  // Check static property access.
+  analyze('m() => Class.field;');
+  analyze('m() => (Class).field;', MessageKind.MEMBER_NOT_FOUND);
+
+  // Check static method access.
+  analyze('m() => Class.method();');
+  analyze('m() => (Class).method();', MessageKind.METHOD_NOT_FOUND);
+}
+
+void testInitializers() {
+  check(String text, [expectedWarnings]) {
+    analyzeTopLevel(text, expectedWarnings);
+  }
+
+  // Check initializers.
+  check(r'''class Class {
+              var a;
+              Class(this.a);
+            }
+            ''');
+  check(r'''class Class {
+              int a;
+              Class(this.a);
+            }
+            ''');
+  check(r'''class Class {
+              var a;
+              Class(int this.a);
+            }
+            ''');
+  check(r'''class Class {
+              String a;
+              Class(int this.a);
+            }
+            ''', MessageKind.NOT_ASSIGNABLE);
+  check(r'''class Class {
+              var a;
+              Class(int a) : this.a = a;
+            }
+            ''');
+  check(r'''class Class {
+              String a;
+              Class(int a) : this.a = a;
+            }
+            ''', MessageKind.NOT_ASSIGNABLE);
+
+  // Check this-calls.
+  check(r'''class Class {
+              var a;
+              Class(this.a);
+              Class.named(int a) : this(a);
+            }
+            ''');
+  check(r'''class Class {
+              String a;
+              Class(this.a);
+              Class.named(int a) : this(a);
+            }
+            ''', MessageKind.NOT_ASSIGNABLE);
+  check(r'''class Class {
+              String a;
+              Class(var a) : this.a = a;
+              Class.named(int a) : this(a);
+            }
+            ''');
+  check(r'''class Class {
+              String a;
+              Class(String a) : this.a = a;
+              Class.named(int a) : this(a);
+            }
+            ''', MessageKind.NOT_ASSIGNABLE);
+
+  // Check super-calls.
+  check(r'''class Super {
+              var a;
+              Super(this.a);
+            }
+            class Class extends Super {
+              Class.named(int a) : super(a);
+            }
+            ''');
+  check(r'''class Super {
+              String a;
+              Super(this.a);
+            }
+            class Class extends Super {
+              Class.named(int a) : super(a);
+            }
+            ''', MessageKind.NOT_ASSIGNABLE);
+  check(r'''class Super {
+              String a;
+              Super(var a) : this.a = a;
+            }
+            class Class extends Super {
+              Class.named(int a) : super(a);
+            }
+            ''');
+  check(r'''class Super {
+              String a;
+              Super(String a) : this.a = a;
+            }
+            class Class extends Super {
+              Class.named(int a) : super(a);
+            }
+            ''', MessageKind.NOT_ASSIGNABLE);
+
+  // Check super-calls involving generics.
+  check(r'''class Super<T> {
+              var a;
+              Super(this.a);
+            }
+            class Class extends Super<String> {
+              Class.named(int a) : super(a);
+            }
+            ''');
+  check(r'''class Super<T> {
+              T a;
+              Super(this.a);
+            }
+            class Class extends Super<String> {
+              Class.named(int a) : super(a);
+            }
+            ''', MessageKind.NOT_ASSIGNABLE);
+  check(r'''class Super<T> {
+              T a;
+              Super(var a) : this.a = a;
+            }
+            class Class extends Super<String> {
+              Class.named(int a) : super(a);
+            }
+            ''');
+  check(r'''class Super<T> {
+              T a;
+              Super(T a) : this.a = a;
+            }
+            class Class extends Super<String> {
+              Class.named(int a) : super(a);
+            }
+            ''', MessageKind.NOT_ASSIGNABLE);
+
+  // Check instance creations.
+  check(r'''class Class {
+              var a;
+              Class(this.a);
+            }
+            method(int a) => new Class(a);
+            ''');
+  check(r'''class Class {
+              String a;
+              Class(this.a);
+            }
+            method(int a) => new Class(a);
+            ''', MessageKind.NOT_ASSIGNABLE);
+  check(r'''class Class {
+              String a;
+              Class(var a) : this.a = a;
+            }
+            method(int a) => new Class(a);
+            ''');
+  check(r'''class Class {
+              String a;
+              Class(String a) : this.a = a;
+            }
+            method(int a) => new Class(a);
+            ''', MessageKind.NOT_ASSIGNABLE);
+
+  // Check instance creations involving generics.
+  check(r'''class Class<T> {
+              var a;
+              Class(this.a);
+            }
+            method(int a) => new Class<String>(a);
+            ''');
+  check(r'''class Class<T> {
+              T a;
+              Class(this.a);
+            }
+            method(int a) => new Class<String>(a);
+            ''', MessageKind.NOT_ASSIGNABLE);
+  check(r'''class Class<T> {
+              T a;
+              Class(var a) : this.a = a;
+            }
+            method(int a) => new Class<String>(a);
+            ''');
+  check(r'''class Class<T> {
+              T a;
+              Class(String a) : this.a = a;
+            }
+            method(int a) => new Class<String>(a);
+            ''', MessageKind.NOT_ASSIGNABLE);
+}
+
+void testGetterSetterInvocation() {
+  compiler.parseScript(r'''int get variable => 0;
+                           void set variable(String s) {}
+
+                           class Class {
+                             int get instanceField => 0;
+                             void set instanceField(String s) {}
+
+                             static int get staticField => 0;
+                             static void set staticField(String s) {}
+
+                             int overriddenField;
+                             int get getterField => 0;
+                             void set setterField(int v) {}
+                           }
+
+                           class GetterClass extends Class {
+                             int get overriddenField => super.overriddenField;
+                             int get setterField => 0;
+                           }
+
+                           class SetterClass extends Class {
+                             void set overriddenField(int v) {}
+                             void set getterField(int v) {}
+                           }
+
+                           Class c;
+                           GetterClass gc;
+                           SetterClass sc;
+                           ''');
+
+  check(String text, [expectedWarnings]) {
+    analyze('{ $text }', expectedWarnings);
+  }
+
+  check("variable = '';");
+  check("int v = variable;");
+  check("variable = 0;", MessageKind.NOT_ASSIGNABLE);
+  check("String v = variable;", MessageKind.NOT_ASSIGNABLE);
+  // num is not assignable to String (the type of the setter).
+  check("variable += 0;", MessageKind.NOT_ASSIGNABLE);
+  // String is not assignable to int (the argument type of the operator + on the
+  // getter) and num (the result type of the operation) is not assignable to
+  // String (the type of the setter).
+  check("variable += '';",
+      [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+
+  check("c.instanceField = '';");
+  check("int v = c.instanceField;");
+  check("c.instanceField = 0;", MessageKind.NOT_ASSIGNABLE);
+  check("String v = c.instanceField;", MessageKind.NOT_ASSIGNABLE);
+
+  // num is not assignable to String (the type of the setter).
+  check("c.instanceField += 0;", MessageKind.NOT_ASSIGNABLE);
+  // String is not assignable to int (the argument type of the operator + on the
+  // getter) and num (the result type of the operation) is not assignable to
+  // String (the type of the setter).
+  check("c.instanceField += '';",
+      [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+
+  check("Class.staticField = '';");
+  check("int v = Class.staticField;");
+  check("Class.staticField = 0;", MessageKind.NOT_ASSIGNABLE);
+  check("String v = Class.staticField;", MessageKind.NOT_ASSIGNABLE);
+
+  // num is not assignable to String (the type of the setter).
+  check("Class.staticField += 0;", MessageKind.NOT_ASSIGNABLE);
+  // String is not assignable to int (the argument type of the operator + on the
+  // getter) and num (the result type of the operation) is not assignable to
+  // String (the type of the setter).
+  check("Class.staticField += '';",
+        [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+
+  check("int v = c.overriddenField;");
+  check("c.overriddenField = 0;");
+  check("int v = c.getterField;");
+  // TODO(johnniwinther): Check write of property without setter.
+  //check("c.getterField = 0;", MessageKind.CANNOT_RESOLVE_SETTER);
+  // TODO(johnniwinther): Check read of property without getter.
+  //check("int v = c.setterField;", MessageKind.CANNOT_RESOLVE_GETTER);
+  check("c.setterField = 0;");
+
+  check("int v = gc.overriddenField;");
+  check("gc.overriddenField = 0;");
+  check("int v = gc.setterField;");
+  check("gc.setterField = 0;");
+  check("int v = gc.getterField;");
+  // TODO(johnniwinther): Check write of property without setter.
+  //check("gc.getterField = 0;", MessageKind.CANNOT_RESOLVE_SETTER);
+
+  check("int v = sc.overriddenField;");
+  check("sc.overriddenField = 0;");
+  check("int v = sc.getterField;");
+  check("sc.getterField = 0;");
+  // TODO(johnniwinther): Check read of property without getter.
+  //check("int v = sc.setterField;", MessageKind.CANNOT_RESOLVE_GETTER);
+  check("sc.setterField = 0;");
 }
 
 const CLASS_WITH_METHODS = '''
@@ -1114,15 +1444,24 @@ abstract class int extends num {
 }
 ''';
 
+const String STRING_SOURCE = '''
+class String implements Pattern {
+  String operator +(String other) => this;
+}
+''';
+
 void setup() {
   RegExp classNum = new RegExp(r'abstract class num {}');
   Expect.isTrue(DEFAULT_CORELIB.contains(classNum));
   RegExp classInt = new RegExp(r'abstract class int extends num { }');
   Expect.isTrue(DEFAULT_CORELIB.contains(classInt));
+  RegExp classString = new RegExp('class String implements Pattern {}');
+  Expect.isTrue(DEFAULT_CORELIB.contains(classString));
 
   String CORE_SOURCE = DEFAULT_CORELIB
       .replaceAll(classNum, NUM_SOURCE)
-      .replaceAll(classInt, INT_SOURCE);
+      .replaceAll(classInt, INT_SOURCE)
+      .replaceAll(classString, STRING_SOURCE);
 
   compiler = new MockCompiler(coreSource: CORE_SOURCE);
   types = compiler.types;
@@ -1149,28 +1488,38 @@ analyzeTopLevel(String text, [expectedWarnings]) {
 
   LibraryElement library = mockLibrary(compiler, text);
 
-  Link<Element> topLevelElements = parseUnit(text, compiler, library);
+  Link<Element> topLevelElements = parseUnit(text, compiler, library).reverse();
 
+  Element element = null;
+  Node node;
+  TreeElements mapping;
+  // Resolve all declarations and members.
   for (Link<Element> elements = topLevelElements;
        !elements.isEmpty;
        elements = elements.tail) {
-    Element element = elements.head;
+    element = elements.head;
     if (element.isClass()) {
       ClassElement classElement = element;
       classElement.ensureResolved(compiler);
-      // Analyze last class member.
       classElement.forEachLocalMember((Element e) {
-        if (!e.isSynthesized) element = e;
+        if (!e.isSynthesized) {
+          element = e;
+          node = element.parseNode(compiler);
+          mapping = compiler.resolver.resolve(element);
+        }
       });
+    } else {
+      node = element.parseNode(compiler);
+      mapping = compiler.resolver.resolve(element);
     }
-    Node node = element.parseNode(compiler);
-    TreeElements mapping = compiler.resolver.resolve(element);
-    TypeCheckerVisitor checker =
-        new TypeCheckerVisitor(compiler, mapping, types);
-    compiler.clearWarnings();
-    checker.analyze(node);
-    compareWarningKinds(text, expectedWarnings, compiler.warnings);
   }
+  // Type check last class declaration or member.
+  TypeCheckerVisitor checker =
+      new TypeCheckerVisitor(compiler, mapping, types);
+  compiler.clearWarnings();
+  checker.analyze(node);
+  compareWarningKinds(text, expectedWarnings, compiler.warnings);
+
   compiler.diagnosticHandler = null;
 }
 

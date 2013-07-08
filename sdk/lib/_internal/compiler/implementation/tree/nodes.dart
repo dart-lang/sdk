@@ -377,16 +377,8 @@ class Send extends Expression {
         && identical(selector.asOperator().source.stringValue, 'is');
   }
 
-  bool get isIsCheck {
-    return isOperator
-        && identical(selector.asOperator().source.stringValue, 'is')
-        && arguments.head.asSend() == null;
-  }
-
   bool get isIsNotCheck {
-    return isOperator
-        && identical(selector.asOperator().source.stringValue, 'is')
-        && arguments.head.asSend() != null;
+    return isTypeTest && arguments.head.asSend() != null;
   }
 
   TypeAnnotation get typeAnnotationFromIsCheckOrCast {

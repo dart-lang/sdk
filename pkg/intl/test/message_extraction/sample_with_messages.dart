@@ -109,14 +109,22 @@ printStuff(Intl locale) {
     print(YouveGotMessages.staticMessage());
     print(notAlwaysTranslated());
     print(originalNotInBMP());
-    // TODO(alanknight): Support named arguments.
-//    print(thing.namedArgs(thing: 'well...'));
-    // TODO(alanknight): Support plurals. Do we need to consider changing
-    // the form so as not to have a difficult to validate interpolation
-    // in our translation output?
-//    print(thing.plurals(1));
-//    print(thing.plurals(2));
     print(escapable());
+
+    print(thing.plurals(0));
+    print(thing.plurals(1));
+    print(thing.plurals(2));
+    var alice = new Person("Alice", "female");
+    var bob = new Person("Bob", "male");
+    var cat = new Person("cat", null);
+    print(thing.whereTheyWent(alice, "house"));
+    print(thing.whereTheyWent(bob, "house"));
+    print(thing.whereTheyWent(cat, "litter box"));
+    print(thing.nested([alice, bob], "magasin"));
+    print(thing.nested([alice], "magasin"));
+    print(thing.nested([], "magasin"));
+    print(thing.nested([bob, bob], "magasin"));
+    print(thing.nested([alice, alice], "magasin"));
   });
 }
 

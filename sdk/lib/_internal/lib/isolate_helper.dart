@@ -1360,6 +1360,16 @@ class TimerImpl implements Timer {
   TimerImpl(int milliseconds, void callback())
       : _once = true {
     if (milliseconds == 0 && (!hasTimer() || _globalState.isWorker)) {
+
+      void internalCallback() {
+        _handle = null;
+        callback();
+      }
+
+      // Setting _handle to something different from null indicates that the
+      // callback has not been run. Hence, the choice of 1 is arbitrary.
+      _handle = 1;
+
       // This makes a dependency between the async library and the
       // event loop of the isolate library. The compiler makes sure
       // that the event loop is compiled if [Timer] is used.
@@ -1367,15 +1377,17 @@ class TimerImpl implements Timer {
       // loop instead of setTimeout, to make sure the futures get executed in
       // order.
       _globalState.topEventLoop.enqueue(
-          _globalState.currentContext, callback, 'timer');
+          _globalState.currentContext, internalCallback, 'timer');
       _inEventLoop = true;
     } else if (hasTimer()) {
-      _globalState.topEventLoop.activeTimerCount++;
+
       void internalCallback() {
-        callback();
         _handle = null;
         _globalState.topEventLoop.activeTimerCount--;
+        callback();
       }
+
+      _globalState.topEventLoop.activeTimerCount++;
       _handle = JS('int', '#.setTimeout(#, #)',
                    globalThis,
                    convertDartClosureToJS(internalCallback, 0),
@@ -1416,6 +1428,8 @@ class TimerImpl implements Timer {
       throw new UnsupportedError("Canceling a timer.");
     }
   }
+
+  bool get isActive => _handle != null;
 }
 
 bool hasTimer() => JS('', '#.setTimeout', globalThis) != null;

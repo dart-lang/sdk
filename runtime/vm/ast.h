@@ -128,6 +128,8 @@ NODE_LIST(AST_TYPE_CHECK)
     return NULL;
   }
 
+  virtual bool IsPotentiallyConst() const { return false; }
+
   // Analyzes an expression to determine whether it is a compile time
   // constant or not. Returns NULL if the expression is not a compile time
   // constant. Otherwise, the return value is an approximation of the
@@ -327,6 +329,7 @@ class LiteralNode : public AstNode {
 
   const Instance& literal() const { return literal_; }
 
+  virtual bool IsPotentiallyConst() const;
   virtual const Instance* EvalConstExpr() const {
     return &literal();
   }
@@ -436,7 +439,7 @@ class ClosureNode : public AstNode {
   }
 
   virtual AstNode* MakeAssignmentNode(AstNode* rhs);
-
+  virtual bool IsPotentiallyConst() const;
   virtual const Instance* EvalConstExpr() const;
 
   DECLARE_COMMON_NODE_FUNCTIONS(ClosureNode);
@@ -542,6 +545,7 @@ class ComparisonNode : public AstNode {
   }
 
   virtual const char* Name() const;
+  virtual bool IsPotentiallyConst() const;
   virtual const Instance* EvalConstExpr() const;
 
   DECLARE_COMMON_NODE_FUNCTIONS(ComparisonNode);
@@ -579,6 +583,7 @@ class BinaryOpNode : public AstNode {
   }
 
   virtual const char* Name() const;
+  virtual bool IsPotentiallyConst() const;
   virtual const Instance* EvalConstExpr() const;
 
   DECLARE_COMMON_NODE_FUNCTIONS(BinaryOpNode);
@@ -616,6 +621,7 @@ class UnaryOpNode : public AstNode {
   }
 
   virtual const char* Name() const;
+  virtual bool IsPotentiallyConst() const;
   virtual const Instance* EvalConstExpr() const;
 
   DECLARE_COMMON_NODE_FUNCTIONS(UnaryOpNode);
@@ -958,6 +964,7 @@ class LoadLocalNode : public AstNode {
   virtual void VisitChildren(AstNodeVisitor* visitor) const { }
 
   virtual const Instance* EvalConstExpr() const;
+  virtual bool IsPotentiallyConst() const;
   virtual AstNode* MakeAssignmentNode(AstNode* rhs);
 
   DECLARE_COMMON_NODE_FUNCTIONS(LoadLocalNode);
@@ -1323,6 +1330,7 @@ class StaticGetterNode : public AstNode {
 
   virtual AstNode* MakeAssignmentNode(AstNode* rhs);
 
+  virtual bool IsPotentiallyConst() const;
   virtual const Instance* EvalConstExpr() const;
 
   DECLARE_COMMON_NODE_FUNCTIONS(StaticGetterNode);

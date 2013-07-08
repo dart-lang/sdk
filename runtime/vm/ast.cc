@@ -110,6 +110,11 @@ void ArrayNode::VisitChildren(AstNodeVisitor* visitor) const {
 }
 
 
+bool LiteralNode::IsPotentiallyConst() const {
+  return true;
+}
+
+
 // TODO(srdjan): Add code for logical negation.
 AstNode* LiteralNode::ApplyUnaryOp(Token::Kind unary_op_kind) {
   if (unary_op_kind == Token::kNEGATE) {
@@ -142,6 +147,24 @@ bool ComparisonNode::IsKindValid() const {
 
 const char* ComparisonNode::Name() const {
   return Token::Str(kind_);
+}
+
+
+bool ComparisonNode::IsPotentiallyConst() const {
+  switch (kind_) {
+    case Token::kLT:
+    case Token::kGT:
+    case Token::kLTE:
+    case Token::kGTE:
+    case Token::kEQ:
+    case Token::kNE:
+    case Token::kEQ_STRICT:
+    case Token::kNE_STRICT:
+      return this->left()->IsPotentiallyConst() &&
+          this->right()->IsPotentiallyConst();
+    default:
+      return false;
+  }
 }
 
 
@@ -216,6 +239,30 @@ const char* BinaryOpNode::Name() const {
 }
 
 
+bool BinaryOpNode::IsPotentiallyConst() const {
+  switch (kind_) {
+    case Token::kADD:
+    case Token::kSUB:
+    case Token::kMUL:
+    case Token::kDIV:
+    case Token::kMOD:
+    case Token::kTRUNCDIV:
+    case Token::kBIT_OR:
+    case Token::kBIT_XOR:
+    case Token::kBIT_AND:
+    case Token::kSHL:
+    case Token::kSHR:
+    case Token::kOR:
+    case Token::kAND:
+      return this->left()->IsPotentiallyConst() &&
+          this->right()->IsPotentiallyConst();
+    default:
+      UNREACHABLE();
+      return false;
+  }
+}
+
+
 const Instance* BinaryOpNode::EvalConstExpr() const {
   const Instance* left_val = this->left()->EvalConstExpr();
   if (left_val == NULL) {
@@ -283,7 +330,6 @@ AstNode* UnaryOpNode::UnaryOpOrLiteral(intptr_t token_pos,
 
 bool UnaryOpNode::IsKindValid() const {
   switch (kind_) {
-    case Token::kADD:
     case Token::kNEGATE:
     case Token::kNOT:
     case Token::kBIT_NOT:
@@ -294,13 +340,17 @@ bool UnaryOpNode::IsKindValid() const {
 }
 
 
+bool UnaryOpNode::IsPotentiallyConst() const {
+  return this->operand()->IsPotentiallyConst();
+}
+
+
 const Instance* UnaryOpNode::EvalConstExpr() const {
   const Instance* val = this->operand()->EvalConstExpr();
   if (val == NULL) {
     return NULL;
   }
   switch (kind_) {
-    case Token::kADD:
     case Token::kNEGATE:
       return val->IsNumber() ? val : NULL;
     case Token::kNOT:
@@ -310,6 +360,14 @@ const Instance* UnaryOpNode::EvalConstExpr() const {
     default:
       return NULL;
   }
+}
+
+
+bool ClosureNode::IsPotentiallyConst() const {
+  if (function().IsImplicitStaticClosureFunction()) {
+    return true;
+  }
+  return false;
 }
 
 
@@ -344,6 +402,16 @@ const char* UnaryOpNode::Name() const {
 
 const char* JumpNode::Name() const {
   return Token::Str(kind_);
+}
+
+
+bool LoadLocalNode::IsPotentiallyConst() const {
+  // Parameters of const constructors are implicitly final and can be
+  // used in initializer expressions.
+  // We can't check here whether the local variable is indeed a parameter,
+  // but this code is executed before any other local variables are
+  // added to the scope.
+  return local().is_final();
 }
 
 
@@ -444,6 +512,18 @@ AstNode* StaticCallNode::MakeAssignmentNode(AstNode* rhs) {
     return this;
   }
   return NULL;
+}
+
+
+bool StaticGetterNode::IsPotentiallyConst() const {
+  const String& getter_name =
+      String::Handle(Field::GetterName(this->field_name()));
+  const Function& getter_func =
+      Function::Handle(this->cls().LookupStaticFunction(getter_name));
+  if (getter_func.IsNull() || !getter_func.is_const()) {
+    return false;
+  }
+  return true;
 }
 
 

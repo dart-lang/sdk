@@ -22,6 +22,7 @@ part 'src/bindings.dart';
 part 'src/element.dart';
 part 'src/input_element.dart';
 part 'src/node.dart';
+part 'src/select_element.dart';
 part 'src/template.dart';
 part 'src/text.dart';
 
@@ -61,7 +62,7 @@ Stream<DocumentFragment> get instanceCreated {
 // Called from:
 // https://github.com/polymer-project/polymer/blob/master/src/register.js#L99
 void bindModel(Node root, model, [CustomBindingSyntax syntax]) {
-  _Bindings._addBindings(root, model, syntax);
+  _addBindings(root, model, syntax);
 }
 
 
@@ -83,6 +84,8 @@ _mdv(node) {
 
   if (node is InputElement) {
     wrapper = new _InputElementExtension(node);
+  } else if (node is SelectElement) {
+    wrapper = new _SelectElementExtension(node);
   } else if (node is Element) {
     if (node.isTemplate) {
       wrapper = new _TemplateExtension(node);

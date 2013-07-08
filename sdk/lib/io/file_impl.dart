@@ -783,7 +783,7 @@ class _RandomAccessFile implements RandomAccessFile {
 
     _BufferAndStart result;
     try {
-      result = _ensureFastAndSerializableData(buffer, start, end);
+      result = _ensureFastAndSerializableByteData(buffer, start, end);
     } catch (e) {
       return new Future.error(e);
     }
@@ -816,7 +816,7 @@ class _RandomAccessFile implements RandomAccessFile {
     if (end == start) return;
     _checkReadWriteListArguments(buffer.length, start, end);
     _BufferAndStart bufferAndStart =
-        _ensureFastAndSerializableData(buffer, start, end);
+        _ensureFastAndSerializableByteData(buffer, start, end);
     var result = _writeFrom(_id,
                             bufferAndStart.buffer,
                             bufferAndStart.start,

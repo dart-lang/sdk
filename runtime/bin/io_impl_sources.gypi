@@ -6,7 +6,6 @@
 # implementation files are in builtin_impl_sources.gypi.
 {
   'sources': [
-    'common.cc',
     'crypto.cc',
     'crypto_android.cc',
     'crypto_linux.cc',
@@ -38,15 +37,16 @@
     'process_linux.cc',
     'process_macos.cc',
     'process_win.cc',
+    'secure_socket.cc',
+    'secure_socket.h',
+    'secure_socket_unsupported.cc',
     'socket.cc',
     'socket.h',
     'socket_android.cc',
     'socket_linux.cc',
     'socket_macos.cc',
     'socket_win.cc',
-    'secure_socket.cc',
-    'secure_socket.h',
-    'secure_socket_unsupported.cc',
+    'stdin.cc',
   ],
   'conditions': [
     ['dart_io_support==1', {

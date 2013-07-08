@@ -339,9 +339,21 @@ class CharBufferScannerTest extends AbstractScannerTest {
         final __test = new CharBufferScannerTest();
         runJUnitTest(__test, __test.test_identifier);
       });
-      _ut.test('test_illegalChar', () {
+      _ut.test('test_illegalChar_cyrillicLetter_middle', () {
         final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_illegalChar);
+        runJUnitTest(__test, __test.test_illegalChar_cyrillicLetter_middle);
+      });
+      _ut.test('test_illegalChar_cyrillicLetter_start', () {
+        final __test = new CharBufferScannerTest();
+        runJUnitTest(__test, __test.test_illegalChar_cyrillicLetter_start);
+      });
+      _ut.test('test_illegalChar_nbsp', () {
+        final __test = new CharBufferScannerTest();
+        runJUnitTest(__test, __test.test_illegalChar_nbsp);
+      });
+      _ut.test('test_illegalChar_notLetter', () {
+        final __test = new CharBufferScannerTest();
+        runJUnitTest(__test, __test.test_illegalChar_notLetter);
       });
       _ut.test('test_index', () {
         final __test = new CharBufferScannerTest();
@@ -699,6 +711,10 @@ class CharBufferScannerTest extends AbstractScannerTest {
         final __test = new CharBufferScannerTest();
         runJUnitTest(__test, __test.test_string_multi_single);
       });
+      _ut.test('test_string_multi_slashEnter', () {
+        final __test = new CharBufferScannerTest();
+        runJUnitTest(__test, __test.test_string_multi_slashEnter);
+      });
       _ut.test('test_string_multi_unterminated', () {
         final __test = new CharBufferScannerTest();
         runJUnitTest(__test, __test.test_string_multi_unterminated);
@@ -1010,9 +1026,21 @@ class StringScannerTest extends AbstractScannerTest {
         final __test = new StringScannerTest();
         runJUnitTest(__test, __test.test_identifier);
       });
-      _ut.test('test_illegalChar', () {
+      _ut.test('test_illegalChar_cyrillicLetter_middle', () {
         final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_illegalChar);
+        runJUnitTest(__test, __test.test_illegalChar_cyrillicLetter_middle);
+      });
+      _ut.test('test_illegalChar_cyrillicLetter_start', () {
+        final __test = new StringScannerTest();
+        runJUnitTest(__test, __test.test_illegalChar_cyrillicLetter_start);
+      });
+      _ut.test('test_illegalChar_nbsp', () {
+        final __test = new StringScannerTest();
+        runJUnitTest(__test, __test.test_illegalChar_nbsp);
+      });
+      _ut.test('test_illegalChar_notLetter', () {
+        final __test = new StringScannerTest();
+        runJUnitTest(__test, __test.test_illegalChar_notLetter);
       });
       _ut.test('test_index', () {
         final __test = new StringScannerTest();
@@ -1374,6 +1402,10 @@ class StringScannerTest extends AbstractScannerTest {
         final __test = new StringScannerTest();
         runJUnitTest(__test, __test.test_string_multi_single);
       });
+      _ut.test('test_string_multi_slashEnter', () {
+        final __test = new StringScannerTest();
+        runJUnitTest(__test, __test.test_string_multi_slashEnter);
+      });
       _ut.test('test_string_multi_unterminated', () {
         final __test = new StringScannerTest();
         runJUnitTest(__test, __test.test_string_multi_unterminated);
@@ -1481,6 +1513,7 @@ class TokenStreamValidator {
 
   /**
    * Validate that the stream of tokens that starts with the given token is correct.
+   *
    * @param token the first token in the stream of tokens to be validated
    */
   void validate(Token token) {
@@ -1679,7 +1712,16 @@ abstract class AbstractScannerTest extends JUnitTestCase {
   void test_identifier() {
     assertToken(TokenType.IDENTIFIER, "result");
   }
-  void test_illegalChar() {
+  void test_illegalChar_cyrillicLetter_middle() {
+    assertError(ScannerErrorCode.ILLEGAL_CHARACTER, 0, "Shche\u0433lov");
+  }
+  void test_illegalChar_cyrillicLetter_start() {
+    assertError(ScannerErrorCode.ILLEGAL_CHARACTER, 0, "\u0429");
+  }
+  void test_illegalChar_nbsp() {
+    assertError(ScannerErrorCode.ILLEGAL_CHARACTER, 0, "\u00A0");
+  }
+  void test_illegalChar_notLetter() {
     assertError(ScannerErrorCode.ILLEGAL_CHARACTER, 0, "\u0312");
   }
   void test_index() {
@@ -1958,6 +2000,9 @@ abstract class AbstractScannerTest extends JUnitTestCase {
   void test_string_multi_single() {
     assertToken(TokenType.STRING, "'''string'''");
   }
+  void test_string_multi_slashEnter() {
+    assertError(ScannerErrorCode.CHARACTER_EXPECTED_AFTER_SLASH, 0, "'''\\\n'''");
+  }
   void test_string_multi_unterminated() {
     assertError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8, "'''string");
   }
@@ -2046,6 +2091,7 @@ abstract class AbstractScannerTest extends JUnitTestCase {
 
   /**
    * Assert that scanning the given source produces an error with the given code.
+   *
    * @param illegalCharacter
    * @param i
    * @param source the source to be scanned to produce the error
@@ -2059,6 +2105,7 @@ abstract class AbstractScannerTest extends JUnitTestCase {
   /**
    * Assert that when scanned the given source contains a single keyword token with the same lexeme
    * as the original source.
+   *
    * @param source the source to be scanned
    */
   void assertKeywordToken(String source) {
@@ -2097,6 +2144,7 @@ abstract class AbstractScannerTest extends JUnitTestCase {
 
   /**
    * Assert that the token scanned from the given source has the expected type.
+   *
    * @param expectedType the expected type of the token
    * @param source the source to be scanned to produce the actual token
    */
@@ -2131,6 +2179,7 @@ abstract class AbstractScannerTest extends JUnitTestCase {
   /**
    * Assert that when scanned the given source contains a sequence of tokens identical to the given
    * tokens.
+   *
    * @param source the source to be scanned
    * @param expectedTokens the tokens that are expected to be in the source
    */

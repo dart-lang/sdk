@@ -16,6 +16,7 @@ import 'engine.dart';
 /**
  * Instances of the class `DirectoryBasedDartSdk` represent a Dart SDK installed in a
  * specified directory.
+ *
  * @coverage dart.engine.sdk
  */
 class DirectoryBasedDartSdk implements DartSdk {
@@ -131,6 +132,7 @@ class DirectoryBasedDartSdk implements DartSdk {
   /**
    * Return the default Dart SDK, or `null` if the directory containing the default SDK cannot
    * be determined (or does not exist).
+   *
    * @return the default Dart SDK
    */
   static DirectoryBasedDartSdk get defaultSdk {
@@ -146,6 +148,7 @@ class DirectoryBasedDartSdk implements DartSdk {
    * determined (or does not exist). The default directory is provided by a [System] property
    * named `com.google.dart.sdk`, or, if the property is not defined, an environment variable
    * named `DART_SDK`.
+   *
    * @return the default directory for the Dart SDK
    */
   static JavaFile get defaultSdkDirectory {
@@ -165,6 +168,7 @@ class DirectoryBasedDartSdk implements DartSdk {
 
   /**
    * Initialize a newly created SDK to represent the Dart SDK installed in the given directory.
+   *
    * @param sdkDirectory the directory containing the SDK
    */
   DirectoryBasedDartSdk(JavaFile sdkDirectory) {
@@ -185,6 +189,7 @@ class DirectoryBasedDartSdk implements DartSdk {
 
   /**
    * Return the file containing the Dartium executable, or `null` if it does not exist.
+   *
    * @return the file containing the Dartium executable
    */
   JavaFile get dartiumExecutable {
@@ -202,18 +207,21 @@ class DirectoryBasedDartSdk implements DartSdk {
   /**
    * Return the directory where dartium can be found in the Dart SDK (the directory that will be the
    * working directory is Dartium is invoked without changing the default).
+   *
    * @return the directory where dartium can be found
    */
   JavaFile get dartiumWorkingDirectory => new JavaFile.relative(_sdkDirectory.getParentFile(), _CHROMIUM_DIRECTORY_NAME);
 
   /**
    * Return the directory containing the SDK.
+   *
    * @return the directory containing the SDK
    */
   JavaFile get directory => _sdkDirectory;
 
   /**
    * Return the directory containing documentation for the SDK.
+   *
    * @return the SDK's documentation directory
    */
   JavaFile get docDirectory => new JavaFile.relative(_sdkDirectory, _DOCS_DIRECTORY_NAME);
@@ -221,8 +229,9 @@ class DirectoryBasedDartSdk implements DartSdk {
   /**
    * Return the auxiliary documentation file for the given library, or `null` if no such file
    * exists.
+   *
    * @param libraryName the name of the library associated with the documentation file to be
-   * returned
+   *          returned
    * @return the auxiliary documentation file for the library
    */
   JavaFile getDocFileFor(String libraryName) {
@@ -240,6 +249,7 @@ class DirectoryBasedDartSdk implements DartSdk {
 
   /**
    * Return the directory within the SDK directory that contains the libraries.
+   *
    * @return the directory that contains the libraries
    */
   JavaFile get libraryDirectory => new JavaFile.relative(_sdkDirectory, _LIB_DIRECTORY_NAME);
@@ -249,6 +259,7 @@ class DirectoryBasedDartSdk implements DartSdk {
   /**
    * Return the revision number of this SDK, or `"0"` if the revision number cannot be
    * discovered.
+   *
    * @return the revision number of this SDK
    */
   String get sdkVersion {
@@ -270,12 +281,14 @@ class DirectoryBasedDartSdk implements DartSdk {
 
   /**
    * Return an array containing the library URI's for the libraries defined in this SDK.
+   *
    * @return the library URI's for the libraries defined in this SDK
    */
   List<String> get uris => _libraryMap.uris;
 
   /**
    * Return the file containing the VM executable, or `null` if it does not exist.
+   *
    * @return the file containing the VM executable
    */
   JavaFile get vmExecutable {
@@ -292,12 +305,14 @@ class DirectoryBasedDartSdk implements DartSdk {
 
   /**
    * Return `true` if this SDK includes documentation.
+   *
    * @return `true` if this installation of the SDK has documentation
    */
   bool hasDocumentation() => docDirectory.exists();
 
   /**
    * Return `true` if the Dartium binary is available.
+   *
    * @return `true` if the Dartium binary is available
    */
   bool get isDartiumInstalled => dartiumExecutable != null;
@@ -318,6 +333,7 @@ class DirectoryBasedDartSdk implements DartSdk {
 
   /**
    * Return the name of the file containing the VM executable.
+   *
    * @return the name of the file containing the VM executable
    */
   String get binaryName {
@@ -330,6 +346,7 @@ class DirectoryBasedDartSdk implements DartSdk {
 
   /**
    * Return the name of the file containing the Dartium executable.
+   *
    * @return the name of the file containing the Dartium executable
    */
   String get dartiumBinaryName {
@@ -372,30 +389,34 @@ class DirectoryBasedDartSdk implements DartSdk {
  * value is a const map. The keys of the map are the names of libraries defined in the SDK and the
  * values in the map are info objects defining the library. For example, a subset of a typical SDK
  * might have a libraries file that looks like the following:
+ *
  * <pre>
  * final Map&lt;String, LibraryInfo&gt; LIBRARIES = const &lt;LibraryInfo&gt; {
- * // Used by VM applications
- * "builtin" : const LibraryInfo(
- * "builtin/builtin_runtime.dart",
- * category: "Server",
- * platforms: VM_PLATFORM),
- * "compiler" : const LibraryInfo(
- * "compiler/compiler.dart",
- * category: "Tools",
- * platforms: 0),
+ *   // Used by VM applications
+ *   "builtin" : const LibraryInfo(
+ *     "builtin/builtin_runtime.dart",
+ *     category: "Server",
+ *     platforms: VM_PLATFORM),
+ *
+ *   "compiler" : const LibraryInfo(
+ *     "compiler/compiler.dart",
+ *     category: "Tools",
+ *     platforms: 0),
  * };
  * </pre>
+ *
  * @coverage dart.engine.sdk
  */
 class SdkLibrariesReader {
 
   /**
    * Return the library map read from the given source.
+   *
    * @return the library map read from the given source
    */
   LibraryMap readFrom(JavaFile librariesFile, String libraryFileContents) {
     List<bool> foundError = [false];
-    AnalysisErrorListener errorListener = new AnalysisErrorListener_8(foundError);
+    AnalysisErrorListener errorListener = new AnalysisErrorListener_9(foundError);
     Source source = new FileBasedSource.con2(null, librariesFile, UriKind.FILE_URI);
     StringScanner scanner = new StringScanner(source, libraryFileContents, errorListener);
     Parser parser = new Parser(source, errorListener);
@@ -438,7 +459,7 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
   static String _PLATFORMS = "platforms";
 
   /**
-   * The value of the [PLATFORMS platforms] parameter used to specify that the library can
+   * The value of the [PLATFORMS] parameter used to specify that the library can
    * be used on the VM.
    */
   static String _VM_PLATFORM = "VM_PLATFORM";
@@ -452,6 +473,7 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
   /**
    * Return the library map that was populated by visiting the AST structure parsed from the
    * contents of the libraries file.
+   *
    * @return the library map describing the contents of the SDK
    */
   LibraryMap get librariesMap => _librariesMap;
@@ -494,9 +516,9 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
     return null;
   }
 }
-class AnalysisErrorListener_8 implements AnalysisErrorListener {
+class AnalysisErrorListener_9 implements AnalysisErrorListener {
   List<bool> foundError;
-  AnalysisErrorListener_8(this.foundError);
+  AnalysisErrorListener_9(this.foundError);
   void onError(AnalysisError error) {
     foundError[0] = true;
   }

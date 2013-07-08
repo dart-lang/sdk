@@ -50,6 +50,7 @@ class _Timer extends LinkedListEntry<_Timer> implements Timer {
 
   bool get _repeating => _milliSeconds >= 0;
 
+  bool get isActive => _callback != null;
 
   // Cancels a set timer. The timer is removed from the timer list and if
   // the given timer is the earliest timer the native timer is reset.
@@ -143,7 +144,12 @@ class _Timer extends LinkedListEntry<_Timer> implements Timer {
           // one of the later timers which will set the callback to
           // null.
           if (timer._callback != null) {
-            timer._callback(timer);
+            var callback = timer._callback;
+            if (!timer._repeating) {
+              //Mark timer as inactive.
+              timer._callback = null;
+            }
+            callback(timer);
             // Re-insert repeating timer if not canceled.
             if (timer._repeating && timer._callback != null) {
               timer._advanceWakeupTime();

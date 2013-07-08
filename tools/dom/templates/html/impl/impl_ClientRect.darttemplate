@@ -4,8 +4,8 @@
 
 part of $LIBRARYNAME;
 
-@DocsEditable
-$(ANNOTATIONS)class $CLASSNAME$EXTENDS implements Rect$IMPLEMENTS$NATIVESPEC {
+@DocsEditable()
+$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements Rect$IMPLEMENTS$NATIVESPEC {
 
   // NOTE! All code below should be common with Rect.
   // TODO(blois): implement with mixins when available.
@@ -19,6 +19,9 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS implements Rect$IMPLEMENTS$NATIVESPEC {
     return left == other.left && top == other.top && width == other.width &&
         height == other.height;
   }
+
+  int get hashCode => JenkinsSmiHash.hash4(left.hashCode, top.hashCode,
+      width.hashCode, height.hashCode);
 
   /**
    * Computes the intersection of this rectangle and the rectangle parameter.

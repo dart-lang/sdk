@@ -153,6 +153,14 @@ class World {
     return subclasses.contains(type.element);
   }
 
+  // Returns whether a subclass of any mixin application of [cls] implements
+  // [type].
+  bool hasAnySubclassOfMixinUseThatImplements(ClassElement cls, DartType type) {
+    Set<MixinApplicationElement> uses = mixinUses[cls];
+    if (uses == null || uses.isEmpty) return false;
+    return uses.any((use) => hasAnySubclassThatImplements(use, type));
+  }
+
   // Returns whether a subclass of [superclass] mixes in [other].
   bool hasAnySubclassThatMixes(ClassElement superclass, ClassElement other) {
     Set<MixinApplicationElement> uses = mixinUses[other];

@@ -13,6 +13,7 @@
 library dart.io;
 
 import 'dart:async';
+import 'dart:_collection-dev';
 import 'dart:collection' show LinkedHashSet,
                               LinkedList,
                               LinkedListEntry;
@@ -35,13 +36,13 @@ part 'file_system_entity.dart';
 part 'http.dart';
 part 'http_body.dart';
 part 'http_body_impl.dart';
+part 'http_date.dart';
 part 'http_headers.dart';
 part 'http_impl.dart';
 part 'http_multipart_form_data.dart';
 part 'http_multipart_form_data_impl.dart';
 part 'http_parser.dart';
 part 'http_session.dart';
-part 'http_utils.dart';
 part 'io_sink.dart';
 part 'link.dart';
 part 'mime_multipart_parser.dart';

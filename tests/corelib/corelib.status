@@ -9,9 +9,14 @@ unicode_test: Fail        # Bug 6706
 *dartc_test: Skip
 compare_to2_test: Fail    # Bug 4018
 
-symbol_test/01: Fail
-symbol_test/02: Fail
-symbol_test/03: Fail
+symbol_test/01: Fail, Pass # bug 11669
+symbol_test/02: Fail, Pass # bug 11669
+symbol_test/03: Fail, Pass # bug 11669
+
+[ $compiler == none || $compiler == dart2dart ]
+symbol_test/none: Fail # bug 11669
+error_stack_trace_test: Fail  # Bug http://dartbug.com/11680
+error_stack_trace2_test: Fail  # Bug 5802
 
 [ $runtime == ff || $runtime == ie9 || $runtime == jsshell ]
 unicode_test: Fail
@@ -53,6 +58,9 @@ string_base_vm_test: Fail, OK # VM specific test.
 
 string_replace_func_test: Skip # Bug 6554 - doesn't terminate.
 
+error_stack_trace_test: Fail  # Bug http://dartbug.com/11681
+error_stack_trace2_test: Fail  # Bug http://dartbug.com/11681
+
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
@@ -82,13 +90,7 @@ map_values2_test: Fail # Generic types aren't right
 iterable_to_list_test: Fail
 iterable_to_set_test: Fail
 
-[ $compiler == dartc ]
-symbol_test/01: Fail
-symbol_test/02: Fail
-symbol_test/03: Fail
-
 [ $compiler == dartanalyzer ]
-symbol_test/01: Fail
 symbol_test/02: Fail
 symbol_test/03: Fail
 int_parse_radix_test: fail

@@ -9,7 +9,7 @@ import 'dart:html';
 import 'dart:typed_data';
 import 'dart:_js_helper' show Creates, Returns;
 import 'dart:_foreign_helper' show JS;
-import 'dart:_interceptors' show JSExtendableArray;
+import 'dart:_interceptors' show Interceptor, JSExtendableArray;
 
 import 'metadata.dart';
 export 'metadata.dart';
@@ -18,6 +18,7 @@ part 'css_class_set.dart';
 part 'conversions.dart';
 part 'device.dart';
 part 'filtered_element_list.dart';
+part 'jenkins_smi_hash.dart';
 part 'lists.dart';
 
 // For annotating deprecated APIs.

@@ -4,7 +4,7 @@
 
 part of $LIBRARYNAME;
 
-$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   /**
    * Checks to see if Indexed DB is supported on the current platform.
    */
@@ -71,7 +71,7 @@ $endif
 
   @DomName('IDBFactory.getDatabaseNames')
   @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental
+  @Experimental()
   Future<List<String>> getDatabaseNames() {
     try {
       var request = $dom_webkitGetDatabaseNames();

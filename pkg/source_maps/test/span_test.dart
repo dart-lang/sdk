@@ -165,32 +165,96 @@ main() {
     }
   });
 
-  test('file segment', () {
-    var segment = new SourceFileSegment('file',
-        TEST_FILE.substring(12), loc(12));
+  test('range check for large offsets', () {
+    var start = TEST_FILE.length;
+    expect(file.getLocationMessage('the message', start, start + 9),
+        'file:13:1: the message\n');
+  });
+
+  group('file segment', () {
+    var baseOffset = 123;
+    var segmentText = TEST_FILE.substring(baseOffset, TEST_FILE.length - 100);
+    var segment = new SourceFileSegment('file', segmentText, loc(baseOffset));
     sline(int n) => segment.getLine(n);
     scol(int n) => segment.getColumn(segment.getLine(n), n);
-
     line(int n) => file.getLine(n);
     col(int n) => file.getColumn(file.getLine(n), n);
 
-    int j = 0;
-    int lineOffset = 0;
-    for (int i = 12; i < TEST_FILE.length; i++) {
-      if (i > lineOffset + newLines[j]) {
-        lineOffset += newLines[j] + 1;
-        j++;
-      }
-      expect(segment.location(i - 12).offset, i);
-      expect(segment.location(i - 12).line, line(i));
-      expect(segment.location(i - 12).column, col(i));
-      expect(segment.span(i - 12).start.offset, i);
-      expect(segment.span(i - 12).start.line, line(i));
-      expect(segment.span(i - 12).start.column, col(i));
+    test('get line and column', () {
+      int j = 0;
+      int lineOffset = 0;
+      for (int i = baseOffset; i < segmentText.length; i++) {
+        if (i > lineOffset + newLines[j]) {
+          lineOffset += newLines[j] + 1;
+          j++;
+        }
+        expect(segment.location(i - baseOffset).offset, i);
+        expect(segment.location(i - baseOffset).line, line(i));
+        expect(segment.location(i - baseOffset).column, col(i));
+        expect(segment.span(i - baseOffset).start.offset, i);
+        expect(segment.span(i - baseOffset).start.line, line(i));
+        expect(segment.span(i - baseOffset).start.column, col(i));
 
-      expect(sline(i), line(i));
-      expect(scol(i), col(i));
-    }
+        expect(sline(i), line(i));
+        expect(scol(i), col(i));
+      }
+    });
+
+    test('get text', () {
+      var start = 10 + 80 + 31 + 27 + 4 + 2;
+      expect(segment.getText(start, start + 9), file.getText(start, start + 9));
+    });
+
+    group('location message', () {
+      test('first line', () {
+        var start = baseOffset + 7;
+        expect(segment.getLocationMessage('the message', start, start + 2),
+            file.getLocationMessage('the message', start, start + 2));
+      });
+
+      test('in a middle line', () {
+        // Example from another test above:
+        var start = 10 + 80 + 31 + 27 + 4 + 2;
+        expect(segment.getLocationMessage('the message', start, start + 9),
+            file.getLocationMessage('the message', start, start + 9));
+      });
+
+      test('last segment line', () {
+        var start = segmentText.length - 4;
+        expect(segment.getLocationMessage('the message', start, start + 2),
+            file.getLocationMessage('the message', start, start + 2));
+      });
+
+      test('past segment, same as last segment line', () {
+        var start = segmentText.length;
+        expect(segment.getLocationMessage('the message', start, start + 2),
+            file.getLocationMessage('the message', start, start + 2));
+
+        start = segmentText.length + 20;
+        expect(segment.getLocationMessage('the message', start, start + 2),
+            file.getLocationMessage('the message', start, start + 2));
+      });
+
+      test('past segment, past its line', () {
+        var start = TEST_FILE.length - 2;
+        expect(file.getLocationMessage('the message', start, start + 1),
+          'file:12:29: the message\n'
+          '123456789_1+3456789_123456789\n'
+          '                            ^');
+
+        // TODO(sigmund): consider also fixing this and report file:10:4
+        // The answer below is different because the segment parsing only knows
+        // about the 10 lines it has (and nothing about the possible extra lines
+        // afterwards)
+        expect(segment.getLocationMessage('the message', start, start + 1),
+          'file:10:112: the message\n');
+
+        // The number 112 includes the count of extra characters past the
+        // segment, which we verify here:
+        var lastSegmentLineStart = segmentText.lastIndexOf('\n');
+        expect(start - baseOffset - lastSegmentLineStart, 112);
+      });
+    });
   });
 
   test('span isIdentifier defaults to false', () {

@@ -11,6 +11,7 @@ import '../../compiler.dart' as api;
 import '../elements/elements.dart';
 import '../apiimpl.dart' as apiimpl;
 import '../scanner/scannerlib.dart' hide SourceString;
+import '../resolution/resolution.dart' show Scope;
 import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../source_file.dart';
@@ -38,14 +39,14 @@ List<ParameterMirror> _parametersFromFunctionSignature(
   Link<Element> link = signature.requiredParameters;
   while (!link.isEmpty) {
     parameters.add(new Dart2JsParameterMirror(
-        system, method, link.head, false, false));
+        system, method, link.head, isOptional: false, isNamed: false));
     link = link.tail;
   }
   link = signature.optionalParameters;
   bool isNamed = signature.optionalParametersAreNamed;
   while (!link.isEmpty) {
     parameters.add(new Dart2JsParameterMirror(
-        system, method, link.head, true, isNamed));
+        system, method, link.head, isOptional: true, isNamed: isNamed));
     link = link.tail;
   }
   return parameters;
@@ -348,8 +349,6 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
 
   String toString() => _element.toString();
 
-  int get hashCode => qualifiedName.hashCode;
-
   void _appendCommentTokens(Token commentToken) {
     while (commentToken != null && commentToken.kind == COMMENT_TOKEN) {
       _metadata.add(new Dart2JsCommentInstanceMirror(
@@ -371,6 +370,42 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
     }
     // TODO(johnniwinther): Return an unmodifiable list instead.
     return new List<InstanceMirror>.from(_metadata);
+  }
+
+  DeclarationMirror lookupInScope(String name) {
+    // TODO(11653): Support lookup of constructors.
+    Scope scope = _element.buildScope();
+    Element result;
+    int index = name.indexOf('.');
+    if (index != -1) {
+      // Lookup [: prefix.id :].
+      String prefix = name.substring(0, index);
+      String id = name.substring(index+1);
+      result = scope.lookup(new SourceString(prefix)); 
+      if (result != null && result.isPrefix()) {
+        PrefixElement prefix = result;
+        result = prefix.lookupLocalMember(new SourceString(id));
+      } else {
+        result = null;
+      }
+    } else {
+      // Lookup [: id :].
+      result = scope.lookup(new SourceString(name));
+    }
+    if (result == null || result.isPrefix()) return null;
+    return _convertElementToDeclarationMirror(mirrors, result);
+  }
+
+  bool operator ==(var other) {
+    if (identical(this, other)) return true;
+    if (other == null) return false;
+    if (other is! Dart2JsElementMirror) return false;
+    return _element == other._element &&
+           owner == other.owner;
+  }
+
+  int get hashCode {
+    return 13 * _element.hashCode + 17 * owner.hashCode;
   }
 }
 
@@ -665,8 +700,8 @@ class Dart2JsParameterMirror extends Dart2JsMemberMirror
   factory Dart2JsParameterMirror(Dart2JsMirrorSystem system,
                                  MethodMirror method,
                                  VariableElement element,
-                                 bool isOptional,
-                                 bool isNamed) {
+                                 {bool isOptional: false,
+                                  bool isNamed: false}) {
     if (element is FieldParameterElement) {
       return new Dart2JsFieldParameterMirror(system,
           method, element, isOptional, isNamed);
@@ -1385,6 +1420,15 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
   bool get isSetter => _kind == Dart2JsMethodKind.SETTER;
 
   bool get isOperator => _kind == Dart2JsMethodKind.OPERATOR;
+
+  DeclarationMirror lookupInScope(String name) {
+    for (ParameterMirror parameter in parameters) {
+      if (parameter.simpleName == name) {
+        return parameter;
+      }
+    }
+    return super.lookupInScope(name);
+  }
 }
 
 class Dart2JsFieldMirror extends Dart2JsMemberMirror implements VariableMirror {
@@ -1653,6 +1697,45 @@ _convertElementToMembers(Dart2JsLibraryMirror library, Element e) {
   } else {
     return _convertElementMemberToMemberMirrors(library, e);
   }
+}
+
+/**
+ * Converts [element] into its corresponding [DeclarationMirror], if any.
+ *
+ * If [element] is an [AbstractFieldElement] the mirror for its getter is
+ * returned or, if not present, the mirror for its setter.
+ */
+DeclarationMirror _convertElementToDeclarationMirror(Dart2JsMirrorSystem system,
+                                                     Element element) {
+  if (element.isTypeVariable()) {
+    return new Dart2JsTypeVariableMirror(
+        system, element.computeType(system.compiler));
+  }
+
+  Dart2JsLibraryMirror library = system._libraryMap[element.getLibrary()];
+  if (element.isLibrary()) return library;
+  if (element.isTypedef()) {
+    return new Dart2JsTypedefMirror.fromLibrary(
+        library, element.computeType(system.compiler));
+  }
+
+  Dart2JsContainerMirror container = library;
+  if (element.getEnclosingClass() != null) {
+    container = new Dart2JsClassMirror.fromLibrary(
+        library, element.getEnclosingClass());
+  }
+  if (element.isClass()) return container;
+  if (element.isParameter()) {
+    MethodMirror method = _convertElementMethodToMethodMirror(
+        container, element.getOutermostEnclosingMemberOrTopLevel());
+    // TODO(johnniwinther): Find the right info for [isOptional] and [isNamed].
+    return new Dart2JsParameterMirror(
+        system, method, element, isOptional: false, isNamed: false);
+  }
+  Iterable<MemberMirror> members =
+      _convertElementMemberToMemberMirrors(container, element);
+  if (members.isEmpty) return null;
+  return members.first;
 }
 
 /**

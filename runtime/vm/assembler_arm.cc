@@ -1943,6 +1943,25 @@ void Assembler::CompareImmediate(Register rn, int32_t value, Condition cond) {
 }
 
 
+void Assembler::IntegerDivide(Register result, Register left, Register right,
+                              DRegister tmpl, DRegister tmpr) {
+  ASSERT(tmpl != tmpr);
+  if (CPUFeatures::integer_division_supported()) {
+    sdiv(result, left, right);
+  } else {
+    SRegister stmpl = static_cast<SRegister>(2 * tmpl);
+    SRegister stmpr = static_cast<SRegister>(2 * tmpr);
+    vmovsr(stmpl, left);
+    vcvtdi(tmpl, stmpl);  // left is in tmpl.
+    vmovsr(stmpr, right);
+    vcvtdi(tmpr, stmpr);  // right is in tmpr.
+    vdivd(tmpr, tmpl, tmpr);
+    vcvtid(stmpr, tmpr);
+    vmovrs(result, stmpr);
+  }
+}
+
+
 static int NumRegsBelowFP(RegList regs) {
   int count = 0;
   for (int i = 0; i < FP; i++) {

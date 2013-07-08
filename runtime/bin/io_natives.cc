@@ -20,7 +20,6 @@ namespace bin {
 // Some classes, like File and Directory, list their implementations in
 // builtin_natives.cc instead.
 #define IO_NATIVE_LIST(V)                                                      \
-  V(Common_IsBuiltinList, 1)                                                   \
   V(Crypto_GetRandomBytes, 1)                                                  \
   V(EventHandler_Start, 1)                                                     \
   V(EventHandler_SendData, 4)                                                  \
@@ -42,6 +41,16 @@ namespace bin {
   V(Process_Exit, 1)                                                           \
   V(Process_Sleep, 1)                                                          \
   V(Process_Pid, 1)                                                            \
+  V(SecureSocket_Connect, 9)                                                   \
+  V(SecureSocket_Destroy, 1)                                                   \
+  V(SecureSocket_Handshake, 1)                                                 \
+  V(SecureSocket_Init, 1)                                                      \
+  V(SecureSocket_PeerCertificate, 1)                                           \
+  V(SecureSocket_RegisterBadCertificateCallback, 2)                            \
+  V(SecureSocket_RegisterHandshakeCompleteCallback, 2)                         \
+  V(SecureSocket_InitializeLibrary, 3)                                         \
+  V(SecureSocket_NewServicePort, 0)                                            \
+  V(SecureSocket_FilterPointer, 1)                                             \
   V(ServerSocket_CreateBindListen, 5)                                          \
   V(ServerSocket_Accept, 2)                                                    \
   V(Socket_CreateConnect, 3)                                                   \
@@ -55,16 +64,7 @@ namespace bin {
   V(Socket_NewServicePort, 0)                                                  \
   V(Socket_GetType, 1)                                                         \
   V(Socket_SetOption, 3)                                                       \
-  V(SecureSocket_Connect, 9)                                                   \
-  V(SecureSocket_Destroy, 1)                                                   \
-  V(SecureSocket_Handshake, 1)                                                 \
-  V(SecureSocket_Init, 1)                                                      \
-  V(SecureSocket_PeerCertificate, 1)                                           \
-  V(SecureSocket_RegisterBadCertificateCallback, 2)                            \
-  V(SecureSocket_RegisterHandshakeCompleteCallback, 2)                         \
-  V(SecureSocket_InitializeLibrary, 3)                                         \
-  V(SecureSocket_NewServicePort, 0)                                            \
-  V(SecureSocket_FilterPointer, 1)                                             \
+  V(Stdin_ReadByte, 1)                                                         \
   V(StringToSystemEncoding, 1)                                                 \
   V(SystemEncodingToString, 1)
 

@@ -217,3 +217,54 @@ String stripComment(String comment) {
   }
   throw new ArgumentError('Invalid comment $comment');
 }
+
+/**
+ * Looks up [name] in the scope [declaration].
+ *
+ * If [name] is of the form 'a.b.c', 'a' is looked up in the scope of
+ * [declaration] and if unresolved 'a.b' is looked in the scope of 
+ * [declaration]. Each identifier of the remaining suffix, 'c' or 'b.c', is
+ * then looked up in the local scope of the previous result.
+ * 
+ * For instance, assumming that [:Iterable:] is imported into the scope of
+ * [declaration] via the prefix 'col', 'col.Iterable.E' finds the type 
+ * variable of [:Iterable:] and 'col.Iterable.contains.element' finds the
+ * [:element:] parameter of the [:contains:] method on [:Iterable:].
+ */
+DeclarationMirror lookupQualifiedInScope(DeclarationMirror declaration,
+                                         String name) {
+  // TODO(11653): Support lookup of constructors using the [:new Foo:]
+  // syntax.
+  int offset = 1; 
+  List<String> parts = name.split('.');
+  DeclarationMirror result = declaration.lookupInScope(parts[0]);
+  if (result == null && parts.length > 1) {
+    // Try lookup of `prefix.id`.
+    result = declaration.lookupInScope('${parts[0]}.${parts[1]}');
+    offset = 2;
+  }
+  if (result == null) return null;
+  while (result != null && offset < parts.length) {
+    result = _lookupLocal(result, parts[offset++]);
+  }
+  return result;
+}
+
+DeclarationMirror _lookupLocal(Mirror mirror, String id) {
+  DeclarationMirror result;
+  if (mirror is ContainerMirror) {
+    // Try member lookup.
+    result = mirror.members[id];
+  }
+  if (result != null) return result;
+  if (mirror is ClassMirror) {
+    // Try type variables.
+    result = mirror.typeVariables.firstWhere(
+        (TypeVariableMirror v) => v.simpleName == id, orElse: () => null);
+  } else if (mirror is MethodMirror) {
+    result = mirror.parameters.firstWhere(
+        (ParameterMirror p) => p.simpleName == id, orElse: () => null);
+  }
+  return result;
+
+}

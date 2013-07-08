@@ -9,6 +9,8 @@ import 'dart:math' as math;
 
 import 'frame.dart';
 import 'lazy_trace.dart';
+import 'utils.dart';
+import 'vm_trace.dart';
 
 final _terseRegExp = new RegExp(r"(-patch)?(/.*)?$");
 
@@ -18,6 +20,9 @@ final _terseRegExp = new RegExp(r"(-patch)?(/.*)?$");
 /// error occurred, possibly including its parameters inside `()`. For example,
 /// `.VW.call$0("arg")@http://pub.dartlang.org/stuff.dart.js:560`.
 final _firefoxTrace = new RegExp(r"^([.0-9A-Za-z_$/<]*|\(.*\))*@");
+
+/// A RegExp to match this package's stack traces.
+final _friendlyTrace = new RegExp(r"^[^\s]+( \d+:\d+)?\s+[^\s]+($|\n)");
 
 /// A stack trace, comprised of a list of stack frames.
 class Trace implements StackTrace {
@@ -70,6 +75,7 @@ class Trace implements StackTrace {
     if (trace.isEmpty) return new Trace(<Frame>[]);
     if (trace.startsWith("Error\n")) return new Trace.parseV8(trace);
     if (trace.contains(_firefoxTrace)) return new Trace.parseFirefox(trace);
+    if (trace.contains(_friendlyTrace)) return new Trace.parseFriendly(trace);
 
     // Default to parsing the stack trace as a VM trace. This is also hit on IE
     // and Safari, where the stack trace is just an empty string (issue 11257).
@@ -89,23 +95,21 @@ class Trace implements StackTrace {
       : this(trace.trim().split("\n")
           .map((line) => new Frame.parseFirefox(line)));
 
+  /// Parses this package's a string representation of a stack trace.
+  Trace.parseFriendly(String trace)
+      : this(trace.trim().split("\n")
+          .map((line) => new Frame.parseFriendly(line)));
+
   /// Returns a new [Trace] comprised of [frames].
   Trace(Iterable<Frame> frames)
       : frames = new UnmodifiableListView<Frame>(frames.toList());
 
-  // TODO(nweiz): Keep track of which [Frame]s are part of the partial stack
-  // trace and only print them.
-  /// Returns a string representation of this stack trace.
+  /// Returns a VM-style [StackTrace] object.
   ///
-  /// This is identical to [toString]. It will not be formatted in the manner of
-  /// native stack traces.
-  String get stackTrace => toString();
-
-  /// Returns a string representation of this stack trace.
-  ///
-  /// This is identical to [toString]. It will not be formatted in the manner of
-  /// native stack traces.
-  String get fullStackTrace => toString();
+  /// The return value's [toString] method will always return a string
+  /// representation in the Dart VM's stack trace format, regardless of what
+  /// platform is being used.
+  StackTrace get vmTrace => new VMTrace(frames);
 
   /// Returns a terser version of [this].
   ///
@@ -149,21 +153,7 @@ class Trace implements StackTrace {
 
     // Print out the stack trace nicely formatted.
     return frames.map((frame) {
-      return '${_padRight(frame.location, longest)}  ${frame.member}\n';
+      return '${padRight(frame.location, longest)}  ${frame.member}\n';
     }).join();
   }
-}
-
-/// Returns [string] with enough spaces added to the end to make it [length]
-/// characters long.
-String _padRight(String string, int length) {
-  if (string.length >= length) return string;
-
-  var result = new StringBuffer();
-  result.write(string);
-  for (var i = 0; i < length - string.length; i++) {
-    result.write(' ');
-  }
-
-  return result.toString();
 }

@@ -105,6 +105,24 @@ abstract class DeclarationMirror implements Mirror {
    * A list of the metadata associated with this declaration.
    */
   List<InstanceMirror> get metadata;
+
+  /**
+   * Looks up [name] in the scope of this declaration.
+   *
+   * [name] may be either a single identifier, like 'foo', or of the 
+   * a prefixed identifier, like 'foo.bar', where 'foo' must be a prefix.
+   * For methods and constructors, the scope includes the parameters. For
+   * classes and typedefs, the scope includes the type variables.
+   * For classes and class members, the scope includes inherited members.
+   *
+   * See also:
+   *
+   * * [Lexical Scope](https://www.dartlang.org/docs/dart-up-and-running/contents/ch02.html#ch02-lexical-scope)
+   *   in Dart Up and Running.
+   * * [Lexical Scoping](http://www.dartlang.org/docs/spec/latest/dart-language-specification.html#h.jb82efuudrc5)
+   *   in the Dart Specification.
+   */
+  DeclarationMirror lookupInScope(String name);
 }
 
 abstract class ObjectMirror implements Mirror {

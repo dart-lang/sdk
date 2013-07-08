@@ -4,15 +4,15 @@
 
 part of $LIBRARYNAME;
 
-$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
-  
+$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+
   /**
    * Create a new directory with the specified `path`. If `exclusive` is true,
    * the returned Future will complete with an error if a directory already
    * exists with the specified `path`.
    */
   Future<Entry> createDirectory(String path, {bool exclusive: false}) {
-    return _getDirectory(path, options: 
+    return _getDirectory(path, options:
         {'create': true, 'exclusive': exclusive});
   }
 
@@ -33,7 +33,7 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   Future<Entry> createFile(String path, {bool exclusive: false}) {
     return _getFile(path, options: {'create': true, 'exclusive': exclusive});
   }
-  
+
   /**
    * Retrieve an already existing file entry. The returned future will
    * result in an error if a file at `path` does not exist or if the item at

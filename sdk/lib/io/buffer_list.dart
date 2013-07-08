@@ -9,7 +9,7 @@ part of dart.io;
  * [readBytes] to get the final buffer.
  */
 class _BufferList {
-  const int _INIT_SIZE = 1 * 1024;
+  static const int _INIT_SIZE = 1 * 1024;
 
   _BufferList() {
     clear();

@@ -6,6 +6,9 @@ patch class Error {
   /* patch */ static String _objectToString(Object object) {
     return Object._toString(object);
   }
+
+  // TODO(11680): implement stackTrace on Error.
+  /* patch */ StackTrace get stackTrace => null;
 }
 
 patch class NoSuchMethodError {
@@ -38,11 +41,11 @@ patch class NoSuchMethodError {
       namedArguments[argumentNames[i]] = arg_value;
     }
     throw new NoSuchMethodError._withType(receiver,
-                                memberName,
-                                invocation_type,
-                                positionalArguments,
-                                namedArguments,
-                                existingArgumentNames);
+                                          memberName,
+                                          invocation_type,
+                                          positionalArguments,
+                                          namedArguments,
+                                          existingArgumentNames);
   }
 
   // Remember the type from the invocation mirror or static compilation
@@ -50,20 +53,20 @@ patch class NoSuchMethodError {
   // that no information is available.
   final int _invocation_type;
 
-  const NoSuchMethodError(Object this._receiver,
-                          String this._memberName,
-                          List this._arguments,
-                          Map<String,dynamic> this._namedArguments,
-                          [List existingArgumentNames = null])
+  NoSuchMethodError(Object this._receiver,
+                    String this._memberName,
+                    List this._arguments,
+                    Map<String,dynamic> this._namedArguments,
+                    [List existingArgumentNames = null])
       : this._existingArgumentNames = existingArgumentNames,
         this._invocation_type = -1;
 
-  const NoSuchMethodError._withType(Object this._receiver,
-                                    String this._memberName,
-                                    this._invocation_type,
-                                    List this._arguments,
-                                    Map<String,dynamic> this._namedArguments,
-                                    [List existingArgumentNames = null])
+  NoSuchMethodError._withType(Object this._receiver,
+                              String this._memberName,
+                              this._invocation_type,
+                              List this._arguments,
+                              Map<String,dynamic> this._namedArguments,
+                              [List existingArgumentNames = null])
       : this._existingArgumentNames = existingArgumentNames;
 
 
@@ -170,9 +173,9 @@ patch class NoSuchMethodError {
   }
 }
 
-class _FiftyThreeBitOverflowError implements Error {
+class _FiftyThreeBitOverflowError extends Error {
   final Object _value;
 
-  const _FiftyThreeBitOverflowError(this._value);
+  _FiftyThreeBitOverflowError(this._value);
   String toString() => "53-bit Overflow: $_value";
 }

@@ -4,6 +4,12 @@
 
 part of sample;
 
+class Person {
+  String name;
+  String gender;
+  Person(this.name, this.gender);
+}
+
 class YouveGotMessages {
 
   // A static message, rather than a standalone function.
@@ -21,14 +27,50 @@ class YouveGotMessages {
     return Intl.message("This method is not a lambda", name: 'nonLambda');
   }
 
-// TODO(alanknight): Support plurals and named arguments.
-//  plurals(num) => Intl.message("""
-//One of the tricky things is ${Intl.plural(num,
-//      {
-//        '0' : 'the plural form',
-//        '1' : 'the plural form',
-//        'other' : 'plural forms'})}""",
-//    name: "plurals");
-//
-//namedArgs({thing}) => Intl.message("The thing is, $thing", name: "namedArgs");
+  plurals(num) => Intl.message("""${Intl.plural(num,
+         zero : 'Is zero plural?',
+         one : 'This is singular.',
+         other : 'This is plural ($num).')
+        }""",
+        name: "plurals", args: [num], desc: "Basic plurals");
+
+  whereTheyWent(Person person, String place) =>
+      whereTheyWentMessage(person.name, person.gender, place);
+
+  whereTheyWentMessage(String name, String gender, String place) {
+    return Intl.message(
+        "${Intl.gender(gender,
+            male: '$name went to his $place',
+            female: '$name went to her $place',
+            other: '$name went to its $place')
+        }",
+        name: "whereTheyWent",
+        args: [name, gender, place],
+        desc: 'A person went to some place that they own, e.g. their room'
+    );
+  }
+
+  // English doesn't do enough with genders, and pseudo-localization doesn't
+  // do anything with them, so this example is French.
+  nested(List people, String place) {
+    var names = people.map((x) => x.name).join(", ");
+    var number = people.length;
+    var combinedGender = people.every(
+        (x) => x.gender == "female") ? "female" : "other";
+    if (number == 0) combinedGender = "other";
+
+    nestedMessage(names, number, combinedGender, place) => Intl.message(
+        '''${Intl.gender(combinedGender,
+          other: '${Intl.plural(number,
+            zero: "Personne n'est allé au $place",
+            one: "${names} est allé au $place",
+            other: "${names} sont allés au $place")}',
+          female: '${Intl.plural(number,
+            one: "$names est allée au $place",
+          other: "$names sont allées au $place")}'
+        )}''',
+       name: "nestedMessage",
+       args: [names, number, combinedGender, place]);
+    return nestedMessage(names, number, combinedGender, place);
+  }
 }

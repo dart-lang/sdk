@@ -240,8 +240,10 @@ class _ErrorGroupStream extends Stream {
   /// [inner].
   _ErrorGroupStream(this._group, Stream inner)
     : _controller = new StreamController(sync: true) {
-    this._stream = inner.isBroadcast
-        ? _controller.stream.asBroadcastStream()
+    // Use old-style asBroadcastStream behavior - cancel source _subscription
+    // the first time the stream has no listeners.
+    _stream = inner.isBroadcast
+        ? _controller.stream.asBroadcastStream(onCancel: (sub) => sub.cancel())
         : _controller.stream;
     _subscription = inner.listen((v) {
       _controller.add(v);

@@ -1862,11 +1862,22 @@ class ProcessQueue {
           // does that for example)
           // TODO(ricow/kustermann): Issue 8206
           var unexpectedOutput = commandOutput.unexpectedOutput;
-          if (allowRetry && testCase.usesWebDriver
-              && unexpectedOutput
-              && (testCase as BrowserTestCase).numRetries > 0) {
-            // Selenium tests can be flaky. Try rerunning.
-            commandOutput.requestRetry = true;
+          if (unexpectedOutput && allowRetry) {
+            if (testCase.usesWebDriver
+                && (testCase as BrowserTestCase).numRetries > 0) {
+              // Selenium tests can be flaky. Try rerunning.
+              commandOutput.requestRetry = true;
+            }
+            // FIXME(kustermann): Remove this condition once we figured out why
+            // content_shell is sometimes not able to fetch resources from the
+            // HttpServer.
+            var configuration  = testCase.configuration;
+            if (configuration['runtime'] == 'drt' &&
+                configuration['system'] == 'windows' &&
+                (testCase as BrowserTestCase).numRetries > 0) {
+              assert(TestUtils.isBrowserRuntime(configuration['runtime']));
+              commandOutput.requestRetry = true;
+            }
           }
         }
         if (commandOutput.requestRetry) {

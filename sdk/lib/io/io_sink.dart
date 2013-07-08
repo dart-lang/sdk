@@ -62,6 +62,7 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
   Completer _controllerCompleter;
   bool _isClosed = false;
   bool _isBound = false;
+  bool _hasError = false;
 
   _StreamSinkImpl(StreamConsumer<T> this._target) {
     _doneFuture = _doneCompleter.future;
@@ -80,6 +81,7 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
       throw new StateError("StreamSink is already bound to a stream");
     }
     _isBound = true;
+    if (_hasError) return done;
     // Wait for any sync operations to complete.
     Future targetAddStream() {
       return _target.addStream(stream)
@@ -121,6 +123,7 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
     if (error == null) {
       _doneCompleter.complete(value);
     } else {
+      _hasError = true;
       _doneCompleter.completeError(error);
     }
     _doneCompleter = null;

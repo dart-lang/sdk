@@ -359,6 +359,7 @@ class SnapshotReader : public BaseReader {
   friend class TypeParameter;
   friend class UnresolvedClass;
   friend class WeakProperty;
+  friend class MirrorReference;
   DISALLOW_COPY_AND_ASSIGN(SnapshotReader);
 };
 
@@ -533,6 +534,7 @@ class SnapshotWriter : public BaseWriter {
   friend class RawStacktrace;
   friend class RawTokenStream;
   friend class RawTypeArguments;
+  friend class RawMirrorReference;
   friend class SnapshotWriterVisitor;
   DISALLOW_COPY_AND_ASSIGN(SnapshotWriter);
 };

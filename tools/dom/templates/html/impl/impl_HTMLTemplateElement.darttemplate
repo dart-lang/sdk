@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -39,7 +39,7 @@ part of $LIBRARYNAME;
  */
 // TODO(jmesserly): if this is just one method, a function type would make it
 // more Dart-friendly.
-@Experimental
+@Experimental()
 abstract class CustomBindingSyntax {
   /**
    * This syntax method allows for a custom interpretation of the contents of
@@ -87,25 +87,16 @@ abstract class CustomBindingSyntax {
    * the value, it should simply return the `model` value it was passed.
    */
   getInstanceModel(Element template, model) => model;
-
-  /**
-   * This syntax method allows a syntax to provide an alterate expansion of
-   * the [template] contents. When the template wants to create an instance,
-   * it will call this method with the template element.
-   *
-   * By default this will call `template.createInstance()`.
-   */
-  getInstanceFragment(Element template) => template.createInstance();
 }
 
 
-@Experimental
-$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+@Experimental()
+$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 $!MEMBERS
 
   // For real TemplateElement use the actual DOM .content field instead of
   // our polyfilled expando.
-  @Experimental
+  @Experimental()
   DocumentFragment get content => $dom_content;
 
 
@@ -136,7 +127,7 @@ $!MEMBERS
    * Returns true if this template was just decorated, or false if it was
    * already decorated.
    */
-  @Experimental
+  @Experimental()
   static bool decorate(Element template, [Element instanceRef]) {
     // == true check because it starts as a null field.
     if (template._templateIsDecorated == true) return false;
@@ -254,7 +245,7 @@ $!MEMBERS
    * decorate an entire tree recursively.
    */
   // TODO(rafaelw): Review whether this is the right public API.
-  @Experimental
+  @Experimental()
   static void bootstrap(Node content) {
     void _bootstrap(template) {
       if (!TemplateElement.decorate(template)) {
@@ -305,6 +296,6 @@ option[template] {
    * A mapping of names to Custom Syntax objects. See [CustomBindingSyntax] for
    * more information.
    */
-  @Experimental
+  @Experimental()
   static Map<String, CustomBindingSyntax> syntax = {};
 }

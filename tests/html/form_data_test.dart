@@ -53,7 +53,7 @@ void main() {
         form.append('test', '1');
         form.append('username', 'Elmo');
         form.append('address', '1 Sesame Street');
-        form.append('password', '123456', 'foo');
+        form.append('password', '123456');
         expect(form, isNotNull);
       });
 

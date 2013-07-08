@@ -207,7 +207,7 @@ Statement parseStatement(String source, [List<ErrorCode> expectedErrorCodes]) {
   var statement = parser.parseStatement(token);
   expect(statement, isNotNull);
 
-  if (?expectedErrorCodes) {
+  if (expectedErrorCodes != null) {
     listener.expectErrors(expectedErrorCodes);
   }
 

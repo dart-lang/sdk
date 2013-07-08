@@ -195,6 +195,7 @@ RawLocalVarDescriptors* LocalScope::GetVarDescriptors(const Function& func) {
       desc.info.scope_id = context_scope.ContextLevelAt(i);
       desc.info.begin_pos = begin_token_pos();
       desc.info.end_pos = end_token_pos();
+      ASSERT(desc.info.begin_pos <= desc.info.end_pos);
       desc.info.index = context_scope.ContextIndexAt(i);
       vars.Add(desc);
     }

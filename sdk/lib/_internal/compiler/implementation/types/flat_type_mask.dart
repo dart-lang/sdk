@@ -431,7 +431,8 @@ class FlatTypeMask implements TypeMask {
       assert(isSubtype);
       bool result = hasElementIn(self, selector, element, compiler)
           || other.implementsInterface(self)
-          || compiler.world.hasAnySubclassThatImplements(other, base);
+          || compiler.world.hasAnySubclassThatImplements(other, base)
+          || compiler.world.hasAnySubclassOfMixinUseThatImplements(other, base);
       if (result) return true;
       // If the class is used as a mixin, we have to check if the element
       // can be hit from any of the mixin applications.

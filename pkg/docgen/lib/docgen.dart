@@ -19,7 +19,6 @@ import 'dart:io';
 import 'dart:json';
 import 'dart:async';
 
-import 'package:args/args.dart';
 import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as markdown;
 import 'package:pathos/path.dart' as path;
@@ -51,45 +50,47 @@ MemberMirror _currentMember;
 /// Resolves reference links in doc comments. 
 markdown.Resolver linkResolver;
 
-/// Package directory of directory being analyzed. 
-String packageDir;
-
-bool outputToYaml;
-bool outputToJson;
-bool includePrivate;
-/// State for whether imported SDK libraries should also be outputted.
-bool includeSdk;
-/// State for whether all SDK libraries should be outputted. 
-bool parseSdk;
-
 /**
  * Docgen constructor initializes the link resolver for markdown parsing.
  * Also initializes the command line arguments. 
+ * 
+ * [packageRoot] is the packages directory of the directory being analyzed. 
+ * If [includeSdk] is 'true', then any SDK libraries explicitly imported will 
+ * also be documented. 
+ * If [parseSdk] is 'true', then all Dart SDK libraries will be documented. 
+ * This option is useful when only the SDK libraries are needed. 
+ * 
+ * Returns true if docgen sucessfuly completes. 
  */
-void docgen(ArgResults argResults) {  
-  _setCommandLineArguments(argResults);
+Future<bool> docgen(List<String> files, {String packageRoot, 
+    bool outputToYaml: true, bool includePrivate: false, bool includeSdk: false,
+    bool parseSdk: false}) {    
+  if (packageRoot == null && !parseSdk) {
+    // TODO(janicejl): At the moment, if a single file is passed it, it is 
+    // assumed that it does not have a package root unless it is passed in by 
+    // the user. In future, find a better way to find the packageRoot and also 
+    // fully test finding the packageRoot. 
+    if (FileSystemEntity.typeSync(files.first) 
+        == FileSystemEntityType.DIRECTORY) {
+      packageRoot = _findPackageRoot(files.first);
+    }
+  }
+  logger.info('Package Root: ${packageRoot}');
   
   linkResolver = (name) => 
       fixReference(name, _currentLibrary, _currentClass, _currentMember);
   
-  getMirrorSystem(argResults.rest).then((MirrorSystem mirrorSystem) {
-    if (mirrorSystem.libraries.values.isEmpty) {
-      throw new StateError('No Library Mirrors.');
-    }
-    _documentLibraries(mirrorSystem.libraries.values);
-  });
-}
-
-void _setCommandLineArguments(ArgResults argResults) {
-  outputToYaml = argResults['yaml'] || argResults['output-format'] == 'yaml';
-  outputToJson = argResults['json'] || argResults['output-format'] == 'json';
-  if (outputToYaml && outputToJson) {
-    throw new ArgumentError('Cannot have contradictory output flags.');
-  }
-  outputToYaml = outputToYaml || !outputToJson;
-  includePrivate = argResults['include-private'];
-  parseSdk = argResults['parse-sdk'];
-  includeSdk = parseSdk || argResults['include-sdk'];
+  return getMirrorSystem(files, packageRoot, parseSdk: parseSdk)
+    .then((MirrorSystem mirrorSystem) {
+      if (mirrorSystem.libraries.isEmpty) {
+        throw new StateError('No library mirrors were created.');
+      }
+      _documentLibraries(mirrorSystem.libraries.values, 
+          includeSdk: includeSdk, includePrivate: includePrivate, 
+          outputToYaml: outputToYaml);
+      
+      return true;
+    });
 }
 
 List<String> _listLibraries(List<String> args) {
@@ -106,18 +107,28 @@ List<String> _listLibraries(List<String> args) {
   } else {
     libraries.addAll(_listDartFromDir(args[0]));
   } 
-  logger.info('Package Directory: $packageDir');
   return libraries;
 }
 
 List<String> _listDartFromDir(String args) {
   var files = listDir(args, recursive: true);
-  packageDir = files.firstWhere((f) => 
-      f.endsWith('/pubspec.yaml'), orElse: () => '');
-  if (packageDir != '') packageDir = path.dirname(packageDir) + '/packages';
-  return files.where((f) => 
-      f.endsWith('.dart') && !f.contains('/packages')).toList()
+  // To avoid anaylzing package files twice, only files with paths not 
+  // containing '/packages' will be added. The only exception is if the file to
+  // analyze already has a '/package' in its path. 
+  return files.where((f) => f.endsWith('.dart') && 
+      (!f.contains('/packages') || args.contains('/packages'))).toList()
       ..forEach((lib) => logger.info('Added to libraries: $lib'));
+}
+
+String _findPackageRoot(String directory) {
+  var files = listDir(directory, recursive: true);
+  // Return '' means that there was no pubspec.yaml and therefor no packageRoot. 
+  String packageRoot = files.firstWhere((f) => 
+      f.endsWith('/pubspec.yaml'), orElse: () => '');
+  if (packageRoot != '') {
+    packageRoot = path.dirname(packageRoot) + '/packages';
+  }
+  return packageRoot;
 }
 
 List<String> _listSdk() {
@@ -135,7 +146,8 @@ List<String> _listSdk() {
  * Analyzes set of libraries by getting a mirror system and triggers the 
  * documentation of the libraries. 
  */
-Future<MirrorSystem> getMirrorSystem(List<String> args) {
+Future<MirrorSystem> getMirrorSystem(List<String> args, String packageRoot, 
+    {bool parseSdk:false}) {
   var libraries = !parseSdk ? _listLibraries(args) : _listSdk();
   if (libraries.isEmpty) throw new StateError('No Libraries.');
   // DART_SDK should be set to the root of the SDK library. 
@@ -149,14 +161,18 @@ Future<MirrorSystem> getMirrorSystem(List<String> args) {
     logger.info('SDK Root: ${sdkRoot}');
   }
   
-  return _getMirrorSystemHelper(libraries, sdkRoot, packageRoot: packageDir);
+  return _analyzeLibraries(libraries, sdkRoot, packageRoot: packageRoot);
 }
 
+// TODO(janicejl): Should make docgen fail gracefully, or output a friendly
+// error message letting them know why it is failing to create a mirror system.
+// If there is conflicting library names, should modify it with a hash at the 
+// end of it's library name. 
 /**
  * Analyzes set of libraries and provides a mirror system which can be used 
  * for static inspection of the source code.
  */
-Future<MirrorSystem> _getMirrorSystemHelper(List<String> libraries,
+Future<MirrorSystem> _analyzeLibraries(List<String> libraries,
       String libraryRoot, {String packageRoot}) {
   SourceFileProvider provider = new SourceFileProvider();
   api.DiagnosticHandler diagnosticHandler =
@@ -172,18 +188,28 @@ Future<MirrorSystem> _getMirrorSystemHelper(List<String> libraries,
   });
   return dart2js.analyze(librariesUri, libraryUri, packageUri,
       provider.readStringFromUri, diagnosticHandler,
-      ['--preserve-comments', '--categories=Client,Server']);
+      ['--preserve-comments', '--categories=Client,Server'])
+      ..catchError((error) {
+        logger.severe('Error: Failed to create mirror system. ');
+        // TODO(janicejl): Use the stack trace package when bug is resolved. 
+        // Currently, a string is thrown when it fails to create a mirror 
+        // system, and it is not possible to use the stack trace. BUG(#11622)
+        // To avoid printing the stack trace. 
+        exit(1);
+      });
 }
 
 /**
  * Creates documentation for filtered libraries.
  */
-void _documentLibraries(List<LibraryMirror> libraries) {
+void _documentLibraries(List<LibraryMirror> libraries, 
+    {bool includeSdk:false, bool includePrivate:false, bool 
+     outputToYaml:true}) {
   libraries.forEach((lib) {
     // Files belonging to the SDK have a uri that begins with 'dart:'.
     if (includeSdk || !lib.uri.toString().startsWith('dart:')) {
-      var library = generateLibrary(lib);
-      _outputLibrary(library);
+      var library = generateLibrary(lib, includePrivate: includePrivate);
+      _writeLibraryToFile(library, outputToYaml);
     }
   });
   // Outputs a text file with a list of files available after creating all 
@@ -192,22 +218,24 @@ void _documentLibraries(List<LibraryMirror> libraries) {
   _writeToFile(listDir("docs").join('\n'), 'library_list.txt');
 }
 
-Library generateLibrary(dart2js.Dart2JsLibraryMirror library) {
+Library generateLibrary(dart2js.Dart2JsLibraryMirror library, 
+  {bool includePrivate:false}) {
   _currentLibrary = library;
   var result = new Library(library.qualifiedName, _getComment(library),
-      _getVariables(library.variables), _getMethods(library.functions),
-      _getClasses(library.classes));
+      _getVariables(library.variables, includePrivate), 
+      _getMethods(library.functions, includePrivate),
+      _getClasses(library.classes, includePrivate));
   logger.fine('Generated library for ${result.name}');
   return result;
 }
 
-void _outputLibrary(Library result) {
-  if (outputToJson) {
-    _writeToFile(stringify(result.toMap()), '${result.name}.json');
-  } 
+void _writeLibraryToFile(Library result, bool outputToYaml) {
   if (outputToYaml) {
     _writeToFile(getYamlString(result.toMap()), '${result.name}.yaml');
-  }
+  } else {
+    _writeToFile(stringify(result.toMap()), '${result.name}.json');
+  } 
+  
 }
 
 /**
@@ -256,8 +284,11 @@ markdown.Node fixReference(String name, LibraryMirror currentLibrary,
 /**
  * Returns a map of [Variable] objects constructed from inputted mirrors.
  */
-Map<String, Variable> _getVariables(Map<String, VariableMirror> mirrorMap) {
+Map<String, Variable> _getVariables(Map<String, VariableMirror> mirrorMap, 
+    bool includePrivate) {
   var data = {};
+  // TODO(janicejl): When map to map feature is created, replace the below with 
+  // a filter. Issue(#9590).
   mirrorMap.forEach((String mirrorName, VariableMirror mirror) {
     if (includePrivate || !mirror.isPrivate) {
       _currentMember = mirror;
@@ -272,7 +303,8 @@ Map<String, Variable> _getVariables(Map<String, VariableMirror> mirrorMap) {
 /**
  * Returns a map of [Method] objects constructed from inputted mirrors.
  */
-Map<String, Method> _getMethods(Map<String, MethodMirror> mirrorMap) {
+Map<String, Method> _getMethods(Map<String, MethodMirror> mirrorMap, 
+    bool includePrivate) {
   var data = {};
   mirrorMap.forEach((String mirrorName, MethodMirror mirror) {
     if (includePrivate || !mirror.isPrivate) {
@@ -290,7 +322,8 @@ Map<String, Method> _getMethods(Map<String, MethodMirror> mirrorMap) {
 /**
  * Returns a map of [Class] objects constructed from inputted mirrors.
  */
-Map<String, Class> _getClasses(Map<String, ClassMirror> mirrorMap) {
+Map<String, Class> _getClasses(Map<String, ClassMirror> mirrorMap,
+    bool includePrivate) {
   var data = {};
   mirrorMap.forEach((String mirrorName, ClassMirror mirror) {
     if (includePrivate || !mirror.isPrivate) {
@@ -302,7 +335,8 @@ Map<String, Class> _getClasses(Map<String, ClassMirror> mirrorMap) {
       data[mirrorName] = new Class(mirrorName, mirror.qualifiedName, 
           superclass, mirror.isAbstract, mirror.isTypedef, 
           _getComment(mirror), interfaces.toList(),
-          _getVariables(mirror.variables), _getMethods(mirror.methods), 
+          _getVariables(mirror.variables, includePrivate),
+          _getMethods(mirror.methods, includePrivate), 
           _getAnnotations(mirror));
     }
   });

@@ -12,11 +12,13 @@ import '../../../pkg/unittest/lib/unittest.dart';
 import 'event_helper.dart';
 import 'stream_state_helper.dart';
 
+void cancelSub(StreamSubscription sub) { sub.cancel(); }
+
 testController() {
   // Test fold
   test("StreamController.fold", () {
     StreamController c = new StreamController();
-    Stream stream = c.stream.asBroadcastStream();
+    Stream stream = c.stream.asBroadcastStream(onCancel: cancelSub);
     stream.fold(0, (a,b) => a + b)
      .then(expectAsync1((int v) {
         Expect.equals(42, v);
@@ -28,7 +30,7 @@ testController() {
 
   test("StreamController.fold throws", () {
     StreamController c = new StreamController();
-    Stream stream = c.stream.asBroadcastStream();
+    Stream stream = c.stream.asBroadcastStream(onCancel: cancelSub);
     stream.fold(0, (a,b) { throw "Fnyf!"; })
      .catchError(expectAsync1((error) { Expect.equals("Fnyf!", error); }));
     c.add(42);
@@ -267,6 +269,7 @@ testExtraMethods() {
 
 testPause() {
   test("pause event-unpause", () {
+
     StreamProtocolTest test = new StreamProtocolTest();
     Completer completer = new Completer();
     test..expectListen()
@@ -277,7 +280,7 @@ testPause() {
         ..expectData(43)
         ..expectData(44)
         ..expectDone()
-        ..expectCancel();
+        ..expectCancel(test.terminate);
     test.listen();
     test.add(42);
     test.add(43);
@@ -301,7 +304,7 @@ testPause() {
         ..expectData(43)
         ..expectData(44)
         ..expectDone()
-        ..expectCancel();
+        ..expectCancel(test.terminate);
     test..listen()
         ..add(42)
         ..add(43)
@@ -323,7 +326,7 @@ testPause() {
         ..expectData(43)
         ..expectData(44)
         ..expectDone()
-        ..expectCancel();
+        ..expectCancel(test.terminate);
     test..listen()
         ..add(42)
         ..add(43)
@@ -349,7 +352,7 @@ testPause() {
         ..expectData(43)
         ..expectData(44)
         ..expectDone()
-        ..expectCancel();
+        ..expectCancel(test.terminate);
     test..listen()
         ..add(42);
   });
@@ -359,7 +362,6 @@ class TestError { const TestError(); }
 
 testRethrow() {
   TestError error = const TestError();
-
 
   testStream(name, streamValueTransform) {
     test("rethrow-$name-value", () {
@@ -464,7 +466,6 @@ void testBroadcastController() {
 
   test("broadcast-controller-individual-pause", () {
     StreamProtocolTest test = new StreamProtocolTest.broadcast();
-    test.trace = true;
     var sub1;
     test..expectListen()
         ..expectData(42)
@@ -498,6 +499,182 @@ void testBroadcastController() {
   });
 }
 
+void testAsBroadcast() {
+  test("asBroadcast-not-canceled", () {
+    StreamProtocolTest test = new StreamProtocolTest.asBroadcast();
+    var sub;
+    test..expectListen()
+        ..expectBroadcastListen((_) {
+            test.add(42);
+          })
+        ..expectData(42, () {
+            sub.cancel();
+          })
+        ..expectBroadcastCancel((_) {
+            sub = test.listen();
+          })
+        ..expectBroadcastListen((_) {
+            test.terminate();
+          });
+    sub = test.listen();
+  });
+
+  test("asBroadcast-canceled", () {
+    StreamProtocolTest test = new StreamProtocolTest.asBroadcast();
+    var sub;
+    test..expectListen()
+        ..expectBroadcastListen((_) {
+            test.add(42);
+          })
+        ..expectData(42, () {
+            sub.cancel();
+          })
+        ..expectBroadcastCancel((originalSub) {
+            originalSub.cancel();
+          })
+        ..expectCancel(test.terminate);
+    sub = test.listen();
+  });
+
+  test("asBroadcast-pause-original", () {
+    StreamProtocolTest test = new StreamProtocolTest.asBroadcast();
+    var sub;
+    test..expectListen()
+        ..expectBroadcastListen((_) {
+            test.add(42);
+            test.add(43);
+          })
+        ..expectData(42, () {
+            sub.cancel();
+          })
+        ..expectBroadcastCancel((originalSub) {
+            originalSub.pause();  // Pause before sending 43 from original sub.
+          })
+        ..expectPause(() {
+            sub = test.listen();
+          })
+        ..expectBroadcastListen((originalSub) {
+            originalSub.resume();
+          })
+        ..expectData(43)
+        ..expectResume(() {
+            test.close();
+          })
+        ..expectDone()
+        ..expectBroadcastCancel()
+        ..expectCancel(test.terminate);
+    sub = test.listen();
+  });
+}
+
+void testSink({bool sync, bool broadcast, bool asBroadcast}) {
+  String type = "${sync?"S":"A"}${broadcast?"B":"S"}${asBroadcast?"aB":""}";
+  test("$type-controller-sink", () {
+    var done = expectAsync0((){});
+    var c = broadcast ? new StreamController.broadcast(sync: sync)
+                      : new StreamController(sync: sync);
+    var expected = new Events()
+        ..add(42)..error("error")
+        ..add(1)..add(2)..add(3)..add(4)..add(5)
+        ..add(43)..close();
+    var actual = new Events.capture(asBroadcast ? c.stream.asBroadcastStream()
+                                                : c.stream);
+    var sink = c.sink;
+    sink.add(42);
+    sink.addError("error");
+    sink.addStream(new Stream.fromIterable([1, 2, 3, 4, 5]))
+        .then((_) {
+          sink.add(43);
+          return sink.close();
+        })
+        .then((_) {
+          Expect.listEquals(expected.events, actual.events);
+          done();
+        });
+  });
+
+  test("$type-controller-sink-canceled", () {
+    var done = expectAsync0((){});
+    var c = broadcast ? new StreamController.broadcast(sync: sync)
+                      : new StreamController(sync: sync);
+    var expected = new Events()
+        ..add(42)..error("error")
+        ..add(1)..add(2)..add(3);
+    var stream = asBroadcast ? c.stream.asBroadcastStream() : c.stream;
+    var actual = new Events();
+    var sub;
+    // Cancel subscription after receiving "3" event.
+    sub = stream.listen((v) {
+      if (v == 3) sub.cancel();
+      actual.add(v);
+    }, onError: actual.error);
+    var sink = c.sink;
+    sink.add(42);
+    sink.addError("error");
+    sink.addStream(new Stream.fromIterable([1, 2, 3, 4, 5]))
+        .then((_) {
+          Expect.listEquals(expected.events, actual.events);
+          // Close controller as well. It has no listener. If it is a broadcast
+          // stream, it will still be open, and we read the "done" future before
+          // closing. A normal stream is already done when its listener cancels.
+          Future doneFuture = sink.done;
+          sink.close();
+          return doneFuture;
+        })
+        .then((_) {
+          // No change in events.
+          Expect.listEquals(expected.events, actual.events);
+          done();
+        });
+  });
+
+  test("$type-controller-sink-paused", () {
+    var done = expectAsync0((){});
+    var c = broadcast ? new StreamController.broadcast(sync: sync)
+                      : new StreamController(sync: sync);
+    var expected = new Events()
+        ..add(42)..error("error")
+        ..add(1)..add(2)..add(3)
+        ..add(4)..add(5)..add(43)..close();
+    var stream = asBroadcast ? c.stream.asBroadcastStream() : c.stream;
+    var actual = new Events();
+    var sub;
+    sub = stream.listen(
+        (v) {
+          if (v == 3) {
+            sub.pause(new Future.delayed(const Duration(milliseconds: 15),
+                                         () => null));
+          }
+          actual.add(v);
+        },
+        onError: actual.error,
+        onDone: actual.close);
+    var sink = c.sink;
+    sink.add(42);
+    sink.addError("error");
+    sink.addStream(new Stream.fromIterable([1, 2, 3, 4, 5]))
+        .then((_) {
+          sink.add(43);
+          return sink.close();
+        })
+        .then((_) {
+          if (asBroadcast) {
+            // The done-future of the sink completes when it passes
+            // the done event to the asBroadcastStream controller, which is
+            // before the final listener gets the event.
+            // Wait for the pause to end before testing the events.
+            return new Future.delayed(const Duration(milliseconds: 50), () {
+              Expect.listEquals(expected.events, actual.events);
+              done();
+            });
+          } else {
+            Expect.listEquals(expected.events, actual.events);
+            done();
+          }
+        });
+  });
+}
+
 main() {
   testController();
   testSingleController();
@@ -505,4 +682,11 @@ main() {
   testPause();
   testRethrow();
   testBroadcastController();
+  testAsBroadcast();
+  testSink(sync: true, broadcast: false, asBroadcast: false);
+  testSink(sync: true, broadcast: false, asBroadcast: true);
+  testSink(sync: true, broadcast: true, asBroadcast: false);
+  testSink(sync: false, broadcast: false, asBroadcast: false);
+  testSink(sync: false, broadcast: false, asBroadcast: true);
+  testSink(sync: false, broadcast: true, asBroadcast: false);
 }

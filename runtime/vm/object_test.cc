@@ -3179,6 +3179,32 @@ TEST_CASE(WeakProperty_ClearTwoShared_OldSpace) {
 }
 
 
+TEST_CASE(MirrorReference) {
+  const MirrorReference& reference =
+      MirrorReference::Handle(MirrorReference::New());
+  Object& initial_referent = Object::Handle(reference.referent());
+  EXPECT(initial_referent.IsNull());
+
+  Library& library = Library::Handle(Library::CoreLibrary());
+  EXPECT(!library.IsNull());
+  EXPECT(library.IsLibrary());
+  reference.set_referent(library);
+  const Object& returned_referent = Object::Handle(reference.referent());
+  EXPECT(returned_referent.IsLibrary());
+  EXPECT_EQ(returned_referent.raw(), library.raw());
+
+  const MirrorReference& other_reference =
+      MirrorReference::Handle(MirrorReference::New());
+  EXPECT_NE(reference.raw(), other_reference.raw());
+  other_reference.set_referent(library);
+  EXPECT_NE(reference.raw(), other_reference.raw());
+  EXPECT_EQ(reference.referent(), other_reference.referent());
+
+  Object& obj = Object::Handle(reference.raw());
+  ASSERT(obj.IsMirrorReference());
+}
+
+
 static RawFunction* GetFunction(const Class& cls, const char* name) {
   const Function& result = Function::Handle(cls.LookupDynamicFunction(
       String::Handle(String::New(name))));

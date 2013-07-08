@@ -1809,19 +1809,10 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
 
 
 // A class is marked as constant if it has one constant constructor.
-// A constant class:
-// - may extend only const classes.
-// - has only const instance fields.
+// A constant class can only have final instance fields.
 // Note: we must check for cycles before checking for const properties.
 void ClassFinalizer::CheckForLegalConstClass(const Class& cls) {
   ASSERT(cls.is_const());
-  const Class& super = Class::Handle(cls.SuperClass());
-  if (!super.IsNull() && !super.is_const()) {
-    String& name = String::Handle(super.Name());
-    const Script& script = Script::Handle(cls.script());
-    ReportError(script, cls.token_pos(),
-                "superclass '%s' must be const", name.ToCString());
-  }
   const Array& fields_array = Array::Handle(cls.fields());
   intptr_t len = fields_array.Length();
   Field& field = Field::Handle();

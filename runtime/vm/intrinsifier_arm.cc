@@ -671,6 +671,7 @@ static void EmitRemainderOperation(Assembler* assembler) {
   const Register left = R1;
   const Register right = R0;
   const Register result = R1;
+  const Register tmp = R2;
   ASSERT(left == result);
 
   // Check for quick zero results.
@@ -694,8 +695,10 @@ static void EmitRemainderOperation(Assembler* assembler) {
   // result <- left - right * (left / right)
   __ SmiUntag(left);
   __ SmiUntag(right);
-  __ sdiv(TMP, left, right);  // TMP <- left / right
-  __ mls(result, right, TMP, left);  // result <- left - right * TMP
+
+  __ IntegerDivide(tmp, left, right, D1, D0);
+
+  __ mls(result, right, tmp, left);  // result <- left - right * TMP
   return;
 }
 
@@ -711,9 +714,6 @@ static void EmitRemainderOperation(Assembler* assembler) {
 //  }
 bool Intrinsifier::Integer_modulo(Assembler* assembler) {
   // Check to see if we have integer division
-  if (!CPUFeatures::integer_division_supported())
-    return false;
-
   Label fall_through, subtract;
   TestBothArgumentsSmis(assembler, &fall_through);
   // R1: Tagged left (dividend).
@@ -742,9 +742,6 @@ bool Intrinsifier::Integer_modulo(Assembler* assembler) {
 
 bool Intrinsifier::Integer_remainder(Assembler* assembler) {
   // Check to see if we have integer division
-  if (!CPUFeatures::integer_division_supported())
-    return false;
-
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
   // R1: Tagged left (dividend).
@@ -764,9 +761,6 @@ bool Intrinsifier::Integer_remainder(Assembler* assembler) {
 
 bool Intrinsifier::Integer_truncDivide(Assembler* assembler) {
   // Check to see if we have integer division
-  if (!CPUFeatures::integer_division_supported())
-    return false;
-
   Label fall_through;
 
   TestBothArgumentsSmis(assembler, &fall_through);
@@ -775,7 +769,9 @@ bool Intrinsifier::Integer_truncDivide(Assembler* assembler) {
 
   __ SmiUntag(R0);
   __ SmiUntag(R1);
-  __ sdiv(R0, R1, R0);
+
+  __ IntegerDivide(R0, R1, R0, D1, D0);
+
   // Check the corner case of dividing the 'MIN_SMI' with -1, in which case we
   // cannot tag the result.
   __ CompareImmediate(R0, 0x40000000);

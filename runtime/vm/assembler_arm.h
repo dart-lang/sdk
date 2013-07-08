@@ -261,6 +261,10 @@ class Address : public ValueObject {
     encoding_ = so.encoding() | am | (static_cast<uint32_t>(rn) << kRnShift);
   }
 
+  bool Equals(const Address& other) {
+    return (encoding_ == other.encoding_) && (kind_ == other.kind_);
+  }
+
   static bool CanHoldLoadOffset(LoadOperandType type,
                                 int32_t offset,
                                 int32_t* offset_mask);
@@ -544,6 +548,13 @@ class Assembler : public ValueObject {
 
   // Compare rn with signed immediate value. May clobber IP.
   void CompareImmediate(Register rn, int32_t value, Condition cond = AL);
+
+  // Signed integer division of left by right. Checks to see if integer
+  // division is supported. If not, uses the FPU for division with
+  // temporary registers tmpl and tmpr. tmpl and tmpr must be different
+  // registers.
+  void IntegerDivide(Register result, Register left, Register right,
+                     DRegister tmpl, DRegister tmpr);
 
   // Load and Store. May clobber IP.
   void LoadImmediate(Register rd, int32_t value, Condition cond = AL);

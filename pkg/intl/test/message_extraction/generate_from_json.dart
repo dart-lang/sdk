@@ -23,12 +23,13 @@ import 'package:intl/generate_localized.dart';
 import 'dart:json' as json;
 import 'package:pathos/path.dart' as path;
 import 'package:args/args.dart';
+import 'package:serialization/serialization.dart';
 
 /**
  * Keeps track of all the messages we have processed so far, keyed by message
  * name.
  */
-Map<String, IntlMessage> messages;
+Map<String, MainMessage> messages;
 
 main() {
   var targetDir;
@@ -41,15 +42,14 @@ main() {
   parser.addOption("generated-file-prefix", defaultsTo: '',
       callback: (x) => generatedFilePrefix = x);
   parser.parse(args);
-  if (args.length == 0) {
+  var dartFiles = args.where((x) => x.endsWith("dart")).toList();
+  var jsonFiles = args.where((x) => x.endsWith(".json")).toList();
+  if (dartFiles.length == 0 || jsonFiles.length == 0) {
     print('Usage: generate_from_json [--output-dir=<dir>]'
         ' [--generated-file-prefix=<prefix>] file1.dart file2.dart ...'
         ' translation1.json translation2.json ...');
     exit(0);
   }
-
-  var dartFiles = args.where((x) => x.endsWith("dart")).toList();
-  var jsonFiles = args.where((x) => x.endsWith(".json")).toList();
 
   // We're re-parsing the original files to find the corresponding messages,
   // so if there are warnings extracting the messages, suppress them.
@@ -70,6 +70,20 @@ main() {
   mainImportFile.writeAsStringSync(generateMainImportFile());
 }
 
+var s = new Serialization();
+var format = const SimpleFlatFormat();
+var r = s.newReader(format);
+
+recreateIntlObjects(key, value) {
+  if (value == null) return null;
+  if (value is String || value is int) return Message.from(value, null);
+  if (value is List) {
+    var newThing = r.read(value);
+    return newThing;
+  }
+  throw new FormatException("Invalid input data $value");
+}
+
 /**
  * Create the file of generated code for a particular locale. We read the json
  * data and create [BasicTranslatedMessage] instances from everything,
@@ -79,7 +93,8 @@ main() {
 void generateLocaleFile(File file, String targetDir) {
   var src = file.readAsStringSync();
   var data = json.parse(src);
-  var locale = data["_locale"];
+  data.forEach((k, v) => data[k] = recreateIntlObjects(k, v));
+  var locale = data["_locale"].string;
   allLocales.add(locale);
 
   var translations = [];
@@ -96,13 +111,13 @@ void generateLocaleFile(File file, String targetDir) {
  * up its original message in our [messages].
  */
 class BasicTranslatedMessage extends TranslatedMessage {
-  BasicTranslatedMessage(String name, String translated) :
+  BasicTranslatedMessage(String name, translated) :
       super(name, translated);
 
-  IntlMessage get originalMessage =>
+  MainMessage get originalMessage =>
       (super.originalMessage == null) ? _findOriginal() : super.originalMessage;
 
   // We know that our [id] is the name of the message, which is used as the
   //key in [messages].
-  IntlMessage _findOriginal() => originalMessage = messages[id];
+  MainMessage _findOriginal() => originalMessage = messages[id];
 }

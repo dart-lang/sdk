@@ -2,12 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-patch class _BufferUtils {
-  patch static bool _isBuiltinList(List buffer) {
-    throw new UnsupportedError("_isBuiltinList");
-  }
-}
-
 patch class _Directory {
   patch static String _current() {
     throw new UnsupportedError("Directory._current");
@@ -295,7 +289,7 @@ patch class _SecureFilter {
 }
 
 patch class _StdIOUtils {
-  patch static Stream<List<int>> _getStdioInputStream() {
+  patch static Stdin _getStdioInputStream() {
     throw new UnsupportedError("StdIOUtils._getStdioInputStream");
   }
   patch static IOSink _getStdioOutputStream(int fd) {
@@ -324,5 +318,11 @@ patch class _Filter {
   }
   patch static _Filter newZLibInflateFilter() {
     throw new UnsupportedError("newZLibInflateFilter");
+  }
+}
+
+patch class Stdin {
+  patch int readByteSync() {
+    throw new UnsupportedError("Stdin.readByteSync");
   }
 }

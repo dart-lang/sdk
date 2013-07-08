@@ -1,0 +1,86 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+$!MEMBERS
+
+  /**
+   * Sets the currently bound texture to [data].
+   *
+   * [data] can be either an [ImageElement], a
+   * [CanvasElement], a [VideoElement], or an [ImageData] object.
+   *
+   * To use [texImage2d] with a TypedData object, use [texImage2dTyped].
+   *
+   */
+  @DomName('WebGLRenderingContext.texImage2D')
+$if DART2JS
+  @JSName('texImage2D')
+  void texImage2D(int targetTexture, int levelOfDetail, int internalFormat,
+      int format, int type, data) native;
+$else
+  void texImage2D(int targetTexture, int levelOfDetail, int internalFormat,
+      int format, int type, data) {
+    _texImage2D(targetTexture, levelOfDetail, internalFormat,
+        format, type, data);
+  }
+$endif
+
+  /**
+   * Sets the currently bound texture to [data].
+   */
+$if DART2JS
+  @JSName('texImage2D')
+  void texImage2DTyped(int targetTexture, int levelOfDetail,
+      int internalFormat, int width, int height, int border, int format,
+      int type, TypedData data) native;
+$else
+  void texImage2DTyped(int targetTexture, int levelOfDetail, int internalFormat,
+      int width, int height, int border, int format, int type, TypedData data) {
+    _texImage2D(targetTexture, levelOfDetail, internalFormat,
+        width, height, border, format, type, data);
+  }
+$endif
+
+  /**
+   * Updates a sub-rectangle of the currently bound texture to [data].
+   *
+   * [data] can be either an [ImageElement], a
+   * [CanvasElement], a [VideoElement], or an [ImageData] object.
+   *
+   * To use [texSubImage2d] with a TypedData object, use [texSubImage2dTyped].
+   *
+   */
+  @DomName('WebGLRenderingContext.texSubImage2D')
+$if DART2JS
+  @JSName('texSubImage2D')
+  void texSubImage2D(int targetTexture, int levelOfDetail, int internalFormat,
+      int format, int type, data) native;
+$else
+  void texSubImage2D(int targetTexture, int levelOfDetail, int internalFormat,
+      int format, int type, data) {
+    _texSubImage2D(targetTexture, levelOfDetail, internalFormat,
+        format, type, data);
+  }
+$endif
+
+  /**
+   * Updates a sub-rectangle of the currently bound texture to [data].
+   */
+$if DART2JS
+  @JSName('texSubImage2D')
+  void texSubImage2DTyped(int targetTexture, int levelOfDetail,
+      int internalFormat, int width, int height, int border, int format,
+      int type, TypedData data) native;
+$else
+  void texSubImage2DTyped(int targetTexture, int levelOfDetail,
+      int internalFormat, int width, int height, int border, int format,
+      int type, TypedData data) {
+    _texSubImage2D(targetTexture, levelOfDetail, internalFormat,
+        width, height, border, format, type, data);
+  }
+$endif
+}

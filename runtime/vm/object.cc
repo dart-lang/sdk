@@ -188,10 +188,11 @@ INVISIBLE_LIST(MARK_FUNCTION)
 //   get:foo -> foo
 //   set:foo -> foo=
 //
-// Private name mangling is removed, possibly twice:
+// Private name mangling is removed, possibly multiple times:
 //
 //   _ReceivePortImpl@6be832b -> _ReceivePortImpl
-//   _ReceivePortImpl@6be832b._internal@6be832b -> +ReceivePortImpl._internal
+//   _ReceivePortImpl@6be832b._internal@6be832b -> _ReceivePortImpl._internal
+//   _C@0x2b4ab9cc&_E@0x2b4ab9cc&_F@0x2b4ab9cc -> _C&_E&_F
 //
 // The trailing . on the default constructor name is dropped:
 //
@@ -204,57 +205,69 @@ INVISIBLE_LIST(MARK_FUNCTION)
 //   _MyClass@6b3832b.named -> _MyClass.named
 //
 static RawString* IdentifierPrettyName(const String& name) {
-  intptr_t len = name.Length();
-  intptr_t start = 0;
-  intptr_t at_pos = len;   // Position of '@' in the name.
-  intptr_t dot_pos = len;  // Position of '.' in the name.
-  bool is_setter = false;
-
   if (name.Equals(Symbols::TopLevel())) {
     // Name of invisible top-level class.
     return Symbols::Empty().raw();
   }
-  for (int i = start; i < name.Length(); i++) {
-    if (name.CharAt(i) == ':') {
-      ASSERT(start == 0);
-      if (name.CharAt(0) == 's') {
+
+  // First remove all private name mangling.
+  String& unmangled_name = String::Handle(Symbols::Empty().raw());
+  String& segment = String::Handle();
+  intptr_t start_pos = 0;
+  for (intptr_t i = 0; i < name.Length(); i++) {
+    if (name.CharAt(i) == '@') {
+      // Append the current segment to the unmangled name.
+      segment = String::SubString(name, start_pos, (i - start_pos));
+      unmangled_name = String::Concat(unmangled_name, segment);
+
+      // Advance until past the name mangling.
+      i++;  // Skip the '@'.
+      while ((i < name.Length()) &&
+             (name.CharAt(i) != '&') &&
+             (name.CharAt(i) != '.')) {
+        i++;
+      }
+      start_pos = i;
+      i--;  // Account for for-loop increment.
+    }
+  }
+  if (start_pos == 0) {
+    // No name unmangling needed, reuse the name that was passed in.
+    unmangled_name = name.raw();
+  } else if (name.Length() != start_pos) {
+    // Append the last segment.
+    segment = String::SubString(name, start_pos, (name.Length() - start_pos));
+    unmangled_name = String::Concat(unmangled_name, segment);
+  }
+
+  intptr_t len = unmangled_name.Length();
+  intptr_t start = 0;
+  intptr_t dot_pos = -1;  // Position of '.' in the name, if any.
+  bool is_setter = false;
+
+  for (intptr_t i = start; i < len; i++) {
+    if (unmangled_name.CharAt(i) == ':') {
+      ASSERT(start == 0);  // Only one : is possible in getters or setters.
+      if (unmangled_name.CharAt(0) == 's') {
         is_setter = true;
       }
       start = i + 1;
-    } else if (name.CharAt(i) == '@') {
-      ASSERT(at_pos == len);
-      at_pos = i;
-    } else if (name.CharAt(i) == '.') {
+    } else if (unmangled_name.CharAt(i) == '.') {
+      ASSERT(dot_pos == -1);  // Only one dot is supported.
       dot_pos = i;
-      break;
     }
   }
-  intptr_t limit = (at_pos < dot_pos ? at_pos : dot_pos);
-  if (start == 0 && limit == len) {
-    // This name is fine as it is.
-    return name.raw();
+
+  if ((start == 0) && (dot_pos == -1)) {
+    // This unmangled_name is fine as it is.
+    return unmangled_name.raw();
   }
+
+  // Drop the trailing dot if needed.
+  intptr_t end = ((dot_pos + 1) == len) ? dot_pos : len;
 
   const String& result =
-      String::Handle(String::SubString(name, start, (limit - start)));
-
-  // Look for a second '@' now to correctly handle names like
-  // "_ReceivePortImpl@6be832b._internal@6be832b".
-  at_pos = len;
-  for (int i = dot_pos; i < name.Length(); i++) {
-    if (name.CharAt(i) == '@') {
-      ASSERT(at_pos == len);
-      at_pos = i;
-    }
-  }
-
-  intptr_t suffix_len = at_pos - dot_pos;
-  if (suffix_len > 1) {
-    // This is a named constructor.  Add the name back to the string.
-    const String& suffix =
-        String::Handle(String::SubString(name, dot_pos, suffix_len));
-    return String::Concat(result, suffix);
-  }
+      String::Handle(String::SubString(unmangled_name, start, (end - start)));
 
   if (is_setter) {
     // Setters need to end with '='.
@@ -929,6 +942,22 @@ RawError* Object::Init(Isolate* isolate) {
   object_store->set_weak_property_class(cls);
   RegisterPrivateClass(cls, Symbols::_WeakProperty(), core_lib);
 
+  // Pre-register the mirrors library so we can place the vm class
+  // MirrorReference there rather than the core library.
+  lib = Library::LookupLibrary(Symbols::DartMirrors());
+  if (lib.IsNull()) {
+    lib = Library::NewLibraryHelper(Symbols::DartMirrors(), true);
+    lib.Register();
+    isolate->object_store()->set_bootstrap_library(ObjectStore::kMirrors,
+                                                   lib);
+  }
+  ASSERT(!lib.IsNull());
+  ASSERT(lib.raw() == Library::MirrorsLibrary());
+
+  cls = Class::New<MirrorReference>();
+  object_store->set_mirror_reference_class(cls);
+  RegisterPrivateClass(cls, Symbols::_MirrorReference(), lib);
+
   // Setup some default native field classes which can be extended for
   // specifying native fields in dart classes.
   Library::InitNativeWrappersLibrary(isolate);
@@ -1199,6 +1228,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   cls = Class::New<WeakProperty>();
   object_store->set_weak_property_class(cls);
+
+  cls = Class::New<MirrorReference>();
+  object_store->set_mirror_reference_class(cls);
 }
 
 
@@ -4068,12 +4100,9 @@ const char* Function::ToFullyQualifiedCString() const {
 bool Function::HasCompatibleParametersWith(const Function& other) const {
   const intptr_t num_fixed_params = num_fixed_parameters();
   const intptr_t num_opt_pos_params = NumOptionalPositionalParameters();
-  const intptr_t num_opt_named_params = NumOptionalNamedParameters();
   const intptr_t other_num_fixed_params = other.num_fixed_parameters();
   const intptr_t other_num_opt_pos_params =
       other.NumOptionalPositionalParameters();
-  const intptr_t other_num_opt_named_params =
-      other.NumOptionalNamedParameters();
   // A generative constructor may be compared to a redirecting factory and be
   // compatible although it has an additional phase parameter.
   const intptr_t num_ignored_params =
@@ -4083,35 +4112,8 @@ bool Function::HasCompatibleParametersWith(const Function& other) const {
   // arguments or more.
   if (((num_fixed_params - num_ignored_params) > other_num_fixed_params) ||
       ((num_fixed_params - num_ignored_params) + num_opt_pos_params <
-       other_num_fixed_params + other_num_opt_pos_params) ||
-      (num_opt_named_params < other_num_opt_named_params)) {
+       other_num_fixed_params + other_num_opt_pos_params)) {
     return false;
-  }
-  if (other_num_opt_named_params == 0) {
-    return true;
-  }
-  // Check that for each optional named parameter of the other function there
-  // exists an optional named parameter of this function with an identical
-  // name.
-  // Note that SetParameterNameAt() guarantees that names are symbols, so we
-  // can compare their raw pointers.
-  const int num_params = num_fixed_params + num_opt_named_params;
-  const int other_num_params =
-      other_num_fixed_params + other_num_opt_named_params;
-  bool found_param_name;
-  String& other_param_name = String::Handle();
-  for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
-    other_param_name = other.ParameterNameAt(i);
-    found_param_name = false;
-    for (intptr_t j = num_fixed_params; j < num_params; j++) {
-      if (ParameterNameAt(j) == other_param_name.raw()) {
-        found_param_name = true;
-        break;
-      }
-    }
-    if (!found_param_name) {
-      return false;
-    }
   }
   return true;
 }
@@ -13670,5 +13672,21 @@ RawWeakProperty* WeakProperty::New(Heap::Space space) {
 const char* WeakProperty::ToCString() const {
   return "_WeakProperty";
 }
+
+
+RawMirrorReference* MirrorReference::New(Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->mirror_reference_class()
+         != Class::null());
+  RawObject* raw = Object::Allocate(MirrorReference::kClassId,
+                                    MirrorReference::InstanceSize(),
+                                    space);
+  return reinterpret_cast<RawMirrorReference*>(raw);
+}
+
+
+const char* MirrorReference::ToCString() const {
+  return "_MirrorReference";
+}
+
 
 }  // namespace dart
