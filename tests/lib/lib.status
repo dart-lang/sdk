@@ -10,7 +10,7 @@ async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug
 async/run_async4_test: Pass, Fail # no global exception handler in isolates. http://dartbug.com/9012
 async/run_async6_test: Fail # global error handling is not supported. http://dartbug.com/5958
 
-[ $compiler == dart2js  && !$ checked]
+[ $compiler == dart2js  && $unchecked]
 async/stream_state_test: Fail # Issue 11722
 
 # SIMD is unsupported on dart2js.
