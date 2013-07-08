@@ -32,4 +32,15 @@ main() {
       expect(() => new AssetId.parse("app|"), throwsFormatException);
     });
   });
+
+  test("equals another ID with the same package and path", () {
+    expect(new AssetId.parse("foo|asset.txt"), equals(
+           new AssetId.parse("foo|asset.txt")));
+
+    expect(new AssetId.parse("foo|asset.txt"), isNot(equals(
+        new AssetId.parse("bar|asset.txt"))));
+
+    expect(new AssetId.parse("foo|asset.txt"), isNot(equals(
+        new AssetId.parse("bar|other.txt"))));
+  });
 }

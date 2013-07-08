@@ -131,7 +131,7 @@ void waitForBuild() {
     return _graph.results.first.then((result) {
       expect(result.succeeded, isTrue);
     });
-  });
+  }, "wait for build");
 }
 
 /// Schedules an expectation that the graph will deliver an asset matching
@@ -150,9 +150,8 @@ void expectAsset(String name, [String contents]) {
     return _graph.getAssetById(id).then((asset) {
       // TODO(rnystrom): Make an actual Matcher class for this.
       expect(asset, new isInstanceOf<MockAsset>());
-      expect(asset._id.package, equals(id.package));
-      expect(asset._id.path, equals(id.path));
-      expect(asset._contents, equals(contents));
+      expect(asset.id, equals(id));
+      expect(asset.contents, equals(contents));
     });
   }, "get asset $name");
 }
@@ -242,8 +241,8 @@ class MockProvider implements AssetProvider {
 
   void _modifyAsset(String name, String contents) {
     var id = new AssetId.parse(name);
-    var asset = _packages[id.package].firstWhere((a) => a._id == id);
-    asset._contents = contents;
+    var asset = _packages[id.package].firstWhere((a) => a.id == id);
+    asset.contents = contents;
   }
 
   List<AssetId> listAssets(String package, {String within}) {
@@ -266,7 +265,7 @@ class MockProvider implements AssetProvider {
       var package = _packages[id.package];
       if (package == null) throw new AssetNotFoundException(id);
 
-      return package.firstWhere((asset) => asset._id == id,
+      return package.firstWhere((asset) => asset.id == id,
           orElse: () => throw new AssetNotFoundException(id));
     });
   }
@@ -318,8 +317,8 @@ class RewriteTransformer extends Transformer {
     _wait = null;
   }
 
-  Future<bool> isPrimary(AssetId asset) {
-    return new Future.value(asset.extension == ".$from");
+  Future<bool> isPrimary(Asset asset) {
+    return new Future.value(asset.id.extension == ".$from");
   }
 
   Future apply(Transform transform) {
@@ -330,7 +329,7 @@ class RewriteTransformer extends Transformer {
       return Future.wait(to.split(" ").map((extension) {
         var id = transform.primaryId.changeExtension(".$extension");
         return input.readAsString().then((content) {
-          transform.addOutput(id, new MockAsset(id, "$content.$extension"));
+          transform.addOutput(new MockAsset(id, "$content.$extension"));
         });
       })).then((_) {
         if (_wait != null) return _wait.future;
@@ -357,8 +356,8 @@ class OneToManyTransformer extends Transformer {
   /// files at each of those paths.
   OneToManyTransformer(this.extension);
 
-  Future<bool> isPrimary(AssetId asset) {
-    return new Future.value(asset.extension == ".$extension");
+  Future<bool> isPrimary(Asset asset) {
+    return new Future.value(asset.id.extension == ".$extension");
   }
 
   Future apply(Transform transform) {
@@ -367,7 +366,7 @@ class OneToManyTransformer extends Transformer {
       return input.readAsString().then((lines) {
         for (var line in lines.split(",")) {
           var id = new AssetId(transform.primaryId.package, line);
-          transform.addOutput(id, new MockAsset(id, "spread $extension"));
+          transform.addOutput(new MockAsset(id, "spread $extension"));
         }
       });
     });
@@ -392,8 +391,8 @@ class ManyToOneTransformer extends Transformer {
   /// files at each of those paths.
   ManyToOneTransformer(this.extension);
 
-  Future<bool> isPrimary(AssetId asset) {
-    return new Future.value(asset.extension == ".$extension");
+  Future<bool> isPrimary(Asset asset) {
+    return new Future.value(asset.id.extension == ".$extension");
   }
 
   Future apply(Transform transform) {
@@ -416,7 +415,7 @@ class ManyToOneTransformer extends Transformer {
           });
         }).then((_) {
           var id = transform.primaryId.changeExtension(".out");
-          transform.addOutput(id, new MockAsset(id, output));
+          transform.addOutput(new MockAsset(id, output));
         });
       });
     });
@@ -436,13 +435,13 @@ class BadTransformer extends Transformer {
 
   BadTransformer(this.outputs);
 
-  Future<bool> isPrimary(AssetId asset) => new Future.value(true);
+  Future<bool> isPrimary(Asset asset) => new Future.value(true);
   Future apply(Transform transform) {
     return new Future(() {
       // Create the outputs first.
       for (var output in outputs) {
         var id = new AssetId.parse(output);
-        transform.addOutput(id, new MockAsset(id, output));
+        transform.addOutput(new MockAsset(id, output));
       }
 
       // Then fail.
@@ -453,15 +452,15 @@ class BadTransformer extends Transformer {
 
 /// An implementation of [Asset] that never hits the file system.
 class MockAsset implements Asset {
-  final AssetId _id;
-  String _contents;
+  final AssetId id;
+  String contents;
 
-  MockAsset(this._id, this._contents);
+  MockAsset(this.id, this.contents);
 
-  Future<String> readAsString() => new Future.value(_contents);
+  Future<String> readAsString() => new Future.value(contents);
   Stream<List<int>> read() => throw new UnimplementedError();
 
   serialize() => throw new UnimplementedError();
 
-  String toString() => "MockAsset $_id $_contents";
+  String toString() => "MockAsset $id $contents";
 }

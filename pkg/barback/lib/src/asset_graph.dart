@@ -10,6 +10,7 @@ import 'dart:collection';
 import 'asset.dart';
 import 'asset_id.dart';
 import 'asset_provider.dart';
+import 'asset_set.dart';
 import 'errors.dart';
 import 'change_batch.dart';
 import 'phase.dart';
@@ -43,14 +44,14 @@ class AssetGraph {
       Iterable<Iterable<Transformer>> transformerPhases) {
     // Flatten the phases to a list so we can traverse backwards to wire up
     // each phase to its next.
-    transformerPhases = transformerPhases.toList();
+    var phases = transformerPhases.toList();
 
     // Each phase writes its outputs as inputs to the next phase after it.
     // Add a phase at the end for the final outputs of the last phase.
-    transformerPhases.add([]);
+    phases.add([]);
 
     Phase nextPhase = null;
-    for (var transformers in transformerPhases.reversed) {
+    for (var transformers in phases.reversed) {
       nextPhase = new Phase(this, _phases.length, transformers.toList(),
           nextPhase);
       _phases.insert(0, nextPhase);
@@ -190,12 +191,12 @@ class AssetGraph {
       var changes = _sourceChanges;
       _sourceChanges = null;
 
-      var updated = new Map<AssetId, Asset>();
+      var updated = new AssetSet();
       var futures = [];
       for (var id in changes.updated) {
         // TODO(rnystrom): Catch all errors from provider and route to results.
         futures.add(_provider.getAsset(id).then((asset) {
-          updated[id] = asset;
+          updated.add(asset);
         }).catchError((error) {
           if (error is AssetNotFoundException) {
             // Handle missing asset errors like regular missing assets.
