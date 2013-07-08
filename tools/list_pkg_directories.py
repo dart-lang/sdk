@@ -20,7 +20,7 @@ def main(argv):
       os.path.join(directory, x)), os.listdir(directory)))
   for lib in filter(lambda x: os.path.exists(os.path.join(directory, x)),
       paths):
-    print os.path.join(directory, lib)
+    print '%s/%s' % (directory, lib)
 
 if __name__ == '__main__':
   sys.exit(main(sys.argv))
