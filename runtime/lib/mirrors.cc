@@ -6,6 +6,7 @@
 #include "include/dart_debugger_api.h"
 #include "include/dart_mirrors_api.h"
 #include "vm/dart_api_impl.h"
+#include "vm/dart_api_state.h"  // TODO(11742): Remove with CreateMirrorRef.
 #include "vm/bootstrap_natives.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
@@ -159,6 +160,20 @@ static Dart_Handle CreateVMReference(Dart_Handle handle) {
   // Success.
   return vm_ref;
 }
+
+
+// TODO(11742): Remove once there are no more users of the Dart_Handle-based
+// VMReferences.
+static Dart_Handle CreateMirrorReference(Dart_Handle handle) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Object& referent = Object::Handle(isolate, Api::UnwrapHandle(handle));
+  const MirrorReference& reference =
+       MirrorReference::Handle(MirrorReference::New());
+  reference.set_referent(referent);
+  return Api::NewHandle(isolate, reference.raw());
+}
+
 
 static Dart_Handle StringFromSymbol(Dart_Handle symbol) {
   Dart_Handle result = Dart_Invoke(MirrorLib(), NewString("_n"), 1, &symbol);
@@ -597,8 +612,9 @@ static Dart_Handle CreateClassMirror(Dart_Handle intf,
   }
 
   Dart_Handle args[] = {
+    CreateMirrorReference(intf),
     CreateVMReference(intf),
-    intf_name,
+    Dart_Null(),  // "name"
     Dart_NewBoolean(Dart_IsClass(intf)),
     lib_mirror,
     CreateLazyMirror(super_class),
@@ -1398,10 +1414,20 @@ void NATIVE_ENTRY_FUNCTION(LocalClassMirrorImpl_invokeConstructor)(
   Dart_ExitScope();
 }
 
+
 void HandleMirrorsMessage(Isolate* isolate,
                           Dart_Port reply_port,
                           const Instance& message) {
   UNIMPLEMENTED();
+}
+
+
+DEFINE_NATIVE_ENTRY(ClassMirror_name, 1) {
+  const MirrorReference& klass_ref =
+      MirrorReference::CheckedHandle(arguments->NativeArgAt(0));
+  Class& klass = Class::Handle();
+  klass ^= klass_ref.referent();
+  return klass.Name();
 }
 
 }  // namespace dart

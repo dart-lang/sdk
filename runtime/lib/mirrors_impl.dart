@@ -83,13 +83,17 @@ class _LocalMirrorSystemImpl extends MirrorSystem {
   final Map<Uri, LibraryMirror> libraries;
   final IsolateMirror isolate;
 
+  // TODO(11743): dynamicType and voidType should not respond to the 
+  // ClassMirror protocol, so they should not inherit from the ClassMirror
+  // implementation.
+
   TypeMirror _dynamicType = null;
 
   TypeMirror get dynamicType {
     if (_dynamicType == null) {
       _dynamicType =
           new _LocalClassMirrorImpl(
-              null, 'dynamic', false, null, null, [], null,
+              null, null, 'dynamic', false, null, null, [], null,
               const {}, const {}, const {});
     }
     return _dynamicType;
@@ -101,7 +105,7 @@ class _LocalMirrorSystemImpl extends MirrorSystem {
     if (_voidType == null) {
       _voidType =
           new _LocalClassMirrorImpl(
-              null, 'void', false, null, null, [], null,
+              null, null, 'void', false, null, null, [], null,
               const {}, const {}, const {});
     }
     return _voidType;
@@ -376,7 +380,8 @@ class _LazyTypeMirror {
 
 class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
     implements ClassMirror {
-  _LocalClassMirrorImpl(ref,
+  _LocalClassMirrorImpl(this._reflectee,
+                        ref,
                         String simpleName,
                         this.isClass,
                         this._owner,
@@ -386,13 +391,23 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
                         Map<String, Mirror> members,
                         Map<String, Mirror> constructors,
                         Map<String, Mirror> typeVariables)
-      : this.simpleName = _s(simpleName),
+      : this._simpleName = _s(simpleName),
         this.members = _convertStringToSymbolMap(members),
         this.constructors = _convertStringToSymbolMap(constructors),
         this.typeVariables = _convertStringToSymbolMap(typeVariables),
         super(ref);
 
-  final Symbol simpleName;
+  final _MirrorReference _reflectee;
+
+  Symbol _simpleName;
+  Symbol get simpleName {
+    // dynamic, void and the function types have their names set eagerly in the
+    // constructor.
+    if(_simpleName == null) {
+      _simpleName = _s(_ClassMirror_name(_reflectee));
+    }
+    return _simpleName;
+  }
 
   Symbol _qualifiedName = null;
   Symbol get qualifiedName {
@@ -558,6 +573,9 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
 
   static _invokeConstructor(ref, constructorName, positionalArguments, async)
       native 'LocalClassMirrorImpl_invokeConstructor';
+
+  static String _ClassMirror_name(reflectee)
+      native "ClassMirror_name";
 }
 
 class _LazyFunctionTypeMirror {
@@ -578,7 +596,8 @@ class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
                                simpleName,
                                this._returnType,
                                this.parameters)
-      : super(ref,
+      : super(null,
+              ref,
               simpleName,
               true,
               null,
