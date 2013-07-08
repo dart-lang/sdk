@@ -40,8 +40,6 @@ constructor3_negative_test: fail
 constructor_call_wrong_argument_count_negative_test: fail
 constructor_initializer_test: fail # uses argument definition test
 constructor_negative_test: fail
-constructor_return_with_arrow_negative_test: fail
-constructor_return_with_init_and_arrow_negative_test: fail
 cyclic_type_variable_test/01: fail
 cyclic_type_variable_test/02: fail
 cyclic_type_variable_test/03: fail
