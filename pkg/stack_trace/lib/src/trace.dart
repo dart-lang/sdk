@@ -19,7 +19,7 @@ final _terseRegExp = new RegExp(r"(-patch)?(/.*)?$");
 /// Firefox's trace frames start with the name of the function in which the
 /// error occurred, possibly including its parameters inside `()`. For example,
 /// `.VW.call$0("arg")@http://pub.dartlang.org/stuff.dart.js:560`.
-final _firefoxTrace = new RegExp(r"^([.0-9A-Za-z_$/<]*|\(.*\))*@");
+final _firefoxTrace = new RegExp(r"^([.0-9A-Za-z_$/<]|\(.*\))*@");
 
 /// A RegExp to match this package's stack traces.
 final _friendlyTrace = new RegExp(r"^[^\s]+( \d+:\d+)?\s+[^\s]+($|\n)");
