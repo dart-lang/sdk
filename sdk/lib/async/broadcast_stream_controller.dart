@@ -452,14 +452,15 @@ class _AsBroadcastStreamController<T>
     }
   }
 
-  void close() {
+  Future close() {
     if (!isClosed && _isFiring) {
       _addPendingEvent(const _DelayedDone());
       _state |= _STATE_CLOSED;
-      return;
+      return super.done;
     }
-    super.close();
+    Future result = super.close();
     assert(!_hasPending);
+    return result;
   }
 
   void _callOnCancel() {
@@ -488,5 +489,5 @@ class _DoneSubscription<T> implements StreamSubscription<T> {
   }
   void cancel() {}
   bool get isPaused => _pauseCount > 0;
-  Future asFuture(Object value) => new _FutureImpl();
+  Future asFuture([Object value]) => new _FutureImpl();
 }
