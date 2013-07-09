@@ -28,9 +28,6 @@ typedef ListBase<E> = Object with ListMixin<E>;
  * mixin to prevent all modifications.
  */
 abstract class ListMixin<E> implements List<E> {
-  // A list to identify cyclic lists during toString() calls. 
-  static List _toStringList = new List();
-  
   // Iterable interface.
   Iterator<E> get iterator => new ListIterator<E>(this);
 
@@ -480,22 +477,5 @@ abstract class ListMixin<E> implements List<E> {
 
   Iterable<E> get reversed => new ReversedListIterable(this);
 
-  String toString() {
-    for (int i = 0; i < _toStringList.length; i++) {
-      if (identical(_toStringList[i], this)) { return '[...]'; }
-    }
-
-    var result = new StringBuffer();
-    try {
-      _toStringList.add(this);
-      result.write('[');
-      result.writeAll(this, ', ');
-      result.write(']');
-     } finally {
-       assert(identical(_toStringList.last, this));
-       _toStringList.removeLast();  
-     }
-     
-    return result.toString();
-  }
+  String toString() => ToString.iterableToString(this);
 }

@@ -279,7 +279,6 @@ patch class ByteData {
 // the collection and list interfaces.
 
 abstract class _TypedListBase {
-
   // Method(s) implementing the Collection interface.
   bool contains(element) => IterableMixinWorkaround.contains(this, element);
 
@@ -506,7 +505,7 @@ abstract class _TypedListBase {
   // Method(s) implementing Object interface.
 
   String toString() {
-    return IterableMixinWorkaround.toStringIterable(this, '[', ']');
+    return ToString.iterableToString(this);
   }
 
 
