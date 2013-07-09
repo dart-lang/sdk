@@ -11087,7 +11087,12 @@ class FormData extends Interceptor native "FormData" {
 
   @DomName('FormData.append')
   @DocsEditable()
-  void append(String name, value, [String filename]) native;
+  void append(String name, String value) native;
+
+  @JSName('append')
+  @DomName('FormData.append')
+  @DocsEditable()
+  void appendBlob(String name, Blob value, [String filename]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23163,9 +23168,64 @@ class WebSocket extends EventTarget native "WebSocket" {
   @DocsEditable()
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
+  /**
+   * Transmit data to the server over this connection.
+   *
+   * This method accepts data of type [Blob], [ByteBuffer], [String], or
+   * [TypedData]. Named variants [sendBlob], [sendByteBuffer], [sendString],
+   * or [sendTypedData], in constrast, only accept data of the specified type.
+   */
   @DomName('WebSocket.send')
   @DocsEditable()
   void send(data) native;
+
+  @JSName('send')
+  /**
+   * Transmit data to the server over this connection.
+   *
+   * This method accepts data of type [Blob], [ByteBuffer], [String], or
+   * [TypedData]. Named variants [sendBlob], [sendByteBuffer], [sendString],
+   * or [sendTypedData], in constrast, only accept data of the specified type.
+   */
+  @DomName('WebSocket.send')
+  @DocsEditable()
+  void sendBlob(Blob data) native;
+
+  @JSName('send')
+  /**
+   * Transmit data to the server over this connection.
+   *
+   * This method accepts data of type [Blob], [ByteBuffer], [String], or
+   * [TypedData]. Named variants [sendBlob], [sendByteBuffer], [sendString],
+   * or [sendTypedData], in constrast, only accept data of the specified type.
+   */
+  @DomName('WebSocket.send')
+  @DocsEditable()
+  void sendByteBuffer(ByteBuffer data) native;
+
+  @JSName('send')
+  /**
+   * Transmit data to the server over this connection.
+   *
+   * This method accepts data of type [Blob], [ByteBuffer], [String], or
+   * [TypedData]. Named variants [sendBlob], [sendByteBuffer], [sendString],
+   * or [sendTypedData], in constrast, only accept data of the specified type.
+   */
+  @DomName('WebSocket.send')
+  @DocsEditable()
+  void sendString(String data) native;
+
+  @JSName('send')
+  /**
+   * Transmit data to the server over this connection.
+   *
+   * This method accepts data of type [Blob], [ByteBuffer], [String], or
+   * [TypedData]. Named variants [sendBlob], [sendByteBuffer], [sendString],
+   * or [sendTypedData], in constrast, only accept data of the specified type.
+   */
+  @DomName('WebSocket.send')
+  @DocsEditable()
+  void sendTypedData(TypedData data) native;
 
   @DomName('WebSocket.onclose')
   @DocsEditable()

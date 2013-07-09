@@ -11446,7 +11446,11 @@ class FormData extends NativeFieldWrapperClass1 {
 
   @DomName('FormData.append')
   @DocsEditable()
-  void append(String name, value, [String filename]) native "FormData_append_Callback";
+  void append(String name, String value) native "FormData_append_Callback";
+
+  @DomName('FormData.appendBlob')
+  @DocsEditable()
+  void appendBlob(String name, Blob value, [String filename]) native "FormData_appendBlob_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24790,9 +24794,32 @@ class WebSocket extends EventTarget {
   @DocsEditable()
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WebSocket_removeEventListener_Callback";
 
+  /**
+   * Transmit data to the server over this connection.
+   *
+   * This method accepts data of type [Blob], [ByteBuffer], [String], or
+   * [TypedData]. Named variants [sendBlob], [sendByteBuffer], [sendString],
+   * or [sendTypedData], in constrast, only accept data of the specified type.
+   */
   @DomName('WebSocket.send')
   @DocsEditable()
   void send(data) native "WebSocket_send_Callback";
+
+  @DomName('WebSocket.sendBlob')
+  @DocsEditable()
+  void sendBlob(Blob data) native "WebSocket_sendBlob_Callback";
+
+  @DomName('WebSocket.sendByteBuffer')
+  @DocsEditable()
+  void sendByteBuffer(ByteBuffer data) native "WebSocket_sendByteBuffer_Callback";
+
+  @DomName('WebSocket.sendString')
+  @DocsEditable()
+  void sendString(String data) native "WebSocket_sendString_Callback";
+
+  @DomName('WebSocket.sendTypedData')
+  @DocsEditable()
+  void sendTypedData(TypedData data) native "WebSocket_sendTypedData_Callback";
 
   @DomName('WebSocket.onclose')
   @DocsEditable()
