@@ -5905,6 +5905,27 @@ void ConstantPropagator::VisitStoreVMField(StoreVMFieldInstr* instr) {
 }
 
 
+void ConstantPropagator::VisitInstantiateType(InstantiateTypeInstr* instr) {
+  const Object& object =
+      instr->instantiator()->definition()->constant_value();
+  if (IsNonConstant(object)) {
+    SetValue(instr, non_constant_);
+    return;
+  }
+  if (IsConstant(object)) {
+    if (instr->type().IsTypeParameter()) {
+      if (object.IsNull()) {
+        SetValue(instr, Type::ZoneHandle(Type::DynamicType()));
+        return;
+      }
+      // We could try to instantiate the type parameter and return it if no
+      // malformed error is reported.
+    }
+    SetValue(instr, non_constant_);
+  }
+}
+
+
 void ConstantPropagator::VisitInstantiateTypeArguments(
     InstantiateTypeArgumentsInstr* instr) {
   const Object& object =

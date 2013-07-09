@@ -218,6 +218,34 @@ DEFINE_RUNTIME_ENTRY(AllocateObjectWithBoundsCheck, 3) {
 }
 
 
+// Instantiate type.
+// Arg0: uninstantiated type.
+// Arg1: instantiator type arguments.
+// Return value: instantiated type.
+DEFINE_RUNTIME_ENTRY(InstantiateType, 2) {
+  ASSERT(arguments.ArgCount() == kInstantiateTypeRuntimeEntry.argument_count());
+  AbstractType& type = AbstractType::CheckedHandle(arguments.ArgAt(0));
+  const AbstractTypeArguments& instantiator =
+      AbstractTypeArguments::CheckedHandle(arguments.ArgAt(1));
+  ASSERT(!type.IsNull() && !type.IsInstantiated());
+  ASSERT(instantiator.IsNull() || instantiator.IsInstantiated());
+  Error& malformed_error = Error::Handle();
+  type = type.InstantiateFrom(instantiator, &malformed_error);
+  if (!malformed_error.IsNull()) {
+    // Throw a dynamic type error.
+    const intptr_t location = GetCallerLocation();
+    String& malformed_error_message =  String::Handle(
+        String::New(malformed_error.ToErrorCString()));
+    Exceptions::CreateAndThrowTypeError(
+        location, Symbols::Empty(), Symbols::Empty(),
+        Symbols::Empty(), malformed_error_message);
+    UNREACHABLE();
+  }
+  ASSERT(!type.IsNull() && type.IsInstantiated());
+  arguments.SetReturn(type);
+}
+
+
 // Instantiate type arguments.
 // Arg0: uninstantiated type arguments.
 // Arg1: instantiator type arguments.

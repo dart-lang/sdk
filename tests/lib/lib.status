@@ -108,7 +108,6 @@ mirrors/superclass_test: Fail # http://dartbug.com/11142
 mirrors/reflectively_instantiate_uninstantiated_class_test: Fail # http://dartbug.com/11187
 mirrors/reflect_model_test: Fail # http://dartbug.com/11219
 mirrors/parameter_test: Fail # http://dartbug.com/11567
-mirrors/metadata_constructed_constant_test: Fail # http://dartbug.com/11609
 
 [ $compiler == none && $runtime == drt ]
 async/timer_isolate_test: Skip # See Issue 4997

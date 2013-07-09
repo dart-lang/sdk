@@ -1809,6 +1809,37 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* InstantiateTypeInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(R0));
+  locs->set_out(Location::RegisterLocation(R0));
+  return locs;
+}
+
+
+void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register instantiator_reg = locs()->in(0).reg();
+  Register result_reg = locs()->out().reg();
+
+  // 'instantiator_reg' is the instantiator AbstractTypeArguments object
+  // (or null).
+  // A runtime call to instantiate the type is required.
+  __ PushObject(Object::ZoneHandle());  // Make room for the result.
+  __ PushObject(type());
+  __ Push(instantiator_reg);  // Push instantiator type arguments.
+  compiler->GenerateCallRuntime(token_pos(),
+                                deopt_id(),
+                                kInstantiateTypeRuntimeEntry,
+                                locs());
+  __ Drop(2);  // Drop instantiator and uninstantiated type.
+  __ Pop(result_reg);  // Pop instantiated type.
+  ASSERT(instantiator_reg == result_reg);
+}
+
+
 LocationSummary* InstantiateTypeArgumentsInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;

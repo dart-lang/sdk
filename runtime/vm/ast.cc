@@ -137,6 +137,11 @@ AstNode* LiteralNode::ApplyUnaryOp(Token::Kind unary_op_kind) {
 }
 
 
+const char* TypeNode::Name() const {
+  return String::Handle(type().UserVisibleName()).ToCString();
+}
+
+
 bool ComparisonNode::IsKindValid() const {
   return Token::IsRelationalOperator(kind_)
       || Token::IsEqualityOperator(kind_)
@@ -402,6 +407,11 @@ const char* UnaryOpNode::Name() const {
 
 const char* JumpNode::Name() const {
   return Token::Str(kind_);
+}
+
+
+const char* LoadLocalNode::Name() const {
+  return local().name().ToCString();
 }
 
 

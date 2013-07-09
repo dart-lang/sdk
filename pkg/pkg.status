@@ -73,6 +73,7 @@ intl/test/message_extraction/message_extraction_test: Fail # Issue 9167
 [ $compiler == dart2js ]
 analyzer_experimental/test/generated/ast_test: Fail, Slow # Issue 11230
 unittest/test/instance_test: Fail # http://dartbug.com/11191
+stack_trace/test/trace_test: Pass, Timeout # Issue 11645
 
 [ $compiler == dart2js && $checked ]
 mdv_observe/test/observable_map_test: Fail # BUG(11480): Triage.

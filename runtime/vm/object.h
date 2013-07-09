@@ -706,8 +706,7 @@ class Class : public Object {
 
   // Return a TypeParameter if the type_name is a type parameter of this class.
   // Return null otherwise.
-  RawTypeParameter* LookupTypeParameter(const String& type_name,
-                                        intptr_t token_pos) const;
+  RawTypeParameter* LookupTypeParameter(const String& type_name) const;
 
   // The type argument vector is flattened and includes the type arguments of
   // the super class.

@@ -2643,8 +2643,7 @@ void Parser::ParseQualIdent(QualIdent* qual_ident) {
         // We have a library prefix qualified identifier, unless the prefix is
         // shadowed by a type parameter in scope.
         if (current_class().IsNull() ||
-            (current_class().LookupTypeParameter(*(qual_ident->ident),
-                                                 TokenPos()) ==
+            (current_class().LookupTypeParameter(*(qual_ident->ident)) ==
              TypeParameter::null())) {
           ConsumeToken();  // Consume the kPERIOD token.
           qual_ident->lib_prefix = &lib_prefix;
@@ -5913,12 +5912,9 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
     AstNode* loop_var_primary =
         ResolveIdent(loop_var_pos, *loop_var_name, false);
     ASSERT(!loop_var_primary->IsPrimaryNode());
-    loop_var_assignment =
-        CreateAssignmentNode(loop_var_primary, iterator_current);
-    if (loop_var_assignment == NULL) {
-      ErrorMsg(loop_var_pos, "variable or field '%s' is not assignable",
-               loop_var_name->ToCString());
-    }
+    loop_var_assignment = CreateAssignmentNode(
+        loop_var_primary, iterator_current, loop_var_name, loop_var_pos);
+    ASSERT(loop_var_assignment != NULL);
   }
   current_block_->statements->Add(loop_var_assignment);
 
@@ -7010,17 +7006,6 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
 }
 
 
-bool Parser::IsAssignableExpr(AstNode* expr) {
-  return (expr->IsLoadLocalNode()
-          && (!expr->AsLoadLocalNode()->local().is_final()))
-      || expr->IsLoadStaticFieldNode()
-      || expr->IsStaticGetterNode()
-      || expr->IsInstanceGetterNode()
-      || expr->IsLoadIndexedNode()
-      || (expr->IsPrimaryNode() && !expr->AsPrimaryNode()->IsSuper());
-}
-
-
 AstNode* Parser::ParseExprList() {
   TRACE_PARSER("ParseExprList");
   AstNode* expressions = ParseExpr(kAllowConst, kConsumeCascades);
@@ -7189,25 +7174,35 @@ LetNode* Parser::PrepareCompoundAssignmentNodes(AstNode** expr) {
 }
 
 
-// Ensure that the expression temp is allocated for nodes that may need it.
-AstNode* Parser::CreateAssignmentNode(AstNode* original, AstNode* rhs) {
+AstNode* Parser::CreateAssignmentNode(AstNode* original,
+                                      AstNode* rhs,
+                                      const String* left_ident,
+                                      intptr_t left_pos) {
   AstNode* result = original->MakeAssignmentNode(rhs);
-  if ((result == NULL) && original->IsTypeNode()) {
-    const String& type_name = String::ZoneHandle(
-        original->AsTypeNode()->type().ClassName());
-    // TODO(tball): determine whether NoSuchMethod should be called instead.
+  if (result == NULL) {
+    String& name = String::ZoneHandle();
+    if (original->IsTypeNode()) {
+      name = Symbols::New(original->Name());
+    } else if ((left_ident != NULL) &&
+               (original->IsLiteralNode() ||
+                original->IsLoadLocalNode() ||
+                original->IsLoadStaticFieldNode())) {
+      name = left_ident->raw();
+    }
+    if (name.IsNull()) {
+      ErrorMsg(left_pos, "expression is not assignable");
+    }
     result = ThrowNoSuchMethodError(original->token_pos(),
                                     current_class(),
-                                    type_name,
+                                    name,
                                     InvocationMirror::kStatic,
                                     InvocationMirror::kSetter);
-  }
-  if ((result != NULL) &&
-      (result->IsStoreIndexedNode() ||
-       result->IsInstanceSetterNode() ||
-       result->IsStaticSetterNode() ||
-       result->IsStoreStaticFieldNode() ||
-       result->IsStoreLocalNode())) {
+  } else if (result->IsStoreIndexedNode() ||
+             result->IsInstanceSetterNode() ||
+             result->IsStaticSetterNode() ||
+             result->IsStoreStaticFieldNode() ||
+             result->IsStoreLocalNode()) {
+    // Ensure that the expression temp is allocated for nodes that may need it.
     EnsureExpressionTemp();
   }
   return result;
@@ -7230,6 +7225,9 @@ AstNode* Parser::ParseCascades(AstNode* expr) {
     } else {
       ErrorMsg("identifier or [ expected after ..");
     }
+    String* expr_ident =
+        Token::IsIdentifier(CurrentToken()) ? CurrentLiteral() : NULL;
+    const intptr_t expr_pos = TokenPos();
     expr = ParseSelectors(load_cascade_receiver, true);
 
     // Assignments after a cascade are part of the cascade. The
@@ -7245,23 +7243,17 @@ AstNode* Parser::ParseCascades(AstNode* expr) {
         LetNode* let_expr = PrepareCompoundAssignmentNodes(&expr);
         right_expr =
             ExpandAssignableOp(assignment_pos, assignment_op, expr, right_expr);
-        AstNode* assign_expr = CreateAssignmentNode(expr, right_expr);
-        if (assign_expr == NULL) {
-          ErrorMsg(assignment_pos,
-                   "left hand side of '%s' is not assignable",
-                   Token::Str(assignment_op));
-        }
+        AstNode* assign_expr = CreateAssignmentNode(
+            expr, right_expr, expr_ident, expr_pos);
+        ASSERT(assign_expr != NULL);
         let_expr->AddNode(assign_expr);
         expr = let_expr;
       } else {
         right_expr =
             ExpandAssignableOp(assignment_pos, assignment_op, expr, right_expr);
-        AstNode* assign_expr = CreateAssignmentNode(expr, right_expr);
-        if (assign_expr == NULL) {
-          ErrorMsg(assignment_pos,
-                   "left hand side of '%s' is not assignable",
-                   Token::Str(assignment_op));
-        }
+        AstNode* assign_expr = CreateAssignmentNode(
+            expr, right_expr, expr_ident, expr_pos);
+        ASSERT(assign_expr != NULL);
         expr = assign_expr;
       }
     }
@@ -7277,6 +7269,8 @@ AstNode* Parser::ParseCascades(AstNode* expr) {
 AstNode* Parser::ParseExpr(bool require_compiletime_const,
                            bool consume_cascades) {
   TRACE_PARSER("ParseExpr");
+  String* expr_ident =
+      Token::IsIdentifier(CurrentToken()) ? CurrentLiteral() : NULL;
   const intptr_t expr_pos = TokenPos();
 
   if (CurrentToken() == Token::kTHROW) {
@@ -7296,7 +7290,7 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
     return expr;
   }
   // Assignment expressions.
-  Token::Kind assignment_op = CurrentToken();
+  const Token::Kind assignment_op = CurrentToken();
   const intptr_t assignment_pos = TokenPos();
   ConsumeToken();
   const intptr_t right_expr_pos = TokenPos();
@@ -7309,23 +7303,17 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
     LetNode* let_expr = PrepareCompoundAssignmentNodes(&expr);
     AstNode* assigned_value =
         ExpandAssignableOp(assignment_pos, assignment_op, expr, right_expr);
-    AstNode* assign_expr = CreateAssignmentNode(expr, assigned_value);
-    if (assign_expr == NULL) {
-      ErrorMsg(assignment_pos,
-               "left hand side of '%s' is not assignable",
-               Token::Str(assignment_op));
-    }
+    AstNode* assign_expr = CreateAssignmentNode(
+        expr, assigned_value, expr_ident, expr_pos);
+    ASSERT(assign_expr != NULL);
     let_expr->AddNode(assign_expr);
     return let_expr;
   } else {
     AstNode* assigned_value =
         ExpandAssignableOp(assignment_pos, assignment_op, expr, right_expr);
-    AstNode* assign_expr = CreateAssignmentNode(expr, assigned_value);
-    if (assign_expr == NULL) {
-      ErrorMsg(assignment_pos,
-               "left hand side of '%s' is not assignable",
-               Token::Str(assignment_op));
-    }
+    AstNode* assign_expr = CreateAssignmentNode(
+        expr, assigned_value, expr_ident, expr_pos);
+    ASSERT(assign_expr != NULL);
     return assign_expr;
   }
 }
@@ -7374,10 +7362,10 @@ AstNode* Parser::ParseUnaryExpr() {
   } else if (IsIncrementOperator(CurrentToken())) {
     Token::Kind incr_op = CurrentToken();
     ConsumeToken();
+    String* expr_ident =
+        Token::IsIdentifier(CurrentToken()) ? CurrentLiteral() : NULL;
+    const intptr_t expr_pos = TokenPos();
     expr = ParseUnaryExpr();
-    if (!IsAssignableExpr(expr)) {
-      ErrorMsg("expression is not assignable");
-    }
     // Is prefix.
     LetNode* let_expr = PrepareCompoundAssignmentNodes(&expr);
     Token::Kind binary_op =
@@ -7387,7 +7375,7 @@ AstNode* Parser::ParseUnaryExpr() {
         binary_op,
         expr,
         new LiteralNode(op_pos, Smi::ZoneHandle(Smi::New(1))));
-    AstNode* store = CreateAssignmentNode(expr, add);
+    AstNode* store = CreateAssignmentNode(expr, add, expr_ident, expr_pos);
     ASSERT(store != NULL);
     let_expr->AddNode(store);
     expr = let_expr;
@@ -7727,6 +7715,18 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
       if (left->IsPrimaryNode()) {
         if (left->AsPrimaryNode()->primary().IsFunction()) {
           left = LoadClosure(left->AsPrimaryNode());
+        } else if (left->AsPrimaryNode()->primary().IsTypeParameter()) {
+          if (current_block_->scope->function_level() > 0) {
+            // Make sure that the instantiator is captured.
+            CaptureInstantiator();
+          }
+          TypeParameter& type_parameter = TypeParameter::ZoneHandle();
+          type_parameter ^= ClassFinalizer::FinalizeType(
+              current_class(),
+              TypeParameter::Cast(left->AsPrimaryNode()->primary()),
+              ClassFinalizer::kFinalize);
+          ASSERT(!type_parameter.IsMalformed());
+          left = new TypeNode(primary->token_pos(), type_parameter);
         } else {
           // Super field access handled in ParseSuperFieldAccess(),
           // super calls handled in ParseSuperCall().
@@ -7783,7 +7783,26 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
         if (primary->primary().IsFunction()) {
           array = LoadClosure(primary);
         } else if (primary->primary().IsClass()) {
-          ErrorMsg(bracket_pos, "cannot apply index operator to class");
+          const Class& type_class = Class::Cast(primary->primary());
+          Type& type = Type::ZoneHandle(
+              Type::New(type_class, TypeArguments::Handle(),
+                        primary->token_pos(), Heap::kOld));
+          type ^= ClassFinalizer::FinalizeType(
+              current_class(), type, ClassFinalizer::kCanonicalize);
+          ASSERT(!type.IsMalformed());
+          array = new TypeNode(primary->token_pos(), type);
+        } else if (primary->primary().IsTypeParameter()) {
+          if (current_block_->scope->function_level() > 0) {
+            // Make sure that the instantiator is captured.
+            CaptureInstantiator();
+          }
+          TypeParameter& type_parameter = TypeParameter::ZoneHandle();
+          type_parameter ^= ClassFinalizer::FinalizeType(
+              current_class(),
+              TypeParameter::Cast(primary->primary()),
+              ClassFinalizer::kFinalize);
+          ASSERT(!type_parameter.IsMalformed());
+          array = new TypeNode(primary->token_pos(), type_parameter);
         } else {
           UNREACHABLE();  // Internal parser error.
         }
@@ -7830,9 +7849,23 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
             AstNode* receiver = LoadReceiver(primary->token_pos());
             selector = ParseInstanceCall(receiver, name);
           }
+        } else if (primary->primary().IsTypeParameter()) {
+          const String& name = String::ZoneHandle(
+              Symbols::New(primary->Name()));
+          selector = ThrowNoSuchMethodError(primary->token_pos(),
+                                            current_class(),
+                                            name,
+                                            InvocationMirror::kStatic,
+                                            InvocationMirror::kMethod);
         } else if (primary->primary().IsClass()) {
-          ErrorMsg(left->token_pos(),
-                   "must use 'new' or 'const' to construct new instance");
+          const Class& type_class = Class::Cast(primary->primary());
+          Type& type = Type::ZoneHandle(
+              Type::New(type_class, TypeArguments::Handle(),
+                        primary->token_pos(), Heap::kOld));
+          type ^= ClassFinalizer::FinalizeType(
+              current_class(), type, ClassFinalizer::kCanonicalize);
+          ASSERT(!type.IsMalformed());
+          selector = new TypeNode(primary->token_pos(), type);
         } else {
           UNREACHABLE();  // Internal parser error.
         }
@@ -7856,7 +7889,20 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
                         primary->token_pos(), Heap::kOld));
           type ^= ClassFinalizer::FinalizeType(
               current_class(), type, ClassFinalizer::kCanonicalize);
+          ASSERT(!type.IsMalformed());
           left = new TypeNode(primary->token_pos(), type);
+        } else if (primary->primary().IsTypeParameter()) {
+          if (current_block_->scope->function_level() > 0) {
+            // Make sure that the instantiator is captured.
+            CaptureInstantiator();
+          }
+          TypeParameter& type_parameter = TypeParameter::ZoneHandle();
+          type_parameter ^= ClassFinalizer::FinalizeType(
+              current_class(),
+              TypeParameter::Cast(primary->primary()),
+              ClassFinalizer::kFinalize);
+          ASSERT(!type_parameter.IsMalformed());
+          left = new TypeNode(primary->token_pos(), type_parameter);
         } else if (primary->IsSuper()) {
           // Return "super" to handle unary super operator calls,
           // or to report illegal use of "super" otherwise.
@@ -7876,35 +7922,34 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
 
 AstNode* Parser::ParsePostfixExpr() {
   TRACE_PARSER("ParsePostfixExpr");
-  const intptr_t postfix_expr_pos = TokenPos();
-  AstNode* postfix_expr = ParsePrimary();
-  postfix_expr = ParseSelectors(postfix_expr, false);
+  String* expr_ident =
+      Token::IsIdentifier(CurrentToken()) ? CurrentLiteral() : NULL;
+  const intptr_t expr_pos = TokenPos();
+  AstNode* expr = ParsePrimary();
+  expr = ParseSelectors(expr, false);
   if (IsIncrementOperator(CurrentToken())) {
     TRACE_PARSER("IncrementOperator");
     Token::Kind incr_op = CurrentToken();
-    if (!IsAssignableExpr(postfix_expr)) {
-      ErrorMsg("expression is not assignable");
-    }
     ConsumeToken();
     // Not prefix.
-    LetNode* let_expr = PrepareCompoundAssignmentNodes(&postfix_expr);
-    LocalVariable* temp = let_expr->AddInitializer(postfix_expr);
+    LetNode* let_expr = PrepareCompoundAssignmentNodes(&expr);
+    LocalVariable* temp = let_expr->AddInitializer(expr);
     Token::Kind binary_op =
         (incr_op == Token::kINCR) ? Token::kADD : Token::kSUB;
     BinaryOpNode* add = new BinaryOpNode(
-        postfix_expr_pos,
+        expr_pos,
         binary_op,
-        new LoadLocalNode(postfix_expr_pos, temp),
-        new LiteralNode(postfix_expr_pos, Smi::ZoneHandle(Smi::New(1))));
-    AstNode* store = CreateAssignmentNode(postfix_expr, add);
+        new LoadLocalNode(expr_pos, temp),
+        new LiteralNode(expr_pos, Smi::ZoneHandle(Smi::New(1))));
+    AstNode* store = CreateAssignmentNode(expr, add, expr_ident, expr_pos);
     ASSERT(store != NULL);
     // The result is a pair of the (side effects of the) store followed by
     // the (value of the) initial value temp variable load.
     let_expr->AddNode(store);
-    let_expr->AddNode(new LoadLocalNode(postfix_expr_pos, temp));
+    let_expr->AddNode(new LoadLocalNode(expr_pos, temp));
     return let_expr;
   }
-  return postfix_expr;
+  return expr;
 }
 
 
@@ -7934,8 +7979,7 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
       if (!scope_class.IsNull()) {
         // First check if the type is a type parameter of the given scope class.
         const TypeParameter& type_parameter = TypeParameter::Handle(
-            scope_class.LookupTypeParameter(unresolved_class_name,
-                                            type->token_pos()));
+            scope_class.LookupTypeParameter(unresolved_class_name));
         if (!type_parameter.IsNull()) {
           // A type parameter is considered to be a malformed type when
           // referenced by a static member.
@@ -8640,8 +8684,7 @@ AstNode* Parser::ResolveIdentInPrefixScope(intptr_t ident_pos,
 }
 
 
-// Resolve identifier, issue an error message if the name refers to
-// a class/interface or a type parameter. Issue an error message if
+// Resolve identifier. Issue an error message if
 // the ident refers to a method and allow_closure_names is false.
 // If the name cannot be resolved, turn it into an instance field access
 // if we're compiling an instance method, or issue an error message
@@ -8655,15 +8698,19 @@ AstNode* Parser::ResolveIdent(intptr_t ident_pos,
   AstNode* resolved = NULL;
   ResolveIdentInLocalScope(ident_pos, ident, &resolved);
   if (resolved == NULL) {
-    // Check whether the identifier is a type parameter. Type parameters
-    // can never be used in primary expressions.
+    // Check whether the identifier is a type parameter.
     if (!current_class().IsNull()) {
-      TypeParameter& type_param = TypeParameter::Handle(
-          current_class().LookupTypeParameter(ident, ident_pos));
-      if (!type_param.IsNull()) {
-        String& type_param_name = String::Handle(type_param.name());
-        ErrorMsg(ident_pos, "illegal use of type parameter %s",
-                 type_param_name.ToCString());
+      TypeParameter& type_parameter = TypeParameter::ZoneHandle(
+          current_class().LookupTypeParameter(ident));
+      if (!type_parameter.IsNull()) {
+        if (current_block_->scope->function_level() > 0) {
+          // Make sure that the instantiator is captured.
+          CaptureInstantiator();
+        }
+        type_parameter ^= ClassFinalizer::FinalizeType(
+            current_class(), type_parameter, ClassFinalizer::kFinalize);
+        ASSERT(!type_parameter.IsMalformed());
+        return new TypeNode(ident_pos, type_parameter);
       }
     }
     // Not found in the local scope, and the name is not a type parameter.
@@ -8696,10 +8743,15 @@ AstNode* Parser::ResolveIdent(intptr_t ident_pos,
         ErrorMsg(ident_pos, "illegal reference to method '%s'",
                  ident.ToCString());
       }
-    } else {
-      ASSERT(primary->primary().IsClass());
-      ErrorMsg(ident_pos, "illegal reference to class or interface '%s'",
-               ident.ToCString());
+    } else if (primary->primary().IsClass()) {
+      const Class& type_class = Class::Cast(primary->primary());
+      Type& type = Type::ZoneHandle(
+          Type::New(type_class, TypeArguments::Handle(),
+                    primary->token_pos(), Heap::kOld));
+      type ^= ClassFinalizer::FinalizeType(
+          current_class(), type, ClassFinalizer::kCanonicalize);
+      ASSERT(!type.IsMalformed());
+      resolved = new TypeNode(primary->token_pos(), type);
     }
   }
   return resolved;
@@ -9552,17 +9604,12 @@ AstNode* Parser::ParsePrimary() {
       if (!ResolveIdentInLocalScope(qual_ident.ident_pos,
                                     *qual_ident.ident,
                                     &primary)) {
-        // Check whether the identifier is a type parameter. Type parameters
-        // can never be used as part of primary expressions.
+        // Check whether the identifier is a type parameter.
         if (!current_class().IsNull()) {
           TypeParameter& type_param = TypeParameter::ZoneHandle(
-              current_class().LookupTypeParameter(*(qual_ident.ident),
-                                                  TokenPos()));
+              current_class().LookupTypeParameter(*(qual_ident.ident)));
           if (!type_param.IsNull()) {
-            const String& type_param_name = String::Handle(type_param.name());
-            ErrorMsg(qual_ident.ident_pos,
-                     "illegal use of type parameter %s",
-                     type_param_name.ToCString());
+            return new PrimaryNode(qual_ident.ident_pos, type_param);
           }
         }
         // This is a non-local unqualified identifier so resolve the

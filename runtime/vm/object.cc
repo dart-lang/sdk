@@ -1713,8 +1713,7 @@ void Class::set_super_type(const AbstractType& value) const {
 
 // Return a TypeParameter if the type_name is a type parameter of this class.
 // Return null otherwise.
-RawTypeParameter* Class::LookupTypeParameter(const String& type_name,
-                                             intptr_t token_pos) const {
+RawTypeParameter* Class::LookupTypeParameter(const String& type_name) const {
   ASSERT(!type_name.IsNull());
   Isolate* isolate = Isolate::Current();
   ReusableHandleScope reused_handles(isolate);

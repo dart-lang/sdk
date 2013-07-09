@@ -598,8 +598,6 @@ class Parser : public ValueObject {
   LetNode* PrepareCompoundAssignmentNodes(AstNode** expr);
   LocalVariable* CreateTempConstVariable(intptr_t token_pos, const char* s);
 
-  static bool IsAssignableExpr(AstNode* expr);
-
   static SequenceNode* NodeAsSequenceNode(intptr_t sequence_pos,
                                           AstNode* node,
                                           LocalScope* scope);
@@ -621,7 +619,10 @@ class Parser : public ValueObject {
 
   void EnsureExpressionTemp();
   void EnsureSavedCurrentContext();
-  AstNode* CreateAssignmentNode(AstNode* original, AstNode* rhs);
+  AstNode* CreateAssignmentNode(AstNode* original,
+                                AstNode* rhs,
+                                const String* left_ident,
+                                intptr_t left_pos);
   AstNode* InsertClosureCallNodes(AstNode* condition);
 
   ConstructorCallNode* CreateConstructorCallNode(

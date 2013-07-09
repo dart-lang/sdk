@@ -854,7 +854,18 @@ void EffectGraphVisitor::VisitTypeNode(TypeNode* node) {
 
 
 void ValueGraphVisitor::VisitTypeNode(TypeNode* node) {
-  ReturnDefinition(new ConstantInstr(node->type()));
+  const AbstractType& type = node->type();
+  ASSERT(type.IsFinalized() && !type.IsMalformed());
+  if (type.IsInstantiated()) {
+    ReturnDefinition(new ConstantInstr(type));
+  } else {
+    const Class& instantiator_class = Class::ZoneHandle(
+        owner()->parsed_function()->function().Owner());
+    Value* instantiator_value = BuildInstantiatorTypeArguments(
+        node->token_pos(), instantiator_class, NULL);
+    ReturnDefinition(new InstantiateTypeInstr(
+        node->token_pos(), type, instantiator_class, instantiator_value));
+  }
 }
 
 

@@ -1886,6 +1886,45 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* InstantiateTypeInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(T0));
+  locs->set_out(Location::RegisterLocation(T0));
+  return locs;
+}
+
+
+void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ TraceSimMsg("InstantiateTypeInstr");
+  Register instantiator_reg = locs()->in(0).reg();
+  Register result_reg = locs()->out().reg();
+
+  // 'instantiator_reg' is the instantiator AbstractTypeArguments object
+  // (or null).
+  // A runtime call to instantiate the type is required.
+  __ addiu(SP, SP, Immediate(-3 * kWordSize));
+  __ LoadObject(TMP1, Object::ZoneHandle());
+  __ sw(TMP1, Address(SP, 2 * kWordSize));  // Make room for the result.
+  __ LoadObject(TMP1, type());
+  __ sw(TMP1, Address(SP, 1 * kWordSize));
+  // Push instantiator type arguments.
+  __ sw(instantiator_reg, Address(SP, 0 * kWordSize));
+
+  compiler->GenerateCallRuntime(token_pos(),
+                                deopt_id(),
+                                kInstantiateTypeRuntimeEntry,
+                                locs());
+  // Pop instantiated type.
+  __ lw(result_reg, Address(SP, 2 * kWordSize));
+  // Drop instantiator and uninstantiated type.
+  __ addiu(SP, SP, Immediate(3 * kWordSize));
+  ASSERT(instantiator_reg == result_reg);
+}
+
+
 LocationSummary* InstantiateTypeArgumentsInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
