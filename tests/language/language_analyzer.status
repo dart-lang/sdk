@@ -45,7 +45,6 @@ cyclic_type_variable_test/03: fail
 cyclic_type_variable_test/04: fail
 default_factory2_test/01: fail
 default_implementation2_test: fail
-dynamic2_test/00: fail
 dynamic_field_test: fail
 export_cyclic_test: fail
 f_bounded_quantification_test/01: fail
