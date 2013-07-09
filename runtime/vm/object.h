@@ -8,6 +8,7 @@
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
+#include "vm/json_stream.h"
 #include "vm/bitmap.h"
 #include "vm/dart.h"
 #include "vm/globals.h"
@@ -119,6 +120,10 @@ class Symbols;
     return reinterpret_cast<Raw##object*>(Object::null());                     \
   }                                                                            \
   virtual const char* ToCString() const;                                       \
+  /* Object is printed as JSON into stream. If ref is true only a header */    \
+  /* with an object id is printed. If ref is false the object is fully   */    \
+  /* printed.                                                            */    \
+  virtual void PrintToJSONStream(JSONStream* stream, bool ref = true) const;   \
   static const ClassId kClassId = k##object##Cid;                              \
  private:  /* NOLINT */                                                        \
   /* Initialize the handle based on the raw_ptr in the presence of null. */    \
@@ -244,6 +249,19 @@ class Object {
     } else {
       return "Object";
     }
+  }
+
+  virtual void PrintToJSONStream(JSONStream* stream, bool ref = true) const {
+    if (IsNull()) {
+      stream->OpenObject();
+      stream->PrintProperty("type", "null");
+      stream->CloseObject();
+      return;
+    }
+    ASSERT(!IsNull());
+    stream->OpenObject();
+    stream->PrintProperty("type", "Object");
+    stream->CloseObject();
   }
 
   // Returns the name that is used to identify an object in the

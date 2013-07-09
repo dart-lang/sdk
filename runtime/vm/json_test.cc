@@ -219,4 +219,17 @@ TEST_CASE(JSON_JSONStream_ArrayArray) {
 }
 
 
+TEST_CASE(JSON_JSONStream_DartObject) {
+  TextBuffer tb(256);
+  JSONStream js(&tb);
+  js.OpenArray();
+  js.PrintValue(Object::Handle(Object::null()));
+  js.OpenObject();
+  js.PrintProperty("object_key", Object::Handle(Object::null()));
+  js.CloseArray();
+  EXPECT_STREQ("[{\"type\":\"null\"},{\"object_key\":{\"type\":\"null\"}]",
+               tb.buf());
+}
+
+
 }  // namespace dart

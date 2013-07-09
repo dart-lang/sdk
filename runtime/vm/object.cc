@@ -2691,6 +2691,12 @@ const char* Class::ToCString() const {
 }
 
 
+void Class::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 void Class::InsertCanonicalConstant(intptr_t index,
                                     const Instance& constant) const {
   // The constant needs to be added to the list. Grow the list if it is full.
@@ -2767,6 +2773,12 @@ const char* UnresolvedClass::ToCString() const {
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, format, cname);
   return chars;
+}
+
+
+void UnresolvedClass::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
 }
 
 
@@ -2999,6 +3011,13 @@ const char* AbstractTypeArguments::ToCString() const {
   }
   UNREACHABLE();
   return "AbstractTypeArguments";
+}
+
+
+void AbstractTypeArguments::PrintToJSONStream(JSONStream* stream,
+                                              bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
 }
 
 
@@ -3337,6 +3356,12 @@ const char* TypeArguments::ToCString() const {
 }
 
 
+void TypeArguments::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 intptr_t InstantiatedTypeArguments::Length() const {
   return AbstractTypeArguments::Handle(
       uninstantiated_type_arguments()).Length();
@@ -3419,6 +3444,13 @@ const char* InstantiatedTypeArguments::ToCString() const {
 }
 
 
+void InstantiatedTypeArguments::PrintToJSONStream(JSONStream* stream,
+                                                  bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 const char* PatchClass::ToCString() const {
   const char* kFormat = "PatchClass for %s";
   const Class& cls = Class::Handle(patched_class());
@@ -3427,6 +3459,12 @@ const char* PatchClass::ToCString() const {
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, cls_name);
   return chars;
+}
+
+
+void PatchClass::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
 }
 
 
@@ -4743,6 +4781,12 @@ const char* Function::ToCString() const {
 }
 
 
+void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 void ClosureData::set_context_scope(const ContextScope& value) const {
   StorePointer(&raw_ptr()->context_scope_, value.raw());
 }
@@ -4786,6 +4830,12 @@ const char* ClosureData::ToCString() const {
 }
 
 
+void ClosureData::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 void RedirectionData::set_type(const Type& value) const {
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->type_, value.raw());
@@ -4813,6 +4863,12 @@ RawRedirectionData* RedirectionData::New() {
 
 const char* RedirectionData::ToCString() const {
   return "RedirectionData class";
+}
+
+
+void RedirectionData::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
 }
 
 
@@ -4976,6 +5032,12 @@ const char* Field::ToCString() const {
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, cls_name, field_name, kF0, kF1, kF2);
   return chars;
+}
+
+
+void Field::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
 }
 
 
@@ -5151,6 +5213,12 @@ RawLiteralToken* LiteralToken::New(Token::Kind kind, const String& literal) {
 const char* LiteralToken::ToCString() const {
   const String& token = String::Handle(literal());
   return token.ToCString();
+}
+
+
+void LiteralToken::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
 }
 
 
@@ -5564,6 +5632,12 @@ const char* TokenStream::ToCString() const {
 }
 
 
+void TokenStream::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 TokenStream::Iterator::Iterator(const TokenStream& tokens, intptr_t token_pos)
     : tokens_(TokenStream::Handle(tokens.raw())),
       data_(ExternalTypedData::Handle(tokens.GetStream())),
@@ -5907,6 +5981,12 @@ RawScript* Script::New(const String& url,
 
 const char* Script::ToCString() const {
   return "Script";
+}
+
+
+void Script::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
 }
 
 
@@ -6900,6 +6980,12 @@ const char* Library::ToCString() const {
 }
 
 
+void Library::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 RawLibrary* LibraryPrefix::GetLibrary(int index) const {
   if ((index >= 0) || (index < num_imports())) {
     const Array& imports = Array::Handle(this->imports());
@@ -7009,6 +7095,12 @@ const char* LibraryPrefix::ToCString() const {
 }
 
 
+void LibraryPrefix::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 const char* Namespace::ToCString() const {
   const char* kFormat = "Namespace for library '%s'";
   const Library& lib = Library::Handle(library());
@@ -7016,6 +7108,12 @@ const char* Namespace::ToCString() const {
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, lib.ToCString());
   return chars;
+}
+
+
+void Namespace::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
 }
 
 
@@ -7228,6 +7326,12 @@ const char* Instructions::ToCString() const {
 }
 
 
+void Instructions::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 intptr_t PcDescriptors::Length() const {
   return Smi::Value(raw_ptr()->length_);
 }
@@ -7374,6 +7478,12 @@ const char* PcDescriptors::ToCString() const {
                          TryIndex(i));
   }
   return buffer;
+}
+
+
+void PcDescriptors::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
 }
 
 
@@ -7528,6 +7638,12 @@ const char* Stackmap::ToCString() const {
 }
 
 
+void Stackmap::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 RawString* LocalVarDescriptors::GetName(intptr_t var_index) const {
   ASSERT(var_index < Length());
   const Array& names = Array::Handle(raw_ptr()->names_);
@@ -7589,6 +7705,13 @@ const char* LocalVarDescriptors::ToCString() const {
                              var_name.ToCString());
   }
   return buffer;
+}
+
+
+void LocalVarDescriptors::PrintToJSONStream(JSONStream* stream,
+                                            bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
 }
 
 
@@ -7755,6 +7878,13 @@ const char* ExceptionHandlers::ToCString() const {
 }
 
 
+void ExceptionHandlers::PrintToJSONStream(JSONStream* stream,
+                                          bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 intptr_t DeoptInfo::Length() const {
   return Smi::Value(raw_ptr()->length_);
 }
@@ -7845,6 +7975,12 @@ const char* DeoptInfo::ToCString() const {
                          deopt_instrs[i]->ToCString());
   }
   return buffer;
+}
+
+
+void DeoptInfo::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
 }
 
 
@@ -8211,6 +8347,12 @@ const char* Code::ToCString() const {
 }
 
 
+void Code::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 uword Code::GetPatchCodePc() const {
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
   return descriptors.GetPcForKind(PcDescriptors::kPatchCode);
@@ -8337,6 +8479,12 @@ const char* Context::ToCString() const {
 }
 
 
+void Context::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 RawContextScope* ContextScope::New(intptr_t num_variables) {
   ASSERT(Object::context_scope_class() != Class::null());
   if (num_variables < 0 || num_variables > kMaxElements) {
@@ -8448,6 +8596,12 @@ void ContextScope::SetContextLevelAt(intptr_t scope_index,
 
 const char* ContextScope::ToCString() const {
   return "ContextScope";
+}
+
+
+void ContextScope::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
 }
 
 
@@ -8864,6 +9018,12 @@ RawICData* ICData::New(const Function& function,
 }
 
 
+void ICData::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 RawArray* MegamorphicCache::buckets() const {
   return raw_ptr()->buckets_;
 }
@@ -8975,6 +9135,12 @@ const char* MegamorphicCache::ToCString() const {
 }
 
 
+void MegamorphicCache::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 RawSubtypeTestCache* SubtypeTestCache::New() {
   ASSERT(Object::subtypetestcache_class() != Class::null());
   SubtypeTestCache& result = SubtypeTestCache::Handle();
@@ -9046,6 +9212,12 @@ const char* SubtypeTestCache::ToCString() const {
 }
 
 
+void SubtypeTestCache::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 const char* Error::ToErrorCString() const {
   UNREACHABLE();
   return "Internal Error";
@@ -9056,6 +9228,12 @@ const char* Error::ToCString() const {
   // Error is an abstract class.  We should never reach here.
   UNREACHABLE();
   return "Error";
+}
+
+
+void Error::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
 }
 
 
@@ -9099,6 +9277,12 @@ const char* ApiError::ToCString() const {
 }
 
 
+void ApiError::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 RawLanguageError* LanguageError::New() {
   ASSERT(Object::language_error_class() != Class::null());
   RawObject* raw = Object::Allocate(LanguageError::kClassId,
@@ -9136,6 +9320,12 @@ const char* LanguageError::ToErrorCString() const {
 
 const char* LanguageError::ToCString() const {
   return "LanguageError";
+}
+
+
+void LanguageError::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
 }
 
 
@@ -9207,6 +9397,13 @@ const char* UnhandledException::ToCString() const {
 }
 
 
+void UnhandledException::PrintToJSONStream(JSONStream* stream,
+                                           bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 RawUnwindError* UnwindError::New(const String& message, Heap::Space space) {
   ASSERT(Object::unwind_error_class() != Class::null());
   UnwindError& result = UnwindError::Handle();
@@ -9235,6 +9432,12 @@ const char* UnwindError::ToErrorCString() const {
 
 const char* UnwindError::ToCString() const {
   return "UnwindError";
+}
+
+
+void UnwindError::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
 }
 
 
@@ -9555,6 +9758,12 @@ const char* Instance::ToCString() const {
     OS::SNPrint(chars, len, kFormat, type_name.ToCString());
     return chars;
   }
+}
+
+
+void Instance::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
 }
 
 
@@ -9894,6 +10103,12 @@ const char* AbstractType::ToCString() const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return "AbstractType";
+}
+
+
+void AbstractType::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
 }
 
 
@@ -10288,6 +10503,12 @@ const char* Type::ToCString() const {
 }
 
 
+void Type::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 void TypeParameter::set_is_finalized() const {
   ASSERT(!IsFinalized());
   set_type_state(RawTypeParameter::kFinalizedUninstantiated);
@@ -10466,6 +10687,12 @@ const char* TypeParameter::ToCString() const {
 }
 
 
+void TypeParameter::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 bool BoundedType::IsMalformed() const {
   return FLAG_enable_type_checks && AbstractType::Handle(bound()).IsMalformed();
 }
@@ -10614,6 +10841,11 @@ const char* BoundedType::ToCString() const {
 }
 
 
+void BoundedType::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
 
 RawString* MixinAppType::Name() const {
   return String::New("MixinApplication");
@@ -10622,6 +10854,12 @@ RawString* MixinAppType::Name() const {
 
 const char* MixinAppType::ToCString() const {
   return "MixinAppType";
+}
+
+
+void MixinAppType::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
 }
 
 
@@ -10663,10 +10901,22 @@ const char* Number::ToCString() const {
 }
 
 
+void Number::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 const char* Integer::ToCString() const {
   // Integer is an interface. No instances of Integer should exist.
   UNREACHABLE();
   return "Integer";
+}
+
+
+void Integer::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
 }
 
 
@@ -11070,6 +11320,12 @@ const char* Smi::ToCString() const {
 }
 
 
+void Smi::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 RawClass* Smi::Class() {
   return Isolate::Current()->object_store()->smi_class();
 }
@@ -11184,6 +11440,12 @@ const char* Mint::ToCString() const {
 }
 
 
+void Mint::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 void Double::set_value(double value) const {
   raw_ptr()->value_ = value;
 }
@@ -11282,6 +11544,12 @@ const char* Double::ToCString() const {
   buffer[kBufferSize - 1] = '\0';
   DoubleToCString(value(), buffer, kBufferSize);
   return buffer;
+}
+
+
+void Double::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
 }
 
 
@@ -11448,6 +11716,12 @@ static uword BigintAllocator(intptr_t size) {
 
 const char* Bigint::ToCString() const {
   return BigintOperations::ToDecimalCString(*this, &BigintAllocator);
+}
+
+
+void Bigint::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
 }
 
 
@@ -12046,6 +12320,12 @@ const char* String::ToCString() const {
   ToUTF8(result, len);
   result[len] = 0;
   return reinterpret_cast<const char*>(result);
+}
+
+
+void String::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
 }
 
 
@@ -12729,6 +13009,12 @@ const char* Bool::ToCString() const {
 }
 
 
+void Bool::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 bool Array::Equals(const Instance& other) const {
   if (this->raw() == other.raw()) {
     // Both handles point to the same raw instance.
@@ -12804,6 +13090,12 @@ const char* Array::ToCString() const {
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, format, Length());
   return chars;
+}
+
+
+void Array::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
 }
 
 
@@ -13012,6 +13304,13 @@ const char* GrowableObjectArray::ToCString() const {
 }
 
 
+void GrowableObjectArray::PrintToJSONStream(JSONStream* stream,
+                                            bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 RawFloat32x4* Float32x4::New(float v0, float v1, float v2, float v3,
                              Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->float32x4_class() !=
@@ -13109,6 +13408,12 @@ const char* Float32x4::ToCString() const {
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, _x, _y, _z, _w);
   return chars;
+}
+
+
+void Float32x4::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
 }
 
 
@@ -13212,6 +13517,12 @@ const char* Uint32x4::ToCString() const {
 }
 
 
+void Uint32x4::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 const intptr_t TypedData::element_size[] = {
   1,   // kTypedDataInt8ArrayCid.
   1,   // kTypedDataUint8ArrayCid.
@@ -13258,6 +13569,12 @@ const char* TypedData::ToCString() const {
 }
 
 
+void TypedData::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 FinalizablePersistentHandle* ExternalTypedData::AddFinalizer(
     void* peer, Dart_WeakPersistentHandleFinalizer callback) const {
   SetPeer(peer);
@@ -13286,6 +13603,14 @@ RawExternalTypedData* ExternalTypedData::New(intptr_t class_id,
 const char* ExternalTypedData::ToCString() const {
   return "ExternalTypedData";
 }
+
+
+void ExternalTypedData::PrintToJSONStream(JSONStream* stream,
+                                          bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
 
 
 const char* Closure::ToCString(const Instance& closure) {
@@ -13324,6 +13649,12 @@ RawInstance* Closure::New(const Function& function,
 
 const char* DartFunction::ToCString() const {
   return "Function type class";
+}
+
+
+void DartFunction::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
 }
 
 
@@ -13493,6 +13824,12 @@ const char* Stacktrace::ToCString() const {
 }
 
 
+void Stacktrace::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 const char* Stacktrace::ToCStringInternal(intptr_t frame_index) const {
   Isolate* isolate = Isolate::Current();
   Function& function = Function::Handle();
@@ -13659,6 +13996,12 @@ const char* JSRegExp::ToCString() const {
 }
 
 
+void JSRegExp::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
+
 RawWeakProperty* WeakProperty::New(Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->weak_property_class()
          != Class::null());
@@ -13674,6 +14017,11 @@ const char* WeakProperty::ToCString() const {
 }
 
 
+void WeakProperty::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
+}
+
 RawMirrorReference* MirrorReference::New(Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->mirror_reference_class()
          != Class::null());
@@ -13686,6 +14034,12 @@ RawMirrorReference* MirrorReference::New(Heap::Space space) {
 
 const char* MirrorReference::ToCString() const {
   return "_MirrorReference";
+}
+
+
+void MirrorReference::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  stream->OpenObject();
+  stream->CloseObject();
 }
 
 

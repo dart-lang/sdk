@@ -9,6 +9,7 @@
 
 namespace dart {
 
+class Object;
 
 class JSONStream : ValueObject {
  public:
@@ -27,11 +28,13 @@ class JSONStream : ValueObject {
   void PrintValue(intptr_t i);
   void PrintValue(double d);
   void PrintValue(const char* s);
+  void PrintValue(const Object& o, bool ref = true);
 
   void PrintPropertyBool(const char* name, bool b);
   void PrintProperty(const char* name, intptr_t i);
   void PrintProperty(const char* name, double d);
   void PrintProperty(const char* name, const char* s);
+  void PrintProperty(const char* name, const Object& o, bool ref = true);
 
  private:
   void PrintPropertyName(const char* name);
