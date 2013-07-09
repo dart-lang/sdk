@@ -62,7 +62,6 @@ final_variable_assignment_test/02: fail
 final_variable_assignment_test/03: fail
 final_variable_assignment_test/04: fail
 first_class_types_constants_test: fail
-for_in2_test: fail
 getter_no_setter2_test/00: fail
 getter_no_setter2_test/03: fail
 getter_no_setter_test/00: fail
