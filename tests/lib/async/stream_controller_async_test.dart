@@ -5,10 +5,10 @@
 // Test the basic StreamController and StreamController.singleSubscription.
 library stream_controller_async_test;
 
-import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:isolate';
-import 'package:unittest/unittest.dart';
+import "package:expect/expect.dart";
+import '../../../pkg/unittest/lib/unittest.dart';
 import 'event_helper.dart';
 import 'stream_state_helper.dart';
 
