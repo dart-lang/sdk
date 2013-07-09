@@ -317,6 +317,7 @@ class Debugger {
   void openConnection(int portNumber) {
     Socket.connect("127.0.0.1", portNumber).then((s) {
       socket = s;
+      socket.setOption(SocketOption.TCP_NODELAY, true);
       var stringStream = socket.transform(new StringDecoder());
       stringStream.listen(
           (str) {

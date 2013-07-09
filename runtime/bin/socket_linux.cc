@@ -402,7 +402,7 @@ bool Socket::SetBlocking(intptr_t fd) {
 bool Socket::SetNoDelay(intptr_t fd, bool enabled) {
   int on = enabled ? 1 : 0;
   return TEMP_FAILURE_RETRY(setsockopt(fd,
-                                       SOL_TCP,
+                                       IPPROTO_TCP,
                                        TCP_NODELAY,
                                        reinterpret_cast<char *>(&on),
                                        sizeof(on))) == 0;

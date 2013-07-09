@@ -574,6 +574,7 @@ void debuggerMain() {
   outstandingCommands = new Map<int, Completer>();
   Socket.connect("127.0.0.1", 5858).then((s) {
     vmSock = s;
+    vmSock.setOption(SocketOption.TCP_NODELAY, true);
     var stringStream = vmSock.transform(new StringDecoder());
     vmSubscription = stringStream.listen(
         (String data) {
