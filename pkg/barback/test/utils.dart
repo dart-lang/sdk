@@ -6,6 +6,7 @@ library barback.test.utils;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:io';
 
 import 'package:barback/barback.dart';
 import 'package:barback/src/asset_graph.dart';
@@ -457,10 +458,10 @@ class MockAsset implements Asset {
 
   MockAsset(this.id, this.contents);
 
-  Future<String> readAsString() => new Future.value(contents);
-  Stream<List<int>> read() => throw new UnimplementedError();
+  Future<String> readAsString({Encoding encoding}) =>
+      new Future.value(contents);
 
-  serialize() => throw new UnimplementedError();
+  Stream<List<int>> read() => throw new UnimplementedError();
 
   String toString() => "MockAsset $id $contents";
 }
