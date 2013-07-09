@@ -1,0 +1,9 @@
+name: sequence_zip
+author: "Dart Team <misc@dartlang.org>"
+homepage: http://www.dartlang.org
+description: >
+  "Zip" functionality on iterables and streams.
+  Combines multiple iterables into a single iterable of tuples of values,
+  and similar for Streams.
+dev_dependencies:
+  unittest: any

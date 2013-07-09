@@ -36,6 +36,7 @@ unittest/test/unittest_test: Pass, Timeout # http://dartbug.com/11473
 [ $runtime == d8 || $runtime == jsshell ]
 unittest/test/unittest_test: Pass, Fail # http://dartbug.com/10109
 stack_trace/test/vm_test: Fail, OK # VM-specific traces
+sequence_zip/test/stream_test: Fail, OK # Timers are not supported.
 
 [$compiler == dart2dart]
 *: Skip
