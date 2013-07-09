@@ -328,6 +328,44 @@ abstract class Stream<T> {
   }
 
   /**
+   * Collects string of data events' string representations.
+   *
+   * If [separator] is provided, it is inserted between any two
+   * elements.
+   *
+   * Any error in the stream causes the future to complete with that
+   * error. Otherwise it completes with the collected string when
+   * the "done" event arrives.
+   */
+  Future<String> join([String separator = ""]) {
+    _FutureImpl<String> result = new _FutureImpl<String>();
+    StringBuffer buffer = new StringBuffer();
+    StreamSubscription subscription;
+    bool first = true;
+    subscription = this.listen(
+      (T element) {
+        if (!first) {
+          buffer.write(separator);
+        }
+        first = false;
+        try {
+          buffer.write(element);
+        } catch (e, s) {
+          subscription.cancel();
+          result._setError(_asyncError(e, s));
+        }
+      },
+      onError: (e) {
+        result._setError(e);
+      },
+      onDone: () {
+        result._setValue(buffer.toString());
+      },
+      cancelOnError: true);
+    return result;
+  }
+
+  /**
    * Checks whether [needle] occurs in the elements provided by this stream.
    *
    * Completes the [Future] when the answer is known.
