@@ -1680,7 +1680,7 @@ intptr_t Class::NumTypeArguments() const {
 
 
 bool Class::HasTypeArguments() const {
-  if (!IsSignatureClass() && (is_type_finalized() || is_prefinalized())) {
+  if (!IsSignatureClass() && (is_finalized() || is_prefinalized())) {
     // More efficient than calling NumTypeArguments().
     return type_arguments_field_offset() != kNoTypeArguments;
   } else {
