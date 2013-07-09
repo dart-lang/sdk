@@ -53,7 +53,6 @@ f_bounded_quantification_test/02: fail
 factory2_test: fail
 factory5_test/00: fail
 factory_implementation_test/none: fail
-factory_redirection2_test/01: fail
 field_method4_negative_test: fail
 field_override_test/01: fail
 final_for_in_variable_test/01: fail
