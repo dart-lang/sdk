@@ -1051,7 +1051,6 @@ class StandardTestSuite extends TestSuite {
 
           contentShellOptions.add('--no-timeout');
           contentShellOptions.add('--dump-render-tree');
-          contentShellOptions.add('--single-process');
 
           if (compiler == 'none' || compiler == 'dart2dart') {
             dartFlags.add('--ignore-unrecognized-flags');
