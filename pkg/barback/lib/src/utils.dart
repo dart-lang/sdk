@@ -8,7 +8,7 @@ library barback.utils;
 ///
 /// For example, given `255`, returns `ff`.
 String byteToHex(int byte) {
-  assert(byte >= 0 && byte < 255);
+  assert(byte >= 0 && byte <= 255);
 
   const DIGITS = "0123456789abcdef";
   return DIGITS[(byte ~/ 16) % 16] + DIGITS[byte % 16];
