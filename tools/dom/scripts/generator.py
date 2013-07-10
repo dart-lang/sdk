@@ -113,6 +113,8 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
 
     'MutationObserver': 'MutationObserver,WebKitMutationObserver',
 
+    'NamedNodeMap': 'NamedNodeMap,MozNamedAttrMap',
+
     'NodeList': 'NodeList,RadioNodeList',
 
     'OscillatorNode': 'OscillatorNode,Oscillator',
