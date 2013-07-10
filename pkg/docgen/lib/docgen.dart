@@ -55,12 +55,12 @@ markdown.Resolver linkResolver;
  * Also initializes the command line arguments. 
  * 
  * [packageRoot] is the packages directory of the directory being analyzed. 
- * If [includeSdk] is 'true', then any SDK libraries explicitly imported will 
+ * If [includeSdk] is `true`, then any SDK libraries explicitly imported will 
  * also be documented. 
- * If [parseSdk] is 'true', then all Dart SDK libraries will be documented. 
+ * If [parseSdk] is `true`, then all Dart SDK libraries will be documented. 
  * This option is useful when only the SDK libraries are needed. 
  * 
- * Returns true if docgen sucessfuly completes. 
+ * Returns `true` if docgen sucessfuly completes. 
  */
 Future<bool> docgen(List<String> files, {String packageRoot, 
     bool outputToYaml: true, bool includePrivate: false, bool includeSdk: false,
@@ -272,13 +272,20 @@ String _getComment(DeclarationMirror mirror) {
 }
 
 /**
- * Converts all [_] references in comments to <code>_</code>.
+ * Converts all [foo] references in comments to <a>libraryName.foo</a>.
  */
-// TODO(tmandel): Create proper links for [_] style markdown based
-// on scope once layout of viewer is finished.
 markdown.Node fixReference(String name, LibraryMirror currentLibrary, 
     ClassMirror currentClass, MemberMirror currentMember) {
-  return new markdown.Element.text('code', name);
+  var reference;
+  var memberScope = currentMember == null ? 
+      null : currentMember.lookupInScope(name);
+  if (memberScope != null) reference = memberScope.qualifiedName;
+  else {
+    var classScope = currentClass == null ?
+        null : currentClass.lookupInScope(name);
+    reference = classScope != null ? classScope.qualifiedName : name;
+  }
+  return new markdown.Element.text('a', reference);
 }
 
 /**
