@@ -4544,6 +4544,9 @@ RawFunction* Function::ImplicitClosureFunction() const {
   // Set closure function's result type to this result type.
   closure_function.set_result_type(AbstractType::Handle(result_type()));
 
+  // Set closure function's end token to this end token.
+  closure_function.set_end_token_pos(end_token_pos());
+
   // Set closure function's formal parameters to this formal parameters,
   // removing the receiver if this is an instance method and adding the closure
   // object as first parameter.
