@@ -25,8 +25,28 @@ class AssetGraph {
 
   final _phases = <Phase>[];
 
+  /// A stream that emits a [BuildResult] each time the build is completed,
+  /// whether or not it succeeded.
+  ///
+  /// If an unexpected error in barback itself occurs, it will be emitted
+  /// through this stream's error channel.
   Stream<BuildResult> get results => _resultsController.stream;
   final _resultsController = new StreamController<BuildResult>.broadcast();
+
+  /// A stream that emits any errors from the asset graph or the transformers.
+  ///
+  /// This emits errors as they're detected. If an error occurs in one part of
+  /// the asset graph, unrelated parts will continue building.
+  ///
+  /// This will not emit programming errors from barback itself. Those will be
+  /// emitted through the [results] stream's error channel.
+  Stream get errors => _errorsController.stream;
+  final _errorsController = new StreamController.broadcast();
+
+  /// The errors that have occurred since the current build started.
+  ///
+  /// This will be empty if no build is occurring.
+  Queue _accumulatedErrors;
 
   /// A future that completes when the currently running build process finishes.
   ///
@@ -119,9 +139,9 @@ class AssetGraph {
     _waitForProcess();
   }
 
-  /// Reports a process result with the given error then throws it.
   void reportError(error) {
-    _resultsController.add(new BuildResult(error));
+    _accumulatedErrors.add(error);
+    _errorsController.add(error);
   }
 
   /// Starts the build process asynchronously if there is work to be done.
@@ -133,10 +153,12 @@ class AssetGraph {
   /// to discard it.
   Future _waitForProcess() {
     if (_processDone != null) return _processDone;
+
+    _accumulatedErrors = new Queue();
     return _processDone = _process().then((_) {
       // Report the build completion.
       // TODO(rnystrom): Put some useful data in here.
-      _resultsController.add(new BuildResult());
+      _resultsController.add(new BuildResult(_accumulatedErrors));
     }).catchError((error) {
       // If we get here, it's an unexpected error. Runtime errors like missing
       // assets should be handled earlier. Errors from transformers or other
@@ -149,6 +171,7 @@ class AssetGraph {
       _resultsController.addError(error);
     }).whenComplete(() {
       _processDone = null;
+      _accumulatedErrors = null;
     });
   }
 
@@ -215,14 +238,18 @@ class AssetGraph {
   }
 }
 
-/// Used to report build results back from the asynchronous build process
-/// running in the background.
+/// An event indicating that the asset graph has finished building.
+///
+/// A build can end either in success or failure. If there were no errors during
+/// the build, it's considered to be a success; any errors render it a failure,
+/// although individual assets may still have built successfully.
 class BuildResult {
-  /// The error that occurred, or `null` if the result is not an error.
-  final error;
+  /// All errors that occurred during the build.
+  final List errors;
 
-  /// `true` if this result is for a successful build.
-  bool get succeeded => error == null;
+  /// `true` if the build succeeded.
+  bool get succeeded => errors.isEmpty;
 
-  BuildResult([this.error]);
+  BuildResult(Iterable errors)
+      : errors = errors.toList();
 }

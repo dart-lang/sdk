@@ -106,21 +106,24 @@ void resumeProvider() {
 }
 
 /// Expects that the next [BuildResult] is a build success.
-void buildShouldSucceed([void callback()]) {
+void buildShouldSucceed() {
   expect(_graph.results.elementAt(_nextBuildResult++).then((result) {
     expect(result.succeeded, isTrue);
-    if (callback != null) callback();
   }), completes);
 }
 
 /// Expects that the next [BuildResult] emitted is a failure.
 ///
-/// Invokes [callback] with the error (not the result) so that it can provide
-/// more precise expectations.
-void buildShouldFail(void callback(error)) {
+/// [matchers] is a list of matchers to match against the errors that caused the
+/// build to fail. Every matcher is expected to match an error, but the order of
+/// matchers is unimportant.
+void buildShouldFail(List matchers) {
   expect(_graph.results.elementAt(_nextBuildResult++).then((result) {
     expect(result.succeeded, isFalse);
-    callback(result.error);
+    expect(result.errors.length, equals(matchers.length));
+    for (var matcher in matchers) {
+      expect(result.errors, contains(matcher));
+    }
   }), completes);
 }
 
@@ -173,16 +176,6 @@ void expectNoAsset(String name) {
   }, "get asset $name");
 }
 
-/// Expects that the next [BuildResult] is an output file collision error on an
-/// asset matching [name].
-Future expectCollision(String name) {
-  var id = new AssetId.parse(name);
-  _graph.results.first.then(wrapAsync((result) {
-    expect(result.error, new isInstanceOf<AssetCollisionException>());
-    expect(result.error.id, equals(id));
-  }));
-}
-
 /// Schedules an expectation that [graph] will have an error on an asset
 /// matching [name] for missing [input].
 Future expectMissingInput(AssetGraph graph, String name, String input) {
@@ -197,6 +190,30 @@ Future expectMissingInput(AssetGraph graph, String name, String input) {
       expect(error.id, equals(missing));
     });
   }, "get missing input on $name");
+}
+
+/// Returns a matcher for an [AssetNotFoundException] with the given [id].
+Matcher isAssetNotFoundException(String name) {
+  var id = new AssetId.parse(name);
+  return allOf(
+      new isInstanceOf<AssetNotFoundException>(),
+      predicate((error) => error.id == id, 'id is $name'));
+}
+
+/// Returns a matcher for an [AssetCollisionException] with the given [id].
+Matcher isAssetCollisionException(String name) {
+  var id = new AssetId.parse(name);
+  return allOf(
+      new isInstanceOf<AssetCollisionException>(),
+      predicate((error) => error.id == id, 'id is $name'));
+}
+
+/// Returns a matcher for a [MissingInputException] with the given [id].
+Matcher isMissingInputException(String name) {
+  var id = new AssetId.parse(name);
+  return allOf(
+      new isInstanceOf<MissingInputException>(),
+      predicate((error) => error.id == id, 'id is $name'));
 }
 
 /// An [AssetProvider] that provides the given set of assets.
