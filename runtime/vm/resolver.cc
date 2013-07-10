@@ -138,7 +138,7 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(
     // Getter invocation might actually be a method extraction.
     if (is_getter && function.IsNull()) {
       function ^= cls.LookupDynamicFunction(field_name);
-      if (!function.IsNull() && !function.IsNoSuchMethodDispatcher()) {
+      if (!function.IsNull()) {
         // We were looking for the getter but found a method with the same name.
         // Create a method extractor and return it.
         function ^= CreateMethodExtractor(function_name, function);

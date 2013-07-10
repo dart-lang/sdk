@@ -1109,14 +1109,24 @@ SequenceNode* Parser::ParseMethodExtractor(const Function& func) {
 
 SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func) {
   TRACE_PARSER("ParseNoSuchMethodDispatcher");
-  ParamList params;
 
   ASSERT(func.IsNoSuchMethodDispatcher());
   intptr_t token_pos = func.token_pos();
   ASSERT(func.token_pos() == 0);
   ASSERT(current_class().raw() == func.Owner());
+
+  ArgumentsDescriptor desc(Array::Handle(func.saved_args_desc()));
+  ASSERT(desc.Count() > 0);
+  ParamList params;
   params.AddReceiver(ReceiverType(), token_pos);
-  ASSERT(func.num_fixed_parameters() == 1);  // Receiver.
+  for (intptr_t i = 1; i < desc.Count(); ++i) {
+    ParamDesc p;
+    char name[64];
+    OS::SNPrint(name, 64, ":p%"Pd, i);
+    p.name = &String::ZoneHandle(Symbols::New(name));
+    p.type = &Type::ZoneHandle(Type::DynamicType());
+    params.parameters->Add(p);
+  }
   ASSERT(!func.HasOptionalParameters());
 
   // Build local scope for function and populate with the formal parameters.
@@ -1125,11 +1135,11 @@ SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func) {
   AddFormalParamsToScope(&params, scope);
 
   // Receiver is local 0.
-  LocalVariable* receiver = scope->VariableAt(0);
-  LoadLocalNode* load_receiver = new LoadLocalNode(token_pos, receiver);
-
   ArgumentListNode* func_args = new ArgumentListNode(token_pos);
-  func_args->Add(load_receiver);
+  for (intptr_t i = 0; i < desc.Count(); ++i) {
+    func_args->Add(new LoadLocalNode(token_pos, scope->VariableAt(i)));
+  }
+
   const String& func_name = String::ZoneHandle(func.name());
   ArgumentListNode* arguments = BuildNoSuchMethodArguments(token_pos,
                                                            func_name,

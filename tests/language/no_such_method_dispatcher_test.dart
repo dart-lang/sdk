@@ -16,6 +16,35 @@ class A {
 
 class B extends A { }
 
+
+call_bar(x) => x.bar();
+
+testMessage() {
+  try {
+    call_bar(5);
+  } catch (e) {
+    Expect.isTrue(e.toString().indexOf("method not found") != -1);
+  }
+}
+
+class C {
+  C(this.pos, this.named, this.posArgs, this.namedArgs);
+  var pos, named;
+  noSuchMethod(m) {
+    Expect.equals(pos, m.positionalArguments.length);
+    Expect.equals(named, m.namedArguments.length);
+    for (var i = 0; i < posArgs.length; ++i) {
+      Expect.equals(posArgs[i], m.positionalArguments[i]);
+    }
+    for (var k in namedArgs.keys) {
+      Expect.equals(namedArgs[k], m.namedArguments[new Symbol(k)]);
+    }
+    return 123;
+  }
+  List posArgs;
+  Map namedArgs;
+}
+
 main() {
   var a = new A();
   for (var i = 0; i < 100; ++i) Expect.equals(123, a.foo());
@@ -28,5 +57,21 @@ main() {
     Expect.equals(123, b.bar());
     Expect.equals(2, b.bar(1));
   }
+
+  for (var i = 0; i < 100; ++i) {
+    Expect.equals(123, b.bar(1,2,3));
+    Expect.equals(123, b.bar(1,2,foo:3));
+  }
+
+  // Test named and positional arguments.
+  var c = new C(1, 2, [100], {"n1":101, "n2":102});
+  for (var i = 0; i < 100; ++i) {
+    Expect.equals(123, c.bar(100, n1:101, n2:102));
+    Expect.equals(123, c.bar(100, n2:102, n1:101));
+  }
+
+  // Test NoSuchMethodError message.
+  for (var i = 0; i < 100; i++) testMessage();
+
 }
 

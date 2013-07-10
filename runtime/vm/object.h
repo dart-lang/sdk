@@ -929,6 +929,9 @@ class Class : public Object {
 
   RawArray* constants() const;
 
+  RawFunction* GetNoSuchMethodDispatcher(const String& target_name,
+                                         const Array& args_desc) const;
+
   void Finalize() const;
 
   const char* ApplyPatch(const Class& patch) const;
@@ -1018,6 +1021,10 @@ class Class : public Object {
   void set_canonical_types(const Array& value) const;
   RawArray* canonical_types() const;
 
+  RawArray* no_such_method_cache() const;
+  void set_no_such_method_cache(const Array& cache) const;
+  RawFunction* CreateNoSuchMethodDispatcher(const String& target_name,
+                                            const Array& args_desc) const;
   void CalculateFieldOffsets() const;
 
   // Assigns empty array to all raw class array fields.
@@ -1423,6 +1430,9 @@ class Function : public Object {
 
   void set_extracted_method_closure(const Function& function) const;
   RawFunction* extracted_method_closure() const;
+
+  void set_saved_args_desc(const Array& array) const;
+  RawArray* saved_args_desc() const;
 
   bool IsMethodExtractor() const {
     return kind() == RawFunction::kMethodExtractor;

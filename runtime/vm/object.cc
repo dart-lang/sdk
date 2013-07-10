@@ -1524,6 +1524,7 @@ void Class::InitEmptyFields() {
   StorePointer(&raw_ptr()->canonical_types_, Object::empty_array().raw());
   StorePointer(&raw_ptr()->functions_, Object::empty_array().raw());
   StorePointer(&raw_ptr()->fields_, Object::empty_array().raw());
+  StorePointer(&raw_ptr()->no_such_method_cache_, Object::empty_array().raw());
 }
 
 
@@ -1776,6 +1777,99 @@ void Class::CalculateFieldOffsets() const {
   }
   set_instance_size(RoundedAllocationSize(offset));
   set_next_field_offset(offset);
+}
+
+
+RawFunction* Class::GetNoSuchMethodDispatcher(const String& target_name,
+                                              const Array& args_desc) const {
+  enum {
+    kNameIndex = 0,
+    kArgsDescIndex,
+    kFunctionIndex,
+    kEntrySize
+  };
+
+  Function& dispatcher = Function::Handle();
+  Array& cache = Array::Handle(no_such_method_cache());
+  ASSERT(!cache.IsNull());
+  String& name = String::Handle();
+  Array& desc = Array::Handle();
+  intptr_t i = 0;
+  for (; i < cache.Length(); i += kEntrySize) {
+    name ^= cache.At(i + kNameIndex);
+    if (name.IsNull()) break;  // Reached last entry.
+    if (!name.Equals(target_name)) continue;
+    desc ^= cache.At(i + kArgsDescIndex);
+    if (desc.raw() == args_desc.raw()) {
+      // Found match.
+      dispatcher ^= cache.At(i + kFunctionIndex);
+      ASSERT(dispatcher.IsFunction());
+      break;
+    }
+  }
+
+  if (dispatcher.IsNull()) {
+    if (i == cache.Length()) {
+      // Allocate new larger cache.
+      intptr_t new_len = (cache.Length() == 0)
+          ? static_cast<intptr_t>(kEntrySize)
+          : cache.Length() * 2;
+      cache ^= Array::Grow(cache, new_len);
+      set_no_such_method_cache(cache);
+    }
+    dispatcher ^= CreateNoSuchMethodDispatcher(target_name, args_desc);
+    cache.SetAt(i + kNameIndex, target_name);
+    cache.SetAt(i + kArgsDescIndex, args_desc);
+    cache.SetAt(i + kFunctionIndex, dispatcher);
+  }
+  return dispatcher.raw();
+}
+
+
+RawFunction* Class::CreateNoSuchMethodDispatcher(const String& target_name,
+                                              const Array& args_desc) const {
+  Function& invocation = Function::Handle(
+      Function::New(String::Handle(Symbols::New(target_name)),
+                    RawFunction::kNoSuchMethodDispatcher,
+                    false,  // Not static.
+                    false,  // Not const.
+                    false,  // Not abstract.
+                    false,  // Not external.
+                    *this,
+                    0));  // No token position.
+  ArgumentsDescriptor desc(args_desc);
+  const intptr_t num_parameters = desc.Count();
+  invocation.set_num_fixed_parameters(num_parameters);
+  invocation.SetNumOptionalParameters(0, true);
+  invocation.set_parameter_types(Array::Handle(Array::New(num_parameters,
+                                                         Heap::kOld)));
+  invocation.set_parameter_names(Array::Handle(Array::New(num_parameters,
+                                                         Heap::kOld)));
+  // Receiver.
+  invocation.SetParameterTypeAt(0, Type::Handle(Type::DynamicType()));
+  invocation.SetParameterNameAt(0, Symbols::This());
+  // Remaining parameters.
+  for (intptr_t i = 1; i < num_parameters; i++) {
+    invocation.SetParameterTypeAt(i, Type::Handle(Type::DynamicType()));
+    char name[64];
+    OS::SNPrint(name, 64, ":p%"Pd, i);
+    invocation.SetParameterNameAt(i, String::Handle(Symbols::New(name)));
+  }
+  invocation.set_result_type(Type::Handle(Type::DynamicType()));
+  invocation.set_is_visible(false);  // Not visible in stack trace.
+  invocation.set_saved_args_desc(args_desc);
+
+  return invocation.raw();
+}
+
+
+RawArray* Class::no_such_method_cache() const {
+  return raw_ptr()->no_such_method_cache_;
+}
+
+
+void Class::set_no_such_method_cache(const Array& cache) const {
+  StorePointer(&raw_ptr()->no_such_method_cache_, cache.raw());
 }
 
 
@@ -3619,6 +3713,21 @@ RawFunction* Function::extracted_method_closure() const {
 
 void Function::set_extracted_method_closure(const Function& value) const {
   ASSERT(kind() == RawFunction::kMethodExtractor);
+  ASSERT(raw_ptr()->data_ == Object::null());
+  set_data(value);
+}
+
+
+RawArray* Function::saved_args_desc() const {
+  ASSERT(kind() == RawFunction::kNoSuchMethodDispatcher);
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(obj.IsArray());
+  return Array::Cast(obj).raw();
+}
+
+
+void Function::set_saved_args_desc(const Array& value) const {
+  ASSERT(kind() == RawFunction::kNoSuchMethodDispatcher);
   ASSERT(raw_ptr()->data_ == Object::null());
   set_data(value);
 }
