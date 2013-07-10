@@ -6048,7 +6048,9 @@ class CustomEvent extends Event native "CustomEvent" {
   factory CustomEvent(String type,
       {bool canBubble: true, bool cancelable: true, Object detail}) {
 
-    final CustomEvent e = document.$dom_createEvent("CustomEvent");
+    final CustomEvent e = document.$dom_createEvent('CustomEvent');
+
+    detail = convertDartToNative_SerializedScriptValue(detail);
     e.$dom_initCustomEvent(type, canBubble, cancelable, detail);
 
     return e;
@@ -6056,10 +6058,12 @@ class CustomEvent extends Event native "CustomEvent" {
   // To suppress missing implicit constructor warnings.
   factory CustomEvent._() { throw new UnsupportedError("Not supported"); }
 
+  dynamic get detail => convertNativeToDart_SerializedScriptValue(this._get_detail);
+  @JSName('detail')
   @DomName('CustomEvent.detail')
   @DocsEditable()
   @Creates('Null')
-  final Object detail;
+  final dynamic _get_detail;
 
   @JSName('initCustomEvent')
   @DomName('CustomEvent.initCustomEvent')

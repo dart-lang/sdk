@@ -6541,7 +6541,8 @@ class CustomEvent extends Event {
   factory CustomEvent(String type,
       {bool canBubble: true, bool cancelable: true, Object detail}) {
 
-    final CustomEvent e = document.$dom_createEvent("CustomEvent");
+    final CustomEvent e = document.$dom_createEvent('CustomEvent');
+
     e.$dom_initCustomEvent(type, canBubble, cancelable, detail);
 
     return e;

@@ -549,6 +549,10 @@ dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
     'any set MessagePort.postMessage': _serialize_SSV,
     'SerializedScriptValue set DOMWindow.postMessage': _serialize_SSV,
 
+    '* get CustomEvent.detail':
+      Conversion('convertNativeToDart_SerializedScriptValue',
+                 'dynamic', 'dynamic'),
+
     # receiving message via MessageEvent
     '* get MessageEvent.data':
       Conversion('convertNativeToDart_SerializedScriptValue',

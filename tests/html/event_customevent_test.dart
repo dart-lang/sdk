@@ -8,22 +8,6 @@ import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
 
-// TODO(nweiz): Make this private to testEvents when Frog supports closures with
-// optional arguments.
-eventTest(String name, Event eventFn(), void validate(Event),
-    [String type = 'foo']) {
-  test(name, () {
-    final el = new Element.tag('div');
-    var fired = false;
-    el.on[type].add((ev) {
-      fired = true;
-      validate(ev);
-    });
-    el.on[type].dispatch(eventFn());
-    expect(fired, isTrue, reason: 'Expected event to be dispatched.');
-  });
-}
-
 main() {
   useHtmlConfiguration();
 
@@ -34,12 +18,32 @@ main() {
     var fired = false;
     provider.forTarget(el).listen((ev) {
       fired = true;
-      expect(ev.detail, 'detail');
+      expect(ev.detail, {'type': 'detail'});
     });
 
     var ev = new CustomEvent('foo', canBubble: false, cancelable: false,
-        detail: 'detail');
+        detail: {'type': 'detail'});
     el.dispatchEvent(ev);
+    expect(fired, isTrue);
+  });
+
+  test('custom events from JS', () {
+    var scriptContents = '''
+      var event = document.createEvent("CustomEvent");
+      event.initCustomEvent("js_custom_event", true, true, {type: "detail"});
+      window.dispatchEvent(event);
+    ''';
+
+    var fired = false;
+    window.on['js_custom_event'].listen((ev) {
+      fired = true;
+      expect(ev.detail, {'type': 'detail'});
+    });
+
+    var script = new ScriptElement();
+    script.text = scriptContents;
+    document.body.append(script);
+
     expect(fired, isTrue);
   });
 }
