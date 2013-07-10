@@ -326,9 +326,21 @@ class AudioContext extends EventTarget native "AudioContext" {
   @DocsEditable()
   WaveTable createWaveTable(Float32List real, Float32List imag) native;
 
+  @JSName('decodeAudioData')
   @DomName('AudioContext.decodeAudioData')
   @DocsEditable()
-  void decodeAudioData(ByteBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) native;
+  void _decodeAudioData(ByteBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) native;
+
+  @JSName('decodeAudioData')
+  @DomName('AudioContext.decodeAudioData')
+  @DocsEditable()
+  Future<AudioBuffer> decodeAudioData(ByteBuffer audioData) {
+    var completer = new Completer<AudioBuffer>();
+    _decodeAudioData(audioData,
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('AudioContext.startRendering')
   @DocsEditable()

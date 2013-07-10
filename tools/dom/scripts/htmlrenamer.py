@@ -125,6 +125,7 @@ for interface in _removed_html_interfaces:
 
 convert_to_future_members = monitored.Set(
     'htmlrenamer.converted_to_future_members', [
+  'AudioContext.decodeAudioData',
   'DataTransferItem.getAsString',
   'DirectoryEntry.getDirectory',
   'DirectoryEntry.getFile',
