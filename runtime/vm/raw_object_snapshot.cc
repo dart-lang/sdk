@@ -202,7 +202,7 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (type.raw()->to() - type.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->ObjectHandle()) = reader->ReadObjectRef();
+    (*reader->ObjectHandle()) = reader->ReadObjectImpl();
     type.StorePointer((type.raw()->from() + i), reader->ObjectHandle()->raw());
   }
 
@@ -286,8 +286,10 @@ void RawType::WriteTo(SnapshotWriter* writer,
   writer->WriteIntptrValue(ptr()->token_pos_);
   writer->Write<int8_t>(ptr()->type_state_);
 
-  // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
+  // Write out all the object pointer fields. Since we will be canonicalizing
+  // the type object when reading it back we should write out all the fields
+  // inline and not as references.
+  SnapshotWriterVisitor visitor(writer, false);
   visitor.VisitPointers(from(), to());
 }
 
