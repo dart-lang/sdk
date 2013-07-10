@@ -469,10 +469,17 @@ class RuntimeTypes {
     };
     InterfaceType type = cls.computeType(compiler);
     InterfaceType target = type.asInstanceOf(check);
-    if (cls.typeVariables.isEmpty && !alwaysGenerateFunction) {
+    Link<DartType> typeVariables;
+    if (cls.isMixinApplication) {
+      MixinApplicationElement mixinApplication = cls;
+      typeVariables = mixinApplication.mixin.typeVariables;
+    } else {
+      typeVariables = cls.typeVariables;
+    }
+    if (typeVariables.isEmpty && !alwaysGenerateFunction) {
       return new Substitution.list(target.typeArguments);
     } else {
-      return new Substitution.function(target.typeArguments, cls.typeVariables);
+      return new Substitution.function(target.typeArguments, typeVariables);
     }
   }
 
@@ -798,11 +805,11 @@ class FunctionArgumentCollector extends DartTypeVisitor {
 class Substitution {
   final bool isFunction;
   final Link<DartType> arguments;
-  final Link<TypeVariableType> parameters;
+  final Link<DartType> parameters;
 
   Substitution.list(this.arguments)
       : isFunction = false,
-        parameters = const Link<TypeVariableType>();
+        parameters = const Link<DartType>();
 
   Substitution.function(this.arguments, this.parameters)
       : isFunction = true;

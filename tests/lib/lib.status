@@ -17,9 +17,6 @@ typed_data/float32x4_list_test: Fail, OK
 typed_data/float32x4_unbox_phi_test: Fail, OK
 typed_data/float32x4_unbox_regress_test: Fail, OK
 
-[ $compiler == dart2js  && $unchecked]
-async/stream_state_test: Fail # Issue 11722
-
 [ $compiler == dart2js && $checked ]
 async/catch_errors20_test: Fail # Issue 11470
 
