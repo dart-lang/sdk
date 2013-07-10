@@ -829,7 +829,7 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
 
 class _LocalMethodMirrorImpl extends _LocalMirrorImpl
     implements MethodMirror {
-  _LocalMethodMirrorImpl(String simpleName,
+  _LocalMethodMirrorImpl(this._reflectee,
                          this._owner,
                          this.parameters,
                          this._returnType,
@@ -841,10 +841,17 @@ class _LocalMethodMirrorImpl extends _LocalMirrorImpl
                          this.isConstConstructor,
                          this.isGenerativeConstructor,
                          this.isRedirectingConstructor,
-                         this.isFactoryConstructor)
-      : this.simpleName = _s(simpleName);
+                         this.isFactoryConstructor);
 
-  final Symbol simpleName;
+  final _MirrorReference _reflectee;
+
+  Symbol _simpleName = null;
+  Symbol get simpleName {
+    if (_simpleName == null) {
+      _simpleName = _s(_MethodMirror_name(_reflectee));
+    }
+    return _simpleName;
+  }
 
   Symbol _qualifiedName = null;
   Symbol get qualifiedName {
@@ -932,6 +939,9 @@ class _LocalMethodMirrorImpl extends _LocalMirrorImpl
   }
 
   String toString() => "MethodMirror on '${_n(simpleName)}'";
+
+  static String _MethodMirror_name(reflectee)
+      native "MethodMirror_name";
 }
 
 class _LocalVariableMirrorImpl extends _LocalMirrorImpl

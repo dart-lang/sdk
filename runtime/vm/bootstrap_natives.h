@@ -246,6 +246,7 @@ namespace dart {
   V(LocalClosureMirrorImpl_apply, 3)                                           \
   V(LocalClassMirrorImpl_invokeConstructor, 4)                                 \
   V(ClassMirror_name, 1)                                                       \
+  V(MethodMirror_name, 1)                                                      \
   V(GrowableObjectArray_allocate, 2)                                           \
   V(GrowableObjectArray_getIndexed, 2)                                         \
   V(GrowableObjectArray_setIndexed, 3)                                         \
