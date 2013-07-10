@@ -8,6 +8,7 @@
 #include "vm/assembler.h"
 #include "vm/simulator.h"
 #include "vm/runtime_entry.h"
+#include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 
 // An extra check since we are assuming the existence of /proc/cpuinfo below.
@@ -2046,6 +2047,7 @@ void Assembler::CallRuntime(const RuntimeEntry& entry) {
 
 void Assembler::EnterDartFrame(intptr_t frame_size) {
   const intptr_t offset = CodeSize();
+
   // Save PC in frame for fast identification of corresponding code.
   // Note that callee-saved registers can be added to the register list.
   EnterFrame((1 << PP) | (1 << FP) | (1 << LR) | (1 << PC), 0);
@@ -2063,6 +2065,27 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
 
   // Reserve space for locals.
   AddImmediate(SP, -frame_size);
+}
+
+
+// On entry to a function compiled for OSR, the caller's frame pointer, the
+// stack locals, and any copied parameters are already in place.  The frame
+// pointer is already set up.  The PC marker is not correct for the
+// optimized function and there may be extra space for spill slots to
+// allocate. We must also set up the pool pointer for the function.
+void Assembler::EnterOsrFrame(intptr_t extra_size) {
+  const intptr_t offset = CodeSize();
+
+  Comment("EnterOsrFrame");
+  mov(TMP, ShifterOperand(PC));
+
+  AddImmediate(TMP, -offset);
+  str(TMP, Address(FP, kPcMarkerSlotFromFp * kWordSize));
+
+  // Setup pool pointer for this dart function.
+  LoadPoolPointer();
+
+  AddImmediate(SP, -extra_size);
 }
 
 

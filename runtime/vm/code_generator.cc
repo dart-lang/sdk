@@ -57,11 +57,7 @@ DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, report_usage_count);
 DECLARE_FLAG(bool, trace_type_checks);
 
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 DEFINE_FLAG(bool, use_osr, true, "Use on-stack replacement.");
-#else
-DEFINE_FLAG(bool, use_osr, false, "Use on-stack replacement.");
-#endif
 DEFINE_FLAG(bool, trace_osr, false, "Trace attempts at on-stack replacement.");
 
 
@@ -1327,7 +1323,11 @@ static bool CanOptimizeFunction(const Function& function, Isolate* isolate) {
 DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   ASSERT(arguments.ArgCount() ==
          kStackOverflowRuntimeEntry.argument_count());
+#if defined(USING_SIMULATOR)
+  uword stack_pos = Simulator::Current()->get_register(SPREG);
+#else
   uword stack_pos = reinterpret_cast<uword>(&arguments);
+#endif
 
   // If an interrupt happens at the same time as a stack overflow, we
   // process the stack overflow first.

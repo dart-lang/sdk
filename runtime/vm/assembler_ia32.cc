@@ -2212,6 +2212,7 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
 // optimized function and there may be extra space for spill slots to
 // allocate.
 void Assembler::EnterOsrFrame(intptr_t extra_size) {
+  Comment("EnterOsrFrame");
   Label dart_entry;
   call(&dart_entry);
   Bind(&dart_entry);

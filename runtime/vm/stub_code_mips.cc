@@ -1513,18 +1513,8 @@ void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
     __ LeaveStubFrame();
   }
   __ lw(T7, FieldAddress(func_reg, Function::usage_counter_offset()));
-  Label is_hot;
-  if (FlowGraphCompiler::CanOptimize()) {
-    ASSERT(FLAG_optimization_counter_threshold > 1);
-    __ BranchSignedGreaterEqual(T7, FLAG_optimization_counter_threshold,
-                                &is_hot);
-    // As long as VM has no OSR do not optimize in the middle of the function
-    // but only at exit so that we have collected all type feedback before
-    // optimizing.
-  }
   __ addiu(T7, T7, Immediate(1));
   __ sw(T7, FieldAddress(func_reg, Function::usage_counter_offset()));
-  __ Bind(&is_hot);
 }
 
 
@@ -1537,19 +1527,8 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
   ASSERT(temp_reg == T0);
   __ lw(func_reg, FieldAddress(ic_reg, ICData::function_offset()));
   __ lw(T1, FieldAddress(func_reg, Function::usage_counter_offset()));
-  Label is_hot;
-  if (FlowGraphCompiler::CanOptimize()) {
-    ASSERT(FLAG_optimization_counter_threshold > 1);
-    // The usage_counter is always less than FLAG_optimization_counter_threshold
-    // except when the function gets optimized.
-    __ BranchEqual(T1, FLAG_optimization_counter_threshold, &is_hot);
-    // As long as VM has no OSR do not optimize in the middle of the function
-    // but only at exit so that we have collected all type feedback before
-    // optimizing.
-  }
   __ addiu(T1, T1, Immediate(1));
   __ sw(T1, FieldAddress(func_reg, Function::usage_counter_offset()));
-  __ Bind(&is_hot);
 }
 
 

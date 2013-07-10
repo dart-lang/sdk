@@ -23,6 +23,7 @@ namespace dart {
 
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DECLARE_FLAG(int, optimization_counter_threshold);
+DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, print_scopes);
 DECLARE_FLAG(bool, enable_type_checks);
@@ -1071,72 +1072,71 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
 
 void FlowGraphCompiler::EmitFrameEntry() {
   const Function& function = parsed_function().function();
-  if (CanOptimizeFunction() && function.is_optimizable()) {
-    const bool can_optimize = !is_optimizing() || may_reoptimize();
+  if (CanOptimizeFunction() &&
+      function.is_optimizable() &&
+      (!is_optimizing() || may_reoptimize())) {
     const Register function_reg = T0;
-    if (can_optimize) {
-      Label next;
-      // The pool pointer is not setup before entering the Dart frame.
 
-      __ mov(TMP1, RA);  // Save RA.
-      __ bal(&next);  // Branch and link to next instruction to get PC in RA.
-      __ delay_slot()->mov(T2, RA);  // Save PC of the following mov.
+    Label next;
+    // The pool pointer is not setup before entering the Dart frame.
+    __ mov(TMP1, RA);  // Save RA.
+    __ bal(&next);  // Branch and link to next instruction to get PC in RA.
+    __ delay_slot()->mov(T2, RA);  // Save PC of the following mov.
+    // Calculate offset of pool pointer from the PC.
+    const intptr_t object_pool_pc_dist =
+       Instructions::HeaderSize() - Instructions::object_pool_offset() +
+       assembler()->CodeSize();
+    __ Bind(&next);
+    __ mov(RA, TMP1);  // Restore RA.
+    // Preserve PP of caller.
+    __ mov(T1, PP);
+    // Temporarily setup pool pointer for this dart function.
+    __ lw(PP, Address(T2, -object_pool_pc_dist));
+    // Load function object from object pool.
+    __ LoadObject(function_reg, function);  // Uses PP.
+    // Restore PP of caller.
+    __ mov(PP, T1);
 
-      // Calculate offset of pool pointer from the PC.
-      const intptr_t object_pool_pc_dist =
-         Instructions::HeaderSize() - Instructions::object_pool_offset() +
-         assembler()->CodeSize();
-
-      __ Bind(&next);
-      __ mov(RA, TMP1);  // Restore RA.
-
-      // Preserve PP of caller.
-      __ mov(T1, PP);
-
-      // Temporarily setup pool pointer for this dart function.
-      __ lw(PP, Address(T2, -object_pool_pc_dist));
-
-      // Load function object from object pool.
-      __ LoadObject(function_reg, function);  // Uses PP.
-
-      // Restore PP of caller.
-      __ mov(PP, T1);
-    }
     // Patch point is after the eventually inlined function object.
     AddCurrentDescriptor(PcDescriptors::kEntryPatch,
                          Isolate::kNoDeoptId,
                          0);  // No token position.
-    if (can_optimize) {
-      // Reoptimization of optimized function is triggered by counting in
+    intptr_t threshold = FLAG_optimization_counter_threshold;
+    __ lw(T1, FieldAddress(function_reg, Function::usage_counter_offset()));
+    if (is_optimizing()) {
+      // Reoptimization of an optimized function is triggered by counting in
       // IC stubs, but not at the entry of the function.
-      if (!is_optimizing()) {
-        __ lw(T1, FieldAddress(function_reg,
-                               Function::usage_counter_offset()));
-        __ addiu(T1, T1, Immediate(1));
-        __ sw(T1, FieldAddress(function_reg,
-                               Function::usage_counter_offset()));
-      } else {
-        __ lw(T1, FieldAddress(function_reg,
-                               Function::usage_counter_offset()));
-      }
-
-      // Skip Branch if T1 is less than the threshold.
-      Label dont_branch;
-      __ BranchSignedLess(T1, FLAG_optimization_counter_threshold,
-                          &dont_branch);
-
-      ASSERT(function_reg == T0);
-      __ Branch(&StubCode::OptimizeFunctionLabel());
-
-      __ Bind(&dont_branch);
+      threshold = FLAG_reoptimization_counter_threshold;
+    } else {
+      __ addiu(T1, T1, Immediate(1));
+      __ sw(T1, FieldAddress(function_reg, Function::usage_counter_offset()));
     }
-  } else {
+
+    // Skip Branch if T1 is less than the threshold.
+    Label dont_branch;
+    __ BranchSignedLess(T1, threshold, &dont_branch);
+
+    ASSERT(function_reg == T0);
+    __ Branch(&StubCode::OptimizeFunctionLabel());
+
+    __ Bind(&dont_branch);
+
+  } else if (!flow_graph().IsCompiledForOsr()) {
     AddCurrentDescriptor(PcDescriptors::kEntryPatch,
                          Isolate::kNoDeoptId,
                          0);  // No token position.
   }
   __ Comment("Enter frame");
-  __ EnterDartFrame(StackSize() * kWordSize);
+  if (flow_graph().IsCompiledForOsr()) {
+    intptr_t extra_slots = StackSize()
+        - flow_graph().num_stack_locals()
+        - flow_graph().num_copied_params();
+    ASSERT(extra_slots >= 0);
+    __ EnterOsrFrame(extra_slots * kWordSize);
+  } else {
+    ASSERT(StackSize() >= 0);
+    __ EnterDartFrame(StackSize() * kWordSize);
+  }
 }
 
 
@@ -1173,10 +1173,11 @@ void FlowGraphCompiler::CompileGraph() {
   if (num_copied_params == 0) {
 #ifdef DEBUG
     ASSERT(!parsed_function().function().HasOptionalParameters());
-    const bool check_arguments = true;
+    const bool check_arguments = !flow_graph().IsCompiledForOsr();
 #else
     const bool check_arguments =
-        function.IsClosureFunction() || function.IsNoSuchMethodDispatcher();
+        (function.IsClosureFunction() || function.IsNoSuchMethodDispatcher()) &&
+        !flow_graph().IsCompiledForOsr();
 #endif
     if (check_arguments) {
       __ TraceSimMsg("Check argument count");
@@ -1212,7 +1213,7 @@ void FlowGraphCompiler::CompileGraph() {
       }
       __ Bind(&correct_num_arguments);
     }
-  } else {
+  } else if (!flow_graph().IsCompiledForOsr()) {
     CopyParameters();
   }
 
