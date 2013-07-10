@@ -10,11 +10,11 @@ import os
 
 # The path to the JSON Schema Compiler, which can be run to generate the files.
 # Lives in the Chromium repository, so needs to be pulled in somehow.
-COMPILER = "../../../third_party/chrome_api_tools/compiler.py"
+COMPILER = "../../../third_party/chrome/tools/json_schema_compiler/compiler.py"
 
 # The path to the Chrome IDL files. They live in the Chromium repository, so
 # need to be pulled in somehow.
-API_DIR = "../../../third_party/chrome_api/"
+API_DIR = "../../../third_party/chrome/idl/"
 
 # The path to the custom overrides directory, containing override files.
 OVERRIDES_DIR = "../src/chrome/custom_dart/"

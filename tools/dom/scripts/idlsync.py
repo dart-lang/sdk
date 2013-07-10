@@ -49,13 +49,13 @@ Current revision: %(revision)s
 CHROME_URL_PATTERN = r'"chromium_url": "(\S+)",'
 CHROME_REV_PATTERN = r'"chromium_revision": "(\d+)",'
 CHROME_IDL_SUBPATH = 'trunk/src/chrome/common/extensions/api'
-CHROME_TOOLS_SUBPATH = 'trunk/src/tools'
+CHROME_COMMENT_EATER_SUBPATH = 'trunk/src/tools/json_comment_eater'
 CHROME_COMPILER_SUBPATH = 'trunk/src/tools/json_schema_compiler'
 CHROME_IDL_PARSER_SUBPATH = 'trunk/src/ppapi/generators'
 CHROME_PLY_SUBPATH = 'trunk/src/third_party/ply'
 LOCAL_CHROME_IDL_PATH = os.path.join(DART_PATH, 'third_party', 'chrome', 'idl')
-LOCAL_CHROME_TOOLS_PATH = os.path.join(DART_PATH, 'third_party', 'chrome',
-                                       'tools')
+LOCAL_CHROME_COMMENT_EATER_PATH = os.path.join(
+      DART_PATH, 'third_party', 'chrome', 'tools', 'json_comment_eater')
 LOCAL_CHROME_COMPILER_PATH = os.path.join(DART_PATH, 'third_party', 'chrome',
                                           'tools', 'json_schema_compiler')
 LOCAL_CHROME_IDL_PARSER_PATH = os.path.join(DART_PATH, 'third_party', 'chrome',
@@ -103,9 +103,8 @@ UPDATE_LIST = [
     # ply files.
     ('chrome', CHROME_PLY_SUBPATH, LOCAL_CHROME_PLY_PATH, LOCAL_CHROME_README,
      DEPTH_INFINITY),
-    # Top level Chrome tools folder. Contains json_comment_eater.py which is
-    # needed by the Chrome IDL compiler.
-    ('chrome', CHROME_TOOLS_SUBPATH, LOCAL_CHROME_TOOLS_PATH,
+    # Path for json_comment_eater, which is needed by the Chrome IDL compiler.
+    ('chrome', CHROME_COMMENT_EATER_SUBPATH, LOCAL_CHROME_COMMENT_EATER_PATH,
      LOCAL_CHROME_README, DEPTH_FILES),
     # Chrome IDL compiler files.
     ('chrome', CHROME_COMPILER_SUBPATH, LOCAL_CHROME_COMPILER_PATH,
@@ -113,12 +112,12 @@ UPDATE_LIST = [
     ]
 
 
-def RunCommand(cmd):
+def RunCommand(cmd, valid_exits=[0]):
   """Executes a shell command and return its stdout."""
   print ' '.join(cmd)
   pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   output = pipe.communicate()
-  if pipe.returncode == 0:
+  if pipe.returncode in valid_exits:
     return output[0]
   else:
     print output[1]
@@ -184,16 +183,18 @@ def GenerateReadme(local_path, template, url, revision):
 ZIP_ARCHIVE = 'version-control-dirs.zip'
 
 def SaveVersionControlDir(local_path):
-  RunCommand([
-    'sh', '-c',
-    'find %s -name .svn -or -name .git | zip -r %s -@' % (
-        os.path.relpath(local_path), ZIP_ARCHIVE)
-  ])
+  if os.path.exists(local_path):
+    RunCommand([
+      'sh', '-c',
+      'find %s -name .svn -or -name .git | zip -r %s -@' % (
+          os.path.relpath(local_path), ZIP_ARCHIVE)
+    ], [0, 12])  # It is ok if zip has nothing to do (exit code 12).
 
-
-def RestoreVersionControlDir():
-  RunCommand(['unzip', ZIP_ARCHIVE, '-d', '.'])
-  RunCommand(['rm', ZIP_ARCHIVE])
+def RestoreVersionControlDir(local_path):
+  archive_path = os.path.join(local_path, ZIP_ARCHIVE)
+  if os.path.exists(archive_path):
+    RunCommand(['unzip', ZIP_ARCHIVE, '-d', '.'])
+    RunCommand(['rm', ZIP_ARCHIVE])
 
 def ParseOptions():
   parser = optparse.OptionParser()
@@ -226,7 +227,7 @@ def main():
       RefreshFiles(url, revision, remote_path, local_path, depth)
       PruneExtraFiles(local_path)
       GenerateReadme(local_path, readme, url, revision)
-      RestoreVersionControlDir();
+      RestoreVersionControlDir(local_path);
 
 if __name__ == '__main__':
   main()
