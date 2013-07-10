@@ -80,7 +80,6 @@ library_juxtaposition_test: fail
 list_literal_syntax_test/01: fail
 list_literal_syntax_test/02: fail
 list_literal_syntax_test/03: fail
-map_literal1_negative_test: fail
 map_literal3_test: fail
 mixin_illegal_constructor_test/13: fail
 mixin_illegal_constructor_test/14: fail
