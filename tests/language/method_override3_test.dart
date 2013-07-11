@@ -12,17 +12,37 @@ class A {
 }
 
 class B extends A {
-  foo(required1) => required1;
-  bar(required1, required2, { named1: 29 })
-      => required1 + required2 * 3 + named1 * 5;
-  gee({named2: 11}) => named2 * 99;
+  foo(required1
+     /*  /// 00: static type warning
+      , { named1: 499 }
+     */  /// 00: static type warning
+     ) {
+    return required1;
+  }
+
+  bar(required1, required2,
+      { named1: 13
+      /*  /// 01: static type warning
+        , named2: 17
+      */  /// 01: static type warning
+      }) {
+    return required1 + required2 * 3 + named1 * 5;
+  }
+
+  gee({named2: 11
+      /*  /// 02: static type warning
+       , named1: 31
+      */  /// 02: static type warning
+      }) {
+    return named2 * 99;
+  }
 }
 
 main() {
   var b = new B();
   Expect.equals(499, b.foo(499));
   Expect.equals(1 + 3 * 3 + 5 * 5, b.bar(1, 3, named1: 5));
-  Expect.equals(1 + 3 * 3 + 29 * 5, b.bar(1, 3));
+  Expect.equals(1 + 3 * 3 + 13 * 5, b.bar(1, 3));
   Expect.equals(3 * 99, b.gee(named2: 3));
   Expect.equals(11 * 99, b.gee());
 }

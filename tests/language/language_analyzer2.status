@@ -221,7 +221,13 @@ metadata_test: fail
 # Test issue 11564, named parameter starts with '_'
 named_parameters_with_object_property_names_test: fail
 
-method_override3_test: fail # issue 11497
+method_override2_test/00: fail # issue 11497
+method_override2_test/01: fail # issue 11497
+method_override2_test/02: fail # issue 11497
+method_override2_test/03: fail # issue 11497
+method_override3_test/00: fail # issue 11497
+method_override3_test/01: fail # issue 11497
+method_override3_test/02: fail # issue 11497
 method_override4_test: fail # issue 11497
 method_override5_test: fail # issue 11497
 method_override6_test: fail # issue 11497

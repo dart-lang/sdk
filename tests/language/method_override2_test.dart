@@ -5,25 +5,25 @@
 // Checks that an overriding method has compatible parameters.
 
 abstract class I {
-  m(x, {a, b});
+  m({a, b});
 }
 
 abstract class J extends I { }
 
 abstract class K extends J {
-  m({c, d});  /// 00: compile-time error
+  m({c, d});  /// 00: static type warning
 }
 
 class C implements I {
-  m(x, {a, b}) {
-    print("$x $a $b");
+  m({a, b}) {
+    print("$a $b");
   }
 }
 
 class D
-    extends C  /// 01: compile-time error
-    implements I  /// 02: compile-time error
-    implements J  /// 03: compile-time error
+    extends C  /// 01: static type warning
+    implements I  /// 02: static type warning
+    implements J  /// 03: static type warning
 {
   m({c, d}) {
     print("$c $d");
@@ -33,7 +33,7 @@ class D
 
 int main() {
   var c = new C();
-  c.m(1, a: "hello", b: "world");
+  c.m(a: "hello", b: "world");
   var d = new D();
   d.m(c: "hello", d: "world");
   print("${c is I} ${d is I} ${d is I} ${d is J}");

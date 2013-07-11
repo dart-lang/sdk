@@ -152,9 +152,6 @@ get_set_syntax_test/15: Fail # Fixed by https://chromiumcodereview.appspot.com/1
 get_set_syntax_test/16: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 method_binding_test: Fail # internal error: super property read not implemented.
 method_override_test: Fail # cannot resolve type GetKeysFunctionType
-method_override2_test/00: Fail # accepts illegal override
-method_override2_test/02: Fail # accepts illegal override
-method_override2_test/03: Fail # accepts illegal override
 method_override5_test: Fail # Issue 11496
 abstract_getter_test/01: Fail # instantiation of abstract class
 abstract_factory_constructor_test/01: Fail # instantiation of abstract class

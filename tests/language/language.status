@@ -35,9 +35,6 @@ mixin_super_constructor_multiple_test: Fail
 built_in_identifier_prefix_test: Fail # http://dartbug.com/6970
 library_juxtaposition_test: Fail # Issue 6877
 pseudo_kw_illegal_test/14: Fail  # Issue 356
-method_override2_test/00: Fail # Issue 7076.
-method_override2_test/02: Fail # Issue 7076.
-method_override2_test/03: Fail # Issue 7076.
 bound_closure_equality_test: Fail # Issue 10849
 
 # These bugs refer currently ongoing language discussions.
@@ -226,9 +223,6 @@ duplicate_implements_test/02: Fail
 duplicate_implements_test/03: Fail
 duplicate_implements_test/04: Fail
 interface_factory_constructor_negative_test: Fail
-method_override2_test/00: Fail
-method_override2_test/02: Fail
-method_override2_test/03: Fail
 method_override4_test: Fail
 method_override5_test: Fail
 operator1_negative_test: Fail
