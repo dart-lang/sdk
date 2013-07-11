@@ -14,7 +14,7 @@ class _ObjectArray<E> implements List<E> {
   void operator []=(int index, E value) native "ObjectArray_setIndexed";
 
   String toString() {
-    return ToString.iterableToString(this);
+    return IterableMixinWorkaround.toStringIterable(this,'[' , ']');
   }
 
   int get length native "ObjectArray_getLength";
@@ -457,7 +457,7 @@ class _ImmutableArray<E> implements List<E> {
   }
 
   String toString() {
-    return ToString.iterableToString(this);
+    return IterableMixinWorkaround.toStringIterable(this, '[', ']');
   }
 
   int indexOf(Object element, [int start = 0]) {

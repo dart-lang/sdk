@@ -301,9 +301,8 @@ class DoubleLinkedQueue<E> extends IterableBase<E> implements Queue<E> {
     return new _DoubleLinkedQueueIterator<E>(_sentinel);
   }
 
-  String toString() {
-    return ToString.iterableToString(this);
-  }
+  // TODO(zarah)  Remove this, and let it be inherited by IterableBase
+  String toString() => IterableMixinWorkaround.toStringIterable(this, '{', '}');
 }
 
 class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
@@ -530,9 +529,8 @@ class ListQueue<E> extends IterableBase<E> implements Queue<E> {
     }
   }
 
-  String toString() {
-    return ToString.iterableToString(this);
-  }
+  // TODO(zarah)  Remove this, and let it be inherited by IterableBase
+  String toString() => IterableMixinWorkaround.toStringIterable(this, '{', '}');
 
   // Queue interface.
 

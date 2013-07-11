@@ -337,7 +337,7 @@ class _GrowableObjectArray<T> implements List<T> {
   }
 
   String toString() {
-    return ToString.iterableToString(this);
+    return IterableMixinWorkaround.toStringIterable(this, '[', ']');
   }
 
   Iterator<T> get iterator {

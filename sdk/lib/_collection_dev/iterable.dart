@@ -688,6 +688,9 @@ abstract class BidirectionalIterator<T> implements Iterator<T> {
  * The uses of this class will be replaced by mixins.
  */
 class IterableMixinWorkaround {
+  // A list to identify cyclic collections during toString() calls.
+  static List _toStringList = new List();
+
   static bool contains(Iterable iterable, var element) {
     for (final e in iterable) {
       if (e == element) return true;
@@ -879,6 +882,27 @@ class IterableMixinWorkaround {
       }
     }
     return buffer.toString();
+  }
+
+  static String toStringIterable(Iterable iterable, String leftDelimiter,
+                                 String rightDelimiter) {
+    for (int i = 0; i < _toStringList.length; i++) {
+      if (identical(_toStringList[i], iterable)) {
+        return '$leftDelimiter...$rightDelimiter';
+        }
+    }
+
+    StringBuffer result = new StringBuffer();
+    try {
+      _toStringList.add(iterable);
+      result.write(leftDelimiter);
+      result.writeAll(iterable, ', ');
+      result.write(rightDelimiter);
+    } finally {
+      assert(identical(_toStringList.last, iterable));
+      _toStringList.removeLast();
+    }
+    return result.toString();
   }
 
   static Iterable where(Iterable iterable, bool f(var element)) {
