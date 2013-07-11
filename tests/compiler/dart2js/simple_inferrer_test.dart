@@ -580,11 +580,11 @@ void main() {
   checkReturnInClass('B', 'returnInt8', typesInferrer.intType);
   checkReturnInClass('B', 'returnInt9', typesInferrer.intType);
 
-  checkFactoryConstructor(String className) {
+  checkFactoryConstructor(String className, String factoryName) {
     var cls = findElement(compiler, className);
-    var element = cls.localLookup(buildSourceString(className));
+    var element = cls.localLookup(buildSourceString(factoryName));
     Expect.equals(new TypeMask.nonNullExact(cls.rawType),
                   typesInferrer.getReturnTypeOfElement(element));
   }
-  checkFactoryConstructor('A');
+  checkFactoryConstructor('A', '');
 }

@@ -199,9 +199,6 @@ not_enough_positional_arguments_test/01: Fail # http://dartbug.com/5519
 
 metadata_test: Fail
 # Fails in conservative mode, issue 4935, passes in minifinying mode.
-bad_constructor_test/04: Fail
-bad_constructor_test/05: Fail
-bad_constructor_test/06: Fail
 argument_definition_test/*: Skip # Not implemented.
 const_var_test: Pass, Fail # Map literals take 2 type arguments.
 map_literal3_test: Fail # Map literals take 2 type arguments.

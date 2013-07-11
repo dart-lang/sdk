@@ -56,8 +56,8 @@ abstract class DeclarationMirror implements Mirror {
    *
    * The simple name is in most cases the declared single identifier name of
    * the entity, such as 'method' for a method [:void method() {...}:]. For an
-   * unnamed constructor for [:class Foo:] the simple name is 'Foo'. For a
-   * constructor for [:class Foo:] named 'named' the simple name is 'Foo.named'.
+   * unnamed constructor for [:class Foo:] the simple name is ''. For a
+   * constructor for [:class Foo:] named 'named' the simple name is 'named'.
    * For a property [:foo:] the simple name of the getter method is 'foo' and
    * the simple name of the setter is 'foo='. For operators the simple name is
    * the operator itself, for example '+' for [:operator +:].
@@ -589,12 +589,6 @@ abstract class MethodMirror implements MemberMirror {
    * Is the reflectee a factory constructor?
    */
   bool get isFactoryConstructor;
-
-  /**
-   * Returns the constructor name for named constructors and factory methods,
-   * e.g. [:'bar':] for constructor [:Foo.bar:] of type [:Foo:].
-   */
-  String get constructorName;
 
   /**
    * Is [:true:] if this method is a getter method.

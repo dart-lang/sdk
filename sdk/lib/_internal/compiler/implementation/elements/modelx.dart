@@ -1409,7 +1409,7 @@ class SynthesizedConstructorElementX extends FunctionElementX {
 
   SynthesizedConstructorElementX.forDefault(Element enclosing,
                                             Compiler compiler)
-      : super(enclosing.name, ElementKind.GENERATIVE_CONSTRUCTOR,
+      : super(const SourceString(''), ElementKind.GENERATIVE_CONSTRUCTOR,
               Modifiers.EMPTY, enclosing),
         target = null {
     // TODO(karlklose): get rid of the fake AST.
@@ -1798,16 +1798,7 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
   // make noMatch a required argument. Peter's suspicion is that most
   // callers of this method would benefit from using the noMatch method.
   Element lookupConstructor(Selector selector, [Element noMatch(Element)]) {
-    SourceString normalizedName;
-    SourceString className = this.name;
-    SourceString constructorName = selector.name;
-    if (constructorName != const SourceString('')) {
-      normalizedName = Elements.constructConstructorName(className,
-                                                         constructorName);
-    } else {
-      normalizedName = className;
-    }
-    Element result = localLookup(normalizedName);
+    Element result = localLookup(selector.name);
     return validateConstructorLookupResults(selector, result, noMatch);
   }
 

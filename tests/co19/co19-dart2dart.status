@@ -176,12 +176,6 @@ Language/07_Classes/6_Constructors/3_Constant_Constructors_A04_t03: Fail # inher
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: Fail # inherited from VM
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: Fail # inherited from VM
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t03: Fail # inherited from VM
-Language/07_Classes/6_Constructors_A01_t01: Fail # inherited from VM
-Language/07_Classes/6_Constructors_A01_t02: Fail # Inherited from dart2js
-Language/07_Classes/6_Constructors_A01_t03: Fail # Inherited from dart2js
-Language/07_Classes/6_Constructors_A01_t04: Fail # Inherited from dart2js
-Language/07_Classes/6_Constructors_A01_t05: Fail # Inherited from dart2js
-Language/07_Classes/6_Constructors_A01_t06: Fail # Inherited from dart2js
 Language/07_Classes/6_Constructors_A02_t01: Fail # http://dartbug.com/5519
 Language/11_Expressions/01_Constants_A03_t02: Fail # http://dartbug.com/5519
 Language/11_Expressions/01_Constants_A03_t03: Fail # http://dartbug.com/5519

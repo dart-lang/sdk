@@ -625,7 +625,6 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isFalse(method1.isGenerativeConstructor);
   Expect.isFalse(method1.isRedirectingConstructor);
   Expect.isFalse(method1.isFactoryConstructor);
-  Expect.isNull(method1.constructorName);
   Expect.isFalse(method1.isGetter);
   Expect.isFalse(method1.isSetter);
   Expect.isFalse(method1.isOperator);
@@ -678,7 +677,6 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isFalse(method2.isGenerativeConstructor);
   Expect.isFalse(method2.isRedirectingConstructor);
   Expect.isFalse(method2.isFactoryConstructor);
-  Expect.isNull(method2.constructorName);
   Expect.isFalse(method2.isGetter);
   Expect.isFalse(method2.isSetter);
   Expect.isFalse(method2.isOperator);
@@ -744,7 +742,6 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isFalse(method3.isGenerativeConstructor);
   Expect.isFalse(method3.isRedirectingConstructor);
   Expect.isFalse(method3.isFactoryConstructor);
-  Expect.isNull(method3.constructorName);
   Expect.isFalse(method3.isGetter);
   Expect.isFalse(method3.isSetter);
   Expect.isFalse(method3.isOperator);
@@ -867,7 +864,6 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isFalse(operator_eq.isGenerativeConstructor);
   Expect.isFalse(operator_eq.isRedirectingConstructor);
   Expect.isFalse(operator_eq.isFactoryConstructor);
-  Expect.isNull(operator_eq.constructorName);
   Expect.isFalse(operator_eq.isGetter);
   Expect.isFalse(operator_eq.isSetter);
   Expect.isTrue(operator_eq.isOperator);
@@ -897,7 +893,6 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isFalse(operator_negate.isGenerativeConstructor);
   Expect.isFalse(operator_negate.isRedirectingConstructor);
   Expect.isFalse(operator_negate.isFactoryConstructor);
-  Expect.isNull(operator_negate.constructorName);
   Expect.isFalse(operator_negate.isGetter);
   Expect.isFalse(operator_negate.isSetter);
   Expect.isTrue(operator_negate.isOperator);
@@ -912,7 +907,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   ////////////////////////////////////////////////////////////////////////////
   //   Baz();
   ////////////////////////////////////////////////////////////////////////////
-  var bazClassNonameConstructor = bazClassConstructors['Baz'];
+  var bazClassNonameConstructor = bazClassConstructors[''];
   Expect.isNotNull(bazClassNonameConstructor);
   Expect.isTrue(bazClassNonameConstructor is MethodMirror);
   Expect.isTrue(bazClassNonameConstructor.isConstructor);
@@ -921,16 +916,15 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isTrue(bazClassNonameConstructor.isGenerativeConstructor);
   Expect.isFalse(bazClassNonameConstructor.isRedirectingConstructor);
   Expect.isFalse(bazClassNonameConstructor.isFactoryConstructor);
-  Expect.stringEquals('Baz', bazClassNonameConstructor.simpleName);
+  Expect.stringEquals('', bazClassNonameConstructor.simpleName);
   Expect.stringEquals('Baz', displayName(bazClassNonameConstructor));
-  Expect.stringEquals('mirrors_helper.Baz.Baz',
+  Expect.stringEquals('mirrors_helper.Baz.',
       bazClassNonameConstructor.qualifiedName);
-  Expect.stringEquals('', bazClassNonameConstructor.constructorName);
 
   ////////////////////////////////////////////////////////////////////////////
   //   const Baz.named();
   ////////////////////////////////////////////////////////////////////////////
-  var bazClassNamedConstructor = bazClassConstructors['Baz.named'];
+  var bazClassNamedConstructor = bazClassConstructors['named'];
   Expect.isNotNull(bazClassNamedConstructor);
   Expect.isTrue(bazClassNamedConstructor is MethodMirror);
   Expect.isTrue(bazClassNamedConstructor.isConstructor);
@@ -939,16 +933,15 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isFalse(bazClassNamedConstructor.isGenerativeConstructor);
   Expect.isFalse(bazClassNamedConstructor.isRedirectingConstructor);
   Expect.isFalse(bazClassNamedConstructor.isFactoryConstructor);
-  Expect.stringEquals('Baz.named', bazClassNamedConstructor.simpleName);
+  Expect.stringEquals('named', bazClassNamedConstructor.simpleName);
   Expect.stringEquals('Baz.named', displayName(bazClassNamedConstructor));
-  Expect.stringEquals('mirrors_helper.Baz.Baz.named',
+  Expect.stringEquals('mirrors_helper.Baz.named',
       bazClassNamedConstructor.qualifiedName);
-  Expect.stringEquals('named', bazClassNamedConstructor.constructorName);
 
   ////////////////////////////////////////////////////////////////////////////
   //   factory Baz.factory() => new Baz<E,F>();
   ////////////////////////////////////////////////////////////////////////////
-  var bazClassFactoryConstructor = bazClassConstructors['Baz.factory'];
+  var bazClassFactoryConstructor = bazClassConstructors['factory'];
   Expect.isNotNull(bazClassFactoryConstructor);
   Expect.isTrue(bazClassFactoryConstructor is MethodMirror);
   Expect.isTrue(bazClassFactoryConstructor.isConstructor);
@@ -957,11 +950,10 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isFalse(bazClassFactoryConstructor.isGenerativeConstructor);
   Expect.isFalse(bazClassFactoryConstructor.isRedirectingConstructor);
   Expect.isTrue(bazClassFactoryConstructor.isFactoryConstructor);
-  Expect.stringEquals('Baz.factory', bazClassFactoryConstructor.simpleName);
+  Expect.stringEquals('factory', bazClassFactoryConstructor.simpleName);
   Expect.stringEquals('Baz.factory', displayName(bazClassFactoryConstructor));
-  Expect.stringEquals('mirrors_helper.Baz.Baz.factory',
+  Expect.stringEquals('mirrors_helper.Baz.factory',
       bazClassFactoryConstructor.qualifiedName);
-  Expect.stringEquals('factory', bazClassFactoryConstructor.constructorName);
 
   // TODO(johnniwinther): Add more tests of constructors.
   // TODO(johnniwinther): Add a test for unnamed factory methods.
@@ -1014,7 +1006,7 @@ void testPrivate(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isTrue(privateMethod.isRegularMethod);
 
   var privateConstructor =
-      privateClass.members['_PrivateClass._privateConstructor'];
+      privateClass.members['_privateConstructor'];
   Expect.isNotNull(privateConstructor);
   Expect.isTrue(privateConstructor is MethodMirror);
   Expect.isTrue(privateConstructor.isConstructor);
@@ -1025,7 +1017,7 @@ void testPrivate(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isFalse(privateConstructor.isFactoryConstructor);
 
   var privateFactoryConstructor =
-      privateClass.members['_PrivateClass._privateFactoryConstructor'];
+      privateClass.members['_privateFactoryConstructor'];
   Expect.isNotNull(privateFactoryConstructor);
   Expect.isTrue(privateFactoryConstructor is MethodMirror);
   Expect.isTrue(privateFactoryConstructor.isConstructor);

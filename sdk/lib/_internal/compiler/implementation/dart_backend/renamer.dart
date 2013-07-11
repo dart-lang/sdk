@@ -109,20 +109,13 @@ void renamePlaceholders(
     assert(element.isConstructor());
     StringBuffer result = new StringBuffer();
     String name = element.name.slowToString();
-    if (element.name != element.getEnclosingClass().name) {
+    if (element.name != const SourceString('')) {
       // Named constructor or factory. Is there a more reliable way to check
       // this case?
       if (!placeholder.isRedirectingCall) {
         result.write(renameType(placeholder.type, renameElement));
         result.write('.');
       }
-      String prefix = '${element.getEnclosingClass().name.slowToString()}\$';
-      if (!name.startsWith(prefix)) {
-        // Factory for another interface (that is going away soon).
-        compiler.internalErrorOnElement(element,
-            "Factory constructors for external interfaces are not supported.");
-      }
-      name = name.substring(prefix.length);
       if (!element.getLibrary().isPlatformLibrary) {
         name = renameString(element.getLibrary(), name);
       }

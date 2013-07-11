@@ -89,7 +89,10 @@ class MemberListener extends NodeListener {
   // TODO(johnniwinther): Remove this method.
   SourceString getMethodNameHack(Node methodName) {
     Send send = methodName.asSend();
-    if (send == null) return methodName.asIdentifier().source;
+    if (send == null) {
+      if (isConstructorName(methodName)) return const SourceString('');
+      return methodName.asIdentifier().source;
+    }
     Identifier receiver = send.receiver.asIdentifier();
     Identifier selector = send.selector.asIdentifier();
     Operator operator = selector.asOperator();
@@ -100,17 +103,12 @@ class MemberListener extends NodeListener {
       bool isUnary = identical(operator.token.next.next.stringValue, ')');
       return Elements.constructOperatorName(operator.source, isUnary);
     } else {
-      if (receiver == null) {
-        listener.cancel('library prefix in named factory constructor not '
-                        'implemented', node: send.receiver);
-      }
-      if (receiver.source != enclosingElement.name) {
-        listener.reportErrorCode(receiver,
+      if (receiver == null || receiver.source != enclosingElement.name) {
+        listener.reportErrorCode(send.receiver,
                                  MessageKind.INVALID_CONSTRUCTOR_NAME,
                                  {'name': enclosingElement.name});
       }
-      return Elements.constructConstructorName(receiver.source,
-                                               selector.source);
+      return selector.source;
     }
   }
 

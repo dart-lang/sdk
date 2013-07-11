@@ -671,9 +671,17 @@ class ClosureTranslator extends Visitor {
               || enclosingElement.kind == ElementKind.GETTER
               || enclosingElement.kind == ElementKind.SETTER);
          enclosingElement = enclosingElement.enclosingElement) {
-      SourceString surroundingName =
-          Elements.operatorNameToIdentifier(enclosingElement.name);
-      parts = parts.prepend(surroundingName.slowToString());
+      // TODO(johnniwinther): Simplify computed names.
+      if (enclosingElement.isGenerativeConstructor() ||
+          enclosingElement.isGenerativeConstructorBody() ||
+          enclosingElement.isFactoryConstructor()) {
+        parts = parts.prepend(
+            Elements.reconstructConstructorName(enclosingElement));
+      } else {
+        SourceString surroundingName =
+            Elements.operatorNameToIdentifier(enclosingElement.name);
+        parts = parts.prepend(surroundingName.slowToString());
+      }
       // A generative constructors's parent is the class; the class name is
       // already part of the generative constructor's name.
       if (enclosingElement.kind == ElementKind.GENERATIVE_CONSTRUCTOR) break;

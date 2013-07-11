@@ -1262,18 +1262,20 @@ class CodeEmitterTask extends CompilerTask {
       int requiredParameterCount;
       int optionalParameterCount;
       String namedArguments = '';
-      bool isConstructor;
+      bool isConstructor = false;
       if (elementOrSelector is Selector) {
         Selector selector = elementOrSelector;
         requiredParameterCount = selector.argumentCount;
         optionalParameterCount = 0;
-        isConstructor = false;
         namedArguments = namedParametersAsReflectionNames(selector);
       } else {
         FunctionElement function = elementOrSelector;
+        if (function.isConstructor()) {
+          isConstructor = true;
+          name = Elements.reconstructConstructorName(function);
+        }
         requiredParameterCount = function.requiredParameterCount(compiler);
         optionalParameterCount = function.optionalParameterCount(compiler);
-        isConstructor = function.isConstructor();
         FunctionSignature signature = function.computeSignature(compiler);
         if (signature.optionalParametersAreNamed) {
           var names = [];

@@ -353,21 +353,22 @@ class Elements {
     return isLocal(element);
   }
 
-  static SourceString constructConstructorName(SourceString receiver,
-                                               SourceString selector) {
-    String r = receiver.slowToString();
-    String s = selector.slowToString();
-    return new SourceString('$r\$$s');
-  }
-
-  static SourceString deconstructConstructorName(SourceString name,
-                                                 ClassElement holder) {
-    String r = '${holder.name.slowToString()}\$';
-    String s = name.slowToString();
-    if (s.startsWith(r)) {
-      return new SourceString(s.substring(r.length));
+  static SourceString reconstructConstructorNameSourceString(Element element) {
+    if (element.name == const SourceString('')) {
+      return element.getEnclosingClass().name;
+    } else {
+      return new SourceString(reconstructConstructorName(element));
     }
-    return null;
+  }
+  
+  // TODO(johnniwinther): Remove this method.
+  static String reconstructConstructorName(Element element) {
+    String className = element.getEnclosingClass().name.slowToString();
+    if (element.name == const SourceString('')) {
+      return className;
+    } else {
+      return '$className\$${element.name.slowToString()}';
+    }
   }
 
   /**
