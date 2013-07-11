@@ -2028,7 +2028,33 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   ConcreteType visitForIn(ForIn node) {
-    inferrer.fail(node, 'not yet implemented');
+    Element declaredIdentifier = elements[node.declaredIdentifier];
+    assert(declaredIdentifier != null);
+    ConcreteType iterableType = analyze(node.expression);
+
+    // var n0 = e.iterator
+    ConcreteType iteratorType = analyzeDynamicGetterSend(
+        elements.getIteratorSelector(node),
+        iterableType);
+    ConcreteType result = inferrer.emptyConcreteType;
+    ConcreteTypesEnvironment oldEnvironment;
+    do {
+      oldEnvironment = environment;
+      // n0.moveNext();
+      analyzeDynamicSend(
+          elements.getMoveNextSelector(node),
+          iteratorType,
+          const SourceString("moveNext"),
+          new ArgumentsTypes(const [], const {}));
+      // id = n0.current
+      ConcreteType currentType = analyzeDynamicGetterSend(
+          elements.getCurrentSelector(node),
+          iteratorType);
+      environment = environment.put(declaredIdentifier, currentType);
+      result = result.union(analyze(node.body));
+      environment = oldEnvironment.join(environment);
+    } while (oldEnvironment != environment);
+    return result;
   }
 
   ConcreteType visitLabel(Label node) {
@@ -2113,6 +2139,44 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     return visitGetterSendForSelector(node, selector);
   }
 
+  ConcreteType analyzeDynamicGetterSend(Selector selector,
+                                        ConcreteType receiverType) {
+    ConcreteType result = inferrer.emptyConcreteType;
+    void augmentResult(ClassElement baseReceiverType, Element member) {
+      if (member.isField()) {
+        result = result.union(analyzeFieldRead(selector, member));
+      } else if (member.isAbstractField()){
+        // call to a getter
+        AbstractFieldElement abstractField = member;
+        ConcreteType getterReturnType = analyzeGetterSend(
+            selector, baseReceiverType, abstractField.getter);
+        result = result.union(getterReturnType);
+      }
+      // since this is a get we ignore non-fields
+    }
+
+    if (receiverType.isUnknown()) {
+      inferrer.addDynamicCaller(selector.name, currentMethodOrField);
+      List<Element> members = inferrer.getMembersByName(selector.name);
+      for (Element member in members) {
+        Element cls = member.getEnclosingClass();
+        augmentResult(cls, member);
+      }
+    } else {
+      for (BaseType baseReceiverType in receiverType.baseTypes) {
+        if (!baseReceiverType.isNull()) {
+          ClassBaseType classBaseType = baseReceiverType;
+          ClassElement cls = classBaseType.element;
+          Element getterOrField = cls.lookupMember(selector.name);
+          if (getterOrField != null) {
+            augmentResult(cls, getterOrField.implementation);
+          }
+        }
+      }
+    }
+    return result;
+  }
+
   ConcreteType visitGetterSendForSelector(Send node, Selector selector) {
     Element element = elements[node];
     if (element != null) {
@@ -2134,46 +2198,10 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     } else {
       // node is a field/getter which doesn't belong to the current class or
       // the field/getter of a mixed-in class
-      ConcreteType result = inferrer.emptyConcreteType;
-      void augmentResult(ClassElement baseReceiverType, Element member) {
-        if (member.isField()) {
-          result = result.union(analyzeFieldRead(selector, member));
-        } else if (member.isAbstractField()){
-          // call to a getter
-          AbstractFieldElement abstractField = member;
-          result = result.union(
-              analyzeGetterSend(selector,
-                                baseReceiverType, abstractField.getter));
-        }
-        // since this is a get we ignore non-fields
-      }
-
       ConcreteType receiverType = node.receiver != null
           ? analyze(node.receiver)
           : environment.lookupTypeOfThis();
-      if (receiverType.isUnknown()) {
-        SourceString name = node.selector.asIdentifier().source;
-        inferrer.addDynamicCaller(name, currentMethodOrField);
-        List<Element> members = inferrer.getMembersByName(name);
-        for (Element member in members) {
-          if (!(member.isField() || member.isAbstractField())) continue;
-          Element cls = member.getEnclosingClass();
-          augmentResult(cls, member);
-        }
-      } else {
-        for (BaseType baseReceiverType in receiverType.baseTypes) {
-          if (!baseReceiverType.isNull()) {
-            ClassBaseType classBaseType = baseReceiverType;
-            ClassElement cls = classBaseType.element;
-            Element getterOrField =
-                cls.lookupMember(node.selector.asIdentifier().source);
-            if (getterOrField != null) {
-              augmentResult(cls, getterOrField.implementation);
-            }
-          }
-        }
-      }
-      return result;
+      return analyzeDynamicGetterSend(selector, receiverType);
     }
   }
 

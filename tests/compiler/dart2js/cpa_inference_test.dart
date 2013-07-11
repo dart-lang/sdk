@@ -341,6 +341,42 @@ testFor3() {
   result.checkNodeHasType('i', [result.int]);
 }
 
+testForIn() {
+  final String source = r"""
+      class MyIterator {
+        var counter = 0;
+
+        moveNext() {
+          if (counter == 0) {
+            counter = 1;
+            return true;
+          } else if (counter == 1) {
+            counter = 2;
+            return true;
+          } else {
+            return false;
+          }
+        }
+
+        get current => (counter == 1) ? "foo" : 42;
+      }
+
+      class MyIterable {
+        get iterator => new MyIterator();
+      }
+
+      main() {
+        var res;
+        for (var i in new MyIterable()) {
+          res = i;
+        }
+        res;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('res', [result.int, result.string, result.nullType]);
+}
+
 testToplevelVariable() {
   final String source = r"""
       final top = 'abc';
@@ -1472,6 +1508,7 @@ void main() {
   testFor1();
   testFor2();
   testFor3();
+  testForIn();
   testToplevelVariable();
   testNonRecusiveFunction();
   testRecusiveFunction();
