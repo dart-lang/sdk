@@ -331,9 +331,7 @@ typedef T _Transformation<S, T>(S value);
 
 class MappedIterable<S, T> extends IterableBase<T> {
   final Iterable<S> _iterable;
-  // TODO(ahe): Restore type when feature is implemented in dart2js
-  // checked mode. http://dartbug.com/7733
-  final /* _Transformation<S, T> */ _f;
+  final _Transformation<S, T> _f;
 
   MappedIterable(this._iterable, T this._f(S element));
 
@@ -353,9 +351,7 @@ class MappedIterable<S, T> extends IterableBase<T> {
 class MappedIterator<S, T> extends Iterator<T> {
   T _current;
   final Iterator<S> _iterator;
-  // TODO(ahe): Restore type when feature is implemented in dart2js
-  // checked mode. http://dartbug.com/7733
-  final /* _Transformation<S, T> */ _f;
+  final _Transformation<S, T> _f;
 
   MappedIterator(this._iterator, T this._f(S element));
 
@@ -374,9 +370,7 @@ class MappedIterator<S, T> extends Iterator<T> {
 /** Specialized alternative to [MappedIterable] for mapped [List]s. */
 class MappedListIterable<S, T> extends ListIterable<T> {
   final Iterable<S> _source;
-  // TODO(ahe): Restore type when feature is implemented in dart2js
-  // checked mode. http://dartbug.com/7733
-  final /* _Transformation<S, T> */ _f;
+  final _Transformation<S, T> _f;
 
   MappedListIterable(this._source, T this._f(S value));
 
@@ -389,9 +383,7 @@ typedef bool _ElementPredicate<E>(E element);
 
 class WhereIterable<E> extends IterableBase<E> {
   final Iterable<E> _iterable;
-  // TODO(ahe): Restore type when feature is implemented in dart2js
-  // checked mode. http://dartbug.com/7733
-  final /* _ElementPredicate */ _f;
+  final _ElementPredicate _f;
 
   WhereIterable(this._iterable, bool this._f(E element));
 
@@ -400,9 +392,7 @@ class WhereIterable<E> extends IterableBase<E> {
 
 class WhereIterator<E> extends Iterator<E> {
   final Iterator<E> _iterator;
-  // TODO(ahe): Restore type when feature is implemented in dart2js
-  // checked mode. http://dartbug.com/7733
-  final /* _ElementPredicate */ _f;
+  final _ElementPredicate _f;
 
   WhereIterator(this._iterator, bool this._f(E element));
 
@@ -422,9 +412,7 @@ typedef Iterable<T> _ExpandFunction<S, T>(S sourceElement);
 
 class ExpandIterable<S, T> extends IterableBase<T> {
   final Iterable<S> _iterable;
-  // TODO(ahe): Restore type when feature is implemented in dart2js
-  // checked mode. http://dartbug.com/7733
-  final /* _ExpandFunction */ _f;
+  final _ExpandFunction _f;
 
   ExpandIterable(this._iterable, Iterable<T> this._f(S element));
 
@@ -433,9 +421,7 @@ class ExpandIterable<S, T> extends IterableBase<T> {
 
 class ExpandIterator<S, T> implements Iterator<T> {
   final Iterator<S> _iterator;
-  // TODO(ahe): Restore type when feature is implemented in dart2js
-  // checked mode. http://dartbug.com/7733
-  final /* _ExpandFunction */ _f;
+  final _ExpandFunction _f;
   // Initialize _currentExpansion to an empty iterable. A null value
   // marks the end of iteration, and we don't want to call _f before
   // the first moveNext call.
@@ -507,9 +493,7 @@ class TakeIterator<E> extends Iterator<E> {
 
 class TakeWhileIterable<E> extends IterableBase<E> {
   final Iterable<E> _iterable;
-  // TODO(ahe): Restore type when feature is implemented in dart2js
-  // checked mode. http://dartbug.com/7733
-  final /* _ElementPredicate */ _f;
+  final _ElementPredicate _f;
 
   TakeWhileIterable(this._iterable, bool this._f(E element));
 
@@ -520,9 +504,7 @@ class TakeWhileIterable<E> extends IterableBase<E> {
 
 class TakeWhileIterator<E> extends Iterator<E> {
   final Iterator<E> _iterator;
-  // TODO(ahe): Restore type when feature is implemented in dart2js
-  // checked mode. http://dartbug.com/7733
-  final /* _ElementPredicate */ _f;
+  final _ElementPredicate _f;
   bool _isFinished = false;
 
   TakeWhileIterator(this._iterator, bool this._f(E element));
@@ -583,9 +565,7 @@ class SkipIterator<E> extends Iterator<E> {
 
 class SkipWhileIterable<E> extends IterableBase<E> {
   final Iterable<E> _iterable;
-  // TODO(ahe): Restore type when feature is implemented in dart2js
-  // checked mode. http://dartbug.com/7733
-  final /* _ElementPredicate */ _f;
+  final _ElementPredicate _f;
 
   SkipWhileIterable(this._iterable, bool this._f(E element));
 
@@ -596,9 +576,7 @@ class SkipWhileIterable<E> extends IterableBase<E> {
 
 class SkipWhileIterator<E> extends Iterator<E> {
   final Iterator<E> _iterator;
-  // TODO(ahe): Restore type when feature is implemented in dart2js
-  // checked mode. http://dartbug.com/7733
-  final /* _ElementPredicate */ _f;
+  final _ElementPredicate _f;
   bool _hasSkipped = false;
 
   SkipWhileIterator(this._iterator, bool this._f(E element));

@@ -1543,10 +1543,11 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   bool canGenerateCheckedSetter(Element member) {
-    DartType type = member.computeType(compiler);
-    if (type.element.isTypeVariable()
-        || type.element == compiler.dynamicClass
-        || type.element == compiler.objectClass) {
+    DartType type = member.computeType(compiler).unalias(compiler);
+    if (type.element.isTypeVariable() ||
+        (type is FunctionType && type.containsTypeVariables) || 
+        type.element == compiler.dynamicClass ||
+        type.element == compiler.objectClass) {
       // TODO(ngeoffray): Support type checks on type parameters.
       return false;
     }
@@ -1562,6 +1563,8 @@ class CodeEmitterTask extends CompilerTask {
     // TODO(ahe): Generate a dynamic type error here.
     if (type.element.isErroneous()) return;
     type = type.unalias(compiler);
+    // TODO(11273): Support complex subtype checks.
+    type = type.asRaw();
     CheckedModeHelper helper =
         backend.getCheckedModeHelper(type, typeCast: false);
     FunctionElement helperElement = helper.getElement(compiler);

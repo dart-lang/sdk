@@ -140,9 +140,7 @@ class _ForwardingStreamSubscription<S, T>
 
   // Methods used as listener on source subscription.
 
-  // TODO(ahe): Restore type when feature is implemented in dart2js
-  // checked mode. http://dartbug.com/7733
-  void _handleData(/*S*/ data) {
+  void _handleData(S data) {
     _stream._handleData(data, this);
   }
 
@@ -431,9 +429,7 @@ void _defaultHandleDone(EventSink sink) {
  * [StreamEventTransformer].
  */
 class _StreamTransformerImpl<S, T> extends StreamEventTransformer<S, T> {
-  // TODO(ahe): Restore type when feature is implemented in dart2js
-  // checked mode. http://dartbug.com/7733
-  final Function /*_TransformDataHandler<S, T>*/ _handleData;
+  final _TransformDataHandler<S, T> _handleData;
   final _TransformErrorHandler<T> _handleError;
   final _TransformDoneHandler<T> _handleDone;
 

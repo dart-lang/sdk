@@ -277,9 +277,7 @@ abstract class Stream<T> {
     T value;
     StreamSubscription subscription;
     subscription = this.listen(
-      // TODO(ahe): Restore type when feature is implemented in dart2js
-      // checked mode. http://dartbug.com/7733
-      (/* T */ element) {
+      (T element) {
         if (seenFirst) {
           _runUserCode(() => combine(value, element),
                        (T newValue) { value = newValue; },
@@ -308,9 +306,7 @@ abstract class Stream<T> {
     var value = initialValue;
     StreamSubscription subscription;
     subscription = this.listen(
-      // TODO(ahe): Restore type when feature is implemented in dart2js
-      // checked mode. http://dartbug.com/7733
-      (/*T*/ element) {
+      (T element) {
         _runUserCode(
           () => combine(value, element),
           (newValue) { value = newValue; },
@@ -375,9 +371,7 @@ abstract class Stream<T> {
     _FutureImpl<bool> future = new _FutureImpl<bool>();
     StreamSubscription subscription;
     subscription = this.listen(
-        // TODO(ahe): Restore type when feature is implemented in dart2js
-        // checked mode. http://dartbug.com/7733
-        (/*T*/ element) {
+        (T element) {
           _runUserCode(
             () => (element == needle),
             (bool isMatch) {
@@ -408,9 +402,7 @@ abstract class Stream<T> {
     _FutureImpl future = new _FutureImpl();
     StreamSubscription subscription;
     subscription = this.listen(
-        // TODO(ahe): Restore type when feature is implemented in dart2js
-        // checked mode. http://dartbug.com/7733
-        (/*T*/ element) {
+        (T element) {
           _runUserCode(
             () => action(element),
             (_) {},
@@ -435,9 +427,7 @@ abstract class Stream<T> {
     _FutureImpl<bool> future = new _FutureImpl<bool>();
     StreamSubscription subscription;
     subscription = this.listen(
-        // TODO(ahe): Restore type when feature is implemented in dart2js
-        // checked mode. http://dartbug.com/7733
-        (/*T*/ element) {
+        (T element) {
           _runUserCode(
             () => test(element),
             (bool isMatch) {
@@ -467,9 +457,7 @@ abstract class Stream<T> {
     _FutureImpl<bool> future = new _FutureImpl<bool>();
     StreamSubscription subscription;
     subscription = this.listen(
-        // TODO(ahe): Restore type when feature is implemented in dart2js
-        // checked mode. http://dartbug.com/7733
-        (/*T*/ element) {
+        (T element) {
           _runUserCode(
             () => test(element),
             (bool isMatch) {
@@ -526,9 +514,7 @@ abstract class Stream<T> {
     List<T> result = <T>[];
     _FutureImpl<List<T>> future = new _FutureImpl<List<T>>();
     this.listen(
-      // TODO(ahe): Restore type when feature is implemented in dart2js
-      // checked mode. http://dartbug.com/7733
-      (/*T*/ data) {
+      (T data) {
         result.add(data);
       },
       onError: future._setError,
@@ -544,9 +530,7 @@ abstract class Stream<T> {
     Set<T> result = new Set<T>();
     _FutureImpl<Set<T>> future = new _FutureImpl<Set<T>>();
     this.listen(
-      // TODO(ahe): Restore type when feature is implemented in dart2js
-      // checked mode. http://dartbug.com/7733
-      (/*T*/ data) {
+      (T data) {
         result.add(data);
       },
       onError: future._setError,
@@ -638,9 +622,7 @@ abstract class Stream<T> {
     _FutureImpl<T> future = new _FutureImpl<T>();
     StreamSubscription subscription;
     subscription = this.listen(
-      // TODO(ahe): Restore type when feature is implemented in dart2js
-      // checked mode. http://dartbug.com/7733
-      (/*T*/ value) {
+      (T value) {
         subscription.cancel();
         future._setValue(value);
         return;
@@ -664,9 +646,7 @@ abstract class Stream<T> {
     bool foundResult = false;
     StreamSubscription subscription;
     subscription = this.listen(
-      // TODO(ahe): Restore type when feature is implemented in dart2js
-      // checked mode. http://dartbug.com/7733
-      (/*T*/ value) {
+      (T value) {
         foundResult = true;
         result = value;
       },
@@ -693,9 +673,7 @@ abstract class Stream<T> {
     bool foundResult = false;
     StreamSubscription subscription;
     subscription = this.listen(
-      // TODO(ahe): Restore type when feature is implemented in dart2js
-      // checked mode. http://dartbug.com/7733
-      (/*T*/ value) {
+      (T value) {
         if (foundResult) {
           subscription.cancel();
           // This is the second element we get.
@@ -736,9 +714,7 @@ abstract class Stream<T> {
     _FutureImpl<dynamic> future = new _FutureImpl();
     StreamSubscription subscription;
     subscription = this.listen(
-      // TODO(ahe): Restore type when feature is implemented in dart2js
-      // checked mode. http://dartbug.com/7733
-      (/*T*/ value) {
+      (T value) {
         _runUserCode(
           () => test(value),
           (bool isMatch) {
@@ -775,9 +751,7 @@ abstract class Stream<T> {
     bool foundResult = false;
     StreamSubscription subscription;
     subscription = this.listen(
-      // TODO(ahe): Restore type when feature is implemented in dart2js
-      // checked mode. http://dartbug.com/7733
-      (/*T*/ value) {
+      (T value) {
         _runUserCode(
           () => true == test(value),
           (bool isMatch) {
@@ -817,9 +791,7 @@ abstract class Stream<T> {
     bool foundResult = false;
     StreamSubscription subscription;
     subscription = this.listen(
-      // TODO(ahe): Restore type when feature is implemented in dart2js
-      // checked mode. http://dartbug.com/7733
-      (/*T*/ value) {
+      (T value) {
         _runUserCode(
           () => true == test(value),
           (bool isMatch) {
@@ -862,9 +834,7 @@ abstract class Stream<T> {
     _FutureImpl<T> future = new _FutureImpl<T>();
     StreamSubscription subscription;
     subscription = this.listen(
-      // TODO(ahe): Restore type when feature is implemented in dart2js
-      // checked mode. http://dartbug.com/7733
-      (/*T*/ value) {
+      (T value) {
         if (index == 0) {
           subscription.cancel();
           future._setValue(value);
