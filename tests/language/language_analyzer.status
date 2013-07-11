@@ -89,7 +89,6 @@ mixin_illegal_cycles_test/06: fail
 mixin_illegal_syntax_test/13: fail
 mixin_type_parameters_errors_test/01: fail
 mixin_type_parameters_errors_test/02: fail
-mixin_type_parameters_errors_test/03: fail
 mixin_type_parameters_errors_test/04: fail
 mixin_type_parameters_errors_test/05: fail
 named_parameters2_test: fail
@@ -230,6 +229,12 @@ method_override3_test: fail # issue 11497
 method_override4_test: fail # issue 11497
 method_override5_test: fail # issue 11497
 method_override6_test: fail # issue 11497
+
+# testing framework problem: we do report warning, framework does not understand it
+# may be https://codereview.chromium.org/18174010/ will fix this
+mixin_type_parameters_errors_test/03: fail
+type_variable_bounds_test/08: fail
+wrong_number_type_arguments_test/01: fail
 
 [ $compiler == dartanalyzer && $checked ]
 factory1_test/00: fail
