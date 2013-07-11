@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Test canonicalization of simple arithmetic equivalences.
+// VMOptions=--optimization-counter-threshold=20 --no-use-osr
 
 import "package:expect/expect.dart";
 
 main() {
-  for (var i = 0; i < 5000; i++) {
+  for (var i = 0; i < 50; i++) {
     Expect.isTrue(mul1double(i) is double);
     Expect.equals(i.toDouble(), mul1double(i));
     Expect.equals(0.0, mul0double(i));

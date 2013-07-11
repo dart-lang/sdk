@@ -4,6 +4,7 @@
 
 // Test that branch fusion correctly sets branch environment for comparisons
 // that require unboxing and does not fuse branches that can deoptimize.
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr
 
 import "package:expect/expect.dart";
 
@@ -48,7 +49,7 @@ main () {
   final a = 1.0;
   final b = 1 << 62;
   final x = new A(), y = new B(), z = new C();
-  for (var i = 0; i < 10000; i++) {
+  for (var i = 0; i < 20; i++) {
     Expect.equals(1, fooDouble(a, a));
     Expect.isTrue(sideEffect);
     Expect.equals(0, fooMint(b, 0));

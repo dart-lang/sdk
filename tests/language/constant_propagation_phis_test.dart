@@ -1,6 +1,7 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+// VMOptions=--optimization-counter-threshold=10
 
 import "package:expect/expect.dart";
 
@@ -11,7 +12,7 @@ final keys = const ["keyA"];
 final values = const ["a"];
 
 main() {
-  for (var i = 0; i < 10000; i++) test(keys[0]);
+  for (var i = 0; i < 20; i++) test(keys[0]);
 }
 
 test(key) {

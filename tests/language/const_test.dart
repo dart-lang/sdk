@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Check const classes.
+// VMOptions=--optimization-counter-threshold=10
 
 import "package:expect/expect.dart";
 
@@ -17,7 +18,7 @@ class BConst {
   get foo { return 5; }
 
   operator [](ix) { return ix; }
-  operator []=(ix, value) {}  
+  operator []=(ix, value) {}
 }
 
 
@@ -34,7 +35,7 @@ testMain() {
 
 
 main() {
-  for (int i = 0; i < 1000; i++) {
+  for (int i = 0; i < 20; i++) {
     testMain();
   }
 }
