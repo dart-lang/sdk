@@ -308,6 +308,7 @@ class BaseTypes {
   final ClassBaseType mapBaseType;
   final ClassBaseType objectBaseType;
   final ClassBaseType typeBaseType;
+  final ClassBaseType functionBaseType;
 
   BaseTypes(Compiler compiler) :
     intBaseType = new ClassBaseType(compiler.backend.intImplementation),
@@ -324,7 +325,9 @@ class BaseTypes {
         new ClassBaseType(compiler.backend.constListImplementation),
     mapBaseType = new ClassBaseType(compiler.backend.mapImplementation),
     objectBaseType = new ClassBaseType(compiler.objectClass),
-    typeBaseType = new ClassBaseType(compiler.backend.typeImplementation);
+    typeBaseType = new ClassBaseType(compiler.backend.typeImplementation),
+    functionBaseType
+        = new ClassBaseType(compiler.backend.functionImplementation);
 }
 
 /**
@@ -1702,12 +1705,34 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     return result;
   }
 
+  void analyzeClosure(FunctionExpression node) {
+    for (VariableDefinitions definitions in node.parameters) {
+      for (Node parameter in definitions.definitions) {
+        environment = environment.put(elements[parameter],
+            inferrer.unknownConcreteType);
+      }
+    }
+    analyze(node.body);
+  }
+
   ConcreteType visitFunctionDeclaration(FunctionDeclaration node) {
-    inferrer.fail(node, 'not yet implemented');
+    analyzeClosure(node.function);
+    environment = environment.put(elements[node],
+        inferrer.singletonConcreteType(inferrer.baseTypes.functionBaseType));
+    return inferrer.emptyConcreteType;
   }
 
   ConcreteType visitFunctionExpression(FunctionExpression node) {
-    return analyze(node.body);
+    // Naive handling of closures: we assume their body is always executed,
+    // and that each of their arguments has type dynamic.
+    // TODO(polux): treat closures as classes
+    if (node.name == null) {
+      analyzeClosure(node);
+      return inferrer.singletonConcreteType(
+          inferrer.baseTypes.functionBaseType);
+    } else {
+      return analyze(node.body);
+    }
   }
 
   ConcreteType visitIdentifier(Identifier node) {
@@ -2206,7 +2231,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   ConcreteType visitClosureSend(Send node) {
-    inferrer.fail(node, 'not implemented');
+    return inferrer.unknownConcreteType;
   }
 
   ConcreteType analyzeDynamicSend(Selector selector,

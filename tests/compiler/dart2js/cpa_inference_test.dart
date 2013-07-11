@@ -48,6 +48,7 @@ class AnalysisResult {
   BaseType growableList;
   BaseType map;
   BaseType nullType;
+  BaseType functionType;
 
   AnalysisResult(MockCompiler compiler) : this.compiler = compiler {
     inferrer = compiler.typesTask.concreteTypesInferrer;
@@ -60,6 +61,7 @@ class AnalysisResult {
     growableList = inferrer.baseTypes.growableListBaseType;
     map = inferrer.baseTypes.mapBaseType;
     nullType = const NullBaseType();
+    functionType = inferrer.baseTypes.functionBaseType;
     Element mainElement = compiler.mainApp.find(buildSourceString('main'));
     ast = mainElement.parseNode(compiler);
   }
@@ -1497,6 +1499,56 @@ testMixins() {
   result.checkNodeHasType('w', [result.int]);
 }
 
+testClosures() {
+  final String source = r"""
+      class A {
+        final foo = 42;
+      }
+      class B {
+        final foo = "abc";
+      }
+      main() {
+        new A(); new B();
+
+        var a;
+        var f = (x) {
+          a = x.foo;
+        };
+        var b = f(42);
+        a; b; f;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('a', [result.int, result.string]);
+  result.checkNodeHasType('f', [result.functionType]);
+  result.checkNodeHasUnknownType('b');
+}
+
+testNestedFunctions() {
+  final String source = r"""
+      class A {
+        final foo = 42;
+      }
+      class B {
+        final foo = "abc";
+      }
+      main() {
+        new A(); new B();
+
+        var a;
+        f(x) {
+          a = x.foo;
+        }
+        var b = f(42);
+        a; b; f;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('a', [result.int, result.string]);
+  result.checkNodeHasType('f', [result.functionType]);
+  result.checkNodeHasUnknownType('b');
+}
+
 void main() {
   testDynamicBackDoor();
   testVariableDeclaration();
@@ -1553,4 +1605,6 @@ void main() {
   testConcreteTypeToTypeMask();
   testSelectors();
   testMixins();
+  testClosures();
+  testNestedFunctions();
 }
