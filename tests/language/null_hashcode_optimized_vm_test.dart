@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Test that optimized Object.hashCode works for the null receiver.
-// VMOptions=--optimization_counter_threshold=100
+// VMOptions=--optimization_counter_threshold=10
 
 main() {
-  for (int i = 0; i < 200; i++) {
+  for (int i = 0; i < 20; i++) {
     foo(null);
   }
 }

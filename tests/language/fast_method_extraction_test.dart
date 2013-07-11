@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Test that fast method extraction returns correct closure.
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr
 
 import "package:expect/expect.dart";
 
@@ -74,32 +75,32 @@ extractFromNull() {
 main() {
   var a = new A(2);
   var b = new B(2);
-  for (var i = 0; i < 10000; i++) {
+  for (var i = 0; i < 20; i++) {
     Expect.equals(42, mono(a));
   }
 
-  for (var i = 0; i < 10000; i++) {
+  for (var i = 0; i < 20; i++) {
     Expect.equals(42, poly(a));
     Expect.equals(-42, poly(b));
   }
 
   var c = new C<X>();
   var x = new X();
-  for (var i = 0; i < 10000; i++) {
+  for (var i = 0; i < 20; i++) {
     types(c, x);
   }
 
   var chaA = new ChaA("magicA");
-  for (var i = 0; i < 10000; i++) {
+  for (var i = 0; i < 20; i++) {
     Expect.equals("A", cha(chaA));
   }
 
   var chaB = new ChaB("magicB");
-  for (var i = 0; i < 10000; i++) {
+  for (var i = 0; i < 20; i++) {
     Expect.equals("B", cha(chaB));
   }
 
-  for (var i = 0; i < 10000; i++) {
+  for (var i = 0; i < 20; i++) {
     extractFromNull();
   }
 }

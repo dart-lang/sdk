@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Dart test optimization of modulo operator on Smi.
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr
 
 import "package:expect/expect.dart";
 
 
 main() {
-  for (int i = -3000; i < 3000; i++) {
+  for (int i = -30; i < 30; i++) {
     Expect.equals(i % 256, foo(i));
     Expect.equals(i % -256, boo(i));
     try {

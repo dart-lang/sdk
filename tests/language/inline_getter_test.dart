@@ -4,6 +4,7 @@
 // Test inlining of instance getters.
 // Three classes access always the same field. Optimize method foo and inline
 // getter for classes 'A' and 'B'. Call later via 'C' and cause deoptimization.
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr
 
 import "package:expect/expect.dart";
 
@@ -28,13 +29,13 @@ class InlineGetterTest {
     var a = new A(1);
     var b = new B();
     int sum = 0;
-    for (int i = 0; i < 5000; i++) {
+    for (int i = 0; i < 20; i++) {
       sum += a.foo();
       sum += b.foo();
     }
     var c = new C();
     sum += c.foo();  // <-- Deoptimizing.
-    Expect.equals(15010, sum);
+    Expect.equals(70, sum);
   }
 }
 

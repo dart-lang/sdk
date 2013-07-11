@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing compilation of large implicit getters.
+// VMOptions=--optimization-counter-threshold=10
 
 List<List> panels = [
 [6853.940039224797,6050.837897021371]
@@ -1369,7 +1370,7 @@ List<List> panels = [
 
 
 main() {
-  for (int i = 0; i < 6000; i++) {
+  for (int i = 0; i < 20; i++) {
     var y = panels.length;
   }
 }

@@ -1,6 +1,7 @@
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr
 
 import "package:expect/expect.dart";
 
@@ -13,7 +14,7 @@ int testConstantStringAndIndexCodeUnitAt() {
   }
 
   Expect.throws(() => test(true));
-  for (int i = 0; i < 10000; i++) test(false);
+  for (int i = 0; i < 20; i++) test(false);
   Expect.throws(() => test(true));
 }
 
@@ -32,11 +33,11 @@ int testConstantArrayAndIndexAt() {
   }
 
   Expect.throws(() => testPositive(true));
-  for (int i = 0; i < 10000; i++) testPositive(false);
+  for (int i = 0; i < 20; i++) testPositive(false);
   Expect.throws(() => testPositive(true));
 
   Expect.throws(() => testNegative(true));
-  for (int i = 0; i < 10000; i++) testNegative(false);
+  for (int i = 0; i < 20; i++) testNegative(false);
   Expect.throws(() => testNegative(true));
 }
 
@@ -49,7 +50,7 @@ foo(a) {
 
 
 int testNonSmiIndex() {
-  for (int i = 0; i < 10000; i++) { foo(1); }
+  for (int i = 0; i < 20; i++) { foo(1); }
   Expect.throws(() => foo(2));
 }
 

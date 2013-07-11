@@ -1,7 +1,7 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--optimization-counter-threshold=100
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr
 
 import "package:expect/expect.dart";
 
@@ -47,31 +47,31 @@ class C {
 
 main() {
   var a = new A();
-  for (var i = 0; i < 100; ++i) Expect.equals(123, a.foo());
+  for (var i = 0; i < 20; ++i) Expect.equals(123, a.foo());
   Expect.throws(() => (a.foo)());
   Expect.equals("123", (a.foo).toString());
 
   var b = new B();
-  for (var i = 0; i < 100; ++i) {
+  for (var i = 0; i < 20; ++i) {
     Expect.equals(2, b.bar(1));
     Expect.equals(123, b.bar());
     Expect.equals(2, b.bar(1));
   }
 
-  for (var i = 0; i < 100; ++i) {
+  for (var i = 0; i < 20; ++i) {
     Expect.equals(123, b.bar(1,2,3));
     Expect.equals(123, b.bar(1,2,foo:3));
   }
 
   // Test named and positional arguments.
   var c = new C(1, 2, [100], {"n1":101, "n2":102});
-  for (var i = 0; i < 100; ++i) {
+  for (var i = 0; i < 20; ++i) {
     Expect.equals(123, c.bar(100, n1:101, n2:102));
     Expect.equals(123, c.bar(100, n2:102, n1:101));
   }
 
   // Test NoSuchMethodError message.
-  for (var i = 0; i < 100; i++) testMessage();
+  for (var i = 0; i < 20; i++) testMessage();
 
 }
 

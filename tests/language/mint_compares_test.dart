@@ -1,6 +1,7 @@
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+// VMOptions=--optimization-counter-threshold=10
 
 import "package:expect/expect.dart";
 
@@ -90,7 +91,7 @@ bool gt2(a, b) => a > b ? true : false;
 bool gte2(a, b) => a >= b ? true : false;
 
 main() {
-  for (var i = 0; i < 1000; i++) {
+  for (var i = 0; i < 20; i++) {
     compareTest();
     compareTest2(lt1, lte1, gt1, gte1);
     compareTest2(lt2, lte2, gt2, gte2);

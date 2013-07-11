@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check that our SSA graph does have the try body a predecessor of a
 // try/finally.
+// VMOptions=--optimization-counter-threshold=10
 
 import "package:expect/expect.dart";
 
@@ -30,7 +31,7 @@ foo1() {
 }
 
 main() {
-  for (var i = 0; i < 2000; i++) {
+  for (var i = 0; i < 20; i++) {
     a = 0;
     Expect.isTrue(foo1());
   }

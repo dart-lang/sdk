@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Test various setter situations, testing special cases in optimizing compiler.
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr
 
 import "package:expect/expect.dart";
 
@@ -21,7 +22,7 @@ void sameImplicitSetter() {
   A a = new A();
   B b = new B();
   // Optimize 'oneTarget' for one class, one target.
-  for (int i = 0; i < 2000; i++) {
+  for (int i = 0; i < 20; i++) {
     oneTarget(a, 5);
     Expect.equals(5, a.field);
   }
@@ -29,7 +30,7 @@ void sameImplicitSetter() {
   oneTarget(b, 6);
   Expect.equals(6, b.field);
   // Optimize 'oneTarget' for A and B classes, one target.
-  for (int i = 0; i < 2000; i++) {
+  for (int i = 0; i < 20; i++) {
     oneTarget(a, 7);
     Expect.equals(7, a.field);
   }
@@ -48,7 +49,7 @@ void setterNoFeedback() {
   }
 
   A a = new A();
-  for (int i = 0; i < 2000; i++) {
+  for (int i = 0; i < 20; i++) {
     var r = maybeSet(a, 5, false);
     Expect.equals(0, a.field);
     Expect.equals(-1, r);
@@ -56,7 +57,7 @@ void setterNoFeedback() {
   var r = maybeSet(a, 5, true);
   Expect.equals(5, a.field);
   Expect.equals(5, r);
-  for (int i = 0; i < 2000; i++) {
+  for (int i = 0; i < 20; i++) {
     var r = maybeSet(a, 6, true);
     Expect.equals(6, a.field);
     Expect.equals(6, r);
@@ -80,13 +81,13 @@ void sameNotImplicitSetter() {
   }
 
   X x = new X();
-  for (int i = 0; i < 2000; i++) {
+  for (int i = 0; i < 20; i++) {
     var r = oneTarget(x, 3);
     Expect.equals(3, x.pField);
     Expect.equals(3, r);
   }
   oneTarget(x, 0);
-  for (int i = 0; i < 2000; i++) {
+  for (int i = 0; i < 20; i++) {
     incField(x);
   }
   Expect.equals(11, x.pField);
@@ -105,14 +106,14 @@ multiImplicitSetter() {
   // Both classes 'Y' and 'A' have a distinct field getter.
   A a = new A();
   Y y = new Y();
-  for (int i = 0; i < 2000; i++) {
+  for (int i = 0; i < 20; i++) {
     var r = oneTarget(a, 5);
     Expect.equals(5, a.field);
     Expect.equals(5, r);
     r = oneTarget(y, 6);
     Expect.equals(6, y.field);
     Expect.equals(6, r);
-  } 
+  }
 }
 
 class Z {
@@ -128,7 +129,7 @@ multiNotImplicitSetter() {
 
   Y y = new Y();
   Z z = new Z();
-  for (int i = 0; i < 2000; i++) {
+  for (int i = 0; i < 20; i++) {
     var r = oneTarget(y, 8);
     Expect.equals(8, y.field);
     Expect.equals(8, r);
@@ -143,7 +144,7 @@ multiNotImplicitSetter() {
 }
 
 void main() {
-  for (int i = 0; i< 2000; i++) {}
+  for (int i = 0; i< 20; i++) {}
   sameImplicitSetter();
   setterNoFeedback();
   sameNotImplicitSetter();

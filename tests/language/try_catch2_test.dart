@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing try/catch statement without any exceptions
 // being thrown. (Nested try/catch blocks).
+// VMOptions=--optimization-counter-threshold=10
 
 import "package:expect/expect.dart";
 
@@ -61,7 +62,7 @@ class TryCatch2Test {
 }
 
 main() {
-  for (var i = 0; i < 2000; i++) {
+  for (var i = 0; i < 20; i++) {
     TryCatch2Test.testMain();
   }
 }

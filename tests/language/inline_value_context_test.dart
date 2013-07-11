@@ -4,6 +4,7 @@
 // Test inlining of simple function with control flow in a value context.
 // Optimize function foo with instance of A and inlined function bar. Call later
 // with instance of B and cause deoptimization.
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr
 
 import "package:expect/expect.dart";
 
@@ -34,8 +35,8 @@ int foo(o) {
 main() {
   var o = new A();
   int sum = 0;
-  for (int i = 0; i < 5000; i++) sum += foo(o);
+  for (int i = 0; i < 20; i++) sum += foo(o);
   o = new B();
   sum += foo(o);  // <-- Cause deoptimization of bar within foo.
-  Expect.equals(5000, sum);
+  Expect.equals(20, sum);
 }

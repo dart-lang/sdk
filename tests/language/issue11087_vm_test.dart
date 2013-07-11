@@ -5,6 +5,8 @@
 // Regression test for VM's IfConverted pass not keeping graph structure and
 // use lists in sync.
 
+// VMOptions=--optimization-counter-threshold=10
+
 class A {
   int x;
 }
@@ -16,6 +18,6 @@ f() {
 }
 
 main() {
-  for (var i = 0; i < 10000; i++) f();
+  for (var i = 0; i < 20; i++) f();
 }
 

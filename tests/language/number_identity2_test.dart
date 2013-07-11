@@ -5,11 +5,12 @@
 //
 // Contains test that is failing on dart2js. Merge this test with
 // 'number_identity_test.dart' once fixed.
+// VMOptions=--optimization-counter-threshold=10
 
 import "package:expect/expect.dart";
 
 main() {
-  for (int i = 0; i < 1000; i++) testNumberIdentity();
+  for (int i = 0; i < 20; i++) testNumberIdentity();
 }
 
 

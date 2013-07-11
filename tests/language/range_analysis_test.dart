@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for constructors and initializers.
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr
 
 import "package:expect/expect.dart";
 
@@ -20,7 +21,7 @@ bar() {
 }
 
 test1() {
-  for (var i = 0; i < 1000; i++) bar();
+  for (var i = 0; i < 20; i++) bar();
 }
 
 // Check that range analysis does not erroneously remove overflow check.
@@ -84,7 +85,7 @@ h(n) {
   for (i = 0; i < n; i++) {
     if (i < 0) throw "unreachable";
     var j = i - 1;
-    if (j >= n - 1) throw "unreachable"; 
+    if (j >= n - 1) throw "unreachable";
   }
   return i;
 }
@@ -94,22 +95,22 @@ test3() {
   test_fun(fun) {
     Expect.equals(2, fun(0, 1));
     Expect.equals(3, fun(0, 0));
-    for (var i = 0; i < 2000; i++) fun(0, 1);
+    for (var i = 0; i < 20; i++) fun(0, 1);
     Expect.equals(2, fun(0, 1));
     Expect.equals(3, fun(0, 0));
   }
-  
+
   test_fun(f);
   test_fun(f1);
   test_fun(f2);
 
   Expect.equals(10, g());
-  for (var i = 0; i < 2000; i++) g();
+  for (var i = 0; i < 20; i++) g();
   Expect.equals(10, g());
 
 
   Expect.equals(10, h(10));
-  for (var i = 0; i < 2000; i++) h(10);
+  for (var i = 0; i < 20; i++) h(10);
   Expect.equals(10, h(10));
 }
 

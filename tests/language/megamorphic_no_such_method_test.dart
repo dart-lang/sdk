@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Test program for correct optimizations related to types fo allocated lists.
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr
 
 import "package:expect/expect.dart";
 
@@ -50,14 +51,14 @@ class A9 {
 class B { }
 
 test(obj) {
-  return obj.test(); 
+  return obj.test();
 }
 
 main() {
   // Trigger optimization of 'test' function.
   List list = [new A0(), new A1(), new A2(), new A3(), new A4(),
                new A5(), new A6(), new A7(), new A8(), new A9()];
-  for (int i = 0; i < 1000; i++) {
+  for (int i = 0; i < 20; i++) {
     for (var obj in list) {
       test(obj);
     }
