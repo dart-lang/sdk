@@ -773,7 +773,8 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
       node_sequence = parser.ParseMethodExtractor(func);
       break;
     case RawFunction::kNoSuchMethodDispatcher:
-      node_sequence = parser.ParseNoSuchMethodDispatcher(func);
+      node_sequence =
+          parser.ParseNoSuchMethodDispatcher(func, default_parameter_values);
       break;
     default:
       UNREACHABLE();
@@ -1107,7 +1108,8 @@ SequenceNode* Parser::ParseMethodExtractor(const Function& func) {
 }
 
 
-SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func) {
+SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func,
+                                                  Array& default_values) {
   TRACE_PARSER("ParseNoSuchMethodDispatcher");
 
   ASSERT(func.IsNoSuchMethodDispatcher());
@@ -1117,17 +1119,35 @@ SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func) {
 
   ArgumentsDescriptor desc(Array::Handle(func.saved_args_desc()));
   ASSERT(desc.Count() > 0);
+
+  // Create parameter list. Receiver first.
   ParamList params;
   params.AddReceiver(ReceiverType(), token_pos);
-  for (intptr_t i = 1; i < desc.Count(); ++i) {
+
+  // Remaining positional parameters.
+  intptr_t i = 1;
+  for (; i < desc.PositionalCount(); ++i) {
     ParamDesc p;
     char name[64];
     OS::SNPrint(name, 64, ":p%"Pd, i);
     p.name = &String::ZoneHandle(Symbols::New(name));
     p.type = &Type::ZoneHandle(Type::DynamicType());
     params.parameters->Add(p);
+    params.num_fixed_parameters++;
   }
-  ASSERT(!func.HasOptionalParameters());
+  // Named parameters.
+  for (; i < desc.Count(); ++i) {
+    ParamDesc p;
+    intptr_t index = i - desc.PositionalCount();
+    p.name = &String::ZoneHandle(desc.NameAt(index));
+    p.type = &Type::ZoneHandle(Type::DynamicType());
+    p.default_value = &Object::ZoneHandle();
+    params.parameters->Add(p);
+    params.num_optional_parameters++;
+    params.has_optional_named_parameters = true;
+  }
+
+  SetupDefaultsForOptionalParams(&params, default_values);
 
   // Build local scope for function and populate with the formal parameters.
   OpenFunctionBlock(func);
@@ -1138,6 +1158,15 @@ SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func) {
   ArgumentListNode* func_args = new ArgumentListNode(token_pos);
   for (intptr_t i = 0; i < desc.Count(); ++i) {
     func_args->Add(new LoadLocalNode(token_pos, scope->VariableAt(i)));
+  }
+
+  if (params.num_optional_parameters > 0) {
+    const Array& arg_names =
+        Array::ZoneHandle(Array::New(params.num_optional_parameters));
+    for (intptr_t i = 0; i < arg_names.Length(); ++i) {
+      arg_names.SetAt(i, String::Handle(desc.NameAt(i)));
+    }
+    func_args->set_names(arg_names);
   }
 
   const String& func_name = String::ZoneHandle(func.name());

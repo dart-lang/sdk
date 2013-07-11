@@ -1827,7 +1827,7 @@ RawFunction* Class::GetNoSuchMethodDispatcher(const String& target_name,
 
 
 RawFunction* Class::CreateNoSuchMethodDispatcher(const String& target_name,
-                                              const Array& args_desc) const {
+                                                 const Array& args_desc) const {
   Function& invocation = Function::Handle(
       Function::New(String::Handle(Symbols::New(target_name)),
                     RawFunction::kNoSuchMethodDispatcher,
@@ -1838,22 +1838,30 @@ RawFunction* Class::CreateNoSuchMethodDispatcher(const String& target_name,
                     *this,
                     0));  // No token position.
   ArgumentsDescriptor desc(args_desc);
-  const intptr_t num_parameters = desc.Count();
-  invocation.set_num_fixed_parameters(num_parameters);
-  invocation.SetNumOptionalParameters(0, true);
-  invocation.set_parameter_types(Array::Handle(Array::New(num_parameters,
+  invocation.set_num_fixed_parameters(desc.PositionalCount());
+  invocation.SetNumOptionalParameters(desc.NamedCount(),
+                                      false);  // Not positional.
+  invocation.set_parameter_types(Array::Handle(Array::New(desc.Count(),
                                                          Heap::kOld)));
-  invocation.set_parameter_names(Array::Handle(Array::New(num_parameters,
+  invocation.set_parameter_names(Array::Handle(Array::New(desc.Count(),
                                                          Heap::kOld)));
   // Receiver.
   invocation.SetParameterTypeAt(0, Type::Handle(Type::DynamicType()));
   invocation.SetParameterNameAt(0, Symbols::This());
-  // Remaining parameters.
-  for (intptr_t i = 1; i < num_parameters; i++) {
+  // Remaining positional parameters.
+  intptr_t i = 1;
+  for (; i < desc.PositionalCount(); i++) {
     invocation.SetParameterTypeAt(i, Type::Handle(Type::DynamicType()));
     char name[64];
     OS::SNPrint(name, 64, ":p%"Pd, i);
     invocation.SetParameterNameAt(i, String::Handle(Symbols::New(name)));
+  }
+
+  // Named parameters.
+  for (; i < desc.Count(); i++) {
+    invocation.SetParameterTypeAt(i, Type::Handle(Type::DynamicType()));
+    intptr_t index = i - desc.PositionalCount();
+    invocation.SetParameterNameAt(i, String::Handle(desc.NameAt(index)));
   }
   invocation.set_result_type(Type::Handle(Type::DynamicType()));
   invocation.set_is_visible(false);  // Not visible in stack trace.

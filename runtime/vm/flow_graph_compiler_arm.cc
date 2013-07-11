@@ -1131,8 +1131,7 @@ void FlowGraphCompiler::CompileGraph() {
     const bool check_arguments = !flow_graph().IsCompiledForOsr();
 #else
     const bool check_arguments =
-        (function.IsClosureFunction() || function.IsNoSuchMethodDispatcher()) &&
-        !flow_graph().IsCompiledForOsr();
+        function.IsClosureFunction() && !flow_graph().IsCompiledForOsr();
 #endif
     if (check_arguments) {
       __ Comment("Check argument count");
@@ -1146,7 +1145,7 @@ void FlowGraphCompiler::CompileGraph() {
       __ cmp(R0, ShifterOperand(R1));
       __ b(&correct_num_arguments, EQ);
       __ Bind(&wrong_num_arguments);
-      if (function.IsClosureFunction() || function.IsNoSuchMethodDispatcher()) {
+      if (function.IsClosureFunction()) {
         // Invoke noSuchMethod function passing the original function name.
         // For closure functions, use "call" as the original name.
         const String& name =

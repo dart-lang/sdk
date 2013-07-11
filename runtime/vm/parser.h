@@ -435,7 +435,8 @@ class Parser : public ValueObject {
   SequenceNode* ParseInstanceSetter(const Function& func);
   SequenceNode* ParseStaticConstGetter(const Function& func);
   SequenceNode* ParseMethodExtractor(const Function& func);
-  SequenceNode* ParseNoSuchMethodDispatcher(const Function& func);
+  SequenceNode* ParseNoSuchMethodDispatcher(const Function& func,
+                                            Array& default_values);
 
   void ChainNewBlock(LocalScope* outer_scope);
   void OpenBlock();
