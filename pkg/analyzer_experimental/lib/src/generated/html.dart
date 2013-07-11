@@ -534,7 +534,7 @@ abstract class AbstractScanner {
   }
   void scan() {
     bool inBrackets = false;
-    bool passThrough = false;
+    String endPassThrough = null;
     int c = advance();
     while (c >= 0) {
       int start = offset;
@@ -606,7 +606,7 @@ abstract class AbstractScanner {
             String tag = _tail.lexeme;
             for (String str in _passThroughElements) {
               if (str == tag) {
-                passThrough = true;
+                endPassThrough = "</${str}>";
                 break;
               }
             }
@@ -616,14 +616,39 @@ abstract class AbstractScanner {
         emit2(TokenType.GT, start);
         inBrackets = false;
         c = advance();
-        if (passThrough) {
-          while (c >= 0 && (c != 0x3C || peek() != 0x2F)) {
+        if (endPassThrough != null) {
+          bool endFound = false;
+          int len = endPassThrough.length;
+          int firstC = endPassThrough.codeUnitAt(0);
+          int index = 0;
+          int nextC = firstC;
+          while (c >= 0) {
+            if (c == nextC) {
+              index++;
+              if (index == len) {
+                endFound = true;
+                break;
+              }
+              nextC = endPassThrough.codeUnitAt(index);
+            } else if (c == firstC) {
+              index = 1;
+              nextC = endPassThrough.codeUnitAt(1);
+            } else {
+              index = 0;
+              nextC = firstC;
+            }
             c = recordStartOfLineAndAdvance(c);
           }
           if (start + 1 < offset) {
-            emit3(TokenType.TEXT, start + 1, -1);
+            if (endFound) {
+              emit3(TokenType.TEXT, start + 1, -len);
+              emit2(TokenType.LT_SLASH, offset - len + 1);
+              emit3(TokenType.TAG, offset - len + 3, -1);
+            } else {
+              emit3(TokenType.TEXT, start + 1, -1);
+            }
           }
-          passThrough = false;
+          endPassThrough = null;
         }
       } else if (c == 0x2F && peek() == 0x3E) {
         advance();
@@ -916,7 +941,19 @@ class TokenType implements Comparable<TokenType> {
   static final TokenType STRING = new TokenType('STRING', 9, null);
   static final TokenType TAG = new TokenType('TAG', 10, null);
   static final TokenType TEXT = new TokenType('TEXT', 11, null);
-  static final List<TokenType> values = [EOF, EQ, GT, LT_SLASH, LT, SLASH_GT, COMMENT, DECLARATION, DIRECTIVE, STRING, TAG, TEXT];
+  static final List<TokenType> values = [
+      EOF,
+      EQ,
+      GT,
+      LT_SLASH,
+      LT,
+      SLASH_GT,
+      COMMENT,
+      DECLARATION,
+      DIRECTIVE,
+      STRING,
+      TAG,
+      TEXT];
 
   /// The name of this enum constant, as declared in the enum declaration.
   final String name;

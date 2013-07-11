@@ -10,9 +10,6 @@ Language/06_Functions/2_Formal_Parameters_A02_t02: fail
 # not clear: null..[1](1)[2](2).foo(3, bar: 4)=5 - it seems that verything before =5 it not assignable
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: fail
 
-# not initialized final instance variable, should be static warning
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: fail
-
 # invalid argument for constant constructor
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: fail
 Language/11_Expressions/01_Constants_A16_t03: fail
@@ -119,10 +116,6 @@ Language/05_Variables/05_Variables_A12_t06: fail, OK
 Language/05_Variables/05_Variables_A13_t01: fail, OK
 Language/07_Classes/07_Classes_A02_t11: fail, OK
 
-# co19 issue 459, FallThroughError is no longer const
-LibTest/core/FallThroughError/toString_A01_t01: Fail
-LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail
-
 # co19 issue #429, It is a compile-time error if a formal parameter is declared as a constant variable
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t07: fail, OK
 
@@ -195,6 +188,10 @@ LibTest/core/AssertionError/failedAssertion_A01_t01: fail, OK
 LibTest/core/AssertionError/line_A01_t02: fail, OK
 LibTest/core/AssertionError/url_A01_t01: fail, OK
 
+# co19 issue 459, FallThroughError is no longer const
+LibTest/core/FallThroughError/toString_A01_t01: Fail
+LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail
+
 # co19 issue #437, annotation should be constant _variable_ or constant constructor invocation
 Language/07_Classes/07_Classes_A01_t20: fail, OK
 Language/07_Classes/07_Classes_A02_t34: fail, OK
@@ -214,3 +211,19 @@ Language/13_Libraries_and_Scripts/5_URIs_A01_t25: fail, OK
 
 # co19 issue #441, assignment in constructor is not initializing
 Language/05_Variables/05_Variables_A05_t04: fail, OK
+
+# co19 issue #462, const instance creation with invalid arguments is error
+Language/11_Expressions/11_Instance_Creation/2_Const_A09_t02: fail, OK
+Language/11_Expressions/11_Instance_Creation/2_Const_A09_t03: fail, OK
+
+# co19 issue #464, not initialized final instance variable is warning, not error
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: fail
+
+# co19 issue #465, any use of a malbounded type gives rise to a static warning.
+Language/11_Expressions/11_Instance_Creation/1_New_A05_t01: fail, OK
+Language/11_Expressions/11_Instance_Creation/1_New_A05_t02: fail, OK
+Language/11_Expressions/11_Instance_Creation/1_New_A05_t03: fail, OK
+Language/11_Expressions/11_Instance_Creation_A03_t01: fail, OK
+Language/11_Expressions/11_Instance_Creation_A04_t01: fail, OK
+Language/11_Expressions/11_Instance_Creation_A04_t02: fail, OK
+

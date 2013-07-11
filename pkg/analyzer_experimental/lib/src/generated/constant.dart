@@ -1101,11 +1101,11 @@ class ValidResult extends EvaluationResultImpl {
   }
   EvaluationResultImpl addToError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
   EvaluationResultImpl addToValid(BinaryExpression node, ValidResult leftOperand2) {
-    if (isSomeNum || leftOperand2.isSomeNum) {
-      if (isAnyNum && leftOperand2.isAnyNum) {
-        return RESULT_NUM;
-      }
+    if (!isAnyNum || !leftOperand2.isAnyNum) {
       return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+    }
+    if (isSomeNum || leftOperand2.isSomeNum) {
+      return RESULT_NUM;
     }
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
@@ -1133,11 +1133,11 @@ class ValidResult extends EvaluationResultImpl {
   }
   EvaluationResultImpl bitAndError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
   EvaluationResultImpl bitAndValid(BinaryExpression node, ValidResult leftOperand2) {
-    if (isSomeInt || leftOperand2.isSomeInt) {
-      if (isAnyInt && leftOperand2.isAnyInt) {
-        return RESULT_INT;
-      }
+    if (!isAnyInt || !leftOperand2.isAnyInt) {
       return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_INT);
+    }
+    if (isSomeInt || leftOperand2.isSomeInt) {
+      return RESULT_INT;
     }
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
@@ -1157,11 +1157,11 @@ class ValidResult extends EvaluationResultImpl {
   }
   EvaluationResultImpl bitOrError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
   EvaluationResultImpl bitOrValid(BinaryExpression node, ValidResult leftOperand2) {
-    if (isSomeInt || leftOperand2.isSomeInt) {
-      if (isAnyInt && leftOperand2.isAnyInt) {
-        return RESULT_INT;
-      }
+    if (!isAnyInt || !leftOperand2.isAnyInt) {
       return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_INT);
+    }
+    if (isSomeInt || leftOperand2.isSomeInt) {
+      return RESULT_INT;
     }
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
@@ -1181,11 +1181,11 @@ class ValidResult extends EvaluationResultImpl {
   }
   EvaluationResultImpl bitXorError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
   EvaluationResultImpl bitXorValid(BinaryExpression node, ValidResult leftOperand2) {
-    if (isSomeInt || leftOperand2.isSomeInt) {
-      if (isAnyInt && leftOperand2.isAnyInt) {
-        return RESULT_INT;
-      }
+    if (!isAnyInt || !leftOperand2.isAnyInt) {
       return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_INT);
+    }
+    if (isSomeInt || leftOperand2.isSomeInt) {
+      return RESULT_INT;
     }
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
@@ -1213,11 +1213,11 @@ class ValidResult extends EvaluationResultImpl {
   }
   EvaluationResultImpl divideError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
   EvaluationResultImpl divideValid(BinaryExpression node, ValidResult leftOperand2) {
-    if (isSomeNum || leftOperand2.isSomeNum) {
-      if (isAnyNum && leftOperand2.isAnyNum) {
-        return RESULT_NUM;
-      }
+    if (!isAnyNum || !leftOperand2.isAnyNum) {
       return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+    }
+    if (isSomeNum || leftOperand2.isSomeNum) {
+      return RESULT_NUM;
     }
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
@@ -1282,11 +1282,11 @@ class ValidResult extends EvaluationResultImpl {
   EvaluationResultImpl greaterThanError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
   EvaluationResultImpl greaterThanOrEqualError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
   EvaluationResultImpl greaterThanOrEqualValid(BinaryExpression node, ValidResult leftOperand2) {
-    if (isSomeNum || leftOperand2.isSomeNum) {
-      if (isAnyNum && leftOperand2.isAnyNum) {
-        return RESULT_BOOL;
-      }
+    if (!isAnyNum || !leftOperand2.isAnyNum) {
       return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+    }
+    if (isSomeNum || leftOperand2.isSomeNum) {
+      return RESULT_BOOL;
     }
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
@@ -1309,11 +1309,11 @@ class ValidResult extends EvaluationResultImpl {
     return error(node);
   }
   EvaluationResultImpl greaterThanValid(BinaryExpression node, ValidResult leftOperand2) {
-    if (isSomeNum || leftOperand2.isSomeNum) {
-      if (isAnyNum && leftOperand2.isAnyNum) {
-        return RESULT_BOOL;
-      }
+    if (!isAnyNum || !leftOperand2.isAnyNum) {
       return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+    }
+    if (isSomeNum || leftOperand2.isSomeNum) {
+      return RESULT_BOOL;
     }
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
@@ -1337,11 +1337,11 @@ class ValidResult extends EvaluationResultImpl {
   }
   EvaluationResultImpl integerDivideError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
   EvaluationResultImpl integerDivideValid(BinaryExpression node, ValidResult leftOperand2) {
-    if (isSomeNum || leftOperand2.isSomeNum) {
-      if (isAnyNum && leftOperand2.isAnyNum) {
-        return RESULT_INT;
-      }
+    if (!isAnyNum || !leftOperand2.isAnyNum) {
       return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+    }
+    if (isSomeNum || leftOperand2.isSomeNum) {
+      return RESULT_INT;
     }
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
@@ -1372,11 +1372,11 @@ class ValidResult extends EvaluationResultImpl {
   EvaluationResultImpl lessThanError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
   EvaluationResultImpl lessThanOrEqualError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
   EvaluationResultImpl lessThanOrEqualValid(BinaryExpression node, ValidResult leftOperand2) {
-    if (isSomeNum || leftOperand2.isSomeNum) {
-      if (isAnyNum && leftOperand2.isAnyNum) {
-        return RESULT_BOOL;
-      }
+    if (!isAnyNum || !leftOperand2.isAnyNum) {
       return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+    }
+    if (isSomeNum || leftOperand2.isSomeNum) {
+      return RESULT_BOOL;
     }
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
@@ -1399,11 +1399,11 @@ class ValidResult extends EvaluationResultImpl {
     return error(node);
   }
   EvaluationResultImpl lessThanValid(BinaryExpression node, ValidResult leftOperand2) {
-    if (isSomeNum || leftOperand2.isSomeNum) {
-      if (isAnyNum && leftOperand2.isAnyNum) {
-        return RESULT_BOOL;
-      }
+    if (!isAnyNum || !leftOperand2.isAnyNum) {
       return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+    }
+    if (isSomeNum || leftOperand2.isSomeNum) {
+      return RESULT_BOOL;
     }
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
@@ -1427,11 +1427,11 @@ class ValidResult extends EvaluationResultImpl {
   }
   EvaluationResultImpl logicalAndError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
   EvaluationResultImpl logicalAndValid(BinaryExpression node, ValidResult leftOperand) {
-    if (isSomeBool || leftOperand.isSomeBool) {
-      if (isAnyBool && leftOperand.isAnyBool) {
-        return RESULT_BOOL;
-      }
+    if (!isAnyBool || !leftOperand.isAnyBool) {
       return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
+    }
+    if (isSomeBool || leftOperand.isSomeBool) {
+      return RESULT_BOOL;
     }
     Object leftValue = leftOperand.value;
     if (leftValue is bool) {
@@ -1458,11 +1458,11 @@ class ValidResult extends EvaluationResultImpl {
   }
   EvaluationResultImpl minusError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
   EvaluationResultImpl minusValid(BinaryExpression node, ValidResult leftOperand2) {
-    if (isSomeNum || leftOperand2.isSomeNum) {
-      if (isAnyNum && leftOperand2.isAnyNum) {
-        return RESULT_NUM;
-      }
+    if (!isAnyNum || !leftOperand2.isAnyNum) {
       return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+    }
+    if (isSomeNum || leftOperand2.isSomeNum) {
+      return RESULT_NUM;
     }
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
@@ -1521,11 +1521,11 @@ class ValidResult extends EvaluationResultImpl {
   }
   EvaluationResultImpl remainderError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
   EvaluationResultImpl remainderValid(BinaryExpression node, ValidResult leftOperand2) {
-    if (isSomeNum || leftOperand2.isSomeNum) {
-      if (isAnyNum && leftOperand2.isAnyNum) {
-        return RESULT_NUM;
-      }
+    if (!isAnyNum || !leftOperand2.isAnyNum) {
       return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+    }
+    if (isSomeNum || leftOperand2.isSomeNum) {
+      return RESULT_NUM;
     }
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
@@ -1552,11 +1552,11 @@ class ValidResult extends EvaluationResultImpl {
   }
   EvaluationResultImpl shiftLeftError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
   EvaluationResultImpl shiftLeftValid(BinaryExpression node, ValidResult leftOperand2) {
-    if (isSomeInt || leftOperand2.isSomeInt) {
-      if (isAnyInt && leftOperand2.isAnyInt) {
-        return RESULT_INT;
-      }
+    if (!isAnyInt || !leftOperand2.isAnyInt) {
       return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_INT);
+    }
+    if (isSomeInt || leftOperand2.isSomeInt) {
+      return RESULT_INT;
     }
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
@@ -1576,11 +1576,11 @@ class ValidResult extends EvaluationResultImpl {
   }
   EvaluationResultImpl shiftRightError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
   EvaluationResultImpl shiftRightValid(BinaryExpression node, ValidResult leftOperand2) {
-    if (isSomeInt || leftOperand2.isSomeInt) {
-      if (isAnyInt && leftOperand2.isAnyInt) {
-        return RESULT_INT;
-      }
+    if (!isAnyInt || !leftOperand2.isAnyInt) {
       return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_INT);
+    }
+    if (isSomeInt || leftOperand2.isSomeInt) {
+      return RESULT_INT;
     }
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {
@@ -1600,11 +1600,11 @@ class ValidResult extends EvaluationResultImpl {
   }
   EvaluationResultImpl timesError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
   EvaluationResultImpl timesValid(BinaryExpression node, ValidResult leftOperand2) {
-    if (isSomeNum || leftOperand2.isSomeNum) {
-      if (isAnyNum && leftOperand2.isAnyNum) {
-        return RESULT_NUM;
-      }
+    if (!isAnyNum || !leftOperand2.isAnyNum) {
       return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+    }
+    if (isSomeNum || leftOperand2.isSomeNum) {
+      return RESULT_NUM;
     }
     Object leftValue = leftOperand2.value;
     if (leftValue == null) {

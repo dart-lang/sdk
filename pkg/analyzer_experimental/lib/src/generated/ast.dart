@@ -19,6 +19,11 @@ import 'element.dart';
 abstract class ASTNode {
 
   /**
+   * An empty array of ast nodes.
+   */
+  static List<ASTNode> EMPTY_ARRAY = new List<ASTNode>(0);
+
+  /**
    * The parent of the node, or `null` if the node is the root of an AST structure.
    */
   ASTNode _parent;
@@ -312,6 +317,7 @@ abstract class ASTVisitor<R> {
   R visitMethodDeclaration(MethodDeclaration node);
   R visitMethodInvocation(MethodInvocation node);
   R visitNamedExpression(NamedExpression node);
+  R visitNativeClause(NativeClause node);
   R visitNativeFunctionBody(NativeFunctionBody node);
   R visitNullLiteral(NullLiteral node);
   R visitParenthesizedExpression(ParenthesizedExpression node);
@@ -2376,6 +2382,11 @@ class ClassDeclaration extends CompilationUnitMember {
   ImplementsClause _implementsClause;
 
   /**
+   * The native clause for the class, or `null` if the class does not have a native clause.
+   */
+  NativeClause _nativeClause;
+
+  /**
    * The left curly bracket.
    */
   Token _leftBracket;
@@ -2493,6 +2504,14 @@ class ClassDeclaration extends CompilationUnitMember {
   SimpleIdentifier get name => _name;
 
   /**
+   * Return the native clause for this class, or `null` if the class does not have a native
+   * cluse.
+   *
+   * @return the native clause for this class
+   */
+  NativeClause get nativeClause => _nativeClause;
+
+  /**
    * Return the right curly bracket.
    *
    * @return the right curly bracket
@@ -2566,6 +2585,15 @@ class ClassDeclaration extends CompilationUnitMember {
    */
   void set name(SimpleIdentifier identifier) {
     _name = becomeParentOf(identifier);
+  }
+
+  /**
+   * Set the native clause for this class to the given clause.
+   *
+   * @param nativeClause the native clause for this class
+   */
+  void set nativeClause(NativeClause nativeClause2) {
+    this._nativeClause = nativeClause2;
   }
 
   /**
@@ -4714,21 +4742,7 @@ class DefaultFormalParameter extends FormalParameter {
    * @return the token separating the parameter from the default value
    */
   Token get separator => _separator;
-
-  /**
-   * Return `true` if this parameter was declared with the 'const' modifier.
-   *
-   * @return `true` if this parameter was declared with the 'const' modifier
-   */
   bool get isConst => _parameter != null && _parameter.isConst;
-
-  /**
-   * Return `true` if this parameter was declared with the 'final' modifier. Parameters that
-   * are declared with the 'const' modifier will return `false` even though they are
-   * implicitly final.
-   *
-   * @return `true` if this parameter was declared with the 'final' modifier
-   */
   bool get isFinal => _parameter != null && _parameter.isFinal;
 
   /**
@@ -6515,6 +6529,22 @@ abstract class FormalParameter extends ASTNode {
    * @return the kind of this parameter
    */
   ParameterKind get kind;
+
+  /**
+   * Return `true` if this parameter was declared with the 'const' modifier.
+   *
+   * @return `true` if this parameter was declared with the 'const' modifier
+   */
+  bool get isConst;
+
+  /**
+   * Return `true` if this parameter was declared with the 'final' modifier. Parameters that
+   * are declared with the 'const' modifier will return `false` even though they are
+   * implicitly final.
+   *
+   * @return `true` if this parameter was declared with the 'final' modifier
+   */
+  bool get isFinal;
 }
 /**
  * Instances of the class `FormalParameterList` represent the formal parameter list of a
@@ -7792,7 +7822,7 @@ class ImplementsClause extends ASTNode {
   NodeList<TypeName> _interfaces;
 
   /**
-   * Initialize a newly created extends clause.
+   * Initialize a newly created implements clause.
    *
    * @param keyword the token representing the 'implements' keyword
    * @param interfaces the interfaces that are being implemented
@@ -7804,7 +7834,7 @@ class ImplementsClause extends ASTNode {
   }
 
   /**
-   * Initialize a newly created extends clause.
+   * Initialize a newly created implements clause.
    *
    * @param keyword the token representing the 'implements' keyword
    * @param interfaces the interfaces that are being implemented
@@ -10231,6 +10261,84 @@ abstract class NamespaceDirective extends UriBasedDirective {
   Token get firstTokenAfterCommentAndMetadata => _keyword;
 }
 /**
+ * Instances of the class `NativeClause` represent the "native" clause in an class
+ * declaration.
+ *
+ * <pre>
+ * nativeClause ::=
+ *     'native' [StringLiteral]
+ * </pre>
+ *
+ * @coverage dart.engine.ast
+ */
+class NativeClause extends ASTNode {
+
+  /**
+   * The token representing the 'native' keyword.
+   */
+  Token _keyword;
+
+  /**
+   * The name of the native object that implements the class.
+   */
+  StringLiteral _name;
+
+  /**
+   * Initialize a newly created native clause.
+   *
+   * @param keyword the token representing the 'native' keyword
+   * @param name the name of the native object that implements the class.
+   */
+  NativeClause.full(Token keyword, StringLiteral name) {
+    this._keyword = keyword;
+    this._name = name;
+  }
+
+  /**
+   * Initialize a newly created native clause.
+   *
+   * @param keyword the token representing the 'native' keyword
+   * @param name the name of the native object that implements the class.
+   */
+  NativeClause({Token keyword, StringLiteral name}) : this.full(keyword, name);
+  accept(ASTVisitor visitor) => visitor.visitNativeClause(this);
+  Token get beginToken => _keyword;
+  Token get endToken => _name.endToken;
+
+  /**
+   * Return the token representing the 'native' keyword.
+   *
+   * @return the token representing the 'native' keyword
+   */
+  Token get keyword => _keyword;
+
+  /**
+   * @return the name of the native object that implements the class.
+   */
+  StringLiteral get name => _name;
+
+  /**
+   * Set the token representing the 'native' keyword to the given token.
+   *
+   * @param keyword the token representing the 'native' keyword
+   */
+  void set keyword(Token keyword2) {
+    this._keyword = keyword2;
+  }
+
+  /**
+   * Sets the name of the native object that implements the class.
+   *
+   * @param name the name of the native object that implements the class.
+   */
+  void set name(StringLiteral name2) {
+    this._name = name2;
+  }
+  void visitChildren(ASTVisitor<Object> visitor) {
+    safelyVisitChild(_name, visitor);
+  }
+}
+/**
  * Instances of the class `NativeFunctionBody` represent a function body that consists of a
  * native keyword followed by a string literal.
  *
@@ -10385,22 +10493,6 @@ abstract class NormalFormalParameter extends FormalParameter {
    * @return the annotations associated with this parameter
    */
   NodeList<Annotation> get metadata => _metadata;
-
-  /**
-   * Return `true` if this parameter was declared with the 'const' modifier.
-   *
-   * @return `true` if this parameter was declared with the 'const' modifier
-   */
-  bool get isConst;
-
-  /**
-   * Return `true` if this parameter was declared with the 'final' modifier. Parameters that
-   * are declared with the 'const' modifier will return `false` even though they are
-   * implicitly final.
-   *
-   * @return `true` if this parameter was declared with the 'final' modifier
-   */
-  bool get isFinal;
 
   /**
    * Set the documentation comment associated with this parameter to the given comment
@@ -15292,6 +15384,7 @@ class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   R visitMethodInvocation(MethodInvocation node) => visitExpression(node);
   R visitNamedExpression(NamedExpression node) => visitExpression(node);
   R visitNamespaceDirective(NamespaceDirective node) => visitUriBasedDirective(node);
+  R visitNativeClause(NativeClause node) => visitNode(node);
   R visitNativeFunctionBody(NativeFunctionBody node) => visitFunctionBody(node);
   R visitNode(ASTNode node) {
     node.visitChildren(this);
@@ -15715,6 +15808,10 @@ class RecursiveASTVisitor<R> implements ASTVisitor<R> {
     node.visitChildren(this);
     return null;
   }
+  R visitNativeClause(NativeClause node) {
+    node.visitChildren(this);
+    return null;
+  }
   R visitNativeFunctionBody(NativeFunctionBody node) {
     node.visitChildren(this);
     return null;
@@ -15938,6 +16035,7 @@ class SimpleASTVisitor<R> implements ASTVisitor<R> {
   R visitMethodDeclaration(MethodDeclaration node) => null;
   R visitMethodInvocation(MethodInvocation node) => null;
   R visitNamedExpression(NamedExpression node) => null;
+  R visitNativeClause(NativeClause node) => null;
   R visitNativeFunctionBody(NativeFunctionBody node) => null;
   R visitNullLiteral(NullLiteral node) => null;
   R visitParenthesizedExpression(ParenthesizedExpression node) => null;
@@ -16478,6 +16576,11 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     visit3(" ", node.expression);
     return null;
   }
+  Object visitNativeClause(NativeClause node) {
+    _writer.print("native ");
+    visit(node.name);
+    return null;
+  }
   Object visitNativeFunctionBody(NativeFunctionBody node) {
     _writer.print("native ");
     visit(node.stringLiteral);
@@ -16914,6 +17017,7 @@ class ASTCloner implements ASTVisitor<ASTNode> {
   MethodDeclaration visitMethodDeclaration(MethodDeclaration node) => new MethodDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), node.externalKeyword, node.modifierKeyword, clone2(node.returnType), node.propertyKeyword, node.operatorKeyword, clone2(node.name), clone2(node.parameters), clone2(node.body));
   MethodInvocation visitMethodInvocation(MethodInvocation node) => new MethodInvocation.full(clone2(node.target), node.period, clone2(node.methodName), clone2(node.argumentList));
   NamedExpression visitNamedExpression(NamedExpression node) => new NamedExpression.full(clone2(node.name), clone2(node.expression));
+  ASTNode visitNativeClause(NativeClause node) => new NativeClause.full(node.keyword, clone2(node.name));
   NativeFunctionBody visitNativeFunctionBody(NativeFunctionBody node) => new NativeFunctionBody.full(node.nativeToken, clone2(node.stringLiteral), node.semicolon);
   NullLiteral visitNullLiteral(NullLiteral node) => new NullLiteral.full(node.literal);
   ParenthesizedExpression visitParenthesizedExpression(ParenthesizedExpression node) => new ParenthesizedExpression.full(node.leftParenthesis, clone2(node.expression), node.rightParenthesis);

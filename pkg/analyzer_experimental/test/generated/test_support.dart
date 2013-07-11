@@ -329,10 +329,19 @@ class GatheringErrorListener implements AnalysisErrorListener {
       writer.newLine();
       if (lineInfo == null) {
         int offset = error.offset;
-        writer.printf("  %s %s (%d..%d)", [source == null ? "" : source.shortName, error.errorCode, offset, offset + error.length]);
+        writer.printf("  %s %s (%d..%d)", [
+            source == null ? "" : source.shortName,
+            error.errorCode,
+            offset,
+            offset + error.length]);
       } else {
         LineInfo_Location location = lineInfo.getLocation(error.offset);
-        writer.printf("  %s %s (%d, %d/%d)", [source == null ? "" : source.shortName, error.errorCode, location.lineNumber, location.columnNumber, error.length]);
+        writer.printf("  %s %s (%d, %d/%d)", [
+            source == null ? "" : source.shortName,
+            error.errorCode,
+            location.lineNumber,
+            location.columnNumber,
+            error.length]);
       }
     }
     writer.newLine();
@@ -345,10 +354,21 @@ class GatheringErrorListener implements AnalysisErrorListener {
       writer.newLine();
       if (lineInfo == null) {
         int offset = error.offset;
-        writer.printf("  %s %s (%d..%d): %s", [source == null ? "" : source.shortName, error.errorCode, offset, offset + error.length, error.message]);
+        writer.printf("  %s %s (%d..%d): %s", [
+            source == null ? "" : source.shortName,
+            error.errorCode,
+            offset,
+            offset + error.length,
+            error.message]);
       } else {
         LineInfo_Location location = lineInfo.getLocation(error.offset);
-        writer.printf("  %s %s (%d, %d/%d): %s", [source == null ? "" : source.shortName, error.errorCode, location.lineNumber, location.columnNumber, error.length, error.message]);
+        writer.printf("  %s %s (%d, %d/%d): %s", [
+            source == null ? "" : source.shortName,
+            error.errorCode,
+            location.lineNumber,
+            location.columnNumber,
+            error.length,
+            error.message]);
       }
     }
     JUnitTestCase.fail(writer.toString());
