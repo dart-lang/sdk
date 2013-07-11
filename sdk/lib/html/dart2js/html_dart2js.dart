@@ -38,12 +38,22 @@ import 'dart:_foreign_helper' show JS;
 
 
 /**
- * The top-level Window object.
+ * Top-level container for a web page, which is usually a browser tab or window.
+ *
+ * Each web page loaded in the browser has its own [Window], which is a
+ * container for the web page.
+ *
+ * If the web page has any `<iframe>` elements, then each `<iframe>` has its own
+ * [Window] object, which is accessible only to that `<iframe>`.
+ *
+ * See also:
+ *
+ *   * [Window](https://developer.mozilla.org/en-US/docs/Web/API/window) from MDN.
  */
 Window get window => JS('Window', 'window');
 
 /**
- * The top-level Document object.
+ * Root node for all content in a web page.
  */
 HtmlDocument get document => JS('HtmlDocument', 'document');
 

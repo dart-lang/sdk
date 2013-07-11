@@ -35,6 +35,19 @@ import 'dart:web_audio' as web_audio;
 
 Window _window;
 
+/**
+ * Top-level container for a web page, which is usually a browser tab or window.
+ *
+ * Each web page loaded in the browser has its own [Window], which is a
+ * container for the web page.
+ *
+ * If the web page has any `<iframe>` elements, then each `<iframe>` has its own
+ * [Window] object, which is accessible only to that `<iframe>`.
+ *
+ * See also:
+ *
+ *   * [Window](https://developer.mozilla.org/en-US/docs/Web/API/window) from MDN.
+ */
 Window get window {
   if (_window != null) {
     return _window;
@@ -45,6 +58,9 @@ Window get window {
 
 HtmlDocument _document;
 
+/**
+ * Root node for all content in a web page.
+ */
 HtmlDocument get document {
   if (_document != null) {
     return _document;
