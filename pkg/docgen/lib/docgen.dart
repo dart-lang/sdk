@@ -215,7 +215,8 @@ void _documentLibraries(List<LibraryMirror> libraries,
   // Outputs a text file with a list of files available after creating all 
   // the libraries. This will help the viewer know what files are available 
   // to read in. 
-  _writeToFile(listDir("docs").join('\n'), 'library_list.txt');
+  _writeToFile(listDir('docs').join('\n').replaceAll('docs/', ''), 
+      'library_list.txt');
 }
 
 Library generateLibrary(dart2js.Dart2JsLibraryMirror library, 
