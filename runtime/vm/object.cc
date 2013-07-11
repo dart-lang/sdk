@@ -1076,12 +1076,6 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_string_type(type);
 
-  cls = Class::New<Instance>(kIllegalCid);
-  RegisterClass(cls, Symbols::List(), core_lib);
-  cls.set_is_prefinalized();
-  pending_classes.Add(cls, Heap::kOld);
-  object_store->set_list_class(cls);
-
   cls = object_store->bool_class();
   type = Type::NewNonParameterizedType(cls);
   object_store->set_bool_type(type);
@@ -2324,11 +2318,6 @@ void Class::set_allocation_stub(const Code& value) const {
 
 bool Class::IsFunctionClass() const {
   return raw() == Type::Handle(Type::Function()).type_class();
-}
-
-
-bool Class::IsListClass() const {
-  return raw() == Isolate::Current()->object_store()->list_class();
 }
 
 

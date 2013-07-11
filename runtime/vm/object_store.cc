@@ -34,7 +34,6 @@ ObjectStore::ObjectStore()
     external_two_byte_string_class_(Class::null()),
     bool_type_(Type::null()),
     bool_class_(Class::null()),
-    list_class_(Class::null()),
     array_class_(Class::null()),
     array_type_(Type::null()),
     immutable_array_class_(Class::null()),

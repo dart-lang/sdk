@@ -55,10 +55,12 @@ const char* CanonicalFunction(const char* func) {
 
 static RawInstance* GetListInstance(Isolate* isolate, const Object& obj) {
   if (obj.IsInstance()) {
+    const Library& core_lib = Library::Handle(Library::CoreLibrary());
+    const Class& list_class =
+        Class::Handle(core_lib.LookupClass(Symbols::List()));
+    ASSERT(!list_class.IsNull());
     const Instance& instance = Instance::Cast(obj);
     const Class& obj_class = Class::Handle(isolate, obj.clazz());
-    const Class& list_class =
-        Class::Handle(isolate, isolate->object_store()->list_class());
     Error& malformed_type_error = Error::Handle(isolate);
     if (obj_class.IsSubtypeOf(TypeArguments::Handle(isolate),
                               list_class,

@@ -788,9 +788,6 @@ class Class : public Object {
   // Check if this class represents the 'Function' class.
   bool IsFunctionClass() const;
 
-  // Check if this class represents the 'List' class.
-  bool IsListClass() const;
-
   // Check if this class represents a signature class.
   bool IsSignatureClass() const {
     return signature_function() != Object::null();

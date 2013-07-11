@@ -161,9 +161,6 @@ class ObjectStore {
   RawClass* bool_class() const { return bool_class_; }
   void set_bool_class(const Class& value) { bool_class_ = value.raw(); }
 
-  RawClass* list_class() const { return list_class_; }
-  void set_list_class(const Class& value) { list_class_ = value.raw(); }
-
   RawClass* array_class() const { return array_class_; }
   void set_array_class(const Class& value) { array_class_ = value.raw(); }
   static intptr_t array_class_offset() {
@@ -442,7 +439,6 @@ class ObjectStore {
   RawClass* external_two_byte_string_class_;
   RawType* bool_type_;
   RawClass* bool_class_;
-  RawClass* list_class_;
   RawClass* array_class_;
   RawType* array_type_;
   RawClass* immutable_array_class_;

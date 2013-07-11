@@ -247,7 +247,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
     __ LoadClassId(kClassIdReg, kInstanceReg);
     __ BranchEqual(kClassIdReg, type_class.id(), is_instance_lbl);
     // List is a very common case.
-    if (type_class.IsListClass()) {
+    if (IsListClass(type_class)) {
       GenerateListTypeCheck(kClassIdReg, is_instance_lbl);
     }
     return GenerateSubtype1TestCacheLookup(
