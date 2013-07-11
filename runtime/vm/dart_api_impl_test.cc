@@ -8031,18 +8031,17 @@ TEST_CASE(ExternalizeConstantStrings) {
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_Handle result = Dart_Invoke(lib,
-                                      NewString("testMain"),
-                                      0,
-                                      NULL);
+                                   NewString("testMain"),
+                                   0,
+                                   NULL);
   const char* expected_str = "constant string";
   const intptr_t kExpectedLen = 15;
-  int peer = 40;
   uint8_t ext_str[kExpectedLen];
   Dart_Handle str = Dart_MakeExternalString(result,
                                             ext_str,
                                             kExpectedLen,
-                                            &peer,
-                                            MakeExternalCback);
+                                            NULL,
+                                            NULL);
 
   EXPECT(Dart_IsExternalString(str));
   for (intptr_t i = 0; i < kExpectedLen; i++) {
