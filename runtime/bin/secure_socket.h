@@ -66,6 +66,9 @@ class SSLFilter {
                bool send_client_certificate);
   void Destroy();
   void Handshake();
+  void Renegotiate(bool use_session_cache,
+                   bool request_client_certificate,
+                   bool require_client_certificate);
   void RegisterHandshakeCompleteCallback(Dart_Handle handshake_complete);
   void RegisterBadCertificateCallback(Dart_Handle callback);
   Dart_Handle bad_certificate_callback() {

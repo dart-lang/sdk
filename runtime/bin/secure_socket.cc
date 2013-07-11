@@ -189,6 +189,21 @@ void FUNCTION_NAME(SecureSocket_Handshake)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(SecureSocket_Renegotiate)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  bool use_session_cache =
+      DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 1));
+  bool request_client_certificate =
+      DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 2));
+  bool require_client_certificate =
+      DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 3));
+  GetFilter(args)->Renegotiate(use_session_cache,
+                               request_client_certificate,
+                               require_client_certificate);
+  Dart_ExitScope();
+}
+
+
 void FUNCTION_NAME(SecureSocket_RegisterHandshakeCompleteCallback)(
     Dart_NativeArguments args) {
   Dart_EnterScope();
@@ -732,8 +747,9 @@ void SSLFilter::Connect(const char* host_name,
         ThrowPRException("TlsException",
                          "Failed SSL_OptionSet(REQUEST_CERTIFICATE) call");
       }
-      PRBool require_cert = require_client_certificate ? PR_TRUE : PR_FALSE;
-      status = SSL_OptionSet(filter_, SSL_REQUIRE_CERTIFICATE, require_cert);
+      status = SSL_OptionSet(filter_,
+                             SSL_REQUIRE_CERTIFICATE,
+                             require_client_certificate);
       if (status != SECSuccess) {
         ThrowPRException("TlsException",
                          "Failed SSL_OptionSet(REQUIRE_CERTIFICATE) call");
@@ -772,8 +788,7 @@ void SSLFilter::Connect(const char* host_name,
                            BadCertificateCallback,
                            static_cast<void*>(this));
 
-  PRBool as_server = is_server ? PR_TRUE : PR_FALSE;
-  status = SSL_ResetHandshake(filter_, as_server);
+  status = SSL_ResetHandshake(filter_, is_server);
   if (status != SECSuccess) {
     ThrowPRException("TlsException",
                      "Failed SSL_ResetHandshake call");
@@ -822,6 +837,43 @@ void SSLFilter::Handshake() {
         ThrowPRException("HandshakeException",
                          "Handshake error in client");
       }
+    }
+  }
+}
+
+
+void SSLFilter::Renegotiate(bool use_session_cache,
+                            bool request_client_certificate,
+                            bool require_client_certificate) {
+  SECStatus status;
+  // The SSL_REQUIRE_CERTIFICATE option only takes effect if the
+  // SSL_REQUEST_CERTIFICATE option is also set, so set it.
+  request_client_certificate =
+      request_client_certificate || require_client_certificate;
+
+  status = SSL_OptionSet(filter_,
+                         SSL_REQUEST_CERTIFICATE,
+                         request_client_certificate);
+  if (status != SECSuccess) {
+    ThrowPRException("TlsException",
+       "Failure in (Raw)SecureSocket.renegotiate request_client_certificate");
+  }
+  status = SSL_OptionSet(filter_,
+                         SSL_REQUIRE_CERTIFICATE,
+                         require_client_certificate);
+  if (status != SECSuccess) {
+    ThrowPRException("TlsException",
+       "Failure in (Raw)SecureSocket.renegotiate require_client_certificate");
+  }
+  bool flush_cache = !use_session_cache;
+  status = SSL_ReHandshake(filter_, flush_cache);
+  if (status != SECSuccess) {
+    if (is_server_) {
+      ThrowPRException("HandshakeException",
+                       "Failure in (Raw)SecureSocket.renegotiate in server");
+    } else {
+      ThrowPRException("HandshakeException",
+                       "Failure in (Raw)SecureSocket.renegotiate in client");
     }
   }
 }

@@ -31,6 +31,14 @@ class _SecureSocket extends _Socket implements SecureSocket {
     _raw.onBadCertificate = callback;
   }
 
+  void renegotiate({bool useSessionCache: true,
+                    bool requestClientCertificate: false,
+                    bool requireClientCertificate: false}) {
+    _raw.renegotiate(useSessionCache: useSessionCache,
+                     requestClientCertificate: requestClientCertificate,
+                     requireClientCertificate: requireClientCertificate);
+  }
+
   X509Certificate get peerCertificate {
     if (_raw == null) {
      throw new StateError("peerCertificate called on destroyed SecureSocket");
@@ -84,6 +92,10 @@ class _SecureFilterImpl
 
   void handshake() native "SecureSocket_Handshake";
 
+  void renegotiate(bool useSessionCache,
+                   bool requestClientCertificate,
+                   bool requireClientCertificate)
+      native "SecureSocket_Renegotiate";
   void init() native "SecureSocket_Init";
 
   X509Certificate get peerCertificate native "SecureSocket_PeerCertificate";
