@@ -82,10 +82,6 @@ mixin_illegal_constructor_test/13: fail
 mixin_illegal_constructor_test/14: fail
 mixin_illegal_constructor_test/15: fail
 mixin_illegal_constructor_test/16: fail
-mixin_illegal_cycles_test/02: fail
-mixin_illegal_cycles_test/03: fail
-mixin_illegal_cycles_test/04: fail
-mixin_illegal_cycles_test/06: fail
 mixin_illegal_syntax_test/13: fail
 mixin_type_parameters_errors_test/01: fail
 mixin_type_parameters_errors_test/02: fail
