@@ -1799,21 +1799,28 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           && right.instructionType.isUseful() && right.isInteger();
     }
 
-    bool generateAtUseSite = isGenerateAtUseSite(input);
-    if (input is HIs) {
-      emitIs(input, '!==');
-    } else if (input is HIdentity && generateAtUseSite) {
-      HIdentity identity = input;
-      emitIdentityComparison(identity.left, identity.right, true);
-    } else if (input is HBoolify && generateAtUseSite) {
-      use(input.inputs[0]);
-      push(new js.Binary("!==", pop(), newLiteralBool(true)), input);
-    } else if (canGenerateOptimizedComparison(input) && generateAtUseSite) {
-      HRelational relational = input;
-      BinaryOperation operation = relational.operation(backend.constantSystem);
-      String op = mapRelationalOperator(operation.name.stringValue, true);
-      visitRelational(input, op);
-    } else {
+    bool handledBySpecialCase = false;
+    if (isGenerateAtUseSite(input)) {
+      handledBySpecialCase = true;
+      if (input is HIs) {
+        emitIs(input, '!==');
+      } else if (input is HIdentity) {
+        HIdentity identity = input;
+        emitIdentityComparison(identity.left, identity.right, true);
+      } else if (input is HBoolify) {
+        use(input.inputs[0]);
+        push(new js.Binary("!==", pop(), newLiteralBool(true)), input);
+      } else if (canGenerateOptimizedComparison(input)) {
+        HRelational relational = input;
+        BinaryOperation operation =
+            relational.operation(backend.constantSystem);
+        String op = mapRelationalOperator(operation.name.stringValue, true);
+        visitRelational(input, op);
+      } else {
+        handledBySpecialCase = false;
+      }
+    }
+    if (!handledBySpecialCase) {
       use(input);
       push(new js.Prefix("!", pop()));
     }
