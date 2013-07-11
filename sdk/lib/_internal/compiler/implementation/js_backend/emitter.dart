@@ -2474,19 +2474,12 @@ class CodeEmitterTask extends CompilerTask {
 
   void emitCompileTimeConstants(CodeBuffer eagerBuffer) {
     ConstantHandler handler = compiler.constantHandler;
-    List<Constant> constants = handler.getConstantsForEmission();
+    List<Constant> constants = handler.getConstantsForEmission(
+        compareConstants);
     bool addedMakeConstantList = false;
     for (Constant constant in constants) {
-      // No need to emit functions. We already did that.
-      if (constant.isFunction()) continue;
-      // Numbers, strings and booleans are currently always inlined.
-      if (constant.isPrimitive()) continue;
-
+      if (isConstantInlinedOrAlreadyEmitted(constant)) continue;
       String name = namer.constantName(constant);
-      // The name is null when the constant is already a JS constant.
-      // TODO(floitsch): every constant should be registered, so that we can
-      // share the ones that take up too much space (like some strings).
-      if (name == null) continue;
       if (!addedMakeConstantList && constant.isList()) {
         addedMakeConstantList = true;
         emitMakeConstantList(eagerBuffer);
@@ -2497,6 +2490,31 @@ class CodeEmitterTask extends CompilerTask {
       buffer.write(jsAst.prettyPrint(init, compiler));
       buffer.write('$N');
     }
+  }
+
+  bool isConstantInlinedOrAlreadyEmitted(Constant constant) {
+    if (constant.isFunction()) return true;   // Already emitted.
+    if (constant.isPrimitive()) return true;  // Inlined.
+    // The name is null when the constant is already a JS constant.
+    // TODO(floitsch): every constant should be registered, so that we can
+    // share the ones that take up too much space (like some strings).
+    if (namer.constantName(constant) == null) return true;
+    return false;
+  }
+
+  int compareConstants(Constant a, Constant b) {
+    // Inlined constants don't affect the order and sometimes don't even have
+    // names.
+    int cmp1 = isConstantInlinedOrAlreadyEmitted(a) ? 0 : 1;
+    int cmp2 = isConstantInlinedOrAlreadyEmitted(b) ? 0 : 1;
+    if (cmp1 + cmp2 < 2) return cmp1 - cmp2;
+    // Sorting by the long name clusters constants with the same constructor
+    // which compresses a tiny bit better.
+    int r = namer.constantLongName(a).compareTo(namer.constantLongName(b));
+    if (r != 0) return r;
+    // Resolve collisions in the long name by using the constant name (i.e. JS
+    // name) which is unique.
+    return namer.constantName(a).compareTo(namer.constantName(b));
   }
 
   void emitMakeConstantList(CodeBuffer buffer) {
