@@ -668,15 +668,6 @@ class JavaScriptBackend extends Backend {
     } else if (cls.isNative()) {
       addInterceptorsForNativeClassMembers(cls, enqueuer);
     }
-
-    if (compiler.enableTypeAssertions) {
-      // We need to register is checks for assignments to fields.
-      cls.forEachMember((Element enclosing, Element member) {
-        if (!member.isInstanceMember() || !member.isField()) return;
-        DartType type = member.computeType(compiler);
-        enqueuer.registerIsCheck(type, elements);
-      }, includeSuperAndInjectedMembers: true);
-    }
   }
 
   void registerUseInterceptor(Enqueuer enqueuer) {
