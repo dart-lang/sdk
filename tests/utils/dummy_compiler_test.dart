@@ -78,7 +78,8 @@ getDispatchProperty(o) {}
 setDispatchProperty(o, v) {}""";
     } else if (uri.path.endsWith('js_helper.dart')) {
       source = 'library jshelper; class JSInvocationMirror {} '
-               'class ConstantMap {} class TypeImpl {}';
+               'class ConstantMap {} class TypeImpl {} '
+               'createRuntimeType(String name) => null;';
     } else if (uri.path.endsWith('isolate_helper.dart')) {
       source = 'library isolatehelper; class _WorkerStub {}';
     } else {

@@ -317,9 +317,8 @@ class Namer implements ClosureNamer {
     if (name != elementName) return getMappedOperatorName(name.slowToString());
 
     LibraryElement library = element.getLibrary();
-    if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
-      ConstructorBodyElement bodyElement = element;
-      name = bodyElement.constructor.name;
+    if (element.isGenerativeConstructorBody()) {
+      name = Elements.reconstructConstructorNameSourceString(element);
     }
     FunctionSignature signature = element.computeSignature(compiler);
     String methodName =
@@ -516,12 +515,13 @@ class Namer implements ClosureNamer {
     assert(!element.isInstanceMember());
     String name;
     if (element.isGenerativeConstructor()) {
-      if (element.name == element.getEnclosingClass().name) {
-        // Keep the class name for the class and not the factory.
-        name = "${element.name.slowToString()}\$";
-      } else {
-        name = element.name.slowToString();
-      }
+      name = "${element.getEnclosingClass().name.slowToString()}\$"
+             "${element.name.slowToString()}";
+    } else if (element.isFactoryConstructor()) {
+      // TODO(johnniwinther): Change factory name encoding as to not include
+      // the class-name twice.
+      String className = element.getEnclosingClass().name.slowToString();
+      name = '${className}_${Elements.reconstructConstructorName(element)}';
     } else if (Elements.isStaticOrTopLevel(element)) {
       if (element.isMember()) {
         ClassElement enclosingClass = element.getEnclosingClass();

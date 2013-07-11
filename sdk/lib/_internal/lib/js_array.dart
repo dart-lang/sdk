@@ -11,10 +11,11 @@ part of _interceptors;
  * argument added to each member.
  */
 class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
+
   const JSArray();
 
   checkMutable(reason) {
-    if (this is !JSMutableArray) { 
+    if (this is !JSMutableArray) {
       throw new UnsupportedError(reason);
     }
   }
@@ -261,7 +262,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   bool get isNotEmpty => !isEmpty;
 
-  String toString() => ToString.iterableToString(this);
+  String toString() => IterableMixinWorkaround.toStringIterable(this, '[', ']');
 
   List<E> toList({ bool growable: true }) =>
       new List<E>.from(this, growable: growable);

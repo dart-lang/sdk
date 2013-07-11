@@ -717,7 +717,17 @@ class AssignmentKind implements Comparable<AssignmentKind> {
   static final AssignmentKind SIMPLE_LEFT = new AssignmentKind('SIMPLE_LEFT', 7);
   static final AssignmentKind SIMPLE_RIGHT = new AssignmentKind('SIMPLE_RIGHT', 8);
   static final AssignmentKind NONE = new AssignmentKind('NONE', 9);
-  static final List<AssignmentKind> values = [BINARY, COMPOUND_LEFT, COMPOUND_RIGHT, POSTFIX_INC, PREFIX_DEC, PREFIX_INC, PREFIX_NOT, SIMPLE_LEFT, SIMPLE_RIGHT, NONE];
+  static final List<AssignmentKind> values = [
+      BINARY,
+      COMPOUND_LEFT,
+      COMPOUND_RIGHT,
+      POSTFIX_INC,
+      PREFIX_DEC,
+      PREFIX_INC,
+      PREFIX_NOT,
+      SIMPLE_LEFT,
+      SIMPLE_RIGHT,
+      NONE];
 
   /// The name of this enum constant, as declared in the enum declaration.
   final String name;
@@ -735,7 +745,12 @@ class WrapperKind implements Comparable<WrapperKind> {
   static final WrapperKind PROPERTY_LEFT = new WrapperKind('PROPERTY_LEFT', 2);
   static final WrapperKind PROPERTY_RIGHT = new WrapperKind('PROPERTY_RIGHT', 3);
   static final WrapperKind NONE = new WrapperKind('NONE', 4);
-  static final List<WrapperKind> values = [PREFIXED_LEFT, PREFIXED_RIGHT, PROPERTY_LEFT, PROPERTY_RIGHT, NONE];
+  static final List<WrapperKind> values = [
+      PREFIXED_LEFT,
+      PREFIXED_RIGHT,
+      PROPERTY_LEFT,
+      PROPERTY_RIGHT,
+      NONE];
 
   /// The name of this enum constant, as declared in the enum declaration.
   final String name;
@@ -749,7 +764,25 @@ class WrapperKind implements Comparable<WrapperKind> {
 }
 class BreadthFirstVisitorTest extends ParserTestCase {
   void testIt() {
-    String source = EngineTestCase.createSource(["class A {", "  bool get g => true;", "}", "class B {", "  int f() {", "    num q() {", "      return 3;", "    }", "  return q() + 4;", "  }", "}", "A f(var p) {", "  if ((p as A).g) {", "    return p;", "  } else {", "    return null;", "  }", "}"]);
+    String source = EngineTestCase.createSource([
+        "class A {",
+        "  bool get g => true;",
+        "}",
+        "class B {",
+        "  int f() {",
+        "    num q() {",
+        "      return 3;",
+        "    }",
+        "  return q() + 4;",
+        "  }",
+        "}",
+        "A f(var p) {",
+        "  if ((p as A).g) {",
+        "    return p;",
+        "  } else {",
+        "    return null;",
+        "  }",
+        "}"]);
     CompilationUnit unit = ParserTestCase.parseCompilationUnit(source, []);
     List<ASTNode> nodes = new List<ASTNode>();
     BreadthFirstVisitor<Object> visitor = new BreadthFirstVisitor_15(nodes);
@@ -1287,13 +1320,19 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("break;", ASTFactory.breakStatement());
   }
   void test_visitCascadeExpression_field() {
-    assertSource("a..b..c", ASTFactory.cascadeExpression(ASTFactory.identifier3("a"), [ASTFactory.cascadedPropertyAccess("b"), ASTFactory.cascadedPropertyAccess("c")]));
+    assertSource("a..b..c", ASTFactory.cascadeExpression(ASTFactory.identifier3("a"), [
+        ASTFactory.cascadedPropertyAccess("b"),
+        ASTFactory.cascadedPropertyAccess("c")]));
   }
   void test_visitCascadeExpression_index() {
-    assertSource("a..[0]..[1]", ASTFactory.cascadeExpression(ASTFactory.identifier3("a"), [ASTFactory.cascadedIndexExpression(ASTFactory.integer(0)), ASTFactory.cascadedIndexExpression(ASTFactory.integer(1))]));
+    assertSource("a..[0]..[1]", ASTFactory.cascadeExpression(ASTFactory.identifier3("a"), [
+        ASTFactory.cascadedIndexExpression(ASTFactory.integer(0)),
+        ASTFactory.cascadedIndexExpression(ASTFactory.integer(1))]));
   }
   void test_visitCascadeExpression_method() {
-    assertSource("a..b()..c()", ASTFactory.cascadeExpression(ASTFactory.identifier3("a"), [ASTFactory.cascadedMethodInvocation("b", []), ASTFactory.cascadedMethodInvocation("c", [])]));
+    assertSource("a..b()..c()", ASTFactory.cascadeExpression(ASTFactory.identifier3("a"), [
+        ASTFactory.cascadedMethodInvocation("b", []),
+        ASTFactory.cascadedMethodInvocation("c", [])]));
   }
   void test_visitCatchClause_catch_noStack() {
     assertSource("catch (e) {}", ASTFactory.catchClause("e", []));
@@ -1329,7 +1368,9 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("class C implements B {}", ASTFactory.classDeclaration(null, "C", null, null, null, ASTFactory.implementsClause([ASTFactory.typeName4("B", [])]), []));
   }
   void test_visitClassDeclaration_multipleMember() {
-    assertSource("class C {var a; var b;}", ASTFactory.classDeclaration(null, "C", null, null, null, null, [ASTFactory.fieldDeclaration2(false, Keyword.VAR, [ASTFactory.variableDeclaration("a")]), ASTFactory.fieldDeclaration2(false, Keyword.VAR, [ASTFactory.variableDeclaration("b")])]));
+    assertSource("class C {var a; var b;}", ASTFactory.classDeclaration(null, "C", null, null, null, null, [
+        ASTFactory.fieldDeclaration2(false, Keyword.VAR, [ASTFactory.variableDeclaration("a")]),
+        ASTFactory.fieldDeclaration2(false, Keyword.VAR, [ASTFactory.variableDeclaration("b")])]));
   }
   void test_visitClassDeclaration_parameters() {
     assertSource("class C<E> {}", ASTFactory.classDeclaration(null, "C", ASTFactory.typeParameterList(["E"]), null, null, null, []));
@@ -1419,10 +1460,14 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("C() {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([]), null, ASTFactory.blockFunctionBody([])));
   }
   void test_visitConstructorDeclaration_multipleInitializers() {
-    assertSource("C() : a = b, c = d {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([]), ASTFactory.list([(ASTFactory.constructorFieldInitializer(false, "a", ASTFactory.identifier3("b")) as ConstructorInitializer), ASTFactory.constructorFieldInitializer(false, "c", ASTFactory.identifier3("d"))]), ASTFactory.blockFunctionBody([])));
+    assertSource("C() : a = b, c = d {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([]), ASTFactory.list([
+        (ASTFactory.constructorFieldInitializer(false, "a", ASTFactory.identifier3("b")) as ConstructorInitializer),
+        ASTFactory.constructorFieldInitializer(false, "c", ASTFactory.identifier3("d"))]), ASTFactory.blockFunctionBody([])));
   }
   void test_visitConstructorDeclaration_multipleParameters() {
-    assertSource("C(var a, var b) {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([ASTFactory.simpleFormalParameter(Keyword.VAR, "a"), ASTFactory.simpleFormalParameter(Keyword.VAR, "b")]), null, ASTFactory.blockFunctionBody([])));
+    assertSource("C(var a, var b) {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([
+        ASTFactory.simpleFormalParameter(Keyword.VAR, "a"),
+        ASTFactory.simpleFormalParameter(Keyword.VAR, "b")]), null, ASTFactory.blockFunctionBody([])));
   }
   void test_visitConstructorDeclaration_named() {
     assertSource("C.m() {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), "m", ASTFactory.formalParameterList([]), null, ASTFactory.blockFunctionBody([])));
@@ -1479,7 +1524,9 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("export 'a.dart' show A;", ASTFactory.exportDirective2("a.dart", [(ASTFactory.showCombinator([ASTFactory.identifier3("A")]) as Combinator)]));
   }
   void test_visitExportDirective_combinators() {
-    assertSource("export 'a.dart' show A hide B;", ASTFactory.exportDirective2("a.dart", [ASTFactory.showCombinator([ASTFactory.identifier3("A")]), ASTFactory.hideCombinator([ASTFactory.identifier3("B")])]));
+    assertSource("export 'a.dart' show A hide B;", ASTFactory.exportDirective2("a.dart", [
+        ASTFactory.showCombinator([ASTFactory.identifier3("A")]),
+        ASTFactory.hideCombinator([ASTFactory.identifier3("B")])]));
   }
   void test_visitExportDirective_minimal() {
     assertSource("export 'a.dart';", ASTFactory.exportDirective2("a.dart", []));
@@ -1521,43 +1568,73 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("({a : 0})", ASTFactory.formalParameterList([ASTFactory.namedFormalParameter(ASTFactory.simpleFormalParameter3("a"), ASTFactory.integer(0))]));
   }
   void test_visitFormalParameterList_nn() {
-    assertSource("({a : 0, b : 1})", ASTFactory.formalParameterList([ASTFactory.namedFormalParameter(ASTFactory.simpleFormalParameter3("a"), ASTFactory.integer(0)), ASTFactory.namedFormalParameter(ASTFactory.simpleFormalParameter3("b"), ASTFactory.integer(1))]));
+    assertSource("({a : 0, b : 1})", ASTFactory.formalParameterList([
+        ASTFactory.namedFormalParameter(ASTFactory.simpleFormalParameter3("a"), ASTFactory.integer(0)),
+        ASTFactory.namedFormalParameter(ASTFactory.simpleFormalParameter3("b"), ASTFactory.integer(1))]));
   }
   void test_visitFormalParameterList_p() {
     assertSource("([a = 0])", ASTFactory.formalParameterList([ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("a"), ASTFactory.integer(0))]));
   }
   void test_visitFormalParameterList_pp() {
-    assertSource("([a = 0, b = 1])", ASTFactory.formalParameterList([ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("a"), ASTFactory.integer(0)), ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("b"), ASTFactory.integer(1))]));
+    assertSource("([a = 0, b = 1])", ASTFactory.formalParameterList([
+        ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("a"), ASTFactory.integer(0)),
+        ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("b"), ASTFactory.integer(1))]));
   }
   void test_visitFormalParameterList_r() {
     assertSource("(a)", ASTFactory.formalParameterList([ASTFactory.simpleFormalParameter3("a")]));
   }
   void test_visitFormalParameterList_rn() {
-    assertSource("(a, {b : 1})", ASTFactory.formalParameterList([ASTFactory.simpleFormalParameter3("a"), ASTFactory.namedFormalParameter(ASTFactory.simpleFormalParameter3("b"), ASTFactory.integer(1))]));
+    assertSource("(a, {b : 1})", ASTFactory.formalParameterList([
+        ASTFactory.simpleFormalParameter3("a"),
+        ASTFactory.namedFormalParameter(ASTFactory.simpleFormalParameter3("b"), ASTFactory.integer(1))]));
   }
   void test_visitFormalParameterList_rnn() {
-    assertSource("(a, {b : 1, c : 2})", ASTFactory.formalParameterList([ASTFactory.simpleFormalParameter3("a"), ASTFactory.namedFormalParameter(ASTFactory.simpleFormalParameter3("b"), ASTFactory.integer(1)), ASTFactory.namedFormalParameter(ASTFactory.simpleFormalParameter3("c"), ASTFactory.integer(2))]));
+    assertSource("(a, {b : 1, c : 2})", ASTFactory.formalParameterList([
+        ASTFactory.simpleFormalParameter3("a"),
+        ASTFactory.namedFormalParameter(ASTFactory.simpleFormalParameter3("b"), ASTFactory.integer(1)),
+        ASTFactory.namedFormalParameter(ASTFactory.simpleFormalParameter3("c"), ASTFactory.integer(2))]));
   }
   void test_visitFormalParameterList_rp() {
-    assertSource("(a, [b = 1])", ASTFactory.formalParameterList([ASTFactory.simpleFormalParameter3("a"), ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("b"), ASTFactory.integer(1))]));
+    assertSource("(a, [b = 1])", ASTFactory.formalParameterList([
+        ASTFactory.simpleFormalParameter3("a"),
+        ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("b"), ASTFactory.integer(1))]));
   }
   void test_visitFormalParameterList_rpp() {
-    assertSource("(a, [b = 1, c = 2])", ASTFactory.formalParameterList([ASTFactory.simpleFormalParameter3("a"), ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("b"), ASTFactory.integer(1)), ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("c"), ASTFactory.integer(2))]));
+    assertSource("(a, [b = 1, c = 2])", ASTFactory.formalParameterList([
+        ASTFactory.simpleFormalParameter3("a"),
+        ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("b"), ASTFactory.integer(1)),
+        ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("c"), ASTFactory.integer(2))]));
   }
   void test_visitFormalParameterList_rr() {
-    assertSource("(a, b)", ASTFactory.formalParameterList([ASTFactory.simpleFormalParameter3("a"), ASTFactory.simpleFormalParameter3("b")]));
+    assertSource("(a, b)", ASTFactory.formalParameterList([
+        ASTFactory.simpleFormalParameter3("a"),
+        ASTFactory.simpleFormalParameter3("b")]));
   }
   void test_visitFormalParameterList_rrn() {
-    assertSource("(a, b, {c : 3})", ASTFactory.formalParameterList([ASTFactory.simpleFormalParameter3("a"), ASTFactory.simpleFormalParameter3("b"), ASTFactory.namedFormalParameter(ASTFactory.simpleFormalParameter3("c"), ASTFactory.integer(3))]));
+    assertSource("(a, b, {c : 3})", ASTFactory.formalParameterList([
+        ASTFactory.simpleFormalParameter3("a"),
+        ASTFactory.simpleFormalParameter3("b"),
+        ASTFactory.namedFormalParameter(ASTFactory.simpleFormalParameter3("c"), ASTFactory.integer(3))]));
   }
   void test_visitFormalParameterList_rrnn() {
-    assertSource("(a, b, {c : 3, d : 4})", ASTFactory.formalParameterList([ASTFactory.simpleFormalParameter3("a"), ASTFactory.simpleFormalParameter3("b"), ASTFactory.namedFormalParameter(ASTFactory.simpleFormalParameter3("c"), ASTFactory.integer(3)), ASTFactory.namedFormalParameter(ASTFactory.simpleFormalParameter3("d"), ASTFactory.integer(4))]));
+    assertSource("(a, b, {c : 3, d : 4})", ASTFactory.formalParameterList([
+        ASTFactory.simpleFormalParameter3("a"),
+        ASTFactory.simpleFormalParameter3("b"),
+        ASTFactory.namedFormalParameter(ASTFactory.simpleFormalParameter3("c"), ASTFactory.integer(3)),
+        ASTFactory.namedFormalParameter(ASTFactory.simpleFormalParameter3("d"), ASTFactory.integer(4))]));
   }
   void test_visitFormalParameterList_rrp() {
-    assertSource("(a, b, [c = 3])", ASTFactory.formalParameterList([ASTFactory.simpleFormalParameter3("a"), ASTFactory.simpleFormalParameter3("b"), ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("c"), ASTFactory.integer(3))]));
+    assertSource("(a, b, [c = 3])", ASTFactory.formalParameterList([
+        ASTFactory.simpleFormalParameter3("a"),
+        ASTFactory.simpleFormalParameter3("b"),
+        ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("c"), ASTFactory.integer(3))]));
   }
   void test_visitFormalParameterList_rrpp() {
-    assertSource("(a, b, [c = 3, d = 4])", ASTFactory.formalParameterList([ASTFactory.simpleFormalParameter3("a"), ASTFactory.simpleFormalParameter3("b"), ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("c"), ASTFactory.integer(3)), ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("d"), ASTFactory.integer(4))]));
+    assertSource("(a, b, [c = 3, d = 4])", ASTFactory.formalParameterList([
+        ASTFactory.simpleFormalParameter3("a"),
+        ASTFactory.simpleFormalParameter3("b"),
+        ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("c"), ASTFactory.integer(3)),
+        ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("d"), ASTFactory.integer(4))]));
   }
   void test_visitForStatement_c() {
     assertSource("for (; c;) {}", ASTFactory.forStatement((null as Expression), ASTFactory.identifier3("c"), null, ASTFactory.block([])));
@@ -1623,7 +1700,9 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("if (c) {}", ASTFactory.ifStatement(ASTFactory.identifier3("c"), ASTFactory.block([])));
   }
   void test_visitImplementsClause_multiple() {
-    assertSource("implements A, B", ASTFactory.implementsClause([ASTFactory.typeName4("A", []), ASTFactory.typeName4("B", [])]));
+    assertSource("implements A, B", ASTFactory.implementsClause([
+        ASTFactory.typeName4("A", []),
+        ASTFactory.typeName4("B", [])]));
   }
   void test_visitImplementsClause_single() {
     assertSource("implements A", ASTFactory.implementsClause([ASTFactory.typeName4("A", [])]));
@@ -1632,7 +1711,9 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("import 'a.dart' show A;", ASTFactory.importDirective2("a.dart", null, [ASTFactory.showCombinator([ASTFactory.identifier3("A")])]));
   }
   void test_visitImportDirective_combinators() {
-    assertSource("import 'a.dart' show A hide B;", ASTFactory.importDirective2("a.dart", null, [ASTFactory.showCombinator([ASTFactory.identifier3("A")]), ASTFactory.hideCombinator([ASTFactory.identifier3("B")])]));
+    assertSource("import 'a.dart' show A hide B;", ASTFactory.importDirective2("a.dart", null, [
+        ASTFactory.showCombinator([ASTFactory.identifier3("A")]),
+        ASTFactory.hideCombinator([ASTFactory.identifier3("B")])]));
   }
   void test_visitImportDirective_minimal() {
     assertSource("import 'a.dart';", ASTFactory.importDirective2("a.dart", null, []));
@@ -1644,7 +1725,9 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("import 'a.dart' as p show A;", ASTFactory.importDirective2("a.dart", "p", [ASTFactory.showCombinator([ASTFactory.identifier3("A")])]));
   }
   void test_visitImportDirective_prefix_combinators() {
-    assertSource("import 'a.dart' as p show A hide B;", ASTFactory.importDirective2("a.dart", "p", [ASTFactory.showCombinator([ASTFactory.identifier3("A")]), ASTFactory.hideCombinator([ASTFactory.identifier3("B")])]));
+    assertSource("import 'a.dart' as p show A hide B;", ASTFactory.importDirective2("a.dart", "p", [
+        ASTFactory.showCombinator([ASTFactory.identifier3("A")]),
+        ASTFactory.hideCombinator([ASTFactory.identifier3("B")])]));
   }
   void test_visitImportHideCombinator_multiple() {
     assertSource("hide a, b", ASTFactory.hideCombinator([ASTFactory.identifier3("a"), ASTFactory.identifier3("b")]));
@@ -1701,7 +1784,10 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("library l;", ASTFactory.libraryDirective2("l"));
   }
   void test_visitLibraryIdentifier_multiple() {
-    assertSource("a.b.c", ASTFactory.libraryIdentifier([ASTFactory.identifier3("a"), ASTFactory.identifier3("b"), ASTFactory.identifier3("c")]));
+    assertSource("a.b.c", ASTFactory.libraryIdentifier([
+        ASTFactory.identifier3("a"),
+        ASTFactory.identifier3("b"),
+        ASTFactory.identifier3("c")]));
   }
   void test_visitLibraryIdentifier_single() {
     assertSource("a", ASTFactory.libraryIdentifier([ASTFactory.identifier3("a")]));
@@ -1713,7 +1799,10 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("[]", ASTFactory.listLiteral([]));
   }
   void test_visitListLiteral_nonEmpty() {
-    assertSource("[a, b, c]", ASTFactory.listLiteral([ASTFactory.identifier3("a"), ASTFactory.identifier3("b"), ASTFactory.identifier3("c")]));
+    assertSource("[a, b, c]", ASTFactory.listLiteral([
+        ASTFactory.identifier3("a"),
+        ASTFactory.identifier3("b"),
+        ASTFactory.identifier3("c")]));
   }
   void test_visitMapLiteral_const() {
     assertSource("const {}", ASTFactory.mapLiteral(Keyword.CONST, null, []));
@@ -1722,7 +1811,10 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("{}", ASTFactory.mapLiteral2([]));
   }
   void test_visitMapLiteral_nonEmpty() {
-    assertSource("{'a' : a, 'b' : b, 'c' : c}", ASTFactory.mapLiteral2([ASTFactory.mapLiteralEntry("a", ASTFactory.identifier3("a")), ASTFactory.mapLiteralEntry("b", ASTFactory.identifier3("b")), ASTFactory.mapLiteralEntry("c", ASTFactory.identifier3("c"))]));
+    assertSource("{'a' : a, 'b' : b, 'c' : c}", ASTFactory.mapLiteral2([
+        ASTFactory.mapLiteralEntry("a", ASTFactory.identifier3("a")),
+        ASTFactory.mapLiteralEntry("b", ASTFactory.identifier3("b")),
+        ASTFactory.mapLiteralEntry("c", ASTFactory.identifier3("c"))]));
   }
   void test_visitMapLiteralEntry() {
     assertSource("'a' : b", ASTFactory.mapLiteralEntry("a", ASTFactory.identifier3("b")));
@@ -1746,7 +1838,9 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("m() {}", ASTFactory.methodDeclaration2(null, null, null, null, ASTFactory.identifier3("m"), ASTFactory.formalParameterList([]), ASTFactory.blockFunctionBody([])));
   }
   void test_visitMethodDeclaration_multipleParameters() {
-    assertSource("m(var a, var b) {}", ASTFactory.methodDeclaration2(null, null, null, null, ASTFactory.identifier3("m"), ASTFactory.formalParameterList([ASTFactory.simpleFormalParameter(Keyword.VAR, "a"), ASTFactory.simpleFormalParameter(Keyword.VAR, "b")]), ASTFactory.blockFunctionBody([])));
+    assertSource("m(var a, var b) {}", ASTFactory.methodDeclaration2(null, null, null, null, ASTFactory.identifier3("m"), ASTFactory.formalParameterList([
+        ASTFactory.simpleFormalParameter(Keyword.VAR, "a"),
+        ASTFactory.simpleFormalParameter(Keyword.VAR, "b")]), ASTFactory.blockFunctionBody([])));
   }
   void test_visitMethodDeclaration_operator() {
     assertSource("operator +() {}", ASTFactory.methodDeclaration2(null, null, null, Keyword.OPERATOR, ASTFactory.identifier3("+"), ASTFactory.formalParameterList([]), ASTFactory.blockFunctionBody([])));
@@ -1840,7 +1934,10 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("'a'", ASTFactory.string2("a"));
   }
   void test_visitStringInterpolation() {
-    assertSource("'a\${e}b'", ASTFactory.string([ASTFactory.interpolationString("'a", "a"), ASTFactory.interpolationExpression(ASTFactory.identifier3("e")), ASTFactory.interpolationString("b'", "b")]));
+    assertSource("'a\${e}b'", ASTFactory.string([
+        ASTFactory.interpolationString("'a", "a"),
+        ASTFactory.interpolationExpression(ASTFactory.identifier3("e")),
+        ASTFactory.interpolationString("b'", "b")]));
   }
   void test_visitSuperConstructorInvocation() {
     assertSource("super()", ASTFactory.superConstructorInvocation([]));
@@ -1876,7 +1973,9 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("l1: default: {}", ASTFactory.switchDefault(ASTFactory.list([ASTFactory.label2("l1")]), [ASTFactory.block([])]));
   }
   void test_visitSwitchStatement() {
-    assertSource("switch (a) {case 'b': {} default: {}}", ASTFactory.switchStatement(ASTFactory.identifier3("a"), [ASTFactory.switchCase(ASTFactory.string2("b"), [ASTFactory.block([])]), ASTFactory.switchDefault2([ASTFactory.block([])])]));
+    assertSource("switch (a) {case 'b': {} default: {}}", ASTFactory.switchStatement(ASTFactory.identifier3("a"), [
+        ASTFactory.switchCase(ASTFactory.string2("b"), [ASTFactory.block([])]),
+        ASTFactory.switchDefault2([ASTFactory.block([])])]));
   }
   void test_visitSymbolLiteral_multiple() {
     assertSource("#a.b.c", ASTFactory.symbolLiteral(["a", "b", "c"]));
@@ -1894,13 +1993,17 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("var a;", ASTFactory.topLevelVariableDeclaration2(Keyword.VAR, [ASTFactory.variableDeclaration("a")]));
   }
   void test_visitTopLevelVariableDeclaration_single() {
-    assertSource("var a, b;", ASTFactory.topLevelVariableDeclaration2(Keyword.VAR, [ASTFactory.variableDeclaration("a"), ASTFactory.variableDeclaration("b")]));
+    assertSource("var a, b;", ASTFactory.topLevelVariableDeclaration2(Keyword.VAR, [
+        ASTFactory.variableDeclaration("a"),
+        ASTFactory.variableDeclaration("b")]));
   }
   void test_visitTryStatement_catch() {
     assertSource("try {} on E {}", ASTFactory.tryStatement2(ASTFactory.block([]), [ASTFactory.catchClause3(ASTFactory.typeName4("E", []), [])]));
   }
   void test_visitTryStatement_catches() {
-    assertSource("try {} on E {} on F {}", ASTFactory.tryStatement2(ASTFactory.block([]), [ASTFactory.catchClause3(ASTFactory.typeName4("E", []), []), ASTFactory.catchClause3(ASTFactory.typeName4("F", []), [])]));
+    assertSource("try {} on E {} on F {}", ASTFactory.tryStatement2(ASTFactory.block([]), [
+        ASTFactory.catchClause3(ASTFactory.typeName4("E", []), []),
+        ASTFactory.catchClause3(ASTFactory.typeName4("F", []), [])]));
   }
   void test_visitTryStatement_catchFinally() {
     assertSource("try {} on E {} finally {}", ASTFactory.tryStatement3(ASTFactory.block([]), ASTFactory.list([ASTFactory.catchClause3(ASTFactory.typeName4("E", []), [])]), ASTFactory.block([])));
@@ -1915,13 +2018,17 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("typedef A F();", ASTFactory.typeAlias(ASTFactory.typeName4("A", []), "F", null, ASTFactory.formalParameterList([])));
   }
   void test_visitTypeArgumentList_multiple() {
-    assertSource("<E, F>", ASTFactory.typeArgumentList([ASTFactory.typeName4("E", []), ASTFactory.typeName4("F", [])]));
+    assertSource("<E, F>", ASTFactory.typeArgumentList([
+        ASTFactory.typeName4("E", []),
+        ASTFactory.typeName4("F", [])]));
   }
   void test_visitTypeArgumentList_single() {
     assertSource("<E>", ASTFactory.typeArgumentList([ASTFactory.typeName4("E", [])]));
   }
   void test_visitTypeName_multipleArgs() {
-    assertSource("C<D, E>", ASTFactory.typeName4("C", [ASTFactory.typeName4("D", []), ASTFactory.typeName4("E", [])]));
+    assertSource("C<D, E>", ASTFactory.typeName4("C", [
+        ASTFactory.typeName4("D", []),
+        ASTFactory.typeName4("E", [])]));
   }
   void test_visitTypeName_nestedArg() {
     assertSource("C<D<E>>", ASTFactory.typeName4("C", [ASTFactory.typeName4("D", [ASTFactory.typeName4("E", [])])]));
@@ -1951,16 +2058,24 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("a", ASTFactory.variableDeclaration("a"));
   }
   void test_visitVariableDeclarationList_const_type() {
-    assertSource("const C a, b", ASTFactory.variableDeclarationList(Keyword.CONST, ASTFactory.typeName4("C", []), [ASTFactory.variableDeclaration("a"), ASTFactory.variableDeclaration("b")]));
+    assertSource("const C a, b", ASTFactory.variableDeclarationList(Keyword.CONST, ASTFactory.typeName4("C", []), [
+        ASTFactory.variableDeclaration("a"),
+        ASTFactory.variableDeclaration("b")]));
   }
   void test_visitVariableDeclarationList_final_noType() {
-    assertSource("final a, b", ASTFactory.variableDeclarationList2(Keyword.FINAL, [ASTFactory.variableDeclaration("a"), ASTFactory.variableDeclaration("b")]));
+    assertSource("final a, b", ASTFactory.variableDeclarationList2(Keyword.FINAL, [
+        ASTFactory.variableDeclaration("a"),
+        ASTFactory.variableDeclaration("b")]));
   }
   void test_visitVariableDeclarationList_type() {
-    assertSource("C a, b", ASTFactory.variableDeclarationList(null, ASTFactory.typeName4("C", []), [ASTFactory.variableDeclaration("a"), ASTFactory.variableDeclaration("b")]));
+    assertSource("C a, b", ASTFactory.variableDeclarationList(null, ASTFactory.typeName4("C", []), [
+        ASTFactory.variableDeclaration("a"),
+        ASTFactory.variableDeclaration("b")]));
   }
   void test_visitVariableDeclarationList_var() {
-    assertSource("var a, b", ASTFactory.variableDeclarationList2(Keyword.VAR, [ASTFactory.variableDeclaration("a"), ASTFactory.variableDeclaration("b")]));
+    assertSource("var a, b", ASTFactory.variableDeclarationList2(Keyword.VAR, [
+        ASTFactory.variableDeclaration("a"),
+        ASTFactory.variableDeclaration("b")]));
   }
   void test_visitVariableDeclarationStatement() {
     assertSource("C c;", ASTFactory.variableDeclarationStatement(null, ASTFactory.typeName4("C", []), [ASTFactory.variableDeclaration("c")]));
@@ -1969,7 +2084,10 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("while (c) {}", ASTFactory.whileStatement(ASTFactory.identifier3("c"), ASTFactory.block([])));
   }
   void test_visitWithClause_multiple() {
-    assertSource("with A, B, C", ASTFactory.withClause([ASTFactory.typeName4("A", []), ASTFactory.typeName4("B", []), ASTFactory.typeName4("C", [])]));
+    assertSource("with A, B, C", ASTFactory.withClause([
+        ASTFactory.typeName4("A", []),
+        ASTFactory.typeName4("B", []),
+        ASTFactory.typeName4("C", [])]));
   }
   void test_visitWithClause_single() {
     assertSource("with A", ASTFactory.withClause([ASTFactory.typeName4("A", [])]));

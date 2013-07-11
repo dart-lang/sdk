@@ -77,9 +77,7 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
   static const int _STATE_PAUSE_COUNT_SHIFT = 6;
 
   /* Event handlers provided in constructor. */
-  /* TODO(7733): Fix Function->_DataHandler<T> when dart2js understands
-   * parameterized function types. */
-  Function _onData;
+  _DataHandler<T> _onData;
   _ErrorHandler _onError;
   _DoneHandler _onDone;
   final _Zone _zone = _Zone.current;

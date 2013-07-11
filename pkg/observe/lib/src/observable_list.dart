@@ -102,7 +102,7 @@ class ObservableList<E> extends _ListBaseWorkaround with ObservableMixin
   bool remove(Object element) {
     for (int i = 0; i < this.length; i++) {
       if (this[i] == element) {
-        removeRange(i, 1);
+        removeRange(i, i + 1);
         return true;
       }
     }

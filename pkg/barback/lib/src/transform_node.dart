@@ -10,6 +10,7 @@ import 'asset.dart';
 import 'asset_graph.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
+import 'asset_set.dart';
 import 'errors.dart';
 import 'phase.dart';
 import 'transform.dart';
@@ -58,7 +59,7 @@ class TransformNode {
   /// previous runs.
   Future<TransformOutputs> apply() {
     var newInputs = new Set<AssetNode>();
-    var newOutputs = new Map<AssetId, Asset>();
+    var newOutputs = new AssetSet();
     var transform = createTransform(this, newInputs, newOutputs);
     return _transformer.apply(transform).catchError((error) {
       // Catch all transformer errors and pipe them to the results stream.
@@ -84,7 +85,7 @@ class TransformNode {
       _inputs = newInputs;
 
       // See which outputs are missing from the last run.
-      var outputIds = newOutputs.keys.toSet();
+      var outputIds = newOutputs.map((asset) => asset.id).toSet();
       var removed = _outputs.difference(outputIds);
       _outputs = outputIds;
 
@@ -97,7 +98,7 @@ class TransformNode {
 /// applied.
 class TransformOutputs {
   /// The outputs that are new or were modified since the last run.
-  final Map<AssetId, Asset> updated;
+  final AssetSet updated;
 
   /// The outputs that were created by the previous run but were not generated
   /// by the most recent run.

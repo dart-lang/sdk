@@ -32,7 +32,7 @@ static bool IsSingletonClassId(intptr_t class_id) {
 static bool IsObjectStoreClassId(intptr_t class_id) {
   // Check if this is a class which is stored in the object store.
   return (class_id == kObjectCid ||
-          (class_id >= kInstanceCid && class_id <= kWeakPropertyCid) ||
+          (class_id >= kInstanceCid && class_id <= kUint32x4Cid) ||
           class_id == kArrayCid ||
           class_id == kImmutableArrayCid ||
           RawObject::IsStringClassId(class_id) ||
@@ -201,18 +201,19 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
   // Read the class header information and lookup the class.
   intptr_t class_header = ReadIntptrValue();
   ASSERT((class_header & kSmiTagMask) != kSmiTag);
+  ASSERT(!IsVMIsolateObject(class_header) ||
+         !IsSingletonClassId(GetVMIsolateObjectId(class_header)));
+  ASSERT((SerializedHeaderTag::decode(class_header) != kObjectId) ||
+         !IsObjectStoreClassId(SerializedHeaderData::decode(class_header)));
   Class& cls = Class::ZoneHandle(isolate(), Class::null());
-  cls = LookupInternalClass(class_header);
   AddBackRef(object_id, &cls, kIsDeserialized);
-  if (cls.IsNull()) {
-    // Read the library/class information and lookup the class.
-    str_ ^= ReadObjectImpl(class_header);
-    library_ = Library::LookupLibrary(str_);
-    ASSERT(!library_.IsNull());
-    str_ ^= ReadObjectImpl();
-    cls = library_.LookupClass(str_);
-    cls.EnsureIsFinalized(isolate());
-  }
+  // Read the library/class information and lookup the class.
+  str_ ^= ReadObjectImpl(class_header);
+  library_ = Library::LookupLibrary(str_);
+  ASSERT(!library_.IsNull());
+  str_ ^= ReadObjectImpl();
+  cls = library_.LookupClass(str_);
+  cls.EnsureIsFinalized(isolate());
   ASSERT(!cls.IsNull());
   return cls.raw();
 }
@@ -1151,8 +1152,21 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
     return true;
   }
 
-  // Check if classes are not being serialized and it is preinitialized type.
+  // Check if classes are not being serialized and it is preinitialized type
+  // or a predefined internal VM class in the object store.
   if (kind_ != Snapshot::kFull) {
+    // Check if it is an internal VM class which is in the object store.
+    if (rawobj->GetClassId() == kClassCid) {
+      RawClass* raw_class = reinterpret_cast<RawClass*>(rawobj);
+      intptr_t class_id = raw_class->ptr()->id_;
+      if (IsObjectStoreClassId(class_id)) {
+        intptr_t object_id = ObjectIdFromClassId(class_id);
+        WriteIndexedObject(object_id);
+        return true;
+      }
+    }
+
+    // Now check it is a preinitialized type object.
     RawType* raw_type = reinterpret_cast<RawType*>(rawobj);
     intptr_t index = GetTypeIndex(object_store(), raw_type);
     if (index != kInvalidIndex) {
@@ -1264,25 +1278,18 @@ void SnapshotWriter::WriteForwardedObjects() {
 void SnapshotWriter::WriteClassId(RawClass* cls) {
   ASSERT(kind_ != Snapshot::kFull);
   int class_id = cls->ptr()->id_;
-  if (IsSingletonClassId(class_id)) {
-    intptr_t object_id = ObjectIdFromClassId(class_id);
-    WriteVMIsolateObject(object_id);
-  } else if (IsObjectStoreClassId(class_id)) {
-    intptr_t object_id = ObjectIdFromClassId(class_id);
-    WriteIndexedObject(object_id);
-  } else {
-    // TODO(5411462): Should restrict this to only core-lib classes in this
-    // case.
-    // Write out the class and tags information.
-    WriteVMIsolateObject(kClassCid);
-    WriteIntptrValue(GetObjectTags(cls));
+  ASSERT(!IsSingletonClassId(class_id) && !IsObjectStoreClassId(class_id));
+  // TODO(5411462): Should restrict this to only core-lib classes in this
+  // case.
+  // Write out the class and tags information.
+  WriteVMIsolateObject(kClassCid);
+  WriteIntptrValue(GetObjectTags(cls));
 
-    // Write out the library url and class name.
-    RawLibrary* library = cls->ptr()->library_;
-    ASSERT(library != Library::null());
-    WriteObjectImpl(library->ptr()->url_);
-    WriteObjectImpl(cls->ptr()->name_);
-  }
+  // Write out the library url and class name.
+  RawLibrary* library = cls->ptr()->library_;
+  ASSERT(library != Library::null());
+  WriteObjectImpl(library->ptr()->url_);
+  WriteObjectImpl(cls->ptr()->name_);
 }
 
 

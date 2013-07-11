@@ -13,24 +13,6 @@ class Class {
 foo(x) {}
 
 main() {
-  if (false) {
-    Class(); /// 02: compile-time error
-    Class[0]; /// 05: compile-time error
-    var x = Class(); /// 07: compile-time error
-    var x = Class[0]; /// 10: compile-time error
-    var x = Class[0].field; /// 11: compile-time error
-    var x = Class[0].method(); /// 12: compile-time error
-    foo(Class()); /// 14: compile-time error
-    foo(Class[0]); /// 17: compile-time error
-    foo(Class[0].field); /// 18: compile-time error
-    foo(Class[0].method()); /// 19: compile-time error
-    Class[0] = 91; /// 22: compile-time error
-    Class++; /// 23: compile-time error
-    ++Class; /// 24: compile-time error
-    Class[0] += 3; /// 27: compile-time error
-    ++Class[0]; /// 28: compile-time error
-    Class[0]++; /// 29: compile-time error
-  }
   Expect.equals(42, Class.fisk());
   Expect.equals(null, foo(Class.fisk()));
   
@@ -41,6 +23,22 @@ main() {
   Expect.isFalse(Class == null);
 
   // Verify that dereferencing a class literal is a runtime error.
+  Expect.throws(() { Class(); }, (e) => e is NoSuchMethodError);
+  Expect.throws(() { Class[0]; }, (e) => e is NoSuchMethodError);
+  Expect.throws(() { var x = Class(); }, (e) => e is NoSuchMethodError);
+  Expect.throws(() { var x = Class[0]; }, (e) => e is NoSuchMethodError);
+  Expect.throws(() { var x = Class[0].field; }, (e) => e is NoSuchMethodError);
+  Expect.throws(() { var x = Class[0].method(); }, (e) => e is NoSuchMethodError);
+  Expect.throws(() { foo(Class()); }, (e) => e is NoSuchMethodError);
+  Expect.throws(() { foo(Class[0]); }, (e) => e is NoSuchMethodError);
+  Expect.throws(() { foo(Class[0].field); }, (e) => e is NoSuchMethodError);
+  Expect.throws(() { foo(Class[0].method()); }, (e) => e is NoSuchMethodError);
+  Expect.throws(() { Class[0] = 91; }, (e) => e is NoSuchMethodError);
+  Expect.throws(() { Class++; }, (e) => e is NoSuchMethodError);
+  Expect.throws(() { ++Class; }, (e) => e is NoSuchMethodError);
+  Expect.throws(() { Class[0] += 3; }, (e) => e is NoSuchMethodError);
+  Expect.throws(() { ++Class[0]; }, (e) => e is NoSuchMethodError);
+  Expect.throws(() { Class[0]++; }, (e) => e is NoSuchMethodError);
   Expect.throws(() { Class.method(); }, (e) => e is NoSuchMethodError);
   Expect.throws(() { Class.field; }, (e) => e is NoSuchMethodError);
   Expect.throws(() { var x = Class.method(); }, (e) => e is NoSuchMethodError);

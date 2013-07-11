@@ -24,6 +24,7 @@ namespace dart {
 
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, propagate_ic_data);
+DECLARE_FLAG(bool, use_osr);
 
 // Generic summary for call instructions that have all arguments pushed
 // on the stack and return the result in a fixed register V0.
@@ -1886,6 +1887,45 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* InstantiateTypeInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(T0));
+  locs->set_out(Location::RegisterLocation(T0));
+  return locs;
+}
+
+
+void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ TraceSimMsg("InstantiateTypeInstr");
+  Register instantiator_reg = locs()->in(0).reg();
+  Register result_reg = locs()->out().reg();
+
+  // 'instantiator_reg' is the instantiator AbstractTypeArguments object
+  // (or null).
+  // A runtime call to instantiate the type is required.
+  __ addiu(SP, SP, Immediate(-3 * kWordSize));
+  __ LoadObject(TMP1, Object::ZoneHandle());
+  __ sw(TMP1, Address(SP, 2 * kWordSize));  // Make room for the result.
+  __ LoadObject(TMP1, type());
+  __ sw(TMP1, Address(SP, 1 * kWordSize));
+  // Push instantiator type arguments.
+  __ sw(instantiator_reg, Address(SP, 0 * kWordSize));
+
+  compiler->GenerateCallRuntime(token_pos(),
+                                deopt_id(),
+                                kInstantiateTypeRuntimeEntry,
+                                locs());
+  // Pop instantiated type.
+  __ lw(result_reg, Address(SP, 2 * kWordSize));
+  // Drop instantiator and uninstantiated type.
+  __ addiu(SP, SP, Immediate(3 * kWordSize));
+  ASSERT(instantiator_reg == result_reg);
+}
+
+
 LocationSummary* InstantiateTypeArgumentsInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
@@ -2122,11 +2162,12 @@ void CatchEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* CheckStackOverflowInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 0;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = 1;
   LocationSummary* summary =
       new LocationSummary(kNumInputs,
                           kNumTemps,
                           LocationSummary::kCallOnSlowPath);
+  summary->set_temp(0, Location::RequiresRegister());
   return summary;
 }
 
@@ -2149,6 +2190,13 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
                                   instruction_->deopt_id(),
                                   kStackOverflowRuntimeEntry,
                                   instruction_->locs());
+
+    if (FLAG_use_osr && !compiler->is_optimizing() && instruction_->in_loop()) {
+      // In unoptimized code, record loop stack checks as possible OSR entries.
+      compiler->AddCurrentDescriptor(PcDescriptors::kOsrEntry,
+                                     instruction_->deopt_id(),
+                                     0);  // No token position.
+    }
     compiler->pending_deoptimization_env_ = NULL;
     compiler->RestoreLiveRegisters(instruction_->locs());
     __ b(exit_label());
@@ -2168,7 +2216,17 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ lw(TMP1, Address(TMP1));
   __ BranchUnsignedLessEqual(SP, TMP1, slow_path->entry_label());
-
+  if (compiler->CanOSRFunction() && in_loop()) {
+    Register temp = locs()->temp(0).reg();
+    // In unoptimized code check the usage counter to trigger OSR at loop
+    // stack checks.  Use progressively higher thresholds for more deeply
+    // nested loops to attempt to hit outer loops with OSR when possible.
+    __ LoadObject(temp, compiler->parsed_function().function());
+    intptr_t threshold =
+        FLAG_optimization_counter_threshold * (loop_depth() + 1);
+    __ lw(temp, FieldAddress(temp, Function::usage_counter_offset()));
+    __ BranchSignedGreaterEqual(temp, threshold, slow_path->entry_label());
+  }
   __ Bind(slow_path->exit_label());
 }
 

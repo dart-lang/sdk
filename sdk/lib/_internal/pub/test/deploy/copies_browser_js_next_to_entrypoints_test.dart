@@ -13,7 +13,7 @@ import '../test_pub.dart';
 main() {
   initConfig();
 
-  integration("compiles dart.js next to entrypoints", () {
+  integration("compiles dart.js and interop.js next to entrypoints", () {
     // Dart2js can take a long time to compile dart code, so we increase the
     // timeout to cope with that.
     currentSchedule.timeout *= 3;
@@ -40,7 +40,8 @@ main() {
             d.tar('1.0.0.tar.gz', [
               d.file('pubspec.yaml', yaml(packageMap("browser", "1.0.0"))),
               d.dir('lib', [
-                d.file('dart.js', 'contents of dart.js')
+                d.file('dart.js', 'contents of dart.js'),
+                d.file('interop.js', 'contents of interop.js')
               ])
             ])
           ])
@@ -63,13 +64,15 @@ main() {
     schedulePub(args: ["deploy"],
         output: '''
 Finding entrypoints...
-Copying   web|                    => deploy|
-Compiling web|file.dart           => deploy|file.dart.js
-Compiling web|file.dart           => deploy|file.dart
-Copying   package:browser/dart.js => deploy|packages|browser|dart.js
-Compiling web|subdir|subfile.dart => deploy|subdir|subfile.dart.js
-Compiling web|subdir|subfile.dart => deploy|subdir|subfile.dart
-Copying   package:browser/dart.js => deploy|subdir|packages|browser|dart.js
+Copying   web|                       => deploy|
+Compiling web|file.dart              => deploy|file.dart.js
+Compiling web|file.dart              => deploy|file.dart
+Copying   package:browser/dart.js    => deploy|packages|browser|dart.js
+Copying   package:browser/interop.js => deploy|packages|browser|interop.js
+Compiling web|subdir|subfile.dart    => deploy|subdir|subfile.dart.js
+Compiling web|subdir|subfile.dart    => deploy|subdir|subfile.dart
+Copying   package:browser/dart.js    => deploy|subdir|packages|browser|dart.js
+Copying   package:browser/interop.js => deploy|subdir|packages|browser|interop.js
 '''.replaceAll('|', path.separator),
         exitCode: 0);
 
@@ -78,11 +81,13 @@ Copying   package:browser/dart.js => deploy|subdir|packages|browser|dart.js
         d.matcherFile('file.dart.js', isNot(isEmpty)),
         d.matcherFile('file.dart', isNot(isEmpty)),
         d.dir('packages', [d.dir('browser', [
-          d.file('dart.js', 'contents of dart.js')
+          d.file('dart.js', 'contents of dart.js'),
+          d.file('interop.js', 'contents of interop.js')
         ])]),
         d.dir('subdir', [
           d.dir('packages', [d.dir('browser', [
-            d.file('dart.js', 'contents of dart.js')
+            d.file('dart.js', 'contents of dart.js'),
+            d.file('interop.js', 'contents of interop.js')
           ])]),
           d.matcherFile('subfile.dart.js', isNot(isEmpty)),
           d.matcherFile('subfile.dart', isNot(isEmpty))

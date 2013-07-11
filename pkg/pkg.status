@@ -36,6 +36,7 @@ unittest/test/unittest_test: Pass, Timeout # http://dartbug.com/11473
 [ $runtime == d8 || $runtime == jsshell ]
 unittest/test/unittest_test: Pass, Fail # http://dartbug.com/10109
 stack_trace/test/vm_test: Fail, OK # VM-specific traces
+sequence_zip/test/stream_test: Fail, OK # Timers are not supported.
 
 [$compiler == dart2dart]
 *: Skip
@@ -59,6 +60,7 @@ crypto/test/sha1_test: Fail # Issue 11407.
 
 # Skip browser-specific tests on VM
 [ $runtime == vm ]
+docgen/test/single_library_test: Skip # Uses js_helper
 pathos/test/pathos_dartium_test: Fail, OK # Uses dart:html
 pathos/test/pathos_dart2js_test: Fail, OK # Uses dart:html
 intl/test/find_default_locale_browser_test: Skip
@@ -71,6 +73,7 @@ intl/test/message_extraction/message_extraction_test: Fail # Issue 9167
 [ $compiler == dart2js ]
 analyzer_experimental/test/generated/ast_test: Fail, Slow # Issue 11230
 unittest/test/instance_test: Fail # http://dartbug.com/11191
+stack_trace/test/trace_test: Pass, Timeout # Issue 11645
 
 [ $compiler == dart2js && $checked ]
 mdv_observe/test/observable_map_test: Fail # BUG(11480): Triage.
@@ -90,7 +93,6 @@ serialization/test/no_library_test: Fail # Issue 6490
 [ $compiler == dart2js && $minified ]
 serialization/test/serialization_test: Fail # Issue 6490
 serialization/test/no_library_test: Fail # Issue 6490
-stack_trace/test/trace_test: Pass, Timeout # Issue 11645
 
 # The unminified unittest tests test that the real names of Dart types are
 # printed. Minified versions of these tests exist that test the behavior when
@@ -191,3 +193,7 @@ pathos/test/pathos_dart2js_test: Fail, OK # Issue 6490
 # Skip mdv tests on command line VM, they only run in the browser.
 [ $runtime == vm ]
 mdv: Skip
+
+[ $runtime == safari || $runtime == chrome || $runtime == ie9 || $runtime == ff || $runtime == dartium || $runtime == drt ]
+docgen/test/single_library_test: Skip # Uses dart:io
+

@@ -9,6 +9,7 @@ import 'dart:async';
 import 'asset.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
+import 'asset_set.dart';
 import 'errors.dart';
 import 'transform_node.dart';
 
@@ -18,7 +19,7 @@ import 'transform_node.dart';
 /// itself a public constructor, which would be visible to external users.
 /// Unlike the [Transform] class, this function is not exported by barback.dart.
 Transform createTransform(TransformNode node, Set<AssetNode> inputs,
-                          Map<AssetId, Asset> outputs) =>
+                          AssetSet outputs) =>
     new Transform._(node, inputs, outputs);
 
 /// While a [Transformer] represents a *kind* of transformation, this defines
@@ -32,7 +33,7 @@ class Transform {
   final TransformNode _node;
 
   final Set<AssetNode> _inputs;
-  final Map<AssetId, Asset> _outputs;
+  final AssetSet _outputs;
 
   /// Gets the ID of the primary input for this transformation.
   ///
@@ -71,9 +72,12 @@ class Transform {
     });
   }
 
-  /// Stores [output] as the output created by this transformation for asset
-  /// [id]. A transformation can output as many assets as it wants.
-  void addOutput(AssetId id, Asset output) {
-    _outputs[id] = output;
+  /// Stores [output] as the output created by this transformation.
+  ///
+  /// A transformation can output as many assets as it wants.
+  void addOutput(Asset output) {
+    // TODO(rnystrom): This should immediately throw if an output with that ID
+    // has already been created by this transformer.
+    _outputs.add(output);
   }
 }

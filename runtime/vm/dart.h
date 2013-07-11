@@ -31,6 +31,7 @@ class Dart : public AllStatic {
 
   static Isolate* CreateIsolate(const char* name_prefix);
   static RawError* InitializeIsolate(const uint8_t* snapshot, void* data);
+  static void RunShutdownCallback();
   static void ShutdownIsolate();
 
   static Isolate* vm_isolate() { return vm_isolate_; }

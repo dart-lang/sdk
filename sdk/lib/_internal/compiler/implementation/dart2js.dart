@@ -14,6 +14,7 @@ import 'source_file.dart';
 import 'source_file_provider.dart';
 import 'filenames.dart';
 import 'util/uri_extras.dart';
+import 'util/util.dart';
 import '../../libraries.dart';
 
 const String LIBRARY_ROOT = '../../../../..';
@@ -93,6 +94,7 @@ void parseCommandLine(List<OptionHandler> handlers, List<String> argv) {
 
 void compile(List<String> argv) {
   bool isWindows = (Platform.operatingSystem == 'windows');
+  stackTraceFilePrefix = '$currentDirectory';
   Uri libraryRoot = currentDirectory;
   Uri out = currentDirectory.resolve('out.js');
   Uri sourceMapOut = currentDirectory.resolve('out.js.map');

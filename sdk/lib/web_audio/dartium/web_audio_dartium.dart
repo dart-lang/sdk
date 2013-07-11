@@ -2,7 +2,7 @@ library dart.dom.web_audio;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:_collection-dev';
+import 'dart:_collection-dev' hide deprecated;
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:nativewrappers';
@@ -432,7 +432,15 @@ class AudioContext extends EventTarget {
 
   @DomName('AudioContext.decodeAudioData')
   @DocsEditable()
-  void decodeAudioData(ByteBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) native "AudioContext_decodeAudioData_Callback";
+  void _decodeAudioData(ByteBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) native "AudioContext_decodeAudioData_Callback";
+
+  Future<AudioBuffer> decodeAudioData(ByteBuffer audioData) {
+    var completer = new Completer<AudioBuffer>();
+    _decodeAudioData(audioData,
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('AudioContext.startRendering')
   @DocsEditable()

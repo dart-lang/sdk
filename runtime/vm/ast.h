@@ -358,6 +358,8 @@ class TypeNode : public AstNode {
 
   const AbstractType& type() const { return type_; }
 
+  virtual const char* Name() const;
+
   virtual const Instance* EvalConstExpr() const {
     if (!type_.IsInstantiated() || type_.IsMalformed()) {
       return NULL;
@@ -963,6 +965,7 @@ class LoadLocalNode : public AstNode {
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const { }
 
+  virtual const char* Name() const;
   virtual const Instance* EvalConstExpr() const;
   virtual bool IsPotentiallyConst() const;
   virtual AstNode* MakeAssignmentNode(AstNode* rhs);

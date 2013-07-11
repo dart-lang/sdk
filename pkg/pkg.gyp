@@ -24,6 +24,24 @@
             '<@(_inputs)',
           ],
         },
+        {
+          'action_name': 'make_third_party_packages',
+          'inputs': [
+            '../tools/make_links.py',
+            '<!@(["python", "../tools/list_pkg_directories.py", '
+                '"../third_party/pkg"])',
+          ],
+          'outputs': [
+            '<(SHARED_INTERMEDIATE_DIR)/third_party_packages.stamp',
+          ],
+          'action': [
+            'python', '../tools/make_links.py',
+            '--timestamp_file=<(SHARED_INTERMEDIATE_DIR)/third_party_packages.'
+                'stamp',
+            '<(PRODUCT_DIR)/packages',
+            '<@(_inputs)',
+          ],
+        },
       ],
     }
   ],

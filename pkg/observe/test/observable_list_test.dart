@@ -31,6 +31,15 @@ main() {
       expectChanges(changes, [_lengthChange]);
     });
 
+    test('removeObject', () {
+      list.remove(2);
+      expect(list, orderedEquals([1, 3]));
+
+      deliverChangeRecords();
+      deliverChangeRecords();
+      expectChanges(changes, [_lengthChange]);
+    });
+
     test('removeRange changes length', () {
       list.add(4);
       list.removeRange(1, 3);

@@ -37,6 +37,7 @@ DECLARE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs);
 DECLARE_RUNTIME_ENTRY(InlineCacheMissHandlerThreeArgs);
 DECLARE_RUNTIME_ENTRY(InstanceFunctionLookup);
 DECLARE_RUNTIME_ENTRY(Instanceof);
+DECLARE_RUNTIME_ENTRY(InstantiateType);
 DECLARE_RUNTIME_ENTRY(InstantiateTypeArguments);
 DECLARE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction);
 DECLARE_RUNTIME_ENTRY(MegamorphicCacheMissHandler);

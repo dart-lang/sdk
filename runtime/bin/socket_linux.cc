@@ -246,6 +246,10 @@ bool Socket::ReverseLookup(RawAddr addr,
 
 
 static bool ShouldIncludeIfaAddrs(struct ifaddrs* ifa, int lookup_family) {
+  if (ifa->ifa_addr == NULL) {
+    // OpenVPN's virtual device tun0.
+    return false;
+  }
   int family = ifa->ifa_addr->sa_family;
   if (lookup_family == family) return true;
   if (lookup_family == AF_UNSPEC &&
@@ -398,7 +402,7 @@ bool Socket::SetBlocking(intptr_t fd) {
 bool Socket::SetNoDelay(intptr_t fd, bool enabled) {
   int on = enabled ? 1 : 0;
   return TEMP_FAILURE_RETRY(setsockopt(fd,
-                                       SOL_TCP,
+                                       IPPROTO_TCP,
                                        TCP_NODELAY,
                                        reinterpret_cast<char *>(&on),
                                        sizeof(on))) == 0;

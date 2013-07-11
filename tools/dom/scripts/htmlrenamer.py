@@ -125,6 +125,7 @@ for interface in _removed_html_interfaces:
 
 convert_to_future_members = monitored.Set(
     'htmlrenamer.converted_to_future_members', [
+  'AudioContext.decodeAudioData',
   'DataTransferItem.getAsString',
   'DirectoryEntry.getDirectory',
   'DirectoryEntry.getFile',
@@ -360,6 +361,8 @@ renamed_overloads = monitored.Dict('htmldartgenreator.renamed_overloads', {
       'DOMString repetitionType)': 'createPatternFromImage',
   'DataTransferItemList.add(File file)': 'addFile',
   'DataTransferItemList.add(DOMString data, DOMString type)': 'addData',
+  'FormData.append(DOMString name, Blob value, DOMString filename)':
+      'appendBlob',
   'IDBDatabase.transaction(DOMStringList storeNames, DOMString mode)':
       'transactionStores',
   'IDBDatabase.transaction(sequence<DOMString> storeNames, DOMString mode)':
@@ -406,6 +409,10 @@ renamed_overloads = monitored.Dict('htmldartgenreator.renamed_overloads', {
       'long long offset, ArrayBuffer data)': 'bufferSubByteData',
   'WebGLRenderingContext.bufferSubData(unsigned long target, '
       'long long offset, ArrayBufferView data)': 'bufferSubDataTyped',
+  'WebSocket.send(ArrayBuffer data)': 'sendByteBuffer',
+  'WebSocket.send(ArrayBufferView data)': 'sendTypedData',
+  'WebSocket.send(DOMString data)': 'sendString',
+  'WebSocket.send(Blob data)': 'sendBlob'
 })
 
 # Members that have multiple definitions, but their types are identical (only
@@ -416,13 +423,12 @@ keep_overloaded_members = monitored.Set(
   'CanvasRenderingContext2D.putImageData',
   'CanvasRenderingContext2D.webkitPutImageDataHD',
   'DataTransferItemList.add',
-  'FormData.append', # TODO(efortuna): Split out into appendBlob.
   'HTMLInputElement.setRangeText',
   'HTMLTextAreaElement.setRangeText',
   'IDBDatabase.transaction',
   'RTCDataChannel.send',
   'URL.createObjectURL',
-  'WebSocket.send', # TODO(efortuna): Add sendBlob, sendString, and family.
+  'WebSocket.send',
   'XMLHttpRequest.send'
 ])
 

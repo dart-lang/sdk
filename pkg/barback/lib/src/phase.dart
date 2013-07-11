@@ -10,6 +10,7 @@ import 'asset.dart';
 import 'asset_graph.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
+import 'asset_set.dart';
 import 'errors.dart';
 import 'transform_node.dart';
 import 'transformer.dart';
@@ -69,7 +70,7 @@ class Phase {
   ///
   /// This marks any affected [transforms] as dirty or discards them if their
   /// inputs are removed.
-  void updateInputs(Map<AssetId, Asset> updated, Set<AssetId> removed) {
+  void updateInputs(AssetSet updated, Set<AssetId> removed) {
     // Remove any nodes that are no longer being output. Handle removals first
     // in case there are assets that were removed by one transform but updated
     // by another. In that case, the update should win.
@@ -83,15 +84,18 @@ class Phase {
     }
 
     // Update and new or modified assets.
-    updated.forEach((id, asset) {
-      var node = inputs.putIfAbsent(id, () => new AssetNode(id));
-
-      // If it's a new node, remember that so we can see if any new transforms
-      // will consume it.
-      if (node.asset == null) _newInputs.add(node);
-
-      node.updateAsset(asset);
-    });
+    for (var asset in updated) {
+      var node = inputs[asset.id];
+      if (node == null) {
+        // It's a new node. Add it and remember it so we can see if any new
+        // transforms will consume it.
+        node = new AssetNode(asset);
+        inputs[asset.id] = node;
+        _newInputs.add(node);
+      } else {
+        node.updateAsset(asset);
+      }
+    }
   }
 
   /// Processes this phase.
@@ -119,7 +123,7 @@ class Phase {
       for (var transformer in _transformers) {
         // TODO(rnystrom): Catch all errors from isPrimary() and redirect
         // to results.
-        futures.add(transformer.isPrimary(node.id).then((isPrimary) {
+        futures.add(transformer.isPrimary(node.asset).then((isPrimary) {
           if (!isPrimary) return;
           var transform = new TransformNode(this, transformer, node);
           node.consumers.add(transform);
@@ -145,23 +149,23 @@ class Phase {
       // Collect all of the outputs. Since the transforms are run in parallel,
       // we have to be careful here to ensure that the result is deterministic
       // and not influenced by the order that transforms complete.
-      var updated = new Map<AssetId, Asset>();
+      var updated = new AssetSet();
       var removed = new Set<AssetId>();
       var collisions = new Set<AssetId>();
 
       // Handle the generated outputs of all transforms first.
       for (var outputs in transformOutputs) {
         // Collect the outputs of all transformers together.
-        outputs.updated.forEach((id, asset) {
-          if (updated.containsKey(id)) {
+        for (var asset in outputs.updated) {
+          if (updated.containsId(asset.id)) {
             // Report a collision.
-            collisions.add(id);
+            collisions.add(asset.id);
           } else {
             // TODO(rnystrom): In the case of a collision, the asset that
             // "wins" is chosen non-deterministically. Do something better.
-            updated[id] = asset;
+            updated.add(asset);
           }
-        });
+        }
 
         // Track any assets no longer output by this transform. We don't
         // handle the case where *another* transform generates the asset

@@ -983,10 +983,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     Element element = elements[node.send];
     if (Elements.isUnresolved(element)) return types.dynamicType;
 
-    ClassElement enclosingClass = element.getEnclosingClass();
-    SourceString name = Elements.deconstructConstructorName(
-        element.name, enclosingClass);
-    checkPrivateAccess(node, element, name);
+    checkPrivateAccess(node, element, element.name);
 
     DartType newType = elements.getType(node);
     DartType constructorType = computeConstructorType(element, newType);

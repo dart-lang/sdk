@@ -150,6 +150,17 @@ abstract class SecureSocket implements Socket {
   X509Certificate get peerCertificate;
 
   /**
+   * Renegotiate an existing secure connection, renewing the session keys
+   * and possibly changing the connection properties.
+   *
+   * This repeats the SSL or TLS handshake, with options that allow clearing
+   * the session cache and requesting a client certificate.
+   */
+  void renegotiate({bool useSessionCache: true,
+                    bool requestClientCertificate: false,
+                    bool requireClientCertificate: false});
+
+  /**
    * Initializes the NSS library. If [initialize] is not called, the library
    * is automatically initialized as if [initialize] were called with no
    * arguments. If [initialize] is called more than once, or called after
@@ -332,6 +343,17 @@ abstract class RawSecureSocket implements RawSocket {
         requestClientCertificate: requestClientCertificate,
         requireClientCertificate: requireClientCertificate);
   }
+
+  /**
+   * Renegotiate an existing secure connection, renewing the session keys
+   * and possibly changing the connection properties.
+   *
+   * This repeats the SSL or TLS handshake, with options that allow clearing
+   * the session cache and requesting a client certificate.
+   */
+  void renegotiate({bool useSessionCache: true,
+                    bool requestClientCertificate: false,
+                    bool requireClientCertificate: false});
 
   /**
    * Get the peer certificate for a connected RawSecureSocket.  If this
@@ -785,6 +807,21 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     }
   }
 
+  void renegotiate({bool useSessionCache: true,
+                    bool requestClientCertificate: false,
+                    bool requireClientCertificate: false}) {
+    if (_status != CONNECTED) {
+      throw new HandshakeException(
+          "Called renegotiate on a non-connected socket");
+    }
+    _secureFilter.renegotiate(useSessionCache,
+                              requestClientCertificate,
+                              requireClientCertificate);
+    _status = HANDSHAKE;
+    _filterStatus.writeEmpty = false;
+    _scheduleFilter();
+  }
+
   void _secureHandshakeCompleteHandler() {
     _status = CONNECTED;
     if (_connectPending) {
@@ -1158,6 +1195,10 @@ abstract class _SecureFilter {
                bool sendClientCertificate);
   void destroy();
   void handshake();
+  void rehandshake();
+  void renegotiate(bool useSessionCache,
+                   bool requestClientCertificate,
+                   bool requireClientCertificate);
   void init();
   X509Certificate get peerCertificate;
   int processBuffer(int bufferIndex);

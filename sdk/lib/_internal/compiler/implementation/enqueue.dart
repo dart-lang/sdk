@@ -42,15 +42,6 @@ class EnqueueTask extends CompilerTask {
              link = link.tail) {
           addMemberByName(link.head.element);
         }
-      } else if (element.isConstructor()) {
-        SourceString source = Elements.deconstructConstructorName(
-            element.name, element.getEnclosingClass());
-        if (source == null) {
-          // source is null for unnamed constructors.
-          name = '';
-        } else {
-          name = source.slowToString();
-        }
       }
       allElementsByName[name] = allElementsByName.putIfAbsent(
           name, () => const Link<Element>()).prepend(element);

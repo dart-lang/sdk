@@ -184,7 +184,7 @@ class ResolverTask extends CompilerTask {
   }
 
   String constructorNameForDiagnostics(SourceString className,
-                                   SourceString constructorName) {
+                                       SourceString constructorName) {
     String classNameString = className.slowToString();
     String constructorNameString = constructorName.slowToString();
     return (constructorName == const SourceString(''))
@@ -672,43 +672,12 @@ class ResolverTask extends CompilerTask {
                 MessageKind.ILLEGAL_CONSTRUCTOR_MODIFIERS,
                 {'modifiers': mismatchedFlags});
           }
-          checkConstructorNameHack(holder, member);
         }
         checkAbstractField(member);
         checkValidOverride(member, cls.lookupSuperMember(member.name));
         checkUserDefinableOperator(member);
       });
     });
-  }
-
-  // TODO(ahe): Remove this method.  It is only needed while we store
-  // constructor names as ClassName$id.  Once we start storing
-  // constructors as just id, this will be caught by the general
-  // mechanism for duplicate members.
-  /// Check that a constructor name does not conflict with a member.
-  void checkConstructorNameHack(ClassElement holder, FunctionElement member) {
-    // If the name of the constructor is the same as the name of the
-    // class, there cannot be a problem.
-    if (member.name == holder.name) return;
-
-    SourceString name =
-      Elements.deconstructConstructorName(member.name, holder);
-
-    // If the name could not be deconstructed, this is is from a
-    // factory method from a deprecated interface implementation.
-    if (name == null) return;
-
-    Element otherMember = holder.lookupLocalMember(name);
-    if (otherMember != null) {
-      if (compiler.onDeprecatedFeature(member, 'conflicting constructor')) {
-        compiler.reportMessage(
-            compiler.spanFromElement(otherMember),
-            // Using GENERIC as this message is temporary.
-            MessageKind.GENERIC.error({'text': 'This member conflicts with a'
-                                               ' constructor.'}),
-            Diagnostic.INFO);
-      }
-    }
   }
 
   void checkAbstractField(Element member) {
@@ -3343,23 +3312,13 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
   }
 
   bool isDefaultConstructor(FunctionElement constructor) {
-    return constructor.name == constructor.getEnclosingClass().name &&
+    return constructor.name == const SourceString('') &&
         constructor.computeSignature(compiler).parameterCount == 0;
   }
 
   FunctionElement createForwardingConstructor(FunctionElement constructor,
                                               ClassElement target) {
-    ClassElement cls = constructor.getEnclosingClass();
-    SourceString constructorName;
-    if (constructor.name == cls.name) {
-      constructorName = target.name;
-    } else {
-      SourceString selector =
-          Elements.deconstructConstructorName(constructor.name, cls);
-      constructorName =
-          Elements.constructConstructorName(target.name, selector);
-    }
-    return new SynthesizedConstructorElementX.forwarding(constructorName,
+    return new SynthesizedConstructorElementX.forwarding(constructor.name,
                                                          constructor,
                                                          target);
   }

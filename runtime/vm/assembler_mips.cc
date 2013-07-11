@@ -8,6 +8,7 @@
 #include "vm/assembler.h"
 #include "vm/runtime_entry.h"
 #include "vm/simulator.h"
+#include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 
 namespace dart {
@@ -475,19 +476,12 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
       Instructions::HeaderSize() - Instructions::object_pool_offset() +
       CodeSize();
 
-  // This sw instruction is the return address for the bal, so T0 holds
-  // the PC at this sw instruction.
+  // TMP1 has the address of the next instruction.
   Bind(&next);
 
   // Save PC in frame for fast identification of corresponding code.
-  if (offset == 0) {
-    sw(TMP1, Address(SP, 3 * kWordSize));
-  } else {
-    // Adjust saved PC for any intrinsic code that could have been generated
-    // before a frame is created.
-    addiu(TMP1, TMP1, Immediate(-offset));
-    sw(TMP1, Address(SP, 3 * kWordSize));
-  }
+  AddImmediate(TMP1, -offset);
+  sw(TMP1, Address(SP, 3 * kWordSize));
 
   // Set FP to the saved previous FP.
   addiu(FP, SP, Immediate(kWordSize));
@@ -497,6 +491,46 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
 
   // Reserve space for locals.
   AddImmediate(SP, -frame_size);
+}
+
+
+// On entry to a function compiled for OSR, the caller's frame pointer, the
+// stack locals, and any copied parameters are already in place.  The frame
+// pointer is already set up.  The PC marker is not correct for the
+// optimized function and there may be extra space for spill slots to
+// allocate. We must also set up the pool pointer for the function.
+void Assembler::EnterOsrFrame(intptr_t extra_size) {
+  Comment("EnterOsrFrame");
+  Label next;
+  // Branch and link to the instruction after the delay slot to get the PC.
+  bal(&next);
+  // RA is the address of the sw instruction below. Save it in T0.
+  delay_slot()->mov(TMP, RA);
+
+  // The runtime system assumes that the code marker address is
+  // kEntryPointToPcMarkerOffset bytes from the entry.  Since there is no
+  // code to set up the frame pointer, etc., the address needs to be adjusted.
+  const intptr_t offset = kEntryPointToPcMarkerOffset - CodeSize();
+  // Calculate the offset of the pool pointer from the PC.
+  const intptr_t object_pool_pc_dist =
+      Instructions::HeaderSize() - Instructions::object_pool_offset() +
+      CodeSize();
+
+  // temp has the address of the next instruction.
+  Bind(&next);
+
+  // Adjust PC by the offset, and store it in the stack frame.
+  AddImmediate(TMP, TMP, offset);
+  sw(TMP, Address(FP, kPcMarkerSlotFromFp * kWordSize));
+
+  // Restore return address.
+  lw(RA, Address(FP, 1 * kWordSize));
+
+  // Load the pool pointer. offset has already been subtracted from temp.
+  lw(PP, Address(TMP, -object_pool_pc_dist - offset));
+
+  // Reserve space for locals.
+  AddImmediate(SP, -extra_size);
 }
 
 

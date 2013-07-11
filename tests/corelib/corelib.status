@@ -98,7 +98,6 @@ list_insert_test: fail
 list_removeat_test: fail
 
 [ $compiler == dart2analyzer ]
-symbol_test/01: Fail
 symbol_test/02: Fail
 symbol_test/03: Fail
 int_parse_radix_test: fail
@@ -118,7 +117,7 @@ collection_to_string_test: Pass, Crash # Issue: 11207
 int_parse_radix_test: Skip # Timeout
 
 [ $arch == simmips && $checked ]
-hash_map2_test: Crash # Too far PC relative branch.
+hash_map2_test: Pass, Crash # Too far PC relative branch (?)
 collection_length_test: Pass, Timeout
 
 [ $arch == simmips && $mode == debug ]

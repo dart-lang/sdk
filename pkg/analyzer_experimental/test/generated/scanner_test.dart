@@ -1879,15 +1879,23 @@ abstract class AbstractScannerTest extends JUnitTestCase {
   }
   void test_lineInfo_multilineComment() {
     String source = "/*\r *\r */";
-    assertLineInfo(source, [new AbstractScannerTest_ExpectedLocation(0, 1, 1), new AbstractScannerTest_ExpectedLocation(4, 2, 2), new AbstractScannerTest_ExpectedLocation(source.length - 1, 3, 3)]);
+    assertLineInfo(source, [
+        new AbstractScannerTest_ExpectedLocation(0, 1, 1),
+        new AbstractScannerTest_ExpectedLocation(4, 2, 2),
+        new AbstractScannerTest_ExpectedLocation(source.length - 1, 3, 3)]);
   }
   void test_lineInfo_simpleClass() {
     String source = "class Test {\r\n    String s = '...';\r\n    int get x => s.MISSING_GETTER;\r\n}";
-    assertLineInfo(source, [new AbstractScannerTest_ExpectedLocation(0, 1, 1), new AbstractScannerTest_ExpectedLocation(source.indexOf("MISSING_GETTER"), 3, 20), new AbstractScannerTest_ExpectedLocation(source.length - 1, 4, 1)]);
+    assertLineInfo(source, [
+        new AbstractScannerTest_ExpectedLocation(0, 1, 1),
+        new AbstractScannerTest_ExpectedLocation(source.indexOf("MISSING_GETTER"), 3, 20),
+        new AbstractScannerTest_ExpectedLocation(source.length - 1, 4, 1)]);
   }
   void test_lineInfo_slashN() {
     String source = "class Test {\n}";
-    assertLineInfo(source, [new AbstractScannerTest_ExpectedLocation(0, 1, 1), new AbstractScannerTest_ExpectedLocation(source.indexOf("}"), 2, 1)]);
+    assertLineInfo(source, [
+        new AbstractScannerTest_ExpectedLocation(0, 1, 1),
+        new AbstractScannerTest_ExpectedLocation(source.indexOf("}"), 2, 1)]);
   }
   void test_lt() {
     assertToken(TokenType.LT, "<");
@@ -1938,10 +1946,20 @@ abstract class AbstractScannerTest extends JUnitTestCase {
     assertToken(TokenType.PERIOD_PERIOD_PERIOD, "...");
   }
   void test_periodAfterNumberNotIncluded_identifier() {
-    assertTokens("42.isEven()", [new StringToken(TokenType.INT, "42", 0), new Token(TokenType.PERIOD, 2), new StringToken(TokenType.IDENTIFIER, "isEven", 3), new Token(TokenType.OPEN_PAREN, 9), new Token(TokenType.CLOSE_PAREN, 10)]);
+    assertTokens("42.isEven()", [
+        new StringToken(TokenType.INT, "42", 0),
+        new Token(TokenType.PERIOD, 2),
+        new StringToken(TokenType.IDENTIFIER, "isEven", 3),
+        new Token(TokenType.OPEN_PAREN, 9),
+        new Token(TokenType.CLOSE_PAREN, 10)]);
   }
   void test_periodAfterNumberNotIncluded_period() {
-    assertTokens("42..isEven()", [new StringToken(TokenType.INT, "42", 0), new Token(TokenType.PERIOD_PERIOD, 2), new StringToken(TokenType.IDENTIFIER, "isEven", 4), new Token(TokenType.OPEN_PAREN, 10), new Token(TokenType.CLOSE_PAREN, 11)]);
+    assertTokens("42..isEven()", [
+        new StringToken(TokenType.INT, "42", 0),
+        new Token(TokenType.PERIOD_PERIOD, 2),
+        new StringToken(TokenType.IDENTIFIER, "isEven", 4),
+        new Token(TokenType.OPEN_PAREN, 10),
+        new Token(TokenType.CLOSE_PAREN, 11)]);
   }
   void test_plus() {
     assertToken(TokenType.PLUS, "+");
@@ -1992,10 +2010,19 @@ abstract class AbstractScannerTest extends JUnitTestCase {
     assertToken(TokenType.STRING, "\"\"\"multi-line\nstring\"\"\"");
   }
   void test_string_multi_interpolation_block() {
-    assertTokens("\"Hello \${name}!\"", [new StringToken(TokenType.STRING, "\"Hello ", 0), new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 7), new StringToken(TokenType.IDENTIFIER, "name", 9), new Token(TokenType.CLOSE_CURLY_BRACKET, 13), new StringToken(TokenType.STRING, "!\"", 14)]);
+    assertTokens("\"Hello \${name}!\"", [
+        new StringToken(TokenType.STRING, "\"Hello ", 0),
+        new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 7),
+        new StringToken(TokenType.IDENTIFIER, "name", 9),
+        new Token(TokenType.CLOSE_CURLY_BRACKET, 13),
+        new StringToken(TokenType.STRING, "!\"", 14)]);
   }
   void test_string_multi_interpolation_identifier() {
-    assertTokens("\"Hello \$name!\"", [new StringToken(TokenType.STRING, "\"Hello ", 0), new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 7), new StringToken(TokenType.IDENTIFIER, "name", 8), new StringToken(TokenType.STRING, "!\"", 12)]);
+    assertTokens("\"Hello \$name!\"", [
+        new StringToken(TokenType.STRING, "\"Hello ", 0),
+        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 7),
+        new StringToken(TokenType.IDENTIFIER, "name", 8),
+        new StringToken(TokenType.STRING, "!\"", 12)]);
   }
   void test_string_multi_single() {
     assertToken(TokenType.STRING, "'''string'''");
@@ -2034,25 +2061,69 @@ abstract class AbstractScannerTest extends JUnitTestCase {
     assertToken(TokenType.STRING, "'a\\\$b'");
   }
   void test_string_simple_interpolation_adjacentIdentifiers() {
-    assertTokens("'\$a\$b'", [new StringToken(TokenType.STRING, "'", 0), new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1), new StringToken(TokenType.IDENTIFIER, "a", 2), new StringToken(TokenType.STRING, "", 3), new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 3), new StringToken(TokenType.IDENTIFIER, "b", 4), new StringToken(TokenType.STRING, "'", 5)]);
+    assertTokens("'\$a\$b'", [
+        new StringToken(TokenType.STRING, "'", 0),
+        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1),
+        new StringToken(TokenType.IDENTIFIER, "a", 2),
+        new StringToken(TokenType.STRING, "", 3),
+        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 3),
+        new StringToken(TokenType.IDENTIFIER, "b", 4),
+        new StringToken(TokenType.STRING, "'", 5)]);
   }
   void test_string_simple_interpolation_block() {
-    assertTokens("'Hello \${name}!'", [new StringToken(TokenType.STRING, "'Hello ", 0), new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 7), new StringToken(TokenType.IDENTIFIER, "name", 9), new Token(TokenType.CLOSE_CURLY_BRACKET, 13), new StringToken(TokenType.STRING, "!'", 14)]);
+    assertTokens("'Hello \${name}!'", [
+        new StringToken(TokenType.STRING, "'Hello ", 0),
+        new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 7),
+        new StringToken(TokenType.IDENTIFIER, "name", 9),
+        new Token(TokenType.CLOSE_CURLY_BRACKET, 13),
+        new StringToken(TokenType.STRING, "!'", 14)]);
   }
   void test_string_simple_interpolation_blockWithNestedMap() {
-    assertTokens("'a \${f({'b' : 'c'})} d'", [new StringToken(TokenType.STRING, "'a ", 0), new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 3), new StringToken(TokenType.IDENTIFIER, "f", 5), new Token(TokenType.OPEN_PAREN, 6), new Token(TokenType.OPEN_CURLY_BRACKET, 7), new StringToken(TokenType.STRING, "'b'", 8), new Token(TokenType.COLON, 12), new StringToken(TokenType.STRING, "'c'", 14), new Token(TokenType.CLOSE_CURLY_BRACKET, 17), new Token(TokenType.CLOSE_PAREN, 18), new Token(TokenType.CLOSE_CURLY_BRACKET, 19), new StringToken(TokenType.STRING, " d'", 20)]);
+    assertTokens("'a \${f({'b' : 'c'})} d'", [
+        new StringToken(TokenType.STRING, "'a ", 0),
+        new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 3),
+        new StringToken(TokenType.IDENTIFIER, "f", 5),
+        new Token(TokenType.OPEN_PAREN, 6),
+        new Token(TokenType.OPEN_CURLY_BRACKET, 7),
+        new StringToken(TokenType.STRING, "'b'", 8),
+        new Token(TokenType.COLON, 12),
+        new StringToken(TokenType.STRING, "'c'", 14),
+        new Token(TokenType.CLOSE_CURLY_BRACKET, 17),
+        new Token(TokenType.CLOSE_PAREN, 18),
+        new Token(TokenType.CLOSE_CURLY_BRACKET, 19),
+        new StringToken(TokenType.STRING, " d'", 20)]);
   }
   void test_string_simple_interpolation_firstAndLast() {
-    assertTokens("'\$greeting \$name'", [new StringToken(TokenType.STRING, "'", 0), new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1), new StringToken(TokenType.IDENTIFIER, "greeting", 2), new StringToken(TokenType.STRING, " ", 10), new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 11), new StringToken(TokenType.IDENTIFIER, "name", 12), new StringToken(TokenType.STRING, "'", 16)]);
+    assertTokens("'\$greeting \$name'", [
+        new StringToken(TokenType.STRING, "'", 0),
+        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1),
+        new StringToken(TokenType.IDENTIFIER, "greeting", 2),
+        new StringToken(TokenType.STRING, " ", 10),
+        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 11),
+        new StringToken(TokenType.IDENTIFIER, "name", 12),
+        new StringToken(TokenType.STRING, "'", 16)]);
   }
   void test_string_simple_interpolation_identifier() {
-    assertTokens("'Hello \$name!'", [new StringToken(TokenType.STRING, "'Hello ", 0), new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 7), new StringToken(TokenType.IDENTIFIER, "name", 8), new StringToken(TokenType.STRING, "!'", 12)]);
+    assertTokens("'Hello \$name!'", [
+        new StringToken(TokenType.STRING, "'Hello ", 0),
+        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 7),
+        new StringToken(TokenType.IDENTIFIER, "name", 8),
+        new StringToken(TokenType.STRING, "!'", 12)]);
   }
   void test_string_simple_interpolation_missingIdentifier() {
-    assertTokens("'\$x\$'", [new StringToken(TokenType.STRING, "'", 0), new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1), new StringToken(TokenType.IDENTIFIER, "x", 2), new StringToken(TokenType.STRING, "", 3), new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 3), new StringToken(TokenType.STRING, "'", 4)]);
+    assertTokens("'\$x\$'", [
+        new StringToken(TokenType.STRING, "'", 0),
+        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1),
+        new StringToken(TokenType.IDENTIFIER, "x", 2),
+        new StringToken(TokenType.STRING, "", 3),
+        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 3),
+        new StringToken(TokenType.STRING, "'", 4)]);
   }
   void test_string_simple_interpolation_nonIdentifier() {
-    assertTokens("'\$1'", [new StringToken(TokenType.STRING, "'", 0), new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1), new StringToken(TokenType.STRING, "1'", 2)]);
+    assertTokens("'\$1'", [
+        new StringToken(TokenType.STRING, "'", 0),
+        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1),
+        new StringToken(TokenType.STRING, "1'", 2)]);
   }
   void test_string_simple_single() {
     assertToken(TokenType.STRING, "'string'");

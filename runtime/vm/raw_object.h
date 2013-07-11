@@ -488,6 +488,7 @@ class RawClass : public RawObject {
   RawFunction* signature_function_;  // Associated function for signature class.
   RawArray* constants_;  // Canonicalized values of this class.
   RawArray* canonical_types_;  // Canonicalized types of this class.
+  RawArray* no_such_method_cache_;   // Dispatcher functions for noSuchMethod.
   RawCode* allocation_stub_;  // Stub code for allocation of instances.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->allocation_stub_);

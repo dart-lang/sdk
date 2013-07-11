@@ -7079,6 +7079,72 @@ UNIT_TEST_CASE(IsolateShutdown) {
   Isolate::SetShutdownCallback(saved);
 }
 
+static int64_t add_result = 0;
+static void IsolateShutdownRunDartCodeTestCallback(void* callback_data) {
+  Dart_EnterScope();
+  Dart_Handle lib = Dart_RootLibrary();
+  EXPECT_VALID(lib);
+  Dart_Handle arg1 = Dart_NewInteger(90);
+  EXPECT_VALID(arg1);
+  Dart_Handle arg2 = Dart_NewInteger(9);
+  EXPECT_VALID(arg2);
+  Dart_Handle dart_args[2] = { arg1, arg2 };
+  Dart_Handle result = Dart_Invoke(lib, NewString("add"), 2, dart_args);
+  EXPECT_VALID(result);
+  result = Dart_IntegerToInt64(result, &add_result);
+  EXPECT_VALID(result);
+  Dart_ExitScope();
+}
+
+UNIT_TEST_CASE(IsolateShutdownRunDartCode) {
+  const char* kScriptChars =
+      "int add(int a, int b) {\n"
+      "  return a + b;\n"
+      "}\n"
+      "\n"
+      "void main() {\n"
+      "  add(4, 5);\n"
+      "}\n";
+
+  // Create an isolate.
+  char* err;
+  Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL,
+                                            bin::snapshot_buffer,
+                                            NULL, &err);
+  if (isolate == NULL) {
+    OS::Print("Creation of isolate failed '%s'\n", err);
+    free(err);
+  }
+  EXPECT(isolate != NULL);
+
+  Isolate::SetShutdownCallback(IsolateShutdownRunDartCodeTestCallback);
+
+  {
+    Dart_EnterScope();
+    Dart_Handle url = NewString(TestCase::url());
+    Dart_Handle source = NewString(kScriptChars);
+    Dart_Handle result = Dart_SetLibraryTagHandler(TestCase::library_handler);
+    EXPECT_VALID(result);
+    Dart_Handle lib = Dart_LoadScript(url, source, 0, 0);
+    EXPECT_VALID(lib);
+    result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+    EXPECT_VALID(result);
+    Dart_ExitScope();
+  }
+
+
+  // The shutdown callback has not been called.
+  EXPECT_EQ(0, add_result);
+
+  EXPECT(isolate != NULL);
+
+  // Shutdown the isolate.
+  Dart_ShutdownIsolate();
+
+  // The shutdown callback has been called and ran Dart code.
+  EXPECT_EQ(99, add_result);
+}
+
 static int64_t GetValue(Dart_Handle arg) {
   EXPECT_VALID(arg);
   EXPECT(Dart_IsInteger(arg));
@@ -7965,18 +8031,17 @@ TEST_CASE(ExternalizeConstantStrings) {
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_Handle result = Dart_Invoke(lib,
-                                      NewString("testMain"),
-                                      0,
-                                      NULL);
+                                   NewString("testMain"),
+                                   0,
+                                   NULL);
   const char* expected_str = "constant string";
   const intptr_t kExpectedLen = 15;
-  int peer = 40;
   uint8_t ext_str[kExpectedLen];
   Dart_Handle str = Dart_MakeExternalString(result,
                                             ext_str,
                                             kExpectedLen,
-                                            &peer,
-                                            MakeExternalCback);
+                                            NULL,
+                                            NULL);
 
   EXPECT(Dart_IsExternalString(str));
   for (intptr_t i = 0; i < kExpectedLen; i++) {

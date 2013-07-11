@@ -241,9 +241,7 @@ abstract class _SplayTree<K> {
  * method. This also means that `null` is *not* allowed as a key.
  */
 class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
-  // TODO(ngeoffray): Restore type when feature is implemented in dart2js
-  // checked mode. http://dartbug.com/7733
-  Function /* Comparator<K> */_comparator;
+  Comparator<K> _comparator;
 
   SplayTreeMap([int compare(K key1, K key2)])
       : _comparator = (compare == null) ? Comparable.compare : compare;

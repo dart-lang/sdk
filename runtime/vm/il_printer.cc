@@ -554,6 +554,13 @@ void StoreVMFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void InstantiateTypeInstr::PrintOperandsTo(BufferFormatter* f) const {
+  const String& type_name = String::Handle(type().Name());
+  f->Print("%s, ", type_name.ToCString());
+  instantiator()->PrintTo(f);
+}
+
+
 void InstantiateTypeArgumentsInstr::PrintOperandsTo(BufferFormatter* f) const {
   const String& type_args = String::Handle(type_arguments().Name());
   f->Print("%s, ", type_args.ToCString());

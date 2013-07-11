@@ -33,11 +33,6 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: Fail # TOD
 Language/07_Classes/6_Constructors/2_Factories_A07_t01: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t03: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/6_Constructors_A01_t02: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/6_Constructors_A01_t03: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/6_Constructors_A01_t04: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/6_Constructors_A01_t05: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/6_Constructors_A01_t06: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/01_Constants_A13_t06: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/01_Constants_A18_t07: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/01_Constants_A20_t03: Fail # TODO(ahe): Please triage this failure.
@@ -692,7 +687,6 @@ Language/07_Classes/4_Abstract_Instance_Members_A04_t06: Fail # Checks that a co
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: Fail # Checks that error is produced if a final variable is not initialized in one  of the specified ways.
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A03_t01: Fail # Checks that a compile-time error is produced when a class with constant  constructor also declares a non-final instance variable.
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A03_t02: Fail # Checks that compile-time error is produced when a class with constant constructor inherits a non-final instance variable.
-Language/07_Classes/6_Constructors_A01_t01: Fail # Checks that a compile-error is produced when a constructor's id coincides with the name of a field in the same class.
 Language/07_Classes/6_Constructors_A02_t01: Fail # Checks that a compile-error is produced when a named constructor definition does not begin with the name of its class.
 Language/11_Expressions/01_Constants_A16_t01: Fail # Checks that an IntegerDivisionByZeroException raised during evaluation  of a compile-time constant causes a compile-time error.
 Language/11_Expressions/01_Constants_A16_t02: Fail # Checks that an OutOfMemoryException raised during evaluation of a compile-time constant causes a compile-time error.

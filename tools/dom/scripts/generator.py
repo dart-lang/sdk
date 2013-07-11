@@ -113,6 +113,8 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
 
     'MutationObserver': 'MutationObserver,WebKitMutationObserver',
 
+    'NamedNodeMap': 'NamedNodeMap,MozNamedAttrMap',
+
     'NodeList': 'NodeList,RadioNodeList',
 
     'OscillatorNode': 'OscillatorNode,Oscillator',
@@ -546,6 +548,10 @@ dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
     # postMessage
     'any set MessagePort.postMessage': _serialize_SSV,
     'SerializedScriptValue set DOMWindow.postMessage': _serialize_SSV,
+
+    '* get CustomEvent.detail':
+      Conversion('convertNativeToDart_SerializedScriptValue',
+                 'dynamic', 'dynamic'),
 
     # receiving message via MessageEvent
     '* get MessageEvent.data':

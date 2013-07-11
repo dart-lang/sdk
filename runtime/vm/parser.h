@@ -435,7 +435,8 @@ class Parser : public ValueObject {
   SequenceNode* ParseInstanceSetter(const Function& func);
   SequenceNode* ParseStaticConstGetter(const Function& func);
   SequenceNode* ParseMethodExtractor(const Function& func);
-  SequenceNode* ParseNoSuchMethodDispatcher(const Function& func);
+  SequenceNode* ParseNoSuchMethodDispatcher(const Function& func,
+                                            Array& default_values);
 
   void ChainNewBlock(LocalScope* outer_scope);
   void OpenBlock();
@@ -548,7 +549,7 @@ class Parser : public ValueObject {
   LocalVariable* LookupLocalScope(const String& ident);
   void CheckInstanceFieldAccess(intptr_t field_pos, const String& field_name);
   bool ParsingStaticMember() const;
-  const Type* ReceiverType(intptr_t type_pos) const;
+  const Type* ReceiverType() const;
   bool IsInstantiatorRequired() const;
   bool ResolveIdentInLocalScope(intptr_t ident_pos,
                                 const String &ident,
@@ -598,8 +599,6 @@ class Parser : public ValueObject {
   LetNode* PrepareCompoundAssignmentNodes(AstNode** expr);
   LocalVariable* CreateTempConstVariable(intptr_t token_pos, const char* s);
 
-  static bool IsAssignableExpr(AstNode* expr);
-
   static SequenceNode* NodeAsSequenceNode(intptr_t sequence_pos,
                                           AstNode* node,
                                           LocalScope* scope);
@@ -621,7 +620,10 @@ class Parser : public ValueObject {
 
   void EnsureExpressionTemp();
   void EnsureSavedCurrentContext();
-  AstNode* CreateAssignmentNode(AstNode* original, AstNode* rhs);
+  AstNode* CreateAssignmentNode(AstNode* original,
+                                AstNode* rhs,
+                                const String* left_ident,
+                                intptr_t left_pos);
   AstNode* InsertClosureCallNodes(AstNode* condition);
 
   ConstructorCallNode* CreateConstructorCallNode(

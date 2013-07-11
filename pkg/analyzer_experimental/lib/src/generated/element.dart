@@ -587,7 +587,32 @@ class ElementKind implements Comparable<ElementKind> {
   static final ElementKind FUNCTION_TYPE_ALIAS = new ElementKind('FUNCTION_TYPE_ALIAS', 22, "function type alias");
   static final ElementKind TYPE_VARIABLE = new ElementKind('TYPE_VARIABLE', 23, "type variable");
   static final ElementKind UNIVERSE = new ElementKind('UNIVERSE', 24, "<universe>");
-  static final List<ElementKind> values = [CLASS, COMPILATION_UNIT, CONSTRUCTOR, DYNAMIC, EMBEDDED_HTML_SCRIPT, ERROR, EXPORT, EXTERNAL_HTML_SCRIPT, FIELD, FUNCTION, GETTER, HTML, IMPORT, LABEL, LIBRARY, LOCAL_VARIABLE, METHOD, NAME, PARAMETER, PREFIX, SETTER, TOP_LEVEL_VARIABLE, FUNCTION_TYPE_ALIAS, TYPE_VARIABLE, UNIVERSE];
+  static final List<ElementKind> values = [
+      CLASS,
+      COMPILATION_UNIT,
+      CONSTRUCTOR,
+      DYNAMIC,
+      EMBEDDED_HTML_SCRIPT,
+      ERROR,
+      EXPORT,
+      EXTERNAL_HTML_SCRIPT,
+      FIELD,
+      FUNCTION,
+      GETTER,
+      HTML,
+      IMPORT,
+      LABEL,
+      LIBRARY,
+      LOCAL_VARIABLE,
+      METHOD,
+      NAME,
+      PARAMETER,
+      PREFIX,
+      SETTER,
+      TOP_LEVEL_VARIABLE,
+      FUNCTION_TYPE_ALIAS,
+      TYPE_VARIABLE,
+      UNIVERSE];
 
   /// The name of this enum constant, as declared in the enum declaration.
   final String name;
@@ -4300,7 +4325,18 @@ class Modifier implements Comparable<Modifier> {
   static final Modifier STATIC = new Modifier('STATIC', 8);
   static final Modifier SYNTHETIC = new Modifier('SYNTHETIC', 9);
   static final Modifier TYPEDEF = new Modifier('TYPEDEF', 10);
-  static final List<Modifier> values = [ABSTRACT, CONST, FACTORY, FINAL, GETTER, MIXIN, REFERENCES_SUPER, SETTER, STATIC, SYNTHETIC, TYPEDEF];
+  static final List<Modifier> values = [
+      ABSTRACT,
+      CONST,
+      FACTORY,
+      FINAL,
+      GETTER,
+      MIXIN,
+      REFERENCES_SUPER,
+      SETTER,
+      STATIC,
+      SYNTHETIC,
+      TYPEDEF];
 
   /// The name of this enum constant, as declared in the enum declaration.
   final String name;
@@ -6214,6 +6250,32 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       members[i] = PropertyAccessorMember.from(accessors[i], this);
     }
     return members;
+  }
+  String get displayName {
+    String name = this.name;
+    List<Type2> typeArguments = this.typeArguments;
+    bool allDynamic = true;
+    for (Type2 type in typeArguments) {
+      if (type != null && !type.isDynamic) {
+        allDynamic = false;
+        break;
+      }
+    }
+    if (!allDynamic) {
+      JavaStringBuilder builder = new JavaStringBuilder();
+      builder.append(name);
+      builder.append("<");
+      for (int i = 0; i < typeArguments.length; i++) {
+        if (i != 0) {
+          builder.append(", ");
+        }
+        Type2 typeArg = typeArguments[i];
+        builder.append(typeArg.displayName);
+      }
+      builder.append(">");
+      name = builder.toString();
+    }
+    return name;
   }
   ClassElement get element => super.element as ClassElement;
   PropertyAccessorElement getGetter(String getterName) => PropertyAccessorMember.from(((element as ClassElementImpl)).getGetter(getterName), this);

@@ -11,6 +11,7 @@
 #include "vm/globals.h"
 #include "vm/pages.h"
 #include "vm/scavenger.h"
+#include "vm/weak_table.h"
 
 namespace dart {
 
@@ -31,6 +32,12 @@ class Heap {
     kNew,
     kOld,
     kCode,
+  };
+
+  enum WeakSelector {
+    kPeers = 0,
+    kHashes,
+    kNumWeakSelectors
   };
 
   enum ApiCallbacks {
@@ -168,16 +175,44 @@ class Heap {
 
   static const char* GCReasonToString(GCReason gc_reason);
 
-  // Associates a peer with an object.  If an object has a peer, it is
-  // replaced.  A value of NULL disassociate an object from its peer.
-  void SetPeer(RawObject* raw_obj, void* peer);
-
-  // Retrieves the peer associated with an object.  Returns NULL if
-  // there is no association.
-  void* GetPeer(RawObject* raw_obj);
-
-  // Returns the number of objects with a peer.
+  // Associate a peer with an object.  A non-existent peer is equal to NULL.
+  void SetPeer(RawObject* raw_obj, void* peer) {
+    SetWeakEntry(raw_obj, kPeers, reinterpret_cast<intptr_t>(peer));
+  }
+  void* GetPeer(RawObject* raw_obj) const {
+    return reinterpret_cast<void*>(GetWeakEntry(raw_obj, kPeers));
+  }
   int64_t PeerCount() const;
+
+  // Associate an identity hashCode with an object. An non-existent hashCode
+  // is equal to 0.
+  void SetHash(RawObject* raw_obj, intptr_t hash) {
+    SetWeakEntry(raw_obj, kHashes, hash);
+  }
+  intptr_t GetHash(RawObject* raw_obj) const {
+    return GetWeakEntry(raw_obj, kHashes);
+  }
+  int64_t HashCount() const;
+
+  // Used by the GC algorithms to propagate weak entries.
+  intptr_t GetWeakEntry(RawObject* raw_obj, WeakSelector sel) const;
+  void SetWeakEntry(RawObject* raw_obj, WeakSelector sel, intptr_t val);
+
+  WeakTable* GetWeakTable(Space space, WeakSelector selector) const {
+    if (space == kNew) {
+      return new_weak_tables_[selector];
+    }
+    ASSERT(space ==kOld);
+    return old_weak_tables_[selector];
+  }
+  void SetWeakTable(Space space, WeakSelector selector, WeakTable* value) {
+    if (space == kNew) {
+      new_weak_tables_[selector] = value;
+    } else {
+      ASSERT(space == kOld);
+      old_weak_tables_[selector] = value;
+    }
+  }
 
   // Stats collection.
   void RecordTime(int id, int64_t micros) {
@@ -245,6 +280,9 @@ class Heap {
   // The different spaces used for allocation.
   Scavenger* new_space_;
   PageSpace* old_space_;
+
+  WeakTable* new_weak_tables_[kNumWeakSelectors];
+  WeakTable* old_weak_tables_[kNumWeakSelectors];
 
   // GC stats collection.
   GCStats stats_;

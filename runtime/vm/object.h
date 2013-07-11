@@ -8,6 +8,7 @@
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
+#include "vm/json_stream.h"
 #include "vm/bitmap.h"
 #include "vm/dart.h"
 #include "vm/globals.h"
@@ -119,6 +120,10 @@ class Symbols;
     return reinterpret_cast<Raw##object*>(Object::null());                     \
   }                                                                            \
   virtual const char* ToCString() const;                                       \
+  /* Object is printed as JSON into stream. If ref is true only a header */    \
+  /* with an object id is printed. If ref is false the object is fully   */    \
+  /* printed.                                                            */    \
+  virtual void PrintToJSONStream(JSONStream* stream, bool ref = true) const;   \
   static const ClassId kClassId = k##object##Cid;                              \
  private:  /* NOLINT */                                                        \
   /* Initialize the handle based on the raw_ptr in the presence of null. */    \
@@ -244,6 +249,19 @@ class Object {
     } else {
       return "Object";
     }
+  }
+
+  virtual void PrintToJSONStream(JSONStream* stream, bool ref = true) const {
+    if (IsNull()) {
+      stream->OpenObject();
+      stream->PrintProperty("type", "null");
+      stream->CloseObject();
+      return;
+    }
+    ASSERT(!IsNull());
+    stream->OpenObject();
+    stream->PrintProperty("type", "Object");
+    stream->CloseObject();
   }
 
   // Returns the name that is used to identify an object in the
@@ -688,8 +706,7 @@ class Class : public Object {
 
   // Return a TypeParameter if the type_name is a type parameter of this class.
   // Return null otherwise.
-  RawTypeParameter* LookupTypeParameter(const String& type_name,
-                                        intptr_t token_pos) const;
+  RawTypeParameter* LookupTypeParameter(const String& type_name) const;
 
   // The type argument vector is flattened and includes the type arguments of
   // the super class.
@@ -912,6 +929,9 @@ class Class : public Object {
 
   RawArray* constants() const;
 
+  RawFunction* GetNoSuchMethodDispatcher(const String& target_name,
+                                         const Array& args_desc) const;
+
   void Finalize() const;
 
   const char* ApplyPatch(const Class& patch) const;
@@ -1001,6 +1021,10 @@ class Class : public Object {
   void set_canonical_types(const Array& value) const;
   RawArray* canonical_types() const;
 
+  RawArray* no_such_method_cache() const;
+  void set_no_such_method_cache(const Array& cache) const;
+  RawFunction* CreateNoSuchMethodDispatcher(const String& target_name,
+                                            const Array& args_desc) const;
   void CalculateFieldOffsets() const;
 
   // Assigns empty array to all raw class array fields.
@@ -1406,6 +1430,9 @@ class Function : public Object {
 
   void set_extracted_method_closure(const Function& function) const;
   RawFunction* extracted_method_closure() const;
+
+  void set_saved_args_desc(const Array& array) const;
+  RawArray* saved_args_desc() const;
 
   bool IsMethodExtractor() const {
     return kind() == RawFunction::kMethodExtractor;

@@ -143,7 +143,14 @@ class ScannerErrorCode implements Comparable<ScannerErrorCode>, ErrorCode {
   static final ScannerErrorCode MISSING_QUOTE = new ScannerErrorCode('MISSING_QUOTE', 4, "Expected quote (' or \")");
   static final ScannerErrorCode UNTERMINATED_MULTI_LINE_COMMENT = new ScannerErrorCode('UNTERMINATED_MULTI_LINE_COMMENT', 5, "Unterminated multi-line comment");
   static final ScannerErrorCode UNTERMINATED_STRING_LITERAL = new ScannerErrorCode('UNTERMINATED_STRING_LITERAL', 6, "Unterminated string literal");
-  static final List<ScannerErrorCode> values = [CHARACTER_EXPECTED_AFTER_SLASH, ILLEGAL_CHARACTER, MISSING_DIGIT, MISSING_HEX_DIGIT, MISSING_QUOTE, UNTERMINATED_MULTI_LINE_COMMENT, UNTERMINATED_STRING_LITERAL];
+  static final List<ScannerErrorCode> values = [
+      CHARACTER_EXPECTED_AFTER_SLASH,
+      ILLEGAL_CHARACTER,
+      MISSING_DIGIT,
+      MISSING_HEX_DIGIT,
+      MISSING_QUOTE,
+      UNTERMINATED_MULTI_LINE_COMMENT,
+      UNTERMINATED_STRING_LITERAL];
 
   /// The name of this enum constant, as declared in the enum declaration.
   final String name;
@@ -251,7 +258,55 @@ class Keyword implements Comparable<Keyword> {
   static final Keyword SET = new Keyword.con2('SET', 45, "set", true);
   static final Keyword STATIC = new Keyword.con2('STATIC', 46, "static", true);
   static final Keyword TYPEDEF = new Keyword.con2('TYPEDEF', 47, "typedef", true);
-  static final List<Keyword> values = [ASSERT, BREAK, CASE, CATCH, CLASS, CONST, CONTINUE, DEFAULT, DO, ELSE, ENUM, EXTENDS, FALSE, FINAL, FINALLY, FOR, IF, IN, IS, NEW, NULL, RETHROW, RETURN, SUPER, SWITCH, THIS, THROW, TRUE, TRY, VAR, VOID, WHILE, WITH, ABSTRACT, AS, DYNAMIC, EXPORT, EXTERNAL, FACTORY, GET, IMPLEMENTS, IMPORT, LIBRARY, OPERATOR, PART, SET, STATIC, TYPEDEF];
+  static final List<Keyword> values = [
+      ASSERT,
+      BREAK,
+      CASE,
+      CATCH,
+      CLASS,
+      CONST,
+      CONTINUE,
+      DEFAULT,
+      DO,
+      ELSE,
+      ENUM,
+      EXTENDS,
+      FALSE,
+      FINAL,
+      FINALLY,
+      FOR,
+      IF,
+      IN,
+      IS,
+      NEW,
+      NULL,
+      RETHROW,
+      RETURN,
+      SUPER,
+      SWITCH,
+      THIS,
+      THROW,
+      TRUE,
+      TRY,
+      VAR,
+      VOID,
+      WHILE,
+      WITH,
+      ABSTRACT,
+      AS,
+      DYNAMIC,
+      EXPORT,
+      EXTERNAL,
+      FACTORY,
+      GET,
+      IMPLEMENTS,
+      IMPORT,
+      LIBRARY,
+      OPERATOR,
+      PART,
+      SET,
+      STATIC,
+      TYPEDEF];
 
   /// The name of this enum constant, as declared in the enum declaration.
   final String name;
@@ -1826,7 +1881,23 @@ class TokenClass implements Comparable<TokenClass> {
    * A value used to indicate that the token type is a unary operator.
    */
   static final TokenClass UNARY_PREFIX_OPERATOR = new TokenClass.con2('UNARY_PREFIX_OPERATOR', 15, 14);
-  static final List<TokenClass> values = [NO_CLASS, ADDITIVE_OPERATOR, ASSIGNMENT_OPERATOR, BITWISE_AND_OPERATOR, BITWISE_OR_OPERATOR, BITWISE_XOR_OPERATOR, CASCADE_OPERATOR, CONDITIONAL_OPERATOR, EQUALITY_OPERATOR, LOGICAL_AND_OPERATOR, LOGICAL_OR_OPERATOR, MULTIPLICATIVE_OPERATOR, RELATIONAL_OPERATOR, SHIFT_OPERATOR, UNARY_POSTFIX_OPERATOR, UNARY_PREFIX_OPERATOR];
+  static final List<TokenClass> values = [
+      NO_CLASS,
+      ADDITIVE_OPERATOR,
+      ASSIGNMENT_OPERATOR,
+      BITWISE_AND_OPERATOR,
+      BITWISE_OR_OPERATOR,
+      BITWISE_XOR_OPERATOR,
+      CASCADE_OPERATOR,
+      CONDITIONAL_OPERATOR,
+      EQUALITY_OPERATOR,
+      LOGICAL_AND_OPERATOR,
+      LOGICAL_OR_OPERATOR,
+      MULTIPLICATIVE_OPERATOR,
+      RELATIONAL_OPERATOR,
+      SHIFT_OPERATOR,
+      UNARY_POSTFIX_OPERATOR,
+      UNARY_PREFIX_OPERATOR];
 
   /// The name of this enum constant, as declared in the enum declaration.
   final String name;
@@ -1960,7 +2031,75 @@ class TokenType implements Comparable<TokenType> {
   static final TokenType BACKPING = new TokenType.con2('BACKPING', 65, null, "`");
   static final TokenType BACKSLASH = new TokenType.con2('BACKSLASH', 66, null, "\\");
   static final TokenType PERIOD_PERIOD_PERIOD = new TokenType.con2('PERIOD_PERIOD_PERIOD', 67, null, "...");
-  static final List<TokenType> values = [EOF, DOUBLE, HEXADECIMAL, IDENTIFIER, INT, KEYWORD, MULTI_LINE_COMMENT, SCRIPT_TAG, SINGLE_LINE_COMMENT, STRING, AMPERSAND, AMPERSAND_AMPERSAND, AMPERSAND_EQ, AT, BANG, BANG_EQ, BAR, BAR_BAR, BAR_EQ, COLON, COMMA, CARET, CARET_EQ, CLOSE_CURLY_BRACKET, CLOSE_PAREN, CLOSE_SQUARE_BRACKET, EQ, EQ_EQ, FUNCTION, GT, GT_EQ, GT_GT, GT_GT_EQ, HASH, INDEX, INDEX_EQ, IS, LT, LT_EQ, LT_LT, LT_LT_EQ, MINUS, MINUS_EQ, MINUS_MINUS, OPEN_CURLY_BRACKET, OPEN_PAREN, OPEN_SQUARE_BRACKET, PERCENT, PERCENT_EQ, PERIOD, PERIOD_PERIOD, PLUS, PLUS_EQ, PLUS_PLUS, QUESTION, SEMICOLON, SLASH, SLASH_EQ, STAR, STAR_EQ, STRING_INTERPOLATION_EXPRESSION, STRING_INTERPOLATION_IDENTIFIER, TILDE, TILDE_SLASH, TILDE_SLASH_EQ, BACKPING, BACKSLASH, PERIOD_PERIOD_PERIOD];
+  static final List<TokenType> values = [
+      EOF,
+      DOUBLE,
+      HEXADECIMAL,
+      IDENTIFIER,
+      INT,
+      KEYWORD,
+      MULTI_LINE_COMMENT,
+      SCRIPT_TAG,
+      SINGLE_LINE_COMMENT,
+      STRING,
+      AMPERSAND,
+      AMPERSAND_AMPERSAND,
+      AMPERSAND_EQ,
+      AT,
+      BANG,
+      BANG_EQ,
+      BAR,
+      BAR_BAR,
+      BAR_EQ,
+      COLON,
+      COMMA,
+      CARET,
+      CARET_EQ,
+      CLOSE_CURLY_BRACKET,
+      CLOSE_PAREN,
+      CLOSE_SQUARE_BRACKET,
+      EQ,
+      EQ_EQ,
+      FUNCTION,
+      GT,
+      GT_EQ,
+      GT_GT,
+      GT_GT_EQ,
+      HASH,
+      INDEX,
+      INDEX_EQ,
+      IS,
+      LT,
+      LT_EQ,
+      LT_LT,
+      LT_LT_EQ,
+      MINUS,
+      MINUS_EQ,
+      MINUS_MINUS,
+      OPEN_CURLY_BRACKET,
+      OPEN_PAREN,
+      OPEN_SQUARE_BRACKET,
+      PERCENT,
+      PERCENT_EQ,
+      PERIOD,
+      PERIOD_PERIOD,
+      PLUS,
+      PLUS_EQ,
+      PLUS_PLUS,
+      QUESTION,
+      SEMICOLON,
+      SLASH,
+      SLASH_EQ,
+      STAR,
+      STAR_EQ,
+      STRING_INTERPOLATION_EXPRESSION,
+      STRING_INTERPOLATION_IDENTIFIER,
+      TILDE,
+      TILDE_SLASH,
+      TILDE_SLASH_EQ,
+      BACKPING,
+      BACKSLASH,
+      PERIOD_PERIOD_PERIOD];
 
   /// The name of this enum constant, as declared in the enum declaration.
   final String name;

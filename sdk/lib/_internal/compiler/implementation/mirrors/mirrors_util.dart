@@ -40,9 +40,6 @@ String displayName(DeclarationMirror mirror) {
     } else if (methodMirror.isOperator) {
       return 'operator ${operatorName(methodMirror)}';
     } else if (methodMirror.isConstructor) {
-      // TODO(johnniwinther): Remove this when [simpleName] is
-      // [constructorName].
-      simpleName = methodMirror.constructorName;
       String className = displayName(methodMirror.owner);
       if (simpleName == '') {
         return className;

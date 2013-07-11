@@ -6,6 +6,7 @@
 #include "include/dart_debugger_api.h"
 #include "include/dart_mirrors_api.h"
 #include "vm/dart_api_impl.h"
+#include "vm/dart_api_state.h"  // TODO(11742): Remove with CreateMirrorRef.
 #include "vm/bootstrap_natives.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
@@ -159,6 +160,20 @@ static Dart_Handle CreateVMReference(Dart_Handle handle) {
   // Success.
   return vm_ref;
 }
+
+
+// TODO(11742): Remove once there are no more users of the Dart_Handle-based
+// VMReferences.
+static Dart_Handle CreateMirrorReference(Dart_Handle handle) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Object& referent = Object::Handle(isolate, Api::UnwrapHandle(handle));
+  const MirrorReference& reference =
+       MirrorReference::Handle(MirrorReference::New());
+  reference.set_referent(referent);
+  return Api::NewHandle(isolate, reference.raw());
+}
+
 
 static Dart_Handle StringFromSymbol(Dart_Handle symbol) {
   Dart_Handle result = Dart_Invoke(MirrorLib(), NewString("_n"), 1, &symbol);
@@ -597,8 +612,9 @@ static Dart_Handle CreateClassMirror(Dart_Handle intf,
   }
 
   Dart_Handle args[] = {
+    CreateMirrorReference(intf),
     CreateVMReference(intf),
-    intf_name,
+    Dart_Null(),  // "name"
     Dart_NewBoolean(Dart_IsClass(intf)),
     lib_mirror,
     CreateLazyMirror(super_class),
@@ -614,7 +630,6 @@ static Dart_Handle CreateClassMirror(Dart_Handle intf,
 
 
 static Dart_Handle CreateMethodMirror(Dart_Handle func,
-                                      Dart_Handle func_name,
                                       Dart_Handle owner_mirror) {
   ASSERT(Dart_IsFunction(func));
   Dart_Handle mirror_cls_name = NewString("_LocalMethodMirrorImpl");
@@ -666,7 +681,7 @@ static Dart_Handle CreateMethodMirror(Dart_Handle func,
 
   // TODO(turnidge): Implement constructor kinds (arguments 7 - 10).
   Dart_Handle args[] = {
-    func_name,
+    CreateMirrorReference(func),
     owner_mirror,
     CreateParameterMirrorList(func),
     CreateLazyMirror(return_type),
@@ -790,7 +805,7 @@ static Dart_Handle AddMemberFunctions(Dart_Handle map,
       continue;
     }
 
-    Dart_Handle func_mirror = CreateMethodMirror(func, func_name, owner_mirror);
+    Dart_Handle func_mirror = CreateMethodMirror(func, owner_mirror);
     if (Dart_IsError(func_mirror)) {
       return func_mirror;
     }
@@ -834,7 +849,7 @@ static Dart_Handle AddConstructors(Dart_Handle map,
       continue;
     }
 
-    Dart_Handle func_mirror = CreateMethodMirror(func, func_name, owner_mirror);
+    Dart_Handle func_mirror = CreateMethodMirror(func, owner_mirror);
     if (Dart_IsError(func_mirror)) {
       return func_mirror;
     }
@@ -1070,7 +1085,6 @@ static Dart_Handle CreateInstanceMirror(Dart_Handle instance) {
     }
 
     // TODO(turnidge): Why not use the real function name here?
-    Dart_Handle func_name = NewString("call");
     Dart_Handle func_owner = Dart_FunctionOwner(func);
     if (Dart_IsError(func_owner)) {
       return func_owner;
@@ -1079,7 +1093,7 @@ static Dart_Handle CreateInstanceMirror(Dart_Handle instance) {
     // TODO(turnidge): Pass the function owner here.  This will require
     // us to support functions in CreateLazyMirror.
     Dart_Handle func_mirror =
-        CreateMethodMirror(func, func_name, Dart_Null());
+        CreateMethodMirror(func, Dart_Null());
     if (Dart_IsError(func_mirror)) {
       return func_mirror;
     }
@@ -1398,10 +1412,28 @@ void NATIVE_ENTRY_FUNCTION(LocalClassMirrorImpl_invokeConstructor)(
   Dart_ExitScope();
 }
 
+
 void HandleMirrorsMessage(Isolate* isolate,
                           Dart_Port reply_port,
                           const Instance& message) {
   UNIMPLEMENTED();
+}
+
+
+DEFINE_NATIVE_ENTRY(ClassMirror_name, 1) {
+  const MirrorReference& klass_ref =
+      MirrorReference::CheckedHandle(arguments->NativeArgAt(0));
+  Class& klass = Class::Handle();
+  klass ^= klass_ref.referent();
+  return klass.Name();
+}
+
+DEFINE_NATIVE_ENTRY(MethodMirror_name, 1) {
+  const MirrorReference& func_ref =
+      MirrorReference::CheckedHandle(arguments->NativeArgAt(0));
+  Function& func = Function::Handle();
+  func ^= func_ref.referent();
+  return func.UserVisibleName();
 }
 
 }  // namespace dart

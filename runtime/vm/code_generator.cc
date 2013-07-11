@@ -57,11 +57,7 @@ DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, report_usage_count);
 DECLARE_FLAG(bool, trace_type_checks);
 
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 DEFINE_FLAG(bool, use_osr, true, "Use on-stack replacement.");
-#else
-DEFINE_FLAG(bool, use_osr, false, "Use on-stack replacement.");
-#endif
 DEFINE_FLAG(bool, trace_osr, false, "Trace attempts at on-stack replacement.");
 
 
@@ -215,6 +211,34 @@ DEFINE_RUNTIME_ENTRY(AllocateObjectWithBoundsCheck, 3) {
   }
   ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
   instance.SetTypeArguments(type_arguments);
+}
+
+
+// Instantiate type.
+// Arg0: uninstantiated type.
+// Arg1: instantiator type arguments.
+// Return value: instantiated type.
+DEFINE_RUNTIME_ENTRY(InstantiateType, 2) {
+  ASSERT(arguments.ArgCount() == kInstantiateTypeRuntimeEntry.argument_count());
+  AbstractType& type = AbstractType::CheckedHandle(arguments.ArgAt(0));
+  const AbstractTypeArguments& instantiator =
+      AbstractTypeArguments::CheckedHandle(arguments.ArgAt(1));
+  ASSERT(!type.IsNull() && !type.IsInstantiated());
+  ASSERT(instantiator.IsNull() || instantiator.IsInstantiated());
+  Error& malformed_error = Error::Handle();
+  type = type.InstantiateFrom(instantiator, &malformed_error);
+  if (!malformed_error.IsNull()) {
+    // Throw a dynamic type error.
+    const intptr_t location = GetCallerLocation();
+    String& malformed_error_message =  String::Handle(
+        String::New(malformed_error.ToErrorCString()));
+    Exceptions::CreateAndThrowTypeError(
+        location, Symbols::Empty(), Symbols::Empty(),
+        Symbols::Empty(), malformed_error_message);
+    UNREACHABLE();
+  }
+  ASSERT(!type.IsNull() && type.IsInstantiated());
+  arguments.SetReturn(type);
 }
 
 
@@ -1169,9 +1193,7 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
                                                getter_name,
                                                kNumArguments,
                                                kNumNamedArguments));
-  if (getter.IsNull() ||
-      getter.IsMethodExtractor() ||
-      getter.IsNoSuchMethodDispatcher()) {
+  if (getter.IsNull() || getter.IsMethodExtractor()) {
     return false;
   }
 
@@ -1190,41 +1212,6 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
   *result = DartEntry::InvokeClosure(arguments, arguments_descriptor);
   CheckResultError(*result);
   return true;
-}
-
-
-// Create a method for noSuchMethod invocation and attach it to the receiver
-// class.
-static RawFunction* CreateNoSuchMethodDispatcher(
-    const String& target_name,
-    const Class& receiver_class,
-    const Array& arguments_descriptor) {
-  Function& invocation = Function::Handle(
-      Function::New(String::Handle(Symbols::New(target_name)),
-                    RawFunction::kNoSuchMethodDispatcher,
-                    false,  // Not static.
-                    false,  // Not const.
-                    false,  // Not abstract.
-                    false,  // Not external.
-                    receiver_class,
-                    0));  // No token position.
-
-  // Initialize signature: receiver is a single fixed parameter.
-  const intptr_t kNumParameters = 1;
-  invocation.set_num_fixed_parameters(kNumParameters);
-  invocation.SetNumOptionalParameters(0, 0);
-  invocation.set_parameter_types(Array::Handle(Array::New(kNumParameters,
-                                                         Heap::kOld)));
-  invocation.set_parameter_names(Array::Handle(Array::New(kNumParameters,
-                                                         Heap::kOld)));
-  invocation.SetParameterTypeAt(0, Type::Handle(Type::DynamicType()));
-  invocation.SetParameterNameAt(0, Symbols::This());
-  invocation.set_result_type(Type::Handle(Type::DynamicType()));
-  invocation.set_is_visible(false);  // Not visible in stack trace.
-
-  receiver_class.AddFunction(invocation);
-
-  return invocation.raw();
 }
 
 
@@ -1263,35 +1250,29 @@ DEFINE_RUNTIME_ENTRY(InstanceFunctionLookup, 4) {
                                 args,
                                 &result)) {
     ArgumentsDescriptor desc(args_descriptor);
-    Function& target_function = Function::Handle(
-        Resolver::ResolveDynamicAnyArgs(receiver_class, target_name));
-    // Check number of arguments and check that there is not already a method
-    // with the same name present.
-    // TODO(fschneider): Handle multiple arguments.
-    if (target_function.IsNull() &&
-        (desc.Count() == 1) && (desc.PositionalCount() == 1)) {
-      // Create Function for noSuchMethodInvocation and add it to the class.
-      target_function ^= CreateNoSuchMethodDispatcher(target_name,
-                                                      receiver_class,
-                                                      args_descriptor);
-
-      // Update IC data.
-      ASSERT(!target_function.IsNull());
+    const Function& target_function = Function::Handle(
+        receiver_class.GetNoSuchMethodDispatcher(target_name, args_descriptor));
+    // Update IC data.
+    ASSERT(!target_function.IsNull());
+    if (ic_data.num_args_tested() == 1) {
       ic_data.AddReceiverCheck(receiver.GetClassId(), target_function);
-      if (FLAG_trace_ic) {
-        OS::PrintErr("NoSuchMethod IC miss: adding <%s> id:%"Pd" -> <%s>\n",
-            Class::Handle(receiver.clazz()).ToCString(),
-            receiver.GetClassId(),
-            target_function.ToCString());
-      }
-      result =
-          DartEntry::InvokeFunction(target_function, args, args_descriptor);
     } else {
-      result = DartEntry::InvokeNoSuchMethod(receiver,
-                                             target_name,
-                                             args,
-                                             args_descriptor);
+      // Operators calls have two or three arguments tested ([], []=, etc.)
+      ASSERT(ic_data.num_args_tested() > 1);
+      GrowableArray<intptr_t> class_ids(ic_data.num_args_tested());
+      class_ids.Add(receiver.GetClassId());
+      for (intptr_t i = 1; i < ic_data.num_args_tested(); ++i) {
+        class_ids.Add(Object::Handle(args.At(i)).GetClassId());
+      }
+      ic_data.AddCheck(class_ids, target_function);
     }
+    if (FLAG_trace_ic) {
+      OS::PrintErr("NoSuchMethod IC miss: adding <%s> id:%"Pd" -> <%s>\n",
+          Class::Handle(receiver.clazz()).ToCString(),
+          receiver.GetClassId(),
+          target_function.ToCString());
+    }
+    result = DartEntry::InvokeFunction(target_function, args, args_descriptor);
   }
   CheckResultError(result);
   arguments.SetReturn(result);
@@ -1342,7 +1323,11 @@ static bool CanOptimizeFunction(const Function& function, Isolate* isolate) {
 DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   ASSERT(arguments.ArgCount() ==
          kStackOverflowRuntimeEntry.argument_count());
+#if defined(USING_SIMULATOR)
+  uword stack_pos = Simulator::Current()->get_register(SPREG);
+#else
   uword stack_pos = reinterpret_cast<uword>(&arguments);
+#endif
 
   // If an interrupt happens at the same time as a stack overflow, we
   // process the stack overflow first.

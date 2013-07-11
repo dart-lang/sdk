@@ -1050,6 +1050,10 @@ UNIT_TEST_CASE(ScriptSnapshot) {
       "  final int fld2;"
       "}";
   const char* kScriptChars =
+      "class TestTrace implements StackTrace {"
+      "  TestTrace();"
+      "  String toString() { return 'my trace'; }"
+      "}"
       "class Fields  {"
       "  Fields(int i, int j) : fld1 = i, fld2 = j {}"
       "  int fld1;"

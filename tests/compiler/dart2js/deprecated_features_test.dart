@@ -58,12 +58,7 @@ main() {
       "19<part 'part.dart';>::${deprecatedMessage('missing part-of tag')}\n"
       "0<>:/part.dart:info: Note: This file has no part-of tag, but it is being"
       " used as a part.\n"
-
-      // TODO(ahe): Should be <bar>.
-      "52<Foo>::${deprecatedMessage('conflicting constructor')}\n"
-
-      "72<bar>::info: This member conflicts with a constructor.\n"
-      "103<()>::${deprecatedMessage('getter parameters')}\n",
+      "57<()>::${deprecatedMessage('getter parameters')}\n",
       messages.toString());
 }
 
@@ -80,14 +75,11 @@ const Map<String, String> TEST_SOURCE =
 part 'part.dart';
 
 class Foo {
-  Foo.bar();
-  static bar() => new Foo.bar();
   get x() => null;
 }
 
 main() {
-  var a = Foo.bar();
-  var b = new Foo.bar();
+  var a = new Foo();
 }
 """,
     // TODO(ahe): Why isn't this 'part.dart'? Why the leading slash?

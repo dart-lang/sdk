@@ -6,6 +6,7 @@ part of dart.collection;
 
 /** Common parts of [HashSet] and [LinkedHashSet] implementations. */
 abstract class _HashSetBase<E> extends IterableBase<E> implements Set<E> {
+
   // Set.
   bool containsAll(Iterable<Object> other) {
     for (Object object in other) {
@@ -53,7 +54,8 @@ abstract class _HashSetBase<E> extends IterableBase<E> implements Set<E> {
     retainWhere(retainSet.contains);
   }
 
-  String toString() => ToString.iterableToString(this);
+  // TODO(zarah) Remove this, and let it be inherited by IterableBase
+  String toString() => IterableMixinWorkaround.toStringIterable(this, '{', '}');
 }
 
 /**

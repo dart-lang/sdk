@@ -24,7 +24,7 @@ main() {
     ]);
     updateSources(["app|foo.a"]);
 
-    expectCollision("app|foo.b");
+    buildShouldFail([isAssetCollisionException("app|foo.b")]);
   });
 
   test("does not report asset not found errors in results", () {
@@ -38,10 +38,7 @@ main() {
     initGraph();
     updateSources(["app|unknown.txt"]);
 
-    buildShouldFail((error) {
-      expect(error, new isInstanceOf<AssetNotFoundException>());
-      expect(error.id, equals(new AssetId.parse("app|unknown.txt")));
-    });
+    buildShouldFail([isAssetNotFoundException("app|unknown.txt")]);
   });
 
   test("reports missing input errors in results", () {
@@ -49,10 +46,7 @@ main() {
       [new ManyToOneTransformer("txt")]
     ]);
 
-    buildShouldFail((error) {
-      expect(error, new isInstanceOf<MissingInputException>());
-      expect(error.id, equals(new AssetId.parse("app|a.inc")));
-    });
+    buildShouldFail([isMissingInputException("app|a.inc")]);
 
     updateSources(["app|a.txt"]);
 
@@ -77,10 +71,7 @@ main() {
       removeSources(["app|b.inc"]);
     });
 
-    buildShouldFail((error) {
-      expect(error, new isInstanceOf<MissingInputException>());
-      expect(error.id, equals(new AssetId.parse("app|b.inc")));
-    });
+    buildShouldFail([isMissingInputException("app|b.inc")]);
     expectNoAsset("app|a.out");
   });
 
@@ -95,9 +86,7 @@ main() {
 
     expectNoAsset("app|foo.out");
 
-    buildShouldFail((error) {
-      expect(error, equals(BadTransformer.ERROR));
-    });
+    buildShouldFail([equals(BadTransformer.ERROR)]);
   });
 
   // TODO(rnystrom): Is this the behavior we expect? If a transformer fails
@@ -123,9 +112,7 @@ main() {
 
     // Note: No asset requests here.
 
-    buildShouldFail((error) {
-      expect(error, equals(BadTransformer.ERROR));
-    });
+    buildShouldFail([equals(BadTransformer.ERROR)]);
   });
 
   test("discards outputs from failed transforms", () {

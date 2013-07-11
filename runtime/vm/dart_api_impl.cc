@@ -798,7 +798,13 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
 
 
 DART_EXPORT void Dart_ShutdownIsolate() {
-  CHECK_ISOLATE(Isolate::Current());
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  {
+    StackZone zone(isolate);
+    HandleScope handle_scope(isolate);
+    Dart::RunShutdownCallback();
+  }
   STOP_TIMER(time_total_runtime);
   Dart::ShutdownIsolate();
 }

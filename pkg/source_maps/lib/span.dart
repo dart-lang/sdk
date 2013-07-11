@@ -219,11 +219,20 @@ class SourceFile {
   int getLine(int offset) => binarySearch(_lineStarts, (o) => o > offset) - 1;
 
   /// Gets the 0-based column corresponding to an offset.
-  int getColumn(int line, int offset) => offset - _lineStarts[line];
+  int getColumn(int line, int offset) {
+    if (line < 0 || line >= _lineStarts.length) return 0;
+    return offset - _lineStarts[line];
+  }
 
   /// Get the offset for a given line and column
-  int getOffset(int line, int column) =>
-      _lineStarts[max(min(line, _lineStarts.length - 1), 0)] + column;
+  int getOffset(int line, int column) {
+    if (line < 0) return getOffset(0, 0);
+    if (line < _lineStarts.length) {
+      return _lineStarts[line] + column;
+    } else {
+      return _decodedChars.length;
+    }
+  }
 
   /// Gets the text at the given offsets.
   String getText(int start, [int end]) =>
@@ -251,7 +260,6 @@ class SourceFile {
     // +1 for 0-indexing, +1 again to avoid the last line
     var textLine = getText(getOffset(line, 0), getOffset(line + 1, 0));
 
-
     column = min(column, textLine.length - 1);
     int toColumn = min(column + end - start, textLine.length);
     if (useColors) {
@@ -265,6 +273,7 @@ class SourceFile {
       buf.write(textLine.substring(toColumn));
     } else {
       buf.write(textLine);
+      if (textLine != '' && !textLine.endsWith('\n')) buf.write('\n');
     }
 
     int i = 0;
@@ -290,13 +299,13 @@ class SourceFileSegment extends SourceFile {
   final int _baseOffset;
   final int _baseLine;
   final int _baseColumn;
+  final int _maxOffset;
 
-  // TODO(sigmund): consider providing an end-offset to correctly truncate
-  // values passed the end of the segment.
   SourceFileSegment(String url, String textSegment, Location startOffset)
       : _baseOffset = startOffset.offset,
         _baseLine = startOffset.line,
         _baseColumn = startOffset.column,
+        _maxOffset = startOffset.offset + textSegment.length,
         super.text(url, textSegment);
 
   /// Craete a span, where [start] is relative to this segment's base offset.
@@ -313,9 +322,13 @@ class SourceFileSegment extends SourceFile {
 
   /// Return the line on the underlying file associated with the [offset] of the
   /// underlying file. This method operates on the real offsets from the
-  /// original file, so that error messages can be reported accurately.
-  int getLine(int offset) =>
-      super.getLine(max(offset - _baseOffset, 0)) + _baseLine;
+  /// original file, so that error messages can be reported accurately. When the
+  /// requested offset is past the length of the segment, this returns the line
+  /// number after the end of the segment (total lines + 1).
+  int getLine(int offset) {
+    var res = super.getLine(max(offset - _baseOffset, 0)) + _baseLine;
+    return (offset > _maxOffset) ? res + 1 : res;
+  }
 
   /// Return the column on the underlying file associated with [line] and
   /// [offset], where [line] is absolute from the beginning of the underlying
@@ -330,13 +343,12 @@ class SourceFileSegment extends SourceFile {
   /// on the real offsets from the original file, so that error messages can be
   /// reported accurately.
   int getOffset(int line, int column) =>
-      super.getOffset(line - _baseLine,
-         line == _baseLine ? column - _baseColumn : column) + _baseOffset;
+    super.getOffset(line - _baseLine,
+        line == _baseLine ? column - _baseColumn : column) + _baseOffset;
 
   /// Retrieve the text associated with the specified range. This method
   /// operates on the real offsets from the original file, so that error
   /// messages can be reported accurately.
   String getText(int start, [int end]) =>
-      super.getText(start - _baseOffset,
-          end == null ? null : end - _baseOffset);
+    super.getText(start - _baseOffset, end == null ? null : end - _baseOffset);
 }

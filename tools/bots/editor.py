@@ -84,6 +84,7 @@ def UploadInstaller(dart_editor_dmg, directory):
   directory = directory % {'revision' : utils.GetSVNRevision()}
   uri = '%s/%s' % (GCS_EDITOR_BUCKET, directory)
   RunProcess([GSUTIL, 'cp', dart_editor_dmg, uri])
+  RunProcess([GSUTIL, 'setacl', 'public-read', uri])
 
 def CreateAndUploadMacInstaller(arch):
   dart_icns = os.path.join(

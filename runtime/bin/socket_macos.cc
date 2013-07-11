@@ -246,6 +246,10 @@ bool Socket::ReverseLookup(RawAddr addr,
 
 
 static bool ShouldIncludeIfaAddrs(struct ifaddrs* ifa, int lookup_family) {
+  if (ifa->ifa_addr == NULL) {
+    // OpenVPN's virtual device tun0.
+    return false;
+  }
   int family = ifa->ifa_addr->sa_family;
   if (lookup_family == family) return true;
   if (lookup_family == AF_UNSPEC &&

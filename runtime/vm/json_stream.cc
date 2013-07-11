@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/assert.h"
+#include "vm/object.h"
 #include "vm/json_stream.h"
 
 
@@ -83,6 +84,12 @@ void JSONStream::PrintValue(const char* s) {
 }
 
 
+void JSONStream::PrintValue(const Object& o, bool ref) {
+  PrintCommaIfNeeded();
+  o.PrintToJSONStream(this, ref);
+}
+
+
 void JSONStream::PrintPropertyBool(const char* name, bool b) {
   PrintPropertyName(name);
   PrintValueBool(b);
@@ -104,6 +111,12 @@ void JSONStream::PrintProperty(const char* name, double d) {
 void JSONStream::PrintProperty(const char* name, const char* s) {
   PrintPropertyName(name);
   PrintValue(s);
+}
+
+
+void JSONStream::PrintProperty(const char* name, const Object& o, bool ref) {
+  PrintPropertyName(name);
+  PrintValue(o, ref);
 }
 
 

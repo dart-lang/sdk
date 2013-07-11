@@ -8,10 +8,18 @@ part of dart._collection.dev;
 // This is a hack to make @deprecated work in dart:io. Don't remove or use this,
 // unless coordinated with either me or the core library team. Thanks!
 // TODO(ajohnsen): Remove at the 11th of Auguest 2013.
-// TODO(ajohnsen): Remove hide in sdk/lib/web_sql/dart2js/web_sql_dart2js.dart.
-// TODO(ajohnsen): Remove hide in sdk/lib/html/dart2js/html_dart2js.dart.
-// TODO(ajohnsen): Remove hide in
-//     sdk/lib/web_audio/dart2js/web_audio_dart2js.dart.
+// TODO(ajohnsen): Remove hide in:
+//    tools/dom/templates/html/dart2js/html_dart2js.darttemplate
+//    tools/dom/templates/html/dart2js/svg_dart2js.darttemplate
+//    tools/dom/templates/html/dart2js/web_audio_dart2js.darttemplate
+//    tools/dom/templates/html/dart2js/web_gl_dart2js.darttemplate
+//    tools/dom/templates/html/dart2js/web_sql_dart2js.darttemplate
+//    tools/dom/templates/html/dartium/html_dartium.darttemplate
+//    tools/dom/templates/html/dartium/svg_dartium.darttemplate
+//    tools/dom/templates/html/dartium/web_audio_dartium.darttemplate
+//    tools/dom/templates/html/dartium/web_gl_dartium.darttemplate
+//    tools/dom/templates/html/dartium/web_sql_dartium.darttemplate
+
 const deprecated = 0;
 
 /**
@@ -323,9 +331,7 @@ typedef T _Transformation<S, T>(S value);
 
 class MappedIterable<S, T> extends IterableBase<T> {
   final Iterable<S> _iterable;
-  // TODO(ahe): Restore type when feature is implemented in dart2js
-  // checked mode. http://dartbug.com/7733
-  final /* _Transformation<S, T> */ _f;
+  final _Transformation<S, T> _f;
 
   MappedIterable(this._iterable, T this._f(S element));
 
@@ -345,9 +351,7 @@ class MappedIterable<S, T> extends IterableBase<T> {
 class MappedIterator<S, T> extends Iterator<T> {
   T _current;
   final Iterator<S> _iterator;
-  // TODO(ahe): Restore type when feature is implemented in dart2js
-  // checked mode. http://dartbug.com/7733
-  final /* _Transformation<S, T> */ _f;
+  final _Transformation<S, T> _f;
 
   MappedIterator(this._iterator, T this._f(S element));
 
@@ -366,9 +370,7 @@ class MappedIterator<S, T> extends Iterator<T> {
 /** Specialized alternative to [MappedIterable] for mapped [List]s. */
 class MappedListIterable<S, T> extends ListIterable<T> {
   final Iterable<S> _source;
-  // TODO(ahe): Restore type when feature is implemented in dart2js
-  // checked mode. http://dartbug.com/7733
-  final /* _Transformation<S, T> */ _f;
+  final _Transformation<S, T> _f;
 
   MappedListIterable(this._source, T this._f(S value));
 
@@ -381,9 +383,7 @@ typedef bool _ElementPredicate<E>(E element);
 
 class WhereIterable<E> extends IterableBase<E> {
   final Iterable<E> _iterable;
-  // TODO(ahe): Restore type when feature is implemented in dart2js
-  // checked mode. http://dartbug.com/7733
-  final /* _ElementPredicate */ _f;
+  final _ElementPredicate _f;
 
   WhereIterable(this._iterable, bool this._f(E element));
 
@@ -392,9 +392,7 @@ class WhereIterable<E> extends IterableBase<E> {
 
 class WhereIterator<E> extends Iterator<E> {
   final Iterator<E> _iterator;
-  // TODO(ahe): Restore type when feature is implemented in dart2js
-  // checked mode. http://dartbug.com/7733
-  final /* _ElementPredicate */ _f;
+  final _ElementPredicate _f;
 
   WhereIterator(this._iterator, bool this._f(E element));
 
@@ -414,9 +412,7 @@ typedef Iterable<T> _ExpandFunction<S, T>(S sourceElement);
 
 class ExpandIterable<S, T> extends IterableBase<T> {
   final Iterable<S> _iterable;
-  // TODO(ahe): Restore type when feature is implemented in dart2js
-  // checked mode. http://dartbug.com/7733
-  final /* _ExpandFunction */ _f;
+  final _ExpandFunction _f;
 
   ExpandIterable(this._iterable, Iterable<T> this._f(S element));
 
@@ -425,9 +421,7 @@ class ExpandIterable<S, T> extends IterableBase<T> {
 
 class ExpandIterator<S, T> implements Iterator<T> {
   final Iterator<S> _iterator;
-  // TODO(ahe): Restore type when feature is implemented in dart2js
-  // checked mode. http://dartbug.com/7733
-  final /* _ExpandFunction */ _f;
+  final _ExpandFunction _f;
   // Initialize _currentExpansion to an empty iterable. A null value
   // marks the end of iteration, and we don't want to call _f before
   // the first moveNext call.
@@ -499,9 +493,7 @@ class TakeIterator<E> extends Iterator<E> {
 
 class TakeWhileIterable<E> extends IterableBase<E> {
   final Iterable<E> _iterable;
-  // TODO(ahe): Restore type when feature is implemented in dart2js
-  // checked mode. http://dartbug.com/7733
-  final /* _ElementPredicate */ _f;
+  final _ElementPredicate _f;
 
   TakeWhileIterable(this._iterable, bool this._f(E element));
 
@@ -512,9 +504,7 @@ class TakeWhileIterable<E> extends IterableBase<E> {
 
 class TakeWhileIterator<E> extends Iterator<E> {
   final Iterator<E> _iterator;
-  // TODO(ahe): Restore type when feature is implemented in dart2js
-  // checked mode. http://dartbug.com/7733
-  final /* _ElementPredicate */ _f;
+  final _ElementPredicate _f;
   bool _isFinished = false;
 
   TakeWhileIterator(this._iterator, bool this._f(E element));
@@ -575,9 +565,7 @@ class SkipIterator<E> extends Iterator<E> {
 
 class SkipWhileIterable<E> extends IterableBase<E> {
   final Iterable<E> _iterable;
-  // TODO(ahe): Restore type when feature is implemented in dart2js
-  // checked mode. http://dartbug.com/7733
-  final /* _ElementPredicate */ _f;
+  final _ElementPredicate _f;
 
   SkipWhileIterable(this._iterable, bool this._f(E element));
 
@@ -588,9 +576,7 @@ class SkipWhileIterable<E> extends IterableBase<E> {
 
 class SkipWhileIterator<E> extends Iterator<E> {
   final Iterator<E> _iterator;
-  // TODO(ahe): Restore type when feature is implemented in dart2js
-  // checked mode. http://dartbug.com/7733
-  final /* _ElementPredicate */ _f;
+  final _ElementPredicate _f;
   bool _hasSkipped = false;
 
   SkipWhileIterator(this._iterator, bool this._f(E element));
@@ -702,6 +688,9 @@ abstract class BidirectionalIterator<T> implements Iterator<T> {
  * The uses of this class will be replaced by mixins.
  */
 class IterableMixinWorkaround {
+  // A list to identify cyclic collections during toString() calls.
+  static List _toStringList = new List();
+
   static bool contains(Iterable iterable, var element) {
     for (final e in iterable) {
       if (e == element) return true;
@@ -893,6 +882,27 @@ class IterableMixinWorkaround {
       }
     }
     return buffer.toString();
+  }
+
+  static String toStringIterable(Iterable iterable, String leftDelimiter,
+                                 String rightDelimiter) {
+    for (int i = 0; i < _toStringList.length; i++) {
+      if (identical(_toStringList[i], iterable)) {
+        return '$leftDelimiter...$rightDelimiter';
+        }
+    }
+
+    StringBuffer result = new StringBuffer();
+    try {
+      _toStringList.add(iterable);
+      result.write(leftDelimiter);
+      result.writeAll(iterable, ', ');
+      result.write(rightDelimiter);
+    } finally {
+      assert(identical(_toStringList.last, iterable));
+      _toStringList.removeLast();
+    }
+    return result.toString();
   }
 
   static Iterable where(Iterable iterable, bool f(var element)) {

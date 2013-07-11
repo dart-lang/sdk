@@ -2,7 +2,7 @@ library dart.dom.web_gl;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:_collection-dev';
+import 'dart:_collection-dev' hide deprecated;
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:nativewrappers';

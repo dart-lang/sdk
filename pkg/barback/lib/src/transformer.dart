@@ -7,7 +7,7 @@ library barback.transformer;
 import 'dart:async';
 import 'dart:io';
 
-import 'asset_id.dart';
+import 'asset.dart';
 import 'transform.dart';
 
 /// A [Transformer] represents a processor that takes in one or more input
@@ -29,7 +29,7 @@ abstract class Transformer {
   /// of those to generate the final JS. However you still run dart2js "on" a
   /// single file: the entrypoint Dart file that has your `main()` method.
   /// This entrypoint file would be the primary input.
-  Future<bool> isPrimary(AssetId input);
+  Future<bool> isPrimary(Asset input);
 
   /// Run this transformer on on the primary input specified by [transform].
   ///

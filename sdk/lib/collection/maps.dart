@@ -60,6 +60,9 @@ class Maps {
 
   static bool isNotEmpty(Map map) => map.keys.isNotEmpty;
 
+  // A list to identify cyclic maps during toString() calls.
+  static List _toStringList = new List();
+
   /**
    * Returns a string representing the specified map. The returned string
    * looks like this: [:'{key0: value0, key1: value1, ... keyN: valueN}':].
@@ -76,7 +79,33 @@ class Maps {
    * A typical implementation of a map's [toString] method will
    * simply return the results of this method applied to the collection.
    */
-  static String mapToString(Map m) => ToString.mapToString(m);
+  static String mapToString(Map m) {
+    for (int i = 0; i < _toStringList.length; i++) {
+      if (identical(_toStringList[i], m)) { return '{...}'; }
+    }
+
+    var result = new StringBuffer();
+    try {
+      _toStringList.add(m);
+      result.write('{');
+      bool first = true;
+      m.forEach((k, v) {
+        if(!first) {
+          result.write(', ');
+        }
+        first = false;
+        result.write(k);
+        result.write(': ');
+        result.write(v);
+      });
+      result.write('}');
+    } finally {
+      assert(identical(_toStringList.last, m));
+      _toStringList.removeLast();
+    }
+
+    return result.toString();
+  }
 
   static _id(x) => x;
 

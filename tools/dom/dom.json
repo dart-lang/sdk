@@ -11478,7 +11478,7 @@
       "sendBlob": {},
       "sendByteBuffer": {},
       "sendString": {},
-      "sendTypeData": {},
+      "sendTypedData": {},
       "url": {}
     },
     "support_level": "stable"

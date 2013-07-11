@@ -554,6 +554,7 @@ class EmbeddedArray<T, 0> {
   M(StoreVMField)                                                              \
   M(LoadUntagged)                                                              \
   M(LoadClassId)                                                               \
+  M(InstantiateType)                                                           \
   M(InstantiateTypeArguments)                                                  \
   M(ExtractConstructorTypeArguments)                                           \
   M(ExtractConstructorInstantiator)                                            \
@@ -4060,6 +4061,44 @@ class StoreVMFieldInstr : public TemplateDefinition<2> {
   const AbstractType& type_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreVMFieldInstr);
+};
+
+
+class InstantiateTypeInstr : public TemplateDefinition<1> {
+ public:
+  InstantiateTypeInstr(intptr_t token_pos,
+                       const AbstractType& type,
+                       const Class& instantiator_class,
+                       Value* instantiator)
+      : token_pos_(token_pos),
+        type_(type),
+        instantiator_class_(instantiator_class) {
+    ASSERT(type.IsZoneHandle());
+    SetInputAt(0, instantiator);
+  }
+
+  DECLARE_INSTRUCTION(InstantiateType)
+
+  Value* instantiator() const { return inputs_[0]; }
+  const AbstractType& type() const { return type_;
+  }
+  const Class& instantiator_class() const { return instantiator_class_; }
+  intptr_t token_pos() const { return token_pos_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return true; }
+
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+
+  virtual bool MayThrow() const { return true; }
+
+ private:
+  const intptr_t token_pos_;
+  const AbstractType& type_;
+  const Class& instantiator_class_;
+
+  DISALLOW_COPY_AND_ASSIGN(InstantiateTypeInstr);
 };
 
 

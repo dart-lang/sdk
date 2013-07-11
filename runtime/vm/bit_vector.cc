@@ -41,8 +41,8 @@ bool BitVector::Equals(const BitVector& other) const {
   }
   if (i < data_length_) {
     // Don't compare bits beyond length_.
-    uword mask =
-        static_cast<uword>(-1) >> (kBitsPerWord - (length_ % kBitsPerWord));
+    const intptr_t shift_size = (kBitsPerWord - length_) & (kBitsPerWord - 1);
+    const uword mask = static_cast<uword>(-1) >> shift_size;
     if ((data_[i] & mask) != (other.data_[i] & mask)) return false;
   }
   return true;

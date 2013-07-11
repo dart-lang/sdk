@@ -666,9 +666,9 @@ typedef void (*Dart_IsolateUnhandledExceptionCallback)(Dart_Handle error);
 /**
  * An isolate shutdown callback function.
  *
- * This callback, provided by the embedder, is called after the vm
- * shuts down an isolate.  Since the isolate has been shut down, it is
- * not safe to enter the isolate or use it to run any Dart code.
+ * This callback, provided by the embedder, is called before the vm
+ * shuts down an isolate.  The isolate being shutdown will be the current
+ * isolate. It is safe to run Dart code.
  *
  * This function should be used to dispose of native resources that
  * are allocated to an isolate in order to avoid leaks.

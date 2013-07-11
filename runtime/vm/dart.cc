@@ -210,16 +210,20 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
 }
 
 
-void Dart::ShutdownIsolate() {
+void Dart::RunShutdownCallback() {
   Isolate* isolate = Isolate::Current();
   void* callback_data = isolate->init_callback_data();
-  isolate->Shutdown();
-  delete isolate;
-
   Dart_IsolateShutdownCallback callback = Isolate::ShutdownCallback();
   if (callback != NULL) {
     (callback)(callback_data);
   }
+}
+
+
+void Dart::ShutdownIsolate() {
+  Isolate* isolate = Isolate::Current();
+  isolate->Shutdown();
+  delete isolate;
 }
 
 

@@ -14,6 +14,7 @@ part of dart.collection;
 class LinkedList<E extends LinkedListEntry<E>>
     extends IterableBase<E>
     implements _LinkedListLink {
+
   int _modificationCount = 0;
   int _length = 0;
   _LinkedListLink _next;
@@ -60,7 +61,8 @@ class LinkedList<E extends LinkedListEntry<E>>
 
   Iterator<E> get iterator => new _LinkedListIterator<E>(this);
 
-  String toString() => ToString.iterableToString(this);
+  // TODO(zarah) Remove this, and let it be inherited by IterableMixin
+  String toString() => IterableMixinWorkaround.toStringIterable(this, '{', '}');
 
   int get length => _length;
 

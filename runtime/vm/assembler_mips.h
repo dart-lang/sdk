@@ -1076,6 +1076,11 @@ class Assembler : public ValueObject {
   void LeaveDartFrame();
   void LeaveDartFrameAndReturn();
 
+  // Set up a Dart frame for a function compiled for on-stack replacement.
+  // The frame layout is a normal Dart frame, but the frame is partially set
+  // up on entry (it is the frame of the unoptimized code).
+  void EnterOsrFrame(intptr_t extra_size);
+
  private:
   AssemblerBuffer buffer_;
   GrowableObjectArray& object_pool_;  // Objects and patchable jump targets.

@@ -13,6 +13,8 @@ namespace dart {
 
 // List of bootstrap native entry points used in the core dart library.
 #define BOOTSTRAP_NATIVE_LIST(V)                                               \
+  V(Object_getHash, 1)                                                         \
+  V(Object_setHash, 2)                                                         \
   V(Object_toString, 1)                                                        \
   V(Object_noSuchMethod, 6)                                                    \
   V(Object_runtimeType, 1)                                                     \
@@ -243,6 +245,8 @@ namespace dart {
   V(LocalObjectMirrorImpl_setField, 4)                                         \
   V(LocalClosureMirrorImpl_apply, 3)                                           \
   V(LocalClassMirrorImpl_invokeConstructor, 4)                                 \
+  V(ClassMirror_name, 1)                                                       \
+  V(MethodMirror_name, 1)                                                      \
   V(GrowableObjectArray_allocate, 2)                                           \
   V(GrowableObjectArray_getIndexed, 2)                                         \
   V(GrowableObjectArray_setIndexed, 3)                                         \

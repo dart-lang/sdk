@@ -35,7 +35,7 @@ class Program {
   // the source position.
   static void recordBp(Debugger debugger, Map<String,dynamic> msg) {
     // Progress indicator.
-    if (++numBps % 100 == 0) print(numBps);
+    if (++numBps % 1000 == 0) print(numBps);
     var location = msg["params"]["location"];
     if (location == null) return;
     String url = location["url"];
@@ -317,6 +317,7 @@ class Debugger {
   void openConnection(int portNumber) {
     Socket.connect("127.0.0.1", portNumber).then((s) {
       socket = s;
+      socket.setOption(SocketOption.TCP_NODELAY, true);
       var stringStream = socket.transform(new StringDecoder());
       stringStream.listen(
           (str) {

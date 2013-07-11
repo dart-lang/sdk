@@ -1,0 +1,9 @@
+name: shadow_dom
+author: "Web UI Team <web-ui-dev@dartlang.org>"
+homepage: https://github.com/dart-lang/ShadowDOM/tree/conditional_shadowdom
+description: >
+  Shadow DOM is designed to provide encapsulation by hiding DOM subtrees under
+  shadow roots. It provides a method of establishing and maintaining functional
+  boundaries between DOM trees and how these trees interact with each other
+  within a document, thus enabling better functional encapsulation within the
+  DOM.

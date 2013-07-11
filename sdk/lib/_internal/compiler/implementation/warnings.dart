@@ -445,6 +445,9 @@ Error: "#{value}" is not a valid Symbol name because is not:
   static const OVERRIDE_EQUALS_NOT_HASH_CODE = const MessageKind(
       'Hint: The class "#{class}" overrides "operator==", '
       'but not "get hashCode".');
+  
+  static const PACKAGE_ROOT_NOT_SET = const MessageKind(
+      "Error: Cannot resolve '#{uri}'. Package root has not been set.");
 
   static const COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");

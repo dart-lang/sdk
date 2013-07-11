@@ -6048,7 +6048,9 @@ class CustomEvent extends Event native "CustomEvent" {
   factory CustomEvent(String type,
       {bool canBubble: true, bool cancelable: true, Object detail}) {
 
-    final CustomEvent e = document.$dom_createEvent("CustomEvent");
+    final CustomEvent e = document.$dom_createEvent('CustomEvent');
+
+    detail = convertDartToNative_SerializedScriptValue(detail);
     e.$dom_initCustomEvent(type, canBubble, cancelable, detail);
 
     return e;
@@ -6056,10 +6058,12 @@ class CustomEvent extends Event native "CustomEvent" {
   // To suppress missing implicit constructor warnings.
   factory CustomEvent._() { throw new UnsupportedError("Not supported"); }
 
+  dynamic get detail => convertNativeToDart_SerializedScriptValue(this._get_detail);
+  @JSName('detail')
   @DomName('CustomEvent.detail')
   @DocsEditable()
   @Creates('Null')
-  final Object detail;
+  final dynamic _get_detail;
 
   @JSName('initCustomEvent')
   @DomName('CustomEvent.initCustomEvent')
@@ -11087,7 +11091,12 @@ class FormData extends Interceptor native "FormData" {
 
   @DomName('FormData.append')
   @DocsEditable()
-  void append(String name, value, [String filename]) native;
+  void append(String name, String value) native;
+
+  @JSName('append')
+  @DomName('FormData.append')
+  @DocsEditable()
+  void appendBlob(String name, Blob value, [String filename]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23163,9 +23172,64 @@ class WebSocket extends EventTarget native "WebSocket" {
   @DocsEditable()
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
+  /**
+   * Transmit data to the server over this connection.
+   *
+   * This method accepts data of type [Blob], [ByteBuffer], [String], or
+   * [TypedData]. Named variants [sendBlob], [sendByteBuffer], [sendString],
+   * or [sendTypedData], in constrast, only accept data of the specified type.
+   */
   @DomName('WebSocket.send')
   @DocsEditable()
   void send(data) native;
+
+  @JSName('send')
+  /**
+   * Transmit data to the server over this connection.
+   *
+   * This method accepts data of type [Blob], [ByteBuffer], [String], or
+   * [TypedData]. Named variants [sendBlob], [sendByteBuffer], [sendString],
+   * or [sendTypedData], in constrast, only accept data of the specified type.
+   */
+  @DomName('WebSocket.send')
+  @DocsEditable()
+  void sendBlob(Blob data) native;
+
+  @JSName('send')
+  /**
+   * Transmit data to the server over this connection.
+   *
+   * This method accepts data of type [Blob], [ByteBuffer], [String], or
+   * [TypedData]. Named variants [sendBlob], [sendByteBuffer], [sendString],
+   * or [sendTypedData], in constrast, only accept data of the specified type.
+   */
+  @DomName('WebSocket.send')
+  @DocsEditable()
+  void sendByteBuffer(ByteBuffer data) native;
+
+  @JSName('send')
+  /**
+   * Transmit data to the server over this connection.
+   *
+   * This method accepts data of type [Blob], [ByteBuffer], [String], or
+   * [TypedData]. Named variants [sendBlob], [sendByteBuffer], [sendString],
+   * or [sendTypedData], in constrast, only accept data of the specified type.
+   */
+  @DomName('WebSocket.send')
+  @DocsEditable()
+  void sendString(String data) native;
+
+  @JSName('send')
+  /**
+   * Transmit data to the server over this connection.
+   *
+   * This method accepts data of type [Blob], [ByteBuffer], [String], or
+   * [TypedData]. Named variants [sendBlob], [sendByteBuffer], [sendString],
+   * or [sendTypedData], in constrast, only accept data of the specified type.
+   */
+  @DomName('WebSocket.send')
+  @DocsEditable()
+  void sendTypedData(TypedData data) native;
 
   @DomName('WebSocket.onclose')
   @DocsEditable()
@@ -25683,7 +25747,7 @@ abstract class _HTMLMarqueeElement extends _HTMLElement native "HTMLMarqueeEleme
 @DomName('NamedNodeMap')
 // http://dom.spec.whatwg.org/#namednodemap
 @deprecated // deprecated
-class _NamedNodeMap extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> native "NamedNodeMap" {
+class _NamedNodeMap extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> native "NamedNodeMap,MozNamedAttrMap" {
 
   @DomName('NamedNodeMap.length')
   @DocsEditable()

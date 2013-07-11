@@ -10,7 +10,11 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   factory $CLASSNAME(String type,
       {bool canBubble: true, bool cancelable: true, Object detail}) {
 
-    final CustomEvent e = document.$dom_createEvent("CustomEvent");
+    final CustomEvent e = document.$dom_createEvent('CustomEvent');
+
+$if DART2JS
+    detail = convertDartToNative_SerializedScriptValue(detail);
+$endif
     e.$dom_initCustomEvent(type, canBubble, cancelable, detail);
 
     return e;

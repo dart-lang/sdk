@@ -146,7 +146,7 @@ class SourceVisitor implements ASTVisitor {
   /// Initialize a newly created visitor to write source code representing
   /// the visited nodes to the given [writer].
   SourceVisitor(FormatterOptions options) :
-      writer = new SourceWriter(initialIndent: options.initialIndentationLevel,
+      writer = new SourceWriter(indentCount: options.initialIndentationLevel,
                                 lineSeparator: options.lineSeparator);
 
   visitAdjacentStrings(AdjacentStrings node) {

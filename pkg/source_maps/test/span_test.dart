@@ -69,22 +69,80 @@ main() {
     expect(file.getText(line + 2, line + 11), '34+6789_1');
   });
 
-  test('get location message', () {
-    // fifth line (including 4 new lines), columns 2 .. 11
-    var line = 10 + 80 + 31 + 27 + 4;
-    expect(file.getLocationMessage('the message', line + 2, line + 11),
-        'file:5:3: the message\n'
-        '1234+6789_1234\n'
-        '  ^^^^^^^^^');
-  });
+  group('location message', () {
+    test('first line', () {
+      expect(file.getLocationMessage('the message', 1, 3),
+          'file:1:2: the message\n'
+          '+23456789_\n'
+          ' ^^');
+    });
 
-  test('get location message - no file url', () {
-    var line = 10 + 80 + 31 + 27 + 4;
-    expect(new SourceFile.text(null, TEST_FILE).getLocationMessage(
-        'the message', line + 2, line + 11),
-        ':5:3: the message\n'
-        '1234+6789_1234\n'
-        '  ^^^^^^^^^');
+    test('in the middle of the file', () {
+      // fifth line (including 4 new lines), columns 2 .. 11
+      var line = 10 + 80 + 31 + 27 + 4;
+      expect(file.getLocationMessage('the message', line + 2, line + 11),
+          'file:5:3: the message\n'
+          '1234+6789_1234\n'
+          '  ^^^^^^^^^');
+    });
+
+    test('no file url', () {
+      var line = 10 + 80 + 31 + 27 + 4;
+      expect(new SourceFile.text(null, TEST_FILE).getLocationMessage(
+          'the message', line + 2, line + 11),
+          ':5:3: the message\n'
+          '1234+6789_1234\n'
+          '  ^^^^^^^^^');
+    });
+
+    test('penultimate line', () {
+      // We search '\n' backwards twice because last line is \n terminated:
+      int index = TEST_FILE.lastIndexOf('\n');
+      var start = TEST_FILE.lastIndexOf('\n', index - 1) - 3;
+      expect(file.getLocationMessage('the message', start, start + 2),
+          'file:11:41: the message\n'
+          '123456789_+23456789_123456789_123456789_123\n'
+          '                                        ^^');
+    });
+
+    test('last line', () {
+      var start = TEST_FILE.lastIndexOf('\n') - 2;
+      expect(file.getLocationMessage('the message', start, start + 1),
+          'file:12:28: the message\n'
+          '123456789_1+3456789_123456789\n'
+          '                           ^');
+    });
+
+    group('no trailing empty-line at the end -', () {
+      var text = TEST_FILE.substring(0, TEST_FILE.length - 1);
+      var file2 = new SourceFile.text('file', text);
+
+      test('penultimate line', () {
+        var start = text.lastIndexOf('\n') - 3;
+        expect(file2.getLocationMessage('the message', start, start + 2),
+            'file:11:41: the message\n'
+            '123456789_+23456789_123456789_123456789_123\n'
+            '                                        ^^');
+      });
+
+      test('last line', () {
+        var start = text.length - 2;
+        expect(file2.getLocationMessage('the message', start, start + 1),
+            'file:12:28: the message\n'
+            '123456789_1+3456789_123456789\n'
+            '                           ^');
+      });
+    });
+
+    test('single line', () {
+      var text = "this is a single line";
+      int start = text.indexOf(' ') + 1;
+      var file2 = new SourceFile.text('file', text);
+      expect(file2.getLocationMessage('the message', start, start + 2),
+            'file:1:${start + 1}: the message\n'
+            'this is a single line\n'
+            '     ^^');
+    });
   });
 
   test('location getters', () {
@@ -242,17 +300,11 @@ main() {
           '123456789_1+3456789_123456789\n'
           '                            ^');
 
-        // TODO(sigmund): consider also fixing this and report file:10:4
         // The answer below is different because the segment parsing only knows
         // about the 10 lines it has (and nothing about the possible extra lines
         // afterwards)
         expect(segment.getLocationMessage('the message', start, start + 1),
-          'file:10:112: the message\n');
-
-        // The number 112 includes the count of extra characters past the
-        // segment, which we verify here:
-        var lastSegmentLineStart = segmentText.lastIndexOf('\n');
-        expect(start - baseOffset - lastSegmentLineStart, 112);
+          'file:11:1: the message\n');
       });
     });
   });

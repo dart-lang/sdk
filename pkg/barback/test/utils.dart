@@ -6,6 +6,7 @@ library barback.test.utils;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:io';
 
 import 'package:barback/barback.dart';
 import 'package:barback/src/asset_graph.dart';
@@ -105,21 +106,24 @@ void resumeProvider() {
 }
 
 /// Expects that the next [BuildResult] is a build success.
-void buildShouldSucceed([void callback()]) {
+void buildShouldSucceed() {
   expect(_graph.results.elementAt(_nextBuildResult++).then((result) {
     expect(result.succeeded, isTrue);
-    if (callback != null) callback();
   }), completes);
 }
 
 /// Expects that the next [BuildResult] emitted is a failure.
 ///
-/// Invokes [callback] with the error (not the result) so that it can provide
-/// more precise expectations.
-void buildShouldFail(void callback(error)) {
+/// [matchers] is a list of matchers to match against the errors that caused the
+/// build to fail. Every matcher is expected to match an error, but the order of
+/// matchers is unimportant.
+void buildShouldFail(List matchers) {
   expect(_graph.results.elementAt(_nextBuildResult++).then((result) {
     expect(result.succeeded, isFalse);
-    callback(result.error);
+    expect(result.errors.length, equals(matchers.length));
+    for (var matcher in matchers) {
+      expect(result.errors, contains(matcher));
+    }
   }), completes);
 }
 
@@ -131,7 +135,7 @@ void waitForBuild() {
     return _graph.results.first.then((result) {
       expect(result.succeeded, isTrue);
     });
-  });
+  }, "wait for build");
 }
 
 /// Schedules an expectation that the graph will deliver an asset matching
@@ -150,9 +154,8 @@ void expectAsset(String name, [String contents]) {
     return _graph.getAssetById(id).then((asset) {
       // TODO(rnystrom): Make an actual Matcher class for this.
       expect(asset, new isInstanceOf<MockAsset>());
-      expect(asset._id.package, equals(id.package));
-      expect(asset._id.path, equals(id.path));
-      expect(asset._contents, equals(contents));
+      expect(asset.id, equals(id));
+      expect(asset.contents, equals(contents));
     });
   }, "get asset $name");
 }
@@ -173,16 +176,6 @@ void expectNoAsset(String name) {
   }, "get asset $name");
 }
 
-/// Expects that the next [BuildResult] is an output file collision error on an
-/// asset matching [name].
-Future expectCollision(String name) {
-  var id = new AssetId.parse(name);
-  _graph.results.first.then(wrapAsync((result) {
-    expect(result.error, new isInstanceOf<AssetCollisionException>());
-    expect(result.error.id, equals(id));
-  }));
-}
-
 /// Schedules an expectation that [graph] will have an error on an asset
 /// matching [name] for missing [input].
 Future expectMissingInput(AssetGraph graph, String name, String input) {
@@ -197,6 +190,30 @@ Future expectMissingInput(AssetGraph graph, String name, String input) {
       expect(error.id, equals(missing));
     });
   }, "get missing input on $name");
+}
+
+/// Returns a matcher for an [AssetNotFoundException] with the given [id].
+Matcher isAssetNotFoundException(String name) {
+  var id = new AssetId.parse(name);
+  return allOf(
+      new isInstanceOf<AssetNotFoundException>(),
+      predicate((error) => error.id == id, 'id is $name'));
+}
+
+/// Returns a matcher for an [AssetCollisionException] with the given [id].
+Matcher isAssetCollisionException(String name) {
+  var id = new AssetId.parse(name);
+  return allOf(
+      new isInstanceOf<AssetCollisionException>(),
+      predicate((error) => error.id == id, 'id is $name'));
+}
+
+/// Returns a matcher for a [MissingInputException] with the given [id].
+Matcher isMissingInputException(String name) {
+  var id = new AssetId.parse(name);
+  return allOf(
+      new isInstanceOf<MissingInputException>(),
+      predicate((error) => error.id == id, 'id is $name'));
 }
 
 /// An [AssetProvider] that provides the given set of assets.
@@ -242,8 +259,8 @@ class MockProvider implements AssetProvider {
 
   void _modifyAsset(String name, String contents) {
     var id = new AssetId.parse(name);
-    var asset = _packages[id.package].firstWhere((a) => a._id == id);
-    asset._contents = contents;
+    var asset = _packages[id.package].firstWhere((a) => a.id == id);
+    asset.contents = contents;
   }
 
   List<AssetId> listAssets(String package, {String within}) {
@@ -266,7 +283,7 @@ class MockProvider implements AssetProvider {
       var package = _packages[id.package];
       if (package == null) throw new AssetNotFoundException(id);
 
-      return package.firstWhere((asset) => asset._id == id,
+      return package.firstWhere((asset) => asset.id == id,
           orElse: () => throw new AssetNotFoundException(id));
     });
   }
@@ -318,8 +335,8 @@ class RewriteTransformer extends Transformer {
     _wait = null;
   }
 
-  Future<bool> isPrimary(AssetId asset) {
-    return new Future.value(asset.extension == ".$from");
+  Future<bool> isPrimary(Asset asset) {
+    return new Future.value(asset.id.extension == ".$from");
   }
 
   Future apply(Transform transform) {
@@ -330,7 +347,7 @@ class RewriteTransformer extends Transformer {
       return Future.wait(to.split(" ").map((extension) {
         var id = transform.primaryId.changeExtension(".$extension");
         return input.readAsString().then((content) {
-          transform.addOutput(id, new MockAsset(id, "$content.$extension"));
+          transform.addOutput(new MockAsset(id, "$content.$extension"));
         });
       })).then((_) {
         if (_wait != null) return _wait.future;
@@ -357,8 +374,8 @@ class OneToManyTransformer extends Transformer {
   /// files at each of those paths.
   OneToManyTransformer(this.extension);
 
-  Future<bool> isPrimary(AssetId asset) {
-    return new Future.value(asset.extension == ".$extension");
+  Future<bool> isPrimary(Asset asset) {
+    return new Future.value(asset.id.extension == ".$extension");
   }
 
   Future apply(Transform transform) {
@@ -367,7 +384,7 @@ class OneToManyTransformer extends Transformer {
       return input.readAsString().then((lines) {
         for (var line in lines.split(",")) {
           var id = new AssetId(transform.primaryId.package, line);
-          transform.addOutput(id, new MockAsset(id, "spread $extension"));
+          transform.addOutput(new MockAsset(id, "spread $extension"));
         }
       });
     });
@@ -392,8 +409,8 @@ class ManyToOneTransformer extends Transformer {
   /// files at each of those paths.
   ManyToOneTransformer(this.extension);
 
-  Future<bool> isPrimary(AssetId asset) {
-    return new Future.value(asset.extension == ".$extension");
+  Future<bool> isPrimary(Asset asset) {
+    return new Future.value(asset.id.extension == ".$extension");
   }
 
   Future apply(Transform transform) {
@@ -416,7 +433,7 @@ class ManyToOneTransformer extends Transformer {
           });
         }).then((_) {
           var id = transform.primaryId.changeExtension(".out");
-          transform.addOutput(id, new MockAsset(id, output));
+          transform.addOutput(new MockAsset(id, output));
         });
       });
     });
@@ -436,13 +453,13 @@ class BadTransformer extends Transformer {
 
   BadTransformer(this.outputs);
 
-  Future<bool> isPrimary(AssetId asset) => new Future.value(true);
+  Future<bool> isPrimary(Asset asset) => new Future.value(true);
   Future apply(Transform transform) {
     return new Future(() {
       // Create the outputs first.
       for (var output in outputs) {
         var id = new AssetId.parse(output);
-        transform.addOutput(id, new MockAsset(id, output));
+        transform.addOutput(new MockAsset(id, output));
       }
 
       // Then fail.
@@ -453,15 +470,15 @@ class BadTransformer extends Transformer {
 
 /// An implementation of [Asset] that never hits the file system.
 class MockAsset implements Asset {
-  final AssetId _id;
-  String _contents;
+  final AssetId id;
+  String contents;
 
-  MockAsset(this._id, this._contents);
+  MockAsset(this.id, this.contents);
 
-  Future<String> readAsString() => new Future.value(_contents);
+  Future<String> readAsString({Encoding encoding}) =>
+      new Future.value(contents);
+
   Stream<List<int>> read() => throw new UnimplementedError();
 
-  serialize() => throw new UnimplementedError();
-
-  String toString() => "MockAsset $_id $_contents";
+  String toString() => "MockAsset $id $contents";
 }

@@ -377,6 +377,7 @@ void DebuggerConnectionHandler::SendMsgHelper(int debug_fd,
 
 
 void DebuggerConnectionHandler::AcceptDbgConnection(int debug_fd) {
+  Socket::SetNoDelay(debug_fd, true);
   AddNewDebuggerConnection(debug_fd);
   {
     ASSERT(handler_lock_ != NULL);

@@ -378,7 +378,18 @@
         " * [Introducing WebSockets](http://www.html5rocks.com/en/tutorials/websockets/basics/),",
         " * an HTML5Rocks.com tutorial.",
         " */"
-      ]
+      ],
+      "members": {
+        "send": [
+          "/**",
+          "   * Transmit data to the server over this connection.",
+          "   *",
+          "   * This method accepts data of type [Blob], [ByteBuffer], [String], or",
+          "   * [TypedData]. Named variants [sendBlob], [sendByteBuffer], [sendString],",
+          "   * or [sendTypedData], in constrast, only accept data of the specified type.",
+          "   */"
+        ]
+      }
     },
     "XMLHttpRequest": {
       "members": {

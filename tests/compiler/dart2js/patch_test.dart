@@ -141,10 +141,10 @@ testPatchConstructor() {
   Expect.equals(classPatch, classOrigin.patch);
   Expect.equals(classOrigin, classPatch.origin);
 
-  var constructorOrigin = ensure(compiler, "Class",
+  var constructorOrigin = ensure(compiler, "",
                                  (name) => classOrigin.localLookup(name),
                                  expectIsPatched: true);
-  var constructorPatch = ensure(compiler, "Class",
+  var constructorPatch = ensure(compiler, "",
                                 (name) => classPatch.localLookup(name),
                                 expectIsPatch: true);
 

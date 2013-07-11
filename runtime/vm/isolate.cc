@@ -649,6 +649,7 @@ static void ShutdownIsolate(uword parameter) {
     if (!error.IsNull()) {
       OS::PrintErr("in ShutdownIsolate: %s\n", error.ToErrorCString());
     }
+    Dart::RunShutdownCallback();
   }
   {
     // Shut the isolate down.

@@ -71,10 +71,11 @@ class DeployCommand extends PubCommand {
               packageRoot: entrypoint.packagesDir, toDart: true);
         }).then((dart) {
           writeTextFile(targetFile, dart, dontLogContents: true);
-          // TODO(nweiz): we should put dart.js files next to any HTML file
+          // TODO(nweiz): we should put browser JS files next to any HTML file
           // rather than any entrypoint. An HTML file could import an entrypoint
           // that's not adjacent.
-          _maybeAddDartJs(path.dirname(targetFile));
+          _maybeAddBrowserJs(path.dirname(targetFile), "dart");
+          _maybeAddBrowserJs(path.dirname(targetFile), "interop");
         });
       });
     });
@@ -106,7 +107,9 @@ class DeployCommand extends PubCommand {
     var sourceLengths = new List.from(
             _entrypoints.map((file) => path.relative(file).length))
         ..add("${path.relative(source)}${path.separator}".length);
-    if (_shouldAddDartJs) sourceLengths.add("package:browser/dart.js".length);
+    if (_shouldAddBrowserJs) {
+      sourceLengths.add("package:browser/interop.js".length);
+    }
     _maxSourceLength = sourceLengths.reduce(math.max);
   }
 
@@ -119,21 +122,21 @@ class DeployCommand extends PubCommand {
 
   // TODO(nweiz): do something more principled when issue 6101 is fixed.
   /// If this package depends non-transitively on the `browser` package, this
-  /// ensures that the `dart.js` file is copied into [directory], under
+  /// ensures that the [name].js file is copied into [directory], under
   /// `packages/browser/`.
-  void _maybeAddDartJs(String directory) {
-    var jsPath = path.join(directory, 'packages', 'browser', 'dart.js');
+  void _maybeAddBrowserJs(String directory, String name) {
+    var jsPath = path.join(directory, 'packages', 'browser', '$name.js');
     // TODO(nweiz): warn if they don't depend on browser?
-    if (!_shouldAddDartJs || fileExists(jsPath)) return;
+    if (!_shouldAddBrowserJs || fileExists(jsPath)) return;
 
-    _logAction("Copying", "package:browser/dart.js", path.relative(jsPath));
+    _logAction("Copying", "package:browser/$name.js", path.relative(jsPath));
     ensureDir(path.dirname(jsPath));
-    copyFile(path.join(entrypoint.packagesDir, 'browser', 'dart.js'), jsPath);
+    copyFile(path.join(entrypoint.packagesDir, 'browser', '$name.js'), jsPath);
   }
 
-  /// Whether we should copy the browser package's dart.js file into the
-  /// deployed app.
-  bool get _shouldAddDartJs {
+  /// Whether we should copy the browser package's JS files into the deployed
+  /// app.
+  bool get _shouldAddBrowserJs {
     return !_entrypoints.isEmpty &&
         entrypoint.root.dependencies.any((dep) =>
             dep.name == 'browser' && dep.source == 'hosted');

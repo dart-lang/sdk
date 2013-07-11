@@ -778,10 +778,10 @@ class _Predicate extends BaseMatcher {
  * The feature description will typically describe the item and the feature,
  * while the feature name will just name the feature. For example, we may
  * have a Widget class where each Widget has a price; we could make a
- * FeatureMatcher that can make assertions about prices with:
+ * [CustomMatcher] that can make assertions about prices with:
  *
- *     class HasPrice extends FeatureMatcher {
- *       const HasPrice(matcher) :
+ *     class HasPrice extends CustomMatcher {
+ *       HasPrice(matcher) :
  *           super("Widget with price that is", "price", matcher);
  *       featureValueOf(actual) => actual.price;
  *     }
