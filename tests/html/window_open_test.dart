@@ -14,12 +14,11 @@ main() {
   evaluateJavaScript('(testRunner || layoutTestController).setCanOpenWindows()');
 
   test('TwoArgumentVersion', () {
-    WindowBase win = window.open('../resources/pong.html', 'testWindow');
+    Window win = window.open('../resources/pong.html', 'testWindow');
     closeWindow(win);
   });
   test('ThreeArgumentVersion', () {
-    WindowBase win = window.open("resources/pong.html", "testWindow",
-      "scrollbars=yes,width=75,height=100");
+    Window win = window.open("resources/pong.html", "testWindow", "scrollbars=yes,width=75,height=100");
     closeWindow(win);
   });
 }

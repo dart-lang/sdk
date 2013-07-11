@@ -2,6 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+window_open_test: Skip # http://dartbug.com/5151
 async_window_test: Skip #TODO(gram): investigating
 
 event_test: Skip  # Issue 1996
