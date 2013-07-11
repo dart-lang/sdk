@@ -12,9 +12,7 @@ import 'package:barback/barback.dart';
 import 'package:barback/src/asset_graph.dart';
 import 'package:pathos/path.dart' as pathos;
 import 'package:scheduled_test/scheduled_test.dart';
-
-// TODO(rnystrom): Get rid of this or find a better path for it.
-import '../../../sdk/lib/_internal/pub/test/command_line_config.dart';
+import 'package:unittest/compact_vm_config.dart';
 
 var _configured = false;
 
@@ -29,7 +27,7 @@ int _nextBuildResult;
 void initConfig() {
   if (_configured) return;
   _configured = true;
-  unittestConfiguration = new CommandLineConfiguration();
+  useCompactVMConfiguration();
 }
 
 /// Creates a new [AssetProvider] and [AssetGraph] with the given [assets] and

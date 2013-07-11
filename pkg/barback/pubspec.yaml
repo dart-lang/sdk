@@ -15,3 +15,4 @@ dependencies:
   pathos: any
 dev_dependencies:
   scheduled_test: any
+  unittest: any
