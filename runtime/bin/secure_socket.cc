@@ -525,6 +525,15 @@ void SSLFilter::RegisterBadCertificateCallback(Dart_Handle callback) {
   ASSERT(bad_certificate_callback_ != NULL);
 }
 
+
+char* PasswordCallback(PK11SlotInfo* slot, PRBool retry, void* arg) {
+  if (!retry) {
+    return PL_strdup(static_cast<char*>(arg));  // Freed by NSS internals.
+  }
+  return NULL;
+}
+
+
 static const char* builtin_roots_module =
 #if defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID)
     "name=\"Root Certs\" library=\"libnssckbi.so\"";
@@ -545,7 +554,6 @@ void SSLFilter::InitializeLibrary(const char* certificate_database,
   MutexLocker locker(mutex_);
   SECStatus status;
   if (!library_initialized_) {
-    password_ = strdup(password);  // This one copy persists until Dart exits.
     PR_Init(PR_USER_THREAD, PR_PRIORITY_NORMAL, 0);
     // TODO(whesse): Verify there are no UTF-8 issues here.
     if (certificate_database == NULL || certificate_database[0] == '\0') {
@@ -579,6 +587,8 @@ void SSLFilter::InitializeLibrary(const char* certificate_database,
         ThrowPRException("TlsException",
                          "Failed NSS_Init call.");
       }
+      password_ = strdup(password);  // This one copy persists until Dart exits.
+      PK11_SetPasswordFunc(PasswordCallback);
     }
     library_initialized_ = true;
 
@@ -609,14 +619,6 @@ void SSLFilter::InitializeLibrary(const char* certificate_database,
         "Called SecureSocket.initialize more than once",
         Dart_Null()));
   }
-}
-
-
-char* PasswordCallback(PK11SlotInfo* slot, PRBool retry, void* arg) {
-  if (!retry) {
-    return PL_strdup(static_cast<char*>(arg));  // Freed by NSS internals.
-  }
-  return NULL;
 }
 
 
@@ -673,8 +675,6 @@ void SSLFilter::Connect(const char* host_name,
 
   SECStatus status;
   if (is_server) {
-    PK11_SetPasswordFunc(PasswordCallback);
-
     CERTCertificate* certificate = NULL;
     if (strstr(certificate_name, "CN=") != NULL) {
       // Look up certificate using the distinguished name (DN) certificate_name.
@@ -755,6 +755,7 @@ void SSLFilter::Connect(const char* host_name,
     }
 
     if (send_client_certificate) {
+      SSL_SetPKCS11PinArg(filter_, const_cast<char*>(password_));
       status = SSL_GetClientAuthDataHook(
           filter_,
           NSS_GetClientAuthData,
