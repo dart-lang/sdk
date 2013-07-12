@@ -54,7 +54,7 @@ class JsonCyclicError extends JsonUnsupportedObjectError {
  * [List]s of parsed JSON values or [Map]s from [String] to parsed
  * JSON values.
  *
- * The optional [revivier] function, if provided, is called once for each
+ * The optional [reviver] function, if provided, is called once for each
  * object or list property parsed. The arguments are the property name
  * ([String]) or list index ([int]), and the value is the parsed value.
  * The return value of the revivier will be used as the value of that property
@@ -110,12 +110,12 @@ String stringify(Object object) {
  * Serializes [object] into [output] stream.
  *
  * Performs the same operations as [stringify] but outputs the resulting
- * string to an existing [StringBuffer] instead of creating a new [String].
+ * string to an existing [StringSink] instead of creating a new [String].
  *
  * If serialization fails by throwing, some data might have been added to
  * [output], but it won't contain valid JSON text.
  */
-void printOn(Object object, StringBuffer output) {
+void printOn(Object object, StringSink output) {
   return _JsonStringifier.printOn(object, output);
 }
 
@@ -663,10 +663,10 @@ class JsonParser {
 
 
 class _JsonStringifier {
-  StringBuffer sb;
+  StringSink sink;
   List<Object> seen;  // TODO: that should be identity set.
 
-  _JsonStringifier(this.sb) : seen = [];
+  _JsonStringifier(this.sink) : seen = [];
 
   static String stringify(final object) {
     StringBuffer output = new StringBuffer();
@@ -675,7 +675,7 @@ class _JsonStringifier {
     return output.toString();
   }
 
-  static void printOn(final object, StringBuffer output) {
+  static void printOn(final object, StringSink output) {
     _JsonStringifier stringifier = new _JsonStringifier(output);
     stringifier.stringifyValue(object);
   }
@@ -687,7 +687,7 @@ class _JsonStringifier {
   // ('0' + x) or ('a' + x - 10)
   static int hexDigit(int x) => x < 10 ? 48 + x : 87 + x;
 
-  static void escape(StringBuffer sb, String s) {
+  static void escape(StringSink sb, String s) {
     final int length = s.length;
     bool needsEscape = false;
     final charCodes = new List<int>();
@@ -769,54 +769,54 @@ class _JsonStringifier {
   bool stringifyJsonValue(final object) {
     if (object is num) {
       // TODO: use writeOn.
-      sb.write(numberToString(object));
+      sink.write(numberToString(object));
       return true;
     } else if (identical(object, true)) {
-      sb.write('true');
+      sink.write('true');
       return true;
     } else if (identical(object, false)) {
-      sb.write('false');
+      sink.write('false');
        return true;
     } else if (object == null) {
-      sb.write('null');
+      sink.write('null');
       return true;
     } else if (object is String) {
-      sb.write('"');
-      escape(sb, object);
-      sb.write('"');
+      sink.write('"');
+      escape(sink, object);
+      sink.write('"');
       return true;
     } else if (object is List) {
       checkCycle(object);
       List a = object;
-      sb.write('[');
+      sink.write('[');
       if (a.length > 0) {
         stringifyValue(a[0]);
         // TODO: switch to Iterables.
         for (int i = 1; i < a.length; i++) {
-          sb.write(',');
+          sink.write(',');
           stringifyValue(a[i]);
         }
       }
-      sb.write(']');
+      sink.write(']');
       seen.removeLast();
       return true;
     } else if (object is Map) {
       checkCycle(object);
       Map<String, Object> m = object;
-      sb.write('{');
+      sink.write('{');
       bool first = true;
       m.forEach((String key, Object value) {
         if (!first) {
-          sb.write(',"');
+          sink.write(',"');
         } else {
-          sb.write('"');
+          sink.write('"');
         }
-        escape(sb, key);
-        sb.write('":');
+        escape(sink, key);
+        sink.write('":');
         stringifyValue(value);
         first = false;
       });
-      sb.write('}');
+      sink.write('}');
       seen.removeLast();
       return true;
     } else {
