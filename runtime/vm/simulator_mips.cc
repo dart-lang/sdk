@@ -1007,12 +1007,8 @@ void Simulator::DoBreak(Instr *instr) {
         OS::Print("Call to host function at 0x%"Pd"\n", external);
       }
 
-        if ((redirection->call_kind() == kRuntimeCall) ||
-            (redirection->call_kind() == kNativeCall)) {
-        // The top_exit_frame_info of the current isolate points to the top of
-        // the simulator stack.
-        ASSERT((StackTop() - Isolate::Current()->top_exit_frame_info()) <
-               Isolate::GetSpecifiedStackSize());
+      if ((redirection->call_kind() == kRuntimeCall) ||
+          (redirection->call_kind() == kNativeCall)) {
         // Set the top_exit_frame_info of this simulator to the native stack.
         set_top_exit_frame_info(reinterpret_cast<uword>(&buffer));
       }

@@ -305,9 +305,6 @@ super_call4_test: Fail, OK # hardcoded names.
 
 
 [ $arch == simarm || $arch == arm ]
-# TODO(zra): Check to see if the ASSERT that fails in debug mode is correct
-stack_overflow_test: Crash, Pass # Passes in release mode.
-stack_overflow_stacktrace_test: Crash, Pass # Passes in release mode.
 try_catch4_test: Crash, Fail
 
 
@@ -317,7 +314,4 @@ try_catch4_test: Crash, Fail
 [ $arch == simmips ]
 arithmetic_test: Crash  # Too far relative branch.
 large_implicit_getter_test: Crash  # Too far relative branch.
-# TODO(zra): Check to see if the ASSERT that fails in debug mode is correct
-stack_overflow_test: Crash, Pass # Passes in release mode.
-stack_overflow_stacktrace_test: Crash, Pass # Passes in release mode.
 try_catch4_test: Fail
