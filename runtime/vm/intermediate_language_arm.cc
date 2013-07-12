@@ -728,8 +728,8 @@ static void EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
                                    const LocationSummary& locs,
                                    Token::Kind kind,
                                    BranchInstr* branch) {
-  DRegister left = locs.in(0).fpu_reg();
-  DRegister right = locs.in(1).fpu_reg();
+  QRegister left = locs.in(0).fpu_reg();
+  QRegister right = locs.in(1).fpu_reg();
 
   Condition true_condition = TokenKindToDoubleCondition(kind);
   if (branch != NULL) {
@@ -1203,7 +1203,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if ((representation() == kUnboxedDouble) ||
       (representation() == kUnboxedMint) ||
       (representation() == kUnboxedFloat32x4)) {
-    DRegister result = locs()->out().fpu_reg();
+    DRegister result = EvenDRegisterOf(locs()->out().fpu_reg());
     switch (class_id()) {
       case kTypedDataInt32ArrayCid:
         UNIMPLEMENTED();
@@ -1470,17 +1470,21 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       break;
     }
-    case kTypedDataFloat32ArrayCid:
+    case kTypedDataFloat32ArrayCid: {
+      DRegister in2 = EvenDRegisterOf(locs()->in(2).fpu_reg());
       // Convert to single precision.
-      __ vcvtsd(STMP, locs()->in(2).fpu_reg());
+      __ vcvtsd(STMP, in2);
       // Store.
       __ add(index.reg(), index.reg(), ShifterOperand(array));
       __ StoreSToOffset(STMP, index.reg(), 0);
       break;
-    case kTypedDataFloat64ArrayCid:
+    }
+    case kTypedDataFloat64ArrayCid: {
+      DRegister in2 = EvenDRegisterOf(locs()->in(2).fpu_reg());
       __ add(index.reg(), index.reg(), ShifterOperand(array));
-      __ StoreDToOffset(locs()->in(2).fpu_reg(), index.reg(), 0);
+      __ StoreDToOffset(in2, index.reg(), 0);
       break;
+    }
     case kTypedDataFloat32x4ArrayCid:
       UNIMPLEMENTED();
       break;
@@ -2465,7 +2469,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ cmp(right, ShifterOperand(0));
       __ b(deopt, EQ);
       Register temp = locs()->temp(0).reg();
-      DRegister dtemp = locs()->temp(1).fpu_reg();
+      DRegister dtemp = EvenDRegisterOf(locs()->temp(1).fpu_reg());
       __ Asr(temp, left, kSmiTagSize);  // SmiUntag left into temp.
       __ Asr(IP, right, kSmiTagSize);  // SmiUntag right into IP.
 
@@ -2604,8 +2608,8 @@ void BoxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   BoxDoubleSlowPath* slow_path = new BoxDoubleSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
-  Register out_reg = locs()->out().reg();
-  DRegister value = locs()->in(0).fpu_reg();
+  const Register out_reg = locs()->out().reg();
+  const DRegister value = EvenDRegisterOf(locs()->in(0).fpu_reg());
 
   __ TryAllocate(compiler->double_class(),
                  slow_path->entry_label(),
@@ -2635,7 +2639,7 @@ LocationSummary* UnboxDoubleInstr::MakeLocationSummary() const {
 void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t value_cid = value()->Type()->ToCid();
   const Register value = locs()->in(0).reg();
-  const DRegister result = locs()->out().fpu_reg();
+  const DRegister result = EvenDRegisterOf(locs()->out().fpu_reg());
 
   if (value_cid == kDoubleCid) {
     __ LoadDFromOffset(result, value, Double::value_offset() - kHeapObjectTag);
@@ -2720,9 +2724,9 @@ LocationSummary* BinaryDoubleOpInstr::MakeLocationSummary() const {
 
 
 void BinaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  DRegister left = locs()->in(0).fpu_reg();
-  DRegister right = locs()->in(1).fpu_reg();
-  DRegister result = locs()->out().fpu_reg();
+  DRegister left = EvenDRegisterOf(locs()->in(0).fpu_reg());
+  DRegister right = EvenDRegisterOf(locs()->in(1).fpu_reg());
+  DRegister result = EvenDRegisterOf(locs()->out().fpu_reg());
   switch (op_kind()) {
     case Token::kADD: __ vaddd(result, left, right); break;
     case Token::kSUB: __ vsubd(result, left, right); break;
@@ -2953,7 +2957,9 @@ LocationSummary* MathSqrtInstr::MakeLocationSummary() const {
 
 
 void MathSqrtInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ vsqrtd(locs()->out().fpu_reg(), locs()->in(0).fpu_reg());
+  DRegister val = EvenDRegisterOf(locs()->in(0).fpu_reg());
+  DRegister result = EvenDRegisterOf(locs()->out().fpu_reg());
+  __ vsqrtd(result, val);
 }
 
 
@@ -3005,7 +3011,7 @@ LocationSummary* SmiToDoubleInstr::MakeLocationSummary() const {
 
 void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
-  FpuRegister result = locs()->out().fpu_reg();
+  DRegister result = EvenDRegisterOf(locs()->out().fpu_reg());
   __ SmiUntag(value);
   __ vmovsr(STMP, value);
   __ vcvtdi(result, STMP);
@@ -3078,7 +3084,7 @@ LocationSummary* DoubleToSmiInstr::MakeLocationSummary() const {
 void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptDoubleToSmi);
   Register result = locs()->out().reg();
-  DRegister value = locs()->in(0).fpu_reg();
+  DRegister value = EvenDRegisterOf(locs()->in(0).fpu_reg());
   // First check for NaN. Checking for minint after the conversion doesn't work
   // on ARM because vcvtid gives 0 for NaN.
   __ vcmpd(value, value);
@@ -3106,8 +3112,8 @@ LocationSummary* DoubleToDoubleInstr::MakeLocationSummary() const {
 
 
 void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // DRegister value = locs()->in(0).fpu_reg();
-  // DRegister result = locs()->out().fpu_reg();
+  // QRegister value = locs()->in(0).fpu_reg();
+  // QRegister result = locs()->out().fpu_reg();
   switch (recognized_kind()) {
     case MethodRecognizer::kDoubleTruncate:
       UNIMPLEMENTED();
@@ -3132,11 +3138,11 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary() const {
   const intptr_t kNumTemps = 0;
   LocationSummary* result =
       new LocationSummary(InputCount(), kNumTemps, LocationSummary::kCall);
-  result->set_in(0, Location::FpuRegisterLocation(D0));
+  result->set_in(0, Location::FpuRegisterLocation(Q0));
   if (InputCount() == 2) {
-    result->set_in(1, Location::FpuRegisterLocation(D1));
+    result->set_in(1, Location::FpuRegisterLocation(Q1));
   }
-  result->set_out(Location::FpuRegisterLocation(D0));
+  result->set_out(Location::FpuRegisterLocation(Q0));
   return result;
 }
 
@@ -3145,12 +3151,13 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // For pow-function return NAN if exponent is NAN.
   Label do_call, skip_call;
   if (recognized_kind() == MethodRecognizer::kDoublePow) {
-    DRegister exp = locs()->in(1).fpu_reg();
+    DRegister exp = EvenDRegisterOf(locs()->in(1).fpu_reg());
+    DRegister result = EvenDRegisterOf(locs()->out().fpu_reg());
     __ vcmpd(exp, exp);
     __ vmstat();
     __ b(&do_call, VC);  // NaN -> false;
     // Exponent is NaN, return NaN.
-    __ vmovd(locs()->out().fpu_reg(), exp);
+    __ vmovd(result, exp);
     __ b(&skip_call);
   }
   __ Bind(&do_call);
@@ -3158,6 +3165,10 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // ('gnueabi') float ABI for leaf runtime calls, i.e. double values
   // are passed and returned in vfp registers rather than in integer
   // register pairs.
+  if (InputCount() == 2) {
+    // Args must be in D0 and D1, so move arg from Q1(== D3:D2) to D1.
+    __ vmovd(D1, D2);
+  }
   __ CallRuntime(TargetFunction());
   __ Bind(&skip_call);
 }

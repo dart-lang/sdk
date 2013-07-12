@@ -22,6 +22,7 @@ DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
 DECLARE_FLAG(bool, inline_alloc);
 
 bool CPUFeatures::integer_division_supported_ = false;
+bool CPUFeatures::neon_supported_ = false;
 #if defined(DEBUG)
 bool CPUFeatures::initialized_ = false;
 #endif
@@ -33,11 +34,22 @@ bool CPUFeatures::integer_division_supported() {
 }
 
 
+bool CPUFeatures::neon_supported() {
+  DEBUG_ASSERT(initialized_);
+  return neon_supported_;
+}
+
+
 // If we are using the simulator, allow tests to enable/disable support for
 // integer division.
 #if defined(USING_SIMULATOR)
 void CPUFeatures::set_integer_division_supported(bool supported) {
   integer_division_supported_ = supported;
+}
+
+
+void CPUFeatures::set_neon_supported(bool supported) {
+  neon_supported_ = supported;
 }
 #endif
 
@@ -81,11 +93,13 @@ static bool CPUInfoContainsString(const char* search_string) {
 void CPUFeatures::InitOnce() {
 #if defined(USING_SIMULATOR)
   integer_division_supported_ = true;
+  neon_supported_ = true;
 #else
   ASSERT(CPUInfoContainsString("ARMv7"));  // Implements ARMv7.
   ASSERT(CPUInfoContainsString("vfp"));  // Has floating point unit.
   // Has integer division.
   integer_division_supported_ = CPUInfoContainsString("idiva");
+  neon_supported_ = CPUInfoContainsString("neon");
 #endif  // defined(USING_SIMULATOR)
 #if defined(DEBUG)
   initialized_ = true;
@@ -1205,6 +1219,33 @@ void Assembler::vmstat(Condition cond) {  // VMRS APSR_nzcv, FPSCR
 }
 
 
+void Assembler::EmitSIMDqqq(int32_t opcode, int sz,
+                            QRegister qd, QRegister qn, QRegister qm) {
+  int32_t encoding =
+      (static_cast<int32_t>(kSpecialCondition) << kConditionShift) |
+      B25 | B6 |
+      opcode | ((sz & 0x3) * B20) |
+      ((static_cast<int32_t>(qd * 2) >> 4)*B22) |
+      ((static_cast<int32_t>(qn * 2) & 0xf)*B16) |
+      ((static_cast<int32_t>(qd * 2) & 0xf)*B12) |
+      ((static_cast<int32_t>(qn * 2) >> 4)*B7) |
+      ((static_cast<int32_t>(qm * 2) >> 4)*B5) |
+      (static_cast<int32_t>(qm * 2) & 0xf);
+  Emit(encoding);
+}
+
+
+void Assembler::vaddqi(int sz, QRegister qd, QRegister qn, QRegister qm) {
+  ASSERT((sz >= 0) && (sz <= 3));
+  EmitSIMDqqq(B11, sz, qd, qn, qm);
+}
+
+
+void Assembler::vaddqs(QRegister qd, QRegister qn, QRegister qm) {
+  EmitSIMDqqq(B11 | B10 | B8, 0, qd, qn, qm);
+}
+
+
 void Assembler::svc(uint32_t imm24, Condition cond) {
   ASSERT(cond != kNoCondition);
   ASSERT(imm24 < (1 << 24));
@@ -2017,7 +2058,9 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   EnterFrame(kDartVolatileCpuRegs | (1 << FP) | (1 << LR), 0);
 
   // Preserve all volatile FPU registers.
-  vstmd(DB_W, SP, kDartFirstVolatileFpuReg, kDartLastVolatileFpuReg);
+  DRegister firstv = EvenDRegisterOf(kDartFirstVolatileFpuReg);
+  DRegister lastv = OddDRegisterOf(kDartLastVolatileFpuReg);
+  vstmd(DB_W, SP, firstv, lastv);
 
   ReserveAlignedFrameSpace(frame_space);
 }
@@ -2033,7 +2076,9 @@ void Assembler::LeaveCallRuntimeFrame() {
   AddImmediate(SP, FP, -kPushedRegistersSize);
 
   // Restore all volatile FPU registers.
-  vldmd(IA_W, SP, kDartFirstVolatileFpuReg, kDartLastVolatileFpuReg);
+  DRegister firstv = EvenDRegisterOf(kDartFirstVolatileFpuReg);
+  DRegister lastv = OddDRegisterOf(kDartLastVolatileFpuReg);
+  vldmd(IA_W, SP, firstv, lastv);
 
   // Restore volatile CPU registers.
   LeaveFrame(kDartVolatileCpuRegs | (1 << FP) | (1 << LR));
@@ -2247,11 +2292,9 @@ const char* Assembler::RegisterName(Register reg) {
 
 
 static const char* fpu_reg_names[kNumberOfFpuRegisters] = {
-  "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7",
-  "d8", "d9", "d10", "d11", "d12", "d13", "d14", "d15",
+  "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
 #ifdef VFPv3_D32
-  "d16", "d17", "d18", "d19", "d20", "d21", "d22", "d23",
-  "d24", "d25", "d26", "d27", "d28", "d29", "d30", "d31",
+  "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15",
 #endif
 };
 

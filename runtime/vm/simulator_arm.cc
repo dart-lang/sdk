@@ -923,6 +923,21 @@ double Simulator::get_dregister(DRegister reg) const {
 }
 
 
+void Simulator::set_qregister(QRegister reg, simd_value_t value) {
+  ASSERT((reg >= 0) && (reg < kNumberOfQRegisters));
+  qregisters_[reg].data_[0] = value.data_[0];
+  qregisters_[reg].data_[1] = value.data_[1];
+  qregisters_[reg].data_[2] = value.data_[2];
+  qregisters_[reg].data_[3] = value.data_[3];
+}
+
+
+simd_value_t Simulator::get_qregister(QRegister reg) const {
+  ASSERT((reg >= 0) && (reg < kNumberOfQRegisters));
+  return qregisters_[reg];
+}
+
+
 void Simulator::set_sregister_bits(SRegister reg, int32_t value) {
   ASSERT((reg >= 0) && (reg < kNumberOfSRegisters));
   sregisters_[reg] = value;
@@ -2884,6 +2899,69 @@ void Simulator::DecodeType7(Instr* instr) {
 }
 
 
+void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
+  ASSERT(instr->ConditionField() == kSpecialCondition);
+
+  if (instr->Bit(6) == 1) {
+    // Q = 1, Using 128-bit Q registers.
+    const QRegister qd = instr->QdField();
+    const QRegister qn = instr->QnField();
+    const QRegister qm = instr->QmField();
+    simd_value_t s8d;
+    simd_value_t s8n = get_qregister(qn);
+    simd_value_t s8m = get_qregister(qm);
+    int8_t* s8d_8 = reinterpret_cast<int8_t*>(&s8d);
+    int8_t* s8n_8 = reinterpret_cast<int8_t*>(&s8n);
+    int8_t* s8m_8 = reinterpret_cast<int8_t*>(&s8m);
+    int16_t* s8d_16 = reinterpret_cast<int16_t*>(&s8d);
+    int16_t* s8n_16 = reinterpret_cast<int16_t*>(&s8n);
+    int16_t* s8m_16 = reinterpret_cast<int16_t*>(&s8m);
+    int64_t* s8d_64 = reinterpret_cast<int64_t*>(&s8d);
+    int64_t* s8n_64 = reinterpret_cast<int64_t*>(&s8n);
+    int64_t* s8m_64 = reinterpret_cast<int64_t*>(&s8m);
+
+    if ((instr->Bits(8, 4) == 8) && (instr->Bit(4) == 0) &&
+        (instr->Bit(24) == 0)) {
+      // Uses q registers.
+      // Format(instr, "vadd.'sz 'qd, 'qn, 'qm");
+      const int size = instr->Bits(20, 2);
+      if (size == 0) {
+        for (int i = 0; i < 16; i++) {
+          s8d_8[i] = s8n_8[i] + s8m_8[i];
+        }
+      } else if (size == 1) {
+        for (int i = 0; i < 8; i++) {
+          s8d_16[i] = s8n_16[i] + s8m_16[i];
+        }
+      } else if (size == 2) {
+        for (int i = 0; i < 4; i++) {
+          s8d.data_[i].u = s8n.data_[i].u + s8m.data_[i].u;
+        }
+      } else if (size == 3) {
+        for (int i = 0; i < 2; i++) {
+          s8d_64[i] = s8n_64[i] + s8m_64[i];
+        }
+      } else {
+        UNREACHABLE();
+      }
+    } else if ((instr->Bits(8, 4) == 13) && (instr->Bit(4) == 0) &&
+               (instr->Bit(24) == 0)) {
+      // Format(instr, "vadd.F32 'qd, 'qn, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.data_[i].f = s8n.data_[i].f + s8m.data_[i].f;
+      }
+    } else {
+      UnimplementedInstruction(instr);
+    }
+
+    set_qregister(qd, s8d);
+  } else {
+    // Q == 0, Uses 64-bit D registers.
+    UnimplementedInstruction(instr);
+  }
+}
+
+
 // Executes the current instruction.
 void Simulator::InstructionDecode(Instr* instr) {
   pc_modified_ = false;
@@ -2897,7 +2975,11 @@ void Simulator::InstructionDecode(Instr* instr) {
       // Format(instr, "clrex");
       ClearExclusive();
     } else {
-      UnimplementedInstruction(instr);
+      if (instr->IsSIMDDataProcessing()) {
+        DecodeSIMDDataProcessing(instr);
+      } else {
+        UnimplementedInstruction(instr);
+      }
     }
   } else if (ConditionallyExecute(instr)) {
     switch (instr->TypeField()) {

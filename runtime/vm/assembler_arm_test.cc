@@ -1596,6 +1596,181 @@ ASSEMBLER_TEST_RUN(Muls, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Vaddqi8, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ mov(R0, ShifterOperand(1));
+    __ vmovsr(S0, R0);
+    __ vmovsr(S1, R0);
+    __ vmovsr(S2, R0);
+    __ vmovsr(S3, R0);
+    __ vmovsr(S4, R0);
+    __ vmovsr(S5, R0);
+    __ vmovsr(S6, R0);
+    __ vmovsr(S7, R0);
+
+    __ vaddqi(0, Q2, Q0, Q1);
+
+    __ vmovrs(R0, S8);
+    __ vmovrs(R1, S9);
+    __ vmovrs(R2, S10);
+    __ vmovrs(R3, S11);
+
+    __ add(R0, R0, ShifterOperand(R1));
+    __ add(R0, R0, ShifterOperand(R2));
+    __ add(R0, R0, ShifterOperand(R3));
+    __ bx(LR);
+  } else {
+    __ LoadImmediate(R0, 8);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vaddqi8, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(8, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vaddqi16, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ mov(R0, ShifterOperand(1));
+    __ vmovsr(S0, R0);
+    __ vmovsr(S1, R0);
+    __ vmovsr(S2, R0);
+    __ vmovsr(S3, R0);
+    __ vmovsr(S4, R0);
+    __ vmovsr(S5, R0);
+    __ vmovsr(S6, R0);
+    __ vmovsr(S7, R0);
+
+    __ vaddqi(1, Q2, Q0, Q1);
+
+    __ vmovrs(R0, S8);
+    __ vmovrs(R1, S9);
+    __ vmovrs(R2, S10);
+    __ vmovrs(R3, S11);
+
+    __ add(R0, R0, ShifterOperand(R1));
+    __ add(R0, R0, ShifterOperand(R2));
+    __ add(R0, R0, ShifterOperand(R3));
+    __ bx(LR);
+  } else {
+    __ LoadImmediate(R0, 8);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vaddqi16, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(8, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vaddqi32, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ mov(R0, ShifterOperand(1));
+    __ vmovsr(S0, R0);
+    __ vmovsr(S1, R0);
+    __ vmovsr(S2, R0);
+    __ vmovsr(S3, R0);
+    __ vmovsr(S4, R0);
+    __ vmovsr(S5, R0);
+    __ vmovsr(S6, R0);
+    __ vmovsr(S7, R0);
+
+    __ vaddqi(2, Q2, Q0, Q1);
+
+    __ vmovrs(R0, S8);
+    __ vmovrs(R1, S9);
+    __ vmovrs(R2, S10);
+    __ vmovrs(R3, S11);
+
+    __ add(R0, R0, ShifterOperand(R1));
+    __ add(R0, R0, ShifterOperand(R2));
+    __ add(R0, R0, ShifterOperand(R3));
+    __ bx(LR);
+  } else {
+    __ LoadImmediate(R0, 8);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vaddqi32, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(8, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vaddqi64, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ mov(R0, ShifterOperand(1));
+    __ vmovsr(S0, R0);
+    __ vmovsr(S2, R0);
+    __ vmovsr(S4, R0);
+    __ vmovsr(S6, R0);
+
+    __ vaddqi(3, Q2, Q0, Q1);
+
+    __ vmovrs(R0, S8);
+    __ vmovrs(R2, S10);
+
+    __ add(R0, R0, ShifterOperand(R2));
+    __ bx(LR);
+  } else {
+    __ LoadImmediate(R0, 4);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vaddqi64, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(4, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vaddqs, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ LoadSImmediate(S0, 1.0);
+    __ vmovs(S1, S0);
+    __ vmovs(S2, S0);
+    __ vmovs(S3, S0);
+    __ vmovs(S4, S0);
+    __ vmovs(S5, S0);
+    __ vmovs(S6, S0);
+    __ vmovs(S7, S0);
+
+    __ vaddqs(Q2, Q0, Q1);
+
+    __ vadds(S8, S8, S9);
+    __ vadds(S8, S8, S10);
+    __ vadds(S8, S8, S11);
+
+    __ vcvtis(S0, S8);
+    __ vmovrs(R0, S0);
+
+    __ bx(LR);
+  } else {
+    __ LoadImmediate(R0, 8);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vaddqs, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(8, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
 // Called from assembler_test.cc.
 // LR: return address.
 // R0: context.

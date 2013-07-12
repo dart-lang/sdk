@@ -351,7 +351,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // Push registers in their enumeration order: lowest register number at
   // lowest address.
   __ PushList(kAllCpuRegistersList);
-  ASSERT(kFpuRegisterSize == 2 * kWordSize);
+  ASSERT(kFpuRegisterSize == 4 * kWordSize);
   __ vstmd(DB_W, SP, D0, static_cast<DRegister>(kNumberOfDRegisters - 1));
 
   __ mov(R0, ShifterOperand(SP));  // Pass address of saved registers block.

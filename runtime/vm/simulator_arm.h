@@ -24,6 +24,13 @@ namespace dart {
 class Isolate;
 class SimulatorSetjmpBuffer;
 
+typedef struct {
+  union {
+    uint32_t u;
+    float f;
+  } data_[4];
+} simd_value_t;
+
 class Simulator {
  public:
   static const uword kSimulatorStackUnderflowSize = 64;
@@ -50,6 +57,8 @@ class Simulator {
   float get_sregister(SRegister reg) const;
   void set_dregister(DRegister reg, double value);
   double get_dregister(DRegister reg) const;
+  void set_qregister(QRegister reg, simd_value_t value);
+  simd_value_t get_qregister(QRegister reg) const;
 
   // When moving integer (rather than floating point) values to/from
   // the FPU registers, use the _bits calls to avoid gcc taking liberties with
@@ -126,9 +135,10 @@ class Simulator {
   bool v_flag_;
 
   // VFP state.
-  union {  // S and D register banks are overlapping.
+  union {  // S, D, and Q register banks are overlapping.
     int32_t sregisters_[kNumberOfSRegisters];
     int64_t dregisters_[kNumberOfDRegisters];
+    simd_value_t qregisters_[kNumberOfQRegisters];
   };
   bool fp_n_flag_;
   bool fp_z_flag_;
@@ -238,6 +248,7 @@ class Simulator {
   void DecodeType5(Instr* instr);
   void DecodeType6(Instr* instr);
   void DecodeType7(Instr* instr);
+  void DecodeSIMDDataProcessing(Instr* instr);
 
   // Executes one instruction.
   void InstructionDecode(Instr* instr);

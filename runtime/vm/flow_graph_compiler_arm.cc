@@ -1507,9 +1507,12 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
     // address.
     intptr_t offset = 0;
     for (intptr_t reg_idx = 0; reg_idx < kNumberOfFpuRegisters; ++reg_idx) {
-      DRegister fpu_reg = static_cast<DRegister>(reg_idx);
+      QRegister fpu_reg = static_cast<QRegister>(reg_idx);
       if (locs->live_registers()->ContainsFpuRegister(fpu_reg)) {
-        __ vstrd(fpu_reg, Address(SP, offset));
+        DRegister d1 = EvenDRegisterOf(fpu_reg);
+        DRegister d2 = OddDRegisterOf(fpu_reg);
+        __ vstrd(d1, Address(SP, offset));
+        __ vstrd(d2, Address(SP, offset + 2 * kWordSize));
         offset += kFpuRegisterSize;
       }
     }
@@ -1540,9 +1543,12 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
     // Fpu registers have the lowest register number at the lowest address.
     intptr_t offset = 0;
     for (intptr_t reg_idx = 0; reg_idx < kNumberOfFpuRegisters; ++reg_idx) {
-      DRegister fpu_reg = static_cast<DRegister>(reg_idx);
+      QRegister fpu_reg = static_cast<QRegister>(reg_idx);
       if (locs->live_registers()->ContainsFpuRegister(fpu_reg)) {
-        __ vldrd(fpu_reg, Address(SP, offset));
+        DRegister d1 = EvenDRegisterOf(fpu_reg);
+        DRegister d2 = OddDRegisterOf(fpu_reg);
+        __ vldrd(d1, Address(SP, offset));
+        __ vldrd(d2, Address(SP, offset + 2 * kWordSize));
         offset += kFpuRegisterSize;
       }
     }
@@ -1605,7 +1611,9 @@ void FlowGraphCompiler::EmitDoubleCompareBranch(Condition true_condition,
                                                 FpuRegister right,
                                                 BranchInstr* branch) {
   ASSERT(branch != NULL);
-  assembler()->vcmpd(left, right);
+  DRegister dleft = EvenDRegisterOf(left);
+  DRegister dright = EvenDRegisterOf(right);
+  assembler()->vcmpd(dleft, dright);
   assembler()->vmstat();
   BlockEntryInstr* nan_result = (true_condition == NE) ?
       branch->true_successor() : branch->false_successor();
@@ -1618,7 +1626,9 @@ void FlowGraphCompiler::EmitDoubleCompareBool(Condition true_condition,
                                               FpuRegister left,
                                               FpuRegister right,
                                               Register result) {
-  assembler()->vcmpd(left, right);
+  DRegister dleft = EvenDRegisterOf(left);
+  DRegister dright = EvenDRegisterOf(right);
+  assembler()->vcmpd(dleft, dright);
   assembler()->vmstat();
   assembler()->LoadObject(result, Bool::False());
   Label done;
@@ -1692,10 +1702,13 @@ void ParallelMoveResolver::EmitMove(int index) {
     }
   } else if (source.IsFpuRegister()) {
     if (destination.IsFpuRegister()) {
-      __ vmovd(destination.fpu_reg(), source.fpu_reg());
+      DRegister dst = EvenDRegisterOf(destination.fpu_reg());
+      DRegister src = EvenDRegisterOf(source.fpu_reg());
+      __ vmovd(dst, src);
     } else {
       if (destination.IsDoubleStackSlot()) {
-        __ vstrd(source.fpu_reg(), destination.ToStackSlotAddress());
+        DRegister src = EvenDRegisterOf(source.fpu_reg());
+        __ vstrd(src, destination.ToStackSlotAddress());
       } else {
         ASSERT(destination.IsQuadStackSlot());
         UNIMPLEMENTED();
@@ -1703,7 +1716,8 @@ void ParallelMoveResolver::EmitMove(int index) {
     }
   } else if (source.IsDoubleStackSlot()) {
     if (destination.IsFpuRegister()) {
-      __ vldrd(destination.fpu_reg(), source.ToStackSlotAddress());
+      DRegister dst = EvenDRegisterOf(destination.fpu_reg());
+      __ vldrd(dst, source.ToStackSlotAddress());
     } else {
       ASSERT(destination.IsDoubleStackSlot());
       __ vldrd(DTMP, source.ToStackSlotAddress());
@@ -1744,9 +1758,11 @@ void ParallelMoveResolver::EmitSwap(int index) {
   } else if (source.IsStackSlot() && destination.IsStackSlot()) {
     Exchange(destination.ToStackSlotAddress(), source.ToStackSlotAddress());
   } else if (source.IsFpuRegister() && destination.IsFpuRegister()) {
-    __ vmovd(DTMP, source.fpu_reg());
-    __ vmovd(source.fpu_reg(), destination.fpu_reg());
-    __ vmovd(destination.fpu_reg(), DTMP);
+    DRegister dst = EvenDRegisterOf(destination.fpu_reg());
+    DRegister src = EvenDRegisterOf(source.fpu_reg());
+    __ vmovd(DTMP, src);
+    __ vmovd(src, dst);
+    __ vmovd(dst, DTMP);
   } else if (source.IsFpuRegister() || destination.IsFpuRegister()) {
     ASSERT(destination.IsDoubleStackSlot() ||
            destination.IsQuadStackSlot() ||
@@ -1754,8 +1770,9 @@ void ParallelMoveResolver::EmitSwap(int index) {
            source.IsQuadStackSlot());
     bool double_width = destination.IsDoubleStackSlot() ||
                         source.IsDoubleStackSlot();
-    DRegister reg = source.IsFpuRegister() ? source.fpu_reg()
-                                           : destination.fpu_reg();
+    QRegister qreg = source.IsFpuRegister() ? source.fpu_reg()
+                                            : destination.fpu_reg();
+    DRegister reg = EvenDRegisterOf(qreg);
     const Address& slot_address = source.IsFpuRegister()
         ? destination.ToStackSlotAddress()
         : source.ToStackSlotAddress();
@@ -1771,11 +1788,12 @@ void ParallelMoveResolver::EmitSwap(int index) {
     const Address& source_slot_address = source.ToStackSlotAddress();
     const Address& destination_slot_address = destination.ToStackSlotAddress();
 
-    ScratchFpuRegisterScope ensure_scratch(this, DTMP);
+    ScratchFpuRegisterScope ensure_scratch(this, QTMP);
+    DRegister scratch = EvenDRegisterOf(ensure_scratch.reg());
     __ vldrd(DTMP, source_slot_address);
-    __ vldrd(ensure_scratch.reg(), destination_slot_address);
+    __ vldrd(scratch, destination_slot_address);
     __ vstrd(DTMP, destination_slot_address);
-    __ vstrd(ensure_scratch.reg(), source_slot_address);
+    __ vstrd(scratch, source_slot_address);
   } else if (source.IsQuadStackSlot() && destination.IsQuadStackSlot()) {
     UNIMPLEMENTED();
   } else {
@@ -1841,12 +1859,14 @@ void ParallelMoveResolver::RestoreScratch(Register reg) {
 
 
 void ParallelMoveResolver::SpillFpuScratch(FpuRegister reg) {
-  __ vstrd(reg, Address(SP, -kDoubleSize, Address::PreIndex));
+  DRegister dreg = EvenDRegisterOf(reg);
+  __ vstrd(dreg, Address(SP, -kDoubleSize, Address::PreIndex));
 }
 
 
 void ParallelMoveResolver::RestoreFpuScratch(FpuRegister reg) {
-  __ vldrd(reg, Address(SP, kDoubleSize, Address::PostIndex));
+  DRegister dreg = EvenDRegisterOf(reg);
+  __ vldrd(dreg, Address(SP, kDoubleSize, Address::PostIndex));
 }
 
 
