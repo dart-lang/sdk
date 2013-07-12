@@ -24,6 +24,7 @@ import 'dart:utf';
 import 'dart:typed_data';
 
 part 'buffer_list.dart';
+part 'bytes_builder.dart';
 part 'common.dart';
 part 'crypto.dart';
 part 'data_transformer.dart';
