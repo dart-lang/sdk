@@ -316,7 +316,7 @@ super_call4_test: Fail, OK # hardcoded names.
 # TODO(zra): Check to see if the ASSERT that fails in debug mode is correct
 stack_overflow_test: Crash, Pass # Passes in release mode.
 stack_overflow_stacktrace_test: Crash, Pass # Passes in release mode.
-try_catch4_test: Fail
+try_catch4_test: Crash, Fail
 
 [ $arch == arm && $mode == release ]
 arithmetic_test: Fail
