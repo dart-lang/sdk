@@ -2827,6 +2827,8 @@ void Simulator::DecodeType7(Instr* instr) {
                     id_val = INT_MIN;
                   } else if (dm_val >= INT_MAX) {
                     id_val = INT_MAX;
+                  } else if (isnan(dm_val)) {
+                    id_val = 0;
                   } else {
                     id_val = static_cast<int32_t>(dm_val);
                   }

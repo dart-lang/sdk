@@ -318,12 +318,9 @@ stack_overflow_test: Crash, Pass # Passes in release mode.
 stack_overflow_stacktrace_test: Crash, Pass # Passes in release mode.
 try_catch4_test: Crash, Fail
 
-[ $arch == arm && $mode == release ]
-arithmetic_test: Fail
 
 [ $arch == mips ]
 *: Skip
-
 
 [ $arch == simmips ]
 arithmetic_test: Crash  # Too far relative branch.

@@ -3029,10 +3029,18 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(result == R0);
   ASSERT(result != value_obj);
   __ LoadDFromOffset(DTMP, value_obj, Double::value_offset() - kHeapObjectTag);
+
+  Label do_call, done;
+  // First check for NaN. Checking for minint after the conversion doesn't work
+  // on ARM because vcvtid gives 0 for NaN.
+  __ vcmpd(DTMP, DTMP);
+  __ vmstat();
+  __ b(&do_call, VS);
+
   __ vcvtid(STMP, DTMP);
   __ vmovrs(result, STMP);
   // Overflow is signaled with minint.
-  Label do_call, done;
+
   // Check for overflow and that it fits into Smi.
   __ CompareImmediate(result, 0xC0000000);
   __ b(&do_call, MI);
@@ -3071,6 +3079,12 @@ void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptDoubleToSmi);
   Register result = locs()->out().reg();
   DRegister value = locs()->in(0).fpu_reg();
+  // First check for NaN. Checking for minint after the conversion doesn't work
+  // on ARM because vcvtid gives 0 for NaN.
+  __ vcmpd(value, value);
+  __ vmstat();
+  __ b(deopt, VS);
+
   __ vcvtid(STMP, value);
   __ vmovrs(result, STMP);
   // Check for overflow and that it fits into Smi.
