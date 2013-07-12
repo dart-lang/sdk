@@ -4,7 +4,6 @@
 
 {
   'sources': [
-    'buffer_list.dart',
     'bytes_builder.dart',
     'common.dart',
     'crypto.dart',

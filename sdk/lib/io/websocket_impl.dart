@@ -111,9 +111,9 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
               _currentMessageType = _WebSocketMessageType.BINARY;
               _controller = new StreamController(sync: true);
               _controller.stream
-                  .fold(new _BufferList(), (buffer, data) => buffer..add(data))
+                  .fold(new BytesBuilder(), (buffer, data) => buffer..add(data))
                   .then((buffer) {
-                    sink.add(buffer.readBytes());
+                    sink.add(buffer.takeBytes());
                   }, onError: (error) {
                     sink.addError(error);
                   });

@@ -12,7 +12,7 @@ import "dart:isolate";
 
 part '../../../sdk/lib/io/common.dart';
 part "../../../sdk/lib/io/http.dart";
-part "../../../sdk/lib/io/buffer_list.dart";
+part "../../../sdk/lib/io/bytes_builder.dart";
 part "../../../sdk/lib/io/io_sink.dart";
 part "../../../sdk/lib/io/string_transformer.dart";
 part "../../../sdk/lib/io/websocket.dart";

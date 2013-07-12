@@ -66,8 +66,9 @@ class BytesBuilder {
   List<int> takeBytes() {
     if (_buffer == null) return new Uint8List(0);
     var buffer = _buffer;
+    int length = _length;
     clear();
-    return new Uint8List.view(buffer.buffer, 0, _length);
+    return new Uint8List.view(buffer.buffer, 0, length);
   }
 
   /**

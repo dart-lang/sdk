@@ -44,10 +44,10 @@ class _HttpBodyHandler {
 
     Future<HttpBody> asBinary() {
       return stream
-          .fold(new _BufferList(), (buffer, data) => buffer..add(data))
-          .then((buffer) => new _HttpBody(contentType,
-                                          "binary",
-                                          buffer.readBytes()));
+          .fold(new BytesBuilder(), (builder, data) => builder..add(data))
+          .then((builder) => new _HttpBody(contentType,
+                                           "binary",
+                                           builder.takeBytes()));
     }
 
     Future<HttpBody> asText(Encoding defaultEncoding) {
@@ -76,8 +76,8 @@ class _HttpBodyHandler {
                   .then((b) => b.toString());
             } else {
               future = multipart
-                  .fold(new _BufferList(), (b, d) => b..add(d))
-                  .then((b) => b.readBytes());
+                  .fold(new BytesBuilder(), (b, d) => b..add(d))
+                  .then((b) => b.takeBytes());
             }
             return future.then((data) {
               var filename =
