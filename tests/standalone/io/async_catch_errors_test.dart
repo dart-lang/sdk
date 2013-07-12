@@ -9,7 +9,7 @@ import 'dart:io';
 
 var events = [];
 
-void testSocketException() {
+Future testSocketException() {
   var completer = new Completer();
   runZonedExperimental(() {
     Socket.connect("4", 1).then((Socket s) {
@@ -23,7 +23,7 @@ void testSocketException() {
   return completer.future;
 }
 
-void testFileException() {
+Future testFileException() {
   var completer = new Completer();
   runZonedExperimental(() {
     new File("lol it's not a file\n").openRead().listen(null);
