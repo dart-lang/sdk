@@ -1254,13 +1254,25 @@ DEFINE_RUNTIME_ENTRY(InstanceFunctionLookup, 4) {
         receiver_class.GetNoSuchMethodDispatcher(target_name, args_descriptor));
     // Update IC data.
     ASSERT(!target_function.IsNull());
+    intptr_t receiver_cid = receiver.GetClassId();
     if (ic_data.num_args_tested() == 1) {
-      ic_data.AddReceiverCheck(receiver.GetClassId(), target_function);
+      // In optimized code we may enter into here via the
+      // MegamorphicCacheMissHandler since noSuchMethod dispatchers are not
+      // inserted into the megamorphic cache. Therefore, we need to guard
+      // against entering the same check twice into the ICData.
+      // Note that num_args_tested == 1 in optimized code.
+      // TODO(fschneider): Handle extraordinary cases like noSuchMethod and
+      // implicit closure invocation properly in the megamorphic cache.
+      const Function& target =
+          Function::Handle(ic_data.GetTargetForReceiverClassId(receiver_cid));
+      if (target.IsNull()) {
+        ic_data.AddReceiverCheck(receiver_cid, target_function);
+      }
     } else {
       // Operators calls have two or three arguments tested ([], []=, etc.)
       ASSERT(ic_data.num_args_tested() > 1);
       GrowableArray<intptr_t> class_ids(ic_data.num_args_tested());
-      class_ids.Add(receiver.GetClassId());
+      class_ids.Add(receiver_cid);
       for (intptr_t i = 1; i < ic_data.num_args_tested(); ++i) {
         class_ids.Add(Object::Handle(args.At(i)).GetClassId());
       }
@@ -1269,7 +1281,7 @@ DEFINE_RUNTIME_ENTRY(InstanceFunctionLookup, 4) {
     if (FLAG_trace_ic) {
       OS::PrintErr("NoSuchMethod IC miss: adding <%s> id:%"Pd" -> <%s>\n",
           Class::Handle(receiver.clazz()).ToCString(),
-          receiver.GetClassId(),
+          receiver_cid,
           target_function.ToCString());
     }
     result = DartEntry::InvokeFunction(target_function, args, args_descriptor);
