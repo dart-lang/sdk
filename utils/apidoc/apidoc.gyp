@@ -96,6 +96,7 @@
             '--exclude-lib=path',
             '--exclude-lib=scheduled_test',
             '--exclude-lib=stack_trace',
+            '--exclude-lib=watcher',
             '--exclude-lib=webdriver',
             '--exclude-lib=yaml',
             '--include-lib=matcher',
