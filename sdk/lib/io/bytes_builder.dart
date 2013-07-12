@@ -46,7 +46,13 @@ class BytesBuilder {
       _buffer = newBuffer;
     }
     assert(_buffer.length >= required);
-    _buffer.setRange(_length, required, bytes);
+    if (bytes is Uint8List) {
+      _buffer.setRange(_length, required, bytes);
+    } else {
+      for (int i = 0; i < bufferLength; i++) {
+        _buffer[_length + i] = bytes[i];
+      }
+    }
     _length = required;
   }
 
@@ -65,10 +71,9 @@ class BytesBuilder {
    */
   List<int> takeBytes() {
     if (_buffer == null) return new Uint8List(0);
-    var buffer = _buffer;
-    int length = _length;
+    var buffer = new Uint8List.view(_buffer.buffer, 0, _length);
     clear();
-    return new Uint8List.view(buffer.buffer, 0, length);
+    return buffer;
   }
 
   /**
