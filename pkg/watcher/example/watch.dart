@@ -7,7 +7,7 @@ library watch;
 
 import 'dart:io';
 
-import 'package:pathos/path.dart' as pathos;
+import 'package:path/path.dart' as p;
 import 'package:watcher/watcher.dart';
 
 main() {
@@ -17,7 +17,7 @@ main() {
     return;
   }
 
-  var watcher = new DirectoryWatcher(pathos.absolute(args[0]));
+  var watcher = new DirectoryWatcher(p.absolute(args[0]));
   watcher.events.listen((event) {
     print(event);
   });

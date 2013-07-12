@@ -7,7 +7,7 @@ library watcher.test.utils;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:path/path.dart';
+import 'package:path/path.dart' as p;
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:unittest/compact_vm_config.dart';
 import 'package:watcher/watcher.dart';
@@ -50,10 +50,10 @@ void createSandbox() {
 
   _mockFileModificationTimes = new Map<String, int>();
   mockGetModificationTime((path) {
-    path = relative(path, from: _sandboxDir);
+    path = p.relative(path, from: _sandboxDir);
 
     // Make sure we got a path in the sandbox.
-    assert(isRelative(path)  && !path.startsWith(".."));
+    assert(p.isRelative(path)  && !path.startsWith(".."));
 
     return new DateTime.fromMillisecondsSinceEpoch(
         _mockFileModificationTimes[path]);
@@ -109,15 +109,15 @@ void expectEvent(ChangeType type, String path) {
 }
 
 void expectAddEvent(String path) {
-  expectEvent(ChangeType.ADD, join(_sandboxDir, path));
+  expectEvent(ChangeType.ADD, p.join(_sandboxDir, path));
 }
 
 void expectModifyEvent(String path) {
-  expectEvent(ChangeType.MODIFY, join(_sandboxDir, path));
+  expectEvent(ChangeType.MODIFY, p.join(_sandboxDir, path));
 }
 
 void expectRemoveEvent(String path) {
-  expectEvent(ChangeType.REMOVE, join(_sandboxDir, path));
+  expectEvent(ChangeType.REMOVE, p.join(_sandboxDir, path));
 }
 
 /// Schedules writing a file in the sandbox at [path] with [contents].
@@ -129,10 +129,10 @@ void writeFile(String path, {String contents, bool updateModified}) {
   if (updateModified == null) updateModified = true;
 
   schedule(() {
-    var fullPath = join(_sandboxDir, path);
+    var fullPath = p.join(_sandboxDir, path);
 
     // Create any needed subdirectories.
-    var dir = new Directory(dirname(fullPath));
+    var dir = new Directory(p.dirname(fullPath));
     if (!dir.existsSync()) {
       dir.createSync(recursive: true);
     }
@@ -150,7 +150,7 @@ void writeFile(String path, {String contents, bool updateModified}) {
 /// Schedules deleting a file in the sandbox at [path].
 void deleteFile(String path) {
   schedule(() {
-    new File(join(_sandboxDir, path)).deleteSync();
+    new File(p.join(_sandboxDir, path)).deleteSync();
   });
 }
 
@@ -159,7 +159,7 @@ void deleteFile(String path) {
 /// If [contents] is omitted, creates an empty file.
 void renameFile(String from, String to) {
   schedule(() {
-    new File(join(_sandboxDir, from)).renameSync(join(_sandboxDir, to));
+    new File(p.join(_sandboxDir, from)).renameSync(p.join(_sandboxDir, to));
 
     // Manually update the mock modification time for the file.
     var milliseconds = _mockFileModificationTimes.putIfAbsent(to, () => 0);
