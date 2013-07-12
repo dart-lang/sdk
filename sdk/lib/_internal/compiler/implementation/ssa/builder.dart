@@ -1341,19 +1341,18 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             element: constructor);
       }
 
-      ClassElement superclass = constructor.getEnclosingClass();
-      if (backend.classNeedsRti(superclass)) {
-        // If [superclass] needs RTI, we have to give a value to its
-        // type parameters. Those values are in the [supertype]
-        // declaration of [subclass].
-        ClassElement subclass = inlinedFromElement.getEnclosingClass();
-        // If [inlinedFromElement] is a generative constructor then [superclass] 
-        // is a superclass of [subclass]. If [inlinedFromElement] is a 
-        // redirecting constructor then [superclass] is the same as [subclass]. 
-        // Using [DartType.asInstanceOf] handles both these cases.
-        InterfaceType supertype = subclass.thisType.asInstanceOf(superclass);
-        Link<DartType> typeVariables = superclass.typeVariables;
-        supertype.typeArguments.forEach((DartType argument) {
+      ClassElement enclosingClass = constructor.getEnclosingClass();
+      if (backend.classNeedsRti(enclosingClass)) {
+        // If [enclosingClass] needs RTI, we have to give a value to its
+        // type parameters.
+        ClassElement currentClass = inlinedFromElement.getEnclosingClass();
+        // For a super constructor call, the type is the supertype of
+        // [currentClass]. For a redirecting constructor, the type is
+        // the current type. [InterfaceType.asInstanceOf] takes care
+        // of both.
+        InterfaceType type = currentClass.thisType.asInstanceOf(enclosingClass);
+        Link<DartType> typeVariables = enclosingClass.typeVariables;
+        type.typeArguments.forEach((DartType argument) {
           localsHandler.updateLocal(typeVariables.head.element,
               analyzeTypeArgument(argument, callNode));
           typeVariables = typeVariables.tail;
@@ -1361,7 +1360,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         // If the supertype is a raw type, we need to set to null the
         // type variables.
         assert(typeVariables.isEmpty
-               || superclass.typeVariables == typeVariables);
+               || enclosingClass.typeVariables == typeVariables);
         while (!typeVariables.isEmpty) {
           localsHandler.updateLocal(typeVariables.head.element,
               graph.addConstantNull(compiler));
