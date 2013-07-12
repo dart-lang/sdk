@@ -19,7 +19,7 @@ import '../lib/intl.dart';
 import 'dart:io';
 import 'dart:json' as json;
 import '../test/data_directory.dart';
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 
 main() {
   initializeDateFormatting("en_IGNORED", null);

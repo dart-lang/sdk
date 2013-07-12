@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 import 'package:scheduled_test/scheduled_test.dart';
 
 import '../../descriptor.dart' as d;

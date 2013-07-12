@@ -64,7 +64,7 @@ library scheduled_test.descriptor;
 
 import 'dart:async';
 
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 
 import 'scheduled_test.dart';
 import 'src/descriptor/async_descriptor.dart';

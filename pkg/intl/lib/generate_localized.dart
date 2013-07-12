@@ -16,7 +16,7 @@ library generate_localized;
 import 'extract_messages.dart';
 import 'src/intl_message.dart';
 import 'dart:io';
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 
 /**
  * If the import path following package: is something else, modify the

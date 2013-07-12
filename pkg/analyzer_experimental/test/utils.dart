@@ -7,7 +7,7 @@ library utils;
 import 'dart:io';
 
 import 'package:analyzer_experimental/analyzer.dart';
-import 'package:pathos/path.dart' as pathos;
+import 'package:path/path.dart' as pathos;
 
 /// Returns the string representation of the [AnalyzerErrorGroup] thrown when
 /// parsing [contents] as a Dart file. If [contents] doesn't throw any errors,

@@ -4,7 +4,7 @@
 library line_doc_comments;
 import 'dart:io';
 
-import '../pkg/pathos/lib/path.dart' as path;
+import '../pkg/path/lib/path.dart' as path;
 
 final oneLineBlock = new RegExp(r'^(\s*)/\*\*\s?(.*)\*/\s*$');
 final startBlock = new RegExp(r'^(\s*)/\*\*(.*)$');

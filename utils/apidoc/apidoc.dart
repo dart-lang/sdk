@@ -26,7 +26,7 @@ import '../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dar
 import '../../sdk/lib/_internal/compiler/implementation/filenames.dart';
 import '../../sdk/lib/_internal/dartdoc/lib/dartdoc.dart';
 import '../../sdk/lib/_internal/libraries.dart';
-import 'package:pathos/path.dart' as pathos;
+import 'package:path/path.dart' as pathos;
 
 HtmlDiff _diff;
 
@@ -47,7 +47,7 @@ void main() {
   List<String> includedLibraries = <String>[];
 
   // For libraries that lie within packages but have a different name,
-  // such as the matcher library in package unittest, we can use 
+  // such as the matcher library in package unittest, we can use
   // --extra-lib with a full relative path under pkg, such as
   // --extra-lib=unittest/lib/matcher.dart. These arguments are
   // collected in extraLibraries.

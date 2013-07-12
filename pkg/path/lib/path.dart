@@ -10,15 +10,14 @@
 /// `pubspec.yaml` file.
 ///
 ///     dependencies:
-///       pathos: any
+///       path: any
 ///
 /// Then run `pub install`.
 ///
-/// For more information, see the
-/// [pathos package on pub.dartlang.org][pkg].
+/// For more information, see the [path package on pub.dartlang.org][pkg].
 ///
 /// [pub]: http://pub.dartlang.org
-/// [pkg]: http://pub.dartlang.org/packages/pathos
+/// [pkg]: http://pub.dartlang.org/packages/path
 library path;
 
 import 'dart:mirrors';

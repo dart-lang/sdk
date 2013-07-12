@@ -5,7 +5,7 @@
 library pub.pubspec;
 
 import 'package:yaml/yaml.dart';
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 
 import 'io.dart';
 import 'package.dart';

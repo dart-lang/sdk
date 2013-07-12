@@ -5,7 +5,7 @@
 library frame;
 
 
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 
 import 'trace.dart';
 

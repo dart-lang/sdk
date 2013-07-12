@@ -11,7 +11,7 @@ library export_map;
 import 'dart:io';
 
 import 'package:analyzer_experimental/analyzer.dart';
-import 'package:pathos/path.dart' as pathos;
+import 'package:path/path.dart' as pathos;
 
 import 'dartdoc/utils.dart';
 

@@ -9,7 +9,7 @@ import 'dart:io' as io;
 import 'dart:json' as json;
 
 import 'package:http/http.dart' as http;
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 
 import '../http.dart';
 import '../io.dart';

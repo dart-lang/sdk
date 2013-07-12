@@ -10,7 +10,7 @@ import 'dart:json';
 
 import 'package:args/args.dart';
 import 'package:http/http.dart' as http;
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 
 import '../command.dart';
 import '../directory_tree.dart';

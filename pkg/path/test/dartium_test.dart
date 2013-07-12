@@ -2,29 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' as io;
+import 'dart:html';
 
 import 'package:unittest/unittest.dart';
-import 'package:pathos/path.dart' as path;
+import 'package:unittest/html_config.dart';
+import 'package:path/path.dart' as path;
 
 main() {
+  useHtmlConfiguration();
+
   group('new Builder()', () {
     test('uses the current working directory if root is omitted', () {
       var builder = new path.Builder();
-      expect(builder.root, io.Directory.current.path);
+      expect(builder.root, window.location.href);
     });
 
-    test('uses the host OS if style is omitted', () {
+    test('uses URL if style is omitted', () {
       var builder = new path.Builder();
-      if (io.Platform.operatingSystem == 'windows') {
-        expect(builder.style, path.Style.windows);
-      } else {
-        expect(builder.style, path.Style.posix);
-      }
+      expect(builder.style, path.Style.url);
     });
   });
 
   test('current', () {
-    expect(path.current, io.Directory.current.path);
+    expect(path.current, window.location.href);
   });
 }

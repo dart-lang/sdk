@@ -1,6 +1,6 @@
 A comprehensive, cross-platform path manipulation library for Dart.
 
-The pathos library provides common operations for manipulating file paths:
+The path package provides common operations for manipulating file paths:
 joining, splitting, normalizing, etc.
 
 We've tried very hard to make this library do the "right" thing on whatever
@@ -14,7 +14,7 @@ style.
 The path library was designed to be imported with a prefix, though you don't
 have to if you don't want to:
 
-    import 'package:pathos/path.dart' as path;
+    import 'package:path/path.dart' as path; // TODO(bob): ???
 
 ## Top-level functions
 

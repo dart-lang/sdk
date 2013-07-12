@@ -6,7 +6,7 @@ library analyzer;
 
 import 'dart:io';
 
-import 'package:pathos/path.dart' as pathos;
+import 'package:path/path.dart' as pathos;
 
 import 'src/error.dart';
 import 'src/generated/ast.dart';

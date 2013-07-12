@@ -9,7 +9,7 @@ import 'dart:io';
 import 'dart:utf';
 
 import 'package:barback/barback.dart';
-import 'package:pathos/path.dart' as pathos;
+import 'package:path/path.dart' as pathos;
 import 'package:unittest/unittest.dart';
 
 import 'utils.dart';

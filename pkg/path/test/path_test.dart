@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:unittest/unittest.dart';
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 
 main() {
   group('path.Style', () {

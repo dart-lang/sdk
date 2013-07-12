@@ -3,14 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * **docgen** is a tool for creating machine readable representations of Dart 
+ * **docgen** is a tool for creating machine readable representations of Dart
  * code metadata, including: classes, members, comments and annotations.
- * 
- * docgen is run on a `.dart` file or a directory containing `.dart` files. 
- * 
+ *
+ * docgen is run on a `.dart` file or a directory containing `.dart` files.
+ *
  *      $ dart docgen.dart [OPTIONS] [FILE/DIR]
  *
- * This creates files called `docs/<library_name>.yaml` in your current 
+ * This creates files called `docs/<library_name>.yaml` in your current
  * working directory.
  */
 library docgen;
@@ -21,7 +21,7 @@ import 'dart:async';
 
 import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as markdown;
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 
 import 'dart2yaml.dart';
 import 'src/io.dart';
@@ -47,48 +47,48 @@ ClassMirror _currentClass;
 /// Current member being documented to be used for comment links.
 MemberMirror _currentMember;
 
-/// Resolves reference links in doc comments. 
+/// Resolves reference links in doc comments.
 markdown.Resolver linkResolver;
 
 /**
  * Docgen constructor initializes the link resolver for markdown parsing.
- * Also initializes the command line arguments. 
- * 
- * [packageRoot] is the packages directory of the directory being analyzed. 
- * If [includeSdk] is `true`, then any SDK libraries explicitly imported will 
- * also be documented. 
- * If [parseSdk] is `true`, then all Dart SDK libraries will be documented. 
- * This option is useful when only the SDK libraries are needed. 
- * 
- * Returns `true` if docgen sucessfuly completes. 
+ * Also initializes the command line arguments.
+ *
+ * [packageRoot] is the packages directory of the directory being analyzed.
+ * If [includeSdk] is `true`, then any SDK libraries explicitly imported will
+ * also be documented.
+ * If [parseSdk] is `true`, then all Dart SDK libraries will be documented.
+ * This option is useful when only the SDK libraries are needed.
+ *
+ * Returns `true` if docgen sucessfuly completes.
  */
-Future<bool> docgen(List<String> files, {String packageRoot, 
+Future<bool> docgen(List<String> files, {String packageRoot,
     bool outputToYaml: true, bool includePrivate: false, bool includeSdk: false,
-    bool parseSdk: false}) {    
+    bool parseSdk: false}) {
   if (packageRoot == null && !parseSdk) {
-    // TODO(janicejl): At the moment, if a single file is passed it, it is 
-    // assumed that it does not have a package root unless it is passed in by 
-    // the user. In future, find a better way to find the packageRoot and also 
-    // fully test finding the packageRoot. 
-    if (FileSystemEntity.typeSync(files.first) 
+    // TODO(janicejl): At the moment, if a single file is passed it, it is
+    // assumed that it does not have a package root unless it is passed in by
+    // the user. In future, find a better way to find the packageRoot and also
+    // fully test finding the packageRoot.
+    if (FileSystemEntity.typeSync(files.first)
         == FileSystemEntityType.DIRECTORY) {
       packageRoot = _findPackageRoot(files.first);
     }
   }
   logger.info('Package Root: ${packageRoot}');
-  
-  linkResolver = (name) => 
+
+  linkResolver = (name) =>
       fixReference(name, _currentLibrary, _currentClass, _currentMember);
-  
+
   return getMirrorSystem(files, packageRoot, parseSdk: parseSdk)
     .then((MirrorSystem mirrorSystem) {
       if (mirrorSystem.libraries.isEmpty) {
         throw new StateError('No library mirrors were created.');
       }
-      _documentLibraries(mirrorSystem.libraries.values, 
-          includeSdk: includeSdk, includePrivate: includePrivate, 
+      _documentLibraries(mirrorSystem.libraries.values,
+          includeSdk: includeSdk, includePrivate: includePrivate,
           outputToYaml: outputToYaml);
-      
+
       return true;
     });
 }
@@ -96,34 +96,34 @@ Future<bool> docgen(List<String> files, {String packageRoot,
 List<String> _listLibraries(List<String> args) {
   // TODO(janicejl): At the moment, only have support to have either one file,
   // or one directory. This is because there can only be one package directory
-  // since only one docgen is created per run. 
+  // since only one docgen is created per run.
   if (args.length != 1) throw new UnsupportedError(USAGE);
   var libraries = new List<String>();
   var type = FileSystemEntity.typeSync(args[0]);
-  
+
   if (type == FileSystemEntityType.FILE) {
     libraries.add(path.absolute(args[0]));
     logger.info('Added to libraries: ${libraries.last}');
   } else {
     libraries.addAll(_listDartFromDir(args[0]));
-  } 
+  }
   return libraries;
 }
 
 List<String> _listDartFromDir(String args) {
   var files = listDir(args, recursive: true);
-  // To avoid anaylzing package files twice, only files with paths not 
+  // To avoid anaylzing package files twice, only files with paths not
   // containing '/packages' will be added. The only exception is if the file to
-  // analyze already has a '/package' in its path. 
-  return files.where((f) => f.endsWith('.dart') && 
+  // analyze already has a '/package' in its path.
+  return files.where((f) => f.endsWith('.dart') &&
       (!f.contains('/packages') || args.contains('/packages'))).toList()
       ..forEach((lib) => logger.info('Added to libraries: $lib'));
 }
 
 String _findPackageRoot(String directory) {
   var files = listDir(directory, recursive: true);
-  // Return '' means that there was no pubspec.yaml and therefor no packageRoot. 
-  String packageRoot = files.firstWhere((f) => 
+  // Return '' means that there was no pubspec.yaml and therefor no packageRoot.
+  String packageRoot = files.firstWhere((f) =>
       f.endsWith('/pubspec.yaml'), orElse: () => '');
   if (packageRoot != '') {
     packageRoot = path.dirname(packageRoot) + '/packages';
@@ -134,7 +134,7 @@ String _findPackageRoot(String directory) {
 List<String> _listSdk() {
   var sdk = new List<String>();
   LIBRARIES.forEach((String name, LibraryInfo info) {
-    if (info.documented) { 
+    if (info.documented) {
       sdk.add('dart:$name');
       logger.info('Add to SDK: ${sdk.last}');
     }
@@ -143,33 +143,33 @@ List<String> _listSdk() {
 }
 
 /**
- * Analyzes set of libraries by getting a mirror system and triggers the 
- * documentation of the libraries. 
+ * Analyzes set of libraries by getting a mirror system and triggers the
+ * documentation of the libraries.
  */
-Future<MirrorSystem> getMirrorSystem(List<String> args, String packageRoot, 
+Future<MirrorSystem> getMirrorSystem(List<String> args, String packageRoot,
     {bool parseSdk:false}) {
   var libraries = !parseSdk ? _listLibraries(args) : _listSdk();
   if (libraries.isEmpty) throw new StateError('No Libraries.');
-  // DART_SDK should be set to the root of the SDK library. 
+  // DART_SDK should be set to the root of the SDK library.
   var sdkRoot = Platform.environment['DART_SDK'];
   if (sdkRoot != null) {
     logger.info('Using DART_SDK to find SDK at $sdkRoot');
   } else {
-    // If DART_SDK is not defined in the environment, 
-    // assuming the dart executable is from the Dart SDK folder inside bin. 
+    // If DART_SDK is not defined in the environment,
+    // assuming the dart executable is from the Dart SDK folder inside bin.
     sdkRoot = path.dirname(path.dirname(new Options().executable));
     logger.info('SDK Root: ${sdkRoot}');
   }
-  
+
   return _analyzeLibraries(libraries, sdkRoot, packageRoot: packageRoot);
 }
 
 // TODO(janicejl): Should make docgen fail gracefully, or output a friendly
 // error message letting them know why it is failing to create a mirror system.
-// If there is conflicting library names, should modify it with a hash at the 
-// end of it's library name. 
+// If there is conflicting library names, should modify it with a hash at the
+// end of it's library name.
 /**
- * Analyzes set of libraries and provides a mirror system which can be used 
+ * Analyzes set of libraries and provides a mirror system which can be used
  * for static inspection of the source code.
  */
 Future<MirrorSystem> _analyzeLibraries(List<String> libraries,
@@ -191,10 +191,10 @@ Future<MirrorSystem> _analyzeLibraries(List<String> libraries,
       ['--preserve-comments', '--categories=Client,Server'])
       ..catchError((error) {
         logger.severe('Error: Failed to create mirror system. ');
-        // TODO(janicejl): Use the stack trace package when bug is resolved. 
-        // Currently, a string is thrown when it fails to create a mirror 
+        // TODO(janicejl): Use the stack trace package when bug is resolved.
+        // Currently, a string is thrown when it fails to create a mirror
         // system, and it is not possible to use the stack trace. BUG(#11622)
-        // To avoid printing the stack trace. 
+        // To avoid printing the stack trace.
         exit(1);
       });
 }
@@ -202,8 +202,8 @@ Future<MirrorSystem> _analyzeLibraries(List<String> libraries,
 /**
  * Creates documentation for filtered libraries.
  */
-void _documentLibraries(List<LibraryMirror> libraries, 
-    {bool includeSdk:false, bool includePrivate:false, bool 
+void _documentLibraries(List<LibraryMirror> libraries,
+    {bool includeSdk:false, bool includePrivate:false, bool
      outputToYaml:true}) {
   libraries.forEach((lib) {
     // Files belonging to the SDK have a uri that begins with 'dart:'.
@@ -212,18 +212,18 @@ void _documentLibraries(List<LibraryMirror> libraries,
       _writeLibraryToFile(library, outputToYaml);
     }
   });
-  // Outputs a text file with a list of files available after creating all 
-  // the libraries. This will help the viewer know what files are available 
-  // to read in. 
-  _writeToFile(listDir('docs').join('\n').replaceAll('docs/', ''), 
+  // Outputs a text file with a list of files available after creating all
+  // the libraries. This will help the viewer know what files are available
+  // to read in.
+  _writeToFile(listDir('docs').join('\n').replaceAll('docs/', ''),
       'library_list.txt');
 }
 
-Library generateLibrary(dart2js.Dart2JsLibraryMirror library, 
+Library generateLibrary(dart2js.Dart2JsLibraryMirror library,
   {bool includePrivate:false}) {
   _currentLibrary = library;
   var result = new Library(library.qualifiedName, _getComment(library),
-      _getVariables(library.variables, includePrivate), 
+      _getVariables(library.variables, includePrivate),
       _getMethods(library.functions, includePrivate),
       _getClasses(library.classes, includePrivate));
   logger.fine('Generated library for ${result.name}');
@@ -235,15 +235,15 @@ void _writeLibraryToFile(Library result, bool outputToYaml) {
     _writeToFile(getYamlString(result.toMap()), '${result.name}.yaml');
   } else {
     _writeToFile(stringify(result.toMap()), '${result.name}.json');
-  } 
-  
+  }
+
 }
 
 /**
- * Returns a list of meta annotations assocated with a mirror. 
+ * Returns a list of meta annotations assocated with a mirror.
  */
 List<String> _getAnnotations(DeclarationMirror mirror) {
-  var annotations = mirror.metadata.where((e) => 
+  var annotations = mirror.metadata.where((e) =>
       e is dart2js.Dart2JsConstructedConstantMirror);
   return annotations.map((e) => e.type.qualifiedName).toList();
 }
@@ -263,10 +263,10 @@ String _getComment(DeclarationMirror mirror) {
         } else {
           commentText = '$commentText ${comment.trimmedText}';
         }
-      } 
+      }
     }
   });
-  commentText = commentText == null ? '' : 
+  commentText = commentText == null ? '' :
       markdown.markdownToHtml(commentText.trim(), linkResolver: linkResolver)
       .replaceAll('\n', ' ');
   return commentText;
@@ -275,10 +275,10 @@ String _getComment(DeclarationMirror mirror) {
 /**
  * Converts all [foo] references in comments to <a>libraryName.foo</a>.
  */
-markdown.Node fixReference(String name, LibraryMirror currentLibrary, 
+markdown.Node fixReference(String name, LibraryMirror currentLibrary,
     ClassMirror currentClass, MemberMirror currentMember) {
   var reference;
-  var memberScope = currentMember == null ? 
+  var memberScope = currentMember == null ?
       null : currentMember.lookupInScope(name);
   if (memberScope != null) reference = memberScope.qualifiedName;
   else {
@@ -292,16 +292,16 @@ markdown.Node fixReference(String name, LibraryMirror currentLibrary,
 /**
  * Returns a map of [Variable] objects constructed from inputted mirrors.
  */
-Map<String, Variable> _getVariables(Map<String, VariableMirror> mirrorMap, 
+Map<String, Variable> _getVariables(Map<String, VariableMirror> mirrorMap,
     bool includePrivate) {
   var data = {};
-  // TODO(janicejl): When map to map feature is created, replace the below with 
+  // TODO(janicejl): When map to map feature is created, replace the below with
   // a filter. Issue(#9590).
   mirrorMap.forEach((String mirrorName, VariableMirror mirror) {
     if (includePrivate || !mirror.isPrivate) {
       _currentMember = mirror;
-      data[mirrorName] = new Variable(mirrorName, mirror.qualifiedName, 
-          mirror.isFinal, mirror.isStatic, mirror.type.qualifiedName, 
+      data[mirrorName] = new Variable(mirrorName, mirror.qualifiedName,
+          mirror.isFinal, mirror.isStatic, mirror.type.qualifiedName,
           _getComment(mirror), _getAnnotations(mirror));
     }
   });
@@ -311,21 +311,21 @@ Map<String, Variable> _getVariables(Map<String, VariableMirror> mirrorMap,
 /**
  * Returns a map of [Method] objects constructed from inputted mirrors.
  */
-Map<String, Method> _getMethods(Map<String, MethodMirror> mirrorMap, 
+Map<String, Method> _getMethods(Map<String, MethodMirror> mirrorMap,
     bool includePrivate) {
   var data = {};
   mirrorMap.forEach((String mirrorName, MethodMirror mirror) {
     if (includePrivate || !mirror.isPrivate) {
       _currentMember = mirror;
-      data[mirrorName] = new Method(mirrorName, mirror.qualifiedName, 
-          mirror.isSetter, mirror.isGetter, mirror.isConstructor, 
-          mirror.isOperator, mirror.isStatic, mirror.returnType.qualifiedName, 
-          _getComment(mirror), _getParameters(mirror.parameters), 
+      data[mirrorName] = new Method(mirrorName, mirror.qualifiedName,
+          mirror.isSetter, mirror.isGetter, mirror.isConstructor,
+          mirror.isOperator, mirror.isStatic, mirror.returnType.qualifiedName,
+          _getComment(mirror), _getParameters(mirror.parameters),
           _getAnnotations(mirror));
     }
   });
   return data;
-} 
+}
 
 /**
  * Returns a map of [Class] objects constructed from inputted mirrors.
@@ -336,15 +336,15 @@ Map<String, Class> _getClasses(Map<String, ClassMirror> mirrorMap,
   mirrorMap.forEach((String mirrorName, ClassMirror mirror) {
     if (includePrivate || !mirror.isPrivate) {
       _currentClass = mirror;
-      var superclass = (mirror.superclass != null) ? 
+      var superclass = (mirror.superclass != null) ?
           mirror.superclass.qualifiedName : '';
-      var interfaces = 
+      var interfaces =
           mirror.superinterfaces.map((interface) => interface.qualifiedName);
-      data[mirrorName] = new Class(mirrorName, mirror.qualifiedName, 
-          superclass, mirror.isAbstract, mirror.isTypedef, 
+      data[mirrorName] = new Class(mirrorName, mirror.qualifiedName,
+          superclass, mirror.isAbstract, mirror.isTypedef,
           _getComment(mirror), interfaces.toList(),
           _getVariables(mirror.variables, includePrivate),
-          _getMethods(mirror.methods, includePrivate), 
+          _getMethods(mirror.methods, includePrivate),
           _getAnnotations(mirror));
     }
   });
@@ -358,9 +358,9 @@ Map<String, Parameter> _getParameters(List<ParameterMirror> mirrorList) {
   var data = {};
   mirrorList.forEach((ParameterMirror mirror) {
     _currentMember = mirror;
-    data[mirror.simpleName] = new Parameter(mirror.simpleName, 
-        mirror.qualifiedName, mirror.isOptional, mirror.isNamed, 
-        mirror.hasDefaultValue, mirror.type.qualifiedName, 
+    data[mirror.simpleName] = new Parameter(mirror.simpleName,
+        mirror.qualifiedName, mirror.isOptional, mirror.isNamed,
+        mirror.hasDefaultValue, mirror.type.qualifiedName,
         mirror.defaultValue, _getAnnotations(mirror));
   });
   return data;
@@ -397,24 +397,24 @@ Map recurseMap(Map inputMap) {
  * A class containing contents of a Dart library.
  */
 class Library {
-  
+
   /// Documentation comment with converted markdown.
   String comment;
-  
+
   /// Top-level variables in the library.
   Map<String, Variable> variables;
-  
+
   /// Top-level functions in the library.
   Map<String, Method> functions;
-  
+
   /// Classes defined within the library
   Map<String, Class> classes;
-  
+
   String name;
-  
-  Library(this.name, this.comment, this.variables, 
+
+  Library(this.name, this.comment, this.variables,
       this.functions, this.classes);
-  
+
   /// Generates a map describing the [Library] object.
   Map toMap() {
     var libraryMap = {};
@@ -432,32 +432,32 @@ class Library {
  */
 // TODO(tmandel): Figure out how to do typedefs (what is needed)
 class Class {
-  
+
   /// Documentation comment with converted markdown.
   String comment;
-  
+
   /// List of the names of interfaces that this class implements.
   List<String> interfaces;
-  
+
   /// Top-level variables in the class.
   Map<String, Variable> variables;
-  
+
   /// Methods in the class.
   Map<String, Method> methods;
-  
+
   String name;
   String qualifiedName;
   String superclass;
   bool isAbstract;
   bool isTypedef;
-  
-  /// List of the meta annotations on the class. 
+
+  /// List of the meta annotations on the class.
   List<String> annotations;
- 
-  Class(this.name, this.qualifiedName, this.superclass, this.isAbstract, 
-      this.isTypedef, this.comment, this.interfaces, this.variables, 
+
+  Class(this.name, this.qualifiedName, this.superclass, this.isAbstract,
+      this.isTypedef, this.comment, this.interfaces, this.variables,
       this.methods, this.annotations);
-  
+
   /// Generates a map describing the [Class] object.
   Map toMap() {
     var classMap = {};
@@ -479,22 +479,22 @@ class Class {
  * A class containing properties of a Dart variable.
  */
 class Variable {
-  
+
   /// Documentation comment with converted markdown.
   String comment;
-  
+
   String name;
   String qualifiedName;
   bool isFinal;
   bool isStatic;
   String type;
 
-  /// List of the meta annotations on the variable. 
+  /// List of the meta annotations on the variable.
   List<String> annotations;
-  
-  Variable(this.name, this.qualifiedName, this.isFinal, this.isStatic, 
+
+  Variable(this.name, this.qualifiedName, this.isFinal, this.isStatic,
       this.type, this.comment, this.annotations);
-  
+
   /// Generates a map describing the [Variable] object.
   Map toMap() {
     var variableMap = {};
@@ -513,13 +513,13 @@ class Variable {
  * A class containing properties of a Dart method.
  */
 class Method {
-  
+
   /// Documentation comment with converted markdown.
   String comment;
-  
+
   /// Parameters for this method.
   Map<String, Parameter> parameters;
-  
+
   String name;
   String qualifiedName;
   bool isSetter;
@@ -528,14 +528,14 @@ class Method {
   bool isOperator;
   bool isStatic;
   String returnType;
-  
-  /// List of the meta annotations on the method.  
+
+  /// List of the meta annotations on the method.
   List<String> annotations;
-  
-  Method(this.name, this.qualifiedName, this.isSetter, this.isGetter, 
-      this.isConstructor, this.isOperator, this.isStatic, this.returnType, 
+
+  Method(this.name, this.qualifiedName, this.isSetter, this.isGetter,
+      this.isConstructor, this.isOperator, this.isStatic, this.returnType,
       this.comment, this.parameters, this.annotations);
-  
+
   /// Generates a map describing the [Method] object.
   Map toMap() {
     var methodMap = {};
@@ -549,14 +549,14 @@ class Method {
     methodMap['parameters'] = recurseMap(parameters);
     methodMap['annotations'] = new List.from(annotations);
     return methodMap;
-  }  
+  }
 }
 
 /**
  * A class containing properties of a Dart method/function parameter.
  */
 class Parameter {
-  
+
   String name;
   String qualifiedName;
   bool isOptional;
@@ -564,13 +564,13 @@ class Parameter {
   bool hasDefaultValue;
   String type;
   String defaultValue;
-  
-  /// List of the meta annotations on the parameter. 
+
+  /// List of the meta annotations on the parameter.
   List<String> annotations;
-  
-  Parameter(this.name, this.qualifiedName, this.isOptional, this.isNamed, 
+
+  Parameter(this.name, this.qualifiedName, this.isOptional, this.isNamed,
       this.hasDefaultValue, this.type, this.defaultValue, this.annotations);
-  
+
   /// Generates a map describing the [Parameter] object.
   Map toMap() {
     var parameterMap = {};
@@ -583,5 +583,5 @@ class Parameter {
     parameterMap['value'] = defaultValue;
     parameterMap['annotations'] = new List.from(annotations);
     return parameterMap;
-  } 
+  }
 }

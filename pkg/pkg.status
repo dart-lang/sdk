@@ -61,8 +61,8 @@ crypto/test/sha1_test: Fail # Issue 11407.
 # Skip browser-specific tests on VM
 [ $runtime == vm ]
 docgen/test/single_library_test: Skip # Uses js_helper
-pathos/test/pathos_dartium_test: Fail, OK # Uses dart:html
-pathos/test/pathos_dart2js_test: Fail, OK # Uses dart:html
+path/test/dartium_test: Fail, OK # Uses dart:html
+path/test/dart2js_test: Fail, OK # Uses dart:html
 intl/test/find_default_locale_browser_test: Skip
 intl/test/date_time_format_http_request_test: Skip
 
@@ -103,7 +103,7 @@ unittest/test/*_unminified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART
 crypto/test/sha1_test: Fail # V8 bug: https://code.google.com/p/v8/issues/detail?id=2692
 
 [ $compiler == dart2js && $browser ]
-pathos/test/pathos_dartium_test: Fail # Issue 6490
+path/test/dartium_test: Fail # Issue 6490
 stack_trace/test/vm_test: Fail, OK # VM-specific traces
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
@@ -131,7 +131,7 @@ oauth2/test/authorization_code_grant_test: Fail, OK # Uses dart:io.
 oauth2/test/client_test: Fail, OK # Uses dart:io.
 oauth2/test/credentials_test: Fail, OK # Uses dart:io.
 oauth2/test/handle_access_token_response_test: Fail, OK # Uses dart:io.
-pathos/test/pathos_io_test: Fail, OK # Uses dart:io.
+path/test/io_test: Fail, OK # Uses dart:io.
 
 scheduled_test/test/descriptor/async_test: Fail # http://dartbug.com/8440
 scheduled_test/test/descriptor/directory_test: Fail # http://dartbug.com/8440
@@ -188,7 +188,7 @@ dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
 serialization/test/no_library_test: Skip # Expected Failure
 
 [ ($runtime == dartium || $runtime == drt) && $compiler == none ]
-pathos/test/pathos_dart2js_test: Fail, OK # Issue 6490
+path/test/dart2js_test: Fail, OK # Issue 6490
 
 # Skip mdv tests on command line VM, they only run in the browser.
 [ $runtime == vm ]

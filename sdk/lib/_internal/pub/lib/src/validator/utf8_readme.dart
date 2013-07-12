@@ -7,7 +7,7 @@ library pub.validator.utf8_readme;
 import 'dart:async';
 import 'dart:utf';
 
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 
 import '../entrypoint.dart';
 import '../io.dart';

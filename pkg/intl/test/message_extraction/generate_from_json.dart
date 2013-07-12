@@ -21,7 +21,7 @@ import 'package:intl/src/intl_message.dart';
 import 'extract_to_json.dart';
 import 'package:intl/generate_localized.dart';
 import 'dart:json' as json;
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 import 'package:args/args.dart';
 import 'package:serialization/serialization.dart';
 

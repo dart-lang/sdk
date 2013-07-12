@@ -5,7 +5,7 @@ description: >
   A package for manipulating stack traces and printing them readably.
 
 dependencies:
-  pathos: any
+  path: any
 
 dev_dependencies:
   unittest: any

@@ -9,7 +9,7 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:utf';
 
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 
 import '../../descriptor.dart';
 import '../../scheduled_test.dart';
@@ -64,7 +64,7 @@ abstract class FileDescriptor extends Descriptor implements ReadableDescriptor {
 
     return new File(fullPath).readAsBytes().then(_validateNow);
   }
-  
+
   // TODO(nweiz): rather than setting up an inheritance chain, just store a
   // Matcher for validation. This would require better error messages from the
   // matcher library, though.

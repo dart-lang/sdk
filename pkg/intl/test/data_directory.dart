@@ -14,7 +14,7 @@
 library data_directory;
 
 import "dart:io";
-import "package:pathos/path.dart" as path;
+import "package:path/path.dart" as path;
 
 String get dataDirectory {
   return path.join(intlDirectory, datesRelativeToIntl);

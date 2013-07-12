@@ -12,7 +12,7 @@ import 'dart:json' as json;
 import 'dart:mirrors';
 
 import "package:crypto/crypto.dart";
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 
 /// A pair of values.
 class Pair<E, F> {

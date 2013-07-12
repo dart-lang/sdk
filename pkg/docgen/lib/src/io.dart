@@ -1,12 +1,12 @@
 library io;
-/// This is a helper library to make working with io easier. 
-// TODO(janicejl): listDir, canonicalize, resolveLink, and linkExists are from  
-// pub/lib/src/io.dart. If the io.dart file becomes a package, should remove 
-// copy of the functions. 
+/// This is a helper library to make working with io easier.
+// TODO(janicejl): listDir, canonicalize, resolveLink, and linkExists are from
+// pub/lib/src/io.dart. If the io.dart file becomes a package, should remove
+// copy of the functions.
 
 import 'dart:collection';
 import 'dart:io';
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 
 /// Lists the contents of [dir]. If [recursive] is `true`, lists subdirectory
 /// contents (defaults to `false`). If [includeHidden] is `true`, includes files
@@ -24,7 +24,7 @@ List<String> listDir(String dir, {bool recursive: false,
 
     listedDirectories = new Set<String>.from(listedDirectories);
     listedDirectories.add(resolvedPath);
-    
+
     var children = <String>[];
     for (var entity in new Directory(dir).listSync()) {
       if (!includeHidden && path.basename(entity.path).startsWith('.')) {

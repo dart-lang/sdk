@@ -7,7 +7,7 @@ library message_extraction_test;
 import 'package:unittest/unittest.dart';
 import 'dart:io';
 import 'dart:async';
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 import '../data_directory.dart';
 
 final dart = Platform.executable;

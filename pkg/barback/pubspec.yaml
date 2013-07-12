@@ -12,7 +12,7 @@ description: >
   Runs transforms asynchronously and in parallel when possible to maximize
   responsiveness.
 dependencies:
-  pathos: any
+  path: any
 dev_dependencies:
   scheduled_test: any
   unittest: any

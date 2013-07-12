@@ -23,7 +23,7 @@ library extract_to_json;
 import 'dart:io';
 import 'package:intl/extract_messages.dart';
 import 'dart:json' as json;
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 import 'package:intl/src/intl_message.dart';
 import 'package:args/args.dart';
 

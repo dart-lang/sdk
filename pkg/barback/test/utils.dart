@@ -10,7 +10,7 @@ import 'dart:io';
 
 import 'package:barback/barback.dart';
 import 'package:barback/src/asset_graph.dart';
-import 'package:pathos/path.dart' as pathos;
+import 'package:path/path.dart' as pathos;
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:unittest/compact_vm_config.dart';
 

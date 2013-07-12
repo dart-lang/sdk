@@ -14,7 +14,7 @@ import "date_symbols.dart";
 import "src/lazy_locale_data.dart";
 import 'src/date_format_internal.dart';
 import 'src/file_data_reader.dart';
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 
 part "src/data/dates/localeList.dart";
 
