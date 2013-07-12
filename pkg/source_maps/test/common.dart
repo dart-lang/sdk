@@ -27,6 +27,11 @@ Span ispan(int start, int end, [bool isIdentifier = false]) =>
 Span inputVar1 = ispan(30, 38, true);
 Span inputFunction = ispan(74, 82, true);
 Span inputVar2 = ispan(87, 95, true);
+
+Span inputVar1NoSymbol = ispan(30, 38);
+Span inputFunctionNoSymbol = ispan(74, 82);
+Span inputVar2NoSymbol = ispan(87, 95);
+
 Span inputExpr = ispan(108, 127);
 
 /// Content of the target file
@@ -43,6 +48,9 @@ Span ospan(int start, int end, [bool isIdentifier = false]) =>
 Span outputVar1 = ospan(4, 5, true);
 Span outputFunction = ospan(11, 12, true);
 Span outputVar2 = ospan(13, 14, true);
+Span outputVar1NoSymbol = ospan(4, 5);
+Span outputFunctionNoSymbol = ospan(11, 12);
+Span outputVar2NoSymbol = ospan(13, 14);
 Span outputExpr = ospan(19, 24);
 
 /// Expected output mapping when recording the following four mappings:

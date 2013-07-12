@@ -2,22 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Source maps library.
-///
-/// ## Installing ##
-///
-/// Use [pub][] to install this package. Add the following to your
-/// `pubspec.yaml` file.
-///
-///     dependencies:
-///       source_maps: any
-///
-/// Then run `pub install`.
-///
-/// For more information, see the
-/// [source_maps package on pub.dartlang.org][pkg].
-///
-/// ## Using ##
+/// Library to create and parse source maps.
 ///
 /// Create a source map using [SourceMapBuilder]. For example:
 ///     var json = (new SourceMapBuilder()
@@ -32,6 +17,20 @@
 /// object. For example:
 ///     var mapping = parse(json);
 ///     mapping.spanFor(outputSpan1.line, outputSpan1.column)
+///
+/// ## Getting the code ##
+///
+/// This library is distributed as a [pub][] package. To install this package,
+/// add the following to your `pubspec.yaml` file:
+///
+///     dependencies:
+///       source_maps: any
+///
+/// After you run `pub install`, you should be able to access this library by
+/// importing `package:source_maps/source_maps.dart`.
+///
+/// For more information, see the
+/// [source_maps package on pub.dartlang.org][pkg].
 ///
 /// [pub]: http://pub.dartlang.org
 /// [pkg]: http://pub.dartlang.org/packages/source_maps

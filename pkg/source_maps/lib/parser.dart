@@ -25,9 +25,8 @@ Mapping parseJson(Map map, {Map<String, Map> otherMaps}) {
         'Only version 3 is supported.');
   }
 
-  // TODO(sigmund): relax this? dart2js doesn't generate the file entry.
   if (!map.containsKey('file')) {
-    throw new ArgumentError('missing "file" in source map');
+    print('warning: missing "file" entry in source map');
   }
 
   if (map.containsKey('sections')) {
@@ -186,7 +185,7 @@ class SingleMapping extends Mapping {
       if (tokenizer.nextKind.isNewSegment) throw _segmentError(0, line);
       column += tokenizer._consumeValue();
       if (!tokenizer.nextKind.isValue) {
-        entries.add(new TargetEntry(column));
+        entries.add(new TargetEntry(column, srcUrlId, srcLine, srcColumn));
       } else {
         srcUrlId += tokenizer._consumeValue();
         if (srcUrlId >= urls.length) {
@@ -242,7 +241,6 @@ class SingleMapping extends Mapping {
   }
 
   Span spanFor(int line, int column, {Map<String, SourceFile> files}) {
-    var lineEntry = _findLine(line);
     var entry = _findColumn(line, column, _findLine(line));
     if (entry == null) return null;
     var url = urls[entry.sourceUrlId];
@@ -323,8 +321,9 @@ class TargetEntry {
   final int sourceLine;
   final int sourceColumn;
   final int sourceNameId;
-  TargetEntry(this.column, [this.sourceUrlId, this.sourceLine,
-      this.sourceColumn, this.sourceNameId]);
+
+  TargetEntry(this.column, this.sourceUrlId, this.sourceLine,
+      this.sourceColumn, [this.sourceNameId]);
 
   String toString() => '$runtimeType: '
       '($column, $sourceUrlId, $sourceLine, $sourceColumn, $sourceNameId)';
