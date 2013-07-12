@@ -1391,6 +1391,59 @@ void ClassFinalizer::ApplyMixinTypes(const Class& cls) {
 }
 
 
+void ClassFinalizer::CreateForwardingConstructors(
+    const Class& mixin_app,
+    const GrowableObjectArray& cloned_funcs) {
+  const String& mixin_name = String::Handle(mixin_app.Name());
+  const Class& super_class = Class::Handle(mixin_app.SuperClass());
+  const String& super_name = String::Handle(super_class.Name());
+  const Type& dynamic_type = Type::Handle(Type::DynamicType());
+  const Array& functions = Array::Handle(super_class.functions());
+  intptr_t num_functions = functions.Length();
+  Function& func = Function::Handle();
+  for (intptr_t i = 0; i < num_functions; i++) {
+    func ^= functions.At(i);
+    if (func.IsConstructor()) {
+      // Build constructor name from mixin application class name
+      // and name of cloned super class constructor.
+      String& ctor_name = String::Handle(func.name());
+      ctor_name = String::SubString(ctor_name, super_name.Length());
+      String& clone_name =
+          String::Handle(String::Concat(mixin_name, ctor_name));
+      clone_name = Symbols::New(clone_name);
+
+      const Function& clone = Function::Handle(
+          Function::New(clone_name,
+                        func.kind(),
+                        func.is_static(),
+                        func.is_const(),
+                        func.is_abstract(),
+                        func.is_external(),
+                        mixin_app,
+                        mixin_app.token_pos()));
+
+      clone.set_num_fixed_parameters(func.num_fixed_parameters());
+      clone.SetNumOptionalParameters(func.NumOptionalParameters(),
+                                     func.HasOptionalPositionalParameters());
+      clone.set_result_type(dynamic_type);
+
+      const int num_parameters = func.NumParameters();
+      // The cloned ctor shares the parameter names array with the
+      // original.
+      const Array& parameter_names = Array::Handle(func.parameter_names());
+      ASSERT(parameter_names.Length() == num_parameters);
+      clone.set_parameter_names(parameter_names);
+      // The parameter types of the cloned constructor are 'dynamic'.
+      clone.set_parameter_types(Array::Handle(Array::New(num_parameters)));
+      for (intptr_t n = 0; n < num_parameters; n++) {
+        clone.SetParameterTypeAt(n, dynamic_type);
+      }
+      cloned_funcs.Add(clone);
+    }
+  }
+}
+
+
 void ClassFinalizer::ApplyMixin(const Class& cls) {
   Isolate* isolate = Isolate::Current();
   const Type& mixin_type = Type::Handle(isolate, cls.mixin());
@@ -1408,15 +1461,13 @@ void ClassFinalizer::ApplyMixin(const Class& cls) {
 
   const GrowableObjectArray& cloned_funcs =
       GrowableObjectArray::Handle(isolate, GrowableObjectArray::New());
+
+  CreateForwardingConstructors(cls, cloned_funcs);
+
   Array& functions = Array::Handle(isolate);
   Function& func = Function::Handle(isolate);
-  // The parser creates the mixin application class and adds just
-  // one function, the implicit constructor.
-  functions = cls.functions();
-  ASSERT(functions.Length() == 1);
-  func ^= functions.At(0);
-  ASSERT(func.IsImplicitConstructor());
-  cloned_funcs.Add(func);
+  // The parser creates the mixin application class with no functions.
+  ASSERT((functions = cls.functions(), functions.Length() == 0));
   // Now clone the functions from the mixin class.
   functions = mixin_cls.functions();
   const intptr_t num_functions = functions.Length();

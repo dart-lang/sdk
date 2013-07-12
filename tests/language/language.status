@@ -16,21 +16,13 @@
 # 3) Update the language/src directory with the updated test.
 
 [ $compiler == dart2dart ]
-mixin_super_constructor_test: Fail
-mixin_super_constructor2_test: Fail
-mixin_super_constructor_default_test: Fail
 mixin_super_constructor_named_test: Fail
 mixin_super_constructor_positionals_test: Fail
-mixin_super_constructor_multiple_test: Fail
 const_constructor_super_test/01: fail
 
 [ $compiler == none ]
-mixin_super_constructor_test: Fail
-mixin_super_constructor2_test: Fail
-mixin_super_constructor_default_test: Fail
 mixin_super_constructor_named_test: Fail
 mixin_super_constructor_positionals_test: Fail
-mixin_super_constructor_multiple_test: Fail
 built_in_identifier_prefix_test: Fail # http://dartbug.com/6970
 library_juxtaposition_test: Fail # Issue 6877
 pseudo_kw_illegal_test/14: Fail  # Issue 356

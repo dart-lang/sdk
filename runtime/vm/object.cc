@@ -4415,8 +4415,7 @@ bool Function::TypeTest(TypeTestKind test_kind,
 // does not contain an explicit constructor or factory. The implicit
 // constructor has the same token position as the owner class.
 bool Function::IsImplicitConstructor() const {
-  return IsConstructor() &&
-         (token_pos() == Class::Handle(Owner()).token_pos());
+  return IsConstructor() && (token_pos() == end_token_pos());
 }
 
 

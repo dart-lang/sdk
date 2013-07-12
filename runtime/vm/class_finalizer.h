@@ -106,6 +106,9 @@ class ClassFinalizer : public AllStatic {
   static void CloneTypeParameters(const Class& mixapp_class);
   static void ApplyMixinTypes(const Class& cls);
   static void ApplyMixin(const Class& cls);
+  static void CreateForwardingConstructors(
+      const Class& mixin_app,
+      const GrowableObjectArray& cloned_funcs);
   static void CollectTypeArguments(const Class& cls,
                                    const Type& type,
                                    const GrowableObjectArray& collected_args);

@@ -1813,7 +1813,8 @@ AstNode* Parser::ParseSuperFieldAccess(const String& field_name) {
 
 
 void Parser::GenerateSuperConstructorCall(const Class& cls,
-                                          LocalVariable* receiver) {
+                                          LocalVariable* receiver,
+                                          ArgumentListNode* forwarding_args) {
   const intptr_t supercall_pos = TokenPos();
   const Class& super_class = Class::Handle(cls.SuperClass());
   // Omit the implicit super() if there is no super class (i.e.
@@ -1824,8 +1825,9 @@ void Parser::GenerateSuperConstructorCall(const Class& cls,
        Class::Handle(super_class.SuperClass()).IsObjectClass())) {
     return;
   }
-  String& ctor_name = String::Handle(super_class.Name());
-  ctor_name = String::Concat(ctor_name, Symbols::Dot());
+  String& super_ctor_name = String::Handle(super_class.Name());
+  super_ctor_name = String::Concat(super_ctor_name, Symbols::Dot());
+
   ArgumentListNode* arguments = new ArgumentListNode(supercall_pos);
   // Implicit 'this' parameter is the first argument.
   AstNode* implicit_argument = new LoadLocalNode(supercall_pos, receiver);
@@ -1835,8 +1837,27 @@ void Parser::GenerateSuperConstructorCall(const Class& cls,
       new LiteralNode(supercall_pos,
                       Smi::ZoneHandle(Smi::New(Function::kCtorPhaseAll)));
   arguments->Add(phase_parameter);
+
+  // If this is a super call in a forwarding constructor, add the user-
+  // defined arguments to the super call and adjust the the super
+  // constructor name to the respective named constructor if necessary.
+  if (forwarding_args != NULL) {
+    for (int i = 0; i < forwarding_args->length(); i++) {
+      arguments->Add(forwarding_args->NodeAt(i));
+    }
+    String& ctor_name = String::Handle(current_function().name());
+    String& class_name = String::Handle(cls.Name());
+    if (ctor_name.Length() > class_name.Length() + 1) {
+      // Generating a forwarding call to a named constructor 'C.n'.
+      // Add the constructor name 'n' to the super constructor.
+      ctor_name = String::SubString(ctor_name, class_name.Length() + 1);
+      super_ctor_name = String::Concat(super_ctor_name, ctor_name);
+    }
+  }
+
+  // Resolve super constructor function and check arguments.
   const Function& super_ctor = Function::ZoneHandle(
-      super_class.LookupConstructor(ctor_name));
+      super_class.LookupConstructor(super_ctor_name));
   if (super_ctor.IsNull()) {
       ErrorMsg(supercall_pos,
                "unresolved implicit call to super constructor '%s()'",
@@ -2129,7 +2150,7 @@ void Parser::ParseInitializers(const Class& cls,
   if (!super_init_seen) {
     // Generate implicit super() if we haven't seen an explicit super call
     // or constructor redirection.
-    GenerateSuperConstructorCall(cls, receiver);
+    GenerateSuperConstructorCall(cls, receiver, NULL);
   }
   CheckConstFieldsInitialized(cls);
 }
@@ -2190,6 +2211,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   const intptr_t ctor_pos = TokenPos();
   OpenFunctionBlock(func);
   const Class& cls = Class::Handle(func.Owner());
+
   LocalVariable* receiver = new LocalVariable(
       ctor_pos,
       Symbols::This(),
@@ -2210,7 +2232,39 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   ParseInitializedInstanceFields(cls, receiver, &initialized_fields);
   receiver->set_invisible(false);
 
-  GenerateSuperConstructorCall(cls, receiver);
+  // If the class of this implicit constructor is a mixin application class,
+  // it is a forwarding constructor of the mixin. The forwarding
+  // constructor initializes the instance fields that have initializer
+  // expressions and then calls the respective super constructor with
+  // the same name and number of parameters.
+  ArgumentListNode* forwarding_args = NULL;
+  if (cls.mixin() != Type::null()) {
+    // At this point we don't support forwarding constructors
+    // that have optional parameters because we don't know the default
+    // values of the optional parameters. We would have to compile the super
+    // constructor to get the default values. Also, the spec is not clear
+    // whether optional parameters are even allowed in this situation.
+    // TODO(hausner): Remove this limitation if the language spec indeed
+    // allows optional parameters.
+    if (func.HasOptionalParameters()) {
+      ErrorMsg(ctor_pos,
+               "forwarding constructors must not have optional parameters");
+    }
+
+    // Prepare user-defined arguments to be forwarded to super call.
+    // The first user-defined argument is at position 2.
+    forwarding_args = new ArgumentListNode(ctor_pos);
+    for (int i = 2; i < func.NumParameters(); i++) {
+      LocalVariable* param = new LocalVariable(
+          ctor_pos,
+          String::ZoneHandle(func.ParameterNameAt(i)),
+          Type::ZoneHandle(Type::DynamicType()));
+      current_block_->scope->AddVariable(param);
+      forwarding_args->Add(new LoadLocalNode(ctor_pos, param));
+    }
+  }
+
+  GenerateSuperConstructorCall(cls, receiver, forwarding_args);
   CheckConstFieldsInitialized(cls);
 
   // Empty constructor body.
@@ -2856,7 +2910,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   // Only constructors can redirect to another method.
   ASSERT((method->redirect_name == NULL) || method->IsConstructor());
 
-  intptr_t method_end_pos = method_pos;
+  intptr_t method_end_pos = TokenPos();
   if ((CurrentToken() == Token::kLBRACE) ||
       (CurrentToken() == Token::kARROW)) {
     if (method->has_abstract) {
@@ -3571,7 +3625,8 @@ void Parser::AddImplicitConstructor(const Class& cls) {
   ctor_name = String::Concat(ctor_name, Symbols::Dot());
   ctor_name = Symbols::New(ctor_name);
   // To indicate that this is an implicit constructor, we set the
-  // token position is the same as the token position of the class.
+  // token position and end token position of the function
+  // to the token position of the class.
   Function& ctor = Function::Handle(
       Function::New(ctor_name,
                     RawFunction::kConstructor,
@@ -3581,6 +3636,8 @@ void Parser::AddImplicitConstructor(const Class& cls) {
                     /* is_external = */ false,
                     cls,
                     cls.token_pos()));
+  ctor.set_end_token_pos(ctor.token_pos());
+
   ParamList params;
   // Add implicit 'this' parameter. We don't care about the specific type
   // and just specify dynamic.
@@ -4094,7 +4151,7 @@ RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
     mixin_application.set_mixin(Type::Cast(mixin_type));
     mixin_application.set_library(library_);
     mixin_application.set_is_synthesized_class();
-    AddImplicitConstructor(mixin_application);
+
     // Add the mixin type to the interfaces that the mixin application
     // class implements. This is necessary so that type tests work.
     mixin_application_interfaces = Array::New(1);
@@ -4826,7 +4883,7 @@ void Parser::AddFormalParamsToFunction(const ParamList* params,
           params->has_optional_named_parameters));
   if (!Utils::IsInt(16, params->num_fixed_parameters) ||
       !Utils::IsInt(16, params->num_optional_parameters)) {
-    ErrorMsg("too many formal parameters");
+    ErrorMsg(func.token_pos(), "too many formal parameters");
   }
   func.set_num_fixed_parameters(params->num_fixed_parameters);
   func.SetNumOptionalParameters(params->num_optional_parameters,
