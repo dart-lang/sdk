@@ -48,27 +48,19 @@ void createSandbox() {
   var dir = new Directory("").createTempSync();
   _sandboxDir = dir.path;
 
-  // TODO(rnystrom): Temporary while debugging the Windows bot.
-  print("create mock modtime map for $_sandboxDir");
-
   _mockFileModificationTimes = new Map<String, int>();
   mockGetModificationTime((path) {
-    path = p.relative(path, from: _sandboxDir);
+    path = p.normalize(p.relative(path, from: _sandboxDir));
 
     // Make sure we got a path in the sandbox.
     assert(p.isRelative(path)  && !path.startsWith(".."));
 
-    // TODO(rnystrom): Temporary while debugging the Windows bot.
-    print("get mock modtime for $path = ${_mockFileModificationTimes[path]}");
     return new DateTime.fromMillisecondsSinceEpoch(
         _mockFileModificationTimes[path]);
   });
 
   // Delete the sandbox when done.
   currentSchedule.onComplete.schedule(() {
-    // TODO(rnystrom): Temporary while debugging the Windows bot.
-    print("delete mock modtime map for $_sandboxDir");
-
     if (_sandboxDir != null) {
       new Directory(_sandboxDir).deleteSync(recursive: true);
       _sandboxDir = null;
@@ -147,17 +139,15 @@ void writeFile(String path, {String contents, bool updateModified}) {
       dir.createSync(recursive: true);
     }
 
-    // TODO(rnystrom): Temporary while debugging the Windows bot.
-    print("write $path");
-
     new File(fullPath).writeAsStringSync(contents);
 
     // Manually update the mock modification time for the file.
     if (updateModified) {
+      // Make sure we always use the same separator on Windows.
+      path = p.normalize(path);
+
       var milliseconds = _mockFileModificationTimes.putIfAbsent(path, () => 0);
       _mockFileModificationTimes[path]++;
-      // TODO(rnystrom): Temporary while debugging the Windows bot.
-      print("  update modtime to ${_mockFileModificationTimes[path]}");
     }
   });
 }
@@ -176,14 +166,12 @@ void renameFile(String from, String to) {
   schedule(() {
     new File(p.join(_sandboxDir, from)).renameSync(p.join(_sandboxDir, to));
 
-    // TODO(rnystrom): Temporary while debugging the Windows bot.
-    print("rename $from -> $to");
+    // Make sure we always use the same separator on Windows.
+    to = p.normalize(to);
 
     // Manually update the mock modification time for the file.
     var milliseconds = _mockFileModificationTimes.putIfAbsent(to, () => 0);
     _mockFileModificationTimes[to]++;
-    // TODO(rnystrom): Temporary while debugging the Windows bot.
-    print("  update modtime to ${_mockFileModificationTimes[to]}");
   });
 }
 
