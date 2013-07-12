@@ -550,11 +550,15 @@ class CallSiteInliner : public ValueObject {
       // parameters.
       if (function.HasOptionalParameters()) {
         TRACE_INLINING(OS::Print("     adjusting for optional parameters\n"));
-        AdjustForOptionalParameters(*parsed_function,
-                                    argument_names,
-                                    arguments,
-                                    param_stubs,
-                                    callee_graph);
+        if (!AdjustForOptionalParameters(*parsed_function,
+                                         argument_names,
+                                         arguments,
+                                         param_stubs,
+                                         callee_graph)) {
+          function.set_is_inlinable(false);
+          TRACE_INLINING(OS::Print("     Bailout: optional arg mismatch\n"));
+          return false;
+        }
       }
 
       // After treating optional parameters the actual/formal count must match.
@@ -829,7 +833,7 @@ class CallSiteInliner : public ValueObject {
     }
   }
 
-  void AdjustForOptionalParameters(const ParsedFunction& parsed_function,
+  bool AdjustForOptionalParameters(const ParsedFunction& parsed_function,
                                    const Array& argument_names,
                                    GrowableArray<Value*>* arguments,
                                    ZoneGrowableArray<Definition*>* param_stubs,
@@ -864,7 +868,7 @@ class CallSiteInliner : public ValueObject {
         arguments->Add(NULL);
         param_stubs->Add(constant);
       }
-      return;
+      return true;
     }
 
     ASSERT(function.HasOptionalNamedParameters());
@@ -880,7 +884,7 @@ class CallSiteInliner : public ValueObject {
         arguments->Add(NULL);
         param_stubs->Add(GetDefaultValue(i, parsed_function));
       }
-      return;
+      return true;
     }
 
     // Otherwise, build a collection of name/argument pairs.
@@ -897,6 +901,7 @@ class CallSiteInliner : public ValueObject {
 
     // For each optional named parameter, add the actual argument or its
     // default if no argument is passed.
+    intptr_t match_count = 0;
     for (intptr_t i = fixed_param_count; i < param_count; ++i) {
       String& param_name = String::Handle(function.ParameterNameAt(i));
       // Search for and add the named argument.
@@ -904,6 +909,7 @@ class CallSiteInliner : public ValueObject {
       for (intptr_t j = 0; j < named_args.length(); ++j) {
         if (param_name.Equals(*named_args[j].name)) {
           arg = named_args[j].value;
+          match_count++;
           break;
         }
       }
@@ -916,6 +922,7 @@ class CallSiteInliner : public ValueObject {
             GetDefaultValue(i - fixed_param_count, parsed_function));
       }
     }
+    return argument_names_count == match_count;
   }
 
 
