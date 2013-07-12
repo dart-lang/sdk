@@ -670,7 +670,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   __ cmpq(RAX, raw_null);
   __ j(EQUAL, &is_assignable);
 
-  if (!FLAG_eliminate_type_checks) {
+  if (!FLAG_eliminate_type_checks || dst_type.IsMalformed()) {
     // If type checks are not eliminated during the graph building then
     // a transition sentinel can be seen here.
     __ CompareObject(RAX, Object::transition_sentinel());

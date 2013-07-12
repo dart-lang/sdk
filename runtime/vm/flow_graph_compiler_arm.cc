@@ -656,7 +656,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   __ CompareImmediate(R0, reinterpret_cast<int32_t>(Object::null()));
   __ b(&is_assignable, EQ);
 
-  if (!FLAG_eliminate_type_checks) {
+  if (!FLAG_eliminate_type_checks || dst_type.IsMalformed()) {
     // If type checks are not eliminated during the graph building then
     // a transition sentinel can be seen here.
     __ CompareObject(R0, Object::transition_sentinel());
