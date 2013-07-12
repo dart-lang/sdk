@@ -63,20 +63,20 @@ String S(value) {
   return res;
 }
 
-createInvocationMirror(String name, internalName, type, arguments,
+createInvocationMirror(String name, internalName, kind, arguments,
                        argumentNames) {
   return new JSInvocationMirror(name,
                                 internalName,
-                                type,
+                                kind,
                                 arguments,
                                 argumentNames);
 }
 
-createUnmangledInvocationMirror(Symbol symbol, internalName, type, arguments,
+createUnmangledInvocationMirror(Symbol symbol, internalName, kind, arguments,
                                 argumentNames) {
   return new JSInvocationMirror(symbol,
                                 internalName,
-                                type,
+                                kind,
                                 arguments,
                                 argumentNames);
 }
@@ -591,7 +591,12 @@ class Primitives {
     String selectorName = 'call\$$argumentCount$buffer';
     var jsFunction = JS('var', '#[#]', function, selectorName);
     if (jsFunction == null) {
-      throw new NoSuchMethodError(function, selectorName, arguments, {});
+      return function.noSuchMethod(createUnmangledInvocationMirror(
+          const Symbol('call'),
+          selectorName,
+          JSInvocationMirror.METHOD,
+          arguments,
+          namedArguments == null ? null : namedArguments.keys.toList()));
     }
     // We bound 'this' to [function] because of how we compile
     // closures: escaped local variables are stored and accessed through
