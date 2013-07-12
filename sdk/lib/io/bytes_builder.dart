@@ -49,7 +49,7 @@ class BytesBuilder {
     if (bytes is Uint8List) {
       _buffer.setRange(_length, required, bytes);
     } else {
-      for (int i = 0; i < bufferLength; i++) {
+      for (int i = 0; i < bytesLength; i++) {
         _buffer[_length + i] = bytes[i];
       }
     }
