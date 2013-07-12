@@ -22,11 +22,12 @@ class StringScanner extends ArrayBasedScanner<SourceString> {
       => (string.length > index) ? string.codeUnitAt(index) : $EOF;
 
   SourceString asciiString(int start, int offset) {
-    return new SubstringWrapper(string, start, byteOffset + offset);
+    return new SourceString.fromSubstring(string, start, byteOffset + offset);
   }
 
   SourceString utf8String(int start, int offset) {
-    return new SubstringWrapper(string, start, byteOffset + offset + 1);
+    return new SourceString.fromSubstring(
+        string, start, byteOffset + offset + 1);
   }
 
   void appendByteStringToken(PrecedenceInfo info, SourceString value) {
@@ -51,56 +52,4 @@ class StringScanner extends ArrayBasedScanner<SourceString> {
     close.next = next;
     next.next = begin.next;
   }
-}
-
-class SubstringWrapper extends IterableBase<int> implements SourceString {
-  final String internalString;
-  final int begin;
-  final int end;
-  int cashedHash = 0;
-  String cachedSubString;
-
-  SubstringWrapper(String this.internalString,
-                   int this.begin, int this.end);
-
-  int get hashCode {
-    if (0 == cashedHash) {
-      cashedHash = slowToString().hashCode;
-    }
-    return cashedHash;
-  }
-
-  bool operator ==(other) {
-    return other is SourceString && slowToString() == other.slowToString();
-  }
-
-  void printOn(StringBuffer sb) {
-    sb.write(internalString.substring(begin, end));
-  }
-
-  String slowToString() {
-    if (cachedSubString == null) {
-      cachedSubString = internalString.substring(begin, end);
-    }
-    return cachedSubString;
-  }
-
-  String toString() => "SubstringWrapper(${slowToString()})";
-
-  String get stringValue => null;
-
-  Iterator<int> get iterator =>
-      new StringCodeIterator.substring(internalString, begin, end);
-
-  SourceString copyWithoutQuotes(int initial, int terminal) {
-    assert(0 <= initial);
-    assert(0 <= terminal);
-    assert(initial + terminal <= internalString.length);
-    return new SubstringWrapper(internalString,
-                                begin + initial, end - terminal);
-  }
-
-  bool get isEmpty => begin == end;
-
-  bool isPrivate() => !isEmpty && internalString.codeUnitAt(begin) == $_;
 }
