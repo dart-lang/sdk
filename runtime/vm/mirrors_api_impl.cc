@@ -182,6 +182,11 @@ DART_EXPORT bool Dart_ClassIsFunctionType(Dart_Handle object) {
   if (!obj.IsType() && !obj.IsClass()) {
     RETURN_TYPE_ERROR(isolate, object, Class/Type);
   }
+  // Ensure all classes are finalized.
+  Dart_Handle state = Api::CheckIsolateState(isolate);
+  if (::Dart_IsError(state)) {
+    return state;
+  }
   const Class& cls = (obj.IsType()) ?
       Class::Handle(Type::Cast(obj).type_class()) : Class::Cast(obj);
   // A class represents a function type when it is a canonical
@@ -500,7 +505,11 @@ DART_EXPORT Dart_Handle Dart_FunctionReturnType(Dart_Handle function) {
   if (func.IsNull()) {
     RETURN_TYPE_ERROR(isolate, function, Function);
   }
-
+  // Ensure all classes are finalized.
+  Dart_Handle state = Api::CheckIsolateState(isolate);
+  if (::Dart_IsError(state)) {
+    return state;
+  }
   if (func.kind() == RawFunction::kConstructor) {
     // Special case the return type for constructors.  Inside the vm
     // we mark them as returning dynamic, but for the purposes of
@@ -555,7 +564,11 @@ DART_EXPORT Dart_Handle Dart_FunctionParameterType(Dart_Handle function,
   if (func.IsNull()) {
     RETURN_TYPE_ERROR(isolate, function, Function);
   }
-
+  // Ensure all classes are finalized.
+  Dart_Handle state = Api::CheckIsolateState(isolate);
+  if (::Dart_IsError(state)) {
+    return state;
+  }
   const intptr_t num_implicit_params = func.NumImplicitParameters();
   const intptr_t num_params = func.NumParameters() - num_implicit_params;
   if (parameter_index < 0 || parameter_index >= num_params) {
@@ -709,7 +722,11 @@ DART_EXPORT Dart_Handle Dart_VariableType(Dart_Handle variable) {
   if (var.IsNull()) {
     RETURN_TYPE_ERROR(isolate, variable, Field);
   }
-
+  // Ensure all classes are finalized.
+  Dart_Handle state = Api::CheckIsolateState(isolate);
+  if (::Dart_IsError(state)) {
+    return state;
+  }
   const AbstractType& type = AbstractType::Handle(isolate, var.type());
   return TypeToHandle(isolate, "Dart_VariableType", type);
 }
@@ -721,6 +738,11 @@ DART_EXPORT Dart_Handle Dart_GetTypeVariableNames(Dart_Handle object) {
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
   if (!obj.IsType() && !obj.IsClass()) {
     RETURN_TYPE_ERROR(isolate, object, Class/Type);
+  }
+  // Ensure all classes are finalized.
+  Dart_Handle state = Api::CheckIsolateState(isolate);
+  if (::Dart_IsError(state)) {
+    return state;
   }
   const Class& cls = (obj.IsType()) ?
       Class::Handle(Type::Cast(obj).type_class()) : Class::Cast(obj);

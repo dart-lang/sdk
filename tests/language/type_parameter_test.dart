@@ -30,7 +30,18 @@ class A<T> {
 
   static final
   T /// 04: static type warning, dynamic type error
-  staticField = "not_null";
+  staticFinalField = "not_null";
+
+  static const
+  // TODO(regis): Support 'compile-time type error' in test.dart and use below.
+  T /// 05: static type warning, compile-time error
+  staticConstField = "not_null";
+
+  static not_null() => "not_null";
+  static final
+  T /// 06: static type warning, dynamic type error
+  staticFinalField2 = not_null();
+
 
   // Assigning null to a malformed type is not a dynamic error.
   static
@@ -40,7 +51,10 @@ class A<T> {
     return a;
   }
 
-  static final T staticField2 = null;
+  static final T staticFinalField3 = null;
+
+  static null_() => null;
+  static final T staticFinalField4 = null_();
 }
 
 main() {
@@ -59,8 +73,11 @@ main() {
   Expect.isFalse(s is Set<double>);
 
   A.staticMethod("not_null");
-  print(A.staticField);
+  print(A.staticFinalField);
+  print(A.staticConstField);
+  print(A.staticFinalField2);
 
   A.staticMethod2(null);
-  print(A.staticField2);
+  print(A.staticFinalField3);
+  print(A.staticFinalField4);
 }

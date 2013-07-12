@@ -255,15 +255,59 @@ void ClassFinalizer::VerifyBootstrapClasses() {
 
 
 // Resolve unresolved_class in the library of cls, or return null.
-RawClass* ClassFinalizer::ResolveClass(
-    const Class& cls, const UnresolvedClass& unresolved_class) {
+RawClass* ClassFinalizer::ResolveClass(const Class& cls,
+                                       const UnresolvedClass& unresolved_class,
+                                       Error* ambiguity_error) {
   const String& class_name = String::Handle(unresolved_class.ident());
   Library& lib = Library::Handle();
   Class& resolved_class = Class::Handle();
   if (unresolved_class.library_prefix() == LibraryPrefix::null()) {
     lib = cls.library();
     ASSERT(!lib.IsNull());
-    resolved_class = lib.LookupClass(class_name);
+    // TODO(regis): Call lib.LookupClass(class_name, ambiguity_error) instead
+    // once it takes the ambiguity_error parameter.
+
+    // First check if name is found in the local scope of the library.
+    Object& obj = Object::Handle(lib.LookupLocalObject(class_name));
+    if (!obj.IsNull() && obj.IsClass()) {
+      return Class::Cast(obj).raw();
+    }
+    // Now check if class_name is found in any imported libs.
+    String& first_lib_url = String::Handle();
+    Namespace& import = Namespace::Handle();
+    Library& import_lib = Library::Handle();
+    for (intptr_t i = 0; i < lib.num_imports(); i++) {
+      import ^= lib.ImportAt(i);
+      obj = import.Lookup(class_name);
+      if (!obj.IsNull()) {
+        import_lib = import.library();
+        if (!first_lib_url.IsNull()) {
+          // Found duplicate definition.
+          const Script& script = Script::Handle(cls.script());
+          if (first_lib_url.raw() == lib.url()) {
+            *ambiguity_error = Parser::FormatErrorMsg(
+                script, unresolved_class.token_pos(), "Error",
+                "ambiguous reference to '%s', "
+                "as library '%s' is imported multiple times",
+                class_name.ToCString(),
+                first_lib_url.ToCString());
+          } else {
+            *ambiguity_error = Parser::FormatErrorMsg(
+                script, unresolved_class.token_pos(), "Error",
+                "ambiguous reference: "
+                "'%s' is defined in library '%s' and also in '%s'",
+                class_name.ToCString(),
+                first_lib_url.ToCString(),
+                String::Handle(lib.url()).ToCString());
+          }
+          return Class::null();
+        }
+        first_lib_url = lib.url();
+        if (obj.IsClass()) {
+          resolved_class = Class::Cast(obj).raw();
+        }
+      }
+    }
   } else {
     LibraryPrefix& lib_prefix = LibraryPrefix::Handle();
     lib_prefix = unresolved_class.library_prefix();
@@ -317,6 +361,19 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
     ASSERT(factory.RedirectionTarget() == Function::null());
     return;
   }
+  ASSERT(!type.IsTypeParameter());  // Resolved in parser.
+  if (type.IsDynamicType()) {
+    // Replace the type with a malformed type and compile a throw when called.
+    type = NewFinalizedMalformedType(
+        Error::Handle(),  // No previous error.
+        cls,
+        factory.token_pos(),
+        kResolveTypeParameters,  // No compile-time error.
+        "factory may not redirect to 'dynamic'");
+    factory.SetRedirectionType(type);
+    ASSERT(factory.RedirectionTarget() == Function::null());
+    return;
+  }
   const Class& target_class = Class::Handle(type.type_class());
   String& target_class_name = String::Handle(target_class.Name());
   String& target_name = String::Handle(
@@ -339,7 +396,7 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
         Error::Handle(),  // No previous error.
         cls,
         factory.token_pos(),
-        kTryResolve,  // No compile-time error.
+        kResolveTypeParameters,  // No compile-time error.
         "class '%s' has no constructor or factory named '%s'",
         target_class_name.ToCString(),
         user_visible_target_name.ToCString());
@@ -354,7 +411,7 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
         Error::Handle(),  // No previous error.
         cls,
         factory.token_pos(),
-        kTryResolve,  // No compile-time error.
+        kResolveTypeParameters,  // No compile-time error.
         "constructor '%s' has incompatible parameters with "
         "redirecting factory '%s'",
         String::Handle(target.name()).ToCString(),
@@ -437,8 +494,9 @@ void ClassFinalizer::ResolveType(const Class& cls,
     // Lookup the type class.
     const UnresolvedClass& unresolved_class =
         UnresolvedClass::Handle(type.unresolved_class());
+    Error& ambiguous_error = Error::Handle();
     const Class& type_class =
-        Class::Handle(ResolveClass(cls, unresolved_class));
+        Class::Handle(ResolveClass(cls, unresolved_class, &ambiguous_error));
 
     // Replace unresolved class with resolved type class.
     const Type& parameterized_type = Type::Cast(type);
@@ -446,7 +504,7 @@ void ClassFinalizer::ResolveType(const Class& cls,
       parameterized_type.set_type_class(type_class);
     } else {
       // The type class could not be resolved. The type is malformed.
-      FinalizeMalformedType(Error::Handle(),  // No previous error.
+      FinalizeMalformedType(ambiguous_error,  // May be null.
                             cls, parameterized_type, finalization,
                             "cannot resolve class name '%s' from '%s'",
                             String::Handle(unresolved_class.Name()).ToCString(),
@@ -870,7 +928,8 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   // If a bound error occurred, return a BoundedType with a malformed bound.
   // The malformed bound will be ignored in production mode.
   if (!bound_error.IsNull()) {
-    FinalizationKind bound_finalization = kTryResolve;  // No compile error.
+    // No compile-time error during finalization.
+    FinalizationKind bound_finalization = kResolveTypeParameters;
     if (FLAG_enable_type_checks || FLAG_error_on_malformed_type) {
       bound_finalization = finalization;
     }
@@ -1060,6 +1119,43 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
                     class_name.ToCString(),
                     name.ToCString(),
                     super_class_name.ToCString());
+      }
+    }
+    if ((FLAG_enable_type_checks || FLAG_error_on_malformed_type) &&
+        field.is_static() && field.is_const() &&
+        (field.value() != Object::null()) &&
+        (field.value() != Object::sentinel().raw())) {
+      // The parser does not preset the value if the type is a type parameter or
+      // is parameterized unless the value is null.
+      Error& malformed_error = Error::Handle();
+      if (type.IsMalformed()) {
+        malformed_error = type.malformed_error();
+      } else {
+        ASSERT(type.IsInstantiated());
+      }
+      const Instance& const_value = Instance::Handle(field.value());
+      if (!malformed_error.IsNull() ||
+          (!type.IsDynamicType() &&
+           !const_value.IsInstanceOf(type,
+                                     AbstractTypeArguments::Handle(),
+                                     &malformed_error))) {
+        // If the failure is due to a malformed type error, display it instead.
+        if (!malformed_error.IsNull()) {
+          ReportError(malformed_error);
+        } else {
+          const AbstractType& const_value_type = AbstractType::Handle(
+              const_value.GetType());
+          const String& const_value_type_name = String::Handle(
+              const_value_type.UserVisibleName());
+          const String& type_name = String::Handle(type.UserVisibleName());
+          const Script& script = Script::Handle(cls.script());
+          ReportError(script, field.token_pos(),
+                      "error initializing const field '%s': type '%s' is not a "
+                      "subtype of type '%s'",
+                      name.ToCString(),
+                      const_value_type_name.ToCString(),
+                      type_name.ToCString());
+        }
       }
     }
   }
@@ -1709,6 +1805,12 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
 
   // Resolve super type. Failures lead to a longjmp.
   ResolveType(cls, super_type, kCanonicalizeWellFormed);
+  if (super_type.IsDynamicType()) {
+    const Script& script = Script::Handle(cls.script());
+    ReportError(script, cls.token_pos(),
+                "class '%s' may not extend 'dynamic'",
+                String::Handle(cls.Name()).ToCString());
+  }
 
   interface_class = super_type.type_class();
   // If cls belongs to core lib or to core lib's implementation, restrictions
@@ -1767,11 +1869,11 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
   for (intptr_t i = 0; i < super_interfaces.Length(); i++) {
     interface ^= super_interfaces.At(i);
     ResolveType(cls, interface, kCanonicalizeWellFormed);
-    if (interface.IsTypeParameter()) {
+    ASSERT(!interface.IsTypeParameter());  // Should be detected by parser.
+    if (interface.IsDynamicType()) {
       const Script& script = Script::Handle(cls.script());
       ReportError(script, cls.token_pos(),
-                  "type parameter '%s' cannot be used as interface",
-                  String::Handle(interface.Name()).ToCString());
+                  "'dynamic' may not be used as interface");
     }
     interface_class = interface.type_class();
     if (interface_class.IsSignatureClass()) {

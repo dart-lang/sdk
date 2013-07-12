@@ -6662,6 +6662,7 @@ RawFunction* Library::LookupLocalFunction(const String& name) const {
 }
 
 
+// TODO(regis): This should take an Error* ambiguity_error parameter.
 RawObject* Library::LookupObject(const String& name) const {
   // First check if name is found in the local scope of the library.
   Object& obj = Object::Handle(LookupLocalObject(name));
@@ -6669,6 +6670,8 @@ RawObject* Library::LookupObject(const String& name) const {
     return obj.raw();
   }
   // Now check if name is found in any imported libs.
+  // TODO(regis): This does not seem correct. It should be an error if the name
+  // is found in more than one import and actually used.
   const Array& imports = Array::Handle(this->imports());
   Namespace& import = Namespace::Handle();
   for (intptr_t j = 0; j < this->num_imports(); j++) {
@@ -6682,6 +6685,7 @@ RawObject* Library::LookupObject(const String& name) const {
 }
 
 
+// TODO(regis): This should take an Error* ambiguity_error parameter.
 RawClass* Library::LookupClass(const String& name) const {
   Object& obj = Object::Handle(LookupObject(name));
   if (!obj.IsNull() && obj.IsClass()) {
