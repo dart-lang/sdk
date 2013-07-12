@@ -132,6 +132,7 @@ oauth2/test/client_test: Fail, OK # Uses dart:io.
 oauth2/test/credentials_test: Fail, OK # Uses dart:io.
 oauth2/test/handle_access_token_response_test: Fail, OK # Uses dart:io.
 path/test/io_test: Fail, OK # Uses dart:io.
+watcher/test/*: Fail, OK # Uses dart:io.
 
 scheduled_test/test/descriptor/async_test: Fail # http://dartbug.com/8440
 scheduled_test/test/descriptor/directory_test: Fail # http://dartbug.com/8440
