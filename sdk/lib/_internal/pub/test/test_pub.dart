@@ -21,6 +21,7 @@ import 'package:pathos/path.dart' as path;
 import 'package:scheduled_test/scheduled_process.dart';
 import 'package:scheduled_test/scheduled_server.dart';
 import 'package:scheduled_test/scheduled_test.dart';
+import 'package:unittest/compact_vm_config.dart';
 import 'package:yaml/yaml.dart';
 
 import '../lib/src/entrypoint.dart';
@@ -38,16 +39,12 @@ import '../lib/src/source/path.dart';
 import '../lib/src/system_cache.dart';
 import '../lib/src/utils.dart';
 import '../lib/src/validator.dart';
-import 'command_line_config.dart';
 import 'descriptor.dart' as d;
 
 /// This should be called at the top of a test file to set up an appropriate
 /// test configuration for the machine running the tests.
 initConfig() {
-  // If we aren't running on the bots, use the human-friendly config.
-  if (!runningOnBuildbot) {
-    unittestConfiguration = new CommandLineConfiguration();
-  }
+  useCompactVMConfiguration();
 }
 
 /// Returns whether we're running on a Dart build bot.
