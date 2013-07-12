@@ -2,10 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $runtime == drt && $compiler == none && $mode == debug ]
-spawn_uri_vm_test: Fail # Issue 11656
-spawn_uri_nested_vm_test: Fail # Issue 11656
-
 [ $runtime == vm ]
 isolate2_negative_test: Skip  # Need to resolve correct behaviour.
 isolate3_negative_test: Skip  # test depends on isolate error exiting process.
