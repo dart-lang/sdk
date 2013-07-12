@@ -224,12 +224,12 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   __ Comment("InstantiatedTypeWithArgumentsTest");
   ASSERT(type.IsInstantiated());
   const Class& type_class = Class::ZoneHandle(type.type_class());
-  ASSERT(type_class.HasTypeArguments());
+  ASSERT(type_class.HasTypeArguments() || type_class.IsSignatureClass());
   const Register kInstanceReg = A0;
   Error& malformed_error = Error::Handle();
   const Type& int_type = Type::Handle(Type::IntType());
   const bool smi_is_ok = int_type.IsSubtypeOf(type, &malformed_error);
-  // Malforrmed type should have been handled at graph construction time.
+  // Malformed type should have been handled at graph construction time.
   ASSERT(smi_is_ok || malformed_error.IsNull());
   __ andi(CMPRES, kInstanceReg, Immediate(kSmiTagMask));
   if (smi_is_ok) {
@@ -241,31 +241,34 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
       AbstractTypeArguments::ZoneHandle(type.arguments());
   const bool is_raw_type = type_arguments.IsNull() ||
       type_arguments.IsRaw(type_arguments.Length());
-  if (is_raw_type) {
-    const Register kClassIdReg = T0;
-    // dynamic type argument, check only classes.
-    __ LoadClassId(kClassIdReg, kInstanceReg);
-    __ BranchEqual(kClassIdReg, type_class.id(), is_instance_lbl);
-    // List is a very common case.
-    if (IsListClass(type_class)) {
-      GenerateListTypeCheck(kClassIdReg, is_instance_lbl);
+  // Signature class is an instantiated parameterized type.
+  if (!type_class.IsSignatureClass()) {
+    if (is_raw_type) {
+      const Register kClassIdReg = T0;
+      // dynamic type argument, check only classes.
+      __ LoadClassId(kClassIdReg, kInstanceReg);
+      __ BranchEqual(kClassIdReg, type_class.id(), is_instance_lbl);
+      // List is a very common case.
+      if (IsListClass(type_class)) {
+        GenerateListTypeCheck(kClassIdReg, is_instance_lbl);
+      }
+      return GenerateSubtype1TestCacheLookup(
+          token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
     }
-    return GenerateSubtype1TestCacheLookup(
-        token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
-  }
-  // If one type argument only, check if type argument is Object or dynamic.
-  if (type_arguments.Length() == 1) {
-    const AbstractType& tp_argument = AbstractType::ZoneHandle(
-        type_arguments.TypeAt(0));
-    ASSERT(!tp_argument.IsMalformed());
-    if (tp_argument.IsType()) {
-      ASSERT(tp_argument.HasResolvedTypeClass());
-      // Check if type argument is dynamic or Object.
-      const Type& object_type = Type::Handle(Type::ObjectType());
-      if (object_type.IsSubtypeOf(tp_argument, NULL)) {
-        // Instance class test only necessary.
-        return GenerateSubtype1TestCacheLookup(
-            token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
+    // If one type argument only, check if type argument is Object or dynamic.
+    if (type_arguments.Length() == 1) {
+      const AbstractType& tp_argument = AbstractType::ZoneHandle(
+          type_arguments.TypeAt(0));
+      ASSERT(!tp_argument.IsMalformed());
+      if (tp_argument.IsType()) {
+        ASSERT(tp_argument.HasResolvedTypeClass());
+        // Check if type argument is dynamic or Object.
+        const Type& object_type = Type::Handle(Type::ObjectType());
+        if (object_type.IsSubtypeOf(tp_argument, NULL)) {
+          // Instance class test only necessary.
+          return GenerateSubtype1TestCacheLookup(
+              token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
+        }
       }
     }
   }
@@ -509,8 +512,9 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
   if (type.IsInstantiated()) {
     const Class& type_class = Class::ZoneHandle(type.type_class());
     // A class equality check is only applicable with a dst type of a
-    // non-parameterized class or with a raw dst type of a parameterized class.
-    if (type_class.HasTypeArguments()) {
+    // non-parameterized class, non-signature class, or with a raw dst type of
+    // a parameterized class.
+    if (type_class.IsSignatureClass() || type_class.HasTypeArguments()) {
       return GenerateInstantiatedTypeWithArgumentsTest(token_pos,
                                                        type,
                                                        is_instance_lbl,

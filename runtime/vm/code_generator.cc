@@ -533,29 +533,30 @@ static void UpdateTypeTestCache(
                                        &malformed_error);
       ASSERT(malformed_error.IsNull());  // Malformed types are not optimized.
     }
-    OS::PrintErr("  Updated test cache %p ix: %"Pd" with (%"Pd", %p, %p, %s)\n"
-        "    [%p %s %"Pd", %p %s]\n"
-        "    [%p %s %"Pd", %p %s] %s\n",
+    OS::PrintErr("  Updated test cache %p ix: %"Pd" with "
+        "(cid: %"Pd", type-args: %p, instantiator: %p, result: %s)\n"
+        "    instance  [class: (%p '%s' cid: %"Pd"),    type-args: %p %s]\n"
+        "    test-type [class: (%p '%s' cid: %"Pd"), in-type-args: %p %s]\n",
         new_cache.raw(),
         len,
-        instance_class.id(),
 
+        instance_class.id(),
         instance_type_arguments.raw(),
         instantiator_type_arguments.raw(),
         result.ToCString(),
 
         instance_class.raw(),
-        instance_class.ToCString(),
+        String::Handle(instance_class.Name()).ToCString(),
         instance_class.id(),
         instance_type_arguments.raw(),
         instance_type_arguments.ToCString(),
 
         test_type.type_class(),
-        Class::Handle(test_type.type_class()).ToCString(),
+        String::Handle(Class::Handle(test_type.type_class()).Name()).
+            ToCString(),
         Class::Handle(test_type.type_class()).id(),
         instantiator_type_arguments.raw(),
-        instantiator_type_arguments.ToCString(),
-        result.ToCString());
+        instantiator_type_arguments.ToCString());
   }
 }
 
