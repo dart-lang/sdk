@@ -42,13 +42,24 @@ class DirectoryWatcher {
   Future get ready => _ready.future;
   Completer _ready = new Completer();
 
+  /// The amount of time the watcher pauses between successive polls of the
+  /// directory contents.
+  final Duration pollingDelay;
+
   /// The previous status of the files in the directory.
   ///
   /// Used to tell which files have been modified.
   final _statuses = new Map<String, _FileStatus>();
 
   /// Creates a new [DirectoryWatcher] monitoring [directory].
-  DirectoryWatcher(this.directory) {
+  ///
+  /// If [pollingDelay] is passed, it specifies the amount of time the watcher
+  /// will pause between successive polls of the directory contents. Making
+  /// this shorter will give more immediate feedback at the expense of doing
+  /// more IO and higher CPU usage. Defaults to one second.
+  DirectoryWatcher(this.directory, {Duration pollingDelay})
+      : pollingDelay = pollingDelay != null ? pollingDelay :
+                                              new Duration(seconds: 1) {
     _events = new StreamController<WatchEvent>.broadcast(onListen: () {
       _state = _state.listen(this);
     }, onCancel: () {
@@ -93,7 +104,7 @@ class DirectoryWatcher {
       // restarting just so that we don't whale on the file system.
       // TODO(rnystrom): Tune this and/or make it tunable?
       if (_state.shouldNotify) {
-        return new Future.delayed(new Duration(seconds: 1));
+        return new Future.delayed(pollingDelay);
       }
     }).then((_) {
       // Make sure we haven't transitioned to a non-watching state during the

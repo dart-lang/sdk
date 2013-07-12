@@ -77,7 +77,9 @@ void createSandbox() {
 /// and is polling for changes. If you pass `false` for [waitForReady], it will
 /// not schedule this delay.
 DirectoryWatcher createWatcher({bool waitForReady}) {
-  _watcher = new DirectoryWatcher(_sandboxDir);
+  // Use a short delay to make the tests run quickly.
+  _watcher = new DirectoryWatcher(_sandboxDir,
+      pollingDelay: new Duration(milliseconds: 100));
 
   // Wait until the scan is finished so that we don't miss changes to files
   // that could occur before the scan completes.
