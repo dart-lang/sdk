@@ -190,5 +190,7 @@ class _ChangeMatcher extends BaseMatcher {
   }
 
   bool matches(item, Map matchState) =>
-      item is WatchEvent && item.type == type && item.path == path;
+      item is WatchEvent &&
+      item.type == type &&
+      p.normalize(item.path) == p.normalize(path);
 }
