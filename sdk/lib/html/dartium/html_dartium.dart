@@ -12590,7 +12590,7 @@ class HttpRequest extends EventTarget {
    * The data received as a reponse from the request.
    *
    * The data could be in the
-   * form of a [String], [ByteBuffer], [Document], [Blob], or json (also a
+   * form of a [String], [ArrayBuffer], [Document], [Blob], or json (also a
    * [String]). `null` indicates request failure.
    */
   @DomName('XMLHttpRequest.response')
@@ -25484,7 +25484,7 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('Window.moveTo')
   @DocsEditable()
-  void moveTo(num x, num y) native "DOMWindow_moveTo_Callback";
+  void $dom_moveTo(num x, num y) native "DOMWindow_moveTo_Callback";
 
   @DomName('Window.open')
   @DocsEditable()
@@ -25839,6 +25839,10 @@ class Window extends EventTarget implements WindowBase {
   @DomName('DOMWindow.onbeforeunload')
   @DocsEditable()
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
+
+  void moveTo(Point p) {
+    $dom_moveTo(p.x, p.y);
+  }
 }
 
 /**
