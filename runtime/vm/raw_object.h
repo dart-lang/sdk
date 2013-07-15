@@ -488,7 +488,7 @@ class RawClass : public RawObject {
   RawFunction* signature_function_;  // Associated function for signature class.
   RawArray* constants_;  // Canonicalized values of this class.
   RawArray* canonical_types_;  // Canonicalized types of this class.
-  RawArray* no_such_method_cache_;   // Dispatcher functions for noSuchMethod.
+  RawArray* invocation_dispatcher_cache_;   // Cache for dispatcher functions.
   RawCode* allocation_stub_;  // Stub code for allocation of instances.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->allocation_stub_);
@@ -600,6 +600,7 @@ class RawFunction : public RawObject {
     kConstImplicitGetter,  // represents an implicit const getter for fields.
     kMethodExtractor,  // converts method into implicit closure on the receiver.
     kNoSuchMethodDispatcher,  // invokes noSuchMethod.
+    kInvokeFieldDispatcher,  // invokes a field as a closure.
   };
 
  private:

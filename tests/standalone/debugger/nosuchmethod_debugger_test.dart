@@ -11,16 +11,9 @@
 
 import "debug_lib.dart";
 
-bar(x) {
-  print(x);
-}
-
 main() {
   if (RunScript(testScript)) return;
   print("Hello from debuggee");
-  var f = bar;
-  f("closure call");
-  bar(12);
   var a = new A();
   for (var i = 0; i < 2; ++i) {
     a.foo(i);
@@ -28,38 +21,28 @@ main() {
 }
 
 class A {
-  A() {
-    foo =
-      (x) => print(x);
+  noSuchMethod(m) {
+    print(m.positionalArguments[0]);
   }
-  var foo;
 }
 
 // Expected debugger events and commands.
 var testScript = [
   MatchFrame(0, "main"),  // Top frame in trace is function "main".
-  SetBreakpoint(22),      // Set breakpoint a line 22, at the closure call.
+  SetBreakpoint(19),      // Set breakpoint at a.foo(i).
   Resume(),
   MatchFrame(0, "main"),  // Should be at closure call.
-  StepInto(),
-  MatchFrames(["bar", "main"]),  // Should be in closure function now.
-  StepOut(),
-  MatchFrame(0, "main"),  // Back in main, before static call to bar().
-  SetBreakpoint(15),      // Breakpoint in bar();
-  Resume(),
-  MatchFrames(["bar", "main"]),
-  SetBreakpoint(26),      // Breakpoint in main() at a.field(i).
-  SetBreakpoint(33),      // Breakpoint in closure.
-  Resume(),
-  MatchFrame(0, "main"),  // Should be in main().
   MatchLocals({"i": "0"}),
   StepInto(),
   StepInto(),
-  MatchFrames(["A.<anonymous closure>", "main"]),  // In closure function.
+  MatchFrames(["A.noSuchMethod", "main"]),
+  StepOut(),
+  MatchFrame(0, "main"),  // Back in main.
   Resume(),
-  MatchFrame(0, "main"),  // Back in main().
+  MatchFrame(0, "main"),  // Still in main back at a.foo(i).
   MatchLocals({"i": "1"}),
-  Resume(),
-  MatchFrames(["A.<anonymous closure>", "main"]),  // In closure function.
+  StepInto(),
+  StepInto(),
+  MatchFrames(["A.noSuchMethod", "main"]),  // Second invocation.
   Resume()
 ];

@@ -776,6 +776,10 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
       node_sequence =
           parser.ParseNoSuchMethodDispatcher(func, default_parameter_values);
       break;
+    case RawFunction::kInvokeFieldDispatcher:
+      node_sequence =
+          parser.ParseInvokeFieldDispatcher(func, default_parameter_values);
+      break;
     default:
       UNREACHABLE();
   }
@@ -1108,6 +1112,46 @@ SequenceNode* Parser::ParseMethodExtractor(const Function& func) {
 }
 
 
+void Parser::BuildDispatcherScope(const Function& func,
+                                  const ArgumentsDescriptor& desc,
+                                  Array& default_values) {
+  ParamList params;
+  // Receiver first.
+  intptr_t token_pos = func.token_pos();
+  params.AddReceiver(ReceiverType(), token_pos);
+  // Remaining positional parameters.
+  intptr_t i = 1;
+  for (; i < desc.PositionalCount(); ++i) {
+    ParamDesc p;
+    char name[64];
+    OS::SNPrint(name, 64, ":p%"Pd, i);
+    p.name = &String::ZoneHandle(Symbols::New(name));
+    p.type = &Type::ZoneHandle(Type::DynamicType());
+    params.parameters->Add(p);
+    params.num_fixed_parameters++;
+  }
+  ASSERT(desc.PositionalCount() == params.num_fixed_parameters);
+
+  // Named parameters.
+  for (; i < desc.Count(); ++i) {
+    ParamDesc p;
+    intptr_t index = i - desc.PositionalCount();
+    p.name = &String::ZoneHandle(desc.NameAt(index));
+    p.type = &Type::ZoneHandle(Type::DynamicType());
+    p.default_value = &Object::ZoneHandle();
+    params.parameters->Add(p);
+    params.num_optional_parameters++;
+    params.has_optional_named_parameters = true;
+  }
+  ASSERT(desc.NamedCount() == params.num_optional_parameters);
+
+  SetupDefaultsForOptionalParams(&params, default_values);
+
+  // Build local scope for function and populate with the formal parameters.
+  OpenFunctionBlock(func);
+  AddFormalParamsToScope(&params, current_block_->scope);
+}
+
 SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func,
                                                   Array& default_values) {
   TRACE_PARSER("ParseNoSuchMethodDispatcher");
@@ -1120,49 +1164,19 @@ SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func,
   ArgumentsDescriptor desc(Array::Handle(func.saved_args_desc()));
   ASSERT(desc.Count() > 0);
 
-  // Create parameter list. Receiver first.
-  ParamList params;
-  params.AddReceiver(ReceiverType(), token_pos);
-
-  // Remaining positional parameters.
-  intptr_t i = 1;
-  for (; i < desc.PositionalCount(); ++i) {
-    ParamDesc p;
-    char name[64];
-    OS::SNPrint(name, 64, ":p%"Pd, i);
-    p.name = &String::ZoneHandle(Symbols::New(name));
-    p.type = &Type::ZoneHandle(Type::DynamicType());
-    params.parameters->Add(p);
-    params.num_fixed_parameters++;
-  }
-  // Named parameters.
-  for (; i < desc.Count(); ++i) {
-    ParamDesc p;
-    intptr_t index = i - desc.PositionalCount();
-    p.name = &String::ZoneHandle(desc.NameAt(index));
-    p.type = &Type::ZoneHandle(Type::DynamicType());
-    p.default_value = &Object::ZoneHandle();
-    params.parameters->Add(p);
-    params.num_optional_parameters++;
-    params.has_optional_named_parameters = true;
-  }
-
-  SetupDefaultsForOptionalParams(&params, default_values);
-
-  // Build local scope for function and populate with the formal parameters.
-  OpenFunctionBlock(func);
-  LocalScope* scope = current_block_->scope;
-  AddFormalParamsToScope(&params, scope);
+  // Set up scope for this function.
+  BuildDispatcherScope(func, desc, default_values);
 
   // Receiver is local 0.
+  LocalScope* scope = current_block_->scope;
   ArgumentListNode* func_args = new ArgumentListNode(token_pos);
   for (intptr_t i = 0; i < desc.Count(); ++i) {
     func_args->Add(new LoadLocalNode(token_pos, scope->VariableAt(i)));
   }
 
-  if (params.num_optional_parameters > 0) {
+  if (desc.NamedCount() > 0) {
     const Array& arg_names =
-        Array::ZoneHandle(Array::New(params.num_optional_parameters));
+        Array::ZoneHandle(Array::New(desc.NamedCount()));
     for (intptr_t i = 0; i < arg_names.Length(); ++i) {
       arg_names.SetAt(i, String::Handle(desc.NameAt(i)));
     }
@@ -1181,6 +1195,62 @@ SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func,
 
 
   ReturnNode* return_node = new ReturnNode(token_pos, call);
+  current_block_->statements->Add(return_node);
+  return CloseBlock();
+}
+
+
+SequenceNode* Parser::ParseInvokeFieldDispatcher(const Function& func,
+                                                 Array& default_values) {
+  TRACE_PARSER("ParseInvokeFieldDispatcher");
+
+  ASSERT(func.IsInvokeFieldDispatcher());
+  intptr_t token_pos = func.token_pos();
+  ASSERT(func.token_pos() == 0);
+  ASSERT(current_class().raw() == func.Owner());
+
+  const Array& args_desc = Array::Handle(func.saved_args_desc());
+  ArgumentsDescriptor desc(args_desc);
+  ASSERT(desc.Count() > 0);
+
+  // Set up scope for this function.
+  BuildDispatcherScope(func, desc, default_values);
+
+  // Receiver is local 0.
+  LocalScope* scope = current_block_->scope;
+  ArgumentListNode* no_args = new ArgumentListNode(token_pos);
+  LoadLocalNode* receiver = new LoadLocalNode(token_pos, scope->VariableAt(0));
+
+  const String& name = String::Handle(func.name());
+  const String& getter_name =
+      String::ZoneHandle(Symbols::New(String::Handle(Field::GetterName(name))));
+  InstanceCallNode* getter_call = new InstanceCallNode(token_pos,
+                                                       receiver,
+                                                       getter_name,
+                                                       no_args);
+
+  // Pass arguments 1..n to the closure call.
+  ArgumentListNode* closure_args = new ArgumentListNode(token_pos);
+  const Array& names = Array::Handle(Array::New(desc.NamedCount(), Heap::kOld));
+  // Positional parameters.
+  intptr_t i = 1;
+  for (; i < desc.PositionalCount(); ++i) {
+    closure_args->Add(new LoadLocalNode(token_pos, scope->VariableAt(i)));
+  }
+  // Named parameters.
+  for (; i < desc.Count(); i++) {
+    closure_args->Add(new LoadLocalNode(token_pos, scope->VariableAt(i)));
+    intptr_t index = i - desc.PositionalCount();
+    names.SetAt(index, String::Handle(desc.NameAt(index)));
+  }
+  closure_args->set_names(names);
+
+  EnsureSavedCurrentContext();
+  ClosureCallNode* closure_call = new ClosureCallNode(token_pos,
+                                                      getter_call,
+                                                      closure_args);
+
+  ReturnNode* return_node = new ReturnNode(token_pos, closure_call);
   current_block_->statements->Add(return_node);
   return CloseBlock();
 }

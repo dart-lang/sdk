@@ -935,15 +935,20 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
   Context& ctx = Context::Handle(isolate->top_context());
   Code& code = Code::Handle(isolate);
   StackFrameIterator iterator(false);
-  StackFrame* frame = iterator.NextFrame();
   ActivationFrame* callee_activation = NULL;
   bool optimized_frame_found = false;
-  while (frame != NULL) {
+  for (StackFrame* frame = iterator.NextFrame();
+       frame != NULL;
+       frame = iterator.NextFrame()) {
     ASSERT(frame->IsValid());
     if (frame->IsDartFrame()) {
       code = frame->LookupDartCode();
       ActivationFrame* activation =
           new ActivationFrame(frame->pc(), frame->fp(), frame->sp(), code);
+      // Check if frame is a debuggable function.
+      if (!IsDebuggable(activation->function())) {
+        continue;
+      }
       // If this activation frame called a closure, the function has
       // saved its context before the call.
       if ((callee_activation != NULL) &&
@@ -980,7 +985,6 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
       ctx = reinterpret_cast<EntryFrame*>(frame)->SavedContext();
       callee_activation = NULL;
     }
-    frame = iterator.NextFrame();
   }
   return stack_trace;
 }
@@ -1534,7 +1538,8 @@ bool Debugger::IsDebuggable(const Function& func) {
       (fkind == RawFunction::kImplicitSetter) ||
       (fkind == RawFunction::kConstImplicitGetter) ||
       (fkind == RawFunction::kMethodExtractor) ||
-      (fkind == RawFunction::kNoSuchMethodDispatcher)) {
+      (fkind == RawFunction::kNoSuchMethodDispatcher) ||
+      (fkind == RawFunction::kInvokeFieldDispatcher)) {
     return false;
   }
   const Class& cls = Class::Handle(func.Owner());

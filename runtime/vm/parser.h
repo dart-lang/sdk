@@ -16,6 +16,7 @@
 namespace dart {
 
 // Forward declarations.
+class ArgumentsDescriptor;
 class Function;
 class Isolate;
 class LiteralToken;
@@ -438,6 +439,11 @@ class Parser : public ValueObject {
   SequenceNode* ParseMethodExtractor(const Function& func);
   SequenceNode* ParseNoSuchMethodDispatcher(const Function& func,
                                             Array& default_values);
+  SequenceNode* ParseInvokeFieldDispatcher(const Function& func,
+                                           Array& default_values);
+  void BuildDispatcherScope(const Function& func,
+                            const ArgumentsDescriptor& desc,
+                            Array& default_values);
 
   void ChainNewBlock(LocalScope* outer_scope);
   void OpenBlock();

@@ -926,8 +926,9 @@ class Class : public Object {
 
   RawArray* constants() const;
 
-  RawFunction* GetNoSuchMethodDispatcher(const String& target_name,
-                                         const Array& args_desc) const;
+  RawFunction* GetInvocationDispatcher(const String& target_name,
+                                       const Array& args_desc,
+                                       RawFunction::Kind kind) const;
 
   void Finalize() const;
 
@@ -1018,10 +1019,11 @@ class Class : public Object {
   void set_canonical_types(const Array& value) const;
   RawArray* canonical_types() const;
 
-  RawArray* no_such_method_cache() const;
-  void set_no_such_method_cache(const Array& cache) const;
-  RawFunction* CreateNoSuchMethodDispatcher(const String& target_name,
-                                            const Array& args_desc) const;
+  RawArray* invocation_dispatcher_cache() const;
+  void set_invocation_dispatcher_cache(const Array& cache) const;
+  RawFunction* CreateInvocationDispatcher(const String& target_name,
+                                          const Array& args_desc,
+                                          RawFunction::Kind kind) const;
   void CalculateFieldOffsets() const;
 
   // Assigns empty array to all raw class array fields.
@@ -1439,6 +1441,10 @@ class Function : public Object {
     return kind() == RawFunction::kNoSuchMethodDispatcher;
   }
 
+  bool IsInvokeFieldDispatcher() const {
+    return kind() == RawFunction::kInvokeFieldDispatcher;
+  }
+
   // Returns true iff an implicit closure function has been created
   // for this function.
   bool HasImplicitClosureFunction() const {
@@ -1484,6 +1490,7 @@ class Function : public Object {
       case RawFunction::kImplicitSetter:
       case RawFunction::kMethodExtractor:
       case RawFunction::kNoSuchMethodDispatcher:
+      case RawFunction::kInvokeFieldDispatcher:
         return true;
       case RawFunction::kClosureFunction:
       case RawFunction::kConstructor:

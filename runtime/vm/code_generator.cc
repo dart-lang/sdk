@@ -1184,6 +1184,7 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
                                      const String& target_name,
                                      const Array& arguments_descriptor,
                                      const Array& arguments,
+                                     const ICData& ic_data,
                                      Object* result) {
   // 1. Check if there is a getter with the same name.
   const String& getter_name = String::Handle(Field::GetterName(target_name));
@@ -1198,19 +1199,23 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
     return false;
   }
 
-  // 2. Invoke the getter.
-  const Array& args = Array::Handle(Array::New(kNumArguments));
-  args.SetAt(0, receiver);
-  const Object& value = Object::Handle(DartEntry::InvokeFunction(getter, args));
-
-  // 3. If there was some error, propagate it.
-  CheckResultError(value);
-
-  // 4. Invoke the value as a closure.
-  Instance& instance = Instance::Handle();
-  instance ^= value.raw();
-  arguments.SetAt(0, instance);
-  *result = DartEntry::InvokeClosure(arguments, arguments_descriptor);
+  const Function& target_function =
+      Function::Handle(receiver_class.GetInvocationDispatcher(
+          target_name,
+          arguments_descriptor,
+          RawFunction::kInvokeFieldDispatcher));
+  // Update IC data.
+  ASSERT(!target_function.IsNull());
+  ic_data.AddReceiverCheck(receiver.GetClassId(), target_function);
+  if (FLAG_trace_ic) {
+    OS::PrintErr("InvokeField IC miss: adding <%s> id:%"Pd" -> <%s>\n",
+        Class::Handle(receiver.clazz()).ToCString(),
+        receiver.GetClassId(),
+        target_function.ToCString());
+  }
+  *result = DartEntry::InvokeFunction(target_function,
+                                      arguments,
+                                      arguments_descriptor);
   CheckResultError(*result);
   return true;
 }
@@ -1249,10 +1254,14 @@ DEFINE_RUNTIME_ENTRY(InstanceFunctionLookup, 4) {
                                 target_name,
                                 args_descriptor,
                                 args,
+                                ic_data,
                                 &result)) {
     ArgumentsDescriptor desc(args_descriptor);
-    const Function& target_function = Function::Handle(
-        receiver_class.GetNoSuchMethodDispatcher(target_name, args_descriptor));
+    const Function& target_function =
+        Function::Handle(receiver_class.GetInvocationDispatcher(
+            target_name,
+            args_descriptor,
+            RawFunction::kNoSuchMethodDispatcher));
     // Update IC data.
     ASSERT(!target_function.IsNull());
     intptr_t receiver_cid = receiver.GetClassId();

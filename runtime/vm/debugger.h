@@ -350,7 +350,7 @@ class Debugger {
   void SignalBpResolved(SourceBreakpoint *bpt);
   void SignalPausedEvent(ActivationFrame* top_frame);
 
-  bool IsDebuggable(const Function& func);
+  static bool IsDebuggable(const Function& func);
 
   intptr_t nextId() { return next_id_++; }
 
