@@ -494,6 +494,7 @@ void maybeEnableNative(Compiler compiler,
       || libraryName == 'dart:html'
       || libraryName == 'dart:html_common'
       || libraryName == 'dart:indexed_db'
+      || libraryName == 'dart:js'
       || libraryName == 'dart:svg'
       || libraryName == 'dart:typed_data'
       || libraryName == 'dart:web_audio'
