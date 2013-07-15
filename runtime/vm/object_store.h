@@ -22,9 +22,11 @@ class ObjectStore {
   enum {
     kNone = 0,
     kAsync,
+    kCodec,
     kCore,
     kCollection,
     kCollectionDev,
+    kConvert,
     kIsolate,
     kJson,
     kMath,
@@ -258,11 +260,13 @@ class ObjectStore {
 
   RawLibrary* async_library() const { return async_library_; }
   RawLibrary* builtin_library() const { return builtin_library_; }
+  RawLibrary* codec_library() const { return codec_library_; }
   RawLibrary* core_library() const { return core_library_; }
   RawLibrary* collection_library() const { return collection_library_; }
   RawLibrary* collection_dev_library() const {
     return collection_dev_library_;
   }
+  RawLibrary* convert_library() const { return convert_library_; }
   RawLibrary* isolate_library() const { return isolate_library_; }
   RawLibrary* json_library() const { return json_library_; }
   RawLibrary* math_library() const { return math_library_; }
@@ -274,6 +278,9 @@ class ObjectStore {
       case kAsync:
         async_library_ = value.raw();
         break;
+      case kCodec:
+        codec_library_ = value.raw();
+        break;
       case kCore:
         core_library_ = value.raw();
         break;
@@ -282,6 +289,9 @@ class ObjectStore {
         break;
       case kCollectionDev:
         collection_dev_library_ = value.raw();
+        break;
+      case kConvert:
+        convert_library_ = value.raw();
         break;
       case kIsolate:
         isolate_library_ = value.raw();
@@ -454,9 +464,11 @@ class ObjectStore {
   RawArray* canonical_type_arguments_;
   RawLibrary* async_library_;
   RawLibrary* builtin_library_;
+  RawLibrary* codec_library_;
   RawLibrary* core_library_;
   RawLibrary* collection_library_;
   RawLibrary* collection_dev_library_;
+  RawLibrary* convert_library_;
   RawLibrary* isolate_library_;
   RawLibrary* json_library_;
   RawLibrary* math_library_;
