@@ -10,48 +10,6 @@ part of chrome;
  * Types
  */
 
-class AppRuntimeIntent extends ChromeObject {
-  /*
-   * Private constructor
-   */
-  AppRuntimeIntent._proxy(_jsObject) : super._proxy(_jsObject);
-
-  /*
-   * Public accessors
-   */
-  /// The WebIntent being invoked.
-  String get action => JS('String', '#.action', this._jsObject);
-
-  void set action(String action) {
-    JS('void', '#.action = #', this._jsObject, action);
-  }
-
-  /// The MIME type of the data.
-  String get type => JS('String', '#.type', this._jsObject);
-
-  void set type(String type) {
-    JS('void', '#.type = #', this._jsObject, type);
-  }
-
-  /// Data associated with the intent.
-  Object get data => JS('Object', '#.data', this._jsObject);
-
-  void set data(Object data) {
-    JS('void', '#.data = #', this._jsObject, convertArgument(data));
-  }
-
-
-  /*
-   * Methods
-   */
-  /// Callback to be compatible with WebIntents.
-  void postResult() => JS('void', '#.postResult()', this._jsObject);
-
-  /// Callback to be compatible with WebIntents.
-  void postFailure() => JS('void', '#.postFailure()', this._jsObject);
-
-}
-
 class AppRuntimeLaunchItem extends ChromeObject {
   /*
    * Public constructor
@@ -91,9 +49,7 @@ class AppRuntimeLaunchData extends ChromeObject {
   /*
    * Public constructor
    */
-  AppRuntimeLaunchData({AppRuntimeIntent intent, String id, List<AppRuntimeLaunchItem> items}) {
-    if (intent != null)
-      this.intent = intent;
+  AppRuntimeLaunchData({String id, List<AppRuntimeLaunchItem> items}) {
     if (id != null)
       this.id = id;
     if (items != null)
@@ -108,12 +64,6 @@ class AppRuntimeLaunchData extends ChromeObject {
   /*
    * Public accessors
    */
-  AppRuntimeIntent get intent => new AppRuntimeIntent._proxy(JS('', '#.intent', this._jsObject));
-
-  void set intent(AppRuntimeIntent intent) {
-    JS('void', '#.intent = #', this._jsObject, convertArgument(intent));
-  }
-
   /// The id of the file handler that the app is being invoked with.
   String get id => JS('String', '#.id', this._jsObject);
 
@@ -123,8 +73,10 @@ class AppRuntimeLaunchData extends ChromeObject {
 
   List<AppRuntimeLaunchItem> get items {
     List<AppRuntimeLaunchItem> __proxy_items = new List<AppRuntimeLaunchItem>();
-    for (var o in JS('List', '#.items', this._jsObject)) {
-      __proxy_items.add(new AppRuntimeLaunchItem._proxy(o));
+    int count = JS('int', '#.items.length', this._jsObject);
+    for (int i = 0; i < count; i++) {
+      var item = JS('', '#.items[#]', this._jsObject, i);
+      __proxy_items.add(new AppRuntimeLaunchItem._proxy(item));
     }
     return __proxy_items;
   }
@@ -135,56 +87,11 @@ class AppRuntimeLaunchData extends ChromeObject {
 
 }
 
-class AppRuntimeIntentResponse extends ChromeObject {
-  /*
-   * Public constructor
-   */
-  AppRuntimeIntentResponse({int intentId, bool success, Object data}) {
-    if (intentId != null)
-      this.intentId = intentId;
-    if (success != null)
-      this.success = success;
-    if (data != null)
-      this.data = data;
-  }
-
-  /*
-   * Private constructor
-   */
-  AppRuntimeIntentResponse._proxy(_jsObject) : super._proxy(_jsObject);
-
-  /*
-   * Public accessors
-   */
-  /// Identifies the intent.
-  int get intentId => JS('int', '#.intentId', this._jsObject);
-
-  void set intentId(int intentId) {
-    JS('void', '#.intentId = #', this._jsObject, intentId);
-  }
-
-  /// Was this intent successful? (i.e., postSuccess vs postFailure).
-  bool get success => JS('bool', '#.success', this._jsObject);
-
-  void set success(bool success) {
-    JS('void', '#.success = #', this._jsObject, success);
-  }
-
-  /// Data associated with the intent response.
-  Object get data => JS('Object', '#.data', this._jsObject);
-
-  void set data(Object data) {
-    JS('void', '#.data = #', this._jsObject, convertArgument(data));
-  }
-
-}
-
 /**
  * Events
  */
 
-/// Fired when an app is launched from the launcher or in response to a web
-/// intent.
+/// Fired when an app is launched from the launcher.
 class Event_app_runtime_onLaunched extends Event {
   void addListener(void callback(AppRuntimeLaunchData launchData)) {
     void __proxy_callback(launchData) {
@@ -192,7 +99,7 @@ class Event_app_runtime_onLaunched extends Event {
         callback(new AppRuntimeLaunchData._proxy(launchData));
       }
     }
-    super.addListener(callback);
+    super.addListener(__proxy_callback);
   }
 
   void removeListener(void callback(AppRuntimeLaunchData launchData)) {
@@ -201,7 +108,7 @@ class Event_app_runtime_onLaunched extends Event {
         callback(new AppRuntimeLaunchData._proxy(launchData));
       }
     }
-    super.removeListener(callback);
+    super.removeListener(__proxy_callback);
   }
 
   bool hasListener(void callback(AppRuntimeLaunchData launchData)) {
@@ -210,7 +117,7 @@ class Event_app_runtime_onLaunched extends Event {
         callback(new AppRuntimeLaunchData._proxy(launchData));
       }
     }
-    super.hasListener(callback);
+    super.hasListener(__proxy_callback);
   }
 
   Event_app_runtime_onLaunched(jsObject) : super._(jsObject, 1);
@@ -243,15 +150,6 @@ class API_app_runtime {
    */
   Event_app_runtime_onLaunched onLaunched;
   Event_app_runtime_onRestarted onRestarted;
-
-  /*
-   * Functions
-   */
-  /// postIntentResponse is an internal method to responds to an intent
-  /// previously sent to a packaged app. This is identified by intentId, and
-  /// should only be invoked at most once per intentId.
-  void postIntentResponse(AppRuntimeIntentResponse intentResponse) => JS('void', '#.postIntentResponse(#)', this._jsObject, convertArgument(intentResponse));
-
   API_app_runtime(this._jsObject) {
     onLaunched = new Event_app_runtime_onLaunched(JS('', '#.onLaunched', this._jsObject));
     onRestarted = new Event_app_runtime_onRestarted(JS('', '#.onRestarted', this._jsObject));
