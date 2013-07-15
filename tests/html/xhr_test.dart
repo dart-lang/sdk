@@ -18,7 +18,11 @@ void fail(message) {
 
 main() {
   useHtmlIndividualConfiguration();
-  var url = "/root_dart/tests/html/xhr_cross_origin_data.txt";
+  // Cache blocker is a workaround for:
+  // https://code.google.com/p/dart/issues/detail?id=11834
+  var cacheBlocker = new DateTime.now().millisecondsSinceEpoch;
+  var url = '/root_dart/tests/html/xhr_cross_origin_data.txt?'
+      'cacheBlock=$cacheBlocker';
 
   void validate200Response(xhr) {
     expect(xhr.status, equals(200));
