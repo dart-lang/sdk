@@ -17,7 +17,7 @@ class Class<T> {
 
   Class.generative(this.field);
   Class.redirecting(y) : this.generative(y*2);
-  factory Class.faktory(y) => "FakeClass $y";
+  factory Class.faktory(y) => new Class.withInitialValue(y*3);
   factory Class.redirectingFactory(y) = Class.faktory;
 
   m(a, b, c) => {"a": a, "b": b, "c": c};
@@ -190,11 +190,14 @@ testInvokeConstructor(mirrors, isDart2js) {
   if (!isDart2js) {
     instanceMirror = classMirror.newInstance(const Symbol('faktory'),
                                              [9]);
-    expect(instanceMirror.reflectee, equals('FakeClass 9'));
+    expect(instanceMirror.reflectee is Class, equals(true));
+    expect(instanceMirror.reflectee.field, equals(27));
+
 
     instanceMirror = classMirror.newInstance(const Symbol('redirectingFactory'),
                                              [10]);
-    expect(instanceMirror.reflectee, equals('FakeClass 10'));
+    expect(instanceMirror.reflectee is Class, equals(true));
+    expect(instanceMirror.reflectee.field, equals(30));
   }
 
 
