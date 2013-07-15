@@ -26,26 +26,27 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 2) {
   intptr_t assertion_end =
       Smi::CheckedHandle(arguments->NativeArgAt(1)).Value();
 
-  const Array& args = Array::Handle(Array::New(4));
+  // Allocate a new instance of type AssertionError.
+  const Instance& assertion_error = Instance::Handle(
+      Exceptions::NewInstance("AssertionErrorImplementation"));
 
+  // Initialize 'url', 'line', and 'column' fields.
   DartFrameIterator iterator;
   iterator.NextFrame();  // Skip native call.
   const Script& script = Script::Handle(Exceptions::GetCallerScript(&iterator));
+  const Class& cls = Class::Handle(assertion_error.clazz());
+  Exceptions::SetLocationFields(assertion_error, cls, script, assertion_start);
 
-  // Initialize argument 'failed_assertion' with source snippet.
+  // Initialize field 'failed_assertion' with source snippet.
   intptr_t from_line, from_column;
   script.GetTokenLocation(assertion_start, &from_line, &from_column);
   intptr_t to_line, to_column;
   script.GetTokenLocation(assertion_end, &to_line, &to_column);
-  args.SetAt(0, String::Handle(
+  Exceptions::SetField(assertion_error, cls, "failedAssertion", String::Handle(
       script.GetSnippet(from_line, from_column, to_line, to_column)));
 
-  // Initialize location arguments starting at position 1.
-  args.SetAt(1, String::Handle(script.url()));
-  args.SetAt(2, Smi::Handle(Smi::New(from_line)));
-  args.SetAt(3, Smi::Handle(Smi::New(from_column)));
-
-  Exceptions::ThrowByType(Exceptions::kAssertion, args);
+  // Throw AssertionError instance.
+  Exceptions::Throw(assertion_error);
   UNREACHABLE();
   return Object::null();
 }
@@ -84,18 +85,25 @@ DEFINE_NATIVE_ENTRY(FallThroughError_throwNew, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, smi_pos, arguments->NativeArgAt(0));
   intptr_t fallthrough_pos = smi_pos.Value();
 
-  const Array& args = Array::Handle(Array::New(2));
+  // Allocate a new instance of type FallThroughError.
+  const Instance& fallthrough_error = Instance::Handle(Exceptions::NewInstance(
+      "FallThroughErrorImplementation"));
+  ASSERT(!fallthrough_error.IsNull());
 
-  // Initialize 'url' and 'line' arguments.
+  // Initialize 'url' and 'line' fields.
   DartFrameIterator iterator;
   iterator.NextFrame();  // Skip native call.
   const Script& script = Script::Handle(Exceptions::GetCallerScript(&iterator));
-  args.SetAt(0, String::Handle(script.url()));
+  const Class& cls = Class::Handle(fallthrough_error.clazz());
+  Exceptions::SetField(fallthrough_error, cls, "url",
+                       String::Handle(script.url()));
   intptr_t line, column;
   script.GetTokenLocation(fallthrough_pos, &line, &column);
-  args.SetAt(1, Smi::Handle(Smi::New(line)));
+  Exceptions::SetField(fallthrough_error, cls, "line",
+                       Smi::Handle(Smi::New(line)));
 
-  Exceptions::ThrowByType(Exceptions::kFallThrough, args);
+  // Throw FallThroughError instance.
+  Exceptions::Throw(fallthrough_error);
   UNREACHABLE();
   return Object::null();
 }
@@ -110,19 +118,24 @@ DEFINE_NATIVE_ENTRY(AbstractClassInstantiationError_throwNew, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, class_name, arguments->NativeArgAt(1));
   intptr_t error_pos = smi_pos.Value();
 
-  const Array& args = Array::Handle(Array::New(3));
+  // Allocate a new instance of type AbstractClassInstantiationError.
+  const Instance& error = Instance::Handle(Exceptions::NewInstance(
+      "AbstractClassInstantiationErrorImplementation"));
+  ASSERT(!error.IsNull());
 
-  // Initialize 'className', 'url' and 'line' arguments.
+  // Initialize 'url', 'line' and 'className' fields.
   DartFrameIterator iterator;
   iterator.NextFrame();  // Skip native call.
   const Script& script = Script::Handle(Exceptions::GetCallerScript(&iterator));
-  args.SetAt(0, class_name);
-  args.SetAt(1, String::Handle(script.url()));
+  const Class& cls = Class::Handle(error.clazz());
+  Exceptions::SetField(error, cls, "url", String::Handle(script.url()));
   intptr_t line, column;
   script.GetTokenLocation(error_pos, &line, &column);
-  args.SetAt(2, Smi::Handle(Smi::New(line)));
+  Exceptions::SetField(error, cls, "line", Smi::Handle(Smi::New(line)));
+  Exceptions::SetField(error, cls, "className", class_name);
 
-  Exceptions::ThrowByType(Exceptions::kAbstractClassInstantiation, args);
+  // Throw AbstractClassInstantiationError instance.
+  Exceptions::Throw(error);
   UNREACHABLE();
   return Object::null();
 }

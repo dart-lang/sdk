@@ -144,10 +144,10 @@ const double MegamorphicCache::kLoadFactor = 0.75;
   V(CoreLibrary, Object, _as)                                                  \
   V(CoreLibrary, Object, _instanceOf)                                          \
   V(CoreLibrary, _ObjectArray, _ObjectArray.)                                  \
-  V(CoreLibrary, _AssertionErrorImplementation, _throwNew)                     \
-  V(CoreLibrary, _TypeErrorImplementation, _throwNew)                          \
-  V(CoreLibrary, _FallThroughErrorImplementation, _throwNew)                   \
-  V(CoreLibrary, _AbstractClassInstantiationErrorImplementation, _throwNew)    \
+  V(CoreLibrary, AssertionErrorImplementation, _throwNew)                      \
+  V(CoreLibrary, TypeErrorImplementation, _throwNew)                           \
+  V(CoreLibrary, FallThroughErrorImplementation, _throwNew)                    \
+  V(CoreLibrary, AbstractClassInstantiationErrorImplementation, _throwNew)     \
   V(CoreLibrary, NoSuchMethodError, _throwNew)                                 \
   V(CoreLibrary, int, _throwFormatException)                                   \
   V(CoreLibrary, int, _parse)                                                  \

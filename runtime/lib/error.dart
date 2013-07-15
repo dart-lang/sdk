@@ -4,15 +4,15 @@
 // Errors are created and thrown by DartVM only.
 // Changes here should also be reflected in corelib/error.dart as well
 
-class _AssertionErrorImplementation extends AssertionError {
-  _AssertionErrorImplementation(
-    this.failedAssertion, this.url, this.line, this.column);
-
+class AssertionErrorImplementation extends AssertionError {
+  factory AssertionErrorImplementation._uninstantiable() {
+    throw new UnsupportedError(
+        "AssertionError can only be allocated by the VM");
+  }
   static _throwNew(int assertionStart, int assertionEnd)
       native "AssertionError_throwNew";
-
   String toString() {
-    return "'$url': Failed assertion: line $line pos $_column: "
+    return "'$url': Failed assertion: line $line pos $column: "
         "'$failedAssertion' is not true.";
   }
   final String failedAssertion;
@@ -21,24 +21,21 @@ class _AssertionErrorImplementation extends AssertionError {
   final int column;
 }
 
-class _TypeErrorImplementation
-    extends _AssertionErrorImplementation
+class TypeErrorImplementation
+    extends AssertionErrorImplementation
     implements TypeError {
-
-  _TypeErrorImplementation(
-    String failedAssertion, String url, int line, int column,
-    this.srcType, this.dstType, this.dstName, this._malformedError)
-      : super(failedAssertion, url, line, column);
-
+  factory TypeErrorImplementation._uninstantiable() {
+    throw new UnsupportedError(
+        "TypeError can only be allocated by the VM");
+  }
   static _throwNew(int location,
                    Object src_value,
                    String dst_type_name,
                    String dst_name,
                    String malformed_error)
       native "TypeError_throwNew";
-
   String toString() {
-    String str = (_malformedError != null) ? _malformedError : "";
+    String str = (malformedError != null) ? malformedError : "";
     if ((dstName != null) && (dstName.length > 0)) {
       str = "${str}type '$srcType' is not a subtype of "
             "type '$dstType' of '$dstName'.";
@@ -47,27 +44,23 @@ class _TypeErrorImplementation
     }
     return str;
   }
-
   final String srcType;
   final String dstType;
   final String dstName;
-  final String _malformedError;
+  final String malformedError;
 }
 
-class _CastErrorImplementation
-    extends _TypeErrorImplementation
+class CastErrorImplementation
+    extends TypeErrorImplementation
     implements CastError {
-
-  _CastErrorImplementation(
-    String failedAssertion, String url, int line, int column,
-    String srcType, String dstType, String dstName, String malformedError)
-      : super(failedAssertion, url, line, column,
-              srcType, dstType, dstName, malformedError);
-
+  factory CastErrorImplementation._uninstantiable() {
+    throw new UnsupportedError(
+        "CastError can only be allocated by the VM");
+  }
   // A CastError is allocated by TypeError._throwNew() when dst_name equals
   // Exceptions::kCastErrorDstName.
   String toString() {
-    String str = (_malformedError != null) ? _malformedError : "";
+    String str = (malformedError != null) ? malformedError : "";
     if ((dstName != null) && (dstName.length > 0)) {
       str = "${str}type '$srcType' is not a subtype of "
             "type '$dstType' in type cast.";
@@ -78,42 +71,43 @@ class _CastErrorImplementation
   }
 }
 
-class _FallThroughErrorImplementation extends FallThroughError {
-
-  _FallThroughErrorImplementation(this._url, this._line);
-
-  static _throwNew(int case_clause_pos) native "FallThroughError_throwNew";
-
-  String toString() {
-    return "'$_url': Switch case fall-through at line $_line.";
+class FallThroughErrorImplementation extends FallThroughError {
+  factory FallThroughErrorImplementation._uninstantiable() {
+    throw new UnsupportedError(
+        "FallThroughError can only be allocated by the VM");
   }
-
-  final String _url;
-  final int _line;
+  static _throwNew(int case_clause_pos) native "FallThroughError_throwNew";
+  String toString() {
+    return "'$url': Switch case fall-through at line $line.";
+  }
+  final String url;
+  final int line;
 }
 
-class _InternalError {
-  const _InternalError(this._msg);
+class InternalError {
+  const InternalError(this._msg);
   String toString() => "InternalError: '${_msg}'";
   final String _msg;
 }
 
 
-class _AbstractClassInstantiationErrorImplementation
+class AbstractClassInstantiationErrorImplementation
     extends AbstractClassInstantiationError {
 
-  _AbstractClassInstantiationErrorImplementation(
-      String className, this._url, this._line)
-      : super(className);
+  factory AbstractClassInstantiationErrorImplementation._uninstantiable() {
+    throw new UnsupportedError(
+        "AbstractClassInstantiationError can only be allocated by the VM");
+  }
 
   static _throwNew(int case_clause_pos, String className)
       native "AbstractClassInstantiationError_throwNew";
 
   String toString() {
-    return "Cannot instantiate abstract class $_className: "
-           "_url '$_url' line $_line";
+    return "Cannot instantiate abstract class $className: "
+           "url '$url' line $line";
   }
 
-  final String _url;
-  final int _line;
+  final String className;
+  final String url;
+  final int line;
 }

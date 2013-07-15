@@ -34,12 +34,11 @@ class ObjectPointerVisitor;
   V(ClosureParameter, ":closure")                                              \
   V(PhaseParameter, ":phase")                                                  \
   V(TypeArgumentsParameter, ":type_arguments")                                 \
-  V(AssertionError, "_AssertionErrorImplementation")                           \
-  V(CastError, "_CastErrorImplementation")                                     \
-  V(TypeError, "_TypeErrorImplementation")                                     \
-  V(FallThroughError, "_FallThroughErrorImplementation")                       \
+  V(AssertionError, "AssertionErrorImplementation")                            \
+  V(TypeError, "TypeErrorImplementation")                                      \
+  V(FallThroughError, "FallThroughErrorImplementation")                        \
   V(AbstractClassInstantiationError,                                           \
-    "_AbstractClassInstantiationErrorImplementation")                          \
+    "AbstractClassInstantiationErrorImplementation")                           \
   V(NoSuchMethodError, "NoSuchMethodError")                                    \
   V(ThrowNew, "_throwNew")                                                     \
   V(List, "List")                                                              \

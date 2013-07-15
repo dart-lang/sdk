@@ -778,7 +778,6 @@ Dart_Handle DartUtils::NewDartOSError() {
 Dart_Handle DartUtils::NewDartOSError(OSError* os_error) {
   // Create a dart:io OSError object with the information retrieved from the OS.
   Dart_Handle type = GetDartType(kIOLibURL, "OSError");
-  ASSERT(!Dart_IsError(type));
   Dart_Handle args[2];
   args[0] = NewString(os_error->message());
   args[1] = Dart_NewInteger(os_error->code());
@@ -792,7 +791,6 @@ Dart_Handle DartUtils::NewDartExceptionWithOSError(const char* library_url,
                                                    Dart_Handle os_error) {
   // Create a Dart Exception object with a message and an OSError.
   Dart_Handle type = GetDartType(library_url, exception_name);
-  ASSERT(!Dart_IsError(type));
   Dart_Handle args[2];
   args[0] = NewString(message);
   args[1] = os_error;
@@ -805,7 +803,6 @@ Dart_Handle DartUtils::NewDartExceptionWithMessage(const char* library_url,
                                                    const char* message) {
   // Create a Dart Exception object with a message.
   Dart_Handle type = GetDartType(library_url, exception_name);
-  ASSERT(!Dart_IsError(type));
   if (message != NULL) {
     Dart_Handle args[1];
     args[0] = NewString(message);
@@ -835,7 +832,7 @@ Dart_Handle DartUtils::NewDartIOException(const char* exception_name,
 
 
 Dart_Handle DartUtils::NewInternalError(const char* message) {
-  return NewDartExceptionWithMessage(kCoreLibURL, "_InternalError", message);
+  return NewDartExceptionWithMessage(kCoreLibURL, "InternalError", message);
 }
 
 
