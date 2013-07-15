@@ -6,7 +6,7 @@ library io;
 
 import 'dart:collection';
 import 'dart:io';
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 
 /// Lists the contents of [dir]. If [recursive] is `true`, lists subdirectory
 /// contents (defaults to `false`). If [includeHidden] is `true`, includes files

@@ -57,12 +57,8 @@ main() {
           var classes = library.classes.values;
           expect(classes.every((e) => e is Class), isTrue);
           
-          var classMethodTypes = [];
-          classes.forEach((e) => classMethodTypes.addAll(e.methods.values));
-          expect(classMethodTypes.every((e) => e is Map), isTrue);
-
           var classMethods = [];
-          classMethodTypes.forEach((e) => classMethods.addAll(e.values));
+          classes.forEach((e) => classMethods.addAll(e.methods.values));
           expect(classMethods.every((e) => e is Method), isTrue);
           
           var methodParameters = [];
@@ -71,11 +67,7 @@ main() {
           });
           expect(methodParameters.every((e) => e is Parameter), isTrue);
           
-          var functionTypes = library.functions.values;
-          expect(functionTypes.every((e) => e is Map), isTrue);
-          
-          var functions = [];
-          functionTypes.forEach((e) => functions.addAll(e.values));
+          var functions = library.functions.values;
           expect(functions.every((e) => e is Method), isTrue);
           
           var functionParameters = [];
