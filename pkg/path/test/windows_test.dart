@@ -172,6 +172,14 @@ main() {
       expect(builder.join('a', 'b', 'c', null, null), equals(r'a\b\c'));
     });
 
+    test('ignores empty strings', () {
+      expect(builder.join(''), '');
+      expect(builder.join('', ''), '');
+      expect(builder.join('', 'a'), 'a');
+      expect(builder.join('a', '', 'b', '', '', '', 'c'), r'a\b\c');
+      expect(builder.join('a', 'b', ''), r'a\b');
+    });
+
     test('disallows intermediate nulls', () {
       expect(() => builder.join('a', null, 'b'), throwsArgumentError);
       expect(() => builder.join(null, 'a'), throwsArgumentError);

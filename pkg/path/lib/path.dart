@@ -525,7 +525,7 @@ class Builder {
     var needsSeparator = false;
     var isAbsoluteAndNotRootRelative = false;
 
-    for (var part in parts) {
+    for (var part in parts.where((part) => part != '')) {
       if (this.isRootRelative(part) && isAbsoluteAndNotRootRelative) {
         // If the new part is root-relative, it preserves the previous root but
         // replaces the path after it.
