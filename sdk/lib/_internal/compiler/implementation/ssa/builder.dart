@@ -2540,7 +2540,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         value = compileVariable(element);
       }
       if (value != null) {
-        stack.add(graph.addConstant(value, compiler));
+        HInstruction instruction = graph.addConstant(value, compiler);
+        stack.add(instruction);
+        HType type = new HType.inferredTypeForElement(element, compiler);
+        if (!type.isUnknown()) instruction.instructionType = type;
       } else if (element.isField() && isLazilyInitialized(element)) {
         HInstruction instruction = new HLazyStatic(element);
         instruction.instructionType =
@@ -4149,24 +4152,27 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitLiteralList(LiteralList node) {
+    HInstruction instruction;
+
     if (node.isConst()) {
       ConstantHandler handler = compiler.constantHandler;
       Constant constant = handler.compileNodeWithDefinitions(node, elements);
-      stack.add(graph.addConstant(constant, compiler));
-      return;
+      instruction = graph.addConstant(constant, compiler);
+    } else {
+      List<HInstruction> inputs = <HInstruction>[];
+      for (Link<Node> link = node.elements.nodes;
+           !link.isEmpty;
+           link = link.tail) {
+        visit(link.head);
+        inputs.add(pop());
+      }
+      instruction = buildLiteralList(inputs);
+      add(instruction);
     }
 
-    List<HInstruction> inputs = <HInstruction>[];
-    for (Link<Node> link = node.elements.nodes;
-         !link.isEmpty;
-         link = link.tail) {
-      visit(link.head);
-      inputs.add(pop());
-    }
-    HInstruction instruction = buildLiteralList(inputs);
     HType type = new HType.inferredForNode(currentElement, node, compiler);
     if (!type.isUnknown()) instruction.instructionType = type;
-    push(instruction);
+    stack.add(instruction);
   }
 
   visitConditional(Conditional node) {
