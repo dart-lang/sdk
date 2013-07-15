@@ -13,6 +13,7 @@
 #include "vm/message.h"
 #include "vm/port.h"
 #include "vm/resolver.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -68,19 +69,6 @@ static Dart_Handle MirrorLib() {
 }
 
 
-static Dart_Handle IsMirror(Dart_Handle object, bool* is_mirror) {
-  Dart_Handle cls_name = NewString("Mirror");
-  Dart_Handle type = Dart_GetType(MirrorLib(), cls_name, 0, NULL);
-  if (Dart_IsError(type)) {
-    return type;
-  }
-  Dart_Handle result = Dart_ObjectIsType(object, type, is_mirror);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  return Dart_True();  // Indicates success.  Result is in is_mirror.
-}
-
 static Dart_Handle IsMethodMirror(Dart_Handle object, bool* is_mirror) {
   Dart_Handle cls_name = NewString("MethodMirror");
   Dart_Handle type = Dart_GetType(MirrorLib(), cls_name, 0, NULL);
@@ -105,14 +93,6 @@ static Dart_Handle IsVariableMirror(Dart_Handle object, bool* is_mirror) {
     return result;
   }
   return Dart_True();  // Indicates success.  Result is in is_mirror.
-}
-
-
-static bool IsSimpleValue(Dart_Handle object) {
-  return (Dart_IsNull(object) ||
-          Dart_IsNumber(object) ||
-          Dart_IsString(object) ||
-          Dart_IsBoolean(object));
 }
 
 
@@ -282,58 +262,6 @@ static Dart_Handle UnwrapMirror(Dart_Handle mirror) {
   // will return nonsense if mirror is not an ObjectMirror
 }
 
-static Dart_Handle UnwrapArg(Dart_Handle arg) {
-    if (Dart_IsError(arg)) {
-      return arg;
-    }
-    bool is_mirror = false;
-    Dart_Handle result = IsMirror(arg, &is_mirror);
-    if (Dart_IsError(result)) {
-      return result;
-    }
-    if (is_mirror) {
-      return UnwrapMirror(arg);
-    } else {
-      // Simple value.
-      ASSERT(IsSimpleValue(arg));
-      return arg;
-    }
-}
-
-static Dart_Handle UnwrapArgList(Dart_Handle arg_list,
-                                 GrowableArray<Dart_Handle>* arg_array) {
-  intptr_t len = 0;
-  Dart_Handle result = Dart_ListLength(arg_list, &len);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  for (intptr_t i = 0; i < len; i++) {
-    Dart_Handle arg = Dart_ListGetAt(arg_list, i);
-    Dart_Handle unwrapped_arg = UnwrapArg(arg);
-    if (Dart_IsError(unwrapped_arg)) {
-      return unwrapped_arg;
-    }
-    arg_array->Add(unwrapped_arg);
-  }
-  return Dart_True();
-}
-
-static Dart_Handle UnpackLocalArgList(Dart_Handle arg_list,
-                                      GrowableArray<Dart_Handle>* arg_array) {
-  intptr_t len = 0;
-  Dart_Handle result = Dart_ListLength(arg_list, &len);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  for (intptr_t i = 0; i < len; i++) {
-    Dart_Handle arg = Dart_ListGetAt(arg_list, i);
-    if (Dart_IsError(arg)) {
-      return arg;
-    }
-    arg_array->Add(arg);
-  }
-  return Dart_True();
-}
 
 static Dart_Handle CreateLazyMirror(Dart_Handle target);
 
@@ -952,6 +880,7 @@ static Dart_Handle CreateLibraryMirror(Dart_Handle lib) {
     return member_map;
   }
   Dart_Handle args[] = {
+    CreateMirrorReference(lib),
     CreateVMReference(lib),
     Dart_LibraryName(lib),
     Dart_LibraryUrl(lib),
@@ -1121,51 +1050,6 @@ static Dart_Handle CreateInstanceMirror(Dart_Handle instance) {
 }
 
 
-static Dart_Handle CreateMirroredError(Dart_Handle error) {
-  ASSERT(Dart_IsError(error));
-  if (Dart_IsUnhandledExceptionError(error)) {
-    Dart_Handle exc = Dart_ErrorGetException(error);
-    if (Dart_IsError(exc)) {
-      return exc;
-    }
-    Dart_Handle exc_string = Dart_ToString(exc);
-    if (Dart_IsError(exc_string)) {
-      // Only propagate fatal errors from exc.toString().  Ignore the rest.
-      if (Dart_IsFatalError(exc_string)) {
-        return exc_string;
-      }
-      exc_string = Dart_Null();
-    }
-
-    Dart_Handle stack = Dart_ErrorGetStacktrace(error);
-    if (Dart_IsError(stack)) {
-      return stack;
-    }
-    Dart_Handle cls_name = NewString("MirroredUncaughtExceptionError");
-    Dart_Handle type = Dart_GetType(MirrorLib(), cls_name, 0, NULL);
-    Dart_Handle args[] = {
-      CreateInstanceMirror(exc),
-      exc_string,
-      stack,
-    };
-    Dart_Handle mirrored_exc =
-        Dart_New(type, Dart_Null(), ARRAY_SIZE(args), args);
-    return Dart_NewUnhandledExceptionError(mirrored_exc);
-  } else if (Dart_IsApiError(error) ||
-             Dart_IsCompilationError(error)) {
-    Dart_Handle cls_name = NewString("MirroredCompilationError");
-    Dart_Handle type = Dart_GetType(MirrorLib(), cls_name, 0, NULL);
-    Dart_Handle args[] = { NewString(Dart_GetError(error)) };
-    Dart_Handle mirrored_exc =
-        Dart_New(type, Dart_Null(), ARRAY_SIZE(args), args);
-    return Dart_NewUnhandledExceptionError(mirrored_exc);
-  } else {
-    ASSERT(Dart_IsFatalError(error));
-    return error;
-  }
-}
-
-
 void NATIVE_ENTRY_FUNCTION(Mirrors_makeLocalMirrorSystem)(
     Dart_NativeArguments args) {
   Dart_EnterScope();
@@ -1242,181 +1126,135 @@ void NATIVE_ENTRY_FUNCTION(Mirrors_metadata)(Dart_NativeArguments args) {
   Dart_ExitScope();
 }
 
-void NATIVE_ENTRY_FUNCTION(LocalObjectMirrorImpl_invoke)(
-    Dart_NativeArguments args) {
-  Dart_EnterScope();
-  Dart_Handle mirror = Dart_GetNativeArgument(args, 0);
-  Dart_Handle member_name = Dart_GetNativeArgument(args, 1);
-  // The arguments are either simple values or instance mirrors.
-  Dart_Handle positional_arguments = Dart_GetNativeArgument(args, 2);
-  Dart_Handle async = Dart_GetNativeArgument(args, 3);
-
-  Dart_Handle reflectee = UnwrapMirror(mirror);
-  Dart_Handle result;
-  GrowableArray<Dart_Handle> invoke_args;
-  if (Dart_IdentityEquals(async, Dart_True())) {
-    result = UnwrapArgList(positional_arguments, &invoke_args);
-  } else {
-    result = UnpackLocalArgList(positional_arguments, &invoke_args);
-  }
-  if (Dart_IsError(result)) {
-    Dart_PropagateError(result);
-  }
-  result = Dart_Invoke(reflectee,
-                       member_name,
-                       invoke_args.length(),
-                       invoke_args.data());
-  if (Dart_IsError(result)) {
-    // Instead of propagating the error from an invoke directly, we
-    // provide reflective access to the error.
-    Dart_PropagateError(CreateMirroredError(result));
-  }
-
-  Dart_Handle wrapped_result = CreateInstanceMirror(result);
-  if (Dart_IsError(wrapped_result)) {
-    Dart_PropagateError(wrapped_result);
-  }
-  Dart_SetReturnValue(args, wrapped_result);
-  Dart_ExitScope();
-}
-
-
-void NATIVE_ENTRY_FUNCTION(LocalObjectMirrorImpl_getField)(
-    Dart_NativeArguments args) {
-  Dart_EnterScope();
-  Dart_Handle mirror = Dart_GetNativeArgument(args, 0);
-  Dart_Handle fieldName = Dart_GetNativeArgument(args, 1);
-
-  Dart_Handle reflectee = UnwrapMirror(mirror);
-  Dart_Handle result = Dart_GetField(reflectee, fieldName);
-  if (Dart_IsError(result)) {
-    // Instead of propagating the error from a GetField directly, we
-    // provide reflective access to the error.
-    Dart_PropagateError(CreateMirroredError(result));
-  }
-
-  Dart_Handle wrapped_result = CreateInstanceMirror(result);
-  if (Dart_IsError(wrapped_result)) {
-    Dart_PropagateError(wrapped_result);
-  }
-  Dart_SetReturnValue(args, wrapped_result);
-  Dart_ExitScope();
-}
-
-
-void NATIVE_ENTRY_FUNCTION(LocalObjectMirrorImpl_setField)(
-    Dart_NativeArguments args) {
-  Dart_EnterScope();
-  Dart_Handle mirror = Dart_GetNativeArgument(args, 0);
-  Dart_Handle fieldName = Dart_GetNativeArgument(args, 1);
-  Dart_Handle value = Dart_GetNativeArgument(args, 2);
-  Dart_Handle async = Dart_GetNativeArgument(args, 3);
-
-  Dart_Handle reflectee = UnwrapMirror(mirror);
-  Dart_Handle set_arg;
-  if (Dart_IdentityEquals(async, Dart_True())) {
-    set_arg = UnwrapArg(value);
-  } else {
-    set_arg = value;
-  }
-  if (Dart_IsError(set_arg)) {
-    Dart_PropagateError(set_arg);
-  }
-  Dart_Handle result = Dart_SetField(reflectee, fieldName, set_arg);
-  if (Dart_IsError(result)) {
-    // Instead of propagating the error from a SetField directly, we
-    // provide reflective access to the error.
-    Dart_PropagateError(CreateMirroredError(result));
-  }
-
-  Dart_Handle wrapped_result = CreateInstanceMirror(result);
-  if (Dart_IsError(wrapped_result)) {
-    Dart_PropagateError(wrapped_result);
-  }
-  Dart_SetReturnValue(args, wrapped_result);
-  Dart_ExitScope();
-}
-
-
-void NATIVE_ENTRY_FUNCTION(LocalClosureMirrorImpl_apply)(
-    Dart_NativeArguments args) {
-  Dart_EnterScope();
-  Dart_Handle mirror = Dart_GetNativeArgument(args, 0);
-  // The arguments are either simple values or instance mirrors.
-  Dart_Handle positional_arguments = Dart_GetNativeArgument(args, 1);
-  Dart_Handle async = Dart_GetNativeArgument(args, 2);
-
-  Dart_Handle reflectee = UnwrapMirror(mirror);
-  GrowableArray<Dart_Handle> invoke_args;
-  Dart_Handle result;
-  if (Dart_IdentityEquals(async, Dart_True())) {
-    result = UnwrapArgList(positional_arguments, &invoke_args);
-  } else {
-    result = UnpackLocalArgList(positional_arguments, &invoke_args);
-  }
-  if (Dart_IsError(result)) {
-    Dart_PropagateError(result);
-  }
-  result =
-      Dart_InvokeClosure(reflectee, invoke_args.length(), invoke_args.data());
-  if (Dart_IsError(result)) {
-    // Instead of propagating the error from an apply directly, we
-    // provide reflective access to the error.
-    Dart_PropagateError(CreateMirroredError(result));
-  }
-
-  Dart_Handle wrapped_result = CreateInstanceMirror(result);
-  if (Dart_IsError(wrapped_result)) {
-    Dart_PropagateError(wrapped_result);
-  }
-  Dart_SetReturnValue(args, wrapped_result);
-  Dart_ExitScope();
-}
-
-
-void NATIVE_ENTRY_FUNCTION(LocalClassMirrorImpl_invokeConstructor)(
-    Dart_NativeArguments args) {
-  Dart_EnterScope();
-  Dart_Handle klass_mirror = Dart_GetNativeArgument(args, 0);
-  Dart_Handle constructor_name = Dart_GetNativeArgument(args, 1);
-  // The arguments are either simple values or instance mirrors.
-  Dart_Handle positional_arguments = Dart_GetNativeArgument(args, 2);
-  Dart_Handle async = Dart_GetNativeArgument(args, 3);
-
-  Dart_Handle klass = UnwrapMirror(klass_mirror);
-  GrowableArray<Dart_Handle> invoke_args;
-  Dart_Handle result;
-  if (Dart_IdentityEquals(async, Dart_True())) {
-    result = UnwrapArgList(positional_arguments, &invoke_args);
-  } else {
-    result = UnpackLocalArgList(positional_arguments, &invoke_args);
-  }
-  if (Dart_IsError(result)) {
-    Dart_PropagateError(result);
-  }
-  result = Dart_New(klass,
-                    constructor_name,
-                    invoke_args.length(),
-                    invoke_args.data());
-  if (Dart_IsError(result)) {
-    // Instead of propagating the error from an invoke directly, we
-    // provide reflective access to the error.
-    Dart_PropagateError(CreateMirroredError(result));
-  }
-
-  Dart_Handle wrapped_result = CreateInstanceMirror(result);
-  if (Dart_IsError(wrapped_result)) {
-    Dart_PropagateError(wrapped_result);
-  }
-  Dart_SetReturnValue(args, wrapped_result);
-  Dart_ExitScope();
-}
-
 
 void HandleMirrorsMessage(Isolate* isolate,
                           Dart_Port reply_port,
                           const Instance& message) {
   UNIMPLEMENTED();
+}
+
+
+// TODO(11742): This is transitional.
+static RawInstance* Reflect(const Instance& reflectee) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  return Instance::RawCast(
+      Api::UnwrapHandle(
+          CreateInstanceMirror(
+              Api::NewHandle(isolate, reflectee.raw()))));
+}
+
+
+static void ThrowMirroredUnhandledError(const Error& original_error) {
+  const UnhandledException& unhandled_ex =
+      UnhandledException::Cast(original_error);
+  Instance& exc = Instance::Handle(unhandled_ex.exception());
+  Instance& stack = Instance::Handle(unhandled_ex.stacktrace());
+
+  Object& exc_string_or_error =
+      Object::Handle(DartLibraryCalls::ToString(exc));
+  String& exc_string = String::Handle();
+  // Ignore any errors that might occur in toString.
+  if (exc_string_or_error.IsString()) {
+    exc_string ^= exc_string_or_error.raw();
+  }
+
+  Instance& mirror_on_exc = Instance::Handle(Reflect(exc));
+
+  Array& args = Array::Handle(Array::New(3));
+  args.SetAt(0, mirror_on_exc);
+  args.SetAt(1, exc_string);
+  args.SetAt(2, stack);
+
+  Exceptions::ThrowByType(Exceptions::kMirroredUncaughtExceptionError, args);
+  UNREACHABLE();
+}
+
+
+static void ThrowMirroredCompilationError(const String& message) {
+  Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, message);
+
+  Exceptions::ThrowByType(Exceptions::kMirroredCompilationError, args);
+  UNREACHABLE();
+}
+
+
+static void ThrowInvokeError(const Error& error) {
+  if (error.IsUnhandledException()) {
+    // An ordinary runtime error.
+    ThrowMirroredUnhandledError(error);
+  }
+  if (error.IsLanguageError()) {
+    // A compilation error that was delayed by lazy compilation.
+    const LanguageError& compilation_error = LanguageError::Cast(error);
+    String& message = String::Handle(compilation_error.message());
+    ThrowMirroredCompilationError(message);
+  }
+  UNREACHABLE();
+}
+
+
+static RawFunction* ResolveConstructor(const char* current_func,
+                                       const Class& cls,
+                                       const String& class_name,
+                                       const String& constr_name,
+                                       int num_args) {
+  // The constructor must be present in the interface.
+  const Function& constructor =
+      Function::Handle(cls.LookupFunctionAllowPrivate(constr_name));
+  if (constructor.IsNull() ||
+      (!constructor.IsConstructor() && !constructor.IsFactory())) {
+    const String& lookup_class_name = String::Handle(cls.Name());
+    if (!class_name.Equals(lookup_class_name)) {
+      // When the class name used to build the constructor name is
+      // different than the name of the class in which we are doing
+      // the lookup, it can be confusing to the user to figure out
+      // what's going on.  Be a little more explicit for these error
+      // messages.
+      const String& message = String::Handle(
+          String::NewFormatted(
+              "%s: could not find factory '%s' in class '%s'.",
+              current_func,
+              constr_name.ToCString(),
+              lookup_class_name.ToCString()));
+      ThrowMirroredCompilationError(message);
+      UNREACHABLE();
+    } else {
+      const String& message = String::Handle(
+          String::NewFormatted("%s: could not find constructor '%s'.",
+                               current_func, constr_name.ToCString()));
+      ThrowMirroredCompilationError(message);
+      UNREACHABLE();
+    }
+  }
+  int extra_args = (constructor.IsConstructor() ? 2 : 1);
+  String& error_message = String::Handle();
+  if (!constructor.AreValidArgumentCounts(num_args + extra_args,
+                                          0,
+                                          &error_message)) {
+    const String& message = String::Handle(
+        String::NewFormatted("%s: wrong argument count for "
+                             "constructor '%s': %s.",
+                             current_func,
+                             constr_name.ToCString(),
+                             error_message.ToCString()));
+    ThrowMirroredCompilationError(message);
+    UNREACHABLE();
+  }
+  return constructor.raw();
+}
+
+
+static bool FieldIsUninitialized(const Field& field) {
+  ASSERT(!field.IsNull());
+
+  // Return getter method for uninitialized fields, rather than the
+  // field object, since the value in the field object will not be
+  // initialized until the first time the getter is invoked.
+  const Instance& value = Instance::Handle(field.value());
+  ASSERT(value.raw() != Object::transition_sentinel().raw());
+  return value.raw() == Object::sentinel().raw();
 }
 
 
@@ -1427,6 +1265,557 @@ DEFINE_NATIVE_ENTRY(ClassMirror_name, 1) {
   klass ^= klass_ref.referent();
   return klass.Name();
 }
+
+
+// Invoke the function, or noSuchMethod if it is null. Propagate any unhandled
+// exceptions. Wrap and propagate any compilation errors.
+static RawObject* ReflectivelyInvokeDynamicFunction(const Instance& receiver,
+                                                    const Function& function,
+                                                    const String& target_name,
+                                                    const Array& arguments) {
+  // Note "arguments" is already the internal arguments with the receiver as
+  // the first element.
+  Object& result = Object::Handle();
+  if (function.IsNull()) {
+    const Array& arguments_descriptor =
+        Array::Handle(ArgumentsDescriptor::New(arguments.Length()));
+    result = DartEntry::InvokeNoSuchMethod(receiver,
+                                           target_name,
+                                           arguments,
+                                           arguments_descriptor);
+  } else {
+    result = DartEntry::InvokeFunction(function, arguments);
+  }
+
+  if (result.IsError()) {
+    ThrowInvokeError(Error::Cast(result));
+    UNREACHABLE();
+  }
+  return result.raw();
+}
+
+
+DEFINE_NATIVE_ENTRY(InstanceMirror_invoke, 4) {
+  // Argument 0 is the mirror, which is unused by the native. It exists
+  // because this native is an instance method in order to be polymorphic
+  // with its cousins.
+
+  const Instance& reflectee =
+      Instance::CheckedHandle(arguments->NativeArgAt(1));
+
+  const String& function_name =
+      String::CheckedHandle(arguments->NativeArgAt(2));
+
+  const Array& positional_args =
+      Array::CheckedHandle(arguments->NativeArgAt(3));
+  intptr_t number_of_arguments = positional_args.Length();
+
+
+  const intptr_t num_receiver = 1;  // 1 for instance methods
+  const Array& args =
+      Array::Handle(Array::New(number_of_arguments + num_receiver));
+  Object& arg = Object::Handle();
+  args.SetAt(0, reflectee);
+  for (int i = 0; i < number_of_arguments; i++) {
+    arg = positional_args.At(i);
+    args.SetAt((i + num_receiver), arg);
+  }
+
+  // TODO(11771): This won't find private members.
+  const Function& function = Function::Handle(
+      Resolver::ResolveDynamic(reflectee,
+                               function_name,
+                               (number_of_arguments + 1),
+                               Resolver::kIsQualified));
+
+  return ReflectivelyInvokeDynamicFunction(reflectee,
+                                           function,
+                                           function_name,
+                                           args);
+}
+
+
+DEFINE_NATIVE_ENTRY(InstanceMirror_invokeGetter, 3) {
+  // Argument 0 is the mirror, which is unused by the native. It exists
+  // because this native is an instance method in order to be polymorphic
+  // with its cousins.
+
+  const Instance& reflectee =
+      Instance::CheckedHandle(arguments->NativeArgAt(1));
+
+  const String& getter_name =
+      String::CheckedHandle(arguments->NativeArgAt(2));
+
+  // Every instance field has a getter Function.  Try to find the
+  // getter in any superclass and use that function to access the
+  // field.
+  // NB: We do not use Resolver::ResolveDynamic because we want to find private
+  // members.
+  Class& klass = Class::Handle(reflectee.clazz());
+  String& internal_getter_name = String::Handle(Field::GetterName(getter_name));
+  Function& getter = Function::Handle();
+  while (!klass.IsNull()) {
+    getter = klass.LookupDynamicFunctionAllowPrivate(internal_getter_name);
+    if (!getter.IsNull()) {
+      break;
+    }
+    klass = klass.SuperClass();
+  }
+
+  const int kNumArgs = 1;
+  const Array& args = Array::Handle(Array::New(kNumArgs));
+  args.SetAt(0, reflectee);
+
+  return ReflectivelyInvokeDynamicFunction(reflectee,
+                                           getter,
+                                           internal_getter_name,
+                                           args);
+}
+
+
+DEFINE_NATIVE_ENTRY(InstanceMirror_invokeSetter, 4) {
+  // Argument 0 is the mirror, which is unused by the native. It exists
+  // because this native is an instance method in order to be polymorphic
+  // with its cousins.
+
+  const Instance& reflectee =
+      Instance::CheckedHandle(arguments->NativeArgAt(1));
+
+  const String& setter_name =
+      String::CheckedHandle(arguments->NativeArgAt(2));
+
+  const Instance& value = Instance::CheckedHandle(arguments->NativeArgAt(3));
+
+  String& internal_setter_name =
+      String::Handle(Field::SetterName(setter_name));
+  Function& setter = Function::Handle();
+
+  Class& klass = Class::Handle(reflectee.clazz());
+  Field& field = Field::Handle();
+
+  while (!klass.IsNull()) {
+    field = klass.LookupInstanceField(setter_name);
+    if (!field.IsNull() && field.is_final()) {
+      const String& message = String::Handle(
+          String::NewFormatted("%s: cannot set final field '%s'.",
+                               "InstanceMirror_invokeSetter",
+                               setter_name.ToCString()));
+      ThrowMirroredCompilationError(message);
+      UNREACHABLE();
+    }
+    setter = klass.LookupDynamicFunctionAllowPrivate(internal_setter_name);
+    if (!setter.IsNull()) {
+      break;
+    }
+    klass = klass.SuperClass();
+  }
+
+  // Invoke the setter and return the result.
+  const int kNumArgs = 2;
+  const Array& args = Array::Handle(Array::New(kNumArgs));
+  args.SetAt(0, reflectee);
+  args.SetAt(1, value);
+
+  return ReflectivelyInvokeDynamicFunction(reflectee,
+                                           setter,
+                                           internal_setter_name,
+                                           args);
+}
+
+
+DEFINE_NATIVE_ENTRY(ClosureMirror_apply, 2) {
+  const Instance& closure = Instance::CheckedHandle(arguments->NativeArgAt(0));
+  ASSERT(!closure.IsNull() && closure.IsCallable(NULL, NULL));
+
+  const Array& positional_args =
+      Array::CheckedHandle(arguments->NativeArgAt(1));
+  intptr_t number_of_arguments = positional_args.Length();
+
+  // Set up arguments to include the closure as the first argument.
+  const Array& args = Array::Handle(Array::New(number_of_arguments + 1));
+  Object& obj = Object::Handle();
+  args.SetAt(0, closure);
+  for (int i = 0; i < number_of_arguments; i++) {
+    obj = positional_args.At(i);
+    args.SetAt(i + 1, obj);
+  }
+
+  obj = DartEntry::InvokeClosure(args);
+  if (obj.IsError()) {
+    ThrowInvokeError(Error::Cast(obj));
+    UNREACHABLE();
+  }
+  return obj.raw();
+}
+
+
+DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 4) {
+  // Argument 0 is the mirror, which is unused by the native. It exists
+  // because this native is an instance method in order to be polymorphic
+  // with its cousins.
+
+  const MirrorReference& klass_ref =
+      MirrorReference::CheckedHandle(arguments->NativeArgAt(1));
+  Class& klass = Class::Handle();
+  klass ^= klass_ref.referent();
+
+  const String& function_name =
+      String::CheckedHandle(arguments->NativeArgAt(2));
+
+  const Array& positional_args =
+      Array::CheckedHandle(arguments->NativeArgAt(3));
+  intptr_t number_of_arguments = positional_args.Length();
+
+  // TODO(11771): This won't find private members.
+  const Function& function = Function::Handle(
+        Resolver::ResolveStatic(klass,
+                                function_name,
+                                number_of_arguments,
+                                Object::empty_array(),
+                                Resolver::kIsQualified));
+  if (function.IsNull()) {
+    const String& klass_name = String::Handle(klass.Name());
+    const String& message = String::Handle(
+      String::NewFormatted("%s: did not find %d-arg static method '%s.%s'.",
+                           "ClassMirror_invoke",
+                           number_of_arguments,
+                           klass_name.ToCString(),
+                           function_name.ToCString()));
+    ThrowMirroredCompilationError(message);
+    UNREACHABLE();
+  }
+  Object& result = Object::Handle(DartEntry::InvokeFunction(function,
+                                                            positional_args));
+  if (result.IsError()) {
+    ThrowInvokeError(Error::Cast(result));
+    UNREACHABLE();
+  }
+  return result.raw();
+}
+
+
+DEFINE_NATIVE_ENTRY(ClassMirror_invokeGetter, 3) {
+  // Argument 0 is the mirror, which is unused by the native. It exists
+  // because this native is an instance method in order to be polymorphic
+  // with its cousins.
+
+  const MirrorReference& klass_ref =
+      MirrorReference::CheckedHandle(arguments->NativeArgAt(1));
+  Class& klass = Class::Handle();
+  klass ^= klass_ref.referent();
+
+  const String& getter_name =
+      String::CheckedHandle(arguments->NativeArgAt(2));
+
+  // Note static fields do not have implicit getters.
+  const Field& field = Field::Handle(klass.LookupStaticField(getter_name));
+  if (field.IsNull() || FieldIsUninitialized(field)) {
+    const String& internal_getter_name = String::Handle(
+        Field::GetterName(getter_name));
+    const Function& getter = Function::Handle(
+        klass.LookupStaticFunctionAllowPrivate(internal_getter_name));
+
+    if (getter.IsNull()) {
+      const String& message = String::Handle(
+        String::NewFormatted("%s: did not find static getter '%s'.",
+                             "ClassMirror_invokeGetter",
+                             getter_name.ToCString()));
+      ThrowMirroredCompilationError(message);
+      UNREACHABLE();
+    }
+
+    // Invoke the getter and return the result.
+    Object& result = Object::Handle(
+        DartEntry::InvokeFunction(getter, Object::empty_array()));
+    if (result.IsError()) {
+      ThrowInvokeError(Error::Cast(result));
+      UNREACHABLE();
+    }
+    return result.raw();
+  }
+  return field.value();
+}
+
+
+DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 4) {
+  // Argument 0 is the mirror, which is unused by the native. It exists
+  // because this native is an instance method in order to be polymorphic
+  // with its cousins.
+
+  const MirrorReference& klass_ref =
+      MirrorReference::CheckedHandle(arguments->NativeArgAt(1));
+  Class& klass = Class::Handle();
+  klass ^= klass_ref.referent();
+
+  const String& setter_name =
+      String::CheckedHandle(arguments->NativeArgAt(2));
+
+  const Instance& value = Instance::CheckedHandle(arguments->NativeArgAt(3));
+
+  // Check for real fields and user-defined setters.
+  const Field& field = Field::Handle(klass.LookupStaticField(setter_name));
+  if (field.IsNull()) {
+    const String& internal_setter_name = String::Handle(
+      Field::SetterName(setter_name));
+    const Function& setter = Function::Handle(
+      klass.LookupStaticFunctionAllowPrivate(internal_setter_name));
+
+    if (setter.IsNull()) {
+      const String& message = String::Handle(
+        String::NewFormatted("%s: did not find static setter '%s'.",
+                             "ClassMirror_invokeSetter",
+                             setter_name.ToCString()));
+      ThrowMirroredCompilationError(message);
+      UNREACHABLE();
+    }
+
+    // Invoke the setter and return the result.
+    const int kNumArgs = 1;
+    const Array& args = Array::Handle(Array::New(kNumArgs));
+    args.SetAt(0, value);
+
+    Object& result = Object::Handle(
+        DartEntry::InvokeFunction(setter, args));
+    if (result.IsError()) {
+      ThrowInvokeError(Error::Cast(result));
+      UNREACHABLE();
+    }
+    return result.raw();
+  }
+
+  if (field.is_final()) {
+    const String& message = String::Handle(
+        String::NewFormatted("%s: cannot set final field '%s'.",
+                             "ClassMirror_invokeSetter",
+                             setter_name.ToCString()));
+    ThrowMirroredCompilationError(message);
+    UNREACHABLE();
+  }
+
+  field.set_value(value);
+  return value.raw();
+}
+
+
+DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 3) {
+  const MirrorReference& klass_ref =
+      MirrorReference::CheckedHandle(arguments->NativeArgAt(0));
+  Class& klass = Class::Handle();
+  klass ^= klass_ref.referent();
+
+  const String& constructor_name =
+      String::CheckedHandle(arguments->NativeArgAt(1));
+
+  const Array& positional_args =
+      Array::CheckedHandle(arguments->NativeArgAt(2));
+
+  intptr_t number_of_arguments = positional_args.Length();
+
+  // By convention, the static function implementing a named constructor 'C'
+  // for class 'A' is labeled 'A.C', and the static function implementing the
+  // unnamed constructor for class 'A' is labeled 'A.'.
+  // This convention prevents users from explicitly calling constructors.
+  const String& klass_name = String::Handle(klass.Name());
+  String& internal_constructor_name =
+      String::Handle(String::Concat(klass_name, Symbols::Dot()));
+  if (!constructor_name.IsNull()) {
+    internal_constructor_name =
+        String::Concat(internal_constructor_name, constructor_name);
+  }
+
+  const Function& constructor =
+      Function::Handle(ResolveConstructor("ClassMirror_invokeConstructor",
+                                          klass,
+                                          klass_name,
+                                          internal_constructor_name,
+                                          number_of_arguments));
+
+  const Object& result =
+      Object::Handle(DartEntry::InvokeConstructor(klass,
+                                                  constructor,
+                                                  positional_args));
+  if (result.IsError()) {
+    ThrowInvokeError(Error::Cast(result));
+    UNREACHABLE();
+  }
+  // Factories may return null.
+  ASSERT(result.IsInstance() || result.IsNull());
+  return result.raw();
+}
+
+
+DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 4) {
+  // Argument 0 is the mirror, which is unused by the native. It exists
+  // because this native is an instance method in order to be polymorphic
+  // with its cousins.
+
+  const MirrorReference& library_ref =
+      MirrorReference::CheckedHandle(arguments->NativeArgAt(1));
+  Library& library = Library::Handle();
+  library ^= library_ref.referent();
+
+  const String& function_name =
+      String::CheckedHandle(arguments->NativeArgAt(2));
+
+  const Array& positional_args =
+      Array::CheckedHandle(arguments->NativeArgAt(3));
+  intptr_t number_of_arguments = positional_args.Length();
+
+
+  const Function& function = Function::Handle(
+      library.LookupFunctionAllowPrivate(function_name));
+
+  if (function.IsNull()) {
+    const String& message = String::Handle(
+      String::NewFormatted("%s: did not find top-level function '%s'.",
+                           "LibraryMirror_invoke",
+                           function_name.ToCString()));
+    ThrowMirroredCompilationError(message);
+    UNREACHABLE();
+  }
+
+  // LookupFunctionAllowPrivate does not check argument arity, so we
+  // do it here.
+  String& error_message = String::Handle();
+  if (!function.AreValidArgumentCounts(number_of_arguments,
+                                       /* num_named_args */ 0,
+                                       &error_message)) {
+    const String& message = String::Handle(
+      String::NewFormatted("%s: wrong argument count for function '%s': %s.",
+                           "LibraryMirror_invoke",
+                           function_name.ToCString(),
+                           error_message.ToCString()));
+    ThrowMirroredCompilationError(message);
+    UNREACHABLE();
+  }
+
+  const Object& result = Object::Handle(
+      DartEntry::InvokeFunction(function, positional_args));
+  if (result.IsError()) {
+    ThrowInvokeError(Error::Cast(result));
+    UNREACHABLE();
+  }
+  return result.raw();
+}
+
+
+DEFINE_NATIVE_ENTRY(LibraryMirror_invokeGetter, 3) {
+  // Argument 0 is the mirror, which is unused by the native. It exists
+  // because this native is an instance method in order to be polymorphic
+  // with its cousins.
+
+  const MirrorReference& library_ref =
+      MirrorReference::CheckedHandle(arguments->NativeArgAt(1));
+  Library& library = Library::Handle();
+  library ^= library_ref.referent();
+
+  const String& getter_name =
+      String::CheckedHandle(arguments->NativeArgAt(2));
+
+  // To access a top-level we may need to use the Field or the
+  // getter Function.  The getter function may either be in the
+  // library or in the field's owner class, depending.
+  const Field& field =
+      Field::Handle(library.LookupFieldAllowPrivate(getter_name));
+  Function& getter = Function::Handle();
+  if (field.IsNull()) {
+    // No field found.  Check for a getter in the lib.
+    const String& internal_getter_name =
+        String::Handle(Field::GetterName(getter_name));
+    getter = library.LookupFunctionAllowPrivate(internal_getter_name);
+  } else if (FieldIsUninitialized(field)) {
+    // A field was found.  Check for a getter in the field's owner classs.
+    const Class& klass = Class::Handle(field.owner());
+    const String& internal_getter_name =
+        String::Handle(Field::GetterName(getter_name));
+    getter = klass.LookupStaticFunctionAllowPrivate(internal_getter_name);
+  }
+
+  if (!getter.IsNull()) {
+    // Invoke the getter and return the result.
+    const Object& result = Object::Handle(
+        DartEntry::InvokeFunction(getter, Object::empty_array()));
+    if (result.IsError()) {
+      ThrowInvokeError(Error::Cast(result));
+      UNREACHABLE();
+    }
+    return result.raw();
+  } else if (!field.IsNull()) {
+    return field.value();
+  } else {
+    const String& message = String::Handle(
+        String::NewFormatted("%s: did not find top-level variable '%s'.",
+                             "LibraryMirror_invokeGetter",
+                             getter_name.ToCString()));
+    ThrowMirroredCompilationError(message);
+    UNREACHABLE();
+    return Instance::null();
+  }
+}
+
+
+DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 4) {
+  // Argument 0 is the mirror, which is unused by the native. It exists
+  // because this native is an instance method in order to be polymorphic
+  // with its cousins.
+
+  const MirrorReference& library_ref =
+      MirrorReference::CheckedHandle(arguments->NativeArgAt(1));
+  Library& library = Library::Handle();
+  library ^= library_ref.referent();
+
+  const String& setter_name =
+      String::CheckedHandle(arguments->NativeArgAt(2));
+
+  const Instance& value = Instance::CheckedHandle(arguments->NativeArgAt(3));
+
+  // To access a top-level we may need to use the Field or the
+  // setter Function.  The setter function may either be in the
+  // library or in the field's owner class, depending.
+  const Field& field =
+      Field::Handle(library.LookupFieldAllowPrivate(setter_name));
+
+  if (field.IsNull()) {
+    const String& internal_setter_name =
+        String::Handle(Field::SetterName(setter_name));
+    const Function& setter = Function::Handle(
+        library.LookupFunctionAllowPrivate(internal_setter_name));
+
+    if (setter.IsNull()) {
+      const String& message = String::Handle(
+        String::NewFormatted("%s: did not find top-level variable '%s'.",
+                             "LibraryMirror_invokeSetter",
+                             setter_name.ToCString()));
+      ThrowMirroredCompilationError(message);
+      UNREACHABLE();
+    }
+
+    // Invoke the setter and return the result.
+    const int kNumArgs = 1;
+    const Array& args = Array::Handle(Array::New(kNumArgs));
+    args.SetAt(0, value);
+    const Object& result = Object::Handle(
+        DartEntry::InvokeFunction(setter, args));
+    if (result.IsError()) {
+      ThrowInvokeError(Error::Cast(result));
+      UNREACHABLE();
+    }
+    return result.raw();
+  }
+
+  if (field.is_final()) {
+    const String& message = String::Handle(
+      String::NewFormatted("%s: cannot set final top-level variable '%s'.",
+                           "LibraryMirror_invokeSetter",
+                           setter_name.ToCString()));
+    ThrowMirroredCompilationError(message);
+    UNREACHABLE();
+  }
+
+  field.set_value(value);
+  return value.raw();
+}
+
 
 DEFINE_NATIVE_ENTRY(MethodMirror_name, 1) {
   const MirrorReference& func_ref =

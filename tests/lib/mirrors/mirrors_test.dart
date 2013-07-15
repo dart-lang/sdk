@@ -2,31 +2,72 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(rmacnak): Move the existing mirror tests here (a place for
-// cross-implementation tests).
-
 library MirrorsTest;
 import "dart:mirrors";
 import "../../../pkg/unittest/lib/unittest.dart";
 
 var topLevelField;
+u(a, b, c) => {"a": a, "b": b, "c": c};
+_v(a, b) => a + b;
 
 class Class<T> {
   Class() { this.field = "default value"; }
   Class.withInitialValue(this.field);
   var field;
-  static var staticField;
+
+  Class.generative(this.field);
+  Class.redirecting(y) : this.generative(y*2);
+  factory Class.faktory(y) => "FakeClass $y";
+  factory Class.redirectingFactory(y) = Class.faktory;
+
   m(a, b, c) => {"a": a, "b": b, "c": c};
+  _n(a, b) => a + b;
+  noSuchMethod(invocation) => "DNU";
+
+  static var staticField;
+  static s(a, b, c) => {"a": a, "b": b, "c": c};
+  static _t(a, b) => a + b;
 }
 
 typedef Typedef();
 
-testInvoke(mirrors) {
+testInvoke(mirrors, isDart2js) {
   var instance = new Class();
   var instMirror = reflect(instance);
 
   expect(instMirror.invoke(const Symbol("m"),['A', 'B', instance]).reflectee,
          equals({"a": 'A', "b":'B', "c": instance}));
+  expect(instMirror.invoke(const Symbol("notDefined"), []).reflectee,
+         equals("DNU"));
+  expect(instMirror.invoke(const Symbol("m"), []).reflectee,
+         equals("DNU"));  // Wrong arity.
+  // TODO(rmacnak): Implement access to private members. 
+  // expect(instMirror.invoke(const Symbol("_n"), [3, 4]).reflectee,
+  //        equals(7));
+
+  if (isDart2js) return;
+
+  var classMirror = instMirror.type;
+  expect(classMirror.invoke(const Symbol("s"),['A', 'B', instance]).reflectee,
+         equals({"a": 'A', "b":'B', "c": instance}));
+  expect(() => classMirror.invoke(const Symbol("notDefined"), []).reflectee,
+         throws);
+  expect(() => classMirror.invoke(const Symbol("s"), []).reflectee,
+         throws);  // Wrong arity.
+  // TODO(rmacnak): Implement access to private members.
+  // expect(classMirror.invoke(const Symbol("_t"), [3, 4]).reflectee,
+  //        equals(7));
+
+  var libMirror = classMirror.owner;
+  expect(libMirror.invoke(const Symbol("u"),['A', 'B', instance]).reflectee,
+         equals({"a": 'A', "b":'B', "c": instance}));
+  expect(() => libMirror.invoke(const Symbol("notDefined"), []).reflectee,
+         throws);
+  expect(() => libMirror.invoke(const Symbol("u"), []).reflectee,
+         throws);  // Wrong arity.
+  // NB: This works on the VM but fails at compile-time on dart2js.
+  // expect(libMirror.invoke(const Symbol("_v"), [3, 4]).reflectee,
+  //        equals(7));
 }
 
 testInstanceFieldAccess(mirrors) {
@@ -122,7 +163,7 @@ testClosureMirrors(mirrors) {
   }));
 }
 
-testInvokeConstructor(mirrors) {
+testInvokeConstructor(mirrors, isDart2js) {
   var classMirror = reflectClass(Class);
 
   var instanceMirror = classMirror.newInstance(const Symbol(''),[]);
@@ -133,6 +174,29 @@ testInvokeConstructor(mirrors) {
                                            [45]);
   expect(instanceMirror.reflectee is Class, equals(true));
   expect(instanceMirror.reflectee.field, equals(45));
+
+
+  instanceMirror = classMirror.newInstance(const Symbol('generative'),
+                                           [7]);
+  expect(instanceMirror.reflectee is Class, equals(true));
+  expect(instanceMirror.reflectee.field, equals(7));
+
+  instanceMirror = classMirror.newInstance(const Symbol('redirecting'),
+                                           [8]);
+  expect(instanceMirror.reflectee is Class, equals(true));
+  expect(instanceMirror.reflectee.field, equals(16));
+
+
+  if (!isDart2js) {
+    instanceMirror = classMirror.newInstance(const Symbol('faktory'),
+                                             [9]);
+    expect(instanceMirror.reflectee, equals('FakeClass 9'));
+
+    instanceMirror = classMirror.newInstance(const Symbol('redirectingFactory'),
+                                             [10]);
+    expect(instanceMirror.reflectee, equals('FakeClass 10'));
+  }
+
 
   var future = classMirror.newInstanceAsync(const Symbol(''), []);
   future.then(expectAsync1((resultMirror) {
@@ -202,13 +266,15 @@ testLibraryUri(var value, bool check(Uri)) {
 
 mainWithArgument({bool isDart2js: false, bool isMinified: false}) {
   var mirrors = currentMirrorSystem();
-  test("Test reflective method invocation", () { testInvoke(mirrors); });
+  test("Test reflective method invocation", () { testInvoke(mirrors,
+                                                            isDart2js); });
   test("Test instance field access", () { testInstanceFieldAccess(mirrors); });
   test('Test intercepted objects', () { testIntercepted(mirrors); });
   if (!isMinified) // TODO(ahe): Remove this line.
   test("Test field access", () { testFieldAccess(mirrors); });
   test("Test closure mirrors", () { testClosureMirrors(mirrors); });
-  test("Test invoke constructor", () { testInvokeConstructor(mirrors); });
+  test("Test invoke constructor", () { testInvokeConstructor(mirrors,
+                                                             isDart2js); });
   test("Test current library uri", () {
     testLibraryUri(new Class(),
       (Uri uri) => uri.path.endsWith('/mirrors_test.dart'));

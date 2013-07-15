@@ -2738,6 +2738,10 @@ RawField* Class::LookupField(const String& name, intptr_t type) const {
   ReusableHandleScope reused_handles(isolate);
   Array& flds = reused_handles.ArrayHandle();
   flds ^= fields();
+  if (flds.IsNull()) {
+    // This can occur, e.g., for Null classes.
+    return Field::null();
+  }
   Field& field = reused_handles.FieldHandle();
   String& field_name = reused_handles.StringHandle();
   intptr_t len = flds.Length();

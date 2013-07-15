@@ -152,6 +152,59 @@ RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
 }
 
 
+RawObject* DartEntry::InvokeConstructor(const Class& klass,
+                                        const Function& constructor,
+                                        const Array& arguments) {
+  Class& ultimate_klass = Class::Handle(klass.raw());
+  Function& ultimate_constructor = Function::Handle(constructor.raw());
+
+  Instance& new_object = Instance::Handle();
+  if (ultimate_constructor.IsRedirectingFactory()) {
+    Type& type = Type::Handle(ultimate_constructor.RedirectionType());
+    ultimate_klass = type.type_class();
+    ultimate_constructor = ultimate_constructor.RedirectionTarget();
+  }
+  if (ultimate_constructor.IsConstructor()) {
+    // "Constructors" are really instance initializers. They are passed a newly
+    // allocated object as an extra argument.
+    new_object = Instance::New(ultimate_klass);
+  }
+
+  // Create the argument list.
+  intptr_t number_of_arguments = arguments.Length();
+  intptr_t arg_index = 0;
+  int extra_args = (ultimate_constructor.IsConstructor() ? 2 : 1);
+  const Array& args =
+      Array::Handle(Array::New(number_of_arguments + extra_args));
+  if (ultimate_constructor.IsConstructor()) {
+    // Constructors get the uninitialized object and a constructor phase.
+    args.SetAt(arg_index++, new_object);
+    args.SetAt(arg_index++,
+               Smi::Handle(Smi::New(Function::kCtorPhaseAll)));
+  } else {
+    // Factories get type arguments.
+    args.SetAt(arg_index++, TypeArguments::Handle());
+  }
+  Object& argument = Object::Handle();
+  for (int i = 0; i < number_of_arguments; i++) {
+    argument = (arguments.At(i));
+    args.SetAt(arg_index++, argument);
+  }
+
+  // Invoke the constructor and return the new object.
+  const Object& result =
+      Object::Handle(DartEntry::InvokeFunction(ultimate_constructor, args));
+  if (result.IsError()) {
+    return result.raw();
+  }
+  if (ultimate_constructor.IsConstructor()) {
+    return new_object.raw();
+  } else {
+    return result.raw();
+  }
+}
+
+
 ArgumentsDescriptor::ArgumentsDescriptor(const Array& array)
     : array_(array) {
 }
