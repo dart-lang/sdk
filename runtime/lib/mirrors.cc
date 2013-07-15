@@ -1476,9 +1476,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 4) {
   if (function.IsNull()) {
     const String& klass_name = String::Handle(klass.Name());
     const String& message = String::Handle(
-      String::NewFormatted("%s: did not find %d-arg static method '%s.%s'.",
+      String::NewFormatted("%s: did not find static method '%s.%s'.",
                            "ClassMirror_invoke",
-                           number_of_arguments,
                            klass_name.ToCString(),
                            function_name.ToCString()));
     ThrowMirroredCompilationError(message);
