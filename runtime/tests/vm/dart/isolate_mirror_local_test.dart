@@ -344,6 +344,10 @@ void testMirrorSystem(MirrorSystem mirrors) {
   testLibrariesMap(mirrors.libraries);
   Expect.equals(const Symbol('void'), mirrors.voidType.simpleName);
   Expect.equals(const Symbol('dynamic'), mirrors.dynamicType.simpleName);
+  Expect.isTrue(mirrors.voidType is TypeMirror);
+  Expect.isTrue(mirrors.dynamicType is TypeMirror);
+  Expect.isFalse(mirrors.voidType is ClassMirror);
+  Expect.isFalse(mirrors.dynamicType is ClassMirror);
   testDone('testMirrorSystem');
 }
 
