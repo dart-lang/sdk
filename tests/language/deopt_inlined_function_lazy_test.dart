@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Test lazy deoptimization from within an inlined function.
-// VMOptions=--deoptimize_alot
+// VMOptions=--deoptimize_alot --optimization-counter-threshold=10 --no-use-osr
 
 import "package:expect/expect.dart";
 
@@ -25,7 +25,7 @@ foo(x) {
 
 main() {
   Expect.equals(42, foo(1));
-  for (var i = 0; i < 2000; i++) foo(7);
+  for (var i = 0; i < 20; i++) foo(7);
   Expect.equals(42, foo(2));
   // Call the runtime to trigger lazy deopt with foo/bar on the stack.
   Expect.equals(42, foo(-1));

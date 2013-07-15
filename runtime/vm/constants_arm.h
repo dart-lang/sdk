@@ -129,15 +129,51 @@ enum DRegister {
 };
 
 
+enum QRegister {
+  Q0  =  0,
+  Q1  =  1,
+  Q2  =  2,
+  Q3  =  3,
+  Q4  =  4,
+  Q5  =  5,
+  Q6  =  6,
+  Q7  =  7,
+#ifdef VFPv3_D16
+  kNumberOfQRegisters = 8,
+#else
+  Q8  =  8,
+  Q9  =  9,
+  Q10 = 10,
+  Q11 = 11,
+  Q12 = 12,
+  Q13 = 13,
+  Q14 = 14,
+  Q15 = 15,
+  kNumberOfQRegisters = 16,
+#endif
+  kNoQRegister = -1,
+};
+
+
+static inline DRegister EvenDRegisterOf(QRegister q) {
+  return static_cast<DRegister>(q * 2);
+}
+
+static inline DRegister OddDRegisterOf(QRegister q) {
+  return static_cast<DRegister>((q * 2) + 1);
+}
+
+
 // Register aliases for floating point scratch registers.
-const DRegister DTMP = D15;  // Overlaps with STMP.
-const SRegister STMP = S30;
+const QRegister QTMP = Q7;  // Overlaps with DTMP, STMP.
+const DRegister DTMP = D14;  // Overlaps with STMP.
+const SRegister STMP = S28;
 
 // Architecture independent aliases.
-typedef DRegister FpuRegister;
-const FpuRegister FpuTMP = DTMP;
-const int kNumberOfFpuRegisters = kNumberOfDRegisters;
-const FpuRegister kNoFpuRegister = kNoDRegister;
+typedef QRegister FpuRegister;
+const FpuRegister FpuTMP = QTMP;
+const int kNumberOfFpuRegisters = kNumberOfQRegisters;
+const FpuRegister kNoFpuRegister = kNoQRegister;
 
 // Register aliases.
 const Register TMP = IP;  // Used as scratch register by assembler.
@@ -167,9 +203,9 @@ const RegList kAbiPreservedCpuRegs =
     (1 << R4) | (1 << R5) | (1 << R6) | (1 << R7) |
     (1 << R8) | (1 << R9) | (1 << R10);
 const int kAbiPreservedCpuRegCount = 7;
-const DRegister kAbiFirstPreservedFpuReg = D8;
-const DRegister kAbiLastPreservedFpuReg =
-    static_cast<DRegister>(kNumberOfDRegisters - 1);
+const QRegister kAbiFirstPreservedFpuReg = Q4;
+const QRegister kAbiLastPreservedFpuReg =
+    static_cast<QRegister>(kNumberOfQRegisters - 1);
 
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
@@ -180,9 +216,9 @@ const RegList kDartAvailableCpuRegs =
 const RegList kDartVolatileCpuRegs =
     kDartAvailableCpuRegs & ~kAbiPreservedCpuRegs;
 const int kDartVolatileCpuRegCount = 4;
-const DRegister kDartFirstVolatileFpuReg = D0;
-const DRegister kDartLastVolatileFpuReg = D7;
-const int kDartVolatileFpuRegCount = 8;
+const QRegister kDartFirstVolatileFpuReg = Q0;
+const QRegister kDartLastVolatileFpuReg = Q3;
+const int kDartVolatileFpuRegCount = 4;
 
 
 // Values for the condition field as defined in section A3.2.
@@ -525,6 +561,18 @@ class Instr {
   inline DRegister DmField() const {
     return static_cast<DRegister>(Bits(kRmShift, kRmBits) + (Bit(5) << 4));
   }
+  inline QRegister QnField() const {
+    const intptr_t bits = Bits(kRnShift, kRnBits) + (Bit(7) << 4);
+    return static_cast<QRegister>(bits >> 1);
+  }
+  inline QRegister QdField() const {
+    const intptr_t bits = Bits(kRdShift, kRdBits) + (Bit(22) << 4);
+    return static_cast<QRegister>(bits >> 1);
+  }
+  inline QRegister QmField() const {
+    const intptr_t bits = Bits(kRmShift, kRmBits) + (Bit(5) << 4);
+    return static_cast<QRegister>(bits >> 1);
+  }
 
   inline bool IsDivision() const {
     ASSERT(ConditionField() != kSpecialCondition);
@@ -563,6 +611,16 @@ class Instr {
     ASSERT(TypeField() == 6);
     int32_t puw = (PUField() << 1) | Bit(21);  // don't care about D bit
     return (Bits(9, 3) == 5) && ((puw == 2) || (puw == 3) || (puw == 5));
+  }
+
+  inline bool IsSIMDDataProcessing() const {
+    ASSERT(ConditionField() == kSpecialCondition);
+    return (Bits(25, 3) == 1);
+  }
+
+  inline bool IsSIMDLoadStore() const {
+    ASSERT(ConditionField() == kSpecialCondition);
+    return (Bits(24, 4) == 4) && (Bit(20) == 0);
   }
 
   // Special accessors that test for existence of a value.

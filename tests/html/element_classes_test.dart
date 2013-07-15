@@ -131,6 +131,15 @@ main() {
     expect(classes, orderedEquals(['foo', 'baz']));
     classes.toggle('qux');
     expect(classes, orderedEquals(['foo', 'baz', 'qux']));
+
+    classes.toggle('qux', true);
+    expect(classes, orderedEquals(['foo', 'baz', 'qux']));
+    classes.toggle('qux', false);
+    expect(classes, orderedEquals(['foo', 'baz']));
+    classes.toggle('qux', false);
+    expect(classes, orderedEquals(['foo', 'baz']));
+    classes.toggle('qux', true);
+    expect(classes, orderedEquals(['foo', 'baz', 'qux']));
   });
 
   test('addAll', () {
@@ -151,6 +160,10 @@ main() {
     expect(classes, orderedEquals(['baz']));
     classes.toggleAll(['qux', 'quux']);
     expect(classes, orderedEquals(['baz', 'qux', 'quux']));
+    classes.toggleAll(['bar', 'foo'], true);
+    expect(classes, orderedEquals(['baz', 'qux', 'quux', 'bar', 'foo']));
+    classes.toggleAll(['baz', 'quux'], false);
+    expect(classes, orderedEquals(['qux','bar', 'foo']));
   });
 
   test('containsAll', () {

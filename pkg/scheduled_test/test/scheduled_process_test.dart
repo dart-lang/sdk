@@ -7,7 +7,7 @@ library scheduled_process_test;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 import 'package:scheduled_test/scheduled_process.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/src/mock_clock.dart' as mock_clock;
@@ -127,13 +127,13 @@ void main() {
       currentSchedule.onException.schedule(() {
         errors = currentSchedule.errors;
       });
-  
+
       var process = startDartProcess('');
       expect(process.nextLine(), completion(equals('hello')));
       expect(process.nextLine(), completion(equals('world')));
       process.shouldExit(0);
     });
-  
+
     test('test 2', () {
       expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
       expect(errors.length, anyOf(1, 2));
@@ -180,13 +180,13 @@ void main() {
       currentSchedule.onException.schedule(() {
         errors = currentSchedule.errors;
       });
-  
+
       var process = startDartProcess('print("hello");');
       expect(process.nextLine(), completion(equals('hello')));
       expect(process.nextLine(), completion(equals('world')));
       process.shouldExit(0);
     });
-  
+
     test('test 2', () {
       expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
       expect(errors.length, anyOf(1, 2));
@@ -224,13 +224,13 @@ void main() {
       currentSchedule.onException.schedule(() {
         errors = currentSchedule.errors;
       });
-  
+
       var process = startDartProcess(r'stderr.write("hello\n");');
       expect(process.nextErrLine(), completion(equals('hello')));
       expect(process.nextErrLine(), completion(equals('world')));
       process.shouldExit(0);
     });
-  
+
     test('test 2', () {
       expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
       expect(errors.length, anyOf(1, 2));

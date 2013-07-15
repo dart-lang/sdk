@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing bitwise operations.
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr
 
 import "package:expect/expect.dart";
 
@@ -56,7 +57,7 @@ class BitOperationsTest {
     TestPositiveValueShifts();
     TestNoMaskingOfShiftCount();
     TestNegativeCountShifts();
-    for (int i = 0; i < 10000; i++) {
+    for (int i = 0; i < 20; i++) {
       TestCornerCasesRightShifts();
       TestRightShift64Bit();
       TestLeftShift64Bit();
@@ -128,7 +129,7 @@ class BitOperationsTest {
 
     Expect.isTrue(throwOnLeft(12, -3));
     Expect.isTrue(throwOnRight(12, -3));
-    for (int i = 0; i < 4000; i++) {
+    for (int i = 0; i < 20; i++) {
       Expect.isFalse(throwOnLeft(12, 3));
       Expect.isFalse(throwOnRight(12, 3));
     }

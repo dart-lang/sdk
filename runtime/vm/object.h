@@ -788,9 +788,6 @@ class Class : public Object {
   // Check if this class represents the 'Function' class.
   bool IsFunctionClass() const;
 
-  // Check if this class represents the 'List' class.
-  bool IsListClass() const;
-
   // Check if this class represents a signature class.
   bool IsSignatureClass() const {
     return signature_function() != Object::null();
@@ -929,8 +926,9 @@ class Class : public Object {
 
   RawArray* constants() const;
 
-  RawFunction* GetNoSuchMethodDispatcher(const String& target_name,
-                                         const Array& args_desc) const;
+  RawFunction* GetInvocationDispatcher(const String& target_name,
+                                       const Array& args_desc,
+                                       RawFunction::Kind kind) const;
 
   void Finalize() const;
 
@@ -1021,10 +1019,11 @@ class Class : public Object {
   void set_canonical_types(const Array& value) const;
   RawArray* canonical_types() const;
 
-  RawArray* no_such_method_cache() const;
-  void set_no_such_method_cache(const Array& cache) const;
-  RawFunction* CreateNoSuchMethodDispatcher(const String& target_name,
-                                            const Array& args_desc) const;
+  RawArray* invocation_dispatcher_cache() const;
+  void set_invocation_dispatcher_cache(const Array& cache) const;
+  RawFunction* CreateInvocationDispatcher(const String& target_name,
+                                          const Array& args_desc,
+                                          RawFunction::Kind kind) const;
   void CalculateFieldOffsets() const;
 
   // Assigns empty array to all raw class array fields.
@@ -1442,6 +1441,10 @@ class Function : public Object {
     return kind() == RawFunction::kNoSuchMethodDispatcher;
   }
 
+  bool IsInvokeFieldDispatcher() const {
+    return kind() == RawFunction::kInvokeFieldDispatcher;
+  }
+
   // Returns true iff an implicit closure function has been created
   // for this function.
   bool HasImplicitClosureFunction() const {
@@ -1487,6 +1490,7 @@ class Function : public Object {
       case RawFunction::kImplicitSetter:
       case RawFunction::kMethodExtractor:
       case RawFunction::kNoSuchMethodDispatcher:
+      case RawFunction::kInvokeFieldDispatcher:
         return true;
       case RawFunction::kClosureFunction:
       case RawFunction::kConstructor:
@@ -1520,6 +1524,7 @@ class Function : public Object {
   bool IsInFactoryScope() const;
 
   intptr_t token_pos() const { return raw_ptr()->token_pos_; }
+  void set_token_pos(intptr_t value) const;
 
   intptr_t end_token_pos() const { return raw_ptr()->end_token_pos_; }
   void set_end_token_pos(intptr_t value) const {
@@ -1800,7 +1805,6 @@ class Function : public Object {
   void set_is_external(bool value) const;
   void set_parent_function(const Function& value) const;
   void set_owner(const Object& value) const;
-  void set_token_pos(intptr_t value) const;
   RawFunction* implicit_closure_function() const;
   void set_implicit_closure_function(const Function& value) const;
   void set_num_optional_parameters(intptr_t value) const;  // Encoded value.

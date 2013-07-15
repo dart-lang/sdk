@@ -7,7 +7,7 @@
 /// platform to platform. No similar file exists for dart2js since the specific
 /// method names there are implementation details.
 
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 import 'package:stack_trace/stack_trace.dart';
 import 'package:unittest/unittest.dart';
 

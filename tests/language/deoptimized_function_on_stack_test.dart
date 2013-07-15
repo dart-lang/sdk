@@ -1,6 +1,7 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+// VMOptions=--optimization-counter-threshold=10
 
 import "package:expect/expect.dart";
 
@@ -13,11 +14,11 @@ main() {
 }
 
 // Create a situation where method 'call' is optimized for using class A
-// when calling foo. 
+// when calling foo.
 warmup() {
   List a = [ new A(), new A(), new A(), new A()];
   var res = 0;
-  for (int i = 0; i < 2000; i++) {
+  for (int i = 0; i < 20; i++) {
     res = call(a, 0);
   }
   Expect.equals(10, res);

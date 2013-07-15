@@ -23,7 +23,6 @@ abstract class _Completer<T> implements Completer<T> {
     if (_isComplete) throw new StateError("Future already completed");
     _isComplete = true;
     _FutureImpl futureImpl = future;
-    futureImpl._zone.cancelCallbackExpectation();
     _setFutureValue(value);
   }
 
@@ -35,12 +34,7 @@ abstract class _Completer<T> implements Completer<T> {
       _attachStackTrace(error, stackTrace);
     }
     _FutureImpl futureImpl = future;
-    if (futureImpl._inSameErrorZone(_Zone.current)) {
-      futureImpl._zone.cancelCallbackExpectation();
-      _setFutureError(error);
-    } else {
-      _Zone.current.handleUncaughtError(error);
-    }
+    _setFutureError(error);
   }
 
   bool get isCompleted => _isComplete;
@@ -50,11 +44,17 @@ class _AsyncCompleter<T> extends _Completer<T> {
   void _setFutureValue(T value) {
     _FutureImpl future = this.future;
     future._asyncSetValue(value);
+    // The async-error will schedule another callback, so we can cancel
+    // the expectation without shutting down the zone.
+    future._zone.cancelCallbackExpectation();
   }
 
   void _setFutureError(error) {
     _FutureImpl future = this.future;
     future._asyncSetError(error);
+    // The async-error will schedule another callback, so we can cancel
+    // the expectation without shutting down the zone.
+    future._zone.cancelCallbackExpectation();
   }
 }
 
@@ -62,11 +62,13 @@ class _SyncCompleter<T> extends _Completer<T> {
   void _setFutureValue(T value) {
     _FutureImpl future = this.future;
     future._setValue(value);
+    future._zone.cancelCallbackExpectation();
   }
 
   void _setFutureError(error) {
     _FutureImpl future = this.future;
     future._setError(error);
+    future._zone.cancelCallbackExpectation();
   }
 }
 

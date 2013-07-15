@@ -8,7 +8,7 @@ library dartdocTests;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
 // TODO(rnystrom): Use "package:" URL (#4968).

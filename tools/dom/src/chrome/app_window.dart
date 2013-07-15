@@ -10,11 +10,60 @@ part of chrome;
  * Types
  */
 
+class AppWindowBounds extends ChromeObject {
+  /*
+   * Public constructor
+   */
+  AppWindowBounds({int left, int top, int width, int height}) {
+    if (left != null)
+      this.left = left;
+    if (top != null)
+      this.top = top;
+    if (width != null)
+      this.width = width;
+    if (height != null)
+      this.height = height;
+  }
+
+  /*
+   * Private constructor
+   */
+  AppWindowBounds._proxy(_jsObject) : super._proxy(_jsObject);
+
+  /*
+   * Public accessors
+   */
+  int get left => JS('int', '#.left', this._jsObject);
+
+  void set left(int left) {
+    JS('void', '#.left = #', this._jsObject, left);
+  }
+
+  int get top => JS('int', '#.top', this._jsObject);
+
+  void set top(int top) {
+    JS('void', '#.top = #', this._jsObject, top);
+  }
+
+  int get width => JS('int', '#.width', this._jsObject);
+
+  void set width(int width) {
+    JS('void', '#.width = #', this._jsObject, width);
+  }
+
+  int get height => JS('int', '#.height', this._jsObject);
+
+  void set height(int height) {
+    JS('void', '#.height = #', this._jsObject, height);
+  }
+
+}
+
 class AppWindowCreateWindowOptions extends ChromeObject {
   /*
    * Public constructor
    */
-  AppWindowCreateWindowOptions({String id, int defaultWidth, int defaultHeight, int defaultLeft, int defaultTop, int width, int height, int left, int top, int minWidth, int minHeight, int maxWidth, int maxHeight, String type, String frame, AppWindowBounds bounds, bool transparentBackground, bool hidden, bool singleton}) {
+  AppWindowCreateWindowOptions({String id, int defaultWidth, int defaultHeight, int defaultLeft, int defaultTop, int width, int height, int left, int top, int minWidth, int minHeight, int maxWidth, int maxHeight, String type, String frame, AppWindowBounds bounds, bool transparentBackground, String state, bool hidden, bool resizable, bool singleton}) {
     if (id != null)
       this.id = id;
     if (defaultWidth != null)
@@ -49,8 +98,12 @@ class AppWindowCreateWindowOptions extends ChromeObject {
       this.bounds = bounds;
     if (transparentBackground != null)
       this.transparentBackground = transparentBackground;
+    if (state != null)
+      this.state = state;
     if (hidden != null)
       this.hidden = hidden;
+    if (resizable != null)
+      this.resizable = resizable;
     if (singleton != null)
       this.singleton = singleton;
   }
@@ -65,7 +118,7 @@ class AppWindowCreateWindowOptions extends ChromeObject {
    */
   /// Id to identify the window. This will be used to remember the size and
   /// position of the window and restore that geometry when a window with the
-  /// same id (and no explicit size or position) is later opened.
+  /// same id is later opened.
   String get id => JS('String', '#.id', this._jsObject);
 
   void set id(String id) {
@@ -132,36 +185,35 @@ class AppWindowCreateWindowOptions extends ChromeObject {
     JS('void', '#.top = #', this._jsObject, top);
   }
 
-  /// Minimum width of the window.
+  /// Minimum width for the lifetime of the window.
   int get minWidth => JS('int', '#.minWidth', this._jsObject);
 
   void set minWidth(int minWidth) {
     JS('void', '#.minWidth = #', this._jsObject, minWidth);
   }
 
-  /// Minimum height of the window.
+  /// Minimum height for the lifetime of the window.
   int get minHeight => JS('int', '#.minHeight', this._jsObject);
 
   void set minHeight(int minHeight) {
     JS('void', '#.minHeight = #', this._jsObject, minHeight);
   }
 
-  /// Maximum width of the window.
+  /// Maximum width for the lifetime of the window.
   int get maxWidth => JS('int', '#.maxWidth', this._jsObject);
 
   void set maxWidth(int maxWidth) {
     JS('void', '#.maxWidth = #', this._jsObject, maxWidth);
   }
 
-  /// Maximum height of the window.
+  /// Maximum height for the lifetime of the window.
   int get maxHeight => JS('int', '#.maxHeight', this._jsObject);
 
   void set maxHeight(int maxHeight) {
     JS('void', '#.maxHeight = #', this._jsObject, maxHeight);
   }
 
-  /// Window type:  'shell' - the default window type  'panel' - a panel, managed
-  /// by the OS (Currently experimental, Ash only)
+  /// Type of window to create.
   String get type => JS('String', '#.type', this._jsObject);
 
   void set type(String type) {
@@ -175,9 +227,9 @@ class AppWindowCreateWindowOptions extends ChromeObject {
     JS('void', '#.frame = #', this._jsObject, frame);
   }
 
-  /// Size of the content in the window (excluding the titlebar). If specified in
-  /// addition to any of the left/top/width/height parameters, this field takes
-  /// precedence. If a frameBounds is specified, the frameBounds take precedence.
+  /// Size and position of the content in the window (excluding the titlebar). If
+  /// an id is also specified and a window with a matching id has been shown
+  /// before, the remembered bounds of the window will be used instead.
   AppWindowBounds get bounds => new AppWindowBounds._proxy(JS('', '#.bounds', this._jsObject));
 
   void set bounds(AppWindowBounds bounds) {
@@ -192,12 +244,27 @@ class AppWindowCreateWindowOptions extends ChromeObject {
     JS('void', '#.transparentBackground = #', this._jsObject, transparentBackground);
   }
 
+  /// The initial state of the window, allowing it to be created already
+  /// fullscreen, maximized, or minimized. Defaults to 'normal'.
+  String get state => JS('String', '#.state', this._jsObject);
+
+  void set state(String state) {
+    JS('void', '#.state = #', this._jsObject, state);
+  }
+
   /// If true, the window will be created in a hidden state. Call show() on the
   /// window to show it once it has been created. Defaults to false.
   bool get hidden => JS('bool', '#.hidden', this._jsObject);
 
   void set hidden(bool hidden) {
     JS('void', '#.hidden = #', this._jsObject, hidden);
+  }
+
+  /// If true, the window will be resizable by the user. Defaults to true.
+  bool get resizable => JS('bool', '#.resizable', this._jsObject);
+
+  void set resizable(bool resizable) {
+    JS('void', '#.resizable = #', this._jsObject, resizable);
   }
 
   /// By default if you specify an id for the window, the window will only be
@@ -209,55 +276,6 @@ class AppWindowCreateWindowOptions extends ChromeObject {
 
   void set singleton(bool singleton) {
     JS('void', '#.singleton = #', this._jsObject, singleton);
-  }
-
-}
-
-class AppWindowBounds extends ChromeObject {
-  /*
-   * Public constructor
-   */
-  AppWindowBounds({int left, int top, int width, int height}) {
-    if (left != null)
-      this.left = left;
-    if (top != null)
-      this.top = top;
-    if (width != null)
-      this.width = width;
-    if (height != null)
-      this.height = height;
-  }
-
-  /*
-   * Private constructor
-   */
-  AppWindowBounds._proxy(_jsObject) : super._proxy(_jsObject);
-
-  /*
-   * Public accessors
-   */
-  int get left => JS('int', '#.left', this._jsObject);
-
-  void set left(int left) {
-    JS('void', '#.left = #', this._jsObject, left);
-  }
-
-  int get top => JS('int', '#.top', this._jsObject);
-
-  void set top(int top) {
-    JS('void', '#.top = #', this._jsObject, top);
-  }
-
-  int get width => JS('int', '#.width', this._jsObject);
-
-  void set width(int width) {
-    JS('void', '#.width = #', this._jsObject, width);
-  }
-
-  int get height => JS('int', '#.height', this._jsObject);
-
-  void set height(int height) {
-    JS('void', '#.height = #', this._jsObject, height);
   }
 
 }
@@ -287,19 +305,25 @@ class AppWindowAppWindow extends ChromeObject {
   /// Focus the window.
   void focus() => JS('void', '#.focus()', this._jsObject);
 
+  /// Fullscreens the window.
+  void fullscreen() => JS('void', '#.fullscreen()', this._jsObject);
+
+  /// Is the window fullscreen?
+  bool isFullscreen() => JS('bool', '#.isFullscreen()', this._jsObject);
+
   /// Minimize the window.
   void minimize() => JS('void', '#.minimize()', this._jsObject);
 
   /// Is the window minimized?
-  void isMinimized() => JS('void', '#.isMinimized()', this._jsObject);
+  bool isMinimized() => JS('bool', '#.isMinimized()', this._jsObject);
 
   /// Maximize the window.
   void maximize() => JS('void', '#.maximize()', this._jsObject);
 
   /// Is the window maximized?
-  void isMaximized() => JS('void', '#.isMaximized()', this._jsObject);
+  bool isMaximized() => JS('bool', '#.isMaximized()', this._jsObject);
 
-  /// Restore the window.
+  /// Restore the window, exiting a maximized, minimized, or fullscreen state.
   void restore() => JS('void', '#.restore()', this._jsObject);
 
   /// Move the window to the position (|left|, |top|).
@@ -369,6 +393,17 @@ class Event_app_window_onClosed extends Event {
   Event_app_window_onClosed(jsObject) : super._(jsObject, 0);
 }
 
+/// Fired when the window is fullscreened.
+class Event_app_window_onFullscreened extends Event {
+  void addListener(void callback()) => super.addListener(callback);
+
+  void removeListener(void callback()) => super.removeListener(callback);
+
+  bool hasListener(void callback()) => super.hasListener(callback);
+
+  Event_app_window_onFullscreened(jsObject) : super._(jsObject, 0);
+}
+
 /// Fired when the window is maximized.
 class Event_app_window_onMaximized extends Event {
   void addListener(void callback()) => super.addListener(callback);
@@ -417,6 +452,7 @@ class API_app_window {
    */
   Event_app_window_onBoundsChanged onBoundsChanged;
   Event_app_window_onClosed onClosed;
+  Event_app_window_onFullscreened onFullscreened;
   Event_app_window_onMaximized onMaximized;
   Event_app_window_onMinimized onMinimized;
   Event_app_window_onRestored onRestored;
@@ -427,22 +463,17 @@ class API_app_window {
   /// The size and position of a window can be specified in a number of different
   /// ways. The most simple option is not specifying anything at all, in which
   /// case a default size and platform dependent position will be used.<br/><br/>
-  /// Another option is to use the top/left and width/height properties, which
-  /// will always put the window at the specified coordinates with the specified
-  /// size.<br/><br/> Yet another option is to give the window a (unique) id.
-  /// This id is then used to remember the size and position of the window
-  /// whenever it is moved or resized. This size and position is then used
-  /// instead of the specified bounds on subsequent opening of a window with the
-  /// same id. If you need to open a window with an id at a location other than
-  /// the remembered default, you can create it hidden, move it to the desired
-  /// location, then show it.<br/><br/> You can also combine these various
-  /// options, explicitly specifying for example the size while having the
-  /// position be remembered or other combinations like that. Size and position
-  /// are dealt with seperately, but individual coordinates are not. So if you
-  /// specify a top (or left) coordinate, you should also specify a left (or top)
-  /// coordinate, and similar for size.<br/><br/> If you specify both a regular
-  /// and a default value for the same option the regular value is the only one
-  /// that takes effect.
+  /// Another option is to use the bounds property, which will put the window at
+  /// the specified coordinates with the specified size. If the window has a
+  /// frame, it's total size will be the size given plus the size of the frame;
+  /// that is, the size in bounds is the content size, not the window
+  /// size.<br/><br/> To automatically remember the positions of windows you can
+  /// give them ids. If a window has an id, This id is used to remember the size
+  /// and position of the window whenever it is moved or resized. This size and
+  /// position is then used instead of the specified bounds on subsequent opening
+  /// of a window with the same id. If you need to open a window with an id at a
+  /// location other than the remembered default, you can create it hidden, move
+  /// it to the desired location, then show it.
   // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
   // for details. All rights reserved. Use of this source code is governed by a
   // BSD-style license that can be found in the LICENSE file.
@@ -477,6 +508,7 @@ class API_app_window {
   API_app_window(this._jsObject) {
     onBoundsChanged = new Event_app_window_onBoundsChanged(JS('', '#.onBoundsChanged', this._jsObject));
     onClosed = new Event_app_window_onClosed(JS('', '#.onClosed', this._jsObject));
+    onFullscreened = new Event_app_window_onFullscreened(JS('', '#.onFullscreened', this._jsObject));
     onMaximized = new Event_app_window_onMaximized(JS('', '#.onMaximized', this._jsObject));
     onMinimized = new Event_app_window_onMinimized(JS('', '#.onMinimized', this._jsObject));
     onRestored = new Event_app_window_onRestored(JS('', '#.onRestored', this._jsObject));

@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:oauth2/oauth2.dart';
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 
 import 'http.dart';
 import 'io.dart';

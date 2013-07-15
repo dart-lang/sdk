@@ -282,7 +282,14 @@ class ConstantHandler extends CompilerTask {
     return new List<VariableElement>.from(lazyStatics);
   }
 
-  List<Constant> getConstantsForEmission() {
+  /**
+   * Returns a list of constants topologically sorted so that dependencies
+   * appear before the dependent constant.  [preSortCompare] is a comparator
+   * function that gives the constants a consistent order prior to the
+   * topological sort which gives the constants an ordering that is less
+   * sensitive to perturbations in the source code.
+   */
+  List<Constant> getConstantsForEmission([preSortCompare]) {
     // We must emit dependencies before their uses.
     Set<Constant> seenConstants = new Set<Constant>();
     List<Constant> result = new List<Constant>();
@@ -296,7 +303,11 @@ class ConstantHandler extends CompilerTask {
       }
     }
 
-    compiledConstants.forEach(addConstant);
+    List<Constant> sorted = compiledConstants.toList();
+    if (preSortCompare != null) {
+      sorted.sort(preSortCompare);
+    }
+    sorted.forEach(addConstant);
     return result;
   }
 

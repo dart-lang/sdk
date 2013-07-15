@@ -7,7 +7,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:args/args.dart';
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 
 import '../lib/src/command.dart';
 import '../lib/src/exit_codes.dart' as exit_codes;

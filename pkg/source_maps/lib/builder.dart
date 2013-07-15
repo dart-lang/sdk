@@ -74,12 +74,20 @@ class SourceMapBuilder {
       first = false;
       column = _append(buff, column, entry.target.column);
 
-      if (entry.source == null) continue;
+      // Encoding can be just the column offset if there is no source
+      // information, or if two consecutive mappings share exactly the same
+      // source information.
+      var source = entry.source;
+      if (source == null) continue;
+      var newUrlId = _indexOf(_urls, source.sourceUrl);
+      if (newUrlId == srcUrlId && source.line == srcLine
+          && source.column == srcColumn && entry.identifierName == null) {
+        continue;
+      }
 
-      srcUrlId = _append(buff, srcUrlId,
-          _indexOf(_urls, entry.source.sourceUrl));
-      srcLine = _append(buff, srcLine, entry.source.line);
-      srcColumn = _append(buff, srcColumn, entry.source.column);
+      srcUrlId = _append(buff, srcUrlId, newUrlId);
+      srcLine = _append(buff, srcLine, source.line);
+      srcColumn = _append(buff, srcColumn, source.column);
 
       if (entry.identifierName == null) continue;
       srcNameId = _append(buff, srcNameId,

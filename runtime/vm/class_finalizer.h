@@ -32,7 +32,7 @@ class ClassFinalizer : public AllStatic {
   enum FinalizationKind {
     kIgnore,                   // Type is ignored and replaced by dynamic.
     kDoNotResolve,             // Type resolution is postponed.
-    kTryResolve,               // Type resolution is attempted.
+    kResolveTypeParameters,    // Resolve type parameters only.
     kFinalize,                 // Type resolution and type finalization are
                                // required; a malformed type is tolerated, since
                                // the type may be used as a type annotation.
@@ -97,7 +97,8 @@ class ClassFinalizer : public AllStatic {
                                GrowableArray<intptr_t>* visited);
   static void CheckForLegalConstClass(const Class& cls);
   static RawClass* ResolveClass(const Class& cls,
-                                const UnresolvedClass& unresolved_class);
+                                const UnresolvedClass& unresolved_class,
+                                Error* ambiguity_error);
   static void ResolveRedirectingFactoryTarget(
       const Class& cls,
       const Function& factory,
@@ -105,6 +106,9 @@ class ClassFinalizer : public AllStatic {
   static void CloneTypeParameters(const Class& mixapp_class);
   static void ApplyMixinTypes(const Class& cls);
   static void ApplyMixin(const Class& cls);
+  static void CreateForwardingConstructors(
+      const Class& mixin_app,
+      const GrowableObjectArray& cloned_funcs);
   static void CollectTypeArguments(const Class& cls,
                                    const Type& type,
                                    const GrowableObjectArray& collected_args);

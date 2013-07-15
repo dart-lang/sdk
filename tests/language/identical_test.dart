@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Test efficient and correct implementation of !identical(a, b).
+// VMOptions=--optimization-counter-threshold=10
 
 import 'package:expect/expect.dart';
 
@@ -30,7 +31,7 @@ notIdenticalTest3(a) {
 }
 
 main() {
-  for (int i = 0; i < 10000; i++) {
+  for (int i = 0; i < 20; i++) {
     Expect.equals(1, notIdenticalTest1("ho"));
     Expect.equals(1, notIdenticalTest2("ho"));
     Expect.equals(false, notIdenticalTest3("ho"));

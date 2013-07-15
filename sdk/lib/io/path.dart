@@ -12,7 +12,7 @@ part of dart.io;
  *
  * Joining of paths and path normalization handle '.' and '..' in the usual way.
  *
- * *Path is deprecated. Use package pathos. Path will be removed the 11th of
+ * *Path is deprecated. Use package path. Path will be removed the 11th of
  * August 2013.*
  */
 @deprecated

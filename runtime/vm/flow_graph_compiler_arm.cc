@@ -224,12 +224,12 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   __ Comment("InstantiatedTypeWithArgumentsTest");
   ASSERT(type.IsInstantiated());
   const Class& type_class = Class::ZoneHandle(type.type_class());
-  ASSERT(type_class.HasTypeArguments());
+  ASSERT(type_class.HasTypeArguments() || type_class.IsSignatureClass());
   const Register kInstanceReg = R0;
   Error& malformed_error = Error::Handle();
   const Type& int_type = Type::Handle(Type::IntType());
   const bool smi_is_ok = int_type.IsSubtypeOf(type, &malformed_error);
-  // Malforrmed type should have been handled at graph construction time.
+  // Malformed type should have been handled at graph construction time.
   ASSERT(smi_is_ok || malformed_error.IsNull());
   __ tst(kInstanceReg, ShifterOperand(kSmiTagMask));
   if (smi_is_ok) {
@@ -241,32 +241,35 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
       AbstractTypeArguments::ZoneHandle(type.arguments());
   const bool is_raw_type = type_arguments.IsNull() ||
       type_arguments.IsRaw(type_arguments.Length());
-  if (is_raw_type) {
-    const Register kClassIdReg = R2;
-    // dynamic type argument, check only classes.
-    __ LoadClassId(kClassIdReg, kInstanceReg);
-    __ CompareImmediate(kClassIdReg, type_class.id());
-    __ b(is_instance_lbl, EQ);
-    // List is a very common case.
-    if (type_class.IsListClass()) {
-      GenerateListTypeCheck(kClassIdReg, is_instance_lbl);
+  // Signature class is an instantiated parameterized type.
+  if (!type_class.IsSignatureClass()) {
+    if (is_raw_type) {
+      const Register kClassIdReg = R2;
+      // dynamic type argument, check only classes.
+      __ LoadClassId(kClassIdReg, kInstanceReg);
+      __ CompareImmediate(kClassIdReg, type_class.id());
+      __ b(is_instance_lbl, EQ);
+      // List is a very common case.
+      if (IsListClass(type_class)) {
+        GenerateListTypeCheck(kClassIdReg, is_instance_lbl);
+      }
+      return GenerateSubtype1TestCacheLookup(
+          token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
     }
-    return GenerateSubtype1TestCacheLookup(
-        token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
-  }
-  // If one type argument only, check if type argument is Object or dynamic.
-  if (type_arguments.Length() == 1) {
-    const AbstractType& tp_argument = AbstractType::ZoneHandle(
-        type_arguments.TypeAt(0));
-    ASSERT(!tp_argument.IsMalformed());
-    if (tp_argument.IsType()) {
-      ASSERT(tp_argument.HasResolvedTypeClass());
-      // Check if type argument is dynamic or Object.
-      const Type& object_type = Type::Handle(Type::ObjectType());
-      if (object_type.IsSubtypeOf(tp_argument, NULL)) {
-        // Instance class test only necessary.
-        return GenerateSubtype1TestCacheLookup(
-            token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
+    // If one type argument only, check if type argument is Object or dynamic.
+    if (type_arguments.Length() == 1) {
+      const AbstractType& tp_argument = AbstractType::ZoneHandle(
+          type_arguments.TypeAt(0));
+      ASSERT(!tp_argument.IsMalformed());
+      if (tp_argument.IsType()) {
+        ASSERT(tp_argument.HasResolvedTypeClass());
+        // Check if type argument is dynamic or Object.
+        const Type& object_type = Type::Handle(Type::ObjectType());
+        if (object_type.IsSubtypeOf(tp_argument, NULL)) {
+          // Instance class test only necessary.
+          return GenerateSubtype1TestCacheLookup(
+              token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
+        }
       }
     }
   }
@@ -512,8 +515,9 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
   if (type.IsInstantiated()) {
     const Class& type_class = Class::ZoneHandle(type.type_class());
     // A class equality check is only applicable with a dst type of a
-    // non-parameterized class or with a raw dst type of a parameterized class.
-    if (type_class.HasTypeArguments()) {
+    // non-parameterized class, non-signature class, or with a raw dst type of
+    // a parameterized class.
+    if (type_class.IsSignatureClass() || type_class.HasTypeArguments()) {
       return GenerateInstantiatedTypeWithArgumentsTest(token_pos,
                                                        type,
                                                        is_instance_lbl,
@@ -652,7 +656,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   __ CompareImmediate(R0, reinterpret_cast<int32_t>(Object::null()));
   __ b(&is_assignable, EQ);
 
-  if (!FLAG_eliminate_type_checks) {
+  if (!FLAG_eliminate_type_checks || dst_type.IsMalformed()) {
     // If type checks are not eliminated during the graph building then
     // a transition sentinel can be seen here.
     __ CompareObject(R0, Object::transition_sentinel());
@@ -1503,9 +1507,12 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
     // address.
     intptr_t offset = 0;
     for (intptr_t reg_idx = 0; reg_idx < kNumberOfFpuRegisters; ++reg_idx) {
-      DRegister fpu_reg = static_cast<DRegister>(reg_idx);
+      QRegister fpu_reg = static_cast<QRegister>(reg_idx);
       if (locs->live_registers()->ContainsFpuRegister(fpu_reg)) {
-        __ vstrd(fpu_reg, Address(SP, offset));
+        DRegister d1 = EvenDRegisterOf(fpu_reg);
+        DRegister d2 = OddDRegisterOf(fpu_reg);
+        __ vstrd(d1, Address(SP, offset));
+        __ vstrd(d2, Address(SP, offset + 2 * kWordSize));
         offset += kFpuRegisterSize;
       }
     }
@@ -1536,9 +1543,12 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
     // Fpu registers have the lowest register number at the lowest address.
     intptr_t offset = 0;
     for (intptr_t reg_idx = 0; reg_idx < kNumberOfFpuRegisters; ++reg_idx) {
-      DRegister fpu_reg = static_cast<DRegister>(reg_idx);
+      QRegister fpu_reg = static_cast<QRegister>(reg_idx);
       if (locs->live_registers()->ContainsFpuRegister(fpu_reg)) {
-        __ vldrd(fpu_reg, Address(SP, offset));
+        DRegister d1 = EvenDRegisterOf(fpu_reg);
+        DRegister d2 = OddDRegisterOf(fpu_reg);
+        __ vldrd(d1, Address(SP, offset));
+        __ vldrd(d2, Address(SP, offset + 2 * kWordSize));
         offset += kFpuRegisterSize;
       }
     }
@@ -1601,7 +1611,9 @@ void FlowGraphCompiler::EmitDoubleCompareBranch(Condition true_condition,
                                                 FpuRegister right,
                                                 BranchInstr* branch) {
   ASSERT(branch != NULL);
-  assembler()->vcmpd(left, right);
+  DRegister dleft = EvenDRegisterOf(left);
+  DRegister dright = EvenDRegisterOf(right);
+  assembler()->vcmpd(dleft, dright);
   assembler()->vmstat();
   BlockEntryInstr* nan_result = (true_condition == NE) ?
       branch->true_successor() : branch->false_successor();
@@ -1614,7 +1626,9 @@ void FlowGraphCompiler::EmitDoubleCompareBool(Condition true_condition,
                                               FpuRegister left,
                                               FpuRegister right,
                                               Register result) {
-  assembler()->vcmpd(left, right);
+  DRegister dleft = EvenDRegisterOf(left);
+  DRegister dright = EvenDRegisterOf(right);
+  assembler()->vcmpd(dleft, dright);
   assembler()->vmstat();
   assembler()->LoadObject(result, Bool::False());
   Label done;
@@ -1624,7 +1638,7 @@ void FlowGraphCompiler::EmitDoubleCompareBool(Condition true_condition,
 }
 
 
-// Do not impelement or use this function.
+// Do not implement or use this function.
 FieldAddress FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
                                                           intptr_t index_scale,
                                                           Register array,
@@ -1688,10 +1702,13 @@ void ParallelMoveResolver::EmitMove(int index) {
     }
   } else if (source.IsFpuRegister()) {
     if (destination.IsFpuRegister()) {
-      __ vmovd(destination.fpu_reg(), source.fpu_reg());
+      DRegister dst = EvenDRegisterOf(destination.fpu_reg());
+      DRegister src = EvenDRegisterOf(source.fpu_reg());
+      __ vmovd(dst, src);
     } else {
       if (destination.IsDoubleStackSlot()) {
-        __ vstrd(source.fpu_reg(), destination.ToStackSlotAddress());
+        DRegister src = EvenDRegisterOf(source.fpu_reg());
+        __ vstrd(src, destination.ToStackSlotAddress());
       } else {
         ASSERT(destination.IsQuadStackSlot());
         UNIMPLEMENTED();
@@ -1699,7 +1716,8 @@ void ParallelMoveResolver::EmitMove(int index) {
     }
   } else if (source.IsDoubleStackSlot()) {
     if (destination.IsFpuRegister()) {
-      __ vldrd(destination.fpu_reg(), source.ToStackSlotAddress());
+      DRegister dst = EvenDRegisterOf(destination.fpu_reg());
+      __ vldrd(dst, source.ToStackSlotAddress());
     } else {
       ASSERT(destination.IsDoubleStackSlot());
       __ vldrd(DTMP, source.ToStackSlotAddress());
@@ -1740,9 +1758,11 @@ void ParallelMoveResolver::EmitSwap(int index) {
   } else if (source.IsStackSlot() && destination.IsStackSlot()) {
     Exchange(destination.ToStackSlotAddress(), source.ToStackSlotAddress());
   } else if (source.IsFpuRegister() && destination.IsFpuRegister()) {
-    __ vmovd(DTMP, source.fpu_reg());
-    __ vmovd(source.fpu_reg(), destination.fpu_reg());
-    __ vmovd(destination.fpu_reg(), DTMP);
+    DRegister dst = EvenDRegisterOf(destination.fpu_reg());
+    DRegister src = EvenDRegisterOf(source.fpu_reg());
+    __ vmovd(DTMP, src);
+    __ vmovd(src, dst);
+    __ vmovd(dst, DTMP);
   } else if (source.IsFpuRegister() || destination.IsFpuRegister()) {
     ASSERT(destination.IsDoubleStackSlot() ||
            destination.IsQuadStackSlot() ||
@@ -1750,8 +1770,9 @@ void ParallelMoveResolver::EmitSwap(int index) {
            source.IsQuadStackSlot());
     bool double_width = destination.IsDoubleStackSlot() ||
                         source.IsDoubleStackSlot();
-    DRegister reg = source.IsFpuRegister() ? source.fpu_reg()
-                                           : destination.fpu_reg();
+    QRegister qreg = source.IsFpuRegister() ? source.fpu_reg()
+                                            : destination.fpu_reg();
+    DRegister reg = EvenDRegisterOf(qreg);
     const Address& slot_address = source.IsFpuRegister()
         ? destination.ToStackSlotAddress()
         : source.ToStackSlotAddress();
@@ -1767,11 +1788,12 @@ void ParallelMoveResolver::EmitSwap(int index) {
     const Address& source_slot_address = source.ToStackSlotAddress();
     const Address& destination_slot_address = destination.ToStackSlotAddress();
 
-    ScratchFpuRegisterScope ensure_scratch(this, DTMP);
+    ScratchFpuRegisterScope ensure_scratch(this, QTMP);
+    DRegister scratch = EvenDRegisterOf(ensure_scratch.reg());
     __ vldrd(DTMP, source_slot_address);
-    __ vldrd(ensure_scratch.reg(), destination_slot_address);
+    __ vldrd(scratch, destination_slot_address);
     __ vstrd(DTMP, destination_slot_address);
-    __ vstrd(ensure_scratch.reg(), source_slot_address);
+    __ vstrd(scratch, source_slot_address);
   } else if (source.IsQuadStackSlot() && destination.IsQuadStackSlot()) {
     UNIMPLEMENTED();
   } else {
@@ -1837,12 +1859,14 @@ void ParallelMoveResolver::RestoreScratch(Register reg) {
 
 
 void ParallelMoveResolver::SpillFpuScratch(FpuRegister reg) {
-  __ vstrd(reg, Address(SP, -kDoubleSize, Address::PreIndex));
+  DRegister dreg = EvenDRegisterOf(reg);
+  __ vstrd(dreg, Address(SP, -kDoubleSize, Address::PreIndex));
 }
 
 
 void ParallelMoveResolver::RestoreFpuScratch(FpuRegister reg) {
-  __ vldrd(reg, Address(SP, kDoubleSize, Address::PostIndex));
+  DRegister dreg = EvenDRegisterOf(reg);
+  __ vldrd(dreg, Address(SP, kDoubleSize, Address::PostIndex));
 }
 
 

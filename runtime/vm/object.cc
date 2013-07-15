@@ -144,10 +144,10 @@ const double MegamorphicCache::kLoadFactor = 0.75;
   V(CoreLibrary, Object, _as)                                                  \
   V(CoreLibrary, Object, _instanceOf)                                          \
   V(CoreLibrary, _ObjectArray, _ObjectArray.)                                  \
-  V(CoreLibrary, AssertionErrorImplementation, _throwNew)                      \
-  V(CoreLibrary, TypeErrorImplementation, _throwNew)                           \
-  V(CoreLibrary, FallThroughErrorImplementation, _throwNew)                    \
-  V(CoreLibrary, AbstractClassInstantiationErrorImplementation, _throwNew)     \
+  V(CoreLibrary, _AssertionErrorImplementation, _throwNew)                     \
+  V(CoreLibrary, _TypeErrorImplementation, _throwNew)                          \
+  V(CoreLibrary, _FallThroughErrorImplementation, _throwNew)                   \
+  V(CoreLibrary, _AbstractClassInstantiationErrorImplementation, _throwNew)    \
   V(CoreLibrary, NoSuchMethodError, _throwNew)                                 \
   V(CoreLibrary, int, _throwFormatException)                                   \
   V(CoreLibrary, int, _parse)                                                  \
@@ -1076,12 +1076,6 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_string_type(type);
 
-  cls = Class::New<Instance>(kIllegalCid);
-  RegisterClass(cls, Symbols::List(), core_lib);
-  cls.set_is_prefinalized();
-  pending_classes.Add(cls, Heap::kOld);
-  object_store->set_list_class(cls);
-
   cls = object_store->bool_class();
   type = Type::NewNonParameterizedType(cls);
   object_store->set_bool_type(type);
@@ -1524,7 +1518,8 @@ void Class::InitEmptyFields() {
   StorePointer(&raw_ptr()->canonical_types_, Object::empty_array().raw());
   StorePointer(&raw_ptr()->functions_, Object::empty_array().raw());
   StorePointer(&raw_ptr()->fields_, Object::empty_array().raw());
-  StorePointer(&raw_ptr()->no_such_method_cache_, Object::empty_array().raw());
+  StorePointer(&raw_ptr()->invocation_dispatcher_cache_,
+               Object::empty_array().raw());
 }
 
 
@@ -1780,8 +1775,9 @@ void Class::CalculateFieldOffsets() const {
 }
 
 
-RawFunction* Class::GetNoSuchMethodDispatcher(const String& target_name,
-                                              const Array& args_desc) const {
+RawFunction* Class::GetInvocationDispatcher(const String& target_name,
+                                            const Array& args_desc,
+                                            RawFunction::Kind kind) const {
   enum {
     kNameIndex = 0,
     kArgsDescIndex,
@@ -1789,8 +1785,10 @@ RawFunction* Class::GetNoSuchMethodDispatcher(const String& target_name,
     kEntrySize
   };
 
+  ASSERT(kind == RawFunction::kNoSuchMethodDispatcher ||
+         kind == RawFunction::kInvokeFieldDispatcher);
   Function& dispatcher = Function::Handle();
-  Array& cache = Array::Handle(no_such_method_cache());
+  Array& cache = Array::Handle(invocation_dispatcher_cache());
   ASSERT(!cache.IsNull());
   String& name = String::Handle();
   Array& desc = Array::Handle();
@@ -1800,9 +1798,10 @@ RawFunction* Class::GetNoSuchMethodDispatcher(const String& target_name,
     if (name.IsNull()) break;  // Reached last entry.
     if (!name.Equals(target_name)) continue;
     desc ^= cache.At(i + kArgsDescIndex);
-    if (desc.raw() == args_desc.raw()) {
+    if (desc.raw() != args_desc.raw()) continue;
+    dispatcher ^= cache.At(i + kFunctionIndex);
+    if (dispatcher.kind() == kind) {
       // Found match.
-      dispatcher ^= cache.At(i + kFunctionIndex);
       ASSERT(dispatcher.IsFunction());
       break;
     }
@@ -1815,9 +1814,9 @@ RawFunction* Class::GetNoSuchMethodDispatcher(const String& target_name,
           ? static_cast<intptr_t>(kEntrySize)
           : cache.Length() * 2;
       cache ^= Array::Grow(cache, new_len);
-      set_no_such_method_cache(cache);
+      set_invocation_dispatcher_cache(cache);
     }
-    dispatcher ^= CreateNoSuchMethodDispatcher(target_name, args_desc);
+    dispatcher ^= CreateInvocationDispatcher(target_name, args_desc, kind);
     cache.SetAt(i + kNameIndex, target_name);
     cache.SetAt(i + kArgsDescIndex, args_desc);
     cache.SetAt(i + kFunctionIndex, dispatcher);
@@ -1826,11 +1825,12 @@ RawFunction* Class::GetNoSuchMethodDispatcher(const String& target_name,
 }
 
 
-RawFunction* Class::CreateNoSuchMethodDispatcher(const String& target_name,
-                                                 const Array& args_desc) const {
+RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
+                                               const Array& args_desc,
+                                               RawFunction::Kind kind) const {
   Function& invocation = Function::Handle(
       Function::New(String::Handle(Symbols::New(target_name)),
-                    RawFunction::kNoSuchMethodDispatcher,
+                    kind,
                     false,  // Not static.
                     false,  // Not const.
                     false,  // Not abstract.
@@ -1871,13 +1871,13 @@ RawFunction* Class::CreateNoSuchMethodDispatcher(const String& target_name,
 }
 
 
-RawArray* Class::no_such_method_cache() const {
-  return raw_ptr()->no_such_method_cache_;
+RawArray* Class::invocation_dispatcher_cache() const {
+  return raw_ptr()->invocation_dispatcher_cache_;
 }
 
 
-void Class::set_no_such_method_cache(const Array& cache) const {
-  StorePointer(&raw_ptr()->no_such_method_cache_, cache.raw());
+void Class::set_invocation_dispatcher_cache(const Array& cache) const {
+  StorePointer(&raw_ptr()->invocation_dispatcher_cache_, cache.raw());
 }
 
 
@@ -2324,11 +2324,6 @@ void Class::set_allocation_stub(const Code& value) const {
 
 bool Class::IsFunctionClass() const {
   return raw() == Type::Handle(Type::Function()).type_class();
-}
-
-
-bool Class::IsListClass() const {
-  return raw() == Isolate::Current()->object_store()->list_class();
 }
 
 
@@ -3727,7 +3722,8 @@ void Function::set_extracted_method_closure(const Function& value) const {
 
 
 RawArray* Function::saved_args_desc() const {
-  ASSERT(kind() == RawFunction::kNoSuchMethodDispatcher);
+  ASSERT(kind() == RawFunction::kNoSuchMethodDispatcher ||
+         kind() == RawFunction::kInvokeFieldDispatcher);
   const Object& obj = Object::Handle(raw_ptr()->data_);
   ASSERT(obj.IsArray());
   return Array::Cast(obj).raw();
@@ -3735,7 +3731,8 @@ RawArray* Function::saved_args_desc() const {
 
 
 void Function::set_saved_args_desc(const Array& value) const {
-  ASSERT(kind() == RawFunction::kNoSuchMethodDispatcher);
+  ASSERT(kind() == RawFunction::kNoSuchMethodDispatcher ||
+         kind() == RawFunction::kInvokeFieldDispatcher);
   ASSERT(raw_ptr()->data_ == Object::null());
   set_data(value);
 }
@@ -4426,8 +4423,7 @@ bool Function::TypeTest(TypeTestKind test_kind,
 // does not contain an explicit constructor or factory. The implicit
 // constructor has the same token position as the owner class.
 bool Function::IsImplicitConstructor() const {
-  return IsConstructor() &&
-         (token_pos() == Class::Handle(Owner()).token_pos());
+  return IsConstructor() && (token_pos() == end_token_pos());
 }
 
 
@@ -4885,6 +4881,9 @@ const char* Function::ToCString() const {
       break;
     case RawFunction::kNoSuchMethodDispatcher:
       kind_str = " no-such-method-dispatcher";
+      break;
+    case RawFunction::kInvokeFieldDispatcher:
+      kind_str = "invoke-field-dispatcher";
       break;
     default:
       UNREACHABLE();
@@ -6673,6 +6672,7 @@ RawFunction* Library::LookupLocalFunction(const String& name) const {
 }
 
 
+// TODO(regis): This should take an Error* ambiguity_error parameter.
 RawObject* Library::LookupObject(const String& name) const {
   // First check if name is found in the local scope of the library.
   Object& obj = Object::Handle(LookupLocalObject(name));
@@ -6680,6 +6680,8 @@ RawObject* Library::LookupObject(const String& name) const {
     return obj.raw();
   }
   // Now check if name is found in any imported libs.
+  // TODO(regis): This does not seem correct. It should be an error if the name
+  // is found in more than one import and actually used.
   const Array& imports = Array::Handle(this->imports());
   Namespace& import = Namespace::Handle();
   for (intptr_t j = 0; j < this->num_imports(); j++) {
@@ -6693,6 +6695,7 @@ RawObject* Library::LookupObject(const String& name) const {
 }
 
 
+// TODO(regis): This should take an Error* ambiguity_error parameter.
 RawClass* Library::LookupClass(const String& name) const {
   Object& obj = Object::Handle(LookupObject(name));
   if (!obj.IsNull() && obj.IsClass()) {

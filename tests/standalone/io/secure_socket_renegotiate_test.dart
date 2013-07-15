@@ -7,7 +7,7 @@
 // can request a client certificate to be sent.
 
 import "package:expect/expect.dart";
-import "package:pathos/path.dart" as path;
+import "package:path/path.dart" as path;
 import "dart:async";
 import "dart:io";
 

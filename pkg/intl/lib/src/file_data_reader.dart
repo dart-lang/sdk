@@ -10,7 +10,7 @@
 library file_data_reader;
 
 import 'dart:async';
-import 'package:pathos/path.dart';
+import 'package:path/path.dart';
 import 'dart:io';
 import 'intl_helpers.dart';
 

@@ -6,7 +6,7 @@ library pub.source;
 
 import 'dart:async';
 
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 
 import 'io.dart';
 import 'package.dart';

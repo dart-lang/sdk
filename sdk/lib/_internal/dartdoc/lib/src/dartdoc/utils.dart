@@ -8,7 +8,7 @@ library utils;
 import 'dart:io';
 import 'dart:math' as math;
 
-import 'package:pathos/path.dart' as pathos;
+import 'package:path/path.dart' as pathos;
 
 import '../../../../compiler/implementation/mirrors/mirrors.dart';
 

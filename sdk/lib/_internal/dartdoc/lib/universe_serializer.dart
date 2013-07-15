@@ -11,7 +11,7 @@ library universe_serializer;
 import 'dartdoc.dart';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 import '../../compiler/implementation/mirrors/dart2js_mirror.dart' as dart2js;
 import '../../compiler/implementation/mirrors/mirrors.dart';
 import '../../compiler/implementation/mirrors/mirrors_util.dart';

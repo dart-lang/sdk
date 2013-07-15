@@ -9,6 +9,7 @@ typed_locals_test: Fail
 no_such_method_test: Fail # Wrong Invocation.memberName.
 
 deferred_semantics_test/none: Fail # TODO(ahe): Multitest cannot use import.
+constant_javascript_semantics4_test: Fail, OK
 
 [ $runtime == ff || $jscl ]
 deferred/deferred_constant_test: Pass, Crash, Fail # Issue 9158

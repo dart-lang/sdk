@@ -5,7 +5,7 @@ homepage: http://www.dartlang.org
 documentation: http://api.dartlang.org/docs/pkg/intl
 dependencies:
   analyzer_experimental: any
-  pathos: any
+  path: any
 dev_dependencies:
   serialization: any
   unittest: any

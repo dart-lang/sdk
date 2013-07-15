@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Tests that lhs of a compound assignement is executed only once.
+// VMOptions=--optimization-counter-threshold=10
 
 import "package:expect/expect.dart";
-
 
 class Indexed {
   Indexed() : _f = new List(10), count = 0 {
@@ -77,7 +77,7 @@ class CompoundAssignmentOperatorTest {
   }
 
   static void testMain() {
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 20; i++) {
       testIndexed();
       testIndexedMore();
       testIndexedMoreMore();

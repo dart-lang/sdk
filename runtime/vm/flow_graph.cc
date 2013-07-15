@@ -750,6 +750,15 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
     }
   }
 
+  // Prune non-live variables at block entry by replacing their environment
+  // slots with null.
+  BitVector* live_in = variable_liveness->GetLiveInSet(block_entry);
+  for (intptr_t i = 0; i < variable_count(); i++) {
+    if (!live_in->Contains(i)) {
+      (*env)[i] = constant_null();
+    }
+  }
+
   // Attach environment to the block entry.
   AttachEnvironment(block_entry, env);
 

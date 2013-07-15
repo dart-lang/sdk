@@ -177,22 +177,26 @@ class JavaScriptConstantSystem extends ConstantSystem {
   const JavaScriptConstantSystem();
 
   /**
-   * Returns true if the given [value] fits into a double without losing
-   * precision.
+   * Returns true if [value] will turn into NaN or infinity
+   * at runtime.
    */
-  bool integerFitsIntoDouble(int value) {
-    int absValue = value.abs();
-    double doubleValue = absValue.toDouble();
-    if (doubleValue.isNaN || doubleValue.isInfinite) return false;
-    return value.toDouble().floor().toInt() == value;
+  bool integerBecomesNanOrInfinity(int value) {
+    double doubleValue = value.toDouble();
+    return doubleValue.isNaN || doubleValue.isInfinite;
   }
 
   NumConstant convertToJavaScriptConstant(NumConstant constant) {
     if (constant.isInt()) {
       IntConstant intConstant = constant;
       int intValue = intConstant.value;
-      if (!integerFitsIntoDouble(intValue)) {
+      if (integerBecomesNanOrInfinity(intValue)) {
         return new DoubleConstant(intValue.toDouble());
+      }
+      // If the integer loses precision with JavaScript numbers, use
+      // the floored version JavaScript will use.
+      int floorValue = intValue.toDouble().floor().toInt();
+      if (floorValue != intValue) {
+        return new IntConstant(floorValue);
       }
     } else if (constant.isDouble()) {
       DoubleConstant doubleResult = constant;
@@ -200,7 +204,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
       if (!doubleValue.isInfinite && !doubleValue.isNaN &&
           !constant.isMinusZero()) {
         int intValue = doubleValue.truncate();
-        if (intValue == doubleValue && integerFitsIntoDouble(intValue)) {
+        if (intValue == doubleValue) {
           return new IntConstant(intValue);
         }
       }

@@ -10,7 +10,7 @@ import 'dart:collection' show SplayTreeMap;
 import 'dart:io';
 import 'dart:json' as json;
 
-import 'package:pathos/path.dart' as pathos;
+import 'package:path/path.dart' as pathos;
 
 import 'package:analyzer_experimental/src/generated/source.dart' show Source, SourceRange;
 import 'package:analyzer_experimental/src/generated/scanner.dart' show StringScanner;

@@ -3,13 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 // Replace with shared test once interface issues clarified.
 // Test various String intrinsics
+// VMOptions=--optimization-counter-threshold=10
 
 import "package:expect/expect.dart";
 
 main() {
   var oneByte = "Hello world";
   var empty = "";
-  for (int i = 0; i < 6000; i++) {
+  for (int i = 0; i < 20; i++) {
     Expect.equals(11, testLength(oneByte));
     Expect.equals(0, testLength(empty));
     Expect.isFalse(testIsEmpty(oneByte));

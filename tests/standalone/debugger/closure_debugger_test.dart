@@ -21,8 +21,19 @@ main() {
   var f = bar;
   f("closure call");
   bar(12);
+  var a = new A();
+  for (var i = 0; i < 2; ++i) {
+    a.foo(i);
+  }
 }
 
+class A {
+  A() {
+    foo =
+      (x) => print(x);
+  }
+  var foo;
+}
 
 // Expected debugger events and commands.
 var testScript = [
@@ -37,5 +48,18 @@ var testScript = [
   SetBreakpoint(15),      // Breakpoint in bar();
   Resume(),
   MatchFrames(["bar", "main"]),
+  SetBreakpoint(26),      // Breakpoint in main() at a.field(i).
+  SetBreakpoint(33),      // Breakpoint in closure.
   Resume(),
+  MatchFrame(0, "main"),  // Should be in main().
+  MatchLocals({"i": "0"}),
+  StepInto(),
+  StepInto(),
+  MatchFrames(["A.<anonymous closure>", "main"]),  // In closure function.
+  Resume(),
+  MatchFrame(0, "main"),  // Back in main().
+  MatchLocals({"i": "1"}),
+  Resume(),
+  MatchFrames(["A.<anonymous closure>", "main"]),  // In closure function.
+  Resume()
 ];

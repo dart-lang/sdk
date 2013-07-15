@@ -67,6 +67,7 @@ TEMPLATE_FILE_FORMAT = 'part "$AUXILIARY_DIR/chrome/%s.dart";'
 API_FILES = [
     "app_window.idl",
     "app_runtime.idl",
+    "file_system.idl",
 ]
 
 if __name__ == "__main__":

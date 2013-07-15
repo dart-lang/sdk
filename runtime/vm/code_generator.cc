@@ -533,29 +533,30 @@ static void UpdateTypeTestCache(
                                        &malformed_error);
       ASSERT(malformed_error.IsNull());  // Malformed types are not optimized.
     }
-    OS::PrintErr("  Updated test cache %p ix: %"Pd" with (%"Pd", %p, %p, %s)\n"
-        "    [%p %s %"Pd", %p %s]\n"
-        "    [%p %s %"Pd", %p %s] %s\n",
+    OS::PrintErr("  Updated test cache %p ix: %"Pd" with "
+        "(cid: %"Pd", type-args: %p, instantiator: %p, result: %s)\n"
+        "    instance  [class: (%p '%s' cid: %"Pd"),    type-args: %p %s]\n"
+        "    test-type [class: (%p '%s' cid: %"Pd"), in-type-args: %p %s]\n",
         new_cache.raw(),
         len,
-        instance_class.id(),
 
+        instance_class.id(),
         instance_type_arguments.raw(),
         instantiator_type_arguments.raw(),
         result.ToCString(),
 
         instance_class.raw(),
-        instance_class.ToCString(),
+        String::Handle(instance_class.Name()).ToCString(),
         instance_class.id(),
         instance_type_arguments.raw(),
         instance_type_arguments.ToCString(),
 
         test_type.type_class(),
-        Class::Handle(test_type.type_class()).ToCString(),
+        String::Handle(Class::Handle(test_type.type_class()).Name()).
+            ToCString(),
         Class::Handle(test_type.type_class()).id(),
         instantiator_type_arguments.raw(),
-        instantiator_type_arguments.ToCString(),
-        result.ToCString());
+        instantiator_type_arguments.ToCString());
   }
 }
 
@@ -1183,6 +1184,7 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
                                      const String& target_name,
                                      const Array& arguments_descriptor,
                                      const Array& arguments,
+                                     const ICData& ic_data,
                                      Object* result) {
   // 1. Check if there is a getter with the same name.
   const String& getter_name = String::Handle(Field::GetterName(target_name));
@@ -1197,19 +1199,23 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
     return false;
   }
 
-  // 2. Invoke the getter.
-  const Array& args = Array::Handle(Array::New(kNumArguments));
-  args.SetAt(0, receiver);
-  const Object& value = Object::Handle(DartEntry::InvokeFunction(getter, args));
-
-  // 3. If there was some error, propagate it.
-  CheckResultError(value);
-
-  // 4. Invoke the value as a closure.
-  Instance& instance = Instance::Handle();
-  instance ^= value.raw();
-  arguments.SetAt(0, instance);
-  *result = DartEntry::InvokeClosure(arguments, arguments_descriptor);
+  const Function& target_function =
+      Function::Handle(receiver_class.GetInvocationDispatcher(
+          target_name,
+          arguments_descriptor,
+          RawFunction::kInvokeFieldDispatcher));
+  // Update IC data.
+  ASSERT(!target_function.IsNull());
+  ic_data.AddReceiverCheck(receiver.GetClassId(), target_function);
+  if (FLAG_trace_ic) {
+    OS::PrintErr("InvokeField IC miss: adding <%s> id:%"Pd" -> <%s>\n",
+        Class::Handle(receiver.clazz()).ToCString(),
+        receiver.GetClassId(),
+        target_function.ToCString());
+  }
+  *result = DartEntry::InvokeFunction(target_function,
+                                      arguments,
+                                      arguments_descriptor);
   CheckResultError(*result);
   return true;
 }
@@ -1248,19 +1254,35 @@ DEFINE_RUNTIME_ENTRY(InstanceFunctionLookup, 4) {
                                 target_name,
                                 args_descriptor,
                                 args,
+                                ic_data,
                                 &result)) {
     ArgumentsDescriptor desc(args_descriptor);
-    const Function& target_function = Function::Handle(
-        receiver_class.GetNoSuchMethodDispatcher(target_name, args_descriptor));
+    const Function& target_function =
+        Function::Handle(receiver_class.GetInvocationDispatcher(
+            target_name,
+            args_descriptor,
+            RawFunction::kNoSuchMethodDispatcher));
     // Update IC data.
     ASSERT(!target_function.IsNull());
+    intptr_t receiver_cid = receiver.GetClassId();
     if (ic_data.num_args_tested() == 1) {
-      ic_data.AddReceiverCheck(receiver.GetClassId(), target_function);
+      // In optimized code we may enter into here via the
+      // MegamorphicCacheMissHandler since noSuchMethod dispatchers are not
+      // inserted into the megamorphic cache. Therefore, we need to guard
+      // against entering the same check twice into the ICData.
+      // Note that num_args_tested == 1 in optimized code.
+      // TODO(fschneider): Handle extraordinary cases like noSuchMethod and
+      // implicit closure invocation properly in the megamorphic cache.
+      const Function& target =
+          Function::Handle(ic_data.GetTargetForReceiverClassId(receiver_cid));
+      if (target.IsNull()) {
+        ic_data.AddReceiverCheck(receiver_cid, target_function);
+      }
     } else {
       // Operators calls have two or three arguments tested ([], []=, etc.)
       ASSERT(ic_data.num_args_tested() > 1);
       GrowableArray<intptr_t> class_ids(ic_data.num_args_tested());
-      class_ids.Add(receiver.GetClassId());
+      class_ids.Add(receiver_cid);
       for (intptr_t i = 1; i < ic_data.num_args_tested(); ++i) {
         class_ids.Add(Object::Handle(args.At(i)).GetClassId());
       }
@@ -1269,7 +1291,7 @@ DEFINE_RUNTIME_ENTRY(InstanceFunctionLookup, 4) {
     if (FLAG_trace_ic) {
       OS::PrintErr("NoSuchMethod IC miss: adding <%s> id:%"Pd" -> <%s>\n",
           Class::Handle(receiver.clazz()).ToCString(),
-          receiver.GetClassId(),
+          receiver_cid,
           target_function.ToCString());
     }
     result = DartEntry::InvokeFunction(target_function, args, args_descriptor);

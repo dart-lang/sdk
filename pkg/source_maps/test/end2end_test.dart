@@ -13,11 +13,17 @@ main() {
     expect(inputVar1.text, 'longVar1');
     expect(inputFunction.text, 'longName');
     expect(inputVar2.text, 'longVar2');
+    expect(inputVar1NoSymbol.text, 'longVar1');
+    expect(inputFunctionNoSymbol.text, 'longName');
+    expect(inputVar2NoSymbol.text, 'longVar2');
     expect(inputExpr.text, 'longVar1 + longVar2');
 
     expect(outputVar1.text, 'x');
     expect(outputFunction.text, 'f');
     expect(outputVar2.text, 'y');
+    expect(outputVar1NoSymbol.text, 'x');
+    expect(outputFunctionNoSymbol.text, 'f');
+    expect(outputVar2NoSymbol.text, 'y');
     expect(outputExpr.text, 'x + y');
   });
 
@@ -32,6 +38,55 @@ main() {
     check(outputVar1, mapping, inputVar1, false);
     check(outputVar2, mapping, inputVar2, false);
     check(outputFunction, mapping, inputFunction, false);
+    check(outputExpr, mapping, inputExpr, false);
+  });
+
+  test('build + parse - no symbols', () {
+    var map = (new SourceMapBuilder()
+        ..addSpan(inputVar1NoSymbol, outputVar1NoSymbol)
+        ..addSpan(inputFunctionNoSymbol, outputFunctionNoSymbol)
+        ..addSpan(inputVar2NoSymbol, outputVar2NoSymbol)
+        ..addSpan(inputExpr, outputExpr))
+        .build(output.url);
+    var mapping = parseJson(map);
+    check(outputVar1NoSymbol, mapping, inputVar1NoSymbol, false);
+    check(outputVar2NoSymbol, mapping, inputVar2NoSymbol, false);
+    check(outputFunctionNoSymbol, mapping, inputFunctionNoSymbol, false);
+    check(outputExpr, mapping, inputExpr, false);
+  });
+
+  test('build + parse, repeated entries', () {
+    var map = (new SourceMapBuilder()
+        ..addSpan(inputVar1, outputVar1)
+        ..addSpan(inputVar1, outputVar1)
+        ..addSpan(inputFunction, outputFunction)
+        ..addSpan(inputFunction, outputFunction)
+        ..addSpan(inputVar2, outputVar2)
+        ..addSpan(inputVar2, outputVar2)
+        ..addSpan(inputExpr, outputExpr)
+        ..addSpan(inputExpr, outputExpr))
+        .build(output.url);
+    var mapping = parseJson(map);
+    check(outputVar1, mapping, inputVar1, false);
+    check(outputVar2, mapping, inputVar2, false);
+    check(outputFunction, mapping, inputFunction, false);
+    check(outputExpr, mapping, inputExpr, false);
+  });
+
+  test('build + parse - no symbols, repeated entries', () {
+    var map = (new SourceMapBuilder()
+        ..addSpan(inputVar1NoSymbol, outputVar1NoSymbol)
+        ..addSpan(inputVar1NoSymbol, outputVar1NoSymbol)
+        ..addSpan(inputFunctionNoSymbol, outputFunctionNoSymbol)
+        ..addSpan(inputFunctionNoSymbol, outputFunctionNoSymbol)
+        ..addSpan(inputVar2NoSymbol, outputVar2NoSymbol)
+        ..addSpan(inputVar2NoSymbol, outputVar2NoSymbol)
+        ..addSpan(inputExpr, outputExpr))
+        .build(output.url);
+    var mapping = parseJson(map);
+    check(outputVar1NoSymbol, mapping, inputVar1NoSymbol, false);
+    check(outputVar2NoSymbol, mapping, inputVar2NoSymbol, false);
+    check(outputFunctionNoSymbol, mapping, inputFunctionNoSymbol, false);
     check(outputExpr, mapping, inputExpr, false);
   });
 

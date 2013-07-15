@@ -3,8 +3,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// DO NOT EDIT - unless you are editing documentation as per:
-// https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
+// DO NOT EDIT
 // Auto-generated dart:chrome library.
 
 /// Native wrappers for the Chrome Packaged App APIs.
@@ -12,8 +11,8 @@
 /// These functions allow direct access to the Packaged App APIs, allowing
 /// Chrome Packaged Apps to be written using Dart.
 ///
-/// For more information on these APIs, see the
-/// [Chrome APIs Documentation](http://developer.chrome.com/extensions/api_index.html)
+/// For more information on these APIs, see the Chrome.* APIs Documentation:
+///   http://developer.chrome.com/extensions/api_index.html
 library chrome;
 
 import 'dart:_foreign_helper' show JS;
@@ -28,3 +27,4 @@ part "$AUXILIARY_DIR/chrome/chrome.dart";
 // Generated files below this line.
 part "$AUXILIARY_DIR/chrome/app_window.dart";
 part "$AUXILIARY_DIR/chrome/app_runtime.dart";
+part "$AUXILIARY_DIR/chrome/file_system.dart";

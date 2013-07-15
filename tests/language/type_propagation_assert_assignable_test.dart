@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Check that type of the AssertAssignable is recomputed correctly.
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr
 
 import "package:expect/expect.dart";
 
@@ -37,7 +38,7 @@ foo(v) {
 main() {
   final a = new A(new B(new A("haha", true), false), false);
 
-  for (var i = 0; i < 10000; i++) {
+  for (var i = 0; i < 20; i++) {
     Expect.isTrue(foo(a));
   }
   Expect.isTrue(foo(a));

@@ -7,7 +7,7 @@ library pub.sdk;
 
 import 'dart:io';
 
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 
 import 'io.dart';
 import 'log.dart' as log;

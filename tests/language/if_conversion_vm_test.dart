@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Test if-convertion pass in the optimizing compiler.
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr
 
 import "package:expect/expect.dart";
 
@@ -40,7 +41,7 @@ f17(b) => b ? 0 : 11;
 f18(b) => b ? 2 : 0;
 
 main() {
-  for (var i = 0; i < 10000; i++) {
+  for (var i = 0; i < 20; i++) {
     f1(i);
     f2(i);
     f3(i);

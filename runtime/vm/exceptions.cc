@@ -413,68 +413,40 @@ void Exceptions::SetField(const Instance& instance,
 }
 
 
-// Initialize the fields 'url', 'line', and 'column' in the given instance
-// according to the given token location in the given script.
-void Exceptions::SetLocationFields(const Instance& instance,
-                                   const Class& cls,
-                                   const Script& script,
-                                   intptr_t location) {
-  SetField(instance, cls, "url", String::Handle(script.url()));
-  intptr_t line, column;
-  script.GetTokenLocation(location, &line, &column);
-  SetField(instance, cls, "line", Smi::Handle(Smi::New(line)));
-  SetField(instance, cls, "column", Smi::Handle(Smi::New(column)));
-}
-
-
 // Allocate, initialize, and throw a TypeError.
 void Exceptions::CreateAndThrowTypeError(intptr_t location,
                                          const String& src_type_name,
                                          const String& dst_type_name,
                                          const String& dst_name,
                                          const String& malformed_error) {
-  // Allocate a new instance of TypeError or CastError.
-  Instance& type_error = Instance::Handle();
-  Class& cls = Class::Handle();
-  if (dst_name.Equals(kCastErrorDstName)) {
-    type_error = NewInstance("CastErrorImplementation");
-    cls = type_error.clazz();
-    cls = cls.SuperClass();
-  } else {
-    type_error = NewInstance("TypeErrorImplementation");
-    cls = type_error.clazz();
-  }
+  const Array& args = Array::Handle(Array::New(8));
 
-  // Initialize 'url', 'line', and 'column' fields.
-  DartFrameIterator iterator;
-  const Script& script = Script::Handle(GetCallerScript(&iterator));
-  // Location fields are defined in AssertionError, the superclass of TypeError.
-  const Class& assertion_error_class = Class::Handle(cls.SuperClass());
-  SetLocationFields(type_error, assertion_error_class, script, location);
+  ExceptionType exception_type =
+      dst_name.Equals(kCastErrorDstName) ? kCast : kType;
 
-  // Initialize field 'failedAssertion' in AssertionError superclass.
+  // Initialize argument 'failedAssertion'.
   // Printing the src_obj value would be possible, but ToString() is expensive
   // and not meaningful for all classes, so we just print '$expr instanceof...'.
   // Users should look at TypeError.ToString(), which contains more useful
   // information than AssertionError.failedAssertion.
   String& failed_assertion = String::Handle(String::New("$expr instanceof "));
   failed_assertion = String::Concat(failed_assertion, dst_type_name);
-  SetField(type_error,
-           assertion_error_class,
-           "failedAssertion",
-           failed_assertion);
+  args.SetAt(0, failed_assertion);
 
-  // Initialize field 'srcType'.
-  SetField(type_error, cls, "srcType", src_type_name);
+  // Initialize 'url', 'line', and 'column' arguments.
+  DartFrameIterator iterator;
+  const Script& script = Script::Handle(GetCallerScript(&iterator));
+  intptr_t line, column;
+  script.GetTokenLocation(location, &line, &column);
+  args.SetAt(1, String::Handle(script.url()));
+  args.SetAt(2, Smi::Handle(Smi::New(line)));
+  args.SetAt(3, Smi::Handle(Smi::New(column)));
 
-  // Initialize field 'dstType'.
-  SetField(type_error, cls, "dstType", dst_type_name);
-
-  // Initialize field 'dstName'.
-  SetField(type_error, cls, "dstName", dst_name);
-
-  // Initialize field 'malformedError'.
-  SetField(type_error, cls, "malformedError", malformed_error);
+  // Initialize argument 'srcType'.
+  args.SetAt(4, src_type_name);
+  args.SetAt(5, dst_type_name);
+  args.SetAt(6, dst_name);
+  args.SetAt(7, malformed_error);
 
   // Type errors in the core library may be difficult to diagnose.
   // Print type error information before throwing the error when debugging.
@@ -496,7 +468,7 @@ void Exceptions::CreateAndThrowTypeError(intptr_t location,
     }
   }
   // Throw TypeError instance.
-  Exceptions::Throw(type_error);
+  Exceptions::ThrowByType(exception_type, args);
   UNREACHABLE();
 }
 
@@ -625,6 +597,26 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
     case kFiftyThreeBitOverflowError:
       library = Library::CoreLibrary();
       class_name = &Symbols::FiftyThreeBitOverflowError();
+      break;
+    case kAssertion:
+      library = Library::CoreLibrary();
+      class_name = &Symbols::AssertionError();
+      break;
+    case kCast:
+      library = Library::CoreLibrary();
+      class_name = &Symbols::CastError();
+      break;
+    case kType:
+      library = Library::CoreLibrary();
+      class_name = &Symbols::TypeError();
+      break;
+    case kFallThrough:
+      library = Library::CoreLibrary();
+      class_name = &Symbols::FallThroughError();
+      break;
+    case kAbstractClassInstantiation:
+      library = Library::CoreLibrary();
+      class_name = &Symbols::AbstractClassInstantiationError();
       break;
   }
 

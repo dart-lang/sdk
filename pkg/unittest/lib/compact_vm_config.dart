@@ -10,13 +10,16 @@
  */
 library compact_vm_config;
 
+import 'dart:async';
 import 'dart:io';
+
 import 'unittest.dart';
 import 'vm_config.dart';
 
 const String _GREEN = '\u001b[32m';
 const String _RED = '\u001b[31m';
 const String _NONE = '\u001b[0m';
+
 const int MAX_LINE = 80;
 
 class CompactVMConfiguration extends VMConfiguration {
@@ -25,11 +28,11 @@ class CompactVMConfiguration extends VMConfiguration {
   int _fail = 0;
 
   void onInit() {
-    super.onInit();
+    // Override and don't call the superclass onInit() to avoid printing the
+    // "unittest-suite-..." boilerplate.
   }
 
   void onStart() {
-    super.onStart();
     _start = new DateTime.now();
   }
 
@@ -57,6 +60,14 @@ class CompactVMConfiguration extends VMConfiguration {
     }
   }
 
+  void onDone(bool success) {
+    // Override and don't call the superclass onDone() to avoid printing the
+    // "unittest-suite-..." boilerplate.
+    Future.wait([stdout.close(), stderr.close()]).then((_) {
+      exit(success ? 0 : 1);
+    });
+  }
+
   String _indent(String str) {
     return str.split("\n").map((line) => "  $line").join("\n");
   }
@@ -67,11 +78,11 @@ class CompactVMConfiguration extends VMConfiguration {
     if (passed == 0 && failed == 0 && errors == 0 && uncaughtError == null) {
       print('\nNo tests ran.');
     } else if (failed == 0 && errors == 0 && uncaughtError == null) {
-      _progressLine(_start, _pass, _fail, 'All tests pass', _GREEN);
-      print('\nAll $passed tests passed.');
+      _progressLine(_start, _pass, _fail, 'All tests passed!', _NONE);
+      print('');
       success = true;
     } else {
-      _progressLine(_start, _pass, _fail, 'Some tests fail', _RED);
+      _progressLine(_start, _pass, _fail, 'Some tests failed.', _RED);
       print('');
       if (uncaughtError != null) {
         print('Top-level uncaught error: $uncaughtError');
@@ -94,10 +105,12 @@ class CompactVMConfiguration extends VMConfiguration {
     buffer.write('+');
     buffer.write(passed);
     buffer.write(_NONE);
-    if (failed != 0) buffer.write(_RED);
-    buffer.write(' -');
-    buffer.write(failed);
-    if (failed != 0) buffer.write(_NONE);
+    if (failed != 0) {
+      buffer.write(_RED);
+      buffer.write(' -');
+      buffer.write(failed);
+      buffer.write(_NONE);
+    }
     buffer.write(': ');
     buffer.write(color);
 
@@ -171,6 +184,12 @@ class CompactVMConfiguration extends VMConfiguration {
 }
 
 void useCompactVMConfiguration() {
+  // If the test is running on the Dart buildbots, we don't want to use this
+  // config since it's output may not be what the bots expect.
+  if (Platform.environment.containsKey('BUILDBOT_BUILDERNAME')) {
+    return;
+  }
+
   unittestConfiguration = _singleton;
 }
 

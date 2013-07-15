@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Test allocation sinking optimization.
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr
 
 import 'package:expect/expect.dart';
 
@@ -113,7 +114,7 @@ testInitialValueForFinalField(x) {
 }
 
 testFinalField() {
-  for (var i = 0; i < 10000; i++) {
+  for (var i = 0; i < 100; i++) {
    testInitialValueForFinalField(1);
   }
 }
@@ -134,7 +135,7 @@ test_vm_field() {
 
 testVMField() {
   Expect.equals(84, test_vm_field());
-  for (var i=0; i<15000; i++) test_vm_field();
+  for (var i = 0; i < 100; i++) test_vm_field();
   Expect.equals(84, test_vm_field());
 }
 
@@ -147,7 +148,7 @@ main() {
   final z0 = testIdentity(c.p);
 
   // Force optimization.
-  for (var i = 0; i < 10000; i++) {
+  for (var i = 0; i < 100; i++) {
     test1(c, i.toDouble(), i.toDouble());
     testForwardingThroughEffects(c, i.toDouble(), i.toDouble());
     testIdentity(c.p);

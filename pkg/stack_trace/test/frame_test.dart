@@ -4,7 +4,7 @@
 
 library frame_test;
 
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 import 'package:stack_trace/stack_trace.dart';
 import 'package:unittest/unittest.dart';
 

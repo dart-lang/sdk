@@ -22,7 +22,7 @@ import 'dart:isolate';
 import 'dart:json' as json;
 import 'dart:math';
 
-import 'package:pathos/path.dart' as pathos;
+import 'package:path/path.dart' as pathos;
 
 import 'classify.dart';
 import 'markdown.dart' as md;

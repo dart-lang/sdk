@@ -4,6 +4,8 @@
 
 // Test that a static type inferrer takes [noSuchMethod] into account.
 
+// VMOptions=--optimization-counter-threshold=10
+
 import "package:expect/expect.dart";
 
 class A {
@@ -20,7 +22,7 @@ class B {
 
 bar() {
   var b;
-  for (int i = 0; i < 500; ++i)
+  for (int i = 0; i < 20; ++i)
     if (i % 2 == 0)
       b = new A();
     else

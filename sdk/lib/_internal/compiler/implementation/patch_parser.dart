@@ -222,10 +222,7 @@ class PatchParser extends PartialParser {
 
   PatchListener get patchListener => listener;
 
-  bool isPatch(Token token) {
-    return token.stringValue == null &&
-           token.slowToString() == "patch";
-  }
+  bool isPatch(Token token) => token.value == const SourceString('patch');
 
   /**
    * Parse top-level declarations, and allow "patch" in front of functions

@@ -202,6 +202,7 @@ class Namer implements ClosureNamer {
   final Map<Element, String> bailoutNames;
 
   final Map<Constant, String> constantNames;
+  final Map<Constant, String> constantLongNames;
   ConstantCanonicalHasher constantHasher;
 
   Namer(Compiler compiler)
@@ -217,8 +218,9 @@ class Namer implements ClosureNamer {
         globalNameMap = new Map<String, String>(),
         suggestedGlobalNames = new Map<String, String>(),
         suggestedInstanceNames = new Map<String, String>(),
-        constantNames = new Map<Constant, String>(),
         popularNameCounters = new Map<String, int>(),
+        constantNames = new Map<Constant, String>(),
+        constantLongNames = new Map<Constant, String>(),
         constantHasher = new ConstantCanonicalHasher(compiler);
 
   String get isolateName => 'Isolate';
@@ -240,26 +242,23 @@ class Namer implements ClosureNamer {
     assert(!constant.isFunction());
     String result = constantNames[constant];
     if (result == null) {
-      String longName;
-      if (shouldMinify) {
-        if (constant.isString()) {
-          StringConstant stringConstant = constant;
-          // The minifier always constructs a new name, using the argument as
-          // input to its hashing algorithm.  The given name does not need to be
-          // valid.
-          longName = stringConstant.value.slowToString();
-        } else {
-          longName = "C";
-        }
-      } else {
-        longName = new ConstantNamingVisitor(compiler, constantHasher)
-            .getName(constant);
-      }
+      String longName = constantLongName(constant);
       result = getFreshName(longName, usedGlobalNames, suggestedGlobalNames,
                             ensureSafe: true);
       constantNames[constant] = result;
     }
     return result;
+  }
+
+  // The long name is unminified and may have collisions.
+  String constantLongName(Constant constant) {
+    String longName = constantLongNames[constant];
+    if (longName == null) {
+      longName = new ConstantNamingVisitor(compiler, constantHasher)
+          .getName(constant);
+      constantLongNames[constant] = longName;
+    }
+    return longName;
   }
 
   String breakLabelName(LabelElement label) {

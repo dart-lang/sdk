@@ -6,9 +6,14 @@ library http_server;
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:json' as JSON;
 
 import 'package:mime/mime.dart';
 
+part 'src/http_body.dart';
+part 'src/http_body_impl.dart';
+part 'src/http_multipart_form_data.dart';
+part 'src/http_multipart_form_data_impl.dart';
 part 'src/virtual_directory.dart';
 part 'src/virtual_host.dart';
 

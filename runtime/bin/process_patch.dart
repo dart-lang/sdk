@@ -359,13 +359,8 @@ Future<ProcessResult> _runNonInteractiveProcess(String path,
     Future foldStream(Stream<List<int>> stream, Encoding encoding) {
       if (encoding == null) {
         return stream
-            .fold(
-                new _BufferList(),
-                (buf, data) {
-                  buf.add(data);
-                  return buf;
-                })
-            .then((buf) => buf.readBytes());
+            .fold(new BytesBuilder(), (builder, data) => builder..add(data))
+            .then((builder) => builder.takeBytes());
       } else {
         return stream
             .transform(new StringDecoder(encoding))

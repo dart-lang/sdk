@@ -1,6 +1,7 @@
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr
 
 // Test optimized CodeUnitAt and array access.
 
@@ -14,7 +15,7 @@ int testOneByteCodeUnitAt(String x, int j) {
   int test() {
     return x.codeUnitAt(j);
   }
-  for (int i = 0; i < 10000; i++) test();
+  for (int i = 0; i < 20; i++) test();
   return test();
 }
 
@@ -23,7 +24,7 @@ int testTwoByteCodeUnitAt(String x, int j) {
   int test() {
     return x.codeUnitAt(j);
   }
-  for (int i = 0; i < 10000; i++) test();
+  for (int i = 0; i < 20; i++) test();
   return test();
 }
 
@@ -32,7 +33,7 @@ int testConstantStringCodeUnitAt(int j) {
   int test() {
     return "høns".codeUnitAt(j);
   }
-  for (int i = 0; i < 10000; i++) test();
+  for (int i = 0; i < 20; i++) test();
   return test();
 }
 
@@ -41,7 +42,7 @@ int testConstantIndexCodeUnitAt(String x) {
   int test() {
     return x.codeUnitAt(1);
   }
-  for (int i = 0; i < 10000; i++) test();
+  for (int i = 0; i < 20; i++) test();
   return test();
 }
 
@@ -71,7 +72,7 @@ main() {
     Expect.equals(248, testConstantStringCodeUnitAt(1));
     Expect.equals(101, testConstantIndexCodeUnitAt(one_byte));
   }
-  for (int j = 0; j < 2000; j++) {
+  for (int j = 0; j < 20; j++) {
     Expect.equals(436, testOneByteCodeUnitAtInLoop(one_byte));
     Expect.equals(577, testTwoByteCodeUnitAtInLoop(two_byte));
   }

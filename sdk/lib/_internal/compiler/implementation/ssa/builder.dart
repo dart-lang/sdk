@@ -1220,84 +1220,106 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                        List<HInstruction> providedArguments,
                        Node currentNode) {
     backend.registerStaticUse(element, compiler.enqueuer.codegen);
-    // We cannot inline a method from a deferred library into a method
-    // which isn't deferred.
-    // TODO(ahe): But we should still inline into the same
-    // connected-component of the deferred library.
-    if (compiler.deferredLoadTask.isDeferred(element)) return false;
-    if (compiler.disableInlining) return false;
-
-    if (loopNesting == 0 && !graph.calledInLoop) return false;
-    int maxDepth = (loopNesting > 0) ? MAX_INLINING_DEPTH : 1;
-    if (inliningStack.length >= maxDepth) return false;
 
     // Ensure that [element] is an implementation element.
     element = element.implementation;
     FunctionElement function = element;
-    bool canBeInlined = backend.canBeInlined[function];
-    if (canBeInlined == false) return false;
-    assert(selector != null
-           || Elements.isStaticOrTopLevel(element)
-           || element.isGenerativeConstructorBody());
-    if (selector != null && !selector.applies(function, compiler)) return false;
 
-    // Don't inline operator== methods if the parameter can be null.
-    if (element.name == const SourceString('==')) {
-      if (element.getEnclosingClass() != compiler.objectClass
-          && providedArguments[1].canBeNull()) {
+    bool cachedCanBeInlined = backend.canBeInlined[function];
+    if (cachedCanBeInlined == false) return false;
+
+    bool meetsHardConstraints() {
+      // We cannot inline a method from a deferred library into a method
+      // which isn't deferred.
+      // TODO(ahe): But we should still inline into the same
+      // connected-component of the deferred library.
+      if (compiler.deferredLoadTask.isDeferred(element)) return false;
+      if (compiler.disableInlining) return false;
+
+      assert(selector != null
+             || Elements.isStaticOrTopLevel(element)
+             || element.isGenerativeConstructorBody());
+      if (selector != null && !selector.applies(function, compiler))
         return false;
+
+      // Don't inline operator== methods if the parameter can be null.
+      if (element.name == const SourceString('==')) {
+        if (element.getEnclosingClass() != compiler.objectClass
+            && providedArguments[1].canBeNull()) {
+          return false;
+        }
+      }
+
+      // Don't inline if the return type was inferred to be non-null empty. This
+      // means that the function always throws an exception.
+      TypeMask returnType =
+          compiler.typesTask.getGuaranteedReturnTypeOfElement(element);
+      if (returnType != null && returnType.isEmpty && !returnType.isNullable) {
+        isReachable = false;
+        return false;
+      }
+
+      return true;
+    }
+
+    bool heuristicsSayGoodToGo(FunctionExpression functionExpression,
+                                TreeElements newElements) {
+      if (loopNesting == 0 && !graph.calledInLoop) return false;
+
+      int maxDepth = (loopNesting > 0) ? MAX_INLINING_DEPTH : 1;
+      if (inliningStack.length >= maxDepth) return false;
+
+      if (cachedCanBeInlined == null) {
+        var canBeInlined =
+            InlineWeeder.canBeInlined(functionExpression, newElements);
+        backend.canBeInlined[function] = canBeInlined;
+        return canBeInlined;
+      }
+      return cachedCanBeInlined;
+    }
+
+    void doInlining(FunctionExpression functionExpression) {
+      // Add an explicit null check on the receiver before doing the
+      // inlining. We use [element] to get the same name in the
+      // NoSuchMethodError message as if we had called it.
+      if (element.isInstanceMember()
+          && !element.isGenerativeConstructorBody()
+          && (selector.mask == null || selector.mask.isNullable)) {
+        addWithPosition(
+            new HFieldGet(element, providedArguments[0]), currentNode);
+      }
+      InliningState state = enterInlinedMethod(
+          function, selector, providedArguments, currentNode);
+
+      inlinedFrom(element, () {
+        FunctionElement function = element;
+        FunctionSignature signature = function.computeSignature(compiler);
+        signature.orderedForEachParameter((Element parameter) {
+          HInstruction argument = localsHandler.readLocal(parameter);
+          potentiallyCheckType(argument, parameter.computeType(compiler));
+        });
+        element.isGenerativeConstructor()
+            ? buildFactory(element)
+            : functionExpression.body.accept(this);
+      });
+      leaveInlinedMethod(state);
+    }
+
+    if (meetsHardConstraints()) {
+      FunctionExpression functionExpression = function.parseNode(compiler);
+      TreeElements newElements =
+          compiler.enqueuer.resolution.getCachedElements(function);
+      if (newElements == null) {
+        compiler.internalError("Element not resolved: $function");
+      }
+
+      if (heuristicsSayGoodToGo(functionExpression, newElements)) {
+        doInlining(functionExpression);
+        return true;
       }
     }
 
-    // Don't inline if the return type was inferred to be non-null empty. This
-    // means that the function always throws an exception.
-    TypeMask returnType =
-        compiler.typesTask.getGuaranteedReturnTypeOfElement(element);
-    if (returnType != null && returnType.isEmpty && !returnType.isNullable) {
-      isReachable = false;
-      return false;
-    }
-
-    FunctionExpression functionExpression = function.parseNode(compiler);
-    TreeElements newElements =
-        compiler.enqueuer.resolution.getCachedElements(function);
-    if (newElements == null) {
-      compiler.internalError("Element not resolved: $function");
-    }
-
-    if (canBeInlined == null) {
-      canBeInlined = InlineWeeder.canBeInlined(functionExpression, newElements);
-      backend.canBeInlined[function] = canBeInlined;
-      if (!canBeInlined) return false;
-    }
-
-    assert(canBeInlined);
-    // Add an explicit null check on the receiver before doing the
-    // inlining. We use [element] to get the same name in the NoSuchMethodError
-    // message as if we had called it.
-    if (element.isInstanceMember()
-        && !element.isGenerativeConstructorBody()
-        && (selector.mask == null || selector.mask.isNullable)) {
-      addWithPosition(
-          new HFieldGet(element, providedArguments[0]), currentNode);
-    }
-    InliningState state = enterInlinedMethod(
-        function, selector, providedArguments, currentNode);
-
-    inlinedFrom(element, () {
-      FunctionElement function = element;
-      FunctionSignature signature = function.computeSignature(compiler);
-      signature.orderedForEachParameter((Element parameter) {
-        HInstruction argument = localsHandler.readLocal(parameter);
-        potentiallyCheckType(argument, parameter.computeType(compiler));
-      });
-      element.isGenerativeConstructor()
-          ? buildFactory(element)
-          : functionExpression.body.accept(this);
-    });
-
-    leaveInlinedMethod(state);
-    return true;
+    return false;
   }
 
   inlinedFrom(Element element, f()) {
@@ -1341,19 +1363,18 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             element: constructor);
       }
 
-      ClassElement superclass = constructor.getEnclosingClass();
-      if (backend.classNeedsRti(superclass)) {
-        // If [superclass] needs RTI, we have to give a value to its
-        // type parameters. Those values are in the [supertype]
-        // declaration of [subclass].
-        ClassElement subclass = inlinedFromElement.getEnclosingClass();
-        // If [inlinedFromElement] is a generative constructor then [superclass] 
-        // is a superclass of [subclass]. If [inlinedFromElement] is a 
-        // redirecting constructor then [superclass] is the same as [subclass]. 
-        // Using [DartType.asInstanceOf] handles both these cases.
-        InterfaceType supertype = subclass.thisType.asInstanceOf(superclass);
-        Link<DartType> typeVariables = superclass.typeVariables;
-        supertype.typeArguments.forEach((DartType argument) {
+      ClassElement enclosingClass = constructor.getEnclosingClass();
+      if (backend.classNeedsRti(enclosingClass)) {
+        // If [enclosingClass] needs RTI, we have to give a value to its
+        // type parameters.
+        ClassElement currentClass = inlinedFromElement.getEnclosingClass();
+        // For a super constructor call, the type is the supertype of
+        // [currentClass]. For a redirecting constructor, the type is
+        // the current type. [InterfaceType.asInstanceOf] takes care
+        // of both.
+        InterfaceType type = currentClass.thisType.asInstanceOf(enclosingClass);
+        Link<DartType> typeVariables = enclosingClass.typeVariables;
+        type.typeArguments.forEach((DartType argument) {
           localsHandler.updateLocal(typeVariables.head.element,
               analyzeTypeArgument(argument, callNode));
           typeVariables = typeVariables.tail;
@@ -1361,7 +1382,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         // If the supertype is a raw type, we need to set to null the
         // type variables.
         assert(typeVariables.isEmpty
-               || superclass.typeVariables == typeVariables);
+               || enclosingClass.typeVariables == typeVariables);
         while (!typeVariables.isEmpty) {
           localsHandler.updateLocal(typeVariables.head.element,
               graph.addConstantNull(compiler));
@@ -1523,14 +1544,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         });
   }
 
-
   /**
    * Build the factory function corresponding to the constructor
    * [functionElement]:
    *  - Initialize fields with the values of the field initializers of the
    *    current constructor and super constructors or constructors redirected
    *    to, starting from the current constructor.
-   *  - Call the the constructor bodies, starting from the constructor(s) in the
+   *  - Call the constructor bodies, starting from the constructor(s) in the
    *    super class(es).
    */
   HGraph buildFactory(FunctionElement functionElement) {
@@ -2541,7 +2561,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         value = compileVariable(element);
       }
       if (value != null) {
-        stack.add(graph.addConstant(value, compiler));
+        HInstruction instruction = graph.addConstant(value, compiler);
+        stack.add(instruction);
+        HType type = new HType.inferredTypeForElement(element, compiler);
+        if (!type.isUnknown()) instruction.instructionType = type;
       } else if (element.isField() && isLazilyInitialized(element)) {
         HInstruction instruction = new HLazyStatic(element);
         instruction.instructionType =
@@ -4150,24 +4173,27 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitLiteralList(LiteralList node) {
+    HInstruction instruction;
+
     if (node.isConst()) {
       ConstantHandler handler = compiler.constantHandler;
       Constant constant = handler.compileNodeWithDefinitions(node, elements);
-      stack.add(graph.addConstant(constant, compiler));
-      return;
+      instruction = graph.addConstant(constant, compiler);
+    } else {
+      List<HInstruction> inputs = <HInstruction>[];
+      for (Link<Node> link = node.elements.nodes;
+           !link.isEmpty;
+           link = link.tail) {
+        visit(link.head);
+        inputs.add(pop());
+      }
+      instruction = buildLiteralList(inputs);
+      add(instruction);
     }
 
-    List<HInstruction> inputs = <HInstruction>[];
-    for (Link<Node> link = node.elements.nodes;
-         !link.isEmpty;
-         link = link.tail) {
-      visit(link.head);
-      inputs.add(pop());
-    }
-    HInstruction instruction = buildLiteralList(inputs);
     HType type = new HType.inferredForNode(currentElement, node, compiler);
     if (!type.isUnknown()) instruction.instructionType = type;
-    push(instruction);
+    stack.add(instruction);
   }
 
   visitConditional(Conditional node) {

@@ -13,15 +13,19 @@ abstract class CssClassSetImpl implements CssClassSet {
   /**
    * Adds the class [value] to the element if it is not on it, removes it if it
    * is.
+   *
+   * If [shouldAdd] is true, then we always add that [value] to the element. If
+   * [shouldAdd] is false then we always remove [value] from the element.
    */
-  bool toggle(String value) {
+  bool toggle(String value, [bool shouldAdd]) {
     Set<String> s = readClasses();
     bool result = false;
-    if (s.contains(value)) {
-      s.remove(value);
-    } else {
+    if (shouldAdd == null) shouldAdd = !s.contains(value);
+    if (shouldAdd) {
       s.add(value);
       result = true;
+    } else {
+      s.remove(value);
     }
     writeClasses(s);
     return result;
@@ -133,9 +137,12 @@ abstract class CssClassSetImpl implements CssClassSet {
    * Iterate through [iterable]'s items, and add it if it is not on it, or
    * remove it if it is. This is the Dart equivalent of jQuery's
    * [toggleClass](http://api.jquery.com/toggleClass/).
+   * If [shouldAdd] is true, then we always add all the classes in [iterable]
+   * element. If [shouldAdd] is false then we always remove all the classes in
+   * [iterable] from the element.
    */
-  void toggleAll(Iterable<String> iterable) {
-    iterable.forEach(toggle);
+  void toggleAll(Iterable<String> iterable, [bool shouldAdd]) {
+    iterable.forEach((e) => toggle(e, shouldAdd));
   }
 
   void retainAll(Iterable<String> iterable) {

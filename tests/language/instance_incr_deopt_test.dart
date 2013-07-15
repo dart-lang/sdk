@@ -1,6 +1,7 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr
 
 import "package:expect/expect.dart";
 
@@ -10,13 +11,13 @@ import "package:expect/expect.dart";
 main() {
   var a = new A();
   var aa = new A();
-  for (int i = 0; i < 2000; i++) {
+  for (int i = 0; i < 20; i++) {
     a.Incr();
     myIncr(aa);
     conditionalIncr(false, a);
   }
-  Expect.equals(2000, a.f);
-  Expect.equals(2000, aa.f);
+  Expect.equals(20, a.f);
+  Expect.equals(20, aa.f);
   a.f = 1.0;
   // Deoptimize ++ part of instance increment.
   a.Incr();

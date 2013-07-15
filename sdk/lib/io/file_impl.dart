@@ -479,12 +479,11 @@ class _File implements File {
   Future<List<int>> readAsBytes() {
     _ensureFileService();
     Completer<List<int>> completer = new Completer<List<int>>();
-    var chunks = new _BufferList();
+    var builder = new BytesBuilder();
     openRead().listen(
-      (d) => chunks.add(d),
+      (d) => builder.add(d),
       onDone: () {
-        var result = chunks.readBytes();
-        completer.complete(result);
+        completer.complete(builder.takeBytes());
       },
       onError: (e) {
         completer.completeError(e);
@@ -495,13 +494,13 @@ class _File implements File {
 
   List<int> readAsBytesSync() {
     var opened = openSync();
-    var chunks = new _BufferList();
+    var builder = new BytesBuilder();
     var data;
     while ((data = opened.readSync(_BLOCK_SIZE)).length > 0) {
-      chunks.add(data);
+      builder.add(data);
     }
     opened.closeSync();
-    return chunks.readBytes();
+    return builder.takeBytes();
   }
 
   Future<String> readAsString({Encoding encoding: Encoding.UTF_8}) {

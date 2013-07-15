@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program to test arithmetic operations.
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr
 
 library arithmetic_test;
 import "package:expect/expect.dart";
@@ -441,14 +442,14 @@ class ArithmeticTest {
 
   static testDoubleEquality() {
     Expect.isFalse(self_equality(double.NAN));
-    for (int i = 0; i < 2000; i++) {
+    for (int i = 0; i < 20; i++) {
       self_equality(3.0);
     }
     Expect.isFalse(self_equality(double.NAN));
   }
 
   static testMain() {
-    for (int i = 0; i < 1500; i++) {
+    for (int i = 0; i < 20; i++) {
       runOne();
       testSmiDivDeopt();
       testSqrtDeopt();

@@ -33,7 +33,25 @@ const String TEST4 = r"""
 main() {
   var a = new List.filled(42, null);
   a[0] = 42;
-  return a[0] + 42;
+  return 42 + a[0];
+}
+""";
+
+// Test that the backend knows the element type of a const list.
+const String TEST5 = r"""
+var b = 4;
+main() {
+  var a = const [1, 2, 3];
+  return 42 + a[b];
+}
+""";
+
+// Test that the backend knows the element type of a const static.
+const String TEST6 = r"""
+const a = const [1, 2, 3];
+var b = 4;
+main() {
+  return 42 + a[b];
 }
 """;
 
@@ -57,4 +75,10 @@ main() {
   generated = compileAll(TEST4);
   Expect.isFalse(generated.contains('if (typeof t1'));
   Expect.isTrue(generated.contains('if (t1 == null)'));
+
+  generated = compileAll(TEST5);
+  Expect.isFalse(generated.contains('iae'));
+
+  generated = compileAll(TEST6);
+  Expect.isFalse(generated.contains('iae'));
 }

@@ -5,7 +5,7 @@ description: >
 dependencies:
   analyzer_experimental: ">=0.4.5 <1.0.0"
   args: ">=0.4.2 <1.0.0"
-  pathos: ">=0.4.2 <1.0.0"
+  path: ">=0.4.2 <1.0.0"
 
 dev_dependencies:
   unittest: ">=0.4.2 <1.0.0"

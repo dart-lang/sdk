@@ -231,13 +231,13 @@ main() {
   u32List[1] = 0x3FFFFFFF;
   u32List[2] = 0x7FFFFFFF;
 
-  for (var i = 0; i < 4000; i++) {
+  for (var i = 0; i < 20; i++) {
     testPhiConvertions(true, u32List);
     testPhiConvertions(false, u32List);
   }
 
   final escape = new List(1);
-  for (var i = 0; i < 10000; i++) {
+  for (var i = 0; i < 20; i++) {
     fakeAliasing(escape);
   }
 }

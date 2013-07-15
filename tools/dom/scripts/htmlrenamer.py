@@ -300,6 +300,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'UIEvent.pageY',
   'WheelEvent.initWebKitWheelEvent',
   'DOMWindow.getComputedStyle',
+  'DOMWindow.moveTo',
 ])
 
 # Members from the standard dom that exist in the dart:html library with

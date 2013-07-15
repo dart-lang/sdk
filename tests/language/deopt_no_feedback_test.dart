@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test deoptimization caused by running code that did not collect type
 // feedback before.
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr
 
 import "package:expect/expect.dart";
 
@@ -17,7 +18,7 @@ testStoreIndexed() {
   }
 
   var a = new List(10);
-  for (var i = 0; i < 2000; i++) {
+  for (var i = 0; i < 20; i++) {
     var r = test(a, 3, 888, false);
     Expect.equals(3, r);
     Expect.equals(3, a[3]);
@@ -38,7 +39,7 @@ testIncrLocal() {
     }
   }
 
-  for (var i = 0; i < 2000; i++) {
+  for (var i = 0; i < 20; i++) {
     var r = test(10, false);
     Expect.equals(-1, r);
   }
@@ -49,7 +50,7 @@ testIncrLocal() {
 
 
 main() {
-  for (var i = 0; i < 2000; i++) {}
+  for (var i = 0; i < 20; i++) {}
   testStoreIndexed();
   testIncrLocal();
 }

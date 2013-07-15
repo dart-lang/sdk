@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:pathos/path.dart' as pathos;
+import 'package:path/path.dart' as pathos;
 import 'package:unittest/unittest.dart';
 
 import '../lib/src/export_map.dart';

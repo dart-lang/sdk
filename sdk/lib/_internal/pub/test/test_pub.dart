@@ -17,10 +17,11 @@ import 'dart:utf';
 
 import 'package:http/testing.dart';
 import 'package:oauth2/oauth2.dart' as oauth2;
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 import 'package:scheduled_test/scheduled_process.dart';
 import 'package:scheduled_test/scheduled_server.dart';
 import 'package:scheduled_test/scheduled_test.dart';
+import 'package:unittest/compact_vm_config.dart';
 import 'package:yaml/yaml.dart';
 
 import '../lib/src/entrypoint.dart';
@@ -38,16 +39,12 @@ import '../lib/src/source/path.dart';
 import '../lib/src/system_cache.dart';
 import '../lib/src/utils.dart';
 import '../lib/src/validator.dart';
-import 'command_line_config.dart';
 import 'descriptor.dart' as d;
 
 /// This should be called at the top of a test file to set up an appropriate
 /// test configuration for the machine running the tests.
 initConfig() {
-  // If we aren't running on the bots, use the human-friendly config.
-  if (!runningOnBuildbot) {
-    unittestConfiguration = new CommandLineConfiguration();
-  }
+  useCompactVMConfiguration();
 }
 
 /// Returns whether we're running on a Dart build bot.
@@ -640,7 +637,7 @@ String _packageName(String sourceName, description) {
   case "git":
     var url = description is String ? description : description['url'];
     // TODO(rnystrom): Using path.basename on a URL is hacky. If we add URL
-    // support to pkg/pathos, should use an explicit builder for that.
+    // support to pkg/path, should use an explicit builder for that.
     return path.basename(url.replaceFirst(new RegExp(r"(\.git)?/?$"), ""));
   case "hosted":
     if (description is String) return description;

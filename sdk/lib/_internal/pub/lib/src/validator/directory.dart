@@ -6,7 +6,7 @@ library pub.validator.directory;
 
 import 'dart:async';
 
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 
 import '../entrypoint.dart';
 import '../io.dart';

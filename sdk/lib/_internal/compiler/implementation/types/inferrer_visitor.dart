@@ -292,7 +292,13 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
   }
 
   TypeMask visitLiteralInt(LiteralInt node) {
-    return inferrer.intType;
+    ConstantSystem constantSystem = compiler.backend.constantSystem;
+    Constant constant = constantSystem.createInt(node.value);
+    // The JavaScript backend may turn this literal into a double at
+    // runtime.
+    return constantSystem.isDouble(constant)
+        ? inferrer.doubleType
+        : inferrer.intType;
   }
 
   TypeMask visitLiteralList(LiteralList node) {

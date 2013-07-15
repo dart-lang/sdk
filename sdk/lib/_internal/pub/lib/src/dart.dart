@@ -10,7 +10,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:analyzer_experimental/analyzer.dart';
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 import '../../../compiler/compiler.dart' as compiler;
 import '../../../compiler/implementation/mirrors/dart2js_mirror.dart' as dart2js
     show analyze, Dart2JsMirrorSystem;

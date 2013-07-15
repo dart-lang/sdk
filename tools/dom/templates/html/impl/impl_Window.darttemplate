@@ -277,6 +277,10 @@ $!MEMBERS
   @DomName('DOMWindow.onbeforeunload')
   @DocsEditable()
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
+
+  void moveTo(Point p) {
+    $dom_moveTo(p.x, p.y);
+  }
 }
 
 /**

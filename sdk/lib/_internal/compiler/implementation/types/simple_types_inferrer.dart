@@ -65,7 +65,7 @@ abstract class TypeInformation {
   /**
    * Callers of an element.
    */
-  Set<Element> get callers => null;
+  Map<Element, int> get callers => null;
 
   /**
    * Number of times the element has been processed.
@@ -79,10 +79,23 @@ abstract class TypeInformation {
   TypeMask get returnType => null;
   void set returnType(value) {}
 
-  void addCaller(Element element) {
-    callers.add(element);
+  void addCaller(Element caller) {
+    if (callers.containsKey(caller)) {
+      callers[caller]++;
+    } else {
+      callers[caller] = 1;
+    }
   }
 
+  void removeCall(Element caller) {
+    if (!callers.containsKey(caller)) return;
+    if (callers[caller] == 1) {
+      callers.remove(caller);
+    } else {
+      callers[caller]--;
+    }
+  }
+  
   void addAssignment(Node node, TypeMask mask) {
     assignments[node] = mask;
   }
@@ -91,7 +104,7 @@ abstract class TypeInformation {
 }
 
 class FunctionTypeInformation extends TypeInformation {
-  Set<Element> callers = new Set<Element>();
+  Map<Element, int> callers = new Map<Element, int>();
   TypeMask returnType;
   int analyzeCount = 0;
   bool canBeClosurized = false;
@@ -113,7 +126,7 @@ class ParameterTypeInformation extends TypeInformation {
 
 class FieldTypeInformation extends TypeInformation {
   TypeMask type;
-  Set<Element> callers = new Set<Element>();
+  Map<Element, int> callers = new Map<Element, int>();
   Map<Node, TypeMask> assignments = new Map<Node, TypeMask>();
   int analyzeCount = 0;
 
@@ -413,7 +426,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
   }
 
   Iterable<Element> getCallersOf(Element element) {
-    return typeInformationOf(element).callers;
+    return typeInformationOf(element).callers.keys;
   }
 
   /**
@@ -458,7 +471,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
 
   void enqueueCallersOf(Element element) {
     assert(isNotClosure(element));
-    typeInformationOf(element).callers.forEach(enqueueAgain);
+    typeInformationOf(element).callers.keys.forEach(enqueueAgain);
   }
 
   /**
@@ -818,6 +831,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     // Bailout for closure calls. We're not tracking types of
     // closures.
     if (selector.isClosureCall()) return dynamicType;
+    if (selector.isSetter() || selector.isIndexSet()) return dynamicType;
 
     TypeMask result;
     iterateOverElements(selector, (Element element) {
@@ -875,8 +889,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     assert(caller.isImplementation);
     assert(callee.isImplementation);
     assert(isNotClosure(caller));
-    Set<Element> callers = typeInformationOf(callee).callers;
-    callers.add(caller);
+    typeInformationOf(callee).addCaller(caller);
   }
 
   bool addArguments(Node node,
@@ -1011,8 +1024,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
 
     assert(isNotClosure(caller));
     callee = callee.implementation;
-    TypeInformation info = typeInformationOf(callee);
-    info.addCaller(caller);
+    addCaller(caller, callee);
 
     if (selector.isSetter() && callee.isField()) {
       recordNonFinalFieldElementType(
@@ -1024,7 +1036,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     } else if (selector.isGetter()) {
       assert(arguments == null);
       if (callee.isFunction()) {
-        FunctionTypeInformation functionInfo = info;
+        FunctionTypeInformation functionInfo = typeInformationOf(callee);
         functionInfo.canBeClosurized = true;
       }
       return;
@@ -1049,6 +1061,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
                                Selector selector,
                                Element caller,
                                Element callee) {
+    typeInformationOf(callee).removeCall(caller);
     if (callee.isField()) {
       if (selector.isSetter()) {
         Map<Node, TypeMask> assignments = typeInformationOf(callee).assignments;

@@ -16,6 +16,7 @@
 namespace dart {
 
 // Forward declarations.
+class ArgumentsDescriptor;
 class Function;
 class Isolate;
 class LiteralToken;
@@ -382,7 +383,8 @@ class Parser : public ValueObject {
                                GrowableArray<Field*>* initialized_fields,
                                Field* field);
   void GenerateSuperConstructorCall(const Class& cls,
-                                    LocalVariable* receiver);
+                                    LocalVariable* receiver,
+                                    ArgumentListNode* forwarding_args);
   AstNode* ParseSuperInitializer(const Class& cls, LocalVariable* receiver);
   AstNode* ParseInitializer(const Class& cls,
                             LocalVariable* receiver,
@@ -437,6 +439,11 @@ class Parser : public ValueObject {
   SequenceNode* ParseMethodExtractor(const Function& func);
   SequenceNode* ParseNoSuchMethodDispatcher(const Function& func,
                                             Array& default_values);
+  SequenceNode* ParseInvokeFieldDispatcher(const Function& func,
+                                           Array& default_values);
+  void BuildDispatcherScope(const Function& func,
+                            const ArgumentsDescriptor& desc,
+                            Array& default_values);
 
   void ChainNewBlock(LocalScope* outer_scope);
   void OpenBlock();

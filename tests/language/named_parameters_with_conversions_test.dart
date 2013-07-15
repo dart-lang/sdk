@@ -4,6 +4,7 @@
 //
 // Test named arguments work as expected regardless of whether the function or
 // method is called via function call syntax or method call syntax.
+// VMOptions=--optimization-counter-threshold=10
 
 import "package:expect/expect.dart";
 
@@ -99,7 +100,8 @@ class NamedParametersWithConversionsTest {
 
     checkException(() => a.foo());                 // Too few arguments.
     checkException(() => a.foo('abc', 1, 2, 3));   // Too many arguments.
-    checkException(() => a.foo2('c', c: 1));        // Bad name.
+    checkException(() => a.foo2('c', c: 1));       // Bad name.
+    checkException(() => a.foo2('c', a:111, c: 1));  // Bad name.
 
     Expect.equals(7, a.calls);
   }
@@ -119,7 +121,8 @@ class NamedParametersWithConversionsTest {
 
     checkException(() => f());                 // Too few arguments.
     checkException(() => f('abc', 1, 2, 3));   // Too many arguments.
-    checkException(() => f2('c', c: 1));        // Bad name.
+    checkException(() => f2('c', c: 1));       // Bad name.
+    checkException(() => f2('c', a: 111, c: 1));  // Bad name.
 
     Expect.equals(7, a.calls);
   }
@@ -137,5 +140,7 @@ class NamedParametersWithConversionsTest {
 }
 
 main() {
-  NamedParametersWithConversionsTest.testMain();
+  for (var i = 0; i < 20; i++) {
+    NamedParametersWithConversionsTest.testMain();
+  }
 }

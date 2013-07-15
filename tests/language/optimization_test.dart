@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Test various optimizations and deoptimizations of optimizing compiler..
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr
 
 import "package:expect/expect.dart";
 
@@ -46,16 +47,16 @@ class StringPlus {
 }
 
 main() {
-  for (int i = 0; i < 2000; i++) {
+  for (int i = 0; i < 20; i++) {
     Expect.stringEquals("HI 5", addThem(const StringPlus("HI "), 5).toString());
     Expect.equals(true, isItInt(5));
   }
   Expect.equals(8, addThem(3, 5));
-  for (int i = 0; i < 2000; i++) {
+  for (int i = 0; i < 20; i++) {
     Expect.stringEquals("HI 5", addThem(const StringPlus("HI "), 5).toString());
     Expect.equals(8, addThem(3, 5));
   }
-  for (int i = -500; i < 500; i++) {
+  for (int i = -10; i < 10; i++) {
     var r = doNeg(i);
     var p = doNeg(r);
     Expect.equals(i, p);
@@ -66,16 +67,16 @@ main() {
   var minInt = -(1 << 30);
   Expect.equals(minInt, doNeg(doNeg(minInt)));
 
-  for (int i = 0; i < 1000; i++) {
+  for (int i = 0; i < 20; i++) {
     Expect.equals(false, doNot(true));
     Expect.equals(true, doNot(doNot(true)));
   }
-  for (int i = 0; i < 1000; i++) {
+  for (int i = 0; i < 20; i++) {
     Expect.equals(-57, doBitNot(56));
     Expect.equals(55, doBitNot(-56));
   }
 
-  for (int i = 0; i < 2000; i++) {
+  for (int i = 0; i < 20; i++) {
     Expect.equals(-2.2, doNeg2(2.2));
   }
   // Deoptimize.
@@ -84,7 +85,7 @@ main() {
   var fixed = new List(10);
   var growable = [1, 2, 3, 4, 5];
 
-  for (int i = 0; i < 2000; i++) {
+  for (int i = 0; i < 20; i++) {
     doStore1(fixed, 7);
     Expect.equals(7, fixed[1]);
     doStore2(growable, 12);

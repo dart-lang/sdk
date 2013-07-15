@@ -174,7 +174,6 @@ class KeywordToken extends Token {
  */
 class StringToken extends Token {
   final SourceString value;
-  String get stringValue => value.stringValue;
 
   StringToken(PrecedenceInfo info, String value, int charOffset)
     : this.fromSource(info, new SourceString(value), charOffset);
@@ -189,6 +188,15 @@ class StringToken extends Token {
 
 abstract class SourceString extends IterableBase<int> {
   const factory SourceString(String string) = StringWrapper;
+
+  static final Map<String, StringWrapper> canonicalizedValues =
+      new Map<String, StringWrapper>();
+
+  factory SourceString.fromSubstring(String string, int begin, int end) {
+    var substring = string.substring(begin, end);
+    return canonicalizedValues.putIfAbsent(
+        substring, () => new StringWrapper(substring));
+  }
 
   void printOn(StringBuffer sb);
 
@@ -210,7 +218,7 @@ abstract class SourceString extends IterableBase<int> {
 class StringWrapper extends IterableBase<int> implements SourceString {
   final String stringValue;
 
-  const StringWrapper(String this.stringValue);
+  const StringWrapper(this.stringValue);
 
   int get hashCode => stringValue.hashCode;
 

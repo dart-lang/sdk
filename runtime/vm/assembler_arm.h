@@ -68,11 +68,14 @@ class CPUFeatures : public AllStatic {
   static void InitOnce();
   static bool double_truncate_round_supported() { return false; }
   static bool integer_division_supported();
+  static bool neon_supported();
 #if defined(USING_SIMULATOR)
   static void set_integer_division_supported(bool supported);
+  static void set_neon_supported(bool supported);
 #endif
  private:
   static bool integer_division_supported_;
+  static bool neon_supported_;
 #if defined(DEBUG)
   static bool initialized_;
 #endif
@@ -476,6 +479,8 @@ class Assembler : public ValueObject {
 
   void vadds(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
   void vaddd(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
+  void vaddqi(int sz, QRegister qd, QRegister qn, QRegister qm);
+  void vaddqs(QRegister qd, QRegister qn, QRegister qm);
   void vsubs(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
   void vsubd(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
   void vmuls(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
@@ -803,6 +808,9 @@ class Assembler : public ValueObject {
                  int32_t opcode,
                  DRegister dd,
                  SRegister sm);
+
+  void EmitSIMDqqq(int32_t opcode, int sz,
+                   QRegister qd, QRegister qn, QRegister qm);
 
   void EmitBranch(Condition cond, Label* label, bool link);
   static int32_t EncodeBranchOffset(int32_t offset, int32_t inst);

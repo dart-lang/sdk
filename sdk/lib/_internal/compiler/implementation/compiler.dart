@@ -848,6 +848,11 @@ abstract class Compiler implements DiagnosticListener {
   Uri resolvePatchUri(String dartLibraryPath);
 
   void runCompiler(Uri uri) {
+    // TODO(ahe): This prevents memory leaks when invoking the compiler
+    // multiple times.  Implement a better mechanism where StringWrapper
+    // instances are shared on a per library basis.
+    SourceString.canonicalizedValues.clear();
+
     assert(uri != null || analyzeOnly);
     scanBuiltinLibraries();
     if (librariesToAnalyzeWhenRun != null) {

@@ -83,18 +83,11 @@ class _LocalMirrorSystemImpl extends MirrorSystem {
   final Map<Uri, LibraryMirror> libraries;
   final IsolateMirror isolate;
 
-  // TODO(11743): dynamicType and voidType should not respond to the 
-  // ClassMirror protocol, so they should not inherit from the ClassMirror
-  // implementation.
-
   TypeMirror _dynamicType = null;
 
   TypeMirror get dynamicType {
     if (_dynamicType == null) {
-      _dynamicType =
-          new _LocalClassMirrorImpl(
-              null, null, 'dynamic', false, null, null, [], null,
-              const {}, const {}, const {});
+      _dynamicType = new _SpecialTypeMirrorImpl(_s('dynamic'));
     }
     return _dynamicType;
   }
@@ -103,10 +96,7 @@ class _LocalMirrorSystemImpl extends MirrorSystem {
 
   TypeMirror get voidType {
     if (_voidType == null) {
-      _voidType =
-          new _LocalClassMirrorImpl(
-              null, null, 'void', false, null, null, [], null,
-              const {}, const {}, const {});
+      _voidType = new _SpecialTypeMirrorImpl(_s('void'));
     }
     return _voidType;
   }
@@ -1021,6 +1011,31 @@ class _LocalParameterMirrorImpl extends _LocalVariableMirrorImpl
     throw new UnimplementedError(
         'ParameterMirror.hasDefaultValue is not implemented');
   }
+}
+
+class _SpecialTypeMirrorImpl extends _LocalMirrorImpl
+    implements TypeMirror, DeclarationMirror {
+  _SpecialTypeMirrorImpl(this.simpleName);
+
+  final bool isPrivate = false;
+  final bool isTopLevel = true;
+
+  // Fixed length 0, therefore immutable.
+  final List<InstanceMirror> metadata = new List(0);
+
+  final DeclarationMirror owner = null;
+  final Symbol simpleName;
+
+  SourceLocation get location {
+    throw new UnimplementedError(
+        'TypeMirror.location is not implemented');
+  }
+
+  Symbol get qualifiedName {
+    return simpleName;
+  }
+
+  String toString() => "TypeMirror on '${_n(simpleName)}'";
 }
 
 class _Mirrors {

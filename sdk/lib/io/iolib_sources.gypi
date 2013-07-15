@@ -4,7 +4,7 @@
 
 {
   'sources': [
-    'buffer_list.dart',
+    'bytes_builder.dart',
     'common.dart',
     'crypto.dart',
     'data_transformer.dart',
@@ -15,18 +15,13 @@
     'file_impl.dart',
     'file_system_entity.dart',
     'http.dart',
-    'http_body.dart',
-    'http_body_impl.dart',
     'http_date.dart',
     'http_headers.dart',
     'http_impl.dart',
-    'http_multipart_form_data.dart',
-    'http_multipart_form_data_impl.dart',
     'http_parser.dart',
     'http_session.dart',
     'io_sink.dart',
     'link.dart',
-    'mime_multipart_parser.dart',
     'options.dart',
     'path.dart',
     'path_impl.dart',

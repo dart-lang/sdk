@@ -8,7 +8,7 @@ import 'dart:io';
 
 import '../lib/src/sdk.dart' as sdk;
 
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 import 'package:scheduled_test/scheduled_process.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 import 'test_pub.dart';

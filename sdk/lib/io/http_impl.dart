@@ -650,7 +650,7 @@ class _BufferTransformer extends StreamEventTransformer<List<int>, List<int>> {
   static const int MIN_CHUNK_SIZE = 4 * 1024;
   static const int MAX_BUFFER_SIZE = 16 * 1024;
 
-  final _BufferList _buffer = new _BufferList();
+  final BytesBuilder _builder = new BytesBuilder();
 
   void handleData(List<int> data, EventSink<List<int>> sink) {
     // TODO(ajohnsen): Use timeout?
@@ -659,8 +659,8 @@ class _BufferTransformer extends StreamEventTransformer<List<int>, List<int>> {
       flush(sink);
       sink.add(data);
     } else {
-      _buffer.add(data);
-      if (_buffer.length >= MAX_BUFFER_SIZE) {
+      _builder.add(data);
+      if (_builder.length >= MAX_BUFFER_SIZE) {
         flush(sink);
       }
     }
@@ -672,9 +672,9 @@ class _BufferTransformer extends StreamEventTransformer<List<int>, List<int>> {
   }
 
   void flush(EventSink<List<int>> sink) {
-    if (_buffer.length > 0) {
-      sink.add(_buffer.readBytes());
-      _buffer.clear();
+    if (_builder.length > 0) {
+      // takeBytes will clear the BytesBuilder.
+      sink.add(_builder.takeBytes());
     }
   }
 }
@@ -722,20 +722,20 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
   HttpConnectionInfo get connectionInfo => _httpRequest.connectionInfo;
 
   void _writeHeader() {
-    var buffer = new _BufferList();
-    writeSP() => buffer.add(const [_CharCode.SP]);
-    writeCRLF() => buffer.add(const [_CharCode.CR, _CharCode.LF]);
+    var builder = new BytesBuilder();
+    writeSP() => builder.add(const [_CharCode.SP]);
+    writeCRLF() => builder.add(const [_CharCode.CR, _CharCode.LF]);
 
     // Write status line.
     if (headers.protocolVersion == "1.1") {
-      buffer.add(_Const.HTTP11);
+      builder.add(_Const.HTTP11);
     } else {
-      buffer.add(_Const.HTTP10);
+      builder.add(_Const.HTTP10);
     }
     writeSP();
-    buffer.add(statusCode.toString().codeUnits);
+    builder.add(statusCode.toString().codeUnits);
     writeSP();
-    buffer.add(reasonPhrase.codeUnits);
+    builder.add(reasonPhrase.codeUnits);
     writeCRLF();
 
     var session = _httpRequest._session;
@@ -769,9 +769,9 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
     headers._finalize();
 
     // Write headers.
-    headers._write(buffer);
+    headers._write(builder);
     writeCRLF();
-    _headersSink.add(buffer.readBytes());
+    _headersSink.add(builder.takeBytes());
   }
 
   String _findReasonPhrase(int statusCode) {
@@ -967,20 +967,20 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
   }
 
   void _writeHeader() {
-    var buffer = new _BufferList();
+    var builder = new BytesBuilder();
 
-    writeSP() => buffer.add(const [_CharCode.SP]);
+    writeSP() => builder.add(const [_CharCode.SP]);
 
-    writeCRLF() => buffer.add(const [_CharCode.CR, _CharCode.LF]);
+    writeCRLF() => builder.add(const [_CharCode.CR, _CharCode.LF]);
 
     // Write the request method.
-    buffer.add(method.codeUnits);
+    builder.add(method.codeUnits);
     writeSP();
     // Write the request URI.
-    buffer.add(_requestUri().codeUnits);
+    builder.add(_requestUri().codeUnits);
     writeSP();
     // Write HTTP/1.1.
-    buffer.add(_Const.HTTP11);
+    builder.add(_Const.HTTP11);
     writeCRLF();
 
     // Add the cookies to the headers.
@@ -998,9 +998,9 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     headers._finalize();
 
     // Write headers.
-    headers._write(buffer);
+    headers._write(builder);
     writeCRLF();
-    _headersSink.add(buffer.readBytes());
+    _headersSink.add(builder.takeBytes());
   }
 }
 

@@ -19,11 +19,10 @@ library dartdoc;
 import 'dart:async';
 import 'dart:io';
 
-// TODO(rnystrom): Use "package:" URL (#4968).
 import '../lib/dartdoc.dart';
 import '../lib/src/dartdoc/utils.dart';
 import 'package:args/args.dart';
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 
 /**
  * Run this from the `lib/_internal/dartdoc` directory.

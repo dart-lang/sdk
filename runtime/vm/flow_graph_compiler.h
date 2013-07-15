@@ -563,6 +563,10 @@ class FlowGraphCompiler : public ValueObject {
   void CompactBlock(BlockEntryInstr* block);
   void CompactBlocks();
 
+  bool IsListClass(const Class& cls) const {
+    return cls.raw() == list_class_.raw();
+  }
+
   class Assembler* assembler_;
   const ParsedFunction& parsed_function_;
   const FlowGraph& flow_graph_;
@@ -587,6 +591,7 @@ class FlowGraphCompiler : public ValueObject {
   const Class& double_class_;
   const Class& float32x4_class_;
   const Class& uint32x4_class_;
+  const Class& list_class_;
 
   ParallelMoveResolver parallel_move_resolver_;
 

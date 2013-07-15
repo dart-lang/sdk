@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test division by power of two.
 // Test that results before and after optimization are the same.
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr
 
 import "package:expect/expect.dart";
 
@@ -87,7 +88,7 @@ divBy549755813888(a) => a ~/ 549755813888;
 divByNeg549755813888(a) => a ~/ -549755813888;
 
 main() {
-  for (int i = 0; i < 8000; i++) {
+  for (int i = 0; i < 20; i++) {
     for (var e in expectedResults) {
       Function f = e[0];
       List values = e[1];

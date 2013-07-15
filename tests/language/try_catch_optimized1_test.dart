@@ -1,6 +1,7 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr
 
 import "package:expect/expect.dart";
 
@@ -234,66 +235,66 @@ f13(x) {
 
 
 main() {
-  for (var i=0; i<10000; i++) f1("abc");
+  for (var i = 0; i < 20; i++) f1("abc");
   Expect.equals(99, f1("abc"));
   Expect.equals(0, f1(null));
 
-  for (var i=0; i<10000; i++) f2("abc");
+  for (var i = 0; i < 20; i++) f2("abc");
   Expect.equals(99, f2("abc"));
   Expect.equals(null, f2(null));
 
   f3("123", 0);
-  for (var i=0; i<10000; i++) f3(null, 0);
+  for (var i = 0; i < 20; i++) f3(null, 0);
   Expect.equals(99, f3("123", 0));
   Expect.equals(0x40000000, f3(null, 0x3fffffff));
 
   f4(null);
-  for (var i=0; i<10000; i++) f4(123);
+  for (var i = 0; i < 20; i++) f4(123);
   f4(null);
 
   f5(null);
-  for (var i=0; i<10000; i++) f5(123);
+  for (var i = 0; i < 20; i++) f5(123);
   f5(null);
 
   f6(null, 1);
-  for (var i=0; i<10000; i++) f6(123, 1);
+  for (var i = 0; i < 20; i++) f6(123, 1);
   f6(null, 1);
 
   f7("1.2");
   f7("Infinity");
   f7("-Infinity");
-  for (var i=0; i<10000; i++) f7("1.2");
+  for (var i = 0; i < 20; i++) f7("1.2");
   Expect.equals(false, f7("1.2"));
   Expect.equals(true, f7("Infinity"));
   Expect.equals(true, f7("-Infinity"));
   Expect.equals(false, f7("123456789012345"));  // Deopt.
-  for (var i=0; i<10000; i++) f7("123456789012345");  
+  for (var i = 0; i < 20; i++) f7("123456789012345");
   Expect.equals(true, f7("Infinity"));
   Expect.equals(true, f7("-Infinity"));
 
-  for (var i=0; i<10000; i++) f8(null);
+  for (var i = 0; i < 20; i++) f8(null);
   f8(null);
 
   f9(5);
   f9(5.0);
-  for (var i=0; i<10000; i++) f9(3);
+  for (var i = 0; i < 20; i++) f9(3);
   f9(3);
 
   var y = 1.0;
   Expect.equals(0, f10(null, y));
-  for (var i = 0; i < 10000; i++) f10("abc", y);
+  for (var i = 0; i < 20; i++) f10("abc", y);
   Expect.equals(99, f10("abc", y));
   Expect.equals(0, f10(null, y));
 
-  for (var i=0; i<10000; i++) f11("abc");
+  for (var i = 0; i < 20; i++) f11("abc");
   Expect.equals(99, f11("abc"));
   Expect.equals(0, f11(null));
 
-  for (var i=0; i<10000; i++) f12(null);
+  for (var i = 0; i < 20; i++) f12(null);
   f12(null);
 
   f13(null);
-  for (var i=0; i<10000; i++) f13("abc");
+  for (var i = 0; i < 20; i++) f13("abc");
   Expect.equals(99, f13("abc"));
   Expect.equals(1, f13(null));
 }

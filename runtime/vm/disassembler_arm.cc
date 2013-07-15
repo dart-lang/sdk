@@ -33,6 +33,7 @@ class ARMDecoder : public ValueObject {
   void PrintRegister(int reg);
   void PrintSRegister(int reg);
   void PrintDRegister(int reg);
+  void PrintQRegister(int reg);
   void PrintCondition(Instr* instr);
   void PrintShiftRm(Instr* instr);
   void PrintShiftImm(Instr* instr);
@@ -42,6 +43,7 @@ class ARMDecoder : public ValueObject {
   int FormatRegister(Instr* instr, const char* option);
   int FormatSRegister(Instr* instr, const char* option);
   int FormatDRegister(Instr* instr, const char* option);
+  int FormatQRegister(Instr* instr, const char* option);
   int FormatOption(Instr* instr, const char* option);
   void Format(Instr* instr, const char* format);
   void Unknown(Instr* instr);
@@ -57,6 +59,7 @@ class ARMDecoder : public ValueObject {
   void DecodeType5(Instr* instr);
   void DecodeType6(Instr* instr);
   void DecodeType7(Instr* instr);
+  void DecodeSIMDDataProcessing(Instr* instr);
 
   // Convenience functions.
   char* get_buffer() const { return buffer_; }
@@ -134,6 +137,15 @@ void ARMDecoder::PrintDRegister(int reg) {
   buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
                              remaining_size_in_buffer(),
                              "d%d", reg);
+}
+
+
+void ARMDecoder::PrintQRegister(int reg) {
+  ASSERT(0 <= reg);
+  ASSERT(reg < kNumberOfQRegisters);
+  buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                             remaining_size_in_buffer(),
+                             "q%d", reg);
 }
 
 
@@ -351,6 +363,26 @@ int ARMDecoder::FormatDRegister(Instr* instr, const char* format) {
 }
 
 
+int ARMDecoder::FormatQRegister(Instr* instr, const char* format) {
+  ASSERT(format[0] == 'q');
+  if (format[1] == 'n') {  // 'qn: Qn register
+    int reg = instr->QnField();
+    PrintQRegister(reg);
+    return 2;
+  } else if (format[1] == 'd') {  // 'qd: Qd register
+    int reg = instr->QdField();
+    PrintQRegister(reg);
+    return 2;
+  } else if (format[1] == 'm') {  // 'qm: Qm register
+    int reg = instr->QmField();
+    PrintQRegister(reg);
+    return 2;
+  }
+  UNREACHABLE();
+  return -1;
+}
+
+
 // FormatOption takes a formatting string and interprets it based on
 // the current instructions. The format string points to the first
 // character of the option string (the option escape has already been
@@ -390,6 +422,9 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
       } else {
         return FormatDRegister(instr, format);
       }
+    }
+    case 'q': {
+      return FormatQRegister(instr, format);
     }
     case 'i': {  // 'imm12_4, imm4_12, immf, or immd
       uint16_t immed16;
@@ -446,7 +481,7 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
                                      "%d",
                                      instr->Bits(0, 8) << 2);
         } else {
-          // 'off12: 12-bit offset for load and store instructions
+          // 'off12: 12-bit offset for load and store instructions.
           ASSERT(STRING_STARTS_WITH(format, "off12"));
           buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
                                      remaining_size_in_buffer(),
@@ -455,7 +490,7 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
         }
         return 5;
       }
-      // 'off8: 8-bit offset for extra load and store instructions
+      // 'off8: 8-bit offset for extra load and store instructions.
       ASSERT(STRING_STARTS_WITH(format, "off8"));
       int offs8 = (instr->ImmedHField() << 4) | instr->ImmedLField();
       buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
@@ -464,7 +499,7 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
                                  offs8);
       return 4;
     }
-    case 'p': {  // 'pu: P and U bits for load and store instructions
+    case 'p': {  // 'pu: P and U bits for load and store instructions.
       ASSERT(STRING_STARTS_WITH(format, "pu"));
       PrintPU(instr);
       return 2;
@@ -495,8 +530,16 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
                                    "0x%x",
                                    instr->SvcField());
         return 3;
+      } else if (format[1] == 'z') {
+        // 'sz: Size field of SIMD instruction.
+        int sz = 8 << (instr->Bits(20, 2));
+        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                   remaining_size_in_buffer(),
+                                   "I%d",
+                                   sz);
+        return 2;
       } else if (format[1] == ' ') {
-        // 's: S field of data processing instructions
+        // 's: S field of data processing instructions.
         if (instr->HasS()) {
           Print("s");
         }
@@ -505,7 +548,7 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
         return FormatSRegister(instr, format);
       }
     }
-    case 't': {  // 'target: target of branch instructions
+    case 't': {  // 'target: target of branch instructions.
       ASSERT(STRING_STARTS_WITH(format, "target"));
       int off = (instr->SImmed24Field() << 2) + 8;
       buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
@@ -514,7 +557,7 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
                                  off);
       return 6;
     }
-    case 'u': {  // 'u: signed or unsigned multiplies
+    case 'u': {  // 'u: signed or unsigned multiplies.
       if (instr->Bit(22) == 0) {
         Print("u");
       } else {
@@ -522,13 +565,13 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
       }
       return 1;
     }
-    case 'w': {  // 'w: W field of load and store instructions
+    case 'w': {  // 'w: W field of load and store instructions.
       if (instr->HasW()) {
         Print("!");
       }
       return 1;
     }
-    case 'x': {  // 'x: type of extra load/store instructions
+    case 'x': {  // 'x: type of extra load/store instructions.
       if (!instr->HasSign()) {
         Print("h");
       } else if (instr->HasL()) {
@@ -1223,6 +1266,24 @@ void ARMDecoder::DecodeType7(Instr* instr) {
 }
 
 
+void ARMDecoder::DecodeSIMDDataProcessing(Instr* instr) {
+  ASSERT(instr->ConditionField() == kSpecialCondition);
+  if (instr->Bit(6) == 1) {
+    if ((instr->Bits(8, 4) == 8) && (instr->Bit(4) == 0) &&
+        (instr->Bit(24) == 0)) {
+      Format(instr, "vadd.'sz 'qd, 'qn, 'qm");
+    } else if ((instr->Bits(8, 4) == 13) && (instr->Bit(4) == 0) &&
+        (instr->Bit(24) == 0)) {
+      Format(instr, "vadd.F32 'qd, 'qn, 'qm");
+    } else {
+      Unknown(instr);
+    }
+  } else {
+    Unknown(instr);
+  }
+}
+
+
 void ARMDecoder::InstructionDecode(uword pc) {
   Instr* instr = Instr::At(pc);
 
@@ -1230,7 +1291,11 @@ void ARMDecoder::InstructionDecode(uword pc) {
     if (instr->InstructionBits() == static_cast<int32_t>(0xf57ff01f)) {
       Format(instr, "clrex");
     } else {
-      Unknown(instr);
+      if (instr->IsSIMDDataProcessing()) {
+        DecodeSIMDDataProcessing(instr);
+      } else {
+        Unknown(instr);
+      }
     }
   } else {
     switch (instr->TypeField()) {

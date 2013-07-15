@@ -35,14 +35,16 @@ _getHttpRequestResponseCode() => _httpRequestResponseCode;
 _getHttpRequestStatusString() => _httpRequestStatusString;
 _getHttpRequestResponse() => _httpRequestResponse;
 
-void _requestCompleted(HttpClientResponseBody body) {
-  _httpRequestResponseCode = body.statusCode;
-  _httpRequestStatusString = '${body.statusCode} ${body.reasonPhrase}';
+void _requestCompleted(List<int> data, HttpClientResponse response) {
+  _httpRequestResponseCode = response.statusCode;
+  _httpRequestStatusString = '${response.statusCode} ${response.reasonPhrase}';
   _httpRequestResponse = null;
-  if (body.statusCode != 200 || body.type == 'json') {
+  if (response.statusCode != 200 ||
+      (response.headers.contentType != null &&
+       response.headers.contentType.mimeType == 'application/json')) {
     return;
   }
-  _httpRequestResponse = body.body;
+  _httpRequestResponse = data;
 }
 
 
@@ -61,9 +63,12 @@ void _makeHttpRequest(String uri) {
   Uri requestUri = Uri.parse(uri);
   _client.getUrl(requestUri)
       .then((HttpClientRequest request) => request.close())
-      .then(HttpBodyHandler.processResponse)
-      .then((HttpClientResponseBody body) {
-        _requestCompleted(body);
+      .then((HttpClientResponse response) {
+        return response
+            .fold(new BytesBuilder(), (b, d) => b..add(d))
+            .then((builder) {
+              _requestCompleted(builder.takeBytes(), response);
+            });
       }).catchError((error) {
         _requestFailed(error);
       });

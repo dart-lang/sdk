@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:analyzer_experimental/analyzer.dart';
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 
 import '../command.dart';
 import '../dart.dart' as dart;

@@ -7,7 +7,7 @@ import 'dart:json' as json;
 
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 import 'package:scheduled_test/scheduled_test.dart';
 
 import '../../lib/src/entrypoint.dart';

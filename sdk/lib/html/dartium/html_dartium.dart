@@ -35,6 +35,19 @@ import 'dart:web_audio' as web_audio;
 
 Window _window;
 
+/**
+ * Top-level container for a web page, which is usually a browser tab or window.
+ *
+ * Each web page loaded in the browser has its own [Window], which is a
+ * container for the web page.
+ *
+ * If the web page has any `<iframe>` elements, then each `<iframe>` has its own
+ * [Window] object, which is accessible only to that `<iframe>`.
+ *
+ * See also:
+ *
+ *   * [Window](https://developer.mozilla.org/en-US/docs/Web/API/window) from MDN.
+ */
 Window get window {
   if (_window != null) {
     return _window;
@@ -45,6 +58,9 @@ Window get window {
 
 HtmlDocument _document;
 
+/**
+ * Root node for all content in a web page.
+ */
 HtmlDocument get document {
   if (_document != null) {
     return _document;
@@ -25468,7 +25484,7 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('Window.moveTo')
   @DocsEditable()
-  void moveTo(num x, num y) native "DOMWindow_moveTo_Callback";
+  void $dom_moveTo(num x, num y) native "DOMWindow_moveTo_Callback";
 
   @DomName('Window.open')
   @DocsEditable()
@@ -25823,6 +25839,10 @@ class Window extends EventTarget implements WindowBase {
   @DomName('DOMWindow.onbeforeunload')
   @DocsEditable()
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
+
+  void moveTo(Point p) {
+    $dom_moveTo(p.x, p.y);
+  }
 }
 
 /**
@@ -28140,8 +28160,11 @@ abstract class CssClassSet implements Set<String> {
   /**
    * Adds the class [value] to the element if it is not on it, removes it if it
    * is.
+   *
+   * If [shouldAdd] is true, then we always add that [value] to the element. If
+   * [shouldAdd] is false then we always remove [value] from the element.
    */
-  bool toggle(String value);
+  bool toggle(String value, [bool shouldAdd]);
 
   /**
    * Returns [:true:] if classes cannot be added or removed from this
@@ -28196,8 +28219,11 @@ abstract class CssClassSet implements Set<String> {
    * Iterate through [iterable]'s items, and add it if it is not on it, or
    * remove it if it is. This is the Dart equivalent of jQuery's
    * [toggleClass](http://api.jquery.com/toggleClass/).
+   * If [shouldAdd] is true, then we always add all the classes in [iterable]
+   * element. If [shouldAdd] is false then we always remove all the classes in
+   * [iterable] from the element.
    */
-  void toggleAll(Iterable<String> iterable);
+  void toggleAll(Iterable<String> iterable, [bool shouldAdd]);
 }
 
 /**
@@ -28243,8 +28269,8 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
    * Adds the class [value] to the element if it is not on it, removes it if it
    * is.
    */
-  bool toggle(String value) =>
-      _modifyWithReturnValue((e) => e.toggle(value));
+  bool toggle(String value, [bool shouldAdd]) =>
+      _modifyWithReturnValue((e) => e.toggle(value, shouldAdd));
 
   /**
    * Remove the class [value] from element, and return true on successful

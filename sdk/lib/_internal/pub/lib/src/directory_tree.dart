@@ -5,7 +5,7 @@
 /// A simple library for rendering a list of files as a directory tree.
 library pub.directory_tree;
 
-import 'package:pathos/path.dart' as path;
+import 'package:path/path.dart' as path;
 
 import 'log.dart' as log;
 
