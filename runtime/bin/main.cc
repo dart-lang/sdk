@@ -593,10 +593,14 @@ char* BuildIsolateName(const char* script_name,
 }
 
 
-static const int kErrorExitCode = 255;  // Indicates we encountered an error.
+// Exit code indicating a compilation error.
+static const int kCompilationErrorExitCode = 254;
+
+// Exit code indicating an unhandled error that is not a compilation error.
+static const int kErrorExitCode = 255;
 
 
-static int ErrorExit(const char* format, ...) {
+static int ErrorExit(int exit_code, const char* format, ...) {
   va_list arguments;
   va_start(arguments, format);
   Log::VPrintErr(format, arguments);
@@ -606,7 +610,14 @@ static int ErrorExit(const char* format, ...) {
   Dart_ExitScope();
   Dart_ShutdownIsolate();
 
-  return kErrorExitCode;
+  return exit_code;
+}
+
+
+static int DartErrorExit(Dart_Handle error) {
+  const int exit_code = Dart_IsCompilationError(error) ?
+      kCompilationErrorExitCode : kErrorExitCode;
+  return ErrorExit(exit_code, "%s\n", Dart_GetError(error));
 }
 
 
@@ -767,14 +778,14 @@ int main(int argc, char** argv) {
     if (has_compile_all) {
       result = Dart_CompileAll();
       if (Dart_IsError(result)) {
-        return ErrorExit("%s\n", Dart_GetError(result));
+        return DartErrorExit(result);
       }
     }
 
     if (has_check_function_fingerprints) {
       result = Dart_CheckFunctionFingerprints();
       if (Dart_IsError(result)) {
-        return ErrorExit("%s\n", Dart_GetError(result));
+        return DartErrorExit(result);
       }
     }
 
@@ -782,19 +793,21 @@ int main(int argc, char** argv) {
     Dart_Handle options_result =
         SetupRuntimeOptions(&dart_options, executable_name, script_name);
     if (Dart_IsError(options_result)) {
-      return ErrorExit("%s\n", Dart_GetError(options_result));
+      return DartErrorExit(options_result);
     }
     // Lookup the library of the root script.
     Dart_Handle library = Dart_RootLibrary();
     if (Dart_IsNull(library)) {
-      return ErrorExit("Unable to find root library for '%s'\n",
+      return ErrorExit(kErrorExitCode,
+                       "Unable to find root library for '%s'\n",
                        script_name);
     }
     // Set debug breakpoint if specified on the command line.
     if (breakpoint_at != NULL) {
       result = SetBreakpoint(breakpoint_at, library);
       if (Dart_IsError(result)) {
-        return ErrorExit("Error setting breakpoint at '%s': %s\n",
+        return ErrorExit(kErrorExitCode,
+                         "Error setting breakpoint at '%s': %s\n",
                          breakpoint_at,
                          Dart_GetError(result));
       }
@@ -802,19 +815,19 @@ int main(int argc, char** argv) {
     if (has_print_script) {
       result = GenerateScriptSource();
       if (Dart_IsError(result)) {
-        return ErrorExit("%s\n", Dart_GetError(result));
+        return DartErrorExit(result);
       }
     } else {
       // Lookup and invoke the top level main function.
       result = Dart_Invoke(library, DartUtils::NewString("main"), 0, NULL);
       if (Dart_IsError(result)) {
-        return ErrorExit("%s\n", Dart_GetError(result));
+        return DartErrorExit(result);
       }
 
       // Keep handling messages until the last active receive port is closed.
       result = Dart_RunLoop();
       if (Dart_IsError(result)) {
-        return ErrorExit("%s\n", Dart_GetError(result));
+        return DartErrorExit(result);
       }
     }
   }
