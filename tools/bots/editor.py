@@ -64,6 +64,8 @@ def GetEditorExecutable(mode, arch):
   return os.path.join(editor_dir, executable)
 
 def RunProcess(args):
+  if sys.platform == 'linux':
+    args = ['xvfb-run', '-a'] + args
   print 'Running: %s' % (' '.join(args))
   sys.stdout.flush()
   bot.RunProcess(args)
