@@ -52,6 +52,7 @@ intl/test/date_time_format_http_request_test: Skip # Timeout.
 
 [ $runtime == ie9 ]
 intl/test/date_time_format_http_request_test: Fail # Issue 8983
+mime/test/mime_multipart_transformer_test: Skip # No typed_data on IE9.
 
 [ $runtime == safari ]
 fixnum/test/int_64_test: Pass, Fail # Bug in JSC.
