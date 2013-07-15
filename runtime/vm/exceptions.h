@@ -37,10 +37,6 @@ class Exceptions : AllStatic {
                        const Class& cls,
                        const char* field_name,
                        const Object& value);
-  static void SetLocationFields(const Instance& instance,
-                                const Class& cls,
-                                const Script& script,
-                                intptr_t location);
   static void CreateAndThrowTypeError(intptr_t location,
                                       const String& src_type_name,
                                       const String& dst_type_name,
@@ -61,6 +57,11 @@ class Exceptions : AllStatic {
     kIsolateSpawn,
     kIsolateUnhandledException,
     kFiftyThreeBitOverflowError,
+    kAssertion,
+    kCast,
+    kType,
+    kFallThrough,
+    kAbstractClassInstantiation,
   };
 
   static void ThrowByType(ExceptionType type, const Array& arguments);
