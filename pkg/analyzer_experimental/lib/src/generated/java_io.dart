@@ -1,6 +1,7 @@
 library java.io;
 
 import "dart:io";
+import 'package:path/path.dart' as pathos;
 
 class JavaSystemIO {
   static Map<String, String> _properties = new Map();
@@ -33,14 +34,14 @@ class JavaSystemIO {
         String sdkPath;
         // may be "xcodebuild/ReleaseIA32/dart" with "dart-sdk" sibling
         {
-          sdkPath = new Path(exec).directoryPath.append("dart-sdk").toNativePath();
+          sdkPath = pathos.join(pathos.dirname(exec), "dart-sdk");
           if (new Directory(sdkPath).existsSync()) {
             _properties[name] = sdkPath;
             return sdkPath;
           }
         }
         // probably be "dart-sdk/bin/dart"
-        sdkPath = new Path(exec).directoryPath.directoryPath.toString();
+        sdkPath = pathos.dirname(pathos.dirname(exec));
         _properties[name] = sdkPath;
         return sdkPath;
       }
@@ -58,26 +59,25 @@ class JavaSystemIO {
 class JavaFile {
   static final String separator = Platform.pathSeparator;
   static final int separatorChar = Platform.pathSeparator.codeUnitAt(0);
-  Path _path;
-  JavaFile(String path) {
-    this._path = new Path(path);
-  }
+  String _path;
+  JavaFile(this._path);
   JavaFile.relative(JavaFile base, String child) {
     if (child.isEmpty) {
       this._path = base._path;
     } else {
-      this._path = base._path.join(new Path(child));
+      this._path = pathos.join(base._path, child);
     }
   }
   JavaFile.fromUri(Uri uri) : this(uri.path);
+  String toString() => _path.toString();
   int get hashCode => _path.hashCode;
   bool operator ==(other) {
-    return other is JavaFile && other._path.toNativePath() == _path.toNativePath();
+    return other is JavaFile && other._path == _path;
   }
-  String getPath() => _path.toNativePath();
-  String getName() => _path.filename;
+  String getPath() => _path;
+  String getName() => pathos.basename(_path);
   String getParent() {
-    var result = _path.directoryPath.toNativePath();
+    var result = pathos.dirname(_path);
     // "." or  "/" or  "C:\"
     if (result.length < 4) return null;
     return result;
@@ -87,8 +87,8 @@ class JavaFile {
     if (parent == null) return null;
     return new JavaFile(parent);
   }
-  String getAbsolutePath() => _path.canonicalize().toNativePath();
-  String getCanonicalPath() => _path.canonicalize().toNativePath();
+  String getAbsolutePath() => pathos.absolute(_path);
+  String getCanonicalPath() => _newFile().fullPathSync();
   JavaFile getAbsoluteFile() => new JavaFile(getAbsolutePath());
   JavaFile getCanonicalFile() => new JavaFile(getCanonicalPath());
   bool exists() {
@@ -118,6 +118,6 @@ class JavaFile {
     }
     return files;
   }
-  File _newFile() => new File.fromPath(_path);
-  Directory _newDirectory() => new Directory.fromPath(_path);
+  File _newFile() => new File(_path);
+  Directory _newDirectory() => new Directory(_path);
 }
