@@ -8983,10 +8983,9 @@ abstract class Element extends Node implements ElementTraversal native "Element"
   @DocsEditable()
   final HtmlCollection $dom_children;
 
-  @JSName('className')
   @DomName('Element.className')
   @DocsEditable()
-  String $dom_className;
+  String className;
 
   @DomName('Element.clientHeight')
   @DocsEditable()
@@ -16915,6 +16914,10 @@ class Node extends EventTarget native "Node" {
   @DomName('Node.nextSibling')
   @DocsEditable()
   final Node nextNode;
+
+  @DomName('Node.nodeName')
+  @DocsEditable()
+  final String nodeName;
 
   @DomName('Node.nodeType')
   @DocsEditable()
@@ -26638,7 +26641,7 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
   void writeClasses(Set<String> s) {
     var classes = new List.from(s).join(' ');
     for (Element e in _elementIterable) {
-      e.$dom_className = classes;
+      e.className = classes;
     }
   }
 
@@ -26683,7 +26686,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
 
   Set<String> readClasses() {
     var s = new LinkedHashSet<String>();
-    var classname = _element.$dom_className;
+    var classname = _element.className;
 
     for (String name in classname.split(' ')) {
       String trimmed = name.trim();
@@ -26696,7 +26699,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
 
   void writeClasses(Set<String> s) {
     List list = new List.from(s);
-    _element.$dom_className = s.join(' ');
+    _element.className = s.join(' ');
   }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file

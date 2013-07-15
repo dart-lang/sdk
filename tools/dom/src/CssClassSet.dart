@@ -98,7 +98,7 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
   void writeClasses(Set<String> s) {
     var classes = new List.from(s).join(' ');
     for (Element e in _elementIterable) {
-      e.$dom_className = classes;
+      e.className = classes;
     }
   }
 
@@ -143,7 +143,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
 
   Set<String> readClasses() {
     var s = new LinkedHashSet<String>();
-    var classname = _element.$dom_className;
+    var classname = _element.className;
 
     for (String name in classname.split(' ')) {
       String trimmed = name.trim();
@@ -156,6 +156,6 @@ class _ElementCssClassSet extends CssClassSetImpl {
 
   void writeClasses(Set<String> s) {
     List list = new List.from(s);
-    _element.$dom_className = s.join(' ');
+    _element.className = s.join(' ');
   }
 }
