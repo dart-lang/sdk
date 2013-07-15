@@ -44,7 +44,7 @@ class LishCommand extends PubCommand {
         help: 'Validate but do not publish the package.');
     commandParser.addFlag('force', abbr: 'f', negatable: false,
         help: 'Publish without confirmation if there are no errors.');
-    commandParser.addOption('server', defaultsTo: HostedSource.DEFAULT_URL,
+    commandParser.addOption('server', defaultsTo: HostedSource.defaultUrl,
         help: 'The package server to which to upload this package.');
   }
 

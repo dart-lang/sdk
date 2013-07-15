@@ -24,11 +24,16 @@ import '../version.dart';
 /// A package source that installs packages from a package hosting site that
 /// uses the same API as pub.dartlang.org.
 class HostedSource extends Source {
-  /// The URL of the default package repository.
-  static const DEFAULT_URL = "https://pub.dartlang.org";
 
   final name = "hosted";
   final shouldCache = true;
+
+  /// Gets the default URL for the package server for hosted dependencies.
+  static String get defaultUrl {
+    var url = io.Platform.environment["PUB_HOSTED_URL"];
+    if (url != null) return url;
+    return "https://pub.dartlang.org";
+  }
 
   /// Downloads a list of all versions of a package that are available from the
   /// site.
@@ -125,7 +130,7 @@ class HostedSource extends Source {
   }
 
   List<Package> getCachedPackages([String url]) {
-    if (url == null) url = DEFAULT_URL;
+    if (url == null) url = defaultUrl;
 
     var cacheDir = path.join(systemCacheRoot,
                              _getSourceDirectory(url));
@@ -237,7 +242,7 @@ Uri _makeVersionUrl(PackageId id,
 /// this throws a descriptive FormatException.
 Pair<String, String> _parseDescription(description) {
   if (description is String) {
-    return new Pair<String, String>(description, HostedSource.DEFAULT_URL);
+    return new Pair<String, String>(description, HostedSource.defaultUrl);
   }
 
   if (description is! Map) {
@@ -256,7 +261,7 @@ Pair<String, String> _parseDescription(description) {
   }
 
   var url = description["url"];
-  if (url == null) url = HostedSource.DEFAULT_URL;
+  if (url == null) url = HostedSource.defaultUrl;
 
   return new Pair<String, String>(name, url);
 }
