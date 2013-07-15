@@ -45,6 +45,9 @@ postmessage_structured_test/primitives: Fail # Issue 10097
 *layout_test: Skip
 
 [ $runtime == chrome ]
+canvasrenderingcontext2d_test/drawImage_video_element: Pass,Fail # Issue 11836
+canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass,Fail # Issue 11836
+
 touchevent_test/supported: Fail
 
 [ $runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt || $runtime == safari ]
