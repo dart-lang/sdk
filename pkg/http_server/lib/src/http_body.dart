@@ -223,16 +223,16 @@ abstract class HttpBodyFileUpload {
   /**
    * The filename of the uploaded file.
    */
-  String filename;
+  String get filename;
 
   /**
    * The [ContentType] of the uploaded file. For 'text/\*' and
    * 'application/json' the [data] field will a String.
    */
-  ContentType contentType;
+  ContentType get contentType;
 
   /**
    * The content of the file. Either a [String] or a [List<int>].
    */
-  dynamic content;
+  dynamic get content;
 }

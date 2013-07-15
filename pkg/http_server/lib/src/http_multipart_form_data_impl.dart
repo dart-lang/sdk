@@ -61,7 +61,7 @@ class _HttpMultipartFormData extends Stream implements HttpMultipartFormData {
     var remaining = new Map<String, String>();
     for (String key in multipart.headers.keys) {
       switch (key) {
-        case HttpHeaders.CONTENT_TYPE:
+        case 'content-type':
           type = ContentType.parse(multipart.headers[key]);
           break;
 
