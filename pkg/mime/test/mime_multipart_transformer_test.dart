@@ -58,12 +58,14 @@ void testParse(String message,
   // Test parsing the data three times delivering the data in
   // different chunks.
   List<int> data = message.codeUnits;
-  expect(Future.wait([
-      testWrite(data),
-      testWrite(data, 10),
-      testWrite(data, 2),
-      testWrite(data, 1)]),
-      completes);
+  test('test', () {
+    expect(Future.wait([
+        testWrite(data),
+        testWrite(data, 10),
+        testWrite(data, 2),
+        testWrite(data, 1)]),
+        completes);
+  });
 }
 
 void testParseValid() {
