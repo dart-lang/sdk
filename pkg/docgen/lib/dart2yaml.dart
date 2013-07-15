@@ -52,8 +52,11 @@ void _addLevel(StringBuffer yaml, Map documentData, int level) {
  * Returns an escaped String form of the inputted element.
  */
 String _processElement(var element) {
-  return "\"${element.toString().replaceAll('\\', '\\\\')
-    .replaceAll("\"", "\\\"")}\"\n";
+  var contents = element.toString()
+      .replaceAll('\\', r'\\')
+      .replaceAll('"', r'\"')
+      .replaceAll('\n', r'\n');
+  return '"$contents"\n';
 }
 
 /**
