@@ -88,7 +88,9 @@ class JavaFile {
     return new JavaFile(parent);
   }
   String getAbsolutePath() => pathos.absolute(_path);
-  String getCanonicalPath() => _newFile().fullPathSync();
+  // TODO(scheglov) it seems that this method is broken on Windows
+//  String getCanonicalPath() => _newFile().fullPathSync();
+  String getCanonicalPath() => getAbsolutePath();
   JavaFile getAbsoluteFile() => new JavaFile(getAbsolutePath());
   JavaFile getCanonicalFile() => new JavaFile(getCanonicalPath());
   bool exists() {
