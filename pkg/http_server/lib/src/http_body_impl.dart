@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart.io;
+part of http_server;
 
 class _HttpBodyHandlerTransformer
     extends StreamEventTransformer<HttpRequest, HttpRequestBody> {
@@ -149,6 +149,24 @@ class _HttpBodyHandler {
     }
 
     return asBinary();
+  }
+
+  // Utility function to synchronously decode a list of bytes.
+  static String _decodeString(List<int> bytes,
+                              [Encoding encoding = Encoding.UTF_8]) {
+    if (bytes.length == 0) return "";
+    var string;
+    var error;
+    var controller = new StreamController(sync: true);
+    controller.stream
+      .transform(new StringDecoder(encoding))
+      .listen((data) => string = data,
+              onError: (e) => error = e);
+    controller.add(bytes);
+    controller.close();
+    if (error != null) throw error;
+    assert(string != null);
+    return string;
   }
 }
 

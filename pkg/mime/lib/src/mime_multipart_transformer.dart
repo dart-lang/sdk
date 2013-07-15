@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart.io;
+part of mime;
 
 
 /**
@@ -28,6 +28,21 @@ class _MimeMultipart extends MimeMultipart {
                           onError: onError,
                           cancelOnError: cancelOnError);
   }
+}
+
+class _Const {
+  // Bytes for '()<>@,;:\\"/[]?={} \t'.
+  static const SEPARATORS = const [40, 41, 60, 62, 64, 44, 59, 58, 92, 34, 47,
+                                   91, 93, 63, 61, 123, 125, 32, 9];
+}
+
+class _CharCode {
+  static const int HT = 9;
+  static const int LF = 10;
+  static const int CR = 13;
+  static const int SP = 32;
+  static const int DASH = 45;
+  static const int COLON = 58;
 }
 
 /**
@@ -398,7 +413,7 @@ class MimeMultipartTransformer
 }
 
 
-class MimeMultipartException implements IOException {
+class MimeMultipartException implements Exception {
   const MimeMultipartException([String this.message = ""]);
   String toString() => "MimeMultipartException: $message";
   final String message;

@@ -5,7 +5,8 @@
 import 'dart:io';
 import 'dart:utf';
 
-import 'package:expect/expect.dart';
+import 'package:http_server/http_server.dart';
+import 'package:unittest/unittest.dart';
 
 void testHttpClientResponseBody() {
   void test(String mimeType,
@@ -30,20 +31,17 @@ void testHttpClientResponseBody() {
           .then((request) => request.close())
           .then(HttpBodyHandler.processResponse)
           .then((body) {
-            if (shouldFail) Expect.fail("Error expected");
-            Expect.equals(type, body.type);
-            Expect.isNotNull(body.response);
+            expect(shouldFail, isFalse);
+            expect(body.type, equals(type));
+            expect(body.response, isNotNull);
             switch (type) {
               case "text":
-                Expect.equals(expectedBody, body.body);
-                break;
-
               case "json":
-                Expect.mapEquals(expectedBody, body.body);
+                expect(body.body, equals(expectedBody));
                 break;
 
               default:
-                Expect.fail("bad body type");
+                fail("bad body type");
             }
           }, onError: (error) {
             if (!shouldFail) throw error;
@@ -95,52 +93,49 @@ void testHttpServerRequestBody() {
     HttpServer.bind("127.0.0.1", 0).then((server) {
       server.transform(new HttpBodyHandler(defaultEncoding: defaultEncoding))
           .listen((body) {
-            if (shouldFail) Expect.fail("Error expected");
-            Expect.equals(type, body.type);
+            expect(shouldFail, isFalse);
+            expect(body.type, equals(type));
             switch (type) {
               case "text":
-                Expect.equals(body.contentType.mimeType, "text/plain");
-                Expect.equals(expectedBody, body.body);
+                expect(body.contentType.mimeType, equals("text/plain"));
+                expect(body.body, equals(expectedBody));
                 break;
 
               case "json":
-                Expect.equals(body.contentType.mimeType, "application/json");
-                Expect.mapEquals(expectedBody, body.body);
+                expect(body.contentType.mimeType, equals("application/json"));
+                expect(body.body, equals(expectedBody));
                 break;
 
               case "binary":
-                Expect.equals(body.contentType, null);
-                Expect.listEquals(expectedBody, body.body);
+                expect(body.contentType, isNull);
+                expect(body.body, equals(expectedBody));
                 break;
 
               case "form":
                 var mimeType = body.contentType.mimeType;
-                Expect.isTrue(
-                    mimeType == 'multipart/form-data' ||
-                    mimeType == 'application/x-www-form-urlencoded');
-                Expect.setEquals(expectedBody.keys.toSet(),
-                                 body.body.keys.toSet());
+                expect(mimeType,
+                       anyOf(equals('multipart/form-data'),
+                             equals('application/x-www-form-urlencoded')));
+                expect(body.body.keys.toSet(),
+                       equals(expectedBody.keys.toSet()));
                 for (var key in expectedBody.keys) {
-                  if (body.body[key] is HttpBodyFileUpload) {
-                    Expect.equals(expectedBody[key]['contentType'],
-                                  body.body[key].contentType.toString());
-                    Expect.equals(expectedBody[key]['filename'],
-                                  body.body[key].filename);
-                    if (body.body[key].content is String) {
-                      Expect.equals(expectedBody[key]['content'],
-                                    body.body[key].content);
-                    } else {
-                      Expect.listEquals(expectedBody[key]['content'],
-                                        body.body[key].content);
-                    }
+                  var found = body.body[key];
+                  var expected = expectedBody[key];
+                  if (found is HttpBodyFileUpload) {
+                    expect(found.contentType.toString(),
+                           equals(expected['contentType']));
+                    expect(found.filename,
+                           equals(expected['filename']));
+                    expect(found.content,
+                           equals(expected['content']));
                   } else {
-                    Expect.equals(expectedBody[key], body.body[key]);
+                    expect(found, equals(expected));
                   }
                 }
                 break;
 
               default:
-                Expect.fail("bad body type");
+                throw "bad body type";
             }
             body.response.close();
           }, onError: (error) {
@@ -159,7 +154,7 @@ void testHttpServerRequestBody() {
           })
           .then((response) {
             if (shouldFail) {
-              Expect.equals(HttpStatus.BAD_REQUEST, response.statusCode);
+              expect(response.statusCode, equals(HttpStatus.BAD_REQUEST));
             }
             response.fold(null, (x, y) {});
             client.close();

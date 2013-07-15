@@ -1,13 +1,10 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-//
-// VMOptions=
-// VMOptions=--short_socket_read
-// VMOptions=--short_socket_write
-// VMOptions=--short_socket_read --short_socket_write
 
-import "package:expect/expect.dart";
+import "package:http_server/http_server.dart";
+import "package:mime/mime.dart";
+import "package:unittest/unittest.dart";
 import 'dart:async';
 import 'dart:io';
 
@@ -76,7 +73,7 @@ void postDataTest(List<int> message,
           .fold([], (l, f) => l..add(f))
           .then(Future.wait)
           .then((fields) {
-            Expect.listEquals(expectedFields, fields);
+            expect(fields, equals(expectedFields));
             request.response.close().then((_) => server.close());
           });
     });

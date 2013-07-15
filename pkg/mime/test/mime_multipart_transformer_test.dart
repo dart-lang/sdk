@@ -2,44 +2,43 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
+import "package:unittest/unittest.dart";
+import "package:mime/mime.dart";
 import 'dart:async';
 import 'dart:math';
-import 'dart:io';
 import 'dart:isolate';
 
 void testParse(String message,
                String boundary,
                [List<Map> expectedHeaders,
-               List expectedParts,
-               bool expectError = false]) {
-  void testWrite(List<int> data, [int chunkSize = -1]) {
+                List expectedParts,
+                bool expectError = false]) {
+  Future testWrite(List<int> data, [int chunkSize = -1]) {
     StreamController controller = new StreamController(sync: true);
 
     var stream = controller.stream.transform(
         new MimeMultipartTransformer(boundary));
     int i = 0;
-    var port = new ReceivePort();
+    var completer = new Completer();
+    var futures = [];
     stream.listen((multipart) {
       int part = i++;
       if (expectedHeaders != null) {
-        Expect.mapEquals(expectedHeaders[part], multipart.headers);
+        expect(multipart.headers, equals(expectedHeaders[part]));
       }
-      var partPort = new ReceivePort();
-      multipart.fold([], (buffer, data) => buffer..addAll(data))
+      futures.add(multipart.fold([], (buffer, data) => buffer..addAll(data))
           .then((data) {
             if (expectedParts[part] != null) {
-              Expect.listEquals(expectedParts[part].codeUnits, data);
+              expect(data, equals(expectedParts[part].codeUnits));
             }
-            partPort.close();
-          });
+          }));
     }, onError: (error) {
       if (!expectError) throw error;
     }, onDone: () {
       if (expectedParts != null) {
-        Expect.equals(expectedParts.length, i);
+        expect(i, equals(expectedParts.length));
       }
-      port.close();
+      Future.wait(futures).then(completer.complete);
     });
 
     if (chunkSize == -1) chunkSize = data.length;
@@ -52,15 +51,19 @@ void testParse(String message,
       written += writeLength;
     }
     controller.close();
+
+    return completer.future;
   }
 
   // Test parsing the data three times delivering the data in
   // different chunks.
   List<int> data = message.codeUnits;
-  testWrite(data);
-  testWrite(data, 10);
-  testWrite(data, 2);
-  testWrite(data, 1);
+  expect(Future.wait([
+      testWrite(data),
+      testWrite(data, 10),
+      testWrite(data, 2),
+      testWrite(data, 1)]),
+      completes);
 }
 
 void testParseValid() {

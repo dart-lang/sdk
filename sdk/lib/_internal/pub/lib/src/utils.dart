@@ -503,7 +503,6 @@ bool isUserFacingException(error) {
     error is HttpException ||
     error is HttpException ||
     error is LinkException ||
-    error is MimeMultipartException ||
     error is OSError ||
     error is ProcessException ||
     error is SocketException ||
