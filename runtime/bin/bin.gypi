@@ -337,7 +337,7 @@
       'type': 'none',
       'toolsets':['host'],
       'includes': [
-        'vmstats_sources.gypi',
+        'resources_sources.gypi'
       ],
       'actions': [
         {
@@ -353,7 +353,7 @@
             'python',
             'tools/create_resources.py',
             '--output', '<(resources_cc_file)',
-            '--root_prefix', 'bin/vmstats/',
+            '--root_prefix', 'bin/',
             '<@(_sources)',
           ],
           'message': 'Generating ''<(resources_cc_file)'' file.'
@@ -381,13 +381,6 @@
         'builtin.h',
         'io_natives.h',
         'resources.h',
-        'vmstats.h',
-        'vmstats_impl.cc',
-        'vmstats_impl.h',
-        'vmstats_impl_android.cc',
-        'vmstats_impl_linux.cc',
-        'vmstats_impl_macos.cc',
-        'vmstats_impl_win.cc',
         '<(snapshot_cc_file)',
         '<(resources_cc_file)',
       ],
@@ -449,13 +442,6 @@
         'builtin.h',
         'io_natives.h',
         'resources.h',
-        'vmstats.h',
-        'vmstats_impl.cc',
-        'vmstats_impl.h',
-        'vmstats_impl_android.cc',
-        'vmstats_impl_linux.cc',
-        'vmstats_impl_macos.cc',
-        'vmstats_impl_win.cc',
         # Include generated source files.
         '<(builtin_cc_file)',
         '<(io_cc_file)',

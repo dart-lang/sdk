@@ -20,7 +20,6 @@
 #include "bin/log.h"
 #include "bin/platform.h"
 #include "bin/process.h"
-#include "bin/vmstats_impl.h"
 #include "platform/globals.h"
 
 namespace dart {
@@ -48,10 +47,6 @@ static const int DEFAULT_DEBUG_PORT = 5858;
 static const char* DEFAULT_DEBUG_IP = "127.0.0.1";
 static const char* debug_ip = DEFAULT_DEBUG_IP;
 static int debug_port = -1;
-
-// Global state that defines the VmStats web server port and root directory.
-static int vmstats_port = -1;
-static const char* vmstats_root = "";
 
 // Value of the --package-root flag.
 // (This pointer points into an argv buffer and does not need to be
@@ -173,40 +168,12 @@ static bool ProcessDebugOption(const char* port) {
 }
 
 
-static bool ProcessVmStatsOption(const char* port) {
-  ASSERT(port != NULL);
-  if (*port == '\0') {
-    vmstats_port = 0;  // Dynamically assigned port number.
-  } else {
-    if ((*port == '=') || (*port == ':')) {
-      vmstats_port = atoi(port + 1);
-    }
-  }
-  if (vmstats_port < 0) {
-    Log::PrintErr("unrecognized --stats option syntax. "
-                    "Use --stats[:<port number>]\n");
-    return false;
-  }
-  return true;
-}
-
-
 static bool ProcessPrintScriptOption(const char* arg) {
   ASSERT(arg != NULL);
   if (*arg != '\0') {
     return false;
   }
   has_print_script = true;
-  return true;
-}
-
-
-static bool ProcessVmStatsRootOption(const char* arg) {
-  ASSERT(arg != NULL);
-  if (*arg == '\0') {
-    return false;
-  }
-  vmstats_root = arg;
   return true;
 }
 
@@ -248,8 +215,6 @@ static struct {
   { "--compile_all", ProcessCompileAllOption },
   { "--debug", ProcessDebugOption },
   { "--snapshot=", ProcessGenScriptSnapshotOption },
-  { "--stats-root=", ProcessVmStatsRootOption },
-  { "--stats", ProcessVmStatsOption },
   { "--print-script", ProcessPrintScriptOption },
   { "--check-function-fingerprints", ProcessFingerprintedFunctions },
   { NULL, NULL }
@@ -519,7 +484,6 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
     return NULL;
   }
 
-  VmStats::AddIsolate(reinterpret_cast<IsolateData*>(data), isolate);
   return isolate;
 }
 
@@ -585,14 +549,6 @@ static void PrintUsage() {
 "--print-script\n"
 "  generates Dart source code back and prints it after parsing a Dart script\n"
 "\n"
-"--stats[:<port number>]\n"
-"  enables VM stats service and listens on specified port for HTTP requests\n"
-"  (default port number is dynamically assigned)\n"
-"\n"
-"--stats-root=<path>\n"
-"  where to find static files used by the vmstats application\n"
-"  (used during vmstats plug-in development)\n"
-"\n"
 "The following options are only used for VM development and may\n"
 "be changed in any future version:\n");
     const char* print_flags = "--print_flags";
@@ -656,7 +612,6 @@ static int ErrorExit(const char* format, ...) {
 
 static void ShutdownIsolate(void* callback_data) {
   IsolateData* isolate_data = reinterpret_cast<IsolateData*>(callback_data);
-  VmStats::RemoveIsolate(isolate_data);
   EventHandler* handler = isolate_data->event_handler;
   if (handler != NULL) handler->Shutdown();
   delete isolate_data;
@@ -764,7 +719,6 @@ int main(int argc, char** argv) {
       Log::Print("Debugger listening on port %d\n", debug_port);
     }
   }
-  VmStats::Start(vmstats_port, vmstats_root, verbose_debug_seen);
 
   // Call CreateIsolateAndSetup which creates an isolate and loads up
   // the specified application script.
@@ -866,9 +820,6 @@ int main(int argc, char** argv) {
   }
 
   Dart_ExitScope();
-  if (vmstats_port >= 0) {
-    VmStats::Stop();
-  }
   // Shutdown the isolate.
   Dart_ShutdownIsolate();
   // Terminate process exit-code handler.
