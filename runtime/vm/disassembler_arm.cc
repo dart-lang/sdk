@@ -33,6 +33,7 @@ class ARMDecoder : public ValueObject {
   void PrintRegister(int reg);
   void PrintSRegister(int reg);
   void PrintDRegister(int reg);
+  void PrintDRegisterList(int start, int reg_count);
   void PrintQRegister(int reg);
   void PrintCondition(Instr* instr);
   void PrintShiftRm(Instr* instr);
@@ -330,6 +331,18 @@ int ARMDecoder::FormatSRegister(Instr* instr, const char* format) {
 }
 
 
+void ARMDecoder::PrintDRegisterList(int start, int reg_count) {
+  Print("{");
+  for (int i = start; i < start + reg_count; i++) {
+    PrintDRegister(i);
+    if (i != start + reg_count - 1) {
+      Print(", ");
+    }
+  }
+  Print("}");
+}
+
+
 int ARMDecoder::FormatDRegister(Instr* instr, const char* format) {
   ASSERT(format[0] == 'd');
   if (format[1] == 'n') {  // 'dn: Dn register
@@ -348,15 +361,14 @@ int ARMDecoder::FormatDRegister(Instr* instr, const char* format) {
     ASSERT(STRING_STARTS_WITH(format, "dlist"));
     int reg_count = instr->Bits(0, 8) >> 1;
     int start = (instr->Bit(22) << 4) | instr->Bits(12, 4);
-    Print("{");
-    for (int i = start; i < start + reg_count; i++) {
-      PrintDRegister(i);
-      if (i != start + reg_count - 1) {
-        Print(", ");
-      }
-    }
-    Print("}");
+    PrintDRegisterList(start, reg_count);
     return 5;
+  } else if (format[1] == 't') {
+    ASSERT(STRING_STARTS_WITH(format, "dtbllist"));
+    int reg_count = instr->Bits(8, 2) + 1;
+    int start = (instr->Bit(7) << 4) | instr->Bits(16, 4);
+    PrintDRegisterList(start, reg_count);
+    return 8;
   }
   UNREACHABLE();
   return -1;
@@ -1299,7 +1311,12 @@ void ARMDecoder::DecodeSIMDDataProcessing(Instr* instr) {
       Unknown(instr);
     }
   } else {
-    Unknown(instr);
+    if ((instr->Bits(23, 2) == 3) && (instr->Bits(20, 2) == 3) &&
+        (instr->Bits(10, 2) == 2) && (instr->Bit(4) == 0)) {
+      Format(instr, "vtbl 'dd, 'dtbllist, 'dm");
+    } else {
+      Unknown(instr);
+    }
   }
 }
 

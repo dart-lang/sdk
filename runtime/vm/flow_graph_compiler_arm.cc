@@ -1522,6 +1522,7 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
       if (locs->live_registers()->ContainsFpuRegister(fpu_reg)) {
         DRegister d1 = EvenDRegisterOf(fpu_reg);
         DRegister d2 = OddDRegisterOf(fpu_reg);
+        // TOOD(regis): merge stores using vstmd instruction.
         __ vstrd(d1, Address(SP, offset));
         __ vstrd(d2, Address(SP, offset + 2 * kWordSize));
         offset += kFpuRegisterSize;
@@ -1558,6 +1559,7 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
       if (locs->live_registers()->ContainsFpuRegister(fpu_reg)) {
         DRegister d1 = EvenDRegisterOf(fpu_reg);
         DRegister d2 = OddDRegisterOf(fpu_reg);
+        // TOOD(regis): merge loads using vldmd instruction.
         __ vldrd(d1, Address(SP, offset));
         __ vldrd(d2, Address(SP, offset + 2 * kWordSize));
         offset += kFpuRegisterSize;

@@ -2161,6 +2161,178 @@ ASSEMBLER_TEST_RUN(Vmulqs, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(VtblX, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    // Index.
+    __ LoadImmediate(R0, 0x03020100);
+    __ vmovsr(S0, R0);
+    __ vmovsr(S1, R0);
+
+    // Table.
+    __ LoadSImmediate(S2, 1.0);
+    __ LoadSImmediate(S3, 2.0);
+    __ LoadSImmediate(S4, 3.0);
+    __ LoadSImmediate(S5, 4.0);
+
+    // Select.
+    __ vtbl(D3, D1, 2, D0);
+
+    // Check that S6, S7 are both 1.0
+    __ vcvtis(S0, S6);
+    __ vcvtis(S1, S7);
+    __ vmovrs(R2, S0);
+    __ vmovrs(R3, S1);
+
+    __ LoadImmediate(R0, 0);
+    __ CompareImmediate(R2, 1);
+    __ bx(LR, NE);
+    __ CompareImmediate(R3, 1);
+    __ bx(LR, NE);
+    __ LoadImmediate(R0, 42);
+    __ bx(LR);
+  } else {
+    __ LoadImmediate(R0, 42);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(VtblX, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(VtblY, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    // Index.
+    __ LoadImmediate(R0, 0x07060504);
+    __ vmovsr(S0, R0);
+    __ vmovsr(S1, R0);
+
+    // Table.
+    __ LoadSImmediate(S2, 2.0);
+    __ LoadSImmediate(S3, 1.0);
+    __ LoadSImmediate(S4, 3.0);
+    __ LoadSImmediate(S5, 4.0);
+
+    // Select.
+    __ vtbl(D3, D1, 2, D0);
+
+    // Check that S6, S7 are both 1.0
+    __ vcvtis(S0, S6);
+    __ vcvtis(S1, S7);
+    __ vmovrs(R2, S0);
+    __ vmovrs(R3, S1);
+
+    __ LoadImmediate(R0, 0);
+    __ CompareImmediate(R2, 1);
+    __ bx(LR, NE);
+    __ CompareImmediate(R3, 1);
+    __ bx(LR, NE);
+    __ LoadImmediate(R0, 42);
+    __ bx(LR);
+  } else {
+    __ LoadImmediate(R0, 42);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(VtblY, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(VtblZ, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    // Index.
+    __ LoadImmediate(R0, 0x0b0a0908);
+    __ vmovsr(S0, R0);
+    __ vmovsr(S1, R0);
+
+    // Table.
+    __ LoadSImmediate(S2, 2.0);
+    __ LoadSImmediate(S3, 3.0);
+    __ LoadSImmediate(S4, 1.0);
+    __ LoadSImmediate(S5, 4.0);
+
+    // Select.
+    __ vtbl(D3, D1, 2, D0);
+
+    // Check that S6, S7 are both 1.0
+    __ vcvtis(S0, S6);
+    __ vcvtis(S1, S7);
+    __ vmovrs(R2, S0);
+    __ vmovrs(R3, S1);
+
+    __ LoadImmediate(R0, 0);
+    __ CompareImmediate(R2, 1);
+    __ bx(LR, NE);
+    __ CompareImmediate(R3, 1);
+    __ bx(LR, NE);
+    __ LoadImmediate(R0, 42);
+    __ bx(LR);
+  } else {
+    __ LoadImmediate(R0, 42);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(VtblZ, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(VtblW, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    // Index.
+    __ LoadImmediate(R0, 0x0f0e0d0c);
+    __ vmovsr(S0, R0);
+    __ vmovsr(S1, R0);
+
+    // Table.
+    __ LoadSImmediate(S2, 2.0);
+    __ LoadSImmediate(S3, 3.0);
+    __ LoadSImmediate(S4, 4.0);
+    __ LoadSImmediate(S5, 1.0);
+
+    // Select.
+    __ vtbl(D3, D1, 2, D0);
+
+    // Check that S6, S7 are both 1.0
+    __ vcvtis(S0, S6);
+    __ vcvtis(S1, S7);
+    __ vmovrs(R2, S0);
+    __ vmovrs(R3, S1);
+
+    __ LoadImmediate(R0, 0);
+    __ CompareImmediate(R2, 1);
+    __ bx(LR, NE);
+    __ CompareImmediate(R3, 1);
+    __ bx(LR, NE);
+    __ LoadImmediate(R0, 42);
+    __ bx(LR);
+  } else {
+    __ LoadImmediate(R0, 42);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(VtblW, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
 // Called from assembler_test.cc.
 // LR: return address.
 // R0: context.

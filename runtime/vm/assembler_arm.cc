@@ -1219,33 +1219,35 @@ void Assembler::vmstat(Condition cond) {  // VMRS APSR_nzcv, FPSCR
 }
 
 
-void Assembler::EmitSIMDqqq(int32_t opcode, OperandSize size,
-                            QRegister qd, QRegister qn, QRegister qm) {
-  int sz = 0;
+static inline int ShiftOfOperandSize(OperandSize size) {
   switch (size) {
     case kByte:
     case kUnsignedByte:
-      sz = 0;
-      break;
+      return 0;
     case kHalfword:
     case kUnsignedHalfword:
-      sz = 1;
-      break;
+      return 1;
     case kWord:
     case kUnsignedWord:
-      sz = 2;
-      break;
+      return 2;
     case kWordPair:
-      sz = 3;
-      break;
+      return 3;
     case kSWord:
     case kDWord:
-      sz = 0;
-      break;
+      return 0;
     default:
       UNREACHABLE();
       break;
   }
+
+  UNREACHABLE();
+  return -1;
+}
+
+
+void Assembler::EmitSIMDqqq(int32_t opcode, OperandSize size,
+                            QRegister qd, QRegister qn, QRegister qm) {
+  int sz = ShiftOfOperandSize(size);
   int32_t encoding =
       (static_cast<int32_t>(kSpecialCondition) << kConditionShift) |
       B25 | B6 |
@@ -1256,6 +1258,23 @@ void Assembler::EmitSIMDqqq(int32_t opcode, OperandSize size,
       ((static_cast<int32_t>(qn * 2) >> 4)*B7) |
       ((static_cast<int32_t>(qm * 2) >> 4)*B5) |
       (static_cast<int32_t>(qm * 2) & 0xf);
+  Emit(encoding);
+}
+
+
+void Assembler::EmitSIMDddd(int32_t opcode, OperandSize size,
+                            DRegister dd, DRegister dn, DRegister dm) {
+  int sz = ShiftOfOperandSize(size);
+  int32_t encoding =
+      (static_cast<int32_t>(kSpecialCondition) << kConditionShift) |
+      B25 |
+      opcode | ((sz & 0x3) * B20) |
+      ((static_cast<int32_t>(dd) >> 4)*B22) |
+      ((static_cast<int32_t>(dn) & 0xf)*B16) |
+      ((static_cast<int32_t>(dd) & 0xf)*B12) |
+      ((static_cast<int32_t>(dn) >> 4)*B7) |
+      ((static_cast<int32_t>(dm) >> 4)*B5) |
+      (static_cast<int32_t>(dm) & 0xf);
   Emit(encoding);
 }
 
@@ -1290,6 +1309,12 @@ void Assembler::vmulqi(OperandSize sz,
 
 void Assembler::vmulqs(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B24 | B11 | B10 | B8 | B4, kSWord, qd, qn, qm);
+}
+
+
+void Assembler::vtbl(DRegister dd, DRegister dn, int len, DRegister dm) {
+  ASSERT((len >= 1) && (len <= 4));
+  EmitSIMDddd(B24 | B23 | B11 | ((len - 1) * B8), kWordPair, dd, dn, dm);
 }
 
 

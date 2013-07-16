@@ -511,6 +511,10 @@ class Assembler : public ValueObject {
   void vcmpdz(DRegister dd, Condition cond = AL);
   void vmstat(Condition cond = AL);  // VMRS APSR_nzcv, FPSCR
 
+  // Each byte of dm is an index into the table of bytes formed by concatenating
+  // a list of 'length' registers starting with dn. The result is placed in dd.
+  void vtbl(DRegister dd, DRegister dn, int length, DRegister dm);
+
   // Branch instructions.
   void b(Label* label, Condition cond = AL);
   void bl(Label* label, Condition cond = AL);
@@ -806,6 +810,9 @@ class Assembler : public ValueObject {
 
   void EmitSIMDqqq(int32_t opcode, OperandSize sz,
                    QRegister qd, QRegister qn, QRegister qm);
+
+  void EmitSIMDddd(int32_t opcode, OperandSize sz,
+                   DRegister dd, DRegister dn, DRegister dm);
 
   void EmitBranch(Condition cond, Label* label, bool link);
   static int32_t EncodeBranchOffset(int32_t offset, int32_t inst);

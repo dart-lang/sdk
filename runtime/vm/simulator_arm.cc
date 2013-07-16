@@ -3014,7 +3014,42 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
     set_qregister(qd, s8d);
   } else {
     // Q == 0, Uses 64-bit D registers.
-    UnimplementedInstruction(instr);
+    if ((instr->Bits(23, 2) == 3) && (instr->Bits(20, 2) == 3) &&
+        (instr->Bits(10, 2) == 2) && (instr->Bit(4) == 0)) {
+      // Format(instr, "vtbl 'dd, 'dtbllist, 'dm");
+      DRegister dd = instr->DdField();
+      DRegister dm = instr->DmField();
+      int reg_count = instr->Bits(8, 2) + 1;
+      int start = (instr->Bit(7) << 4) | instr->Bits(16, 4);
+      int64_t table[4];
+
+      for (int i = 0; i < reg_count; i++) {
+        DRegister d = static_cast<DRegister>(start + i);
+        table[i] = get_dregister_bits(d);
+      }
+      for (int i = reg_count; i < 4; i++) {
+        table[i] = 0;
+      }
+
+
+      int64_t dm_value = get_dregister_bits(dm);
+      int64_t result;
+      int8_t* dm_bytes = reinterpret_cast<int8_t*>(&dm_value);
+      int8_t* result_bytes = reinterpret_cast<int8_t*>(&result);
+      int8_t* table_bytes = reinterpret_cast<int8_t*>(&table[0]);
+      for (int i = 0; i < 8; i++) {
+        int idx = dm_bytes[i];
+        if ((idx >= 0) && (idx < 256)) {
+          result_bytes[i] = table_bytes[idx];
+        } else {
+          result_bytes[i] = 0;
+        }
+      }
+
+      set_dregister_bits(dd, result);
+    } else {
+      UnimplementedInstruction(instr);
+    }
   }
 }
 
