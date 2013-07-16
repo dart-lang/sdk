@@ -1444,15 +1444,14 @@ RawType* Class::SignatureType() const {
     const Class& canonical_class = Class::Handle(function.signature_class());
     return canonical_class.SignatureType();
   }
-  // Return the first canonical signature type if already computed.
+  // Return the first canonical signature type if already computed at class
+  // finalization time. The optimizer may canonicalize instantiated function
+  // types of the same signature class, but these will be added after the
+  // uninstantiated signature class at index 0.
   const Array& signature_types = Array::Handle(canonical_types());
   // The canonical_types array is initialized to the empty array.
   ASSERT(!signature_types.IsNull());
   if (signature_types.Length() > 0) {
-    // At most one signature type per signature class.
-    ASSERT((signature_types.Length() == 1) ||
-           ((signature_types.Length() == 2) &&
-            (signature_types.At(1) == Type::null())));
     Type& signature_type = Type::Handle();
     signature_type ^= signature_types.At(0);
     ASSERT(!signature_type.IsNull());
@@ -10556,11 +10555,7 @@ RawAbstractType* Type::Canonicalize() const {
     if (type.IsNull()) {
       break;
     }
-    if (!type.IsFinalized()) {
-      ASSERT((index == 0) && cls.IsSignatureClass());
-      index++;
-      continue;
-    }
+    ASSERT(type.IsFinalized());
     if (this->Equals(type)) {
       return type.raw();
     }
@@ -10581,6 +10576,30 @@ RawAbstractType* Type::Canonicalize() const {
   } else {
     canonical_types.SetAt(index, *this);
   }
+#ifdef DEBUG
+  if ((index == 0) && cls.IsCanonicalSignatureClass()) {
+    // Verify that the first canonical type is the signature type by checking
+    // that the type argument vector of the canonical type ends with the
+    // uninstantiated type parameters of the signature class.
+    // The signature type is finalized during class finalization, before the
+    // optimizer may canonicalize instantiated function types of the same
+    // signature class.
+    // Although the signature class extends class Instance, the type arguments
+    // of the super class of the owner class of its signature function will be
+    // prepended to the type argument vector during class finalization.
+    const TypeArguments& type_params =
+      TypeArguments::Handle(cls.type_parameters());
+    const intptr_t num_type_params = cls.NumTypeParameters();
+    const intptr_t num_type_args = cls.NumTypeArguments();
+    TypeParameter& type_arg = TypeParameter::Handle();
+    TypeParameter& type_param = TypeParameter::Handle();
+    for (intptr_t i = 0; i < num_type_params; i++) {
+      type_arg ^= type_args.TypeAt(num_type_args - num_type_params + i);
+      type_param ^= type_params.TypeAt(i);
+      ASSERT(type_arg.Equals(type_param));
+    }
+  }
+#endif
   ASSERT(IsOld());
   SetCanonical();
   return this->raw();

@@ -689,6 +689,8 @@ class Class : public Object {
   // 'F<T, R>(T, [b: B, c: C]) => R', then its signature type is a parameterized
   // type with this class as the type class and type parameters 'T' and 'R'
   // as its type argument vector.
+  // SignatureType is used as the type of formal parameters representing a
+  // function.
   RawType* SignatureType() const;
 
   RawLibrary* library() const { return raw_ptr()->library_; }
