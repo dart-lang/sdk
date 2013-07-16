@@ -114,8 +114,14 @@ patch class Expando<T> {
 
     for (var i = 0; i < old_data.length; i++) {
       var entry = old_data[i];
-      if ((entry != null) && (entry.key != null)) {
-        this[entry.key] = entry.value;
+      if (entry != null) {
+        // Ensure that the entry.key is not cleared between checking for it and
+        // inserting it into the new table.
+        var val = entry.value;
+        var key = entry.key;
+        if (key != null) {
+          this[key] = val;
+        }
       }
     }
   }
