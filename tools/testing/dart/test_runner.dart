@@ -848,11 +848,7 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
       if (fields[ERROR_LEVEL] == 'ERROR') {
         errors.add(fields[FORMATTED_ERROR]);
       } else if (fields[ERROR_LEVEL] == 'WARNING') {
-        // We only care about testing Static type warnings
-        // ignore all others
-        if (fields[ERROR_TYPE] == 'STATIC_TYPE' || fields[ERROR_TYPE] == 'STATIC_TYPE_WARNING') {
-          staticWarnings.add(fields[FORMATTED_ERROR]);
-        }
+        staticWarnings.add(fields[FORMATTED_ERROR]);
       }
       // OK to Skip error output that doesn't match the machine format
     }
@@ -919,9 +915,9 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
       return true;
     }
 
-    if (isStaticClean && staticWarnings.length > 0) {
+    if (isStaticClean && (errors.isNotEmpty || staticWarnings.isNotEmpty)) {
       diagnostics.add(
-          "@static-clean annotation found but analyzer returned warnings.");
+          "@static-clean annotation found but analyzer returned problems.");
       return true;
     }
 

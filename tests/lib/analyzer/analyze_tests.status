@@ -3,10 +3,58 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartanalyzer ]
-standalone/io/process_exit_negative_test: fail
 53bit_overflow_literal_test/01: fail, ok
+
+# https://code.google.com/p/dart/issues/detail?id=11665
+standalone/assert_test: fail
+standalone/io/directory_invalid_arguments_test: fail
+standalone/io/file_constructor_test: fail
+standalone/io/file_fuzz_test: fail
+standalone/io/http_cookie_date_test: fail
+standalone/io/http_headers_test: fail
+standalone/io/http_parser_test: fail
+standalone/io/process_invalid_arguments_test: fail
+standalone/io/raw_secure_server_socket_argument_test: fail
+standalone/io/secure_socket_argument_test: fail
+standalone/io/stdout_bad_argument_test: fail
+standalone/io/skipping_dart2js_compilations_test: fail
+standalone/io/url_encoding_test: fail
+standalone/io/web_socket_protocol_processor_test: fail
+standalone/io/test_runner_test: fail
+standalone/package/invalid_uri_test: fail
+standalone/package/package1_test: fail
+standalone/package/package_test: fail
+standalone/typed_data_view_test: fail
+standalone/typed_data_test: fail
+
+# pkg issue https://code.google.com/p/dart/issues/detail?id=11856
+standalone/io/secure_socket_renegotiate_test: fail
 
 
 [ $compiler == dart2analyzer ]
-standalone/io/process_exit_negative_test: fail
 53bit_overflow_literal_test/01: fail, ok
+
+# https://code.google.com/p/dart/issues/detail?id=11665
+standalone/assert_test: fail
+standalone/io/directory_invalid_arguments_test: fail
+standalone/io/file_constructor_test: fail
+standalone/io/file_fuzz_test: fail
+standalone/io/http_cookie_date_test: fail
+standalone/io/http_headers_test: fail
+standalone/io/http_parser_test: fail
+standalone/io/process_invalid_arguments_test: fail
+standalone/io/raw_secure_server_socket_argument_test: fail
+standalone/io/secure_socket_argument_test: fail
+standalone/io/stdout_bad_argument_test: fail
+standalone/io/skipping_dart2js_compilations_test: fail
+standalone/io/url_encoding_test: fail
+standalone/io/web_socket_protocol_processor_test: fail
+standalone/io/test_runner_test: fail
+standalone/package/invalid_uri_test: fail
+standalone/package/package1_test: fail
+standalone/package/package_test: fail
+standalone/typed_data_view_test: fail
+standalone/typed_data_test: fail
+
+# pkg issue https://code.google.com/p/dart/issues/detail?id=11856
+standalone/io/secure_socket_renegotiate_test: fail

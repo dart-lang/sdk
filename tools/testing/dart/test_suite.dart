@@ -1518,7 +1518,7 @@ class StandardTestSuite extends TestSuite {
       "packageRoot": null,
       "hasCompileError": hasCompileError,
       "hasRuntimeError": hasRuntimeError,
-      "isStaticClean" : !hasStaticWarning,
+      "isStaticClean" : !hasCompileError && !hasStaticWarning,
       "otherScripts": <String>[],
       "isMultitest": isMultitest,
       "isMultiHtmlTest": false,

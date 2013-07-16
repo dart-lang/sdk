@@ -20,7 +20,14 @@ Language/11_Expressions/01_Constants_A17_t03: fail
 # analyzer problem: forward reference of typedef with type parameters
 Language/13_Libraries_and_Scripts/3_Parts_A02_t03: skip
 
+# not clear: typedef int func2(int);
+Language/14_Types/6_Type_dynamic_A04_t01: fail
 
+# TBF: _f is private, so does not collide
+Language/07_Classes/1_Instance_Methods_A05_t08: fail
+
+# TBF: return without value is not a warning
+Language/12_Statements/11_Return_A07_t01: fail
 
 
 # co19 issue #380, Strings class has been removed
@@ -219,6 +226,208 @@ Language/11_Expressions/11_Instance_Creation/2_Const_A09_t03: fail, OK
 # co19 issue #464, not initialized final instance variable is warning, not error
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: fail
 
+# co19 issue #442, undefined name "Expect"
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t04: fail, OK
+Language/07_Classes/6_Constructors/2_Factories_A06_t03: fail, OK
+Language/09_Generics/09_Generics_A05_t02: fail, OK
+Language/09_Generics/09_Generics_A05_t01: fail, OK
+Language/11_Expressions/04_Booleans/1_Boolean_Conversion_A01_t01: fail, OK
+Language/11_Expressions/04_Booleans/1_Boolean_Conversion_A02_t01: fail, OK
+Language/11_Expressions/06_Lists_A09_t01: fail, OK
+Language/11_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A02_t01: fail, OK
+Language/11_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A03_t01: fail, OK
+Language/11_Expressions/18_Assignment_A02_t01: fail, OK
+Language/11_Expressions/18_Assignment_A04_t06: fail, OK
+Language/11_Expressions/18_Assignment_A06_t01: fail, OK
+Language/11_Expressions/19_Conditional_A02_t03: fail, OK
+Language/11_Expressions/19_Conditional_A02_t04: fail, OK
+Language/11_Expressions/19_Conditional_A04_t03: fail, OK
+Language/11_Expressions/27_Unary_Expressions_A02_t03: fail, OK
+Language/12_Statements/03_Variable_Declaration_A01_t01: fail, OK
+Language/12_Statements/03_Variable_Declaration_A01_t02: fail, OK
+Language/12_Statements/05_If_A02_t01: fail, OK
+Language/12_Statements/05_If_A02_t02: fail, OK
+Language/12_Statements/10_Try_A01_t01: fail, OK
+Language/12_Statements/11_Return_A03_t02: fail, OK
+Language/12_Statements/11_Return_A04_t01: fail, OK
+Language/12_Statements/15_Assert_A03_t03: fail, OK
+Language/12_Statements/15_Assert_A03_t09: fail, OK
+Language/12_Statements/15_Assert_A03_t08: fail, OK
+Language/12_Statements/15_Assert_A04_t02: fail, OK
+Language/14_Types/2_Dynamic_Type_System_A01_t01: fail, OK
+Language/14_Types/4_Interface_Types_A08_t03: fail, OK
+Language/14_Types/7_Type_Void_A04_t02: fail, OK
+Language/15_Reference/1_Lexical_Rules/2_Comments_A04_t03: fail, OK
+LibTest/core/AssertionError/toString_A01_t01: fail, OK
+LibTest/core/Date/add_A01_t01: fail, OK
+LibTest/core/Date/add_A03_t01: fail, OK
+LibTest/core/Date/add_A02_t01: fail, OK
+LibTest/core/Date/add_A05_t01: fail, OK
+LibTest/core/Date/compareTo_A01_t01: fail, OK
+LibTest/core/Date/compareTo_A02_t01: fail, OK
+LibTest/core/Date/compareTo_A03_t01: fail, OK
+LibTest/core/Date/compareTo_A01_t02: fail, OK
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A01_t01: fail, OK
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A01_t02: fail, OK
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A02_t01: fail, OK
+LibTest/core/Date/Date.fromString_A01_t01: fail, OK
+LibTest/core/Date/Date.fromString_A01_t02: fail, OK
+LibTest/core/Date/Date.fromString_A02_t01: fail, OK
+LibTest/core/Date/Date.fromString_A03_t01: fail, OK
+LibTest/core/Date/Date.now_A01_t01: fail, OK
+LibTest/core/Date/Date.now_A01_t02: fail, OK
+LibTest/core/Date/Date.now_A01_t03: fail, OK
+LibTest/core/Date/Date.utc_A01_t01: fail, OK
+LibTest/core/Date/Date_A01_t01: fail, OK
+LibTest/core/Date/Date_A01_t03: fail, OK
+LibTest/core/Date/Date_A01_t02: fail, OK
+LibTest/core/Date/Date_A01_t04: fail, OK
+LibTest/core/Date/day_A01_t01: fail, OK
+LibTest/core/Date/difference_A01_t01: fail, OK
+LibTest/core/Date/difference_A01_t02: fail, OK
+LibTest/core/Date/difference_A02_t01: fail, OK
+LibTest/core/Date/hour_A01_t01: fail, OK
+LibTest/core/Date/isUtc_A01_t01: fail, OK
+LibTest/core/Date/millisecond_A01_t01: fail, OK
+LibTest/core/Date/millisecondsSinceEpoch_A01_t01: fail, OK
+LibTest/core/Date/minute_A01_t01: fail, OK
+LibTest/core/Date/month_A01_t01: fail, OK
+LibTest/core/Date/operator_equality_A01_t01: fail, OK
+LibTest/core/Date/operator_GE_A01_t01: fail, OK
+LibTest/core/Date/operator_GT_A01_t01: fail, OK
+LibTest/core/Date/operator_LE_A01_t01: fail, OK
+LibTest/core/Date/operator_LT_A01_t01: fail, OK
+LibTest/core/Date/second_A01_t01: fail, OK
+LibTest/core/Date/subtract_A01_t01: fail, OK
+LibTest/core/Date/subtract_A03_t01: fail, OK
+LibTest/core/Date/subtract_A02_t01: fail, OK
+LibTest/core/Date/subtract_A05_t01: fail, OK
+LibTest/core/Date/timeZoneName_A01_t01: fail, OK
+LibTest/core/Date/timeZoneOffset_A01_t01: fail, OK
+LibTest/core/Date/toLocal_A01_t01: fail, OK
+LibTest/core/Date/toString_A01_t01: fail, OK
+LibTest/core/Date/toString_A02_t01: fail, OK
+LibTest/core/Date/toUtc_A01_t01: fail, OK
+LibTest/core/Date/year_A01_t01: fail, OK
+LibTest/core/Date/weekday_A01_t01: fail, OK
+LibTest/core/List/getRange_A06_t01: fail, OK
+LibTest/core/List/indexOf_A06_t01: fail, OK
+LibTest/core/List/operator_subscript_A03_t01: fail, OK
+LibTest/core/List/operator_subscripted_assignment_A03_t01: fail, OK
+LibTest/core/Map/putIfAbsent_A01_t04: fail, OK
+LibTest/core/Strings/concatAll_A04_t01: fail, OK
+LibTest/core/Strings/join_A04_t01: fail, OK
+
+# co19 issue #443, Undefined class 'InvocationMirror'
+Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: fail, OK
+Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: fail, OK
+Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: fail, OK
+Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t06: fail, OK
+Language/11_Expressions/17_Getter_Invocation_A02_t01: fail, OK
+Language/11_Expressions/17_Getter_Invocation_A02_t02: fail, OK
+
+# co19 issue #444, AsyncError has been removed
+LibTest/async/Completer/complete_A02_t02: fail, OK
+LibTest/async/Completer/completeError_A01_t01: fail, OK
+LibTest/async/Completer/completeError_A03_t02: fail, OK
+LibTest/async/Future/catchError_A01_t01: fail, OK
+LibTest/async/Future/catchError_A01_t02: fail, OK
+LibTest/async/Future/catchError_A02_t01: fail, OK
+LibTest/async/Future/catchError_A03_t01: fail, OK
+LibTest/async/Future/catchError_A03_t02: fail, OK
+LibTest/async/Future/catchError_A03_t03: fail, OK
+LibTest/async/Future/forEach_A03_t01: fail, OK
+LibTest/async/Future/Future.delayed_A02_t01: fail, OK
+LibTest/async/Future/then_A02_t01: fail, OK
+LibTest/async/Future/then_A02_t02: fail, OK
+LibTest/async/Future/then_A03_t01: fail, OK
+LibTest/async/Future/then_A04_t01: fail, OK
+LibTest/async/Future/whenComplete_A03_t01: fail, OK
+LibTest/async/Future/whenComplete_A04_t02: fail, OK
+
+# co19 issue #445, Future.immediate was repalce with Future.value
+LibTest/async/Future/asStream_A01_t01: fail, OK
+LibTest/async/Future/asStream_A01_t02: fail, OK
+LibTest/async/Future/asStream_A02_t01: fail, OK
+LibTest/async/Future/Future.immediate_A01_t01: fail, OK
+LibTest/async/Future/Future.immediateError_A01_t01: fail, OK
+LibTest/async/Future/then_A01_t03: fail, OK
+
+# co19 issue #446, Date was replaced with DateTime
+Language/14_Types/6_Type_dynamic_A03_t01: fail, OK
+
+# co19 issue 447, In Future delayed int replaced with Duration
+LibTest/async/Future/asStream_A01_t02: fail, OK
+LibTest/async/Future/asStream_A02_t01: fail, OK
+LibTest/async/Future/forEach_A01_t01: fail, OK
+LibTest/async/Future/forEach_A02_t01: fail, OK
+LibTest/async/Future/then_A01_t03: fail, OK
+LibTest/async/Future/wait_A01_t01: fail, OK
+LibTest/async/Future/wait_A01_t04: fail, OK
+LibTest/async/Future/wait_A01_t05: fail, OK
+LibTest/async/Future/wait_A01_t06: fail, OK
+LibTest/async/Future/whenComplete_A01_t01: fail, OK
+LibTest/async/Future/whenComplete_A02_t01: fail, OK
+LibTest/async/Future/whenComplete_A04_t01: fail, OK
+
+# co19 issue #448, Collection was removed
+LibTest/collection/Queue/Queue.from_A01_t01: fail, OK
+LibTest/collection/Queue/Queue.from_A01_t02: fail, OK
+LibTest/core/List/List.from_A01_t01: fail, OK
+LibTest/core/Match/pattern_A01_t01: fail, OK
+LibTest/core/Match/str_A01_t01: fail, OK
+LibTest/core/RegExp/allMatches_A01_t01: fail, OK
+LibTest/core/Set/intersection_A01_t02: fail, OK
+
+# co19 issue #449, Strings was removed
+LibTest/core/Strings/concatAll_A01_t01: fail, OK
+LibTest/core/Strings/concatAll_A02_t01: fail, OK
+LibTest/core/Strings/concatAll_A03_t01: fail, OK
+LibTest/core/Strings/join_A01_t01: fail, OK
+LibTest/core/Strings/join_A02_t01: fail, OK
+LibTest/core/Strings/join_A03_t01: fail, OK
+
+# co19 issue #450, The class 'List' does not have a constructor 'fixedLength'
+LibTest/core/List/add_A02_t01: fail, OK
+LibTest/core/List/addAll_A02_t01: fail, OK
+LibTest/core/List/clear_A02_t01: fail, OK
+LibTest/core/List/length_A04_t01: fail, OK
+LibTest/core/List/removeLast_A02_t01: fail, OK
+LibTest/core/List/removeRange_A02_t01: fail, OK
+
+# co19 issue 451, Set.intersection() requires Set argument
+LibTest/core/Set/intersection_A01_t01: fail, OK
+LibTest/core/Set/intersection_A01_t03: fail, OK
+LibTest/core/Set/intersection_A03_t01: fail, OK
+
+# co19 issue 452, more method in Iterable
+LibTest/core/Set/Set.from_A01_t02: fail, OK
+
+# co19 issue #453, abstract member in concrete class
+Language/07_Classes/07_Classes_A07_t10: fail, OK
+
+# co19 issue #454, should be static warning
+Language/11_Expressions/11_Instance_Creation/1_New_A01_t04: fail, OK
+
+# co19 issue #455, undeclared identifier is static warning
+Language/11_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t10: fail, OK
+Language/12_Statements/04_Local_Function_Declaration_A02_t02: fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A02_t12: fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A02_t14: fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A02_t15: fail, OK
+
+# co19 issue #456
+Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t04: fail, OK
+Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t05: fail, OK
+Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t08: fail, OK
+
+# co19 issue 457, malformed type is static warning
+Language/11_Expressions/31_Type_Test_A05_t01: fail, OK
+Language/11_Expressions/31_Type_Test_A05_t02: fail, OK
+Language/11_Expressions/31_Type_Test_A05_t03: fail, OK
+Language/11_Expressions/32_Type_Cast_A04_t01: fail, OK
+Language/11_Expressions/32_Type_Cast_A04_t02: fail, OK
+
 # co19 issue #465, any use of a malbounded type gives rise to a static warning.
 Language/11_Expressions/11_Instance_Creation/1_New_A05_t01: fail, OK
 Language/11_Expressions/11_Instance_Creation/1_New_A05_t02: fail, OK
@@ -226,4 +435,3 @@ Language/11_Expressions/11_Instance_Creation/1_New_A05_t03: fail, OK
 Language/11_Expressions/11_Instance_Creation_A03_t01: fail, OK
 Language/11_Expressions/11_Instance_Creation_A04_t01: fail, OK
 Language/11_Expressions/11_Instance_Creation_A04_t02: fail, OK
-
