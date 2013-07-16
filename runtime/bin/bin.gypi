@@ -337,7 +337,7 @@
       'type': 'none',
       'toolsets':['host'],
       'includes': [
-        'resources_sources.gypi'
+        'resources_sources.gypi',
       ],
       'actions': [
         {
@@ -381,6 +381,9 @@
         'builtin.h',
         'io_natives.h',
         'resources.h',
+        'vmservice.h',
+        'vmservice_impl.cc',
+        'vmservice_impl.h',
         '<(snapshot_cc_file)',
         '<(resources_cc_file)',
       ],
@@ -442,6 +445,9 @@
         'builtin.h',
         'io_natives.h',
         'resources.h',
+        'vmservice.h',
+        'vmservice_impl.cc',
+        'vmservice_impl.h',
         # Include generated source files.
         '<(builtin_cc_file)',
         '<(io_cc_file)',

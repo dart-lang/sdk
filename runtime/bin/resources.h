@@ -30,6 +30,14 @@ class Resources {
     return kNoSuchInstance;
   }
 
+  static intptr_t get_resource_count() {
+    return builtin_resources_count_;
+  }
+
+  static const char* get_resource_path(intptr_t i) {
+    return get_resource(i)->path_;
+  }
+
  private:
   struct resource_map_entry {
     const char* path_;
@@ -45,9 +53,6 @@ class Resources {
     ASSERT(i >= 0 && i < builtin_resources_count_);
     return &builtin_resources_[i];
   }
-
-  static intptr_t get_resource_count() {
-    return builtin_resources_count_; }
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Resources);

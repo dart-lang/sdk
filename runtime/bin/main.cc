@@ -20,6 +20,7 @@
 #include "bin/log.h"
 #include "bin/platform.h"
 #include "bin/process.h"
+#include "bin/vmservice_impl.h"
 #include "platform/globals.h"
 
 namespace dart {
@@ -64,6 +65,12 @@ static bool has_check_function_fingerprints = false;
 // Global flag that is used to indicate that we want to print the source code
 // for script that is being run.
 static bool has_print_script = false;
+
+
+// VM Service options.
+static bool start_vm_service = false;
+static int vm_service_server_port = -1;
+static const int DEFAULT_VM_SERVICE_SERVER_PORT = 8181;
 
 
 static bool IsValidFlag(const char* name,
@@ -199,6 +206,25 @@ static bool ProcessGenScriptSnapshotOption(const char* filename) {
 }
 
 
+static bool ProcessEnableVmServiceOption(const char* port) {
+  ASSERT(port != NULL);
+  vm_service_server_port = -1;
+  if (*port == '\0') {
+    vm_service_server_port = DEFAULT_VM_SERVICE_SERVER_PORT;
+  } else {
+    if ((*port == '=') || (*port == ':')) {
+      vm_service_server_port = atoi(port + 1);
+    }
+  }
+  if (vm_service_server_port < 0) {
+    Log::PrintErr("unrecognized --enable-vm-service option syntax. "
+                    "Use --enable-vm-service[:<port number>]\n");
+    return false;
+  }
+  start_vm_service = true;
+  return true;
+}
+
 static struct {
   const char* option_name;
   bool (*process)(const char* option);
@@ -217,6 +243,7 @@ static struct {
   { "--snapshot=", ProcessGenScriptSnapshotOption },
   { "--print-script", ProcessPrintScriptOption },
   { "--check-function-fingerprints", ProcessFingerprintedFunctions },
+  { "--enable-vm-service", ProcessEnableVmServiceOption },
   { NULL, NULL }
 };
 
@@ -549,6 +576,10 @@ static void PrintUsage() {
 "--print-script\n"
 "  generates Dart source code back and prints it after parsing a Dart script\n"
 "\n"
+"--enable-vm-service[:<port number>]\n"
+"  enables the VM service and listens on specified port for connections\n"
+"  (default port number is 8181)\n"
+"\n"
 "The following options are only used for VM development and may\n"
 "be changed in any future version:\n");
     const char* print_flags = "--print_flags";
@@ -728,6 +759,16 @@ int main(int argc, char** argv) {
     debug_port = DebuggerConnectionHandler::StartHandler(debug_ip, debug_port);
     if (print_msg) {
       Log::Print("Debugger listening on port %d\n", debug_port);
+    }
+  }
+
+  // Start the VM service isolate, if necessary.
+  if (start_vm_service) {
+    ASSERT(vm_service_server_port >= 0);
+    bool r = VmService::Start(vm_service_server_port);
+    if (!r) {
+      Log::PrintErr("Could not start VM Service isolate %s",
+                    VmService::GetErrorMessage());
     }
   }
 
