@@ -17,6 +17,7 @@
 #include "vm/verifier.h"
 #include "vm/visitor.h"
 #include "vm/weak_table.h"
+#include "vm/object_id_ring.h"
 
 namespace dart {
 
@@ -404,6 +405,14 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
 }
 
 
+void Scavenger::IterateObjectIdTable(Isolate* isolate,
+                                     ScavengerVisitor* visitor) {
+  ObjectIdRing* ring = isolate->object_id_ring();
+  ASSERT(ring != NULL);
+  ring->VisitPointers(visitor);
+}
+
+
 void Scavenger::IterateRoots(Isolate* isolate,
                              ScavengerVisitor* visitor,
                              bool visit_prologue_weak_persistent_handles) {
@@ -413,6 +422,7 @@ void Scavenger::IterateRoots(Isolate* isolate,
                                StackFrameIterator::kDontValidateFrames);
   int64_t middle = OS::GetCurrentTimeMicros();
   IterateStoreBuffers(isolate, visitor);
+  IterateObjectIdTable(isolate, visitor);
   int64_t end = OS::GetCurrentTimeMicros();
   heap_->RecordTime(kVisitIsolateRoots, middle - start);
   heap_->RecordTime(kIterateStoreBuffers, end - middle);

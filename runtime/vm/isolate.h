@@ -55,6 +55,7 @@ class StubCode;
 class TypeArguments;
 class TypeParameter;
 class ObjectHistogram;
+class ObjectIdRing;
 
 
 // Used by the deoptimization infrastructure to defer allocation of unboxed
@@ -533,6 +534,13 @@ class Isolate : public BaseIsolate {
   }
   intptr_t deopt_frame_copy_size() const { return deopt_frame_copy_size_; }
 
+  void set_object_id_ring(ObjectIdRing* ring) {
+    object_id_ring_ = ring;
+  }
+  ObjectIdRing* object_id_ring() {
+    return object_id_ring_;
+  }
+
   void PrepareForDeferredMaterialization(intptr_t count) {
     if (count > 0) {
       deferred_objects_ = new DeferredObject*[count];
@@ -685,6 +693,9 @@ class Isolate : public BaseIsolate {
   char* stacktrace_;
   intptr_t stack_frame_index_;
   ObjectHistogram* object_histogram_;
+
+  // Ring buffer of objects assigned an id.
+  ObjectIdRing* object_id_ring_;
 
   // Reusable handles support.
 #define REUSABLE_HANDLE_FIELDS(object)                                         \

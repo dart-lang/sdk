@@ -42,6 +42,8 @@ class GCMarker : public ValueObject {
   void DrainMarkingStack(Isolate* isolate, MarkingVisitor* visitor);
   void ProcessWeakProperty(RawWeakProperty* raw_weak, MarkingVisitor* visitor);
   void ProcessWeakTables(PageSpace* page_space);
+  void ProcessObjectIdTable(Isolate* isolate);
+
 
   Heap* heap_;
 

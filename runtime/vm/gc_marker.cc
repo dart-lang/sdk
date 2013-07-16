@@ -14,6 +14,7 @@
 #include "vm/raw_object.h"
 #include "vm/stack_frame.h"
 #include "vm/visitor.h"
+#include "vm/object_id_ring.h"
 
 namespace dart {
 
@@ -399,6 +400,33 @@ void GCMarker::ProcessWeakTables(PageSpace* page_space) {
 }
 
 
+class ObjectIdRingClearPointerVisitor : public ObjectPointerVisitor {
+ public:
+  explicit ObjectIdRingClearPointerVisitor(Isolate* isolate) :
+      ObjectPointerVisitor(isolate) {}
+
+
+  void VisitPointers(RawObject** first, RawObject** last) {
+    for (RawObject** current = first; current <= last; current++) {
+      RawObject* raw_obj = *current;
+      ASSERT(raw_obj->IsHeapObject());
+      if (raw_obj->IsOldObject() && !raw_obj->IsMarked()) {
+        // Object has become garbage. Replace it will null.
+        *current = Object::null();
+      }
+    }
+  }
+};
+
+
+void GCMarker::ProcessObjectIdTable(Isolate* isolate) {
+  ObjectIdRingClearPointerVisitor visitor(isolate);
+  ObjectIdRing* ring = isolate->object_id_ring();
+  ASSERT(ring != NULL);
+  ring->VisitPointers(&visitor);
+}
+
+
 void GCMarker::MarkObjects(Isolate* isolate,
                            PageSpace* page_space,
                            bool invoke_api_callbacks) {
@@ -412,6 +440,9 @@ void GCMarker::MarkObjects(Isolate* isolate,
   IterateWeakRoots(isolate, &mark_weak, invoke_api_callbacks);
   mark.Finalize();
   ProcessWeakTables(page_space);
+  ProcessObjectIdTable(isolate);
+
+
   Epilogue(isolate, invoke_api_callbacks);
 }
 
