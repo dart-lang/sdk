@@ -46,7 +46,9 @@ class JsObject implements Serializable<JsObject> {
 
   JsObject._fromJs(this._jsObject);
 
-  factory JsObject(Serializable<JsFunction> constructor, [List arguments]) {
+  // TODO(vsm): Type constructor as Serializable<JsFunction> when
+  // dartbug.com/11854 is fixed.
+  factory JsObject(var constructor, [List arguments]) {
     final constr = _convertToJS(constructor);
     if (arguments == null) {
       return new JsObject._fromJs(JS('=Object', 'new #()', constr));
@@ -135,7 +137,9 @@ return ret;
     JS('void', 'delete #[#]', _convertToJS(this), name);
   }
 
-  bool instanceof(Serializable<JsFunction> type) =>
+  // TODO(vsm): Type type as Serializable<JsFunction> when
+  // dartbug.com/11854 is fixed.
+  bool instanceof(var type) =>
       JS('bool', '# instanceof #', _convertToJS(this), _convertToJS(type));
 
   String toString() {
