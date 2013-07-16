@@ -615,6 +615,11 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
 
   Range visitPhi(HPhi phi) {
     if (!phi.isInteger()) return info.newUnboundRange();
+    // Some phases may replace instructions that change the inputs of
+    // this phi. Only the [SsaTypesPropagation] phase will update the
+    // phi type. Play it safe by assuming the [SsaTypesPropagation]
+    // phase is not necessarily run before the [ValueRangeAnalyzer].
+    if (phi.inputs.any((i) => !i.isInteger())) return info.newUnboundRange();
     if (phi.block.isLoopHeader()) {
       Range range = tryInferLoopPhiRange(phi);
       if (range == null) return info.newUnboundRange();
