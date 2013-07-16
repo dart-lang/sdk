@@ -4097,8 +4097,8 @@ intptr_t Function::NumImplicitParameters() const {
 }
 
 
-bool Function::AreValidArgumentCounts(int num_arguments,
-                                      int num_named_arguments,
+bool Function::AreValidArgumentCounts(intptr_t num_arguments,
+                                      intptr_t num_named_arguments,
                                       String* error_message) const {
   if (num_named_arguments > NumOptionalNamedParameters()) {
     if (error_message != NULL) {
@@ -4106,7 +4106,7 @@ bool Function::AreValidArgumentCounts(int num_arguments,
       char message_buffer[kMessageBufferSize];
       OS::SNPrint(message_buffer,
                   kMessageBufferSize,
-                  "%d named passed, at most %"Pd" expected",
+                  "%"Pd" named passed, at most %"Pd" expected",
                   num_named_arguments,
                   NumOptionalNamedParameters());
       *error_message = String::New(message_buffer);
@@ -4154,10 +4154,10 @@ bool Function::AreValidArgumentCounts(int num_arguments,
 }
 
 
-bool Function::AreValidArguments(int num_arguments,
+bool Function::AreValidArguments(intptr_t num_arguments,
                                  const Array& argument_names,
                                  String* error_message) const {
-  const int num_named_arguments =
+  const intptr_t num_named_arguments =
       argument_names.IsNull() ? 0 : argument_names.Length();
   if (!AreValidArgumentCounts(num_arguments,
                               num_named_arguments,
@@ -4168,13 +4168,61 @@ bool Function::AreValidArguments(int num_arguments,
   Isolate* isolate = Isolate::Current();
   String& argument_name = String::Handle(isolate);
   String& parameter_name = String::Handle(isolate);
-  for (int i = 0; i < num_named_arguments; i++) {
+  for (intptr_t i = 0; i < num_named_arguments; i++) {
     argument_name ^= argument_names.At(i);
     ASSERT(argument_name.IsSymbol());
     bool found = false;
-    const int num_positional_args = num_arguments - num_named_arguments;
+    const intptr_t num_positional_args = num_arguments - num_named_arguments;
+    const intptr_t num_parameters = NumParameters();
+    for (intptr_t j = num_positional_args;
+         !found && (j < num_parameters);
+         j++) {
+      parameter_name = ParameterNameAt(j);
+      ASSERT(argument_name.IsSymbol());
+      if (argument_name.Equals(parameter_name)) {
+        found = true;
+      }
+    }
+    if (!found) {
+      if (error_message != NULL) {
+        const intptr_t kMessageBufferSize = 64;
+        char message_buffer[kMessageBufferSize];
+        OS::SNPrint(message_buffer,
+                    kMessageBufferSize,
+                    "no optional formal parameter named '%s'",
+                    argument_name.ToCString());
+        *error_message = String::New(message_buffer);
+      }
+      return false;
+    }
+  }
+  return true;
+}
+
+
+bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
+                                 String* error_message) const {
+  const intptr_t num_arguments = args_desc.Count();
+  const intptr_t num_named_arguments = args_desc.NamedCount();
+
+  if (!AreValidArgumentCounts(num_arguments,
+                              num_named_arguments,
+                              error_message)) {
+    return false;
+  }
+  // Verify that all argument names are valid parameter names.
+  Isolate* isolate = Isolate::Current();
+  String& argument_name = String::Handle(isolate);
+  String& parameter_name = String::Handle(isolate);
+  for (intptr_t i = 0; i < num_named_arguments; i++) {
+    argument_name ^= args_desc.NameAt(i);
+    ASSERT(argument_name.IsSymbol());
+    bool found = false;
+    const intptr_t num_positional_args = num_arguments - num_named_arguments;
     const int num_parameters = NumParameters();
-    for (int j = num_positional_args; !found && (j < num_parameters); j++) {
+    for (intptr_t j = num_positional_args;
+         !found && (j < num_parameters);
+         j++) {
       parameter_name = ParameterNameAt(j);
       ASSERT(argument_name.IsSymbol());
       if (argument_name.Equals(parameter_name)) {

@@ -801,16 +801,13 @@ RawCode* ResolveCompileInstanceCallTarget(const Instance& receiver,
                                           const ICData& ic_data) {
   ArgumentsDescriptor
       arguments_descriptor(Array::Handle(ic_data.arguments_descriptor()));
-  intptr_t num_arguments = arguments_descriptor.Count();
-  int num_named_arguments = arguments_descriptor.NamedCount();
   String& function_name = String::Handle(ic_data.target_name());
   ASSERT(function_name.IsSymbol());
 
   Function& function = Function::Handle();
   function = Resolver::ResolveDynamic(receiver,
                                       function_name,
-                                      num_arguments,
-                                      num_named_arguments);
+                                      arguments_descriptor);
   if (function.IsNull()) {
     return Code::null();
   } else {
@@ -1063,15 +1060,11 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
                  cls.ToCString(), name.ToCString());
   }
 
-  intptr_t arg_count =
-      Smi::Cast(Object::Handle(descriptor.At(0))).Value();
-  intptr_t named_arg_count =
-      arg_count - Smi::Cast(Object::Handle(descriptor.At(1))).Value();
+  ArgumentsDescriptor args_desc(descriptor);
   const Function& target = Function::Handle(
       Resolver::ResolveDynamicForReceiverClass(cls,
                                                name,
-                                               arg_count,
-                                               named_arg_count));
+                                               args_desc));
 
   Instructions& instructions = Instructions::Handle();
   if (!target.IsNull()) {
@@ -1112,12 +1105,12 @@ DEFINE_RUNTIME_ENTRY(UpdateICDataTwoArgs, 4) {
   args.Add(&receiver);
   args.Add(&arg1);
   const intptr_t kNumArguments = 2;
-  const intptr_t kNumNamedArguments = 0;
-  Function& target_function = Function::Handle();
-  target_function = Resolver::ResolveDynamic(receiver,
-                                             target_name,
-                                             kNumArguments,
-                                             kNumNamedArguments);
+    ArgumentsDescriptor args_desc(
+        Array::Handle(ArgumentsDescriptor::New(kNumArguments)));
+  const Function& target_function = Function::Handle(
+      Resolver::ResolveDynamic(receiver,
+                               target_name,
+                               args_desc));
   ASSERT(!target_function.IsNull());
   GrowableArray<intptr_t> class_ids(kNumArguments);
   ASSERT(ic_data.num_args_tested() == kNumArguments);
@@ -1189,12 +1182,12 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
   // 1. Check if there is a getter with the same name.
   const String& getter_name = String::Handle(Field::GetterName(target_name));
   const int kNumArguments = 1;
-  const int kNumNamedArguments = 0;
+  ArgumentsDescriptor args_desc(
+      Array::Handle(ArgumentsDescriptor::New(kNumArguments)));
   const Function& getter = Function::Handle(
       Resolver::ResolveDynamicForReceiverClass(receiver_class,
                                                getter_name,
-                                               kNumArguments,
-                                               kNumNamedArguments));
+                                               args_desc));
   if (getter.IsNull() || getter.IsMethodExtractor()) {
     return false;
   }

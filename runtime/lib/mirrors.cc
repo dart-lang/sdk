@@ -1310,23 +1310,22 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invoke, 4) {
       Array::CheckedHandle(arguments->NativeArgAt(3));
   intptr_t number_of_arguments = positional_args.Length();
 
-
-  const intptr_t num_receiver = 1;  // 1 for instance methods
   const Array& args =
-      Array::Handle(Array::New(number_of_arguments + num_receiver));
+      Array::Handle(Array::New(number_of_arguments + 1));  // Plus receiver.
   Object& arg = Object::Handle();
   args.SetAt(0, reflectee);
   for (int i = 0; i < number_of_arguments; i++) {
     arg = positional_args.At(i);
-    args.SetAt((i + num_receiver), arg);
+    args.SetAt(i + 1, arg);  // Plus receiver.
   }
 
+  ArgumentsDescriptor args_desc(
+      Array::Handle(ArgumentsDescriptor::New(args.Length())));
   // TODO(11771): This won't find private members.
   const Function& function = Function::Handle(
       Resolver::ResolveDynamic(reflectee,
                                function_name,
-                               (number_of_arguments + 1),
-                               Resolver::kIsQualified));
+                               args_desc));
 
   return ReflectivelyInvokeDynamicFunction(reflectee,
                                            function,

@@ -4,6 +4,7 @@
 
 #include "vm/resolver.h"
 
+#include "vm/dart_entry.h"
 #include "vm/flags.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
@@ -23,8 +24,7 @@ DEFINE_FLAG(bool, trace_resolving, false, "Trace resolving.");
 // arguments is passed in.
 RawFunction* Resolver::ResolveDynamic(const Instance& receiver,
                                       const String& function_name,
-                                      int num_arguments,
-                                      int num_named_arguments) {
+                                      const ArgumentsDescriptor& args_desc) {
   // Figure out type of receiver first.
   Class& cls = Class::Handle();
   cls = receiver.clazz();
@@ -34,33 +34,27 @@ RawFunction* Resolver::ResolveDynamic(const Instance& receiver,
   }
   ASSERT(!cls.IsNull());
 
-  return ResolveDynamicForReceiverClass(
-      cls, function_name, num_arguments, num_named_arguments);
+  return ResolveDynamicForReceiverClass(cls, function_name, args_desc);
 }
 
 
 RawFunction* Resolver::ResolveDynamicForReceiverClass(
     const Class& receiver_class,
     const String& function_name,
-    int num_arguments,
-    int num_named_arguments) {
+    const ArgumentsDescriptor& args_desc) {
 
   Function& function =
       Function::Handle(ResolveDynamicAnyArgs(receiver_class, function_name));
 
   if (function.IsNull() ||
-      !function.AreValidArgumentCounts(num_arguments,
-                                       num_named_arguments,
-                                       NULL)) {
+      !function.AreValidArguments(args_desc, NULL)) {
     // Return a null function to signal to the upper levels to dispatch to
     // "noSuchMethod" function.
     if (FLAG_trace_resolving) {
       String& error_message = String::Handle(String::New("function not found"));
       if (!function.IsNull()) {
         // Obtain more detailed error message.
-        function.AreValidArgumentCounts(num_arguments,
-                                        num_named_arguments,
-                                        &error_message);
+        function.AreValidArguments(args_desc, &error_message);
       }
       OS::Print("ResolveDynamic error '%s': %s.\n",
                 function_name.ToCString(),
@@ -154,7 +148,7 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(
 RawFunction* Resolver::ResolveStatic(const Library& library,
                                      const String& class_name,
                                      const String& function_name,
-                                     int num_arguments,
+                                     intptr_t num_arguments,
                                      const Array& argument_names,
                                      StaticResolveType resolve_type) {
   ASSERT(!library.IsNull());
@@ -230,7 +224,7 @@ RawFunction* Resolver::ResolveStaticByName(const Class&  cls,
 
 RawFunction* Resolver::ResolveStatic(const Class&  cls,
                                      const String& function_name,
-                                     int num_arguments,
+                                     intptr_t num_arguments,
                                      const Array& argument_names,
                                      StaticResolveType resolve_type) {
   const Function& function = Function::Handle(

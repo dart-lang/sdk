@@ -138,12 +138,12 @@ RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
 
   // Now use the invocation mirror object and invoke NoSuchMethod.
   const int kNumArguments = 2;
-  const int kNumNamedArguments = 0;
+  ArgumentsDescriptor args_desc(
+      Array::Handle(ArgumentsDescriptor::New(kNumArguments)));
   const Function& function = Function::Handle(
       Resolver::ResolveDynamic(receiver,
                                Symbols::NoSuchMethod(),
-                               kNumArguments,
-                               kNumNamedArguments));
+                               args_desc));
   ASSERT(!function.IsNull());
   const Array& args = Array::Handle(Array::New(kNumArguments));
   args.SetAt(0, receiver);
@@ -389,12 +389,12 @@ RawObject* DartLibraryCalls::ExceptionCreate(const Library& lib,
 
 RawObject* DartLibraryCalls::ToString(const Instance& receiver) {
   const int kNumArguments = 1;  // Receiver.
-  const int kNumNamedArguments = 0;  // None.
+  ArgumentsDescriptor args_desc(
+      Array::Handle(ArgumentsDescriptor::New(kNumArguments)));
   const Function& function = Function::Handle(
       Resolver::ResolveDynamic(receiver,
                                Symbols::toString(),
-                               kNumArguments,
-                               kNumNamedArguments));
+                               args_desc));
   ASSERT(!function.IsNull());
   const Array& args = Array::Handle(Array::New(kNumArguments));
   args.SetAt(0, receiver);
@@ -408,12 +408,12 @@ RawObject* DartLibraryCalls::ToString(const Instance& receiver) {
 RawObject* DartLibraryCalls::Equals(const Instance& left,
                                     const Instance& right) {
   const int kNumArguments = 2;
-  const int kNumNamedArguments = 0;
+  ArgumentsDescriptor args_desc(
+      Array::Handle(ArgumentsDescriptor::New(kNumArguments)));
   const Function& function = Function::Handle(
       Resolver::ResolveDynamic(left,
                                Symbols::EqualOperator(),
-                               kNumArguments,
-                               kNumNamedArguments));
+                               args_desc));
   ASSERT(!function.IsNull());
 
   const Array& args = Array::Handle(Array::New(kNumArguments));
@@ -520,11 +520,12 @@ RawObject* DartLibraryCalls::MapSetAt(const Instance& map,
                                       const Instance& key,
                                       const Instance& value) {
   const int kNumArguments = 3;
+  ArgumentsDescriptor args_desc(
+      Array::Handle(ArgumentsDescriptor::New(kNumArguments)));
   const Function& function = Function::Handle(
       Resolver::ResolveDynamic(map,
                                Symbols::AssignIndexToken(),
-                               kNumArguments,
-                               0));
+                               args_desc));
   ASSERT(!function.IsNull());
   const Array& args = Array::Handle(Array::New(kNumArguments));
   args.SetAt(0, map);

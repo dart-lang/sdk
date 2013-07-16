@@ -6,6 +6,7 @@
 
 #include "vm/bit_vector.h"
 #include "vm/cha.h"
+#include "vm/dart_entry.h"
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/hash_map.h"
@@ -102,16 +103,16 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
     return false;
   }
   if (class_ids[0] != kDynamicCid) {
-    const intptr_t num_named_arguments = call->argument_names().IsNull() ?
-        0 : call->argument_names().Length();
+    ArgumentsDescriptor args_desc(
+        Array::Handle(ArgumentsDescriptor::New(call->ArgumentCount(),
+                                               call->argument_names())));
     const Class& receiver_class = Class::Handle(
         Isolate::Current()->class_table()->At(class_ids[0]));
-    Function& function = Function::Handle();
-    function = Resolver::ResolveDynamicForReceiverClass(
-        receiver_class,
-        call->function_name(),
-        call->ArgumentCount(),
-        num_named_arguments);
+    const Function& function = Function::Handle(
+        Resolver::ResolveDynamicForReceiverClass(
+            receiver_class,
+            call->function_name(),
+            args_desc));
     if (function.IsNull()) {
       return false;
     }
@@ -2656,12 +2657,14 @@ bool FlowGraphOptimizer::CanStrictifyEqualityCompare(
       Isolate::Current()->class_table()->At(receiver_cid));
 
   // Resolve equality operator.
+  const intptr_t kNumArgs = 2;
+  ArgumentsDescriptor args_desc(
+      Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
   const Function& function = Function::Handle(
       Resolver::ResolveDynamicForReceiverClass(
           receiver_class,
           Symbols::EqualOperator(),
-          2,
-          0));
+          args_desc));
 
   if (function.IsNull()) {
     return false;

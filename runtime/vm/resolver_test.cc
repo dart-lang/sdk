@@ -170,15 +170,15 @@ TEST_CASE(DartDynamicResolve) {
 
   // Now try to resolve and invoke the instance function in this class.
   {
-    const int kNumPositionalArguments = 3;
-    const int kNumNamedArguments = 0;
+    const int kNumArguments = 3;
+    ArgumentsDescriptor args_desc(
+        Array::Handle(ArgumentsDescriptor::New(kNumArguments)));
     const Function& function = Function::Handle(
         Resolver::ResolveDynamic(receiver,
                                  function_name,
-                                 kNumPositionalArguments,
-                                 kNumNamedArguments));
+                                 args_desc));
     EXPECT(!function.IsNull());
-    const Array& args = Array::Handle(Array::New(kNumPositionalArguments));
+    const Array& args = Array::Handle(Array::New(kNumArguments));
     args.SetAt(0, receiver);
     const String& arg0 = String::Handle(String::New("junk"));
     args.SetAt(1, arg0);
@@ -191,27 +191,27 @@ TEST_CASE(DartDynamicResolve) {
 
   // Now try to resolve an instance function with invalid argument count.
   {
-    const int kNumPositionalArguments = 1;
-    const int kNumNamedArguments = 0;
+    const int kNumArguments = 1;
+    ArgumentsDescriptor args_desc(
+        Array::Handle(ArgumentsDescriptor::New(kNumArguments)));
     const Function& bad_function = Function::Handle(
         Resolver::ResolveDynamic(receiver,
                                  function_name,
-                                 kNumPositionalArguments,
-                                 kNumNamedArguments));
+                                 args_desc));
     EXPECT(bad_function.IsNull());
   }
 
   // Hierarchy walking.
   {
-    const int kNumPositionalArguments = 1;
-    const int kNumNamedArguments = 0;
+    const int kNumArguments = 1;
+    ArgumentsDescriptor args_desc(
+        Array::Handle(ArgumentsDescriptor::New(kNumArguments)));
     const String& super_function_name =
         String::Handle(String::New("dynCall"));
     const Function& super_function = Function::Handle(
         Resolver::ResolveDynamic(receiver,
                                  super_function_name,
-                                 kNumPositionalArguments,
-                                 kNumNamedArguments));
+                                 args_desc));
     EXPECT(!super_function.IsNull());
   }
 }

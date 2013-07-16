@@ -35,8 +35,7 @@ DEFINE_NATIVE_ENTRY(InvocationMirror_invoke, 4) {
   const Function& function = Function::Handle(
       Resolver::ResolveDynamic(receiver,
                                fun_name,
-                               args_desc.Count(),
-                               args_desc.NamedCount()));
+                               args_desc));
   Object& result = Object::Handle();
   if (function.IsNull()) {
     result = DartEntry::InvokeNoSuchMethod(receiver,

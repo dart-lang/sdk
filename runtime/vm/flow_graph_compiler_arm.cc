@@ -879,6 +879,11 @@ void FlowGraphCompiler::CopyParameters() {
 
   // Copy or initialize optional named arguments.
   Label all_arguments_processed;
+#ifdef DEBUG
+    const bool check_correct_named_args = true;
+#else
+    const bool check_correct_named_args = function.IsClosureFunction();
+#endif
   if (num_opt_named_params > 0) {
     // Start by alphabetically sorting the names of the optional parameters.
     LocalVariable** opt_param = new LocalVariable*[num_opt_named_params];
@@ -946,10 +951,13 @@ void FlowGraphCompiler::CopyParameters() {
     }
     delete[] opt_param;
     delete[] opt_param_position;
-    // Check that R6 now points to the null terminator in the array descriptor.
-    __ ldr(R5, Address(R6, 0));
-    __ CompareImmediate(R5, reinterpret_cast<int32_t>(Object::null()));
-    __ b(&all_arguments_processed, EQ);
+    if (check_correct_named_args) {
+      // Check that R6 now points to the null terminator in the arguments
+      // descriptor.
+      __ ldr(R5, Address(R6, 0));
+      __ CompareImmediate(R5, reinterpret_cast<int32_t>(Object::null()));
+      __ b(&all_arguments_processed, EQ);
+    }
   } else {
     ASSERT(num_opt_pos_params > 0);
     __ ldr(R8,
@@ -976,27 +984,30 @@ void FlowGraphCompiler::CopyParameters() {
       __ str(R5, param_addr);
       __ Bind(&next_parameter);
     }
-    __ ldr(R7, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
-    __ SmiUntag(R7);
-    // Check that R8 equals R7, i.e. no named arguments passed.
-    __ cmp(R8, ShifterOperand(R7));
-    __ b(&all_arguments_processed, EQ);
+    if (check_correct_named_args) {
+      __ ldr(R7, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
+      __ SmiUntag(R7);
+      // Check that R8 equals R7, i.e. no named arguments passed.
+      __ cmp(R8, ShifterOperand(R7));
+      __ b(&all_arguments_processed, EQ);
+    }
   }
 
   __ Bind(&wrong_num_arguments);
-  // Invoke noSuchMethod function passing the original name of the function.
-  // If the function is a closure function, use "call" as the original name.
-  const String& name = String::Handle(
-      function.IsClosureFunction() ? Symbols::Call().raw() : function.name());
-  const int kNumArgsChecked = 1;
-  const ICData& ic_data = ICData::ZoneHandle(
-      ICData::New(function, name, Object::null_array(),
-                  Isolate::kNoDeoptId, kNumArgsChecked));
-  __ LoadObject(R5, ic_data);
-  __ LeaveDartFrame();  // The arguments are still on the stack.
-  __ Branch(&StubCode::CallNoSuchMethodFunctionLabel());
-  // The noSuchMethod call may return to the caller, but not here.
-  __ bkpt(0);
+  if (function.IsClosureFunction()) {
+    // Invoke noSuchMethod function passing "call" as the original name.
+    const int kNumArgsChecked = 1;
+    const ICData& ic_data = ICData::ZoneHandle(
+        ICData::New(function, Symbols::Call(), Object::null_array(),
+                    Isolate::kNoDeoptId, kNumArgsChecked));
+    __ LoadObject(R5, ic_data);
+    __ LeaveDartFrame();  // The arguments are still on the stack.
+    __ Branch(&StubCode::CallNoSuchMethodFunctionLabel());
+    // The noSuchMethod call may return to the caller, but not here.
+    __ bkpt(0);
+  } else if (check_correct_named_args) {
+    __ Stop("Wrong arguments");
+  }
 
   __ Bind(&all_arguments_processed);
   // Nullify originally passed arguments only after they have been copied and

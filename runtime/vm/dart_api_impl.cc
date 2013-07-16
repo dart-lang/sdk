@@ -1874,13 +1874,17 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
     return Api::NewError("Object does not implement the List interface");
   }
   const String& name = String::Handle(Field::GetterName(Symbols::Length()));
+  const int kNumArgs = 1;
+  ArgumentsDescriptor args_desc(
+      Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
   const Function& function =
-      Function::Handle(isolate, Resolver::ResolveDynamic(instance, name, 1, 0));
+      Function::Handle(isolate, Resolver::ResolveDynamic(instance,
+                                                         name,
+                                                         args_desc));
   if (function.IsNull()) {
     return Api::NewError("List object does not have a 'length' field.");
   }
 
-  const int kNumArgs = 1;
   const Array& args = Array::Handle(isolate, Array::New(kNumArgs));
   args.SetAt(0, instance);  // Set up the receiver as the first argument.
   const Object& retval =
@@ -1940,11 +1944,13 @@ DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list, intptr_t index) {
     const Instance& instance =
         Instance::Handle(isolate, GetListInstance(isolate, obj));
     if (!instance.IsNull()) {
+      const int kNumArgs = 2;
+      ArgumentsDescriptor args_desc(
+          Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
       const Function& function = Function::Handle(
           isolate,
-          Resolver::ResolveDynamic(instance, Symbols::IndexToken(), 2, 0));
+          Resolver::ResolveDynamic(instance, Symbols::IndexToken(), args_desc));
       if (!function.IsNull()) {
-        const int kNumArgs = 2;
         const Array& args = Array::Handle(isolate, Array::New(kNumArgs));
         const Integer& indexobj = Integer::Handle(isolate, Integer::New(index));
         args.SetAt(0, instance);
@@ -1992,12 +1998,14 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
     const Instance& instance =
         Instance::Handle(isolate, GetListInstance(isolate, obj));
     if (!instance.IsNull()) {
+      const intptr_t kNumArgs = 3;
+      ArgumentsDescriptor args_desc(
+          Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
       const Function& function = Function::Handle(
           isolate,
           Resolver::ResolveDynamic(instance,
                                    Symbols::AssignIndexToken(),
-                                   3,
-                                   0));
+                                   args_desc));
       if (!function.IsNull()) {
         const Integer& index_obj =
             Integer::Handle(isolate, Integer::New(index));
@@ -2006,7 +2014,6 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
         if (!value_obj.IsNull() && !value_obj.IsInstance()) {
           RETURN_TYPE_ERROR(isolate, value, Instance);
         }
-        const intptr_t kNumArgs = 3;
         const Array& args = Array::Handle(isolate, Array::New(kNumArgs));
         args.SetAt(0, instance);
         args.SetAt(1, index_obj);
@@ -2165,13 +2172,15 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
   const Instance& instance =
       Instance::Handle(isolate, GetListInstance(isolate, obj));
   if (!instance.IsNull()) {
+    const int kNumArgs = 2;
+    ArgumentsDescriptor args_desc(
+        Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
     const Function& function = Function::Handle(
         isolate,
-        Resolver::ResolveDynamic(instance, Symbols::IndexToken(), 2, 0));
+        Resolver::ResolveDynamic(instance, Symbols::IndexToken(), args_desc));
     if (!function.IsNull()) {
       Object& result = Object::Handle(isolate);
       Integer& intobj = Integer::Handle(isolate);
-      const int kNumArgs = 2;
       const Array& args = Array::Handle(isolate, Array::New(kNumArgs));
       args.SetAt(0, instance);  // Set up the receiver as the first argument.
       for (int i = 0; i < length; i++) {
@@ -2260,16 +2269,17 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
   const Instance& instance =
       Instance::Handle(isolate, GetListInstance(isolate, obj));
   if (!instance.IsNull()) {
+    const int kNumArgs = 3;
+    ArgumentsDescriptor args_desc(
+        Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
     const Function& function = Function::Handle(
         isolate,
         Resolver::ResolveDynamic(instance,
                                  Symbols::AssignIndexToken(),
-                                 3,
-                                 0));
+                                 args_desc));
     if (!function.IsNull()) {
       Integer& indexobj = Integer::Handle(isolate);
       Integer& valueobj = Integer::Handle(isolate);
-      const int kNumArgs = 3;
       const Array& args = Array::Handle(isolate, Array::New(kNumArgs));
       args.SetAt(0, instance);  // Set up the receiver as the first argument.
       for (int i = 0; i < length; i++) {
@@ -2957,12 +2967,11 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
   } else if (obj.IsNull() || obj.IsInstance()) {
     Instance& instance = Instance::Handle(isolate);
     instance ^= obj.raw();
+    ArgumentsDescriptor args_desc(
+        Array::Handle(ArgumentsDescriptor::New(number_of_arguments + 1)));
     const Function& function = Function::Handle(
         isolate,
-        Resolver::ResolveDynamic(instance,
-                                 function_name,
-                                 (number_of_arguments + 1),
-                                 Resolver::kIsQualified));
+        Resolver::ResolveDynamic(instance, function_name, args_desc));
     args.SetAt(0, instance);
     if (function.IsNull()) {
       const Array& args_descriptor =
