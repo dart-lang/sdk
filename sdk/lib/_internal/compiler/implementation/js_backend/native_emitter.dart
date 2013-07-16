@@ -230,7 +230,6 @@ class NativeEmitter {
     }
 
     // Emit the native class interceptors that were actually used.
-    print('XX $classes  $neededClasses');
     for (ClassElement classElement in classes) {
       if (neededClasses.contains(classElement)) {
         ClassBuilder builder = builders[classElement];
