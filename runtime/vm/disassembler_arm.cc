@@ -531,12 +531,20 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
                                    instr->SvcField());
         return 3;
       } else if (format[1] == 'z') {
-        // 'sz: Size field of SIMD instruction.
-        int sz = 8 << (instr->Bits(20, 2));
+        // 'sz: Size field of SIMD instructions.
+        int sz = instr->Bits(20, 2);
+        char const* sz_str;
+        switch (sz) {
+          case 0: sz_str = "b"; break;
+          case 1: sz_str = "h"; break;
+          case 2: sz_str = "w"; break;
+          case 3: sz_str = "l"; break;
+          default: sz_str = "?"; break;
+        }
         buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
                                    remaining_size_in_buffer(),
-                                   "I%d",
-                                   sz);
+                                   "%s",
+                                   sz_str);
         return 2;
       } else if (format[1] == ' ') {
         // 's: S field of data processing instructions.
@@ -1270,11 +1278,23 @@ void ARMDecoder::DecodeSIMDDataProcessing(Instr* instr) {
   ASSERT(instr->ConditionField() == kSpecialCondition);
   if (instr->Bit(6) == 1) {
     if ((instr->Bits(8, 4) == 8) && (instr->Bit(4) == 0) &&
-        (instr->Bit(24) == 0)) {
-      Format(instr, "vadd.'sz 'qd, 'qn, 'qm");
+        (instr->Bits(23, 2) == 0)) {
+      Format(instr, "vaddqi'sz 'qd, 'qn, 'qm");
     } else if ((instr->Bits(8, 4) == 13) && (instr->Bit(4) == 0) &&
-        (instr->Bit(24) == 0)) {
-      Format(instr, "vadd.F32 'qd, 'qn, 'qm");
+               (instr->Bits(23, 2) == 0) && (instr->Bit(21) == 0)) {
+      Format(instr, "vaddqs 'qd, 'qn, 'qm");
+    } else if ((instr->Bits(8, 4) == 8) && (instr->Bit(4) == 0) &&
+               (instr->Bits(23, 2) == 2)) {
+      Format(instr, "vsubqi'sz 'qd, 'qn, 'qm");
+    } else if ((instr->Bits(8, 4) == 13) && (instr->Bit(4) == 0) &&
+               (instr->Bits(23, 2) == 0) && (instr->Bit(21) == 1)) {
+      Format(instr, "vsubqs 'qd, 'qn, 'qm");
+    } else if ((instr->Bits(8, 4) == 9) && (instr->Bit(4) == 1) &&
+               (instr->Bits(23, 2) == 0)) {
+      Format(instr, "vmulqi'sz 'qd, 'qn, 'qm");
+    } else if ((instr->Bits(8, 4) == 13) && (instr->Bit(4) == 1) &&
+               (instr->Bits(23, 2) == 2) && (instr->Bit(21) == 0)) {
+      Format(instr, "vmulqs 'qd, 'qn, 'qm");
     } else {
       Unknown(instr);
     }

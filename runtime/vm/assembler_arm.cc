@@ -1246,6 +1246,28 @@ void Assembler::vaddqs(QRegister qd, QRegister qn, QRegister qm) {
 }
 
 
+void Assembler::vsubqi(int sz, QRegister qd, QRegister qn, QRegister qm) {
+  ASSERT((sz >= 0) && (sz <= 3));
+  EmitSIMDqqq(B24 | B11, sz, qd, qn, qm);
+}
+
+
+void Assembler::vsubqs(QRegister qd, QRegister qn, QRegister qm) {
+  EmitSIMDqqq(B21 | B11 | B10 | B8, 0, qd, qn, qm);
+}
+
+
+void Assembler::vmulqi(int sz, QRegister qd, QRegister qn, QRegister qm) {
+  ASSERT((sz >= 0) && (sz <= 2));
+  EmitSIMDqqq(B11 | B8 | B4, sz, qd, qn, qm);
+}
+
+
+void Assembler::vmulqs(QRegister qd, QRegister qn, QRegister qm) {
+  EmitSIMDqqq(B24 | B11 | B10 | B8 | B4, 0, qd, qn, qm);
+}
+
+
 void Assembler::svc(uint32_t imm24, Condition cond) {
   ASSERT(cond != kNoCondition);
   ASSERT(imm24 < (1 << 24));

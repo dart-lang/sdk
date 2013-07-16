@@ -483,8 +483,12 @@ class Assembler : public ValueObject {
   void vaddqs(QRegister qd, QRegister qn, QRegister qm);
   void vsubs(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
   void vsubd(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
+  void vsubqi(int sz, QRegister qd, QRegister qn, QRegister qm);
+  void vsubqs(QRegister qd, QRegister qn, QRegister qm);
   void vmuls(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
   void vmuld(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
+  void vmulqi(int sz, QRegister qd, QRegister qn, QRegister qm);
+  void vmulqs(QRegister qd, QRegister qn, QRegister qm);
   void vmlas(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
   void vmlad(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
   void vmlss(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);

@@ -164,10 +164,19 @@ static inline DRegister OddDRegisterOf(QRegister q) {
 }
 
 
+static inline SRegister EvenSRegisterOf(DRegister d) {
+  return static_cast<SRegister>(d * 2);
+}
+
+static inline SRegister OddSRegisterOf(DRegister d) {
+  return static_cast<SRegister>((d * 2) + 1);
+}
+
+
 // Register aliases for floating point scratch registers.
 const QRegister QTMP = Q7;  // Overlaps with DTMP, STMP.
-const DRegister DTMP = D14;  // Overlaps with STMP.
-const SRegister STMP = S28;
+const DRegister DTMP = EvenDRegisterOf(QTMP);  // Overlaps with STMP.
+const SRegister STMP = EvenSRegisterOf(DTMP);
 
 // Architecture independent aliases.
 typedef QRegister FpuRegister;

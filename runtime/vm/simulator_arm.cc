@@ -447,7 +447,7 @@ void SimulatorDebugger::Debug() {
                   "h/help -- print this help string\n"
                   "break <address> -- set break point at specified address\n"
                   "p/print <reg or value or *addr> -- print integer value\n"
-                  "pf/printfloat <sreg or *addr> -- print float value\n"
+                  "ps/printsingle <sreg or *addr> -- print float value\n"
                   "pd/printdouble <dreg or *addr> -- print double value\n"
                   "po/printobject <*reg or *addr> -- print object\n"
                   "si/stepi -- single step an instruction\n"
@@ -476,7 +476,8 @@ void SimulatorDebugger::Debug() {
         } else {
           OS::Print("print <reg or value or *addr>\n");
         }
-      } else if ((strcmp(cmd, "pf") == 0) || (strcmp(cmd, "printfloat") == 0)) {
+      } else if ((strcmp(cmd, "ps") == 0) ||
+                 (strcmp(cmd, "printsingle") == 0)) {
         if (args == 2) {
           float fvalue;
           if (GetFValue(arg1, &fvalue)) {
@@ -2921,7 +2922,7 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
     int64_t* s8m_64 = reinterpret_cast<int64_t*>(&s8m);
 
     if ((instr->Bits(8, 4) == 8) && (instr->Bit(4) == 0) &&
-        (instr->Bit(24) == 0)) {
+        (instr->Bits(23, 2) == 0)) {
       // Uses q registers.
       // Format(instr, "vadd.'sz 'qd, 'qn, 'qm");
       const int size = instr->Bits(20, 2);
@@ -2945,10 +2946,66 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
         UNREACHABLE();
       }
     } else if ((instr->Bits(8, 4) == 13) && (instr->Bit(4) == 0) &&
-               (instr->Bit(24) == 0)) {
+               (instr->Bits(23, 2) == 0) && (instr->Bit(21) == 0)) {
       // Format(instr, "vadd.F32 'qd, 'qn, 'qm");
       for (int i = 0; i < 4; i++) {
         s8d.data_[i].f = s8n.data_[i].f + s8m.data_[i].f;
+      }
+    } else if ((instr->Bits(8, 4) == 8) && (instr->Bit(4) == 0) &&
+               (instr->Bits(23, 2) == 2)) {
+      // Format(instr, "vsub.'sz 'qd, 'qn, 'qm");
+      const int size = instr->Bits(20, 2);
+      if (size == 0) {
+        for (int i = 0; i < 16; i++) {
+          s8d_8[i] = s8n_8[i] - s8m_8[i];
+        }
+      } else if (size == 1) {
+        for (int i = 0; i < 8; i++) {
+          s8d_16[i] = s8n_16[i] - s8m_16[i];
+        }
+      } else if (size == 2) {
+        for (int i = 0; i < 4; i++) {
+          s8d.data_[i].u = s8n.data_[i].u - s8m.data_[i].u;
+        }
+      } else if (size == 3) {
+        for (int i = 0; i < 2; i++) {
+          s8d_64[i] = s8n_64[i] - s8m_64[i];
+        }
+      } else {
+        UNREACHABLE();
+      }
+    } else if ((instr->Bits(8, 4) == 13) && (instr->Bit(4) == 0) &&
+               (instr->Bits(23, 2) == 0) && (instr->Bit(21) == 1)) {
+      // Format(instr, "vsub.F32 'qd, 'qn, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.data_[i].f = s8n.data_[i].f - s8m.data_[i].f;
+      }
+    } else if ((instr->Bits(8, 4) == 9) && (instr->Bit(4) == 1) &&
+               (instr->Bits(23, 2) == 0)) {
+      // Format(instr, "vmul.'sz 'qd, 'qn, 'qm");
+      const int size = instr->Bits(20, 2);
+      if (size == 0) {
+        for (int i = 0; i < 16; i++) {
+          s8d_8[i] = s8n_8[i] * s8m_8[i];
+        }
+      } else if (size == 1) {
+        for (int i = 0; i < 8; i++) {
+          s8d_16[i] = s8n_16[i] * s8m_16[i];
+        }
+      } else if (size == 2) {
+        for (int i = 0; i < 4; i++) {
+          s8d.data_[i].u = s8n.data_[i].u * s8m.data_[i].u;
+        }
+      } else if (size == 3) {
+        UnimplementedInstruction(instr);
+      } else {
+        UNREACHABLE();
+      }
+    } else if ((instr->Bits(8, 4) == 13) && (instr->Bit(4) == 1) &&
+               (instr->Bits(23, 2) == 2) && (instr->Bit(21) == 0)) {
+      // Format(instr, "vmul.F32 'qd, 'qn, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.data_[i].f = s8n.data_[i].f * s8m.data_[i].f;
       }
     } else {
       UnimplementedInstruction(instr);

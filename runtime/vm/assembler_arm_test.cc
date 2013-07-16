@@ -1600,14 +1600,22 @@ ASSEMBLER_TEST_GENERATE(Vaddqi8, assembler) {
   if (CPUFeatures::neon_supported()) {
     __ mov(R0, ShifterOperand(1));
     __ vmovsr(S0, R0);
+    __ mov(R0, ShifterOperand(2));
     __ vmovsr(S1, R0);
+    __ mov(R0, ShifterOperand(3));
     __ vmovsr(S2, R0);
+    __ mov(R0, ShifterOperand(4));
     __ vmovsr(S3, R0);
+    __ mov(R0, ShifterOperand(5));
     __ vmovsr(S4, R0);
+    __ mov(R0, ShifterOperand(6));
     __ vmovsr(S5, R0);
+    __ mov(R0, ShifterOperand(7));
     __ vmovsr(S6, R0);
+    __ mov(R0, ShifterOperand(8));
     __ vmovsr(S7, R0);
 
+    // TODO(zra): Replace 0 with enum value that implies 1-byte elements.
     __ vaddqi(0, Q2, Q0, Q1);
 
     __ vmovrs(R0, S8);
@@ -1620,7 +1628,7 @@ ASSEMBLER_TEST_GENERATE(Vaddqi8, assembler) {
     __ add(R0, R0, ShifterOperand(R3));
     __ bx(LR);
   } else {
-    __ LoadImmediate(R0, 8);
+    __ LoadImmediate(R0, 36);
     __ bx(LR);
   }
 }
@@ -1629,7 +1637,7 @@ ASSEMBLER_TEST_GENERATE(Vaddqi8, assembler) {
 ASSEMBLER_TEST_RUN(Vaddqi8, test) {
   EXPECT(test != NULL);
   typedef int (*Tst)();
-  EXPECT_EQ(8, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+  EXPECT_EQ(36, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
 
 
@@ -1637,14 +1645,22 @@ ASSEMBLER_TEST_GENERATE(Vaddqi16, assembler) {
   if (CPUFeatures::neon_supported()) {
     __ mov(R0, ShifterOperand(1));
     __ vmovsr(S0, R0);
+    __ mov(R0, ShifterOperand(2));
     __ vmovsr(S1, R0);
+    __ mov(R0, ShifterOperand(3));
     __ vmovsr(S2, R0);
+    __ mov(R0, ShifterOperand(4));
     __ vmovsr(S3, R0);
+    __ mov(R0, ShifterOperand(5));
     __ vmovsr(S4, R0);
+    __ mov(R0, ShifterOperand(6));
     __ vmovsr(S5, R0);
+    __ mov(R0, ShifterOperand(7));
     __ vmovsr(S6, R0);
+    __ mov(R0, ShifterOperand(8));
     __ vmovsr(S7, R0);
 
+    // TODO(zra): Replace 1 with enum value that implies 2-byte elements.
     __ vaddqi(1, Q2, Q0, Q1);
 
     __ vmovrs(R0, S8);
@@ -1657,7 +1673,7 @@ ASSEMBLER_TEST_GENERATE(Vaddqi16, assembler) {
     __ add(R0, R0, ShifterOperand(R3));
     __ bx(LR);
   } else {
-    __ LoadImmediate(R0, 8);
+    __ LoadImmediate(R0, 36);
     __ bx(LR);
   }
 }
@@ -1666,7 +1682,7 @@ ASSEMBLER_TEST_GENERATE(Vaddqi16, assembler) {
 ASSEMBLER_TEST_RUN(Vaddqi16, test) {
   EXPECT(test != NULL);
   typedef int (*Tst)();
-  EXPECT_EQ(8, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+  EXPECT_EQ(36, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
 
 
@@ -1674,14 +1690,22 @@ ASSEMBLER_TEST_GENERATE(Vaddqi32, assembler) {
   if (CPUFeatures::neon_supported()) {
     __ mov(R0, ShifterOperand(1));
     __ vmovsr(S0, R0);
+    __ mov(R0, ShifterOperand(2));
     __ vmovsr(S1, R0);
+    __ mov(R0, ShifterOperand(3));
     __ vmovsr(S2, R0);
+    __ mov(R0, ShifterOperand(4));
     __ vmovsr(S3, R0);
+    __ mov(R0, ShifterOperand(5));
     __ vmovsr(S4, R0);
+    __ mov(R0, ShifterOperand(6));
     __ vmovsr(S5, R0);
+    __ mov(R0, ShifterOperand(7));
     __ vmovsr(S6, R0);
+    __ mov(R0, ShifterOperand(8));
     __ vmovsr(S7, R0);
 
+    // TODO(zra): Replace 2 with enum value that implies 4-byte elements.
     __ vaddqi(2, Q2, Q0, Q1);
 
     __ vmovrs(R0, S8);
@@ -1694,7 +1718,7 @@ ASSEMBLER_TEST_GENERATE(Vaddqi32, assembler) {
     __ add(R0, R0, ShifterOperand(R3));
     __ bx(LR);
   } else {
-    __ LoadImmediate(R0, 8);
+    __ LoadImmediate(R0, 36);
     __ bx(LR);
   }
 }
@@ -1703,7 +1727,7 @@ ASSEMBLER_TEST_GENERATE(Vaddqi32, assembler) {
 ASSEMBLER_TEST_RUN(Vaddqi32, test) {
   EXPECT(test != NULL);
   typedef int (*Tst)();
-  EXPECT_EQ(8, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+  EXPECT_EQ(36, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
 
 
@@ -1711,10 +1735,14 @@ ASSEMBLER_TEST_GENERATE(Vaddqi64, assembler) {
   if (CPUFeatures::neon_supported()) {
     __ mov(R0, ShifterOperand(1));
     __ vmovsr(S0, R0);
+    __ mov(R0, ShifterOperand(2));
     __ vmovsr(S2, R0);
+    __ mov(R0, ShifterOperand(3));
     __ vmovsr(S4, R0);
+    __ mov(R0, ShifterOperand(4));
     __ vmovsr(S6, R0);
 
+    // TODO(zra): Replace 3 with enum value that implies 8-byte elements.
     __ vaddqi(3, Q2, Q0, Q1);
 
     __ vmovrs(R0, S8);
@@ -1723,7 +1751,7 @@ ASSEMBLER_TEST_GENERATE(Vaddqi64, assembler) {
     __ add(R0, R0, ShifterOperand(R2));
     __ bx(LR);
   } else {
-    __ LoadImmediate(R0, 4);
+    __ LoadImmediate(R0, 10);
     __ bx(LR);
   }
 }
@@ -1732,20 +1760,323 @@ ASSEMBLER_TEST_GENERATE(Vaddqi64, assembler) {
 ASSEMBLER_TEST_RUN(Vaddqi64, test) {
   EXPECT(test != NULL);
   typedef int (*Tst)();
-  EXPECT_EQ(4, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+  EXPECT_EQ(10, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vsubqi8, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ mov(R0, ShifterOperand(1));
+    __ vmovsr(S0, R0);
+    __ mov(R0, ShifterOperand(2));
+    __ vmovsr(S1, R0);
+    __ mov(R0, ShifterOperand(3));
+    __ vmovsr(S2, R0);
+    __ mov(R0, ShifterOperand(4));
+    __ vmovsr(S3, R0);
+    __ mov(R0, ShifterOperand(2));
+    __ vmovsr(S4, R0);
+    __ mov(R0, ShifterOperand(4));
+    __ vmovsr(S5, R0);
+    __ mov(R0, ShifterOperand(6));
+    __ vmovsr(S6, R0);
+    __ mov(R0, ShifterOperand(8));
+    __ vmovsr(S7, R0);
+
+    // TODO(zra): Replace 0 with enum value that implies 1-byte elements.
+    __ vsubqi(0, Q2, Q1, Q0);
+
+    __ vmovrs(R0, S8);
+    __ vmovrs(R1, S9);
+    __ vmovrs(R2, S10);
+    __ vmovrs(R3, S11);
+
+    __ add(R0, R0, ShifterOperand(R1));
+    __ add(R0, R0, ShifterOperand(R2));
+    __ add(R0, R0, ShifterOperand(R3));
+    __ bx(LR);
+  } else {
+    __ LoadImmediate(R0, 10);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vsubqi8, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(10, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vsubqi16, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ mov(R0, ShifterOperand(1));
+    __ vmovsr(S0, R0);
+    __ mov(R0, ShifterOperand(2));
+    __ vmovsr(S1, R0);
+    __ mov(R0, ShifterOperand(3));
+    __ vmovsr(S2, R0);
+    __ mov(R0, ShifterOperand(4));
+    __ vmovsr(S3, R0);
+    __ mov(R0, ShifterOperand(2));
+    __ vmovsr(S4, R0);
+    __ mov(R0, ShifterOperand(4));
+    __ vmovsr(S5, R0);
+    __ mov(R0, ShifterOperand(6));
+    __ vmovsr(S6, R0);
+    __ mov(R0, ShifterOperand(8));
+    __ vmovsr(S7, R0);
+
+    // TODO(zra): Replace 1 with enum value that implies 2-byte elements.
+    __ vsubqi(1, Q2, Q1, Q0);
+
+    __ vmovrs(R0, S8);
+    __ vmovrs(R1, S9);
+    __ vmovrs(R2, S10);
+    __ vmovrs(R3, S11);
+
+    __ add(R0, R0, ShifterOperand(R1));
+    __ add(R0, R0, ShifterOperand(R2));
+    __ add(R0, R0, ShifterOperand(R3));
+    __ bx(LR);
+  } else {
+    __ LoadImmediate(R0, 10);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vsubqi16, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(10, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vsubqi32, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ mov(R0, ShifterOperand(1));
+    __ vmovsr(S0, R0);
+    __ mov(R0, ShifterOperand(2));
+    __ vmovsr(S1, R0);
+    __ mov(R0, ShifterOperand(3));
+    __ vmovsr(S2, R0);
+    __ mov(R0, ShifterOperand(4));
+    __ vmovsr(S3, R0);
+    __ mov(R0, ShifterOperand(2));
+    __ vmovsr(S4, R0);
+    __ mov(R0, ShifterOperand(4));
+    __ vmovsr(S5, R0);
+    __ mov(R0, ShifterOperand(6));
+    __ vmovsr(S6, R0);
+    __ mov(R0, ShifterOperand(8));
+    __ vmovsr(S7, R0);
+
+    // TODO(zra): Replace 2 with enum value that implies 4-byte elements.
+    __ vsubqi(2, Q2, Q1, Q0);
+
+    __ vmovrs(R0, S8);
+    __ vmovrs(R1, S9);
+    __ vmovrs(R2, S10);
+    __ vmovrs(R3, S11);
+
+    __ add(R0, R0, ShifterOperand(R1));
+    __ add(R0, R0, ShifterOperand(R2));
+    __ add(R0, R0, ShifterOperand(R3));
+    __ bx(LR);
+  } else {
+    __ LoadImmediate(R0, 10);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vsubqi32, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(10, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vsubqi64, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ mov(R0, ShifterOperand(1));
+    __ vmovsr(S0, R0);
+    __ mov(R0, ShifterOperand(2));
+    __ vmovsr(S2, R0);
+    __ mov(R0, ShifterOperand(2));
+    __ vmovsr(S4, R0);
+    __ mov(R0, ShifterOperand(4));
+    __ vmovsr(S6, R0);
+
+    // TODO(zra): Replace 3 with enum value that implies 8-byte elements.
+    __ vsubqi(3, Q2, Q1, Q0);
+
+    __ vmovrs(R0, S8);
+    __ vmovrs(R2, S10);
+
+    __ add(R0, R0, ShifterOperand(R2));
+    __ bx(LR);
+  } else {
+    __ LoadImmediate(R0, 3);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vsubqi64, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(3, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vmulqi8, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ mov(R0, ShifterOperand(1));
+    __ vmovsr(S0, R0);
+    __ mov(R0, ShifterOperand(2));
+    __ vmovsr(S1, R0);
+    __ mov(R0, ShifterOperand(3));
+    __ vmovsr(S2, R0);
+    __ mov(R0, ShifterOperand(4));
+    __ vmovsr(S3, R0);
+    __ mov(R0, ShifterOperand(5));
+    __ vmovsr(S4, R0);
+    __ mov(R0, ShifterOperand(6));
+    __ vmovsr(S5, R0);
+    __ mov(R0, ShifterOperand(7));
+    __ vmovsr(S6, R0);
+    __ mov(R0, ShifterOperand(8));
+    __ vmovsr(S7, R0);
+
+    // TODO(zra): Replace 0 with enum value that implies 1-byte elements.
+    __ vmulqi(0, Q2, Q1, Q0);
+
+    __ vmovrs(R0, S8);
+    __ vmovrs(R1, S9);
+    __ vmovrs(R2, S10);
+    __ vmovrs(R3, S11);
+
+    __ add(R0, R0, ShifterOperand(R1));
+    __ add(R0, R0, ShifterOperand(R2));
+    __ add(R0, R0, ShifterOperand(R3));
+    __ bx(LR);
+  } else {
+    __ LoadImmediate(R0, 70);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vmulqi8, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(70, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vmulqi16, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ mov(R0, ShifterOperand(1));
+    __ vmovsr(S0, R0);
+    __ mov(R0, ShifterOperand(2));
+    __ vmovsr(S1, R0);
+    __ mov(R0, ShifterOperand(3));
+    __ vmovsr(S2, R0);
+    __ mov(R0, ShifterOperand(4));
+    __ vmovsr(S3, R0);
+    __ mov(R0, ShifterOperand(5));
+    __ vmovsr(S4, R0);
+    __ mov(R0, ShifterOperand(6));
+    __ vmovsr(S5, R0);
+    __ mov(R0, ShifterOperand(7));
+    __ vmovsr(S6, R0);
+    __ mov(R0, ShifterOperand(8));
+    __ vmovsr(S7, R0);
+
+    // TODO(zra): Replace 1 with enum value that implies 2-byte elements.
+    __ vmulqi(1, Q2, Q1, Q0);
+
+    __ vmovrs(R0, S8);
+    __ vmovrs(R1, S9);
+    __ vmovrs(R2, S10);
+    __ vmovrs(R3, S11);
+
+    __ add(R0, R0, ShifterOperand(R1));
+    __ add(R0, R0, ShifterOperand(R2));
+    __ add(R0, R0, ShifterOperand(R3));
+    __ bx(LR);
+  } else {
+    __ LoadImmediate(R0, 70);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vmulqi16, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(70, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vmulqi32, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ mov(R0, ShifterOperand(1));
+    __ vmovsr(S0, R0);
+    __ mov(R0, ShifterOperand(2));
+    __ vmovsr(S1, R0);
+    __ mov(R0, ShifterOperand(3));
+    __ vmovsr(S2, R0);
+    __ mov(R0, ShifterOperand(4));
+    __ vmovsr(S3, R0);
+    __ mov(R0, ShifterOperand(5));
+    __ vmovsr(S4, R0);
+    __ mov(R0, ShifterOperand(6));
+    __ vmovsr(S5, R0);
+    __ mov(R0, ShifterOperand(7));
+    __ vmovsr(S6, R0);
+    __ mov(R0, ShifterOperand(8));
+    __ vmovsr(S7, R0);
+
+    // TODO(zra): Replace 2 with enum value that implies 4-byte elements.
+    __ vmulqi(2, Q2, Q1, Q0);
+
+    __ vmovrs(R0, S8);
+    __ vmovrs(R1, S9);
+    __ vmovrs(R2, S10);
+    __ vmovrs(R3, S11);
+
+    __ add(R0, R0, ShifterOperand(R1));
+    __ add(R0, R0, ShifterOperand(R2));
+    __ add(R0, R0, ShifterOperand(R3));
+    __ bx(LR);
+  } else {
+    __ LoadImmediate(R0, 70);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vmulqi32, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(70, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
 
 
 ASSEMBLER_TEST_GENERATE(Vaddqs, assembler) {
   if (CPUFeatures::neon_supported()) {
     __ LoadSImmediate(S0, 1.0);
-    __ vmovs(S1, S0);
-    __ vmovs(S2, S0);
-    __ vmovs(S3, S0);
-    __ vmovs(S4, S0);
-    __ vmovs(S5, S0);
-    __ vmovs(S6, S0);
-    __ vmovs(S7, S0);
+    __ LoadSImmediate(S1, 2.0);
+    __ LoadSImmediate(S2, 3.0);
+    __ LoadSImmediate(S3, 4.0);
+    __ LoadSImmediate(S4, 5.0);
+    __ LoadSImmediate(S5, 6.0);
+    __ LoadSImmediate(S6, 7.0);
+    __ LoadSImmediate(S7, 8.0);
 
     __ vaddqs(Q2, Q0, Q1);
 
@@ -1758,7 +2089,7 @@ ASSEMBLER_TEST_GENERATE(Vaddqs, assembler) {
 
     __ bx(LR);
   } else {
-    __ LoadImmediate(R0, 8);
+    __ LoadImmediate(R0, 36);
     __ bx(LR);
   }
 }
@@ -1767,7 +2098,77 @@ ASSEMBLER_TEST_GENERATE(Vaddqs, assembler) {
 ASSEMBLER_TEST_RUN(Vaddqs, test) {
   EXPECT(test != NULL);
   typedef int (*Tst)();
-  EXPECT_EQ(8, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+  EXPECT_EQ(36, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vsubqs, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ LoadSImmediate(S0, 1.0);
+    __ LoadSImmediate(S1, 2.0);
+    __ LoadSImmediate(S2, 3.0);
+    __ LoadSImmediate(S3, 4.0);
+    __ LoadSImmediate(S4, 2.0);
+    __ LoadSImmediate(S5, 4.0);
+    __ LoadSImmediate(S6, 6.0);
+    __ LoadSImmediate(S7, 8.0);
+
+    __ vsubqs(Q2, Q1, Q0);
+
+    __ vadds(S8, S8, S9);
+    __ vadds(S8, S8, S10);
+    __ vadds(S8, S8, S11);
+
+    __ vcvtis(S0, S8);
+    __ vmovrs(R0, S0);
+
+    __ bx(LR);
+  } else {
+    __ LoadImmediate(R0, 10);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vsubqs, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(10, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vmulqs, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ LoadSImmediate(S0, 1.0);
+    __ LoadSImmediate(S1, 2.0);
+    __ LoadSImmediate(S2, 3.0);
+    __ LoadSImmediate(S3, 4.0);
+    __ LoadSImmediate(S4, 5.0);
+    __ LoadSImmediate(S5, 6.0);
+    __ LoadSImmediate(S6, 7.0);
+    __ LoadSImmediate(S7, 8.0);
+
+    __ vmulqs(Q2, Q1, Q0);
+
+    __ vadds(S8, S8, S9);
+    __ vadds(S8, S8, S10);
+    __ vadds(S8, S8, S11);
+
+    __ vcvtis(S0, S8);
+    __ vmovrs(R0, S0);
+
+    __ bx(LR);
+  } else {
+    __ LoadImmediate(R0, 70);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vmulqs, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(70, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
 
 
