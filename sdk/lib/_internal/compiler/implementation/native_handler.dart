@@ -53,7 +53,7 @@ class NativeEnqueuer {
   NativeBehavior getNativeBehaviorOf(Send node) => NativeBehavior.NONE;
 
   /// Returns whether native classes are being used.
-  bool hasNativeClasses() => false;
+  bool hasInstantiatedNativeClasses() => false;
 
   /**
    * Handles JS-calls, which can be an instantiation point for types.
@@ -84,7 +84,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   final Set<ClassElement> pendingClasses = new Set<ClassElement>();
   final Set<ClassElement> unusedClasses = new Set<ClassElement>();
 
-  bool hasNativeClasses() => !registeredClasses.isEmpty;
+  bool hasInstantiatedNativeClasses() => !registeredClasses.isEmpty;
 
   /**
    * Records matched constraints ([SpecialType] or [DartType]).  Once a type

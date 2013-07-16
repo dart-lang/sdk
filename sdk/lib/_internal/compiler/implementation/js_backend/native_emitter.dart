@@ -152,6 +152,11 @@ class NativeEmitter {
     Set<ClassElement> nonleafClasses = new Set<ClassElement>();
     neededClasses.add(compiler.objectClass);
 
+    Set<ClassElement> neededByConstant =
+        emitter.interceptorsReferencedFromConstants();
+    Set<ClassElement> modifiedClasses =
+        emitter.classesModifiedByEmitRuntimeTypeSupport();
+
     for (ClassElement classElement in preOrder.reversed) {
       // Post-order traversal ensures we visit the subclasses before their
       // superclass.  This makes it easy to tell if a class is needed because a
@@ -165,10 +170,11 @@ class NativeEmitter {
         needed = true;
       } else if (!builder.isTrivial) {
         needed = true;
-      } else {
-        // TODO(9556): We can't remove any unneeded classes until the class
-        // builders contain all the information.  [emitRuntimeTypeSupport] must
-        // no longer add information to a class definition.
+      } else if (neededByConstant.contains(classElement)) {
+        needed = true;
+      } else if (modifiedClasses.contains(classElement)) {
+        // TODO(9556): Remove this test when [emitRuntimeTypeSupport] no longer
+        // adds information to a class prototype or constructor.
         needed = true;
       }
 
@@ -207,21 +213,24 @@ class NativeEmitter {
       }
     }
 
-    // Emit code to set up dispatch data that maps tags to the interceptors.
-
-    void generateDefines(ClassElement classElement) {
-      generateDefineNativeMethods(leafTags[classElement], classElement,
-          defineNativeMethodsName);
-      generateDefineNativeMethods(nonleafTags[classElement], classElement,
-          defineNativeMethodsNonleafName);
-    }
-    generateDefines(backend.jsInterceptorClass);
-    for (ClassElement classElement in classes) {
-      generateDefines(classElement);
+    // Emit code to set up dispatch data that maps tags to the interceptors, but
+    // only if native classes are actually instantiated.
+    if (compiler.enqueuer.codegen.nativeEnqueuer
+        .hasInstantiatedNativeClasses()) {
+      void generateDefines(ClassElement classElement) {
+        generateDefineNativeMethods(leafTags[classElement], classElement,
+            defineNativeMethodsName);
+        generateDefineNativeMethods(nonleafTags[classElement], classElement,
+            defineNativeMethodsNonleafName);
+      }
+      generateDefines(backend.jsInterceptorClass);
+      for (ClassElement classElement in classes) {
+        generateDefines(classElement);
+      }
     }
 
     // Emit the native class interceptors that were actually used.
-
+    print('XX $classes  $neededClasses');
     for (ClassElement classElement in classes) {
       if (neededClasses.contains(classElement)) {
         ClassBuilder builder = builders[classElement];
@@ -260,7 +269,9 @@ class NativeEmitter {
     emitter.emitInstanceMembers(classElement, builder);
     emitter.emitIsTests(classElement, builder);
 
-    if (!hasFields && builder.properties.length == propertyCount) {
+    if (!hasFields &&
+        builder.properties.length == propertyCount &&
+        superclass is! MixinApplicationElement) {
       builder.isTrivial = true;
     }
 

@@ -672,7 +672,7 @@ class JavaScriptBackend extends Backend {
 
   void registerUseInterceptor(Enqueuer enqueuer) {
     assert(!enqueuer.isResolutionQueue);
-    if (!enqueuer.nativeEnqueuer.hasNativeClasses()) return;
+    if (!enqueuer.nativeEnqueuer.hasInstantiatedNativeClasses()) return;
     enqueuer.registerStaticUse(getNativeInterceptorMethod);
     enqueuer.registerStaticUse(defineNativeMethodsFinishMethod);
     enqueuer.registerStaticUse(initializeDispatchPropertyMethod);

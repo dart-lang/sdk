@@ -1419,6 +1419,8 @@ class CodeEmitterTask extends CompilerTask {
 
     // Add checks to the constructors of instantiated classes.
     for (ClassElement cls in typeChecks) {
+      // TODO(9556).  The properties added to 'holder' should be generated
+      // directly as properties of the class object, not added later.
       String holder = namer.isolateAccess(backend.getImplementationClass(cls));
       for (TypeCheck check in typeChecks[cls]) {
         ClassElement cls = check.cls;
@@ -1441,6 +1443,25 @@ class CodeEmitterTask extends CompilerTask {
     checkedGenericFunctionTypes.forEach((_, Set<FunctionType> functionTypes) {
       functionTypes.forEach(addSignature);
     });
+  }
+
+  /**
+   * Returns the classes with constructors used as a 'holder' in
+   * [emitRuntimeTypeSupport].
+   * TODO(9556): Some cases will go away when the class objects are created as
+   * complete.  Not all classes will go away while constructors are referenced
+   * from type substitutions.
+   */
+  Set<ClassElement> classesModifiedByEmitRuntimeTypeSupport() {
+    TypeChecks typeChecks = backend.rti.requiredChecks;
+    Set<ClassElement> result = new Set<ClassElement>();
+    for (ClassElement cls in typeChecks) {
+      for (TypeCheck check in typeChecks[cls]) {
+        result.add(backend.getImplementationClass(cls));
+        break;
+      }
+    }
+    return result;
   }
 
   /**
@@ -2017,14 +2038,7 @@ class CodeEmitterTask extends CompilerTask {
     );
 
     // Add interceptors referenced by constants.
-    ConstantHandler handler = compiler.constantHandler;
-    List<Constant> constants = handler.getConstantsForEmission();
-    for (Constant constant in constants) {
-      if (constant is InterceptorConstant) {
-        InterceptorConstant inceptorConstant = constant;
-        needed.add(inceptorConstant.dispatchedType.element);
-      }
-    }
+    needed.addAll(interceptorsReferencedFromConstants());
 
     // Add unneeded interceptors to the [unneededClasses] set.
     for (ClassElement interceptor in backend.interceptedClasses) {
@@ -2035,6 +2049,19 @@ class CodeEmitterTask extends CompilerTask {
     }
 
     return (ClassElement cls) => !unneededClasses.contains(cls);
+  }
+
+  Set<ClassElement> interceptorsReferencedFromConstants() {
+    Set<ClassElement> classes = new Set<ClassElement>();
+    ConstantHandler handler = compiler.constantHandler;
+    List<Constant> constants = handler.getConstantsForEmission();
+    for (Constant constant in constants) {
+      if (constant is InterceptorConstant) {
+        InterceptorConstant interceptorConstant = constant;
+        classes.add(interceptorConstant.dispatchedType.element);
+      }
+    }
+    return classes;
   }
 
   void emitFinishClassesInvocationIfNecessary(CodeBuffer buffer) {
@@ -2855,7 +2882,8 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
 
     if (classes == backend.interceptedClasses) {
       // I.e. this is the general interceptor.
-      hasNative = compiler.enqueuer.codegen.nativeEnqueuer.hasNativeClasses();
+      hasNative = compiler.enqueuer.codegen.nativeEnqueuer
+          .hasInstantiatedNativeClasses();
     }
 
     jsAst.Block block = new jsAst.Block.empty();
