@@ -306,6 +306,8 @@ class ContainerTracerVisitor extends InferrerVisitor {
     if (!indices.isEmpty) {
       Iterable<Element> callees;
       if (callee is Element) {
+        // No need to go further, we know the call will throw.
+        if (callee.isErroneous()) return false;
         callees = [callee];
       } else {
         assert(callee is Selector);
