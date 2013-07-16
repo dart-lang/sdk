@@ -10,14 +10,17 @@ import 'dart:io';
 
 import 'package:barback/barback.dart';
 import 'package:barback/src/asset_graph.dart';
+import 'package:barback/src/asset_graph_manager.dart';
+import 'package:barback/src/utils.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:scheduled_test/scheduled_test.dart';
+import 'package:stack_trace/stack_trace.dart';
 import 'package:unittest/compact_vm_config.dart';
 
 var _configured = false;
 
 MockProvider _provider;
-AssetGraph _graph;
+AssetGraphManager _graphManager;
 
 /// Calls to [buildShouldSucceed] and [buildShouldFail] set expectations on
 /// successive [BuildResult]s from [_graph]. This keeps track of how many calls
@@ -42,12 +45,16 @@ void initConfig() {
 /// one. If it's a [Map], each key should be a string that can be parsed to an
 /// [AssetId] and the value should be a string defining the contents of that
 /// asset.
-void initGraph([assets, Iterable<Iterable<Transformer>> transformers]) {
+///
+/// [transformers] is a map from package names to the transformers for each
+/// package.
+void initGraph([assets,
+    Map<String, Iterable<Iterable<Transformer>>> transformers]) {
   if (assets == null) assets = [];
-  if (transformers == null) transformers = [];
+  if (transformers == null) transformers = {};
 
-  _provider = new MockProvider(assets);
-  _graph = new AssetGraph(_provider, transformers);
+  _provider = new MockProvider(assets, transformers);
+  _graphManager = new AssetGraphManager(_provider);
   _nextBuildResult = 0;
 }
 
@@ -62,7 +69,7 @@ void updateSources(Iterable assets) {
     return asset;
   });
 
-  _graph.updateSources(assets);
+  _graphManager.updateSources(assets);
 }
 
 /// Removes [assets] from the current [AssetProvider].
@@ -76,7 +83,7 @@ void removeSources(Iterable assets) {
     return asset;
   });
 
-  _graph.removeSources(assets);
+  _graphManager.removeSources(assets);
 }
 
 /// Schedules a change to the contents of an asset identified by [name] to
@@ -94,7 +101,7 @@ void modifyAsset(String name, String contents) {
 /// All asset requests that the [AssetGraph] makes to the provider after this
 /// will not complete until [resumeProvider] is called.
 void pauseProvider() {
-  schedule(() =>_provider._pause(), "pause provider");
+  schedule(() => _provider._pause(), "pause provider");
 }
 
 /// Schedules an unpause of the provider after a call to [pauseProvider] and
@@ -103,9 +110,38 @@ void resumeProvider() {
   schedule(() => _provider._resume(), "resume provider");
 }
 
+/// Asserts that the current build step shouldn't have finished by this point in
+/// the schedule.
+///
+/// This uses the same build counter as [buildShouldSucceed] and
+/// [buildShouldFail], so those can be used to validate build results before and
+/// after this.
+void buildShouldNotBeDone() {
+  var resultAllowed = false;
+  var trace = new Trace.current();
+  _graphManager.results.elementAt(_nextBuildResult).then((result) {
+    if (resultAllowed) return;
+
+    currentSchedule.signalError(
+        new Exception("Expected build not to terminate "
+            "here, but it terminated with result: $result"), trace);
+  }).catchError((error) {
+    if (resultAllowed) return;
+    currentSchedule.signalError(error);
+  });
+
+  schedule(() {
+    // Pump the event queue in case the build completes out-of-band after we get
+    // here. If it does, we want to signal an error.
+    return pumpEventQueue().then((_) {
+      resultAllowed = true;
+    });
+  }, "ensuring build doesn't terminate");
+}
+
 /// Expects that the next [BuildResult] is a build success.
 void buildShouldSucceed() {
-  expect(_graph.results.elementAt(_nextBuildResult++).then((result) {
+  expect(_getNextBuildResult().then((result) {
     expect(result.succeeded, isTrue);
   }), completes);
 }
@@ -116,7 +152,7 @@ void buildShouldSucceed() {
 /// build to fail. Every matcher is expected to match an error, but the order of
 /// matchers is unimportant.
 void buildShouldFail(List matchers) {
-  expect(_graph.results.elementAt(_nextBuildResult++).then((result) {
+  expect(_getNextBuildResult().then((result) {
     expect(result.succeeded, isFalse);
     expect(result.errors.length, equals(matchers.length));
     for (var matcher in matchers) {
@@ -125,12 +161,15 @@ void buildShouldFail(List matchers) {
   }), completes);
 }
 
+Future<BuildResult> _getNextBuildResult() =>
+  _graphManager.results.elementAt(_nextBuildResult++);
+
 /// Pauses the schedule until the currently running build completes.
 ///
 /// Validates that the build completed successfully.
 void waitForBuild() {
   schedule(() {
-    return _graph.results.first.then((result) {
+    return _graphManager.results.first.then((result) {
       expect(result.succeeded, isTrue);
     });
   }, "wait for build");
@@ -149,7 +188,7 @@ void expectAsset(String name, [String contents]) {
   }
 
   schedule(() {
-    return _graph.getAssetById(id).then((asset) {
+    return _graphManager.getAssetById(id).then((asset) {
       // TODO(rnystrom): Make an actual Matcher class for this.
       expect(asset, new isInstanceOf<MockAsset>());
       expect(asset.id, equals(id));
@@ -165,29 +204,13 @@ void expectNoAsset(String name) {
 
   // Make sure the future gets the error.
   schedule(() {
-    return _graph.getAssetById(id).then((asset) {
+    return _graphManager.getAssetById(id).then((asset) {
       fail("Should have thrown error but got $asset.");
     }).catchError((error) {
       expect(error, new isInstanceOf<AssetNotFoundException>());
       expect(error.id, equals(id));
     });
   }, "get asset $name");
-}
-
-/// Schedules an expectation that [graph] will have an error on an asset
-/// matching [name] for missing [input].
-Future expectMissingInput(AssetGraph graph, String name, String input) {
-  var missing = new AssetId.parse(input);
-
-  // Make sure the future gets the error.
-  schedule(() {
-    return graph.getAssetById(new AssetId.parse(name)).then((asset) {
-      fail("Should have thrown error but got $asset.");
-    }).catchError((error) {
-      expect(error, new isInstanceOf<MissingInputException>());
-      expect(error.id, equals(missing));
-    });
-  }, "get missing input on $name");
 }
 
 /// Returns a matcher for an [AssetNotFoundException] with the given [id].
@@ -214,11 +237,21 @@ Matcher isMissingInputException(String name) {
       predicate((error) => error.id == id, 'id is $name'));
 }
 
+/// Returns a matcher for an [InvalidOutputException] with the given id and
+/// package name.
+Matcher isInvalidOutputException(String package, String name) {
+  var id = new AssetId.parse(name);
+  return allOf(
+      new isInstanceOf<InvalidOutputException>(),
+      predicate((error) => error.package == package, 'package is $package'),
+      predicate((error) => error.id == id, 'id is $name'));
+}
+
 /// An [AssetProvider] that provides the given set of assets.
 class MockProvider implements AssetProvider {
   Iterable<String> get packages => _packages.keys;
 
-  final _packages = new Map<String, List<MockAsset>>();
+  Map<String, _MockPackage> _packages;
 
   /// The completer that [getAsset()] is waiting on to complete when paused.
   ///
@@ -238,26 +271,38 @@ class MockProvider implements AssetProvider {
     _pauseCompleter = null;
   }
 
-  MockProvider(assets) {
+  MockProvider(assets,
+      Map<String, Iterable<Iterable<Transformer>>> transformers) {
+    var assetList;
     if (assets is Map) {
-      assets.forEach((asset, contents) {
+      assetList = assets.keys.map((asset) {
         var id = new AssetId.parse(asset);
-        var package = _packages.putIfAbsent(id.package, () => []);
-        package.add(new MockAsset(id, contents));
+        return new MockAsset(id, assets[asset]);
       });
     } else if (assets is Iterable) {
-      for (var asset in assets) {
+      assetList = assets.map((asset) {
         var id = new AssetId.parse(asset);
-        var package = _packages.putIfAbsent(id.package, () => []);
         var contents = pathos.basenameWithoutExtension(id.path);
-        package.add(new MockAsset(id, contents));
-      }
+        return new MockAsset(id, contents);
+      });
     }
+
+    _packages = mapMapValues(groupBy(assetList, (asset) => asset.id.package),
+        (package, assets) {
+      var packageTransformers = transformers[package];
+      if (packageTransformers == null) packageTransformers = [];
+      return new _MockPackage(assets, packageTransformers.toList());
+    });
+
+    // If there are no assets or transformers, add a dummy package. This better
+    // simulates the real world, where there'll always be at least the
+    // entrypoint package.
+    if (_packages.isEmpty) _packages = {"app": new _MockPackage([], [])};
   }
 
   void _modifyAsset(String name, String contents) {
     var id = new AssetId.parse(name);
-    var asset = _packages[id.package].firstWhere((a) => a.id == id);
+    var asset = _packages[id.package].assets.firstWhere((a) => a.id == id);
     asset.contents = contents;
   }
 
@@ -266,7 +311,15 @@ class MockProvider implements AssetProvider {
       throw new UnimplementedError("Doesn't handle 'within' yet.");
     }
 
-    return _packages[package].map((asset) => asset.id);
+    return _packages[package].assets.map((asset) => asset.id);
+  }
+
+  Iterable<Iterable<Transformer>> getTransformers(String package) {
+    var mockPackage = _packages[package];
+    if (mockPackage == null) {
+      throw new ArgumentError("No package named $package.");
+    }
+    return mockPackage.transformers;
   }
 
   Future<Asset> getAsset(AssetId id) {
@@ -281,10 +334,20 @@ class MockProvider implements AssetProvider {
       var package = _packages[id.package];
       if (package == null) throw new AssetNotFoundException(id);
 
-      return package.firstWhere((asset) => asset.id == id,
+      return package.assets.firstWhere((asset) => asset.id == id,
           orElse: () => throw new AssetNotFoundException(id));
     });
   }
+}
+
+/// Used by [MockProvider] to keep track of which assets and transformers exist
+/// for each package.
+class _MockPackage {
+  final List<MockAsset> assets;
+  final List<List<Transformer>> transformers;
+
+  _MockPackage(this.assets, Iterable<Iterable<Transformer>> transformers)
+      : transformers = transformers.map((phase) => phase.toList()).toList();
 }
 
 /// A [Transformer] that takes assets ending with one extension and generates
@@ -462,6 +525,21 @@ class BadTransformer extends Transformer {
 
       // Then fail.
       throw ERROR;
+    });
+  }
+}
+
+/// A transformer that outputs an asset with the given id.
+class CreateAssetTransformer extends Transformer {
+  final String output;
+
+  CreateAssetTransformer(this.output);
+
+  Future<bool> isPrimary(Asset asset) => new Future.value(true);
+
+  Future apply(Transform transform) {
+    return new Future(() {
+      transform.addOutput(new MockAsset(new AssetId.parse(output), output));
     });
   }
 }

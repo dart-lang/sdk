@@ -8,7 +8,10 @@ import 'dart:async';
 
 import 'asset.dart';
 import 'asset_id.dart';
+import 'transformer.dart';
 
+// TODO(nweiz): change the name of this class now that it provides more than
+// just assets.
 /// API for locating and accessing packages on disk.
 ///
 /// Implemented by pub and provided to barback so that it isn't coupled
@@ -27,6 +30,12 @@ abstract class AssetProvider {
   /// You can pass [within], which should be the relative path to a directory
   /// within the package, to only return the files within that subdirectory.
   List<AssetId> listAssets(String package, {String within});
+
+  /// Returns the list of transformer phases that are applicable to [package].
+  ///
+  /// The phases will be run in sequence, with the outputs of one pipelined into
+  /// the next. All [Transformer]s in a single phase will be run in parallel.
+  Iterable<Iterable<Transformer>> getTransformers(String package);
 
   Future<Asset> getAsset(AssetId id);
 }

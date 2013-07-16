@@ -36,3 +36,14 @@ class MissingInputException implements Exception {
 
   String toString() => "Missing input $id.";
 }
+
+/// Error thrown when a transformer outputs an asset with the wrong package
+/// name.
+class InvalidOutputException implements Exception {
+  final String package;
+  final AssetId id;
+
+  InvalidOutputException(this.package, this.id);
+
+  String toString() => "Invalid output $id: must be in package $package.";
+}

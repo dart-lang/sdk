@@ -16,35 +16,43 @@ main() {
   initConfig();
 
   test("errors if two transformers output the same file", () {
-    initGraph(["app|foo.a"], [
+    initGraph(["app|foo.a"], {"app": [
       [
         new RewriteTransformer("a", "b"),
         new RewriteTransformer("a", "b")
       ]
-    ]);
+    ]});
     updateSources(["app|foo.a"]);
 
     buildShouldFail([isAssetCollisionException("app|foo.b")]);
   });
 
   test("does not report asset not found errors in results", () {
-    initGraph();
+    initGraph(["app|bar.txt"]);
+
+    // Trigger a build.
+    updateSources(["app|bar.txt"]);
 
     expectNoAsset("app|foo.txt");
     buildShouldSucceed();
   });
 
-  test("reports an error for an unprovided source", () {
+  test("reports an error for an unprovided package", () {
     initGraph();
+    expect(() => updateSources(["unknown|foo.txt"]), throwsArgumentError);
+  });
+
+  test("reports an error for an unprovided source", () {
+    initGraph(["app|known.txt"]);
     updateSources(["app|unknown.txt"]);
 
     buildShouldFail([isAssetNotFoundException("app|unknown.txt")]);
   });
 
   test("reports missing input errors in results", () {
-    initGraph({"app|a.txt": "a.inc"}, [
+    initGraph({"app|a.txt": "a.inc"}, {"app": [
       [new ManyToOneTransformer("txt")]
-    ]);
+    ]});
 
     buildShouldFail([isMissingInputException("app|a.inc")]);
 
@@ -53,15 +61,26 @@ main() {
     expectNoAsset("app|a.out");
   });
 
+  test("reports an error if a transformer emits an asset for another package",
+      () {
+    initGraph(["app|foo.txt"], {
+      "app": [[new CreateAssetTransformer("wrong|foo.txt")]]
+    });
+
+    buildShouldFail([isInvalidOutputException("app", "wrong|foo.txt")]);
+
+    updateSources(["app|foo.txt"]);
+  });
+
   test("fails if a non-primary input is removed", () {
     initGraph({
       "app|a.txt": "a.inc,b.inc,c.inc",
       "app|a.inc": "a",
       "app|b.inc": "b",
       "app|c.inc": "c"
-    }, [
+    }, {"app": [
       [new ManyToOneTransformer("txt")]
-    ]);
+    ]});
 
     updateSources(["app|a.txt", "app|a.inc", "app|b.inc", "app|c.inc"]);
     expectAsset("app|a.out", "abc");
@@ -76,9 +95,9 @@ main() {
   });
 
   test("catches transformer exceptions and reports them", () {
-    initGraph(["app|foo.txt"], [
+    initGraph(["app|foo.txt"], {"app": [
       [new BadTransformer(["app|foo.out"])]
-    ]);
+    ]});
 
     schedule(() {
       updateSources(["app|foo.txt"]);
@@ -92,9 +111,9 @@ main() {
   // TODO(rnystrom): Is this the behavior we expect? If a transformer fails
   // to transform a file, should we just skip past it to the source?
   test("yields a source if a transform fails on it", () {
-    initGraph(["app|foo.txt"], [
+    initGraph(["app|foo.txt"], {"app": [
       [new BadTransformer(["app|foo.txt"])]
-    ]);
+    ]});
 
     schedule(() {
       updateSources(["app|foo.txt"]);
@@ -104,7 +123,7 @@ main() {
   });
 
   test("catches errors even if nothing is waiting for process results", () {
-    initGraph(["app|foo.txt"], [[new BadTransformer([])]]);
+    initGraph(["app|foo.txt"], {"app": [[new BadTransformer([])]]});
 
     schedule(() {
       updateSources(["app|foo.txt"]);
@@ -116,14 +135,42 @@ main() {
   });
 
   test("discards outputs from failed transforms", () {
-    initGraph(["app|foo.txt"], [
+    initGraph(["app|foo.txt"], {"app": [
       [new BadTransformer(["a.out", "b.out"])]
-    ]);
+    ]});
 
     schedule(() {
       updateSources(["app|foo.txt"]);
     });
 
     expectNoAsset("app|a.out");
+  });
+
+  test("fails if only one package fails", () {
+    initGraph(["pkg1|foo.txt", "pkg2|foo.txt"],
+        {"pkg1": [[new BadTransformer([])]]});
+
+    schedule(() {
+      updateSources(["pkg1|foo.txt", "pkg2|foo.txt"]);
+    });
+
+    expectAsset("pkg2|foo.txt", "foo");
+    buildShouldFail([equals(BadTransformer.ERROR)]);
+  });
+
+  test("emits multiple failures if multiple packages fail", () {
+    initGraph(["pkg1|foo.txt", "pkg2|foo.txt"], {
+      "pkg1": [[new BadTransformer([])]],
+      "pkg2": [[new BadTransformer([])]]
+    });
+
+    schedule(() {
+      updateSources(["pkg1|foo.txt", "pkg2|foo.txt"]);
+    });
+
+    buildShouldFail([
+      equals(BadTransformer.ERROR),
+      equals(BadTransformer.ERROR)
+    ]);
   });
 }

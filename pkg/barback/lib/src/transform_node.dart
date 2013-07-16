@@ -86,6 +86,16 @@ class TransformNode {
 
       // See which outputs are missing from the last run.
       var outputIds = newOutputs.map((asset) => asset.id).toSet();
+      var invalidIds = outputIds
+          .where((id) => id.package != phase.graph.package).toSet();
+      outputIds.removeAll(invalidIds);
+
+      for (var id in invalidIds) {
+        // TODO(nweiz): report this as a warning rather than a failing error.
+        phase.graph.reportError(
+            new InvalidOutputException(phase.graph.package, id));
+      }
+
       var removed = _outputs.difference(outputIds);
       _outputs = outputIds;
 

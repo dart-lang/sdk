@@ -15,57 +15,57 @@ import '../utils.dart';
 main() {
   initConfig();
   test("gets a transformed asset with a different path", () {
-    initGraph(["app|foo.blub"], [
+    initGraph(["app|foo.blub"], {"app": [
       [new RewriteTransformer("blub", "blab")]
-    ]);
+    ]});
     updateSources(["app|foo.blub"]);
     expectAsset("app|foo.blab", "foo.blab");
   });
 
   test("gets a transformed asset with the same path", () {
-    initGraph(["app|foo.blub"], [
+    initGraph(["app|foo.blub"], {"app": [
       [new RewriteTransformer("blub", "blub")]
-    ]);
+    ]});
     updateSources(["app|foo.blub"]);
     expectAsset("app|foo.blub", "foo.blub");
   });
 
   test("doesn't find an output from a later phase", () {
-    initGraph(["app|foo.a"], [
+    initGraph(["app|foo.a"], {"app": [
       [new RewriteTransformer("b", "c")],
       [new RewriteTransformer("a", "b")]
-    ]);
+    ]});
     updateSources(["app|foo.a"]);
     expectNoAsset("app|foo.c");
   });
 
   test("doesn't find an output from the same phase", () {
-    initGraph(["app|foo.a"], [
+    initGraph(["app|foo.a"], {"app": [
       [
         new RewriteTransformer("a", "b"),
         new RewriteTransformer("b", "c")
       ]
-    ]);
+    ]});
     updateSources(["app|foo.a"]);
     expectAsset("app|foo.b", "foo.b");
     expectNoAsset("app|foo.c");
   });
 
   test("finds the latest output before the transformer's phase", () {
-    initGraph(["app|foo.blub"], [
+    initGraph(["app|foo.blub"], {"app": [
       [new RewriteTransformer("blub", "blub")],
       [
         new RewriteTransformer("blub", "blub"),
         new RewriteTransformer("blub", "done")
       ],
       [new RewriteTransformer("blub", "blub")]
-    ]);
+    ]});
     updateSources(["app|foo.blub"]);
     expectAsset("app|foo.done", "foo.blub.done");
   });
 
   test("applies multiple transformations to an asset", () {
-    initGraph(["app|foo.a"], [
+    initGraph(["app|foo.a"], {"app": [
       [new RewriteTransformer("a", "b")],
       [new RewriteTransformer("b", "c")],
       [new RewriteTransformer("c", "d")],
@@ -76,14 +76,14 @@ main() {
       [new RewriteTransformer("h", "i")],
       [new RewriteTransformer("i", "j")],
       [new RewriteTransformer("j", "k")],
-    ]);
+    ]});
     updateSources(["app|foo.a"]);
     expectAsset("app|foo.k", "foo.b.c.d.e.f.g.h.i.j.k");
   });
 
   test("only runs a transform once for all of its outputs", () {
     var transformer = new RewriteTransformer("blub", "a b c");
-    initGraph(["app|foo.blub"], [[transformer]]);
+    initGraph(["app|foo.blub"], {"app": [[transformer]]});
     updateSources(["app|foo.blub"]);
     expectAsset("app|foo.a", "foo.a");
     expectAsset("app|foo.b", "foo.b");
@@ -96,7 +96,7 @@ main() {
   test("runs transforms in the same phase in parallel", () {
     var transformerA = new RewriteTransformer("txt", "a");
     var transformerB = new RewriteTransformer("txt", "b");
-    initGraph(["app|foo.txt"], [[transformerA, transformerB]]);
+    initGraph(["app|foo.txt"], {"app": [[transformerA, transformerB]]});
 
     transformerA.wait();
     transformerB.wait();
@@ -123,7 +123,7 @@ main() {
 
   test("does not reapply transform when inputs are not modified", () {
     var transformer = new RewriteTransformer("blub", "blab");
-    initGraph(["app|foo.blub"], [[transformer]]);
+    initGraph(["app|foo.blub"], {"app": [[transformer]]});
     updateSources(["app|foo.blub"]);
     expectAsset("app|foo.blab", "foo.blab");
     expectAsset("app|foo.blab", "foo.blab");
@@ -136,7 +136,7 @@ main() {
 
   test("reapplies a transform when its input is modified", () {
     var transformer = new RewriteTransformer("blub", "blab");
-    initGraph(["app|foo.blub"], [[transformer]]);
+    initGraph(["app|foo.blub"], {"app": [[transformer]]});
 
     schedule(() {
       updateSources(["app|foo.blub"]);
@@ -167,7 +167,7 @@ main() {
       "app|a.txt": "a.inc,b.inc",
       "app|a.inc": "a",
       "app|b.inc": "b"
-    }, [[transformer]]);
+    }, {"app": [[transformer]]});
 
     updateSources(["app|a.txt", "app|a.inc", "app|b.inc"]);
 
@@ -195,9 +195,9 @@ main() {
   });
 
   test("allows a transform to generate multiple outputs", () {
-    initGraph({"app|foo.txt": "a.out,b.out"}, [
+    initGraph({"app|foo.txt": "a.out,b.out"}, {"app": [
       [new OneToManyTransformer("txt")]
-    ]);
+    ]});
 
     updateSources(["app|foo.txt"]);
 
@@ -210,10 +210,10 @@ main() {
     var aa = new RewriteTransformer("aa", "aaa");
     var b = new RewriteTransformer("b", "bb");
     var bb = new RewriteTransformer("bb", "bbb");
-    initGraph(["app|foo.a", "app|foo.b"], [
+    initGraph(["app|foo.a", "app|foo.b"], {"app": [
       [a, b],
       [aa, bb],
-    ]);
+    ]});
 
     updateSources(["app|foo.a"]);
     updateSources(["app|foo.b"]);
@@ -236,9 +236,9 @@ main() {
 
   test("doesn't get an output from a transform whose primary input is removed",
       () {
-    initGraph(["app|foo.txt"], [
+    initGraph(["app|foo.txt"], {"app": [
       [new RewriteTransformer("txt", "out")]
-    ]);
+    ]});
 
     updateSources(["app|foo.txt"]);
     expectAsset("app|foo.out", "foo.out");
@@ -254,7 +254,7 @@ main() {
    initGraph({
       "app|a.txt": "a.inc",
       "app|a.inc": "a"
-    }, [[new ManyToOneTransformer("txt")]]);
+    }, {"app": [[new ManyToOneTransformer("txt")]]});
 
     updateSources(["app|a.txt", "app|a.inc"]);
     expectAsset("app|a.out", "a");
@@ -269,7 +269,7 @@ main() {
 
   test("restarts processing if a change occurs during processing", () {
     var transformer = new RewriteTransformer("txt", "out");
-    initGraph(["app|foo.txt"], [[transformer]]);
+    initGraph(["app|foo.txt"], {"app": [[transformer]]});
 
     transformer.wait();
 
@@ -301,9 +301,9 @@ main() {
     initGraph({
       "app|a.a": "a.out,shared.out",
       "app|b.b": "b.out"
-    }, [
+    }, {"app": [
       [new OneToManyTransformer("a"), new OneToManyTransformer("b")]
-    ]);
+    ]});
 
     updateSources(["app|a.a", "app|b.b"]);
 
@@ -327,7 +327,8 @@ main() {
   test("restarts before finishing later phases when a change occurs", () {
     var txtToInt = new RewriteTransformer("txt", "int");
     var intToOut = new RewriteTransformer("int", "out");
-    initGraph(["app|foo.txt", "app|bar.txt"], [[txtToInt], [intToOut]]);
+    initGraph(["app|foo.txt", "app|bar.txt"],
+        {"app": [[txtToInt], [intToOut]]});
 
     txtToInt.wait();
 
@@ -355,5 +356,56 @@ main() {
       expect(txtToInt.numRuns, equals(2));
       expect(intToOut.numRuns, equals(2));
     });
+  });
+
+  test("applies transforms to the correct packages", () {
+    var rewrite1 = new RewriteTransformer("txt", "out1");
+    var rewrite2 = new RewriteTransformer("txt", "out2");
+    initGraph([
+      "pkg1|foo.txt",
+      "pkg2|foo.txt"
+    ], {"pkg1": [[rewrite1]], "pkg2": [[rewrite2]]});
+
+    updateSources(["pkg1|foo.txt", "pkg2|foo.txt"]);
+    expectAsset("pkg1|foo.out1", "foo.out1");
+    expectAsset("pkg2|foo.out2", "foo.out2");
+    buildShouldSucceed();
+  });
+
+  test("transforms don't see generated assets in other packages", () {
+    var fooToBar = new RewriteTransformer("foo", "bar");
+    var barToBaz = new RewriteTransformer("bar", "baz");
+    initGraph(["pkg1|file.foo"], {"pkg1": [[fooToBar]], "pkg2": [[barToBaz]]});
+
+    updateSources(["pkg1|file.foo"]);
+    expectAsset("pkg1|file.bar", "file.bar");
+    expectNoAsset("pkg2|file.baz");
+    buildShouldSucceed();
+  });
+
+  test("doesn't emit a result until all builds are finished", () {
+    var rewrite = new RewriteTransformer("txt", "out");
+    initGraph([
+      "pkg1|foo.txt",
+      "pkg2|foo.txt"
+    ], {"pkg1": [[rewrite]], "pkg2": [[rewrite]]});
+
+    // First, run both packages' transformers so both packages are successful.
+    updateSources(["pkg1|foo.txt", "pkg2|foo.txt"]);
+    expectAsset("pkg1|foo.out", "foo.out");
+    expectAsset("pkg2|foo.out", "foo.out");
+    buildShouldSucceed();
+
+    // pkg1 is still successful, but pkg2 is waiting on the provider, so the
+    // overall build shouldn't finish.
+    pauseProvider();
+    schedule(() => updateSources(["pkg2|foo.txt"]));
+    expectAsset("pkg1|foo.out", "foo.out");
+    buildShouldNotBeDone();
+
+    // Now that the provider is unpaused, pkg2's transforms finish and the
+    // overall build succeeds.
+    resumeProvider();
+    buildShouldSucceed();
   });
 }

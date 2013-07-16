@@ -44,9 +44,9 @@ main() {
   });
 
   test("gets a source asset if not transformed", () {
-    initGraph(["app|foo.txt"], [
+    initGraph(["app|foo.txt"], {"app": [
       [new RewriteTransformer("nottxt", "whatever")]
-    ]);
+    ]});
 
     updateSources(["app|foo.txt"]);
     expectAsset("app|foo.txt");
@@ -67,7 +67,7 @@ main() {
 
   test("collapses redundant updates", () {
     var transformer = new RewriteTransformer("blub", "blab");
-    initGraph(["app|foo.blub"], [[transformer]]);
+    initGraph(["app|foo.blub"], {"app": [[transformer]]});
 
     schedule(() {
       // Make a bunch of synchronous update calls.
@@ -108,7 +108,7 @@ main() {
 
   test("restarts a build if a source is updated while sources are loading", () {
     var transformer = new RewriteTransformer("txt", "out");
-    initGraph(["app|foo.txt", "app|other.bar"], [[transformer]]);
+    initGraph(["app|foo.txt", "app|other.bar"], {"app": [[transformer]]});
 
     // Run the whole graph so all nodes are clean.
     updateSources(["app|foo.txt", "app|other.bar"]);

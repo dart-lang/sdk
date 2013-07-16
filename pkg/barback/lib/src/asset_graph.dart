@@ -9,19 +9,27 @@ import 'dart:collection';
 
 import 'asset.dart';
 import 'asset_id.dart';
+import 'asset_graph_manager.dart';
 import 'asset_provider.dart';
 import 'asset_set.dart';
 import 'errors.dart';
 import 'change_batch.dart';
 import 'phase.dart';
 import 'transformer.dart';
+import 'utils.dart';
 
-/// The main build dependency manager.
+/// The asset manager for an individual package.
 ///
-/// For any given input file, it can tell which output files are affected by
-/// it, and vice versa.
+/// This keeps track of which transformers are applied to which assets, and
+/// re-runs those transformers when their dependencies change. The transformed
+/// assets are accessible via [getAssetById].
 class AssetGraph {
-  final AssetProvider _provider;
+  /// The name of the package whose assets are managed.
+  final String package;
+
+  /// The [AssetGraphManager] that manages the [AssetGraph]s for all
+  /// dependencies of the current app.
+  final AssetGraphManager _manager;
 
   final _phases = <Phase>[];
 
@@ -57,10 +65,10 @@ class AssetGraph {
 
   /// Creates a new [AssetGraph].
   ///
-  /// It loads source assets using [provider] and then uses [transformerPhases]
-  /// to generate output files from them.
+  /// It loads source assets within [package] using [provider] and then uses
+  /// [transformerPhases] to generate output files from them.
   //TODO(rnystrom): Better way of specifying transformers and their ordering.
-  AssetGraph(this._provider,
+  AssetGraph(this._manager, this.package,
       Iterable<Iterable<Transformer>> transformerPhases) {
     // Flatten the phases to a list so we can traverse backwards to wire up
     // each phase to its next.
@@ -84,6 +92,8 @@ class AssetGraph {
   /// it has been created and return it. If the asset cannot be found, throws
   /// [AssetNotFoundException].
   Future<Asset> getAssetById(AssetId id) {
+    assert(id.package == package);
+
     // TODO(rnystrom): Waiting for the entire build to complete is unnecessary
     // in some cases. Should optimize:
     // * [id] may be generated before the compilation is finished. We should
@@ -95,7 +105,7 @@ class AssetGraph {
     // * If [id] has never been generated and all active transformers provide
     //   metadata about the file names of assets it can emit, we can prove that
     //   none of them can emit [id] and fail early.
-    return _waitForProcess().then((_) {
+    return (_processDone == null ? new Future.value() : _processDone).then((_) {
       // Each phase's inputs are the outputs of the previous phase. Find the
       // last phase that contains the asset. Since the last phase has no
       // transformers, this will find the latest output for that id.
@@ -126,6 +136,7 @@ class AssetGraph {
   /// transforms that use it will be re-applied.
   void updateSources(Iterable<AssetId> sources) {
     if (_sourceChanges == null) _sourceChanges = new ChangeBatch();
+    assert(sources.every((id) => id.package == package));
     _sourceChanges.update(sources);
 
     _waitForProcess();
@@ -134,6 +145,7 @@ class AssetGraph {
   /// Removes [removed] from the graph's known set of source assets.
   void removeSources(Iterable<AssetId> removed) {
     if (_sourceChanges == null) _sourceChanges = new ChangeBatch();
+    assert(removed.every((id) => id.package == package));
     _sourceChanges.remove(removed);
 
     _waitForProcess();
@@ -218,7 +230,7 @@ class AssetGraph {
       var futures = [];
       for (var id in changes.updated) {
         // TODO(rnystrom): Catch all errors from provider and route to results.
-        futures.add(_provider.getAsset(id).then((asset) {
+        futures.add(_manager.provider.getAsset(id).then((asset) {
           updated.add(asset);
         }).catchError((error) {
           if (error is AssetNotFoundException) {
@@ -252,4 +264,28 @@ class BuildResult {
 
   BuildResult(Iterable errors)
       : errors = errors.toList();
+
+  /// Creates a build result indicating a successful build.
+  ///
+  /// This equivalent to a build result with no errors.
+  BuildResult.success()
+      : this([]);
+
+  String toString() {
+    if (succeeded) return "success";
+
+    return "errors:\n" + errors.map((error) {
+      var stackTrace = getAttachedStackTrace(error);
+      if (stackTrace != null) stackTrace = new Trace.from(stackTrace);
+
+      var msg = new StringBuffer();
+      msg.write(prefixLines(error.toString()));
+      if (stackTrace != null) {
+        msg.write("\n\n");
+        msg.write("Stack trace:\n");
+        msg.write(prefixLines(stackTrace.toString()));
+      }
+      return msg.toString();
+    }).join("\n\n");
+  }
 }
