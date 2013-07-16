@@ -38,6 +38,7 @@ url_test: Fail # Issue 10096
 [ $compiler == dart2js && $browser && $checked ]
 postmessage_structured_test/typed_arrays: Fail # Issue 10097
 postmessage_structured_test/primitives: Fail # Issue 10097
+js_test: Fail # http://dartbug.com/11849
 
 # Layout tests are only supported on DRT.
 [ $runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
