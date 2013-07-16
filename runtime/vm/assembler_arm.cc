@@ -1219,8 +1219,33 @@ void Assembler::vmstat(Condition cond) {  // VMRS APSR_nzcv, FPSCR
 }
 
 
-void Assembler::EmitSIMDqqq(int32_t opcode, int sz,
+void Assembler::EmitSIMDqqq(int32_t opcode, OperandSize size,
                             QRegister qd, QRegister qn, QRegister qm) {
+  int sz = 0;
+  switch (size) {
+    case kByte:
+    case kUnsignedByte:
+      sz = 0;
+      break;
+    case kHalfword:
+    case kUnsignedHalfword:
+      sz = 1;
+      break;
+    case kWord:
+    case kUnsignedWord:
+      sz = 2;
+      break;
+    case kWordPair:
+      sz = 3;
+      break;
+    case kSWord:
+    case kDWord:
+      sz = 0;
+      break;
+    default:
+      UNREACHABLE();
+      break;
+  }
   int32_t encoding =
       (static_cast<int32_t>(kSpecialCondition) << kConditionShift) |
       B25 | B6 |
@@ -1235,36 +1260,36 @@ void Assembler::EmitSIMDqqq(int32_t opcode, int sz,
 }
 
 
-void Assembler::vaddqi(int sz, QRegister qd, QRegister qn, QRegister qm) {
-  ASSERT((sz >= 0) && (sz <= 3));
+void Assembler::vaddqi(OperandSize sz,
+                       QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B11, sz, qd, qn, qm);
 }
 
 
 void Assembler::vaddqs(QRegister qd, QRegister qn, QRegister qm) {
-  EmitSIMDqqq(B11 | B10 | B8, 0, qd, qn, qm);
+  EmitSIMDqqq(B11 | B10 | B8, kSWord, qd, qn, qm);
 }
 
 
-void Assembler::vsubqi(int sz, QRegister qd, QRegister qn, QRegister qm) {
-  ASSERT((sz >= 0) && (sz <= 3));
+void Assembler::vsubqi(OperandSize sz,
+                       QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B24 | B11, sz, qd, qn, qm);
 }
 
 
 void Assembler::vsubqs(QRegister qd, QRegister qn, QRegister qm) {
-  EmitSIMDqqq(B21 | B11 | B10 | B8, 0, qd, qn, qm);
+  EmitSIMDqqq(B21 | B11 | B10 | B8, kSWord, qd, qn, qm);
 }
 
 
-void Assembler::vmulqi(int sz, QRegister qd, QRegister qn, QRegister qm) {
-  ASSERT((sz >= 0) && (sz <= 2));
+void Assembler::vmulqi(OperandSize sz,
+                       QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B11 | B8 | B4, sz, qd, qn, qm);
 }
 
 
 void Assembler::vmulqs(QRegister qd, QRegister qn, QRegister qm) {
-  EmitSIMDqqq(B24 | B11 | B10 | B8 | B4, 0, qd, qn, qm);
+  EmitSIMDqqq(B24 | B11 | B10 | B8 | B4, kSWord, qd, qn, qm);
 }
 
 
@@ -1337,7 +1362,7 @@ void Assembler::LoadWordFromPoolOffset(Register rd,
                                        Condition cond) {
   ASSERT(rd != PP);
   int32_t offset_mask = 0;
-  if (Address::CanHoldLoadOffset(kLoadWord, offset, &offset_mask)) {
+  if (Address::CanHoldLoadOffset(kWord, offset, &offset_mask)) {
     ldr(rd, Address(PP, offset), cond);
   } else {
     int32_t offset_hi = offset & ~offset_mask;  // signed
@@ -1363,7 +1388,7 @@ void Assembler::LoadPoolPointer() {
   const intptr_t object_pool_pc_dist =
      Instructions::HeaderSize() - Instructions::object_pool_offset() +
      CodeSize() + Instr::kPCReadOffset;
-  LoadFromOffset(kLoadWord, PP, PC, -object_pool_pc_dist);
+  LoadFromOffset(kWord, PP, PC, -object_pool_pc_dist);
 }
 
 
@@ -1499,7 +1524,7 @@ void Assembler::LoadClassById(Register result, Register class_id) {
   ldr(result, FieldAddress(CTX, Context::isolate_offset()));
   const intptr_t table_offset_in_isolate =
       Isolate::class_table_offset() + ClassTable::table_offset();
-  LoadFromOffset(kLoadWord, result, result, table_offset_in_isolate);
+  LoadFromOffset(kWord, result, result, table_offset_in_isolate);
   ldr(result, Address(result, class_id, LSL, 2));
 }
 
@@ -1511,7 +1536,7 @@ void Assembler::LoadClass(Register result, Register object, Register scratch) {
   ldr(result, FieldAddress(CTX, Context::isolate_offset()));
   const intptr_t table_offset_in_isolate =
       Isolate::class_table_offset() + ClassTable::table_offset();
-  LoadFromOffset(kLoadWord, result, result, table_offset_in_isolate);
+  LoadFromOffset(kWord, result, result, table_offset_in_isolate);
   ldr(result, Address(result, scratch, LSL, 2));
 }
 
@@ -1538,24 +1563,24 @@ void Assembler::Bind(Label* label) {
 }
 
 
-bool Address::CanHoldLoadOffset(LoadOperandType type,
+bool Address::CanHoldLoadOffset(OperandSize type,
                                 int32_t offset,
                                 int32_t* offset_mask) {
   switch (type) {
-    case kLoadSignedByte:
-    case kLoadSignedHalfword:
-    case kLoadUnsignedHalfword:
-    case kLoadWordPair: {
+    case kByte:
+    case kHalfword:
+    case kUnsignedHalfword:
+    case kWordPair: {
       *offset_mask = 0xff;
       return Utils::IsAbsoluteUint(8, offset);  // Addressing mode 3.
     }
-    case kLoadUnsignedByte:
-    case kLoadWord: {
+    case kUnsignedByte:
+    case kWord: {
       *offset_mask = 0xfff;
       return Utils::IsAbsoluteUint(12, offset);  // Addressing mode 2.
     }
-    case kLoadSWord:
-    case kLoadDWord: {
+    case kSWord:
+    case kDWord: {
       *offset_mask = 0x3fc;  // Multiple of 4.
       // VFP addressing mode.
       return (Utils::IsAbsoluteUint(10, offset) && Utils::IsAligned(offset, 4));
@@ -1568,22 +1593,22 @@ bool Address::CanHoldLoadOffset(LoadOperandType type,
 }
 
 
-bool Address::CanHoldStoreOffset(StoreOperandType type,
+bool Address::CanHoldStoreOffset(OperandSize type,
                                  int32_t offset,
                                  int32_t* offset_mask) {
   switch (type) {
-    case kStoreHalfword:
-    case kStoreWordPair: {
+    case kHalfword:
+    case kWordPair: {
       *offset_mask = 0xff;
       return Utils::IsAbsoluteUint(8, offset);  // Addressing mode 3.
     }
-    case kStoreByte:
-    case kStoreWord: {
+    case kByte:
+    case kWord: {
       *offset_mask = 0xfff;
       return Utils::IsAbsoluteUint(12, offset);  // Addressing mode 2.
     }
-    case kStoreSWord:
-    case kStoreDWord: {
+    case kSWord:
+    case kDWord: {
       *offset_mask = 0x3fc;  // Multiple of 4.
       // VFP addressing mode.
       return (Utils::IsAbsoluteUint(10, offset) && Utils::IsAligned(offset, 4));
@@ -1724,7 +1749,7 @@ void Assembler::BranchLinkStore(const ExternalLabel* label, Address ad) {
 void Assembler::BranchLinkOffset(Register base, int32_t offset) {
   ASSERT(base != PC);
   ASSERT(base != IP);
-  LoadFromOffset(kLoadWord, IP, base, offset);
+  LoadFromOffset(kWord, IP, base, offset);
   blx(IP);  // Use blx instruction so that the return branch prediction works.
 }
 
@@ -1771,7 +1796,7 @@ void Assembler::LoadDImmediate(DRegister dd,
 }
 
 
-void Assembler::LoadFromOffset(LoadOperandType type,
+void Assembler::LoadFromOffset(OperandSize type,
                                Register reg,
                                Register base,
                                int32_t offset,
@@ -1784,22 +1809,22 @@ void Assembler::LoadFromOffset(LoadOperandType type,
     offset = offset & offset_mask;
   }
   switch (type) {
-    case kLoadSignedByte:
+    case kByte:
       ldrsb(reg, Address(base, offset), cond);
       break;
-    case kLoadUnsignedByte:
+    case kUnsignedByte:
       ldrb(reg, Address(base, offset), cond);
       break;
-    case kLoadSignedHalfword:
+    case kHalfword:
       ldrsh(reg, Address(base, offset), cond);
       break;
-    case kLoadUnsignedHalfword:
+    case kUnsignedHalfword:
       ldrh(reg, Address(base, offset), cond);
       break;
-    case kLoadWord:
+    case kWord:
       ldr(reg, Address(base, offset), cond);
       break;
-    case kLoadWordPair:
+    case kWordPair:
       ldrd(reg, Address(base, offset), cond);
       break;
     default:
@@ -1808,7 +1833,7 @@ void Assembler::LoadFromOffset(LoadOperandType type,
 }
 
 
-void Assembler::StoreToOffset(StoreOperandType type,
+void Assembler::StoreToOffset(OperandSize type,
                               Register reg,
                               Register base,
                               int32_t offset,
@@ -1822,16 +1847,16 @@ void Assembler::StoreToOffset(StoreOperandType type,
     offset = offset & offset_mask;
   }
   switch (type) {
-    case kStoreByte:
+    case kByte:
       strb(reg, Address(base, offset), cond);
       break;
-    case kStoreHalfword:
+    case kHalfword:
       strh(reg, Address(base, offset), cond);
       break;
-    case kStoreWord:
+    case kWord:
       str(reg, Address(base, offset), cond);
       break;
-    case kStoreWordPair:
+    case kWordPair:
       strd(reg, Address(base, offset), cond);
       break;
     default:
@@ -1845,7 +1870,7 @@ void Assembler::LoadSFromOffset(SRegister reg,
                                 int32_t offset,
                                 Condition cond) {
   int32_t offset_mask = 0;
-  if (!Address::CanHoldLoadOffset(kLoadSWord, offset, &offset_mask)) {
+  if (!Address::CanHoldLoadOffset(kSWord, offset, &offset_mask)) {
     ASSERT(base != IP);
     AddImmediate(IP, base, offset & ~offset_mask, cond);
     base = IP;
@@ -1860,7 +1885,7 @@ void Assembler::StoreSToOffset(SRegister reg,
                                int32_t offset,
                                Condition cond) {
   int32_t offset_mask = 0;
-  if (!Address::CanHoldStoreOffset(kStoreSWord, offset, &offset_mask)) {
+  if (!Address::CanHoldStoreOffset(kSWord, offset, &offset_mask)) {
     ASSERT(base != IP);
     AddImmediate(IP, base, offset & ~offset_mask, cond);
     base = IP;
@@ -1875,7 +1900,7 @@ void Assembler::LoadDFromOffset(DRegister reg,
                                 int32_t offset,
                                 Condition cond) {
   int32_t offset_mask = 0;
-  if (!Address::CanHoldLoadOffset(kLoadDWord, offset, &offset_mask)) {
+  if (!Address::CanHoldLoadOffset(kDWord, offset, &offset_mask)) {
     ASSERT(base != IP);
     AddImmediate(IP, base, offset & ~offset_mask, cond);
     base = IP;
@@ -1890,7 +1915,7 @@ void Assembler::StoreDToOffset(DRegister reg,
                                int32_t offset,
                                Condition cond) {
   int32_t offset_mask = 0;
-  if (!Address::CanHoldStoreOffset(kStoreDWord, offset, &offset_mask)) {
+  if (!Address::CanHoldStoreOffset(kDWord, offset, &offset_mask)) {
     ASSERT(base != IP);
     AddImmediate(IP, base, offset & ~offset_mask, cond);
     base = IP;

@@ -1037,7 +1037,7 @@ void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
   // SP: receiver.
   // Sequence node has one return node, its input is load field node.
   __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ LoadFromOffset(kLoadWord, R0, R0, offset - kHeapObjectTag);
+  __ LoadFromOffset(kWord, R0, R0, offset - kHeapObjectTag);
   __ Ret();
 }
 
@@ -1334,7 +1334,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   const MegamorphicCache& cache =
       MegamorphicCache::ZoneHandle(table->Lookup(name, arguments_descriptor));
   Label not_smi, load_cache;
-  __ LoadFromOffset(kLoadWord, R0, SP, (argument_count - 1) * kWordSize);
+  __ LoadFromOffset(kWord, R0, SP, (argument_count - 1) * kWordSize);
   __ tst(R0, ShifterOperand(kSmiTagMask));
   __ b(&not_smi, NE);
   __ mov(R0, ShifterOperand(Smi::RawValue(kSmiCid)));

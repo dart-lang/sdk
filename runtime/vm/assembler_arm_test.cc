@@ -1615,8 +1615,7 @@ ASSEMBLER_TEST_GENERATE(Vaddqi8, assembler) {
     __ mov(R0, ShifterOperand(8));
     __ vmovsr(S7, R0);
 
-    // TODO(zra): Replace 0 with enum value that implies 1-byte elements.
-    __ vaddqi(0, Q2, Q0, Q1);
+    __ vaddqi(kByte, Q2, Q0, Q1);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -1660,8 +1659,7 @@ ASSEMBLER_TEST_GENERATE(Vaddqi16, assembler) {
     __ mov(R0, ShifterOperand(8));
     __ vmovsr(S7, R0);
 
-    // TODO(zra): Replace 1 with enum value that implies 2-byte elements.
-    __ vaddqi(1, Q2, Q0, Q1);
+    __ vaddqi(kHalfword, Q2, Q0, Q1);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -1705,8 +1703,7 @@ ASSEMBLER_TEST_GENERATE(Vaddqi32, assembler) {
     __ mov(R0, ShifterOperand(8));
     __ vmovsr(S7, R0);
 
-    // TODO(zra): Replace 2 with enum value that implies 4-byte elements.
-    __ vaddqi(2, Q2, Q0, Q1);
+    __ vaddqi(kWord, Q2, Q0, Q1);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -1742,8 +1739,7 @@ ASSEMBLER_TEST_GENERATE(Vaddqi64, assembler) {
     __ mov(R0, ShifterOperand(4));
     __ vmovsr(S6, R0);
 
-    // TODO(zra): Replace 3 with enum value that implies 8-byte elements.
-    __ vaddqi(3, Q2, Q0, Q1);
+    __ vaddqi(kWordPair, Q2, Q0, Q1);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R2, S10);
@@ -1783,8 +1779,7 @@ ASSEMBLER_TEST_GENERATE(Vsubqi8, assembler) {
     __ mov(R0, ShifterOperand(8));
     __ vmovsr(S7, R0);
 
-    // TODO(zra): Replace 0 with enum value that implies 1-byte elements.
-    __ vsubqi(0, Q2, Q1, Q0);
+    __ vsubqi(kByte, Q2, Q1, Q0);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -1828,8 +1823,7 @@ ASSEMBLER_TEST_GENERATE(Vsubqi16, assembler) {
     __ mov(R0, ShifterOperand(8));
     __ vmovsr(S7, R0);
 
-    // TODO(zra): Replace 1 with enum value that implies 2-byte elements.
-    __ vsubqi(1, Q2, Q1, Q0);
+    __ vsubqi(kHalfword, Q2, Q1, Q0);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -1873,8 +1867,7 @@ ASSEMBLER_TEST_GENERATE(Vsubqi32, assembler) {
     __ mov(R0, ShifterOperand(8));
     __ vmovsr(S7, R0);
 
-    // TODO(zra): Replace 2 with enum value that implies 4-byte elements.
-    __ vsubqi(2, Q2, Q1, Q0);
+    __ vsubqi(kWord, Q2, Q1, Q0);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -1910,8 +1903,7 @@ ASSEMBLER_TEST_GENERATE(Vsubqi64, assembler) {
     __ mov(R0, ShifterOperand(4));
     __ vmovsr(S6, R0);
 
-    // TODO(zra): Replace 3 with enum value that implies 8-byte elements.
-    __ vsubqi(3, Q2, Q1, Q0);
+    __ vsubqi(kWordPair, Q2, Q1, Q0);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R2, S10);
@@ -1951,8 +1943,7 @@ ASSEMBLER_TEST_GENERATE(Vmulqi8, assembler) {
     __ mov(R0, ShifterOperand(8));
     __ vmovsr(S7, R0);
 
-    // TODO(zra): Replace 0 with enum value that implies 1-byte elements.
-    __ vmulqi(0, Q2, Q1, Q0);
+    __ vmulqi(kByte, Q2, Q1, Q0);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -1996,8 +1987,7 @@ ASSEMBLER_TEST_GENERATE(Vmulqi16, assembler) {
     __ mov(R0, ShifterOperand(8));
     __ vmovsr(S7, R0);
 
-    // TODO(zra): Replace 1 with enum value that implies 2-byte elements.
-    __ vmulqi(1, Q2, Q1, Q0);
+    __ vmulqi(kHalfword, Q2, Q1, Q0);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -2041,8 +2031,7 @@ ASSEMBLER_TEST_GENERATE(Vmulqi32, assembler) {
     __ mov(R0, ShifterOperand(8));
     __ vmovsr(S7, R0);
 
-    // TODO(zra): Replace 2 with enum value that implies 4-byte elements.
-    __ vmulqi(2, Q2, Q1, Q0);
+    __ vmulqi(kWord, Q2, Q1, Q0);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);

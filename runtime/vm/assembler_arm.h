@@ -176,25 +176,16 @@ class ShifterOperand : public ValueObject {
 };
 
 
-enum LoadOperandType {
-  kLoadSignedByte,
-  kLoadUnsignedByte,
-  kLoadSignedHalfword,
-  kLoadUnsignedHalfword,
-  kLoadWord,
-  kLoadWordPair,
-  kLoadSWord,
-  kLoadDWord
-};
-
-
-enum StoreOperandType {
-  kStoreByte,
-  kStoreHalfword,
-  kStoreWord,
-  kStoreWordPair,
-  kStoreSWord,
-  kStoreDWord
+enum OperandSize {
+  kByte,
+  kUnsignedByte,
+  kHalfword,
+  kUnsignedHalfword,
+  kWord,
+  kUnsignedWord,
+  kWordPair,
+  kSWord,
+  kDWord,
 };
 
 
@@ -268,10 +259,10 @@ class Address : public ValueObject {
     return (encoding_ == other.encoding_) && (kind_ == other.kind_);
   }
 
-  static bool CanHoldLoadOffset(LoadOperandType type,
+  static bool CanHoldLoadOffset(OperandSize type,
                                 int32_t offset,
                                 int32_t* offset_mask);
-  static bool CanHoldStoreOffset(StoreOperandType type,
+  static bool CanHoldStoreOffset(OperandSize type,
                                  int32_t offset,
                                  int32_t* offset_mask);
 
@@ -479,15 +470,15 @@ class Assembler : public ValueObject {
 
   void vadds(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
   void vaddd(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
-  void vaddqi(int sz, QRegister qd, QRegister qn, QRegister qm);
+  void vaddqi(OperandSize sz, QRegister qd, QRegister qn, QRegister qm);
   void vaddqs(QRegister qd, QRegister qn, QRegister qm);
   void vsubs(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
   void vsubd(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
-  void vsubqi(int sz, QRegister qd, QRegister qn, QRegister qm);
+  void vsubqi(OperandSize sz, QRegister qd, QRegister qn, QRegister qm);
   void vsubqs(QRegister qd, QRegister qn, QRegister qm);
   void vmuls(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
   void vmuld(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
-  void vmulqi(int sz, QRegister qd, QRegister qn, QRegister qm);
+  void vmulqi(OperandSize sz, QRegister qd, QRegister qn, QRegister qm);
   void vmulqs(QRegister qd, QRegister qn, QRegister qm);
   void vmlas(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
   void vmlad(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
@@ -599,12 +590,12 @@ class Assembler : public ValueObject {
   void CompareClassId(Register object, intptr_t class_id, Register scratch);
 
   void LoadWordFromPoolOffset(Register rd, int32_t offset, Condition cond = AL);
-  void LoadFromOffset(LoadOperandType type,
+  void LoadFromOffset(OperandSize type,
                       Register reg,
                       Register base,
                       int32_t offset,
                       Condition cond = AL);
-  void StoreToOffset(StoreOperandType type,
+  void StoreToOffset(OperandSize type,
                      Register reg,
                      Register base,
                      int32_t offset,
@@ -813,7 +804,7 @@ class Assembler : public ValueObject {
                  DRegister dd,
                  SRegister sm);
 
-  void EmitSIMDqqq(int32_t opcode, int sz,
+  void EmitSIMDqqq(int32_t opcode, OperandSize sz,
                    QRegister qd, QRegister qn, QRegister qm);
 
   void EmitBranch(Condition cond, Label* label, bool link);
