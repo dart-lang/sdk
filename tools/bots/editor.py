@@ -136,7 +136,7 @@ def main():
     editor_executable = GetEditorExecutable('Release', arch)
     with bot.BuildStep('Test Editor %s' % arch):
       with TempDir() as temp_dir:
-        args = [editor_executable, '-noSplash', '--test', '--auto-exit',
+        args = [editor_executable, '-consoleLog', '--test', '--auto-exit',
                 '-data', temp_dir]
         RunProcess(args)
 
