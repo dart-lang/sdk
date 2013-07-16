@@ -154,6 +154,15 @@ class Selector {
                     this.namedArguments,
                     this.orderedNamedArguments,
                     this.hashCode) {
+    assert(kind == SelectorKind.INDEX
+           || (name != INDEX_NAME && name != INDEX_SET_NAME));
+    assert(kind == SelectorKind.OPERATOR
+           || kind == SelectorKind.INDEX
+           || Elements.operatorNameToIdentifier(name) == name);
+    assert(kind == SelectorKind.CALL
+           || kind == SelectorKind.GETTER
+           || kind == SelectorKind.SETTER
+           || Elements.operatorNameToIdentifier(name) != name);
     assert(!name.isPrivate() || library != null);
   }
 
@@ -175,6 +184,28 @@ class Selector {
         kind, name, library, argumentCount,
         namedArguments, orderedNamedArguments,
         hashCode);
+  }
+
+  factory Selector.fromElement(Element element, Compiler compiler) {
+    SourceString name = element.name;
+    if (element.isFunction()) {
+      int arity = element.asFunctionElement().requiredParameterCount(compiler);
+      if (name == const SourceString('[]')) {
+        return new Selector.index();
+      } else if (name == const SourceString('[]=')) {
+        return new Selector.indexSet();
+      } else if (Elements.operatorNameToIdentifier(name) != name) {
+        return new Selector(SelectorKind.OPERATOR, name, null, arity);
+      } else {
+        return new Selector.call(name, element.getLibrary(), arity);
+      }
+    } else if (element.isSetter()) {
+      return new Selector.setter(name, element.getLibrary());
+    } else if (element.isGetter()) {
+      return new Selector.getter(name, element.getLibrary());
+    } else if (element.isField()) {
+      return new Selector.getter(name, element.getLibrary());
+    }
   }
 
   factory Selector.getter(SourceString name, LibraryElement library)
