@@ -4925,8 +4925,8 @@ const char* Function::ToCString() const {
     case RawFunction::kImplicitSetter:
       kind_str = " setter";
       break;
-    case RawFunction::kConstImplicitGetter:
-      kind_str = " const-getter";
+    case RawFunction::kImplicitStaticFinalGetter:
+      kind_str = " static-final-getter";
       break;
     case RawFunction::kMethodExtractor:
       kind_str = " method-extractor";

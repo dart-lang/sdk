@@ -1495,7 +1495,7 @@ class Function : public Object {
         return true;
       case RawFunction::kClosureFunction:
       case RawFunction::kConstructor:
-      case RawFunction::kConstImplicitGetter:
+      case RawFunction::kImplicitStaticFinalGetter:
         return false;
       default:
         UNREACHABLE();
@@ -1512,7 +1512,7 @@ class Function : public Object {
       case RawFunction::kSetterFunction:
       case RawFunction::kImplicitGetter:
       case RawFunction::kImplicitSetter:
-      case RawFunction::kConstImplicitGetter:
+      case RawFunction::kImplicitStaticFinalGetter:
         return true;
       case RawFunction::kClosureFunction:
       case RawFunction::kConstructor:
