@@ -56,6 +56,8 @@ class DeferredLoadTask extends CompilerTask {
   /// DeferredLibrary from dart:async
   ClassElement get deferredLibraryClass => compiler.deferredLibraryClass;
 
+  bool get areAnyElementsDeferred => !allDeferredElements.isEmpty;
+
   bool isDeferred(Element element) {
     element = element.implementation;
     return allDeferredElements.contains(element);

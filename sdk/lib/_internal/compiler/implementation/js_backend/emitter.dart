@@ -586,30 +586,39 @@ class CodeEmitterTask extends CompilerTask {
            '    $longNamesConstant'));
     }
 
-    String sliceOffset = '," + (j < $firstNormalSelector ? 1 : 0)';
-    if (firstNormalSelector == 0) sliceOffset = '"';
-    if (firstNormalSelector == shorts.length) sliceOffset = ', 1"';
+    String sliceOffset = ', (j < $firstNormalSelector) ? 1 : 0';
+    if (firstNormalSelector == 0) sliceOffset = '';
+    if (firstNormalSelector == shorts.length) sliceOffset = ', 1';
 
     String whatToPatch = nativeEmitter.handleNoSuchMethod ?
                          "Object.prototype" :
                          "objectClassObject";
 
+    var params = ['name', 'short', 'type'];
+    var sliceOffsetParam = '';
+    var slice = 'Array.prototype.slice.call';
+    if (!sliceOffset.isEmpty) {
+      sliceOffsetParam = ', sliceOffset';
+      params.add('sliceOffset');
+    }
     statements.addAll([
       js.for_('var j = 0', 'j < shortNames.length', 'j++', [
         js('var type = 0'),
         js('var short = shortNames[j]'),
         js.if_('short[0] == "${namer.getterPrefix[0]}"', js('type = 1')),
         js.if_('short[0] == "${namer.setterPrefix[0]}"', js('type = 2')),
-        js('$whatToPatch[short] = Function("'
-               'return this.$noSuchMethodName('
-                   'this,'
-                   '${namer.CURRENT_ISOLATE}.$createInvocationMirror(\'"'
-                       ' + ${minify ? "shortNames" : "longNames"}[j]'
-                       ' + "\',\'" + short + "\',"'
-                       ' + type'
-                       ' + ",Array.prototype.slice.call(arguments'
-                       '$sliceOffset'
-                       ' + "),[]))")')
+        // Generate call to:
+        // createInvocationMirror(String name, internalName, type, arguments,
+        //                        argumentNames)
+        js('$whatToPatch[short] = #(${minify ? "shortNames" : "longNames"}[j], '
+                                    'short, type$sliceOffset)',
+           js.fun(params, [js.return_(js.fun([],
+               [js.return_(js(
+                   'this.$noSuchMethodName('
+                       'this, '
+                       '${namer.CURRENT_ISOLATE}.$createInvocationMirror('
+                           'name, short, type, '
+                           '$slice(arguments$sliceOffsetParam), []))'))]))]))
       ])
     ]);
   }
@@ -821,8 +830,8 @@ class CodeEmitterTask extends CompilerTask {
 
       js('var isolatePrototype = oldIsolate.prototype'),
       js('var str = "{\\n"'),
-      js('str += '
-             '"var properties = $isolate.${namer.isolatePropertiesName};\\n"'),
+      js('str += "var properties = '
+                     'arguments.callee.${namer.isolatePropertiesName};\\n"'),
       js('var hasOwnProperty = Object.prototype.hasOwnProperty'),
 
       // for (var staticName in isolateProperties) {
@@ -856,7 +865,7 @@ class CodeEmitterTask extends CompilerTask {
     var parameters = <String>['prototype', 'staticName', 'fieldName',
                               'getterName', 'lazyValue'];
     return js.fun(parameters, [
-      js('var getter = new Function("{ return $isolate." + fieldName + ";}")'),
+      js('var getter = new Function("{ return this." + fieldName + ";}")'),
     ]..addAll(addLazyInitializerLogic())
     );
   }
@@ -3366,12 +3375,17 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
 
       mainBuffer.add(buildGeneratedBy());
       addComment(HOOKS_API_USAGE, mainBuffer);
+
+      if (!areAnyElementsDeferred) {
+        mainBuffer.add('(function(${namer.CURRENT_ISOLATE})$_{$n');
+      }
+
       mainBuffer.add('function ${namer.isolateName}()$_{}\n');
       mainBuffer.add('init()$N$n');
       // Shorten the code by using [namer.CURRENT_ISOLATE] as temporary.
       isolateProperties = namer.CURRENT_ISOLATE;
       mainBuffer.add(
-          'var $isolateProperties$_=$_$isolatePropertiesName$N');
+          '$isolateProperties$_=$_$isolatePropertiesName$N');
 
       if (!regularClasses.isEmpty ||
           !deferredClasses.isEmpty ||
@@ -3519,14 +3533,17 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       isolateProperties = isolatePropertiesName;
       // The following code should not use the short-hand for the
       // initialStatics.
-      mainBuffer.add('var ${namer.CURRENT_ISOLATE}$_=${_}null$N');
+      mainBuffer.add('${namer.CURRENT_ISOLATE}$_=${_}null$N');
 
       emitFinishIsolateConstructorInvocation(mainBuffer);
-      mainBuffer.add('var ${namer.CURRENT_ISOLATE}$_='
-                     '${_}new ${namer.isolateName}()$N');
+      mainBuffer.add(
+          '${namer.CURRENT_ISOLATE}$_=${_}new ${namer.isolateName}()$N');
 
       emitMain(mainBuffer);
       emitInitFunction(mainBuffer);
+      if (!areAnyElementsDeferred) {
+        mainBuffer.add('})()$n');
+      }
       compiler.assembledCode = mainBuffer.getText();
       outputSourceMap(mainBuffer, compiler.assembledCode, '');
 
@@ -3648,6 +3665,10 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
 
   bool isDeferred(Element element) {
     return compiler.deferredLoadTask.isDeferred(element);
+  }
+
+  bool get areAnyElementsDeferred {
+    return compiler.deferredLoadTask.areAnyElementsDeferred;
   }
 
   // TODO(ahe): Remove this when deferred loading is fully implemented.
