@@ -251,8 +251,8 @@ void test() {
                                  subclassOfInterceptor(inferrer),
                                  inferrer.dynamicType.nonNullable()]);
   runTest(TEST_9, (inferrer) => [inferrer.intType, inferrer.intType]);
-  // runTest(TEST_10, (inferrer) => [subclassOfInterceptor(inferrer),
-  //                                 subclassOfInterceptor(inferrer)]);
+  runTest(TEST_10, (inferrer) => [subclassOfInterceptor(inferrer),
+                                  subclassOfInterceptor(inferrer)]);
   runTest(TEST_11, (inferrer) => [subclassOfInterceptor(inferrer),
                                   subclassOfInterceptor(inferrer)]);
 
