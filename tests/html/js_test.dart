@@ -91,7 +91,7 @@ function getElementAttribute(element, attr) {
 
 function addClassAttributes(list) {
   var result = "";
-  for (var i=0; i<list.length; i++) {
+  for (var i=0; i < list.length; i++) {
     result += list[i].getAttribute("class");
   }
   return result;
@@ -200,11 +200,11 @@ main() {
     expect(a.callMethod('getTime'), equals(12345678));
   });
 
-  test('js instantiation : new Date("December 17, 1995 03:24:00 GMT+01:00")',
+  test('js instantiation : new Date("December 17, 1995 03:24:00 GMT")',
       () {
     final a = new JsObject(context['Date'],
-                           ["December 17, 1995 03:24:00 GMT+01:00"]);
-    expect(a.callMethod('getTime'), equals(819167040000));
+                           ["December 17, 1995 03:24:00 GMT"]);
+    expect(a.callMethod('getTime'), equals(819170640000));
   });
 
   test('js instantiation : new Date(1995,11,17)', () {
@@ -256,11 +256,13 @@ main() {
   });
 
   test('js instantiation : typed array', () {
-    final codeUnits = "test".codeUnits;
-    final buf = new JsObject(context['ArrayBuffer'], [codeUnits.length]);
-    final bufView = new JsObject(context['Uint8Array'], [buf]);
-    for (var i = 0; i < codeUnits.length; i++) {
-      bufView[i] = codeUnits[i];
+    if (Platform.supportsTypedData) {
+      final codeUnits = "test".codeUnits;
+      final buf = new JsObject(context['ArrayBuffer'], [codeUnits.length]);
+      final bufView = new JsObject(context['Uint8Array'], [buf]);
+      for (var i = 0; i < codeUnits.length; i++) {
+        bufView[i] = codeUnits[i];
+      }
     }
   });
 
