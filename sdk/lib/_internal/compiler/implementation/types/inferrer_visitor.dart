@@ -384,6 +384,13 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
 
   TypeMask visitOperatorSend(Send node) {
     Operator op = node.selector;
+    if (node.isPrefix) {
+      // Cheap check for -literal.
+      if (node.receiver.asLiteralInt() != null
+          || node.receiver.asLiteralDouble() != null) {
+        return visit(node.receiver);
+      }
+    }
     if (const SourceString("[]") == op.source) {
       return visitDynamicSend(node);
     } else if (const SourceString("&&") == op.source) {
