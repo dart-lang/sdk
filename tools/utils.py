@@ -9,8 +9,10 @@ import commands
 import os
 import platform
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 
 
 # Try to guess the host operating system.
@@ -405,6 +407,18 @@ def DartSdkBinary():
   tools_dir = os.path.dirname(os.path.realpath(__file__))
   dart_binary_prefix = os.path.join(tools_dir, '..', 'sdk' , 'bin')
   return os.path.join(dart_binary_prefix, 'dart')
+
+class TempDir(object):
+  def __init__(self, prefix=''):
+    self._temp_dir = None
+    self._prefix = prefix
+
+  def __enter__(self):
+    self._temp_dir = tempfile.mkdtemp(self._prefix)
+    return self._temp_dir
+
+  def __exit__(self, *_):
+    shutil.rmtree(self._temp_dir, ignore_errors=True)
 
 
 if __name__ == "__main__":

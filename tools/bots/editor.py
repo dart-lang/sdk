@@ -5,9 +5,7 @@
 
 import os
 import re
-import shutil
 import sys
-import tempfile
 
 import bot
 
@@ -19,14 +17,6 @@ import utils
 GSUTIL = utils.GetBuildbotGSUtilPath()
 GCS_DARTIUM_BUCKET = "gs://dartium-archive/continuous"
 GCS_EDITOR_BUCKET = "gs://continuous-editor-archive"
-
-class TempDir(object):
-  def __enter__(self):
-    self._temp_dir = tempfile.mkdtemp('eclipse-workspace')
-    return self._temp_dir
-
-  def __exit__(self, *_):
-    shutil.rmtree(self._temp_dir, ignore_errors = True)
 
 def GetBuildDirectory(mode, arch):
   configuration_dir = mode + arch.upper()
@@ -96,7 +86,7 @@ def CreateAndUploadMacInstaller(arch):
   mac_build_dmg_py = os.path.join('tools', 'mac_build_editor_dmg.sh')
   editor_dir = GetEditorDirectory('Release', arch)
   dart_sdk = GetDartSdkDirectory('Release', arch)
-  with TempDir() as temp_dir:
+  with utils.TempDir('eclipse') as temp_dir:
     # Get dartium
     dartium_directory = DownloadDartium(temp_dir, 'dartium-mac.zip')
     dartium_bundle_dir = os.path.join(dartium_directory,
@@ -135,7 +125,7 @@ def main():
   for arch in test_architectures:
     editor_executable = GetEditorExecutable('Release', arch)
     with bot.BuildStep('Test Editor %s' % arch):
-      with TempDir() as temp_dir:
+      with utils.TempDir('eclipse') as temp_dir:
         args = [editor_executable, '-consoleLog', '--test', '--auto-exit',
                 '-data', temp_dir]
         RunProcess(args)
