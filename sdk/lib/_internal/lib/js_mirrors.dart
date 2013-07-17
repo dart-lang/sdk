@@ -562,8 +562,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
       if (method.isGetter) {
 
         // TODO(ahe): This is a hack to remove getters corresponding to a field.
-        String name = n(method.simpleName);
-        if (fields[s(name)] != null) continue;
+        if (fields[method.simpleName] != null) continue;
 
         result[method.simpleName] = method;
       }
@@ -756,12 +755,17 @@ class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
       accessorName = accessorName.substring(0, divider);
       jsName = accessorName.substring(divider + 1);
     }
-    var unmangledName =
-        (isStatic ? mangledGlobalNames : mangledNames)[accessorName];
+    var unmangledName;
+    if (isStatic) {
+      unmangledName = mangledGlobalNames[accessorName];
+    } else {
+      String getterPrefix = JS('String', 'init.getterPrefix');
+      unmangledName = mangledNames['$getterPrefix$accessorName'];
+    }
     if (unmangledName == null) unmangledName = accessorName;
     if (!hasSetter) {
       // TODO(ahe): This is a hack to handle checked setters in checked mode.
-      var setterName = s('$accessorName=');
+      var setterName = s('$unmangledName=');
       for (JsMethodMirror method in owner._methods) {
         if (method.simpleName == setterName) {
           isFinal = false;

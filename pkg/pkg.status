@@ -92,9 +92,6 @@ serialization/test/serialization_test: Fail # Issue 6490
 serialization/test/no_library_test: Fail # Issue 6490
 
 [ $compiler == dart2js && $minified ]
-serialization/test/serialization_test: Fail # Issue 6490
-serialization/test/no_library_test: Fail # Issue 6490
-
 # The unminified unittest tests test that the real names of Dart types are
 # printed. Minified versions of these tests exist that test the behavior when
 # minified.

@@ -1591,6 +1591,8 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   bool canGenerateCheckedSetter(Element member) {
+    // We never generate accessors for top-level/static fields.
+    if (!member.isInstanceMember()) return false;
     DartType type = member.computeType(compiler).unalias(compiler);
     if (type.element.isTypeVariable() ||
         (type is FunctionType && type.containsTypeVariables) || 
@@ -1732,7 +1734,7 @@ class CodeEmitterTask extends CompilerTask {
             // TODO(sra): 'isInterceptorClass' might not be the correct test for
             // methods forced to use the interceptor convention because the
             // method's class was elsewhere mixed-in to an interceptor.
-            assert(getterCode != 0);
+            assert(!member.isInstanceMember() || getterCode != 0);
           }
           int setterCode = 0;
           if (needsSetter) {
@@ -1741,7 +1743,7 @@ class CodeEmitterTask extends CompilerTask {
             // 11:  function(receiver, value) { this.field = value; }
             setterCode += backend.fieldHasInterceptedSetter(member) ? 2 : 0;
             setterCode += backend.isInterceptorClass(classElement) ? 0 : 1;
-            assert(setterCode != 0);
+            assert(!member.isInstanceMember() || setterCode != 0);
           }
           int code = getterCode + (setterCode << 2);
           if (code == 0) {

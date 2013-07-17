@@ -21,15 +21,6 @@ typed_data/float32x4_unbox_regress_test: Fail, OK
 [ $compiler == dart2js && ($runtime == d8 || $runtime == ie9) ]
 typed_data/byte_data_test: Fail, OK # d8/ie9 doesn't support DataView
 
-[ $compiler == dart2js && $minified ]
-mirrors/reflect_model_test: Fail # Issue 6490
-mirrors/to_string_test: Fail # Issue 6490
-mirrors/static_test: Fail # Issue 6490
-mirrors/inherit_field_test: Fail # Issue 6490
-
-[ $compiler == dart2js && $checked ]
-mirrors/static_test: Fail # TODO(ahe): I'm working on it.
-
 [ $csp ]
 mirrors/*: Skip # Issue 6490
 
