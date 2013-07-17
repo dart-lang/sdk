@@ -173,6 +173,9 @@ import 'dart:math' show max;
 import 'matcher.dart';
 export 'matcher.dart';
 
+import 'package:stack_trace/stack_trace.dart';
+
+import 'src/utils.dart';
 part 'src/config.dart';
 part 'src/test_case.dart';
 
@@ -453,7 +456,7 @@ class _SpreadArgsHelper {
         testCase.error(
             'Callback ${id}called ($actualCalls) after test case '
             '${testCase.description} has already been marked as '
-            '${testCase.result}.', '');
+            '${testCase.result}.');
       }
       return false;
     } else if (maxExpectedCalls >= 0 && actualCalls > maxExpectedCalls) {
@@ -674,7 +677,7 @@ void _nextTestCase() {
  * Utility function that can be used to notify the test framework that an
  *  error was caught outside of this library.
  */
-void _reportTestError(String msg, String trace) {
+void _reportTestError(String msg, trace) {
  if (_currentTestCaseIndex < testCases.length) {
     final testCase = testCases[_currentTestCaseIndex];
     testCase.error(msg, trace);
@@ -751,7 +754,6 @@ void registerException(e, [trace]) {
  * Registers that an exception was caught for the current test.
  */
 void _registerException(TestCase testCase, e, [trace]) {
-  trace = trace == null ? '' : trace.toString();
   String message = (e is TestFailure) ? e.message : 'Caught $e';
   if (testCase.result == null) {
     testCase.fail(message, trace);
@@ -864,85 +866,31 @@ void disableTest(int testId) => _setTestEnabledState(testId, false);
 typedef dynamic TestFunction();
 
 /**
- * A flag that controls whether we hide unittest details in exception stacks.
+ * A flag that controls whether we hide unittest and core library details in
+ * exception stacks.
+ *
  * Useful to disable when debugging unittest or matcher customizations.
  */
 bool formatStacks = true;
 
-// Stack formatting utility. Strips extraneous content from a stack trace.
-// Stack frame lines are parsed with a regexp, which has been tested
-// in Chrome, Firefox and the VM. If a line fails to be parsed it is
-// included in the output to be conservative.
-//
-// The output stack consists of everything after the call to TestCase._run.
-// If we see an 'expect' in the frame we will prune everything above that
-// as well.
-final _frameRegExp = new RegExp(
-    r'^\s*' // Skip leading spaces.
-    r'(?:'  // Group of choices for the prefix.
-      r'(?:#\d+\s*)|' // Skip VM's #<frameNumber>.
-      r'(?:at )|'     // Skip Firefox's 'at '.
-      r'(?:))'        // Other environments have nothing here.
-    r'(.+)'           // Extract the function/method.
-    r'\s*[@\(]'       // Skip space and @ or (.
-    r'('              // This group of choices is for the source file.
-      r'(?:.+:\/\/.+\/[^:]*)|' // Handle file:// or http:// URLs.
-      r'(?:dart:[^:]*)|'  // Handle dart:<lib>.
-      r'(?:package:[^:]*)' // Handle package:<path>
-    r'):([:\d]+)[\)]?$'); // Get the line number and optional column number.
-
-String _formatStack(stack) {
-  if (!formatStacks) return "$stack";
-  var lines;
-  if (stack is StackTrace) {
-    lines = stack.toString().split('\n');
-  } else if (stack is String) {
-    lines = stack.split('\n');
+/** Returns a Trace object from a StackTrace object or a String. */
+Trace _getTrace(stack) {
+  Trace trace;
+  if (stack == null) return null;
+  if (stack is String) {
+    trace = new Trace.parse(stack);
+  } else if (stack is StackTrace) {
+    trace = new Trace.from(stack);
   } else {
-    return stack.toString();
+    throw new Exception('Invalid stack type ${stack.runtimeType} for $stack.');
   }
 
-  // Calculate the max width of first column so we can
-  // pad to align the second columns.
-  int padding = lines.fold(0, (n, line) {
-    var match = _frameRegExp.firstMatch(line);
-    if (match == null) return n;
-    return max(n, match[1].length + 1);
-  });
+  if (!formatStacks) return trace;
 
-  // We remove all entries that have a location in unittest.
-  // We strip out anything before _nextBatch too.
-  var sb = new StringBuffer();
-  for (var i = 0; i < lines.length; i++) {
-    var line = lines[i];
-    if (line == '') continue;
-    var match = _frameRegExp.firstMatch(line);
-    if (match == null) {
-      sb.write(line);
-      sb.write('\n');
-    } else {
-      var member = match[1];
-      var location = match[2];
-      var position = match[3];
-      if (member.indexOf('TestCase._runTest') >= 0) {
-        // Don't include anything after this.
-        break;
-      } else if (member.indexOf('expect') >= 0) {
-        // It looks like this was an expect() failure;
-        // drop all the frames up to here.
-        sb.clear();
-      } else {
-        sb.write(member);
-        // Pad second column to a fixed position.
-        for (var j = 0; j <= padding - member.length; j++) {
-          sb.write(' ');
-        }
-        sb.write(location);
-        sb.write(' ');
-        sb.write(position);
-        sb.write('\n');
-      }
-    }
-  }
-  return sb.toString();
+  // Format the stack trace by removing everything above TestCase._runTest,
+  // which is usually going to be irrelevant. Also fold together unittest and
+  // core library calls so only the function the user called is visible.
+  return new Trace(trace.frames.takeWhile((frame) {
+    return frame.package != 'unittest' || frame.member != 'TestCase._runTest';
+  })).terse.foldFrames((frame) => frame.package == 'unittest' || frame.isCore);
 }
