@@ -12,6 +12,7 @@ library compact_vm_config;
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'unittest.dart';
 import 'vm_config.dart';
@@ -23,11 +24,16 @@ const String _NONE = '\u001b[0m';
 const int MAX_LINE = 80;
 
 class CompactVMConfiguration extends VMConfiguration {
+  // The VM won't shut down if a receive port is open. Use this to make sure
+  // we correctly wait for asynchronous tests.
+  ReceivePort _receivePort;
+
   DateTime _start;
   int _pass = 0;
   int _fail = 0;
 
   void onInit() {
+    _receivePort = new ReceivePort();
     // Override and don't call the superclass onInit() to avoid printing the
     // "unittest-suite-..." boilerplate.
   }
@@ -64,6 +70,7 @@ class CompactVMConfiguration extends VMConfiguration {
     // Override and don't call the superclass onDone() to avoid printing the
     // "unittest-suite-..." boilerplate.
     Future.wait([stdout.close(), stderr.close()]).then((_) {
+      _receivePort.close();
       exit(success ? 0 : 1);
     });
   }
