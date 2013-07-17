@@ -81,7 +81,7 @@ subClass() {
 
 fieldTest() {
   String generated = compileAll(TEST_FOUR);
-  Expect.isTrue(generated.contains(r"""B: {"": "A;y,z,x"}"""));
+  Expect.isTrue(generated.contains(r"""B: {"": "A;y,z,x", static:"""));
 }
 
 constructor1() {

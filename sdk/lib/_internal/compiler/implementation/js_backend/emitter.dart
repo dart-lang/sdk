@@ -137,6 +137,16 @@ class CodeEmitterTask extends CompilerTask {
   Set<FunctionType> checkedNonGenericFunctionTypes =
       new Set<FunctionType>();
 
+  /**
+   * For classes and libraries, record code for static/top-level members.
+   * Later, this code is emitted when the class or library is emitted.
+   * See [bufferForElement].
+   */
+  // TODO(ahe): Generate statics with their class, and store only libraries in
+  // this map.
+  final Map<Element, List<CodeBuffer>> elementBuffers =
+      new Map<Element, List<CodeBuffer>>();
+
   void registerDynamicFunctionTypeCheck(FunctionType functionType) {
     ClassElement classElement = Types.getClassContext(functionType);
     if (classElement != null) {
@@ -1805,6 +1815,25 @@ class CodeEmitterTask extends CompilerTask {
     }
     emitIsTests(classElement, builder);
 
+    List<CodeBuffer> classBuffers = elementBuffers[classElement];
+    CodeBuffer statics = new CodeBuffer();
+    bool hasStatics = false;
+    if (classBuffers != null) {
+      statics.write('{$n');
+      elementBuffers.remove(classElement);
+      for (CodeBuffer classBuffer in classBuffers) {
+        // TODO(ahe): What about deferred?
+        if (classBuffer != null) {
+          hasStatics = true;
+          statics.addBuffer(classBuffer);
+        }
+      }
+      statics.write('}$n');
+    }
+    if (hasStatics) {
+      builder.addProperty('static', new jsAst.Blob(statics));
+    }
+
     // TODO(ahe): This method (generateClass) should return a jsAst.Expression.
     if (!buffer.isEmpty) {
       buffer.write(',$n$n');
@@ -3417,6 +3446,8 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       mainBuffer.add(
           '$isolateProperties$_=$_$isolatePropertiesName$N');
 
+      emitStaticFunctions(mainBuffer);
+
       if (!regularClasses.isEmpty ||
           !deferredClasses.isEmpty ||
           !nativeClasses.isEmpty ||
@@ -3471,9 +3502,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       // the classesCollector variable.
       classesCollector = 'classesCollector should not be used from now on';
 
-      emitStaticFunctions(mainBuffer);
-
-      if (!libraryBuffers.isEmpty) {
+      if (!elementBuffers.isEmpty) {
         var oldClassesCollector = classesCollector;
         classesCollector = r"$$";
         if (compiler.enableMinification) {
@@ -3499,9 +3528,23 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
             ..write(getReflectionDataParser())
             ..write('([$n');
 
-        var sortedLibraries = Elements.sortedByPosition(libraryBuffers.keys);
-        for (LibraryElement library in sortedLibraries) {
-          List<CodeBuffer> buffers = libraryBuffers[library];
+        List<Element> sortedElements =
+            Elements.sortedByPosition(elementBuffers.keys);
+        bool hasPendingStatics = false;
+        for (Element element in sortedElements) {
+          if (!element.isLibrary()) {
+            for (CodeBuffer b in elementBuffers[element]) {
+              if (b != null) {
+                hasPendingStatics = true;
+                compiler.reportInfo(
+                    element, MessageKind.GENERIC, {'text': 'Pending statics.'});
+                print(b.getText());
+              }
+            }
+            continue;
+          }
+          LibraryElement library = element;
+          List<CodeBuffer> buffers = elementBuffers[library];
           var buffer = buffers[0];
           var uri = library.canonicalUri;
           if (uri.scheme == 'file' && compiler.sourceMapUri != null) {
@@ -3533,7 +3576,10 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
                 ..addBuffer(buffer)
                 ..write('}],$n');
           }
-          libraryBuffers[library] = const [];
+          elementBuffers[library] = const [];
+        }
+        if (hasPendingStatics) {
+          compiler.internalError('Pending statics (see above).');
         }
         mainBuffer.write('])$N');
 
@@ -3583,13 +3629,24 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     return compiler.assembledCode;
   }
 
-  final Map<LibraryElement, List<CodeBuffer>> libraryBuffers =
-      new Map<LibraryElement, List<CodeBuffer>>();
-
   CodeBuffer bufferForElement(Element element, CodeBuffer eagerBuffer) {
-    LibraryElement library = element.getLibrary();
-    List<CodeBuffer> buffers = libraryBuffers.putIfAbsent(
-        library, () => <CodeBuffer>[null, null]);
+    Element owner = element.getLibrary();
+    if (!element.isTopLevel() && !element.isNative()) {
+      // For static (not top level) elements, record their code in a buffer
+      // specific to the class. For now, not supported for native classes and
+      // native elements.
+      ClassElement cls =
+          element.getEnclosingClassOrCompilationUnit().declaration;
+      if (compiler.codegenWorld.instantiatedClasses.contains(cls)
+          && !cls.isNative()) {
+        owner = cls;
+      }
+    }
+    if (owner == null) {
+      compiler.internalErrorOnElement(element, 'Owner is null');
+    }
+    List<CodeBuffer> buffers = elementBuffers.putIfAbsent(
+        owner, () => <CodeBuffer>[null, null]);
     bool deferred = isDeferred(element);
     int index = deferred ? 1 : 0;
     CodeBuffer buffer = buffers[index];
@@ -3710,11 +3767,13 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
 
   // TODO(ahe): This code should be integrated in finishClasses.
   String getReflectionDataParser() {
+    String metadataField = '"${namer.metadataField}"';
     return '''
 (function (reflectionData) {
   if (!init.libraries) init.libraries = [];
   if (!init.mangledNames) init.mangledNames = {};
   if (!init.mangledGlobalNames) init.mangledGlobalNames = {};
+  if (!init.statics) init.statics = {};
   init.getterPrefix = "${namer.getterPrefix}";
   init.setterPrefix = "${namer.setterPrefix}";
   var libraries = init.libraries;
@@ -3730,39 +3789,43 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     var descriptor = data[3];
     var classes = [];
     var functions = [];
-    for (var property in descriptor) {
-      if (!hasOwnProperty.call(descriptor, property)) continue;
-      var element = descriptor[property];
-      var firstChar = property.substring(0, 1);
-      var previousProperty;
-      if (firstChar == "+") {
-        mangledGlobalNames[previousProperty] = property.substring(1);
-      } else if (firstChar == "@") {
-        property = property.substring(1);
-        ${namer.CURRENT_ISOLATE}[property]["${namer.metadataField}"] = element;
-      } else if (typeof element === "function") {
-        ${namer.CURRENT_ISOLATE}[previousProperty = property] = element;
-        functions.push(property);
-      } else {
-        previousProperty = property;
-        var newDesc = {};
-        var previousProp;
-        for (var prop in element) {
-          if (!hasOwnProperty.call(element, prop)) continue;
-          firstChar = prop.substring(0, 1);
-          if (firstChar == "+") {
-            mangledNames[previousProp] = prop.substring(1);
-          } else if (firstChar == "@" && prop != "@") {
-            newDesc[prop.substring(1)]["${namer.metadataField}"] ='''
-'''element[prop];
-          } else {
-            newDesc[previousProp = prop] = element[prop];
+    function processStatics(descriptor) {
+      for (var property in descriptor) {
+        if (!hasOwnProperty.call(descriptor, property)) continue;
+        var element = descriptor[property];
+        var firstChar = property.substring(0, 1);
+        var previousProperty;
+        if (firstChar === "+") {
+          mangledGlobalNames[previousProperty] = property.substring(1);
+        } else if (firstChar === "@") {
+          property = property.substring(1);
+          ${namer.CURRENT_ISOLATE}[property][$metadataField] = element;
+        } else if (typeof element === "function") {
+          ${namer.CURRENT_ISOLATE}[previousProperty = property] = element;
+          functions.push(property);
+        } else {
+          previousProperty = property;
+          var newDesc = {};
+          var previousProp;
+          for (var prop in element) {
+            if (!hasOwnProperty.call(element, prop)) continue;
+            firstChar = prop.substring(0, 1);
+            if (prop === "static") {
+              processStatics(init.statics[property] = element[prop]);
+            } else if (firstChar === "+") {
+              mangledNames[previousProp] = prop.substring(1);
+            } else if (firstChar === "@" && prop !== "@") {
+              newDesc[prop.substring(1)][$metadataField] = element[prop];
+            } else {
+              newDesc[previousProp = prop] = element[prop];
+            }
           }
+          $classesCollector[property] = newDesc;
+          classes.push(property);
         }
-        $classesCollector[property] = newDesc;
-        classes.push(property);
       }
     }
+    processStatics(descriptor);
     libraries.push([name, uri, classes, functions, metadata]);
   }
 })''';

@@ -307,7 +307,7 @@ ClassMirror reflectClassByName(Symbol symbol, String mangledName) {
   var mirror = classMirrors[constructorOrInterceptor];
   if (mirror == null) {
     mirror = new JsClassMirror(
-        symbol, constructorOrInterceptor, fields, fieldsMetadata);
+        symbol, mangledName, constructorOrInterceptor, fields, fieldsMetadata);
     classMirrors[constructorOrInterceptor] = mirror;
   }
   return mirror;
@@ -402,6 +402,7 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
 
 class JsClassMirror extends JsTypeMirror with JsObjectMirror
     implements ClassMirror {
+  final String _mangledName;
   final _jsConstructorOrInterceptor;
   final String _fields;
   final List _fieldsMetadata;
@@ -413,6 +414,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   JsLibraryMirror _owner;
 
   JsClassMirror(Symbol simpleName,
+                this._mangledName,
                 this._jsConstructorOrInterceptor,
                 this._fields,
                 this._fieldsMetadata)
@@ -429,15 +431,10 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   }
 
   Map<Symbol, MethodMirror> get constructors {
-    Map<Symbol, MethodMirror> result = new Map<Symbol, MethodMirror>();
-    JsLibraryMirror library = owner;
-    String unmangledName = n(simpleName);
-    for (JsMethodMirror mirror in library._functionMirrors) {
-      Symbol name = mirror.simpleName;
-      if (mirror.isConstructor
-          && (name == simpleName || n(name).startsWith('$unmangledName.'))) {
-        result[name] = mirror;
-        mirror._owner = this;
+    var result = new Map<Symbol, MethodMirror>();
+    for (JsMethodMirror method in _methods) {
+      if (method.isConstructor) {
+        result[method.simpleName] = method;
       }
     }
     return result;
@@ -463,13 +460,44 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
       result.add(mirror);
       mirror._owner = this;
     }
+
+    keys = extractKeys(JS('', 'init.statics[#]', _mangledName));
+    int length = keys.length;
+    for (int i = 0; i < length; i++) {
+      String mangledName = keys[i];
+      String unmangledName = mangledName;
+      // TODO(ahe): Create accessor for accessing $.  It is also
+      // used in js_helper.
+      var jsFunction = JS('', '#[#]', JS_CURRENT_ISOLATE(), mangledName);
+
+      bool isConstructor = false;
+      if (i + 1 < length) {
+        String reflectionName = keys[i + 1];
+        if (reflectionName.startsWith('+')) {
+          i++;
+          reflectionName = reflectionName.substring(1);
+          isConstructor = reflectionName.startsWith('new ');
+          if (isConstructor) {
+            reflectionName = reflectionName.substring(4).replaceAll(r'$', '.');
+          }
+        }
+        unmangledName = reflectionName;
+      }
+      bool isStatic = !isConstructor; // Constructors are not static.
+      JsMethodMirror mirror =
+          new JsMethodMirror.fromUnmangledName(
+              unmangledName, jsFunction, isStatic, isConstructor);
+      result.add(mirror);
+      mirror._owner = this;
+    }
+
     return _cachedMethods = result;
   }
 
   Map<Symbol, MethodMirror> get methods {
     var result = new Map<Symbol, MethodMirror>();
     for (JsMethodMirror method in _methods) {
-      if (!method.isGetter && !method.isSetter) {
+      if (!method.isConstructor && !method.isGetter && !method.isSetter) {
         result[method.simpleName] = method;
       }
     }
