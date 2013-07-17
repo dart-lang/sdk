@@ -289,7 +289,6 @@ double_to_string_as_precision3_test: Fail
 expect_test: Fail
 stack_overflow_test: Fail
 stack_overflow_stacktrace_test: Fail
-inlined_throw_test: Fail # BUG(11480): Triage.
 licm2_test: Timeout # Issue: 11848
 
 
