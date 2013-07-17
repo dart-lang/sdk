@@ -27,6 +27,61 @@ enum MessageFlags {
   kPipe = 17,
 };
 
+
+class TimeoutQueue {
+ private:
+  class Timeout {
+   public:
+    Timeout(Dart_Port port, int64_t timeout, Timeout* next)
+        : port_(port), timeout_(timeout), next_(next) {}
+
+    Dart_Port port() const { return port_; }
+
+    int64_t timeout() const { return timeout_; }
+    void set_timeout(int64_t timeout) {
+      ASSERT(timeout >= 0);
+      timeout_ = timeout;
+    }
+
+    Timeout* next() const { return next_; }
+    void set_next(Timeout* next) {
+      next_ = next;
+    }
+
+   private:
+    Dart_Port port_;
+    int64_t timeout_;
+    Timeout* next_;
+  };
+
+ public:
+  TimeoutQueue() : next_timeout_(NULL), timeouts_(NULL) {}
+
+  ~TimeoutQueue() {
+    while (HasTimeout()) RemoveCurrent();
+  }
+
+  bool HasTimeout() const { return next_timeout_ != NULL; }
+
+  int64_t CurrentTimeout() const {
+    return next_timeout_->timeout();
+  }
+
+  Dart_Port CurrentPort() const {
+    return next_timeout_->port();
+  }
+
+  void RemoveCurrent() {
+    UpdateTimeout(CurrentPort(), -1);
+  }
+
+  void UpdateTimeout(Dart_Port port, int64_t timeout);
+
+ private:
+  Timeout* next_timeout_;
+  Timeout* timeouts_;
+};
+
 }  // namespace bin
 }  // namespace dart
 
@@ -59,11 +114,10 @@ class EventHandler {
   static EventHandler* Start() {
     EventHandler* handler = new EventHandler();
     handler->delegate_.Start(handler);
-    IsolateData* isolate_data =
-        reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
-    isolate_data->event_handler = handler;
     return handler;
   }
+
+  static void Stop();
 
  private:
   friend class EventHandlerImplementation;

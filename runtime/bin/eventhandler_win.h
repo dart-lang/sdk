@@ -390,8 +390,7 @@ class EventHandlerImplementation {
  private:
   ClientSocket* client_sockets_head_;
 
-  int64_t timeout_;  // Time for next timeout.
-  Dart_Port timeout_port_;
+  TimeoutQueue timeout_queue_;  // Time for next timeout.
   bool shutdown_;
   HANDLE completion_port_;
 };

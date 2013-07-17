@@ -21,11 +21,10 @@ class EventHandler;
 class IsolateData {
  public:
   IsolateData()
-      : event_handler(NULL), object_array_class(NULL),
+      : object_array_class(NULL),
         growable_object_array_class(NULL), immutable_array_class(NULL) {
   }
 
-  EventHandler* event_handler;
   Dart_PersistentHandle object_array_class;
   Dart_PersistentHandle growable_object_array_class;
   Dart_PersistentHandle immutable_array_class;

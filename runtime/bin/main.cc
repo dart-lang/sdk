@@ -654,8 +654,6 @@ static int DartErrorExit(Dart_Handle error) {
 
 static void ShutdownIsolate(void* callback_data) {
   IsolateData* isolate_data = reinterpret_cast<IsolateData*>(callback_data);
-  EventHandler* handler = isolate_data->event_handler;
-  if (handler != NULL) handler->Shutdown();
   delete isolate_data;
 }
 
@@ -878,6 +876,8 @@ int main(int argc, char** argv) {
   Dart_ShutdownIsolate();
   // Terminate process exit-code handler.
   Process::TerminateExitCodeHandler();
+  EventHandler::Stop();
+
   // Free copied argument strings if converted.
   if (argv_converted) {
     for (int i = 0; i < argc; i++) free(argv[i]);

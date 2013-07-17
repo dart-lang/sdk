@@ -115,8 +115,7 @@ class EventHandlerImplementation {
   static uint32_t GetHashmapHashFromFd(intptr_t fd);
 
   HashMap socket_map_;
-  int64_t timeout_;  // Time for next timeout.
-  Dart_Port timeout_port_;
+  TimeoutQueue timeout_queue_;
   bool shutdown_;
   int interrupt_fds_[2];
   int epoll_fd_;

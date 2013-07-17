@@ -5,6 +5,7 @@
 #include "bin/dartutils.h"
 #include "bin/eventhandler.h"
 #include "bin/socket.h"
+#include "bin/thread.h"
 
 #include "include/dart_api.h"
 
@@ -16,29 +17,62 @@ static const int kNativeEventHandlerFieldIndex = 0;
 static const intptr_t kTimerId = -1;
 static const intptr_t kInvalidId = -2;
 
-/*
- * Returns the reference of the EventHandler stored in the native field.
- */
-static EventHandler* GetEventHandler(Dart_Handle handle) {
-  intptr_t value = 0;
-  Dart_Handle result = Dart_GetNativeInstanceField(
-      handle, kNativeEventHandlerFieldIndex, &value);
-  if (Dart_IsError(result)) {
-    Dart_PropagateError(result);
+static EventHandler* event_handler = NULL;
+static dart::Mutex* mutex_ = new dart::Mutex();
+
+
+void TimeoutQueue::UpdateTimeout(Dart_Port port, int64_t timeout) {
+  // Find port if present.
+  Timeout* last = NULL;
+  Timeout* current = timeouts_;
+  while (current != NULL) {
+    if (current->port() == port) {
+      // Found.
+      if (timeout < 0) {
+        // Remove from list and delete existing.
+        if (last != NULL) {
+          last->set_next(current->next());
+        } else {
+          timeouts_ = current->next();
+        }
+        delete current;
+      } else {
+        // Update timeout.
+        current->set_timeout(timeout);
+      }
+      break;
+    }
+    last = current;
+    current = current->next();
   }
-  EventHandler* event_handler = reinterpret_cast<EventHandler*>(value);
-  ASSERT(event_handler != NULL);
-  return event_handler;
+  if (current == NULL && timeout >= 0) {
+    // Not found, create a new.
+    timeouts_ = new Timeout(port, timeout, timeouts_);
+  }
+  // Clear and find next timeout.
+  next_timeout_ = NULL;
+  current = timeouts_;
+  while (current != NULL) {
+    if (next_timeout_ == NULL ||
+        current->timeout() < next_timeout_->timeout()) {
+      next_timeout_ = current;
+    }
+    current = current->next();
+  }
 }
 
 
 /*
- * Sets the reference of the EventHandler in the native field.
+ * Returns the reference of the EventHandler stored in the native field.
  */
-static void SetEventHandler(Dart_Handle handle, EventHandler* event_handler) {
-  Dart_SetNativeInstanceField(handle,
-                              kNativeEventHandlerFieldIndex,
-                              reinterpret_cast<intptr_t>(event_handler));
+static EventHandler* GetEventHandler(Dart_Handle handle) {
+  ASSERT(event_handler != NULL);
+  return event_handler;
+}
+
+void EventHandler::Stop() {
+  if (event_handler == NULL) return;
+  event_handler->Shutdown();
 }
 
 
@@ -48,11 +82,9 @@ static void SetEventHandler(Dart_Handle handle, EventHandler* event_handler) {
  * object.
  */
 void FUNCTION_NAME(EventHandler_Start)(Dart_NativeArguments args) {
-  Dart_EnterScope();
-  Dart_Handle handle = Dart_GetNativeArgument(args, 0);
-  EventHandler* event_handler = EventHandler::Start();
-  SetEventHandler(handle, event_handler);
-  Dart_ExitScope();
+  MutexLocker locker(mutex_);
+  if (event_handler != NULL) return;
+  event_handler = EventHandler::Start();
 }
 
 
