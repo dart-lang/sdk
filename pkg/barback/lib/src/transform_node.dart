@@ -7,7 +7,6 @@ library barback.transform_node;
 import 'dart:async';
 
 import 'asset.dart';
-import 'asset_graph.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
 import 'asset_set.dart';
@@ -62,9 +61,9 @@ class TransformNode {
     var newOutputs = new AssetSet();
     var transform = createTransform(this, newInputs, newOutputs);
     return _transformer.apply(transform).catchError((error) {
-      // Catch all transformer errors and pipe them to the results stream.
-      // This is so a broken transformer doesn't take down the whole graph.
-      phase.graph.reportError(error);
+      // Catch all transformer errors and pipe them to the results stream. This
+      // is so a broken transformer doesn't take down the whole graph.
+      phase.cascade.reportError(error);
 
       // Don't allow partial results from a failed transform.
       newOutputs.clear();
@@ -87,13 +86,13 @@ class TransformNode {
       // See which outputs are missing from the last run.
       var outputIds = newOutputs.map((asset) => asset.id).toSet();
       var invalidIds = outputIds
-          .where((id) => id.package != phase.graph.package).toSet();
+          .where((id) => id.package != phase.cascade.package).toSet();
       outputIds.removeAll(invalidIds);
 
       for (var id in invalidIds) {
         // TODO(nweiz): report this as a warning rather than a failing error.
-        phase.graph.reportError(
-            new InvalidOutputException(phase.graph.package, id));
+        phase.cascade.reportError(
+            new InvalidOutputException(phase.cascade.package, id));
       }
 
       var removed = _outputs.difference(outputIds);

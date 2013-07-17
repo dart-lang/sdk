@@ -6,7 +6,7 @@ library barback;
 
 export 'src/asset.dart';
 export 'src/asset_id.dart';
-export 'src/asset_provider.dart';
 export 'src/errors.dart';
+export 'src/package_provider.dart';
 export 'src/transform.dart' show Transform;
 export 'src/transformer.dart';

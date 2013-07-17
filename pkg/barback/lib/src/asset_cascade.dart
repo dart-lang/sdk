@@ -2,34 +2,39 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library barback.asset_graph;
+library barback.asset_cascade;
 
 import 'dart:async';
 import 'dart:collection';
 
 import 'asset.dart';
 import 'asset_id.dart';
-import 'asset_graph_manager.dart';
-import 'asset_provider.dart';
 import 'asset_set.dart';
 import 'errors.dart';
 import 'change_batch.dart';
+import 'package_graph.dart';
 import 'phase.dart';
 import 'transformer.dart';
 import 'utils.dart';
 
-/// The asset manager for an individual package.
+/// The asset cascade for an individual package.
 ///
-/// This keeps track of which transformers are applied to which assets, and
+/// This keeps track of which [Transformer]s are applied to which assets, and
 /// re-runs those transformers when their dependencies change. The transformed
 /// assets are accessible via [getAssetById].
-class AssetGraph {
+///
+/// A cascade consists of one or more [Phases], each of which has one or more
+/// [Transformer]s that run in parallel, potentially on the same inputs. The
+/// inputs of the first phase are the source assets for this cascade's package.
+/// The inputs of each successive phase are the outputs of the previous phase,
+/// as well as any assets that haven't yet been transformed.
+class AssetCascade {
   /// The name of the package whose assets are managed.
   final String package;
 
-  /// The [AssetGraphManager] that manages the [AssetGraph]s for all
-  /// dependencies of the current app.
-  final AssetGraphManager _manager;
+  /// The [PackageGraph] that tracks all [AssetCascade]s for all dependencies of
+  /// the current app.
+  final PackageGraph _graph;
 
   final _phases = <Phase>[];
 
@@ -41,10 +46,10 @@ class AssetGraph {
   Stream<BuildResult> get results => _resultsController.stream;
   final _resultsController = new StreamController<BuildResult>.broadcast();
 
-  /// A stream that emits any errors from the asset graph or the transformers.
+  /// A stream that emits any errors from the cascade or the transformers.
   ///
   /// This emits errors as they're detected. If an error occurs in one part of
-  /// the asset graph, unrelated parts will continue building.
+  /// the cascade, unrelated parts will continue building.
   ///
   /// This will not emit programming errors from barback itself. Those will be
   /// emitted through the [results] stream's error channel.
@@ -63,12 +68,12 @@ class AssetGraph {
 
   ChangeBatch _sourceChanges;
 
-  /// Creates a new [AssetGraph].
+  /// Creates a new [AssetCascade].
   ///
   /// It loads source assets within [package] using [provider] and then uses
   /// [transformerPhases] to generate output files from them.
   //TODO(rnystrom): Better way of specifying transformers and their ordering.
-  AssetGraph(this._manager, this.package,
+  AssetCascade(this._graph, this.package,
       Iterable<Iterable<Transformer>> transformerPhases) {
     // Flatten the phases to a list so we can traverse backwards to wire up
     // each phase to its next.
@@ -230,7 +235,7 @@ class AssetGraph {
       var futures = [];
       for (var id in changes.updated) {
         // TODO(rnystrom): Catch all errors from provider and route to results.
-        futures.add(_manager.provider.getAsset(id).then((asset) {
+        futures.add(_graph.provider.getAsset(id).then((asset) {
           updated.add(asset);
         }).catchError((error) {
           if (error is AssetNotFoundException) {
@@ -250,7 +255,7 @@ class AssetGraph {
   }
 }
 
-/// An event indicating that the asset graph has finished building.
+/// An event indicating that the cascade has finished building all assets.
 ///
 /// A build can end either in success or failure. If there were no errors during
 /// the build, it's considered to be a success; any errors render it a failure,

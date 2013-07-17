@@ -9,8 +9,8 @@ import 'dart:collection';
 import 'dart:io';
 
 import 'package:barback/barback.dart';
-import 'package:barback/src/asset_graph.dart';
-import 'package:barback/src/asset_graph_manager.dart';
+import 'package:barback/src/asset_cascade.dart';
+import 'package:barback/src/package_graph.dart';
 import 'package:barback/src/utils.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:scheduled_test/scheduled_test.dart';
@@ -20,7 +20,7 @@ import 'package:unittest/compact_vm_config.dart';
 var _configured = false;
 
 MockProvider _provider;
-AssetGraphManager _graphManager;
+PackageGraph _graph;
 
 /// Calls to [buildShouldSucceed] and [buildShouldFail] set expectations on
 /// successive [BuildResult]s from [_graph]. This keeps track of how many calls
@@ -33,8 +33,8 @@ void initConfig() {
   useCompactVMConfiguration();
 }
 
-/// Creates a new [AssetProvider] and [AssetGraph] with the given [assets] and
-/// [transformers].
+/// Creates a new [PackageProvider] and [PackageGraph] with the given [assets]
+/// and [transformers].
 ///
 /// This graph is used internally by most of the other functions in this
 /// library so you must call it in the test before calling any of the other
@@ -54,11 +54,11 @@ void initGraph([assets,
   if (transformers == null) transformers = {};
 
   _provider = new MockProvider(assets, transformers);
-  _graphManager = new AssetGraphManager(_provider);
+  _graph = new PackageGraph(_provider);
   _nextBuildResult = 0;
 }
 
-/// Updates [assets] in the current [AssetProvider].
+/// Updates [assets] in the current [PackageProvider].
 ///
 /// Each item in the list may either be an [AssetId] or a string that can be
 /// parsed as one. Note that this method is not automatically scheduled.
@@ -69,10 +69,10 @@ void updateSources(Iterable assets) {
     return asset;
   });
 
-  _graphManager.updateSources(assets);
+  _graph.updateSources(assets);
 }
 
-/// Removes [assets] from the current [AssetProvider].
+/// Removes [assets] from the current [PackageProvider].
 ///
 /// Each item in the list may either be an [AssetId] or a string that can be
 /// parsed as one. Note that this method is not automatically scheduled.
@@ -83,7 +83,7 @@ void removeSources(Iterable assets) {
     return asset;
   });
 
-  _graphManager.removeSources(assets);
+  _graph.removeSources(assets);
 }
 
 /// Schedules a change to the contents of an asset identified by [name] to
@@ -96,9 +96,9 @@ void modifyAsset(String name, String contents) {
   }, "modify asset $name");
 }
 
-/// Schedules a pause of the internally created [AssetProvider].
+/// Schedules a pause of the internally created [PackageProvider].
 ///
-/// All asset requests that the [AssetGraph] makes to the provider after this
+/// All asset requests that the [PackageGraph] makes to the provider after this
 /// will not complete until [resumeProvider] is called.
 void pauseProvider() {
   schedule(() => _provider._pause(), "pause provider");
@@ -119,7 +119,7 @@ void resumeProvider() {
 void buildShouldNotBeDone() {
   var resultAllowed = false;
   var trace = new Trace.current();
-  _graphManager.results.elementAt(_nextBuildResult).then((result) {
+  _graph.results.elementAt(_nextBuildResult).then((result) {
     if (resultAllowed) return;
 
     currentSchedule.signalError(
@@ -162,14 +162,14 @@ void buildShouldFail(List matchers) {
 }
 
 Future<BuildResult> _getNextBuildResult() =>
-  _graphManager.results.elementAt(_nextBuildResult++);
+  _graph.results.elementAt(_nextBuildResult++);
 
 /// Pauses the schedule until the currently running build completes.
 ///
 /// Validates that the build completed successfully.
 void waitForBuild() {
   schedule(() {
-    return _graphManager.results.first.then((result) {
+    return _graph.results.first.then((result) {
       expect(result.succeeded, isTrue);
     });
   }, "wait for build");
@@ -188,7 +188,7 @@ void expectAsset(String name, [String contents]) {
   }
 
   schedule(() {
-    return _graphManager.getAssetById(id).then((asset) {
+    return _graph.getAssetById(id).then((asset) {
       // TODO(rnystrom): Make an actual Matcher class for this.
       expect(asset, new isInstanceOf<MockAsset>());
       expect(asset.id, equals(id));
@@ -204,7 +204,7 @@ void expectNoAsset(String name) {
 
   // Make sure the future gets the error.
   schedule(() {
-    return _graphManager.getAssetById(id).then((asset) {
+    return _graph.getAssetById(id).then((asset) {
       fail("Should have thrown error but got $asset.");
     }).catchError((error) {
       expect(error, new isInstanceOf<AssetNotFoundException>());
@@ -248,7 +248,7 @@ Matcher isInvalidOutputException(String package, String name) {
 }
 
 /// An [AssetProvider] that provides the given set of assets.
-class MockProvider implements AssetProvider {
+class MockProvider implements PackageProvider {
   Iterable<String> get packages => _packages.keys;
 
   Map<String, _MockPackage> _packages;

@@ -7,7 +7,7 @@ library barback.phase;
 import 'dart:async';
 
 import 'asset.dart';
-import 'asset_graph.dart';
+import 'asset_cascade.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
 import 'asset_set.dart';
@@ -15,7 +15,7 @@ import 'errors.dart';
 import 'transform_node.dart';
 import 'transformer.dart';
 
-/// One phase in the ordered series of transformations in an [AssetGraph].
+/// One phase in the ordered series of transformations in an [AssetCascade].
 ///
 /// Each phase can access outputs from previous phases and can in turn pass
 /// outputs to later phases. Phases are processed strictly serially. All
@@ -28,8 +28,8 @@ import 'transformer.dart';
 /// goes to advance to phase 3, it will see that modification and start the
 /// waterfall from the beginning again.
 class Phase {
-  /// The graph that owns this phase.
-  final AssetGraph graph;
+  /// The cascade that owns this phase.
+  final AssetCascade cascade;
 
   /// This phase's position relative to the other phases. Zero-based.
   final int _index;
@@ -64,7 +64,7 @@ class Phase {
   /// Outputs from this phase will be passed to it.
   final Phase _next;
 
-  Phase(this.graph, this._index, this._transformers, this._next);
+  Phase(this.cascade, this._index, this._transformers, this._next);
 
   /// Updates the phase's inputs with [updated] and removes [removed].
   ///
@@ -177,7 +177,7 @@ class Phase {
       collisions = collisions.toList();
       collisions.sort((a, b) => a.toString().compareTo(b.toString()));
       for (var collision in collisions) {
-        graph.reportError(new AssetCollisionException(collision));
+        cascade.reportError(new AssetCollisionException(collision));
         // TODO(rnystrom): Define what happens after a collision occurs.
       }
 

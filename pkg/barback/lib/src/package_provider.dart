@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library barback.asset_provider;
+library barback.package_provider;
 
 import 'dart:async';
 
@@ -10,13 +10,11 @@ import 'asset.dart';
 import 'asset_id.dart';
 import 'transformer.dart';
 
-// TODO(nweiz): change the name of this class now that it provides more than
-// just assets.
 /// API for locating and accessing packages on disk.
 ///
 /// Implemented by pub and provided to barback so that it isn't coupled
 /// directly to pub.
-abstract class AssetProvider {
+abstract class PackageProvider {
   /// The names of all packages that can be provided by this provider.
   ///
   /// This is equal to the transitive closure of the entrypoint package
