@@ -170,9 +170,6 @@ unresolved_top_level_var_negative_test: fail
 block_scope_test: fail
 lazy_static3_test: fail
 
-# test issue 10752, there are 'implicit' scopes for 'if', 'while' and 'do-while'
-implicit_scope_test: fail
-
 # test issue 10889, "throw" requires expression, "rethrow" should be used instead
 execute_finally10_test: fail
 execute_finally11_test: fail
