@@ -82,6 +82,7 @@ class CodeEmitterTask extends CompilerTask {
   final List<ClassElement> nativeClasses = <ClassElement>[];
   final List<Selector> trivialNsmHandlers = <Selector>[];
   final Map<String, String> mangledFieldNames = <String, String>{};
+  final Map<String, String> mangledGlobalFieldNames = <String, String>{};
   final Set<String> recordedMangledNames = new Set<String>();
   final Set<String> interceptorInvocationNames = new Set<String>();
 
@@ -1480,6 +1481,7 @@ class CodeEmitterTask extends CompilerTask {
    * Invariant: [classElement] must be a declaration element.
    */
   void visitClassFields(ClassElement classElement,
+                        bool visitStatics,
                         void addField(Element member,
                                       String name,
                                       String accessorName,
@@ -1546,18 +1548,22 @@ class CodeEmitterTask extends CompilerTask {
       }
     }
 
-    // TODO(kasperl): We should make sure to only emit one version of
-    // overridden fields. Right now, we rely on the ordering so the
-    // fields pulled in from mixins are replaced with the fields from
-    // the class definition.
+    if (visitStatics) {
+      classElement.implementation.forEachStaticField(visitField);
+    } else {
+      // TODO(kasperl): We should make sure to only emit one version of
+      // overridden fields. Right now, we rely on the ordering so the
+      // fields pulled in from mixins are replaced with the fields from
+      // the class definition.
 
-    // If a class is not instantiated then we add the field just so we can
-    // generate the field getter/setter dynamically. Since this is only
-    // allowed on fields that are in [classElement] we don't need to visit
-    // superclasses for non-instantiated classes.
-    classElement.implementation.forEachInstanceField(
-        visitField,
-        includeSuperAndInjectedMembers: isInstantiated);
+      // If a class is not instantiated then we add the field just so we can
+      // generate the field getter/setter dynamically. Since this is only
+      // allowed on fields that are in [classElement] we don't need to visit
+      // superclasses for non-instantiated classes.
+      classElement.implementation.forEachInstanceField(
+          visitField,
+          includeSuperAndInjectedMembers: isInstantiated);
+    }
   }
 
   void generateGetter(Element member, String fieldName, String accessorName,
@@ -1643,9 +1649,16 @@ class CodeEmitterTask extends CompilerTask {
                           String accessorName,
                           String memberName) {
     if (!backend.retainGetter(member)) return;
-    String previousName = mangledFieldNames.putIfAbsent(
-        '${namer.getterPrefix}$accessorName',
-        () => memberName);
+    String previousName;
+    if (member.isInstanceMember()) {
+      previousName = mangledFieldNames.putIfAbsent(
+          '${namer.getterPrefix}$accessorName',
+          () => memberName);
+    } else {
+      previousName = mangledGlobalFieldNames.putIfAbsent(
+          accessorName,
+          () => memberName);
+    }
     assert(invariant(member, previousName == memberName,
                      message: '$previousName != ${memberName}'));
   }
@@ -1654,26 +1667,30 @@ class CodeEmitterTask extends CompilerTask {
   bool emitClassFields(ClassElement classElement,
                        ClassBuilder builder,
                        String superName,
-                       { bool classIsNative: false }) {
+                       { bool classIsNative: false,
+                         bool emitStatics: false }) {
     assert(superName != null);
     String separator = '';
     String nativeName = namer.getPrimitiveInterceptorRuntimeName(classElement);
     StringBuffer buffer = new StringBuffer();
-    if (nativeName != null) {
-      buffer.write('$nativeName/');
+    if (!emitStatics) {
+      if (nativeName != null) {
+        buffer.write('$nativeName/');
+      }
+      buffer.write('$superName;');
     }
-    buffer.write('$superName;');
     int bufferClassLength = buffer.length;
 
     var fieldMetadata = [];
     bool hasMetadata = false;
 
-    visitClassFields(classElement, (Element member,
-                                    String name,
-                                    String accessorName,
-                                    bool needsGetter,
-                                    bool needsSetter,
-                                    bool needsCheckedSetter) {
+    visitClassFields(classElement, emitStatics,
+                     (Element member,
+                      String name,
+                      String accessorName,
+                      bool needsGetter,
+                      bool needsSetter,
+                      bool needsCheckedSetter) {
       // Ignore needsCheckedSetter - that is handled below.
       bool needsAccessor = (needsGetter || needsSetter);
       // We need to output the fields for non-native classes so we can auto-
@@ -1751,12 +1768,13 @@ class CodeEmitterTask extends CompilerTask {
   void emitClassGettersSetters(ClassElement classElement,
                                ClassBuilder builder) {
 
-    visitClassFields(classElement, (Element member,
-                                    String name,
-                                    String accessorName,
-                                    bool needsGetter,
-                                    bool needsSetter,
-                                    bool needsCheckedSetter) {
+    visitClassFields(classElement, false,
+                     (Element member,
+                      String name,
+                      String accessorName,
+                      bool needsGetter,
+                      bool needsSetter,
+                      bool needsCheckedSetter) {
       compiler.withCurrentElement(member, () {
         if (needsCheckedSetter) {
           assert(!needsSetter);
@@ -1816,20 +1834,31 @@ class CodeEmitterTask extends CompilerTask {
     emitIsTests(classElement, builder);
 
     List<CodeBuffer> classBuffers = elementBuffers[classElement];
-    CodeBuffer statics = new CodeBuffer();
-    bool hasStatics = false;
-    if (classBuffers != null) {
-      statics.write('{$n');
+    if (classBuffers == null) {
+      classBuffers = [];
+    } else {
       elementBuffers.remove(classElement);
-      for (CodeBuffer classBuffer in classBuffers) {
-        // TODO(ahe): What about deferred?
-        if (classBuffer != null) {
-          hasStatics = true;
-          statics.addBuffer(classBuffer);
-        }
-      }
-      statics.write('}$n');
     }
+    CodeBuffer statics = new CodeBuffer();
+    statics.write('{$n');
+    bool hasStatics = false;
+    ClassBuilder staticsBuilder = new ClassBuilder();
+    if (emitClassFields(
+            classElement, staticsBuilder, superName, emitStatics: true)) {
+      hasStatics = true;
+      statics.write('"":$_');
+      statics.write(
+          jsAst.prettyPrint(staticsBuilder.properties.single.value, compiler));
+      statics.write(',$n');
+    }
+    for (CodeBuffer classBuffer in classBuffers) {
+      // TODO(ahe): What about deferred?
+      if (classBuffer != null) {
+        hasStatics = true;
+        statics.addBuffer(classBuffer);
+      }
+    }
+    statics.write('}$n');
     if (hasStatics) {
       builder.addProperty('static', new jsAst.Blob(statics));
     }
@@ -3524,6 +3553,23 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
             mainBuffer.write(';');
           }
         }
+        if (!mangledGlobalFieldNames.isEmpty) {
+          var keys = mangledGlobalFieldNames.keys.toList();
+          keys.sort();
+          var properties = [];
+          for (String key in keys) {
+            var value = js.string('${mangledGlobalFieldNames[key]}');
+            properties.add(new jsAst.Property(js.string(key), value));
+          }
+          var map = new jsAst.ObjectInitializer(properties);
+          mainBuffer.write(
+              jsAst.prettyPrint(
+                  js('init.mangledGlobalNames = #', map).toStatement(),
+                  compiler));
+          if (compiler.enableMinification) {
+            mainBuffer.write(';');
+          }
+        }
         mainBuffer
             ..write(getReflectionDataParser())
             ..write('([$n');
@@ -3792,6 +3838,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     function processStatics(descriptor) {
       for (var property in descriptor) {
         if (!hasOwnProperty.call(descriptor, property)) continue;
+        if (property === "") continue;
         var element = descriptor[property];
         var firstChar = property.substring(0, 1);
         var previousProperty;

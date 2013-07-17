@@ -25,6 +25,7 @@ typed_data/byte_data_test: Fail, OK # d8/ie9 doesn't support DataView
 mirrors/reflect_model_test: Fail # Issue 6490
 mirrors/to_string_test: Fail # Issue 6490
 mirrors/static_test: Fail # Issue 6490
+mirrors/inherit_field_test: Fail # Issue 6490
 
 [ $csp ]
 mirrors/*: Skip # Issue 6490

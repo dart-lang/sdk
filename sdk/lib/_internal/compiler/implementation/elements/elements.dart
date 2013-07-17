@@ -883,6 +883,9 @@ abstract class ClassElement extends TypeDeclarationElement
   void forEachInstanceField(void f(ClassElement enclosingClass, Element field),
                             {includeSuperAndInjectedMembers: false});
 
+  /// Similar to [forEachInstanceField] but visits static fields.
+  void forEachStaticField(void f(ClassElement enclosingClass, Element field));
+
   void forEachBackendMember(void f(Element member));
 }
 

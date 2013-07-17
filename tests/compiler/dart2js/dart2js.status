@@ -6,6 +6,7 @@ identity_test: Fail # Issue 6638
 constant_folding_string_test: Fail
 boolified_operator_test: Fail # Issue 8001
 analyze_api_test: Pass, Slow
+cpa_inference_test: Fail # http://dartbug.com/11865
 
 [ $checked ]
 field_type_inferer_test: Slow, Pass # Issue 6658.

@@ -24,8 +24,6 @@ void main() {
          reflectClass(Foo).setters[new Symbol('aux=')]);
   expect('Method(s(foo) in s(Foo), static)',
          reflectClass(Foo).members[new Symbol('foo')]);
-
-  // TODO(ahe): Support static variables.
-  // expect('Variable(s(bar) in s(Foo), static)',
-  //        reflectClass(Foo).members[new Symbol('bar')]);
+  expect('Variable(s(bar) in s(Foo), static)',
+         reflectClass(Foo).members[new Symbol('bar')]);
 }

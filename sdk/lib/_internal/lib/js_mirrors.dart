@@ -404,11 +404,12 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     implements ClassMirror {
   final String _mangledName;
   final _jsConstructorOrInterceptor;
-  final String _fields;
+  final String _fieldsDescriptor;
   final List _fieldsMetadata;
   List _metadata;
   JsClassMirror _superclass;
   List<JsMethodMirror> _cachedMethods;
+  List<JsVariableMirror> _cachedFields;
 
   // Set as side-effect of accessing JsLibraryMirror.classes.
   JsLibraryMirror _owner;
@@ -416,7 +417,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   JsClassMirror(Symbol simpleName,
                 this._mangledName,
                 this._jsConstructorOrInterceptor,
-                this._fields,
+                this._fieldsDescriptor,
                 this._fieldsMetadata)
       : super(simpleName);
 
@@ -494,6 +495,54 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     return _cachedMethods = result;
   }
 
+  List<VariableMirror> get _fields {
+    if (_cachedFields != null) return _cachedFields;
+    var result = <VariableMirror>[];
+    var s = _fieldsDescriptor.split(';');
+    var fields = s[1] == '' ? [] : s[1].split(',');
+    int fieldNumber = 0;
+    for (String field in fields) {
+      var metadata;
+      if (_fieldsMetadata != null) {
+        metadata = _fieldsMetadata[fieldNumber++];
+      }
+      JsVariableMirror mirror =
+          new JsVariableMirror.from(field, metadata, this, false);
+      if (mirror != null) {
+        result.add(mirror);
+      }
+    }
+
+    var staticDescriptor = JS('', 'init.statics[#]', _mangledName);
+    if (staticDescriptor != null) {
+      var staticFieldsDescriptor = JS('', '#[""]', staticDescriptor);
+      var staticFieldsMetadata = null;
+      var staticFields;
+      if (staticFieldsDescriptor is List) {
+        staticFields = staticFieldsDescriptor[0].split(',');
+        staticFieldsMetadata = staticFieldsDescriptor.sublist(1);
+      } else if (staticFieldsDescriptor is String) {
+        staticFields = staticFieldsDescriptor.split(',');
+      } else {
+        staticFields = [];
+      }
+      fieldNumber = 0;
+      for (String staticField in staticFields) {
+        var metadata;
+        if (staticFieldsMetadata != null) {
+          metadata = staticFieldsMetadata[fieldNumber++];
+        }
+        JsVariableMirror mirror =
+            new JsVariableMirror.from(staticField, metadata, this, true);
+        if (mirror != null) {
+          result.add(mirror);
+        }
+      }
+    }
+    _cachedFields = result;
+    return _cachedFields;
+  }
+
   Map<Symbol, MethodMirror> get methods {
     var result = new Map<Symbol, MethodMirror>();
     for (JsMethodMirror method in _methods) {
@@ -543,19 +592,8 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
 
   Map<Symbol, VariableMirror> get variables {
     var result = new Map<Symbol, VariableMirror>();
-    var s = _fields.split(';');
-    var fields = s[1] == '' ? [] : s[1].split(',');
-    int fieldNumber = 0;
-    for (String field in fields) {
-      var metadata;
-      if (_fieldsMetadata != null) {
-        metadata = _fieldsMetadata[fieldNumber++];
-      }
-      JsVariableMirror mirror =
-          new JsVariableMirror.from(field, metadata, this);
-      if (mirror != null) {
-        result[mirror.simpleName] = mirror;
-      }
+    for (JsVariableMirror mirror in _fields) {
+      result[mirror.simpleName] = mirror;
     }
     return result;
   }
@@ -658,7 +696,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
 
   ClassMirror get superclass {
     if (_superclass == null) {
-      var superclassName = _fields.split(';')[0];
+      var superclassName = _fieldsDescriptor.split(';')[0];
       // Use _superclass == this to represent class with no superclass (Object).
       _superclass = (superclassName == '')
           ? this : reflectClassByMangledName(superclassName);
@@ -701,7 +739,8 @@ class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
 
   factory JsVariableMirror.from(String descriptor,
                                 metadataFunction,
-                                JsClassMirror owner) {
+                                JsClassMirror owner,
+                                bool isStatic) {
     int length = descriptor.length;
     var code = fieldCode(descriptor.codeUnitAt(length - 1));
     bool isFinal = false;
@@ -717,6 +756,9 @@ class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
       accessorName = accessorName.substring(0, divider);
       jsName = accessorName.substring(divider + 1);
     }
+    var unmangledName =
+        (isStatic ? mangledGlobalNames : mangledNames)[accessorName];
+    if (unmangledName == null) unmangledName = accessorName;
     if (!hasSetter) {
       // TODO(ahe): This is a hack to handle checked setters in checked mode.
       var setterName = s('$accessorName=');
@@ -728,7 +770,7 @@ class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
       }
     }
     return new JsVariableMirror(
-        s(accessorName), jsName, isFinal, false, metadataFunction, owner);
+        s(unmangledName), jsName, isFinal, isStatic, metadataFunction, owner);
   }
 
   String get _prettyName => 'VariableMirror';

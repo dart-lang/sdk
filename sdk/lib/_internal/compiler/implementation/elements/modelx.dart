@@ -1892,6 +1892,18 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
         includeSuperAndInjectedMembers: includeSuperAndInjectedMembers);
   }
 
+  /// Similar to [forEachInstanceField] but visits static fields.
+  void forEachStaticField(void f(ClassElement enclosingClass, Element field)) {
+    // Filters so that [f] is only invoked with static fields.
+    void fieldFilter(ClassElement enclosingClass, Element member) {
+      if (!member.isInstanceMember() && member.kind == ElementKind.FIELD) {
+        f(enclosingClass, member);
+      }
+    }
+
+    forEachMember(fieldFilter);
+  }
+
   void forEachBackendMember(void f(Element member)) {
     backendMembers.forEach(f);
   }

@@ -37,7 +37,8 @@ class CodeEmitterNoEvalTask extends CodeEmitterTask {
   bool emitClassFields(ClassElement classElement,
                        ClassBuilder builder,
                        String superName,
-                       { bool classIsNative: false }) {
+                       { bool classIsNative: false,
+                         bool emitStatics: false }) {
     // Class fields are dynamically generated so they have to be
     // emitted using getters and setters instead.
     return false;
@@ -53,12 +54,13 @@ class CodeEmitterNoEvalTask extends CodeEmitterTask {
     //   get$d : function() { return this.d; }
     //   set$d : function(x) { this.d = x; }
     List<String> fields = <String>[];
-    visitClassFields(classElement, (Element member,
-                                    String name,
-                                    String accessorName,
-                                    bool needsGetter,
-                                    bool needsSetter,
-                                    bool needsCheckedSetter) {
+    visitClassFields(classElement, false,
+                     (Element member,
+                      String name,
+                      String accessorName,
+                      bool needsGetter,
+                      bool needsSetter,
+                      bool needsCheckedSetter) {
       fields.add(name);
     });
     String constructorName = namer.safeName(classElement.name.slowToString());
