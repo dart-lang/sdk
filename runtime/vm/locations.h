@@ -284,6 +284,9 @@ class Location : public ValueObject {
   // Return a memory operand for stack slot locations.
   Address ToStackSlotAddress() const;
 
+  // Returns the offset from the frame pointer for stack slot locations.
+  intptr_t ToStackSlotOffset() const;
+
   // Constants.
   static Location RegisterOrConstant(Value* value);
   static Location RegisterOrSmiConstant(Value* value);

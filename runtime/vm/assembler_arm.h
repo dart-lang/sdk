@@ -255,10 +255,6 @@ class Address : public ValueObject {
     encoding_ = so.encoding() | am | (static_cast<uint32_t>(rn) << kRnShift);
   }
 
-  bool Equals(const Address& other) {
-    return (encoding_ == other.encoding_) && (kind_ == other.kind_);
-  }
-
   static bool CanHoldLoadOffset(OperandSize type,
                                 int32_t offset,
                                 int32_t* offset_mask);

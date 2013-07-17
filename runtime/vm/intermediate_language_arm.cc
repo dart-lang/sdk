@@ -56,7 +56,8 @@ void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ PushObject(value.constant());
     } else {
       ASSERT(value.IsStackSlot());
-      __ ldr(IP, value.ToStackSlotAddress());
+      const intptr_t value_offset = value.ToStackSlotOffset();
+      __ LoadFromOffset(kWord, IP, FP, value_offset);
       __ Push(IP);
     }
   }

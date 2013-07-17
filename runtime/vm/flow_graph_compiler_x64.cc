@@ -749,9 +749,10 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
 }
 
 
-void FlowGraphCompiler::EmitTrySyncMove(Address dest,
+void FlowGraphCompiler::EmitTrySyncMove(intptr_t dest_offset,
                                         Location loc,
                                         bool* push_emitted) {
+  const Address dest(RBP, dest_offset);
   if (loc.IsConstant()) {
     if (!*push_emitted) {
       __ pushq(RAX);
@@ -794,8 +795,7 @@ void FlowGraphCompiler::EmitTrySync(Instruction* instr, intptr_t try_index) {
   for (; i < num_non_copied_params; ++i) {
     if ((*idefs)[i]->IsConstant()) continue;  // Common constants
     Location loc = env->LocationAt(i);
-    Address dest(RBP, (param_base - i) * kWordSize);
-    EmitTrySyncMove(dest, loc, &push_emitted);
+    EmitTrySyncMove((param_base - i) * kWordSize, loc, &push_emitted);
   }
 
   // Process locals. Skip exception_var and stacktrace_var.
@@ -807,8 +807,7 @@ void FlowGraphCompiler::EmitTrySync(Instruction* instr, intptr_t try_index) {
     if (i == ex_idx || i == st_idx) continue;
     if ((*idefs)[i]->IsConstant()) continue;
     Location loc = env->LocationAt(i);
-    Address dest(RBP, (local_base - i) * kWordSize);
-    EmitTrySyncMove(dest, loc, &push_emitted);
+    EmitTrySyncMove((local_base - i) * kWordSize, loc, &push_emitted);
     // Update safepoint bitmap to indicate that the target location
     // now contains a pointer.
     instr->locs()->stack_bitmap()->Set(i - num_non_copied_params, true);
@@ -1877,6 +1876,17 @@ void ParallelMoveResolver::Exchange(Register reg, const Address& mem) {
 
 void ParallelMoveResolver::Exchange(const Address& mem1, const Address& mem2) {
   __ Exchange(mem1, mem2);
+}
+
+
+void ParallelMoveResolver::Exchange(Register reg, intptr_t stack_offset) {
+  UNREACHABLE();
+}
+
+
+void ParallelMoveResolver::Exchange(intptr_t stack_offset1,
+                                    intptr_t stack_offset2) {
+  UNREACHABLE();
 }
 
 
