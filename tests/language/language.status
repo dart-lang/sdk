@@ -16,13 +16,13 @@
 # 3) Update the language/src directory with the updated test.
 
 [ $compiler == dart2dart ]
-mixin_type_parameters_simple_test: Crash # issue 11803
+mixin_type_parameters_simple_test: Fail, Crash # issue 11803
 mixin_super_constructor_named_test: Fail
 mixin_super_constructor_positionals_test: Fail
 const_constructor_super_test/01: fail
 
 [ $compiler == none ]
-mixin_type_parameters_simple_test: Crash # issue 11803
+mixin_type_parameters_simple_test: Fail, Crash # issue 11803
 mixin_super_constructor_named_test: Fail
 mixin_super_constructor_positionals_test: Fail
 built_in_identifier_prefix_test: Fail # http://dartbug.com/6970
