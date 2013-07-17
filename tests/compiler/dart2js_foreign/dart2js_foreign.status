@@ -58,8 +58,6 @@ native_window2_test: Pass # For the wrong reason.
 native_checked_fields_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_class_inheritance4_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_class_with_dart_methods_test: Fail # TODO(ahe): Convert to metadata syntax.
-native_missing_method1_test: Fail # TODO(ahe): Convert to metadata syntax.
-native_missing_method2_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_to_string_test: Fail # TODO(ahe): Convert to metadata syntax.
 
 [ $compiler == dartc || $browser ]
