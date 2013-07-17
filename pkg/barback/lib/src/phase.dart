@@ -141,11 +141,21 @@ class Phase {
   ///
   /// Passes their outputs to the next phase.
   Future _processTransforms() {
-    var dirtyTransforms = _transforms.where((transform) => transform.isDirty);
+    // Convert this to a list so we can safely modify _transforms while
+    // iterating over it.
+    var dirtyTransforms = _transforms.where((transform) => transform.isDirty)
+        .toList();
     if (dirtyTransforms.isEmpty) return null;
 
-    return Future.wait(dirtyTransforms.map((transform) => transform.apply()))
-        .then((transformOutputs) {
+    return Future.wait(dirtyTransforms.map((transform) {
+      if (inputs.containsKey(transform.primary.id)) return transform.apply();
+
+      // If the primary input for the transform has been removed, get rid of it
+      // and all its outputs.
+      _transforms.remove(transform);
+      return new Future.value(
+          new TransformOutputs(new AssetSet(), transform.outputs));
+    })).then((transformOutputs) {
       // Collect all of the outputs. Since the transforms are run in parallel,
       // we have to be careful here to ensure that the result is deterministic
       // and not influenced by the order that transforms complete.

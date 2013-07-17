@@ -19,6 +19,7 @@ main() {
     ]});
     updateSources(["app|foo.blub"]);
     expectAsset("app|foo.blab", "foo.blab");
+    buildShouldSucceed();
   });
 
   test("gets a transformed asset with the same path", () {
@@ -27,6 +28,7 @@ main() {
     ]});
     updateSources(["app|foo.blub"]);
     expectAsset("app|foo.blub", "foo.blub");
+    buildShouldSucceed();
   });
 
   test("doesn't find an output from a later phase", () {
@@ -36,6 +38,7 @@ main() {
     ]});
     updateSources(["app|foo.a"]);
     expectNoAsset("app|foo.c");
+    buildShouldSucceed();
   });
 
   test("doesn't find an output from the same phase", () {
@@ -48,6 +51,7 @@ main() {
     updateSources(["app|foo.a"]);
     expectAsset("app|foo.b", "foo.b");
     expectNoAsset("app|foo.c");
+    buildShouldSucceed();
   });
 
   test("finds the latest output before the transformer's phase", () {
@@ -61,6 +65,7 @@ main() {
     ]});
     updateSources(["app|foo.blub"]);
     expectAsset("app|foo.done", "foo.blub.done");
+    buildShouldSucceed();
   });
 
   test("applies multiple transformations to an asset", () {
@@ -78,6 +83,7 @@ main() {
     ]});
     updateSources(["app|foo.a"]);
     expectAsset("app|foo.k", "foo.b.c.d.e.f.g.h.i.j.k");
+    buildShouldSucceed();
   });
 
   test("only runs a transform once for all of its outputs", () {
@@ -87,6 +93,7 @@ main() {
     expectAsset("app|foo.a", "foo.a");
     expectAsset("app|foo.b", "foo.b");
     expectAsset("app|foo.c", "foo.c");
+    buildShouldSucceed();
     schedule(() {
       expect(transformer.numRuns, equals(1));
     });
@@ -118,6 +125,7 @@ main() {
 
     expectAsset("app|foo.a", "foo.a");
     expectAsset("app|foo.b", "foo.b");
+    buildShouldSucceed();
   });
 
   test("does not reapply transform when inputs are not modified", () {
@@ -127,6 +135,7 @@ main() {
     expectAsset("app|foo.blab", "foo.blab");
     expectAsset("app|foo.blab", "foo.blab");
     expectAsset("app|foo.blab", "foo.blab");
+    buildShouldSucceed();
 
     schedule(() {
       expect(transformer.numRuns, equals(1));
@@ -142,18 +151,21 @@ main() {
     });
 
     expectAsset("app|foo.blab", "foo.blab");
+    buildShouldSucceed();
 
     schedule(() {
       updateSources(["app|foo.blub"]);
     });
 
     expectAsset("app|foo.blab", "foo.blab");
+    buildShouldSucceed();
 
     schedule(() {
       updateSources(["app|foo.blub"]);
     });
 
     expectAsset("app|foo.blab", "foo.blab");
+    buildShouldSucceed();
 
     schedule(() {
       expect(transformer.numRuns, equals(3));
@@ -171,6 +183,7 @@ main() {
     updateSources(["app|a.txt", "app|a.inc", "app|b.inc"]);
 
     expectAsset("app|a.out", "ab");
+    buildShouldSucceed();
 
     // Remove the dependency on the non-primary input.
     schedule(() {
@@ -180,6 +193,7 @@ main() {
 
     // Process it again.
     expectAsset("app|a.out", "a");
+    buildShouldSucceed();
 
     // Now touch the removed input. It should not trigger another build.
     schedule(() {
@@ -187,6 +201,7 @@ main() {
     });
 
     expectAsset("app|a.out", "a");
+    buildShouldSucceed();
 
     schedule(() {
       expect(transformer.numRuns, equals(2));
@@ -202,6 +217,7 @@ main() {
 
     expectAsset("app|a.out", "spread txt");
     expectAsset("app|b.out", "spread txt");
+    buildShouldSucceed();
   });
 
   test("does not rebuild transforms that don't use modified source", () {
@@ -219,6 +235,7 @@ main() {
 
     expectAsset("app|foo.aaa", "foo.aa.aaa");
     expectAsset("app|foo.bbb", "foo.bb.bbb");
+    buildShouldSucceed();
 
     schedule(() {
       updateSources(["app|foo.a"]);
@@ -226,6 +243,7 @@ main() {
 
     expectAsset("app|foo.aaa", "foo.aa.aaa");
     expectAsset("app|foo.bbb", "foo.bb.bbb");
+    buildShouldSucceed();
 
     schedule(() {
       expect(aa.numRuns, equals(2));
@@ -241,12 +259,14 @@ main() {
 
     updateSources(["app|foo.txt"]);
     expectAsset("app|foo.out", "foo.out");
+    buildShouldSucceed();
 
     schedule(() {
       removeSources(["app|foo.txt"]);
     });
 
     expectNoAsset("app|foo.out");
+    buildShouldSucceed();
   });
 
   test("reapplies a transform when a non-primary input changes", () {
@@ -257,6 +277,7 @@ main() {
 
     updateSources(["app|a.txt", "app|a.inc"]);
     expectAsset("app|a.out", "a");
+    buildShouldSucceed();
 
     schedule(() {
       modifyAsset("app|a.inc", "after");
@@ -264,6 +285,7 @@ main() {
     });
 
     expectAsset("app|a.out", "after");
+    buildShouldSucceed();
   });
 
   test("restarts processing if a change occurs during processing", () {
@@ -289,6 +311,7 @@ main() {
     });
 
     expectAsset("app|foo.out", "foo.out");
+    buildShouldSucceed();
 
     schedule(() {
       expect(transformer.numRuns, equals(2));
@@ -309,6 +332,7 @@ main() {
     expectAsset("app|a.out", "spread a");
     expectAsset("app|b.out", "spread b");
     expectAsset("app|shared.out", "spread a");
+    buildShouldSucceed();
 
     // Now switch their contents so that "shared.out" will be output by "b.b"'s
     // transformer.
@@ -321,6 +345,7 @@ main() {
     expectAsset("app|a.out", "spread a");
     expectAsset("app|b.out", "spread b");
     expectAsset("app|shared.out", "spread b");
+    buildShouldSucceed();
   });
 
   test("restarts before finishing later phases when a change occurs", () {
@@ -349,6 +374,7 @@ main() {
 
     expectAsset("app|foo.out", "foo.int.out");
     expectAsset("app|bar.out", "bar.int.out");
+    buildShouldSucceed();
 
     schedule(() {
       // Should only have run each transform once for each primary.
