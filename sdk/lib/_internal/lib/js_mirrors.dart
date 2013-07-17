@@ -633,7 +633,12 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
       if (!JS('bool', '# in #', jsName, JS_CURRENT_ISOLATE())) {
         throw new RuntimeError('Cannot find "$jsName" in current isolate.');
       }
-      return reflect(JS('', '#[#]', JS_CURRENT_ISOLATE(), jsName));
+      if (JS('bool', '# in init.lazies', jsName)) {
+        String getterName = JS('String', 'init.lazies[#]', jsName);
+        return reflect(JS('', '#[#]()', JS_CURRENT_ISOLATE(), getterName));
+      } else {
+        return reflect(JS('', '#[#]', JS_CURRENT_ISOLATE(), jsName));
+      }
     }
     // TODO(ahe): What receiver to use?
     throw new NoSuchMethodError(this, n(fieldName), null, null);

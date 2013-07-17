@@ -1429,6 +1429,8 @@ class JavaScriptBackend extends Backend {
 
   bool retainName(SourceString name) => mustPreserveNames;
 
+  bool get rememberLazies => isTreeShakingDisabled;
+
   bool retainMetadataOf(Element element) {
     if (mustRetainMetadata) {
       // TODO(ahe): This is a little hacky, but I'll have to rewrite this when

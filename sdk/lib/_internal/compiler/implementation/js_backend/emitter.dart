@@ -884,8 +884,14 @@ class CodeEmitterTask extends CompilerTask {
   List addLazyInitializerLogic() {
     String isolate = namer.CURRENT_ISOLATE;
     String cyclicThrow = namer.isolateAccess(backend.getCyclicThrowHelper());
+    var lazies = [];
+    if (backend.rememberLazies) {
+      lazies = [
+          js.if_('!init.lazies', js('init.lazies = {}')),
+          js('init.lazies[fieldName] = getterName')];
+    }
 
-    return [
+    return lazies..addAll([
       js('var sentinelUndefined = {}'),
       js('var sentinelInProgress = {}'),
       js('prototype[fieldName] = sentinelUndefined'),
@@ -928,7 +934,7 @@ class CodeEmitterTask extends CompilerTask {
           js('$isolate[getterName] = getter')
         ])
       ]))
-    ];
+    ]);
   }
 
   List buildDefineClassAndFinishClassFunctionsIfNecessary() {
