@@ -618,6 +618,14 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
       library = Library::CoreLibrary();
       class_name = &Symbols::AbstractClassInstantiationError();
       break;
+    case kMirroredUncaughtExceptionError:
+      library = Library::MirrorsLibrary();
+      class_name = &Symbols::MirroredUncaughtExceptionError();
+      break;
+    case kMirroredCompilationError:
+      library = Library::MirrorsLibrary();
+      class_name = &Symbols::MirroredCompilationError();
+      break;
   }
 
   return DartLibraryCalls::ExceptionCreate(library,

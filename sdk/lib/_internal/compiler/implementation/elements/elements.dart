@@ -497,7 +497,9 @@ class Elements {
     if (r != 0) return r;
     Token positionA = a.position();
     Token positionB = b.position();
-    r = positionA.charOffset.compareTo(positionB.charOffset);
+    int offsetA = positionA == null ? -1 : positionA.charOffset;
+    int offsetB = positionB == null ? -1 : positionB.charOffset;
+    r = offsetA.compareTo(offsetB);
     if (r != 0) return r;
     r = a.name.slowToString().compareTo(b.name.slowToString());
     if (r != 0) return r;
@@ -880,6 +882,9 @@ abstract class ClassElement extends TypeDeclarationElement
 
   void forEachInstanceField(void f(ClassElement enclosingClass, Element field),
                             {includeSuperAndInjectedMembers: false});
+
+  /// Similar to [forEachInstanceField] but visits static fields.
+  void forEachStaticField(void f(ClassElement enclosingClass, Element field));
 
   void forEachBackendMember(void f(Element member));
 }

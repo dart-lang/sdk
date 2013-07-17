@@ -47,8 +47,6 @@ main() {
   Expect.equals(89, fieldC);
 
   expect('{accessor: Method(s(accessor) in s(A), getter)'
-         // TODO(ahe): Include instance field getters?
-         ', field: Method(s(field) in s(A), getter)'
          '}',
          aClass.getters);
   expect('{accessor: Method(s(accessor) in s(B), getter)'
@@ -58,8 +56,6 @@ main() {
          cClass.getters);
 
   expect('{accessor=: Method(s(accessor=) in s(A), setter)'
-         // TODO(ahe): Include instance field setters?
-         ', field=: Method(s(field=) in s(A), setter)'
          '}',
          aClass.setters);
   expect('{accessor=: Method(s(accessor=) in s(B), setter)}',

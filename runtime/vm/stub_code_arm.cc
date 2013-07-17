@@ -47,10 +47,10 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
-  __ StoreToOffset(kStoreWord, SP, R0, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, SP, R0, Isolate::top_exit_frame_info_offset());
 
   // Save current Context pointer into Isolate structure.
-  __ StoreToOffset(kStoreWord, CTX, R0, Isolate::top_context_offset());
+  __ StoreToOffset(kWord, CTX, R0, Isolate::top_context_offset());
 
   // Cache Isolate pointer into CTX while executing runtime code.
   __ mov(CTX, ShifterOperand(R0));
@@ -83,14 +83,14 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Reset exit frame information in Isolate structure.
   __ LoadImmediate(R2, 0);
-  __ StoreToOffset(kStoreWord, R2, CTX, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, R2, CTX, Isolate::top_exit_frame_info_offset());
 
   // Load Context pointer from Isolate structure into R2.
-  __ LoadFromOffset(kLoadWord, R2, CTX, Isolate::top_context_offset());
+  __ LoadFromOffset(kWord, R2, CTX, Isolate::top_context_offset());
 
   // Reset Context pointer in Isolate structure.
   __ LoadImmediate(R3, reinterpret_cast<intptr_t>(Object::null()));
-  __ StoreToOffset(kStoreWord, R3, CTX, Isolate::top_context_offset());
+  __ StoreToOffset(kWord, R3, CTX, Isolate::top_context_offset());
 
   // Cache Context pointer into CTX while executing Dart code.
   __ mov(CTX, ShifterOperand(R2));
@@ -138,10 +138,10 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ StoreToOffset(kStoreWord, SP, R0, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, SP, R0, Isolate::top_exit_frame_info_offset());
 
   // Save current Context pointer into Isolate structure.
-  __ StoreToOffset(kStoreWord, CTX, R0, Isolate::top_context_offset());
+  __ StoreToOffset(kWord, CTX, R0, Isolate::top_context_offset());
 
   // Cache Isolate pointer into CTX while executing native code.
   __ mov(CTX, ShifterOperand(R0));
@@ -179,14 +179,14 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   // Reset exit frame information in Isolate structure.
   __ LoadImmediate(R2, 0);
-  __ StoreToOffset(kStoreWord, R2, CTX, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, R2, CTX, Isolate::top_exit_frame_info_offset());
 
   // Load Context pointer from Isolate structure into R2.
-  __ LoadFromOffset(kLoadWord, R2, CTX, Isolate::top_context_offset());
+  __ LoadFromOffset(kWord, R2, CTX, Isolate::top_context_offset());
 
   // Reset Context pointer in Isolate structure.
   __ LoadImmediate(R3, reinterpret_cast<intptr_t>(Object::null()));
-  __ StoreToOffset(kStoreWord, R3, CTX, Isolate::top_context_offset());
+  __ StoreToOffset(kWord, R3, CTX, Isolate::top_context_offset());
 
   // Cache Context pointer into CTX while executing Dart code.
   __ mov(CTX, ShifterOperand(R2));
@@ -475,15 +475,15 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
       __ b(&slow_case, NE);
     }
     __ ldr(R8, FieldAddress(CTX, Context::isolate_offset()));
-    __ LoadFromOffset(kLoadWord, R8, R8, Isolate::heap_offset());
-    __ LoadFromOffset(kLoadWord, R8, R8, Heap::new_space_offset());
+    __ LoadFromOffset(kWord, R8, R8, Isolate::heap_offset());
+    __ LoadFromOffset(kWord, R8, R8, Heap::new_space_offset());
 
     // Calculate and align allocation size.
     // Load new object start and calculate next object start.
     // R1: array element type.
     // R2: array length as Smi.
     // R8: points to new space object.
-    __ LoadFromOffset(kLoadWord, R0, R8, Scavenger::top_offset());
+    __ LoadFromOffset(kWord, R0, R8, Scavenger::top_offset());
     intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
     __ LoadImmediate(R3, fixed_size);
     __ add(R3, R3, ShifterOperand(R2, LSL, 1));  // R2 is Smi.
@@ -498,7 +498,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // R3: array size.
     // R7: potential next object start.
     // R8: points to new space object.
-    __ LoadFromOffset(kLoadWord, IP, R8, Scavenger::end_offset());
+    __ LoadFromOffset(kWord, IP, R8, Scavenger::end_offset());
     __ cmp(R7, ShifterOperand(IP));
     __ b(&slow_case, CS);  // Branch if unsigned higher or equal.
 
@@ -507,7 +507,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // R0: potential new object start.
     // R7: potential next object start.
     // R8: Points to new space object.
-    __ StoreToOffset(kStoreWord, R7, R8, Scavenger::top_offset());
+    __ StoreToOffset(kWord, R7, R8, Scavenger::top_offset());
     __ add(R0, R0, ShifterOperand(kHeapObjectTag));
 
     // R0: new object start as a tagged pointer.
@@ -709,16 +709,16 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Save the top exit frame info. Use R5 as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
-  __ LoadFromOffset(kLoadWord, R5, R8, Isolate::top_exit_frame_info_offset());
+  __ LoadFromOffset(kWord, R5, R8, Isolate::top_exit_frame_info_offset());
   __ LoadImmediate(R6, 0);
-  __ StoreToOffset(kStoreWord, R6, R8, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, R6, R8, Isolate::top_exit_frame_info_offset());
 
   // Save the old Context pointer. Use R4 as a temporary register.
   // Note that VisitObjectPointers will find this saved Context pointer during
   // GC marking, since it traverses any information between SP and
   // FP - kExitLinkSlotFromEntryFp.
   // EntryFrame::SavedContext reads the context saved in this frame.
-  __ LoadFromOffset(kLoadWord, R4, R8, Isolate::top_context_offset());
+  __ LoadFromOffset(kWord, R4, R8, Isolate::top_context_offset());
 
   // The constants kSavedContextSlotFromEntryFp and
   // kExitLinkSlotFromEntryFp must be kept in sync with the code below.
@@ -773,8 +773,8 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Restore the saved top exit frame info back into the Isolate structure.
   // Uses R5 as a temporary register for this.
   __ PopList((1 << R4) | (1 << R5));
-  __ StoreToOffset(kStoreWord, R4, CTX, Isolate::top_context_offset());
-  __ StoreToOffset(kStoreWord, R5, CTX, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, R4, CTX, Isolate::top_context_offset());
+  __ StoreToOffset(kWord, R5, CTX, Isolate::top_exit_frame_info_offset());
 
   // Restore C++ ABI callee-saved registers.
   __ PopList((1 << R3) | kAbiPreservedCpuRegs);  // Ignore restored R3.
@@ -1070,7 +1070,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       for (intptr_t current_offset = sizeof(RawObject);
            current_offset < instance_size;
            current_offset += kWordSize) {
-        __ StoreToOffset(kStoreWord, R0, R2, current_offset);
+        __ StoreToOffset(kWord, R0, R2, current_offset);
       }
     } else {
       __ add(R4, R2, ShifterOperand(sizeof(RawObject)));
@@ -1093,7 +1093,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     if (is_cls_parameterized) {
       // R1: new object type arguments.
       // Set the type arguments in the new object.
-      __ StoreToOffset(kStoreWord, R1, R2, cls.type_arguments_field_offset());
+      __ StoreToOffset(kWord, R1, R2, cls.type_arguments_field_offset());
     }
     // Done allocating and initializing the instance.
     // R2: new object still missing its heap tag.
@@ -1421,7 +1421,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
       __ ldr(R0, Address(SP, R0, LSL, 1));
       __ bl(&get_class_id_as_smi);
       // R0: next argument class ID (smi).
-      __ LoadFromOffset(kLoadWord, R1, R6, i * kWordSize);
+      __ LoadFromOffset(kWord, R1, R6, i * kWordSize);
       // R1: next class ID to check (smi).
     }
     __ cmp(R0, ShifterOperand(R1));  // Class id match?
@@ -1465,7 +1465,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ PushList((1 << R0) | (1 << R4) | (1 << R5));
   // Push call arguments.
   for (intptr_t i = 0; i < num_args; i++) {
-    __ LoadFromOffset(kLoadWord, IP, R7, -i * kWordSize);
+    __ LoadFromOffset(kWord, IP, R7, -i * kWordSize);
     __ Push(IP);
   }
   // Pass IC data object and arguments descriptor array.
@@ -1501,13 +1501,13 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   // R6: pointer to an IC data check group.
   const intptr_t target_offset = ICData::TargetIndexFor(num_args) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
-  __ LoadFromOffset(kLoadWord, R0, R6, target_offset);
-  __ LoadFromOffset(kLoadWord, R1, R6, count_offset);
+  __ LoadFromOffset(kWord, R0, R6, target_offset);
+  __ LoadFromOffset(kWord, R1, R6, count_offset);
   __ adds(R1, R1, ShifterOperand(Smi::RawValue(1)));
-  __ StoreToOffset(kStoreWord, R1, R6, count_offset);
+  __ StoreToOffset(kWord, R1, R6, count_offset);
   __ b(&call_target_function, VC);  // No overflow.
   __ LoadImmediate(R1, Smi::RawValue(Smi::kMaxValue));
-  __ StoreToOffset(kStoreWord, R1, R6, count_offset);
+  __ StoreToOffset(kWord, R1, R6, count_offset);
 
   __ Bind(&call_target_function);
   // R0: target function.
@@ -1628,17 +1628,17 @@ void StubCode::GenerateUnoptimizedStaticCallStub(Assembler* assembler) {
 
   // Increment count for this call.
   Label increment_done;
-  __ LoadFromOffset(kLoadWord, R1, R6, count_offset);
+  __ LoadFromOffset(kWord, R1, R6, count_offset);
   __ adds(R1, R1, ShifterOperand(Smi::RawValue(1)));
-  __ StoreToOffset(kStoreWord, R1, R6, count_offset);
+  __ StoreToOffset(kWord, R1, R6, count_offset);
   __ b(&increment_done, VC);  // No overflow.
   __ LoadImmediate(R1, Smi::RawValue(Smi::kMaxValue));
-  __ StoreToOffset(kStoreWord, R1, R6, count_offset);
+  __ StoreToOffset(kWord, R1, R6, count_offset);
   __ Bind(&increment_done);
 
   Label target_is_compiled;
   // Get function and call it, if possible.
-  __ LoadFromOffset(kLoadWord, R1, R6, target_offset);
+  __ LoadFromOffset(kWord, R1, R6, target_offset);
   __ ldr(R0, FieldAddress(R1, Function::code_offset()));
   __ CompareImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
   __ b(&target_is_compiled, NE);

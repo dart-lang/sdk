@@ -6,6 +6,7 @@
 
 #include "vm/bit_vector.h"
 #include "vm/cha.h"
+#include "vm/dart_entry.h"
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/hash_map.h"
@@ -102,16 +103,16 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
     return false;
   }
   if (class_ids[0] != kDynamicCid) {
-    const intptr_t num_named_arguments = call->argument_names().IsNull() ?
-        0 : call->argument_names().Length();
+    ArgumentsDescriptor args_desc(
+        Array::Handle(ArgumentsDescriptor::New(call->ArgumentCount(),
+                                               call->argument_names())));
     const Class& receiver_class = Class::Handle(
         Isolate::Current()->class_table()->At(class_ids[0]));
-    Function& function = Function::Handle();
-    function = Resolver::ResolveDynamicForReceiverClass(
-        receiver_class,
-        call->function_name(),
-        call->ArgumentCount(),
-        num_named_arguments);
+    const Function& function = Function::Handle(
+        Resolver::ResolveDynamicForReceiverClass(
+            receiver_class,
+            call->function_name(),
+            args_desc));
     if (function.IsNull()) {
       return false;
     }
@@ -229,9 +230,9 @@ void FlowGraphOptimizer::OptimizeLeftShiftBitAndSmiOp(
     // Replace Mint op with Smi op.
     BinarySmiOpInstr* smi_op = new BinarySmiOpInstr(
         Token::kBIT_AND,
-        bit_and_instr->AsBinaryMintOp()->instance_call(),
         new Value(left_instr),
-        new Value(right_instr));
+        new Value(right_instr),
+        bit_and_instr->deopt_id());
     bit_and_instr->ReplaceWith(smi_op, current_iterator());
   }
 }
@@ -733,7 +734,7 @@ intptr_t FlowGraphOptimizer::PrepareIndexedOp(InstanceCallInstr* call,
   InsertBefore(call,
                new CheckArrayBoundInstr(new Value(length),
                                         new Value(*index),
-                                        call),
+                                        call->deopt_id()),
                call->env(),
                Definition::kEffect);
 
@@ -1105,25 +1106,25 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     InsertBefore(call,
                  new CheckEitherNonSmiInstr(new Value(left),
                                             new Value(right),
-                                            call),
+                                            call->deopt_id()),
                  call->env(),
                  Definition::kEffect);
 
     BinaryDoubleOpInstr* double_bin_op =
         new BinaryDoubleOpInstr(op_kind, new Value(left), new Value(right),
-                                call);
+                                call->deopt_id());
     ReplaceCall(call, double_bin_op);
   } else if (operands_type == kMintCid) {
     if (!FlowGraphCompiler::SupportsUnboxedMints()) return false;
     if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
       ShiftMintOpInstr* shift_op =
           new ShiftMintOpInstr(op_kind, new Value(left), new Value(right),
-                               call);
+                               call->deopt_id());
       ReplaceCall(call, shift_op);
     } else {
       BinaryMintOpInstr* bin_op =
           new BinaryMintOpInstr(op_kind, new Value(left), new Value(right),
-                                call);
+                                call->deopt_id());
       ReplaceCall(call, bin_op);
     }
   } else if (operands_type == kFloat32x4Cid) {
@@ -1184,9 +1185,10 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     ConstantInstr* constant =
         flow_graph()->GetConstant(Smi::Handle(Smi::New(value - 1)));
     BinarySmiOpInstr* bin_op =
-        new BinarySmiOpInstr(Token::kBIT_AND, call,
+        new BinarySmiOpInstr(Token::kBIT_AND,
                              new Value(left),
-                             new Value(constant));
+                             new Value(constant),
+                             call->deopt_id());
     ReplaceCall(call, bin_op);
   } else {
     ASSERT(operands_type == kSmiCid);
@@ -1202,7 +1204,8 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
       right = temp;
     }
     BinarySmiOpInstr* bin_op =
-        new BinarySmiOpInstr(op_kind, call, new Value(left), new Value(right));
+        new BinarySmiOpInstr(op_kind, new Value(left), new Value(right),
+                             call->deopt_id());
     ReplaceCall(call, bin_op);
   }
   return true;
@@ -1219,11 +1222,12 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
                  new CheckSmiInstr(new Value(input), call->deopt_id()),
                  call->env(),
                  Definition::kEffect);
-    unary_op = new UnarySmiOpInstr(op_kind, call, new Value(input));
+    unary_op = new UnarySmiOpInstr(op_kind, new Value(input), call->deopt_id());
   } else if ((op_kind == Token::kBIT_NOT) &&
              HasOnlySmiOrMint(*call->ic_data()) &&
              FlowGraphCompiler::SupportsUnboxedMints()) {
-    unary_op = new UnaryMintOpInstr(op_kind, new Value(input), call);
+    unary_op = new UnaryMintOpInstr(
+        op_kind, new Value(input), call->deopt_id());
   } else if (HasOnlyOneDouble(*call->ic_data()) &&
              (op_kind == Token::kNEGATE)) {
     AddReceiverCheck(call);
@@ -1232,7 +1236,7 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
     unary_op = new BinaryDoubleOpInstr(Token::kMUL,
                                        new Value(input),
                                        new Value(minus_one),
-                                       call);
+                                       call->deopt_id());
   }
   if (unary_op == NULL) return false;
 
@@ -1614,7 +1618,7 @@ LoadIndexedInstr* FlowGraphOptimizer::BuildStringCodeUnitAt(
     InsertBefore(call,
                  new CheckArrayBoundInstr(new Value(length),
                                           new Value(index),
-                                          call),
+                                          call->deopt_id()),
                  call->env(),
                  Definition::kEffect);
   }
@@ -1769,7 +1773,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
           d2i_instr = new DoubleToIntegerInstr(new Value(input), call);
         } else {
           // Optimistically assume result fits into Smi.
-          d2i_instr = new DoubleToSmiInstr(new Value(input), call);
+          d2i_instr = new DoubleToSmiInstr(new Value(input), call->deopt_id());
         }
         ReplaceCall(call, d2i_instr);
         return true;
@@ -1788,8 +1792,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
           AddReceiverCheck(call);
           DoubleToDoubleInstr* d2d_instr =
               new DoubleToDoubleInstr(new Value(call->ArgumentAt(0)),
-                                      call,
-                                      recognized_kind);
+                                      recognized_kind, call->deopt_id());
           ReplaceCall(call, d2d_instr);
         }
         return true;
@@ -2238,16 +2241,16 @@ void FlowGraphOptimizer::PrepareByteArrayViewOp(
       flow_graph()->GetConstant(Smi::Handle(Smi::New(element_size)));
   BinarySmiOpInstr* len_in_bytes =
       new BinarySmiOpInstr(Token::kMUL,
-                           call,
                            new Value(length),
-                           new Value(bytes_per_element));
+                           new Value(bytes_per_element),
+                           call->deopt_id());
   InsertBefore(call, len_in_bytes, call->env(), Definition::kValue);
 
     // Check byte_index < len_in_bytes.
   InsertBefore(call,
                new CheckArrayBoundInstr(new Value(len_in_bytes),
                                         new Value(byte_index),
-                                        call),
+                                        call->deopt_id()),
                call->env(),
                Definition::kEffect);
 
@@ -2656,12 +2659,14 @@ bool FlowGraphOptimizer::CanStrictifyEqualityCompare(
       Isolate::Current()->class_table()->At(receiver_cid));
 
   // Resolve equality operator.
+  const intptr_t kNumArgs = 2;
+  ArgumentsDescriptor args_desc(
+      Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
   const Function& function = Function::Handle(
       Resolver::ResolveDynamicForReceiverClass(
           receiver_class,
           Symbols::EqualOperator(),
-          2,
-          0));
+          args_desc));
 
   if (function.IsNull()) {
     return false;

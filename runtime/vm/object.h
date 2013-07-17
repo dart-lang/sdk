@@ -27,6 +27,7 @@ namespace dart {
 CLASS_LIST(DEFINE_FORWARD_DECLARATION)
 #undef DEFINE_FORWARD_DECLARATION
 class Api;
+class ArgumentsDescriptor;
 class Assembler;
 class Closure;
 class Code;
@@ -688,6 +689,8 @@ class Class : public Object {
   // 'F<T, R>(T, [b: B, c: C]) => R', then its signature type is a parameterized
   // type with this class as the type class and type parameters 'T' and 'R'
   // as its type argument vector.
+  // SignatureType is used as the type of formal parameters representing a
+  // function.
   RawType* SignatureType() const;
 
   RawLibrary* library() const { return raw_ptr()->library_; }
@@ -1494,7 +1497,7 @@ class Function : public Object {
         return true;
       case RawFunction::kClosureFunction:
       case RawFunction::kConstructor:
-      case RawFunction::kConstImplicitGetter:
+      case RawFunction::kImplicitStaticFinalGetter:
         return false;
       default:
         UNREACHABLE();
@@ -1511,7 +1514,7 @@ class Function : public Object {
       case RawFunction::kSetterFunction:
       case RawFunction::kImplicitGetter:
       case RawFunction::kImplicitSetter:
-      case RawFunction::kConstImplicitGetter:
+      case RawFunction::kImplicitStaticFinalGetter:
         return true;
       case RawFunction::kClosureFunction:
       case RawFunction::kConstructor:
@@ -1636,15 +1639,17 @@ class Function : public Object {
 
   // Returns true if the argument counts are valid for calling this function.
   // Otherwise, it returns false and the reason (if error_message is not NULL).
-  bool AreValidArgumentCounts(int num_arguments,
-                              int num_named_arguments,
+  bool AreValidArgumentCounts(intptr_t num_arguments,
+                              intptr_t num_named_arguments,
                               String* error_message) const;
 
   // Returns true if the total argument count and the names of optional
   // arguments are valid for calling this function.
   // Otherwise, it returns false and the reason (if error_message is not NULL).
-  bool AreValidArguments(int num_arguments,
+  bool AreValidArguments(intptr_t num_arguments,
                          const Array& argument_names,
+                         String* error_message) const;
+  bool AreValidArguments(const ArgumentsDescriptor& args_desc,
                          String* error_message) const;
 
   // Fully qualified name uniquely identifying the function under gdb and during

@@ -336,7 +336,8 @@ static bool IsRecognizedLibrary(const Library& library) {
   // List of libraries where methods can be recognized.
   return (library.raw() == Library::CoreLibrary())
       || (library.raw() == Library::MathLibrary())
-      || (library.raw() == Library::TypedDataLibrary());
+      || (library.raw() == Library::TypedDataLibrary())
+      || (library.raw() == Library::CollectionDevLibrary());
 }
 
 
@@ -360,6 +361,28 @@ MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
 RECOGNIZED_LIST(RECOGNIZE_FUNCTION)
 #undef RECOGNIZE_FUNCTION
   return kUnknown;
+}
+
+
+bool MethodRecognizer::AlwaysInline(const Function& function) {
+  const Class& function_class = Class::Handle(function.Owner());
+  const Library& lib = Library::Handle(function_class.library());
+  if (!IsRecognizedLibrary(lib)) {
+    return false;
+  }
+
+  const String& function_name = String::Handle(function.name());
+  const String& class_name = String::Handle(function_class.Name());
+
+#define RECOGNIZE_FUNCTION(test_class_name, test_function_name, enum_name, fp) \
+  if (CompareNames(lib, #test_function_name, function_name) &&                 \
+      CompareNames(lib, #test_class_name, class_name)) {                       \
+    ASSERT(function.CheckSourceFingerprint(fp));                               \
+    return true;                                                               \
+  }
+INLINE_WHITE_LIST(RECOGNIZE_FUNCTION)
+#undef RECOGNIZE_FUNCTION
+  return false;
 }
 
 

@@ -597,7 +597,8 @@ class RawFunction : public RawObject {
     kConstructor,
     kImplicitGetter,     // represents an implicit getter for fields.
     kImplicitSetter,     // represents an implicit setter for fields.
-    kConstImplicitGetter,  // represents an implicit const getter for fields.
+    kImplicitStaticFinalGetter,  // represents an implicit getter for static
+                                 // final fields (incl. static const fields).
     kMethodExtractor,  // converts method into implicit closure on the receiver.
     kNoSuchMethodDispatcher,  // invokes noSuchMethod.
     kInvokeFieldDispatcher,  // invokes a field as a closure.

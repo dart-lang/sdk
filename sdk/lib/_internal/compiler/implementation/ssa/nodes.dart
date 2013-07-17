@@ -620,6 +620,7 @@ class HBasicBlock extends HInstructionList {
    * information on [to], and that dominates the user.
    */
   void rewriteWithBetterUser(HInstruction from, HInstruction to) {
+    // BUG(11841): Turn this method into a phase to be run after GVN phases.
     Link<HCheck> better = const Link<HCheck>();
     for (HInstruction user in to.usedBy) {
       if (user == from || user is! HCheck) continue;

@@ -28,6 +28,7 @@ dom_isolates_test: Skip # Need to migrate to new spawnDomFunction.
 indexeddb_3_test: Pass, Timeout, Slow # Issue: http://dartbug.com/9437
 indexeddb_4_test: Pass, Timeout, Slow # Issue: http://dartbug.com/9437
 async_test: Pass, Fail # timers test fails on ie10.
+js_test: Fail # http://dartbug.com/11855
 
 [ $compiler == dart2js && ( $runtime == ie9 || $runtime == ie10 ) ]
 worker_api_test: Fail # IE does not support URL.createObjectURL in web workers.
@@ -44,6 +45,9 @@ postmessage_structured_test/primitives: Fail # Issue 10097
 *layout_test: Skip
 
 [ $runtime == chrome ]
+canvasrenderingcontext2d_test/drawImage_video_element: Pass,Fail # Issue 11836
+canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass,Fail # Issue 11836
+
 touchevent_test/supported: Fail
 
 [ $runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt || $runtime == safari ]
@@ -365,10 +369,12 @@ request_animation_frame_test: Skip # Async test hangs.
 isolates_test: Skip   # Timeout because leg does not support web workers.
 
 [ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid) ]
+# Note: these tests are all injecting scripts by design.  This is not allowed under CSP.
 event_customevent_test: Fail       # Test cannot run under CSP restrictions.
 js_interop_1_test: Skip            # Test cannot run under CSP restrictions (times out).
 js_interop_2_test: Fail, OK        # Test cannot run under CSP restrictions.
 js_interop_3_test: Skip            # Test cannot run under CSP restrictions (times out).
+js_test: Skip                      # Test cannot run under CSP restrictions (times out).
 postmessage_structured_test: Skip  # Test cannot run under CSP restrictions (times out).
 safe_dom_test: Skip                # Test cannot run under CSP restrictions (times out).
 shadow_dom_layout_test: Fail, OK   # Test cannot run under CSP restrictions.

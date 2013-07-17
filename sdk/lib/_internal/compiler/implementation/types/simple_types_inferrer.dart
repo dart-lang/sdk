@@ -178,36 +178,20 @@ class SimpleTypesInferrer extends TypesInferrer {
       compiler = compiler,
       internal = new InternalSimpleTypesInferrer(compiler, OPTIMISTIC);
 
-  TypeMask get dynamicType => compiler.typesTask.dynamicType;
-  TypeMask get nullType => compiler.typesTask.nullType;
-  TypeMask get intType => compiler.typesTask.intType;
-  TypeMask get doubleType => compiler.typesTask.doubleType;
-  TypeMask get numType => compiler.typesTask.numType;
-  TypeMask get boolType => compiler.typesTask.boolType;
-  TypeMask get functionType => compiler.typesTask.functionType;
-  TypeMask get listType => compiler.typesTask.listType;
-  TypeMask get constListType => compiler.typesTask.constListType;
-  TypeMask get fixedListType => compiler.typesTask.fixedListType;
-  TypeMask get growableListType => compiler.typesTask.growableListType;
-  TypeMask get mapType => compiler.typesTask.mapType;
-  TypeMask get constMapType => compiler.typesTask.constMapType;
-  TypeMask get stringType => compiler.typesTask.stringType;
-  TypeMask get typeType => compiler.typesTask.typeType;
-
   TypeMask getReturnTypeOfElement(Element element) {
-    if (compiler.disableTypeInference) return dynamicType;
+    if (compiler.disableTypeInference) return compiler.typesTask.dynamicType;
     return internal.getReturnTypeOfElement(element.implementation);
   }
   TypeMask getTypeOfElement(Element element) {
-    if (compiler.disableTypeInference) return dynamicType;
+    if (compiler.disableTypeInference) return compiler.typesTask.dynamicType;
     return internal.getTypeOfElement(element.implementation);
   }
   TypeMask getTypeOfNode(Element owner, Node node) {
-    if (compiler.disableTypeInference) return dynamicType;
+    if (compiler.disableTypeInference) return compiler.typesTask.dynamicType;
     return internal.getTypeOfNode(owner, node);
   }
   TypeMask getTypeOfSelector(Selector selector) {
-    if (compiler.disableTypeInference) return dynamicType;
+    if (compiler.disableTypeInference) return compiler.typesTask.dynamicType;
     return internal.getTypeOfSelector(selector);
   }
   Iterable<Element> getCallersOf(Element element) {

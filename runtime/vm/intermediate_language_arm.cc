@@ -172,7 +172,7 @@ LocationSummary* LoadLocalInstr::MakeLocationSummary() const {
 
 void LoadLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out().reg();
-  __ LoadFromOffset(kLoadWord, result, FP, local().index() * kWordSize);
+  __ LoadFromOffset(kWord, result, FP, local().index() * kWordSize);
 }
 
 
@@ -1044,7 +1044,7 @@ LocationSummary* LoadUntaggedInstr::MakeLocationSummary() const {
 void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register object = locs()->in(0).reg();
   Register result = locs()->out().reg();
-  __ LoadFromOffset(kLoadWord, result, object, offset() - kHeapObjectTag);
+  __ LoadFromOffset(kWord, result, object, offset() - kHeapObjectTag);
 }
 
 
@@ -1701,7 +1701,7 @@ LocationSummary* LoadStaticFieldInstr::MakeLocationSummary() const {
 void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register field = locs()->in(0).reg();
   Register result = locs()->out().reg();
-  __ LoadFromOffset(kLoadWord, result,
+  __ LoadFromOffset(kWord, result,
                     field, Field::value_offset() - kHeapObjectTag);
 }
 
@@ -1809,7 +1809,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register instance_reg = locs()->in(0).reg();
   Register result_reg = locs()->out().reg();
 
-  __ LoadFromOffset(kLoadWord, result_reg,
+  __ LoadFromOffset(kWord, result_reg,
                     instance_reg, offset_in_bytes() - kHeapObjectTag);
 }
 
@@ -2044,9 +2044,9 @@ void CatchEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   ASSERT(!exception_var().is_captured());
   ASSERT(!stacktrace_var().is_captured());
-  __ StoreToOffset(kStoreWord, kExceptionObjectReg,
+  __ StoreToOffset(kWord, kExceptionObjectReg,
                    FP, exception_var().index() * kWordSize);
-  __ StoreToOffset(kStoreWord, kStackTraceObjectReg,
+  __ StoreToOffset(kWord, kStackTraceObjectReg,
                    FP, stacktrace_var().index() * kWordSize);
 
   // Restore the pool pointer.
@@ -3200,7 +3200,7 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   // Load receiver into R0.
-  __ LoadFromOffset(kLoadWord, R0, SP,
+  __ LoadFromOffset(kWord, R0, SP,
                     (instance_call()->ArgumentCount() - 1) * kWordSize);
 
   LoadValueCid(compiler, R2, R0,

@@ -69,6 +69,8 @@ abstract class Span implements Comparable {
   bool operator ==(Span other) =>
     sourceUrl == other.sourceUrl && start == other.start && end == other.end;
 
+  int get hashCode => sourceUrl.hashCode + start + (31 * (end - start));
+
   String toString() => '<$runtimeType: $start $end $formatLocation $text>';
 }
 

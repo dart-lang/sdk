@@ -9268,11 +9268,11 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.className')
   @DocsEditable()
-  String get $dom_className native "Element_className_Getter";
+  String get className native "Element_className_Getter";
 
   @DomName('Element.className')
   @DocsEditable()
-  void set $dom_className(String value) native "Element_className_Setter";
+  void set className(String value) native "Element_className_Setter";
 
   @DomName('Element.clientHeight')
   @DocsEditable()
@@ -17886,6 +17886,10 @@ class Node extends EventTarget {
   @DomName('Node.nextSibling')
   @DocsEditable()
   Node get nextNode native "Node_nextSibling_Getter";
+
+  @DomName('Node.nodeName')
+  @DocsEditable()
+  String get nodeName native "Node_nodeName_Getter";
 
   @DomName('Node.nodeType')
   @DocsEditable()
@@ -28248,7 +28252,7 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
   void writeClasses(Set<String> s) {
     var classes = new List.from(s).join(' ');
     for (Element e in _elementIterable) {
-      e.$dom_className = classes;
+      e.className = classes;
     }
   }
 
@@ -28293,7 +28297,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
 
   Set<String> readClasses() {
     var s = new LinkedHashSet<String>();
-    var classname = _element.$dom_className;
+    var classname = _element.className;
 
     for (String name in classname.split(' ')) {
       String trimmed = name.trim();
@@ -28306,7 +28310,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
 
   void writeClasses(Set<String> s) {
     List list = new List.from(s);
-    _element.$dom_className = s.join(' ');
+    _element.className = s.join(' ');
   }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -30965,6 +30969,127 @@ class _Utils {
   static void spawnDomFunction(Function f, int replyTo) native "Utils_spawnDomFunction";
   static void spawnDomUri(String uri, int replyTo) native "Utils_spawnDomUri";
   static int _getNewIsolateId() native "Utils_getNewIsolateId";
+
+  // The following methods were added for debugger integration to make working
+  // with the Dart C mirrors API simpler.
+  // TODO(jacobr): consider moving them to a separate library.
+  // If Dart supported dynamic code injection, we would only inject this code
+  // when the debugger is invoked.
+
+  /**
+   * Strips the private secret prefix from member names of the form
+   * someName@hash.
+   */
+  static String stripMemberName(String name) {
+    int endIndex = name.indexOf('@');
+    return endIndex > 0 ? name.substring(0, endIndex) : name;
+  }
+
+  /**
+   * Takes a list containing variable names and corresponding values and
+   * returns a map from normalized names to values. Variable names are assumed
+   * to have list offsets 2*n values at offset 2*n+1. This method is required
+   * because Dart_GetLocalVariables returns a list instead of an object that
+   * can be queried to lookup names and values.
+   */
+  static Map<String, dynamic> createLocalVariablesMap(List localVariables) {
+    var map = {};
+    for (int i = 0; i < localVariables.length; i+=2) {
+      map[stripMemberName(localVariables[i])] = localVariables[i+1];
+    }
+    return map;
+  }
+
+  /**
+   * Convenience helper to get the keys of a [Map] as a [List].
+   */
+  static List getMapKeyList(Map map) => map.keys.toList();
+
+ /**
+   * Returns the keys of an arbitrary Dart Map encoded as unique Strings.
+   * Keys that are strings are left unchanged except that the prefix ":" is
+   * added to disambiguate keys from other Dart members.
+   * Keys that are not strings have # followed by the index of the key in the map
+   * prepended to disambuguate. This scheme is simplistic but easy to encode and
+   * decode. The use case for this method is displaying all map keys in a human
+   * readable way in debugging tools.
+   */ 
+  static List<String> getEncodedMapKeyList(dynamic obj) {
+    if (obj is! Map) return null;
+    
+    var ret = new List<String>();
+    int i = 0;
+    return obj.keys.map((key) {
+      var encodedKey;
+      if (key is String) {
+        encodedKey = ':$key';
+      } else {
+        // If the key isn't a string, return a guaranteed unique for this map
+        // string representation of the key that is still somewhat human
+        // readable.
+        encodedKey = '#${i}:$key';
+      }
+      i++;
+      return encodedKey;
+    }).toList(growable: false);
+  }
+
+  static final RegExp _NON_STRING_KEY_REGEXP = new RegExp("^#(\\d+):(.+)\$");
+
+  static _decodeKey(Map map, String key) {
+    // The key is a regular old String.
+    if (key.startsWith(':')) return key.substring(1);
+
+    var match = _NON_STRING_KEY_REGEXP.firstMatch(key);
+    if (match != null) {
+      int index = int.parse(match.group(1));
+      var iter = map.keys.skip(index);
+      if (iter.isNotEmpty) {
+        var ret = iter.first;
+        // Validate that the toString representation of the key matches what we
+        // expect. FIXME: throw an error if it does not.
+        assert(match.group(2) == '$ret');
+        return ret;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Converts keys encoded with [getEncodedMapKeyList] to their actual keys.
+   */
+  static lookupValueForEncodedMapKey(Map obj, String key) => obj[_decodeKey(obj, key)];
+
+  /**
+   * Builds a constructor name with the form expected by the C Dart mirrors API.
+   */
+  static String buildConstructorName(String className, String constructorName) => '$className.$constructorName';
+
+  /**
+   * Strips the class name from an expression of the form "className.someName".
+   */
+  static String stripClassName(String str, String className) {
+    if (str.length > className.length + 1 &&
+        str.startsWith(className) && str[className.length] == '.') {
+      return str.substring(className.length + 1);
+    } else {
+      return str;
+    }
+  }
+
+  /**
+   * Removes the trailing dot from an expression ending in a dot.
+   * This method is used as Library prefixes include a trailing dot when using
+   * the C Dart debugger API.
+   */
+  static String stripTrailingDot(String str) =>
+    (str != null && str[str.length - 1] == '.') ? str.substring(0, str.length - 1) : str;
+
+  static String addTrailingDot(String str) => '${str}.';
+
+  // TODO(jacobr): we need a failsafe way to determine that a Node is really a
+  // DOM node rather than just a class that extends Node.
+  static bool isNode(obj) => obj is Node;
 }
 
 class _NPObject extends NativeFieldWrapperClass1 {

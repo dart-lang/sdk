@@ -26,6 +26,7 @@
 #include "vm/thread.h"
 #include "vm/timer.h"
 #include "vm/visitor.h"
+#include "vm/object_id_ring.h"
 
 namespace dart {
 
@@ -415,6 +416,7 @@ Isolate::Isolate()
       stacktrace_(NULL),
       stack_frame_index_(-1),
       object_histogram_(NULL),
+      object_id_ring_(NULL),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
       reusable_handles_() {
   if (FLAG_print_object_histogram && (Dart::vm_isolate() != NULL)) {

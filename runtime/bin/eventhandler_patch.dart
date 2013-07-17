@@ -24,7 +24,7 @@ patch class _EventHandler {
 }
 
 
-class _EventHandlerImpl extends NativeFieldWrapperClass1 {
+class _EventHandlerImpl {
   _EventHandlerImpl() { }
   void _start() native "EventHandler_Start";
   void _sendData(Object sender, ReceivePort receivePort, int data)

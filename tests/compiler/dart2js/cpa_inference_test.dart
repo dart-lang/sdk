@@ -1108,36 +1108,6 @@ testEmptyList() {
   result.checkNodeHasType('x', []);
 }
 
-// Assuming the mock compiler's interceptor library faithfully reflects the
-// real interceptor library, this test boils down to checking that
-// JSExtendableArray and JSFixedArray don't override JSArray's square bracket
-// operators.
-testListHierarchy() {
-  final String source1 = r"""
-    import 'dart:interceptors';
-
-    main() {
-      var l = new JSExtendableArray();
-      l[0] = 'foo';
-      var x = l[0];
-      x;
-    }""";
-  AnalysisResult result1 = analyze(source1);
-  result1.checkNodeHasType('x', [result1.string]);
-
-  final String source2 = r"""
-    import 'dart:interceptors';
-
-    main() {
-      var l = new JSFixedArray();
-      l[0] = 'foo';
-      var x = l[0];
-      x;
-    }""";
-  AnalysisResult result2 = analyze(source1);
-  result2.checkNodeHasType('x', [result2.string]);
-}
-
 testSendWithWrongArity() {
   final String source = r"""
     f(x) { }
@@ -1596,7 +1566,6 @@ void main() {
   testLists();
   testListWithCapacity();
   testEmptyList();
-  testListHierarchy();
   testJsCall();
   testJsCallAugmentsSeenClasses();
   testIsCheck();

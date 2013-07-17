@@ -14,6 +14,7 @@
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/object_id_ring.h"
 #include "vm/port.h"
 #include "vm/simulator.h"
 #include "vm/snapshot.h"
@@ -159,6 +160,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   StackZone zone(isolate);
   HandleScope handle_scope(isolate);
   Heap::Init(isolate);
+  ObjectIdRing::Init(isolate);
   ObjectStore::Init(isolate);
 
   if (snapshot_buffer == NULL) {

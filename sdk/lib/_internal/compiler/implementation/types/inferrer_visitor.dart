@@ -15,7 +15,7 @@ TypeMask narrowType(TypeMask type,
   TypeMask otherType;
   if (annotation.kind == TypeKind.TYPEDEF
       || annotation.kind == TypeKind.FUNCTION) {
-    otherType = compiler.typesTask.typesInferrer.functionType;
+    otherType = compiler.typesTask.functionType;
   } else if (annotation.kind == TypeKind.TYPE_VARIABLE) {
     return type;
   } else {
@@ -248,7 +248,7 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
 
   TypeMask visitNode(Node node) {
     node.visitChildren(this);
-    return inferrer.dynamicType;
+    return compiler.typesTask.dynamicType;
   }
 
   TypeMask visitNewExpression(NewExpression node) {
@@ -256,39 +256,39 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
   }
 
   TypeMask visit(Node node) {
-    return node == null ? inferrer.dynamicType : node.accept(this);
+    return node == null ? compiler.typesTask.dynamicType : node.accept(this);
   }
 
   TypeMask visitFunctionExpression(FunctionExpression node) {
     node.visitChildren(this);
-    return inferrer.functionType;
+    return compiler.typesTask.functionType;
   }
 
   TypeMask visitFunctionDeclaration(FunctionDeclaration node) {
-    locals.update(elements[node], inferrer.functionType);
+    locals.update(elements[node], compiler.typesTask.functionType);
     return visit(node.function);
   }
 
   TypeMask visitLiteralString(LiteralString node) {
-    return inferrer.stringType;
+    return compiler.typesTask.stringType;
   }
 
   TypeMask visitStringInterpolation(StringInterpolation node) {
     node.visitChildren(this);
-    return inferrer.stringType;
+    return compiler.typesTask.stringType;
   }
 
   TypeMask visitStringJuxtaposition(StringJuxtaposition node) {
     node.visitChildren(this);
-    return inferrer.stringType;
+    return compiler.typesTask.stringType;
   }
 
   TypeMask visitLiteralBool(LiteralBool node) {
-    return inferrer.boolType;
+    return compiler.typesTask.boolType;
   }
 
   TypeMask visitLiteralDouble(LiteralDouble node) {
-    return inferrer.doubleType;
+    return compiler.typesTask.doubleType;
   }
 
   TypeMask visitLiteralInt(LiteralInt node) {
@@ -297,30 +297,30 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
     // The JavaScript backend may turn this literal into a double at
     // runtime.
     return constantSystem.isDouble(constant)
-        ? inferrer.doubleType
-        : inferrer.intType;
+        ? compiler.typesTask.doubleType
+        : compiler.typesTask.intType;
   }
 
   TypeMask visitLiteralList(LiteralList node) {
     node.visitChildren(this);
     return node.isConst()
-        ? inferrer.constListType
-        : inferrer.growableListType;
+        ? compiler.typesTask.constListType
+        : compiler.typesTask.growableListType;
   }
 
   TypeMask visitLiteralMap(LiteralMap node) {
     node.visitChildren(this);
     return node.isConst()
-        ? inferrer.constMapType
-        : inferrer.mapType;
+        ? compiler.typesTask.constMapType
+        : compiler.typesTask.mapType;
   }
 
   TypeMask visitLiteralNull(LiteralNull node) {
-    return inferrer.nullType;
+    return compiler.typesTask.nullType;
   }
 
   TypeMask visitTypeReferenceSend(Send node) {
-    return inferrer.typeType;
+    return compiler.typesTask.typeType;
   }
 
   bool isThisOrSuper(Node node) => node.isThis() || node.isSuper();
@@ -356,7 +356,7 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
     } else if (node.isSuper()) {
       return superType;
     }
-    return inferrer.dynamicType;
+    return compiler.typesTask.dynamicType;
   }
 
   void potentiallyAddIsCheck(Send node) {
@@ -398,7 +398,7 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
       updateIsChecks(isChecks, usePositive: true);
       visit(node.arguments.head);
       locals.merge(saved);
-      return inferrer.boolType;
+      return compiler.typesTask.boolType;
     } else if (const SourceString("||") == op.source) {
       conditionIsSimple = false;
       visit(node.receiver);
@@ -409,17 +409,17 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
       visit(node.arguments.head);
       accumulateIsChecks = oldAccumulateIsChecks;
       locals.merge(saved);
-      return inferrer.boolType;
+      return compiler.typesTask.boolType;
     } else if (const SourceString("!") == op.source) {
       bool oldAccumulateIsChecks = accumulateIsChecks;
       accumulateIsChecks = false;
       node.visitChildren(this);
       accumulateIsChecks = oldAccumulateIsChecks;
-      return inferrer.boolType;
+      return compiler.typesTask.boolType;
     } else if (const SourceString("is") == op.source) {
       potentiallyAddIsCheck(node);
       node.visitChildren(this);
-      return inferrer.boolType;
+      return compiler.typesTask.boolType;
     } else if (const SourceString("as") == op.source) {
       TypeMask receiverType = visit(node.receiver);
       DartType type = elements.getType(node.arguments.head);
@@ -430,7 +430,7 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
     } else if (const SourceString('===') == op.source
                || const SourceString('!==') == op.source) {
       node.visitChildren(this);
-      return inferrer.boolType;
+      return compiler.typesTask.boolType;
     } else {
       // Binary operator.
       return visitDynamicSend(node);
@@ -464,13 +464,13 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
          link = link.tail) {
       Node definition = link.head;
       if (definition is Identifier) {
-        locals.update(elements[definition], inferrer.nullType);
+        locals.update(elements[definition], compiler.typesTask.nullType);
       } else {
         assert(definition.asSendSet() != null);
         visit(definition);
       }
     }
-    return inferrer.dynamicType;
+    return compiler.typesTask.dynamicType;
   }
 
   bool handleCondition(Node node, List<Send> tests) {
@@ -499,7 +499,7 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
     if (simpleCondition) updateIsChecks(tests, usePositive: false);
     visit(node.elsePart);
     locals.merge(thenLocals);
-    return inferrer.dynamicType;
+    return compiler.typesTask.dynamicType;
   }
 
   void setupBreaksAndContinues(TargetElement element) {
@@ -546,7 +546,7 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
     loopLevel--;
     mergeBreaks(target);
     clearBreaksAndContinues(target);
-    return inferrer.dynamicType;
+    return compiler.typesTask.dynamicType;
   }
 
   TypeMask visitWhile(While node) {
@@ -591,13 +591,13 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
       locals = saved;
     }
     visit(node.finallyBlock);
-    return inferrer.dynamicType;
+    return compiler.typesTask.dynamicType;
   }
 
   TypeMask visitThrow(Throw node) {
     node.visitChildren(this);
     locals.seenReturnOrThrow = true;
-    return inferrer.dynamicType;
+    return compiler.typesTask.dynamicType;
   }
 
   TypeMask visitCatchBlock(CatchBlock node) {
@@ -605,16 +605,16 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
     if (exception != null) {
       DartType type = elements.getType(node.type);
       TypeMask mask = type == null
-          ? inferrer.dynamicType
+          ? compiler.typesTask.dynamicType
           : new TypeMask.nonNullSubtype(type.asRaw());
       locals.update(elements[exception], mask);
     }
     Node trace = node.trace;
     if (trace != null) {
-      locals.update(elements[trace], inferrer.dynamicType);
+      locals.update(elements[trace], compiler.typesTask.dynamicType);
     }
     visit(node.block);
-    return inferrer.dynamicType;
+    return compiler.typesTask.dynamicType;
   }
 
   TypeMask visitParenthesizedExpression(ParenthesizedExpression node) {
@@ -628,7 +628,7 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
         if (locals.aborts) break;
       }
     }
-    return inferrer.dynamicType;
+    return compiler.typesTask.dynamicType;
   }
 
   TypeMask visitLabeledStatement(LabeledStatement node) {
@@ -638,7 +638,7 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
         || Elements.isUnusedLabel(node, elements)) {
       // Loops and switches handle their own labels.
       visit(body);
-      return inferrer.dynamicType;
+      return compiler.typesTask.dynamicType;
     }
 
     TargetElement targetElement = elements[body];
@@ -646,21 +646,21 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
     visit(body);
     mergeBreaks(targetElement);
     clearBreaksAndContinues(targetElement);
-    return inferrer.dynamicType;
+    return compiler.typesTask.dynamicType;
   }
 
   TypeMask visitBreakStatement(BreakStatement node) {
     TargetElement target = elements[node];
     breaksFor[target].add(locals);
     locals.seenBreakOrContinue = true;
-    return inferrer.dynamicType;
+    return compiler.typesTask.dynamicType;
   }
 
   TypeMask visitContinueStatement(ContinueStatement node) {
     TargetElement target = elements[node];
     continuesFor[target].add(locals);
     locals.seenBreakOrContinue = true;
-    return inferrer.dynamicType;
+    return compiler.typesTask.dynamicType;
   }
 
   void internalError(String reason, {Node node}) {
@@ -735,6 +735,6 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
     // that the [visitBlock] method does not assume the code after the
     // switch is dead code.
     locals.seenBreakOrContinue = false;
-    return inferrer.dynamicType;
+    return compiler.typesTask.dynamicType;
   }
 }

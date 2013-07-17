@@ -2,26 +2,39 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library barback.asset_graph;
+library barback.asset_cascade;
 
 import 'dart:async';
 import 'dart:collection';
 
 import 'asset.dart';
 import 'asset_id.dart';
-import 'asset_provider.dart';
 import 'asset_set.dart';
 import 'errors.dart';
 import 'change_batch.dart';
+import 'package_graph.dart';
 import 'phase.dart';
 import 'transformer.dart';
+import 'utils.dart';
 
-/// The main build dependency manager.
+/// The asset cascade for an individual package.
 ///
-/// For any given input file, it can tell which output files are affected by
-/// it, and vice versa.
-class AssetGraph {
-  final AssetProvider _provider;
+/// This keeps track of which [Transformer]s are applied to which assets, and
+/// re-runs those transformers when their dependencies change. The transformed
+/// assets are accessible via [getAssetById].
+///
+/// A cascade consists of one or more [Phases], each of which has one or more
+/// [Transformer]s that run in parallel, potentially on the same inputs. The
+/// inputs of the first phase are the source assets for this cascade's package.
+/// The inputs of each successive phase are the outputs of the previous phase,
+/// as well as any assets that haven't yet been transformed.
+class AssetCascade {
+  /// The name of the package whose assets are managed.
+  final String package;
+
+  /// The [PackageGraph] that tracks all [AssetCascade]s for all dependencies of
+  /// the current app.
+  final PackageGraph _graph;
 
   final _phases = <Phase>[];
 
@@ -33,10 +46,10 @@ class AssetGraph {
   Stream<BuildResult> get results => _resultsController.stream;
   final _resultsController = new StreamController<BuildResult>.broadcast();
 
-  /// A stream that emits any errors from the asset graph or the transformers.
+  /// A stream that emits any errors from the cascade or the transformers.
   ///
   /// This emits errors as they're detected. If an error occurs in one part of
-  /// the asset graph, unrelated parts will continue building.
+  /// the cascade, unrelated parts will continue building.
   ///
   /// This will not emit programming errors from barback itself. Those will be
   /// emitted through the [results] stream's error channel.
@@ -55,12 +68,12 @@ class AssetGraph {
 
   ChangeBatch _sourceChanges;
 
-  /// Creates a new [AssetGraph].
+  /// Creates a new [AssetCascade].
   ///
-  /// It loads source assets using [provider] and then uses [transformerPhases]
-  /// to generate output files from them.
+  /// It loads source assets within [package] using [provider] and then uses
+  /// [transformerPhases] to generate output files from them.
   //TODO(rnystrom): Better way of specifying transformers and their ordering.
-  AssetGraph(this._provider,
+  AssetCascade(this._graph, this.package,
       Iterable<Iterable<Transformer>> transformerPhases) {
     // Flatten the phases to a list so we can traverse backwards to wire up
     // each phase to its next.
@@ -84,6 +97,8 @@ class AssetGraph {
   /// it has been created and return it. If the asset cannot be found, throws
   /// [AssetNotFoundException].
   Future<Asset> getAssetById(AssetId id) {
+    assert(id.package == package);
+
     // TODO(rnystrom): Waiting for the entire build to complete is unnecessary
     // in some cases. Should optimize:
     // * [id] may be generated before the compilation is finished. We should
@@ -95,7 +110,7 @@ class AssetGraph {
     // * If [id] has never been generated and all active transformers provide
     //   metadata about the file names of assets it can emit, we can prove that
     //   none of them can emit [id] and fail early.
-    return _waitForProcess().then((_) {
+    return (_processDone == null ? new Future.value() : _processDone).then((_) {
       // Each phase's inputs are the outputs of the previous phase. Find the
       // last phase that contains the asset. Since the last phase has no
       // transformers, this will find the latest output for that id.
@@ -126,6 +141,7 @@ class AssetGraph {
   /// transforms that use it will be re-applied.
   void updateSources(Iterable<AssetId> sources) {
     if (_sourceChanges == null) _sourceChanges = new ChangeBatch();
+    assert(sources.every((id) => id.package == package));
     _sourceChanges.update(sources);
 
     _waitForProcess();
@@ -134,6 +150,7 @@ class AssetGraph {
   /// Removes [removed] from the graph's known set of source assets.
   void removeSources(Iterable<AssetId> removed) {
     if (_sourceChanges == null) _sourceChanges = new ChangeBatch();
+    assert(removed.every((id) => id.package == package));
     _sourceChanges.remove(removed);
 
     _waitForProcess();
@@ -218,7 +235,7 @@ class AssetGraph {
       var futures = [];
       for (var id in changes.updated) {
         // TODO(rnystrom): Catch all errors from provider and route to results.
-        futures.add(_provider.getAsset(id).then((asset) {
+        futures.add(_graph.provider.getAsset(id).then((asset) {
           updated.add(asset);
         }).catchError((error) {
           if (error is AssetNotFoundException) {
@@ -238,7 +255,7 @@ class AssetGraph {
   }
 }
 
-/// An event indicating that the asset graph has finished building.
+/// An event indicating that the cascade has finished building all assets.
 ///
 /// A build can end either in success or failure. If there were no errors during
 /// the build, it's considered to be a success; any errors render it a failure,
@@ -252,4 +269,28 @@ class BuildResult {
 
   BuildResult(Iterable errors)
       : errors = errors.toList();
+
+  /// Creates a build result indicating a successful build.
+  ///
+  /// This equivalent to a build result with no errors.
+  BuildResult.success()
+      : this([]);
+
+  String toString() {
+    if (succeeded) return "success";
+
+    return "errors:\n" + errors.map((error) {
+      var stackTrace = getAttachedStackTrace(error);
+      if (stackTrace != null) stackTrace = new Trace.from(stackTrace);
+
+      var msg = new StringBuffer();
+      msg.write(prefixLines(error.toString()));
+      if (stackTrace != null) {
+        msg.write("\n\n");
+        msg.write("Stack trace:\n");
+        msg.write(prefixLines(stackTrace.toString()));
+      }
+      return msg.toString();
+    }).join("\n\n");
+  }
 }

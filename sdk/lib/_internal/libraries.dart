@@ -70,6 +70,11 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       "isolate/isolate.dart",
       dart2jsPatchPath: "_internal/lib/isolate_patch.dart"),
 
+  "js": const LibraryInfo(
+      "js/dartium/js_dartium.dart",
+      category: "Client",
+      dart2jsPath: "js/dart2js/js_dart2js.dart"),
+
   "json": const LibraryInfo(
       "json/json.dart",
       dart2jsPatchPath: "_internal/lib/json_patch.dart"),

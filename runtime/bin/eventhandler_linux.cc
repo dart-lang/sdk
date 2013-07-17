@@ -111,8 +111,6 @@ EventHandlerImplementation::EventHandlerImplementation()
   FDUtils::SetNonBlocking(interrupt_fds_[0]);
   FDUtils::SetCloseOnExec(interrupt_fds_[0]);
   FDUtils::SetCloseOnExec(interrupt_fds_[1]);
-  timeout_ = kInfinityTimeout;
-  timeout_port_ = 0;
   shutdown_ = false;
   // The initial size passed to epoll_create is ignore on newer (>=
   // 2.6.8) Linux versions
@@ -198,12 +196,12 @@ bool EventHandlerImplementation::GetInterruptMessage(InterruptMessage* msg) {
   return (total_read == kInterruptMessageSize) ? true : false;
 }
 
+
 void EventHandlerImplementation::HandleInterruptFd() {
   InterruptMessage msg;
   while (GetInterruptMessage(&msg)) {
     if (msg.id == kTimerId) {
-      timeout_ = msg.data;
-      timeout_port_ = msg.dart_port;
+      timeout_queue_.UpdateTimeout(msg.dart_port, msg.data);
     } else if (msg.id == kShutdownId) {
       shutdown_ = true;
     } else {
@@ -365,21 +363,23 @@ void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
 
 
 int64_t EventHandlerImplementation::GetTimeout() {
-  if (timeout_ == kInfinityTimeout) {
+  if (!timeout_queue_.HasTimeout()) {
     return kInfinityTimeout;
   }
-  int64_t millis = timeout_ - TimerUtils::GetCurrentTimeMilliseconds();
+  int64_t millis = timeout_queue_.CurrentTimeout() -
+      TimerUtils::GetCurrentTimeMilliseconds();
   return (millis < 0) ? 0 : millis;
 }
 
 
 void EventHandlerImplementation::HandleTimeout() {
-  if (timeout_ != kInfinityTimeout) {
-    int64_t millis = timeout_ - TimerUtils::GetCurrentTimeMilliseconds();
+  if (timeout_queue_.HasTimeout()) {
+    int64_t millis = timeout_queue_.CurrentTimeout() -
+        TimerUtils::GetCurrentTimeMilliseconds();
     if (millis <= 0) {
-      DartUtils::PostNull(timeout_port_);
-      timeout_ = kInfinityTimeout;
-      timeout_port_ = 0;
+      DartUtils::PostNull(timeout_queue_.CurrentPort());
+      // Remove current from queue.
+      timeout_queue_.RemoveCurrent();
     }
   }
 }

@@ -72,7 +72,7 @@ void main() {
   checkReturn('returnDyn1', subclassOfInterceptor);
   checkReturn('returnDyn2', subclassOfInterceptor);
   checkReturn('returnDyn3', subclassOfInterceptor);
-  checkReturn('returnDyn4', typesInferrer.dynamicType.nonNullable());
-  checkReturn('returnDyn5', typesInferrer.dynamicType.nonNullable());
-  checkReturn('returnDyn6', typesInferrer.dynamicType.nonNullable());
+  checkReturn('returnDyn4', compiler.typesTask.dynamicType.nonNullable());
+  checkReturn('returnDyn5', compiler.typesTask.dynamicType.nonNullable());
+  checkReturn('returnDyn6', compiler.typesTask.dynamicType.nonNullable());
 }

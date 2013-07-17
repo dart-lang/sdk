@@ -1444,15 +1444,14 @@ RawType* Class::SignatureType() const {
     const Class& canonical_class = Class::Handle(function.signature_class());
     return canonical_class.SignatureType();
   }
-  // Return the first canonical signature type if already computed.
+  // Return the first canonical signature type if already computed at class
+  // finalization time. The optimizer may canonicalize instantiated function
+  // types of the same signature class, but these will be added after the
+  // uninstantiated signature class at index 0.
   const Array& signature_types = Array::Handle(canonical_types());
   // The canonical_types array is initialized to the empty array.
   ASSERT(!signature_types.IsNull());
   if (signature_types.Length() > 0) {
-    // At most one signature type per signature class.
-    ASSERT((signature_types.Length() == 1) ||
-           ((signature_types.Length() == 2) &&
-            (signature_types.At(1) == Type::null())));
     Type& signature_type = Type::Handle();
     signature_type ^= signature_types.At(0);
     ASSERT(!signature_type.IsNull());
@@ -2738,6 +2737,10 @@ RawField* Class::LookupField(const String& name, intptr_t type) const {
   ReusableHandleScope reused_handles(isolate);
   Array& flds = reused_handles.ArrayHandle();
   flds ^= fields();
+  if (flds.IsNull()) {
+    // This can occur, e.g., for Null classes.
+    return Field::null();
+  }
   Field& field = reused_handles.FieldHandle();
   String& field_name = reused_handles.StringHandle();
   intptr_t len = flds.Length();
@@ -4093,8 +4096,8 @@ intptr_t Function::NumImplicitParameters() const {
 }
 
 
-bool Function::AreValidArgumentCounts(int num_arguments,
-                                      int num_named_arguments,
+bool Function::AreValidArgumentCounts(intptr_t num_arguments,
+                                      intptr_t num_named_arguments,
                                       String* error_message) const {
   if (num_named_arguments > NumOptionalNamedParameters()) {
     if (error_message != NULL) {
@@ -4102,7 +4105,7 @@ bool Function::AreValidArgumentCounts(int num_arguments,
       char message_buffer[kMessageBufferSize];
       OS::SNPrint(message_buffer,
                   kMessageBufferSize,
-                  "%d named passed, at most %"Pd" expected",
+                  "%"Pd" named passed, at most %"Pd" expected",
                   num_named_arguments,
                   NumOptionalNamedParameters());
       *error_message = String::New(message_buffer);
@@ -4150,10 +4153,10 @@ bool Function::AreValidArgumentCounts(int num_arguments,
 }
 
 
-bool Function::AreValidArguments(int num_arguments,
+bool Function::AreValidArguments(intptr_t num_arguments,
                                  const Array& argument_names,
                                  String* error_message) const {
-  const int num_named_arguments =
+  const intptr_t num_named_arguments =
       argument_names.IsNull() ? 0 : argument_names.Length();
   if (!AreValidArgumentCounts(num_arguments,
                               num_named_arguments,
@@ -4164,13 +4167,61 @@ bool Function::AreValidArguments(int num_arguments,
   Isolate* isolate = Isolate::Current();
   String& argument_name = String::Handle(isolate);
   String& parameter_name = String::Handle(isolate);
-  for (int i = 0; i < num_named_arguments; i++) {
+  for (intptr_t i = 0; i < num_named_arguments; i++) {
     argument_name ^= argument_names.At(i);
     ASSERT(argument_name.IsSymbol());
     bool found = false;
-    const int num_positional_args = num_arguments - num_named_arguments;
+    const intptr_t num_positional_args = num_arguments - num_named_arguments;
+    const intptr_t num_parameters = NumParameters();
+    for (intptr_t j = num_positional_args;
+         !found && (j < num_parameters);
+         j++) {
+      parameter_name = ParameterNameAt(j);
+      ASSERT(argument_name.IsSymbol());
+      if (argument_name.Equals(parameter_name)) {
+        found = true;
+      }
+    }
+    if (!found) {
+      if (error_message != NULL) {
+        const intptr_t kMessageBufferSize = 64;
+        char message_buffer[kMessageBufferSize];
+        OS::SNPrint(message_buffer,
+                    kMessageBufferSize,
+                    "no optional formal parameter named '%s'",
+                    argument_name.ToCString());
+        *error_message = String::New(message_buffer);
+      }
+      return false;
+    }
+  }
+  return true;
+}
+
+
+bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
+                                 String* error_message) const {
+  const intptr_t num_arguments = args_desc.Count();
+  const intptr_t num_named_arguments = args_desc.NamedCount();
+
+  if (!AreValidArgumentCounts(num_arguments,
+                              num_named_arguments,
+                              error_message)) {
+    return false;
+  }
+  // Verify that all argument names are valid parameter names.
+  Isolate* isolate = Isolate::Current();
+  String& argument_name = String::Handle(isolate);
+  String& parameter_name = String::Handle(isolate);
+  for (intptr_t i = 0; i < num_named_arguments; i++) {
+    argument_name ^= args_desc.NameAt(i);
+    ASSERT(argument_name.IsSymbol());
+    bool found = false;
+    const intptr_t num_positional_args = num_arguments - num_named_arguments;
     const int num_parameters = NumParameters();
-    for (int j = num_positional_args; !found && (j < num_parameters); j++) {
+    for (intptr_t j = num_positional_args;
+         !found && (j < num_parameters);
+         j++) {
       parameter_name = ParameterNameAt(j);
       ASSERT(argument_name.IsSymbol());
       if (argument_name.Equals(parameter_name)) {
@@ -4873,8 +4924,8 @@ const char* Function::ToCString() const {
     case RawFunction::kImplicitSetter:
       kind_str = " setter";
       break;
-    case RawFunction::kConstImplicitGetter:
-      kind_str = " const-getter";
+    case RawFunction::kImplicitStaticFinalGetter:
+      kind_str = " static-final-getter";
       break;
     case RawFunction::kMethodExtractor:
       kind_str = " method-extractor";
@@ -10504,11 +10555,7 @@ RawAbstractType* Type::Canonicalize() const {
     if (type.IsNull()) {
       break;
     }
-    if (!type.IsFinalized()) {
-      ASSERT((index == 0) && cls.IsSignatureClass());
-      index++;
-      continue;
-    }
+    ASSERT(type.IsFinalized());
     if (this->Equals(type)) {
       return type.raw();
     }
@@ -10529,6 +10576,30 @@ RawAbstractType* Type::Canonicalize() const {
   } else {
     canonical_types.SetAt(index, *this);
   }
+#ifdef DEBUG
+  if ((index == 0) && cls.IsCanonicalSignatureClass()) {
+    // Verify that the first canonical type is the signature type by checking
+    // that the type argument vector of the canonical type ends with the
+    // uninstantiated type parameters of the signature class.
+    // The signature type is finalized during class finalization, before the
+    // optimizer may canonicalize instantiated function types of the same
+    // signature class.
+    // Although the signature class extends class Instance, the type arguments
+    // of the super class of the owner class of its signature function will be
+    // prepended to the type argument vector during class finalization.
+    const TypeArguments& type_params =
+      TypeArguments::Handle(cls.type_parameters());
+    const intptr_t num_type_params = cls.NumTypeParameters();
+    const intptr_t num_type_args = cls.NumTypeArguments();
+    TypeParameter& type_arg = TypeParameter::Handle();
+    TypeParameter& type_param = TypeParameter::Handle();
+    for (intptr_t i = 0; i < num_type_params; i++) {
+      type_arg ^= type_args.TypeAt(num_type_args - num_type_params + i);
+      type_param ^= type_params.TypeAt(i);
+      ASSERT(type_arg.Equals(type_param));
+    }
+  }
+#endif
   ASSERT(IsOld());
   SetCanonical();
   return this->raw();

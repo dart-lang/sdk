@@ -370,7 +370,8 @@ class CallSiteInliner : public ValueObject {
   FlowGraph* caller_graph() const { return caller_graph_; }
 
   // Inlining heuristics based on Cooper et al. 2008.
-  bool ShouldWeInline(intptr_t instr_count,
+  bool ShouldWeInline(const Function& callee,
+                      intptr_t instr_count,
                       intptr_t call_site_count,
                       intptr_t const_arg_count) {
     if (inlined_size_ > FLAG_inlining_caller_size_threshold) {
@@ -385,6 +386,9 @@ class CallSiteInliner : public ValueObject {
     }
     if ((const_arg_count >= FLAG_inlining_constant_arguments_count) &&
         (instr_count <= FLAG_inlining_constant_arguments_size_threshold)) {
+      return true;
+    }
+    if (MethodRecognizer::AlwaysInline(callee)) {
       return true;
     }
     return false;
@@ -462,7 +466,8 @@ class CallSiteInliner : public ValueObject {
 
     GrowableArray<Value*>* arguments = call_data->arguments;
     const intptr_t constant_arguments = CountConstants(*arguments);
-    if (!ShouldWeInline(function.optimized_instruction_count(),
+    if (!ShouldWeInline(function,
+                        function.optimized_instruction_count(),
                         function.optimized_call_site_count(),
                         constant_arguments)) {
       TRACE_INLINING(OS::Print("     Bailout: early heuristics with "
@@ -608,7 +613,7 @@ class CallSiteInliner : public ValueObject {
       function.set_optimized_call_site_count(call_site_count);
 
       // Use heuristics do decide if this call should be inlined.
-      if (!ShouldWeInline(size, call_site_count, constants_count)) {
+      if (!ShouldWeInline(function, size, call_site_count, constants_count)) {
         // If size is larger than all thresholds, don't consider it again.
         if ((size > FLAG_inlining_size_threshold) &&
             (call_site_count > FLAG_inlining_callee_call_sites_threshold) &&
@@ -750,8 +755,9 @@ class CallSiteInliner : public ValueObject {
           continue;
         }
       }
-      if ((call_info[call_idx].ratio * 100) < FLAG_inlining_hotness) {
-        const Function& target = call->function();
+      const Function& target = call->function();
+      if (!MethodRecognizer::AlwaysInline(target) &&
+          (call_info[call_idx].ratio * 100) < FLAG_inlining_hotness) {
         TRACE_INLINING(OS::Print(
             "  => %s (deopt count %d)\n     Bailout: cold %f\n",
             target.ToCString(),
@@ -812,7 +818,8 @@ class CallSiteInliner : public ValueObject {
 
       const ICData& ic_data = call->ic_data();
       const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
-      if ((call_info[call_idx].ratio * 100) < FLAG_inlining_hotness) {
+      if (!MethodRecognizer::AlwaysInline(target) &&
+          (call_info[call_idx].ratio * 100) < FLAG_inlining_hotness) {
         TRACE_INLINING(OS::Print(
             "  => %s (deopt count %d)\n     Bailout: cold %f\n",
             target.ToCString(),

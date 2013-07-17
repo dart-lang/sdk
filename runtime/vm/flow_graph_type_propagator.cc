@@ -412,8 +412,8 @@ void CompileType::Union(CompileType* other) {
   if (ToAbstractType()->IsMoreSpecificThan(*other->ToAbstractType(),
                                            &malformed_error)) {
     type_ = other->ToAbstractType();
-  } else if (ToAbstractType()->IsMoreSpecificThan(*ToAbstractType(),
-                                                  &malformed_error)) {
+  } else if (other->ToAbstractType()->IsMoreSpecificThan(*ToAbstractType(),
+                                                         &malformed_error)) {
     // Nothing to do.
   } else {
     // Can't unify.

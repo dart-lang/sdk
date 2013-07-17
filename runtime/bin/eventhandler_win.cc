@@ -670,8 +670,7 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
   if (msg->id == kTimeoutId) {
     // Change of timeout request. Just set the new timeout and port as the
     // completion thread will use the new timeout value for its next wait.
-    timeout_ = msg->data;
-    timeout_port_ = msg->dart_port;
+    timeout_queue_.UpdateTimeout(msg->dart_port, msg->data);
   } else if (msg->id == kShutdownId) {
     shutdown_ = true;
   } else {
@@ -864,10 +863,9 @@ void EventHandlerImplementation::HandleDisconnect(
 }
 
 void EventHandlerImplementation::HandleTimeout() {
-  // TODO(sgjesse) check if there actually is a timeout.
-  DartUtils::PostNull(timeout_port_);
-  timeout_ = kInfinityTimeout;
-  timeout_port_ = 0;
+  if (!timeout_queue_.HasTimeout()) return;
+  DartUtils::PostNull(timeout_queue_.CurrentPort());
+  timeout_queue_.RemoveCurrent();
 }
 
 
@@ -909,8 +907,6 @@ EventHandlerImplementation::EventHandlerImplementation() {
   if (completion_port_ == NULL) {
     FATAL("Completion port creation failed");
   }
-  timeout_ = kInfinityTimeout;
-  timeout_port_ = 0;
   shutdown_ = false;
 }
 
@@ -921,10 +917,11 @@ EventHandlerImplementation::~EventHandlerImplementation() {
 
 
 int64_t EventHandlerImplementation::GetTimeout() {
-  if (timeout_ == kInfinityTimeout) {
+  if (!timeout_queue_.HasTimeout()) {
     return kInfinityTimeout;
   }
-  int64_t millis = timeout_ - TimerUtils::GetCurrentTimeMilliseconds();
+  int64_t millis = timeout_queue_.CurrentTimeout() -
+      TimerUtils::GetCurrentTimeMilliseconds();
   return (millis < 0) ? 0 : millis;
 }
 

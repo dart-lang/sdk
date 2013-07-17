@@ -240,12 +240,18 @@ namespace dart {
   V(Mirrors_makeLocalClassMirror, 1)                                           \
   V(Mirrors_makeLocalMirrorSystem, 0)                                          \
   V(Mirrors_metadata, 1)                                                       \
-  V(LocalObjectMirrorImpl_invoke, 4)                                           \
-  V(LocalObjectMirrorImpl_getField, 2)                                         \
-  V(LocalObjectMirrorImpl_setField, 4)                                         \
-  V(LocalClosureMirrorImpl_apply, 3)                                           \
-  V(LocalClassMirrorImpl_invokeConstructor, 4)                                 \
+  V(InstanceMirror_invoke, 4)                                                  \
+  V(InstanceMirror_invokeGetter, 3)                                            \
+  V(InstanceMirror_invokeSetter, 4)                                            \
+  V(ClosureMirror_apply, 2)                                                    \
   V(ClassMirror_name, 1)                                                       \
+  V(ClassMirror_invoke, 4)                                                     \
+  V(ClassMirror_invokeGetter, 3)                                               \
+  V(ClassMirror_invokeSetter, 4)                                               \
+  V(ClassMirror_invokeConstructor, 3)                                          \
+  V(LibraryMirror_invoke, 4)                                                   \
+  V(LibraryMirror_invokeGetter, 3)                                             \
+  V(LibraryMirror_invokeSetter, 4)                                             \
   V(MethodMirror_name, 1)                                                      \
   V(GrowableObjectArray_allocate, 2)                                           \
   V(GrowableObjectArray_getIndexed, 2)                                         \

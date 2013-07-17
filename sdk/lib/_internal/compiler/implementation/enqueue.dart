@@ -326,31 +326,24 @@ abstract class Enqueuer {
       ClassElement cls = element.declaration.getEnclosingClass();
       registerInstantiatedType(cls.rawType, elements);
       registerStaticUse(element.declaration);
+    } else if (element.isMixinApplication) {
+      // Don't enqueue mixin applications.
+    } else if (element.isClass()) {
+      ClassElement cls = element.declaration;
+      registerInstantiatedType(cls.rawType, elements);
+      // Make sure that even abstract classes are considered instantiated.
+      universe.instantiatedClasses.add(cls);
     } else if (element.impliesType()) {
-      // Don't enqueue classes, typedefs, and type variables.
+      // Don't enqueue typedefs, and type variables.
     } else if (Elements.isStaticOrTopLevel(element)) {
       registerStaticUse(element.declaration);
     } else if (element.isInstanceMember()) {
-      if (element.isFunction()) {
-        int arity =
-            element.asFunctionElement().requiredParameterCount(compiler);
-        Selector selector =
-            new Selector.call(element.name, element.getLibrary(), arity);
-        registerInvocation(selector);
-      } else if (element.isSetter()) {
+      Selector selector = new Selector.fromElement(element, compiler);
+      registerSelectorUse(selector);
+      if (element.isField()) {
         Selector selector =
             new Selector.setter(element.name, element.getLibrary());
         registerInvokedSetter(selector);
-      } else if (element.isGetter()) {
-        Selector selector =
-            new Selector.getter(element.name, element.getLibrary());
-        registerInvokedGetter(selector);
-      } else if (element.isField()) {
-        Selector selector =
-            new Selector.setter(element.name, element.getLibrary());
-        registerInvokedSetter(selector);
-        selector = new Selector.getter(element.name, element.getLibrary());
-        registerInvokedGetter(selector);
       }
     }
   }

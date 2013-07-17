@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library barback.test.asset_graph.source_test;
+library barback.test.package_graph.source_test;
 
 import 'dart:async';
 
 import 'package:barback/barback.dart';
-import 'package:barback/src/asset_graph.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 
 import '../utils.dart';
@@ -44,9 +43,9 @@ main() {
   });
 
   test("gets a source asset if not transformed", () {
-    initGraph(["app|foo.txt"], [
+    initGraph(["app|foo.txt"], {"app": [
       [new RewriteTransformer("nottxt", "whatever")]
-    ]);
+    ]});
 
     updateSources(["app|foo.txt"]);
     expectAsset("app|foo.txt");
@@ -67,7 +66,7 @@ main() {
 
   test("collapses redundant updates", () {
     var transformer = new RewriteTransformer("blub", "blab");
-    initGraph(["app|foo.blub"], [[transformer]]);
+    initGraph(["app|foo.blub"], {"app": [[transformer]]});
 
     schedule(() {
       // Make a bunch of synchronous update calls.
@@ -108,7 +107,7 @@ main() {
 
   test("restarts a build if a source is updated while sources are loading", () {
     var transformer = new RewriteTransformer("txt", "out");
-    initGraph(["app|foo.txt", "app|other.bar"], [[transformer]]);
+    initGraph(["app|foo.txt", "app|other.bar"], {"app": [[transformer]]});
 
     // Run the whole graph so all nodes are clean.
     updateSources(["app|foo.txt", "app|other.bar"]);

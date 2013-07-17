@@ -33,6 +33,7 @@ class ARMDecoder : public ValueObject {
   void PrintRegister(int reg);
   void PrintSRegister(int reg);
   void PrintDRegister(int reg);
+  void PrintDRegisterList(int start, int reg_count);
   void PrintQRegister(int reg);
   void PrintCondition(Instr* instr);
   void PrintShiftRm(Instr* instr);
@@ -330,6 +331,18 @@ int ARMDecoder::FormatSRegister(Instr* instr, const char* format) {
 }
 
 
+void ARMDecoder::PrintDRegisterList(int start, int reg_count) {
+  Print("{");
+  for (int i = start; i < start + reg_count; i++) {
+    PrintDRegister(i);
+    if (i != start + reg_count - 1) {
+      Print(", ");
+    }
+  }
+  Print("}");
+}
+
+
 int ARMDecoder::FormatDRegister(Instr* instr, const char* format) {
   ASSERT(format[0] == 'd');
   if (format[1] == 'n') {  // 'dn: Dn register
@@ -348,15 +361,14 @@ int ARMDecoder::FormatDRegister(Instr* instr, const char* format) {
     ASSERT(STRING_STARTS_WITH(format, "dlist"));
     int reg_count = instr->Bits(0, 8) >> 1;
     int start = (instr->Bit(22) << 4) | instr->Bits(12, 4);
-    Print("{");
-    for (int i = start; i < start + reg_count; i++) {
-      PrintDRegister(i);
-      if (i != start + reg_count - 1) {
-        Print(", ");
-      }
-    }
-    Print("}");
+    PrintDRegisterList(start, reg_count);
     return 5;
+  } else if (format[1] == 't') {
+    ASSERT(STRING_STARTS_WITH(format, "dtbllist"));
+    int reg_count = instr->Bits(8, 2) + 1;
+    int start = (instr->Bit(7) << 4) | instr->Bits(16, 4);
+    PrintDRegisterList(start, reg_count);
+    return 8;
   }
   UNREACHABLE();
   return -1;
@@ -531,12 +543,20 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
                                    instr->SvcField());
         return 3;
       } else if (format[1] == 'z') {
-        // 'sz: Size field of SIMD instruction.
-        int sz = 8 << (instr->Bits(20, 2));
+        // 'sz: Size field of SIMD instructions.
+        int sz = instr->Bits(20, 2);
+        char const* sz_str;
+        switch (sz) {
+          case 0: sz_str = "b"; break;
+          case 1: sz_str = "h"; break;
+          case 2: sz_str = "w"; break;
+          case 3: sz_str = "l"; break;
+          default: sz_str = "?"; break;
+        }
         buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
                                    remaining_size_in_buffer(),
-                                   "I%d",
-                                   sz);
+                                   "%s",
+                                   sz_str);
         return 2;
       } else if (format[1] == ' ') {
         // 's: S field of data processing instructions.
@@ -1270,16 +1290,33 @@ void ARMDecoder::DecodeSIMDDataProcessing(Instr* instr) {
   ASSERT(instr->ConditionField() == kSpecialCondition);
   if (instr->Bit(6) == 1) {
     if ((instr->Bits(8, 4) == 8) && (instr->Bit(4) == 0) &&
-        (instr->Bit(24) == 0)) {
-      Format(instr, "vadd.'sz 'qd, 'qn, 'qm");
+        (instr->Bits(23, 2) == 0)) {
+      Format(instr, "vaddq'sz 'qd, 'qn, 'qm");
     } else if ((instr->Bits(8, 4) == 13) && (instr->Bit(4) == 0) &&
-        (instr->Bit(24) == 0)) {
-      Format(instr, "vadd.F32 'qd, 'qn, 'qm");
+               (instr->Bits(23, 2) == 0) && (instr->Bit(21) == 0)) {
+      Format(instr, "vaddqs 'qd, 'qn, 'qm");
+    } else if ((instr->Bits(8, 4) == 8) && (instr->Bit(4) == 0) &&
+               (instr->Bits(23, 2) == 2)) {
+      Format(instr, "vsubq'sz 'qd, 'qn, 'qm");
+    } else if ((instr->Bits(8, 4) == 13) && (instr->Bit(4) == 0) &&
+               (instr->Bits(23, 2) == 0) && (instr->Bit(21) == 1)) {
+      Format(instr, "vsubqs 'qd, 'qn, 'qm");
+    } else if ((instr->Bits(8, 4) == 9) && (instr->Bit(4) == 1) &&
+               (instr->Bits(23, 2) == 0)) {
+      Format(instr, "vmulq'sz 'qd, 'qn, 'qm");
+    } else if ((instr->Bits(8, 4) == 13) && (instr->Bit(4) == 1) &&
+               (instr->Bits(23, 2) == 2) && (instr->Bit(21) == 0)) {
+      Format(instr, "vmulqs 'qd, 'qn, 'qm");
     } else {
       Unknown(instr);
     }
   } else {
-    Unknown(instr);
+    if ((instr->Bits(23, 2) == 3) && (instr->Bits(20, 2) == 3) &&
+        (instr->Bits(10, 2) == 2) && (instr->Bit(4) == 0)) {
+      Format(instr, "vtbl 'dd, 'dtbllist, 'dm");
+    } else {
+      Unknown(instr);
+    }
   }
 }
 

@@ -495,7 +495,7 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
     const Function& getter =
         Function::Handle(cls().LookupStaticFunction(getter_name));
     ASSERT(!getter.IsNull() &&
-           (getter.kind() == RawFunction::kConstImplicitGetter));
+           (getter.kind() == RawFunction::kImplicitStaticFinalGetter));
 #endif
     return new StoreStaticFieldNode(token_pos(), field, rhs);
   }

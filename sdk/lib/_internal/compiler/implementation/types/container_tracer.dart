@@ -161,7 +161,7 @@ class TracerForConcreteContainer {
       analysisCount++;
     }
 
-    if (!continueAnalyzing) return inferrer.dynamicType;
+    if (!continueAnalyzing) return compiler.typesTask.dynamicType;
 
     // [potentialType] can be null if we did not find any instruction
     // that adds elements to the list.
@@ -187,7 +187,7 @@ class TracerForConcreteContainer {
     potentialType = potentialType == null
         ? newType
         : newType.union(potentialType, compiler);
-    if (potentialType == inferrer.dynamicType) {
+    if (potentialType == compiler.typesTask.dynamicType) {
       bailout('Moved to dynamic');
     }
   }
@@ -233,7 +233,7 @@ class TracerForConcreteContainer {
       print('Bailout on $analyzedNode $startElement because of $reason');
     }
     continueAnalyzing = false;
-    return inferrer.dynamicType;
+    return compiler.typesTask.dynamicType;
   }
 
   bool couldBeTheList(resolved) {
@@ -306,6 +306,8 @@ class ContainerTracerVisitor extends InferrerVisitor {
     if (!indices.isEmpty) {
       Iterable<Element> callees;
       if (callee is Element) {
+        // No need to go further, we know the call will throw.
+        if (callee.isErroneous()) return false;
         callees = [callee];
       } else {
         assert(callee is Selector);
@@ -354,11 +356,11 @@ class ContainerTracerVisitor extends InferrerVisitor {
       visitingInitializers = false;
       visit(node.body);
     }
-    return inferrer.functionType;
+    return compiler.typesTask.functionType;
   }
 
   TypeMask visitLiteralList(LiteralList node) {
-    if (node.isConst()) return inferrer.constListType;
+    if (node.isConst()) return compiler.typesTask.constListType;
     if (tracer.couldBeTheList(node)) {
       escaping = true;
       for (Node element in node.elements.nodes) {
@@ -367,7 +369,7 @@ class ContainerTracerVisitor extends InferrerVisitor {
     } else {
       node.visitChildren(this);
     }
-    return inferrer.growableListType;
+    return compiler.typesTask.growableListType;
   }
 
   // TODO(ngeoffray): Try to move the following two methods in
@@ -415,7 +417,7 @@ class ContainerTracerVisitor extends InferrerVisitor {
     bool isIndexEscaping = false;
     bool isValueEscaping = false;
     if (isIncrementOrDecrement) {
-      rhsType = inferrer.intType;
+      rhsType = compiler.typesTask.intType;
       if (node.isIndex) {
         isIndexEscaping = visitAndCatchEscaping(() {
           indexType = visit(node.arguments.head);
@@ -464,7 +466,7 @@ class ContainerTracerVisitor extends InferrerVisitor {
     } else if (isReceiver) {
       if (setterSelector.name == const SourceString('length')) {
         // Changing the length.
-        tracer.unionPotentialTypeWith(inferrer.nullType);
+        tracer.unionPotentialTypeWith(compiler.typesTask.nullType);
       }
     } else if (isValueEscaping) {
       if (element != null
@@ -518,7 +520,7 @@ class ContainerTracerVisitor extends InferrerVisitor {
     } else if (element.isFunction()) {
       return inferrer.getReturnTypeOfElement(element);
     } else {
-      return inferrer.dynamicType;
+      return compiler.typesTask.dynamicType;
     }
   }
 
@@ -530,14 +532,14 @@ class ContainerTracerVisitor extends InferrerVisitor {
       if (tracer.couldBeTheList(node)) {
         escaping = true;
       }
-      return inferrer.growableListType;
+      return compiler.typesTask.growableListType;
     } else if (Elements.isFixedListConstructorCall(element, node, compiler)) {
-      tracer.unionPotentialTypeWith(inferrer.nullType);
+      tracer.unionPotentialTypeWith(compiler.typesTask.nullType);
       visitArguments(node.arguments, element);
       if (tracer.couldBeTheList(node)) {
         escaping = true;
       }
-      return inferrer.fixedListType;
+      return compiler.typesTask.fixedListType;
     } else if (Elements.isFilledListConstructorCall(element, node, compiler)) {
       if (tracer.couldBeTheList(node)) {
         escaping = true;
@@ -547,7 +549,7 @@ class ContainerTracerVisitor extends InferrerVisitor {
       } else {
         visitArguments(node.arguments, element);
       }
-      return inferrer.fixedListType;
+      return compiler.typesTask.fixedListType;
     }
 
     bool isEscaping = visitArguments(node.arguments, element);
@@ -564,7 +566,7 @@ class ContainerTracerVisitor extends InferrerVisitor {
       return inferrer.getReturnTypeOfElement(element);
     } else {
       // Closure call or unresolved.
-      return inferrer.dynamicType;
+      return compiler.typesTask.dynamicType;
     }
   }
 
@@ -579,9 +581,9 @@ class ContainerTracerVisitor extends InferrerVisitor {
     } else if (Elements.isInstanceSend(node, elements)) {
       return visitDynamicSend(node);
     } else if (Elements.isStaticOrTopLevelFunction(element)) {
-      return inferrer.functionType;
+      return compiler.typesTask.functionType;
     } else if (Elements.isErroneousElement(element)) {
-      return inferrer.dynamicType;
+      return compiler.typesTask.dynamicType;
     } else if (Elements.isLocal(element)) {
       if (tracer.couldBeTheList(element)) {
         escaping = true;
@@ -589,7 +591,7 @@ class ContainerTracerVisitor extends InferrerVisitor {
       return locals.use(element);
     } else {
       node.visitChildren(this);
-      return inferrer.dynamicType;
+      return compiler.typesTask.dynamicType;
     }
   }
 
@@ -600,7 +602,7 @@ class ContainerTracerVisitor extends InferrerVisitor {
         visitArguments(node.arguments, elements.getSelector(node));
 
     if (isEscaping) return tracer.bailout('Passed to a closure');
-    return inferrer.dynamicType;
+    return compiler.typesTask.dynamicType;
   }
 
   TypeMask visitDynamicSend(Send node) {
@@ -645,7 +647,7 @@ class ContainerTracerVisitor extends InferrerVisitor {
 
   TypeMask visitReturn(Return node) {
     if (node.expression == null) {
-      return inferrer.nullType;
+      return compiler.typesTask.nullType;
     }
     
     TypeMask type;

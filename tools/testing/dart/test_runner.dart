@@ -107,7 +107,11 @@ class Command {
   /** The actual command line that will be executed. */
   String commandLine;
 
-  Command(this.executable, this.arguments, [this.environment = null]) {
+  /** A descriptive name for this command. */
+  String displayName;
+
+  Command(this.displayName, this.executable,
+          this.arguments, [this.environment = null]) {
     if (io.Platform.operatingSystem == 'windows') {
       // Windows can't handle the first command if it is a .bat file or the like
       // with the slashes going the other direction.
@@ -132,12 +136,13 @@ class CompilationCommand extends Command {
   bool _neverSkipCompilation;
   List<Uri> _bootstrapDependencies;
 
-  CompilationCommand(this._outputFile,
+  CompilationCommand(String displayName,
+                     this._outputFile,
                      this._neverSkipCompilation,
                      this._bootstrapDependencies,
                      String executable,
                      List<String> arguments)
-      : super(executable, arguments);
+      : super(displayName, executable, arguments);
 
   Future<bool> get outputIsUpToDate {
     if (_neverSkipCompilation) return new Future.value(false);
@@ -195,7 +200,8 @@ class ContentShellCommand extends Command {
                       List<String> options,
                       List<String> dartFlags,
                       io.Path this.expectedOutputPath)
-      : super(executable,
+      : super("content_shell",
+              executable,
               _getArguments(options, htmlFile),
               _getEnvironment(dartFlags));
 
@@ -457,6 +463,8 @@ abstract class CommandOutput {
 
   Command get command;
 
+  TestCase testCase;
+
   bool get incomplete;
 
   String get result;
@@ -621,7 +629,6 @@ class CommandOutputImpl implements CommandOutput {
     }
     return testCase.isNegative ? !didFail : didFail;
   }
-
 }
 
 class BrowserCommandOutputImpl extends CommandOutputImpl {
@@ -848,11 +855,7 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
       if (fields[ERROR_LEVEL] == 'ERROR') {
         errors.add(fields[FORMATTED_ERROR]);
       } else if (fields[ERROR_LEVEL] == 'WARNING') {
-        // We only care about testing Static type warnings
-        // ignore all others
-        if (fields[ERROR_TYPE] == 'STATIC_TYPE' || fields[ERROR_TYPE] == 'STATIC_TYPE_WARNING') {
-          staticWarnings.add(fields[FORMATTED_ERROR]);
-        }
+        staticWarnings.add(fields[FORMATTED_ERROR]);
       }
       // OK to Skip error output that doesn't match the machine format
     }
@@ -919,9 +922,9 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
       return true;
     }
 
-    if (isStaticClean && staticWarnings.length > 0) {
+    if (isStaticClean && (errors.isNotEmpty || staticWarnings.isNotEmpty)) {
       diagnostics.add(
-          "@static-clean annotation found but analyzer returned warnings.");
+          "@static-clean annotation found but analyzer returned problems.");
       return true;
     }
 

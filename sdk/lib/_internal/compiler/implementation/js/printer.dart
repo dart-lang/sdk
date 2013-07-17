@@ -140,6 +140,10 @@ class Printer implements NodeVisitor {
     visitAll(program.body);
   }
 
+  visitBlob(Blob node) {
+    outBuffer.addBuffer(node.buffer);
+  }
+
   bool blockBody(Node body, {bool needsSeparation, bool needsNewline}) {
     if (body is Block) {
       spaceOut();

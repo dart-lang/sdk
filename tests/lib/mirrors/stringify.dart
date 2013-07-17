@@ -70,7 +70,7 @@ stringifyParameter(ParameterMirror parameter) {
     buffer.write(', value = ${stringify(parameter.defaultValue)}');
   }
   // TODO(ahe): Move to writeVariableOn.
-  buffer.write(', type = ${stringifyType(parameter.type)}');
+  buffer.write(', type = ${stringify(parameter.type)}');
   return 'Parameter($buffer)';
 }
 
@@ -78,6 +78,12 @@ stringifyType(TypeMirror type) {
   var buffer = new StringBuffer();
   writeDeclarationOn(type, buffer);
   return 'Type($buffer)';
+}
+
+stringifyClass(ClassMirror cls) {
+  var buffer = new StringBuffer();
+  writeDeclarationOn(cls, buffer);
+  return 'Class($buffer)';
 }
 
 stringifyMethod(MethodMirror method) {
@@ -97,6 +103,7 @@ stringify(value) {
   if (value is VariableMirror) return stringifyVariable(value);
   if (value is MethodMirror) return stringifyMethod(value);
   if (value is Symbol) return stringifySymbol(value);
+  if (value is ClassMirror) return stringifyClass(value);
   if (value is TypeMirror) return stringifyType(value);
   if (value == null) return '<null>';
   throw 'Unexpected value: $value';

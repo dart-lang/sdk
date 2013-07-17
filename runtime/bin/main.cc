@@ -20,6 +20,7 @@
 #include "bin/log.h"
 #include "bin/platform.h"
 #include "bin/process.h"
+#include "bin/vmservice_impl.h"
 #include "platform/globals.h"
 
 namespace dart {
@@ -64,6 +65,12 @@ static bool has_check_function_fingerprints = false;
 // Global flag that is used to indicate that we want to print the source code
 // for script that is being run.
 static bool has_print_script = false;
+
+
+// VM Service options.
+static bool start_vm_service = false;
+static int vm_service_server_port = -1;
+static const int DEFAULT_VM_SERVICE_SERVER_PORT = 8181;
 
 
 static bool IsValidFlag(const char* name,
@@ -199,6 +206,25 @@ static bool ProcessGenScriptSnapshotOption(const char* filename) {
 }
 
 
+static bool ProcessEnableVmServiceOption(const char* port) {
+  ASSERT(port != NULL);
+  vm_service_server_port = -1;
+  if (*port == '\0') {
+    vm_service_server_port = DEFAULT_VM_SERVICE_SERVER_PORT;
+  } else {
+    if ((*port == '=') || (*port == ':')) {
+      vm_service_server_port = atoi(port + 1);
+    }
+  }
+  if (vm_service_server_port < 0) {
+    Log::PrintErr("unrecognized --enable-vm-service option syntax. "
+                    "Use --enable-vm-service[:<port number>]\n");
+    return false;
+  }
+  start_vm_service = true;
+  return true;
+}
+
 static struct {
   const char* option_name;
   bool (*process)(const char* option);
@@ -217,6 +243,7 @@ static struct {
   { "--snapshot=", ProcessGenScriptSnapshotOption },
   { "--print-script", ProcessPrintScriptOption },
   { "--check-function-fingerprints", ProcessFingerprintedFunctions },
+  { "--enable-vm-service", ProcessEnableVmServiceOption },
   { NULL, NULL }
 };
 
@@ -549,6 +576,10 @@ static void PrintUsage() {
 "--print-script\n"
 "  generates Dart source code back and prints it after parsing a Dart script\n"
 "\n"
+"--enable-vm-service[:<port number>]\n"
+"  enables the VM service and listens on specified port for connections\n"
+"  (default port number is 8181)\n"
+"\n"
 "The following options are only used for VM development and may\n"
 "be changed in any future version:\n");
     const char* print_flags = "--print_flags";
@@ -593,10 +624,14 @@ char* BuildIsolateName(const char* script_name,
 }
 
 
-static const int kErrorExitCode = 255;  // Indicates we encountered an error.
+// Exit code indicating a compilation error.
+static const int kCompilationErrorExitCode = 254;
+
+// Exit code indicating an unhandled error that is not a compilation error.
+static const int kErrorExitCode = 255;
 
 
-static int ErrorExit(const char* format, ...) {
+static int ErrorExit(int exit_code, const char* format, ...) {
   va_list arguments;
   va_start(arguments, format);
   Log::VPrintErr(format, arguments);
@@ -606,14 +641,19 @@ static int ErrorExit(const char* format, ...) {
   Dart_ExitScope();
   Dart_ShutdownIsolate();
 
-  return kErrorExitCode;
+  return exit_code;
+}
+
+
+static int DartErrorExit(Dart_Handle error) {
+  const int exit_code = Dart_IsCompilationError(error) ?
+      kCompilationErrorExitCode : kErrorExitCode;
+  return ErrorExit(exit_code, "%s\n", Dart_GetError(error));
 }
 
 
 static void ShutdownIsolate(void* callback_data) {
   IsolateData* isolate_data = reinterpret_cast<IsolateData*>(callback_data);
-  EventHandler* handler = isolate_data->event_handler;
-  if (handler != NULL) handler->Shutdown();
   delete isolate_data;
 }
 
@@ -720,6 +760,16 @@ int main(int argc, char** argv) {
     }
   }
 
+  // Start the VM service isolate, if necessary.
+  if (start_vm_service) {
+    ASSERT(vm_service_server_port >= 0);
+    bool r = VmService::Start(vm_service_server_port);
+    if (!r) {
+      Log::PrintErr("Could not start VM Service isolate %s",
+                    VmService::GetErrorMessage());
+    }
+  }
+
   // Call CreateIsolateAndSetup which creates an isolate and loads up
   // the specified application script.
   char* error = NULL;
@@ -767,14 +817,14 @@ int main(int argc, char** argv) {
     if (has_compile_all) {
       result = Dart_CompileAll();
       if (Dart_IsError(result)) {
-        return ErrorExit("%s\n", Dart_GetError(result));
+        return DartErrorExit(result);
       }
     }
 
     if (has_check_function_fingerprints) {
       result = Dart_CheckFunctionFingerprints();
       if (Dart_IsError(result)) {
-        return ErrorExit("%s\n", Dart_GetError(result));
+        return DartErrorExit(result);
       }
     }
 
@@ -782,19 +832,21 @@ int main(int argc, char** argv) {
     Dart_Handle options_result =
         SetupRuntimeOptions(&dart_options, executable_name, script_name);
     if (Dart_IsError(options_result)) {
-      return ErrorExit("%s\n", Dart_GetError(options_result));
+      return DartErrorExit(options_result);
     }
     // Lookup the library of the root script.
     Dart_Handle library = Dart_RootLibrary();
     if (Dart_IsNull(library)) {
-      return ErrorExit("Unable to find root library for '%s'\n",
+      return ErrorExit(kErrorExitCode,
+                       "Unable to find root library for '%s'\n",
                        script_name);
     }
     // Set debug breakpoint if specified on the command line.
     if (breakpoint_at != NULL) {
       result = SetBreakpoint(breakpoint_at, library);
       if (Dart_IsError(result)) {
-        return ErrorExit("Error setting breakpoint at '%s': %s\n",
+        return ErrorExit(kErrorExitCode,
+                         "Error setting breakpoint at '%s': %s\n",
                          breakpoint_at,
                          Dart_GetError(result));
       }
@@ -802,19 +854,19 @@ int main(int argc, char** argv) {
     if (has_print_script) {
       result = GenerateScriptSource();
       if (Dart_IsError(result)) {
-        return ErrorExit("%s\n", Dart_GetError(result));
+        return DartErrorExit(result);
       }
     } else {
       // Lookup and invoke the top level main function.
       result = Dart_Invoke(library, DartUtils::NewString("main"), 0, NULL);
       if (Dart_IsError(result)) {
-        return ErrorExit("%s\n", Dart_GetError(result));
+        return DartErrorExit(result);
       }
 
       // Keep handling messages until the last active receive port is closed.
       result = Dart_RunLoop();
       if (Dart_IsError(result)) {
-        return ErrorExit("%s\n", Dart_GetError(result));
+        return DartErrorExit(result);
       }
     }
   }
@@ -824,6 +876,8 @@ int main(int argc, char** argv) {
   Dart_ShutdownIsolate();
   // Terminate process exit-code handler.
   Process::TerminateExitCodeHandler();
+  EventHandler::Stop();
+
   // Free copied argument strings if converted.
   if (argv_converted) {
     for (int i = 0; i < argc; i++) free(argv[i]);

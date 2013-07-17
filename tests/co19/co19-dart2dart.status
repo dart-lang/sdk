@@ -4,6 +4,9 @@
 
 [ $compiler == dart2dart ]
 
+LibTest/math/max_A01_t03: Fail # co19 issue 467
+LibTest/math/min_A01_t03: Fail # co19 issue 467
+
 # The following tests fail because they contain number literals with a + prefix (co19 issue 428)
 LibTest/core/double/floor_A01_t05: Fail # issue 428
 LibTest/core/double/ceil_A01_t05: Fail # issue 428

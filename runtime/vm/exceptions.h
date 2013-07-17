@@ -62,6 +62,8 @@ class Exceptions : AllStatic {
     kType,
     kFallThrough,
     kAbstractClassInstantiation,
+    kMirroredUncaughtExceptionError,
+    kMirroredCompilationError,
   };
 
   static void ThrowByType(ExceptionType type, const Array& arguments);

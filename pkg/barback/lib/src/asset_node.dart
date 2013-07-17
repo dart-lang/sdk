@@ -7,7 +7,6 @@ library barback.asset_node;
 import 'dart:async';
 
 import 'asset.dart';
-import 'asset_graph.dart';
 import 'asset_id.dart';
 import 'phase.dart';
 import 'transform_node.dart';

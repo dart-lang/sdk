@@ -266,9 +266,9 @@ String _getComment(DeclarationMirror mirror) {
       }
     }
   });
-  commentText = commentText == null ? '' :
-      markdown.markdownToHtml(commentText.trim(), linkResolver: linkResolver)
-      .replaceAll('\n', ' ');
+  
+  commentText = commentText == null ? '' : 
+      markdown.markdownToHtml(commentText.trim(), linkResolver: linkResolver);
   return commentText;
 }
 
@@ -300,9 +300,9 @@ Map<String, Variable> _getVariables(Map<String, VariableMirror> mirrorMap,
   mirrorMap.forEach((String mirrorName, VariableMirror mirror) {
     if (includePrivate || !mirror.isPrivate) {
       _currentMember = mirror;
-      data[mirrorName] = new Variable(mirrorName, mirror.qualifiedName,
-          mirror.isFinal, mirror.isStatic, mirror.type.qualifiedName,
-          _getComment(mirror), _getAnnotations(mirror));
+      data[mirrorName] = new Variable(mirrorName, mirror.isFinal, 
+          mirror.isStatic, mirror.type.qualifiedName, _getComment(mirror), 
+          _getAnnotations(mirror));
     }
   });
   return data;
@@ -311,21 +311,42 @@ Map<String, Variable> _getVariables(Map<String, VariableMirror> mirrorMap,
 /**
  * Returns a map of [Method] objects constructed from inputted mirrors.
  */
-Map<String, Method> _getMethods(Map<String, MethodMirror> mirrorMap,
-    bool includePrivate) {
-  var data = {};
+Map<String, Map<String, Method>> _getMethods
+    (Map<String, MethodMirror> mirrorMap, bool includePrivate) {
+
+  var setters = {};
+  var getters = {};
+  var constructors = {};
+  var operators = {};
+  var methods = {};
+  
   mirrorMap.forEach((String mirrorName, MethodMirror mirror) {
     if (includePrivate || !mirror.isPrivate) {
+      var method = new Method(mirrorName, mirror.isStatic, 
+          mirror.returnType.qualifiedName, _getComment(mirror), 
+          _getParameters(mirror.parameters), _getAnnotations(mirror));
       _currentMember = mirror;
-      data[mirrorName] = new Method(mirrorName, mirror.qualifiedName,
-          mirror.isSetter, mirror.isGetter, mirror.isConstructor,
-          mirror.isOperator, mirror.isStatic, mirror.returnType.qualifiedName,
-          _getComment(mirror), _getParameters(mirror.parameters),
-          _getAnnotations(mirror));
+      if (mirror.isSetter) {
+        setters[mirrorName] = method;
+      } else if (mirror.isGetter) {
+        getters[mirrorName] = method;
+      } else if (mirror.isConstructor) {
+        constructors[mirrorName] = method;
+      } else if (mirror.isOperator) {
+        operators[mirrorName] = method;
+      } else if (mirror.isRegularMethod) {
+         methods[mirrorName] = method;
+      } else {
+        throw new StateError('${mirror.qualifiedName} - no method type match');
+      }
     }
   });
-  return data;
-}
+  return {'setters' : setters,
+          'getters' : getters,
+          'constructors' : constructors,
+          'operators' : operators,
+          'methods' : methods};
+} 
 
 /**
  * Returns a map of [Class] objects constructed from inputted mirrors.
@@ -340,9 +361,8 @@ Map<String, Class> _getClasses(Map<String, ClassMirror> mirrorMap,
           mirror.superclass.qualifiedName : '';
       var interfaces =
           mirror.superinterfaces.map((interface) => interface.qualifiedName);
-      data[mirrorName] = new Class(mirrorName, mirror.qualifiedName,
-          superclass, mirror.isAbstract, mirror.isTypedef,
-          _getComment(mirror), interfaces.toList(),
+      data[mirrorName] = new Class(mirrorName, superclass, mirror.isAbstract, 
+          mirror.isTypedef, _getComment(mirror), interfaces.toList(),
           _getVariables(mirror.variables, includePrivate),
           _getMethods(mirror.methods, includePrivate),
           _getAnnotations(mirror));
@@ -358,10 +378,10 @@ Map<String, Parameter> _getParameters(List<ParameterMirror> mirrorList) {
   var data = {};
   mirrorList.forEach((ParameterMirror mirror) {
     _currentMember = mirror;
-    data[mirror.simpleName] = new Parameter(mirror.simpleName,
-        mirror.qualifiedName, mirror.isOptional, mirror.isNamed,
-        mirror.hasDefaultValue, mirror.type.qualifiedName,
-        mirror.defaultValue, _getAnnotations(mirror));
+    data[mirror.simpleName] = new Parameter(mirror.simpleName, 
+        mirror.isOptional, mirror.isNamed, mirror.hasDefaultValue, 
+        mirror.type.qualifiedName, mirror.defaultValue, 
+        _getAnnotations(mirror));
   });
   return data;
 }
@@ -388,7 +408,11 @@ void _writeToFile(String text, String filename) {
 Map recurseMap(Map inputMap) {
   var outputMap = {};
   inputMap.forEach((key, value) {
-    outputMap[key] = value.toMap();
+    if (value is Map) {
+      outputMap[key] = recurseMap(value);
+    } else {
+      outputMap[key] = value.toMap();
+    }
   });
   return outputMap;
 }
@@ -405,8 +429,8 @@ class Library {
   Map<String, Variable> variables;
 
   /// Top-level functions in the library.
-  Map<String, Method> functions;
-
+  Map<String, Map<String, Method>> functions;
+  
   /// Classes defined within the library
   Map<String, Class> classes;
 
@@ -443,26 +467,24 @@ class Class {
   Map<String, Variable> variables;
 
   /// Methods in the class.
-  Map<String, Method> methods;
-
+  Map<String, Map<String, Method>> methods;
+  
   String name;
-  String qualifiedName;
   String superclass;
   bool isAbstract;
   bool isTypedef;
 
   /// List of the meta annotations on the class.
   List<String> annotations;
-
-  Class(this.name, this.qualifiedName, this.superclass, this.isAbstract,
-      this.isTypedef, this.comment, this.interfaces, this.variables,
-      this.methods, this.annotations);
+  
+  Class(this.name, this.superclass, this.isAbstract, this.isTypedef, 
+      this.comment, this.interfaces, this.variables, this.methods, 
+      this.annotations);
 
   /// Generates a map describing the [Class] object.
   Map toMap() {
     var classMap = {};
     classMap['name'] = name;
-    classMap['qualifiedname'] = qualifiedName;
     classMap['comment'] = comment;
     classMap['superclass'] = superclass;
     classMap['abstract'] = isAbstract.toString();
@@ -484,22 +506,20 @@ class Variable {
   String comment;
 
   String name;
-  String qualifiedName;
   bool isFinal;
   bool isStatic;
   String type;
 
   /// List of the meta annotations on the variable.
   List<String> annotations;
-
-  Variable(this.name, this.qualifiedName, this.isFinal, this.isStatic,
-      this.type, this.comment, this.annotations);
-
+  
+  Variable(this.name, this.isFinal, this.isStatic, this.type, this.comment, 
+      this.annotations);
+  
   /// Generates a map describing the [Variable] object.
   Map toMap() {
     var variableMap = {};
     variableMap['name'] = name;
-    variableMap['qualifiedname'] = qualifiedName;
     variableMap['comment'] = comment;
     variableMap['final'] = isFinal.toString();
     variableMap['static'] = isStatic.toString();
@@ -521,29 +541,20 @@ class Method {
   Map<String, Parameter> parameters;
 
   String name;
-  String qualifiedName;
-  bool isSetter;
-  bool isGetter;
-  bool isConstructor;
-  bool isOperator;
   bool isStatic;
   String returnType;
 
   /// List of the meta annotations on the method.
   List<String> annotations;
-
-  Method(this.name, this.qualifiedName, this.isSetter, this.isGetter,
-      this.isConstructor, this.isOperator, this.isStatic, this.returnType,
-      this.comment, this.parameters, this.annotations);
-
+  
+  Method(this.name, this.isStatic, this.returnType, this.comment, 
+      this.parameters, this.annotations);
+  
   /// Generates a map describing the [Method] object.
   Map toMap() {
     var methodMap = {};
     methodMap['name'] = name;
-    methodMap['qualifiedname'] = qualifiedName;
     methodMap['comment'] = comment;
-    methodMap['type'] = isSetter ? 'setter' : isGetter ? 'getter' :
-      isOperator ? 'operator' : isConstructor ? 'constructor' : 'method';
     methodMap['static'] = isStatic.toString();
     methodMap['return'] = returnType;
     methodMap['parameters'] = recurseMap(parameters);
@@ -558,7 +569,6 @@ class Method {
 class Parameter {
 
   String name;
-  String qualifiedName;
   bool isOptional;
   bool isNamed;
   bool hasDefaultValue;
@@ -567,15 +577,14 @@ class Parameter {
 
   /// List of the meta annotations on the parameter.
   List<String> annotations;
-
-  Parameter(this.name, this.qualifiedName, this.isOptional, this.isNamed,
-      this.hasDefaultValue, this.type, this.defaultValue, this.annotations);
-
+  
+  Parameter(this.name, this.isOptional, this.isNamed, this.hasDefaultValue, 
+      this.type, this.defaultValue, this.annotations);
+  
   /// Generates a map describing the [Parameter] object.
   Map toMap() {
     var parameterMap = {};
     parameterMap['name'] = name;
-    parameterMap['qualifiedname'] = qualifiedName;
     parameterMap['optional'] = isOptional.toString();
     parameterMap['named'] = isNamed.toString();
     parameterMap['default'] = hasDefaultValue.toString();

@@ -1396,13 +1396,13 @@ bool Intrinsifier::Random_nextState(Assembler* assembler) {
       FlowGraphCompiler::DataOffsetFor(kTypedDataUint32ArrayCid);
 
   __ LoadImmediate(R0, a_int32_value);
-  __ LoadFromOffset(kLoadWord, R2, R1, disp_0 - kHeapObjectTag);
-  __ LoadFromOffset(kLoadWord, R3, R1, disp_1 - kHeapObjectTag);
+  __ LoadFromOffset(kWord, R2, R1, disp_0 - kHeapObjectTag);
+  __ LoadFromOffset(kWord, R3, R1, disp_1 - kHeapObjectTag);
   __ mov(R6, ShifterOperand(0));  // Zero extend unsigned _state[kSTATE_HI].
   // Unsigned 32-bit multiply and 64-bit accumulate into R6:R3.
   __ umlal(R3, R6, R0, R2);  // R6:R3 <- R6:R3 + R0 * R2.
-  __ StoreToOffset(kStoreWord, R3, R1, disp_0 - kHeapObjectTag);
-  __ StoreToOffset(kStoreWord, R6, R1, disp_1 - kHeapObjectTag);
+  __ StoreToOffset(kWord, R3, R1, disp_0 - kHeapObjectTag);
+  __ StoreToOffset(kWord, R6, R1, disp_1 - kHeapObjectTag);
   __ Ret();
   return true;
 }

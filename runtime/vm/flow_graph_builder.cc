@@ -802,7 +802,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
     const bool is_implicit_dynamic_getter =
         (!function.is_static() &&
         ((function.kind() == RawFunction::kImplicitGetter) ||
-         (function.kind() == RawFunction::kConstImplicitGetter)));
+         (function.kind() == RawFunction::kImplicitStaticFinalGetter)));
     // Implicit getters do not need a type check at return, unless they compute
     // the initial value of a static field.
     // The body of a constructor cannot modify the type of the

@@ -16,6 +16,7 @@ class Instance;
 class Library;
 class RawFunction;
 class String;
+class ArgumentsDescriptor;
 
 
 // Resolver abstracts functionality needed to resolve dart functions at
@@ -25,14 +26,12 @@ class Resolver : public AllStatic {
   // Resolve specified dart instance function.
   static RawFunction* ResolveDynamic(const Instance& receiver,
                                      const String& function_name,
-                                     int num_arguments,
-                                     int num_named_arguments);
+                                     const ArgumentsDescriptor& args_desc);
 
   static RawFunction* ResolveDynamicForReceiverClass(
       const Class& receiver_class,
       const String& function_name,
-      int num_arguments,
-      int num_named_arguments);
+      const ArgumentsDescriptor& args_desc);
 
   static RawFunction* ResolveDynamicAnyArgs(
       const Class& receiver_class,
@@ -52,7 +51,7 @@ class Resolver : public AllStatic {
   static RawFunction* ResolveStatic(const Library& library,
                                     const String& cls_name,
                                     const String& function_name,
-                                    int num_arguments,
+                                    intptr_t num_arguments,
                                     const Array& argument_names,
                                     StaticResolveType resolve_type);
 
@@ -64,7 +63,7 @@ class Resolver : public AllStatic {
   // Resolve specified dart static function with specified arity.
   static RawFunction* ResolveStatic(const Class&  cls,
                                     const String& function_name,
-                                    int num_arguments,
+                                    intptr_t num_arguments,
                                     const Array& argument_names,
                                     StaticResolveType resolve_type);
 };

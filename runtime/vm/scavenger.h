@@ -103,6 +103,7 @@ class Scavenger {
   uword FirstObjectStart() const { return to_->start() | object_alignment_; }
   void Prologue(Isolate* isolate, bool invoke_api_callbacks);
   void IterateStoreBuffers(Isolate* isolate, ScavengerVisitor* visitor);
+  void IterateObjectIdTable(Isolate* isolate, ScavengerVisitor* visitor);
   void IterateRoots(Isolate* isolate,
                     ScavengerVisitor* visitor,
                     bool visit_prologue_weak_persistent_handles);

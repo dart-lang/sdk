@@ -73,6 +73,22 @@ Map<Uri, LibraryMirror> _createLibrariesMap(Map<String, LibraryMirror> map) {
 List<InstanceMirror> _metadata(mirror) 
   native 'Mirrors_metadata';
 
+// This will verify the argument types, unwrap them, and ensure we have a fixed
+// array.
+List _unwarpAsyncPositionals(wrappedArgs){
+  List unwrappedArgs = new List(wrappedArgs.length);
+  for(int i = 0; i < wrappedArgs.length; i++){
+    var wrappedArg = wrappedArgs[i];
+    if(_isSimpleValue(wrappedArg)) {
+      unwrappedArgs[i] = wrappedArg;
+    } else if(wrappedArg is InstanceMirror) {
+      unwrappedArgs[i] = wrappedArg._reflectee;
+    } else { 
+      throw "positional argument $i ($arg) was not a simple value or InstanceMirror";
+    }
+  }
+  return unwrappedArgs;
+}
 
 class _LocalMirrorSystemImpl extends MirrorSystem {
   // Change parameter back to "this.libraries" when native code is changed.
@@ -165,7 +181,9 @@ abstract class _LocalVMObjectMirrorImpl extends _LocalMirrorImpl {
 
 abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
     implements ObjectMirror {
-  _LocalObjectMirrorImpl(ref) : super(ref) {}
+  _LocalObjectMirrorImpl(this._reflectee, ref) : super(ref) {}
+
+  final _reflectee; // May be a MirrorReference or an ordinary object.
 
   InstanceMirror invoke(Symbol memberName,
                         List positionalArguments,
@@ -174,15 +192,20 @@ abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
       throw new UnimplementedError(
           'named argument support is not implemented');
     }
-    return _invoke(this, _n(memberName), positionalArguments, false); 
+    return reflect(this._invoke(_reflectee,
+                                _n(memberName),
+                                positionalArguments.toList(growable:false))); 
   }
 
-  InstanceMirror getField(Symbol fieldName) {
-    return _getField(this, _n(fieldName)); 
+  InstanceMirror getField(Symbol memberName) {
+    return reflect(this._invokeGetter(_reflectee,
+                                      _n(memberName))); 
   }
 
-  InstanceMirror setField(Symbol fieldName, Object arg) {
-    return _setField(this, _n(fieldName), arg, false); 
+  InstanceMirror setField(Symbol memberName, Object value) {
+    return reflect(this._invokeSetter(_reflectee,
+                                      _n(memberName),
+                                      value)); 
   }
 
   Future<InstanceMirror> invokeAsync(Symbol memberName,
@@ -192,35 +215,44 @@ abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
       throw new UnimplementedError(
           'named argument support is not implemented');
     }
-    // Walk the arguments and make sure they are legal.
-    for (int i = 0; i < positionalArguments.length; i++) {
-      var arg = positionalArguments[i];
-      _validateArgument(i, arg);
-    }
+
     try {
-      return new Future<InstanceMirror>.value(
-          _invoke(this, _n(memberName), positionalArguments, true));
-    } catch (exception, s) {
-      return new Future<InstanceMirror>.error(exception, s);
+      var result = this._invoke(_reflectee,
+                                _n(memberName),
+                                _unwarpAsyncPositionals(positionalArguments));
+      return new Future.value(reflect(result)); 
+    } on MirroredError catch(e) {
+      return new Future.error(e);
     }
   }
 
-  Future<InstanceMirror> getFieldAsync(Symbol fieldName) {
-    try {
-      return new Future<InstanceMirror>.value(_getField(this, _n(fieldName)));
-    } catch (exception, s) {
-      return new Future<InstanceMirror>.error(exception, s);
+  Future<InstanceMirror> getFieldAsync(Symbol memberName) {
+   try {
+      var result = this._invokeGetter(_reflectee,
+                                      _n(memberName));
+      return new Future.value(reflect(result)); 
+    } on MirroredError catch(e) {
+      return new Future.error(e);
     }
   }
 
-  Future<InstanceMirror> setFieldAsync(Symbol fieldName, Object arg) {
-    _validateArgument(0, arg);
-
+  Future<InstanceMirror> setFieldAsync(Symbol memberName, Object value) {
     try {
-      return new Future<InstanceMirror>.value(
-          _setField(this, _n(fieldName), arg, true));
-    } catch (exception, s) {
-      return new Future<InstanceMirror>.error(exception, s);
+      var unwrappedValue;
+      if(_isSimpleValue(value)) {
+        unwrappedValue = value;
+      } else if(wrappedArg is InstanceMirror) {
+        unwrappedValue = value._reflectee;
+      } else { 
+        throw "setter argument ($value) must be a simple value or InstanceMirror";
+      }
+
+      var result = this._invokeSetter(_reflectee,
+                                      _n(memberName),
+                                      unwrappedValue);
+      return new Future.value(reflect(result)); 
+    } on MirroredError catch(e) {
+      return new Future.error(e);
     }
   }
 
@@ -236,15 +268,6 @@ abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
             'positional argument $i ($arg) was not a simple value');
       }
   }
-
-  static _invoke(ref, memberName, positionalArguments, async)
-      native 'LocalObjectMirrorImpl_invoke';
-
-  static _getField(ref, fieldName) // same for sync and async versions
-      native 'LocalObjectMirrorImpl_getField';
-
-  static _setField(ref, fieldName, value, async)
-      native 'LocalObjectMirrorImpl_setField';
 }
 
 class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
@@ -254,7 +277,7 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
 
   _LocalInstanceMirrorImpl(ref,
                            this._type,
-                           this._reflectee) : super(ref) {}
+                           reflectee) : super(reflectee, ref) {}
 
   var _type;
   ClassMirror get type {
@@ -267,7 +290,6 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
   // LocalInstanceMirrors always reflect local instances
   bool hasReflectee = true;
 
-  var _reflectee;
   get reflectee => _reflectee;
 
   delegate(Invocation invocation) {
@@ -276,16 +298,25 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
       // system to access a private field in a different library.  For
       // some reason, that works.  On the other hand, calling a
       // private method does not work.
+      
       _LocalInstanceMirrorImpl mirror =
           _Mirrors.makeLocalInstanceMirror(invocation);
       _invokeOnClosure =
-          _LocalObjectMirrorImpl._getField(mirror.type, '_invokeOnClosure')
-          .reflectee;
+          reflectClass(invocation.runtimeType).getField(const Symbol('_invokeOnClosure')).reflectee;
     }
     return _invokeOnClosure(reflectee, invocation);
   }
 
   String toString() => 'InstanceMirror on ${Error.safeToString(_reflectee)}';
+
+  _invoke(reflectee, functionName, positionalArguments)
+      native 'InstanceMirror_invoke';
+
+  _invokeGetter(reflectee, getterName)
+      native 'InstanceMirror_invokeGetter';
+
+  _invokeSetter(reflectee, setterName, value)
+      native 'InstanceMirror_invokeSetter';
 }
 
 class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
@@ -308,35 +339,37 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
       throw new UnimplementedError(
           'named argument support is not implemented');
     }
-    return _apply(this, positionalArguments, false);
+    // It is tempting to implement this in terms of Function.apply, but then
+    // lazy compilation errors would be fatal.
+    return reflect(_apply(_reflectee,
+                          positionalArguments.toList(growable:false)));
   }
 
-  Future<InstanceMirror> applyAsync(List<Object> positionalArguments,
-                                    [Map<Symbol, Object> namedArguments]) {
+  Future<InstanceMirror> applyAsync(List positionalArguments,
+                                    [Map<Symbol, dynamic> namedArguments]) {
     if (namedArguments != null) {
       throw new UnimplementedError(
           'named argument support is not implemented');
     }
-    // Walk the arguments and make sure they are legal.
-    for (int i = 0; i < positionalArguments.length; i++) {
-      var arg = positionalArguments[i];
-      _LocalObjectMirrorImpl._validateArgument(i, arg);
-    }
+
     try {
-      return new Future<InstanceMirror>.value(
-          _apply(this, positionalArguments, true));
-    } catch (exception) {
-      return new Future<InstanceMirror>.error(exception);
+      var result = _apply(_reflectee,
+                          _unwarpAsyncPositionals(positionalArguments));
+      return new Future.value(reflect(result)); 
+    } on MirroredError catch(e) {
+      return new Future.error(e);
     }
   }
+
+
 
   Future<InstanceMirror> findInContext(Symbol name) {
     throw new UnimplementedError(
         'ClosureMirror.findInContext() is not implemented');
   }
 
-  static _apply(ref, positionalArguments, async)
-      native 'LocalClosureMirrorImpl_apply';
+  static _apply(reflectee, positionalArguments)
+      native 'ClosureMirror_apply';
 
   String toString() => "ClosureMirror on '${Error.safeToString(_reflectee)}'";
 }
@@ -370,7 +403,7 @@ class _LazyTypeMirror {
 
 class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
     implements ClassMirror {
-  _LocalClassMirrorImpl(this._reflectee,
+  _LocalClassMirrorImpl(reflectee,
                         ref,
                         String simpleName,
                         this.isClass,
@@ -385,16 +418,14 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
         this.members = _convertStringToSymbolMap(members),
         this.constructors = _convertStringToSymbolMap(constructors),
         this.typeVariables = _convertStringToSymbolMap(typeVariables),
-        super(ref);
-
-  final _MirrorReference _reflectee;
+        super(reflectee, ref);
 
   Symbol _simpleName;
   Symbol get simpleName {
     // dynamic, void and the function types have their names set eagerly in the
     // constructor.
     if(_simpleName == null) {
-      _simpleName = _s(_ClassMirror_name(_reflectee));
+      _simpleName = _s(_name(_reflectee));
     }
     return _simpleName;
   }
@@ -528,10 +559,9 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
       throw new UnimplementedError(
           'named argument support is not implemented');
     }
-    return _invokeConstructor(this,
-                              _n(constructorName),
-                              positionalArguments,
-                              false);
+    return reflect(_invokeConstructor(_reflectee,
+                                      _n(constructorName),
+                                      positionalArguments.toList(growable:false)));
   }
 
   Future<InstanceMirror> newInstanceAsync(Symbol constructorName,
@@ -541,19 +571,14 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
       throw new UnimplementedError(
           'named argument support is not implemented');
     }
-    // Walk the arguments and make sure they are legal.
-    for (int i = 0; i < positionalArguments.length; i++) {
-      var arg = positionalArguments[i];
-      _LocalObjectMirrorImpl._validateArgument(i, arg);
-    }
+
     try {
-      return new Future<InstanceMirror>.value(
-          _invokeConstructor(this,
-                             _n(constructorName),
-                             positionalArguments,
-                             true));
-    } catch (exception) {
-      return new Future<InstanceMirror>.error(exception);
+      var result = _invokeConstructor(_reflectee,
+                                      _n(constructorName),
+                                      _unwarpAsyncPositionals(positionalArguments));
+      return new Future.value(reflect(result)); 
+    } on MirroredError catch(e) {
+      return new Future.error(e);
     }
   }
 
@@ -561,11 +586,21 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   // reflect() and then make them into a Dart list
   List<InstanceMirror> get metadata => _metadata(this).map(reflect).toList();
 
-  static _invokeConstructor(ref, constructorName, positionalArguments, async)
-      native 'LocalClassMirrorImpl_invokeConstructor';
 
-  static String _ClassMirror_name(reflectee)
+  static _name(reflectee)
       native "ClassMirror_name";
+
+  _invoke(reflectee, memberName, positionalArguments)
+      native 'ClassMirror_invoke';
+
+  _invokeGetter(reflectee, getterName)
+      native 'ClassMirror_invokeGetter';
+
+  _invokeSetter(reflectee, setterName, value)
+      native 'ClassMirror_invokeSetter';
+
+  static _invokeConstructor(reflectee, constructorName, positionalArguments)
+      native 'ClassMirror_invokeConstructor';
 }
 
 class _LazyFunctionTypeMirror {
@@ -733,14 +768,15 @@ class _LazyLibraryMirror {
 
 class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
     implements LibraryMirror {
-  _LocalLibraryMirrorImpl(ref,
+  _LocalLibraryMirrorImpl(reflectee,
+                          ref,
                           String simpleName,
                           String url,
                           Map<String, Mirror> members)
       : this.simpleName = _s(simpleName),
         this.members = _convertStringToSymbolMap(members),
         this.uri = Uri.parse(url),
-        super(ref);
+        super(reflectee, ref);
 
   final Symbol simpleName;
 
@@ -815,6 +851,15 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
   List<InstanceMirror> get metadata => _metadata(this).map(reflect).toList();
 
   String toString() => "LibraryMirror on '${_n(simpleName)}'";
+
+  _invoke(reflectee, memberName, positionalArguments)
+      native 'LibraryMirror_invoke';
+
+  _invokeGetter(reflectee, getterName)
+      native 'LibraryMirror_invokeGetter';
+
+  _invokeSetter(reflectee, setterName, value)
+      native 'LibraryMirror_invokeSetter';
 }
 
 class _LocalMethodMirrorImpl extends _LocalMirrorImpl

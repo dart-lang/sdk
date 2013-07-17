@@ -138,17 +138,70 @@ RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
 
   // Now use the invocation mirror object and invoke NoSuchMethod.
   const int kNumArguments = 2;
-  const int kNumNamedArguments = 0;
+  ArgumentsDescriptor args_desc(
+      Array::Handle(ArgumentsDescriptor::New(kNumArguments)));
   const Function& function = Function::Handle(
       Resolver::ResolveDynamic(receiver,
                                Symbols::NoSuchMethod(),
-                               kNumArguments,
-                               kNumNamedArguments));
+                               args_desc));
   ASSERT(!function.IsNull());
   const Array& args = Array::Handle(Array::New(kNumArguments));
   args.SetAt(0, receiver);
   args.SetAt(1, invocation_mirror);
   return InvokeFunction(function, args);
+}
+
+
+RawObject* DartEntry::InvokeConstructor(const Class& klass,
+                                        const Function& constructor,
+                                        const Array& arguments) {
+  Class& ultimate_klass = Class::Handle(klass.raw());
+  Function& ultimate_constructor = Function::Handle(constructor.raw());
+
+  Instance& new_object = Instance::Handle();
+  if (ultimate_constructor.IsRedirectingFactory()) {
+    Type& type = Type::Handle(ultimate_constructor.RedirectionType());
+    ultimate_klass = type.type_class();
+    ultimate_constructor = ultimate_constructor.RedirectionTarget();
+  }
+  if (ultimate_constructor.IsConstructor()) {
+    // "Constructors" are really instance initializers. They are passed a newly
+    // allocated object as an extra argument.
+    new_object = Instance::New(ultimate_klass);
+  }
+
+  // Create the argument list.
+  intptr_t number_of_arguments = arguments.Length();
+  intptr_t arg_index = 0;
+  int extra_args = (ultimate_constructor.IsConstructor() ? 2 : 1);
+  const Array& args =
+      Array::Handle(Array::New(number_of_arguments + extra_args));
+  if (ultimate_constructor.IsConstructor()) {
+    // Constructors get the uninitialized object and a constructor phase.
+    args.SetAt(arg_index++, new_object);
+    args.SetAt(arg_index++,
+               Smi::Handle(Smi::New(Function::kCtorPhaseAll)));
+  } else {
+    // Factories get type arguments.
+    args.SetAt(arg_index++, TypeArguments::Handle());
+  }
+  Object& argument = Object::Handle();
+  for (int i = 0; i < number_of_arguments; i++) {
+    argument = (arguments.At(i));
+    args.SetAt(arg_index++, argument);
+  }
+
+  // Invoke the constructor and return the new object.
+  const Object& result =
+      Object::Handle(DartEntry::InvokeFunction(ultimate_constructor, args));
+  if (result.IsError()) {
+    return result.raw();
+  }
+  if (ultimate_constructor.IsConstructor()) {
+    return new_object.raw();
+  } else {
+    return result.raw();
+  }
 }
 
 
@@ -336,12 +389,12 @@ RawObject* DartLibraryCalls::ExceptionCreate(const Library& lib,
 
 RawObject* DartLibraryCalls::ToString(const Instance& receiver) {
   const int kNumArguments = 1;  // Receiver.
-  const int kNumNamedArguments = 0;  // None.
+  ArgumentsDescriptor args_desc(
+      Array::Handle(ArgumentsDescriptor::New(kNumArguments)));
   const Function& function = Function::Handle(
       Resolver::ResolveDynamic(receiver,
                                Symbols::toString(),
-                               kNumArguments,
-                               kNumNamedArguments));
+                               args_desc));
   ASSERT(!function.IsNull());
   const Array& args = Array::Handle(Array::New(kNumArguments));
   args.SetAt(0, receiver);
@@ -355,12 +408,12 @@ RawObject* DartLibraryCalls::ToString(const Instance& receiver) {
 RawObject* DartLibraryCalls::Equals(const Instance& left,
                                     const Instance& right) {
   const int kNumArguments = 2;
-  const int kNumNamedArguments = 0;
+  ArgumentsDescriptor args_desc(
+      Array::Handle(ArgumentsDescriptor::New(kNumArguments)));
   const Function& function = Function::Handle(
       Resolver::ResolveDynamic(left,
                                Symbols::EqualOperator(),
-                               kNumArguments,
-                               kNumNamedArguments));
+                               args_desc));
   ASSERT(!function.IsNull());
 
   const Array& args = Array::Handle(Array::New(kNumArguments));
@@ -467,11 +520,12 @@ RawObject* DartLibraryCalls::MapSetAt(const Instance& map,
                                       const Instance& key,
                                       const Instance& value) {
   const int kNumArguments = 3;
+  ArgumentsDescriptor args_desc(
+      Array::Handle(ArgumentsDescriptor::New(kNumArguments)));
   const Function& function = Function::Handle(
       Resolver::ResolveDynamic(map,
                                Symbols::AssignIndexToken(),
-                               kNumArguments,
-                               0));
+                               args_desc));
   ASSERT(!function.IsNull());
   const Array& args = Array::Handle(Array::New(kNumArguments));
   args.SetAt(0, map);

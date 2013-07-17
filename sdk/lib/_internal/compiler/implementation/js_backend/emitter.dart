@@ -82,6 +82,7 @@ class CodeEmitterTask extends CompilerTask {
   final List<ClassElement> nativeClasses = <ClassElement>[];
   final List<Selector> trivialNsmHandlers = <Selector>[];
   final Map<String, String> mangledFieldNames = <String, String>{};
+  final Map<String, String> mangledGlobalFieldNames = <String, String>{};
   final Set<String> recordedMangledNames = new Set<String>();
   final Set<String> interceptorInvocationNames = new Set<String>();
 
@@ -136,6 +137,16 @@ class CodeEmitterTask extends CompilerTask {
 
   Set<FunctionType> checkedNonGenericFunctionTypes =
       new Set<FunctionType>();
+
+  /**
+   * For classes and libraries, record code for static/top-level members.
+   * Later, this code is emitted when the class or library is emitted.
+   * See [bufferForElement].
+   */
+  // TODO(ahe): Generate statics with their class, and store only libraries in
+  // this map.
+  final Map<Element, List<CodeBuffer>> elementBuffers =
+      new Map<Element, List<CodeBuffer>>();
 
   void registerDynamicFunctionTypeCheck(FunctionType functionType) {
     ClassElement classElement = Types.getClassContext(functionType);
@@ -586,30 +597,39 @@ class CodeEmitterTask extends CompilerTask {
            '    $longNamesConstant'));
     }
 
-    String sliceOffset = '," + (j < $firstNormalSelector ? 1 : 0)';
-    if (firstNormalSelector == 0) sliceOffset = '"';
-    if (firstNormalSelector == shorts.length) sliceOffset = ', 1"';
+    String sliceOffset = ', (j < $firstNormalSelector) ? 1 : 0';
+    if (firstNormalSelector == 0) sliceOffset = '';
+    if (firstNormalSelector == shorts.length) sliceOffset = ', 1';
 
     String whatToPatch = nativeEmitter.handleNoSuchMethod ?
                          "Object.prototype" :
                          "objectClassObject";
 
+    var params = ['name', 'short', 'type'];
+    var sliceOffsetParam = '';
+    var slice = 'Array.prototype.slice.call';
+    if (!sliceOffset.isEmpty) {
+      sliceOffsetParam = ', sliceOffset';
+      params.add('sliceOffset');
+    }
     statements.addAll([
       js.for_('var j = 0', 'j < shortNames.length', 'j++', [
         js('var type = 0'),
         js('var short = shortNames[j]'),
         js.if_('short[0] == "${namer.getterPrefix[0]}"', js('type = 1')),
         js.if_('short[0] == "${namer.setterPrefix[0]}"', js('type = 2')),
-        js('$whatToPatch[short] = Function("'
-               'return this.$noSuchMethodName('
-                   'this,'
-                   '${namer.CURRENT_ISOLATE}.$createInvocationMirror(\'"'
-                       ' + ${minify ? "shortNames" : "longNames"}[j]'
-                       ' + "\',\'" + short + "\',"'
-                       ' + type'
-                       ' + ",Array.prototype.slice.call(arguments'
-                       '$sliceOffset'
-                       ' + "),[]))")')
+        // Generate call to:
+        // createInvocationMirror(String name, internalName, type, arguments,
+        //                        argumentNames)
+        js('$whatToPatch[short] = #(${minify ? "shortNames" : "longNames"}[j], '
+                                    'short, type$sliceOffset)',
+           js.fun(params, [js.return_(js.fun([],
+               [js.return_(js(
+                   'this.$noSuchMethodName('
+                       'this, '
+                       '${namer.CURRENT_ISOLATE}.$createInvocationMirror('
+                           'name, short, type, '
+                           '$slice(arguments$sliceOffsetParam), []))'))]))]))
       ])
     ]);
   }
@@ -821,8 +841,8 @@ class CodeEmitterTask extends CompilerTask {
 
       js('var isolatePrototype = oldIsolate.prototype'),
       js('var str = "{\\n"'),
-      js('str += '
-             '"var properties = $isolate.${namer.isolatePropertiesName};\\n"'),
+      js('str += "var properties = '
+                     'arguments.callee.${namer.isolatePropertiesName};\\n"'),
       js('var hasOwnProperty = Object.prototype.hasOwnProperty'),
 
       // for (var staticName in isolateProperties) {
@@ -856,7 +876,7 @@ class CodeEmitterTask extends CompilerTask {
     var parameters = <String>['prototype', 'staticName', 'fieldName',
                               'getterName', 'lazyValue'];
     return js.fun(parameters, [
-      js('var getter = new Function("{ return $isolate." + fieldName + ";}")'),
+      js('var getter = new Function("{ return this." + fieldName + ";}")'),
     ]..addAll(addLazyInitializerLogic())
     );
   }
@@ -864,8 +884,14 @@ class CodeEmitterTask extends CompilerTask {
   List addLazyInitializerLogic() {
     String isolate = namer.CURRENT_ISOLATE;
     String cyclicThrow = namer.isolateAccess(backend.getCyclicThrowHelper());
+    var lazies = [];
+    if (backend.rememberLazies) {
+      lazies = [
+          js.if_('!init.lazies', js('init.lazies = {}')),
+          js('init.lazies[fieldName] = getterName')];
+    }
 
-    return [
+    return lazies..addAll([
       js('var sentinelUndefined = {}'),
       js('var sentinelInProgress = {}'),
       js('prototype[fieldName] = sentinelUndefined'),
@@ -908,7 +934,7 @@ class CodeEmitterTask extends CompilerTask {
           js('$isolate[getterName] = getter')
         ])
       ]))
-    ];
+    ]);
   }
 
   List buildDefineClassAndFinishClassFunctionsIfNecessary() {
@@ -1410,6 +1436,8 @@ class CodeEmitterTask extends CompilerTask {
 
     // Add checks to the constructors of instantiated classes.
     for (ClassElement cls in typeChecks) {
+      // TODO(9556).  The properties added to 'holder' should be generated
+      // directly as properties of the class object, not added later.
       String holder = namer.isolateAccess(backend.getImplementationClass(cls));
       for (TypeCheck check in typeChecks[cls]) {
         ClassElement cls = check.cls;
@@ -1435,11 +1463,31 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   /**
+   * Returns the classes with constructors used as a 'holder' in
+   * [emitRuntimeTypeSupport].
+   * TODO(9556): Some cases will go away when the class objects are created as
+   * complete.  Not all classes will go away while constructors are referenced
+   * from type substitutions.
+   */
+  Set<ClassElement> classesModifiedByEmitRuntimeTypeSupport() {
+    TypeChecks typeChecks = backend.rti.requiredChecks;
+    Set<ClassElement> result = new Set<ClassElement>();
+    for (ClassElement cls in typeChecks) {
+      for (TypeCheck check in typeChecks[cls]) {
+        result.add(backend.getImplementationClass(cls));
+        break;
+      }
+    }
+    return result;
+  }
+
+  /**
    * Documentation wanted -- johnniwinther
    *
    * Invariant: [classElement] must be a declaration element.
    */
   void visitClassFields(ClassElement classElement,
+                        bool visitStatics,
                         void addField(Element member,
                                       String name,
                                       String accessorName,
@@ -1506,18 +1554,22 @@ class CodeEmitterTask extends CompilerTask {
       }
     }
 
-    // TODO(kasperl): We should make sure to only emit one version of
-    // overridden fields. Right now, we rely on the ordering so the
-    // fields pulled in from mixins are replaced with the fields from
-    // the class definition.
+    if (visitStatics) {
+      classElement.implementation.forEachStaticField(visitField);
+    } else {
+      // TODO(kasperl): We should make sure to only emit one version of
+      // overridden fields. Right now, we rely on the ordering so the
+      // fields pulled in from mixins are replaced with the fields from
+      // the class definition.
 
-    // If a class is not instantiated then we add the field just so we can
-    // generate the field getter/setter dynamically. Since this is only
-    // allowed on fields that are in [classElement] we don't need to visit
-    // superclasses for non-instantiated classes.
-    classElement.implementation.forEachInstanceField(
-        visitField,
-        includeSuperAndInjectedMembers: isInstantiated);
+      // If a class is not instantiated then we add the field just so we can
+      // generate the field getter/setter dynamically. Since this is only
+      // allowed on fields that are in [classElement] we don't need to visit
+      // superclasses for non-instantiated classes.
+      classElement.implementation.forEachInstanceField(
+          visitField,
+          includeSuperAndInjectedMembers: isInstantiated);
+    }
   }
 
   void generateGetter(Element member, String fieldName, String accessorName,
@@ -1545,6 +1597,8 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   bool canGenerateCheckedSetter(Element member) {
+    // We never generate accessors for top-level/static fields.
+    if (!member.isInstanceMember()) return false;
     DartType type = member.computeType(compiler).unalias(compiler);
     if (type.element.isTypeVariable() ||
         (type is FunctionType && type.containsTypeVariables) || 
@@ -1603,9 +1657,16 @@ class CodeEmitterTask extends CompilerTask {
                           String accessorName,
                           String memberName) {
     if (!backend.retainGetter(member)) return;
-    String previousName = mangledFieldNames.putIfAbsent(
-        '${namer.getterPrefix}$accessorName',
-        () => memberName);
+    String previousName;
+    if (member.isInstanceMember()) {
+      previousName = mangledFieldNames.putIfAbsent(
+          '${namer.getterPrefix}$accessorName',
+          () => memberName);
+    } else {
+      previousName = mangledGlobalFieldNames.putIfAbsent(
+          accessorName,
+          () => memberName);
+    }
     assert(invariant(member, previousName == memberName,
                      message: '$previousName != ${memberName}'));
   }
@@ -1614,26 +1675,30 @@ class CodeEmitterTask extends CompilerTask {
   bool emitClassFields(ClassElement classElement,
                        ClassBuilder builder,
                        String superName,
-                       { bool classIsNative: false }) {
+                       { bool classIsNative: false,
+                         bool emitStatics: false }) {
     assert(superName != null);
     String separator = '';
     String nativeName = namer.getPrimitiveInterceptorRuntimeName(classElement);
     StringBuffer buffer = new StringBuffer();
-    if (nativeName != null) {
-      buffer.write('$nativeName/');
+    if (!emitStatics) {
+      if (nativeName != null) {
+        buffer.write('$nativeName/');
+      }
+      buffer.write('$superName;');
     }
-    buffer.write('$superName;');
     int bufferClassLength = buffer.length;
 
     var fieldMetadata = [];
     bool hasMetadata = false;
 
-    visitClassFields(classElement, (Element member,
-                                    String name,
-                                    String accessorName,
-                                    bool needsGetter,
-                                    bool needsSetter,
-                                    bool needsCheckedSetter) {
+    visitClassFields(classElement, emitStatics,
+                     (Element member,
+                      String name,
+                      String accessorName,
+                      bool needsGetter,
+                      bool needsSetter,
+                      bool needsCheckedSetter) {
       // Ignore needsCheckedSetter - that is handled below.
       bool needsAccessor = (needsGetter || needsSetter);
       // We need to output the fields for non-native classes so we can auto-
@@ -1675,7 +1740,7 @@ class CodeEmitterTask extends CompilerTask {
             // TODO(sra): 'isInterceptorClass' might not be the correct test for
             // methods forced to use the interceptor convention because the
             // method's class was elsewhere mixed-in to an interceptor.
-            assert(getterCode != 0);
+            assert(!member.isInstanceMember() || getterCode != 0);
           }
           int setterCode = 0;
           if (needsSetter) {
@@ -1684,7 +1749,7 @@ class CodeEmitterTask extends CompilerTask {
             // 11:  function(receiver, value) { this.field = value; }
             setterCode += backend.fieldHasInterceptedSetter(member) ? 2 : 0;
             setterCode += backend.isInterceptorClass(classElement) ? 0 : 1;
-            assert(setterCode != 0);
+            assert(!member.isInstanceMember() || setterCode != 0);
           }
           int code = getterCode + (setterCode << 2);
           if (code == 0) {
@@ -1711,12 +1776,13 @@ class CodeEmitterTask extends CompilerTask {
   void emitClassGettersSetters(ClassElement classElement,
                                ClassBuilder builder) {
 
-    visitClassFields(classElement, (Element member,
-                                    String name,
-                                    String accessorName,
-                                    bool needsGetter,
-                                    bool needsSetter,
-                                    bool needsCheckedSetter) {
+    visitClassFields(classElement, false,
+                     (Element member,
+                      String name,
+                      String accessorName,
+                      bool needsGetter,
+                      bool needsSetter,
+                      bool needsCheckedSetter) {
       compiler.withCurrentElement(member, () {
         if (needsCheckedSetter) {
           assert(!needsSetter);
@@ -1774,6 +1840,36 @@ class CodeEmitterTask extends CompilerTask {
       emitInstanceMembers(classElement, builder);
     }
     emitIsTests(classElement, builder);
+
+    List<CodeBuffer> classBuffers = elementBuffers[classElement];
+    if (classBuffers == null) {
+      classBuffers = [];
+    } else {
+      elementBuffers.remove(classElement);
+    }
+    CodeBuffer statics = new CodeBuffer();
+    statics.write('{$n');
+    bool hasStatics = false;
+    ClassBuilder staticsBuilder = new ClassBuilder();
+    if (emitClassFields(
+            classElement, staticsBuilder, superName, emitStatics: true)) {
+      hasStatics = true;
+      statics.write('"":$_');
+      statics.write(
+          jsAst.prettyPrint(staticsBuilder.properties.single.value, compiler));
+      statics.write(',$n');
+    }
+    for (CodeBuffer classBuffer in classBuffers) {
+      // TODO(ahe): What about deferred?
+      if (classBuffer != null) {
+        hasStatics = true;
+        statics.addBuffer(classBuffer);
+      }
+    }
+    statics.write('}$n');
+    if (hasStatics) {
+      builder.addProperty('static', new jsAst.Blob(statics));
+    }
 
     // TODO(ahe): This method (generateClass) should return a jsAst.Expression.
     if (!buffer.isEmpty) {
@@ -1993,6 +2089,8 @@ class CodeEmitterTask extends CompilerTask {
    * that needs to be emitted.
    */
   Function computeClassFilter() {
+    if (backend.isTreeShakingDisabled) return (ClassElement cls) => true;
+
     Set<ClassElement> unneededClasses = new Set<ClassElement>();
     // The [Bool] class is not marked as abstract, but has a factory
     // constructor that always throws. We never need to emit it.
@@ -2008,14 +2106,7 @@ class CodeEmitterTask extends CompilerTask {
     );
 
     // Add interceptors referenced by constants.
-    ConstantHandler handler = compiler.constantHandler;
-    List<Constant> constants = handler.getConstantsForEmission();
-    for (Constant constant in constants) {
-      if (constant is InterceptorConstant) {
-        InterceptorConstant inceptorConstant = constant;
-        needed.add(inceptorConstant.dispatchedType.element);
-      }
-    }
+    needed.addAll(interceptorsReferencedFromConstants());
 
     // Add unneeded interceptors to the [unneededClasses] set.
     for (ClassElement interceptor in backend.interceptedClasses) {
@@ -2026,6 +2117,19 @@ class CodeEmitterTask extends CompilerTask {
     }
 
     return (ClassElement cls) => !unneededClasses.contains(cls);
+  }
+
+  Set<ClassElement> interceptorsReferencedFromConstants() {
+    Set<ClassElement> classes = new Set<ClassElement>();
+    ConstantHandler handler = compiler.constantHandler;
+    List<Constant> constants = handler.getConstantsForEmission();
+    for (Constant constant in constants) {
+      if (constant is InterceptorConstant) {
+        InterceptorConstant interceptorConstant = constant;
+        classes.add(interceptorConstant.dispatchedType.element);
+      }
+    }
+    return classes;
   }
 
   void emitFinishClassesInvocationIfNecessary(CodeBuffer buffer) {
@@ -2846,7 +2950,8 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
 
     if (classes == backend.interceptedClasses) {
       // I.e. this is the general interceptor.
-      hasNative = compiler.enqueuer.codegen.nativeEnqueuer.hasNativeClasses();
+      hasNative = compiler.enqueuer.codegen.nativeEnqueuer
+          .hasInstantiatedNativeClasses();
     }
 
     jsAst.Block block = new jsAst.Block.empty();
@@ -3366,12 +3471,19 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
 
       mainBuffer.add(buildGeneratedBy());
       addComment(HOOKS_API_USAGE, mainBuffer);
+
+      if (!areAnyElementsDeferred) {
+        mainBuffer.add('(function(${namer.CURRENT_ISOLATE})$_{$n');
+      }
+
       mainBuffer.add('function ${namer.isolateName}()$_{}\n');
       mainBuffer.add('init()$N$n');
       // Shorten the code by using [namer.CURRENT_ISOLATE] as temporary.
       isolateProperties = namer.CURRENT_ISOLATE;
       mainBuffer.add(
-          'var $isolateProperties$_=$_$isolatePropertiesName$N');
+          '$isolateProperties$_=$_$isolatePropertiesName$N');
+
+      emitStaticFunctions(mainBuffer);
 
       if (!regularClasses.isEmpty ||
           !deferredClasses.isEmpty ||
@@ -3427,9 +3539,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       // the classesCollector variable.
       classesCollector = 'classesCollector should not be used from now on';
 
-      emitStaticFunctions(mainBuffer);
-
-      if (!libraryBuffers.isEmpty) {
+      if (!elementBuffers.isEmpty) {
         var oldClassesCollector = classesCollector;
         classesCollector = r"$$";
         if (compiler.enableMinification) {
@@ -3451,13 +3561,44 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
             mainBuffer.write(';');
           }
         }
+        if (!mangledGlobalFieldNames.isEmpty) {
+          var keys = mangledGlobalFieldNames.keys.toList();
+          keys.sort();
+          var properties = [];
+          for (String key in keys) {
+            var value = js.string('${mangledGlobalFieldNames[key]}');
+            properties.add(new jsAst.Property(js.string(key), value));
+          }
+          var map = new jsAst.ObjectInitializer(properties);
+          mainBuffer.write(
+              jsAst.prettyPrint(
+                  js('init.mangledGlobalNames = #', map).toStatement(),
+                  compiler));
+          if (compiler.enableMinification) {
+            mainBuffer.write(';');
+          }
+        }
         mainBuffer
             ..write(getReflectionDataParser())
             ..write('([$n');
 
-        var sortedLibraries = Elements.sortedByPosition(libraryBuffers.keys);
-        for (LibraryElement library in sortedLibraries) {
-          List<CodeBuffer> buffers = libraryBuffers[library];
+        List<Element> sortedElements =
+            Elements.sortedByPosition(elementBuffers.keys);
+        bool hasPendingStatics = false;
+        for (Element element in sortedElements) {
+          if (!element.isLibrary()) {
+            for (CodeBuffer b in elementBuffers[element]) {
+              if (b != null) {
+                hasPendingStatics = true;
+                compiler.reportInfo(
+                    element, MessageKind.GENERIC, {'text': 'Pending statics.'});
+                print(b.getText());
+              }
+            }
+            continue;
+          }
+          LibraryElement library = element;
+          List<CodeBuffer> buffers = elementBuffers[library];
           var buffer = buffers[0];
           var uri = library.canonicalUri;
           if (uri.scheme == 'file' && compiler.sourceMapUri != null) {
@@ -3489,7 +3630,10 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
                 ..addBuffer(buffer)
                 ..write('}],$n');
           }
-          libraryBuffers[library] = const [];
+          elementBuffers[library] = const [];
+        }
+        if (hasPendingStatics) {
+          compiler.internalError('Pending statics (see above).');
         }
         mainBuffer.write('])$N');
 
@@ -3519,14 +3663,17 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       isolateProperties = isolatePropertiesName;
       // The following code should not use the short-hand for the
       // initialStatics.
-      mainBuffer.add('var ${namer.CURRENT_ISOLATE}$_=${_}null$N');
+      mainBuffer.add('${namer.CURRENT_ISOLATE}$_=${_}null$N');
 
       emitFinishIsolateConstructorInvocation(mainBuffer);
-      mainBuffer.add('var ${namer.CURRENT_ISOLATE}$_='
-                     '${_}new ${namer.isolateName}()$N');
+      mainBuffer.add(
+          '${namer.CURRENT_ISOLATE}$_=${_}new ${namer.isolateName}()$N');
 
       emitMain(mainBuffer);
       emitInitFunction(mainBuffer);
+      if (!areAnyElementsDeferred) {
+        mainBuffer.add('})()$n');
+      }
       compiler.assembledCode = mainBuffer.getText();
       outputSourceMap(mainBuffer, compiler.assembledCode, '');
 
@@ -3536,13 +3683,24 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     return compiler.assembledCode;
   }
 
-  final Map<LibraryElement, List<CodeBuffer>> libraryBuffers =
-      new Map<LibraryElement, List<CodeBuffer>>();
-
   CodeBuffer bufferForElement(Element element, CodeBuffer eagerBuffer) {
-    LibraryElement library = element.getLibrary();
-    List<CodeBuffer> buffers = libraryBuffers.putIfAbsent(
-        library, () => <CodeBuffer>[null, null]);
+    Element owner = element.getLibrary();
+    if (!element.isTopLevel() && !element.isNative()) {
+      // For static (not top level) elements, record their code in a buffer
+      // specific to the class. For now, not supported for native classes and
+      // native elements.
+      ClassElement cls =
+          element.getEnclosingClassOrCompilationUnit().declaration;
+      if (compiler.codegenWorld.instantiatedClasses.contains(cls)
+          && !cls.isNative()) {
+        owner = cls;
+      }
+    }
+    if (owner == null) {
+      compiler.internalErrorOnElement(element, 'Owner is null');
+    }
+    List<CodeBuffer> buffers = elementBuffers.putIfAbsent(
+        owner, () => <CodeBuffer>[null, null]);
     bool deferred = isDeferred(element);
     int index = deferred ? 1 : 0;
     CodeBuffer buffer = buffers[index];
@@ -3650,6 +3808,10 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     return compiler.deferredLoadTask.isDeferred(element);
   }
 
+  bool get areAnyElementsDeferred {
+    return compiler.deferredLoadTask.areAnyElementsDeferred;
+  }
+
   // TODO(ahe): Remove this when deferred loading is fully implemented.
   void warnNotImplemented(Element element, String message) {
     compiler.reportMessage(compiler.spanFromSpannable(element),
@@ -3659,11 +3821,13 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
 
   // TODO(ahe): This code should be integrated in finishClasses.
   String getReflectionDataParser() {
+    String metadataField = '"${namer.metadataField}"';
     return '''
 (function (reflectionData) {
   if (!init.libraries) init.libraries = [];
   if (!init.mangledNames) init.mangledNames = {};
   if (!init.mangledGlobalNames) init.mangledGlobalNames = {};
+  if (!init.statics) init.statics = {};
   init.getterPrefix = "${namer.getterPrefix}";
   init.setterPrefix = "${namer.setterPrefix}";
   var libraries = init.libraries;
@@ -3679,39 +3843,44 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     var descriptor = data[3];
     var classes = [];
     var functions = [];
-    for (var property in descriptor) {
-      if (!hasOwnProperty.call(descriptor, property)) continue;
-      var element = descriptor[property];
-      var firstChar = property.substring(0, 1);
-      var previousProperty;
-      if (firstChar == "+") {
-        mangledGlobalNames[previousProperty] = property.substring(1);
-      } else if (firstChar == "@") {
-        property = property.substring(1);
-        ${namer.CURRENT_ISOLATE}[property]["${namer.metadataField}"] = element;
-      } else if (typeof element === "function") {
-        ${namer.CURRENT_ISOLATE}[previousProperty = property] = element;
-        functions.push(property);
-      } else {
-        previousProperty = property;
-        var newDesc = {};
-        var previousProp;
-        for (var prop in element) {
-          if (!hasOwnProperty.call(element, prop)) continue;
-          firstChar = prop.substring(0, 1);
-          if (firstChar == "+") {
-            mangledNames[previousProp] = prop.substring(1);
-          } else if (firstChar == "@" && prop != "@") {
-            newDesc[prop.substring(1)]["${namer.metadataField}"] ='''
-'''element[prop];
-          } else {
-            newDesc[previousProp = prop] = element[prop];
+    function processStatics(descriptor) {
+      for (var property in descriptor) {
+        if (!hasOwnProperty.call(descriptor, property)) continue;
+        if (property === "") continue;
+        var element = descriptor[property];
+        var firstChar = property.substring(0, 1);
+        var previousProperty;
+        if (firstChar === "+") {
+          mangledGlobalNames[previousProperty] = property.substring(1);
+        } else if (firstChar === "@") {
+          property = property.substring(1);
+          ${namer.CURRENT_ISOLATE}[property][$metadataField] = element;
+        } else if (typeof element === "function") {
+          ${namer.CURRENT_ISOLATE}[previousProperty = property] = element;
+          functions.push(property);
+        } else {
+          previousProperty = property;
+          var newDesc = {};
+          var previousProp;
+          for (var prop in element) {
+            if (!hasOwnProperty.call(element, prop)) continue;
+            firstChar = prop.substring(0, 1);
+            if (prop === "static") {
+              processStatics(init.statics[property] = element[prop]);
+            } else if (firstChar === "+") {
+              mangledNames[previousProp] = prop.substring(1);
+            } else if (firstChar === "@" && prop !== "@") {
+              newDesc[prop.substring(1)][$metadataField] = element[prop];
+            } else {
+              newDesc[previousProp = prop] = element[prop];
+            }
           }
+          $classesCollector[property] = newDesc;
+          classes.push(property);
         }
-        $classesCollector[property] = newDesc;
-        classes.push(property);
       }
     }
+    processStatics(descriptor);
     libraries.push([name, uri, classes, functions, metadata]);
   }
 })''';

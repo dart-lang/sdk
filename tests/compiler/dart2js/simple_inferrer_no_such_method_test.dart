@@ -107,27 +107,27 @@ main() {
         name);
   }
 
-  checkReturn('test1', typesInferrer.intType);
-  checkReturn('test2', typesInferrer.dynamicType.nonNullable());
-  checkReturn('test3', typesInferrer.intType);
-  checkReturn('test4', typesInferrer.mapType);
-  checkReturn('test5', typesInferrer.dynamicType.nonNullable());
-  checkReturn('test6', typesInferrer.dynamicType.nonNullable());
+  checkReturn('test1', compiler.typesTask.intType);
+  checkReturn('test2', compiler.typesTask.dynamicType.nonNullable());
+  checkReturn('test3', compiler.typesTask.intType);
+  checkReturn('test4', compiler.typesTask.mapType);
+  checkReturn('test5', compiler.typesTask.dynamicType.nonNullable());
+  checkReturn('test6', compiler.typesTask.dynamicType.nonNullable());
 
   compiler = compilerFor(TEST2, uri);
   compiler.runCompiler(uri);
   typesInferrer = compiler.typesTask.typesInferrer;
 
-  checkReturn('test1', typesInferrer.dynamicType.nonNullable());
-  checkReturn('test2', typesInferrer.mapType);
-  checkReturn('test3', typesInferrer.mapType);
-  checkReturn('test4', typesInferrer.mapType);
-  checkReturn('test5', typesInferrer.mapType);
+  checkReturn('test1', compiler.typesTask.dynamicType.nonNullable());
+  checkReturn('test2', compiler.typesTask.mapType);
+  checkReturn('test3', compiler.typesTask.mapType);
+  checkReturn('test4', compiler.typesTask.mapType);
+  checkReturn('test5', compiler.typesTask.mapType);
 
-  checkReturn('test6', typesInferrer.numType);
-  checkReturn('test7', typesInferrer.intType);
-  checkReturn('test8', typesInferrer.intType);
-  checkReturn('test9', typesInferrer.intType);
-  checkReturn('test10', typesInferrer.numType);
-  checkReturn('test11', typesInferrer.doubleType);
+  checkReturn('test6', compiler.typesTask.numType);
+  checkReturn('test7', compiler.typesTask.intType);
+  checkReturn('test8', compiler.typesTask.intType);
+  checkReturn('test9', compiler.typesTask.intType);
+  checkReturn('test10', compiler.typesTask.numType);
+  checkReturn('test11', compiler.typesTask.doubleType);
 }

@@ -4,7 +4,8 @@
 
 [ $compiler == dart2js ]
 math/*: Skip
-mirrors/method_mirror_test: Fail # Issue 6335
+mirrors/method_mirror_name_test: Fail # Issue 6335
+mirrors/method_mirror_properties_test: Fail # Issue 11861
 mirrors/mirrors_test: Fail # TODO(ahe): I'm working on fixing this.
 mirrors/library_uri_io_test: Skip # Not intended for dart2js as it uses dart:io.
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9002
@@ -20,19 +21,8 @@ typed_data/float32x4_unbox_regress_test: Fail, OK
 [ $compiler == dart2js && ($runtime == d8 || $runtime == ie9) ]
 typed_data/byte_data_test: Fail, OK # d8/ie9 doesn't support DataView
 
-[ $compiler == dart2js && $minified ]
-mirrors/reflect_model_test: Fail # Issue 6490
-mirrors/to_string_test: Fail # Issue 6490
-
 [ $csp ]
-mirrors/intercepted_class_test: Fail # Issue 6490
-mirrors/intercepted_object_test: Fail # Issue 6490
-mirrors/metadata_test: Fail # Issue 6490
-mirrors/reflect_model_test: Fail # Issue 6490
-mirrors/reflect_runtime_type_test: Fail # Issue 6490
-mirrors/reflect_uninstantiated_class_test: Fail # Issue 6490
-mirrors/superclass_test: Fail # Issue 6490
-mirrors/to_string_test: Fail # Issue 6490
+mirrors/*: Skip # Issue 6490
 
 [ $compiler == dart2js && $jscl ]
 async/future_test: Fail # Timer interface not supported; dartbug.com/7728.

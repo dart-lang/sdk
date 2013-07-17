@@ -19,5 +19,5 @@ main() {
 main() {
   String generated = compileAll(TEST);
   Expect.isTrue(
-      generated.contains('A: {"": "Object;"}'));
+      generated.contains('A: {"": "Object;", static:'));
 }

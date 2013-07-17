@@ -28,6 +28,7 @@ abstract class NodeVisitor<T> {
   T visitLabeledStatement(LabeledStatement node);
   T visitLiteralStatement(LiteralStatement node);
 
+  T visitBlob(Blob node);
   T visitLiteralExpression(LiteralExpression node);
   T visitVariableDeclarationList(VariableDeclarationList node);
   T visitSequence(Sequence node);
@@ -103,6 +104,7 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitDefault(Default node) => visitNode(node);
 
   T visitExpression(Expression node) => visitNode(node);
+  T visitBlob(Blob node) => visitExpression(node);
   T visitVariableReference(VariableReference node) => visitExpression(node);
 
   T visitLiteralExpression(LiteralExpression node) => visitExpression(node);
@@ -514,6 +516,22 @@ abstract class Expression extends Node {
   Prefix get typeof => new Prefix('typeof', this);
 
   Prefix get not => new Prefix('!', this);
+}
+
+/// Wrap a CodeBuffer as an expression.
+class Blob extends Expression {
+  // TODO(ahe): This class is an aid to convert everything to ASTs, remove when
+  // not needed anymore.
+
+  final leg.CodeBuffer buffer;
+
+  Blob(this.buffer);
+
+  accept(NodeVisitor visitor) => visitor.visitBlob(this);
+
+  void visitChildren(NodeVisitor visitor) {}
+
+  int get precedenceLevel => PRIMARY;
 }
 
 class LiteralExpression extends Expression {

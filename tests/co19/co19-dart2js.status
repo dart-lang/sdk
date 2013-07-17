@@ -12,6 +12,9 @@ LibTest/core/Map/Map_class_A01_t04: Slow, Pass
 # Crashes first, please. Then untriaged bugs. There is a section below
 # for co19 bugs.
 [ $compiler == dart2js ]
+LibTest/math/max_A01_t03: Fail # co19 issue 467
+LibTest/math/min_A01_t03: Fail # co19 issue 467
+
 Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(ahe): Please triage this failure.
 Language/03_Overview/1_Scoping_A02_t06: Fail # TODO(ahe): Please triage this failure.
 Language/05_Variables/05_Variables_A05_t04: Fail # TODO(ahe): Please triage this failure.
@@ -72,6 +75,7 @@ Language/12_Statements/04_Local_Function_Declaration_A01_t01: Fail # TODO(ahe): 
 Language/12_Statements/04_Local_Function_Declaration_A02_t02: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/09_Switch_A02_t02: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/09_Switch_A06_t02: Fail # co19 issue 413
+Language/12_Statements/10_Try_A06_t01: Fail # Issue 11850: dart2js inlining results in stack traces not as accurate
 Language/12_Statements/10_Try_A07_t03: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/11_Return_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/11_Return_A05_t02: Fail # TODO(ahe): Please triage this failure.
@@ -132,6 +136,7 @@ LibTest/core/int/toStringAsExponential_A02_t01: Fail # TODO(ahe): Please triage 
 LibTest/math/pow_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/pow_A11_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/pow_A13_t01: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/List/sort_A01_t04: Pass, Slow # http://dartbug.com/11846
 
 
 [ $compiler == dart2js && $runtime == jsshell ]

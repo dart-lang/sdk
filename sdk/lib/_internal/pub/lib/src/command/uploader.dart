@@ -30,7 +30,7 @@ class UploaderCommand extends PubCommand {
   Uri get server => Uri.parse(commandOptions['server']);
 
   UploaderCommand() {
-    commandParser.addOption('server', defaultsTo: HostedSource.DEFAULT_URL,
+    commandParser.addOption('server', defaultsTo: HostedSource.defaultUrl,
         help: 'The package server on which the package is hosted.');
     commandParser.addOption('package',
         help: 'The package whose uploaders will be modified.\n'
