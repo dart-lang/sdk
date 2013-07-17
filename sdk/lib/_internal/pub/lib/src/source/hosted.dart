@@ -31,7 +31,11 @@ class HostedSource extends Source {
   /// Gets the default URL for the package server for hosted dependencies.
   static String get defaultUrl {
     var url = io.Platform.environment["PUB_HOSTED_URL"];
-    if (url != null) return url;
+    if (url != null) {
+      log.fine("Got server $url from PUB_HOSTED_URL.");
+      return url;
+    }
+
     return "https://pub.dartlang.org";
   }
 

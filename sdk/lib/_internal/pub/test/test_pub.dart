@@ -91,6 +91,8 @@ Future<List<String>> getRequestedPaths() {
 void serve([List<d.Descriptor> contents]) {
   var baseDir = d.dir("serve-dir", contents);
 
+  _hasServer = true;
+
   schedule(() {
     return _closeServer().then((_) {
       return SafeHttpServer.bind("localhost", 0).then((server) {
@@ -143,6 +145,9 @@ Future _closeServer() {
   // putting this at 10ms to be safe.
   return sleep(10);
 }
+
+/// `true` if the current test spins up an HTTP server.
+bool _hasServer = false;
 
 /// The [d.DirectoryDescriptor] describing the server layout of `/api/packages`
 /// on the test server.
@@ -458,6 +463,16 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
       environment['_PUB_TEST_TOKEN_ENDPOINT'] =
         tokenEndpoint.toString();
     }
+
+    // If there is a server running, tell pub what its URL is so hosted
+    // dependencies will look there.
+    if (_hasServer) {
+      return port.then((p) {
+        environment['PUB_HOSTED_URL'] = "http://localhost:$p";
+        return environment;
+      });
+    }
+
     return environment;
   });
 
@@ -609,8 +624,7 @@ Map packageMap(String name, String version, [List dependencies]) {
 /// Describes a map representing a dependency on a package in the package
 /// repository.
 Map dependencyMap(String name, [String versionConstraint]) {
-  var url = port.then((p) => "http://localhost:$p");
-  var dependency = {"hosted": {"name": name, "url": url}};
+  var dependency = {"hosted": name};
   if (versionConstraint != null) dependency["version"] = versionConstraint;
   return dependency;
 }
