@@ -94,17 +94,13 @@ class ContainerTracer extends CompilerTask {
     measure(() {
       SimpleTypesInferrer inferrer = compiler.typesTask.typesInferrer;
       var internal = inferrer.internal;
-      int maxAnalysis = internal.numberOfElementsToAnalyze;
-      int analysisCount = 0;
       // Walk over all created [ContainerTypeMask].
-      for (ContainerTypeMask mask in internal.concreteTypes.values) {
+      internal.concreteTypes.values.forEach((ContainerTypeMask mask) {
         // The element type has already been set for const containers.
-        if (mask.elementType != null) continue;
-        TracerForConcreteContainer tracer = new TracerForConcreteContainer(
-            mask, this, compiler, inferrer);
-        mask.elementType = tracer.run();
-        if ((analysisCount += tracer.analysisCount) > maxAnalysis) break;
-      }
+        if (mask.elementType != null) return;
+        mask.elementType = new TracerForConcreteContainer(
+            mask, this, compiler, inferrer).run();
+      });
     });
   }
 }
@@ -143,7 +139,6 @@ class TracerForConcreteContainer {
 
   TypeMask potentialType;
   bool continueAnalyzing = true;
-  int analysisCount = 0;
 
   TracerForConcreteContainer(ContainerTypeMask mask,
                              this.tracer,
@@ -153,6 +148,7 @@ class TracerForConcreteContainer {
         startElement = mask.allocationElement;
 
   TypeMask run() {
+    int analysisCount = 0;
     workList.add(startElement);
     while (!workList.isEmpty) {
       if (workList.length + analysisCount > MAX_ANALYSIS_COUNT) {
