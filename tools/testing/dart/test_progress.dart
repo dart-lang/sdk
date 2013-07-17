@@ -94,7 +94,7 @@ List<String> _buildFailureOutput(TestCase test,
     var command = test.commands[i];
     var commandOutput = test.commandOutputs[command];
     if (commandOutput != null) {
-      output.add("CommandOutput[$i]:");
+      output.add("CommandOutput[${command.displayName}]:");
       if (!commandOutput.diagnostics.isEmpty) {
         String prefix = 'diagnostics:';
         for (var s in commandOutput.diagnostics) {
@@ -203,29 +203,31 @@ class SummaryPrinter extends EventListener {
 }
 
 class TimingPrinter extends EventListener {
-  List<TestCase> _tests = <TestCase>[];
+  List<CommandOutput> _commandOutputs = <CommandOutput>[];
   DateTime _startTime;
 
   TimingPrinter(this._startTime);
 
   void done(TestCase testCase) {
-    _tests.add(testCase);
+    for (var commandOutput in testCase.commandOutputs.values) {
+      _commandOutputs.add(commandOutput);
+    }
   }
 
   void allDone() {
-    // TODO: We should take all the commands into account
     Duration d = (new DateTime.now()).difference(_startTime);
     print('\n--- Total time: ${_timeString(d)} ---');
-    _tests.sort((a, b) {
-      Duration aDuration = a.lastCommandOutput.time;
-      Duration bDuration = b.lastCommandOutput.time;
-      return bDuration.inMilliseconds - aDuration.inMilliseconds;
+    _commandOutputs.sort((a, b) {
+      return b.time.inMilliseconds - a.time.inMilliseconds;
     });
-    for (int i = 0; i < 20 && i < _tests.length; i++) {
-      var name = _tests[i].displayName;
-      var duration = _tests[i].lastCommandOutput.time;
-      var configuration = _tests[i].configurationString;
-      print('${duration} - $configuration $name');
+    for (int i = 0; i < 20 && i < _commandOutputs.length; i++) {
+      var commandOutput = _commandOutputs[i];
+      var command = commandOutput.command;
+      var testCase = commandOutput.testCase;
+      var duration = commandOutput.time;
+      var configuration = testCase.configurationString;
+      print('${commandOutput.time} - $configuration'
+            ' - ${testCase.displayName} (${command.displayName})');
     }
   }
 }

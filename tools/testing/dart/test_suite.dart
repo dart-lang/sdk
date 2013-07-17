@@ -360,11 +360,12 @@ class CCTestSuite extends TestSuite {
       var args = TestUtils.standardOptions(configuration);
       args.add(testName);
 
-      doTest(new TestCase(constructedName,
-                          [new Command(targetRunnerPath, args)],
-                          configuration,
-                          completeHandler,
-                          expectations));
+      doTest(
+          new TestCase(constructedName,
+                       [new Command('run_vm_unittest', targetRunnerPath, args)],
+                       configuration,
+                       completeHandler,
+                       expectations));
     }
   }
 
@@ -746,14 +747,16 @@ class StandardTestSuite extends TestSuite {
   }
 
   List<Command> makeCommands(TestInformation info, var vmOptions, var args) {
-    switch (configuration['compiler']) {
+    var compiler = configuration['compiler'];
+    switch (compiler) {
     case 'dart2js':
       args = new List.from(args);
       String tempDir = createOutputDirectory(info.filePath, '');
       args.add('--out=$tempDir/out.js');
 
        List<Command> commands =
-           <Command>[new CompilationCommand("$tempDir/out.js",
+           <Command>[new CompilationCommand(compiler,
+                                            "$tempDir/out.js",
                                             !useSdk,
                                             dart2JsBootstrapDependencies,
                                             compilerPath,
@@ -762,9 +765,10 @@ class StandardTestSuite extends TestSuite {
         // Do not attempt to run the compiled result. A compilation
         // error should be reported by the compilation command.
       } else if (configuration['runtime'] == 'd8') {
-        commands.add(new Command(d8FileName, ['$tempDir/out.js']));
+        commands.add(new Command("d8", d8FileName, ['$tempDir/out.js']));
       } else if (configuration['runtime'] == 'jsshell') {
-        commands.add(new Command(jsShellFileName, ['$tempDir/out.js']));
+        commands.add(
+            new Command("jsshell", jsShellFileName, ['$tempDir/out.js']));
       }
       return commands;
 
@@ -775,7 +779,8 @@ class StandardTestSuite extends TestSuite {
       args.add('--out=$tempDir/out.dart');
 
       List<Command> commands =
-          <Command>[new CompilationCommand("$tempDir/out.dart",
+          <Command>[new CompilationCommand(compiler,
+                                           "$tempDir/out.dart",
                                            !useSdk,
                                            dart2JsBootstrapDependencies,
                                            compilerPath,
@@ -788,7 +793,7 @@ class StandardTestSuite extends TestSuite {
         var vmArguments = new List.from(vmOptions);
         vmArguments.addAll([
             '--ignore-unrecognized-flags', '$tempDir/out.dart']);
-        commands.add(new Command(vmFileName, vmArguments));
+        commands.add(new Command("vm", vmFileName, vmArguments));
       } else {
         throw 'Unsupported runtime ${configuration["runtime"]} for dart2dart';
       }
@@ -798,9 +803,12 @@ class StandardTestSuite extends TestSuite {
     case 'dartc':
     case 'dartanalyzer':
     case 'dart2analyzer':
+      var displayName = (configuration['compiler'] == 'none'
+          ? 'vm' : configuration['compiler']);
       var arguments = new List.from(vmOptions);
       arguments.addAll(args);
-      return <Command>[new Command(dartShellFileName, arguments)];
+      return <Command>[
+          new Command(displayName, dartShellFileName, arguments)];
 
     default:
       throw 'Unknown compiler ${configuration["compiler"]}';
@@ -1024,7 +1032,8 @@ class StandardTestSuite extends TestSuite {
           args = ['tools/testing/dart/launch_browser.dart',
                   runtime,
                   fullHtmlPath];
-          commandSet.add(new Command(TestUtils.dartTestExecutable.toString(),
+          commandSet.add(new Command(runtime,
+                                     TestUtils.dartTestExecutable.toString(),
                                      args));
         } else if (TestUtils.usesWebDriver(runtime)) {
           args = [
@@ -1039,7 +1048,7 @@ class StandardTestSuite extends TestSuite {
           if (subtestIndex != 0) {
             args.add('--force-refresh');
           }
-          commandSet.add(new Command('python', args));
+          commandSet.add(new Command(runtime, 'python', args));
         } else {
           if (runtime != "drt") {
             print("Unknown runtime $runtime");
@@ -1106,36 +1115,27 @@ class StandardTestSuite extends TestSuite {
   /** Helper to create a compilation command for a single input file. */
   Command _compileCommand(String inputFile, String outputFile,
       String compiler, String dir, vmOptions, optionsFromFile) {
+    assert (['dart2js', 'dart2dart'].contains(compiler));
     String executable = compilerPath;
     List<String> args = TestUtils.standardOptions(configuration);
-    switch (compiler) {
-      case 'dart2js':
-      case 'dart2dart':
-        String packageRoot =
-          packageRootArgument(optionsFromFile['packageRoot']);
-        if (packageRoot != null) {
-          args.add(packageRoot);
-        }
-        args.add('--out=$outputFile');
-        args.add(inputFile);
-        break;
-      default:
-        print('unimplemented compiler $compiler');
-        exit(1);
+    String packageRoot =
+      packageRootArgument(optionsFromFile['packageRoot']);
+    if (packageRoot != null) {
+      args.add(packageRoot);
     }
+    args.add('--out=$outputFile');
+    args.add(inputFile);
     if (executable.endsWith('.dart')) {
       // Run the compiler script via the Dart VM.
       args.insert(0, executable);
       executable = dartShellFileName;
     }
-    if (['dart2js', 'dart2dart'].contains(configuration['compiler'])) {
-      return new CompilationCommand(outputFile,
-                                   !useSdk,
-                                   dart2JsBootstrapDependencies,
-                                   compilerPath,
-                                   args);
-    }
-    return new Command(executable, args);
+    return new CompilationCommand(compiler,
+                                  outputFile,
+                                  !useSdk,
+                                  dart2JsBootstrapDependencies,
+                                  compilerPath,
+                                  args);
   }
 
   /**
@@ -1668,7 +1668,7 @@ class JUnitTestSuite extends TestSuite {
     });
     updatedConfiguration['timeout'] *= 3;
     doTest(new TestCase(suiteName,
-                        [new Command('java', args)],
+                        [new Command('junit_test', 'java', args)],
                         updatedConfiguration,
                         completeHandler,
                         new Set<String>.from([PASS])));
