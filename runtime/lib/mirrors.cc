@@ -96,52 +96,6 @@ static Dart_Handle IsVariableMirror(Dart_Handle object, bool* is_mirror) {
 }
 
 
-static void FreeVMReference(Dart_WeakPersistentHandle weak_ref, void* data) {
-  Dart_PersistentHandle perm_handle =
-      reinterpret_cast<Dart_PersistentHandle>(data);
-  Dart_DeletePersistentHandle(perm_handle);
-  Dart_DeleteWeakPersistentHandle(weak_ref);
-}
-
-
-static Dart_Handle CreateVMReference(Dart_Handle handle) {
-  // Create the VMReference object.
-  Dart_Handle cls_name = NewString("VMReference");
-  Dart_Handle type = Dart_GetType(MirrorLib(), cls_name, 0, NULL);
-  if (Dart_IsError(type)) {
-    return type;
-  }
-  Dart_Handle vm_ref =  Dart_New(type, Dart_Null(), 0, NULL);
-  if (Dart_IsError(vm_ref)) {
-    return vm_ref;
-  }
-
-  // Allocate a persistent handle.
-  Dart_PersistentHandle perm_handle = Dart_NewPersistentHandle(handle);
-  ASSERT(perm_handle != NULL);
-
-  // Store the persistent handle in the VMReference.
-  intptr_t perm_handle_value = reinterpret_cast<intptr_t>(perm_handle);
-  Dart_Handle result =
-      Dart_SetNativeInstanceField(vm_ref, 0, perm_handle_value);
-  if (Dart_IsError(result)) {
-    Dart_DeletePersistentHandle(perm_handle);
-    return result;
-  }
-
-  // Create a weak reference.  We use the callback to be informed when
-  // the VMReference is collected, so we can release the persistent
-  // handle.
-  void* perm_handle_data = reinterpret_cast<void*>(perm_handle);
-  Dart_WeakPersistentHandle weak_ref =
-      Dart_NewWeakPersistentHandle(vm_ref, perm_handle_data, FreeVMReference);
-  ASSERT(weak_ref != NULL);
-
-  // Success.
-  return vm_ref;
-}
-
-
 // TODO(11742): Remove once there are no more users of the Dart_Handle-based
 // VMReferences.
 static Dart_Handle CreateMirrorReference(Dart_Handle handle) {
@@ -541,7 +495,6 @@ static Dart_Handle CreateClassMirror(Dart_Handle intf,
 
   Dart_Handle args[] = {
     CreateMirrorReference(intf),
-    CreateVMReference(intf),
     Dart_Null(),  // "name"
     Dart_NewBoolean(Dart_IsClass(intf)),
     lib_mirror,
@@ -599,7 +552,7 @@ static Dart_Handle CreateMethodMirror(Dart_Handle func,
 
 static Dart_Handle CreateVariableMirror(Dart_Handle var,
                                         Dart_Handle var_name,
-                                        Dart_Handle lib_mirror) {
+                                        Dart_Handle owner_mirror) {
   ASSERT(Dart_IsVariable(var));
   Dart_Handle cls_name = NewString("_LocalVariableMirrorImpl");
   Dart_Handle type = Dart_GetType(MirrorLib(), cls_name, 0, NULL);
@@ -625,8 +578,9 @@ static Dart_Handle CreateVariableMirror(Dart_Handle var,
   }
 
   Dart_Handle args[] = {
+    CreateMirrorReference(var),
     var_name,
-    lib_mirror,
+    owner_mirror,
     CreateLazyMirror(var_type),
     Dart_NewBoolean(is_static),
     Dart_NewBoolean(is_final),
@@ -849,7 +803,6 @@ static Dart_Handle CreateLibraryMirror(Dart_Handle lib) {
   }
   Dart_Handle args[] = {
     CreateMirrorReference(lib),
-    CreateVMReference(lib),
     Dart_LibraryName(lib),
     Dart_LibraryUrl(lib),
     member_map,
@@ -948,7 +901,6 @@ static Dart_Handle CreateNullMirror() {
   Dart_Handle object_class = Dart_GetClass(CoreLib(), NewString("Object"));
 
   Dart_Handle args[] = {
-    CreateVMReference(Dart_Null()),
     CreateLazyMirror(object_class),
     Dart_Null(),
   };
@@ -995,7 +947,6 @@ static Dart_Handle CreateInstanceMirror(Dart_Handle instance) {
       return func_mirror;
     }
     Dart_Handle args[] = {
-      CreateVMReference(instance),
       CreateLazyMirror(instance_cls),
       instance,
       func_mirror,
@@ -1009,7 +960,6 @@ static Dart_Handle CreateInstanceMirror(Dart_Handle instance) {
       return type;
     }
     Dart_Handle args[] = {
-      CreateVMReference(instance),
       CreateLazyMirror(instance_cls),
       instance,
     };
@@ -1080,18 +1030,25 @@ void NATIVE_ENTRY_FUNCTION(Mirrors_makeLocalClassMirror)(
   Dart_ExitScope();
 }
 
-void NATIVE_ENTRY_FUNCTION(Mirrors_metadata)(Dart_NativeArguments args) {
-  Dart_EnterScope();
-  Dart_Handle mirror = Dart_GetNativeArgument(args, 0);
 
-  Dart_Handle reflectee = UnwrapMirror(mirror);
-  Dart_Handle result = Dart_GetMetadata(reflectee);
-  if (Dart_IsError(result)) {
-    Dart_PropagateError(result);
+DEFINE_NATIVE_ENTRY(DeclarationMirror_metadata, 1) {
+  const MirrorReference& decl_ref =
+      MirrorReference::CheckedHandle(arguments->NativeArgAt(0));
+  const Object& decl = Object::Handle(decl_ref.referent());
+
+  Class& klass = Class::Handle();
+  if (decl.IsClass()) {
+    klass ^= decl.raw();
+  } else if (decl.IsFunction()) {
+    klass = Function::Cast(decl).origin();
+  } else if (decl.IsField()) {
+    klass = Field::Cast(decl).origin();
+  } else {
+    return Object::empty_array().raw();
   }
-  ASSERT(Dart_IsList(result));
-  Dart_SetReturnValue(args, result);
-  Dart_ExitScope();
+
+  const Library& library = Library::Handle(klass.library());
+  return library.GetMetadata(decl);
 }
 
 

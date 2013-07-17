@@ -70,8 +70,8 @@ Map<Uri, LibraryMirror> _createLibrariesMap(Map<String, LibraryMirror> map) {
     return result;
 }
 
-List<InstanceMirror> _metadata(mirror) 
-  native 'Mirrors_metadata';
+List _metadata(reflectee)
+  native 'DeclarationMirror_metadata';
 
 // This will verify the argument types, unwrap them, and ensure we have a fixed
 // array.
@@ -164,24 +164,9 @@ class _LocalIsolateMirrorImpl extends _LocalMirrorImpl
   String toString() => "IsolateMirror on '$debugName'";
 }
 
-// A VMReference is used to hold a reference to a VM-internal object,
-// which can include things like libraries, classes, etc.
-class VMReference extends NativeFieldWrapperClass1 {
-}
-
-abstract class _LocalVMObjectMirrorImpl extends _LocalMirrorImpl {
-  _LocalVMObjectMirrorImpl(this._reference) {}
-
-  // For now, all VMObjects hold a VMReference.  We could consider
-  // storing the Object reference itself here if the object is a Dart
-  // language objects (except for objects of type VMReference, of
-  // course).
-  VMReference _reference;
-}
-
-abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
+abstract class _LocalObjectMirrorImpl extends _LocalMirrorImpl
     implements ObjectMirror {
-  _LocalObjectMirrorImpl(this._reflectee, ref) : super(ref) {}
+  _LocalObjectMirrorImpl(this._reflectee);
 
   final _reflectee; // May be a MirrorReference or an ordinary object.
 
@@ -275,9 +260,8 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
   // TODO(ahe): This is a hack, see delegate below.
   static Function _invokeOnClosure;
 
-  _LocalInstanceMirrorImpl(ref,
-                           this._type,
-                           reflectee) : super(reflectee, ref) {}
+  _LocalInstanceMirrorImpl(this._type,
+                           reflectee) : super(reflectee) {}
 
   var _type;
   ClassMirror get type {
@@ -321,10 +305,9 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
 
 class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
     implements ClosureMirror {
-  _LocalClosureMirrorImpl(ref,
-                          type,
+  _LocalClosureMirrorImpl(type,
                           reflectee,
-                          this.function) : super(ref, type, reflectee) {}
+                          this.function) : super(type, reflectee) {}
 
   final MethodMirror function;
 
@@ -404,7 +387,6 @@ class _LazyTypeMirror {
 class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
     implements ClassMirror {
   _LocalClassMirrorImpl(reflectee,
-                        ref,
                         String simpleName,
                         this.isClass,
                         this._owner,
@@ -418,7 +400,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
         this.members = _convertStringToSymbolMap(members),
         this.constructors = _convertStringToSymbolMap(constructors),
         this.typeVariables = _convertStringToSymbolMap(typeVariables),
-        super(reflectee, ref);
+        super(reflectee);
 
   Symbol _simpleName;
   Symbol get simpleName {
@@ -582,10 +564,11 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
     }
   }
 
-  // get the metadata objects, convert them into InstanceMirrors using
-  // reflect() and then make them into a Dart list
-  List<InstanceMirror> get metadata => _metadata(this).map(reflect).toList();
-
+  List<InstanceMirror> get metadata {
+    // get the metadata objects, convert them into InstanceMirrors using
+    // reflect() and then make them into a Dart list
+    return _metadata(_reflectee).map(reflect).toList();
+  }
 
   static _name(reflectee)
       native "ClassMirror_name";
@@ -617,12 +600,11 @@ class _LazyFunctionTypeMirror {
 
 class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
     implements FunctionTypeMirror {
-  _LocalFunctionTypeMirrorImpl(ref,
+  _LocalFunctionTypeMirrorImpl(reflectee,
                                simpleName,
                                this._returnType,
                                this.parameters)
-      : super(null,
-              ref,
+      : super(reflectee,
               simpleName,
               true,
               null,
@@ -702,9 +684,10 @@ class _LocalTypeVariableMirrorImpl extends _LocalMirrorImpl
     return _upperBound;
   }
 
-  // get the metadata objects, convert them into InstanceMirrors using
-  // reflect() and then make them into a Dart list
-  List<InstanceMirror> get metadata => _metadata(this).map(reflect).toList();
+  List<InstanceMirror> get metadata {
+    throw new UnimplementedError(
+        'TypeVariableMirror.metadata is not implemented');
+  }
 
   String toString() => "TypeVariableMirror on '${_n(simpleName)}'";
 }
@@ -769,14 +752,13 @@ class _LazyLibraryMirror {
 class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
     implements LibraryMirror {
   _LocalLibraryMirrorImpl(reflectee,
-                          ref,
                           String simpleName,
                           String url,
                           Map<String, Mirror> members)
       : this.simpleName = _s(simpleName),
         this.members = _convertStringToSymbolMap(members),
         this.uri = Uri.parse(url),
-        super(reflectee, ref);
+        super(reflectee);
 
   final Symbol simpleName;
 
@@ -846,9 +828,11 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
     return _variables;
   }
 
-  // get the metadata objects, convert them into InstanceMirrors using
-  // reflect() and then make them into a Dart list
-  List<InstanceMirror> get metadata => _metadata(this).map(reflect).toList();
+  List<InstanceMirror> get metadata {
+    // get the metadata objects, convert them into InstanceMirrors using
+    // reflect() and then make them into a Dart list
+    _metadata(_reflectee).map(reflect).toList();
+  }
 
   String toString() => "LibraryMirror on '${_n(simpleName)}'";
 
@@ -970,7 +954,7 @@ class _LocalMethodMirrorImpl extends _LocalMirrorImpl
     owner; // ensure owner is computed
     // get the metadata objects, convert them into InstanceMirrors using
     // reflect() and then make them into a Dart list
-    return _metadata(this).map(reflect).toList();
+    return _metadata(_reflectee).map(reflect).toList();
   }
 
   String toString() => "MethodMirror on '${_n(simpleName)}'";
@@ -981,13 +965,15 @@ class _LocalMethodMirrorImpl extends _LocalMirrorImpl
 
 class _LocalVariableMirrorImpl extends _LocalMirrorImpl
     implements VariableMirror {
-  _LocalVariableMirrorImpl(String simpleName,
+  _LocalVariableMirrorImpl(this._reflectee,
+                           String simpleName,
                            this._owner,
                            this._type,
                            this.isStatic,
                            this.isFinal)
       : this.simpleName = _s(simpleName);
 
+  final _MirrorReference _reflectee;
   final Symbol simpleName;
 
   Symbol _qualifiedName = null;
@@ -1031,10 +1017,9 @@ class _LocalVariableMirrorImpl extends _LocalMirrorImpl
   final bool isFinal;
 
   List<InstanceMirror> get metadata {
-    owner; // ensure owner is computed
     // get the metadata objects, convert them into InstanceMirrors using
     // reflect() and then make them into a Dart list
-    return _metadata(this).map(reflect).toList();
+    return _metadata(_reflectee).map(reflect).toList();
   }
 
   String toString() => "VariableMirror on '${_n(simpleName)}'";
@@ -1043,7 +1028,7 @@ class _LocalVariableMirrorImpl extends _LocalMirrorImpl
 class _LocalParameterMirrorImpl extends _LocalVariableMirrorImpl
     implements ParameterMirror {
   _LocalParameterMirrorImpl(type, this.isOptional)
-      : super('<TODO:unnamed>', null, type, false, false) {}
+      : super(null, '<TODO:unnamed>', null, type, false, false) {}
 
   final bool isOptional;
 
@@ -1055,6 +1040,12 @@ class _LocalParameterMirrorImpl extends _LocalVariableMirrorImpl
   bool get hasDefaultValue {
     throw new UnimplementedError(
         'ParameterMirror.hasDefaultValue is not implemented');
+  }
+
+  // TODO(11418): Implement.
+  List<InstanceMirror> get metadata {
+    throw new UnimplementedError(
+        'ParameterMirror.metadata is not implemented');
   }
 }
 

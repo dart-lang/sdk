@@ -239,7 +239,6 @@ namespace dart {
   V(Mirrors_makeLocalInstanceMirror, 1)                                        \
   V(Mirrors_makeLocalClassMirror, 1)                                           \
   V(Mirrors_makeLocalMirrorSystem, 0)                                          \
-  V(Mirrors_metadata, 1)                                                       \
   V(InstanceMirror_invoke, 4)                                                  \
   V(InstanceMirror_invokeGetter, 3)                                            \
   V(InstanceMirror_invokeSetter, 4)                                            \
@@ -252,6 +251,7 @@ namespace dart {
   V(LibraryMirror_invoke, 4)                                                   \
   V(LibraryMirror_invokeGetter, 3)                                             \
   V(LibraryMirror_invokeSetter, 4)                                             \
+  V(DeclarationMirror_metadata, 1)                                             \
   V(MethodMirror_name, 1)                                                      \
   V(GrowableObjectArray_allocate, 2)                                           \
   V(GrowableObjectArray_getIndexed, 2)                                         \
