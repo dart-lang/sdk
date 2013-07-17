@@ -929,9 +929,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     localsHandler = new LocalsHandler(this);
   }
 
-  static const MAX_INLINING_DEPTH = 3;
-  static const MAX_INLINING_NODES = 46;
-
   List<InliningState> inliningStack;
 
   Element returnElement;
@@ -1225,7 +1222,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     element = element.implementation;
     FunctionElement function = element;
 
-    bool cachedCanBeInlined = backend.canBeInlined[function];
+    bool insideLoop = loopNesting > 0 || graph.calledInLoop;
+
+    // Bail out early if the inlining decision is in the cache and we can't
+    // inline (no need to check the hard constraints).
+    bool cachedCanBeInlined =
+        backend.inlineCache.canInline(function, insideLoop: insideLoop);
     if (cachedCanBeInlined == false) return false;
 
     bool meetsHardConstraints() {
@@ -1239,8 +1241,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       assert(selector != null
              || Elements.isStaticOrTopLevel(element)
              || element.isGenerativeConstructorBody());
-      if (selector != null && !selector.applies(function, compiler))
+      if (selector != null && !selector.applies(function, compiler)) {
         return false;
+      }
 
       // Don't inline operator== methods if the parameter can be null.
       if (element.name == const SourceString('==')) {
@@ -1262,20 +1265,31 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return true;
     }
 
-    bool heuristicsSayGoodToGo(FunctionExpression functionExpression,
-                                TreeElements newElements) {
-      if (loopNesting == 0 && !graph.calledInLoop) return false;
-
-      int maxDepth = (loopNesting > 0) ? MAX_INLINING_DEPTH : 1;
-      if (inliningStack.length >= maxDepth) return false;
-
-      if (cachedCanBeInlined == null) {
-        var canBeInlined =
-            InlineWeeder.canBeInlined(functionExpression, newElements);
-        backend.canBeInlined[function] = canBeInlined;
-        return canBeInlined;
+    bool heuristicSayGoodToGo(FunctionExpression functionExpression) {
+      // Don't inline recursivly
+      if (inliningStack.any((entry) => entry.function == function)) {
+        return false;
       }
-      return cachedCanBeInlined;
+
+      if (cachedCanBeInlined == true) return cachedCanBeInlined;
+
+      int numParameters = function.functionSignature.parameterCount;
+      int maxInliningNodes;
+      if (insideLoop) {
+        maxInliningNodes = InlineWeeder.INLINING_NODES_INSIDE_LOOP +
+            InlineWeeder.INLINING_NODES_INSIDE_LOOP_ARG_FACTOR * numParameters;
+      } else {
+        maxInliningNodes = InlineWeeder.INLINING_NODES_OUTSIDE_LOOP +
+            InlineWeeder.INLINING_NODES_OUTSIDE_LOOP_ARG_FACTOR * numParameters;
+      }
+      bool canBeInlined = InlineWeeder.canBeInlined(
+          functionExpression, maxInliningNodes);
+      if (canBeInlined) {
+        backend.inlineCache.markAsInlinable(element, insideLoop: insideLoop);
+      } else {
+        backend.inlineCache.markAsNonInlinable(element, insideLoop: insideLoop);
+      }
+      return canBeInlined;
     }
 
     void doInlining(FunctionExpression functionExpression) {
@@ -1307,13 +1321,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     if (meetsHardConstraints()) {
       FunctionExpression functionExpression = function.parseNode(compiler);
-      TreeElements newElements =
-          compiler.enqueuer.resolution.getCachedElements(function);
-      if (newElements == null) {
-        compiler.internalError("Element not resolved: $function");
-      }
 
-      if (heuristicsSayGoodToGo(functionExpression, newElements)) {
+      if (heuristicSayGoodToGo(functionExpression)) {
         doInlining(functionExpression);
         return true;
       }
@@ -5125,25 +5134,29 @@ class StringBuilderVisitor extends Visitor {
  * finds whether it is too difficult to inline.
  */
 class InlineWeeder extends Visitor {
-  final TreeElements elements;
+  // Invariant: *INSIDE_LOOP* > *OUTSIDE_LOOP*
+  static const INLINING_NODES_OUTSIDE_LOOP = 18;
+  static const INLINING_NODES_OUTSIDE_LOOP_ARG_FACTOR = 3;
+  static const INLINING_NODES_INSIDE_LOOP = 42;
+  static const INLINING_NODES_INSIDE_LOOP_ARG_FACTOR = 4;
 
   bool seenReturn = false;
   bool tooDifficult = false;
   int nodeCount = 0;
+  final int maxInliningNodes;
 
-  InlineWeeder(this.elements);
+  InlineWeeder(this.maxInliningNodes);
 
   static bool canBeInlined(FunctionExpression functionExpression,
-                           TreeElements elements) {
-    InlineWeeder weeder = new InlineWeeder(elements);
+                           int maxInliningNodes) {
+    InlineWeeder weeder = new InlineWeeder(maxInliningNodes);
     weeder.visit(functionExpression.initializers);
     weeder.visit(functionExpression.body);
-    if (weeder.tooDifficult) return false;
-    return true;
+    return !weeder.tooDifficult;
   }
 
   bool registerNode() {
-    if (nodeCount++ > SsaBuilder.MAX_INLINING_NODES) {
+    if (nodeCount++ > maxInliningNodes) {
       tooDifficult = true;
       return false;
     } else {

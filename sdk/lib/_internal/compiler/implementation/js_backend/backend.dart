@@ -122,6 +122,47 @@ class MalformedCheckedModeHelper extends CheckedModeHelper {
   }
 }
 
+/*
+ * Invariants:
+ *   canInline(function) implies canInline(function, insideLoop:true)
+ *   !canInline(function, insideLoop: true) implies !canInline(function)
+ */
+class FunctionInlineCache {
+  final Map<FunctionElement, bool> canBeInlined =
+      new Map<FunctionElement, bool>();
+
+  final Map<FunctionElement, bool> canBeInlinedInsideLoop =
+      new Map<FunctionElement, bool>();
+
+  // Returns [:true:]/[:false:] if we have a cached decision.
+  // Returns [:null:] otherwise.
+  bool canInline(FunctionElement element, {bool insideLoop}) {
+    return insideLoop ? canBeInlinedInsideLoop[element] : canBeInlined[element];
+  }
+
+  void markAsInlinable(FunctionElement element, {bool insideLoop}) {
+    if (insideLoop) {
+      canBeInlinedInsideLoop[element] = true;
+    } else {
+      // If we can inline a function outside a loop then we should do it inside
+      // a loop as well.
+      canBeInlined[element] = true;
+      canBeInlinedInsideLoop[element] = true;
+    }
+  }
+
+  void markAsNonInlinable(FunctionElement element, {bool insideLoop}) {
+    if (insideLoop) {
+      // If we can't inline a function inside a loop, then we should not inline
+      // it outside a loop either.
+      canBeInlined[element] = false;
+      canBeInlinedInsideLoop[element] = false;
+    } else {
+      canBeInlined[element] = false;
+    }
+  }
+}
+
 
 class JavaScriptBackend extends Backend {
   SsaBuilderTask builder;
@@ -142,12 +183,7 @@ class JavaScriptBackend extends Backend {
   final Map<Element, jsAst.Expression> generatedBailoutCode =
       new Map<Element, jsAst.Expression>();
 
-  /**
-   * Keep track of which function elements are simple enough to be
-   * inlined in callers.
-   */
-  final Map<FunctionElement, bool> canBeInlined =
-      new Map<FunctionElement, bool>();
+  FunctionInlineCache inlineCache = new FunctionInlineCache();
 
   ClassElement jsInterceptorClass;
   ClassElement jsStringClass;
@@ -436,9 +472,9 @@ class JavaScriptBackend extends Backend {
         compiler.findHelper(const SourceString('defineNativeMethodsFinish'));
 
     // These methods are overwritten with generated versions.
-    canBeInlined[getInterceptorMethod] = false;
-    canBeInlined[getDispatchPropertyMethod] = false;
-    canBeInlined[setDispatchPropertyMethod] = false;
+    inlineCache.markAsNonInlinable(getInterceptorMethod, insideLoop: true);
+    inlineCache.markAsNonInlinable(getDispatchPropertyMethod, insideLoop: true);
+    inlineCache.markAsNonInlinable(setDispatchPropertyMethod, insideLoop: true);
 
     List<ClassElement> classes = [
       jsInterceptorClass =
