@@ -4,18 +4,14 @@
 
 import "dart:mirrors";
 
-import "../../../pkg/unittest/lib/unittest.dart";
-
-String _symbolToString(Symbol sym) {
-  return MirrorSystem.getName(sym);
-}
+import "package:expect/expect.dart";
+import "stringify.dart";
 
 doNothing42() {}
 
 main() {
   // Regression test for http://www.dartbug.com/6335
-  test("NamedMethodName", () {
-    var closureMirror = reflect(doNothing42);
-    expect(_symbolToString(closureMirror.function.simpleName), "doNothing42");
-  });
+  var closureMirror = reflect(doNothing42);
+  Expect.equals(stringifySymbol(closureMirror.function.simpleName),
+                "s(doNothing42)");
 }

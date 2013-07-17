@@ -559,52 +559,20 @@ static Dart_Handle CreateClassMirror(Dart_Handle intf,
 
 static Dart_Handle CreateMethodMirror(Dart_Handle func,
                                       Dart_Handle owner_mirror) {
-  ASSERT(Dart_IsFunction(func));
+  // TODO(11742): Unwrapping is needed until the whole method is converted.
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Function& func_obj = Api::UnwrapFunctionHandle(isolate, func);
+
   Dart_Handle mirror_cls_name = NewString("_LocalMethodMirrorImpl");
   Dart_Handle mirror_type = Dart_GetType(MirrorLib(), mirror_cls_name, 0, NULL);
   if (Dart_IsError(mirror_type)) {
     return mirror_type;
   }
 
-  bool is_static = false;
-  bool is_abstract = false;
-  bool is_getter = false;
-  bool is_setter = false;
-  bool is_constructor = false;
-
-  Dart_Handle result = Dart_FunctionIsStatic(func, &is_static);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  result = Dart_FunctionIsAbstract(func, &is_abstract);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  result = Dart_FunctionIsGetter(func, &is_getter);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  result = Dart_FunctionIsSetter(func, &is_setter);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  result = Dart_FunctionIsConstructor(func, &is_constructor);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-
   Dart_Handle return_type = Dart_FunctionReturnType(func);
   if (Dart_IsError(return_type)) {
     return return_type;
-  }
-
-  int64_t fixed_param_count;
-  int64_t opt_param_count;
-  result = Dart_FunctionParameterCounts(func,
-                                        &fixed_param_count,
-                                        &opt_param_count);
-  if (Dart_IsError(result)) {
-    return result;
   }
 
   // TODO(turnidge): Implement constructor kinds (arguments 7 - 10).
@@ -613,15 +581,15 @@ static Dart_Handle CreateMethodMirror(Dart_Handle func,
     owner_mirror,
     CreateParameterMirrorList(func),
     CreateLazyMirror(return_type),
-    Dart_NewBoolean(is_static),
-    Dart_NewBoolean(is_abstract),
-    Dart_NewBoolean(is_getter),
-    Dart_NewBoolean(is_setter),
-    Dart_NewBoolean(is_constructor),
-    Dart_False(),
-    Dart_False(),
-    Dart_False(),
-    Dart_False(),
+    func_obj.is_static() ? Api::True() : Api::False(),
+    func_obj.is_abstract() ? Api::True() : Api::False(),
+    func_obj.IsGetterFunction() ? Api::True() : Api::False(),
+    func_obj.IsSetterFunction() ? Api::True() : Api::False(),
+    func_obj.IsConstructor() ? Api::True() : Api::False(),
+    Api::False(),
+    Api::False(),
+    Api::False(),
+    Api::False()
   };
   Dart_Handle mirror =
       Dart_New(mirror_type, Dart_Null(), ARRAY_SIZE(args), args);

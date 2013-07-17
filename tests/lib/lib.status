@@ -4,7 +4,8 @@
 
 [ $compiler == dart2js ]
 math/*: Skip
-mirrors/method_mirror_test: Fail # Issue 6335
+mirrors/method_mirror_name_test: Fail # Issue 6335
+mirrors/method_mirror_properties_test: Fail # Issue 11861
 mirrors/mirrors_test: Fail # TODO(ahe): I'm working on fixing this.
 mirrors/library_uri_io_test: Skip # Not intended for dart2js as it uses dart:io.
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9002
