@@ -5,8 +5,10 @@
 // This test should be removed when dart2js can pass all mirror tests.
 // TODO(ahe): Remove this test.
 
-import '../../lib/mirrors/mirrors_test.dart';
+import '../../lib/mirrors/mirrors_test.dart' as test;
 
 main() {
-  mainWithArgument(isDart2js: true, isMinified: true);
+  test.isDart2js = true;
+  test.isMinified = true;
+  test.main();
 }

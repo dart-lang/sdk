@@ -343,7 +343,7 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
                                      List<Object> positionalArguments,
                                      [Map<Symbol, dynamic> namedArguments]) {
     if (namedArguments != null && !namedArguments.isEmpty) {
-      throw new UnsupportedError('Named arguments are not implemented');
+      throw new UnsupportedError('Named arguments are not implemented.');
     }
     return
         new Future<InstanceMirror>(
@@ -354,7 +354,7 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
                         List positionalArguments,
                         [Map<Symbol,dynamic> namedArguments]) {
     if (namedArguments != null && !namedArguments.isEmpty) {
-      throw new UnsupportedError('Named arguments are not implemented');
+      throw new UnsupportedError('Named arguments are not implemented.');
     }
     // Copy the list to ensure that it can safely be passed to
     // JavaScript.
@@ -613,44 +613,48 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   }
 
   InstanceMirror setField(Symbol fieldName, Object arg) {
-    // TODO(ahe): This is extremely dangerous!!!
-    JS('void', '#[#] = #', JS_CURRENT_ISOLATE(),
-       '${n(simpleName)}_${n(fieldName)}', arg);
-    return reflect(arg);
+    JsVariableMirror mirror = variables[fieldName];
+    if (mirror != null && mirror.isStatic && !mirror.isFinal) {
+      String jsName = mirror._jsName;
+      if (!JS('bool', '# in #', jsName, JS_CURRENT_ISOLATE())) {
+        throw new RuntimeError('Cannot find "$jsName" in current isolate.');
+      }
+      JS('void', '#[#] = #', JS_CURRENT_ISOLATE(), jsName, arg);
+      return reflect(arg);
+    }
+    // TODO(ahe): What receiver to use?
+    throw new NoSuchMethodError(this, '${n(fieldName)}=', [arg], null);
   }
 
   InstanceMirror getField(Symbol fieldName) {
-    // TODO(ahe): This is extremely dangerous!!!
-    return reflect(
-        JS('', '#[#]', JS_CURRENT_ISOLATE(),
-           '${n(simpleName)}_${n(fieldName)}'));
+    JsVariableMirror mirror = variables[fieldName];
+    if (mirror != null && mirror.isStatic) {
+      String jsName = mirror._jsName;
+      if (!JS('bool', '# in #', jsName, JS_CURRENT_ISOLATE())) {
+        throw new RuntimeError('Cannot find "$jsName" in current isolate.');
+      }
+      return reflect(JS('', '#[#]', JS_CURRENT_ISOLATE(), jsName));
+    }
+    // TODO(ahe): What receiver to use?
+    throw new NoSuchMethodError(this, n(fieldName), null, null);
   }
 
   InstanceMirror newInstance(Symbol constructorName,
                              List positionalArguments,
                              [Map<Symbol, dynamic> namedArguments]) {
     if (namedArguments != null && !namedArguments.isEmpty) {
-      throw new UnsupportedError('Named arguments are not implemented');
+      throw new UnsupportedError('Named arguments are not implemented.');
     }
-    String reflectiveName = 'new ${n(simpleName)}';
-    String name = n(constructorName);
-    if (!name.isEmpty) {
-      reflectiveName = '$reflectiveName\$$name';
-    }
-    reflectiveName = '$reflectiveName:${positionalArguments.length}:0';
-    String mangledName = reflectiveGlobalNames[reflectiveName];
-    var factory = JS('', '#[#]', JS_CURRENT_ISOLATE(), mangledName);
-    if (factory == null) {
-      // TODO(ahe): Pass namedArguments when NoSuchMethodError has
-      // been fixed to use Symbol.
-      // TODO(ahe): What receiver to use?
-      throw new NoSuchMethodError(
-          this, reflectiveName, positionalArguments, null);
-    }
-    return reflect(JS('', r'#.apply(#, #)',
-                      factory,
-                      JS_CURRENT_ISOLATE(),
-                      new List.from(positionalArguments)));
+    JsMethodMirror mirror = constructors.values.firstWhere(
+        (m) => m.constructorName == constructorName,
+        orElse: () {
+          // TODO(ahe): Pass namedArguments when NoSuchMethodError has been
+          // fixed to use Symbol.
+          // TODO(ahe): What receiver to use?
+          throw new NoSuchMethodError(
+              owner, n(constructorName), positionalArguments, null);
+        });
+    return reflect(mirror._invoke(positionalArguments, namedArguments));
   }
 
   Future<InstanceMirror> newInstanceAsync(
@@ -658,7 +662,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
       List positionalArguments,
       [Map<Symbol, dynamic> namedArguments]) {
     if (namedArguments != null && !namedArguments.isEmpty) {
-      throw new UnsupportedError('Named arguments are not implemented');
+      throw new UnsupportedError('Named arguments are not implemented.');
     }
     return new Future<InstanceMirror>(
         () => newInstance(
@@ -703,12 +707,27 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     return _superclass == this ? null : _superclass;
   }
 
-  // TODO(ahe): Implement these;
   InstanceMirror invoke(Symbol memberName,
                         List positionalArguments,
                         [Map<Symbol,dynamic> namedArguments]) {
-    throw new UnimplementedError();
+    // Mirror API gotcha: Calling [invoke] on a ClassMirror means invoke a
+    // static method.
+
+    if (namedArguments != null && !namedArguments.isEmpty) {
+      throw new UnsupportedError('Named arguments are not implemented.');
+    }
+    JsMethodMirror mirror = methods[memberName];
+    if (mirror == null || !mirror.isStatic) {
+      // TODO(ahe): Pass namedArguments when NoSuchMethodError has
+      // been fixed to use Symbol.
+      // TODO(ahe): What receiver to use?
+      throw new NoSuchMethodError(
+          this, n(memberName), positionalArguments, null);
+    }
+    return reflect(mirror._invoke(positionalArguments, namedArguments));
   }
+
+  // TODO(ahe): Implement these.
   List<ClassMirror> get superinterfaces => throw new UnimplementedError();
   Map<Symbol, TypeVariableMirror> get typeVariables
       => throw new UnimplementedError();
@@ -943,6 +962,24 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
     int index = name.indexOf('.');
     if (index == -1) return const Symbol('');
     return s(name.substring(index + 1));
+  }
+
+  _invoke(List positionalArguments, [Map<Symbol, dynamic> namedArguments]) {
+    if (namedArguments != null && !namedArguments.isEmpty) {
+      throw new UnsupportedError('Named arguments are not implemented.');
+    }
+    if (!isStatic && !isConstructor) {
+      throw new RuntimeError('Cannot invoke instance method without receiver.');
+    }
+    if (_parameterCount != positionalArguments.length || _jsFunction == null) {
+      // TODO(ahe): Pass namedArguments when NoSuchMethodError has
+      // been fixed to use Symbol.
+      // TODO(ahe): What receiver to use?
+      throw new NoSuchMethodError(
+          owner, n(simpleName), positionalArguments, null);
+    }
+    return JS('', r'#.apply(#, #)', _jsFunction, JS_CURRENT_ISOLATE(),
+              new List.from(positionalArguments));
   }
 
   // TODO(ahe): Implement these.
