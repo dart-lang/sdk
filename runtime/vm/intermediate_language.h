@@ -4330,10 +4330,11 @@ class CheckEitherNonSmiInstr : public TemplateInstruction<2> {
  public:
   CheckEitherNonSmiInstr(Value* left,
                          Value* right,
-                         InstanceCallInstr* instance_call) {
+                         intptr_t deopt_id) {
     SetInputAt(0, left);
     SetInputAt(1, right);
-    deopt_id_ = instance_call->deopt_id();
+    // Override generated deopt-id.
+    deopt_id_ = deopt_id;
   }
 
   Value* left() const { return inputs_[0]; }
@@ -4660,11 +4661,12 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2> {
   BinaryDoubleOpInstr(Token::Kind op_kind,
                       Value* left,
                       Value* right,
-                      InstanceCallInstr* instance_call)
+                      intptr_t deopt_id)
       : op_kind_(op_kind) {
     SetInputAt(0, left);
     SetInputAt(1, right);
-    deopt_id_ = instance_call->deopt_id();
+    // Overrided generated deopt_id.
+    deopt_id_ = deopt_id;
   }
 
   Value* left() const { return inputs_[0]; }
@@ -5678,20 +5680,18 @@ class BinaryMintOpInstr : public TemplateDefinition<2> {
   BinaryMintOpInstr(Token::Kind op_kind,
                            Value* left,
                            Value* right,
-                           InstanceCallInstr* instance_call)
-      : op_kind_(op_kind),
-        instance_call_(instance_call) {
+                           intptr_t deopt_id)
+      : op_kind_(op_kind) {
     SetInputAt(0, left);
     SetInputAt(1, right);
-    deopt_id_ = instance_call->deopt_id();
+    // Override generated deopt-id.
+    deopt_id_ = deopt_id;
   }
 
   Value* left() const { return inputs_[0]; }
   Value* right() const { return inputs_[1]; }
 
   Token::Kind op_kind() const { return op_kind_; }
-
-  InstanceCallInstr* instance_call() const { return instance_call_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -5731,7 +5731,6 @@ class BinaryMintOpInstr : public TemplateDefinition<2> {
 
  private:
   const Token::Kind op_kind_;
-  InstanceCallInstr* instance_call_;
 
   DISALLOW_COPY_AND_ASSIGN(BinaryMintOpInstr);
 };
@@ -5742,12 +5741,13 @@ class ShiftMintOpInstr : public TemplateDefinition<2> {
   ShiftMintOpInstr(Token::Kind op_kind,
                    Value* left,
                    Value* right,
-                   InstanceCallInstr* instance_call)
+                   intptr_t deopt_id)
       : op_kind_(op_kind) {
     ASSERT(op_kind == Token::kSHR || op_kind == Token::kSHL);
     SetInputAt(0, left);
     SetInputAt(1, right);
-    deopt_id_ = instance_call->deopt_id();
+    // Override generated deopt-id.
+    deopt_id_ = deopt_id;
   }
 
   Value* left() const { return inputs_[0]; }
@@ -5796,13 +5796,12 @@ class ShiftMintOpInstr : public TemplateDefinition<2> {
 
 class UnaryMintOpInstr : public TemplateDefinition<1> {
  public:
-  UnaryMintOpInstr(Token::Kind op_kind,
-                          Value* value,
-                          InstanceCallInstr* instance_call)
+  UnaryMintOpInstr(Token::Kind op_kind, Value* value, intptr_t deopt_id)
       : op_kind_(op_kind) {
     ASSERT(op_kind == Token::kBIT_NOT);
     SetInputAt(0, value);
-    deopt_id_ = instance_call->deopt_id();
+    // Override generated deopt-id.
+    deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
@@ -5850,26 +5849,22 @@ class UnaryMintOpInstr : public TemplateDefinition<1> {
 class BinarySmiOpInstr : public TemplateDefinition<2> {
  public:
   BinarySmiOpInstr(Token::Kind op_kind,
-                   InstanceCallInstr* instance_call,
                    Value* left,
-                   Value* right)
+                   Value* right,
+                   intptr_t deopt_id)
       : op_kind_(op_kind),
-        instance_call_(instance_call),
         overflow_(true),
         is_truncating_(false) {
     SetInputAt(0, left);
     SetInputAt(1, right);
-    deopt_id_ = instance_call->deopt_id();
+    // Override generated deopt-id.
+    deopt_id_ = deopt_id;
   }
 
   Value* left() const { return inputs_[0]; }
   Value* right() const { return inputs_[1]; }
 
   Token::Kind op_kind() const { return op_kind_; }
-
-  InstanceCallInstr* instance_call() const { return instance_call_; }
-
-  const ICData* ic_data() const { return instance_call()->ic_data(); }
 
   void set_overflow(bool overflow) { overflow_ = overflow; }
 
@@ -5902,7 +5897,6 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
 
  private:
   const Token::Kind op_kind_;
-  InstanceCallInstr* instance_call_;
   bool overflow_;
   bool is_truncating_;
 
@@ -5914,12 +5908,13 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
 class UnarySmiOpInstr : public TemplateDefinition<1> {
  public:
   UnarySmiOpInstr(Token::Kind op_kind,
-                  InstanceCallInstr* instance_call,
-                  Value* value)
+                  Value* value,
+                  intptr_t deopt_id)
       : op_kind_(op_kind) {
     ASSERT((op_kind == Token::kNEGATE) || (op_kind == Token::kBIT_NOT));
     SetInputAt(0, value);
-    deopt_id_ = instance_call->deopt_id();
+    // Override generated deopt-id.
+    deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
@@ -6041,9 +6036,10 @@ class DoubleToIntegerInstr : public TemplateDefinition<1> {
 // and creates a Smi.
 class DoubleToSmiInstr : public TemplateDefinition<1> {
  public:
-  DoubleToSmiInstr(Value* value, InstanceCallInstr* instance_call) {
+  DoubleToSmiInstr(Value* value, intptr_t deopt_id) {
     SetInputAt(0, value);
-    deopt_id_ = instance_call->deopt_id();
+    // Override generated deopt-id.
+    deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
@@ -6072,11 +6068,12 @@ class DoubleToSmiInstr : public TemplateDefinition<1> {
 class DoubleToDoubleInstr : public TemplateDefinition<1> {
  public:
   DoubleToDoubleInstr(Value* value,
-                      InstanceCallInstr* instance_call,
-                      MethodRecognizer::Kind recognized_kind)
+                      MethodRecognizer::Kind recognized_kind,
+                      intptr_t deopt_id)
     : recognized_kind_(recognized_kind) {
     SetInputAt(0, value);
-    deopt_id_ = instance_call->deopt_id();
+    // Override generated deopt-id.
+    deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
@@ -6258,12 +6255,11 @@ class CheckSmiInstr : public TemplateInstruction<1> {
 
 class CheckArrayBoundInstr : public TemplateInstruction<2> {
  public:
-  CheckArrayBoundInstr(Value* length,
-                       Value* index,
-                       InstanceCallInstr* instance_call) {
+  CheckArrayBoundInstr(Value* length, Value* index, intptr_t deopt_id) {
     SetInputAt(kLengthPos, length);
     SetInputAt(kIndexPos, index);
-    deopt_id_ = instance_call->deopt_id();
+    // Override generated deopt-id.
+    deopt_id_ = deopt_id;
   }
 
   Value* length() const { return inputs_[kLengthPos]; }
