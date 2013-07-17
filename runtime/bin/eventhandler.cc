@@ -13,11 +13,12 @@
 namespace dart {
 namespace bin {
 
-static const int kNativeEventHandlerFieldIndex = 0;
 static const intptr_t kTimerId = -1;
 static const intptr_t kInvalidId = -2;
 
 static EventHandler* event_handler = NULL;
+// TODO(ajohnsen): Consider removing mutex_ if we can enforce an invariant
+//    that eventhandler is kept alive untill all isolates are closed.
 static dart::Mutex* mutex_ = new dart::Mutex();
 
 
@@ -62,17 +63,11 @@ void TimeoutQueue::UpdateTimeout(Dart_Port port, int64_t timeout) {
 }
 
 
-/*
- * Returns the reference of the EventHandler stored in the native field.
- */
-static EventHandler* GetEventHandler(Dart_Handle handle) {
-  ASSERT(event_handler != NULL);
-  return event_handler;
-}
-
 void EventHandler::Stop() {
+  MutexLocker locker(mutex_);
   if (event_handler == NULL) return;
   event_handler->Shutdown();
+  event_handler = NULL;
 }
 
 
@@ -95,8 +90,6 @@ void FUNCTION_NAME(EventHandler_Start)(Dart_NativeArguments args) {
  */
 void FUNCTION_NAME(EventHandler_SendData)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  Dart_Handle handle = Dart_GetNativeArgument(args, 0);
-  EventHandler* event_handler = GetEventHandler(handle);
   Dart_Handle sender = Dart_GetNativeArgument(args, 1);
   intptr_t id = kInvalidId;
   if (Dart_IsNull(sender)) {
@@ -104,11 +97,18 @@ void FUNCTION_NAME(EventHandler_SendData)(Dart_NativeArguments args) {
   } else {
     Socket::GetSocketIdNativeField(sender, &id);
   }
-  handle = Dart_GetNativeArgument(args, 2);
+  Dart_Handle handle = Dart_GetNativeArgument(args, 2);
   Dart_Port dart_port =
       DartUtils::GetIntegerField(handle, DartUtils::kIdFieldName);
   int64_t data = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
-  event_handler->SendData(id, dart_port, data);
+  {
+    MutexLocker locker(mutex_);
+    // Only send if the event_handler is not NULL. This means that the handler
+    // shut down, and a message is send later on.
+    if (event_handler != NULL) {
+      event_handler->SendData(id, dart_port, data);
+    }
+  }
   Dart_ExitScope();
 }
 
