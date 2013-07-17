@@ -71,13 +71,15 @@ class CustomTestSuite extends TestSuite {
   }
 
   TestCase _makeNormalTestCase(name, expectations) {
-    var command = new Command(Platform.executable,
+    var command = new Command('custom',
+                              Platform.executable,
                               [Platform.script, name]);
     return _makeTestCase(name, DEFAULT_TIMEOUT, command, expectations);
   }
 
   _makeCrashTestCase(name, expectations) {
-    var crashCommand = new Command(getProcessTestFileName(),
+    var crashCommand = new Command('custom_crash',
+                                   getProcessTestFileName(),
                                    ["0", "0", "1", "1"]);
     // The crash test sometimes times out. Run it with a large timeout
     // to help diagnose the delay.
