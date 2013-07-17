@@ -2023,6 +2023,8 @@ class CodeEmitterTask extends CompilerTask {
    * that needs to be emitted.
    */
   Function computeClassFilter() {
+    if (backend.isTreeShakingDisabled) return (ClassElement cls) => true;
+
     Set<ClassElement> unneededClasses = new Set<ClassElement>();
     // The [Bool] class is not marked as abstract, but has a factory
     // constructor that always throws. We never need to emit it.

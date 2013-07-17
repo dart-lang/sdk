@@ -34,9 +34,9 @@ main() {
   var i = methods[const Symbol('i')];
 
   expect('Type(s(dynamic), top-level)', f.returnType);
-  expect('Type(s(int) in s(dart.core), top-level)', g.returnType);
-  expect('Type(s(List) in s(dart.core), top-level)', h.returnType);
-  expect('Type(s(B) in s(test.return_type_test), top-level)', i.returnType);
+  expect('Class(s(int) in s(dart.core), top-level)', g.returnType);
+  expect('Class(s(List) in s(dart.core), top-level)', h.returnType);
+  expect('Class(s(B) in s(test.return_type_test), top-level)', i.returnType);
 
   print(methods);
 }

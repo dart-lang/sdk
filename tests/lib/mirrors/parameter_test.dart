@@ -27,23 +27,23 @@ main() {
   var unnamedConstructor = constructors[new Symbol('B')];
 
   expect('[]', unnamedConstructor.parameters);
-  expect('Type(s(B) in s(test.parameter_test), top-level)',
+  expect('Class(s(B) in s(test.parameter_test), top-level)',
          unnamedConstructor.returnType);
 
   var fooConstructor = constructors[new Symbol('B.foo')];
   expect('[Parameter(s(x) in s(B.foo),'
-         ' type = Type(s(int) in s(dart.core), top-level))]',
+         ' type = Class(s(int) in s(dart.core), top-level))]',
          fooConstructor.parameters);
-  expect('Type(s(B) in s(test.parameter_test), top-level)',
+  expect('Class(s(B) in s(test.parameter_test), top-level)',
          fooConstructor.returnType);
 
   var barConstructor = constructors[new Symbol('B.bar')];
   expect('[Parameter(s(z) in s(B.bar),'
-         ' type = Type(s(int) in s(dart.core), top-level)), '
+         ' type = Class(s(int) in s(dart.core), top-level)), '
          'Parameter(s(x) in s(B.bar),'
          ' type = Type(s(dynamic), top-level))]',
          barConstructor.parameters);
-  expect('Type(s(B) in s(test.parameter_test), top-level)',
+  expect('Class(s(B) in s(test.parameter_test), top-level)',
          barConstructor.returnType);
 
   print(constructors);

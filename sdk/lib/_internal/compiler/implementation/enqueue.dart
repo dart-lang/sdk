@@ -326,8 +326,15 @@ abstract class Enqueuer {
       ClassElement cls = element.declaration.getEnclosingClass();
       registerInstantiatedType(cls.rawType, elements);
       registerStaticUse(element.declaration);
+    } else if (element.isMixinApplication) {
+      // Don't enqueue mixin applications.
+    } else if (element.isClass()) {
+      ClassElement cls = element.declaration;
+      registerInstantiatedType(cls.rawType, elements);
+      // Make sure that even abstract classes are considered instantiated.
+      universe.instantiatedClasses.add(cls);
     } else if (element.impliesType()) {
-      // Don't enqueue classes, typedefs, and type variables.
+      // Don't enqueue typedefs, and type variables.
     } else if (Elements.isStaticOrTopLevel(element)) {
       registerStaticUse(element.declaration);
     } else if (element.isInstanceMember()) {
