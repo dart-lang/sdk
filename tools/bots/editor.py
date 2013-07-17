@@ -126,8 +126,7 @@ def main():
     editor_executable = GetEditorExecutable('Release', arch)
     with bot.BuildStep('Test Editor %s' % arch):
       with utils.TempDir('eclipse') as temp_dir:
-        args = [editor_executable, '-consoleLog', '--test', '--auto-exit',
-                '-data', temp_dir]
+        args = [editor_executable, '--test', '--auto-exit', '-data', temp_dir]
         RunProcess(args)
 
   # TODO: Permissions need to be clarified
