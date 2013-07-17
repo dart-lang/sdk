@@ -190,7 +190,8 @@ void doTest(String allocation, {bool nullify}) {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(generateTest(allocation), uri);
   compiler.runCompiler(uri);
-  var typesInferrer = compiler.typesTask.typesInferrer;
+  var typesTask = compiler.typesTask;
+  var typesInferrer = typesTask.typesInferrer;
 
   checkType(String name, type) {
     var element = findElement(compiler, name);
@@ -199,29 +200,29 @@ void doTest(String allocation, {bool nullify}) {
     Expect.equals(type, mask.elementType.simplify(compiler), name);
   }
 
-  checkType('listInField', typesInferrer.numType);
-  checkType('listPassedToMethod', typesInferrer.numType);
-  checkType('listReturnedFromMethod', typesInferrer.numType);
-  checkType('listUsedWithCascade', typesInferrer.numType);
-  checkType('listUsedInClosure', typesInferrer.numType);
-  checkType('listPassedToSelector', typesInferrer.numType);
-  checkType('listReturnedFromSelector', typesInferrer.numType);
-  checkType('listUsedWithAddAndInsert', typesInferrer.numType);
-  checkType('listUsedWithConstraint', typesInferrer.numType);
-  checkType('listEscapingFromSetter', typesInferrer.numType);
-  checkType('listUsedInLocal', typesInferrer.numType);
-  checkType('listEscapingInSetterValue', typesInferrer.numType);
-  checkType('listEscapingInIndex', typesInferrer.numType);
-  checkType('listEscapingInIndexSet', typesInferrer.intType);
-  checkType('listEscapingTwiceInIndexSet', typesInferrer.numType);
-  checkType('listSetInNonFinalField', typesInferrer.numType);
-  checkType('listWithChangedLength', typesInferrer.intType.nullable());
+  checkType('listInField', typesTask.numType);
+  checkType('listPassedToMethod', typesTask.numType);
+  checkType('listReturnedFromMethod', typesTask.numType);
+  checkType('listUsedWithCascade', typesTask.numType);
+  checkType('listUsedInClosure', typesTask.numType);
+  checkType('listPassedToSelector', typesTask.numType);
+  checkType('listReturnedFromSelector', typesTask.numType);
+  checkType('listUsedWithAddAndInsert', typesTask.numType);
+  checkType('listUsedWithConstraint', typesTask.numType);
+  checkType('listEscapingFromSetter', typesTask.numType);
+  checkType('listUsedInLocal', typesTask.numType);
+  checkType('listEscapingInSetterValue', typesTask.numType);
+  checkType('listEscapingInIndex', typesTask.numType);
+  checkType('listEscapingInIndexSet', typesTask.intType);
+  checkType('listEscapingTwiceInIndexSet', typesTask.numType);
+  checkType('listSetInNonFinalField', typesTask.numType);
+  checkType('listWithChangedLength', typesTask.intType.nullable());
 
-  checkType('listPassedToClosure', typesInferrer.dynamicType);
-  checkType('listReturnedFromClosure', typesInferrer.dynamicType);
-  checkType('listUsedWithNonOkSelector', typesInferrer.dynamicType);
-  checkType('listPassedAsOptionalParameter', typesInferrer.dynamicType);
-  checkType('listPassedAsNamedParameter', typesInferrer.dynamicType);
+  checkType('listPassedToClosure', typesTask.dynamicType);
+  checkType('listReturnedFromClosure', typesTask.dynamicType);
+  checkType('listUsedWithNonOkSelector', typesTask.dynamicType);
+  checkType('listPassedAsOptionalParameter', typesTask.dynamicType);
+  checkType('listPassedAsNamedParameter', typesTask.dynamicType);
 
   if (!allocation.contains('filled')) {
     checkType('listUnset', new TypeMask.nonNullEmpty());

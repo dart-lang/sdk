@@ -157,7 +157,8 @@ void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   compiler.runCompiler(uri);
-  var typesInferrer = compiler.typesTask.typesInferrer;
+  var typesTask = compiler.typesTask;
+  var typesInferrer = typesTask.typesInferrer;
 
   checkReturn(String name, type) {
     var element = findElement(compiler, name);
@@ -165,11 +166,11 @@ void main() {
         typesInferrer.getReturnTypeOfElement(element).simplify(compiler));
   }
 
-  checkReturn('returnInt1', typesInferrer.intType);
-  checkReturn('returnInt2', typesInferrer.intType);
-  checkReturn('returnInt3', typesInferrer.intType);
-  checkReturn('returnInt4', typesInferrer.intType);
-  checkReturn('returnInt5', typesInferrer.intType);
+  checkReturn('returnInt1', typesTask.intType);
+  checkReturn('returnInt2', typesTask.intType);
+  checkReturn('returnInt3', typesTask.intType);
+  checkReturn('returnInt4', typesTask.intType);
+  checkReturn('returnInt5', typesTask.intType);
   checkReturn('returnInt6',
       new TypeMask.nonNullSubtype(compiler.intClass.rawType));
 
@@ -181,5 +182,5 @@ void main() {
   checkReturn('returnDyn3', subclassOfInterceptor);
   checkReturn('returnDyn4', subclassOfInterceptor);
   checkReturn('returnDyn5', subclassOfInterceptor);
-  checkReturn('returnDyn6', typesInferrer.dynamicType);
+  checkReturn('returnDyn6', typesTask.dynamicType);
 }

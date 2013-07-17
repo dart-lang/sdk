@@ -20,7 +20,7 @@ void compileAndFind(String code,
   compiler.runCompiler(uri);
   var cls = findElement(compiler, className);
   var member = cls.lookupLocalMember(buildSourceString(memberName));
-  return check(compiler.typesTask.typesInferrer, member);
+  return check(compiler, member);
 }
 
 const String TEST_1 = r"""
@@ -216,13 +216,14 @@ void doTest(String test, bool enableInlining, Function f) {
     'A',
     'x',
     enableInlining,
-    (inferrer, element) {
-      var expectedTypes = f(inferrer);
-      var signature = element.computeSignature(inferrer.compiler);
+    (compiler, element) {
+      var expectedTypes = f(compiler);
+      var signature = element.computeSignature(compiler);
       int index = 0;
+      var inferrer = compiler.typesTask.typesInferrer;
       signature.forEachParameter((Element element) {
         Expect.equals(expectedTypes[index++],
-            inferrer.getTypeOfElement(element).simplify(inferrer.compiler));
+            inferrer.getTypeOfElement(element).simplify(compiler));
       });
       Expect.equals(index, expectedTypes.length);
   });
@@ -233,47 +234,52 @@ void runTest(String test, Function f) {
   doTest(test, true, f);
 }
 
-subclassOfInterceptor(inferrer) {
-  return findTypeMask(inferrer.compiler, 'Interceptor', 'nonNullSubclass');
+subclassOfInterceptor(compiler) {
+  return findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
 }
 
 void test() {
-  runTest(TEST_1, (inferrer) => [inferrer.stringType]);
-  runTest(TEST_2, (inferrer) => [inferrer.intType]);
-  runTest(TEST_3, (inferrer) => [inferrer.numType]);
-  runTest(TEST_4, (inferrer) => [inferrer.numType]);
-  runTest(TEST_5, (inferrer) => [inferrer.numType]);
-  runTest(TEST_6, (inferrer) => [inferrer.numType]);
-  runTest(TEST_7a, (inferrer) => [subclassOfInterceptor(inferrer)]);
-  runTest(TEST_7b, (inferrer) => [inferrer.dynamicType.nonNullable()]);
+  runTest(TEST_1, (compiler) => [compiler.typesTask.stringType]);
+  runTest(TEST_2, (compiler) => [compiler.typesTask.intType]);
+  runTest(TEST_3, (compiler) => [compiler.typesTask.numType]);
+  runTest(TEST_4, (compiler) => [compiler.typesTask.numType]);
+  runTest(TEST_5, (compiler) => [compiler.typesTask.numType]);
+  runTest(TEST_6, (compiler) => [compiler.typesTask.numType]);
+  runTest(TEST_7a, (compiler) => [subclassOfInterceptor(compiler)]);
+  runTest(TEST_7b,
+      (compiler) => [compiler.typesTask.dynamicType.nonNullable()]);
 
-  runTest(TEST_8, (inferrer) => [inferrer.intType,
-                                 subclassOfInterceptor(inferrer),
-                                 inferrer.dynamicType.nonNullable()]);
-  runTest(TEST_9, (inferrer) => [inferrer.intType, inferrer.intType]);
-  runTest(TEST_10, (inferrer) => [subclassOfInterceptor(inferrer),
-                                  subclassOfInterceptor(inferrer)]);
-  runTest(TEST_11, (inferrer) => [subclassOfInterceptor(inferrer),
-                                  subclassOfInterceptor(inferrer)]);
+  runTest(TEST_8, (compiler) => [compiler.typesTask.intType,
+                                 subclassOfInterceptor(compiler),
+                                 compiler.typesTask.dynamicType.nonNullable()]);
+  runTest(TEST_9, (compiler) => [compiler.typesTask.intType,
+                                 compiler.typesTask.intType]);
+  runTest(TEST_10, (compiler) => [subclassOfInterceptor(compiler),
+                                  subclassOfInterceptor(compiler)]);
+  runTest(TEST_11, (compiler) => [subclassOfInterceptor(compiler),
+                                  subclassOfInterceptor(compiler)]);
 
-  runTest(TEST_12, (inferrer) => [inferrer.stringType, inferrer.intType]);
+  runTest(TEST_12, (compiler) => [compiler.typesTask.stringType,
+                                  compiler.typesTask.intType]);
 
-  runTest(TEST_13, (inferrer) => [inferrer.numType]);
+  runTest(TEST_13, (compiler) => [compiler.typesTask.numType]);
 
-  runTest(TEST_14, (inferrer) => [inferrer.intType, inferrer.stringType]);
+  runTest(TEST_14, (compiler) => [compiler.typesTask.intType,
+                                  compiler.typesTask.stringType]);
 
-  runTest(TEST_15, (inferrer) => [inferrer.stringType, inferrer.boolType]);
+  runTest(TEST_15, (compiler) => [compiler.typesTask.stringType,
+                                  compiler.typesTask.boolType]);
 
-  runTest(TEST_16, (inferrer) => [inferrer.intType,
-                                  inferrer.intType,
-                                  inferrer.stringType]);
+  runTest(TEST_16, (compiler) => [compiler.typesTask.intType,
+                                  compiler.typesTask.intType,
+                                  compiler.typesTask.stringType]);
 
-  runTest(TEST_17, (inferrer) => [inferrer.intType,
-                                  inferrer.boolType,
-                                  inferrer.doubleType]);
+  runTest(TEST_17, (compiler) => [compiler.typesTask.intType,
+                                  compiler.typesTask.boolType,
+                                  compiler.typesTask.doubleType]);
 
-  runTest(TEST_18, (inferrer) => [subclassOfInterceptor(inferrer),
-                                  subclassOfInterceptor(inferrer)]);
+  runTest(TEST_18, (compiler) => [subclassOfInterceptor(compiler),
+                                  subclassOfInterceptor(compiler)]);
 }
 
 void main() {

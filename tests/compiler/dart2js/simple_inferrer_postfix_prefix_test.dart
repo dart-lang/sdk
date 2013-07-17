@@ -64,7 +64,8 @@ void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   compiler.runCompiler(uri);
-  var typesInferrer = compiler.typesTask.typesInferrer;
+  var typesTask = compiler.typesTask;
+  var typesInferrer = typesTask.typesInferrer;
 
   checkReturnInClass(String className, String methodName, type) {
     var cls = findElement(compiler, className);
@@ -76,20 +77,20 @@ void main() {
   var subclassOfInterceptor =
       findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
 
-  checkReturnInClass('A', 'returnNum1', typesInferrer.numType);
-  checkReturnInClass('A', 'returnNum2', typesInferrer.numType);
-  checkReturnInClass('A', 'returnNum3', typesInferrer.numType);
-  checkReturnInClass('A', 'returnNum4', typesInferrer.numType);
-  checkReturnInClass('A', 'returnNum5', typesInferrer.numType);
-  checkReturnInClass('A', 'returnNum6', typesInferrer.numType);
+  checkReturnInClass('A', 'returnNum1', typesTask.numType);
+  checkReturnInClass('A', 'returnNum2', typesTask.numType);
+  checkReturnInClass('A', 'returnNum3', typesTask.numType);
+  checkReturnInClass('A', 'returnNum4', typesTask.numType);
+  checkReturnInClass('A', 'returnNum5', typesTask.numType);
+  checkReturnInClass('A', 'returnNum6', typesTask.numType);
   checkReturnInClass('A', 'returnDynamic1', subclassOfInterceptor);
   checkReturnInClass('A', 'returnDynamic2', subclassOfInterceptor);
-  checkReturnInClass('A', 'returnDynamic3', typesInferrer.dynamicType);
+  checkReturnInClass('A', 'returnDynamic3', typesTask.dynamicType);
 
-  checkReturnInClass('B', 'returnString1', typesInferrer.stringType);
-  checkReturnInClass('B', 'returnString2', typesInferrer.stringType);
-  checkReturnInClass('B', 'returnDynamic1', typesInferrer.dynamicType);
-  checkReturnInClass('B', 'returnDynamic2', typesInferrer.dynamicType);
-  checkReturnInClass('B', 'returnDynamic3', typesInferrer.dynamicType);
-  checkReturnInClass('B', 'returnDynamic4', typesInferrer.dynamicType);
+  checkReturnInClass('B', 'returnString1', typesTask.stringType);
+  checkReturnInClass('B', 'returnString2', typesTask.stringType);
+  checkReturnInClass('B', 'returnDynamic1', typesTask.dynamicType);
+  checkReturnInClass('B', 'returnDynamic2', typesTask.dynamicType);
+  checkReturnInClass('B', 'returnDynamic3', typesTask.dynamicType);
+  checkReturnInClass('B', 'returnDynamic4', typesTask.dynamicType);
 }

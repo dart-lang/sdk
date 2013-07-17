@@ -485,7 +485,8 @@ void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   compiler.runCompiler(uri);
-  var typesInferrer = compiler.typesTask.typesInferrer;
+  var typesTask = compiler.typesTask;
+  var typesInferrer = typesTask.typesInferrer;
 
   checkReturn(String name, type) {
     var element = findElement(compiler, name);
@@ -497,63 +498,63 @@ void main() {
   var interceptorType =
       findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
 
-  checkReturn('returnNum1', typesInferrer.numType);
-  checkReturn('returnNum2', typesInferrer.numType);
-  checkReturn('returnInt1', typesInferrer.intType);
-  checkReturn('returnInt2', typesInferrer.intType);
-  checkReturn('returnDouble', typesInferrer.doubleType);
+  checkReturn('returnNum1', typesTask.numType);
+  checkReturn('returnNum2', typesTask.numType);
+  checkReturn('returnInt1', typesTask.intType);
+  checkReturn('returnInt2', typesTask.intType);
+  checkReturn('returnDouble', typesTask.doubleType);
   checkReturn('returnGiveUp', interceptorType);
-  checkReturn('returnInt5', typesInferrer.intType);
-  checkReturn('returnInt6', typesInferrer.intType);
-  checkReturn('returnIntOrNull', typesInferrer.intType.nullable());
-  checkReturn('returnInt3', typesInferrer.intType);
-  checkReturn('returnDynamic', typesInferrer.dynamicType);
-  checkReturn('returnInt4', typesInferrer.intType);
-  checkReturn('returnInt7', typesInferrer.intType);
-  checkReturn('returnInt8', typesInferrer.intType);
-  checkReturn('returnDynamic1', typesInferrer.dynamicType);
-  checkReturn('returnDynamic2', typesInferrer.dynamicType);
+  checkReturn('returnInt5', typesTask.intType);
+  checkReturn('returnInt6', typesTask.intType);
+  checkReturn('returnIntOrNull', typesTask.intType.nullable());
+  checkReturn('returnInt3', typesTask.intType);
+  checkReturn('returnDynamic', typesTask.dynamicType);
+  checkReturn('returnInt4', typesTask.intType);
+  checkReturn('returnInt7', typesTask.intType);
+  checkReturn('returnInt8', typesTask.intType);
+  checkReturn('returnDynamic1', typesTask.dynamicType);
+  checkReturn('returnDynamic2', typesTask.dynamicType);
   TypeMask intType = new TypeMask.nonNullSubtype(compiler.intClass.rawType);
   checkReturn('testIsCheck1', intType);
   checkReturn('testIsCheck2', intType);
   checkReturn('testIsCheck3', intType.nullable());
   checkReturn('testIsCheck4', intType);
   checkReturn('testIsCheck5', intType);
-  checkReturn('testIsCheck6', typesInferrer.dynamicType);
+  checkReturn('testIsCheck6', typesTask.dynamicType);
   checkReturn('testIsCheck7', intType);
-  checkReturn('testIsCheck8', typesInferrer.dynamicType);
+  checkReturn('testIsCheck8', typesTask.dynamicType);
   checkReturn('testIsCheck9', intType);
-  checkReturn('testIsCheck10', typesInferrer.dynamicType);
+  checkReturn('testIsCheck10', typesTask.dynamicType);
   checkReturn('testIsCheck11', intType);
-  checkReturn('testIsCheck12', typesInferrer.dynamicType);
+  checkReturn('testIsCheck12', typesTask.dynamicType);
   checkReturn('testIsCheck13', intType);
-  checkReturn('testIsCheck14', typesInferrer.dynamicType);
+  checkReturn('testIsCheck14', typesTask.dynamicType);
   checkReturn('testIsCheck15', intType);
-  checkReturn('testIsCheck16', typesInferrer.dynamicType);
+  checkReturn('testIsCheck16', typesTask.dynamicType);
   checkReturn('testIsCheck17', intType);
-  checkReturn('testIsCheck18', typesInferrer.dynamicType);
-  checkReturn('testIsCheck19', typesInferrer.dynamicType);
-  checkReturn('testIsCheck20', typesInferrer.dynamicType.nonNullable());
+  checkReturn('testIsCheck18', typesTask.dynamicType);
+  checkReturn('testIsCheck19', typesTask.dynamicType);
+  checkReturn('testIsCheck20', typesTask.dynamicType.nonNullable());
   checkReturn('returnAsString',
       new TypeMask.subtype(compiler.stringClass.computeType(compiler)));
-  checkReturn('returnIntAsNum', typesInferrer.intType);
-  checkReturn('returnAsTypedef', typesInferrer.functionType.nullable());
-  checkReturn('returnTopLevelGetter', typesInferrer.intType);
-  checkReturn('testDeadCode', typesInferrer.intType);
-  checkReturn('testLabeledIf', typesInferrer.intType.nullable());
-  checkReturn('testSwitch1', typesInferrer.intType
-      .union(typesInferrer.doubleType, compiler).nullable().simplify(compiler));
-  checkReturn('testSwitch2', typesInferrer.intType);
+  checkReturn('returnIntAsNum', typesTask.intType);
+  checkReturn('returnAsTypedef', typesTask.functionType.nullable());
+  checkReturn('returnTopLevelGetter', typesTask.intType);
+  checkReturn('testDeadCode', typesTask.intType);
+  checkReturn('testLabeledIf', typesTask.intType.nullable());
+  checkReturn('testSwitch1', typesTask.intType
+      .union(typesTask.doubleType, compiler).nullable().simplify(compiler));
+  checkReturn('testSwitch2', typesTask.intType);
   checkReturn('testSwitch3', interceptorType.nullable());
-  checkReturn('testSwitch4', typesInferrer.intType);
+  checkReturn('testSwitch4', typesTask.intType);
   checkReturn('testContinue1', interceptorType.nullable());
   checkReturn('testBreak1', interceptorType.nullable());
   checkReturn('testContinue2', interceptorType.nullable());
-  checkReturn('testBreak2', typesInferrer.intType.nullable());
-  checkReturn('testReturnElementOfConstList1', typesInferrer.intType);
-  checkReturn('testReturnElementOfConstList2', typesInferrer.intType);
-  checkReturn('testReturnItselfOrInt', typesInferrer.intType);
-  checkReturn('testReturnInvokeDynamicGetter', typesInferrer.dynamicType);
+  checkReturn('testBreak2', typesTask.intType.nullable());
+  checkReturn('testReturnElementOfConstList1', typesTask.intType);
+  checkReturn('testReturnElementOfConstList2', typesTask.intType);
+  checkReturn('testReturnItselfOrInt', typesTask.intType);
+  checkReturn('testReturnInvokeDynamicGetter', typesTask.dynamicType);
 
   checkReturnInClass(String className, String methodName, type) {
     var cls = findElement(compiler, className);
@@ -562,23 +563,23 @@ void main() {
         typesInferrer.getReturnTypeOfElement(element).simplify(compiler));
   }
 
-  checkReturnInClass('A', 'returnInt1', typesInferrer.intType);
-  checkReturnInClass('A', 'returnInt2', typesInferrer.intType);
-  checkReturnInClass('A', 'returnInt3', typesInferrer.intType);
-  checkReturnInClass('A', 'returnInt4', typesInferrer.intType);
-  checkReturnInClass('A', 'returnInt5', typesInferrer.intType);
-  checkReturnInClass('A', 'returnInt6', typesInferrer.intType);
+  checkReturnInClass('A', 'returnInt1', typesTask.intType);
+  checkReturnInClass('A', 'returnInt2', typesTask.intType);
+  checkReturnInClass('A', 'returnInt3', typesTask.intType);
+  checkReturnInClass('A', 'returnInt4', typesTask.intType);
+  checkReturnInClass('A', 'returnInt5', typesTask.intType);
+  checkReturnInClass('A', 'returnInt6', typesTask.intType);
   checkReturnInClass('A', '==', interceptorType);
 
-  checkReturnInClass('B', 'returnInt1', typesInferrer.intType);
-  checkReturnInClass('B', 'returnInt2', typesInferrer.intType);
-  checkReturnInClass('B', 'returnInt3', typesInferrer.intType);
-  checkReturnInClass('B', 'returnInt4', typesInferrer.intType);
-  checkReturnInClass('B', 'returnInt5', typesInferrer.intType);
-  checkReturnInClass('B', 'returnInt6', typesInferrer.intType);
-  checkReturnInClass('B', 'returnInt7', typesInferrer.intType);
-  checkReturnInClass('B', 'returnInt8', typesInferrer.intType);
-  checkReturnInClass('B', 'returnInt9', typesInferrer.intType);
+  checkReturnInClass('B', 'returnInt1', typesTask.intType);
+  checkReturnInClass('B', 'returnInt2', typesTask.intType);
+  checkReturnInClass('B', 'returnInt3', typesTask.intType);
+  checkReturnInClass('B', 'returnInt4', typesTask.intType);
+  checkReturnInClass('B', 'returnInt5', typesTask.intType);
+  checkReturnInClass('B', 'returnInt6', typesTask.intType);
+  checkReturnInClass('B', 'returnInt7', typesTask.intType);
+  checkReturnInClass('B', 'returnInt8', typesTask.intType);
+  checkReturnInClass('B', 'returnInt9', typesTask.intType);
 
   checkFactoryConstructor(String className, String factoryName) {
     var cls = findElement(compiler, className);

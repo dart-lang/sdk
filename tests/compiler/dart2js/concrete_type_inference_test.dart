@@ -34,7 +34,8 @@ void checkPrintType(String expression, checkType(compiler, type)) {
           printElement.computeSignature(compiler).requiredParameters.head;
         var type = compiler.typesTask.getGuaranteedTypeOfElement(parameter);
         var inferrer = compiler.typesTask.typesInferrer;
-        Expect.identical(inferrer.dynamicType, type.simplify(compiler));
+        Expect.identical(compiler.typesTask.dynamicType,
+                         type.simplify(compiler));
       });
 
   compileAndFind(
@@ -51,28 +52,28 @@ void checkPrintType(String expression, checkType(compiler, type)) {
 void testBasicTypes() {
   checkPrintType('true', (compiler, type) {
     var inferrer = compiler.typesTask.typesInferrer;
-    Expect.identical(inferrer.boolType, type);
+    Expect.identical(compiler.typesTask.boolType, type);
   });
   checkPrintType('1.0', (compiler, type) {
     var inferrer = compiler.typesTask.typesInferrer;
-    Expect.identical(inferrer.doubleType, type);
+    Expect.identical(compiler.typesTask.doubleType, type);
   });
   checkPrintType('1', (compiler, type) {
     var inferrer = compiler.typesTask.typesInferrer;
-    Expect.identical(inferrer.intType, type);
+    Expect.identical(compiler.typesTask.intType, type);
   });
   checkPrintType('[]', (compiler, type) {
     var inferrer = compiler.typesTask.typesInferrer;
     if (type.isForwarding) type = type.forwardTo;
-    Expect.identical(inferrer.growableListType, type);
+    Expect.identical(compiler.typesTask.growableListType, type);
   });
   checkPrintType('null', (compiler, type) {
     var inferrer = compiler.typesTask.typesInferrer;
-    Expect.identical(inferrer.nullType, type);
+    Expect.identical(compiler.typesTask.nullType, type);
   });
   checkPrintType('"foo"', (compiler, type) {
     var inferrer = compiler.typesTask.typesInferrer;
-    Expect.identical(inferrer.stringType, type);
+    Expect.identical(compiler.typesTask.stringType, type);
   });
 }
 
@@ -90,13 +91,13 @@ void testOptionalParameters() {
         var typesTask = compiler.typesTask;
         var inferrer = typesTask.typesInferrer;
         Expect.identical(
-            inferrer.intType,
+            typesTask.intType,
             typesTask.getGuaranteedTypeOfElement(firstParameter));
         Expect.identical(
-            inferrer.nullType,
+            typesTask.nullType,
             typesTask.getGuaranteedTypeOfElement(secondParameter));
         Expect.identical(
-            inferrer.nullType,
+            typesTask.nullType,
             typesTask.getGuaranteedTypeOfElement(thirdParameter));
       });
 }

@@ -90,15 +90,15 @@ void main() {
     Expect.equals(type, typesInferrer.getReturnTypeOfElement(element));
   }
 
-  checkReturn('returnInt1', typesInferrer.intType);
+  checkReturn('returnInt1', compiler.typesTask.intType);
   // TODO(ngeoffray): We don't use types of mutated captured
   // variables anymore, because they could lead to optimistic results
   // needing to be re-analyzed.
-  checkReturn('returnInt2', typesInferrer.dynamicType);
-  checkReturn('returnInt3', typesInferrer.intType);
-  checkReturn('returnInt4', typesInferrer.intType);
+  checkReturn('returnInt2', compiler.typesTask.dynamicType);
+  checkReturn('returnInt3', compiler.typesTask.intType);
+  checkReturn('returnInt4', compiler.typesTask.intType);
 
-  checkReturn('returnDyn1', typesInferrer.dynamicType);
-  checkReturn('returnDyn2', typesInferrer.dynamicType);
-  checkReturn('returnDyn3', typesInferrer.dynamicType);
+  checkReturn('returnDyn1', compiler.typesTask.dynamicType);
+  checkReturn('returnDyn2', compiler.typesTask.dynamicType);
+  checkReturn('returnDyn3', compiler.typesTask.dynamicType);
 }

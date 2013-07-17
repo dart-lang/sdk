@@ -35,6 +35,6 @@ void main() {
     Expect.equals(type, typesInferrer.getTypeOfElement(element));
   }
 
-  checkFieldTypeInClass('A', 'intField', typesInferrer.intType);
-  checkFieldTypeInClass('A', 'stringField', typesInferrer.stringType);
+  checkFieldTypeInClass('A', 'intField', compiler.typesTask.intType);
+  checkFieldTypeInClass('A', 'stringField', compiler.typesTask.stringType);
 }

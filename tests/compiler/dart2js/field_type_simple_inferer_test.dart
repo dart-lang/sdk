@@ -20,7 +20,7 @@ void compileAndFind(String code,
   compiler.disableInlining = disableInlining;
   var cls = findElement(compiler, className);
   var member = cls.lookupMember(buildSourceString(memberName));
-  return check(compiler.typesTask.typesInferrer, member);
+  return check(compiler, member);
 }
 
 const String TEST_1 = r"""
@@ -450,8 +450,9 @@ void doTest(String test, bool disableInlining, Map<String, Function> fields) {
       'A',
       name,
       disableInlining,
-      (inferrer, field) {
-        TypeMask type = f(inferrer);
+      (compiler, field) {
+        TypeMask type = f(compiler);
+        var inferrer = compiler.typesTask.typesInferrer;
         TypeMask inferredType =
             inferrer.getTypeOfElement(field).simplify(inferrer.compiler);
         Expect.equals(type, inferredType, name);
@@ -465,17 +466,16 @@ void runTest(String test, Map<String, Function> fields) {
 }
 
 void test() {
-  subclassOfInterceptor(inferrer) =>
-      findTypeMask(inferrer.compiler, 'Interceptor', 'nonNullSubclass');
-  dynamicType(inferrer) => inferrer.dynamicType;
+  subclassOfInterceptor(compiler) =>
+      findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
 
-  runTest(TEST_1, {'f': (inferrer) => inferrer.nullType});
-  runTest(TEST_2, {'f1': (inferrer) => inferrer.nullType,
-                   'f2': (inferrer) => inferrer.intType});
-  runTest(TEST_3, {'f1': (inferrer) => inferrer.intType,
-                   'f2': (inferrer) => inferrer.intType.nullable()});
+  runTest(TEST_1, {'f': (compiler) => compiler.typesTask.nullType});
+  runTest(TEST_2, {'f1': (compiler) => compiler.typesTask.nullType,
+                   'f2': (compiler) => compiler.typesTask.intType});
+  runTest(TEST_3, {'f1': (compiler) => compiler.typesTask.intType,
+                   'f2': (compiler) => compiler.typesTask.intType.nullable()});
   runTest(TEST_4, {'f1': subclassOfInterceptor,
-                   'f2': (inferrer) => inferrer.stringType.nullable()});
+                   'f2': (compiler) => compiler.typesTask.stringType.nullable()});
 
   // TODO(ngeoffray): We should try to infer that the initialization
   // code at the declaration site of the fields does not matter.
@@ -486,50 +486,50 @@ void test() {
   runTest(TEST_7, {'f1': subclassOfInterceptor,
                    'f2': subclassOfInterceptor});
 
-  runTest(TEST_8, {'f': (inferrer) => inferrer.stringType.nullable()});
-  runTest(TEST_9, {'f': (inferrer) => inferrer.stringType.nullable()});
-  runTest(TEST_10, {'f': (inferrer) => inferrer.intType});
-  runTest(TEST_11, {'fs': (inferrer) => inferrer.intType});
+  runTest(TEST_8, {'f': (compiler) => compiler.typesTask.stringType.nullable()});
+  runTest(TEST_9, {'f': (compiler) => compiler.typesTask.stringType.nullable()});
+  runTest(TEST_10, {'f': (compiler) => compiler.typesTask.intType});
+  runTest(TEST_11, {'fs': (compiler) => compiler.typesTask.intType});
 
   // TODO(ngeoffray): We should try to infer that the initialization
   // code at the declaration site of the fields does not matter.
   runTest(TEST_12, {'fs': subclassOfInterceptor});
 
-  runTest(TEST_13, {'fs': (inferrer) => inferrer.intType});
-  runTest(TEST_14, {'f': (inferrer) => inferrer.intType});
-  runTest(TEST_15, {'f': (inferrer) {
+  runTest(TEST_13, {'fs': (compiler) => compiler.typesTask.intType});
+  runTest(TEST_14, {'f': (compiler) => compiler.typesTask.intType});
+  runTest(TEST_15, {'f': (compiler) {
                             ClassElement cls =
-                                inferrer.compiler.backend.jsIndexableClass;
+                                compiler.typesTask.compiler.backend.jsIndexableClass;
                             return new TypeMask.nonNullSubtype(cls.rawType);
                          }});
   runTest(TEST_16, {'f': subclassOfInterceptor});
-  runTest(TEST_17, {'f': (inferrer) => inferrer.intType.nullable()});
-  runTest(TEST_18, {'f1': (inferrer) => inferrer.intType,
-                    'f2': (inferrer) => inferrer.stringType,
-                    'f3': (inferrer) => inferrer.dynamicType});
-  runTest(TEST_19, {'f1': (inferrer) => inferrer.intType,
-                    'f2': (inferrer) => inferrer.stringType,
-                    'f3': (inferrer) => inferrer.dynamicType});
-  runTest(TEST_20, {'f': (inferrer) => inferrer.intType.nullable()});
-  runTest(TEST_21, {'f': (inferrer) => inferrer.intType.nullable()});
+  runTest(TEST_17, {'f': (compiler) => compiler.typesTask.intType.nullable()});
+  runTest(TEST_18, {'f1': (compiler) => compiler.typesTask.intType,
+                    'f2': (compiler) => compiler.typesTask.stringType,
+                    'f3': (compiler) => compiler.typesTask.dynamicType});
+  runTest(TEST_19, {'f1': (compiler) => compiler.typesTask.intType,
+                    'f2': (compiler) => compiler.typesTask.stringType,
+                    'f3': (compiler) => compiler.typesTask.dynamicType});
+  runTest(TEST_20, {'f': (compiler) => compiler.typesTask.intType.nullable()});
+  runTest(TEST_21, {'f': (compiler) => compiler.typesTask.intType.nullable()});
 
-  runTest(TEST_22, {'f1': (inferrer) => inferrer.intType,
-                    'f2': (inferrer) => inferrer.intType,
-                    'f3': (inferrer) => inferrer.stringType.nullable()});
+  runTest(TEST_22, {'f1': (compiler) => compiler.typesTask.intType,
+                    'f2': (compiler) => compiler.typesTask.intType,
+                    'f3': (compiler) => compiler.typesTask.stringType.nullable()});
 
-  runTest(TEST_23, {'f1': (inferrer) => inferrer.intType.nullable(),
-                    'f2': (inferrer) => inferrer.intType.nullable(),
-                    'f3': (inferrer) => inferrer.intType.nullable(),
-                    'f4': (inferrer) => inferrer.intType.nullable()});
+  runTest(TEST_23, {'f1': (compiler) => compiler.typesTask.intType.nullable(),
+                    'f2': (compiler) => compiler.typesTask.intType.nullable(),
+                    'f3': (compiler) => compiler.typesTask.intType.nullable(),
+                    'f4': (compiler) => compiler.typesTask.intType.nullable()});
 
-  runTest(TEST_24, {'f1': (inferrer) => inferrer.intType,
-                    'f2': (inferrer) => inferrer.intType,
-                    'f3': (inferrer) => inferrer.intType,
-                    'f4': (inferrer) => inferrer.intType,
-                    'f5': (inferrer) => inferrer.numType.nullable(),
-                    'f6': (inferrer) => inferrer.stringType.nullable()});
+  runTest(TEST_24, {'f1': (compiler) => compiler.typesTask.intType,
+                    'f2': (compiler) => compiler.typesTask.intType,
+                    'f3': (compiler) => compiler.typesTask.intType,
+                    'f4': (compiler) => compiler.typesTask.intType,
+                    'f5': (compiler) => compiler.typesTask.numType.nullable(),
+                    'f6': (compiler) => compiler.typesTask.stringType.nullable()});
 
-  runTest(TEST_25, {'f1': (inferrer) => inferrer.intType });
+  runTest(TEST_25, {'f1': (compiler) => compiler.typesTask.intType });
 }
 
 void main() {
