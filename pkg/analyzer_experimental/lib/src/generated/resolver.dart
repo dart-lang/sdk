@@ -8012,7 +8012,7 @@ class StaticTypeAnalyzer extends SimpleASTVisitor<Object> {
    * @param library the library being tested
    * @return `true` if the library is 'dart:html'
    */
-  bool isHtmlLibrary(LibraryElement library) => library.name == "dart.dom.html";
+  bool isHtmlLibrary(LibraryElement library) => library != null && "dart.dom.html" == library.name;
 
   /**
    * Return `true` if the given node is not a type literal.
@@ -11577,15 +11577,6 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
               return true;
             }
           }
-          List<PropertyAccessorElement> propertyAccessorElts = superclassElement.accessors;
-          for (PropertyAccessorElement accessorElt in propertyAccessorElts) {
-            if (accessorElt.name == executableElementName && accessorElt.isStatic) {
-              _errorReporter.reportError2(StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC, errorNameTarget, [
-                  executableElementName,
-                  accessorElt.enclosingElement.displayName]);
-              return true;
-            }
-          }
           List<MethodElement> methodElements = superclassElement.methods;
           for (MethodElement methodElement in methodElements) {
             if (methodElement.name == executableElementName && methodElement.isStatic) {
@@ -13376,18 +13367,26 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
    * Check to make sure that all similarly typed accessors are of the same type (including inherited
    * accessors).
    *
-   * @param node The accessor currently being visited.
+   * @param node the accessor currently being visited
+   * @return `true` if and only if an error code is generated on the passed node
    */
-  void checkForMismatchedAccessorTypes(Declaration accessorDeclaration, String accessorTextName) {
-    PropertyAccessorElement counterpartAccessor = null;
+  bool checkForMismatchedAccessorTypes(Declaration accessorDeclaration, String accessorTextName) {
     ExecutableElement accessorElement = accessorDeclaration.element as ExecutableElement;
     if (accessorElement is! PropertyAccessorElement) {
-      return;
+      return false;
     }
+    PropertyAccessorElement counterpartAccessor = null;
     PropertyAccessorElement propertyAccessorElement = accessorElement as PropertyAccessorElement;
-    counterpartAccessor = propertyAccessorElement.correspondingSetter;
+    if (propertyAccessorElement.isGetter) {
+      counterpartAccessor = propertyAccessorElement.correspondingSetter;
+    } else {
+      counterpartAccessor = propertyAccessorElement.correspondingGetter;
+      if (counterpartAccessor != null && identical(counterpartAccessor.enclosingElement, propertyAccessorElement.enclosingElement)) {
+        return false;
+      }
+    }
     if (counterpartAccessor == null) {
-      return;
+      return false;
     }
     Type2 getterType = null;
     Type2 setterType = null;
@@ -13404,7 +13403,9 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
           accessorTextName,
           setterType.displayName,
           getterType.displayName]);
+      return true;
     }
+    return false;
   }
 
   /**

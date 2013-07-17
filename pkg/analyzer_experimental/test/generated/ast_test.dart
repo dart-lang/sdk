@@ -16,25 +16,29 @@ import 'parser_test.dart' show ParserTestCase;
 import 'test_support.dart';
 import 'scanner_test.dart' show TokenFactory;
 class NodeLocatorTest extends ParserTestCase {
-  void test_offset() {
+  void test_range() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit("library myLib;", []);
+    assertLocate2(unit, 4, 10, LibraryDirective);
+  }
+  void test_searchWithin_null() {
+    NodeLocator locator = new NodeLocator.con2(0, 0);
+    JUnitTestCase.assertNull(locator.searchWithin(null));
+  }
+  void test_searchWithin_offset() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit("library myLib;", []);
     assertLocate(unit, 10, SimpleIdentifier);
   }
-  void test_offsetAfterNode() {
+  void test_searchWithin_offsetAfterNode() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit(EngineTestCase.createSource(["class A {}", "class B {}"]), []);
     NodeLocator locator = new NodeLocator.con2(1024, 1024);
     ASTNode node = locator.searchWithin(unit.declarations[0]);
     JUnitTestCase.assertNull(node);
   }
-  void test_offsetBeforeNode() {
+  void test_searchWithin_offsetBeforeNode() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit(EngineTestCase.createSource(["class A {}", "class B {}"]), []);
     NodeLocator locator = new NodeLocator.con2(0, 0);
     ASTNode node = locator.searchWithin(unit.declarations[1]);
     JUnitTestCase.assertNull(node);
-  }
-  void test_range() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit("library myLib;", []);
-    assertLocate2(unit, 4, 10, LibraryDirective);
   }
   void assertLocate(CompilationUnit unit, int offset, Type expectedClass) {
     assertLocate2(unit, offset, offset, expectedClass);
@@ -43,27 +47,32 @@ class NodeLocatorTest extends ParserTestCase {
     NodeLocator locator = new NodeLocator.con2(start, end);
     ASTNode node = locator.searchWithin(unit);
     JUnitTestCase.assertNotNull(node);
+    JUnitTestCase.assertSame(node, locator.foundNode);
     JUnitTestCase.assertTrueMsg("Node starts after range", node.offset <= start);
     JUnitTestCase.assertTrueMsg("Node ends before range", node.offset + node.length > end);
     EngineTestCase.assertInstanceOf(expectedClass, node);
   }
   static dartSuite() {
     _ut.group('NodeLocatorTest', () {
-      _ut.test('test_offset', () {
-        final __test = new NodeLocatorTest();
-        runJUnitTest(__test, __test.test_offset);
-      });
-      _ut.test('test_offsetAfterNode', () {
-        final __test = new NodeLocatorTest();
-        runJUnitTest(__test, __test.test_offsetAfterNode);
-      });
-      _ut.test('test_offsetBeforeNode', () {
-        final __test = new NodeLocatorTest();
-        runJUnitTest(__test, __test.test_offsetBeforeNode);
-      });
       _ut.test('test_range', () {
         final __test = new NodeLocatorTest();
         runJUnitTest(__test, __test.test_range);
+      });
+      _ut.test('test_searchWithin_null', () {
+        final __test = new NodeLocatorTest();
+        runJUnitTest(__test, __test.test_searchWithin_null);
+      });
+      _ut.test('test_searchWithin_offset', () {
+        final __test = new NodeLocatorTest();
+        runJUnitTest(__test, __test.test_searchWithin_offset);
+      });
+      _ut.test('test_searchWithin_offsetAfterNode', () {
+        final __test = new NodeLocatorTest();
+        runJUnitTest(__test, __test.test_searchWithin_offsetAfterNode);
+      });
+      _ut.test('test_searchWithin_offsetBeforeNode', () {
+        final __test = new NodeLocatorTest();
+        runJUnitTest(__test, __test.test_searchWithin_offsetBeforeNode);
       });
     });
   }
@@ -350,6 +359,7 @@ class ASTFactory {
   static NamedExpression namedExpression(Label label, Expression expression) => new NamedExpression.full(label, expression);
   static NamedExpression namedExpression2(String label, Expression expression) => namedExpression(label2(label), expression);
   static DefaultFormalParameter namedFormalParameter(NormalFormalParameter parameter, Expression expression) => new DefaultFormalParameter.full(parameter, ParameterKind.NAMED, expression == null ? null : TokenFactory.token3(TokenType.COLON), expression);
+  static NativeClause nativeClause(String nativeCode) => new NativeClause.full(TokenFactory.token2("native"), string2(nativeCode));
   static NativeFunctionBody nativeFunctionBody(String nativeMethodName) => new NativeFunctionBody.full(TokenFactory.token2("native"), string2(nativeMethodName), TokenFactory.token3(TokenType.SEMICOLON));
   static NullLiteral nullLiteral() => new NullLiteral.full(TokenFactory.token(Keyword.NULL));
   static ParenthesizedExpression parenthesizedExpression(Expression expression) => new ParenthesizedExpression.full(TokenFactory.token3(TokenType.OPEN_PAREN), expression, TokenFactory.token3(TokenType.CLOSE_PAREN));
@@ -364,6 +374,7 @@ class ASTFactory {
   static PropertyAccess propertyAccess2(Expression target, String propertyName) => new PropertyAccess.full(target, TokenFactory.token3(TokenType.PERIOD), identifier3(propertyName));
   static RedirectingConstructorInvocation redirectingConstructorInvocation(List<Expression> arguments) => redirectingConstructorInvocation2(null, arguments);
   static RedirectingConstructorInvocation redirectingConstructorInvocation2(String constructorName, List<Expression> arguments) => new RedirectingConstructorInvocation.full(TokenFactory.token(Keyword.THIS), constructorName == null ? null : TokenFactory.token3(TokenType.PERIOD), constructorName == null ? null : identifier3(constructorName), argumentList(arguments));
+  static RethrowExpression rethrowExpression() => new RethrowExpression.full(TokenFactory.token(Keyword.RETHROW));
   static ReturnStatement returnStatement() => returnStatement2(null);
   static ReturnStatement returnStatement2(Expression expression) => new ReturnStatement.full(TokenFactory.token(Keyword.RETURN), expression, TokenFactory.token3(TokenType.SEMICOLON));
   static ScriptTag scriptTag(String scriptTag2) => new ScriptTag.full(TokenFactory.token2(scriptTag2));
@@ -1872,6 +1883,9 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitNamedFormalParameter() {
     assertSource("var a : 0", ASTFactory.namedFormalParameter(ASTFactory.simpleFormalParameter(Keyword.VAR, "a"), ASTFactory.integer(0)));
   }
+  void test_visitNativeClause() {
+    assertSource("native 'code'", ASTFactory.nativeClause("code"));
+  }
   void test_visitNativeFunctionBody() {
     assertSource("native 'str';", ASTFactory.nativeFunctionBody("str"));
   }
@@ -1907,6 +1921,9 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
   void test_visitRedirectingConstructorInvocation_unnamed() {
     assertSource("this()", ASTFactory.redirectingConstructorInvocation([]));
+  }
+  void test_visitRethrowExpression() {
+    assertSource("rethrow", ASTFactory.rethrowExpression());
   }
   void test_visitReturnStatement_expression() {
     assertSource("return a;", ASTFactory.returnStatement2(ASTFactory.identifier3("a")));
@@ -2828,6 +2845,10 @@ class ToSourceVisitorTest extends EngineTestCase {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitNamedFormalParameter);
       });
+      _ut.test('test_visitNativeClause', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitNativeClause);
+      });
       _ut.test('test_visitNativeFunctionBody', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitNativeFunctionBody);
@@ -2875,6 +2896,10 @@ class ToSourceVisitorTest extends EngineTestCase {
       _ut.test('test_visitRedirectingConstructorInvocation_unnamed', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitRedirectingConstructorInvocation_unnamed);
+      });
+      _ut.test('test_visitRethrowExpression', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitRethrowExpression);
       });
       _ut.test('test_visitReturnStatement_expression', () {
         final __test = new ToSourceVisitorTest();

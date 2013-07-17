@@ -2617,18 +2617,6 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
   static final StaticWarningCode TYPE_PARAMETER_REFERENCED_BY_STATIC = new StaticWarningCode('TYPE_PARAMETER_REFERENCED_BY_STATIC', 62, "Static members cannot reference type parameters");
 
   /**
-   * 15.1 Static Types: A type <i>T</i> is malformed iff: * <i>T</i> has the form <i>id</i> or the
-   * form <i>prefix.id</i>, and in the enclosing lexical scope, the name <i>id</i> (respectively
-   * <i>prefix.id</i>) does not denote a type. * <i>T</i> denotes a type variable in the
-   * enclosing lexical scope, but occurs in the signature or body of a static member. *
-   * <i>T</i> is a parameterized type of the form <i>G&lt;S<sub>1</sub>, .., S<sub>n</sub>&gt;</i>,
-   * and <i>G</i> is malformed.
-   *
-   * Any use of a malformed type gives rise to a static warning.
-   */
-  static final StaticWarningCode TYPE_VARIABLE_IN_STATIC_SCOPE = new StaticWarningCode('TYPE_VARIABLE_IN_STATIC_SCOPE', 63, "");
-
-  /**
    * 12.15.3 Static Invocation: A static method invocation <i>i</i> has the form
    * <i>C.m(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip;
    * x<sub>n+k</sub>: a<sub>n+k</sub>)</i>. It is a static warning if <i>C</i> does not denote a
@@ -2636,12 +2624,12 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    *
    * @param undefinedClassName the name of the undefined class
    */
-  static final StaticWarningCode UNDEFINED_CLASS = new StaticWarningCode('UNDEFINED_CLASS', 64, "Undefined class '%s'");
+  static final StaticWarningCode UNDEFINED_CLASS = new StaticWarningCode('UNDEFINED_CLASS', 63, "Undefined class '%s'");
 
   /**
    * Same as [UNDEFINED_CLASS], but to catch using "boolean" instead of "bool".
    */
-  static final StaticWarningCode UNDEFINED_CLASS_BOOLEAN = new StaticWarningCode('UNDEFINED_CLASS_BOOLEAN', 65, "Undefined class 'boolean'; did you mean 'bool'?");
+  static final StaticWarningCode UNDEFINED_CLASS_BOOLEAN = new StaticWarningCode('UNDEFINED_CLASS_BOOLEAN', 64, "Undefined class 'boolean'; did you mean 'bool'?");
 
   /**
    * 12.17 Getter Invocation: It is a static warning if there is no class <i>C</i> in the enclosing
@@ -2651,7 +2639,7 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * @param getterName the name of the getter
    * @param enclosingType the name of the enclosing type where the getter is being looked for
    */
-  static final StaticWarningCode UNDEFINED_GETTER = new StaticWarningCode('UNDEFINED_GETTER', 66, "There is no such getter '%s' in '%s'");
+  static final StaticWarningCode UNDEFINED_GETTER = new StaticWarningCode('UNDEFINED_GETTER', 65, "There is no such getter '%s' in '%s'");
 
   /**
    * 12.30 Identifier Reference: It is as static warning if an identifier expression of the form
@@ -2659,7 +2647,7 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * setter) or variable initializer and there is no declaration <i>d</i> with name <i>id</i> in the
    * lexical scope enclosing the expression.
    */
-  static final StaticWarningCode UNDEFINED_IDENTIFIER = new StaticWarningCode('UNDEFINED_IDENTIFIER', 67, "Undefined name '%s'");
+  static final StaticWarningCode UNDEFINED_IDENTIFIER = new StaticWarningCode('UNDEFINED_IDENTIFIER', 66, "Undefined name '%s'");
 
   /**
    * 12.14.2 Binding Actuals to Formals: Furthermore, each <i>q<sub>i</sub></i>, <i>1<=i<=l</i>,
@@ -2668,7 +2656,7 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    *
    * @param name the name of the requested named parameter
    */
-  static final StaticWarningCode UNDEFINED_NAMED_PARAMETER = new StaticWarningCode('UNDEFINED_NAMED_PARAMETER', 68, "The named parameter '%s' is not defined");
+  static final StaticWarningCode UNDEFINED_NAMED_PARAMETER = new StaticWarningCode('UNDEFINED_NAMED_PARAMETER', 67, "The named parameter '%s' is not defined");
 
   /**
    * 12.18 Assignment: It is as static warning if an assignment of the form <i>v = e</i> occurs
@@ -2683,7 +2671,7 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * @param setterName the name of the getter
    * @param enclosingType the name of the enclosing type where the setter is being looked for
    */
-  static final StaticWarningCode UNDEFINED_SETTER = new StaticWarningCode('UNDEFINED_SETTER', 69, "There is no such setter '%s' in '%s'");
+  static final StaticWarningCode UNDEFINED_SETTER = new StaticWarningCode('UNDEFINED_SETTER', 68, "There is no such setter '%s' in '%s'");
 
   /**
    * 12.15.3 Static Invocation: It is a static warning if <i>C</i> does not declare a static method
@@ -2692,7 +2680,7 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * @param methodName the name of the method
    * @param enclosingType the name of the enclosing type where the method is being looked for
    */
-  static final StaticWarningCode UNDEFINED_STATIC_METHOD_OR_GETTER = new StaticWarningCode('UNDEFINED_STATIC_METHOD_OR_GETTER', 70, "There is no such static method '%s' in '%s'");
+  static final StaticWarningCode UNDEFINED_STATIC_METHOD_OR_GETTER = new StaticWarningCode('UNDEFINED_STATIC_METHOD_OR_GETTER', 69, "There is no such static method '%s' in '%s'");
   static final List<StaticWarningCode> values = [
       AMBIGUOUS_IMPORT,
       ARGUMENT_TYPE_NOT_ASSIGNABLE,
@@ -2757,7 +2745,6 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
       SWITCH_EXPRESSION_NOT_ASSIGNABLE,
       TYPE_TEST_NON_TYPE,
       TYPE_PARAMETER_REFERENCED_BY_STATIC,
-      TYPE_VARIABLE_IN_STATIC_SCOPE,
       UNDEFINED_CLASS,
       UNDEFINED_CLASS_BOOLEAN,
       UNDEFINED_GETTER,

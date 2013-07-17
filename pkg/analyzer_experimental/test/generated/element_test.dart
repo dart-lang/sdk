@@ -341,6 +341,19 @@ class InterfaceTypeImplTest extends EngineTestCase {
   void test_creation() {
     JUnitTestCase.assertNotNull(new InterfaceTypeImpl.con1(ElementFactory.classElement2("A", [])));
   }
+  void test_getAccessors() {
+    ClassElementImpl typeElement = ElementFactory.classElement2("A", []);
+    PropertyAccessorElement getterG = ElementFactory.getterElement("g", false, null);
+    PropertyAccessorElement getterH = ElementFactory.getterElement("h", false, null);
+    typeElement.accessors = <PropertyAccessorElement> [getterG, getterH];
+    InterfaceTypeImpl type = new InterfaceTypeImpl.con1(typeElement);
+    JUnitTestCase.assertEquals(2, type.accessors.length);
+  }
+  void test_getAccessors_empty() {
+    ClassElementImpl typeElement = ElementFactory.classElement2("A", []);
+    InterfaceTypeImpl type = new InterfaceTypeImpl.con1(typeElement);
+    JUnitTestCase.assertEquals(0, type.accessors.length);
+  }
   void test_getElement() {
     ClassElementImpl typeElement = ElementFactory.classElement2("A", []);
     InterfaceTypeImpl type = new InterfaceTypeImpl.con1(typeElement);
@@ -623,6 +636,19 @@ class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType typeA = classA.type;
     JUnitTestCase.assertNull(typeA.getMethod("m"));
   }
+  void test_getMethods() {
+    ClassElementImpl typeElement = ElementFactory.classElement2("A", []);
+    MethodElementImpl methodOne = ElementFactory.methodElement("one", null, []);
+    MethodElementImpl methodTwo = ElementFactory.methodElement("two", null, []);
+    typeElement.methods = <MethodElement> [methodOne, methodTwo];
+    InterfaceTypeImpl type = new InterfaceTypeImpl.con1(typeElement);
+    JUnitTestCase.assertEquals(2, type.methods.length);
+  }
+  void test_getMethods_empty() {
+    ClassElementImpl typeElement = ElementFactory.classElement2("A", []);
+    InterfaceTypeImpl type = new InterfaceTypeImpl.con1(typeElement);
+    JUnitTestCase.assertEquals(0, type.methods.length);
+  }
   void test_getMixins_nonParameterized() {
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     InterfaceType typeA = classA.type;
@@ -709,6 +735,11 @@ class InterfaceTypeImplTest extends EngineTestCase {
   void test_getTypeArguments_empty() {
     InterfaceType type = ElementFactory.classElement2("A", []).type;
     EngineTestCase.assertLength(0, type.typeArguments);
+  }
+  void test_hashCode() {
+    ClassElement classA = ElementFactory.classElement2("A", []);
+    InterfaceType typeA = classA.type;
+    JUnitTestCase.assertFalse(0 == typeA.hashCode);
   }
   void test_isDirectSupertypeOf_extends() {
     ClassElement classA = ElementFactory.classElement2("A", []);
@@ -1143,6 +1174,16 @@ class InterfaceTypeImplTest extends EngineTestCase {
     EngineTestCase.assertLength(1, resultArguments);
     JUnitTestCase.assertEquals(argumentType, resultArguments[0]);
   }
+  void test_substitute_exception() {
+    try {
+      ClassElementImpl classA = ElementFactory.classElement2("A", []);
+      InterfaceTypeImpl type = new InterfaceTypeImpl.con1(classA);
+      InterfaceType argumentType = ElementFactory.classElement2("B", []).type;
+      type.substitute2(<Type2> [argumentType], <Type2> []);
+      JUnitTestCase.fail("Expected to encounter exception, argument and parameter type array lengths not equal.");
+    } catch (e) {
+    }
+  }
   void test_substitute_notEqual() {
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     TypeVariableElementImpl parameterElement = new TypeVariableElementImpl(ASTFactory.identifier3("E"));
@@ -1206,6 +1247,14 @@ class InterfaceTypeImplTest extends EngineTestCase {
       _ut.test('test_creation', () {
         final __test = new InterfaceTypeImplTest();
         runJUnitTest(__test, __test.test_creation);
+      });
+      _ut.test('test_getAccessors', () {
+        final __test = new InterfaceTypeImplTest();
+        runJUnitTest(__test, __test.test_getAccessors);
+      });
+      _ut.test('test_getAccessors_empty', () {
+        final __test = new InterfaceTypeImplTest();
+        runJUnitTest(__test, __test.test_getAccessors_empty);
       });
       _ut.test('test_getElement', () {
         final __test = new InterfaceTypeImplTest();
@@ -1315,6 +1364,14 @@ class InterfaceTypeImplTest extends EngineTestCase {
         final __test = new InterfaceTypeImplTest();
         runJUnitTest(__test, __test.test_getMethod_unimplemented);
       });
+      _ut.test('test_getMethods', () {
+        final __test = new InterfaceTypeImplTest();
+        runJUnitTest(__test, __test.test_getMethods);
+      });
+      _ut.test('test_getMethods_empty', () {
+        final __test = new InterfaceTypeImplTest();
+        runJUnitTest(__test, __test.test_getMethods_empty);
+      });
       _ut.test('test_getMixins_nonParameterized', () {
         final __test = new InterfaceTypeImplTest();
         runJUnitTest(__test, __test.test_getMixins_nonParameterized);
@@ -1346,6 +1403,10 @@ class InterfaceTypeImplTest extends EngineTestCase {
       _ut.test('test_getTypeArguments_empty', () {
         final __test = new InterfaceTypeImplTest();
         runJUnitTest(__test, __test.test_getTypeArguments_empty);
+      });
+      _ut.test('test_hashCode', () {
+        final __test = new InterfaceTypeImplTest();
+        runJUnitTest(__test, __test.test_hashCode);
       });
       _ut.test('test_isDirectSupertypeOf_extends', () {
         final __test = new InterfaceTypeImplTest();
@@ -1526,6 +1587,10 @@ class InterfaceTypeImplTest extends EngineTestCase {
       _ut.test('test_substitute_equal', () {
         final __test = new InterfaceTypeImplTest();
         runJUnitTest(__test, __test.test_substitute_equal);
+      });
+      _ut.test('test_substitute_exception', () {
+        final __test = new InterfaceTypeImplTest();
+        runJUnitTest(__test, __test.test_substitute_exception);
       });
       _ut.test('test_substitute_notEqual', () {
         final __test = new InterfaceTypeImplTest();
@@ -2194,8 +2259,21 @@ class ElementImplTest extends EngineTestCase {
     ((library.definingCompilationUnit as CompilationUnitElementImpl)).types = <ClassElement> [classElement];
     JUnitTestCase.assertTrue(classElement.isAccessibleIn(library));
   }
+  void test_SORT_BY_OFFSET() {
+    ClassElementImpl classElementA = ElementFactory.classElement2("A", []);
+    classElementA.nameOffset = 1;
+    ClassElementImpl classElementB = ElementFactory.classElement2("B", []);
+    classElementB.nameOffset = 2;
+    JUnitTestCase.assertEquals(0, Element.SORT_BY_OFFSET(classElementA, classElementA));
+    JUnitTestCase.assertTrue(Element.SORT_BY_OFFSET(classElementA, classElementB) < 0);
+    JUnitTestCase.assertTrue(Element.SORT_BY_OFFSET(classElementB, classElementA) > 0);
+  }
   static dartSuite() {
     _ut.group('ElementImplTest', () {
+      _ut.test('test_SORT_BY_OFFSET', () {
+        final __test = new ElementImplTest();
+        runJUnitTest(__test, __test.test_SORT_BY_OFFSET);
+      });
       _ut.test('test_equals', () {
         final __test = new ElementImplTest();
         runJUnitTest(__test, __test.test_equals);
@@ -2261,7 +2339,7 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
   void test_isSubtypeOf_baseCase_classFunction() {
     ClassElementImpl functionElement = ElementFactory.classElement2("Function", []);
-    InterfaceTypeImpl functionType = new InterfaceTypeImpl_19(functionElement);
+    InterfaceTypeImpl functionType = new InterfaceTypeImpl_20(functionElement);
     FunctionType f = ElementFactory.functionElement("f").type;
     JUnitTestCase.assertTrue(f.isSubtypeOf(functionType));
   }
@@ -2721,8 +2799,8 @@ class FunctionTypeImplTest extends EngineTestCase {
     });
   }
 }
-class InterfaceTypeImpl_19 extends InterfaceTypeImpl {
-  InterfaceTypeImpl_19(ClassElement arg0) : super.con1(arg0);
+class InterfaceTypeImpl_20 extends InterfaceTypeImpl {
+  InterfaceTypeImpl_20(ClassElement arg0) : super.con1(arg0);
   bool get isDartCoreFunction => true;
 }
 main() {
