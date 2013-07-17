@@ -448,7 +448,6 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     var prototype = JS('', '#.prototype', _jsConstructor);
     List<String> keys = extractKeys(prototype);
     var result = <JsMethodMirror>[];
-    int i = 0;
     for (String key in keys) {
       if (key == '') continue;
       String simpleName = mangledNames[key];
@@ -478,10 +477,17 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   }
 
   Map<Symbol, MethodMirror> get getters {
-    // TODO(ahe): Should this include getters for fields?
+    // TODO(ahe): This is a hack to remove getters corresponding to a field.
+    var fields = variables;
+
     var result = new Map<Symbol, MethodMirror>();
     for (JsMethodMirror method in _methods) {
       if (method.isGetter) {
+
+        // TODO(ahe): This is a hack to remove getters corresponding to a field.
+        String name = n(method.simpleName);
+        if (fields[s(name)] != null) continue;
+
         result[method.simpleName] = method;
       }
     }
@@ -489,10 +495,18 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   }
 
   Map<Symbol, MethodMirror> get setters {
-    // TODO(ahe): Should this include setters for fields?
+    // TODO(ahe): This is a hack to remove setters corresponding to a field.
+    var fields = variables;
+
     var result = new Map<Symbol, MethodMirror>();
     for (JsMethodMirror method in _methods) {
       if (method.isSetter) {
+
+        // TODO(ahe): This is a hack to remove setters corresponding to a field.
+        String name = n(method.simpleName);
+        name = name.substring(0, name.length - 1); // Remove '='.
+        if (fields[s(name)] != null) continue;
+
         result[method.simpleName] = method;
       }
     }
@@ -509,10 +523,10 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
       if (_fieldsMetadata != null) {
         metadata = _fieldsMetadata[fieldNumber++];
       }
-      JsVariableMirror mirror = new JsVariableMirror.from(field, metadata);
+      JsVariableMirror mirror =
+          new JsVariableMirror.from(field, metadata, this);
       if (mirror != null) {
         result[mirror.simpleName] = mirror;
-        mirror._owner = this;
       }
     }
     return result;
@@ -646,17 +660,20 @@ class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
   final bool isFinal;
   final bool isStatic;
   final _metadataFunction;
-  DeclarationMirror _owner;
+  final DeclarationMirror _owner;
   List _metadata;
 
   JsVariableMirror(Symbol simpleName,
                    this._jsName,
                    this.isFinal,
                    this.isStatic,
-                   this._metadataFunction)
+                   this._metadataFunction,
+                   this._owner)
       : super(simpleName);
 
-  factory JsVariableMirror.from(String descriptor, metadataFunction) {
+  factory JsVariableMirror.from(String descriptor,
+                                metadataFunction,
+                                JsClassMirror owner) {
     int length = descriptor.length;
     var code = fieldCode(descriptor.codeUnitAt(length - 1));
     bool isFinal = false;
@@ -672,8 +689,18 @@ class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
       accessorName = accessorName.substring(0, divider);
       jsName = accessorName.substring(divider + 1);
     }
+    if (!hasSetter) {
+      // TODO(ahe): This is a hack to handle checked setters in checked mode.
+      var setterName = s('$accessorName=');
+      for (JsMethodMirror method in owner._methods) {
+        if (method.simpleName == setterName) {
+          isFinal = false;
+          break;
+        }
+      }
+    }
     return new JsVariableMirror(
-        s(accessorName), jsName, isFinal, false, metadataFunction);
+        s(accessorName), jsName, isFinal, false, metadataFunction, owner);
   }
 
   String get _prettyName => 'VariableMirror';
