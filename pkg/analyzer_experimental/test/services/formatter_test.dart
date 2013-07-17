@@ -26,7 +26,7 @@ main() {
           'class A  {\n'
           '}',
           'class A {\n'
-          '}'
+          '}\n'
         );
     });
 
@@ -35,7 +35,7 @@ main() {
           'class      A  {  \n'
           '}',
           'class A {\n'
-          '}'
+          '}\n'
         );
     });
 
@@ -44,7 +44,7 @@ main() {
           'class A {\n'
           '  }',
           'class A {\n'
-          '}'
+          '}\n'
         );
     });
 
@@ -53,7 +53,7 @@ main() {
           ' class A {\n'
           '}',
           'class A {\n'
-          '}'
+          '}\n'
         );
     });
 
@@ -66,7 +66,7 @@ main() {
           'class A {\n'
           '  void x() {\n'
           '  }\n'
-          '}'
+          '}\n'
         );
     });
 
@@ -79,7 +79,7 @@ main() {
           '  static bool x() {\n'
           '    return true;\n'
           '  }\n'
-          '}'
+          '}\n'
         );
     });
 
@@ -90,7 +90,7 @@ main() {
           '   }',
           'class A {\n'
           '  int x() => 42 + 3;\n'
-          '}'
+          '}\n'
         );
     });
 
@@ -110,9 +110,36 @@ main() {
           '      return false;\n'
           '    }\n'
           '  }\n'
-          '}'
+          '}\n'
         );
     });
+
+    test('CU (multiple members)', () {
+      expectCUFormatsTo(
+          'class A {\n'
+          '}\n'
+          'class B {\n'
+          '}\n',
+          'class A {\n'
+          '}\n'
+          'class B {\n'
+          '}\n'
+        );
+    });
+
+    test('CU (multiple members w/blanks)', () {
+      expectCUFormatsTo(
+          'class A {\n'
+          '}\n\n'
+          'class B {\n'
+          '}\n',
+          'class A {\n'
+          '}\n\n'
+          'class B {\n'
+          '}\n'
+        );
+    });
+    
 
     test('stmt', () {
       expectStmtFormatsTo(

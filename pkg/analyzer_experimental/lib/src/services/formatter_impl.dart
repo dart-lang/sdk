@@ -51,7 +51,6 @@ class FormatterException implements Exception {
     message = 'an analysis error occured during format';
 
   String toString() => 'FormatterException: $message';
-
 }
 
 /// Specifies the kind of code snippet to format.
@@ -87,6 +86,8 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
   final FormatterOptions options;
   final errors = <AnalysisError>[];
 
+  LineInfo lineInfo;
+
   CodeFormatterImpl(this.options);
 
   String format(CodeKind kind, String source, {int offset, int end,
@@ -98,7 +99,7 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
     var node = parse(kind, start);
     checkForErrors();
 
-    var formatter = new SourceVisitor(options);
+    var formatter = new SourceVisitor(options, lineInfo);
     node.accept(formatter);
 
     return formatter.writer.toString();
@@ -130,7 +131,9 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
 
   Token tokenize(String source) {
     var scanner = new StringScanner(null, source, this);
-    return scanner.tokenize();
+    var token = scanner.tokenize();
+    lineInfo = new LineInfo(scanner.lineStarts);
+    return token;
   }
 
 }
@@ -143,9 +146,11 @@ class SourceVisitor implements ASTVisitor {
   /// The writer to which the source is to be written.
   SourceWriter writer;
 
+  LineInfo lineInfo;
+
   /// Initialize a newly created visitor to write source code representing
   /// the visited nodes to the given [writer].
-  SourceVisitor(FormatterOptions options) :
+  SourceVisitor(FormatterOptions options, this.lineInfo) :
       writer = new SourceWriter(indentCount: options.initialIndentationLevel,
                                 lineSeparator: options.lineSeparator);
 
@@ -293,7 +298,10 @@ class SourceVisitor implements ASTVisitor {
     var prefix = scriptTag == null ? '' : ' ';
     visitPrefixedList(prefix, directives, ' ');
     prefix = scriptTag == null && directives.isEmpty ? '' : ' ';
-    visitPrefixedList(prefix, node.declarations, ' ');
+    visitPrefixedListWithBlanks(prefix, node.declarations);
+
+    //TODO(pquitslund): move this?
+    writer.newline();
   }
 
   visitConditionalExpression(ConditionalExpression node) {
@@ -646,6 +654,11 @@ class SourceVisitor implements ASTVisitor {
     visitPrefixed(' ', node.expression);
   }
 
+  visitNativeClause(NativeClause node) {
+    writer.print('native ');
+    visit(node.name);
+  }
+
   visitNativeFunctionBody(NativeFunctionBody node) {
     writer.print('native ');
     visit(node.stringLiteral);
@@ -935,6 +948,31 @@ class SourceVisitor implements ASTVisitor {
         for (var i = 0; i < size; i++) {
           if (i > 0) {
             writer.print(separator);
+          }
+          nodes[i].accept(this);
+        }
+      }
+    }
+  }
+
+  /// Print a list of [nodes], preserving blank lines between nodes.
+  visitPrefixedListWithBlanks(String prefix,
+      NodeList<ASTNode> nodes) {
+    if (nodes != null) {
+      var size = nodes.length;
+      if (size > 0) {
+        writer.print(prefix);
+        for (var i = 0; i < size; i++) {
+          if (i > 0) {
+            // Emit blanks lines
+            var lastLine =
+                lineInfo.getLocation(nodes[i-1].endToken.offset).lineNumber;
+            var currentLine =
+                lineInfo.getLocation(nodes[i].beginToken.offset).lineNumber;
+            var blanks = currentLine - lastLine;
+            for (var i = 0; i < blanks; i++) {
+              writer.newline();
+            }
           }
           nodes[i].accept(this);
         }
