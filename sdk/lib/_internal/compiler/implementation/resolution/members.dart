@@ -1143,13 +1143,14 @@ class InitializerResolver {
       MessageKind kind = isImplicitSuperCall
           ? MessageKind.CANNOT_RESOLVE_CONSTRUCTOR_FOR_IMPLICIT
           : MessageKind.CANNOT_RESOLVE_CONSTRUCTOR;
-      error(diagnosticNode, kind, {'constructorName': fullConstructorName});
+      visitor.compiler.reportErrorCode(
+          diagnosticNode, kind, {'constructorName': fullConstructorName});
     } else {
       if (!call.applies(lookedupConstructor, visitor.compiler)) {
         MessageKind kind = isImplicitSuperCall
                            ? MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT
                            : MessageKind.NO_MATCHING_CONSTRUCTOR;
-        error(diagnosticNode, kind);
+        visitor.compiler.reportErrorCode(diagnosticNode, kind);
       }
     }
   }

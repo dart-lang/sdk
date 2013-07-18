@@ -4,7 +4,6 @@
 
 library analyze_api;
 
-import "package:expect/expect.dart";
 import '../../../sdk/lib/_internal/libraries.dart';
 import 'analyze_helper.dart';
 
