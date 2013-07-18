@@ -882,6 +882,12 @@ class _LocalMethodMirrorImpl extends _LocalMirrorImpl
 
   var _owner;
   DeclarationMirror get owner {
+    // For nested closures it is possible, that the mirror for the owner has not
+    // been created yet.
+    if (_owner == null) {
+      _owner = _MethodMirror_owner(_reflectee);
+    }
+    // TODO(11897): This will go away, as soon as lazy mirrors go away.
     if (_owner is! Mirror) {
       _owner = _owner.resolve(mirrors);
     }
@@ -961,6 +967,9 @@ class _LocalMethodMirrorImpl extends _LocalMirrorImpl
 
   static String _MethodMirror_name(reflectee)
       native "MethodMirror_name";
+
+  static dynamic _MethodMirror_owner(reflectee)
+      native "MethodMirror_owner";
 }
 
 class _LocalVariableMirrorImpl extends _LocalMirrorImpl
