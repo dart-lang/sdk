@@ -5,6 +5,8 @@
 [ $compiler == dartanalyzer ]
 #argument_definition_test/01: fail  # issue 11565 (passing for the wrong reason)
 
+illegal_invocation_test/01: fail # Issue: 11892
+
 # test issue 11581, it is not warning to call dynamic
 call_through_getter_test: fail
 
