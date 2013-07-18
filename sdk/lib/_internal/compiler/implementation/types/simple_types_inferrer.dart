@@ -1540,10 +1540,13 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor {
         ContainerTypeMask container = new ContainerTypeMask(
             inferrer.constListType, node, outermostElement);
         TypeMask elementType = new TypeMask.nonNullEmpty();
+        int length = 0;
         for (Node element in node.elements.nodes) {
+          length++;
           elementType = computeLUB(elementType, visit(element), compiler);
         }
         container.elementType = elementType;
+        container.length = length;
         return container;
       });
     } else {

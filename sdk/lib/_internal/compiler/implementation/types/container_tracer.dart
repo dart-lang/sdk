@@ -79,6 +79,60 @@ Set<String> okSelectorsSet = new Set<String>.from(
     'checkGrowable',
   ]);
 
+Set<String> doNotChangeLengthSelectorsSet = new Set<String>.from(
+  const <String>[
+    // From Object.
+    '==',
+    'hashCode',
+    'toString',
+    'noSuchMethod',
+    'runtimeType',
+
+    // From Iterable.
+    'iterator',
+    'map',
+    'where',
+    'expand',
+    'contains',
+    'forEach',
+    'reduce',
+    'fold',
+    'every',
+    'join',
+    'any',
+    'toList',
+    'toSet',
+    'length',
+    'isEmpty',
+    'isNotEmpty',
+    'take',
+    'takeWhile',
+    'skip',
+    'skipWhile',
+    'first',
+    'last',
+    'single',
+    'firstWhere',
+    'lastWhere',
+    'singleWhere',
+    'elementAt',
+
+    // From List.
+    '[]',
+    'length',
+    'reversed',
+    'sort',
+    'indexOf',
+    'lastIndexOf',
+    'sublist',
+    'getRange',
+    'asMap',
+
+    // From JSArray.
+    'checkMutable',
+    'checkGrowable',
+  ]);
+
 bool _VERBOSE = false;
 
 /**
@@ -98,8 +152,7 @@ class ContainerTracer extends CompilerTask {
       internal.concreteTypes.values.forEach((ContainerTypeMask mask) {
         // The element type has already been set for const containers.
         if (mask.elementType != null) return;
-        mask.elementType = new TracerForConcreteContainer(
-            mask, this, compiler, inferrer).run();
+        new TracerForConcreteContainer(mask, this, compiler, inferrer).run();
       });
     });
   }
@@ -112,6 +165,7 @@ class TracerForConcreteContainer {
   final Compiler compiler;
   final ContainerTracer tracer;
   final SimpleTypesInferrer inferrer;
+  final ContainerTypeMask mask;
 
   final Node analyzedNode;
   final Element startElement;
@@ -138,6 +192,8 @@ class TracerForConcreteContainer {
   static const int MAX_ANALYSIS_COUNT = 11;
 
   TypeMask potentialType;
+  int potentialLength;
+  bool isLengthTrackingDisabled = false;
   bool continueAnalyzing = true;
 
   TracerForConcreteContainer(ContainerTypeMask mask,
@@ -145,9 +201,10 @@ class TracerForConcreteContainer {
                              this.compiler,
                              this.inferrer)
       : analyzedNode = mask.allocationNode,
-        startElement = mask.allocationElement;
+        startElement = mask.allocationElement,
+        this.mask = mask;
 
-  TypeMask run() {
+  void run() {
     int analysisCount = 0;
     workList.add(startElement);
     while (!workList.isEmpty) {
@@ -161,11 +218,20 @@ class TracerForConcreteContainer {
       analysisCount++;
     }
 
-    if (!continueAnalyzing) return compiler.typesTask.dynamicType;
+    if (!continueAnalyzing) {
+      if (mask.forwardTo == compiler.typesTask.fixedListType) {
+        mask.length = potentialLength;
+      }
+      mask.elementType = compiler.typesTask.dynamicType;
+      return;
+    }
 
     // [potentialType] can be null if we did not find any instruction
     // that adds elements to the list.
-    if (potentialType == null) return new TypeMask.nonNullEmpty();
+    if (potentialType == null) {
+      mask.elementType = new TypeMask.nonNullEmpty();
+      return;
+    }
 
     // Walk over the found constraints and update the type according
     // to the selectors of these constraints.
@@ -176,11 +242,26 @@ class TracerForConcreteContainer {
           inferrer.getTypeOfSelector(constraint), compiler);
     }
     if (_VERBOSE) {
-      print('$potentialType for $analyzedNode $startElement');
+      print('$potentialType and $potentialLength '
+            'for $analyzedNode $startElement');
     }
-    return potentialType;
+    mask.elementType = potentialType;
+    mask.length = potentialLength;
   }
 
+  void disableLengthTracking() {
+    if (mask.forwardTo == compiler.typesTask.fixedListType) {
+      // Bogus update to a fixed list.
+      return;
+    }
+    isLengthTrackingDisabled = true;
+    potentialLength = null;
+  }
+
+  void setPotentialLength(int value) {
+    if (isLengthTrackingDisabled) return;
+    potentialLength = value;
+  }
 
   void unionPotentialTypeWith(TypeMask newType) {
     assert(newType != null);
@@ -360,12 +441,17 @@ class ContainerTracerVisitor extends InferrerVisitor {
   }
 
   TypeMask visitLiteralList(LiteralList node) {
-    if (node.isConst()) return compiler.typesTask.constListType;
+    if (node.isConst()) {
+      return inferrer.internal.concreteTypes[node];
+    }
     if (tracer.couldBeTheList(node)) {
       escaping = true;
+      int length = 0;
       for (Node element in node.elements.nodes) {
         tracer.unionPotentialTypeWith(visit(element));
+        length++;
       }
+      tracer.setPotentialLength(length);
     } else {
       node.visitChildren(this);
     }
@@ -465,7 +551,7 @@ class ContainerTracerVisitor extends InferrerVisitor {
       }
     } else if (isReceiver) {
       if (setterSelector.name == const SourceString('length')) {
-        // Changing the length.
+        tracer.disableLengthTracking();
         tracer.unionPotentialTypeWith(compiler.typesTask.nullType);
       }
     } else if (isValueEscaping) {
@@ -532,24 +618,32 @@ class ContainerTracerVisitor extends InferrerVisitor {
       if (tracer.couldBeTheList(node)) {
         escaping = true;
       }
-      return compiler.typesTask.growableListType;
+      return inferrer.internal.concreteTypes[node];
     } else if (Elements.isFixedListConstructorCall(element, node, compiler)) {
-      tracer.unionPotentialTypeWith(compiler.typesTask.nullType);
       visitArguments(node.arguments, element);
       if (tracer.couldBeTheList(node)) {
+        tracer.unionPotentialTypeWith(compiler.typesTask.nullType);
         escaping = true;
+        LiteralInt length = node.arguments.head.asLiteralInt();
+        if (length != null) {
+          tracer.setPotentialLength(length.value);
+        }
       }
-      return compiler.typesTask.fixedListType;
+      return inferrer.internal.concreteTypes[node];
     } else if (Elements.isFilledListConstructorCall(element, node, compiler)) {
       if (tracer.couldBeTheList(node)) {
         escaping = true;
         visit(node.arguments.head);
         TypeMask fillWithType = visit(node.arguments.tail.head);
         tracer.unionPotentialTypeWith(fillWithType);
+        LiteralInt length = node.arguments.head.asLiteralInt();
+        if (length != null) {
+          tracer.setPotentialLength(length.value);
+        }
       } else {
         visitArguments(node.arguments, element);
       }
-      return compiler.typesTask.fixedListType;
+      return inferrer.internal.concreteTypes[node];
     }
 
     bool isEscaping = visitArguments(node.arguments, element);
@@ -638,6 +732,9 @@ class ContainerTracerVisitor extends InferrerVisitor {
       }
     } else if (!node.isPropertyAccess) {
       visitArguments(node.arguments, selector);
+    }
+    if (isReceiver && !doNotChangeLengthSelectorsSet.contains(selectorName)) {
+      tracer.disableLengthTracking();
     }
     if (tracer.couldBeTheList(selector)) {
       escaping = true;
