@@ -1468,8 +1468,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ LoadFromOffset(kWord, IP, R7, -i * kWordSize);
     __ Push(IP);
   }
-  // Pass IC data object and arguments descriptor array.
-  __ PushList((1 << R4) | (1 << R5));
+  // Pass IC data object.
+  __ Push(R5);
 
   if (num_args == 1) {
     __ CallRuntime(kInlineCacheMissHandlerOneArgRuntimeEntry);
@@ -1480,9 +1480,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   } else {
     UNIMPLEMENTED();
   }
-  // Remove the call arguments pushed earlier, including the IC data object
-  // and the arguments descriptor array.
-  __ Drop(num_args + 2);
+  // Remove the call arguments pushed earlier, including the IC data object.
+  __ Drop(num_args + 1);
   // Pop returned code object into R0 (null if not found).
   // Restore arguments descriptor array and IC data array.
   __ PopList((1 << R0) | (1 << R4) | (1 << R5));
