@@ -50,6 +50,9 @@ MemberMirror _currentMember;
 /// Resolves reference links in doc comments.
 markdown.Resolver linkResolver;
 
+/// Index of all the qualified names documented. 
+Set<String> qualifiedNameIndex = new Set<String>();
+
 /**
  * Docgen constructor initializes the link resolver for markdown parsing.
  * Also initializes the command line arguments.
@@ -217,6 +220,9 @@ void _documentLibraries(List<LibraryMirror> libraries,
   // to read in.
   _writeToFile(listDir('docs').join('\n').replaceAll('docs/', ''),
       'library_list.txt');
+  // Outputs all the qualified names documented. This will help generate search
+  // results. 
+  _writeToFile(qualifiedNameIndex.join('\n'), 'index.txt');
 }
 
 Library generateLibrary(dart2js.Dart2JsLibraryMirror library,
@@ -302,7 +308,7 @@ Map<String, Variable> _getVariables(Map<String, VariableMirror> mirrorMap,
       _currentMember = mirror;
       data[mirrorName] = new Variable(mirrorName, mirror.isFinal, 
           mirror.isStatic, mirror.type.qualifiedName, _getComment(mirror), 
-          _getAnnotations(mirror));
+          _getAnnotations(mirror), mirror.qualifiedName);
     }
   });
   return data;
@@ -324,7 +330,8 @@ Map<String, Map<String, Method>> _getMethods
     if (includePrivate || !mirror.isPrivate) {
       var method = new Method(mirrorName, mirror.isStatic, 
           mirror.returnType.qualifiedName, _getComment(mirror), 
-          _getParameters(mirror.parameters), _getAnnotations(mirror));
+          _getParameters(mirror.parameters), _getAnnotations(mirror),
+          mirror.qualifiedName);
       _currentMember = mirror;
       if (mirror.isSetter) {
         setters[mirrorName] = method;
@@ -365,7 +372,7 @@ Map<String, Class> _getClasses(Map<String, ClassMirror> mirrorMap,
           mirror.isTypedef, _getComment(mirror), interfaces.toList(),
           _getVariables(mirror.variables, includePrivate),
           _getMethods(mirror.methods, includePrivate),
-          _getAnnotations(mirror));
+          _getAnnotations(mirror), mirror.qualifiedName);
     }
   });
   return data;
@@ -418,9 +425,18 @@ Map recurseMap(Map inputMap) {
 }
 
 /**
+ * A class representing all programming constructs, like library or class. 
+ */
+class Indexable {
+  Indexable(String qualifiedName) {
+    qualifiedNameIndex.add(qualifiedName);
+  }
+}
+
+/**
  * A class containing contents of a Dart library.
  */
-class Library {
+class Library extends Indexable {
 
   /// Documentation comment with converted markdown.
   String comment;
@@ -436,8 +452,10 @@ class Library {
 
   String name;
 
-  Library(this.name, this.comment, this.variables,
-      this.functions, this.classes);
+  Library(name, this.comment, this.variables,
+      this.functions, this.classes) : super(name) {
+    this.name = name; 
+  }
 
   /// Generates a map describing the [Library] object.
   Map toMap() {
@@ -455,7 +473,7 @@ class Library {
  * A class containing contents of a Dart class.
  */
 // TODO(tmandel): Figure out how to do typedefs (what is needed)
-class Class {
+class Class extends Indexable {
 
   /// Documentation comment with converted markdown.
   String comment;
@@ -479,7 +497,7 @@ class Class {
   
   Class(this.name, this.superclass, this.isAbstract, this.isTypedef, 
       this.comment, this.interfaces, this.variables, this.methods, 
-      this.annotations);
+      this.annotations, String qualifiedName) : super(qualifiedName) {}
 
   /// Generates a map describing the [Class] object.
   Map toMap() {
@@ -500,7 +518,7 @@ class Class {
 /**
  * A class containing properties of a Dart variable.
  */
-class Variable {
+class Variable extends Indexable {
 
   /// Documentation comment with converted markdown.
   String comment;
@@ -514,7 +532,7 @@ class Variable {
   List<String> annotations;
   
   Variable(this.name, this.isFinal, this.isStatic, this.type, this.comment, 
-      this.annotations);
+      this.annotations, String qualifiedName) : super(qualifiedName);
   
   /// Generates a map describing the [Variable] object.
   Map toMap() {
@@ -532,7 +550,7 @@ class Variable {
 /**
  * A class containing properties of a Dart method.
  */
-class Method {
+class Method extends Indexable {
 
   /// Documentation comment with converted markdown.
   String comment;
@@ -548,7 +566,8 @@ class Method {
   List<String> annotations;
   
   Method(this.name, this.isStatic, this.returnType, this.comment, 
-      this.parameters, this.annotations);
+      this.parameters, this.annotations, String qualifiedName) 
+      : super(qualifiedName);
   
   /// Generates a map describing the [Method] object.
   Map toMap() {
