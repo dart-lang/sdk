@@ -1326,6 +1326,9 @@ void ARMDecoder::DecodeSIMDDataProcessing(Instr* instr) {
                (instr->Bits(20, 2) == 0) && (instr->Bits(23, 2) == 2)) {
       Format(instr, "veorq 'qd, 'qn, 'qm");
     } else if ((instr->Bits(8, 4) == 1) && (instr->Bit(4) == 1) &&
+               (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 0)) {
+      Format(instr, "vornq 'qd, 'qn, 'qm");
+    } else if ((instr->Bits(8, 4) == 1) && (instr->Bit(4) == 1) &&
                (instr->Bits(20, 2) == 2) && (instr->Bits(23, 2) == 0)) {
       if (instr->QmField() == instr->QnField()) {
         Format(instr, "vmovq 'qd, 'qm");
@@ -1345,6 +1348,30 @@ void ARMDecoder::DecodeSIMDDataProcessing(Instr* instr) {
       } else {
         Unknown(instr);
       }
+    } else if ((instr->Bits(8, 4) == 8) && (instr->Bit(4) == 1) &&
+               (instr->Bits(23, 2) == 2)) {
+      Format(instr, "vceqq'sz 'qd, 'qn, 'qm");
+    } else if ((instr->Bits(8, 4) == 14) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 0) && (instr->Bits(23, 2) == 0)) {
+      Format(instr, "vceqqs 'qd, 'qn, 'qm");
+    } else if ((instr->Bits(8, 4) == 3) && (instr->Bit(4) == 1) &&
+               (instr->Bits(23, 2) == 0)) {
+      Format(instr, "vcgeq'sz 'qd, 'qn, 'qm");
+    } else if ((instr->Bits(8, 4) == 3) && (instr->Bit(4) == 1) &&
+               (instr->Bits(23, 2) == 2)) {
+      Format(instr, "vcugeq'sz 'qd, 'qn, 'qm");
+    } else if ((instr->Bits(8, 4) == 14) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 0) && (instr->Bits(23, 2) == 2)) {
+      Format(instr, "vcgeqs 'qd, 'qn, 'qm");
+    } else if ((instr->Bits(8, 4) == 3) && (instr->Bit(4) == 0) &&
+               (instr->Bits(23, 2) == 0)) {
+      Format(instr, "vcgtq'sz 'qd, 'qn, 'qm");
+    } else if ((instr->Bits(8, 4) == 3) && (instr->Bit(4) == 0) &&
+               (instr->Bits(23, 2) == 2)) {
+      Format(instr, "vcugtq'sz 'qd, 'qn, 'qm");
+    } else if ((instr->Bits(8, 4) == 14) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 2) && (instr->Bits(23, 2) == 2)) {
+      Format(instr, "vcgtqs 'qd, 'qn, 'qm");
     } else {
       Unknown(instr);
     }

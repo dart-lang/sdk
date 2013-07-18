@@ -2914,9 +2914,15 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
     int8_t* s8d_8 = reinterpret_cast<int8_t*>(&s8d);
     int8_t* s8n_8 = reinterpret_cast<int8_t*>(&s8n);
     int8_t* s8m_8 = reinterpret_cast<int8_t*>(&s8m);
+    uint8_t* s8n_u8 = reinterpret_cast<uint8_t*>(&s8n);
+    uint8_t* s8m_u8 = reinterpret_cast<uint8_t*>(&s8m);
     int16_t* s8d_16 = reinterpret_cast<int16_t*>(&s8d);
     int16_t* s8n_16 = reinterpret_cast<int16_t*>(&s8n);
     int16_t* s8m_16 = reinterpret_cast<int16_t*>(&s8m);
+    uint16_t* s8n_u16 = reinterpret_cast<uint16_t*>(&s8n);
+    uint16_t* s8m_u16 = reinterpret_cast<uint16_t*>(&s8m);
+    int32_t* s8n_32 = reinterpret_cast<int32_t*>(&s8n);
+    int32_t* s8m_32 = reinterpret_cast<int32_t*>(&s8m);
     int64_t* s8d_64 = reinterpret_cast<int64_t*>(&s8d);
     int64_t* s8n_64 = reinterpret_cast<int64_t*>(&s8n);
     int64_t* s8m_64 = reinterpret_cast<int64_t*>(&s8m);
@@ -3014,6 +3020,12 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
         s8d.data_[i].u = s8n.data_[i].u ^ s8m.data_[i].u;
       }
     } else if ((instr->Bits(8, 4) == 1) && (instr->Bit(4) == 1) &&
+               (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 0)) {
+      // Format(instr, "vornq 'qd, 'qn, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.data_[i].u = s8n.data_[i].u | ~s8m.data_[i].u;
+      }
+    } else if ((instr->Bits(8, 4) == 1) && (instr->Bit(4) == 1) &&
                (instr->Bits(20, 2) == 2) && (instr->Bits(23, 2) == 0)) {
       if (qm == qn) {
         // Format(instr, "vmovq 'qd, 'qm");
@@ -3037,25 +3049,151 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
         // Format(instr, "vdupb 'qd, 'dm['imm4_vdup]");
         int8_t* dm_b = reinterpret_cast<int8_t*>(&dm_value);
         idx = imm4 >> 1;
+        int8_t val = dm_b[idx];
         for (int i = 0; i < 16; i++) {
-          s8d_8[i] = dm_b[idx];
+          s8d_8[i] = val;
         }
       } else if ((imm4 & 2) != 0) {
         // Format(instr, "vduph 'qd, 'dm['imm4_vdup]");
         int16_t* dm_h = reinterpret_cast<int16_t*>(&dm_value);
         idx = imm4 >> 2;
+        int16_t val = dm_h[idx];
         for (int i = 0; i < 8; i++) {
-          s8d_16[i] = dm_h[idx];
+          s8d_16[i] = val;
         }
       } else if ((imm4 & 4) != 0) {
         // Format(instr, "vdupw 'qd, 'dm['imm4_vdup]");
         int32_t* dm_w = reinterpret_cast<int32_t*>(&dm_value);
         idx = imm4 >> 3;
+        int32_t val = dm_w[idx];
         for (int i = 0; i < 4; i++) {
-          s8d.data_[i].u = dm_w[idx];
+          s8d.data_[i].u = val;
         }
       } else {
         UnimplementedInstruction(instr);
+      }
+    } else if ((instr->Bits(8, 4) == 8) && (instr->Bit(4) == 1) &&
+               (instr->Bits(23, 2) == 2)) {
+      // Format(instr, "vceqq'sz 'qd, 'qn, 'qm");
+      const int size = instr->Bits(20, 2);
+      if (size == 0) {
+        for (int i = 0; i < 16; i++) {
+          s8d_8[i] = s8n_8[i] == s8m_8[i] ? 0xff : 0;
+        }
+      } else if (size == 1) {
+        for (int i = 0; i < 8; i++) {
+          s8d_16[i] = s8n_16[i] == s8m_16[i] ? 0xffff : 0;
+        }
+      } else if (size == 2) {
+        for (int i = 0; i < 4; i++) {
+          s8d.data_[i].u = s8n.data_[i].u == s8m.data_[i].u ? 0xffffffff : 0;
+        }
+      } else if (size == 3) {
+        UnimplementedInstruction(instr);
+      } else {
+        UNREACHABLE();
+      }
+    } else if ((instr->Bits(8, 4) == 14) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 0) && (instr->Bits(23, 2) == 0)) {
+      // Format(instr, "vceqqs 'qd, 'qn, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.data_[i].u = s8n.data_[i].f == s8m.data_[i].f ? 0xffffffff : 0;
+      }
+    } else if ((instr->Bits(8, 4) == 3) && (instr->Bit(4) == 1) &&
+               (instr->Bits(23, 2) == 0)) {
+      // Format(instr, "vcgeq'sz 'qd, 'qn, 'qm");
+      const int size = instr->Bits(20, 2);
+      if (size == 0) {
+        for (int i = 0; i < 16; i++) {
+          s8d_8[i] = s8n_8[i] >= s8m_8[i] ? 0xff : 0;
+        }
+      } else if (size == 1) {
+        for (int i = 0; i < 8; i++) {
+          s8d_16[i] = s8n_16[i] >= s8m_16[i] ? 0xffff : 0;
+        }
+      } else if (size == 2) {
+        for (int i = 0; i < 4; i++) {
+          s8d.data_[i].u = s8n_32[i] >= s8m_32[i] ? 0xffffffff : 0;
+        }
+      } else if (size == 3) {
+        UnimplementedInstruction(instr);
+      } else {
+        UNREACHABLE();
+      }
+    } else if ((instr->Bits(8, 4) == 3) && (instr->Bit(4) == 1) &&
+               (instr->Bits(23, 2) == 2)) {
+      // Format(instr, "vcugeq'sz 'qd, 'qn, 'qm");
+      const int size = instr->Bits(20, 2);
+      if (size == 0) {
+        for (int i = 0; i < 16; i++) {
+          s8d_8[i] = s8n_u8[i] >= s8m_u8[i] ? 0xff : 0;
+        }
+      } else if (size == 1) {
+        for (int i = 0; i < 8; i++) {
+          s8d_16[i] = s8n_u16[i] >= s8m_u16[i] ? 0xffff : 0;
+        }
+      } else if (size == 2) {
+        for (int i = 0; i < 4; i++) {
+          s8d.data_[i].u = s8n.data_[i].u >= s8m.data_[i].u ? 0xffffffff : 0;
+        }
+      } else if (size == 3) {
+        UnimplementedInstruction(instr);
+      } else {
+        UNREACHABLE();
+      }
+    } else if ((instr->Bits(8, 4) == 14) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 0) && (instr->Bits(23, 2) == 2)) {
+      // Format(instr, "vcgeqs 'qd, 'qn, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.data_[i].u = s8n.data_[i].f >= s8m.data_[i].f ? 0xffffffff : 0;
+      }
+    } else if ((instr->Bits(8, 4) == 3) && (instr->Bit(4) == 0) &&
+               (instr->Bits(23, 2) == 0)) {
+      // Format(instr, "vcgtq'sz 'qd, 'qn, 'qm");
+      const int size = instr->Bits(20, 2);
+      if (size == 0) {
+        for (int i = 0; i < 16; i++) {
+          s8d_8[i] = s8n_8[i] > s8m_8[i] ? 0xff : 0;
+        }
+      } else if (size == 1) {
+        for (int i = 0; i < 8; i++) {
+          s8d_16[i] = s8n_16[i] > s8m_16[i] ? 0xffff : 0;
+        }
+      } else if (size == 2) {
+        for (int i = 0; i < 4; i++) {
+          s8d.data_[i].u = s8n_32[i] > s8m_32[i] ? 0xffffffff : 0;
+        }
+      } else if (size == 3) {
+        UnimplementedInstruction(instr);
+      } else {
+        UNREACHABLE();
+      }
+    } else if ((instr->Bits(8, 4) == 3) && (instr->Bit(4) == 0) &&
+               (instr->Bits(23, 2) == 2)) {
+      // Format(instr, "vcugtq'sz 'qd, 'qn, 'qm");
+      const int size = instr->Bits(20, 2);
+      if (size == 0) {
+        for (int i = 0; i < 16; i++) {
+          s8d_8[i] = s8n_u8[i] > s8m_u8[i] ? 0xff : 0;
+        }
+      } else if (size == 1) {
+        for (int i = 0; i < 8; i++) {
+          s8d_16[i] = s8n_u16[i] > s8m_u16[i] ? 0xffff : 0;
+        }
+      } else if (size == 2) {
+        for (int i = 0; i < 4; i++) {
+          s8d.data_[i].u = s8n.data_[i].u > s8m.data_[i].u ? 0xffffffff : 0;
+        }
+      } else if (size == 3) {
+        UnimplementedInstruction(instr);
+      } else {
+        UNREACHABLE();
+      }
+    } else if ((instr->Bits(8, 4) == 14) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 2) && (instr->Bits(23, 2) == 2)) {
+      // Format(instr, "vcgtqs 'qd, 'qn, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.data_[i].u = s8n.data_[i].f > s8m.data_[i].f ? 0xffffffff : 0;
       }
     } else {
       UnimplementedInstruction(instr);
