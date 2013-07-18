@@ -3467,32 +3467,63 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     return result;
   }
 
+  /**
+   * Compute the list of all supertypes.
+   *
+   * The elements of this list are ordered as follows: first the supertype that
+   * the class extends, then the implemented interfaces, and then the supertypes
+   * of these.  The class [Object] appears only once, at the end of the list.
+   *
+   * For example, for a class `class C extends S implements I1, I2`, we compute
+   *   supertypes(C) = [S, I1, I2] ++ supertypes(S) ++ supertypes(I1)
+   *                   ++ supertypes(I2),
+   * where ++ stands for list concatenation.
+   *
+   * This order makes sure that if a class implements an interface twice with
+   * different type arguments, the type used in the most specific class comes
+   * first.
+   */
   void calculateAllSupertypes(ClassElement cls) {
     // TODO(karlklose): Check if type arguments match, if a class
     // element occurs more than once in the supertypes.
     if (cls.allSupertypes != null) return;
     final DartType supertype = cls.supertype;
     if (supertype != null) {
-      var allSupertypes = new LinkBuilder<DartType>();
+      LinkBuilder<DartType> allSupertypes = new LinkBuilder<DartType>();
+
+      void add(DartType type) {
+        if (type.element != compiler.objectClass) {
+          allSupertypes.addLast(type);
+        }
+      }
+
+      add(supertype);
+      for (Link<DartType> interfaces = cls.interfaces;
+          !interfaces.isEmpty;
+          interfaces = interfaces.tail) {
+        add(interfaces.head);
+      }
       addAllSupertypes(allSupertypes, supertype);
       for (Link<DartType> interfaces = cls.interfaces;
            !interfaces.isEmpty;
            interfaces = interfaces.tail) {
         addAllSupertypes(allSupertypes, interfaces.head);
       }
+
+      allSupertypes.addLast(compiler.objectClass.rawType);
       cls.allSupertypes = allSupertypes.toLink();
     } else {
       assert(identical(cls, compiler.objectClass));
       cls.allSupertypes = const Link<DartType>();
     }
- }
+  }
 
   /**
-   * Adds [type] and all supertypes of [type] to [builder] while substituting
-   * type variables.
+   * Adds [type] and all supertypes of [type] to [allSupertypes] while
+   * substituting type variables.
    */
-  void addAllSupertypes(LinkBuilder<DartType> builder, InterfaceType type) {
-    builder.addLast(type);
+  void addAllSupertypes(LinkBuilder<DartType> allSupertypes,
+                        InterfaceType type) {
     Link<DartType> typeArguments = type.typeArguments;
     ClassElement classElement = type.element;
     Link<DartType> typeVariables = classElement.typeVariables;
@@ -3502,7 +3533,10 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
                  "during resolution of $element"));
     while (!supertypes.isEmpty) {
       DartType supertype = supertypes.head;
-      builder.addLast(supertype.subst(typeArguments, typeVariables));
+      if (supertype.element != compiler.objectClass) {
+        DartType substituted = supertype.subst(typeArguments, typeVariables);
+        allSupertypes.addLast(substituted);
+      }
       supertypes = supertypes.tail;
     }
   }
