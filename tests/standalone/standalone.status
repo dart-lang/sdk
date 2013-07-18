@@ -74,7 +74,7 @@ io/web_socket_protocol_processor_test: Skip
 io/process_exit_negative_test: Skip
 
 # https://code.google.com/p/dart/issues/detail?id=11647
-standalone/package/package_isolate_test: fail
+package/package_isolate_test: fail
 
 [ $compiler == dart2analyzer ]
 53bit_overflow_literal_test/01: fail, ok
@@ -96,7 +96,7 @@ io/web_socket_protocol_processor_test: Skip
 io/process_exit_negative_test: Skip
 
 # https://code.google.com/p/dart/issues/detail?id=11647
-standalone/package/package_isolate_test: fail
+package/package_isolate_test: fail
 
 [ $compiler == dart2js ]
 number_identity_test: Skip # Bigints and int/double diff. not supported.
