@@ -344,17 +344,15 @@ Map<String, Map<String, Method>> _getMethods
       } else if (mirror.isRegularMethod) {
          methods[mirrorName] = method;
       } else {
-        throw new ArgumentError('$mirrorName - no method type match');
+        throw new StateError('${mirror.qualifiedName} - no method type match');
       }
     }
   });
-  return {
-    'setters': setters,
-    'getters': getters,
-    'constructors': constructors,
-    'operators': operators,
-    'methods': methods
-  };
+  return {'setters' : setters,
+          'getters' : getters,
+          'constructors' : constructors,
+          'operators' : operators,
+          'methods' : methods};
 } 
 
 /**
@@ -362,43 +360,22 @@ Map<String, Map<String, Method>> _getMethods
  */
 Map<String, Class> _getClasses(Map<String, ClassMirror> mirrorMap,
     bool includePrivate) {
-  
-  var abstract = {};
-  var classes = {};
-  var typedefs = {};
-  var errors = {};
-  
+  var data = {};
   mirrorMap.forEach((String mirrorName, ClassMirror mirror) {
     if (includePrivate || !mirror.isPrivate) {
+      _currentClass = mirror;
       var superclass = (mirror.superclass != null) ?
           mirror.superclass.qualifiedName : '';
       var interfaces =
           mirror.superinterfaces.map((interface) => interface.qualifiedName);
-      var clazz = new Class(mirrorName, superclass, _getComment(mirror), 
-          interfaces.toList(), _getVariables(mirror.variables, includePrivate),
+      data[mirrorName] = new Class(mirrorName, superclass, mirror.isAbstract, 
+          mirror.isTypedef, _getComment(mirror), interfaces.toList(),
+          _getVariables(mirror.variables, includePrivate),
           _getMethods(mirror.methods, includePrivate),
           _getAnnotations(mirror), mirror.qualifiedName);
-      _currentClass = mirror;
-      
-      if (isError(mirror.qualifiedName)) {
-        errors[mirrorName] = clazz;
-      } else if (mirror.isTypedef) {
-        typedefs[mirrorName] = clazz;
-      } else if (mirror.isAbstract) {
-        abstract[mirrorName] = clazz;
-      } else if (mirror.isClass) {
-        classes[mirrorName] = clazz;
-      } else {
-        throw new ArgumentError('$mirrorName - no class style match. ');
-      }
     }
   });
-  return {
-    'abstract': abstract, 
-    'class': classes,
-    'typedef': typedefs,
-    'error': errors
-  };
+  return data;
 }
 
 /**
@@ -445,11 +422,6 @@ Map recurseMap(Map inputMap) {
     }
   });
   return outputMap;
-}
-
-bool isError(String qualifiedName) {
-  return qualifiedName.toLowerCase().contains('error') || 
-      qualifiedName.toLowerCase().contains('exception');
 }
 
 /**
@@ -517,13 +489,15 @@ class Class extends Indexable {
   
   String name;
   String superclass;
+  bool isAbstract;
+  bool isTypedef;
 
   /// List of the meta annotations on the class.
   List<String> annotations;
   
-  Class(this.name, this.superclass, this.comment, this.interfaces, 
-      this.variables, this.methods, this.annotations, 
-      String qualifiedName) : super(qualifiedName) {}
+  Class(this.name, this.superclass, this.isAbstract, this.isTypedef, 
+      this.comment, this.interfaces, this.variables, this.methods, 
+      this.annotations, String qualifiedName) : super(qualifiedName) {}
 
   /// Generates a map describing the [Class] object.
   Map toMap() {
@@ -531,6 +505,8 @@ class Class extends Indexable {
     classMap['name'] = name;
     classMap['comment'] = comment;
     classMap['superclass'] = superclass;
+    classMap['abstract'] = isAbstract.toString();
+    classMap['typedef'] = isTypedef.toString();
     classMap['implements'] = new List.from(interfaces);
     classMap['variables'] = recurseMap(variables);
     classMap['methods'] = recurseMap(methods);

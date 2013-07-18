@@ -54,11 +54,7 @@ main() {
               includePrivate: true);
           expect(library is Library, isTrue);
           
-          var classTypes = library.classes.values;
-          expect(classTypes.every((e) => e is Map), isTrue);
-          
-          var classes = [];
-          classTypes.forEach((e) => classes.addAll(e.values));
+          var classes = library.classes.values;
           expect(classes.every((e) => e is Class), isTrue);
           
           var classMethodTypes = [];
