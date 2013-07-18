@@ -1387,7 +1387,7 @@ class CodeEmitterTask extends CompilerTask {
 
     void generateFunctionTypeSignature(Element method, FunctionType type) {
       assert(method.isImplementation);
-      String thisAccess = 'this';
+      jsAst.Expression thisAccess = new jsAst.This();
       Node node = method.parseNode(compiler);
       ClosureClassMap closureData =
           compiler.closureToClassMapper.closureMappingCache[node];
@@ -1397,14 +1397,13 @@ class CodeEmitterTask extends CompilerTask {
         if (thisElement != null) {
           assert(thisElement.hasFixedBackendName());
           String thisName = thisElement.fixedBackendName();
-          thisAccess = 'this.$thisName';
+          thisAccess = js('this')[js.string(thisName)];
         }
       }
       RuntimeTypes rti = backend.rti;
-      String encoding = rti.getSignatureEncoding(type, () => '$thisAccess');
+      jsAst.Expression encoding = rti.getSignatureEncoding(type, thisAccess);
       String operatorSignature = namer.operatorSignature();
-      builder.addProperty(operatorSignature,
-          new jsAst.LiteralExpression(encoding));
+      builder.addProperty(operatorSignature, encoding);
     }
 
     void generateSubstitution(Element other, {bool emitNull: false}) {
@@ -1412,11 +1411,9 @@ class CodeEmitterTask extends CompilerTask {
       jsAst.Expression expression;
       bool needsNativeCheck = nativeEmitter.requiresNativeIsCheck(other);
       if (other.kind == ElementKind.CLASS) {
-        String substitution = rti.getSupertypeSubstitution(classElement, other,
-            alwaysGenerateFunction: true);
-        if (substitution != null) {
-          expression = new jsAst.LiteralExpression(substitution);
-        } else if (emitNull || needsNativeCheck) {
+        expression = rti.getSupertypeSubstitution(
+            classElement, other, alwaysGenerateFunction: true);
+        if (expression == null && (emitNull || needsNativeCheck)) {
           expression = new jsAst.LiteralNull();
         }
       }
@@ -1444,15 +1441,20 @@ class CodeEmitterTask extends CompilerTask {
         buffer.write('$holder.${namer.operatorIs(cls)}$_=${_}true$N');
         Substitution substitution = check.substitution;
         if (substitution != null) {
-          String body = substitution.getCode(rti, false);
-          buffer.write('$holder.${namer.substitutionName(cls)}$_=${_}$body$N');
+          CodeBuffer body =
+             jsAst.prettyPrint(substitution.getCode(rti, false), compiler);
+          buffer.write('$holder.${namer.substitutionName(cls)}$_=${_}');
+          buffer.write(body);
+          buffer.write('$N');
         }
       };
     }
 
     void addSignature(FunctionType type) {
-      String encoding = rti.getTypeEncoding(type);
-      buffer.add('${namer.signatureName(type)}$_=${_}$encoding$N');
+      jsAst.Expression encoding = rti.getTypeEncoding(type);
+      buffer.add('${namer.signatureName(type)}$_=${_}');
+      buffer.write(jsAst.prettyPrint(encoding, compiler));
+      buffer.add('$N');
     }
 
     checkedNonGenericFunctionTypes.forEach(addSignature);
@@ -2262,11 +2264,11 @@ class CodeEmitterTask extends CompilerTask {
         RuntimeTypes rti = backend.rti;
         // [:() => null:] is dummy encoding of [this] which is never needed for
         // the encoding of the type of the static [method].
-        String encoding = rti.getSignatureEncoding(methodType, () => 'null');
+        jsAst.Expression encoding =
+            rti.getSignatureEncoding(methodType, js('null'));
         String operatorSignature = namer.operatorSignature();
         // TODO(johnniwinther): Make MiniJsParser support function expressions.
-        closureBuilder.addProperty(operatorSignature,
-            new jsAst.LiteralExpression(encoding));
+        closureBuilder.addProperty(operatorSignature, encoding);
       }
 
       void emitIsFunctionTypeTest(FunctionType functionType) {
@@ -2401,11 +2403,10 @@ class CodeEmitterTask extends CompilerTask {
       addParameterStubs(callElement, boundClosureBuilder.addProperty);
 
       void emitFunctionTypeSignature(Element method, FunctionType methodType) {
-        String encoding = backend.rti.getSignatureEncoding(
-            methodType, () => 'this.${fieldNames[0]}');
+        jsAst.Expression encoding = backend.rti.getSignatureEncoding(
+            methodType, js('this')[fieldNames[0]]);
         String operatorSignature = namer.operatorSignature();
-        boundClosureBuilder.addProperty(operatorSignature,
-            new jsAst.LiteralExpression(encoding));
+        boundClosureBuilder.addProperty(operatorSignature, encoding);
       }
 
       void emitIsFunctionTypeTest(FunctionType functionType) {

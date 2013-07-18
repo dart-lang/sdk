@@ -12,7 +12,7 @@ abstract class TypeChecks {
   Iterator<ClassElement> get iterator;
 }
 
-typedef String VariableSubstitution(TypeVariableType variable);
+typedef jsAst.Expression OnVariableCallback(TypeVariableType variable);
 
 class RuntimeTypes {
   final Compiler compiler;
@@ -421,7 +421,6 @@ class RuntimeTypes {
     return (variables.isEmpty == arguments.isEmpty);
   }
 
-  // TODO(karlklose): rewrite to use js.Expressions.
   /**
    * Compute a JavaScript expression that describes the necessary substitution
    * for type arguments in a subtype test.
@@ -436,8 +435,10 @@ class RuntimeTypes {
    *  3) A function mapping the type variables of the object to be checked to
    *     a list expression.
    */
-  String getSupertypeSubstitution(ClassElement cls, ClassElement check,
-                                  {bool alwaysGenerateFunction: false}) {
+  jsAst.Expression getSupertypeSubstitution(
+       ClassElement cls,
+       ClassElement check,
+       {bool alwaysGenerateFunction: false}) {
     Substitution substitution = getSubstitution(cls, check);
     if (substitution != null) {
       return substitution.getCode(this, alwaysGenerateFunction);
@@ -483,61 +484,71 @@ class RuntimeTypes {
     }
   }
 
-  String getSubstitutionRepresentation(Link<DartType> types,
-                                       VariableSubstitution variableName) {
-    String code = types.toList(growable: false)
-        .map((type) => _getTypeRepresentation(type, variableName))
-        .join(', ');
-    return '[$code]';
+  jsAst.Expression getSubstitutionRepresentation(
+      Link<DartType> types,
+      OnVariableCallback onVariable) {
+    List<jsAst.ArrayElement> elements = <jsAst.ArrayElement>[];
+    int index = 0;
+    for (; !types.isEmpty; types = types.tail, index++) {
+      jsAst.Expression representation =
+          _getTypeRepresentation(types.head, onVariable);
+      elements.add(new jsAst.ArrayElement(index, representation));
+    }
+    return new jsAst.ArrayInitializer(index, elements);
   }
 
-  String getTypeEncoding(DartType type,
-                         {bool alwaysGenerateFunction: false}) {
+  jsAst.Expression getTypeEncoding(DartType type,
+                                   {bool alwaysGenerateFunction: false}) {
     ClassElement contextClass = Types.getClassContext(type);
-    String onVariable(TypeVariableType v) {
-      return v.toString();
+    jsAst.Expression onVariable(TypeVariableType v) {
+      return new jsAst.VariableUse(v.name.slowToString());
     };
-    String encoding = _getTypeRepresentation(type, onVariable);
+    jsAst.Expression encoding = _getTypeRepresentation(type, onVariable);
     if (contextClass == null && !alwaysGenerateFunction) {
       return encoding;
     } else {
-      String parameters = contextClass != null
-          ? contextClass.typeVariables.toList().join(', ')
-          : '';
-      return 'function ($parameters) { return $encoding; }';
+      List<String> parameters = const <String>[];
+      if (contextClass != null) {
+        parameters = contextClass.typeVariables.toList().map((type) {
+            return type.toString();
+        }).toList();
+      }
+      return js.fun(parameters, js.return_(encoding));
     }
   }
 
-  String getSignatureEncoding(DartType type, String generateThis()) {
+  jsAst.Expression getSignatureEncoding(DartType type, jsAst.Expression this_) {
     ClassElement contextClass = Types.getClassContext(type);
-    String encoding = getTypeEncoding(type, alwaysGenerateFunction: true);
+    jsAst.Expression encoding =
+        getTypeEncoding(type, alwaysGenerateFunction: true);
     if (contextClass != null) {
-      String this_ = generateThis();
       JavaScriptBackend backend = compiler.backend;
       String computeSignature =
           backend.namer.getName(backend.getComputeSignature());
       String contextName = backend.namer.getName(contextClass);
-      return 'function () {'
-             ' return ${backend.namer.GLOBAL_OBJECT}.'
-                  '$computeSignature($encoding, $this_, "$contextName"); '
-             '}';
+      List<jsAst.Expression> arguments =
+          <jsAst.Expression>[encoding, this_, js.string(contextName)];
+      return js.fun([], js.return_(
+          new jsAst.Call(
+              js(backend.namer.GLOBAL_OBJECT)[js.string(computeSignature)],
+              arguments)));
     } else {
       return encoding;
     }
   }
 
-  String getTypeRepresentation(DartType type, VariableSubstitution onVariable) {
+  String getTypeRepresentation(DartType type, OnVariableCallback onVariable) {
     // Create a type representation.  For type variables call the original
     // callback for side effects and return a template placeholder.
-    return _getTypeRepresentation(type, (variable) {
+    jsAst.Expression representation = _getTypeRepresentation(type, (variable) {
       onVariable(variable);
-      return '#';
+      return new jsAst.LiteralString('#');
     });
+    return jsAst.prettyPrint(representation, compiler).buffer.toString();
   }
 
-  // TODO(karlklose): rewrite to use js.Expressions.
-  String _getTypeRepresentation(DartType type,
-                                VariableSubstitution onVariable) {
+  jsAst.Expression _getTypeRepresentation(DartType type,
+                                          OnVariableCallback onVariable) {
     return representationGenerator.getTypeRepresentation(type, onVariable);
   }
 
@@ -559,12 +570,9 @@ class RuntimeTypes {
   }
 }
 
-typedef String OnVariableCallback(TypeVariableType type);
-
 class TypeRepresentationGenerator extends DartTypeVisitor {
   final Compiler compiler;
   OnVariableCallback onVariable;
-  StringBuffer builder;
 
   JavaScriptBackend get backend => compiler.backend;
   Namer get namer => backend.namer;
@@ -575,104 +583,95 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
    * Creates a type representation for [type]. [onVariable] is called to provide
    * the type representation for type variables.
    */
-  String getTypeRepresentation(DartType type, OnVariableCallback onVariable) {
+  jsAst.Expression getTypeRepresentation(DartType type,
+                                         OnVariableCallback onVariable) {
     this.onVariable = onVariable;
-    builder = new StringBuffer();
-    visit(type);
-    String typeRepresentation = builder.toString();
-    builder = null;
+    jsAst.Expression representation = visit(type);
     this.onVariable = null;
-    return typeRepresentation;
+    return representation;
   }
 
-  String getJsName(Element element) {
-    return namer.isolateAccess(backend.getImplementationClass(element));
+  jsAst.Expression getJavaScriptClassName(Element element) {
+    return js(namer.isolateAccess(backend.getImplementationClass(element)));
   }
 
   visit(DartType type) {
-    type.unalias(compiler).accept(this, null);
+    return type.unalias(compiler).accept(this, null);
   }
 
   visitTypeVariableType(TypeVariableType type, _) {
-    builder.write(onVariable(type));
+    return onVariable(type);
   }
 
   visitDynamicType(DynamicType type, _) {
-    builder.write('null');
+    return js('null');
   }
 
   visitInterfaceType(InterfaceType type, _) {
-    String name = getJsName(type.element);
-    if (type.isRaw) {
-      builder.write(name);
-    } else {
-      builder.write('[');
-      builder.write(name);
-      builder.write(', ');
-      visitList(type.typeArguments);
-      builder.write(']');
-    }
+    jsAst.Expression name = getJavaScriptClassName(type.element);
+    return type.isRaw ? name : visitList(type.typeArguments, head: name);
   }
 
-  visitList(Link<DartType> types) {
-    bool first = true;
-    for (Link<DartType> link = types; !link.isEmpty; link = link.tail) {
-      if (!first) {
-        builder.write(', ');
-      }
-      visit(link.head);
-      first = false;
+  jsAst.Expression visitList(Link<DartType> types, {jsAst.Expression head}) {
+    int index = 0;
+    List<jsAst.ArrayElement> elements = <jsAst.ArrayElement>[];
+    if (head != null) {
+      elements.add(new jsAst.ArrayElement(0, head));
+      index++;
     }
+    for (Link<DartType> link = types; !link.isEmpty; link = link.tail) {
+      elements.add(new jsAst.ArrayElement(index++, visit(link.head)));
+    }
+    return new jsAst.ArrayInitializer(elements.length, elements);
   }
 
   visitFunctionType(FunctionType type, _) {
-    builder.write('{${namer.functionTypeTag()}:'
-                  ' "${namer.getFunctionTypeName(type)}"');
+    List<jsAst.Property> properties = <jsAst.Property>[];
+
+    void addProperty(String name, jsAst.Expression value) {
+      properties.add(new jsAst.Property(js.string(name), value));
+    }
+
+    jsAst.LiteralString name = js.string(namer.getFunctionTypeName(type));
+    addProperty(namer.functionTypeTag(), name);
     if (type.returnType.isVoid) {
-      builder.write(', ${namer.functionTypeVoidReturnTag()}: true');
+      addProperty(namer.functionTypeVoidReturnTag(), js('true'));
     } else if (!type.returnType.isDynamic) {
-      builder.write(', ${namer.functionTypeReturnTypeTag()}: ');
-      visit(type.returnType);
+      addProperty(namer.functionTypeReturnTypeTag(), visit(type.returnType));
     }
     if (!type.parameterTypes.isEmpty) {
-      builder.write(', ${namer.functionTypeRequiredParametersTag()}: [');
-      visitList(type.parameterTypes);
-      builder.write(']');
+      addProperty(namer.functionTypeRequiredParametersTag(),
+                  visitList(type.parameterTypes));
     }
     if (!type.optionalParameterTypes.isEmpty) {
-      builder.write(', ${namer.functionTypeOptionalParametersTag()}: [');
-      visitList(type.optionalParameterTypes);
-      builder.write(']');
+      addProperty(namer.functionTypeOptionalParametersTag(),
+                  visitList(type.optionalParameterTypes));
     }
     if (!type.namedParameterTypes.isEmpty) {
-      builder.write(', ${namer.functionTypeNamedParametersTag()}: {');
-      bool first = true;
+      List<jsAst.Property> namedArguments = <jsAst.Property>[];
       Link<SourceString> names = type.namedParameters;
       Link<DartType> types = type.namedParameterTypes;
       while (!types.isEmpty) {
         assert(!names.isEmpty);
-        if (!first) {
-          builder.write(', ');
-        }
-        builder.write('${names.head.slowToString()}: ');
-        visit(types.head);
-        first = false;
+        jsAst.Expression name = js.string(names.head.slowToString());
+        namedArguments.add(new jsAst.Property(name, visit(types.head)));
         names = names.tail;
         types = types.tail;
       }
-      builder.write('}');
+      addProperty(namer.functionTypeNamedParametersTag(),
+                  new jsAst.ObjectInitializer(namedArguments));
     }
-    builder.write('}');
+    return new jsAst.ObjectInitializer(properties);
   }
 
   visitMalformedType(MalformedType type, _) {
     // Treat malformed types as dynamic at runtime.
-    builder.write('null');
+    return js('null');
   }
 
   visitVoidType(VoidType type, _) {
     // TODO(ahe): Reify void type ("null" means "dynamic").
-    builder.write('null');
+    return js('null');
   }
 
   visitType(DartType type, _) {
@@ -814,19 +813,24 @@ class Substitution {
   Substitution.function(this.arguments, this.parameters)
       : isFunction = true;
 
-  String getCode(RuntimeTypes rti, bool ensureIsFunction) {
-    String variableName(TypeVariableType variable) {
-      return variable.name.slowToString();
+  jsAst.Expression getCode(RuntimeTypes rti, bool ensureIsFunction) {
+    jsAst.Expression declaration(TypeVariableType variable) {
+      return new jsAst.Parameter(variable.name.slowToString());
     }
 
-    String code = rti.getSubstitutionRepresentation(arguments, variableName);
+    jsAst.Expression use(TypeVariableType variable) {
+      return new jsAst.VariableUse(variable.name.slowToString());
+    }
+
+    jsAst.Expression value =
+        rti.getSubstitutionRepresentation(arguments, use);
     if (isFunction) {
-      String formals = parameters.toList().map(variableName).join(', ');
-      return 'function ($formals) { return $code; }';
+      List<String> formals = parameters.toList().map(declaration).toList();
+      return js.fun(formals, js.return_(value));
     } else if (ensureIsFunction) {
-      return 'function () { return $code; }';
+      return js.fun([], js.return_(value));
     } else {
-      return code;
+      return value;
     }
   }
 }
