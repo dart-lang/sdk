@@ -24,6 +24,7 @@ var showDebuggeeOutput = false;
 // Whether or not to print the debugger wire messages on the console.
 var verboseWire = false;
 
+var debugger = null;
 
 class Program {
   static int numBps = 0;
@@ -33,17 +34,19 @@ class Program {
 
   // Takes a JSON Debugger response and increments the count for
   // the source position.
-  static void recordBp(Debugger debugger, Map<String,dynamic> msg) {
+  static void recordBp(Map<String,dynamic> msg) {
     // Progress indicator.
     if (++numBps % 1000 == 0) print(numBps);
     var location = msg["params"]["location"];
     if (location == null) return;
     String url = location["url"];
     assert(url != null);
+    int libId = location["libraryId"];
+    assert(libId != null);
     int tokenPos = location["tokenOffset"];;
     Source s = sources[url];
     if (s == null) {
-      debugger.GetLineNumberTable(url);
+      debugger.getLineNumberTable(url, libId);
       s = new Source(url);
       sources[url] = s;
     }
@@ -146,6 +149,47 @@ class GetLineTableCmd {
 }
 
 
+class GetLibrariesCmd {
+  Map msg;
+  GetLibrariesCmd(int isolateId) {
+    msg = { "id": 0,
+            "command":  "getLibraries",
+            "params": { "isolateId" : isolateId } };
+  }
+
+  void handleResponse(Map response) {
+    List libs = response["result"]["libraries"];
+    for (var lib in libs) {
+      String url = lib["url"];
+      int libraryId = lib["id"];
+      bool enable = !url.startsWith("dart:") && !url.startsWith("package:");
+      if (enable) {
+        print("Enable stepping for '$url'");
+        debugger.enableDebugging(libraryId, true);
+      }
+    }
+  }
+}
+
+
+class SetLibraryPropertiesCmd {
+  Map msg;
+  SetLibraryPropertiesCmd(int isolateId, int libraryId, bool enableDebugging) {
+    // Note that in the debugger protocol, boolean values true and false
+    // must be sent as string literals.
+    msg = { "id": 0,
+            "command":  "setLibraryProperties",
+            "params": { "isolateId" : isolateId,
+                        "libraryId": libraryId,
+                        "debuggingEnabled": "$enableDebugging" } };
+  }
+
+  void handleResponse(Map response) {
+    // Nothing to do.
+  }
+}
+
+
 class Debugger {
   // Debug target process properties.
   Process targetProcess;
@@ -157,7 +201,7 @@ class Debugger {
   // Data collected from debug target.
   Map currentMessage = null;  // Currently handled message sent by target.
   var outstandingCommand = null;
-  var queuedCommand = null;
+  var queuedCommands = new List();
   String scriptUrl = null;
   bool shutdownEventSeen = false;
   int isolateId = 0;
@@ -221,9 +265,12 @@ class Debugger {
       if (libraryId == null) {
         libraryId = msg["params"]["location"]["libraryId"];
         assert(libraryId != null);
+        // This is the first paused event we got. Get all libraries from
+        // the debugger so we can turn on debugging events for them.
+        getLibraries();
       }
       if (msg["params"]["reason"] == "breakpoint") {
-        Program.recordBp(this, msg);
+        Program.recordBp(msg);
       }
     } else {
       error("Error: unknown debugger event received");
@@ -280,8 +327,7 @@ class Debugger {
         return;
       }
       if (isPaused && (outstandingCommand == null)) {
-        var cmd = queuedCommand;
-        queuedCommand = null;
+        var cmd = queuedCommands.length > 0 ? queuedCommands.removeAt(0) : null;
         if (cmd == null) {
           cmd = new StepCmd(isolateId);
           isPaused = false;
@@ -302,11 +348,18 @@ class Debugger {
     socket.write(jsonMsg);
   }
 
-  void GetLineNumberTable(String url) {
-    assert(queuedCommand == null);
-    queuedCommand = new GetLineTableCmd(isolateId, libraryId, url);
+  void getLineNumberTable(String url, int libId) {
+    queuedCommands.add(new GetLineTableCmd(isolateId, libId, url));
+  }
+
+  void getLibraries() {
+    queuedCommands.add(new GetLibrariesCmd(isolateId));
   }
   
+  void enableDebugging(libraryId, enable) {
+    queuedCommands.add(new SetLibraryPropertiesCmd(isolateId, libraryId, enable));
+  }
+
   bool get errorsDetected => errors.length > 0;
 
   // Record error message.
@@ -490,6 +543,6 @@ void main() {
 
   Process.start(options.executable, targetOpts).then((Process process) {
     process.stdin.close();
-    var debugger = new Debugger(process);
+    debugger = new Debugger(process);
   });
 }
