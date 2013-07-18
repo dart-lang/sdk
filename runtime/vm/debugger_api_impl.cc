@@ -445,10 +445,22 @@ DART_EXPORT Dart_Handle Dart_GetInstanceFields(Dart_Handle object_in) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_GetStaticFields(Dart_Handle cls_in) {
+DART_EXPORT Dart_Handle Dart_GetStaticFields(Dart_Handle target) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  UNWRAP_AND_CHECK_PARAM(Class, cls, cls_in);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(target));
+  // For backwards compatibility we allow class objects to be passed in
+  // for now. This needs to be removed once all code that uses class
+  // objects is removed.
+  Class& cls = Class::Handle();
+  if (obj.IsType()) {
+    cls = Type::Cast(obj).type_class();
+  } else if (obj.IsClass()) {
+    cls = Class::Cast(obj).raw();
+  } else {
+    return Api::NewError("%s expects argument 'target' to be a type.",
+                         CURRENT_FUNC);
+  }
   return Api::NewHandle(isolate, isolate->debugger()->GetStaticFields(cls));
 }
 
