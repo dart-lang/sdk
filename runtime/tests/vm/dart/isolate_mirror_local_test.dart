@@ -327,11 +327,11 @@ void testLibrariesMap(Map libraries) {
   Expect.equals(const Symbol('dart.core.OutOfMemoryError'),
                 oom_cls.qualifiedName);
   Expect.isFalse(oom_cls.isPrivate);
-  Expect.equals(const Symbol('Error'), oom_cls.superclass.simpleName);
+  Expect.equals(const Symbol('Object'), oom_cls.superclass.simpleName);
   Expect.isTrue(oom_cls.defaultFactory == null);
   Expect.equals(const Symbol('dart.core'), oom_cls.owner.simpleName);
   Expect.isTrue(oom_cls.isClass);
-  Expect.isTrue(oom_cls.superinterfaces.isEmpty);
+  Expect.equals(const Symbol('Error'), oom_cls.superinterfaces[0].simpleName);
   // TODO(ahe): toString() test disabled for now as Symbols are 100% opaque.
   // Expect.equals("ClassMirror on 'OutOfMemoryError'",
   //               oom_cls.toString());

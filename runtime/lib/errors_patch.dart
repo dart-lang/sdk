@@ -6,9 +6,7 @@ patch class Error {
   /* patch */ static String _objectToString(Object object) {
     return Object._toString(object);
   }
-}
 
-patch class StackTraceOnThrow {
   // TODO(11680): implement stackTrace on Error.
   /* patch */ StackTrace get stackTrace => null;
 }
@@ -175,7 +173,7 @@ patch class NoSuchMethodError {
   }
 }
 
-class _FiftyThreeBitOverflowError extends Error with StackTraceOnThrow {
+class _FiftyThreeBitOverflowError extends Error {
   final Object _value;
 
   _FiftyThreeBitOverflowError(this._value);
