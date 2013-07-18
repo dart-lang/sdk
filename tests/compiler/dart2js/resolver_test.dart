@@ -636,9 +636,11 @@ testClassHierarchy() {
   FunctionElement mainElement = compiler.mainApp.find(MAIN);
   compiler.resolver.resolve(mainElement);
   Expect.equals(0, compiler.warnings.length);
-  Expect.equals(1, compiler.errors.length);
+  Expect.equals(2, compiler.errors.length);
   Expect.equals(MessageKind.CYCLIC_CLASS_HIERARCHY,
                 compiler.errors[0].message.kind);
+  Expect.equals(MessageKind.CANNOT_FIND_CONSTRUCTOR,
+                compiler.errors[1].message.kind);
 
   compiler = new MockCompiler();
   compiler.parseScript("""abstract class A extends B {}

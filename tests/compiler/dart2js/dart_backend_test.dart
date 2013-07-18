@@ -14,7 +14,9 @@ import '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart';
 
 const coreLib = r'''
 library corelib;
-class Object {}
+class Object {
+  Object();
+}
 class bool {}
 class num {}
 class int extends num {}

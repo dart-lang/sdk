@@ -71,6 +71,8 @@ type_variable_field_initializer_closure_test: Crash # issue 8847
 closures_initializer_test: Crash # issue 8847
 closures_initializer2_test: Crash # issue 8847
 
+mixin_forwarding_constructor2_test: Fail # Issue 11888
+mixin_typedef_constructor_test: Fail # Issue 11888
 
 [ $compiler == none && $unchecked ]
 
@@ -140,6 +142,8 @@ mixin_type_parameters_errors_test/*: Skip
 # Mixins fail on the VM.
 mixin_mixin_test: Fail                      # VM issue
 mixin_issue10216_2_test: Fail               # VM issue
+mixin_forwarding_constructor2_test: Fail # Issue 11888
+mixin_typedef_constructor_test: Fail # Issue 11888
 
 
 # Malformed types not handled as unresolved:

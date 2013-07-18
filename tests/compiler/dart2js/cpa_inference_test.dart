@@ -160,7 +160,9 @@ const String CORELIB = r'''
   }
   class bool {}
   class String {}
-  class Object {}
+  class Object {
+    Object();
+  }
   class Function {}
   abstract class List<E> {
     factory List([int length]) {}

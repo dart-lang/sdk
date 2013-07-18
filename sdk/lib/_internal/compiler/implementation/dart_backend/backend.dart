@@ -240,7 +240,7 @@ class DartBackend extends Backend {
     for (final element in resolvedElements.keys) {
       if (!element.isConstructor()) continue;
       Link<Element> optionalParameters =
-          element.functionSignature.optionalParameters;
+          element.computeSignature(compiler).optionalParameters;
       for (final optional in optionalParameters) {
         if (optional.kind != ElementKind.FIELD_PARAMETER) continue;
         fixedMemberNames.add(optional.name.slowToString());
