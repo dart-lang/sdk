@@ -150,14 +150,12 @@ class _Annotation {
 
 // Find all relative imports and copy them into the dir that contains
 // the generated tests.
-Set<Path> _findAllRelativeImports(Path topLibrary) {
+Set<String> _findAllRelativeImports(Path topLibrary) {
   Set<Path> toSearch = new Set<Path>.from([topLibrary]);
-  Set<Path> foundImports = new Set<Path>();
+  Set<String> foundImports = new Set<String>();
   Path libraryDir = topLibrary.directoryPath;
-  // Matches #import( or #source( followed by " or ' followed by anything
-  // except dart:, dart-ext: or /, at the beginning of a line.
   RegExp relativeImportRegExp = new RegExp(
-      '^#(import|source)[(]["\'](?!(dart:|dart-ext:|/))([^"\']*)["\']');
+      '^(import|part)\\s+["\'](?!(dart:|dart-ext:|package:|/))([^"\']*)["\']');
   while (!toSearch.isEmpty) {
     var thisPass = toSearch;
     toSearch = new Set<Path>();
@@ -167,7 +165,7 @@ Set<Path> _findAllRelativeImports(Path topLibrary) {
         Match match = relativeImportRegExp.firstMatch(line);
         if (match != null) {
           Path relativePath = new Path(match.group(3));
-          if (foundImports.contains(relativePath)) {
+          if (foundImports.contains(relativePath.toString())) {
             continue;
           }
           if (relativePath.toString().contains('..')) {
@@ -177,7 +175,7 @@ Set<Path> _findAllRelativeImports(Path topLibrary) {
             print("relative paths containing .. are not allowed.");
             exit(1);
           }
-          foundImports.add(relativePath);
+          foundImports.add(relativePath.toString());
           toSearch.add(libraryDir.join(relativePath));
         }
       }
@@ -198,9 +196,10 @@ Future doMultitest(Path filePath, String outputDir, Path suiteDir,
   assert(targetDir != null);
 
   // Copy all the relative imports of the multitest.
-  Set<Path> importsToCopy = _findAllRelativeImports(filePath);
+  Set<String> importsToCopy = _findAllRelativeImports(filePath);
   List<Future> futureCopies = [];
-  for (Path importPath in importsToCopy) {
+  for (String relativeImport in importsToCopy) {
+    Path importPath = new Path(relativeImport);
     // Make sure the target directory exists.
     Path importDir = importPath.directoryPath;
     if (!importDir.isEmpty) {
