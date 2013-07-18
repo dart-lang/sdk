@@ -1257,9 +1257,9 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
 
 
 // Copy the type parameters of the super and mixin classes to the
-// mixin application class. Change type arguments of super type to
-// refer to the respective type parameters of the mixin application
-// class.
+// mixin application class. Change type arguments of super type and of
+// interfaces to refer to the respective type parameters of the mixin
+// application class.
 void ClassFinalizer::CloneTypeParameters(const Class& mixapp_class) {
   ASSERT(mixapp_class.NumTypeParameters() == 0);
 
@@ -1318,6 +1318,7 @@ void ClassFinalizer::CloneTypeParameters(const Class& mixapp_class) {
     // TODO(hausner): May need to handle BoundedType here.
     ASSERT(super_type.IsType());
     Type::Cast(super_type).set_arguments(super_type_args);
+    ASSERT(!super_type.IsFinalized());
   }
 
   // Second, clone the type parameters of the mixin class.
@@ -1328,6 +1329,8 @@ void ClassFinalizer::CloneTypeParameters(const Class& mixapp_class) {
   if (num_mixin_parameters > 0) {
     const TypeArguments& mixin_params =
         TypeArguments::Handle(mixin_class.type_parameters());
+    const TypeArguments& interface_type_args = TypeArguments::Handle(
+        TypeArguments::New(num_mixin_parameters));
     for (int i = 0; i < num_mixin_parameters; i++) {
       param ^= mixin_params.TypeAt(i);
       param_name = param.name();
@@ -1347,8 +1350,21 @@ void ClassFinalizer::CloneTypeParameters(const Class& mixapp_class) {
                                         param_bound,
                                         param.token_pos());
       cloned_type_params.SetTypeAt(cloned_index, cloned_param);
+      interface_type_args.SetTypeAt(i, cloned_param);
       cloned_index++;
     }
+
+    // Lastly, change the type arguments of the single interface type to
+    // refer to the cloned type parameters of the mixin application class.
+    Array& interface_types = Array::Handle(mixapp_class.interfaces());
+    ASSERT(interface_types.Length() == 1);
+    AbstractType& interface_type = AbstractType::Handle();
+    interface_type ^= interface_types.At(0);
+    ASSERT(interface_type.IsResolved());
+    // TODO(hausner): May need to handle BoundedType here.
+    ASSERT(interface_type.IsType());
+    Type::Cast(interface_type).set_arguments(interface_type_args);
+    ASSERT(!interface_type.IsFinalized());
   }
   mixapp_class.set_type_parameters(cloned_type_params);
 }
@@ -1362,7 +1378,7 @@ void ClassFinalizer::ApplyMixinTypes(const Class& cls) {
 
   if (FLAG_trace_class_finalization) {
     OS::Print("Applying mixin type '%s' to '%s' at pos %"Pd"\n",
-              String::Handle(mixin_cls.Name()).ToCString(),
+              String::Handle(mixin_type.Name()).ToCString(),
               cls.ToCString(),
               cls.token_pos());
   }
@@ -1383,7 +1399,8 @@ void ClassFinalizer::ApplyMixinTypes(const Class& cls) {
   CloneTypeParameters(cls);
 
   if (FLAG_trace_class_finalization) {
-    OS::Print("done mixin type appl %s %s extending '%s'\n",
+    OS::Print("Done applying mixin type '%s' to class %s %s extending '%s'\n",
+              String::Handle(mixin_type.Name()).ToCString(),
               String::Handle(cls.Name()).ToCString(),
               TypeArguments::Handle(cls.type_parameters()).ToCString(),
               AbstractType::Handle(cls.super_type()).ToCString());
