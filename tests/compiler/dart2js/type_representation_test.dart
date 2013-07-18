@@ -7,6 +7,7 @@ library subtype_test;
 import 'package:expect/expect.dart';
 import 'type_test_helper.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/js/js.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart'
        show Element, ClassElement;
 import '../../../sdk/lib/_internal/compiler/implementation/js_backend/js_backend.dart'
@@ -34,12 +35,24 @@ void testTypeRepresentations() {
 
   TypeRepresentationGenerator typeRepresentation =
       new TypeRepresentationGenerator(env.compiler);
-  String onVariable(TypeVariableType type) => type.name.slowToString();
+
+  Expression onVariable(TypeVariableType variable) {
+    return new VariableUse(variable.name.slowToString());
+  }
+
+  String stringify(Expression expression) {
+    return prettyPrint(expression, env.compiler).buffer.toString();
+  }
 
   void expect(String expectedRepresentation, DartType type) {
-    String foundRepresentation =
+    Expression expression =
         typeRepresentation.getTypeRepresentation(type, onVariable);
-    Expect.stringEquals(expectedRepresentation, foundRepresentation);
+    Expect.stringEquals(expectedRepresentation, stringify(expression));
+  }
+
+  String getJsName(ClassElement cls) {
+    Expression name = typeRepresentation.getJavaScriptClassName(cls);
+    return stringify(name);
   }
 
   JavaScriptBackend backend = env.compiler.backend;
@@ -62,15 +75,15 @@ void testTypeRepresentations() {
   DartType dynamic_ = env['dynamic'];
   DartType Typedef_ = env['Typedef'];
 
-  String List_rep = typeRepresentation.getJsName(List_);
-  String List_E_rep = onVariable(List_E);
-  String Map_rep = typeRepresentation.getJsName(Map_);
-  String Map_K_rep = onVariable(Map_K);
-  String Map_V_rep = onVariable(Map_V);
+  String List_rep = getJsName(List_);
+  String List_E_rep = stringify(onVariable(List_E));
+  String Map_rep = getJsName(Map_);
+  String Map_K_rep = stringify(onVariable(Map_K));
+  String Map_V_rep = stringify(onVariable(Map_V));
 
-  String Object_rep = typeRepresentation.getJsName(Object_.element);
-  String int_rep = typeRepresentation.getJsName(int_.element);
-  String String_rep = typeRepresentation.getJsName(String_.element);
+  String Object_rep = getJsName(Object_.element);
+  String int_rep = getJsName(int_.element);
+  String String_rep = getJsName(String_.element);
 
   expect('$int_rep', int_);
   expect('$String_rep', String_);

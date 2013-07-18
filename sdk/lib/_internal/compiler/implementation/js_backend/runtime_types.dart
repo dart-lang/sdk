@@ -463,11 +463,6 @@ class RuntimeTypes {
                                    { bool alwaysGenerateFunction: false }) {
     if (isTrivialSubstitution(cls, check)) return null;
 
-    bool usesTypeVariables = false;
-    String onVariable(TypeVariableType v) {
-      usesTypeVariables = true;
-      return v.toString();
-    };
     InterfaceType type = cls.computeType(compiler);
     InterfaceType target = type.asInstanceOf(check);
     Link<DartType> typeVariables;
