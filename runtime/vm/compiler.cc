@@ -450,7 +450,9 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
       // Attempt to sink allocations of temporary non-escaping objects to
       // the deoptimization path.
       AllocationSinking* sinking = NULL;
-      if (FLAG_allocation_sinking) {
+      if (FLAG_allocation_sinking &&
+          (flow_graph->graph_entry()->SuccessorCount()  == 1)) {
+        // TODO(fschneider): Support allocation sinking with try-catch.
         sinking = new AllocationSinking(flow_graph);
         sinking->Optimize();
       }
