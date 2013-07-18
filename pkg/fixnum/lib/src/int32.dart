@@ -20,7 +20,7 @@ class int32 implements intx {
    * The minimum positive value attainable by an [int32], namely
    * -2147483648.
    */
-  static int32 MIN_VALUE = const int32._internal(0x80000000);
+  static int32 MIN_VALUE = const int32._internal(-0x80000000);
 
   /**
    * An [int32] constant equal to 0.
