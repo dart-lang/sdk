@@ -3424,7 +3424,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     if (!backend.retainMetadataOf(element)) return code;
     return compiler.withCurrentElement(element, () {
       List<int> metadata = <int>[];
-      FunctionSignature signature = element.functionSignature;
+      FunctionSignature signature = element.computeSignature(compiler);
       if (element.isConstructor()) {
         metadata.add(reifyType(element.getEnclosingClass().thisType));
       } else {

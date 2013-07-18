@@ -571,9 +571,6 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
   }
 
   bool analyze(Element element) {
-    if (element.isForwardingConstructor) {
-      element = element.targetConstructor;
-    }
     SimpleTypeInferrerVisitor visitor =
         new SimpleTypeInferrerVisitor(element, compiler, this);
     TypeMask returnType = visitor.run();
@@ -1439,10 +1436,16 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor {
           locals.update(element, parameterType);
         }
       });
-      visitingInitializers = true;
-      visit(node.initializers);
-      visitingInitializers = false;
-      visit(node.body);
+      if (analyzedElement.isSynthesized) {
+        // Use the enclosing class of the synthesized constructor as
+        // the location for the initialized fields.
+        node = analyzedElement.enclosingElement.parseNode(compiler);
+      } else {
+        visitingInitializers = true;
+        visit(node.initializers);
+        visitingInitializers = false;
+        visit(node.body);
+      }
       ClassElement cls = analyzedElement.getEnclosingClass();
       if (!isConstructorRedirect) {
         // Iterate over all instance fields, and give a null type to

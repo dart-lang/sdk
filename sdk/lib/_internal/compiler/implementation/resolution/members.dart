@@ -339,6 +339,14 @@ class ResolverTask extends CompilerTask {
         assert(isConstructor);
         return elements;
       }
+      if (element.isSynthesized) {
+        Element target = element.targetConstructor;
+        if (!target.isErroneous()) {
+          compiler.enqueuer.resolution.registerStaticUse(
+              element.targetConstructor);
+        }
+        return new TreeElementMapping(element);
+      }
       if (element.isPatched) {
         checkMatchingPatchSignatures(element, element.patch);
         element = element.patch;
@@ -2536,7 +2544,9 @@ class ResolverVisitor extends MappingVisitor<Element> {
     { // This entire block is temporary code per the above TODO.
       FunctionElement targetImplementation = redirectionTarget.implementation;
       FunctionExpression function = targetImplementation.parseNode(compiler);
-      if (function.body != null && function.body.asReturn() != null
+      if (function != null
+          && function.body != null
+          && function.body.asReturn() != null
           && function.body.asReturn().isRedirectingFactoryBody) {
         unimplemented(node.expression, 'redirecting to redirecting factory');
       }
@@ -3273,7 +3283,21 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     element.interfaces = resolveInterfaces(node.interfaces, node.superclass);
     calculateAllSupertypes(element);
 
-    element.addDefaultConstructorIfNeeded(compiler);
+    if (!element.hasConstructor) {
+      Element superMember =
+          element.superclass.localLookup(const SourceString(''));
+      if (superMember == null || !superMember.isGenerativeConstructor()) {
+        MessageKind kind = MessageKind.CANNOT_FIND_CONSTRUCTOR;
+        Map arguments = {'constructorName': const SourceString('')};
+        compiler.reportErrorCode(node, kind, arguments);
+        superMember = new ErroneousElementX(
+            kind, arguments, const SourceString(''), element);
+        compiler.backend.registerThrowNoSuchMethod(mapping);
+      }
+      FunctionElement constructor =
+          new SynthesizedConstructorElementX.forDefault(superMember, element);
+      element.setDefaultConstructor(constructor, compiler);
+    }
     return element.computeType(compiler);
   }
 
@@ -3317,11 +3341,11 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
         constructor.computeSignature(compiler).parameterCount == 0;
   }
 
-  FunctionElement createForwardingConstructor(FunctionElement constructor,
-                                              ClassElement target) {
-    return new SynthesizedConstructorElementX.forwarding(constructor.name,
-                                                         constructor,
-                                                         target);
+  FunctionElement createForwardingConstructor(FunctionElement target,
+                                              ClassElement enclosing) {
+    return new SynthesizedConstructorElementX(target.name,
+                                              target,
+                                              enclosing);
   }
 
   void doApplyMixinTo(MixinApplicationElement mixinApplication,
@@ -3360,20 +3384,11 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     // because they are now hidden by the mixin application.
     ClassElement superclass = supertype.element;
     superclass.forEachLocalMember((Element member) {
-      if (!member.isConstructor()) return;
-      if (member.isSynthesized && !member.isForwardingConstructor) return;
-      if (isDefaultConstructor(member)) return;
-      assert(invariant(node, !member.isFactoryConstructor(),
-             message: 'mixins cannot have factory constructors'));
-      // Skip forwarding constructors and use their target.
-      FunctionElement constructor =
-          member.isForwardingConstructor ? member.targetConstructor : member;
-      assert(invariant(node, !constructor.isForwardingConstructor));
+      if (!member.isGenerativeConstructor()) return;
       FunctionElement forwarder =
-          createForwardingConstructor(constructor, mixinApplication);
+          createForwardingConstructor(member, mixinApplication);
       mixinApplication.addConstructor(forwarder);
     });
-    mixinApplication.addDefaultConstructorIfNeeded(compiler);
     calculateAllSupertypes(mixinApplication);
   }
 

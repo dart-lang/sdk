@@ -356,7 +356,8 @@ class DartBackend extends Backend {
       // and then overwrite necessary parts.
       var classNode = classElement.parseNode(compiler);
       SynthesizedConstructorElementX constructor =
-          new SynthesizedConstructorElementX(classElement);
+          new SynthesizedConstructorElementX(
+              classElement.name, null, classElement);
       constructor.type = new FunctionType(
           constructor,
           compiler.types.voidType,

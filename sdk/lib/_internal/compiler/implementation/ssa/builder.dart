@@ -212,7 +212,7 @@ class LocalsHandler {
    * Invariant: [function] must be an implementation element.
    */
   void startFunction(Element element, Expression node) {
-    assert(invariant(node, element.isImplementation));
+    assert(invariant(element, element.isImplementation));
     Compiler compiler = builder.compiler;
     closureData = compiler.closureToClassMapper.computeClosureToClassMapping(
             element, node, builder.elements);
@@ -1271,6 +1271,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         return false;
       }
 
+      if (element.isSynthesized) return true;
+
       if (cachedCanBeInlined == true) return cachedCanBeInlined;
 
       int numParameters = function.functionSignature.parameterCount;
@@ -1346,37 +1348,19 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    *
    * Invariant: [constructors] must contain only implementation elements.
    */
-  void inlineSuperOrRedirect(FunctionElement constructor,
-                             Selector selector,
-                             Link<Node> arguments,
+  void inlineSuperOrRedirect(FunctionElement callee,
+                             List<HInstruction> compiledArguments,
                              List<FunctionElement> constructors,
                              Map<Element, HInstruction> fieldValues,
-                             FunctionElement inlinedFromElement,
-                             Node callNode) {
-    constructor = constructor.implementation;
-    compiler.withCurrentElement(constructor, () {
-      constructors.add(constructor);
-
-      List<HInstruction> compiledArguments = new List<HInstruction>();
-      bool succeeded =
-          inlinedFrom(inlinedFromElement,
-                       () => addStaticSendArgumentsToList(selector,
-                                                          arguments,
-                                                          constructor,
-                                                          compiledArguments));
-      if (!succeeded) {
-        // Non-matching super and redirects are compile-time errors and thus
-        // checked by the resolver.
-        compiler.internalError(
-            "Parameters and arguments didn't match for super/redirect call",
-            element: constructor);
-      }
-
-      ClassElement enclosingClass = constructor.getEnclosingClass();
+                             FunctionElement caller) {
+    callee = callee.implementation;
+    compiler.withCurrentElement(callee, () {
+      constructors.add(callee);
+      ClassElement enclosingClass = callee.getEnclosingClass();
       if (backend.classNeedsRti(enclosingClass)) {
         // If [enclosingClass] needs RTI, we have to give a value to its
         // type parameters.
-        ClassElement currentClass = inlinedFromElement.getEnclosingClass();
+        ClassElement currentClass = caller.getEnclosingClass();
         // For a super constructor call, the type is the supertype of
         // [currentClass]. For a redirecting constructor, the type is
         // the current type. [InterfaceType.asInstanceOf] takes care
@@ -1384,8 +1368,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         InterfaceType type = currentClass.thisType.asInstanceOf(enclosingClass);
         Link<DartType> typeVariables = enclosingClass.typeVariables;
         type.typeArguments.forEach((DartType argument) {
-          localsHandler.updateLocal(typeVariables.head.element,
-              analyzeTypeArgument(argument, callNode));
+          localsHandler.updateLocal(
+              typeVariables.head.element,
+              analyzeTypeArgument(argument));
           typeVariables = typeVariables.tail;
         });
         // If the supertype is a raw type, we need to set to null the
@@ -1399,13 +1384,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }
       }
 
-      inlinedFrom(constructor, () {
-        buildFieldInitializers(constructor.enclosingElement.implementation,
+      inlinedFrom(callee, () {
+        buildFieldInitializers(callee.enclosingElement.implementation,
                                fieldValues);
       });
 
       int index = 0;
-      FunctionSignature params = constructor.computeSignature(compiler);
+      FunctionSignature params = callee.computeSignature(compiler);
       params.orderedForEachParameter((Element parameter) {
         HInstruction argument = compiledArguments[index++];
         // Because we are inlining the initializer, we must update
@@ -1423,19 +1408,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
       // Build the initializers in the context of the new constructor.
       TreeElements oldElements = elements;
-      if (constructor.isForwardingConstructor) {
-        constructor = constructor.targetConstructor;
-      }
-      elements =
-          compiler.enqueuer.resolution.getCachedElements(constructor);
+      elements = compiler.enqueuer.resolution.getCachedElements(callee);
       ClosureClassMap oldClosureData = localsHandler.closureData;
-      Node node = constructor.parseNode(compiler);
+      Node node = callee.parseNode(compiler);
       ClosureClassMap newClosureData =
           compiler.closureToClassMapper.computeClosureToClassMapping(
-              constructor, node, elements);
+              callee, node, elements);
       localsHandler.closureData = newClosureData;
-      localsHandler.enterScope(node, constructor);
-      buildInitializers(constructor, constructors, fieldValues);
+      localsHandler.enterScope(node, callee);
+      buildInitializers(callee, constructors, fieldValues);
       localsHandler.closureData = oldClosureData;
       elements = oldElements;
     });
@@ -1455,30 +1436,56 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                          List<FunctionElement> constructors,
                          Map<Element, HInstruction> fieldValues) {
     assert(invariant(constructor, constructor.isImplementation));
+    if (constructor.isSynthesized) {
+      List<HInstruction> arguments = <HInstruction>[];
+      HInstruction compileArgument(Element element) {
+        return localsHandler.readLocal(element);
+      }
+
+      Element target = constructor.targetConstructor.implementation;
+      Selector.addForwardingElementArgumentsToList(
+          constructor, 
+          arguments,
+          target,
+          compileArgument,
+          handleConstantForOptionalParameter,
+          compiler);
+      inlineSuperOrRedirect(
+          target,
+          arguments,
+          constructors,
+          fieldValues,
+          constructor);
+      return;
+    }
     FunctionExpression functionNode = constructor.parseNode(compiler);
 
     bool foundSuperOrRedirect = false;
-
     if (functionNode.initializers != null) {
       Link<Node> initializers = functionNode.initializers.nodes;
       for (Link<Node> link = initializers; !link.isEmpty; link = link.tail) {
         assert(link.head is Send);
         if (link.head is !SendSet) {
           // A super initializer or constructor redirection.
+          foundSuperOrRedirect = true;
           Send call = link.head;
           assert(Initializers.isSuperConstructorCall(call) ||
                  Initializers.isConstructorRedirect(call));
-          FunctionElement target = elements[call];
+          FunctionElement target = elements[call].implementation;
           Selector selector = elements.getSelector(call);
           Link<Node> arguments = call.arguments;
+          List<HInstruction> compiledArguments = new List<HInstruction>();
+          inlinedFrom(constructor, () {
+            addStaticSendArgumentsToList(selector,
+                                         arguments,
+                                         target,
+                                         compiledArguments);
+          });
           inlineSuperOrRedirect(target,
-                                selector,
-                                arguments,
+                                compiledArguments,
                                 constructors,
                                 fieldValues,
-                                constructor,
-                                call);
-          foundSuperOrRedirect = true;
+                                constructor);
         } else {
           // A field initializer.
           SendSet init = link.head;
@@ -1507,13 +1514,18 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         if (target == null) {
           compiler.internalError("no default constructor available");
         }
+        List<HInstruction> arguments = <HInstruction>[];
+        selector.addArgumentsToList(const Link<Node>(),
+                                    arguments,
+                                    target.implementation,
+                                    null,
+                                    handleConstantForOptionalParameter,
+                                    compiler);
         inlineSuperOrRedirect(target,
-                              selector,
-                              const Link<Node>(),
+                              arguments,
                               constructors,
                               fieldValues,
-                              constructor,
-                              functionNode);
+                              constructor);
       }
     }
   }
@@ -2914,10 +2926,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return pop();
     }
 
-    if (element.isForwardingConstructor) {
-      element = element.targetConstructor;
-    }
-
     return selector.addArgumentsToList(arguments,
                                        list,
                                        element,
@@ -3371,8 +3379,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    *
    * Invariant: [argument] must not be malformed in checked mode.
    */
-  HInstruction analyzeTypeArgument(DartType argument, Node currentNode) {
-    assert(invariant(currentNode,
+  HInstruction analyzeTypeArgument(DartType argument) {
+    assert(invariant(currentElement,
                      !compiler.enableTypeAssertions || !argument.isMalformed,
                      message: '$argument is malformed in checked mode'));
     if (argument == compiler.types.dynamicType || argument.isMalformed) {
@@ -3398,7 +3406,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (!type.isRaw) {
       List<HInstruction> inputs = <HInstruction>[];
       type.typeArguments.forEach((DartType argument) {
-        inputs.add(analyzeTypeArgument(argument, currentNode));
+        inputs.add(analyzeTypeArgument(argument));
       });
       callSetRuntimeTypeInfo(type.element, inputs, newObject);
     }
@@ -3461,13 +3469,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     Element constructor = elements[send];
     Selector selector = elements.getSelector(send);
-    if (constructor.isForwardingConstructor) {
-      compiler.unimplemented('forwarded constructor in named mixin application',
-                             element: constructor.getEnclosingClass());
-    }
-    if (compiler.enqueuer.resolution.getCachedElements(constructor) == null) {
-      compiler.internalError("Unresolved element: $constructor", node: send);
-    }
     FunctionElement functionElement = constructor;
     constructor = functionElement.redirectionTarget;
 
@@ -3508,7 +3509,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (backend.classNeedsRti(cls)) {
       Link<DartType> typeVariable = cls.typeVariables;
       type.typeArguments.forEach((DartType argument) {
-        inputs.add(analyzeTypeArgument(argument, send));
+        inputs.add(analyzeTypeArgument(argument));
         typeVariable = typeVariable.tail;
       });
       // Also add null to non-provided type variables to call the

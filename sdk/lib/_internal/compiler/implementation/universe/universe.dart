@@ -376,7 +376,7 @@ class Selector {
    * of an argument located in [arguments].
    *
    * [compileConstant] is a function that returns a compiled constant
-   * of an optional argument that is not in [arguments.
+   * of an optional argument that is not in [arguments].
    *
    * Returns [:true:] if the selector and the [element] match; [:false:]
    * otherwise.
@@ -427,6 +427,79 @@ class Selector {
       });
     }
     return true;
+  }
+
+  /**
+   * Fills [list] with the arguments in the order expected by
+   * [callee], and where [caller] is a synthesized element
+   *
+   * [compileArgument] is a function that returns a compiled version
+   * of a parameter of [callee].
+   *
+   * [compileConstant] is a function that returns a compiled constant
+   * of an optional argument that is not in the parameters of [callee].
+   *
+   * Returns [:true:] if the signature of the [caller] matches the
+   * signature of the [callee], [:false:] otherwise.
+   */
+  static bool addForwardingElementArgumentsToList(
+      FunctionElement caller,
+      List list,
+      FunctionElement callee,
+      compileArgument(Element element),
+      compileConstant(Element element),
+      Compiler compiler) {
+
+    FunctionSignature signature = caller.computeSignature(compiler);
+    Map mapping = new Map();
+
+    // TODO(ngeoffray): This is a hack that fakes up AST nodes, so
+    // that we can call [addArgumentsToList].
+    Link computeCallNodesFromParameters() {
+      LinkBuilder builder = new LinkBuilder();
+      signature.forEachRequiredParameter((Element element) {
+        Node node = element.parseNode(compiler);
+        mapping[node] = element;
+        builder.addLast(node);
+      });
+      if (signature.optionalParametersAreNamed) {
+        signature.forEachOptionalParameter((Element element) {
+          Node node = element.parseNode(compiler);
+          mapping[node] = element;
+          builder.addLast(new NamedArgument(null, null, node));
+        });
+      } else {
+        signature.forEachOptionalParameter((Element element) {
+          Node node = element.parseNode(compiler);
+          mapping[node] = element;
+          builder.addLast(node);
+        });
+      }
+      return builder.toLink();
+    }
+
+    internalCompileArgument(Node node) => compileArgument(mapping[node]);
+
+    Link<Node> nodes = computeCallNodesFromParameters();
+
+    // Synthesize a selector for the call.
+    // TODO(ngeoffray): Should the resolver do it instead?
+    List<SourceString> namedParameters;
+    if (signature.optionalParametersAreNamed) {
+      namedParameters =
+          signature.optionalParameters.toList().map((e) => e.name).toList();
+    }
+    Selector selector = new Selector.call(callee.name,
+                                          caller.getLibrary(),
+                                          signature.parameterCount,
+                                          namedParameters);
+
+    return selector.addArgumentsToList(nodes,
+                                       list,
+                                       callee,
+                                       internalCompileArgument,
+                                       compileConstant,
+                                       compiler);
   }
 
   static bool sameNames(List<SourceString> first, List<SourceString> second) {

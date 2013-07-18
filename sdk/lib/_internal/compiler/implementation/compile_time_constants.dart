@@ -689,7 +689,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     compiler.analyzeElement(constructor.declaration);
 
     InterfaceType type = elements.getType(node);
-    if ( constructor.isRedirectingFactory) {
+    if (constructor.isRedirectingFactory) {
       type = constructor.computeTargetType(compiler, type);
     }
 
@@ -704,7 +704,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     List<Constant> arguments = evaluateArgumentsToConstructor(
         node, selector, send.arguments, constructor);
     ConstructorEvaluator evaluator =
-        new ConstructorEvaluator(node, constructor, handler, compiler);
+        new ConstructorEvaluator(constructor, handler, compiler);
     evaluator.evaluateConstructorFieldValues(arguments);
     List<Constant> jsNewArguments = evaluator.buildJsNewArguments(classElement);
 
@@ -761,8 +761,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
    *
    * Invariant: [constructor] must be an implementation element.
    */
-  ConstructorEvaluator(Node node,
-                       FunctionElement constructor,
+  ConstructorEvaluator(FunctionElement constructor,
                        ConstantHandler handler,
                        Compiler compiler)
       : this.constructor = constructor,
@@ -772,7 +771,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
               compiler.resolver.resolveMethodElement(constructor.declaration),
               compiler,
               isConst: true) {
-    assert(invariant(node, constructor.isImplementation));
+    assert(invariant(constructor, constructor.isImplementation));
   }
 
   Constant visitSend(Send send) {
@@ -828,15 +827,10 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
     });
   }
 
-  void evaluateSuperOrRedirectSend(Node currentNode,
-                                   Selector selector,
-                                   Link<Node> arguments,
+  void evaluateSuperOrRedirectSend(List<Constant> compiledArguments,
                                    FunctionElement targetConstructor) {
-    List<Constant> compiledArguments = evaluateArgumentsToConstructor(
-        currentNode, selector, arguments, targetConstructor);
-
     ConstructorEvaluator evaluator = new ConstructorEvaluator(
-        currentNode, targetConstructor, handler, compiler);
+        targetConstructor, handler, compiler);
     evaluator.evaluateConstructorFieldValues(compiledArguments);
     // Copy over the fieldValues from the super/redirect-constructor.
     // No need to go through [updateFieldValue] because the
@@ -849,6 +843,21 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
    * the [fieldValues] map.
    */
   void evaluateConstructorInitializers() {
+    if (constructor.isSynthesized) {
+      List<Constant> compiledArguments = <Constant>[];
+
+      Function compileArgument = (element) => definitions[element];
+      Function compileConstant = handler.compileConstant;
+      FunctionElement target = constructor.targetConstructor.implementation;
+      Selector.addForwardingElementArgumentsToList(constructor,
+                                                   compiledArguments,
+                                                   target,
+                                                   compileArgument,
+                                                   compileConstant,
+                                                   compiler);
+      evaluateSuperOrRedirectSend(compiledArguments, target);
+      return;
+    }
     FunctionExpression functionNode = constructor.parseNode(compiler);
     NodeList initializerList = functionNode.initializers;
 
@@ -862,11 +871,10 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
         if (link.head is !SendSet) {
           // A super initializer or constructor redirection.
           Send call = link.head;
-          FunctionElement targetConstructor = elements[call];
-          Selector selector = elements.getSelector(call);
-          Link<Node> arguments = call.arguments;
-          evaluateSuperOrRedirectSend(
-              call, selector, arguments, targetConstructor);
+          FunctionElement target = elements[call];
+          List<Constant> compiledArguments = evaluateArgumentsToConstructor(
+              call, elements.getSelector(call), call.arguments, target);
+          evaluateSuperOrRedirectSend(compiledArguments, target);
           foundSuperOrRedirect = true;
         } else {
           // A field initializer.
@@ -897,11 +905,9 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
           compiler.internalError("no default constructor available",
                                  node: functionNode);
         }
-
-        evaluateSuperOrRedirectSend(functionNode,
-                                    selector,
-                                    const Link<Node>(),
-                                    targetConstructor);
+        List<Constant> compiledArguments = evaluateArgumentsToConstructor(
+            functionNode, selector, const Link<Node>(), targetConstructor);
+        evaluateSuperOrRedirectSend(compiledArguments, targetConstructor);
       }
     }
   }

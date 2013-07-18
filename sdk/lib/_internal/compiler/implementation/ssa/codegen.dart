@@ -18,21 +18,28 @@ class SsaCodeGeneratorTask extends CompilerTask {
   js.Fun buildJavaScriptFunction(FunctionElement element,
                                  List<js.Parameter> parameters,
                                  js.Block body) {
-    FunctionExpression expression =
-        element.implementation.parseNode(backend.compiler);
     js.Fun result = new js.Fun(parameters, body);
     // TODO(johnniwinther): remove the 'element.patch' hack.
     Element sourceElement = element.patch == null ? element : element.patch;
     SourceFile sourceFile = sourceElement.getCompilationUnit().script.file;
+    Node expression =
+        element.implementation.parseNode(backend.compiler);
+    Token beginToken;
+    Token endToken;
+    if (expression == null) {
+      // Synthesized node. Use the enclosing element for the location.
+      beginToken = endToken = element.position();
+    } else {
+      beginToken = expression.getBeginToken();
+      endToken = expression.getEndToken();
+    }
     // TODO(podivilov): find the right sourceFile here and remove offset checks
     // below.
-    if (expression.getBeginToken().charOffset < sourceFile.text.length) {
-      result.sourcePosition = new SourceFileLocation(
-          sourceFile, expression.getBeginToken());
+    if (beginToken.charOffset < sourceFile.text.length) {
+      result.sourcePosition = new SourceFileLocation(sourceFile, beginToken);
     }
-    if (expression.getEndToken().charOffset < sourceFile.text.length) {
-      result.endSourcePosition = new SourceFileLocation(
-          sourceFile, expression.getEndToken());
+    if (endToken.charOffset < sourceFile.text.length) {
+      result.endSourcePosition = new SourceFileLocation(sourceFile, endToken);
     }
     return result;
   }
