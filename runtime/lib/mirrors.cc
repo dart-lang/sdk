@@ -371,6 +371,7 @@ static Dart_Handle CreateTypeVariableMirror(Dart_Handle type_var,
   }
 
   Dart_Handle args[] = {
+    CreateMirrorReference(type_var),
     type_var_name,
     owner_mirror,
     CreateLazyMirror(upper_bound),
@@ -435,6 +436,7 @@ static Dart_Handle CreateTypedefMirror(Dart_Handle cls,
   }
 
   Dart_Handle args[] = {
+    CreateMirrorReference(cls),
     cls_name,
     owner_mirror,
     CreateLazyMirror(referent),

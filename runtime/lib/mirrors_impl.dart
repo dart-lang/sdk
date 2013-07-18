@@ -565,9 +565,9 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   }
 
   List<InstanceMirror> get metadata {
-    // get the metadata objects, convert them into InstanceMirrors using
-    // reflect() and then make them into a Dart list
-    return _metadata(_reflectee).map(reflect).toList();
+    // Get the metadata objects, convert them into InstanceMirrors using
+    // reflect() and then make them into a Dart list.
+    return _metadata(_reflectee).map(reflect).toList(growable:false);
   }
 
   static _name(reflectee)
@@ -628,6 +628,17 @@ class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
   String toString() => "FunctionTypeMirror on '${_n(simpleName)}'";
 }
 
+abstract class _LocalDeclarationMirrorImpl extends _LocalMirrorImpl
+    implements DeclarationMirror {
+    _LocalDeclarationMirrorImpl(this._reflectee);
+    final _MirrorReference _reflectee;
+
+    List<InstanceMirror> get metadata {
+      // Get the metadata objects, convert them into InstanceMirrors using
+      // reflect() and then make them into a Dart list.
+      return _metadata(_reflectee).map(reflect).toList(growable:false);
+    }
+}
 
 class _LazyTypeVariableMirror {
   _LazyTypeVariableMirror(String variableName, this._owner)
@@ -642,12 +653,14 @@ class _LazyTypeVariableMirror {
   final _LazyTypeMirror _owner;
 }
 
-class _LocalTypeVariableMirrorImpl extends _LocalMirrorImpl
+class _LocalTypeVariableMirrorImpl extends _LocalDeclarationMirrorImpl
     implements TypeVariableMirror {
-  _LocalTypeVariableMirrorImpl(String simpleName,
+  _LocalTypeVariableMirrorImpl(reflectee,
+                               String simpleName,
                                this._owner,
                                this._upperBound)
-      : this.simpleName = _s(simpleName);
+      : this.simpleName = _s(simpleName),
+        super(reflectee);
 
   final Symbol simpleName;
 
@@ -693,12 +706,14 @@ class _LocalTypeVariableMirrorImpl extends _LocalMirrorImpl
 }
 
 
-class _LocalTypedefMirrorImpl extends _LocalMirrorImpl
+class _LocalTypedefMirrorImpl extends _LocalDeclarationMirrorImpl
     implements TypedefMirror {
-  _LocalTypedefMirrorImpl(String simpleName,
+  _LocalTypedefMirrorImpl(reflectee,
+                          String simpleName,
                           this._owner,
                           this._referent)
-      : this.simpleName = _s(simpleName);
+      : this.simpleName = _s(simpleName),
+        super(reflectee);
 
   final Symbol simpleName;
 
@@ -829,9 +844,9 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
   }
 
   List<InstanceMirror> get metadata {
-    // get the metadata objects, convert them into InstanceMirrors using
-    // reflect() and then make them into a Dart list
-    _metadata(_reflectee).map(reflect).toList();
+    // Get the metadata objects, convert them into InstanceMirrors using
+    // reflect() and then make them into a Dart list.
+    return _metadata(_reflectee).map(reflect).toList(growable:false);
   }
 
   String toString() => "LibraryMirror on '${_n(simpleName)}'";
@@ -846,9 +861,9 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
       native 'LibraryMirror_invokeSetter';
 }
 
-class _LocalMethodMirrorImpl extends _LocalMirrorImpl
+class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
     implements MethodMirror {
-  _LocalMethodMirrorImpl(this._reflectee,
+  _LocalMethodMirrorImpl(reflectee,
                          this._owner,
                          this.parameters,
                          this._returnType,
@@ -860,9 +875,7 @@ class _LocalMethodMirrorImpl extends _LocalMirrorImpl
                          this.isConstConstructor,
                          this.isGenerativeConstructor,
                          this.isRedirectingConstructor,
-                         this.isFactoryConstructor);
-
-  final _MirrorReference _reflectee;
+                         this.isFactoryConstructor) : super(reflectee);
 
   Symbol _simpleName = null;
   Symbol get simpleName {
@@ -956,13 +969,6 @@ class _LocalMethodMirrorImpl extends _LocalMirrorImpl
   final bool isRedirectingConstructor;
   final bool isFactoryConstructor;
 
-  List<InstanceMirror> get metadata {
-    owner; // ensure owner is computed
-    // get the metadata objects, convert them into InstanceMirrors using
-    // reflect() and then make them into a Dart list
-    return _metadata(_reflectee).map(reflect).toList();
-  }
-
   String toString() => "MethodMirror on '${_n(simpleName)}'";
 
   static String _MethodMirror_name(reflectee)
@@ -972,17 +978,17 @@ class _LocalMethodMirrorImpl extends _LocalMirrorImpl
       native "MethodMirror_owner";
 }
 
-class _LocalVariableMirrorImpl extends _LocalMirrorImpl
+class _LocalVariableMirrorImpl extends _LocalDeclarationMirrorImpl
     implements VariableMirror {
-  _LocalVariableMirrorImpl(this._reflectee,
+  _LocalVariableMirrorImpl(reflectee,
                            String simpleName,
                            this._owner,
                            this._type,
                            this.isStatic,
                            this.isFinal)
-      : this.simpleName = _s(simpleName);
+      : this.simpleName = _s(simpleName),
+        super(reflectee);
 
-  final _MirrorReference _reflectee;
   final Symbol simpleName;
 
   Symbol _qualifiedName = null;
@@ -1024,12 +1030,6 @@ class _LocalVariableMirrorImpl extends _LocalMirrorImpl
 
   final bool isStatic;
   final bool isFinal;
-
-  List<InstanceMirror> get metadata {
-    // get the metadata objects, convert them into InstanceMirrors using
-    // reflect() and then make them into a Dart list
-    return _metadata(_reflectee).map(reflect).toList();
-  }
 
   String toString() => "VariableMirror on '${_n(simpleName)}'";
 }
