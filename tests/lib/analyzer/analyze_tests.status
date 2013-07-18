@@ -30,6 +30,9 @@ standalone/typed_data_test: fail
 # pkg issue https://code.google.com/p/dart/issues/detail?id=11856
 standalone/io/secure_socket_renegotiate_test: fail
 
+# https://code.google.com/p/dart/issues/detail?id=11647
+standalone/package/package_isolate_test: fail
+
 
 [ $compiler == dart2analyzer ]
 53bit_overflow_literal_test/01: fail, ok
@@ -58,3 +61,6 @@ standalone/typed_data_test: fail
 
 # pkg issue https://code.google.com/p/dart/issues/detail?id=11856
 standalone/io/secure_socket_renegotiate_test: fail
+
+# https://code.google.com/p/dart/issues/detail?id=11647
+standalone/package/package_isolate_test: fail
