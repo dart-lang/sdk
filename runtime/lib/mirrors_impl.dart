@@ -1120,7 +1120,13 @@ class _Mirrors {
   static ClassMirror makeLocalClassMirror(Type key)
       native "Mirrors_makeLocalClassMirror";
 
+  static Expando<ClassMirror> _classMirrorCache = new Expando("ClassMirror");
   static ClassMirror reflectClass(Type key) {
-    return makeLocalClassMirror(key);
+    var classMirror = _classMirrorCache[key];
+    if (classMirror == null) {
+      classMirror = makeLocalClassMirror(key);
+      _classMirrorCache[key] = classMirror;
+    }
+    return classMirror;
   }
 }
