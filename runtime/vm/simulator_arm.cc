@@ -3007,6 +3007,56 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
       for (int i = 0; i < 4; i++) {
         s8d.data_[i].f = s8n.data_[i].f * s8m.data_[i].f;
       }
+    } else if ((instr->Bits(8, 4) == 1) && (instr->Bit(4) == 1) &&
+               (instr->Bits(20, 2) == 0) && (instr->Bits(23, 2) == 2)) {
+      // Format(instr, "veorq 'qd, 'qn, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.data_[i].u = s8n.data_[i].u ^ s8m.data_[i].u;
+      }
+    } else if ((instr->Bits(8, 4) == 1) && (instr->Bit(4) == 1) &&
+               (instr->Bits(20, 2) == 2) && (instr->Bits(23, 2) == 0)) {
+      if (qm == qn) {
+        // Format(instr, "vmovq 'qd, 'qm");
+        for (int i = 0; i < 4; i++) {
+          s8d.data_[i].u = s8m.data_[i].u;
+        }
+      } else {
+        // Format(instr, "vorrq 'qd, 'qm");
+        for (int i = 0; i < 4; i++) {
+          s8d.data_[i].u = s8n.data_[i].u | s8m.data_[i].u;
+        }
+      }
+    } else if ((instr->Bits(8, 4) == 12) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
+               (instr->Bit(7) == 0)) {
+      DRegister dm = instr->DmField();
+      int64_t dm_value = get_dregister_bits(dm);
+      int32_t imm4 = instr->Bits(16, 4);
+      int32_t idx;
+      if ((imm4 & 1) != 0) {
+        // Format(instr, "vdupb 'qd, 'dm['imm4_vdup]");
+        int8_t* dm_b = reinterpret_cast<int8_t*>(&dm_value);
+        idx = imm4 >> 1;
+        for (int i = 0; i < 16; i++) {
+          s8d_8[i] = dm_b[idx];
+        }
+      } else if ((imm4 & 2) != 0) {
+        // Format(instr, "vduph 'qd, 'dm['imm4_vdup]");
+        int16_t* dm_h = reinterpret_cast<int16_t*>(&dm_value);
+        idx = imm4 >> 2;
+        for (int i = 0; i < 8; i++) {
+          s8d_16[i] = dm_h[idx];
+        }
+      } else if ((imm4 & 4) != 0) {
+        // Format(instr, "vdupw 'qd, 'dm['imm4_vdup]");
+        int32_t* dm_w = reinterpret_cast<int32_t*>(&dm_value);
+        idx = imm4 >> 3;
+        for (int i = 0; i < 4; i++) {
+          s8d.data_[i].u = dm_w[idx];
+        }
+      } else {
+        UnimplementedInstruction(instr);
+      }
     } else {
       UnimplementedInstruction(instr);
     }
@@ -3030,7 +3080,6 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
       for (int i = reg_count; i < 4; i++) {
         table[i] = 0;
       }
-
 
       int64_t dm_value = get_dregister_bits(dm);
       int64_t result;

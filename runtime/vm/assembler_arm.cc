@@ -1279,6 +1279,11 @@ void Assembler::EmitSIMDddd(int32_t opcode, OperandSize size,
 }
 
 
+void Assembler::vmovq(QRegister qd, QRegister qm) {
+  EmitSIMDqqq(B21 | B8 | B4, kByte, qd, qm, qm);
+}
+
+
 void Assembler::vaddqi(OperandSize sz,
                        QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B11, sz, qd, qn, qm);
@@ -1309,6 +1314,51 @@ void Assembler::vmulqi(OperandSize sz,
 
 void Assembler::vmulqs(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B24 | B11 | B10 | B8 | B4, kSWord, qd, qn, qm);
+}
+
+
+void Assembler::veorq(QRegister qd, QRegister qn, QRegister qm) {
+  EmitSIMDqqq(B24 | B8 | B4, kByte, qd, qn, qm);
+}
+
+
+void Assembler::vorrq(QRegister qd, QRegister qn, QRegister qm) {
+  EmitSIMDqqq(B21 | B8 | B4, kByte, qd, qn, qm);
+}
+
+
+void Assembler::vdup(OperandSize sz, QRegister qd, DRegister dm, int idx) {
+  ASSERT((sz != kDWord) && (sz != kSWord) && (sz != kWordPair));
+  int code = 0;
+
+  switch (sz) {
+    case kByte:
+    case kUnsignedByte: {
+      ASSERT((idx >= 0) && (idx < 8));
+      code = 1 | (idx << 1);
+      break;
+    }
+    case kHalfword:
+    case kUnsignedHalfword: {
+      ASSERT((idx >= 0) && (idx < 4));
+      code = 2 | (idx << 2);
+      break;
+    }
+    case kWord:
+    case kUnsignedWord: {
+      ASSERT((idx >= 0) && (idx < 2));
+      code = 4 | (idx << 3);
+      break;
+    }
+    default: {
+      break;
+    }
+  }
+
+  EmitSIMDddd(B24 | B23 | B11 | B10 | B6, kWordPair,
+              static_cast<DRegister>(qd * 2),
+              static_cast<DRegister>(code & 0xf),
+              dm);
 }
 
 

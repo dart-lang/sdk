@@ -1714,9 +1714,7 @@ void ParallelMoveResolver::EmitMove(int index) {
     }
   } else if (source.IsFpuRegister()) {
     if (destination.IsFpuRegister()) {
-      DRegister dst = EvenDRegisterOf(destination.fpu_reg());
-      DRegister src = EvenDRegisterOf(source.fpu_reg());
-      __ vmovd(dst, src);
+      __ vmovq(destination.fpu_reg(), source.fpu_reg());
     } else {
       if (destination.IsDoubleStackSlot()) {
         const intptr_t dest_offset = destination.ToStackSlotOffset();
@@ -1724,7 +1722,13 @@ void ParallelMoveResolver::EmitMove(int index) {
         __ StoreDToOffset(src, FP, dest_offset);
       } else {
         ASSERT(destination.IsQuadStackSlot());
-        UNIMPLEMENTED();
+        const intptr_t dest_offset = destination.ToStackSlotOffset();
+        DRegister dsrc0 = EvenDRegisterOf(source.fpu_reg());
+        DRegister dsrc1 = OddDRegisterOf(source.fpu_reg());
+        // TODO(zra): Write and use {Load,Store}Q{From,To}Offset(), which can
+        // use a single vld1/vst1 instruction.
+        __ StoreDToOffset(dsrc0, FP, dest_offset);
+        __ StoreDToOffset(dsrc1, FP, dest_offset + 2*kWordSize);
       }
     }
   } else if (source.IsDoubleStackSlot()) {
@@ -1740,7 +1744,23 @@ void ParallelMoveResolver::EmitMove(int index) {
       __ StoreDToOffset(DTMP, FP, dest_offset);
     }
   } else if (source.IsQuadStackSlot()) {
-    UNIMPLEMENTED();
+    if (destination.IsFpuRegister()) {
+      const intptr_t dest_offset = source.ToStackSlotOffset();
+      DRegister dst0 = EvenDRegisterOf(destination.fpu_reg());
+      DRegister dst1 = OddDRegisterOf(destination.fpu_reg());
+      __ LoadDFromOffset(dst0, FP, dest_offset);
+      __ LoadDFromOffset(dst1, FP, dest_offset + 2*kWordSize);
+    } else {
+      ASSERT(destination.IsQuadStackSlot());
+      const intptr_t source_offset = source.ToStackSlotOffset();
+      const intptr_t dest_offset = destination.ToStackSlotOffset();
+      DRegister dtmp0 = DTMP;
+      DRegister dtmp1 = OddDRegisterOf(QTMP);
+      __ LoadDFromOffset(dtmp0, FP, source_offset);
+      __ LoadDFromOffset(dtmp1, FP, source_offset + 2*kWordSize);
+      __ StoreDToOffset(dtmp0, FP, dest_offset);
+      __ StoreDToOffset(dtmp1, FP, dest_offset + 2*kWordSize);
+    }
   } else {
     ASSERT(source.IsConstant());
     if (destination.IsRegister()) {

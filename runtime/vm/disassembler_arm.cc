@@ -458,8 +458,23 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
         ASSERT(STRING_STARTS_WITH(format, "imm12_4"));
         immed16 = instr->BkptField();
       } else {
-        ASSERT(STRING_STARTS_WITH(format, "imm4_12"));
-        immed16 = instr->MovwField();
+        ASSERT(format[3] == '4');
+        if (format[5] == 'v') {
+          ASSERT(STRING_STARTS_WITH(format, "imm4_vdup"));
+          int32_t idx = -1;
+          int32_t imm4 = instr->Bits(16, 4);
+          if ((imm4 & 1) != 0) idx = imm4 >> 1;
+          else if ((imm4 & 2) != 0) idx = imm4 >> 2;
+          else if ((imm4 & 4) != 0) idx = imm4 >> 3;
+          buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                     remaining_size_in_buffer(),
+                                     "%d",
+                                     idx);
+          return 9;
+        } else {
+          ASSERT(STRING_STARTS_WITH(format, "imm4_12"));
+          immed16 = instr->MovwField();
+        }
       }
       buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
                                  remaining_size_in_buffer(),
@@ -1307,6 +1322,29 @@ void ARMDecoder::DecodeSIMDDataProcessing(Instr* instr) {
     } else if ((instr->Bits(8, 4) == 13) && (instr->Bit(4) == 1) &&
                (instr->Bits(23, 2) == 2) && (instr->Bit(21) == 0)) {
       Format(instr, "vmulqs 'qd, 'qn, 'qm");
+    } else if ((instr->Bits(8, 4) == 1) && (instr->Bit(4) == 1) &&
+               (instr->Bits(20, 2) == 0) && (instr->Bits(23, 2) == 2)) {
+      Format(instr, "veorq 'qd, 'qn, 'qm");
+    } else if ((instr->Bits(8, 4) == 1) && (instr->Bit(4) == 1) &&
+               (instr->Bits(20, 2) == 2) && (instr->Bits(23, 2) == 0)) {
+      if (instr->QmField() == instr->QnField()) {
+        Format(instr, "vmovq 'qd, 'qm");
+      } else {
+        Format(instr, "vorrq 'qd, 'qm");
+      }
+    } else if ((instr->Bits(8, 4) == 12) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
+               (instr->Bit(7) == 0)) {
+      int32_t imm4 = instr->Bits(16, 4);
+      if (imm4 & 1) {
+        Format(instr, "vdupb 'qd, 'dm['imm4_vdup]");
+      } else if (imm4 & 2) {
+        Format(instr, "vduph 'qd, 'dm['imm4_vdup]");
+      } else if (imm4 & 4) {
+        Format(instr, "vdupw 'qd, 'dm['imm4_vdup]");
+      } else {
+        Unknown(instr);
+      }
     } else {
       Unknown(instr);
     }

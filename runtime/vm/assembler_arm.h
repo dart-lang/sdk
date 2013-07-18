@@ -444,6 +444,7 @@ class Assembler : public ValueObject {
   void vmovrrd(Register rt, Register rt2, DRegister dm, Condition cond = AL);
   void vmovs(SRegister sd, SRegister sm, Condition cond = AL);
   void vmovd(DRegister dd, DRegister dm, Condition cond = AL);
+  void vmovq(QRegister qd, QRegister qm);
 
   // Returns false if the immediate cannot be encoded.
   bool vmovs(SRegister sd, float s_imm, Condition cond = AL);
@@ -482,6 +483,8 @@ class Assembler : public ValueObject {
   void vmlsd(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
   void vdivs(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
   void vdivd(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
+  void veorq(QRegister qd, QRegister qn, QRegister qm);
+  void vorrq(QRegister qd, QRegister qn, QRegister qm);
 
   void vabss(SRegister sd, SRegister sm, Condition cond = AL);
   void vabsd(DRegister dd, DRegister dm, Condition cond = AL);
@@ -506,6 +509,10 @@ class Assembler : public ValueObject {
   void vcmpsz(SRegister sd, Condition cond = AL);
   void vcmpdz(DRegister dd, Condition cond = AL);
   void vmstat(Condition cond = AL);  // VMRS APSR_nzcv, FPSCR
+
+  // Duplicates the operand of size sz at index idx from dm to all elements of
+  // qd. This is a special case of vtbl.
+  void vdup(OperandSize sz, QRegister qd, DRegister dm, int idx);
 
   // Each byte of dm is an index into the table of bytes formed by concatenating
   // a list of 'length' registers starting with dn. The result is placed in dd.
