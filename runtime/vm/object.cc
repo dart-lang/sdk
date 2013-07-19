@@ -14226,6 +14226,13 @@ void WeakProperty::PrintToJSONStream(JSONStream* stream, bool ref) const {
   stream->CloseObject();
 }
 
+
+RawFunction* MirrorReference::GetFunctionReferent() const {
+  ASSERT(Object::Handle(referent()).IsFunction());
+  return Function::Cast(Object::Handle(referent())).raw();
+}
+
+
 RawMirrorReference* MirrorReference::New(Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->mirror_reference_class()
          != Class::null());

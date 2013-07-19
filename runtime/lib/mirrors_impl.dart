@@ -103,7 +103,7 @@ class _LocalMirrorSystemImpl extends MirrorSystem {
 
   TypeMirror get dynamicType {
     if (_dynamicType == null) {
-      _dynamicType = new _SpecialTypeMirrorImpl(_s('dynamic'));
+      _dynamicType = new _SpecialTypeMirrorImpl('dynamic');
     }
     return _dynamicType;
   }
@@ -112,7 +112,7 @@ class _LocalMirrorSystemImpl extends MirrorSystem {
 
   TypeMirror get voidType {
     if (_voidType == null) {
-      _voidType = new _SpecialTypeMirrorImpl(_s('void'));
+      _voidType = new _SpecialTypeMirrorImpl('void');
     }
     return _voidType;
   }
@@ -875,7 +875,6 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
   _LocalMethodMirrorImpl(reflectee,
                          this._owner,
                          this.parameters,
-                         this._returnType,
                          this.isStatic,
                          this.isAbstract,
                          this.isGetter,
@@ -928,10 +927,14 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
         'MethodMirror.location is not implemented');
   }
 
-  var _returnType;
+  TypeMirror _returnType = null;
   TypeMirror get returnType {
-    if (_returnType is! Mirror) {
-      _returnType = _returnType.resolve(mirrors);
+    if (_returnType == null) {
+      if (isConstructor) {
+        _returnType = owner;
+      } else {
+        _returnType = _MethodMirror_return_type(_reflectee);
+      }
     }
     return _returnType;
   }
@@ -985,6 +988,9 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
 
   static dynamic _MethodMirror_owner(reflectee)
       native "MethodMirror_owner";
+
+  static dynamic _MethodMirror_return_type(reflectee)
+      native "MethodMirror_return_type";
 }
 
 class _LocalVariableMirrorImpl extends _LocalDeclarationMirrorImpl
@@ -1069,7 +1075,7 @@ class _LocalParameterMirrorImpl extends _LocalVariableMirrorImpl
 
 class _SpecialTypeMirrorImpl extends _LocalMirrorImpl
     implements TypeMirror, DeclarationMirror {
-  _SpecialTypeMirrorImpl(this.simpleName);
+  _SpecialTypeMirrorImpl(String name) : simpleName = _s(name);
 
   final bool isPrivate = false;
   final bool isTopLevel = true;

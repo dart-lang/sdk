@@ -17,6 +17,21 @@
 
 namespace dart {
 
+static RawInstance* CreateMirror(const String& mirror_class_name,
+                                 const Array& constructor_arguments) {
+  const Library& mirrors_lib = Library::Handle(Library::MirrorsLibrary());
+  const String& constructor_name = Symbols::Dot();
+
+  const Object& result = Object::Handle(
+      DartLibraryCalls::InstanceCreate(mirrors_lib,
+                                       mirror_class_name,
+                                       constructor_name,
+                                       constructor_arguments));
+  ASSERT(result.IsInstance());
+  return Instance::Cast(result).raw();
+}
+
+
 inline Dart_Handle NewString(const char* str) {
   return Dart_NewStringFromCString(str);
 }
@@ -355,9 +370,9 @@ static Dart_Handle CreateImplementsList(Dart_Handle intf) {
 }
 
 
-static Dart_Handle CreateTypeVariableMirror(Dart_Handle type_var,
-                                            Dart_Handle type_var_name,
-                                            Dart_Handle owner_mirror) {
+static Dart_Handle CreateTypeVariableMirrorUsingApi(Dart_Handle type_var,
+                                                    Dart_Handle type_var_name,
+                                                    Dart_Handle owner_mirror) {
   ASSERT(Dart_IsTypeVariable(type_var));
   Dart_Handle cls_name = NewString("_LocalTypeVariableMirrorImpl");
   Dart_Handle type = Dart_GetType(MirrorLib(), cls_name, 0, NULL);
@@ -378,6 +393,50 @@ static Dart_Handle CreateTypeVariableMirror(Dart_Handle type_var,
   };
   Dart_Handle mirror = Dart_New(type, Dart_Null(), ARRAY_SIZE(args), args);
   return mirror;
+}
+
+
+static RawInstance* CreateTypeVariableMirror(const TypeParameter& param,
+                                             const Instance& owner_mirror) {
+  Instance& retvalue = Instance::Handle();
+  Dart_EnterScope();
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle param_handle = Api::NewHandle(isolate, param.raw());
+  if (Dart_IsError(param_handle)) {
+    Dart_PropagateError(param_handle);
+  }
+  Dart_Handle name_handle = Api::NewHandle(isolate, param.Name());
+  if (Dart_IsError(name_handle)) {
+    Dart_PropagateError(name_handle);
+  }
+  // Until we get rid of lazy mirrors, we must have owners.
+  Dart_Handle owner_handle;
+  if (owner_mirror.IsNull()) {
+    owner_handle = Api::NewHandle(isolate, param.parameterized_class());
+    if (Dart_IsError(owner_handle)) {
+      Dart_PropagateError(owner_handle);
+    }
+    owner_handle = CreateLazyMirror(owner_handle);
+    if (Dart_IsError(owner_handle)) {
+      Dart_PropagateError(owner_handle);
+    }
+  } else {
+    owner_handle = Api::NewHandle(isolate, owner_mirror.raw());
+    if (Dart_IsError(owner_handle)) {
+      Dart_PropagateError(owner_handle);
+    }
+  }
+  // TODO(11742): At some point the handle calls will be replaced by inlined
+  // functionality.
+  Dart_Handle result =  CreateTypeVariableMirrorUsingApi(param_handle,
+                                                         name_handle,
+                                                         owner_handle);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
+  retvalue ^= Api::UnwrapHandle(result);
+  Dart_ExitScope();
+  return retvalue.raw();
 }
 
 
@@ -407,7 +466,7 @@ static Dart_Handle CreateTypeVariableMap(Dart_Handle owner,
     }
     ASSERT(!Dart_IsNull(type_var));
     Dart_Handle type_var_mirror =
-        CreateTypeVariableMirror(type_var, type_var_name, owner_mirror);
+        CreateTypeVariableMirrorUsingApi(type_var, type_var_name, owner_mirror);
     if (Dart_IsError(type_var_mirror)) {
       return type_var_mirror;
     }
@@ -513,7 +572,6 @@ static Dart_Handle CreateMethodMirrorUsingApi(Dart_Handle func,
                                               Dart_Handle owner_mirror) {
   // TODO(11742): Unwrapping is needed until the whole method is converted.
   Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
   const Function& func_obj = Api::UnwrapFunctionHandle(isolate, func);
 
   Dart_Handle mirror_cls_name = NewString("_LocalMethodMirrorImpl");
@@ -522,17 +580,11 @@ static Dart_Handle CreateMethodMirrorUsingApi(Dart_Handle func,
     return mirror_type;
   }
 
-  Dart_Handle return_type = Dart_FunctionReturnType(func);
-  if (Dart_IsError(return_type)) {
-    return return_type;
-  }
-
   // TODO(turnidge): Implement constructor kinds (arguments 7 - 10).
   Dart_Handle args[] = {
     CreateMirrorReference(func),
     owner_mirror,
     CreateParameterMirrorList(func),
-    CreateLazyMirror(return_type),
     func_obj.is_static() ? Api::True() : Api::False(),
     func_obj.is_abstract() ? Api::True() : Api::False(),
     func_obj.IsGetterFunction() ? Api::True() : Api::False(),
@@ -1028,6 +1080,32 @@ static RawInstance* CreateMethodMirror(const Function& func,
   retvalue ^= Api::UnwrapHandle(result);
   Dart_ExitScope();
   return retvalue.raw();
+}
+
+
+static RawInstance* CreateTypeMirror(const AbstractType& type) {
+  ASSERT(!type.IsMalformed());
+  if (type.HasResolvedTypeClass()) {
+    const Class& cls = Class::Handle(type.type_class());
+    // Handle void and dynamic types.
+    if (cls.IsVoidClass()) {
+      Array& args = Array::Handle(Array::New(1));
+      args.SetAt(0, Symbols::Void());
+      // TODO(mlippautz): Create once in the VM isolate and retrieve from there.
+      return CreateMirror(Symbols::_SpecialTypeMirrorImpl(), args);
+    } else if (cls.IsDynamicClass()) {
+      Array& args = Array::Handle(Array::New(1));
+      args.SetAt(0, Symbols::Dynamic());
+      // TODO(mlippautz): Create once in the VM isolate and retrieve from there.
+      return CreateMirror(Symbols::_SpecialTypeMirrorImpl(), args);
+    }
+    return CreateClassMirror(cls, Object::null_instance());
+  } else if (type.IsTypeParameter()) {
+    return CreateTypeVariableMirror(TypeParameter::Cast(type),
+                                    Object::null_instance());
+  }
+  UNREACHABLE();
+  return Instance::null();
 }
 
 
@@ -1828,6 +1906,16 @@ DEFINE_NATIVE_ENTRY(MethodMirror_owner, 1) {
     return CreateLibraryMirror(Library::Handle(owner.library()));
   }
   return CreateClassMirror(owner, Instance::Handle());
+}
+
+
+DEFINE_NATIVE_ENTRY(MethodMirror_return_type, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
+  const Function& func = Function::Handle(ref.GetFunctionReferent());
+  // We handle constructors in Dart code.
+  ASSERT(!func.IsConstructor());
+  const AbstractType& return_type = AbstractType::Handle(func.result_type());
+  return CreateTypeMirror(return_type);
 }
 
 }  // namespace dart
