@@ -1677,7 +1677,16 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   ConcreteType visitDoWhile(DoWhile node) {
-    inferrer.fail(node, 'not yet implemented');
+    analyze(node.body);
+    analyze(node.condition);
+    ConcreteTypesEnvironment oldEnvironment;
+    do {
+      oldEnvironment = environment;
+      analyze(node.body);
+      analyze(node.condition);
+      environment = oldEnvironment.join(environment);
+    } while (oldEnvironment != environment);
+    return inferrer.emptyConcreteType;
   }
 
   ConcreteType visitExpressionStatement(ExpressionStatement node) {
@@ -1690,7 +1699,6 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       analyze(node.initializer);
     }
     analyze(node.conditionStatement);
-    ConcreteType result = inferrer.emptyConcreteType;
     ConcreteTypesEnvironment oldEnvironment;
     do {
       oldEnvironment = environment;
@@ -1702,7 +1710,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     // value indicating whether something changed to avoid performing this
     // comparison twice.
     } while (oldEnvironment != environment);
-    return result;
+    return inferrer.emptyConcreteType;
   }
 
   void analyzeClosure(FunctionExpression node) {
@@ -2001,7 +2009,6 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
 
   ConcreteType visitWhile(While node) {
     analyze(node.condition);
-    ConcreteType result = inferrer.emptyConcreteType;
     ConcreteTypesEnvironment oldEnvironment;
     do {
       oldEnvironment = environment;
@@ -2009,7 +2016,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       analyze(node.body);
       environment = oldEnvironment.join(environment);
     } while (oldEnvironment != environment);
-    return result;
+    return inferrer.emptyConcreteType;
   }
 
   ConcreteType visitParenthesizedExpression(ParenthesizedExpression node) {

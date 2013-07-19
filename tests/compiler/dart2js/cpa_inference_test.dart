@@ -292,6 +292,28 @@ testWhile() {
   result.checkNodeHasType('bar', [result.int]);
 }
 
+testDoWhile() {
+  final String source = r"""
+      class A { f() => new B(); }
+      class B { f() => new C(); }
+      class C { f() => new A(); }
+      main() {
+        var bar = null;
+        var foo = new A();
+        do {
+          foo = foo.f();
+        } while (bar = 42);
+        foo; bar;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType(
+      'foo',
+      [result.base('A'), result.base('B'), result.base('C')]);
+  // Check that the condition is evaluated.
+  result.checkNodeHasType('bar', [result.int]);
+}
+
 testFor1() {
   final String source = r"""
       class A { f() => new B(); }
@@ -1544,6 +1566,7 @@ void main() {
   testIfThenElse();
   testTernaryIf();
   testWhile();
+  testDoWhile();
   testFor1();
   testFor2();
   testFor3();
