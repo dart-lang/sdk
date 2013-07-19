@@ -628,10 +628,10 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
       break;
   }
 
-  return DartLibraryCalls::ExceptionCreate(library,
-                                           *class_name,
-                                           *constructor_name,
-                                           arguments);
+  return DartLibraryCalls::InstanceCreate(library,
+                                          *class_name,
+                                          *constructor_name,
+                                          arguments);
 }
 
 }  // namespace dart

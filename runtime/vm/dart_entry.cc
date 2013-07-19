@@ -351,10 +351,10 @@ void ArgumentsDescriptor::InitOnce() {
 }
 
 
-RawObject* DartLibraryCalls::ExceptionCreate(const Library& lib,
-                                             const String& class_name,
-                                             const String& constructor_name,
-                                             const Array& arguments) {
+RawObject* DartLibraryCalls::InstanceCreate(const Library& lib,
+                                            const String& class_name,
+                                            const String& constructor_name,
+                                            const Array& arguments) {
   const Class& cls = Class::Handle(lib.LookupClassAllowPrivate(class_name));
   ASSERT(!cls.IsNull());
   // For now, we only support a non-parameterized or raw type.
