@@ -36,6 +36,7 @@ class Range;
 // (class-name, function-name, recognized enum, fingerprint).
 // See intrinsifier for fingerprint computation.
 #define RECOGNIZED_LIST(V)                                                     \
+  V(::, identical, ObjectIdentical, 1018911876)                                \
   V(Object, Object., ObjectConstructor, 2030609793)                            \
   V(Object, get:_cid, ObjectCid, 732498573)                                    \
   V(_ObjectArray, get:length, ObjectArrayLength, 405297088)                    \
@@ -77,6 +78,8 @@ class Range;
   V(_Double, pow, DoublePow, 102305574)                                        \
   V(_Double, _modulo, DoubleMod, 663439671)                                    \
   V(::, sqrt, MathSqrt, 1662640002)                                            \
+  V(::, min, MathMin, 269896129)                                               \
+  V(::, max, MathMax, 1286442186)                                              \
   V(Float32x4, Float32x4., Float32x4Constructor, 1492157358)                   \
   V(Float32x4, Float32x4.zero, Float32x4Zero, 444339161)                       \
   V(Float32x4, Float32x4.splat, Float32x4Splat, 1843231403)                    \

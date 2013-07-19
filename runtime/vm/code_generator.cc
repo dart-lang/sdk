@@ -1024,6 +1024,42 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerThreeArgs, 4) {
 }
 
 
+// Handles a static call in unoptimized code that has two argument types not
+// seen before. Compile the target if necessary and update the ICData.
+// Arg0: argument 0.
+// Arg1: argument 1.
+// Arg2: IC data object.
+DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerTwoArgs, 3) {
+  ASSERT(arguments.ArgCount() ==
+      kStaticCallMissHandlerTwoArgsRuntimeEntry.argument_count());
+  const Instance& arg0 = Instance::CheckedHandle(arguments.ArgAt(0));
+  const Instance& arg1 = Instance::CheckedHandle(arguments.ArgAt(1));
+  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(2));
+  // IC data for static call is prepopulated with the statically known target.
+  ASSERT(ic_data.NumberOfChecks() > 0);
+  const Function& target = Function::Handle(ic_data.GetTargetAt(0));
+  if (!target.HasCode()) {
+    const Error& error = Error::Handle(Compiler::CompileFunction(target));
+    if (!error.IsNull()) {
+      Exceptions::PropagateError(error);
+    }
+  }
+  ASSERT(!target.IsNull() && target.HasCode());
+  GrowableArray<intptr_t> cids(2);
+  cids.Add(arg0.GetClassId());
+  cids.Add(arg1.GetClassId());
+  ic_data.AddCheck(cids, target);
+  if (FLAG_trace_ic) {
+    DartFrameIterator iterator;
+    StackFrame* caller_frame = iterator.NextFrame();
+    ASSERT(caller_frame != NULL);
+    OS::PrintErr("StaticCallMissHandler at %#"Px" target %s (%"Pd", %"Pd")\n",
+        caller_frame->pc(), target.ToCString(), cids[0], cids[1]);
+  }
+  arguments.SetReturn(target);
+}
+
+
 // Handle a miss of a megamorphic cache.
 //   Arg0: Receiver.
 //   Arg1: ICData object.

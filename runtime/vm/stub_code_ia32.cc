@@ -1417,8 +1417,10 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
 // - Check if 'num_args' (including receiver) match any IC data group.
 // - Match found -> jump to target.
 // - Match not found -> jump to IC miss.
-void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
-                                                 intptr_t num_args) {
+void StubCode::GenerateNArgsCheckInlineCacheStub(
+    Assembler* assembler,
+    intptr_t num_args,
+    const RuntimeEntry& handle_ic_miss) {
   ASSERT(num_args > 0);
 #if defined(DEBUG)
   { Label ok;
@@ -1446,6 +1448,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ LeaveFrame();
   __ Bind(&not_stepping);
 
+  // ECX: IC data object (preserved).
   // Load arguments descriptor into EDX.
   __ movl(EDX, FieldAddress(ECX, ICData::arguments_descriptor_offset()));
   // Loop that checks if there is an IC data match.
@@ -1519,15 +1522,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ pushl(EBX);
   }
   __ pushl(ECX);  // Pass IC data object.
-  if (num_args == 1) {
-    __ CallRuntime(kInlineCacheMissHandlerOneArgRuntimeEntry);
-  } else if (num_args == 2) {
-    __ CallRuntime(kInlineCacheMissHandlerTwoArgsRuntimeEntry);
-  } else if (num_args == 3) {
-    __ CallRuntime(kInlineCacheMissHandlerThreeArgsRuntimeEntry);
-  } else {
-    UNIMPLEMENTED();
-  }
+  __ CallRuntime(handle_ic_miss);
   // Remove the call arguments pushed earlier, including the IC data object.
   for (intptr_t i = 0; i < num_args + 1; i++) {
     __ popl(EAX);
@@ -1590,19 +1585,22 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
 //   - 1 target function.
 void StubCode::GenerateOneArgCheckInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
-  GenerateNArgsCheckInlineCacheStub(assembler, 1);
+  GenerateNArgsCheckInlineCacheStub(
+      assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry);
 }
 
 
 void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
-  GenerateNArgsCheckInlineCacheStub(assembler, 2);
+  GenerateNArgsCheckInlineCacheStub(
+      assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry);
 }
 
 
 void StubCode::GenerateThreeArgsCheckInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
-  GenerateNArgsCheckInlineCacheStub(assembler, 3);
+  GenerateNArgsCheckInlineCacheStub(
+      assembler, 3, kInlineCacheMissHandlerThreeArgsRuntimeEntry);
 }
 
 
@@ -1620,44 +1618,50 @@ void StubCode::GenerateThreeArgsCheckInlineCacheStub(Assembler* assembler) {
 void StubCode::GenerateOneArgOptimizedCheckInlineCacheStub(
     Assembler* assembler) {
   GenerateOptimizedUsageCounterIncrement(assembler);
-  GenerateNArgsCheckInlineCacheStub(assembler, 1);
+  GenerateNArgsCheckInlineCacheStub(
+      assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry);
 }
 
 
 void StubCode::GenerateTwoArgsOptimizedCheckInlineCacheStub(
     Assembler* assembler) {
   GenerateOptimizedUsageCounterIncrement(assembler);
-  GenerateNArgsCheckInlineCacheStub(assembler, 2);
+  GenerateNArgsCheckInlineCacheStub(
+      assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry);
 }
 
 
 void StubCode::GenerateThreeArgsOptimizedCheckInlineCacheStub(
     Assembler* assembler) {
   GenerateOptimizedUsageCounterIncrement(assembler);
-  GenerateNArgsCheckInlineCacheStub(assembler, 3);
+  GenerateNArgsCheckInlineCacheStub(
+      assembler, 3, kInlineCacheMissHandlerThreeArgsRuntimeEntry);
 }
 
 
 // Do not count as no type feedback is collected.
 void StubCode::GenerateClosureCallInlineCacheStub(Assembler* assembler) {
-  GenerateNArgsCheckInlineCacheStub(assembler, 1);
+  GenerateNArgsCheckInlineCacheStub(
+      assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry);
 }
 
 
 // Megamorphic call is currently implemented as IC call but through a stub
 // that does not check/count function invocations.
 void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
-  GenerateNArgsCheckInlineCacheStub(assembler, 1);
+  GenerateNArgsCheckInlineCacheStub(
+      assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry);
 }
 
 // Intermediary stub between a static call and its target. ICData contains
 // the target function and the call count.
 // ECX: ICData
-void StubCode::GenerateUnoptimizedStaticCallStub(Assembler* assembler) {
+void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
+
 #if defined(DEBUG)
   { Label ok;
-    // Check that the IC data array has NumberOfArgumentsChecked() == 0.
+    // Check that the IC data array has NumberOfArgumentsChecked() == num_args.
     // 'num_args_tested' is stored as an untagged int.
     __ movl(EBX, FieldAddress(ECX, ICData::num_args_tested_offset()));
     __ cmpl(EBX, Immediate(0));
@@ -1666,7 +1670,6 @@ void StubCode::GenerateUnoptimizedStaticCallStub(Assembler* assembler) {
     __ Bind(&ok);
   }
 #endif  // DEBUG
-
   // Check single stepping.
   Label not_stepping;
   __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
@@ -1722,6 +1725,13 @@ void StubCode::GenerateUnoptimizedStaticCallStub(Assembler* assembler) {
   // Load arguments descriptor into EDX.
   __ movl(EDX, FieldAddress(ECX, ICData::arguments_descriptor_offset()));
   __ jmp(EAX);
+}
+
+
+void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
+  GenerateUsageCounterIncrement(assembler, EBX);
+  GenerateNArgsCheckInlineCacheStub(
+      assembler, 2, kStaticCallMissHandlerTwoArgsRuntimeEntry);
 }
 
 

@@ -35,6 +35,7 @@ DECLARE_RUNTIME_ENTRY(FixCallersTarget);
 DECLARE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg);
 DECLARE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs);
 DECLARE_RUNTIME_ENTRY(InlineCacheMissHandlerThreeArgs);
+DECLARE_RUNTIME_ENTRY(StaticCallMissHandlerTwoArgs);
 DECLARE_RUNTIME_ENTRY(InstanceFunctionLookup);
 DECLARE_RUNTIME_ENTRY(Instanceof);
 DECLARE_RUNTIME_ENTRY(InstantiateType);

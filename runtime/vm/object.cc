@@ -8779,12 +8779,14 @@ void ContextScope::PrintToJSONStream(JSONStream* stream, bool ref) const {
 
 
 const char* ICData::ToCString() const {
-  const char* kFormat = "ICData target:'%s' num-checks: %"Pd"";
+  const char* kFormat = "ICData target:'%s' num-args: %"Pd" num-checks: %"Pd"";
   const String& name = String::Handle(target_name());
-  const intptr_t num = NumberOfChecks();
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, name.ToCString(), num) + 1;
+  const intptr_t num_args = num_args_tested();
+  const intptr_t num_checks = NumberOfChecks();
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, name.ToCString(),
+      num_args, num_checks) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, name.ToCString(), num);
+  OS::SNPrint(chars, len, kFormat, name.ToCString(), num_args, num_checks);
   return chars;
 }
 
@@ -8876,7 +8878,16 @@ bool ICData::HasCheck(const GrowableArray<intptr_t>& cids) const {
 
 // Used for unoptimized static calls when no class-ids are checked.
 void ICData::AddTarget(const Function& target) const {
-  ASSERT(num_args_tested() == 0);
+  if (num_args_tested() > 0) {
+    // Create a fake cid entry, so that we can store the target.
+    GrowableArray<intptr_t> class_ids(num_args_tested());
+    for (intptr_t i = 0; i < num_args_tested(); i++) {
+      class_ids.Add(kObjectCid);
+    }
+    AddCheck(class_ids, target);
+    return;
+  }
+  ASSERT(num_args_tested() >= 0);
   // Can add only once.
   const intptr_t old_num = NumberOfChecks();
   ASSERT(old_num == 0);

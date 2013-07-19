@@ -190,6 +190,7 @@ const Register CTX = R9;  // Caches current context in generated code.
 const Register PP = R10;  // Caches object pool pointer in generated code.
 const Register SPREG = SP;  // Stack pointer register.
 const Register FPREG = FP;  // Frame pointer register.
+const Register ICREG = R5;  // IC data register.
 
 // Exception object is passed in this register to the catch handlers when an
 // exception is thrown.
