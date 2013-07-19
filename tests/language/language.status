@@ -18,7 +18,6 @@
 [ $compiler == dart2dart ]
 mixin_super_constructor_named_test: Fail
 mixin_super_constructor_positionals_test: Fail
-const_constructor_super_test/01: fail
 
 [ $compiler == none ]
 mixin_super_constructor_named_test: Fail
