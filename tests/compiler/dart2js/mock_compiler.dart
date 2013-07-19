@@ -177,7 +177,7 @@ const String DEFAULT_CORELIB = r'''
   class bool {}
   class String implements Pattern {}
   class Object {
-    Object();
+    const Object();
     operator ==(other) { return true; }
     get hashCode => throw "Object.hashCode not implemented.";
     String toString() { return null; }
