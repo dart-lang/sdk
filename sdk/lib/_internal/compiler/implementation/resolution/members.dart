@@ -1087,7 +1087,8 @@ class InitializerResolver {
 
     final bool isImplicitSuperCall = false;
     final SourceString className = lookupTarget.name;
-    verifyThatConstructorMatchesCall(calledConstructor,
+    verifyThatConstructorMatchesCall(constructor,
+                                     calledConstructor,
                                      selector,
                                      isImplicitSuperCall,
                                      call,
@@ -1124,7 +1125,8 @@ class InitializerResolver {
 
       final SourceString className = lookupTarget.name;
       final bool isImplicitSuperCall = true;
-      verifyThatConstructorMatchesCall(calledConstructor,
+      verifyThatConstructorMatchesCall(constructor,
+                                       calledConstructor,
                                        callToMatch,
                                        isImplicitSuperCall,
                                        functionNode,
@@ -1136,6 +1138,7 @@ class InitializerResolver {
   }
 
   void verifyThatConstructorMatchesCall(
+      FunctionElement caller,
       FunctionElement lookedupConstructor,
       Selector call,
       bool isImplicitSuperCall,
@@ -1159,6 +1162,10 @@ class InitializerResolver {
                            ? MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT
                            : MessageKind.NO_MATCHING_CONSTRUCTOR;
         visitor.compiler.reportErrorCode(diagnosticNode, kind);
+      } else if (caller.modifiers.isConst()
+                 && !lookedupConstructor.modifiers.isConst()) {
+        visitor.compiler.reportErrorCode(
+            diagnosticNode, MessageKind.CONST_CALLS_NON_CONST);
       }
     }
   }

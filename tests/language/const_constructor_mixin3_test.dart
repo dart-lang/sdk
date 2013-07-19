@@ -6,15 +6,15 @@ class Mixin {
 }
 
 class A {
-  const A(foo);
+  const A();
 }
 
 class B extends A
-    with Mixin  /// 01: compile-time error
+    with Mixin /// 01: compile-time error
     {
-  const B(foo) : super(foo);
+  const B();
 }
 
 main() {
-  var a = const B(42);
+  var a = const B();
 }
