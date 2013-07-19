@@ -6,11 +6,18 @@
 // which define the same top level name foo, and we are referring to the name.
 
 library Library1NegativeTest.dart;
-import "package:expect/expect.dart";
 import "library1.dart";  // Defines top level variable 'foo'
 import "library2.dart";  // Defines top level variable 'foo'
 
+class X
+extends baw   /// 05: compile-time error
+{}
 
 main() {
-  Expect.equals(0, foo); // Reference ambiguous name 'foo'
+  print(foo);  /// 00: compile-time error
+  print(bar());  /// 01: compile-time error
+  print(baz());  /// 02: compile-time error
+  print(bay());  /// 03: compile-time error
+  print(main is bax);  /// 04: compile-time error
+  print("No error expected if ambiguous definitions are not used.");
 }

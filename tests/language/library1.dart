@@ -6,3 +6,13 @@
 library library1.dart;
 
 var foo;
+
+bar() => "library1.dart bar()";
+
+baz() => "library1.dart baz()";
+
+var bay;
+
+typedef int bax(int a, int b);
+
+class baw {}

@@ -7,3 +7,13 @@ library library2.dart;
 
 var foo;
 var foo1 = 0;
+
+bar() => "library2.dart bar()";
+
+var baz;
+
+bay() => "library2.dart bay()";
+
+typedef double bax(int a, int b);
+
+var baw;
