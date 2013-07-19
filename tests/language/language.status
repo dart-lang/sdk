@@ -75,6 +75,10 @@ mixin_forwarding_constructor2_test: Fail # Issue 11888
 mixin_typedef_constructor_test: Fail # Issue 11888
 mixin_type_parameter2_test: Fail # Issue 11888
 
+const_constructor_mixin_test/01: Fail # Issue 11917
+const_constructor_mixin2_test/01: Fail # Issue 11917
+const_constructor_mixin3_test/01: Fail # Issue 11917
+
 [ $compiler == none && $unchecked ]
 
 # Only checked mode reports an error on type assignment
@@ -148,10 +152,6 @@ mixin_typedef_constructor_test: Fail # Issue 11888
 mixin_type_parameter2_test: Fail # Issue 11888
 
 mixin_with_two_implicit_constructors_test: Fail # Issue 11889
-
-const_constructor_mixin_test/01: Fail # Issue 11917
-const_constructor_mixin2_test/01: Fail # Issue 11917
-const_constructor_mixin3_test/01: Fail # Issue 11917
 
 # Malformed types not handled as unresolved:
 import_core_prefix_test: Fail

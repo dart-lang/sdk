@@ -274,7 +274,7 @@ getter_no_setter_test/none: fail
 
 # test issue 11918: mixin and const constructor
 const_constructor_mixin_test/01: fail
-const_constructor_mixin_test/03: fail
+const_constructor_mixin3_test/01: fail
 
 [ $compiler == dartanalyzer && $checked ]
 factory1_test/00: fail
