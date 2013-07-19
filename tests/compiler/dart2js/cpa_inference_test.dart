@@ -887,6 +887,21 @@ testBooleanOperators() {
   }
 }
 
+testBooleanOperatorsShortCirtcuit() {
+  String source(op) {
+    return """
+        main() {
+          var x = null;
+          "foo" $op (x = 42);
+          x;
+        }""";
+  }
+  for (String op in ['&&', '||']) {
+    AnalysisResult result = analyze(source(op));
+    result.checkNodeHasType('x', [result.nullType, result.int]);
+  }
+}
+
 testOperators() {
   final String source = r"""
       class A {
@@ -1553,6 +1568,7 @@ void main() {
   // testNoReturn(); // right now we infer the empty type instead of null
   testArithmeticOperators();
   testBooleanOperators();
+  testBooleanOperatorsShortCirtcuit();
   testOperators();
   testCompoundOperators1();
   testCompoundOperators2();

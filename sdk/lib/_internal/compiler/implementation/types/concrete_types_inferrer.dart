@@ -2288,8 +2288,8 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
         : environment.lookupTypeOfThis();
     SourceString name =
         canonicalizeMethodName(node.selector.asIdentifier().source);
-    ArgumentsTypes argumentsTypes = analyzeArguments(node.arguments);
     if (name.stringValue == '!=') {
+      ArgumentsTypes argumentsTypes = analyzeArguments(node.arguments);
       ConcreteType returnType = analyzeDynamicSend(elements.getSelector(node),
                                                    receiverType,
                                                    const SourceString('=='),
@@ -2298,8 +2298,12 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
           ? returnType
           : inferrer.singletonConcreteType(inferrer.baseTypes.boolBaseType);
     } else if (name.stringValue == '&&' || name.stringValue == '||'){
+      ConcreteTypesEnvironment oldEnvironment = environment;
+      analyze(node.arguments.head);
+      environment = oldEnvironment.join(environment);
       return inferrer.singletonConcreteType(inferrer.baseTypes.boolBaseType);
     } else {
+      ArgumentsTypes argumentsTypes = analyzeArguments(node.arguments);
       return analyzeDynamicSend(elements.getSelector(node),
                                 receiverType, name, argumentsTypes);
     }
