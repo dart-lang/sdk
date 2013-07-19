@@ -3793,7 +3793,6 @@ class Place : public ValueObject {
         *is_load = true;
         break;
 
-      case Instruction::kChainContext:
       case Instruction::kStoreContext:
         kind_ = kContext;
         break;
@@ -4019,7 +4018,7 @@ class AliasedSet : public ZoneAllocated {
       return Alias::VMField(store_vm_field->offset_in_bytes());
     }
 
-    if (instr->IsStoreContext() || instr->IsChainContext()) {
+    if (instr->IsStoreContext()) {
       return Alias::CurrentContext();
     }
 
@@ -4261,7 +4260,7 @@ static Definition* GetStoredValue(Instruction* instr) {
     return store_static_field->value()->definition();
   }
 
-  if (instr->IsStoreContext() || instr->IsChainContext()) {
+  if (instr->IsStoreContext()) {
     return instr->InputAt(0)->definition();
   }
 
@@ -5510,9 +5509,6 @@ void ConstantPropagator::VisitBranch(BranchInstr* instr) {
 // Analysis of non-definition instructions.  They do not have values so they
 // cannot have constant values.
 void ConstantPropagator::VisitStoreContext(StoreContextInstr* instr) { }
-
-
-void ConstantPropagator::VisitChainContext(ChainContextInstr* instr) { }
 
 
 void ConstantPropagator::VisitCatchEntry(CatchEntryInstr* instr) { }

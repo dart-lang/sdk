@@ -565,7 +565,6 @@ class EmbeddedArray<T, 0> {
   M(ExtractConstructorTypeArguments)                                           \
   M(ExtractConstructorInstantiator)                                            \
   M(AllocateContext)                                                           \
-  M(ChainContext)                                                              \
   M(CloneContext)                                                              \
   M(CatchEntry)                                                                \
   M(BinarySmiOp)                                                               \
@@ -4245,29 +4244,6 @@ class AllocateContextInstr : public TemplateDefinition<0> {
   const intptr_t num_context_variables_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateContextInstr);
-};
-
-
-class ChainContextInstr : public TemplateInstruction<1> {
- public:
-  explicit ChainContextInstr(Value* context_value) {
-    SetInputAt(0, context_value);
-  }
-
-  DECLARE_INSTRUCTION(ChainContext)
-
-  virtual intptr_t ArgumentCount() const { return 0; }
-
-  Value* context_value() const { return inputs_[0]; }
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-
-  virtual bool MayThrow() const { return false; }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(ChainContextInstr);
 };
 
 

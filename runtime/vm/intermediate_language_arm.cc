@@ -3875,25 +3875,6 @@ void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* ChainContextInstr::MakeLocationSummary() const {
-  return LocationSummary::Make(1,
-                               Location::NoLocation(),
-                               LocationSummary::kNoCall);
-}
-
-
-void ChainContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register context_value = locs()->in(0).reg();
-
-  // Chain the new context in context_value to its parent in CTX.
-  __ StoreIntoObject(context_value,
-                     FieldAddress(context_value, Context::parent_offset()),
-                     CTX);
-  // Set new context as current context.
-  __ mov(CTX, ShifterOperand(context_value));
-}
-
-
 LocationSummary* StoreVMFieldInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
