@@ -7,14 +7,10 @@
 // in dart2js).
 
 import 'dart:async';
-import 'dart:html';
 import 'dart:isolate';
 
-// TODO(ahe): Remove dependency on unittest when tests are wrapperless.
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
-
-const bool IS_UNITTEST = true;
+// TODO(ahe): Remove this import when we have wrapper-less testing.
+import 'dart:html';
 
 worker() {
   port.receive((String uri, SendPort replyTo) {
@@ -24,7 +20,6 @@ worker() {
 }
 
 main() {
-  useHtmlConfiguration();
   try {
     // Create a Worker to confuse broken isolate implementation in dart2js.
     new Worker('data:application/javascript,').terminate();
@@ -38,25 +33,14 @@ main() {
       throw new Exception('Unexpected reply from worker: $reply');
     }
     if (++isolateCount > 200) {
-      if (IS_UNITTEST) {
-        doneClosure();
-      } else {
-        port.close();
-        window.postMessage('unittest-suite-done', '*');
-      }
+      port.close();
+      window.postMessage('unittest-suite-success', '*');
       return;
     }
     spawnFunction(worker).call('').then(spawnMany);
     print('isolateCount = $isolateCount');
   }
 
-  if (IS_UNITTEST) {
-    test('stress test', () {
-      spawnMany('Hello from Worker');
-      doneClosure = expectAsync0(() {});
-    });
-  } else {
-    spawnMany('Hello from Worker');
-    window.postMessage('unittest-suite-wait-for-done', '*');
-  }
+  spawnMany('Hello from Worker');
+  window.postMessage('unittest-suite-wait-for-done', '*');
 }

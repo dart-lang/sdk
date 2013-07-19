@@ -15,4 +15,5 @@ main() {
   expect('s(dart.dom.html.Element)', reflectClass(Element).qualifiedName);
   expect(
       's(dart.dom.html.Node)', reflectClass(Element).superclass.qualifiedName);
+  window.postMessage('unittest-suite-success', '*');
 }
