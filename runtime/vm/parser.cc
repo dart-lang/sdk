@@ -2798,7 +2798,14 @@ void Parser::ParseQualIdent(QualIdent* qual_ident) {
                                   *(qual_ident->ident),
                                   NULL)) {
       LibraryPrefix& lib_prefix = LibraryPrefix::ZoneHandle();
-      lib_prefix = current_class().LookupLibraryPrefix(*(qual_ident->ident));
+      if (current_class().mixin() == Type::null()) {
+        lib_prefix = current_class().LookupLibraryPrefix(*(qual_ident->ident));
+      } else {
+        // TODO(hausner): Should we resolve the prefix via the library scope
+        // rather than via the class?
+        Class& cls = Class::Handle(parsed_function()->function().origin());
+        lib_prefix = cls.LookupLibraryPrefix(*(qual_ident->ident));
+      }
       if (!lib_prefix.IsNull()) {
         // We have a library prefix qualified identifier, unless the prefix is
         // shadowed by a type parameter in scope.
