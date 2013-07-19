@@ -337,16 +337,18 @@ class TracerForConcreteContainer {
   }
 }
 
-class ContainerTracerVisitor extends InferrerVisitor {
+class ContainerTracerVisitor extends InferrerVisitor<TypeMask> {
   final Element analyzedElement;
   final TracerForConcreteContainer tracer;
   final bool visitingClosure;
 
   ContainerTracerVisitor(element, tracer, [LocalsHandler locals])
-      : super(element, tracer.inferrer, tracer.compiler, locals),
+      : super(element, tracer.inferrer.types, tracer.compiler, locals),
         this.analyzedElement = element,
         this.tracer = tracer,
         visitingClosure = locals != null;
+
+  SimpleTypesInferrer get inferrer => tracer.inferrer;
 
   bool escaping = false;
   bool visitingInitializers = false;
@@ -437,7 +439,7 @@ class ContainerTracerVisitor extends InferrerVisitor {
       visitingInitializers = false;
       visit(node.body);
     }
-    return compiler.typesTask.functionType;
+    return types.functionType;
   }
 
   TypeMask visitLiteralList(LiteralList node) {
@@ -455,7 +457,7 @@ class ContainerTracerVisitor extends InferrerVisitor {
     } else {
       node.visitChildren(this);
     }
-    return compiler.typesTask.growableListType;
+    return types.growableListType;
   }
 
   // TODO(ngeoffray): Try to move the following two methods in
@@ -503,7 +505,7 @@ class ContainerTracerVisitor extends InferrerVisitor {
     bool isIndexEscaping = false;
     bool isValueEscaping = false;
     if (isIncrementOrDecrement) {
-      rhsType = compiler.typesTask.intType;
+      rhsType = types.intType;
       if (node.isIndex) {
         isIndexEscaping = visitAndCatchEscaping(() {
           indexType = visit(node.arguments.head);
@@ -606,7 +608,7 @@ class ContainerTracerVisitor extends InferrerVisitor {
     } else if (element.isFunction()) {
       return inferrer.getReturnTypeOfElement(element);
     } else {
-      return compiler.typesTask.dynamicType;
+      return types.dynamicType;
     }
   }
 
@@ -622,7 +624,7 @@ class ContainerTracerVisitor extends InferrerVisitor {
     } else if (Elements.isFixedListConstructorCall(element, node, compiler)) {
       visitArguments(node.arguments, element);
       if (tracer.couldBeTheList(node)) {
-        tracer.unionPotentialTypeWith(compiler.typesTask.nullType);
+        tracer.unionPotentialTypeWith(types.nullType);
         escaping = true;
         LiteralInt length = node.arguments.head.asLiteralInt();
         if (length != null) {
@@ -660,7 +662,7 @@ class ContainerTracerVisitor extends InferrerVisitor {
       return inferrer.getReturnTypeOfElement(element);
     } else {
       // Closure call or unresolved.
-      return compiler.typesTask.dynamicType;
+      return types.dynamicType;
     }
   }
 
@@ -675,9 +677,9 @@ class ContainerTracerVisitor extends InferrerVisitor {
     } else if (Elements.isInstanceSend(node, elements)) {
       return visitDynamicSend(node);
     } else if (Elements.isStaticOrTopLevelFunction(element)) {
-      return compiler.typesTask.functionType;
+      return types.functionType;
     } else if (Elements.isErroneousElement(element)) {
-      return compiler.typesTask.dynamicType;
+      return types.dynamicType;
     } else if (Elements.isLocal(element)) {
       if (tracer.couldBeTheList(element)) {
         escaping = true;
@@ -685,7 +687,7 @@ class ContainerTracerVisitor extends InferrerVisitor {
       return locals.use(element);
     } else {
       node.visitChildren(this);
-      return compiler.typesTask.dynamicType;
+      return types.dynamicType;
     }
   }
 
@@ -696,7 +698,7 @@ class ContainerTracerVisitor extends InferrerVisitor {
         visitArguments(node.arguments, elements.getSelector(node));
 
     if (isEscaping) return tracer.bailout('Passed to a closure');
-    return compiler.typesTask.dynamicType;
+    return types.dynamicType;
   }
 
   TypeMask visitDynamicSend(Send node) {
@@ -744,7 +746,7 @@ class ContainerTracerVisitor extends InferrerVisitor {
 
   TypeMask visitReturn(Return node) {
     if (node.expression == null) {
-      return compiler.typesTask.nullType;
+      return types.nullType;
     }
     
     TypeMask type;
