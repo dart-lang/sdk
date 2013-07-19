@@ -3252,7 +3252,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
         DartType supertype = resolveSupertype(element, superMixin.superclass);
         Link<Node> link = superMixin.mixins.nodes;
         while (!link.isEmpty) {
-          supertype = applyMixin(supertype, resolveType(link.head));
+          supertype = applyMixin(supertype, resolveType(link.head), node);
           link = link.tail;
         }
         element.supertype = supertype;
@@ -3314,21 +3314,21 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     DartType supertype = resolveSupertype(element, node.superclass);
     Link<Node> link = node.mixins.nodes;
     while (!link.tail.isEmpty) {
-      supertype = applyMixin(supertype, resolveType(link.head));
+      supertype = applyMixin(supertype, resolveType(link.head), link.head);
       link = link.tail;
     }
     doApplyMixinTo(element, supertype, resolveType(link.head));
     return element.computeType(compiler);
   }
 
-  DartType applyMixin(DartType supertype, DartType mixinType) {
+  DartType applyMixin(DartType supertype, DartType mixinType, Node node) {
     String superName = supertype.name.slowToString();
     String mixinName = mixinType.name.slowToString();
     ClassElement mixinApplication = new MixinApplicationElementX(
         new SourceString("${superName}_${mixinName}"),
         element.getCompilationUnit(),
         compiler.getNextFreeClassId(),
-        element.parseNode(compiler),
+        node,
         Modifiers.EMPTY);  // TODO(kasperl): Should this be abstract?
     doApplyMixinTo(mixinApplication, supertype, mixinType);
     mixinApplication.resolutionState = STATE_DONE;

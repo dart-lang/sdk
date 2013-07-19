@@ -73,6 +73,7 @@ closures_initializer2_test: Crash # issue 8847
 
 mixin_forwarding_constructor2_test: Fail # Issue 11888
 mixin_typedef_constructor_test: Fail # Issue 11888
+mixin_type_parameter2_test: Fail # Issue 11888
 
 [ $compiler == none && $unchecked ]
 
