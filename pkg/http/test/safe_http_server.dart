@@ -30,7 +30,7 @@ class SafeHttpServer extends StreamView<HttpRequest> implements HttpServer {
       : super(server),
         _inner = server;
 
-  void close() => _inner.close();
+  Future close() => _inner.close();
 
   int get port => _inner.port;
 

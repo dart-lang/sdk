@@ -118,7 +118,7 @@ class SocketExceptionTest {
   static void clientSocketAddDestroyNoErrorTest() {
     ServerSocket.bind("127.0.0.1", 0).then((server) {
       server.listen((socket) {
-        // Passive block data by not sobscribing to socket.
+        // Passive block data by not subscribing to socket.
       });
       Socket.connect("127.0.0.1", server.port).then((client) {
         client.listen((data) {}, onDone: server.close);

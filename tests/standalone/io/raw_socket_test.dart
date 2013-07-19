@@ -150,6 +150,7 @@ void testSimpleReadWrite({bool dropReads}) {
     server.listen((client) {
       int bytesRead = 0;
       int bytesWritten = 0;
+      bool closedEventReceived = false;
       List<int> data = new List<int>(messageSize);
 
       client.writeEventsEnabled = false;
@@ -188,14 +189,20 @@ void testSimpleReadWrite({bool dropReads}) {
           case RawSocketEvent.READ_CLOSED:
             server.close();
             break;
+          case RawSocketEvent.CLOSED:
+            Expect.isFalse(closedEventReceived);
+            closedEventReceived = true;
+            break;
           default: throw "Unexpected event $event";
         }
-      });
+      },
+      onDone: () => Expect.isTrue(closedEventReceived));
     });
 
     RawSocket.connect("127.0.0.1", server.port).then((socket) {
       int bytesRead = 0;
       int bytesWritten = 0;
+      bool closedEventReceived = false;
       List<int> data = createTestData();
 
       socket.listen((event) {
@@ -229,10 +236,17 @@ void testSimpleReadWrite({bool dropReads}) {
             verifyTestData(data);
             socket.close();
             break;
+          case RawSocketEvent.CLOSED:
+            Expect.isFalse(closedEventReceived);
+            closedEventReceived = true;
+            break;
           default: throw "Unexpected event $event";
         }
       },
-      onDone: () => port.close());
+      onDone: () {
+        Expect.isTrue(closedEventReceived);
+        port.close();
+      });
     });
   });
 }
@@ -288,6 +302,7 @@ void testPauseSocket() {
   RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     Expect.isTrue(server.port > 0);
     server.listen((client) {
+      bool closedEventReceived = false;
       List<int> data = new List<int>.filled(messageSize, 0);
       writeSubscription = client.listen((event) {
         switch (event) {
@@ -312,12 +327,18 @@ void testPauseSocket() {
             client.close();
             server.close();
             break;
+          case RawSocketEvent.CLOSED:
+            Expect.isFalse(closedEventReceived);
+            closedEventReceived = true;
+            break;
           default: throw "Unexpected event $event";
         }
-      });
+      },
+      onDone: () => Expect.isTrue(closedEventReceived));
     });
 
     RawSocket.connect("127.0.0.1", server.port).then((socket) {
+      bool closedEventReceived = false;
       socket.writeEventsEnabled = false;
       readSubscription = socket.listen((event) {
         switch (event) {
@@ -343,10 +364,15 @@ void testPauseSocket() {
           case RawSocketEvent.WRITE:
             throw "Unexpected write event";
           case RawSocketEvent.READ_CLOSED:
-            throw "Unexpected close event";
+            throw "Unexpected read closed event";
+          case RawSocketEvent.CLOSED:
+          Expect.isFalse(closedEventReceived);
+            closedEventReceived = true;
+            break;
           default: throw "Unexpected event $event";
         }
-      });
+      },
+      onDone: () => Expect.isTrue(closedEventReceived));
       readSubscription.pause();
       connected.complete(true);
     });

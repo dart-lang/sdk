@@ -28,6 +28,8 @@ testOutOfRange() {
             client.close();
             server.close();
             break;
+          case RawSocketEvent.CLOSED:
+            break;
           default: throw "Unexpected event $event";
         }
       });
@@ -70,6 +72,8 @@ testOutOfRange() {
             socket.close();
             break;
           case RawSocketEvent.READ_CLOSED:
+            break;
+          case RawSocketEvent.CLOSED:
             break;
           default: throw "Unexpected event $event";
         }
@@ -155,6 +159,8 @@ void testSimpleReadWrite() {
           case RawSocketEvent.READ_CLOSED:
             server.close();
             break;
+          case RawSocketEvent.CLOSED:
+            break;
           default: throw "Unexpected event $event";
         }
       });
@@ -193,6 +199,8 @@ void testSimpleReadWrite() {
           case RawSocketEvent.READ_CLOSED:
             verifyTestData(received);
             socket.close();
+            break;
+          case RawSocketEvent.CLOSED:
             break;
           default: throw "Unexpected event $event";
         }

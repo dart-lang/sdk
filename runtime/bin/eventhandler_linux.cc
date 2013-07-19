@@ -233,6 +233,7 @@ void EventHandlerImplementation::HandleInterruptFd() {
         }
         socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
         delete sd;
+        DartUtils::PostInt32(msg.dart_port, 1 << kDestroyedEvent);
       } else {
         if ((msg.data & (1 << kInEvent)) != 0 && sd->IsClosedRead()) {
           DartUtils::PostInt32(msg.dart_port, 1 << kCloseEvent);

@@ -172,8 +172,9 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   static const int WRITE_EVENT = 1;
   static const int ERROR_EVENT = 2;
   static const int CLOSED_EVENT = 3;
+  static const int DESTROYED_EVENT = 4;
   static const int FIRST_EVENT = READ_EVENT;
-  static const int LAST_EVENT = CLOSED_EVENT;
+  static const int LAST_EVENT = DESTROYED_EVENT;
   static const int EVENT_COUNT = LAST_EVENT - FIRST_EVENT + 1;
 
   static const int CLOSE_COMMAND = 8;
@@ -197,6 +198,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
 
   // Socket close state
   bool isClosed = false;
+  bool isClosing = false;
   bool isClosedRead = false;
   bool isClosedWrite = false;
   Completer closeCompleter = new Completer();
@@ -370,7 +372,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   }
 
   int available() {
-    if (isClosed) return 0;
+    if (isClosing || isClosed) return 0;
     var result = nativeAvailable();
     if (result is OSError) {
       reportError(result, "Available failed");
@@ -384,7 +386,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     if (len != null && len <= 0) {
       throw new ArgumentError("Illegal length $len");
     }
-    if (isClosed) return null;
+    if (isClosing || isClosed) return null;
     var result = nativeRead(len == null ? -1 : len);
     if (result is OSError) {
       reportError(result, "Read failed");
@@ -410,7 +412,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     if (offset is! int || bytes is! int) {
       throw new ArgumentError("Invalid arguments to write on Socket");
     }
-    if (isClosed) return 0;
+    if (isClosing || isClosed) return 0;
     if (bytes == 0) return 0;
     _BufferAndStart bufferAndStart =
         _ensureFastAndSerializableByteData(buffer, offset, offset + bytes);
@@ -451,11 +453,20 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
       if (((events & (1 << i)) != 0)) {
         if (i == CLOSED_EVENT &&
             typeFlags != TYPE_LISTENING_SOCKET &&
+            !isClosing &&
             !isClosed) {
           isClosedRead = true;
         }
 
         var handler = eventHandlers[i];
+        if (i == DESTROYED_EVENT) {
+          assert(!isClosed);
+          isClosed = true;
+          closeCompleter.complete(this);
+          disconnectFromEventHandler();
+          if (handler != null) handler();
+          continue;
+        }
         assert(handler != null);
         if (i == WRITE_EVENT) {
           // If the event was disabled before we had a chance to fire the event,
@@ -486,11 +497,12 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     activateHandlers();
   }
 
-  void setHandlers({read: null, write: null, error: null, closed: null}) {
+  void setHandlers({read, write, error, closed, destroyed}) {
     eventHandlers[READ_EVENT] = read;
     eventHandlers[WRITE_EVENT] = write;
     eventHandlers[ERROR_EVENT] = error;
     eventHandlers[CLOSED_EVENT] = closed;
+    eventHandlers[DESTROYED_EVENT] = destroyed;
   }
 
   void setListening({read: true, write: true}) {
@@ -500,37 +512,34 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     activateHandlers();
   }
 
-  Future get closeFuture => closeCompleter.future;
+  Future<_NativeSocket> get closeFuture => closeCompleter.future;
 
   void activateHandlers() {
-    if (canActivateEvents && !isClosed) {
-      // If we don't listen for either read or write, disconnect as we won't
-      // get close and error events anyway.
+    if (canActivateEvents && !isClosing && !isClosed) {
       if ((eventMask & ((1 << READ_EVENT) | (1 << WRITE_EVENT))) == 0) {
+        // If we don't listen for either read or write, disconnect as we won't
+        // get close and error events anyway.
         if (eventPort != null) disconnectFromEventHandler();
       } else {
         int data = eventMask;
-        data |= typeFlags;
         if (isClosedRead) data &= ~(1 << READ_EVENT);
         if (isClosedWrite) data &= ~(1 << WRITE_EVENT);
+        data |= typeFlags;
         sendToEventHandler(data);
       }
     }
   }
 
-  void close() {
-    if (!isClosed) {
+  Future<_NativeSocket> close() {
+    if (!isClosing && !isClosed) {
       sendToEventHandler(1 << CLOSE_COMMAND);
-      isClosed = true;
-      closeCompleter.complete(this);
+      isClosing = true;
     }
-    // Outside the if support closing sockets created but never
-    // assigned any actual socket.
-    disconnectFromEventHandler();
+    return closeFuture;
   }
 
   void shutdown(SocketDirection direction) {
-    if (!isClosed) {
+    if (!isClosing && !isClosed) {
       switch (direction) {
         case SocketDirection.RECEIVE:
           shutdownRead();
@@ -548,7 +557,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   }
 
   void shutdownWrite() {
-    if (!isClosed) {
+    if (!isClosing && !isClosed) {
       if (isClosedRead) {
         close();
       } else {
@@ -559,7 +568,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   }
 
   void shutdownRead() {
-    if (!isClosed) {
+    if (!isClosing && !isClosed) {
       if (isClosedWrite) {
         close();
       } else {
@@ -709,7 +718,7 @@ class _RawServerSocket extends Stream<RawSocket>
 
   int get port => _socket.port;
 
-  void close() => _socket.close();
+  Future close() => _socket.close().then((_) => this);
 
   void _pause() {
     _socket.setListening(read: false, write: false);
@@ -768,6 +777,7 @@ class _RawSocket extends Stream<RawSocketEvent>
         _controller.add(RawSocketEvent.WRITE);
       },
       closed: () => _controller.add(RawSocketEvent.READ_CLOSED),
+      destroyed: () => _controller.add(RawSocketEvent.CLOSED),
       error: (e) {
         _controller.addError(e);
         close();
@@ -825,7 +835,7 @@ class _RawSocket extends Stream<RawSocketEvent>
   int write(List<int> buffer, [int offset, int count]) =>
       _socket.write(buffer, offset, count);
 
-  void close() => _socket.close();
+  Future close() => _socket.close().then((_) => this);
 
   void shutdown(SocketDirection direction) => _socket.shutdown(direction);
 
@@ -918,7 +928,7 @@ class _ServerSocket extends Stream<Socket>
 
   int get port => _socket.port;
 
-  void close() => _socket.close();
+  Future close() => _socket.close().then((_) => this);
 }
 
 

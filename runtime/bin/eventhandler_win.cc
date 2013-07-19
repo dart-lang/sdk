@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -324,7 +324,7 @@ void FileHandle::EnsureInitialized(EventHandlerImplementation* event_handler) {
 
 
 bool FileHandle::IsClosed() {
-  return false;
+  return IsClosing();
 }
 
 
@@ -573,7 +573,7 @@ void ClientSocket::Shutdown(int how) {
 
 
 void ClientSocket::DoClose() {
-  // Always do a suhtdown before initiating a disconnect.
+  // Always do a shutdown before initiating a disconnect.
   shutdown(socket(), SD_BOTH);
   IssueDisconnect();
 }
@@ -630,12 +630,14 @@ bool ClientSocket::IssueWrite() {
 
 
 void ClientSocket::IssueDisconnect() {
+  Dart_Port p = port();
   IOBuffer* buffer = IOBuffer::AllocateDisconnectBuffer();
   BOOL ok = DisconnectEx_(
     socket(), buffer->GetCleanOverlapped(), TF_REUSE_SOCKET, 0);
   if (!ok && WSAGetLastError() != WSA_IO_PENDING) {
     DisconnectComplete(buffer);
   }
+  if (p != ILLEGAL_PORT) DartUtils::PostInt32(p, 1 << kDestroyedEvent);
 }
 
 
@@ -666,6 +668,15 @@ bool ClientSocket::IsClosed() {
 }
 
 
+static void DeleteIfClosed(Handle* handle) {
+  if (handle->IsClosed()) {
+    Dart_Port port = handle->port();
+    delete handle;
+    DartUtils::PostInt32(port, 1 << kDestroyedEvent);
+  }
+}
+
+
 void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
   if (msg->id == kTimeoutId) {
     // Change of timeout request. Just set the new timeout and port as the
@@ -674,7 +685,6 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
   } else if (msg->id == kShutdownId) {
     shutdown_ = true;
   } else {
-    bool delete_handle = false;
     Handle* handle = reinterpret_cast<Handle*>(msg->id);
     ASSERT(handle != NULL);
     if (handle->is_listen_socket()) {
@@ -701,9 +711,6 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
 
       if ((msg->data & (1 << kCloseCommand)) != 0) {
         listen_socket->Close();
-        if (listen_socket->IsClosed()) {
-          delete_handle = true;
-        }
       }
     } else {
       handle->EnsureInitialized(this);
@@ -756,15 +763,11 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
       }
 
       if ((msg->data & (1 << kCloseCommand)) != 0) {
+        handle->SetPortAndMask(msg->dart_port, msg->data);
         handle->Close();
-        if (handle->IsClosed()) {
-          delete_handle = true;
-        }
       }
     }
-    if (delete_handle) {
-      delete handle;
-    }
+    DeleteIfClosed(handle);
   }
 }
 
@@ -780,9 +783,7 @@ void EventHandlerImplementation::HandleAccept(ListenSocket* listen_socket,
     }
   }
 
-  if (listen_socket->IsClosed()) {
-    delete listen_socket;
-  }
+  DeleteIfClosed(listen_socket);
 }
 
 
@@ -825,9 +826,7 @@ void EventHandlerImplementation::HandleRead(Handle* handle,
     }
   }
 
-  if (handle->IsClosed()) {
-    delete handle;
-  }
+  DeleteIfClosed(handle);
 }
 
 
@@ -849,9 +848,7 @@ void EventHandlerImplementation::HandleWrite(Handle* handle,
     HandleError(handle);
   }
 
-  if (handle->IsClosed()) {
-    delete handle;
-  }
+  DeleteIfClosed(handle);
 }
 
 

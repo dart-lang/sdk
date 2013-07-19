@@ -1926,10 +1926,13 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
                                      cancelOnError: cancelOnError);
   }
 
-  void close() {
+  Future close() {
     closed = true;
+    Future result;
     if (_serverSocket != null && _closeServer) {
-      _serverSocket.close();
+      result = _serverSocket.close();
+    } else {
+      result = new Future.value();
     }
     if (_sessionManagerInstance != null) {
       _sessionManagerInstance.close();
@@ -1939,6 +1942,7 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
       connection.destroy();
     }
     _connections.clear();
+    return result;
   }
 
   int get port {
