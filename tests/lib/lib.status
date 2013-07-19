@@ -85,6 +85,7 @@ async/timer_test: Fail, Pass
 async/timer_not_available_test: Fail, OK # only meant to test when there is no way to
                                          # implement timer (currently only in d8)
 async/timer_isolate_test: Skip # See Issue 4997
+mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 
 [ $runtime == vm || ($compiler == none && $runtime == drt) ]
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9001.

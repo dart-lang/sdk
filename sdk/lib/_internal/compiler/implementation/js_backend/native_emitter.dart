@@ -232,14 +232,11 @@ class NativeEmitter {
     // Emit the native class interceptors that were actually used.
     for (ClassElement classElement in classes) {
       if (neededClasses.contains(classElement)) {
-        ClassBuilder builder = builders[classElement];
         // Define interceptor class for [classElement].
-        String className = backend.namer.getName(classElement);
-        jsAst.Expression init =
-            js(emitter.classesCollector)[className].assign(
-                builder.toObjectInitializer());
-        mainBuffer.write(jsAst.prettyPrint(init, compiler));
-        mainBuffer.write('$N$n');
+        emitter.emitClassBuilderWithReflectionData(
+            backend.namer.getName(classElement),
+            classElement, builders[classElement],
+            emitter.bufferForElement(classElement, mainBuffer));
         emitter.needsDefineClass = true;
       }
     }
