@@ -368,7 +368,7 @@ Map<String, Class> _getClasses(Map<String, ClassMirror> mirrorMap,
   var typedefs = {};
   var errors = {};
   
-  mirrorMap.forEach((String mirrorName, ClassMirror mirror) {
+  mirrorMap.forEach((String mirrorName, ClassMirror mirror) {    
     if (includePrivate || !mirror.isPrivate) {
       var superclass = (mirror.superclass != null) ?
           mirror.superclass.qualifiedName : '';
@@ -377,7 +377,7 @@ Map<String, Class> _getClasses(Map<String, ClassMirror> mirrorMap,
       var clazz = new Class(mirrorName, superclass, _getComment(mirror), 
           interfaces.toList(), _getVariables(mirror.variables, includePrivate),
           _getMethods(mirror.methods, includePrivate),
-          _getAnnotations(mirror), mirror.qualifiedName);
+          _getAnnotations(mirror), _getGenerics(mirror), mirror.qualifiedName);
       _currentClass = mirror;
       
       if (isError(mirror.qualifiedName)) {
@@ -414,6 +414,15 @@ Map<String, Parameter> _getParameters(List<ParameterMirror> mirrorList) {
         _getAnnotations(mirror));
   });
   return data;
+}
+
+/**
+ * Returns a map of [Generic] objects constructed from the class mirror. 
+ */
+Map<String, Generic> _getGenerics(ClassMirror mirror) {
+  return new Map.fromIterable(mirror.typeVariables, 
+      key: (e) => e.toString(), 
+      value: (e) => new Generic(e.toString(), e.upperBound.qualifiedName));
 }
 
 /**
@@ -515,6 +524,9 @@ class Class extends Indexable {
   /// Methods in the class.
   Map<String, Map<String, Method>> methods;
   
+  /// Generic infomation about the class. 
+  Map<String, Generic> generics;
+  
   String name;
   String superclass;
 
@@ -522,7 +534,7 @@ class Class extends Indexable {
   List<String> annotations;
   
   Class(this.name, this.superclass, this.comment, this.interfaces, 
-      this.variables, this.methods, this.annotations, 
+      this.variables, this.methods, this.annotations, this.generics,
       String qualifiedName) : super(qualifiedName) {}
 
   /// Generates a map describing the [Class] object.
@@ -535,6 +547,7 @@ class Class extends Indexable {
     classMap['variables'] = recurseMap(variables);
     classMap['methods'] = recurseMap(methods);
     classMap['annotations'] = new List.from(annotations);
+    classMap['generics'] = recurseMap(generics);
     return classMap;
   }
 }
@@ -635,5 +648,22 @@ class Parameter {
     parameterMap['value'] = defaultValue;
     parameterMap['annotations'] = new List.from(annotations);
     return parameterMap;
+  }
+}
+
+/**
+ * A class containing properties of a Generic. 
+ */
+class Generic {
+  String name;
+  String type;
+  
+  Generic(this.name, this.type);
+  
+  Map toMap() {
+    return {
+      'name': name,
+      'type': type
+    };
   }
 }
