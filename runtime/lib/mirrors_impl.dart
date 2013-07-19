@@ -422,7 +422,10 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
 
   var _owner;
   DeclarationMirror get owner {
-    if (_owner != null && _owner is! Mirror) {
+    if (_owner == null) {
+      _owner = _library(_reflectee);
+    }
+    if (_owner is! Mirror) {
       _owner = _owner.resolve(mirrors);
     }
     return _owner;
@@ -572,6 +575,9 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
 
   static _name(reflectee)
       native "ClassMirror_name";
+
+  static _library(reflectee)
+      native "ClassMirror_library";
 
   _invoke(reflectee, memberName, positionalArguments)
       native 'ClassMirror_invoke';
