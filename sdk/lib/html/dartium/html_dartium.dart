@@ -3995,12 +3995,17 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
   }
 
   /** Gets the value of "box-sizing" */
-  String get boxSizing =>
-    getPropertyValue('${Device.cssPrefix}box-sizing');
+  String get boxSizing => Device.isFirefox ? 
+      getPropertyValue('${Device.cssPrefix}box-sizing') : 
+      getPropertyValue('box-sizing');
 
   /** Sets the value of "box-sizing" */
   void set boxSizing(String value) {
-    setProperty('${Device.cssPrefix}box-sizing', value, '');
+    if (Device.isFirefox) {
+      setProperty('${Device.cssPrefix}box-sizing', value, '');
+    } else {
+      setProperty('box-sizing', value, '');
+    }
   }
 
   /** Gets the value of "caption-side" */
