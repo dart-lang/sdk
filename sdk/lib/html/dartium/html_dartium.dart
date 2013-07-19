@@ -12732,7 +12732,7 @@ class HttpRequest extends EventTarget {
    * The data received as a reponse from the request.
    *
    * The data could be in the
-   * form of a [String], [ArrayBuffer], [Document], [Blob], or json (also a
+   * form of a [String], [ByteBuffer], [Document], [Blob], or json (also a
    * [String]). `null` indicates request failure.
    */
   @DomName('XMLHttpRequest.response')
