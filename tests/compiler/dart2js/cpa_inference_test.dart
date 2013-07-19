@@ -1108,21 +1108,43 @@ testFieldInitialization3() {
 
 testLists() {
   final String source = r"""
+    class A {}
+    class B {}
+    class C {}
+    class D {}
+    class E {}
+    class F {}
+    class G {}
+
     main() {
-      var l1 = [1.2];
+      var l1 = [new A()];
       var l2 = [];
-      l1['a'] = 42;  // raises an error, so int should not be recorded
-      l1[1] = 'abc';
-      "__dynamic_for_test"[1] = true;
-      var x = l1[1];
-      var y = l2[1];
-      var z = l1['foo'];
-      x; y; z;
+      l1['a'] = new B();  // raises an error, so B should not be recorded
+      l1[1] = new C();
+      l1.add(new D());
+      l1.insert('a', new E());  // raises an error, so E should not be recorded
+      l1.insert(1, new F());
+      "__dynamic_for_test"[1] = new G();
+      var x1 = l1[1];
+      var x2 = l2[1];
+      var x3 = l1['foo'];  // raises an error, should return empty
+      var x4 = l1.removeAt(1);
+      var x5 = l2.removeAt(1);
+      var x6 = l1.removeAt('a');  // raises an error, should return empty
+      var x7 = l1.removeLast();
+      var x8 = l2.removeLast();
+      x1; x2; x3; x4; x5; x6; x7; x8;
     }""";
   AnalysisResult result = analyze(source);
-  result.checkNodeHasType('x', [result.double, result.string, result.bool]);
-  result.checkNodeHasType('y', [result.double, result.string, result.bool]);
-  result.checkNodeHasType('z', []);
+  final expectedTypes = ['A', 'C', 'D', 'F', 'G'].map(result.base).toList();
+  result.checkNodeHasType('x1', expectedTypes);
+  result.checkNodeHasType('x2', expectedTypes);
+  result.checkNodeHasType('x3', []);
+  result.checkNodeHasType('x4', expectedTypes);
+  result.checkNodeHasType('x5', expectedTypes);
+  result.checkNodeHasType('x6', []);
+  result.checkNodeHasType('x7', expectedTypes);
+  result.checkNodeHasType('x8', expectedTypes);
 }
 
 testListWithCapacity() {

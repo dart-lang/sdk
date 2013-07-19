@@ -591,15 +591,39 @@ class ConcreteTypesInferrer extends TypesInferrer {
 
   /**
    * Constant representing [:ConcreteList#[]:] where [:ConcreteList:] is the
-   * concrete implmentation of lists for the selected backend.
+   * concrete implementation of lists for the selected backend.
    */
   FunctionElement listIndex;
 
   /**
    * Constant representing [:ConcreteList#[]=:] where [:ConcreteList:] is the
-   * concrete implmentation of lists for the selected backend.
+   * concrete implementation of lists for the selected backend.
    */
   FunctionElement listIndexSet;
+
+  /**
+   * Constant representing [:ConcreteList#add:] where [:ConcreteList:] is the
+   * concrete implementation of lists for the selected backend.
+   */
+  FunctionElement listAdd;
+
+  /**
+   * Constant representing [:ConcreteList#removeAt:] where [:ConcreteList:] is
+   * the concrete implementation of lists for the selected backend.
+   */
+  FunctionElement listRemoveAt;
+
+  /**
+   * Constant representing [:ConcreteList#insert:] where [:ConcreteList:] is
+   * the concrete implementation of lists for the selected backend.
+   */
+  FunctionElement listInsert;
+
+  /**
+   * Constant representing [:ConcreteList#removeLast:] where [:ConcreteList:] is
+   * the concrete implementation of lists for the selected backend.
+   */
+  FunctionElement listRemoveLast;
 
   /**
    * Constant representing [:List():].
@@ -1273,16 +1297,15 @@ class ConcreteTypesInferrer extends TypesInferrer {
       }
     }
 
-    if (function == listIndex) {
-      ConcreteType indexType = environment.lookupType(
-          listIndex.functionSignature.requiredParameters.head);
+    if (function == listIndex || function == listRemoveAt) {
+      Link<Element> parameters = function.functionSignature.requiredParameters;
+      ConcreteType indexType = environment.lookupType(parameters.head);
       if (!indexType.baseTypes.contains(baseTypes.intBaseType)) {
         return emptyConcreteType;
       }
       return listElementType;
-    } else if (function == listIndexSet) {
-      Link<Element> parameters =
-          listIndexSet.functionSignature.requiredParameters;
+    } else if (function == listIndexSet || function == listInsert) {
+      Link<Element> parameters = function.functionSignature.requiredParameters;
       ConcreteType indexType = environment.lookupType(parameters.head);
       if (!indexType.baseTypes.contains(baseTypes.intBaseType)) {
         return emptyConcreteType;
@@ -1290,6 +1313,13 @@ class ConcreteTypesInferrer extends TypesInferrer {
       ConcreteType elementType = environment.lookupType(parameters.tail.head);
       augmentListElementType(elementType);
       return emptyConcreteType;
+    } else if (function == listAdd) {
+      Link<Element> parameters = function.functionSignature.requiredParameters;
+      ConcreteType elementType = environment.lookupType(parameters.head);
+      augmentListElementType(elementType);
+      return emptyConcreteType;
+    } else if (function == listRemoveLast) {
+      return listElementType;
     }
     return null;
   }
@@ -1446,6 +1476,11 @@ class ConcreteTypesInferrer extends TypesInferrer {
     ClassElement jsArrayClass = baseTypes.listBaseType.element;
     listIndex = jsArrayClass.lookupMember(const SourceString('[]'));
     listIndexSet = jsArrayClass.lookupMember(const SourceString('[]='));
+    listAdd = jsArrayClass.lookupMember(const SourceString('add'));
+    listRemoveAt = jsArrayClass.lookupMember(const SourceString('removeAt'));
+    listInsert = jsArrayClass.lookupMember(const SourceString('insert'));
+    listRemoveLast =
+        jsArrayClass.lookupMember(const SourceString('removeLast'));
     List<SourceString> typePreservingOps = const [const SourceString('+'),
                                                   const SourceString('-'),
                                                   const SourceString('*')];
@@ -1543,6 +1578,8 @@ class ConcreteTypesInferrer extends TypesInferrer {
     inferredFieldTypes.forEach((k,v) {
       print("  $k: $v");
     });
+    print("listElementType:");
+    print("  $listElementType");
     print("inferredParameterTypes:");
     inferredParameterTypes.forEach((k,v) {
       print("  $k: $v");
