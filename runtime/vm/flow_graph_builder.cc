@@ -3094,22 +3094,30 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     Value* allocated_context =
         Bind(new AllocateContextInstr(node->token_pos(),
                                       num_context_variables));
-
-    // If this node_sequence is the body of the function being compiled, and if
-    // this function allocates context variables, but none of its enclosing
-    // functions do, the context on entry is not linked as parent of the
-    // allocated context but saved on entry and restored on exit as to prevent
-    // memory leaks.
-    // In this case, the parser pre-allocates a variable to save the context.
-    if (MustSaveRestoreContext(node)) {
+    { LocalVariable* tmp_var = EnterTempLocalScope(allocated_context);
+      // If this node_sequence is the body of the function being compiled, and
+      // if this function allocates context variables, but none of its enclosing
+      // functions do, the context on entry is not linked as parent of the
+      // allocated context but saved on entry and restored on exit as to prevent
+      // memory leaks.
+      // In this case, the parser pre-allocates a variable to save the context.
+      if (MustSaveRestoreContext(node)) {
+        Value* current_context = Bind(new CurrentContextInstr());
+        Do(BuildStoreTemp(
+            *owner()->parsed_function()->saved_entry_context_var(),
+            current_context));
+        Value* null_context = Bind(new ConstantInstr(Object::ZoneHandle()));
+        AddInstruction(new StoreContextInstr(null_context));
+      }
       Value* current_context = Bind(new CurrentContextInstr());
-      Do(BuildStoreTemp(*owner()->parsed_function()->saved_entry_context_var(),
-                        current_context));
-      Value* null_context = Bind(new ConstantInstr(Object::ZoneHandle()));
-      AddInstruction(new StoreContextInstr(null_context));
+      Value* tmp_val = Bind(new LoadLocalInstr(*tmp_var));
+      Do(new StoreVMFieldInstr(tmp_val,
+                               Context::parent_offset(),
+                               current_context,
+                               Type::ZoneHandle()));
+      AddInstruction(
+          new StoreContextInstr(Bind(ExitTempLocalScope(tmp_var))));
     }
-
-    AddInstruction(new ChainContextInstr(allocated_context));
     owner()->set_context_level(scope->context_level());
 
     // If this node_sequence is the body of the function being compiled, copy

@@ -416,9 +416,30 @@ void testClosed() {
   Expect.isTrue(c.isClosed);
 }
 
+void testStreamEquals() {
+  StreamController c;
+  c = new StreamController(sync: false);
+  Expect.equals(c.stream, c.stream);
+  c = new StreamController(sync: true);
+  Expect.equals(c.stream, c.stream);
+  c = new StreamController(sync: false, onListen:(){});
+  Expect.equals(c.stream, c.stream);
+  c = new StreamController(sync: true, onListen:(){});
+  Expect.equals(c.stream, c.stream);
+  c = new StreamController.broadcast(sync: false);
+  Expect.equals(c.stream, c.stream);
+  c = new StreamController.broadcast(sync: true);
+  Expect.equals(c.stream, c.stream);
+  c = new StreamController.broadcast(sync: false, onListen:(){});
+  Expect.equals(c.stream, c.stream);
+  c = new StreamController.broadcast(sync: true, onListen:(){});
+  Expect.equals(c.stream, c.stream);
+}
+
 main() {
   testMultiController();
   testSingleController();
   testExtraMethods();
   testClosed();
+  testStreamEquals();
 }

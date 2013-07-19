@@ -20,6 +20,7 @@ enum MessageFlags {
   kOutEvent = 1,
   kErrorEvent = 2,
   kCloseEvent = 3,
+  kDestroyedEvent = 4,
   kCloseCommand = 8,
   kShutdownReadCommand = 9,
   kShutdownWriteCommand = 10,

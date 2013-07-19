@@ -602,9 +602,10 @@ class _ControllerStream<T> extends _StreamImpl<T> {
   int get hashCode => _controller.hashCode ^ 0x35323532;
 
   bool operator==(Object other) {
+    if (identical(this, other)) return true;
     if (other is! _ControllerStream) return false;
     _ControllerStream otherStream = other;
-    return identical(otherStream._controller, this);
+    return identical(otherStream._controller, this._controller);
   }
 }
 

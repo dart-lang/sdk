@@ -107,7 +107,10 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
     var length;
     operator[](index) => this[index];
     operator[]=(index, value) {}
-    var add;
+    add(value) {}
+    removeAt(index) {}
+    insert(index, value) {}
+    removeLast() {}
   }
   class JSMutableArray extends JSArray implements JSMutableIndexable {}
   class JSFixedArray extends JSMutableArray {}
@@ -177,7 +180,7 @@ const String DEFAULT_CORELIB = r'''
   class bool {}
   class String implements Pattern {}
   class Object {
-    Object();
+    const Object();
     operator ==(other) { return true; }
     get hashCode => throw "Object.hashCode not implemented.";
     String toString() { return null; }

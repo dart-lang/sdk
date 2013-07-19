@@ -3,13 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Mixin {
+  var nonFinalField;
 }
 
 class A {
   const A(foo);
 }
 
-class B extends A
+class B extends A 
     with Mixin  /// 01: compile-time error
     {
   const B(foo) : super(foo);
@@ -17,4 +18,5 @@ class B extends A
 
 main() {
   var a = const B(42);
+  a.nonFinalField = 54; /// 01: continued
 }

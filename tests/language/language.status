@@ -18,7 +18,6 @@
 [ $compiler == dart2dart ]
 mixin_super_constructor_named_test: Fail
 mixin_super_constructor_positionals_test: Fail
-const_constructor_super_test/01: fail
 
 [ $compiler == none ]
 mixin_super_constructor_named_test: Fail
@@ -73,6 +72,11 @@ closures_initializer2_test: Crash # issue 8847
 
 mixin_forwarding_constructor2_test: Fail # Issue 11888
 mixin_typedef_constructor_test: Fail # Issue 11888
+mixin_type_parameter2_test: Fail # Issue 11888
+
+const_constructor_mixin_test/01: Fail # Issue 11917
+const_constructor_mixin2_test/01: Fail # Issue 11917
+const_constructor_mixin3_test/01: Fail # Issue 11917
 
 [ $compiler == none && $unchecked ]
 
@@ -144,6 +148,7 @@ mixin_mixin_test: Fail                      # VM issue
 mixin_issue10216_2_test: Fail               # VM issue
 mixin_forwarding_constructor2_test: Fail # Issue 11888
 mixin_typedef_constructor_test: Fail # Issue 11888
+mixin_type_parameter2_test: Fail # Issue 11888
 
 mixin_with_two_implicit_constructors_test: Fail # Issue 11889
 

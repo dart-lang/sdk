@@ -257,9 +257,10 @@ abstract class ServerSocket implements Stream<Socket> {
   int get port;
 
   /**
-   * Closes the socket.
+   * Closes the socket. The returned future completes when the socket
+   * is fully closed and is no longer bound.
    */
-  void close();
+  Future close();
 }
 
 /**
@@ -300,12 +301,14 @@ class RawSocketEvent {
   static const RawSocketEvent READ = const RawSocketEvent._(0);
   static const RawSocketEvent WRITE = const RawSocketEvent._(1);
   static const RawSocketEvent READ_CLOSED = const RawSocketEvent._(2);
+  static const RawSocketEvent CLOSED = const RawSocketEvent._(3);
   const RawSocketEvent._(this._value);
   final int _value;
   String toString() {
     return ['RawSocketEvent:READ',
             'RawSocketEvent:WRITE',
-            'RawSocketEvent:READ_CLOSED'][_value];
+            'RawSocketEvent:READ_CLOSED',
+            'RawSocketEvent:CLOSED'][_value];
   }
 }
 

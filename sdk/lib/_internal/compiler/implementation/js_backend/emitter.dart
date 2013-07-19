@@ -1679,17 +1679,21 @@ class CodeEmitterTask extends CompilerTask {
                        String superName,
                        { bool classIsNative: false,
                          bool emitStatics: false }) {
-    assert(superName != null);
-    String separator = '';
-    String nativeName = namer.getPrimitiveInterceptorRuntimeName(classElement);
     StringBuffer buffer = new StringBuffer();
-    if (!emitStatics) {
+    if (emitStatics) {
+      assert(invariant(classElement, superName == null, message: superName));
+    } else {
+      assert(invariant(classElement, superName != null));
+      String nativeName =
+          namer.getPrimitiveInterceptorRuntimeName(classElement);
       if (nativeName != null) {
         buffer.write('$nativeName/');
       }
       buffer.write('$superName;');
     }
     int bufferClassLength = buffer.length;
+
+    String separator = '';
 
     var fieldMetadata = [];
     bool hasMetadata = false;
@@ -1833,15 +1837,24 @@ class CodeEmitterTask extends CompilerTask {
     emitSuper(superName, builder);
     emitRuntimeName(runtimeName, builder);
     emitClassFields(classElement, builder, superName);
-    var metadata = buildMetadataFunction(classElement);
-    if (metadata != null) {
-      builder.addProperty("@", metadata);
-    }
     emitClassGettersSetters(classElement, builder);
     if (!classElement.isMixinApplication) {
       emitInstanceMembers(classElement, builder);
     }
     emitIsTests(classElement, builder);
+
+    emitClassBuilderWithReflectionData(
+        className, classElement, builder, buffer);
+  }
+
+  void emitClassBuilderWithReflectionData(String className,
+                                          ClassElement classElement,
+                                          ClassBuilder builder,
+                                          CodeBuffer buffer) {
+    var metadata = buildMetadataFunction(classElement);
+    if (metadata != null) {
+      builder.addProperty("@", metadata);
+    }
 
     List<CodeBuffer> classBuffers = elementBuffers[classElement];
     if (classBuffers == null) {
@@ -1854,7 +1867,7 @@ class CodeEmitterTask extends CompilerTask {
     bool hasStatics = false;
     ClassBuilder staticsBuilder = new ClassBuilder();
     if (emitClassFields(
-            classElement, staticsBuilder, superName, emitStatics: true)) {
+            classElement, staticsBuilder, null, emitStatics: true)) {
       hasStatics = true;
       statics.write('"":$_');
       statics.write(
