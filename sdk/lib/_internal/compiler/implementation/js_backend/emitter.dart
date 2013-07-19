@@ -2847,7 +2847,7 @@ class CodeEmitterTask extends CompilerTask {
     return js(ref(backend.initializeDispatchPropertyMethod))([
         js.fun(['a'], [ js('${ref(backend.getDispatchPropertyMethod)} = a')]),
         js.string(generateDispatchPropertyName(0)),
-        js('${ref(backend.jsInterceptorClass)}.prototype')
+        js('${ref(backend.jsPlainJavaScriptObjectClass)}.prototype')
       ]);
   }
 
@@ -3032,7 +3032,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
                   ['receiver'])));
 
     } else {
-      ClassElement jsUnknown = backend.jsUnknownClass;
+      ClassElement jsUnknown = backend.jsUnknownJavaScriptObjectClass;
       if (compiler.codegenWorld.instantiatedClasses.contains(jsUnknown)) {
         block.statements.add(
             js.if_(js('!(receiver instanceof #)',

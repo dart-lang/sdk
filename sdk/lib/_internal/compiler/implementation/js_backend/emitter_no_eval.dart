@@ -174,7 +174,7 @@ class CodeEmitterNoEvalTask extends CodeEmitterTask {
     return js(ref(backend.initializeDispatchPropertyMethod))([
         js.fun(['a'], [ js('${ref(backend.getDispatchPropertyMethod)} = a')]),
         new jsAst.ArrayInitializer.from(getters),
-        js('${ref(backend.jsInterceptorClass)}.prototype')
+        js('${ref(backend.jsPlainJavaScriptObjectClass)}.prototype')
       ]);
   }
 }

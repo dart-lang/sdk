@@ -193,7 +193,8 @@ class JavaScriptBackend extends Backend {
   ClassElement jsDoubleClass;
   ClassElement jsNullClass;
   ClassElement jsBoolClass;
-  ClassElement jsUnknownClass;
+  ClassElement jsPlainJavaScriptObjectClass;
+  ClassElement jsUnknownJavaScriptObjectClass;
 
   ClassElement jsIndexableClass;
   ClassElement jsMutableIndexableClass;
@@ -494,8 +495,11 @@ class JavaScriptBackend extends Backend {
           compiler.findInterceptor(const SourceString('JSFixedArray')),
       jsExtendableArrayClass =
           compiler.findInterceptor(const SourceString('JSExtendableArray')),
-      jsUnknownClass =
-          compiler.findInterceptor(const SourceString('JSUnknown')),
+      jsPlainJavaScriptObjectClass =
+          compiler.findInterceptor(const SourceString('PlainJavaScriptObject')),
+      jsUnknownJavaScriptObjectClass =
+          compiler.findInterceptor(
+              const SourceString('UnknownJavaScriptObject')),
     ];
 
     jsIndexableClass =
@@ -699,8 +703,10 @@ class JavaScriptBackend extends Backend {
       addInterceptors(jsIntClass, enqueuer, elements);
       addInterceptors(jsDoubleClass, enqueuer, elements);
       addInterceptors(jsNumberClass, enqueuer, elements);
-    } else if (cls == jsUnknownClass) {
-      addInterceptors(jsUnknownClass, enqueuer, elements);
+    } else if (cls == jsPlainJavaScriptObjectClass) {
+      addInterceptors(jsPlainJavaScriptObjectClass, enqueuer, elements);
+    } else if (cls == jsUnknownJavaScriptObjectClass) {
+      addInterceptors(jsUnknownJavaScriptObjectClass, enqueuer, elements);
     } else if (cls.isNative()) {
       addInterceptorsForNativeClassMembers(cls, enqueuer);
     }
@@ -713,7 +719,7 @@ class JavaScriptBackend extends Backend {
     enqueuer.registerStaticUse(defineNativeMethodsFinishMethod);
     enqueuer.registerStaticUse(initializeDispatchPropertyMethod);
     TreeElements elements = compiler.globalDependencies;
-    enqueuer.registerInstantiatedClass(jsInterceptorClass, elements);
+    enqueuer.registerInstantiatedClass(jsPlainJavaScriptObjectClass, elements);
     needToInitializeDispatchProperty = true;
   }
 
@@ -750,10 +756,14 @@ class JavaScriptBackend extends Backend {
   }
 
   void registerCatchStatement(Enqueuer enqueuer, TreeElements elements) {
-    enqueueInResolution(getExceptionUnwrapper(), elements);
-    if (jsUnknownClass != null) {
-      enqueuer.registerInstantiatedClass(jsUnknownClass, elements);
+    void ensure(ClassElement classElement) {
+      if (classElement != null) {
+        enqueuer.registerInstantiatedClass(classElement, elements);
+      }
     }
+    enqueueInResolution(getExceptionUnwrapper(), elements);
+    ensure(jsPlainJavaScriptObjectClass);
+    ensure(jsUnknownJavaScriptObjectClass);
   }
 
   void registerWrapException(TreeElements elements) {
