@@ -1335,6 +1335,19 @@ void ARMDecoder::DecodeSIMDDataProcessing(Instr* instr) {
       } else {
         Format(instr, "vorrq 'qd, 'qm");
       }
+    } else if ((instr->Bits(8, 4) == 15) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 2) && (instr->Bits(23, 2) == 0)) {
+      Format(instr, "vminqs 'qd, 'qn, 'qm");
+    } else if ((instr->Bits(8, 4) == 15) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 0) && (instr->Bits(23, 2) == 0)) {
+      Format(instr, "vmaxqs 'qd, 'qn, 'qm");
+    } else if ((instr->Bits(7, 5) == 10) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
+               (instr->Bits(16, 4) == 11)) {
+      Format(instr, "vrecpeqs 'qd, 'qm");
+    } else if ((instr->Bits(8, 4) == 15) && (instr->Bit(4) == 1) &&
+               (instr->Bits(20, 2) == 0) && (instr->Bits(23, 2) == 0)) {
+      Format(instr, "vrecpsqs 'qd, 'qn, 'qm");
     } else if ((instr->Bits(8, 4) == 12) && (instr->Bit(4) == 0) &&
                (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
                (instr->Bit(7) == 0)) {
