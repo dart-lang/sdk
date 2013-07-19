@@ -62,7 +62,8 @@ class RawCode;
   V(ThreeArgsOptimizedCheckInlineCache)                                        \
   V(ClosureCallInlineCache)                                                    \
   V(MegamorphicCall)                                                           \
-  V(UnoptimizedStaticCall)                                                     \
+  V(ZeroArgsUnoptimizedStaticCall)                                             \
+  V(TwoArgsUnoptimizedStaticCall)                                              \
   V(OptimizeFunction)                                                          \
   V(BreakpointDynamic)                                                         \
   V(EqualityWithNullArg)                                                       \
@@ -193,8 +194,10 @@ class StubCode {
                                              const Class& cls);
   static void GenerateAllocationStubForClosure(Assembler* assembler,
                                                const Function& func);
-  static void GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
-                                                intptr_t num_args);
+  static void GenerateNArgsCheckInlineCacheStub(
+      Assembler* assembler,
+      intptr_t num_args,
+      const RuntimeEntry& handle_ic_miss);
   static void GenerateUsageCounterIncrement(Assembler* assembler,
                                             Register temp_reg);
   static void GenerateOptimizedUsageCounterIncrement(Assembler* assembler);

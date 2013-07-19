@@ -254,6 +254,11 @@ testNames(mirrors) {
     expect(typedefMirror.simpleName, equals(const Symbol('Typedef')));
     expect(typedefMirror.qualifiedName,
            equals(const Symbol('MirrorsTest.Typedef')));
+
+    var typedefMirrorDeNovo = reflectClass(Typedef);
+    expect(typedefMirrorDeNovo.simpleName, equals(const Symbol('Typedef')));
+    expect(typedefMirrorDeNovo.qualifiedName,
+           equals(const Symbol('MirrorsTest.Typedef')));
   }
 
   expect(methodMirror.simpleName, equals(const Symbol('testNames')));

@@ -38,6 +38,8 @@ part '$AUXILIARY_DIR/AttributeMap.dart';
 part '$AUXILIARY_DIR/CanvasImageSource.dart';
 part '$AUXILIARY_DIR/CrossFrameTypes.dart';
 part '$AUXILIARY_DIR/CssClassSet.dart';
+part '$AUXILIARY_DIR/CssRectangle.dart';
+part '$AUXILIARY_DIR/Dimension.dart';
 part '$AUXILIARY_DIR/EventListener.dart';
 part '$AUXILIARY_DIR/EventStreamProvider.dart';
 part '$AUXILIARY_DIR/ImmutableListMixin.dart';

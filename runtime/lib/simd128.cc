@@ -229,31 +229,16 @@ DEFINE_NATIVE_ENTRY(Float32x4_getW, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Float32x4_getXXXX, 1) {
+DEFINE_NATIVE_ENTRY(Float32x4_shuffle, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
-  float value = self.x();
-  return Float32x4::New(value, value, value, value);
-}
-
-
-DEFINE_NATIVE_ENTRY(Float32x4_getYYYY, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
-  float value = self.y();
-  return Float32x4::New(value, value, value, value);
-}
-
-
-DEFINE_NATIVE_ENTRY(Float32x4_getZZZZ, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
-  float value = self.z();
-  return Float32x4::New(value, value, value, value);
-}
-
-
-DEFINE_NATIVE_ENTRY(Float32x4_getWWWW, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
-  float value = self.w();
-  return Float32x4::New(value, value, value, value);
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, mask, arguments->NativeArgAt(1));
+  int64_t m = mask.AsInt64Value();
+  float data[4] = { self.x(), self.y(), self.z(), self.w() };
+  float _x = data[m & 0x3];
+  float _y = data[(m >> 2) & 0x3];
+  float _z = data[(m >> 4) & 0x3];
+  float _w = data[(m >> 6) & 0x3];
+  return Float32x4::New(_x, _y, _z, _w);
 }
 
 

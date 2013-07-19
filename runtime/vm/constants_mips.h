@@ -174,6 +174,7 @@ const Register CTX = S6;  // Caches current context in generated code.
 const Register PP = S7;  // Caches object pool pointer in generated code.
 const Register SPREG = SP;  // Stack pointer register.
 const Register FPREG = FP;  // Frame pointer register.
+const Register ICREG = S5;  // IC data register.
 
 // The code that generates a comparison can be far away from the code that
 // generates the branch that uses the result of that comparison. In this case,

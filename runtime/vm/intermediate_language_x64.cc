@@ -3047,18 +3047,6 @@ void Float32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->out().fpu_reg() == value);
 
   switch (op_kind()) {
-    case MethodRecognizer::kFloat32x4ShuffleXXXX:
-      __ shufps(value, value, Immediate(0x00));
-      break;
-    case MethodRecognizer::kFloat32x4ShuffleYYYY:
-      __ shufps(value, value, Immediate(0x55));
-      break;
-    case MethodRecognizer::kFloat32x4ShuffleZZZZ:
-      __ shufps(value, value, Immediate(0xAA));
-      break;
-    case MethodRecognizer::kFloat32x4ShuffleWWWW:
-      __ shufps(value, value, Immediate(0xFF));
-      break;
     case MethodRecognizer::kFloat32x4ShuffleX:
       __ shufps(value, value, Immediate(0x00));
       __ cvtss2sd(value, value);
@@ -3074,6 +3062,9 @@ void Float32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case MethodRecognizer::kFloat32x4ShuffleW:
       __ shufps(value, value, Immediate(0xFF));
       __ cvtss2sd(value, value);
+      break;
+    case MethodRecognizer::kFloat32x4Shuffle:
+      __ shufps(value, value, Immediate(mask_));
       break;
     default: UNREACHABLE();
   }

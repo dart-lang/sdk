@@ -733,6 +733,9 @@ class _LocalTypedefMirrorImpl extends _LocalDeclarationMirrorImpl
 
   var _owner;
   DeclarationMirror get owner {
+    if (_owner == null) {
+      _owner = _LocalClassMirrorImpl._library(_reflectee);
+    }
     if (_owner is! Mirror) {
       _owner = _owner.resolve(mirrors);
     }

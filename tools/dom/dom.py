@@ -40,10 +40,10 @@ def help():
 def analyze():
   ''' Runs the dart analyzer. '''
   return call([
-    os.path.join(dart_out_dir, 'dart-sdk', 'bin', 'dart_analyzer'),
+    os.path.join(dart_out_dir, 'dart-sdk', 'bin', 'dartanalyzer'),
     os.path.join('tests', 'html', 'element_test.dart'),
-    '--dart-sdk', 'sdk',
-    '--show-sdk-warnings',
+    '--dart-sdk=sdk',
+    '--show-package-warnings',
   ])
 
 def build():

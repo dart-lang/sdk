@@ -82,7 +82,7 @@ class UnoptimizedStaticCall : public UnoptimizedCall {
 #if defined(DEBUG)
     ICData& test_ic_data = ICData::Handle();
     test_ic_data ^= ic_data();
-    ASSERT(test_ic_data.num_args_tested() == 0);
+    ASSERT(test_ic_data.num_args_tested() >= 0);
 #endif  // DEBUG
   }
 

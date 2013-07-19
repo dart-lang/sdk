@@ -870,15 +870,518 @@ abstract class Float32x4 {
   /// Extracted w value.
   double get w;
 
-  /// Returns a new [Float32x4] with [this]' x value in all four lanes.
+  /// Returns a new [Float32x4] with lane values reordered.
   Float32x4 get xxxx;
-  /// Returns a new [Float32x4] with [this]' y value in all four lanes.
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xxxy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xxxz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xxxw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xxyx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xxyy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xxyz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xxyw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xxzx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xxzy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xxzz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xxzw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xxwx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xxwy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xxwz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xxww;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xyxx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xyxy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xyxz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xyxw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xyyx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xyyy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xyyz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xyyw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xyzx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xyzy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xyzz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xyzw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xywx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xywy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xywz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xyww;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xzxx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xzxy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xzxz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xzxw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xzyx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xzyy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xzyz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xzyw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xzzx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xzzy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xzzz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xzzw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xzwx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xzwy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xzwz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xzww;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xwxx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xwxy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xwxz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xwxw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xwyx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xwyy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xwyz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xwyw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xwzx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xwzy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xwzz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xwzw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xwwx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xwwy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xwwz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get xwww;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yxxx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yxxy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yxxz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yxxw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yxyx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yxyy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yxyz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yxyw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yxzx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yxzy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yxzz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yxzw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yxwx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yxwy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yxwz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yxww;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yyxx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yyxy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yyxz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yyxw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yyyx;
+  /// Returns a new [Float32x4] with lane values reordered.
   Float32x4 get yyyy;
-  /// Returns a new [Float32x4] with [this]' z value in all four lanes.
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yyyz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yyyw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yyzx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yyzy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yyzz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yyzw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yywx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yywy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yywz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yyww;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yzxx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yzxy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yzxz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yzxw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yzyx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yzyy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yzyz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yzyw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yzzx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yzzy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yzzz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yzzw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yzwx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yzwy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yzwz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get yzww;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get ywxx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get ywxy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get ywxz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get ywxw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get ywyx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get ywyy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get ywyz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get ywyw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get ywzx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get ywzy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get ywzz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get ywzw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get ywwx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get ywwy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get ywwz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get ywww;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zxxx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zxxy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zxxz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zxxw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zxyx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zxyy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zxyz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zxyw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zxzx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zxzy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zxzz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zxzw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zxwx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zxwy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zxwz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zxww;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zyxx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zyxy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zyxz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zyxw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zyyx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zyyy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zyyz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zyyw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zyzx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zyzy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zyzz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zyzw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zywx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zywy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zywz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zyww;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zzxx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zzxy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zzxz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zzxw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zzyx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zzyy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zzyz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zzyw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zzzx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zzzy;
+  /// Returns a new [Float32x4] with lane values reordered.
   Float32x4 get zzzz;
-  /// Returns a new [Float32x4] with [this]' w value in all four lanes.
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zzzw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zzwx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zzwy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zzwz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zzww;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zwxx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zwxy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zwxz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zwxw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zwyx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zwyy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zwyz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zwyw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zwzx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zwzy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zwzz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zwzw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zwwx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zwwy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zwwz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get zwww;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wxxx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wxxy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wxxz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wxxw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wxyx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wxyy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wxyz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wxyw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wxzx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wxzy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wxzz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wxzw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wxwx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wxwy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wxwz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wxww;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wyxx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wyxy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wyxz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wyxw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wyyx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wyyy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wyyz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wyyw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wyzx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wyzy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wyzz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wyzw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wywx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wywy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wywz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wyww;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wzxx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wzxy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wzxz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wzxw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wzyx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wzyy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wzyz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wzyw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wzzx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wzzy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wzzz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wzzw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wzwx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wzwy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wzwz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wzww;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wwxx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wwxy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wwxz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wwxw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wwyx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wwyy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wwyz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wwyw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wwzx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wwzy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wwzz;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wwzw;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wwwx;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wwwy;
+  /// Returns a new [Float32x4] with lane values reordered.
+  Float32x4 get wwwz;
+  /// Returns a new [Float32x4] with lane values reordered.
   Float32x4 get wwww;
-  // TODO(johnmccutchan): Add all 256 possible combinations.
 
   /// Returns a new [Float32x4] copied from [this] with a new x value.
   Float32x4 withX(double x);

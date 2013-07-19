@@ -195,10 +195,7 @@ namespace dart {
   V(Float32x4_getY, 1)                                                         \
   V(Float32x4_getZ, 1)                                                         \
   V(Float32x4_getW, 1)                                                         \
-  V(Float32x4_getXXXX, 1)                                                      \
-  V(Float32x4_getYYYY, 1)                                                      \
-  V(Float32x4_getZZZZ, 1)                                                      \
-  V(Float32x4_getWWWW, 1)                                                      \
+  V(Float32x4_shuffle, 2)                                                      \
   V(Float32x4_setX, 2)                                                         \
   V(Float32x4_setY, 2)                                                         \
   V(Float32x4_setZ, 2)                                                         \

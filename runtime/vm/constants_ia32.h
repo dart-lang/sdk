@@ -65,6 +65,7 @@ const Register CTX = ESI;  // Caches current context in generated code.
 const Register PP = kNoRegister;  // No object pool pointer.
 const Register SPREG = ESP;  // Stack pointer register.
 const Register FPREG = EBP;  // Frame pointer register.
+const Register ICREG = ECX;  // IC data register.
 
 // Exception object is passed in this register to the catch handlers when an
 // exception is thrown.

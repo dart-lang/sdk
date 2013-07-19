@@ -167,7 +167,7 @@ class HostedSource extends Source {
 
     if (error is io.SocketException) {
       fail('Got socket error trying to find package "$package" at $url.\n'
-          '${error.osError}');
+          '$error');
     }
 
     // Otherwise re-throw the original exception.
