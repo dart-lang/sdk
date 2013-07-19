@@ -3996,11 +3996,11 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "box-sizing" */
   String get boxSizing =>
-    getPropertyValue('box-sizing');
+    getPropertyValue('${Device.cssPrefix}box-sizing');
 
   /** Sets the value of "box-sizing" */
   void set boxSizing(String value) {
-    setProperty('box-sizing', value, '');
+    setProperty('${Device.cssPrefix}box-sizing', value, '');
   }
 
   /** Gets the value of "caption-side" */
@@ -8382,7 +8382,8 @@ class _ChildrenElementList extends ListBase<Element> {
 
 /**
  * An immutable list containing HTML elements. This list contains some
- * additional methods for ease of CSS manipulation on a group of elements.
+ * additional methods when compared to regular lists for ease of CSS 
+ * manipulation on a group of elements.
  */
 abstract class ElementList<T extends Element> extends ListBase<T> {
   /**
@@ -8399,6 +8400,63 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
 
   /** Replace the classes with `value` for every element in this list. */
   set classes(Iterable<String> value);
+
+  /** 
+   * Access dimensions and position of the Elements in this list.
+   * 
+   * Setting the height or width properties will set the height or width
+   * property for all elements in the list. This returns a rectangle with the 
+   * dimenions actually available for content
+   * in this element, in pixels, regardless of this element's box-sizing 
+   * property. Getting the height or width returns the height or width of the
+   * first Element in this list. 
+   *
+   * Unlike [getBoundingClientRect], the dimensions of this rectangle
+   * will return the same numerical height if the element is hidden or not.
+   */
+  @Experimental()
+  CssRect get contentEdge;
+  
+  /**
+   * Access dimensions and position of the first Element's content + padding box
+   * in this list.
+   * 
+   * This returns a rectangle with the dimenions actually available for content
+   * in this element, in pixels, regardless of this element's box-sizing 
+   * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
+   * will return the same numerical height if the element is hidden or not. This
+   * can be used to retrieve jQuery's `innerHeight` value for an element. This
+   * is also a rectangle equalling the dimensions of clientHeight and
+   * clientWidth.
+   */
+  @Experimental()
+  CssRect get paddingEdge;
+
+  /**
+   * Access dimensions and position of the first Element's content + padding +
+   * border box in this list.
+   * 
+   * This returns a rectangle with the dimenions actually available for content
+   * in this element, in pixels, regardless of this element's box-sizing 
+   * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
+   * will return the same numerical height if the element is hidden or not. This
+   * can be used to retrieve jQuery's `outerHeight` value for an element.
+   */
+  @Experimental()
+  CssRect get borderEdge;
+
+  /**
+   * Access dimensions and position of the first Element's content + padding +
+   * border + margin box in this list.
+   * 
+   * This returns a rectangle with the dimenions actually available for content
+   * in this element, in pixels, regardless of this element's box-sizing 
+   * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
+   * will return the same numerical height if the element is hidden or not. This
+   * can be used to retrieve jQuery's `outerHeight` value for an element.
+   */
+  @Experimental()
+  CssRect get marginEdge;
 }
 
 // TODO(jacobr): this is an inefficient implementation but it is hard to see
@@ -8407,8 +8465,12 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
 // contains Node objects that are not Elements.
 class _FrozenElementList<T extends Element> extends ListBase<T> implements ElementList {
   final List<Node> _nodeList;
+  // The subset of _nodeList that are Elements.
+  List<Element> _elementList;
 
-  _FrozenElementList._wrap(this._nodeList);
+  _FrozenElementList._wrap(this._nodeList) {
+    _elementList = _nodeList.where((e) => e is Element).toList();
+  }
 
   int get length => _nodeList.length;
 
@@ -8432,12 +8494,19 @@ class _FrozenElementList<T extends Element> extends ListBase<T> implements Eleme
 
   Element get single => _nodeList.single;
 
-  CssClassSet get classes => new _MultiElementCssClassSet(
-      _nodeList.where((e) => e is Element));
+  CssClassSet get classes => new _MultiElementCssClassSet(_elementList);
 
   void set classes(Iterable<String> value) {
-    _nodeList.where((e) => e is Element).forEach((e) => e.classes = value);
+    _elementList.forEach((e) => e.classes = value);
   }
+
+  CssRect get contentEdge => new _ContentCssListRect(_elementList);
+  
+  CssRect get paddingEdge => _elementList.first.paddingEdge;
+
+  CssRect get borderEdge => _elementList.first.borderEdge;
+
+  CssRect get marginEdge => _elementList.first.marginEdge;
 }
 
 /**
@@ -8990,6 +9059,79 @@ abstract class Element extends Node implements ElementTraversal {
     TemplateElement.decorate(this);
   }
 
+  /**
+   * Access this element's content position.
+   * 
+   * This returns a rectangle with the dimenions actually available for content
+   * in this element, in pixels, regardless of this element's box-sizing 
+   * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
+   * will return the same numerical height if the element is hidden or not.
+   * 
+   * _Important_ _note_: use of this method _will_ perform CSS calculations that
+   * can trigger a browser reflow. Therefore, use of this property _during_ an 
+   * animation frame is discouraged. See also: 
+   * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
+   */
+  @Experimental()
+  CssRect get contentEdge => new _ContentCssRect(this);
+  
+  /**
+   * Access the dimensions and position of this element's content + padding box.
+   * 
+   * This returns a rectangle with the dimenions actually available for content
+   * in this element, in pixels, regardless of this element's box-sizing 
+   * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
+   * will return the same numerical height if the element is hidden or not. This
+   * can be used to retrieve jQuery's
+   * [innerHeight](http://api.jquery.com/innerHeight/) value for an element. 
+   * This is also a rectangle equalling the dimensions of clientHeight and
+   * clientWidth.
+   * 
+   * _Important_ _note_: use of this method _will_ perform CSS calculations that
+   * can trigger a browser reflow. Therefore, use of this property _during_ an 
+   * animation frame is discouraged. See also: 
+   * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
+   */
+  @Experimental()
+  CssRect get paddingEdge => new _PaddingCssRect(this);
+
+  /**
+   * Access the dimensions and position of this element's content + padding +
+   * border box.
+   * 
+   * This returns a rectangle with the dimenions actually available for content
+   * in this element, in pixels, regardless of this element's box-sizing 
+   * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
+   * will return the same numerical height if the element is hidden or not. This
+   * can be used to retrieve jQuery's
+   * [outerHeight](http://api.jquery.com/outerHeight/) value for an element.
+   * 
+   * _Important_ _note_: use of this method _will_ perform CSS calculations that 
+   * can trigger a browser reflow. Therefore, use of this property _during_ an 
+   * animation frame is discouraged. See also: 
+   * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
+   */
+  @Experimental()
+  CssRect get borderEdge => new _BorderCssRect(this);
+
+  /**
+   * Access the dimensions and position of this element's content + padding +
+   * border + margin box.
+   * 
+   * This returns a rectangle with the dimenions actually available for content
+   * in this element, in pixels, regardless of this element's box-sizing 
+   * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
+   * will return the same numerical height if the element is hidden or not. This
+   * can be used to retrieve jQuery's
+   * [outerHeight](http://api.jquery.com/outerHeight/) value for an element.
+   * 
+   * _Important_ _note_: use of this method will perform CSS calculations that
+   * can trigger a browser reflow. Therefore, use of this property _during_ an 
+   * animation frame is discouraged. See also: 
+   * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
+   */
+  @Experimental()
+  CssRect get marginEdge => new _MarginCssRect(this);
   // To suppress missing implicit constructor warnings.
   factory Element._() { throw new UnsupportedError("Not supported"); }
 
@@ -28313,6 +28455,348 @@ class _ElementCssClassSet extends CssClassSetImpl {
     _element.className = s.join(' ');
   }
 }
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/**
+ * A rectangle representing all the content of the element in the
+ * [box model](http://www.w3.org/TR/CSS2/box.html).
+ */
+class _ContentCssRect extends CssRect {
+
+  _ContentCssRect(element) : super(element);
+
+  num get height => _element.offsetHeight +
+      _addOrSubtractToBoxModel(_HEIGHT, _CONTENT);
+
+  num get width => _element.offsetWidth +
+      _addOrSubtractToBoxModel(_WIDTH, _CONTENT);
+
+  /**
+   * Set the height to `newHeight`.
+   *
+   * newHeight can be either a [num] representing the height in pixels or a
+   * [Dimension] object. Values of newHeight that are less than zero are
+   * converted to effectively setting the height to 0. This is equivalent to the
+   * `height` function in jQuery and the calculated `height` CSS value,
+   * converted to a num in pixels.
+   */
+  void set height(newHeight) {
+    if (newHeight is Dimension) {
+      if (newHeight.value < 0) newHeight = new Dimension.px(0);
+      _element.style.height = newHeight.toString();
+    } else {
+      if (newHeight < 0) newHeight = 0;
+      _element.style.height = '${newHeight}px';
+    }
+  }
+
+  /**
+   * Set the current computed width in pixels of this element.
+   *
+   * newWidth can be either a [num] representing the width in pixels or a
+   * [Dimension] object. This is equivalent to the `width` function in jQuery
+   * and the calculated
+   * `width` CSS value, converted to a dimensionless num in pixels.
+   */
+  void set width(newWidth) {
+    if (newWidth is Dimension) {
+      if (newWidth.value < 0) newWidth = new Dimension.px(0);
+      _element.style.width = newWidth.toString();
+    } else {
+      if (newWidth < 0) newWidth = 0;
+      _element.style.width = '${newWidth}px';
+    }
+  }
+
+  num get left => _element.getBoundingClientRect().left -
+      _addOrSubtractToBoxModel(['left'], _CONTENT);
+  num get top => _element.getBoundingClientRect().top -
+      _addOrSubtractToBoxModel(['top'], _CONTENT);
+}
+
+/**
+ * A list of element content rectangles in the
+ * [box model](http://www.w3.org/TR/CSS2/box.html).
+ */
+class _ContentCssListRect extends _ContentCssRect {
+  List<Element> _elementList;
+
+  _ContentCssListRect(elementList) : super(elementList.first) {
+    _elementList = elementList;
+  }
+
+  /**
+   * Set the height to `newHeight`.
+   *
+   * Values of newHeight that are less than zero are converted to effectively
+   * setting the height to 0. This is equivalent to the `height`
+   * function in jQuery and the calculated `height` CSS value, converted to a
+   * num in pixels.
+   */
+  void set height(newHeight) {
+    _elementList.forEach((e) => e.contentEdge.height = newHeight);
+  }
+
+  /**
+   * Set the current computed width in pixels of this element.
+   *
+   * This is equivalent to the `width` function in jQuery and the calculated
+   * `width` CSS value, converted to a dimensionless num in pixels.
+   */
+  void set width(newWidth) {
+    _elementList.forEach((e) => e.contentEdge.width = newWidth);
+  }
+}
+
+/**
+ * A rectangle representing the dimensions of the space occupied by the
+ * element's content + padding in the
+ * [box model](http://www.w3.org/TR/CSS2/box.html).
+ */
+class _PaddingCssRect extends CssRect {
+  _PaddingCssRect(element) : super(element);
+  num get height => _element.offsetHeight +
+      _addOrSubtractToBoxModel(_HEIGHT, _PADDING);
+  num get width => _element.offsetWidth +
+      _addOrSubtractToBoxModel(_WIDTH, _PADDING);
+
+  num get left => _element.getBoundingClientRect().left -
+      _addOrSubtractToBoxModel(['left'], _PADDING);
+  num get top => _element.getBoundingClientRect().top -
+      _addOrSubtractToBoxModel(['top'], _PADDING);
+}
+
+/**
+ * A rectangle representing the dimensions of the space occupied by the
+ * element's content + padding + border in the
+ * [box model](http://www.w3.org/TR/CSS2/box.html).
+ */
+class _BorderCssRect extends CssRect {
+  _BorderCssRect(element) : super(element);
+  num get height => _element.offsetHeight;
+  num get width => _element.offsetWidth;
+
+  num get left => _element.getBoundingClientRect().left;
+  num get top => _element.getBoundingClientRect().top;
+}
+
+/**
+ * A rectangle representing the dimensions of the space occupied by the
+ * element's content + padding + border + margin in the
+ * [box model](http://www.w3.org/TR/CSS2/box.html).
+ */
+class _MarginCssRect extends CssRect {
+  _MarginCssRect(element) : super(element);
+  num get height => _element.offsetHeight +
+      _addOrSubtractToBoxModel(_HEIGHT, _MARGIN);
+  num get width =>
+      _element.offsetWidth + _addOrSubtractToBoxModel(_WIDTH, _MARGIN);
+
+  num get left => _element.getBoundingClientRect().left -
+      _addOrSubtractToBoxModel(['left'], _MARGIN);
+  num get top => _element.getBoundingClientRect().top -
+      _addOrSubtractToBoxModel(['top'], _MARGIN);
+}
+
+/**
+ * A class for representing CSS dimensions.
+ *
+ * In contrast to the more general purpose [Rect] class, this class's values are
+ * mutable, so one can change the height of an element programmatically.
+ *
+ * _Important_ _note_: use of these methods will perform CSS calculations that
+ * can trigger a browser reflow. Therefore, use of these properties _during_ an
+ * animation frame is discouraged. See also:
+ * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
+ */
+abstract class CssRect extends RectBase implements Rect {
+  Element _element;
+
+  CssRect(this._element);
+
+  num get left;
+
+  num get top;
+
+  /**
+   * The height of this rectangle.
+   *
+   * This is equivalent to the `height` function in jQuery and the calculated
+   * `height` CSS value, converted to a dimensionless num in pixels. Unlike
+   * [getBoundingClientRect], `height` will return the same numerical width if
+   * the element is hidden or not.
+   */
+  num get height;
+
+  /**
+   * The width of this rectangle.
+   *
+   * This is equivalent to the `width` function in jQuery and the calculated
+   * `width` CSS value, converted to a dimensionless num in pixels. Unlike
+   * [getBoundingClientRect], `width` will return the same numerical width if
+   * the element is hidden or not.
+   */
+  num get width;
+
+  /**
+   * Set the height to `newHeight`.
+   *
+   * newHeight can be either a [num] representing the height in pixels or a
+   * [Dimension] object. Values of newHeight that are less than zero are
+   * converted to effectively setting the height to 0. This is equivalent to the
+   * `height` function in jQuery and the calculated `height` CSS value,
+   * converted to a num in pixels.
+   *
+   * Note that only the content height can actually be set via this method.
+   */
+  void set height(newHeight) {
+    throw new UnsupportedError("Can only set height for content rect.");
+  }
+
+  /**
+   * Set the current computed width in pixels of this element.
+   *
+   * newWidth can be either a [num] representing the width in pixels or a
+   * [Dimension] object. This is equivalent to the `width` function in jQuery
+   * and the calculated
+   * `width` CSS value, converted to a dimensionless num in pixels.
+   *
+   * Note that only the content width can be set via this method.
+   */
+  void set width(newWidth) {
+    throw new UnsupportedError("Can only set width for content rect.");
+  }
+
+  /**
+   * Return a value that is used to modify the initial height or width
+   * measurement of an element. Depending on the value (ideally an enum) passed
+   * to augmentingMeasurement, we may need to add or subtract margin, padding,
+   * or border values, depending on the measurement we're trying to obtain.
+   */
+  num _addOrSubtractToBoxModel(List<String> dimensions,
+      String augmentingMeasurement) {
+    // getComputedStyle always returns pixel values (hence, computed), so we're
+    // always dealing with pixels in this method.
+    var styles = _element.getComputedStyle();
+
+    var val = 0;
+
+    for (String measurement in dimensions) {
+      // The border-box and default box model both exclude margin in the regular
+      // height/width calculation, so add it if we want it for this measurement.
+      if (augmentingMeasurement == _MARGIN) {
+        val += new Dimension.css(styles.getPropertyValue(
+            '$augmentingMeasurement-$measurement')).value;
+      }
+
+      // The border-box includes padding and border, so remove it if we want
+      // just the content itself.
+      if (augmentingMeasurement == _CONTENT) {
+      	val -= new Dimension.css(
+            styles.getPropertyValue('${_PADDING}-$measurement')).value;
+      }
+
+      // At this point, we don't wan't to augment with border or margin,
+      // so remove border.
+      if (augmentingMeasurement != _MARGIN) {
+	      val -= new Dimension.css(styles.getPropertyValue(
+            'border-${measurement}-width')).value;
+      }
+    }
+    return val;
+  }
+}
+
+final _HEIGHT = ['top', 'bottom'];
+final _WIDTH = ['right', 'left'];
+final _CONTENT = 'content';
+final _PADDING = 'padding';
+final _MARGIN = 'margin';
+
+/**
+ * Class representing a
+ * [length measurement](https://developer.mozilla.org/en-US/docs/Web/CSS/length)
+ * in CSS.
+ */
+@Experimental()
+class Dimension {
+  num _value;
+  String _unit;
+
+  /** Set this CSS Dimension to a percentage `value`. */
+  Dimension.percent(this._value) : _unit = '%';
+
+  /** Set this CSS Dimension to a pixel `value`. */
+  Dimension.px(this._value) : _unit = 'px';
+
+  /** Set this CSS Dimension to a pica `value`. */
+  Dimension.pc(this._value) : _unit = 'pc';
+
+  /** Set this CSS Dimension to a point `value`. */
+  Dimension.pt(this._value) : _unit = 'pt';
+
+  /** Set this CSS Dimension to an inch `value`. */
+  Dimension.inch(this._value) : _unit = 'in';
+
+  /** Set this CSS Dimension to a centimeter `value`. */
+  Dimension.cm(this._value) : _unit = 'cm';
+
+  /** Set this CSS Dimension to a millimeter `value`. */
+  Dimension.mm(this._value) : _unit = 'mm';
+
+  /**
+   * Set this CSS Dimension to the specified number of ems.
+   *
+   * 1em is equal to the current font size. (So 2ems is equal to double the font
+   * size). This is useful for producing website layouts that scale nicely with
+   * the user's desired font size.
+   */
+  Dimension.em(this._value) : _unit = 'em';
+
+  /**
+   * Set this CSS Dimension to the specified number of x-heights.
+   *
+   * One ex is equal to the the x-height of a font's baseline to its mean line,
+   * generally the height of the letter "x" in the font, which is usually about
+   * half the font-size.
+   */
+  Dimension.ex(this._value) : _unit = 'ex';
+
+  /**
+   * Construct a Dimension object from the valid, simple CSS string `cssValue`
+   * that represents a distance measurement.
+   *
+   * This constructor is intended as a convenience method for working with
+   * simplistic CSS length measurements. Non-numeric values such as `auto` or
+   * `inherit` or invalid CSS will cause this constructor to throw a
+   * FormatError.
+   */
+  Dimension.css(String cssValue) {
+    if (cssValue == '') cssValue = '0px';
+    if (cssValue.endsWith('%')) {
+      _unit = '%';
+    } else {
+      _unit = cssValue.substring(cssValue.length - 2);
+    }
+    if (cssValue.contains('.')) {
+      _value = double.parse(cssValue.substring(0,
+          cssValue.length - _unit.length));
+    } else {
+      _value = int.parse(cssValue.substring(0, cssValue.length - _unit.length));
+    }
+  }
+
+  /** Print out the CSS String representation of this value. */
+  String toString() {
+    return '${_value}${_unit}';
+  }
+
+  /** Return a unitless, numerical value of this CSS value. */
+  num get value => this._value;
+}
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -29830,44 +30314,24 @@ abstract class ReadyState {
 
 
 /**
- * A class for representing two-dimensional rectangles.
+ * A base class for representing two-dimensional rectangles. This will hopefully
+ * be moved merged with the dart:math Rect.
  */
-class Rect {
-  final num left;
-  final num top;
-  final num width;
-  final num height;
+// TODO(efortuna): Merge with Math rect after finalizing with Florian.
+abstract class RectBase {
+  //  Not used, but keeps the VM from complaining about Rect having a const
+  // constructor and this one not.
+  const RectBase();
 
-  const Rect(this.left, this.top, this.width, this.height);
-
-  factory Rect.fromPoints(Point a, Point b) {
-    var left;
-    var width;
-    if (a.x < b.x) {
-      left = a.x;
-      width = b.x - left;
-    } else {
-      left = b.x;
-      width = a.x - left;
-    }
-    var top;
-    var height;
-    if (a.y < b.y) {
-      top = a.y;
-      height = b.y - top;
-    } else {
-      top = b.y;
-      height = a.y - top;
-    }
-
-    return new Rect(left, top, width, height);
-  }
+  num get left;
+  num get top;
+  num get width;
+  num get height;
 
   num get right => left + width;
   num get bottom => top + height;
 
   // NOTE! All code below should be common with Rect.
-  // TODO: implement with mixins when available.
 
   String toString() {
     return '($left, $top, $width, $height)';
@@ -29960,6 +30424,46 @@ class Rect {
   Point get topLeft => new Point(this.left, this.top);
   Point get bottomRight => new Point(this.left + this.width,
       this.top + this.height);
+}
+
+
+
+/**
+ * A class for representing two-dimensional rectangles.
+ *
+ * This class is distinctive from RectBase in that it enforces that its
+ * properties are immutable.
+ */
+class Rect extends RectBase {
+  final num left;
+  final num top;
+  final num width;
+  final num height;
+
+  const Rect(this.left, this.top, this.width, this.height): super();
+
+  factory Rect.fromPoints(Point a, Point b) {
+    var left;
+    var width;
+    if (a.x < b.x) {
+      left = a.x;
+      width = b.x - left;
+    } else {
+      left = b.x;
+      width = a.x - left;
+    }
+    var top;
+    var height;
+    if (a.y < b.y) {
+      top = a.y;
+      height = b.y - top;
+    } else {
+      top = b.y;
+      height = a.y - top;
+    }
+
+    return new Rect(left, top, width, height);
+  }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

@@ -919,11 +919,11 @@ $endif
 
   /** Gets the value of "box-sizing" */
   String get boxSizing =>
-    getPropertyValue('box-sizing');
+    getPropertyValue('${Device.cssPrefix}box-sizing');
 
   /** Sets the value of "box-sizing" */
   void set boxSizing(String value) {
-    setProperty('box-sizing', value, '');
+    setProperty('${Device.cssPrefix}box-sizing', value, '');
   }
 
   /** Gets the value of "caption-side" */

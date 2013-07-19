@@ -157,7 +157,8 @@ class _ChildrenElementList extends ListBase<Element> {
 
 /**
  * An immutable list containing HTML elements. This list contains some
- * additional methods for ease of CSS manipulation on a group of elements.
+ * additional methods when compared to regular lists for ease of CSS 
+ * manipulation on a group of elements.
  */
 abstract class ElementList<T extends Element> extends ListBase<T> {
   /**
@@ -174,6 +175,63 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
 
   /** Replace the classes with `value` for every element in this list. */
   set classes(Iterable<String> value);
+
+  /** 
+   * Access dimensions and position of the Elements in this list.
+   * 
+   * Setting the height or width properties will set the height or width
+   * property for all elements in the list. This returns a rectangle with the 
+   * dimenions actually available for content
+   * in this element, in pixels, regardless of this element's box-sizing 
+   * property. Getting the height or width returns the height or width of the
+   * first Element in this list. 
+   *
+   * Unlike [getBoundingClientRect], the dimensions of this rectangle
+   * will return the same numerical height if the element is hidden or not.
+   */
+  @Experimental()
+  CssRect get contentEdge;
+  
+  /**
+   * Access dimensions and position of the first Element's content + padding box
+   * in this list.
+   * 
+   * This returns a rectangle with the dimenions actually available for content
+   * in this element, in pixels, regardless of this element's box-sizing 
+   * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
+   * will return the same numerical height if the element is hidden or not. This
+   * can be used to retrieve jQuery's `innerHeight` value for an element. This
+   * is also a rectangle equalling the dimensions of clientHeight and
+   * clientWidth.
+   */
+  @Experimental()
+  CssRect get paddingEdge;
+
+  /**
+   * Access dimensions and position of the first Element's content + padding +
+   * border box in this list.
+   * 
+   * This returns a rectangle with the dimenions actually available for content
+   * in this element, in pixels, regardless of this element's box-sizing 
+   * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
+   * will return the same numerical height if the element is hidden or not. This
+   * can be used to retrieve jQuery's `outerHeight` value for an element.
+   */
+  @Experimental()
+  CssRect get borderEdge;
+
+  /**
+   * Access dimensions and position of the first Element's content + padding +
+   * border + margin box in this list.
+   * 
+   * This returns a rectangle with the dimenions actually available for content
+   * in this element, in pixels, regardless of this element's box-sizing 
+   * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
+   * will return the same numerical height if the element is hidden or not. This
+   * can be used to retrieve jQuery's `outerHeight` value for an element.
+   */
+  @Experimental()
+  CssRect get marginEdge;
 }
 
 // TODO(jacobr): this is an inefficient implementation but it is hard to see
@@ -182,8 +240,12 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
 // contains Node objects that are not Elements.
 class _FrozenElementList<T extends Element> extends ListBase<T> implements ElementList {
   final List<Node> _nodeList;
+  // The subset of _nodeList that are Elements.
+  List<Element> _elementList;
 
-  _FrozenElementList._wrap(this._nodeList);
+  _FrozenElementList._wrap(this._nodeList) {
+    _elementList = _nodeList.where((e) => e is Element).toList();
+  }
 
   int get length => _nodeList.length;
 
@@ -207,12 +269,19 @@ class _FrozenElementList<T extends Element> extends ListBase<T> implements Eleme
 
   Element get single => _nodeList.single;
 
-  CssClassSet get classes => new _MultiElementCssClassSet(
-      _nodeList.where((e) => e is Element));
+  CssClassSet get classes => new _MultiElementCssClassSet(_elementList);
 
   void set classes(Iterable<String> value) {
-    _nodeList.where((e) => e is Element).forEach((e) => e.classes = value);
+    _elementList.forEach((e) => e.classes = value);
   }
+
+  CssRect get contentEdge => new _ContentCssListRect(_elementList);
+  
+  CssRect get paddingEdge => _elementList.first.paddingEdge;
+
+  CssRect get borderEdge => _elementList.first.borderEdge;
+
+  CssRect get marginEdge => _elementList.first.marginEdge;
 }
 
 /**
@@ -924,6 +993,79 @@ $endif
     TemplateElement.decorate(this);
   }
 
+  /**
+   * Access this element's content position.
+   * 
+   * This returns a rectangle with the dimenions actually available for content
+   * in this element, in pixels, regardless of this element's box-sizing 
+   * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
+   * will return the same numerical height if the element is hidden or not.
+   * 
+   * _Important_ _note_: use of this method _will_ perform CSS calculations that
+   * can trigger a browser reflow. Therefore, use of this property _during_ an 
+   * animation frame is discouraged. See also: 
+   * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
+   */
+  @Experimental()
+  CssRect get contentEdge => new _ContentCssRect(this);
+  
+  /**
+   * Access the dimensions and position of this element's content + padding box.
+   * 
+   * This returns a rectangle with the dimenions actually available for content
+   * in this element, in pixels, regardless of this element's box-sizing 
+   * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
+   * will return the same numerical height if the element is hidden or not. This
+   * can be used to retrieve jQuery's
+   * [innerHeight](http://api.jquery.com/innerHeight/) value for an element. 
+   * This is also a rectangle equalling the dimensions of clientHeight and
+   * clientWidth.
+   * 
+   * _Important_ _note_: use of this method _will_ perform CSS calculations that
+   * can trigger a browser reflow. Therefore, use of this property _during_ an 
+   * animation frame is discouraged. See also: 
+   * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
+   */
+  @Experimental()
+  CssRect get paddingEdge => new _PaddingCssRect(this);
+
+  /**
+   * Access the dimensions and position of this element's content + padding +
+   * border box.
+   * 
+   * This returns a rectangle with the dimenions actually available for content
+   * in this element, in pixels, regardless of this element's box-sizing 
+   * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
+   * will return the same numerical height if the element is hidden or not. This
+   * can be used to retrieve jQuery's
+   * [outerHeight](http://api.jquery.com/outerHeight/) value for an element.
+   * 
+   * _Important_ _note_: use of this method _will_ perform CSS calculations that 
+   * can trigger a browser reflow. Therefore, use of this property _during_ an 
+   * animation frame is discouraged. See also: 
+   * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
+   */
+  @Experimental()
+  CssRect get borderEdge => new _BorderCssRect(this);
+
+  /**
+   * Access the dimensions and position of this element's content + padding +
+   * border + margin box.
+   * 
+   * This returns a rectangle with the dimenions actually available for content
+   * in this element, in pixels, regardless of this element's box-sizing 
+   * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
+   * will return the same numerical height if the element is hidden or not. This
+   * can be used to retrieve jQuery's
+   * [outerHeight](http://api.jquery.com/outerHeight/) value for an element.
+   * 
+   * _Important_ _note_: use of this method will perform CSS calculations that
+   * can trigger a browser reflow. Therefore, use of this property _during_ an 
+   * animation frame is discouraged. See also: 
+   * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
+   */
+  @Experimental()
+  CssRect get marginEdge => new _MarginCssRect(this);
 $!MEMBERS
 }
 
