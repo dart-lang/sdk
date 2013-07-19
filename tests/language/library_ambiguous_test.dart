@@ -19,5 +19,6 @@ main() {
   print(baz());  /// 02: compile-time error
   print(bay());  /// 03: compile-time error
   print(main is bax);  /// 04: compile-time error
+  var x = new X();  /// 05: continued
   print("No error expected if ambiguous definitions are not used.");
 }
