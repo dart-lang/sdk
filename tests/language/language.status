@@ -145,6 +145,7 @@ mixin_mixin_test: Fail                      # VM issue
 mixin_issue10216_2_test: Fail               # VM issue
 mixin_forwarding_constructor2_test: Fail # Issue 11888
 mixin_typedef_constructor_test: Fail # Issue 11888
+mixin_type_parameter2_test: Fail # Issue 11888
 
 mixin_with_two_implicit_constructors_test: Fail # Issue 11889
 
