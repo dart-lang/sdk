@@ -8469,7 +8469,7 @@ class _FrozenElementList<T extends Element> extends ListBase<T> implements Eleme
   List<Element> _elementList;
 
   _FrozenElementList._wrap(this._nodeList) {
-    _elementList = _nodeList.where((e) => e is Element);
+    _elementList = _nodeList.where((e) => e is Element).toList();
   }
 
   int get length => _nodeList.length;
