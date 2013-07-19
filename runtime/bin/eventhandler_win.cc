@@ -324,7 +324,7 @@ void FileHandle::EnsureInitialized(EventHandlerImplementation* event_handler) {
 
 
 bool FileHandle::IsClosed() {
-  return IsClosing();
+  return IsClosing() && !HasPendingRead();
 }
 
 

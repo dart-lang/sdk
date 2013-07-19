@@ -426,6 +426,8 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   }
 
   _NativeSocket accept() {
+    // Don't issue accept if we're closing.
+    if (isClosing || isClosed) return null;
     var socket = new _NativeSocket.normal();
     if (nativeAccept(socket) != true) return null;
     socket.localPort = localPort;
