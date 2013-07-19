@@ -83,10 +83,7 @@ class Range;
   V(Float32x4, Float32x4., Float32x4Constructor, 1492157358)                   \
   V(Float32x4, Float32x4.zero, Float32x4Zero, 444339161)                       \
   V(Float32x4, Float32x4.splat, Float32x4Splat, 1843231403)                    \
-  V(_Float32x4, get:xxxx, Float32x4ShuffleXXXX, 42621627)                      \
-  V(_Float32x4, get:yyyy, Float32x4ShuffleYYYY, 42621627)                      \
-  V(_Float32x4, get:zzzz, Float32x4ShuffleZZZZ, 42621627)                      \
-  V(_Float32x4, get:wwww, Float32x4ShuffleWWWW, 42621627)                      \
+  V(_Float32x4, _shuffle, Float32x4Shuffle, 1618450134)                        \
   V(_Float32x4, get:x, Float32x4ShuffleX, 211144022)                           \
   V(_Float32x4, get:y, Float32x4ShuffleY, 211144022)                           \
   V(_Float32x4, get:z, Float32x4ShuffleZ, 211144022)                           \
@@ -4751,8 +4748,9 @@ class BinaryFloat32x4OpInstr : public TemplateDefinition<2> {
 class Float32x4ShuffleInstr : public TemplateDefinition<1> {
  public:
   Float32x4ShuffleInstr(MethodRecognizer::Kind op_kind, Value* value,
+                        intptr_t mask,
                         intptr_t deopt_id)
-      : op_kind_(op_kind) {
+      : op_kind_(op_kind), mask_(mask) {
     SetInputAt(0, value);
     deopt_id_ = deopt_id;
   }
@@ -4760,6 +4758,8 @@ class Float32x4ShuffleInstr : public TemplateDefinition<1> {
   Value* value() const { return inputs_[0]; }
 
   MethodRecognizer::Kind op_kind() const { return op_kind_; }
+
+  intptr_t mask() const { return mask_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -4793,13 +4793,15 @@ class Float32x4ShuffleInstr : public TemplateDefinition<1> {
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
-    return op_kind() == other->AsFloat32x4Shuffle()->op_kind();
+    return op_kind() == other->AsFloat32x4Shuffle()->op_kind() &&
+           mask() == other->AsFloat32x4Shuffle()->mask();
   }
 
   virtual bool MayThrow() const { return false; }
 
  private:
   const MethodRecognizer::Kind op_kind_;
+  const intptr_t mask_;
 
   DISALLOW_COPY_AND_ASSIGN(Float32x4ShuffleInstr);
 };

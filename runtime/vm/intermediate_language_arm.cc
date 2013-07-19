@@ -2965,18 +2965,6 @@ void Float32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // For these cases the vdup instruction requires fewer
   // instructions. For arbitrary shuffles, vtbl will be needed.
   switch (op_kind()) {
-    case MethodRecognizer::kFloat32x4ShuffleXXXX:
-      __ vdup(kWord, result, dvalue0, 0);
-      break;
-    case MethodRecognizer::kFloat32x4ShuffleYYYY:
-      __ vdup(kWord, result, dvalue0, 1);
-      break;
-    case MethodRecognizer::kFloat32x4ShuffleZZZZ:
-      __ vdup(kWord, result, dvalue1, 0);
-      break;
-    case MethodRecognizer::kFloat32x4ShuffleWWWW:
-      __ vdup(kWord, result, dvalue1, 1);
-      break;
     case MethodRecognizer::kFloat32x4ShuffleX:
       __ vdup(kWord, result, dvalue0, 0);
       __ vcvtds(dresult0, sresult0);
@@ -2992,6 +2980,20 @@ void Float32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case MethodRecognizer::kFloat32x4ShuffleW:
       __ vdup(kWord, result, dvalue1, 1);
       __ vcvtds(dresult0, sresult0);
+      break;
+    case MethodRecognizer::kFloat32x4Shuffle:
+      if (mask_ == 0x00) {
+        __ vdup(kWord, result, dvalue0, 0);
+      } else if (mask_ == 0x55) {
+        __ vdup(kWord, result, dvalue0, 1);
+      } else if (mask_ == 0xAA) {
+        __ vdup(kWord, result, dvalue1, 0);
+      } else  if (mask_ == 0xFF) {
+        __ vdup(kWord, result, dvalue1, 1);
+      } else {
+        // TODO(zra): Implement other shuffles.
+        UNIMPLEMENTED();
+      }
       break;
     default: UNREACHABLE();
   }

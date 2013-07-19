@@ -149,6 +149,26 @@ testShuffle() {
   Expect.equals(4.0, wwww.y);
   Expect.equals(4.0, wwww.z);
   Expect.equals(4.0, wwww.w);
+  var wzyx = m.wzyx;
+  Expect.equals(4.0, wzyx.x);
+  Expect.equals(3.0, wzyx.y);
+  Expect.equals(2.0, wzyx.z);
+  Expect.equals(1.0, wzyx.w);
+  var wwzz = m.wwzz;
+  Expect.equals(4.0, wwzz.x);
+  Expect.equals(4.0, wwzz.y);
+  Expect.equals(3.0, wwzz.z);
+  Expect.equals(3.0, wwzz.w);
+  var xxyy = m.xxyy;
+  Expect.equals(1.0, xxyy.x);
+  Expect.equals(1.0, xxyy.y);
+  Expect.equals(2.0, xxyy.z);
+  Expect.equals(2.0, xxyy.w);
+  var yyww = m.yyww;
+  Expect.equals(2.0, yyww.x);
+  Expect.equals(2.0, yyww.y);
+  Expect.equals(4.0, yyww.z);
+  Expect.equals(4.0, yyww.w);
 }
 
 testMin() {

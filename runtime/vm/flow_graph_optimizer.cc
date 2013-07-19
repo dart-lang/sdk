@@ -1468,9 +1468,23 @@ bool FlowGraphOptimizer::InlineFloat32x4Getter(InstanceCallInstr* call,
                 call->deopt_id(),
                 call->env(),
                 call);
+  intptr_t mask = 0;
+  if (getter == MethodRecognizer::kFloat32x4Shuffle) {
+    ASSERT(call->ArgumentCount() == 2);
+    // Extract shuffle mask.
+    Definition* mask_definition = call->ArgumentAt(1);
+    ASSERT(mask_definition->IsConstant());
+    ConstantInstr* constant_instruction = mask_definition->AsConstant();
+    const Object& constant_mask = constant_instruction->value();
+    ASSERT(constant_mask.IsSmi());
+    mask = Smi::Cast(constant_mask).Value();
+    ASSERT(mask >= 0);
+    ASSERT(mask <= 255);
+  }
   Float32x4ShuffleInstr* instr = new Float32x4ShuffleInstr(
       getter,
       new Value(call->ArgumentAt(0)),
+      mask,
       call->deopt_id());
   ReplaceCall(call, instr);
   return true;
@@ -1561,10 +1575,6 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
       }
       InlineStringIsEmptyGetter(call);
       return true;
-    case MethodRecognizer::kFloat32x4ShuffleXXXX:
-    case MethodRecognizer::kFloat32x4ShuffleYYYY:
-    case MethodRecognizer::kFloat32x4ShuffleZZZZ:
-    case MethodRecognizer::kFloat32x4ShuffleWWWW:
     case MethodRecognizer::kFloat32x4ShuffleX:
     case MethodRecognizer::kFloat32x4ShuffleY:
     case MethodRecognizer::kFloat32x4ShuffleZ:
@@ -2034,6 +2044,9 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Method(
           new Float32x4ToUint32x4Instr(new Value(left), call->deopt_id());
       ReplaceCall(call, cast);
       return true;
+    }
+    case MethodRecognizer::kFloat32x4Shuffle: {
+      return InlineFloat32x4Getter(call, recognized_kind);
     }
     default:
       return false;
