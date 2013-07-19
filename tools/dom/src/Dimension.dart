@@ -1,3 +1,5 @@
+part of html;
+
 /**
  * Class representing a
  * [length measurement](https://developer.mozilla.org/en-US/docs/Web/CSS/length)
