@@ -3071,13 +3071,47 @@ void Float32x4SplatInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* Float32x4ComparisonInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::RequiresFpuRegister());
+  summary->set_out(Location::RequiresFpuRegister());
+  return summary;
 }
 
 
 void Float32x4ComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  QRegister left = locs()->in(0).fpu_reg();
+  QRegister right = locs()->in(1).fpu_reg();
+  QRegister result = locs()->out().fpu_reg();
+
+  switch (op_kind()) {
+    case MethodRecognizer::kFloat32x4Equal:
+      __ vceqqs(result, left, right);
+      break;
+    case MethodRecognizer::kFloat32x4NotEqual:
+      __ vceqqs(result, left, right);
+      // Invert the result.
+      __ veorq(QTMP, QTMP, QTMP);  // QTMP <- 0.
+      __ vornq(result, QTMP, result);  // result <- ~result.
+      break;
+    case MethodRecognizer::kFloat32x4GreaterThan:
+      __ vcgtqs(result, left, right);
+      break;
+    case MethodRecognizer::kFloat32x4GreaterThanOrEqual:
+      __ vcgeqs(result, left, right);
+      break;
+    case MethodRecognizer::kFloat32x4LessThan:
+      __ vcgtqs(result, right, left);
+      break;
+    case MethodRecognizer::kFloat32x4LessThanOrEqual:
+      __ vcgeqs(result, right, left);
+      break;
+
+    default: UNREACHABLE();
+  }
 }
 
 
@@ -3137,13 +3171,49 @@ void Float32x4ClampInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* Float32x4WithInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::RequiresFpuRegister());
+  summary->set_out(Location::RequiresFpuRegister());
+  return summary;
 }
 
 
 void Float32x4WithInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  QRegister replacement = locs()->in(0).fpu_reg();
+  QRegister value = locs()->in(1).fpu_reg();
+  QRegister result = locs()->out().fpu_reg();
+
+  DRegister dresult0 = EvenDRegisterOf(result);
+  DRegister dresult1 = OddDRegisterOf(result);
+  SRegister sresult0 = EvenSRegisterOf(dresult0);
+  SRegister sresult1 = OddSRegisterOf(dresult0);
+  SRegister sresult2 = EvenSRegisterOf(dresult1);
+  SRegister sresult3 = OddSRegisterOf(dresult1);
+
+  __ vcvtsd(STMP, EvenDRegisterOf(replacement));
+  if (result != value) {
+    __ vmovq(result, value);
+  }
+
+  switch (op_kind()) {
+    case MethodRecognizer::kFloat32x4WithX:
+      __ vmovs(sresult0, STMP);
+      break;
+    case MethodRecognizer::kFloat32x4WithY:
+      __ vmovs(sresult1, STMP);
+      break;
+    case MethodRecognizer::kFloat32x4WithZ:
+      __ vmovs(sresult2, STMP);
+      break;
+    case MethodRecognizer::kFloat32x4WithW:
+      __ vmovs(sresult3, STMP);
+      break;
+    default: UNREACHABLE();
+  }
 }
 
 
@@ -3170,14 +3240,48 @@ void Uint32x4BoolConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* Uint32x4GetFlagInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(Location::RequiresRegister());
+  return summary;
 }
 
 
 void Uint32x4GetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  QRegister value = locs()->in(0).fpu_reg();
+  Register result = locs()->out().reg();
+
+  DRegister dvalue0 = EvenDRegisterOf(value);
+  DRegister dvalue1 = OddDRegisterOf(value);
+  SRegister svalue0 = EvenSRegisterOf(dvalue0);
+  SRegister svalue1 = OddSRegisterOf(dvalue0);
+  SRegister svalue2 = EvenSRegisterOf(dvalue1);
+  SRegister svalue3 = OddSRegisterOf(dvalue1);
+
+  switch (op_kind()) {
+    case MethodRecognizer::kUint32x4GetFlagX:
+      __ vmovrs(result, svalue0);
+      break;
+    case MethodRecognizer::kUint32x4GetFlagY:
+      __ vmovrs(result, svalue1);
+      break;
+    case MethodRecognizer::kUint32x4GetFlagZ:
+      __ vmovrs(result, svalue2);
+      break;
+    case MethodRecognizer::kUint32x4GetFlagW:
+      __ vmovrs(result, svalue3);
+      break;
+    default: UNREACHABLE();
+  }
+
+  __ tst(result, ShifterOperand(result));
+  __ LoadObject(result, Bool::True(), NE);
+  __ LoadObject(result, Bool::False(), EQ);
 }
+
 
 LocationSummary* Uint32x4SelectInstr::MakeLocationSummary() const {
   UNIMPLEMENTED();

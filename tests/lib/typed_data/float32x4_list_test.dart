@@ -1,7 +1,7 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--deoptimization_counter_threshold=1000
+// VMOptions=--deoptimization_counter_threshold=1000 --optimization-counter-threshold=10
 
 // Library tag to be able to run in html test framework.
 library float32x4_list_test;
@@ -40,49 +40,49 @@ testLoadStoreDeopt(array, index, value) {
 testLoadStoreDeoptDriver() {
   Float32x4List list = new Float32x4List(4);
   Float32x4 value = new Float32x4(1.0, 2.0, 3.0, 4.0);
-  for (int i = 0; i < 3000; i++) {
+  for (int i = 0; i < 20; i++) {
     testLoadStoreDeopt(list, 0, value);
   }
   try {
     // Invalid index.
     testLoadStoreDeopt(list, 5, value);
   } catch (_) {}
-  for (int i = 0; i < 3000; i++) {
+  for (int i = 0; i < 20; i++) {
     testLoadStoreDeopt(list, 0, value);
   }
   try {
     // null list.
     testLoadStoreDeopt(null, 0, value);
   } catch (_) {}
-  for (int i = 0; i < 3000; i++) {
+  for (int i = 0; i < 20; i++) {
     testLoadStoreDeopt(list, 0, value);
   }
   try {
     // null value.
     testLoadStoreDeopt(list, 0, null);
   } catch (_) {}
-  for (int i = 0; i < 3000; i++) {
+  for (int i = 0; i < 20; i++) {
     testLoadStoreDeopt(list, 0, value);
   }
   try {
     // non-smi index.
     testLoadStoreDeopt(list, 3.14159, value);
   } catch (_) {}
-  for (int i = 0; i < 3000; i++) {
+  for (int i = 0; i < 20; i++) {
     testLoadStoreDeopt(list, 0, value);
   }
   try {
     // non-Float32x4 value.
     testLoadStoreDeopt(list, 0, 4.toDouble());
   } catch (_) {}
-  for (int i = 0; i < 3000; i++) {
+  for (int i = 0; i < 20; i++) {
     testLoadStoreDeopt(list, 0, value);
   }
   try {
     // non-Float32x4List list.
     testLoadStoreDeopt([new Float32x4(2.0, 3.0, 4.0, 5.0)], 0, value);
   } catch (_) {}
-  for (int i = 0; i < 3000; i++) {
+  for (int i = 0; i < 20; i++) {
     testLoadStoreDeopt(list, 0, value);
   }
 }
@@ -112,7 +112,7 @@ main() {
   var list;
 
   list = new Float32x4List(8);
-  for (int i = 0; i < 3000; i++) {
+  for (int i = 0; i < 20; i++) {
     testLoadStore(list);
   }
 
@@ -121,13 +121,13 @@ main() {
     floatList[i] = i.toDouble();
   }
   list = new Float32x4List.view(floatList);
-  for (int i = 0; i < 3000; i++) {
+  for (int i = 0; i < 20; i++) {
     testView(list);
   }
-  for (int i = 0; i < 3000; i++) {
+  for (int i = 0; i < 20; i++) {
     testLoadStore(list);
   }
-  for (int i = 0; i < 3000; i++) {
+  for (int i = 0; i < 20; i++) {
     testListZero();
   }
   testLoadStoreDeoptDriver();
