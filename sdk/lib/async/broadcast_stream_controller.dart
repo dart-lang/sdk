@@ -4,19 +4,10 @@
 
 part of dart.async;
 
-class _BroadcastStream<T> extends _StreamImpl<T> {
-  _BroadcastStreamController _controller;
-
-  _BroadcastStream(this._controller);
+class _BroadcastStream<T> extends _ControllerStream<T> {
+  _BroadcastStream(_StreamControllerLifecycle controller) : super(controller);
 
   bool get isBroadcast => true;
-
-  StreamSubscription<T> _createSubscription(
-      void onData(T data),
-      void onError(Object error),
-      void onDone(),
-      bool cancelOnError) =>
-    _controller._subscribe(onData, onError, onDone, cancelOnError);
 }
 
 abstract class _BroadcastSubscriptionLink {
