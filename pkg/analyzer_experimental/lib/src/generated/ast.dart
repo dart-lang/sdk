@@ -15497,6 +15497,9 @@ class NodeLocator extends GeneralizingASTVisitor<Object> {
    * @return the element that was found
    */
   ASTNode searchWithin(ASTNode node) {
+    if (node == null) {
+      return null;
+    }
     try {
       node.accept(this);
     } on NodeLocator_NodeFoundException catch (exception) {
@@ -16946,7 +16949,11 @@ class ASTCloner implements ASTVisitor<ASTNode> {
   BreakStatement visitBreakStatement(BreakStatement node) => new BreakStatement.full(node.keyword, clone2(node.label), node.semicolon);
   CascadeExpression visitCascadeExpression(CascadeExpression node) => new CascadeExpression.full(clone2(node.target), clone3(node.cascadeSections));
   CatchClause visitCatchClause(CatchClause node) => new CatchClause.full(node.onKeyword, clone2(node.exceptionType), node.catchKeyword, node.leftParenthesis, clone2(node.exceptionParameter), node.comma, clone2(node.stackTraceParameter), node.rightParenthesis, clone2(node.body));
-  ClassDeclaration visitClassDeclaration(ClassDeclaration node) => new ClassDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), node.abstractKeyword, node.classKeyword, clone2(node.name), clone2(node.typeParameters), clone2(node.extendsClause), clone2(node.withClause), clone2(node.implementsClause), node.leftBracket, clone3(node.members), node.rightBracket);
+  ClassDeclaration visitClassDeclaration(ClassDeclaration node) {
+    ClassDeclaration copy = new ClassDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), node.abstractKeyword, node.classKeyword, clone2(node.name), clone2(node.typeParameters), clone2(node.extendsClause), clone2(node.withClause), clone2(node.implementsClause), node.leftBracket, clone3(node.members), node.rightBracket);
+    copy.nativeClause = clone2(node.nativeClause);
+    return copy;
+  }
   ClassTypeAlias visitClassTypeAlias(ClassTypeAlias node) => new ClassTypeAlias.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.name), clone2(node.typeParameters), node.equals, node.abstractKeyword, clone2(node.superclass), clone2(node.withClause), clone2(node.implementsClause), node.semicolon);
   Comment visitComment(Comment node) {
     if (node.isDocumentation) {

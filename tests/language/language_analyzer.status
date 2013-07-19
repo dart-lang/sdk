@@ -5,6 +5,8 @@
 [ $compiler == dartanalyzer ]
 #argument_definition_test/01: fail  # issue 11565 (passing for the wrong reason)
 
+illegal_invocation_test/01: fail # Issue: 11892
+
 # test issue 11581, it is not warning to call dynamic
 call_through_getter_test: fail
 
@@ -169,9 +171,6 @@ unresolved_top_level_var_negative_test: fail
 # test issue 10683, It is a compile-time error if e refers to the name v or the name v=.
 block_scope_test: fail
 lazy_static3_test: fail
-
-# test issue 10752, there are 'implicit' scopes for 'if', 'while' and 'do-while'
-implicit_scope_test: fail
 
 # test issue 10889, "throw" requires expression, "rethrow" should be used instead
 execute_finally10_test: fail

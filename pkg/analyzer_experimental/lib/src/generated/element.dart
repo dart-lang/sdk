@@ -5719,7 +5719,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
   String get displayName {
     String name = this.name;
-    if (name == null) {
+    if (name == null || name.length == 0) {
       List<Type2> normalParameterTypes = this.normalParameterTypes;
       List<Type2> optionalParameterTypes = this.optionalParameterTypes;
       Map<String, Type2> namedParameterTypes = this.namedParameterTypes;
@@ -6563,11 +6563,15 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (argumentTypes.length != parameterTypes.length) {
       throw new IllegalArgumentException("argumentTypes.length (${argumentTypes.length}) != parameterTypes.length (${parameterTypes.length})");
     }
-    if (argumentTypes.length == 0) {
+    if (argumentTypes.length == 0 || _typeArguments.length == 0) {
+      return this;
+    }
+    List<Type2> newTypeArguments = TypeImpl.substitute(_typeArguments, argumentTypes, parameterTypes);
+    if (JavaArrays.equals(newTypeArguments, _typeArguments)) {
       return this;
     }
     InterfaceTypeImpl newType = new InterfaceTypeImpl.con1(element);
-    newType.typeArguments = TypeImpl.substitute(_typeArguments, argumentTypes, parameterTypes);
+    newType.typeArguments = newTypeArguments;
     return newType;
   }
   void appendTo(JavaStringBuilder builder) {

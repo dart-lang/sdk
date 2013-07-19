@@ -8,8 +8,9 @@ part of types;
 /// that nullable ContainerTypeMask and non-nullable ContainerTypeMask
 /// share the same [ElementTypeHolder].
 class ElementTypeHolder {
-  // This field will be set after global analysis.
+  // These fields will be set after global analysis.
   TypeMask elementType;
+  int length;
 
   int get hashCode => elementType.hashCode;
 }
@@ -35,6 +36,10 @@ class ContainerTypeMask extends ForwardingTypeMask {
   TypeMask get elementType => holder.elementType;
   void set elementType(TypeMask mask) {
     holder.elementType = mask;
+  }
+  int get length => holder.length;
+  void set length(int length) {
+    holder.length = length;
   }
 
   ContainerTypeMask(this.forwardTo,

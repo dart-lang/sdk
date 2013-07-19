@@ -905,8 +905,7 @@ DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
 
 static RawFunction* InlineCacheMissHandler(
     const GrowableArray<const Instance*>& args,
-    const ICData& ic_data,
-    const Array& args_descriptor_array) {
+    const ICData& ic_data) {
   const Instance& receiver = *args[0];
   const Code& target_code =
       Code::Handle(ResolveCompileInstanceCallTarget(receiver, ic_data));
@@ -963,19 +962,17 @@ static RawFunction* InlineCacheMissHandler(
 // site.
 //   Arg0: Receiver object.
 //   Arg1: IC data object.
-//   Arg2: Arguments descriptor array.
 //   Returns: target function with compiled code or null.
 // Modifies the instance call to hold the updated IC data array.
-DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg, 3) {
+DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg, 2) {
   ASSERT(arguments.ArgCount() ==
       kInlineCacheMissHandlerOneArgRuntimeEntry.argument_count());
   const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
   const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
-  const Array& arg_desc_array = Array::CheckedHandle(arguments.ArgAt(2));
   GrowableArray<const Instance*> args(1);
   args.Add(&receiver);
   const Function& result =
-      Function::Handle(InlineCacheMissHandler(args, ic_data, arg_desc_array));
+      Function::Handle(InlineCacheMissHandler(args, ic_data));
   arguments.SetReturn(result);
 }
 
@@ -985,21 +982,19 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg, 3) {
 //   Arg0: Receiver object.
 //   Arg1: Argument after receiver.
 //   Arg2: IC data object.
-//   Arg3: Arguments descriptor array.
 //   Returns: target function with compiled code or null.
 // Modifies the instance call to hold the updated IC data array.
-DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs, 4) {
+DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs, 3) {
   ASSERT(arguments.ArgCount() ==
       kInlineCacheMissHandlerTwoArgsRuntimeEntry.argument_count());
   const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
   const Instance& other = Instance::CheckedHandle(arguments.ArgAt(1));
   const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(2));
-  const Array& arg_desc_array = Array::CheckedHandle(arguments.ArgAt(3));
   GrowableArray<const Instance*> args(2);
   args.Add(&receiver);
   args.Add(&other);
   const Function& result =
-      Function::Handle(InlineCacheMissHandler(args, ic_data, arg_desc_array));
+      Function::Handle(InlineCacheMissHandler(args, ic_data));
   arguments.SetReturn(result);
 }
 
@@ -1010,23 +1005,21 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs, 4) {
 //   Arg1: Argument after receiver.
 //   Arg2: Second argument after receiver.
 //   Arg3: IC data object.
-//   Arg4: Arguments descriptor array.
 //   Returns: target function with compiled code or null.
 // Modifies the instance call to hold the updated IC data array.
-DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerThreeArgs, 5) {
+DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerThreeArgs, 4) {
   ASSERT(arguments.ArgCount() ==
       kInlineCacheMissHandlerThreeArgsRuntimeEntry.argument_count());
   const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
   const Instance& arg1 = Instance::CheckedHandle(arguments.ArgAt(1));
   const Instance& arg2 = Instance::CheckedHandle(arguments.ArgAt(2));
   const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(3));
-  const Array& arg_desc_array = Array::CheckedHandle(arguments.ArgAt(4));
   GrowableArray<const Instance*> args(3);
   args.Add(&receiver);
   args.Add(&arg1);
   args.Add(&arg2);
   const Function& result =
-      Function::Handle(InlineCacheMissHandler(args, ic_data, arg_desc_array));
+      Function::Handle(InlineCacheMissHandler(args, ic_data));
   arguments.SetReturn(result);
 }
 

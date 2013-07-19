@@ -17,6 +17,7 @@ main() {
     initGraph(["app|foo.txt"]);
     updateSources(["app|foo.txt"]);
     expectAsset("app|foo.txt");
+    buildShouldSucceed();
   });
 
   test("doesn't get an unknown source", () {
@@ -49,6 +50,7 @@ main() {
 
     updateSources(["app|foo.txt"]);
     expectAsset("app|foo.txt");
+    buildShouldSucceed();
   });
 
   test("doesn't get a removed source", () {
@@ -56,12 +58,14 @@ main() {
 
     updateSources(["app|foo.txt"]);
     expectAsset("app|foo.txt");
+    buildShouldSucceed();
 
     schedule(() {
       removeSources(["app|foo.txt"]);
     });
 
     expectNoAsset("app|foo.txt");
+    buildShouldSucceed();
   });
 
   test("collapses redundant updates", () {
@@ -77,6 +81,7 @@ main() {
     });
 
     expectAsset("app|foo.blab", "foo.blab");
+    buildShouldSucceed();
 
     schedule(() {
       expect(transformer.numRuns, equals(1));
@@ -92,6 +97,7 @@ main() {
     });
 
     expectNoAsset("app|foo.txt");
+    buildShouldSucceed();
   });
 
   test("an update cancels out a removal", () {
@@ -103,6 +109,7 @@ main() {
     });
 
     expectAsset("app|foo.txt");
+    buildShouldSucceed();
   });
 
   test("restarts a build if a source is updated while sources are loading", () {

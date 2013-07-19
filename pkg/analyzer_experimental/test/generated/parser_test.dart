@@ -3757,7 +3757,7 @@ class SimpleParserTest extends ParserTestCase {
    * @throws Exception if the method could not be invoked or throws an exception
    */
   String computeStringValue(String lexeme) {
-    AnalysisErrorListener listener = new AnalysisErrorListener_20();
+    AnalysisErrorListener listener = new AnalysisErrorListener_21();
     Parser parser = new Parser(null, listener);
     return invokeParserMethodImpl(parser, "computeStringValue", <Object> [lexeme], null) as String;
   }
@@ -5965,7 +5965,7 @@ class SimpleParserTest extends ParserTestCase {
     });
   }
 }
-class AnalysisErrorListener_20 implements AnalysisErrorListener {
+class AnalysisErrorListener_21 implements AnalysisErrorListener {
   void onError(AnalysisError event) {
     JUnitTestCase.fail("Unexpected compilation error: ${event.message} (${event.offset}, ${event.length})");
   }
@@ -7585,12 +7585,6 @@ class ErrorParserTest extends ParserTestCase {
   void fail_varAndType_parameter() {
     ParserTestCase.parse5("parseFormalParameterList", "(var int x)", [ParserErrorCode.VAR_AND_TYPE]);
   }
-  void fail_voidVariable_initializer() {
-    ParserTestCase.parseStatement("void x = 0;", [ParserErrorCode.VOID_VARIABLE]);
-  }
-  void fail_voidVariable_noInitializer() {
-    ParserTestCase.parseStatement("void x;", [ParserErrorCode.VOID_VARIABLE]);
-  }
   void test_abstractClassMember_constructor() {
     ParserTestCase.parse4("parseClassMember", <Object> ["C"], "abstract C.c();", [ParserErrorCode.ABSTRACT_CLASS_MEMBER]);
   }
@@ -7771,6 +7765,15 @@ class ErrorParserTest extends ParserTestCase {
   }
   void test_expectedToken_commaMissingInArgumentList() {
     ParserTestCase.parse5("parseArgumentList", "(x, y z)", [ParserErrorCode.EXPECTED_TOKEN]);
+  }
+  void test_expectedToken_parseStatement_afterVoid() {
+    ParserTestCase.parseStatement("void}", [
+        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.MISSING_IDENTIFIER]);
+  }
+  void test_expectedToken_semicolonAfterTypedef() {
+    Token token = TokenFactory.token(Keyword.TYPEDEF);
+    ParserTestCase.parse4("parseClassTypeAlias", <Object> [emptyCommentAndMetadata(), token], "A = B", [ParserErrorCode.EXPECTED_TOKEN]);
   }
   void test_expectedToken_semicolonMissingAfterExpression() {
     ParserTestCase.parseStatement("x", [ParserErrorCode.EXPECTED_TOKEN]);
@@ -8027,6 +8030,11 @@ class ErrorParserTest extends ParserTestCase {
   void test_missingIdentifier_afterOperator() {
     ParserTestCase.parse5("parseMultiplicativeExpression", "1 *", [ParserErrorCode.MISSING_IDENTIFIER]);
   }
+  void test_missingIdentifier_beforeClosingCurly() {
+    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "int}", [
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.EXPECTED_TOKEN]);
+  }
   void test_missingIdentifier_functionDeclaration_returnTypeWithoutName() {
     ParserTestCase.parse5("parseFunctionDeclarationStatement", "A<T> () {}", [ParserErrorCode.MISSING_IDENTIFIER]);
   }
@@ -8043,6 +8051,15 @@ class ErrorParserTest extends ParserTestCase {
   void test_missingKeywordOperator() {
     ParserTestCase.parse4("parseOperator", <Object> [emptyCommentAndMetadata(), null, null], "+(x) {}", [ParserErrorCode.MISSING_KEYWORD_OPERATOR]);
   }
+  void test_missingKeywordOperator_parseClassMember() {
+    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "+() {}", [ParserErrorCode.MISSING_KEYWORD_OPERATOR]);
+  }
+  void test_missingKeywordOperator_parseClassMember_afterTypeName() {
+    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "int +() {}", [ParserErrorCode.MISSING_KEYWORD_OPERATOR]);
+  }
+  void test_missingKeywordOperator_parseClassMember_afterVoid() {
+    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "void +() {}", [ParserErrorCode.MISSING_KEYWORD_OPERATOR]);
+  }
   void test_missingNameInLibraryDirective() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit("library;", [ParserErrorCode.MISSING_NAME_IN_LIBRARY_DIRECTIVE]);
     JUnitTestCase.assertNotNull(unit);
@@ -8050,6 +8067,12 @@ class ErrorParserTest extends ParserTestCase {
   void test_missingNameInPartOfDirective() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit("part of;", [ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE]);
     JUnitTestCase.assertNotNull(unit);
+  }
+  void test_missingStatement() {
+    ParserTestCase.parseStatement("is", [ParserErrorCode.MISSING_STATEMENT]);
+  }
+  void test_missingStatement_afterVoid() {
+    ParserTestCase.parseStatement("void;", [ParserErrorCode.MISSING_STATEMENT]);
   }
   void test_missingTerminatorForParameterGroup_named() {
     ParserTestCase.parse5("parseFormalParameterList", "(a, {b: 0)", [ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP]);
@@ -8075,6 +8098,12 @@ class ErrorParserTest extends ParserTestCase {
   void test_mixedParameterGroups_positionalNamed() {
     ParserTestCase.parse5("parseFormalParameterList", "(a, [b], {c})", [ParserErrorCode.MIXED_PARAMETER_GROUPS]);
   }
+  void test_multipleExtendsClauses() {
+    ParserTestCase.parseCompilationUnit("class A extends B extends C {}", [ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES]);
+  }
+  void test_multipleImplementsClauses() {
+    ParserTestCase.parseCompilationUnit("class A implements B implements C {}", [ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES]);
+  }
   void test_multipleLibraryDirectives() {
     ParserTestCase.parseCompilationUnit("library l; library m;", [ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES]);
   }
@@ -8089,6 +8118,9 @@ class ErrorParserTest extends ParserTestCase {
   }
   void test_multipleVariablesInForEach() {
     ParserTestCase.parse5("parseForStatement", "for (int a, b in foo) {}", [ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH]);
+  }
+  void test_multipleWithClauses() {
+    ParserTestCase.parseCompilationUnit("class A extends B with C with D {}", [ParserErrorCode.MULTIPLE_WITH_CLAUSES]);
   }
   void test_namedParameterOutsideGroup() {
     ParserTestCase.parse5("parseFormalParameterList", "(a, b : 0)", [ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP]);
@@ -8121,6 +8153,12 @@ class ErrorParserTest extends ParserTestCase {
   }
   void test_optionalAfterNormalParameters_positional() {
     ParserTestCase.parseCompilationUnit("f([a], b) {}", [ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS]);
+  }
+  void test_parseCascadeSection_missingIdentifier() {
+    MethodInvocation methodInvocation = ParserTestCase.parse5("parseCascadeSection", "..()", [ParserErrorCode.MISSING_IDENTIFIER]);
+    JUnitTestCase.assertNull(methodInvocation.target);
+    JUnitTestCase.assertEquals("", methodInvocation.methodName.name);
+    EngineTestCase.assertSize(0, methodInvocation.argumentList.arguments);
   }
   void test_positionalAfterNamedArgument() {
     ParserTestCase.parse5("parseArgumentList", "(x: 1, 2)", [ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT]);
@@ -8227,14 +8265,36 @@ class ErrorParserTest extends ParserTestCase {
   void test_varTypedef() {
     ParserTestCase.parseCompilationUnit("var typedef F();", [ParserErrorCode.VAR_TYPEDEF]);
   }
-  void test_voidField_initializer() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "void x = 0;", [ParserErrorCode.VOID_VARIABLE]);
-  }
-  void test_voidField_noInitializer() {
-    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "void x;", [ParserErrorCode.VOID_VARIABLE]);
-  }
   void test_voidParameter() {
     ParserTestCase.parse5("parseNormalFormalParameter", "void a)", [ParserErrorCode.VOID_PARAMETER]);
+  }
+  void test_voidVariable_parseClassMember_initializer() {
+    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "void x = 0;", [ParserErrorCode.VOID_VARIABLE]);
+  }
+  void test_voidVariable_parseClassMember_noInitializer() {
+    ParserTestCase.parse4("parseClassMember", <Object> ["C"], "void x;", [ParserErrorCode.VOID_VARIABLE]);
+  }
+  void test_voidVariable_parseCompilationUnit_initializer() {
+    ParserTestCase.parseCompilationUnit("void x = 0;", [ParserErrorCode.VOID_VARIABLE]);
+  }
+  void test_voidVariable_parseCompilationUnit_noInitializer() {
+    ParserTestCase.parseCompilationUnit("void x;", [ParserErrorCode.VOID_VARIABLE]);
+  }
+  void test_voidVariable_parseCompilationUnitMember_initializer() {
+    ParserTestCase.parse4("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "void a = 0;", [ParserErrorCode.VOID_VARIABLE]);
+  }
+  void test_voidVariable_parseCompilationUnitMember_noInitializer() {
+    ParserTestCase.parse4("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "void a;", [ParserErrorCode.VOID_VARIABLE]);
+  }
+  void test_voidVariable_statement_initializer() {
+    ParserTestCase.parseStatement("void x = 0;", [
+        ParserErrorCode.VOID_VARIABLE,
+        ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE]);
+  }
+  void test_voidVariable_statement_noInitializer() {
+    ParserTestCase.parseStatement("void x;", [
+        ParserErrorCode.VOID_VARIABLE,
+        ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE]);
   }
   void test_withBeforeExtends() {
     ParserTestCase.parseCompilationUnit("class A with B extends C {}", [ParserErrorCode.WITH_BEFORE_EXTENDS]);
@@ -8491,6 +8551,14 @@ class ErrorParserTest extends ParserTestCase {
       _ut.test('test_expectedToken_commaMissingInArgumentList', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_expectedToken_commaMissingInArgumentList);
+      });
+      _ut.test('test_expectedToken_parseStatement_afterVoid', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_expectedToken_parseStatement_afterVoid);
+      });
+      _ut.test('test_expectedToken_semicolonAfterTypedef', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_expectedToken_semicolonAfterTypedef);
       });
       _ut.test('test_expectedToken_semicolonMissingAfterExpression', () {
         final __test = new ErrorParserTest();
@@ -8820,6 +8888,10 @@ class ErrorParserTest extends ParserTestCase {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_missingIdentifier_afterOperator);
       });
+      _ut.test('test_missingIdentifier_beforeClosingCurly', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_missingIdentifier_beforeClosingCurly);
+      });
       _ut.test('test_missingIdentifier_functionDeclaration_returnTypeWithoutName', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_missingIdentifier_functionDeclaration_returnTypeWithoutName);
@@ -8840,6 +8912,18 @@ class ErrorParserTest extends ParserTestCase {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_missingKeywordOperator);
       });
+      _ut.test('test_missingKeywordOperator_parseClassMember', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_missingKeywordOperator_parseClassMember);
+      });
+      _ut.test('test_missingKeywordOperator_parseClassMember_afterTypeName', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_missingKeywordOperator_parseClassMember_afterTypeName);
+      });
+      _ut.test('test_missingKeywordOperator_parseClassMember_afterVoid', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_missingKeywordOperator_parseClassMember_afterVoid);
+      });
       _ut.test('test_missingNameInLibraryDirective', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_missingNameInLibraryDirective);
@@ -8847,6 +8931,14 @@ class ErrorParserTest extends ParserTestCase {
       _ut.test('test_missingNameInPartOfDirective', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_missingNameInPartOfDirective);
+      });
+      _ut.test('test_missingStatement', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_missingStatement);
+      });
+      _ut.test('test_missingStatement_afterVoid', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_missingStatement_afterVoid);
       });
       _ut.test('test_missingTerminatorForParameterGroup_named', () {
         final __test = new ErrorParserTest();
@@ -8880,6 +8972,14 @@ class ErrorParserTest extends ParserTestCase {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_mixedParameterGroups_positionalNamed);
       });
+      _ut.test('test_multipleExtendsClauses', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_multipleExtendsClauses);
+      });
+      _ut.test('test_multipleImplementsClauses', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_multipleImplementsClauses);
+      });
       _ut.test('test_multipleLibraryDirectives', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_multipleLibraryDirectives);
@@ -8899,6 +8999,10 @@ class ErrorParserTest extends ParserTestCase {
       _ut.test('test_multipleVariablesInForEach', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_multipleVariablesInForEach);
+      });
+      _ut.test('test_multipleWithClauses', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_multipleWithClauses);
       });
       _ut.test('test_namedParameterOutsideGroup', () {
         final __test = new ErrorParserTest();
@@ -8939,6 +9043,10 @@ class ErrorParserTest extends ParserTestCase {
       _ut.test('test_optionalAfterNormalParameters_positional', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_optionalAfterNormalParameters_positional);
+      });
+      _ut.test('test_parseCascadeSection_missingIdentifier', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_parseCascadeSection_missingIdentifier);
       });
       _ut.test('test_positionalAfterNamedArgument', () {
         final __test = new ErrorParserTest();
@@ -9072,17 +9180,41 @@ class ErrorParserTest extends ParserTestCase {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_varTypedef);
       });
-      _ut.test('test_voidField_initializer', () {
-        final __test = new ErrorParserTest();
-        runJUnitTest(__test, __test.test_voidField_initializer);
-      });
-      _ut.test('test_voidField_noInitializer', () {
-        final __test = new ErrorParserTest();
-        runJUnitTest(__test, __test.test_voidField_noInitializer);
-      });
       _ut.test('test_voidParameter', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_voidParameter);
+      });
+      _ut.test('test_voidVariable_parseClassMember_initializer', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_voidVariable_parseClassMember_initializer);
+      });
+      _ut.test('test_voidVariable_parseClassMember_noInitializer', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_voidVariable_parseClassMember_noInitializer);
+      });
+      _ut.test('test_voidVariable_parseCompilationUnitMember_initializer', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_voidVariable_parseCompilationUnitMember_initializer);
+      });
+      _ut.test('test_voidVariable_parseCompilationUnitMember_noInitializer', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_voidVariable_parseCompilationUnitMember_noInitializer);
+      });
+      _ut.test('test_voidVariable_parseCompilationUnit_initializer', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_voidVariable_parseCompilationUnit_initializer);
+      });
+      _ut.test('test_voidVariable_parseCompilationUnit_noInitializer', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_voidVariable_parseCompilationUnit_noInitializer);
+      });
+      _ut.test('test_voidVariable_statement_initializer', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_voidVariable_statement_initializer);
+      });
+      _ut.test('test_voidVariable_statement_noInitializer', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_voidVariable_statement_noInitializer);
       });
       _ut.test('test_withBeforeExtends', () {
         final __test = new ErrorParserTest();

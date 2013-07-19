@@ -1,5 +1,6 @@
 name: fixnum
-author: "Dart Team <misc@dartlang.org>"
+author: Dart Team <misc@dartlang.org>
+description: Library for 32- and 64-bit fixed size integers.
 homepage: http://www.dartlang.org
-description: >
-  Library for 32- and 64-bit fixed size integers.
+dev_dependencies:
+  unittest: any

@@ -270,7 +270,8 @@ class HtmlEnhancedConfiguration extends Configuration {
         '${test_.description}. ${_htmlEscape(test_.message)}');
 
     if (test_.stackTrace != null) {
-      addRowElement('', '', '<pre>${_htmlEscape(test_.stackTrace)}</pre>');
+      addRowElement('', '',
+          '<pre>${_htmlEscape(test_.stackTrace.toString())}</pre>');
     }
   }
 

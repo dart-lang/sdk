@@ -105,12 +105,6 @@ abstract class Enqueuer {
   void addToWorkList(Element element) {
     assert(invariant(element, element.isDeclaration));
     if (element.isForeign(compiler)) return;
-
-    if (element.isForwardingConstructor) {
-      addToWorkList(element.targetConstructor);
-      return;
-    }
-
     internalAddToWorkList(element);
   }
 

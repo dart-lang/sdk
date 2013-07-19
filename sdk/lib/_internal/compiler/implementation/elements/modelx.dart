@@ -1398,63 +1398,31 @@ class ConstructorBodyElementX extends FunctionElementX
  * constructors for mixin applications.
  */
 class SynthesizedConstructorElementX extends FunctionElementX {
-  /// The target constructor if this synthetic constructor is a forwarding
-  /// constructor in a mixin application.
-  final FunctionElement target;
+  final FunctionElement superMember;
 
-  SynthesizedConstructorElementX(Element enclosing)
-      : super(enclosing.name, ElementKind.GENERATIVE_CONSTRUCTOR,
-              Modifiers.EMPTY, enclosing),
-        target = null;
+  SynthesizedConstructorElementX(SourceString name,
+                                 this.superMember,
+                                 Element enclosing)
+      : super(name,
+              ElementKind.GENERATIVE_CONSTRUCTOR,
+              Modifiers.EMPTY,
+              enclosing);
 
-  SynthesizedConstructorElementX.forDefault(Element enclosing,
-                                            Compiler compiler)
-      : super(const SourceString(''), ElementKind.GENERATIVE_CONSTRUCTOR,
-              Modifiers.EMPTY, enclosing),
-        target = null {
-    // TODO(karlklose): get rid of the fake AST.
-    type = new FunctionType(this,
-        compiler.types.voidType,
-        const Link<DartType>(),
-        const Link<DartType>(),
-        const Link<SourceString>(),
-        const Link<DartType>());
-    cachedNode = new FunctionExpression(
-        new Identifier(enclosing.position()),
-        new NodeList.empty(),
-        new Block(new NodeList.empty()),
-        null, Modifiers.EMPTY, null, null);
-  }
-
-  /**
-   * Create synthetic constructor that directly forwards to a constructor in the
-   * super class of a mixin application.
-   *
-   * In a mixin application `Base with M`, any constructor defined in `Base` is
-   * available as if they were a constructor defined in the mixin application
-   * with the same formal parameters that calls the constructor in the super
-   * class via a `super` initializer (see Ch. 9.1 in the specification).
-   */
-  SynthesizedConstructorElementX.forwarding(SourceString name, this.target,
-                                            Element enclosing)
-    : super(name, ElementKind.GENERATIVE_CONSTRUCTOR, Modifiers.EMPTY,
-            enclosing);
+  SynthesizedConstructorElementX.forDefault(superMember, Element enclosing)
+      : this(const SourceString(''), superMember, enclosing);
 
   Token position() => enclosingElement.position();
 
   bool get isSynthesized => true;
 
-  bool get isForwardingConstructor => target != null;
-
-  FunctionElement get targetConstructor => target;
+  FunctionElement get targetConstructor => superMember;
 
   FunctionSignature computeSignature(compiler) {
-    if (target != null) {
-      return target.computeSignature(compiler);
-    } else {
-      assert(cachedNode != null);
-      return super.computeSignature(compiler);
+    if (superMember.isErroneous()) {
+      return compiler.objectClass.localLookup(
+          const SourceString('')).computeSignature(compiler);
     }
+    return superMember.computeSignature(compiler);
   }
 
   get declaration => this;
@@ -1602,13 +1570,6 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
       compiler.resolver.resolveClass(this);
     }
     return this;
-  }
-
-  void addDefaultConstructorIfNeeded(Compiler compiler) {
-    if (hasConstructor) return;
-    FunctionElement constructor =
-        new SynthesizedConstructorElementX.forDefault(this, compiler);
-    setDefaultConstructor(constructor, compiler);
   }
 
   void setDefaultConstructor(FunctionElement constructor, Compiler compiler);

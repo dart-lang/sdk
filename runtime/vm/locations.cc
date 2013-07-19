@@ -87,8 +87,6 @@ Location Location::AnyOrConstant(Value* value) {
 }
 
 
-// TODO(regis): Remove all occurences of Address in the architecture independent
-// portion of the vm.
 Address Location::ToStackSlotAddress() const {
   const intptr_t index = stack_index();
   if (index < 0) {
@@ -97,6 +95,18 @@ Address Location::ToStackSlotAddress() const {
   } else {
     const intptr_t offset = (kFirstLocalSlotFromFp - index) * kWordSize;
     return Address(FPREG, offset);
+  }
+}
+
+
+intptr_t Location::ToStackSlotOffset() const {
+  const intptr_t index = stack_index();
+  if (index < 0) {
+    const intptr_t offset = (kParamEndSlotFromFp - index)  * kWordSize;
+    return offset;
+  } else {
+    const intptr_t offset = (kFirstLocalSlotFromFp - index) * kWordSize;
+    return offset;
   }
 }
 

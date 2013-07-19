@@ -1588,7 +1588,7 @@ class Parser {
             return parseInitializedIdentifierList(commentAndMetadata, modifiers.staticKeyword, validateModifiersForField(modifiers), returnType);
           }
         }
-        if (isOperator(peek())) {
+        if (isOperator(_currentToken)) {
           validateModifiersForOperator(modifiers);
           return parseOperator(commentAndMetadata, modifiers.externalKeyword, returnType);
         }
@@ -1605,7 +1605,7 @@ class Parser {
       validateModifiersForOperator(modifiers);
       return parseOperator(commentAndMetadata, modifiers.externalKeyword, null);
     } else if (!matchesIdentifier()) {
-      if (isOperator(peek())) {
+      if (isOperator(_currentToken)) {
         validateModifiersForOperator(modifiers);
         return parseOperator(commentAndMetadata, modifiers.externalKeyword, null);
       }
@@ -1642,7 +1642,7 @@ class Parser {
       if (matches5(TokenType.CLOSE_CURLY_BRACKET)) {
         return parseInitializedIdentifierList(commentAndMetadata, modifiers.staticKeyword, validateModifiersForField(modifiers), type);
       }
-      if (isOperator(peek())) {
+      if (isOperator(_currentToken)) {
         validateModifiersForOperator(modifiers);
         return parseOperator(commentAndMetadata, modifiers.externalKeyword, type);
       }

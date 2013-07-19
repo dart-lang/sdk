@@ -50,6 +50,9 @@ MemberMirror _currentMember;
 /// Resolves reference links in doc comments.
 markdown.Resolver linkResolver;
 
+/// Index of all the qualified names documented. 
+Set<String> qualifiedNameIndex = new Set<String>();
+
 /**
  * Docgen constructor initializes the link resolver for markdown parsing.
  * Also initializes the command line arguments.
@@ -217,6 +220,9 @@ void _documentLibraries(List<LibraryMirror> libraries,
   // to read in.
   _writeToFile(listDir('docs').join('\n').replaceAll('docs/', ''),
       'library_list.txt');
+  // Outputs all the qualified names documented. This will help generate search
+  // results. 
+  _writeToFile(qualifiedNameIndex.join('\n'), 'index.txt');
 }
 
 Library generateLibrary(dart2js.Dart2JsLibraryMirror library,
@@ -302,7 +308,7 @@ Map<String, Variable> _getVariables(Map<String, VariableMirror> mirrorMap,
       _currentMember = mirror;
       data[mirrorName] = new Variable(mirrorName, mirror.isFinal, 
           mirror.isStatic, mirror.type.qualifiedName, _getComment(mirror), 
-          _getAnnotations(mirror));
+          _getAnnotations(mirror), mirror.qualifiedName);
     }
   });
   return data;
@@ -324,7 +330,8 @@ Map<String, Map<String, Method>> _getMethods
     if (includePrivate || !mirror.isPrivate) {
       var method = new Method(mirrorName, mirror.isStatic, 
           mirror.returnType.qualifiedName, _getComment(mirror), 
-          _getParameters(mirror.parameters), _getAnnotations(mirror));
+          _getParameters(mirror.parameters), _getAnnotations(mirror),
+          mirror.qualifiedName);
       _currentMember = mirror;
       if (mirror.isSetter) {
         setters[mirrorName] = method;
@@ -337,15 +344,17 @@ Map<String, Map<String, Method>> _getMethods
       } else if (mirror.isRegularMethod) {
          methods[mirrorName] = method;
       } else {
-        throw new StateError('${mirror.qualifiedName} - no method type match');
+        throw new ArgumentError('$mirrorName - no method type match');
       }
     }
   });
-  return {'setters' : setters,
-          'getters' : getters,
-          'constructors' : constructors,
-          'operators' : operators,
-          'methods' : methods};
+  return {
+    'setters': setters,
+    'getters': getters,
+    'constructors': constructors,
+    'operators': operators,
+    'methods': methods
+  };
 } 
 
 /**
@@ -353,22 +362,43 @@ Map<String, Map<String, Method>> _getMethods
  */
 Map<String, Class> _getClasses(Map<String, ClassMirror> mirrorMap,
     bool includePrivate) {
-  var data = {};
+  
+  var abstractClasses = {};
+  var classes = {};
+  var typedefs = {};
+  var errors = {};
+  
   mirrorMap.forEach((String mirrorName, ClassMirror mirror) {
     if (includePrivate || !mirror.isPrivate) {
-      _currentClass = mirror;
       var superclass = (mirror.superclass != null) ?
           mirror.superclass.qualifiedName : '';
       var interfaces =
           mirror.superinterfaces.map((interface) => interface.qualifiedName);
-      data[mirrorName] = new Class(mirrorName, superclass, mirror.isAbstract, 
-          mirror.isTypedef, _getComment(mirror), interfaces.toList(),
-          _getVariables(mirror.variables, includePrivate),
+      var clazz = new Class(mirrorName, superclass, _getComment(mirror), 
+          interfaces.toList(), _getVariables(mirror.variables, includePrivate),
           _getMethods(mirror.methods, includePrivate),
-          _getAnnotations(mirror));
+          _getAnnotations(mirror), mirror.qualifiedName);
+      _currentClass = mirror;
+      
+      if (isError(mirror.qualifiedName)) {
+        errors[mirrorName] = clazz;
+      } else if (mirror.isTypedef) {
+        typedefs[mirrorName] = clazz;
+      } else if (mirror.isAbstract) {
+        abstractClasses[mirrorName] = clazz;
+      } else if (mirror.isClass) {
+        classes[mirrorName] = clazz;
+      } else {
+        throw new ArgumentError('$mirrorName - no class type match. ');
+      }
     }
   });
-  return data;
+  return {
+    'abstract': abstractClasses, 
+    'class': classes,
+    'typedef': typedefs,
+    'error': errors
+  };
 }
 
 /**
@@ -417,10 +447,24 @@ Map recurseMap(Map inputMap) {
   return outputMap;
 }
 
+bool isError(String qualifiedName) {
+  return qualifiedName.toLowerCase().contains('error') || 
+      qualifiedName.toLowerCase().contains('exception');
+}
+
+/**
+ * A class representing all programming constructs, like library or class. 
+ */
+class Indexable {
+  Indexable(String qualifiedName) {
+    qualifiedNameIndex.add(qualifiedName);
+  }
+}
+
 /**
  * A class containing contents of a Dart library.
  */
-class Library {
+class Library extends Indexable {
 
   /// Documentation comment with converted markdown.
   String comment;
@@ -436,8 +480,10 @@ class Library {
 
   String name;
 
-  Library(this.name, this.comment, this.variables,
-      this.functions, this.classes);
+  Library(name, this.comment, this.variables,
+      this.functions, this.classes) : super(name) {
+    this.name = name; 
+  }
 
   /// Generates a map describing the [Library] object.
   Map toMap() {
@@ -455,7 +501,7 @@ class Library {
  * A class containing contents of a Dart class.
  */
 // TODO(tmandel): Figure out how to do typedefs (what is needed)
-class Class {
+class Class extends Indexable {
 
   /// Documentation comment with converted markdown.
   String comment;
@@ -471,15 +517,13 @@ class Class {
   
   String name;
   String superclass;
-  bool isAbstract;
-  bool isTypedef;
 
   /// List of the meta annotations on the class.
   List<String> annotations;
   
-  Class(this.name, this.superclass, this.isAbstract, this.isTypedef, 
-      this.comment, this.interfaces, this.variables, this.methods, 
-      this.annotations);
+  Class(this.name, this.superclass, this.comment, this.interfaces, 
+      this.variables, this.methods, this.annotations, 
+      String qualifiedName) : super(qualifiedName) {}
 
   /// Generates a map describing the [Class] object.
   Map toMap() {
@@ -487,8 +531,6 @@ class Class {
     classMap['name'] = name;
     classMap['comment'] = comment;
     classMap['superclass'] = superclass;
-    classMap['abstract'] = isAbstract.toString();
-    classMap['typedef'] = isTypedef.toString();
     classMap['implements'] = new List.from(interfaces);
     classMap['variables'] = recurseMap(variables);
     classMap['methods'] = recurseMap(methods);
@@ -500,7 +542,7 @@ class Class {
 /**
  * A class containing properties of a Dart variable.
  */
-class Variable {
+class Variable extends Indexable {
 
   /// Documentation comment with converted markdown.
   String comment;
@@ -514,7 +556,7 @@ class Variable {
   List<String> annotations;
   
   Variable(this.name, this.isFinal, this.isStatic, this.type, this.comment, 
-      this.annotations);
+      this.annotations, String qualifiedName) : super(qualifiedName);
   
   /// Generates a map describing the [Variable] object.
   Map toMap() {
@@ -532,7 +574,7 @@ class Variable {
 /**
  * A class containing properties of a Dart method.
  */
-class Method {
+class Method extends Indexable {
 
   /// Documentation comment with converted markdown.
   String comment;
@@ -548,7 +590,8 @@ class Method {
   List<String> annotations;
   
   Method(this.name, this.isStatic, this.returnType, this.comment, 
-      this.parameters, this.annotations);
+      this.parameters, this.annotations, String qualifiedName) 
+      : super(qualifiedName);
   
   /// Generates a map describing the [Method] object.
   Map toMap() {

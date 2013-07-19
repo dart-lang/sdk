@@ -1519,7 +1519,6 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ pushl(EBX);
   }
   __ pushl(ECX);  // Pass IC data object.
-  __ pushl(EDX);  // Pass arguments descriptor array.
   if (num_args == 1) {
     __ CallRuntime(kInlineCacheMissHandlerOneArgRuntimeEntry);
   } else if (num_args == 2) {
@@ -1529,9 +1528,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   } else {
     UNIMPLEMENTED();
   }
-  // Remove the call arguments pushed earlier, including the IC data object
-  // and the arguments descriptor array.
-  for (intptr_t i = 0; i < num_args + 2; i++) {
+  // Remove the call arguments pushed earlier, including the IC data object.
+  for (intptr_t i = 0; i < num_args + 1; i++) {
     __ popl(EAX);
   }
   __ popl(EAX);  // Pop returned code object into EAX (null if not found).

@@ -75,6 +75,43 @@ main() {
   testIndexedOperator();
   testIncrementsAndDecrements();
   testOverrideHashCodeCheck();
+  testSupertypeOrder();
+}
+
+testSupertypeOrder() {
+  MockCompiler compiler = new MockCompiler();
+  compiler.parseScript("""
+class I1 {}
+class I2 {}
+class J1 extends K1 {}
+class J2 implements K2 {}
+class K1 {}
+class K2 {}
+class L1 {}
+class A implements I1, I2 {}
+class B extends A implements J1, J2 {}
+class C extends B implements L1 {}
+""");
+  compiler.resolveStatement("C c;");
+  ClassElement classA = compiler.mainApp.find(buildSourceString("A"));
+  ClassElement classB = compiler.mainApp.find(buildSourceString("B"));
+  ClassElement classC = compiler.mainApp.find(buildSourceString("C"));
+  Expect.equals('[ I2, I1, Object ]', classA.allSupertypes.toString());
+  Expect.equals('[ A, J2, J1, I2, I1, K2, K1, Object ]',
+                classB.allSupertypes.toString());
+  Expect.equals('[ B, L1, A, J2, J1, I2, I1, K2, K1, Object ]',
+                classC.allSupertypes.toString());
+
+ compiler = new MockCompiler();
+  compiler.parseScript("""
+class X<T> {}
+class Foo extends X<Foo> {}
+class Bar extends Foo implements X<Bar> {}
+""");
+  compiler.resolveStatement("Bar bar;");
+  ClassElement classBar = compiler.mainApp.find(buildSourceString("Bar"));
+  Expect.equals('[ Foo, X<Bar>, X<Foo>, Object ]',
+                classBar.allSupertypes.toString());
 }
 
 testTypeVariables() {
@@ -599,9 +636,11 @@ testClassHierarchy() {
   FunctionElement mainElement = compiler.mainApp.find(MAIN);
   compiler.resolver.resolve(mainElement);
   Expect.equals(0, compiler.warnings.length);
-  Expect.equals(1, compiler.errors.length);
+  Expect.equals(2, compiler.errors.length);
   Expect.equals(MessageKind.CYCLIC_CLASS_HIERARCHY,
                 compiler.errors[0].message.kind);
+  Expect.equals(MessageKind.CANNOT_FIND_CONSTRUCTOR,
+                compiler.errors[1].message.kind);
 
   compiler = new MockCompiler();
   compiler.parseScript("""abstract class A extends B {}
@@ -643,7 +682,7 @@ testClassHierarchy() {
   supertypes = aElement.allSupertypes;
   // Object is once per inheritance path, that is from both A and I.
   Expect.equals(<String>['A<int>', 'B<bool, String>', 'I<bool, List<String>>',
-                         'Object', 'Object'].toString(),
+                         'Object'].toString(),
                 asSortedStrings(supertypes).toString());
 
   compiler = new MockCompiler();

@@ -737,7 +737,7 @@ class DartUriResolver extends UriResolver {
     if (!isDartUri(uri)) {
       return null;
     }
-    return _sdk.mapDartUri(contentCache, uri.toString());
+    return _sdk.mapDartUri(uri.toString());
   }
 }
 /**

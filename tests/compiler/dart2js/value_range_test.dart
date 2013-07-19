@@ -209,7 +209,9 @@ const String DEFAULT_CORELIB_WITH_LIST_INTERFACE = r'''
   abstract class double extends num { }
   class bool {}
   class String {}
-  class Object {}
+  class Object {
+    Object();
+  }
   class Type {}
   class Function {}
   class List {

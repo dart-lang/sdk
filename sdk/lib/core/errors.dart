@@ -5,8 +5,6 @@
 part of dart.core;
 
 class Error {
-  const Error();
-
   /**
    * Safely convert a value to a [String] description.
    *
@@ -33,33 +31,13 @@ class Error {
 
   external static String _objectToString(Object object);
 
-  /**
-   * The stack trace of `this` error. May be null.
-   */
-  StackTrace get stackTrace => null;
-}
-
-/**
- * Captures the stack trace when thrown.
- */
-class StackTraceOnThrow {
-  /**
-   * Captures the current stack-trace when thrown.
-   *
-   * Classes extending or mixing-in this class will automatically have a stack
-   * trace captured the first time they are thrown. This stack trace is returned
-   * by the [stackTrace] getter.
-   *
-   * Throwing the object again will not cause overwrite the first stack trace,
-   * so bjects that are `StackTraceOnThrow` instances should not be reused.
-   */
   external StackTrace get stackTrace;
 }
 
 /**
  * Error thrown by the runtime system when an assert statement fails.
  */
-class AssertionError extends Error with StackTraceOnThrow {
+class AssertionError extends Error {
 }
 
 /**
@@ -71,13 +49,13 @@ class TypeError extends AssertionError {
 /**
  * Error thrown by the runtime system when a cast operation fails.
  */
-class CastError extends Error with StackTraceOnThrow {
+class CastError extends Error {
 }
 
 /**
  * Error thrown when attempting to throw [:null:].
  */
-class NullThrownError extends Error with StackTraceOnThrow {
+class NullThrownError extends Error {
   NullThrownError();
   String toString() => "Throw of null.";
 }
@@ -85,7 +63,7 @@ class NullThrownError extends Error with StackTraceOnThrow {
 /**
  * Error thrown when a function is passed an unacceptable argument.
  */
-class ArgumentError extends Error with StackTraceOnThrow {
+class ArgumentError extends Error {
   final message;
 
   /** The [message] describes the erroneous argument. */
@@ -132,12 +110,12 @@ class RangeError extends ArgumentError {
  * of a switch) without meeting a break or similar end of the control
  * flow.
  */
-class FallThroughError extends Error with StackTraceOnThrow {
+class FallThroughError extends Error {
+  FallThroughError();
 }
 
 
-class AbstractClassInstantiationError
-    extends Error with StackTraceOnThrow {
+class AbstractClassInstantiationError extends Error {
   final String _className;
   AbstractClassInstantiationError(String this._className);
   String toString() => "Cannot instantiate abstract class: '$_className'";
@@ -146,7 +124,7 @@ class AbstractClassInstantiationError
 /**
  * Error thrown by the default implementation of [:noSuchMethod:] on [Object].
  */
-class NoSuchMethodError extends Error with StackTraceOnThrow {
+class NoSuchMethodError extends Error {
   final Object _receiver;
   final String _memberName;
   final List _arguments;
@@ -184,7 +162,7 @@ class NoSuchMethodError extends Error with StackTraceOnThrow {
  * This [Error] is thrown when an instance cannot implement one of the methods
  * in its signature.
  */
-class UnsupportedError extends Error with StackTraceOnThrow {
+class UnsupportedError extends Error {
   final String message;
   UnsupportedError(this.message);
   String toString() => "Unsupported operation: $message";
@@ -201,8 +179,7 @@ class UnsupportedError extends Error with StackTraceOnThrow {
  * an [UnsupportedError] instead. This error is only intended for
  * use during development.
  */
-class UnimplementedError
-    extends Error with StackTraceOnThrow implements UnsupportedError {
+class UnimplementedError extends Error implements UnsupportedError {
   final String message;
   UnimplementedError([String this.message]);
   String toString() => (this.message != null
@@ -217,7 +194,7 @@ class UnimplementedError
  * This is a generic error used for a variety of different erroneous
  * actions. The message should be descriptive.
  */
-class StateError extends Error with StackTraceOnThrow {
+class StateError extends Error {
   final String message;
   StateError(this.message);
   String toString() => "Bad state: $message";
@@ -231,7 +208,7 @@ class StateError extends Error with StackTraceOnThrow {
  * ([Iterable] or similar collection of values) should declare which operations
  * are allowed during an iteration.
  */
-class ConcurrentModificationError extends Error with StackTraceOnThrow {
+class ConcurrentModificationError extends Error {
   /** The object that was modified in an incompatible way. */
   final Object modifiedObject;
 
@@ -247,15 +224,19 @@ class ConcurrentModificationError extends Error with StackTraceOnThrow {
 }
 
 
-class OutOfMemoryError extends Error {
+class OutOfMemoryError implements Error {
   const OutOfMemoryError();
   String toString() => "Out of Memory";
+
+  StackTrace get stackTrace => null;
 }
 
 
-class StackOverflowError extends Error {
+class StackOverflowError implements Error {
   const StackOverflowError();
   String toString() => "Stack Overflow";
+
+  StackTrace get stackTrace => null;
 }
 
 /**
@@ -265,7 +246,7 @@ class StackOverflowError extends Error {
  * the first time it is read. If evaluating the initializer expression causes
  * another read of the variable, this error is thrown.
  */
-class CyclicInitializationError extends Error with StackTraceOnThrow {
+class CyclicInitializationError extends Error {
   final String variableName;
   CyclicInitializationError([this.variableName]);
   String toString() => variableName == null

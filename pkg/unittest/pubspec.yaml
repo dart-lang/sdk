@@ -6,4 +6,4 @@ description: >
  A library for writing dart unit tests.
 dependencies:
   meta: any
-
+  stack_trace: any

@@ -620,26 +620,28 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction visitFieldGet(HFieldGet node) {
+    var receiver = node.receiver;
     if (node.element == backend.jsIndexableLength) {
-      if (node.receiver is HInvokeStatic) {
+      if (receiver is HInvokeStatic) {
         // Try to recognize the length getter with input
         // [:new List(int):].
-        HInvokeStatic call = node.receiver;
-        Element element = call.element;
+        Element element = receiver.element;
         // TODO(ngeoffray): checking if the second input is an integer
         // should not be necessary but it currently makes it easier for
         // other optimizations to reason about a fixed length constructor
         // that we know takes an int.
         if (element == compiler.unnamedListConstructor
-            && call.inputs.length == 1
-            && call.inputs[0].isInteger()) {
-          return call.inputs[0];
+            && receiver.inputs.length == 1
+            && receiver.inputs[0].isInteger()) {
+          return receiver.inputs[0];
         }
-      } else if (node.receiver.isConstantList() ||
-                 node.receiver.isConstantString()) {
-        var instruction = node.receiver;
-        return graph.addConstantInt(
-            instruction.constant.length, compiler);
+      } else if (receiver.isConstantList() || receiver.isConstantString()) {
+        return graph.addConstantInt(receiver.constant.length, compiler);
+      } else {
+        var type = receiver.instructionType.computeMask(compiler);
+        if (type.isContainer && type.length != null) {
+          return graph.addConstantInt(type.length, compiler);
+        }
       }
     }
     return node;

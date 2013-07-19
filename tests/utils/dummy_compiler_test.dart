@@ -20,6 +20,7 @@ Future<String> provider(Uri uri) {
       source = """
 library core;
 class Object {
+  Object();
   operator==(other) {}
   get hashCode => throw 'Object.hashCode not implemented.';
 }

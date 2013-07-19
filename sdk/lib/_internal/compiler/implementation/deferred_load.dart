@@ -240,6 +240,7 @@ class DependencyCollector extends Visitor {
         compiler.enqueuer.resolution.getCachedElements(element);
     if (elements == null) return new LinkedHashSet<Element>();
     Node node = element.parseNode(compiler);
+    if (node == null) return new LinkedHashSet<Element>();
     var collector = new DependencyCollector(elements, compiler);
     node.accept(collector);
     collector.dependencies.addAll(elements.otherDependencies);

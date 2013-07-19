@@ -42,6 +42,8 @@ class ClosureTask extends CompilerTask {
       // cache. One for given node and one for each nested closure.
       if (node is FunctionExpression) {
         translator.translateFunction(element, node);
+      } else if (element.isSynthesized) {
+        return new ClosureClassMap(null, null, null, new ThisElement(element));
       } else {
         // Must be the lazy initializer of a static.
         assert(node is SendSet);

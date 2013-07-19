@@ -1486,7 +1486,7 @@ void throwCyclicInit(String staticName) {
 /**
  * Error thrown when a runtime error occurs.
  */
-class RuntimeError extends Error with StackTraceOnThrow {
+class RuntimeError extends Error {
   final message;
   RuntimeError(this.message);
   String toString() => "RuntimeError: $message";

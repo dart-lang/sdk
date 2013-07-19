@@ -89,11 +89,6 @@ Language/03_Overview/1_Scoping_A02_t28: fail, OK
 Language/03_Overview/1_Scoping_A02_t07: fail, OK
 Language/12_Statements/04_Local_Function_Declaration_A01_t01: fail, OK
 
-# co19 issue #417, 'if', 'while' and 'do-while' don't create scope
-Language/03_Overview/1_Scoping_A02_t11: fail, OK
-Language/03_Overview/1_Scoping_A02_t12: fail, OK
-Language/03_Overview/1_Scoping_A02_t16: fail, OK
-
 # co19 issue #420, 'throw' without exception; deprecated; rethrow should be used
 Language/11_Expressions/08_Throw_A05_t01: fail, OK
 Language/11_Expressions/08_Throw_A05_t02: fail, OK

@@ -91,7 +91,7 @@ class Operand : public ValueObject {
     return *this;
   }
 
-  bool Equals(const Operand& other) {
+  bool Equals(const Operand& other) const {
     if (length_ != other.length_) return false;
     if (rex_ != other.rex_) return false;
     for (uint8_t i = 0; i < length_; i++) {

@@ -1109,7 +1109,11 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       state = state._nextState;
     }
     ;
-    return CacheState.INVALID;
+    if (identical(descriptor, DartEntry.RESOLUTION_ERRORS) || identical(descriptor, DartEntry.RESOLVED_UNIT) || identical(descriptor, DartEntry.HINTS)) {
+      return CacheState.INVALID;
+    } else {
+      throw new IllegalArgumentException("Invalid descriptor: ${descriptor}");
+    }
   }
   Object getValue(DataDescriptor descriptor) {
     if (identical(descriptor, DartEntry.ELEMENT)) {
@@ -1311,9 +1315,11 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     }
     if (_parsedUnitState != CacheState.VALID) {
       _parsedUnit = unit;
+      _parsedUnitState = CacheState.VALID;
     }
     if (_parseErrorsState != CacheState.VALID) {
       _parseErrors = errors == null ? AnalysisError.NO_ERRORS : errors;
+      _parseErrorsState = CacheState.VALID;
     }
   }
   void setState(DataDescriptor<Object> descriptor, CacheState state) {
@@ -4964,10 +4970,12 @@ class RecordingErrorListener implements AnalysisErrorListener {
  */
 class ResolutionEraser extends GeneralizingASTVisitor<Object> {
   Object visitAssignmentExpression(AssignmentExpression node) {
+    node.staticElement = null;
     node.element = null;
     return super.visitAssignmentExpression(node);
   }
   Object visitBinaryExpression(BinaryExpression node) {
+    node.staticElement = null;
     node.element = null;
     return super.visitBinaryExpression(node);
   }
@@ -4980,6 +4988,7 @@ class ResolutionEraser extends GeneralizingASTVisitor<Object> {
     return super.visitConstructorDeclaration(node);
   }
   Object visitConstructorName(ConstructorName node) {
+    node.staticElement = null;
     node.element = null;
     return super.visitConstructorName(node);
   }
@@ -4997,34 +5006,42 @@ class ResolutionEraser extends GeneralizingASTVisitor<Object> {
     return super.visitFunctionExpression(node);
   }
   Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    node.staticElement = null;
     node.element = null;
     return super.visitFunctionExpressionInvocation(node);
   }
   Object visitIndexExpression(IndexExpression node) {
+    node.staticElement = null;
     node.element = null;
     return super.visitIndexExpression(node);
   }
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
+    node.staticElement = null;
     node.element = null;
     return super.visitInstanceCreationExpression(node);
   }
   Object visitPostfixExpression(PostfixExpression node) {
+    node.staticElement = null;
     node.element = null;
     return super.visitPostfixExpression(node);
   }
   Object visitPrefixExpression(PrefixExpression node) {
+    node.staticElement = null;
     node.element = null;
     return super.visitPrefixExpression(node);
   }
   Object visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+    node.staticElement = null;
     node.element = null;
     return super.visitRedirectingConstructorInvocation(node);
   }
   Object visitSimpleIdentifier(SimpleIdentifier node) {
+    node.staticElement = null;
     node.element = null;
     return super.visitSimpleIdentifier(node);
   }
   Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    node.staticElement = null;
     node.element = null;
     return super.visitSuperConstructorInvocation(node);
   }

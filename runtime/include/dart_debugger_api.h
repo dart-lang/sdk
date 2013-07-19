@@ -553,7 +553,7 @@ DART_EXPORT Dart_Handle Dart_GetInstanceFields(Dart_Handle object);
 
 /**
  * Returns an array containing all static field names and values of
- * the given class \cls.
+ * the given type \target.
  *
  * Requires there to be a current isolate.
  *
@@ -563,7 +563,7 @@ DART_EXPORT Dart_Handle Dart_GetInstanceFields(Dart_Handle object);
  * values at offset 2*n+1. Field values may also be a handle to an
  * error object if an error was encountered evaluating the field.
  */
-DART_EXPORT Dart_Handle Dart_GetStaticFields(Dart_Handle cls);
+DART_EXPORT Dart_Handle Dart_GetStaticFields(Dart_Handle target);
 
 
 /**

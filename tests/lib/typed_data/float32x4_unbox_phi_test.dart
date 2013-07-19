@@ -1,7 +1,7 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--deoptimization_counter_threshold=1000
+// VMOptions=--deoptimization_counter_threshold=1000 --optimization-counter-threshold=10
 
 // Library tag to be able to run in html test framework.
 library float32x4_unbox_regress_test;
@@ -23,7 +23,7 @@ main() {
   for (int i = 0; i < floatList.length; i++) {
     floatList[i] = i.toDouble();
   }
-  for (int i = 0; i < 2000; i++) {
+  for (int i = 0; i < 20; i++) {
     double r = testUnboxPhi(list);
     Expect.equals(780.0, r);
   }

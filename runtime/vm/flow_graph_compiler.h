@@ -95,6 +95,8 @@ class ParallelMoveResolver : public ValueObject {
   void StoreObject(const Address& dst, const Object& obj);
   void Exchange(Register reg, const Address& mem);
   void Exchange(const Address& mem1, const Address& mem2);
+  void Exchange(Register reg, intptr_t stack_offset);
+  void Exchange(intptr_t stack_offset1, intptr_t stack_offset2);
 
   FlowGraphCompiler* compiler_;
 
@@ -467,7 +469,7 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitFrameEntry();
 
-  void EmitTrySyncMove(Address dest, Location loc, bool* push_emitted);
+  void EmitTrySyncMove(intptr_t dest_offset, Location loc, bool* push_emitted);
 
   void AddStaticCallTarget(const Function& function);
 

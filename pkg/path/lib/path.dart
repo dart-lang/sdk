@@ -109,7 +109,7 @@ String basenameWithoutExtension(String path) =>
 /// Gets the part of [path] before the last separator.
 ///
 ///     path.dirname('path/to/foo.dart'); // -> 'path/to'
-///     path.dirname('path/to');          // -> 'to'
+///     path.dirname('path/to');          // -> 'path'
 ///
 /// Trailing separators are ignored.
 ///

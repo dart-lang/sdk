@@ -316,12 +316,12 @@ class DirectoryBasedDartSdk implements DartSdk {
    * @return `true` if the Dartium binary is available
    */
   bool get isDartiumInstalled => dartiumExecutable != null;
-  Source mapDartUri(ContentCache contentCache, String dartUri) {
+  Source mapDartUri(String dartUri) {
     SdkLibrary library = getSdkLibrary(dartUri);
     if (library == null) {
       return null;
     }
-    return new FileBasedSource.con2(contentCache, new JavaFile.relative(libraryDirectory, library.path), UriKind.DART_URI);
+    return new FileBasedSource.con2(_analysisContext.sourceFactory.contentCache, new JavaFile.relative(libraryDirectory, library.path), UriKind.DART_URI);
   }
 
   /**

@@ -1655,7 +1655,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ EnterStubFrame();
   // Preserve IC data object and arguments descriptor array and
   // setup space on stack for result (target code object).
-  int num_slots = num_args + 5;
+  int num_slots = num_args + 4;
   __ addiu(SP, SP, Immediate(-num_slots * kWordSize));
   __ sw(S5, Address(SP, (num_slots - 1) * kWordSize));
   __ sw(S4, Address(SP, (num_slots - 2) * kWordSize));
@@ -1666,9 +1666,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ lw(TMP1, Address(T1, -i * kWordSize));
     __ sw(TMP1, Address(SP, (num_slots - i - 4) * kWordSize));
   }
-  // Pass IC data object and arguments descriptor array.
+  // Pass IC data object.
   __ sw(S5, Address(SP, (num_slots - num_args - 4) * kWordSize));
-  __ sw(S4, Address(SP, (num_slots - num_args - 5) * kWordSize));
 
   if (num_args == 1) {
     __ CallRuntime(kInlineCacheMissHandlerOneArgRuntimeEntry);

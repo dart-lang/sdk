@@ -1365,7 +1365,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
     });
 
     // handle initializing formals
-    element.functionSignature.forEachParameter((param) {
+    element.computeSignature(compiler).forEachParameter((param) {
       if (param.kind == ElementKind.FIELD_PARAMETER) {
         FieldParameterElement fieldParam = param;
         augmentFieldType(fieldParam.fieldElement,
@@ -1383,7 +1383,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
         new TypeInferrerVisitor(elements, element, this, environment);
 
     bool foundSuperOrRedirect = false;
-    if (tree.initializers != null) {
+    if (tree != null && tree.initializers != null) {
       // we look for a possible call to super in the initializer list
       for (final init in tree.initializers) {
         init.accept(visitor);
@@ -1416,7 +1416,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
       }
     }
 
-    tree.accept(visitor);
+    if (tree != null) tree.accept(visitor);
     return singletonConcreteType(new ClassBaseType(enclosingClass));
   }
 

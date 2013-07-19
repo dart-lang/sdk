@@ -43,6 +43,7 @@ class TransformNode {
   /// The outputs created by this transform the last time it was run.
   ///
   /// Used to tell if an output was removed in a later run.
+  Set<AssetId> get outputs => _outputs;
   var _outputs = new Set<AssetId>();
 
   TransformNode(this.phase, this._transformer, this.primary);

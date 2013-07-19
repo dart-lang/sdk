@@ -8,7 +8,9 @@ import "compiler_helper.dart";
 const String TEST = "main() => [];";
 
 const String DEFAULT_CORELIB_WITH_LIST = r'''
-  class Object {}
+  class Object {
+    Object();
+  }
   class bool {}
   abstract class List {}
   class num {}

@@ -70,10 +70,6 @@ class Address : public ValueObject {
   Register base() const { return base_; }
   int32_t offset() const { return offset_; }
 
-  bool Equals(const Address& other) {
-    return (base_ == other.base_) && (offset_ == other.offset_);
-  }
-
  private:
   Register base_;
   int32_t offset_;

@@ -29,7 +29,7 @@ def Main(argv):
     os.path.join('sdk', 'lib', '_internal', 'compiler'))
 
   for pkg in pkgs_to_publish:
-    print "Publishing " + pkg
+    print "\n\nPublishing [32m%s[0m:\n-------------------------------" % pkg
     subprocess.call(['python', 'tools/publish_pkg.py', pkg])
 
 if __name__ == '__main__':

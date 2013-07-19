@@ -63,6 +63,7 @@ ElementList queryAll(String selector) => document.queryAll(selector);
 // Workaround for tags like <cite> that lack their own Element subclass --
 // Dart issue 1990.
 class _HTMLElement extends Element native "HTMLElement" {
+  factory _HTMLElement() { throw new UnsupportedError("Not supported"); }
 }
 
 // Support for Send/ReceivePortSync.

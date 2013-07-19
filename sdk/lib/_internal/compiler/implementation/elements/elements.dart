@@ -845,11 +845,7 @@ abstract class ClassElement extends TypeDeclarationElement
   void addMember(Element element, DiagnosticListener listener);
   void addToScope(Element element, DiagnosticListener listener);
 
-  /**
-   * Add a synthetic nullary constructor if there are no other
-   * constructors.
-   */
-  void addDefaultConstructorIfNeeded(Compiler compiler);
+  void setDefaultConstructor(FunctionElement constructor, Compiler compiler);
 
   void addBackendMember(Element element);
   void reverseBackendMembers();

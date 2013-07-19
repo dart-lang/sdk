@@ -52,12 +52,73 @@ TypeMask computeLUB(TypeMask firstType,
 }
 
 /**
+ * A variable scope holds types for variables. It has a link to a
+ * parent scope, but never changes the types in that parent. Instead,
+ * updates to locals of a parent scope are put in the current scope.
+ * The inferrer makes sure updates get merged into the parent scope,
+ * once the control flow block has been visited.
+ */
+class VariableScope {
+  Map<Element, TypeMask> variables;
+
+  /// The parent of this scope. Null for the root scope.
+  final VariableScope parent;
+
+  /// The block level of this scope. Starts at 0 for the root scope.
+  final int blockLevel;
+
+  VariableScope([parent])
+      : this.variables = null,
+        this.parent = parent,
+        this.blockLevel = parent == null ? 0 : parent.blockLevel + 1;
+
+  VariableScope.deepCopyOf(VariableScope other)
+      : variables = other.variables == null
+            ? null
+            : new Map<Element, TypeMask>.from(other.variables),
+        blockLevel = other.blockLevel,
+        parent = other.parent == null
+            ? null
+            : new VariableScope.deepCopyOf(other.parent);
+
+  TypeMask operator [](Element variable) {
+    TypeMask result;
+    if (variables == null || (result = variables[variable]) == null) {
+      return parent == null ? null : parent[variable];
+    }
+    return result;
+  }
+
+  void operator []=(Element variable, TypeMask mask) {
+    assert(mask != null);
+    if (variables == null) {
+      variables = new Map<Element, TypeMask>();
+    }
+    variables[variable] = mask;
+  }
+
+  void forEachOwnLocal(void f(Element element, TypeMask mask)) {
+    if (variables == null) return;
+    variables.forEach(f);
+  }
+
+  void remove(Element element) {
+    variables.remove(element);
+  }
+
+  String toString() {
+    String rest = parent == null ? "null" : parent.toString();
+    return '$blockLevel: $variables $rest';
+  }
+}
+
+/**
  * Placeholder for inferred types of local variables.
  */
 class LocalsHandler {
   final Compiler compiler;
   final TypesInferrer inferrer;
-  final Map<Element, TypeMask> locals;
+  final VariableScope locals;
   final Map<Element, Element> capturedAndBoxed;
   final Map<Element, TypeMask> fieldsInitializedInConstructor;
   final bool inTryBlock;
@@ -70,18 +131,30 @@ class LocalsHandler {
   }
 
   LocalsHandler(this.inferrer, this.compiler)
-      : locals = new Map<Element, TypeMask>(),
+      : locals = new VariableScope(),
         capturedAndBoxed = new Map<Element, Element>(),
         fieldsInitializedInConstructor = new Map<Element, TypeMask>(),
         inTryBlock = false,
         isThisExposed = true;
+
   LocalsHandler.from(LocalsHandler other, {bool inTryBlock: false})
-      : locals = new Map<Element, TypeMask>.from(other.locals),
+      : locals = new VariableScope(other.locals),
         capturedAndBoxed = new Map<Element, Element>.from(
             other.capturedAndBoxed),
         fieldsInitializedInConstructor = new Map<Element, TypeMask>.from(
             other.fieldsInitializedInConstructor),
         inTryBlock = other.inTryBlock || inTryBlock,
+        inferrer = other.inferrer,
+        compiler = other.compiler,
+        isThisExposed = other.isThisExposed;
+
+  LocalsHandler.deepCopyOf(LocalsHandler other)
+      : locals = new VariableScope.deepCopyOf(other.locals),
+        capturedAndBoxed = new Map<Element, Element>.from(
+            other.capturedAndBoxed),
+        fieldsInitializedInConstructor = new Map<Element, TypeMask>.from(
+            other.fieldsInitializedInConstructor),
+        inTryBlock = other.inTryBlock,
         inferrer = other.inferrer,
         compiler = other.compiler,
         isThisExposed = other.isThisExposed;
@@ -119,31 +192,43 @@ class LocalsHandler {
    * whether the merge changed one of the variables types in [first].
    */
   bool merge(LocalsHandler other, {bool discardIfAborts: true}) {
+    VariableScope currentOther = other.locals;
+    assert(currentOther != locals);
     bool changed = false;
-    List<Element> toRemove = <Element>[];
-    // Iterating over a map and just updating its entries is OK.
-    locals.forEach((Element local, TypeMask oldType) {
-      TypeMask otherType = other.locals[local];
-      bool isCaptured = capturedAndBoxed.containsKey(local);
-      if (otherType == null) {
-        if (!isCaptured) {
-          // If [local] is not in the other map and is not captured
-          // and boxed, we know it is not a
-          // local we want to keep. For example, in an if/else, we don't
-          // want to keep variables declared in the if or in the else
-          // branch at the merge point.
-          toRemove.add(local);
+    // Iterate over all updates in the other handler until we reach
+    // the block level of this handler. We know that [VariableScope]s
+    // that are lower in block level, are the same.
+    do {
+      currentOther.forEachOwnLocal((Element local, TypeMask otherType) {
+        TypeMask myType = locals[local];
+        if (myType == null) return;
+        bool isCaptured = capturedAndBoxed.containsKey(local);
+        if (!isCaptured && aborts && discardIfAborts) {
+          locals[local] = otherType;
+        } else if (!isCaptured && other.aborts && discardIfAborts) {
+          // Don't do anything.
+        } else {
+          TypeMask type = computeLUB(myType, otherType, compiler);
+          if (type != myType) {
+            changed = true;
+          }
+          locals[local] = type;
         }
-        return;
-      }
-      if (!isCaptured && aborts && discardIfAborts) {
-        locals[local] = otherType;
-      } else if (!isCaptured && other.aborts && discardIfAborts) {
-        // Don't do anything.
-      } else {
-        TypeMask type = computeLUB(oldType, otherType, compiler);
-        if (type != oldType) changed = true;
-        locals[local] = type;
+      });
+      currentOther = currentOther.parent;
+    } while (currentOther != null
+             && currentOther.blockLevel >= locals.blockLevel);
+
+    List<Element> toRemove = <Element>[];
+    locals.forEachOwnLocal((Element local, _) {
+      bool isCaptured = capturedAndBoxed.containsKey(local);
+      if (other.locals[local] == null && !isCaptured) {
+        // If [local] is not in the other map and is not captured
+        // and boxed, we know it is not a
+        // local we want to keep. For example, in an if/else, we don't
+        // want to keep variables declared in the if or in the else
+        // branch at the merge point.
+        toRemove.add(local);
       }
     });
 
@@ -159,7 +244,7 @@ class LocalsHandler {
       capturedAndBoxed[local] =  field;
       // If [element] is not in our [locals], we need to update it.
       // Otherwise, we have already computed the LUB of it.
-      if (locals[local] == null) {
+      if (locals[local] == null && other.locals[local] != null) {
         locals[local] = other.locals[local];
       }
     });
@@ -394,21 +479,25 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
       visit(node.receiver);
       accumulateIsChecks = oldAccumulateIsChecks;
       if (!accumulateIsChecks) isChecks = null;
-      LocalsHandler saved = new LocalsHandler.from(locals);
+      LocalsHandler saved = locals;
+      locals = new LocalsHandler.from(locals);
       updateIsChecks(isChecks, usePositive: true);
       visit(node.arguments.head);
-      locals.merge(saved);
+      saved.merge(locals);
+      locals = saved;
       return compiler.typesTask.boolType;
     } else if (const SourceString("||") == op.source) {
       conditionIsSimple = false;
       visit(node.receiver);
-      LocalsHandler saved = new LocalsHandler.from(locals);
+      LocalsHandler saved = locals;
+      locals = new LocalsHandler.from(locals);
       updateIsChecks(isChecks, usePositive: false);
       bool oldAccumulateIsChecks = accumulateIsChecks;
       accumulateIsChecks = false;
       visit(node.arguments.head);
       accumulateIsChecks = oldAccumulateIsChecks;
-      locals.merge(saved);
+      saved.merge(locals);
+      locals = saved;
       return compiler.typesTask.boolType;
     } else if (const SourceString("!") == op.source) {
       bool oldAccumulateIsChecks = accumulateIsChecks;
@@ -446,7 +535,8 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
   TypeMask visitConditional(Conditional node) {
     List<Send> tests = <Send>[];
     bool simpleCondition = handleCondition(node.condition, tests);
-    LocalsHandler saved = new LocalsHandler.from(locals);
+    LocalsHandler saved = locals;
+    locals = new LocalsHandler.from(locals);
     updateIsChecks(tests, usePositive: true);
     TypeMask firstType = visit(node.thenExpression);
     LocalsHandler thenLocals = locals;
@@ -491,7 +581,8 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
   TypeMask visitIf(If node) {
     List<Send> tests = <Send>[];
     bool simpleCondition = handleCondition(node.condition, tests);
-    LocalsHandler saved = new LocalsHandler.from(locals);
+    LocalsHandler saved = locals;
+    locals = new LocalsHandler.from(locals);
     updateIsChecks(tests, usePositive: true);
     visit(node.thenPart);
     LocalsHandler thenLocals = locals;
@@ -537,7 +628,8 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
     TargetElement target = elements[node];
     setupBreaksAndContinues(target);
     do {
-      LocalsHandler saved = new LocalsHandler.from(locals);
+      LocalsHandler saved = locals;
+      locals = new LocalsHandler.from(locals);
       logic();
       changed = saved.merge(locals);
       locals = saved;
@@ -585,7 +677,8 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
     saved.merge(locals);
     locals = saved;
     for (Node catchBlock in node.catchBlocks) {
-      saved = new LocalsHandler.from(locals);
+      saved = locals;
+      locals = new LocalsHandler.from(locals);
       visit(catchBlock);
       saved.merge(locals);
       locals = saved;
@@ -651,15 +744,19 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
 
   TypeMask visitBreakStatement(BreakStatement node) {
     TargetElement target = elements[node];
-    breaksFor[target].add(locals);
     locals.seenBreakOrContinue = true;
+    // Do a deep-copy of the locals, because the code following the
+    // break will change them.
+    breaksFor[target].add(new LocalsHandler.deepCopyOf(locals));
     return compiler.typesTask.dynamicType;
   }
 
   TypeMask visitContinueStatement(ContinueStatement node) {
     TargetElement target = elements[node];
-    continuesFor[target].add(locals);
     locals.seenBreakOrContinue = true;
+    // Do a deep-copy of the locals, because the code following the
+    // continue will change them.
+    continuesFor[target].add(new LocalsHandler.deepCopyOf(locals));
     return compiler.typesTask.dynamicType;
   }
 
@@ -695,7 +792,8 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
       do {
         changed = false;
         for (Node switchCase in node.cases) {
-          LocalsHandler saved = new LocalsHandler.from(locals);
+          LocalsHandler saved = locals;
+          locals = new LocalsHandler.from(locals);
           visit(switchCase);
           changed = saved.merge(locals, discardIfAborts: false) || changed;
           locals = saved;
@@ -706,24 +804,26 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
         clearBreaksAndContinues(target);
       });
     } else {
-      LocalsHandler saved = new LocalsHandler.from(locals);
-      // If there is a default case, the current values of the local
-      // variable might be overwritten, so we don't need the current
-      // [locals] for the join block.
-      LocalsHandler result = Elements.switchStatementHasDefault(node)
-          ? null
-          : new LocalsHandler.from(locals);
+      LocalsHandler saved = locals;
+      List<LocalsHandler> localsToMerge = <LocalsHandler>[];
 
-      for (Node switchCase in node.cases) {
-        locals = new LocalsHandler.from(saved);
-        visit(switchCase);
-        if (result == null) {
-          result = locals;
+      for (SwitchCase switchCase in node.cases) {
+        if (switchCase.isDefaultCase) {
+          // If there is a default case, the current values of the local
+          // variable might be overwritten, so we don't need the current
+          // [locals] for the join block.
+          locals = saved;
+          visit(switchCase);
         } else {
-          result.merge(locals, discardIfAborts: false);
+          locals = new LocalsHandler.from(saved);
+          visit(switchCase);
+          localsToMerge.add(locals);
         }
       }
-      locals = result;
+      for (LocalsHandler handler in localsToMerge) {
+        saved.merge(handler, discardIfAborts: false);
+      }
+      locals = saved;
     }
     clearBreaksAndContinues(elements[node]);
     // In case there is a default in the switch we discard the

@@ -10,7 +10,8 @@ import '../../sdk/lib/_internal/compiler/compiler.dart';
 
 const CORE_LIB = """
 library core;
-class Object{
+class Object {
+  Object();
   operator==(other) {}
 }
 class bool {}

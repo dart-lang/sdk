@@ -2142,18 +2142,18 @@ class NonErrorResolverTest extends ResolverTestCase {
     assertNoErrors();
     verify([source]);
   }
-  void test_nonBoolExpression_assert_bool() {
-    Source source = addSource(EngineTestCase.createSource(["f() {", "  assert(true);", "}"]));
-    resolve(source);
-    assertNoErrors();
-    verify([source]);
-  }
-  void test_nonBoolExpression_assert_functionType() {
+  void test_nonBoolExpression_functionType() {
     Source source = addSource(EngineTestCase.createSource([
         "bool makeAssertion() => true;",
         "f() {",
         "  assert(makeAssertion);",
         "}"]));
+    resolve(source);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_nonBoolExpression_interfaceType() {
+    Source source = addSource(EngineTestCase.createSource(["f() {", "  assert(true);", "}"]));
     resolve(source);
     assertNoErrors();
     verify([source]);
@@ -3527,13 +3527,13 @@ class NonErrorResolverTest extends ResolverTestCase {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_newWithUndefinedConstructorDefault);
       });
-      _ut.test('test_nonBoolExpression_assert_bool', () {
+      _ut.test('test_nonBoolExpression_functionType', () {
         final __test = new NonErrorResolverTest();
-        runJUnitTest(__test, __test.test_nonBoolExpression_assert_bool);
+        runJUnitTest(__test, __test.test_nonBoolExpression_functionType);
       });
-      _ut.test('test_nonBoolExpression_assert_functionType', () {
+      _ut.test('test_nonBoolExpression_interfaceType', () {
         final __test = new NonErrorResolverTest();
-        runJUnitTest(__test, __test.test_nonBoolExpression_assert_functionType);
+        runJUnitTest(__test, __test.test_nonBoolExpression_interfaceType);
       });
       _ut.test('test_nonConstCaseExpression', () {
         final __test = new NonErrorResolverTest();
@@ -4001,6 +4001,19 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
     assertErrors([StaticTypeWarningCode.INACCESSIBLE_SETTER]);
     verify([source]);
   }
+  void fail_invocationOfNonFunction_staticInSuperclass() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  static void a() {}",
+        "}",
+        "",
+        "class B extends A {",
+        "  void b() { a(); }",
+        "}"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
+    verify([source]);
+  }
   void test_inconsistentMethodInheritance_paramCount() {
     Source source = addSource(EngineTestCase.createSource([
         "abstract class A {",
@@ -4173,7 +4186,17 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
     assertErrors([StaticTypeWarningCode.NON_BOOL_CONDITION]);
     verify([source]);
   }
-  void test_nonBoolExpression() {
+  void test_nonBoolExpression_functionType() {
+    Source source = addSource(EngineTestCase.createSource([
+        "int makeAssertion() => 1;",
+        "f() {",
+        "  assert(makeAssertion);",
+        "}"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.NON_BOOL_EXPRESSION]);
+    verify([source]);
+  }
+  void test_nonBoolExpression_interfaceType() {
     Source source = addSource(EngineTestCase.createSource(["f() {", "  assert(0);", "}"]));
     resolve(source);
     assertErrors([StaticTypeWarningCode.NON_BOOL_EXPRESSION]);
@@ -4624,9 +4647,13 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
         final __test = new StaticTypeWarningCodeTest();
         runJUnitTest(__test, __test.test_nonBoolCondition_while);
       });
-      _ut.test('test_nonBoolExpression', () {
+      _ut.test('test_nonBoolExpression_functionType', () {
         final __test = new StaticTypeWarningCodeTest();
-        runJUnitTest(__test, __test.test_nonBoolExpression);
+        runJUnitTest(__test, __test.test_nonBoolExpression_functionType);
+      });
+      _ut.test('test_nonBoolExpression_interfaceType', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_nonBoolExpression_interfaceType);
       });
       _ut.test('test_nonTypeAsTypeArgument_notAType', () {
         final __test = new StaticTypeWarningCodeTest();
@@ -7455,7 +7482,13 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors([CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD]);
     verify([source]);
   }
-  void test_initializingFormalForNonExistantField_static() {
+  void test_initializingFormalForNonExistantField_synthetic() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  int get x => 1;", "  A(this.x) {}", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD]);
+    verify([source]);
+  }
+  void test_initializingFormalForStaticField() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  static int x;", "  A([this.x]) {}", "}"]));
     resolve(source);
     assertErrors([CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD]);
@@ -9387,9 +9420,13 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_initializingFormalForNonExistantField_optional);
       });
-      _ut.test('test_initializingFormalForNonExistantField_static', () {
+      _ut.test('test_initializingFormalForNonExistantField_synthetic', () {
         final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_initializingFormalForNonExistantField_static);
+        runJUnitTest(__test, __test.test_initializingFormalForNonExistantField_synthetic);
+      });
+      _ut.test('test_initializingFormalForStaticField', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_initializingFormalForStaticField);
       });
       _ut.test('test_instanceMemberAccessFromStatic_field', () {
         final __test = new CompileTimeErrorCodeTest();
@@ -10046,6 +10083,12 @@ class StaticTypeVerifier extends GeneralizingASTVisitor<Object> {
   List<Expression> _unresolvedExpressions = new List<Expression>();
 
   /**
+   * A list containing all of the AST Expression nodes for which a propagated type was computed but
+   * where that type was not more specific than the static type.
+   */
+  List<Expression> _invalidlyPropagatedExpressions = new List<Expression>();
+
+  /**
    * A list containing all of the AST TypeName nodes that were not resolved.
    */
   List<TypeName> _unresolvedTypes = new List<TypeName>();
@@ -10054,6 +10097,11 @@ class StaticTypeVerifier extends GeneralizingASTVisitor<Object> {
    * Counter for the number of Expression nodes visited that are resolved.
    */
   int _resolvedExpressionCount = 0;
+
+  /**
+   * Counter for the number of Expression nodes visited that have propagated type information.
+   */
+  int _propagatedExpressionCount = 0;
 
   /**
    * Counter for the number of TypeName nodes visited that are resolved.
@@ -10065,20 +10113,14 @@ class StaticTypeVerifier extends GeneralizingASTVisitor<Object> {
    */
   void assertResolved() {
     if (!_unresolvedExpressions.isEmpty || !_unresolvedTypes.isEmpty) {
-      int unresolvedExpressionCount = _unresolvedExpressions.length;
-      int unresolvedTypeCount = _unresolvedTypes.length;
       PrintStringWriter writer = new PrintStringWriter();
-      writer.print("Failed to associate types with nodes: ");
-      writer.print(unresolvedExpressionCount);
-      writer.print("/");
-      writer.print(_resolvedExpressionCount + unresolvedExpressionCount);
-      writer.print(" Expressions and ");
-      writer.print(unresolvedTypeCount);
-      writer.print("/");
-      writer.print(_resolvedTypeCount + unresolvedTypeCount);
-      writer.println(" TypeNames.");
+      int unresolvedTypeCount = _unresolvedTypes.length;
       if (unresolvedTypeCount > 0) {
-        writer.println("TypeNames:");
+        writer.print("Failed to resolve ");
+        writer.print(unresolvedTypeCount);
+        writer.print(" of ");
+        writer.print(_resolvedTypeCount + unresolvedTypeCount);
+        writer.println(" type names:");
         for (TypeName identifier in _unresolvedTypes) {
           writer.print("  ");
           writer.print(identifier.toString());
@@ -10089,15 +10131,42 @@ class StaticTypeVerifier extends GeneralizingASTVisitor<Object> {
           writer.println(")");
         }
       }
+      int unresolvedExpressionCount = _unresolvedExpressions.length;
       if (unresolvedExpressionCount > 0) {
-        writer.println("Expressions:");
-        for (Expression identifier in _unresolvedExpressions) {
+        writer.println("Failed to resolve ");
+        writer.print(unresolvedExpressionCount);
+        writer.print(" of ");
+        writer.print(_resolvedExpressionCount + unresolvedExpressionCount);
+        writer.println(" expressions:");
+        for (Expression expression in _unresolvedExpressions) {
           writer.print("  ");
-          writer.print(identifier.toString());
+          writer.print(expression.toString());
           writer.print(" (");
-          writer.print(getFileName(identifier));
+          writer.print(getFileName(expression));
           writer.print(" : ");
-          writer.print(identifier.offset);
+          writer.print(expression.offset);
+          writer.println(")");
+        }
+      }
+      int invalidlyPropagatedExpressionCount = _invalidlyPropagatedExpressions.length;
+      if (invalidlyPropagatedExpressionCount > 0) {
+        writer.println("Incorrectly propagated ");
+        writer.print(invalidlyPropagatedExpressionCount);
+        writer.print(" of ");
+        writer.print(_propagatedExpressionCount);
+        writer.println(" expressions:");
+        for (Expression expression in _invalidlyPropagatedExpressions) {
+          writer.print("  ");
+          writer.print(expression.toString());
+          writer.print(" [");
+          writer.print(expression.staticType.displayName);
+          writer.print(", ");
+          writer.print(expression.propagatedType.displayName);
+          writer.println("]");
+          writer.print("    ");
+          writer.print(getFileName(expression));
+          writer.print(" : ");
+          writer.print(expression.offset);
           writer.println(")");
         }
       }
@@ -10110,10 +10179,18 @@ class StaticTypeVerifier extends GeneralizingASTVisitor<Object> {
   Object visitExportDirective(ExportDirective node) => null;
   Object visitExpression(Expression node) {
     node.visitChildren(this);
-    if (node.staticType == null) {
+    Type2 staticType = node.staticType;
+    if (staticType == null) {
       _unresolvedExpressions.add(node);
     } else {
       _resolvedExpressionCount++;
+      Type2 propagatedType = node.propagatedType;
+      if (propagatedType != null) {
+        _propagatedExpressionCount++;
+        if (!propagatedType.isMoreSpecificThan(staticType)) {
+          _invalidlyPropagatedExpressions.add(node);
+        }
+      }
     }
     return null;
   }
@@ -13945,8 +14022,13 @@ class ResolutionVerifier extends RecursiveASTVisitor<Object> {
     if (!node.operator.isUserDefinableOperator) {
       return null;
     }
+    Type2 operandType = node.leftOperand.staticType;
+    if (operandType == null || operandType.isDynamic) {
+      return null;
+    }
     return checkResolved2(node, node.element, MethodElement);
   }
+  Object visitCommentReference(CommentReference node) => null;
   Object visitCompilationUnit(CompilationUnit node) {
     node.visitChildren(this);
     return checkResolved2(node, node.element, CompilationUnitElement);
@@ -13961,7 +14043,7 @@ class ResolutionVerifier extends RecursiveASTVisitor<Object> {
   }
   Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     node.visitChildren(this);
-    return checkResolved2(node, node.element, FunctionElement);
+    return null;
   }
   Object visitImportDirective(ImportDirective node) {
     checkResolved2(node, node.element, ImportElement);
@@ -13973,9 +14055,14 @@ class ResolutionVerifier extends RecursiveASTVisitor<Object> {
   }
   Object visitIndexExpression(IndexExpression node) {
     node.visitChildren(this);
+    Type2 targetType = node.realTarget.staticType;
+    if (targetType == null || targetType.isDynamic) {
+      return null;
+    }
     return checkResolved2(node, node.element, MethodElement);
   }
   Object visitLibraryDirective(LibraryDirective node) => checkResolved2(node, node.element, LibraryElement);
+  Object visitNamedExpression(NamedExpression node) => node.expression.accept(this);
   Object visitPartDirective(PartDirective node) => checkResolved2(node, node.element, CompilationUnitElement);
   Object visitPartOfDirective(PartOfDirective node) => checkResolved2(node, node.element, LibraryElement);
   Object visitPostfixExpression(PostfixExpression node) {
@@ -13983,27 +14070,61 @@ class ResolutionVerifier extends RecursiveASTVisitor<Object> {
     if (!node.operator.isUserDefinableOperator) {
       return null;
     }
+    Type2 operandType = node.operand.staticType;
+    if (operandType == null || operandType.isDynamic) {
+      return null;
+    }
     return checkResolved2(node, node.element, MethodElement);
+  }
+  Object visitPrefixedIdentifier(PrefixedIdentifier node) {
+    SimpleIdentifier prefix = node.prefix;
+    prefix.accept(this);
+    Type2 prefixType = prefix.staticType;
+    if (prefixType == null || prefixType.isDynamic) {
+      return null;
+    }
+    return checkResolved(node, node.element);
   }
   Object visitPrefixExpression(PrefixExpression node) {
     node.visitChildren(this);
     if (!node.operator.isUserDefinableOperator) {
       return null;
     }
+    Type2 operandType = node.operand.staticType;
+    if (operandType == null || operandType.isDynamic) {
+      return null;
+    }
     return checkResolved2(node, node.element, MethodElement);
+  }
+  Object visitPropertyAccess(PropertyAccess node) {
+    Expression target = node.realTarget;
+    target.accept(this);
+    Type2 targetType = target.staticType;
+    if (targetType == null || targetType.isDynamic) {
+      return null;
+    }
+    return node.propertyName.accept(this);
   }
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.name == "void") {
       return null;
+    }
+    ASTNode parent = node.parent;
+    if (parent is MethodInvocation) {
+      MethodInvocation invocation = (parent as MethodInvocation);
+      if (identical(invocation.methodName, node)) {
+        Expression target = invocation.realTarget;
+        Type2 targetType = target == null ? null : target.staticType;
+        if (targetType == null || targetType.isDynamic) {
+          return null;
+        }
+      }
     }
     return checkResolved(node, node.element);
   }
   Object checkResolved(ASTNode node, Element element) => checkResolved2(node, element, null);
   Object checkResolved2(ASTNode node, Element element, Type expectedClass) {
     if (element == null) {
-      if (node.parent is CommentReference) {
-        return null;
-      }
       if (_knownExceptions == null || !_knownExceptions.contains(node)) {
         _unresolvedNodes.add(node);
       }
@@ -15187,7 +15308,7 @@ class EnclosedScopeTest extends ResolverTestCase {
   void test_define_duplicate() {
     LibraryElement definingLibrary2 = createTestLibrary();
     GatheringErrorListener errorListener2 = new GatheringErrorListener();
-    Scope rootScope = new Scope_17(definingLibrary2, errorListener2);
+    Scope rootScope = new Scope_18(definingLibrary2, errorListener2);
     EnclosedScope scope = new EnclosedScope(rootScope);
     VariableElement element1 = ElementFactory.localVariableElement(ASTFactory.identifier3("v1"));
     VariableElement element2 = ElementFactory.localVariableElement(ASTFactory.identifier3("v1"));
@@ -15198,7 +15319,7 @@ class EnclosedScopeTest extends ResolverTestCase {
   void test_define_normal() {
     LibraryElement definingLibrary3 = createTestLibrary();
     GatheringErrorListener errorListener3 = new GatheringErrorListener();
-    Scope rootScope = new Scope_18(definingLibrary3, errorListener3);
+    Scope rootScope = new Scope_19(definingLibrary3, errorListener3);
     EnclosedScope outerScope = new EnclosedScope(rootScope);
     EnclosedScope innerScope = new EnclosedScope(outerScope);
     VariableElement element1 = ElementFactory.localVariableElement(ASTFactory.identifier3("v1"));
@@ -15220,18 +15341,18 @@ class EnclosedScopeTest extends ResolverTestCase {
     });
   }
 }
-class Scope_17 extends Scope {
+class Scope_18 extends Scope {
   LibraryElement definingLibrary2;
   GatheringErrorListener errorListener2;
-  Scope_17(this.definingLibrary2, this.errorListener2) : super();
+  Scope_18(this.definingLibrary2, this.errorListener2) : super();
   LibraryElement get definingLibrary => definingLibrary2;
   AnalysisErrorListener get errorListener => errorListener2;
   Element lookup3(Identifier identifier, String name, LibraryElement referencingLibrary) => null;
 }
-class Scope_18 extends Scope {
+class Scope_19 extends Scope {
   LibraryElement definingLibrary3;
   GatheringErrorListener errorListener3;
-  Scope_18(this.definingLibrary3, this.errorListener3) : super();
+  Scope_19(this.definingLibrary3, this.errorListener3) : super();
   LibraryElement get definingLibrary => definingLibrary3;
   AnalysisErrorListener get errorListener => errorListener3;
   Element lookup3(Identifier identifier, String name, LibraryElement referencingLibrary) => null;

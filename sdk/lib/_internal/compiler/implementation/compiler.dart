@@ -968,13 +968,7 @@ abstract class Compiler implements DiagnosticListener {
     if (element.isClass()) {
       ClassElement cls = element;
       cls.ensureResolved(this);
-      cls.forEachLocalMember((e) {
-        if (e.isSynthesized) {
-          // TODO(ahe): Work-around for http://dartbug.com/11205.
-          if (e.getLibrary().isPlatformLibrary) return;
-        }
-        world.addToWorkList(e);
-      });
+      cls.forEachLocalMember(enqueuer.resolution.addToWorkList);
       world.registerInstantiatedClass(element, globalDependencies);
     } else {
       world.addToWorkList(element);
@@ -1048,15 +1042,15 @@ abstract class Compiler implements DiagnosticListener {
 
   TreeElements analyzeElement(Element element) {
     assert(invariant(element, element.isDeclaration));
-    assert(!element.isForwardingConstructor);
     ResolutionEnqueuer world = enqueuer.resolution;
     TreeElements elements = world.getCachedElements(element);
     if (elements != null) return elements;
     assert(parser != null);
     Node tree = parser.parse(element);
-    validator.validate(tree);
+    assert(invariant(element, !element.isSynthesized || tree == null));
+    if (tree != null) validator.validate(tree);
     elements = resolver.resolve(element);
-    if (elements != null && !analyzeSignaturesOnly) {
+    if (tree != null && elements != null && !analyzeSignaturesOnly) {
       // Only analyze nodes with a corresponding [TreeElements].
       checker.check(elements);
     }

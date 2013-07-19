@@ -12,6 +12,8 @@ import '../test_pub.dart';
 main() {
   initConfig();
   integration('re-installs a package if its source has changed', () {
+    servePackages([packageMap("foo", "1.2.3")]);
+
     d.dir('foo', [
       d.libDir('foo', 'foo 0.0.1'),
       d.libPubspec('foo', '0.0.1')
@@ -22,7 +24,6 @@ main() {
     pubInstall();
 
     d.packagesDir({"foo": "0.0.1"}).validate();
-    servePackages([packageMap("foo", "1.2.3")]);
     d.appDir([dependencyMap("foo", "any")]).create();
 
     pubInstall();
