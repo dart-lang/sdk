@@ -4593,9 +4593,9 @@ class UnboxIntegerInstr : public TemplateDefinition<1> {
 
 class MathSqrtInstr : public TemplateDefinition<1> {
  public:
-  MathSqrtInstr(Value* value, StaticCallInstr* instance_call) {
+  MathSqrtInstr(Value* value, intptr_t deopt_id) {
     SetInputAt(0, value);
-    deopt_id_ = instance_call->deopt_id();
+    deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }

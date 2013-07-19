@@ -2498,7 +2498,7 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
       MethodRecognizer::RecognizeKind(call->function());
   if (recognized_kind == MethodRecognizer::kMathSqrt) {
     MathSqrtInstr* sqrt =
-        new MathSqrtInstr(new Value(call->ArgumentAt(0)), call);
+        new MathSqrtInstr(new Value(call->ArgumentAt(0)), call->deopt_id());
     ReplaceCall(call, sqrt);
   } else if (recognized_kind == MethodRecognizer::kFloat32x4Zero) {
     Float32x4ZeroInstr* zero = new Float32x4ZeroInstr(call->deopt_id());
