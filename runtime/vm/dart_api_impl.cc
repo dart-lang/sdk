@@ -1072,9 +1072,17 @@ DART_EXPORT void Dart_EnterScope() {
   CHECK_ISOLATE(isolate);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  ApiLocalScope* new_scope = new ApiLocalScope(state->top_scope(),
-                                               isolate->top_exit_frame_info());
-  ASSERT(new_scope != NULL);
+  ApiLocalScope* new_scope = state->reusable_scope();
+  if (new_scope == NULL) {
+    new_scope = new ApiLocalScope(state->top_scope(),
+                                  isolate->top_exit_frame_info());
+    ASSERT(new_scope != NULL);
+  } else {
+    new_scope->Reinit(isolate,
+                      state->top_scope(),
+                      isolate->top_exit_frame_info());
+    state->set_reusable_scope(NULL);
+  }
   state->set_top_scope(new_scope);  // New scope is now the top scope.
 }
 
@@ -1084,9 +1092,15 @@ DART_EXPORT void Dart_ExitScope() {
   CHECK_ISOLATE_SCOPE(isolate);
   ApiState* state = isolate->api_state();
   ApiLocalScope* scope = state->top_scope();
-
+  ApiLocalScope* reusable_scope = state->reusable_scope();
   state->set_top_scope(scope->previous());  // Reset top scope to previous.
-  delete scope;  // Free up the old scope which we have just exited.
+  if (reusable_scope == NULL) {
+    scope->Reset(isolate);  // Reset the old scope which we just exited.
+    state->set_reusable_scope(scope);
+  } else {
+    ASSERT(reusable_scope != scope);
+    delete scope;
+  }
 }
 
 

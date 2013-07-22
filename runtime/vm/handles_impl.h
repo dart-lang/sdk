@@ -66,6 +66,25 @@ void Handles<kHandleSizeInWords,
 }
 
 
+template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
+void Handles<kHandleSizeInWords,
+             kHandlesPerChunk,
+             kOffsetOfRawPtr>::Reset() {
+  // Delete all the extra zone handle blocks allocated and reinit the first
+  // zone block.
+  if (zone_blocks_ != NULL) {
+    DeleteHandleBlocks(zone_blocks_->next_block());
+    zone_blocks_->ReInit();
+  }
+
+  // Delete all the extra scoped handle blocks allocated and reinit the first
+  // scoped block.
+  DeleteHandleBlocks(first_scoped_block_.next_block());
+  first_scoped_block_.ReInit();
+  scoped_blocks_ = &first_scoped_block_;
+}
+
+
 // Figure out the current handle scope using the current Isolate and
 // allocate a handle in that scope. The function assumes that a
 // current Isolate, current zone and current handle scope exist. It

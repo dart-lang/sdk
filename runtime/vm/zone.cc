@@ -7,6 +7,7 @@
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/flags.h"
+#include "vm/handles_impl.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
 #include "vm/os.h"
@@ -114,6 +115,8 @@ void Zone::DeleteAll() {
   limit_ = initial_buffer_.end();
   head_ = NULL;
   large_segments_ = NULL;
+  previous_ = NULL;
+  handles_.Reset();
 }
 
 
