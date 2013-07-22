@@ -7,6 +7,8 @@ library dart.convert;
 import 'dart:json' as OLD_JSON_LIB;
 import 'dart:utf' as OLD_UTF_LIB;
 
+part 'codec.dart';
 part 'converter.dart';
+part 'encoding.dart';
 part 'json.dart';
 part 'utf.dart';

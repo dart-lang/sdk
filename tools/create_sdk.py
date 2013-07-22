@@ -31,8 +31,8 @@
 # ......async/
 # ......collection/
 # ......_collection_dev/
+# ......convert/
 # ......core/
-# ......crypto/
 # ......html/
 # ......io/
 # ......isolate/
@@ -198,7 +198,7 @@ def Main(argv):
                   join('_internal', 'dartdoc'),
                   join('_internal', 'pub', 'resource'),
                   join('_internal', 'lib'),
-                  'async', 'collection', '_collection_dev', 'codec', 'convert',
+                  'async', 'collection', '_collection_dev', 'convert',
                   'core', 'crypto', 'io', 'isolate',
                   join('chrome', 'dart2js'), join('chrome', 'dartium'),
                   join('html', 'dart2js'), join('html', 'dartium'),

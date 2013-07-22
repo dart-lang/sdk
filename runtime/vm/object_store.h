@@ -22,7 +22,6 @@ class ObjectStore {
   enum {
     kNone = 0,
     kAsync,
-    kCodec,
     kCore,
     kCollection,
     kCollectionDev,
@@ -260,7 +259,6 @@ class ObjectStore {
 
   RawLibrary* async_library() const { return async_library_; }
   RawLibrary* builtin_library() const { return builtin_library_; }
-  RawLibrary* codec_library() const { return codec_library_; }
   RawLibrary* core_library() const { return core_library_; }
   RawLibrary* collection_library() const { return collection_library_; }
   RawLibrary* collection_dev_library() const {
@@ -277,9 +275,6 @@ class ObjectStore {
     switch (index) {
       case kAsync:
         async_library_ = value.raw();
-        break;
-      case kCodec:
-        codec_library_ = value.raw();
         break;
       case kCore:
         core_library_ = value.raw();
@@ -464,7 +459,6 @@ class ObjectStore {
   RawArray* canonical_type_arguments_;
   RawLibrary* async_library_;
   RawLibrary* builtin_library_;
-  RawLibrary* codec_library_;
   RawLibrary* core_library_;
   RawLibrary* collection_library_;
   RawLibrary* collection_dev_library_;

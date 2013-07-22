@@ -19,7 +19,6 @@ class Bootstrap : public AllStatic {
 
   // Source path mapping for library URI and 'parts'.
   static const char* async_source_paths_[];
-  static const char* codec_source_paths_[];
   static const char* corelib_source_paths_[];
   static const char* collection_source_paths_[];
   static const char* collection_dev_source_paths_[];

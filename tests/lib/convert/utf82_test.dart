@@ -5,7 +5,6 @@
 library utf8_test;
 import "package:expect/expect.dart";
 import 'dart:convert';
-import 'dart:codec';
 
 String decode(List<int> bytes) => new Utf8Decoder().convert(bytes);
 String decodeAllowMalformed(List<int> bytes) {
