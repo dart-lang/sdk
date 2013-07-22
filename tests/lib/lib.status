@@ -12,6 +12,7 @@ mirrors/library_uri_io_test: Skip # Not intended for dart2js as it uses dart:io.
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9002
 async/run_async4_test: Pass, Fail # no global exception handler in isolates. http://dartbug.com/9012
 async/run_async6_test: Fail # global error handling is not supported. http://dartbug.com/5958
+async/stream_controller_async_test: Fail, Pass # http://dartbug.com/11953
 
 # SIMD is unsupported on dart2js.
 typed_data/float32x4_test: Fail, OK
