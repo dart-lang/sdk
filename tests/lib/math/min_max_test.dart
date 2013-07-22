@@ -8,9 +8,13 @@ library min_max_test;
 import "package:expect/expect.dart";
 import 'dart:math';
 
+var inf = double.INFINITY;
+var nan = double.NAN;
+
 testMin() {
   testMin1();
   testMin2();
+  testMin3();
 }
 
 testMin1() {
@@ -35,8 +39,6 @@ testMin1() {
   Expect.equals(-10.5, min(0.5, -10.5));
   // Test matrix:
   // NaN, -infinity, -499.0, -499, -0.0, 0.0, 0, 499.0, 499, +infinity.
-  var inf = double.INFINITY;
-  var nan = double.NAN;
 
   Expect.isTrue(min(nan, nan).isNaN);
   Expect.isTrue(min(nan, -inf).isNaN);
@@ -109,7 +111,9 @@ testMin1() {
   Expect.equals(-0.0, min(-0.0, 499));
   Expect.equals(-0.0, min(-0.0, inf));
   Expect.isTrue(min(-0.0, nan).isNaN);
+}
 
+testMin2() {
   Expect.isTrue(min(-0.0, -499.0) is double);
   Expect.isTrue(min(-0.0, -499) is int);
   Expect.isTrue(min(-0.0, -0.0) is double);
@@ -176,11 +180,6 @@ testMin1() {
   Expect.isTrue(min(0, 499.0) is int);
   Expect.isTrue(min(0, 499) is int);
   Expect.isTrue(min(0, inf) is int);
-}
-
-testMin2() {
-  var inf = double.INFINITY;
-  var nan = double.NAN;
   Expect.isTrue(min(0, -499.0).isNegative);
   Expect.isTrue(min(0, -499).isNegative);
   Expect.isTrue(min(0, -0.0).isNegative);
@@ -189,7 +188,9 @@ testMin2() {
   Expect.isFalse(min(0, 499.0).isNegative);
   Expect.isFalse(min(0, 499).isNegative);
   Expect.isFalse(min(0, inf).isNegative);
+}
 
+testMin3() {
   Expect.equals(-inf, min(499.0, -inf));
   Expect.equals(-499.0, min(499.0, -499.0));
   Expect.equals(-499, min(499.0, -499));
@@ -281,6 +282,7 @@ testMin2() {
 testMax() {
   testMax1();
   testMax2();
+  testMax3();
 }
 
 testMax1() {
@@ -306,8 +308,6 @@ testMax1() {
 
   // Test matrix:
   // NaN, infinity, 499.0, 499, 0.0, 0, -0.0, -499.0, -499, -infinity.
-  var inf = double.INFINITY;
-  var nan = double.NAN;
 
   Expect.isTrue(max(nan, nan).isNaN);
   Expect.isTrue(max(nan, -inf).isNaN);
@@ -389,7 +389,9 @@ testMax1() {
   Expect.isTrue(max(0.0, -499) is double);
   Expect.isTrue(max(0.0, -499.0) is double);
   Expect.isTrue(max(0.0, -inf) is double);
+}
 
+testMax2() {
   Expect.isFalse(max(0.0, 0.0).isNegative);
   Expect.isFalse(max(0.0, 0).isNegative);
   Expect.isFalse(max(0.0, -0.0).isNegative);
@@ -445,10 +447,7 @@ testMax1() {
   Expect.isTrue(max(-0.0, -inf) is double);
 }
 
-testMax2() {
-  var inf = double.INFINITY;
-  var nan = double.NAN;
-
+testMax3() {
   Expect.isFalse(max(-0.0, 0.0).isNegative);
   Expect.isFalse(max(-0.0, 0).isNegative);
   Expect.isTrue(max(-0.0, -0.0).isNegative);
