@@ -55,8 +55,7 @@ crypto/test/sha1_test: Fail # Issue 11407.
 # Skip browser-specific tests on VM
 [ $runtime == vm ]
 docgen/test/single_library_test: Skip # Uses js_helper
-path/test/dartium_test: Fail, OK # Uses dart:html
-path/test/dart2js_test: Fail, OK # Uses dart:html
+path/test/browser_test: Fail, OK # Uses dart:html
 intl/test/find_default_locale_browser_test: Skip
 intl/test/date_time_format_http_request_test: Skip
 
@@ -174,9 +173,6 @@ dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
 # test on Dartium, which requires all tests to have a library.
 [ $runtime == dartium || $runtime == drt ]
 serialization/test/no_library_test: Skip # Expected Failure
-
-[ ($runtime == dartium || $runtime == drt) && $compiler == none ]
-path/test/dart2js_test: Fail, OK # Issue 6490
 
 # Skip mdv tests on command line VM, they only run in the browser.
 [ $runtime == vm ]

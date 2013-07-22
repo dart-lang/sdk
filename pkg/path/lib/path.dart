@@ -20,6 +20,9 @@
 /// [pkg]: http://pub.dartlang.org/packages/path
 library path;
 
+@MirrorsUsed(targets: 'dart.dom.html.window, '
+    'dart.io.Directory.current, '
+    'dart.io.Platform.operatingSystem')
 import 'dart:mirrors';
 
 /// An internal builder for the current OS so we can provide a straight
@@ -37,26 +40,15 @@ void _growListFront(List list, int length, fillValue) =>
 /// [LibraryMirror] that gives access to the `dart:io` library.
 ///
 /// If `dart:io` is not available, this returns null.
-LibraryMirror get _io {
-  try {
-    return currentMirrorSystem().libraries[Uri.parse('dart:io')];
-  } catch (_) {
-    return null;
-  }
-}
+LibraryMirror get _io => currentMirrorSystem().libraries[Uri.parse('dart:io')];
 
 // TODO(nweiz): when issue 6490 or 6943 are fixed, make this work under dart2js.
 /// If we're running in Dartium, this will return a [LibraryMirror] that gives
 /// access to the `dart:html` library.
 ///
 /// If `dart:html` is not available, this returns null.
-LibraryMirror get _html {
-  try {
-    return currentMirrorSystem().libraries[Uri.parse('dart:html')];
-  } catch (_) {
-    return null;
-  }
-}
+LibraryMirror get _html =>
+  currentMirrorSystem().libraries[Uri.parse('dart:html')];
 
 /// Gets the path to the current working directory.
 ///
