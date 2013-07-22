@@ -65,8 +65,7 @@ mixin_type_parameters_errors_test/01: fail
 mixin_type_parameters_errors_test/02: fail
 mixin_type_parameters_errors_test/05: fail
 
-
-
+illegal_invocation_test/01: fail # Issue: 11892
 
 # TBF: a.imethod = () { return 1; };
 assign_instance_method_negative_test: fail
@@ -272,6 +271,10 @@ factory_implementation_test/none: fail
 
 # test issue 11579, assignment, no setter
 getter_no_setter_test/none: fail
+
+# issue 11918: mixin and const constructor
+const_constructor_mixin_test/01: fail
+const_constructor_mixin3_test/01: fail
 
 [ $compiler == dart2analyzer && $checked ]
 factory1_test/00: fail
