@@ -54,7 +54,6 @@ crypto/test/sha1_test: Fail # Issue 11407.
 
 # Skip browser-specific tests on VM
 [ $runtime == vm ]
-docgen/test/single_library_test: Skip # Uses js_helper
 path/test/dartium_test: Fail, OK # Uses dart:html
 path/test/dart2js_test: Fail, OK # Uses dart:html
 intl/test/find_default_locale_browser_test: Skip
