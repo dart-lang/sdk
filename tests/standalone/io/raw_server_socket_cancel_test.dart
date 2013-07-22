@@ -15,7 +15,6 @@ import "dart:isolate";
 void testCancelResubscribeServerSocket(int socketCount, int backlog) {
   var acceptCount = 0;
   var doneCount = 0;
-  var closeCount = 0;
   var errorCount = 0;
   var earlyErrorCount = 0;
 
@@ -25,8 +24,7 @@ void testCancelResubscribeServerSocket(int socketCount, int backlog) {
     Expect.isTrue(server.port > 0);
 
     void checkDone() {
-      if (doneCount + earlyErrorCount == socketCount &&
-          closeCount + errorCount + earlyErrorCount == socketCount) {
+      if (doneCount + errorCount + earlyErrorCount == socketCount) {
         port.close();
       }
     }
@@ -52,9 +50,11 @@ void testCancelResubscribeServerSocket(int socketCount, int backlog) {
         // Cancel subscription and then attempt to resubscribe.
         subscription.cancel();
         Timer.run(() {
-          subscription = server.listen((_) {
-            // Server socket is closed on cancel, so no more events.
-            Expect.fail("Event after closed through cancel");
+          Expect.throws(() {
+            server.listen((_) {
+              // Server socket is closed on cancel, so no more events.
+              Expect.fail("Event after closed through cancel");
+            });
           });
         });
       }
@@ -63,6 +63,7 @@ void testCancelResubscribeServerSocket(int socketCount, int backlog) {
     // Connect a number of sockets.
     for (int i = 0; i < socketCount; i++) {
       RawSocket.connect("127.0.0.1", server.port).then((socket) {
+        bool done = false;
         var subscription;
         subscription = socket.listen((event) {
           switch(event) {
@@ -70,7 +71,8 @@ void testCancelResubscribeServerSocket(int socketCount, int backlog) {
               Expect.fail("No read event expected");
               break;
             case RawSocketEvent.READ_CLOSED:
-              closeCount++;
+              done = true;
+              doneCount++;
               checkDone();
               break;
             case RawSocketEvent.WRITE:
@@ -82,14 +84,16 @@ void testCancelResubscribeServerSocket(int socketCount, int backlog) {
           }
         },
         onDone: () {
-          doneCount++;
-          checkDone();
+          if (!done) {
+            doneCount++;
+            checkDone();
+          }
         },
         onError: (e) {
           // "Connection reset by peer" errors are handled here.
           errorCount++;
           checkDone();
-        });
+        }, cancelOnError: true);
       }).catchError((e) {
         // "Connection actively refused by host" errors are handled here.
         earlyErrorCount++;
