@@ -145,6 +145,7 @@ document.addEventListener('readystatechange', function () {
 // processMessage above will see them.
 function dartPrint(msg) {
   if ((msg === 'unittest-suite-success')
+      || (msg === 'unittest-suite-done')
       || (msg === 'unittest-suite-wait-for-done')) {
     window.postMessage(msg, '*');
     return;
