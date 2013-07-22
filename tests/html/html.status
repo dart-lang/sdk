@@ -28,7 +28,6 @@ dom_isolates_test: Skip # Need to migrate to new spawnDomFunction.
 indexeddb_3_test: Pass, Timeout, Slow # Issue: http://dartbug.com/9437
 indexeddb_4_test: Pass, Timeout, Slow # Issue: http://dartbug.com/9437
 async_test: Pass, Fail # timers test fails on ie10.
-js_test: Fail # http://dartbug.com/11855
 
 [ $compiler == dart2js && ( $runtime == ie9 || $runtime == ie10 ) ]
 worker_api_test: Fail # IE does not support URL.createObjectURL in web workers.
