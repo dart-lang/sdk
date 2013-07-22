@@ -48,11 +48,19 @@ abstract class VmServiceRequestHelper {
       onRequestFailed(e);
       return;
     }
-    // Received a map.
-    Expect.isTrue(reply is Map);
-    // Has a 'type' key.
-    Expect.isNotNull(reply['type']);
-    onRequestCompleted(reply);
+    if (reply is! Map) {
+        onRequestFailed('Reply was not a map: $reply');
+        return;
+    }
+    if (reply['type'] == null) {
+        onRequestFailed('Reply does not contain a type key: $reply');
+        return;
+    }
+    try {
+        onRequestCompleted(reply);
+    } catch(e) {
+        onRequestFailed('Test callback failed: $e');
+    }
   }
 
   void onRequestFailed(dynamic error) {
