@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Test that exception unwrapping handle cases like ({foo:null}).foo().
+
+import 'dart:_js_helper';
+
 import "package:expect/expect.dart";
 
 typedef void MyFunctionType();
@@ -22,7 +26,6 @@ A.prototype.invoke = function() { return this.f(); };
 makeA = function(){return new A;};
 """;
 
-
 main() {
   setup();
   A a = makeA();
@@ -31,7 +34,8 @@ main() {
   bool caughtException = false;
   try {
     a.invoke();
-  } on Exception catch (e) {
+  } on JsNoSuchMethodError catch (e) {
+    print(e);
     caughtException = true;
   }
   Expect.isTrue(caughtException);

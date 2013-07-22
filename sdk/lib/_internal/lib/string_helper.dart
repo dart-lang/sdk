@@ -77,6 +77,8 @@ stringReplaceJS(receiver, replacer, to) {
   return JS('String', r'#.replace(#, #)', receiver, replacer, to);
 }
 
+const String ESCAPE_REGEXP = r'[[\]{}()*+?.\\^$|]';
+
 stringReplaceAllUnchecked(receiver, from, to) {
   checkString(to);
   if (from is String) {
@@ -94,7 +96,7 @@ stringReplaceAllUnchecked(receiver, from, to) {
         return result.toString();
       }
     } else {
-      var quoter = JS('', "new RegExp(#, 'g')", r'[[\]{}()*+?.\\^$|]');
+      var quoter = JS('', "new RegExp(#, 'g')", ESCAPE_REGEXP);
       var quoted = JS('String', r'#.replace(#, "\\$&")', from, quoter);
       var replacer = JS('', "new RegExp(#, 'g')", quoted);
       return stringReplaceJS(receiver, replacer, to);

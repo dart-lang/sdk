@@ -794,6 +794,381 @@ throwAbstractClassInstantiationError(className) {
   throw new AbstractClassInstantiationError(className);
 }
 
+
+/**
+ * Helper class for building patterns recognizing native type errors.
+ */
+class TypeErrorDecoder {
+  // Field names are private to help tree-shaking.
+
+  /// A regular expression which matches is matched against an error message.
+  final String _pattern;
+
+  /// The group index of "arguments" in [_pattern], or -1 if _pattern has no
+  /// match for "arguments".
+  final int _arguments;
+
+  /// The group index of "argumentsExpr" in [_pattern], or -1 if _pattern has
+  /// no match for "argumentsExpr".
+  final int _argumentsExpr;
+
+  /// The group index of "expr" in [_pattern], or -1 if _pattern has no match
+  /// for "expr".
+  final int _expr;
+
+  /// The group index of "method" in [_pattern], or -1 if _pattern has no match
+  /// for "method".
+  final int _method;
+
+  /// The group index of "receiver" in [_pattern], or -1 if _pattern has no
+  /// match for "receiver".
+  final int _receiver;
+
+  /// Pattern used to recognize a NoSuchMethodError error (and
+  /// possibly extract the method name).
+  static final TypeErrorDecoder noSuchMethodPattern =
+      extractPattern(provokeCallErrorOn(buildJavaScriptObject()));
+
+  /// Pattern used to recognize an "object not a closure" error (and
+  /// possibly extract the method name).
+  static final TypeErrorDecoder notClosurePattern =
+      extractPattern(provokeCallErrorOn(buildJavaScriptObjectWithNonClosure()));
+
+  /// Pattern used to recognize a NoSuchMethodError on JavaScript null
+  /// call.
+  static final TypeErrorDecoder nullCallPattern =
+      extractPattern(provokeCallErrorOn(JS('', 'null')));
+
+  /// Pattern used to recognize a NoSuchMethodError on JavaScript literal null
+  /// call.
+  static final TypeErrorDecoder nullLiteralCallPattern =
+      extractPattern(provokeCallErrorOnNull());
+
+  /// Pattern used to recognize a NoSuchMethodError on JavaScript
+  /// undefined call.
+  static final TypeErrorDecoder undefinedCallPattern =
+      extractPattern(provokeCallErrorOn(JS('', 'void 0')));
+
+  /// Pattern used to recognize a NoSuchMethodError on JavaScript literal
+  /// undefined call.
+  static final TypeErrorDecoder undefinedLiteralCallPattern =
+      extractPattern(provokeCallErrorOnUndefined());
+
+  /// Pattern used to recognize a NoSuchMethodError on JavaScript null
+  /// property access.
+  static final TypeErrorDecoder nullPropertyPattern =
+      extractPattern(provokePropertyErrorOn(JS('', 'null')));
+
+  /// Pattern used to recognize a NoSuchMethodError on JavaScript literal null
+  /// property access.
+  static final TypeErrorDecoder nullLiteralPropertyPattern =
+      extractPattern(provokePropertyErrorOnNull());
+
+  /// Pattern used to recognize a NoSuchMethodError on JavaScript
+  /// undefined property access.
+  static final TypeErrorDecoder undefinedPropertyPattern =
+      extractPattern(provokePropertyErrorOn(JS('', 'void 0')));
+
+  /// Pattern used to recognize a NoSuchMethodError on JavaScript literal
+  /// undefined property access.
+  static final TypeErrorDecoder undefinedLiteralPropertyPattern =
+      extractPattern(provokePropertyErrorOnUndefined());
+
+  TypeErrorDecoder(this._arguments,
+                   this._argumentsExpr,
+                   this._expr,
+                   this._method,
+                   this._receiver,
+                   this._pattern);
+
+  /// Returns a JavaScript object literal (map) with at most the
+  /// following keys:
+  ///
+  /// * arguments: The arguments as formatted by the JavaScript
+  ///   engine. No browsers are known to provide this information.
+  ///
+  /// * argumentsExpr: The syntax of the arguments (JavaScript source
+  ///   code). No browsers are known to provide this information.
+  ///
+  /// * expr: The syntax of the receiver expression (JavaScript source
+  ///   code). Firefox provides this information, for example: "$expr$.$method$
+  ///   is not a function".
+  ///
+  /// * method: The name of the called method (mangled name). At least Firefox
+  ///   and Chrome/V8 provides this information, for example, "Object [object
+  ///   Object] has no method '$method$'".
+  ///
+  /// * receiver: The string representation of the receiver. Chrome/V8
+  ///   used to provide this information (by calling user-defined
+  ///   JavaScript toString on receiver), but it has degenerated into
+  ///   "[object Object]" in recent versions.
+  matchTypeError(message) {
+    var match = JS('List|Null', 'new RegExp(#).exec(#)', _pattern, message);
+    if (match == null) return null;
+    var result = JS('', '{}');
+    if (_arguments != -1) {
+      JS('', '#.arguments = #[# + 1]', result, match, _arguments);
+    }
+    if (_argumentsExpr != -1) {
+      JS('', '#.argumentsExpr = #[# + 1]', result, match, _argumentsExpr);
+    }
+    if (_expr != -1) {
+      JS('', '#.expr = #[# + 1]', result, match, _expr);
+    }
+    if (_method != -1) {
+      JS('', '#.method = #[# + 1]', result, match, _method);
+    }
+    if (_receiver != -1) {
+      JS('', '#.receiver = #[# + 1]', result, match, _receiver);
+    }
+
+    return result;
+  }
+
+  /// Builds a JavaScript Object with a toString method saying
+  /// r"$receiver$".
+  static buildJavaScriptObject() {
+    return JS('', r'{ toString: function() { return "$receiver$"; } }');
+  }
+
+  /// Builds a JavaScript Object with a toString method saying
+  /// r"$receiver$". The property "$method" is defined, but is not a function.
+  static buildJavaScriptObjectWithNonClosure() {
+    return JS('', r'{ $method$: null, '
+              r'toString: function() { return "$receiver$"; } }');
+  }
+
+  /// Extract a pattern from a JavaScript TypeError message.
+  ///
+  /// The patterns are extracted by forcing TypeErrors on known
+  /// objects thus forcing known strings into the error message. The
+  /// known strings are then replaced with wildcards which in theory
+  /// makes it possible to recognize the desired information even if
+  /// the error messages are reworded or translated.
+  static extractPattern(String message) {
+    // Some JavaScript implementations (V8 at least) include a
+    // representation of the receiver in the error message, however,
+    // this representation is not always [: receiver.toString() :],
+    // sometimes it is [: Object.prototype.toString(receiver) :], and
+    // sometimes it is an implementation specific method (but that
+    // doesn't seem to happen for object literals). So sometimes we
+    // get the text "[object Object]". The shortest way to get that
+    // string is using "String({})".
+    // See: http://code.google.com/p/v8/issues/detail?id=2519.
+    message = JS('String', r"#.replace(String({}), '$receiver$')", message);
+
+    // Since we want to create a new regular expression from an unknown string,
+    // we must escape all regular expression syntax.
+    message = JS('String', r"#.replace(new RegExp(#, 'g'), '\\$&')",
+                 message, ESCAPE_REGEXP);
+
+    // Look for the special pattern \$camelCase\$ (all the $ symbols
+    // have been escaped already), as we will soon be inserting
+    // regular expression syntax that we want interpreted by RegExp.
+    List<String> match =
+        JS('List|Null', r"#.match(/\\\$[a-zA-Z]+\\\$/g)", message);
+    if (match == null) match = [];
+
+    // Find the positions within the substring matches of the error message
+    // components.  This will help us extract information later, such as the
+    // method name.
+    int arguments = JS('int', '#.indexOf(#)', match, r'\$arguments\$');
+    int argumentsExpr = JS('int', '#.indexOf(#)', match, r'\$argumentsExpr\$');
+    int expr = JS('int', '#.indexOf(#)', match, r'\$expr\$');
+    int method = JS('int', '#.indexOf(#)', match, r'\$method\$');
+    int receiver = JS('int', '#.indexOf(#)', match, r'\$receiver\$');
+
+    // Replace the patterns with a regular expression wildcard.
+    // Note: in a perfect world, one would use "(.*)", but not in
+    // JavaScript, "." does not match newlines.
+    String pattern = JS('String',
+                        r"#.replace('\\$arguments\\$', '((?:x|[^x])*)')"
+                        r".replace('\\$argumentsExpr\\$',  '((?:x|[^x])*)')"
+                        r".replace('\\$expr\\$',  '((?:x|[^x])*)')"
+                        r".replace('\\$method\\$',  '((?:x|[^x])*)')"
+                        r".replace('\\$receiver\\$',  '((?:x|[^x])*)')",
+                        message);
+
+    return new TypeErrorDecoder(arguments,
+                                argumentsExpr,
+                                expr,
+                                method,
+                                receiver,
+                                pattern);
+  }
+
+  /// Provokes a TypeError and returns its message.
+  ///
+  /// The error is provoked so all known variable content can be recognized and
+  /// a pattern can be inferred.
+  static String provokeCallErrorOn(expression) {
+    // This function is carefully created to maximize the possibility
+    // of decoding the TypeError message and turning it into a general
+    // pattern.
+    //
+    // The idea is to inject something known into something unknown.  The
+    // unknown entity is the error message that the browser provides with a
+    // TypeError.  It is a human readable message, possibly localized in a
+    // language no dart2js engineer understand.  We assume that $name$ would
+    // never naturally occur in a human readable error message, yet it is easy
+    // to decode.
+    //
+    // For example, evaluate this in V8 version 3.13.7.6:
+    //
+    // var $expr$ = null; $expr$.$method$()
+    //
+    // The VM throws an instance of TypeError whose message property contains
+    // "Cannot call method '$method$' of null".  We can then reasonably assume
+    // that if the string contains $method$, that's where the method name will
+    // be in general.  Call this automatically reverse engineering the error
+    // format string in V8.
+    //
+    // So the error message from V8 is turned into this regular expression:
+    //
+    // "Cannot call method '(.*)' of null"
+    //
+    // Similarly, if we evaluate:
+    //
+    // var $expr$ = {toString: function() { return '$receiver$'; }};
+    // $expr$.$method$()
+    //
+    // We get this message: "Object $receiver$ has no method '$method$'"
+    //
+    // Which is turned into this regular expression:
+    //
+    // "Object (.*) has no method '(.*)'"
+    //
+    // Firefox/jsshell is slightly different, it tries to include the source
+    // code that caused the exception, so we get this message: "$expr$.$method$
+    // is not a function" which is turned into this regular expression:
+    //
+    // "(.*)\\.(.*) is not a function"
+
+    var function = JS('', r"""function($expr$) {
+  var $argumentsExpr$ = '$arguments$'
+  try {
+    $expr$.$method$($argumentsExpr$);
+  } catch (e) {
+    return e.message;
+  }
+}""");
+    return JS('String', '(#)(#)', function, expression);
+  }
+
+  /// Similar to [provokeCallErrorOn], but provokes an error directly on
+  /// literal "null" expression.
+  static String provokeCallErrorOnNull() {
+    // See [provokeCallErrorOn] for a detailed explanation.
+    var function = JS('', r"""function() {
+  var $argumentsExpr$ = '$arguments$'
+  try {
+    null.$method$($argumentsExpr$);
+  } catch (e) {
+    return e.message;
+  }
+}""");
+    return JS('String', '(#)()', function);
+  }
+
+  /// Similar to [provokeCallErrorOnNull], but provokes an error directly on
+  /// (void 0), that is, "undefined".
+  static String provokeCallErrorOnUndefined() {
+    // See [provokeCallErrorOn] for a detailed explanation.
+    var function = JS('', r"""function() {
+  var $argumentsExpr$ = '$arguments$'
+  try {
+    (void 0).$method$($argumentsExpr$);
+  } catch (e) {
+    return e.message;
+  }
+}""");
+    return JS('String', '(#)()', function);
+  }
+
+  /// Similar to [provokeCallErrorOn], but provokes a property access
+  /// error.
+  static String provokePropertyErrorOn(expression) {
+    // See [provokeCallErrorOn] for a detailed explanation.
+    var function = JS('', r"""function($expr$) {
+  try {
+    $expr$.$method$;
+  } catch (e) {
+    return e.message;
+  }
+}""");
+    return JS('String', '(#)(#)', function, expression);
+  }
+
+  /// Similar to [provokePropertyErrorOn], but provokes an property access
+  /// error directly on literal "null" expression.
+  static String provokePropertyErrorOnNull() {
+    // See [provokeCallErrorOn] for a detailed explanation.
+    var function = JS('', r"""function() {
+  try {
+    null.$method$;
+  } catch (e) {
+    return e.message;
+  }
+}""");
+    return JS('String', '(#)()', function);
+  }
+
+  /// Similar to [provokePropertyErrorOnNull], but provokes an property access
+  /// error directly on (void 0), that is, "undefined".
+  static String provokePropertyErrorOnUndefined() {
+    // See [provokeCallErrorOn] for a detailed explanation.
+    var function = JS('', r"""function() {
+  try {
+    (void 0).$method$;
+  } catch (e) {
+    return e.message;
+  }
+}""");
+    return JS('String', '(#)()', function);
+  }
+}
+
+class NullError implements NoSuchMethodError {
+  final String _message;
+  final String _method;
+
+  NullError(this._message, match)
+      : _method = match == null ? null : JS('', '#.method', match);
+
+  String toString() {
+    if (_method == null) return 'NullError: $_message';
+    return 'NullError: Cannot call "$_method" on null';
+  }
+}
+
+class JsNoSuchMethodError implements NoSuchMethodError {
+  final String _message;
+  final String _method;
+  final String _receiver;
+
+  JsNoSuchMethodError(this._message, match)
+      : _method = match == null ? null : JS('String|Null', '#.method', match),
+        _receiver =
+            match == null ? null : JS('String|Null', '#.receiver', match);
+
+  String toString() {
+    if (_method == null) return 'NoSuchMethodError: $_message';
+    if (_receiver == null) {
+      return 'NoSuchMethodError: Cannot call "$_method" ($_message)';
+    }
+    return 'NoSuchMethodError: Cannot call "$_method" on "$_receiver" '
+        '($_message)';
+  }
+}
+
+class UnknownJsTypeError implements Error {
+  final String _message;
+
+  UnknownJsTypeError(this._message);
+
+  String toString() => _message.isEmpty ? 'Error' : 'Error: $_message';
+}
+
 /**
  * Called from catch blocks in generated code to extract the Dart
  * exception from the thrown value. The thrown value may have been
@@ -818,54 +1193,82 @@ unwrapException(ex) {
   // all supported browsers.
   var message = JS('var', r'#.message', ex);
 
-  if (JS('bool', r'# instanceof TypeError', ex)) {
-    // The type and arguments fields are Chrome specific but they
-    // allow us to get very detailed information about what kind of
-    // exception occurred.
-    var type = JS('var', r'#.type', ex);
-    var name = JS('var', r'#.arguments ? #.arguments[0] : ""', ex, ex);
-    if (contains(message, 'JSNull') ||
-        type == 'property_not_function' ||
-        type == 'called_non_callable' ||
-        type == 'non_object_property_call' ||
-        type == 'non_object_property_load') {
-      return new NoSuchMethodError(null, name, [], {});
-    } else if (type == 'undefined_method') {
-      return new NoSuchMethodError('', name, [], {});
-    }
+  // Internet Explorer has an error number.  This is the most reliable way to
+  // detect specific errors, so check for this first.
+  if (JS('bool', '"number" in #', ex)
+      && JS('bool', 'typeof #.number == "number"', ex)) {
+    int number = JS('int', '#.number', ex);
 
-    var ieErrorCode = JS('int', '#.number & 0xffff', ex);
-    var ieFacilityNumber = JS('int', '#.number>>16 & 0x1FFF', ex);
-    // If we cannot use [type] to determine what kind of exception
-    // we're dealing with we fall back on looking at the exception
-    // message if it is available and a string.
-    if (message is String) {
-      if (message == 'null has no properties' ||
-          message == "'null' is not an object" ||
-          message == "'undefined' is not an object" ||
-          message.endsWith('is null') ||
-          message.endsWith('is undefined') ||
-          message.endsWith('is null or undefined') ||
-          message.endsWith('of undefined') ||
-          message.endsWith('of null')) {
-        return new NoSuchMethodError(null, message, [], {});
-      } else if (contains(message, ' has no method ') ||
-                 contains(message, ' is not a function') ||
-                 (ieErrorCode == 438 && ieFacilityNumber == 10)) {
-        // Examples:
-        //  x.foo is not a function
-        //  'undefined' is not a function (evaluating 'x.foo(1,2,3)')
-        // Object doesn't support property or method 'foo' which sets the error
-        // code 438 in IE.
-        // TODO(kasperl): Compute the right name if possible.
-        return new NoSuchMethodError('', message, [], {});
+    // From http://msdn.microsoft.com/en-us/library/ie/hc53e755(v=vs.94).aspx
+    // "number" is a 32-bit word. The error code is the low 16 bits, and the
+    // facility code is the upper 16 bits.
+    var ieErrorCode = number & 0xffff;
+    var ieFacilityNumber = (number >> 16) & 0x1fff;
+
+    // http://msdn.microsoft.com/en-us/library/aa264975(v=vs.60).aspx
+    // http://msdn.microsoft.com/en-us/library/ie/1dk3k160(v=vs.94).aspx
+    if (ieFacilityNumber == 10) {
+      switch (ieErrorCode) {
+      case 438:
+        return new JsNoSuchMethodError('$message (Error $ieErrorCode)', null);
+      case 445:
+      case 5007:
+        return new NullError('$message (Error $ieErrorCode)', null);
       }
+    }
+  }
+
+  if (JS('bool', r'# instanceof TypeError', ex)) {
+    var match;
+    // Using JS to give type hints to the compiler to help tree-shaking.
+    // TODO(ahe): That should be unnecessary due to type inference.
+    var nsme =
+        JS('TypeErrorDecoder', '#', TypeErrorDecoder.noSuchMethodPattern);
+    var notClosure =
+        JS('TypeErrorDecoder', '#', TypeErrorDecoder.notClosurePattern);
+    var nullCall =
+        JS('TypeErrorDecoder', '#', TypeErrorDecoder.nullCallPattern);
+    var nullLiteralCall =
+        JS('TypeErrorDecoder', '#', TypeErrorDecoder.nullLiteralCallPattern);
+    var undefCall =
+        JS('TypeErrorDecoder', '#', TypeErrorDecoder.undefinedCallPattern);
+    var undefLiteralCall =
+        JS('TypeErrorDecoder', '#',
+           TypeErrorDecoder.undefinedLiteralCallPattern);
+    var nullProperty =
+        JS('TypeErrorDecoder', '#', TypeErrorDecoder.nullPropertyPattern);
+    var nullLiteralProperty =
+        JS('TypeErrorDecoder', '#',
+           TypeErrorDecoder.nullLiteralPropertyPattern);
+    var undefProperty =
+        JS('TypeErrorDecoder', '#', TypeErrorDecoder.undefinedPropertyPattern);
+    var undefLiteralProperty =
+        JS('TypeErrorDecoder', '#',
+           TypeErrorDecoder.undefinedLiteralPropertyPattern);
+    if ((match = nsme.matchTypeError(message)) != null) {
+      return new JsNoSuchMethodError(message, match);
+    } else if ((match = notClosure.matchTypeError(message)) != null) {
+      // notClosure may match "({c:null}).c()" or "({c:1}).c()", so we
+      // cannot tell if this an attempt to invoke call on null or a
+      // non-function object.
+      // But we do know the method name is "call".
+      JS('', '#.method = "call"', match);
+      return new JsNoSuchMethodError(message, match);
+    } else if ((match = nullCall.matchTypeError(message)) != null ||
+               (match = nullLiteralCall.matchTypeError(message)) != null ||
+               (match = undefCall.matchTypeError(message)) != null ||
+               (match = undefLiteralCall.matchTypeError(message)) != null ||
+               (match = nullProperty.matchTypeError(message)) != null ||
+               (match = nullLiteralCall.matchTypeError(message)) != null ||
+               (match = undefProperty.matchTypeError(message)) != null ||
+               (match = undefLiteralProperty.matchTypeError(message)) != null) {
+      return new NullError(message, match);
     }
 
     // If we cannot determine what kind of error this is, we fall back
-    // to reporting this as a generic exception. It's probably better
-    // than nothing.
-    return new Exception(message is String ? message : '');
+    // to reporting this as a generic error. It's probably better than
+    // nothing.
+    return new UnknownJsTypeError(message is String ? message : '');
   }
 
   if (JS('bool', r'# instanceof RangeError', ex)) {

@@ -6,6 +6,5 @@
 *: Skip
 
 [ $compiler == dart2js ]
-native_null_closure_frog_test: Fail
 native_no_such_method_exception4_frog_test: Fail  # Issue 9631
 native_no_such_method_exception5_frog_test: Fail  # Issue 9631

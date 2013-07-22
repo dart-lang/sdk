@@ -116,6 +116,7 @@ constructor_named_arguments_test/01: Fail # http://dartbug.com/5519
 getter_no_setter_test/01: Fail # http://dartbug.com/5519
 isnot_malformed_type_test/01: Fail # http://dartbug.com/5519
 not_enough_positional_arguments_test/01: Fail # http://dartbug.com/5519
+no_such_method_dispatcher_test: Fail # http://dartbug.com/11937
 
 constructor_negative_test: Pass # Wrong reason: the expression 'C()' is valid with class literals.
 
