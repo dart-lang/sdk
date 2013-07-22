@@ -1162,14 +1162,25 @@ class WebDriverSession extends WebDriverBase {
   Future dismissAlert() => _post('dismiss_alert');
 
   /**
-   * Move the mouse by an offset of the specificed element. If no element is
-   * specified, the move is relative to the current mouse cursor. If an
+   * Move the mouse by an offset relative to a specified element. If no element
+   * is specified, the move is relative to the current mouse cursor. If an
    * element is provided but no offset, the mouse will be moved to the center
    * of the element. If the element is not visible, it will be scrolled
    * into view.
    */
-  Future moveTo(String id, int x, int y) =>
-      _post('moveto', { 'element': id, 'xoffset': x, 'yoffset' : y});
+  Future moveTo(String id, int x, int y) {
+    var json = {};
+    if (id != null) {
+      json['element'] = id;
+    }
+    if (x != null) {
+      json['xoffset'] = x;
+    }
+    if (y != null) {
+      json['yoffset'] = y;
+    }
+    return _post('moveto', json);
+  }
 
   /**
    * Click a mouse button (at the coordinates set by the last [moveTo] command).
