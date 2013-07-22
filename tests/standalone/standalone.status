@@ -10,9 +10,6 @@
 package/invalid_uri_test: Fail, OK # Fails intentionally
 
 [ $runtime == vm ]
-io/web_socket_test: Pass, Crash # Issue 11502
-
-[ $runtime == vm ]
 package/package_isolate_test: Fail # http://dartbug.com/7520.
 
 [ $runtime == vm && $checked ]
