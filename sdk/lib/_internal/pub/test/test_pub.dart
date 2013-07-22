@@ -137,13 +137,10 @@ void serve([List<d.Descriptor> contents]) {
 /// is closed.
 Future _closeServer() {
   if (_server == null) return new Future.value();
-  _server.close();
+  var future = _server.close();
   _server = null;
   _portCompleterCache = null;
-  // TODO(nweiz): Remove this once issue 4155 is fixed. Pumping the event loop
-  // *seems* to be enough to ensure that the server is actually closed, but I'm
-  // putting this at 10ms to be safe.
-  return sleep(10);
+  return future;
 }
 
 /// `true` if the current test spins up an HTTP server.
