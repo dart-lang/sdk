@@ -21,7 +21,7 @@ String serialize(Object o) {
 
 /// Serialize the object with pretty printing.
 String prettySerialize(Object o) {
-  var printer = new JsonPrinter(_prettyPrint: true);
+  var printer = new JsonPrinter(prettyPrint: true);
   _serialize(null, o, printer);
   return printer.toString();
 }
@@ -120,8 +120,8 @@ class JsonPrinter {
   int _indent = 0;
   bool _inSet = false;
 
-  bool _prettyPrint;
-  JsonPrinter({this._prettyPrint: false}) {
+  bool prettyPrint;
+  JsonPrinter({this.prettyPrint: false}) {
     _sb = new StringBuffer();
   }
 
@@ -202,7 +202,7 @@ class JsonPrinter {
   }
 
   String toString() {
-    if (_prettyPrint) {
+    if (prettyPrint) {
       return _sb.toString();
     } else {
       // Convenient hack to remove the pretty printing this serializer adds by

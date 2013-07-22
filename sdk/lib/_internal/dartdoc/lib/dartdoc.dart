@@ -22,7 +22,7 @@ import 'dart:isolate';
 import 'dart:json' as json;
 import 'dart:math';
 
-import 'package:path/path.dart' as pathos;
+import 'package:path/path.dart' as path;
 
 import 'classify.dart';
 import 'markdown.dart' as md;
@@ -70,14 +70,13 @@ const API_LOCATION = 'http://api.dartlang.org/';
  */
 // TODO(johnniwinther): Convert to final (lazily initialized) variables when
 // the feature is supported.
-Path get scriptDir =>
-    new Path(Platform.script).directoryPath;
+String get scriptDir => path.dirname(Platform.script);
 
 /**
  * Deletes and recreates the output directory at [path] if it exists.
  */
-void cleanOutputDirectory(Path path) {
-  final outputDir = new Directory.fromPath(path);
+void cleanOutputDirectory(String path) {
+  final outputDir = new Directory(path);
   if (outputDir.existsSync()) {
     outputDir.deleteSync(recursive: true);
   }
@@ -99,20 +98,20 @@ void cleanOutputDirectory(Path path) {
  * Note: runs asynchronously, so you won't see any files copied until after the
  * event loop has had a chance to pump (i.e. after `main()` has returned).
  */
-Future copyDirectory(Path from, Path to) {
+Future copyDirectory(String from, String to) {
   print('Copying static files...');
   final completer = new Completer();
-  final fromDir = new Directory.fromPath(from);
+  final fromDir = new Directory(from);
   var futureList = [];
   fromDir.list(recursive: false).listen(
       (FileSystemEntity entity) {
         if (entity is File) {
-          final name = new Path(entity.path).filename;
+          final name = path.basename(entity.path);
           // TODO(rnystrom): Hackish. Ignore 'hidden' files like .DS_Store.
           if (name.startsWith('.')) return;
 
           File fromFile = entity;
-          File toFile = new File.fromPath(to.append(name));
+          File toFile = new File(path.join(to, name));
           futureList.add(fromFile.openRead().pipe(toFile.openWrite()));
         }
       },
@@ -124,20 +123,18 @@ Future copyDirectory(Path from, Path to) {
 /**
  * Compiles the dartdoc client-side code to JavaScript using Dart2js.
  */
-Future compileScript(int mode, Path outputDir, Path libPath, String tmpPath) {
+Future compileScript(int mode, String outputDir, String libPath, String tmpPath) {
   print('Compiling client JavaScript...');
   var clientScript = (mode == MODE_STATIC) ?  'static' : 'live-nav';
-  var dartdocLibPath = pathos.join(libPath.toNativePath(),
-      'lib', '_internal', 'dartdoc', 'lib');
+  var dartdocLibPath = path.join(libPath, 'lib', '_internal', 'dartdoc', 'lib');
   var dartPath = mode == MODE_STATIC ?
-    pathos.join(tmpPath, 'client.dart') :
-    pathos.join(dartdocLibPath, 'src', 'client', 'client-live-nav.dart');
+    path.join(tmpPath, 'client.dart') :
+    path.join(dartdocLibPath, 'src', 'client', 'client-live-nav.dart');
 
-  var jsPath = pathos.join(outputDir.toNativePath(),
-    'client-$clientScript.js');
+  var jsPath = path.join(outputDir, 'client-$clientScript.js');
 
   return dart2js.compile(
-      new Path(dartPath), libPath,
+      dartPath, libPath,
       options: const <String>['--categories=Client,Server', '--minify'])
   .then((jsCode) {
     if (jsCode == null) throw new StateError("No javascript was generated.");
@@ -208,10 +205,10 @@ class Dartdoc {
   bool generateAppCache = false;
 
   /** Path to the dartdoc directory. */
-  Path dartdocPath;
+  String dartdocPath;
 
   /** Path to generate HTML files into. */
-  Path outputDir = new Path('docs');
+  String outputDir = 'docs';
 
   /**
    * The title used for the overall generated output. Set this to change it.
@@ -300,7 +297,7 @@ class Dartdoc {
   MemberMirror _currentMember;
 
   /** The path to the file currently being written to, relative to [outdir]. */
-  Path _filePath;
+  String _filePath;
 
   /** The file currently being written to. */
   StringBuffer _file;
@@ -428,24 +425,24 @@ class Dartdoc {
     return content;
   }
 
-  Future documentLibraries(List<Uri> libraryList, Path libPath,
+  Future documentLibraries(List<Uri> libraryList, String libPath,
       String packageRoot) {
     _packageRoot = packageRoot;
     _exports = new ExportMap.parse(libraryList, packageRoot);
     var librariesToAnalyze = _exports.allExportedFiles.toList();
     librariesToAnalyze.addAll(libraryList.map((uri) {
-      if (uri.scheme == 'file') return pathos.fromUri(uri);
+      if (uri.scheme == 'file') return path.fromUri(uri);
       // dart2js takes "dart:*" URIs as Path objects for some reason.
       return uri.toString();
     }));
 
-    var packageRootPath = packageRoot == null ? null : new Path(packageRoot);
+    var packageRootPath = packageRoot == null ? null : packageRoot;
 
     // TODO(amouravski): make all of these print statements into logging
     // statements.
     print('Analyzing libraries...');
     return dart2js.analyze(
-        librariesToAnalyze.map((path) => new Path(path)).toList(), libPath,
+        librariesToAnalyze.toList(), libPath,
         packageRoot: packageRootPath, options: COMPILER_OPTIONS)
       .then((MirrorSystem mirrors) {
         print('Generating documentation...');
@@ -466,10 +463,10 @@ class Dartdoc {
 
     _librariesByPath = <String, LibraryMirror>{};
     for (var library in mirrors.libraries.values) {
-      var path = _libraryPath(library);
-      if (path == null) continue;
-      path = pathos.normalize(pathos.absolute(path));
-      _librariesByPath[path] = library;
+      var libraryPath = _libraryPath(library);
+      if (libraryPath == null) continue;
+      libraryPath = path.normalize(path.absolute(libraryPath));
+      _librariesByPath[libraryPath] = library;
     }
 
     _hiddenLibraryExports = _generateHiddenLibraryExports();
@@ -589,13 +586,13 @@ class Dartdoc {
   MdnComment lookupMdnComment(Mirror mirror) => null;
 
   void startFile(String path) {
-    _filePath = new Path(path);
+    _filePath = path;
     _file = new StringBuffer();
   }
 
   void endFile() {
-    final outPath = outputDir.join(_filePath);
-    final dir = new Directory.fromPath(outPath.directoryPath);
+    final outPath = path.join(outputDir, _filePath);
+    final dir = new Directory(path.dirname(outPath));
     if (!dir.existsSync()) {
       // TODO(3914): Hack to avoid 'file already exists' exception
       // thrown due to invalid result from dir.existsSync() (probably due to
@@ -607,7 +604,7 @@ class Dartdoc {
       }
     }
 
-    writeString(new File.fromPath(outPath), _file.toString());
+    writeString(new File(outPath), _file.toString());
     _filePath = null;
     _file = null;
   }
@@ -771,17 +768,17 @@ class Dartdoc {
   /// Whether dartdoc is running from within the Dart SDK or the
   /// Dart source repository.
   bool get runningFromSdk =>
-    pathos.extension(Platform.script) == '.snapshot';
+    path.extension(Platform.script) == '.snapshot';
 
   /// Gets the path to the root directory of the SDK.
   String get sdkDir =>
-    pathos.dirname(pathos.dirname(Platform.executable));
+    path.dirname(path.dirname(Platform.executable));
 
   /// Gets the path to the dartdoc directory normalized for running in different
   /// places.
-  String get normalizedDartdocPath => pathos.normalize(
-      pathos.absolute(runningFromSdk ?
-          pathos.join(sdkDir, 'lib', '_internal', 'dartdoc') :
+  String get normalizedDartdocPath => path.normalize(
+      path.absolute(runningFromSdk ?
+          path.join(sdkDir, 'lib', '_internal', 'dartdoc') :
           dartdocPath.toString()));
 
   void docNavigationDart() {
@@ -791,16 +788,16 @@ class Dartdoc {
     }
     String jsonString = json.stringify(createNavigationInfo());
     String dartString = jsonString.replaceAll(r"$", r"\$");
-    var filePath = pathos.join(tmpPath, 'client.dart');
+    var filePath = path.join(tmpPath, 'client.dart');
 
-    var clientDir = pathos.join(normalizedDartdocPath,'lib', 'src', 'client');
+    var clientDir = path.join(normalizedDartdocPath,'lib', 'src', 'client');
 
     writeString(new File(filePath),
         '''library client;
         import 'dart:html';
         import 'dart:json';
-        import r'${pathos.toUri(pathos.join(clientDir, 'client-shared.dart'))}';
-        import r'${pathos.toUri(pathos.join(clientDir, 'dropdown.dart'))}';
+        import r'${path.toUri(path.join(clientDir, 'client-shared.dart'))}';
+        import r'${path.toUri(path.join(clientDir, 'dropdown.dart'))}';
 
         main() {
           setup();

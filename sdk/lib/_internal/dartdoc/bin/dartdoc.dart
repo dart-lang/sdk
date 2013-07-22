@@ -45,7 +45,7 @@ mainWithOptions(Options options) {
 
   final argParser = new ArgParser();
 
-  Path libPath = scriptDir.append('../../../../');
+  String libPath = path.join(scriptDir, '..', '..', '..', '..');
 
   String packageRoot;
 
@@ -126,7 +126,7 @@ mainWithOptions(Options options) {
         'omitted the files are generated into ./docs/',
       callback: (outDir) {
         if(outDir != null) {
-          dartdoc.outputDir = new Path(outDir);
+          dartdoc.outputDir = outDir;
         }
       });
 
@@ -182,7 +182,7 @@ mainWithOptions(Options options) {
       help: 'Sets the library root directory to the specified directory.',
       callback: (libraryRoot) {
         if (libraryRoot != null) {
-          libPath = new Path(libraryRoot);
+          libPath = libraryRoot;
         }
       });
 
@@ -195,7 +195,7 @@ mainWithOptions(Options options) {
         }
       });
 
-  dartdoc.dartdocPath = libPath.append('lib/_internal/dartdoc');
+  dartdoc.dartdocPath = path.join(libPath, 'lib', '_internal', 'dartdoc');
 
   if (args.isEmpty) {
     print('No arguments provided.');
@@ -248,8 +248,9 @@ mainWithOptions(Options options) {
     // scripts. This takes a long time and the js hardly ever changes.
     .then((_) => compileScript(dartdoc.mode, dartdoc.outputDir, libPath,
           dartdoc.tmpPath))
-    .then((_) => copyDirectory(libPath.append('lib/_internal/dartdoc/static'),
-                               dartdoc.outputDir))
+    .then((_) => copyDirectory(
+          path.join(libPath, 'lib', '_internal', 'dartdoc', 'static'),
+          dartdoc.outputDir))
     .then((_) {
       print(dartdoc.status);
       if (dartdoc.totals == 0) {

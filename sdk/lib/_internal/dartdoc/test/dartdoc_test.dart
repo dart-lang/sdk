@@ -238,7 +238,7 @@ Future<ProcessResult> _runDartdoc(List<String> libraryPaths) {
 
   // Turn relative libraryPaths to absolute ones.
   runArgs.addAll(libraryPaths
-      .map((e) => path.join(dd.scriptDir.toNativePath(), e)));
+      .map((e) => path.join(path.absolute(dd.scriptDir), e)));
 
   return Process.run(dartBin, runArgs);
 }
