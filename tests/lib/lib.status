@@ -89,8 +89,6 @@ async/timer_not_available_test: Fail, OK # only meant to test when there is no w
                                          # implement timer (currently only in d8)
 async/timer_isolate_test: Skip # See Issue 4997
 mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
-mirrors/top_level_accessors_test: Fail # http://dartbug.com/11943
-mirrors/operator_test: Fail # http://dartbug.com/11944
 
 [ $runtime == vm || ($compiler == none && $runtime == drt) ]
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9001.
@@ -99,6 +97,8 @@ mirrors/superclass_test: Fail # http://dartbug.com/11142
 mirrors/reflectively_instantiate_uninstantiated_class_test: Fail # http://dartbug.com/11187
 mirrors/reflect_model_test: Fail # http://dartbug.com/11219
 mirrors/parameter_test: Fail # http://dartbug.com/11567
+mirrors/top_level_accessors_test: Fail # http://dartbug.com/11943
+mirrors/operator_test: Fail # http://dartbug.com/11944
 
 [ $compiler == none && $runtime == drt ]
 async/timer_isolate_test: Skip # See Issue 4997
