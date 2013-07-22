@@ -3637,12 +3637,13 @@ void MathSqrtInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* MathMinMaxInstr::MakeLocationSummary() const {
   if (result_cid() == kDoubleCid) {
     const intptr_t kNumInputs = 2;
-    const intptr_t kNumTemps = 0;
+    const intptr_t kNumTemps = 1;
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresFpuRegister());
     summary->set_in(1, Location::RequiresFpuRegister());
     summary->set_out(Location::RequiresFpuRegister());
+    summary->set_temp(0, Location::RequiresRegister());
     return summary;
   }
   ASSERT(result_cid() == kSmiCid);
@@ -3652,29 +3653,51 @@ LocationSummary* MathMinMaxInstr::MakeLocationSummary() const {
 
 
 void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT((op_kind() == MethodRecognizer::kMathMin) ||
+         (op_kind() == MethodRecognizer::kMathMax));
   if (result_cid() == kDoubleCid) {
-    Label done, is_left, is_nan;
+    Label done, returns_left, returns_nan, are_equal;
     XmmRegister left = locs()->in(0).fpu_reg();
     XmmRegister right = locs()->in(1).fpu_reg();
     XmmRegister result = locs()->out().fpu_reg();
+    Register temp = locs()->temp(0).reg();
     __ comisd(left, right);
-    __ j(PARITY_EVEN, &is_nan, Assembler::kNearJump);
-    Condition double_condition;
-    if (op_kind() == MethodRecognizer::kMathMin) {
-      double_condition = TokenKindToDoubleCondition(Token::kLT);
-    } else {
-      ASSERT(op_kind() == MethodRecognizer::kMathMax);
-      double_condition = TokenKindToDoubleCondition(Token::kGT);
-    }
-    __ j(double_condition, &is_left, Assembler::kNearJump);
+    __ j(PARITY_EVEN, &returns_nan, Assembler::kNearJump);
+    __ j(EQUAL, &are_equal, Assembler::kNearJump);
+    const intptr_t is_min = (op_kind() == MethodRecognizer::kMathMin);
+    const Condition double_condition =
+        is_min ? TokenKindToDoubleCondition(Token::kLT)
+               : TokenKindToDoubleCondition(Token::kGT);
+    __ j(double_condition, &returns_left, Assembler::kNearJump);
     __ movsd(result, right);
     __ jmp(&done, Assembler::kNearJump);
-    __ Bind(&is_left);
+
+    __ Bind(&returns_left);
     __ movsd(result, left);
-    __ jmp(&done);
-    __ Bind(&is_nan);
+    __ jmp(&done, Assembler::kNearJump);
+
+    __ Bind(&returns_nan);
     static double kNaN = NAN;
     __ movsd(result, Address::Absolute(reinterpret_cast<uword>(&kNaN)));
+    __ jmp(&done, Assembler::kNearJump);
+
+    __ Bind(&are_equal);
+    Label left_is_negative;
+    // Check for negative zero: -0.0 is equal 0.0 but min or max must return
+    // -0.0 or 0.0 respectively.
+    // Check for negative left value (get the sign bit):
+    // - min -> left is negative ? left : right.
+    // - max -> left is negative ? right : left
+    // Check the sign bit.
+    __ movmskpd(temp, left);
+    __ testl(temp, Immediate(1));
+    __ j(NOT_ZERO, &left_is_negative, Assembler::kNearJump);
+    // Left is positive.
+    __ movsd(result, (is_min ? right : left));
+    __ jmp(&done, Assembler::kNearJump);
+
+    __ Bind(&left_is_negative);
+    __ movsd(result, (is_min ? left : right));
     __ Bind(&done);
     return;
   }

@@ -126,3 +126,5 @@ typed_data/float32x4_unbox_phi_test: Crash # Unimplemented
 typed_data/float32x4_list_test: Crash # Unimplemented
 typed_data/float32x4_test: Crash # Unimplemented
 typed_data/float32x4_shuffle_test: Crash # Unimplemented
+math/min_max_test: Crash # Long branch
+

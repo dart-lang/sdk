@@ -3366,30 +3366,49 @@ LocationSummary* MathMinMaxInstr::MakeLocationSummary() const {
 
 
 void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT((op_kind() == MethodRecognizer::kMathMin) ||
+         (op_kind() == MethodRecognizer::kMathMax));
   if (result_cid() == kDoubleCid) {
-    Label done, is_nan;
+    Label done, returns_nan, are_equal;
     DRegister left = EvenDRegisterOf(locs()->in(0).fpu_reg());
     DRegister right = EvenDRegisterOf(locs()->in(1).fpu_reg());
     DRegister result = EvenDRegisterOf(locs()->out().fpu_reg());
     Register temp = locs()->temp(0).reg();
     __ vcmpd(left, right);
     __ vmstat();
-    __ b(&is_nan, VS);
-    Condition double_condition, neg_double_condition;
-    if (op_kind() == MethodRecognizer::kMathMin) {
-      double_condition = TokenKindToDoubleCondition(Token::kLT);
-      neg_double_condition = TokenKindToDoubleCondition(Token::kGTE);
-    } else {
-      ASSERT(op_kind() == MethodRecognizer::kMathMax);
-      double_condition = TokenKindToDoubleCondition(Token::kGT);
-      neg_double_condition = TokenKindToDoubleCondition(Token::kLTE);
-    }
+    __ b(&returns_nan, VS);
+    __ b(&are_equal, EQ);
+    const intptr_t is_min = (op_kind() == MethodRecognizer::kMathMin);
+    const Condition double_condition =
+        is_min ? TokenKindToDoubleCondition(Token::kLT)
+               : TokenKindToDoubleCondition(Token::kGT);
+    const Condition neg_double_condition =
+        is_min ? TokenKindToDoubleCondition(Token::kGTE)
+               : TokenKindToDoubleCondition(Token::kLTE);
     __ vmovd(result, left, double_condition);
     __ vmovd(result, right, neg_double_condition);
     __ b(&done);
 
-    __ Bind(&is_nan);
+    __ Bind(&returns_nan);
     __ LoadDImmediate(result, NAN, temp);
+    __ b(&done);
+
+    __ Bind(&are_equal);
+    // Check for negative zero: -0.0 is equal 0.0 but min or max must return
+    // -0.0 or 0.0 respectively.
+    // Check for negative left value (get the sign bit):
+    // - min -> left is negative ? left : right.
+    // - max -> left is negative ? right : left
+    // Check the sign bit.
+    __ vmovrrd(IP, temp, left);  // Sign bit is in bit 31 of temp.
+    __ cmp(temp, ShifterOperand(0));
+    if (is_min) {
+      __ vmovd(result, left, LT);
+      __ vmovd(result, right, GE);
+    } else {
+      __ vmovd(result, right, LT);
+      __ vmovd(result, left, GE);
+    }
     __ Bind(&done);
     return;
   }

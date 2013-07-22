@@ -3094,6 +3094,7 @@ LocationSummary* MathMinMaxInstr::MakeLocationSummary() const {
     summary->set_in(0, Location::RequiresFpuRegister());
     summary->set_in(1, Location::RequiresFpuRegister());
     summary->set_out(Location::RequiresFpuRegister());
+    summary->set_temp(0, Location::RequiresRegister());
     return summary;
   }
   ASSERT(result_cid() == kSmiCid);
@@ -3103,28 +3104,53 @@ LocationSummary* MathMinMaxInstr::MakeLocationSummary() const {
 
 
 void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT((op_kind() == MethodRecognizer::kMathMin) ||
+         (op_kind() == MethodRecognizer::kMathMax));
   if (result_cid() == kDoubleCid) {
-    Label done, is_nan, is_left;
+    Label done, returns_nan, returns_left, are_equal;
     DRegister left = locs()->in(0).fpu_reg();
     DRegister right = locs()->in(1).fpu_reg();
     DRegister result = locs()->out().fpu_reg();
+    Register temp = locs()->temp(0).reg();
     __ cund(left, right);
-    __ bc1t(&is_nan);
-    if (op_kind() == MethodRecognizer::kMathMin) {
+    __ bc1t(&returns_nan);
+    __ ceqd(left, right);
+    __ bc1t(&are_equal);
+    const intptr_t is_min = (op_kind() == MethodRecognizer::kMathMin);
+    if (is_min) {
       __ coltd(left, right);
     } else {
-      ASSERT(op_kind() == MethodRecognizer::kMathMax);
       __ coltd(right, left);
     }
     // TODO(zra): Add conditional moves.
-    __ bc1t(&is_left);
+    __ bc1t(&returns_left);
     __ movd(result, right);
     __ b(&done);
-    __ Bind(&is_left);
+
+    __ Bind(&returns_left);
     __ movd(result, right);
     __ b(&done);
-    __ Bind(&is_nan);
+
+    __ Bind(&returns_nan);
     __ LoadImmediate(result, NAN);
+    __ b(&done);
+
+    __ Bind(&are_equal);
+    Label left_is_negative;
+    // Check for negative zero: -0.0 is equal 0.0 but min or max must return
+    // -0.0 or 0.0 respectively.
+    // Check for negative left value (get the sign bit):
+    // - min -> left is negative ? left : right.
+    // - max -> left is negative ? right : left
+    // Check the sign bit.
+    __ mfc1(temp, OddFRegisterOf(left));  // Moves bits 32...63 of left to temp.
+    __ bltz(temp, &left_is_negative);
+    // Left is positive.
+    __ movd(result, (is_min ? right : left));
+    __ b(&done);
+
+    __ Bind(&left_is_negative);
+    __ movd(result, (is_min ? left : right));
     __ Bind(&done);
     return;
   }
