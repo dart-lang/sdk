@@ -77,6 +77,7 @@ class CodeEmitterTask extends CompilerTask {
   String isolateProperties;
   String classesCollector;
   final Set<ClassElement> neededClasses = new Set<ClassElement>();
+  final Set<ClassElement> rtiNeededClasses = new Set<ClassElement>();
   final List<ClassElement> regularClasses = <ClassElement>[];
   final List<ClassElement> deferredClasses = <ClassElement>[];
   final List<ClassElement> nativeClasses = <ClassElement>[];
@@ -1678,7 +1679,9 @@ class CodeEmitterTask extends CompilerTask {
                        ClassBuilder builder,
                        String superName,
                        { bool classIsNative: false,
-                         bool emitStatics: false }) {
+                         bool emitStatics: false,
+                         bool onlyForRti: false }) {
+    assert(!emitStatics || !onlyForRti);
     StringBuffer buffer = new StringBuffer();
     if (emitStatics) {
       assert(invariant(classElement, superName == null, message: superName));
@@ -1698,75 +1701,86 @@ class CodeEmitterTask extends CompilerTask {
     var fieldMetadata = [];
     bool hasMetadata = false;
 
-    visitClassFields(classElement, emitStatics,
-                     (Element member,
-                      String name,
-                      String accessorName,
-                      bool needsGetter,
-                      bool needsSetter,
-                      bool needsCheckedSetter) {
-      // Ignore needsCheckedSetter - that is handled below.
-      bool needsAccessor = (needsGetter || needsSetter);
-      // We need to output the fields for non-native classes so we can auto-
-      // generate the constructor.  For native classes there are no
-      // constructors, so we don't need the fields unless we are generating
-      // accessors at runtime.
-      if (!classIsNative || needsAccessor) {
-        buffer.write(separator);
-        separator = ',';
-        var metadata = buildMetadataFunction(member);
-        if (metadata != null) {
-          hasMetadata = true;
-        } else {
-          metadata = new jsAst.LiteralNull();
-        }
-        fieldMetadata.add(metadata);
-        recordMangledField(member, accessorName, member.name.slowToString());
-        if (!needsAccessor) {
-          // Emit field for constructor generation.
-          assert(!classIsNative);
-          buffer.write(name);
-        } else {
-          // Emit (possibly renaming) field name so we can add accessors at
-          // runtime.
-          buffer.write(accessorName);
-          if (name != accessorName) {
-            buffer.write(':$name');
-            // Only the native classes can have renaming accessors.
-            assert(classIsNative);
-          }
-
-          int getterCode = 0;
-          if (needsGetter) {
-            // 01:  function() { return this.field; }
-            // 10:  function(receiver) { return receiver.field; }
-            // 11:  function(receiver) { return this.field; }
-            getterCode += backend.fieldHasInterceptedGetter(member) ? 2 : 0;
-            getterCode += backend.isInterceptorClass(classElement) ? 0 : 1;
-            // TODO(sra): 'isInterceptorClass' might not be the correct test for
-            // methods forced to use the interceptor convention because the
-            // method's class was elsewhere mixed-in to an interceptor.
-            assert(!member.isInstanceMember() || getterCode != 0);
-          }
-          int setterCode = 0;
-          if (needsSetter) {
-            // 01:  function(value) { this.field = value; }
-            // 10:  function(receiver, value) { receiver.field = value; }
-            // 11:  function(receiver, value) { this.field = value; }
-            setterCode += backend.fieldHasInterceptedSetter(member) ? 2 : 0;
-            setterCode += backend.isInterceptorClass(classElement) ? 0 : 1;
-            assert(!member.isInstanceMember() || setterCode != 0);
-          }
-          int code = getterCode + (setterCode << 2);
-          if (code == 0) {
-            compiler.reportInternalError(
-                member, 'Internal error: code is 0 ($classElement/$member)');
+    if (!onlyForRti) {
+      visitClassFields(classElement, emitStatics,
+                       (Element member,
+                        String name,
+                        String accessorName,
+                        bool needsGetter,
+                        bool needsSetter,
+                        bool needsCheckedSetter) {
+        // Ignore needsCheckedSetter - that is handled below.
+        bool needsAccessor = (needsGetter || needsSetter);
+        // We need to output the fields for non-native classes so we can auto-
+        // generate the constructor.  For native classes there are no
+        // constructors, so we don't need the fields unless we are generating
+        // accessors at runtime.
+        if (!classIsNative || needsAccessor) {
+          buffer.write(separator);
+          separator = ',';
+          var metadata = buildMetadataFunction(member);
+          if (metadata != null) {
+            hasMetadata = true;
           } else {
-            buffer.write(FIELD_CODE_CHARACTERS[code - FIRST_FIELD_CODE]);
+            metadata = new jsAst.LiteralNull();
+          }
+          fieldMetadata.add(metadata);
+          recordMangledField(member, accessorName, member.name.slowToString());
+          if (!needsAccessor) {
+            // Emit field for constructor generation.
+            assert(!classIsNative);
+            buffer.write(name);
+          } else {
+            // Emit (possibly renaming) field name so we can add accessors at
+            // runtime.
+            buffer.write(accessorName);
+            if (name != accessorName) {
+              buffer.write(':$name');
+              // Only the native classes can have renaming accessors.
+              assert(classIsNative);
+            }
+
+            int getterCode = 0;
+            if (needsGetter) {
+              // 01:  function() { return this.field; }
+              // 10:  function(receiver) { return receiver.field; }
+              // 11:  function(receiver) { return this.field; }
+              if (member.isInstanceMember()) {
+                getterCode += backend.fieldHasInterceptedGetter(member) ? 2 : 0;
+                getterCode += backend.isInterceptorClass(classElement) ? 0 : 1;
+                // TODO(sra): 'isInterceptorClass' might not be the correct
+                // test for methods forced to use the interceptor convention
+                // because the method's class was elsewhere mixed-in to an
+                // interceptor.
+                assert(getterCode != 0);
+              } else {
+                getterCode = 1;
+              }
+            }
+            int setterCode = 0;
+            if (needsSetter) {
+              // 01:  function(value) { this.field = value; }
+              // 10:  function(receiver, value) { receiver.field = value; }
+              // 11:  function(receiver, value) { this.field = value; }
+              if (member.isInstanceMember()) {
+                setterCode += backend.fieldHasInterceptedSetter(member) ? 2 : 0;
+                setterCode += backend.isInterceptorClass(classElement) ? 0 : 1;
+                assert(setterCode != 0);
+              } else {
+                setterCode = 1;
+              }
+            }
+            int code = getterCode + (setterCode << 2);
+            if (code == 0) {
+              compiler.reportInternalError(
+                  member, 'Internal error: code is 0 ($classElement/$member)');
+            } else {
+              buffer.write(FIELD_CODE_CHARACTERS[code - FIRST_FIELD_CODE]);
+            }
           }
         }
-      }
-    });
+      });
+    }
 
     bool fieldsAdded = buffer.length > bufferClassLength;
     String compactClassData = buffer.toString();
@@ -1812,8 +1826,10 @@ class CodeEmitterTask extends CompilerTask {
    * Invariant: [classElement] must be a declaration element.
    */
   void generateClass(ClassElement classElement, CodeBuffer buffer) {
+    final onlyForRti = rtiNeededClasses.contains(classElement);
+
     assert(invariant(classElement, classElement.isDeclaration));
-    assert(invariant(classElement, !classElement.isNative()));
+    assert(invariant(classElement, !classElement.isNative() || onlyForRti));
 
     needsDefineClass = true;
     String className = namer.getName(classElement);
@@ -1836,7 +1852,7 @@ class CodeEmitterTask extends CompilerTask {
     emitClassConstructor(classElement, builder);
     emitSuper(superName, builder);
     emitRuntimeName(runtimeName, builder);
-    emitClassFields(classElement, builder, superName);
+    emitClassFields(classElement, builder, superName, onlyForRti: onlyForRti);
     emitClassGettersSetters(classElement, builder);
     if (!classElement.isMixinApplication) {
       emitInstanceMembers(classElement, builder);
@@ -3093,46 +3109,13 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         .toSet();
     neededClasses.addAll(mixinClasses);
 
-    // 3a. Add classes that are referenced by type arguments or substitutions in
-    //     argument checks.
-    // TODO(karlklose): merge this case with 3b when unifying argument and
-    // object checks.
-    RuntimeTypes rti = backend.rti;
-    backend.rti.getRequiredArgumentClasses(backend).forEach((ClassElement c) {
-      // Types that we represent with JS native types (like int and String) do
-      // not need a class definition as we use the interceptor classes instead.
-      if (!rti.isJsNative(c)) {
-        addClassWithSuperclasses(c);
-      }
-    });
-
-    // 3b. Add classes that are referenced by substitutions in object checks and
-    //     their superclasses.
-    TypeChecks requiredChecks =
-        backend.rti.computeChecks(neededClasses, checkedClasses);
-    Set<ClassElement> classesUsedInSubstitutions =
-        rti.getClassesUsedInSubstitutions(backend, requiredChecks);
-    addClassesWithSuperclasses(classesUsedInSubstitutions);
-
-    // 3c. Add classes that contain checked generic function types. These are
-    //     needed to store the signature encoding.
-    for (FunctionType type in checkedFunctionTypes) {
-      ClassElement contextClass = Types.getClassContext(type);
-      if (contextClass != null) {
-        neededClasses.add(contextClass);
-      }
-    }
-
-    // 4. Finally, sort the classes.
-    List<ClassElement> sortedClasses = Elements.sortedByPosition(neededClasses);
-
-    // If we need noSuchMethod support, we run through all needed
+    // 3. If we need noSuchMethod support, we run through all needed
     // classes to figure out if we need the support on any native
     // class. If so, we let the native emitter deal with it.
     if (compiler.enabledNoSuchMethod) {
       SourceString noSuchMethodName = Compiler.NO_SUCH_METHOD;
       Selector noSuchMethodSelector = compiler.noSuchMethodSelector;
-      for (ClassElement element in sortedClasses) {
+      for (ClassElement element in neededClasses) {
         if (!element.isNative()) continue;
         Element member = element.lookupLocalMember(noSuchMethodName);
         if (member == null) continue;
@@ -3143,8 +3126,25 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       }
     }
 
+    // 4. Find all classes needed for rti.
+    // It is important that this is the penultimate step, at this point,
+    // neededClasses must only contain classes that have been resolved and
+    // codegen'd. The rtiNeededClasses may contain additional classes, but
+    // these are thought to not have been instantiated, so we neeed to be able
+    // to identify them later and make sure we only emit "empty shells" without
+    // fields, etc.
+    computeRtiNeededClasses();
+    rtiNeededClasses.removeAll(neededClasses);
+    // rtiNeededClasses now contains only the "empty shells".
+    neededClasses.addAll(rtiNeededClasses);
+
+    // 5. Finally, sort the classes.
+    List<ClassElement> sortedClasses = Elements.sortedByPosition(neededClasses);
+
     for (ClassElement element in sortedClasses) {
-      if (element.isNative()) {
+      if (rtiNeededClasses.contains(element)) {
+        regularClasses.add(element);
+      } else if (element.isNative()) {
         // For now, native classes cannot be deferred.
         nativeClasses.add(element);
       } else if (isDeferred(element)) {
@@ -3153,6 +3153,58 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         regularClasses.add(element);
       }
     }
+  }
+
+  Set<ClassElement> computeRtiNeededClasses() {
+    void addClassWithSuperclasses(ClassElement cls) {
+      if (cls.name == const SourceString('CssStyleDeclaration')) {
+        throw 'hest';
+      }
+      rtiNeededClasses.add(cls);
+      for (ClassElement superclass = cls.superclass;
+          superclass != null;
+          superclass = superclass.superclass) {
+        rtiNeededClasses.add(superclass);
+      }
+    }
+
+    void addClassesWithSuperclasses(Iterable<ClassElement> classes) {
+      for (ClassElement cls in classes) {
+        addClassWithSuperclasses(cls);
+      }
+    }
+
+    // 1.  Add classes that are referenced by type arguments or substitutions in
+    //     argument checks.
+    // TODO(karlklose): merge this case with 2 when unifying argument and
+    // object checks.
+    RuntimeTypes rti = backend.rti;
+    rti.getRequiredArgumentClasses(backend).forEach((ClassElement c) {
+      // Types that we represent with JS native types (like int and String) do
+      // not need a class definition as we use the interceptor classes instead.
+      if (!rti.isJsNative(c)) {
+        addClassWithSuperclasses(c);
+      }
+    });
+
+    // 2.  Add classes that are referenced by substitutions in object checks and
+    //     their superclasses.
+    TypeChecks requiredChecks =
+        rti.computeChecks(rtiNeededClasses, checkedClasses);
+    Set<ClassElement> classesUsedInSubstitutions =
+        rti.getClassesUsedInSubstitutions(backend, requiredChecks);
+    addClassesWithSuperclasses(classesUsedInSubstitutions);
+
+    // 3.  Add classes that contain checked generic function types. These are
+    //     needed to store the signature encoding.
+    for (FunctionType type in checkedFunctionTypes) {
+      ClassElement contextClass = Types.getClassContext(type);
+      if (contextClass != null) {
+        rtiNeededClasses.add(contextClass);
+      }
+    }
+
+    return rtiNeededClasses;
   }
 
   // Optimize performance critical one shot interceptors.

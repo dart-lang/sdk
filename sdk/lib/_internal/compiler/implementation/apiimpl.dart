@@ -258,14 +258,13 @@ class Compiler extends leg.Compiler {
   Uri translatePackageUri(Uri uri, tree.Node node) {
     if (packageRoot == null) {
       if (node != null) {
-        reportErrorCode(node, 
+        reportErrorCode(node,
             leg.MessageKind.PACKAGE_ROOT_NOT_SET,
             {'uri': uri});
       } else {
-        reportDiagnostic(null, 
+        reportDiagnostic(null,
             leg.MessageKind.PACKAGE_ROOT_NOT_SET.error({'uri': uri}).toString(),
             api.Diagnostic.ERROR);
-        
       }
       throw new leg.CompilerCancelledException("Package root not set.");
     }
