@@ -40,12 +40,12 @@ class SpannableAssertionFailure {
 
 /**
  * Helper method for printing stack traces for debugging.
- * 
+ *
  * [message] is printed as the header of the stack trace.
- * 
+ *
  * If [condition] is provided, the stack trace is only printed if [condition]
  * returns [:true:] on the stack trace text. This can be used to filter the
- * printed stack traces based on their content. For instance only print stack 
+ * printed stack traces based on their content. For instance only print stack
  * traces that contain specific paths.
  */
 void trace(String message, [bool condition(String stackTrace)]) {
@@ -62,7 +62,7 @@ void trace(String message, [bool condition(String stackTrace)]) {
 }
 
 /**
- * File name prefix used to shorten the file name in stack traces printed by 
+ * File name prefix used to shorten the file name in stack traces printed by
  * [trace].
  */
 String stackTraceFilePrefix = null;
@@ -74,31 +74,31 @@ class _StackTraceLine {
   final String lineNo;
   final String columnNo;
   final String method;
-  
-  _StackTraceLine(this.index, this.file, this.lineNo, 
+
+  _StackTraceLine(this.index, this.file, this.lineNo,
                   this.columnNo, this.method);
 }
 
 // TODO(johnniwinther): Use this format for --throw-on-error.
 /**
  * Converts the normal VM stack trace into a more compact and readable format.
- * 
+ *
  * The output format is [: <file> . . . <lineNo>:<columnNo> <method> :] where
- * [: <file> :] is file name, [: <lineNo> :] is the line number, 
+ * [: <file> :] is file name, [: <lineNo> :] is the line number,
  * [: <columnNo> :] is the column number, and [: <method> :] is the method name.
- * 
+ *
  * If [rangeStart] and/or [rangeEnd] are provided, only the lines within the
  * range are included.
  * If [showColumnNo] is [:false:], the [: :<columnNo> :] part is omitted.
  * If [showDots] is [:true:], the space between [: <file> :] and [: <lineNo> :]
  * is padded with dots on every other line.
- * If [filePrefix] is provided, then for  every file name thats starts with 
+ * If [filePrefix] is provided, then for  every file name thats starts with
  * [filePrefix] only the remainder is printed.
- * If [lambda] is non-null, anonymous closures are printed as [lambda]. 
+ * If [lambda] is non-null, anonymous closures are printed as [lambda].
  */
-String prettifyStackTrace(StackTrace s, 
-                          {int rangeStart, 
-                           int rangeEnd, 
+String prettifyStackTrace(StackTrace s,
+                          {int rangeStart,
+                           int rangeEnd,
                            bool showColumnNo: false,
                            bool showDots: true,
                            String filePrefix,
@@ -107,22 +107,22 @@ String prettifyStackTrace(StackTrace s,
   int maxFileLength = 0;
   int maxLineNoLength = 0;
   int maxColumnNoLength = 0;
-  
+
   List<_StackTraceLine> lines = <_StackTraceLine>[];
   for (String line in '$s'.split('\n')) {
     index++;
     if (rangeStart != null && index < rangeStart) continue;
     if (rangeEnd != null && index > rangeEnd) continue;
     if (line.isEmpty) continue;
-    
+
     // Strip index.
     line = line.replaceFirst(new RegExp(r'#\d+\s*'), '');
-    
+
     int leftParenPos = line.indexOf('(');
     int rightParenPos = line.indexOf(')', leftParenPos);
     int lastColon = line.lastIndexOf(':', rightParenPos);
     int nextToLastColon = line.lastIndexOf(':', lastColon-1);
-    
+
     String lineNo = line.substring(nextToLastColon+1, lastColon);
     if (lineNo.length > maxLineNoLength) {
       maxLineNoLength = lineNo.length;
@@ -144,14 +144,14 @@ String prettifyStackTrace(StackTrace s,
     }
     lines.add(new _StackTraceLine(index, file, lineNo, columnNo, method));
   }
-  
+
   StringBuffer sb = new StringBuffer();
   bool dots = true;
   for (_StackTraceLine line in lines) {
-    String file = pad('${line.file} ', maxFileLength, 
+    String file = pad('${line.file} ', maxFileLength,
                       dots: showDots && dots ? ' .' : ' ');
     String lineNo = pad(line.lineNo, maxLineNoLength, padLeft: true);
-    String columnNo = 
+    String columnNo =
         showColumnNo ? ':${pad(line.columnNo, maxColumnNoLength)}' : '';
     String method = line.method;
     sb.write('  $file $lineNo$columnNo $method\n');
@@ -162,12 +162,12 @@ String prettifyStackTrace(StackTrace s,
 }
 
 /**
- * Pads (or truncates) [text] to the [intendedLength]. 
- * 
+ * Pads (or truncates) [text] to the [intendedLength].
+ *
  * If [padLeft] is [:true:] the text is padding inserted to the left of [text].
- * A repetition of the [dots] text is used for padding. 
+ * A repetition of the [dots] text is used for padding.
  */
-String pad(String text, int intendedLength, 
+String pad(String text, int intendedLength,
            {bool padLeft: false, String dots: ' '}) {
   if (text.length == intendedLength) return text;
   if (text.length > intendedLength) return text.substring(0, intendedLength);

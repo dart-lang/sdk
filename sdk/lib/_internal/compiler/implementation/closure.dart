@@ -18,7 +18,6 @@ class ClosureNamer {
   }
 }
 
-
 class ClosureTask extends CompilerTask {
   Map<Node, ClosureClassMap> closureMappingCache;
   ClosureNamer namer;
@@ -68,11 +67,25 @@ class ClosureTask extends CompilerTask {
 // TODO(ahe): These classes continuously cause problems.  We need to
 // move these classes to elements/modelx.dart or see if we can find a
 // more general solution.
-class ClosureFieldElement extends ElementX {
+class ClosureFieldElement extends ElementX implements VariableElement {
+  /// The source variable this element refers to.
+  final Element variableElement;
+
   ClosureFieldElement(SourceString name,
                       this.variableElement,
                       ClassElement enclosing)
       : super(name, ElementKind.FIELD, enclosing);
+
+  VariableListElement get variables {
+    throw new SpannableAssertionFailure(
+        variableElement, 'Should not access variables of ClosureFieldElement.');
+  }
+
+  Expression get cachedNode {
+    throw new SpannableAssertionFailure(
+        variableElement,
+        'Should not access cachedNode of ClosureFieldElement.');
+  }
 
   bool isInstanceMember() => true;
   bool isAssignable() => false;
@@ -86,11 +99,6 @@ class ClosureFieldElement extends ElementX {
   }
 
   String toString() => "ClosureFieldElement($name)";
-
-  /**
-   * The source variable this element refers to.
-   */
-  final Element variableElement;
 }
 
 // TODO(ahe): These classes continuously cause problems.  We need to

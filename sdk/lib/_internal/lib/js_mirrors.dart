@@ -71,11 +71,13 @@ class JsMirrorSystem implements MirrorSystem {
       List<String> classes = data[2];
       List<String> functions = data[3];
       var metadataFunction = data[4];
+      var fields = data[5];
       List metadata = (metadataFunction == null)
           ? null : JS('List', '#()', metadataFunction);
       var libraries = result.putIfAbsent(name, () => <LibraryMirror>[]);
       libraries.add(
-          new JsLibraryMirror(s(name), uri, classes, functions, metadata));
+          new JsLibraryMirror(
+              s(name), uri, classes, functions, metadata, fields));
     }
     return result;
   }
@@ -84,7 +86,7 @@ class JsMirrorSystem implements MirrorSystem {
   IsolateMirror get isolate => throw new UnimplementedError();
 }
 
-abstract class JsMirror {
+abstract class JsMirror implements Mirror {
   const JsMirror();
 
   abstract String get _prettyName;
@@ -93,6 +95,22 @@ abstract class JsMirror {
 
   // TODO(ahe): Remove this method from the API.
   MirrorSystem get mirrors => currentJsMirrorSystem;
+
+  _getField(JsMirror receiver) {
+    throw new UnimplementedError();
+  }
+
+  void _setField(JsMirror receiver, Object arg) {
+    throw new UnimplementedError();
+  }
+
+  _loadField(String name) {
+    throw new UnimplementedError();
+  }
+
+  void _storeField(String name, Object arg) {
+    throw new UnimplementedError();
+  }
 }
 
 abstract class JsDeclarationMirror extends JsMirror
@@ -108,6 +126,10 @@ abstract class JsDeclarationMirror extends JsMirror
   bool get isTopLevel => owner != null && owner is LibraryMirror;
 
   String toString() => "$_prettyName on '${n(simpleName)}'";
+
+  List<JsMethodMirror> get _methods {
+    throw new RuntimeError('Should not call _methods');
+  }
 
   // TODO(ahe): Implement this.
   SourceLocation get location => throw new UnimplementedError();
@@ -134,18 +156,23 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
   final List<String> _classes;
   final List<String> _functions;
   final List _metadata;
+  final String _compactFieldSpecification;
   List<JsMethodMirror> _cachedFunctionMirrors;
+  List<JsVariableMirror> _cachedFields;
 
   JsLibraryMirror(Symbol simpleName,
-                 this.uri,
-                 this._classes,
-                 this._functions,
-                 this._metadata)
+                  this.uri,
+                  this._classes,
+                  this._functions,
+                  this._metadata,
+                  this._compactFieldSpecification)
       : super(simpleName);
 
   String get _prettyName => 'LibraryMirror';
 
   Symbol get qualifiedName => simpleName;
+
+  List<JsMethodMirror> get _methods => _functionMirrors;
 
   Map<Symbol, ClassMirror> get classes {
     var result = new Map<Symbol, ClassMirror>();
@@ -158,14 +185,35 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
   }
 
   InstanceMirror setField(Symbol fieldName, Object arg) {
-    // TODO(ahe): This is extremely dangerous!!!
-    JS('void', '#[#] = #', JS_CURRENT_ISOLATE(), n(fieldName), arg);
+    String name = n(fieldName);
+    if (name.endsWith('=')) throw new ArgumentError('');
+    var mirror = functions[s('$name=')];
+    if (mirror == null) mirror = variables[fieldName];
+    if (mirror == null) {
+      // TODO(ahe): What receiver to use?
+      throw new NoSuchMethodError(this, '${n(fieldName)}=', [arg], null);
+    }
+    mirror._setField(this, arg);
     return reflect(arg);
   }
 
   InstanceMirror getField(Symbol fieldName) {
-    // TODO(ahe): This is extremely dangerous!!!
-    return reflect(JS('', '#[#]', JS_CURRENT_ISOLATE(), n(fieldName)));
+    JsMirror mirror = members[fieldName];
+    if (mirror == null) {
+      // TODO(ahe): What receiver to use?
+      throw new NoSuchMethodError(this, '${n(fieldName)}', [], null);
+    }
+    return reflect(mirror._getField(this));
+  }
+
+  _loadField(String name) {
+    assert(JS('bool', '# in #', name, JS_CURRENT_ISOLATE()));
+    return JS('', '#[#]', JS_CURRENT_ISOLATE(), name);
+  }
+
+  void _storeField(String name, Object arg) {
+    assert(JS('bool', '# in #', name, JS_CURRENT_ISOLATE()));
+    JS('void', '#[#] = #', JS_CURRENT_ISOLATE(), name, arg);
   }
 
   List<JsMethodMirror> get _functionMirrors {
@@ -193,6 +241,15 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
     return _cachedFunctionMirrors = result;
   }
 
+  List<VariableMirror> get _fields {
+    if (_cachedFields != null) return _cachedFields;
+    var result = <VariableMirror>[];
+    parseCompactFieldSpecification(
+        this, _compactFieldSpecification, true, result);
+    _cachedFields = result;
+    return _cachedFields;
+  }
+
   Map<Symbol, MethodMirror> get functions {
     var result = new Map<Symbol, MethodMirror>();
     for (JsMethodMirror mirror in _functionMirrors) {
@@ -215,7 +272,9 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
 
   Map<Symbol, VariableMirror> get variables {
     var result = new Map<Symbol, VariableMirror>();
-    // TODO(ahe): Implement this.
+    for (JsVariableMirror mirror in _fields) {
+      result[mirror.simpleName] = mirror;
+    }
     return result;
   }
 
@@ -498,46 +557,19 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   List<VariableMirror> get _fields {
     if (_cachedFields != null) return _cachedFields;
     var result = <VariableMirror>[];
-    var s = _fieldsDescriptor.split(';');
-    var fields = s[1] == '' ? [] : s[1].split(',');
-    int fieldNumber = 0;
-    for (String field in fields) {
-      var metadata;
-      if (_fieldsMetadata != null) {
-        metadata = _fieldsMetadata[fieldNumber++];
-      }
-      JsVariableMirror mirror =
-          new JsVariableMirror.from(field, metadata, this, false);
-      if (mirror != null) {
-        result.add(mirror);
-      }
+
+    var instanceFieldSpecfication = _fieldsDescriptor.split(';')[1];
+    if (_fieldsMetadata != null) {
+      instanceFieldSpecfication =
+          [instanceFieldSpecfication]..addAll(_fieldsMetadata);
     }
+    parseCompactFieldSpecification(
+        this, instanceFieldSpecfication, false, result);
 
     var staticDescriptor = JS('', 'init.statics[#]', _mangledName);
     if (staticDescriptor != null) {
-      var staticFieldsDescriptor = JS('', '#[""]', staticDescriptor);
-      var staticFieldsMetadata = null;
-      var staticFields;
-      if (staticFieldsDescriptor is List) {
-        staticFields = staticFieldsDescriptor[0].split(',');
-        staticFieldsMetadata = staticFieldsDescriptor.sublist(1);
-      } else if (staticFieldsDescriptor is String) {
-        staticFields = staticFieldsDescriptor.split(',');
-      } else {
-        staticFields = [];
-      }
-      fieldNumber = 0;
-      for (String staticField in staticFields) {
-        var metadata;
-        if (staticFieldsMetadata != null) {
-          metadata = staticFieldsMetadata[fieldNumber++];
-        }
-        JsVariableMirror mirror =
-            new JsVariableMirror.from(staticField, metadata, this, true);
-        if (mirror != null) {
-          result.add(mirror);
-        }
-      }
+      parseCompactFieldSpecification(
+          this, JS('', '#[""]', staticDescriptor), true, result);
     }
     _cachedFields = result;
     return _cachedFields;
@@ -762,7 +794,7 @@ class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
 
   factory JsVariableMirror.from(String descriptor,
                                 metadataFunction,
-                                JsClassMirror owner,
+                                JsDeclarationMirror owner,
                                 bool isStatic) {
     int length = descriptor.length;
     var code = fieldCode(descriptor.codeUnitAt(length - 1));
@@ -822,6 +854,15 @@ class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
     if (code >= 123 && code <= 126) return code - 117;
     if (code >= 37 && code <= 43) return code - 27;
     return 0;
+  }
+
+  _getField(JsMirror receiver) => receiver._loadField(_jsName);
+
+  void _setField(JsMirror receiver, Object arg) {
+    if (isFinal) {
+      throw new NoSuchMethodError(this, '${n(simpleName)}=', [arg], null);
+    }
+    receiver._storeField(_jsName, arg);
   }
 }
 
@@ -913,10 +954,10 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
     bool isGetter = false;
     if (info.length == 1) {
       if (isSetter) {
-        requiredParameterCount = 2;
+        requiredParameterCount = 1;
       } else {
         isGetter = true;
-        requiredParameterCount = 1;
+        requiredParameterCount = 0;
       }
     } else {
       requiredParameterCount = int.parse(info[1]);
@@ -987,6 +1028,23 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
               new List.from(positionalArguments));
   }
 
+  _getField(JsMirror receiver) {
+    if (isGetter) {
+      return _invoke([], null);
+    } else {
+      // TODO(ahe): Closurize method.
+      throw new UnimplementedError('getField on $receiver');
+    }
+  }
+
+  _setField(JsMirror receiver, Object arg) {
+    if (isSetter) {
+      return _invoke([arg], null);
+    } else {
+      throw new NoSuchMethodError(this, '${n(simpleName)}=', [], null);
+    }
+  }
+
   // TODO(ahe): Implement these.
   bool get isAbstract => throw new UnimplementedError();
   bool get isRegularMethod => throw new UnimplementedError();
@@ -1052,4 +1110,38 @@ List extractMetadata(victim) {
   int endQuote = source.indexOf('"', index);
   return source.substring(index, endQuote).split(',').map(int.parse).map(
       (int i) => JS('', 'init.metadata[#]', i)).toList();
+}
+
+List<JsVariableMirror> parseCompactFieldSpecification(
+    JsDeclarationMirror owner,
+    fieldSpecification,
+    bool isStatic,
+    List<Mirror> result) {
+  List fieldsMetadata = null;
+  List<String> fieldNames;
+  if (fieldSpecification is List) {
+    fieldNames = splitFields(fieldSpecification[0], ',');
+    fieldsMetadata = fieldSpecification.sublist(1);
+  } else if (fieldSpecification is String) {
+    fieldNames = splitFields(fieldSpecification, ',');
+  } else {
+    fieldNames = [];
+  }
+  int fieldNumber = 0;
+  for (String field in fieldNames) {
+    var metadata;
+    if (fieldsMetadata != null) {
+      metadata = fieldsMetadata[fieldNumber++];
+    }
+    var mirror = new JsVariableMirror.from(field, metadata, owner, isStatic);
+    if (mirror != null) {
+      result.add(mirror);
+    }
+  }
+}
+
+/// Similar to [String.split], but returns an empty list if [string] is empty.
+List<String> splitFields(String string, Pattern pattern) {
+  if (string.isEmpty) return <String>[];
+  return string.split(pattern);
 }

@@ -3,11 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library MirrorsTest;
-import "dart:mirrors";
-import "../../../pkg/unittest/lib/unittest.dart";
+
+import 'dart:mirrors';
+
+import '../../light_unittest.dart';
 
 bool isDart2js = false; // TODO(ahe): Remove this field.
-bool isMinified = false; // TODO(ahe): Remove this field.
 
 var topLevelField;
 u(a, b, c) => {"a": a, "b": b, "c": c};
@@ -121,19 +122,17 @@ testFieldAccess(mirrors) {
   expect(fieldMirror is VariableMirror, isTrue);
   expect(fieldMirror.type, equals(mirrors.dynamicType));
 
-  if (!isMinified) {
-    libMirror.setField(const Symbol('topLevelField'), [91]);
-    expect(libMirror.getField(const Symbol('topLevelField')).reflectee,
-           equals([91]));
-    expect(topLevelField, equals([91]));
+  libMirror.setField(const Symbol('topLevelField'), [91]);
+  expect(libMirror.getField(const Symbol('topLevelField')).reflectee,
+         equals([91]));
+  expect(topLevelField, equals([91]));
 
-    libMirror.setFieldAsync(const Symbol('topLevelField'), 42);
-    future = libMirror.getFieldAsync(const Symbol('topLevelField'));
-    future.then(expectAsync1((resultMirror) {
-      expect(resultMirror.reflectee, equals(42));
-      expect(topLevelField, equals(42));
-    }));
-  }
+  libMirror.setFieldAsync(const Symbol('topLevelField'), 42);
+  future = libMirror.getFieldAsync(const Symbol('topLevelField'));
+  future.then(expectAsync1((resultMirror) {
+    expect(resultMirror.reflectee, equals(42));
+    expect(topLevelField, equals(42));
+  }));
 
   classMirror.setFieldAsync(const Symbol('staticField'), 43);
   future = classMirror.getFieldAsync(const Symbol('staticField'));

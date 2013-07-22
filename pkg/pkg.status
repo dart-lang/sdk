@@ -91,7 +91,6 @@ serialization/test/no_library_test: Fail # Issue 6490
 unittest/test/*_unminified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
 
 [ $compiler == dart2js && $browser ]
-path/test/dartium_test: Fail # Issue 6490
 stack_trace/test/vm_test: Fail, OK # VM-specific traces
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
