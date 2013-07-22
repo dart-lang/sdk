@@ -7,7 +7,6 @@
 //
 // Test:
 //   *) Connect to VM Service and obtain list of running isolates.
-//   *) Spawn a second isolate and run test again.
 
 library multiple_isolate_list_test;
 

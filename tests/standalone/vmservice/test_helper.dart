@@ -33,7 +33,7 @@ abstract class VmServiceRequestHelper {
   }
 
   void _requestCompleted(List<int> data, HttpClientResponse response) {
-    Expect.equals(200, response.statusCode);
+    Expect.equals(200, response.statusCode, 'Invalid HTTP Status Code');
     var replyAsString;
     try {
       replyAsString = UTF.decodeUtf8(data, 0, null, null);
@@ -49,17 +49,17 @@ abstract class VmServiceRequestHelper {
       return;
     }
     if (reply is! Map) {
-        onRequestFailed('Reply was not a map: $reply');
-        return;
+      onRequestFailed('Reply was not a map: $reply');
+      return;
     }
     if (reply['type'] == null) {
-        onRequestFailed('Reply does not contain a type key: $reply');
-        return;
+      onRequestFailed('Reply does not contain a type key: $reply');
+      return;
     }
     try {
-        onRequestCompleted(reply);
-    } catch(e) {
-        onRequestFailed('Test callback failed: $e');
+      onRequestCompleted(reply);
+    } catch (e) {
+      onRequestFailed('Test callback failed: $e');
     }
   }
 
@@ -127,11 +127,11 @@ class IsolateListTester {
 
   IsolateListTester(this.isolateList) {
     // The reply is an IsolateList.
-    Expect.equals('IsolateList', isolateList['type']);
+    Expect.equals('IsolateList', isolateList['type'], 'Not an IsolateList.');
   }
 
   void checkIsolateCount(int n) {
-    Expect.equals(n, isolateList['members'].length);
+    Expect.equals(n, isolateList['members'].length, 'Isolate count not $n');
   }
 
   void checkIsolateIdExists(int id) {
@@ -141,7 +141,7 @@ class IsolateListTester {
         exists = true;
       }
     });
-    Expect.isTrue(exists);
+    Expect.isTrue(exists, 'No isolate with id: $id');
   }
 
   void checkIsolateNameContains(String name) {
@@ -151,7 +151,7 @@ class IsolateListTester {
         exists = true;
       }
     });
-    Expect.isTrue(exists);
+    Expect.isTrue(exists, 'No isolate with name: $name');
   }
 
   void checkIsolateNamePrefix(int id, String name) {
@@ -159,9 +159,10 @@ class IsolateListTester {
     isolateList['members'].forEach((isolate) {
       if (isolate['id'] == id) {
         exists = true;
-        Expect.isTrue(isolate['name'].startsWith(name));
+        Expect.isTrue(isolate['name'].startsWith(name),
+                      'Isolate $id does not have name prefix: $name');
       }
     });
-    Expect.isTrue(exists);
+    Expect.isTrue(exists, 'No isolate with id: $id');
   }
 }
