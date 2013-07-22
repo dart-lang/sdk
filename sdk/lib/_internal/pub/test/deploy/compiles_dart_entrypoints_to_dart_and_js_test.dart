@@ -17,7 +17,7 @@ main() {
     currentSchedule.timeout *= 3;
 
     d.dir(appPath, [
-      d.appPubspec([]),
+      d.appPubspec(),
       d.dir('web', [
         d.file('file.dart', 'void main() => print("hello");'),
         d.dir('subdir', [

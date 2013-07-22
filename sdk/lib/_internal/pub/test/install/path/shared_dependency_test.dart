@@ -17,16 +17,16 @@ main() {
 
     d.dir("foo", [
       d.libDir("foo"),
-      d.libPubspec("foo", "0.0.1", deps: [
-        {"path": "../shared"}
-      ])
+      d.libPubspec("foo", "0.0.1", deps: {
+        "shared": {"path": "../shared"}
+      })
     ]).create();
 
     d.dir("bar", [
       d.libDir("bar"),
-      d.libPubspec("bar", "0.0.1", deps: [
-        {"path": "../shared"}
-      ])
+      d.libPubspec("bar", "0.0.1", deps: {
+        "shared": {"path": "../shared"}
+      })
     ]).create();
 
     d.dir(appPath, [
@@ -56,16 +56,16 @@ main() {
 
     d.dir("foo", [
       d.libDir("foo"),
-      d.libPubspec("foo", "0.0.1", deps: [
-        {"path": "../shared"}
-      ])
+      d.libPubspec("foo", "0.0.1", deps: {
+        "shared": {"path": "../shared"}
+      })
     ]).create();
 
     d.dir("bar", [
       d.libDir("bar"),
-      d.libPubspec("bar", "0.0.1", deps: [
-        {"path": "../././shared"}
-      ])
+      d.libPubspec("bar", "0.0.1", deps: {
+        "shared": {"path": "../././shared"}
+      })
     ]).create();
 
     d.dir(appPath, [
@@ -95,16 +95,16 @@ main() {
 
     d.dir("foo", [
       d.libDir("foo"),
-      d.libPubspec("foo", "0.0.1", deps: [
-        {"path": "../shared"}
-      ])
+      d.libPubspec("foo", "0.0.1", deps: {
+        "shared": {"path": "../shared"}
+      })
     ]).create();
 
     d.dir("bar", [
       d.libDir("bar"),
-      d.libPubspec("bar", "0.0.1", deps: [
-        {"path": path.join(sandboxDir, "shared")}
-      ])
+      d.libPubspec("bar", "0.0.1", deps: {
+        "shared": {"path": path.join(sandboxDir, "shared")}
+      })
     ]).create();
 
     d.dir(appPath, [

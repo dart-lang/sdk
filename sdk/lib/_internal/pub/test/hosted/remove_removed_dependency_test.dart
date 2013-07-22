@@ -19,7 +19,7 @@ main() {
         packageMap("bar", "1.0.0")
       ]);
 
-      d.appDir([dependencyMap("foo"), dependencyMap("bar")]).create();
+      d.appDir({"foo": "any", "bar": "any"}).create();
 
       pubCommand(command);
 
@@ -28,7 +28,7 @@ main() {
         "bar": "1.0.0"
       }).validate();
 
-      d.appDir([dependencyMap("foo")]).create();
+      d.appDir({"foo": "any"}).create();
 
       pubCommand(command);
 

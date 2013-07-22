@@ -38,9 +38,9 @@ main() {
     d.dir("relative", [
       d.dir("foo", [
         d.libDir("foo"),
-        d.libPubspec("foo", "0.0.1", deps: [
-          {"path": "../bar"}
-        ])
+        d.libPubspec("foo", "0.0.1", deps: {
+          "bar": {"path": "../bar"}
+        })
       ]),
       d.dir("bar", [
         d.libDir("bar"),

@@ -13,7 +13,7 @@ main() {
 
   integration("ignores non-entrypoint Dart files", () {
     d.dir(appPath, [
-      d.appPubspec([]),
+      d.appPubspec(),
       d.dir('web', [
         d.file('file1.dart', 'var main = () => print("hello");'),
         d.file('file2.dart', 'void main(arg) => print("hello");'),

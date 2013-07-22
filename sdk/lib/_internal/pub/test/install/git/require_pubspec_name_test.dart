@@ -20,7 +20,7 @@ main() {
       d.pubspec({})
     ]).create();
 
-    d.appDir([{"git": "../foo.git"}]).create();
+    d.appDir({"foo": {"git": "../foo.git"}}).create();
 
     // TODO(nweiz): clean up this RegExp when either issue 4706 or 4707 is
     // fixed.

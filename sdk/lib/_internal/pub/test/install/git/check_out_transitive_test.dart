@@ -16,7 +16,9 @@ main() {
 
     d.git('foo.git', [
       d.libDir('foo'),
-      d.libPubspec('foo', '1.0.0', deps: [{"git": "../bar.git"}])
+      d.libPubspec('foo', '1.0.0', deps: {
+        "bar": {"git": "../bar.git"}
+      })
     ]).create();
 
     d.git('bar.git', [
@@ -24,7 +26,7 @@ main() {
       d.libPubspec('bar', '1.0.0')
     ]).create();
 
-    d.appDir([{"git": "../foo.git"}]).create();
+    d.appDir({"foo": {"git": "../foo.git"}}).create();
 
     pubInstall();
 

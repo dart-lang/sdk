@@ -16,7 +16,7 @@ main() {
     integration('fails gracefully if the package does not exist', () {
       servePackages([]);
 
-      d.appDir([dependencyMap("foo", "1.2.3")]).create();
+      d.appDir({"foo": "1.2.3"}).create();
 
       pubCommand(command, error: new RegExp(
           r'Could not find package "foo" at http://localhost:\d+\.$'));

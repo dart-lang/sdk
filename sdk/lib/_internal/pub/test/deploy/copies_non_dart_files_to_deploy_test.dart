@@ -16,7 +16,7 @@ main() {
     d.dir(appPath, [
       // A browser dependency with no entrypoints shouldn't cause dart.js to be
       // copied in.
-      d.appPubspec([dependencyMap("browser", "1.0.0")]),
+      d.appPubspec({"browser": "1.0.0"}),
       d.dir('web', [
         d.file('file.txt', 'contents'),
         d.dir('subdir', [

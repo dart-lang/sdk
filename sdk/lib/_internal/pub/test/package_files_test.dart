@@ -23,7 +23,7 @@ main() {
 
   group('not in a git repo', () {
     setUp(() {
-      d.appDir([]).create();
+      d.appDir().create();
       scheduleEntrypoint();
     });
 
@@ -55,7 +55,7 @@ main() {
   group('with git', () {
     setUp(() {
       ensureGit();
-      d.git(appPath, [d.appPubspec([])]).create();
+      d.git(appPath, [d.appPubspec()]).create();
       scheduleEntrypoint();
     });
 

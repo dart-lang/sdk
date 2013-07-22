@@ -17,7 +17,7 @@ main() {
   integration('does not request a pubspec for a cached package', () {
     servePackages([packageMap("foo", "1.2.3")]);
 
-    d.appDir([dependencyMap("foo", "1.2.3")]).create();
+    d.appDir({"foo": "1.2.3"}).create();
 
     // Run install once so it gets cached.
     pubInstall();

@@ -15,7 +15,7 @@ main() {
   initConfig();
   integration('replaces a broken "packages" symlink', () {
     d.dir(appPath, [
-      d.appPubspec([]),
+      d.appPubspec(),
       d.libDir('foo'),
       d.dir("bin")
     ]).create();
@@ -38,7 +38,7 @@ main() {
 
   integration('replaces a broken secondary "packages" symlink', () {
     d.dir(appPath, [
-      d.appPubspec([]),
+      d.appPubspec(),
       d.libDir('foo'),
       d.dir("bin")
     ]).create();

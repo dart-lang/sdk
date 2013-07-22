@@ -15,7 +15,7 @@ main() {
       "compatible constraint", () {
     servePackages([packageMap("foo", "1.0.0")]);
 
-    d.appDir([dependencyMap("foo")]).create();
+    d.appDir({"foo": "any"}).create();
 
     pubInstall();
 
@@ -23,7 +23,7 @@ main() {
 
     servePackages([packageMap("foo", "1.0.1")]);
 
-    d.appDir([dependencyMap("foo", ">=1.0.0")]).create();
+    d.appDir({"foo": ">=1.0.0"}).create();
 
     pubInstall();
 

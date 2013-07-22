@@ -19,12 +19,14 @@ main() {
     integration('sends the correct Accept header', () {
       var server = new ScheduledServer();
 
-      d.appDir([{
-        "hosted": {
-          "name": "foo",
-          "url": server.url.then((url) => url.toString())
+      d.appDir({
+        "foo": {
+          "hosted": {
+            "name": "foo",
+            "url": server.url.then((url) => url.toString())
+          }
         }
-      }]).create();
+      }).create();
 
       var pub = startPub(args: [command.name]);
 
@@ -38,12 +40,14 @@ main() {
     integration('prints a friendly error if the version is out-of-date', () {
       var server = new ScheduledServer();
 
-      d.appDir([{
-        "hosted": {
-          "name": "foo",
-          "url": server.url.then((url) => url.toString())
+      d.appDir({
+        "foo": {
+          "hosted": {
+            "name": "foo",
+            "url": server.url.then((url) => url.toString())
+          }
         }
-      }]).create();
+      }).create();
 
       var pub = startPub(args: [command.name]);
 

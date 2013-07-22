@@ -21,7 +21,7 @@ main() {
   initConfig();
   integration('uses a relative symlink for the self link', () {
     d.dir(appPath, [
-      d.appPubspec([]),
+      d.appPubspec(),
       d.libDir('foo')
     ]).create();
 
@@ -40,7 +40,7 @@ main() {
 
   integration('uses a relative symlink for secondary packages directory', () {
     d.dir(appPath, [
-      d.appPubspec([]),
+      d.appPubspec(),
       d.libDir('foo'),
       d.dir("bin")
     ]).create();

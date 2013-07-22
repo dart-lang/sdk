@@ -15,7 +15,7 @@ main() {
 
   forBothPubInstallAndUpdate((command) {
     integration('fails gracefully on a dependency from an unknown source', () {
-      d.appDir([{"bad": "foo"}]).create();
+      d.appDir({"foo": {"bad": "foo"}}).create();
 
       pubCommand(command, error:
           "Package 'myapp' depends on 'foo' from unknown source 'bad'.");
@@ -25,10 +25,10 @@ main() {
                 'source', () {
       d.dir('foo', [
         d.libDir('foo', 'foo 0.0.1'),
-        d.libPubspec('foo', '0.0.1', deps: [{"bad": "bar"}])
+        d.libPubspec('foo', '0.0.1', deps: {"bar": {"bad": "bar"}})
       ]).create();
 
-      d.appDir([{"path": "../foo"}]).create();
+      d.appDir({"foo": {"path": "../foo"}}).create();
 
       pubCommand(command, error:
           "Package 'foo' depends on 'bar' from unknown source 'bad'.");

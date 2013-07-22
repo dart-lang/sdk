@@ -19,7 +19,7 @@ main() {
       'lockfile', () {
     servePackages([packageMap("foo", "1.0.0")]);
 
-    d.appDir([dependencyMap("foo")]).create();
+    d.appDir({"foo": "any"}).create();
 
     // This install should lock the foo dependency to version 1.0.0.
     pubInstall();

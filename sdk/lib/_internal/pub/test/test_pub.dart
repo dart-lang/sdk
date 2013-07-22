@@ -604,7 +604,7 @@ void useMockClient(MockClient client) {
 
 /// Describes a map representing a library package with the given [name],
 /// [version], and [dependencies].
-Map packageMap(String name, String version, [List dependencies]) {
+Map packageMap(String name, String version, [Map dependencies]) {
   var package = {
     "name": name,
     "version": version,
@@ -612,54 +612,10 @@ Map packageMap(String name, String version, [List dependencies]) {
     "homepage": "http://pub.dartlang.org",
     "description": "A package, I guess."
   };
-  if (dependencies != null) {
-    package["dependencies"] = dependencyListToMap(dependencies);
-  }
+
+  if (dependencies != null) package["dependencies"] = dependencies;
+
   return package;
-}
-
-/// Describes a map representing a dependency on a package in the package
-/// repository.
-Map dependencyMap(String name, [String versionConstraint]) {
-  var dependency = {"hosted": name};
-  if (versionConstraint != null) dependency["version"] = versionConstraint;
-  return dependency;
-}
-
-/// Converts a list of dependencies as passed to [package] into a hash as used
-/// in a pubspec.
-Future<Map> dependencyListToMap(List<Map> dependencies) {
-  return awaitObject(dependencies).then((resolvedDependencies) {
-    var result = <String, Map>{};
-    for (var dependency in resolvedDependencies) {
-      var keys = dependency.keys.where((key) => key != "version");
-      var sourceName = only(keys);
-
-      result[_packageName(sourceName, dependency[sourceName])] = dependency;
-    }
-    return result;
-  });
-}
-
-/// Return the name for the package described by [description] and from
-/// [sourceName].
-String _packageName(String sourceName, description) {
-  switch (sourceName) {
-  case "git":
-    var url = description is String ? description : description['url'];
-    // TODO(rnystrom): Using path.basename on a URL is hacky. If we add URL
-    // support to pkg/path, should use an explicit builder for that.
-    return path.basename(url.replaceFirst(new RegExp(r"(\.git)?/?$"), ""));
-  case "hosted":
-    if (description is String) return description;
-    return description['name'];
-  case "path":
-    return path.basename(description);
-  case "sdk":
-    return description;
-  default:
-    return description;
-  }
 }
 
 /// Returns a Map in the format used by the pub.dartlang.org API to represent a
