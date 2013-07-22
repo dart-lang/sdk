@@ -10,10 +10,14 @@
 import 'dart:io';
 import 'dart:async';
 
+import 'package:path/path.dart' as path;
+
 import '../lib/docs.dart';
 
-final Path json_path = scriptDir.append('../docs.json').canonicalize();
-final Path lib_path = scriptDir.append('../../../../sdk/').canonicalize();
+final String json_path = 
+    path.normalize(path.join(scriptDir, '..', 'docs.json'));
+final String lib_path = 
+    path.normalize(path.join(scriptDir, '..', '..', '..', '..', 'sdk'));
 
 main() {
   print('Converting HTML docs from $lib_path to $json_path.');
@@ -29,5 +33,4 @@ main() {
  * Gets the full path to the directory containing the entrypoint of the current
  * script.
  */
-Path get scriptDir =>
-    new Path(new Options().script).directoryPath;
+String get scriptDir => path.dirname(new Options().script);
