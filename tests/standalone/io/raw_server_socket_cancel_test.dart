@@ -28,7 +28,7 @@ void testCancelResubscribeServerSocket(int socketCount, int backlog) {
         port.close();
         // Be sure to close as subscription.cancel may not be called, if
         // backlog prevents acceptCount to grow to socketCount / 2.
-        socket.close();
+        server.close();
       }
     }
 
