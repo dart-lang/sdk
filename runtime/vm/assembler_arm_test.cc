@@ -2459,6 +2459,48 @@ ASSEMBLER_TEST_RUN(Vorrq, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Vandq, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    // Q0
+    __ LoadImmediate(R0, 0xaaaaaaab);
+    __ vmovsr(S0, R0);
+    __ vmovsr(S1, R0);
+    __ vmovsr(S2, R0);
+    __ vmovsr(S3, R0);
+
+    // Q1
+    __ LoadImmediate(R0, 0x55555555);
+    __ vmovsr(S4, R0);
+    __ vmovsr(S5, R0);
+    __ vmovsr(S6, R0);
+    __ vmovsr(S7, R0);
+
+    // Q2 = 1 1 1 1
+    __ vandq(Q2, Q1, Q0);
+
+    __ vmovrs(R0, S8);
+    __ vmovrs(R1, S9);
+    __ vmovrs(R2, S10);
+    __ vmovrs(R3, S11);
+
+    __ add(R0, R0, ShifterOperand(R1));
+    __ add(R0, R0, ShifterOperand(R2));
+    __ add(R0, R0, ShifterOperand(R3));
+    __ bx(LR);
+  } else {
+    __ LoadImmediate(R0, 4);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vandq, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(4, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
 ASSEMBLER_TEST_GENERATE(Vmovq, assembler) {
   if (CPUFeatures::neon_supported()) {
     // Q0
@@ -3388,6 +3430,64 @@ ASSEMBLER_TEST_RUN(SIMDDiv, test) {
   typedef float (*SIMDDiv)();
   float res = EXECUTE_TEST_CODE_FLOAT(SIMDDiv, test->entry());
   EXPECT_FLOAT_EQ(16.0, res, 0.0001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vabsqs, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ LoadSImmediate(S4, 1.0);
+    __ LoadSImmediate(S5, -1.0);
+    __ LoadSImmediate(S6, 1.0);
+    __ LoadSImmediate(S7, -1.0);
+
+    __ vabsqs(Q0, Q1);
+
+    __ vadds(S0, S0, S1);
+    __ vadds(S0, S0, S2);
+    __ vadds(S0, S0, S3);
+
+    __ bx(LR);
+  } else {
+    __ LoadSImmediate(S0, 4.0);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vabsqs, test) {
+  EXPECT(test != NULL);
+  typedef float (*Vabsqs)();
+  float res = EXECUTE_TEST_CODE_FLOAT(Vabsqs, test->entry());
+  EXPECT_FLOAT_EQ(4.0, res, 0.0001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vnegqs, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ LoadSImmediate(S4, 1.0);
+    __ LoadSImmediate(S5, -2.0);
+    __ LoadSImmediate(S6, 1.0);
+    __ LoadSImmediate(S7, -2.0);
+
+    __ vnegqs(Q0, Q1);
+
+    __ vadds(S0, S0, S1);
+    __ vadds(S0, S0, S2);
+    __ vadds(S0, S0, S3);
+
+    __ bx(LR);
+  } else {
+    __ LoadSImmediate(S0, 2.0);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vnegqs, test) {
+  EXPECT(test != NULL);
+  typedef float (*Vnegqs)();
+  float res = EXECUTE_TEST_CODE_FLOAT(Vnegqs, test->entry());
+  EXPECT_FLOAT_EQ(2.0, res, 0.0001f);
 }
 
 

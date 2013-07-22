@@ -493,6 +493,7 @@ class Assembler : public ValueObject {
   void veorq(QRegister qd, QRegister qn, QRegister qm);
   void vorrq(QRegister qd, QRegister qn, QRegister qm);
   void vornq(QRegister qd, QRegister qn, QRegister qm);
+  void vandq(QRegister qd, QRegister qn, QRegister qm);
 
   void vceqqi(OperandSize sz, QRegister qd, QRegister qn, QRegister qm);
   void vceqqs(QRegister qd, QRegister qn, QRegister qm);
@@ -505,8 +506,10 @@ class Assembler : public ValueObject {
 
   void vabss(SRegister sd, SRegister sm, Condition cond = AL);
   void vabsd(DRegister dd, DRegister dm, Condition cond = AL);
+  void vabsqs(QRegister qd, QRegister qm);
   void vnegs(SRegister sd, SRegister sm, Condition cond = AL);
   void vnegd(DRegister dd, DRegister dm, Condition cond = AL);
+  void vnegqs(QRegister qd, QRegister qm);
   void vsqrts(SRegister sd, SRegister sm, Condition cond = AL);
   void vsqrtd(DRegister dd, DRegister dm, Condition cond = AL);
 

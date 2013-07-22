@@ -934,8 +934,11 @@ void Simulator::set_qregister(QRegister reg, const simd_value_t& value) {
 
 
 void Simulator::get_qregister(QRegister reg, simd_value_t* value) const {
-  ASSERT((reg >= 0) && (reg < kNumberOfQRegisters));
-  *value = qregisters_[reg];
+  // TODO(zra): Replace this test with an assert after we support
+  // 16 Q registers.
+  if ((reg >= 0) && (reg < kNumberOfQRegisters)) {
+    *value = qregisters_[reg];
+  }
 }
 
 
@@ -3126,6 +3129,12 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
           s8d.data_[i].u = s8n.data_[i].u | s8m.data_[i].u;
         }
       }
+    } else if ((instr->Bits(8, 4) == 1) && (instr->Bit(4) == 1) &&
+               (instr->Bits(20, 2) == 0) && (instr->Bits(23, 2) == 0)) {
+      // Format(instr, "vandq 'qd, 'qn, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.data_[i].u = s8n.data_[i].u & s8m.data_[i].u;
+      }
     } else if ((instr->Bits(8, 4) == 15) && (instr->Bit(4) == 0) &&
                (instr->Bits(20, 2) == 2) && (instr->Bits(23, 2) == 0)) {
       // Format(instr, "vminqs 'qd, 'qn, 'qm");
@@ -3139,6 +3148,20 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
       for (int i = 0; i < 4; i++) {
         s8d.data_[i].f =
           s8n.data_[i].f >= s8m.data_[i].f ? s8n.data_[i].f : s8m.data_[i].f;
+      }
+    } else if ((instr->Bits(8, 4) == 7) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
+               (instr->Bit(7) == 0) && (instr->Bits(16, 4) == 9)) {
+      // Format(instr, "vabsqs 'qd, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.data_[i].f = abs(s8m.data_[i].f);
+      }
+    } else if ((instr->Bits(8, 4) == 7) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
+               (instr->Bit(7) == 1) && (instr->Bits(16, 4) == 9)) {
+      // Format(instr, "vnegqs 'qd, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.data_[i].f = -s8m.data_[i].f;
       }
     } else if ((instr->Bits(7, 5) == 10) && (instr->Bit(4) == 0) &&
                (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&

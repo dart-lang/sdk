@@ -12,7 +12,7 @@ namespace dart {
 // We support both VFPv3-D16 and VFPv3-D32 profiles, but currently only one at
 // a time.
 // TODO(zra): Detect number of registers at runtime by querying /proc/cpuinfo.
-#define VFPv3_D32
+#define VFPv3_D16
 #if defined(VFPv3_D16) == defined(VFPv3_D32)
 #error "Exactly one of VFPv3_D16 or VFPv3_D32 can be defined at a time."
 #endif
@@ -166,10 +166,16 @@ static inline DRegister OddDRegisterOf(QRegister q) {
 
 
 static inline SRegister EvenSRegisterOf(DRegister d) {
+#ifdef VFPv3_D32
+  ASSERT(d < D16);
+#endif
   return static_cast<SRegister>(d * 2);
 }
 
 static inline SRegister OddSRegisterOf(DRegister d) {
+#ifdef VFPv3_D32
+  ASSERT(d < D16);
+#endif
   return static_cast<SRegister>((d * 2) + 1);
 }
 
