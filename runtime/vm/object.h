@@ -5876,7 +5876,11 @@ class MirrorReference : public Instance {
     StorePointer(&raw_ptr()->referent_, referent.raw());
   }
 
+  RawClass* GetClassReferent() const;
+
   RawFunction* GetFunctionReferent() const;
+
+  RawLibrary* GetLibraryReferent() const;
 
   static RawMirrorReference* New(Heap::Space space = Heap::kNew);
 

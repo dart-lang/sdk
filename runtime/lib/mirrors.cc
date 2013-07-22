@@ -1317,20 +1317,15 @@ static bool FieldIsUninitialized(const Field& field) {
 
 
 DEFINE_NATIVE_ENTRY(ClassMirror_name, 1) {
-  const MirrorReference& klass_ref =
-      MirrorReference::CheckedHandle(arguments->NativeArgAt(0));
-  Class& klass = Class::Handle();
-  klass ^= klass_ref.referent();
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
+  const Class& klass = Class::Handle(ref.GetClassReferent());
   return klass.Name();
 }
 
 
 DEFINE_NATIVE_ENTRY(ClassMirror_library, 1) {
-  const MirrorReference& klass_ref =
-      MirrorReference::CheckedHandle(arguments->NativeArgAt(0));
-  Class& klass = Class::Handle();
-  klass ^= klass_ref.referent();
-
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
+  const Class& klass = Class::Handle(ref.GetClassReferent());
   return CreateLibraryMirror(Library::Handle(klass.library()));
 }
 
@@ -1367,15 +1362,12 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invoke, 4) {
   // Argument 0 is the mirror, which is unused by the native. It exists
   // because this native is an instance method in order to be polymorphic
   // with its cousins.
+  GET_NATIVE_ARGUMENT(Instance, reflectee, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(
+      String, function_name, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(
+      Array, positional_args, arguments->NativeArgAt(3));
 
-  const Instance& reflectee =
-      Instance::CheckedHandle(arguments->NativeArgAt(1));
-
-  const String& function_name =
-      String::CheckedHandle(arguments->NativeArgAt(2));
-
-  const Array& positional_args =
-      Array::CheckedHandle(arguments->NativeArgAt(3));
   intptr_t number_of_arguments = positional_args.Length();
 
   const Array& args =
@@ -1406,12 +1398,8 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invokeGetter, 3) {
   // Argument 0 is the mirror, which is unused by the native. It exists
   // because this native is an instance method in order to be polymorphic
   // with its cousins.
-
-  const Instance& reflectee =
-      Instance::CheckedHandle(arguments->NativeArgAt(1));
-
-  const String& getter_name =
-      String::CheckedHandle(arguments->NativeArgAt(2));
+  GET_NATIVE_ARGUMENT(Instance, reflectee, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, getter_name, arguments->NativeArgAt(2));
 
   // Every instance field has a getter Function.  Try to find the
   // getter in any superclass and use that function to access the
@@ -1444,14 +1432,9 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invokeSetter, 4) {
   // Argument 0 is the mirror, which is unused by the native. It exists
   // because this native is an instance method in order to be polymorphic
   // with its cousins.
-
-  const Instance& reflectee =
-      Instance::CheckedHandle(arguments->NativeArgAt(1));
-
-  const String& setter_name =
-      String::CheckedHandle(arguments->NativeArgAt(2));
-
-  const Instance& value = Instance::CheckedHandle(arguments->NativeArgAt(3));
+  GET_NATIVE_ARGUMENT(Instance, reflectee, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, setter_name, arguments->NativeArgAt(2));
+  GET_NATIVE_ARGUMENT(Instance, value, arguments->NativeArgAt(3));
 
   String& internal_setter_name =
       String::Handle(Field::SetterName(setter_name));
@@ -1491,7 +1474,7 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invokeSetter, 4) {
 
 
 DEFINE_NATIVE_ENTRY(ClosureMirror_apply, 2) {
-  const Instance& closure = Instance::CheckedHandle(arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(0));
   ASSERT(!closure.IsNull() && closure.IsCallable(NULL, NULL));
 
   const Array& positional_args =
@@ -1520,17 +1503,13 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 4) {
   // Argument 0 is the mirror, which is unused by the native. It exists
   // because this native is an instance method in order to be polymorphic
   // with its cousins.
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
+  const Class& klass = Class::Handle(ref.GetClassReferent());
+  GET_NON_NULL_NATIVE_ARGUMENT(
+      String, function_name, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(
+      Array, positional_args, arguments->NativeArgAt(3));
 
-  const MirrorReference& klass_ref =
-      MirrorReference::CheckedHandle(arguments->NativeArgAt(1));
-  Class& klass = Class::Handle();
-  klass ^= klass_ref.referent();
-
-  const String& function_name =
-      String::CheckedHandle(arguments->NativeArgAt(2));
-
-  const Array& positional_args =
-      Array::CheckedHandle(arguments->NativeArgAt(3));
   intptr_t number_of_arguments = positional_args.Length();
 
   // TODO(11771): This won't find private members.
@@ -1564,14 +1543,9 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeGetter, 3) {
   // Argument 0 is the mirror, which is unused by the native. It exists
   // because this native is an instance method in order to be polymorphic
   // with its cousins.
-
-  const MirrorReference& klass_ref =
-      MirrorReference::CheckedHandle(arguments->NativeArgAt(1));
-  Class& klass = Class::Handle();
-  klass ^= klass_ref.referent();
-
-  const String& getter_name =
-      String::CheckedHandle(arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
+  const Class& klass = Class::Handle(ref.GetClassReferent());
+  GET_NON_NULL_NATIVE_ARGUMENT(String, getter_name, arguments->NativeArgAt(2));
 
   // Note static fields do not have implicit getters.
   const Field& field = Field::Handle(klass.LookupStaticField(getter_name));
@@ -1607,16 +1581,10 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 4) {
   // Argument 0 is the mirror, which is unused by the native. It exists
   // because this native is an instance method in order to be polymorphic
   // with its cousins.
-
-  const MirrorReference& klass_ref =
-      MirrorReference::CheckedHandle(arguments->NativeArgAt(1));
-  Class& klass = Class::Handle();
-  klass ^= klass_ref.referent();
-
-  const String& setter_name =
-      String::CheckedHandle(arguments->NativeArgAt(2));
-
-  const Instance& value = Instance::CheckedHandle(arguments->NativeArgAt(3));
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
+  const Class& klass = Class::Handle(ref.GetClassReferent());
+  GET_NON_NULL_NATIVE_ARGUMENT(String, setter_name, arguments->NativeArgAt(2));
+  GET_NATIVE_ARGUMENT(Instance, value, arguments->NativeArgAt(3));
 
   // Check for real fields and user-defined setters.
   const Field& field = Field::Handle(klass.LookupStaticField(setter_name));
@@ -1664,16 +1632,12 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 4) {
 
 
 DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 3) {
-  const MirrorReference& klass_ref =
-      MirrorReference::CheckedHandle(arguments->NativeArgAt(0));
-  Class& klass = Class::Handle();
-  klass ^= klass_ref.referent();
-
-  const String& constructor_name =
-      String::CheckedHandle(arguments->NativeArgAt(1));
-
-  const Array& positional_args =
-      Array::CheckedHandle(arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
+  const Class& klass = Class::Handle(ref.GetClassReferent());
+  GET_NON_NULL_NATIVE_ARGUMENT(
+      String, constructor_name, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(
+      Array, positional_args, arguments->NativeArgAt(2));
 
   intptr_t number_of_arguments = positional_args.Length();
 
@@ -1714,17 +1678,13 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 4) {
   // Argument 0 is the mirror, which is unused by the native. It exists
   // because this native is an instance method in order to be polymorphic
   // with its cousins.
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
+  const Library& library = Library::Handle(ref.GetLibraryReferent());
+  GET_NON_NULL_NATIVE_ARGUMENT(
+      String, function_name, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(
+      Array, positional_args, arguments->NativeArgAt(3));
 
-  const MirrorReference& library_ref =
-      MirrorReference::CheckedHandle(arguments->NativeArgAt(1));
-  Library& library = Library::Handle();
-  library ^= library_ref.referent();
-
-  const String& function_name =
-      String::CheckedHandle(arguments->NativeArgAt(2));
-
-  const Array& positional_args =
-      Array::CheckedHandle(arguments->NativeArgAt(3));
   intptr_t number_of_arguments = positional_args.Length();
 
 
@@ -1769,14 +1729,9 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeGetter, 3) {
   // Argument 0 is the mirror, which is unused by the native. It exists
   // because this native is an instance method in order to be polymorphic
   // with its cousins.
-
-  const MirrorReference& library_ref =
-      MirrorReference::CheckedHandle(arguments->NativeArgAt(1));
-  Library& library = Library::Handle();
-  library ^= library_ref.referent();
-
-  const String& getter_name =
-      String::CheckedHandle(arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
+  const Library& library = Library::Handle(ref.GetLibraryReferent());
+  GET_NON_NULL_NATIVE_ARGUMENT(String, getter_name, arguments->NativeArgAt(2));
 
   // To access a top-level we may need to use the Field or the
   // getter Function.  The getter function may either be in the
@@ -1824,16 +1779,10 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 4) {
   // Argument 0 is the mirror, which is unused by the native. It exists
   // because this native is an instance method in order to be polymorphic
   // with its cousins.
-
-  const MirrorReference& library_ref =
-      MirrorReference::CheckedHandle(arguments->NativeArgAt(1));
-  Library& library = Library::Handle();
-  library ^= library_ref.referent();
-
-  const String& setter_name =
-      String::CheckedHandle(arguments->NativeArgAt(2));
-
-  const Instance& value = Instance::CheckedHandle(arguments->NativeArgAt(3));
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
+  const Library& library = Library::Handle(ref.GetLibraryReferent());
+  GET_NON_NULL_NATIVE_ARGUMENT(String, setter_name, arguments->NativeArgAt(2));
+  GET_NATIVE_ARGUMENT(Instance, value, arguments->NativeArgAt(3));
 
   // To access a top-level we may need to use the Field or the
   // setter Function.  The setter function may either be in the
@@ -1884,28 +1833,24 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 4) {
 
 
 DEFINE_NATIVE_ENTRY(MethodMirror_name, 1) {
-  const MirrorReference& func_ref =
-      MirrorReference::CheckedHandle(arguments->NativeArgAt(0));
-  Function& func = Function::Handle();
-  func ^= func_ref.referent();
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
+  const Function& func = Function::Handle(ref.GetFunctionReferent());
   return func.UserVisibleName();
 }
 
 
 DEFINE_NATIVE_ENTRY(MethodMirror_owner, 1) {
-  const MirrorReference& func_ref =
-      MirrorReference::CheckedHandle(arguments->NativeArgAt(0));
-  Function& func = Function::Handle();
-  func ^= func_ref.referent();
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
+  const Function& func = Function::Handle(ref.GetFunctionReferent());
   if (func.IsNonImplicitClosureFunction()) {
     return CreateMethodMirror(Function::Handle(
-        func.parent_function()), Instance::Handle());
+        func.parent_function()), Object::null_instance());
   }
   const Class& owner = Class::Handle(func.Owner());
   if (owner.IsTopLevel()) {
     return CreateLibraryMirror(Library::Handle(owner.library()));
   }
-  return CreateClassMirror(owner, Instance::Handle());
+  return CreateClassMirror(owner, Object::null_instance());
 }
 
 

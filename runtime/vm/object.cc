@@ -14250,9 +14250,21 @@ void WeakProperty::PrintToJSONStream(JSONStream* stream, bool ref) const {
 }
 
 
+RawClass* MirrorReference::GetClassReferent() const {
+  ASSERT(Object::Handle(referent()).IsClass());
+  return Class::Cast(Object::Handle(referent())).raw();
+}
+
+
 RawFunction* MirrorReference::GetFunctionReferent() const {
   ASSERT(Object::Handle(referent()).IsFunction());
   return Function::Cast(Object::Handle(referent())).raw();
+}
+
+
+RawLibrary* MirrorReference::GetLibraryReferent() const {
+  ASSERT(Object::Handle(referent()).IsLibrary());
+  return Library::Cast(Object::Handle(referent())).raw();
 }
 
 
