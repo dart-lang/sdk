@@ -4,7 +4,7 @@
 
 part of dart.convert;
 
-final JSON = new JsonCodec();
+const JSON = const JsonCodec();
 
 /**
  * A [JsonCodec] encodes JSON objects to strings and decodes strings to
