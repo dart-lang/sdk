@@ -9,6 +9,11 @@ import "package:expect/expect.dart";
 import 'dart:math';
 
 testMin() {
+  testMin1();
+  testMin2();
+}
+
+testMin1() {
   Expect.equals(0, min(0, 2));
   Expect.equals(0, min(2, 0));
 
@@ -28,7 +33,6 @@ testMin() {
   Expect.equals(-10.5, min(-9.5, -10.5));
   Expect.equals(-10.5, min(9.5, -10.5));
   Expect.equals(-10.5, min(0.5, -10.5));
-
   // Test matrix:
   // NaN, -infinity, -499.0, -499, -0.0, 0.0, 0, 499.0, 499, +infinity.
   var inf = double.INFINITY;
@@ -172,7 +176,11 @@ testMin() {
   Expect.isTrue(min(0, 499.0) is int);
   Expect.isTrue(min(0, 499) is int);
   Expect.isTrue(min(0, inf) is int);
+}
 
+testMin2() {
+  var inf = double.INFINITY;
+  var nan = double.NAN;
   Expect.isTrue(min(0, -499.0).isNegative);
   Expect.isTrue(min(0, -499).isNegative);
   Expect.isTrue(min(0, -0.0).isNegative);
@@ -271,6 +279,11 @@ testMin() {
 }
 
 testMax() {
+  testMax1();
+  testMax2();
+}
+
+testMax1() {
   Expect.equals(2, max(0, 2));
   Expect.equals(2, max(2, 0));
 
@@ -430,6 +443,11 @@ testMax() {
   Expect.isTrue(max(-0.0, -499) is double);
   Expect.isTrue(max(-0.0, -499.0) is double);
   Expect.isTrue(max(-0.0, -inf) is double);
+}
+
+testMax2() {
+  var inf = double.INFINITY;
+  var nan = double.NAN;
 
   Expect.isFalse(max(-0.0, 0.0).isNegative);
   Expect.isFalse(max(-0.0, 0).isNegative);

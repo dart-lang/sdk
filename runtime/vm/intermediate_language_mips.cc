@@ -3128,7 +3128,7 @@ void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ b(&done);
 
     __ Bind(&returns_left);
-    __ movd(result, right);
+    __ movd(result, left);
     __ b(&done);
 
     __ Bind(&returns_nan);
