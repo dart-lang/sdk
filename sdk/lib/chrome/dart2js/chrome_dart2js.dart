@@ -3,8 +3,8 @@
 /// These functions allow direct access to the Packaged App APIs, allowing
 /// Chrome Packaged Apps to be written using Dart.
 ///
-/// For more information on these APIs, see the
-/// [Chrome APIs Documentation](http://developer.chrome.com/extensions/api_index.html)
+/// For more information on these APIs, see the Chrome.* APIs Documentation:
+///   http://developer.chrome.com/extensions/api_index.html
 library chrome;
 
 import 'dart:_foreign_helper' show JS;
@@ -16,8 +16,7 @@ import 'dart:html';
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// DO NOT EDIT - unless you are editing documentation as per:
-// https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
+// DO NOT EDIT
 // Auto-generated dart:chrome library.
 
 
@@ -393,11 +392,60 @@ final API_Chrome chrome = new API_Chrome();
  * Types
  */
 
+class AppWindowBounds extends ChromeObject {
+  /*
+   * Public constructor
+   */
+  AppWindowBounds({int left, int top, int width, int height}) {
+    if (left != null)
+      this.left = left;
+    if (top != null)
+      this.top = top;
+    if (width != null)
+      this.width = width;
+    if (height != null)
+      this.height = height;
+  }
+
+  /*
+   * Private constructor
+   */
+  AppWindowBounds._proxy(_jsObject) : super._proxy(_jsObject);
+
+  /*
+   * Public accessors
+   */
+  int get left => JS('int', '#.left', this._jsObject);
+
+  void set left(int left) {
+    JS('void', '#.left = #', this._jsObject, left);
+  }
+
+  int get top => JS('int', '#.top', this._jsObject);
+
+  void set top(int top) {
+    JS('void', '#.top = #', this._jsObject, top);
+  }
+
+  int get width => JS('int', '#.width', this._jsObject);
+
+  void set width(int width) {
+    JS('void', '#.width = #', this._jsObject, width);
+  }
+
+  int get height => JS('int', '#.height', this._jsObject);
+
+  void set height(int height) {
+    JS('void', '#.height = #', this._jsObject, height);
+  }
+
+}
+
 class AppWindowCreateWindowOptions extends ChromeObject {
   /*
    * Public constructor
    */
-  AppWindowCreateWindowOptions({String id, int defaultWidth, int defaultHeight, int defaultLeft, int defaultTop, int width, int height, int left, int top, int minWidth, int minHeight, int maxWidth, int maxHeight, String type, String frame, AppWindowBounds bounds, bool transparentBackground, bool hidden, bool singleton}) {
+  AppWindowCreateWindowOptions({String id, int defaultWidth, int defaultHeight, int defaultLeft, int defaultTop, int width, int height, int left, int top, int minWidth, int minHeight, int maxWidth, int maxHeight, String type, String frame, AppWindowBounds bounds, bool transparentBackground, String state, bool hidden, bool resizable, bool singleton}) {
     if (id != null)
       this.id = id;
     if (defaultWidth != null)
@@ -432,8 +480,12 @@ class AppWindowCreateWindowOptions extends ChromeObject {
       this.bounds = bounds;
     if (transparentBackground != null)
       this.transparentBackground = transparentBackground;
+    if (state != null)
+      this.state = state;
     if (hidden != null)
       this.hidden = hidden;
+    if (resizable != null)
+      this.resizable = resizable;
     if (singleton != null)
       this.singleton = singleton;
   }
@@ -448,7 +500,7 @@ class AppWindowCreateWindowOptions extends ChromeObject {
    */
   /// Id to identify the window. This will be used to remember the size and
   /// position of the window and restore that geometry when a window with the
-  /// same id (and no explicit size or position) is later opened.
+  /// same id is later opened.
   String get id => JS('String', '#.id', this._jsObject);
 
   void set id(String id) {
@@ -515,36 +567,35 @@ class AppWindowCreateWindowOptions extends ChromeObject {
     JS('void', '#.top = #', this._jsObject, top);
   }
 
-  /// Minimum width of the window.
+  /// Minimum width for the lifetime of the window.
   int get minWidth => JS('int', '#.minWidth', this._jsObject);
 
   void set minWidth(int minWidth) {
     JS('void', '#.minWidth = #', this._jsObject, minWidth);
   }
 
-  /// Minimum height of the window.
+  /// Minimum height for the lifetime of the window.
   int get minHeight => JS('int', '#.minHeight', this._jsObject);
 
   void set minHeight(int minHeight) {
     JS('void', '#.minHeight = #', this._jsObject, minHeight);
   }
 
-  /// Maximum width of the window.
+  /// Maximum width for the lifetime of the window.
   int get maxWidth => JS('int', '#.maxWidth', this._jsObject);
 
   void set maxWidth(int maxWidth) {
     JS('void', '#.maxWidth = #', this._jsObject, maxWidth);
   }
 
-  /// Maximum height of the window.
+  /// Maximum height for the lifetime of the window.
   int get maxHeight => JS('int', '#.maxHeight', this._jsObject);
 
   void set maxHeight(int maxHeight) {
     JS('void', '#.maxHeight = #', this._jsObject, maxHeight);
   }
 
-  /// Window type:  'shell' - the default window type  'panel' - a panel, managed
-  /// by the OS (Currently experimental, Ash only)
+  /// Type of window to create.
   String get type => JS('String', '#.type', this._jsObject);
 
   void set type(String type) {
@@ -558,9 +609,9 @@ class AppWindowCreateWindowOptions extends ChromeObject {
     JS('void', '#.frame = #', this._jsObject, frame);
   }
 
-  /// Size of the content in the window (excluding the titlebar). If specified in
-  /// addition to any of the left/top/width/height parameters, this field takes
-  /// precedence. If a frameBounds is specified, the frameBounds take precedence.
+  /// Size and position of the content in the window (excluding the titlebar). If
+  /// an id is also specified and a window with a matching id has been shown
+  /// before, the remembered bounds of the window will be used instead.
   AppWindowBounds get bounds => new AppWindowBounds._proxy(JS('', '#.bounds', this._jsObject));
 
   void set bounds(AppWindowBounds bounds) {
@@ -575,12 +626,27 @@ class AppWindowCreateWindowOptions extends ChromeObject {
     JS('void', '#.transparentBackground = #', this._jsObject, transparentBackground);
   }
 
+  /// The initial state of the window, allowing it to be created already
+  /// fullscreen, maximized, or minimized. Defaults to 'normal'.
+  String get state => JS('String', '#.state', this._jsObject);
+
+  void set state(String state) {
+    JS('void', '#.state = #', this._jsObject, state);
+  }
+
   /// If true, the window will be created in a hidden state. Call show() on the
   /// window to show it once it has been created. Defaults to false.
   bool get hidden => JS('bool', '#.hidden', this._jsObject);
 
   void set hidden(bool hidden) {
     JS('void', '#.hidden = #', this._jsObject, hidden);
+  }
+
+  /// If true, the window will be resizable by the user. Defaults to true.
+  bool get resizable => JS('bool', '#.resizable', this._jsObject);
+
+  void set resizable(bool resizable) {
+    JS('void', '#.resizable = #', this._jsObject, resizable);
   }
 
   /// By default if you specify an id for the window, the window will only be
@@ -592,55 +658,6 @@ class AppWindowCreateWindowOptions extends ChromeObject {
 
   void set singleton(bool singleton) {
     JS('void', '#.singleton = #', this._jsObject, singleton);
-  }
-
-}
-
-class AppWindowBounds extends ChromeObject {
-  /*
-   * Public constructor
-   */
-  AppWindowBounds({int left, int top, int width, int height}) {
-    if (left != null)
-      this.left = left;
-    if (top != null)
-      this.top = top;
-    if (width != null)
-      this.width = width;
-    if (height != null)
-      this.height = height;
-  }
-
-  /*
-   * Private constructor
-   */
-  AppWindowBounds._proxy(_jsObject) : super._proxy(_jsObject);
-
-  /*
-   * Public accessors
-   */
-  int get left => JS('int', '#.left', this._jsObject);
-
-  void set left(int left) {
-    JS('void', '#.left = #', this._jsObject, left);
-  }
-
-  int get top => JS('int', '#.top', this._jsObject);
-
-  void set top(int top) {
-    JS('void', '#.top = #', this._jsObject, top);
-  }
-
-  int get width => JS('int', '#.width', this._jsObject);
-
-  void set width(int width) {
-    JS('void', '#.width = #', this._jsObject, width);
-  }
-
-  int get height => JS('int', '#.height', this._jsObject);
-
-  void set height(int height) {
-    JS('void', '#.height = #', this._jsObject, height);
   }
 
 }
@@ -670,19 +687,25 @@ class AppWindowAppWindow extends ChromeObject {
   /// Focus the window.
   void focus() => JS('void', '#.focus()', this._jsObject);
 
+  /// Fullscreens the window.
+  void fullscreen() => JS('void', '#.fullscreen()', this._jsObject);
+
+  /// Is the window fullscreen?
+  bool isFullscreen() => JS('bool', '#.isFullscreen()', this._jsObject);
+
   /// Minimize the window.
   void minimize() => JS('void', '#.minimize()', this._jsObject);
 
   /// Is the window minimized?
-  void isMinimized() => JS('void', '#.isMinimized()', this._jsObject);
+  bool isMinimized() => JS('bool', '#.isMinimized()', this._jsObject);
 
   /// Maximize the window.
   void maximize() => JS('void', '#.maximize()', this._jsObject);
 
   /// Is the window maximized?
-  void isMaximized() => JS('void', '#.isMaximized()', this._jsObject);
+  bool isMaximized() => JS('bool', '#.isMaximized()', this._jsObject);
 
-  /// Restore the window.
+  /// Restore the window, exiting a maximized, minimized, or fullscreen state.
   void restore() => JS('void', '#.restore()', this._jsObject);
 
   /// Move the window to the position (|left|, |top|).
@@ -752,6 +775,17 @@ class Event_app_window_onClosed extends Event {
   Event_app_window_onClosed(jsObject) : super._(jsObject, 0);
 }
 
+/// Fired when the window is fullscreened.
+class Event_app_window_onFullscreened extends Event {
+  void addListener(void callback()) => super.addListener(callback);
+
+  void removeListener(void callback()) => super.removeListener(callback);
+
+  bool hasListener(void callback()) => super.hasListener(callback);
+
+  Event_app_window_onFullscreened(jsObject) : super._(jsObject, 0);
+}
+
 /// Fired when the window is maximized.
 class Event_app_window_onMaximized extends Event {
   void addListener(void callback()) => super.addListener(callback);
@@ -800,6 +834,7 @@ class API_app_window {
    */
   Event_app_window_onBoundsChanged onBoundsChanged;
   Event_app_window_onClosed onClosed;
+  Event_app_window_onFullscreened onFullscreened;
   Event_app_window_onMaximized onMaximized;
   Event_app_window_onMinimized onMinimized;
   Event_app_window_onRestored onRestored;
@@ -810,22 +845,17 @@ class API_app_window {
   /// The size and position of a window can be specified in a number of different
   /// ways. The most simple option is not specifying anything at all, in which
   /// case a default size and platform dependent position will be used.<br/><br/>
-  /// Another option is to use the top/left and width/height properties, which
-  /// will always put the window at the specified coordinates with the specified
-  /// size.<br/><br/> Yet another option is to give the window a (unique) id.
-  /// This id is then used to remember the size and position of the window
-  /// whenever it is moved or resized. This size and position is then used
-  /// instead of the specified bounds on subsequent opening of a window with the
-  /// same id. If you need to open a window with an id at a location other than
-  /// the remembered default, you can create it hidden, move it to the desired
-  /// location, then show it.<br/><br/> You can also combine these various
-  /// options, explicitly specifying for example the size while having the
-  /// position be remembered or other combinations like that. Size and position
-  /// are dealt with seperately, but individual coordinates are not. So if you
-  /// specify a top (or left) coordinate, you should also specify a left (or top)
-  /// coordinate, and similar for size.<br/><br/> If you specify both a regular
-  /// and a default value for the same option the regular value is the only one
-  /// that takes effect.
+  /// Another option is to use the bounds property, which will put the window at
+  /// the specified coordinates with the specified size. If the window has a
+  /// frame, it's total size will be the size given plus the size of the frame;
+  /// that is, the size in bounds is the content size, not the window
+  /// size.<br/><br/> To automatically remember the positions of windows you can
+  /// give them ids. If a window has an id, This id is used to remember the size
+  /// and position of the window whenever it is moved or resized. This size and
+  /// position is then used instead of the specified bounds on subsequent opening
+  /// of a window with the same id. If you need to open a window with an id at a
+  /// location other than the remembered default, you can create it hidden, move
+  /// it to the desired location, then show it.
   // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
   // for details. All rights reserved. Use of this source code is governed by a
   // BSD-style license that can be found in the LICENSE file.
@@ -860,6 +890,7 @@ class API_app_window {
   API_app_window(this._jsObject) {
     onBoundsChanged = new Event_app_window_onBoundsChanged(JS('', '#.onBoundsChanged', this._jsObject));
     onClosed = new Event_app_window_onClosed(JS('', '#.onClosed', this._jsObject));
+    onFullscreened = new Event_app_window_onFullscreened(JS('', '#.onFullscreened', this._jsObject));
     onMaximized = new Event_app_window_onMaximized(JS('', '#.onMaximized', this._jsObject));
     onMinimized = new Event_app_window_onMinimized(JS('', '#.onMinimized', this._jsObject));
     onRestored = new Event_app_window_onRestored(JS('', '#.onRestored', this._jsObject));
@@ -875,48 +906,6 @@ class API_app_window {
 /**
  * Types
  */
-
-class AppRuntimeIntent extends ChromeObject {
-  /*
-   * Private constructor
-   */
-  AppRuntimeIntent._proxy(_jsObject) : super._proxy(_jsObject);
-
-  /*
-   * Public accessors
-   */
-  /// The WebIntent being invoked.
-  String get action => JS('String', '#.action', this._jsObject);
-
-  void set action(String action) {
-    JS('void', '#.action = #', this._jsObject, action);
-  }
-
-  /// The MIME type of the data.
-  String get type => JS('String', '#.type', this._jsObject);
-
-  void set type(String type) {
-    JS('void', '#.type = #', this._jsObject, type);
-  }
-
-  /// Data associated with the intent.
-  Object get data => JS('Object', '#.data', this._jsObject);
-
-  void set data(Object data) {
-    JS('void', '#.data = #', this._jsObject, convertArgument(data));
-  }
-
-
-  /*
-   * Methods
-   */
-  /// Callback to be compatible with WebIntents.
-  void postResult() => JS('void', '#.postResult()', this._jsObject);
-
-  /// Callback to be compatible with WebIntents.
-  void postFailure() => JS('void', '#.postFailure()', this._jsObject);
-
-}
 
 class AppRuntimeLaunchItem extends ChromeObject {
   /*
@@ -957,9 +946,7 @@ class AppRuntimeLaunchData extends ChromeObject {
   /*
    * Public constructor
    */
-  AppRuntimeLaunchData({AppRuntimeIntent intent, String id, List<AppRuntimeLaunchItem> items}) {
-    if (intent != null)
-      this.intent = intent;
+  AppRuntimeLaunchData({String id, List<AppRuntimeLaunchItem> items}) {
     if (id != null)
       this.id = id;
     if (items != null)
@@ -974,12 +961,6 @@ class AppRuntimeLaunchData extends ChromeObject {
   /*
    * Public accessors
    */
-  AppRuntimeIntent get intent => new AppRuntimeIntent._proxy(JS('', '#.intent', this._jsObject));
-
-  void set intent(AppRuntimeIntent intent) {
-    JS('void', '#.intent = #', this._jsObject, convertArgument(intent));
-  }
-
   /// The id of the file handler that the app is being invoked with.
   String get id => JS('String', '#.id', this._jsObject);
 
@@ -989,8 +970,10 @@ class AppRuntimeLaunchData extends ChromeObject {
 
   List<AppRuntimeLaunchItem> get items {
     List<AppRuntimeLaunchItem> __proxy_items = new List<AppRuntimeLaunchItem>();
-    for (var o in JS('List', '#.items', this._jsObject)) {
-      __proxy_items.add(new AppRuntimeLaunchItem._proxy(o));
+    int count = JS('int', '#.items.length', this._jsObject);
+    for (int i = 0; i < count; i++) {
+      var item = JS('', '#.items[#]', this._jsObject, i);
+      __proxy_items.add(new AppRuntimeLaunchItem._proxy(item));
     }
     return __proxy_items;
   }
@@ -1001,56 +984,11 @@ class AppRuntimeLaunchData extends ChromeObject {
 
 }
 
-class AppRuntimeIntentResponse extends ChromeObject {
-  /*
-   * Public constructor
-   */
-  AppRuntimeIntentResponse({int intentId, bool success, Object data}) {
-    if (intentId != null)
-      this.intentId = intentId;
-    if (success != null)
-      this.success = success;
-    if (data != null)
-      this.data = data;
-  }
-
-  /*
-   * Private constructor
-   */
-  AppRuntimeIntentResponse._proxy(_jsObject) : super._proxy(_jsObject);
-
-  /*
-   * Public accessors
-   */
-  /// Identifies the intent.
-  int get intentId => JS('int', '#.intentId', this._jsObject);
-
-  void set intentId(int intentId) {
-    JS('void', '#.intentId = #', this._jsObject, intentId);
-  }
-
-  /// Was this intent successful? (i.e., postSuccess vs postFailure).
-  bool get success => JS('bool', '#.success', this._jsObject);
-
-  void set success(bool success) {
-    JS('void', '#.success = #', this._jsObject, success);
-  }
-
-  /// Data associated with the intent response.
-  Object get data => JS('Object', '#.data', this._jsObject);
-
-  void set data(Object data) {
-    JS('void', '#.data = #', this._jsObject, convertArgument(data));
-  }
-
-}
-
 /**
  * Events
  */
 
-/// Fired when an app is launched from the launcher or in response to a web
-/// intent.
+/// Fired when an app is launched from the launcher.
 class Event_app_runtime_onLaunched extends Event {
   void addListener(void callback(AppRuntimeLaunchData launchData)) {
     void __proxy_callback(launchData) {
@@ -1058,7 +996,7 @@ class Event_app_runtime_onLaunched extends Event {
         callback(new AppRuntimeLaunchData._proxy(launchData));
       }
     }
-    super.addListener(callback);
+    super.addListener(__proxy_callback);
   }
 
   void removeListener(void callback(AppRuntimeLaunchData launchData)) {
@@ -1067,7 +1005,7 @@ class Event_app_runtime_onLaunched extends Event {
         callback(new AppRuntimeLaunchData._proxy(launchData));
       }
     }
-    super.removeListener(callback);
+    super.removeListener(__proxy_callback);
   }
 
   bool hasListener(void callback(AppRuntimeLaunchData launchData)) {
@@ -1076,7 +1014,7 @@ class Event_app_runtime_onLaunched extends Event {
         callback(new AppRuntimeLaunchData._proxy(launchData));
       }
     }
-    super.hasListener(callback);
+    super.hasListener(__proxy_callback);
   }
 
   Event_app_runtime_onLaunched(jsObject) : super._(jsObject, 1);
@@ -1109,17 +1047,200 @@ class API_app_runtime {
    */
   Event_app_runtime_onLaunched onLaunched;
   Event_app_runtime_onRestarted onRestarted;
+  API_app_runtime(this._jsObject) {
+    onLaunched = new Event_app_runtime_onLaunched(JS('', '#.onLaunched', this._jsObject));
+    onRestarted = new Event_app_runtime_onRestarted(JS('', '#.onRestarted', this._jsObject));
+  }
+}
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// Generated from namespace: fileSystem
+
+
+/**
+ * Types
+ */
+
+class FilesystemAcceptOption extends ChromeObject {
+  /*
+   * Public constructor
+   */
+  FilesystemAcceptOption({String description, List<String> mimeTypes, List<String> extensions}) {
+    if (description != null)
+      this.description = description;
+    if (mimeTypes != null)
+      this.mimeTypes = mimeTypes;
+    if (extensions != null)
+      this.extensions = extensions;
+  }
+
+  /*
+   * Private constructor
+   */
+  FilesystemAcceptOption._proxy(_jsObject) : super._proxy(_jsObject);
+
+  /*
+   * Public accessors
+   */
+  /// This is the optional text description for this option. If not present, a
+  /// description will be automatically generated; typically containing an
+  /// expanded list of valid extensions (e.g. "text/html" may expand to "*.html,
+  /// *.htm").
+  String get description => JS('String', '#.description', this._jsObject);
+
+  void set description(String description) {
+    JS('void', '#.description = #', this._jsObject, description);
+  }
+
+  /// Mime-types to accept, e.g. "image/jpeg" or "audio/*". One of mimeTypes or
+  /// extensions must contain at least one valid element.
+  List<String> get mimeTypes => JS('List<String>', '#.mimeTypes', this._jsObject);
+
+  void set mimeTypes(List<String> mimeTypes) {
+    JS('void', '#.mimeTypes = #', this._jsObject, mimeTypes);
+  }
+
+  /// Extensions to accept, e.g. "jpg", "gif", "crx".
+  List<String> get extensions => JS('List<String>', '#.extensions', this._jsObject);
+
+  void set extensions(List<String> extensions) {
+    JS('void', '#.extensions = #', this._jsObject, extensions);
+  }
+
+}
+
+class FilesystemChooseEntryOptions extends ChromeObject {
+  /*
+   * Public constructor
+   */
+  FilesystemChooseEntryOptions({String type, String suggestedName, List<FilesystemAcceptOption> accepts, bool acceptsAllTypes}) {
+    if (type != null)
+      this.type = type;
+    if (suggestedName != null)
+      this.suggestedName = suggestedName;
+    if (accepts != null)
+      this.accepts = accepts;
+    if (acceptsAllTypes != null)
+      this.acceptsAllTypes = acceptsAllTypes;
+  }
+
+  /*
+   * Private constructor
+   */
+  FilesystemChooseEntryOptions._proxy(_jsObject) : super._proxy(_jsObject);
+
+  /*
+   * Public accessors
+   */
+  /// Type of the prompt to show. The default is 'openFile'.
+  String get type => JS('String', '#.type', this._jsObject);
+
+  void set type(String type) {
+    JS('void', '#.type = #', this._jsObject, type);
+  }
+
+  /// The suggested file name that will be presented to the user as the default
+  /// name to read or write. This is optional.
+  String get suggestedName => JS('String', '#.suggestedName', this._jsObject);
+
+  void set suggestedName(String suggestedName) {
+    JS('void', '#.suggestedName = #', this._jsObject, suggestedName);
+  }
+
+  /// The optional list of accept options for this file opener. Each option will
+  /// be presented as a unique group to the end-user.
+  List<FilesystemAcceptOption> get accepts {
+    List<FilesystemAcceptOption> __proxy_accepts = new List<FilesystemAcceptOption>();
+    int count = JS('int', '#.accepts.length', this._jsObject);
+    for (int i = 0; i < count; i++) {
+      var item = JS('', '#.accepts[#]', this._jsObject, i);
+      __proxy_accepts.add(new FilesystemAcceptOption._proxy(item));
+    }
+    return __proxy_accepts;
+  }
+
+  void set accepts(List<FilesystemAcceptOption> accepts) {
+    JS('void', '#.accepts = #', this._jsObject, convertArgument(accepts));
+  }
+
+  /// Whether to accept all file types, in addition to the options specified in
+  /// the accepts argument. The default is true. If the accepts field is unset or
+  /// contains no valid entries, this will always be reset to true.
+  bool get acceptsAllTypes => JS('bool', '#.acceptsAllTypes', this._jsObject);
+
+  void set acceptsAllTypes(bool acceptsAllTypes) {
+    JS('void', '#.acceptsAllTypes = #', this._jsObject, acceptsAllTypes);
+  }
+
+}
+
+/**
+ * Functions
+ */
+
+class API_file_system {
+  /*
+   * API connection
+   */
+  Object _jsObject;
 
   /*
    * Functions
    */
-  /// postIntentResponse is an internal method to responds to an intent
-  /// previously sent to a packaged app. This is identified by intentId, and
-  /// should only be invoked at most once per intentId.
-  void postIntentResponse(AppRuntimeIntentResponse intentResponse) => JS('void', '#.postIntentResponse(#)', this._jsObject, convertArgument(intentResponse));
+  /// Get the display path of a FileEntry object. The display path is based on
+  /// the full path of the file on the local file system, but may be made more
+  /// readable for display purposes.
+  void getDisplayPath(FileEntry fileEntry, void callback(String displayPath)) => JS('void', '#.getDisplayPath(#, #)', this._jsObject, convertArgument(fileEntry), convertDartClosureToJS(callback, 1));
 
-  API_app_runtime(this._jsObject) {
-    onLaunched = new Event_app_runtime_onLaunched(JS('', '#.onLaunched', this._jsObject));
-    onRestarted = new Event_app_runtime_onRestarted(JS('', '#.onRestarted', this._jsObject));
+  /// Get a writable FileEntry from another FileEntry. This call will fail if the
+  /// application does not have the 'write' permission under 'fileSystem'.
+  void getWritableEntry(FileEntry fileEntry, void callback(FileEntry fileEntry)) {
+    void __proxy_callback(fileEntry) {
+      if (callback != null) {
+        callback(fileEntry);
+      }
+    }
+    JS('void', '#.getWritableEntry(#, #)', this._jsObject, convertArgument(fileEntry), convertDartClosureToJS(__proxy_callback, 1));
+  }
+
+  /// Gets whether this FileEntry is writable or not.
+  void isWritableEntry(FileEntry fileEntry, void callback(bool isWritable)) => JS('void', '#.isWritableEntry(#, #)', this._jsObject, convertArgument(fileEntry), convertDartClosureToJS(callback, 1));
+
+  /// Ask the user to choose a file.
+  void chooseEntry(void callback(FileEntry fileEntry), [FilesystemChooseEntryOptions options]) {
+    void __proxy_callback(fileEntry) {
+      if (callback != null) {
+        callback(fileEntry);
+      }
+    }
+    JS('void', '#.chooseEntry(#, #)', this._jsObject, convertArgument(options), convertDartClosureToJS(__proxy_callback, 1));
+  }
+
+  /// Returns the file entry with the given id if it can be restored. This call
+  /// will fail otherwise.
+  void restoreEntry(String id, void callback(FileEntry fileEntry)) {
+    void __proxy_callback(fileEntry) {
+      if (callback != null) {
+        callback(fileEntry);
+      }
+    }
+    JS('void', '#.restoreEntry(#, #)', this._jsObject, id, convertDartClosureToJS(__proxy_callback, 1));
+  }
+
+  /// Returns whether a file entry for the given id can be restored, i.e. whether
+  /// restoreEntry would succeed with this id now.
+  void isRestorable(String id, void callback(bool isRestorable)) => JS('void', '#.isRestorable(#, #)', this._jsObject, id, convertDartClosureToJS(callback, 1));
+
+  /// Returns an id that can be passed to restoreEntry to regain access to a
+  /// given file entry. Only the 500 most recently used entries are retained,
+  /// where calls to retainEntry and restoreEntry count as use. If the app has
+  /// the 'retainEntries' permission under 'fileSystem', entries are retained
+  /// indefinitely. Otherwise, entries are retained only while the app is running
+  /// and across restarts.
+  String retainEntry(FileEntry fileEntry) => JS('String', '#.retainEntry(#)', this._jsObject, convertArgument(fileEntry));
+
+  API_file_system(this._jsObject) {
   }
 }
