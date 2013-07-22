@@ -138,29 +138,6 @@
  * features or fixes to the current spec (e.g. see
  * [Issue 2706](http://dartbug.com/2706)).
  *
- * Meanwhile, we plan to add this alternative API for callbacks of more than 2
- * arguments or that take named parameters. (this is not implemented yet,
- * but will be coming here soon).
- *
- *     import 'package:unittest/unittest.dart';
- *     import 'dart:isolate';
- *     main() {
- *       test('callback is executed', () {
- *         // indicate ahead of time that an async callback is expected.
- *         var async = startAsync();
- *         Timer.run(() {
- *           // Guard the body of the callback, so errors are propagated
- *           // correctly.
- *           guardAsync(() {
- *             int x = 2 + 3;
- *             expect(x, equals(5));
- *           });
- *           // indicate that the asynchronous callback was invoked.
- *           async.complete();
- *         });
- *       });
- *     }
- *
  * [pub]: http://pub.dartlang.org
  * [pkg]: http://pub.dartlang.org/packages/unittest
  */
