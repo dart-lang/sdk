@@ -3157,9 +3157,6 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
 
   Set<ClassElement> computeRtiNeededClasses() {
     void addClassWithSuperclasses(ClassElement cls) {
-      if (cls.name == const SourceString('CssStyleDeclaration')) {
-        throw 'hest';
-      }
       rtiNeededClasses.add(cls);
       for (ClassElement superclass = cls.superclass;
           superclass != null;
