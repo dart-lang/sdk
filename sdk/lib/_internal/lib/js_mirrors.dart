@@ -131,6 +131,10 @@ abstract class JsDeclarationMirror extends JsMirror
     throw new RuntimeError('Should not call _methods');
   }
 
+  _invoke(List positionalArguments, Map<Symbol, dynamic> namedArguments) {
+    throw new RuntimeError('Should not call _invoke');
+  }
+
   // TODO(ahe): Implement this.
   SourceLocation get location => throw new UnimplementedError();
 }
@@ -204,6 +208,23 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
       throw new NoSuchMethodError(this, '${n(fieldName)}', [], null);
     }
     return reflect(mirror._getField(this));
+  }
+
+  InstanceMirror invoke(Symbol memberName,
+                        List positionalArguments,
+                        [Map<Symbol,dynamic> namedArguments]) {
+    if (namedArguments != null && !namedArguments.isEmpty) {
+      throw new UnsupportedError('Named arguments are not implemented.');
+    }
+    JsDeclarationMirror mirror = members[memberName];
+    if (mirror == null) {
+      // TODO(ahe): Pass namedArguments when NoSuchMethodError has been
+      // fixed to use Symbol.
+      // TODO(ahe): What receiver to use?
+      throw new NoSuchMethodError(
+          this, '${n(memberName)}', positionalArguments, null);
+    }
+    return reflect(mirror._invoke(positionalArguments, namedArguments));
   }
 
   _loadField(String name) {
@@ -295,13 +316,8 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
     return _metadata.map(reflect).toList();
   }
 
-  // TODO(ahe): Implement these.
-  DeclarationMirror get owner => throw new UnimplementedError();
-  InstanceMirror invoke(Symbol memberName,
-                        List positionalArguments,
-                        [Map<Symbol,dynamic> namedArguments]) {
-    throw new UnimplementedError();
-  }
+  // TODO(ahe): Test this getter.
+  DeclarationMirror get owner => null;
 }
 
 String n(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
@@ -892,12 +908,12 @@ function(reflectee) {
       var self = BoundClosure.selfOf(reflectee);
       return new JsMethodMirror(
           s(target), JS('', '#[#]', self, target), parameterCount,
-          false, false, isStatic, false);
+          false, false, isStatic, false, false);
     } else {
       var jsFunction = JS('', '#[#]', reflectee, callName);
       return new JsMethodMirror(
           s(callName), jsFunction, parameterCount,
-          false, false, isStatic, false);
+          false, false, isStatic, false, false);
     }
   }
 
@@ -928,6 +944,7 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
   final bool isSetter;
   final bool isStatic;
   final bool isConstructor;
+  final bool isOperator;
   DeclarationMirror _owner;
   List _metadata;
   var _returnType;
@@ -939,7 +956,8 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
                  this.isGetter,
                  this.isSetter,
                  this.isStatic,
-                 this.isConstructor)
+                 this.isConstructor,
+                 this.isOperator)
       : super(simpleName);
 
   factory JsMethodMirror.fromUnmangledName(String name,
@@ -948,7 +966,8 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
                                            bool isConstructor) {
     List<String> info = name.split(':');
     name = info[0];
-    bool isSetter = name.endsWith('=');
+    bool isOperator = isOperatorName(name);
+    bool isSetter = !isOperator && name.endsWith('=');
     int requiredParameterCount = 0;
     int optionalParameterCount = 0;
     bool isGetter = false;
@@ -965,7 +984,7 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
     }
     return new JsMethodMirror(
         s(name), jsFunction, requiredParameterCount + optionalParameterCount,
-        isGetter, isSetter, isStatic, isConstructor);
+        isGetter, isSetter, isStatic, isConstructor, isOperator);
   }
 
   String get _prettyName => 'MethodMirror';
@@ -1010,7 +1029,7 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
     return s(name.substring(index + 1));
   }
 
-  _invoke(List positionalArguments, [Map<Symbol, dynamic> namedArguments]) {
+  _invoke(List positionalArguments, Map<Symbol, dynamic> namedArguments) {
     if (namedArguments != null && !namedArguments.isEmpty) {
       throw new UnsupportedError('Named arguments are not implemented.');
     }
@@ -1045,10 +1064,13 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
     }
   }
 
+  // Abstract methods are tree-shaken away.
+  bool get isAbstract => false;
+
+  // TODO(ahe): Test this.
+  bool get isRegularMethod => !isGetter && !isSetter && !isConstructor;
+
   // TODO(ahe): Implement these.
-  bool get isAbstract => throw new UnimplementedError();
-  bool get isRegularMethod => throw new UnimplementedError();
-  bool get isOperator => throw new UnimplementedError();
   bool get isConstConstructor => throw new UnimplementedError();
   bool get isGenerativeConstructor => throw new UnimplementedError();
   bool get isRedirectingConstructor => throw new UnimplementedError();
@@ -1144,4 +1166,32 @@ List<JsVariableMirror> parseCompactFieldSpecification(
 List<String> splitFields(String string, Pattern pattern) {
   if (string.isEmpty) return <String>[];
   return string.split(pattern);
+}
+
+bool isOperatorName(String name) {
+  switch (name) {
+  case '==':
+  case '[]':
+  case '*':
+  case '/':
+  case '%':
+  case '~/':
+  case '+':
+  case '<<':
+  case '>>':
+  case '>=':
+  case '>':
+  case '<=':
+  case '<':
+  case '&':
+  case '^':
+  case '|':
+  case '-':
+  case 'unary-':
+  case '[]=':
+  case '~':
+    return true;
+  default:
+    return false;
+  }
 }

@@ -90,6 +90,7 @@ async/timer_not_available_test: Fail, OK # only meant to test when there is no w
 async/timer_isolate_test: Skip # See Issue 4997
 mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 mirrors/top_level_accessors_test: Fail # http://dartbug.com/11943
+mirrors/operator_test: Fail # http://dartbug.com/11944
 
 [ $runtime == vm || ($compiler == none && $runtime == drt) ]
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9001.

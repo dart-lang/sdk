@@ -60,8 +60,6 @@ testInvoke(mirrors) {
   // expect(classMirror.invoke(const Symbol("_t"), [3, 4]).reflectee,
   //        equals(7));
 
-  if (isDart2js) return;
-
   var libMirror = classMirror.owner;
   expect(libMirror.invoke(const Symbol("u"),['A', 'B', instance]).reflectee,
          equals({"a": 'A', "b":'B', "c": instance}));
