@@ -600,44 +600,23 @@ static Dart_Handle CreateMethodMirrorUsingApi(Dart_Handle func,
   return mirror;
 }
 
+static RawInstance* CreateVariableMirror(const Field& field,
+                                         const Instance& owner_mirror) {
+  const MirrorReference& field_ref =
+      MirrorReference::Handle(MirrorReference::New());
+  field_ref.set_referent(field);
 
-static Dart_Handle CreateVariableMirror(Dart_Handle var,
-                                        Dart_Handle var_name,
-                                        Dart_Handle owner_mirror) {
-  ASSERT(Dart_IsVariable(var));
-  Dart_Handle cls_name = NewString("_LocalVariableMirrorImpl");
-  Dart_Handle type = Dart_GetType(MirrorLib(), cls_name, 0, NULL);
-  if (Dart_IsError(type)) {
-    return type;
-  }
+  const String& name = String::Handle(field.UserVisibleName());
 
-  bool is_static = false;
-  bool is_final = false;
+  const Array& args = Array::Handle(Array::New(6));
+  args.SetAt(0, field_ref);
+  args.SetAt(1, name);
+  args.SetAt(2, owner_mirror);
+  args.SetAt(3, Instance::Handle());  // Null for type.
+  args.SetAt(4, field.is_static() ? Bool::True() : Bool::False());
+  args.SetAt(5, field.is_final()  ? Bool::True() : Bool::False());
 
-  Dart_Handle result = Dart_VariableIsStatic(var, &is_static);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  result = Dart_VariableIsFinal(var, &is_final);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-
-  Dart_Handle var_type = Dart_VariableType(var);
-  if (Dart_IsError(var_type)) {
-    return var_type;
-  }
-
-  Dart_Handle args[] = {
-    CreateMirrorReference(var),
-    var_name,
-    owner_mirror,
-    CreateLazyMirror(var_type),
-    Dart_NewBoolean(is_static),
-    Dart_NewBoolean(is_final),
-  };
-  Dart_Handle mirror = Dart_New(type, Dart_Null(), ARRAY_SIZE(args), args);
-  return mirror;
+  return CreateMirror(Symbols::_LocalVariableMirrorImpl(), args);
 }
 
 
@@ -766,6 +745,7 @@ static Dart_Handle AddConstructors(Dart_Handle map,
 static Dart_Handle AddMemberVariables(Dart_Handle map,
                                       Dart_Handle owner,
                                       Dart_Handle owner_mirror) {
+  Isolate* isolate = Isolate::Current();
   Dart_Handle result;
   Dart_Handle names = Dart_GetVariableNames(owner);
   if (Dart_IsError(names)) {
@@ -783,10 +763,14 @@ static Dart_Handle AddMemberVariables(Dart_Handle map,
       return var;
     }
     ASSERT(!Dart_IsNull(var));
-    Dart_Handle var_mirror = CreateVariableMirror(var, var_name, owner_mirror);
-    if (Dart_IsError(var_mirror)) {
-      return var_mirror;
-    }
+    ASSERT(Dart_IsVariable(var));
+    const Field& field = Api::UnwrapFieldHandle(isolate, var);
+    const Instance& owner_mirror_inst =
+      Api::UnwrapInstanceHandle(isolate, owner_mirror);
+    const Instance& var_mirror_inst =
+      Instance::Handle(CreateVariableMirror(field, owner_mirror_inst));
+    Dart_Handle var_mirror = Api::NewHandle(isolate, var_mirror_inst.raw());
+
     result = MapAdd(map, var_name, var_mirror);
     if (Dart_IsError(result)) {
       return result;
@@ -1861,6 +1845,15 @@ DEFINE_NATIVE_ENTRY(MethodMirror_return_type, 1) {
   ASSERT(!func.IsConstructor());
   const AbstractType& return_type = AbstractType::Handle(func.result_type());
   return CreateTypeMirror(return_type);
+}
+
+
+DEFINE_NATIVE_ENTRY(VariableMirror_type, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
+  const Field& field = Field::Handle(ref.GetFieldReferent());
+
+  const AbstractType& type = AbstractType::Handle(field.type());
+  return CreateTypeMirror(type);
 }
 
 }  // namespace dart

@@ -14256,6 +14256,12 @@ RawClass* MirrorReference::GetClassReferent() const {
 }
 
 
+RawField* MirrorReference::GetFieldReferent() const {
+  ASSERT(Object::Handle(referent()).IsField());
+  return Field::Cast(Object::Handle(referent())).raw();
+}
+
+
 RawFunction* MirrorReference::GetFunctionReferent() const {
   ASSERT(Object::Handle(referent()).IsFunction());
   return Function::Cast(Object::Handle(referent())).raw();

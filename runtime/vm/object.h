@@ -5878,6 +5878,8 @@ class MirrorReference : public Instance {
 
   RawClass* GetClassReferent() const;
 
+  RawField* GetFieldReferent() const;
+
   RawFunction* GetFunctionReferent() const;
 
   RawLibrary* GetLibraryReferent() const;

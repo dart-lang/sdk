@@ -1037,6 +1037,9 @@ class _LocalVariableMirrorImpl extends _LocalDeclarationMirrorImpl
 
   var _type;
   TypeMirror get type {
+    if (_type == null) {
+       _type = _VariableMirror_type(_reflectee);
+    }
     if (_type is! Mirror) {
       _type = _type.resolve(mirrors);
     }
@@ -1047,6 +1050,9 @@ class _LocalVariableMirrorImpl extends _LocalDeclarationMirrorImpl
   final bool isFinal;
 
   String toString() => "VariableMirror on '${_n(simpleName)}'";
+
+  static _VariableMirror_type(reflectee)
+      native "VariableMirror_type";
 }
 
 class _LocalParameterMirrorImpl extends _LocalVariableMirrorImpl
@@ -1096,6 +1102,15 @@ class _SpecialTypeMirrorImpl extends _LocalMirrorImpl
   }
 
   String toString() => "TypeMirror on '${_n(simpleName)}'";
+
+  // TODO(11955): Remove once dynamicType and voidType are canonical objects in
+  // the object store.
+  operator ==(other) {
+    if (other is! _SpecialTypeMirrorImpl) {
+      return false;
+    }
+    return this.simpleName == other.simpleName;
+  }
 }
 
 class _Mirrors {

@@ -267,6 +267,7 @@ class ObjectPointerVisitor;
   V(_state, "_state")                                                          \
   V(_A, "_A")                                                                  \
   V(_SpecialTypeMirrorImpl, "_SpecialTypeMirrorImpl")                          \
+  V(_LocalVariableMirrorImpl, "_LocalVariableMirrorImpl")                      \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This
