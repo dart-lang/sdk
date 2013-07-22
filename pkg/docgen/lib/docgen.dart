@@ -307,8 +307,8 @@ Map<String, Variable> _getVariables(Map<String, VariableMirror> mirrorMap,
     if (includePrivate || !mirror.isPrivate) {
       _currentMember = mirror;
       data[mirrorName] = new Variable(mirrorName, mirror.isFinal, 
-          mirror.isStatic, mirror.type.qualifiedName, _getComment(mirror), 
-          _getAnnotations(mirror), mirror.qualifiedName);
+          mirror.isStatic, mirror.isConst, mirror.type.qualifiedName,
+          _getComment(mirror), _getAnnotations(mirror), mirror.qualifiedName);
     }
   });
   return data;
@@ -328,10 +328,10 @@ Map<String, Map<String, Method>> _getMethods
   
   mirrorMap.forEach((String mirrorName, MethodMirror mirror) {
     if (includePrivate || !mirror.isPrivate) {
-      var method = new Method(mirrorName, mirror.isStatic, 
-          mirror.returnType.qualifiedName, _getComment(mirror), 
-          _getParameters(mirror.parameters), _getAnnotations(mirror),
-          mirror.qualifiedName);
+      var method = new Method(mirrorName, mirror.isStatic, mirror.isAbstract,
+          mirror.isConstConstructor, mirror.returnType.qualifiedName, 
+          _getComment(mirror), _getParameters(mirror.parameters), 
+          _getAnnotations(mirror), mirror.qualifiedName);
       _currentMember = mirror;
       if (mirror.isSetter) {
         setters[mirrorName] = method;
@@ -577,14 +577,15 @@ class Variable extends Indexable {
 
   bool isFinal;
   bool isStatic;
+  bool isConst;
   String type;
 
   /// List of the meta annotations on the variable.
   List<String> annotations;
   
-  Variable(String name, this.isFinal, this.isStatic, this.type, String comment, 
-      this.annotations, String qualifiedName) : super(name, comment, 
-          qualifiedName);
+  Variable(String name, this.isFinal, this.isStatic, this.isConst, this.type, 
+      String comment, this.annotations, String qualifiedName) : super(name, 
+          comment, qualifiedName);
   
   /// Generates a map describing the [Variable] object.
   Map toMap() => {
@@ -592,6 +593,7 @@ class Variable extends Indexable {
       'comment': comment,
       'final': isFinal.toString(),
       'static': isStatic.toString(),
+      'constant': isConst.toString(),
       'type': type,
       'annotations': new List.from(annotations)
     };
@@ -606,13 +608,16 @@ class Method extends Indexable {
   Map<String, Parameter> parameters;
 
   bool isStatic;
+  bool isAbstract;
+  bool isConst;
   String returnType;
 
   /// List of the meta annotations on the method.
   List<String> annotations;
   
-  Method(String name, this.isStatic, this.returnType, String comment, 
-      this.parameters, this.annotations, String qualifiedName) 
+  Method(String name, this.isStatic, this.isAbstract, this.isConst, 
+      this.returnType, String comment, this.parameters, this.annotations, 
+      String qualifiedName) 
       : super(name, comment, qualifiedName);
   
   /// Generates a map describing the [Method] object.
@@ -620,6 +625,8 @@ class Method extends Indexable {
       'name': name,
       'comment': comment,
       'static': isStatic.toString(),
+      'abstract': isAbstract.toString(),
+      'constant': isConst.toString(),
       'return': returnType,
       'parameters': recurseMap(parameters),
       'annotations': new List.from(annotations)
