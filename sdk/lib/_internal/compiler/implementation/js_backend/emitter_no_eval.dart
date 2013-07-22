@@ -38,7 +38,8 @@ class CodeEmitterNoEvalTask extends CodeEmitterTask {
                        ClassBuilder builder,
                        String superName,
                        { bool classIsNative: false,
-                         bool emitStatics: false }) {
+                         bool emitStatics: false,
+                         bool onlyForRti: false }) {
     // Class fields are dynamically generated so they have to be
     // emitted using getters and setters instead.
     return false;
