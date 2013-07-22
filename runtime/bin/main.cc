@@ -500,6 +500,8 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
     return NULL;
   }
 
+  VmService::SendIsolateStartupMessage(Dart_GetMainPortId());
+
   // Make the isolate runnable so that it is ready to handle messages.
   Dart_ExitScope();
   Dart_ExitIsolate();
@@ -653,6 +655,7 @@ static int DartErrorExit(Dart_Handle error) {
 
 
 static void ShutdownIsolate(void* callback_data) {
+  VmService::VmServiceShutdownCallback(callback_data);
   IsolateData* isolate_data = reinterpret_cast<IsolateData*>(callback_data);
   delete isolate_data;
 }

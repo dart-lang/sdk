@@ -48,6 +48,7 @@ package/*: Skip # Do not run those in Dartium.
 debugger/*: Skip # Do not run standalone debugger tests in browser.
 coverage_test: Skip
 http_launch_test: Skip
+vmservice/*: Skip # Do not run standalone vm service tests in browser.
 
 
 [ $compiler == dartanalyzer ]
@@ -113,6 +114,7 @@ pow_test: Skip # Precision > 53 bits.
 http_launch_test: Skip
 53bit_overflow_test: Skip
 53bit_overflow_literal_test: Skip
+vmservice/*: Skip # Do not run standalone vm service tests with dart2js.
 
 
 [ $compiler == dart2js && $jscl ]

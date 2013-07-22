@@ -8,10 +8,19 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/isolate_data.h"
 #include "bin/resources.h"
 #include "bin/thread.h"
-#include "bin/isolate_data.h"
 
+#include "vm/dart_api_impl.h"
+#include "vm/dart_entry.h"
+#include "vm/isolate.h"
+#include "vm/message.h"
+#include "vm/native_entry.h"
+#include "vm/native_arguments.h"
+#include "vm/object.h"
+#include "vm/port.h"
+#include "vm/snapshot.h"
 
 namespace dart {
 namespace bin {
@@ -36,6 +45,14 @@ extern const uint8_t* snapshot_buffer;
 static const char* kLibraryScriptResourceName =
     kLibraryResourceNamePrefix "/vmservice.dart";
 static const char* kLibrarySourceResourceNames[] = {
+    kLibraryResourceNamePrefix "/constants.dart",
+    kLibraryResourceNamePrefix "/resources.dart",
+    kLibraryResourceNamePrefix "/running_isolate.dart",
+    kLibraryResourceNamePrefix "/running_isolates.dart",
+    kLibraryResourceNamePrefix "/server.dart",
+    kLibraryResourceNamePrefix "/service_request.dart",
+    kLibraryResourceNamePrefix "/service_request_router.dart",
+    kLibraryResourceNamePrefix "/vmservice_io.dart",
     NULL
 };
 
@@ -49,6 +66,10 @@ const char* VmService::error_msg_ = NULL;
 // These must be kept in sync with vmservice/constants.dart
 #define VM_SERVICE_ISOLATE_STARTUP_MESSAGE_ID 1
 #define VM_SERVICE_ISOLATE_SHUTDOWN_MESSAGE_ID 2
+
+
+static Dart_NativeFunction VmServiceNativeResolver(Dart_Handle name,
+                                                   int num_arguments);
 
 
 bool VmService::Start(intptr_t server_port) {
@@ -129,7 +150,13 @@ bool VmService::_Start(intptr_t server_port) {
   Dart_EnterIsolate(isolate_);
   Dart_EnterScope();
 
+
   Dart_Handle library = Dart_RootLibrary();
+  // Set requested port.
+  DartUtils::SetIntegerField(library, "_port", server_port);
+  // Install native resolver.
+  result = Dart_SetNativeResolver(library, VmServiceNativeResolver);
+  SHUTDOWN_ON_ERROR(result);
   result = Dart_Invoke(library, DartUtils::NewString("main"), 0, NULL);
   SHUTDOWN_ON_ERROR(result);
 
@@ -284,7 +311,7 @@ void VmService::ThreadMain(uword parameters) {
   // Keep handling messages until the last active receive port is closed.
   Dart_Handle result = Dart_RunLoop();
   if (Dart_IsError(result)) {
-    printf("VmService error %s\n", Dart_GetError(result));
+    printf("VmService has exited with an error:\n%s\n", Dart_GetError(result));
   }
 
   _Stop();
@@ -292,8 +319,6 @@ void VmService::ThreadMain(uword parameters) {
   Dart_ExitScope();
   Dart_ExitIsolate();
 }
-
-
 
 
 static Dart_Handle MakeServiceControlMessage(Dart_Port port) {
@@ -333,6 +358,94 @@ bool VmService::SendIsolateShutdownMessage(Dart_Port port) {
   return Dart_Post(port_, list);
 }
 
+
+void VmService::VmServiceShutdownCallback(void* callback_data) {
+  ASSERT(Dart_CurrentIsolate() != NULL);
+  Dart_EnterScope();
+  VmService::SendIsolateShutdownMessage(Dart_GetMainPortId());
+  Dart_ExitScope();
+}
+
+
+static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
+  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
+  return reinterpret_cast<uint8_t*>(new_ptr);
+}
+
+
+static void SendServiceMessage(Dart_NativeArguments args) {
+  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  Isolate* isolate = arguments->isolate();
+  StackZone zone(isolate);
+  HANDLESCOPE(isolate);
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, sp, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, rp, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, message, arguments->NativeArgAt(2));
+
+  // Extract SendPort port id.
+  const Object& sp_id_obj = Object::Handle(DartLibraryCalls::PortGetId(sp));
+  if (sp_id_obj.IsError()) {
+    Exceptions::PropagateError(Error::Cast(sp_id_obj));
+  }
+  Integer& id = Integer::Handle();
+  id ^= sp_id_obj.raw();
+  Dart_Port sp_id = static_cast<Dart_Port>(id.AsInt64Value());
+
+  // Extract ReceivePort port id.
+  const Object& rp_id_obj = Object::Handle(DartLibraryCalls::PortGetId(rp));
+  if (rp_id_obj.IsError()) {
+    Exceptions::PropagateError(Error::Cast(rp_id_obj));
+  }
+  ASSERT(rp_id_obj.IsSmi() || rp_id_obj.IsMint());
+  id ^= rp_id_obj.raw();
+  Dart_Port rp_id = static_cast<Dart_Port>(id.AsInt64Value());
+
+  // Both are valid ports.
+  ASSERT(sp_id != ILLEGAL_PORT);
+  ASSERT(rp_id != ILLEGAL_PORT);
+
+  // Serialize message.
+  uint8_t* data = NULL;
+  MessageWriter writer(&data, &allocator);
+  writer.WriteMessage(message);
+
+  // TODO(turnidge): Throw an exception when the return value is false?
+  PortMap::PostMessage(new Message(sp_id, rp_id, data, writer.BytesWritten(),
+                                   Message::kOOBPriority));
+}
+
+
+struct VmServiceNativeEntry {
+  const char* name;
+  int num_arguments;
+  Dart_NativeFunction function;
+};
+
+
+static VmServiceNativeEntry _VmServiceNativeEntries[] = {
+  {"SendServiceMessage", 3, SendServiceMessage}
+};
+
+
+static Dart_NativeFunction VmServiceNativeResolver(Dart_Handle name,
+                                                   int num_arguments) {
+  const Object& obj = Object::Handle(Api::UnwrapHandle(name));
+  if (!obj.IsString()) {
+    return NULL;
+  }
+  const char* function_name = obj.ToCString();
+  ASSERT(function_name != NULL);
+  intptr_t n =
+      sizeof(_VmServiceNativeEntries) / sizeof(_VmServiceNativeEntries[0]);
+  for (intptr_t i = 0; i < n; i++) {
+    VmServiceNativeEntry entry = _VmServiceNativeEntries[i];
+    if (!strcmp(function_name, entry.name) &&
+        (num_arguments == entry.num_arguments)) {
+      return entry.function;
+    }
+  }
+  return NULL;
+}
 
 }  // namespace bin
 }  // namespace dart
