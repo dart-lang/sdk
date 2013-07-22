@@ -3093,7 +3093,6 @@ LocationSummary* MathMinMaxInstr::MakeLocationSummary() const {
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresFpuRegister());
     summary->set_in(1, Location::RequiresFpuRegister());
-    summary->set_temp(0, Location::RequiresRegister());
     summary->set_out(Location::RequiresFpuRegister());
     return summary;
   }
@@ -3109,7 +3108,6 @@ void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     DRegister left = locs()->in(0).fpu_reg();
     DRegister right = locs()->in(1).fpu_reg();
     DRegister result = locs()->out().fpu_reg();
-    Register temp = locs()->temp(0).reg();
     __ cund(left, right);
     __ bc1t(&is_nan);
     if (op_kind() == MethodRecognizer::kMathMin) {
