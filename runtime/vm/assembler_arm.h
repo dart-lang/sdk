@@ -487,6 +487,8 @@ class Assembler : public ValueObject {
   void vmaxqs(QRegister qd, QRegister qn, QRegister qm);
   void vrecpeqs(QRegister qd, QRegister qm);
   void vrecpsqs(QRegister qd, QRegister qn, QRegister qm);
+  void vrsqrteqs(QRegister qd, QRegister qm);
+  void vrsqrtsqs(QRegister qd, QRegister qn, QRegister qm);
 
   void veorq(QRegister qd, QRegister qn, QRegister qm);
   void vorrq(QRegister qd, QRegister qn, QRegister qm);

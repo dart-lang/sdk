@@ -924,7 +924,7 @@ double Simulator::get_dregister(DRegister reg) const {
 }
 
 
-void Simulator::set_qregister(QRegister reg, simd_value_t value) {
+void Simulator::set_qregister(QRegister reg, const simd_value_t& value) {
   ASSERT((reg >= 0) && (reg < kNumberOfQRegisters));
   qregisters_[reg].data_[0] = value.data_[0];
   qregisters_[reg].data_[1] = value.data_[1];
@@ -933,9 +933,9 @@ void Simulator::set_qregister(QRegister reg, simd_value_t value) {
 }
 
 
-simd_value_t Simulator::get_qregister(QRegister reg) const {
+void Simulator::get_qregister(QRegister reg, simd_value_t* value) const {
   ASSERT((reg >= 0) && (reg < kNumberOfQRegisters));
-  return qregisters_[reg];
+  *value = qregisters_[reg];
 }
 
 
@@ -2900,6 +2900,57 @@ void Simulator::DecodeType7(Instr* instr) {
 }
 
 
+static float arm_reciprocal_sqrt_estimate(float a) {
+  // From the ARM Architecture Reference Manual A2-87.
+  if (isinf(a) || (abs(a) >= exp2f(126))) return 0.0;
+  else if (a == 0.0) return INFINITY;
+  else if (isnan(a)) return a;
+
+  uint32_t a_bits = bit_cast<uint32_t, float>(a);
+  uint64_t scaled;
+  if (((a_bits >> 23) & 1) != 0) {
+    // scaled = '0 01111111101' : operand<22:0> : Zeros(29)
+    scaled = (static_cast<uint64_t>(0x3fd) << 52) |
+             ((static_cast<uint64_t>(a_bits) & 0x7fffff) << 29);
+  } else {
+    // scaled = '0 01111111110' : operand<22:0> : Zeros(29)
+    scaled = (static_cast<uint64_t>(0x3fe) << 52) |
+             ((static_cast<uint64_t>(a_bits) & 0x7fffff) << 29);
+  }
+  // result_exp = (380 - UInt(operand<30:23>) DIV 2;
+  int32_t result_exp = (380 - ((a_bits >> 23) & 0xff)) / 2;
+
+  double scaled_d = bit_cast<double, uint64_t>(scaled);
+  ASSERT((scaled_d >= 0.25) && (scaled_d < 1.0));
+
+  double r;
+  if (scaled_d < 0.5) {
+    // range 0.25 <= a < 0.5
+
+    // a in units of 1/512 rounded down.
+    int32_t q0 = static_cast<int32_t>(scaled_d * 512.0);
+    // reciprocal root r.
+    r = 1.0 / sqrt((static_cast<double>(q0) + 0.5) / 512.0);
+  } else {
+    // range 0.5 <= a < 1.0
+
+    // a in units of 1/256 rounded down.
+    int32_t q1 = static_cast<int32_t>(scaled_d * 256.0);
+    // reciprocal root r.
+    r = 1.0 / sqrt((static_cast<double>(q1) + 0.5) / 256.0);
+  }
+  // r in units of 1/256 rounded to nearest.
+  int32_t s = static_cast<int>(256.0 * r + 0.5);
+  double estimate = static_cast<double>(s) / 256.0;
+  ASSERT((estimate >= 1.0) && (estimate <= (511.0/256.0)));
+
+  // result = 0 : result_exp<7:0> : estimate<51:29>
+  int32_t result_bits = ((result_exp & 0xff) << 23) |
+      ((bit_cast<uint64_t, double>(estimate) >> 29) & 0x7fffff);
+  return bit_cast<float, int32_t>(result_bits);
+}
+
+
 static float arm_recip_estimate(float a) {
   // From the ARM Architecture Reference Manual A2-85.
   if (isinf(a) || (abs(a) >= exp2f(126))) return 0.0;
@@ -2943,8 +2994,11 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
     const QRegister qn = instr->QnField();
     const QRegister qm = instr->QmField();
     simd_value_t s8d;
-    simd_value_t s8n = get_qregister(qn);
-    simd_value_t s8m = get_qregister(qm);
+    simd_value_t s8n;
+    simd_value_t s8m;
+
+    get_qregister(qn, &s8n);
+    get_qregister(qm, &s8m);
     int8_t* s8d_8 = reinterpret_cast<int8_t*>(&s8d);
     int8_t* s8n_8 = reinterpret_cast<int8_t*>(&s8n);
     int8_t* s8m_8 = reinterpret_cast<int8_t*>(&s8m);
@@ -3098,6 +3152,19 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
       // Format(instr, "vrecpsq 'qd, 'qn, 'qm");
       for (int i = 0; i < 4; i++) {
         s8d.data_[i].f = 2.0 - (s8n.data_[i].f * s8m.data_[i].f);
+      }
+    } else if ((instr->Bits(8, 4) == 5) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
+               (instr->Bit(7) == 1) && (instr->Bits(16, 4) == 11)) {
+      // Format(instr, "vrsqrteqs 'qd, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.data_[i].f = arm_reciprocal_sqrt_estimate(s8m.data_[i].f);
+      }
+    } else if ((instr->Bits(8, 4) == 15) && (instr->Bit(4) == 1) &&
+               (instr->Bits(20, 2) == 2) && (instr->Bits(23, 2) == 0)) {
+      // Format(instr, "vrsqrtsqs 'qd, 'qn, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.data_[i].f = (3.0 - s8n.data_[i].f * s8m.data_[i].f) / 2.0;
       }
     } else if ((instr->Bits(8, 4) == 12) && (instr->Bit(4) == 0) &&
                (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&

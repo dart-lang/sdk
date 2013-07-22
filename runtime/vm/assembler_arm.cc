@@ -1353,6 +1353,17 @@ void Assembler::vrecpsqs(QRegister qd, QRegister qn, QRegister qm) {
 }
 
 
+void Assembler::vrsqrteqs(QRegister qd, QRegister qm) {
+  EmitSIMDqqq(B24 | B23 | B21 | B20 | B19 | B17 | B16 | B10 | B8 | B7,
+              kSWord, qd, Q0, qm);
+}
+
+
+void Assembler::vrsqrtsqs(QRegister qd, QRegister qn, QRegister qm) {
+  EmitSIMDqqq(B21 | B11 | B10 | B9 | B8 | B4, kSWord, qd, qn, qm);
+}
+
+
 void Assembler::vdup(OperandSize sz, QRegister qd, DRegister dm, int idx) {
   ASSERT((sz != kDWord) && (sz != kSWord) && (sz != kWordPair));
   int code = 0;
