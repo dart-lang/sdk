@@ -1750,6 +1750,237 @@ ASSEMBLER_TEST_RUN(PackedLogicalNot, test) {
   EXPECT_EQ(static_cast<uword>(0x0), res);
 }
 
+
+ASSEMBLER_TEST_GENERATE(PackedMoveHighLow, assembler) {
+  static const struct ALIGN16 {
+    float a;
+    float b;
+    float c;
+    float d;
+  } constant0 = { 1.0, 2.0, 3.0, 4.0 };
+  static const struct ALIGN16 {
+    float a;
+    float b;
+    float c;
+    float d;
+  } constant1 = { 5.0, 6.0, 7.0, 8.0 };
+  // XMM9 = 1.0f, 2.0f, 3.0f, 4.0f.
+  __ movq(RAX, Immediate(reinterpret_cast<intptr_t>(&constant0)));
+  __ movups(XMM9, Address(RAX, 0));
+  // XMM1 = 5.0f, 6.0f, 7.0f, 8.0f.
+  __ movq(RAX, Immediate(reinterpret_cast<intptr_t>(&constant1)));
+  __ movups(XMM1, Address(RAX, 0));
+  // XMM9 = 7.0f, 8.0f, 3.0f, 4.0f.
+  __ movhlps(XMM9, XMM1);
+  __ xorps(XMM1, XMM1);
+  // XMM1 = 7.0f, 8.0f, 3.0f, 4.0f.
+  __ movaps(XMM1, XMM9);
+  __ shufps(XMM9, XMM9, Immediate(0x00));  // 7.0f.
+  __ shufps(XMM1, XMM1, Immediate(0x55));  // 8.0f.
+  __ addss(XMM9, XMM1);  // 15.0f.
+  __ movaps(XMM0, XMM9);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedMoveHighLow, test) {
+  typedef float (*PackedMoveHighLow)();
+  float res = reinterpret_cast<PackedMoveHighLow>(test->entry())();
+  EXPECT_FLOAT_EQ(15.0f, res, 0.001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedMoveLowHigh, assembler) {
+  static const struct ALIGN16 {
+    float a;
+    float b;
+    float c;
+    float d;
+  } constant0 = { 1.0, 2.0, 3.0, 4.0 };
+  static const struct ALIGN16 {
+    float a;
+    float b;
+    float c;
+    float d;
+  } constant1 = { 5.0, 6.0, 7.0, 8.0 };
+  // XMM9 = 1.0f, 2.0f, 3.0f, 4.0f.
+  __ movq(RAX, Immediate(reinterpret_cast<intptr_t>(&constant0)));
+  __ movups(XMM9, Address(RAX, 0));
+  // XMM1 = 5.0f, 6.0f, 7.0f, 8.0f.
+  __ movq(RAX, Immediate(reinterpret_cast<intptr_t>(&constant1)));
+  __ movups(XMM1, Address(RAX, 0));
+  // XMM9 = 1.0f, 2.0f, 5.0f, 6.0f
+  __ movlhps(XMM9, XMM1);
+  __ xorps(XMM1, XMM1);
+  // XMM1 = 1.0f, 2.0f, 5.0f, 6.0f
+  __ movaps(XMM1, XMM9);
+  __ shufps(XMM9, XMM9, Immediate(0xAA));  // 5.0f.
+  __ shufps(XMM1, XMM1, Immediate(0xFF));  // 6.0f.
+  __ addss(XMM9, XMM1);  // 11.0f.
+  __ movaps(XMM0, XMM9);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedMoveLowHigh, test) {
+  typedef float (*PackedMoveLowHigh)();
+  float res = reinterpret_cast<PackedMoveLowHigh>(test->entry())();
+  EXPECT_FLOAT_EQ(11.0f, res, 0.001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedUnpackLow, assembler) {
+  static const struct ALIGN16 {
+    float a;
+    float b;
+    float c;
+    float d;
+  } constant0 = { 1.0, 2.0, 3.0, 4.0 };
+  static const struct ALIGN16 {
+    float a;
+    float b;
+    float c;
+    float d;
+  } constant1 = { 5.0, 6.0, 7.0, 8.0 };
+  // XMM9 = 1.0f, 2.0f, 3.0f, 4.0f.
+  __ movq(RAX, Immediate(reinterpret_cast<intptr_t>(&constant0)));
+  __ movups(XMM9, Address(RAX, 0));
+  // XMM1 = 5.0f, 6.0f, 7.0f, 8.0f.
+  __ movq(RAX, Immediate(reinterpret_cast<intptr_t>(&constant1)));
+  __ movups(XMM1, Address(RAX, 0));
+  // XMM9 = 1.0f, 5.0f, 2.0f, 6.0f.
+  __ unpcklps(XMM9, XMM1);
+  // XMM1 = 1.0f, 5.0f, 2.0f, 6.0f.
+  __ movaps(XMM1, XMM9);
+  __ shufps(XMM9, XMM9, Immediate(0x55));
+  __ shufps(XMM1, XMM1, Immediate(0xFF));
+  __ addss(XMM9, XMM1);  // 11.0f.
+  __ movaps(XMM0, XMM9);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedUnpackLow, test) {
+  typedef float (*PackedUnpackLow)();
+  float res = reinterpret_cast<PackedUnpackLow>(test->entry())();
+  EXPECT_FLOAT_EQ(11.0f, res, 0.001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedUnpackHigh, assembler) {
+  static const struct ALIGN16 {
+    float a;
+    float b;
+    float c;
+    float d;
+  } constant0 = { 1.0, 2.0, 3.0, 4.0 };
+  static const struct ALIGN16 {
+    float a;
+    float b;
+    float c;
+    float d;
+  } constant1 = { 5.0, 6.0, 7.0, 8.0 };
+  // XMM9 = 1.0f, 2.0f, 3.0f, 4.0f.
+  __ movq(RAX, Immediate(reinterpret_cast<intptr_t>(&constant0)));
+  __ movups(XMM9, Address(RAX, 0));
+  // XMM1 = 5.0f, 6.0f, 7.0f, 8.0f.
+  __ movq(RAX, Immediate(reinterpret_cast<intptr_t>(&constant1)));
+  __ movups(XMM1, Address(RAX, 0));
+  // XMM9 = 3.0f, 7.0f, 4.0f, 8.0f.
+  __ unpckhps(XMM9, XMM1);
+  // XMM1 = 3.0f, 7.0f, 4.0f, 8.0f.
+  __ movaps(XMM1, XMM9);
+  __ shufps(XMM9, XMM9, Immediate(0x00));
+  __ shufps(XMM1, XMM1, Immediate(0xAA));
+  __ addss(XMM9, XMM1);  // 7.0f.
+  __ movaps(XMM0, XMM9);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedUnpackHigh, test) {
+  typedef float (*PackedUnpackHigh)();
+  float res = reinterpret_cast<PackedUnpackHigh>(test->entry())();
+  EXPECT_FLOAT_EQ(7.0f, res, 0.001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedUnpackLowPair, assembler) {
+  static const struct ALIGN16 {
+    float a;
+    float b;
+    float c;
+    float d;
+  } constant0 = { 1.0, 2.0, 3.0, 4.0 };
+  static const struct ALIGN16 {
+    float a;
+    float b;
+    float c;
+    float d;
+  } constant1 = { 5.0, 6.0, 7.0, 8.0 };
+  // XMM9 = 1.0f, 2.0f, 3.0f, 4.0f.
+  __ movq(RAX, Immediate(reinterpret_cast<intptr_t>(&constant0)));
+  __ movups(XMM9, Address(RAX, 0));
+  // XMM1 = 5.0f, 6.0f, 7.0f, 8.0f.
+  __ movq(RAX, Immediate(reinterpret_cast<intptr_t>(&constant1)));
+  __ movups(XMM1, Address(RAX, 0));
+  // XMM9 = 1.0f, 2.0f, 5.0f, 6.0f.
+  __ unpcklpd(XMM9, XMM1);
+  // XMM1 = 1.0f, 2.0f, 5.0f, 6.0f.
+  __ movaps(XMM1, XMM9);
+  __ shufps(XMM9, XMM9, Immediate(0x00));
+  __ shufps(XMM1, XMM1, Immediate(0xAA));
+  __ addss(XMM9, XMM1);  // 6.0f.
+  __ movaps(XMM0, XMM9);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedUnpackLowPair, test) {
+  typedef float (*PackedUnpackLowPair)();
+  float res = reinterpret_cast<PackedUnpackLowPair>(test->entry())();
+  EXPECT_FLOAT_EQ(6.0f, res, 0.001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedUnpackHighPair, assembler) {
+  static const struct ALIGN16 {
+    float a;
+    float b;
+    float c;
+    float d;
+  } constant0 = { 1.0, 2.0, 3.0, 4.0 };
+  static const struct ALIGN16 {
+    float a;
+    float b;
+    float c;
+    float d;
+  } constant1 = { 5.0, 6.0, 7.0, 8.0 };
+  // XMM9 = 1.0f, 2.0f, 3.0f, 4.0f.
+  __ movq(RAX, Immediate(reinterpret_cast<intptr_t>(&constant0)));
+  __ movups(XMM9, Address(RAX, 0));
+  // XMM1 = 5.0f, 6.0f, 7.0f, 8.0f.
+  __ movq(RAX, Immediate(reinterpret_cast<intptr_t>(&constant1)));
+  __ movups(XMM1, Address(RAX, 0));
+  // XMM9 = 3.0f, 4.0f, 7.0f, 8.0f.
+  __ unpckhpd(XMM9, XMM1);
+  // XMM1 = 3.0f, 4.0f, 7.0f, 8.0f.
+  __ movaps(XMM1, XMM9);
+  __ shufps(XMM9, XMM9, Immediate(0x55));
+  __ shufps(XMM1, XMM1, Immediate(0xFF));
+  __ addss(XMM9, XMM1);  // 12.0f.
+  __ movaps(XMM0, XMM9);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedUnpackHighPair, test) {
+  typedef float (*PackedUnpackHighPair)();
+  float res = reinterpret_cast<PackedUnpackHighPair>(test->entry())();
+  EXPECT_FLOAT_EQ(12.0f, res, 0.001f);
+}
+
+
 ASSEMBLER_TEST_GENERATE(DoubleFPMoves, assembler) {
   __ movq(RAX, Immediate(bit_cast<int64_t, double>(1024.67)));
   __ pushq(R15);  // Callee saved.

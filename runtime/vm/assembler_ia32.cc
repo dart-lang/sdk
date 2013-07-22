@@ -756,6 +756,56 @@ void Assembler::reciprocalps(XmmRegister dst) {
 }
 
 
+void Assembler::movhlps(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x12);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
+void Assembler::movlhps(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x16);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
+void Assembler::unpcklps(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x14);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
+void Assembler::unpckhps(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x15);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
+void Assembler::unpcklpd(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0x14);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
+void Assembler::unpckhpd(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0x15);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
 void Assembler::set1ps(XmmRegister dst, Register tmp1, const Immediate& imm) {
   // Load 32-bit immediate value into tmp1.
   movl(tmp1, imm);
