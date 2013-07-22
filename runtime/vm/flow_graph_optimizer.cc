@@ -2536,6 +2536,41 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
     call->ReplaceUsesWith(flow_graph_->constant_null());
     ASSERT(current_iterator()->Current() == call);
     current_iterator()->RemoveCurrentFromGraph();;
+  } else if ((recognized_kind == MethodRecognizer::kMathMin) ||
+             (recognized_kind == MethodRecognizer::kMathMax)) {
+    // We can handle only monomorphic min/max call sites with both arguments
+    // being either doubles or Smi-s
+    if (call->HasICData() && (call->ic_data()->NumberOfChecks() == 1)) {
+      const ICData& ic_data = *call->ic_data();
+      intptr_t result_cid = kIllegalCid;
+      if (ICDataHasReceiverArgumentClassIds(ic_data, kDoubleCid, kDoubleCid)) {
+        result_cid = kDoubleCid;
+      } else if (ICDataHasReceiverArgumentClassIds(ic_data, kSmiCid, kSmiCid)) {
+        // TODO(srdjan): Implement for Smi.
+        result_cid = kIllegalCid;
+      }
+      if (result_cid != kIllegalCid) {
+        MathMinMaxInstr* min_max = new MathMinMaxInstr(
+            recognized_kind,
+            new Value(call->ArgumentAt(0)),
+            new Value(call->ArgumentAt(1)),
+            call->deopt_id(),
+            result_cid);
+        const ICData& unary_checks =
+            ICData::ZoneHandle(ic_data.AsUnaryClassChecks());
+        AddCheckClass(min_max->left()->definition(),
+                      unary_checks,
+                      call->deopt_id(),
+                      call->env(),
+                      call);
+        AddCheckClass(min_max->right()->definition(),
+                      unary_checks,
+                      call->deopt_id(),
+                      call->env(),
+                      call);
+        ReplaceCall(call, min_max);
+      }
+    }
   }
 }
 
@@ -6276,6 +6311,18 @@ void ConstantPropagator::VisitMathSqrt(MathSqrtInstr* instr) {
     SetValue(instr, non_constant_);
   } else if (IsConstant(value)) {
     // TODO(kmillikin): Handle sqrt.
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitMathMinMax(MathMinMaxInstr* instr) {
+  const Object& left = instr->left()->definition()->constant_value();
+  const Object& right = instr->right()->definition()->constant_value();
+  if (IsNonConstant(left) || IsNonConstant(right)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(left) && IsConstant(right)) {
+    // TODO(srdjan): Handle min and max.
     SetValue(instr, non_constant_);
   }
 }

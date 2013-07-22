@@ -3347,6 +3347,57 @@ void MathSqrtInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* MathMinMaxInstr::MakeLocationSummary() const {
+  if (result_cid() == kDoubleCid) {
+    const intptr_t kNumInputs = 2;
+    const intptr_t kNumTemps = 1;
+    LocationSummary* summary =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    summary->set_in(0, Location::RequiresFpuRegister());
+    summary->set_in(1, Location::RequiresFpuRegister());
+    summary->set_temp(0, Location::RequiresRegister());
+    summary->set_out(Location::RequiresFpuRegister());
+    return summary;
+  }
+  ASSERT(result_cid() == kSmiCid);
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (result_cid() == kDoubleCid) {
+    Label done, is_nan;
+    DRegister left = EvenDRegisterOf(locs()->in(0).fpu_reg());
+    DRegister right = EvenDRegisterOf(locs()->in(1).fpu_reg());
+    DRegister result = EvenDRegisterOf(locs()->out().fpu_reg());
+    Register temp = locs()->temp(0).reg();
+    __ vcmpd(left, right);
+    __ vmstat();
+    __ b(&is_nan, VS);
+    Condition double_condition, neg_double_condition;
+    if (op_kind() == MethodRecognizer::kMathMin) {
+      double_condition = TokenKindToDoubleCondition(Token::kLT);
+      neg_double_condition = TokenKindToDoubleCondition(Token::kGTE);
+    } else {
+      ASSERT(op_kind() == MethodRecognizer::kMathMax);
+      double_condition = TokenKindToDoubleCondition(Token::kGT);
+      neg_double_condition = TokenKindToDoubleCondition(Token::kLTE);
+    }
+    __ vmovd(result, left, double_condition);
+    __ vmovd(result, right, neg_double_condition);
+    __ b(&done);
+
+    __ Bind(&is_nan);
+    __ LoadDImmediate(result, NAN, temp);
+    __ Bind(&done);
+    return;
+  }
+  ASSERT(result_cid() == kSmiCid);
+  UNIMPLEMENTED();
+}
+
+
 LocationSummary* UnarySmiOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
@@ -3532,7 +3583,7 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary() const {
 
 
 void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // For pow-function return NAN if exponent is NAN.
+  // For pow-function return NaN if exponent is NaN.
   Label do_call, skip_call;
   if (recognized_kind() == MethodRecognizer::kDoublePow) {
     DRegister exp = EvenDRegisterOf(locs()->in(1).fpu_reg());

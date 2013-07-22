@@ -3085,6 +3085,56 @@ void MathSqrtInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* MathMinMaxInstr::MakeLocationSummary() const {
+  if (result_cid() == kDoubleCid) {
+    const intptr_t kNumInputs = 2;
+    const intptr_t kNumTemps = 1;
+    LocationSummary* summary =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    summary->set_in(0, Location::RequiresFpuRegister());
+    summary->set_in(1, Location::RequiresFpuRegister());
+    summary->set_temp(0, Location::RequiresRegister());
+    summary->set_out(Location::RequiresFpuRegister());
+    return summary;
+  }
+  ASSERT(result_cid() == kSmiCid);
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (result_cid() == kDoubleCid) {
+    Label done, is_nan, is_left;
+    DRegister left = locs()->in(0).fpu_reg();
+    DRegister right = locs()->in(1).fpu_reg();
+    DRegister result = locs()->out().fpu_reg();
+    Register temp = locs()->temp(0).reg();
+    __ cund(left, right);
+    __ bc1t(&is_nan);
+    if (op_kind() == MethodRecognizer::kMathMin) {
+      __ coltd(left, right);
+    } else {
+      ASSERT(op_kind() == MethodRecognizer::kMathMax);
+      __ coltd(right, left);
+    }
+    // TODO(zra): Add conditional moves.
+    __ bc1t(&is_left);
+    __ movd(result, right);
+    __ b(&done);
+    __ Bind(&is_left);
+    __ movd(result, right);
+    __ b(&done);
+    __ Bind(&is_nan);
+    __ LoadImmediate(result, NAN);
+    __ Bind(&done);
+    return;
+  }
+  ASSERT(result_cid() == kSmiCid);
+  UNIMPLEMENTED();
+}
+
+
 LocationSummary* UnarySmiOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
@@ -3237,7 +3287,7 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary() const {
 
 
 void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // For pow-function return NAN if exponent is NAN.
+  // For pow-function return NaN if exponent is NaN.
   Label do_call, skip_call;
   if (recognized_kind() == MethodRecognizer::kDoublePow) {
     DRegister exp = locs()->in(1).fpu_reg();

@@ -3634,6 +3634,55 @@ void MathSqrtInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* MathMinMaxInstr::MakeLocationSummary() const {
+  if (result_cid() == kDoubleCid) {
+    const intptr_t kNumInputs = 2;
+    const intptr_t kNumTemps = 0;
+    LocationSummary* summary =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    summary->set_in(0, Location::RequiresFpuRegister());
+    summary->set_in(1, Location::RequiresFpuRegister());
+    summary->set_out(Location::RequiresFpuRegister());
+    return summary;
+  }
+  ASSERT(result_cid() == kSmiCid);
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (result_cid() == kDoubleCid) {
+    Label done, is_left, is_nan;
+    XmmRegister left = locs()->in(0).fpu_reg();
+    XmmRegister right = locs()->in(1).fpu_reg();
+    XmmRegister result = locs()->out().fpu_reg();
+    __ comisd(left, right);
+    __ j(PARITY_EVEN, &is_nan, Assembler::kNearJump);
+    Condition double_condition;
+    if (op_kind() == MethodRecognizer::kMathMin) {
+      double_condition = TokenKindToDoubleCondition(Token::kLT);
+    } else {
+      ASSERT(op_kind() == MethodRecognizer::kMathMax);
+      double_condition = TokenKindToDoubleCondition(Token::kGT);
+    }
+    __ j(double_condition, &is_left, Assembler::kNearJump);
+    __ movsd(result, right);
+    __ jmp(&done, Assembler::kNearJump);
+    __ Bind(&is_left);
+    __ movsd(result, left);
+    __ jmp(&done);
+    __ Bind(&is_nan);
+    static double kNaN = NAN;
+    __ movsd(result, Address::Absolute(reinterpret_cast<uword>(&kNaN)));
+    __ Bind(&done);
+    return;
+  }
+  ASSERT(result_cid() == kSmiCid);
+  UNIMPLEMENTED();
+}
+
+
 LocationSummary* UnarySmiOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   return LocationSummary::Make(kNumInputs,
@@ -3799,7 +3848,7 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   for (intptr_t i = 0; i < InputCount(); i++) {
     __ movsd(Address(ESP, kDoubleSize * i), locs()->in(i).fpu_reg());
   }
-  // For pow-function return NAN if exponent is NAN.
+  // For pow-function return NaN if exponent is NaN.
   Label do_call, skip_call;
   if (recognized_kind() == MethodRecognizer::kDoublePow) {
     XmmRegister exp = locs()->in(1).fpu_reg();

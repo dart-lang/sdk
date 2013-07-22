@@ -8911,6 +8911,29 @@ void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
   ASSERT(class_ids.length() == num_args_tested());
   const intptr_t old_num = NumberOfChecks();
   Array& data = Array::Handle(ic_data());
+  // ICData of static calls with num_args_tested() > 0 have initially a
+  // dummy set of cids entered (see ICData::AddTarget). That entry is
+  // overwritten by first real type feedback data.
+  if (old_num == 1) {
+    bool has_dummy_entry = true;
+    for (intptr_t i = 0; i < num_args_tested(); i++) {
+      if (Smi::Value(Smi::RawCast(data.At(i))) != kObjectCid) {
+        has_dummy_entry = false;
+        break;
+      }
+    }
+    if (has_dummy_entry) {
+      ASSERT(target.raw() == data.At(num_args_tested()));
+      // Replace dummy entry.
+      Smi& value = Smi::Handle();
+      for (intptr_t i = 0; i < num_args_tested(); i++) {
+        ASSERT(class_ids[i] != kIllegalCid);
+        value = Smi::New(class_ids[i]);
+        data.SetAt(i, value);
+      }
+      return;
+    }
+  }
   const intptr_t new_len = data.Length() + TestEntryLength();
   data = Array::Grow(data, new_len, Heap::kOld);
   set_ic_data(data);
