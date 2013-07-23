@@ -1968,6 +1968,14 @@ DART_EXPORT Dart_Handle Dart_GetNativeArgument(Dart_NativeArguments args,
 DART_EXPORT int Dart_GetNativeArgumentCount(Dart_NativeArguments args);
 
 /**
+ * Gets the native instance field of the native argument at some index.
+ */
+DART_EXPORT Dart_Handle Dart_GetNativeFieldOfArgument(Dart_NativeArguments args,
+                                                      int arg_index,
+                                                      int fld_index,
+                                                      intptr_t* value);
+
+/**
  * Sets the return value for a native function.
  */
 DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,

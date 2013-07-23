@@ -3550,6 +3550,42 @@ DART_EXPORT int Dart_GetNativeArgumentCount(Dart_NativeArguments args) {
 }
 
 
+DART_EXPORT Dart_Handle Dart_GetNativeFieldOfArgument(Dart_NativeArguments args,
+                                                      int arg_index,
+                                                      int fld_index,
+                                                      intptr_t* value) {
+  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  if ((arg_index < 0) || (arg_index >= arguments->NativeArgCount())) {
+    return Api::NewError(
+        "%s: argument 'arg_index' out of range. Expected 0..%d but saw %d.",
+        CURRENT_FUNC, arguments->NativeArgCount() - 1, arg_index);
+  }
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Object& obj = Object::Handle(isolate,
+                                     arguments->NativeArgAt(arg_index));
+  if (!obj.IsInstance()) {
+    return Api::NewError("%s expects argument at index '%d' to be of"
+                         " type Instance.", CURRENT_FUNC, arg_index);
+  }
+  if (obj.IsNull()) {
+    return Api::NewError("%s expects argument at index '%d' to be non-null.",
+                         CURRENT_FUNC, arg_index);
+  }
+  const Instance& instance = Instance::Cast(obj);
+  if (!instance.IsValidNativeIndex(fld_index)) {
+    return Api::NewError(
+        "%s: invalid index %d passed in to access native instance field",
+        CURRENT_FUNC, fld_index);
+  }
+  if (value == NULL) {
+    RETURN_NULL_ERROR(value);
+  }
+  *value = instance.GetNativeField(isolate, fld_index);
+  return Api::Success();
+}
+
+
 DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
                                      Dart_Handle retval) {
   const Object& ret_obj = Object::Handle(Api::UnwrapHandle(retval));
