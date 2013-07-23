@@ -246,15 +246,28 @@ class _TemplateIterator {
     return terminator;
   }
 
-  void insertInstanceAt(int index, List<Node> instanceNodes) {
+  void insertInstanceAt(int index, DocumentFragment fragment,
+        List<Node> instanceNodes) {
+
     var previousTerminator = getTerminatorAt(index - 1);
-    var terminator = instanceNodes.length > 0 ? instanceNodes.last
-        : previousTerminator;
+    var terminator = null;
+    if (fragment != null) {
+      terminator = fragment.lastChild;
+    } else if (instanceNodes.length > 0) {
+      terminator = instanceNodes.last;
+    }
+    if (terminator == null) terminator = previousTerminator;
 
     terminators.insert(index, terminator);
 
     var parent = _templateElement.parentNode;
     var insertBeforeNode = previousTerminator.nextNode;
+
+    if (fragment != null) {
+      parent.insertBefore(fragment, insertBeforeNode);
+      return;
+    }
+
     for (var node in instanceNodes) {
       parent.insertBefore(node, insertBeforeNode);
     }
@@ -283,16 +296,8 @@ class _TemplateIterator {
     return model;
   }
 
-  List<Node> getInstanceNodes(model, BindingDelegate delegate,
-      IdentityMap instanceCache) {
-
-    var instanceNodes = instanceCache.remove(model);
-    if (instanceNodes != null) return instanceNodes;
-
-    var fragment = _templateElement.createInstance(model, delegate);
-    instanceNodes = fragment.nodes.toList();
-    fragment.nodes.clear();
-    return instanceNodes;
+  DocumentFragment getInstanceFragment(model, BindingDelegate delegate) {
+    return _templateElement.createInstance(model, delegate);
   }
 
   void _handleChanges(Iterable<ChangeRecord> splices) {
@@ -329,10 +334,15 @@ class _TemplateIterator {
           addIndex < splice.index + splice.addedCount;
           addIndex++) {
 
-        var model = getInstanceModel(iteratedValue[addIndex], delegate);
+        var model = iteratedValue[addIndex];
+        var fragment = null;
+        var instanceNodes = instanceCache.remove(model);
+        if (instanceNodes == null) {
+          var actualModel = getInstanceModel(model, delegate);
+          fragment = getInstanceFragment(actualModel, delegate);
+        }
 
-        var instanceNodes = getInstanceNodes(model, delegate, instanceCache);
-        insertInstanceAt(addIndex, instanceNodes);
+        insertInstanceAt(addIndex, fragment, instanceNodes);
       }
     }
 

@@ -97,6 +97,23 @@ syntaxTests(FooBarModel fooModel([foo, bar])) {
     ]);
   });
 
+  observeTest('getInstanceModel - reorder instances', () {
+    var model = toObservable([0, 1, 2]);
+
+    var div = createTestHtml('<template repeat syntax="Test">{{}}</template>');
+    var template = div.firstChild;
+    var delegate = new TestInstanceModelSyntax();
+
+    recursivelySetTemplateModel(div, model, delegate);
+    performMicrotaskCheckpoint();
+    expect(delegate.count, 3);
+
+    // Note: intentionally mutate in place.
+    model.replaceRange(0, model.length, model.reversed.toList());
+    performMicrotaskCheckpoint();
+    expect(delegate.count, 3);
+  });
+
   observeTest('Basic', () {
     var model = fooModel(2, 4);
     var div = createTestHtml(
@@ -131,6 +148,14 @@ class TestModelSyntax extends BindingDelegate {
   getInstanceModel(template, model) {
     log.add([template, model]);
     return altModels.removeFirst();
+  }
+}
+
+class TestInstanceModelSyntax extends BindingDelegate {
+  int count = 0;
+  getInstanceModel(template, model) {
+    count++;
+    return model;
   }
 }
 
