@@ -8,65 +8,6 @@ part of mdv;
 // https://github.com/polymer-project/mdv
 // The code mostly comes from src/template_element.js
 
-typedef void _ChangeHandler(value);
-
-abstract class _InputBinding {
-  // InputElement or SelectElement
-  final element;
-  PathObserver binding;
-  StreamSubscription _pathSub;
-  StreamSubscription _eventSub;
-
-  _InputBinding(this.element, model, String path) {
-    binding = new PathObserver(model, path);
-    _pathSub = binding.bindSync(valueChanged);
-    _eventSub = _getStreamForInputType(element).listen(updateBinding);
-  }
-
-  void valueChanged(newValue);
-
-  void updateBinding(e);
-
-  void unbind() {
-    binding = null;
-    _pathSub.cancel();
-    _eventSub.cancel();
-  }
-
-  static EventStreamProvider<Event> _checkboxEventType = () {
-    // Attempt to feature-detect which event (change or click) is fired first
-    // for checkboxes.
-    var div = new DivElement();
-    var checkbox = div.append(new InputElement());
-    checkbox.type = 'checkbox';
-    var fired = [];
-    checkbox.onClick.listen((e) {
-      fired.add(Element.clickEvent);
-    });
-    checkbox.onChange.listen((e) {
-      fired.add(Element.changeEvent);
-    });
-    checkbox.dispatchEvent(new MouseEvent('click', view: window));
-    // WebKit/Blink don't fire the change event if the element is outside the
-    // document, so assume 'change' for that case.
-    return fired.length == 1 ? Element.changeEvent : fired.first;
-  }();
-
-  static Stream<Event> _getStreamForInputType(element) {
-    switch (element.type) {
-      case 'checkbox':
-        return _checkboxEventType.forTarget(element);
-      case 'radio':
-      case 'select-multiple':
-      case 'select-one':
-        return element.onChange;
-      default:
-        return element.onInput;
-    }
-  }
-}
-
-
 // TODO(jmesserly): not sure what kind of boolean conversion rules to
 // apply for template data-binding. HTML attributes are true if they're
 // present. However Dart only treats "true" as true. Since this is HTML we'll

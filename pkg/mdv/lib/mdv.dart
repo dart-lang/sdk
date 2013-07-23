@@ -18,13 +18,15 @@ import 'package:observe/observe.dart';
 // TODO(jmesserly): get this from somewhere else. See http://dartbug.com/4161.
 import 'package:serialization/src/serialization_helpers.dart' show IdentityMap;
 
-part 'src/bindings.dart';
 part 'src/element.dart';
+part 'src/input_bindings.dart';
 part 'src/input_element.dart';
 part 'src/node.dart';
 part 'src/select_element.dart';
 part 'src/template.dart';
+part 'src/template_iterator.dart';
 part 'src/text.dart';
+part 'src/text_area_element.dart';
 
 /** Initialize the Model-Driven Views polyfill. */
 void initialize() {
@@ -86,6 +88,8 @@ _mdv(node) {
     wrapper = new _InputElementExtension(node);
   } else if (node is SelectElement) {
     wrapper = new _SelectElementExtension(node);
+  } else if (node is TextAreaElement) {
+    wrapper = new _TextAreaElementExtension(node);
   } else if (node is Element) {
     if (node.isTemplate) {
       wrapper = new _TemplateExtension(node);

@@ -84,32 +84,36 @@ nodeBindingTests() {
     expect(element.id, 'x');
   });
 
-  observeTest('Text Input', () {
-    var input = new InputElement();
+  inputTextAreaValueTest(String tagName) {
+    var el = new Element.tag(tagName);
+    testDiv.nodes.add(el);
     var model = toSymbolMap({'x': 42});
-    input.bind('value', model, 'x');
-    expect(input.value, '42');
+    el.bind('value', model, 'x');
+    expect(el.value, '42');
 
     model[sym('x')] = 'Hi';
-    expect(input.value, '42', reason: 'changes delivered async');
+    expect(el.value, '42', reason: 'changes delivered async');
     performMicrotaskCheckpoint();
-    expect(input.value, 'Hi');
+    expect(el.value, 'Hi');
 
-    input.value = 'changed';
-    dispatchEvent('input', input);
+    el.value = 'changed';
+    dispatchEvent('input', el);
     expect(model[sym('x')], 'changed');
 
-    input.unbind('value');
+    el.unbind('value');
 
-    input.value = 'changed again';
-    dispatchEvent('input', input);
+    el.value = 'changed again';
+    dispatchEvent('input', el);
     expect(model[sym('x')], 'changed');
 
-    input.bind('value', model, 'x');
+    el.bind('value', model, 'x');
     model[sym('x')] = null;
     performMicrotaskCheckpoint();
-    expect(input.value, '');
-  });
+    expect(el.value, '');
+  }
+
+  observeTest('Input.value', () => inputTextAreaValueTest('input'));
+  observeTest('TextArea.value', () => inputTextAreaValueTest('textarea'));
 
   observeTest('Radio Input', () {
     var input = new InputElement();
