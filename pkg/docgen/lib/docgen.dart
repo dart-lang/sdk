@@ -83,7 +83,7 @@ Future<bool> docgen(List<String> files, {String packageRoot,
   linkResolver = (name) =>
       fixReference(name, _currentLibrary, _currentClass, _currentMember);
 
-  return getMirrorSystem(files, packageRoot: packageRoot, parseSdk: parseSdk)
+  return getMirrorSystem(files, packageRoot, parseSdk: parseSdk)
     .then((MirrorSystem mirrorSystem) {
       if (mirrorSystem.libraries.isEmpty) {
         throw new StateError('No library mirrors were created.');
@@ -149,8 +149,8 @@ List<String> _listSdk() {
  * Analyzes set of libraries by getting a mirror system and triggers the
  * documentation of the libraries.
  */
-Future<MirrorSystem> getMirrorSystem(List<String> args, {String packageRoot,
-    bool parseSdk:false}) {
+Future<MirrorSystem> getMirrorSystem(List<String> args, String packageRoot,
+    {bool parseSdk:false}) {
   var libraries = !parseSdk ? _listLibraries(args) : _listSdk();
   if (libraries.isEmpty) throw new StateError('No Libraries.');
   // DART_SDK should be set to the root of the SDK library.
@@ -160,10 +160,10 @@ Future<MirrorSystem> getMirrorSystem(List<String> args, {String packageRoot,
   } else {
     // If DART_SDK is not defined in the environment,
     // assuming the dart executable is from the Dart SDK folder inside bin.
-    sdkRoot = path.join(path.dirname(path.dirname(path.dirname(path.dirname(
-        path.absolute(new Options().script))))), 'sdk');
+    sdkRoot = path.dirname(path.dirname(new Options().executable));
     logger.info('SDK Root: ${sdkRoot}');
   }
+
   return _analyzeLibraries(libraries, sdkRoot, packageRoot: packageRoot);
 }
 
