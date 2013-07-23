@@ -7,6 +7,7 @@ library dart2js.cmdline;
 import 'dart:async';
 import 'dart:collection' show Queue, LinkedHashMap;
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:utf';
 
 import '../compiler.dart' as api;
@@ -302,7 +303,7 @@ void compile(List<String> argv) {
 
   diagnosticHandler.info('package root is $packageRoot');
 
-  int charactersWritten = 0;
+  int totalCharactersWritten = 0;
 
   options.add('--source-map=$sourceMapOut');
 
@@ -315,7 +316,7 @@ void compile(List<String> argv) {
                 getDepsOutput(inputProvider.sourceFiles));
     diagnosticHandler.info(
          'compiled ${inputProvider.dartCharactersRead} characters Dart '
-         '-> $charactersWritten characters $outputLanguage '
+         '-> $totalCharactersWritten characters $outputLanguage '
          'in ${relativize(currentDirectory, out, isWindows)}');
     if (!explicitOut) {
       String input = uriPathToNative(arguments[0]);
@@ -346,27 +347,36 @@ void compile(List<String> argv) {
     if (uri.scheme != 'file') {
       fail('Error: Unhandled scheme ${uri.scheme} in $uri.');
     }
-    IOSink output =
-        new File(uriPathToNative(uri.path)).openWrite();
 
-    CountingSink sink;
+    RandomAccessFile output =
+        new File(uriPathToNative(uri.path)).openSync(mode: FileMode.WRITE);
+    int charactersWritten = 0;
+
+    writeStringSync(String data) {
+      // Write the data in chunks of 8kb, otherwise we risk running OOM
+      int chunkSize = 8*1024;
+
+      int offset = 0;
+      while (offset < data.length) {
+        output.writeStringSync(
+            data.substring(offset, math.min(offset + chunkSize, data.length)));
+        offset += chunkSize;
+      }
+      charactersWritten += data.length;
+    }
 
     onDone() {
       if (sourceMapFileName != null) {
         String sourceMapTag = '//@ sourceMappingURL=$sourceMapFileName\n';
-        sink.count += sourceMapTag.length;
-        output.write(sourceMapTag);
+        writeStringSync(sourceMapTag);
       }
-      output.close();
+      output.closeSync();
       if (isPrimaryOutput) {
-        charactersWritten += sink.count;
+        totalCharactersWritten += charactersWritten;
       }
     }
 
-    var controller = new StreamController<String>(sync: true);
-    controller.stream.listen(output.write, onDone: onDone);
-    sink = new CountingSink(controller);
-    return sink;
+    return new EventSinkWrapper(writeStringSync, onDone);
   }
 
   api.compile(uri, libraryRoot, packageRoot,
@@ -375,21 +385,16 @@ void compile(List<String> argv) {
       .then(compilationDone);
 }
 
-// TODO(ahe): Get rid of this class if http://dartbug.com/8118 is fixed.
-class CountingSink implements EventSink<String> {
-  final EventSink<String> sink;
-  int count = 0;
+class EventSinkWrapper extends EventSink<String> {
+  var onAdd, onClose;
 
-  CountingSink(this.sink);
+  EventSinkWrapper(this.onAdd, this.onClose);
 
-  void add(String value) {
-    sink.add(value);
-    count += value.length;
-  }
+  void add(String data) => onAdd(data);
 
-  void addError(Object error) { sink.addError(error); }
+  void addError(error) => throw error;
 
-  void close() { sink.close(); }
+  void close() => onClose();
 }
 
 class AbortLeg {
