@@ -4,6 +4,18 @@
 
 part of dart.convert;
 
+/**
+ * An instance of the default implementation of the [Utf8Codec].
+ *
+ * This instance provides a convenient access to the most common UTF-8
+ * use cases.
+ *
+ * Examples:
+ *
+ *     var encoded = UTF8.encode("Îñţérñåţîöñåļîžåţîờñ");
+ *     var decoded = UTF8.decode([0x62, 0x6c, 0xc3, 0xa5, 0x62, 0xc3, 0xa6,
+ *                                0x72, 0x67, 0x72, 0xc3, 0xb8, 0x64]);
+ */
 const UTF8 = const Utf8Codec();
 
 /**

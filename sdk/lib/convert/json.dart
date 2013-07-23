@@ -4,6 +4,17 @@
 
 part of dart.convert;
 
+/**
+ * An instance of the default implementation of the [JsonCodec].
+ *
+ * This instance provides a convenient access to the most common JSON
+ * use cases.
+ *
+ * Examples:
+ *
+ *     var encoded = JSON.encode([1, 2, { "a": null }]);
+ *     var decoded = JSON.decode('["foo", { "bar": 499 }]');
+ */
 const JSON = const JsonCodec();
 
 /**
