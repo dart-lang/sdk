@@ -1663,6 +1663,36 @@ bool ClassFinalizer::IsSuperCycleFree(const Class& cls) {
 }
 
 
+// Helper function called by IsAliasCycleFree.
+bool ClassFinalizer::IsParameterTypeCycleFree(
+    const Class& cls,
+    const AbstractType& type,
+    GrowableArray<intptr_t>* visited) {
+  ASSERT(visited != NULL);
+  ResolveType(cls, type, kCanonicalize);
+  if (type.IsType() && !type.IsMalformed()) {
+    const Class& type_class = Class::Handle(type.type_class());
+    if (!type_class.is_type_finalized() &&
+        type_class.IsSignatureClass() &&
+        !IsAliasCycleFree(type_class, visited)) {
+      return false;
+    }
+    const AbstractTypeArguments& type_args = AbstractTypeArguments::Handle(
+        type.arguments());
+    if (!type_args.IsNull()) {
+      AbstractType& type_arg = AbstractType::Handle();
+      for (intptr_t i = 0; i < type_args.Length(); i++) {
+        type_arg = type_args.TypeAt(i);
+        if (!IsParameterTypeCycleFree(cls, type_arg, visited)) {
+          return false;
+        }
+      }
+    }
+  }
+  return true;
+}
+
+
 // Returns false if the function type alias illegally refers to itself.
 bool ClassFinalizer::IsAliasCycleFree(const Class& cls,
                                       GrowableArray<intptr_t>* visited) {
@@ -1682,27 +1712,15 @@ bool ClassFinalizer::IsAliasCycleFree(const Class& cls,
   const Function& function = Function::Handle(cls.signature_function());
   // Check class of result type.
   AbstractType& type = AbstractType::Handle(function.result_type());
-  ResolveType(cls, type, kCanonicalize);
-  if (type.IsType() && !type.IsMalformed()) {
-    const Class& type_class = Class::Handle(type.type_class());
-    if (!type_class.is_type_finalized() &&
-        type_class.IsSignatureClass() &&
-        !IsAliasCycleFree(type_class, visited)) {
-      return false;
-    }
+  if (!IsParameterTypeCycleFree(cls, type, visited)) {
+    return false;
   }
   // Check classes of formal parameter types.
   const intptr_t num_parameters = function.NumParameters();
   for (intptr_t i = 0; i < num_parameters; i++) {
     type = function.ParameterTypeAt(i);
-    ResolveType(cls, type, kCanonicalize);
-    if (type.IsType() && !type.IsMalformed()) {
-      const Class& type_class = Class::Handle(type.type_class());
-      if (!type_class.is_type_finalized() &&
-          type_class.IsSignatureClass() &&
-          !IsAliasCycleFree(type_class, visited)) {
-        return false;
-      }
+    if (!IsParameterTypeCycleFree(cls, type, visited)) {
+      return false;
     }
   }
   visited->RemoveLast();
