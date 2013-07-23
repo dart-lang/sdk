@@ -68,9 +68,6 @@ analyzer_experimental/test/generated/ast_test: Fail, Slow # Issue 11230
 unittest/test/instance_test: Fail # http://dartbug.com/11191
 stack_trace/test/trace_test: Pass, Timeout # Issue 11645
 
-[ $compiler == dart2js && $checked ]
-mdv_observe/test/observable_map_test: Fail # BUG(11480): Triage.
-
 [ $compiler == dartanalyzer || $compiler == dart2analyzer]
 # These tests are runtime negative but statically positive, so we skip
 # them in the analyzer.
@@ -79,6 +76,9 @@ unittest/test/mock_stepwise_negative_test: Skip
 
 [ $compiler == dart2js && $csp ]
 unittest/test/unittest_test: Pass, Crash # Issue 10935
+observe/test/observe_test: Fail # Issue 11970
+observe/test/path_observer_test: Fail  # Issue 11970
+mdv/test/binding_syntax_test: Fail # Issue 11970
 
 serialization/test/serialization_test: Fail # Issue 6490
 serialization/test/no_library_test: Fail # Issue 6490
