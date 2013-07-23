@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'package:observe/observe.dart';
 import 'package:unittest/unittest.dart';
+import 'observe_test_utils.dart';
 
 // This file contains code ported from:
 // https://github.com/rafaelw/ChangeSummary/blob/master/tests/test.js
@@ -26,14 +28,13 @@ toSymbolMap(Map map) {
 }
 
 observePathTests() {
-
-  test('Degenerate Values', () {
+  observeTest('Degenerate Values', () {
     expect(observePath(null, '').value, null);
     expect(observePath(123, '').value, 123);
     expect(observePath(123, 'foo.bar.baz').value, null);
 
     // shouldn't throw:
-    observePath(123, '').values.listen((_) {}).cancel();
+    observePath(123, '').changes.listen((_) {}).cancel();
     observePath(null, '').value = null;
     observePath(123, '').value = 42;
     observePath(123, 'foo.bar.baz').value = 42;
@@ -47,7 +48,7 @@ observePathTests() {
     expect(observePath(foo, 'a/3!').value, null);
   });
 
-  test('get value at path ObservableBox', () {
+  observeTest('get value at path ObservableBox', () {
     var obj = new ObservableBox(new ObservableBox(new ObservableBox(1)));
 
     expect(observePath(obj, '').value, obj);
@@ -67,7 +68,7 @@ observePathTests() {
   });
 
 
-  test('get value at path ObservableMap', () {
+  observeTest('get value at path ObservableMap', () {
     var obj = toSymbolMap({'a': {'b': {'c': 1}}});
 
     expect(observePath(obj, '').value, obj);
@@ -86,7 +87,7 @@ observePathTests() {
     expect(observePath(obj, 'a.b').value, 4);
   });
 
-  test('set value at path', () {
+  observeTest('set value at path', () {
     var obj = toSymbolMap({});
     observePath(obj, 'foo').value = 3;
     expect(obj[sym('foo')], 3);
@@ -99,47 +100,47 @@ observePathTests() {
     expect(observePath(obj, 'bar.baz.bat').value, null);
   });
 
-  test('set value back to same', () {
+  observeTest('set value back to same', () {
     var obj = toSymbolMap({});
     var path = observePath(obj, 'foo');
     var values = [];
-    path.values.listen((v) { values.add(v); });
+    path.changes.listen((_) { values.add(path.value); });
 
     path.value = 3;
     expect(obj[sym('foo')], 3);
     expect(path.value, 3);
 
     observePath(obj, 'foo').value = 2;
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(path.value, 2);
     expect(observePath(obj, 'foo').value, 2);
 
     observePath(obj, 'foo').value = 3;
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(path.value, 3);
 
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(values, [2, 3]);
   });
 
-  test('Observe and Unobserve - Paths', () {
+  observeTest('Observe and Unobserve - Paths', () {
     var arr = toSymbolMap({});
 
     arr[sym('foo')] = 'bar';
     var fooValues = [];
     var fooPath = observePath(arr, 'foo');
-    var fooSub = fooPath.values.listen((v) {
-      fooValues.add(v);
+    var fooSub = fooPath.changes.listen((_) {
+      fooValues.add(fooPath.value);
     });
     arr[sym('foo')] = 'baz';
     arr[sym('bat')] = 'bag';
     var batValues = [];
     var batPath = observePath(arr, 'bat');
-    var batSub = batPath.values.listen((v) {
-      batValues.add(v);
+    var batSub = batPath.changes.listen((_) {
+      batValues.add(batPath.value);
     });
 
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(fooValues, ['baz']);
     expect(batValues, []);
 
@@ -149,81 +150,84 @@ observePathTests() {
     batSub.cancel();
     arr[sym('bat')] = 'boot';
 
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(fooValues, ['baz']);
     expect(batValues, []);
   });
 
-  test('Path Value With Indices', () {
+  observeTest('Path Value With Indices', () {
     var model = toObservable([]);
-    observePath(model, '0').values.listen(expectAsync1((v) {
-      expect(v, 123);
+    var path = observePath(model, '0');
+    path.changes.listen(expectAsync1((_) {
+      expect(path.value, 123);
     }));
     model.add(123);
   });
 
-  test('Path Observation', () {
-    var model = new TestModel()..a =
-        (new TestModel()..b = (new TestModel()..c = 'hello, world'));
+  for (var createModel in [() => new TestModel(), () => new WatcherModel()]) {
+    observeTest('Path Observation - ${createModel().runtimeType}', () {
+      var model = createModel()..a =
+          (createModel()..b = (createModel()..c = 'hello, world'));
 
-    var path = observePath(model, 'a.b.c');
-    var lastValue = null;
-    var sub = path.values.listen((v) { lastValue = v; });
+      var path = observePath(model, 'a.b.c');
+      var lastValue = null;
+      var sub = path.changes.listen((_) { lastValue = path.value; });
 
-    model.a.b.c = 'hello, mom';
+      model.a.b.c = 'hello, mom';
 
-    expect(lastValue, null);
-    deliverChangeRecords();
-    expect(lastValue, 'hello, mom');
+      expect(lastValue, null);
+      performMicrotaskCheckpoint();
+      expect(lastValue, 'hello, mom');
 
-    model.a.b = new TestModel()..c = 'hello, dad';
-    deliverChangeRecords();
-    expect(lastValue, 'hello, dad');
+      model.a.b = createModel()..c = 'hello, dad';
+      performMicrotaskCheckpoint();
+      expect(lastValue, 'hello, dad');
 
-    model.a = new TestModel()..b =
-        (new TestModel()..c = 'hello, you');
-    deliverChangeRecords();
-    expect(lastValue, 'hello, you');
+      model.a = createModel()..b =
+          (createModel()..c = 'hello, you');
+      performMicrotaskCheckpoint();
+      expect(lastValue, 'hello, you');
 
-    model.a.b = 1;
-    deliverChangeRecords();
-    expect(lastValue, null);
+      model.a.b = 1;
+      performMicrotaskCheckpoint();
+      expect(lastValue, null);
 
-    // Stop observing
-    sub.cancel();
+      // Stop observing
+      sub.cancel();
 
-    model.a.b = new TestModel()..c = 'hello, back again -- but not observing';
-    deliverChangeRecords();
-    expect(lastValue, null);
+      model.a.b = createModel()..c = 'hello, back again -- but not observing';
+      performMicrotaskCheckpoint();
+      expect(lastValue, null);
 
-    // Resume observing
-    sub = path.values.listen((v) { lastValue = v; });
+      // Resume observing
+      sub = path.changes.listen((_) { lastValue = path.value; });
 
-    model.a.b.c = 'hello. Back for reals';
-    deliverChangeRecords();
-    expect(lastValue, 'hello. Back for reals');
-  });
+      model.a.b.c = 'hello. Back for reals';
+      performMicrotaskCheckpoint();
+      expect(lastValue, 'hello. Back for reals');
+    });
+  }
 
-  test('observe map', () {
+  observeTest('observe map', () {
     var model = toSymbolMap({'a': 1});
     var path = observePath(model, 'a');
 
     var values = [path.value];
-    var sub = path.values.listen((v) { values.add(v); });
+    var sub = path.changes.listen((_) { values.add(path.value); });
     expect(values, [1]);
 
     model[sym('a')] = 2;
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(values, [1, 2]);
 
     sub.cancel();
     model[sym('a')] = 3;
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(values, [1, 2]);
   });
 }
 
-class TestModel extends ObservableBase {
+class TestModel extends ChangeNotifierBase {
   var _a, _b, _c;
 
   TestModel();
@@ -245,4 +249,14 @@ class TestModel extends ObservableBase {
   void set c(newValue) {
     _c = notifyPropertyChange(const Symbol('c'), _c, newValue);
   }
+}
+
+class WatcherModel extends ObservableBase {
+  // TODO(jmesserly): dart2js does not let these be on the same line:
+  // @observable var a, b, c;
+  @observable var a;
+  @observable var b;
+  @observable var c;
+
+  WatcherModel();
 }

@@ -11,7 +11,7 @@ import 'package:mdv/mdv.dart' as mdv;
 import 'package:observe/observe.dart';
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
-import 'observe_utils.dart';
+import 'mdv_test_utils.dart';
 
 // Note: this file ported from
 // https://github.com/toolkitchen/mdv/blob/master/tests/syntax.js
@@ -19,10 +19,16 @@ import 'observe_utils.dart';
 main() {
   mdv.initialize();
   useHtmlConfiguration();
-  group('Syntax', syntaxTests);
+
+  group('Syntax FooBarModel', () {
+    syntaxTests(([f, b]) => new FooBarModel(f, b));
+  });
+  group('Syntax FooBarNotifyModel', () {
+    syntaxTests(([f, b]) => new FooBarNotifyModel(f, b));
+  });
 }
 
-syntaxTests() {
+syntaxTests(FooBarModel fooModel([foo, bar])) {
   var testDiv;
 
   setUp(() {
@@ -52,8 +58,8 @@ syntaxTests() {
     }
   }
 
-  test('Registration', () {
-    var model = toSymbolMap({'foo': 'bar'});
+  observeTest('Registration', () {
+    var model = fooModel('bar');
 
     var testSyntax = new TestBindingSyntax();
     TemplateElement.syntax['Test'] = testSyntax;
@@ -62,7 +68,7 @@ syntaxTests() {
           '<template bind syntax="Test">{{ foo }}' +
           '<template bind>{{ foo }}</template></template>');
       recursivelySetTemplateModel(div, model);
-      deliverChangeRecords();
+      performMicrotaskCheckpoint();
       expect(div.nodes.length, 4);
       expect(div.nodes.last.text, 'bar');
       expect(div.nodes[2].tagName, 'TEMPLATE');
@@ -79,13 +85,11 @@ syntaxTests() {
     }
   });
 
-  test('getInstanceModel', () {
-    var model = toObservable([{'foo': 1}, {'foo': 2}, {'foo': 3}]
-        .map(toSymbolMap));
+  observeTest('getInstanceModel', () {
+    var model = toObservable([fooModel(1), fooModel(2), fooModel(3)]);
 
     var testSyntax = new TestModelSyntax();
-    testSyntax.altModels.addAll([{'foo': 'a'}, {'foo': 'b'}, {'foo': 'c'}]
-        .map(toSymbolMap));
+    testSyntax.altModels.addAll([fooModel('a'), fooModel('b'), fooModel('c')]);
 
     TemplateElement.syntax['Test'] = testSyntax;
     try {
@@ -96,7 +100,7 @@ syntaxTests() {
 
       var template = div.nodes[0];
       recursivelySetTemplateModel(div, model);
-      deliverChangeRecords();
+      performMicrotaskCheckpoint();
 
       expect(div.nodes.length, 4);
       expect(div.nodes[0].tagName, 'TEMPLATE');
@@ -115,8 +119,8 @@ syntaxTests() {
     }
   });
 
-  test('Basic', () {
-    var model = toSymbolMap({'foo': 2, 'bar': 4});
+  observeTest('Basic', () {
+    var model = fooModel(2, 4);
 
     TemplateElement.syntax['2x'] = new TimesTwoSyntax();
 
@@ -124,20 +128,20 @@ syntaxTests() {
         '<template bind syntax="2x">'
         '{{ foo }} + {{ 2x: bar }} + {{ 4x: bar }}</template>');
     recursivelySetTemplateModel(div, model);
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 2);
     expect(div.nodes.last.text, '2 + 8 + ');
 
-    model[const Symbol('foo')] = 4;
-    model[const Symbol('bar')] = 8;
-    deliverChangeRecords();
+    model.foo = 4;
+    model.bar = 8;
+    performMicrotaskCheckpoint();
     expect(div.nodes.last.text, '4 + 16 + ');
 
     TemplateElement.syntax.remove('2x');
   });
 
-  test('Different Sub-Template Syntax', () {
-    var model = toSymbolMap({'foo': 'bar'});
+  observeTest('Different Sub-Template Syntax', () {
+    var model = fooModel('bar');
 
     TemplateElement.syntax['Test'] = new TestBindingSyntax();
     TemplateElement.syntax['Test2'] = new TestBindingSyntax();
@@ -146,7 +150,7 @@ syntaxTests() {
         '<template bind syntax="Test">{{ foo }}'
         '<template bind syntax="Test2">{{ foo }}</template></template>');
     recursivelySetTemplateModel(div, model);
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 4);
     expect(div.nodes.last.text, 'bar');
     expect(div.nodes[2].tagName, 'TEMPLATE');
@@ -219,7 +223,6 @@ class WhitespaceRemover extends CustomBindingSyntax {
     return instance;
   }
 }
-
 
 class TimesTwoSyntax extends CustomBindingSyntax {
   getBinding(model, path, name, node) {

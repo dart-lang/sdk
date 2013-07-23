@@ -12,7 +12,7 @@ part of observe;
  * [ObservableMap], or a custom [Observable] implementation based on
  * [ObservableMixin]. The property name for changes is "value".
  */
-class ObservableBox<T> extends ObservableBase {
+class ObservableBox<T> extends ChangeNotifierBase {
   T _value;
 
   ObservableBox([T initialValue]) : _value = initialValue;

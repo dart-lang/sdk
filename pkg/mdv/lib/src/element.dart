@@ -43,8 +43,7 @@ class _ElementExtension extends _NodeExtension {
 
     unbind(name);
 
-    _attributeBindings[name] =
-        new PathObserver(model, path).bindSync(changed);
+    _attributeBindings[name] = new PathObserver(model, path).bindSync(changed);
   }
 
   void unbind(String name) {

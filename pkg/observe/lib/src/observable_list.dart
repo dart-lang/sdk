@@ -9,10 +9,8 @@ part of observe;
  * removed, or replaced, then observers that are listening to [changes]
  * will be notified.
  */
-// TODO(jmesserly): remove implements List<E> once we can extend ListBase<E>
-class ObservableList<E> extends _ListBaseWorkaround with ObservableMixin
-    implements List<E> {
-  List<ListChangeRecord> _records;
+class ObservableList<E> extends ListBase<E> with ChangeNotifierMixin {
+  List<ListChangeRecord> _listRecords;
 
   /** The inner [List<E>] with the actual storage. */
   final List<E> _list;
@@ -181,11 +179,17 @@ class ObservableList<E> extends _ListBaseWorkaround with ObservableMixin
   }
 
   void _recordChange(ListChangeRecord record) {
-    if (_records == null) {
-      _records = [];
-      queueChangeRecords(_summarizeRecords);
+    if (_listRecords == null) {
+      _listRecords = [];
+      runAsync(deliverChanges);
     }
-    _records.add(record);
+    _listRecords.add(record);
+  }
+
+  bool deliverChanges() {
+    if (_listRecords == null) return false;
+    _summarizeRecords();
+    return super.deliverChanges();
   }
 
   /**
@@ -216,7 +220,7 @@ class ObservableList<E> extends _ListBaseWorkaround with ObservableMixin
   // to the list, then produce the records at the end.
   void _summarizeRecords() {
     int oldLength = length;
-    for (var r in _records) {
+    for (var r in _listRecords) {
       oldLength += r.removedCount - r.addedCount;
     }
 
@@ -224,15 +228,15 @@ class ObservableList<E> extends _ListBaseWorkaround with ObservableMixin
       notifyPropertyChange(const Symbol('length'), oldLength, length);
     }
 
-    if (_records.length == 1) {
-      notifyChange(_records[0]);
-      _records = null;
+    if (_listRecords.length == 1) {
+      notifyChange(_listRecords[0]);
+      _listRecords = null;
       return;
     }
 
     var items = [];
     for (int i = 0; i < oldLength; i++) items.add(i);
-    for (var r in _records) {
+    for (var r in _listRecords) {
       items.removeRange(r.index, r.index + r.removedCount);
 
       // Represent inserts with -1.
@@ -240,7 +244,7 @@ class ObservableList<E> extends _ListBaseWorkaround with ObservableMixin
     }
     assert(items.length == length);
 
-    _records = null;
+    _listRecords = null;
 
     int index = 0;
     int offset = 0;
@@ -274,7 +278,3 @@ class ObservableList<E> extends _ListBaseWorkaround with ObservableMixin
     }
   }
 }
-
-// TODO(jmesserly): bogus type to workaround spurious VM bug with generic base
-// class and mixins.
-abstract class _ListBaseWorkaround extends ListBase<dynamic> {}

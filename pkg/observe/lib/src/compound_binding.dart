@@ -8,8 +8,13 @@ part of observe;
 typedef Object CompoundBindingCombinator(Map objects);
 
 /**
- * Model-Driven Views contains a helper object which is useful for the
- * implementation of a Custom Syntax.
+ * CompoundBinding is an object which knows how to listen to multiple path
+ * values (registered via [bind]) and invoke its [combinator] when one or more
+ * of the values have changed and set its [value] property to the return value
+ * of the function. When any value has changed, all current values are provided
+ * to the [combinator] in the single `values` argument.
+ *
+ * For example:
  *
  *     var binding = new CompoundBinding((values) {
  *       var combinedValue;
@@ -20,15 +25,9 @@ typedef Object CompoundBindingCombinator(Map objects);
  *     binding.bind('name2', obj2, path2);
  *     //...
  *     binding.bind('nameN', objN, pathN);
- *
- * CompoundBinding is an object which knows how to listen to multiple path
- * values (registered via [bind]) and invoke its [combinator] when one or more
- * of the values have changed and set its [value] property to the return value
- * of the function. When any value has changed, all current values are provided
- * to the [combinator] in the single `values` argument.
  */
 // TODO(jmesserly): rename to something that indicates it's a computed value?
-class CompoundBinding extends ObservableBase {
+class CompoundBinding extends ChangeNotifierBase {
   CompoundBindingCombinator _combinator;
 
   // TODO(jmesserly): ideally these would be String keys, but sometimes we
@@ -65,6 +64,8 @@ class CompoundBinding extends ObservableBase {
   void bind(name, model, String path) {
     unbind(name);
 
+     // TODO(jmesserly): should we avoid observing until we are observed,
+     // similar to PathObserver? Similar for unobserving?
     _bindings[name] = new PathObserver(model, path).bindSync((value) {
       _values[name] = value;
       _scheduleResolve();
@@ -86,7 +87,7 @@ class CompoundBinding extends ObservableBase {
   void _scheduleResolve() {
     if (_scheduled) return;
     _scheduled = true;
-    queueChangeRecords(resolve);
+    runAsync(resolve);
   }
 
   void resolve() {

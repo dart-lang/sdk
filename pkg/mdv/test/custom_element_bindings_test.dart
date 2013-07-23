@@ -10,7 +10,7 @@ import 'package:mdv/mdv.dart' as mdv;
 import 'package:observe/observe.dart';
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
-import 'observe_utils.dart';
+import 'mdv_test_utils.dart';
 
 main() {
   mdv.initialize();
@@ -45,7 +45,7 @@ customElementBindingsTest() {
   }
 
 
-  test('override bind/unbind/unbindAll', () {
+  observeTest('override bind/unbind/unbindAll', () {
     var element = new MyCustomElement();
     var model = toSymbolMap({'a': new Point(123, 444), 'b': new Monster(100)});
 
@@ -59,23 +59,23 @@ customElementBindingsTest() {
     expect(element.scaryMonster, model[sym('b')]);
 
     model[sym('a')] = null;
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(element.myPoint, null);
     element.unbind('my-point');
 
     model[sym('a')] = new Point(1, 2);
     model[sym('b')] = new Monster(200);
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(element.scaryMonster, model[sym('b')]);
     expect(element.myPoint, null, reason: 'a was unbound');
 
     element.unbindAll();
     model[sym('b')] = null;
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(element.scaryMonster.health, 200);
   });
 
-  test('override attribute setter', () {
+  observeTest('override attribute setter', () {
     var element = new WithAttrsCustomElement().real;
     var model = toSymbolMap({'a': 1, 'b': 2});
     element.bind('hidden?', model, 'a');
@@ -86,17 +86,22 @@ customElementBindingsTest() {
     expect(element.id, '2');
 
     model[sym('a')] = null;
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(element.attributes, isNot(contains('hidden')),
         reason: 'null is false-y');
 
     model[sym('a')] = false;
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(element.attributes, isNot(contains('hidden')));
 
     model[sym('a')] = 'foo';
+    // TODO(jmesserly): this is here to force an ordering between the two
+    // changes. Otherwise the order depends on what order StreamController
+    // chooses to fire the two listeners in.
+    performMicrotaskCheckpoint();
+
     model[sym('b')] = 'x';
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(element.attributes, contains('hidden'));
     expect(element.attributes['hidden'], '');
     expect(element.id, 'x');
@@ -113,7 +118,7 @@ customElementBindingsTest() {
     ]);
   });
 
-  test('template bind uses overridden custom element bind', () {
+  observeTest('template bind uses overridden custom element bind', () {
 
     var model = toSymbolMap({'a': new Point(123, 444), 'b': new Monster(100)});
 
@@ -129,7 +134,7 @@ customElementBindingsTest() {
     });
 
     div.query('template').model = model;
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
 
     var element = div.nodes[1];
 
@@ -143,17 +148,17 @@ customElementBindingsTest() {
     expect(element.attributes, isNot(contains('scary-monster')));
 
     model[sym('a')] = null;
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(element.xtag.myPoint, null);
 
     div.query('template').model = null;
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
 
     expect(element.parentNode, null, reason: 'element was detached');
 
     model[sym('a')] = new Point(1, 2);
     model[sym('b')] = new Monster(200);
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
 
     expect(element.xtag.myPoint, null, reason: 'model was unbound');
     expect(element.xtag.scaryMonster.health, 100, reason: 'model was unbound');

@@ -12,7 +12,7 @@ import 'package:mdv/mdv.dart' as mdv;
 import 'package:observe/observe.dart';
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
-import 'observe_utils.dart';
+import 'mdv_test_utils.dart';
 
 // Note: this file ported from
 // https://github.com/toolkitchen/mdv/blob/master/tests/template_element.js
@@ -73,7 +73,7 @@ templateElementTests() {
     target.dispatchEvent(new Event(type, cancelable: false));
   }
 
-  var expando = new Expando('test');
+  var expando = new Expando('observeTest');
   void addExpandos(node) {
     while (node != null) {
       expando[node] = node.text;
@@ -89,48 +89,48 @@ templateElementTests() {
     }
   }
 
-  test('Template', () {
+  observeTest('Template', () {
     var div = createTestHtml('<template bind={{}}>text</template>');
     recursivelySetTemplateModel(div, null);
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 2);
     expect(div.nodes.last.text, 'text');
   });
 
-  test('Template bind, no parent', () {
+  observeTest('Template bind, no parent', () {
     var div = createTestHtml('<template bind>text</template>');
     var template = div.nodes[0];
     template.remove();
 
     recursivelySetTemplateModel(template, toSymbolMap({}));
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(template.nodes.length, 0);
     expect(template.nextNode, null);
     // TODO(jmesserly): the JS tests assert that observer callbacks had no
     // exceptions. How do we replicate this?
   });
 
-  test('Template bind, no defaultView', () {
+  observeTest('Template bind, no defaultView', () {
     var div = createTestHtml('<template bind>text</template>');
     var template = div.nodes[0];
     var doc = document.implementation.createHtmlDocument('');
     doc.adoptNode(div);
     recursivelySetTemplateModel(template, toSymbolMap({}));
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 1);
     // TODO(jmesserly): the JS tests assert that observer callbacks had no
     // exceptions. How do we replicate this?
   });
 
-  test('Template-Empty Bind', () {
+  observeTest('Template-Empty Bind', () {
     var div = createTestHtml('<template bind>text</template>');
     recursivelySetTemplateModel(div, null);
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 2);
     expect(div.nodes.last.text, 'text');
   });
 
-  test('TextTemplateWithNullStringBinding', () {
+  observeTest('TextTemplateWithNullStringBinding', () {
     var div = createTestHtml('<template bind={{}}>a{{b}}c</template>');
     var model = toSymbolMap({'b': 'B'});
     recursivelySetTemplateModel(div, model);
@@ -153,7 +153,7 @@ templateElementTests() {
     expect(div.nodes.last.text, 'ac');
   });
 
-  test('TextTemplateWithBindingPath', () {
+  observeTest('TextTemplateWithBindingPath', () {
     var div = createTestHtml(
         '<template bind="{{ data }}">a{{b}}c</template>');
     var model = toSymbolMap({ 'data': {'b': 'B'} });
@@ -176,7 +176,7 @@ templateElementTests() {
     expect(div.nodes.last.text, 'ac');
   });
 
-  test('TextTemplateWithBindingAndConditional', () {
+  observeTest('TextTemplateWithBindingAndConditional', () {
     var div = createTestHtml(
         '<template bind="{{}}" if="{{ d }}">a{{b}}c</template>');
     var model = toSymbolMap({'b': 'B', 'd': 1});
@@ -205,7 +205,7 @@ templateElementTests() {
     expect(div.nodes.last.text, 'adc');
   });
 
-  test('TemplateWithTextBinding2', () {
+  observeTest('TemplateWithTextBinding2', () {
     var div = createTestHtml(
         '<template bind="{{ b }}">a{{value}}c</template>');
     expect(div.nodes.length, 1);
@@ -221,7 +221,7 @@ templateElementTests() {
     expect(div.nodes.last.text, 'abc');
   });
 
-  test('TemplateWithAttributeBinding', () {
+  observeTest('TemplateWithAttributeBinding', () {
     var div = createTestHtml(
         '<template bind="{{}}">'
         '<div foo="a{{b}}c"></div>'
@@ -242,7 +242,7 @@ templateElementTests() {
     expect(div.nodes.last.attributes['foo'], 'aXc');
   });
 
-  test('TemplateWithConditionalBinding', () {
+  observeTest('TemplateWithConditionalBinding', () {
     var div = createTestHtml(
         '<template bind="{{}}">'
         '<div foo?="{{b}}"></div>'
@@ -260,7 +260,7 @@ templateElementTests() {
     expect(div.nodes.last.attributes, isNot(contains('foo')));
   });
 
-  test('Repeat', () {
+  observeTest('Repeat', () {
     var div = createTestHtml(
         '<template repeat="{{}}"">text</template>');
 
@@ -283,7 +283,7 @@ templateElementTests() {
     expect(div.nodes.length, 3);
   });
 
-  test('Repeat - Reuse Instances', () {
+  observeTest('Repeat - Reuse Instances', () {
     var div = createTestHtml('<template repeat>{{ val }}</template>');
 
     var model = toSymbols([
@@ -324,7 +324,7 @@ templateElementTests() {
     expect(div.nodes[5].text, "2");
   });
 
-  test('Bind - Reuse Instance', () {
+  observeTest('Bind - Reuse Instance', () {
     var div = createTestHtml(
         '<template bind="{{ foo }}">{{ bar }}</template>');
 
@@ -344,7 +344,7 @@ templateElementTests() {
     checkExpandos(template.nextNode);
   });
 
-  test('Repeat-Empty', () {
+  observeTest('Repeat-Empty', () {
     var div = createTestHtml(
         '<template repeat>text</template>');
 
@@ -367,7 +367,7 @@ templateElementTests() {
     expect(div.nodes.length, 3);
   });
 
-  test('Removal from iteration needs to unbind', () {
+  observeTest('Removal from iteration needs to unbind', () {
     var div = createTestHtml(
         '<template repeat="{{}}"><a>{{v}}</a></template>');
     var model = toSymbols([{'v': 0}, {'v': 1}, {'v': 2}, {'v': 3}, {'v': 4}]);
@@ -395,7 +395,7 @@ templateElementTests() {
     }
   });
 
-  test('DOM Stability on Iteration', () {
+  observeTest('DOM Stability on Iteration', () {
     var div = createTestHtml(
         '<template repeat="{{}}">{{}}</template>');
     var model = toSymbols([1, 2, 3, 4, 5]);
@@ -444,7 +444,7 @@ templateElementTests() {
     expect(identical(div.nodes[6], nodes[5]), true);
   });
 
-  test('Repeat2', () {
+  observeTest('Repeat2', () {
     var div = createTestHtml(
         '<template repeat="{{}}">{{value}}</template>');
     expect(div.nodes.length, 1);
@@ -477,7 +477,7 @@ templateElementTests() {
     expect(div.nodes[3].text, '2');
   });
 
-  test('TemplateWithInputValue', () {
+  observeTest('TemplateWithInputValue', () {
     var div = createTestHtml(
         '<template bind="{{}}">'
         '<input value="{{x}}">'
@@ -503,7 +503,7 @@ templateElementTests() {
 
 //////////////////////////////////////////////////////////////////////////////
 
-  test('Decorated', () {
+  observeTest('Decorated', () {
     var div = createTestHtml(
         '<template bind="{{ XX }}" id="t1">'
           '<p>Crew member: {{name}}, Job title: {{title}}</p>'
@@ -534,7 +534,7 @@ templateElementTests() {
     expect(div.nodes[3].tagName, 'P');
   });
 
-  test('DefaultStyles', () {
+  observeTest('DefaultStyles', () {
     var t = new Element.tag('template');
     TemplateElement.decorate(t);
 
@@ -545,7 +545,7 @@ templateElementTests() {
   });
 
 
-  test('Bind', () {
+  observeTest('Bind', () {
     var div = createTestHtml('<template bind="{{}}">Hi {{ name }}</template>');
     var model = toSymbolMap({'name': 'Leela'});
     recursivelySetTemplateModel(div, model);
@@ -554,7 +554,7 @@ templateElementTests() {
     expect(div.nodes[1].text, 'Hi Leela');
   });
 
-  test('BindImperative', () {
+  observeTest('BindImperative', () {
     var div = createTestHtml(
         '<template>'
           'Hi {{ name }}'
@@ -568,7 +568,7 @@ templateElementTests() {
     expect(div.nodes[1].text, 'Hi Leela');
   });
 
-  test('BindPlaceHolderHasNewLine', () {
+  observeTest('BindPlaceHolderHasNewLine', () {
     var div = createTestHtml('<template bind="{{}}">Hi {{\nname\n}}</template>');
     var model = toSymbolMap({'name': 'Leela'});
     recursivelySetTemplateModel(div, model);
@@ -577,7 +577,7 @@ templateElementTests() {
     expect(div.nodes[1].text, 'Hi Leela');
   });
 
-  test('BindWithRef', () {
+  observeTest('BindWithRef', () {
     var id = 't${new math.Random().nextDouble()}';
     var div = createTestHtml(
         '<template id="$id">'
@@ -597,7 +597,7 @@ templateElementTests() {
     expect(t2.nextNode.text, 'Hi Fry');
   });
 
-  test('BindChanged', () {
+  observeTest('BindChanged', () {
     var model = toSymbolMap({
       'XX': {'name': 'Leela', 'title': 'Captain'},
       'XY': {'name': 'Fry', 'title': 'Delivery boy'},
@@ -632,7 +632,7 @@ templateElementTests() {
     }
   }
 
-  test('Repeat3', () {
+  observeTest('Repeat3', () {
     var div = createTestHtml(
         '<template repeat="{{ contacts }}">Hi {{ name }}</template>');
     var t = div.nodes.first;
@@ -682,7 +682,7 @@ templateElementTests() {
     assertNodesAre(div, []);
   });
 
-  test('RepeatModelSet', () {
+  observeTest('RepeatModelSet', () {
     var div = createTestHtml(
         '<template repeat="{{ contacts }}">'
           'Hi {{ name }}'
@@ -702,7 +702,7 @@ templateElementTests() {
     assertNodesAre(div, ['Hi Raf', 'Hi Arv', 'Hi Neal']);
   });
 
-  test('RepeatEmptyPath', () {
+  observeTest('RepeatEmptyPath', () {
     var div = createTestHtml('<template repeat="{{}}">Hi {{ name }}</template>');
     var t = div.nodes.first;
 
@@ -743,7 +743,7 @@ templateElementTests() {
     assertNodesAre(div, ['Hi Alex']);
   });
 
-  test('RepeatNullModel', () {
+  observeTest('RepeatNullModel', () {
     var div = createTestHtml('<template repeat="{{}}">Hi {{ name }}</template>');
     var t = div.nodes.first;
 
@@ -760,7 +760,7 @@ templateElementTests() {
     expect(div.nodes.length, 1);
   });
 
-  test('RepeatReuse', () {
+  observeTest('RepeatReuse', () {
     var div = createTestHtml('<template repeat="{{}}">Hi {{ name }}</template>');
     var t = div.nodes.first;
 
@@ -793,7 +793,7 @@ templateElementTests() {
     assertNodesAre(div, ['Hi Alex', 'Hi Raf', 'Hi Erik', 'Hi Neal']);
   });
 
-  test('TwoLevelsDeepBug', () {
+  observeTest('TwoLevelsDeepBug', () {
     var div = createTestHtml(
       '<template bind="{{}}"><span><span>{{ foo }}</span></span></template>');
 
@@ -804,7 +804,7 @@ templateElementTests() {
     expect(div.nodes[1].nodes[0].nodes[0].text, 'bar');
   });
 
-  test('Checked', () {
+  observeTest('Checked', () {
     var div = createTestHtml(
         '<template>'
           '<input type="checkbox" checked="{{a}}">'
@@ -853,7 +853,7 @@ templateElementTests() {
     expect(div.nodes[start + 2].text, '22');
   }
 
-  test('Nested', () {
+  observeTest('Nested', () {
     nestedHelper(
         '<template bind="{{a}}">'
           '{{b}}'
@@ -863,7 +863,7 @@ templateElementTests() {
         '</template>', 1);
   });
 
-  test('NestedWithRef', () {
+  observeTest('NestedWithRef', () {
     nestedHelper(
         '<template id="inner">{{d}}</template>'
         '<template id="outer" bind="{{a}}">'
@@ -909,7 +909,7 @@ templateElementTests() {
     expect(div.nodes[start + 5].text, '33');
   }
 
-  test('NestedRepeatBind', () {
+  observeTest('NestedRepeatBind', () {
     nestedIterateInstantiateHelper(
         '<template repeat="{{a}}">'
           '{{b}}'
@@ -919,7 +919,7 @@ templateElementTests() {
         '</template>', 1);
   });
 
-  test('NestedRepeatBindWithRef', () {
+  observeTest('NestedRepeatBindWithRef', () {
     nestedIterateInstantiateHelper(
         '<template id="inner">'
           '{{d}}'
@@ -972,7 +972,7 @@ templateElementTests() {
     expect(div.nodes[start + 8].text, '33');
   }
 
-  test('NestedRepeatBind', () {
+  observeTest('NestedRepeatBind', () {
     nestedIterateIterateHelper(
         '<template repeat="{{a}}">'
           '{{b}}'
@@ -982,7 +982,7 @@ templateElementTests() {
         '</template>', 1);
   });
 
-  test('NestedRepeatRepeatWithRef', () {
+  observeTest('NestedRepeatRepeatWithRef', () {
     nestedIterateIterateHelper(
         '<template id="inner">'
           '{{d}}'
@@ -993,7 +993,7 @@ templateElementTests() {
         '</template>', 2);
   });
 
-  test('NestedRepeatSelfRef', () {
+  observeTest('NestedRepeatSelfRef', () {
     var div = createTestHtml(
         '<template id="t" repeat="{{}}">'
           '{{name}}'
@@ -1047,7 +1047,7 @@ templateElementTests() {
     expect(div.nodes[i++].text, 'Item 2');
   });
 
-  test('Attribute Template Option/Optgroup', () {
+  observeTest('Attribute Template Option/Optgroup', () {
     var div = createTestHtml(
         '<template bind>'
           '<select selectedIndex="{{ selected }}">'
@@ -1087,7 +1087,7 @@ templateElementTests() {
     expect(optgroup.nodes[2].text, '1');
   });
 
-  test('NestedIterateTableMixedSemanticNative', () {
+  observeTest('NestedIterateTableMixedSemanticNative', () {
     if (!TemplateElement.supported) return;
 
     var div = createTestHtml(
@@ -1128,7 +1128,7 @@ templateElementTests() {
     expect(tbody.nodes[2].nodes[2].attributes["class"], '3');
   });
 
-  test('NestedIterateTable', () {
+  observeTest('NestedIterateTable', () {
     var div = createTestHtml(
         '<table><tbody>'
           '<tr template repeat="{{}}">'
@@ -1165,7 +1165,7 @@ templateElementTests() {
     expect(tbody.nodes[2].nodes[2].attributes['class'], '3');
   });
 
-  test('NestedRepeatDeletionOfMultipleSubTemplates', () {
+  observeTest('NestedRepeatDeletionOfMultipleSubTemplates', () {
     var div = createTestHtml(
         '<ul>'
           '<template repeat="{{}}" id=t1>'
@@ -1195,7 +1195,7 @@ templateElementTests() {
     deliverChanges(m);
   });
 
-  test('DeepNested', () {
+  observeTest('DeepNested', () {
     var div = createTestHtml(
       '<template bind="{{a}}">'
         '<p>'
@@ -1220,7 +1220,7 @@ templateElementTests() {
     expect(div.nodes[1].nodes[1].text, '42');
   });
 
-  test('TemplateContentRemoved', () {
+  observeTest('TemplateContentRemoved', () {
     var div = createTestHtml('<template bind="{{}}">{{ }}</template>');
     var model = 42;
 
@@ -1230,7 +1230,7 @@ templateElementTests() {
     expect(div.nodes[0].text, '');
   });
 
-  test('TemplateContentRemovedEmptyArray', () {
+  observeTest('TemplateContentRemovedEmptyArray', () {
     var div = createTestHtml('<template iterate>Remove me</template>');
     var model = toSymbols([]);
 
@@ -1240,7 +1240,7 @@ templateElementTests() {
     expect(div.nodes[0].text, '');
   });
 
-  test('TemplateContentRemovedNested', () {
+  observeTest('TemplateContentRemovedNested', () {
     var div = createTestHtml(
         '<template bind="{{}}">'
           '{{ a }}'
@@ -1262,7 +1262,7 @@ templateElementTests() {
     expect(div.nodes[3].text, '2');
   });
 
-  test('BindWithUndefinedModel', () {
+  observeTest('BindWithUndefinedModel', () {
     var div = createTestHtml(
         '<template bind="{{}}" if="{{}}">{{ a }}</template>');
 
@@ -1282,7 +1282,7 @@ templateElementTests() {
     expect(div.nodes[1].text, '42');
   });
 
-  test('BindNested', () {
+  observeTest('BindNested', () {
     var div = createTestHtml(
         '<template bind="{{}}">'
           'Name: {{ name }}'
@@ -1318,7 +1318,7 @@ templateElementTests() {
     expect(div.nodes[4].text, 'Child: Dwight');
   });
 
-  test('BindRecursive', () {
+  observeTest('BindRecursive', () {
     var div = createTestHtml(
         '<template bind="{{}}" if="{{}}" id="t">'
           'Name: {{ name }}'
@@ -1349,7 +1349,7 @@ templateElementTests() {
     expect(div.nodes[3].text, 'Name: Leela');
   });
 
-  test('ChangeFromBindToRepeat', () {
+  observeTest('ChangeFromBindToRepeat', () {
     var div = createTestHtml(
         '<template bind="{{a}}">'
           '{{ length }}'
@@ -1389,7 +1389,7 @@ templateElementTests() {
     expect(div.nodes[1].text, '4');
   });
 
-  test('ChangeRefId', () {
+  observeTest('ChangeRefId', () {
     var div = createTestHtml(
         '<template id="a">a:{{ }}</template>'
         '<template id="b">b:{{ }}</template>'
@@ -1413,7 +1413,7 @@ templateElementTests() {
     expect(div.nodes[6].text, 'b:2');
   });
 
-  test('Content', () {
+  observeTest('Content', () {
     var div = createTestHtml(
         '<template><a></a></template>'
         '<template><b></b></template>');
@@ -1442,7 +1442,7 @@ templateElementTests() {
     expect(contentB.nodes.first.tagName, 'B');
   });
 
-  test('NestedContent', () {
+  observeTest('NestedContent', () {
     var div = createTestHtml(
         '<template>'
         '<template></template>'
@@ -1454,7 +1454,7 @@ templateElementTests() {
     expect(templateB.content.document, templateA.content.document);
   });
 
-  test('BindShadowDOM', () {
+  observeTest('BindShadowDOM', () {
     if (ShadowRoot.supported) {
       var root = createShadowTestHtml(
           '<template bind="{{}}">Hi {{ name }}</template>');
@@ -1465,36 +1465,36 @@ templateElementTests() {
     }
   });
 
-  test('BindShadowDOM bindModel', () {
+  observeTest('BindShadowDOM bindModel', () {
     if (ShadowRoot.supported) {
       var root = createShadowTestHtml('Hi {{ name }}');
       var model = toSymbolMap({'name': 'Leela'});
       mdv.bindModel(root, model);
-      deliverChangeRecords();
+      performMicrotaskCheckpoint();
       expect(root.text, 'Hi Leela');
     }
   });
 
-  test('bindModel to polyfilled shadow root', () {
+  observeTest('bindModel to polyfilled shadow root', () {
     var root = createTestHtml('Hi {{ name }}');
     var model = toSymbolMap({'name': 'Leela'});
     mdv.bindModel(root, model);
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(root.text, 'Hi Leela');
   });
 
-  test('BindShadowDOM Template Ref', () {
+  observeTest('BindShadowDOM Template Ref', () {
     if (ShadowRoot.supported) {
       var root = createShadowTestHtml(
           '<template id=foo>Hi</template><template bind ref=foo></template>');
       recursivelySetTemplateModel(root, toSymbolMap({}));
-      deliverChangeRecords();
+      performMicrotaskCheckpoint();
       expect(root.nodes.length, 3);
     }
   });
 
   // https://github.com/toolkitchen/mdv/issues/8
-  test('UnbindingInNestedBind', () {
+  observeTest('UnbindingInNestedBind', () {
     var div = createTestHtml(
       '<template bind="{{outer}}" if="{{outer}}" syntax="testHelper">'
         '<template bind="{{inner}}" if="{{inner}}">'
@@ -1535,20 +1535,17 @@ templateElementTests() {
   });
 
   // https://github.com/toolkitchen/mdv/issues/8
-  test('DontCreateInstancesForAbandonedIterators', () {
+  observeTest('DontCreateInstancesForAbandonedIterators', () {
     var div = createTestHtml(
       '<template bind="{{}} {{}}">'
         '<template bind="{{}}">Foo'
         '</template>'
       '</template>');
     recursivelySetTemplateModel(div, null);
-    // TODO(jmesserly): how to fix this test?
-    // Perhaps revive the original?
-    // https://github.com/toolkitchen/mdv/commit/8bc1e3466aeb6930150c0d3148f0e830184bf599#L3R1278
-    //expect(!!ChangeSummary._errorThrownDuringCallback, false);
+    performMicrotaskCheckpoint();
   });
 
-  test('CreateInstance', () {
+  observeTest('CreateInstance', () {
     TemplateElement.syntax['Test'] = new TestBindingSyntax();
     try {
       var div = createTestHtml(
@@ -1566,14 +1563,14 @@ templateElementTests() {
       expect(instance.firstChild.attributes['syntax'], 'Test');
 
       host.append(instance);
-      deliverChangeRecords();
+      performMicrotaskCheckpoint();
       expect(host.firstChild.nextNode.text, 'bar:replaced');
     } finally {
       TemplateElement.syntax.remove('Test');
     }
   });
 
-  test('Bootstrap', () {
+  observeTest('Bootstrap', () {
     var div = new DivElement();
     div.innerHtml =
       '<template>'
@@ -1607,7 +1604,7 @@ templateElementTests() {
     expect(template3.content.nodes.first.text, 'Hello');
   });
 
-  test('instanceCreated hack', () {
+  observeTest('instanceCreated hack', () {
     var called = false;
     var sub = mdv.instanceCreated.listen((node) {
       called = true;
@@ -1618,7 +1615,7 @@ templateElementTests() {
     expect(called, false);
 
     recursivelySetTemplateModel(div, null);
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(called, true);
 
     sub.cancel();
@@ -1645,10 +1642,13 @@ class UnbindingInNestedBindSyntax extends CustomBindingSyntax {
   }
 }
 
-/** Verifies that the model is Observable, then calls [deliverChangeRecords]. */
+/**
+ * Verifies that the model is Observable, then calls
+ * [performMicrotaskCheckpoint].
+ */
 void deliverChanges(model) {
   expectObservable(model);
-  deliverChangeRecords();
+  performMicrotaskCheckpoint();
 }
 
 void expectObservable(model) {

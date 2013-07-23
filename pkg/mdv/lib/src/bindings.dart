@@ -246,7 +246,7 @@ class _TemplateIterator {
   StreamSubscription _valueBinding;
 
   _TemplateIterator(this._templateElement)
-    : inputs = new CompoundBinding(resolveInputs) {
+      : inputs = new CompoundBinding(resolveInputs) {
 
     _valueBinding = new PathObserver(inputs, 'value').bindSync(valueChanged);
   }

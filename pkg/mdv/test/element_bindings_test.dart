@@ -10,7 +10,7 @@ import 'package:mdv/mdv.dart' as mdv;
 import 'package:observe/observe.dart';
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
-import 'observe_utils.dart';
+import 'mdv_test_utils.dart';
 
 // Note: this file ported from
 // https://github.com/toolkitchen/mdv/blob/master/tests/element_bindings.js
@@ -41,70 +41,70 @@ elementBindingTests() {
     target.dispatchEvent(new Event(type, cancelable: false));
   }
 
-  test('Text', () {
+  observeTest('Text', () {
     var template = new Element.html('<template bind>{{a}} and {{b}}');
     testDiv.append(template);
     var model = toSymbolMap({'a': 1, 'b': 2});
     template.model = model;
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     var text = testDiv.nodes[1];
     expect(text.text, '1 and 2');
 
     model[sym('a')] = 3;
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(text.text, '3 and 2');
   });
 
-  test('SimpleBinding', () {
+  observeTest('SimpleBinding', () {
     var el = new DivElement();
     var model = toSymbolMap({'a': '1'});
     el.bind('foo', model, 'a');
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(el.attributes['foo'], '1');
 
     model[sym('a')] = '2';
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(el.attributes['foo'], '2');
 
     model[sym('a')] = 232.2;
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(el.attributes['foo'], '232.2');
 
     model[sym('a')] = 232;
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(el.attributes['foo'], '232');
 
     model[sym('a')] = null;
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(el.attributes['foo'], '');
   });
 
-  test('SimpleBindingWithDashes', () {
+  observeTest('SimpleBindingWithDashes', () {
     var el = new DivElement();
     var model = toSymbolMap({'a': '1'});
     el.bind('foo-bar', model, 'a');
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(el.attributes['foo-bar'], '1');
 
     model[sym('a')] = '2';
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(el.attributes['foo-bar'], '2');
   });
 
-  test('SimpleBindingWithComment', () {
+  observeTest('SimpleBindingWithComment', () {
     var el = new DivElement();
     el.innerHtml = '<!-- Comment -->';
     var model = toSymbolMap({'a': '1'});
     el.bind('foo-bar', model, 'a');
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(el.attributes['foo-bar'], '1');
 
     model[sym('a')] = '2';
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(el.attributes['foo-bar'], '2');
   });
 
-  test('PlaceHolderBindingText', () {
+  observeTest('PlaceHolderBindingText', () {
     var model = toSymbolMap({
       'adj': 'cruel',
       'noun': 'world'
@@ -118,21 +118,21 @@ elementBindingTests() {
     testDiv.append(template);
     template.model = model;
 
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     el = testDiv.nodes[1].nodes.first;
     expect(el.text, 'Hello cruel world!');
 
     model[sym('adj')] = 'happy';
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(el.text, 'Hello happy world!');
   });
 
-  test('InputElementTextBinding', () {
+  observeTest('InputElementTextBinding', () {
     var model = toSymbolMap({'val': 'ping'});
 
     var el = new InputElement();
     el.bind('value', model, 'val');
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(el.value, 'ping');
 
     el.value = 'pong';
@@ -143,7 +143,7 @@ elementBindingTests() {
     model = toSymbolMap({'a': {'b': {'c': 'ping'}}});
 
     el.bind('value', model, 'a.b.c');
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(el.value, 'ping');
 
     el.value = 'pong';
@@ -152,17 +152,17 @@ elementBindingTests() {
 
     // Start with the model property being absent.
     model[sym('a')][sym('b')].remove(sym('c'));
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(el.value, '');
 
     el.value = 'pong';
     dispatchEvent('input', el);
     expect(observePath(model, 'a.b.c').value, 'pong');
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
 
     // Model property unreachable (and unsettable).
     model[sym('a')].remove(sym('b'));
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(el.value, '');
 
     el.value = 'pong';
@@ -170,18 +170,18 @@ elementBindingTests() {
     expect(observePath(model, 'a.b.c').value, null);
   });
 
-  test('InputElementCheckbox', () {
+  observeTest('InputElementCheckbox', () {
     var model = toSymbolMap({'val': true});
 
     var el = new InputElement();
     testDiv.append(el);
     el.type = 'checkbox';
     el.bind('checked', model, 'val');
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(el.checked, true);
 
     model[sym('val')] = false;
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(el.checked, false);
 
     el.click();
@@ -200,14 +200,14 @@ elementBindingTests() {
     el.dispatchEvent(new MouseEvent('click', view: window));
   });
 
-  test('InputElementCheckbox - binding updated on click', () {
+  observeTest('InputElementCheckbox - binding updated on click', () {
     var model = toSymbolMap({'val': true});
 
     var el = new InputElement();
     testDiv.append(el);
     el.type = 'checkbox';
     el.bind('checked', model, 'val');
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(el.checked, true);
 
     el.onClick.listen((_) {
@@ -217,14 +217,14 @@ elementBindingTests() {
     el.dispatchEvent(new MouseEvent('click', view: window));
   });
 
-  test('InputElementCheckbox - binding updated on change', () {
+  observeTest('InputElementCheckbox - binding updated on change', () {
     var model = toSymbolMap({'val': true});
 
     var el = new InputElement();
     testDiv.append(el);
     el.type = 'checkbox';
     el.bind('checked', model, 'val');
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(el.checked, true);
 
     el.onChange.listen((_) {
@@ -234,10 +234,10 @@ elementBindingTests() {
     el.dispatchEvent(new MouseEvent('click', view: window));
    });
 
-  test('InputElementRadio', () {
+  observeTest('InputElementRadio', () {
     var model = toSymbolMap({'val1': true, 'val2': false, 'val3': false,
         'val4': true});
-    var RADIO_GROUP_NAME = 'test';
+    var RADIO_GROUP_NAME = 'observeTest';
 
     var container = testDiv;
 
@@ -265,7 +265,7 @@ elementBindingTests() {
     el4.name = 'othergroup';
     el4.bind('checked', model, 'val4');
 
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(el1.checked, true);
     expect(el2.checked, false);
     expect(el3.checked, false);
@@ -273,7 +273,7 @@ elementBindingTests() {
 
     model[sym('val1')] = false;
     model[sym('val2')] = true;
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(el1.checked, false);
     expect(el2.checked, true);
     expect(el3.checked, false);
@@ -294,10 +294,10 @@ elementBindingTests() {
     expect(model[sym('val4')], true);
   });
 
-  test('InputElementRadioMultipleForms', () {
+  observeTest('InputElementRadioMultipleForms', () {
     var model = toSymbolMap({'val1': true, 'val2': false, 'val3': false,
         'val4': true});
-    var RADIO_GROUP_NAME = 'test';
+    var RADIO_GROUP_NAME = 'observeTest';
 
     var form1 = new FormElement();
     testDiv.append(form1);
@@ -328,7 +328,7 @@ elementBindingTests() {
     el4.name = RADIO_GROUP_NAME;
     el4.bind('checked', model, 'val4');
 
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(el1.checked, true);
     expect(el2.checked, false);
     expect(el3.checked, false);
@@ -353,7 +353,7 @@ elementBindingTests() {
     expect(model[sym('val2')], true);
   });
 
-  test('BindToChecked', () {
+  observeTest('BindToChecked', () {
     var div = new DivElement();
     testDiv.append(div);
     var child = new DivElement();
@@ -372,7 +372,7 @@ elementBindingTests() {
     expect(model[sym('a')][sym('b')], false);
   });
 
-  test('Select selectedIndex', () {
+  observeTest('Select selectedIndex', () {
     var select = new SelectElement();
     testDiv.append(select);
     var option0 = select.append(new OptionElement());
@@ -382,7 +382,7 @@ elementBindingTests() {
     var model = toSymbolMap({'val': 2});
 
     select.bind('selectedIndex', model, 'val');
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(select.selectedIndex, 2);
 
     select.selectedIndex = 1;
@@ -390,7 +390,7 @@ elementBindingTests() {
     expect(model[sym('val')], 1);
   });
 
-  test('MultipleReferences', () {
+  observeTest('MultipleReferences', () {
     var el = new DivElement();
     var template = new Element.html('<template bind>');
     template.content.append(el);
@@ -400,7 +400,7 @@ elementBindingTests() {
     el.attributes['foo'] = '{{foo}} {{foo}}';
     template.model = model;
 
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     el = testDiv.nodes[1];
     expect(el.attributes['foo'], 'bar bar');
   });
