@@ -58,11 +58,123 @@ class Utf8Encoder extends Converter<String, List<int>> {
    * Converts [string] to its UTF-8 code units (a list of
    * unsigned 8-bit integers).
    */
-  List<int> convert(String string) => OLD_UTF_LIB.encodeUtf8(string);
+  List<int> convert(String string) {
+    // Create a new encoder with a length that is guaranteed to be big enough.
+    // A single code unit uses at most 3 bytes. Two code units at most 4.
+    _Utf8Encoder encoder = new _Utf8Encoder.withBufferSize(string.length * 3);
+    int endPosition = encoder._fillBuffer(string, 0, string.length);
+    assert(endPosition >= string.length - 1);
+    if (endPosition != string.length) {
+      int lastCodeUnit = string.codeUnitAt(string.length - 1);
+      assert(_isLeadSurrogate(lastCodeUnit));
+      // We use a non-surrogate as `nextUnit` so that _writeSurrogate just
+      // writes the lead-surrogate.
+      bool wasCombined = encoder._writeSurrogate(lastCodeUnit, 0);
+      assert(!wasCombined);
+    }
+    return encoder._buffer.sublist(0, encoder._bufferIndex);
+  }
 }
 
 /**
- * A [Utf8Decoder] converts UTF-8 code units (lists of unsigned 8-bit integers)
+ * This class encodes Strings to UTF-8 code units (unsigned 8 bit integers).
+ */
+// TODO(floitsch): make this class public.
+class _Utf8Encoder {
+  int _carry = 0;
+  int _bufferIndex = 0;
+  final Uint8List _buffer;
+
+  static const _DEFAULT_BYTE_BUFFER_SIZE = 1024;
+
+  _Utf8Encoder() : this.withBufferSize(_DEFAULT_BYTE_BUFFER_SIZE);
+
+  _Utf8Encoder.withBufferSize(int bufferSize)
+      : _buffer = new Uint8List(bufferSize);
+
+  /**
+   * Tries to combine the given [leadingSurrogate] with the [nextCodeUnit] and
+   * writes it to [_buffer].
+   *
+   * Returns true if the [nextCodeUnit] was combined with the
+   * [leadingSurrogate]. If it wasn't then nextCodeUnit has not been written
+   * yet.
+   */
+  bool _writeSurrogate(int leadingSurrogate, int nextCodeUnit) {
+    if (_isTailSurrogate(nextCodeUnit)) {
+      int rune = _combineSurrogatePair(leadingSurrogate, nextCodeUnit);
+      // If the rune is encoded with 2 code-units then it must be encoded
+      // with 4 bytes in UTF-8.
+      assert(rune > _THREE_BYTE_LIMIT);
+      assert(rune <= _FOUR_BYTE_LIMIT);
+      _buffer[_bufferIndex++] = 0xF0 | (rune >> 18);
+      _buffer[_bufferIndex++] = 0x80 | ((rune >> 12) & 0x3f);
+      _buffer[_bufferIndex++] = 0x80 | ((rune >> 6) & 0x3f);
+      _buffer[_bufferIndex++] = 0x80 | (rune & 0x3f);
+      return true;
+    } else {
+      // TODO(floitsch): allow to throw on malformed strings.
+      // Encode the half-surrogate directly into UTF-8. This yields
+      // invalid UTF-8, but we started out with invalid UTF-16.
+
+      // Surrogates are always encoded in 3 bytes in UTF-8.
+      _buffer[_bufferIndex++] = 0xE0 | (leadingSurrogate >> 12);
+      _buffer[_bufferIndex++] = 0x80 | ((leadingSurrogate >> 6) & 0x3f);
+      _buffer[_bufferIndex++] = 0x80 | (leadingSurrogate & 0x3f);
+      return false;
+    }
+  }
+
+  /**
+   * Fills the [_buffer] with as many characters as possible.
+   *
+   * Does not encode any trailing lead-surrogate. This must be done by the
+   * caller.
+   *
+   * Returns the position in the string. The returned index points to the
+   * first code unit that hasn't been encoded.
+   */
+  int _fillBuffer(String str, int start, int end) {
+    if (start != end && _isLeadSurrogate(str.codeUnitAt(end - 1))) {
+      // Don't handle a trailing lead-surrogate in this loop. The caller has
+      // to deal with those.
+      end--;
+    }
+    int stringIndex;
+    for (stringIndex = start; stringIndex < end; stringIndex++) {
+      int codeUnit = str.codeUnitAt(stringIndex);
+      // ASCII has the same representation in UTF-8 and UTF-16.
+      if (codeUnit < _ONE_BYTE_LIMIT) {
+        if (_bufferIndex >= _buffer.length) break;
+        _buffer[_bufferIndex++] = codeUnit;
+      } else if (_isLeadSurrogate(codeUnit)) {
+        if (_bufferIndex + 3 >= _buffer.length) break;
+        // Note that it is safe to read the next code unit. We decremented
+        // [end] above when the last valid code unit was a leading surrogate.
+        int nextCodeUnit = str.codeUnitAt(stringIndex + 1);
+        bool wasCombined = _writeSurrogate(codeUnit, nextCodeUnit);
+        if (wasCombined) stringIndex++;
+      } else {
+        int rune = codeUnit;
+        if (rune <= _TWO_BYTE_LIMIT) {
+          if (_bufferIndex + 1 >= _buffer.length) break;
+          _buffer[_bufferIndex++] = 0xC0 | (rune >> 6);
+          _buffer[_bufferIndex++] = 0x80 | (rune & 0x3f);
+        } else {
+          assert(rune <= _THREE_BYTE_LIMIT);
+          if (_bufferIndex + 2 >= _buffer.length) break;
+          _buffer[_bufferIndex++] = 0xE0 | (rune >> 12);
+          _buffer[_bufferIndex++] = 0x80 | ((rune >> 6) & 0x3f);
+          _buffer[_bufferIndex++] = 0x80 | (rune & 0x3f);
+        }
+      }
+    }
+    return stringIndex;
+  }
+}
+
+/**
+ * This class converts UTF-8 code units (lists of unsigned 8-bit integers)
  * to a string.
  */
 class Utf8Decoder extends Converter<List<int>, String> {
