@@ -2546,8 +2546,7 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
       if (ICDataHasReceiverArgumentClassIds(ic_data, kDoubleCid, kDoubleCid)) {
         result_cid = kDoubleCid;
       } else if (ICDataHasReceiverArgumentClassIds(ic_data, kSmiCid, kSmiCid)) {
-        // TODO(srdjan): Implement for Smi.
-        result_cid = kIllegalCid;
+        result_cid = kSmiCid;
       }
       if (result_cid != kIllegalCid) {
         MathMinMaxInstr* min_max = new MathMinMaxInstr(

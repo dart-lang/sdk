@@ -3599,19 +3599,28 @@ LocationSummary* MathMinMaxInstr::MakeLocationSummary() const {
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresFpuRegister());
     summary->set_in(1, Location::RequiresFpuRegister());
+    // Reuse the left register so that code can be made shorter.
+    summary->set_out(Location::SameAsFirstInput());
     summary->set_temp(0, Location::RequiresRegister());
-    summary->set_out(Location::RequiresFpuRegister());
     return summary;
   }
   ASSERT(result_cid() == kSmiCid);
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(1, Location::RequiresRegister());
+  // Reuse the left register so that code can be made shorter.
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
 }
 
 
 void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT((op_kind() == MethodRecognizer::kMathMin) ||
          (op_kind() == MethodRecognizer::kMathMax));
+  const intptr_t is_min = (op_kind() == MethodRecognizer::kMathMin);
   if (result_cid() == kDoubleCid) {
     Label done, returns_nan, are_equal;
     DRegister left = EvenDRegisterOf(locs()->in(0).fpu_reg());
@@ -3622,14 +3631,10 @@ void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ vmstat();
     __ b(&returns_nan, VS);
     __ b(&are_equal, EQ);
-    const intptr_t is_min = (op_kind() == MethodRecognizer::kMathMin);
-    const Condition double_condition =
-        is_min ? TokenKindToDoubleCondition(Token::kLT)
-               : TokenKindToDoubleCondition(Token::kGT);
     const Condition neg_double_condition =
         is_min ? TokenKindToDoubleCondition(Token::kGTE)
                : TokenKindToDoubleCondition(Token::kLTE);
-    __ vmovd(result, left, double_condition);
+    ASSERT(left == result);
     __ vmovd(result, right, neg_double_condition);
     __ b(&done);
 
@@ -3647,17 +3652,27 @@ void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ vmovrrd(IP, temp, left);  // Sign bit is in bit 31 of temp.
     __ cmp(temp, ShifterOperand(0));
     if (is_min) {
-      __ vmovd(result, left, LT);
+      ASSERT(left == result);
       __ vmovd(result, right, GE);
     } else {
       __ vmovd(result, right, LT);
-      __ vmovd(result, left, GE);
+      ASSERT(left == result);
     }
     __ Bind(&done);
     return;
   }
+
   ASSERT(result_cid() == kSmiCid);
-  UNIMPLEMENTED();
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  Register result = locs()->out().reg();
+  __ cmp(left, ShifterOperand(right));
+  ASSERT(result == left);
+  if (is_min) {
+    __ mov(result, ShifterOperand(right), GT);
+  } else {
+    __ mov(result, ShifterOperand(right), LT);
+  }
 }
 
 

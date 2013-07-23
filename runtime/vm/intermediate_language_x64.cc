@@ -3708,21 +3708,30 @@ LocationSummary* MathMinMaxInstr::MakeLocationSummary() const {
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresFpuRegister());
     summary->set_in(1, Location::RequiresFpuRegister());
+    // Reuse the left register so that code can be made shorter.
+    summary->set_out(Location::SameAsFirstInput());
     summary->set_temp(0, Location::RequiresRegister());
-    summary->set_out(Location::RequiresFpuRegister());
     return summary;
   }
   ASSERT(result_cid() == kSmiCid);
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(1, Location::RequiresRegister());
+  // Reuse the left register so that code can be made shorter.
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
 }
 
 
 void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT((op_kind() == MethodRecognizer::kMathMin) ||
          (op_kind() == MethodRecognizer::kMathMax));
+  const intptr_t is_min = (op_kind() == MethodRecognizer::kMathMin);
   if (result_cid() == kDoubleCid) {
-    Label done, returns_left, returns_nan, are_equal;
+    Label done, returns_nan, are_equal;
     XmmRegister left = locs()->in(0).fpu_reg();
     XmmRegister right = locs()->in(1).fpu_reg();
     XmmRegister result = locs()->out().fpu_reg();
@@ -3730,16 +3739,12 @@ void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ comisd(left, right);
     __ j(PARITY_EVEN, &returns_nan, Assembler::kNearJump);
     __ j(EQUAL, &are_equal, Assembler::kNearJump);
-    const intptr_t is_min = (op_kind() == MethodRecognizer::kMathMin);
     const Condition double_condition =
         is_min ? TokenKindToDoubleCondition(Token::kLT)
                : TokenKindToDoubleCondition(Token::kGT);
-    __ j(double_condition, &returns_left, Assembler::kNearJump);
+    ASSERT(left == result);
+    __ j(double_condition, &done, Assembler::kNearJump);
     __ movsd(result, right);
-    __ jmp(&done, Assembler::kNearJump);
-
-    __ Bind(&returns_left);
-    __ movsd(result, left);
     __ jmp(&done, Assembler::kNearJump);
 
     __ Bind(&returns_nan);
@@ -3758,18 +3763,32 @@ void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Check the sign bit.
     __ movmskpd(temp, left);
     __ testq(temp, Immediate(1));
-    __ j(NOT_ZERO, &left_is_negative, Assembler::kNearJump);
-    // Left is positive.
-    __ movsd(result, (is_min ? right : left));
-    __ jmp(&done, Assembler::kNearJump);
-
-    __ Bind(&left_is_negative);
-    __ movsd(result, (is_min ? left : right));
+    if (is_min) {
+      ASSERT(left == result);
+      __ j(NOT_ZERO, &done, Assembler::kNearJump);  // Negative -> return left.
+    } else {
+      ASSERT(left == result);
+      __ j(ZERO, &done, Assembler::kNearJump);  // Positive -> return left.
+    }
+    __ movsd(result, right);
     __ Bind(&done);
     return;
   }
+
+  Label done;
   ASSERT(result_cid() == kSmiCid);
-  UNIMPLEMENTED();
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  Register result = locs()->out().reg();
+  __ cmpq(left, right);
+  ASSERT(result == left);
+  if (is_min) {
+    __ j(LESS_EQUAL, &done, Assembler::kNearJump);
+  } else {
+    __ j(GREATER_EQUAL, &done, Assembler::kNearJump);
+  }
+  __ movq(result, right);
+  __ Bind(&done);
 }
 
 

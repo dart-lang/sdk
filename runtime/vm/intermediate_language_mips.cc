@@ -3093,21 +3093,30 @@ LocationSummary* MathMinMaxInstr::MakeLocationSummary() const {
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresFpuRegister());
     summary->set_in(1, Location::RequiresFpuRegister());
-    summary->set_out(Location::RequiresFpuRegister());
+    // Reuse the left register so that code can be made shorter.
+    summary->set_out(Location::SameAsFirstInput());
     summary->set_temp(0, Location::RequiresRegister());
     return summary;
   }
   ASSERT(result_cid() == kSmiCid);
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(1, Location::RequiresRegister());
+  // Reuse the left register so that code can be made shorter.
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
 }
 
 
 void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT((op_kind() == MethodRecognizer::kMathMin) ||
          (op_kind() == MethodRecognizer::kMathMax));
+  const intptr_t is_min = (op_kind() == MethodRecognizer::kMathMin);
   if (result_cid() == kDoubleCid) {
-    Label done, returns_nan, returns_left, are_equal;
+    Label done, returns_nan, are_equal;
     DRegister left = locs()->in(0).fpu_reg();
     DRegister right = locs()->in(1).fpu_reg();
     DRegister result = locs()->out().fpu_reg();
@@ -3116,19 +3125,15 @@ void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ bc1t(&returns_nan);
     __ ceqd(left, right);
     __ bc1t(&are_equal);
-    const intptr_t is_min = (op_kind() == MethodRecognizer::kMathMin);
     if (is_min) {
       __ coltd(left, right);
     } else {
       __ coltd(right, left);
     }
     // TODO(zra): Add conditional moves.
-    __ bc1t(&returns_left);
+    ASSERT(left == result);
+    __ bc1t(&done);
     __ movd(result, right);
-    __ b(&done);
-
-    __ Bind(&returns_left);
-    __ movd(result, left);
     __ b(&done);
 
     __ Bind(&returns_nan);
@@ -3144,18 +3149,30 @@ void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // - max -> left is negative ? right : left
     // Check the sign bit.
     __ mfc1(temp, OddFRegisterOf(left));  // Moves bits 32...63 of left to temp.
-    __ bltz(temp, &left_is_negative);
-    // Left is positive.
-    __ movd(result, (is_min ? right : left));
-    __ b(&done);
-
-    __ Bind(&left_is_negative);
-    __ movd(result, (is_min ? left : right));
+    if (is_min) {
+      ASSERT(left == result);
+      __ bltz(temp, &done);  // Left is negative.
+    } else {
+      __ bgez(temp, &done);  // Left is positive.
+    }
+    __ movd(result, right);
     __ Bind(&done);
     return;
   }
+
+  Label done;
   ASSERT(result_cid() == kSmiCid);
-  UNIMPLEMENTED();
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  Register result = locs()->out().reg();
+  ASSERT(result == left);
+  if (is_min) {
+    __ BranchSignedLessEqual(left, right, &done);
+  } else {
+    __ BranchSignedGreaterEqual(left, right, &done);
+  }
+  __ mov(result, right);
+  __ Bind(&done);
 }
 
 
