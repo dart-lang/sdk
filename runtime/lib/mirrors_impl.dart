@@ -19,6 +19,12 @@ Map _filterMap(Map<Symbol, dynamic> old_map, bool filter(Symbol key, value)) {
   return new_map;
 }
 
+Map _makeMemberMap(List mirrors) {
+  Map<Symbol, dynamic> result = new Map();
+  mirrors.forEach((mirror) => result[mirror.simpleName] = mirror);
+  return result;
+}
+
 String _n(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
 
 Symbol _s(String name) {
@@ -394,11 +400,9 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
                         this._superclass,
                         this._superinterfaces,
                         this._defaultFactory,
-                        Map<String, Mirror> members,
                         Map<String, Mirror> constructors,
                         Map<String, Mirror> typeVariables)
       : this._simpleName = _s(simpleName),
-        this.members = _convertStringToSymbolMap(members),
         this.constructors = _convertStringToSymbolMap(constructors),
         this.typeVariables = _convertStringToSymbolMap(typeVariables),
         super(reflectee);
@@ -472,7 +476,14 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
     return _defaultFactory;
   }
 
-  final Map<Symbol, Mirror> members;
+  Map<Symbol, Mirror> _members;
+
+  Map<Symbol, Mirror> get members {
+    if (_members == null) {
+      _members = _makeMemberMap(_computeMembers(_reflectee));
+    }
+    return _members;
+  }
 
   Map<Symbol, MethodMirror> _methods = null;
   Map<Symbol, MethodMirror> _getters = null;
@@ -580,6 +591,9 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   static _library(reflectee)
       native "ClassMirror_library";
 
+  _computeMembers(reflectee)
+      native "ClassMirror_members";
+
   _invoke(reflectee, memberName, positionalArguments)
       native 'ClassMirror_invoke';
 
@@ -619,8 +633,9 @@ class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
               [ new _LazyTypeMirror('dart:core', 'Function') ],
               null,
               const {},
-              const {},
               const {});
+
+  Map<Symbol, Mirror> get members => const {};
 
   var _returnType;
   TypeMirror get returnType {

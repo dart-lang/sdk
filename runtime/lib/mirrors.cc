@@ -537,10 +537,6 @@ static Dart_Handle CreateClassMirrorUsingApi(Dart_Handle intf,
   if (Dart_IsError(intf_mirror)) {
     return intf_mirror;
   }
-  Dart_Handle member_map = CreateMemberMap(intf, intf_mirror);
-  if (Dart_IsError(member_map)) {
-    return member_map;
-  }
   Dart_Handle constructor_map = CreateConstructorMap(intf, intf_mirror);
   if (Dart_IsError(constructor_map)) {
     return constructor_map;
@@ -558,7 +554,6 @@ static Dart_Handle CreateClassMirrorUsingApi(Dart_Handle intf,
     CreateLazyMirror(super_class),
     CreateImplementsList(intf),
     CreateLazyMirror(default_class),
-    member_map,
     constructor_map,
     type_var_map,
   };
@@ -1310,6 +1305,51 @@ DEFINE_NATIVE_ENTRY(ClassMirror_library, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
   const Class& klass = Class::Handle(ref.GetClassReferent());
   return CreateLibraryMirror(Library::Handle(klass.library()));
+}
+
+
+DEFINE_NATIVE_ENTRY(ClassMirror_members, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance,
+                               owner_mirror,
+                               arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
+  const Class& klass = Class::Handle(ref.GetClassReferent());
+
+  const Array& fields = Array::Handle(klass.fields());
+  // Some special types like 'dynamic' have a null fields list, but they should
+  // not wind up as the reflectees of ClassMirrors.
+  ASSERT(!fields.IsNull());
+  const intptr_t num_fields = fields.Length();
+
+  const Array& functions = Array::Handle(klass.functions());
+  // Some special types like 'dynamic' have a null functions list, but they
+  // should not wind up as the reflectees of ClassMirrors.
+  ASSERT(!functions.IsNull());
+  const intptr_t num_functions = functions.Length();
+
+  Instance& member_mirror = Instance::Handle();
+  const GrowableObjectArray& member_mirrors = GrowableObjectArray::Handle(
+      GrowableObjectArray::New(num_fields + num_functions));
+
+  Field& field = Field::Handle();
+  for (intptr_t i = 0; i < num_fields; i++) {
+    field ^= fields.At(i);
+    member_mirror = CreateVariableMirror(field, owner_mirror);
+    member_mirrors.Add(member_mirror);
+  }
+
+  Function& func = Function::Handle();
+  for (intptr_t i = 0; i < num_functions; i++) {
+    func ^= functions.At(i);
+    if (func.kind() == RawFunction::kRegularFunction ||
+        func.kind() == RawFunction::kGetterFunction ||
+        func.kind() == RawFunction::kSetterFunction) {
+      member_mirror = CreateMethodMirror(func, owner_mirror);
+      member_mirrors.Add(member_mirror);
+    }
+  }
+
+  return member_mirrors.raw();
 }
 
 
