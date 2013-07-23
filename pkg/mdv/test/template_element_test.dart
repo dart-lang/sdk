@@ -106,8 +106,6 @@ templateElementTests() {
     performMicrotaskCheckpoint();
     expect(template.nodes.length, 0);
     expect(template.nextNode, null);
-    // TODO(jmesserly): the JS tests assert that observer callbacks had no
-    // exceptions. How do we replicate this?
   });
 
   observeTest('Template bind, no defaultView', () {
@@ -118,8 +116,6 @@ templateElementTests() {
     recursivelySetTemplateModel(template, toSymbolMap({}));
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 1);
-    // TODO(jmesserly): the JS tests assert that observer callbacks had no
-    // exceptions. How do we replicate this?
   });
 
   observeTest('Template-Empty Bind', () {
@@ -128,6 +124,50 @@ templateElementTests() {
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 2);
     expect(div.nodes.last.text, 'text');
+  });
+
+  observeTest('Template Bind If', () {
+    var div = createTestHtml('<template bind if="{{ foo }}">text</template>');
+    // Note: changed this value from 0->null because zero is not falsey in Dart.
+    // See https://code.google.com/p/dart/issues/detail?id=11956
+    var m = toSymbolMap({ 'foo': null });
+    recursivelySetTemplateModel(div, m);
+    performMicrotaskCheckpoint();
+    expect(div.nodes.length, 1);
+
+    m[sym('foo')] = 1;
+    performMicrotaskCheckpoint();
+    expect(div.nodes.length, 2);
+    expect(div.lastChild.text, 'text');
+  });
+
+  observeTest('Template Bind If, 2', () {
+    var div = createTestHtml(
+        '<template bind="{{ foo }}" if="{{ bar }}">{{ bat }}</template>');
+    var m = toSymbolMap({ 'bar': null, 'foo': { 'bat': 'baz' } });
+    recursivelySetTemplateModel(div, m);
+    performMicrotaskCheckpoint();
+    expect(div.nodes.length, 1);
+
+    m[sym('bar')] = 1;
+    performMicrotaskCheckpoint();
+    expect(div.nodes.length, 2);
+    expect(div.lastChild.text, 'baz');
+  });
+
+  observeTest('Template If', () {
+    var div = createTestHtml('<template if="{{ foo }}">text</template>');
+    // Note: changed this value from 0->null because zero is not falsey in Dart.
+    // See https://code.google.com/p/dart/issues/detail?id=11956
+    var m = toSymbolMap({ 'foo': null });
+    recursivelySetTemplateModel(div, m);
+    performMicrotaskCheckpoint();
+    expect(div.nodes.length, 1);
+
+    m[sym('foo')] = 1;
+    performMicrotaskCheckpoint();
+    expect(div.nodes.length, 2);
+    expect(div.lastChild.text, 'text');
   });
 
   observeTest('TextTemplateWithNullStringBinding', () {

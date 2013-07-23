@@ -201,7 +201,7 @@ class _TemplateIterator {
       return values['repeat'];
     }
 
-    if (values.containsKey('bind')) {
+    if (values.containsKey('bind') || values.containsKey('if')) {
       return [values['bind']];
     }
 
