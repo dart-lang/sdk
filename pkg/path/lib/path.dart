@@ -289,9 +289,6 @@ String fromUri(Uri uri) => _builder.fromUri(uri);
 /// For POSIX and Windows styles, this will return a `file:` URI. For the URL
 /// style, this will just convert [path] to a [Uri].
 ///
-/// This will always convert relative paths to absolute ones before converting
-/// to a URI.
-///
 ///     // POSIX
 ///     path.toUri('/path/to/foo')
 ///       // -> Uri.parse('file:///path/to/foo')
@@ -303,6 +300,11 @@ String fromUri(Uri uri) => _builder.fromUri(uri);
 ///     // URL
 ///     path.toUri('http://dartlang.org/path/to/foo')
 ///       // -> Uri.parse('http://dartlang.org/path/to/foo')
+///
+/// If [path] is relative, a relative URI will be returned.
+///
+///     path.toUri('path/to/foo')
+///       // -> Uri.parse('path/to/foo')
 Uri toUri(String path) => _builder.toUri(path);
 
 /// Validates that there are no non-null arguments following a null one and
