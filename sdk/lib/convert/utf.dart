@@ -95,14 +95,15 @@ class Utf8Encoder extends Converter<String, List<int>> {
 class _Utf8Encoder {
   int _carry = 0;
   int _bufferIndex = 0;
-  final Uint8List _buffer;
+  final List<int> _buffer;
 
   static const _DEFAULT_BYTE_BUFFER_SIZE = 1024;
 
   _Utf8Encoder() : this.withBufferSize(_DEFAULT_BYTE_BUFFER_SIZE);
 
   _Utf8Encoder.withBufferSize(int bufferSize)
-      : _buffer = new Uint8List(bufferSize);
+      // TODO(11971, floitsch): use Uint8List instead of normal lists.
+      : _buffer = new List<int>(bufferSize);
 
   /**
    * Tries to combine the given [leadingSurrogate] with the [nextCodeUnit] and

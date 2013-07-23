@@ -5,7 +5,6 @@
 library dart.convert;
 
 import 'dart:json' as OLD_JSON_LIB;
-import 'dart:typed_data';
 
 part 'codec.dart';
 part 'converter.dart';
