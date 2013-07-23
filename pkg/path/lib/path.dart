@@ -757,8 +757,8 @@ class Builder {
     var parts = [];
     var separators = [];
 
-    var firstSeparator = style.separatorPattern.firstMatch(path);
-    if (firstSeparator != null && firstSeparator.start == 0) {
+    var firstSeparator = style.separatorPattern.matchAsPrefix(path);
+    if (firstSeparator != null) {
       separators.add(firstSeparator[0]);
       path = path.substring(firstSeparator[0].length);
     } else {
@@ -839,8 +839,9 @@ abstract class Style {
   /// Gets the root prefix of [path] if path is absolute. If [path] is relative,
   /// returns `null`.
   String getRoot(String path) {
-    var match = rootPattern.firstMatch(path);
-    if (match != null) return match[0];
+    // TODO(rnystrom): Use firstMatch() when #7080 is fixed.
+    var matches = rootPattern.allMatches(path);
+    if (matches.isNotEmpty) return matches.first[0];
     return getRelativeRoot(path);
   }
 
@@ -849,9 +850,10 @@ abstract class Style {
   /// If [path] is relative or absolute and not root-relative, returns `null`.
   String getRelativeRoot(String path) {
     if (relativeRootPattern == null) return null;
-    var match = relativeRootPattern.firstMatch(path);
-    if (match == null) return null;
-    return match[0];
+    // TODO(rnystrom): Use firstMatch() when #7080 is fixed.
+    var matches = relativeRootPattern.allMatches(path);
+    if (matches.isEmpty) return null;
+    return matches.first[0];
   }
 
   /// Returns the path represented by [uri] in this style.
