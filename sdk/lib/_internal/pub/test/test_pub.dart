@@ -749,7 +749,7 @@ Future<Pair<List<String>, List<String>>> schedulePackageValidation(
 Matcher pairOf(Matcher firstMatcher, Matcher lastMatcher) =>
    new _PairMatcher(firstMatcher, lastMatcher);
 
-class _PairMatcher extends BaseMatcher {
+class _PairMatcher extends Matcher {
   final Matcher _firstMatcher;
   final Matcher _lastMatcher;
 
