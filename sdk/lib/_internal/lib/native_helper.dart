@@ -140,9 +140,33 @@ newJsObject() {
 }
 
 /**
- * Returns the function to use to get the type name of an object.
+ * Cached value for the function to use to get the type name of an
+ * object.
+ */
+Function _getTypeNameOf;
+
+/**
+ * Returns the type name of [obj].
+ */
+String getTypeNameOf(var obj) {
+  if (_getTypeNameOf == null) _getTypeNameOf = getFunctionForTypeNameOf();
+  return _getTypeNameOf(obj);
+}
+
+/**
+ * Returns the function to use to get the type name (i.e. dispatch tag) of an
+ * object.
  */
 Function getFunctionForTypeNameOf() {
+  var getTagFunction = _getFunctionForTypeNameOf();
+  if (JS('bool', 'typeof dartExperimentalFixupGetTag == "function"')) {
+    return _applyExperimentalFixup(
+        JS('', 'dartExperimentalFixupGetTag'), getTagFunction);
+  }
+  return getTagFunction;
+}
+
+Function _getFunctionForTypeNameOf() {
   // If we're not in the browser, we're almost certainly running on v8.
   if (!identical(JS('String', 'typeof(navigator)'), 'object')) return typeNameInChrome;
 
@@ -167,20 +191,27 @@ Function getFunctionForTypeNameOf() {
   }
 }
 
+Function _applyExperimentalFixup(fixupJSFunction,
+                                 Function originalGetTagFunction) {
+  // Since DART_CLOSURE_TO_JS works only for top level functions, store the
+  // closed over JavaScript function in a top level variable and use a top level
+  // function.  This is fine since we have only one instance of the 'closure'.
+  _getTagJSFunction = originalGetTagFunction;
+  var newGetTagJSFunction =
+      JS('', '#(#)',
+         fixupJSFunction, DART_CLOSURE_TO_JS(_callGetTagJSFunction));
 
-/**
- * Cached value for the function to use to get the type name of an
- * object.
- */
-Function _getTypeNameOf;
+  String newGetTagDartFunction(object) =>
+      JS('', '#(#)', newGetTagJSFunction, object);
 
-/**
- * Returns the type name of [obj].
- */
-String getTypeNameOf(var obj) {
-  if (_getTypeNameOf == null) _getTypeNameOf = getFunctionForTypeNameOf();
-  return _getTypeNameOf(obj);
+  return newGetTagDartFunction;
 }
+
+var _getTagJSFunction;
+_callGetTagJSFunction(object) => _getTagJSFunction(object);
+
+
+
 
 String toStringForNativeObject(var obj) {
   String name = JS('String', '#', getTypeNameOf(obj));
