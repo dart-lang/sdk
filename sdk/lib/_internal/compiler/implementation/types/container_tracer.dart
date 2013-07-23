@@ -10,7 +10,7 @@ import '../tree/tree.dart';
 import '../universe/universe.dart';
 import '../util/util.dart' show Link;
 import 'simple_types_inferrer.dart'
-    show SimpleTypesInferrer, InferrerVisitor, LocalsHandler;
+    show InferrerEngine, InferrerVisitor, LocalsHandler;
 import 'types.dart';
 
 /**
@@ -146,10 +146,10 @@ class ContainerTracer extends CompilerTask {
 
   bool analyze() {
     measure(() {
-      SimpleTypesInferrer inferrer = compiler.typesTask.typesInferrer;
-      var internal = inferrer.internal;
+      InferrerEngine<TypeMask> inferrer =
+          compiler.typesTask.typesInferrer.internal;
       // Walk over all created [ContainerTypeMask].
-      internal.concreteTypes.values.forEach((ContainerTypeMask mask) {
+      inferrer.concreteTypes.values.forEach((ContainerTypeMask mask) {
         // The element type has already been set for const containers.
         if (mask.elementType != null) return;
         new TracerForConcreteContainer(mask, this, compiler, inferrer).run();
@@ -164,7 +164,7 @@ class ContainerTracer extends CompilerTask {
 class TracerForConcreteContainer {
   final Compiler compiler;
   final ContainerTracer tracer;
-  final SimpleTypesInferrer inferrer;
+  final InferrerEngine<TypeMask> inferrer;
   final ContainerTypeMask mask;
 
   final Node analyzedNode;
@@ -239,7 +239,7 @@ class TracerForConcreteContainer {
       assert(constraint.isOperator());
       constraint = new TypedSelector(potentialType, constraint);
       potentialType = potentialType.union(
-          inferrer.getTypeOfSelector(constraint), compiler);
+          inferrer.returnTypeOfSelector(constraint), compiler);
     }
     if (_VERBOSE) {
       print('$potentialType and $potentialLength '
@@ -342,13 +342,12 @@ class ContainerTracerVisitor extends InferrerVisitor<TypeMask> {
   final TracerForConcreteContainer tracer;
   final bool visitingClosure;
 
-  ContainerTracerVisitor(element, tracer, [LocalsHandler locals])
-      : super(element, tracer.inferrer.types, tracer.compiler, locals),
+  ContainerTracerVisitor(element, tracer, [LocalsHandler<TypeMask> locals])
+      : super(element, tracer.inferrer, tracer.inferrer.types,
+              tracer.compiler, locals),
         this.analyzedElement = element,
         this.tracer = tracer,
         visitingClosure = locals != null;
-
-  SimpleTypesInferrer get inferrer => tracer.inferrer;
 
   bool escaping = false;
   bool visitingInitializers = false;
@@ -426,13 +425,13 @@ class ContainerTracerVisitor extends InferrerVisitor<TypeMask> {
     FunctionElement function = elements[node];
     if (function != analyzedElement) {
       // Visiting a closure.
-      LocalsHandler closureLocals = new LocalsHandler.from(locals);
+      LocalsHandler closureLocals = new LocalsHandler<TypeMask>.from(locals);
       new ContainerTracerVisitor(function, tracer, closureLocals).run();
     } else {
       // Visiting [analyzedElement].
       FunctionSignature signature = function.computeSignature(compiler);
       signature.forEachParameter((element) {
-        locals.update(element, inferrer.getTypeOfElement(element));
+        locals.update(element, inferrer.typeOfElement(element), node);
       });
       visitingInitializers = true;
       visit(node.initializers);
@@ -444,7 +443,7 @@ class ContainerTracerVisitor extends InferrerVisitor<TypeMask> {
 
   TypeMask visitLiteralList(LiteralList node) {
     if (node.isConst()) {
-      return inferrer.internal.concreteTypes[node];
+      return inferrer.concreteTypes[node];
     }
     if (tracer.couldBeTheList(node)) {
       escaping = true;
@@ -574,17 +573,17 @@ class ContainerTracerVisitor extends InferrerVisitor<TypeMask> {
     }
 
     if (Elements.isLocal(element)) {
-      locals.update(element, rhsType);
+      locals.update(element, rhsType, node);
     }
 
     if (node.isPostfix) {
       // We don't check if [getterSelector] could be the container because
       // a list++ will always throw.
-      return inferrer.getTypeOfSelector(getterSelector);
+      return inferrer.returnTypeOfSelector(getterSelector);
     } else if (op != '=') {
       // We don't check if [getterSelector] could be the container because
       // a list += 42 will always throw.
-      return inferrer.getTypeOfSelector(operatorSelector);
+      return inferrer.returnTypeOfSelector(operatorSelector);
     } else {
       if (isValueEscaping) {
         escaping = true;
@@ -604,9 +603,9 @@ class ContainerTracerVisitor extends InferrerVisitor<TypeMask> {
     }
 
     if (element.isField()) {
-      return inferrer.getTypeOfElement(element);
+      return inferrer.typeOfElement(element);
     } else if (element.isFunction()) {
-      return inferrer.getReturnTypeOfElement(element);
+      return inferrer.returnTypeOfElement(element);
     } else {
       return types.dynamicType;
     }
@@ -620,7 +619,7 @@ class ContainerTracerVisitor extends InferrerVisitor<TypeMask> {
       if (tracer.couldBeTheList(node)) {
         escaping = true;
       }
-      return inferrer.internal.concreteTypes[node];
+      return inferrer.concreteTypes[node];
     } else if (Elements.isFixedListConstructorCall(element, node, compiler)) {
       visitArguments(node.arguments, element);
       if (tracer.couldBeTheList(node)) {
@@ -631,7 +630,7 @@ class ContainerTracerVisitor extends InferrerVisitor<TypeMask> {
           tracer.setPotentialLength(length.value);
         }
       }
-      return inferrer.internal.concreteTypes[node];
+      return inferrer.concreteTypes[node];
     } else if (Elements.isFilledListConstructorCall(element, node, compiler)) {
       if (tracer.couldBeTheList(node)) {
         escaping = true;
@@ -645,7 +644,7 @@ class ContainerTracerVisitor extends InferrerVisitor<TypeMask> {
       } else {
         visitArguments(node.arguments, element);
       }
-      return inferrer.internal.concreteTypes[node];
+      return inferrer.concreteTypes[node];
     }
 
     bool isEscaping = visitArguments(node.arguments, element);
@@ -659,7 +658,7 @@ class ContainerTracerVisitor extends InferrerVisitor<TypeMask> {
     }
 
     if (element.isFunction() || element.isConstructor()) {
-      return inferrer.getReturnTypeOfElement(element);
+      return inferrer.returnTypeOfElement(element);
     } else {
       // Closure call or unresolved.
       return types.dynamicType;
@@ -673,7 +672,7 @@ class ContainerTracerVisitor extends InferrerVisitor<TypeMask> {
       if (tracer.couldBeTheList(element)) {
         escaping = true;
       }
-      return inferrer.getTypeOfElement(element);
+      return inferrer.typeOfElement(element);
     } else if (Elements.isInstanceSend(node, elements)) {
       return visitDynamicSend(node);
     } else if (Elements.isStaticOrTopLevelFunction(element)) {
@@ -741,7 +740,7 @@ class ContainerTracerVisitor extends InferrerVisitor<TypeMask> {
     if (tracer.couldBeTheList(selector)) {
       escaping = true;
     }
-    return inferrer.getTypeOfSelector(selector);
+    return inferrer.returnTypeOfSelector(selector);
   }
 
   TypeMask visitReturn(Return node) {
@@ -769,8 +768,8 @@ class ContainerTracerVisitor extends InferrerVisitor<TypeMask> {
     Selector iteratorSelector = elements.getIteratorSelector(node);
     Selector currentSelector = elements.getCurrentSelector(node);
 
-    TypeMask iteratorType = inferrer.getTypeOfSelector(iteratorSelector);
-    TypeMask currentType = inferrer.getTypeOfSelector(currentSelector);
+    TypeMask iteratorType = inferrer.returnTypeOfSelector(iteratorSelector);
+    TypeMask currentType = inferrer.returnTypeOfSelector(currentSelector);
 
     // We nullify the type in case there is no element in the
     // iterable.
@@ -779,7 +778,7 @@ class ContainerTracerVisitor extends InferrerVisitor<TypeMask> {
     Node identifier = node.declaredIdentifier;
     Element element = elements[identifier];
     if (Elements.isLocal(element)) {
-      locals.update(element, currentType);
+      locals.update(element, currentType, node);
     }
 
     return handleLoop(node, () {

@@ -48,11 +48,6 @@ abstract class TypeSystem<T> {
    * [secondType].
    */
   T computeLUB(T firstType, T secondType);
-
-  /**
-   * Returns the type inferred by the inferrer for [element].
-   */
-  T getTypeOfCapturedAndBoxedVariable(Element element);
 }
 
 /**
@@ -120,10 +115,6 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   TypeMask nonNullSubclass(DartType type) => new TypeMask.nonNullSubclass(type);
   TypeMask nonNullExact(DartType type) => new TypeMask.nonNullExact(type);
   TypeMask nonNullEmpty() => new TypeMask.nonNullEmpty();
-
-  TypeMask getTypeOfCapturedAndBoxedVariable(Element element) {
-    return compiler.typesTask.typesInferrer.getTypeOfElement(element);
-  }
 
   TypeMask nullable(TypeMask type) {
     return type.nullable();
@@ -205,17 +196,61 @@ class VariableScope<T> {
   }
 }
 
+class FieldInitializationScope<T> {
+  final TypeSystem<T> types;
+  final Map<Element, T> fields;
+  bool isThisExposed;
+
+  FieldInitializationScope(this.types)
+      : fields = new Map<Element, T>(),
+        isThisExposed = false;
+
+  FieldInitializationScope.internalFrom(FieldInitializationScope<T> other)
+      : fields = new Map<Element, T>.from(other.fields),
+        types = other.types,
+        isThisExposed = other.isThisExposed;
+
+  factory FieldInitializationScope.from(FieldInitializationScope other) {
+    if (other == null) return null;
+    return new FieldInitializationScope<T>.internalFrom(other);
+  }
+
+  void updateField(Element field, T type) {
+    if (isThisExposed) return;
+    fields[field] = type;
+  }
+
+  void merge(FieldInitializationScope other) {
+    isThisExposed = isThisExposed || other.isThisExposed;
+    List<Element> toRemove = <Element>[];
+    // Iterate over the map in [:this:]. The map in [other] may
+    // contain different fields, but if this map does not contain it,
+    // then we know the field can be null and we don't need to track
+    // it.
+    fields.forEach((Element field, T type) {
+      T otherType = other.fields[field];
+      if (otherType == null) {
+        toRemove.add(field);
+      } else {
+        fields[field] = types.computeLUB(type, otherType);
+      }
+    });
+    // Remove fields that were not initialized in [other].
+    toRemove.forEach((Element element) { fields.remove(element); });
+  }
+}
+
 /**
  * Placeholder for inferred types of local variables.
  */
 class LocalsHandler<T> {
   final Compiler compiler;
   final TypeSystem<T> types;
+  final InferrerEngine<T> inferrer;
   final VariableScope<T> locals;
   final Map<Element, Element> capturedAndBoxed;
-  final Map<Element, T> fieldsInitializedInConstructor;
+  final FieldInitializationScope<T> fieldScope;
   final bool inTryBlock;
-  bool isThisExposed;
   bool seenReturnOrThrow = false;
   bool seenBreakOrContinue = false;
 
@@ -223,57 +258,51 @@ class LocalsHandler<T> {
     return seenReturnOrThrow || seenBreakOrContinue;
   }
 
-  LocalsHandler(this.types, this.compiler)
+  LocalsHandler(this.inferrer, this.types, this.compiler, [this.fieldScope])
       : locals = new VariableScope<T>(),
         capturedAndBoxed = new Map<Element, Element>(),
-        fieldsInitializedInConstructor = new Map<Element, T>(),
-        inTryBlock = false,
-        isThisExposed = true;
+        inTryBlock = false;
 
-  LocalsHandler.from(LocalsHandler<T> other, {bool inTryBlock: false})
+  LocalsHandler.from(LocalsHandler<T> other, {bool inTryBlock})
       : locals = new VariableScope<T>(other.locals),
-        capturedAndBoxed = new Map<Element, Element>.from(
-            other.capturedAndBoxed),
-        fieldsInitializedInConstructor = new Map<Element, T>.from(
-            other.fieldsInitializedInConstructor),
-        inTryBlock = other.inTryBlock || inTryBlock,
+        fieldScope = new FieldInitializationScope<T>.from(other.fieldScope),
+        capturedAndBoxed = other.capturedAndBoxed,
+        inTryBlock = inTryBlock == null ? other.inTryBlock : inTryBlock,
         types = other.types,
-        compiler = other.compiler,
-        isThisExposed = other.isThisExposed;
+        inferrer = other.inferrer,
+        compiler = other.compiler;
 
   LocalsHandler.deepCopyOf(LocalsHandler<T> other)
       : locals = new VariableScope<T>.deepCopyOf(other.locals),
-        capturedAndBoxed = new Map<Element, Element>.from(
-            other.capturedAndBoxed),
-        fieldsInitializedInConstructor = new Map<Element, T>.from(
-            other.fieldsInitializedInConstructor),
+        fieldScope = new FieldInitializationScope<T>.from(other.fieldScope),
+        capturedAndBoxed = other.capturedAndBoxed,
         inTryBlock = other.inTryBlock,
         types = other.types,
-        compiler = other.compiler,
-        isThisExposed = other.isThisExposed;
+        inferrer = other.inferrer,
+        compiler = other.compiler;
 
   T use(Element local) {
-    if (capturedAndBoxed.containsKey(local)) {
-      return types.getTypeOfCapturedAndBoxedVariable(capturedAndBoxed[local]);
-    }
-    return locals[local];
+    return capturedAndBoxed.containsKey(local)
+        ? inferrer.typeOfElement(capturedAndBoxed[local])
+        : locals[local];
   }
 
-  void update(Element local, T type) {
+  void update(Element local, T type, Node node) {
     assert(type != null);
     if (compiler.trustTypeAnnotations || compiler.enableTypeAssertions) {
       type = types.narrowType(type, local.computeType(compiler));
     }
-    if (capturedAndBoxed.containsKey(local) || inTryBlock) {
-      // If a local is captured and boxed, or is set in a try block,
-      // we compute the LUB of its assignments.
-      //
+    if (capturedAndBoxed.containsKey(local)) {
+      inferrer.recordTypeOfNonFinalField(
+          node, capturedAndBoxed[local], type, null);
+    } else if (inTryBlock) {
       // We don't know if an assignment in a try block
       // will be executed, so all assigments in that block are
       // potential types after we have left it.
-      type = types.computeLUB(locals[local], type);
+      locals[local] = types.computeLUB(locals[local], type);
+    } else {
+      locals[local] = type;
     }
-    locals[local] = type;
   }
 
   void setCapturedAndBoxed(Element local, Element field) {
@@ -295,10 +324,10 @@ class LocalsHandler<T> {
       currentOther.forEachOwnLocal((Element local, T otherType) {
         T myType = locals[local];
         if (myType == null) return;
-        bool isCaptured = capturedAndBoxed.containsKey(local);
-        if (!isCaptured && aborts && discardIfAborts) {
+        if (capturedAndBoxed.containsKey(local)) return;
+        if (aborts && discardIfAborts) {
           locals[local] = otherType;
-        } else if (!isCaptured && other.aborts && discardIfAborts) {
+        } else if (other.aborts && discardIfAborts) {
           // Don't do anything.
         } else {
           T type = types.computeLUB(myType, otherType);
@@ -314,10 +343,8 @@ class LocalsHandler<T> {
 
     List<Element> toRemove = <Element>[];
     locals.forEachOwnLocal((Element local, _) {
-      bool isCaptured = capturedAndBoxed.containsKey(local);
-      if (other.locals[local] == null && !isCaptured) {
-        // If [local] is not in the other map and is not captured
-        // and boxed, we know it is not a
+      if (other.locals[local] == null) {
+        // If [local] is not in the other map we know it is not a
         // local we want to keep. For example, in an if/else, we don't
         // want to keep variables declared in the if or in the else
         // branch at the merge point.
@@ -330,39 +357,10 @@ class LocalsHandler<T> {
       locals.remove(element);
     });
 
-    // Update the locals that are captured and boxed. We
-    // unconditionally add them to [this] because we register the type
-    // of boxed variables after analyzing all closures.
-    other.capturedAndBoxed.forEach((Element local, Element field) {
-      capturedAndBoxed[local] =  field;
-      // If [element] is not in our [locals], we need to update it.
-      // Otherwise, we have already computed the LUB of it.
-      if (locals[local] == null && other.locals[local] != null) {
-        locals[local] = other.locals[local];
-      }
-    });
+    if (fieldScope != null) {
+      fieldScope.merge(other.fieldScope);
+    }
 
-    // Merge instance fields initialized in both handlers. This is
-    // only relevant for generative constructors.
-    toRemove = <Element>[];
-    // Iterate over the map in [:this:]. The map in [other] may
-    // contain different fields, but if this map does not contain it,
-    // then we know the field can be null and we don't need to track
-    // it.
-    fieldsInitializedInConstructor.forEach((Element element, T type) {
-      T otherType = other.fieldsInitializedInConstructor[element];
-      if (otherType == null) {
-        toRemove.add(element);
-      } else {
-        fieldsInitializedInConstructor[element] =
-            types.computeLUB(type, otherType);
-      }
-    });
-    // Remove fields that were not initialized in [other].
-    toRemove.forEach((Element element) {
-      fieldsInitializedInConstructor.remove(element);
-    });
-    isThisExposed = isThisExposed || other.isThisExposed;
     seenReturnOrThrow = seenReturnOrThrow && other.seenReturnOrThrow;
     seenBreakOrContinue = seenBreakOrContinue && other.seenBreakOrContinue;
 
@@ -370,16 +368,14 @@ class LocalsHandler<T> {
   }
 
   void updateField(Element element, T type) {
-    if (isThisExposed) return;
-    fieldsInitializedInConstructor[element] = type;
+    fieldScope.updateField(element, type);
   }
 }
 
 abstract class InferrerVisitor<T> extends ResolvedVisitor<T> {
   final Element analyzedElement;
-  // Subclasses know more about this field. Typing it dynamic to avoid
-  // warnings.
   final TypeSystem<T> types;
+  final InferrerEngine<T> inferrer;
   final Compiler compiler;
   final Map<TargetElement, List<LocalsHandler<T>>> breaksFor =
       new Map<TargetElement, List<LocalsHandler<T>>>();
@@ -393,19 +389,32 @@ abstract class InferrerVisitor<T> extends ResolvedVisitor<T> {
   int loopLevel = 0;
 
   bool get inLoop => loopLevel > 0;
-  bool get isThisExposed => locals.isThisExposed;
-  void set isThisExposed(value) { locals.isThisExposed = value; }
+  bool get isThisExposed {
+    return analyzedElement.isGenerativeConstructor()
+        ? locals.fieldScope.isThisExposed
+        : true;
+  }
+  void set isThisExposed(value) {
+    if (analyzedElement.isGenerativeConstructor()) {
+      locals.fieldScope.isThisExposed = value;
+    }
+  }
 
   InferrerVisitor(Element analyzedElement,
+                  this.inferrer,
                   this.types,
                   Compiler compiler,
                   [LocalsHandler<T> handler])
     : this.compiler = compiler,
       this.analyzedElement = analyzedElement,
+      this.locals = handler,
       super(compiler.enqueuer.resolution.getCachedElements(analyzedElement)) {
-    locals = (handler == null)
-        ? new LocalsHandler<T>(types, compiler)
-        : handler;
+    if (handler != null) return;
+    FieldInitializationScope<T> fieldScope =
+        analyzedElement.isGenerativeConstructor()
+            ? new FieldInitializationScope<T>(types)
+            : null;
+    locals = new LocalsHandler<T>(inferrer, types, compiler, fieldScope);
   }
 
   T visitSendSet(SendSet node);
@@ -424,6 +433,8 @@ abstract class InferrerVisitor<T> extends ResolvedVisitor<T> {
 
   T visitReturn(Return node);
 
+  T visitFunctionExpression(FunctionExpression node);
+
   T visitNode(Node node) {
     node.visitChildren(this);
   }
@@ -436,13 +447,8 @@ abstract class InferrerVisitor<T> extends ResolvedVisitor<T> {
     return node == null ? null : node.accept(this);
   }
 
-  T visitFunctionExpression(FunctionExpression node) {
-    node.visitChildren(this);
-    return types.functionType;
-  }
-
   T visitFunctionDeclaration(FunctionDeclaration node) {
-    locals.update(elements[node], types.functionType);
+    locals.update(elements[node], types.functionType, node);
     return visit(node.function);
   }
 
@@ -549,7 +555,7 @@ abstract class InferrerVisitor<T> extends ResolvedVisitor<T> {
       Element element = elements[node.receiver];
       T existing = locals.use(element);
       T newType = types.narrowType(existing, type, isNullable: false);
-      locals.update(element, newType);
+      locals.update(element, newType, node);
     }
   }
 
@@ -640,7 +646,7 @@ abstract class InferrerVisitor<T> extends ResolvedVisitor<T> {
          link = link.tail) {
       Node definition = link.head;
       if (definition is Identifier) {
-        locals.update(elements[definition], types.nullType);
+        locals.update(elements[definition], types.nullType, node);
       } else {
         assert(definition.asSendSet() != null);
         visit(definition);
@@ -782,11 +788,11 @@ abstract class InferrerVisitor<T> extends ResolvedVisitor<T> {
       T mask = type == null
           ? types.dynamicType
           : types.nonNullSubtype(type.asRaw());
-      locals.update(elements[exception], mask);
+      locals.update(elements[exception], mask, node);
     }
     Node trace = node.trace;
     if (trace != null) {
-      locals.update(elements[trace], types.dynamicType);
+      locals.update(elements[trace], types.dynamicType, node);
     }
     visit(node.block);
   }

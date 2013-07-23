@@ -245,10 +245,15 @@ abstract class InferrerEngine<T> {
    */
   T typeOfElement(Element element);
 
-  /*
+  /**
    * Returns the return type of [element].
    */
   T returnTypeOfElement(Element element);
+
+  /**
+   * Returns the type returned by a call to this [selector].
+   */
+  T returnTypeOfSelector(Selector selector);
 
   /**
    * Records that [node] sets final field [element] to be of type [type].
@@ -335,6 +340,11 @@ abstract class InferrerEngine<T> {
                            CallSite constraint,
                            SideEffects sideEffects,
                            bool inLoop);
+
+  /**
+   * Returns the callers of [elements].
+   */
+  Iterable<Element> getCallersOf(Element element);
 
   /**
    * Compute the LUB of [firstType] and [secondType].
@@ -639,7 +649,7 @@ class InternalSimpleTypesInferrer
   }
 
   TypeMask getTypeOfSelector(Selector selector) {
-    return getNonNullType(typeOfSelector(selector));
+    return getNonNullType(returnTypeOfSelector(selector));
   }
 
   bool isTypeValuable(TypeMask returnType) {
@@ -925,12 +935,12 @@ class InternalSimpleTypesInferrer
   }
 
   TypeMask fetchReturnType(Element element) {
-    TypeMask returnType = typeInformationOf(element).returnType;
+    TypeMask returnType = returnTypeOfElement(element);
     return returnType is ElementTypeMask ? types.dynamicType : returnType;
   }
 
   TypeMask fetchType(Element element) {
-    TypeMask type = typeInformationOf(element).type;
+    TypeMask type = typeOfElement(element);
     return type is ElementTypeMask ? types.dynamicType : type;
   }
 
@@ -1015,7 +1025,7 @@ class InternalSimpleTypesInferrer
    * Returns the union of the types of all elements that match
    * the called [selector].
    */
-  TypeMask typeOfSelector(Selector selector) {
+  TypeMask returnTypeOfSelector(Selector selector) {
     // Bailout for closure calls. We're not tracking types of
     // closures.
     if (selector.isClosureCall()) return types.dynamicType;
@@ -1048,6 +1058,7 @@ class InternalSimpleTypesInferrer
   }
 
   bool isNotClosure(Element element) {
+    if (!element.isFunction()) return true;
     // If the outermost enclosing element of [element] is [element]
     // itself, we know it cannot be a closure.
     Element outermost = element.getOutermostEnclosingMemberOrTopLevel();
@@ -1342,7 +1353,7 @@ class InternalSimpleTypesInferrer
     if (!constraints.isEmpty && !isDynamicType(elementType)) {
       // Now that we have found a type, we go over the collected
       // constraints, and make sure they apply to the found type. We
-      // update [typeOf] to make sure [typeOfSelector] knows the field
+      // update [typeOf] to make sure [returnTypeOfSelector] knows the field
       // type.
       TypeInformation info = typeInformationOf(element);
       TypeMask existing = info.type;
@@ -1358,11 +1369,11 @@ class InternalSimpleTypesInferrer
             selector = types.newTypedSelector(elementType, selector);
           }
           type = handleIntrisifiedSelector(selector, constraint.arguments);
-          if (type == null) type = typeOfSelector(selector);
+          if (type == null) type = returnTypeOfSelector(selector);
         } else {
           // Otherwise the constraint is on the form [: field = other.field :].
           assert(selector.isGetter());
-          type = typeOfSelector(selector);
+          type = returnTypeOfSelector(selector);
         }
         elementType = types.computeLUB(elementType, type);
       }
@@ -1509,7 +1520,7 @@ class SimpleTypeInferrerVisitor<T> extends InferrerVisitor<T> {
                                      inferrer,
                                      compiler,
                                      locals)
-    : super(analyzedElement, inferrer.types, compiler, locals),
+    : super(analyzedElement, inferrer, inferrer.types, compiler, locals),
       this.inferrer = inferrer;
 
   factory SimpleTypeInferrerVisitor(Element element,
@@ -1584,7 +1595,7 @@ class SimpleTypeInferrerVisitor<T> extends InferrerVisitor<T> {
                 null);
           }
         } else {
-          locals.update(element, parameterType);
+          locals.update(element, parameterType, node);
         }
       });
       if (analyzedElement.isSynthesized) {
@@ -1603,7 +1614,7 @@ class SimpleTypeInferrerVisitor<T> extends InferrerVisitor<T> {
         // fields that we haven't initialized for sure.
         cls.forEachInstanceField((_, field) {
           if (field.modifiers.isFinal()) return;
-          T type = locals.fieldsInitializedInConstructor[field];
+          T type = locals.fieldScope.fields[field];
           if (type == null && field.parseNode(compiler).asSendSet() == null) {
             inferrer.recordTypeOfNonFinalField(
                 node, field, types.nullType, null);
@@ -1614,7 +1625,7 @@ class SimpleTypeInferrerVisitor<T> extends InferrerVisitor<T> {
       returnType = types.nonNullExact(cls.rawType);
     } else {
       signature.forEachParameter((element) {
-        locals.update(element, inferrer.typeOfElement(element));
+        locals.update(element, inferrer.typeOfElement(element), node);
       });
       visit(node.body);
       if (returnType == null) {
@@ -1629,15 +1640,6 @@ class SimpleTypeInferrerVisitor<T> extends InferrerVisitor<T> {
       }
     }
 
-    if (analyzedElement == outermostElement) {
-      bool changed = false;
-      locals.capturedAndBoxed.forEach((Element local, Element field) {
-        if (inferrer.recordType(field, locals.locals[local])) {
-          changed = true;
-        }
-      });
-      // TODO(ngeoffray): Re-analyze method if [changed]?
-    }
     compiler.world.registerSideEffects(analyzedElement, sideEffects);
     assert(breaksFor.isEmpty);
     assert(continuesFor.isEmpty);
@@ -1649,12 +1651,12 @@ class SimpleTypeInferrerVisitor<T> extends InferrerVisitor<T> {
     // We don't put the closure in the work queue of the
     // inferrer, because it will share information with its enclosing
     // method, like for example the types of local variables.
-    LocalsHandler closureLocals = new LocalsHandler<T>.from(locals);
+    LocalsHandler closureLocals = new LocalsHandler<T>.from(
+        locals, inTryBlock: false);
     SimpleTypeInferrerVisitor visitor = new SimpleTypeInferrerVisitor<T>(
         element, compiler, inferrer, closureLocals);
     visitor.run();
     inferrer.recordReturnType(element, visitor.returnType);
-    locals.merge(visitor.locals);
 
     // Record the types of captured non-boxed variables. Types of
     // these variables may already be there, because of an analysis of
@@ -1665,8 +1667,8 @@ class SimpleTypeInferrerVisitor<T> extends InferrerVisitor<T> {
     ClosureClassMap nestedClosureData =
         compiler.closureToClassMapper.getMappingForNestedFunction(node);
     nestedClosureData.forEachNonBoxedCapturedVariable((variable, field) {
-      // The type may be null for instance contexts (this and type
-      // parameters), as well as captured argument checks.
+      // The type may be null for instance contexts: the 'this'
+      // variable and type parameters.
       if (locals.locals[variable] == null) return;
       inferrer.recordType(field, locals.locals[variable]);
     });
@@ -1713,7 +1715,7 @@ class SimpleTypeInferrerVisitor<T> extends InferrerVisitor<T> {
             && element.getEnclosingClass() ==
                     outermostElement.getEnclosingClass()
             && !element.modifiers.isFinal()
-            && locals.fieldsInitializedInConstructor[element] == null
+            && locals.fieldScope.fields[element] == null
             && element.parseNode(compiler).asSendSet() == null) {
           // If the field is being used before this constructor
           // actually had a chance to initialize it, say it can be
@@ -1857,7 +1859,7 @@ class SimpleTypeInferrerVisitor<T> extends InferrerVisitor<T> {
         getterType = locals.use(element);
         newType = handleDynamicSend(
             node, operatorSelector, getterType, operatorArguments);
-        locals.update(element, newType);
+        locals.update(element, newType, node);
       } else {
         // Bogus SendSet, for example [: myMethod += 42 :].
         getterType = types.dynamicType;
@@ -1906,7 +1908,9 @@ class SimpleTypeInferrerVisitor<T> extends InferrerVisitor<T> {
         inferrer.recordTypeOfFinalField(
             node, outermostElement, element, rhsType, constraint);
       } else {
-        locals.updateField(element, rhsType);
+        if (analyzedElement.isGenerativeConstructor()) {
+          locals.updateField(element, rhsType);
+        }
         if (visitingInitializers) {
           inferrer.recordTypeOfNonFinalField(
               node, element, rhsType, constraint);
@@ -1916,7 +1920,7 @@ class SimpleTypeInferrerVisitor<T> extends InferrerVisitor<T> {
         }
       }
     } else if (Elements.isLocal(element)) {
-      locals.update(element, rhsType);
+      locals.update(element, rhsType, node);
     }
     return rhsType;
   }
