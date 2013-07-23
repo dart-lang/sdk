@@ -35,10 +35,6 @@ nodeBindingTests() {
     testDiv = null;
   });
 
-  dispatchEvent(type, target) {
-    target.dispatchEvent(new Event(type, cancelable: false));
-  }
-
   observeTest('Text', () {
     var text = new Text('hi');
     var model = toSymbolMap({'a': 1});

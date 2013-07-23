@@ -63,8 +63,8 @@ Stream<DocumentFragment> get instanceCreated {
 // https://github.com/polymer-project/polymer/blob/master/src/bindMDV.js#L68
 // Called from:
 // https://github.com/polymer-project/polymer/blob/master/src/register.js#L99
-void bindModel(Node root, model, [CustomBindingSyntax syntax]) {
-  _addBindings(root, model, syntax);
+void bindModel(Node root, model, [BindingDelegate delegate]) {
+  _addBindings(root, model, delegate);
 }
 
 

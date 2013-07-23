@@ -63,16 +63,6 @@ templateElementTests() {
     return root;
   }
 
-  recursivelySetTemplateModel(element, model) {
-    for (var node in element.queryAll('*')) {
-      if (node.isTemplate) node.model = model;
-    }
-  }
-
-  dispatchEvent(type, target) {
-    target.dispatchEvent(new Event(type, cancelable: false));
-  }
-
   var expando = new Expando('observeTest');
   void addExpandos(node) {
     while (node != null) {
@@ -1577,35 +1567,30 @@ templateElementTests() {
       '</template>');
 
     var syntax = new UnbindingInNestedBindSyntax();
-    TemplateElement.syntax['testHelper'] = syntax;
-    try {
-      var model = toSymbolMap({
-        'outer': {
-          'inner': {
-            'age': 42
-          }
+    var model = toSymbolMap({
+      'outer': {
+        'inner': {
+          'age': 42
         }
-      });
+      }
+    });
 
-      recursivelySetTemplateModel(div, model);
+    recursivelySetTemplateModel(div, model, syntax);
 
-      deliverChanges(model);
-      expect(syntax.count, 1);
+    deliverChanges(model);
+    expect(syntax.count, 1);
 
-      var inner = model[sym('outer')][sym('inner')];
-      model[sym('outer')] = null;
+    var inner = model[sym('outer')][sym('inner')];
+    model[sym('outer')] = null;
 
-      deliverChanges(model);
-      expect(syntax.count, 1);
+    deliverChanges(model);
+    expect(syntax.count, 1);
 
-      model[sym('outer')] = toSymbols({'inner': {'age': 2}});
-      syntax.expectedAge = 2;
+    model[sym('outer')] = toSymbols({'inner': {'age': 2}});
+    syntax.expectedAge = 2;
 
-      deliverChanges(model);
-      expect(syntax.count, 2);
-    } finally {
-      TemplateElement.syntax.remove('testHelper');
-    }
+    deliverChanges(model);
+    expect(syntax.count, 2);
   });
 
   // https://github.com/toolkitchen/mdv/issues/8
@@ -1620,28 +1605,22 @@ templateElementTests() {
   });
 
   observeTest('CreateInstance', () {
-    TemplateElement.syntax['Test'] = new TestBindingSyntax();
-    try {
-      var div = createTestHtml(
-        '<template bind="{{a}}">'
-          '<template bind="{{b}}">'
-            '{{ foo }}:{{ replaceme }}'
-          '</template>'
-        '</template>');
-      var outer = div.nodes.first;
-      var model = toSymbolMap({'b': {'foo': 'bar'}});
+    var div = createTestHtml(
+      '<template bind="{{a}}">'
+        '<template bind="{{b}}">'
+          '{{ foo }}:{{ replaceme }}'
+        '</template>'
+      '</template>');
+    var outer = div.nodes.first;
+    var model = toSymbolMap({'b': {'foo': 'bar'}});
 
-      var host = new DivElement();
-      var instance = outer.createInstance(model, 'Test');
-      expect(outer.content.nodes.first, instance.nodes.first.ref);
-      expect(instance.firstChild.attributes['syntax'], 'Test');
+    var host = new DivElement();
+    var instance = outer.createInstance(model, new TestBindingSyntax());
+    expect(outer.content.nodes.first, instance.nodes.first.ref);
 
-      host.append(instance);
-      performMicrotaskCheckpoint();
-      expect(host.firstChild.nextNode.text, 'bar:replaced');
-    } finally {
-      TemplateElement.syntax.remove('Test');
-    }
+    host.append(instance);
+    performMicrotaskCheckpoint();
+    expect(host.firstChild.nextNode.text, 'bar:replaced');
   });
 
   observeTest('Bootstrap', () {
@@ -1696,14 +1675,14 @@ templateElementTests() {
   });
 }
 
-class TestBindingSyntax extends CustomBindingSyntax {
+class TestBindingSyntax extends BindingDelegate {
   getBinding(model, String path, name, node) {
     if (path.trim() == 'replaceme') return new ObservableBox('replaced');
     return null;
   }
 }
 
-class UnbindingInNestedBindSyntax extends CustomBindingSyntax {
+class UnbindingInNestedBindSyntax extends BindingDelegate {
   int expectedAge = 42;
   int count = 0;
 

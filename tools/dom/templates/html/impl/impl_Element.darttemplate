@@ -937,13 +937,15 @@ $endif
   }
 
   /**
-   * Creates an instance of the template.
+   * Creates an instance of the template, using the provided model and binding
+   * delegate.
+   *
    * This is only supported if [isTemplate] is true.
    */
   @Experimental()
-  DocumentFragment createInstance(model, String syntax) {
+  DocumentFragment createInstance(model, BindingDelegate delegate) {
     _ensureTemplate();
-    return TemplateElement.mdvPackage(this).createInstance(model, syntax);
+    return TemplateElement.mdvPackage(this).createInstance(model, delegate);
   }
 
   /**
@@ -957,6 +959,22 @@ $endif
   void set model(value) {
     _ensureTemplate();
     TemplateElement.mdvPackage(this).model = value;
+  }
+
+  /**
+   * The binding delegate which is inherited through the tree. It can be used
+   * to configure custom syntax for `{{bindings}}` inside this template.
+   *
+   * This is only supported if [isTemplate] is true.
+   */
+  @Experimental()
+  BindingDelegate get bindingDelegate =>
+      TemplateElement.mdvPackage(this).bindingDelegate;
+
+  @Experimental()
+  void set bindingDelegate(BindingDelegate value) {
+    _ensureTemplate();
+    TemplateElement.mdvPackage(this).bindingDelegate = value;
   }
 
   // TODO(jmesserly): const set would be better

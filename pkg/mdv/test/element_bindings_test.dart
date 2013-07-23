@@ -37,10 +37,6 @@ elementBindingTests() {
     testDiv = null;
   });
 
-  dispatchEvent(type, target) {
-    target.dispatchEvent(new Event(type, cancelable: false));
-  }
-
   observeTest('Text', () {
     var template = new Element.html('<template bind>{{a}} and {{b}}');
     testDiv.append(template);

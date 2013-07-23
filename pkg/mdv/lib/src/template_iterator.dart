@@ -15,22 +15,22 @@ part of mdv;
 // everything else is true. See: https://github.com/polymer-project/mdv/issues/59
 bool _toBoolean(value) => null != value && false != value;
 
-Node _createDeepCloneAndDecorateTemplates(Node node, String syntax) {
+Node _createDeepCloneAndDecorateTemplates(Node node, BindingDelegate delegate) {
   var clone = node.clone(false); // Shallow clone.
   if (clone is Element && clone.isTemplate) {
     TemplateElement.decorate(clone, node);
-    if (syntax != null) {
-      clone.attributes.putIfAbsent('syntax', () => syntax);
+    if (delegate != null) {
+      _mdv(clone)._bindingDelegate = delegate;
     }
   }
 
   for (var c = node.firstChild; c != null; c = c.nextNode) {
-    clone.append(_createDeepCloneAndDecorateTemplates(c, syntax));
+    clone.append(_createDeepCloneAndDecorateTemplates(c, delegate));
   }
   return clone;
 }
 
-void _addBindings(Node node, model, [CustomBindingSyntax delegate]) {
+void _addBindings(Node node, model, [BindingDelegate delegate]) {
   if (node is Element) {
     _addAttributeBindings(node, model, delegate);
   } else if (node is Text) {
@@ -52,7 +52,7 @@ void _addAttributeBindings(Element element, model, delegate) {
 }
 
 void _parseAndBind(Node node, String name, String text, model,
-    CustomBindingSyntax delegate) {
+    BindingDelegate delegate) {
 
   var tokens = _parseMustacheTokens(text);
   if (tokens.length == 0 || (tokens.length == 1 && tokens[0].isText)) {
@@ -97,7 +97,7 @@ void _parseAndBind(Node node, String name, String text, model,
 }
 
 void _bindOrDelegate(node, name, model, String path,
-    CustomBindingSyntax delegate) {
+    BindingDelegate delegate) {
 
   if (delegate != null) {
     var delegateBinding = delegate.getBinding(model, path, name, node);
@@ -276,19 +276,20 @@ class _TemplateIterator {
     return instanceNodes;
   }
 
-  getInstanceModel(model, String syntax) {
-    var delegate = TemplateElement.syntax[syntax];
+  getInstanceModel(model, BindingDelegate delegate) {
     if (delegate != null) {
       return delegate.getInstanceModel(_templateElement, model);
     }
     return model;
   }
 
-  List<Node> getInstanceNodes(model, String syntax, IdentityMap instanceCache) {
+  List<Node> getInstanceNodes(model, BindingDelegate delegate,
+      IdentityMap instanceCache) {
+
     var instanceNodes = instanceCache.remove(model);
     if (instanceNodes != null) return instanceNodes;
 
-    var fragment = _templateElement.createInstance(model, syntax);
+    var fragment = _templateElement.createInstance(model, delegate);
     instanceNodes = fragment.nodes.toList();
     fragment.nodes.clear();
     return instanceNodes;
@@ -298,7 +299,7 @@ class _TemplateIterator {
     splices = splices.where((s) => s is ListChangeRecord);
 
     var template = _templateElement;
-    var syntax = template.attributes['syntax'];
+    var delegate = template.bindingDelegate;
 
     if (template.parentNode == null || template.document.window == null) {
       abandon();
@@ -328,9 +329,9 @@ class _TemplateIterator {
           addIndex < splice.index + splice.addedCount;
           addIndex++) {
 
-        var model = getInstanceModel(iteratedValue[addIndex], syntax);
+        var model = getInstanceModel(iteratedValue[addIndex], delegate);
 
-        var instanceNodes = getInstanceNodes(model, syntax, instanceCache);
+        var instanceNodes = getInstanceNodes(model, delegate, instanceCache);
         insertInstanceAt(addIndex, instanceNodes);
       }
     }

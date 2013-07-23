@@ -8694,13 +8694,15 @@ abstract class Element extends Node implements ElementTraversal native "Element"
   }
 
   /**
-   * Creates an instance of the template.
+   * Creates an instance of the template, using the provided model and binding
+   * delegate.
+   *
    * This is only supported if [isTemplate] is true.
    */
   @Experimental()
-  DocumentFragment createInstance(model, String syntax) {
+  DocumentFragment createInstance(model, BindingDelegate delegate) {
     _ensureTemplate();
-    return TemplateElement.mdvPackage(this).createInstance(model, syntax);
+    return TemplateElement.mdvPackage(this).createInstance(model, delegate);
   }
 
   /**
@@ -8714,6 +8716,22 @@ abstract class Element extends Node implements ElementTraversal native "Element"
   void set model(value) {
     _ensureTemplate();
     TemplateElement.mdvPackage(this).model = value;
+  }
+
+  /**
+   * The binding delegate which is inherited through the tree. It can be used
+   * to configure custom syntax for `{{bindings}}` inside this template.
+   *
+   * This is only supported if [isTemplate] is true.
+   */
+  @Experimental()
+  BindingDelegate get bindingDelegate =>
+      TemplateElement.mdvPackage(this).bindingDelegate;
+
+  @Experimental()
+  void set bindingDelegate(BindingDelegate value) {
+    _ensureTemplate();
+    TemplateElement.mdvPackage(this).bindingDelegate = value;
   }
 
   // TODO(jmesserly): const set would be better
@@ -21546,7 +21564,6 @@ class TableSectionElement extends _HTMLElement native "HTMLTableSectionElement" 
 // WARNING: Do not edit - generated code.
 
 
-
 /**
  * Model-Driven Views (MDV)'s native features enables a wide-range of use cases,
  * but (by design) don't attempt to implement a wide array of specialized
@@ -21555,32 +21572,32 @@ class TableSectionElement extends _HTMLElement native "HTMLTableSectionElement" 
  * Enabling these features in MDV is a matter of implementing and registering an
  * MDV Custom Syntax. A Custom Syntax is an object which contains one or more
  * delegation functions which implement specialized behavior. This object is
- * registered with MDV via [TemplateElement.syntax]:
+ * registered with MDV via [Element.bindingDelegate]:
  *
  *
  * HTML:
- *     <template bind syntax="MySyntax">
+ *     <template bind>
  *       {{ What!Ever('crazy')->thing^^^I+Want(data) }}
  *     </template>
  *
  * Dart:
- *     class MySyntax extends CustomBindingSyntax {
+ *     class MySyntax extends BindingDelegate {
  *       getBinding(model, path, name, node) {
  *         // The magic happens here!
  *       }
  *     }
- *
  *     ...
- *
- *     TemplateElement.syntax['MySyntax'] = new MySyntax();
+ *     query('template').bindingDelegate = new MySyntax();
+ *     query('template').model = new MyModel();
  *
  * See <https://github.com/polymer-project/mdv/blob/master/docs/syntax.md> for
  * more information about Custom Syntax.
  */
-// TODO(jmesserly): if this is just one method, a function type would make it
-// more Dart-friendly.
+// TODO(jmesserly): move this type to the MDV package? Two issues: we'd lose
+// type annotation on [Element.bindingDelegate], and "mdv" is normally imported
+// with a prefix.
 @Experimental()
-abstract class CustomBindingSyntax {
+abstract class BindingDelegate {
   /**
    * This syntax method allows for a custom interpretation of the contents of
    * mustaches (`{{` ... `}}`).
@@ -21628,7 +21645,6 @@ abstract class CustomBindingSyntax {
    */
   getInstanceModel(Element template, model) => model;
 }
-
 
 @Experimental()
 @DomName('HTMLTemplateElement')
@@ -21849,13 +21865,6 @@ option[template] {
 }''';
     document.head.append(style);
   }
-
-  /**
-   * A mapping of names to Custom Syntax objects. See [CustomBindingSyntax] for
-   * more information.
-   */
-  @Experimental()
-  static Map<String, CustomBindingSyntax> syntax = {};
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

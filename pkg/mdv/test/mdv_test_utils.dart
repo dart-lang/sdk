@@ -24,6 +24,19 @@ toSymbolMap(Map map) {
   return result;
 }
 
+recursivelySetTemplateModel(element, model, [delegate]) {
+  for (var node in element.queryAll('*')) {
+    if (node.isTemplate) {
+      node.bindingDelegate = delegate;
+      node.model = model;
+    }
+  }
+}
+
+dispatchEvent(type, target) {
+  target.dispatchEvent(new Event(type, cancelable: false));
+}
+
 class FooBarModel extends ObservableBase {
   @observable var foo;
   @observable var bar;

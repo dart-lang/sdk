@@ -7,7 +7,9 @@ part of mdv;
 /** Extensions to [Element]s that behave as templates. */
 class _TemplateExtension extends _ElementExtension {
   var _model;
+  BindingDelegate _bindingDelegate;
   _TemplateIterator _templateIterator;
+  bool _scheduled = false;
 
   _TemplateExtension(Element node) : super(node);
 
@@ -50,16 +52,16 @@ class _TemplateExtension extends _ElementExtension {
   /**
    * Creates an instance of the template.
    */
-  DocumentFragment createInstance(model, String syntax) {
+  DocumentFragment createInstance(model, BindingDelegate delegate) {
     var template = node.ref;
     if (template == null) template = node;
 
     var instance = _createDeepCloneAndDecorateTemplates(
-        template.ref.content, syntax);
+        template.ref.content, delegate);
 
     if (_instanceCreated != null) _instanceCreated.add(instance);
 
-    _addBindings(instance, model, TemplateElement.syntax[syntax]);
+    _addBindings(instance, model, delegate);
     _addTemplateInstanceRecord(instance, model);
     return instance;
   }
@@ -70,8 +72,29 @@ class _TemplateExtension extends _ElementExtension {
   get model => _model;
 
   void set model(value) {
-    var syntax = TemplateElement.syntax[node.attributes['syntax']];
     _model = value;
-    _addBindings(node, model, syntax);
+    _ensureSetModelScheduled();
+  }
+
+  /**
+   * The binding delegate which is inherited through the tree. It can be used
+   * to configure custom syntax for `{{bindings}}` inside this template.
+   */
+  BindingDelegate get bindingDelegate => _bindingDelegate;
+
+  void set bindingDelegate(BindingDelegate value) {
+    _bindingDelegate = value;
+    _ensureSetModelScheduled();
+  }
+
+  _ensureSetModelScheduled() {
+    if (_scheduled) return;
+    _scheduled = true;
+    runAsync(_setModel);
+  }
+
+  void _setModel() {
+    _scheduled = false;
+    _addBindings(node, _model, _bindingDelegate);
   }
 }
