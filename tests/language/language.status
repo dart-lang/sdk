@@ -116,6 +116,7 @@ import_combinators_test: Fail
 [ $runtime == vm || ($runtime == drt && $compiler == none) ]
 first_class_types_literals_test: Fail # issue 11761
 call_test: Fail # Issue 1604
+throw8_test: Fail # Issue 11972
 
 [ $runtime == chrome ]
 
