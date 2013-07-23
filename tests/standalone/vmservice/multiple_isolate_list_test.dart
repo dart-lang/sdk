@@ -19,8 +19,7 @@ class MultipleIsolateListTest extends VmServiceRequestHelper {
   onRequestCompleted(Map reply) {
     IsolateListTester tester = new IsolateListTester(reply);
     tester.checkIsolateCount(2);
-    tester.checkIsolateIdExists(7116);
-    tester.checkIsolateNamePrefix(7116, 'multiple_isolate_list_script.dart');
+    tester.checkIsolateNameContains('multiple_isolate_list_script.dart');
     tester.checkIsolateNameContains('myIsolateName');
   }
 }

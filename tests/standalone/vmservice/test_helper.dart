@@ -160,7 +160,8 @@ class IsolateListTester {
       if (isolate['id'] == id) {
         exists = true;
         Expect.isTrue(isolate['name'].startsWith(name),
-                      'Isolate $id does not have name prefix: $name');
+                      'Isolate $id does not have name prefix: $name'
+                      ' (was ${isolate['name']})');
       }
     });
     Expect.isTrue(exists, 'No isolate with id: $id');

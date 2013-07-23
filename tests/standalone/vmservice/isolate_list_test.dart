@@ -18,15 +18,9 @@ class IsolateListTest extends VmServiceRequestHelper {
   IsolateListTest(port) : super('http://127.0.0.1:$port/isolates');
 
   onRequestCompleted(Map reply) {
-    // The reply is an IsolateList.
-    Expect.equals('IsolateList', reply['type']);
-    // There is 1 running isolate.
-    Expect.equals(1, reply['members'].length);
-    // It's id is 7116.
-    Expect.equals(7116, reply['members'][0]['id']);
-    // It's this isolate.
-    Expect.isTrue(
-        reply['members'][0]['name'].startsWith('isolate_list_script.dart'));
+    IsolateListTester tester = new IsolateListTester(reply);
+    tester.checkIsolateCount(1);
+    tester.checkIsolateNameContains('isolate_list_script.dart');
   }
 }
 
