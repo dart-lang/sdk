@@ -176,7 +176,7 @@ void renameFile(String from, String to) {
 }
 
 /// A [Matcher] for [WatchEvent]s.
-class _ChangeMatcher extends BaseMatcher {
+class _ChangeMatcher extends Matcher {
   /// The expected change.
   final ChangeType type;
 

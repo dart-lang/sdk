@@ -21,7 +21,7 @@ import 'utils.dart';
 /// Indentation will be normalized.
 Matcher bodyMatches(String pattern) => new _BodyMatches(pattern);
 
-class _BodyMatches extends BaseMatcher {
+class _BodyMatches extends Matcher {
   final String _pattern;
 
   _BodyMatches(this._pattern);

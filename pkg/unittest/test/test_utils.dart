@@ -66,7 +66,7 @@ void shouldPass(value, Matcher matcher, {bool isAsync: false}) {
 doesNotThrow() {}
 doesThrow() { throw 'X'; }
 
-class PrefixMatcher extends BaseMatcher {
+class PrefixMatcher extends Matcher {
   final String _prefix;
   const PrefixMatcher(this._prefix);
   bool matches(item, Map matchState) {

@@ -46,14 +46,15 @@ abstract class Description {
 }
 
 /**
- * [expect] Matchers must implement the Matcher class.
- * The base Matcher class that implements this interface has
- * a generic implementation of [describeMismatch] so this does
- * not need to be provided unless a more clear description is
+ * [expect] Matchers must implement/extend the Matcher class.
+ * The base Matcher class has a generic implementation of [describeMismatch]
+ * so this does not need to be provided unless a more clear description is
  * required. The other two methods ([matches] and [describe])
  * must always be provided as they are highly matcher-specific.
  */
 abstract class Matcher {
+  const Matcher();
+
   /**
    * This does the matching of the actual vs expected values.
    * [item] is the actual value. [matchState] can be supplied
@@ -76,7 +77,7 @@ abstract class Matcher {
    * diagnosing failures, such as stack traces.
    */
   Description describeMismatch(item, Description mismatchDescription,
-      Map matchState, bool verbose);
+      Map matchState, bool verbose) => mismatchDescription;
 }
 
 /**

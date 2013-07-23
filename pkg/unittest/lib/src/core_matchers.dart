@@ -10,7 +10,7 @@ part of matcher;
  */
 const Matcher isEmpty = const _Empty();
 
-class _Empty extends BaseMatcher {
+class _Empty extends Matcher {
   const _Empty();
   bool matches(item, Map matchState) {
     if (item is Map || item is Iterable) {
@@ -31,14 +31,14 @@ const Matcher isNull = const _IsNull();
 /** A matcher that matches any non-null value. */
 const Matcher isNotNull = const _IsNotNull();
 
-class _IsNull extends BaseMatcher {
+class _IsNull extends Matcher {
   const _IsNull();
   bool matches(item, Map matchState) => item == null;
   Description describe(Description description) =>
       description.add('null');
 }
 
-class _IsNotNull extends BaseMatcher {
+class _IsNotNull extends Matcher {
   const _IsNotNull();
   bool matches(item, Map matchState) => item != null;
   Description describe(Description description) =>
@@ -51,14 +51,14 @@ const Matcher isTrue = const _IsTrue();
 /** A matcher that matches anything except the Boolean value true. */
 const Matcher isFalse = const _IsFalse();
 
-class _IsTrue extends BaseMatcher {
+class _IsTrue extends Matcher {
   const _IsTrue();
   bool matches(item, Map matchState) => item == true;
   Description describe(Description description) =>
       description.add('true');
 }
 
-class _IsFalse extends BaseMatcher {
+class _IsFalse extends Matcher {
   const _IsFalse();
   bool matches(item, Map matchState) => item == false;
   Description describe(Description description) =>
@@ -71,7 +71,7 @@ class _IsFalse extends BaseMatcher {
  */
 Matcher same(expected) => new _IsSameAs(expected);
 
-class _IsSameAs extends BaseMatcher {
+class _IsSameAs extends Matcher {
   final _expected;
   const _IsSameAs(this._expected);
   bool matches(item, Map matchState) => identical(item, _expected);
@@ -90,7 +90,7 @@ Matcher equals(expected, [limit=100]) =>
         ? new _StringEqualsMatcher(expected)
         : new _DeepMatcher(expected, limit);
 
-class _DeepMatcher extends BaseMatcher {
+class _DeepMatcher extends Matcher {
   final _expected;
   final int _limit;
   var count;
@@ -234,7 +234,7 @@ class _DeepMatcher extends BaseMatcher {
 }
 
 /** A special equality matcher for strings. */
-class _StringEqualsMatcher extends BaseMatcher {
+class _StringEqualsMatcher extends Matcher {
   final String _value;
 
   _StringEqualsMatcher(this._value);
@@ -314,7 +314,7 @@ class _StringEqualsMatcher extends BaseMatcher {
 /** A matcher that matches any value. */
 const Matcher anything = const _IsAnything();
 
-class _IsAnything extends BaseMatcher {
+class _IsAnything extends Matcher {
   const _IsAnything();
   bool matches(item, Map matchState) => true;
   Description describe(Description description) =>
@@ -343,7 +343,7 @@ class _IsAnything extends BaseMatcher {
  * fail. This is because dart2js currently ignores template type
  * parameters.
  */
-class isInstanceOf<T> extends BaseMatcher {
+class isInstanceOf<T> extends Matcher {
   final String _name;
   const isInstanceOf([name = 'specified type']) : this._name = name;
   bool matches(obj, Map matchState) => obj is T;
@@ -395,7 +395,7 @@ Matcher throwsA(matcher) => new Throws(wrapMatcher(matcher));
  */
 const Matcher returnsNormally = const _ReturnsNormally();
 
-class Throws extends BaseMatcher {
+class Throws extends Matcher {
   final Matcher _matcher;
 
   const Throws([Matcher matcher]) :
@@ -466,7 +466,7 @@ class Throws extends BaseMatcher {
   }
 }
 
-class _ReturnsNormally extends BaseMatcher {
+class _ReturnsNormally extends Matcher {
   const _ReturnsNormally();
 
   bool matches(f, Map matchState) {
@@ -514,7 +514,7 @@ class _ReturnsNormally extends BaseMatcher {
  * for each exception type.
  */
 
-abstract class TypeMatcher extends BaseMatcher {
+abstract class TypeMatcher extends Matcher {
   final String _name;
   const TypeMatcher(this._name);
   Description describe(Description description) =>
@@ -640,7 +640,7 @@ class _IsList extends TypeMatcher {
 Matcher hasLength(matcher) =>
     new _HasLength(wrapMatcher(matcher));
 
-class _HasLength extends BaseMatcher {
+class _HasLength extends Matcher {
   final Matcher _matcher;
   const _HasLength([Matcher matcher = null]) : this._matcher = matcher;
 
@@ -685,7 +685,7 @@ class _HasLength extends BaseMatcher {
  */
 Matcher contains(expected) => new _Contains(expected);
 
-class _Contains extends BaseMatcher {
+class _Contains extends Matcher {
 
   final _expected;
 
@@ -726,7 +726,7 @@ class _Contains extends BaseMatcher {
  */
 Matcher isIn(expected) => new _In(expected);
 
-class _In extends BaseMatcher {
+class _In extends Matcher {
 
   final _expected;
 
@@ -756,7 +756,7 @@ class _In extends BaseMatcher {
 Matcher predicate(Function f, [description ='satisfies function']) =>
     new _Predicate(f, description);
 
-class _Predicate extends BaseMatcher {
+class _Predicate extends Matcher {
 
   final Function _matcher;
   final String _description;
@@ -780,8 +780,13 @@ class _Predicate extends BaseMatcher {
  * have a Widget class where each Widget has a price; we could make a
  * [CustomMatcher] that can make assertions about prices with:
  *
+<<<<<<< .mine
+ *     class HasPrice extends CustomMatcher {
+ *       const HasPrice(matcher) :
+=======
  *     class HasPrice extends CustomMatcher {
  *       HasPrice(matcher) :
+>>>>>>> .r25321
  *           super("Widget with price that is", "price", matcher);
  *       featureValueOf(actual) => actual.price;
  *     }
@@ -790,7 +795,7 @@ class _Predicate extends BaseMatcher {
  *
  *      expect(inventoryItem, new HasPrice(greaterThan(0)));
  */
-class CustomMatcher extends BaseMatcher {
+class CustomMatcher extends Matcher {
   final String _featureDescription;
   final String _featureName;
   final Matcher _matcher;

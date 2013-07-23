@@ -84,7 +84,7 @@ class _SomeElement extends _IterableMatcher {
 
 Matcher orderedEquals(Iterable expected) => new _OrderedEquals(expected);
 
-class _OrderedEquals extends BaseMatcher {
+class _OrderedEquals extends Matcher {
   final Iterable _expected;
   Matcher _matcher;
 
@@ -117,7 +117,7 @@ class _OrderedEquals extends BaseMatcher {
 Matcher unorderedEquals(Iterable expected) =>
     new _UnorderedEquals(expected);
 
-class _UnorderedEquals extends BaseMatcher {
+class _UnorderedEquals extends Matcher {
   Iterable _expected;
 
   _UnorderedEquals(Iterable this._expected);
@@ -177,7 +177,7 @@ class _UnorderedEquals extends BaseMatcher {
  * Iterable matchers match against [Iterable]s. We add this intermediate
  * class to give better mismatch error messages than the base Matcher class.
  */
-abstract class _IterableMatcher extends BaseMatcher {
+abstract class _IterableMatcher extends Matcher {
   const _IterableMatcher();
   Description describeMismatch(item, Description mismatchDescription,
                                Map matchState, bool verbose) {
