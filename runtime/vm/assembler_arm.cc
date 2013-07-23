@@ -1879,6 +1879,64 @@ void Assembler::Rrx(Register rd, Register rm, Condition cond) {
 }
 
 
+void Assembler::Vreciprocalqs(QRegister qd, QRegister qm) {
+  ASSERT(qm != QTMP);
+  ASSERT(qd != QTMP);
+
+  // Reciprocal estimate.
+  vrecpeqs(qd, qm);
+  // 2 Newton-Raphson steps.
+  vrecpsqs(QTMP, qm, qd);
+  vmulqs(qd, qd, QTMP);
+  vrecpsqs(QTMP, qm, qd);
+  vmulqs(qd, qd, QTMP);
+}
+
+
+void Assembler::VreciprocalSqrtqs(QRegister qd, QRegister qm) {
+  ASSERT(qm != QTMP);
+  ASSERT(qd != QTMP);
+
+  // Reciprocal square root estimate.
+  vrsqrteqs(qd, qm);
+  // 2 Newton-Raphson steps. xn+1 = xn * (3 - Q1*xn^2) / 2.
+  // First step.
+  vmulqs(QTMP, qd, qd);  // QTMP <- xn^2
+  vrsqrtsqs(QTMP, qm, QTMP);  // QTMP <- (3 - Q1*QTMP) / 2.
+  vmulqs(qd, qd, QTMP);  // xn+1 <- xn * QTMP
+  // Second step.
+  vmulqs(QTMP, qd, qd);
+  vrsqrtsqs(QTMP, qm, QTMP);
+  vmulqs(qd, qd, QTMP);
+}
+
+
+void Assembler::Vsqrtqs(QRegister qd, QRegister qm, QRegister temp) {
+  ASSERT(temp != QTMP);
+  ASSERT(qm != QTMP);
+  ASSERT(qd != QTMP);
+
+  if (temp != kNoQRegister) {
+    vmovq(temp, qm);
+    qm = temp;
+  }
+
+  VreciprocalSqrtqs(qd, qm);
+  vmovq(qm, qd);
+  Vreciprocalqs(qd, qm);
+}
+
+
+void Assembler::Vdivqs(QRegister qd, QRegister qn, QRegister qm) {
+  ASSERT(qd != QTMP);
+  ASSERT(qn != QTMP);
+  ASSERT(qm != QTMP);
+
+  Vreciprocalqs(qd, qm);
+  vmulqs(qd, qn, qd);
+}
+
+
 void Assembler::Branch(const ExternalLabel* label, Condition cond) {
   LoadImmediate(IP, label->address(), cond);  // Address is never patched.
   bx(IP, cond);

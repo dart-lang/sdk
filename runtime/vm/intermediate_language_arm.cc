@@ -2934,9 +2934,7 @@ void BinaryFloat32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kADD: __ vaddqs(result, left, right); break;
     case Token::kSUB: __ vsubqs(result, left, right); break;
     case Token::kMUL: __ vmulqs(result, left, right); break;
-    // TODO(zra): Two options for division. Either use vdiv piecewise, or do
-    // vrecpeqs followed by vmulqs.
-    case Token::kDIV: UNIMPLEMENTED(); break;
+    case Token::kDIV: __ Vdivqs(result, left, right); break;
     default: UNREACHABLE();
   }
 }
@@ -2947,7 +2945,7 @@ LocationSummary* Float32x4ShuffleInstr::MakeLocationSummary() const {
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  // Low (< Q7) Q registers are needed for the vcvtds instruction.
+  // Low (< Q7) Q registers are needed for the vcvtds and vmovs instructions.
   summary->set_in(0, Location::FpuRegisterLocation(Q5));
   summary->set_out(Location::FpuRegisterLocation(Q6));
   return summary;
@@ -2958,13 +2956,20 @@ void Float32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   QRegister value = locs()->in(0).fpu_reg();
   QRegister result = locs()->out().fpu_reg();
   DRegister dresult0 = EvenDRegisterOf(result);
+  DRegister dresult1 = OddDRegisterOf(result);
   SRegister sresult0 = EvenSRegisterOf(dresult0);
+  SRegister sresult1 = OddSRegisterOf(dresult0);
+  SRegister sresult2 = EvenSRegisterOf(dresult1);
+  SRegister sresult3 = OddSRegisterOf(dresult1);
 
   DRegister dvalue0 = EvenDRegisterOf(value);
   DRegister dvalue1 = OddDRegisterOf(value);
 
-  // For these cases the vdup instruction requires fewer
-  // instructions. For arbitrary shuffles, vtbl will be needed.
+  DRegister dtemp0 = DTMP;
+  DRegister dtemp1 = OddDRegisterOf(QTMP);
+
+  // For some cases the vdup instruction requires fewer
+  // instructions. For arbitrary shuffles, use vtbl.
   switch (op_kind()) {
     case MethodRecognizer::kFloat32x4ShuffleX:
       __ vdup(kWord, result, dvalue0, 0);
@@ -2992,8 +2997,18 @@ void Float32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       } else  if (mask_ == 0xFF) {
         __ vdup(kWord, result, dvalue1, 1);
       } else {
-        // TODO(zra): Implement other shuffles.
-        UNIMPLEMENTED();
+        SRegister svalues[4];
+
+        svalues[0] = EvenSRegisterOf(dtemp0);
+        svalues[1] = OddSRegisterOf(dtemp0);
+        svalues[2] = EvenSRegisterOf(dtemp1);
+        svalues[3] = OddSRegisterOf(dtemp1);
+
+        __ vmovq(QTMP, value);
+        __ vmovs(sresult0, svalues[mask_ & 0x3]);
+        __ vmovs(sresult1, svalues[(mask_ >> 2) & 0x3]);
+        __ vmovs(sresult2, svalues[(mask_ >> 4) & 0x3]);
+        __ vmovs(sresult3, svalues[(mask_ >> 6) & 0x3]);
       }
       break;
     default: UNREACHABLE();
@@ -3120,57 +3135,140 @@ void Float32x4ComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* Float32x4MinMaxInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::RequiresFpuRegister());
+  summary->set_out(Location::RequiresFpuRegister());
+  return summary;
 }
 
 
 void Float32x4MinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  QRegister left = locs()->in(0).fpu_reg();
+  QRegister right = locs()->in(1).fpu_reg();
+  QRegister result = locs()->out().fpu_reg();
+
+  switch (op_kind()) {
+    case MethodRecognizer::kFloat32x4Min:
+      __ vminqs(result, left, right);
+      break;
+    case MethodRecognizer::kFloat32x4Max:
+      __ vmaxqs(result, left, right);
+      break;
+    default: UNREACHABLE();
+  }
 }
 
 
 LocationSummary* Float32x4SqrtInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(Location::RequiresFpuRegister());
+  summary->set_temp(0, Location::RequiresFpuRegister());
+  return summary;
 }
 
 
 void Float32x4SqrtInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  QRegister left = locs()->in(0).fpu_reg();
+  QRegister result = locs()->out().fpu_reg();
+
+  switch (op_kind()) {
+    case MethodRecognizer::kFloat32x4Sqrt:
+      __ Vsqrtqs(result, left);
+      break;
+    case MethodRecognizer::kFloat32x4Reciprocal:
+      __ Vreciprocalqs(result, left);
+      break;
+    case MethodRecognizer::kFloat32x4ReciprocalSqrt:
+      __ VreciprocalSqrtqs(result, left);
+      break;
+    default: UNREACHABLE();
+  }
 }
 
 
 LocationSummary* Float32x4ScaleInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::RequiresFpuRegister());
+  summary->set_out(Location::RequiresFpuRegister());
+  return summary;
 }
 
 
 void Float32x4ScaleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  QRegister left = locs()->in(0).fpu_reg();
+  QRegister right = locs()->in(1).fpu_reg();
+  QRegister result = locs()->out().fpu_reg();
+
+  switch (op_kind()) {
+    case MethodRecognizer::kFloat32x4Scale:
+      __ vcvtsd(STMP, EvenDRegisterOf(left));
+      __ vdup(kWord, result, DTMP, 0);
+      __ vmulqs(result, result, right);
+      break;
+    default: UNREACHABLE();
+  }
 }
 
 
 LocationSummary* Float32x4ZeroArgInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(Location::RequiresFpuRegister());
+  return summary;
 }
 
 
 void Float32x4ZeroArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  QRegister left = locs()->in(0).fpu_reg();
+  QRegister result = locs()->out().fpu_reg();
+
+  switch (op_kind()) {
+    case MethodRecognizer::kFloat32x4Negate:
+      __ vnegqs(result, left);
+      break;
+    case MethodRecognizer::kFloat32x4Absolute:
+      __ vabsqs(result, left);
+      break;
+    default: UNREACHABLE();
+  }
 }
 
 
 LocationSummary* Float32x4ClampInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 3;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::RequiresFpuRegister());
+  summary->set_in(2, Location::RequiresFpuRegister());
+  summary->set_out(Location::RequiresFpuRegister());
+  return summary;
 }
 
 
 void Float32x4ClampInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  QRegister left = locs()->in(0).fpu_reg();
+  QRegister lower = locs()->in(1).fpu_reg();
+  QRegister upper = locs()->in(2).fpu_reg();
+  QRegister result = locs()->out().fpu_reg();
+  __ vminqs(result, left, upper);
+  __ vmaxqs(result, result, lower);
 }
 
 
@@ -3223,24 +3321,70 @@ void Float32x4WithInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* Float32x4ToUint32x4Instr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(Location::RequiresFpuRegister());
+  return summary;
 }
 
 
 void Float32x4ToUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  QRegister value = locs()->in(0).fpu_reg();
+  QRegister result = locs()->out().fpu_reg();
+
+  if (value != result) {
+    __ vmovq(result, value);
+  }
 }
 
 
 LocationSummary* Uint32x4BoolConstructorInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 4;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(1, Location::RequiresRegister());
+  summary->set_in(2, Location::RequiresRegister());
+  summary->set_in(3, Location::RequiresRegister());
+  summary->set_temp(0, Location::RequiresRegister());
+  // Low (< 7) Q register needed for the vmovsr instruction.
+  summary->set_out(Location::FpuRegisterLocation(Q6));
+  return summary;
 }
 
 
 void Uint32x4BoolConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register v0 = locs()->in(0).reg();
+  Register v1 = locs()->in(1).reg();
+  Register v2 = locs()->in(2).reg();
+  Register v3 = locs()->in(3).reg();
+  Register temp = locs()->temp(0).reg();
+  QRegister result = locs()->out().fpu_reg();
+  DRegister dresult0 = EvenDRegisterOf(result);
+  DRegister dresult1 = OddDRegisterOf(result);
+  SRegister sresult0 = EvenSRegisterOf(dresult0);
+  SRegister sresult1 = OddSRegisterOf(dresult0);
+  SRegister sresult2 = EvenSRegisterOf(dresult1);
+  SRegister sresult3 = OddSRegisterOf(dresult1);
+
+  __ veorq(result, result, result);
+  __ LoadImmediate(temp, 0xffffffff);
+
+  __ CompareObject(v0, Bool::True());
+  __ vmovsr(sresult0, temp, EQ);
+
+  __ CompareObject(v1, Bool::True());
+  __ vmovsr(sresult1, temp, EQ);
+
+  __ CompareObject(v2, Bool::True());
+  __ vmovsr(sresult2, temp, EQ);
+
+  __ CompareObject(v3, Bool::True());
+  __ vmovsr(sresult3, temp, EQ);
 }
 
 
@@ -3290,46 +3434,142 @@ void Uint32x4GetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* Uint32x4SelectInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 3;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::RequiresFpuRegister());
+  summary->set_in(2, Location::RequiresFpuRegister());
+  summary->set_temp(0, Location::RequiresFpuRegister());
+  summary->set_out(Location::RequiresFpuRegister());
+  return summary;
 }
 
 
 void Uint32x4SelectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  QRegister mask = locs()->in(0).fpu_reg();
+  QRegister trueValue = locs()->in(1).fpu_reg();
+  QRegister falseValue = locs()->in(2).fpu_reg();
+  QRegister out = locs()->out().fpu_reg();
+  QRegister temp = locs()->temp(0).fpu_reg();
+
+  // Copy mask.
+  __ vmovq(temp, mask);
+  // Invert it.
+  __ veorq(QTMP, QTMP, QTMP);  // QTMP <- 0.
+  __ vornq(temp, QTMP, temp);  //  temp <- ~temp.
+  // mask = mask & trueValue.
+  __ vandq(mask, mask, trueValue);
+  // temp = temp & falseValue.
+  __ vandq(temp, temp, falseValue);
+  // out = mask | temp.
+  __ vorrq(out, mask, temp);
 }
 
 
 LocationSummary* Uint32x4SetFlagInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::RequiresRegister());
+  // Low (< 7) Q register needed for the vmovsr instruction.
+  summary->set_out(Location::FpuRegisterLocation(Q6));
+  return summary;
 }
 
 
 void Uint32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  QRegister mask = locs()->in(0).fpu_reg();
+  Register flag = locs()->in(1).reg();
+  QRegister result = locs()->out().fpu_reg();
+
+  DRegister dresult0 = EvenDRegisterOf(result);
+  DRegister dresult1 = OddDRegisterOf(result);
+  SRegister sresult0 = EvenSRegisterOf(dresult0);
+  SRegister sresult1 = OddSRegisterOf(dresult0);
+  SRegister sresult2 = EvenSRegisterOf(dresult1);
+  SRegister sresult3 = OddSRegisterOf(dresult1);
+
+  if (result != mask) {
+    __ vmovq(result, mask);
+  }
+
+  __ CompareObject(flag, Bool::True());
+  __ LoadImmediate(TMP, 0xffffffff, EQ);
+  __ LoadImmediate(TMP, 0, NE);
+  switch (op_kind()) {
+    case MethodRecognizer::kUint32x4WithFlagX:
+      __ vmovsr(sresult0, TMP);
+      break;
+    case MethodRecognizer::kUint32x4WithFlagY:
+      __ vmovsr(sresult1, TMP);
+      break;
+    case MethodRecognizer::kUint32x4WithFlagZ:
+      __ vmovsr(sresult2, TMP);
+      break;
+    case MethodRecognizer::kUint32x4WithFlagW:
+      __ vmovsr(sresult3, TMP);
+      break;
+    default: UNREACHABLE();
+  }
 }
 
 
 LocationSummary* Uint32x4ToFloat32x4Instr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(Location::RequiresFpuRegister());
+  return summary;
 }
 
 
 void Uint32x4ToFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  QRegister value = locs()->in(0).fpu_reg();
+  QRegister result = locs()->out().fpu_reg();
+
+  if (value != result) {
+    __ vmovq(result, value);
+  }
 }
 
 
 LocationSummary* BinaryUint32x4OpInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::RequiresFpuRegister());
+  summary->set_out(Location::RequiresFpuRegister());
+  return summary;
 }
 
 
 void BinaryUint32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  QRegister left = locs()->in(0).fpu_reg();
+  QRegister right = locs()->in(1).fpu_reg();
+  QRegister result = locs()->out().fpu_reg();
+  switch (op_kind()) {
+    case Token::kBIT_AND: {
+      __ vandq(result, left, right);
+      break;
+    }
+    case Token::kBIT_OR: {
+      __ vorrq(result, left, right);
+      break;
+    }
+    case Token::kBIT_XOR: {
+      __ veorq(result, left, right);
+      break;
+    }
+    default: UNREACHABLE();
+  }
 }
 
 
