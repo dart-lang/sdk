@@ -8307,16 +8307,19 @@ Code::Comments::Comments(const Array& comments)
 
 
 void Code::set_stackmaps(const Array& maps) const {
+  ASSERT(maps.IsOld());
   StorePointer(&raw_ptr()->stackmaps_, maps.raw());
 }
 
 
 void Code::set_deopt_info_array(const Array& array) const {
+  ASSERT(array.IsOld());
   StorePointer(&raw_ptr()->deopt_info_array_, array.raw());
 }
 
 
 void Code::set_object_table(const Array& array) const {
+  ASSERT(array.IsOld());
   StorePointer(&raw_ptr()->object_table_, array.raw());
 }
 
@@ -8421,6 +8424,7 @@ const Code::Comments& Code::comments() const  {
 
 
 void Code::set_comments(const Code::Comments& comments) const {
+  ASSERT(comments.comments_.IsOld());
   StorePointer(&raw_ptr()->comments_, comments.comments_.raw());
 }
 

@@ -2905,6 +2905,7 @@ class Code : public Object {
     return raw_ptr()->pc_descriptors_;
   }
   void set_pc_descriptors(const PcDescriptors& descriptors) const {
+    ASSERT(descriptors.IsOld());
     StorePointer(&raw_ptr()->pc_descriptors_, descriptors.raw());
   }
 
@@ -2983,6 +2984,7 @@ class Code : public Object {
     return raw_ptr()->var_descriptors_;
   }
   void set_var_descriptors(const LocalVarDescriptors& value) const {
+    ASSERT(value.IsOld());
     StorePointer(&raw_ptr()->var_descriptors_, value.raw());
   }
 
@@ -2990,6 +2992,7 @@ class Code : public Object {
     return raw_ptr()->exception_handlers_;
   }
   void set_exception_handlers(const ExceptionHandlers& handlers) const {
+    ASSERT(handlers.IsOld());
     StorePointer(&raw_ptr()->exception_handlers_, handlers.raw());
   }
 
@@ -2997,6 +3000,7 @@ class Code : public Object {
     return raw_ptr()->function_;
   }
   void set_function(const Function& function) const {
+    ASSERT(function.IsOld());
     StorePointer(&raw_ptr()->function_, function.raw());
   }
 
