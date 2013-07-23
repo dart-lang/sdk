@@ -1128,7 +1128,7 @@ templateElementTests() {
   });
 
   observeTest('NestedIterateTableMixedSemanticNative', () {
-    if (!TemplateElement.supported) return;
+    if (!parserHasNativeTemplate) return;
 
     var div = createTestHtml(
         '<table><tbody>'

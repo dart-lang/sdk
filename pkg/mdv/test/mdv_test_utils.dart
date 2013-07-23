@@ -5,8 +5,15 @@
 library observe_utils;
 
 import 'dart:async';
+import 'dart:html';
 import 'package:observe/observe.dart';
 import 'package:unittest/unittest.dart';
+
+final bool parserHasNativeTemplate = () {
+  var div = new DivElement()..innerHtml = '<table><template>';
+  return div.firstChild.firstChild != null &&
+      div.firstChild.firstChild.tagName == 'TEMPLATE';
+}();
 
 toSymbolMap(Map map) {
   var result = new ObservableMap.linked();

@@ -21693,6 +21693,7 @@ class TemplateElement extends _HTMLElement native "HTMLTemplateElement" {
     _injectStylesheet();
 
     var templateElement = template;
+    templateElement._templateIsDecorated = true;
     var isNative = templateElement is TemplateElement;
     var bootstrapContents = isNative;
     var liftContents = !isNative;
@@ -21705,11 +21706,10 @@ class TemplateElement extends _HTMLElement native "HTMLTemplateElement" {
             'attribute templates.');
       }
       templateElement = _extractTemplateFromAttributeTemplate(template);
+      templateElement._templateIsDecorated = true;
       isNative = templateElement is TemplateElement;
       liftRoot = true;
      }
-
-    templateElement._templateIsDecorated = true;
 
     if (!isNative) {
       var doc = _getTemplateContentsOwner(templateElement.document);
