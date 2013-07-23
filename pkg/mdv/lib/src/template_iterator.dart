@@ -235,7 +235,8 @@ class _TemplateIterator {
   Node getTerminatorAt(int index) {
     if (index == -1) return _templateElement;
     var terminator = terminators[index];
-    if (terminator is Element && (terminator as Element).isTemplate) {
+    if (terminator is Element && (terminator as Element).isTemplate &&
+        !identical(terminator, _templateElement)) {
       var subIterator = _mdv(terminator)._templateIterator;
       if (subIterator != null) {
         return subIterator.getTerminatorAt(subIterator.terminators.length - 1);
@@ -267,8 +268,8 @@ class _TemplateIterator {
 
     var parent = _templateElement.parentNode;
     while (terminator != previousTerminator) {
-      var node = terminator;
-      terminator = node.previousNode;
+      var node = previousTerminator.nextNode;
+      if (node == terminator) terminator = previousTerminator;
       node.remove();
       instanceNodes.add(node);
     }
@@ -314,6 +315,7 @@ class _TemplateIterator {
     for (var splice in splices) {
       for (int i = 0; i < splice.removedCount; i++) {
         var instanceNodes = extractInstanceAt(splice.index + removeDelta);
+        if (instanceNodes.length == 0) continue;
         var model = _mdv(instanceNodes.first)._templateInstance.model;
         instanceCache[model] = instanceNodes;
       }

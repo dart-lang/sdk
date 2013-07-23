@@ -1389,6 +1389,25 @@ templateElementTests() {
     expect(div.nodes[3].text, 'Name: Leela');
   });
 
+  observeTest('Template - Self is terminator', () {
+    var div = createTestHtml(
+        '<template repeat>{{ foo }}'
+          '<template bind></template>'
+        '</template>');
+
+    var m = toSymbols([{ 'foo': 'bar' }]);
+    recursivelySetTemplateModel(div, m);
+    performMicrotaskCheckpoint();
+
+    m.add(toSymbols({ 'foo': 'baz' }));
+    recursivelySetTemplateModel(div, m);
+    performMicrotaskCheckpoint();
+
+    expect(div.nodes.length, 5);
+    expect(div.nodes[1].text, 'bar');
+    expect(div.nodes[3].text, 'baz');
+  });
+
   observeTest('RecursiveRef', () {
     var div = createTestHtml(
         '<template bind>'
