@@ -1094,13 +1094,13 @@ ASSEMBLER_TEST_GENERATE(VstmdVldmd, assembler) {
   __ LoadDImmediate(D2, 2.0, R0);
   __ LoadDImmediate(D3, 3.0, R0);
   __ LoadDImmediate(D4, 4.0, R0);
-  __ vstmd(DB_W, SP, D0, D4);  // Push D0 - D4 onto the stack, dec SP
+  __ vstmd(DB_W, SP, D0, 5);  // Push D0 - D4 onto the stack, dec SP
   __ LoadDImmediate(D0, 0.0, R0);
   __ LoadDImmediate(D1, 0.0, R0);
   __ LoadDImmediate(D2, 0.0, R0);
   __ LoadDImmediate(D3, 0.0, R0);
   __ LoadDImmediate(D4, 0.0, R0);
-  __ vldmd(IA_W, SP, D0, D4);  // Pop stack into D0 - D4, inc SP
+  __ vldmd(IA_W, SP, D0, 5);  // Pop stack into D0 - D4, inc SP
 
   // Load success value into R0
   __ mov(R0, ShifterOperand(42));
@@ -1200,12 +1200,12 @@ ASSEMBLER_TEST_GENERATE(VstmdVldmd1, assembler) {
   __ LoadDImmediate(D2, 2.0, R0);
   __ LoadDImmediate(D3, 3.0, R0);
   __ LoadDImmediate(D4, 4.0, R0);
-  __ vstmd(DB_W, SP, D1, D4);  // Push D1 - D4 onto the stack, dec SP
+  __ vstmd(DB_W, SP, D1, 4);  // Push D1 - D4 onto the stack, dec SP
   __ LoadDImmediate(D1, 0.0, R0);
   __ LoadDImmediate(D2, 0.0, R0);
   __ LoadDImmediate(D3, 0.0, R0);
   __ LoadDImmediate(D4, 0.0, R0);
-  __ vldmd(IA_W, SP, D1, D4);  // Pop stack into D1 - D4, inc SP
+  __ vldmd(IA_W, SP, D1, 4);  // Pop stack into D1 - D4, inc SP
 
   // Load success value into R0
   __ mov(R0, ShifterOperand(42));
@@ -1306,8 +1306,8 @@ ASSEMBLER_TEST_GENERATE(VstmdVldmd_off, assembler) {
   __ LoadDImmediate(D3, 3.0, R0);
   __ LoadDImmediate(D4, 4.0, R0);
   __ LoadDImmediate(D5, 5.0, R0);
-  __ vstmd(DB_W, SP, D0, D4);  // Push D0 - D4 onto the stack, dec SP
-  __ vldmd(IA_W, SP, D5, D9);  // Pop stack into D5 - D9, inc SP
+  __ vstmd(DB_W, SP, D0, 5);  // Push D0 - D4 onto the stack, dec SP
+  __ vldmd(IA_W, SP, D5, 5);  // Pop stack into D5 - D9, inc SP
 
   // Load success value into R0
   __ mov(R0, ShifterOperand(42));

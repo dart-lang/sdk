@@ -461,9 +461,9 @@ class Assembler : public ValueObject {
              SRegister first, SRegister last, Condition cond = AL);
 
   void vldmd(BlockAddressMode am, Register base,
-             DRegister first, DRegister last, Condition cond = AL);
+             DRegister first, intptr_t count, Condition cond = AL);
   void vstmd(BlockAddressMode am, Register base,
-             DRegister first, DRegister last, Condition cond = AL);
+             DRegister first, intptr_t count, Condition cond = AL);
 
   void vadds(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
   void vaddd(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);

@@ -917,18 +917,20 @@ void Assembler::vstms(BlockAddressMode am, Register base,
 
 
 void Assembler::vldmd(BlockAddressMode am, Register base,
-                      DRegister first, DRegister last, Condition cond) {
+                      DRegister first, intptr_t count, Condition cond) {
   ASSERT((am == IA) || (am == IA_W) || (am == DB_W));
-  ASSERT(last > first);
-  EmitMultiVDMemOp(cond, am, true, base, first, last - first + 1);
+  ASSERT(count <= 16);
+  ASSERT(first + count <= kNumberOfDRegisters);
+  EmitMultiVDMemOp(cond, am, true, base, first, count);
 }
 
 
 void Assembler::vstmd(BlockAddressMode am, Register base,
-                      DRegister first, DRegister last, Condition cond) {
+                      DRegister first, intptr_t count, Condition cond) {
   ASSERT((am == IA) || (am == IA_W) || (am == DB_W));
-  ASSERT(last > first);
-  EmitMultiVDMemOp(cond, am, false, base, first, last - first + 1);
+  ASSERT(count <= 16);
+  ASSERT(first + count <= kNumberOfDRegisters);
+  EmitMultiVDMemOp(cond, am, false, base, first, count);
 }
 
 
@@ -2281,7 +2283,13 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   // Preserve all volatile FPU registers.
   DRegister firstv = EvenDRegisterOf(kDartFirstVolatileFpuReg);
   DRegister lastv = OddDRegisterOf(kDartLastVolatileFpuReg);
-  vstmd(DB_W, SP, firstv, lastv);
+  if ((lastv - firstv + 1) >= 16) {
+    DRegister mid = static_cast<DRegister>(firstv + 16);
+    vstmd(DB_W, SP, mid, lastv - mid + 1);
+    vstmd(DB_W, SP, firstv, 16);
+  } else {
+    vstmd(DB_W, SP, firstv, lastv - firstv + 1);
+  }
 
   ReserveAlignedFrameSpace(frame_space);
 }
@@ -2299,7 +2307,13 @@ void Assembler::LeaveCallRuntimeFrame() {
   // Restore all volatile FPU registers.
   DRegister firstv = EvenDRegisterOf(kDartFirstVolatileFpuReg);
   DRegister lastv = OddDRegisterOf(kDartLastVolatileFpuReg);
-  vldmd(IA_W, SP, firstv, lastv);
+  if ((lastv - firstv + 1) > 16) {
+    DRegister mid = static_cast<DRegister>(firstv + 16);
+    vldmd(IA_W, SP, firstv, 16);
+    vldmd(IA_W, SP, mid, lastv - mid + 1);
+  } else {
+    vldmd(IA_W, SP, firstv, lastv - firstv + 1);
+  }
 
   // Restore volatile CPU registers.
   LeaveFrame(kDartVolatileCpuRegs | (1 << FP) | (1 << LR));

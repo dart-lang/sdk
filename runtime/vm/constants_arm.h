@@ -12,7 +12,7 @@ namespace dart {
 // We support both VFPv3-D16 and VFPv3-D32 profiles, but currently only one at
 // a time.
 // TODO(zra): Detect number of registers at runtime by querying /proc/cpuinfo.
-#define VFPv3_D16
+#define VFPv3_D32
 #if defined(VFPv3_D16) == defined(VFPv3_D32)
 #error "Exactly one of VFPv3_D16 or VFPv3_D32 can be defined at a time."
 #endif

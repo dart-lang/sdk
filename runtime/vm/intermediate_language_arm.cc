@@ -2947,8 +2947,9 @@ LocationSummary* Float32x4ShuffleInstr::MakeLocationSummary() const {
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresFpuRegister());
-  summary->set_out(Location::RequiresFpuRegister());
+  // Low (< Q7) Q registers are needed for the vcvtds instruction.
+  summary->set_in(0, Location::FpuRegisterLocation(Q5));
+  summary->set_out(Location::FpuRegisterLocation(Q6));
   return summary;
 }
 
@@ -3009,7 +3010,8 @@ LocationSummary* Float32x4ConstructorInstr::MakeLocationSummary() const {
   summary->set_in(1, Location::RequiresFpuRegister());
   summary->set_in(2, Location::RequiresFpuRegister());
   summary->set_in(3, Location::RequiresFpuRegister());
-  summary->set_out(Location::RequiresFpuRegister());
+  // Low (< 7) Q registers are needed for the vcvtsd instruction.
+  summary->set_out(Location::FpuRegisterLocation(Q6));
   return summary;
 }
 
@@ -3179,7 +3181,8 @@ LocationSummary* Float32x4WithInstr::MakeLocationSummary() const {
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
   summary->set_in(1, Location::RequiresFpuRegister());
-  summary->set_out(Location::RequiresFpuRegister());
+  // Low (< 7) Q registers are needed for the vmovs instruction.
+  summary->set_out(Location::FpuRegisterLocation(Q6));
   return summary;
 }
 
@@ -3246,7 +3249,8 @@ LocationSummary* Uint32x4GetFlagInstr::MakeLocationSummary() const {
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresFpuRegister());
+  // Low (< 7) Q registers are needed for the vmovrs instruction.
+  summary->set_in(0, Location::FpuRegisterLocation(Q6));
   summary->set_out(Location::RequiresRegister());
   return summary;
 }

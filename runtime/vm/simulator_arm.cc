@@ -2504,20 +2504,24 @@ void Simulator::DecodeType6(Instr* instr) {
       } else {
         int32_t regs_cnt = imm_val >> 1;
         int32_t start = (instr->Bit(22) << 4) | instr->Bits(12, 4);
-        for (int i = start; i < start + regs_cnt; i++) {
-          DRegister dd = static_cast<DRegister>(i);
-          if (instr->Bit(20) == 1) {
-            // Format(instr, "vldmd'cond'pu 'rn'w, 'dlist");
-            int64_t dd_val = Utils::LowHighTo64Bits(ReadW(addr, instr),
-                                                    ReadW(addr + 4, instr));
-            set_dregister_bits(dd, dd_val);
-          } else {
-            // Format(instr, "vstmd'cond'pu 'rn'w, 'dlist");
-            int64_t dd_val = get_dregister_bits(dd);
-            WriteW(addr, Utils::Low32Bits(dd_val), instr);
-            WriteW(addr + 4, Utils::High32Bits(dd_val), instr);
+        if ((regs_cnt <= 16) && (start + regs_cnt <= kNumberOfDRegisters)) {
+          for (int i = start; i < start + regs_cnt; i++) {
+            DRegister dd = static_cast<DRegister>(i);
+            if (instr->Bit(20) == 1) {
+              // Format(instr, "vldmd'cond'pu 'rn'w, 'dlist");
+              int64_t dd_val = Utils::LowHighTo64Bits(ReadW(addr, instr),
+                                                      ReadW(addr + 4, instr));
+              set_dregister_bits(dd, dd_val);
+            } else {
+              // Format(instr, "vstmd'cond'pu 'rn'w, 'dlist");
+              int64_t dd_val = get_dregister_bits(dd);
+              WriteW(addr, Utils::Low32Bits(dd_val), instr);
+              WriteW(addr + 4, Utils::High32Bits(dd_val), instr);
+            }
+            addr += 8;
           }
-          addr += 8;
+        } else {
+          UnimplementedInstruction(instr);
         }
       }
     }
