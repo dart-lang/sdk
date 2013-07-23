@@ -236,6 +236,7 @@ static Dart_Handle CreateLazyMirror(Dart_Handle target);
 
 
 static Dart_Handle CreateParameterMirrorList(Dart_Handle func) {
+  ASSERT(Dart_IsFunction(func));
   int64_t fixed_param_count;
   int64_t opt_param_count;
   Dart_Handle result = Dart_FunctionParameterCounts(func,
@@ -257,14 +258,12 @@ static Dart_Handle CreateParameterMirrorList(Dart_Handle func) {
     return param_type;
   }
 
+  Dart_Handle reflectee = CreateMirrorReference(func);
   for (int64_t i = 0; i < param_count; i++) {
-    Dart_Handle arg_type = Dart_FunctionParameterType(func, i);
-    if (Dart_IsError(arg_type)) {
-      return arg_type;
-    }
     Dart_Handle args[] = {
-      CreateLazyMirror(arg_type),
-      Dart_NewBoolean(i >= fixed_param_count),  // optional param?
+      reflectee,
+      Dart_NewInteger(i),
+      (i >= fixed_param_count) ? Api::True() : Api::False(),
     };
     Dart_Handle param =
         Dart_New(param_type, Dart_Null(), ARRAY_SIZE(args), args);
@@ -1861,6 +1860,16 @@ DEFINE_NATIVE_ENTRY(MethodMirror_return_type, 1) {
   ASSERT(!func.IsConstructor());
   const AbstractType& return_type = AbstractType::Handle(func.result_type());
   return CreateTypeMirror(return_type);
+}
+
+
+DEFINE_NATIVE_ENTRY(ParameterMirror_type, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, pos, arguments->NativeArgAt(1));
+  const Function& func = Function::Handle(ref.GetFunctionReferent());
+  const AbstractType& param_type = AbstractType::Handle(func.ParameterTypeAt(
+      func.NumImplicitParameters() + pos.Value()));
+  return CreateTypeMirror(param_type);
 }
 
 

@@ -1058,9 +1058,13 @@ class _LocalVariableMirrorImpl extends _LocalDeclarationMirrorImpl
 
 class _LocalParameterMirrorImpl extends _LocalVariableMirrorImpl
     implements ParameterMirror {
-  _LocalParameterMirrorImpl(type, this.isOptional)
-      : super(null, '<TODO:unnamed>', null, type, false, false) {}
+  _LocalParameterMirrorImpl(this._reflectee,
+                            this._position,
+                            this.isOptional)
+      : super(null, '<TODO:unnamed>', null, null, false, false);
 
+  final _MirrorReference _reflectee;
+  final int _position;
   final bool isOptional;
 
   String get defaultValue {
@@ -1078,6 +1082,17 @@ class _LocalParameterMirrorImpl extends _LocalVariableMirrorImpl
     throw new UnimplementedError(
         'ParameterMirror.metadata is not implemented');
   }
+
+  TypeMirror _type = null;
+  TypeMirror get type {
+    if (_type == null) {
+      _type = _ParameterMirror_type(_reflectee, _position);
+    }
+    return _type;
+  }
+
+  static TypeMirror _ParameterMirror_type(_reflectee, _position)
+      native "ParameterMirror_type";
 }
 
 class _SpecialTypeMirrorImpl extends _LocalMirrorImpl

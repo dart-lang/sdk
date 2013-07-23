@@ -253,6 +253,7 @@ namespace dart {
   V(MethodMirror_name, 1)                                                      \
   V(MethodMirror_owner, 1)                                                     \
   V(MethodMirror_return_type, 1)                                               \
+  V(ParameterMirror_type, 2)                                                   \
   V(VariableMirror_type, 1)                                                    \
   V(GrowableObjectArray_allocate, 2)                                           \
   V(GrowableObjectArray_getIndexed, 2)                                         \
