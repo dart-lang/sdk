@@ -77,6 +77,7 @@ timer_test: Pass, Fail
 
 [ $runtime == ie9 ]
 typed_data/typed_list_iterable_test: Fail # Issue 11036
+typed_data/typed_data_list_test: Fail # Issue 11036
 
 [ $runtime == opera ]
 async/multiple_timer_test: Pass, Fail
