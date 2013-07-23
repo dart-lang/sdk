@@ -15,16 +15,13 @@ main() {
   forBothPubInstallAndUpdate((command) {
     integration('fails gracefully if the url does not resolve', () {
       d.dir(appPath, [
-        d.pubspec({
-          "name": "myapp",
-          "dependencies": {
-            "foo": {
-              "hosted": {
-                "name": "foo",
-                "url": "http://pub.invalid"
-              }
+        d.appPubspec({
+          "foo": {
+            "hosted": {
+              "name": "foo",
+              "url": "http://pub.invalid"
             }
-           }
+          }
         })
       ]).create();
 

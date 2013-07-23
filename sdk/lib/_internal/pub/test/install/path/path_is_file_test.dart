@@ -20,11 +20,8 @@ main() {
     var dummyPath = path.join(sandboxDir, 'dummy.txt');
 
     d.dir(appPath, [
-      d.pubspec({
-        "name": "myapp",
-        "dependencies": {
-          "foo": {"path": dummyPath}
-        }
+      d.appPubspec({
+        "foo": {"path": dummyPath}
       })
     ]).create();
 

@@ -17,11 +17,8 @@ main() {
     ]).create();
 
     d.dir(appPath, [
-      d.pubspec({
-        "name": "myapp",
-        "dependencies": {
-          "foo": {"path": "../foo"}
-        }
+      d.appPubspec({
+        "foo": {"path": "../foo"}
       })
     ]).create();
 
@@ -49,11 +46,8 @@ main() {
     ]).create();
 
     d.dir(appPath, [
-      d.pubspec({
-        "name": "myapp",
-        "dependencies": {
-          "foo": {"path": "../relative/foo"}
-        }
+      d.appPubspec({
+        "foo": {"path": "../relative/foo"}
       })
     ]).create();
 

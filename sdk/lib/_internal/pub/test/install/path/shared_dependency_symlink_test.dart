@@ -32,12 +32,9 @@ main() {
     ]).create();
 
     d.dir(appPath, [
-      d.pubspec({
-        "name": "myapp",
-        "dependencies": {
-          "foo": {"path": "../foo"},
-          "bar": {"path": "../bar"}
-        }
+      d.appPubspec({
+        "foo": {"path": "../foo"},
+        "bar": {"path": "../bar"}
       })
     ]).create();
 
