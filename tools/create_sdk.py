@@ -113,7 +113,7 @@ def CopyDartScripts(home, sdk_root):
 
 
 def CopySnapshots(snapshots, sdk_root):
-  for snapshot in ['utils_wrapper', 'pub']:
+  for snapshot in ['dart2js', 'utils_wrapper', 'pub']:
     snapshot += '.dart.snapshot'
     copyfile(join(snapshots, snapshot),
              join(sdk_root, 'bin', 'snapshots', snapshot))
