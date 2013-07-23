@@ -3418,7 +3418,7 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
   // Resolve and call NoSuchMethodError._throwNew.
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
   const Class& cls = Class::Handle(
-      core_lib.LookupClass(Symbols::NoSuchMethodError()));
+      core_lib.LookupClass(Symbols::NoSuchMethodError(), NULL));
   ASSERT(!cls.IsNull());
   const Function& func = Function::ZoneHandle(
       Resolver::ResolveStatic(cls,

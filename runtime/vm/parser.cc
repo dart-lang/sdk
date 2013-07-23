@@ -1603,7 +1603,7 @@ static RawClass* LookupCoreClass(const String& class_name) {
     name = String::Concat(name, String::Handle(core_lib.private_key()));
     name = Symbols::New(name);
   }
-  return core_lib.LookupClass(name);
+  return core_lib.LookupClass(name, NULL);  // No ambiguity error expected.
 }
 
 
@@ -2850,8 +2850,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     ErrorMsg(method->name_pos, "constructor cannot be abstract");
   }
   if (method->has_const && method->IsConstructor()) {
-    Class& cls = Class::Handle(library_.LookupClass(members->class_name()));
-    cls.set_is_const();
+    current_class().set_is_const();
   }
 
   // Parse the formal parameters.
@@ -8618,15 +8617,15 @@ static RawObject* LookupNameInLibrary(Isolate* isolate,
 static RawObject* LookupNameInImport(Isolate* isolate,
                                      const Namespace& ns,
                                      const String& name) {
+  // If the given name is filtered out by the import, don't look it up, nor its
+  // getter and setter names.
+  if (ns.HidesName(name)) {
+    return Object::null();
+  }
   Object& obj = Object::Handle(isolate);
   obj = ns.Lookup(name);
   if (!obj.IsNull()) {
     return obj.raw();
-  }
-  // If the given name is filtered out by the import, don't look up the
-  // getter and setter names.
-  if (ns.HidesName(name)) {
-    return Object::null();
   }
   String& accessor_name = String::Handle(isolate, Field::GetterName(name));
   obj = ns.Lookup(accessor_name);

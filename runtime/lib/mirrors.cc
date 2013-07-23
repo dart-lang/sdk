@@ -1672,15 +1672,20 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 4) {
   intptr_t number_of_arguments = positional_args.Length();
 
 
+  String& ambiguity_error_msg = String::Handle(isolate);
   const Function& function = Function::Handle(
-      library.LookupFunctionAllowPrivate(function_name));
+      library.LookupFunctionAllowPrivate(function_name, &ambiguity_error_msg));
 
   if (function.IsNull()) {
-    const String& message = String::Handle(
-      String::NewFormatted("%s: did not find top-level function '%s'.",
-                           "LibraryMirror_invoke",
-                           function_name.ToCString()));
-    ThrowMirroredCompilationError(message);
+    if (ambiguity_error_msg.IsNull()) {
+      const String& message = String::Handle(
+        String::NewFormatted("%s: did not find top-level function '%s'.",
+                             "LibraryMirror_invoke",
+                             function_name.ToCString()));
+      ThrowMirroredCompilationError(message);
+    } else {
+      ThrowMirroredCompilationError(ambiguity_error_msg);
+    }
     UNREACHABLE();
   }
 
@@ -1720,15 +1725,17 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeGetter, 3) {
   // To access a top-level we may need to use the Field or the
   // getter Function.  The getter function may either be in the
   // library or in the field's owner class, depending.
-  const Field& field =
-      Field::Handle(library.LookupFieldAllowPrivate(getter_name));
+  String& ambiguity_error_msg = String::Handle(isolate);
+  const Field& field = Field::Handle(
+      library.LookupFieldAllowPrivate(getter_name, &ambiguity_error_msg));
   Function& getter = Function::Handle();
-  if (field.IsNull()) {
-    // No field found.  Check for a getter in the lib.
+  if (field.IsNull() && ambiguity_error_msg.IsNull()) {
+    // No field found and no ambiguity error.  Check for a getter in the lib.
     const String& internal_getter_name =
         String::Handle(Field::GetterName(getter_name));
-    getter = library.LookupFunctionAllowPrivate(internal_getter_name);
-  } else if (FieldIsUninitialized(field)) {
+    getter = library.LookupFunctionAllowPrivate(internal_getter_name,
+                                                &ambiguity_error_msg);
+  } else if (!field.IsNull() && FieldIsUninitialized(field)) {
     // A field was found.  Check for a getter in the field's owner classs.
     const Class& klass = Class::Handle(field.owner());
     const String& internal_getter_name =
@@ -1745,17 +1752,21 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeGetter, 3) {
       UNREACHABLE();
     }
     return result.raw();
-  } else if (!field.IsNull()) {
+  }
+  if (!field.IsNull()) {
     return field.value();
-  } else {
+  }
+  if (ambiguity_error_msg.IsNull()) {
     const String& message = String::Handle(
         String::NewFormatted("%s: did not find top-level variable '%s'.",
                              "LibraryMirror_invokeGetter",
                              getter_name.ToCString()));
     ThrowMirroredCompilationError(message);
-    UNREACHABLE();
-    return Instance::null();
+  } else {
+    ThrowMirroredCompilationError(ambiguity_error_msg);
   }
+  UNREACHABLE();
+  return Instance::null();
 }
 
 
@@ -1771,21 +1782,26 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 4) {
   // To access a top-level we may need to use the Field or the
   // setter Function.  The setter function may either be in the
   // library or in the field's owner class, depending.
-  const Field& field =
-      Field::Handle(library.LookupFieldAllowPrivate(setter_name));
+  String& ambiguity_error_msg = String::Handle(isolate);
+  const Field& field = Field::Handle(
+      library.LookupFieldAllowPrivate(setter_name, &ambiguity_error_msg));
 
-  if (field.IsNull()) {
+  if (field.IsNull() && ambiguity_error_msg.IsNull()) {
     const String& internal_setter_name =
         String::Handle(Field::SetterName(setter_name));
     const Function& setter = Function::Handle(
-        library.LookupFunctionAllowPrivate(internal_setter_name));
-
+        library.LookupFunctionAllowPrivate(internal_setter_name,
+                                           &ambiguity_error_msg));
     if (setter.IsNull()) {
-      const String& message = String::Handle(
-        String::NewFormatted("%s: did not find top-level variable '%s'.",
-                             "LibraryMirror_invokeSetter",
-                             setter_name.ToCString()));
-      ThrowMirroredCompilationError(message);
+      if (ambiguity_error_msg.IsNull()) {
+        const String& message = String::Handle(
+          String::NewFormatted("%s: did not find top-level variable '%s'.",
+                               "LibraryMirror_invokeSetter",
+                               setter_name.ToCString()));
+        ThrowMirroredCompilationError(message);
+      } else {
+        ThrowMirroredCompilationError(ambiguity_error_msg);
+      }
       UNREACHABLE();
     }
 

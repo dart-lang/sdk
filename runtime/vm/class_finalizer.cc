@@ -261,58 +261,22 @@ RawClass* ClassFinalizer::ResolveClass(const Class& cls,
   const String& class_name = String::Handle(unresolved_class.ident());
   Library& lib = Library::Handle();
   Class& resolved_class = Class::Handle();
+  String& ambiguity_error_msg = String::Handle();
   if (unresolved_class.library_prefix() == LibraryPrefix::null()) {
     lib = cls.library();
     ASSERT(!lib.IsNull());
-    // TODO(regis): Call lib.LookupClass(class_name, ambiguity_error) instead
-    // once it takes the ambiguity_error parameter.
-
-    // First check if name is found in the local scope of the library.
-    Object& obj = Object::Handle(lib.LookupLocalObject(class_name));
-    if (!obj.IsNull() && obj.IsClass()) {
-      return Class::Cast(obj).raw();
-    }
-    // Now check if class_name is found in any imported libs.
-    String& first_lib_url = String::Handle();
-    Namespace& import = Namespace::Handle();
-    Library& import_lib = Library::Handle();
-    for (intptr_t i = 0; i < lib.num_imports(); i++) {
-      import ^= lib.ImportAt(i);
-      obj = import.Lookup(class_name);
-      if (!obj.IsNull()) {
-        import_lib = import.library();
-        if (!first_lib_url.IsNull()) {
-          // Found duplicate definition.
-          const Script& script = Script::Handle(cls.script());
-          if (first_lib_url.raw() == lib.url()) {
-            *ambiguity_error = Parser::FormatErrorMsg(
-                script, unresolved_class.token_pos(), "Error",
-                "ambiguous reference to '%s', "
-                "as library '%s' is imported multiple times",
-                class_name.ToCString(),
-                first_lib_url.ToCString());
-          } else {
-            *ambiguity_error = Parser::FormatErrorMsg(
-                script, unresolved_class.token_pos(), "Error",
-                "ambiguous reference: "
-                "'%s' is defined in library '%s' and also in '%s'",
-                class_name.ToCString(),
-                first_lib_url.ToCString(),
-                String::Handle(lib.url()).ToCString());
-          }
-          return Class::null();
-        }
-        first_lib_url = lib.url();
-        if (obj.IsClass()) {
-          resolved_class = Class::Cast(obj).raw();
-        }
-      }
-    }
+    resolved_class = lib.LookupClass(class_name, &ambiguity_error_msg);
   } else {
     LibraryPrefix& lib_prefix = LibraryPrefix::Handle();
     lib_prefix = unresolved_class.library_prefix();
     ASSERT(!lib_prefix.IsNull());
-    resolved_class = lib_prefix.LookupLocalClass(class_name);
+    resolved_class = lib_prefix.LookupClass(class_name, &ambiguity_error_msg);
+  }
+  if (resolved_class.IsNull() && !ambiguity_error_msg.IsNull()) {
+    const Script& script = Script::Handle(cls.script());
+    *ambiguity_error = Parser::FormatErrorMsg(
+        script, unresolved_class.token_pos(), "Error",
+        "%s", ambiguity_error_msg.ToCString());
   }
   return resolved_class.raw();
 }

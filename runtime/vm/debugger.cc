@@ -810,7 +810,9 @@ static RawFunction* ResolveLibraryFunction(
                         const Library& library,
                         const String& fname) {
   ASSERT(!library.IsNull());
-  const Object& object = Object::Handle(library.LookupObject(fname));
+  String& ambiguity_error_msg = String::Handle();
+  const Object& object = Object::Handle(
+      library.LookupObject(fname, &ambiguity_error_msg));
   if (!object.IsNull() && object.IsFunction()) {
     return Function::Cast(object).raw();
   }
@@ -841,7 +843,9 @@ RawFunction* Debugger::ResolveFunction(const Library& library,
   if (class_name.Length() == 0) {
     return ResolveLibraryFunction(library, function_name);
   }
-  const Class& cls = Class::Handle(library.LookupClass(class_name));
+  String& ambiguity_error_msg = String::Handle();
+  const Class& cls = Class::Handle(
+      library.LookupClass(class_name, &ambiguity_error_msg));
   Function& function = Function::Handle();
   if (!cls.IsNull()) {
     function = cls.LookupStaticFunction(function_name);

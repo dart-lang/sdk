@@ -8213,4 +8213,57 @@ TEST_CASE(ExternalStringDoubleParse) {
   EXPECT_EQ(8, value);
 }
 
+
+TEST_CASE(AmbiguousReference) {
+  const char* kImportedScript1Chars =
+      "library library1.dart;\n"
+      "var foo;\n"
+      "var foo1;\n"
+      "bar() => 'library1.dart bar()';\n"
+      "bar1() => 'library1.dart bar1()';\n"
+      "baz() => 'library1.dart baz()';\n"
+      "var bay;\n"
+      "typedef int bax(int a, int b);\n"
+      "class baw {}\n";
+  const char* kImportedScript2Chars =
+      "library library2.dart;\n"
+      "var foo;\n"
+      "var foo2;\n"
+      "bar() => 'library2.dart bar()';\n"
+      "bar2() => 'library2.dart bar2()';\n"
+      "var baz;\n"
+      "bay() => 'library2.dart bay()';\n"
+      "typedef double bax(int a, int b);\n"
+      "var baw;\n";
+  const char* kScriptChars =
+      "import 'library1.dart';\n"
+      "import 'library2.dart';\n";
+
+  // Load imported libs.
+  Dart_Handle url1 = NewString("library1.dart");
+  Dart_Handle source1 = NewString(kImportedScript1Chars);
+  Dart_Handle imported_lib1 = Dart_LoadLibrary(url1, source1);
+  EXPECT_VALID(imported_lib1);
+  Dart_Handle url2 = NewString("library2.dart");
+  Dart_Handle source2 = NewString(kImportedScript2Chars);
+  Dart_Handle imported_lib2 = Dart_LoadLibrary(url2, source2);
+  EXPECT_VALID(imported_lib2);
+  // Load main script.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+  // Expect an error for ambiguous references.
+  EXPECT(Dart_IsError(Dart_LookupVariable(lib, NewString("foo"))));
+  EXPECT(Dart_IsError(Dart_LookupFunction(lib, NewString("bar"))));
+  EXPECT(Dart_IsError(Dart_LookupFunction(lib, NewString("baz"))));
+  EXPECT(Dart_IsError(Dart_LookupVariable(lib, NewString("bay"))));
+  EXPECT(Dart_IsError(Dart_GetClass(lib, NewString("bax"))));
+  EXPECT(Dart_IsError(Dart_GetClass(lib, NewString("baw"))));
+  // Variables foo1 and foo2 are unambiguous.
+  EXPECT(!Dart_IsError(Dart_LookupVariable(lib, NewString("foo1"))));
+  EXPECT(!Dart_IsError(Dart_LookupVariable(lib, NewString("foo2"))));
+  // Functions bar1 and bar2 are unambiguous.
+  EXPECT(!Dart_IsError(Dart_LookupFunction(lib, NewString("bar1"))));
+  EXPECT(!Dart_IsError(Dart_LookupFunction(lib, NewString("bar2"))));
+}
+
 }  // namespace dart

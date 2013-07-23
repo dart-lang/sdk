@@ -394,7 +394,8 @@ RawScript* Exceptions::GetCallerScript(DartFrameIterator* iterator) {
 RawInstance* Exceptions::NewInstance(const char* class_name) {
   const String& cls_name = String::Handle(Symbols::New(class_name));
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  Class& cls = Class::Handle(core_lib.LookupClass(cls_name));
+  // No ambiguity error expected: passing NULL.
+  Class& cls = Class::Handle(core_lib.LookupClass(cls_name, NULL));
   ASSERT(!cls.IsNull());
   // There are no parameterized error types, so no need to set type arguments.
   return Instance::New(cls);

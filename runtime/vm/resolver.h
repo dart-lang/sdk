@@ -53,7 +53,8 @@ class Resolver : public AllStatic {
                                     const String& function_name,
                                     intptr_t num_arguments,
                                     const Array& argument_names,
-                                    StaticResolveType resolve_type);
+                                    StaticResolveType resolve_type,
+                                    String* ambiguity_error_msg);
 
   // Resolve specified dart static function.
   static RawFunction* ResolveStaticByName(const Class&  cls,

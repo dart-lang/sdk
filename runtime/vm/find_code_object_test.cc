@@ -53,7 +53,9 @@ TEST_CASE(FindCodeObject) {
   source = String::New(scriptChars);
   script = Script::New(url, source, RawScript::kScriptTag);
   EXPECT(CompilerTest::TestCompileScript(lib, script));
-  clsA = lib.LookupClass(String::Handle(Symbols::New("A")));
+  String& ambiguity_error_msg = String::Handle();
+  clsA = lib.LookupClass(String::Handle(Symbols::New("A")),
+                         &ambiguity_error_msg);
   EXPECT(!clsA.IsNull());
   ClassFinalizer::FinalizePendingClasses();
   for (int i = 0; i < kNumFunctions; i++) {
@@ -101,7 +103,8 @@ TEST_CASE(FindCodeObject) {
   source = String::New(scriptChars);
   script = Script::New(url, source, RawScript::kScriptTag);
   EXPECT(CompilerTest::TestCompileScript(lib, script));
-  clsB = lib.LookupClass(String::Handle(Symbols::New("B")));
+  clsB = lib.LookupClass(String::Handle(Symbols::New("B")),
+                         &ambiguity_error_msg);
   EXPECT(!clsB.IsNull());
   ClassFinalizer::FinalizePendingClasses();
   for (int i = 0; i < kNumFunctions; i++) {

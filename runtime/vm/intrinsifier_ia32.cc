@@ -175,8 +175,8 @@ bool Intrinsifier::ImmutableArray_getIndexed(Assembler* assembler) {
 
 static intptr_t ComputeObjectArrayTypeArgumentsOffset() {
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  const Class& cls =
-      Class::Handle(core_lib.LookupClassAllowPrivate(Symbols::ObjectArray()));
+  const Class& cls = Class::Handle(
+      core_lib.LookupClassAllowPrivate(Symbols::ObjectArray(), NULL));
   ASSERT(!cls.IsNull());
   ASSERT(cls.HasTypeArguments());
   ASSERT(cls.NumTypeArguments() == 1);
@@ -1434,8 +1434,8 @@ bool Intrinsifier::Math_cos(Assembler* assembler) {
 bool Intrinsifier::Random_nextState(Assembler* assembler) {
   const Library& math_lib = Library::Handle(Library::MathLibrary());
   ASSERT(!math_lib.IsNull());
-  const Class& random_class =
-      Class::Handle(math_lib.LookupClassAllowPrivate(Symbols::_Random()));
+  const Class& random_class = Class::Handle(
+      math_lib.LookupClassAllowPrivate(Symbols::_Random(), NULL));
   ASSERT(!random_class.IsNull());
   const Field& state_field = Field::ZoneHandle(
       random_class.LookupInstanceField(Symbols::_state()));
