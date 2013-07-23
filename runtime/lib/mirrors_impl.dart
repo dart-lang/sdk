@@ -226,10 +226,11 @@ abstract class _LocalObjectMirrorImpl extends _LocalMirrorImpl
       var unwrappedValue;
       if(_isSimpleValue(value)) {
         unwrappedValue = value;
-      } else if(wrappedArg is InstanceMirror) {
+      } else if(value is InstanceMirror) {
         unwrappedValue = value._reflectee;
       } else { 
-        throw "setter argument ($value) must be a simple value or InstanceMirror";
+        throw "setter argument ($value) must be"
+              "a simple value or InstanceMirror";
       }
 
       var result = this._invokeSetter(_reflectee,
