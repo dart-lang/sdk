@@ -149,13 +149,6 @@ String sha1(String source) {
   return CryptoUtils.bytesToHex(sha.close());
 }
 
-/// Returns a [Future] that completes in [milliseconds].
-Future sleep(int milliseconds) {
-  var completer = new Completer();
-  new Timer(new Duration(milliseconds: milliseconds), completer.complete);
-  return completer.future;
-}
-
 /// Configures [future] so that its result (success or exception) is passed on
 /// to [completer].
 void chainToCompleter(Future future, Completer completer) {

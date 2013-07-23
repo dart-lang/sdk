@@ -303,6 +303,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
           if (result is OSError) {
             throw createError(result, "Connection failed", address, port);
           } else {
+            socket.port;  // Query the local port, for error messages.
             var completer = new Completer();
             // Setup handlers for receiving the first write event which
             // indicate that the socket is fully connected.
@@ -313,8 +314,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
                 },
                 error: (e) {
                   socket.close();
-                  completer.completeError(
-                      createError(e, "Connection failed", address, port));
+                  completer.completeError(e);
                 }
             );
             socket.setListening(read: false, write: true);
