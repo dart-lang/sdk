@@ -83,7 +83,7 @@ Future<bool> docgen(List<String> files, {String packageRoot,
   linkResolver = (name) =>
       fixReference(name, _currentLibrary, _currentClass, _currentMember);
 
-  return getMirrorSystem(files, packageRoot, parseSdk: parseSdk)
+  return getMirrorSystem(files, packageRoot: packageRoot, parseSdk: parseSdk)
     .then((MirrorSystem mirrorSystem) {
       if (mirrorSystem.libraries.isEmpty) {
         throw new StateError('No library mirrors were created.');
@@ -119,7 +119,8 @@ List<String> _listDartFromDir(String args) {
   // containing '/packages' will be added. The only exception is if the file to
   // analyze already has a '/package' in its path.
   return files.where((f) => f.endsWith('.dart') &&
-      (!f.contains('/packages') || args.contains('/packages'))).toList()
+      (!f.contains('${path.separator}packages') || 
+          args.contains('${path.separator}packages'))).toList()
       ..forEach((lib) => logger.info('Added to libraries: $lib'));
 }
 
@@ -127,9 +128,9 @@ String _findPackageRoot(String directory) {
   var files = listDir(directory, recursive: true);
   // Return '' means that there was no pubspec.yaml and therefor no packageRoot.
   String packageRoot = files.firstWhere((f) =>
-      f.endsWith('/pubspec.yaml'), orElse: () => '');
+      f.endsWith('${path.separator}pubspec.yaml'), orElse: () => '');
   if (packageRoot != '') {
-    packageRoot = path.dirname(packageRoot) + '/packages';
+    packageRoot = path.join(path.dirname(packageRoot), 'packages');
   }
   return packageRoot;
 }
@@ -149,8 +150,8 @@ List<String> _listSdk() {
  * Analyzes set of libraries by getting a mirror system and triggers the
  * documentation of the libraries.
  */
-Future<MirrorSystem> getMirrorSystem(List<String> args, String packageRoot,
-    {bool parseSdk:false}) {
+Future<MirrorSystem> getMirrorSystem(List<String> args, {String packageRoot,
+    bool parseSdk:false}) {
   var libraries = !parseSdk ? _listLibraries(args) : _listSdk();
   if (libraries.isEmpty) throw new StateError('No Libraries.');
   // DART_SDK should be set to the root of the SDK library.
@@ -160,10 +161,10 @@ Future<MirrorSystem> getMirrorSystem(List<String> args, String packageRoot,
   } else {
     // If DART_SDK is not defined in the environment,
     // assuming the dart executable is from the Dart SDK folder inside bin.
-    sdkRoot = path.dirname(path.dirname(new Options().executable));
+    sdkRoot = path.join(path.dirname(path.dirname(path.dirname(path.dirname(
+        path.absolute(new Options().script))))), 'sdk');
     logger.info('SDK Root: ${sdkRoot}');
   }
-
   return _analyzeLibraries(libraries, sdkRoot, packageRoot: packageRoot);
 }
 
@@ -180,10 +181,10 @@ Future<MirrorSystem> _analyzeLibraries(List<String> libraries,
   SourceFileProvider provider = new SourceFileProvider();
   api.DiagnosticHandler diagnosticHandler =
         new FormattingDiagnosticHandler(provider).diagnosticHandler;
-  Uri libraryUri = currentDirectory.resolve(appendSlash('$libraryRoot'));
+  Uri libraryUri = new Uri(scheme: 'file', path: appendSlash(libraryRoot));
   Uri packageUri = null;
   if (packageRoot != null) {
-    packageUri = currentDirectory.resolve(appendSlash('$packageRoot'));
+    packageUri = new Uri(scheme: 'file', path: appendSlash(packageRoot)); 
   }
   List<Uri> librariesUri = <Uri>[];
   libraries.forEach((library) {
