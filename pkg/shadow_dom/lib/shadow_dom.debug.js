@@ -232,6 +232,10 @@ var ShadowDOMPolyfill = {};
     GeneratedWrapper.prototype =
         Object.create(superWrapperConstructor.prototype);
     GeneratedWrapper.prototype.constructor = GeneratedWrapper;
+    // We add this property to work around a Firefox bug where HTMLFormElement
+    // and HTMLInputElements sometimes have their constructor incorrectly
+    // attached to GeneratedWrapper. See lib/patches-shadowdom-polyfill.js
+    GeneratedWrapper._ShadowDOMPolyfill$isGeneratedWrapper = true;
 
     return GeneratedWrapper;
   }
@@ -367,6 +371,7 @@ var ShadowDOMPolyfill = {};
   scope.wrappers = wrappers;
 
 })(this.ShadowDOMPolyfill);
+
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
@@ -3153,69 +3158,41 @@ var ShadowDOMPolyfill = {};
   HTMLElement.prototype.webkitCreateShadowRoot =
       HTMLElement.prototype.createShadowRoot;
 
-  // TODO(jmesserly): figure out what to do about these Dart-specific patches
-  // Right now it depends on some dart2js impl details to patch getTypeNameOf
   // TODO(jmesserly): we need to wrap document somehow (a dart:html hook?)
-  window.dartMainRunner = function(main) {
+  window.dartExperimentalFixupGetTag = function(originalGetTag) {
     var NodeList = ShadowDOMPolyfill.wrappers.NodeList;
     var ShadowRoot = ShadowDOMPolyfill.wrappers.ShadowRoot;
     var isWrapper = ShadowDOMPolyfill.isWrapper;
     var unwrap = ShadowDOMPolyfill.unwrap;
-    var innerTypeNameOf = window.$.getFunctionForTypeNameOf();
+    function getTag(obj) {
+      if (obj instanceof NodeList) return 'NodeList';
+      if (obj instanceof ShadowRoot) return 'ShadowRoot';
+      if (obj instanceof MutationRecord) return 'MutationRecord';
+      if (obj instanceof MutationObserver) return 'MutationObserver';
 
-    function typeNameOfShadowDOM(obj) {
-      var result;
-      if (obj instanceof NodeList) {
-        result = 'NodeList';
-      } else if (obj instanceof ShadowRoot) {
-        result = 'ShadowRoot';
-      } else if (obj instanceof MutationRecord) {
-        result = 'MutationRecord';
-      } else if (obj instanceof MutationObserver) {
-        result = 'MutationObserver';
-      } else {
-        if (isWrapper(obj)) {
-          obj = unwrap(obj);
+      if (isWrapper(obj)) {
+        obj = unwrap(obj);
 
-          // Fix up class names for Firefox. For some of them like
-          // HTMLFormElement and HTMLInputElement, the "constructor" property of
-          // the unwrapped nodes points at the wrapper for some reason.
-          // TODO(jmesserly): figure out why this is happening.
-          var ctor = obj.constructor;
-          if (ctor && !ctor.builtin$cls && ctor.name == 'GeneratedWrapper') {
-            var name = Object.prototype.toString.call(obj);
+        // Fix up class names for Firefox. For some of them like
+        // HTMLFormElement and HTMLInputElement, the "constructor" property of
+        // the unwrapped nodes points at the wrapper for some reason.
+        // TODO(jmesserly): figure out why this is happening.
+        var ctor = obj.constructor;
+        if (ctor && ctor._ShadowDOMPolyfill$isGeneratedWrapper) {
+          var name = ctor._ShadowDOMPolyfill$cacheTag_;
+          if (!name) {
+            name = Object.prototype.toString.call(obj);
             name = name.substring(8, name.length - 1);
-            ctor.builtin$cls = name;
+            ctor._ShadowDOMPolyfill$cacheTag_ = name;
           }
+          return name;
         }
-
-        result = innerTypeNameOf.call$1(obj);
       }
-
-      return result;
+      return originalGetTag(obj);
     }
 
-    function constructorNameShadowDOM(object) {
-      var $constructor, $name, string;
-      if (object == null)
-        return "Null";
-      $constructor = object.constructor;
-      if (typeof $constructor === "function") {
-        $name = $constructor.builtin$cls;
-        if ($name != null)
-          return $name;
-      }
-
-    }
-
-    window.$.constructorNameFallback = constructorNameShadowDOM;
-    window.$._getTypeNameOf = { call$1: typeNameOfShadowDOM };
-    window.Isolate.$isolateProperties._getTypeNameOf = window.$._getTypeNameOf;
-
-    // Invoke the real main
-    main();
+    return getTag;
   };
-
 })();
 
 }
