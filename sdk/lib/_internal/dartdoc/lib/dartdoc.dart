@@ -133,6 +133,10 @@ Future compileScript(int mode, String outputDir, String libPath, String tmpPath)
 
   var jsPath = path.join(outputDir, 'client-$clientScript.js');
 
+  // dart2js takes a String, but it expects that to be a Uri, not a file
+  // system path.
+  dartPath = path.toUri(dartPath).toString();
+
   return dart2js.compile(
       dartPath, libPath,
       options: const <String>['--categories=Client,Server', '--minify'])
@@ -436,14 +440,16 @@ class Dartdoc {
       return uri.toString();
     }));
 
-    var packageRootPath = packageRoot == null ? null : packageRoot;
+    // dart2js takes a String, but it expects that to be a Uri, not a file
+    // system path.
+    packageRoot = path.toUri(packageRoot).toString();
 
     // TODO(amouravski): make all of these print statements into logging
     // statements.
     print('Analyzing libraries...');
     return dart2js.analyze(
         librariesToAnalyze.toList(), libPath,
-        packageRoot: packageRootPath, options: COMPILER_OPTIONS)
+        packageRoot: packageRoot, options: COMPILER_OPTIONS)
       .then((MirrorSystem mirrors) {
         print('Generating documentation...');
         _document(mirrors);
