@@ -43,10 +43,21 @@ void _addBindings(Node node, model, [BindingDelegate delegate]) {
 }
 
 void _addAttributeBindings(Element element, model, delegate) {
-  element.attributes.forEach((name, value) {
-    if (value == '' && (name == 'bind' || name == 'repeat')) {
-      value = '{{}}';
+  var attrs = new LinkedHashMap.from(element.attributes);
+  if (element.isTemplate) {
+    // Accept 'naked' bind & repeat.
+    if (attrs['bind'] == '') attrs['bind'] = '{{}}';
+    if (attrs['repeat'] == '') attrs['repeat'] = '{{}}';
+
+    // Treat <template if="{{expr}}"> as <template bind if="{{expr}}">
+    if (attrs.containsKey('if') &&
+        !attrs.containsKey('bind') &&
+        !attrs.containsKey('repeat')) {
+      attrs['bind'] = '{{}}';
     }
+  }
+
+  attrs.forEach((name, value) {
     _parseAndBind(element, name, value, model, delegate);
   });
 }

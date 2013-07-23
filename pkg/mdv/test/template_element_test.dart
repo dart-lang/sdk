@@ -146,10 +146,10 @@ templateElementTests() {
   });
 
   observeTest('Template If', () {
-    var div = createTestHtml('<template if="{{ foo }}">text</template>');
+    var div = createTestHtml('<template if="{{ foo }}">{{ value }}</template>');
     // Note: changed this value from 0->null because zero is not falsey in Dart.
     // See https://code.google.com/p/dart/issues/detail?id=11956
-    var m = toSymbolMap({ 'foo': null });
+    var m = toSymbolMap({ 'foo': null, 'value': 'foo' });
     recursivelySetTemplateModel(div, m);
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 1);
@@ -157,7 +157,25 @@ templateElementTests() {
     m[sym('foo')] = 1;
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 2);
-    expect(div.lastChild.text, 'text');
+    expect(div.lastChild.text, 'foo');
+  });
+
+  observeTest('Template Repeat If', () {
+    var div = createTestHtml(
+        '<template repeat="{{ foo }}" if="{{ bar }}">{{ }}</template>');
+    // Note: changed this value from 0->null because zero is not falsey in Dart.
+    // See https://code.google.com/p/dart/issues/detail?id=11956
+    var m = toSymbolMap({ 'bar': null, 'foo': [1, 2, 3] });
+    recursivelySetTemplateModel(div, m);
+    performMicrotaskCheckpoint();
+    expect(div.nodes.length, 1);
+
+    m[sym('bar')] = 1;
+    performMicrotaskCheckpoint();
+    expect(div.nodes.length, 4);
+    expect(div.nodes[1].text, '1');
+    expect(div.nodes[2].text, '2');
+    expect(div.nodes[3].text, '3');
   });
 
   observeTest('TextTemplateWithNullStringBinding', () {
