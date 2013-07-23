@@ -27,6 +27,14 @@ abstract class TypeSystem<T> {
   T nonNullSubtype(DartType type);
   T nonNullSubclass(DartType type);
   T nonNullExact(DartType type);
+  T nonNullEmpty();
+  T nullable(T type);
+  Selector newTypedSelector(T receiver, Selector selector);
+
+  T allocateContainer(T type,
+                      Node node,
+                      Element enclosing,
+                      [T elementType, int length]);
 
   /**
    * Returns the intersection between [T] and [annotation].
@@ -111,9 +119,28 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   TypeMask nonNullSubtype(DartType type) => new TypeMask.nonNullSubtype(type);
   TypeMask nonNullSubclass(DartType type) => new TypeMask.nonNullSubclass(type);
   TypeMask nonNullExact(DartType type) => new TypeMask.nonNullExact(type);
+  TypeMask nonNullEmpty() => new TypeMask.nonNullEmpty();
 
   TypeMask getTypeOfCapturedAndBoxedVariable(Element element) {
     return compiler.typesTask.typesInferrer.getTypeOfElement(element);
+  }
+
+  TypeMask nullable(TypeMask type) {
+    return type.nullable();
+  }
+
+  TypeMask allocateContainer(TypeMask type,
+                             Node node,
+                             Element enclosing,
+                             [TypeMask elementType, int length]) {
+    ContainerTypeMask mask = new ContainerTypeMask(type, node, enclosing);
+    mask.elementType = elementType;
+    mask.length = length;
+    return mask;
+  }
+
+  Selector newTypedSelector(TypeMask receiver, Selector selector) {
+    return new TypedSelector(receiver, selector);
   }
 }
 

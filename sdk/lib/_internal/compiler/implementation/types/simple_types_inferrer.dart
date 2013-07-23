@@ -155,7 +155,7 @@ class ClassTypeInformation {
    * Records that [constructor] has been analyzed. If not at 0,
    * decrement [constructorsToVisitCount].
    */
-  void doneAnalyzingGenerativeConstructor(Element constructor) {
+  void onGenerativeConstructorAnalyzed(Element constructor) {
     if (constructorsToVisitCount != 0) constructorsToVisitCount--;
   }
 
@@ -218,7 +218,261 @@ class SimpleTypesInferrer extends TypesInferrer {
   }
 }
 
-class InternalSimpleTypesInferrer extends TypesInferrer {
+/**
+ * Common super class used by [SimpleTypeInferrerVisitor] to propagate
+ * type information about visited nodes, as well as to request type
+ * information of elements.
+ */
+abstract class InferrerEngine<T> {
+  final Compiler compiler;
+  final TypeSystem<T> types;
+  final Map<Node, T> concreteTypes = new Map<Node, T>();
+
+  InferrerEngine(this.compiler, this.types);
+
+  /**
+   * Requests updates of all parameters types of [function].
+   */
+  void updateAllParametersOf(FunctionElement function);
+
+  /**
+   * Records the default type of parameter [parameter].
+   */
+  void setDefaultTypeOfParameter(Element parameter, T type);
+
+  /**
+   * Returns the type of [element].
+   */
+  T typeOfElement(Element element);
+
+  /*
+   * Returns the return type of [element].
+   */
+  T returnTypeOfElement(Element element);
+
+  /**
+   * Records that [node] sets final field [element] to be of type [type].
+   *
+   * [nodeHolder] is the element holder of [node].
+   *
+   * [constraint] is a constraint, as described in
+   * [InternalSimpleTypesInferrer].
+   */
+  void recordTypeOfFinalField(Node node,
+                              Element nodeHolder,
+                              Element field,
+                              T type,
+                              CallSite constraint);
+
+  /**
+   * Records that [node] sets non-final field [element] to be of type
+   * [type].
+   *
+   * [constraint] is a field assignment constraint, as described in
+   * [InternalSimpleTypesInferrer].
+   */
+  void recordTypeOfNonFinalField(Node node,
+                                 Element field,
+                                 T type,
+                                 CallSite constraint);
+
+  /**
+   * Notifies that the visitor is done visiting generative constructor
+   * [element].
+   */
+  void onGenerativeConstructorAnalyzed(Element element);
+
+  /**
+   * Records that [element] can be of type [T]. Returns whether the
+   * type is useful for the inferrer.
+   */
+  bool recordType(Element element, T type);
+
+  /**
+   * Records that the return type [element] can be of type [T].
+   */
+  void recordReturnType(Element element, T type);
+
+  /**
+   * Registers that [caller] calls [callee] at node [node], with
+   * [selector], and [arguments]. Note that [selector] is null for
+   * forwarding constructors.
+   *
+   * [constraint] is a field assignment constraint, as described in
+   * [InternalSimpleTypesInferrer].
+   *
+   * [sideEffects] will be updated to incorporate [callee]'s side
+   * effects.
+   *
+   * [inLoop] tells whether the call happens in a loop.
+   */
+  void registerCalledElement(Node node,
+                             Selector selector,
+                             Element caller,
+                             Element callee,
+                             ArgumentsTypes<T> arguments,
+                             CallSite constraint,
+                             SideEffects sideEffects,
+                             bool inLoop);
+
+  /**
+   * Registers that [caller] calls [selector] with [receiverType] as
+   * receiver, and [arguments].
+   *
+   * [constraint] is a field assignment constraint, as described in
+   * [InternalSimpleTypesInferrer].
+   *
+   * [sideEffects] will be updated to incorporate [callee]'s side
+   * effects.
+   *
+   * [inLoop] tells whether the call happens in a loop.
+   */
+  T registerCalledSelector(Node node,
+                           Selector selector,
+                           T receiverType,
+                           Element caller,
+                           ArgumentsTypes<T> arguments,
+                           CallSite constraint,
+                           SideEffects sideEffects,
+                           bool inLoop);
+
+  /**
+   * Compute the LUB of [firstType] and [secondType].
+   * [analyzedElement] is the element this LUB is computed for.
+   */
+  T computeLubFor(T firstType, T secondType, Element analyzedElement) {
+    return types.computeLUB(firstType, secondType);
+  }
+
+  /**
+   * Applies [f] to all elements in the universe that match
+   * [selector]. If [f] returns false, aborts the iteration.
+   */
+  void forEachElementMatching(Selector selector, bool f(Element element)) {
+    Iterable<Element> elements = compiler.world.allFunctions.filter(selector);
+    for (Element e in elements) {
+      if (!f(e.implementation)) return;
+    }
+  }
+
+  /**
+   * Update [sideEffects] with the side effects of [callee] being
+   * called with [selector].
+   */
+  void updateSideEffects(SideEffects sideEffects,
+                         Selector selector,
+                         Element callee) {
+    if (callee.isField()) {
+      if (callee.isInstanceMember()) {
+        if (selector.isSetter()) {
+          sideEffects.setChangesInstanceProperty();
+        } else if (selector.isGetter()) {
+          sideEffects.setDependsOnInstancePropertyStore();
+        } else {
+          sideEffects.setAllSideEffects();
+          sideEffects.setDependsOnSomething();
+        }
+      } else {
+        if (selector.isSetter()) {
+          sideEffects.setChangesStaticProperty();
+        } else if (selector.isGetter()) {
+          sideEffects.setDependsOnStaticPropertyStore();
+        } else {
+          sideEffects.setAllSideEffects();
+          sideEffects.setDependsOnSomething();
+        }
+      }
+    } else if (callee.isGetter() && !selector.isGetter()) {
+      sideEffects.setAllSideEffects();
+      sideEffects.setDependsOnSomething();
+    } else {
+      sideEffects.add(compiler.world.getSideEffectsOfElement(callee));
+    }
+  }
+
+  /**
+   * Returns the type for [nativeBehavior]. See documentation on
+   * [native.NativeBehavior].
+   */
+  T typeOfNativeBehavior(native.NativeBehavior nativeBehavior) {
+    if (nativeBehavior == null) return types.dynamicType;
+    List typesReturned = nativeBehavior.typesReturned;
+    if (typesReturned.isEmpty) return types.dynamicType;
+    T returnType;
+    for (var type in typesReturned) {
+      T mappedType;
+      if (type == native.SpecialType.JsObject) {
+        mappedType = types.nonNullExact(compiler.objectClass.rawType);
+      } else if (type.element == compiler.stringClass) {
+        mappedType = types.stringType;
+      } else if (type.element == compiler.intClass) {
+        mappedType = types.intType;
+      } else if (type.element == compiler.doubleClass) {
+        mappedType = types.doubleType;
+      } else if (type.element == compiler.numClass) {
+        mappedType = types.numType;
+      } else if (type.element == compiler.boolClass) {
+        mappedType = types.boolType;
+      } else if (type.element == compiler.nullClass) {
+        mappedType = types.nullType;
+      } else if (type.isVoid) {
+        mappedType = types.nullType;
+      } else if (type.isDynamic) {
+        return types.dynamicType;
+      } else if (!compiler.world.hasAnySubtype(type.element)) {
+        mappedType = types.nonNullExact(type.element.rawType);
+      } else {
+        ClassElement element = type.element;
+        Set<ClassElement> subtypes = compiler.world.subtypesOf(element);
+        Set<ClassElement> subclasses = compiler.world.subclassesOf(element);
+        if (subclasses != null && subtypes.length == subclasses.length) {
+          mappedType = types.nonNullSubclass(element.rawType);
+        } else {
+          mappedType = types.nonNullSubtype(element.rawType);
+        }
+      }
+      returnType = types.computeLUB(returnType, mappedType);
+      if (returnType == types.dynamicType) {
+        break;
+      }
+    }
+    return returnType;
+  }
+
+  /**
+   * Returns the type of [element] when being called with [selector].
+   */
+  T typeOfElementWithSelector(Element element, Selector selector) {
+    if (element.name == Compiler.NO_SUCH_METHOD
+        && selector.name != element.name) {
+      // An invocation can resolve to a [noSuchMethod], in which case
+      // we get the return type of [noSuchMethod].
+      return returnTypeOfElement(element);
+    } else if (selector.isGetter()) {
+      if (element.isFunction()) {
+        // [functionType] is null if the inferrer did not run.
+        return types.functionType == null
+            ? types.dynamicType
+            : types.functionType;
+      } else if (element.isField()) {
+        return typeOfElement(element);
+      } else if (Elements.isUnresolved(element)) {
+        return types.dynamicType;
+      } else {
+        assert(element.isGetter());
+        return returnTypeOfElement(element);
+      }
+    } else if (element.isGetter() || element.isField()) {
+      assert(selector.isCall() || selector.isSetter());
+      return types.dynamicType;
+    } else {
+      return returnTypeOfElement(element);
+    }
+  }
+}
+
+class InternalSimpleTypesInferrer
+    extends InferrerEngine<TypeMask> implements TypesInferrer {
   /**
    * Maps a class to a [ClassTypeInformation] to help collect type
    * information of final fields.
@@ -293,8 +547,6 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
             && PREDICATES.contains(element.name));
   }
 
-  final Compiler compiler;
-
   // Times the computation of re-analysis of methods.
   final Stopwatch recomputeWatch = new Stopwatch();
   // Number of re-analysis.
@@ -316,11 +568,8 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
    */
   int analyzed = 0;
 
-  final TypeMaskSystem types;
-
   InternalSimpleTypesInferrer(SimpleTypesInferrer inferrer, this.optimismState)
-      : this.compiler = inferrer.compiler,
-        this.types = inferrer.types;
+      : super(inferrer.compiler, inferrer.types);
 
   /**
    * Main entry point of the inferrer.  Analyzes all elements that the resolver
@@ -564,7 +813,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
 
   bool analyze(Element element) {
     SimpleTypeInferrerVisitor visitor =
-        new SimpleTypeInferrerVisitor(element, compiler, this);
+        new SimpleTypeInferrerVisitor<TypeMask>(element, compiler, this);
     TypeMask returnType = visitor.run();
     typeInformationOf(element).analyzeCount++;
     if (element.isGenerativeConstructor()) {
@@ -583,12 +832,12 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
         // Only update types of static fields if there is no
         // assignment. Instance fields are dealt with in the constructor.
         if (Elements.isStaticOrTopLevelField(element)) {
-          recordNonFinalFieldElementType(node, element, returnType, null);
+          recordTypeOfNonFinalField(node, element, returnType, null);
         }
         return false;
       } else {
-        recordNonFinalFieldElementType(node, element, returnType, null);
-        // [recordNonFinalFieldElementType] takes care of re-enqueuing
+        recordTypeOfNonFinalField(node, element, returnType, null);
+        // [recordTypeOfNonFinalField] takes care of re-enqueuing
         // users of the field.
         return false;
       }
@@ -629,6 +878,17 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
       optimismState = RETRY;
     }
     TypeMask newType = checkTypeAnnotation(analyzedElement, returnType);
+    if (analyzedElement.name == const SourceString('==')) {
+      // TODO(ngeoffray): Should this be done at the call site?
+      // When the argument passed in is null, we know we return a
+      // bool.
+      FunctionElement function = analyzedElement;
+      function.computeSignature(compiler).forEachParameter((Element parameter) {
+        if (typeOfElement(parameter).isNullable){
+          newType = types.computeLUB(newType, types.boolType);
+        }
+      });
+    }
     FunctionTypeInformation info = typeInformationOf(analyzedElement);
     info.returnType = newType;
     // If the return type is useful, say it has changed.
@@ -715,53 +975,6 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     return returnType;
   }
 
-  TypeMask typeOfNativeBehavior(native.NativeBehavior nativeBehavior) {
-    if (nativeBehavior == null) return types.dynamicType;
-    List typesReturned = nativeBehavior.typesReturned;
-    if (typesReturned.isEmpty) return types.dynamicType;
-    TypeMask returnType;
-    for (var type in typesReturned) {
-      TypeMask mappedType;
-      if (type == native.SpecialType.JsObject) {
-        mappedType = new TypeMask.nonNullExact(rawTypeOf(compiler.objectClass));
-      } else if (type.element == compiler.stringClass) {
-        mappedType = types.stringType;
-      } else if (type.element == compiler.intClass) {
-        mappedType = types.intType;
-      } else if (type.element == compiler.doubleClass) {
-        mappedType = types.doubleType;
-      } else if (type.element == compiler.numClass) {
-        mappedType = types.numType;
-      } else if (type.element == compiler.boolClass) {
-        mappedType = types.boolType;
-      } else if (type.element == compiler.nullClass) {
-        mappedType = types.nullType;
-      } else if (type.isVoid) {
-        mappedType = types.nullType;
-      } else if (type.isDynamic) {
-        return types.dynamicType;
-      } else if (!compiler.world.hasAnySubtype(type.element)) {
-        mappedType = new TypeMask.nonNullExact(rawTypeOf(type.element));
-      } else {
-        Element element = type.element;
-        Set<ClassElement> subtypes = compiler.world.subtypesOf(element);
-        Set<ClassElement> subclasses = compiler.world.subclassesOf(element);
-        if (subclasses != null && subtypes.length == subclasses.length) {
-          mappedType = new TypeMask.nonNullSubclass(rawTypeOf(element));
-        } else {
-          mappedType = new TypeMask.nonNullSubtype(rawTypeOf(element));
-        }
-      }
-      returnType = types.computeLUB(returnType, mappedType);
-      if (!isTypeValuable(returnType)) {
-        returnType = types.dynamicType;
-        break;
-      }
-    }
-    return returnType;
-  }
-
-
   /**
    * Returns the type of [element]. Returns [:dynamic:] if
    * [element] has not been analyzed yet.
@@ -809,7 +1022,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     if (selector.isSetter() || selector.isIndexSet()) return types.dynamicType;
 
     TypeMask result;
-    iterateOverElements(selector, (Element element) {
+    forEachElementMatching(selector, (Element element) {
       assert(element.isImplementation);
       TypeMask type = typeOfElementWithSelector(element, selector);
       result = types.computeLUB(result, type);
@@ -822,36 +1035,15 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
   }
 
   TypeMask typeOfElementWithSelector(Element element, Selector selector) {
-    if (element.name == Compiler.NO_SUCH_METHOD
-        && selector.name != element.name) {
-      // An invocation can resolve to a [noSuchMethod], in which case
-      // we get the return type of [noSuchMethod].
-      return returnTypeOfElement(element);
-    } else if (selector.isGetter()) {
-      if (element.isFunction()) {
-        // [functionType] is null if the inferrer did not run.
-        return types.functionType == null
-            ? types.dynamicType
-            : types.functionType;
-      } else if (element.isField()) {
-        return typeOfElement(element);
-      } else if (Elements.isUnresolved(element)) {
-        return types.dynamicType;
-      } else {
-        assert(element.isGetter());
-        return returnTypeOfElement(element);
-      }
-    } else if (selector.isIndex()
-               && selector.mask != null
-               && selector.mask.isContainer) {
+    if (selector.isIndex()
+        && selector.mask != null
+        && selector.mask.isContainer
+        && element.name == selector.name) {
       ContainerTypeMask mask = selector.mask;
       TypeMask elementType = mask.elementType;
       return elementType == null ? types.dynamicType : elementType;
-    } else if (element.isGetter() || element.isField()) {
-      assert(selector.isCall() || selector.isSetter());
-      return types.dynamicType;
     } else {
-      return returnTypeOfElement(element);
+      return super.typeOfElementWithSelector(element, selector);
     }
   }
 
@@ -930,40 +1122,10 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
   }
 
   void updateAllParametersOf(FunctionElement function) {
+    if (!hasAnalyzedAll) return;
     function.computeSignature(compiler).forEachParameter((Element parameter) {
       updateParameterType(parameter);
     });
-  }
-
-  void updateSideEffects(SideEffects sideEffects,
-                         Selector selector,
-                         Element callee) {
-    if (callee.isField()) {
-      if (callee.isInstanceMember()) {
-        if (selector.isSetter()) {
-          sideEffects.setChangesInstanceProperty();
-        } else if (selector.isGetter()) {
-          sideEffects.setDependsOnInstancePropertyStore();
-        } else {
-          sideEffects.setAllSideEffects();
-          sideEffects.setDependsOnSomething();
-        }
-      } else {
-        if (selector.isSetter()) {
-          sideEffects.setChangesStaticProperty();
-        } else if (selector.isGetter()) {
-          sideEffects.setDependsOnStaticPropertyStore();
-        } else {
-          sideEffects.setAllSideEffects();
-          sideEffects.setDependsOnSomething();
-        }
-      }
-    } else if (callee.isGetter() && !selector.isGetter()) {
-      sideEffects.setAllSideEffects();
-      sideEffects.setDependsOnSomething();
-    } else {
-      sideEffects.add(compiler.world.getSideEffectsOfElement(callee));
-    }
   }
 
   /**
@@ -1003,14 +1165,14 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     callee = callee.implementation;
     addCaller(caller, callee);
 
-    if (selector.isSetter() && callee.isField()) {
-      recordNonFinalFieldElementType(
+    if (selector != null && selector.isSetter() && callee.isField()) {
+      recordTypeOfNonFinalField(
           node,
           callee,
           arguments.positional[0],
           constraint);
       return;
-    } else if (selector.isGetter()) {
+    } else if (selector != null && selector.isGetter()) {
       assert(arguments == null);
       if (callee.isFunction()) {
         FunctionTypeInformation functionInfo = typeInformationOf(callee);
@@ -1141,24 +1303,13 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
   }
 
   /**
-   * Applies [f] to all elements in the universe that match
-   * [selector]. If [f] returns false, aborts the iteration.
-   */
-  void iterateOverElements(Selector selector, bool f(Element element)) {
-    Iterable<Element> elements = compiler.world.allFunctions.filter(selector);
-    for (Element e in elements) {
-      if (!f(e.implementation)) return;
-    }
-  }
-
-  /**
    * Records an assignment to [element] with the given
    * [argumentType].
    */
-  void recordNonFinalFieldElementType(Node node,
-                                      Element element,
-                                      TypeMask argumentType,
-                                      CallSite constraint) {
+  void recordTypeOfNonFinalField(Node node,
+                                 Element element,
+                                 TypeMask argumentType,
+                                 CallSite constraint) {
     TypeInformation info = typeInformationOf(element);
     info.addAssignment(node, argumentType);
     bool changed = info.type != argumentType;
@@ -1204,7 +1355,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
           // If the constraint is on an operator, we type the receiver
           // to be the field.
           if (elementType != null) {
-            selector = new TypedSelector(elementType, selector);
+            selector = types.newTypedSelector(elementType, selector);
           }
           type = handleIntrisifiedSelector(selector, constraint.arguments);
           if (type == null) type = typeOfSelector(selector);
@@ -1248,7 +1399,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
    * Records in [classInfoForFinalFields] that [constructor] has
    * inferred [type] for the final [field].
    */
-  void recordFinalFieldType(Node node,
+  void recordTypeOfFinalField(Node node,
                             Element constructor,
                             Element field,
                             TypeMask type,
@@ -1269,10 +1420,10 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
    * generative constructors of its enclosing class have already been
    * analyzed, this method updates the types of final fields.
    */
-  void doneAnalyzingGenerativeConstructor(Element constructor) {
+  void onGenerativeConstructorAnalyzed(Element constructor) {
     ClassElement cls = constructor.getEnclosingClass();
     ClassTypeInformation info = classInfoForFinalFields[cls.implementation];
-    info.doneAnalyzingGenerativeConstructor(constructor);
+    info.onGenerativeConstructorAnalyzed(constructor);
     if (info.isDone) {
       updateFinalFieldsType(info, constructor.getEnclosingClass());
     }
@@ -1296,6 +1447,11 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
       }
     });
   }
+
+  void setDefaultTypeOfParameter(Element parameter, TypeMask type) {
+    ParameterTypeInformation info = typeInformationOf(parameter);
+    info.defaultType = type;
+  }
 }
 
 class CallSite {
@@ -1309,11 +1465,11 @@ class CallSite {
 /**
  * Placeholder for inferred arguments types on sends.
  */
-class ArgumentsTypes {
-  final List<TypeMask> positional;
-  final Map<SourceString, TypeMask> named;
+class ArgumentsTypes<T> {
+  final List<T> positional;
+  final Map<SourceString, T> named;
   ArgumentsTypes(this.positional, named)
-    : this.named = (named == null) ? new Map<SourceString, TypeMask>() : named;
+    : this.named = (named == null) ? new Map<SourceString, T>() : named;
 
   int get length => positional.length + named.length;
 
@@ -1335,18 +1491,18 @@ class ArgumentsTypes {
 
   bool hasNoArguments() => positional.isEmpty && named.isEmpty;
 
-  bool hasOnePositionalArgumentWithType(TypeMask type) {
+  bool hasOnePositionalArgumentWithType(T type) {
     return named.isEmpty && positional.length == 1 && positional[0] == type;
   }
 }
 
-class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
-  TypeMask returnType;
+class SimpleTypeInferrerVisitor<T> extends InferrerVisitor<T> {
+  T returnType;
   bool visitingInitializers = false;
   bool isConstructorRedirect = false;
   SideEffects sideEffects = new SideEffects.empty();
   final Element outermostElement;
-  final InternalSimpleTypesInferrer inferrer;
+  final InferrerEngine<T> inferrer;
 
   SimpleTypeInferrerVisitor.internal(analyzedElement,
                                      this.outermostElement,
@@ -1358,16 +1514,16 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
 
   factory SimpleTypeInferrerVisitor(Element element,
                                     Compiler compiler,
-                                    InternalSimpleTypesInferrer inferrer,
-                                    [LocalsHandler handler]) {
+                                    InferrerEngine<T> inferrer,
+                                    [LocalsHandler<T> handler]) {
     Element outermostElement =
         element.getOutermostEnclosingMemberOrTopLevel().implementation;
     assert(outermostElement != null);
-    return new SimpleTypeInferrerVisitor.internal(
+    return new SimpleTypeInferrerVisitor<T>.internal(
         element, outermostElement, inferrer, compiler, handler);
   }
 
-  TypeMask run() {
+  T run() {
     var node = analyzedElement.parseNode(compiler);
     if (analyzedElement.isField() && node.asSendSet() == null) {
       // Eagerly bailout, because computing the closure data only
@@ -1392,17 +1548,13 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
     }
 
     FunctionElement function = analyzedElement;
-    if (inferrer.hasAnalyzedAll) {
-      inferrer.updateAllParametersOf(function);
-    }
+    inferrer.updateAllParametersOf(function);
     FunctionSignature signature = function.computeSignature(compiler);
     signature.forEachOptionalParameter((element) {
       Node node = element.parseNode(compiler);
       Send send = node.asSendSet();
-      ParameterTypeInformation info = inferrer.typeInformationOf(element);
-      info.defaultType = (send == null)
-          ? types.nullType
-          : visit(send.arguments.head);
+      T type = (send == null) ? types.nullType : visit(send.arguments.head);
+      inferrer.setDefaultTypeOfParameter(element, type);
     });
 
     if (analyzedElement.isNative()) {
@@ -1414,10 +1566,10 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
     if (analyzedElement.isGenerativeConstructor()) {
       isThisExposed = false;
       signature.forEachParameter((element) {
-        TypeMask parameterType = inferrer.typeOfElement(element);
+        T parameterType = inferrer.typeOfElement(element);
         if (element.kind == ElementKind.FIELD_PARAMETER) {
           if (element.fieldElement.modifiers.isFinal()) {
-            inferrer.recordFinalFieldType(
+            inferrer.recordTypeOfFinalField(
                 node,
                 analyzedElement,
                 element.fieldElement,
@@ -1425,7 +1577,7 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
                 null);
           } else {
             locals.updateField(element.fieldElement, parameterType);
-            inferrer.recordNonFinalFieldElementType(
+            inferrer.recordTypeOfNonFinalField(
                 element.parseNode(compiler),
                 element.fieldElement,
                 parameterType,
@@ -1451,15 +1603,15 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
         // fields that we haven't initialized for sure.
         cls.forEachInstanceField((_, field) {
           if (field.modifiers.isFinal()) return;
-          TypeMask type = locals.fieldsInitializedInConstructor[field];
+          T type = locals.fieldsInitializedInConstructor[field];
           if (type == null && field.parseNode(compiler).asSendSet() == null) {
-            inferrer.recordNonFinalFieldElementType(
+            inferrer.recordTypeOfNonFinalField(
                 node, field, types.nullType, null);
           }
         });
       }
-      inferrer.doneAnalyzingGenerativeConstructor(analyzedElement);
-      returnType = new TypeMask.nonNullExact(inferrer.rawTypeOf(cls));
+      inferrer.onGenerativeConstructorAnalyzed(analyzedElement);
+      returnType = types.nonNullExact(cls.rawType);
     } else {
       signature.forEachParameter((element) {
         locals.update(element, inferrer.typeOfElement(element));
@@ -1468,24 +1620,12 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
       if (returnType == null) {
         // No return in the body.
         returnType = locals.seenReturnOrThrow
-            ? new TypeMask.nonNullEmpty()  // Body always throws.
+            ? types.nonNullEmpty()  // Body always throws.
             : types.nullType;
-      } else if (!locals.seenReturnOrThrow &&
-                 !inferrer.isDynamicType(returnType)) {
+      } else if (!locals.seenReturnOrThrow) {
         // We haven't seen returns on all branches. So the method may
         // also return null.
-        returnType = returnType.nullable();
-      }
-
-      if (analyzedElement.name == const SourceString('==')) {
-        // TODO(ngeoffray): Should this be done at the call site?
-        // When the argument passed in is null, we know we return a
-        // bool.
-        signature.forEachParameter((Element parameter) {
-          if (inferrer.typeOfElement(parameter).isNullable){
-            returnType = types.computeLUB(returnType, types.boolType);
-          }
-        });
+        returnType = types.nullable(returnType);
       }
     }
 
@@ -1504,13 +1644,13 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
     return returnType;
   }
 
-  TypeMask visitFunctionExpression(FunctionExpression node) {
+  T visitFunctionExpression(FunctionExpression node) {
     Element element = elements[node];
     // We don't put the closure in the work queue of the
     // inferrer, because it will share information with its enclosing
     // method, like for example the types of local variables.
-    LocalsHandler closureLocals = new LocalsHandler.from(locals);
-    SimpleTypeInferrerVisitor visitor = new SimpleTypeInferrerVisitor(
+    LocalsHandler closureLocals = new LocalsHandler<T>.from(locals);
+    SimpleTypeInferrerVisitor visitor = new SimpleTypeInferrerVisitor<T>(
         element, compiler, inferrer, closureLocals);
     visitor.run();
     inferrer.recordReturnType(element, visitor.returnType);
@@ -1534,28 +1674,32 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
     return types.functionType;
   }
 
-  TypeMask visitLiteralList(LiteralList node) {
+  T visitLiteralList(LiteralList node) {
     if (node.isConst()) {
       // We only set the type once. We don't need to re-visit the children
       // when re-analyzing the node.
       return inferrer.concreteTypes.putIfAbsent(node, () {
-        ContainerTypeMask container = new ContainerTypeMask(
-            types.constListType, node, outermostElement);
-        TypeMask elementType = new TypeMask.nonNullEmpty();
+        T elementType = types.nonNullEmpty();
         int length = 0;
         for (Node element in node.elements.nodes) {
           length++;
           elementType = types.computeLUB(elementType, visit(element));
         }
-        container.elementType = elementType;
-        container.length = length;
-        return container;
+        return types.allocateContainer(
+            types.constListType,
+            node,
+            outermostElement,
+            elementType,
+            length);
       });
     } else {
       node.visitChildren(this);
-      return inferrer.concreteTypes.putIfAbsent(
-        node, () => new ContainerTypeMask(
-            types.growableListType, node, outermostElement));
+      return inferrer.concreteTypes.putIfAbsent(node, () {
+        return types.allocateContainer(
+            types.growableListType,
+            node,
+            outermostElement);
+      });
     }
   }
 
@@ -1563,7 +1707,7 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
 
   void checkIfExposesThis(Selector selector) {
     if (isThisExposed) return;
-    inferrer.iterateOverElements(selector, (element) {
+    inferrer.forEachElementMatching(selector, (element) {
       if (element.isField()) {
         if (!selector.isSetter()
             && element.getEnclosingClass() ==
@@ -1574,7 +1718,7 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
           // If the field is being used before this constructor
           // actually had a chance to initialize it, say it can be
           // null.
-          inferrer.recordNonFinalFieldElementType(
+          inferrer.recordTypeOfNonFinalField(
               analyzedElement.parseNode(compiler), element,
               types.nullType, null);
         }
@@ -1588,7 +1732,7 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
     });
   }
 
-  TypeMask visitSendSet(SendSet node) {
+  T visitSendSet(SendSet node) {
     Element element = elements[node];
     if (!Elements.isUnresolved(element) && element.impliesType()) {
       node.visitChildren(this);
@@ -1604,7 +1748,7 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
     String op = node.assignmentOperator.source.stringValue;
     bool isIncrementOrDecrement = op == '++' || op == '--';
 
-    TypeMask receiverType;
+    T receiverType;
     bool isCallOnThis = false;
     if (node.receiver == null
         && element != null
@@ -1616,8 +1760,8 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
       isCallOnThis = node.receiver != null && isThisOrSuper(node.receiver);
     }
 
-    TypeMask rhsType;
-    TypeMask indexType;
+    T rhsType;
+    T indexType;
 
     if (isIncrementOrDecrement) {
       rhsType = types.intType;
@@ -1637,7 +1781,8 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
         }
       }
       if (!isThisExposed && isCallOnThis) {
-        checkIfExposesThis(new TypedSelector(receiverType, setterSelector));
+        checkIfExposesThis(
+            types.newTypedSelector(receiverType, setterSelector));
       }
     }
 
@@ -1648,25 +1793,25 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
             node,
             setterSelector,
             receiverType,
-            new ArgumentsTypes([indexType, rhsType], null));
+            new ArgumentsTypes<T>([indexType, rhsType], null));
         return rhsType;
       } else {
         // [: foo[0] += 42 :] or [: foo[0]++ :].
-        TypeMask getterType = handleDynamicSend(
+        T getterType = handleDynamicSend(
             node,
             getterSelector,
             receiverType,
-            new ArgumentsTypes([indexType], null));
-        TypeMask returnType = handleDynamicSend(
+            new ArgumentsTypes<T>([indexType], null));
+        T returnType = handleDynamicSend(
             node,
             operatorSelector,
             getterType,
-            new ArgumentsTypes([rhsType], null));
+            new ArgumentsTypes<T>([rhsType], null));
         handleDynamicSend(
             node,
             setterSelector,
             receiverType,
-            new ArgumentsTypes([indexType, returnType], null));
+            new ArgumentsTypes<T>([indexType, returnType], null));
 
         if (node.isPostfix) {
           return getterType;
@@ -1680,14 +1825,14 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
           node.arguments.head);
     } else {
       // [: foo++ :] or [: foo += 1 :].
-      ArgumentsTypes operatorArguments = new ArgumentsTypes([rhsType], null);
+      ArgumentsTypes operatorArguments = new ArgumentsTypes<T>([rhsType], null);
       CallSite constraint;
       if (!Elements.isLocal(element)) {
         // Record a constraint of the form [: field++ :], or [: field += 42 :].
         constraint = new CallSite(operatorSelector, operatorArguments);
       }
-      TypeMask getterType;
-      TypeMask newType;
+      T getterType;
+      T newType;
       if (Elements.isStaticOrTopLevelField(element)) {
         Element getterElement = elements[node.selector];
         getterType =
@@ -1697,7 +1842,7 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
             node, operatorSelector, getterType, operatorArguments);
         handleStaticSend(
             node, setterSelector, element,
-            new ArgumentsTypes([newType], null));
+            new ArgumentsTypes<T>([newType], null));
       } else if (Elements.isUnresolved(element)
                  || element.isSetter()
                  || element.isField()) {
@@ -1706,7 +1851,7 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
         newType = handleDynamicSend(
             node, operatorSelector, getterType, operatorArguments);
         handleDynamicSend(node, setterSelector, receiverType,
-                          new ArgumentsTypes([newType], null),
+                          new ArgumentsTypes<T>([newType], null),
                           constraint);
       } else if (Elements.isLocal(element)) {
         getterType = locals.use(element);
@@ -1728,12 +1873,12 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
     }
   }
 
-  TypeMask handlePlainAssignment(Node node,
-                                 Element element,
-                                 Selector setterSelector,
-                                 TypeMask receiverType,
-                                 TypeMask rhsType,
-                                 Node rhs) {
+  T handlePlainAssignment(Node node,
+                          Element element,
+                          Selector setterSelector,
+                          T receiverType,
+                          T rhsType,
+                          Node rhs) {
     CallSite constraint;
     if (node.asSend() != null && !Elements.isLocal(element)) {
       // Recognize a constraint of the form [: field = other.field :].
@@ -1750,7 +1895,7 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
         constraint = new CallSite(elements.getSelector(rhs), null);
       }
     }
-    ArgumentsTypes arguments = new ArgumentsTypes([rhsType], null);
+    ArgumentsTypes arguments = new ArgumentsTypes<T>([rhsType], null);
     if (Elements.isStaticOrTopLevelField(element)) {
       handleStaticSend(node, setterSelector, element, arguments);
     } else if (Elements.isUnresolved(element) || element.isSetter()) {
@@ -1758,12 +1903,12 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
           node, setterSelector, receiverType, arguments, constraint);
     } else if (element.isField()) {
       if (element.modifiers.isFinal()) {
-        inferrer.recordFinalFieldType(
+        inferrer.recordTypeOfFinalField(
             node, outermostElement, element, rhsType, constraint);
       } else {
         locals.updateField(element, rhsType);
         if (visitingInitializers) {
-          inferrer.recordNonFinalFieldElementType(
+          inferrer.recordTypeOfNonFinalField(
               node, element, rhsType, constraint);
         } else {
           handleDynamicSend(
@@ -1776,7 +1921,7 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
     return rhsType;
   }
 
-  TypeMask visitSuperSend(Send node) {
+  T visitSuperSend(Send node) {
     Element element = elements[node];
     if (Elements.isUnresolved(element)) {
       return types.dynamicType;
@@ -1801,7 +1946,7 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
     }
   }
 
-  TypeMask visitStaticSend(Send node) {
+  T visitStaticSend(Send node) {
     if (visitingInitializers && Initializers.isConstructorRedirect(node)) {
       isConstructorRedirect = true;
     }
@@ -1816,12 +1961,12 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
     handleStaticSend(node, selector, element, arguments);
     if (Elements.isGrowableListConstructorCall(element, node, compiler)) {
       return inferrer.concreteTypes.putIfAbsent(
-          node, () => new ContainerTypeMask(
+          node, () => types.allocateContainer(
               types.growableListType, node, outermostElement));
     } else if (Elements.isFixedListConstructorCall(element, node, compiler)
         || Elements.isFilledListConstructorCall(element, node, compiler)) {
       return inferrer.concreteTypes.putIfAbsent(
-          node, () => new ContainerTypeMask(
+          node, () => types.allocateContainer(
               types.fixedListType, node, outermostElement));
     } else if (element.isFunction() || element.isConstructor()) {
       return inferrer.returnTypeOfElement(element);
@@ -1832,7 +1977,7 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
     }
   }
 
-  TypeMask handleForeignSend(Send node) {
+  T handleForeignSend(Send node) {
     node.visitChildren(this);
     Selector selector = elements.getSelector(node);
     SourceString name = selector.name;
@@ -1852,8 +1997,8 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
   }
 
   ArgumentsTypes analyzeArguments(Link<Node> arguments) {
-    List<TypeMask> positional = [];
-    Map<SourceString, TypeMask> named = new Map<SourceString, TypeMask>();
+    List<T> positional = [];
+    Map<SourceString, T> named = new Map<SourceString, T>();
     for (var argument in arguments) {
       NamedArgument namedArgument = argument.asNamedArgument();
       if (namedArgument != null) {
@@ -1866,10 +2011,10 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
       // are calling does not expose this.
       isThisExposed = isThisExposed || argument.isThis();
     }
-    return new ArgumentsTypes(positional, named);
+    return new ArgumentsTypes<T>(positional, named);
   }
 
-  TypeMask visitGetterSend(Send node) {
+  T visitGetterSend(Send node) {
     Element element = elements[node];
     Selector selector = elements.getSelector(node);
     if (Elements.isStaticOrTopLevelField(element)) {
@@ -1891,7 +2036,7 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
     }
   }
 
-  TypeMask visitClosureSend(Send node) {
+  T visitClosureSend(Send node) {
     node.visitChildren(this);
     Element element = elements[node];
     Selector selector = elements.getSelector(node);
@@ -1943,15 +2088,15 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
     }
   }
 
-  TypeMask handleDynamicSend(Node node,
-                             Selector selector,
-                             TypeMask receiver,
-                             ArgumentsTypes arguments,
-                             [CallSite constraint]) {
+  T handleDynamicSend(Node node,
+                      Selector selector,
+                      T receiver,
+                      ArgumentsTypes arguments,
+                      [CallSite constraint]) {
     if (selector.mask != receiver) {
-      selector = inferrer.isDynamicType(receiver)
+      selector = (receiver == types.dynamicType)
           ? selector.asUntyped
-          : new TypedSelector(receiver, selector);
+          : types.newTypedSelector(receiver, selector);
       updateSelectorInTree(node, selector);
     }
     return inferrer.registerCalledSelector(
@@ -1959,9 +2104,9 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
         constraint, sideEffects, inLoop);
   }
 
-  TypeMask visitDynamicSend(Send node) {
+  T visitDynamicSend(Send node) {
     Element element = elements[node];
-    TypeMask receiverType;
+    T receiverType;
     bool isCallOnThis = false;
     if (node.receiver == null) {
       isCallOnThis = true;
@@ -1974,7 +2119,7 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
 
     Selector selector = elements.getSelector(node);
     if (!isThisExposed && isCallOnThis) {
-      checkIfExposesThis(new TypedSelector(receiverType, selector));
+      checkIfExposesThis(types.newTypedSelector(receiverType, selector));
     }
 
     ArgumentsTypes arguments = node.isPropertyAccess
@@ -1983,11 +2128,11 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
     return handleDynamicSend(node, selector, receiverType, arguments);
   }
 
-  void recordReturnType(TypeMask type) {
+  void recordReturnType(T type) {
     returnType = inferrer.computeLubFor(returnType, type, analyzedElement);
   }
 
-  TypeMask visitReturn(Return node) {
+  T visitReturn(Return node) {
     if (node.isRedirectingFactoryBody) {
       Element element = elements[node.expression];
       if (Elements.isErroneousElement(element)) {
@@ -2000,8 +2145,8 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
         // manually register [analyzedElement] as a caller of [element].
         FunctionElement function = analyzedElement;
         FunctionSignature signature = function.computeSignature(compiler);
-        List<TypeMask> unnamed = <TypeMask>[];
-        Map<SourceString, TypeMask> named = new Map<SourceString, TypeMask>();
+        List<T> unnamed = <T>[];
+        Map<SourceString, T> named = new Map<SourceString, T>();
         signature.forEachRequiredParameter((Element element) {
           unnamed.add(locals.use(element));
         });
@@ -2012,9 +2157,15 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
             unnamed.add(locals.use(element));
           }
         });
-        ArgumentsTypes arguments = new ArgumentsTypes(unnamed, named);
-        inferrer.addCaller(analyzedElement, element);
-        inferrer.addArguments(node.expression, element, arguments);
+        ArgumentsTypes arguments = new ArgumentsTypes<T>(unnamed, named);
+        inferrer.registerCalledElement(node.expression,
+                                       null,
+                                       outermostElement,
+                                       element,
+                                       arguments,
+                                       null,
+                                       sideEffects,
+                                       inLoop);
         recordReturnType(inferrer.returnTypeOfElement(element));
       }
     } else {
@@ -2026,22 +2177,22 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
     locals.seenReturnOrThrow = true;
   }
 
-  TypeMask visitForIn(ForIn node) {
-    TypeMask expressionType = visit(node.expression);
+  T visitForIn(ForIn node) {
+    T expressionType = visit(node.expression);
     Selector iteratorSelector = elements.getIteratorSelector(node);
     Selector currentSelector = elements.getCurrentSelector(node);
     Selector moveNextSelector = elements.getMoveNextSelector(node);
 
-    TypeMask iteratorType =
+    T iteratorType =
         handleDynamicSend(node, iteratorSelector, expressionType, null);
     handleDynamicSend(node, moveNextSelector,
-                      iteratorType, new ArgumentsTypes([], null));
-    TypeMask currentType =
+                      iteratorType, new ArgumentsTypes<T>([], null));
+    T currentType =
         handleDynamicSend(node, currentSelector, iteratorType, null);
 
     // We nullify the type in case there is no element in the
     // iterable.
-    currentType = currentType.nullable();
+    currentType = types.nullable(currentType);
 
     if (node.expression.isThis()) {
       // Any reasonable implementation of an iterator would expose
@@ -2053,7 +2204,7 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor<TypeMask> {
     Element element = elements[identifier];
     Selector selector = elements.getSelector(identifier);
 
-    TypeMask receiverType;
+    T receiverType;
     if (element != null && element.isInstanceMember()) {
       receiverType = thisType;
     } else {
