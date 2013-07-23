@@ -1349,6 +1349,21 @@ templateElementTests() {
     expect(div.nodes[3].text, 'Name: Leela');
   });
 
+  observeTest('RecursiveRef', () {
+    var div = createTestHtml(
+        '<template bind>'
+          '<template id=src>{{ foo }}</template>'
+          '<template bind ref=src></template>'
+        '</template>');
+
+    var m = toSymbols({'foo': 'bar'});
+    recursivelySetTemplateModel(div, m);
+    performMicrotaskCheckpoint();
+
+    expect(div.nodes.length, 4);
+    expect(div.nodes[3].text, 'bar');
+  });
+
   observeTest('ChangeFromBindToRepeat', () {
     var div = createTestHtml(
         '<template bind="{{a}}">'

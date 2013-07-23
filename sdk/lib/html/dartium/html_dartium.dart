@@ -8970,7 +8970,7 @@ abstract class Element extends Node implements ElementTraversal {
   Element get ref {
     _ensureTemplate();
 
-    Element ref = null;
+    Element result = null;
     var refId = attributes['ref'];
     if (refId != null) {
       var treeScope = this;
@@ -8984,11 +8984,17 @@ abstract class Element extends Node implements ElementTraversal {
           treeScope is ShadowRoot ||
           treeScope is svg.SvgSvgElement) {
 
-        ref = treeScope.getElementById(refId);
+        result = treeScope.getElementById(refId);
       }
     }
 
-    return ref != null ? ref : _templateInstanceRef;
+    if (result == null) {
+      result = _templateInstanceRef;
+      if (result == null) return this;
+    }
+
+    var nextRef = result.ref;
+    return nextRef != null ? nextRef : result;
   }
 
   /**

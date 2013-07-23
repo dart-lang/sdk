@@ -55,7 +55,7 @@ class _TemplateExtension extends _ElementExtension {
     if (template == null) template = node;
 
     var instance = _createDeepCloneAndDecorateTemplates(
-        template.content, syntax);
+        template.ref.content, syntax);
 
     if (_instanceCreated != null) _instanceCreated.add(instance);
 
