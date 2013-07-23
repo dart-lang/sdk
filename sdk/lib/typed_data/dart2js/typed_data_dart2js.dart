@@ -61,10 +61,14 @@ class TypedData native "ArrayBufferView" {
   }
 
   int _checkSublistArguments(int start, int end, int length) {
-    _checkIndex(start, length);
+    // For `sublist` the [start] and [end] indices are allowed to be equal to
+    // [length]. However, [_checkIndex] only allows incides in the range
+    // 0 .. length - 1. We therefore increment the [length] argument by one
+    // for the [_checkIndex] checks.
+    _checkIndex(start, length + 1);
     if (end == null) return length;
-    _checkIndex(end, length);
-    if (start > end) throw new RangeError.value(end);
+    _checkIndex(end, length + 1);
+    if (start > end) throw new RangeError.range(start, 0, end);
     return end;
   }
 }
