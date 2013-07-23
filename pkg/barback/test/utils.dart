@@ -516,7 +516,7 @@ class BadTransformer extends Transformer {
 
   Future<bool> isPrimary(Asset asset) => new Future.value(true);
   Future apply(Transform transform) {
-    return new Future(() {
+    return newFuture(() {
       // Create the outputs first.
       for (var output in outputs) {
         var id = new AssetId.parse(output);
@@ -538,7 +538,7 @@ class CreateAssetTransformer extends Transformer {
   Future<bool> isPrimary(Asset asset) => new Future.value(true);
 
   Future apply(Transform transform) {
-    return new Future(() {
+    return newFuture(() {
       transform.addOutput(new MockAsset(new AssetId.parse(output), output));
     });
   }

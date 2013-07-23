@@ -100,7 +100,7 @@ class BacktrackingSolver {
 
     _logParameters();
 
-    return new Future(() {
+    return newFuture(() {
       stopwatch.start();
 
       // Pre-cache the root package's known pubspec.

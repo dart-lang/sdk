@@ -247,7 +247,7 @@ main() {
       expect(stream.first, throwsFormatException);
       errorGroup.signalError(new FormatException());
 
-      expect(new Future(() {
+      expect(newFuture(() {
         controller.add('value');
       }), completes);
     });

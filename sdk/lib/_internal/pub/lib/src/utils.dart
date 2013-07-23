@@ -72,6 +72,10 @@ class FutureGroup<T> {
   Future<List> get future => _completer.future;
 }
 
+/// Like [new Future], but avoids around issue 11911 by using [new Future.value]
+/// under the covers.
+Future newFuture(callback()) => new Future.value().then((_) => callback());
+
 // TODO(rnystrom): Move into String?
 /// Pads [source] to [length] by adding spaces at the end.
 String padRight(String source, int length) {
@@ -400,7 +404,7 @@ Future resetStack(fn()) {
 
   // Using [new Future] adds an asynchronous operation that works around the
   // first and second cases described above.
-  new Future(fn).then((val) {
+  newFuture(fn).then((val) {
     runAsync(() => completer.complete(val));
   }).catchError((err) {
     runAsync(() => completer.completeError(err));

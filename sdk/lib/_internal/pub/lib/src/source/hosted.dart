@@ -181,7 +181,7 @@ class HostedSource extends Source {
 class OfflineHostedSource extends HostedSource {
   /// Gets the list of all versions of [name] that are in the system cache.
   Future<List<Version>> getVersions(String name, description) {
-    return new Future(() {
+    return newFuture(() {
       var parsed = _parseDescription(description);
       var server = parsed.last;
       log.io("Finding versions of $name in "
