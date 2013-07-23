@@ -4,8 +4,6 @@
 
 library base_response;
 
-import 'dart:io';
-
 import 'base_request.dart';
 
 /// The base class for HTTP responses.

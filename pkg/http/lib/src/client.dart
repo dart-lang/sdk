@@ -5,7 +5,6 @@
 library client;
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'base_client.dart';

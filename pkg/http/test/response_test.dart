@@ -5,7 +5,6 @@
 library response_test;
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:unittest/unittest.dart';
