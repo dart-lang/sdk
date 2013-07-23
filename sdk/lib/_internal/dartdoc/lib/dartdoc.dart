@@ -453,9 +453,18 @@ class Dartdoc {
   void _document(MirrorSystem mirrors) {
     _started = true;
 
+
+    // Remove duplicated libraries. This is a hack because libraries can
+    // get picked up multiple times (dartbug.com/11826) which will go away
+    // with the new docgen. The reason we hit this issue is that we attempt
+    // to dart2js.analyze all packages in the repo together, which results
+    // in packages getting referenced with different URI's (../../pkg versus
+    // ../../out/ReleaseIA32/packages versus package:).
+    _sortedLibraries = new Map.fromIterable(
+        mirrors.libraries.values.where(shouldIncludeLibrary),
+        key: displayName).values.toList();
+
     // Sort the libraries by name (not key).
-    _sortedLibraries = new List<LibraryMirror>.from(
-        mirrors.libraries.values.where(shouldIncludeLibrary));
     _sortedLibraries.sort((x, y) {
       return displayName(x).toUpperCase().compareTo(
           displayName(y).toUpperCase());
