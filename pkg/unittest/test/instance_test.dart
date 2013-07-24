@@ -20,10 +20,9 @@ main() {
     test('throwsA', () {
       shouldPass(doesThrow, throwsA(equals('X')));
       shouldFail(doesThrow, throwsA(equals('Y')),
-          "Expected: throws 'Y' "
-          "Actual: <Closure: () => dynamic "
-              "from Function 'doesThrow': static.> "
-          "Which: threw 'X'");
+          matches("Expected: throws 'Y'.*"
+          "Actual: <Closure.*"
+          "Which: threw 'X'"));
     });
   });
 }
