@@ -54,12 +54,12 @@ crypto/test/sha1_test: Fail # Issue 11407.
 
 # Skip browser-specific tests on VM
 [ $runtime == vm ]
-docgen/test/single_library_test: Skip # Uses js_helper
 path/test/browser_test: Fail, OK # Uses dart:html
 intl/test/find_default_locale_browser_test: Skip
 intl/test/date_time_format_http_request_test: Skip
 
 [ $runtime == vm && $system == windows ]
+docgen/test/single_library_test: Fail # Issue 11985
 intl/test/find_default_locale_standalone_test: Fail # Issue 8110
 intl/test/message_extraction/message_extraction_test: Fail # Issue 9167
 
