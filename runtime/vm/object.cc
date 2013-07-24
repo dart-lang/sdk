@@ -8264,7 +8264,8 @@ Code::Comments& Code::Comments::New(intptr_t count) {
   if (count == 0) {
     comments = new Comments(Object::empty_array());
   } else {
-    const Array& data = Array::Handle(Array::New(count * kNumberOfEntries));
+    const Array& data =
+        Array::Handle(Array::New(count * kNumberOfEntries, Heap::kOld));
     comments = new Comments(data);
   }
   return *comments;
