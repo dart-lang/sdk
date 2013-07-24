@@ -1416,6 +1416,25 @@ templateElementTests() {
     expect(div.nodes[3].text, 'baz');
   });
 
+  observeTest('Template - Same Contents, Different Array has no effect', () {
+    if (!MutationObserver.supported) return;
+
+    var div = createTestHtml('<template repeat>{{ foo }}</template>');
+
+    var m = toSymbols([{ 'foo': 'bar' }, { 'foo': 'bat'}]);
+    recursivelySetTemplateModel(div, m);
+    performMicrotaskCheckpoint();
+
+    var observer = new MutationObserver((records, _) {});
+    observer.observe(div, childList: true);
+
+    var template = div.firstChild;
+    template.bind('repeat', toObservable(m.toList()), '');
+    performMicrotaskCheckpoint();
+    var records = observer.takeRecords();
+    expect(records.length, 0);
+  });
+
   observeTest('RecursiveRef', () {
     var div = createTestHtml(
         '<template bind>'

@@ -154,15 +154,14 @@ class _SelectedIndexBinding extends _InputBinding {
     // loop to schedule on. (See the the "ensureScheduled" function:
     // https://github.com/Polymer/mdv/commit/9a51ad7ed74a292bf71662cea28acbd151ff65c8)
     //
-    // Instead we use runAsync. Each <template repeat> needs a delay of 3:
+    // Instead we use runAsync. Each <template repeat> needs a delay of 2:
     //   * once to happen after the child _TemplateIterator is created
     //   * once to be after _TemplateIterator.inputs CompoundBinding resolve
-    //   * once to be after _TemplateIterator._valueBinding PathObserver fires
     // And then we need to do this delay sequence twice:
     //   * once for OPTGROUP
     //   * once for OPTION.
-    // The resulting 2 * 3 is our maxRetries.
-    var maxRetries = 6;
+    // The resulting 2 * 2 is our maxRetries.
+    var maxRetries = 4;
     delaySetSelectedIndex() {
       if (newValue > element.length && --maxRetries >= 0) {
         runAsync(delaySetSelectedIndex);

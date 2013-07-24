@@ -190,57 +190,54 @@ class _BindingToken {
 class _TemplateIterator {
   final Element _templateElement;
   final List<Node> terminators = [];
-  final CompoundBinding inputs;
+  CompoundBinding inputs;
   List iteratedValue;
-  Object _lastValue;
+  bool closed = false;
 
   StreamSubscription _sub;
-  StreamSubscription _valueBinding;
 
-  _TemplateIterator(this._templateElement)
-      : inputs = new CompoundBinding(resolveInputs) {
-
-    _valueBinding = new PathObserver(inputs, 'value').bindSync(valueChanged);
+  _TemplateIterator(this._templateElement) {
+    inputs = new CompoundBinding(resolveInputs);
   }
 
-  static Object resolveInputs(Map values) {
+  resolveInputs(Map values) {
+    if (closed) return;
+
     if (values.containsKey('if') && !_toBoolean(values['if'])) {
-      return null;
+      valueChanged(null);
+    } else if (values.containsKey('repeat')) {
+      valueChanged(values['repeat']);
+    } else if (values.containsKey('bind') || values.containsKey('if')) {
+      valueChanged([values['bind']]);
+    } else {
+      valueChanged(null);
     }
-
-    if (values.containsKey('repeat')) {
-      return values['repeat'];
-    }
-
-    if (values.containsKey('bind') || values.containsKey('if')) {
-      return [values['bind']];
-    }
-
+    // We don't return a value to the CompoundBinding; instead we skip a hop and
+    // call valueChanged directly.
     return null;
   }
 
   void valueChanged(value) {
-    // TODO(jmesserly): should PathObserver do this for us?
-    var oldValue = _lastValue;
-    _lastValue = value;
+    if (value is! List) value = null;
 
-    if (value is! List) {
-      value = [];
-    }
-
+    var oldValue = iteratedValue;
     unobserve();
     iteratedValue = value;
 
-    if (value is Observable) {
-      _sub = value.changes.listen(_handleChanges);
+    if (iteratedValue is Observable) {
+      _sub = iteratedValue.changes.listen(_handleChanges);
     }
 
-    int addedCount = iteratedValue.length;
-    var removedCount = oldValue is List ? (oldValue as List).length : 0;
-    if (addedCount == 0 && removedCount == 0) return; // nothing to do.
+    var splices = calculateSplices(
+        iteratedValue != null ? iteratedValue : [],
+        oldValue != null ? oldValue : []);
 
-    _handleChanges([new ListChangeRecord(0, addedCount: addedCount,
-        removedCount: removedCount)]);
+    if (splices.length > 0) _handleChanges(splices);
+
+    if (inputs.length == 0) {
+      close();
+      _mdv(_templateElement)._templateIterator = null;
+    }
   }
 
   Node getTerminatorAt(int index) {
@@ -312,13 +309,15 @@ class _TemplateIterator {
   }
 
   void _handleChanges(Iterable<ChangeRecord> splices) {
+    if (closed) return;
+
     splices = splices.where((s) => s is ListChangeRecord);
 
     var template = _templateElement;
     var delegate = template.bindingDelegate;
 
     if (template.parentNode == null || template.document.window == null) {
-      abandon();
+      close();
       // TODO(jmesserly): MDV calls templateIteratorTable.delete(this) here,
       // but I think that's a no-op because only nodes are used as keys.
       // See https://github.com/Polymer/mdv/pull/114.
@@ -368,11 +367,13 @@ class _TemplateIterator {
     _sub = null;
   }
 
-  void abandon() {
+  void close() {
+    if (closed) return;
+
     unobserve();
-    _valueBinding.cancel();
     terminators.clear();
     inputs.dispose();
+    closed = true;
   }
 
   static void _unbindAllRecursively(Node node) {
@@ -382,7 +383,7 @@ class _TemplateIterator {
       // Make sure we stop observing when we remove an element.
       var templateIterator = nodeExt._templateIterator;
       if (templateIterator != null) {
-        templateIterator.abandon();
+        templateIterator.close();
         nodeExt._templateIterator = null;
       }
     }

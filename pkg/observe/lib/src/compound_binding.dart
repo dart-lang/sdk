@@ -57,6 +57,8 @@ class CompoundBinding extends ChangeNotifierBase {
 
   get value => _value;
 
+  int get length => _bindings.length;
+
   void set value(newValue) {
     _value = notifyPropertyChange(_VALUE, _value, newValue);
   }
