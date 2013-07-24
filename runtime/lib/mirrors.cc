@@ -119,8 +119,7 @@ static Dart_Handle CreateMirrorReference(Dart_Handle handle) {
   DARTSCOPE(isolate);
   const Object& referent = Object::Handle(isolate, Api::UnwrapHandle(handle));
   const MirrorReference& reference =
-       MirrorReference::Handle(MirrorReference::New());
-  reference.set_referent(referent);
+       MirrorReference::Handle(MirrorReference::New(referent));
   return Api::NewHandle(isolate, reference.raw());
 }
 
@@ -236,47 +235,35 @@ static Dart_Handle UnwrapMirror(Dart_Handle mirror) {
 static Dart_Handle CreateLazyMirror(Dart_Handle target);
 
 
-static Dart_Handle CreateParameterMirrorList(Dart_Handle func) {
+static RawInstance* CreateParameterMirrorList(const Function& func) {
+  HANDLESCOPE(Isolate::Current());
+  const intptr_t param_cnt = func.num_fixed_parameters() -
+                             func.NumImplicitParameters() +
+                             func.NumOptionalParameters();
+  const Array& results = Array::Handle(Array::New(param_cnt));
+  const Array& args = Array::Handle(Array::New(3));
+  args.SetAt(0, MirrorReference::Handle(MirrorReference::New(func)));
+  Smi& pos = Smi::Handle();
+  Instance& param = Instance::Handle();
+  for (intptr_t i = 0; i < param_cnt; i++) {
+    pos ^= Smi::New(i);
+    args.SetAt(1, pos);
+    args.SetAt(2, (i >= func.num_fixed_parameters()) ?
+        Bool::True() : Bool::False());
+    param ^= CreateMirror(Symbols::_LocalParameterMirrorImpl(), args);
+    results.SetAt(i, param);
+  }
+  results.MakeImmutable();
+  return results.raw();
+}
+
+
+static Dart_Handle CreateParameterMirrorListUsingApi(Dart_Handle func) {
   ASSERT(Dart_IsFunction(func));
-  int64_t fixed_param_count;
-  int64_t opt_param_count;
-  Dart_Handle result = Dart_FunctionParameterCounts(func,
-                                                    &fixed_param_count,
-                                                    &opt_param_count);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-
-  int64_t param_count = fixed_param_count + opt_param_count;
-  Dart_Handle parameter_list = Dart_NewList(param_count);
-  if (Dart_IsError(parameter_list)) {
-    return result;
-  }
-
-  Dart_Handle param_cls_name = NewString("_LocalParameterMirrorImpl");
-  Dart_Handle param_type = Dart_GetType(MirrorLib(), param_cls_name, 0, NULL);
-  if (Dart_IsError(param_type)) {
-    return param_type;
-  }
-
-  Dart_Handle reflectee = CreateMirrorReference(func);
-  for (int64_t i = 0; i < param_count; i++) {
-    Dart_Handle args[] = {
-      reflectee,
-      Dart_NewInteger(i),
-      (i >= fixed_param_count) ? Api::True() : Api::False(),
-    };
-    Dart_Handle param =
-        Dart_New(param_type, Dart_Null(), ARRAY_SIZE(args), args);
-    if (Dart_IsError(param)) {
-      return param;
-    }
-    result = Dart_ListSetAt(parameter_list, i, param);
-    if (Dart_IsError(result)) {
-      return result;
-    }
-  }
-  return parameter_list;
+  Isolate* isolate = Isolate::Current();
+  return Api::NewHandle(
+      isolate, CreateParameterMirrorList(Api::UnwrapFunctionHandle(
+          isolate, func)));
 }
 
 
@@ -305,7 +292,7 @@ static Dart_Handle CreateLazyMirror(Dart_Handle target) {
 
       Dart_Handle args[] = {
         CreateLazyMirror(return_type),
-        CreateParameterMirrorList(sig),
+        CreateParameterMirrorListUsingApi(sig),
       };
       return Dart_New(type, Dart_Null(), ARRAY_SIZE(args), args);
     } else {
@@ -579,7 +566,7 @@ static Dart_Handle CreateMethodMirrorUsingApi(Dart_Handle func,
   Dart_Handle args[] = {
     CreateMirrorReference(func),
     owner_mirror,
-    CreateParameterMirrorList(func),
+    CreateParameterMirrorListUsingApi(func),
     func_obj.is_static() ? Api::True() : Api::False(),
     func_obj.is_abstract() ? Api::True() : Api::False(),
     func_obj.IsGetterFunction() ? Api::True() : Api::False(),
@@ -598,8 +585,7 @@ static Dart_Handle CreateMethodMirrorUsingApi(Dart_Handle func,
 static RawInstance* CreateVariableMirror(const Field& field,
                                          const Instance& owner_mirror) {
   const MirrorReference& field_ref =
-      MirrorReference::Handle(MirrorReference::New());
-  field_ref.set_referent(field);
+      MirrorReference::Handle(MirrorReference::New(field));
 
   const String& name = String::Handle(field.UserVisibleName());
 

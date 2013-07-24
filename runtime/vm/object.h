@@ -5898,7 +5898,8 @@ class MirrorReference : public Instance {
 
   RawLibrary* GetLibraryReferent() const;
 
-  static RawMirrorReference* New(Heap::Space space = Heap::kNew);
+  static RawMirrorReference* New(const Object& referent,
+                                 Heap::Space space = Heap::kNew);
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawMirrorReference));

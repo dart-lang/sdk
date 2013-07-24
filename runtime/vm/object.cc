@@ -14346,13 +14346,20 @@ RawLibrary* MirrorReference::GetLibraryReferent() const {
 }
 
 
-RawMirrorReference* MirrorReference::New(Heap::Space space) {
+RawMirrorReference* MirrorReference::New(const Object& referent,
+                                         Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->mirror_reference_class()
          != Class::null());
-  RawObject* raw = Object::Allocate(MirrorReference::kClassId,
-                                    MirrorReference::InstanceSize(),
-                                    space);
-  return reinterpret_cast<RawMirrorReference*>(raw);
+  MirrorReference& result = MirrorReference::Handle();
+  {
+    RawObject* raw = Object::Allocate(MirrorReference::kClassId,
+                                      MirrorReference::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_referent(referent);
+  return result.raw();
 }
 
 
