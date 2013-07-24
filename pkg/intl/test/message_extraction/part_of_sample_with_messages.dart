@@ -50,8 +50,7 @@ class YouveGotMessages {
     );
   }
 
-  // English doesn't do enough with genders, and pseudo-localization doesn't
-  // do anything with them, so this example is French.
+  // English doesn't do enough with genders, so this example is French.
   nested(List people, String place) {
     var names = people.map((x) => x.name).join(", ");
     var number = people.length;

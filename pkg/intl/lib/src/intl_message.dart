@@ -391,10 +391,11 @@ abstract class SubMessage extends ComplexMessage {
   List<String> get codeAttributeNames;
 
   String expanded([Function transform = _nullTransform]) {
-    fullMessageForClause(key) => key + '{' + transform(parent, this[key]) + '}';
+    fullMessageForClause(key) => key + '{' +
+        transform(parent, this[key]).toString() + '}';
     var clauses = attributeNames
         .where((key) => this[key] != null)
-        .map(fullMessageForClause);
+        .map(fullMessageForClause).toList();
     return "{$mainArgument,$icuMessageName, ${clauses.join("")}}";
   }
 

@@ -243,7 +243,19 @@ class Intl {
    * Selects the correct plural form from
    * the provided alternatives. The [other] named argument is mandatory.
    */
-  static String plural(int howMany, {zero, one, two, few, many, other}) {
+  static String plural(int howMany, {zero, one, two, few, many, other,
+      desc, examples, locale, name, args}) {
+    // If we are passed a name and arguments, then we are operating as a
+    // top-level message, so look up our translation by calling Intl.message
+    // with ourselves as an argument.
+    if (name != null) {
+      return Intl.message(
+        Intl.plural(howMany,
+            zero: zero, one: one, two: two, few: few, many: many, other: other),
+        name: name,
+        args: args,
+        locale: locale);
+    }
     if (other == null) {
       throw new ArgumentError("The 'other' named argument must be provided");
     }
@@ -265,7 +277,20 @@ class Intl {
    * of an Intl.message message that is to be translated.
    */
   static String gender(String gender,
-      {String male, String female, String other}) {
+      {String male, String female, String other,
+       String desc, Map examples, String locale, String name,
+       List<String>args}) {
+    // If we are passed a name and arguments, then we are operating as a
+    // top-level message, so look up our translation by calling Intl.message
+    // with ourselves as an argument.
+    if (name != null) {
+      return Intl.message(
+        Intl.gender(gender, male: male, female: female, other: other),
+        name: name,
+        args: args,
+        locale: locale);
+    }
+
     if (other == null) {
       throw new ArgumentError("The 'other' named argument must be specified");
     }

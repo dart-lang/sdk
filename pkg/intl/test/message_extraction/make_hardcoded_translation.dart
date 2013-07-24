@@ -84,7 +84,25 @@ var french = {
         ], null)
       ]
     ], null
-  ))
+  )),
+  "outerPlural" : writer.write(new Plural.from("n",
+      [
+        ['zero', 'rien'],
+        ['one', 'un'],
+        ['other', 'quelques-uns']
+      ], null)),
+  "outerGender" : writer.write(new Gender.from("g",
+      [
+        ['male', 'homme'],
+        ['female', 'femme'],
+        ['other', 'autre'],
+      ], null)),
+  "nestedOuter" : writer.write ( new Plural.from("number",
+      [
+        ['other', new Gender.from("gen",
+            [["male", "\$number homme"], ["other", "\$number autre"]], null),
+        ]
+      ], null)),
 };
 
 /** A list of the German translations that we will produce. */
@@ -137,7 +155,25 @@ var german = {
         ], null)
       ]
     ], null
-  ))
+  )),
+  "outerPlural" : writer.write(new Plural.from("n",
+      [
+        ['zero', 'Null'],
+        ['one', 'ein'],
+        ['other', 'einige']
+      ], null)),
+  "outerGender" : writer.write(new Gender.from("g",
+      [
+        ['male', 'Mann'],
+        ['female', 'Frau'],
+        ['other', 'andere'],
+      ], null)),
+  "nestedOuter" : writer.write (new Plural.from("number",
+      [
+        ['other', new Gender.from("gen",
+          [["male", "\$number Mann"], ["other", "\$number andere"]], null),
+        ]
+       ], null)),
 };
 
 /** The output directory for translated files. */

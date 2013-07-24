@@ -92,7 +92,8 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
 
   /** Return true if [node] matches the pattern we expect for Intl.message() */
   bool looksLikeIntlMessage(MethodInvocation node) {
-    if (node.methodName.name != "message") return false;
+    const validNames = const ["message", "plural", "gender"];
+    if (!validNames.contains(node.methodName.name)) return false;
     if (!(node.target is SimpleIdentifier)) return false;
     SimpleIdentifier target = node.target;
     if (target.token.toString() != "Intl") return false;
@@ -109,9 +110,13 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
       return "Named parameters on message functions are not supported.";
     }
     var arguments = node.argumentList.arguments;
-    if (!(arguments.first is StringLiteral)) {
-      return "Intl.message messages must be string literals";
+
+    if (node.methodName.name == 'message') {
+      if (!(arguments.first is StringLiteral)) {
+        return "Intl.message messages must be string literals";
+      }
     }
+
     var namedArguments = arguments.skip(1);
     // This seems unlikely to happen, but make sure all are NamedExpression
     // before doing the tests below.
@@ -167,57 +172,118 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
 
   /**
    * Examine method invocations to see if they look like calls to Intl.message.
+   * If we've found one, stop recursing. This is important because we can have
+   * Intl.message(...Intl.plural...) and we don't want to treat the inner
+   * plural as if it was an outermost message.
    */
   void visitMethodInvocation(MethodInvocation node) {
-    addIntlMessage(node);
-    return super.visitNode(node);
+    if (!addIntlMessage(node)) {
+      return super.visitMethodInvocation(node);
+    }
   }
 
   /**
    * Check that the node looks like an Intl.message invocation, and create
-   * the [IntlMessage] object from it and store it in [messages].
+   * the [IntlMessage] object from it and store it in [messages]. Return true
+   * if we successfully extracted a message and should stop looking. Return
+   * false if we didn't, so should continue recursing.
    */
-  void addIntlMessage(MethodInvocation node) {
-    if (!looksLikeIntlMessage(node)) return;
+  bool addIntlMessage(MethodInvocation node) {
+    if (!looksLikeIntlMessage(node)) return false;
     var reason = checkValidity(node);
-    if (reason != null && !suppressWarnings) {
-      print("Skipping invalid Intl.message invocation\n    <$node>");
-      print("    reason: $reason");
-      _reportErrorLocation(node);
-      return;
+    if (reason != null) {
+      if (!suppressWarnings) {
+        print("Skipping invalid Intl.message invocation\n    <$node>");
+        print("    reason: $reason");
+        _reportErrorLocation(node);
+      }
+      // We found one, but it's not valid. Stop recursing.
+      return true;
     }
-    var message = messageFromMethodInvocation(node);
+    var message;
+    if (node.methodName.name == "message") {
+      message = messageFromIntlMessageCall(node);
+    } else {
+      message = messageFromDirectPluralOrGenderCall(node);
+    }
     if (message != null) messages[message.name] = message;
+    return true;
   }
 
   /**
-   * Create an IntlMessage from [node] using the name and
-   * parameters of the last function/method declaration we encountered
-   * and the parameters to the Intl.message call.
+   * Create a MainMessage from [node] using the name and
+   * parameters of the last function/method declaration we encountered,
+   * and the values we get by calling [extract]. We set those values
+   * by calling [setAttribute]. This is the common parts between
+   * [messageFromIntlMessageCall] and [messageFromDirectPluralOrGenderCall].
    */
-  MainMessage messageFromMethodInvocation(MethodInvocation node) {
+  MainMessage _messageFromNode(MethodInvocation node, Function extract,
+      Function setAttribute) {
     var message = new MainMessage();
     message.name = name;
     message.arguments = parameters.parameters.elements.map(
         (x) => x.identifier.name).toList();
     var arguments = node.argumentList.arguments.elements;
-    try {
-      var interpolation = new InterpolationVisitor(message);
-      arguments.first.accept(interpolation);
-      message.messagePieces.addAll(interpolation.pieces);
-    } on IntlMessageExtractionException catch (e) {
-      message = null;
-      print("Error $e");
-      print("Processing <$node>");
-      _reportErrorLocation(node);
-    }
+    extract(message, arguments);
+
     for (NamedExpression namedArgument in arguments.skip(1)) {
       var name = namedArgument.name.label.name;
       var exp = namedArgument.expression;
       var string = exp is SimpleStringLiteral ? exp.value : exp.toString();
-      message[name] = string;
+      setAttribute(message, name, string);
     }
     return message;
+  }
+
+  /**
+   * Create a MainMessage from [node] using the name and
+   * parameters of the last function/method declaration we encountered
+   * and the parameters to the Intl.message call.
+   */
+  MainMessage messageFromIntlMessageCall(MethodInvocation node) {
+
+    void extractFromIntlCall(MainMessage message, List arguments) {
+      try {
+        var interpolation = new InterpolationVisitor(message);
+        arguments.first.accept(interpolation);
+        message.messagePieces.addAll(interpolation.pieces);
+      } on IntlMessageExtractionException catch (e) {
+        message = null;
+        print("Error $e");
+        print("Processing <$node>");
+        _reportErrorLocation(node);
+      }
+    }
+
+    void setValue(MainMessage message, String fieldName, String fieldValue) {
+      message[fieldName] = fieldValue;
+    }
+
+    return _messageFromNode(node, extractFromIntlCall, setValue);
+  }
+
+  /**
+   * Create a MainMessage from [node] using the name and
+   * parameters of the last function/method declaration we encountered
+   * and the parameters to the Intl.plural or Intl.gender call.
+   */
+  MainMessage messageFromDirectPluralOrGenderCall(MethodInvocation node) {
+    var pluralOrGender;
+
+    void extractFromPluralOrGender(MainMessage message, _) {
+      var visitor = new PluralAndGenderVisitor(message.messagePieces, message);
+      node.accept(visitor);
+      pluralOrGender = message.messagePieces.last;
+    }
+
+    void setAttribute(MainMessage msg, String fieldName, String fieldValue) {
+      if (["name", "desc", "examples", "args"].contains(fieldName)) {
+        msg[fieldName] = fieldValue;
+      } else {
+        pluralOrGender[fieldName] = fieldValue;
+      }
+    }
+    return _messageFromNode(node, extractFromPluralOrGender, setAttribute);
   }
 }
 
@@ -325,7 +391,12 @@ class PluralAndGenderVisitor extends SimpleASTVisitor {
     super.visitInterpolationExpression(node);
   }
 
-  /** Return true if [node] matches the pattern we expect for Intl.message() */
+  visitMethodInvocation(MethodInvocation node) {
+    pieces.add(messageFromMethodInvocation(node));
+    super.visitMethodInvocation(node);
+  }
+
+  /** Return true if [node] matches the pattern for plural or gender message.*/
   bool looksLikePluralOrGender(MethodInvocation node) {
     if (!["plural", "gender"].contains(node.methodName.name)) return false;
     if (!(node.target is SimpleIdentifier)) return false;
@@ -347,7 +418,7 @@ class PluralAndGenderVisitor extends SimpleASTVisitor {
    * parameters of the last function/method declaration we encountered
    * and the parameters to the Intl.message call.
    */
-  messageFromMethodInvocation(MethodInvocation node) {
+  Message messageFromMethodInvocation(MethodInvocation node) {
     var message;
     if (node.methodName.name == "gender") {
       message = new Gender();
