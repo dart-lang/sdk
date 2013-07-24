@@ -1614,7 +1614,7 @@ class SimpleTypeInferrerVisitor<T> extends InferrerVisitor<T> {
         // fields that we haven't initialized for sure.
         cls.forEachInstanceField((_, field) {
           if (field.modifiers.isFinal()) return;
-          T type = locals.fieldScope.fields[field];
+          T type = locals.fieldScope.readField(field);
           if (type == null && field.parseNode(compiler).asSendSet() == null) {
             inferrer.recordTypeOfNonFinalField(
                 node, field, types.nullType, null);
@@ -1715,7 +1715,7 @@ class SimpleTypeInferrerVisitor<T> extends InferrerVisitor<T> {
             && element.getEnclosingClass() ==
                     outermostElement.getEnclosingClass()
             && !element.modifiers.isFinal()
-            && locals.fieldScope.fields[element] == null
+            && locals.fieldScope.readField(element) == null
             && element.parseNode(compiler).asSendSet() == null) {
           // If the field is being used before this constructor
           // actually had a chance to initialize it, say it can be

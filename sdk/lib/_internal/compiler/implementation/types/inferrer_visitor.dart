@@ -36,6 +36,8 @@ abstract class TypeSystem<T> {
                       Element enclosing,
                       [T elementType, int length]);
 
+  T allocateDiamondPhi(T firstInput, T secondInput);
+
   /**
    * Returns the intersection between [T] and [annotation].
    * [isNullable] indicates whether the annotation implies a null
@@ -112,6 +114,10 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
       // to use dynamic. Fix that.
       return union.containsAll(compiler) ? dynamicType : union;
     }
+  }
+
+  TypeMask allocateDiamondPhi(TypeMask firstType, TypeMask secondType) {
+    return computeLUB(firstType, secondType);
   }
 
   TypeMask get dynamicType => compiler.typesTask.dynamicType;
@@ -239,45 +245,50 @@ class VariableScope<T> {
 
 class FieldInitializationScope<T> {
   final TypeSystem<T> types;
-  final Map<Element, T> fields;
+  Map<Element, T> fields;
   bool isThisExposed;
 
-  FieldInitializationScope(this.types)
-      : fields = new Map<Element, T>(),
-        isThisExposed = false;
+  FieldInitializationScope(this.types) : isThisExposed = false;
 
   FieldInitializationScope.internalFrom(FieldInitializationScope<T> other)
-      : fields = new Map<Element, T>.from(other.fields),
-        types = other.types,
+      : types = other.types,
         isThisExposed = other.isThisExposed;
 
-  factory FieldInitializationScope.from(FieldInitializationScope other) {
+  factory FieldInitializationScope.from(FieldInitializationScope<T> other) {
     if (other == null) return null;
     return new FieldInitializationScope<T>.internalFrom(other);
   }
 
   void updateField(Element field, T type) {
     if (isThisExposed) return;
+    if (fields == null) fields = new Map<Element, T>();
     fields[field] = type;
   }
 
-  void merge(FieldInitializationScope other) {
-    isThisExposed = isThisExposed || other.isThisExposed;
-    List<Element> toRemove = <Element>[];
-    // Iterate over the map in [:this:]. The map in [other] may
-    // contain different fields, but if this map does not contain it,
-    // then we know the field can be null and we don't need to track
-    // it.
-    fields.forEach((Element field, T type) {
-      T otherType = other.fields[field];
-      if (otherType == null) {
-        toRemove.add(field);
-      } else {
-        fields[field] = types.computeLUB(type, otherType);
-      }
+  T readField(Element field) {
+    return fields == null ? null : fields[field];
+  }
+
+  void forEach(void f(Element element, T type)) {
+    if (fields == null) return;
+    fields.forEach(f);
+  }
+
+  void mergeDiamondFlow(FieldInitializationScope<T> thenScope,
+                        FieldInitializationScope<T> elseScope) {
+    // Quick bailout check. If [isThisExposed] is true, we know the
+    // code following won't do anything.
+    if (isThisExposed) return;
+    if (elseScope == null || elseScope.fields == null) {
+      elseScope = this;
+    }
+
+    thenScope.forEach((Element field, T type) {
+      T otherType = elseScope.readField(field);
+      if (otherType == null) return;
+      updateField(field, types.allocateDiamondPhi(type, otherType));
     });
-    // Remove fields that were not initialized in [other].
-    toRemove.forEach((Element element) { fields.remove(element); });
+    isThisExposed = thenScope.isThisExposed || elseScope.isThisExposed;
   }
 }
 
@@ -350,6 +361,34 @@ class LocalsHandler<T> {
     capturedAndBoxed[local] = field;
   }
 
+  void mergeDiamondFlow(LocalsHandler<T> thenBranch,
+                        LocalsHandler<T> elseBranch) {
+    if (fieldScope != null && elseBranch != null) {
+      fieldScope.mergeDiamondFlow(thenBranch.fieldScope, elseBranch.fieldScope);
+    }
+    seenReturnOrThrow = thenBranch.seenReturnOrThrow
+        && elseBranch != null
+        && elseBranch.seenReturnOrThrow;
+    seenBreakOrContinue = thenBranch.seenBreakOrContinue
+        && elseBranch != null
+        && elseBranch.seenBreakOrContinue;
+    if (aborts) return;
+    if (thenBranch.aborts) {
+      thenBranch = this;
+      if (elseBranch == null) return;
+    } else if (elseBranch == null || elseBranch.aborts) {
+      elseBranch = this;
+    }
+
+    thenBranch.locals.forEachOwnLocal((Element local, T type) {
+      T otherType = elseBranch.locals[local];
+      if (otherType == null) return;
+      T existing = locals[local];
+      if (type == existing && otherType == existing) return;
+      locals[local] = types.allocateDiamondPhi(type, otherType);
+    });
+
+  }
   /**
    * Merge handlers [first] and [second] into [:this:] and returns
    * whether the merge changed one of the variables types in [first].
@@ -381,26 +420,6 @@ class LocalsHandler<T> {
       currentOther = currentOther.parent;
     } while (currentOther != null
              && currentOther.blockLevel >= locals.blockLevel);
-
-    List<Element> toRemove = <Element>[];
-    locals.forEachOwnLocal((Element local, _) {
-      if (other.locals[local] == null) {
-        // If [local] is not in the other map we know it is not a
-        // local we want to keep. For example, in an if/else, we don't
-        // want to keep variables declared in the if or in the else
-        // branch at the merge point.
-        toRemove.add(local);
-      }
-    });
-
-    // Remove locals that will not be used anymore.
-    toRemove.forEach((Element element) {
-      locals.remove(element);
-    });
-
-    if (fieldScope != null) {
-      fieldScope.merge(other.fieldScope);
-    }
 
     seenReturnOrThrow = seenReturnOrThrow && other.seenReturnOrThrow;
     seenBreakOrContinue = seenBreakOrContinue && other.seenBreakOrContinue;
@@ -656,7 +675,7 @@ abstract class InferrerVisitor<T> extends ResolvedVisitor<T> {
       locals = new LocalsHandler<T>.from(locals);
       updateIsChecks(isChecks, usePositive: true);
       visit(node.arguments.head);
-      saved.merge(locals);
+      saved.mergeDiamondFlow(locals, null);
       locals = saved;
       return types.boolType;
     } else if (const SourceString("||") == op.source) {
@@ -669,7 +688,7 @@ abstract class InferrerVisitor<T> extends ResolvedVisitor<T> {
       accumulateIsChecks = false;
       visit(node.arguments.head);
       accumulateIsChecks = oldAccumulateIsChecks;
-      saved.merge(locals);
+      saved.mergeDiamondFlow(locals, null);
       locals = saved;
       return types.boolType;
     } else if (const SourceString("!") == op.source) {
@@ -713,11 +732,12 @@ abstract class InferrerVisitor<T> extends ResolvedVisitor<T> {
     updateIsChecks(tests, usePositive: true);
     T firstType = visit(node.thenExpression);
     LocalsHandler<T> thenLocals = locals;
-    locals = saved;
+    locals = new LocalsHandler<T>.from(saved);
     if (simpleCondition) updateIsChecks(tests, usePositive: false);
     T secondType = visit(node.elseExpression);
-    locals.merge(thenLocals);
-    T type = types.computeLUB(firstType, secondType);
+    saved.mergeDiamondFlow(thenLocals, locals);
+    locals = saved;
+    T type = types.allocateDiamondPhi(firstType, secondType);
     return type;
   }
 
@@ -758,10 +778,11 @@ abstract class InferrerVisitor<T> extends ResolvedVisitor<T> {
     updateIsChecks(tests, usePositive: true);
     visit(node.thenPart);
     LocalsHandler<T> thenLocals = locals;
-    locals = saved;
+    locals = new LocalsHandler<T>.from(saved);
     if (simpleCondition) updateIsChecks(tests, usePositive: false);
     visit(node.elsePart);
-    locals.merge(thenLocals);
+    saved.mergeDiamondFlow(thenLocals, locals);
+    locals = saved;
   }
 
   void setupBreaksAndContinues(TargetElement element) {
@@ -843,13 +864,13 @@ abstract class InferrerVisitor<T> extends ResolvedVisitor<T> {
     LocalsHandler<T> saved = locals;
     locals = new LocalsHandler<T>.from(locals, inTryBlock: true);
     visit(node.tryBlock);
-    saved.merge(locals);
+    saved.mergeDiamondFlow(locals, null);
     locals = saved;
     for (Node catchBlock in node.catchBlocks) {
       saved = locals;
       locals = new LocalsHandler<T>.from(locals);
       visit(catchBlock);
-      saved.merge(locals);
+      saved.mergeDiamondFlow(locals, null);
       locals = saved;
     }
     visit(node.finallyBlock);
