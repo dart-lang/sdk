@@ -14,12 +14,12 @@ main() {
   integration("doesn't unlock dependencies if a new dependency is already "
       "satisfied", () {
     servePackages([
-      packageMap("foo", "1.0.0", [dependencyMap("bar", "<2.0.0")]),
-      packageMap("bar", "1.0.0", [dependencyMap("baz", "<2.0.0")]),
+      packageMap("foo", "1.0.0", {"bar": "<2.0.0"}),
+      packageMap("bar", "1.0.0", {"baz": "<2.0.0"}),
       packageMap("baz", "1.0.0")
     ]);
 
-    d.appDir([dependencyMap("foo")]).create();
+    d.appDir({"foo": "any"}).create();
 
     pubInstall();
 
@@ -30,13 +30,13 @@ main() {
     }).validate();
 
     servePackages([
-      packageMap("foo", "2.0.0", [dependencyMap("bar", "<3.0.0")]),
-      packageMap("bar", "2.0.0", [dependencyMap("baz", "<3.0.0")]),
+      packageMap("foo", "2.0.0", {"bar": "<3.0.0"}),
+      packageMap("bar", "2.0.0", {"baz": "<3.0.0"}),
       packageMap("baz", "2.0.0"),
-      packageMap("newdep", "2.0.0", [dependencyMap("baz", ">=1.0.0")])
+      packageMap("newdep", "2.0.0", {"baz": ">=1.0.0"})
     ]);
 
-    d.appDir([dependencyMap("foo"), dependencyMap("newdep")]).create();
+    d.appDir({"foo": "any", "newdep": "any"}).create();
 
     pubInstall();
 

@@ -143,9 +143,13 @@ patch class NoSuchMethodError {
     }
     var args_mismatch = _existingArgumentNames != null;
     StringBuffer msg_buf = new StringBuffer(_developerMessage(args_mismatch));
-    String receiver_str = Error.safeToString(_receiver);
-    if ("Type: class '::'" == receiver_str) {
+    String receiver_str;
+    var level = (_invocation_type >> _InvocationMirror._CALL_SHIFT) &
+        _InvocationMirror._CALL_MASK;
+    if ( level == _InvocationMirror._TOP_LEVEL) {
       receiver_str = "top-level";
+    } else {
+      receiver_str = Error.safeToString(_receiver);
     }
     if (!args_mismatch) {
       msg_buf.write(

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:path/path.dart";
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
@@ -110,9 +111,8 @@ void testNoRequiredClientCertificate() {
 }
 
 void main() {
-  Path scriptDir = new Path(Platform.script).directoryPath;
-  Path certificateDatabase = scriptDir.append('pkcert');
-  SecureSocket.initialize(database: certificateDatabase.toNativePath(),
+  String certificateDatabase = join(dirname(Platform.script), 'pkcert');
+  SecureSocket.initialize(database: certificateDatabase,
                           password: 'dartdart',
                           useBuiltinRoots: false);
 

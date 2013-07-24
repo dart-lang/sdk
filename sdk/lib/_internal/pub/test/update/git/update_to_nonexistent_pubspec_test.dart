@@ -20,7 +20,7 @@ main() {
     ]);
     repo.create();
 
-    d.appDir([{"git": "../foo.git"}]).create();
+    d.appDir({"foo": {"git": "../foo.git"}}).create();
 
     pubInstall();
 

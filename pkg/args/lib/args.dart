@@ -255,6 +255,8 @@
  */
 library args;
 
+import 'package:unmodifiable_collection/unmodifiable_collection.dart';
+
 import 'src/parser.dart';
 import 'src/usage.dart';
 import 'src/options.dart';
@@ -265,18 +267,28 @@ export 'src/options.dart';
  * options and flags from them.
  */
 class ArgParser {
+  final Map<String, Option> _options;
+  final Map<String, ArgParser> _commands;
+
   /**
    * The options that have been defined for this parser.
    */
-  final Map<String, Option> options = <String, Option>{};
+  final Map<String, Option> options;
 
   /**
    * The commands that have been defined for this parser.
    */
-  final Map<String, ArgParser> commands = <String, ArgParser>{};
+  final Map<String, ArgParser> commands;
 
   /** Creates a new ArgParser. */
-  ArgParser();
+  factory ArgParser() =>
+      new ArgParser._(<String, Option>{}, <String, ArgParser>{});
+
+  ArgParser._(Map<String, Option> options, Map<String, ArgParser> commands) :
+    this._options = options,
+    this.options = new UnmodifiableMapView(options),
+    this._commands = commands,
+    this.commands = new UnmodifiableMapView(commands);
 
   /**
    * Defines a command.
@@ -287,12 +299,12 @@ class ArgParser {
    */
   ArgParser addCommand(String name, [ArgParser parser]) {
     // Make sure the name isn't in use.
-    if (commands.containsKey(name)) {
+    if (_commands.containsKey(name)) {
       throw new ArgumentError('Duplicate command "$name".');
     }
 
     if (parser == null) parser = new ArgParser();
-    commands[name] = parser;
+    _commands[name] = parser;
     return parser;
   }
 
@@ -326,7 +338,7 @@ class ArgParser {
       void callback(value), {bool isFlag, bool negatable: false,
       bool allowMultiple: false}) {
     // Make sure the name isn't in use.
-    if (options.containsKey(name)) {
+    if (_options.containsKey(name)) {
       throw new ArgumentError('Duplicate option "$name".');
     }
 
@@ -339,7 +351,7 @@ class ArgParser {
       }
     }
 
-    options[name] = new Option(name, abbr, help, allowed, allowedHelp,
+    _options[name] = new Option(name, abbr, help, allowed, allowedHelp,
         defaultsTo, callback, isFlag: isFlag, negatable: negatable,
         allowMultiple: allowMultiple);
   }
@@ -395,7 +407,7 @@ class ArgParser {
  * command line arguments.
  */
 class ArgResults {
-  final Map _options;
+  final Map<String, dynamic> _options;
 
   /**
    * If these are the results for parsing a command's options, this will be
@@ -417,7 +429,8 @@ class ArgResults {
   final List<String> rest;
 
   /** Creates a new [ArgResults]. */
-  ArgResults(this._options, this.name, this.command, this.rest);
+  ArgResults(this._options, this.name, this.command, List<String> rest)
+    : this.rest = new UnmodifiableListView(rest);
 
   /** Gets the parsed command-line option named [name]. */
   operator [](String name) {

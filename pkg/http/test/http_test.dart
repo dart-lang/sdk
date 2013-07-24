@@ -4,8 +4,6 @@
 
 library http_test;
 
-import 'dart:io';
-
 import 'package:http/http.dart' as http;
 import 'package:unittest/unittest.dart';
 

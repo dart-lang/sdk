@@ -827,7 +827,8 @@ class DeoptInfoBuilder::TrieNode : public ZoneAllocated {
 
 DeoptInfoBuilder::DeoptInfoBuilder(const intptr_t num_args)
     : instructions_(),
-      object_table_(GrowableObjectArray::Handle(GrowableObjectArray::New())),
+      object_table_(GrowableObjectArray::Handle(
+          GrowableObjectArray::New(Heap::kOld))),
       num_args_(num_args),
       trie_root_(new TrieNode()),
       current_info_number_(0),
@@ -844,7 +845,7 @@ intptr_t DeoptInfoBuilder::FindOrAddObjectInTable(const Object& obj) const {
   }
   // Add object.
   const intptr_t result = object_table_.Length();
-  object_table_.Add(obj);
+  object_table_.Add(obj, Heap::kOld);
   return result;
 }
 

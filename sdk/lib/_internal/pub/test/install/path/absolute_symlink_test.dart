@@ -18,11 +18,8 @@ main() {
     ]).create();
 
     d.dir(appPath, [
-      d.pubspec({
-        "name": "myapp",
-        "dependencies": {
-          "foo": {"path": path.join(sandboxDir, "foo")}
-        }
+      d.appPubspec({
+        "foo": {"path": path.join(sandboxDir, "foo")}
       })
     ]).create();
 

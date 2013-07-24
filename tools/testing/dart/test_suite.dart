@@ -428,6 +428,7 @@ class StandardTestSuite extends TestSuite {
   final Path dartDir;
   Predicate<String> isTestFilePredicate;
   final bool listRecursively;
+  final extraVmOptions;
 
   static final RegExp multiTestRegExp = new RegExp(r"/// [0-9][0-9]:(.*)");
 
@@ -440,7 +441,8 @@ class StandardTestSuite extends TestSuite {
   : super(configuration, suiteName),
     dartDir = TestUtils.dartDir(),
     listRecursively = recursive,
-    suiteDir = TestUtils.dartDir().join(suiteDirectory);
+    suiteDir = TestUtils.dartDir().join(suiteDirectory),
+    extraVmOptions = TestUtils.getExtraVmOptions(configuration);
 
   /**
    * Creates a test suite whose file organization matches an expected structure.
@@ -736,8 +738,13 @@ class StandardTestSuite extends TestSuite {
     assert(!vmOptionsList.isEmpty);
 
     for (var vmOptions in vmOptionsList) {
+      var allVmOptions = vmOptions;
+      if (!extraVmOptions.isEmpty) {
+        allVmOptions = new List.from(vmOptions)..addAll(extraVmOptions);
+      }
+
       doTest(new TestCase('$suiteName/$testName',
-                          makeCommands(info, vmOptions, commonArguments),
+                          makeCommands(info, allVmOptions, commonArguments),
                           configuration,
                           completeHandler,
                           expectations,
@@ -1245,7 +1252,7 @@ class StandardTestSuite extends TestSuite {
 
     bool isMultitest = optionsFromFile["isMultitest"];
     List<String> dartOptions = optionsFromFile["dartOptions"];
-    List<List<String>> vmOptionsList = getVmOptions(optionsFromFile);
+
     assert(!isMultitest || dartOptions == null);
     if (dartOptions == null) {
       args.add(filePath.toNativePath());
@@ -1913,6 +1920,20 @@ class TestUtils {
     }
     return new Path(path);
   }
+
+  /** 
+   * Gets extra vm options passed to the testing script.
+   */
+  static List<String> getExtraVmOptions(Map configuration) {
+    var extraVmOptions = [];
+    if (configuration['vm-options'] != null) {
+      extraVmOptions = configuration['vm-options'].split(" ");
+      extraVmOptions.removeWhere((s) => s.trim() == "");
+    }
+    return extraVmOptions;
+  }
+
+
 }
 
 class SummaryReport {

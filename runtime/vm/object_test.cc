@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "platform/assert.h"
 #include "vm/assembler.h"
 #include "vm/bigint_operations.h"
 #include "vm/class_finalizer.h"
@@ -140,7 +139,7 @@ TEST_CASE(TypeArguments) {
   EXPECT_NE(type_arguments1.raw(), type_arguments2.raw());
   OS::Print("1: %s\n", type_arguments1.ToCString());
   OS::Print("2: %s\n", type_arguments2.ToCString());
-  ASSERT(type_arguments1.Equals(type_arguments2));
+  EXPECT(type_arguments1.Equals(type_arguments2));
   TypeArguments& type_arguments3 = TypeArguments::Handle();
   type_arguments1.Canonicalize();
   type_arguments3 ^= type_arguments2.Canonicalize();
@@ -1674,7 +1673,7 @@ TEST_CASE(Array) {
 
   array.MakeImmutable();
   Object& obj = Object::Handle(array.raw());
-  ASSERT(obj.IsArray());
+  EXPECT(obj.IsArray());
 }
 
 
@@ -2018,22 +2017,22 @@ TEST_CASE(EmbeddedScript) {
   const char* line5 = strstr(line4, "\n") + 1;
 
   const int first_dart_line = 3;
-  ASSERT(strstr(line3, "main") != NULL);
+  EXPECT(strstr(line3, "main") != NULL);
   const int last_dart_line = 5;
-  ASSERT(strstr(line5, "}") != NULL);
+  EXPECT(strstr(line5, "}") != NULL);
 
   const char* script_begin = strstr(text, "main");
-  ASSERT(script_begin != NULL);
+  EXPECT(script_begin != NULL);
   const char* script_end = strstr(text, "</script>");
-  ASSERT(script_end != NULL);
+  EXPECT(script_end != NULL);
   int script_length = script_end - script_begin;
-  ASSERT(script_length > 0);
+  EXPECT(script_length > 0);
 
   // The Dart script starts on line 3 instead of 1, offset is 3 - 1 = 2.
   int line_offset = 2;
   // Dart script starts with "main" on line 3.
   intptr_t col_offset = script_begin - line3;
-  ASSERT(col_offset > 0);
+  EXPECT(col_offset > 0);
 
   char* src_chars = strdup(script_begin);
   src_chars[script_length] = '\0';
@@ -2465,10 +2464,10 @@ TEST_CASE(ClassDictionaryIterator) {
   Class& cls = Class::Handle();
   while (iterator.HasNext()) {
     cls = iterator.GetNextClass();
-    ASSERT((cls.raw() == ae66.raw()) || (cls.raw() == re44.raw()));
+    EXPECT((cls.raw() == ae66.raw()) || (cls.raw() == re44.raw()));
     count++;
   }
-  ASSERT(count == 2);
+  EXPECT(count == 2);
 }
 
 
@@ -2560,7 +2559,7 @@ TEST_CASE(SubtypeTestCache) {
   const Class& empty_class =
       Class::Handle(CreateDummyClass(class_name, script));
   SubtypeTestCache& cache = SubtypeTestCache::Handle(SubtypeTestCache::New());
-  ASSERT(!cache.IsNull());
+  EXPECT(!cache.IsNull());
   EXPECT_EQ(0, cache.NumberOfChecks());
   const TypeArguments& targ_0 = TypeArguments::Handle(TypeArguments::New(2));
   const TypeArguments& targ_1 = TypeArguments::Handle(TypeArguments::New(3));
@@ -3201,14 +3200,14 @@ TEST_CASE(MirrorReference) {
   EXPECT_EQ(reference.referent(), other_reference.referent());
 
   Object& obj = Object::Handle(reference.raw());
-  ASSERT(obj.IsMirrorReference());
+  EXPECT(obj.IsMirrorReference());
 }
 
 
 static RawFunction* GetFunction(const Class& cls, const char* name) {
   const Function& result = Function::Handle(cls.LookupDynamicFunction(
       String::Handle(String::New(name))));
-  ASSERT(!result.IsNull());
+  EXPECT(!result.IsNull());
   return result.raw();
 }
 
@@ -3216,15 +3215,17 @@ static RawFunction* GetFunction(const Class& cls, const char* name) {
 static RawField* GetField(const Class& cls, const char* name) {
   const Field& field =
       Field::Handle(cls.LookupField(String::Handle(String::New(name))));
-  ASSERT(!field.IsNull());
+  EXPECT(!field.IsNull());
   return field.raw();
 }
 
 
 static RawClass* GetClass(const Library& lib, const char* name) {
-  const Class& cls =
-      Class::Handle(lib.LookupClass(String::Handle(Symbols::New(name))));
-  ASSERT(!cls.IsNull());
+  String& ambiguity_error_msg = String::Handle();
+  const Class& cls = Class::Handle(
+      lib.LookupClass(String::Handle(Symbols::New(name)),
+                      &ambiguity_error_msg));
+  EXPECT(!cls.IsNull());  // No ambiguity error expected.
   return cls.raw();
 }
 
@@ -3235,7 +3236,7 @@ static void PrintMetadata(const char* name, const Object& data) {
               name,
               Error::Cast(data).ToErrorCString());
   }
-  ASSERT(data.IsArray());
+  EXPECT(data.IsArray());
   const Array& metadata = Array::Cast(data);
   OS::Print("Metadata for %s has %"Pd" values:\n", name, metadata.Length());
   Object& elem = Object::Handle();
@@ -3285,7 +3286,7 @@ TEST_CASE(Metadata) {
   EXPECT_VALID(result);
   Library& lib = Library::Handle();
   lib ^= Api::UnwrapHandle(h_lib);
-  ASSERT(!lib.IsNull());
+  EXPECT(!lib.IsNull());
   const Class& class_a = Class::Handle(GetClass(lib, "A"));
   Object& res = Object::Handle(lib.GetMetadata(class_a));
   PrintMetadata("A", res);
@@ -3303,17 +3304,17 @@ TEST_CASE(Metadata) {
   PrintMetadata("A.aFunc", res);
 
   func = lib.LookupLocalFunction(String::Handle(Symbols::New("main")));
-  ASSERT(!func.IsNull());
+  EXPECT(!func.IsNull());
   res = lib.GetMetadata(func);
   PrintMetadata("main", res);
 
   func = lib.LookupLocalFunction(String::Handle(Symbols::New("get:tlGetter")));
-  ASSERT(!func.IsNull());
+  EXPECT(!func.IsNull());
   res = lib.GetMetadata(func);
   PrintMetadata("tlGetter", res);
 
   field = lib.LookupLocalField(String::Handle(Symbols::New("gVar")));
-  ASSERT(!field.IsNull());
+  EXPECT(!field.IsNull());
   res = lib.GetMetadata(field);
   PrintMetadata("gVar", res);
 }
@@ -3352,7 +3353,7 @@ TEST_CASE(FunctionSourceFingerprint) {
   EXPECT(!lib.IsNull());
 
   const Class& class_a = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New("A"))));
+      lib.LookupClass(String::Handle(Symbols::New("A")), NULL));
   const Function& test1 = Function::Handle(GetFunction(class_a, "test1"));
   const Function& test2 = Function::Handle(GetFunction(class_a, "test2"));
   const Function& test3 = Function::Handle(GetFunction(class_a, "test3"));

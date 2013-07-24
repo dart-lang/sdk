@@ -86,7 +86,7 @@ class DartGenerator(object):
               self._IsCompoundType(database, type_name)):
             continue
           # Ignore constructor warnings.
-          if not (interface.id in ['DOMWindow', 'WorkerContext'] and
+          if not (interface.id in ['Window', 'WorkerContext'] and
               type_name.endswith('Constructor')):
             _logger.warn('removing %s in %s which has unidentified type %s' %
                        (node_name, interface.id, type_name))
@@ -213,6 +213,7 @@ class DartGenerator(object):
     ARG = idlnode.IDLArgument([('Type', ('ScopedName', 'object')), ('Id', 'arg')])
     for interface in database.GetInterfaces():
       for operation in interface.operations:
-        call_with = operation.ext_attrs.get('CallWith', '').split('|')
+        call_with = (operation.ext_attrs.get('CallWith', '').split('|') +
+                     operation.ext_attrs.get('ConstructorCallWith', '').split('|'))
         if 'ScriptArguments' in call_with:
           operation.arguments.append(ARG)

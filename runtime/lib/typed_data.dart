@@ -351,6 +351,10 @@ abstract class _TypedListBase {
     return IterableMixinWorkaround.singleWhere(this, test);
   }
 
+  Iterable<num> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
+
   num elementAt(int index) {
     return this[index];
   }
@@ -472,6 +476,10 @@ abstract class _TypedListBase {
 
   Set toSet() {
     return new Set.from(this);
+  }
+
+  Map<int, num> asMap() {
+    return IterableMixinWorkaround.asMapList(this);
   }
 
   List sublist(int start, [int end]) {

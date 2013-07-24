@@ -30,6 +30,31 @@ class ClosureInvocationElement extends FunctionElementX {
 typedef void DefineStubFunction(String invocationName, jsAst.Expression value);
 
 /**
+ * [member] is a field (instance, static, or top level).
+ *
+ * [name] is the field name that the [Namer] has picked for this field's
+ * storage, that is, the JavaScript property name.
+ *
+ * [accessorName] is the name of the accessor. For instance fields this is
+ * mostly the same as [name] except when [member] is shadowing a field in its
+ * superclass.  For other fields, they are rarely the same.
+ *
+ * [needsGetter] and [needsSetter] represent if a getter or a setter
+ * respectively is needed.  There are many factors in this, for example, if the
+ * accessor can be inlined.
+ *
+ * [needsCheckedSetter] indicates that a checked getter is needed, and in this
+ * case, [needsSetter] is always false. [needsCheckedSetter] is only true when
+ * type assertions are enabled (checked mode).
+ */
+typedef void AcceptField(VariableElement member,
+                         String name,
+                         String accessorName,
+                         bool needsGetter,
+                         bool needsSetter,
+                         bool needsCheckedSetter);
+
+/**
  * A data structure for collecting fragments of a class definition.
  */
 class ClassBuilder {
@@ -77,6 +102,7 @@ class CodeEmitterTask extends CompilerTask {
   String isolateProperties;
   String classesCollector;
   final Set<ClassElement> neededClasses = new Set<ClassElement>();
+  final Set<ClassElement> rtiNeededClasses = new Set<ClassElement>();
   final List<ClassElement> regularClasses = <ClassElement>[];
   final List<ClassElement> deferredClasses = <ClassElement>[];
   final List<ClassElement> nativeClasses = <ClassElement>[];
@@ -1191,26 +1217,26 @@ class CodeEmitterTask extends CompilerTask {
     return selectors;
   }
 
-  bool instanceFieldNeedsGetter(Element member) {
-    assert(member.isField());
-    if (fieldAccessNeverThrows(member)) return false;
-    return backend.retainGetter(member)
-        || compiler.codegenWorld.hasInvokedGetter(member, compiler);
+  bool fieldNeedsGetter(VariableElement field) {
+    assert(field.isField());
+    if (fieldAccessNeverThrows(field)) return false;
+    return backend.retainGetter(field)
+        || compiler.codegenWorld.hasInvokedGetter(field, compiler);
   }
 
-  bool instanceFieldNeedsSetter(Element member) {
-    assert(member.isField());
-    if (fieldAccessNeverThrows(member)) return false;
-    return (!member.modifiers.isFinalOrConst())
-        && (backend.retainSetter(member)
-            || compiler.codegenWorld.hasInvokedSetter(member, compiler));
+  bool fieldNeedsSetter(VariableElement field) {
+    assert(field.isField());
+    if (fieldAccessNeverThrows(field)) return false;
+    return (!field.modifiers.isFinalOrConst())
+        && (backend.retainSetter(field)
+            || compiler.codegenWorld.hasInvokedSetter(field, compiler));
   }
 
   // We never access a field in a closure (a captured variable) without knowing
   // that it is there.  Therefore we don't need to use a getter (that will throw
   // if the getter method is missing), but can always access the field directly.
-  static bool fieldAccessNeverThrows(Element element) {
-    return element is ClosureFieldElement;
+  static bool fieldAccessNeverThrows(VariableElement field) {
+    return field is ClosureFieldElement;
   }
 
   String compiledFieldName(Element member) {
@@ -1484,37 +1510,52 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   /**
-   * Documentation wanted -- johnniwinther
+   * Calls [addField] for each of the fields of [element].
    *
-   * Invariant: [classElement] must be a declaration element.
+   * [element] must be a [ClassElement] or a [LibraryElement].
+   *
+   * If [element] is a [ClassElement], the static fields of the class are
+   * visited if [visitStatics] is true and the instance fields are visited if
+   * [visitStatics] is false.
+   *
+   * If [element] is a [LibraryElement], [visitStatics] must be true.
+   *
+   * When visiting the instance fields of a class, the fields of its superclass
+   * are also visited if the class is instantiated.
+   *
+   * Invariant: [element] must be a declaration element.
    */
-  void visitClassFields(ClassElement classElement,
-                        bool visitStatics,
-                        void addField(Element member,
-                                      String name,
-                                      String accessorName,
-                                      bool needsGetter,
-                                      bool needsSetter,
-                                      bool needsCheckedSetter)) {
-    assert(invariant(classElement, classElement.isDeclaration));
+  void visitFields(Element element, bool visitStatics, AcceptField f) {
+    assert(invariant(element, element.isDeclaration));
+
+    bool isClass = false;
+    bool isLibrary = false;
+    if (element.isClass()) {
+      isClass = true;
+    } else if (element.isLibrary()) {
+      isLibrary = true;
+      assert(invariant(element, visitStatics));
+    } else {
+      throw new SpannableAssertionFailure(
+          element, 'Expected a ClassElement or a LibraryElement.');
+    }
+
     // If the class is never instantiated we still need to set it up for
     // inheritance purposes, but we can simplify its JavaScript constructor.
     bool isInstantiated =
-        compiler.codegenWorld.instantiatedClasses.contains(classElement);
+        compiler.codegenWorld.instantiatedClasses.contains(element);
 
-    void visitField(ClassElement enclosingClass, Element member) {
-      assert(invariant(classElement, member.isDeclaration));
-      LibraryElement library = member.getLibrary();
-      SourceString name = member.name;
-      bool isPrivate = name.isPrivate();
+    void visitField(Element holder, VariableElement field) {
+      assert(invariant(element, field.isDeclaration));
+      SourceString name = field.name;
 
       // Keep track of whether or not we're dealing with a field mixin
       // into a native class.
       bool isMixinNativeField =
-          classElement.isNative() && enclosingClass.isMixinApplication;
+          isClass && element.isNative() && holder.isMixinApplication;
 
       // See if we can dynamically create getters and setters.
-      // We can only generate getters and setters for [classElement] since
+      // We can only generate getters and setters for [element] since
       // the fields of super classes could be overwritten with getters or
       // setters.
       bool needsGetter = false;
@@ -1522,43 +1563,46 @@ class CodeEmitterTask extends CompilerTask {
       // We need to name shadowed fields differently, so they don't clash with
       // the non-shadowed field.
       bool isShadowed = false;
-      if (isMixinNativeField || identical(enclosingClass, classElement)) {
-        needsGetter = instanceFieldNeedsGetter(member);
-        needsSetter = instanceFieldNeedsSetter(member);
+      if (isLibrary || isMixinNativeField || holder == element) {
+        needsGetter = fieldNeedsGetter(field);
+        needsSetter = fieldNeedsSetter(field);
       } else {
-        isShadowed = classElement.isShadowedByField(member);
+        ClassElement cls = element;
+        isShadowed = cls.isShadowedByField(field);
       }
 
-      if ((isInstantiated && !enclosingClass.isNative())
+      if ((isInstantiated && !holder.isNative())
           || needsGetter
           || needsSetter) {
         String accessorName = isShadowed
-            ? namer.shadowedFieldName(member)
-            : namer.getName(member);
-        String fieldName = member.hasFixedBackendName()
-            ? member.fixedBackendName()
-            : (isMixinNativeField ? member.name.slowToString() : accessorName);
+            ? namer.shadowedFieldName(field)
+            : namer.getName(field);
+        String fieldName = field.hasFixedBackendName()
+            ? field.fixedBackendName()
+            : (isMixinNativeField ? name.slowToString() : accessorName);
         bool needsCheckedSetter = false;
-        if (needsSetter) {
-          if (compiler.enableTypeAssertions
-              && canGenerateCheckedSetter(member)) {
-            needsCheckedSetter = true;
-            needsSetter = false;
-          }
+        if (compiler.enableTypeAssertions
+            && needsSetter
+            && canGenerateCheckedSetter(field)) {
+          needsCheckedSetter = true;
+          needsSetter = false;
         }
         // Getters and setters with suffixes will be generated dynamically.
-        addField(member,
-                 fieldName,
-                 accessorName,
-                 needsGetter,
-                 needsSetter,
-                 needsCheckedSetter);
+        f(field, fieldName, accessorName, needsGetter, needsSetter,
+          needsCheckedSetter);
       }
     }
 
-    if (visitStatics) {
-      classElement.implementation.forEachStaticField(visitField);
+    if (isLibrary) {
+      LibraryElement library = element;
+      library.implementation.forEachLocalMember((Element member) {
+        if (member.isField()) visitField(library, member);
+      });
+    } else if (visitStatics) {
+      ClassElement cls = element;
+      cls.implementation.forEachStaticField(visitField);
     } else {
+      ClassElement cls = element;
       // TODO(kasperl): We should make sure to only emit one version of
       // overridden fields. Right now, we rely on the ordering so the
       // fields pulled in from mixins are replaced with the fields from
@@ -1566,11 +1610,10 @@ class CodeEmitterTask extends CompilerTask {
 
       // If a class is not instantiated then we add the field just so we can
       // generate the field getter/setter dynamically. Since this is only
-      // allowed on fields that are in [classElement] we don't need to visit
+      // allowed on fields that are in [element] we don't need to visit
       // superclasses for non-instantiated classes.
-      classElement.implementation.forEachInstanceField(
-          visitField,
-          includeSuperAndInjectedMembers: isInstantiated);
+      cls.implementation.forEachInstanceField(
+          visitField, includeSuperAndInjectedMembers: isInstantiated);
     }
   }
 
@@ -1598,12 +1641,12 @@ class CodeEmitterTask extends CompilerTask {
         js.fun(args, js('$receiver.$fieldName = v')));
   }
 
-  bool canGenerateCheckedSetter(Element member) {
+  bool canGenerateCheckedSetter(VariableElement field) {
     // We never generate accessors for top-level/static fields.
-    if (!member.isInstanceMember()) return false;
-    DartType type = member.computeType(compiler).unalias(compiler);
+    if (!field.isInstanceMember()) return false;
+    DartType type = field.computeType(compiler).unalias(compiler);
     if (type.element.isTypeVariable() ||
-        (type is FunctionType && type.containsTypeVariables) || 
+        (type is FunctionType && type.containsTypeVariables) ||
         type.element == compiler.dynamicClass ||
         type.element == compiler.objectClass) {
       // TODO(ngeoffray): Support type checks on type parameters.
@@ -1674,18 +1717,31 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   /// Returns `true` if fields added.
-  bool emitClassFields(ClassElement classElement,
-                       ClassBuilder builder,
-                       String superName,
-                       { bool classIsNative: false,
-                         bool emitStatics: false }) {
+  bool emitFields(Element element,
+                  ClassBuilder builder,
+                  String superName,
+                  { bool classIsNative: false,
+                    bool emitStatics: false,
+                    bool onlyForRti: false }) {
+    assert(!emitStatics || !onlyForRti);
+    bool isClass = false;
+    bool isLibrary = false;
+    if (element.isClass()) {
+      isClass = true;
+    } else if (element.isLibrary()) {
+      isLibrary = false;
+      assert(invariant(element, emitStatics));
+    } else {
+      throw new SpannableAssertionFailure(
+          element, 'Must be a ClassElement or a LibraryElement');
+    }
     StringBuffer buffer = new StringBuffer();
     if (emitStatics) {
-      assert(invariant(classElement, superName == null, message: superName));
+      assert(invariant(element, superName == null, message: superName));
     } else {
-      assert(invariant(classElement, superName != null));
+      assert(invariant(element, superName != null));
       String nativeName =
-          namer.getPrimitiveInterceptorRuntimeName(classElement);
+          namer.getPrimitiveInterceptorRuntimeName(element);
       if (nativeName != null) {
         buffer.write('$nativeName/');
       }
@@ -1698,75 +1754,85 @@ class CodeEmitterTask extends CompilerTask {
     var fieldMetadata = [];
     bool hasMetadata = false;
 
-    visitClassFields(classElement, emitStatics,
-                     (Element member,
-                      String name,
-                      String accessorName,
-                      bool needsGetter,
-                      bool needsSetter,
-                      bool needsCheckedSetter) {
-      // Ignore needsCheckedSetter - that is handled below.
-      bool needsAccessor = (needsGetter || needsSetter);
-      // We need to output the fields for non-native classes so we can auto-
-      // generate the constructor.  For native classes there are no
-      // constructors, so we don't need the fields unless we are generating
-      // accessors at runtime.
-      if (!classIsNative || needsAccessor) {
-        buffer.write(separator);
-        separator = ',';
-        var metadata = buildMetadataFunction(member);
-        if (metadata != null) {
-          hasMetadata = true;
-        } else {
-          metadata = new jsAst.LiteralNull();
-        }
-        fieldMetadata.add(metadata);
-        recordMangledField(member, accessorName, member.name.slowToString());
-        if (!needsAccessor) {
-          // Emit field for constructor generation.
-          assert(!classIsNative);
-          buffer.write(name);
-        } else {
-          // Emit (possibly renaming) field name so we can add accessors at
-          // runtime.
-          buffer.write(accessorName);
-          if (name != accessorName) {
-            buffer.write(':$name');
-            // Only the native classes can have renaming accessors.
-            assert(classIsNative);
-          }
-
-          int getterCode = 0;
-          if (needsGetter) {
-            // 01:  function() { return this.field; }
-            // 10:  function(receiver) { return receiver.field; }
-            // 11:  function(receiver) { return this.field; }
-            getterCode += backend.fieldHasInterceptedGetter(member) ? 2 : 0;
-            getterCode += backend.isInterceptorClass(classElement) ? 0 : 1;
-            // TODO(sra): 'isInterceptorClass' might not be the correct test for
-            // methods forced to use the interceptor convention because the
-            // method's class was elsewhere mixed-in to an interceptor.
-            assert(!member.isInstanceMember() || getterCode != 0);
-          }
-          int setterCode = 0;
-          if (needsSetter) {
-            // 01:  function(value) { this.field = value; }
-            // 10:  function(receiver, value) { receiver.field = value; }
-            // 11:  function(receiver, value) { this.field = value; }
-            setterCode += backend.fieldHasInterceptedSetter(member) ? 2 : 0;
-            setterCode += backend.isInterceptorClass(classElement) ? 0 : 1;
-            assert(!member.isInstanceMember() || setterCode != 0);
-          }
-          int code = getterCode + (setterCode << 2);
-          if (code == 0) {
-            compiler.reportInternalError(
-                member, 'Internal error: code is 0 ($classElement/$member)');
+    if (!onlyForRti) {
+      visitFields(element, emitStatics,
+                  (VariableElement field,
+                   String name,
+                   String accessorName,
+                   bool needsGetter,
+                   bool needsSetter,
+                   bool needsCheckedSetter) {
+        // Ignore needsCheckedSetter - that is handled below.
+        bool needsAccessor = (needsGetter || needsSetter);
+        // We need to output the fields for non-native classes so we can auto-
+        // generate the constructor.  For native classes there are no
+        // constructors, so we don't need the fields unless we are generating
+        // accessors at runtime.
+        if (!classIsNative || needsAccessor) {
+          buffer.write(separator);
+          separator = ',';
+          var metadata = buildMetadataFunction(field);
+          if (metadata != null) {
+            hasMetadata = true;
           } else {
-            buffer.write(FIELD_CODE_CHARACTERS[code - FIRST_FIELD_CODE]);
+            metadata = new jsAst.LiteralNull();
+          }
+          fieldMetadata.add(metadata);
+          recordMangledField(field, accessorName, field.name.slowToString());
+          if (!needsAccessor) {
+            // Emit field for constructor generation.
+            assert(!classIsNative);
+            buffer.write(name);
+          } else {
+            // Emit (possibly renaming) field name so we can add accessors at
+            // runtime.
+            buffer.write(accessorName);
+            if (name != accessorName) {
+              buffer.write(':$name');
+              // Only the native classes can have renaming accessors.
+              assert(classIsNative);
+            }
+      
+            int getterCode = 0;
+            if (needsGetter) {
+              if (field.isInstanceMember()) {
+                // 01:  function() { return this.field; }
+                // 10:  function(receiver) { return receiver.field; }
+                // 11:  function(receiver) { return this.field; }
+                getterCode += backend.fieldHasInterceptedGetter(field) ? 2 : 0;
+                getterCode += backend.isInterceptorClass(element) ? 0 : 1;
+                // TODO(sra): 'isInterceptorClass' might not be the correct test
+                // for methods forced to use the interceptor convention because
+                // the method's class was elsewhere mixed-in to an interceptor.
+                assert(!field.isInstanceMember() || getterCode != 0);
+              } else {
+                getterCode = 1;
+              }
+            }
+            int setterCode = 0;
+            if (needsSetter) {
+              if (field.isInstanceMember()) {
+                // 01:  function(value) { this.field = value; }
+                // 10:  function(receiver, value) { receiver.field = value; }
+                // 11:  function(receiver, value) { this.field = value; }
+                setterCode += backend.fieldHasInterceptedSetter(field) ? 2 : 0;
+                setterCode += backend.isInterceptorClass(element) ? 0 : 1;
+                assert(!field.isInstanceMember() || setterCode != 0);
+              } else {
+                setterCode = 1;
+              }
+            }
+            int code = getterCode + (setterCode << 2);
+            if (code == 0) {
+              compiler.reportInternalError(
+                  field, 'Internal error: code is 0 ($element/$field)');
+            } else {
+              buffer.write(FIELD_CODE_CHARACTERS[code - FIRST_FIELD_CODE]);
+            }
           }
         }
-      }
-    });
+      });
+    }
 
     bool fieldsAdded = buffer.length > bufferClassLength;
     String compactClassData = buffer.toString();
@@ -1782,13 +1848,13 @@ class CodeEmitterTask extends CompilerTask {
   void emitClassGettersSetters(ClassElement classElement,
                                ClassBuilder builder) {
 
-    visitClassFields(classElement, false,
-                     (Element member,
-                      String name,
-                      String accessorName,
-                      bool needsGetter,
-                      bool needsSetter,
-                      bool needsCheckedSetter) {
+    visitFields(classElement, false,
+                (VariableElement member,
+                 String name,
+                 String accessorName,
+                 bool needsGetter,
+                 bool needsSetter,
+                 bool needsCheckedSetter) {
       compiler.withCurrentElement(member, () {
         if (needsCheckedSetter) {
           assert(!needsSetter);
@@ -1812,8 +1878,10 @@ class CodeEmitterTask extends CompilerTask {
    * Invariant: [classElement] must be a declaration element.
    */
   void generateClass(ClassElement classElement, CodeBuffer buffer) {
+    final onlyForRti = rtiNeededClasses.contains(classElement);
+
     assert(invariant(classElement, classElement.isDeclaration));
-    assert(invariant(classElement, !classElement.isNative()));
+    assert(invariant(classElement, !classElement.isNative() || onlyForRti));
 
     needsDefineClass = true;
     String className = namer.getName(classElement);
@@ -1836,7 +1904,7 @@ class CodeEmitterTask extends CompilerTask {
     emitClassConstructor(classElement, builder);
     emitSuper(superName, builder);
     emitRuntimeName(runtimeName, builder);
-    emitClassFields(classElement, builder, superName);
+    emitFields(classElement, builder, superName, onlyForRti: onlyForRti);
     emitClassGettersSetters(classElement, builder);
     if (!classElement.isMixinApplication) {
       emitInstanceMembers(classElement, builder);
@@ -1866,8 +1934,7 @@ class CodeEmitterTask extends CompilerTask {
     statics.write('{$n');
     bool hasStatics = false;
     ClassBuilder staticsBuilder = new ClassBuilder();
-    if (emitClassFields(
-            classElement, staticsBuilder, null, emitStatics: true)) {
+    if (emitFields(classElement, staticsBuilder, null, emitStatics: true)) {
       hasStatics = true;
       statics.write('"":$_');
       statics.write(
@@ -2847,7 +2914,7 @@ class CodeEmitterTask extends CompilerTask {
     return js(ref(backend.initializeDispatchPropertyMethod))([
         js.fun(['a'], [ js('${ref(backend.getDispatchPropertyMethod)} = a')]),
         js.string(generateDispatchPropertyName(0)),
-        js('${ref(backend.jsInterceptorClass)}.prototype')
+        js('${ref(backend.jsPlainJavaScriptObjectClass)}.prototype')
       ]);
   }
 
@@ -3032,7 +3099,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
                   ['receiver'])));
 
     } else {
-      ClassElement jsUnknown = backend.jsUnknownClass;
+      ClassElement jsUnknown = backend.jsUnknownJavaScriptObjectClass;
       if (compiler.codegenWorld.instantiatedClasses.contains(jsUnknown)) {
         block.statements.add(
             js.if_(js('!(receiver instanceof #)',
@@ -3093,46 +3160,13 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         .toSet();
     neededClasses.addAll(mixinClasses);
 
-    // 3a. Add classes that are referenced by type arguments or substitutions in
-    //     argument checks.
-    // TODO(karlklose): merge this case with 3b when unifying argument and
-    // object checks.
-    RuntimeTypes rti = backend.rti;
-    backend.rti.getRequiredArgumentClasses(backend).forEach((ClassElement c) {
-      // Types that we represent with JS native types (like int and String) do
-      // not need a class definition as we use the interceptor classes instead.
-      if (!rti.isJsNative(c)) {
-        addClassWithSuperclasses(c);
-      }
-    });
-
-    // 3b. Add classes that are referenced by substitutions in object checks and
-    //     their superclasses.
-    TypeChecks requiredChecks =
-        backend.rti.computeChecks(neededClasses, checkedClasses);
-    Set<ClassElement> classesUsedInSubstitutions =
-        rti.getClassesUsedInSubstitutions(backend, requiredChecks);
-    addClassesWithSuperclasses(classesUsedInSubstitutions);
-
-    // 3c. Add classes that contain checked generic function types. These are
-    //     needed to store the signature encoding.
-    for (FunctionType type in checkedFunctionTypes) {
-      ClassElement contextClass = Types.getClassContext(type);
-      if (contextClass != null) {
-        neededClasses.add(contextClass);
-      }
-    }
-
-    // 4. Finally, sort the classes.
-    List<ClassElement> sortedClasses = Elements.sortedByPosition(neededClasses);
-
-    // If we need noSuchMethod support, we run through all needed
+    // 3. If we need noSuchMethod support, we run through all needed
     // classes to figure out if we need the support on any native
     // class. If so, we let the native emitter deal with it.
     if (compiler.enabledNoSuchMethod) {
       SourceString noSuchMethodName = Compiler.NO_SUCH_METHOD;
       Selector noSuchMethodSelector = compiler.noSuchMethodSelector;
-      for (ClassElement element in sortedClasses) {
+      for (ClassElement element in neededClasses) {
         if (!element.isNative()) continue;
         Element member = element.lookupLocalMember(noSuchMethodName);
         if (member == null) continue;
@@ -3143,8 +3177,25 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       }
     }
 
+    // 4. Find all classes needed for rti.
+    // It is important that this is the penultimate step, at this point,
+    // neededClasses must only contain classes that have been resolved and
+    // codegen'd. The rtiNeededClasses may contain additional classes, but
+    // these are thought to not have been instantiated, so we neeed to be able
+    // to identify them later and make sure we only emit "empty shells" without
+    // fields, etc.
+    computeRtiNeededClasses();
+    rtiNeededClasses.removeAll(neededClasses);
+    // rtiNeededClasses now contains only the "empty shells".
+    neededClasses.addAll(rtiNeededClasses);
+
+    // 5. Finally, sort the classes.
+    List<ClassElement> sortedClasses = Elements.sortedByPosition(neededClasses);
+
     for (ClassElement element in sortedClasses) {
-      if (element.isNative()) {
+      if (rtiNeededClasses.contains(element)) {
+        regularClasses.add(element);
+      } else if (element.isNative()) {
         // For now, native classes cannot be deferred.
         nativeClasses.add(element);
       } else if (isDeferred(element)) {
@@ -3153,6 +3204,55 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         regularClasses.add(element);
       }
     }
+  }
+
+  Set<ClassElement> computeRtiNeededClasses() {
+    void addClassWithSuperclasses(ClassElement cls) {
+      rtiNeededClasses.add(cls);
+      for (ClassElement superclass = cls.superclass;
+          superclass != null;
+          superclass = superclass.superclass) {
+        rtiNeededClasses.add(superclass);
+      }
+    }
+
+    void addClassesWithSuperclasses(Iterable<ClassElement> classes) {
+      for (ClassElement cls in classes) {
+        addClassWithSuperclasses(cls);
+      }
+    }
+
+    // 1.  Add classes that are referenced by type arguments or substitutions in
+    //     argument checks.
+    // TODO(karlklose): merge this case with 2 when unifying argument and
+    // object checks.
+    RuntimeTypes rti = backend.rti;
+    rti.getRequiredArgumentClasses(backend).forEach((ClassElement c) {
+      // Types that we represent with JS native types (like int and String) do
+      // not need a class definition as we use the interceptor classes instead.
+      if (!rti.isJsNative(c)) {
+        addClassWithSuperclasses(c);
+      }
+    });
+
+    // 2.  Add classes that are referenced by substitutions in object checks and
+    //     their superclasses.
+    TypeChecks requiredChecks =
+        rti.computeChecks(rtiNeededClasses, checkedClasses);
+    Set<ClassElement> classesUsedInSubstitutions =
+        rti.getClassesUsedInSubstitutions(backend, requiredChecks);
+    addClassesWithSuperclasses(classesUsedInSubstitutions);
+
+    // 3.  Add classes that contain checked generic function types. These are
+    //     needed to store the signature encoding.
+    for (FunctionType type in checkedFunctionTypes) {
+      ClassElement contextClass = Types.getClassContext(type);
+      if (contextClass != null) {
+        rtiNeededClasses.add(contextClass);
+      }
+    }
+
+    return rtiNeededClasses;
   }
 
   // Optimize performance critical one shot interceptors.
@@ -3559,6 +3659,27 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         if (compiler.enableMinification) {
           mainBuffer.write(';');
         }
+
+        for (Element element in elementBuffers.keys) {
+          // TODO(ahe): Should iterate over all libraries.  Otherwise, we will
+          // not see libraries that only have fields.
+          if (element.isLibrary()) {
+            LibraryElement library = element;
+            ClassBuilder builder = new ClassBuilder();
+            if (emitFields(library, builder, null, emitStatics: true)) {
+              List<CodeBuffer> buffers = elementBuffers[library];
+              var buffer = buffers[0];
+              if (buffer == null) {
+                buffers[0] = buffer = new CodeBuffer();
+              }
+              for (jsAst.Property property in builder.properties) {
+                if (!buffer.isEmpty) buffer.write(',$n');
+                buffer.addBuffer(jsAst.prettyPrint(property, compiler));
+              }
+            }
+          }
+        }
+
         if (!mangledFieldNames.isEmpty) {
           var keys = mangledFieldNames.keys.toList();
           keys.sort();
@@ -3855,6 +3976,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     var uri = data[1];
     var metadata = data[2];
     var descriptor = data[3];
+    var fields = descriptor && descriptor[""];
     var classes = [];
     var functions = [];
     function processStatics(descriptor) {
@@ -3895,7 +4017,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       }
     }
     processStatics(descriptor);
-    libraries.push([name, uri, classes, functions, metadata]);
+    libraries.push([name, uri, classes, functions, metadata, fields]);
   }
 })''';
   }

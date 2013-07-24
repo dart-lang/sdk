@@ -21,11 +21,8 @@ main() {
     ]).create();
 
     d.dir(appPath, [
-      d.pubspec({
-        "name": "myapp",
-        "dependencies": {
-          "weirdname": {"git": "../foo.git"}
-        }
+      d.appPubspec({
+        "weirdname": {"git": "../foo.git"}
       })
     ]).create();
 

@@ -206,20 +206,20 @@ class _DOMWindowCrossFrame extends NativeFieldWrapperClass1 implements
   _DOMWindowCrossFrame.internal();
 
   // Fields.
-  HistoryBase get history native "DOMWindow_history_cross_frame_Getter";
-  LocationBase get location native "DOMWindow_location_cross_frame_Getter";
-  bool get closed native "DOMWindow_closed_Getter";
-  int get length native "DOMWindow_length_Getter";
-  WindowBase get opener native "DOMWindow_opener_Getter";
-  WindowBase get parent native "DOMWindow_parent_Getter";
-  WindowBase get top native "DOMWindow_top_Getter";
+  HistoryBase get history native "Window_history_cross_frame_Getter";
+  LocationBase get location native "Window_location_cross_frame_Getter";
+  bool get closed native "Window_closed_Getter";
+  int get length native "Window_length_Getter";
+  WindowBase get opener native "Window_opener_Getter";
+  WindowBase get parent native "Window_parent_Getter";
+  WindowBase get top native "Window_top_Getter";
 
   // Methods.
-  void close() native "DOMWindow_close_Callback";
-  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) native "DOMWindow_postMessage_Callback";
+  void close() native "Window_close_Callback";
+  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) native "Window_postMessage_Callback";
 
   // Implementation support.
-  String get typeName => "DOMWindow";
+  String get typeName => "Window";
 }
 
 class _HistoryCrossFrame extends NativeFieldWrapperClass1 implements HistoryBase {

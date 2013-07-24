@@ -15,13 +15,13 @@ main() {
       'constraint', () {
     servePackages([packageMap("foo", "1.0.0")]);
 
-    d.appDir([dependencyMap("foo")]).create();
+    d.appDir({"foo": "any"}).create();
 
     pubInstall();
 
     d.packagesDir({"foo": "1.0.0"}).validate();
     servePackages([packageMap("foo", "1.0.1")]);
-    d.appDir([dependencyMap("foo", ">1.0.0")]).create();
+    d.appDir({"foo": ">1.0.0"}).create();
 
     pubInstall();
 

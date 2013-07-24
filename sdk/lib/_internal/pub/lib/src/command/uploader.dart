@@ -44,12 +44,14 @@ class UploaderCommand extends PubCommand {
       exit(exit_codes.USAGE);
     }
 
-    var command = commandOptions.rest.removeAt(0);
+    var rest = commandOptions.rest.toList();
+
+    var command = rest.removeAt(0);
     if (!['add', 'remove'].contains(command)) {
       log.error('Unknown uploader command "$command".');
       this.printUsage();
       exit(exit_codes.USAGE);
-    } else if (commandOptions.rest.isEmpty) {
+    } else if (rest.isEmpty) {
       log.error('No uploader given for "pub uploader $command".');
       this.printUsage();
       exit(exit_codes.USAGE);
@@ -60,7 +62,7 @@ class UploaderCommand extends PubCommand {
       if (package != null) return package;
       return new Entrypoint(path.current, cache).root.name;
     }).then((package) {
-      var uploader = commandOptions.rest[0];
+      var uploader = rest[0];
       return oauth2.withClient(cache, (client) {
         if (command == 'add') {
           var url = server.resolve("/api/packages/"

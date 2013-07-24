@@ -917,18 +917,20 @@ void Assembler::vstms(BlockAddressMode am, Register base,
 
 
 void Assembler::vldmd(BlockAddressMode am, Register base,
-                      DRegister first, DRegister last, Condition cond) {
+                      DRegister first, intptr_t count, Condition cond) {
   ASSERT((am == IA) || (am == IA_W) || (am == DB_W));
-  ASSERT(last > first);
-  EmitMultiVDMemOp(cond, am, true, base, first, last - first + 1);
+  ASSERT(count <= 16);
+  ASSERT(first + count <= kNumberOfDRegisters);
+  EmitMultiVDMemOp(cond, am, true, base, first, count);
 }
 
 
 void Assembler::vstmd(BlockAddressMode am, Register base,
-                      DRegister first, DRegister last, Condition cond) {
+                      DRegister first, intptr_t count, Condition cond) {
   ASSERT((am == IA) || (am == IA_W) || (am == DB_W));
-  ASSERT(last > first);
-  EmitMultiVDMemOp(cond, am, false, base, first, last - first + 1);
+  ASSERT(count <= 16);
+  ASSERT(first + count <= kNumberOfDRegisters);
+  EmitMultiVDMemOp(cond, am, false, base, first, count);
 }
 
 
@@ -1329,6 +1331,55 @@ void Assembler::vorrq(QRegister qd, QRegister qn, QRegister qm) {
 
 void Assembler::vornq(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B21 | B20 | B8 | B4, kByte, qd, qn, qm);
+}
+
+
+void Assembler::vandq(QRegister qd, QRegister qn, QRegister qm) {
+  EmitSIMDqqq(B8 | B4, kByte, qd, qn, qm);
+}
+
+
+void Assembler::vminqs(QRegister qd, QRegister qn, QRegister qm) {
+  EmitSIMDqqq(B21 | B11 | B10 | B9 | B8, kSWord, qd, qn, qm);
+}
+
+
+void Assembler::vmaxqs(QRegister qd, QRegister qn, QRegister qm) {
+  EmitSIMDqqq(B11 | B10 | B9 | B8, kSWord, qd, qn, qm);
+}
+
+
+void Assembler::vabsqs(QRegister qd, QRegister qm) {
+  EmitSIMDqqq(B24 | B23 | B21 | B20 | B19 | B16 | B10 | B9 | B8, kSWord,
+              qd, Q0, qm);
+}
+
+
+void Assembler::vnegqs(QRegister qd, QRegister qm) {
+  EmitSIMDqqq(B24 | B23 | B21 | B20 | B19 | B16 | B10 | B9 | B8 | B7, kSWord,
+              qd, Q0, qm);
+}
+
+
+void Assembler::vrecpeqs(QRegister qd, QRegister qm) {
+  EmitSIMDqqq(B24 | B23 | B21 | B20 | B19 | B17 | B16 | B10 | B8, kSWord,
+              qd, Q0, qm);
+}
+
+
+void Assembler::vrecpsqs(QRegister qd, QRegister qn, QRegister qm) {
+  EmitSIMDqqq(B11 | B10 | B9 | B8 | B4, kSWord, qd, qn, qm);
+}
+
+
+void Assembler::vrsqrteqs(QRegister qd, QRegister qm) {
+  EmitSIMDqqq(B24 | B23 | B21 | B20 | B19 | B17 | B16 | B10 | B8 | B7,
+              kSWord, qd, Q0, qm);
+}
+
+
+void Assembler::vrsqrtsqs(QRegister qd, QRegister qn, QRegister qm) {
+  EmitSIMDqqq(B21 | B11 | B10 | B9 | B8 | B4, kSWord, qd, qn, qm);
 }
 
 
@@ -1828,6 +1879,64 @@ void Assembler::Rrx(Register rd, Register rm, Condition cond) {
 }
 
 
+void Assembler::Vreciprocalqs(QRegister qd, QRegister qm) {
+  ASSERT(qm != QTMP);
+  ASSERT(qd != QTMP);
+
+  // Reciprocal estimate.
+  vrecpeqs(qd, qm);
+  // 2 Newton-Raphson steps.
+  vrecpsqs(QTMP, qm, qd);
+  vmulqs(qd, qd, QTMP);
+  vrecpsqs(QTMP, qm, qd);
+  vmulqs(qd, qd, QTMP);
+}
+
+
+void Assembler::VreciprocalSqrtqs(QRegister qd, QRegister qm) {
+  ASSERT(qm != QTMP);
+  ASSERT(qd != QTMP);
+
+  // Reciprocal square root estimate.
+  vrsqrteqs(qd, qm);
+  // 2 Newton-Raphson steps. xn+1 = xn * (3 - Q1*xn^2) / 2.
+  // First step.
+  vmulqs(QTMP, qd, qd);  // QTMP <- xn^2
+  vrsqrtsqs(QTMP, qm, QTMP);  // QTMP <- (3 - Q1*QTMP) / 2.
+  vmulqs(qd, qd, QTMP);  // xn+1 <- xn * QTMP
+  // Second step.
+  vmulqs(QTMP, qd, qd);
+  vrsqrtsqs(QTMP, qm, QTMP);
+  vmulqs(qd, qd, QTMP);
+}
+
+
+void Assembler::Vsqrtqs(QRegister qd, QRegister qm, QRegister temp) {
+  ASSERT(temp != QTMP);
+  ASSERT(qm != QTMP);
+  ASSERT(qd != QTMP);
+
+  if (temp != kNoQRegister) {
+    vmovq(temp, qm);
+    qm = temp;
+  }
+
+  VreciprocalSqrtqs(qd, qm);
+  vmovq(qm, qd);
+  Vreciprocalqs(qd, qm);
+}
+
+
+void Assembler::Vdivqs(QRegister qd, QRegister qn, QRegister qm) {
+  ASSERT(qd != QTMP);
+  ASSERT(qn != QTMP);
+  ASSERT(qm != QTMP);
+
+  Vreciprocalqs(qd, qm);
+  vmulqs(qd, qn, qd);
+}
+
+
 void Assembler::Branch(const ExternalLabel* label, Condition cond) {
   LoadImmediate(IP, label->address(), cond);  // Address is never patched.
   bx(IP, cond);
@@ -2232,7 +2341,13 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   // Preserve all volatile FPU registers.
   DRegister firstv = EvenDRegisterOf(kDartFirstVolatileFpuReg);
   DRegister lastv = OddDRegisterOf(kDartLastVolatileFpuReg);
-  vstmd(DB_W, SP, firstv, lastv);
+  if ((lastv - firstv + 1) >= 16) {
+    DRegister mid = static_cast<DRegister>(firstv + 16);
+    vstmd(DB_W, SP, mid, lastv - mid + 1);
+    vstmd(DB_W, SP, firstv, 16);
+  } else {
+    vstmd(DB_W, SP, firstv, lastv - firstv + 1);
+  }
 
   ReserveAlignedFrameSpace(frame_space);
 }
@@ -2250,7 +2365,13 @@ void Assembler::LeaveCallRuntimeFrame() {
   // Restore all volatile FPU registers.
   DRegister firstv = EvenDRegisterOf(kDartFirstVolatileFpuReg);
   DRegister lastv = OddDRegisterOf(kDartLastVolatileFpuReg);
-  vldmd(IA_W, SP, firstv, lastv);
+  if ((lastv - firstv + 1) > 16) {
+    DRegister mid = static_cast<DRegister>(firstv + 16);
+    vldmd(IA_W, SP, firstv, 16);
+    vldmd(IA_W, SP, mid, lastv - mid + 1);
+  } else {
+    vldmd(IA_W, SP, firstv, lastv - firstv + 1);
+  }
 
   // Restore volatile CPU registers.
   LeaveFrame(kDartVolatileCpuRegs | (1 << FP) | (1 << LR));

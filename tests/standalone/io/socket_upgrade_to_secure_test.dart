@@ -8,6 +8,7 @@
 // VMOptions=--short_socket_read --short_socket_write
 
 import "package:expect/expect.dart";
+import "package:path/path.dart";
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
@@ -160,7 +161,7 @@ void test(bool hostnameInConnect,
           future = SecureSocket.secure(socket, host: HOST_NAME);
         }
         return future.then((secureSocket) {
-          Expect.throws(() => socket.add([0]));
+          socket.add([0]);
           return secureSocket;
         });
       });
@@ -174,7 +175,7 @@ void test(bool hostnameInConnect,
               future = SecureSocket.secure(socket, host: HOST_NAME);
             }
             return future.then((secureSocket) {
-              Expect.throws(() => socket.add([0]));
+              socket.add([0]);
               return secureSocket;
             });
         });
@@ -186,7 +187,7 @@ void test(bool hostnameInConnect,
     server.listen((client) {
       if (!handshakeBeforeSecure) {
         SecureSocket.secureServer(client, CERTIFICATE).then((secureClient) {
-          Expect.throws(() => client.add([0]));
+          client.add([0]);
           runServer(secureClient).then((_) => server.close());
         });
       } else {
@@ -195,7 +196,7 @@ void test(bool hostnameInConnect,
               client,
               CERTIFICATE,
               bufferedData: carryOverData).then((secureClient) {
-            Expect.throws(() => client.add([0]));
+            client.add([0]);
             runServer(secureClient).then((_) => server.close());
           });
         });
@@ -211,9 +212,8 @@ void test(bool hostnameInConnect,
 }
 
 main() {
-  Path scriptDir = new Path(Platform.script).directoryPath;
-  Path certificateDatabase = scriptDir.append('pkcert');
-  SecureSocket.initialize(database: certificateDatabase.toNativePath(),
+  var certificateDatabase = join(dirname(Platform.script), 'pkcert');
+  SecureSocket.initialize(database: certificateDatabase,
                           password: 'dartdart',
                           useBuiltinRoots: false);
   test(false, false);

@@ -60,7 +60,7 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Creates('Null')",
     ],
 
-    # Normally DOMWindow is nevernull, but starting from a <template> element in
+    # Normally Window is nevernull, but starting from a <template> element in
     # JavaScript, this will be null:
     #     template.content.ownerDocument.defaultView
     'Document.window': [
@@ -70,16 +70,16 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
 
     # Methods returning Window can return a local window, or a cross-frame
     # window (=Object) that needs wrapping.
-    'DOMWindow': [
+    'Window': [
       "@Creates('Window|=Object')",
       "@Returns('Window|=Object')",
     ],
 
-    'DOMWindow.openDatabase': [
+    'Window.openDatabase': [
       "@Creates('SqlDatabase')",
     ],
 
-    'DOMWindow.showModalDialog': [
+    'Window.showModalDialog': [
       "@Creates('Null')",
     ],
 
@@ -389,15 +389,15 @@ _annotations = monitored.Dict('dartmetadata._annotations', {
   ],
   'DOMFileSystem': _file_system_annotations,
   'DOMFileSystemSync': _file_system_annotations,
-  'DOMPoint': _webkit_experimental_annotations,
-  'DOMWindow.webkitConvertPointFromNodeToPage': _webkit_experimental_annotations,
-  'DOMWindow.webkitConvertPointFromPageToNode': _webkit_experimental_annotations,
-  'DOMWindow.indexedDB': _indexed_db_annotations,
-  'DOMWindow.openDatabase': _web_sql_annotations,
-  'DOMWindow.performance': _performance_annotations,
-  'DOMWindow.webkitNotifications': _webkit_experimental_annotations,
-  'DOMWindow.webkitRequestFileSystem': _file_system_annotations,
-  'DOMWindow.webkitResolveLocalFileSystemURL': _file_system_annotations,
+  'WebKitPoint': _webkit_experimental_annotations,
+  'Window.webkitConvertPointFromNodeToPage': _webkit_experimental_annotations,
+  'Window.webkitConvertPointFromPageToNode': _webkit_experimental_annotations,
+  'Window.indexedDB': _indexed_db_annotations,
+  'Window.openDatabase': _web_sql_annotations,
+  'Window.performance': _performance_annotations,
+  'Window.webkitNotifications': _webkit_experimental_annotations,
+  'Window.webkitRequestFileSystem': _file_system_annotations,
+  'Window.webkitResolveLocalFileSystemURL': _file_system_annotations,
   'Element.ontransitionend': _all_but_ie9_annotations,
   # Placeholder to add experimental flag, implementation for this is
   # pending in a separate CL.

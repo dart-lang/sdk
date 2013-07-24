@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:path/path.dart";
 import "dart:io";
 import "dart:isolate";
 
 void testRunShell() {
   test(args) {
-    var path = new Path(Platform.script);
-    path = path.directoryPath.join(new Path("process_echo_util.dart"));
+    var path = join(dirname(Platform.script), "process_echo_util.dart");
     Process.run(Platform.executable,
-                [path.toString()]..addAll(args),
+                [path]..addAll(args),
                 runInShell: true)
         .then((result) {
           if (Platform.operatingSystem == "windows") {
@@ -43,8 +43,6 @@ void testRunShell() {
 
 void testBadRunShell() {
   test(exe, [args = const []]) {
-    var path = new Path(Platform.script);
-    path = path.directoryPath.join(new Path("process_echo_util.dart"));
     Process.run(exe, args, runInShell: true)
         .then((result) {
           port.close();

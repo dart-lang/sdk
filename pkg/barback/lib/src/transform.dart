@@ -12,6 +12,7 @@ import 'asset_node.dart';
 import 'asset_set.dart';
 import 'errors.dart';
 import 'transform_node.dart';
+import 'utils.dart';
 
 /// Creates a [Transform] by forwarding to the private constructor.
 ///
@@ -56,7 +57,7 @@ class Transform {
   /// If an input with that ID cannot be found, throws an
   /// [AssetNotFoundException].
   Future<Asset> getInput(AssetId id) {
-    return new Future(() {
+    return newFuture(() {
       var node = _node.phase.inputs[id];
       // TODO(rnystrom): Need to handle passthrough where an asset from a
       // previous phase can be found.

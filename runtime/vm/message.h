@@ -31,8 +31,8 @@ class Message {
   // being destructed (after delivery or when the receiving port is closed).
   //
   // If reply_port is kIllegalPort, then there is no reply port.
-  Message(Dart_Port dest_port, Dart_Port reply_port,
-          uint8_t* data, intptr_t len, Priority priority)
+  Message(Dart_Port dest_port, Dart_Port reply_port, uint8_t* data,
+          intptr_t len, Priority priority)
       : next_(NULL),
         dest_port_(dest_port),
         reply_port_(reply_port),

@@ -50,7 +50,7 @@ setUpDependency(Map dep, {List<String> hostedVersions}) {
   }));
 
   d.dir(appPath, [
-    d.libPubspec("test_pkg", "1.0.0", deps: [dep])
+    d.libPubspec("test_pkg", "1.0.0", deps: {"foo": dep})
   ]).create();
 }
 
@@ -155,9 +155,9 @@ main() {
       group('and it should not suggest a version', () {
         integration("if there's no lockfile", () {
           d.dir(appPath, [
-            d.libPubspec("test_pkg", "1.0.0", deps: [
-              {'hosted': 'foo'}
-            ])
+            d.libPubspec("test_pkg", "1.0.0", deps: {
+              "foo": "any"
+            })
           ]).create();
 
           expect(schedulePackageValidation(dependency), completion(
@@ -167,9 +167,9 @@ main() {
         integration("if the lockfile doesn't have an entry for the "
             "dependency", () {
           d.dir(appPath, [
-            d.libPubspec("test_pkg", "1.0.0", deps: [
-              {'hosted': 'foo'}
-            ]),
+            d.libPubspec("test_pkg", "1.0.0", deps: {
+              "foo": "any"
+            }),
             d.file("pubspec.lock", json.stringify({
               'packages': {
                 'bar': {
@@ -193,9 +193,9 @@ main() {
         integration('and it should suggest a constraint based on the locked '
             'version', () {
           d.dir(appPath, [
-            d.libPubspec("test_pkg", "1.0.0", deps: [
-              {'hosted': 'foo'}
-            ]),
+            d.libPubspec("test_pkg", "1.0.0", deps: {
+              "foo": "any"
+            }),
             d.file("pubspec.lock", json.stringify({
               'packages': {
                 'foo': {
@@ -216,9 +216,9 @@ main() {
         integration('and it should suggest a concrete constraint if the locked '
             'version is pre-1.0.0', () {
           d.dir(appPath, [
-            d.libPubspec("test_pkg", "1.0.0", deps: [
-              {'hosted': 'foo'}
-            ]),
+            d.libPubspec("test_pkg", "1.0.0", deps: {
+              "foo": "any"
+            }),
             d.file("pubspec.lock", json.stringify({
               'packages': {
                 'foo': {
@@ -240,9 +240,9 @@ main() {
 
     integration('has a hosted dependency on itself', () {
       d.dir(appPath, [
-        d.libPubspec("test_pkg", "1.0.0", deps: [
-          {'hosted': {'name': 'test_pkg', 'version': '>=1.0.0'}}
-        ])
+        d.libPubspec("test_pkg", "1.0.0", deps: {
+          "test_pkg": ">=1.0.0"
+        })
       ]).create();
 
       expectValidationWarning(dependency);

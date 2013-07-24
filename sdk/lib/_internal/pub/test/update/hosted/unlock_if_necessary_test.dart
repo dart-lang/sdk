@@ -14,29 +14,29 @@ main() {
   integration("updates one locked pub server package's dependencies if it's "
       "necessary", () {
     servePackages([
-      packageMap("foo", "1.0.0", [dependencyMap("foo-dep")]),
-      packageMap("foo-dep", "1.0.0")
+      packageMap("foo", "1.0.0", {"foo_dep": "any"}),
+      packageMap("foo_dep", "1.0.0")
     ]);
 
-    d.appDir([dependencyMap("foo")]).create();
+    d.appDir({"foo": "any"}).create();
 
     pubInstall();
 
     d.packagesDir({
       "foo": "1.0.0",
-      "foo-dep": "1.0.0"
+      "foo_dep": "1.0.0"
     }).validate();
 
     servePackages([
-      packageMap("foo", "2.0.0", [dependencyMap("foo-dep", ">1.0.0")]),
-      packageMap("foo-dep", "2.0.0")
+      packageMap("foo", "2.0.0", {"foo_dep": ">1.0.0"}),
+      packageMap("foo_dep", "2.0.0")
     ]);
 
     pubUpdate(args: ['foo']);
 
     d.packagesDir({
       "foo": "2.0.0",
-      "foo-dep": "2.0.0"
+      "foo_dep": "2.0.0"
     }).validate();
   });
 }

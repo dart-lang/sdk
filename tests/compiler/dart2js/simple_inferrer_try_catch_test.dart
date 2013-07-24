@@ -135,6 +135,15 @@ returnDyn6() {
   }
 }
 
+returnInt7() {
+  var a = 'foo';
+  try {
+    a = 42;
+    return a;
+  } catch (e) {
+  }
+  return 2;
+}
 
 main() {
   returnInt1();
@@ -149,6 +158,7 @@ main() {
   returnDyn5();
   returnInt6();
   returnDyn6();
+  returnInt7();
 }
 """;
 
@@ -173,6 +183,7 @@ void main() {
   checkReturn('returnInt5', typesTask.intType);
   checkReturn('returnInt6',
       new TypeMask.nonNullSubtype(compiler.intClass.rawType));
+  checkReturn('returnInt7', typesTask.intType);
 
   var subclassOfInterceptor =
       findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');

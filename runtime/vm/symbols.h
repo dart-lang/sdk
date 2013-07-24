@@ -253,7 +253,6 @@ class ObjectPointerVisitor;
   V(DartSchemePrivate, "dart:_")                                               \
   V(DartNativeWrappers, "dart:nativewrappers")                                 \
   V(DartAsync, "dart:async")                                                   \
-  V(DartCodec, "dart:codec")                                                   \
   V(DartCore, "dart:core")                                                     \
   V(DartCollection, "dart:collection")                                         \
   V(DartCollectionDev, "dart:_collection-dev")                                 \
@@ -267,6 +266,8 @@ class ObjectPointerVisitor;
   V(_Random, "_Random")                                                        \
   V(_state, "_state")                                                          \
   V(_A, "_A")                                                                  \
+  V(_SpecialTypeMirrorImpl, "_SpecialTypeMirrorImpl")                          \
+  V(_LocalVariableMirrorImpl, "_LocalVariableMirrorImpl")                      \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This

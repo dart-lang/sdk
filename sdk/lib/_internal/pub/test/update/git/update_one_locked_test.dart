@@ -24,7 +24,10 @@ main() {
       d.libPubspec('bar', '1.0.0')
     ]).create();
 
-    d.appDir([{"git": "../foo.git"}, {"git": "../bar.git"}]).create();
+    d.appDir({
+      "foo": {"git": "../foo.git"},
+      "bar": {"git": "../bar.git"}
+    }).create();
 
     pubInstall();
 

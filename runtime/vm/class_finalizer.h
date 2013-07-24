@@ -93,6 +93,9 @@ class ClassFinalizer : public AllStatic {
 
  private:
   static bool IsSuperCycleFree(const Class& cls);
+  static bool IsParameterTypeCycleFree(const Class& cls,
+                                       const AbstractType& type,
+                                       GrowableArray<intptr_t>* visited);
   static bool IsAliasCycleFree(const Class& cls,
                                GrowableArray<intptr_t>* visited);
   static void CheckForLegalConstClass(const Class& cls);

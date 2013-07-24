@@ -89,7 +89,7 @@ FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
           Isolate::Current()->object_store()->uint32x4_class())),
       list_class_(Class::ZoneHandle(
           Library::Handle(Library::CoreLibrary()).
-              LookupClass(Symbols::List()))),
+              LookupClass(Symbols::List(), NULL))),
       parallel_move_resolver_(this),
       pending_deoptimization_env_(NULL) {
   ASSERT(assembler != NULL);

@@ -31,8 +31,8 @@
 # ......async/
 # ......collection/
 # ......_collection_dev/
+# ......convert/
 # ......core/
-# ......crypto/
 # ......html/
 # ......io/
 # ......isolate/
@@ -113,7 +113,7 @@ def CopyDartScripts(home, sdk_root):
 
 
 def CopySnapshots(snapshots, sdk_root):
-  for snapshot in ['utils_wrapper', 'pub']:
+  for snapshot in ['dart2js', 'utils_wrapper', 'pub']:
     snapshot += '.dart.snapshot'
     copyfile(join(snapshots, snapshot),
              join(sdk_root, 'bin', 'snapshots', snapshot))
@@ -198,7 +198,7 @@ def Main(argv):
                   join('_internal', 'dartdoc'),
                   join('_internal', 'pub', 'resource'),
                   join('_internal', 'lib'),
-                  'async', 'collection', '_collection_dev', 'codec', 'convert',
+                  'async', 'collection', '_collection_dev', 'convert',
                   'core', 'crypto', 'io', 'isolate',
                   join('chrome', 'dart2js'), join('chrome', 'dartium'),
                   join('html', 'dart2js'), join('html', 'dartium'),

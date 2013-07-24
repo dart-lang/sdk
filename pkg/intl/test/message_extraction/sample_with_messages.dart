@@ -68,6 +68,23 @@ noVariables() => Intl.message(someString, name: "noVariables");
 // characters that ought to be escaped during code generation.
 escapable() => Intl.message("Escapable characters here: ", name: "escapable");
 
+outerPlural(n) => Intl.plural(n, zero: 'none', one: 'one', other: 'some',
+    name: 'outerPlural', desc: 'A plural with no enclosing message', args: [n]);
+
+outerGender(g) => Intl.gender(g, male: 'm', female: 'f', other: 'o',
+    name: 'outerGender', desc: 'A gender with no enclosing message', args: [g]);
+
+// A standalone gender message where we don't provide name or args. This should
+// be rejected by validation code.
+invalidOuterGender(g) => Intl.gender(g, other: 'o');
+
+// A trivial nested plural/gender where both are done directly rather than
+// in interpolations.
+nestedOuter(number, gen) => Intl.plural(number,
+    other: Intl.gender(gen, male: "$number male", other: "$number other"),
+    name: 'nestedOuter',
+    args: [number, gen]);
+
 printStuff(Intl locale) {
 
   // Use a name that's not a literal so this will get skipped. Then we have
@@ -125,6 +142,12 @@ printStuff(Intl locale) {
     print(thing.nested([], "magasin"));
     print(thing.nested([bob, bob], "magasin"));
     print(thing.nested([alice, alice], "magasin"));
+
+    print(outerPlural(0));
+    print(outerPlural(1));
+    print(outerGender("male"));
+    print(outerGender("female"));
+    print(nestedOuter(7, "male"));
   });
 }
 

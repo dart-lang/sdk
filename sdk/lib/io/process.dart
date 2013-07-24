@@ -55,7 +55,7 @@ void sleep(Duration duration) {
 }
 
 /**
- * Returns the PID if the current process.
+ * Returns the PID of the current process.
  */
 int get pid => _ProcessUtils._pid(null);
 

@@ -26,7 +26,9 @@ main() {
       d.libPubspec('foo', '1.0.0')
     ]).commit();
 
-    d.appDir([{"git": {"url": "../foo.git", "ref": "old"}}]).create();
+    d.appDir({
+      "foo": {"git": {"url": "../foo.git", "ref": "old"}}
+    }).create();
 
     pubInstall();
 

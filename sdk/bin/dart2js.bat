@@ -19,7 +19,7 @@ IF %SDK_DIR:~-1%==\ set SDK_DIR=%SDK_DIR:~0,-1%
 
 set DART2JS=%SDK_DIR%\lib\_internal\compiler\implementation\dart2js.dart
 set DART=%BIN_DIR%\dart
-set SNAPSHOT=%BIN_DIR%\snapshots\utils_wrapper.dart.snapshot
+set SNAPSHOT=%BIN_DIR%\snapshots\dart2js.dart.snapshot
 
 set EXTRA_OPTIONS=
 set EXTRA_VM_OPTIONS=
@@ -36,7 +36,7 @@ rem See comments regarding options below in dart2js shell script.
 set EXTRA_VM_OPTIONS=%EXTRA_VM_OPTIONS% --heap_growth_rate=512
 
 if exist "%SNAPSHOT%" (
-  "%DART%" %EXTRA_VM_OPTIONS% "%SNAPSHOT%" "dart2js" %EXTRA_OPTIONS% %*
+  "%DART%" %EXTRA_VM_OPTIONS% "%SNAPSHOT%" %EXTRA_OPTIONS% %*
 ) else (
   "%DART%" %EXTRA_VM_OPTIONS% "%DART2JS%" %EXTRA_OPTIONS% %*
 )

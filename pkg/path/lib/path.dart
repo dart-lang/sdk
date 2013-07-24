@@ -20,6 +20,9 @@
 /// [pkg]: http://pub.dartlang.org/packages/path
 library path;
 
+@MirrorsUsed(targets: 'dart.dom.html.window, '
+    'dart.io.Directory.current, '
+    'dart.io.Platform.operatingSystem')
 import 'dart:mirrors';
 
 /// An internal builder for the current OS so we can provide a straight
@@ -37,26 +40,15 @@ void _growListFront(List list, int length, fillValue) =>
 /// [LibraryMirror] that gives access to the `dart:io` library.
 ///
 /// If `dart:io` is not available, this returns null.
-LibraryMirror get _io {
-  try {
-    return currentMirrorSystem().libraries[Uri.parse('dart:io')];
-  } catch (_) {
-    return null;
-  }
-}
+LibraryMirror get _io => currentMirrorSystem().libraries[Uri.parse('dart:io')];
 
 // TODO(nweiz): when issue 6490 or 6943 are fixed, make this work under dart2js.
 /// If we're running in Dartium, this will return a [LibraryMirror] that gives
 /// access to the `dart:html` library.
 ///
 /// If `dart:html` is not available, this returns null.
-LibraryMirror get _html {
-  try {
-    return currentMirrorSystem().libraries[Uri.parse('dart:html')];
-  } catch (_) {
-    return null;
-  }
-}
+LibraryMirror get _html =>
+  currentMirrorSystem().libraries[Uri.parse('dart:html')];
 
 /// Gets the path to the current working directory.
 ///
@@ -114,6 +106,17 @@ String basenameWithoutExtension(String path) =>
 /// Trailing separators are ignored.
 ///
 ///     builder.dirname('path/to/'); // -> 'path'
+///
+/// If an absolute path contains no directories, only a root, then the root
+/// is returned.
+///
+///     path.dirname('/');  // -> '/' (posix)
+///     path.dirname('c:\');  // -> 'c:\' (windows)
+///
+/// If a relative path has no directories, then '.' is returned.
+///
+///     path.dirname('foo');  // -> '.'
+///     path.dirname('');  // -> '.'
 String dirname(String path) => _builder.dirname(path);
 
 /// Gets the file extension of [path]: the portion of [basename] from the last
@@ -256,6 +259,9 @@ String normalize(String path) => _builder.normalize(path);
 ///     path.relative('/root/other.dart',
 ///         from: '/root/path'); // -> '../other.dart'
 ///
+/// If [path] and/or [from] are relative paths, they are assumed to be relative
+/// to the current directory.
+///
 /// Since there is no relative path from one drive letter to another on Windows,
 /// or from one hostname to another for URLs, this will return an absolute path
 /// in those cases.
@@ -297,9 +303,6 @@ String fromUri(Uri uri) => _builder.fromUri(uri);
 /// For POSIX and Windows styles, this will return a `file:` URI. For the URL
 /// style, this will just convert [path] to a [Uri].
 ///
-/// This will always convert relative paths to absolute ones before converting
-/// to a URI.
-///
 ///     // POSIX
 ///     path.toUri('/path/to/foo')
 ///       // -> Uri.parse('file:///path/to/foo')
@@ -311,6 +314,11 @@ String fromUri(Uri uri) => _builder.fromUri(uri);
 ///     // URL
 ///     path.toUri('http://dartlang.org/path/to/foo')
 ///       // -> Uri.parse('http://dartlang.org/path/to/foo')
+///
+/// If [path] is relative, a relative URI will be returned.
+///
+///     path.toUri('path/to/foo')
+///       // -> Uri.parse('path/to/foo')
 Uri toUri(String path) => _builder.toUri(path);
 
 /// Validates that there are no non-null arguments following a null one and
@@ -588,8 +596,6 @@ class Builder {
   ///
   ///     builder.normalize('path/./to/..//file.text'); // -> 'path/file.txt'
   String normalize(String path) {
-    if (path == '') return path;
-
     var parsed = _parse(path);
     parsed.normalize();
     return parsed.toString();
@@ -619,6 +625,9 @@ class Builder {
   ///     builder.relative('/root/other.dart',
   ///         from: '/root/path'); // -> '../other.dart'
   ///
+  /// If [path] and/or [from] are relative paths, they are assumed to be
+  /// relative to [root].
+  ///
   /// Since there is no relative path from one drive letter to another on
   /// Windows, this will return an absolute path in that case.
   ///
@@ -630,8 +639,6 @@ class Builder {
   ///     var builder = new Builder(r'some/relative/path');
   ///     builder.relative(r'/absolute/path'); // -> '/absolute/path'
   String relative(String path, {String from}) {
-    if (path == '') return '.';
-
     from = from == null ? root : this.join(root, from);
 
     // We can't determine the path from a relative path to an absolute path.
@@ -678,8 +685,12 @@ class Builder {
       pathParsed.separators.removeAt(1);
     }
 
-    // If there are any directories left in the root path, we need to walk up
-    // out of them.
+    // If there are any directories left in the from path, we need to walk up
+    // out of them. If a directory left in the from path is '..', it cannot
+    // be cancelled by adding a '..'.
+    if (fromParsed.parts.length > 0 && fromParsed.parts[0] == '..') {
+      throw new ArgumentError('Unable to find a path to "$path" from "$from".');
+    }
     _growListFront(pathParsed.parts, fromParsed.parts.length, '..');
     pathParsed.separators[0] = '';
     pathParsed.separators.insertAll(1,
@@ -687,6 +698,13 @@ class Builder {
 
     // Corner case: the paths completely collapsed.
     if (pathParsed.parts.length == 0) return '.';
+
+    // Corner case: path was '.' and some '..' directories were added in front.
+    // Don't add a final '/.' in that case.
+    if (pathParsed.parts.length > 1 && pathParsed.parts.last == '.') {
+      pathParsed.parts.removeLast();
+      pathParsed.separators..removeLast()..removeLast()..add('');
+    }
 
     // Make it relative.
     pathParsed.root = '';
@@ -765,8 +783,8 @@ class Builder {
     var parts = [];
     var separators = [];
 
-    var firstSeparator = style.separatorPattern.firstMatch(path);
-    if (firstSeparator != null && firstSeparator.start == 0) {
+    var firstSeparator = style.separatorPattern.matchAsPrefix(path);
+    if (firstSeparator != null) {
       separators.add(firstSeparator[0]);
       path = path.substring(firstSeparator[0].length);
     } else {
@@ -847,8 +865,9 @@ abstract class Style {
   /// Gets the root prefix of [path] if path is absolute. If [path] is relative,
   /// returns `null`.
   String getRoot(String path) {
-    var match = rootPattern.firstMatch(path);
-    if (match != null) return match[0];
+    // TODO(rnystrom): Use firstMatch() when #7080 is fixed.
+    var matches = rootPattern.allMatches(path);
+    if (matches.isNotEmpty) return matches.first[0];
     return getRelativeRoot(path);
   }
 
@@ -857,9 +876,10 @@ abstract class Style {
   /// If [path] is relative or absolute and not root-relative, returns `null`.
   String getRelativeRoot(String path) {
     if (relativeRootPattern == null) return null;
-    var match = relativeRootPattern.firstMatch(path);
-    if (match == null) return null;
-    return match[0];
+    // TODO(rnystrom): Use firstMatch() when #7080 is fixed.
+    var matches = relativeRootPattern.allMatches(path);
+    if (matches.isEmpty) return null;
+    return matches.first[0];
   }
 
   /// Returns the path represented by [uri] in this style.
@@ -1046,7 +1066,8 @@ class _ParsedPath {
     return copy._splitExtension()[0];
   }
 
-  bool get hasTrailingSeparator => !parts.isEmpty && (parts.last == '' || separators.last != '');
+  bool get hasTrailingSeparator =>
+      !parts.isEmpty && (parts.last == '' || separators.last != '');
 
   void removeTrailingSeparators() {
     while (!parts.isEmpty && parts.last == '') {

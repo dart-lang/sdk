@@ -387,7 +387,7 @@ class ListQueue<E> extends IterableBase<E> implements Queue<E> {
 
   // Iterable interface.
 
-  Iterator<E> get iterator => new _ListQueueIterator(this);
+  Iterator<E> get iterator => new _ListQueueIterator<E>(this);
 
   void forEach(void action (E element)) {
     int modificationCount = _modificationCount;

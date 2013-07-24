@@ -13,14 +13,14 @@ main() {
   initConfig();
   integration('resolves version constraints from a pub server', () {
     servePackages([
-      packageMap("foo", "1.2.3", [dependencyMap("baz", ">=2.0.0")]),
-      packageMap("bar", "2.3.4", [dependencyMap("baz", "<3.0.0")]),
+      packageMap("foo", "1.2.3", {"baz": ">=2.0.0"}),
+      packageMap("bar", "2.3.4", {"baz": "<3.0.0"}),
       packageMap("baz", "2.0.3"),
       packageMap("baz", "2.0.4"),
       packageMap("baz", "3.0.1")
     ]);
 
-    d.appDir([dependencyMap("foo"), dependencyMap("bar")]).create();
+    d.appDir({"foo": "any", "bar": "any"}).create();
 
     pubInstall();
 

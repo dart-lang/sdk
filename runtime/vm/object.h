@@ -2286,14 +2286,23 @@ class Library : public Object {
   void AddObject(const Object& obj, const String& name) const;
   void ReplaceObject(const Object& obj, const String& name) const;
   RawObject* LookupExport(const String& name) const;
-  RawObject* LookupObject(const String& name) const;
-  RawClass* LookupClass(const String& name) const;
-  RawClass* LookupClassAllowPrivate(const String& name) const;
+  RawObject* LookupObject(const String& name,
+                          String* ambiguity_error_msg) const;
+  RawObject* LookupObjectAllowPrivate(const String& name,
+                                      String* ambiguity_error_msg) const;
+  RawObject* LookupLocalObjectAllowPrivate(const String& name) const;
   RawObject* LookupLocalObject(const String& name) const;
+  RawObject* LookupImportedObject(const String& name,
+                                  String* ambiguity_error_msg) const;
+  RawClass* LookupClass(const String& name, String* ambiguity_error_msg) const;
+  RawClass* LookupClassAllowPrivate(const String& name,
+                                    String* ambiguity_error_msg) const;
   RawClass* LookupLocalClass(const String& name) const;
-  RawField* LookupFieldAllowPrivate(const String& name) const;
+  RawField* LookupFieldAllowPrivate(const String& name,
+                                    String* ambiguity_error_msg) const;
   RawField* LookupLocalField(const String& name) const;
-  RawFunction* LookupFunctionAllowPrivate(const String& name) const;
+  RawFunction* LookupFunctionAllowPrivate(const String& name,
+                                          String* ambiguity_error_msg) const;
   RawFunction* LookupLocalFunction(const String& name) const;
   RawLibraryPrefix* LookupLocalLibraryPrefix(const String& name) const;
   RawScript* LookupScript(const String& url) const;
@@ -2427,7 +2436,8 @@ class LibraryPrefix : public Object {
   bool ContainsLibrary(const Library& library) const;
   RawLibrary* GetLibrary(int index) const;
   void AddImport(const Namespace& import) const;
-  RawClass* LookupLocalClass(const String& class_name) const;
+  RawClass* LookupClass(const String& class_name,
+                        String* ambiguity_error_msg) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawLibraryPrefix));
@@ -2895,6 +2905,7 @@ class Code : public Object {
     return raw_ptr()->pc_descriptors_;
   }
   void set_pc_descriptors(const PcDescriptors& descriptors) const {
+    ASSERT(descriptors.IsOld());
     StorePointer(&raw_ptr()->pc_descriptors_, descriptors.raw());
   }
 
@@ -2973,6 +2984,7 @@ class Code : public Object {
     return raw_ptr()->var_descriptors_;
   }
   void set_var_descriptors(const LocalVarDescriptors& value) const {
+    ASSERT(value.IsOld());
     StorePointer(&raw_ptr()->var_descriptors_, value.raw());
   }
 
@@ -2980,6 +2992,7 @@ class Code : public Object {
     return raw_ptr()->exception_handlers_;
   }
   void set_exception_handlers(const ExceptionHandlers& handlers) const {
+    ASSERT(handlers.IsOld());
     StorePointer(&raw_ptr()->exception_handlers_, handlers.raw());
   }
 
@@ -2987,6 +3000,7 @@ class Code : public Object {
     return raw_ptr()->function_;
   }
   void set_function(const Function& function) const {
+    ASSERT(function.IsOld());
     StorePointer(&raw_ptr()->function_, function.raw());
   }
 
@@ -5875,6 +5889,14 @@ class MirrorReference : public Instance {
   void set_referent(const Object& referent) const {
     StorePointer(&raw_ptr()->referent_, referent.raw());
   }
+
+  RawClass* GetClassReferent() const;
+
+  RawField* GetFieldReferent() const;
+
+  RawFunction* GetFunctionReferent() const;
+
+  RawLibrary* GetLibraryReferent() const;
 
   static RawMirrorReference* New(Heap::Space space = Heap::kNew);
 

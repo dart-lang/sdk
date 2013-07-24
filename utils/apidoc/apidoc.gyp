@@ -93,7 +93,6 @@
             '--exclude-lib=http',
             '--exclude-lib=http_server',
             '--exclude-lib=oauth2',
-            '--exclude-lib=path',
             '--exclude-lib=scheduled_test',
             '--exclude-lib=stack_trace',
             '--exclude-lib=watcher',

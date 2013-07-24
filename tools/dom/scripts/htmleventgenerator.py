@@ -300,13 +300,22 @@ class HtmlEventGenerator(object):
           PROVIDER=provider,
           TYPE=event_type)
 
+  def _GetRawEvents(self, interface):
+    all_interfaces = ([ interface ] +
+                      self._database.TransitiveSecondaryParents(interface))
+    events = set([])
+    for super_interface in all_interfaces:
+      events = events.union(
+        set([attr.id for attr in super_interface.attributes
+             if attr.type.id == 'EventListener']))
+    return events
+
   def _GetEvents(self, interface, custom_events):
     """ Gets a list of all of the events for the specified interface.
     """
     html_interface_name = interface.doc_js_name
 
-    events = set([attr.id for attr in interface.attributes
-                  if attr.type.id == 'EventListener'])
+    events = self._GetRawEvents(interface)
 
     if html_interface_name in _html_manual_events:
       events.update(_html_manual_events[html_interface_name])

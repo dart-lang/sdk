@@ -17,6 +17,7 @@
 // VMOptions=--short_socket_read --short_socket_write
 
 import "package:expect/expect.dart";
+import "package:path/path.dart";
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
@@ -54,9 +55,8 @@ Future testClient(server, name) {
 }
 
 void main() {
-  Path scriptDir = new Path(Platform.script).directoryPath;
-  Path certificateDatabase = scriptDir.append('pkcert');
-  SecureSocket.initialize(database: certificateDatabase.toNativePath(),
+  String certificateDatabase = join(dirname(Platform.script), 'pkcert');
+  SecureSocket.initialize(database: certificateDatabase,
                           password: 'dartdart');
 
   Duration delay = const Duration(milliseconds: 0);

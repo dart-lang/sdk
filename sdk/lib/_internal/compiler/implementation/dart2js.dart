@@ -367,7 +367,18 @@ void compile(List<String> argv) {
 
     onDone() {
       if (sourceMapFileName != null) {
-        String sourceMapTag = '//@ sourceMappingURL=$sourceMapFileName\n';
+        // Using # is the new proposed standard. @ caused problems in Internet
+        // Explorer due to "Conditional Compilation Statements" in JScript,
+        // see:
+        // http://msdn.microsoft.com/en-us/library/7kx09ct1(v=vs.80).aspx
+        // About source maps, see:
+        // https://docs.google.com/a/google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k/edit
+        // TODO(http://dartbug.com/11914): Remove @ line.
+        String sourceMapTag = '''
+
+//# sourceMappingURL=$sourceMapFileName
+//@ sourceMappingURL=$sourceMapFileName
+''';
         writeStringSync(sourceMapTag);
       }
       output.closeSync();

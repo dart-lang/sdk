@@ -45,9 +45,9 @@ main() {
   integration("includes dev dependency's transitive dependencies", () {
     d.dir('foo', [
       d.libDir('foo'),
-      d.libPubspec('foo', '0.0.1', deps: [
-        {"path": "../bar"}
-      ])
+      d.libPubspec('foo', '0.0.1', deps: {
+        "bar": {"path": "../bar"}
+      })
     ]).create();
 
     d.dir('bar', [
@@ -94,11 +94,8 @@ main() {
     ]).create();
 
     d.dir(appPath, [
-      d.pubspec({
-        "name": "myapp",
-        "dependencies": {
-          "foo": {"path": "../foo"}
-        }
+      d.appPubspec({
+        "foo": {"path": "../foo"}
       })
     ]).create();
 

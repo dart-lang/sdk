@@ -119,6 +119,8 @@ default_implementation2_test: fail
 f_bounded_quantification_test/01: fail
 f_bounded_quantification_test/02: fail
 
+function_type_alias6_test/00: fail # Issue 11987
+function_type_alias9_test/00: crash # Issue 11987
 named_parameters_aggregated_test/03: fail
 no_such_method_negative_test: fail
 non_const_super_negative_test: fail

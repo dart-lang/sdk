@@ -8,65 +8,6 @@ part of mdv;
 // https://github.com/polymer-project/mdv
 // The code mostly comes from src/template_element.js
 
-typedef void _ChangeHandler(value);
-
-abstract class _InputBinding {
-  // InputElement or SelectElement
-  final element;
-  PathObserver binding;
-  StreamSubscription _pathSub;
-  StreamSubscription _eventSub;
-
-  _InputBinding(this.element, model, String path) {
-    binding = new PathObserver(model, path);
-    _pathSub = binding.bindSync(valueChanged);
-    _eventSub = _getStreamForInputType(element).listen(updateBinding);
-  }
-
-  void valueChanged(newValue);
-
-  void updateBinding(e);
-
-  void unbind() {
-    binding = null;
-    _pathSub.cancel();
-    _eventSub.cancel();
-  }
-
-  static EventStreamProvider<Event> _checkboxEventType = () {
-    // Attempt to feature-detect which event (change or click) is fired first
-    // for checkboxes.
-    var div = new DivElement();
-    var checkbox = div.append(new InputElement());
-    checkbox.type = 'checkbox';
-    var fired = [];
-    checkbox.onClick.listen((e) {
-      fired.add(Element.clickEvent);
-    });
-    checkbox.onChange.listen((e) {
-      fired.add(Element.changeEvent);
-    });
-    checkbox.dispatchEvent(new MouseEvent('click', view: window));
-    // WebKit/Blink don't fire the change event if the element is outside the
-    // document, so assume 'change' for that case.
-    return fired.length == 1 ? Element.changeEvent : fired.first;
-  }();
-
-  static Stream<Event> _getStreamForInputType(element) {
-    switch (element.type) {
-      case 'checkbox':
-        return _checkboxEventType.forTarget(element);
-      case 'radio':
-      case 'select-multiple':
-      case 'select-one':
-        return element.onChange;
-      default:
-        return element.onInput;
-    }
-  }
-}
-
-
 // TODO(jmesserly): not sure what kind of boolean conversion rules to
 // apply for template data-binding. HTML attributes are true if they're
 // present. However Dart only treats "true" as true. Since this is HTML we'll
@@ -74,22 +15,22 @@ abstract class _InputBinding {
 // everything else is true. See: https://github.com/polymer-project/mdv/issues/59
 bool _toBoolean(value) => null != value && false != value;
 
-Node _createDeepCloneAndDecorateTemplates(Node node, String syntax) {
+Node _createDeepCloneAndDecorateTemplates(Node node, BindingDelegate delegate) {
   var clone = node.clone(false); // Shallow clone.
   if (clone is Element && clone.isTemplate) {
     TemplateElement.decorate(clone, node);
-    if (syntax != null) {
-      clone.attributes.putIfAbsent('syntax', () => syntax);
+    if (delegate != null) {
+      _mdv(clone)._bindingDelegate = delegate;
     }
   }
 
   for (var c = node.firstChild; c != null; c = c.nextNode) {
-    clone.append(_createDeepCloneAndDecorateTemplates(c, syntax));
+    clone.append(_createDeepCloneAndDecorateTemplates(c, delegate));
   }
   return clone;
 }
 
-void _addBindings(Node node, model, [CustomBindingSyntax delegate]) {
+void _addBindings(Node node, model, [BindingDelegate delegate]) {
   if (node is Element) {
     _addAttributeBindings(node, model, delegate);
   } else if (node is Text) {
@@ -102,16 +43,27 @@ void _addBindings(Node node, model, [CustomBindingSyntax delegate]) {
 }
 
 void _addAttributeBindings(Element element, model, delegate) {
-  element.attributes.forEach((name, value) {
-    if (value == '' && (name == 'bind' || name == 'repeat')) {
-      value = '{{}}';
+  var attrs = new LinkedHashMap.from(element.attributes);
+  if (element.isTemplate) {
+    // Accept 'naked' bind & repeat.
+    if (attrs['bind'] == '') attrs['bind'] = '{{}}';
+    if (attrs['repeat'] == '') attrs['repeat'] = '{{}}';
+
+    // Treat <template if="{{expr}}"> as <template bind if="{{expr}}">
+    if (attrs.containsKey('if') &&
+        !attrs.containsKey('bind') &&
+        !attrs.containsKey('repeat')) {
+      attrs['bind'] = '{{}}';
     }
+  }
+
+  attrs.forEach((name, value) {
     _parseAndBind(element, name, value, model, delegate);
   });
 }
 
 void _parseAndBind(Node node, String name, String text, model,
-    CustomBindingSyntax delegate) {
+    BindingDelegate delegate) {
 
   var tokens = _parseMustacheTokens(text);
   if (tokens.length == 0 || (tokens.length == 1 && tokens[0].isText)) {
@@ -156,7 +108,7 @@ void _parseAndBind(Node node, String name, String text, model,
 }
 
 void _bindOrDelegate(node, name, model, String path,
-    CustomBindingSyntax delegate) {
+    BindingDelegate delegate) {
 
   if (delegate != null) {
     var delegateBinding = delegate.getBinding(model, path, name, node);
@@ -238,63 +190,61 @@ class _BindingToken {
 class _TemplateIterator {
   final Element _templateElement;
   final List<Node> terminators = [];
-  final CompoundBinding inputs;
+  CompoundBinding inputs;
   List iteratedValue;
-  Object _lastValue;
+  bool closed = false;
 
   StreamSubscription _sub;
-  StreamSubscription _valueBinding;
 
-  _TemplateIterator(this._templateElement)
-    : inputs = new CompoundBinding(resolveInputs) {
-
-    _valueBinding = new PathObserver(inputs, 'value').bindSync(valueChanged);
+  _TemplateIterator(this._templateElement) {
+    inputs = new CompoundBinding(resolveInputs);
   }
 
-  static Object resolveInputs(Map values) {
+  resolveInputs(Map values) {
+    if (closed) return;
+
     if (values.containsKey('if') && !_toBoolean(values['if'])) {
-      return null;
+      valueChanged(null);
+    } else if (values.containsKey('repeat')) {
+      valueChanged(values['repeat']);
+    } else if (values.containsKey('bind') || values.containsKey('if')) {
+      valueChanged([values['bind']]);
+    } else {
+      valueChanged(null);
     }
-
-    if (values.containsKey('repeat')) {
-      return values['repeat'];
-    }
-
-    if (values.containsKey('bind')) {
-      return [values['bind']];
-    }
-
+    // We don't return a value to the CompoundBinding; instead we skip a hop and
+    // call valueChanged directly.
     return null;
   }
 
   void valueChanged(value) {
-    // TODO(jmesserly): should PathObserver do this for us?
-    var oldValue = _lastValue;
-    _lastValue = value;
+    if (value is! List) value = null;
 
-    if (value is! List) {
-      value = [];
-    }
-
+    var oldValue = iteratedValue;
     unobserve();
     iteratedValue = value;
 
-    if (value is Observable) {
-      _sub = value.changes.listen(_handleChanges);
+    if (iteratedValue is Observable) {
+      _sub = iteratedValue.changes.listen(_handleChanges);
     }
 
-    int addedCount = iteratedValue.length;
-    var removedCount = oldValue is List ? (oldValue as List).length : 0;
-    if (addedCount == 0 && removedCount == 0) return; // nothing to do.
+    var splices = calculateSplices(
+        iteratedValue != null ? iteratedValue : [],
+        oldValue != null ? oldValue : []);
 
-    _handleChanges([new ListChangeRecord(0, addedCount: addedCount,
-        removedCount: removedCount)]);
+    if (splices.length > 0) _handleChanges(splices);
+
+    if (inputs.length == 0) {
+      close();
+      _mdv(_templateElement)._templateIterator = null;
+    }
   }
 
   Node getTerminatorAt(int index) {
     if (index == -1) return _templateElement;
     var terminator = terminators[index];
-    if (terminator is Element && (terminator as Element).isTemplate) {
+    if (terminator is Element && (terminator as Element).isTemplate &&
+        !identical(terminator, _templateElement)) {
       var subIterator = _mdv(terminator)._templateIterator;
       if (subIterator != null) {
         return subIterator.getTerminatorAt(subIterator.terminators.length - 1);
@@ -304,15 +254,28 @@ class _TemplateIterator {
     return terminator;
   }
 
-  void insertInstanceAt(int index, List<Node> instanceNodes) {
+  void insertInstanceAt(int index, DocumentFragment fragment,
+        List<Node> instanceNodes) {
+
     var previousTerminator = getTerminatorAt(index - 1);
-    var terminator = instanceNodes.length > 0 ? instanceNodes.last
-        : previousTerminator;
+    var terminator = null;
+    if (fragment != null) {
+      terminator = fragment.lastChild;
+    } else if (instanceNodes.length > 0) {
+      terminator = instanceNodes.last;
+    }
+    if (terminator == null) terminator = previousTerminator;
 
     terminators.insert(index, terminator);
 
     var parent = _templateElement.parentNode;
     var insertBeforeNode = previousTerminator.nextNode;
+
+    if (fragment != null) {
+      parent.insertBefore(fragment, insertBeforeNode);
+      return;
+    }
+
     for (var node in instanceNodes) {
       parent.insertBefore(node, insertBeforeNode);
     }
@@ -326,40 +289,35 @@ class _TemplateIterator {
 
     var parent = _templateElement.parentNode;
     while (terminator != previousTerminator) {
-      var node = terminator;
-      terminator = node.previousNode;
+      var node = previousTerminator.nextNode;
+      if (node == terminator) terminator = previousTerminator;
       node.remove();
       instanceNodes.add(node);
     }
     return instanceNodes;
   }
 
-  getInstanceModel(model, String syntax) {
-    var delegate = TemplateElement.syntax[syntax];
+  getInstanceModel(model, BindingDelegate delegate) {
     if (delegate != null) {
       return delegate.getInstanceModel(_templateElement, model);
     }
     return model;
   }
 
-  List<Node> getInstanceNodes(model, String syntax, IdentityMap instanceCache) {
-    var instanceNodes = instanceCache.remove(model);
-    if (instanceNodes != null) return instanceNodes;
-
-    var fragment = _templateElement.createInstance(model, syntax);
-    instanceNodes = fragment.nodes.toList();
-    fragment.nodes.clear();
-    return instanceNodes;
+  DocumentFragment getInstanceFragment(model, BindingDelegate delegate) {
+    return _templateElement.createInstance(model, delegate);
   }
 
   void _handleChanges(Iterable<ChangeRecord> splices) {
+    if (closed) return;
+
     splices = splices.where((s) => s is ListChangeRecord);
 
     var template = _templateElement;
-    var syntax = template.attributes['syntax'];
+    var delegate = template.bindingDelegate;
 
     if (template.parentNode == null || template.document.window == null) {
-      abandon();
+      close();
       // TODO(jmesserly): MDV calls templateIteratorTable.delete(this) here,
       // but I think that's a no-op because only nodes are used as keys.
       // See https://github.com/Polymer/mdv/pull/114.
@@ -373,6 +331,7 @@ class _TemplateIterator {
     for (var splice in splices) {
       for (int i = 0; i < splice.removedCount; i++) {
         var instanceNodes = extractInstanceAt(splice.index + removeDelta);
+        if (instanceNodes.length == 0) continue;
         var model = _mdv(instanceNodes.first)._templateInstance.model;
         instanceCache[model] = instanceNodes;
       }
@@ -385,10 +344,15 @@ class _TemplateIterator {
           addIndex < splice.index + splice.addedCount;
           addIndex++) {
 
-        var model = getInstanceModel(iteratedValue[addIndex], syntax);
+        var model = iteratedValue[addIndex];
+        var fragment = null;
+        var instanceNodes = instanceCache.remove(model);
+        if (instanceNodes == null) {
+          var actualModel = getInstanceModel(model, delegate);
+          fragment = getInstanceFragment(actualModel, delegate);
+        }
 
-        var instanceNodes = getInstanceNodes(model, syntax, instanceCache);
-        insertInstanceAt(addIndex, instanceNodes);
+        insertInstanceAt(addIndex, fragment, instanceNodes);
       }
     }
 
@@ -403,11 +367,13 @@ class _TemplateIterator {
     _sub = null;
   }
 
-  void abandon() {
+  void close() {
+    if (closed) return;
+
     unobserve();
-    _valueBinding.cancel();
     terminators.clear();
     inputs.dispose();
+    closed = true;
   }
 
   static void _unbindAllRecursively(Node node) {
@@ -417,7 +383,7 @@ class _TemplateIterator {
       // Make sure we stop observing when we remove an element.
       var templateIterator = nodeExt._templateIterator;
       if (templateIterator != null) {
-        templateIterator.abandon();
+        templateIterator.close();
         nodeExt._templateIterator = null;
       }
     }

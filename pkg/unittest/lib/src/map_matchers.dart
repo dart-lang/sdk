@@ -9,7 +9,7 @@ part of matcher;
  */
 Matcher containsValue(value) => new _ContainsValue(value);
 
-class _ContainsValue extends BaseMatcher {
+class _ContainsValue extends Matcher {
   final _value;
 
   const _ContainsValue(this._value);
@@ -26,7 +26,7 @@ class _ContainsValue extends BaseMatcher {
 Matcher containsPair(key, value) =>
     new _ContainsMapping(key, wrapMatcher(value));
 
-class _ContainsMapping extends BaseMatcher {
+class _ContainsMapping extends Matcher {
   final _key;
   final Matcher _valueMatcher;
 

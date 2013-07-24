@@ -16,11 +16,15 @@ from htmlrenamer import html_interface_renames, typed_array_renames
 _pure_interfaces = monitored.Set('generator._pure_interfaces', [
     # TODO(sra): DOMStringMap should be a class implementing Map<String,String>.
     'DOMStringMap',
+    'ChildNode',
+    #'Crypto',
     'ElementTimeControl',
     'ElementTraversal',
     'EventListener',
     'MediaQueryListListener',
     'MutationCallback',
+    'ParentNode',
+    #'SubtleCrypto',
     'SVGExternalResourcesRequired',
     'SVGFilterPrimitiveStandardAttributes',
     'SVGFitToViewBox',
@@ -31,6 +35,9 @@ _pure_interfaces = monitored.Set('generator._pure_interfaces', [
     'SVGURIReference',
     'SVGZoomAndPan',
     'TimeoutHandler',
+    'WindowTimers',
+    #'WorkerCrypto',
+    'WorkerPerformance',
     ])
 
 def IsPureInterface(interface_name):
@@ -519,7 +526,7 @@ dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
     # Wrap non-local Windows.  We need to check EventTarget (the base type)
     # as well.  Note, there are no functions that take a non-local Window
     # as a parameter / setter.
-    'DOMWindow get':
+    'Window get':
       Conversion('_convertNativeToDart_Window', 'dynamic', 'WindowBase'),
     'EventTarget get':
       Conversion('_convertNativeToDart_EventTarget', 'dynamic',
@@ -547,7 +554,7 @@ dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
 
     # postMessage
     'any set MessagePort.postMessage': _serialize_SSV,
-    'SerializedScriptValue set DOMWindow.postMessage': _serialize_SSV,
+    'SerializedScriptValue set Window.postMessage': _serialize_SSV,
 
     '* get CustomEvent.detail':
       Conversion('convertNativeToDart_SerializedScriptValue',
@@ -750,6 +757,7 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
 
   def native_type(self):
     database = self._type_registry._database
+
     if database.HasInterface(self.idl_type()):
       interface = database.GetInterface(self.idl_type())
       if 'ImplementedAs' in interface.ext_attrs:
@@ -810,6 +818,9 @@ class SequenceIDLTypeInfo(IDLTypeInfo):
     if isinstance(self._item_info, PrimitiveIDLTypeInfo):
       return '%s', 'Vector<%s>' % item_native_type, 'DartUtilities', 'toNativeVector<%s>' % item_native_type
     return '%s', 'Vector< RefPtr<%s> >' % item_native_type, 'DartUtilities', 'toNativeVector< RefPtr<%s> >' % item_native_type
+
+  def parameter_type(self):
+    return self.native_type()
 
   def pass_native_by_ref(self): return True
 
@@ -1028,7 +1039,7 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
 
     'CSSRule': TypeData(clazz='Interface', conversion_includes=['CSSImportRule']),
     'DOMStringMap': TypeData(clazz='Interface', dart_type='Map<String, String>'),
-    'DOMWindow': TypeData(clazz='Interface', custom_to_dart=True),
+    'Window': TypeData(clazz='Interface', custom_to_dart=True),
     'Element': TypeData(clazz='Interface', merged_interface='HTMLElement',
         custom_to_dart=True),
     'EventListener': TypeData(clazz='Interface', custom_to_native=True),
@@ -1140,10 +1151,14 @@ class TypeRegistry(object):
   def _TypeInfo(self, type_name):
     match = re.match(r'(?:sequence<(\w+)>|(\w+)\[\])$', type_name)
     if match:
+      type_data = TypeData('Sequence')
       if type_name == 'DOMString[]':
-        return DOMStringArrayTypeInfo(TypeData('Sequence'), self.TypeInfo('DOMString'))
+        return DOMStringArrayTypeInfo(type_data, self.TypeInfo('DOMString'))
       item_info = self.TypeInfo(match.group(1) or match.group(2))
-      return SequenceIDLTypeInfo(type_name, TypeData('Sequence'), item_info)
+      # TODO(vsm): Generalize this code.
+      if 'SourceInfo' in type_name:
+        type_data.native_type = 'Vector<RefPtr<SourceInfo> >'
+      return SequenceIDLTypeInfo(type_name, type_data, item_info)
 
     if not type_name in _idl_type_registry:
       if self._database.HasEnum(type_name):

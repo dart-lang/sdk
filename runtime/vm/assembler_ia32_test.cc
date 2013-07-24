@@ -1218,6 +1218,242 @@ ASSEMBLER_TEST_RUN(PackedLogicalNot, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(PackedMoveHighLow, assembler) {
+  static const struct ALIGN16 {
+    float a;
+    float b;
+    float c;
+    float d;
+  } constant0 = { 1.0, 2.0, 3.0, 4.0 };
+  static const struct ALIGN16 {
+    float a;
+    float b;
+    float c;
+    float d;
+  } constant1 = { 5.0, 6.0, 7.0, 8.0 };
+  // XMM0 = 1.0f, 2.0f, 3.0f, 4.0f.
+  __ movups(XMM0, Address::Absolute(reinterpret_cast<uword>(&constant0)));
+  // XMM1 = 5.0f, 6.0f, 7.0f, 8.0f.
+  __ movups(XMM1, Address::Absolute(reinterpret_cast<uword>(&constant1)));
+  // XMM0 = 7.0f, 8.0f, 3.0f, 4.0f.
+  __ movhlps(XMM0, XMM1);
+  __ xorps(XMM1, XMM1);
+  // XMM1 = 7.0f, 8.0f, 3.0f, 4.0f.
+  __ movaps(XMM1, XMM0);
+  __ shufps(XMM0, XMM0, Immediate(0x00));  // 7.0f.
+  __ shufps(XMM1, XMM1, Immediate(0x55));  // 8.0f.
+  __ addss(XMM0, XMM1);  // 15.0f.
+  __ pushl(EAX);
+  __ movss(Address(ESP, 0), XMM0);
+  __ flds(Address(ESP, 0));
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedMoveHighLow, test) {
+  typedef float (*PackedMoveHighLow)();
+  float res = reinterpret_cast<PackedMoveHighLow>(test->entry())();
+  EXPECT_FLOAT_EQ(15.0f, res, 0.001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedMoveLowHigh, assembler) {
+  static const struct ALIGN16 {
+    float a;
+    float b;
+    float c;
+    float d;
+  } constant0 = { 1.0, 2.0, 3.0, 4.0 };
+  static const struct ALIGN16 {
+    float a;
+    float b;
+    float c;
+    float d;
+  } constant1 = { 5.0, 6.0, 7.0, 8.0 };
+  // XMM0 = 1.0f, 2.0f, 3.0f, 4.0f.
+  __ movups(XMM0, Address::Absolute(reinterpret_cast<uword>(&constant0)));
+  // XMM1 = 5.0f, 6.0f, 7.0f, 8.0f.
+  __ movups(XMM1, Address::Absolute(reinterpret_cast<uword>(&constant1)));
+  // XMM0 = 1.0f, 2.0f, 5.0f, 6.0f
+  __ movlhps(XMM0, XMM1);
+  __ xorps(XMM1, XMM1);
+  // XMM1 = 1.0f, 2.0f, 5.0f, 6.0f
+  __ movaps(XMM1, XMM0);
+  __ shufps(XMM0, XMM0, Immediate(0xAA));  // 5.0f.
+  __ shufps(XMM1, XMM1, Immediate(0xFF));  // 6.0f.
+  __ addss(XMM0, XMM1);  // 11.0f.
+  __ pushl(EAX);
+  __ movss(Address(ESP, 0), XMM0);
+  __ flds(Address(ESP, 0));
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedMoveLowHigh, test) {
+  typedef float (*PackedMoveLowHigh)();
+  float res = reinterpret_cast<PackedMoveLowHigh>(test->entry())();
+  EXPECT_FLOAT_EQ(11.0f, res, 0.001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedUnpackLow, assembler) {
+  static const struct ALIGN16 {
+    float a;
+    float b;
+    float c;
+    float d;
+  } constant0 = { 1.0, 2.0, 3.0, 4.0 };
+  static const struct ALIGN16 {
+    float a;
+    float b;
+    float c;
+    float d;
+  } constant1 = { 5.0, 6.0, 7.0, 8.0 };
+  // XMM0 = 1.0f, 2.0f, 3.0f, 4.0f.
+  __ movups(XMM0, Address::Absolute(reinterpret_cast<uword>(&constant0)));
+  // XMM1 = 5.0f, 6.0f, 7.0f, 8.0f.
+  __ movups(XMM1, Address::Absolute(reinterpret_cast<uword>(&constant1)));
+  // XMM0 = 1.0f, 5.0f, 2.0f, 6.0f.
+  __ unpcklps(XMM0, XMM1);
+  // XMM1 = 1.0f, 5.0f, 2.0f, 6.0f.
+  __ movaps(XMM1, XMM0);
+  __ shufps(XMM0, XMM0, Immediate(0x55));
+  __ shufps(XMM1, XMM1, Immediate(0xFF));
+  __ addss(XMM0, XMM1);  // 11.0f.
+  __ pushl(EAX);
+  __ movss(Address(ESP, 0), XMM0);
+  __ flds(Address(ESP, 0));
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedUnpackLow, test) {
+  typedef float (*PackedUnpackLow)();
+  float res = reinterpret_cast<PackedUnpackLow>(test->entry())();
+  EXPECT_FLOAT_EQ(11.0f, res, 0.001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedUnpackHigh, assembler) {
+  static const struct ALIGN16 {
+    float a;
+    float b;
+    float c;
+    float d;
+  } constant0 = { 1.0, 2.0, 3.0, 4.0 };
+  static const struct ALIGN16 {
+    float a;
+    float b;
+    float c;
+    float d;
+  } constant1 = { 5.0, 6.0, 7.0, 8.0 };
+  // XMM0 = 1.0f, 2.0f, 3.0f, 4.0f.
+  __ movups(XMM0, Address::Absolute(reinterpret_cast<uword>(&constant0)));
+  // XMM1 = 5.0f, 6.0f, 7.0f, 8.0f.
+  __ movups(XMM1, Address::Absolute(reinterpret_cast<uword>(&constant1)));
+  // XMM0 = 3.0f, 7.0f, 4.0f, 8.0f.
+  __ unpckhps(XMM0, XMM1);
+  // XMM1 = 3.0f, 7.0f, 4.0f, 8.0f.
+  __ movaps(XMM1, XMM0);
+  __ shufps(XMM0, XMM0, Immediate(0x00));
+  __ shufps(XMM1, XMM1, Immediate(0xAA));
+  __ addss(XMM0, XMM1);  // 7.0f.
+  __ pushl(EAX);
+  __ movss(Address(ESP, 0), XMM0);
+  __ flds(Address(ESP, 0));
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedUnpackHigh, test) {
+  typedef float (*PackedUnpackHigh)();
+  float res = reinterpret_cast<PackedUnpackHigh>(test->entry())();
+  EXPECT_FLOAT_EQ(7.0f, res, 0.001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedUnpackLowPair, assembler) {
+  static const struct ALIGN16 {
+    float a;
+    float b;
+    float c;
+    float d;
+  } constant0 = { 1.0, 2.0, 3.0, 4.0 };
+  static const struct ALIGN16 {
+    float a;
+    float b;
+    float c;
+    float d;
+  } constant1 = { 5.0, 6.0, 7.0, 8.0 };
+  // XMM0 = 1.0f, 2.0f, 3.0f, 4.0f.
+  __ movups(XMM0, Address::Absolute(reinterpret_cast<uword>(&constant0)));
+  // XMM1 = 5.0f, 6.0f, 7.0f, 8.0f.
+  __ movups(XMM1, Address::Absolute(reinterpret_cast<uword>(&constant1)));
+  // XMM0 = 1.0f, 2.0f, 5.0f, 6.0f.
+  __ unpcklpd(XMM0, XMM1);
+  // XMM1 = 1.0f, 2.0f, 5.0f, 6.0f.
+  __ movaps(XMM1, XMM0);
+  __ shufps(XMM0, XMM0, Immediate(0x00));
+  __ shufps(XMM1, XMM1, Immediate(0xAA));
+  __ addss(XMM0, XMM1);  // 6.0f.
+  __ pushl(EAX);
+  __ movss(Address(ESP, 0), XMM0);
+  __ flds(Address(ESP, 0));
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedUnpackLowPair, test) {
+  typedef float (*PackedUnpackLowPair)();
+  float res = reinterpret_cast<PackedUnpackLowPair>(test->entry())();
+  EXPECT_FLOAT_EQ(6.0f, res, 0.001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedUnpackHighPair, assembler) {
+  static const struct ALIGN16 {
+    float a;
+    float b;
+    float c;
+    float d;
+  } constant0 = { 1.0, 2.0, 3.0, 4.0 };
+  static const struct ALIGN16 {
+    float a;
+    float b;
+    float c;
+    float d;
+  } constant1 = { 5.0, 6.0, 7.0, 8.0 };
+  // XMM0 = 1.0f, 2.0f, 3.0f, 4.0f.
+  __ movups(XMM0, Address::Absolute(reinterpret_cast<uword>(&constant0)));
+  // XMM1 = 5.0f, 6.0f, 7.0f, 8.0f.
+  __ movups(XMM1, Address::Absolute(reinterpret_cast<uword>(&constant1)));
+  // XMM0 = 3.0f, 4.0f, 7.0f, 8.0f.
+  __ unpckhpd(XMM0, XMM1);
+  // XMM1 = 3.0f, 4.0f, 7.0f, 8.0f.
+  __ movaps(XMM1, XMM0);
+  __ shufps(XMM0, XMM0, Immediate(0x55));
+  __ shufps(XMM1, XMM1, Immediate(0xFF));
+  __ addss(XMM0, XMM1);  // 12.0f.
+  __ pushl(EAX);
+  __ movss(Address(ESP, 0), XMM0);
+  __ flds(Address(ESP, 0));
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedUnpackHighPair, test) {
+  typedef float (*PackedUnpackHighPair)();
+  float res = reinterpret_cast<PackedUnpackHighPair>(test->entry())();
+  EXPECT_FLOAT_EQ(12.0f, res, 0.001f);
+}
+
+
 ASSEMBLER_TEST_GENERATE(SingleFPOperationsStack, assembler) {
   __ movl(EAX, Immediate(bit_cast<int32_t, float>(12.3f)));
   __ movd(XMM0, EAX);

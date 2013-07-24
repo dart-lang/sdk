@@ -149,7 +149,7 @@ String _defaultErrorFormatter(actual, Matcher matcher, String reason,
     Map matchState, bool verbose) {
   var description = new StringDescription();
   description.add('Expected: ').addDescriptionOf(matcher).add('\n');
-  description.add('  Actual: ').addDescriptionOf(actual);
+  description.add('  Actual: ').addDescriptionOf(actual).add('\n');
 
   var mismatchDescription = new StringDescription();
   matcher.describeMismatch(actual, mismatchDescription, matchState, verbose);

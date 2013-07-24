@@ -1094,13 +1094,13 @@ ASSEMBLER_TEST_GENERATE(VstmdVldmd, assembler) {
   __ LoadDImmediate(D2, 2.0, R0);
   __ LoadDImmediate(D3, 3.0, R0);
   __ LoadDImmediate(D4, 4.0, R0);
-  __ vstmd(DB_W, SP, D0, D4);  // Push D0 - D4 onto the stack, dec SP
+  __ vstmd(DB_W, SP, D0, 5);  // Push D0 - D4 onto the stack, dec SP
   __ LoadDImmediate(D0, 0.0, R0);
   __ LoadDImmediate(D1, 0.0, R0);
   __ LoadDImmediate(D2, 0.0, R0);
   __ LoadDImmediate(D3, 0.0, R0);
   __ LoadDImmediate(D4, 0.0, R0);
-  __ vldmd(IA_W, SP, D0, D4);  // Pop stack into D0 - D4, inc SP
+  __ vldmd(IA_W, SP, D0, 5);  // Pop stack into D0 - D4, inc SP
 
   // Load success value into R0
   __ mov(R0, ShifterOperand(42));
@@ -1200,12 +1200,12 @@ ASSEMBLER_TEST_GENERATE(VstmdVldmd1, assembler) {
   __ LoadDImmediate(D2, 2.0, R0);
   __ LoadDImmediate(D3, 3.0, R0);
   __ LoadDImmediate(D4, 4.0, R0);
-  __ vstmd(DB_W, SP, D1, D4);  // Push D1 - D4 onto the stack, dec SP
+  __ vstmd(DB_W, SP, D1, 4);  // Push D1 - D4 onto the stack, dec SP
   __ LoadDImmediate(D1, 0.0, R0);
   __ LoadDImmediate(D2, 0.0, R0);
   __ LoadDImmediate(D3, 0.0, R0);
   __ LoadDImmediate(D4, 0.0, R0);
-  __ vldmd(IA_W, SP, D1, D4);  // Pop stack into D1 - D4, inc SP
+  __ vldmd(IA_W, SP, D1, 4);  // Pop stack into D1 - D4, inc SP
 
   // Load success value into R0
   __ mov(R0, ShifterOperand(42));
@@ -1306,8 +1306,8 @@ ASSEMBLER_TEST_GENERATE(VstmdVldmd_off, assembler) {
   __ LoadDImmediate(D3, 3.0, R0);
   __ LoadDImmediate(D4, 4.0, R0);
   __ LoadDImmediate(D5, 5.0, R0);
-  __ vstmd(DB_W, SP, D0, D4);  // Push D0 - D4 onto the stack, dec SP
-  __ vldmd(IA_W, SP, D5, D9);  // Pop stack into D5 - D9, inc SP
+  __ vstmd(DB_W, SP, D0, 5);  // Push D0 - D4 onto the stack, dec SP
+  __ vldmd(IA_W, SP, D5, 5);  // Pop stack into D5 - D9, inc SP
 
   // Load success value into R0
   __ mov(R0, ShifterOperand(42));
@@ -2459,6 +2459,48 @@ ASSEMBLER_TEST_RUN(Vorrq, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Vandq, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    // Q0
+    __ LoadImmediate(R0, 0xaaaaaaab);
+    __ vmovsr(S0, R0);
+    __ vmovsr(S1, R0);
+    __ vmovsr(S2, R0);
+    __ vmovsr(S3, R0);
+
+    // Q1
+    __ LoadImmediate(R0, 0x55555555);
+    __ vmovsr(S4, R0);
+    __ vmovsr(S5, R0);
+    __ vmovsr(S6, R0);
+    __ vmovsr(S7, R0);
+
+    // Q2 = 1 1 1 1
+    __ vandq(Q2, Q1, Q0);
+
+    __ vmovrs(R0, S8);
+    __ vmovrs(R1, S9);
+    __ vmovrs(R2, S10);
+    __ vmovrs(R3, S11);
+
+    __ add(R0, R0, ShifterOperand(R1));
+    __ add(R0, R0, ShifterOperand(R2));
+    __ add(R0, R0, ShifterOperand(R3));
+    __ bx(LR);
+  } else {
+    __ LoadImmediate(R0, 4);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vandq, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(4, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
 ASSEMBLER_TEST_GENERATE(Vmovq, assembler) {
   if (CPUFeatures::neon_supported()) {
     // Q0
@@ -2921,6 +2963,531 @@ ASSEMBLER_TEST_RUN(Vcgtqs, test) {
   EXPECT(test != NULL);
   typedef int (*Tst)();
   EXPECT_EQ(-2, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vminqs, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ LoadSImmediate(S0, 1.0);
+    __ LoadSImmediate(S1, 2.0);
+    __ LoadSImmediate(S2, 3.0);
+    __ LoadSImmediate(S3, 4.0);
+
+    __ LoadSImmediate(S4, 2.0);
+    __ LoadSImmediate(S5, 1.0);
+    __ LoadSImmediate(S6, 6.0);
+    __ LoadSImmediate(S7, 3.0);
+
+    __ vminqs(Q2, Q1, Q0);
+
+    __ vadds(S8, S8, S9);
+    __ vadds(S8, S8, S10);
+    __ vadds(S8, S8, S11);
+
+    __ vcvtis(S0, S8);
+    __ vmovrs(R0, S0);
+    __ bx(LR);
+  } else {
+    __ LoadImmediate(R0, 8);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vminqs, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(8, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vmaxqs, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ LoadSImmediate(S0, 1.0);
+    __ LoadSImmediate(S1, 2.0);
+    __ LoadSImmediate(S2, 3.0);
+    __ LoadSImmediate(S3, 4.0);
+
+    __ LoadSImmediate(S4, 2.0);
+    __ LoadSImmediate(S5, 1.0);
+    __ LoadSImmediate(S6, 6.0);
+    __ LoadSImmediate(S7, 3.0);
+
+    __ vmaxqs(Q2, Q1, Q0);
+
+    __ vadds(S8, S8, S9);
+    __ vadds(S8, S8, S10);
+    __ vadds(S8, S8, S11);
+
+    __ vcvtis(S0, S8);
+    __ vmovrs(R0, S0);
+    __ bx(LR);
+  } else {
+    __ LoadImmediate(R0, 14);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vmaxqs, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(14, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+// This is the same function as in the Simulator.
+static float arm_recip_estimate(float a) {
+  // From the ARM Architecture Reference Manual A2-85.
+  if (isinf(a) || (abs(a) >= exp2f(126))) return 0.0;
+  else if (a == 0.0) return INFINITY;
+  else if (isnan(a)) return a;
+
+  uint32_t a_bits = bit_cast<uint32_t, float>(a);
+  // scaled = '0011 1111 1110' : a<22:0> : Zeros(29)
+  uint64_t scaled = (static_cast<uint64_t>(0x3fe) << 52) |
+                    ((static_cast<uint64_t>(a_bits) & 0x7fffff) << 29);
+  // result_exp = 253 - UInt(a<30:23>)
+  int32_t result_exp = 253 - ((a_bits >> 23) & 0xff);
+  ASSERT((result_exp >= 1) && (result_exp <= 252));
+
+  double scaled_d = bit_cast<double, uint64_t>(scaled);
+  ASSERT((scaled_d >= 0.5) && (scaled_d < 1.0));
+
+  // a in units of 1/512 rounded down.
+  int32_t q = static_cast<int32_t>(scaled_d * 512.0);
+  // reciprocal r.
+  double r = 1.0 / ((static_cast<double>(q) + 0.5) / 512.0);
+  // r in units of 1/256 rounded to nearest.
+  int32_t s = static_cast<int32_t>(256.0 * r + 0.5);
+  double estimate = static_cast<double>(s) / 256.0;
+  ASSERT((estimate >= 1.0) && (estimate <= (511.0/256.0)));
+
+  // result = sign : result_exp<7:0> : estimate<51:29>
+  int32_t result_bits =
+      (a_bits & 0x80000000) | ((result_exp & 0xff) << 23) |
+      ((bit_cast<uint64_t, double>(estimate) >> 29) & 0x7fffff);
+  return bit_cast<float, int32_t>(result_bits);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vrecpeqs, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ LoadSImmediate(S4, 147.0);
+    __ vmovs(S5, S4);
+    __ vmovs(S6, S4);
+    __ vmovs(S7, S4);
+
+    __ vrecpeqs(Q0, Q1);
+
+    __ bx(LR);
+  } else {
+    __ LoadSImmediate(S0, arm_recip_estimate(147.0));
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vrecpeqs, test) {
+  EXPECT(test != NULL);
+  typedef float (*Vrecpeqs)();
+  float res = EXECUTE_TEST_CODE_FLOAT(Vrecpeqs, test->entry());
+  EXPECT_FLOAT_EQ(arm_recip_estimate(147.0), res, 0.0001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vrecpsqs, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ LoadSImmediate(S4, 5.0);
+    __ LoadSImmediate(S5, 2.0);
+    __ LoadSImmediate(S6, 3.0);
+    __ LoadSImmediate(S7, 4.0);
+
+    __ LoadSImmediate(S8, 10.0);
+    __ LoadSImmediate(S9, 1.0);
+    __ LoadSImmediate(S10, 6.0);
+    __ LoadSImmediate(S11, 3.0);
+
+    __ vrecpsqs(Q0, Q1, Q2);
+
+    __ bx(LR);
+  } else {
+    __ LoadSImmediate(S0, 2.0 - 10.0 * 5.0);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vrecpsqs, test) {
+  EXPECT(test != NULL);
+  typedef float (*Vrecpsqs)();
+  float res = EXECUTE_TEST_CODE_FLOAT(Vrecpsqs, test->entry());
+  EXPECT_FLOAT_EQ(2.0 - 10.0 * 5.0, res, 0.0001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Reciprocal, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ LoadSImmediate(S4, 147000.0);
+    __ vmovs(S5, S4);
+    __ vmovs(S6, S4);
+    __ vmovs(S7, S4);
+
+    // Reciprocal estimate.
+    __ vrecpeqs(Q0, Q1);
+    // 2 Newton-Raphson steps.
+    __ vrecpsqs(Q2, Q1, Q0);
+    __ vmulqs(Q0, Q0, Q2);
+    __ vrecpsqs(Q2, Q1, Q0);
+    __ vmulqs(Q0, Q0, Q2);
+
+    __ bx(LR);
+  } else {
+    __ LoadSImmediate(S0, 1.0/147000.0);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Reciprocal, test) {
+  EXPECT(test != NULL);
+  typedef float (*Reciprocal)();
+  float res = EXECUTE_TEST_CODE_FLOAT(Reciprocal, test->entry());
+  EXPECT_FLOAT_EQ(1.0/147000.0, res, 0.0001f);
+}
+
+
+static float arm_reciprocal_sqrt_estimate(float a) {
+  // From the ARM Architecture Reference Manual A2-87.
+  if (isinf(a) || (abs(a) >= exp2f(126))) return 0.0;
+  else if (a == 0.0) return INFINITY;
+  else if (isnan(a)) return a;
+
+  uint32_t a_bits = bit_cast<uint32_t, float>(a);
+  uint64_t scaled;
+  if (((a_bits >> 23) & 1) != 0) {
+    // scaled = '0 01111111101' : operand<22:0> : Zeros(29)
+    scaled = (static_cast<uint64_t>(0x3fd) << 52) |
+             ((static_cast<uint64_t>(a_bits) & 0x7fffff) << 29);
+  } else {
+    // scaled = '0 01111111110' : operand<22:0> : Zeros(29)
+    scaled = (static_cast<uint64_t>(0x3fe) << 52) |
+             ((static_cast<uint64_t>(a_bits) & 0x7fffff) << 29);
+  }
+  // result_exp = (380 - UInt(operand<30:23>) DIV 2;
+  int32_t result_exp = (380 - ((a_bits >> 23) & 0xff)) / 2;
+
+  double scaled_d = bit_cast<double, uint64_t>(scaled);
+  ASSERT((scaled_d >= 0.25) && (scaled_d < 1.0));
+
+  double r;
+  if (scaled_d < 0.5) {
+    // range 0.25 <= a < 0.5
+
+    // a in units of 1/512 rounded down.
+    int32_t q0 = static_cast<int32_t>(scaled_d * 512.0);
+    // reciprocal root r.
+    r = 1.0 / sqrt((static_cast<double>(q0) + 0.5) / 512.0);
+  } else {
+    // range 0.5 <= a < 1.0
+
+    // a in units of 1/256 rounded down.
+    int32_t q1 = static_cast<int32_t>(scaled_d * 256.0);
+    // reciprocal root r.
+    r = 1.0 / sqrt((static_cast<double>(q1) + 0.5) / 256.0);
+  }
+  // r in units of 1/256 rounded to nearest.
+  int32_t s = static_cast<int>(256.0 * r + 0.5);
+  double estimate = static_cast<double>(s) / 256.0;
+  ASSERT((estimate >= 1.0) && (estimate <= (511.0/256.0)));
+
+  // result = 0 : result_exp<7:0> : estimate<51:29>
+  int32_t result_bits = ((result_exp & 0xff) << 23) |
+      ((bit_cast<uint64_t, double>(estimate) >> 29) & 0x7fffff);
+  return bit_cast<float, int32_t>(result_bits);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vrsqrteqs, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ LoadSImmediate(S4, 147.0);
+    __ vmovs(S5, S4);
+    __ vmovs(S6, S4);
+    __ vmovs(S7, S4);
+
+    __ vrsqrteqs(Q0, Q1);
+
+    __ bx(LR);
+  } else {
+    __ LoadSImmediate(S0, arm_reciprocal_sqrt_estimate(147.0));
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vrsqrteqs, test) {
+  EXPECT(test != NULL);
+  typedef float (*Vrsqrteqs)();
+  float res = EXECUTE_TEST_CODE_FLOAT(Vrsqrteqs, test->entry());
+  EXPECT_FLOAT_EQ(arm_reciprocal_sqrt_estimate(147.0), res, 0.0001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vrsqrtsqs, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ LoadSImmediate(S4, 5.0);
+    __ LoadSImmediate(S5, 2.0);
+    __ LoadSImmediate(S6, 3.0);
+    __ LoadSImmediate(S7, 4.0);
+
+    __ LoadSImmediate(S8, 10.0);
+    __ LoadSImmediate(S9, 1.0);
+    __ LoadSImmediate(S10, 6.0);
+    __ LoadSImmediate(S11, 3.0);
+
+    __ vrsqrtsqs(Q0, Q1, Q2);
+
+    __ bx(LR);
+  } else {
+    __ LoadSImmediate(S0, (3.0 - 10.0 * 5.0) / 2.0);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vrsqrtsqs, test) {
+  EXPECT(test != NULL);
+  typedef float (*Vrsqrtsqs)();
+  float res = EXECUTE_TEST_CODE_FLOAT(Vrsqrtsqs, test->entry());
+  EXPECT_FLOAT_EQ((3.0 - 10.0 * 5.0)/2.0, res, 0.0001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(ReciprocalSqrt, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ LoadSImmediate(S4, 147000.0);
+    __ vmovs(S5, S4);
+    __ vmovs(S6, S4);
+    __ vmovs(S7, S4);
+
+    // Reciprocal square root estimate.
+    __ vrsqrteqs(Q0, Q1);
+    // 2 Newton-Raphson steps. xn+1 = xn * (3 - Q1*xn^2) / 2.
+    // First step.
+    __ vmulqs(Q2, Q0, Q0);  // Q2 <- xn^2
+    __ vrsqrtsqs(Q2, Q1, Q2);  // Q2 <- (3 - Q1*Q2) / 2.
+    __ vmulqs(Q0, Q0, Q2);  // xn+1 <- xn * Q2
+    // Second step.
+    __ vmulqs(Q2, Q0, Q0);
+    __ vrsqrtsqs(Q2, Q1, Q2);
+    __ vmulqs(Q0, Q0, Q2);
+
+    __ bx(LR);
+  } else {
+    __ LoadSImmediate(S0, 1.0/sqrt(147000.0));
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(ReciprocalSqrt, test) {
+  EXPECT(test != NULL);
+  typedef float (*ReciprocalSqrt)();
+  float res = EXECUTE_TEST_CODE_FLOAT(ReciprocalSqrt, test->entry());
+  EXPECT_FLOAT_EQ(1.0/sqrt(147000.0), res, 0.0001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(SIMDSqrt, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ LoadSImmediate(S4, 147000.0);
+    __ vmovs(S5, S4);
+    __ vmovs(S6, S4);
+    __ vmovs(S7, S4);
+
+    // Reciprocal square root estimate.
+    __ vrsqrteqs(Q0, Q1);
+    // 2 Newton-Raphson steps. xn+1 = xn * (3 - Q1*xn^2) / 2.
+    // First step.
+    __ vmulqs(Q2, Q0, Q0);  // Q2 <- xn^2
+    __ vrsqrtsqs(Q2, Q1, Q2);  // Q2 <- (3 - Q1*Q2) / 2.
+    __ vmulqs(Q0, Q0, Q2);  // xn+1 <- xn * Q2
+    // Second step.
+    __ vmulqs(Q2, Q0, Q0);
+    __ vrsqrtsqs(Q2, Q1, Q2);
+    __ vmulqs(Q0, Q0, Q2);
+
+    // Reciprocal.
+    __ vmovq(Q1, Q0);
+    // Reciprocal estimate.
+    __ vrecpeqs(Q0, Q1);
+    // 2 Newton-Raphson steps.
+    __ vrecpsqs(Q2, Q1, Q0);
+    __ vmulqs(Q0, Q0, Q2);
+    __ vrecpsqs(Q2, Q1, Q0);
+    __ vmulqs(Q0, Q0, Q2);
+
+    __ bx(LR);
+  } else {
+    __ LoadSImmediate(S0, sqrt(147000.0));
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(SIMDSqrt, test) {
+  EXPECT(test != NULL);
+  typedef float (*SIMDSqrt)();
+  float res = EXECUTE_TEST_CODE_FLOAT(SIMDSqrt, test->entry());
+  EXPECT_FLOAT_EQ(sqrt(147000.0), res, 0.0001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(SIMDSqrt2, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ LoadSImmediate(S4, 1.0);
+    __ LoadSImmediate(S5, 4.0);
+    __ LoadSImmediate(S6, 9.0);
+    __ LoadSImmediate(S7, 16.0);
+
+    // Reciprocal square root estimate.
+    __ vrsqrteqs(Q0, Q1);
+    // 2 Newton-Raphson steps. xn+1 = xn * (3 - Q1*xn^2) / 2.
+    // First step.
+    __ vmulqs(Q2, Q0, Q0);  // Q2 <- xn^2
+    __ vrsqrtsqs(Q2, Q1, Q2);  // Q2 <- (3 - Q1*Q2) / 2.
+    __ vmulqs(Q0, Q0, Q2);  // xn+1 <- xn * Q2
+    // Second step.
+    __ vmulqs(Q2, Q0, Q0);
+    __ vrsqrtsqs(Q2, Q1, Q2);
+    __ vmulqs(Q0, Q0, Q2);
+
+    // Reciprocal.
+    __ vmovq(Q1, Q0);
+    // Reciprocal estimate.
+    __ vrecpeqs(Q0, Q1);
+    // 2 Newton-Raphson steps.
+    __ vrecpsqs(Q2, Q1, Q0);
+    __ vmulqs(Q0, Q0, Q2);
+    __ vrecpsqs(Q2, Q1, Q0);
+    __ vmulqs(Q0, Q0, Q2);
+
+    __ vadds(S0, S0, S1);
+    __ vadds(S0, S0, S2);
+    __ vadds(S0, S0, S3);
+
+    __ bx(LR);
+  } else {
+    __ LoadSImmediate(S0, 10.0);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(SIMDSqrt2, test) {
+  EXPECT(test != NULL);
+  typedef float (*SIMDSqrt2)();
+  float res = EXECUTE_TEST_CODE_FLOAT(SIMDSqrt2, test->entry());
+  EXPECT_FLOAT_EQ(10.0, res, 0.0001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(SIMDDiv, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ LoadSImmediate(S4, 1.0);
+    __ LoadSImmediate(S5, 4.0);
+    __ LoadSImmediate(S6, 9.0);
+    __ LoadSImmediate(S7, 16.0);
+
+    __ LoadSImmediate(S12, 4.0);
+    __ LoadSImmediate(S13, 16.0);
+    __ LoadSImmediate(S14, 36.0);
+    __ LoadSImmediate(S15, 64.0);
+
+    // Reciprocal estimate.
+    __ vrecpeqs(Q0, Q1);
+    // 2 Newton-Raphson steps.
+    __ vrecpsqs(Q2, Q1, Q0);
+    __ vmulqs(Q0, Q0, Q2);
+    __ vrecpsqs(Q2, Q1, Q0);
+    __ vmulqs(Q0, Q0, Q2);
+
+    __ vmulqs(Q0, Q3, Q0);
+    __ vadds(S0, S0, S1);
+    __ vadds(S0, S0, S2);
+    __ vadds(S0, S0, S3);
+
+    __ bx(LR);
+  } else {
+    __ LoadSImmediate(S0, 16.0);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(SIMDDiv, test) {
+  EXPECT(test != NULL);
+  typedef float (*SIMDDiv)();
+  float res = EXECUTE_TEST_CODE_FLOAT(SIMDDiv, test->entry());
+  EXPECT_FLOAT_EQ(16.0, res, 0.0001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vabsqs, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ LoadSImmediate(S4, 1.0);
+    __ LoadSImmediate(S5, -1.0);
+    __ LoadSImmediate(S6, 1.0);
+    __ LoadSImmediate(S7, -1.0);
+
+    __ vabsqs(Q0, Q1);
+
+    __ vadds(S0, S0, S1);
+    __ vadds(S0, S0, S2);
+    __ vadds(S0, S0, S3);
+
+    __ bx(LR);
+  } else {
+    __ LoadSImmediate(S0, 4.0);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vabsqs, test) {
+  EXPECT(test != NULL);
+  typedef float (*Vabsqs)();
+  float res = EXECUTE_TEST_CODE_FLOAT(Vabsqs, test->entry());
+  EXPECT_FLOAT_EQ(4.0, res, 0.0001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vnegqs, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ LoadSImmediate(S4, 1.0);
+    __ LoadSImmediate(S5, -2.0);
+    __ LoadSImmediate(S6, 1.0);
+    __ LoadSImmediate(S7, -2.0);
+
+    __ vnegqs(Q0, Q1);
+
+    __ vadds(S0, S0, S1);
+    __ vadds(S0, S0, S2);
+    __ vadds(S0, S0, S3);
+
+    __ bx(LR);
+  } else {
+    __ LoadSImmediate(S0, 2.0);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vnegqs, test) {
+  EXPECT(test != NULL);
+  typedef float (*Vnegqs)();
+  float res = EXECUTE_TEST_CODE_FLOAT(Vnegqs, test->entry());
+  EXPECT_FLOAT_EQ(2.0, res, 0.0001f);
 }
 
 

@@ -13,13 +13,13 @@ main() {
   initConfig();
   integration('installs packages transitively from a pub server', () {
     servePackages([
-      packageMap("foo", "1.2.3", [dependencyMap("bar", "2.0.4")]),
+      packageMap("foo", "1.2.3", {"bar": "2.0.4"}),
       packageMap("bar", "2.0.3"),
       packageMap("bar", "2.0.4"),
       packageMap("bar", "2.0.5")
     ]);
 
-    d.appDir([dependencyMap("foo", "1.2.3")]).create();
+    d.appDir({"foo": "1.2.3"}).create();
 
     pubInstall();
 

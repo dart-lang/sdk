@@ -461,9 +461,9 @@ class Assembler : public ValueObject {
              SRegister first, SRegister last, Condition cond = AL);
 
   void vldmd(BlockAddressMode am, Register base,
-             DRegister first, DRegister last, Condition cond = AL);
+             DRegister first, intptr_t count, Condition cond = AL);
   void vstmd(BlockAddressMode am, Register base,
-             DRegister first, DRegister last, Condition cond = AL);
+             DRegister first, intptr_t count, Condition cond = AL);
 
   void vadds(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
   void vaddd(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
@@ -483,9 +483,17 @@ class Assembler : public ValueObject {
   void vmlsd(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
   void vdivs(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
   void vdivd(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
+  void vminqs(QRegister qd, QRegister qn, QRegister qm);
+  void vmaxqs(QRegister qd, QRegister qn, QRegister qm);
+  void vrecpeqs(QRegister qd, QRegister qm);
+  void vrecpsqs(QRegister qd, QRegister qn, QRegister qm);
+  void vrsqrteqs(QRegister qd, QRegister qm);
+  void vrsqrtsqs(QRegister qd, QRegister qn, QRegister qm);
+
   void veorq(QRegister qd, QRegister qn, QRegister qm);
   void vorrq(QRegister qd, QRegister qn, QRegister qm);
   void vornq(QRegister qd, QRegister qn, QRegister qm);
+  void vandq(QRegister qd, QRegister qn, QRegister qm);
 
   void vceqqi(OperandSize sz, QRegister qd, QRegister qn, QRegister qm);
   void vceqqs(QRegister qd, QRegister qn, QRegister qm);
@@ -498,8 +506,10 @@ class Assembler : public ValueObject {
 
   void vabss(SRegister sd, SRegister sm, Condition cond = AL);
   void vabsd(DRegister dd, DRegister dm, Condition cond = AL);
+  void vabsqs(QRegister qd, QRegister qm);
   void vnegs(SRegister sd, SRegister sm, Condition cond = AL);
   void vnegd(DRegister dd, DRegister dm, Condition cond = AL);
+  void vnegqs(QRegister qd, QRegister qm);
   void vsqrts(SRegister sd, SRegister sm, Condition cond = AL);
   void vsqrtd(DRegister dd, DRegister dm, Condition cond = AL);
 
@@ -653,6 +663,12 @@ class Assembler : public ValueObject {
   void Ror(Register rd, Register rm, uint32_t shift_imm, Condition cond = AL);
   void Ror(Register rd, Register rm, Register rs, Condition cond = AL);
   void Rrx(Register rd, Register rm, Condition cond = AL);
+
+  void Vreciprocalqs(QRegister qd, QRegister qm);
+  void VreciprocalSqrtqs(QRegister qd, QRegister qm);
+  // If qm must be preserved, then provide a (non-QTMP) temporary.
+  void Vsqrtqs(QRegister qd, QRegister qm, QRegister temp = kNoQRegister);
+  void Vdivqs(QRegister qd, QRegister qn, QRegister qm);
 
   void SmiTag(Register reg, Condition cond = AL) {
     Lsl(reg, reg, kSmiTagSize, cond);

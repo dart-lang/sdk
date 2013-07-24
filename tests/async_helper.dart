@@ -58,6 +58,6 @@ void asyncEnd() {
   if (_asyncLevel == 0) {
     _port.close();
     _port = null;
-    print('unittest-suite-done');
+    print('unittest-suite-success');
   }
 }

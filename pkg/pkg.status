@@ -54,13 +54,12 @@ crypto/test/sha1_test: Fail # Issue 11407.
 
 # Skip browser-specific tests on VM
 [ $runtime == vm ]
-docgen/test/single_library_test: Skip # Uses js_helper
-path/test/dartium_test: Fail, OK # Uses dart:html
-path/test/dart2js_test: Fail, OK # Uses dart:html
+path/test/browser_test: Fail, OK # Uses dart:html
 intl/test/find_default_locale_browser_test: Skip
 intl/test/date_time_format_http_request_test: Skip
 
 [ $runtime == vm && $system == windows ]
+docgen/test/single_library_test: Fail # Issue 11985
 intl/test/find_default_locale_standalone_test: Fail # Issue 8110
 intl/test/message_extraction/message_extraction_test: Fail # Issue 9167
 
@@ -69,10 +68,7 @@ analyzer_experimental/test/generated/ast_test: Fail, Slow # Issue 11230
 unittest/test/instance_test: Fail # http://dartbug.com/11191
 stack_trace/test/trace_test: Pass, Timeout # Issue 11645
 
-[ $compiler == dart2js && $checked ]
-mdv_observe/test/observable_map_test: Fail # BUG(11480): Triage.
-
-[ $compiler == dartanalyzer || $compiler == dart2analyzer]
+[ $compiler == dartc || $compiler == dartanalyzer || $compiler == dart2analyzer]
 # These tests are runtime negative but statically positive, so we skip
 # them in the analyzer.
 unittest/test/mock_regexp_negative_test: Skip
@@ -80,6 +76,9 @@ unittest/test/mock_stepwise_negative_test: Skip
 
 [ $compiler == dart2js && $csp ]
 unittest/test/unittest_test: Pass, Crash # Issue 10935
+observe/test/observe_test: Fail # Issue 11970
+observe/test/path_observer_test: Fail  # Issue 11970
+mdv/test/binding_syntax_test: Fail # Issue 11970
 
 serialization/test/serialization_test: Fail # Issue 6490
 serialization/test/no_library_test: Fail # Issue 6490
@@ -91,7 +90,6 @@ serialization/test/no_library_test: Fail # Issue 6490
 unittest/test/*_unminified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
 
 [ $compiler == dart2js && $browser ]
-path/test/dartium_test: Fail # Issue 6490
 stack_trace/test/vm_test: Fail, OK # VM-specific traces
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
@@ -175,9 +173,6 @@ dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
 # test on Dartium, which requires all tests to have a library.
 [ $runtime == dartium || $runtime == drt ]
 serialization/test/no_library_test: Skip # Expected Failure
-
-[ ($runtime == dartium || $runtime == drt) && $compiler == none ]
-path/test/dart2js_test: Fail, OK # Issue 6490
 
 # Skip mdv tests on command line VM, they only run in the browser.
 [ $runtime == vm ]

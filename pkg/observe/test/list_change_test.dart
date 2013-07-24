@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'package:observe/observe.dart';
 import 'package:unittest/unittest.dart';
-import 'utils.dart';
+import 'observe_test_utils.dart';
 
 // This file contains code ported from:
 // https://github.com/rafaelw/ChangeSummary/blob/master/tests/test.js
@@ -16,38 +17,41 @@ main() {
 
 // TODO(jmesserly): port or write array fuzzer tests
 listChangeTests() {
+  StreamSubscription sub;
 
-  test('sequential adds', () {
+  tearDown(() { sub.cancel(); });
+
+  observeTest('sequential adds', () {
     var model = toObservable([]);
     model.add(0);
 
     var summary;
-    var sub = model.changes.listen((r) { summary = _filter(r); });
+    sub = model.changes.listen((r) { summary = _filter(r); });
 
     model.add(1);
     model.add(2);
 
     expect(summary, null);
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
 
     expectChanges(summary, [_delta(1, 0, 2)]);
   });
 
-  test('List Splice Truncate And Expand With Length', () {
+  observeTest('List Splice Truncate And Expand With Length', () {
     var model = toObservable(['a', 'b', 'c', 'd', 'e']);
 
     var summary;
-    var sub = model.changes.listen((r) { summary = _filter(r); });
+    sub = model.changes.listen((r) { summary = _filter(r); });
 
     model.length = 2;
 
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expectChanges(summary, [_delta(2, 3, 0)]);
     summary = null;
 
     model.length = 5;
 
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expectChanges(summary, [_delta(2, 0, 3)]);
   });
 
@@ -56,12 +60,12 @@ listChangeTests() {
     var summary = null;
 
     observeArray(model) {
-      model.changes.listen((records) { summary = _filter(records); });
+      sub = model.changes.listen((records) { summary = _filter(records); });
     }
 
     applyAndCheckDeltas(model, copy) {
       summary = null;
-      deliverChangeRecords();
+      performMicrotaskCheckpoint();
 
       // apply deltas to the copy
       for (var delta in summary) {
@@ -75,7 +79,7 @@ listChangeTests() {
       expect('$copy', '$model', reason: '!!! summary $summary');
     }
 
-    test('Contained', () {
+    observeTest('Contained', () {
       var model = toObservable(['a', 'b']);
       var copy = model.toList();
       observeArray(model);
@@ -88,7 +92,7 @@ listChangeTests() {
       applyAndCheckDeltas(model, copy);
     });
 
-    test('Delete Empty', () {
+    observeTest('Delete Empty', () {
       var model = toObservable([1]);
       var copy = model.toList();
       observeArray(model);
@@ -99,7 +103,7 @@ listChangeTests() {
       applyAndCheckDeltas(model, copy);
     });
 
-    test('Right Non Overlap', () {
+    observeTest('Right Non Overlap', () {
       var model = toObservable(['a', 'b', 'c', 'd']);
       var copy = model.toList();
       observeArray(model);
@@ -112,7 +116,7 @@ listChangeTests() {
       applyAndCheckDeltas(model, copy);
     });
 
-    test('Left Non Overlap', () {
+    observeTest('Left Non Overlap', () {
       var model = toObservable(['a', 'b', 'c', 'd']);
       var copy = model.toList();
       observeArray(model);
@@ -125,7 +129,7 @@ listChangeTests() {
       applyAndCheckDeltas(model, copy);
     });
 
-    test('Right Adjacent', () {
+    observeTest('Right Adjacent', () {
       var model = toObservable(['a', 'b', 'c', 'd']);
       var copy = model.toList();
       observeArray(model);
@@ -138,7 +142,7 @@ listChangeTests() {
       applyAndCheckDeltas(model, copy);
     });
 
-    test('Left Adjacent', () {
+    observeTest('Left Adjacent', () {
       var model = toObservable(['a', 'b', 'c', 'd']);
       var copy = model.toList();
       observeArray(model);
@@ -152,7 +156,7 @@ listChangeTests() {
       applyAndCheckDeltas(model, copy);
     });
 
-    test('Right Overlap', () {
+    observeTest('Right Overlap', () {
       var model = toObservable(['a', 'b', 'c', 'd']);
       var copy = model.toList();
       observeArray(model);
@@ -165,7 +169,7 @@ listChangeTests() {
       applyAndCheckDeltas(model, copy);
     });
 
-    test('Left Overlap', () {
+    observeTest('Left Overlap', () {
       var model = toObservable(['a', 'b', 'c', 'd']);
       var copy = model.toList();
       observeArray(model);
@@ -180,7 +184,7 @@ listChangeTests() {
       applyAndCheckDeltas(model, copy);
     });
 
-    test('Prefix And Suffix One In', () {
+    observeTest('Prefix And Suffix One In', () {
       var model = toObservable(['a', 'b', 'c', 'd']);
       var copy = model.toList();
       observeArray(model);
@@ -191,7 +195,7 @@ listChangeTests() {
       applyAndCheckDeltas(model, copy);
     });
 
-    test('Remove First', () {
+    observeTest('Remove First', () {
       var model = toObservable([16, 15, 15]);
       var copy = model.toList();
       observeArray(model);
@@ -201,7 +205,7 @@ listChangeTests() {
       applyAndCheckDeltas(model, copy);
     });
 
-    test('Update Remove', () {
+    observeTest('Update Remove', () {
       var model = toObservable(['a', 'b', 'c', 'd']);
       var copy = model.toList();
       observeArray(model);
@@ -214,7 +218,7 @@ listChangeTests() {
       applyAndCheckDeltas(model, copy);
     });
 
-    test('Remove Mid List', () {
+    observeTest('Remove Mid List', () {
       var model = toObservable(['a', 'b', 'c', 'd']);
       var copy = model.toList();
       observeArray(model);
@@ -229,12 +233,12 @@ listChangeTests() {
     var summary = null;
 
     observeArray(model) {
-      model.changes.listen((records) { summary = _filter(records); });
+      sub = model.changes.listen((records) { summary = _filter(records); });
     }
 
     assertEditDistance(orig, expectDistance) {
       summary = null;
-      deliverChangeRecords();
+      performMicrotaskCheckpoint();
       var actualDistance = 0;
 
       if (summary != null) {
@@ -246,14 +250,14 @@ listChangeTests() {
       expect(actualDistance, expectDistance);
     }
 
-    test('add items', () {
+    observeTest('add items', () {
       var model = toObservable([]);
       observeArray(model);
       model.addAll([1, 2, 3]);
       assertEditDistance(model, 3);
     });
 
-    test('trunacte and add, sharing a contiguous block', () {
+    observeTest('trunacte and add, sharing a contiguous block', () {
       var model = toObservable(['x', 'x', 'x', 'x', '1', '2', '3']);
       observeArray(model);
       model.length = 0;
@@ -264,7 +268,7 @@ listChangeTests() {
       assertEditDistance(model, 14);
     });
 
-    test('truncate and add, sharing a discontiguous block', () {
+    observeTest('truncate and add, sharing a discontiguous block', () {
       var model = toObservable(['1', '2', '3', '4', '5']);
       observeArray(model);
       model.length = 0;
@@ -275,7 +279,7 @@ listChangeTests() {
       assertEditDistance(model, 13);
     });
 
-    test('insert at beginning and end', () {
+    observeTest('insert at beginning and end', () {
       var model = toObservable([2, 3, 4]);
       observeArray(model);
       model.insert(0, 5);

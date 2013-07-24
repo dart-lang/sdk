@@ -5,56 +5,55 @@
 // Dart test program for testing native extensions.
 
 import "package:expect/expect.dart";
+import "package:path/path.dart";
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
-Future copyFileToDirectory(Path file, Path directory) {
-  String src = file.toNativePath();
-  String dst = directory.toNativePath();
+Future copyFileToDirectory(String file, String directory) {
   switch (Platform.operatingSystem) {
     case 'linux':
     case 'macos':
-      return Process.run('cp', [src, dst]);
+      return Process.run('cp', [file, directory]);
     case 'windows':
-      return Process.run('cmd.exe', ['/C', 'copy $src $dst']);
+      return Process.run('cmd.exe', ['/C', 'copy $file $directory']);
     default:
       Expect.fail('Unknown operating system ${Platform.operatingSystem}');
   }
 }
 
-Path getExtensionPath(Path buildDirectory) {
+String getExtensionPath(String buildDirectory) {
   switch (Platform.operatingSystem) {
     case 'linux':
-      return buildDirectory.append('lib.target/libtest_extension.so');
+      return join(buildDirectory, 'lib.target', 'libtest_extension.so');
     case 'macos':
-      return buildDirectory.append('libtest_extension.dylib');
+      return join(buildDirectory, 'libtest_extension.dylib');
     case 'windows':
-      return buildDirectory.append('test_extension.dll');
+      return join(buildDirectory, 'test_extension.dll');
     default:
       Expect.fail('Unknown operating system ${Platform.operatingSystem}');
   }
 }
 
 void main() {
-  Path scriptDirectory = new Path(Platform.script).directoryPath;
-  Path buildDirectory = new Path(Platform.executable).directoryPath;
+  String scriptDirectory = dirname(Platform.script);
+  String buildDirectory = dirname(Platform.executable);
   Directory tempDirectory = new Directory('').createTempSync();
-  Path testDirectory = new Path(tempDirectory.path);
+  String testDirectory = tempDirectory.path;
 
   // Copy test_extension shared library, test_extension.dart and
   // test_extension_tester.dart to the temporary test directory.
   copyFileToDirectory(getExtensionPath(buildDirectory),
                       testDirectory).then((_) {
-    Path extensionDartFile = scriptDirectory.append('test_extension.dart');
+    var extensionDartFile = join(scriptDirectory, 'test_extension.dart');
     return copyFileToDirectory(extensionDartFile, testDirectory);
   }).then((_) {
-    Path testExtensionTesterFile =
-        scriptDirectory.append('test_extension_tester.dart');
+    var testExtensionTesterFile =
+        join(scriptDirectory, 'test_extension_tester.dart');
     return copyFileToDirectory(testExtensionTesterFile, testDirectory);
   }).then((_) {
-    Path script = testDirectory.append('test_extension_tester.dart');
-    return Process.run(Platform.executable, [script.toNativePath()]);
+    var script = join(testDirectory, 'test_extension_tester.dart');
+    return Process.run(Platform.executable, [script]);
   })..then((ProcessResult result) {
     Expect.equals(0, result.exitCode);
     tempDirectory.deleteSync(recursive: true);

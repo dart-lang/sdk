@@ -435,6 +435,9 @@ void ListenSocket::AcceptComplete(IOBuffer* buffer, HANDLE completion_port) {
       Log::PrintErr("setsockopt failed: %d\n", WSAGetLastError());
       closesocket(buffer->client());
     }
+  } else {
+    // Close the socket, as it's already accepted.
+    closesocket(buffer->client());
   }
 
   pending_accept_count_--;

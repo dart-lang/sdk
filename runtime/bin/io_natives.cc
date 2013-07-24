@@ -66,6 +66,8 @@ namespace bin {
   V(Socket_GetType, 1)                                                         \
   V(Socket_SetOption, 3)                                                       \
   V(Stdin_ReadByte, 1)                                                         \
+  V(Stdin_SetEchoMode, 2)                                                      \
+  V(Stdin_SetLineMode, 2)                                                      \
   V(StringToSystemEncoding, 1)                                                 \
   V(SystemEncodingToString, 1)
 

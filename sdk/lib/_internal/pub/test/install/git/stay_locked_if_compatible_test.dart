@@ -20,7 +20,7 @@ main() {
       d.libPubspec("foo", "1.0.0")
     ]).create();
 
-    d.appDir([{"git": "../foo.git"}]).create();
+    d.appDir({"foo": {"git": "../foo.git"}}).create();
 
     pubInstall();
 
@@ -35,7 +35,7 @@ main() {
       d.libPubspec("foo", "1.0.1")
     ]).commit();
 
-    d.appDir([{"git": "../foo.git", "version": ">=1.0.0"}]).create();
+    d.appDir({"foo": {"git": "../foo.git", "version": ">=1.0.0"}}).create();
 
     pubInstall();
 

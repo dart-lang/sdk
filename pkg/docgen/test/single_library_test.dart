@@ -2,19 +2,17 @@ library single_library_test;
 
 import 'dart:io'; 
 
+import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
 import '../lib/docgen.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart';
 
 main() {
   group('Generate docs for', () {
     test('one simple file.', () {
-      // TODO(janicejl): Instead of creating a new file, should use an in-memory
-      // file for creating the mirrorSystem. Example of the util function in 
-      // sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart. 
-      // Example of the test is in file mirrors_lookup_test.dart
-      var file = new File('test.dart');
+      var temporaryDir = new Directory('single_library').createTempSync();
+      var fileName = path.join(temporaryDir.path, 'temp.dart');
+      var file = new File(fileName);
       file.writeAsStringSync('''
   library test;
   /**
@@ -47,11 +45,12 @@ main() {
   }
       ''');
       
-      getMirrorSystem(['test.dart'],'', parseSdk: false)
+      getMirrorSystem([fileName])
         .then(expectAsync1((mirrorSystem) {
-          var testLibraryUri = currentDirectory.resolve('test.dart');
+          var testLibraryUri = new Uri(scheme: 'file', 
+              path: path.absolute(fileName));
           var library = generateLibrary(mirrorSystem.libraries[testLibraryUri], 
-              includePrivate: true);
+              includePrivate: false);
           expect(library is Library, isTrue);
           
           var classTypes = library.classes.values;
@@ -115,7 +114,7 @@ main() {
               classMirror, methodMirror).children.first.text;
           expect(libraryDocComment == 'foobar', isTrue);
           
-          file.deleteSync();
+          temporaryDir.deleteSync(recursive: true);
         }));
     });
   });

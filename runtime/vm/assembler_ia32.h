@@ -428,6 +428,12 @@ class Assembler : public ValueObject {
   void sqrtps(XmmRegister dst);
   void rsqrtps(XmmRegister dst);
   void reciprocalps(XmmRegister dst);
+  void movhlps(XmmRegister dst, XmmRegister src);
+  void movlhps(XmmRegister dst, XmmRegister src);
+  void unpcklps(XmmRegister dst, XmmRegister src);
+  void unpckhps(XmmRegister dst, XmmRegister src);
+  void unpcklpd(XmmRegister dst, XmmRegister src);
+  void unpckhpd(XmmRegister dst, XmmRegister src);
 
   void set1ps(XmmRegister dst, Register tmp, const Immediate& imm);
   void shufps(XmmRegister dst, XmmRegister src, const Immediate& mask);

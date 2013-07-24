@@ -95,7 +95,7 @@ class SocketExceptionTest {
         } catch (ex) {
           wrongExceptionCaught = true;
         }
-        Expect.isTrue(exceptionCaught);
+        Expect.isFalse(exceptionCaught);
         Expect.isFalse(wrongExceptionCaught);
 
         server.close();

@@ -4,8 +4,8 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
-#include "bin/thread.h"
 #include "bin/utils.h"
+#include "bin/stdin.h"
 
 #include "platform/globals.h"
 #include "platform/thread.h"
@@ -19,11 +19,25 @@ namespace bin {
 
 void FUNCTION_NAME(Stdin_ReadByte)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  int c = getchar();
-  if (c == EOF) {
-    c = -1;
-  }
-  Dart_SetReturnValue(args, Dart_NewInteger(c));
+  Dart_SetReturnValue(args, Dart_NewInteger(Stdin::ReadByte()));
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(Stdin_SetEchoMode)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  bool enabled = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 1));
+  Stdin::SetEchoMode(enabled);
+  Dart_SetReturnValue(args, Dart_Null());
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(Stdin_SetLineMode)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  bool enabled = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 1));
+  Stdin::SetLineMode(enabled);
+  Dart_SetReturnValue(args, Dart_Null());
   Dart_ExitScope();
 }
 

@@ -77,7 +77,7 @@ bool _isNumeric(value) {
   return value is int || value is double;
 }
 
-class _OrderingComparison extends BaseMatcher {
+class _OrderingComparison extends Matcher {
   /** Expected value. */
   final _value;
   /** What to return if actual == expected */
@@ -133,7 +133,7 @@ class _OrderingComparison extends BaseMatcher {
  */
 Matcher closeTo(value, delta) => new _IsCloseTo(value, delta);
 
-class _IsCloseTo extends BaseMatcher {
+class _IsCloseTo extends Matcher {
   final num _value, _delta;
 
   const _IsCloseTo(this._value, this._delta);
@@ -191,7 +191,7 @@ Matcher inOpenClosedRange(low, high) => new _InRange(low, high, false, true);
  */
 Matcher inClosedOpenRange(low, high) => new _InRange(low, high, true, false);
 
-class _InRange extends BaseMatcher {
+class _InRange extends Matcher {
   final num _low, _high;
   final bool _lowMatchValue, _highMatchValue;
 

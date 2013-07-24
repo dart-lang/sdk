@@ -40,8 +40,11 @@ interface ScriptProcessorNode {
   [Custom] void _setEventListener(EventListener eventListener);
 };
 
+/*
+// TODO(vsm): How should this interact with the new ChildNode and
+// ParentNode interfaces?
 // Force ElementTraversal. WebKit defines these directly.
-interface ElementTraversal {
+interface ElementTraversal : ChildNode, ParentNode {
   readonly attribute unsigned long childElementCount;
   readonly attribute Element firstElementChild;
   readonly attribute Element lastElementChild;
@@ -49,6 +52,7 @@ interface ElementTraversal {
   readonly attribute Element previousElementSibling;
 };
 Element implements ElementTraversal;
+*/
 
 [Callback]
 interface TimeoutHandler {
@@ -221,7 +225,7 @@ interface Blob {
 [Supplemental,
   Constructor(float x, float y)
 ]
-interface DOMPoint {
+interface WebKitPoint {
 };
 
 [Supplemental, Callback] // Add missing Callback attribute.
@@ -324,3 +328,7 @@ interface Location {
   [CustomSetter] attribute DOMString search;
   [CustomSetter] attribute DOMString hash;
 };
+
+
+[Supplemental]
+interface Window : EventTarget {};

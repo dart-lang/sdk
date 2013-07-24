@@ -11,8 +11,11 @@ part of dart.io;
  * a [addStream] until the buffer is flushed.
  *
  * When the [IOSink] is bound to a stream (through [addStream]) any call
- * to the [IOSink] will throw a [StateError]. When the [addStream] compeltes,
+ * to the [IOSink] will throw a [StateError]. When the [addStream] completes,
  * the [IOSink] will again be open for all calls.
+ *
+ * If data is added to the [IOSink] after the sink is closed, the data will be
+ * ignored. Use the [done] future to be notified when the [IOSink] is closed.
  */
 abstract class IOSink implements StreamSink<List<int>>, StringSink {
   factory IOSink(StreamConsumer<List<int>> target,
@@ -69,6 +72,7 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
   }
 
   void add(T data) {
+    if (_isClosed) return;
     _controller.add(data);
   }
 

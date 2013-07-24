@@ -3085,6 +3085,97 @@ void MathSqrtInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* MathMinMaxInstr::MakeLocationSummary() const {
+  if (result_cid() == kDoubleCid) {
+    const intptr_t kNumInputs = 2;
+    const intptr_t kNumTemps = 1;
+    LocationSummary* summary =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    summary->set_in(0, Location::RequiresFpuRegister());
+    summary->set_in(1, Location::RequiresFpuRegister());
+    // Reuse the left register so that code can be made shorter.
+    summary->set_out(Location::SameAsFirstInput());
+    summary->set_temp(0, Location::RequiresRegister());
+    return summary;
+  }
+  ASSERT(result_cid() == kSmiCid);
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(1, Location::RequiresRegister());
+  // Reuse the left register so that code can be made shorter.
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT((op_kind() == MethodRecognizer::kMathMin) ||
+         (op_kind() == MethodRecognizer::kMathMax));
+  const intptr_t is_min = (op_kind() == MethodRecognizer::kMathMin);
+  if (result_cid() == kDoubleCid) {
+    Label done, returns_nan, are_equal;
+    DRegister left = locs()->in(0).fpu_reg();
+    DRegister right = locs()->in(1).fpu_reg();
+    DRegister result = locs()->out().fpu_reg();
+    Register temp = locs()->temp(0).reg();
+    __ cund(left, right);
+    __ bc1t(&returns_nan);
+    __ ceqd(left, right);
+    __ bc1t(&are_equal);
+    if (is_min) {
+      __ coltd(left, right);
+    } else {
+      __ coltd(right, left);
+    }
+    // TODO(zra): Add conditional moves.
+    ASSERT(left == result);
+    __ bc1t(&done);
+    __ movd(result, right);
+    __ b(&done);
+
+    __ Bind(&returns_nan);
+    __ LoadImmediate(result, NAN);
+    __ b(&done);
+
+    __ Bind(&are_equal);
+    Label left_is_negative;
+    // Check for negative zero: -0.0 is equal 0.0 but min or max must return
+    // -0.0 or 0.0 respectively.
+    // Check for negative left value (get the sign bit):
+    // - min -> left is negative ? left : right.
+    // - max -> left is negative ? right : left
+    // Check the sign bit.
+    __ mfc1(temp, OddFRegisterOf(left));  // Moves bits 32...63 of left to temp.
+    if (is_min) {
+      ASSERT(left == result);
+      __ bltz(temp, &done);  // Left is negative.
+    } else {
+      __ bgez(temp, &done);  // Left is positive.
+    }
+    __ movd(result, right);
+    __ Bind(&done);
+    return;
+  }
+
+  Label done;
+  ASSERT(result_cid() == kSmiCid);
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  Register result = locs()->out().reg();
+  ASSERT(result == left);
+  if (is_min) {
+    __ BranchSignedLessEqual(left, right, &done);
+  } else {
+    __ BranchSignedGreaterEqual(left, right, &done);
+  }
+  __ mov(result, right);
+  __ Bind(&done);
+}
+
+
 LocationSummary* UnarySmiOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
@@ -3237,7 +3328,7 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary() const {
 
 
 void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // For pow-function return NAN if exponent is NAN.
+  // For pow-function return NaN if exponent is NaN.
   Label do_call, skip_call;
   if (recognized_kind() == MethodRecognizer::kDoublePow) {
     DRegister exp = locs()->in(1).fpu_reg();

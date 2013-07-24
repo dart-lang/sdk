@@ -84,7 +84,7 @@ main() {
       d.dir('hosted', [
          d.dir('pub.dartlang.org', [
           d.dir("foo-1.2.3", [
-            d.libPubspec("foo", "1.2.3", deps: [{"bad": "bar"}]),
+            d.libPubspec("foo", "1.2.3", deps: { "bar": {"bad": "bar"}}),
             d.libDir("foo")
           ])
         ])

@@ -90,8 +90,10 @@ class TestCase {
     _result = _stackTrace = null;
     _message = '';
 
-    var f = (setUp == null) ? new Future.value() : new Future(setUp);
-    return f.catchError(_errorHandler('Setup'))
+    // Avoid calling [new Future] to avoid issue 11911.
+    return new Future.value().then((_) {
+      if (setUp != null) return setUp();
+    }).catchError(_errorHandler('Setup'))
         .then((_) {
           // Skip the test if setup failed.
           if (result != null) return new Future.value();

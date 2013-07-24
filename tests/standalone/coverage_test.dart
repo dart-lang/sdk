@@ -9,6 +9,7 @@
 
 import "dart:io";
 import "dart:async";
+import "package:path/path.dart";
 
 // Coverage tool script relative to the path of this test.
 var coverageToolScript = "../../tools/coverage.dart";
@@ -49,16 +50,14 @@ void checkSuccess() {
 void main() {
   // Compute paths for coverage tool and coverage target relative
   // the the path of this script.
-  var scriptPath = new Path(Platform.script).directoryPath;
-  var toolPath = scriptPath.join(new Path(coverageToolScript)).canonicalize();
-  targPath = scriptPath.join(new Path(coverageTargetScript)).canonicalize();
+  var scriptPath = dirname(Platform.script);
+  var toolPath = normalize(join(scriptPath, coverageToolScript));
+  targPath = normalize(join(scriptPath, coverageTargetScript));
 
-  sourceLines = new File(targPath.toNativePath()).readAsLinesSync();
+  sourceLines = new File(targPath).readAsLinesSync();
   assert(sourceLines != null);
 
-  var processOpts = [ "--compile_all",
-                      toolPath.toNativePath(),
-                      targPath.toNativePath() ];
+  var processOpts = [ "--compile_all", toolPath, targPath ];
 
   Process.start(Platform.executable, processOpts).then((Process process) {
     coverageToolProcess = process;

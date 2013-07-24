@@ -22,10 +22,10 @@ main() {
         "bar": ["1.2.3"]
       }, includePubspecs: true).create();
 
-      d.appDir([
-        dependencyMap("foo", "any"),
-        dependencyMap("bar", "any")
-      ]).create();
+      d.appDir({
+        "foo": "any",
+        "bar": "any"
+      }).create();
 
       var warning = null;
       if (command == RunCommand.update) {
@@ -45,9 +45,7 @@ main() {
       // Run the server so that we know what URL to use in the system cache.
       servePackages([]);
 
-      d.appDir([
-        dependencyMap("foo", "any")
-      ]).create();
+      d.appDir({"foo": "any"}).create();
 
       pubCommand(command, args: ['--offline'],
           error: 'Could not find package "foo" in cache.');
@@ -61,9 +59,7 @@ main() {
         "foo": ["1.2.2", "1.2.3"]
       }, includePubspecs: true).create();
 
-      d.appDir([
-        dependencyMap("foo", ">2.0.0")
-      ]).create();
+      d.appDir({"foo": ">2.0.0"}).create();
 
       pubCommand(command, args: ['--offline'], error:
           "Package 'foo' has no versions that match >2.0.0 derived from:\n"

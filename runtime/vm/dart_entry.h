@@ -157,10 +157,10 @@ class DartEntry : public AllStatic {
 class DartLibraryCalls : public AllStatic {
  public:
   // On success, returns a RawInstance.  On failure, a RawError.
-  static RawObject* ExceptionCreate(const Library& library,
-                                    const String& exception_name,
-                                    const String& constructor_name,
-                                    const Array& arguments);
+  static RawObject* InstanceCreate(const Library& library,
+                                   const String& exception_name,
+                                   const String& constructor_name,
+                                   const Array& arguments);
 
   // On success, returns a RawInstance.  On failure, a RawError.
   static RawObject* ToString(const Instance& receiver);

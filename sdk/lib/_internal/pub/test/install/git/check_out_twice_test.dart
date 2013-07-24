@@ -19,7 +19,7 @@ main() {
       d.libPubspec('foo', '1.0.0')
     ]).create();
 
-    d.appDir([{"git": "../foo.git"}]).create();
+    d.appDir({"foo": {"git": "../foo.git"}}).create();
 
     pubInstall();
 

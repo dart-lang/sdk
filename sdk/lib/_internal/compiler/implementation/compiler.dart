@@ -680,7 +680,7 @@ abstract class Compiler implements DiagnosticListener {
       tracer.close();
       totalCompileTime.stop();
     }
-    return true;
+    return !compilationFailed;
   }
 
   bool hasIsolateSupport() => isolateLibrary != null;
@@ -955,6 +955,10 @@ abstract class Compiler implements DiagnosticListener {
     backend.assembleProgram();
 
     checkQueues();
+
+    if (compilationFailed) {
+      assembledCode = null; // Signals failure.
+    }
   }
 
   void fullyEnqueueLibrary(LibraryElement library, Enqueuer world) {

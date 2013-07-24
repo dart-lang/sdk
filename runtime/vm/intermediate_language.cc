@@ -149,6 +149,13 @@ bool StrictCompareInstr::AttributesEqual(Instruction* other) const {
 }
 
 
+bool MathMinMaxInstr::AttributesEqual(Instruction* other) const {
+  MathMinMaxInstr* other_op = other->AsMathMinMax();
+  ASSERT(other_op != NULL);
+  return (op_kind() == other_op->op_kind()) &&
+      (result_cid() == other_op->result_cid());
+}
+
 bool BinarySmiOpInstr::AttributesEqual(Instruction* other) const {
   BinarySmiOpInstr* other_op = other->AsBinarySmiOp();
   ASSERT(other_op != NULL);

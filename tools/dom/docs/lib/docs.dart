@@ -27,7 +27,7 @@ const List<String> HTML_LIBRARY_NAMES = const ['dart:html',
                                                'dart:web_sql'];
 /**
  * Converts the libraries in [HTML_LIBRARY_NAMES] to a json file at [jsonPath]
- * given the library path at [libPath].
+ * given the library path at [libUri].
  *
  * The json output looks like:
  *     {
@@ -51,22 +51,22 @@ const List<String> HTML_LIBRARY_NAMES = const ['dart:html',
  *
  * Completes to `true` if any errors were encountered, `false` otherwise.
  */
-Future<bool> convert(Path libPath, Path jsonPath) {
-  var paths = <Path>[];
+Future<bool> convert(String libUri, String jsonPath) {
+  var paths = <String>[];
   for (var libraryName in HTML_LIBRARY_NAMES) {
-    paths.add(new Path(libraryName));
+    paths.add(libraryName);
   }
 
-  return analyze(paths, libPath, options: ['--preserve-comments'])
+  return analyze(paths, libUri, options: ['--preserve-comments'])
     .then((MirrorSystem mirrors) {
       var convertedJson = _generateJsonFromLibraries(mirrors);
       return _exportJsonToFile(convertedJson, jsonPath);
     });
 }
 
-Future<bool> _exportJsonToFile(Map convertedJson, Path jsonPath) {
+Future<bool> _exportJsonToFile(Map convertedJson, String jsonPath) {
   return new Future.sync(() {
-    final jsonFile = new File.fromPath(jsonPath);
+    final jsonFile = new File(jsonPath);
     var writeJson = prettySerialize(convertedJson);
 
     var outputStream = jsonFile.openWrite();

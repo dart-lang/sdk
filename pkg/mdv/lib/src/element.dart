@@ -20,10 +20,9 @@ class _ElementExtension extends _NodeExtension {
       _attributeBindings = new Map<String, StreamSubscription>();
     }
 
-    node.xtag.attributes.remove(name);
-
     var changed;
     if (name.endsWith('?')) {
+      node.xtag.attributes.remove(name);
       name = name.substring(0, name.length - 1);
 
       changed = (value) {
@@ -43,8 +42,7 @@ class _ElementExtension extends _NodeExtension {
 
     unbind(name);
 
-    _attributeBindings[name] =
-        new PathObserver(model, path).bindSync(changed);
+    _attributeBindings[name] = new PathObserver(model, path).bindSync(changed);
   }
 
   void unbind(String name) {

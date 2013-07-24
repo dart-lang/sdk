@@ -17,7 +17,7 @@ returnInt1() {
 returnDyn1() {
   var a = 42;
   var f = () {
-    a = 'foo';
+    a = {};
   };
   return a;
 }
@@ -36,7 +36,7 @@ returnDyn2() {
     a = 54;
   };
   var g = () {
-    a = 'foo';
+    a = {};
   };
   return a;
 }
@@ -55,7 +55,7 @@ returnDyn3() {
   var a = 42;
   if (a == 53) {
     var f = () {
-      a = 'foo';
+      a = {};
     };
   }
   return a;
@@ -67,6 +67,20 @@ returnInt4() {
   return g();
 }
 
+returnNum1() {
+  var a = 42.5;
+  try {
+    g() {
+      var b = {};
+      b = 42;
+      return b;
+    }
+    a = g();
+  } finally {
+  }
+  return a;
+}
+
 main() {
   returnInt1();
   returnDyn1();
@@ -75,6 +89,7 @@ main() {
   returnInt3();
   returnDyn3();
   returnInt4();
+  returnNum1();
 }
 """;
 
@@ -87,18 +102,17 @@ void main() {
 
   checkReturn(String name, type) {
     var element = findElement(compiler, name);
-    Expect.equals(type, typesInferrer.getReturnTypeOfElement(element));
+    Expect.equals(type,
+        typesInferrer.getReturnTypeOfElement(element).simplify(compiler));
   }
 
   checkReturn('returnInt1', compiler.typesTask.intType);
-  // TODO(ngeoffray): We don't use types of mutated captured
-  // variables anymore, because they could lead to optimistic results
-  // needing to be re-analyzed.
-  checkReturn('returnInt2', compiler.typesTask.dynamicType);
+  checkReturn('returnInt2', compiler.typesTask.intType.nullable());
   checkReturn('returnInt3', compiler.typesTask.intType);
   checkReturn('returnInt4', compiler.typesTask.intType);
 
   checkReturn('returnDyn1', compiler.typesTask.dynamicType);
   checkReturn('returnDyn2', compiler.typesTask.dynamicType);
   checkReturn('returnDyn3', compiler.typesTask.dynamicType);
+  checkReturn('returnNum1', compiler.typesTask.numType);
 }

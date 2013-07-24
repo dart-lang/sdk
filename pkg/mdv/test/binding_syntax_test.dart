@@ -11,7 +11,7 @@ import 'package:mdv/mdv.dart' as mdv;
 import 'package:observe/observe.dart';
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
-import 'observe_utils.dart';
+import 'mdv_test_utils.dart';
 
 // Note: this file ported from
 // https://github.com/toolkitchen/mdv/blob/master/tests/syntax.js
@@ -19,10 +19,16 @@ import 'observe_utils.dart';
 main() {
   mdv.initialize();
   useHtmlConfiguration();
-  group('Syntax', syntaxTests);
+
+  group('Syntax FooBarModel', () {
+    syntaxTests(([f, b]) => new FooBarModel(f, b));
+  });
+  group('Syntax FooBarNotifyModel', () {
+    syntaxTests(([f, b]) => new FooBarNotifyModel(f, b));
+  });
 }
 
-syntaxTests() {
+syntaxTests(FooBarModel fooModel([foo, bar])) {
   var testDiv;
 
   setUp(() {
@@ -46,131 +52,88 @@ syntaxTests() {
     return div;
   }
 
-  recursivelySetTemplateModel(element, model) {
-    for (var node in element.queryAll('*')) {
-      if (node.isTemplate) node.model = model;
-    }
-  }
-
-  test('Registration', () {
-    var model = toSymbolMap({'foo': 'bar'});
+  observeTest('Registration', () {
+    var model = fooModel('bar');
 
     var testSyntax = new TestBindingSyntax();
-    TemplateElement.syntax['Test'] = testSyntax;
-    try {
-      var div = createTestHtml(
-          '<template bind syntax="Test">{{ foo }}' +
-          '<template bind>{{ foo }}</template></template>');
-      recursivelySetTemplateModel(div, model);
-      deliverChangeRecords();
-      expect(div.nodes.length, 4);
-      expect(div.nodes.last.text, 'bar');
-      expect(div.nodes[2].tagName, 'TEMPLATE');
-      expect(div.nodes[2].attributes['syntax'], 'Test');
-
-      expect(testSyntax.log, [
-        [model, '', 'bind', 'TEMPLATE'],
-        [model, 'foo', 'text', null],
-        [model, '', 'bind', 'TEMPLATE'],
-        [model, 'foo', 'text', null],
-      ]);
-    } finally {
-      TemplateElement.syntax.remove('Test');
-    }
-  });
-
-  test('getInstanceModel', () {
-    var model = toObservable([{'foo': 1}, {'foo': 2}, {'foo': 3}]
-        .map(toSymbolMap));
-
-    var testSyntax = new TestModelSyntax();
-    testSyntax.altModels.addAll([{'foo': 'a'}, {'foo': 'b'}, {'foo': 'c'}]
-        .map(toSymbolMap));
-
-    TemplateElement.syntax['Test'] = testSyntax;
-    try {
-
-      var div = createTestHtml(
-          '<template repeat syntax="Test">' +
-          '{{ foo }}</template>');
-
-      var template = div.nodes[0];
-      recursivelySetTemplateModel(div, model);
-      deliverChangeRecords();
-
-      expect(div.nodes.length, 4);
-      expect(div.nodes[0].tagName, 'TEMPLATE');
-      expect(div.nodes[1].text, 'a');
-      expect(div.nodes[2].text, 'b');
-      expect(div.nodes[3].text, 'c');
-
-      expect(testSyntax.log, [
-        [template, model[0]],
-        [template, model[1]],
-        [template, model[2]],
-      ]);
-
-    } finally {
-      TemplateElement.syntax.remove('Test');
-    }
-  });
-
-  test('Basic', () {
-    var model = toSymbolMap({'foo': 2, 'bar': 4});
-
-    TemplateElement.syntax['2x'] = new TimesTwoSyntax();
-
-    var div = createTestHtml(
-        '<template bind syntax="2x">'
-        '{{ foo }} + {{ 2x: bar }} + {{ 4x: bar }}</template>');
-    recursivelySetTemplateModel(div, model);
-    deliverChangeRecords();
-    expect(div.nodes.length, 2);
-    expect(div.nodes.last.text, '2 + 8 + ');
-
-    model[const Symbol('foo')] = 4;
-    model[const Symbol('bar')] = 8;
-    deliverChangeRecords();
-    expect(div.nodes.last.text, '4 + 16 + ');
-
-    TemplateElement.syntax.remove('2x');
-  });
-
-  test('Different Sub-Template Syntax', () {
-    var model = toSymbolMap({'foo': 'bar'});
-
-    TemplateElement.syntax['Test'] = new TestBindingSyntax();
-    TemplateElement.syntax['Test2'] = new TestBindingSyntax();
-
-    var div = createTestHtml(
-        '<template bind syntax="Test">{{ foo }}'
-        '<template bind syntax="Test2">{{ foo }}</template></template>');
-    recursivelySetTemplateModel(div, model);
-    deliverChangeRecords();
+    var div = createTestHtml('<template bind>{{ foo }}'
+        '<template bind>{{ foo }}</template></template>');
+    recursivelySetTemplateModel(div, model, testSyntax);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 4);
     expect(div.nodes.last.text, 'bar');
     expect(div.nodes[2].tagName, 'TEMPLATE');
-    expect(div.nodes[2].attributes['syntax'], 'Test2');
 
-    var testLog = TemplateElement.syntax['Test'].log;
-    var test2Log = TemplateElement.syntax['Test2'].log;
-
-    expect(testLog, [
+    expect(testSyntax.log, [
       [model, '', 'bind', 'TEMPLATE'],
       [model, 'foo', 'text', null],
-      [model, '', 'bind', 'TEMPLATE']
+      [model, '', 'bind', 'TEMPLATE'],
+      [model, 'foo', 'text', null],
     ]);
+  });
 
-    expect(test2Log, [[model, 'foo', 'text', null]]);
+  observeTest('getInstanceModel', () {
+    var model = toObservable([fooModel(1), fooModel(2), fooModel(3)]);
 
-    TemplateElement.syntax.remove('Test');
-    TemplateElement.syntax.remove('Test2');
+    var testSyntax = new TestModelSyntax();
+    testSyntax.altModels.addAll([fooModel('a'), fooModel('b'), fooModel('c')]);
+
+    var div = createTestHtml('<template repeat>{{ foo }}</template>');
+
+    var template = div.nodes[0];
+    recursivelySetTemplateModel(div, model, testSyntax);
+    performMicrotaskCheckpoint();
+
+    expect(div.nodes.length, 4);
+    expect(div.nodes[0].tagName, 'TEMPLATE');
+    expect(div.nodes[1].text, 'a');
+    expect(div.nodes[2].text, 'b');
+    expect(div.nodes[3].text, 'c');
+
+    expect(testSyntax.log, [
+      [template, model[0]],
+      [template, model[1]],
+      [template, model[2]],
+    ]);
+  });
+
+  observeTest('getInstanceModel - reorder instances', () {
+    var model = toObservable([0, 1, 2]);
+
+    var div = createTestHtml('<template repeat syntax="Test">{{}}</template>');
+    var template = div.firstChild;
+    var delegate = new TestInstanceModelSyntax();
+
+    recursivelySetTemplateModel(div, model, delegate);
+    performMicrotaskCheckpoint();
+    expect(delegate.count, 3);
+
+    // Note: intentionally mutate in place.
+    model.replaceRange(0, model.length, model.reversed.toList());
+    performMicrotaskCheckpoint();
+    expect(delegate.count, 3);
+  });
+
+  observeTest('Basic', () {
+    var model = fooModel(2, 4);
+    var div = createTestHtml(
+        '<template bind syntax="2x">'
+        '{{ foo }} + {{ 2x: bar }} + {{ 4x: bar }}</template>');
+    recursivelySetTemplateModel(div, model, new TimesTwoSyntax());
+    performMicrotaskCheckpoint();
+    expect(div.nodes.length, 2);
+    expect(div.nodes.last.text, '2 + 8 + ');
+
+    model.foo = 4;
+    model.bar = 8;
+    performMicrotaskCheckpoint();
+    expect(div.nodes.last.text, '4 + 16 + ');
   });
 }
 
 // TODO(jmesserly): mocks would be cleaner here.
 
-class TestBindingSyntax extends CustomBindingSyntax {
+class TestBindingSyntax extends BindingDelegate {
   var log = [];
 
   getBinding(model, String path, String name, Node node) {
@@ -178,7 +141,7 @@ class TestBindingSyntax extends CustomBindingSyntax {
   }
 }
 
-class TestModelSyntax extends CustomBindingSyntax {
+class TestModelSyntax extends BindingDelegate {
   var log = [];
   var altModels = new ListQueue();
 
@@ -188,10 +151,18 @@ class TestModelSyntax extends CustomBindingSyntax {
   }
 }
 
+class TestInstanceModelSyntax extends BindingDelegate {
+  int count = 0;
+  getInstanceModel(template, model) {
+    count++;
+    return model;
+  }
+}
+
 // Note: this isn't a very smart whitespace handler. A smarter one would only
 // trim indentation, not all whitespace.
 // See "trimOrCompact" in the web_ui Pub package.
-class WhitespaceRemover extends CustomBindingSyntax {
+class WhitespaceRemover extends BindingDelegate {
   int trimmed = 0;
   int removed = 0;
 
@@ -220,8 +191,7 @@ class WhitespaceRemover extends CustomBindingSyntax {
   }
 }
 
-
-class TimesTwoSyntax extends CustomBindingSyntax {
+class TimesTwoSyntax extends BindingDelegate {
   getBinding(model, path, name, node) {
     path = path.trim();
     if (!path.startsWith('2x:')) return null;

@@ -11,7 +11,6 @@
     'async_patch_cc_file': '<(gen_source_dir)/async_patch_gen.cc',
     'corelib_cc_file': '<(gen_source_dir)/corelib_gen.cc',
     'corelib_patch_cc_file': '<(gen_source_dir)/corelib_patch_gen.cc',
-    'codec_cc_file': '<(gen_source_dir)/codec_gen.cc',
     'collection_cc_file': '<(gen_source_dir)/collection_gen.cc',
     'collection_patch_cc_file': '<(gen_source_dir)/collection_patch_gen.cc',
     'collection_dev_cc_file': '<(gen_source_dir)/collection_dev_gen.cc',
@@ -97,7 +96,6 @@
       'dependencies': [
         'generate_async_cc_file#host',
         'generate_async_patch_cc_file#host',
-        'generate_codec_cc_file#host',
         'generate_corelib_cc_file#host',
         'generate_corelib_patch_cc_file#host',
         'generate_collection_cc_file#host',
@@ -131,7 +129,6 @@
         # Include generated source files.
         '<(async_cc_file)',
         '<(async_patch_cc_file)',
-        '<(codec_cc_file)',
         '<(corelib_cc_file)',
         '<(corelib_patch_cc_file)',
         '<(collection_cc_file)',
@@ -331,46 +328,6 @@
             '<@(_sources)',
           ],
           'message': 'Generating ''<(collection_cc_file)'' file.'
-        },
-      ]
-    },
-    {
-      'target_name': 'generate_codec_cc_file',
-      'type': 'none',
-      'toolsets':['host'],
-      'includes': [
-        # Load the shared codec library sources.
-        '../../sdk/lib/codec/codec_sources.gypi',
-      ],
-      'sources/': [
-        # Exclude all .[cc|h] files.
-        # This is only here for reference. Excludes happen after
-        # variable expansion, so the script has to do its own
-        # exclude processing of the sources being passed.
-        ['exclude', '\\.cc|h$'],
-      ],
-      'actions': [
-        {
-          'action_name': 'generate_codec_cc',
-          'inputs': [
-            '../tools/gen_library_src_paths.py',
-            '<(libgen_in_cc_file)',
-            '<@(_sources)',
-          ],
-          'outputs': [
-            '<(codec_cc_file)',
-          ],
-          'action': [
-            'python',
-            'tools/gen_library_src_paths.py',
-            '--output', '<(codec_cc_file)',
-            '--input_cc', '<(libgen_in_cc_file)',
-            '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::codec_source_paths_',
-            '--library_name', 'dart:codec',
-            '<@(_sources)',
-          ],
-          'message': 'Generating ''<(codec_cc_file)'' file.'
         },
       ]
     },

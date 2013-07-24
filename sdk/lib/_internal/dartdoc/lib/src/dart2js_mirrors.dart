@@ -24,9 +24,9 @@ import '../../../compiler/implementation/filenames.dart'
  * has been successfully compiled.
  */
 // TODO(amouravski): Remove this method and call dart2js via a process instead.
-Future<String> compile(Path script,
-                       Path libraryRoot,
-                       {Path packageRoot,
+Future<String> compile(String script,
+                       String libraryRoot,
+                       {String packageRoot,
                         List<String> options: const <String>[],
                         api.DiagnosticHandler diagnosticHandler}) {
   SourceFileProvider provider = new SourceFileProvider();
@@ -48,9 +48,9 @@ Future<String> compile(Path script,
  * Analyzes set of libraries and provides a mirror system which can be used for
  * static inspection of the source code.
  */
-Future<MirrorSystem> analyze(List<Path> libraries,
-                             Path libraryRoot,
-                             {Path packageRoot,
+Future<MirrorSystem> analyze(List<String> libraries,
+                             String libraryRoot,
+                             {String packageRoot,
                               List<String> options: const <String>[],
                               api.DiagnosticHandler diagnosticHandler}) {
   SourceFileProvider provider = new SourceFileProvider();
@@ -64,8 +64,8 @@ Future<MirrorSystem> analyze(List<Path> libraries,
     packageUri = currentDirectory.resolve(appendSlash('$packageRoot'));
   }
   List<Uri> librariesUri = <Uri>[];
-  for (Path library in libraries) {
-    librariesUri.add(currentDirectory.resolve(library.toString()));
+  for (String library in libraries) {
+    librariesUri.add(currentDirectory.resolve(library));
   }
   return dart2js.analyze(librariesUri, libraryUri, packageUri,
                          provider.readStringFromUri, diagnosticHandler,

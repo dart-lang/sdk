@@ -8,6 +8,7 @@ description: >
   Updates to the model are reflected in the DOM and user input into the DOM is
   immediately assigned to the model.
 dependencies:
+  logging: any
   observe: any
   # This is only for IdentityMap. See http://dartbug.com/4161.
   serialization: any

@@ -7,16 +7,17 @@ library docs_test;
 import 'dart:io';
 
 import 'package:unittest/unittest.dart';
+import 'package:path/path.dart' as path;
 
 import '../bin/docs.dart';
 import '../lib/docs.dart';
 
-final testJsonPath = scriptDir.append('test.json').canonicalize();
+final testJsonPath = path.normalize(path.join(scriptDir, 'test.json'));
 
 main() {
   group('docs', () {
-    var oldJson = new File.fromPath(json_path);
-    var testJson = new File.fromPath(testJsonPath);
+    var oldJson = new File(json_path);
+    var testJson = new File(testJsonPath);
 
     tearDown(() {
       // Clean up.

@@ -995,7 +995,7 @@ class LogEntryList {
  * [_TimesMatcher]s are used to make assertions about the number of
  * times a method was called.
  */
-class _TimesMatcher extends BaseMatcher {
+class _TimesMatcher extends Matcher {
   final int min, max;
 
   const _TimesMatcher(this.min, [this.max = -1]);
@@ -1053,7 +1053,7 @@ const Matcher happenedAtMostOnce = const _TimesMatcher(0, 1);
  * [_ResultMatcher]s are used to make assertions about the results
  * of method calls. These can be used as optional parameters to [getLogs].
  */
-class _ResultMatcher extends BaseMatcher {
+class _ResultMatcher extends Matcher {
   final Action action;
   final Matcher value;
 
@@ -1132,7 +1132,7 @@ class _Frequency {
  * We could make this class use _ResultMatcher but it doesn't buy that
  * match and adds some perf hit, so there is some duplication here.
  */
-class _ResultSetMatcher extends BaseMatcher {
+class _ResultSetMatcher extends Matcher {
   final Action action;
   final Matcher value;
   final _Frequency frequency; // ALL, SOME, or NONE.

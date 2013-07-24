@@ -43,7 +43,7 @@ class MapChangeRecord extends ChangeRecord {
  * removed, or replaced, then observers that are listening to [changes]
  * will be notified.
  */
-class ObservableMap<K, V> extends ObservableBase implements Map<K, V> {
+class ObservableMap<K, V> extends ChangeNotifierBase implements Map<K, V> {
   static const _LENGTH = const Symbol('length');
 
   final Map<K, V> _map;

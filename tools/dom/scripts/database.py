@@ -14,6 +14,7 @@ import shutil
 import idlnode
 import idlparser
 import idlrenderer
+from generator import IsDartCollectionType, IsPureInterface
 
 _logger = logging.getLogger('database')
 
@@ -245,3 +246,34 @@ class Database(object):
 
   def AddEnum(self, enum):
     self._enums[enum.id] = enum
+
+  def TransitiveSecondaryParents(self, interface):
+    """Returns a list of all non-primary parents.
+
+    The list contains the interface objects for interfaces defined in the
+    database, and the name for undefined interfaces.
+    """
+    def walk(parents):
+      for parent in parents:
+        parent_name = parent.type.id
+        if parent_name == 'EventTarget':
+          # Currently EventTarget is implemented as a mixin, not a proper
+          # super interface---ignore its members.
+          continue
+        if IsDartCollectionType(parent_name):
+          result.append(parent_name)
+          continue
+        if self.HasInterface(parent_name):
+          parent_interface = self.GetInterface(parent_name)
+          result.append(parent_interface)
+          walk(parent_interface.parents)
+
+    result = []
+    if interface.parents:
+      parent = interface.parents[0]
+      if IsPureInterface(parent.type.id):
+        walk(interface.parents)
+      else:
+        walk(interface.parents[1:])
+    return result
+

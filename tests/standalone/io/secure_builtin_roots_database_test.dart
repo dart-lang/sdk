@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:path/path.dart";
 import "dart:io";
 import "dart:isolate";
 import "dart:async";
@@ -23,9 +24,8 @@ void InitializeSSL() {
   // If the built-in root certificates aren't loaded, the connection
   // should signal an error.  Even when an external database is loaded,
   // they should not be loaded.
-  Path scriptDir = new Path(Platform.script).directoryPath;
-  Path certificateDatabase = scriptDir.append('pkcert');
-  SecureSocket.initialize(database: certificateDatabase.toNativePath(),
+  var certificateDatabase = join(dirname(Platform.script), 'pkcert');
+  SecureSocket.initialize(database: certificateDatabase,
                           password: 'dartdart',
                           useBuiltinRoots: true);
 }

@@ -14,7 +14,7 @@ main() {
   integration('installs a package from a pub server', () {
     servePackages([packageMap("foo", "1.2.3")]);
 
-    d.appDir([dependencyMap("foo", "1.2.3")]).create();
+    d.appDir({"foo": "1.2.3"}).create();
 
     pubInstall();
 
@@ -25,7 +25,7 @@ main() {
   integration('URL encodes the package name', () {
     servePackages([]);
 
-    d.appDir([dependencyMap("bad name!", "1.2.3")]).create();
+    d.appDir({"bad name!": "1.2.3"}).create();
 
     pubInstall(error: new RegExp(
         r'Could not find package "bad name!" at http://localhost:\d+\.$'));

@@ -27,9 +27,6 @@ standalone/package/package_test: fail
 standalone/typed_data_view_test: fail
 standalone/typed_data_test: fail
 
-# pkg issue https://code.google.com/p/dart/issues/detail?id=11856
-standalone/io/secure_socket_renegotiate_test: fail
-
 # https://code.google.com/p/dart/issues/detail?id=11647
 standalone/package/package_isolate_test: fail
 

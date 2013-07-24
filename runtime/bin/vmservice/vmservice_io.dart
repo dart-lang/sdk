@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This test should be removed when dart2js can pass all mirror tests.
-// TODO(ahe): Remove this test.
+// TODO(johnmccutchan): Convert this into separate library which imports
+// the vmservice library.
 
-import '../../lib/mirrors/mirrors_test.dart' as test;
+part of vmservice;
+
+var _port;
 
 main() {
-  test.isDart2js = true;
-  test.isMinified = true;
-  test.main();
+  var service = new VmService();
+  var server = new Server(service, _port);
+  server.startServer();
 }

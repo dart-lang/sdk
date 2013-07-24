@@ -61,7 +61,8 @@ static RawObject* ReceivePortCreate(intptr_t port_id) {
                                    function_name,
                                    kNumArguments,
                                    Object::empty_array(),
-                                   Resolver::kIsQualified);
+                                   Resolver::kIsQualified,
+                                   NULL);  // No ambiguity error expected.
     ASSERT(!func.IsNull());
     isolate->object_store()->set_receive_port_create_function(func);
   }

@@ -223,7 +223,7 @@ class AssetCascade {
     // Always pump the event loop. This ensures a bunch of synchronous source
     // changes are processed in a single batch even when the first one starts
     // the build process.
-    return new Future(() {
+    return newFuture(() {
       if (_sourceChanges == null) return null;
 
       // Take the current batch to ensure it doesn't get added to while we're

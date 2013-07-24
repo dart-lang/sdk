@@ -57,8 +57,8 @@ class Simulator {
   float get_sregister(SRegister reg) const;
   void set_dregister(DRegister reg, double value);
   double get_dregister(DRegister reg) const;
-  void set_qregister(QRegister reg, simd_value_t value);
-  simd_value_t get_qregister(QRegister reg) const;
+  void set_qregister(QRegister reg, const simd_value_t& value);
+  void get_qregister(QRegister reg, simd_value_t* value) const;
 
   // When moving integer (rather than floating point) values to/from
   // the FPU registers, use the _bits calls to avoid gcc taking liberties with

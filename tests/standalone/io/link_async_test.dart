@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:path/path.dart";
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
@@ -27,11 +28,10 @@ class FutureExpect {
 
 
 Future testCreate() {
-  return new Directory('').createTemp().then((temp) {
-    Path base = new Path(temp.path);
-    Directory baseDir = new Directory.fromPath(base);
-    String link = base.append('link').toNativePath();
-    String target = base.append('target').toNativePath();
+  return new Directory('').createTemp().then((baseDir) {
+    String base = baseDir.path;
+    String link = join(base, 'link');
+    String target = join(base, 'target');
     return new Directory(target).create()
     .then((_) => new Link(link).create(target))
 
@@ -52,12 +52,9 @@ Future testCreate() {
     .then((_) => FutureExpect.equals(target, new Link(link).target()))
     .then((_) => FutureExpect.throws(new Link(target).target()))
     .then((_) {
-      String createdThroughLink =
-          base.append('link/createdThroughLink').toNativePath();
-      String createdDirectly =
-          base.append('target/createdDirectly').toNativePath();
-      String createdFile =
-          base.append('target/createdFile').toNativePath();
+      String createdThroughLink = join(base, 'link', 'createdThroughLink');
+      String createdDirectly = join(base, 'target', 'createdDirectly');
+      String createdFile = join(base, 'link', 'createdFile');
       return new Directory(createdThroughLink).create()
       .then((_) => new Directory(createdDirectly).create())
       .then((_) => new File(createdFile).create())
@@ -66,9 +63,9 @@ Future testCreate() {
       .then((_) => FutureExpect.isTrue(
           new Directory(createdDirectly).exists()))
       .then((_) => FutureExpect.isTrue(
-          new Directory.fromPath(base.append('link/createdDirectly')).exists()))
-      .then((_) => FutureExpect.isTrue(new Directory.fromPath(
-          base.append('target/createdThroughLink')).exists()))
+          new Directory(join(base, 'link', 'createdDirectly')).exists()))
+      .then((_) => FutureExpect.isTrue(
+          new Directory(join(base, 'target', 'createdThroughLink')).exists()))
       .then((_) => FutureExpect.equals(FileSystemEntityType.DIRECTORY,
           FileSystemEntity.type(createdThroughLink, followLinks: false)))
       .then((_) => FutureExpect.equals(FileSystemEntityType.DIRECTORY,
@@ -84,10 +81,10 @@ Future testCreate() {
           createdThroughLink)))
       .then((_) => FutureExpect.isTrue(FileSystemEntity.identical(
           createdDirectly,
-          base.append('link/createdDirectly').toNativePath())))
+          join(base, 'link', 'createdDirectly'))))
       .then((_) => FutureExpect.isTrue(FileSystemEntity.identical(
           createdThroughLink,
-          base.append('target/createdThroughLink').toNativePath())))
+          join(base, 'target', 'createdThroughLink'))))
       .then((_) => FutureExpect.isFalse(FileSystemEntity.identical(
           target,
           link)))
@@ -113,10 +110,10 @@ Future testCreate() {
           createdDirectly)))
       .then((_) => FutureExpect.isTrue(FileSystemEntity.identical(
           createdFile,
-          base.append('link/createdFile').toNativePath())))
+          join(base, 'link', 'createdFile'))))
       .then((_) => FutureExpect.throws(FileSystemEntity.identical(
           createdFile,
-          base.append('link/foo').toNativePath())))
+          join(base, 'link', 'does_not_exist'))))
 
       .then((_) => testDirectoryListing(base, baseDir))
       .then((_) => new Directory(target).delete(recursive: true))
@@ -144,35 +141,36 @@ Future testCreate() {
 
 Future testCreateLoopingLink() {
   return new Directory('').createTemp()
-  .then((dir) => new Path(dir.path))
-  .then((Path base) =>
-    new Directory.fromPath(base.append('a/b/c')).create(recursive: true)
-    .then((_) => new Link.fromPath(base.append('a/b/c/d'))
-        .create(base.append('a/b').toNativePath()))
-    .then((_) => new Link.fromPath(base.append('a/b/c/e'))
-        .create(base.append('a').toNativePath()))
-    .then((_) => new Directory.fromPath(base.append('a'))
-        .list(recursive: true, followLinks: false).last)
-    // This directory listing must terminate, even though it contains loops.
-    .then((_) => new Directory.fromPath(base.append('a'))
-        .list(recursive: true, followLinks: true).last)
-    // This directory listing must terminate, even though it contains loops.
-    .then((_) => new Directory.fromPath(base.append('a/b/c'))
-        .list(recursive: true, followLinks: true).last)
-    .then((_) => new Directory.fromPath(base).delete(recursive: true))
-  );
+    .then((dir) => dir.path)
+    .then((String base) =>
+      new Directory(join(base, 'a', 'b', 'c')).create(recursive: true)
+        .then((_) => new Link(join(base, 'a', 'b', 'c', 'd'))
+            .create(join(base, 'a', 'b')))
+        .then((_) => new Link(join(base, 'a', 'b', 'c', 'e'))
+            .create(join(base, 'a')))
+        .then((_) => new Directory(join(base, 'a'))
+            .list(recursive: true, followLinks: false).last)
+        // This directory listing must terminate, even though it contains loops.
+        .then((_) => new Directory(join(base, 'a'))
+            .list(recursive: true, followLinks: true).last)
+        // This directory listing must terminate, even though it contains loops.
+        .then((_) => new Directory(join(base, 'a', 'b', 'c'))
+            .list(recursive: true, followLinks: true).last)
+        .then((_) => new Directory(base).delete(recursive: true))
+        .then((_) => FutureExpect.isFalse(new Directory(base).exists()))
+    );
 }
 
 
 Future testRename() {
-  Future testRename(Path base, String target) {
+  Future testRename(String base , String target) {
     Link link1;
     Link link2;
-    return new Link.fromPath(base.append('c')).create(target)
+    return new Link(join(base, 'c')).create(target)
     .then((link) {
       link1 = link;
       Expect.isTrue(link1.existsSync());
-      return link1.rename(base.append('d').toNativePath());
+      return link1.rename(join(base, 'd'));
     })
     .then((link) {
       link2 = link;
@@ -184,15 +182,15 @@ Future testRename() {
   }
 
   return new Directory('').createTemp().then((baseDir) {
-    Path base = new Path(baseDir.path);
+    String base = baseDir.path;
     var targetsFutures = [];
-    targetsFutures.add(new Directory.fromPath(base.append('a')).create());
+    targetsFutures.add(new Directory(join(base, 'a')).create());
     if (Platform.isWindows) {
       // Currently only links to directories are supported on Windows.
       targetsFutures.add(
-          new Directory.fromPath(base.append('b')).create());
+          new Directory(join(base, 'b')).create());
     } else {
-      targetsFutures.add(new File.fromPath(base.append('b')).create());
+      targetsFutures.add(new File(join(base, 'b')).create());
     }
     return Future.wait(targetsFutures).then((targets) {
       return testRename(base, targets[0].path)
@@ -202,26 +200,26 @@ Future testRename() {
   });
 }
 
-Future testDirectoryListing(Path base, Directory baseDir) {
+Future testDirectoryListing(String base, Directory baseDir) {
   Map makeExpected(bool recursive, bool followLinks) {
     Map expected = new Map();
     expected['target'] = 'Directory';
     expected['link'] = followLinks ? 'Directory' : 'Link';
     if (recursive) {
-      expected['target/createdDirectly'] = 'Directory';
-      expected['target/createdThroughLink'] = 'Directory';
-      expected['target/createdFile'] = 'File';
+      expected[join('target', 'createdDirectly')] = 'Directory';
+      expected[join('target', 'createdThroughLink')] = 'Directory';
+      expected[join('target', 'createdFile')] = 'File';
       if (followLinks) {
-        expected['link/createdDirectly'] = 'Directory';
-        expected['link/createdThroughLink'] = 'Directory';
-        expected['link/createdFile'] = 'File';
+        expected[join('link', 'createdDirectly')] = 'Directory';
+        expected[join('link', 'createdThroughLink')] = 'Directory';
+        expected[join('link', 'createdFile')] = 'File';
       }
     }
     return expected;
   }
 
   void checkEntity(FileSystemEntity x, Map expected) {
-    String ending = new Path(x.path).relativeTo(base).toString();
+    String ending = relative(x.path, from: base);
     Expect.isNotNull(expected[ending]);
     Expect.isTrue(x.toString().startsWith(expected[ending]));
     expected[ending] = 'Found';
@@ -256,7 +254,7 @@ Future testDirectoryListing(Path base, Directory baseDir) {
 main() {
   ReceivePort keepAlive = new ReceivePort();
   testCreate()
-  .then((_) => testCreateLoopingLink())
-  .then((_) => testRename())
-  .then((_) => keepAlive.close());
+    .then((_) => testCreateLoopingLink())
+    .then((_) => testRename())
+    .then((_) => keepAlive.close());
 }

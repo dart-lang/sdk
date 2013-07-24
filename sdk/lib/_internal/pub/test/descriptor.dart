@@ -48,25 +48,18 @@ Descriptor pubspec(Map contents) {
 
 /// Describes a file named `pubspec.yaml` for an application package with the
 /// given [dependencies].
-Descriptor appPubspec(List dependencies) {
-  return pubspec({
-    "name": "myapp",
-    "dependencies": dependencyListToMap(dependencies)
-  });
+Descriptor appPubspec([Map dependencies]) {
+  var map = {"name": "myapp"};
+  if (dependencies != null) map["dependencies"] = dependencies;
+  return pubspec(map);
 }
 
 /// Describes a file named `pubspec.yaml` for a library package with the given
 /// [name], [version], and [deps]. If "sdk" is given, then it adds an SDK
 /// constraint on that version.
-Descriptor libPubspec(String name, String version, {List deps, String sdk}) {
+Descriptor libPubspec(String name, String version, {Map deps, String sdk}) {
   var map = packageMap(name, version, deps);
-
-  if (sdk != null) {
-    map["environment"] = {
-      "sdk": sdk
-    };
-  }
-
+  if (sdk != null) map["environment"] = {"sdk": sdk};
   return pubspec(map);
 }
 
@@ -74,10 +67,7 @@ Descriptor libPubspec(String name, String version, {List deps, String sdk}) {
 /// `<name>.dart` that contains a line of Dart code.
 Descriptor libDir(String name, [String code]) {
   // Default to printing the name if no other code was given.
-  if (code == null) {
-    code = name;
-  }
-
+  if (code == null) code = name;
   return dir("lib", [
     file("$name.dart", 'main() => "$code";')
   ]);
@@ -177,5 +167,5 @@ Descriptor credentialsFile(
 
 /// Describes the application directory, containing only a pubspec specifying
 /// the given [dependencies].
-DirectoryDescriptor appDir(List dependencies) =>
+DirectoryDescriptor appDir([Map dependencies]) =>
   dir(appPath, [appPubspec(dependencies)]);

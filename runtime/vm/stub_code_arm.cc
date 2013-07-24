@@ -352,7 +352,12 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // lowest address.
   __ PushList(kAllCpuRegistersList);
   ASSERT(kFpuRegisterSize == 4 * kWordSize);
-  __ vstmd(DB_W, SP, D0, static_cast<DRegister>(kNumberOfDRegisters - 1));
+  if (kNumberOfDRegisters > 16) {
+    __ vstmd(DB_W, SP, D16, kNumberOfDRegisters - 16);
+    __ vstmd(DB_W, SP, D0, 16);
+  } else {
+    __ vstmd(DB_W, SP, D0, kNumberOfDRegisters);
+  }
 
   __ mov(R0, ShifterOperand(SP));  // Pass address of saved registers block.
   __ ReserveAlignedFrameSpace(0);

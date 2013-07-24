@@ -99,6 +99,9 @@ class Handles {
   // Visit all of the various handles.
   void Visit(HandleVisitor* visitor);
 
+  // Reset the handles so that we can reuse.
+  void Reset();
+
   // Allocates a handle in the current handle scope. This handle is valid only
   // in the current handle scope and is destroyed when the current handle
   // scope ends.

@@ -325,4 +325,10 @@ patch class Stdin {
   patch int readByteSync() {
     throw new UnsupportedError("Stdin.readByteSync");
   }
+  patch void set echoMode(bool enabled) {
+    throw new UnsupportedError("Stdin.echoMode");
+  }
+  patch void set lineMode(bool enabled) {
+    throw new UnsupportedError("Stdin.lineMode");
+  }
 }

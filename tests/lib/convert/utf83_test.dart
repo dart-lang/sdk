@@ -4,7 +4,6 @@
 
 library utf8_test;
 import "package:expect/expect.dart";
-import 'dart:codec';
 import 'dart:convert';
 
 main() {

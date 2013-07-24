@@ -16,11 +16,8 @@ main() {
     var badPath = path.join(sandboxDir, "bad_path");
 
     d.dir(appPath, [
-      d.pubspec({
-        "name": "myapp",
-        "dependencies": {
-          "foo": {"path": badPath}
-        }
+      d.appPubspec({
+        "foo": {"path": badPath}
       })
     ]).create();
 

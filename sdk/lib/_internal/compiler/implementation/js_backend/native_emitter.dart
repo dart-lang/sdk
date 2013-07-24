@@ -258,7 +258,7 @@ class NativeEmitter {
     ClassBuilder builder = new ClassBuilder();
     emitter.emitClassConstructor(classElement, builder);
     emitter.emitSuper(superName, builder);
-    bool hasFields = emitter.emitClassFields(
+    bool hasFields = emitter.emitFields(
         classElement, builder, superName, classIsNative: true);
     int propertyCount = builder.properties.length;
     emitter.emitClassGettersSetters(classElement, builder);

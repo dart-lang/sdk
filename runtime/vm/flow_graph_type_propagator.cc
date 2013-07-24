@@ -1116,6 +1116,11 @@ CompileType MathSqrtInstr::ComputeType() const {
 }
 
 
+CompileType MathMinMaxInstr::ComputeType() const {
+  return CompileType::FromCid(result_cid_);
+}
+
+
 CompileType UnboxDoubleInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }

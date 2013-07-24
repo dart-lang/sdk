@@ -580,6 +580,7 @@ class EmbeddedArray<T, 0> {
   M(CheckEitherNonSmi)                                                         \
   M(BinaryDoubleOp)                                                            \
   M(MathSqrt)                                                                  \
+  M(MathMinMax)                                                                \
   M(UnboxDouble)                                                               \
   M(BoxDouble)                                                                 \
   M(BoxFloat32x4)                                                              \
@@ -908,6 +909,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class ShiftMintOpInstr;
   friend class UnaryMintOpInstr;
   friend class MathSqrtInstr;
+  friend class MathMinMaxInstr;
   friend class CheckClassInstr;
   friend class GuardFieldInstr;
   friend class CheckSmiInstr;
@@ -4629,6 +4631,69 @@ class MathSqrtInstr : public TemplateDefinition<1> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(MathSqrtInstr);
+};
+
+
+// Represents Math's static min and max functions.
+class MathMinMaxInstr : public TemplateDefinition<2> {
+ public:
+  MathMinMaxInstr(MethodRecognizer::Kind op_kind,
+                  Value* left_value,
+                  Value* right_value,
+                  intptr_t deopt_id,
+                  intptr_t result_cid)
+      : op_kind_(op_kind), result_cid_(result_cid) {
+    ASSERT((result_cid == kSmiCid) || (result_cid == kDoubleCid));
+    SetInputAt(0, left_value);
+    SetInputAt(1, right_value);
+    deopt_id_ = deopt_id;
+  }
+
+  MethodRecognizer::Kind op_kind() const { return op_kind_; }
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  intptr_t result_cid() const { return result_cid_; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    if (result_cid() == kSmiCid) {
+      return kTagged;
+    }
+    ASSERT(result_cid() == kDoubleCid);
+    return kUnboxedDouble;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    if (result_cid() == kSmiCid) {
+      return kTagged;
+    }
+    ASSERT(result_cid() == kDoubleCid);
+    return kUnboxedDouble;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(MathMinMax)
+  virtual CompileType ComputeType() const;
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const;
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  const MethodRecognizer::Kind op_kind_;
+  const intptr_t result_cid_;
+
+  DISALLOW_COPY_AND_ASSIGN(MathMinMaxInstr);
 };
 
 

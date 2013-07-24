@@ -72,6 +72,10 @@ class FutureGroup<T> {
   Future<List> get future => _completer.future;
 }
 
+/// Like [new Future], but avoids around issue 11911 by using [new Future.value]
+/// under the covers.
+Future newFuture(callback()) => new Future.value().then((_) => callback());
+
 // TODO(rnystrom): Move into String?
 /// Pads [source] to [length] by adding spaces at the end.
 String padRight(String source, int length) {
@@ -147,13 +151,6 @@ String sha1(String source) {
   var sha = new SHA1();
   sha.add(source.codeUnits);
   return CryptoUtils.bytesToHex(sha.close());
-}
-
-/// Returns a [Future] that completes in [milliseconds].
-Future sleep(int milliseconds) {
-  var completer = new Completer();
-  new Timer(new Duration(milliseconds: milliseconds), completer.complete);
-  return completer.future;
 }
 
 /// Configures [future] so that its result (success or exception) is passed on
@@ -407,7 +404,7 @@ Future resetStack(fn()) {
 
   // Using [new Future] adds an asynchronous operation that works around the
   // first and second cases described above.
-  new Future(fn).then((val) {
+  newFuture(fn).then((val) {
     runAsync(() => completer.complete(val));
   }).catchError((err) {
     runAsync(() => completer.completeError(err));

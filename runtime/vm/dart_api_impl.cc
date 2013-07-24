@@ -57,7 +57,7 @@ static RawInstance* GetListInstance(Isolate* isolate, const Object& obj) {
   if (obj.IsInstance()) {
     const Library& core_lib = Library::Handle(Library::CoreLibrary());
     const Class& list_class =
-        Class::Handle(core_lib.LookupClass(Symbols::List()));
+        Class::Handle(core_lib.LookupClass(Symbols::List(), NULL));
     ASSERT(!list_class.IsNull());
     const Instance& instance = Instance::Cast(obj);
     const Class& obj_class = Class::Handle(isolate, obj.clazz());
@@ -1050,7 +1050,8 @@ DART_EXPORT Dart_Handle Dart_GetReceivePort(Dart_Port port_id) {
                               function_name,
                               kNumArguments,
                               Object::empty_array(),
-                              Resolver::kIsQualified));
+                              Resolver::kIsQualified,
+                              NULL));  // No ambiguity error expected.
   ASSERT(!function.IsNull());
   const Array& args = Array::Handle(isolate, Array::New(kNumArguments));
   args.SetAt(0, Integer::Handle(isolate, Integer::New(port_id)));
@@ -1072,9 +1073,17 @@ DART_EXPORT void Dart_EnterScope() {
   CHECK_ISOLATE(isolate);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  ApiLocalScope* new_scope = new ApiLocalScope(state->top_scope(),
-                                               isolate->top_exit_frame_info());
-  ASSERT(new_scope != NULL);
+  ApiLocalScope* new_scope = state->reusable_scope();
+  if (new_scope == NULL) {
+    new_scope = new ApiLocalScope(state->top_scope(),
+                                  isolate->top_exit_frame_info());
+    ASSERT(new_scope != NULL);
+  } else {
+    new_scope->Reinit(isolate,
+                      state->top_scope(),
+                      isolate->top_exit_frame_info());
+    state->set_reusable_scope(NULL);
+  }
   state->set_top_scope(new_scope);  // New scope is now the top scope.
 }
 
@@ -1084,9 +1093,15 @@ DART_EXPORT void Dart_ExitScope() {
   CHECK_ISOLATE_SCOPE(isolate);
   ApiState* state = isolate->api_state();
   ApiLocalScope* scope = state->top_scope();
-
+  ApiLocalScope* reusable_scope = state->reusable_scope();
   state->set_top_scope(scope->previous());  // Reset top scope to previous.
-  delete scope;  // Free up the old scope which we have just exited.
+  if (reusable_scope == NULL) {
+    scope->Reset(isolate);  // Reset the old scope which we just exited.
+    state->set_reusable_scope(scope);
+  } else {
+    ASSERT(reusable_scope != scope);
+    delete scope;
+  }
 }
 
 
@@ -2047,15 +2062,9 @@ static RawObject* ThrowArgumentError(const char* exception_message) {
                              CURRENT_FUNC, lib_url.ToCString()));
     return ApiError::New(message);
   }
-  const Class& cls = Class::Handle(isolate,
-                                   lib.LookupClassAllowPrivate(class_name));
-  if (cls.IsNull()) {
-    const String& message = String::Handle(
-        String::NewFormatted("%s: class '%s' not found in library '%s'.",
-                             CURRENT_FUNC, class_name.ToCString(),
-                             lib_url.ToCString()));
-    return ApiError::New(message);
-  }
+  const Class& cls = Class::Handle(
+      isolate, lib.LookupClassAllowPrivate(class_name, NULL));
+  ASSERT(!cls.IsNull());
   Object& result = Object::Handle(isolate);
   String& dot_name = String::Handle(String::New("."));
   String& constr_name = String::Handle(String::Concat(class_name, dot_name));
@@ -2404,8 +2413,8 @@ static RawObject* GetByteDataConstructor(Isolate* isolate,
   const Library& lib =
       Library::Handle(isolate->object_store()->typed_data_library());
   ASSERT(!lib.IsNull());
-  const Class& cls =
-      Class::Handle(isolate, lib.LookupClassAllowPrivate(Symbols::ByteData()));
+  const Class& cls = Class::Handle(
+      isolate, lib.LookupClassAllowPrivate(Symbols::ByteData(), NULL));
   ASSERT(!cls.IsNull());
   return ResolveConstructor(CURRENT_FUNC,
                             cls,
@@ -2994,9 +3003,14 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
       return state;
     }
 
+    String& ambiguity_error_msg = String::Handle(isolate);
     Function& function = Function::Handle(isolate);
-    function = lib.LookupFunctionAllowPrivate(function_name);
+    function = lib.LookupFunctionAllowPrivate(function_name,
+                                              &ambiguity_error_msg);
     if (function.IsNull()) {
+      if (!ambiguity_error_msg.IsNull()) {
+        return Api::NewError("%s.", ambiguity_error_msg.ToCString());
+      }
       return Api::NewError("%s: did not find top-level function '%s'.",
                            CURRENT_FUNC,
                            function_name.ToCString());
@@ -3155,14 +3169,16 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
     // To access a top-level we may need to use the Field or the
     // getter Function.  The getter function may either be in the
     // library or in the field's owner class, depending.
+    String& ambiguity_error_msg = String::Handle(isolate);
     const Library& lib = Library::Cast(obj);
-    field = lib.LookupFieldAllowPrivate(field_name);
-    if (field.IsNull()) {
-      // No field found.  Check for a getter in the lib.
+    field = lib.LookupFieldAllowPrivate(field_name, &ambiguity_error_msg);
+    if (field.IsNull() && ambiguity_error_msg.IsNull()) {
+      // No field found and no ambiguity error.  Check for a getter in the lib.
       const String& getter_name =
           String::Handle(isolate, Field::GetterName(field_name));
-      getter = lib.LookupFunctionAllowPrivate(getter_name);
-    } else if (FieldIsUninitialized(isolate, field)) {
+      getter = lib.LookupFunctionAllowPrivate(getter_name,
+                                              &ambiguity_error_msg);
+    } else if (!field.IsNull() && FieldIsUninitialized(isolate, field)) {
       // A field was found.  Check for a getter in the field's owner classs.
       const Class& cls = Class::Handle(isolate, field.owner());
       const String& getter_name =
@@ -3174,12 +3190,15 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
       // Invoke the getter and return the result.
       return Api::NewHandle(
           isolate, DartEntry::InvokeFunction(getter, Object::empty_array()));
-    } else if (!field.IsNull()) {
-      return Api::NewHandle(isolate, field.value());
-    } else {
-      return Api::NewError("%s: did not find top-level variable '%s'.",
-                           CURRENT_FUNC, field_name.ToCString());
     }
+    if (!field.IsNull()) {
+      return Api::NewHandle(isolate, field.value());
+    }
+    if (!ambiguity_error_msg.IsNull()) {
+      return Api::NewError("%s.",  ambiguity_error_msg.ToCString());
+    }
+    return Api::NewError("%s: did not find top-level variable '%s'.",
+                         CURRENT_FUNC, field_name.ToCString());
 
   } else if (obj.IsError()) {
       return container;
@@ -3307,12 +3326,14 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
     // To access a top-level we may need to use the Field or the
     // setter Function.  The setter function may either be in the
     // library or in the field's owner class, depending.
+    String& ambiguity_error_msg = String::Handle(isolate);
     const Library& lib = Library::Cast(obj);
-    field = lib.LookupFieldAllowPrivate(field_name);
-    if (field.IsNull()) {
+    field = lib.LookupFieldAllowPrivate(field_name, &ambiguity_error_msg);
+    if (field.IsNull() && ambiguity_error_msg.IsNull()) {
       const String& setter_name =
           String::Handle(isolate, Field::SetterName(field_name));
-      setter ^= lib.LookupFunctionAllowPrivate(setter_name);
+      setter ^= lib.LookupFunctionAllowPrivate(setter_name,
+                                               &ambiguity_error_msg);
     }
 
     if (!setter.IsNull()) {
@@ -3324,29 +3345,29 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
           Object::Handle(isolate, DartEntry::InvokeFunction(setter, args));
       if (result.IsError()) {
         return Api::NewHandle(isolate, result.raw());
-      } else {
-        return Api::Success();
       }
-    } else if (!field.IsNull()) {
+      return Api::Success();
+    }
+    if (!field.IsNull()) {
       if (field.is_final()) {
         return Api::NewError("%s: cannot set final top-level variable '%s'.",
                              CURRENT_FUNC, field_name.ToCString());
-      } else {
-        field.set_value(value_instance);
-        return Api::Success();
       }
-    } else {
-      return Api::NewError("%s: did not find top-level variable '%s'.",
-                           CURRENT_FUNC, field_name.ToCString());
+      field.set_value(value_instance);
+      return Api::Success();
     }
+    if (!ambiguity_error_msg.IsNull()) {
+      return Api::NewError("%s.", ambiguity_error_msg.ToCString());
+    }
+    return Api::NewError("%s: did not find top-level variable '%s'.",
+                         CURRENT_FUNC, field_name.ToCString());
 
   } else if (obj.IsError()) {
-      return container;
-  } else {
-    return Api::NewError(
-        "%s expects argument 'container' to be an object, type, or library.",
-        CURRENT_FUNC);
+    return container;
   }
+  return Api::NewError(
+      "%s expects argument 'container' to be an object, type, or library.",
+      CURRENT_FUNC);
 }
 
 
@@ -3529,6 +3550,42 @@ DART_EXPORT int Dart_GetNativeArgumentCount(Dart_NativeArguments args) {
 }
 
 
+DART_EXPORT Dart_Handle Dart_GetNativeFieldOfArgument(Dart_NativeArguments args,
+                                                      int arg_index,
+                                                      int fld_index,
+                                                      intptr_t* value) {
+  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  if ((arg_index < 0) || (arg_index >= arguments->NativeArgCount())) {
+    return Api::NewError(
+        "%s: argument 'arg_index' out of range. Expected 0..%d but saw %d.",
+        CURRENT_FUNC, arguments->NativeArgCount() - 1, arg_index);
+  }
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Object& obj = Object::Handle(isolate,
+                                     arguments->NativeArgAt(arg_index));
+  if (!obj.IsInstance()) {
+    return Api::NewError("%s expects argument at index '%d' to be of"
+                         " type Instance.", CURRENT_FUNC, arg_index);
+  }
+  if (obj.IsNull()) {
+    return Api::NewError("%s expects argument at index '%d' to be non-null.",
+                         CURRENT_FUNC, arg_index);
+  }
+  const Instance& instance = Instance::Cast(obj);
+  if (!instance.IsValidNativeIndex(fld_index)) {
+    return Api::NewError(
+        "%s: invalid index %d passed in to access native instance field",
+        CURRENT_FUNC, fld_index);
+  }
+  if (value == NULL) {
+    RETURN_NULL_ERROR(value);
+  }
+  *value = instance.GetNativeField(isolate, fld_index);
+  return Api::Success();
+}
+
+
 DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
                                      Dart_Handle retval) {
   const Object& ret_obj = Object::Handle(Api::UnwrapHandle(retval));
@@ -3693,9 +3750,13 @@ DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library,
   if (cls_name.IsNull()) {
     RETURN_TYPE_ERROR(isolate, class_name, String);
   }
-  const Class& cls =
-      Class::Handle(isolate, lib.LookupClassAllowPrivate(cls_name));
+  String& ambiguity_error_msg = String::Handle(isolate);
+  const Class& cls = Class::Handle(
+      isolate, lib.LookupClassAllowPrivate(cls_name, &ambiguity_error_msg));
   if (cls.IsNull()) {
+    if (!ambiguity_error_msg.IsNull()) {
+      return Api::NewError("%s.", ambiguity_error_msg.ToCString());
+    }
     // TODO(turnidge): Return null or error in this case?
     const String& lib_name = String::Handle(isolate, lib.name());
     return Api::NewError("Class '%s' not found in library '%s'.",
@@ -3726,9 +3787,14 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
   if (::Dart_IsError(state)) {
     return state;
   }
+  String& ambiguity_error_msg = String::Handle(isolate);
   const Class& cls =
-      Class::Handle(isolate, lib.LookupClassAllowPrivate(name_str));
+      Class::Handle(isolate, lib.LookupClassAllowPrivate(name_str,
+                                                         &ambiguity_error_msg));
   if (cls.IsNull()) {
+    if (!ambiguity_error_msg.IsNull()) {
+      return Api::NewError("%s.", ambiguity_error_msg.ToCString());
+    }
     const String& lib_name = String::Handle(isolate, lib.name());
     return Api::NewError("Type '%s' not found in library '%s'.",
                          name_str.ToCString(), lib_name.ToCString());

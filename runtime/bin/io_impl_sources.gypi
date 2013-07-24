@@ -47,6 +47,11 @@
     'socket_macos.cc',
     'socket_win.cc',
     'stdin.cc',
+    'stdin.h',
+    'stdin_android.cc',
+    'stdin_linux.cc',
+    'stdin_macos.cc',
+    'stdin_win.cc',
   ],
   'conditions': [
     ['dart_io_support==1', {

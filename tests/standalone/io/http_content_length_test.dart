@@ -40,8 +40,7 @@ void testNoBody(int totalConnections, bool explicitContentLength) {
           // After an explicit close, write becomes a state error
           // because we have said we will not add more.
           response.close();
-          Expect.throws(() => response.write("x"),
-                        (e) => e is StateError);
+          response.write("x");
         },
         onError: (e) {
           String msg = "Unexpected server error $e";
@@ -106,8 +105,7 @@ void testBody(int totalConnections, bool useHeader) {
                       }
                     });
                 response.close();
-                Expect.throws(() => response.write("x"),
-                              (e) => e is StateError);
+                response.write("x");
               });
         },
         onError: (e) {
@@ -176,8 +174,7 @@ void testBodyChunked(int totalConnections, bool useHeader) {
                 response.write("x");
                 response.write("x");
                 response.close();
-                Expect.throws(() => response.write("x"),
-                              (e) => e is StateError);
+                response.write("x");
               });
         },
         onError: (e) {

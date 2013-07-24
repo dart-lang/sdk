@@ -26,7 +26,7 @@ import '../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dar
 import '../../sdk/lib/_internal/compiler/implementation/filenames.dart';
 import '../../sdk/lib/_internal/dartdoc/lib/dartdoc.dart';
 import '../../sdk/lib/_internal/libraries.dart';
-import 'package:path/path.dart' as pathos;
+import 'package:path/path.dart' as path;
 
 HtmlDiff _diff;
 
@@ -34,7 +34,7 @@ void main() {
   final args = new Options().arguments;
 
   int mode = MODE_STATIC;
-  Path outputDir = new Path('docs');
+  String outputDir = 'docs';
   bool generateAppCache = false;
 
   List<String> excludedLibraries = <String>[];
@@ -81,7 +81,7 @@ void main() {
         } else if (arg.startsWith('--extra-lib=')) {
           extraLibraries.add(arg.substring('--extra-lib='.length));
         } else if (arg.startsWith('--out=')) {
-          outputDir = new Path(arg.substring('--out='.length));
+          outputDir = arg.substring('--out='.length);
         } else if (arg.startsWith('--package-root=')) {
           packageRoot = arg.substring('--package-root='.length);
         } else if (arg.startsWith('--version=')) {
@@ -94,30 +94,31 @@ void main() {
     }
   }
 
-  final libPath = scriptDir.append('../../sdk/');
+  final libPath = path.join(scriptDir, '..', '..', 'sdk/');
 
   cleanOutputDirectory(outputDir);
 
   print('Copying static files...');
   // The basic dartdoc-provided static content.
   final copiedStatic = copyDirectory(
-      scriptDir.append('../../sdk/lib/_internal/dartdoc/static'),
+      path.join(scriptDir,
+          '..', '..', 'sdk', 'lib', '_internal', 'dartdoc', 'static'),
       outputDir);
 
   // The apidoc-specific static content.
   final copiedApiDocStatic = copyDirectory(
-      scriptDir.append('static'),
+      path.join(scriptDir, 'static'),
       outputDir);
 
   print('Parsing MDN data...');
-  final mdnFile = new File.fromPath(scriptDir.append('mdn/database.json'));
+  final mdnFile = new File(path.join(scriptDir, 'mdn', 'database.json'));
   final mdn = json.parse(mdnFile.readAsStringSync());
 
   print('Cross-referencing dart:html...');
   // TODO(amouravski): move HtmlDiff inside of the future chain below to re-use
   // the MirrorSystem already analyzed.
   _diff = new HtmlDiff(printWarnings:false);
-  Future htmlDiff = _diff.run(currentDirectory.resolve(libPath.toString()));
+  Future htmlDiff = _diff.run(currentDirectory.resolve(libPath));
 
   // TODO(johnniwinther): Libraries for the compilation seem to be more like
   // URIs. Perhaps Path should have a toURI() method.
@@ -130,12 +131,11 @@ void main() {
   });
 
   // TODO(amouravski): This code is really wonky.
-  var lister = new Directory.fromPath(scriptDir.append('../../pkg')).list();
+  var lister = new Directory(path.join(scriptDir, '..', '..', 'pkg')).list();
   lister.listen((entity) {
     if (entity is Directory) {
-      var path = new Path(entity.path);
-      var libName = path.filename;
-      var libPath = path.append('lib/$libName.dart');
+      var libName = path.basename(entity.path);
+      var libPath = path.join(entity.path, 'lib', '${libName}.dart');
 
       // Ignore some libraries.
       if (excludedLibraries.contains(libName)) {
@@ -147,11 +147,11 @@ void main() {
         return;
       }
 
-      if (new File.fromPath(libPath).existsSync()) {
-        apidocLibraries.add(pathos.toUri(libPath.toNativePath()));
+      if (new File(libPath).existsSync()) {
+        apidocLibraries.add(path.toUri(libPath));
         includedLibraries.add(libName);
       } else {
-        print('Warning: could not find package at $path');
+        print('Warning: could not find package at ${entity.path}');
       }
     }
   }, onDone: () {
@@ -160,18 +160,18 @@ void main() {
     // listen() block above is cleaned up, then this will need to be
     // too, as it is a special case of the above.
     for (var lib in extraLibraries) {
-      var libPath = new Path('../../$lib');
-      if (new File.fromPath(libPath).existsSync()) {
-        apidocLibraries.add(pathos.toUri(libPath.toNativePath()));
-        var libName = libPath.filename.replaceAll('.dart', '');
+      var libPath = '../../$lib';
+      if (new File(libPath).existsSync()) {
+        apidocLibraries.add(path.toUri(libPath));
+        var libName = libPath.replaceAll('.dart', '');
         includedLibraries.add(libName);
       }
     }
 
     final apidoc = new Apidoc(mdn, outputDir, mode, generateAppCache,
                               excludedLibraries, version);
-    apidoc.dartdocPath =
-        scriptDir.append('../../sdk/lib/_internal/dartdoc/');
+    apidoc.dartdocPath = 
+        path.join(scriptDir, '..', '..', 'sdk', 'lib', '_internal', 'dartdoc');
     // Select the libraries to include in the produced documentation:
     apidoc.includeApi = true;
     apidoc.includedLibraries = includedLibraries;
@@ -211,7 +211,7 @@ class Apidoc extends Dartdoc {
    */
   String mdnUrl = null;
 
-  Apidoc(this.mdn, Path outputDir, int mode, bool generateAppCache,
+  Apidoc(this.mdn, String outputDir, int mode, bool generateAppCache,
       [List<String> excludedLibraries, String version]) {
     if (excludedLibraries != null) this.excludedLibraries = excludedLibraries;
     this.version = version;

@@ -144,7 +144,7 @@ String cleanUpLiteral(String text) {
 /// matcher.
 Matcher parse(matcher) => new _Parse(matcher);
 
-class _Parse extends BaseMatcher {
+class _Parse extends Matcher {
   final Matcher _matcher;
 
   _Parse(this._matcher);

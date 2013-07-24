@@ -40,7 +40,7 @@ final Matcher completes = const _ScheduledCompletes(null, null);
 Matcher completion(matcher, [String description]) =>
     new _ScheduledCompletes(wrapMatcher(matcher), description);
 
-class _ScheduledCompletes extends BaseMatcher {
+class _ScheduledCompletes extends Matcher {
   final Matcher _matcher;
   final String _description;
 

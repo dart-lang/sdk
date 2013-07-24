@@ -10,7 +10,7 @@ import 'package:mdv/mdv.dart' as mdv;
 import 'package:observe/observe.dart';
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
-import 'observe_utils.dart';
+import 'mdv_test_utils.dart';
 
 // Note: this file ported from
 // https://github.com/toolkitchen/mdv/blob/master/tests/node_bindings.js
@@ -35,29 +35,25 @@ nodeBindingTests() {
     testDiv = null;
   });
 
-  dispatchEvent(type, target) {
-    target.dispatchEvent(new Event(type, cancelable: false));
-  }
-
-  test('Text', () {
+  observeTest('Text', () {
     var text = new Text('hi');
     var model = toSymbolMap({'a': 1});
     text.bind('text', model, 'a');
     expect(text.text, '1');
 
     model[sym('a')] = 2;
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(text.text, '2');
 
     text.unbind('text');
     model[sym('a')] = 3;
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(text.text, '2');
 
     // TODO(rafaelw): Throw on binding to unavailable property?
   });
 
-  test('Element', () {
+  observeTest('Element', () {
     var element = new DivElement();
     var model = toSymbolMap({'a': 1, 'b': 2});
     element.bind('hidden?', model, 'a');
@@ -68,50 +64,54 @@ nodeBindingTests() {
     expect(element.id, '2');
 
     model[sym('a')] = null;
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(element.attributes, isNot(contains('hidden')),
         reason: 'null is false-y');
 
     model[sym('a')] = false;
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(element.attributes, isNot(contains('hidden')));
 
     model[sym('a')] = 'foo';
     model[sym('b')] = 'x';
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(element.attributes, contains('hidden'));
     expect(element.attributes['hidden'], '');
     expect(element.id, 'x');
   });
 
-  test('Text Input', () {
-    var input = new InputElement();
+  inputTextAreaValueTest(String tagName) {
+    var el = new Element.tag(tagName);
+    testDiv.nodes.add(el);
     var model = toSymbolMap({'x': 42});
-    input.bind('value', model, 'x');
-    expect(input.value, '42');
+    el.bind('value', model, 'x');
+    expect(el.value, '42');
 
     model[sym('x')] = 'Hi';
-    expect(input.value, '42', reason: 'changes delivered async');
-    deliverChangeRecords();
-    expect(input.value, 'Hi');
+    expect(el.value, '42', reason: 'changes delivered async');
+    performMicrotaskCheckpoint();
+    expect(el.value, 'Hi');
 
-    input.value = 'changed';
-    dispatchEvent('input', input);
+    el.value = 'changed';
+    dispatchEvent('input', el);
     expect(model[sym('x')], 'changed');
 
-    input.unbind('value');
+    el.unbind('value');
 
-    input.value = 'changed again';
-    dispatchEvent('input', input);
+    el.value = 'changed again';
+    dispatchEvent('input', el);
     expect(model[sym('x')], 'changed');
 
-    input.bind('value', model, 'x');
+    el.bind('value', model, 'x');
     model[sym('x')] = null;
-    deliverChangeRecords();
-    expect(input.value, '');
-  });
+    performMicrotaskCheckpoint();
+    expect(el.value, '');
+  }
 
-  test('Radio Input', () {
+  observeTest('Input.value', () => inputTextAreaValueTest('input'));
+  observeTest('TextArea.value', () => inputTextAreaValueTest('textarea'));
+
+  observeTest('Radio Input', () {
     var input = new InputElement();
     input.type = 'radio';
     var model = toSymbolMap({'x': true});
@@ -120,7 +120,7 @@ nodeBindingTests() {
 
     model[sym('x')] = false;
     expect(input.checked, true);
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(input.checked, false,reason: 'model change should update checked');
 
     input.checked = true;
@@ -135,7 +135,7 @@ nodeBindingTests() {
         reason: 'disconnected binding should not fire');
   });
 
-  test('Checkbox Input', () {
+  observeTest('Checkbox Input', () {
     var input = new InputElement();
     testDiv.append(input);
     input.type = 'checkbox';
@@ -145,12 +145,12 @@ nodeBindingTests() {
 
     model[sym('x')] = false;
     expect(input.checked, true, reason: 'changes delivered async');
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
     expect(input.checked, false);
 
     input.click();
     expect(model[sym('x')], true);
-    deliverChangeRecords();
+    performMicrotaskCheckpoint();
 
     input.click();
     expect(model[sym('x')], false);

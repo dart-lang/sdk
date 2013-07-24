@@ -14,13 +14,13 @@ main() {
   integration("unlocks dependencies if necessary to ensure that a new "
       "dependency is satisfied", () {
     servePackages([
-      packageMap("foo", "1.0.0", [dependencyMap("bar", "<2.0.0")]),
-      packageMap("bar", "1.0.0", [dependencyMap("baz", "<2.0.0")]),
-      packageMap("baz", "1.0.0", [dependencyMap("qux", "<2.0.0")]),
+      packageMap("foo", "1.0.0", {"bar": "<2.0.0"}),
+      packageMap("bar", "1.0.0", {"baz": "<2.0.0"}),
+      packageMap("baz", "1.0.0", {"qux": "<2.0.0"}),
       packageMap("qux", "1.0.0")
     ]);
 
-    d.appDir([dependencyMap("foo")]).create();
+    d.appDir({"foo": "any"}).create();
 
     pubInstall();
 
@@ -32,14 +32,14 @@ main() {
     }).validate();
 
     servePackages([
-      packageMap("foo", "2.0.0", [dependencyMap("bar", "<3.0.0")]),
-      packageMap("bar", "2.0.0", [dependencyMap("baz", "<3.0.0")]),
-      packageMap("baz", "2.0.0", [dependencyMap("qux", "<3.0.0")]),
+      packageMap("foo", "2.0.0", {"bar": "<3.0.0"}),
+      packageMap("bar", "2.0.0", {"baz": "<3.0.0"}),
+      packageMap("baz", "2.0.0", {"qux": "<3.0.0"}),
       packageMap("qux", "2.0.0"),
-      packageMap("newdep", "2.0.0", [dependencyMap("baz", ">=1.5.0")])
+      packageMap("newdep", "2.0.0", {"baz": ">=1.5.0"})
     ]);
 
-    d.appDir([dependencyMap("foo"), dependencyMap("newdep")]).create();
+    d.appDir({"foo": "any", "newdep": "any"}).create();
 
     pubInstall();
 

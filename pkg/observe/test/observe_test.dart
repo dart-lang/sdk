@@ -3,128 +3,205 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'package:logging/logging.dart';
 import 'package:observe/observe.dart';
+import 'package:observe/src/dirty_check.dart' as dirty_check;
 import 'package:unittest/unittest.dart';
-import 'utils.dart';
+import 'observe_test_utils.dart';
+
+const _VALUE = const Symbol('value');
 
 main() {
   // Note: to test the basic Observable system, we use ObservableBox due to its
-  // simplicity.
+  // simplicity. We also test a variant that is based on dirty-checking.
 
-  const _VALUE = const Symbol('value');
+  observeTest('no observers at the start', () {
+    expect(dirty_check.allObservablesCount, 0);
+  });
 
-  group('ObservableBox', () {
-    test('no observers', () {
-      var t = new ObservableBox<int>(123);
-      expect(t.value, 123);
-      t.value = 42;
-      expect(t.value, 42);
-      expect(t.hasObservers, false);
+  group('WatcherModel', () { observeTests(watch: true); });
+
+  group('ObservableBox', () { observeTests(); });
+
+  group('dirtyCheck loops can be debugged', () {
+    var messages;
+    var subscription;
+    setUp(() {
+      messages = [];
+      subscription = Logger.root.onRecord.listen((record) {
+        messages.add(record.message);
+      });
     });
 
-    test('listen adds an observer', () {
-      var t = new ObservableBox<int>(123);
-      expect(t.hasObservers, false);
-
-      t.changes.listen((n) {});
-      expect(t.hasObservers, true);
+    tearDown(() {
+      subscription.cancel();
     });
 
-    test('changes delived async', () {
-      var t = new ObservableBox<int>(123);
-      int called = 0;
+    test('logs debug information', () {
+      var maxNumIterations = dirty_check.MAX_DIRTY_CHECK_CYCLES;
 
-      t.changes.listen(expectAsync1((records) {
-        called++;
-        expectChanges(records, [_record(_VALUE), _record(_VALUE)]);
-      }));
-      t.value = 41;
-      t.value = 42;
-      expect(called, 0);
-    });
+      var x = new WatcherModel(0);
+      var sub = x.changes.listen(expectAsync1((_) { x.value++; },
+          count: maxNumIterations));
+      x.value = 1;
+      Observable.dirtyCheck();
+      expect(x.value, maxNumIterations + 1);
+      expect(messages.length, 2);
 
-    test('cause changes in handler', () {
-      var t = new ObservableBox<int>(123);
-      int called = 0;
+      expect(messages[0], contains('Possible loop'));
+      expect(messages[1], contains('index 0'));
+      expect(messages[1], contains('object: $x'));
 
-      t.changes.listen(expectAsync1((records) {
-        called++;
-        expectChanges(records, [_record(_VALUE)]);
-        if (called == 1) {
-          // Cause another change
-          t.value = 777;
-        }
-      }, count: 2));
-
-      t.value = 42;
-    });
-
-    test('multiple observers', () {
-      var t = new ObservableBox<int>(123);
-
-      verifyRecords(records) {
-        expectChanges(records, [_record(_VALUE), _record(_VALUE)]);
-      };
-
-      t.changes.listen(expectAsync1(verifyRecords));
-      t.changes.listen(expectAsync1(verifyRecords));
-
-      t.value = 41;
-      t.value = 42;
-    });
-
-    test('deliverChangeRecords', () {
-      var t = new ObservableBox<int>(123);
-      var records = [];
-      t.changes.listen((r) { records.addAll(r); });
-      t.value = 41;
-      t.value = 42;
-      expectChanges(records, [], reason: 'changes delived async');
-
-      deliverChangeRecords();
-      expectChanges(records,
-          [_record(_VALUE), _record(_VALUE)]);
-      records.clear();
-
-      t.value = 777;
-      expectChanges(records, [], reason: 'changes delived async');
-
-      deliverChangeRecords();
-      expectChanges(records, [_record(_VALUE)]);
-
-      // Has no effect if there are no changes
-      deliverChangeRecords();
-      expectChanges(records, [_record(_VALUE)]);
-    });
-
-    test('cancel listening', () {
-      var t = new ObservableBox<int>(123);
-      var sub;
-      sub = t.changes.listen(expectAsync1((records) {
-        expectChanges(records, [_record(_VALUE)]);
-        sub.cancel();
-        t.value = 777;
-      }));
-      t.value = 42;
-    });
-
-    test('cancel and reobserve', () {
-      var t = new ObservableBox<int>(123);
-      var sub;
-      sub = t.changes.listen(expectAsync1((records) {
-        expectChanges(records, [_record(_VALUE)]);
-        sub.cancel();
-
-        runAsync(expectAsync0(() {
-          sub = t.changes.listen(expectAsync1((records) {
-            expectChanges(records, [_record(_VALUE)]);
-          }));
-          t.value = 777;
-        }));
-      }));
-      t.value = 42;
+      sub.cancel();
     });
   });
 }
 
-_record(key) => new PropertyChangeRecord(key);
+observeTests({bool watch: false}) {
+
+  final createModel = watch ? (x) => new WatcherModel(x)
+      : (x) => new ObservableBox(x);
+
+  // Track the subscriptions so we can clean them up in tearDown.
+  List subs;
+
+  int initialObservers;
+  setUp(() {
+    initialObservers = dirty_check.allObservablesCount;
+    subs = [];
+
+    if (watch) runAsync(Observable.dirtyCheck);
+  });
+
+  tearDown(() {
+    for (var sub in subs) sub.cancel();
+    performMicrotaskCheckpoint();
+
+    expect(dirty_check.allObservablesCount, initialObservers,
+        reason: 'Observable object leaked');
+  });
+
+  observeTest('no observers', () {
+    var t = createModel(123);
+    expect(t.value, 123);
+    t.value = 42;
+    expect(t.value, 42);
+    expect(t.hasObservers, false);
+  });
+
+  observeTest('listen adds an observer', () {
+    var t = createModel(123);
+    expect(t.hasObservers, false);
+
+    subs.add(t.changes.listen((n) {}));
+    expect(t.hasObservers, true);
+  });
+
+  observeTest('changes delived async', () {
+    var t = createModel(123);
+    int called = 0;
+
+    subs.add(t.changes.listen(expectAsync1((records) {
+      called++;
+      expectChanges(records, _changedValue(watch ? 1 : 2));
+    })));
+
+    t.value = 41;
+    t.value = 42;
+    expect(called, 0);
+  });
+
+  observeTest('cause changes in handler', () {
+    var t = createModel(123);
+    int called = 0;
+
+    subs.add(t.changes.listen(expectAsync1((records) {
+      called++;
+      expectChanges(records, _changedValue(1));
+      if (called == 1) {
+        // Cause another change
+        t.value = 777;
+      }
+    }, count: 2)));
+
+    t.value = 42;
+  });
+
+  observeTest('multiple observers', () {
+    var t = createModel(123);
+
+    verifyRecords(records) {
+      expectChanges(records, _changedValue(watch ? 1 : 2));
+    };
+
+    subs.add(t.changes.listen(expectAsync1(verifyRecords)));
+    subs.add(t.changes.listen(expectAsync1(verifyRecords)));
+
+    t.value = 41;
+    t.value = 42;
+  });
+
+  observeTest('performMicrotaskCheckpoint', () {
+    var t = createModel(123);
+    var records = [];
+    subs.add(t.changes.listen((r) { records.addAll(r); }));
+    t.value = 41;
+    t.value = 42;
+    expectChanges(records, [], reason: 'changes delived async');
+
+    performMicrotaskCheckpoint();
+    expectChanges(records, _changedValue(watch ? 1 : 2));
+    records.clear();
+
+    t.value = 777;
+    expectChanges(records, [], reason: 'changes delived async');
+
+    performMicrotaskCheckpoint();
+    expectChanges(records, _changedValue(1));
+
+    // Has no effect if there are no changes
+    performMicrotaskCheckpoint();
+    expectChanges(records, _changedValue(1));
+  });
+
+  observeTest('cancel listening', () {
+    var t = createModel(123);
+    var sub;
+    sub = t.changes.listen(expectAsync1((records) {
+      expectChanges(records, _changedValue(1));
+      sub.cancel();
+      t.value = 777;
+      runAsync(Observable.dirtyCheck);
+    }));
+    t.value = 42;
+  });
+
+  observeTest('cancel and reobserve', () {
+    var t = createModel(123);
+    var sub;
+    sub = t.changes.listen(expectAsync1((records) {
+      expectChanges(records, _changedValue(1));
+      sub.cancel();
+
+      runAsync(expectAsync0(() {
+        subs.add(t.changes.listen(expectAsync1((records) {
+          expectChanges(records, _changedValue(1));
+        })));
+        t.value = 777;
+        runAsync(Observable.dirtyCheck);
+      }));
+    }));
+    t.value = 42;
+  });
+}
+
+_changedValue(len) => new List.filled(len, new PropertyChangeRecord(_VALUE));
+
+// A test model based on dirty checking.
+class WatcherModel<T> extends ObservableBase {
+  @observable T value;
+
+  WatcherModel([T initialValue]) : value = initialValue;
+
+  String toString() => '#<$runtimeType value: $value>';
+}

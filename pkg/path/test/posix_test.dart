@@ -23,6 +23,8 @@ main() {
 
   test('extension', () {
     expect(builder.extension(''), '');
+    expect(builder.extension('.'), '');
+    expect(builder.extension('..'), '');
     expect(builder.extension('foo.dart'), '.dart');
     expect(builder.extension('foo.dart.js'), '.js');
     expect(builder.extension('a.b/c'), '');
@@ -41,12 +43,16 @@ main() {
 
   test('dirname', () {
     expect(builder.dirname(''), '.');
+    expect(builder.dirname('.'), '.');
+    expect(builder.dirname('..'), '.');
+    expect(builder.dirname('../..'), '..');
     expect(builder.dirname('a'), '.');
     expect(builder.dirname('a/b'), 'a');
     expect(builder.dirname('a/b/c'), 'a/b');
     expect(builder.dirname('a/b.c'), 'a');
     expect(builder.dirname('a/'), '.');
     expect(builder.dirname('a/.'), 'a');
+    expect(builder.dirname('a/..'), 'a');
     expect(builder.dirname(r'a\b/c'), r'a\b');
     expect(builder.dirname('/a'), '/');
     expect(builder.dirname('///a'), '/');
@@ -61,12 +67,16 @@ main() {
 
   test('basename', () {
     expect(builder.basename(''), '');
+    expect(builder.basename('.'), '.');
+    expect(builder.basename('..'), '..');
+    expect(builder.basename('.foo'), '.foo');
     expect(builder.basename('a'), 'a');
     expect(builder.basename('a/b'), 'b');
     expect(builder.basename('a/b/c'), 'c');
     expect(builder.basename('a/b.c'), 'b.c');
     expect(builder.basename('a/'), 'a');
     expect(builder.basename('a/.'), '.');
+    expect(builder.basename('a/..'), '..');
     expect(builder.basename(r'a\b/c'), 'c');
     expect(builder.basename('/a'), 'a');
     expect(builder.basename('/'), '/');
@@ -79,6 +89,8 @@ main() {
 
   test('basenameWithoutExtension', () {
     expect(builder.basenameWithoutExtension(''), '');
+    expect(builder.basenameWithoutExtension('.'), '.');
+    expect(builder.basenameWithoutExtension('..'), '..');
     expect(builder.basenameWithoutExtension('a'), 'a');
     expect(builder.basenameWithoutExtension('a/b'), 'b');
     expect(builder.basenameWithoutExtension('a/b/c'), 'c');
@@ -93,6 +105,7 @@ main() {
     expect(builder.basenameWithoutExtension('a//b'), 'b');
     expect(builder.basenameWithoutExtension('a/b.c/'), 'b');
     expect(builder.basenameWithoutExtension('a/b.c//'), 'b');
+    expect(builder.basenameWithoutExtension('a/b c.d e'), 'b c');
   });
 
   test('isAbsolute', () {
@@ -103,6 +116,8 @@ main() {
     expect(builder.isAbsolute('/a/b'), true);
     expect(builder.isAbsolute('~'), false);
     expect(builder.isAbsolute('.'), false);
+    expect(builder.isAbsolute('..'), false);
+    expect(builder.isAbsolute('.foo'), false);
     expect(builder.isAbsolute('../a'), false);
     expect(builder.isAbsolute('C:/a'), false);
     expect(builder.isAbsolute(r'C:\a'), false);
@@ -117,6 +132,8 @@ main() {
     expect(builder.isRelative('/a/b'), false);
     expect(builder.isRelative('~'), true);
     expect(builder.isRelative('.'), true);
+    expect(builder.isRelative('..'), true);
+    expect(builder.isRelative('.foo'), true);
     expect(builder.isRelative('../a'), true);
     expect(builder.isRelative('C:/a'), true);
     expect(builder.isRelative(r'C:\a'), true);
@@ -165,6 +182,14 @@ main() {
       expect(() => builder.join('a', null, 'b'), throwsArgumentError);
       expect(() => builder.join(null, 'a'), throwsArgumentError);
     });
+
+    test('join does not modify internal ., .., or trailing separators', () {
+      expect(builder.join('a/', 'b/c/'), 'a/b/c/');
+      expect(builder.join('a/b/./c/..//', 'd/.././..//e/f//'),
+             'a/b/./c/..//d/.././..//e/f//');
+      expect(builder.join('a/b', 'c/../../../..'), 'a/b/c/../../../..');
+      expect(builder.join('a', 'b${builder.separator}'), 'a/b/');
+    });
   });
 
   group('joinAll', () {
@@ -212,12 +237,17 @@ main() {
 
   group('normalize', () {
     test('simple cases', () {
-      expect(builder.normalize(''), '');
+      expect(builder.normalize(''), '.');
       expect(builder.normalize('.'), '.');
       expect(builder.normalize('..'), '..');
       expect(builder.normalize('a'), 'a');
       expect(builder.normalize('/'), '/');
       expect(builder.normalize(r'\'), r'\');
+      expect(builder.normalize('C:/'), 'C:');
+      expect(builder.normalize(r'C:\'), r'C:\');
+      expect(builder.normalize(r'\\'), r'\\');
+      expect(builder.normalize('a/./\xc5\u0bf8-;\u{1f085}\u{00}/c/d/../'),
+             'a/\xc5\u0bf8-;\u{1f085}\u{00}/c');
     });
 
     test('collapses redundant separators', () {
@@ -249,24 +279,38 @@ main() {
       expect(builder.normalize('/..'), '/');
       expect(builder.normalize('/../../..'), '/');
       expect(builder.normalize('/../../../a'), '/a');
+      expect(builder.normalize('c:/..'), '.');
+      expect(builder.normalize('A:/../../..'), '../..');
       expect(builder.normalize('a/..'), '.');
       expect(builder.normalize('a/b/..'), 'a');
       expect(builder.normalize('a/../b'), 'b');
       expect(builder.normalize('a/./../b'), 'b');
       expect(builder.normalize('a/b/c/../../d/e/..'), 'a/d');
       expect(builder.normalize('a/b/../../../../c'), '../../c');
+      expect(builder.normalize(r'z/a/b/../../..\../c'), r'z/..\../c');
+      expect(builder.normalize(r'a/b\c/../d'), 'a/d');
     });
 
     test('does not walk before root on absolute paths', () {
       expect(builder.normalize('..'), '..');
       expect(builder.normalize('../'), '..');
+      expect(builder.normalize('http://dartlang.org/..'), 'http:');
+      expect(builder.normalize('http://dartlang.org/../../a'), 'a');
+      expect(builder.normalize('file:///..'), '.');
+      expect(builder.normalize('file:///../../a'), '../a');
       expect(builder.normalize('/..'), '/');
       expect(builder.normalize('a/..'), '.');
+      expect(builder.normalize('../a'), '../a');
+      expect(builder.normalize('/../a'), '/a');
+      expect(builder.normalize('c:/../a'), 'a');
+      expect(builder.normalize('/../a'), '/a');
       expect(builder.normalize('a/b/..'), 'a');
+      expect(builder.normalize('../a/b/..'), '../a');
       expect(builder.normalize('a/../b'), 'b');
       expect(builder.normalize('a/./../b'), 'b');
       expect(builder.normalize('a/b/c/../../d/e/..'), 'a/d');
       expect(builder.normalize('a/b/../../../../c'), '../../c');
+      expect(builder.normalize('a/b/c/../../..d/./.e/f././'), 'a/..d/.e/f.');
     });
 
     test('removes trailing separators', () {
@@ -274,6 +318,7 @@ main() {
       expect(builder.normalize('.//'), '.');
       expect(builder.normalize('a/'), 'a');
       expect(builder.normalize('a/b/'), 'a/b');
+      expect(builder.normalize(r'a/b\'), r'a/b\');
       expect(builder.normalize('a/b///'), 'a/b');
     });
   });

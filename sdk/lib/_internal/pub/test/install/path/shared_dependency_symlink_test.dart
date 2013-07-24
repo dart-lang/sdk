@@ -19,25 +19,22 @@ main() {
 
     d.dir("foo", [
       d.libDir("foo"),
-      d.libPubspec("foo", "0.0.1", deps: [
-        {"path": "../shared"}
-      ])
+      d.libPubspec("foo", "0.0.1", deps: {
+        "shared": {"path": "../shared"}
+      })
     ]).create();
 
     d.dir("bar", [
       d.libDir("bar"),
-      d.libPubspec("bar", "0.0.1", deps: [
-        {"path": "../link/shared"}
-      ])
+      d.libPubspec("bar", "0.0.1", deps: {
+        "shared": {"path": "../link/shared"}
+      })
     ]).create();
 
     d.dir(appPath, [
-      d.pubspec({
-        "name": "myapp",
-        "dependencies": {
-          "foo": {"path": "../foo"},
-          "bar": {"path": "../bar"}
-        }
+      d.appPubspec({
+        "foo": {"path": "../foo"},
+        "bar": {"path": "../bar"}
       })
     ]).create();
 

@@ -14,11 +14,11 @@ main() {
   integration("updates a locked package's dependers in order to get it to max "
       "version", () {
     servePackages([
-      packageMap("foo", "1.0.0", [dependencyMap("bar", "<2.0.0")]),
+      packageMap("foo", "1.0.0", {"bar": "<2.0.0"}),
       packageMap("bar", "1.0.0")
     ]);
 
-    d.appDir([dependencyMap("foo"), dependencyMap("bar")]).create();
+    d.appDir({"foo": "any", "bar": "any"}).create();
 
     pubInstall();
 
@@ -28,7 +28,7 @@ main() {
     }).validate();
 
     servePackages([
-      packageMap("foo", "2.0.0", [dependencyMap("bar", "<3.0.0")]),
+      packageMap("foo", "2.0.0", {"bar": "<3.0.0"}),
       packageMap("bar", "2.0.0")
     ]);
 

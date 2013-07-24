@@ -16,9 +16,11 @@
 #include "vm/heap.h"
 #include "vm/heap_histogram.h"
 #include "vm/message_handler.h"
+#include "vm/object_id_ring.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/port.h"
+#include "vm/service.h"
 #include "vm/simulator.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
@@ -26,7 +28,7 @@
 #include "vm/thread.h"
 #include "vm/timer.h"
 #include "vm/visitor.h"
-#include "vm/object_id_ring.h"
+
 
 namespace dart {
 
@@ -136,8 +138,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
 
   bool success = true;
   if (message->IsOOB()) {
-    // For now the only OOB messages are Mirrors messages.
-    HandleMirrorsMessage(isolate_, message->reply_port(), msg);
+    Service::HandleServiceMessage(isolate_, message->reply_port(), msg);
   } else {
     const Object& result = Object::Handle(
         DartLibraryCalls::HandleMessage(

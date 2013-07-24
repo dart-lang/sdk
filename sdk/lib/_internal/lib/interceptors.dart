@@ -152,7 +152,7 @@ getNativeInterceptor(object) {
 
   record = lookupDispatchRecord(object);
   if (record == null) {
-    return const JSUnknown();
+    return const UnknownJavaScriptObject();
   }
   setDispatchProperty(JS('', 'Object.getPrototypeOf(#)', object), record);
   return getNativeInterceptor(object);
@@ -350,16 +350,6 @@ class JSNull extends Interceptor implements Null {
   Type get runtimeType => Null;
 }
 
-class JSUnknown extends Interceptor {
-  const JSUnknown();
-
-  String toString() => JS('String', 'String(#)', this);
-
-  int get hashCode => 0;
-
-  Type get runtimeType => null;
-}
-
 /**
  * The supertype for JSString and JSArray. Used by the backend as to
  * have a type mask that contains the objects that we can use the
@@ -377,4 +367,45 @@ abstract class JSIndexable {
  */
 abstract class JSMutableIndexable extends JSIndexable {
   operator[]=(int index, var value);
+}
+
+/**
+ * The interface implemented by JavaScript objects.  These are methods in
+ * addition to the regular Dart Object methods like [Object.hashCode].
+ *
+ * This is the type that should be exported by a JavaScript interop library.
+ */
+abstract class JSObject {
+}
+
+
+/**
+ * Interceptor base class for JavaScript objects not recognized as some more
+ * specific native type.
+ */
+abstract class JavaScriptObject extends Interceptor implements JSObject {
+  const JavaScriptObject();
+
+  // It would be impolite to stash a property on the object.
+  int get hashCode => 0;
+
+  Type get runtimeType => JSObject;
+}
+
+
+/**
+ * Interceptor for plain JavaScript objects created as JavaScript object
+ * literals or `new Object()`.
+ */
+class PlainJavaScriptObject extends JavaScriptObject {
+  const PlainJavaScriptObject();
+}
+
+
+/**
+ * Interceptor for unclassified JavaScript objects, typically objects with a
+ * non-trivial prototype chain.
+ */
+class UnknownJavaScriptObject extends JavaScriptObject {
+  const UnknownJavaScriptObject();
 }

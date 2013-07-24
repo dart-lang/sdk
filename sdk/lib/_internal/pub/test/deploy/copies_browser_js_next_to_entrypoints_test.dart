@@ -50,7 +50,7 @@ main() {
     ]);
 
     d.dir(appPath, [
-      d.appPubspec([dependencyMap("browser", "1.0.0")]),
+      d.appPubspec({"browser": "1.0.0"}),
       d.dir('web', [
         d.file('file.dart', 'void main() => print("hello");'),
         d.dir('subdir', [

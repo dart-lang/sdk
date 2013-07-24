@@ -25,8 +25,12 @@ main() {
 
   test('extension', () {
     expect(builder.extension(''), '');
+    expect(builder.extension('.'), '');
+    expect(builder.extension('..'), '');
+    expect(builder.extension('a/..'), '');
     expect(builder.extension('foo.dart'), '.dart');
     expect(builder.extension('foo.dart.js'), '.js');
+    expect(builder.extension('foo bar\gule fisk.dart.js'), '.js');
     expect(builder.extension(r'a.b\c'), '');
     expect(builder.extension('a.b/c.d'), '.d');
     expect(builder.extension(r'~\.bashrc'), '');
@@ -64,10 +68,14 @@ main() {
     expect(builder.dirname(r'a\\'), r'.');
     expect(builder.dirname(r'a\b\\'), 'a');
     expect(builder.dirname(r'a\\b'), 'a');
+    expect(builder.dirname(r'foo bar\gule fisk'), 'foo bar');
   });
 
   test('basename', () {
     expect(builder.basename(r''), '');
+    expect(builder.basename(r'.'), '.');
+    expect(builder.basename(r'..'), '..');
+    expect(builder.basename(r'.hest'), '.hest');
     expect(builder.basename(r'a'), 'a');
     expect(builder.basename(r'a\b'), 'b');
     expect(builder.basename(r'a\b\c'), 'c');
@@ -83,10 +91,15 @@ main() {
     expect(builder.basename(r'a\\'), 'a');
     expect(builder.basename(r'a\b\\'), 'b');
     expect(builder.basename(r'a\\b'), 'b');
+    expect(builder.basename(r'a\\b'), 'b');
+    expect(builder.basename(r'a\fisk hest.ma pa'), 'fisk hest.ma pa');
   });
 
   test('basenameWithoutExtension', () {
     expect(builder.basenameWithoutExtension(''), '');
+    expect(builder.basenameWithoutExtension('.'), '.');
+    expect(builder.basenameWithoutExtension('..'), '..');
+    expect(builder.basenameWithoutExtension('.hest'), '.hest');
     expect(builder.basenameWithoutExtension('a'), 'a');
     expect(builder.basenameWithoutExtension(r'a\b'), 'b');
     expect(builder.basenameWithoutExtension(r'a\b\c'), 'c');
@@ -101,10 +114,13 @@ main() {
     expect(builder.basenameWithoutExtension(r'a\\b'), 'b');
     expect(builder.basenameWithoutExtension(r'a\b.c\'), 'b');
     expect(builder.basenameWithoutExtension(r'a\b.c\\'), 'b');
+    expect(builder.basenameWithoutExtension(r'C:\f h.ma pa.f s'), 'f h.ma pa');
   });
 
   test('isAbsolute', () {
     expect(builder.isAbsolute(''), false);
+    expect(builder.isAbsolute('.'), false);
+    expect(builder.isAbsolute('..'), false);
     expect(builder.isAbsolute('a'), false);
     expect(builder.isAbsolute(r'a\b'), false);
     expect(builder.isAbsolute(r'\a'), false);
@@ -124,6 +140,8 @@ main() {
 
   test('isRelative', () {
     expect(builder.isRelative(''), true);
+    expect(builder.isRelative('.'), true);
+    expect(builder.isRelative('..'), true);
     expect(builder.isRelative('a'), true);
     expect(builder.isRelative(r'a\b'), true);
     expect(builder.isRelative(r'\a'), true);
@@ -184,6 +202,14 @@ main() {
       expect(() => builder.join('a', null, 'b'), throwsArgumentError);
       expect(() => builder.join(null, 'a'), throwsArgumentError);
     });
+
+    test('join does not modify internal ., .., or trailing separators', () {
+      expect(builder.join('a/', 'b/c/'), 'a/b/c/');
+      expect(builder.join(r'a\b\./c\..\\', r'd\..\.\..\\e\f\\'),
+             r'a\b\./c\..\\d\..\.\..\\e\f\\');
+      expect(builder.join(r'a\b', r'c\..\..\..\..'), r'a\b\c\..\..\..\..');
+      expect(builder.join(r'a', 'b${builder.separator}'), r'a\b\');
+    });
   });
 
   group('joinAll', () {
@@ -238,13 +264,17 @@ main() {
 
   group('normalize', () {
     test('simple cases', () {
-      expect(builder.normalize(''), '');
+      expect(builder.normalize(''), '.');
       expect(builder.normalize('.'), '.');
       expect(builder.normalize('..'), '..');
       expect(builder.normalize('a'), 'a');
+      expect(builder.normalize(r'\'), '.');
+      expect(builder.normalize('/'), r'.');
       expect(builder.normalize('C:/'), r'C:\');
       expect(builder.normalize(r'C:\'), r'C:\');
       expect(builder.normalize(r'\\'), r'\\');
+      expect(builder.normalize('a\\.\\\xc5\u0bf8-;\u{1f085}\u{00}\\c\\d\\..\\'),
+             'a\\\xc5\u0bf8-;\u{1f085}\u{00}\x5cc');
     });
 
     test('collapses redundant separators', () {
@@ -278,12 +308,19 @@ main() {
       expect(builder.normalize(r'c:\..'), r'c:\');
       expect(builder.normalize(r'A:/..\..\..'), r'A:\');
       expect(builder.normalize(r'b:\..\..\..\a'), r'b:\a');
+      expect(builder.normalize(r'b:\r\..\..\..\a\c\.\..'), r'b:\a');
       expect(builder.normalize(r'a\..'), '.');
+      expect(builder.normalize(r'..\a'), r'..\a');
+      expect(builder.normalize(r'c:\..\a'), r'c:\a');
+      // A path starting with '\' is not an absolute path on Windows.
+      expect(builder.normalize(r'\..\a'), r'..\a');
       expect(builder.normalize(r'a\b\..'), 'a');
+      expect(builder.normalize(r'..\a\b\..'), r'..\a');
       expect(builder.normalize(r'a\..\b'), 'b');
       expect(builder.normalize(r'a\.\..\b'), 'b');
       expect(builder.normalize(r'a\b\c\..\..\d\e\..'), r'a\d');
       expect(builder.normalize(r'a\b\..\..\..\..\c'), r'..\..\c');
+      expect(builder.normalize(r'a/b/c/../../..d/./.e/f././'), r'a\..d\.e\f.');
     });
 
     test('removes trailing separators', () {

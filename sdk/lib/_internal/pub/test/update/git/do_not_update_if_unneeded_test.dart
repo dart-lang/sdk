@@ -17,7 +17,9 @@ main() {
 
     d.git('foo.git', [
       d.libDir('foo'),
-      d.libPubspec("foo", "1.0.0", deps: [{"git": "../foo-dep.git"}])
+      d.libPubspec("foo", "1.0.0", deps: {
+        "foo-dep": {"git": "../foo-dep.git"
+      }})
     ]).create();
 
     d.git('foo-dep.git', [
@@ -25,7 +27,7 @@ main() {
       d.libPubspec('foo-dep', '1.0.0')
     ]).create();
 
-    d.appDir([{"git": "../foo.git"}]).create();
+    d.appDir({"foo": {"git": "../foo.git"}}).create();
 
     pubInstall();
 
@@ -40,7 +42,9 @@ main() {
 
     d.git('foo.git', [
       d.libDir('foo', 'foo 2'),
-      d.libPubspec("foo", "1.0.0", deps: [{"git": "../foo-dep.git"}])
+      d.libPubspec("foo", "1.0.0", deps: {
+        "foo-dep": {"git": "../foo-dep.git"}
+      })
     ]).create();
 
     d.git('foo-dep.git', [

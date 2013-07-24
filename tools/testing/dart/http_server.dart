@@ -88,6 +88,7 @@ main() {
  * test framework, such as dealing with package-root.
  */
 class TestingServers {
+  static final _CACHE_EXPIRATION_IN_SECONDS = 30;
   static final _HARMLESS_REQUEST_PATH_ENDINGS = [
     "/apple-touch-icon.png",
     "/apple-touch-icon-precomposed.png",
@@ -166,6 +167,9 @@ class TestingServers {
   void _handleFileOrDirectoryRequest(HttpRequest request,
                                      HttpResponse response,
                                      int allowedPort) {
+    // Enable browsers to cache file/directory responses.
+    response.headers.set("Cache-Control",
+                         "max-age=$_CACHE_EXPIRATION_IN_SECONDS");
     var path = _getFilePathFromRequestPath(request.uri.path);
     if (path != null) {
       var file = new File.fromPath(path);

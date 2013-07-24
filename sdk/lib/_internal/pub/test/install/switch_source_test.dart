@@ -19,12 +19,12 @@ main() {
       d.libPubspec('foo', '0.0.1')
     ]).create();
 
-    d.appDir([{"path": "../foo"}]).create();
+    d.appDir({"foo": {"path": "../foo"}}).create();
 
     pubInstall();
 
     d.packagesDir({"foo": "0.0.1"}).validate();
-    d.appDir([dependencyMap("foo", "any")]).create();
+    d.appDir({"foo": "any"}).create();
 
     pubInstall();
 

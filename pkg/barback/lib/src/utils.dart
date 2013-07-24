@@ -101,3 +101,6 @@ Future pumpEventQueue([int times=20]) {
   return new Future.delayed(Duration.ZERO, () => pumpEventQueue(times - 1));
 }
 
+/// Like [new Future], but avoids issue 11911 by using [new Future.value] under
+/// the covers.
+Future newFuture(callback()) => new Future.value().then((_) => callback());

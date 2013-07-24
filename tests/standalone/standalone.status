@@ -10,12 +10,7 @@
 package/invalid_uri_test: Fail, OK # Fails intentionally
 
 [ $runtime == vm ]
-io/web_socket_test: Pass, Crash # Issue 11502
-
-[ $runtime == vm ]
 package/package_isolate_test: Fail # http://dartbug.com/7520.
-# The test is flaky, and is timing out, causing buildbot cycle times to rise.
-io/raw_server_socket_cancel_test: Skip # Issue 8675
 
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
@@ -53,6 +48,7 @@ package/*: Skip # Do not run those in Dartium.
 debugger/*: Skip # Do not run standalone debugger tests in browser.
 coverage_test: Skip
 http_launch_test: Skip
+vmservice/*: Skip # Do not run standalone vm service tests in browser.
 
 
 [ $compiler == dartanalyzer ]
@@ -118,6 +114,7 @@ pow_test: Skip # Precision > 53 bits.
 http_launch_test: Skip
 53bit_overflow_test: Skip
 53bit_overflow_literal_test: Skip
+vmservice/*: Skip # Do not run standalone vm service tests with dart2js.
 
 
 [ $compiler == dart2js && $jscl ]
@@ -147,6 +144,7 @@ io/list_input_stream_test: Skip # Timeout TODO(ngeoffray): investigate
 
 [ $arch == simarm ]
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
+io/web_socket_ping_test: Skip # TODO(ajohnsen): Timeout issue
 
 [ $arch == mips ]
 *: Skip
@@ -154,3 +152,4 @@ out_of_memory_test: Skip # passes on Mac, crashes on Linux
 [ $arch == simmips ]
 io/file_fuzz_test: Pass, Timeout
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
+io/web_socket_ping_test: Skip # TODO(ajohnsen): Timeout issue

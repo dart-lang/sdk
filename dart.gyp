@@ -68,6 +68,7 @@
             '<!@(["python", "tools/list_files.py", "", "sdk/bin"])',
             'tools/create_sdk.py',
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
+            '<(SHARED_INTERMEDIATE_DIR)/dart2js.dart.snapshot',
             '<(SHARED_INTERMEDIATE_DIR)/utils_wrapper.dart.snapshot',
             '<(SHARED_INTERMEDIATE_DIR)/pub.dart.snapshot',
             '<(PRODUCT_DIR)/analyzer/bin/dart_analyzer',

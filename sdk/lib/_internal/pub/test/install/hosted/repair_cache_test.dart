@@ -28,7 +28,7 @@ main() {
       ])
     ]).create();
 
-    d.appDir([dependencyMap("foo", "1.2.3")]).create();
+    d.appDir({"foo": "1.2.3"}).create();
 
     pubInstall();
 
@@ -51,7 +51,7 @@ main() {
       ])
     ]).create();
 
-    d.appDir([dependencyMap("foo", "1.2.3")]).create();
+    d.appDir({"foo": "1.2.3"}).create();
 
     pubInstall();
 

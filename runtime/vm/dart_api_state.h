@@ -50,7 +50,7 @@ class ApiZone {
   // Delete all memory associated with the zone.
   ~ApiZone() {
     Isolate* isolate = Isolate::Current();
-    if (isolate != NULL && isolate->current_zone() == &zone_) {
+    if ((isolate != NULL) && (isolate->current_zone() == &zone_)) {
       isolate->set_current_zone(zone_.previous_);
     }
 #ifdef DEBUG
@@ -91,6 +91,22 @@ class ApiZone {
   intptr_t SizeInBytes() const { return zone_.SizeInBytes(); }
 
   Zone* GetZone() { return &zone_; }
+
+  void Reinit(Isolate* isolate) {
+    if (isolate == NULL) {
+      zone_.Link(NULL);
+    } else {
+      zone_.Link(isolate->current_zone());
+      isolate->set_current_zone(&zone_);
+    }
+  }
+
+  void Reset(Isolate* isolate) {
+    if ((isolate != NULL) && (isolate->current_zone() == &zone_)) {
+      isolate->set_current_zone(zone_.previous_);
+    }
+    zone_.DeleteAll();
+  }
 
  private:
   Zone zone_;
@@ -263,6 +279,13 @@ class LocalHandles : Handles<kLocalHandleSizeInWords,
     Handles<kLocalHandleSizeInWords,
             kLocalHandlesPerChunk,
             kOffsetOfRawPtrInLocalHandle>::VisitObjectPointers(visitor);
+  }
+
+  // Reset the local handles block for reuse.
+  void Reset() {
+    Handles<kLocalHandleSizeInWords,
+            kLocalHandlesPerChunk,
+            kOffsetOfRawPtrInLocalHandle>::Reset();
   }
 
   // Allocates a handle in the current handle scope. This handle is valid only
@@ -505,6 +528,21 @@ class ApiLocalScope {
     previous_ = NULL;
   }
 
+  // Reinit the ApiLocalScope to new values.
+  void Reinit(Isolate* isolate, ApiLocalScope* previous, uword stack_marker) {
+    previous_ = previous;
+    stack_marker_ = stack_marker;
+    zone_.Reinit(isolate);
+  }
+
+  // Reset the ApiLocalScope so that it can be reused again.
+  void Reset(Isolate* isolate) {
+    local_handles_.Reset();
+    zone_.Reset(isolate);
+    previous_ = NULL;
+    stack_marker_ = 0;
+  }
+
   // Accessors.
   ApiLocalScope* previous() const { return previous_; }
   uword stack_marker() const { return stack_marker_; }
@@ -527,8 +565,15 @@ class ApiLocalScope {
 // basis and destroyed when the isolate is shutdown.
 class ApiState {
  public:
-  ApiState() : top_scope_(NULL), delayed_weak_reference_sets_(NULL),
-               null_(NULL), true_(NULL), false_(NULL),
+  ApiState() : persistent_handles_(),
+               weak_persistent_handles_(),
+               prologue_weak_persistent_handles_(),
+               reusable_scope_(NULL),
+               top_scope_(NULL),
+               delayed_weak_reference_sets_(NULL),
+               null_(NULL),
+               true_(NULL),
+               false_(NULL),
                acquired_error_(NULL) {}
   ~ApiState() {
     while (top_scope_ != NULL) {
@@ -555,6 +600,11 @@ class ApiState {
   }
 
   // Accessors.
+  ApiLocalScope* reusable_scope() const { return reusable_scope_; }
+  void set_reusable_scope(ApiLocalScope* value) {
+    ASSERT(value == NULL || reusable_scope_ == NULL);
+    reusable_scope_ = value;
+  }
   ApiLocalScope* top_scope() const { return top_scope_; }
   void set_top_scope(ApiLocalScope* value) { top_scope_ = value; }
 
@@ -680,6 +730,7 @@ class ApiState {
   PersistentHandles persistent_handles_;
   FinalizablePersistentHandles weak_persistent_handles_;
   FinalizablePersistentHandles prologue_weak_persistent_handles_;
+  ApiLocalScope* reusable_scope_;
   ApiLocalScope* top_scope_;
   WeakReferenceSet* delayed_weak_reference_sets_;
 

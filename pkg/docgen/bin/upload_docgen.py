@@ -8,6 +8,7 @@
   Google Cloud Storage for the documentation viewer. 
 """
 
+import optparse
 import os
 from os.path import join, dirname, abspath, exists 
 import platform
@@ -21,8 +22,28 @@ from upload_sdk import ExecuteCommand
 DART = abspath(join(dirname(__file__), '../../../%s/%s/dart-sdk/bin/dart' 
     % (utils.BUILD_ROOT[utils.GuessOS()], utils.GetBuildConf('release', 
     utils.GuessArchitecture()))))
+PACKAGE_ROOT = abspath(join(dirname(__file__), '../../../%s/%s/packages/' 
+    % (utils.BUILD_ROOT[utils.GuessOS()], utils.GetBuildConf('release', 
+    utils.GuessArchitecture()))))
 GSUTIL = utils.GetBuildbotGSUtilPath()
 GS_SITE = 'gs://dartlang-docgen'
+DESCRIPTION='Runs docgen.dart on the SDK libraries, and uploads them to Google \
+    Cloud Storage for the dartdoc-viewer. '
+
+
+def GetOptions():
+  parser = optparse.OptionParser(description=DESCRIPTION)
+  parser.add_option('--package-root', dest='pkg_root',
+    help='The package root for dart. (Default is in the build directory.)',
+    action='store', default=PACKAGE_ROOT)
+  (options, args) = parser.parse_args()
+  SetPackageRoot(options.pkg_root)
+
+
+def SetPackageRoot(path):
+  global PACKAGE_ROOT
+  if exists(path):
+    PACKAGE_ROOT = abspath(path) 
 
 
 def SetGsutil():
@@ -41,10 +62,13 @@ def Upload(source, target):
 
 
 def main():
+  GetOptions()
+
   SetGsutil()
 
   # Execute Docgen.dart on the SDK.
-  ExecuteCommand([DART, abspath(join(dirname(__file__), 'docgen.dart')), 
+  ExecuteCommand([DART, '--checked', '--package-root=' + PACKAGE_ROOT, 
+      abspath(join(dirname(__file__), 'docgen.dart')), 
       '--parse-sdk'])
   
   # Use SVN Revision to get the revision number.

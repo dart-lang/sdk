@@ -14,13 +14,13 @@ main() {
   integration("doesn't update dependencies whose constraints have been "
       "removed", () {
     servePackages([
-      packageMap("foo", "1.0.0", [dependencyMap("shared-dep")]),
-      packageMap("bar", "1.0.0", [dependencyMap("shared-dep", "<2.0.0")]),
+      packageMap("foo", "1.0.0", {"shared-dep": "any"}),
+      packageMap("bar", "1.0.0", {"shared-dep": "<2.0.0"}),
       packageMap("shared-dep", "1.0.0"),
       packageMap("shared-dep", "2.0.0")
     ]);
 
-    d.appDir([dependencyMap("foo"), dependencyMap("bar")]).create();
+    d.appDir({"foo": "any", "bar": "any"}).create();
 
     pubInstall();
 
@@ -30,7 +30,7 @@ main() {
       "shared-dep": "1.0.0"
     }).validate();
 
-    d.appDir([dependencyMap("foo")]).create();
+    d.appDir({"foo": "any"}).create();
 
     pubInstall();
 

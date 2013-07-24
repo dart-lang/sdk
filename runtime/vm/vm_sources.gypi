@@ -282,6 +282,8 @@
     'scopes.cc',
     'scopes.h',
     'scopes_test.cc',
+    'service.cc',
+    'service.h',
     'simulator.h',
     'simulator_arm.cc',
     'simulator_arm.h',

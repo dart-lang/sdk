@@ -83,7 +83,7 @@ Future<bool> docgen(List<String> files, {String packageRoot,
   linkResolver = (name) =>
       fixReference(name, _currentLibrary, _currentClass, _currentMember);
 
-  return getMirrorSystem(files, packageRoot, parseSdk: parseSdk)
+  return getMirrorSystem(files, packageRoot: packageRoot, parseSdk: parseSdk)
     .then((MirrorSystem mirrorSystem) {
       if (mirrorSystem.libraries.isEmpty) {
         throw new StateError('No library mirrors were created.');
@@ -119,7 +119,8 @@ List<String> _listDartFromDir(String args) {
   // containing '/packages' will be added. The only exception is if the file to
   // analyze already has a '/package' in its path.
   return files.where((f) => f.endsWith('.dart') &&
-      (!f.contains('/packages') || args.contains('/packages'))).toList()
+      (!f.contains('${path.separator}packages') || 
+          args.contains('${path.separator}packages'))).toList()
       ..forEach((lib) => logger.info('Added to libraries: $lib'));
 }
 
@@ -127,9 +128,9 @@ String _findPackageRoot(String directory) {
   var files = listDir(directory, recursive: true);
   // Return '' means that there was no pubspec.yaml and therefor no packageRoot.
   String packageRoot = files.firstWhere((f) =>
-      f.endsWith('/pubspec.yaml'), orElse: () => '');
+      f.endsWith('${path.separator}pubspec.yaml'), orElse: () => '');
   if (packageRoot != '') {
-    packageRoot = path.dirname(packageRoot) + '/packages';
+    packageRoot = path.join(path.dirname(packageRoot), 'packages');
   }
   return packageRoot;
 }
@@ -149,8 +150,8 @@ List<String> _listSdk() {
  * Analyzes set of libraries by getting a mirror system and triggers the
  * documentation of the libraries.
  */
-Future<MirrorSystem> getMirrorSystem(List<String> args, String packageRoot,
-    {bool parseSdk:false}) {
+Future<MirrorSystem> getMirrorSystem(List<String> args, {String packageRoot,
+    bool parseSdk:false}) {
   var libraries = !parseSdk ? _listLibraries(args) : _listSdk();
   if (libraries.isEmpty) throw new StateError('No Libraries.');
   // DART_SDK should be set to the root of the SDK library.
@@ -160,10 +161,10 @@ Future<MirrorSystem> getMirrorSystem(List<String> args, String packageRoot,
   } else {
     // If DART_SDK is not defined in the environment,
     // assuming the dart executable is from the Dart SDK folder inside bin.
-    sdkRoot = path.dirname(path.dirname(new Options().executable));
+    sdkRoot = path.join(path.dirname(path.dirname(path.dirname(path.dirname(
+        path.absolute(new Options().script))))), 'sdk');
     logger.info('SDK Root: ${sdkRoot}');
   }
-
   return _analyzeLibraries(libraries, sdkRoot, packageRoot: packageRoot);
 }
 
@@ -180,10 +181,10 @@ Future<MirrorSystem> _analyzeLibraries(List<String> libraries,
   SourceFileProvider provider = new SourceFileProvider();
   api.DiagnosticHandler diagnosticHandler =
         new FormattingDiagnosticHandler(provider).diagnosticHandler;
-  Uri libraryUri = currentDirectory.resolve(appendSlash('$libraryRoot'));
+  Uri libraryUri = new Uri(scheme: 'file', path: appendSlash(libraryRoot));
   Uri packageUri = null;
   if (packageRoot != null) {
-    packageUri = currentDirectory.resolve(appendSlash('$packageRoot'));
+    packageUri = new Uri(scheme: 'file', path: appendSlash(packageRoot)); 
   }
   List<Uri> librariesUri = <Uri>[];
   libraries.forEach((library) {
@@ -296,7 +297,7 @@ markdown.Node fixReference(String name, LibraryMirror currentLibrary,
 }
 
 /**
- * Returns a map of [Variable] objects constructed from inputted mirrors.
+ * Returns a map of [Variable] objects constructed from [mirrorMap].
  */
 Map<String, Variable> _getVariables(Map<String, VariableMirror> mirrorMap,
     bool includePrivate) {
@@ -307,15 +308,15 @@ Map<String, Variable> _getVariables(Map<String, VariableMirror> mirrorMap,
     if (includePrivate || !mirror.isPrivate) {
       _currentMember = mirror;
       data[mirrorName] = new Variable(mirrorName, mirror.isFinal, 
-          mirror.isStatic, mirror.type.qualifiedName, _getComment(mirror), 
-          _getAnnotations(mirror), mirror.qualifiedName);
+          mirror.isStatic, mirror.isConst, mirror.type.qualifiedName,
+          _getComment(mirror), _getAnnotations(mirror), mirror.qualifiedName);
     }
   });
   return data;
 }
 
 /**
- * Returns a map of [Method] objects constructed from inputted mirrors.
+ * Returns a map of [Method] objects constructed from [mirrorMap].
  */
 Map<String, Map<String, Method>> _getMethods
     (Map<String, MethodMirror> mirrorMap, bool includePrivate) {
@@ -328,10 +329,10 @@ Map<String, Map<String, Method>> _getMethods
   
   mirrorMap.forEach((String mirrorName, MethodMirror mirror) {
     if (includePrivate || !mirror.isPrivate) {
-      var method = new Method(mirrorName, mirror.isStatic, 
-          mirror.returnType.qualifiedName, _getComment(mirror), 
-          _getParameters(mirror.parameters), _getAnnotations(mirror),
-          mirror.qualifiedName);
+      var method = new Method(mirrorName, mirror.isStatic, mirror.isAbstract,
+          mirror.isConstConstructor, mirror.returnType.qualifiedName, 
+          _getComment(mirror), _getParameters(mirror.parameters), 
+          _getAnnotations(mirror), mirror.qualifiedName);
       _currentMember = mirror;
       if (mirror.isSetter) {
         setters[mirrorName] = method;
@@ -358,7 +359,7 @@ Map<String, Map<String, Method>> _getMethods
 } 
 
 /**
- * Returns a map of [Class] objects constructed from inputted mirrors.
+ * Returns a map of [Class] objects constructed from [mirrorMap].
  */
 Map<String, Class> _getClasses(Map<String, ClassMirror> mirrorMap,
     bool includePrivate) {
@@ -383,7 +384,10 @@ Map<String, Class> _getClasses(Map<String, ClassMirror> mirrorMap,
       if (isError(mirror.qualifiedName)) {
         errors[mirrorName] = clazz;
       } else if (mirror.isTypedef) {
-        typedefs[mirrorName] = clazz;
+        typedefs[mirrorName] = new Typedef(mirrorName, 
+            mirror.value.returnType.qualifiedName,  _getComment(mirror), 
+            _getGenerics(mirror), _getParameters(mirror.value.parameters),
+            _getAnnotations(mirror), mirror.qualifiedName);
       } else if (mirror.isAbstract) {
         abstractClasses[mirrorName] = clazz;
       } else if (mirror.isClass) {
@@ -402,7 +406,7 @@ Map<String, Class> _getClasses(Map<String, ClassMirror> mirrorMap,
 }
 
 /**
- * Returns a map of [Parameter] objects constructed from inputted mirrors.
+ * Returns a map of [Parameter] objects constructed from [mirrorList].
  */
 Map<String, Parameter> _getParameters(List<ParameterMirror> mirrorList) {
   var data = {};
@@ -465,7 +469,12 @@ bool isError(String qualifiedName) {
  * A class representing all programming constructs, like library or class. 
  */
 class Indexable {
-  Indexable(String qualifiedName) {
+  String name;
+  
+  /// Documentation comment with converted markdown.
+  String comment;
+  
+  Indexable(this.name, this.comment, String qualifiedName) {
     qualifiedNameIndex.add(qualifiedName);
   }
 }
@@ -474,9 +483,6 @@ class Indexable {
  * A class containing contents of a Dart library.
  */
 class Library extends Indexable {
-
-  /// Documentation comment with converted markdown.
-  String comment;
 
   /// Top-level variables in the library.
   Map<String, Variable> variables;
@@ -487,23 +493,17 @@ class Library extends Indexable {
   /// Classes defined within the library
   Map<String, Class> classes;
 
-  String name;
-
-  Library(name, this.comment, this.variables,
-      this.functions, this.classes) : super(name) {
-    this.name = name; 
-  }
+  Library(String name, String comment, this.variables,
+      this.functions, this.classes) : super(name, comment, name) {}
 
   /// Generates a map describing the [Library] object.
-  Map toMap() {
-    var libraryMap = {};
-    libraryMap['name'] = name;
-    libraryMap['comment'] = comment;
-    libraryMap['variables'] = recurseMap(variables);
-    libraryMap['functions'] = recurseMap(functions);
-    libraryMap['classes'] = recurseMap(classes);
-    return libraryMap;
-  }
+  Map toMap() => {
+      'name': name,
+      'comment': comment,
+      'variables': recurseMap(variables),
+      'functions': recurseMap(functions),
+      'classes': recurseMap(classes)
+    };
 }
 
 /**
@@ -511,9 +511,6 @@ class Library extends Indexable {
  */
 // TODO(tmandel): Figure out how to do typedefs (what is needed)
 class Class extends Indexable {
-
-  /// Documentation comment with converted markdown.
-  String comment;
 
   /// List of the names of interfaces that this class implements.
   List<String> interfaces;
@@ -527,29 +524,51 @@ class Class extends Indexable {
   /// Generic infomation about the class. 
   Map<String, Generic> generics;
   
-  String name;
   String superclass;
 
   /// List of the meta annotations on the class.
   List<String> annotations;
   
-  Class(this.name, this.superclass, this.comment, this.interfaces, 
+  Class(String name, this.superclass, String comment, this.interfaces, 
       this.variables, this.methods, this.annotations, this.generics,
-      String qualifiedName) : super(qualifiedName) {}
+      String qualifiedName) : super(name, comment, qualifiedName) {}
 
   /// Generates a map describing the [Class] object.
-  Map toMap() {
-    var classMap = {};
-    classMap['name'] = name;
-    classMap['comment'] = comment;
-    classMap['superclass'] = superclass;
-    classMap['implements'] = new List.from(interfaces);
-    classMap['variables'] = recurseMap(variables);
-    classMap['methods'] = recurseMap(methods);
-    classMap['annotations'] = new List.from(annotations);
-    classMap['generics'] = recurseMap(generics);
-    return classMap;
-  }
+  Map toMap() => {
+      'name': name,
+      'comment': comment,
+      'superclass': superclass,
+      'implements': new List.from(interfaces),
+      'variables': recurseMap(variables),
+      'methods': recurseMap(methods),
+      'annotations': new List.from(annotations),
+      'generics': recurseMap(generics)
+    };
+}
+
+class Typedef extends Indexable {
+  String returnType;
+  
+  Map<String, Parameter> parameters;
+  
+  /// Generic information about the typedef. 
+  Map<String, Generic> generics;
+  
+  /// List of the meta annotations on the typedef. 
+  List<String> annotations;
+  
+  Typedef(String name, this.returnType, String comment, this.generics, 
+      this.parameters, this.annotations,
+      String qualifiedName) : super(name, comment, qualifiedName) {}
+  
+  Map toMap() => {
+      'name': name,
+      'comment': comment,
+      'return': returnType,
+      'parameters': recurseMap(parameters),
+      'annotations': new List.from(annotations),
+      'generics': recurseMap(generics)
+    };
 }
 
 /**
@@ -557,31 +576,28 @@ class Class extends Indexable {
  */
 class Variable extends Indexable {
 
-  /// Documentation comment with converted markdown.
-  String comment;
-
-  String name;
   bool isFinal;
   bool isStatic;
+  bool isConst;
   String type;
 
   /// List of the meta annotations on the variable.
   List<String> annotations;
   
-  Variable(this.name, this.isFinal, this.isStatic, this.type, this.comment, 
-      this.annotations, String qualifiedName) : super(qualifiedName);
+  Variable(String name, this.isFinal, this.isStatic, this.isConst, this.type, 
+      String comment, this.annotations, String qualifiedName) : super(name, 
+          comment, qualifiedName);
   
   /// Generates a map describing the [Variable] object.
-  Map toMap() {
-    var variableMap = {};
-    variableMap['name'] = name;
-    variableMap['comment'] = comment;
-    variableMap['final'] = isFinal.toString();
-    variableMap['static'] = isStatic.toString();
-    variableMap['type'] = type;
-    variableMap['annotations'] = new List.from(annotations);
-    return variableMap;
-  }
+  Map toMap() => {
+      'name': name,
+      'comment': comment,
+      'final': isFinal.toString(),
+      'static': isStatic.toString(),
+      'constant': isConst.toString(),
+      'type': type,
+      'annotations': new List.from(annotations)
+    };
 }
 
 /**
@@ -589,34 +605,33 @@ class Variable extends Indexable {
  */
 class Method extends Indexable {
 
-  /// Documentation comment with converted markdown.
-  String comment;
-
   /// Parameters for this method.
   Map<String, Parameter> parameters;
 
-  String name;
   bool isStatic;
+  bool isAbstract;
+  bool isConst;
   String returnType;
 
   /// List of the meta annotations on the method.
   List<String> annotations;
   
-  Method(this.name, this.isStatic, this.returnType, this.comment, 
-      this.parameters, this.annotations, String qualifiedName) 
-      : super(qualifiedName);
+  Method(String name, this.isStatic, this.isAbstract, this.isConst, 
+      this.returnType, String comment, this.parameters, this.annotations, 
+      String qualifiedName) 
+      : super(name, comment, qualifiedName);
   
   /// Generates a map describing the [Method] object.
-  Map toMap() {
-    var methodMap = {};
-    methodMap['name'] = name;
-    methodMap['comment'] = comment;
-    methodMap['static'] = isStatic.toString();
-    methodMap['return'] = returnType;
-    methodMap['parameters'] = recurseMap(parameters);
-    methodMap['annotations'] = new List.from(annotations);
-    return methodMap;
-  }
+  Map toMap() => {
+      'name': name,
+      'comment': comment,
+      'static': isStatic.toString(),
+      'abstract': isAbstract.toString(),
+      'constant': isConst.toString(),
+      'return': returnType,
+      'parameters': recurseMap(parameters),
+      'annotations': new List.from(annotations)
+    };
 }
 
 /**
@@ -638,17 +653,15 @@ class Parameter {
       this.type, this.defaultValue, this.annotations);
   
   /// Generates a map describing the [Parameter] object.
-  Map toMap() {
-    var parameterMap = {};
-    parameterMap['name'] = name;
-    parameterMap['optional'] = isOptional.toString();
-    parameterMap['named'] = isNamed.toString();
-    parameterMap['default'] = hasDefaultValue.toString();
-    parameterMap['type'] = type;
-    parameterMap['value'] = defaultValue;
-    parameterMap['annotations'] = new List.from(annotations);
-    return parameterMap;
-  }
+  Map toMap() => {
+      'name': name,
+      'optional': isOptional.toString(),
+      'named': isNamed.toString(),
+      'default': hasDefaultValue.toString(),
+      'type': type,
+      'value': defaultValue,
+      'annotations': new List.from(annotations)
+    };
 }
 
 /**
@@ -660,10 +673,8 @@ class Generic {
   
   Generic(this.name, this.type);
   
-  Map toMap() {
-    return {
+  Map toMap() => {
       'name': name,
       'type': type
     };
-  }
 }

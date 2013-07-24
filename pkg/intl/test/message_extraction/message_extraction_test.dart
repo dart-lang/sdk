@@ -172,6 +172,11 @@ verifyResult(results) {
   verify('Personne n\'est allé au magasin');
   verify('Bob, Bob sont allés au magasin');
   verify('Alice, Alice sont allées au magasin');
+  verify('none');
+  verify('one');
+  verify('m');
+  verify('f');
+  verify('7 male');
 
   var fr_lines = lines.skip(1).skipWhile(
       (line) => !line.contains('----')).toList();
@@ -210,6 +215,11 @@ verifyResult(results) {
   verify('Personne n\'avait allé à la magasin');
   verify('Bob, Bob étaient allés à la magasin');
   verify('Alice, Alice étaient allées à la magasin');
+  verify('rien');
+  verify('un');
+  verify('homme');
+  verify('femme');
+  verify('7 homme');
 
   var de_lines = fr_lines.skip(1).skipWhile(
       (line) => !line.contains('----')).toList();
@@ -248,4 +258,9 @@ verifyResult(results) {
   verify('Niemand ging zu magasin');
   verify('Bob, Bob gingen zum magasin');
   verify('Alice, Alice gingen zum magasin');
+  verify('Null');
+  verify('ein');
+  verify('Mann');
+  verify('Frau');
+  verify('7 Mann');
 }
