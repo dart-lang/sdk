@@ -193,7 +193,7 @@ class Intl {
       return newLocale;
     }
     for (var each in
-        [canonicalizedLocale(newLocale), _shortLocale(newLocale)]) {
+        [canonicalizedLocale(newLocale), shortLocale(newLocale)]) {
       if (localeExists(each)) {
         return each;
       }
@@ -210,7 +210,7 @@ class Intl {
   }
 
   /** Return the short version of a locale name, e.g. 'en_US' => 'en' */
-  static String _shortLocale(String aLocale) {
+  static String shortLocale(String aLocale) {
     if (aLocale.length < 2) return aLocale;
     return aLocale.substring(0, 2).toLowerCase();
   }
