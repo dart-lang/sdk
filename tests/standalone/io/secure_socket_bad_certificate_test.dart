@@ -18,16 +18,13 @@ import "dart:io";
 void main() {
   ReceivePort keepAlive = new ReceivePort();
   SecureSocket.initialize(useBuiltinRoots: false);
-  testCertificateCallback(host: "www.google.dk",
-                          acceptCertificate: false).then((_) {
-    testCertificateCallback(host: "www.google.dk",
-                            acceptCertificate: true).then((_) {
-                                keepAlive.close();
-      // TODO(7153): Open a receive port, and close it when we get here.
-      // Currently, it can happen that neither onClosed or onError is called.
-      // So we never reach this point. Diagnose this and fix.
-    });
-  });
+  testCertificateCallback(host: "www.google.com",
+                          acceptCertificate: false)
+    .then((_) =>
+      testCertificateCallback(host: "www.google.com",
+                              acceptCertificate: true))
+    .then((_) =>
+      keepAlive.close());
 }
 
 Future testCertificateCallback({String host, bool acceptCertificate}) {
@@ -52,9 +49,13 @@ Future testCertificateCallback({String host, bool acceptCertificate}) {
         return socket.fold(<int>[], (message, data)  => message..addAll(data))
             .then((message) {
               String received = new String.fromCharCodes(message);
-              Expect.isTrue(received.contains('</body></html>'));
+              Expect.isTrue(received.startsWith('HTTP/1.0 '));
             });
       }).catchError((e) {
-        Expect.isFalse(acceptCertificate);
+        if (e is HandshakeException) {
+          Expect.isFalse(acceptCertificate);
+        } else {
+          Expect.isTrue(e is SocketException);
+        }
       });
 }
