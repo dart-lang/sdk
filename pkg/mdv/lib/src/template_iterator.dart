@@ -31,10 +31,16 @@ Node _createDeepCloneAndDecorateTemplates(Node node, BindingDelegate delegate) {
 }
 
 void _addBindings(Node node, model, [BindingDelegate delegate]) {
+  List bindings = null;
   if (node is Element) {
-    _addAttributeBindings(node, model, delegate);
+    bindings = _parseAttributeBindings(node);
   } else if (node is Text) {
-    _parseAndBind(node, 'text', node.text, model, delegate);
+    var tokens = _parseMustacheTokens(node.text);
+    if (tokens != null) bindings = ['text', tokens];
+  }
+
+  if (bindings != null) {
+    _processBindings(bindings, node, model, delegate);
   }
 
   for (var c = node.firstChild; c != null; c = c.nextNode) {
@@ -42,57 +48,70 @@ void _addBindings(Node node, model, [BindingDelegate delegate]) {
   }
 }
 
-void _addAttributeBindings(Element element, model, delegate) {
-  var attrs = new LinkedHashMap.from(element.attributes);
-  if (element.isTemplate) {
-    // Accept 'naked' bind & repeat.
-    if (attrs['bind'] == '') attrs['bind'] = '{{}}';
-    if (attrs['repeat'] == '') attrs['repeat'] = '{{}}';
+List _parseAttributeBindings(Element element) {
+  var bindings = null;
+  var ifFound = false;
+  var bindFound = false;
+  var isTemplateNode = element.isTemplate;
 
-    // Treat <template if="{{expr}}"> as <template bind if="{{expr}}">
-    if (attrs.containsKey('if') &&
-        !attrs.containsKey('bind') &&
-        !attrs.containsKey('repeat')) {
-      attrs['bind'] = '{{}}';
+  element.attributes.forEach((name, value) {
+    if (isTemplateNode) {
+      if (name == 'if') {
+        ifFound = true;
+      } else if (name == 'bind' || name == 'repeat') {
+        bindFound = true;
+        if (value == '') value = '{{}}';
+      }
     }
+
+    var tokens = _parseMustacheTokens(value);
+    if (tokens != null) {
+      if (bindings == null) bindings = [];
+      bindings..add(name)..add(tokens);
+    }
+  });
+
+  // Treat <template if> as <template bind if>
+  if (ifFound && !bindFound) {
+    if (bindings == null) bindings = [];
+    bindings..add('bind')..add(_parseMustacheTokens('{{}}'));
   }
 
-  attrs.forEach((name, value) {
-    _parseAndBind(element, name, value, model, delegate);
-  });
+  return bindings;
 }
 
-void _parseAndBind(Node node, String name, String text, model,
+void _processBindings(List bindings, Node node, model,
     BindingDelegate delegate) {
 
-  var tokens = _parseMustacheTokens(text);
-  if (tokens.length == 0 || (tokens.length == 1 && tokens[0].isText)) {
-    return;
+  for (var i = 0; i < bindings.length; i += 2) {
+    _setupBinding(node, bindings[i], bindings[i + 1], model, delegate);
   }
+}
+
+void _setupBinding(Node node, String name, List tokens, model,
+    BindingDelegate delegate) {
 
   // If this is a custom element, give the .xtag a change to bind.
   node = _nodeOrCustom(node);
 
-  if (tokens.length == 1 && tokens[0].isBinding) {
-    _bindOrDelegate(node, name, model, tokens[0].value, delegate);
+  if (_isSimpleBinding(tokens)) {
+    _bindOrDelegate(node, name, model, tokens[1], delegate);
     return;
   }
 
   var replacementBinding = new CompoundBinding();
-  for (var i = 0; i < tokens.length; i++) {
-    var token = tokens[i];
-    if (token.isBinding) {
-      _bindOrDelegate(replacementBinding, i, model, token.value, delegate);
-    }
+  for (var i = 1; i < tokens.length; i += 2) {
+    // TODO(jmesserly): not sure if this index is correct. See my comment here:
+    // https://github.com/Polymer/mdv/commit/f1af6fe683fd06eed2a7a7849f01c227db12cda3#L0L1035
+    _bindOrDelegate(replacementBinding, i, model, tokens[i], delegate);
   }
 
   replacementBinding.combinator = (values) {
     var newValue = new StringBuffer();
 
-    for (var i = 0; i < tokens.length; i++) {
-      var token = tokens[i];
-      if (token.isText) {
-        newValue.write(token.value);
+    for (var i = 0, text = true; i < tokens.length; i++, text = !text) {
+      if (text) {
+        newValue.write(tokens[i]);
       } else {
         var value = values[i];
         if (value != null) {
@@ -129,38 +148,41 @@ void _bindOrDelegate(node, name, model, String path,
 // TODO(jmesserly): remove this when we can extend Element for real.
 _nodeOrCustom(node) => node is Element ? node.xtag : node;
 
-List<_BindingToken> _parseMustacheTokens(String s) {
-  var result = [];
-  var length = s.length;
-  var index = 0, lastIndex = 0;
-  while (lastIndex < length) {
-    index = s.indexOf('{{', lastIndex);
-    if (index < 0) {
-      result.add(new _BindingToken(s.substring(lastIndex)));
-      break;
-    } else {
-      // There is a non-empty text run before the next path token.
-      if (index > 0 && lastIndex < index) {
-        result.add(new _BindingToken(s.substring(lastIndex, index)));
-      }
-      lastIndex = index + 2;
-      index = s.indexOf('}}', lastIndex);
-      if (index < 0) {
-        var text = s.substring(lastIndex - 2);
-        if (result.length > 0 && result.last.isText) {
-          result.last.value += text;
-        } else {
-          result.add(new _BindingToken(text));
-        }
-        break;
-      }
+/** True if and only if [tokens] is of the form `['', path, '']`. */
+bool _isSimpleBinding(List<String> tokens) =>
+    tokens.length == 3 && tokens[0].isEmpty && tokens[2].isEmpty;
 
-      var value = s.substring(lastIndex, index).trim();
-      result.add(new _BindingToken(value, isBinding: true));
-      lastIndex = index + 2;
+/**
+ * Parses {{ mustache }} bindings.
+ *
+ * Returns null if there are no matches. Otherwise returns
+ * [TEXT, (PATH, TEXT)+] if there is at least one mustache.
+ */
+List<String> _parseMustacheTokens(String s) {
+  if (s.isEmpty) return;
+
+  var tokens = null;
+  var length = s.length;
+  var startIndex = 0, lastIndex = 0, endIndex = 0;
+  while (lastIndex < length) {
+    startIndex = s.indexOf('{{', lastIndex);
+    endIndex = startIndex < 0 ? -1 : s.indexOf('}}', startIndex + 2);
+
+    if (endIndex < 0) {
+      if (tokens == null) return null;
+
+      tokens.add(s.substring(lastIndex));
+      break;
     }
+
+    if (tokens == null) tokens = <String>[];
+    tokens.add(s.substring(lastIndex, startIndex)); // TEXT
+    tokens.add(s.substring(startIndex + 2, endIndex).trim()); // PATH
+    lastIndex = endIndex + 2;
   }
-  return result;
+
+  if (lastIndex == length) tokens.add('');
+  return tokens;
 }
 
 void _addTemplateInstanceRecord(fragment, model) {
@@ -178,14 +200,6 @@ void _addTemplateInstanceRecord(fragment, model) {
   }
 }
 
-class _BindingToken {
-  final String value;
-  final bool isBinding;
-
-  _BindingToken(this.value, {this.isBinding: false});
-
-  bool get isText => !isBinding;
-}
 
 class _TemplateIterator {
   final Element _templateElement;
