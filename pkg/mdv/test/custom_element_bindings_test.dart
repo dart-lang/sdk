@@ -109,7 +109,6 @@ customElementBindingsTest() {
     expect(element.xtag.attributes.log, [
       ['remove', 'hidden?'],
       ['[]=', 'hidden', ''],
-      ['remove', 'id'],
       ['[]=', 'id', '2'],
       ['remove', 'hidden'],
       ['remove', 'hidden'],
