@@ -15,7 +15,7 @@ import "dart:io";
 void testPing(int totalConnections) {
   HttpServer.bind('localhost', 0).then((server) {
     server.transform(new WebSocketTransformer()).listen((webSocket) {
-      webSocket.pingInterval = const Duration(milliseconds: 100);
+      webSocket.pingInterval = const Duration(milliseconds: 500);
       webSocket.drain();
     });
 
@@ -23,9 +23,9 @@ void testPing(int totalConnections) {
     for (int i = 0; i < totalConnections; i++) {
       futures.add(
           WebSocket.connect('ws://localhost:${server.port}').then((webSocket) {
-        webSocket.pingInterval = const Duration(milliseconds: 100);
+        webSocket.pingInterval = const Duration(milliseconds: 500);
         webSocket.drain();
-        new Timer(const Duration(seconds: 1), () {
+        new Timer(const Duration(seconds: 2), () {
           // Should not be closed yet.
           Expect.equals(null, webSocket.closeCode);
           webSocket.close();
