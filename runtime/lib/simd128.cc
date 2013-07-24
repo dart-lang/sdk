@@ -242,6 +242,61 @@ DEFINE_NATIVE_ENTRY(Float32x4_shuffle, 2) {
 }
 
 
+DEFINE_NATIVE_ENTRY(Float32x4_withZWInXY, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, other, arguments->NativeArgAt(1));
+  float _x = other.z();
+  float _y = other.w();
+  float _z = self.z();
+  float _w = self.w();
+  return Float32x4::New(_x, _y, _z, _w);
+}
+
+
+DEFINE_NATIVE_ENTRY(Float32x4_interleaveXY, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, other, arguments->NativeArgAt(1));
+  float _x = self.x();
+  float _y = other.x();
+  float _z = self.y();
+  float _w = other.y();
+  return Float32x4::New(_x, _y, _z, _w);
+}
+
+
+DEFINE_NATIVE_ENTRY(Float32x4_interleaveZW, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, other, arguments->NativeArgAt(1));
+  float _x = self.z();
+  float _y = other.z();
+  float _z = self.w();
+  float _w = other.w();
+  return Float32x4::New(_x, _y, _z, _w);
+}
+
+
+DEFINE_NATIVE_ENTRY(Float32x4_interleaveXYPairs, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, other, arguments->NativeArgAt(1));
+  float _x = self.x();
+  float _y = self.y();
+  float _z = other.x();
+  float _w = other.y();
+  return Float32x4::New(_x, _y, _z, _w);
+}
+
+
+DEFINE_NATIVE_ENTRY(Float32x4_interleaveZWPairs, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, other, arguments->NativeArgAt(1));
+  float _x = self.z();
+  float _y = self.w();
+  float _z = other.z();
+  float _w = other.w();
+  return Float32x4::New(_x, _y, _z, _w);
+}
+
+
 DEFINE_NATIVE_ENTRY(Float32x4_setX, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Double, x, arguments->NativeArgAt(1));
