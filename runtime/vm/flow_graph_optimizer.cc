@@ -232,7 +232,7 @@ void FlowGraphOptimizer::OptimizeLeftShiftBitAndSmiOp(
         Token::kBIT_AND,
         new Value(left_instr),
         new Value(right_instr),
-        bit_and_instr->deopt_id());
+        Isolate::kNoDeoptId);  // BIT_AND cannot deoptimize.
     bit_and_instr->ReplaceWith(smi_op, current_iterator());
   }
 }
