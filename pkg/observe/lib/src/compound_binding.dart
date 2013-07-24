@@ -32,10 +32,9 @@ class CompoundBinding extends ChangeNotifierBase {
 
   // TODO(jmesserly): ideally these would be String keys, but sometimes we
   // use integers.
-  Map<dynamic, StreamSubscription> _bindings = new Map();
+  Map<dynamic, StreamSubscription> _observers = new Map();
   Map _values = new Map();
   bool _scheduled = false;
-  bool _disposed = false;
   Object _value;
 
   CompoundBinding([CompoundBindingCombinator combinator]) {
@@ -57,7 +56,7 @@ class CompoundBinding extends ChangeNotifierBase {
 
   get value => _value;
 
-  int get length => _bindings.length;
+  int get length => _observers.length;
 
   void set value(newValue) {
     _value = notifyPropertyChange(_VALUE, _value, newValue);
@@ -66,16 +65,16 @@ class CompoundBinding extends ChangeNotifierBase {
   void bind(name, model, String path) {
     unbind(name);
 
-     // TODO(jmesserly): should we avoid observing until we are observed,
-     // similar to PathObserver? Similar for unobserving?
-    _bindings[name] = new PathObserver(model, path).bindSync((value) {
+     // TODO(jmesserly): should we delay observing until we are observed,
+     // similar to PathObserver?
+    _observers[name] = new PathObserver(model, path).bindSync((value) {
       _values[name] = value;
       _scheduleResolve();
     });
   }
 
   void unbind(name, {bool suppressResolve: false}) {
-    var binding = _bindings.remove(name);
+    var binding = _observers.remove(name);
     if (binding == null) return;
 
     binding.cancel();
@@ -93,7 +92,7 @@ class CompoundBinding extends ChangeNotifierBase {
   }
 
   void resolve() {
-    if (_disposed) return;
+    if (_observers.isEmpty) return;
     _scheduled = false;
 
     if (_combinator == null) {
@@ -104,14 +103,20 @@ class CompoundBinding extends ChangeNotifierBase {
     value = _combinator(_values);
   }
 
-  void dispose() {
-    for (var binding in _bindings.values) {
+  /**
+   * Closes the observer.
+   *
+   * This happens automatically if the [value] property is no longer observed,
+   * but this can also be called explicitly.
+   */
+  void close() {
+    for (var binding in _observers.values) {
       binding.cancel();
     }
-    _bindings.clear();
+    _observers.clear();
     _values.clear();
-
-    _disposed = true;
     value = null;
   }
+
+  _unobserved() => close();
 }

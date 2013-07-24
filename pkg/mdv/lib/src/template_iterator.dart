@@ -385,8 +385,8 @@ class _TemplateIterator {
     if (closed) return;
 
     unobserve();
+    inputs.close();
     terminators.clear();
-    inputs.dispose();
     closed = true;
   }
 
