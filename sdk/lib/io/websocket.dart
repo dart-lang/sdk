@@ -138,7 +138,7 @@ abstract class WebSocket implements Stream, StreamSink {
    * pong message must be received within [pingInterval].
    *
    * There are never two outstanding pings at any given time, and the next ping
-   * timer starts when either data or a pong message is received.
+   * timer starts when the pong is received.
    *
    * Set the [pingInterval] to `null` to disable sending ping messages.
    *

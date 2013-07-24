@@ -14,37 +14,24 @@ import "dart:io";
 
 void testPing(int totalConnections) {
   HttpServer.bind('localhost', 0).then((server) {
-    // The completers will be completed when the pingInterval have terminated
-    // the webSockets.
-    var completers = new List.generate(
-        totalConnections, (_) => new Completer());
-
-    int conns = 0;
     server.transform(new WebSocketTransformer()).listen((webSocket) {
-      int i = conns++;
-      webSocket.pingInterval = const Duration(milliseconds: 100);
+      webSocket.pingInterval = const Duration(milliseconds: 500);
       webSocket.drain();
-      var timer = new Timer.periodic(const Duration(milliseconds: 10), (_) {
-        webSocket.add(new List.filled(10 * 1024, 0));
-      });
-      webSocket.done.then((_) {
-        completers[i].complete();
-        timer.cancel();
-        Expect.equals(WebSocketStatus.GOING_AWAY, webSocket.closeCode);
-        webSocket.close();
-      });
     });
 
     var futures = [];
     for (int i = 0; i < totalConnections; i++) {
       futures.add(
-          WebSocket.connect('ws://localhost:${server.port}')
-              .then((webSocket) {
-                // Don't drain yet, to block data.
-                // Once the server is done, drain the peers.
-                return Future.wait(completers.map((c) => c.future))
-                    .then((_) => webSocket.drain());
-              }));
+          WebSocket.connect('ws://localhost:${server.port}').then((webSocket) {
+        webSocket.pingInterval = const Duration(milliseconds: 500);
+        webSocket.drain();
+        new Timer(const Duration(seconds: 2), () {
+          // Should not be closed yet.
+          Expect.equals(null, webSocket.closeCode);
+          webSocket.close();
+        });
+        return webSocket.done;
+      }));
     }
     Future.wait(futures).then((_) => server.close());
   });
