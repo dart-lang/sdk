@@ -14,10 +14,11 @@ import 'package:path/path.dart' as path;
 
 import '../lib/docs.dart';
 
-final String json_path = 
+final String json_path =
     path.normalize(path.join(scriptDir, '..', 'docs.json'));
-final String lib_path = 
-    path.normalize(path.join(scriptDir, '..', '..', '..', '..', 'sdk'));
+final String lib_path =
+    path.toUri(path.normalize(
+      path.join(scriptDir, '..', '..', '..', '..', 'sdk'))).toString();
 
 main() {
   print('Converting HTML docs from $lib_path to $json_path.');
