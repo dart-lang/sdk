@@ -1125,6 +1125,7 @@ List extractMetadata(victim) {
   preserveMetadata();
   var metadataFunction = JS('', '#["@"]', victim);
   if (metadataFunction != null) return JS('', '#()', metadataFunction);
+  if (JS('String', 'typeof #', victim) != 'function') return const [];
   String source = JS('String', 'Function.prototype.toString.call(#)', victim);
   int index = source.lastIndexOf(new RegExp('"[0-9,]*";?[ \n\r]*}'));
   if (index == -1) return const [];
