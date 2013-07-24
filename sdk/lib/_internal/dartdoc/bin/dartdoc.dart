@@ -213,7 +213,13 @@ mainWithOptions(Options options) {
     var entrypointRoot;
     for (final entrypoint in option.rest) {
       var uri = Uri.parse(entrypoint);
-      if (uri.scheme == '') uri = path.toUri(entrypoint);
+
+      // If it looks like it was a file path (no scheme, or a one letter scheme
+      // which is likely a drive letter on Windows), turn it into a file URL.
+      if (uri.scheme == '' || uri.scheme.length == 1) {
+        uri = path.toUri(entrypoint);
+      }
+
       entrypoints.add(uri);
 
       if (uri.scheme != 'file') continue;

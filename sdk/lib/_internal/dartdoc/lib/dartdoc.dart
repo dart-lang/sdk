@@ -135,6 +135,7 @@ Future compileScript(int mode, String outputDir, String libPath, String tmpPath)
 
   // dart2js takes a String, but it expects that to be a Uri, not a file
   // system path.
+  libPath = path.toUri(libPath).toString();
   dartPath = path.toUri(dartPath).toString();
 
   return dart2js.compile(
@@ -434,15 +435,15 @@ class Dartdoc {
     _packageRoot = packageRoot;
     _exports = new ExportMap.parse(libraryList, packageRoot);
     var librariesToAnalyze = _exports.allExportedFiles.toList();
-    librariesToAnalyze.addAll(libraryList.map((uri) {
-      if (uri.scheme == 'file') return path.fromUri(uri);
-      // dart2js takes "dart:*" URIs as Path objects for some reason.
-      return uri.toString();
-    }));
+    librariesToAnalyze.addAll(libraryList.map((uri) => uri.toString()));
 
     // dart2js takes a String, but it expects that to be a Uri, not a file
     // system path.
-    packageRoot = path.toUri(packageRoot).toString();
+    libPath = path.toUri(libPath).toString();
+
+    if (packageRoot != null) {
+      packageRoot = path.toUri(packageRoot).toString();
+    }
 
     // TODO(amouravski): make all of these print statements into logging
     // statements.
