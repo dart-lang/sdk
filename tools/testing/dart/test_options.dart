@@ -342,6 +342,12 @@ Note: currently only implemented for dart2js.''',
               'out to a file.',
               ['--replay_from_file'],
               [],
+              null),
+          new _TestOptionSpecification(
+              'vm-options',
+              'Extra options to send to the vm when running',
+              ['--vm-options'],
+              [],
               null),];
   }
 
