@@ -1265,7 +1265,7 @@
     },
     "support_level": "stable"
   },
-  "DOMWindow": {
+  "Window": {
     "members": {
       "CSS": {
         "comment": "http://www.w3.org/TR/css3-conditional/#the-css-interface"

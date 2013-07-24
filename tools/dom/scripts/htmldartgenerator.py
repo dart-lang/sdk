@@ -8,8 +8,8 @@ dart:html APIs from the IDL database."""
 
 import emitter
 from generator import AnalyzeOperation, ConstantOutputOrder, \
-    DartDomNameOfAttribute, FindMatchingAttribute, IsDartCollectionType, \
-    IsPureInterface, TypeOrNothing, ConvertToFuture, GetCallbackInfo
+    DartDomNameOfAttribute, FindMatchingAttribute, \
+    TypeOrNothing, ConvertToFuture, GetCallbackInfo
 from copy import deepcopy
 from htmlrenamer import convert_to_future_members, keep_overloaded_members, \
     private_html_members, renamed_html_members, renamed_overloads, \
@@ -108,14 +108,15 @@ class HtmlDartGenerator(object):
     # interfaces need to be added.  Sometimes the attribute or operation is
     # defined in the current interface as well as a parent.  In that case we
     # avoid making a duplicate definition and pray that the signatures match.
-    secondary_parents = self._TransitiveSecondaryParents(interface)
+    secondary_parents = self._database.TransitiveSecondaryParents(interface)
     for parent_interface in sorted(secondary_parents):
       if isinstance(parent_interface, str):
         continue
       for attr in sorted(parent_interface.attributes, ConstantOutputOrder):
         if not FindMatchingAttribute(interface, attr):
-          self.SecondaryContext(parent_interface)
-          self.AddAttribute(attr)
+          if attr.type.id != 'EventListener':
+            self.SecondaryContext(parent_interface)
+            self.AddAttribute(attr)
 
       # Group overloaded operations by name.
       operationsByName =self._OperationsByName(parent_interface)
@@ -641,36 +642,6 @@ class HtmlDartGenerator(object):
   def SecureBaseName(self, type_name):
     if type_name in _secure_base_types:
       return _secure_base_types[type_name]
-
-  def _TransitiveSecondaryParents(self, interface):
-    """Returns a list of all non-primary parents.
-
-    The list contains the interface objects for interfaces defined in the
-    database, and the name for undefined interfaces.
-    """
-    def walk(parents):
-      for parent in parents:
-        parent_name = parent.type.id
-        if parent_name == 'EventTarget':
-          # Currently EventTarget is implemented as a mixin, not a proper
-          # super interface---ignore its members.
-          continue
-        if IsDartCollectionType(parent_name):
-          result.append(parent_name)
-          continue
-        if self._database.HasInterface(parent_name):
-          parent_interface = self._database.GetInterface(parent_name)
-          result.append(parent_interface)
-          walk(parent_interface.parents)
-
-    result = []
-    if interface.parents:
-      parent = interface.parents[0]
-      if IsPureInterface(parent.type.id):
-        walk(interface.parents)
-      else:
-        walk(interface.parents[1:])
-    return result
 
   def _DartType(self, type_name):
     return self._type_registry.DartType(type_name)

@@ -115,8 +115,15 @@ def main(parallel=False):
 
   idl_files = []
 
+  # Check default location in a regular dart enlistment.
   webcore_dir = os.path.join(current_dir, '..', '..', '..', 'third_party',
                              'WebCore')
+
+  if not os.path.exists(webcore_dir):
+    # Check default location in a dartium enlistment.
+    webcore_dir = os.path.join(current_dir, '..', '..', '..', '..',
+                               'third_party', 'WebKit', 'Source')
+
   if not os.path.exists(webcore_dir):
     raise RuntimeError('directory not found: %s' % webcore_dir)
 
@@ -125,6 +132,7 @@ def main(parallel=False):
       'testing', # IDLs to expose testing APIs
       'networkinfo', # Not yet used in Blink yet
       'vibration', # Not yet used in Blink yet
+      'inspector',
   ]
 
   def visitor(arg, dir_name, names):

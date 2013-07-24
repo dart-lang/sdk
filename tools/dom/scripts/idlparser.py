@@ -70,7 +70,7 @@ class IDLParser(object):
         OR(Module, Interface, ExceptionDef, TypeDef, ImplStmt,
            ValueTypeDef, Const, Enum),
         # WebKit:
-        OR(Module, Interface, Enum, TypeDef))
+        OR(Module, Interface, Enum, TypeDef, ImplStmt, CallbackDeclaration))
 
     def Enum():
       def StringLiteral():
@@ -89,6 +89,9 @@ class IDLParser(object):
         # FremontCut:
         [MAYBE(_Annotations), MAYBE(ExtAttrs), 'module', Id,
          '{', _Definitions, '}', MAYBE(';')])
+
+    def CallbackDeclaration():
+      return [Callback, Type, '=', Type,'(', ')', ';']
 
     def Callback():
       return ['callback']

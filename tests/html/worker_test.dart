@@ -37,9 +37,10 @@ main() {
       var blob = new Blob([workerScript], 'text/javascript');
       var url = Url.createObjectUrl(blob);
       var worker = new Worker(url);
-      return worker.onMessage.first.then((e) {
+      var test = expectAsync1((e) {
         expect(e.data, 'WorkerMessage');
       });
+      worker.onMessage.first.then(test);
     });
   });
 }

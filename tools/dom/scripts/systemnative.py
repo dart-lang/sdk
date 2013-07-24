@@ -15,14 +15,22 @@ from systemhtml import js_support_checks, GetCallbackInfo, HTML_LIBRARY_NAMES
 
 _cpp_type_map = {
   ('DataTransferItem', 'webkitGetAsEntry'): 'DataTransferItemFileSystem',
-  ('DOMWindow', 'indexedDB'): 'DOMWindowIndexedDatabase',
-  ('DOMWindow', 'speechSynthesis'): 'DOMWindowSpeechSynthesis',
-  ('DOMWindow', 'webkitNotifications'): 'DOMWindowNotifications',
-  ('DOMWindow', 'storage'): 'DOMWindowQuota',
-  ('DOMWindow', 'webkitStorageInfo'): 'DOMWindowQuota',
-  ('DOMWindow', 'openDatabase'): 'DOMWindowWebDatabase',
-  ('DOMWindow', 'webkitRequestFileSystem'): 'DOMWindowFileSystem',
-  ('DOMWindow', 'webkitResolveLocalFileSystemURL'): 'DOMWindowFileSystem',
+  ('Document', 'webkitIsFullScreen'): 'DocumentFullscreen',
+  ('Document', 'webkitFullScreenKeyboardInputAllowed'): 'DocumentFullscreen',
+  ('Document', 'webkitCurrentFullScreenElement'): 'DocumentFullscreen',
+  ('Document', 'webkitCancelFullScreen'): 'DocumentFullscreen',
+  ('Document', 'webkitFullscreenEnabled'): 'DocumentFullscreen',
+  ('Document', 'webkitFullscreenElement'): 'DocumentFullscreen',
+  ('Document', 'webkitExitFullscreen'): 'DocumentFullscreen',
+  ('Window', 'crypto'): 'DOMWindowCrypto',
+  ('Window', 'indexedDB'): 'DOMWindowIndexedDatabase',
+  ('Window', 'speechSynthesis'): 'DOMWindowSpeechSynthesis',
+  ('Window', 'webkitNotifications'): 'DOMWindowNotifications',
+  ('Window', 'storage'): 'DOMWindowQuota',
+  ('Window', 'webkitStorageInfo'): 'DOMWindowQuota',
+  ('Window', 'openDatabase'): 'DOMWindowWebDatabase',
+  ('Window', 'webkitRequestFileSystem'): 'DOMWindowFileSystem',
+  ('Window', 'webkitResolveLocalFileSystemURL'): 'DOMWindowFileSystem',
   ('HTMLInputElement', 'webkitEntries'): 'HTMLInputElementFileSystem',
   ('Navigator', 'doNotTrack'): 'NavigatorDoNotTrack',
   ('Navigator', 'geolocation'): 'NavigatorGeolocation',
@@ -32,6 +40,8 @@ _cpp_type_map = {
   ('Navigator', 'unregisterProtocolHandler'): 'NavigatorContentUtils',
   ('Navigator', 'webkitGetUserMedia'): 'NavigatorMediaStream',
   ('Navigator', 'webkitGetGamepads'): 'NavigatorGamepad',
+  ('Navigator', 'requestMIDIAccess'): 'NavigatorWebMIDI',
+  ('Navigator', 'vibrate'): 'NavigatorVibration',
   }
 
 _cpp_partial_map = {}
@@ -293,6 +303,9 @@ class DartiumBackend(HtmlDartGenerator):
         INCLUDES=self._GenerateCPPIncludes(self._cpp_impl_includes),
         CALLBACKS=self._cpp_definitions_emitter.Fragments(),
         RESOLVER=self._cpp_resolver_emitter.Fragments(),
+        WEBCORE_CLASS_NAME=self._interface_type_info.native_type(),
+        WEBCORE_CLASS_NAME_ESCAPED=
+        self._interface_type_info.native_type().replace('<', '_').replace('>', '_'),
         DART_IMPLEMENTATION_CLASS=self._interface_type_info.implementation_name(),
         DART_IMPLEMENTATION_LIBRARY='dart:%s' % self._renamer.GetLibraryName(self._interface))
 
@@ -353,6 +366,8 @@ class DartiumBackend(HtmlDartGenerator):
         INTERFACE=self._interface.id,
         WEBCORE_INCLUDES=webcore_includes,
         WEBCORE_CLASS_NAME=self._interface_type_info.native_type(),
+        WEBCORE_CLASS_NAME_ESCAPED=
+        self._interface_type_info.native_type().replace('<', '_').replace('>', '_'),
         DECLARATIONS=self._cpp_declarations_emitter.Fragments(),
         IS_NODE=TypeCheckHelper(is_node_test),
         IS_ACTIVE=TypeCheckHelper(is_active_test),
@@ -607,7 +622,8 @@ class DartiumBackend(HtmlDartGenerator):
     raises_exceptions = raises_dom_exception or arguments
 
     # TODO(antonm): unify with ScriptState below.
-    requires_stack_info = ext_attrs.get('CallWith') == 'ScriptArguments|ScriptState'
+    requires_stack_info = (ext_attrs.get('CallWith') == 'ScriptArguments|ScriptState' or
+                           ext_attrs.get('ConstructorCallWith') == 'ScriptArguments|ScriptState')
     if requires_stack_info:
       raises_exceptions = True
       cpp_arguments = ['&state', 'scriptArguments.release()']
@@ -616,7 +632,8 @@ class DartiumBackend(HtmlDartGenerator):
       arguments = arguments[:-1]
 
     # TODO(antonm): unify with ScriptState below.
-    requires_script_arguments = ext_attrs.get('CallWith') == 'ScriptArguments'
+    requires_script_arguments = (ext_attrs.get('CallWith') == 'ScriptArguments' or
+                                 ext_attrs.get('ConstructorCallWith') == 'ScriptArguments')
     if requires_script_arguments:
       raises_exceptions = True
       cpp_arguments = ['scriptArguments.release()']
@@ -624,12 +641,14 @@ class DartiumBackend(HtmlDartGenerator):
       # it's not needed and should be just removed.
       arguments = arguments[:-1]
 
-    requires_script_execution_context = ext_attrs.get('CallWith') == 'ScriptExecutionContext'
+    requires_script_execution_context = (ext_attrs.get('CallWith') == 'ScriptExecutionContext' or
+                                         ext_attrs.get('ConstructorCallWith') == 'ScriptExecutionContext')
     if requires_script_execution_context:
       raises_exceptions = True
       cpp_arguments = ['context']
 
-    requires_script_state = ext_attrs.get('CallWith') == 'ScriptState'
+    requires_script_state = (ext_attrs.get('CallWith') == 'ScriptState' or
+                             ext_attrs.get('ConstructorCallWith') == 'ScriptState')
     if requires_script_state:
       raises_exceptions = True
       cpp_arguments = ['&state']
@@ -845,7 +864,14 @@ class DartiumBackend(HtmlDartGenerator):
       interface_name = self._interface_type_info.native_type()
       cpp_type_name = _GetCPPTypeName(interface_name,
                                       node.id)
-      if interface_name != cpp_type_name:
+      # Hack to determine if this came from the _cpp_type_map.
+      # In this case, the getter is mapped to a static method.
+      if (not function_expression.startswith('receiver->') and
+          not function_expression.startswith(interface_name + '::')):
+        if 'childNodes' in callback_name:
+          print function_expression
+          print interface_name
+          raise 'hell'
         if interface_name == 'DOMWindow' or interface_name == 'Navigator':
           cpp_arguments.insert(0, 'receiver')
         else:

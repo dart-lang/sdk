@@ -225,6 +225,8 @@ class DatabaseBuilder(object):
       if name in old_attrs and old_attrs[name] == value:
         pass # Identical
       else:
+        if name == 'ImplementedAs' and name in old_attrs:
+          continue
         old_attrs[name] = value
         changed = True
     return changed
@@ -397,7 +399,7 @@ class DatabaseBuilder(object):
       if interface.is_supplemental:
         target_name = interface.ext_attrs['Supplemental']
         if target_name:
-          # [Supplemental=DOMWindow] - merge into DOMWindow.
+          # [Supplemental=Window] - merge into Window.
           target = target_name
         else:
           # [Supplemental] - merge into existing inteface with same name.
@@ -451,8 +453,8 @@ class DatabaseBuilder(object):
           % (interface.id, import_options.source))
         continue
 
-      _logger.info('importing interface %s (source=%s)'
-        % (interface.id, import_options.source))
+      _logger.info('importing interface %s (source=%s file=%s)'
+        % (interface.id, import_options.source, idl_file))
       interface.attributes = filter(enabled, interface.attributes)
       interface.operations = filter(enabled, interface.operations)
       self._imported_interfaces.append((interface, import_options))
@@ -558,7 +560,7 @@ class DatabaseBuilder(object):
         map(normalize, interface.operations)
 
   def fetch_constructor_data(self, options):
-    window_interface = self._database.GetInterface('DOMWindow')
+    window_interface = self._database.GetInterface('Window')
     for attr in window_interface.attributes:
       type = attr.type.id
       if not type.endswith('Constructor'):
@@ -566,7 +568,7 @@ class DatabaseBuilder(object):
       type = re.sub('(Constructor)+$', '', type)
       # TODO(antonm): Ideally we'd like to have pristine copy of WebKit IDLs and fetch
       # this information directly from it.  Unfortunately right now database is massaged
-      # a lot so it's difficult to maintain necessary information on DOMWindow itself.
+      # a lot so it's difficult to maintain necessary information on Window itself.
       interface = self._database.GetInterface(type)
       if 'V8EnabledPerContext' in attr.ext_attrs:
         interface.ext_attrs['synthesizedV8EnabledPerContext'] = \

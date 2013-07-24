@@ -11,8 +11,8 @@ main() {
     // Intentionally do not initialize it!
     try {
       document.dispatchEvent(event);
-    } on EventException catch (e) {
-      expect(e.name, DomException.UNSPECIFIED_EVENT_TYPE);
+    } on DomException catch (e) {
+      expect(e.name, DomException.INVALID_STATE);
     }
   });
 }

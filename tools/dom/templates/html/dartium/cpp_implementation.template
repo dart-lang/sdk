@@ -10,6 +10,10 @@
 $INCLUDES
 namespace WebCore {
 
+Dart_Handle $(WEBCORE_CLASS_NAME_ESCAPED)_toDart(PassRefPtr< $WEBCORE_CLASS_NAME > value) {
+    return Dart$INTERFACE::toDart(value);
+}
+
 namespace Dart$(INTERFACE)Internal {
 $CALLBACKS
 }
