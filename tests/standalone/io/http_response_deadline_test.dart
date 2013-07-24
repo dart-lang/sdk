@@ -43,12 +43,11 @@ void testExceedDeadline(int connections) {
     for (int i = 0; i < connections; i++) {
       futures.add(client.get('localhost', server.port, '/')
           .then((request) => request.close())
-          .then((response) {
-            return response.drain().then((_) {
-              Expect.fail("Expected error");
-            }, onError: (e) {
-              // Expect error.
-            });
+          .then((response) => response.drain())
+          .then((_) {
+            Expect.fail("Expected error");
+          }, onError: (e) {
+            // Expect error.
           }));
     }
     Future.wait(futures).then((_) => server.close());
