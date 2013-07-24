@@ -96,7 +96,6 @@ mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9001.
 mirrors/library_metadata_test: Fail # http://dartbug.com/10906
 mirrors/superclass_test: Fail # http://dartbug.com/11142
-mirrors/reflectively_instantiate_uninstantiated_class_test: Fail # http://dartbug.com/11187
 mirrors/reflect_model_test: Fail # http://dartbug.com/11219
 mirrors/parameter_test: Fail # http://dartbug.com/11567
 mirrors/top_level_accessors_test: Fail # http://dartbug.com/11943

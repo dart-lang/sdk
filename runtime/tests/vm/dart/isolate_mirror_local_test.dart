@@ -513,9 +513,9 @@ void testMirrorErrors(MirrorSystem mirrors) {
       Expect.isTrue(false);
     })
     .catchError((error) {
-      Expect.isTrue(error is MirroredCompilationError);
-      Expect.isTrue(error.message.contains(
-          "did not find top-level function 'methodNotFound'"));
+      Expect.isTrue(error is NoSuchMethodError);
+      Expect.isTrue(error.toString().contains(
+          "No top-level method 'methodNotFound'"));
       testDone('testMirrorErrors3');
     });
 }

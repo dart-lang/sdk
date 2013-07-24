@@ -212,7 +212,7 @@ abstract class _LocalObjectMirrorImpl extends _LocalMirrorImpl
                                 _n(memberName),
                                 _unwarpAsyncPositionals(positionalArguments));
       return new Future.value(reflect(result)); 
-    } on MirroredError catch(e) {
+    } catch(e) {
       return new Future.error(e);
     }
   }
@@ -222,7 +222,7 @@ abstract class _LocalObjectMirrorImpl extends _LocalMirrorImpl
       var result = this._invokeGetter(_reflectee,
                                       _n(memberName));
       return new Future.value(reflect(result)); 
-    } on MirroredError catch(e) {
+    } catch(e) {
       return new Future.error(e);
     }
   }
@@ -243,7 +243,7 @@ abstract class _LocalObjectMirrorImpl extends _LocalMirrorImpl
                                       _n(memberName),
                                       unwrappedValue);
       return new Future.value(reflect(result)); 
-    } on MirroredError catch(e) {
+    } catch(e) {
       return new Future.error(e);
     }
   }
@@ -574,7 +574,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
                                       _n(constructorName),
                                       _unwarpAsyncPositionals(positionalArguments));
       return new Future.value(reflect(result)); 
-    } on MirroredError catch(e) {
+    } catch(e) {
       return new Future.error(e);
     }
   }

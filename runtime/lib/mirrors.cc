@@ -14,6 +14,7 @@
 #include "vm/port.h"
 #include "vm/resolver.h"
 #include "vm/symbols.h"
+#include "lib/invocation_mirror.h"
 
 namespace dart {
 
@@ -1231,57 +1232,6 @@ static void ThrowInvokeError(const Error& error) {
 }
 
 
-static RawFunction* ResolveConstructor(const char* current_func,
-                                       const Class& cls,
-                                       const String& class_name,
-                                       const String& constr_name,
-                                       int num_args) {
-  // The constructor must be present in the interface.
-  const Function& constructor =
-      Function::Handle(cls.LookupFunctionAllowPrivate(constr_name));
-  if (constructor.IsNull() ||
-      (!constructor.IsConstructor() && !constructor.IsFactory())) {
-    const String& lookup_class_name = String::Handle(cls.Name());
-    if (!class_name.Equals(lookup_class_name)) {
-      // When the class name used to build the constructor name is
-      // different than the name of the class in which we are doing
-      // the lookup, it can be confusing to the user to figure out
-      // what's going on.  Be a little more explicit for these error
-      // messages.
-      const String& message = String::Handle(
-          String::NewFormatted(
-              "%s: could not find factory '%s' in class '%s'.",
-              current_func,
-              constr_name.ToCString(),
-              lookup_class_name.ToCString()));
-      ThrowMirroredCompilationError(message);
-      UNREACHABLE();
-    } else {
-      const String& message = String::Handle(
-          String::NewFormatted("%s: could not find constructor '%s'.",
-                               current_func, constr_name.ToCString()));
-      ThrowMirroredCompilationError(message);
-      UNREACHABLE();
-    }
-  }
-  int extra_args = (constructor.IsConstructor() ? 2 : 1);
-  String& error_message = String::Handle();
-  if (!constructor.AreValidArgumentCounts(num_args + extra_args,
-                                          0,
-                                          &error_message)) {
-    const String& message = String::Handle(
-        String::NewFormatted("%s: wrong argument count for "
-                             "constructor '%s': %s.",
-                             current_func,
-                             constr_name.ToCString(),
-                             error_message.ToCString()));
-    ThrowMirroredCompilationError(message);
-    UNREACHABLE();
-  }
-  return constructor.raw();
-}
-
-
 static bool FieldIsUninitialized(const Field& field) {
   ASSERT(!field.IsNull());
 
@@ -1522,6 +1472,68 @@ DEFINE_NATIVE_ENTRY(ClosureMirror_apply, 2) {
 }
 
 
+static void ThrowNoSuchMethod(const Instance& receiver,
+                              const String& function_name,
+                              const Function& function,
+                              const InvocationMirror::Call call,
+                              const InvocationMirror::Type type) {
+  const Smi& invocation_type = Smi::Handle(Smi::New(
+      InvocationMirror::EncodeType(call, type)));
+
+  const Array& args = Array::Handle(Array::New(6));
+  args.SetAt(0, receiver);
+  args.SetAt(1, function_name);
+  args.SetAt(2, invocation_type);
+  if (!function.IsNull()) {
+    const int total_num_parameters = function.NumParameters();
+    const Array& array = Array::Handle(Array::New(total_num_parameters));
+    String& param_name = String::Handle();
+    for (int i = 0; i < total_num_parameters; i++) {
+      param_name = function.ParameterNameAt(i);
+      array.SetAt(i, param_name);
+    }
+    args.SetAt(5, array);
+  }
+
+  Exceptions::ThrowByType(Exceptions::kNoSuchMethod, args);
+  UNREACHABLE();
+}
+
+
+static void ThrowNoSuchMethod(const Class& klass,
+                              const String& function_name,
+                              const Function& function,
+                              const InvocationMirror::Call call,
+                              const InvocationMirror::Type type) {
+  AbstractTypeArguments& type_arguments = AbstractTypeArguments::Handle();
+  Type& pre_type = Type::Handle(
+      Type::New(klass, type_arguments, Scanner::kDummyTokenIndex));
+  pre_type.SetIsFinalized();
+  AbstractType& runtime_type = AbstractType::Handle(pre_type.Canonicalize());
+
+  ThrowNoSuchMethod(runtime_type,
+                    function_name,
+                    function,
+                    call,
+                    type);
+  UNREACHABLE();
+}
+
+
+static void ThrowNoSuchMethod(const Library& library,
+                              const String& function_name,
+                              const Function& function,
+                              const InvocationMirror::Call call,
+                              const InvocationMirror::Type type) {
+  ThrowNoSuchMethod(Instance::null_instance(),
+                    function_name,
+                    function,
+                    call,
+                    type);
+  UNREACHABLE();
+}
+
+
 DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 4) {
   // Argument 0 is the mirror, which is unused by the native. It exists
   // because this native is an instance method in order to be polymorphic
@@ -1535,23 +1547,21 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 4) {
 
   intptr_t number_of_arguments = positional_args.Length();
 
-  // TODO(11771): This won't find private members.
   const Function& function = Function::Handle(
-        Resolver::ResolveStatic(klass,
-                                function_name,
-                                number_of_arguments,
-                                Object::empty_array(),
-                                Resolver::kIsQualified));
-  if (function.IsNull()) {
-    const String& klass_name = String::Handle(klass.Name());
-    const String& message = String::Handle(
-      String::NewFormatted("%s: did not find static method '%s.%s'.",
-                           "ClassMirror_invoke",
-                           klass_name.ToCString(),
-                           function_name.ToCString()));
-    ThrowMirroredCompilationError(message);
+      klass.LookupStaticFunctionAllowPrivate(function_name));
+
+  if (function.IsNull() ||
+      !function.AreValidArgumentCounts(number_of_arguments,
+                                       /* named_args */ 0,
+                                       NULL)) {
+    ThrowNoSuchMethod(klass,
+                      function_name,
+                      function,
+                      InvocationMirror::kStatic,
+                      InvocationMirror::kMethod);
     UNREACHABLE();
   }
+
   Object& result = Object::Handle(DartEntry::InvokeFunction(function,
                                                             positional_args));
   if (result.IsError()) {
@@ -1579,11 +1589,11 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeGetter, 3) {
         klass.LookupStaticFunctionAllowPrivate(internal_getter_name));
 
     if (getter.IsNull()) {
-      const String& message = String::Handle(
-        String::NewFormatted("%s: did not find static getter '%s'.",
-                             "ClassMirror_invokeGetter",
-                             getter_name.ToCString()));
-      ThrowMirroredCompilationError(message);
+      ThrowNoSuchMethod(klass,
+                        getter_name,
+                        getter,
+                        InvocationMirror::kStatic,
+                        InvocationMirror::kGetter);
       UNREACHABLE();
     }
 
@@ -1618,11 +1628,11 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 4) {
       klass.LookupStaticFunctionAllowPrivate(internal_setter_name));
 
     if (setter.IsNull()) {
-      const String& message = String::Handle(
-        String::NewFormatted("%s: did not find static setter '%s'.",
-                             "ClassMirror_invokeSetter",
-                             setter_name.ToCString()));
-      ThrowMirroredCompilationError(message);
+      ThrowNoSuchMethod(klass,
+                        setter_name,
+                        setter,
+                        InvocationMirror::kStatic,
+                        InvocationMirror::kSetter);
       UNREACHABLE();
     }
 
@@ -1676,12 +1686,25 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 3) {
         String::Concat(internal_constructor_name, constructor_name);
   }
 
-  const Function& constructor =
-      Function::Handle(ResolveConstructor("ClassMirror_invokeConstructor",
-                                          klass,
-                                          klass_name,
-                                          internal_constructor_name,
-                                          number_of_arguments));
+  Function& constructor = Function::Handle(
+      klass.LookupFunctionAllowPrivate(internal_constructor_name));
+
+  if (constructor.IsNull() ||
+     (!constructor.IsConstructor() && !constructor.IsFactory()) ||
+     !constructor.AreValidArgumentCounts(number_of_arguments +
+                                         constructor.NumImplicitParameters(),
+                                         /* named args */ 0,
+                                         NULL)) {
+    // Pretend we didn't find the constructor at all when the arity is wrong
+    // so as to produce the same NoSuchMethodError as the non-reflective case.
+    constructor = Function::null();
+    ThrowNoSuchMethod(klass,
+                      internal_constructor_name,
+                      constructor,
+                      InvocationMirror::kConstructor,
+                      InvocationMirror::kMethod);
+    UNREACHABLE();
+  }
 
   const Object& result =
       Object::Handle(DartEntry::InvokeConstructor(klass,
@@ -1710,36 +1733,24 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 4) {
 
   intptr_t number_of_arguments = positional_args.Length();
 
-
   String& ambiguity_error_msg = String::Handle(isolate);
   const Function& function = Function::Handle(
       library.LookupFunctionAllowPrivate(function_name, &ambiguity_error_msg));
 
-  if (function.IsNull()) {
-    if (ambiguity_error_msg.IsNull()) {
-      const String& message = String::Handle(
-        String::NewFormatted("%s: did not find top-level function '%s'.",
-                             "LibraryMirror_invoke",
-                             function_name.ToCString()));
-      ThrowMirroredCompilationError(message);
-    } else {
-      ThrowMirroredCompilationError(ambiguity_error_msg);
-    }
+  if (function.IsNull() && !ambiguity_error_msg.IsNull()) {
+    ThrowMirroredCompilationError(ambiguity_error_msg);
     UNREACHABLE();
   }
 
-  // LookupFunctionAllowPrivate does not check argument arity, so we
-  // do it here.
-  String& error_message = String::Handle();
-  if (!function.AreValidArgumentCounts(number_of_arguments,
-                                       /* num_named_args */ 0,
-                                       &error_message)) {
-    const String& message = String::Handle(
-      String::NewFormatted("%s: wrong argument count for function '%s': %s.",
-                           "LibraryMirror_invoke",
-                           function_name.ToCString(),
-                           error_message.ToCString()));
-    ThrowMirroredCompilationError(message);
+  if (function.IsNull() ||
+     !function.AreValidArgumentCounts(number_of_arguments,
+                                      0,
+                                      NULL) ) {
+    ThrowNoSuchMethod(library,
+                      function_name,
+                      function,
+                      InvocationMirror::kTopLevel,
+                      InvocationMirror::kMethod);
     UNREACHABLE();
   }
 
@@ -1796,11 +1807,11 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeGetter, 3) {
     return field.value();
   }
   if (ambiguity_error_msg.IsNull()) {
-    const String& message = String::Handle(
-        String::NewFormatted("%s: did not find top-level variable '%s'.",
-                             "LibraryMirror_invokeGetter",
-                             getter_name.ToCString()));
-    ThrowMirroredCompilationError(message);
+    ThrowNoSuchMethod(library,
+                      getter_name,
+                      getter,
+                      InvocationMirror::kTopLevel,
+                      InvocationMirror::kGetter);
   } else {
     ThrowMirroredCompilationError(ambiguity_error_msg);
   }
@@ -1833,11 +1844,11 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 4) {
                                            &ambiguity_error_msg));
     if (setter.IsNull()) {
       if (ambiguity_error_msg.IsNull()) {
-        const String& message = String::Handle(
-          String::NewFormatted("%s: did not find top-level variable '%s'.",
-                               "LibraryMirror_invokeSetter",
-                               setter_name.ToCString()));
-        ThrowMirroredCompilationError(message);
+        ThrowNoSuchMethod(library,
+                          setter_name,
+                          setter,
+                          InvocationMirror::kTopLevel,
+                          InvocationMirror::kSetter);
       } else {
         ThrowMirroredCompilationError(ambiguity_error_msg);
       }
