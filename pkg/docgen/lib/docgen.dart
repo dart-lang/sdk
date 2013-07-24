@@ -470,11 +470,13 @@ bool isError(String qualifiedName) {
  */
 class Indexable {
   String name;
+  String qualifiedName;
   
   /// Documentation comment with converted markdown.
   String comment;
   
   Indexable(this.name, this.comment, String qualifiedName) {
+    this.qualifiedName = qualifiedName;
     qualifiedNameIndex.add(qualifiedName);
   }
 }
@@ -499,6 +501,7 @@ class Library extends Indexable {
   /// Generates a map describing the [Library] object.
   Map toMap() => {
       'name': name,
+      'qualifiedname': qualifiedName,
       'comment': comment,
       'variables': recurseMap(variables),
       'functions': recurseMap(functions),
@@ -536,6 +539,7 @@ class Class extends Indexable {
   /// Generates a map describing the [Class] object.
   Map toMap() => {
       'name': name,
+      'qualifiedname': qualifiedName,
       'comment': comment,
       'superclass': superclass,
       'implements': new List.from(interfaces),
@@ -563,6 +567,7 @@ class Typedef extends Indexable {
   
   Map toMap() => {
       'name': name,
+      'qualifiedname': qualifiedName,
       'comment': comment,
       'return': returnType,
       'parameters': recurseMap(parameters),
@@ -591,6 +596,7 @@ class Variable extends Indexable {
   /// Generates a map describing the [Variable] object.
   Map toMap() => {
       'name': name,
+      'qualifiedname': qualifiedName,
       'comment': comment,
       'final': isFinal.toString(),
       'static': isStatic.toString(),
@@ -624,6 +630,7 @@ class Method extends Indexable {
   /// Generates a map describing the [Method] object.
   Map toMap() => {
       'name': name,
+      'qualifiedname': qualifiedName,
       'comment': comment,
       'static': isStatic.toString(),
       'abstract': isAbstract.toString(),
