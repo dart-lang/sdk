@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:path/path.dart';
 import 'package:expect/expect.dart';
 import "dart:io";
 
@@ -17,10 +18,10 @@ set SCRIPTDIR=%~dp0
 %1 %2
       """);
   var dart = Platform.executable;
-  var scriptDir = new Path(Platform.script).directoryPath;
-  var script = scriptDir.append('windows_environment_script.dart');
+  var script = join(dirname(Platform.script),
+                    'windows_environment_script.dart');
   Process.run('cmd',
-              ['/c', funkyFile.path, dart, script.toNativePath()]).then((p) {
+              ['/c', funkyFile.path, dart, script]).then((p) {
     if (0 != p.exitCode) throw "Exit code not 0";
     tempDir.deleteSync(recursive: true);
   });

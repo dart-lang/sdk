@@ -5,13 +5,14 @@
 // Dart test program for testing dart:io FileSystemEntity.Stat().
 
 import "package:expect/expect.dart";
+import "package:path/path.dart";
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
 void testStat() {
   Directory directory = new Directory("").createTempSync();
-  File file = new File.fromPath(new Path(directory.path).append("file"));
+  File file = new File(join(directory.path, "file"));
   Expect.throws(file.statSync);
   Expect.throws(() => FileStat.statSync(file.path));
   file.writeAsStringSync("Dart IO library test of FileStat");
@@ -48,7 +49,7 @@ void testStat() {
 Future testStatAsync() {
   return new Directory("").createTemp()
   .then((directory) {
-    File file = new File.fromPath(new Path(directory.path).append("file"));
+    File file = new File(join(directory.path, "file"));
     return FileStat.stat(file.path)
     .then((_) => Expect.fail("FileStat.stat should throw an exception."))
     .catchError((e) => null)

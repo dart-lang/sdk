@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:path/path.dart";
 import "dart:io";
 import "dart:json";
 
 void test(String line, List<String> expected) {
-  var script = new Path(Platform.script).directoryPath;
-  script = script.append("stdin_sync_script.dart");
+  var script = join(dirname(Platform.script), "stdin_sync_script.dart");
   Process.start(Platform.executable,
-                [script.toNativePath()]..addAll(
+                [script]..addAll(
                     expected.map(stringify))).then((process) {
     process.stdin.write(line);
     process.stdin.close();

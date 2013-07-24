@@ -5,6 +5,7 @@
 // Dart test program for testing file I/O.
 
 import "package:expect/expect.dart";
+import "package:path/path.dart";
 import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
@@ -926,14 +927,12 @@ class FileTest {
     }
   }
 
-  static void testOpenFileFromPath() {
+  static void testOpenFile() {
     var name = getFilename("tests/vm/data/fixed_length_file");
-    var path = new Path(name);
-    var f = new File.fromPath(path);
+    var f = new File(name);
     Expect.isTrue(f.existsSync());
     name = f.fullPathSync();
-    path = new Path(name);
-    var g = new File.fromPath(path);
+    var g = new File(name);
     Expect.isTrue(g.existsSync());
     Expect.equals(name, g.fullPathSync());
   }
@@ -1291,7 +1290,7 @@ class FileTest {
     testPositionSync();
     testOpenDirectoryAsFile();
     testOpenDirectoryAsFileSync();
-    testOpenFileFromPath();
+    testOpenFile();
     testReadAsBytes();
     testReadAsBytesEmptyFile();
     testReadAsBytesSync();

@@ -404,11 +404,10 @@ class DirectoryTest {
     }
   }
 
-  static void testFromPath() {
+  static void testEquals() {
     var name = new File('.').fullPathSync();
     Directory current1 = new Directory(name);
-    var path = new Path(name);
-    Directory current2 = new Directory.fromPath(path);
+    Directory current2 = new Directory(name);
     Expect.equals(current1.path, current2.path);
     Expect.isTrue(current1.existsSync());
   }
@@ -432,7 +431,7 @@ class DirectoryTest {
     testCreateTemp();
     testCreateDeleteTemp();
     testCurrent();
-    testFromPath();
+    testEquals();
   }
 }
 

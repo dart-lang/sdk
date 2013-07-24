@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:path/path.dart";
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
@@ -44,9 +45,8 @@ Function test() {
 }
 
 void InitializeSSL() {
-  var testPkcertDatabase =
-      new Path(Platform.script).directoryPath.append('pkcert/');
-  SecureSocket.initialize(database: testPkcertDatabase.toNativePath(),
+  var testPkcertDatabase = join(dirname(Platform.script), 'pkcert');
+  SecureSocket.initialize(database: testPkcertDatabase,
                           password: 'dartdart');
 }
 

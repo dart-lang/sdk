@@ -7,15 +7,14 @@
 library ProcessSetExitCodeTest;
 
 import "package:expect/expect.dart";
+import "package:path/path.dart";
 import "dart:io";
 
 main() {
   var executable = Platform.executable;
-  var script = Platform.script;
-  var scriptDirectory = new Path(script).directoryPath;
-  var exitCodeScript =
-      scriptDirectory.append('process_set_exit_code_script.dart');
-  Process.run(executable, [exitCodeScript.toNativePath()]).then((result) {
+  var exitCodeScript = join(dirname(Platform.script),
+                            'process_set_exit_code_script.dart');
+  Process.run(executable, [exitCodeScript]).then((result) {
     Expect.equals("standard out", result.stdout);
     Expect.equals("standard error", result.stderr);
     Expect.equals(25, result.exitCode);

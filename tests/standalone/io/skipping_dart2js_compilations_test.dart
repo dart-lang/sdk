@@ -15,6 +15,7 @@
  */
 
 import 'package:expect/expect.dart';
+import 'package:path/path.dart';
 import 'dart:async';
 import 'dart:io';
 import '../../../tools/testing/dart/test_suite.dart' as suite;
@@ -146,9 +147,8 @@ class TestCompletedHandler {
 
 runner.TestCase makeTestCase(String testName, FileUtils fileUtils) {
   var config = new options.TestOptionsParser().parse(['--timeout', '2'])[0];
-  var scriptDirPath = new Path(Platform.script).directoryPath;
-  var createFileScript = scriptDirPath.
-      append('skipping_dart2js_compilations_helper.dart').toNativePath();
+  var createFileScript = join(dirname(Platform.script),
+      'skipping_dart2js_compilations_helper.dart');
   var executable = Platform.executable;
   var arguments = [createFileScript, fileUtils.scriptOutputPath.toNativePath()];
   var bootstrapDeps = [

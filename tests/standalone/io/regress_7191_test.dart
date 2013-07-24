@@ -11,12 +11,12 @@
 
 import 'dart:io';
 import 'dart:isolate';
+import 'package:path/path.dart';
 
 main() {
   var port = new ReceivePort();
   var executable = Platform.executable;
-  var scriptDir = new Path(Platform.script).directoryPath;
-  var script = scriptDir.append('regress_7191_script.dart').toNativePath();
+  var script = join(dirname(Platform.script), 'regress_7191_script.dart');
   Process.start(executable, [script]).then((process) {
     process.stdin.add([0]);
     process.stdout.listen((_) { },

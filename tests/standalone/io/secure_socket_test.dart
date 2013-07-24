@@ -8,6 +8,7 @@
 // VMOptions=--short_socket_read --short_socket_write
 
 import "package:expect/expect.dart";
+import "package:path/path.dart";
 import "dart:async";
 import "dart:io";
 
@@ -33,9 +34,8 @@ Future<HttpServer> startServer() {
 }
 
 void InitializeSSL() {
-  var testPkcertDatabase =
-      new Path(Platform.script).directoryPath.append('pkcert/');
-  SecureSocket.initialize(database: testPkcertDatabase.toNativePath(),
+  var testPkcertDatabase = join(dirname(Platform.script), 'pkcert');
+  SecureSocket.initialize(database: testPkcertDatabase,
                           password: 'dartdart');
 }
 

@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
+import 'package:path/path.dart';
 import 'dart:io';
 
 void openAndWriteScript(String script) {
-  var dir = new Path(Platform.script).directoryPath;
-  script = "$dir/$script";
+  script = join(dirname(Platform.script), script);
   var executable = Platform.executable;
   var file = script;  // Use script as file.
   Process.start("bash", ["-c", "$executable $script < $file"]).then((process) {
