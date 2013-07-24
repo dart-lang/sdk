@@ -49,7 +49,7 @@ Language/11_Expressions/11_Instance_Creation/2_Const_A01_t02: Fail # TODO(ahe): 
 Language/11_Expressions/11_Instance_Creation/2_Const_A11_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/2_Const_A11_t03: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation_A05_t02: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t10: Fail # TODO(ahe): Please triage this failure.
+Language/11_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t10: Fail # Issue 7025
 Language/11_Expressions/17_Getter_Invocation_A02_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/18_Assignment_A05_t02: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/18_Assignment_A05_t05: Fail # TODO(ahe): Please triage this failure.
@@ -96,42 +96,42 @@ Language/13_Libraries_and_Scripts/5_URIs_A01_t25: Fail # TODO(ahe): Please triag
 Language/14_Types/5_Function_Types_A01_t10: Pass # co19 issue 392, issue 9058
 Language/14_Types/5_Function_Types_A02_t06: Pass # co19 issue 392, issue 9058
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: Fail # TODO(ahe): Please triage this failure.
-LibTest/async/Future/Future.delayed_A01_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/async/Future/Future.delayed_A01_t02: Fail # TODO(ahe): Please triage this failure.
-LibTest/async/Future/Future.delayed_A02_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/async/Future/asStream_A01_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/async/Future/asStream_A01_t02: Fail # TODO(ahe): Please triage this failure.
-LibTest/async/Future/asStream_A02_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/async/Future/catchError_A03_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/async/Future/catchError_A03_t02: Fail # TODO(ahe): Please triage this failure.
-LibTest/async/Future/catchError_A03_t03: Fail # TODO(ahe): Please triage this failure.
-LibTest/async/Future/forEach_A01_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/async/Future/forEach_A02_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/async/Future/forEach_A03_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/async/Future/then_A01_t03: Fail # TODO(ahe): Please triage this failure.
-LibTest/async/Future/then_A02_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/async/Future/then_A02_t02: Fail # TODO(ahe): Please triage this failure.
-LibTest/async/Future/then_A03_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/async/Future/then_A04_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/async/Future/wait_A01_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/async/Future/wait_A01_t04: Fail # TODO(ahe): Please triage this failure.
-LibTest/async/Future/wait_A01_t05: Fail # TODO(ahe): Please triage this failure.
-LibTest/async/Future/wait_A01_t06: Fail # TODO(ahe): Please triage this failure.
-LibTest/async/Future/wait_A02_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/async/Future/wait_A02_t02: Fail # TODO(ahe): Please triage this failure.
-LibTest/async/Future/whenComplete_A01_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/async/Future/whenComplete_A02_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/async/Future/whenComplete_A03_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/async/Future/whenComplete_A04_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/async/Future/whenComplete_A04_t02: Fail # TODO(ahe): Please triage this failure.
-LibTest/collection/Queue/iterator_current_A01_t02: Fail # TODO(ahe): Please triage this failure.
-LibTest/collection/Queue/iterator_moveNext_A01_t02: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/List/List_A01_t02: Fail # TODO(ahe): Please triage this failure.
+LibTest/async/Future/Future.delayed_A01_t01: Fail # co19 issue 471
+LibTest/async/Future/Future.delayed_A01_t02: Fail # co19 issue 471
+LibTest/async/Future/Future.delayed_A02_t01: Fail # co19 issue 471
+LibTest/async/Future/asStream_A01_t01: Fail # co19 issue 472
+LibTest/async/Future/asStream_A01_t02: Fail # co19 issue 472
+LibTest/async/Future/asStream_A02_t01: Fail # co19 issue 472
+LibTest/async/Future/catchError_A03_t01: Fail # co19 issue 471
+LibTest/async/Future/catchError_A03_t02: Fail # co19 issue 471
+LibTest/async/Future/catchError_A03_t03: Fail # co19 issue 471
+LibTest/async/Future/forEach_A01_t01: Fail # co19 issue 471
+LibTest/async/Future/forEach_A02_t01: Fail # co19 issue 471
+LibTest/async/Future/forEach_A03_t01: Fail # co19 issue 471
+LibTest/async/Future/then_A01_t03: Fail # co19 issue 472
+LibTest/async/Future/then_A02_t01: Fail # co19 issue 471
+LibTest/async/Future/then_A02_t02: Fail # co19 issue 473
+LibTest/async/Future/then_A03_t01: Fail # co19 issue 471
+LibTest/async/Future/then_A04_t01: Fail # co19 issue 471
+LibTest/async/Future/wait_A01_t01: Fail # co19 issue 471
+LibTest/async/Future/wait_A01_t04: Fail # co19 issue 471
+LibTest/async/Future/wait_A01_t05: Fail # co19 issue 471
+LibTest/async/Future/wait_A01_t06: Fail # co19 issue 471
+LibTest/async/Future/wait_A02_t01: Fail # co19 issue 474
+LibTest/async/Future/wait_A02_t02: Fail # co19 issue 474
+LibTest/async/Future/whenComplete_A01_t01: Fail # co19 issue 471
+LibTest/async/Future/whenComplete_A02_t01: Fail # co19 issue 471
+LibTest/async/Future/whenComplete_A03_t01: Fail # co19 issue 471
+LibTest/async/Future/whenComplete_A04_t01: Fail # co19 issue 471
+LibTest/async/Future/whenComplete_A04_t02: Fail # co19 issue 471
+LibTest/collection/Queue/iterator_current_A01_t02: Fail # co19 issue 475
+LibTest/collection/Queue/iterator_moveNext_A01_t02: Fail # co19 issue 475
+LibTest/core/List/List_A01_t02: Fail # co19 issue 476
 LibTest/core/List/List_A03_t01: Fail # TODO(kasperl): Please triage this failure.
 LibTest/core/double/INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/double/toStringAsExponential_A02_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/int/toStringAsExponential_A02_t01: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/double/toStringAsExponential_A02_t01: Fail # co19 issue 477
+LibTest/core/int/toStringAsExponential_A02_t01: Fail # co19 issue 477.
 LibTest/math/pow_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/pow_A11_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/pow_A13_t01: Fail # TODO(ahe): Please triage this failure.
@@ -253,15 +253,15 @@ Language/13_Libraries_and_Scripts/1_Imports_A03_t46: Fail # TODO(ahe): Please tr
 Language/13_Libraries_and_Scripts/1_Imports_A03_t66: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/AssertionError/column_A01_t02: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/AssertionError/failedAssertion_A01_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/AssertionError/line_A01_t02: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/AssertionError/line_A01_t02: Fail # co19 issue 479
 LibTest/core/AssertionError/url_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/Match/str_A01_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/Set/intersection_A03_t01: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/Set/intersection_A03_t01: Fail # co19 issue 480
 LibTest/core/TypeError/column_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/TypeError/dstName_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/TypeError/dstType_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/TypeError/failedAssertion_A01_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/TypeError/line_A01_t01: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/TypeError/line_A01_t01: Fail # co19 issue 479
 LibTest/core/TypeError/srcType_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/TypeError/url_A01_t01: Fail # TODO(ahe): Please triage this failure.
 

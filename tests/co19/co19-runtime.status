@@ -16,14 +16,14 @@ LibTest/math/min_A01_t03: Fail # co19 issue 467
 LibTest/core/Stopwatch/elapsed_A01_t01: Pass, Fail # Issue 11382.
 
 [ $runtime == vm ]
-Language/11_Expressions/33_Argument_Definition_Test_A02_t02: Crash, Pass # http://dartbug.com/9597
+Language/11_Expressions/33_Argument_Definition_Test_A02_t02: Crash, Pass # Issue 9597 (question-mark operator)
 Language/07_Classes/6_Constructors_A02_t01: Skip # co19 issue 415.
 
 [ $compiler == none && $runtime == vm ]
 
 # The following tests fail because they contain number literals with a + prefix (co19 issue 428)
-LibTest/core/double/floor_A01_t05: Fail # issue 428
-LibTest/core/double/ceil_A01_t05: Fail # issue 428
+LibTest/core/double/floor_A01_t05: Fail # co19 issue 428
+LibTest/core/double/ceil_A01_t05: Fail # co19 issue 428
 Language/12_Statements/02_Expression_Statements_A01_t06: Fail # co19 issue 428
 Language/11_Expressions/03_Numbers_A01_t10: Fail # co19 issue 428
 Language/11_Expressions/03_Numbers_A01_t08: Fail # co19 issue 428
@@ -33,46 +33,46 @@ Language/11_Expressions/03_Numbers_A01_t02: Fail # co19 issue 428
 Language/11_Expressions/03_Numbers_A01_t01: Fail # co19 issue 428
 Language/11_Expressions/01_Constants_A01_t01: Fail # co19 issue 428
 
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t04: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Expressions/01_Constants_A18_t06: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t10: Fail # TODO(vm-team): Please triage this failure.
-Language/12_Statements/03_Variable_Declaration_A04_t08: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t12: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t15: Fail # TODO(vm-team): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules_A01_t10: Fail # TODO(vm-team): Please triage this failure.
-LibTest/async/Future/Future.delayed_A01_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/async/Future/Future.delayed_A01_t02: Fail # TODO(vm-team): Please triage this failure.
-LibTest/async/Future/Future.delayed_A02_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/async/Future/asStream_A01_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/async/Future/asStream_A01_t02: Fail # TODO(vm-team): Please triage this failure.
-LibTest/async/Future/asStream_A02_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/async/Future/catchError_A03_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/async/Future/catchError_A03_t02: Fail # TODO(vm-team): Please triage this failure.
-LibTest/async/Future/catchError_A03_t03: Fail # TODO(vm-team): Please triage this failure.
-LibTest/async/Future/forEach_A01_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/async/Future/forEach_A02_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/async/Future/forEach_A03_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/async/Future/then_A01_t03: Fail # TODO(vm-team): Please triage this failure.
-LibTest/async/Future/then_A02_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/async/Future/then_A02_t02: Fail # TODO(vm-team): Please triage this failure.
-LibTest/async/Future/then_A03_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/async/Future/then_A04_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/async/Future/wait_A01_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/async/Future/wait_A01_t04: Fail # TODO(vm-team): Please triage this failure.
-LibTest/async/Future/wait_A01_t05: Fail # TODO(vm-team): Please triage this failure.
-LibTest/async/Future/wait_A01_t06: Fail # TODO(vm-team): Please triage this failure.
-LibTest/async/Future/wait_A02_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/async/Future/wait_A02_t02: Fail # TODO(vm-team): Please triage this failure.
-LibTest/async/Future/whenComplete_A01_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/async/Future/whenComplete_A02_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/async/Future/whenComplete_A03_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/async/Future/whenComplete_A04_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/async/Future/whenComplete_A04_t02: Fail # TODO(vm-team): Please triage this failure.
-LibTest/collection/Queue/iterator_current_A01_t02: Fail # TODO(vm-team): Please triage this failure.
-LibTest/collection/Queue/iterator_moveNext_A01_t02: Fail # TODO(vm-team): Please triage this failure.
-LibTest/core/List/List_A01_t02: Fail # TODO(vm-team): Please triage this failure.
-LibTest/core/double/toStringAsExponential_A02_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/core/int/toStringAsExponential_A02_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t04: Fail # Dart issue 5743
+Language/11_Expressions/01_Constants_A18_t06: Fail # co19 issue 468
+Language/11_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t10: Fail # co19 issue 469
+Language/12_Statements/03_Variable_Declaration_A04_t08: Fail # Issue 6871
+Language/13_Libraries_and_Scripts/1_Imports_A02_t12: Fail # Issue 11982
+Language/13_Libraries_and_Scripts/1_Imports_A02_t15: Fail # Issue 11982
+Language/15_Reference/1_Lexical_Rules_A01_t10: Fail # co19 issue 470
+LibTest/async/Future/Future.delayed_A01_t01: Fail # co19 issue 471
+LibTest/async/Future/Future.delayed_A01_t02: Fail # co19 issue 471
+LibTest/async/Future/Future.delayed_A02_t01: Fail # co19 issue 471
+LibTest/async/Future/asStream_A01_t01: Fail # co19 issue 472
+LibTest/async/Future/asStream_A01_t02: Fail # co19 issue 472
+LibTest/async/Future/asStream_A02_t01: Fail # co19 issue 472
+LibTest/async/Future/catchError_A03_t01: Fail # co19 issue 471
+LibTest/async/Future/catchError_A03_t02: Fail # co19 issue 471
+LibTest/async/Future/catchError_A03_t03: Fail # co19 issue 471
+LibTest/async/Future/forEach_A01_t01: Fail # co19 issue 471
+LibTest/async/Future/forEach_A02_t01: Fail # co19 issue 471
+LibTest/async/Future/forEach_A03_t01: Fail # co19 issue 471
+LibTest/async/Future/then_A01_t03: Fail # co19 issue 472
+LibTest/async/Future/then_A02_t01: Fail # co19 issue 471
+LibTest/async/Future/then_A02_t02: Fail # co19 issue 473
+LibTest/async/Future/then_A03_t01: Fail # co19 issue 471
+LibTest/async/Future/then_A04_t01: Fail # co19 issue 471
+LibTest/async/Future/wait_A01_t01: Fail # co19 issue 471
+LibTest/async/Future/wait_A01_t04: Fail # co19 issue 471
+LibTest/async/Future/wait_A01_t05: Fail # co19 issue 471
+LibTest/async/Future/wait_A01_t06: Fail # co19 issue 471
+LibTest/async/Future/wait_A02_t01: Fail # co19 issue 474
+LibTest/async/Future/wait_A02_t02: Fail # co19 issue 474
+LibTest/async/Future/whenComplete_A01_t01: Fail # co19 issue 471
+LibTest/async/Future/whenComplete_A02_t01: Fail # co19 issue 471
+LibTest/async/Future/whenComplete_A03_t01: Fail # co19 issue 471
+LibTest/async/Future/whenComplete_A04_t01: Fail # co19 issue 471
+LibTest/async/Future/whenComplete_A04_t02: Fail # co19 issue 471
+LibTest/collection/Queue/iterator_current_A01_t02: Fail # co19 issue 475
+LibTest/collection/Queue/iterator_moveNext_A01_t02: Fail # co19 issue 475
+LibTest/core/List/List_A01_t02: Fail # co19 issue 476
+LibTest/core/double/toStringAsExponential_A02_t01: Fail # co19 issue 477
+LibTest/core/int/toStringAsExponential_A02_t01: Fail # co19 issue 477
 
 LibTest/core/Match/pattern_A01_t01: Fail # Issue 422
 LibTest/core/RegExp/allMatches_A01_t01: Fail # Issue 422
@@ -398,15 +398,15 @@ Language/07_Classes/1_Instance_Methods_A02_t05: Fail # Override rules have been 
 
 
 [ $compiler == none && $runtime == vm && $unchecked ]
-Language/11_Expressions/11_Instance_Creation_A05_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Expressions/11_Instance_Creation_A05_t02: Fail # co19 issue 478
 
 LibTest/core/List/setRange_A05_t01: Fail # setRange now takes end-argument. Issue 402
 
 
 [ $compiler == none && $runtime == vm && $checked ]
-LibTest/core/AssertionError/line_A01_t02: Fail # TODO(vm-team): Please triage this failure.
-LibTest/core/Set/intersection_A03_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/core/TypeError/line_A01_t01: Fail # TODO(vm-team): Please triage this failure.
+LibTest/core/AssertionError/line_A01_t02: Fail # co19 issue 479
+LibTest/core/Set/intersection_A03_t01: Fail # co19 issue 480
+LibTest/core/TypeError/line_A01_t01: Fail # co19 issue 479
 
 LibTest/core/Strings/concatAll_A04_t01: Fail, OK # checks for ArgumentError. TypeError is ok too. co19 issue 366
 LibTest/core/Strings/join_A04_t01: Fail, OK # checks for ArgumentError. TypeError is ok too. co19 issue 366
@@ -429,7 +429,7 @@ Language/11_Expressions/18_Assignment_A05_t05: Fail, OK # co19 issue 405
 Language/11_Expressions/18_Assignment_A08_t04: Fail, OK # co19 issue 405
 Language/11_Expressions/30_Identifier_Reference_A07_t01: Fail, OK # co19 issue 460
 
-Language/12_Statements/09_Switch_A05_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/12_Statements/09_Switch_A05_t01: Fail # co19 issue 442
 
 Language/03_Overview/1_Scoping_A02_t30: Fail
 
