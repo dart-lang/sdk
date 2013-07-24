@@ -11,7 +11,7 @@ import 'dart:io';
 
 String nativeToUriPath(String filename) {
   // TODO(ahe): It would be nice to use a Dart library instead.
-  if (Platform.isWindows) return filename;
+  if (!Platform.isWindows) return filename;
   filename = filename.replaceAll('\\', '/');
   if (filename.length > 2 && filename[1] == ':') {
     filename = "/$filename";
@@ -21,7 +21,7 @@ String nativeToUriPath(String filename) {
 
 String uriPathToNative(String path) {
   // TODO(ahe): It would be nice to use a Dart library instead.
-  if (Platform.operatingSystem != 'windows') return path;
+  if (!Platform.isWindows) return filename;
   if (path.length > 3 && path[0] == '/' && path[2] == ':') {
     return path.substring(1).replaceAll('/', '\\');
   } else {
