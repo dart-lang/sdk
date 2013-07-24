@@ -686,12 +686,14 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
   String _reasonPhrase;
   List<Cookie> _cookies;
   _HttpRequest _httpRequest;
+  Duration _deadline;
+  Timer _deadlineTimer;
 
   _HttpResponse(Uri uri,
                 String protocolVersion,
-                _HttpOutgoing _outgoing,
+                _HttpOutgoing outgoing,
                 String serverHeader)
-      : super(uri, protocolVersion, _outgoing) {
+      : super(uri, protocolVersion, outgoing) {
     if (serverHeader != null) headers.set('Server', serverHeader);
   }
 
@@ -708,6 +710,7 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
 
   Future<Socket> detachSocket() {
     if (_headersWritten) throw new StateError("Headers already sent");
+    deadline = null;  // Be sure to stop any deadline.
     var future = _httpRequest._httpConnection.detachSocket();
     _writeHeaders(drainRequest: false).then((_) => close());
     // Close connection so the socket is 'free'.
@@ -720,6 +723,18 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
   }
 
   HttpConnectionInfo get connectionInfo => _httpRequest.connectionInfo;
+
+  Duration get deadline => _deadline;
+
+  void set deadline(Duration d) {
+    if (_deadlineTimer != null) _deadlineTimer.cancel();
+    _deadline = d;
+
+    if (_deadline == null) return;
+    _deadlineTimer = new Timer(_deadline, () {
+      _outgoing.socket.destroy();
+    });
+  }
 
   void _writeHeader() {
     var builder = new BytesBuilder();
@@ -1098,12 +1113,12 @@ class _ContentLengthValidator
 // Extends StreamConsumer as this is an internal type, only used to pipe to.
 class _HttpOutgoing implements StreamConsumer<List<int>> {
   final Completer _doneCompleter = new Completer();
-  final StreamConsumer _consumer;
+  final Socket socket;
 
-  _HttpOutgoing(StreamConsumer this._consumer);
+  _HttpOutgoing(Socket this.socket);
 
   Future addStream(Stream<List<int>> stream) {
-    return _consumer.addStream(stream)
+    return socket.addStream(stream)
         .catchError((error) {
           _doneCompleter.completeError(error);
           throw error;
@@ -1111,7 +1126,7 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
   }
 
   Future close() {
-    _doneCompleter.complete(_consumer);
+    _doneCompleter.complete(socket);
     return new Future.value();
   }
 
@@ -1812,6 +1827,7 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection> {
           var request = new _HttpRequest(response, incoming, _httpServer, this);
           _streamFuture = outgoing.done
               .then((_) {
+                response.deadline = null;
                 if (_state == _DETACHED) return;
                 if (response.persistentConnection &&
                     request.persistentConnection &&

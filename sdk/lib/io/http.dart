@@ -820,6 +820,18 @@ abstract class HttpResponse implements IOSink {
   bool persistentConnection;
 
   /**
+   * Set and get the [deadline] for the response. The deadline is timed from the
+   * time it's set. Setting a new deadline will override any previous deadline.
+   * When a deadline is exceeded, the response will be closed and any further
+   * data ignored.
+   *
+   * To disable a deadline, set the [deadline] to `null`.
+   *
+   * The [deadline] is `null` by default.
+   */
+  Duration deadline;
+
+  /**
    * Returns the response headers.
    */
   HttpHeaders get headers;
