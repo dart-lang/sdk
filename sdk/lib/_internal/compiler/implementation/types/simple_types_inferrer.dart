@@ -288,13 +288,13 @@ abstract class InferrerEngine<T> {
   void onGenerativeConstructorAnalyzed(Element element);
 
   /**
-   * Records that [element] can be of type [T]. Returns whether the
+   * Records that [element] is of type [type]. Returns whether the
    * type is useful for the inferrer.
    */
   bool recordType(Element element, T type);
 
   /**
-   * Records that the return type [element] can be of type [T].
+   * Records that the return type [element] is of type [type].
    */
   void recordReturnType(Element element, T type);
 
@@ -347,12 +347,13 @@ abstract class InferrerEngine<T> {
   Iterable<Element> getCallersOf(Element element);
 
   /**
-   * Compute the LUB of [firstType] and [secondType].
-   * [analyzedElement] is the element this LUB is computed for.
+   * Notifies to the inferrer that [analyzedElement] can have return
+   * type [newType]. [currentType] is the type the [InferrerVisitor]
+   * currently found.
+   *
+   * Returns the new type for [analyzedElement].
    */
-  T computeLubFor(T firstType, T secondType, Element analyzedElement) {
-    return types.computeLUB(firstType, secondType);
-  }
+  T addReturnTypeFor(Element analyzedElement, T currentType, T newType);
 
   /**
    * Applies [f] to all elements in the universe that match
@@ -1233,6 +1234,12 @@ class InternalSimpleTypesInferrer
     }
   }
 
+  TypeMask addReturnTypeFor(Element element,
+                            TypeMask existing,
+                            TypeMask newType) {
+    return computeLubFor(existing, newType, element);
+  }
+
   TypeMask computeLubFor(TypeMask firstType,
                          TypeMask secondType,
                          Element element) {
@@ -1636,7 +1643,8 @@ class SimpleTypeInferrerVisitor<T> extends InferrerVisitor<T> {
       } else if (!locals.seenReturnOrThrow) {
         // We haven't seen returns on all branches. So the method may
         // also return null.
-        returnType = types.nullable(returnType);
+        returnType = inferrer.addReturnTypeFor(
+            analyzedElement, returnType, types.nullType);
       }
     }
 
@@ -1652,7 +1660,7 @@ class SimpleTypeInferrerVisitor<T> extends InferrerVisitor<T> {
     // inferrer, because it will share information with its enclosing
     // method, like for example the types of local variables.
     LocalsHandler closureLocals = new LocalsHandler<T>.from(
-        locals, inTryBlock: false);
+        locals, node, useOtherTryBlock: false);
     SimpleTypeInferrerVisitor visitor = new SimpleTypeInferrerVisitor<T>(
         element, compiler, inferrer, closureLocals);
     visitor.run();
@@ -2133,7 +2141,7 @@ class SimpleTypeInferrerVisitor<T> extends InferrerVisitor<T> {
   }
 
   void recordReturnType(T type) {
-    returnType = inferrer.computeLubFor(returnType, type, analyzedElement);
+    returnType = inferrer.addReturnTypeFor(analyzedElement, returnType, type);
   }
 
   T visitReturn(Return node) {

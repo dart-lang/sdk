@@ -425,7 +425,8 @@ class ContainerTracerVisitor extends InferrerVisitor<TypeMask> {
     FunctionElement function = elements[node];
     if (function != analyzedElement) {
       // Visiting a closure.
-      LocalsHandler closureLocals = new LocalsHandler<TypeMask>.from(locals);
+      LocalsHandler closureLocals = new LocalsHandler<TypeMask>.from(
+          locals, node, useOtherTryBlock: false);
       new ContainerTracerVisitor(function, tracer, closureLocals).run();
     } else {
       // Visiting [analyzedElement].

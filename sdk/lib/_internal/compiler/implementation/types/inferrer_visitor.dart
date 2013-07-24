@@ -36,7 +36,11 @@ abstract class TypeSystem<T> {
                       Element enclosing,
                       [T elementType, int length]);
 
-  T allocateDiamondPhi(T firstInput, T secondInput);
+  /**
+   * Returns the least upper bound between [firstType] and
+   * [secondType].
+   */
+  T computeLUB(T firstType, T secondType);
 
   /**
    * Returns the intersection between [T] and [annotation].
@@ -46,10 +50,9 @@ abstract class TypeSystem<T> {
   T narrowType(T type, DartType annotation, {bool isNullable: true});
 
   /**
-   * Returns the least upper bound between [firstType] and
-   * [secondType].
+   * Returns a new type that unions [firstInput] and [secondInput].
    */
-  T computeLUB(T firstType, T secondType);
+  T allocateDiamondPhi(T firstInput, T secondInput);
 
   /**
    * Returns a new type for holding the potential types of [element].
@@ -185,19 +188,18 @@ class VariableScope<T> {
   /// The parent of this scope. Null for the root scope.
   final VariableScope<T> parent;
 
-  /// The block level of this scope. Starts at 0 for the root scope.
-  final int blockLevel;
+  /// The [Node] that created this scope.
+  final Node block;
 
-  VariableScope([parent])
+  VariableScope(this.block, [parent])
       : this.variables = null,
-        this.parent = parent,
-        this.blockLevel = parent == null ? 0 : parent.blockLevel + 1;
+        this.parent = parent;
 
   VariableScope.deepCopyOf(VariableScope<T> other)
       : variables = other.variables == null
             ? null
             : new Map<Element, T>.from(other.variables),
-        blockLevel = other.blockLevel,
+        block = other.block,
         parent = other.parent == null
             ? null
             : new VariableScope<T>.deepCopyOf(other.parent);
@@ -223,14 +225,14 @@ class VariableScope<T> {
     variables.forEach(f);
   }
 
-  void forEachLocalUntil(int level, void f(Element, T type)) {
-    if (blockLevel < level) return;
+  void forEachLocalUntil(Node node, void f(Element, T type)) {
     forEachOwnLocal(f);
-    if (parent != null) parent.forEachLocalUntil(level, f);
+    if (block == node) return;
+    if (parent != null) parent.forEachLocalUntil(node, f);
   }
 
   void forEachLocal(void f(Element, T type)) {
-    forEachLocalUntil(0, f);
+    forEachLocalUntil(null, f);
   }
 
   void remove(Element element) {
@@ -239,7 +241,7 @@ class VariableScope<T> {
 
   String toString() {
     String rest = parent == null ? "null" : parent.toString();
-    return '$blockLevel: $variables $rest';
+    return '$variables $rest';
   }
 }
 
@@ -302,33 +304,41 @@ class LocalsHandler<T> {
   final VariableScope<T> locals;
   final Map<Element, Element> capturedAndBoxed;
   final FieldInitializationScope<T> fieldScope;
-  final bool inTryBlock;
+  LocalsHandler<T> tryBlock;
   bool seenReturnOrThrow = false;
   bool seenBreakOrContinue = false;
 
   bool get aborts {
     return seenReturnOrThrow || seenBreakOrContinue;
   }
+  bool get inTryBlock => tryBlock != null;
 
-  LocalsHandler(this.inferrer, this.types, this.compiler, [this.fieldScope])
-      : locals = new VariableScope<T>(),
+  LocalsHandler(this.inferrer,
+                this.types,
+                this.compiler,
+                Node block,
+                [this.fieldScope])
+      : locals = new VariableScope<T>(block),
         capturedAndBoxed = new Map<Element, Element>(),
-        inTryBlock = false;
+        tryBlock = null;
 
-  LocalsHandler.from(LocalsHandler<T> other, {bool inTryBlock})
-      : locals = new VariableScope<T>(other.locals),
+  LocalsHandler.from(LocalsHandler<T> other,
+                     Node block,
+                     {bool useOtherTryBlock: true})
+      : locals = new VariableScope<T>(block, other.locals),
         fieldScope = new FieldInitializationScope<T>.from(other.fieldScope),
         capturedAndBoxed = other.capturedAndBoxed,
-        inTryBlock = inTryBlock == null ? other.inTryBlock : inTryBlock,
         types = other.types,
         inferrer = other.inferrer,
-        compiler = other.compiler;
+        compiler = other.compiler {
+    tryBlock = useOtherTryBlock ? other.tryBlock : this;
+  }
 
   LocalsHandler.deepCopyOf(LocalsHandler<T> other)
       : locals = new VariableScope<T>.deepCopyOf(other.locals),
         fieldScope = new FieldInitializationScope<T>.from(other.fieldScope),
         capturedAndBoxed = other.capturedAndBoxed,
-        inTryBlock = other.inTryBlock,
+        tryBlock = other.tryBlock,
         types = other.types,
         inferrer = other.inferrer,
         compiler = other.compiler;
@@ -350,8 +360,16 @@ class LocalsHandler<T> {
     } else if (inTryBlock) {
       // We don't know if an assignment in a try block
       // will be executed, so all assigments in that block are
-      // potential types after we have left it.
-      locals[local] = types.computeLUB(locals[local], type);
+      // potential types after we have left it. We update the parent
+      // of the try block so that, at exit of the try block, we get
+      // the right phi for it.
+      T existing = tryBlock.locals.parent[local];
+      T phiType = types.allocatePhi(tryBlock.locals.block, local, existing);
+      T inputType = types.addPhiInput(local, phiType, type);
+      tryBlock.locals.parent[local] = inputType;
+      // Update the current handler unconditionnally with the new
+      // type.
+      locals[local] = type;
     } else {
       locals[local] = type;
     }
@@ -389,43 +407,6 @@ class LocalsHandler<T> {
     });
 
   }
-  /**
-   * Merge handlers [first] and [second] into [:this:] and returns
-   * whether the merge changed one of the variables types in [first].
-   */
-  bool merge(LocalsHandler<T> other, {bool discardIfAborts: true}) {
-    VariableScope<T> currentOther = other.locals;
-    assert(currentOther != locals);
-    bool changed = false;
-    // Iterate over all updates in the other handler until we reach
-    // the block level of this handler. We know that [VariableScope]s
-    // that are lower in block level, are the same.
-    do {
-      currentOther.forEachOwnLocal((Element local, T otherType) {
-        T myType = locals[local];
-        if (myType == null) return;
-        if (capturedAndBoxed.containsKey(local)) return;
-        if (aborts && discardIfAborts) {
-          locals[local] = otherType;
-        } else if (other.aborts && discardIfAborts) {
-          // Don't do anything.
-        } else {
-          T type = types.computeLUB(myType, otherType);
-          if (type != myType) {
-            changed = true;
-          }
-          locals[local] = type;
-        }
-      });
-      currentOther = currentOther.parent;
-    } while (currentOther != null
-             && currentOther.blockLevel >= locals.blockLevel);
-
-    seenReturnOrThrow = seenReturnOrThrow && other.seenReturnOrThrow;
-    seenBreakOrContinue = seenBreakOrContinue && other.seenBreakOrContinue;
-
-    return changed;
-  }
 
   /**
    * Merge all [LocalsHandler] in [handlers] into [:this:]. Returns
@@ -435,7 +416,7 @@ class LocalsHandler<T> {
     bool changed = false;
     handlers.forEach((LocalsHandler<T> handler) {
       if (handler.seenReturnOrThrow) return;
-      int level = locals.blockLevel;
+      Node level = locals.block;
       handler.locals.forEachLocalUntil(level, (Element local, T otherType) {
         T myType = locals[local];
         if (myType == null) return;
@@ -510,11 +491,12 @@ abstract class InferrerVisitor<T> extends ResolvedVisitor<T> {
       this.locals = handler,
       super(compiler.enqueuer.resolution.getCachedElements(analyzedElement)) {
     if (handler != null) return;
+    Node node = analyzedElement.parseNode(compiler);
     FieldInitializationScope<T> fieldScope =
         analyzedElement.isGenerativeConstructor()
             ? new FieldInitializationScope<T>(types)
             : null;
-    locals = new LocalsHandler<T>(inferrer, types, compiler, fieldScope);
+    locals = new LocalsHandler<T>(inferrer, types, compiler, node, fieldScope);
   }
 
   T visitSendSet(SendSet node);
@@ -672,7 +654,7 @@ abstract class InferrerVisitor<T> extends ResolvedVisitor<T> {
       accumulateIsChecks = oldAccumulateIsChecks;
       if (!accumulateIsChecks) isChecks = null;
       LocalsHandler<T> saved = locals;
-      locals = new LocalsHandler<T>.from(locals);
+      locals = new LocalsHandler<T>.from(locals, node);
       updateIsChecks(isChecks, usePositive: true);
       visit(node.arguments.head);
       saved.mergeDiamondFlow(locals, null);
@@ -682,7 +664,7 @@ abstract class InferrerVisitor<T> extends ResolvedVisitor<T> {
       conditionIsSimple = false;
       visit(node.receiver);
       LocalsHandler<T> saved = locals;
-      locals = new LocalsHandler<T>.from(locals);
+      locals = new LocalsHandler<T>.from(locals, node);
       updateIsChecks(isChecks, usePositive: false);
       bool oldAccumulateIsChecks = accumulateIsChecks;
       accumulateIsChecks = false;
@@ -728,11 +710,11 @@ abstract class InferrerVisitor<T> extends ResolvedVisitor<T> {
     List<Send> tests = <Send>[];
     bool simpleCondition = handleCondition(node.condition, tests);
     LocalsHandler<T> saved = locals;
-    locals = new LocalsHandler<T>.from(locals);
+    locals = new LocalsHandler<T>.from(locals, node);
     updateIsChecks(tests, usePositive: true);
     T firstType = visit(node.thenExpression);
     LocalsHandler<T> thenLocals = locals;
-    locals = new LocalsHandler<T>.from(saved);
+    locals = new LocalsHandler<T>.from(saved, node);
     if (simpleCondition) updateIsChecks(tests, usePositive: false);
     T secondType = visit(node.elseExpression);
     saved.mergeDiamondFlow(thenLocals, locals);
@@ -774,11 +756,11 @@ abstract class InferrerVisitor<T> extends ResolvedVisitor<T> {
     List<Send> tests = <Send>[];
     bool simpleCondition = handleCondition(node.condition, tests);
     LocalsHandler<T> saved = locals;
-    locals = new LocalsHandler<T>.from(locals);
+    locals = new LocalsHandler<T>.from(locals, node);
     updateIsChecks(tests, usePositive: true);
     visit(node.thenPart);
     LocalsHandler<T> thenLocals = locals;
-    locals = new LocalsHandler<T>.from(saved);
+    locals = new LocalsHandler<T>.from(saved, node);
     if (simpleCondition) updateIsChecks(tests, usePositive: false);
     visit(node.elsePart);
     saved.mergeDiamondFlow(thenLocals, locals);
@@ -819,7 +801,7 @@ abstract class InferrerVisitor<T> extends ResolvedVisitor<T> {
     LocalsHandler<T> saved;
     do {
       saved = locals;
-      locals = new LocalsHandler<T>.from(locals);
+      locals = new LocalsHandler<T>.from(locals, node);
       logic();
       changed = saved.mergeAll(getLoopBackEdges(target));
       locals = saved;
@@ -862,13 +844,14 @@ abstract class InferrerVisitor<T> extends ResolvedVisitor<T> {
 
   T visitTryStatement(TryStatement node) {
     LocalsHandler<T> saved = locals;
-    locals = new LocalsHandler<T>.from(locals, inTryBlock: true);
+    locals = new LocalsHandler<T>.from(
+        locals, node, useOtherTryBlock: false);
     visit(node.tryBlock);
     saved.mergeDiamondFlow(locals, null);
     locals = saved;
     for (Node catchBlock in node.catchBlocks) {
       saved = locals;
-      locals = new LocalsHandler<T>.from(locals);
+      locals = new LocalsHandler<T>.from(locals, catchBlock);
       visit(catchBlock);
       saved.mergeDiamondFlow(locals, null);
       locals = saved;
@@ -977,7 +960,7 @@ abstract class InferrerVisitor<T> extends ResolvedVisitor<T> {
         changed = false;
         for (Node switchCase in node.cases) {
           LocalsHandler<T> saved = locals;
-          locals = new LocalsHandler<T>.from(locals);
+          locals = new LocalsHandler<T>.from(locals, switchCase);
           visit(switchCase);
           changed = saved.mergeAll([locals]) || changed;
           locals = saved;
@@ -1000,7 +983,7 @@ abstract class InferrerVisitor<T> extends ResolvedVisitor<T> {
           locals = saved;
           visit(switchCase);
         } else {
-          locals = new LocalsHandler<T>.from(saved);
+          locals = new LocalsHandler<T>.from(saved, switchCase);
           visit(switchCase);
           localsToMerge.add(locals);
         }
