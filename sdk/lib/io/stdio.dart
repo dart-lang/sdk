@@ -114,7 +114,7 @@ class Stdin extends _StdStream implements Stream<List<int>> {
    *
    * Default depends on the parent process, but usually enabled.
    */
-  external void set lineMOde(bool enabled);
+  external void set lineMode(bool enabled);
 
   /**
    * Synchronously read a byte from stdin. This call will block until a byte is
