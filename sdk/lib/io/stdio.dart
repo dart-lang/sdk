@@ -162,7 +162,7 @@ IOSink _stdout;
 IOSink _stderr;
 
 
-Stream<List<int>> get stdin {
+Stdin get stdin {
   if (_stdin == null) {
     _stdin = _StdIOUtils._getStdioInputStream();
   }
