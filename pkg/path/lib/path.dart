@@ -106,6 +106,17 @@ String basenameWithoutExtension(String path) =>
 /// Trailing separators are ignored.
 ///
 ///     builder.dirname('path/to/'); // -> 'path'
+///
+/// If an absolute path contains no directories, only a root, then the root
+/// is returned.
+///
+///     path.dirname('/');  // -> '/' (posix)
+///     path.dirname('c:\');  // -> 'c:\' (windows)
+///
+/// If a relative path has no directories, then '.' is returned.
+///
+///     path.dirname('foo');  // -> '.'
+///     path.dirname('');  // -> '.'
 String dirname(String path) => _builder.dirname(path);
 
 /// Gets the file extension of [path]: the portion of [basename] from the last
@@ -247,6 +258,9 @@ String normalize(String path) => _builder.normalize(path);
 ///         from: '/root/path'); // -> 'a/b.dart'
 ///     path.relative('/root/other.dart',
 ///         from: '/root/path'); // -> '../other.dart'
+///
+/// If [path] and/or [from] are relative paths, they are assumed to be relative
+/// to the current directory.
 ///
 /// Since there is no relative path from one drive letter to another on Windows,
 /// or from one hostname to another for URLs, this will return an absolute path
@@ -582,8 +596,6 @@ class Builder {
   ///
   ///     builder.normalize('path/./to/..//file.text'); // -> 'path/file.txt'
   String normalize(String path) {
-    if (path == '') return path;
-
     var parsed = _parse(path);
     parsed.normalize();
     return parsed.toString();
@@ -613,6 +625,9 @@ class Builder {
   ///     builder.relative('/root/other.dart',
   ///         from: '/root/path'); // -> '../other.dart'
   ///
+  /// If [path] and/or [from] are relative paths, they are assumed to be
+  /// relative to [root].
+  ///
   /// Since there is no relative path from one drive letter to another on
   /// Windows, this will return an absolute path in that case.
   ///
@@ -624,8 +639,6 @@ class Builder {
   ///     var builder = new Builder(r'some/relative/path');
   ///     builder.relative(r'/absolute/path'); // -> '/absolute/path'
   String relative(String path, {String from}) {
-    if (path == '') return '.';
-
     from = from == null ? root : this.join(root, from);
 
     // We can't determine the path from a relative path to an absolute path.
@@ -672,8 +685,12 @@ class Builder {
       pathParsed.separators.removeAt(1);
     }
 
-    // If there are any directories left in the root path, we need to walk up
-    // out of them.
+    // If there are any directories left in the from path, we need to walk up
+    // out of them. If a directory left in the from path is '..', it cannot
+    // be cancelled by adding a '..'.
+    if (fromParsed.parts.length > 0 && fromParsed.parts[0] == '..') {
+      throw new ArgumentError('Unable to find a path to "$path" from "$from".');
+    }
     _growListFront(pathParsed.parts, fromParsed.parts.length, '..');
     pathParsed.separators[0] = '';
     pathParsed.separators.insertAll(1,
@@ -681,6 +698,13 @@ class Builder {
 
     // Corner case: the paths completely collapsed.
     if (pathParsed.parts.length == 0) return '.';
+
+    // Corner case: path was '.' and some '..' directories were added in front.
+    // Don't add a final '/.' in that case.
+    if (pathParsed.parts.length > 1 && pathParsed.parts.last == '.') {
+      pathParsed.parts.removeLast();
+      pathParsed.separators..removeLast()..removeLast()..add('');
+    }
 
     // Make it relative.
     pathParsed.root = '';
@@ -1042,7 +1066,8 @@ class _ParsedPath {
     return copy._splitExtension()[0];
   }
 
-  bool get hasTrailingSeparator => !parts.isEmpty && (parts.last == '' || separators.last != '');
+  bool get hasTrailingSeparator =>
+      !parts.isEmpty && (parts.last == '' || separators.last != '');
 
   void removeTrailingSeparators() {
     while (!parts.isEmpty && parts.last == '') {

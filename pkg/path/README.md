@@ -73,6 +73,16 @@ Trailing separators are ignored.
 
     builder.dirname('path/to/'); // -> 'path'
 
+If an absolute path contains no directories, only a root, then the root
+is returned.
+
+    path.dirname('/');    // -> '/' (posix)
+    path.dirname('c:\');  // -> 'c:\' (windows)
+
+If a relative path has no directories, then '.' is returned.
+    path.dirname('foo');  // -> '.'
+    path.dirname('');     // -> '.'
+
 ### String extension(String path)
 
 Gets the file extension of [path]: the portion of [basename] from the last
@@ -199,6 +209,9 @@ If the [from] argument is passed, [path] is made relative to that instead.
         from: '/root/path'); // -> 'a/b.dart'
     path.relative('/root/other.dart',
         from: '/root/path'); // -> '../other.dart'
+
+If [path] and/or [from] are relative paths, they are assumed to be relative
+to the current directory.
 
 Since there is no relative path from one drive letter to another on Windows,
 this will return an absolute path in that case.
