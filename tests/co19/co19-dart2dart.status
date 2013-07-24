@@ -62,7 +62,6 @@ LibTest/async/Future/whenComplete_A02_t01: Fail # TODO(dart2dart-team): Please t
 LibTest/async/Future/whenComplete_A03_t01: Fail # TODO(dart2dart-team): Please triage this failure.
 LibTest/async/Future/whenComplete_A04_t01: Fail # TODO(dart2dart-team): Please triage this failure.
 LibTest/async/Future/whenComplete_A04_t02: Fail # TODO(dart2dart-team): Please triage this failure.
-LibTest/collection/Queue/iterator_A01_t01: Fail # TODO(dart2dart-team): Please triage this failure.
 LibTest/collection/Queue/iterator_current_A01_t02: Fail # TODO(dart2dart-team): Please triage this failure.
 LibTest/collection/Queue/iterator_moveNext_A01_t02: Fail # TODO(dart2dart-team): Please triage this failure.
 LibTest/core/List/List_A01_t02: Fail # TODO(dart2dart-team): Please triage this failure.
