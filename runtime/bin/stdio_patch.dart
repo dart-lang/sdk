@@ -41,6 +41,8 @@ patch class _StdIOUtils {
 
 patch class Stdin {
   /* patch */ int readByteSync() native "Stdin_ReadByte";
+  /* patch */ void set echoMode(bool enabled) native "Stdin_SetEchoMode";
+  /* patch */ void set lineMode(bool enabled) native "Stdin_SetLineMode";
 }
 
 

@@ -42,7 +42,7 @@ class _StdinEventSink {
  *
  * Mixing synchronous and asynchronous reads is undefined.
  */
-class Stdin extends _StdStream {
+class Stdin extends _StdStream implements Stream<List<int>> {
   Stdin._(Stream<List<int>> stream) : super(stream);
 
   /**
@@ -96,6 +96,25 @@ class Stdin extends _StdStream {
     if (empty) return null;
     return line.toString();
   }
+
+  /**
+   * Enable or disable echo mode on the [Stdin].
+   *
+   * If disabled, input from to console will not be echoed.
+   *
+   * Default depends on the parent process, but usually enabled.
+   */
+  external void set echoMode(bool enabled);
+
+  /**
+   * Enable or disable line mode on the [Stdin].
+   *
+   * If enabled, characters are delayed until a new-line character is entered.
+   * If disabled, characters will be available as typed.
+   *
+   * Default depends on the parent process, but usually enabled.
+   */
+  external void set lineMOde(bool enabled);
 
   /**
    * Synchronously read a byte from stdin. This call will block until a byte is
