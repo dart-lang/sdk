@@ -705,8 +705,9 @@ class Float32x4List
 
   factory Float32x4List.fromList(List<Float32x4> list) {
     if (list is Float32x4List) {
+      Float32x4List nativeList = list as Float32x4List;
       return new Float32x4List._externalStorage(
-          new Float32List.fromList(list._storage));
+          new Float32List.fromList(nativeList._storage));
     } else {
       return new Float32x4List._slowFromList(list);
     }
