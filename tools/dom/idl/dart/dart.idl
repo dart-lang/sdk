@@ -332,3 +332,6 @@ interface Location {
 
 [Supplemental]
 interface Window : EventTarget {};
+
+[Supplemental]
+interface AbstractWorker : EventTarget {};

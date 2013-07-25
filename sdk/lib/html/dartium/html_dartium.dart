@@ -100,7 +100,9 @@ _callPortSync(num id, var message) {
 
 @DocsEditable()
 @DomName('AbstractWorker')
-class AbstractWorker extends NativeFieldWrapperClass1 {
+class AbstractWorker extends EventTarget {
+  // To suppress missing implicit constructor warnings.
+  factory AbstractWorker._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('AbstractWorker.errorEvent')
   @DocsEditable()
@@ -3151,11 +3153,6 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
   @DomName('CSSStyleDeclaration.parentRule')
   @DocsEditable()
   CssRule get parentRule native "CSSStyleDeclaration_parentRule_Getter";
-
-  @DomName('CSSStyleDeclaration.__getter__')
-  @DocsEditable()
-  @Experimental() // untriaged
-  dynamic __getter__(String name) native "CSSStyleDeclaration___getter___Callback";
 
   @DomName('CSSStyleDeclaration.__setter__')
   @DocsEditable()
@@ -11799,19 +11796,9 @@ class FormElement extends _HTMLElement {
   @DocsEditable()
   void set target(String value) native "HTMLFormElement_target_Setter";
 
-  Node __getter__(index_OR_name) {
-    if ((index_OR_name is int || index_OR_name == null)) {
-      return ___getter___1(index_OR_name);
-    }
-    if ((index_OR_name is String || index_OR_name == null)) {
-      return ___getter___2(index_OR_name);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  Node ___getter___1(index_OR_name) native "HTMLFormElement____getter___1_Callback";
-
-  dynamic ___getter___2(index_OR_name) native "HTMLFormElement____getter___2_Callback";
+  @DomName('HTMLFormElement.__getter__')
+  @DocsEditable()
+  Node __getter__(int index) native "HTMLFormElement___getter___Callback";
 
   @DomName('HTMLFormElement.checkValidity')
   @DocsEditable()
@@ -12227,19 +12214,9 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, I
   Node elementAt(int index) => this[index];
   // -- end List<Node> mixins.
 
-  Node __getter__(index_OR_name) {
-    if ((index_OR_name is int || index_OR_name == null)) {
-      return ___getter___1(index_OR_name);
-    }
-    if ((index_OR_name is String || index_OR_name == null)) {
-      return ___getter___2(index_OR_name);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  Node ___getter___1(index_OR_name) native "HTMLAllCollection____getter___1_Callback";
-
-  dynamic ___getter___2(index_OR_name) native "HTMLAllCollection____getter___2_Callback";
+  @DomName('HTMLAllCollection.__getter__')
+  @DocsEditable()
+  Node __getter__(int index) native "HTMLAllCollection___getter___Callback";
 
   @DomName('HTMLAllCollection.item')
   @DocsEditable()
@@ -12526,19 +12503,9 @@ class HtmlFormControlsCollection extends HtmlCollection {
   // To suppress missing implicit constructor warnings.
   factory HtmlFormControlsCollection._() { throw new UnsupportedError("Not supported"); }
 
-  Node __getter__(index_OR_name) {
-    if ((index_OR_name is int || index_OR_name == null)) {
-      return ___getter___1(index_OR_name);
-    }
-    if ((index_OR_name is String || index_OR_name == null)) {
-      return ___getter___2(index_OR_name);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  Node ___getter___1(index_OR_name) native "HTMLFormControlsCollection____getter___1_Callback";
-
-  dynamic ___getter___2(index_OR_name) native "HTMLFormControlsCollection____getter___2_Callback";
+  @DomName('HTMLFormControlsCollection.__getter__')
+  @DocsEditable()
+  Node __getter__(int index) native "HTMLFormControlsCollection___getter___Callback";
 
   @DomName('HTMLFormControlsCollection.namedItem')
   @DocsEditable()
@@ -18461,11 +18428,6 @@ class NodeList extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableL
 
   Node elementAt(int index) => this[index];
   // -- end List<Node> mixins.
-
-  @DomName('NodeList.__getter__')
-  @DocsEditable()
-  @Experimental() // untriaged
-  dynamic __getter__(String name) native "NodeList___getter___Callback";
 
   @DomName('NodeList.item')
   @DocsEditable()

@@ -88,7 +88,9 @@ Future<SendPort> spawnDomFunction(Function f) =>
 
 @DocsEditable()
 @DomName('AbstractWorker')
-class AbstractWorker extends Interceptor native "AbstractWorker" {
+class AbstractWorker extends EventTarget native "AbstractWorker" {
+  // To suppress missing implicit constructor warnings.
+  factory AbstractWorker._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('AbstractWorker.errorEvent')
   @DocsEditable()
@@ -2653,11 +2655,6 @@ class CssStyleDeclaration extends Interceptor native "CSSStyleDeclaration,MSStyl
   @DomName('CSSStyleDeclaration.parentRule')
   @DocsEditable()
   final CssRule parentRule;
-
-  @DomName('CSSStyleDeclaration.__getter__')
-  @DocsEditable()
-  @Experimental() // untriaged
-  dynamic __getter__(String name) native;
 
   @DomName('CSSStyleDeclaration.__setter__')
   @DocsEditable()
@@ -11362,7 +11359,7 @@ class FormElement extends _HTMLElement native "HTMLFormElement" {
 
   @DomName('HTMLFormElement.__getter__')
   @DocsEditable()
-  Node __getter__(index_OR_name) native;
+  Node __getter__(int index) native;
 
   @DomName('HTMLFormElement.checkValidity')
   @DocsEditable()
@@ -11789,7 +11786,7 @@ class HtmlAllCollection extends Interceptor with ListMixin<Node>, ImmutableListM
 
   @DomName('HTMLAllCollection.__getter__')
   @DocsEditable()
-  Node __getter__(index_OR_name) native;
+  Node __getter__(int index) native;
 
   @DomName('HTMLAllCollection.item')
   @DocsEditable()
@@ -12067,7 +12064,7 @@ class HtmlFormControlsCollection extends HtmlCollection native "HTMLFormControls
 
   @DomName('HTMLFormControlsCollection.__getter__')
   @DocsEditable()
-  Node __getter__(index_OR_name) native;
+  Node __getter__(int index) native;
 
   @DomName('HTMLFormControlsCollection.namedItem')
   @DocsEditable()
@@ -17431,11 +17428,6 @@ class NodeList extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node
 
   Node elementAt(int index) => this[index];
   // -- end List<Node> mixins.
-
-  @DomName('NodeList.__getter__')
-  @DocsEditable()
-  @Experimental() // untriaged
-  dynamic __getter__(String name) native;
 
   @JSName('item')
   @DomName('NodeList.item')
