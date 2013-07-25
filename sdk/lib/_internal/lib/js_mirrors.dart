@@ -7,7 +7,7 @@ library dart._js_mirrors;
 import 'dart:async';
 import 'dart:mirrors';
 
-import 'dart:_foreign_helper' show JS, JS_CURRENT_ISOLATE;
+import 'dart:_foreign_helper' show JS, JS_CURRENT_ISOLATE, JS_GET_NAME;
 import 'dart:_collection-dev' as _symbol_dev;
 import 'dart:_js_helper' show
     BoundClosure,
@@ -831,7 +831,7 @@ class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
     if (isStatic) {
       unmangledName = mangledGlobalNames[accessorName];
     } else {
-      String getterPrefix = JS('String', 'init.getterPrefix');
+      String getterPrefix = JS_GET_NAME('GETTER_PREFIX');
       unmangledName = mangledNames['$getterPrefix$accessorName'];
     }
     if (unmangledName == null) unmangledName = accessorName;

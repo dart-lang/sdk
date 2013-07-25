@@ -178,6 +178,7 @@ class Namer implements ClosureNamer {
   final String getterPrefix = r'get$';
   final String setterPrefix = r'set$';
   final String metadataField = '@';
+  final String callCatchAllName = r'call$catchAll';
 
   /**
    * Map from top-level or static elements to their unique identifiers provided
@@ -232,6 +233,19 @@ class Namer implements ClosureNamer {
   String get STATIC_CLOSURE_NAME_NAME => r'$name';
   SourceString get closureInvocationSelectorName => Compiler.CALL_OPERATOR_NAME;
   bool get shouldMinify => false;
+
+  String getNameForJsGetName(Node node, String name) {
+    switch (name) {
+      case 'GETTER_PREFIX': return getterPrefix;
+      case 'SETTER_PREFIX': return setterPrefix;
+      case 'CALL_CATCH_ALL': return callCatchAllName;
+      default:
+        compiler.reportErrorCode(
+            argument, MessageKind.GENERIC,
+            {'text': 'Error: Namer has no name for "$name".'});
+        return 'BROKEN';
+    }
+  }
 
   bool isReserved(String name) => name == isolateName;
 

@@ -208,3 +208,8 @@ String JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG() {}
  * Returns the global object, usually called encoded as [: $ :].
  */
 JS_GLOBAL_OBJECT() {}
+
+/**
+ * Obtain [name] from Namer.
+ */
+String JS_GET_NAME(String name) {}

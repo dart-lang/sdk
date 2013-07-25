@@ -1189,7 +1189,7 @@ class CodeEmitterTask extends CompilerTask {
       properties.add(new jsAst.Property(js.string(jsName), reference));
     }
     defineStub(
-        r'call$catchAll', // TODO(ahe): Get from namer.
+        backend.namer.callCatchAllName,
         js.fun([], js.return_(new jsAst.ObjectInitializer(properties))));
   }
 
@@ -3965,8 +3965,6 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
   if (!init.mangledNames) init.mangledNames = {};
   if (!init.mangledGlobalNames) init.mangledGlobalNames = {};
   if (!init.statics) init.statics = {};
-  init.getterPrefix = "${namer.getterPrefix}";
-  init.setterPrefix = "${namer.setterPrefix}";
   var libraries = init.libraries;
   var mangledNames = init.mangledNames;
   var mangledGlobalNames = init.mangledGlobalNames;
