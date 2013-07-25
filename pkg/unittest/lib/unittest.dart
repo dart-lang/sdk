@@ -300,7 +300,7 @@ bool _initialized = false;
 String _uncaughtErrorMessage = null;
 
 /** Time since we last gave non-sync code a chance to be scheduled. */
-int _lastBreath = new DateTime.now().millisecondsSinceEpoch;
+var _lastBreath = new DateTime.now().millisecondsSinceEpoch;
 
 /** Test case result strings. */
 // TODO(gram) we should change these constants to use a different string
