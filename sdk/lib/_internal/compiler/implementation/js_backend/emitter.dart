@@ -1143,10 +1143,13 @@ class CodeEmitterTask extends CompilerTask {
       // possible stubs for this closure.
       FunctionSignature signature = member.computeSignature(compiler);
       Set<Selector> selectors = signature.optionalParametersAreNamed
-          ? computeNamedSelectors(signature, member)
+          ? computeSeenNamedSelectors(member)
           : computeOptionalSelectors(signature, member);
       for (Selector selector in selectors) {
         addParameterStub(member, selector, defineStub, generatedStubNames);
+      }
+      if (signature.optionalParametersAreNamed) {
+        addCatchAllParameterStub(member, signature, defineStub);
       }
     } else {
       Set<Selector> selectors = compiler.codegenWorld.invokedNames[member.name];
@@ -1158,37 +1161,36 @@ class CodeEmitterTask extends CompilerTask {
     }
   }
 
-  /**
-   * Compute the set of possible selectors in the presence of named
-   * parameters.
-   */
-  Set<Selector> computeNamedSelectors(FunctionSignature signature,
-                                      FunctionElement element) {
-    Set<Selector> selectors = new Set<Selector>();
-    // Add the selector that does not have any optional argument.
-    selectors.add(new Selector(SelectorKind.CALL,
-                               element.name,
-                               element.getLibrary(),
-                               signature.requiredParameterCount,
-                               <SourceString>[]));
+  Set<Selector> computeSeenNamedSelectors(FunctionElement element) {
+    Set<Selector> selectors = compiler.codegenWorld.invokedNames[element.name];
+    if (selectors == null) return null;
+    Set<Selector> result = new Set<Selector>();
+    for (Selector selector in selectors) {
+      if (!selector.applies(element, compiler)) continue;
+      result.add(selector);
+    }
+    return result;
+  }
 
-    // For each optional parameter, we iterator over the set of
-    // already computed selectors and create new selectors with that
-    // parameter now being passed.
-    signature.forEachOptionalParameter((Element element) {
-      Set<Selector> newSet = new Set<Selector>();
-      selectors.forEach((Selector other) {
-        List<SourceString> namedArguments = [element.name];
-        namedArguments.addAll(other.namedArguments);
-        newSet.add(new Selector(other.kind,
-                                other.name,
-                                other.library,
-                                other.argumentCount + 1,
-                                namedArguments));
-      });
-      selectors.addAll(newSet);
-    });
-    return selectors;
+  void addCatchAllParameterStub(FunctionElement member,
+                                FunctionSignature signature,
+                                DefineStubFunction defineStub) {
+    // See Primities.applyFunction in js_helper.dart for details.
+    List<jsAst.Property> properties = <jsAst.Property>[];
+    for (Element element in signature.orderedOptionalParameters) {
+      String jsName = backend.namer.safeName(element.name.slowToString());
+      Constant value = compiler.constantHandler.initialVariableValues[element];
+      jsAst.Expression reference = null;
+      if (value == null) {
+        reference = new jsAst.LiteralNull();
+      } else {
+        reference = constantReference(value);
+      }
+      properties.add(new jsAst.Property(js.string(jsName), reference));
+    }
+    defineStub(
+        r'call$catchAll', // TODO(ahe): Get from namer.
+        js.fun([], js.return_(new jsAst.ObjectInitializer(properties))));
   }
 
   /**

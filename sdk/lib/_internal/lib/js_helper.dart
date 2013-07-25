@@ -571,21 +571,38 @@ class Primitives {
       arguments.addAll(positionalArguments);
     }
 
-    // Sort the named arguments to get the right selector name and
-    // arguments order.
-    if (namedArguments != null && !namedArguments.isEmpty) {
-      // Call new List.from to make sure we get a JavaScript array.
+    // TODO(ahe): Use JS_SOMETHING to get name from Namer.
+    if (JS('bool', r'"call$catchAll" in #', function)) {
+      // We expect the closure to have a "call$catchAll" function that returns
+      // all the expected named parameters as a (new) JavaScript object
+      // literal.  The keys in the object literal correspond to the argument
+      // names, and the values are the default values. The compiler emits the
+      // properties sorted by keys, and this order is preserved in JavaScript,
+      // so we don't need to sort the keys. Since a new object is returned each
+      // time we call call$catchAll, we can simply overwrite default entries
+      // with the provided named arguments. If there are incorrectly named
+      // arguments in [namedArguments], noSuchMethod will be called as expected.
+      var allNamedArguments = JS('var', r'#.call$catchAll()', function);
+      if (namedArguments != null && !namedArguments.isEmpty) {
+        namedArguments.forEach((String key, argument) {
+          JS('void', '#[#] = #', allNamedArguments, key, argument);
+        });
+      }
       List<String> listOfNamedArguments =
-          new List<String>.from(namedArguments.keys);
-      argumentCount += namedArguments.length;
-      // We're sorting on strings, and the behavior is the same between
-      // Dart string sort and JS string sort. To avoid needing the Dart
-      // sort implementation, we use the JavaScript one instead.
-      JS('void', '#.sort()', listOfNamedArguments);
+          JS('List', 'Object.getOwnPropertyNames(#)', allNamedArguments);
+      argumentCount += listOfNamedArguments.length;
       listOfNamedArguments.forEach((String name) {
         buffer.write('\$$name');
-        arguments.add(namedArguments[name]);
+        arguments.add(JS('', '#[#]', allNamedArguments, name));
       });
+    } else {
+      if (namedArguments != null && !namedArguments.isEmpty) {
+        namedArguments.forEach((String name, argument) {
+          buffer.write('\$$name');
+          arguments.add(argument);
+          argumentCount++;
+        });
+      }
     }
 
     String selectorName = 'call\$$argumentCount$buffer';
