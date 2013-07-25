@@ -14,16 +14,9 @@ async/run_async4_test: Pass, Fail # no global exception handler in isolates. htt
 async/run_async6_test: Fail # global error handling is not supported. http://dartbug.com/5958
 async/stream_controller_async_test: Fail, Pass # http://dartbug.com/11953
 
-# SIMD is unsupported on dart2js.
-typed_data/float32x4_test: Fail, OK
-typed_data/float32x4_list_test: Fail, OK
-typed_data/float32x4_unbox_phi_test: Fail, OK
-typed_data/float32x4_unbox_regress_test: Fail, OK
-typed_data/float32x4_shuffle_test: Fail, OK
-typed_data/float32x4_two_arg_shuffle_test: Fail, OK
 
-[ $compiler == dart2js && ($runtime == d8 || $runtime == ie9) ]
-typed_data/byte_data_test: Fail, OK # d8/ie9 doesn't support DataView
+[ $compiler == dart2js && ($runtime == d8) ]
+typed_data/byte_data_test: Fail, OK # d8 doesn't support DataView
 
 [ $csp ]
 mirrors/*: Skip # Issue 6490
@@ -78,8 +71,8 @@ timer_isolate_test: Pass, Fail
 timer_test: Pass, Fail
 
 [ $runtime == ie9 ]
-typed_data/typed_list_iterable_test: Fail # Issue 11971
-typed_data/typed_data_list_test: Fail # Issue 11971
+# IE9 doesn't support typed arrays.
+typed_data/*: Fail # Issue 11971
 
 [ $runtime == opera ]
 async/multiple_timer_test: Pass, Fail

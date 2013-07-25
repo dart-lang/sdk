@@ -19,7 +19,7 @@ double testUnboxPhi(Float32x4List data) {
 
 main() {
   Float32x4List list = new Float32x4List(10);
-  Float32List floatList = new Float32List.view(list);
+  Float32List floatList = new Float32List.view(list.buffer);
   for (int i = 0; i < floatList.length; i++) {
     floatList[i] = i.toDouble();
   }
