@@ -376,7 +376,7 @@ _webkit_experimental_annotations = [
 #   INTERFACE.MEMBER: annotation to be added to the member declaration
 _annotations = monitored.Dict('dartmetadata._annotations', {
   'CSSHostRule': _shadow_dom_annotations,
-  'CSSMatrix': _webkit_experimental_annotations,
+  'WebKitCSSMatrix': _webkit_experimental_annotations,
   'Crypto': _webkit_experimental_annotations,
   'Database': _web_sql_annotations,
   'DatabaseSync': _web_sql_annotations,
