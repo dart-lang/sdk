@@ -1043,7 +1043,8 @@ class _ParsedPath {
   /// path ends with a trailing separator.
   List<String> separators;
 
-  /// The file extension of the last part, or "" if it doesn't have one.
+  /// The file extension of the last non-empty part, or "" if it doesn't have
+  /// one.
   String get extension => _splitExtension()[1];
 
   /// `true` if this is an absolute path.
@@ -1059,12 +1060,7 @@ class _ParsedPath {
     return copy.parts.last;
   }
 
-  String get basenameWithoutExtension {
-    var copy = this.clone();
-    copy.removeTrailingSeparators();
-    if (copy.parts.isEmpty) return root == null ? '' : root;
-    return copy._splitExtension()[0];
-  }
+  String get basenameWithoutExtension => _splitExtension()[0];
 
   bool get hasTrailingSeparator =>
       !parts.isEmpty && (parts.last == '' || separators.last != '');
@@ -1137,13 +1133,15 @@ class _ParsedPath {
     return builder.toString();
   }
 
-  /// Splits the last part of the path into a two-element list. The first is
-  /// the name of the file without any extension. The second is the extension
-  /// or "" if it has none.
+  /// Splits the last non-empty part of the path into a `[basename, extension`]
+  /// pair.
+  ///
+  /// Returns a two-element list. The first is the name of the file without any
+  /// extension. The second is the extension or "" if it has none.
   List<String> _splitExtension() {
-    if (parts.isEmpty) return ['', ''];
+    var file = parts.lastWhere((p) => p != '', orElse: () => null);
 
-    var file = parts.last;
+    if (file == null) return ['', ''];
     if (file == '..') return ['..', ''];
 
     var lastDot = file.lastIndexOf('.');

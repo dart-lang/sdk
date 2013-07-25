@@ -20,6 +20,8 @@ main() {
     expect(builder.extension('a.b/c'), '');
     expect(builder.extension('a.b/c.d'), '.d');
     expect(builder.extension(r'a.b\c'), r'.b\c');
+    expect(builder.extension('foo.dart/'), '.dart');
+    expect(builder.extension('foo.dart//'), '.dart');
   });
 
   test('rootPrefix', () {

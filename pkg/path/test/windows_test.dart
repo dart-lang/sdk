@@ -35,6 +35,8 @@ main() {
     expect(builder.extension('a.b/c.d'), '.d');
     expect(builder.extension(r'~\.bashrc'), '');
     expect(builder.extension(r'a.b/c'), r'');
+    expect(builder.extension(r'foo.dart\'), '.dart');
+    expect(builder.extension(r'foo.dart\\'), '.dart');
   });
 
   test('rootPrefix', () {
