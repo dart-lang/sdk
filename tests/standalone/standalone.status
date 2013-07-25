@@ -49,6 +49,7 @@ debugger/*: Skip # Do not run standalone debugger tests in browser.
 coverage_test: Skip
 http_launch_test: Skip
 vmservice/*: Skip # Do not run standalone vm service tests in browser.
+53bit_overflow_literal_test: fail # Issue 12044
 
 
 [ $compiler == dartanalyzer ]
