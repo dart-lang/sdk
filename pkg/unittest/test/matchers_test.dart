@@ -450,11 +450,11 @@ void main() {
           "at index 2");
     });
 
-    test('someElement', () {
+    test('anyElement', () {
       var d = [1, 2];
       var e = [1, 1, 1];
-      shouldPass(d, someElement(2));
-      shouldFail(e, someElement(2),
+      shouldPass(d, anyElement(2));
+      shouldFail(e, anyElement(2),
           "Expected: some element <2> Actual: [1, 1, 1]");
     });
 

@@ -58,15 +58,21 @@ class _EveryElement extends _IterableMatcher {
 }
 
 /**
+ * Deprecated form of [anyElement].
+ */
+@deprecated
+Matcher someElement(matcher) => new _AnyElement(wrapMatcher(matcher));
+
+/**
  * Returns a matcher which matches [Iterable]s in which at least one
  * element matches the given [matcher].
  */
-Matcher someElement(matcher) => new _SomeElement(wrapMatcher(matcher));
+Matcher anyElement(matcher) => new _AnyElement(wrapMatcher(matcher));
 
-class _SomeElement extends _IterableMatcher {
+class _AnyElement extends _IterableMatcher {
   Matcher _matcher;
 
-  _SomeElement(this._matcher);
+  _AnyElement(this._matcher);
 
   bool matches(item, Map matchState) {
     return item.any((e) => _matcher.matches(e, matchState));
