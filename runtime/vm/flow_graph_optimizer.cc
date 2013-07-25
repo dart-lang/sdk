@@ -1035,7 +1035,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
       }
       break;
     case Token::kDIV:
-      if (ShouldSpecializeForDouble(ic_data)) {
+      if (ShouldSpecializeForDouble(ic_data) || HasOnlyTwoSmis(ic_data)) {
         operands_type = kDoubleCid;
       } else if (HasOnlyTwoFloat32x4s(ic_data)) {
         operands_type = kFloat32x4Cid;
@@ -1102,13 +1102,16 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
   Definition* right = call->ArgumentAt(1);
   if (operands_type == kDoubleCid) {
     // Check that either left or right are not a smi.  Result of a
-    // binary operation with two smis is a smi not a double.
-    InsertBefore(call,
-                 new CheckEitherNonSmiInstr(new Value(left),
-                                            new Value(right),
-                                            call->deopt_id()),
-                 call->env(),
-                 Definition::kEffect);
+    // binary operation with two smis is a smi not a double, except '/' which
+    // returns a double for two smis.
+    if (op_kind != Token::kDIV) {
+      InsertBefore(call,
+                   new CheckEitherNonSmiInstr(new Value(left),
+                                              new Value(right),
+                                              call->deopt_id()),
+                   call->env(),
+                   Definition::kEffect);
+    }
 
     BinaryDoubleOpInstr* double_bin_op =
         new BinaryDoubleOpInstr(op_kind, new Value(left), new Value(right),
