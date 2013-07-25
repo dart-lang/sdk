@@ -20,7 +20,7 @@ Map _filterMap(Map<Symbol, dynamic> old_map, bool filter(Symbol key, value)) {
 }
 
 Map _makeMemberMap(List mirrors) {
-  Map<Symbol, dynamic> result = new Map();
+  Map result = new Map<Symbol, dynamic>();
   mirrors.forEach((mirror) => result[mirror.simpleName] = mirror);
   return result;
 }
@@ -636,7 +636,7 @@ class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
               const {},
               const {});
 
-  Map<Symbol, Mirror> get members => const {};
+  Map<Symbol, Mirror> get members => new Map<Symbol,Mirror>();
 
   var _returnType;
   TypeMirror get returnType {
@@ -1152,6 +1152,8 @@ class _SpecialTypeMirrorImpl extends _LocalMirrorImpl
     }
     return this.simpleName == other.simpleName;
   }
+
+  int get hashCode => simpleName.hashCode;
 }
 
 class _Mirrors {
