@@ -115,4 +115,3 @@ typed_data/float32x4_list_test: Crash # Unimplemented
 typed_data/float32x4_test: Crash # Unimplemented
 typed_data/float32x4_shuffle_test: Crash # Unimplemented
 typed_data/float32x4_two_arg_shuffle_test: Crash # Unimplemented
-convert/chunked_conversion_utf88_test: Pass, Slow # http://dartbug.com/12025

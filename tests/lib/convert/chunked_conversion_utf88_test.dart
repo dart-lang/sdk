@@ -96,6 +96,18 @@ int _nextPowerOf2(v) {
   return v;
 }
 
+runTest(test) {
+  List<int> bytes = test[0];
+  String string = test[1];
+  Expect.listEquals(bytes, encode(string));
+  Expect.listEquals(bytes, encode2(string));
+  Expect.listEquals(bytes, encode3(string));
+  Expect.listEquals(bytes, encode4(string));
+  Expect.listEquals(bytes, encode5(string));
+  Expect.listEquals(bytes, encode6(string));
+  Expect.listEquals(bytes, encode7(string));
+}
+
 main() {
   const LEADING_SURROGATE = 0xd801;
   const TRAILING_SURROGATE = 0xdc12;
@@ -113,7 +125,7 @@ main() {
     codeUnits[i] = CHAR_A;
 
     // Only test for problem zones, close to powers of two.
-    if (i > 20 && _nextPowerOf2(i - 15) - i > 30) continue;
+    if (i > 20 && _nextPowerOf2(i - 2) - i > 10) continue;
 
     codeUnits[i] = LEADING_SURROGATE;
     var str = new String.fromCharCodes(codeUnits);
@@ -121,7 +133,7 @@ main() {
     bytes[i] = UTF8_LEADING[0];
     bytes[i + 1] = UTF8_LEADING[1];
     bytes[i + 2] = UTF8_LEADING[2];
-    tests.add([bytes, str]);
+    runTest([bytes, str]);
 
     codeUnits[i] = TRAILING_SURROGATE;
     str = new String.fromCharCodes(codeUnits);
@@ -129,7 +141,7 @@ main() {
     bytes[i] = UTF8_TRAILING[0];
     bytes[i + 1] = UTF8_TRAILING[1];
     bytes[i + 2] = UTF8_TRAILING[2];
-    tests.add([bytes, str]);
+    runTest([bytes, str]);
 
     codeUnits.length = i + 2;
     codeUnits[i] = LEADING_SURROGATE;
@@ -140,7 +152,7 @@ main() {
     bytes[i + 1] = UTF8_ENCODING[1];
     bytes[i + 2] = UTF8_ENCODING[2];
     bytes[i + 3] = UTF8_ENCODING[3];
-    tests.add([bytes, str]);
+    runTest([bytes, str]);
 
     codeUnits[i] = TRAILING_SURROGATE;
     codeUnits[i + 1] = TRAILING_SURROGATE;
@@ -152,7 +164,7 @@ main() {
     bytes[i + 3] = UTF8_TRAILING[0];
     bytes[i + 4] = UTF8_TRAILING[1];
     bytes[i + 5] = UTF8_TRAILING[2];
-    tests.add([bytes, str]);
+    runTest([bytes, str]);
 
     codeUnits[i] = LEADING_SURROGATE;
     codeUnits[i + 1] = LEADING_SURROGATE;
@@ -164,7 +176,7 @@ main() {
     bytes[i + 3] = UTF8_LEADING[0];
     bytes[i + 4] = UTF8_LEADING[1];
     bytes[i + 5] = UTF8_LEADING[2];
-    tests.add([bytes, str]);
+    runTest([bytes, str]);
 
     codeUnits[i] = TRAILING_SURROGATE;
     codeUnits[i + 1] = LEADING_SURROGATE;
@@ -176,7 +188,7 @@ main() {
     bytes[i + 3] = UTF8_LEADING[0];
     bytes[i + 4] = UTF8_LEADING[1];
     bytes[i + 5] = UTF8_LEADING[2];
-    tests.add([bytes, str]);
+    runTest([bytes, str]);
 
     codeUnits.length = i + 3;
     codeUnits[i] = LEADING_SURROGATE;
@@ -190,7 +202,7 @@ main() {
     bytes[i + 3] = UTF8_ENCODING[3];
     // No need to assign the 'a' character. The whole list is already filled
     // with it.
-    tests.add([bytes, str]);
+    runTest([bytes, str]);
 
     codeUnits[i] = TRAILING_SURROGATE;
     codeUnits[i + 1] = TRAILING_SURROGATE;
@@ -203,7 +215,7 @@ main() {
     bytes[i + 3] = UTF8_TRAILING[0];
     bytes[i + 4] = UTF8_TRAILING[1];
     bytes[i + 5] = UTF8_TRAILING[2];
-    tests.add([bytes, str]);
+    runTest([bytes, str]);
 
     codeUnits[i] = LEADING_SURROGATE;
     codeUnits[i + 1] = LEADING_SURROGATE;
@@ -216,7 +228,7 @@ main() {
     bytes[i + 3] = UTF8_LEADING[0];
     bytes[i + 4] = UTF8_LEADING[1];
     bytes[i + 5] = UTF8_LEADING[2];
-    tests.add([bytes, str]);
+    runTest([bytes, str]);
 
     codeUnits[i] = TRAILING_SURROGATE;
     codeUnits[i + 1] = LEADING_SURROGATE;
@@ -229,21 +241,9 @@ main() {
     bytes[i + 3] = UTF8_LEADING[0];
     bytes[i + 4] = UTF8_LEADING[1];
     bytes[i + 5] = UTF8_LEADING[2];
-    tests.add([bytes, str]);
+    runTest([bytes, str]);
 
     // Make sure the invariant is correct.
     codeUnits[i] = CHAR_A;
-  }
-
-  for (var test in tests) {
-    List<int> bytes = test[0];
-    String string = test[1];
-    Expect.listEquals(bytes, encode(string));
-    Expect.listEquals(bytes, encode2(string));
-    Expect.listEquals(bytes, encode3(string));
-    Expect.listEquals(bytes, encode4(string));
-    Expect.listEquals(bytes, encode5(string));
-    Expect.listEquals(bytes, encode6(string));
-    Expect.listEquals(bytes, encode7(string));
   }
 }
