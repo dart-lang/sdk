@@ -1014,7 +1014,6 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'any': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue'),
     'Array': TypeData(clazz='Primitive', dart_type='List'),
     'custom': TypeData(clazz='Primitive', dart_type='dynamic'),
-    'union': TypeData(clazz='Primitive', dart_type='dynamic'),
     'ClientRect': TypeData(clazz='Interface',
         dart_type='Rect', suppress_interface=True),
     'Date': TypeData(clazz='Primitive', dart_type='DateTime', native_type='double'),
