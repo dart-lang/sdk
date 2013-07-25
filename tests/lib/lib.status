@@ -63,10 +63,12 @@ json/json_test: Fail                            # Issue 10961
 multiple_timer_test: Pass, Fail
 timer_isolate_test: Pass, Fail
 timer_test: Pass, Fail
+convert/chunked_conversion_utf88_test: Pass, Slow  # Issue 12029
 
 [ $runtime == ie9 ]
 # IE9 doesn't support typed arrays.
 typed_data/*: Fail # Issue 11971
+convert/chunked_conversion_utf88_test: Pass, Slow  # Issue 12029
 
 [ $runtime == opera ]
 async/multiple_timer_test: Pass, Fail
@@ -109,3 +111,4 @@ typed_data/float32x4_list_test: Crash # Unimplemented
 typed_data/float32x4_test: Crash # Unimplemented
 typed_data/float32x4_shuffle_test: Crash # Unimplemented
 typed_data/float32x4_two_arg_shuffle_test: Crash # Unimplemented
+convert/chunked_conversion_utf88_test: Pass, Slow # Issue 12025.
