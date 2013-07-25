@@ -379,6 +379,8 @@ renamed_overloads = monitored.Dict('htmldartgenreator.renamed_overloads', {
   'SourceBuffer.appendBuffer(ArrayBufferView view)': 'appendBufferView',
   'URL.createObjectURL(MediaSource source)':
       'createObjectUrlFromSource',
+  'URL.createObjectURL(WebKitMediaSource source)':
+      '_createObjectUrlFromWebKitSource',
   'URL.createObjectURL(MediaStream stream)': 'createObjectUrlFromStream',
   'URL.createObjectURL(Blob blob)': 'createObjectUrlFromBlob',
   'WebGLRenderingContext.texImage2D(unsigned long target, long level, '
