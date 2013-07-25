@@ -15,11 +15,6 @@ scheduled_test/lib/*: Skip
 scheduled_test/test/scheduled_server_test: Pass, Fail, Slow, Crash # Issue 9231, 9582
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 
-# WebDriver tests have 3rd party dependencies (we need to run
-# selenium_standalone.jar), so we skip these in our automated
-# testing.
-webdriver/test/webdriver_test: Skip
-
 [ $compiler == none && $runtime == drt && $mode == debug]
 mdv/test/custom_element_bindings_test: Fail # Issue 11657
 
