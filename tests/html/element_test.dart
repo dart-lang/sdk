@@ -829,16 +829,16 @@ main() {
       var itemii = query('.item-ii');
 
       expect(itema.documentOffset.x, 88);
-      expect(itema.documentOffset.y, inInclusiveRange(119, 124));
+      expect(itema.documentOffset.y, inInclusiveRange(119, 160));
 
       expect(itemii.documentOffset.x, 48);
-      expect(itemii.documentOffset.y, inInclusiveRange(101, 105));
+      expect(itemii.documentOffset.y, inInclusiveRange(101, 145));
 
       expect(itemb.documentOffset.x, 238);
-      expect(itemb.documentOffset.y, inInclusiveRange(157, 165));
+      expect(itemb.documentOffset.y, inInclusiveRange(157, 205));
 
       expect(item1.documentOffset.x, 278);
-      expect(item1.documentOffset.y, inInclusiveRange(175, 182));
+      expect(item1.documentOffset.y, inInclusiveRange(175, 222));
 
       expect(bar.documentOffset.x, 90);
       expect(bar.documentOffset.y, 8);
@@ -847,10 +847,10 @@ main() {
       expect(baz.documentOffset.y, 608);
 
       expect(qux.documentOffset.x, 8);
-      expect(qux.documentOffset.y, inInclusiveRange(222, 232));
+      expect(qux.documentOffset.y, inInclusiveRange(221, 232));
 
       expect(quux.documentOffset.x, 8);
-      expect(quux.documentOffset.y, inInclusiveRange(222, 232));
+      expect(quux.documentOffset.y, inInclusiveRange(221, 232));
     });
   });
 
