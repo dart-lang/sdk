@@ -981,34 +981,6 @@ void NATIVE_ENTRY_FUNCTION(Mirrors_makeLocalClassMirror)(
 }
 
 
-DEFINE_NATIVE_ENTRY(DeclarationMirror_metadata, 1) {
-  const MirrorReference& decl_ref =
-      MirrorReference::CheckedHandle(arguments->NativeArgAt(0));
-  const Object& decl = Object::Handle(decl_ref.referent());
-
-  Class& klass = Class::Handle();
-  if (decl.IsClass()) {
-    klass ^= decl.raw();
-  } else if (decl.IsFunction()) {
-    klass = Function::Cast(decl).origin();
-  } else if (decl.IsField()) {
-    klass = Field::Cast(decl).origin();
-  } else {
-    return Object::empty_array().raw();
-  }
-
-  const Library& library = Library::Handle(klass.library());
-  return library.GetMetadata(decl);
-}
-
-
-void HandleMirrorsMessage(Isolate* isolate,
-                          Dart_Port reply_port,
-                          const Instance& message) {
-  UNIMPLEMENTED();
-}
-
-
 static void ThrowMirroredCompilationError(const String& message) {
   Array& args = Array::Handle(Array::New(1));
   args.SetAt(0, message);
@@ -1028,6 +1000,38 @@ static void ThrowInvokeError(const Error& error) {
   }
   Exceptions::PropagateError(error);
   UNREACHABLE();
+}
+
+
+DEFINE_NATIVE_ENTRY(DeclarationMirror_metadata, 1) {
+  const MirrorReference& decl_ref =
+      MirrorReference::CheckedHandle(arguments->NativeArgAt(0));
+  const Object& decl = Object::Handle(decl_ref.referent());
+
+  Class& klass = Class::Handle();
+  if (decl.IsClass()) {
+    klass ^= decl.raw();
+  } else if (decl.IsFunction()) {
+    klass = Function::Cast(decl).origin();
+  } else if (decl.IsField()) {
+    klass = Field::Cast(decl).origin();
+  } else {
+    return Object::empty_array().raw();
+  }
+
+  const Library& library = Library::Handle(klass.library());
+  const Object& metadata = Object::Handle(library.GetMetadata(decl));
+  if (metadata.IsError()) {
+    ThrowInvokeError(Error::Cast(metadata));
+  }
+  return metadata.raw();
+}
+
+
+void HandleMirrorsMessage(Isolate* isolate,
+                          Dart_Port reply_port,
+                          const Instance& message) {
+  UNIMPLEMENTED();
 }
 
 
