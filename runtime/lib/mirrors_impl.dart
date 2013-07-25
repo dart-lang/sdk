@@ -900,7 +900,6 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
     implements MethodMirror {
   _LocalMethodMirrorImpl(reflectee,
                          this._owner,
-                         this.parameters,
                          this.isStatic,
                          this.isAbstract,
                          this.isGetter,
@@ -965,7 +964,13 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
     return _returnType;
   }
 
-  final List<ParameterMirror> parameters;
+  List<ParameterMirror> _parameters = null;
+  List<ParameterMirror> get parameters {
+    if (_parameters == null) {
+      _parameters = _MethodMirror_parameters(_reflectee);
+    }
+    return _parameters;
+  }
 
   final bool isStatic;
   final bool isAbstract;
@@ -1017,6 +1022,9 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
 
   static dynamic _MethodMirror_return_type(reflectee)
       native "MethodMirror_return_type";
+
+  static List<MethodMirror> _MethodMirror_parameters(reflectee)
+      native "MethodMirror_parameters";
 }
 
 class _LocalVariableMirrorImpl extends _LocalDeclarationMirrorImpl
