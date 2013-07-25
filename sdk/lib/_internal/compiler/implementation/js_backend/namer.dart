@@ -241,7 +241,7 @@ class Namer implements ClosureNamer {
       case 'CALL_CATCH_ALL': return callCatchAllName;
       default:
         compiler.reportErrorCode(
-            argument, MessageKind.GENERIC,
+            node, MessageKind.GENERIC,
             {'text': 'Error: Namer has no name for "$name".'});
         return 'BROKEN';
     }
