@@ -616,6 +616,67 @@ class _StateError extends TypeMatcher {
   bool matches(item, Map matchState) => item is StateError;
 }
 
+/** A matcher for FallThroughError. */
+const isFallThroughError = const _FallThroughError();
+
+/** A matcher for functions that throw FallThroughError. */
+const Matcher throwsFallThroughError =
+    const Throws(isFallThroughError);
+
+class _FallThroughError extends TypeMatcher {
+  const _FallThroughError() : super("FallThroughError");
+  bool matches(item, Map matchState) => item is FallThroughError;
+}
+
+/** A matcher for NullThrownError. */
+const isNullThrownError = const _NullThrownError();
+
+/** A matcher for functions that throw NullThrownError. */
+const Matcher throwsNullThrownError =
+    const Throws(isNullThrownError);
+
+class _NullThrownError extends TypeMatcher {
+  const _NullThrownError() : super("NullThrownError");
+  bool matches(item, Map matchState) => item is NullThrownError;
+}
+
+/** A matcher for ConcurrentModificationError. */
+const isConcurrentModificationError = const _ConcurrentModificationError();
+
+/** A matcher for functions that throw ConcurrentModificationError. */
+const Matcher throwsConcurrentModificationError =
+    const Throws(isConcurrentModificationError);
+
+class _ConcurrentModificationError extends TypeMatcher {
+  const _ConcurrentModificationError() : super("ConcurrentModificationError");
+  bool matches(item, Map matchState) => item is ConcurrentModificationError;
+}
+
+/** A matcher for AbstractClassInstantiationError. */
+const isAbstractClassInstantiationError =
+    const _AbstractClassInstantiationError();
+
+/** A matcher for functions that throw AbstractClassInstantiationError. */
+const Matcher throwsAbstractClassInstantiationError =
+    const Throws(isAbstractClassInstantiationError);
+
+class _AbstractClassInstantiationError extends TypeMatcher {
+  const _AbstractClassInstantiationError() :
+  super("AbstractClassInstantiationError");
+  bool matches(item, Map matchState) => item is AbstractClassInstantiationError;
+}
+
+/** A matcher for CyclicInitializationError. */
+const isCyclicInitializationError = const _CyclicInitializationError();
+
+/** A matcher for functions that throw CyclicInitializationError. */
+const Matcher throwsCyclicInitializationError =
+    const Throws(isCyclicInitializationError);
+
+class _CyclicInitializationError extends TypeMatcher {
+  const _CyclicInitializationError() : super("CyclicInitializationError");
+  bool matches(item, Map matchState) => item is CyclicInitializationError;
+}
 
 /** A matcher for Map types. */
 const isMap = const _IsMap();

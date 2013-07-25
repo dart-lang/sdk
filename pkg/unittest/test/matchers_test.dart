@@ -706,5 +706,61 @@ void main() {
       shouldPass('cow', predicate((x) => x is String, "an instance of String"));
     });
   });
+
+  group('exception/error matchers', () {
+    // TODO(gram): extend this to more types; for now this is just
+    // the types being added in this CL.
+
+    // TODO: enable this test when it works.
+    // See issue 12052.
+    skip_test('throwsCyclicInitializationError', () {
+      expect(() => new Bicycle(), throwsCyclicInitializationError);
+    });
+
+    test('throwsAbstractClassInstantiationError', () {
+      expect(() => new Abstraction(), throwsAbstractClassInstantiationError);
+    });
+
+    test('throwsConcurrentModificationError', () {
+      expect(() {
+        var a = { 'foo': 'bar' };
+        for (var k in a.keys) {
+          a.remove(k);
+        }
+      }, throwsConcurrentModificationError);
+      });
+
+    test('throwsNullThrownError', () {
+      expect(() => throw null, throwsNullThrownError);
+    });
+
+    test('throwsFallThroughError', () {
+      expect(() {
+        var a = 0;
+        switch (a) {
+          case 0:
+            a += 1;
+          case 1:
+            return;
+        }
+      }, throwsFallThroughError);
+    });
+  });
+}
+
+class Bicycle {
+  static var foo = bar();
+
+  static bar() {
+    return foo + 1;
+  }
+
+  X() {
+    print(foo);
+  }
+}
+ 
+abstract class Abstraction {
+  void norealization();
 }
 
