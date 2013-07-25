@@ -194,9 +194,10 @@ abstract class _LocalObjectMirrorImpl extends _LocalMirrorImpl
   }
 
   InstanceMirror setField(Symbol memberName, Object value) {
-    return reflect(this._invokeSetter(_reflectee,
-                                      _n(memberName),
-                                      value)); 
+    this._invokeSetter(_reflectee,
+                       _n(memberName),
+                       value);
+    return reflect(value);
   }
 
   Future<InstanceMirror> invokeAsync(Symbol memberName,
@@ -239,10 +240,10 @@ abstract class _LocalObjectMirrorImpl extends _LocalMirrorImpl
               "a simple value or InstanceMirror";
       }
 
-      var result = this._invokeSetter(_reflectee,
-                                      _n(memberName),
-                                      unwrappedValue);
-      return new Future.value(reflect(result)); 
+      this._invokeSetter(_reflectee,
+                         _n(memberName),
+                         unwrappedValue);
+      return new Future.value(reflect(unwrappedValue)); 
     } catch(e) {
       return new Future.error(e);
     }

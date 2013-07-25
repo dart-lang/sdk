@@ -1009,43 +1009,6 @@ void HandleMirrorsMessage(Isolate* isolate,
 }
 
 
-// TODO(11742): This is transitional.
-static RawInstance* Reflect(const Instance& reflectee) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  return Instance::RawCast(
-      Api::UnwrapHandle(
-          CreateInstanceMirror(
-              Api::NewHandle(isolate, reflectee.raw()))));
-}
-
-
-static void ThrowMirroredUnhandledError(const Error& original_error) {
-  const UnhandledException& unhandled_ex =
-      UnhandledException::Cast(original_error);
-  Instance& exc = Instance::Handle(unhandled_ex.exception());
-  Instance& stack = Instance::Handle(unhandled_ex.stacktrace());
-
-  Object& exc_string_or_error =
-      Object::Handle(DartLibraryCalls::ToString(exc));
-  String& exc_string = String::Handle();
-  // Ignore any errors that might occur in toString.
-  if (exc_string_or_error.IsString()) {
-    exc_string ^= exc_string_or_error.raw();
-  }
-
-  Instance& mirror_on_exc = Instance::Handle(Reflect(exc));
-
-  Array& args = Array::Handle(Array::New(3));
-  args.SetAt(0, mirror_on_exc);
-  args.SetAt(1, exc_string);
-  args.SetAt(2, stack);
-
-  Exceptions::ThrowByType(Exceptions::kMirroredUncaughtExceptionError, args);
-  UNREACHABLE();
-}
-
-
 static void ThrowMirroredCompilationError(const String& message) {
   Array& args = Array::Handle(Array::New(1));
   args.SetAt(0, message);
@@ -1056,16 +1019,14 @@ static void ThrowMirroredCompilationError(const String& message) {
 
 
 static void ThrowInvokeError(const Error& error) {
-  if (error.IsUnhandledException()) {
-    // An ordinary runtime error.
-    ThrowMirroredUnhandledError(error);
-  }
   if (error.IsLanguageError()) {
     // A compilation error that was delayed by lazy compilation.
     const LanguageError& compilation_error = LanguageError::Cast(error);
     String& message = String::Handle(compilation_error.message());
     ThrowMirroredCompilationError(message);
+    UNREACHABLE();
   }
+  Exceptions::PropagateError(error);
   UNREACHABLE();
 }
 
