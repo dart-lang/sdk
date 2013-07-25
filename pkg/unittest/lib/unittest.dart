@@ -200,6 +200,12 @@ final List<TestCase> _testCases = new List<TestCase>();
 final List<TestCase> testCases = new UnmodifiableListView<TestCase>(_testCases);
 
 /**
+ * Interval (in msecs) after which synchronous tests will insert an async
+ * delay to allow DOM or other updates.
+ */
+const int BREATH_INTERVAL = 200;
+
+/**
  * The set of tests to run can be restricted by using [solo_test] and
  * [solo_group].
  * As groups can be nested we use a counter to keep track of the nest level
@@ -292,6 +298,9 @@ TestCase get currentTestCase =>
 bool _initialized = false;
 
 String _uncaughtErrorMessage = null;
+
+/** Time since we last gave non-sync code a chance to be scheduled. */
+int _lastBreath = new DateTime.now().millisecondsSinceEpoch;
 
 /** Test case result strings. */
 // TODO(gram) we should change these constants to use a different string
@@ -644,10 +653,8 @@ void tearDown(Function teardownTest) {
 
 /** Advance to the next test case. */
 void _nextTestCase() {
-  runAsync(() {
-    _currentTestCaseIndex++;
-    _nextBatch();
-  });
+  _currentTestCaseIndex++;
+  _runTest();
 }
 
 /**
@@ -691,12 +698,8 @@ void filterTests(testFilter) {
 void runTests() {
   _ensureInitialized(false);
   _currentTestCaseIndex = 0;
-
   _config.onStart();
-
-  runAsync(() {
-    _nextBatch();
-  });
+  _runTest();
 }
 
 /**
@@ -740,25 +743,23 @@ void _registerException(TestCase testCase, e, [trace]) {
 }
 
 /**
- * Runs a batch of tests, yielding whenever an asynchronous test starts
- * running. Tests will resume executing when such asynchronous test calls
- * [done] or if it fails with an exception.
+ * Runs the next test.
  */
-void _nextBatch() {
-  while (true) {
-    if (_currentTestCaseIndex >= testCases.length) {
-      _completeTests();
-      break;
-    }
+void _runTest() {
+  if (_currentTestCaseIndex >= testCases.length) {
+    _completeTests();
+  } else {
     final testCase = testCases[_currentTestCaseIndex];
     var f = _guardAsync(testCase._run, null, testCase);
-    if (f != null) {
-      f.whenComplete(() {
-        _nextTestCase(); // Schedule the next test.
-      });
-      break;
-    }
-    _currentTestCaseIndex++;
+    f.whenComplete(() {
+      var now = new DateTime.now().millisecondsSinceEpoch;
+      if ((now - _lastBreath) >= BREATH_INTERVAL) {
+        _lastBreath = now;
+        Timer.run(_nextTestCase);
+      } else {
+        runAsync(_nextTestCase); // Schedule the next test.
+      }
+    });
   }
 }
 
