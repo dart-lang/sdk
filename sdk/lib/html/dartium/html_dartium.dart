@@ -9261,6 +9261,46 @@ abstract class Element extends Node implements ParentNode, ChildNode {
    */
   @Experimental()
   CssRect get marginEdge => new _MarginCssRect(this);
+
+  /** 
+   * Provides the coordinates of the element relative to the top of the 
+   * document. 
+   *
+   * This method is the Dart equivalent to jQuery's 
+   * [offset](http://api.jquery.com/offset/) method.
+   */
+  Point get documentOffset => offsetTo(document.documentElement);
+
+  /** 
+   * Provides the offset of this element's [borderEdge] relative to the
+   * specified [parent].
+   * 
+   * This is the Dart equivalent of jQuery's
+   * [position](http://api.jquery.com/position/) method. Unlike jQuery's
+   * position, however, [parent] can be any parent element of `this`, 
+   * rather than only `this`'s immediate [offsetParent]. If the specified
+   * element is _not_ an offset parent or transitive offset parent to this
+   * element, an [ArgumentError] is thrown.
+   */
+  Point offsetTo(Element parent) {
+    return Element._offsetToHelper(this, parent);
+  }
+
+  static Point _offsetToHelper(Element current, Element parent) {
+    // We're hopping from _offsetParent_ to offsetParent (not just parent), so
+    // offsetParent, "tops out" at BODY. But people could conceivably pass in 
+    // the document.documentElement and I want it to return an absolute offset,
+    // so we have the special case checking for HTML.
+    bool foundAsParent = identical(current, parent) || parent.tagName == 'HTML';
+    if (current == null || identical(current, parent)) {
+      if (foundAsParent) return new Point(0, 0);
+      throw new ArgumentError("Specified element is not a transitive offset "
+          "parent of this element.");
+    } 
+    Element parentOffset = current.offsetParent;
+    Point p = Element._offsetToHelper(parentOffset, parent);
+    return new Point(p.x + current.offsetLeft, p.y + current.offsetTop);
+  }
   // To suppress missing implicit constructor warnings.
   factory Element._() { throw new UnsupportedError("Not supported"); }
 
