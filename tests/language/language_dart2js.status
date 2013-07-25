@@ -36,8 +36,6 @@ full_stacktrace3_test: Pass, Fail  # issue 9895
 # Stack traces may or may not end in a newline depending on the JS enging.
 stacktrace_test: Pass, Fail # Assumes stack trace string ends in newline.
 
-error_stacktrace_test: Fail # (Issue 11681).
-
 # VM specific tests that should not be run by dart2js.
 *vm_test: Skip
 *vm_negative_test: Skip
@@ -120,6 +118,7 @@ getter_no_setter_test/01: Fail # http://dartbug.com/5519
 isnot_malformed_type_test/01: Fail # http://dartbug.com/5519
 not_enough_positional_arguments_test/01: Fail # http://dartbug.com/5519
 no_such_method_dispatcher_test: Fail # http://dartbug.com/11937
+error_stacktrace_test: Fail # (Issue 11681).
 
 constructor_negative_test: Pass # Wrong reason: the expression 'C()' is valid with class literals.
 
