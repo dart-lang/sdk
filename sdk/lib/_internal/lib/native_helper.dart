@@ -139,36 +139,27 @@ newJsObject() {
   return JS('var', '{}');
 }
 
-/**
- * Cached value for the function to use to get the type name of an
- * object.
- */
-Function _getTypeNameOf;
-
-/**
- * Returns the type name of [obj].
- */
-String getTypeNameOf(var obj) {
-  if (_getTypeNameOf == null) _getTypeNameOf = getFunctionForTypeNameOf();
-  return _getTypeNameOf(obj);
-}
+Function getTypeNameOf = getFunctionForTypeNameOf();
 
 /**
  * Returns the function to use to get the type name (i.e. dispatch tag) of an
  * object.
  */
 Function getFunctionForTypeNameOf() {
-  var getTagFunction = _getFunctionForTypeNameOf();
+  var getTagFunction = getBaseFunctionForTypeNameOf();
   if (JS('bool', 'typeof dartExperimentalFixupGetTag == "function"')) {
-    return _applyExperimentalFixup(
+    return applyExperimentalFixup(
         JS('', 'dartExperimentalFixupGetTag'), getTagFunction);
   }
   return getTagFunction;
 }
 
-Function _getFunctionForTypeNameOf() {
+/// Don't call directly, use [getFunctionForTypeNameOf] instead.
+Function getBaseFunctionForTypeNameOf() {
   // If we're not in the browser, we're almost certainly running on v8.
-  if (!identical(JS('String', 'typeof(navigator)'), 'object')) return typeNameInChrome;
+  if (!identical(JS('String', 'typeof(navigator)'), 'object')) {
+    return typeNameInChrome;
+  }
 
   String userAgent = JS('String', "navigator.userAgent");
   // TODO(antonm): remove a reference to DumpRenderTree.
@@ -191,15 +182,14 @@ Function _getFunctionForTypeNameOf() {
   }
 }
 
-Function _applyExperimentalFixup(fixupJSFunction,
-                                 Function originalGetTagFunction) {
-  // Since DART_CLOSURE_TO_JS works only for top level functions, store the
-  // closed over JavaScript function in a top level variable and use a top level
-  // function.  This is fine since we have only one instance of the 'closure'.
-  _getTagJSFunction = originalGetTagFunction;
+Function applyExperimentalFixup(fixupJSFunction,
+                                Function originalGetTagDartFunction) {
+  var originalGetTagJSFunction =
+      convertDartClosure1ArgToJSNoDataConversions(
+          originalGetTagDartFunction);
+
   var newGetTagJSFunction =
-      JS('', '#(#)',
-         fixupJSFunction, DART_CLOSURE_TO_JS(_callGetTagJSFunction));
+      JS('', '#(#)', fixupJSFunction, originalGetTagJSFunction);
 
   String newGetTagDartFunction(object) =>
       JS('', '#(#)', newGetTagJSFunction, object);
@@ -207,10 +197,15 @@ Function _applyExperimentalFixup(fixupJSFunction,
   return newGetTagDartFunction;
 }
 
-var _getTagJSFunction;
-_callGetTagJSFunction(object) => _getTagJSFunction(object);
+callDartFunctionWith1Arg(fn, arg) => fn(arg);
 
-
+convertDartClosure1ArgToJSNoDataConversions(dartClosure) {
+  return JS('',
+      '(function(invoke, closure){'
+        'return function(arg){ return invoke(closure, arg); };'
+      '})(#, #)',
+      DART_CLOSURE_TO_JS(callDartFunctionWith1Arg), dartClosure);
+}
 
 
 String toStringForNativeObject(var obj) {
