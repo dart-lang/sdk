@@ -450,6 +450,14 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
 
   var _superclass;
   ClassMirror get superclass {
+    if (_superclass == null) {
+      Type supertype = _supertype(_reflectee);
+      if (supertype == null) {
+        // Object has no superclass.
+        return null;
+      }
+      _superclass = reflectClass(supertype);
+    }
     if (_superclass is! Mirror) {
       _superclass = _superclass.resolve(mirrors);
     }
@@ -591,6 +599,9 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
 
   static _library(reflectee)
       native "ClassMirror_library";
+
+  static _supertype(reflectee)
+      native "ClassMirror_supertype";
 
   _computeMembers(reflectee)
       native "ClassMirror_members";

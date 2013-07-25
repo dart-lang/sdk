@@ -511,12 +511,7 @@ static Dart_Handle CreateClassMirrorUsingApi(Dart_Handle intf,
     return type;
   }
 
-  // TODO(turnidge): Why am I getting Null when I expect Object?
-  // TODO(gbracha): this is probably the root of bug 7868
-  Dart_Handle super_class = Dart_GetSuperclass(intf);
-  if (Dart_IsNull(super_class)) {
-    super_class = Dart_GetClass(CoreLib(), NewString("Object"));
-  }
+  Dart_Handle super_class = Dart_Null();
   // TODO(turnidge): Simplify code, now that default classes have been removed.
   Dart_Handle default_class = Dart_Null();
 
@@ -538,7 +533,7 @@ static Dart_Handle CreateClassMirrorUsingApi(Dart_Handle intf,
     Dart_Null(),  // "name"
     Dart_NewBoolean(Dart_IsClass(intf)),
     lib_mirror,
-    CreateLazyMirror(super_class),
+    super_class,
     CreateImplementsList(intf),
     CreateLazyMirror(default_class),
     constructor_map,
@@ -1036,6 +1031,12 @@ DEFINE_NATIVE_ENTRY(ClassMirror_library, 1) {
   return CreateLibraryMirror(Library::Handle(klass.library()));
 }
 
+
+DEFINE_NATIVE_ENTRY(ClassMirror_supertype, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
+  const Class& klass = Class::Handle(ref.GetClassReferent());
+  return klass.super_type();
+}
 
 DEFINE_NATIVE_ENTRY(ClassMirror_members, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance,
