@@ -24891,9 +24891,34 @@ class UnknownElement extends _HTMLElement {
 @DomName('URL')
 class Url extends NativeFieldWrapperClass1 {
 
-  @DomName('URL.createObjectURL')
+  @DomName('URL._createObjectUrlFromWebKitSource')
   @DocsEditable()
-  static String createObjectUrl(_WebKitMediaSource source) native "URL_createObjectURL_Callback";
+  @Experimental() // untriaged
+  static String _createObjectUrlFromWebKitSource(_WebKitMediaSource source) native "URL__createObjectUrlFromWebKitSource_Callback";
+
+  static String createObjectUrl(blob_OR_source_OR_stream) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+      return _createObjectURL_1(blob_OR_source_OR_stream);
+    }
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+      return _createObjectURL_2(blob_OR_source_OR_stream);
+    }
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+      return _createObjectURL_3(blob_OR_source_OR_stream);
+    }
+    if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
+      return _createObjectURL_4(blob_OR_source_OR_stream);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  static String _createObjectURL_1(blob_OR_source_OR_stream) native "URL__createObjectURL_1_Callback";
+
+  static String _createObjectURL_2(blob_OR_source_OR_stream) native "URL__createObjectURL_2_Callback";
+
+  static String _createObjectURL_3(blob_OR_source_OR_stream) native "URL__createObjectURL_3_Callback";
+
+  static String _createObjectURL_4(blob_OR_source_OR_stream) native "URL__createObjectURL_4_Callback";
 
   @DomName('URL.createObjectUrlFromBlob')
   @DocsEditable()

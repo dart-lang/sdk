@@ -10373,6 +10373,9 @@
       "_createObjectUrlFromWebKitMediaSource": {
         "support_level": "untriaged"
       },
+      "_createObjectUrlFromWebKitSource": {
+        "support_level": "untriaged"
+      },
       "createObjectURL": {},
       "createObjectUrlFromBlob": {},
       "createObjectUrlFromSource": {},

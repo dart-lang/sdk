@@ -23263,6 +23263,11 @@ class Url extends Interceptor native "URL" {
       JS('void',
          '(self.URL || self.webkitURL).revokeObjectURL(#)', url);
 
+  @JSName('createObjectURL')
+  @DomName('URL.createObjectURL')
+  @DocsEditable()
+  static String _createObjectUrlFromWebKitSource(_WebKitMediaSource source) native;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
