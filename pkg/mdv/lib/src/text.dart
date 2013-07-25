@@ -8,37 +8,16 @@ part of mdv;
 class _TextExtension extends _NodeExtension {
   _TextExtension(Text node) : super(node);
 
-  Text get node => super.node;
-
-  StreamSubscription _textBinding;
-
-  void bind(String name, model, String path) {
-    if (name != 'text') {
-      super.bind(name, model, path);
-      return;
-    }
-
-    unbind('text');
-
-    _textBinding = new PathObserver(model, path).bindSync((value) {
-      node.text = value == null ? '' : '$value';
-    });
+  NodeBinding createBinding(String name, model, String path) {
+    if (name == 'text') return new _TextBinding(node, model, path);
+    return super.createBinding(name, model, path);
   }
+}
 
-  void unbind(String name) {
-    if (name != 'text') {
-      super.unbind(name);
-      return;
-    }
+class _TextBinding extends NodeBinding {
+  _TextBinding(node, model, path) : super(node, 'text', model, path);
 
-    if (_textBinding == null) return;
-
-    _textBinding.cancel();
-    _textBinding = null;
-  }
-
-  void unbindAll() {
-    unbind('text');
-    super.unbindAll();
+  void boundValueChanged(newValue) {
+    node.text = sanitizeBoundValue(newValue);
   }
 }

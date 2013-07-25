@@ -13,7 +13,9 @@ class _TemplateExtension extends _ElementExtension {
 
   _TemplateExtension(Element node) : super(node);
 
-  void bind(String name, model, String path) {
+  Element get node => super.node;
+
+  NodeBinding createBinding(String name, model, String path) {
     switch (name) {
       case 'bind':
       case 'repeat':
@@ -21,32 +23,12 @@ class _TemplateExtension extends _ElementExtension {
         if (_templateIterator == null) {
           _templateIterator = new _TemplateIterator(node);
         }
-        _templateIterator.inputs.bind(name, model, path);
-        return;
+        // TODO(jmesserly): why do we do this here and nowhere else?
+        if (path == null) path = '';
+        return new _TemplateBinding(node, name, model, path);
       default:
-        super.bind(name, model, path);
+        return super.createBinding(name, model, path);
     }
-  }
-
-  void unbind(String name) {
-    switch (name) {
-      case 'bind':
-      case 'repeat':
-      case 'if':
-        if (_templateIterator != null) {
-          _templateIterator.inputs.unbind(name);
-        }
-        return;
-      default:
-        super.unbind(name);
-    }
-  }
-
-  void unbindAll() {
-    unbind('bind');
-    unbind('repeat');
-    unbind('if');
-    super.unbindAll();
   }
 
   /**
@@ -96,5 +78,25 @@ class _TemplateExtension extends _ElementExtension {
   void _setModel() {
     _scheduled = false;
     _addBindings(node, _model, _bindingDelegate);
+  }
+}
+
+class _TemplateBinding extends NodeBinding {
+  // TODO(jmesserly): MDV uses TemplateIterator as the node, see:
+  // https://github.com/Polymer/mdv/issues/127
+  _TemplateBinding(node, name, model, path)
+      : super(node, name, model, path) {
+    _mdv(node)._templateIterator.inputs.bind(property, model, path);
+  }
+
+  // These are no-ops because we don't use the underlying PathObserver.
+  void _observePath() {}
+  void boundValueChanged(newValue) {}
+
+  void close() {
+    if (closed) return;
+    var templateIterator = _mdv(node)._templateIterator;
+    if (templateIterator != null) templateIterator.inputs.unbind(property);
+    super.close();
   }
 }

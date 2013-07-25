@@ -38,6 +38,18 @@ class ListChangeDelta implements ListChangeRecord {
 
   int get removedCount => _removed.length;
 
+  /** Returns true if the provided index was changed by this operation. */
+  bool changes(key) {
+    // If key isn't an int, or before the index, then it wasn't changed.
+    if (key is! int || key < index) return false;
+
+    // If this was a shift operation, anything after index is changed.
+    if (addedCount != removedCount) return true;
+
+    // Otherwise, anything in the update range was changed.
+    return key < index + addedCount;
+  }
+
   String toString() => '#<$runtimeType index: $index, '
       'removed: $removed, addedCount: $addedCount>';
 }

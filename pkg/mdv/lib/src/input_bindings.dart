@@ -4,27 +4,21 @@
 
 part of mdv;
 
-abstract class _InputBinding {
-  // InputElement or SelectElement
-  final element;
-  PathObserver binding;
-  StreamSubscription _pathSub;
+abstract class _InputBinding extends NodeBinding {
   StreamSubscription _eventSub;
 
-  _InputBinding(this.element, model, String path) {
-    binding = new PathObserver(model, path);
-    _pathSub = binding.bindSync(valueChanged);
-    _eventSub = _getStreamForInputType(element).listen(updateBinding);
+  _InputBinding(node, name, model, path): super(node, name, model, path) {
+    _eventSub = _getStreamForInputType(node).listen(nodeValueChanged);
   }
 
-  void valueChanged(newValue);
+  void boundValueChanged(newValue);
 
-  void updateBinding(e);
+  void nodeValueChanged(e);
 
-  void unbind() {
-    binding = null;
-    _pathSub.cancel();
+  void close() {
+    if (closed) return;
     _eventSub.cancel();
+    super.close();
   }
 
   static EventStreamProvider<Event> _checkboxEventType = () {
@@ -61,39 +55,41 @@ abstract class _InputBinding {
 }
 
 class _ValueBinding extends _InputBinding {
-  _ValueBinding(element, model, path) : super(element, model, path);
+  _ValueBinding(node, model, path) : super(node, 'value', model, path);
 
-  void valueChanged(value) {
-    // Note: element can be an InputElement or TextAreaElement.
-    element.value = value == null ? '' : '$value';
+  get node => super.node;
+
+  void boundValueChanged(newValue) {
+    // Note: node can be an InputElement or TextAreaElement. Both have "value".
+    (node as dynamic).value = sanitizeBoundValue(newValue);
   }
 
-  void updateBinding(e) {
-    binding.value = element.value;
+  void nodeValueChanged(e) {
+    value = (node as dynamic).value;
   }
 }
 
 class _CheckedBinding extends _InputBinding {
-  _CheckedBinding(element, model, path) : super(element, model, path);
+  _CheckedBinding(node, model, path) : super(node, 'checked', model, path);
 
-  InputElement get element => super.element;
+  InputElement get node => super.node;
 
-  void valueChanged(value) {
-    element.checked = _toBoolean(value);
+  void boundValueChanged(newValue) {
+    node.checked = _toBoolean(newValue);
   }
 
-  void updateBinding(e) {
-    binding.value = element.checked;
+  void nodeValueChanged(e) {
+    value = node.checked;
 
     // Only the radio button that is getting checked gets an event. We
     // therefore find all the associated radio buttons and update their
     // CheckedBinding manually.
-    if (element is InputElement && element.type == 'radio') {
-      for (var r in _getAssociatedRadioButtons(element)) {
-        var checkedBinding = _mdv(r)._checkedBinding;
+    if (node is InputElement && node.type == 'radio') {
+      for (var r in _getAssociatedRadioButtons(node)) {
+        var checkedBinding = r.bindings['checked'];
         if (checkedBinding != null) {
           // Set the value directly to avoid an infinite call stack.
-          checkedBinding.binding.value = false;
+          checkedBinding.value = false;
         }
       }
     }
@@ -135,14 +131,15 @@ class _CheckedBinding extends _InputBinding {
 }
 
 class _SelectedIndexBinding extends _InputBinding {
-  _SelectedIndexBinding(element, model, path) : super(element, model, path);
+  _SelectedIndexBinding(node, model, path)
+      : super(node, 'selectedIndex', model, path);
 
-  SelectElement get element => super.element;
+  SelectElement get node => super.node;
 
-  void valueChanged(value) {
+  void boundValueChanged(value) {
     var newValue = _toInt(value);
-    if (newValue <= element.length) {
-      element.selectedIndex = newValue;
+    if (newValue <= node.length) {
+      node.selectedIndex = newValue;
       return;
     }
 
@@ -163,18 +160,18 @@ class _SelectedIndexBinding extends _InputBinding {
     // The resulting 2 * 2 is our maxRetries.
     var maxRetries = 4;
     delaySetSelectedIndex() {
-      if (newValue > element.length && --maxRetries >= 0) {
+      if (newValue > node.length && --maxRetries >= 0) {
         runAsync(delaySetSelectedIndex);
       } else {
-        element.selectedIndex = newValue;
+        node.selectedIndex = newValue;
       }
     }
 
     runAsync(delaySetSelectedIndex);
   }
 
-  void updateBinding(e) {
-    binding.value = element.selectedIndex;
+  void nodeValueChanged(e) {
+    value = node.selectedIndex;
   }
 
   // TODO(jmesserly,sigmund): I wonder how many bindings typically convert from

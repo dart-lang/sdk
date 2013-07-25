@@ -8,56 +8,41 @@ part of mdv;
 class _ElementExtension extends _NodeExtension {
   _ElementExtension(Element node) : super(node);
 
-  Element get node => super.node;
-
-  Map<String, StreamSubscription> _attributeBindings;
-
   // TODO(jmesserly): should path be optional, and default to empty path?
   // It is used that way in at least one path in JS TemplateElement tests
   // (see "BindImperative" test in original JS code).
-  void bind(String name, model, String path) {
-    if (_attributeBindings == null) {
-      _attributeBindings = new Map<String, StreamSubscription>();
-    }
+  NodeBinding createBinding(String name, model, String path) =>
+      new _AttributeBinding(node, name, model, path);
+}
 
-    var changed;
-    if (name.endsWith('?')) {
+class _AttributeBinding extends NodeBinding {
+  final bool conditional;
+
+  _AttributeBinding._(node, name, model, path, this.conditional)
+      : super(node, name, model, path);
+
+  factory _AttributeBinding(Element node, name, model, path) {
+    bool conditional = name.endsWith('?');
+    if (conditional) {
       node.xtag.attributes.remove(name);
       name = name.substring(0, name.length - 1);
-
-      changed = (value) {
-        if (_toBoolean(value)) {
-          node.xtag.attributes[name] = '';
-        } else {
-          node.xtag.attributes.remove(name);
-        }
-      };
-    } else {
-      changed = (value) {
-        // TODO(jmesserly): escape value if needed to protect against XSS.
-        // See https://github.com/polymer-project/mdv/issues/58
-        node.xtag.attributes[name] = value == null ? '' : '$value';
-      };
     }
-
-    unbind(name);
-
-    _attributeBindings[name] = new PathObserver(model, path).bindSync(changed);
+    return new _AttributeBinding._(node, name, model, path, conditional);
   }
 
-  void unbind(String name) {
-    if (_attributeBindings != null) {
-      var binding = _attributeBindings.remove(name);
-      if (binding != null) binding.cancel();
-    }
-  }
+  Element get node => super.node;
 
-  void unbindAll() {
-    if (_attributeBindings != null) {
-      for (var binding in _attributeBindings.values) {
-        binding.cancel();
+  void boundValueChanged(value) {
+    if (conditional) {
+      if (_toBoolean(value)) {
+        node.xtag.attributes[property] = '';
+      } else {
+        node.xtag.attributes.remove(property);
       }
-      _attributeBindings = null;
+    } else {
+      // TODO(jmesserly): escape value if needed to protect against XSS.
+      // See https://github.com/polymer-project/mdv/issues/58
+      node.xtag.attributes[property] = sanitizeBoundValue(value);
     }
   }
 }

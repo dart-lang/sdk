@@ -6,29 +6,16 @@ part of mdv;
 
 /** Extensions to the [TextAreaElement] API. */
 class _TextAreaElementExtension extends _ElementExtension {
-  _ValueBinding _valueBinding;
-
   _TextAreaElementExtension(TextAreaElement node) : super(node);
 
   TextAreaElement get node => super.node;
 
-  void bind(String name, model, String path) {
-    if (name.toLowerCase() == 'value') {
-      unbind('value');
-      node.attributes.remove('value');
-      _valueBinding = new _ValueBinding(node, model, path);
+  NodeBinding createBinding(String name, model, String path) {
+    if (name == 'value') {
+      // TODO(rafaelw): Maybe template should remove all binding instructions.
+      node.attributes.remove(name);
+      return new _ValueBinding(node, model, path);
     }
-  }
-
-  void unbind(String name) {
-    if (name.toLowerCase() == 'value' && _valueBinding != null) {
-      _valueBinding.unbind();
-      _valueBinding = null;
-    }
-  }
-
-  void unbindAll() {
-    unbind('value');
-    super.unbindAll();
+    return super.createBinding(name, model, path);
   }
 }

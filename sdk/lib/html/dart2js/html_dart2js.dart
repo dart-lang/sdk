@@ -17016,6 +17016,7 @@ class TemplateInstance {
   TemplateInstance(this.firstNode, this.lastNode, this.model);
 }
 
+
 @DomName('Node')
 class Node extends EventTarget native "Node" {
   List<Node> get nodes {
@@ -17089,14 +17090,28 @@ class Node extends EventTarget native "Node" {
    */
   String toString() => nodeValue == null ? super.toString() : nodeValue;
 
+
+  /**
+   * Creates a binding to the attribute [name] to the [path] of the [model].
+   *
+   * This can be overridden by custom elements to provide the binding used in
+   * [Node.bind]. This will only create the binding; it will not add it to
+   * [bindings].
+   *
+   * You should not need to call this directly except from [Node.bind].
+   */
+  @Experimental()
+  createBinding(String name, model, String path) =>
+      TemplateElement.mdvPackage(this).createBinding(name, model, path);
+
   /**
    * Binds the attribute [name] to the [path] of the [model].
    * Path is a String of accessors such as `foo.bar.baz`.
+   * Returns the `NodeBinding` instance.
    */
   @Experimental()
-  void bind(String name, model, String path) {
-    TemplateElement.mdvPackage(this).bind(name, model, path);
-  }
+  bind(String name, model, String path) =>
+      TemplateElement.mdvPackage(this).bind(name, model, path);
 
   /** Unbinds the attribute [name]. */
   @Experimental()
@@ -17109,6 +17124,11 @@ class Node extends EventTarget native "Node" {
   void unbindAll() {
     TemplateElement.mdvPackage(this).unbindAll();
   }
+
+  /** Gets the data bindings that are associated with this node. */
+  @Experimental()
+  Map<String, dynamic> get bindings =>
+      TemplateElement.mdvPackage(this).bindings;
 
   /** Gets the template instance that instantiated this node, if any. */
   @Experimental()
