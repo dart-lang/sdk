@@ -36,9 +36,19 @@ DEFINE_FLAG(bool, truncating_left_shift, true,
 DEFINE_FLAG(bool, use_cha, true, "Use class hierarchy analysis.");
 DEFINE_FLAG(bool, trace_load_optimization, false,
     "Print live sets for load optimization pass.");
+DEFINE_FLAG(bool, enable_simd_inline, true,
+    "Enable inlining of SIMD related method calls.");
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, trace_type_check_elimination);
+
+
+static bool ShouldInlineSimd() {
+#if defined(TARGET_ARCH_MIPS)
+  return false;
+#endif
+  return FLAG_enable_simd_inline;
+}
 
 
 // Optimize instance calls using ICData.
@@ -440,10 +450,14 @@ static bool UnboxPhi(PhiInstr* phi) {
       unboxed = kUnboxedDouble;
       break;
     case kFloat32x4Cid:
-      unboxed = kUnboxedFloat32x4;
+      if (ShouldInlineSimd()) {
+        unboxed = kUnboxedFloat32x4;
+      }
       break;
     case kUint32x4Cid:
-      unboxed = kUnboxedUint32x4;
+      if (ShouldInlineSimd()) {
+        unboxed = kUnboxedUint32x4;
+      }
       break;
   }
 
@@ -820,6 +834,9 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
       break;
     }
     case kTypedDataFloat32x4ArrayCid: {
+      if (!ShouldInlineSimd()) {
+        return false;
+      }
       // Check that value is always a Float32x4.
       value_check = call->ic_data()->AsUnaryClassChecksForArgNr(2);
       if ((value_check.NumberOfChecks() != 1) ||
@@ -952,7 +969,6 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
     case kGrowableObjectArrayCid:
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
-    case kTypedDataFloat32x4ArrayCid:
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
     case kTypedDataUint8ClampedArrayCid:
@@ -960,6 +976,11 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
     case kExternalTypedDataUint8ClampedArrayCid:
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid:
+      break;
+    case kTypedDataFloat32x4ArrayCid:
+      if (!ShouldInlineSimd()) {
+        return false;
+      }
       break;
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid: {
@@ -1131,45 +1152,9 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
       ReplaceCall(call, bin_op);
     }
   } else if (operands_type == kFloat32x4Cid) {
-    // Type check left.
-    AddCheckClass(left,
-                  ICData::ZoneHandle(
-                      call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                  call->deopt_id(),
-                  call->env(),
-                  call);
-    // Type check right.
-    AddCheckClass(right,
-                  ICData::ZoneHandle(
-                      call->ic_data()->AsUnaryClassChecksForArgNr(1)),
-                  call->deopt_id(),
-                  call->env(),
-                  call);
-    // Replace call.
-    BinaryFloat32x4OpInstr* float32x4_bin_op =
-        new BinaryFloat32x4OpInstr(op_kind, new Value(left), new Value(right),
-                                   call->deopt_id());
-    ReplaceCall(call, float32x4_bin_op);
+    return InlineFloat32x4BinaryOp(call, op_kind);
   } else if (operands_type == kUint32x4Cid) {
-    // Type check left.
-    AddCheckClass(left,
-                  ICData::ZoneHandle(
-                      call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                  call->deopt_id(),
-                  call->env(),
-                  call);
-    // Type check right.
-    AddCheckClass(right,
-                  ICData::ZoneHandle(
-                      call->ic_data()->AsUnaryClassChecksForArgNr(1)),
-                  call->deopt_id(),
-                  call->env(),
-                  call);
-    // Replace call.
-    BinaryUint32x4OpInstr* uint32x4_bin_op =
-        new BinaryUint32x4OpInstr(op_kind, new Value(left), new Value(right),
-                                  call->deopt_id());
-    ReplaceCall(call, uint32x4_bin_op);
+    return InlineUint32x4BinaryOp(call, op_kind);
   } else if (op_kind == Token::kMOD) {
     // TODO(vegorov): implement fast path code for modulo.
     ASSERT(operands_type == kSmiCid);
@@ -1465,6 +1450,9 @@ static intptr_t OffsetForLengthGetter(MethodRecognizer::Kind kind) {
 
 bool FlowGraphOptimizer::InlineFloat32x4Getter(InstanceCallInstr* call,
                                                MethodRecognizer::Kind getter) {
+  if (!ShouldInlineSimd()) {
+    return false;
+  }
   AddCheckClass(call->ArgumentAt(0),
                 ICData::ZoneHandle(
                     call->ic_data()->AsUnaryClassChecksForArgNr(0)),
@@ -1496,6 +1484,9 @@ bool FlowGraphOptimizer::InlineFloat32x4Getter(InstanceCallInstr* call,
 
 bool FlowGraphOptimizer::InlineUint32x4Getter(InstanceCallInstr* call,
                                               MethodRecognizer::Kind getter) {
+  if (!ShouldInlineSimd()) {
+    return false;
+  }
   AddCheckClass(call->ArgumentAt(0),
                 ICData::ZoneHandle(
                     call->ic_data()->AsUnaryClassChecksForArgNr(0)),
@@ -1507,6 +1498,69 @@ bool FlowGraphOptimizer::InlineUint32x4Getter(InstanceCallInstr* call,
       new Value(call->ArgumentAt(0)),
       call->deopt_id());
   ReplaceCall(call, instr);
+  return true;
+}
+
+
+bool FlowGraphOptimizer::InlineFloat32x4BinaryOp(InstanceCallInstr* call,
+                                                 Token::Kind op_kind) {
+  if (!ShouldInlineSimd()) {
+    return false;
+  }
+  ASSERT(call->ArgumentCount() == 2);
+  Definition* left = call->ArgumentAt(0);
+  Definition* right = call->ArgumentAt(1);
+  // Type check left.
+  AddCheckClass(left,
+                ICData::ZoneHandle(
+                    call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                call->deopt_id(),
+                call->env(),
+                call);
+  // Type check right.
+  AddCheckClass(right,
+                ICData::ZoneHandle(
+                    call->ic_data()->AsUnaryClassChecksForArgNr(1)),
+                call->deopt_id(),
+                call->env(),
+                call);
+  // Replace call.
+  BinaryFloat32x4OpInstr* float32x4_bin_op =
+      new BinaryFloat32x4OpInstr(op_kind, new Value(left), new Value(right),
+                                 call->deopt_id());
+  ReplaceCall(call, float32x4_bin_op);
+
+  return true;
+}
+
+
+bool FlowGraphOptimizer::InlineUint32x4BinaryOp(InstanceCallInstr* call,
+                                                Token::Kind op_kind) {
+  if (!ShouldInlineSimd()) {
+    return false;
+  }
+  ASSERT(call->ArgumentCount() == 2);
+  Definition* left = call->ArgumentAt(0);
+  Definition* right = call->ArgumentAt(1);
+  // Type check left.
+  AddCheckClass(left,
+                ICData::ZoneHandle(
+                    call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                call->deopt_id(),
+                call->env(),
+                call);
+  // Type check right.
+  AddCheckClass(right,
+                ICData::ZoneHandle(
+                    call->ic_data()->AsUnaryClassChecksForArgNr(1)),
+                call->deopt_id(),
+                call->env(),
+                call);
+  // Replace call.
+  BinaryUint32x4OpInstr* uint32x4_bin_op =
+      new BinaryUint32x4OpInstr(op_kind, new Value(left), new Value(right),
+                                call->deopt_id());
+  ReplaceCall(call, uint32x4_bin_op);
   return true;
 }
 
@@ -1901,9 +1955,62 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 }
 
 
+bool FlowGraphOptimizer::TryInlineFloat32x4Constructor(
+    StaticCallInstr* call,
+    MethodRecognizer::Kind recognized_kind) {
+  if (!ShouldInlineSimd()) {
+    return false;
+  }
+  if (recognized_kind == MethodRecognizer::kFloat32x4Zero) {
+    Float32x4ZeroInstr* zero = new Float32x4ZeroInstr(call->deopt_id());
+    ReplaceCall(call, zero);
+    return true;
+  } else if (recognized_kind == MethodRecognizer::kFloat32x4Splat) {
+    Float32x4SplatInstr* splat =
+        new Float32x4SplatInstr(new Value(call->ArgumentAt(1)),
+                                call->deopt_id());
+    ReplaceCall(call, splat);
+    return true;
+  } else if (recognized_kind == MethodRecognizer::kFloat32x4Constructor) {
+    Float32x4ConstructorInstr* con =
+        new Float32x4ConstructorInstr(new Value(call->ArgumentAt(1)),
+                                      new Value(call->ArgumentAt(2)),
+                                      new Value(call->ArgumentAt(3)),
+                                      new Value(call->ArgumentAt(4)),
+                                      call->deopt_id());
+    ReplaceCall(call, con);
+    return true;
+  }
+  return false;
+}
+
+
+bool FlowGraphOptimizer::TryInlineUint32x4Constructor(
+    StaticCallInstr* call,
+    MethodRecognizer::Kind recognized_kind) {
+  if (!ShouldInlineSimd()) {
+    return false;
+  }
+  if (recognized_kind == MethodRecognizer::kUint32x4BoolConstructor) {
+    Uint32x4BoolConstructorInstr* con = new Uint32x4BoolConstructorInstr(
+        new Value(call->ArgumentAt(1)),
+        new Value(call->ArgumentAt(2)),
+        new Value(call->ArgumentAt(3)),
+        new Value(call->ArgumentAt(4)),
+        call->deopt_id());
+    ReplaceCall(call, con);
+    return true;
+  }
+  return false;
+}
+
+
 bool FlowGraphOptimizer::TryInlineFloat32x4Method(
     InstanceCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
+  if (!ShouldInlineSimd()) {
+    return false;
+  }
   ASSERT(call->HasICData());
   switch (recognized_kind) {
     case MethodRecognizer::kFloat32x4Equal:
@@ -2060,6 +2167,9 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Method(
 bool FlowGraphOptimizer::TryInlineUint32x4Method(
     InstanceCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
+  if (!ShouldInlineSimd()) {
+    return false;
+  }
   ASSERT(call->HasICData());
   switch (recognized_kind) {
     case MethodRecognizer::kUint32x4Select: {
@@ -2126,6 +2236,10 @@ bool FlowGraphOptimizer::BuildByteArrayViewLoad(
     InstanceCallInstr* call,
     intptr_t receiver_cid,
     intptr_t view_cid) {
+  if ((view_cid == kTypedDataFloat32x4ArrayCid) && !ShouldInlineSimd()) {
+    return false;
+  }
+
   Definition* array = call->ArgumentAt(0);
   PrepareByteArrayViewOp(call, receiver_cid, view_cid, &array);
 
@@ -2153,6 +2267,9 @@ bool FlowGraphOptimizer::BuildByteArrayViewStore(
     InstanceCallInstr* call,
     intptr_t receiver_cid,
     intptr_t view_cid) {
+  if ((view_cid == kTypedDataFloat32x4ArrayCid) && !ShouldInlineSimd()) {
+    return false;
+  }
   Definition* array = call->ArgumentAt(0);
   PrepareByteArrayViewOp(call, receiver_cid, view_cid, &array);
   ICData& value_check = ICData::ZoneHandle();
@@ -2503,30 +2620,12 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
     MathSqrtInstr* sqrt =
         new MathSqrtInstr(new Value(call->ArgumentAt(0)), call->deopt_id());
     ReplaceCall(call, sqrt);
-  } else if (recognized_kind == MethodRecognizer::kFloat32x4Zero) {
-    Float32x4ZeroInstr* zero = new Float32x4ZeroInstr(call->deopt_id());
-    ReplaceCall(call, zero);
-  } else if (recognized_kind == MethodRecognizer::kFloat32x4Splat) {
-    Float32x4SplatInstr* splat =
-        new Float32x4SplatInstr(new Value(call->ArgumentAt(1)),
-                                call->deopt_id());
-    ReplaceCall(call, splat);
-  } else if (recognized_kind == MethodRecognizer::kFloat32x4Constructor) {
-    Float32x4ConstructorInstr* con =
-        new Float32x4ConstructorInstr(new Value(call->ArgumentAt(1)),
-                                      new Value(call->ArgumentAt(2)),
-                                      new Value(call->ArgumentAt(3)),
-                                      new Value(call->ArgumentAt(4)),
-                                      call->deopt_id());
-    ReplaceCall(call, con);
+  } else if ((recognized_kind == MethodRecognizer::kFloat32x4Zero) ||
+             (recognized_kind == MethodRecognizer::kFloat32x4Splat) ||
+             (recognized_kind == MethodRecognizer::kFloat32x4Constructor)) {
+    TryInlineFloat32x4Constructor(call, recognized_kind);
   } else if (recognized_kind == MethodRecognizer::kUint32x4BoolConstructor) {
-    Uint32x4BoolConstructorInstr* con = new Uint32x4BoolConstructorInstr(
-        new Value(call->ArgumentAt(1)),
-        new Value(call->ArgumentAt(2)),
-        new Value(call->ArgumentAt(3)),
-        new Value(call->ArgumentAt(4)),
-        call->deopt_id());
-    ReplaceCall(call, con);
+    TryInlineUint32x4Constructor(call, recognized_kind);
   } else if (recognized_kind == MethodRecognizer::kObjectConstructor) {
     // Remove the original push arguments.
     for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
