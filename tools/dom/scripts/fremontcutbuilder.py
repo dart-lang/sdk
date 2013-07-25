@@ -17,13 +17,10 @@ _logger = logging.getLogger('fremontcutbuilder')
 # for ENABLE_* flags defined in Chromium / Blink.
 # We list all ENABLE flags used in IDL in one of these two lists.
 FEATURE_DISABLED = [
-    'ENABLE_BATTERY_STATUS',
-    'ENABLE_CSS_DEVICE_ADAPTATION',
     'ENABLE_CUSTOM_SCHEME_HANDLER',
     'ENABLE_MEDIA_CAPTURE', # Only enabled on Android.
     'ENABLE_ORIENTATION_EVENTS', # Only enabled on Android.
     'ENABLE_WEBVTT_REGIONS',
-    'ENABLE_XHR_TIMEOUT',
 ]
 
 FEATURE_DEFINES = [

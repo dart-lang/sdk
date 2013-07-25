@@ -2271,6 +2271,15 @@ class _Float32x4 implements Float32x4 {
   Float32x4 get wwwz => _shuffle(0xBF);
   Float32x4 get wwww => _shuffle(0xFF);
   Float32x4 _shuffle(int mask) native "Float32x4_shuffle";
+
+  Float32x4 withZWInXY(Float32x4 other) native "Float32x4_withZWInXY";
+  Float32x4 interleaveXY(Float32x4 other) native "Float32x4_interleaveXY";
+  Float32x4 interleaveZW(Float32x4 other) native "Float32x4_interleaveZW";
+  Float32x4 interleaveXYPairs(Float32x4 other)
+      native "Float32x4_interleaveXYPairs";
+  Float32x4 interleaveZWPairs(Float32x4 other)
+      native "Float32x4_interleaveZWPairs";
+
   Float32x4 withX(double x) native "Float32x4_setX";
   Float32x4 withY(double y) native "Float32x4_setY";
   Float32x4 withZ(double z) native "Float32x4_setZ";

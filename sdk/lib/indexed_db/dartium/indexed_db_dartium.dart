@@ -980,13 +980,6 @@ class Request extends EventTarget {
   @DocsEditable()
   Transaction get transaction native "IDBRequest_transaction_Getter";
 
-  @DomName('IDBRequest.webkitErrorMessage')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  String get errorMessage native "IDBRequest_webkitErrorMessage_Getter";
-
   @DomName('IDBRequest.addEventListener')
   @DocsEditable()
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "IDBRequest_addEventListener_Callback";
@@ -1069,13 +1062,6 @@ class Transaction extends EventTarget {
   @DocsEditable()
   String get mode native "IDBTransaction_mode_Getter";
 
-  @DomName('IDBTransaction.webkitErrorMessage')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  String get errorMessage native "IDBTransaction_webkitErrorMessage_Getter";
-
   @DomName('IDBTransaction.abort')
   @DocsEditable()
   void abort() native "IDBTransaction_abort_Callback";
@@ -1122,6 +1108,11 @@ class Transaction extends EventTarget {
 class VersionChangeEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory VersionChangeEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('IDBVersionChangeEvent.dataLoss')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get dataLoss native "IDBVersionChangeEvent_dataLoss_Getter";
 
   @DomName('IDBVersionChangeEvent.newVersion')
   @DocsEditable()

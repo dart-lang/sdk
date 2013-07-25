@@ -483,13 +483,9 @@ void testMirrorErrors(MirrorSystem mirrors) {
       Expect.isTrue(false);
     })
     .catchError((error) {
-        Expect.isTrue(error is MirroredUncaughtExceptionError);
-        Expect.equals(const Symbol('MyException'),
-                      error.exception_mirror.type.simpleName);
+        Expect.isTrue(error is MyException);
         Expect.equals('MyException: from methodWithException',
-                      error.exception_string);
-        Expect.isTrue(error.stacktrace.toString().contains(
-            'isolate_mirror_local_test.dart'));
+                      error.toString());
         testDone('testMirrorErrors1');
       });
 

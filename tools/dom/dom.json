@@ -1,4 +1,21 @@
 {
+  "ANGLEInstancedArrays": {
+    "members": {
+      "VERTEX_ATTRIB_ARRAY_DIVISOR_ANGLE": {
+        "support_level": "untriaged"
+      },
+      "drawArraysInstancedANGLE": {
+        "support_level": "untriaged"
+      },
+      "drawElementsInstancedANGLE": {
+        "support_level": "untriaged"
+      },
+      "vertexAttribDivisorANGLE": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "AbstractWorker": {
     "comment": "http://www.w3.org/TR/workers/#the-abstractworker-abstract-interface",
     "members": {
@@ -22,14 +39,6 @@
       "smoothingTimeConstant": {}
     },
     "support_level": "experimental"
-  },
-  "AnimationEvent": {
-    "comment": "http://www.w3.org/TR/css3-animations/#AnimationEvent-interface",
-    "members": {
-      "animationName": {},
-      "elapsedTime": {}
-    },
-    "support_level": "stable"
   },
   "ArrayBuffer": {
     "comment": "http://www.khronos.org/registry/typedarray/specs/latest/",
@@ -302,34 +311,6 @@
     },
     "support_level": "experimental"
   },
-  "CSSFilterRule": {
-    "comment": "http://www.w3.org/TR/filter-effects/",
-    "members": {
-      "style": {}
-    },
-    "support_level": "experimental"
-  },
-  "CSSFilterValue": {
-    "comment": "http://dev.w3.org/csswg/cssom/",
-    "dart_action": "suppress",
-    "members": {
-      "CSS_FILTER_BLUR": {},
-      "CSS_FILTER_BRIGHTNESS": {},
-      "CSS_FILTER_CONTRAST": {},
-      "CSS_FILTER_CUSTOM": {},
-      "CSS_FILTER_DROP_SHADOW": {},
-      "CSS_FILTER_GRAYSCALE": {},
-      "CSS_FILTER_HUE_ROTATE": {},
-      "CSS_FILTER_INVERT": {},
-      "CSS_FILTER_OPACITY": {},
-      "CSS_FILTER_REFERENCE": {},
-      "CSS_FILTER_SATURATE": {},
-      "CSS_FILTER_SEPIA": {},
-      "__getter__": {},
-      "operationType": {}
-    },
-    "support_level": "deprecated"
-  },
   "CSSFontFaceLoadEvent": {
     "comment": "http://www.w3.org/TR/css3-fonts/",
     "members": {
@@ -363,66 +344,6 @@
     },
     "support_level": "stable"
   },
-  "CSSKeyframeRule": {
-    "comment": "http://www.w3.org/TR/css3-animations/#CSSKeyframeRule-interface",
-    "members": {
-      "keyText": {},
-      "style": {}
-    },
-    "support_level": "experimental"
-  },
-  "CSSKeyframesRule": {
-    "comment": "http://www.w3.org/TR/css3-animations/#csskeyframesrule",
-    "members": {
-      "__getter__": {},
-      "cssRules": {},
-      "deleteRule": {},
-      "findRule": {},
-      "insertRule": {},
-      "name": {}
-    },
-    "support_level": "experimental"
-  },
-  "CSSMatrix": {
-    "comment": "http://dev.w3.org/csswg/cssom/",
-    "dart_action": "suppress",
-    "members": {
-      "CSSMatrix": {},
-      "a": {},
-      "b": {},
-      "c": {},
-      "d": {},
-      "e": {},
-      "f": {},
-      "inverse": {},
-      "m11": {},
-      "m12": {},
-      "m13": {},
-      "m14": {},
-      "m21": {},
-      "m22": {},
-      "m23": {},
-      "m24": {},
-      "m31": {},
-      "m32": {},
-      "m33": {},
-      "m34": {},
-      "m41": {},
-      "m42": {},
-      "m43": {},
-      "m44": {},
-      "multiply": {},
-      "rotate": {},
-      "rotateAxisAngle": {},
-      "scale": {},
-      "setMatrixValue": {},
-      "skewX": {},
-      "skewY": {},
-      "toString": {},
-      "translate": {}
-    },
-    "support_level": "deprecated"
-  },
   "CSSMediaRule": {
     "comment": "http://www.w3.org/TR/DOM-Level-2-Style/css.html#CSS-CSSMediaRule",
     "members": {
@@ -432,12 +353,6 @@
       "media": {}
     },
     "support_level": "stable"
-  },
-  "CSSMixFunctionValue": {
-    "comment": "http://dev.w3.org/csswg/cssom/",
-    "dart_action": "suppress",
-    "members": {},
-    "support_level": "deprecated"
   },
   "CSSPageRule": {
     "comment": "http://www.w3.org/TR/DOM-Level-2-Style/css.html#CSS-CSSPageRule",
@@ -492,13 +407,6 @@
     },
     "support_level": "deprecated"
   },
-  "CSSRegionRule": {
-    "comment": "http://dev.w3.org/csswg/css-regions/#region-style-rule-interface",
-    "members": {
-      "cssRules": {}
-    },
-    "support_level": "experimental"
-  },
   "CSSRule": {
     "comment": "http://www.w3.org/TR/DOM-Level-2-Style/css.html#CSS-CSSRule",
     "members": {
@@ -517,6 +425,9 @@
         "comment": "http://dev.w3.org/csswg/cssom/#changes-from-dom2",
         "dart_action": "suppress",
         "support_level": "deprecated"
+      },
+      "VIEWPORT_RULE": {
+        "support_level": "untriaged"
       },
       "WEBKIT_FILTER_RULE": {
         "comment": "http://www.w3.org/TR/filter-effects/",
@@ -552,6 +463,9 @@
   "CSSStyleDeclaration": {
     "comment": "http://dev.w3.org/csswg/cssom/#the-cssstyledeclaration-interface",
     "members": {
+      "__getter__": {
+        "support_level": "untriaged"
+      },
       "__setter__": {},
       "cssText": {},
       "getPropertyCSSValue": {
@@ -606,36 +520,6 @@
     },
     "support_level": "standard"
   },
-  "CSSTransformValue": {
-    "comment": "http://dev.w3.org/csswg/cssom/",
-    "dart_action": "suppress",
-    "members": {
-      "CSS_MATRIX": {},
-      "CSS_MATRIX3D": {},
-      "CSS_PERSPECTIVE": {},
-      "CSS_ROTATE": {},
-      "CSS_ROTATE3D": {},
-      "CSS_ROTATEX": {},
-      "CSS_ROTATEY": {},
-      "CSS_ROTATEZ": {},
-      "CSS_SCALE": {},
-      "CSS_SCALE3D": {},
-      "CSS_SCALEX": {},
-      "CSS_SCALEY": {},
-      "CSS_SCALEZ": {},
-      "CSS_SKEW": {},
-      "CSS_SKEWX": {},
-      "CSS_SKEWY": {},
-      "CSS_TRANSLATE": {},
-      "CSS_TRANSLATE3D": {},
-      "CSS_TRANSLATEX": {},
-      "CSS_TRANSLATEY": {},
-      "CSS_TRANSLATEZ": {},
-      "__getter__": {},
-      "operationType": {}
-    },
-    "support_level": "deprecated"
-  },
   "CSSUnknownRule": {
     "comment": "http://dev.w3.org/csswg/cssom/#the-cssstylesheet-interface",
     "dart_action": "suppress",
@@ -663,6 +547,14 @@
       "length": {}
     },
     "support_level": "deprecated"
+  },
+  "CSSViewportRule": {
+    "members": {
+      "style": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "Canvas2DContextAttributes": {
     "comment": "http://wiki.whatwg.org/wiki/CanvasOpaque#Suggested_IDL",
@@ -850,6 +742,20 @@
     },
     "support_level": "stable"
   },
+  "ChildNode": {
+    "members": {
+      "nextElementSibling": {
+        "support_level": "untriaged"
+      },
+      "previousElementSibling": {
+        "support_level": "untriaged"
+      },
+      "remove": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "ClientRect": {
     "comment": "http://www.w3.org/TR/cssom-view/#the-clientrect-interface",
     "members": {
@@ -1004,7 +910,10 @@
   "Crypto": {
     "comment": "http://www.w3.org/TR/WebCryptoAPI/",
     "members": {
-      "getRandomValues": {}
+      "getRandomValues": {},
+      "subtle": {
+        "support_level": "untriaged"
+      }
     },
     "support_level": "experimental"
   },
@@ -1050,7 +959,17 @@
     },
     "support_level": "stable"
   },
-  "DOMCoreException": {
+  "DOMError": {
+    "comment": "http://www.w3.org/TR/dom/#interface-domerror",
+    "members": {
+      "message": {
+        "support_level": "untriaged"
+      },
+      "name": {}
+    },
+    "support_level": "stable"
+  },
+  "DOMException": {
     "comment": "http://www.w3.org/TR/dom/#domexception (Should be DOMException)",
     "dart_action": "unstable",
     "members": {
@@ -1165,13 +1084,6 @@
     },
     "support_level": "stable"
   },
-  "DOMError": {
-    "comment": "http://www.w3.org/TR/dom/#interface-domerror",
-    "members": {
-      "name": {}
-    },
-    "support_level": "stable"
-  },
   "DOMFileSystem": {
     "comment": "http://www.w3.org/TR/file-system-api/",
     "members": {
@@ -1201,32 +1113,12 @@
     },
     "support_level": "stable"
   },
-  "DOMNamedFlowCollection": {
-    "comment": "http://dev.w3.org/csswg/css-regions/#dom-named-flow-collection",
-    "members": {
-      "__getter__": {},
-      "item": {},
-      "length": {},
-      "namedItem": {}
-    },
-    "support_level": "experimental"
-  },
   "DOMParser": {
     "members": {
       "DOMParser": {},
       "parseFromString": {}
     },
     "support_level": "stable"
-  },
-  "DOMPoint": {
-    "comment": "http://developer.apple.com/library/safari/#documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html",
-    "members": {
-      "DOMPoint": {},
-      "_DomPoint": {},
-      "x": {},
-      "y": {}
-    },
-    "support_level": "nonstandard"
   },
   "DOMSettableTokenList": {
     "comment": "http://dev.w3.org/html5/spec-LC/common-dom-interfaces.html#domsettabletokenlist-0",
@@ -1262,325 +1154,6 @@
       "length": {},
       "toString": {},
       "toggle": {}
-    },
-    "support_level": "stable"
-  },
-  "Window": {
-    "members": {
-      "CSS": {
-        "comment": "http://www.w3.org/TR/css3-conditional/#the-css-interface"
-      },
-      "PERSISTENT": {
-        "comment": "http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem",
-        "support_level": "experimental"
-      },
-      "TEMPORARY": {
-        "comment": "http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem",
-        "support_level": "experimental"
-      },
-      "__getter__": {},
-      "addEventListener": {},
-      "alert": {},
-      "applicationCache": {},
-      "atob": {},
-      "blur": {
-        "dart_action": "suppress",
-        "support_level": "deprecated"
-      },
-      "btoa": {},
-      "cancelAnimationFrame": {},
-      "captureEvents": {
-        "comment": "http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture",
-        "dart_action": "suppress",
-        "support_level": "deprecated"
-      },
-      "clearInterval": {},
-      "clearTimeout": {},
-      "clientInformation": {
-        "support_level": "nonstandard"
-      },
-      "close": {},
-      "closed": {},
-      "confirm": {},
-      "console": {},
-      "crypto": {
-        "comment": "http://www.w3.org/TR/WebCryptoAPI/",
-        "support_level": "experimental"
-      },
-      "defaultStatus": {},
-      "defaultstatus": {
-        "support_level": "nonstandard"
-      },
-      "devicePixelRatio": {
-        "comment": "http://www.quirksmode.org/blog/archives/2012/06/devicepixelrati.html",
-        "support_level": "nonstandard"
-      },
-      "dispatchEvent": {},
-      "document": {},
-      "event": {
-        "dart_action": "suppress",
-        "support_level": "deprecated"
-      },
-      "find": {
-        "support_level": "nonstandard"
-      },
-      "focus": {
-        "dart_action": "suppress",
-        "support_level": "deprecated"
-      },
-      "frameElement": {},
-      "frames": {},
-      "getComputedStyle": {},
-      "getMatchedCSSRules": {
-        "support_level": "nonstandard"
-      },
-      "getSelection": {},
-      "history": {},
-      "indexedDB": {},
-      "innerHeight": {},
-      "innerWidth": {},
-      "length": {
-        "dart_action": "suppress",
-        "support_level": "deprecated"
-      },
-      "localStorage": {},
-      "location": {},
-      "locationbar": {},
-      "matchMedia": {},
-      "menubar": {},
-      "moveBy": {},
-      "moveTo": {},
-      "name": {},
-      "navigator": {},
-      "offscreenBuffering": {
-        "support_level": "nonstandard"
-      },
-      "onDOMContentLoaded": {},
-      "onabort": {},
-      "onbeforeunload": {},
-      "onblur": {},
-      "oncanplay": {},
-      "oncanplaythrough": {},
-      "onchange": {},
-      "onclick": {},
-      "oncontextmenu": {},
-      "ondblclick": {},
-      "ondevicemotion": {
-        "comment": "http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion",
-        "support_level": "experimental"
-      },
-      "ondeviceorientation": {
-        "comment": "http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion",
-        "support_level": "experimental"
-      },
-      "ondrag": {},
-      "ondragend": {},
-      "ondragenter": {},
-      "ondragleave": {},
-      "ondragover": {},
-      "ondragstart": {},
-      "ondrop": {},
-      "ondurationchange": {},
-      "onemptied": {},
-      "onended": {},
-      "onerror": {},
-      "onfocus": {},
-      "onhashchange": {},
-      "oninput": {},
-      "oninvalid": {
-        "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/section-index.html#attributes-1"
-      },
-      "onkeydown": {},
-      "onkeypress": {},
-      "onkeyup": {},
-      "onload": {},
-      "onloadeddata": {},
-      "onloadedmetadata": {},
-      "onloadstart": {},
-      "onmessage": {},
-      "onmousedown": {},
-      "onmousemove": {},
-      "onmouseout": {},
-      "onmouseover": {},
-      "onmouseup": {},
-      "onmousewheel": {},
-      "onoffline": {},
-      "ononline": {},
-      "onpagehide": {},
-      "onpageshow": {},
-      "onpause": {},
-      "onplay": {},
-      "onplaying": {},
-      "onpopstate": {},
-      "onprogress": {},
-      "onratechange": {},
-      "onreset": {},
-      "onresize": {},
-      "onscroll": {},
-      "onsearch": {
-        "comment": "http://www.w3.org/TR/html-markup/input.search.html",
-        "support_level": "experimental"
-      },
-      "onseeked": {},
-      "onseeking": {},
-      "onselect": {},
-      "onstalled": {},
-      "onstorage": {},
-      "onsubmit": {},
-      "onsuspend": {},
-      "ontimeupdate": {},
-      "ontouchcancel": {
-        "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
-        "support_level": "experimental"
-      },
-      "ontouchend": {
-        "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
-        "support_level": "experimental"
-      },
-      "ontouchmove": {
-        "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
-        "support_level": "experimental"
-      },
-      "ontouchstart": {
-        "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
-        "support_level": "experimental"
-      },
-      "ontransitionend": {},
-      "onunload": {},
-      "onvolumechange": {},
-      "onwaiting": {},
-      "onwebkitAnimationEnd": {
-        "support_level": "experimental"
-      },
-      "onwebkitAnimationIteration": {
-        "support_level": "experimental"
-      },
-      "onwebkitAnimationStart": {
-        "support_level": "experimental"
-      },
-      "onwebkitTransitionEnd": {
-        "support_level": "deprecated"
-      },
-      "onwebkitanimationend": {
-        "support_level": "experimental"
-      },
-      "onwebkitanimationiteration": {
-        "support_level": "experimental"
-      },
-      "onwebkitanimationstart": {
-        "support_level": "experimental"
-      },
-      "onwebkittransitionend": {
-        "support_level": "deprecated"
-      },
-      "open": {},
-      "openDatabase": {
-        "comment": "http://www.w3.org/TR/webdatabase/",
-        "dart_action": "experimental",
-        "support_level": "deprecated"
-      },
-      "opener": {},
-      "outerHeight": {},
-      "outerWidth": {},
-      "pagePopupController": {
-        "dart_action": "suppress",
-        "support_level": "nonstandard"
-      },
-      "pageXOffset": {},
-      "pageYOffset": {},
-      "parent": {},
-      "performance": {
-        "comment": "http://www.w3.org/TR/navigation-timing/#sec-window.performance-attribute"
-      },
-      "personalbar": {
-        "comment": "https://developer.mozilla.org/en-US/docs/DOM/window.personalbar",
-        "dart_action": "suppress",
-        "support_level": "deprecated"
-      },
-      "postMessage": {},
-      "print": {},
-      "prompt": {},
-      "releaseEvents": {
-        "comment": "http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture",
-        "dart_action": "suppress",
-        "support_level": "deprecated"
-      },
-      "removeEventListener": {},
-      "requestAnimationFrame": {},
-      "resizeBy": {},
-      "resizeTo": {},
-      "screen": {},
-      "screenLeft": {},
-      "screenTop": {},
-      "screenX": {},
-      "screenY": {},
-      "scroll": {},
-      "scrollBy": {},
-      "scrollTo": {},
-      "scrollX": {},
-      "scrollY": {},
-      "scrollbars": {},
-      "self": {},
-      "sessionStorage": {},
-      "setInterval": {},
-      "setTimeout": {},
-      "showModalDialog": {},
-      "speechSynthesis": {
-        "comment": "https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section",
-        "support_level": "experimental"
-      },
-      "status": {},
-      "statusbar": {},
-      "stop": {},
-      "styleMedia": {
-        "comment": "http://developer.apple.com/library/safari/#documentation/SafariDOMAdditions/Reference/StyleMedia/StyleMedia/StyleMedia.html",
-        "dart_action": "experimental",
-        "support_level": "nonstandard"
-      },
-      "toString": {},
-      "toolbar": {},
-      "top": {},
-      "webkitCancelAnimationFrame": {
-        "support_level": "experimental"
-      },
-      "webkitCancelRequestAnimationFrame": {
-        "support_level": "experimental"
-      },
-      "webkitConvertPointFromNodeToPage": {
-        "comment": "http://developer.apple.com/library/safari/#documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html",
-        "support_level": "experimental"
-      },
-      "webkitConvertPointFromPageToNode": {
-        "comment": "http://developer.apple.com/library/safari/#documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html",
-        "support_level": "experimental"
-      },
-      "webkitIndexedDB": {
-        "comment": "http://www.w3.org/TR/IndexedDB/#idl-def-IDBEnvironment",
-        "support_level": "experimental"
-      },
-      "webkitNotifications": {
-        "comment": "https://plus.sandbox.google.com/u/0/+GoogleChromeDevelopers/posts/8vWo8hq4pDm?e=Showroom",
-        "dart_action": "suppress",
-        "support_level": "deprecated"
-      },
-      "webkitRequestAnimationFrame": {
-        "dart_action": "suppress",
-        "support_level": "deprecated"
-      },
-      "webkitRequestFileSystem": {
-        "comment": "http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem",
-        "support_level": "experimental"
-      },
-      "webkitResolveLocalFileSystemURL": {
-        "comment": "http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem",
-        "support_level": "experimental"
-      },
-      "webkitStorageInfo": {
-        "comment": "http://www.w3.org/TR/file-system-api/",
-        "dart_action": "suppress",
-        "support_level": "deprecated"
-      },
-      "window": {}
     },
     "support_level": "stable"
   },
@@ -1832,6 +1405,9 @@
         "support_level": "experimental"
       },
       "createTreeWalker": {},
+      "currentScript": {
+        "support_level": "untriaged"
+      },
       "defaultCharset": {
         "dart_action": "suppress",
         "support_level": "nonstandard"
@@ -2129,48 +1705,6 @@
       "threshold": {}
     },
     "support_level": "experimental"
-  },
-  "EXTDrawBuffers": {
-    "comment": "http://www.khronos.org/registry/webgl/specs/latest/",
-    "dart_action": "experimental",
-    "members": {
-      "COLOR_ATTACHMENT0_EXT": {},
-      "COLOR_ATTACHMENT10_EXT": {},
-      "COLOR_ATTACHMENT11_EXT": {},
-      "COLOR_ATTACHMENT12_EXT": {},
-      "COLOR_ATTACHMENT13_EXT": {},
-      "COLOR_ATTACHMENT14_EXT": {},
-      "COLOR_ATTACHMENT15_EXT": {},
-      "COLOR_ATTACHMENT1_EXT": {},
-      "COLOR_ATTACHMENT2_EXT": {},
-      "COLOR_ATTACHMENT3_EXT": {},
-      "COLOR_ATTACHMENT4_EXT": {},
-      "COLOR_ATTACHMENT5_EXT": {},
-      "COLOR_ATTACHMENT6_EXT": {},
-      "COLOR_ATTACHMENT7_EXT": {},
-      "COLOR_ATTACHMENT8_EXT": {},
-      "COLOR_ATTACHMENT9_EXT": {},
-      "DRAW_BUFFER0_EXT": {},
-      "DRAW_BUFFER10_EXT": {},
-      "DRAW_BUFFER11_EXT": {},
-      "DRAW_BUFFER12_EXT": {},
-      "DRAW_BUFFER13_EXT": {},
-      "DRAW_BUFFER14_EXT": {},
-      "DRAW_BUFFER15_EXT": {},
-      "DRAW_BUFFER1_EXT": {},
-      "DRAW_BUFFER2_EXT": {},
-      "DRAW_BUFFER3_EXT": {},
-      "DRAW_BUFFER4_EXT": {},
-      "DRAW_BUFFER5_EXT": {},
-      "DRAW_BUFFER6_EXT": {},
-      "DRAW_BUFFER7_EXT": {},
-      "DRAW_BUFFER8_EXT": {},
-      "DRAW_BUFFER9_EXT": {},
-      "MAX_COLOR_ATTACHMENTS_EXT": {},
-      "MAX_DRAW_BUFFERS_EXT": {},
-      "drawBuffersEXT": {}
-    },
-    "support_level": "stable"
   },
   "EXTFragDepth": {
     "comment": "http://www.khronos.org/registry/webgl/extensions/EXT_frag_depth/",
@@ -5188,6 +4722,9 @@
     "comment": "http://www.w3.org/TR/IndexedDB/#idl-def-IDBVersionChangeEvent",
     "dart_action": "unstable",
     "members": {
+      "dataLoss": {
+        "support_level": "untriaged"
+      },
       "newVersion": {},
       "oldVersion": {}
     },
@@ -5335,6 +4872,14 @@
     },
     "support_level": "experimental"
   },
+  "MIDIAccessPromise": {
+    "members": {
+      "then": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "MIDIConnectionEvent": {
     "comment": "http://webaudio.github.io/web-midi-api/#midiconnectionevent-interface",
     "members": {
@@ -5383,6 +4928,10 @@
       "version": {}
     },
     "support_level": "experimental"
+  },
+  "MIDISuccessCallback": {
+    "members": {},
+    "support_level": "untriaged"
   },
   "MediaController": {
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#mediacontroller",
@@ -5534,6 +5083,24 @@
     },
     "support_level": "stable"
   },
+  "MediaSource": {
+    "comment": "https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#mediasource",
+    "members": {
+      "MediaSource": {},
+      "activeSourceBuffers": {},
+      "addEventListener": {},
+      "addSourceBuffer": {},
+      "dispatchEvent": {},
+      "duration": {},
+      "endOfStream": {},
+      "isTypeSupported": {},
+      "readyState": {},
+      "removeEventListener": {},
+      "removeSourceBuffer": {},
+      "sourceBuffers": {}
+    },
+    "support_level": "experimental"
+  },
   "MediaStream": {
     "comment": "http://dev.w3.org/2011/webrtc/editor/getusermedia.html#mediastream",
     "members": {
@@ -5585,6 +5152,9 @@
       "addEventListener": {},
       "dispatchEvent": {},
       "enabled": {},
+      "getSources": {
+        "support_level": "untriaged"
+      },
       "id": {},
       "kind": {},
       "label": {},
@@ -5602,6 +5172,10 @@
       "track": {}
     },
     "support_level": "experimental"
+  },
+  "MediaStreamTrackSourcesCallback": {
+    "members": {},
+    "support_level": "untriaged"
   },
   "MemoryInfo": {
     "dart_action": "experimental",
@@ -5788,21 +5362,6 @@
     },
     "support_level": "stable"
   },
-  "NamedFlow": {
-    "comment": "http://www.w3.org/TR/css3-regions/#dom-named-flow-collection",
-    "members": {
-      "addEventListener": {},
-      "dispatchEvent": {},
-      "firstEmptyRegionIndex": {},
-      "getContent": {},
-      "getRegions": {},
-      "getRegionsByContent": {},
-      "name": {},
-      "overset": {},
-      "removeEventListener": {}
-    },
-    "support_level": "experimental"
-  },
   "NamedNodeMap": {
     "comment": "http://dom.spec.whatwg.org/#namednodemap",
     "dart_action": "suppress",
@@ -5884,6 +5443,9 @@
       "registerProtocolHandler": {
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#navigatorcontentutils",
         "dart_action": "unstable"
+      },
+      "requestMIDIAccess": {
+        "support_level": "untriaged"
       },
       "userAgent": {
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#navigatorid"
@@ -6090,6 +5652,9 @@
   "NodeList": {
     "comment": "http://dom.spec.whatwg.org/#nodelist",
     "members": {
+      "__getter__": {
+        "support_level": "untriaged"
+      },
       "item": {},
       "length": {}
     },
@@ -6351,6 +5916,23 @@
     },
     "support_level": "experimental"
   },
+  "ParentNode": {
+    "members": {
+      "childElementCount": {
+        "support_level": "untriaged"
+      },
+      "children": {
+        "support_level": "untriaged"
+      },
+      "firstElementChild": {
+        "support_level": "untriaged"
+      },
+      "lastElementChild": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "Path": {
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#path-objects",
     "members": {
@@ -6596,6 +6178,14 @@
       "total": {}
     },
     "support_level": "stable"
+  },
+  "Promise": {
+    "members": {},
+    "support_level": "untriaged"
+  },
+  "PromiseResolver": {
+    "members": {},
+    "support_level": "untriaged"
   },
   "RGBColor": {
     "comment": "http://dev.w3.org/csswg/cssom/",
@@ -10140,6 +9730,9 @@
       "getElementsByTagNameNS": {},
       "getSelection": {},
       "innerHTML": {},
+      "olderShadowRoot": {
+        "support_level": "untriaged"
+      },
       "resetStyleInheritance": {}
     },
     "support_level": "experimental"
@@ -10160,6 +9753,61 @@
       "onconnect": {}
     },
     "support_level": "nonstandard"
+  },
+  "SourceBuffer": {
+    "comment": "https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#sourcebuffer",
+    "members": {
+      "abort": {},
+      "addEventListener": {
+        "support_level": "untriaged"
+      },
+      "append": {
+        "support_level": "nonstandard"
+      },
+      "appendBuffer": {
+        "support_level": "untriaged"
+      },
+      "buffered": {},
+      "dispatchEvent": {
+        "support_level": "untriaged"
+      },
+      "removeEventListener": {
+        "support_level": "untriaged"
+      },
+      "timestampOffset": {},
+      "updating": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "experimental"
+  },
+  "SourceBufferList": {
+    "comment": "https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#sourcebufferlist",
+    "members": {
+      "addEventListener": {},
+      "dispatchEvent": {},
+      "item": {},
+      "length": {},
+      "removeEventListener": {}
+    },
+    "support_level": "experimental"
+  },
+  "SourceInfo": {
+    "members": {
+      "facing": {
+        "support_level": "untriaged"
+      },
+      "id": {
+        "support_level": "untriaged"
+      },
+      "kind": {
+        "support_level": "untriaged"
+      },
+      "label": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "SpeechGrammar": {
     "comment": "https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#dfn-speechgrammar",
@@ -10398,6 +10046,14 @@
     },
     "support_level": "experimental"
   },
+  "Stream": {
+    "members": {
+      "type": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "StringCallback": {
     "comment": "http://www.w3.org/TR/2011/WD-html5-20110113/dnd.html#the-datatransferitem-interface",
     "members": {
@@ -10435,6 +10091,10 @@
       "length": {}
     },
     "support_level": "stable"
+  },
+  "SubtleCrypto": {
+    "members": {},
+    "support_level": "untriaged"
   },
   "Text": {
     "comment": "http://dom.spec.whatwg.org/#interface-text",
@@ -10710,6 +10370,9 @@
   "URL": {
     "comment": "http://www.w3.org/TR/FileAPI/#URL-object",
     "members": {
+      "_createObjectUrlFromWebKitMediaSource": {
+        "support_level": "untriaged"
+      },
       "createObjectURL": {},
       "createObjectUrlFromBlob": {},
       "createObjectUrlFromSource": {},
@@ -10885,6 +10548,48 @@
       "UNSIGNED_INT_24_8_WEBGL": {}
     },
     "support_level": "experimental"
+  },
+  "WebGLDrawBuffers": {
+    "comment": "http://www.khronos.org/registry/webgl/specs/latest/",
+    "dart_action": "experimental",
+    "members": {
+      "COLOR_ATTACHMENT0_WEBGL": {},
+      "COLOR_ATTACHMENT10_WEBGL": {},
+      "COLOR_ATTACHMENT11_WEBGL": {},
+      "COLOR_ATTACHMENT12_WEBGL": {},
+      "COLOR_ATTACHMENT13_WEBGL": {},
+      "COLOR_ATTACHMENT14_WEBGL": {},
+      "COLOR_ATTACHMENT15_WEBGL": {},
+      "COLOR_ATTACHMENT1_WEBGL": {},
+      "COLOR_ATTACHMENT2_WEBGL": {},
+      "COLOR_ATTACHMENT3_WEBGL": {},
+      "COLOR_ATTACHMENT4_WEBGL": {},
+      "COLOR_ATTACHMENT5_WEBGL": {},
+      "COLOR_ATTACHMENT6_WEBGL": {},
+      "COLOR_ATTACHMENT7_WEBGL": {},
+      "COLOR_ATTACHMENT8_WEBGL": {},
+      "COLOR_ATTACHMENT9_WEBGL": {},
+      "DRAW_BUFFER0_WEBGL": {},
+      "DRAW_BUFFER10_WEBGL": {},
+      "DRAW_BUFFER11_WEBGL": {},
+      "DRAW_BUFFER12_WEBGL": {},
+      "DRAW_BUFFER13_WEBGL": {},
+      "DRAW_BUFFER14_WEBGL": {},
+      "DRAW_BUFFER15_WEBGL": {},
+      "DRAW_BUFFER1_WEBGL": {},
+      "DRAW_BUFFER2_WEBGL": {},
+      "DRAW_BUFFER3_WEBGL": {},
+      "DRAW_BUFFER4_WEBGL": {},
+      "DRAW_BUFFER5_WEBGL": {},
+      "DRAW_BUFFER6_WEBGL": {},
+      "DRAW_BUFFER7_WEBGL": {},
+      "DRAW_BUFFER8_WEBGL": {},
+      "DRAW_BUFFER9_WEBGL": {},
+      "MAX_COLOR_ATTACHMENTS_WEBGL": {},
+      "MAX_DRAW_BUFFERS_WEBGL": {},
+      "drawBuffersWEBGL": {}
+    },
+    "support_level": "stable"
   },
   "WebGLFramebuffer": {
     "comment": "http://www.khronos.org/registry/webgl/specs/latest/#5.5",
@@ -11407,46 +11112,197 @@
     "members": {},
     "support_level": "experimental"
   },
+  "WebKitAnimationEvent": {
+    "comment": "http://www.w3.org/TR/css3-animations/#AnimationEvent-interface",
+    "members": {
+      "animationName": {},
+      "elapsedTime": {}
+    },
+    "support_level": "stable"
+  },
+  "WebKitCSSFilterRule": {
+    "comment": "http://www.w3.org/TR/filter-effects/",
+    "members": {
+      "style": {}
+    },
+    "support_level": "experimental"
+  },
+  "WebKitCSSFilterValue": {
+    "comment": "http://dev.w3.org/csswg/cssom/",
+    "dart_action": "suppress",
+    "members": {
+      "CSS_FILTER_BLUR": {},
+      "CSS_FILTER_BRIGHTNESS": {},
+      "CSS_FILTER_CONTRAST": {},
+      "CSS_FILTER_CUSTOM": {},
+      "CSS_FILTER_DROP_SHADOW": {},
+      "CSS_FILTER_GRAYSCALE": {},
+      "CSS_FILTER_HUE_ROTATE": {},
+      "CSS_FILTER_INVERT": {},
+      "CSS_FILTER_OPACITY": {},
+      "CSS_FILTER_REFERENCE": {},
+      "CSS_FILTER_SATURATE": {},
+      "CSS_FILTER_SEPIA": {},
+      "__getter__": {},
+      "operationType": {}
+    },
+    "support_level": "deprecated"
+  },
+  "WebKitCSSKeyframeRule": {
+    "comment": "http://www.w3.org/TR/css3-animations/#CSSKeyframeRule-interface",
+    "members": {
+      "keyText": {},
+      "style": {}
+    },
+    "support_level": "experimental"
+  },
+  "WebKitCSSKeyframesRule": {
+    "comment": "http://www.w3.org/TR/css3-animations/#csskeyframesrule",
+    "members": {
+      "__getter__": {},
+      "cssRules": {},
+      "deleteRule": {},
+      "findRule": {},
+      "insertRule": {},
+      "name": {}
+    },
+    "support_level": "experimental"
+  },
+  "WebKitCSSMatrix": {
+    "comment": "http://dev.w3.org/csswg/cssom/",
+    "dart_action": "suppress",
+    "members": {
+      "WebKitCSSMatrix": {},
+      "a": {},
+      "b": {},
+      "c": {},
+      "d": {},
+      "e": {},
+      "f": {},
+      "inverse": {},
+      "m11": {},
+      "m12": {},
+      "m13": {},
+      "m14": {},
+      "m21": {},
+      "m22": {},
+      "m23": {},
+      "m24": {},
+      "m31": {},
+      "m32": {},
+      "m33": {},
+      "m34": {},
+      "m41": {},
+      "m42": {},
+      "m43": {},
+      "m44": {},
+      "multiply": {},
+      "rotate": {},
+      "rotateAxisAngle": {},
+      "scale": {},
+      "setMatrixValue": {},
+      "skewX": {},
+      "skewY": {},
+      "toString": {},
+      "translate": {}
+    },
+    "support_level": "deprecated"
+  },
+  "WebKitCSSMixFunctionValue": {
+    "comment": "http://dev.w3.org/csswg/cssom/",
+    "dart_action": "suppress",
+    "members": {},
+    "support_level": "deprecated"
+  },
+  "WebKitCSSRegionRule": {
+    "comment": "http://dev.w3.org/csswg/css-regions/#region-style-rule-interface",
+    "members": {
+      "cssRules": {}
+    },
+    "support_level": "experimental"
+  },
+  "WebKitCSSTransformValue": {
+    "comment": "http://dev.w3.org/csswg/cssom/",
+    "dart_action": "suppress",
+    "members": {
+      "CSS_MATRIX": {},
+      "CSS_MATRIX3D": {},
+      "CSS_PERSPECTIVE": {},
+      "CSS_ROTATE": {},
+      "CSS_ROTATE3D": {},
+      "CSS_ROTATEX": {},
+      "CSS_ROTATEY": {},
+      "CSS_ROTATEZ": {},
+      "CSS_SCALE": {},
+      "CSS_SCALE3D": {},
+      "CSS_SCALEX": {},
+      "CSS_SCALEY": {},
+      "CSS_SCALEZ": {},
+      "CSS_SKEW": {},
+      "CSS_SKEWX": {},
+      "CSS_SKEWY": {},
+      "CSS_TRANSLATE": {},
+      "CSS_TRANSLATE3D": {},
+      "CSS_TRANSLATEX": {},
+      "CSS_TRANSLATEY": {},
+      "CSS_TRANSLATEZ": {},
+      "__getter__": {},
+      "operationType": {}
+    },
+    "support_level": "deprecated"
+  },
   "WebKitMediaSource": {
-    "comment": "https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#mediasource",
     "members": {
-      "WebKitMediaSource": {},
-      "activeSourceBuffers": {},
-      "addEventListener": {},
-      "addSourceBuffer": {},
-      "dispatchEvent": {},
-      "duration": {},
-      "endOfStream": {},
-      "isTypeSupported": {},
-      "readyState": {},
-      "removeEventListener": {},
-      "removeSourceBuffer": {},
-      "sourceBuffers": {}
+      "WebKitMediaSource": {}
     },
-    "support_level": "experimental"
+    "support_level": "untriaged"
   },
-  "WebKitSourceBuffer": {
-    "comment": "https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#sourcebuffer",
-    "members": {
-      "abort": {},
-      "append": {
-        "support_level": "nonstandard"
-      },
-      "buffered": {},
-      "timestampOffset": {}
-    },
-    "support_level": "experimental"
-  },
-  "WebKitSourceBufferList": {
-    "comment": "https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#sourcebufferlist",
+  "WebKitNamedFlow": {
+    "comment": "http://www.w3.org/TR/css3-regions/#dom-named-flow-collection",
     "members": {
       "addEventListener": {},
       "dispatchEvent": {},
-      "item": {},
-      "length": {},
+      "firstEmptyRegionIndex": {},
+      "getContent": {},
+      "getRegions": {},
+      "getRegionsByContent": {},
+      "name": {},
+      "overset": {},
       "removeEventListener": {}
     },
     "support_level": "experimental"
+  },
+  "WebKitNamedFlowCollection": {
+    "comment": "http://dev.w3.org/csswg/css-regions/#dom-named-flow-collection",
+    "members": {
+      "__getter__": {},
+      "item": {},
+      "length": {},
+      "namedItem": {}
+    },
+    "support_level": "experimental"
+  },
+  "WebKitPoint": {
+    "comment": "http://developer.apple.com/library/safari/#documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html",
+    "members": {
+      "WebKitPoint": {},
+      "_DomPoint": {},
+      "x": {},
+      "y": {}
+    },
+    "support_level": "nonstandard"
+  },
+  "WebKitSourceBuffer": {
+    "members": {},
+    "support_level": "untriaged"
+  },
+  "WebKitSourceBufferList": {
+    "members": {
+      "item": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "WebSocket": {
     "comment": "http://www.w3.org/TR/websockets/#the-websocket-interface",
@@ -11508,11 +11364,350 @@
     },
     "support_level": "stable"
   },
+  "Window": {
+    "members": {
+      "CSS": {
+        "comment": "http://www.w3.org/TR/css3-conditional/#the-css-interface"
+      },
+      "PERSISTENT": {
+        "comment": "http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem",
+        "support_level": "experimental"
+      },
+      "TEMPORARY": {
+        "comment": "http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem",
+        "support_level": "experimental"
+      },
+      "__getter__": {},
+      "addEventListener": {},
+      "alert": {},
+      "applicationCache": {},
+      "atob": {},
+      "blur": {
+        "dart_action": "suppress",
+        "support_level": "deprecated"
+      },
+      "btoa": {},
+      "cancelAnimationFrame": {},
+      "captureEvents": {
+        "comment": "http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture",
+        "dart_action": "suppress",
+        "support_level": "deprecated"
+      },
+      "clearInterval": {},
+      "clearTimeout": {},
+      "clientInformation": {
+        "support_level": "nonstandard"
+      },
+      "close": {},
+      "closed": {},
+      "confirm": {},
+      "console": {},
+      "crypto": {
+        "comment": "http://www.w3.org/TR/WebCryptoAPI/",
+        "support_level": "experimental"
+      },
+      "defaultStatus": {},
+      "defaultstatus": {
+        "support_level": "nonstandard"
+      },
+      "devicePixelRatio": {
+        "comment": "http://www.quirksmode.org/blog/archives/2012/06/devicepixelrati.html",
+        "support_level": "nonstandard"
+      },
+      "dispatchEvent": {},
+      "document": {},
+      "event": {
+        "dart_action": "suppress",
+        "support_level": "deprecated"
+      },
+      "find": {
+        "support_level": "nonstandard"
+      },
+      "focus": {
+        "dart_action": "suppress",
+        "support_level": "deprecated"
+      },
+      "frameElement": {},
+      "frames": {},
+      "getComputedStyle": {},
+      "getMatchedCSSRules": {
+        "support_level": "nonstandard"
+      },
+      "getSelection": {},
+      "history": {},
+      "indexedDB": {},
+      "innerHeight": {},
+      "innerWidth": {},
+      "length": {
+        "dart_action": "suppress",
+        "support_level": "deprecated"
+      },
+      "localStorage": {},
+      "location": {},
+      "locationbar": {},
+      "matchMedia": {},
+      "menubar": {},
+      "moveBy": {},
+      "moveTo": {},
+      "name": {},
+      "navigator": {},
+      "offscreenBuffering": {
+        "support_level": "nonstandard"
+      },
+      "onDOMContentLoaded": {},
+      "onabort": {},
+      "onbeforeunload": {},
+      "onblur": {},
+      "oncanplay": {},
+      "oncanplaythrough": {},
+      "onchange": {},
+      "onclick": {},
+      "oncontextmenu": {},
+      "ondblclick": {},
+      "ondevicemotion": {
+        "comment": "http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion",
+        "support_level": "experimental"
+      },
+      "ondeviceorientation": {
+        "comment": "http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion",
+        "support_level": "experimental"
+      },
+      "ondrag": {},
+      "ondragend": {},
+      "ondragenter": {},
+      "ondragleave": {},
+      "ondragover": {},
+      "ondragstart": {},
+      "ondrop": {},
+      "ondurationchange": {},
+      "onemptied": {},
+      "onended": {},
+      "onerror": {},
+      "onfocus": {},
+      "onhashchange": {},
+      "oninput": {},
+      "oninvalid": {
+        "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/section-index.html#attributes-1"
+      },
+      "onkeydown": {},
+      "onkeypress": {},
+      "onkeyup": {},
+      "onload": {},
+      "onloadeddata": {},
+      "onloadedmetadata": {},
+      "onloadstart": {},
+      "onmessage": {},
+      "onmousedown": {},
+      "onmousemove": {},
+      "onmouseout": {},
+      "onmouseover": {},
+      "onmouseup": {},
+      "onmousewheel": {},
+      "onoffline": {},
+      "ononline": {},
+      "onpagehide": {},
+      "onpageshow": {},
+      "onpause": {},
+      "onplay": {},
+      "onplaying": {},
+      "onpopstate": {},
+      "onprogress": {},
+      "onratechange": {},
+      "onreset": {},
+      "onresize": {},
+      "onscroll": {},
+      "onsearch": {
+        "comment": "http://www.w3.org/TR/html-markup/input.search.html",
+        "support_level": "experimental"
+      },
+      "onseeked": {},
+      "onseeking": {},
+      "onselect": {},
+      "onstalled": {},
+      "onstorage": {},
+      "onsubmit": {},
+      "onsuspend": {},
+      "ontimeupdate": {},
+      "ontouchcancel": {
+        "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
+        "support_level": "experimental"
+      },
+      "ontouchend": {
+        "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
+        "support_level": "experimental"
+      },
+      "ontouchmove": {
+        "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
+        "support_level": "experimental"
+      },
+      "ontouchstart": {
+        "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
+        "support_level": "experimental"
+      },
+      "ontransitionend": {},
+      "onunload": {},
+      "onvolumechange": {},
+      "onwaiting": {},
+      "onwebkitAnimationEnd": {
+        "support_level": "experimental"
+      },
+      "onwebkitAnimationIteration": {
+        "support_level": "experimental"
+      },
+      "onwebkitAnimationStart": {
+        "support_level": "experimental"
+      },
+      "onwebkitTransitionEnd": {
+        "support_level": "deprecated"
+      },
+      "onwebkitanimationend": {
+        "support_level": "experimental"
+      },
+      "onwebkitanimationiteration": {
+        "support_level": "experimental"
+      },
+      "onwebkitanimationstart": {
+        "support_level": "experimental"
+      },
+      "onwebkittransitionend": {
+        "support_level": "deprecated"
+      },
+      "open": {},
+      "openDatabase": {
+        "comment": "http://www.w3.org/TR/webdatabase/",
+        "dart_action": "experimental",
+        "support_level": "deprecated"
+      },
+      "opener": {},
+      "outerHeight": {},
+      "outerWidth": {},
+      "pagePopupController": {
+        "dart_action": "suppress",
+        "support_level": "nonstandard"
+      },
+      "pageXOffset": {},
+      "pageYOffset": {},
+      "parent": {},
+      "performance": {
+        "comment": "http://www.w3.org/TR/navigation-timing/#sec-window.performance-attribute"
+      },
+      "personalbar": {
+        "comment": "https://developer.mozilla.org/en-US/docs/DOM/window.personalbar",
+        "dart_action": "suppress",
+        "support_level": "deprecated"
+      },
+      "postMessage": {},
+      "print": {},
+      "prompt": {},
+      "releaseEvents": {
+        "comment": "http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture",
+        "dart_action": "suppress",
+        "support_level": "deprecated"
+      },
+      "removeEventListener": {},
+      "requestAnimationFrame": {},
+      "resizeBy": {},
+      "resizeTo": {},
+      "screen": {},
+      "screenLeft": {},
+      "screenTop": {},
+      "screenX": {},
+      "screenY": {},
+      "scroll": {},
+      "scrollBy": {},
+      "scrollTo": {},
+      "scrollX": {},
+      "scrollY": {},
+      "scrollbars": {},
+      "self": {},
+      "sessionStorage": {},
+      "setInterval": {},
+      "setTimeout": {},
+      "showModalDialog": {},
+      "speechSynthesis": {
+        "comment": "https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section",
+        "support_level": "experimental"
+      },
+      "status": {},
+      "statusbar": {},
+      "stop": {},
+      "styleMedia": {
+        "comment": "http://developer.apple.com/library/safari/#documentation/SafariDOMAdditions/Reference/StyleMedia/StyleMedia/StyleMedia.html",
+        "dart_action": "experimental",
+        "support_level": "nonstandard"
+      },
+      "toString": {},
+      "toolbar": {},
+      "top": {},
+      "webkitCancelAnimationFrame": {
+        "support_level": "experimental"
+      },
+      "webkitCancelRequestAnimationFrame": {
+        "support_level": "experimental"
+      },
+      "webkitConvertPointFromNodeToPage": {
+        "comment": "http://developer.apple.com/library/safari/#documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html",
+        "support_level": "experimental"
+      },
+      "webkitConvertPointFromPageToNode": {
+        "comment": "http://developer.apple.com/library/safari/#documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html",
+        "support_level": "experimental"
+      },
+      "webkitIndexedDB": {
+        "comment": "http://www.w3.org/TR/IndexedDB/#idl-def-IDBEnvironment",
+        "support_level": "experimental"
+      },
+      "webkitNotifications": {
+        "comment": "https://plus.sandbox.google.com/u/0/+GoogleChromeDevelopers/posts/8vWo8hq4pDm?e=Showroom",
+        "dart_action": "suppress",
+        "support_level": "deprecated"
+      },
+      "webkitRequestAnimationFrame": {
+        "dart_action": "suppress",
+        "support_level": "deprecated"
+      },
+      "webkitRequestFileSystem": {
+        "comment": "http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem",
+        "support_level": "experimental"
+      },
+      "webkitResolveLocalFileSystemURL": {
+        "comment": "http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem",
+        "support_level": "experimental"
+      },
+      "webkitStorageInfo": {
+        "comment": "http://www.w3.org/TR/file-system-api/",
+        "dart_action": "suppress",
+        "support_level": "deprecated"
+      },
+      "window": {}
+    },
+    "support_level": "stable"
+  },
+  "WindowTimers": {
+    "members": {
+      "clearInterval": {
+        "support_level": "untriaged"
+      },
+      "clearTimeout": {
+        "support_level": "untriaged"
+      },
+      "setInterval": {
+        "support_level": "untriaged"
+      },
+      "setTimeout": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "Worker": {
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#worker",
     "dart_action": "experimental",
     "members": {
       "Worker": {},
+      "onerror": {
+        "support_level": "untriaged"
+      },
       "onmessage": {},
       "postMessage": {},
       "terminate": {}
@@ -11598,6 +11793,14 @@
     },
     "support_level": "stable"
   },
+  "WorkerCrypto": {
+    "members": {
+      "getRandomValues": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "WorkerLocation": {
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#workerlocation",
     "members": {
@@ -11659,6 +11862,14 @@
     },
     "support_level": "experimental"
   },
+  "WorkerPerformance": {
+    "members": {
+      "now": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "XMLHttpRequest": {
     "comment": "http://xhr.spec.whatwg.org/#interface-xmlhttprequest",
     "members": {
@@ -11697,6 +11908,9 @@
       "setRequestHeader": {},
       "status": {},
       "statusText": {},
+      "timeout": {
+        "support_level": "untriaged"
+      },
       "upload": {
         "dart_action": "unstable"
       },

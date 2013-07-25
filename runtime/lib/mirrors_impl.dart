@@ -194,9 +194,10 @@ abstract class _LocalObjectMirrorImpl extends _LocalMirrorImpl
   }
 
   InstanceMirror setField(Symbol memberName, Object value) {
-    return reflect(this._invokeSetter(_reflectee,
-                                      _n(memberName),
-                                      value)); 
+    this._invokeSetter(_reflectee,
+                       _n(memberName),
+                       value);
+    return reflect(value);
   }
 
   Future<InstanceMirror> invokeAsync(Symbol memberName,
@@ -239,10 +240,10 @@ abstract class _LocalObjectMirrorImpl extends _LocalMirrorImpl
               "a simple value or InstanceMirror";
       }
 
-      var result = this._invokeSetter(_reflectee,
-                                      _n(memberName),
-                                      unwrappedValue);
-      return new Future.value(reflect(result)); 
+      this._invokeSetter(_reflectee,
+                         _n(memberName),
+                         unwrappedValue);
+      return new Future.value(reflect(unwrappedValue)); 
     } catch(e) {
       return new Future.error(e);
     }
@@ -793,10 +794,8 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
     implements LibraryMirror {
   _LocalLibraryMirrorImpl(reflectee,
                           String simpleName,
-                          String url,
-                          Map<String, Mirror> members)
+                          String url)
       : this.simpleName = _s(simpleName),
-        this.members = _convertStringToSymbolMap(members),
         this.uri = Uri.parse(url),
         super(reflectee);
 
@@ -820,7 +819,15 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
   }
 
   final Uri uri;
-  final Map<Symbol, Mirror> members;
+
+  Map<Symbol, Mirror> _members;
+
+  Map<Symbol, Mirror> get members {
+    if (_members == null) {
+      _members = _makeMemberMap(_computeMembers(_reflectee));
+    }
+    return _members;
+  }
 
   Map<Symbol, ClassMirror> _classes = null;
   Map<Symbol, MethodMirror> _functions = null;
@@ -884,6 +891,9 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
 
   _invokeSetter(reflectee, setterName, value)
       native 'LibraryMirror_invokeSetter';
+
+  _computeMembers(reflectee)
+      native "LibraryMirror_members";
 }
 
 class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl

@@ -8264,7 +8264,8 @@ Code::Comments& Code::Comments::New(intptr_t count) {
   if (count == 0) {
     comments = new Comments(Object::empty_array());
   } else {
-    const Array& data = Array::Handle(Array::New(count * kNumberOfEntries));
+    const Array& data =
+        Array::Handle(Array::New(count * kNumberOfEntries, Heap::kOld));
     comments = new Comments(data);
   }
   return *comments;
@@ -14345,13 +14346,20 @@ RawLibrary* MirrorReference::GetLibraryReferent() const {
 }
 
 
-RawMirrorReference* MirrorReference::New(Heap::Space space) {
+RawMirrorReference* MirrorReference::New(const Object& referent,
+                                         Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->mirror_reference_class()
          != Class::null());
-  RawObject* raw = Object::Allocate(MirrorReference::kClassId,
-                                    MirrorReference::InstanceSize(),
-                                    space);
-  return reinterpret_cast<RawMirrorReference*>(raw);
+  MirrorReference& result = MirrorReference::Handle();
+  {
+    RawObject* raw = Object::Allocate(MirrorReference::kClassId,
+                                      MirrorReference::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_referent(referent);
+  return result.raw();
 }
 
 

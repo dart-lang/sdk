@@ -1383,6 +1383,26 @@ abstract class Float32x4 {
   /// Returns a new [Float32x4] with lane values reordered.
   Float32x4 get wwww;
 
+  /// Returns a new [Float32x4] with values in the X and Y lanes
+  /// replaced with the values in the Z and W lanes of [other].
+  Float32x4 withZWInXY(Float32x4 other);
+
+  /// Returns a new [Float32x4] with the X and Y lane values
+  /// from [this] and [other] interleaved.
+  Float32x4 interleaveXY(Float32x4 other);
+
+  /// Returns a new [Float32x4] with the Z and W lane values
+  /// from [this] and [other] interleaved.
+  Float32x4 interleaveZW(Float32x4 other);
+
+  /// Returns a new [Float32x4] with the X and Y lane value pairs
+  /// from [this] and [other] interleaved.
+  Float32x4 interleaveXYPairs(Float32x4 other);
+
+  /// Returns a new [Float32x4] with the Z and W lane value pairs
+  /// from [this] and [other] interleaved.
+  Float32x4 interleaveZWPairs(Float32x4 other);
+
   /// Returns a new [Float32x4] copied from [this] with a new x value.
   Float32x4 withX(double x);
   /// Returns a new [Float32x4] copied from [this] with a new y value.

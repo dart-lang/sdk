@@ -1149,14 +1149,6 @@ class Request extends EventTarget native "IDBRequest" {
   @DocsEditable()
   final Transaction transaction;
 
-  @JSName('webkitErrorMessage')
-  @DomName('IDBRequest.webkitErrorMessage')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  final String errorMessage;
-
   @JSName('addEventListener')
   @DomName('IDBRequest.addEventListener')
   @DocsEditable()
@@ -1240,14 +1232,6 @@ class Transaction extends EventTarget native "IDBTransaction" {
   @DocsEditable()
   final String mode;
 
-  @JSName('webkitErrorMessage')
-  @DomName('IDBTransaction.webkitErrorMessage')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  final String errorMessage;
-
   @DomName('IDBTransaction.abort')
   @DocsEditable()
   void abort() native;
@@ -1294,6 +1278,11 @@ class Transaction extends EventTarget native "IDBTransaction" {
 class VersionChangeEvent extends Event native "IDBVersionChangeEvent" {
   // To suppress missing implicit constructor warnings.
   factory VersionChangeEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('IDBVersionChangeEvent.dataLoss')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String dataLoss;
 
   @DomName('IDBVersionChangeEvent.newVersion')
   @DocsEditable()

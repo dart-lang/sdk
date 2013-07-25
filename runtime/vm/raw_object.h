@@ -401,6 +401,7 @@ class RawObject {
   static bool IsTypedDataClassId(intptr_t index);
   static bool IsTypedDataViewClassId(intptr_t index);
   static bool IsExternalTypedDataClassId(intptr_t index);
+  static bool IsImplementationClassId(intptr_t index);
 
   static intptr_t NumberOfTypedDataClasses();
 
@@ -1627,7 +1628,7 @@ inline bool RawObject::IsBuiltinListClassId(intptr_t index) {
   // Make sure this function is updated when new builtin List types are added.
   ASSERT(kImmutableArrayCid == kArrayCid + 1 &&
          kTypedDataCid == kGrowableObjectArrayCid + 1);
-  return ((index >= kArrayCid && index < kImmutableArrayCid) ||
+  return ((index >= kArrayCid && index <= kImmutableArrayCid) ||
           (index >= kGrowableObjectArrayCid && index < kTypedDataCid) ||
           IsTypedDataClassId(index) ||
           IsTypedDataViewClassId(index) ||
@@ -1701,6 +1702,13 @@ inline bool RawObject::IsExternalTypedDataClassId(intptr_t index) {
          (kNullCid == kExternalTypedDataInt8ArrayCid + 12));
   return (index >= kExternalTypedDataInt8ArrayCid &&
           index <= kExternalTypedDataFloat32x4ArrayCid);
+}
+
+
+inline bool RawObject::IsImplementationClassId(intptr_t index) {
+  return IsBuiltinListClassId(index) ||
+      IsStringClassId(index) ||
+      IsNumberClassId(index);
 }
 
 

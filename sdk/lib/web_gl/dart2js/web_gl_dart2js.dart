@@ -531,151 +531,151 @@ class DepthTexture extends Interceptor native "WebGLDepthTexture" {
 
 
 @DocsEditable()
-@DomName('EXTDrawBuffers')
+@DomName('WebGLDrawBuffers')
 // http://www.khronos.org/registry/webgl/specs/latest/
 @Experimental() // stable
-class ExtDrawBuffers extends Interceptor native "EXTDrawBuffers" {
+class DrawBuffers extends Interceptor native "WebGLDrawBuffers" {
 
-  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT0_EXT')
+  @DomName('WebGLDrawBuffers.COLOR_ATTACHMENT0_WEBGL')
   @DocsEditable()
-  static const int COLOR_ATTACHMENT0_EXT = 0x8CE0;
+  static const int COLOR_ATTACHMENT0_WEBGL = 0x8CE0;
 
-  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT10_EXT')
+  @DomName('WebGLDrawBuffers.COLOR_ATTACHMENT10_WEBGL')
   @DocsEditable()
-  static const int COLOR_ATTACHMENT10_EXT = 0x8CEA;
+  static const int COLOR_ATTACHMENT10_WEBGL = 0x8CEA;
 
-  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT11_EXT')
+  @DomName('WebGLDrawBuffers.COLOR_ATTACHMENT11_WEBGL')
   @DocsEditable()
-  static const int COLOR_ATTACHMENT11_EXT = 0x8CEB;
+  static const int COLOR_ATTACHMENT11_WEBGL = 0x8CEB;
 
-  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT12_EXT')
+  @DomName('WebGLDrawBuffers.COLOR_ATTACHMENT12_WEBGL')
   @DocsEditable()
-  static const int COLOR_ATTACHMENT12_EXT = 0x8CEC;
+  static const int COLOR_ATTACHMENT12_WEBGL = 0x8CEC;
 
-  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT13_EXT')
+  @DomName('WebGLDrawBuffers.COLOR_ATTACHMENT13_WEBGL')
   @DocsEditable()
-  static const int COLOR_ATTACHMENT13_EXT = 0x8CED;
+  static const int COLOR_ATTACHMENT13_WEBGL = 0x8CED;
 
-  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT14_EXT')
+  @DomName('WebGLDrawBuffers.COLOR_ATTACHMENT14_WEBGL')
   @DocsEditable()
-  static const int COLOR_ATTACHMENT14_EXT = 0x8CEE;
+  static const int COLOR_ATTACHMENT14_WEBGL = 0x8CEE;
 
-  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT15_EXT')
+  @DomName('WebGLDrawBuffers.COLOR_ATTACHMENT15_WEBGL')
   @DocsEditable()
-  static const int COLOR_ATTACHMENT15_EXT = 0x8CEF;
+  static const int COLOR_ATTACHMENT15_WEBGL = 0x8CEF;
 
-  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT1_EXT')
+  @DomName('WebGLDrawBuffers.COLOR_ATTACHMENT1_WEBGL')
   @DocsEditable()
-  static const int COLOR_ATTACHMENT1_EXT = 0x8CE1;
+  static const int COLOR_ATTACHMENT1_WEBGL = 0x8CE1;
 
-  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT2_EXT')
+  @DomName('WebGLDrawBuffers.COLOR_ATTACHMENT2_WEBGL')
   @DocsEditable()
-  static const int COLOR_ATTACHMENT2_EXT = 0x8CE2;
+  static const int COLOR_ATTACHMENT2_WEBGL = 0x8CE2;
 
-  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT3_EXT')
+  @DomName('WebGLDrawBuffers.COLOR_ATTACHMENT3_WEBGL')
   @DocsEditable()
-  static const int COLOR_ATTACHMENT3_EXT = 0x8CE3;
+  static const int COLOR_ATTACHMENT3_WEBGL = 0x8CE3;
 
-  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT4_EXT')
+  @DomName('WebGLDrawBuffers.COLOR_ATTACHMENT4_WEBGL')
   @DocsEditable()
-  static const int COLOR_ATTACHMENT4_EXT = 0x8CE4;
+  static const int COLOR_ATTACHMENT4_WEBGL = 0x8CE4;
 
-  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT5_EXT')
+  @DomName('WebGLDrawBuffers.COLOR_ATTACHMENT5_WEBGL')
   @DocsEditable()
-  static const int COLOR_ATTACHMENT5_EXT = 0x8CE5;
+  static const int COLOR_ATTACHMENT5_WEBGL = 0x8CE5;
 
-  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT6_EXT')
+  @DomName('WebGLDrawBuffers.COLOR_ATTACHMENT6_WEBGL')
   @DocsEditable()
-  static const int COLOR_ATTACHMENT6_EXT = 0x8CE6;
+  static const int COLOR_ATTACHMENT6_WEBGL = 0x8CE6;
 
-  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT7_EXT')
+  @DomName('WebGLDrawBuffers.COLOR_ATTACHMENT7_WEBGL')
   @DocsEditable()
-  static const int COLOR_ATTACHMENT7_EXT = 0x8CE7;
+  static const int COLOR_ATTACHMENT7_WEBGL = 0x8CE7;
 
-  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT8_EXT')
+  @DomName('WebGLDrawBuffers.COLOR_ATTACHMENT8_WEBGL')
   @DocsEditable()
-  static const int COLOR_ATTACHMENT8_EXT = 0x8CE8;
+  static const int COLOR_ATTACHMENT8_WEBGL = 0x8CE8;
 
-  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT9_EXT')
+  @DomName('WebGLDrawBuffers.COLOR_ATTACHMENT9_WEBGL')
   @DocsEditable()
-  static const int COLOR_ATTACHMENT9_EXT = 0x8CE9;
+  static const int COLOR_ATTACHMENT9_WEBGL = 0x8CE9;
 
-  @DomName('EXTDrawBuffers.DRAW_BUFFER0_EXT')
+  @DomName('WebGLDrawBuffers.DRAW_BUFFER0_WEBGL')
   @DocsEditable()
-  static const int DRAW_BUFFER0_EXT = 0x8825;
+  static const int DRAW_BUFFER0_WEBGL = 0x8825;
 
-  @DomName('EXTDrawBuffers.DRAW_BUFFER10_EXT')
+  @DomName('WebGLDrawBuffers.DRAW_BUFFER10_WEBGL')
   @DocsEditable()
-  static const int DRAW_BUFFER10_EXT = 0x882F;
+  static const int DRAW_BUFFER10_WEBGL = 0x882F;
 
-  @DomName('EXTDrawBuffers.DRAW_BUFFER11_EXT')
+  @DomName('WebGLDrawBuffers.DRAW_BUFFER11_WEBGL')
   @DocsEditable()
-  static const int DRAW_BUFFER11_EXT = 0x8830;
+  static const int DRAW_BUFFER11_WEBGL = 0x8830;
 
-  @DomName('EXTDrawBuffers.DRAW_BUFFER12_EXT')
+  @DomName('WebGLDrawBuffers.DRAW_BUFFER12_WEBGL')
   @DocsEditable()
-  static const int DRAW_BUFFER12_EXT = 0x8831;
+  static const int DRAW_BUFFER12_WEBGL = 0x8831;
 
-  @DomName('EXTDrawBuffers.DRAW_BUFFER13_EXT')
+  @DomName('WebGLDrawBuffers.DRAW_BUFFER13_WEBGL')
   @DocsEditable()
-  static const int DRAW_BUFFER13_EXT = 0x8832;
+  static const int DRAW_BUFFER13_WEBGL = 0x8832;
 
-  @DomName('EXTDrawBuffers.DRAW_BUFFER14_EXT')
+  @DomName('WebGLDrawBuffers.DRAW_BUFFER14_WEBGL')
   @DocsEditable()
-  static const int DRAW_BUFFER14_EXT = 0x8833;
+  static const int DRAW_BUFFER14_WEBGL = 0x8833;
 
-  @DomName('EXTDrawBuffers.DRAW_BUFFER15_EXT')
+  @DomName('WebGLDrawBuffers.DRAW_BUFFER15_WEBGL')
   @DocsEditable()
-  static const int DRAW_BUFFER15_EXT = 0x8834;
+  static const int DRAW_BUFFER15_WEBGL = 0x8834;
 
-  @DomName('EXTDrawBuffers.DRAW_BUFFER1_EXT')
+  @DomName('WebGLDrawBuffers.DRAW_BUFFER1_WEBGL')
   @DocsEditable()
-  static const int DRAW_BUFFER1_EXT = 0x8826;
+  static const int DRAW_BUFFER1_WEBGL = 0x8826;
 
-  @DomName('EXTDrawBuffers.DRAW_BUFFER2_EXT')
+  @DomName('WebGLDrawBuffers.DRAW_BUFFER2_WEBGL')
   @DocsEditable()
-  static const int DRAW_BUFFER2_EXT = 0x8827;
+  static const int DRAW_BUFFER2_WEBGL = 0x8827;
 
-  @DomName('EXTDrawBuffers.DRAW_BUFFER3_EXT')
+  @DomName('WebGLDrawBuffers.DRAW_BUFFER3_WEBGL')
   @DocsEditable()
-  static const int DRAW_BUFFER3_EXT = 0x8828;
+  static const int DRAW_BUFFER3_WEBGL = 0x8828;
 
-  @DomName('EXTDrawBuffers.DRAW_BUFFER4_EXT')
+  @DomName('WebGLDrawBuffers.DRAW_BUFFER4_WEBGL')
   @DocsEditable()
-  static const int DRAW_BUFFER4_EXT = 0x8829;
+  static const int DRAW_BUFFER4_WEBGL = 0x8829;
 
-  @DomName('EXTDrawBuffers.DRAW_BUFFER5_EXT')
+  @DomName('WebGLDrawBuffers.DRAW_BUFFER5_WEBGL')
   @DocsEditable()
-  static const int DRAW_BUFFER5_EXT = 0x882A;
+  static const int DRAW_BUFFER5_WEBGL = 0x882A;
 
-  @DomName('EXTDrawBuffers.DRAW_BUFFER6_EXT')
+  @DomName('WebGLDrawBuffers.DRAW_BUFFER6_WEBGL')
   @DocsEditable()
-  static const int DRAW_BUFFER6_EXT = 0x882B;
+  static const int DRAW_BUFFER6_WEBGL = 0x882B;
 
-  @DomName('EXTDrawBuffers.DRAW_BUFFER7_EXT')
+  @DomName('WebGLDrawBuffers.DRAW_BUFFER7_WEBGL')
   @DocsEditable()
-  static const int DRAW_BUFFER7_EXT = 0x882C;
+  static const int DRAW_BUFFER7_WEBGL = 0x882C;
 
-  @DomName('EXTDrawBuffers.DRAW_BUFFER8_EXT')
+  @DomName('WebGLDrawBuffers.DRAW_BUFFER8_WEBGL')
   @DocsEditable()
-  static const int DRAW_BUFFER8_EXT = 0x882D;
+  static const int DRAW_BUFFER8_WEBGL = 0x882D;
 
-  @DomName('EXTDrawBuffers.DRAW_BUFFER9_EXT')
+  @DomName('WebGLDrawBuffers.DRAW_BUFFER9_WEBGL')
   @DocsEditable()
-  static const int DRAW_BUFFER9_EXT = 0x882E;
+  static const int DRAW_BUFFER9_WEBGL = 0x882E;
 
-  @DomName('EXTDrawBuffers.MAX_COLOR_ATTACHMENTS_EXT')
+  @DomName('WebGLDrawBuffers.MAX_COLOR_ATTACHMENTS_WEBGL')
   @DocsEditable()
-  static const int MAX_COLOR_ATTACHMENTS_EXT = 0x8CDF;
+  static const int MAX_COLOR_ATTACHMENTS_WEBGL = 0x8CDF;
 
-  @DomName('EXTDrawBuffers.MAX_DRAW_BUFFERS_EXT')
+  @DomName('WebGLDrawBuffers.MAX_DRAW_BUFFERS_WEBGL')
   @DocsEditable()
-  static const int MAX_DRAW_BUFFERS_EXT = 0x8824;
+  static const int MAX_DRAW_BUFFERS_WEBGL = 0x8824;
 
-  @JSName('drawBuffersEXT')
-  @DomName('EXTDrawBuffers.drawBuffersEXT')
+  @JSName('drawBuffersWEBGL')
+  @DomName('WebGLDrawBuffers.drawBuffersWEBGL')
   @DocsEditable()
-  void drawBuffersExt(List<int> buffers) native;
+  void drawBuffersWebgl(List<int> buffers) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

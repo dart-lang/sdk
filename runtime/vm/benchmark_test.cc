@@ -455,4 +455,24 @@ BENCHMARK(StandaloneSnapshotSize) {
   benchmark->set_score(snapshot->length());
 }
 
+
+BENCHMARK(CreateMirrorSystem) {
+  const char* kScriptChars =
+      "import 'dart:mirrors';\n"
+      "\n"
+      "void benchmark() {\n"
+      "  currentMirrorSystem();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle args[0];
+
+  Timer timer(true, "currentMirrorSystem() benchmark");
+  timer.Start();
+  Dart_Invoke(lib, NewString("benchmark"), 0, args);
+  timer.Stop();
+  int64_t elapsed_time = timer.TotalElapsedTime();
+  benchmark->set_score(elapsed_time);
+}
+
 }  // namespace dart

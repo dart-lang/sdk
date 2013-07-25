@@ -3180,7 +3180,7 @@ TEST_CASE(WeakProperty_ClearTwoShared_OldSpace) {
 
 TEST_CASE(MirrorReference) {
   const MirrorReference& reference =
-      MirrorReference::Handle(MirrorReference::New());
+      MirrorReference::Handle(MirrorReference::New(Object::Handle()));
   Object& initial_referent = Object::Handle(reference.referent());
   EXPECT(initial_referent.IsNull());
 
@@ -3193,7 +3193,7 @@ TEST_CASE(MirrorReference) {
   EXPECT_EQ(returned_referent.raw(), library.raw());
 
   const MirrorReference& other_reference =
-      MirrorReference::Handle(MirrorReference::New());
+      MirrorReference::Handle(MirrorReference::New(Object::Handle()));
   EXPECT_NE(reference.raw(), other_reference.raw());
   other_reference.set_referent(library);
   EXPECT_NE(reference.raw(), other_reference.raw());

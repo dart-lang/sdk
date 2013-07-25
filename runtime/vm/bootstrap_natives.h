@@ -196,6 +196,11 @@ namespace dart {
   V(Float32x4_getZ, 1)                                                         \
   V(Float32x4_getW, 1)                                                         \
   V(Float32x4_shuffle, 2)                                                      \
+  V(Float32x4_withZWInXY, 2)                                                   \
+  V(Float32x4_interleaveXY, 2)                                                 \
+  V(Float32x4_interleaveZW, 2)                                                 \
+  V(Float32x4_interleaveXYPairs, 2)                                            \
+  V(Float32x4_interleaveZWPairs, 2)                                            \
   V(Float32x4_setX, 2)                                                         \
   V(Float32x4_setY, 2)                                                         \
   V(Float32x4_setZ, 2)                                                         \
@@ -243,6 +248,7 @@ namespace dart {
   V(ClassMirror_name, 1)                                                       \
   V(ClassMirror_library, 1)                                                    \
   V(ClassMirror_members, 2)                                                    \
+  V(LibraryMirror_members, 2)                                                  \
   V(ClassMirror_invoke, 4)                                                     \
   V(ClassMirror_invokeGetter, 3)                                               \
   V(ClassMirror_invokeSetter, 4)                                               \
