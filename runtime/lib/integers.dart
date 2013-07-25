@@ -273,9 +273,7 @@ class _Mint extends _IntegerImplementation implements int {
       return 0;
     }
   }
-  int _shlFromInt(int other) {
-    throw const OutOfMemoryError();
-  }
+  int _shlFromInt(int other) native "Mint_shlFromInt";
 }
 
 // A number that can be represented as Smi or Mint will never be represented as
@@ -298,9 +296,7 @@ class _Bigint extends _IntegerImplementation implements int {
       return 0;
     }
   }
-  int _shlFromInt(int other) {
-    throw const OutOfMemoryError();
-  }
+  int _shlFromInt(int other) native "Bigint_shlFromInt";
 
   int pow(int exponent) {
     throw "Bigint.pow not implemented";

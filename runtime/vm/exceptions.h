@@ -33,10 +33,6 @@ class Exceptions : AllStatic {
   // Helpers to create and throw errors.
   static RawScript* GetCallerScript(DartFrameIterator* iterator);
   static RawInstance* NewInstance(const char* class_name);
-  static void SetField(const Instance& instance,
-                       const Class& cls,
-                       const char* field_name,
-                       const Object& value);
   static void CreateAndThrowTypeError(intptr_t location,
                                       const String& src_type_name,
                                       const String& dst_type_name,

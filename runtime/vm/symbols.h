@@ -99,6 +99,7 @@ class ObjectPointerVisitor;
   V(ICData, "ICData")                                                          \
   V(MegamorphicCache, "MegamorphicCache")                                      \
   V(SubtypeTestCache, "SubtypeTestCache")                                      \
+  V(Error, "Error")                                                            \
   V(ApiError, "ApiError")                                                      \
   V(LanguageError, "LanguageError")                                            \
   V(UnhandledException, "UnhandledException")                                  \
@@ -266,6 +267,7 @@ class ObjectPointerVisitor;
   V(_Random, "_Random")                                                        \
   V(_state, "_state")                                                          \
   V(_A, "_A")                                                                  \
+  V(_stackTrace, "_stackTrace")                                                \
   V(_SpecialTypeMirrorImpl, "_SpecialTypeMirrorImpl")                          \
   V(_LocalVariableMirrorImpl, "_LocalVariableMirrorImpl")                      \
   V(_LocalParameterMirrorImpl, "_LocalParameterMirrorImpl")                    \

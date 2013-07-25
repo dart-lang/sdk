@@ -36,6 +36,8 @@ full_stacktrace3_test: Pass, Fail  # issue 9895
 # Stack traces may or may not end in a newline depending on the JS enging.
 stacktrace_test: Pass, Fail # Assumes stack trace string ends in newline.
 
+error_stacktrace_test: Fail # (Issue 11681).
+
 # VM specific tests that should not be run by dart2js.
 *vm_test: Skip
 *vm_negative_test: Skip

@@ -9,6 +9,7 @@
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
+#include "vm/object_store.h"
 #include "vm/symbols.h"
 
 namespace dart {
@@ -318,6 +319,17 @@ DEFINE_NATIVE_ENTRY(Mint_bitNegate, 1) {
 }
 
 
+DEFINE_NATIVE_ENTRY(Mint_shlFromInt, 2) {
+  // Use the preallocated out of memory exception to avoid calling
+  // into dart code or allocating any code.
+  const Instance& exception =
+      Instance::Handle(isolate->object_store()->out_of_memory());
+  Exceptions::Throw(exception);
+  UNREACHABLE();
+  return 0;
+}
+
+
 // Bigint natives.
 
 DEFINE_NATIVE_ENTRY(Bigint_bitNegate, 1) {
@@ -326,6 +338,17 @@ DEFINE_NATIVE_ENTRY(Bigint_bitNegate, 1) {
   ASSERT(CheckInteger(value));
   ASSERT(CheckInteger(result));
   return result.AsValidInteger();
+}
+
+
+DEFINE_NATIVE_ENTRY(Bigint_shlFromInt, 2) {
+  // Use the preallocated out of memory exception to avoid calling
+  // into dart code or allocating any code.
+  const Instance& exception =
+      Instance::Handle(isolate->object_store()->out_of_memory());
+  Exceptions::Throw(exception);
+  UNREACHABLE();
+  return 0;
 }
 
 }  // namespace dart

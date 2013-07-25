@@ -114,6 +114,7 @@ pow_test: Skip # Precision > 53 bits.
 http_launch_test: Skip
 53bit_overflow_test: Skip
 53bit_overflow_literal_test: Skip
+oom_error_stacktrace_test: Fail, OK # (OOM on JS may produce a stacktrace).
 vmservice/*: Skip # Do not run standalone vm service tests with dart2js.
 
 
@@ -144,6 +145,7 @@ io/list_input_stream_test: Skip # Timeout TODO(ngeoffray): investigate
 
 [ $arch == simarm ]
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
+oom_error_stacktrace_test: Skip # Fails on Linux
 io/web_socket_ping_test: Skip # TODO(ajohnsen): Timeout issue
 
 [ $arch == mips ]
@@ -152,4 +154,5 @@ io/web_socket_ping_test: Skip # TODO(ajohnsen): Timeout issue
 [ $arch == simmips ]
 io/file_fuzz_test: Pass, Timeout
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
+oom_error_stacktrace_test: Skip # Fails on Linux
 io/web_socket_ping_test: Skip # TODO(ajohnsen): Timeout issue

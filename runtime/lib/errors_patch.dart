@@ -7,8 +7,9 @@ patch class Error {
     return Object._toString(object);
   }
 
-  // TODO(11680): implement stackTrace on Error.
-  /* patch */ StackTrace get stackTrace => null;
+  /* patch */ StackTrace get stackTrace => _stackTrace;
+
+  StackTrace _stackTrace;
 }
 
 patch class NoSuchMethodError {
