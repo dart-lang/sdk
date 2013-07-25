@@ -62,7 +62,7 @@ class Utf8Codec extends Encoding {
 }
 
 /**
- * A [Utf8Encoder] converts strings to their UTF-8 code units (a list of
+ * This class converts strings to their UTF-8 code units (a list of
  * unsigned 8-bit integers).
  */
 class Utf8Encoder extends Converter<String, List<int>> {
@@ -85,6 +85,20 @@ class Utf8Encoder extends Converter<String, List<int>> {
       assert(!wasCombined);
     }
     return encoder._buffer.sublist(0, encoder._bufferIndex);
+  }
+
+  /**
+   * Starts a chunked conversion.
+   *
+   * The converter works more efficiently if the given [sink] is a
+   * [ByteConversionSink].
+   */
+  StringConversionSink startChunkedConversion(
+      ChunkedConversionSink<List<int>> sink) {
+    if (sink is! ByteConversionSink) {
+      sink = new ByteConversionSink.from(sink);
+    }
+    return new _Utf8EncoderSink(sink);
   }
 }
 
@@ -110,8 +124,11 @@ class _Utf8Encoder {
    * writes it to [_buffer].
    *
    * Returns true if the [nextCodeUnit] was combined with the
-   * [leadingSurrogate]. If it wasn't then nextCodeUnit has not been written
-   * yet.
+   * [leadingSurrogate]. If it wasn't then nextCodeUnit was not a trailing
+   * surrogate and has not been written yet.
+   *
+   * It is safe to pass 0 for [nextCodeUnit] in which case only the leading
+   * surrogate is written.
    */
   bool _writeSurrogate(int leadingSurrogate, int nextCodeUnit) {
     if (_isTailSurrogate(nextCodeUnit)) {
@@ -187,6 +204,72 @@ class _Utf8Encoder {
 }
 
 /**
+ * This class encodes chunked strings to UTF-8 code units (unsigned 8-bit
+ * integers).
+ */
+class _Utf8EncoderSink extends _Utf8Encoder with StringConversionSinkMixin {
+
+  final ByteConversionSink _sink;
+
+  _Utf8EncoderSink(this._sink);
+
+  void close() {
+    if (_carry != 0) {
+      // addSlice will call close again, but then the carry must be equal to 0.
+      addSlice("", 0, 0, true);
+      return;
+    }
+    _sink.close();
+  }
+
+  void addSlice(String str, int start, int end, bool isLast) {
+    _bufferIndex = 0;
+
+    if (start == end && !isLast) {
+      return;
+    }
+
+    if (_carry != 0) {
+      int nextCodeUnit = 0;
+      if (start != end) {
+        nextCodeUnit = str.codeUnitAt(start);
+      } else {
+        assert(isLast);
+      }
+      bool wasCombined = _writeSurrogate(_carry, nextCodeUnit);
+      // Either we got a non-empty string, or we must not have been combined.
+      assert(!wasCombined || start != end );
+      if (wasCombined) start++;
+      _carry = 0;
+    }
+    do {
+      start = _fillBuffer(str, start, end);
+      bool isLastSlice = isLast && (start == end);
+      if (start == end - 1 && _isLeadSurrogate(str.codeUnitAt(start))) {
+        if (isLast && _bufferIndex < _buffer.length - 3) {
+          // There is still space for the last incomplete surrogate.
+          // We use a non-surrogate as second argument. This way the
+          // function will just add the surrogate-half to the buffer.
+          bool hasBeenCombined = _writeSurrogate(str.codeUnitAt(start), 0);
+          assert(!hasBeenCombined);
+        } else {
+          // Otherwise store it in the carry. If isLast is true, then
+          // close will flush the last carry.
+          _carry = str.codeUnitAt(start);
+        }
+        start++;
+      }
+      _sink.addSlice(_buffer, 0, _bufferIndex, isLastSlice);
+      _bufferIndex = 0;
+    } while (start < end);
+    if (isLast) close();
+  }
+
+  // TODO(floitsch): implement asUtf8Sink. Sligthly complicated because it
+  // needs to deal with malformed input.
+}
+
+/**
  * This class converts UTF-8 code units (lists of unsigned 8-bit integers)
  * to a string.
  */
@@ -212,18 +295,35 @@ class Utf8Decoder extends Converter<List<int>, String> {
    */
   String convert(List<int> codeUnits) {
     StringBuffer buffer = new StringBuffer();
-    _Utf8Decoder decoder = new _Utf8Decoder(_allowMalformed);
-    decoder.convert(codeUnits, 0, codeUnits.length, buffer);
-    decoder.close(buffer);
+    _Utf8Decoder decoder = new _Utf8Decoder(buffer, _allowMalformed);
+    decoder.convert(codeUnits, 0, codeUnits.length);
+    decoder.close();
     return buffer.toString();
+  }
+
+  /**
+   * Starts a chunked conversion.
+   *
+   * The converter works more efficiently if the given [sink] is a
+   * [StringConversionSink].
+   */
+  ByteConversionSink startChunkedConversion(
+      ChunkedConversionSink<String> sink) {
+    StringConversionSink stringSink;
+    if (sink is StringConversionSink) {
+      stringSink = sink;
+    } else {
+      stringSink = new StringConversionSink.from(sink);
+    }
+    return stringSink.asUtf8Sink(_allowMalformed);
   }
 }
 
 // UTF-8 constants.
-const int _ONE_BYTE_LIMIT = 0x7f;   // 7 bytes
-const int _TWO_BYTE_LIMIT = 0x7ff;  // 11 bytes
-const int _THREE_BYTE_LIMIT = 0xffff;  // 16 bytes
-const int _FOUR_BYTE_LIMIT = 0x10ffff;  // 21 bytes, truncated to Unicode max.
+const int _ONE_BYTE_LIMIT = 0x7f;   // 7 bits
+const int _TWO_BYTE_LIMIT = 0x7ff;  // 11 bits
+const int _THREE_BYTE_LIMIT = 0xffff;  // 16 bits
+const int _FOUR_BYTE_LIMIT = 0x10ffff;  // 21 bits, truncated to Unicode max.
 
 // UTF-16 constants.
 const int _SURROGATE_MASK = 0xF800;
@@ -254,12 +354,13 @@ int _combineSurrogatePair(int lead, int tail) =>
 // TODO(floitsch): make this class public.
 class _Utf8Decoder {
   final bool _allowMalformed;
+  final StringSink _stringSink;
   bool _isFirstCharacter = true;
   int _value = 0;
   int _expectedUnits = 0;
   int _extraUnits = 0;
 
-  _Utf8Decoder(this._allowMalformed);
+  _Utf8Decoder(this._stringSink, this._allowMalformed);
 
   bool get hasPartialInput => _expectedUnits > 0;
 
@@ -270,17 +371,29 @@ class _Utf8Decoder {
       _THREE_BYTE_LIMIT,
       _FOUR_BYTE_LIMIT ];
 
-  void close(StringSink sink) {
+  void close() {
+    flush();
+  }
+
+  /**
+   * Flushes this decoder as if closed.
+   *
+   * This method throws if the input was partial and the decoder was
+   * constructed with `allowMalformed` set to `false`.
+   */
+  void flush() {
     if (hasPartialInput) {
       if (!_allowMalformed) {
         throw new FormatException("Unfinished UTF-8 octet sequence");
       }
-      sink.writeCharCode(_REPLACEMENT_CHARACTER);
+      _stringSink.writeCharCode(_REPLACEMENT_CHARACTER);
+      _value = 0;
+      _expectedUnits = 0;
+      _extraUnits = 0;
     }
   }
 
-  void convert(List<int> codeUnits, int startIndex, int endIndex,
-               StringSink sink) {
+  void convert(List<int> codeUnits, int startIndex, int endIndex) {
     int value = _value;
     int expectedUnits = _expectedUnits;
     int extraUnits = _extraUnits;
@@ -303,7 +416,7 @@ class _Utf8Decoder {
                   "Bad UTF-8 encoding 0x${unit.toRadixString(16)}");
             }
             _isFirstCharacter = false;
-            sink.writeCharCode(_REPLACEMENT_CHARACTER);
+            _stringSink.writeCharCode(_REPLACEMENT_CHARACTER);
             break multibyte;
           } else {
             value = (value << 6) | (unit & 0x3f);
@@ -329,7 +442,7 @@ class _Utf8Decoder {
           value = _REPLACEMENT_CHARACTER;
         }
         if (!_isFirstCharacter || value != _BOM_CHARACTER) {
-          sink.writeCharCode(value);
+          _stringSink.writeCharCode(value);
         }
         _isFirstCharacter = false;
       }
@@ -338,7 +451,7 @@ class _Utf8Decoder {
         int unit = codeUnits[i++];
         if (unit <= _ONE_BYTE_LIMIT) {
           _isFirstCharacter = false;
-          sink.writeCharCode(unit);
+          _stringSink.writeCharCode(unit);
         } else {
           if ((unit & 0xE0) == 0xC0) {
             value = unit & 0x1F;
@@ -363,7 +476,7 @@ class _Utf8Decoder {
           value = _REPLACEMENT_CHARACTER;
           expectedUnits = extraUnits = 0;
           _isFirstCharacter = false;
-          sink.writeCharCode(value);
+          _stringSink.writeCharCode(value);
         }
       }
       break loop;

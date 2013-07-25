@@ -53,8 +53,10 @@ class JsonCodec extends Codec<Object, String> {
   JsonDecoder get decoder => new JsonDecoder(null);
 }
 
+typedef _Reviver(var key, var value);
+
 class _ReviverJsonCodec extends JsonCodec {
-  final Function _reviver;
+  final _Reviver _reviver;
   _ReviverJsonCodec(this._reviver);
 
   Object decode(String str, {reviver(var key, var value)}) {
@@ -66,7 +68,7 @@ class _ReviverJsonCodec extends JsonCodec {
 }
 
 /**
- * A [JsonEncoder] converts JSON objects to strings.
+ * This class converts JSON objects to strings.
  */
 class JsonEncoder extends Converter<Object, String> {
   JsonEncoder();
@@ -99,13 +101,58 @@ class JsonEncoder extends Converter<Object, String> {
    * serialized, the new values may or may not be reflected in the result.
    */
   String convert(Object o) => OLD_JSON_LIB.stringify(o);
+
+  /**
+   * Starts a chunked conversion.
+   *
+   * The converter works more efficiently if the given [sink] is a
+   * [StringConversionSink].
+   *
+   * Returns a chunked-conversion sink that accepts at most one object. It is
+   * an error to invoke `add` more than once on the returned sink.
+   */
+  ChunkedConversionSink<Object> startChunkedConversion(
+      ChunkedConversionSink<String> sink) {
+    if (sink is! StringConversionSink) {
+      sink = new StringConversionSink.from(sink);
+    }
+    return new _JsonEncoderSink(sink);
+  }
 }
 
-typedef _Reviver(var key, var value);
+/**
+ * Implements the chunked conversion from object to its JSON representation.
+ *
+ * The sink only accepts one value, but will produce output in a chunked way.
+ */
+class _JsonEncoderSink extends ChunkedConversionSink<Object> {
+  final StringConversionSink _sink;
+  bool _isDone = false;
 
+  _JsonEncoderSink(this._sink);
+
+  /**
+   * Encodes the given object [o].
+   *
+   * It is an error to invoke this method more than once on any instance. While
+   * this makes the input effectly non-chunked the output will be generated in
+   * a chunked way.
+   */
+  void add(Object o) {
+    if (_isDone) {
+      throw new StateError("Only one call to add allowed");
+    }
+    _isDone = true;
+    ClosableStringSink stringSink = _sink.asStringSink();
+    OLD_JSON_LIB.printOn(o, stringSink);
+    stringSink.close();
+  }
+
+  void close() { /* do nothing */ }
+}
 
 /**
- * A [JsonDecoder] parses JSON strings and builds the corresponding objects.
+ * This class parses JSON strings and builds the corresponding objects.
  */
 class JsonDecoder extends Converter<String, Object> {
   final _Reviver _reviver;
@@ -117,7 +164,7 @@ class JsonDecoder extends Converter<String, Object> {
   JsonDecoder(reviver(var key, var value)) : this._reviver = reviver;
 
   /**
-   * Converts the given Json-string [input] to its corresponding object.
+   * Converts the given JSON-string [input] to its corresponding object.
    *
    * Parsed JSON values are of the types [num], [String], [bool], [Null],
    * [List]s of parsed JSON values or [Map]s from [String] to parsed
@@ -132,4 +179,40 @@ class JsonDecoder extends Converter<String, Object> {
    * Throws [FormatException] if the input is not valid JSON text.
    */
   Object convert(String input) => OLD_JSON_LIB.parse(input, _reviver);
+
+  /**
+   * Starts a conversion from a chunked JSON string to its corresponding
+   * object.
+   *
+   * The output [sink] receives exactly one decoded element through `add`.
+   */
+  StringConversionSink startChunkedConversion(
+      ChunkedConversionSink<Object> sink) {
+    return new _JsonDecoderSink(_reviver, sink);
+  }
+}
+
+/**
+ * Implements the chunked conversion from a JSON string to its corresponding
+ * object.
+ *
+ * The sink only creates one object, but its input can be chunked.
+ */
+// TODO(floitsch): don't accumulate everything before starting to decode.
+class _JsonDecoderSink extends _StringSinkConversionSink {
+  final _Reviver _reviver;
+  final ChunkedConversionSink<Object> _chunkedSink;
+
+  _JsonDecoderSink(this._reviver, this._chunkedSink)
+      : super(new StringBuffer());
+
+  void close() {
+    super.close();
+    StringBuffer buffer = _stringSink;
+    String accumulated = buffer.toString();
+    buffer.clear();
+    Object decoded = OLD_JSON_LIB.parse(accumulated, _reviver);
+    _chunkedSink.add(decoded);
+    _chunkedSink.close();
+  }
 }

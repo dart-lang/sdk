@@ -25,6 +25,14 @@ abstract class Converter<S, T> {
   Converter<S, dynamic> fuse(Converter<T, dynamic> other) {
     return new _FusedConverter<S, T, dynamic>(this, other);
   }
+
+  /**
+   * Starts a chunked conversion.
+   */
+  ChunkedConversionSink startChunkedConversion(ChunkedConversionSink sink) {
+    throw new UnsupportedError(
+        "This converter does not support chunked conversions: $this");
+  }
 }
 
 /**
@@ -39,4 +47,8 @@ class _FusedConverter<S, M, T> extends Converter<S, T> {
   _FusedConverter(this._first, this._second);
 
   T convert(S input) => _second.convert(_first.convert(input));
+
+  ChunkedConversionSink startChunkedConversion(ChunkedConversionSink sink) {
+    return _first.startChunkedConversion(_second.startChunkedConversion(sink));
+  }
 }
