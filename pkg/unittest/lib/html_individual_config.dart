@@ -30,7 +30,7 @@ class HtmlIndividualConfiguration extends htmlconfig.HtmlConfiguration {
 
       if(!groups.isEmpty) {
         if(groups.length > 1) {
-          throw 'More than one "group" parameter provided.';
+          throw new ArgumentError('More than one "group" parameter provided.');
         }
 
         var testGroupName = groups.single.split('=')[1];
