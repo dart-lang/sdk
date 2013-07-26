@@ -213,6 +213,16 @@ class ObjectStore {
     typed_data_classes_ = value.raw();
   }
 
+  RawClass* error_class() const {
+    return error_class_;
+  }
+  void set_error_class(const Class& value) {
+    error_class_ = value.raw();
+  }
+  static intptr_t error_class_offset() {
+    return OFFSET_OF(ObjectStore, error_class_);
+  }
+
   RawClass* stacktrace_class() const {
     return stacktrace_class_;
   }
@@ -451,6 +461,7 @@ class ObjectStore {
   RawClass* float32x4_class_;
   RawClass* uint32x4_class_;
   RawArray* typed_data_classes_;
+  RawClass* error_class_;
   RawClass* stacktrace_class_;
   RawClass* jsregexp_class_;
   RawClass* weak_property_class_;

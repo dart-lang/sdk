@@ -465,11 +465,10 @@ BENCHMARK(CreateMirrorSystem) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle args[0];
 
   Timer timer(true, "currentMirrorSystem() benchmark");
   timer.Start();
-  Dart_Invoke(lib, NewString("benchmark"), 0, args);
+  Dart_Invoke(lib, NewString("benchmark"), 0, NULL);
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
   benchmark->set_score(elapsed_time);

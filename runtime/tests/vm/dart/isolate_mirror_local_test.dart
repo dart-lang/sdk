@@ -407,6 +407,7 @@ class MySuperClass {
 class MyInterface {
 }
 
+@notDefined
 class MyClass extends MySuperClass implements MyInterface {
   MyClass(this.value) {}
   MyClass.named() {}
@@ -445,6 +446,7 @@ void testCustomInstanceMirror(InstanceMirror mirror) {
   Expect.equals(const Symbol('isolate_mirror_local_test'), cls.owner.simpleName);
   Expect.isTrue(cls.isClass);
   Expect.equals(const Symbol('MyInterface'), cls.superinterfaces[0].simpleName);
+  Expect.throws(() => cls.metadata, (e) => e is MirroredCompilationError, 'Bad metadata');
   // TODO(ahe): toString() test disabled for now as Symbols are 100% opaque.
   // Expect.equals("ClassMirror on 'MyClass'", cls.toString());
 

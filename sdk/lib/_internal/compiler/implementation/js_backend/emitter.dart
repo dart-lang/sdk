@@ -1143,10 +1143,13 @@ class CodeEmitterTask extends CompilerTask {
       // possible stubs for this closure.
       FunctionSignature signature = member.computeSignature(compiler);
       Set<Selector> selectors = signature.optionalParametersAreNamed
-          ? computeNamedSelectors(signature, member)
+          ? computeSeenNamedSelectors(member)
           : computeOptionalSelectors(signature, member);
       for (Selector selector in selectors) {
         addParameterStub(member, selector, defineStub, generatedStubNames);
+      }
+      if (signature.optionalParametersAreNamed) {
+        addCatchAllParameterStub(member, signature, defineStub);
       }
     } else {
       Set<Selector> selectors = compiler.codegenWorld.invokedNames[member.name];
@@ -1158,37 +1161,36 @@ class CodeEmitterTask extends CompilerTask {
     }
   }
 
-  /**
-   * Compute the set of possible selectors in the presence of named
-   * parameters.
-   */
-  Set<Selector> computeNamedSelectors(FunctionSignature signature,
-                                      FunctionElement element) {
-    Set<Selector> selectors = new Set<Selector>();
-    // Add the selector that does not have any optional argument.
-    selectors.add(new Selector(SelectorKind.CALL,
-                               element.name,
-                               element.getLibrary(),
-                               signature.requiredParameterCount,
-                               <SourceString>[]));
+  Set<Selector> computeSeenNamedSelectors(FunctionElement element) {
+    Set<Selector> selectors = compiler.codegenWorld.invokedNames[element.name];
+    if (selectors == null) return null;
+    Set<Selector> result = new Set<Selector>();
+    for (Selector selector in selectors) {
+      if (!selector.applies(element, compiler)) continue;
+      result.add(selector);
+    }
+    return result;
+  }
 
-    // For each optional parameter, we iterator over the set of
-    // already computed selectors and create new selectors with that
-    // parameter now being passed.
-    signature.forEachOptionalParameter((Element element) {
-      Set<Selector> newSet = new Set<Selector>();
-      selectors.forEach((Selector other) {
-        List<SourceString> namedArguments = [element.name];
-        namedArguments.addAll(other.namedArguments);
-        newSet.add(new Selector(other.kind,
-                                other.name,
-                                other.library,
-                                other.argumentCount + 1,
-                                namedArguments));
-      });
-      selectors.addAll(newSet);
-    });
-    return selectors;
+  void addCatchAllParameterStub(FunctionElement member,
+                                FunctionSignature signature,
+                                DefineStubFunction defineStub) {
+    // See Primities.applyFunction in js_helper.dart for details.
+    List<jsAst.Property> properties = <jsAst.Property>[];
+    for (Element element in signature.orderedOptionalParameters) {
+      String jsName = backend.namer.safeName(element.name.slowToString());
+      Constant value = compiler.constantHandler.initialVariableValues[element];
+      jsAst.Expression reference = null;
+      if (value == null) {
+        reference = new jsAst.LiteralNull();
+      } else {
+        reference = constantReference(value);
+      }
+      properties.add(new jsAst.Property(js.string(jsName), reference));
+    }
+    defineStub(
+        backend.namer.callCatchAllName,
+        js.fun([], js.return_(new jsAst.ObjectInitializer(properties))));
   }
 
   /**
@@ -3753,7 +3755,11 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
                 ..write(',$_')
                 ..write('{$n')
                 ..addBuffer(buffer)
-                ..write('}],$n');
+                ..write('}');
+            if (library == compiler.mainApp) {
+              mainBuffer.write(',${n}1');
+            }
+            mainBuffer.write('],$n');
           }
           buffer = buffers[1];
           if (buffer != null) {
@@ -3963,8 +3969,6 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
   if (!init.mangledNames) init.mangledNames = {};
   if (!init.mangledGlobalNames) init.mangledGlobalNames = {};
   if (!init.statics) init.statics = {};
-  init.getterPrefix = "${namer.getterPrefix}";
-  init.setterPrefix = "${namer.setterPrefix}";
   var libraries = init.libraries;
   var mangledNames = init.mangledNames;
   var mangledGlobalNames = init.mangledGlobalNames;
@@ -3972,10 +3976,22 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
   var length = reflectionData.length;
   for (var i = 0; i < length; i++) {
     var data = reflectionData[i];
+'''
+// [data] contains these elements:
+// 0. The library name (not unique).
+// 1. The library URI (unique).
+// 2. A function returning the metadata associated with this library.
+// 3. An object literal listing the members of the library.
+// 4. This element is optional and if present it is true and signals that this
+// library is the root library (see dart:mirrors IsolateMirror.rootLibrary).
+//
+// The entries of [data] are built in [assembleProgram] above.
+'''
     var name = data[0];
     var uri = data[1];
     var metadata = data[2];
     var descriptor = data[3];
+    var isRoot = !!data[4];
     var fields = descriptor && descriptor[""];
     var classes = [];
     var functions = [];
@@ -4017,7 +4033,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       }
     }
     processStatics(descriptor);
-    libraries.push([name, uri, classes, functions, metadata, fields]);
+    libraries.push([name, uri, classes, functions, metadata, fields, isRoot]);
   }
 })''';
   }

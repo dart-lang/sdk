@@ -511,12 +511,7 @@ static Dart_Handle CreateClassMirrorUsingApi(Dart_Handle intf,
     return type;
   }
 
-  // TODO(turnidge): Why am I getting Null when I expect Object?
-  // TODO(gbracha): this is probably the root of bug 7868
-  Dart_Handle super_class = Dart_GetSuperclass(intf);
-  if (Dart_IsNull(super_class)) {
-    super_class = Dart_GetClass(CoreLib(), NewString("Object"));
-  }
+  Dart_Handle super_class = Dart_Null();
   // TODO(turnidge): Simplify code, now that default classes have been removed.
   Dart_Handle default_class = Dart_Null();
 
@@ -538,7 +533,7 @@ static Dart_Handle CreateClassMirrorUsingApi(Dart_Handle intf,
     Dart_Null(),  // "name"
     Dart_NewBoolean(Dart_IsClass(intf)),
     lib_mirror,
-    CreateLazyMirror(super_class),
+    super_class,
     CreateImplementsList(intf),
     CreateLazyMirror(default_class),
     constructor_map,
@@ -549,36 +544,31 @@ static Dart_Handle CreateClassMirrorUsingApi(Dart_Handle intf,
 }
 
 
+static RawInstance* CreateMethodMirror(const Function& func,
+                                       const Instance& owner_mirror) {
+  const Array& args = Array::Handle(Array::New(11));
+  args.SetAt(0, MirrorReference::Handle(MirrorReference::New(func)));
+  args.SetAt(1, owner_mirror);
+  args.SetAt(2, func.is_static() ? Bool::True() : Bool::False());
+  args.SetAt(3, func.is_abstract() ? Bool::True() : Bool::False());
+  args.SetAt(4, func.IsGetterFunction() ? Bool::True() : Bool::False());
+  args.SetAt(5, func.IsSetterFunction() ? Bool::True() : Bool::False());
+  args.SetAt(6, func.IsConstructor() ? Bool::True() : Bool::False());
+  // TODO(mlippautz): Implement different constructor kinds.
+  args.SetAt(7, Bool::False());
+  args.SetAt(8, Bool::False());
+  args.SetAt(9, Bool::False());
+  args.SetAt(10, Bool::False());
+  return CreateMirror(Symbols::_LocalMethodMirrorImpl(), args);
+}
+
+
 static Dart_Handle CreateMethodMirrorUsingApi(Dart_Handle func,
                                               Dart_Handle owner_mirror) {
-  // TODO(11742): Unwrapping is needed until the whole method is converted.
   Isolate* isolate = Isolate::Current();
-  const Function& func_obj = Api::UnwrapFunctionHandle(isolate, func);
-
-  Dart_Handle mirror_cls_name = NewString("_LocalMethodMirrorImpl");
-  Dart_Handle mirror_type = Dart_GetType(MirrorLib(), mirror_cls_name, 0, NULL);
-  if (Dart_IsError(mirror_type)) {
-    return mirror_type;
-  }
-
-  // TODO(turnidge): Implement constructor kinds (arguments 7 - 10).
-  Dart_Handle args[] = {
-    CreateMirrorReference(func),
-    owner_mirror,
-    CreateParameterMirrorListUsingApi(func),
-    func_obj.is_static() ? Api::True() : Api::False(),
-    func_obj.is_abstract() ? Api::True() : Api::False(),
-    func_obj.IsGetterFunction() ? Api::True() : Api::False(),
-    func_obj.IsSetterFunction() ? Api::True() : Api::False(),
-    func_obj.IsConstructor() ? Api::True() : Api::False(),
-    Api::False(),
-    Api::False(),
-    Api::False(),
-    Api::False()
-  };
-  Dart_Handle mirror =
-      Dart_New(mirror_type, Dart_Null(), ARRAY_SIZE(args), args);
-  return mirror;
+  return Api::NewHandle(isolate, CreateMethodMirror(
+      Api::UnwrapFunctionHandle(isolate, func),
+      Api::UnwrapInstanceHandle(isolate, owner_mirror)));
 }
 
 static RawInstance* CreateVariableMirror(const Field& field,
@@ -881,25 +871,6 @@ static RawInstance* CreateLibraryMirror(const Library& lib) {
 }
 
 
-static RawInstance* CreateMethodMirror(const Function& func,
-                                       const Instance& owner_mirror) {
-  Instance& retvalue = Instance::Handle();
-  Dart_EnterScope();
-  Isolate* isolate = Isolate::Current();
-  Dart_Handle func_handle = Api::NewHandle(isolate, func.raw());
-  Dart_Handle owner_handle = Api::NewHandle(isolate, owner_mirror.raw());
-  // TODO(11742): At some point the handle calls will be replaced by inlined
-  // functionality.
-  Dart_Handle result = CreateMethodMirrorUsingApi(func_handle, owner_handle);
-  if (Dart_IsError(result)) {
-    Dart_PropagateError(result);
-  }
-  retvalue ^= Api::UnwrapHandle(result);
-  Dart_ExitScope();
-  return retvalue.raw();
-}
-
-
 static RawInstance* CreateTypeMirror(const AbstractType& type) {
   ASSERT(!type.IsMalformed());
   if (type.HasResolvedTypeClass()) {
@@ -981,34 +952,6 @@ void NATIVE_ENTRY_FUNCTION(Mirrors_makeLocalClassMirror)(
 }
 
 
-DEFINE_NATIVE_ENTRY(DeclarationMirror_metadata, 1) {
-  const MirrorReference& decl_ref =
-      MirrorReference::CheckedHandle(arguments->NativeArgAt(0));
-  const Object& decl = Object::Handle(decl_ref.referent());
-
-  Class& klass = Class::Handle();
-  if (decl.IsClass()) {
-    klass ^= decl.raw();
-  } else if (decl.IsFunction()) {
-    klass = Function::Cast(decl).origin();
-  } else if (decl.IsField()) {
-    klass = Field::Cast(decl).origin();
-  } else {
-    return Object::empty_array().raw();
-  }
-
-  const Library& library = Library::Handle(klass.library());
-  return library.GetMetadata(decl);
-}
-
-
-void HandleMirrorsMessage(Isolate* isolate,
-                          Dart_Port reply_port,
-                          const Instance& message) {
-  UNIMPLEMENTED();
-}
-
-
 static void ThrowMirroredCompilationError(const String& message) {
   Array& args = Array::Handle(Array::New(1));
   args.SetAt(0, message);
@@ -1028,6 +971,38 @@ static void ThrowInvokeError(const Error& error) {
   }
   Exceptions::PropagateError(error);
   UNREACHABLE();
+}
+
+
+DEFINE_NATIVE_ENTRY(DeclarationMirror_metadata, 1) {
+  const MirrorReference& decl_ref =
+      MirrorReference::CheckedHandle(arguments->NativeArgAt(0));
+  const Object& decl = Object::Handle(decl_ref.referent());
+
+  Class& klass = Class::Handle();
+  if (decl.IsClass()) {
+    klass ^= decl.raw();
+  } else if (decl.IsFunction()) {
+    klass = Function::Cast(decl).origin();
+  } else if (decl.IsField()) {
+    klass = Field::Cast(decl).origin();
+  } else {
+    return Object::empty_array().raw();
+  }
+
+  const Library& library = Library::Handle(klass.library());
+  const Object& metadata = Object::Handle(library.GetMetadata(decl));
+  if (metadata.IsError()) {
+    ThrowInvokeError(Error::Cast(metadata));
+  }
+  return metadata.raw();
+}
+
+
+void HandleMirrorsMessage(Isolate* isolate,
+                          Dart_Port reply_port,
+                          const Instance& message) {
+  UNIMPLEMENTED();
 }
 
 
@@ -1056,6 +1031,12 @@ DEFINE_NATIVE_ENTRY(ClassMirror_library, 1) {
   return CreateLibraryMirror(Library::Handle(klass.library()));
 }
 
+
+DEFINE_NATIVE_ENTRY(ClassMirror_supertype, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
+  const Class& klass = Class::Handle(ref.GetClassReferent());
+  return klass.super_type();
+}
 
 DEFINE_NATIVE_ENTRY(ClassMirror_members, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance,
@@ -1745,6 +1726,13 @@ DEFINE_NATIVE_ENTRY(MethodMirror_owner, 1) {
     return CreateLibraryMirror(Library::Handle(owner.library()));
   }
   return CreateClassMirror(owner, Object::null_instance());
+}
+
+
+DEFINE_NATIVE_ENTRY(MethodMirror_parameters, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
+  const Function& func = Function::Handle(ref.GetFunctionReferent());
+  return CreateParameterMirrorList(func);
 }
 
 

@@ -322,27 +322,53 @@ abstract class Future<T> {
 }
 
 /**
- * A [Completer] is used to produce [Future]s and supply their value when it
- * becomes available.
+ * A [Completer] is used to produce [Future]s and to complete those futures
+ * with a value or error at a later time.
  *
- * A service that provides values to callers, and wants to return [Future]s can
- * use a [Completer] as follows:
+ * A class that wants to return [Future]s can use a [Completer] as follows:
  *
- *     Completer completer = new Completer();
- *     // send future object back to client...
- *     return completer.future;
- *     ...
+ *     Class myAsyncOperation {
+ *       Completer _completer = new Completer();
  *
- *     // later when value is available, call:
- *     completer.complete(value);
+ *       Future<T> myOp() {
+ *         _startOperation();
+ *         // send future object back to client...
+ *         return _completer.future;
+ *       }
  *
- *     // alternatively, if the service cannot produce the value, it
- *     // can provide an error:
- *     completer.completeError(error);
+ *       // Something calls this when the value is ready.
+ *       _finishOperation(T result) {
+ *         _completer.complete(value);
+ *       }
+ *
+ *       // If something goes wrong, call this.
+ *       _errorHappened(error) {
+ *         _completer.completeError(error);
+ *       }
+ *     }
  *
  */
 abstract class Completer<T> {
 
+  /**
+   * Creates a completer whose future is completed asynchronously, sometime
+   * after [complete] is called on it. This allows a call to [complete] to
+   * be in the middle of other code, without running an unknown amount of
+   * future completion and [then] callbacks synchronously at the point that
+   * [complete] is called.
+   *
+   * Example:
+   *
+   *     var completer = new Completer.sync();
+   *     completer.future.then((_) { bar(); });
+   *     // The completion is the result of the asynchronous onDone event.
+   *     // However, there is code executed after the call to complete,
+   *     // but before completer.future runs its completion callback.
+   *     stream.listen(print, onDone: () {
+   *       completer.complete("done");
+   *       foo();  // In this case, foo() runs before bar().
+   *     });
+   */
   factory Completer() => new _AsyncCompleter<T>();
 
   /**
@@ -363,16 +389,14 @@ abstract class Completer<T> {
    * Bad example. Do not use this code. Only for illustrative purposes:
    *
    *     var completer = new Completer.sync();
+   *     completer.future.then((_) { bar(); });
    *     // The completion is the result of the asynchronous onDone event.
    *     // However, there is still code executed after the completion. This
    *     // operation is *not* safe.
    *     stream.listen(print, onDone: () {
    *       completer.complete("done");
-   *       foo();  // This operation follows the completion.
+   *       foo();  // In this case, foo() runs after bar().
    *     });
-   *
-   * *WARNING* This constructor is experimental and could disappear or change
-   * behavior.
    */
   factory Completer.sync() => new _SyncCompleter<T>();
 

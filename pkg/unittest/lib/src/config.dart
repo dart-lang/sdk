@@ -194,7 +194,7 @@ class Configuration {
       String uncaughtError) {
     // Print each test's result.
     for (final t in results) {
-      print(formatResult(t));
+      print(formatResult(t).trim());
     }
 
     // Show the summary.

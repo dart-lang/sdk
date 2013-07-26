@@ -8893,6 +8893,46 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
    */
   @Experimental()
   CssRect get marginEdge => new _MarginCssRect(this);
+
+  /** 
+   * Provides the coordinates of the element relative to the top of the 
+   * document. 
+   *
+   * This method is the Dart equivalent to jQuery's 
+   * [offset](http://api.jquery.com/offset/) method.
+   */
+  Point get documentOffset => offsetTo(document.documentElement);
+
+  /** 
+   * Provides the offset of this element's [borderEdge] relative to the
+   * specified [parent].
+   * 
+   * This is the Dart equivalent of jQuery's
+   * [position](http://api.jquery.com/position/) method. Unlike jQuery's
+   * position, however, [parent] can be any parent element of `this`, 
+   * rather than only `this`'s immediate [offsetParent]. If the specified
+   * element is _not_ an offset parent or transitive offset parent to this
+   * element, an [ArgumentError] is thrown.
+   */
+  Point offsetTo(Element parent) {
+    return Element._offsetToHelper(this, parent);
+  }
+
+  static Point _offsetToHelper(Element current, Element parent) {
+    // We're hopping from _offsetParent_ to offsetParent (not just parent), so
+    // offsetParent, "tops out" at BODY. But people could conceivably pass in 
+    // the document.documentElement and I want it to return an absolute offset,
+    // so we have the special case checking for HTML.
+    bool foundAsParent = identical(current, parent) || parent.tagName == 'HTML';
+    if (current == null || identical(current, parent)) {
+      if (foundAsParent) return new Point(0, 0);
+      throw new ArgumentError("Specified element is not a transitive offset "
+          "parent of this element.");
+    } 
+    Element parentOffset = current.offsetParent;
+    Point p = Element._offsetToHelper(parentOffset, parent);
+    return new Point(p.x + current.offsetLeft, p.y + current.offsetTop);
+  }
   // To suppress missing implicit constructor warnings.
   factory Element._() { throw new UnsupportedError("Not supported"); }
 
@@ -16976,6 +17016,7 @@ class TemplateInstance {
   TemplateInstance(this.firstNode, this.lastNode, this.model);
 }
 
+
 @DomName('Node')
 class Node extends EventTarget native "Node" {
   List<Node> get nodes {
@@ -17049,14 +17090,28 @@ class Node extends EventTarget native "Node" {
    */
   String toString() => nodeValue == null ? super.toString() : nodeValue;
 
+
+  /**
+   * Creates a binding to the attribute [name] to the [path] of the [model].
+   *
+   * This can be overridden by custom elements to provide the binding used in
+   * [Node.bind]. This will only create the binding; it will not add it to
+   * [bindings].
+   *
+   * You should not need to call this directly except from [Node.bind].
+   */
+  @Experimental()
+  createBinding(String name, model, String path) =>
+      TemplateElement.mdvPackage(this).createBinding(name, model, path);
+
   /**
    * Binds the attribute [name] to the [path] of the [model].
    * Path is a String of accessors such as `foo.bar.baz`.
+   * Returns the `NodeBinding` instance.
    */
   @Experimental()
-  void bind(String name, model, String path) {
-    TemplateElement.mdvPackage(this).bind(name, model, path);
-  }
+  bind(String name, model, String path) =>
+      TemplateElement.mdvPackage(this).bind(name, model, path);
 
   /** Unbinds the attribute [name]. */
   @Experimental()
@@ -17069,6 +17124,11 @@ class Node extends EventTarget native "Node" {
   void unbindAll() {
     TemplateElement.mdvPackage(this).unbindAll();
   }
+
+  /** Gets the data bindings that are associated with this node. */
+  @Experimental()
+  Map<String, dynamic> get bindings =>
+      TemplateElement.mdvPackage(this).bindings;
 
   /** Gets the template instance that instantiated this node, if any. */
   @Experimental()
@@ -23202,6 +23262,11 @@ class Url extends Interceptor native "URL" {
   static void revokeObjectUrl(String url) =>
       JS('void',
          '(self.URL || self.webkitURL).revokeObjectURL(#)', url);
+
+  @JSName('createObjectURL')
+  @DomName('URL.createObjectURL')
+  @DocsEditable()
+  static String _createObjectUrlFromWebKitSource(_WebKitMediaSource source) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

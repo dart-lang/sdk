@@ -22,12 +22,12 @@ Validator dependency(Entrypoint entrypoint) =>
 
 expectDependencyValidationError(String error) {
   expect(schedulePackageValidation(dependency),
-      completion(pairOf(someElement(contains(error)), isEmpty)));
+      completion(pairOf(anyElement(contains(error)), isEmpty)));
 }
 
 expectDependencyValidationWarning(String warning) {
   expect(schedulePackageValidation(dependency),
-      completion(pairOf(isEmpty, someElement(contains(warning)))));
+      completion(pairOf(isEmpty, anyElement(contains(warning)))));
 }
 
 /// Sets up a test package with dependency [dep] and mocks a server with

@@ -35,6 +35,8 @@ main() {
     expect(builder.extension('a.b/c.d'), '.d');
     expect(builder.extension(r'~\.bashrc'), '');
     expect(builder.extension(r'a.b/c'), r'');
+    expect(builder.extension(r'foo.dart\'), '.dart');
+    expect(builder.extension(r'foo.dart\\'), '.dart');
   });
 
   test('rootPrefix', () {
@@ -503,6 +505,8 @@ main() {
         r'C:\path\to\foo#bar');
     expect(builder.fromUri(Uri.parse('file://hostname/path/to/foo%23bar')),
         r'\\hostname\path\to\foo#bar');
+    expect(builder.fromUri(Uri.parse('_%7B_%7D_%60_%5E_%20_%22_%25_')),
+        r'_{_}_`_^_ _"_%_');
     expect(() => builder.fromUri(Uri.parse('http://dartlang.org')),
         throwsArgumentError);
   });
@@ -519,5 +523,9 @@ main() {
         Uri.parse('file:///C:/path/to/foo%23bar'));
     expect(builder.toUri(r'\\hostname\path\to\foo#bar'),
         Uri.parse('file://hostname/path/to/foo%23bar'));
+    expect(builder.toUri(r'C:\_{_}_`_^_ _"_%_'),
+        Uri.parse('file:///C:/_%7B_%7D_%60_%5E_%20_%22_%25_'));
+    expect(builder.toUri(r'_{_}_`_^_ _"_%_'),
+        Uri.parse('_%7B_%7D_%60_%5E_%20_%22_%25_'));
   });
 }

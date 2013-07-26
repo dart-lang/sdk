@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 // Test for dartExperimentalFixupGetTag.
 
-class Foo native "A" {  // There is one native class with dispatch tag 'A'.
+class Foo native "A" { // There is one native class with dispatch tag 'A'.
   token() native;
 }
 
@@ -47,4 +47,7 @@ main() {
   // This call succeeds because the fixed-up 'getTag' method returns Foo's
   // dispatch tag, and B is a faithful polyfil for Foo/A.
   Expect.equals('isB', b.token());
+
+  Expect.isTrue(a is Foo);
+  Expect.isTrue(b is Foo);
 }

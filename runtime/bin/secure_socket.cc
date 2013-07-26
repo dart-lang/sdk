@@ -641,13 +641,14 @@ SECStatus BadCertificateCallback(void* filter, PRFileDesc* fd) {
   SSLFilter* ssl_filter = static_cast<SSLFilter*>(filter);
   Dart_Handle callback = ssl_filter->bad_certificate_callback();
   if (Dart_IsNull(callback)) return SECFailure;
-
-  Dart_EnterScope();
   Dart_Handle x509_object = ssl_filter->PeerCertificate();
-  Dart_Handle result =
-      ThrowIfError(Dart_InvokeClosure(callback, 1, &x509_object));
-  bool c_result = Dart_IsBoolean(result) && DartUtils::GetBooleanValue(result);
-  Dart_ExitScope();
+  Dart_Handle result = Dart_InvokeClosure(callback, 1, &x509_object);
+  if (Dart_IsError(result)) {
+    ssl_filter->callback_error = result;
+    return SECFailure;
+  }
+  // Our wrapper is guaranteed to return a boolean.
+  bool c_result = DartUtils::GetBooleanValue(result);
   return c_result ? SECSuccess : SECFailure;
 }
 
@@ -824,6 +825,9 @@ void SSLFilter::Handshake() {
       in_handshake_ = false;
     }
   } else {
+    if (callback_error != NULL) {
+      Dart_PropagateError(callback_error);
+    }
     PRErrorCode error = PR_GetError();
     if (error == PR_WOULD_BLOCK_ERROR) {
       if (!in_handshake_) {

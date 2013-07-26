@@ -439,6 +439,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   bool _socketClosedWrite = false;  // The network socket is closed for writing.
   bool _closedRead = false;  // The secure socket has fired an onClosed event.
   bool _closedWrite = false;  // The secure socket has been closed for writing.
+  Completer _closeCompleter = new Completer();  // The network socket is gone.
   _FilterStatus _filterStatus = new _FilterStatus();
   bool _connectPending = false;
   bool _filterPending = false;
@@ -516,7 +517,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     _secureFilter.registerHandshakeCompleteCallback(
         _secureHandshakeCompleteHandler);
     if (onBadCertificate != null) {
-      _secureFilter.registerBadCertificateCallback(onBadCertificate);
+      _secureFilter.registerBadCertificateCallback(_onBadCertificateWrapper);
     }
     var futureSocket;
     if (socket == null) {
@@ -613,15 +614,22 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     return _secureFilter.buffers[READ_PLAINTEXT].length;
   }
 
-  void close() {
+  Future<RawSecureSocket> close() {
     shutdown(SocketDirection.BOTH);
+    return _closeCompleter.future;
+  }
+
+  void _completeCloseCompleter([dummy]) {
+    if (!_closeCompleter.isCompleted) _closeCompleter.complete(this);
   }
 
   void _close() {
     _closedWrite = true;
     _closedRead = true;
     if (_socket != null) {
-      _socket.close();
+      _socket.close().then(_completeCloseCompleter);
+    } else {
+      _completeCloseCompleter();
     }
     _socketClosedWrite = true;
     _socketClosedRead = true;
@@ -720,6 +728,14 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   X509Certificate get peerCertificate => _secureFilter.peerCertificate;
 
+  bool _onBadCertificateWrapper(X509Certificate certificate) {
+    if (onBadCertificate == null) return false;
+    var result = onBadCertificate(certificate);
+    if (result is bool) return result;
+    throw new ArgumentError(
+        "onBadCertificate callback returned non-boolean $result");
+  }
+
   bool setOption(SocketOption option, bool enabled) {
     if (_socket == null) return false;
     return _socket.setOption(option, enabled);
@@ -761,9 +777,6 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     } else if (_connectPending) {
       // _connectPending is true after the underlying connection has been
       // made, but before the handshake has completed.
-      if (e is! TlsException) {
-        e = new HandshakeException("$e", null);
-      }
       _handshakeComplete.completeError(e);
     } else {
       _controller.addError(e);

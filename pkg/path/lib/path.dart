@@ -18,6 +18,32 @@
 ///
 /// [pub]: http://pub.dartlang.org
 /// [pkg]: http://pub.dartlang.org/packages/path
+///
+/// ## Usage ##
+///
+/// The path library was designed to be imported with a prefix, though you don't
+/// have to if you don't want to:
+///
+///     import 'package:path/path.dart' as path;
+///
+/// The most common way to use the library is through the top-level functions.
+/// These manipulate path strings based on your current working directory and
+/// the path style (POSIX, Windows, or URLs) of the host platform. For example:
+///
+///     path.join("directory", "file.txt");
+///
+/// This calls the top-level [join] function to join "directory" and "file.txt"
+/// using the current platform's directory separator.
+///
+/// If you want to work with paths for a specific platform regardless of the
+/// underlying platform that the program is running on, you can create a
+/// [Builder] and give it an explicit [Style]:
+///
+///     var builder = new path.Builder(style: Style.windows);
+///     builder.join("directory", "file.txt");
+///
+/// This will join "directory" and "file.txt" using the Windows path separator,
+/// even when the program is run on a POSIX machine.
 library path;
 
 @MirrorsUsed(targets: 'dart.dom.html.window, '
@@ -67,8 +93,8 @@ String get current {
   }
 }
 
-/// Gets the path separator for the current platform. On Mac and Linux, this
-/// is `/`. On Windows, it's `\`.
+/// Gets the path separator for the current platform. This is `\` on Windows
+/// and `/` on other platforms (including the browser).
 String get separator => _builder.separator;
 
 /// Converts [path] to an absolute path by resolving it relative to the current
@@ -765,9 +791,9 @@ class Builder {
   ///       // -> Uri.parse('http://dartlang.org/path/to/foo')
   Uri toUri(String path) {
     if (isRelative(path)) {
-      return Uri.parse(path.replaceAll(style.separatorPattern, '/'));
+      return style.relativePathToUri(path);
     } else {
-      return style.pathToUri(join(root, path));
+      return style.absolutePathToUri(join(root, path));
     }
   }
 
@@ -821,8 +847,8 @@ abstract class Style {
   // just the "\\".
   static final windows = new _WindowsStyle();
 
-  /// URLs aren't filesystem paths, but they're supported by Pathos to make it
-  /// easier to manipulate URL paths in the browser.
+  /// URLs aren't filesystem paths, but they're supported to make it easier to
+  /// manipulate URL paths in the browser.
   ///
   /// URLs use "/" (forward slash) as separators. Absolute paths either start
   /// with a protocol and optional hostname (e.g. `http://dartlang.org`,
@@ -862,6 +888,9 @@ abstract class Style {
   /// paths.
   final Pattern relativeRootPattern = null;
 
+  /// A [Builder] that uses this style.
+  Builder get builder => new Builder(style: this);
+
   /// Gets the root prefix of [path] if path is absolute. If [path] is relative,
   /// returns `null`.
   String getRoot(String path) {
@@ -885,11 +914,12 @@ abstract class Style {
   /// Returns the path represented by [uri] in this style.
   String pathFromUri(Uri uri);
 
-  /// Returns the URI that represents [path].
-  ///
-  /// Pathos will always path an absolute path for [path]. Relative paths are
-  /// handled automatically by [Builder].
-  Uri pathToUri(String path);
+  /// Returns the URI that represents the relative path made of [parts].
+  Uri relativePathToUri(String path) =>
+      new Uri(pathSegments: builder.split(path));
+
+  /// Returns the URI that represents [path], which is assumed to be absolute.
+  Uri absolutePathToUri(String path);
 
   String toString() => name;
 }
@@ -897,8 +927,6 @@ abstract class Style {
 /// The style for POSIX paths.
 class _PosixStyle extends Style {
   _PosixStyle();
-
-  static final _builder = new Builder(style: Style.posix);
 
   final name = 'posix';
   final separator = '/';
@@ -913,9 +941,8 @@ class _PosixStyle extends Style {
     throw new ArgumentError("Uri $uri must have scheme 'file:'.");
   }
 
-  Uri pathToUri(String path) {
-    var parsed = _builder._parse(path);
-
+  Uri absolutePathToUri(String path) {
+    var parsed = builder._parse(path);
     if (parsed.parts.isEmpty) {
       // If the path is a bare root (e.g. "/"), [components] will
       // currently be empty. We add two empty components so the URL constructor
@@ -934,8 +961,6 @@ class _PosixStyle extends Style {
 /// The style for Windows paths.
 class _WindowsStyle extends Style {
   _WindowsStyle();
-
-  static final _builder = new Builder(style: Style.windows);
 
   final name = 'windows';
   final separator = '\\';
@@ -960,8 +985,8 @@ class _WindowsStyle extends Style {
     return Uri.decodeComponent(path.replaceAll("/", "\\"));
   }
 
-  Uri pathToUri(String path) {
-    var parsed = _builder._parse(path);
+  Uri absolutePathToUri(String path) {
+    var parsed = builder._parse(path);
     if (parsed.root == r'\\') {
       // Network paths become "file://hostname/path/to/file".
 
@@ -1013,7 +1038,8 @@ class _UrlStyle extends Style {
 
   String pathFromUri(Uri uri) => uri.toString();
 
-  Uri pathToUri(String path) => Uri.parse(path);
+  Uri relativePathToUri(String path) => Uri.parse(path);
+  Uri absolutePathToUri(String path) => Uri.parse(path);
 }
 
 // TODO(rnystrom): Make this public?
@@ -1043,7 +1069,8 @@ class _ParsedPath {
   /// path ends with a trailing separator.
   List<String> separators;
 
-  /// The file extension of the last part, or "" if it doesn't have one.
+  /// The file extension of the last non-empty part, or "" if it doesn't have
+  /// one.
   String get extension => _splitExtension()[1];
 
   /// `true` if this is an absolute path.
@@ -1059,12 +1086,7 @@ class _ParsedPath {
     return copy.parts.last;
   }
 
-  String get basenameWithoutExtension {
-    var copy = this.clone();
-    copy.removeTrailingSeparators();
-    if (copy.parts.isEmpty) return root == null ? '' : root;
-    return copy._splitExtension()[0];
-  }
+  String get basenameWithoutExtension => _splitExtension()[0];
 
   bool get hasTrailingSeparator =>
       !parts.isEmpty && (parts.last == '' || separators.last != '');
@@ -1137,13 +1159,15 @@ class _ParsedPath {
     return builder.toString();
   }
 
-  /// Splits the last part of the path into a two-element list. The first is
-  /// the name of the file without any extension. The second is the extension
-  /// or "" if it has none.
+  /// Splits the last non-empty part of the path into a `[basename, extension`]
+  /// pair.
+  ///
+  /// Returns a two-element list. The first is the name of the file without any
+  /// extension. The second is the extension or "" if it has none.
   List<String> _splitExtension() {
-    if (parts.isEmpty) return ['', ''];
+    var file = parts.lastWhere((p) => p != '', orElse: () => null);
 
-    var file = parts.last;
+    if (file == null) return ['', ''];
     if (file == '..') return ['..', ''];
 
     var lastDot = file.lastIndexOf('.');

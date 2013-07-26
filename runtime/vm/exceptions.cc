@@ -46,35 +46,72 @@ class StacktraceBuilder : public ValueObject {
 
   virtual void AddFrame(const Function& func,
                         const Code& code,
-                        const Smi& offset) = 0;
+                        const Smi& offset,
+                        bool is_catch_frame) = 0;
+
+  virtual bool FullStacktrace() const = 0;
 };
 
 
 class RegularStacktraceBuilder : public StacktraceBuilder {
  public:
-  RegularStacktraceBuilder()
+  explicit RegularStacktraceBuilder(bool full_stacktrace)
       : func_list_(GrowableObjectArray::Handle(GrowableObjectArray::New())),
         code_list_(GrowableObjectArray::Handle(GrowableObjectArray::New())),
         pc_offset_list_(
-            GrowableObjectArray::Handle(GrowableObjectArray::New())) { }
+            GrowableObjectArray::Handle(GrowableObjectArray::New())),
+        catch_func_list_(
+            full_stacktrace ?
+                GrowableObjectArray::Handle(GrowableObjectArray::New()) :
+                GrowableObjectArray::Handle()),
+        catch_code_list_(
+            full_stacktrace ?
+                GrowableObjectArray::Handle(GrowableObjectArray::New()) :
+                GrowableObjectArray::Handle()),
+        catch_pc_offset_list_(
+            full_stacktrace ?
+                GrowableObjectArray::Handle(GrowableObjectArray::New()) :
+                GrowableObjectArray::Handle()),
+        full_stacktrace_(full_stacktrace) { }
   ~RegularStacktraceBuilder() { }
 
   const GrowableObjectArray& func_list() const { return func_list_; }
   const GrowableObjectArray& code_list() const { return code_list_; }
   const GrowableObjectArray& pc_offset_list() const { return pc_offset_list_; }
+  const GrowableObjectArray& catch_func_list() const {
+    return catch_func_list_;
+  }
+  const GrowableObjectArray& catch_code_list() const {
+    return catch_code_list_;
+  }
+  const GrowableObjectArray& catch_pc_offset_list() const {
+    return catch_pc_offset_list_;
+  }
+  virtual bool FullStacktrace() const { return full_stacktrace_; }
 
   virtual void AddFrame(const Function& func,
                         const Code& code,
-                        const Smi& offset) {
-    func_list_.Add(func);
-    code_list_.Add(code);
-    pc_offset_list_.Add(offset);
+                        const Smi& offset,
+                        bool is_catch_frame) {
+    if (is_catch_frame) {
+      catch_func_list_.Add(func);
+      catch_code_list_.Add(code);
+      catch_pc_offset_list_.Add(offset);
+    } else {
+      func_list_.Add(func);
+      code_list_.Add(code);
+      pc_offset_list_.Add(offset);
+    }
   }
 
  private:
   const GrowableObjectArray& func_list_;
   const GrowableObjectArray& code_list_;
   const GrowableObjectArray& pc_offset_list_;
+  const GrowableObjectArray& catch_func_list_;
+  const GrowableObjectArray& catch_code_list_;
+  const GrowableObjectArray& catch_pc_offset_list_;
+  bool full_stacktrace_;
 
   DISALLOW_COPY_AND_ASSIGN(RegularStacktraceBuilder);
 };
@@ -92,7 +129,10 @@ class PreallocatedStacktraceBuilder : public StacktraceBuilder {
 
   virtual void AddFrame(const Function& func,
                         const Code& code,
-                        const Smi& offset);
+                        const Smi& offset,
+                        bool is_catch_frame);
+
+  virtual bool FullStacktrace() const { return false; }
 
  private:
   static const int kNumTopframes = 3;
@@ -106,7 +146,8 @@ class PreallocatedStacktraceBuilder : public StacktraceBuilder {
 
 void PreallocatedStacktraceBuilder::AddFrame(const Function& func,
                                              const Code& code,
-                                             const Smi& offset) {
+                                             const Smi& offset,
+                                             bool is_catch_frame) {
   if (cur_index_ >= Stacktrace::kPreallocatedStackdepth) {
     // The number of frames is overflowing the preallocated stack trace object.
     Function& frame_func = Function::Handle();
@@ -160,6 +201,7 @@ static bool FindExceptionHandler(uword* handler_pc,
   Function& func = Function::Handle();
   Code& code = Code::Handle();
   Smi& offset = Smi::Handle();
+  bool handler_found = false;
   while (!frame->IsEntryFrame()) {
     if (frame->IsDartFrame()) {
       code = frame->LookupDartCode();
@@ -175,30 +217,35 @@ static bool FindExceptionHandler(uword* handler_pc,
           ASSERT(pc < (code.EntryPoint() + code.Size()));
           if (ShouldShowFunction(func)) {
             offset = Smi::New(pc - code.EntryPoint());
-            builder->AddFrame(func, code, offset);
+            builder->AddFrame(func, code, offset, handler_found);
           }
         }
       } else {
         offset = Smi::New(frame->pc() - code.EntryPoint());
         func = code.function();
         if (ShouldShowFunction(func)) {
-          builder->AddFrame(func, code, offset);
+          builder->AddFrame(func, code, offset, handler_found);
         }
       }
-      if (frame->FindExceptionHandler(handler_pc)) {
+      if (!handler_found && frame->FindExceptionHandler(handler_pc)) {
         *handler_sp = frame->sp();
         *handler_fp = frame->fp();
-        return true;
+        handler_found = true;
+        if (!builder->FullStacktrace()) {
+          return handler_found;
+        }
       }
     }
     frame = frames.NextFrame();
     ASSERT(frame != NULL);
   }
   ASSERT(frame->IsEntryFrame());
-  *handler_pc = frame->pc();
-  *handler_sp = frame->sp();
-  *handler_fp = frame->fp();
-  return false;
+  if (!handler_found) {
+    *handler_pc = frame->pc();
+    *handler_sp = frame->sp();
+    *handler_fp = frame->fp();
+  }
+  return handler_found;
 }
 
 
@@ -268,6 +315,29 @@ static void JumpToExceptionHandler(uword program_counter,
 }
 
 
+static RawField* LookupStacktraceField(const Instance& instance) {
+  Isolate* isolate = Isolate::Current();
+  Class& error_class = Class::Handle(isolate,
+                                     isolate->object_store()->error_class());
+  if (error_class.IsNull()) {
+    const Library& core_lib = Library::Handle(isolate, Library::CoreLibrary());
+    error_class = core_lib.LookupClass(Symbols::Error(), NULL);
+    ASSERT(!error_class.IsNull());
+    isolate->object_store()->set_error_class(error_class);
+  }
+  const Class& instance_class = Class::Handle(isolate, instance.clazz());
+  Error& malformed_type_error = Error::Handle(isolate);
+  if (instance_class.IsSubtypeOf(Object::null_abstract_type_arguments(),
+                                 error_class,
+                                 Object::null_abstract_type_arguments(),
+                                 &malformed_type_error)) {
+    ASSERT(malformed_type_error.IsNull());
+    return error_class.LookupInstanceField(Symbols::_stackTrace());
+  }
+  return Field::null();
+}
+
+
 static void ThrowExceptionHelper(const Instance& incoming_exception,
                                  const Instance& existing_stacktrace) {
   bool use_preallocated_stacktrace = false;
@@ -293,23 +363,47 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
                                           &handler_fp,
                                           &frame_builder);
   } else {
-    RegularStacktraceBuilder frame_builder;
+    const Field& stacktrace_field =
+        Field::Handle(LookupStacktraceField(incoming_exception));
+    bool full_stacktrace = !stacktrace_field.IsNull();
+    RegularStacktraceBuilder frame_builder(full_stacktrace);
     handler_exists = FindExceptionHandler(&handler_pc,
                                           &handler_sp,
                                           &handler_fp,
                                           &frame_builder);
+    // Create arrays for function, code and pc_offset triplet of each frame.
+    const Array& func_array =
+        Array::Handle(isolate, Array::MakeArray(frame_builder.func_list()));
+    const Array& code_array =
+        Array::Handle(isolate, Array::MakeArray(frame_builder.code_list()));
+    const Array& pc_offset_array =
+        Array::Handle(isolate,
+                      Array::MakeArray(frame_builder.pc_offset_list()));
+    if (!stacktrace_field.IsNull()) {
+      // This is an error object and we need to capture the full stack trace
+      // here implicitly, so we set up the stack trace. The stack trace field
+      // is set only once, it is not overriden.
+      const Array& catch_func_array =
+          Array::Handle(isolate,
+                        Array::MakeArray(frame_builder.catch_func_list()));
+      const Array& catch_code_array =
+          Array::Handle(isolate,
+                        Array::MakeArray(frame_builder.catch_code_list()));
+      const Array& catch_pc_offset_array =
+          Array::Handle(isolate,
+                        Array::MakeArray(frame_builder.catch_pc_offset_list()));
+      stacktrace = Stacktrace::New(func_array, code_array, pc_offset_array);
+      stacktrace.SetCatchStacktrace(catch_func_array,
+                                    catch_code_array,
+                                    catch_pc_offset_array);
+      if (incoming_exception.GetField(stacktrace_field) == Object::null()) {
+        incoming_exception.SetField(stacktrace_field, stacktrace);
+      }
+    }
     // TODO(5411263): At some point we can optimize by figuring out if a
     // stack trace is needed based on whether the catch code specifies a
     // stack trace object or there is a rethrow in the catch clause.
-    if (frame_builder.pc_offset_list().Length() != 0) {
-      // Create arrays for function, code and pc_offset triplet for each frame.
-      const Array& func_array =
-          Array::Handle(isolate, Array::MakeArray(frame_builder.func_list()));
-      const Array& code_array =
-          Array::Handle(isolate, Array::MakeArray(frame_builder.code_list()));
-      const Array& pc_offset_array =
-          Array::Handle(isolate,
-                        Array::MakeArray(frame_builder.pc_offset_list()));
+    if (pc_offset_array.Length() != 0) {
       if (existing_stacktrace.IsNull()) {
         stacktrace = Stacktrace::New(func_array, code_array, pc_offset_array);
       } else {
@@ -399,18 +493,6 @@ RawInstance* Exceptions::NewInstance(const char* class_name) {
   ASSERT(!cls.IsNull());
   // There are no parameterized error types, so no need to set type arguments.
   return Instance::New(cls);
-}
-
-
-// Assign the value to the field given by its name in the given instance.
-void Exceptions::SetField(const Instance& instance,
-                          const Class& cls,
-                          const char* field_name,
-                          const Object& value) {
-  const Field& field = Field::Handle(cls.LookupInstanceField(
-      String::Handle(Symbols::New(field_name))));
-  ASSERT(!field.IsNull());
-  instance.SetField(field, value);
 }
 
 
@@ -548,6 +630,8 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
   const String* constructor_name = &Symbols::Dot();
   switch (type) {
     case kNone:
+    case kStackOverflow:
+    case kOutOfMemory:
       UNREACHABLE();
       break;
     case kRange:
@@ -570,14 +654,6 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
     case kUnsupported:
       library = Library::CoreLibrary();
       class_name = &Symbols::UnsupportedError();
-      break;
-    case kStackOverflow:
-      library = Library::CoreLibrary();
-      class_name = &Symbols::StackOverflowError();
-      break;
-    case kOutOfMemory:
-      library = Library::CoreLibrary();
-      class_name = &Symbols::OutOfMemoryError();
       break;
     case kInternalError:
       library = Library::CoreLibrary();

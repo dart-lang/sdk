@@ -3023,6 +3023,39 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
+  void handleForeignJsGetName(Send node) {
+    List<Node> arguments = node.arguments.toList();
+    Node argument;
+    switch (arguments.length) {
+    case 0:
+      compiler.reportErrorCode(
+          node, MessageKind.GENERIC,
+          {'text': 'Error: Expected one argument to JS_GET_NAME.'});
+      return;
+    case 1:
+      argument = arguments[0];
+      break;
+    default:
+      for (int i = 1; i < arguments.length; i++) {
+        compiler.reportErrorCode(
+            arguments[i], MessageKind.GENERIC,
+            {'text': 'Error: Extra argument to JS_GET_NAME.'});
+      }
+      return;
+    }
+    LiteralString string = argument.asLiteralString();
+    if (string == null) {
+      compiler.reportErrorCode(
+          argument, MessageKind.GENERIC,
+          {'text': 'Error: Expected a literal string.'});
+    }
+    stack.add(
+        addConstantString(
+            argument,
+            backend.namer.getNameForJsGetName(
+                argument, string.dartString.slowToString())));
+  }
+
   void handleForeignJsSetupObject(Send node) {
     if (!node.arguments.isEmpty) {
       compiler.cancel(
@@ -3198,6 +3231,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       stack.add(addConstantString(node, backend.namer.operatorIs(element)));
     } else if (name == const SourceString('JS_CURRENT_ISOLATE')) {
       handleForeignJsCurrentIsolate(node);
+    } else if (name == const SourceString('JS_GET_NAME')) {
+      handleForeignJsGetName(node);
     } else {
       throw "Unknown foreign: ${selector}";
     }

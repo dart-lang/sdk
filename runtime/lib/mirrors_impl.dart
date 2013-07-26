@@ -20,7 +20,7 @@ Map _filterMap(Map<Symbol, dynamic> old_map, bool filter(Symbol key, value)) {
 }
 
 Map _makeMemberMap(List mirrors) {
-  Map<Symbol, dynamic> result = new Map();
+  Map result = new Map<Symbol, dynamic>();
   mirrors.forEach((mirror) => result[mirror.simpleName] = mirror);
   return result;
 }
@@ -450,6 +450,14 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
 
   var _superclass;
   ClassMirror get superclass {
+    if (_superclass == null) {
+      Type supertype = _supertype(_reflectee);
+      if (supertype == null) {
+        // Object has no superclass.
+        return null;
+      }
+      _superclass = reflectClass(supertype);
+    }
     if (_superclass is! Mirror) {
       _superclass = _superclass.resolve(mirrors);
     }
@@ -592,6 +600,9 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   static _library(reflectee)
       native "ClassMirror_library";
 
+  static _supertype(reflectee)
+      native "ClassMirror_supertype";
+
   _computeMembers(reflectee)
       native "ClassMirror_members";
 
@@ -636,7 +647,7 @@ class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
               const {},
               const {});
 
-  Map<Symbol, Mirror> get members => const {};
+  Map<Symbol, Mirror> get members => new Map<Symbol,Mirror>();
 
   var _returnType;
   TypeMirror get returnType {
@@ -900,7 +911,6 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
     implements MethodMirror {
   _LocalMethodMirrorImpl(reflectee,
                          this._owner,
-                         this.parameters,
                          this.isStatic,
                          this.isAbstract,
                          this.isGetter,
@@ -965,7 +975,13 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
     return _returnType;
   }
 
-  final List<ParameterMirror> parameters;
+  List<ParameterMirror> _parameters = null;
+  List<ParameterMirror> get parameters {
+    if (_parameters == null) {
+      _parameters = _MethodMirror_parameters(_reflectee);
+    }
+    return _parameters;
+  }
 
   final bool isStatic;
   final bool isAbstract;
@@ -1017,6 +1033,9 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
 
   static dynamic _MethodMirror_return_type(reflectee)
       native "MethodMirror_return_type";
+
+  static List<MethodMirror> _MethodMirror_parameters(reflectee)
+      native "MethodMirror_parameters";
 }
 
 class _LocalVariableMirrorImpl extends _LocalDeclarationMirrorImpl
@@ -1152,6 +1171,8 @@ class _SpecialTypeMirrorImpl extends _LocalMirrorImpl
     }
     return this.simpleName == other.simpleName;
   }
+
+  int get hashCode => simpleName.hashCode;
 }
 
 class _Mirrors {

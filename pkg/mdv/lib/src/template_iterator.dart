@@ -239,7 +239,7 @@ class _TemplateIterator {
     iteratedValue = value;
 
     if (iteratedValue is Observable) {
-      _sub = iteratedValue.changes.listen(_handleChanges);
+      _sub = (iteratedValue as Observable).changes.listen(_handleChanges);
     }
 
     var splices = calculateSplices(

@@ -5,9 +5,11 @@
 #include "vm/object_store.h"
 
 #include "vm/exceptions.h"
+#include "vm/dart_entry.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
+#include "vm/symbols.h"
 #include "vm/visitor.h"
 
 namespace dart {
@@ -41,6 +43,7 @@ ObjectStore::ObjectStore()
     float32x4_class_(Class::null()),
     uint32x4_class_(Class::null()),
     typed_data_classes_(Array::null()),
+    error_class_(Class::null()),
     stacktrace_class_(Class::null()),
     jsregexp_class_(Class::null()),
     weak_property_class_(Class::null()),
@@ -103,15 +106,21 @@ bool ObjectStore::PreallocateObjects() {
   ASSERT(this->preallocated_stack_trace() == Stacktrace::null());
 
   Object& result = Object::Handle();
+  const Library& library = Library::Handle(Library::CoreLibrary());
 
-  result = Exceptions::Create(Exceptions::kStackOverflow,
-                              Object::empty_array());
+  result = DartLibraryCalls::InstanceCreate(library,
+                                            Symbols::StackOverflowError(),
+                                            Symbols::Dot(),
+                                            Object::empty_array());
   if (result.IsError()) {
     return false;
   }
   set_stack_overflow(Instance::Cast(result));
 
-  result = Exceptions::Create(Exceptions::kOutOfMemory, Object::empty_array());
+  result = DartLibraryCalls::InstanceCreate(library,
+                                            Symbols::OutOfMemoryError(),
+                                            Symbols::Dot(),
+                                            Object::empty_array());
   if (result.IsError()) {
     return false;
   }

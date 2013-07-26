@@ -4,7 +4,7 @@
 
 library dart._js_names;
 
-import 'dart:_foreign_helper' show JS;
+import 'dart:_foreign_helper' show JS, JS_GET_NAME;
 
 /// No-op method that is called to inform the compiler that unmangled named
 /// must be preserved.
@@ -37,9 +37,9 @@ Map<String, String> computeMangledNames(jsMangledNames, bool isGlobal) {
   preserveNames();
   var keys = extractKeys(jsMangledNames);
   var result = <String, String>{};
-  String getterPrefix = JS('String', 'init.getterPrefix');
+  String getterPrefix = JS_GET_NAME('GETTER_PREFIX');
   int getterPrefixLength = getterPrefix.length;
-  String setterPrefix = JS('String', 'init.setterPrefix');
+  String setterPrefix = JS_GET_NAME('SETTER_PREFIX');
   for (String key in keys) {
     String value = JS('String', '#[#]', jsMangledNames, key);
     result[key] = value;

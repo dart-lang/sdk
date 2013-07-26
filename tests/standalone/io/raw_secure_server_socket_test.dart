@@ -87,7 +87,8 @@ void testSimpleConnectFail(String certificate, bool cancelOnError) {
         Expect.fail("No client connection expected.");
       })
       .catchError((error) {
-        Expect.isTrue(error is HandshakeException);
+        Expect.isTrue(error is SocketException ||
+                      error is HandshakeException);
       });
     server.listen((serverEnd) {
       Expect.fail("No server connection expected.");

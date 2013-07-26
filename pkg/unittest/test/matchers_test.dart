@@ -450,11 +450,11 @@ void main() {
           "at index 2");
     });
 
-    test('someElement', () {
+    test('anyElement', () {
       var d = [1, 2];
       var e = [1, 1, 1];
-      shouldPass(d, someElement(2));
-      shouldFail(e, someElement(2),
+      shouldPass(d, anyElement(2));
+      shouldFail(e, anyElement(2),
           "Expected: some element <2> Actual: [1, 1, 1]");
     });
 
@@ -706,5 +706,61 @@ void main() {
       shouldPass('cow', predicate((x) => x is String, "an instance of String"));
     });
   });
+
+  group('exception/error matchers', () {
+    // TODO(gram): extend this to more types; for now this is just
+    // the types being added in this CL.
+
+    // TODO: enable this test when it works.
+    // See issue 12052.
+    skip_test('throwsCyclicInitializationError', () {
+      expect(() => new Bicycle(), throwsCyclicInitializationError);
+    });
+
+    test('throwsAbstractClassInstantiationError', () {
+      expect(() => new Abstraction(), throwsAbstractClassInstantiationError);
+    });
+
+    test('throwsConcurrentModificationError', () {
+      expect(() {
+        var a = { 'foo': 'bar' };
+        for (var k in a.keys) {
+          a.remove(k);
+        }
+      }, throwsConcurrentModificationError);
+      });
+
+    test('throwsNullThrownError', () {
+      expect(() => throw null, throwsNullThrownError);
+    });
+
+    test('throwsFallThroughError', () {
+      expect(() {
+        var a = 0;
+        switch (a) {
+          case 0:
+            a += 1;
+          case 1:
+            return;
+        }
+      }, throwsFallThroughError);
+    });
+  });
+}
+
+class Bicycle {
+  static var foo = bar();
+
+  static bar() {
+    return foo + 1;
+  }
+
+  X() {
+    print(foo);
+  }
+}
+ 
+abstract class Abstraction {
+  void norealization();
 }
 

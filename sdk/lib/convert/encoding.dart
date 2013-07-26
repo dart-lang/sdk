@@ -11,6 +11,9 @@ part of dart.convert;
 // consolitate them, we need to remove `Encoding` here.
 abstract class Encoding extends Codec<String, List<int>> {
   const Encoding();
+
+  // TODO(floitsch): should we introduce a StringToByteEncoder and
+  // a ByteToStringDecoder so that we have better typing?
 }
 
 // TODO(floitsch): add other encodings, like ASCII and ISO_8859_1.

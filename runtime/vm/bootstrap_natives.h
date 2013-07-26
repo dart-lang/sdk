@@ -43,7 +43,9 @@ namespace dart {
   V(Smi_shrFromInt, 2)                                                         \
   V(Smi_bitNegate, 1)                                                          \
   V(Mint_bitNegate, 1)                                                         \
+  V(Mint_shlFromInt, 2)                                                        \
   V(Bigint_bitNegate, 1)                                                       \
+  V(Bigint_shlFromInt, 2)                                                      \
   V(Double_getIsNegative, 1)                                                   \
   V(Double_getIsInfinite, 1)                                                   \
   V(Double_getIsNaN, 1)                                                        \
@@ -247,6 +249,7 @@ namespace dart {
   V(ClosureMirror_apply, 2)                                                    \
   V(ClassMirror_name, 1)                                                       \
   V(ClassMirror_library, 1)                                                    \
+  V(ClassMirror_supertype, 1)                                                  \
   V(ClassMirror_members, 2)                                                    \
   V(LibraryMirror_members, 2)                                                  \
   V(ClassMirror_invoke, 4)                                                     \
@@ -259,6 +262,7 @@ namespace dart {
   V(DeclarationMirror_metadata, 1)                                             \
   V(MethodMirror_name, 1)                                                      \
   V(MethodMirror_owner, 1)                                                     \
+  V(MethodMirror_parameters, 1)                                                \
   V(MethodMirror_return_type, 1)                                               \
   V(ParameterMirror_type, 2)                                                   \
   V(VariableMirror_type, 1)                                                    \

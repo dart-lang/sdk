@@ -168,10 +168,6 @@ Future<MirrorSystem> getMirrorSystem(List<String> args, {String packageRoot,
   return _analyzeLibraries(libraries, sdkRoot, packageRoot: packageRoot);
 }
 
-// TODO(janicejl): Should make docgen fail gracefully, or output a friendly
-// error message letting them know why it is failing to create a mirror system.
-// If there is conflicting library names, should modify it with a hash at the
-// end of it's library name.
 /**
  * Analyzes set of libraries and provides a mirror system which can be used
  * for static inspection of the source code.
@@ -308,7 +304,7 @@ Map<String, Variable> _getVariables(Map<String, VariableMirror> mirrorMap,
     if (includePrivate || !mirror.isPrivate) {
       _currentMember = mirror;
       data[mirrorName] = new Variable(mirrorName, mirror.isFinal, 
-          mirror.isStatic, mirror.isConst, mirror.type.qualifiedName,
+          mirror.isStatic, mirror.isConst, _type(mirror.type),
           _getComment(mirror), _getAnnotations(mirror), mirror.qualifiedName);
     }
   });
@@ -330,7 +326,7 @@ Map<String, Map<String, Method>> _getMethods
   mirrorMap.forEach((String mirrorName, MethodMirror mirror) {
     if (includePrivate || !mirror.isPrivate) {
       var method = new Method(mirrorName, mirror.isStatic, mirror.isAbstract,
-          mirror.isConstConstructor, mirror.returnType.qualifiedName, 
+          mirror.isConstConstructor, _type(mirror.returnType), 
           _getComment(mirror), _getParameters(mirror.parameters), 
           _getAnnotations(mirror), mirror.qualifiedName);
       _currentMember = mirror;
@@ -414,7 +410,7 @@ Map<String, Parameter> _getParameters(List<ParameterMirror> mirrorList) {
     _currentMember = mirror;
     data[mirror.simpleName] = new Parameter(mirror.simpleName, 
         mirror.isOptional, mirror.isNamed, mirror.hasDefaultValue, 
-        mirror.type.qualifiedName, mirror.defaultValue, 
+        _type(mirror.type), mirror.defaultValue, 
         _getAnnotations(mirror));
   });
   return data;
@@ -427,6 +423,28 @@ Map<String, Generic> _getGenerics(ClassMirror mirror) {
   return new Map.fromIterable(mirror.typeVariables, 
       key: (e) => e.toString(), 
       value: (e) => new Generic(e.toString(), e.upperBound.qualifiedName));
+}
+
+/**
+ * Returns a single [Type] object constructed from the Method.returnType 
+ * Type mirror. 
+ */
+Type _type(TypeMirror mirror) {
+  return new Type(mirror.qualifiedName, _typeGenerics(mirror));
+}
+
+/**
+ * Returns a list of [Type] objects constructed from TypeMirrors. 
+ */
+List<Type> _typeGenerics(TypeMirror mirror) {
+  if (mirror is ClassMirror && !mirror.isTypedef) {
+    var innerList = [];
+    mirror.typeArguments.forEach((e) {
+      innerList.add(new Type(e.qualifiedName, _typeGenerics(e)));
+    });
+    return innerList;
+  }
+  return [];
 }
 
 /**
@@ -512,7 +530,6 @@ class Library extends Indexable {
 /**
  * A class containing contents of a Dart class.
  */
-// TODO(tmandel): Figure out how to do typedefs (what is needed)
 class Class extends Indexable {
 
   /// List of the names of interfaces that this class implements.
@@ -584,7 +601,7 @@ class Variable extends Indexable {
   bool isFinal;
   bool isStatic;
   bool isConst;
-  String type;
+  Type type;
 
   /// List of the meta annotations on the variable.
   List<String> annotations;
@@ -601,7 +618,7 @@ class Variable extends Indexable {
       'final': isFinal.toString(),
       'static': isStatic.toString(),
       'constant': isConst.toString(),
-      'type': type,
+      'type': new List.filled(1, type.toMap()),
       'annotations': new List.from(annotations)
     };
 }
@@ -617,13 +634,13 @@ class Method extends Indexable {
   bool isStatic;
   bool isAbstract;
   bool isConst;
-  String returnType;
-
+  Type returnType;
+  
   /// List of the meta annotations on the method.
   List<String> annotations;
   
   Method(String name, this.isStatic, this.isAbstract, this.isConst, 
-      this.returnType, String comment, this.parameters, this.annotations, 
+      this.returnType, String comment, this.parameters, this.annotations,
       String qualifiedName) 
       : super(name, comment, qualifiedName);
   
@@ -635,7 +652,7 @@ class Method extends Indexable {
       'static': isStatic.toString(),
       'abstract': isAbstract.toString(),
       'constant': isConst.toString(),
-      'return': returnType,
+      'return': new List.filled(1, returnType.toMap()),
       'parameters': recurseMap(parameters),
       'annotations': new List.from(annotations)
     };
@@ -650,7 +667,7 @@ class Parameter {
   bool isOptional;
   bool isNamed;
   bool hasDefaultValue;
-  String type;
+  Type type;
   String defaultValue;
 
   /// List of the meta annotations on the parameter.
@@ -665,7 +682,7 @@ class Parameter {
       'optional': isOptional.toString(),
       'named': isNamed.toString(),
       'default': hasDefaultValue.toString(),
-      'type': type,
+      'type': new List.filled(1, type.toMap()),
       'value': defaultValue,
       'annotations': new List.from(annotations)
     };
@@ -683,5 +700,47 @@ class Generic {
   Map toMap() => {
       'name': name,
       'type': type
+    };
+}
+
+/**
+ * Holds the name of a return type, and its generic type parameters.
+ * 
+ * Return types are of a form [outer]<[inner]>.
+ * If there is no [inner] part, [inner] will be an empty list. 
+ * 
+ * For example:
+ *        int size()  
+ *          "return" : 
+ *            - "outer" : "dart.core.int"
+ *              "inner" :
+ * 
+ *        List<String> toList()
+ *          "return" :
+ *            - "outer" : "dart.core.List"
+ *              "inner" : 
+ *                - "outer" : "dart.core.String"
+ *                  "inner" :
+ *        
+ *        Map<String, List<int>>
+ *          "return" : 
+ *            - "outer" : "dart.core.Map"
+ *              "inner" :
+ *                - "outer" : "dart.core.String"
+ *                  "inner" :
+ *                - "outer" : "dart.core.List"
+ *                  "inner" :
+ *                    - "outer" : "dart.core.int"
+ *                      "inner" :
+ */
+class Type {
+  String outer;
+  List<Type> inner;
+  
+  Type(this.outer, this.inner);
+  
+  Map toMap() => {
+      'outer': outer,
+      'inner': new List.from(inner.map((e) => e.toMap()))
     };
 }

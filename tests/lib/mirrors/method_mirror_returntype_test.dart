@@ -6,8 +6,6 @@ import "dart:mirrors";
 
 import "package:expect/expect.dart";
 
-_n(symbol) => MirrorSystem.getName(symbol);
-
 void voidFunc() {}
 
 dynamicFunc1() {}
@@ -25,20 +23,20 @@ main() {
 
   mm = reflect(intFunc).function;
   Expect.equals(true, mm.returnType is TypeMirror);
-  Expect.equals("int", _n(mm.returnType.simpleName));
+  Expect.equals(const Symbol("int"), mm.returnType.simpleName);
   Expect.equals(true, mm.returnType.owner is LibraryMirror);
 
   mm = reflect(dynamicFunc1).function;
   Expect.equals(true, mm.returnType is TypeMirror);
-  Expect.equals("dynamic", _n(mm.returnType.simpleName));
+  Expect.equals(const Symbol("dynamic"), mm.returnType.simpleName);
 
   mm = reflect(dynamicFunc2).function;
   Expect.equals(true, mm.returnType is TypeMirror);
-  Expect.equals("dynamic", _n(mm.returnType.simpleName));
+  Expect.equals(const Symbol("dynamic"), mm.returnType.simpleName);
 
   mm = reflect(voidFunc).function;
   Expect.equals(true, mm.returnType is TypeMirror);
-  Expect.equals("void", _n(mm.returnType.simpleName));
+  Expect.equals(const Symbol("void"), mm.returnType.simpleName);
 
   ClassMirror cm = reflectClass(C);
   mm = cm.members[const Symbol("getE")];
@@ -47,5 +45,5 @@ main() {
   // what has to be returned.
   //Expect.equals("E", _n(mm.returnType.simpleName));
   Expect.equals(true, mm.owner is ClassMirror);
-  Expect.equals("C", _n(mm.owner.simpleName));
+  Expect.equals(const Symbol("C"), mm.owner.simpleName);
 }

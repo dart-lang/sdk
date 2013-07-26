@@ -6,8 +6,9 @@ part of observe;
 
 /** Records a change to an [Observable]. */
 abstract class ChangeRecord {
+  // TODO(jmesserly): rename this--it's confusing. Perhaps "matches"?
   /** True if the change affected the given item, otherwise false. */
-  bool change(key);
+  bool changes(key);
 }
 
 /** A change record to a field of an observable object. */

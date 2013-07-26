@@ -108,6 +108,30 @@ testView(array) {
   Expect.equals(7.0, array[1].w);
 }
 
+testSublist(array) {
+  Expect.equals(8, array.length);
+  Expect.isTrue(array is Float32x4List);
+  var a = array.sublist(0, 1);
+  Expect.equals(1, a.length);
+  Expect.equals(0.0, a[0].x);
+  Expect.equals(1.0, a[0].y);
+  Expect.equals(2.0, a[0].z);
+  Expect.equals(3.0, a[0].w);
+  a = array.sublist(1, 2);
+  Expect.equals(4.0, a[0].x);
+  Expect.equals(5.0, a[0].y);
+  Expect.equals(6.0, a[0].z);
+  Expect.equals(7.0, a[0].w);
+  a = array.sublist(0);
+  Expect.equals(a.length, array.length);
+  for (int i = 0; i < array.length; i++) {
+    Expect.equals(array[i].x, a[i].x);
+    Expect.equals(array[i].y, a[i].y);
+    Expect.equals(array[i].z, a[i].z);
+    Expect.equals(array[i].w, a[i].w);
+  }
+}
+
 main() {
   var list;
 
@@ -120,9 +144,12 @@ main() {
   for (int i = 0; i < floatList.length; i++) {
     floatList[i] = i.toDouble();
   }
-  list = new Float32x4List.view(floatList);
+  list = new Float32x4List.view(floatList.buffer);
   for (int i = 0; i < 20; i++) {
     testView(list);
+  }
+  for (int i = 0; i < 20; i++) {
+    testSublist(list);
   }
   for (int i = 0; i < 20; i++) {
     testLoadStore(list);

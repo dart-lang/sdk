@@ -28,6 +28,7 @@
 library matcher;
 
 import 'dart:async';
+import 'package:meta/meta.dart';
 
 import 'src/pretty_print.dart';
 import 'src/utils.dart';

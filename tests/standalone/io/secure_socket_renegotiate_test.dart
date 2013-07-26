@@ -7,7 +7,7 @@
 // can request a client certificate to be sent.
 
 import "package:expect/expect.dart";
-import "package:path/path.dart" as path;
+import "package:path/path.dart";
 import "dart:async";
 import "dart:io";
 
@@ -15,13 +15,12 @@ const HOST_NAME = "localhost";
 const CERTIFICATE = "localhost_cert";
 
 
-String certificateDatabase() =>
-    path.join(path.dirname(new Options().script), 'pkcert', '');
+String certificateDatabase() => join(dirname(new Options().script), 'pkcert');
 
 
 Future<SecureServerSocket> runServer() {
   SecureSocket.initialize(database: certificateDatabase(),
-      password: 'dartdart');
+                          password: 'dartdart');
 
   return SecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE)
     .then((SecureServerSocket server) {

@@ -6,54 +6,20 @@ part of mdv;
 
 /** Extensions to the [InputElement] API. */
 class _InputElementExtension extends _ElementExtension {
-  _ValueBinding _valueBinding;
-  _CheckedBinding _checkedBinding;
-
   _InputElementExtension(InputElement node) : super(node);
 
   InputElement get node => super.node;
 
-  void bind(String name, model, String path) {
-    switch (name.toLowerCase()) {
-      case 'value':
-        unbind('value');
-        node.attributes.remove('value');
-        _valueBinding = new _ValueBinding(node, model, path);
-        break;
-      case 'checked':
-        unbind('checked');
-        node.attributes.remove('checked');
-        _checkedBinding = new _CheckedBinding(node, model, path);
-        break;
-      default:
-        super.bind(name, model, path);
-        break;
+  NodeBinding createBinding(String name, model, String path) {
+    if (name == 'value') {
+      // TODO(rafaelw): Maybe template should remove all binding instructions.
+      node.attributes.remove(name);
+      return new _ValueBinding(node, model, path);
     }
-  }
-
-  void unbind(String name) {
-    switch (name.toLowerCase()) {
-      case 'value':
-        if (_valueBinding != null) {
-          _valueBinding.unbind();
-          _valueBinding = null;
-        }
-        break;
-      case 'checked':
-        if (_checkedBinding != null) {
-          _checkedBinding.unbind();
-          _checkedBinding = null;
-        }
-        break;
-      default:
-        super.unbind(name);
-        break;
+    if (name == 'checked') {
+      node.attributes.remove(name);
+      return new _CheckedBinding(node, model, path);
     }
-  }
-
-  void unbindAll() {
-    unbind('value');
-    unbind('checked');
-    super.unbindAll();
+    return super.createBinding(name, model, path);
   }
 }
