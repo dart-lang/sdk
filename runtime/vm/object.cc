@@ -1739,6 +1739,7 @@ void Class::CalculateFieldOffsets() const {
   if (super.IsNull()) {
     offset = sizeof(RawObject);
   } else {
+    ASSERT(super.is_finalized() || super.is_prefinalized());
     type_args_field_offset = super.type_arguments_field_offset();
     offset = super.next_field_offset();
     ASSERT(offset > 0);
@@ -1747,7 +1748,9 @@ void Class::CalculateFieldOffsets() const {
     ASSERT(num_native_fields() == 0);
     set_num_native_fields(super.num_native_fields());
   }
-  // If the super class is parameterized, use the same type_arguments field.
+  // If the super class is parameterized, use the same type_arguments field,
+  // otherwise, if this class is the first in the super chain to be
+  // parameterized, introduce a new type_arguments field.
   if (type_args_field_offset == kNoTypeArguments) {
     const TypeArguments& type_params = TypeArguments::Handle(type_parameters());
     if (!type_params.IsNull()) {

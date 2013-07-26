@@ -9526,6 +9526,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
                                     InvocationMirror::kConstructor,
                                     InvocationMirror::kMethod);
     } else if (constructor.IsRedirectingFactory()) {
+      ClassFinalizer::ResolveRedirectingFactory(type_class, constructor);
       Type& redirect_type = Type::Handle(constructor.RedirectionType());
       if (!redirect_type.IsMalformed() && !redirect_type.IsInstantiated()) {
         // The type arguments of the redirection type are instantiated from the

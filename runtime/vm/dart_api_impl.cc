@@ -2819,9 +2819,14 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
 
   Instance& new_object = Instance::Handle(isolate);
   if (constructor.IsRedirectingFactory()) {
-    Type& type = Type::Handle(constructor.RedirectionType());
-    cls = type.type_class();
+    ClassFinalizer::ResolveRedirectingFactory(cls, constructor);
+    const Type& type = Type::Handle(constructor.RedirectionType());
     constructor = constructor.RedirectionTarget();
+    if (constructor.IsNull()) {
+      ASSERT(type.IsMalformed());
+      return Api::NewHandle(isolate, type.malformed_error());
+    }
+    cls = type.type_class();
   }
   if (constructor.IsConstructor()) {
     // Create the new object.

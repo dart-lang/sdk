@@ -282,6 +282,21 @@ RawClass* ClassFinalizer::ResolveClass(const Class& cls,
 }
 
 
+
+void ClassFinalizer::ResolveRedirectingFactory(const Class& cls,
+                                               const Function& factory) {
+  const Function& target = Function::Handle(factory.RedirectionTarget());
+  if (target.IsNull()) {
+    const Type& type = Type::Handle(factory.RedirectionType());
+    if (!type.IsMalformed()) {
+      const GrowableObjectArray& visited_factories =
+          GrowableObjectArray::Handle(GrowableObjectArray::New());
+      ResolveRedirectingFactoryTarget(cls, factory, visited_factories);
+    }
+  }
+}
+
+
 void ClassFinalizer::ResolveRedirectingFactoryTarget(
     const Class& cls,
     const Function& factory,
@@ -385,7 +400,7 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
     return;
   }
 
-  // Verify that the target is const if the the redirecting factory is const.
+  // Verify that the target is const if the redirecting factory is const.
   if (factory.is_const() && !target.is_const()) {
     const Script& script = Script::Handle(cls.script());
     ReportError(script, factory.token_pos(),
@@ -1159,11 +1174,8 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
                     function_name.ToCString(),
                     super_class_name.ToCString());
       }
-      if (function.IsRedirectingFactory()) {
-        const GrowableObjectArray& redirecting_factories =
-            GrowableObjectArray::Handle(GrowableObjectArray::New());
-        ResolveRedirectingFactoryTarget(cls, function, redirecting_factories);
-      }
+      // The function may be a still unresolved redirecting factory. Do not yet
+      // try to resolve it in order to avoid cycles in class finalization.
     } else {
       for (int i = 0; i < interfaces.Length(); i++) {
         super_class ^= interfaces.At(i);
@@ -1505,7 +1517,7 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
     return;
   }
   if (FLAG_trace_class_finalization) {
-    OS::Print("Finalize %s\n", cls.ToCString());
+    OS::Print("Finalize types in %s\n", cls.ToCString());
   }
   if (!IsSuperCycleFree(cls)) {
     const String& name = String::Handle(cls.Name());
@@ -1614,7 +1626,7 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   }
   // Top level classes are parsed eagerly so just finalize it.
   if (cls.IsTopLevel()) {
-    ClassFinalizer::FinalizeClass(cls);
+    FinalizeClass(cls);
   }
 }
 
@@ -1624,11 +1636,19 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   if (cls.is_finalized()) {
     return;
   }
+  if (FLAG_trace_class_finalization) {
+    OS::Print("Finalize %s\n", cls.ToCString());
+  }
   if (cls.mixin() != Type::null()) {
     // Copy instance methods and fields from the mixin class.
     // This has to happen before the check whether the methods of
     // the class conflict with inherited methods.
     ApplyMixin(cls);
+  }
+  // Ensure super class is finalized.
+  const Class& super = Class::Handle(cls.SuperClass());
+  if (!super.IsNull()) {
+    FinalizeClass(super);
   }
   // Mark as parsed and finalized.
   cls.Finalize();
