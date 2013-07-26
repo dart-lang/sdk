@@ -5,7 +5,6 @@
 library elements;
 
 
-import 'modelx.dart';
 import '../tree/tree.dart';
 import '../util/util.dart';
 import '../resolution/resolution.dart';

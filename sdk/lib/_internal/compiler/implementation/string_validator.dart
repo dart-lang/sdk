@@ -10,7 +10,6 @@ import "dart:collection";
 
 import "dart2jslib.dart";
 import "tree/tree.dart";
-import "elements/elements.dart";
 import "util/characters.dart";
 import "scanner/scannerlib.dart" show Token;
 
