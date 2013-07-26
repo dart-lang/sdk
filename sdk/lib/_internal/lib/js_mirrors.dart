@@ -7,7 +7,11 @@ library dart._js_mirrors;
 import 'dart:async';
 import 'dart:mirrors';
 
-import 'dart:_foreign_helper' show JS, JS_CURRENT_ISOLATE, JS_GET_NAME;
+import 'dart:_foreign_helper' show
+    JS,
+    JS_CURRENT_ISOLATE,
+    JS_CURRENT_ISOLATE_CONTEXT,
+    JS_GET_NAME;
 import 'dart:_collection-dev' as _symbol_dev;
 import 'dart:_js_helper' show
     BoundClosure,
@@ -36,6 +40,8 @@ String getName(Symbol symbol) {
 }
 
 class JsMirrorSystem implements MirrorSystem {
+  final IsolateMirror isolate = new JsIsolateMirror();
+
   TypeMirror get dynamicType => _dynamicType;
   TypeMirror get voidType => _voidType;
 
@@ -72,18 +78,16 @@ class JsMirrorSystem implements MirrorSystem {
       List<String> functions = data[3];
       var metadataFunction = data[4];
       var fields = data[5];
+      bool isRoot = data[6];
       List metadata = (metadataFunction == null)
           ? null : JS('List', '#()', metadataFunction);
       var libraries = result.putIfAbsent(name, () => <LibraryMirror>[]);
       libraries.add(
           new JsLibraryMirror(
-              s(name), uri, classes, functions, metadata, fields));
+              s(name), uri, classes, functions, metadata, fields, isRoot));
     }
     return result;
   }
-
-  // TODO(ahe): Implement this.
-  IsolateMirror get isolate => throw new UnimplementedError();
 }
 
 abstract class JsMirror implements Mirror {
@@ -110,6 +114,26 @@ abstract class JsMirror implements Mirror {
 
   void _storeField(String name, Object arg) {
     throw new UnimplementedError();
+  }
+}
+
+// This class is somewhat silly in the current implementation.
+class JsIsolateMirror extends JsMirror implements IsolateMirror {
+  final _isolateContext = JS_CURRENT_ISOLATE_CONTEXT();
+
+  String get _prettyName => 'Isolate';
+
+  String get debugName {
+    String id = _isolateContext == null ? 'X' : _isolateContext.id.toString();
+    // Using name similar to what the VM uses.
+    return '${n(rootLibrary.simpleName)}-$id';
+  }
+
+  bool get isCurrent => JS_CURRENT_ISOLATE_CONTEXT() == _isolateContext;
+
+  LibraryMirror get rootLibrary {
+    return currentJsMirrorSystem.libraries.values.firstWhere(
+        (JsLibraryMirror library) => library._isRoot);
   }
 }
 
@@ -161,6 +185,7 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
   final List<String> _functions;
   final List _metadata;
   final String _compactFieldSpecification;
+  final bool _isRoot;
   List<JsMethodMirror> _cachedFunctionMirrors;
   List<JsVariableMirror> _cachedFields;
 
@@ -169,7 +194,8 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
                   this._classes,
                   this._functions,
                   this._metadata,
-                  this._compactFieldSpecification)
+                  this._compactFieldSpecification,
+                  this._isRoot)
       : super(simpleName);
 
   String get _prettyName => 'LibraryMirror';

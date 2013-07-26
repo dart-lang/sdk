@@ -3755,7 +3755,11 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
                 ..write(',$_')
                 ..write('{$n')
                 ..addBuffer(buffer)
-                ..write('}],$n');
+                ..write('}');
+            if (library == compiler.mainApp) {
+              mainBuffer.write(',${n}1');
+            }
+            mainBuffer.write('],$n');
           }
           buffer = buffers[1];
           if (buffer != null) {
@@ -3972,10 +3976,22 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
   var length = reflectionData.length;
   for (var i = 0; i < length; i++) {
     var data = reflectionData[i];
+'''
+// [data] contains these elements:
+// 0. The library name (not unique).
+// 1. The library URI (unique).
+// 2. A function returning the metadata associated with this library.
+// 3. An object literal listing the members of the library.
+// 4. This element is optional and if present it is true and signals that this
+// library is the root library (see dart:mirrors IsolateMirror.rootLibrary).
+//
+// The entries of [data] are built in [assembleProgram] above.
+'''
     var name = data[0];
     var uri = data[1];
     var metadata = data[2];
     var descriptor = data[3];
+    var isRoot = !!data[4];
     var fields = descriptor && descriptor[""];
     var classes = [];
     var functions = [];
@@ -4017,7 +4033,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       }
     }
     processStatics(descriptor);
-    libraries.push([name, uri, classes, functions, metadata, fields]);
+    libraries.push([name, uri, classes, functions, metadata, fields, isRoot]);
   }
 })''';
   }
