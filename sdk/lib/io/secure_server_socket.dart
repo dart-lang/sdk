@@ -95,9 +95,10 @@ class SecureServerSocket extends Stream<SecureSocket> implements ServerSocket {
   int get port => _socket.port;
 
   /**
-   * Closes the socket.
+   * Closes the socket. The returned future completes when the socket
+   * is fully closed and is no longer bound.
    */
-  void close() => _socket.close();
+  Future<SecureServerSocket> close() => _socket.close().then((_) => this);
 }
 
 
@@ -204,11 +205,12 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
   int get port => _socket.port;
 
   /**
-   * Closes the socket.
+   * Closes the socket. The returned future completes when the socket
+   * is fully closed and is no longer bound.
    */
-  void close() {
+  Future<RawSecureServerSocket> close() {
     _closed = true;
-    _socket.close();
+    return _socket.close().then((_) => this);
   }
 
   void _onData(RawSocket connection) {

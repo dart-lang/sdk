@@ -202,9 +202,10 @@ abstract class RawServerSocket implements Stream<RawSocket> {
   int get port;
 
   /**
-   * Closes the socket.
+   * Closes the socket. The returned future completes when the socket
+   * is fully closed and is no longer bound.
    */
-  void close();
+  Future<RawServerSocket> close();
 }
 
 
@@ -260,7 +261,7 @@ abstract class ServerSocket implements Stream<Socket> {
    * Closes the socket. The returned future completes when the socket
    * is fully closed and is no longer bound.
    */
-  Future close();
+  Future<ServerSocket> close();
 }
 
 /**
@@ -375,11 +376,14 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
   String get remoteHost;
 
   /**
-   * Closes the socket. Calling [close] will never throw an exception
+   * Closes the socket. Returns a Future that completes with [this] when the
+   * underlying connection is completely destroyed.
+   *
+   * Calling [close] will never throw an exception
    * and calling it several times is supported. Calling [close] can result in
    * a [RawSocketEvent.READ_CLOSED] event.
    */
-  void close();
+  Future<RawSocket> close();
 
   /**
    * Shutdown the socket in the [direction]. Calling [shutdown] will never

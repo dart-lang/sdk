@@ -439,6 +439,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   bool _socketClosedWrite = false;  // The network socket is closed for writing.
   bool _closedRead = false;  // The secure socket has fired an onClosed event.
   bool _closedWrite = false;  // The secure socket has been closed for writing.
+  Completer _closeCompleter = new Completer();  // The network socket is gone.
   _FilterStatus _filterStatus = new _FilterStatus();
   bool _connectPending = false;
   bool _filterPending = false;
@@ -613,15 +614,22 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     return _secureFilter.buffers[READ_PLAINTEXT].length;
   }
 
-  void close() {
+  Future<RawSecureSocket> close() {
     shutdown(SocketDirection.BOTH);
+    return _closeCompleter.future;
+  }
+
+  void _completeCloseCompleter([dummy]) {
+    if (!_closeCompleter.isCompleted) _closeCompleter.complete(this);
   }
 
   void _close() {
     _closedWrite = true;
     _closedRead = true;
     if (_socket != null) {
-      _socket.close();
+      _socket.close().then(_completeCloseCompleter);
+    } else {
+      _completeCloseCompleter();
     }
     _socketClosedWrite = true;
     _socketClosedRead = true;
