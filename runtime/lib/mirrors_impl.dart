@@ -401,10 +401,8 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
                         this._superclass,
                         this._superinterfaces,
                         this._defaultFactory,
-                        Map<String, Mirror> constructors,
                         Map<String, Mirror> typeVariables)
       : this._simpleName = _s(simpleName),
-        this.constructors = _convertStringToSymbolMap(constructors),
         this.typeVariables = _convertStringToSymbolMap(typeVariables),
         super(reflectee);
 
@@ -535,7 +533,15 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
     return _variables;
   }
 
-  Map<Symbol, MethodMirror> constructors;
+  Map<Symbol, MethodMirror> _constructors;
+
+  Map<Symbol, MethodMirror> get constructors {
+    if (_constructors == null) {
+      _constructors = _makeMemberMap(_computeConstructors(_reflectee));
+    }
+    return _constructors;
+  }
+
   Map<Symbol, TypeVariableMirror> typeVariables;
 
   Map<Symbol, TypeMirror> get typeArguments {
@@ -605,6 +611,9 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
 
   _computeMembers(reflectee)
       native "ClassMirror_members";
+  
+  _computeConstructors(reflectee)
+      native "ClassMirror_constructors";
 
   _invoke(reflectee, memberName, positionalArguments)
       native 'ClassMirror_invoke';
@@ -644,10 +653,10 @@ class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
               new _LazyTypeMirror('dart:core', 'Object'),
               [ new _LazyTypeMirror('dart:core', 'Function') ],
               null,
-              const {},
               const {});
 
   Map<Symbol, Mirror> get members => new Map<Symbol,Mirror>();
+  Map<Symbol, MethodMirror> get constructors => new Map<Symbol,MethodMirror>();
 
   var _returnType;
   TypeMirror get returnType {

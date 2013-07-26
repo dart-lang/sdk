@@ -492,9 +492,6 @@ static Dart_Handle CreateTypedefMirror(Dart_Handle cls,
 }
 
 
-static Dart_Handle CreateConstructorMap(Dart_Handle owner,
-                                        Dart_Handle owner_mirror);
-
 static Dart_Handle CreateClassMirrorUsingApi(Dart_Handle intf,
                                              Dart_Handle intf_name,
                                              Dart_Handle lib_mirror) {
@@ -519,10 +516,6 @@ static Dart_Handle CreateClassMirrorUsingApi(Dart_Handle intf,
   if (Dart_IsError(intf_mirror)) {
     return intf_mirror;
   }
-  Dart_Handle constructor_map = CreateConstructorMap(intf, intf_mirror);
-  if (Dart_IsError(constructor_map)) {
-    return constructor_map;
-  }
   Dart_Handle type_var_map = CreateTypeVariableMap(intf, intf_mirror);
   if (Dart_IsError(type_var_map)) {
     return type_var_map;
@@ -536,7 +529,6 @@ static Dart_Handle CreateClassMirrorUsingApi(Dart_Handle intf,
     super_class,
     CreateImplementsList(intf),
     CreateLazyMirror(default_class),
-    constructor_map,
     type_var_map,
   };
   Dart_Handle mirror = Dart_New(type, Dart_Null(), ARRAY_SIZE(args), args);
@@ -587,66 +579,6 @@ static RawInstance* CreateVariableMirror(const Field& field,
   args.SetAt(5, field.is_final()  ? Bool::True() : Bool::False());
 
   return CreateMirror(Symbols::_LocalVariableMirrorImpl(), args);
-}
-
-
-static Dart_Handle AddConstructors(Dart_Handle map,
-                                   Dart_Handle owner,
-                                   Dart_Handle owner_mirror) {
-  Dart_Handle result;
-  Dart_Handle names = Dart_GetFunctionNames(owner);
-  if (Dart_IsError(names)) {
-    return names;
-  }
-  intptr_t len;
-  result = Dart_ListLength(names, &len);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  for (intptr_t i = 0; i < len; i++) {
-    Dart_Handle func_name = Dart_ListGetAt(names, i);
-    Dart_Handle func = Dart_LookupFunction(owner, func_name);
-    if (Dart_IsError(func)) {
-      return func;
-    }
-    ASSERT(!Dart_IsNull(func));
-
-    bool is_constructor = false;
-    result = Dart_FunctionIsConstructor(func, &is_constructor);
-    if (Dart_IsError(result)) {
-      return result;
-    }
-    if (!is_constructor) {
-      // Skip non-constructors.
-      continue;
-    }
-
-    Dart_Handle func_mirror = CreateMethodMirrorUsingApi(func, owner_mirror);
-    if (Dart_IsError(func_mirror)) {
-      return func_mirror;
-    }
-    result = MapAdd(map, func_name, func_mirror);
-    if (Dart_IsError(result)) {
-      return result;
-    }
-  }
-  return Dart_True();
-}
-
-
-static Dart_Handle CreateConstructorMap(Dart_Handle owner,
-                                        Dart_Handle owner_mirror) {
-  // TODO(turnidge): This should be an immutable map.
-  if (Dart_IsError(owner_mirror)) {
-    return owner_mirror;
-  }
-  Dart_Handle result;
-  Dart_Handle map = MapNew();
-  result = AddConstructors(map, owner, owner_mirror);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  return map;
 }
 
 
@@ -1045,6 +977,11 @@ DEFINE_NATIVE_ENTRY(ClassMirror_members, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
   const Class& klass = Class::Handle(ref.GetClassReferent());
 
+  const Error& error = Error::Handle(klass.EnsureIsFinalized(isolate));
+  if (!error.IsNull()) {
+    ThrowInvokeError(error);
+  }
+
   const Array& fields = Array::Handle(klass.fields());
   // Some special types like 'dynamic' have a null fields list, but they should
   // not wind up as the reflectees of ClassMirrors.
@@ -1080,6 +1017,41 @@ DEFINE_NATIVE_ENTRY(ClassMirror_members, 2) {
   }
 
   return member_mirrors.raw();
+}
+
+
+DEFINE_NATIVE_ENTRY(ClassMirror_constructors, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance,
+                               owner_mirror,
+                               arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
+  const Class& klass = Class::Handle(ref.GetClassReferent());
+
+  const Error& error = Error::Handle(klass.EnsureIsFinalized(isolate));
+  if (!error.IsNull()) {
+    ThrowInvokeError(error);
+  }
+
+  const Array& functions = Array::Handle(klass.functions());
+  // Some special types like 'dynamic' have a null functions list, but they
+  // should not wind up as the reflectees of ClassMirrors.
+  ASSERT(!functions.IsNull());
+  const intptr_t num_functions = functions.Length();
+
+  Instance& constructor_mirror = Instance::Handle();
+  const GrowableObjectArray& constructor_mirrors = GrowableObjectArray::Handle(
+      GrowableObjectArray::New(num_functions));
+
+  Function& func = Function::Handle();
+  for (intptr_t i = 0; i < num_functions; i++) {
+    func ^= functions.At(i);
+    if (func.kind() == RawFunction::kConstructor) {
+      constructor_mirror = CreateMethodMirror(func, owner_mirror);
+      constructor_mirrors.Add(constructor_mirror);
+    }
+  }
+
+  return constructor_mirrors.raw();
 }
 
 
