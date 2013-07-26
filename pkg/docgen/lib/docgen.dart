@@ -154,17 +154,10 @@ Future<MirrorSystem> getMirrorSystem(List<String> args, {String packageRoot,
     bool parseSdk:false}) {
   var libraries = !parseSdk ? _listLibraries(args) : _listSdk();
   if (libraries.isEmpty) throw new StateError('No Libraries.');
-  // DART_SDK should be set to the root of the SDK library.
-  var sdkRoot = Platform.environment['DART_SDK'];
-  if (sdkRoot != null) {
-    logger.info('Using DART_SDK to find SDK at $sdkRoot');
-  } else {
-    // If DART_SDK is not defined in the environment,
-    // assuming the dart executable is from the Dart SDK folder inside bin.
-    sdkRoot = path.join(path.dirname(path.dirname(path.dirname(path.dirname(
+  // Finds the root of SDK library based off the location of docgen.
+  var sdkRoot = path.join(path.dirname(path.dirname(path.dirname(path.dirname(
         path.absolute(new Options().script))))), 'sdk');
-    logger.info('SDK Root: ${sdkRoot}');
-  }
+  logger.info('SDK Root: ${sdkRoot}');
   return _analyzeLibraries(libraries, sdkRoot, packageRoot: packageRoot);
 }
 
