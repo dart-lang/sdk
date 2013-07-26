@@ -943,7 +943,6 @@ class _PosixStyle extends Style {
 
   Uri absolutePathToUri(String path) {
     var parsed = builder._parse(path);
-
     if (parsed.parts.isEmpty) {
       // If the path is a bare root (e.g. "/"), [components] will
       // currently be empty. We add two empty components so the URL constructor

@@ -1,13 +1,13 @@
 A comprehensive, cross-platform path manipulation library for Dart.
 
-The path package provides common operations for manipulating file paths:
+The path package provides common operations for manipulating paths:
 joining, splitting, normalizing, etc.
 
 We've tried very hard to make this library do the "right" thing on whatever
-platform you run it on. When you use the top-level functions, it will assume the
-current platform's path style and work with that. If you want to specifically
-work with paths of a specific style, you can construct a `path.Builder` for that
-style.
+platform you run it on, including in the browser. When you use the top-level
+functions, it will assume the current platform's path style and work with
+that. If you want to explicitly work with paths of a specific style, you can
+construct a `path.Builder` for that style.
 
 ## Using
 
@@ -16,345 +16,24 @@ have to if you don't want to:
 
     import 'package:path/path.dart' as path;
 
-## Top-level functions
-
 The most common way to use the library is through the top-level functions.
-These manipulate path strings based on your current working directory and the
-path style (POSIX, Windows, or URLs) of the host platform.
+These manipulate path strings based on your current working directory and
+the path style (POSIX, Windows, or URLs) of the host platform. For example:
 
-### String get current
+    path.join("directory", "file.txt");
 
-Gets the path to the current working directory. In the browser, this means the
-current URL. When using dart2js, this currently returns `.` due to technical
-constraints. In the future, it will return the current URL.
+This calls the top-level [join] function to join "directory" and
+"file.txt" using the current platform's directory separator.
 
-### String get separator
+If you want to work with paths for a specific platform regardless of the
+underlying platform that the program is running on, you can create a
+[Builder] and give it an explicit [Style]:
 
-Gets the path separator for the current platform. On Mac, Linux, and the
-browser, this is `/`. On Windows, it's `\`.
+    var builder = new path.Builder(style: Style.windows);
+    builder.join("directory", "file.txt");
 
-### String absolute(String path)
-
-Converts [path] to an absolute path by resolving it relative to the current
-working directory. If [path] is already an absolute path, just returns it.
-
-    path.absolute('foo/bar.txt'); // -> /your/current/dir/foo/bar.txt
-
-### String basename(String path)
-
-Gets the part of [path] after the last separator.
-
-    path.basename('path/to/foo.dart'); // -> 'foo.dart'
-    path.basename('path/to');          // -> 'to'
-
-Trailing separators are ignored.
-
-    builder.basename('path/to/'); // -> 'to'
-
-### String basenameWithoutExtension(String path)
-
-Gets the part of [path] after the last separator, and without any trailing
-file extension.
-
-    path.basenameWithoutExtension('path/to/foo.dart'); // -> 'foo'
-
-Trailing separators are ignored.
-
-    builder.basenameWithoutExtension('path/to/foo.dart/'); // -> 'foo'
-
-### String dirname(String path)
-
-Gets the part of [path] before the last separator.
-
-    path.dirname('path/to/foo.dart'); // -> 'path/to'
-    path.dirname('path/to');          // -> 'to'
-
-Trailing separators are ignored.
-
-    builder.dirname('path/to/'); // -> 'path'
-
-If an absolute path contains no directories, only a root, then the root
-is returned.
-
-    path.dirname('/');    // -> '/' (posix)
-    path.dirname('c:\');  // -> 'c:\' (windows)
-
-If a relative path has no directories, then '.' is returned.
-    path.dirname('foo');  // -> '.'
-    path.dirname('');     // -> '.'
-
-### String extension(String path)
-
-Gets the file extension of [path]: the portion of [basename] from the last
-`.` to the end (including the `.` itself).
-
-    path.extension('path/to/foo.dart');    // -> '.dart'
-    path.extension('path/to/foo');         // -> ''
-    path.extension('path.to/foo');         // -> ''
-    path.extension('path/to/foo.dart.js'); // -> '.js'
-
-If the file name starts with a `.`, then that is not considered the
-extension:
-
-    path.extension('~/.bashrc');    // -> ''
-    path.extension('~/.notes.txt'); // -> '.txt'
-
-### String rootPrefix(String path)
-
-Returns the root of [path], if it's absolute, or the empty string if it's
-relative.
-
-    // Unix
-    path.rootPrefix('path/to/foo'); // -> ''
-    path.rootPrefix('/path/to/foo'); // -> '/'
-
-    // Windows
-    path.rootPrefix(r'path\to\foo'); // -> ''
-    path.rootPrefix(r'C:\path\to\foo'); // -> r'C:\'
-
-    // URL
-    path.rootPrefix('path/to/foo'); // -> ''
-    path.rootPrefix('http://dartlang.org/path/to/foo');
-      // -> 'http://dartlang.org'
-
-### bool isAbsolute(String path)
-
-Returns `true` if [path] is an absolute path and `false` if it is a relative
-path. On POSIX systems, absolute paths start with a `/` (forward slash). On
-Windows, an absolute path starts with `\\`, or a drive letter followed by `:/`
-or `:\`. For URLs, absolute paths either start with a protocol and optional
-hostname (e.g. `http://dartlang.org`, `file://`) or with a `/`.
-
-URLs that start with `/` are known as "root-relative", since they're relative to
-the root of the current URL. Since root-relative paths are still absolute in
-every other sense, [isAbsolute] will return true for them. They can be detected
-using [isRootRelative].
-
-### bool isRelative(String path)
-
-Returns `true` if [path] is a relative path and `false` if it is absolute.
-On POSIX systems, absolute paths start with a `/` (forward slash). On
-Windows, an absolute path starts with `\\`, or a drive letter followed by
-`:/` or `:\`.
-
-### bool isRootRelative(String path)
-
-Returns `true` if [path] is a root-relative path and `false` if it's not. URLs
-that start with `/` are known as "root-relative", since they're relative to the
-root of the current URL. Since root-relative paths are still absolute in every
-other sense, [isAbsolute] will return true for them. They can be detected using
-[isRootRelative].
-
-No POSIX and Windows paths are root-relative.
-
-### String join(String part1, [String part2, String part3, ...])
-
-Joins the given path parts into a single path using the current platform's
-[separator]. Example:
-
-    path.join('path', 'to', 'foo'); // -> 'path/to/foo'
-
-If any part ends in a path separator, then a redundant separator will not
-be added:
-
-    path.join('path/', 'to', 'foo'); // -> 'path/to/foo
-
-If a part is an absolute path, then anything before that will be ignored:
-
-    path.join('path', '/to', 'foo'); // -> '/to/foo'
-
-### List<String> split(String path)
-
-Splits [path] into its components using the current platform's [separator].
-
-    path.split('path/to/foo'); // -> ['path', 'to', 'foo']
-
-The path will *not* be normalized before splitting.
-
-    path.split('path/../foo'); // -> ['path', '..', 'foo']
-
-If [path] is absolute, the root directory will be the first element in the
-array. Example:
-
-    // Unix
-    path.split('/path/to/foo'); // -> ['/', 'path', 'to', 'foo']
-
-    // Windows
-    path.split(r'C:\path\to\foo'); // -> [r'C:\', 'path', 'to', 'foo']
-
-    // Browser
-    path.split('http://dartlang.org/path/to/foo');
-      // -> ['http://dartlang.org', 'path', 'to', 'foo']
-
-### String normalize(String path)
-
-Normalizes [path], simplifying it by handling `..`, and `.`, and
-removing redundant path separators whenever possible.
-
-    path.normalize('path/./to/..//file.text'); // -> 'path/file.txt'
-String normalize(String path) => _builder.normalize(path);
-
-### String relative(String path, {String from})
-
-Attempts to convert [path] to an equivalent relative path from the current
-directory.
-
-    // Given current directory is /root/path:
-    path.relative('/root/path/a/b.dart'); // -> 'a/b.dart'
-    path.relative('/root/other.dart'); // -> '../other.dart'
-
-If the [from] argument is passed, [path] is made relative to that instead.
-
-    path.relative('/root/path/a/b.dart',
-        from: '/root/path'); // -> 'a/b.dart'
-    path.relative('/root/other.dart',
-        from: '/root/path'); // -> '../other.dart'
-
-If [path] and/or [from] are relative paths, they are assumed to be relative
-to the current directory.
-
-Since there is no relative path from one drive letter to another on Windows,
-this will return an absolute path in that case.
-
-    // Windows
-    path.relative(r'D:\other', from: r'C:\home'); // -> 'D:\other'
-
-    // URL
-    path.relative('http://dartlang.org', from: 'http://pub.dartlang.org');
-      // -> 'http://dartlang.org'
-
-### String withoutExtension(String path)
-
-Removes a trailing extension from the last part of [path].
-
-    withoutExtension('path/to/foo.dart'); // -> 'path/to/foo'
-
-### String fromUri(Uri uri)
-
-Returns the path represented by [uri]. For POSIX and Windows styles, [uri] must
-be a `file:` URI. For the URL style, this will just convert [uri] to a string.
-
-    // POSIX
-    path.fromUri(Uri.parse('file:///path/to/foo'))
-      // -> '/path/to/foo'
-
-    // Windows
-    path.fromUri(Uri.parse('file:///C:/path/to/foo'))
-      // -> r'C:\path\to\foo'
-
-    // URL
-    path.fromUri(Uri.parse('http://dartlang.org/path/to/foo'))
-      // -> 'http://dartlang.org/path/to/foo'
-
-### Uri toUri(String path)
-
-Returns the URI that represents [path]. For POSIX and Windows styles, this will
-return a `file:` URI. For the URL style, this will just convert [path] to a
-[Uri].
-
-This will always convert relative paths to absolute ones before converting
-to a URI.
-
-    // POSIX
-    path.toUri('/path/to/foo')
-      // -> Uri.parse('file:///path/to/foo')
-
-    // Windows
-    path.toUri(r'C:\path\to\foo')
-      // -> Uri.parse('file:///C:/path/to/foo')
-
-    // URL
-    path.toUri('http://dartlang.org/path/to/foo')
-      // -> Uri.parse('http://dartlang.org/path/to/foo')
-
-## The path.Builder class
-
-In addition to the functions, path exposes a `path.Builder` class. This lets
-you configure the root directory and path style that paths are built using
-explicitly instead of assuming the current working directory and host OS's path
-style.
-
-You won't often use this, but it can be useful if you do a lot of path
-manipulation relative to some root directory.
-
-    var builder = new path.Builder(root: '/other/root');
-    builder.relative('/other/root/foo.txt'); // -> 'foo.txt'
-
-It exposes the same methods and getters as the top-level functions, with the
-addition of:
-
-### new Builder({Style style, String root})
-
-Creates a new path builder for the given style and root directory.
-
-If [style] is omitted, it uses the host operating system's path style. If
-[root] is omitted, it defaults to the current working directory. If [root]
-is relative, it is considered relative to the current working directory.
-
-### Style style
-
-The style of path that this builder works with.
-
-### String root
-
-The root directory that relative paths will be relative to.
-
-### String get separator
-
-Gets the path separator for the builder's [style]. On Mac and Linux,
-this is `/`. On Windows, it's `\`.
-
-### String rootPrefix(String path)
-
-Returns the root of [path], if it's absolute, or an empty string if it's
-relative.
-
-    // Unix
-    builder.rootPrefix('path/to/foo'); // -> ''
-    builder.rootPrefix('/path/to/foo'); // -> '/'
-
-    // Windows
-    builder.rootPrefix(r'path\to\foo'); // -> ''
-    builder.rootPrefix(r'C:\path\to\foo'); // -> r'C:\'
-
-    // URL
-    builder.rootPrefix('path/to/foo'); // -> ''
-    builder.rootPrefix('http://dartlang.org/path/to/foo');
-      // -> 'http://dartlang.org'
-
-### String resolve(String part1, [String part2, String part3, ...])
-
-Creates a new path by appending the given path parts to the [root].
-Equivalent to [join()] with [root] as the first argument. Example:
-
-    var builder = new Builder(root: 'root');
-    builder.resolve('path', 'to', 'foo'); // -> 'root/path/to/foo'
-
-## The path.Style class
-
-The path library can work with three different "flavors" of path: POSIX,
-Windows, and URLs. The differences between these are encapsulated by the
-`path.Style` enum class. There are three instances of it:
-
-### path.Style.posix
-
-POSIX-style paths use "/" (forward slash) as separators. Absolute paths
-start with "/". Used by UNIX, Linux, Mac OS X, and others.
-
-### path.Style.windows
-
-Windows paths use "\" (backslash) as separators. Absolute paths start with
-a drive letter followed by a colon (example, "C:") or two backslashes
-("\\") for UNC paths.
-
-### path.Style.url
-
-URLs aren't filesystem paths, but they're supported by Pathos to make it easier
-to manipulate URL paths in the browser.
-
-URLs use "/" (forward slash) as separators. Absolute paths either start with a
-protocol and optional hostname (e.g. `http://dartlang.org`, `file://`) or with
-"/".
+This will join "directory" and "file.txt" using the Windows path separator,
+even when the program is run on a POSIX machine.
 
 ## FAQ
 
@@ -382,7 +61,7 @@ it accepts strings, path objects, or both.
 
  *  Taking both means you can't type your API. That defeats the purpose of
     having a path type: why have a type if your APIs can't annotate that they
-    use it?
+    expect it?
 
 Given that, we've decided this library should simply treat paths as strings.
 
@@ -402,5 +81,7 @@ We believe this library handles most of the corner cases of Windows paths
  *  It knows that "C:\foo\one.txt" and "c:/foo\two.txt" are two files in the
     same directory.
 
-If you find a problem, surprise or something that's unclear, please don't
-hesitate to [file a bug](http://dartbug.com/new) and let us know.
+### What is a "path" in the browser?
+
+If you use this package in a browser, then it considers the "platform" to be
+the browser itself and uses URL strings to represent "browser paths".
