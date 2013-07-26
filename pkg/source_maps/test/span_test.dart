@@ -316,6 +316,16 @@ main() {
     expect(file.span(8, 9, null).isIdentifier, false);
     expect(new FixedSpan('', 8, 1, 8, isIdentifier: null).isIdentifier, false);
   });
+
+  test('span/location implement == and hashCode', () {
+    expect(identical(span(10, 14), span(10, 14)), isFalse);
+    expect(span(10, 14), equals(span(10, 14)));
+    expect(span(10, 14).hashCode, span(10, 14).hashCode);
+
+    expect(identical(loc(13), loc(13)), isFalse);
+    expect(loc(13), equals(loc(13)));
+    expect(loc(13).hashCode, loc(13).hashCode);
+  });
 }
 
 class TestSpan extends Span {

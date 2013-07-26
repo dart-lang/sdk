@@ -69,7 +69,7 @@ abstract class Span implements Comparable {
   bool operator ==(Span other) =>
     sourceUrl == other.sourceUrl && start == other.start && end == other.end;
 
-  int get hashCode => sourceUrl.hashCode + start + (31 * (end - start));
+  int get hashCode => sourceUrl.hashCode + start.offset + (31 * length);
 
   String toString() => '<$runtimeType: $start $end $formatLocation $text>';
 }
@@ -98,6 +98,11 @@ abstract class Location implements Comparable {
     }
     return offset - other.offset;
   }
+
+  bool operator ==(Location other) =>
+      sourceUrl == other.sourceUrl && offset == other.offset;
+
+  int get hashCode => sourceUrl.hashCode + offset;
 
   String toString() => '(Location $offset)';
   String get formatString => '$sourceUrl:${line + 1}:${column + 1}';
