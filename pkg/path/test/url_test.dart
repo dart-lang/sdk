@@ -667,7 +667,6 @@ main() {
     expect(builder.withoutExtension('a/b.c//'), 'a/b//');
   });
 
-
   test('fromUri', () {
     expect(builder.fromUri(Uri.parse('http://dartlang.org/path/to/foo')),
         'http://dartlang.org/path/to/foo');
@@ -678,6 +677,10 @@ main() {
     expect(builder.fromUri(Uri.parse('foo/bar')), 'foo/bar');
     expect(builder.fromUri(Uri.parse('http://dartlang.org/path/to/foo%23bar')),
         'http://dartlang.org/path/to/foo%23bar');
+    // Since the resulting "path" is also a URL, special characters should
+    // remain percent-encoded in the result.
+    expect(builder.fromUri(Uri.parse('_%7B_%7D_%60_%5E_%20_%22_%25_')),
+        r'_%7B_%7D_%60_%5E_%20_%22_%25_');
   });
 
   test('toUri', () {
@@ -690,5 +693,11 @@ main() {
     expect(builder.toUri('foo/bar'), Uri.parse('foo/bar'));
     expect(builder.toUri('http://dartlang.org/path/to/foo%23bar'),
         Uri.parse('http://dartlang.org/path/to/foo%23bar'));
+    // Since the input path is also a URI, special characters should already
+    // be percent encoded there too.
+    expect(builder.toUri(r'http://foo.com/_%7B_%7D_%60_%5E_%20_%22_%25_'),
+        Uri.parse('http://foo.com/_%7B_%7D_%60_%5E_%20_%22_%25_'));
+    expect(builder.toUri(r'_%7B_%7D_%60_%5E_%20_%22_%25_'),
+        Uri.parse('_%7B_%7D_%60_%5E_%20_%22_%25_'));
   });
 }

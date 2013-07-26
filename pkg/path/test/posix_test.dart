@@ -464,6 +464,8 @@ main() {
     expect(builder.fromUri(Uri.parse('///path/to/foo')), '/path/to/foo');
     expect(builder.fromUri(Uri.parse('file:///path/to/foo%23bar')),
         '/path/to/foo#bar');
+    expect(builder.fromUri(Uri.parse('_%7B_%7D_%60_%5E_%20_%22_%25_')),
+        r'_{_}_`_^_ _"_%_');
     expect(() => builder.fromUri(Uri.parse('http://dartlang.org')),
         throwsArgumentError);
   });
@@ -475,5 +477,9 @@ main() {
     expect(builder.toUri('foo/bar'), Uri.parse('foo/bar'));
     expect(builder.toUri('/path/to/foo#bar'),
         Uri.parse('file:///path/to/foo%23bar'));
+    expect(builder.toUri(r'/_{_}_`_^_ _"_%_'),
+        Uri.parse('file:///_%7B_%7D_%60_%5E_%20_%22_%25_'));
+    expect(builder.toUri(r'_{_}_`_^_ _"_%_'),
+        Uri.parse('_%7B_%7D_%60_%5E_%20_%22_%25_'));
   });
 }

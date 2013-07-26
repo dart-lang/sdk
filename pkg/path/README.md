@@ -14,7 +14,7 @@ style.
 The path library was designed to be imported with a prefix, though you don't
 have to if you don't want to:
 
-    import 'package:path/path.dart' as path; // TODO(bob): ???
+    import 'package:path/path.dart' as path;
 
 ## Top-level functions
 
