@@ -516,7 +516,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     _secureFilter.registerHandshakeCompleteCallback(
         _secureHandshakeCompleteHandler);
     if (onBadCertificate != null) {
-      _secureFilter.registerBadCertificateCallback(onBadCertificate);
+      _secureFilter.registerBadCertificateCallback(_onBadCertificateWrapper);
     }
     var futureSocket;
     if (socket == null) {
@@ -720,6 +720,14 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   X509Certificate get peerCertificate => _secureFilter.peerCertificate;
 
+  bool _onBadCertificateWrapper(X509Certificate certificate) {
+    if (onBadCertificate == null) return false;
+    var result = onBadCertificate(certificate);
+    if (result is bool) return result;
+    throw new ArgumentError(
+        "onBadCertificate callback returned non-boolean $result");
+  }
+
   bool setOption(SocketOption option, bool enabled) {
     if (_socket == null) return false;
     return _socket.setOption(option, enabled);
@@ -761,9 +769,6 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     } else if (_connectPending) {
       // _connectPending is true after the underlying connection has been
       // made, but before the handshake has completed.
-      if (e is! TlsException) {
-        e = new HandshakeException("$e", null);
-      }
       _handshakeComplete.completeError(e);
     } else {
       _controller.addError(e);

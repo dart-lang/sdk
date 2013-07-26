@@ -47,7 +47,8 @@ class SSLFilter {
   };
 
   SSLFilter()
-      : string_start_(NULL),
+      : callback_error(NULL),
+        string_start_(NULL),
         string_length_(NULL),
         handshake_complete_(NULL),
         bad_certificate_callback_(NULL),
@@ -88,6 +89,7 @@ class SSLFilter {
                                 bool use_builtin_root_certificates,
                                 bool report_duplicate_initialization = true);
   static Dart_Port GetServicePort();
+  Dart_Handle callback_error;
 
  private:
   static const int kMemioBufferSize = 20 * KB;
