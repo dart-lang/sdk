@@ -230,7 +230,7 @@ static Condition TokenKindToSmiCondition(Token::Kind kind) {
 
 LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
-  if (receiver_class_id() == kMintCid) {
+  if (operation_cid() == kMintCid) {
     const intptr_t kNumTemps = 1;
     LocationSummary* locs =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -240,7 +240,7 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
     locs->set_out(Location::RequiresRegister());
     return locs;
   }
-  if (receiver_class_id() == kDoubleCid) {
+  if (operation_cid() == kDoubleCid) {
     const intptr_t kNumTemps = 0;
     LocationSummary* locs =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -249,7 +249,7 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
     locs->set_out(Location::RequiresRegister());
     return locs;
   }
-  if (receiver_class_id() == kSmiCid) {
+  if (operation_cid() == kSmiCid) {
     const intptr_t kNumTemps = 0;
     LocationSummary* locs =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -794,15 +794,15 @@ static void EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
 void EqualityCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT((kind() == Token::kNE) || (kind() == Token::kEQ));
   BranchInstr* kNoBranch = NULL;
-  if (receiver_class_id() == kSmiCid) {
+  if (operation_cid() == kSmiCid) {
     EmitSmiComparisonOp(compiler, *locs(), kind(), kNoBranch);
     return;
   }
-  if (receiver_class_id() == kMintCid) {
+  if (operation_cid() == kMintCid) {
     EmitUnboxedMintEqualityOp(compiler, *locs(), kind(), kNoBranch);
     return;
   }
-  if (receiver_class_id() == kDoubleCid) {
+  if (operation_cid() == kDoubleCid) {
     EmitDoubleComparisonOp(compiler, *locs(), kind(), kNoBranch);
     return;
   }
@@ -833,16 +833,16 @@ void EqualityCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                           BranchInstr* branch) {
   ASSERT((kind() == Token::kNE) || (kind() == Token::kEQ));
-  if (receiver_class_id() == kSmiCid) {
+  if (operation_cid() == kSmiCid) {
     // Deoptimizes if both arguments not Smi.
     EmitSmiComparisonOp(compiler, *locs(), kind(), branch);
     return;
   }
-  if (receiver_class_id() == kMintCid) {
+  if (operation_cid() == kMintCid) {
     EmitUnboxedMintEqualityOp(compiler, *locs(), kind(), branch);
     return;
   }
-  if (receiver_class_id() == kDoubleCid) {
+  if (operation_cid() == kDoubleCid) {
     EmitDoubleComparisonOp(compiler, *locs(), kind(), branch);
     return;
   }
@@ -878,7 +878,7 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 LocationSummary* RelationalOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
-  if (operands_class_id() == kMintCid) {
+  if (operation_cid() == kMintCid) {
     const intptr_t kNumTemps = 2;
     LocationSummary* locs =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -889,14 +889,14 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary() const {
     locs->set_out(Location::RequiresRegister());
     return locs;
   }
-  if (operands_class_id() == kDoubleCid) {
+  if (operation_cid() == kDoubleCid) {
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresFpuRegister());
     summary->set_in(1, Location::RequiresFpuRegister());
     summary->set_out(Location::RequiresRegister());
     return summary;
-  } else if (operands_class_id() == kSmiCid) {
+  } else if (operation_cid() == kSmiCid) {
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RegisterOrConstant(left()));
@@ -919,15 +919,15 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary() const {
 
 
 void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (operands_class_id() == kSmiCid) {
+  if (operation_cid() == kSmiCid) {
     EmitSmiComparisonOp(compiler, *locs(), kind(), NULL);
     return;
   }
-  if (operands_class_id() == kMintCid) {
+  if (operation_cid() == kMintCid) {
     EmitUnboxedMintComparisonOp(compiler, *locs(), kind(), NULL);
     return;
   }
-  if (operands_class_id() == kDoubleCid) {
+  if (operation_cid() == kDoubleCid) {
     EmitDoubleComparisonOp(compiler, *locs(), kind(), NULL);
     return;
   }
@@ -996,15 +996,15 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 void RelationalOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                        BranchInstr* branch) {
-  if (operands_class_id() == kSmiCid) {
+  if (operation_cid() == kSmiCid) {
     EmitSmiComparisonOp(compiler, *locs(), kind(), branch);
     return;
   }
-  if (operands_class_id() == kMintCid) {
+  if (operation_cid() == kMintCid) {
     EmitUnboxedMintComparisonOp(compiler, *locs(), kind(), branch);
     return;
   }
-  if (operands_class_id() == kDoubleCid) {
+  if (operation_cid() == kDoubleCid) {
     EmitDoubleComparisonOp(compiler, *locs(), kind(), branch);
     return;
   }
@@ -4625,7 +4625,7 @@ bool IfThenElseInstr::Supports(ComparisonInstr* comparison,
   if (!(comparison->IsStrictCompare() &&
         !comparison->AsStrictCompare()->needs_number_check()) &&
       !(comparison->IsEqualityCompare() &&
-        (comparison->AsEqualityCompare()->receiver_class_id() == kSmiCid))) {
+        (comparison->AsEqualityCompare()->operation_cid() == kSmiCid))) {
     return false;
   }
 

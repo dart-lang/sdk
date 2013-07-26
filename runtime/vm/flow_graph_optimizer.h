@@ -172,6 +172,10 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   void ReplaceWithMathCFunction(InstanceCallInstr* call,
                                 MethodRecognizer::Kind recognized_kind);
 
+  void HandleComparison(ComparisonInstr* comp,
+                        const ICData& ic_data,
+                        Instruction* current_instruction);
+
   void HandleRelationalOp(RelationalOpInstr* comp);
 
   // Visit an equality compare.  The current instruction can be the

@@ -2697,15 +2697,6 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0> {
 
 class ComparisonInstr : public TemplateDefinition<2> {
  public:
-  ComparisonInstr(intptr_t token_pos,
-                  Token::Kind kind,
-                  Value* left,
-                  Value* right)
-      : token_pos_(token_pos), kind_(kind) {
-    SetInputAt(0, left);
-    SetInputAt(1, right);
-  }
-
   Value* left() const { return inputs_[0]; }
   Value* right() const { return inputs_[1]; }
 
@@ -2721,9 +2712,27 @@ class ComparisonInstr : public TemplateDefinition<2> {
     deopt_id_ = deopt_id;
   }
 
+  // Operation class id is computed from collected ICData.
+  void set_operation_cid(intptr_t value) { operation_cid_ = value; }
+  intptr_t operation_cid() const { return operation_cid_; }
+
  protected:
+  ComparisonInstr(intptr_t token_pos,
+                  Token::Kind kind,
+                  Value* left,
+                  Value* right)
+      : token_pos_(token_pos), kind_(kind), operation_cid_(kIllegalCid) {
+    SetInputAt(0, left);
+    SetInputAt(1, right);
+  }
+
   intptr_t token_pos_;
   Token::Kind kind_;
+
+ private:
+  intptr_t operation_cid_;  // Set by optimizer.
+
+  DISALLOW_COPY_AND_ASSIGN(ComparisonInstr);
 };
 
 
@@ -2840,8 +2849,7 @@ class EqualityCompareInstr : public ComparisonInstr {
                        const Array& ic_data_array)
       : ComparisonInstr(token_pos, kind, left, right),
         ic_data_(GetICData(ic_data_array)),
-        unary_ic_data_(NULL),
-        receiver_class_id_(kIllegalCid) {
+        unary_ic_data_(NULL) {
     ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
     if (HasICData()) {
       unary_ic_data_ = &ICData::ZoneHandle(ic_data_->AsUnaryClassChecks());
@@ -2863,14 +2871,10 @@ class EqualityCompareInstr : public ComparisonInstr {
     }
   }
 
-  // Receiver class id is computed from collected ICData.
-  void set_receiver_class_id(intptr_t value) { receiver_class_id_ = value; }
-  intptr_t receiver_class_id() const { return receiver_class_id_; }
-
   bool IsInlinedNumericComparison() const {
-    return (receiver_class_id() == kDoubleCid)
-        || (receiver_class_id() == kMintCid)
-        || (receiver_class_id() == kSmiCid);
+    return (operation_cid() == kDoubleCid)
+        || (operation_cid() == kMintCid)
+        || (operation_cid() == kSmiCid);
   }
 
   bool IsCheckedStrictEqual() const;
@@ -2890,8 +2894,8 @@ class EqualityCompareInstr : public ComparisonInstr {
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT((idx == 0) || (idx == 1));
-    if (receiver_class_id() == kDoubleCid) return kUnboxedDouble;
-    if (receiver_class_id() == kMintCid) return kUnboxedMint;
+    if (operation_cid() == kDoubleCid) return kUnboxedDouble;
+    if (operation_cid() == kMintCid) return kUnboxedMint;
     return kTagged;
   }
 
@@ -2908,7 +2912,6 @@ class EqualityCompareInstr : public ComparisonInstr {
  private:
   const ICData* ic_data_;
   ICData* unary_ic_data_;
-  intptr_t receiver_class_id_;  // Set by optimizer.
 
   DISALLOW_COPY_AND_ASSIGN(EqualityCompareInstr);
 };
@@ -2922,8 +2925,7 @@ class RelationalOpInstr : public ComparisonInstr {
                     Value* right,
                     const Array& ic_data_array)
       : ComparisonInstr(token_pos, kind, left, right),
-        ic_data_(GetICData(ic_data_array)),
-        operands_class_id_(kIllegalCid) {
+        ic_data_(GetICData(ic_data_array)) {
     ASSERT(Token::IsRelationalOperator(kind));
   }
 
@@ -2937,18 +2939,10 @@ class RelationalOpInstr : public ComparisonInstr {
   }
   void set_ic_data(const ICData* value) { ic_data_ = value; }
 
-  // TODO(srdjan): instead of class-id pass an enum that can differentiate
-  // between boxed and unboxed doubles and integers.
-  void set_operands_class_id(intptr_t value) {
-    operands_class_id_ = value;
-  }
-
-  intptr_t operands_class_id() const { return operands_class_id_; }
-
   bool IsInlinedNumericComparison() const {
-    return (operands_class_id() == kDoubleCid)
-        || (operands_class_id() == kMintCid)
-        || (operands_class_id() == kSmiCid);
+    return (operation_cid() == kDoubleCid)
+        || (operation_cid() == kMintCid)
+        || (operation_cid() == kSmiCid);
   }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -2967,8 +2961,8 @@ class RelationalOpInstr : public ComparisonInstr {
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT((idx == 0) || (idx == 1));
-    if (operands_class_id() == kDoubleCid) return kUnboxedDouble;
-    if (operands_class_id() == kMintCid) return kUnboxedMint;
+    if (operation_cid() == kDoubleCid) return kUnboxedDouble;
+    if (operation_cid() == kMintCid) return kUnboxedMint;
     return kTagged;
   }
 
@@ -2980,7 +2974,6 @@ class RelationalOpInstr : public ComparisonInstr {
 
  private:
   const ICData* ic_data_;
-  intptr_t operands_class_id_;  // class id of both operands.
 
   DISALLOW_COPY_AND_ASSIGN(RelationalOpInstr);
 };

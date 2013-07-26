@@ -617,6 +617,16 @@ static bool HasTwoMintOrSmi(const ICData& ic_data) {
 }
 
 
+// Returns false if the ICData contains anything other than the 4 combinations
+// of Double and Smi for the receiver and argument classes.
+static bool HasTwoDoubleOrSmi(const ICData& ic_data) {
+  GrowableArray<intptr_t> class_ids(2);
+  class_ids.Add(kSmiCid);
+  class_ids.Add(kDoubleCid);
+  return ICDataHasOnlyReceiverArgumentClassIds(ic_data, class_ids, class_ids);
+}
+
+
 static bool HasOnlyOneDouble(const ICData& ic_data) {
   return (ic_data.NumberOfChecks() == 1)
       && ic_data.HasReceiverClassId(kDoubleCid);
@@ -2744,36 +2754,57 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
 }
 
 
+static bool SmiFitsInDouble() { return kSmiBits < 53; }
+
+
+void FlowGraphOptimizer::HandleComparison(ComparisonInstr* comp,
+                                          const ICData& ic_data,
+                                          Instruction* current_instruction) {
+  ASSERT(ic_data.num_args_tested() == 2);
+  ASSERT(comp->operation_cid() == kIllegalCid);
+  Instruction* instr = current_iterator()->Current();
+  if (HasOnlyTwoSmis(ic_data)) {
+    InsertBefore(instr,
+                 new CheckSmiInstr(comp->left()->Copy(), comp->deopt_id()),
+                 instr->env(),
+                 Definition::kEffect);
+    InsertBefore(instr,
+                 new CheckSmiInstr(comp->right()->Copy(), comp->deopt_id()),
+                 instr->env(),
+                 Definition::kEffect);
+    comp->set_operation_cid(kSmiCid);
+  } else if (HasTwoMintOrSmi(ic_data) &&
+             FlowGraphCompiler::SupportsUnboxedMints()) {
+    comp->set_operation_cid(kMintCid);
+  } else if (HasTwoDoubleOrSmi(ic_data)) {
+    // Use double comparison.
+    if (SmiFitsInDouble()) {
+      comp->set_operation_cid(kDoubleCid);
+    } else {
+      if (ICDataHasReceiverArgumentClassIds(ic_data, kSmiCid, kSmiCid)) {
+        // We cannot use double comparison on two Smi-s.
+        ASSERT(comp->operation_cid() == kIllegalCid);
+      } else {
+        InsertBefore(instr,
+                     new CheckEitherNonSmiInstr(comp->left()->Copy(),
+                                                comp->right()->Copy(),
+                                                comp->deopt_id()),
+                     instr->env(),
+                     Definition::kEffect);
+        comp->set_operation_cid(kDoubleCid);
+      }
+    }
+  } else {
+    ASSERT(comp->operation_cid() == kIllegalCid);
+  }
+}
+
+
 void FlowGraphOptimizer::HandleRelationalOp(RelationalOpInstr* comp) {
   if (!comp->HasICData() || (comp->ic_data()->NumberOfChecks() == 0)) {
     return;
   }
-  const ICData& ic_data = *comp->ic_data();
-  Instruction* instr = current_iterator()->Current();
-  if (ic_data.NumberOfChecks() == 1) {
-    ASSERT(ic_data.HasOneTarget());
-    if (HasOnlyTwoSmis(ic_data)) {
-      InsertBefore(instr,
-                   new CheckSmiInstr(comp->left()->Copy(), comp->deopt_id()),
-                   instr->env(),
-                   Definition::kEffect);
-      InsertBefore(instr,
-                   new CheckSmiInstr(comp->right()->Copy(), comp->deopt_id()),
-                   instr->env(),
-                   Definition::kEffect);
-      comp->set_operands_class_id(kSmiCid);
-    } else if (ShouldSpecializeForDouble(ic_data)) {
-      comp->set_operands_class_id(kDoubleCid);
-    } else if (HasTwoMintOrSmi(*comp->ic_data()) &&
-               FlowGraphCompiler::SupportsUnboxedMints()) {
-      comp->set_operands_class_id(kMintCid);
-    } else {
-      ASSERT(comp->operands_class_id() == kIllegalCid);
-    }
-  } else if (HasTwoMintOrSmi(*comp->ic_data()) &&
-             FlowGraphCompiler::SupportsUnboxedMints()) {
-    comp->set_operands_class_id(kMintCid);
-  }
+  HandleComparison(comp, *comp->ic_data(), current_iterator()->Current());
 }
 
 
@@ -2857,37 +2888,10 @@ void FlowGraphOptimizer::HandleEqualityCompare(EqualityCompareInstr* comp,
     return;
   }
 
-  ASSERT(comp->ic_data()->num_args_tested() == 2);
-  if (comp->ic_data()->NumberOfChecks() == 1) {
-    GrowableArray<intptr_t> class_ids;
-    Function& target = Function::Handle();
-    comp->ic_data()->GetCheckAt(0, &class_ids, &target);
-    // TODO(srdjan): allow for mixed mode int/double comparison.
+  const ICData& ic_data = *comp->ic_data();
+  HandleComparison(comp, ic_data, current_instruction);
 
-    if ((class_ids[0] == kSmiCid) && (class_ids[1] == kSmiCid)) {
-      InsertBefore(current_instruction,
-                   new CheckSmiInstr(comp->left()->Copy(), comp->deopt_id()),
-                   current_instruction->env(),
-                   Definition::kEffect);
-      InsertBefore(current_instruction,
-                   new CheckSmiInstr(comp->right()->Copy(), comp->deopt_id()),
-                   current_instruction->env(),
-                   Definition::kEffect);
-      comp->set_receiver_class_id(kSmiCid);
-    } else if ((class_ids[0] == kDoubleCid) && (class_ids[1] == kDoubleCid)) {
-      comp->set_receiver_class_id(kDoubleCid);
-    } else if (HasTwoMintOrSmi(*comp->ic_data()) &&
-               FlowGraphCompiler::SupportsUnboxedMints()) {
-      comp->set_receiver_class_id(kMintCid);
-    } else {
-      ASSERT(comp->receiver_class_id() == kIllegalCid);
-    }
-  } else if (HasTwoMintOrSmi(*comp->ic_data()) &&
-             FlowGraphCompiler::SupportsUnboxedMints()) {
-    comp->set_receiver_class_id(kMintCid);
-  }
-
-  if (comp->receiver_class_id() != kIllegalCid) {
+  if (comp->operation_cid() != kIllegalCid) {
     // Done.
     return;
   }
@@ -2899,7 +2903,7 @@ void FlowGraphOptimizer::HandleEqualityCompare(EqualityCompareInstr* comp,
   GrowableArray<intptr_t> smi_or_null(2);
   smi_or_null.Add(kSmiCid);
   smi_or_null.Add(kNullCid);
-  if (ICDataHasOnlyReceiverArgumentClassIds(*comp->ic_data(),
+  if (ICDataHasOnlyReceiverArgumentClassIds(ic_data,
                                             smi_or_null,
                                             smi_or_null)) {
     const ICData& unary_checks_0 =
@@ -2917,7 +2921,7 @@ void FlowGraphOptimizer::HandleEqualityCompare(EqualityCompareInstr* comp,
                   comp->deopt_id(),
                   current_instruction->env(),
                   current_instruction);
-    comp->set_receiver_class_id(kSmiCid);
+    comp->set_operation_cid(kSmiCid);
   }
 }
 
@@ -3237,7 +3241,7 @@ ConstraintInstr* RangeAnalysis::InsertConstraintFor(Definition* defn,
 void RangeAnalysis::ConstrainValueAfterBranch(Definition* defn, Value* use) {
   BranchInstr* branch = use->instruction()->AsBranch();
   RelationalOpInstr* rel_op = branch->comparison()->AsRelationalOp();
-  if ((rel_op != NULL) && (rel_op->operands_class_id() == kSmiCid)) {
+  if ((rel_op != NULL) && (rel_op->operation_cid() == kSmiCid)) {
     // Found comparison of two smis. Constrain defn at true and false
     // successors using the other operand as a boundary.
     Definition* boundary;
@@ -5880,7 +5884,7 @@ void ConstantPropagator::VisitEqualityCompare(EqualityCompareInstr* instr) {
     // Fold x == x, and x != x to true/false for numbers and checked strict
     // comparisons.
     if (instr->IsCheckedStrictEqual() ||
-        RawObject::IsIntegerClassId(instr->receiver_class_id())) {
+        RawObject::IsIntegerClassId(instr->operation_cid())) {
       return SetValue(instr,
                       (instr->kind() == Token::kEQ)
                         ? Bool::True()
