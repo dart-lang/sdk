@@ -130,10 +130,10 @@ main() {
       expect(baz.documentOffset.y, 608);
 
       expect(qux.documentOffset.x, 8);
-      expect(qux.documentOffset.y, inInclusiveRange(221, 232));
+      expect(qux.documentOffset.y, inInclusiveRange(221, 240));
 
       expect(quux.documentOffset.x, 8);
-      expect(quux.documentOffset.y, inInclusiveRange(221, 232));
+      expect(quux.documentOffset.y, inInclusiveRange(221, 240));
     });
   });
 }
