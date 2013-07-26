@@ -72,6 +72,28 @@ library _foreign_helper;
  *
  *        this.field = JS('String', '# + "x"', this.field);
  *
+ *  + Never use `#` in function bodies.
+ *
+ *    This is a variation on the previous guideline.  Since `#` is replaced with
+ *    an *expression* and the expression is only valid in the immediate context,
+ *    `#` should never appear in a function body.  Doing so might defer the
+ *    evaluation of the expression, and its side effects, until the function is
+ *    called.
+ *
+ *    For example,
+ *
+ *        var value = foo();
+ *        var f = JS('', 'function(){return #}', value)
+ *
+ *    might result in no immediate call to `foo` and a call to `foo` on every
+ *    call to the JavaScript function bound to `f`.  This is better:
+ *
+ *        var f = JS('',
+ *            '(function(val) { return function(){return val}; })(#)', value);
+ *
+ *    Since `#` occurs in the immediately evaluated expression, the expression
+ *    is immediately evaluated and bound to `val` in the immediate call.
+ *
  *
  * Additional notes.
  *
