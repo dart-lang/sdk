@@ -117,8 +117,6 @@ collection_to_string_test: Pass, Crash # Issue: 11207
 int_parse_radix_test: Skip # Timeout
 
 [ $arch == simmips && $checked ]
-hash_map2_test: Pass, Crash # Too far PC relative branch (?)
-list_test: Pass, Crash # Invalid relative branch offset. Issue 11851.
 collection_length_test: Pass, Timeout
 
 [ $arch == simmips && $mode == debug ]

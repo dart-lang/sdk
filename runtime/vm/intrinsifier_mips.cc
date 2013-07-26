@@ -213,8 +213,8 @@ bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
 
     // Check if it's dynamic.
     // For now handle only TypeArguments and bail out if InstantiatedTypeArgs.
-    __ LoadClassId(TMP, T1);
-    __ BranchNotEqual(TMP, kTypeArgumentsCid, &fall_through);
+    __ LoadClassId(CMPRES1, T1);
+    __ BranchNotEqual(CMPRES1, kTypeArgumentsCid, &fall_through);
 
     // Get type at index 0.
     __ lw(T0, FieldAddress(T1, TypeArguments::type_at_offset(0)));
@@ -424,8 +424,8 @@ bool Intrinsifier::GrowableArray_setData(Assembler* assembler) {
   // Check that data is an ObjectArray.
   __ andi(CMPRES, T1, Immediate(kSmiTagMask));
   __ beq(CMPRES, ZR, &fall_through);  // Data is Smi.
-  __ LoadClassId(TMP, T1);
-  __ BranchNotEqual(TMP, kArrayCid, &fall_through);
+  __ LoadClassId(CMPRES1, T1);
+  __ BranchNotEqual(CMPRES1, kArrayCid, &fall_through);
   __ lw(T0, Address(SP, 1 * kWordSize));  // Growable array.
   __ StoreIntoObject(T0,
                      FieldAddress(T0, GrowableObjectArray::data_offset()),
@@ -865,8 +865,8 @@ bool Intrinsifier::Integer_shl(Assembler* assembler) {
   // Check for overflow by shifting left and shifting back arithmetically.
   // If the result is different from the original, there was overflow.
   __ sllv(TMP, T1, T0);
-  __ srav(TMP, TMP, T0);
-  __ bne(TMP, T1, &overflow);
+  __ srav(CMPRES1, TMP, T0);
+  __ bne(CMPRES1, T1, &overflow);
 
   // No overflow, result in V0.
   __ Ret();
@@ -920,8 +920,8 @@ static void Get64SmiOrMint(Assembler* assembler,
   __ delay_slot()->sra(res_hi, reg, 31);
 
   __ Bind(&not_smi);
-  __ LoadClassId(TMP, reg);
-  __ BranchNotEqual(TMP, kMintCid, not_smi_or_mint);
+  __ LoadClassId(CMPRES1, reg);
+  __ BranchNotEqual(CMPRES1, kMintCid, not_smi_or_mint);
 
   // Mint.
   __ lw(res_lo, FieldAddress(reg, Mint::value_offset()));
@@ -1061,16 +1061,16 @@ bool Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   // Note that an instance of Mint or Bigint never contains a value that can be
   // represented by Smi.
 
-  __ LoadClassId(TMP, T0);
-  __ BranchEqual(TMP, kDoubleCid, &fall_through);
+  __ LoadClassId(CMPRES1, T0);
+  __ BranchEqual(CMPRES1, kDoubleCid, &fall_through);
   __ LoadObject(V0, Bool::False());  // Smi == Mint -> false.
   __ Ret();
 
   __ Bind(&receiver_not_smi);
   // T1:: receiver.
 
-  __ LoadClassId(TMP, T1);
-  __ BranchNotEqual(TMP, kMintCid, &fall_through);
+  __ LoadClassId(CMPRES1, T1);
+  __ BranchNotEqual(CMPRES1, kMintCid, &fall_through);
   // Receiver is Mint, return false if right is Smi.
   __ andi(CMPRES, T0, Immediate(kSmiTagMask));
   __ bne(CMPRES, ZR, &fall_through);
@@ -1128,8 +1128,8 @@ static void TestLastArgumentIsDouble(Assembler* assembler,
   __ lw(T0, Address(SP, 0 * kWordSize));
   __ andi(CMPRES, T0, Immediate(kSmiTagMask));
   __ beq(CMPRES, ZR, is_smi);
-  __ LoadClassId(TMP, T0);
-  __ BranchNotEqual(TMP, kDoubleCid, not_double_smi);
+  __ LoadClassId(CMPRES1, T0);
+  __ BranchNotEqual(CMPRES1, kDoubleCid, not_double_smi);
   // Fall through with Double in T0.
 }
 
@@ -1518,8 +1518,8 @@ bool Intrinsifier::String_codeUnitAt(Assembler* assembler) {
   __ lw(T2, FieldAddress(T0, String::length_offset()));  // Range check.
   // Runtime throws exception.
   __ BranchUnsignedGreaterEqual(T1, T2, &fall_through);
-  __ LoadClassId(TMP1, T0);  // Class ID check.
-  __ BranchNotEqual(TMP1, kOneByteStringCid, &try_two_byte_string);
+  __ LoadClassId(CMPRES1, T0);  // Class ID check.
+  __ BranchNotEqual(CMPRES1, kOneByteStringCid, &try_two_byte_string);
 
   // Grab byte and return.
   __ SmiUntag(T1);
@@ -1529,7 +1529,7 @@ bool Intrinsifier::String_codeUnitAt(Assembler* assembler) {
   __ delay_slot()->SmiTag(V0);
 
   __ Bind(&try_two_byte_string);
-  __ BranchNotEqual(TMP1, kTwoByteStringCid, &fall_through);
+  __ BranchNotEqual(CMPRES1, kTwoByteStringCid, &fall_through);
   ASSERT(kSmiTagShift == 1);
   __ addu(T2, T0, T1);
   __ lhu(V0, FieldAddress(T2, OneByteString::data_offset()));
@@ -1593,25 +1593,25 @@ bool Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
   // T5: ch.
   __ addiu(T3, T3, Immediate(1));
   __ addu(V0, V0, T5);
-  __ sll(TMP, V0, 10);
-  __ addu(V0, V0, TMP);
-  __ srl(TMP, V0, 6);
+  __ sll(T6, V0, 10);
+  __ addu(V0, V0, T6);
+  __ srl(T6, V0, 6);
   __ bne(T3, T4, &loop);
-  __ delay_slot()->xor_(V0, V0, TMP);
+  __ delay_slot()->xor_(V0, V0, T6);
 
   // Finalize.
   // hash_ += hash_ << 3;
   // hash_ ^= hash_ >> 11;
   // hash_ += hash_ << 15;
-  __ sll(TMP, V0, 3);
-  __ addu(V0, V0, TMP);
-  __ srl(TMP, V0, 11);
-  __ xor_(V0, V0, TMP);
-  __ sll(TMP, V0, 15);
-  __ addu(V0, V0, TMP);
+  __ sll(T6, V0, 3);
+  __ addu(V0, V0, T6);
+  __ srl(T6, V0, 11);
+  __ xor_(V0, V0, T6);
+  __ sll(T6, V0, 15);
+  __ addu(V0, V0, T6);
   // hash_ = hash_ & ((static_cast<intptr_t>(1) << bits) - 1);
-  __ LoadImmediate(TMP, (static_cast<intptr_t>(1) << String::kHashBits) - 1);
-  __ and_(V0, V0, TMP);
+  __ LoadImmediate(T6, (static_cast<intptr_t>(1) << String::kHashBits) - 1);
+  __ and_(V0, V0, T6);
   __ Bind(&done);
 
   __ LoadImmediate(T2, 1);

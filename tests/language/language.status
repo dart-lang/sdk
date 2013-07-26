@@ -328,6 +328,4 @@ try_catch4_test: Crash, Fail
 *: Skip
 
 [ $arch == simmips ]
-arithmetic_test: Crash  # Too far relative branch.
-large_implicit_getter_test: Crash  # Too far relative branch.
 try_catch4_test: Fail

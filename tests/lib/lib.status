@@ -106,5 +106,4 @@ async/timer_test: Fail, Pass # See Issue 10982
 *: Skip
 
 [ $arch == simmips ]
-typed_data/float32x4_shuffle_test: Skip # Issue 11851.
 convert/chunked_conversion_utf88_test: Pass, Slow # Issue 12025.

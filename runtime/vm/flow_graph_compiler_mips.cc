@@ -1052,9 +1052,9 @@ void FlowGraphCompiler::CopyParameters() {
   __ Bind(&null_args_loop);
   __ addiu(T2, T2, Immediate(-kWordSize));
   __ addu(T3, T1, T2);
-  __ LoadImmediate(TMP, reinterpret_cast<int32_t>(Object::null()));
+  __ LoadImmediate(T5, reinterpret_cast<int32_t>(Object::null()));
   __ bgtz(T2, &null_args_loop);
-  __ delay_slot()->sw(TMP, Address(T3));
+  __ delay_slot()->sw(T5, Address(T3));
   __ Bind(&null_args_loop_exit);
 }
 
@@ -1077,9 +1077,8 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
   __ lw(T0, Address(SP, 1 * kWordSize));  // Receiver.
   __ lw(T1, Address(SP, 0 * kWordSize));  // Value.
   __ StoreIntoObject(T0, FieldAddress(T0, offset), T1);
-  __ LoadImmediate(TMP, reinterpret_cast<int32_t>(Object::null()));
+  __ LoadImmediate(V0, reinterpret_cast<int32_t>(Object::null()));
   __ Ret();
-  __ delay_slot()->mov(V0, TMP);
 }
 
 
@@ -1090,17 +1089,13 @@ void FlowGraphCompiler::EmitFrameEntry() {
       (!is_optimizing() || may_reoptimize())) {
     const Register function_reg = T0;
 
-    Label next;
-    // The pool pointer is not setup before entering the Dart frame.
-    __ mov(TMP1, RA);  // Save RA.
-    __ bal(&next);  // Branch and link to next instruction to get PC in RA.
-    __ delay_slot()->mov(T2, RA);  // Save PC of the following mov.
+    __ GetNextPC(T2, TMP);
+
     // Calculate offset of pool pointer from the PC.
     const intptr_t object_pool_pc_dist =
        Instructions::HeaderSize() - Instructions::object_pool_offset() +
-       assembler()->CodeSize();
-    __ Bind(&next);
-    __ mov(RA, TMP1);  // Restore RA.
+       assembler()->CodeSize() - 1 * Instr::kInstrSize;
+
     // Preserve PP of caller.
     __ mov(T1, PP);
     // Temporarily setup pool pointer for this dart function.
@@ -1486,7 +1481,7 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
     __ addiu(SP, SP, Immediate(2 * kWordSize));  // Discard constant.
     return;
   }
-  __ CompareObject(CMPRES, TMP1, reg, obj);
+  __ CompareObject(CMPRES1, CMPRES2, reg, obj);
 }
 
 
@@ -1514,8 +1509,8 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
     __ lw(left, Address(SP, 1 * kWordSize));
     __ addiu(SP, SP, Immediate(2 * kWordSize));
   } else {
-    __ slt(CMPRES, left, right);
-    __ slt(TMP1, right, left);
+    __ slt(CMPRES1, left, right);
+    __ slt(CMPRES2, right, left);
   }
 }
 
@@ -1527,13 +1522,14 @@ void FlowGraphCompiler::EmitSuperEqualityCallPrologue(Register result,
   Label check_identity, is_false, fall_through;
   __ TraceSimMsg("SuperEqualityCallPrologue");
   __ lw(result, Address(SP, 0 * kWordSize));  // Load right operand.
-  __ lw(TMP1, Address(SP, 1 * kWordSize));  // Load left operand.
-  __ LoadImmediate(CMPRES, reinterpret_cast<int32_t>(Object::null()));
-  __ beq(result, CMPRES, &check_identity);  // Is right null?
-  __ bne(TMP1, CMPRES, &fall_through);  // If right is non-null, check left.
+  __ lw(CMPRES1, Address(SP, 1 * kWordSize));  // Load left operand.
+  __ LoadImmediate(TMP, reinterpret_cast<int32_t>(Object::null()));
+  __ beq(result, TMP, &check_identity);  // Is right null?
+  __ LoadImmediate(TMP, reinterpret_cast<int32_t>(Object::null()));
+  __ bne(TMP, CMPRES1, &fall_through);  // If right is non-null, check left.
 
   __ Bind(&check_identity);
-  __ bne(result, TMP1, &is_false);
+  __ bne(result, CMPRES1, &is_false);
   __ LoadObject(result, Bool::True());
   __ Drop(2);
   __ b(skip_call);
@@ -1693,15 +1689,15 @@ void FlowGraphCompiler::EmitDoubleCompareBranch(Condition true_condition,
 
   assembler()->LoadImmediate(TMP, 1);
   if (true_condition == NE) {
-    assembler()->movf(CMPRES, ZR);
-    assembler()->movt(CMPRES, TMP);
+    assembler()->movf(CMPRES1, ZR);
+    assembler()->movt(CMPRES1, TMP);
   } else {
-    assembler()->movf(CMPRES, TMP);
-    assembler()->movt(CMPRES, ZR);
+    assembler()->movf(CMPRES1, TMP);
+    assembler()->movt(CMPRES1, ZR);
   }
-  assembler()->mov(TMP, ZR);
+  assembler()->mov(CMPRES2, ZR);
 
-  // EmitBranchOnCondition expects ordering to be described by CMPRES, TMP1.
+  // EmitBranchOnCondition expects ordering to be described by CMPRES, CMPRES2.
   branch->EmitBranchOnCondition(this, EQ);
 }
 

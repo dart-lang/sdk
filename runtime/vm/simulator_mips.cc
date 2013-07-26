@@ -1489,6 +1489,13 @@ void Simulator::DecodeRegImm(Instr* instr) {
       DoBranch(instr, rs_val >= 0, false);
       break;
     }
+    case BLTZAL: {
+      int32_t rs_val = get_register(instr->RsField());
+      // Return address is one after the delay slot.
+      set_register(RA, pc_ + (2*Instr::kInstrSize));
+      DoBranch(instr, rs_val < 0, false);
+      break;
+    }
     case BGEZL: {
       // Format(instr, "bgezl 'rs, 'dest");
       int32_t rs_val = get_register(instr->RsField());
