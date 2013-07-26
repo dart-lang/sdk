@@ -5,22 +5,8 @@
 part of observe;
 
 /**
- * Interface representing an [Observable] object that performs its own change
+ * Base class implementing [Observable] object that performs its own change
  * notifications, and does not need to be considered by [Observable.dirtyCheck].
- */
-abstract class ChangeNotifier extends Observable {
-  /**
-   * Notify observers of a change.
-   *
-   * For most objects [ChangeNotifierMixin.notifyPropertyChange] is more
-   * convenient, but collections sometimes deliver other types of changes such
-   * as a [ListChangeRecord].
-   */
-  void notifyChange(ChangeRecord record);
-}
-
-/**
- * Base class implementing [ChangeNotifier].
  *
  * When a field, property, or indexable item is changed, a derived class should
  * call [notifyPropertyChange]. See that method for an example.
@@ -28,12 +14,13 @@ abstract class ChangeNotifier extends Observable {
 typedef ChangeNotifierBase = Object with ChangeNotifierMixin;
 
 /**
- * Mixin for implementing [ChangeNotifier] objects.
+ * Mixin implementing [Observable] object that performs its own change
+ * notifications, and does not need to be considered by [Observable.dirtyCheck].
  *
  * When a field, property, or indexable item is changed, a derived class should
  * call [notifyPropertyChange]. See that method for an example.
  */
-abstract class ChangeNotifierMixin implements ChangeNotifier {
+abstract class ChangeNotifierMixin implements Observable {
   StreamController _changes;
   List<ChangeRecord> _records;
 
@@ -62,8 +49,7 @@ abstract class ChangeNotifierMixin implements ChangeNotifier {
     var records = _records;
     _records = null;
     if (hasObservers && records != null) {
-      // TODO(jmesserly): make "records" immutable
-      _changes.add(records);
+      _changes.add(new UnmodifiableListView<ChangeRecord>(records));
       return true;
     }
     return false;
@@ -91,14 +77,8 @@ abstract class ChangeNotifierMixin implements ChangeNotifier {
    *           const Symbol('myField'), _myField, value);
    *     }
    */
-  // TODO(jmesserly): should this be == instead of identical, to prevent
-  // spurious loops?
-  notifyPropertyChange(Symbol field, Object oldValue, Object newValue) {
-    if (hasObservers && !identical(oldValue, newValue)) {
-      notifyChange(new PropertyChangeRecord(field));
-    }
-    return newValue;
-  }
+  notifyPropertyChange(Symbol field, Object oldValue, Object newValue)
+      => _notifyPropertyChange(this, field, oldValue, newValue);
 
   void notifyChange(ChangeRecord record) {
     if (!hasObservers) return;
