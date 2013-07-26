@@ -8867,16 +8867,19 @@ const char* ICData::ToCString() const {
 
 
 void ICData::set_function(const Function& value) const {
+  ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->function_, value.raw());
 }
 
 
 void ICData::set_target_name(const String& value) const {
+  ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->target_name_, value.raw());
 }
 
 
 void ICData::set_arguments_descriptor(const Array& value) const {
+  ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->args_descriptor_, value.raw());
 }
 
@@ -8891,6 +8894,7 @@ void ICData::set_num_args_tested(intptr_t value) const {
 
 
 void ICData::set_ic_data(const Array& value) const {
+  ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->ic_data_, value.raw());
 }
 
@@ -8921,6 +8925,7 @@ intptr_t ICData::NumberOfChecks() const {
 
 
 void ICData::WriteSentinel(const Array& data) const {
+  ASSERT(!data.IsNull());
   for (intptr_t i = 1; i <= TestEntryLength(); i++) {
     data.SetAt(data.Length() - i, smi_illegal_cid());
   }
@@ -8953,6 +8958,7 @@ bool ICData::HasCheck(const GrowableArray<intptr_t>& cids) const {
 
 // Used for unoptimized static calls when no class-ids are checked.
 void ICData::AddTarget(const Function& target) const {
+  ASSERT(!target.IsNull());
   if (num_args_tested() > 0) {
     // Create a fake cid entry, so that we can store the target.
     GrowableArray<intptr_t> class_ids(num_args_tested());
@@ -8981,6 +8987,7 @@ void ICData::AddTarget(const Function& target) const {
 
 void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
                       const Function& target) const {
+  ASSERT(!target.IsNull());
   DEBUG_ASSERT(!HasCheck(class_ids));
   ASSERT(num_args_tested() > 1);  // Otherwise use 'AddReceiverCheck'.
   ASSERT(class_ids.length() == num_args_tested());
@@ -9036,6 +9043,7 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
   class_ids.Add(receiver_class_id);
   ASSERT(!HasCheck(class_ids));
 #endif  // DEBUG
+  ASSERT(!target.IsNull());
   ASSERT(num_args_tested() == 1);  // Otherwise use 'AddCheck'.
   ASSERT(receiver_class_id != kIllegalCid);
 
@@ -9272,6 +9280,9 @@ RawICData* ICData::New(const Function& function,
                        const Array& arguments_descriptor,
                        intptr_t deopt_id,
                        intptr_t num_args_tested) {
+  ASSERT(!function.IsNull());
+  ASSERT(!target_name.IsNull());
+  ASSERT(!arguments_descriptor.IsNull());
   ASSERT(Object::icdata_class() != Class::null());
   ASSERT(num_args_tested >= 0);
   ICData& result = ICData::Handle();

@@ -105,7 +105,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                               intptr_t receiver_cid,
                               intptr_t view_cid);
   bool BuildByteArrayViewStore(InstanceCallInstr* call,
-                               intptr_t receiver_cid,
                                intptr_t view_cid);
   void PrepareByteArrayViewOp(InstanceCallInstr* call,
                               intptr_t receiver_cid,

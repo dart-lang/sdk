@@ -3322,6 +3322,7 @@ class ICData : public Object {
   void GetCheckAt(intptr_t index,
                   GrowableArray<intptr_t>* class_ids,
                   Function* target) const;
+  // Only for 'num_args_checked == 1'.
   void GetOneClassCheckAt(intptr_t index,
                           intptr_t* class_id,
                           Function* target) const;

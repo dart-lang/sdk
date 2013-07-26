@@ -1022,7 +1022,7 @@ void FlowGraphCompiler::CopyParameters() {
     // Invoke noSuchMethod function passing "call" as the original name.
     const int kNumArgsChecked = 1;
     const ICData& ic_data = ICData::ZoneHandle(
-        ICData::New(function, Symbols::Call(), Object::null_array(),
+        ICData::New(function, Symbols::Call(), Object::empty_array(),
                     Isolate::kNoDeoptId, kNumArgsChecked));
     __ LoadObject(S5, ic_data);
     __ LeaveDartFrame();  // The arguments are still on the stack.
@@ -1213,7 +1213,7 @@ void FlowGraphCompiler::CompileGraph() {
                              : function.name());
         const int kNumArgsChecked = 1;
         const ICData& ic_data = ICData::ZoneHandle(
-            ICData::New(function, name, Object::null_array(),
+            ICData::New(function, name, Object::empty_array(),
                         Isolate::kNoDeoptId, kNumArgsChecked));
         __ LoadObject(S5, ic_data);
         __ LeaveDartFrame();  // The arguments are still on the stack.

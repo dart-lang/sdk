@@ -133,7 +133,7 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
     ICData& ic_data = ICData::ZoneHandle(ICData::New(
         flow_graph_->parsed_function().function(),
         call->function_name(),
-        Object::null_array(),  // Dummy argument descriptor.
+        Object::empty_array(),  // Dummy argument descriptor.
         call->deopt_id(),
         class_ids.length()));
     ic_data.AddReceiverCheck(class_ids[0], function);
@@ -155,7 +155,7 @@ static const ICData& SpecializeICData(const ICData& ic_data, intptr_t cid) {
   const ICData& new_ic_data = ICData::ZoneHandle(ICData::New(
       Function::Handle(ic_data.function()),
       String::Handle(ic_data.target_name()),
-      Object::null_array(),  // Dummy argument descriptor.
+      Object::empty_array(),  // Dummy argument descriptor.
       ic_data.deopt_id(),
       ic_data.num_args_tested()));
 
@@ -1922,32 +1922,23 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 
       // ByteArray setters.
       case MethodRecognizer::kByteArrayBaseSetInt8:
-        return BuildByteArrayViewStore(
-            call, class_ids[0], kTypedDataInt8ArrayCid);
+        return BuildByteArrayViewStore(call, kTypedDataInt8ArrayCid);
       case MethodRecognizer::kByteArrayBaseSetUint8:
-        return BuildByteArrayViewStore(
-            call, class_ids[0], kTypedDataUint8ArrayCid);
+        return BuildByteArrayViewStore(call, kTypedDataUint8ArrayCid);
       case MethodRecognizer::kByteArrayBaseSetInt16:
-        return BuildByteArrayViewStore(
-            call, class_ids[0], kTypedDataInt16ArrayCid);
+        return BuildByteArrayViewStore(call, kTypedDataInt16ArrayCid);
       case MethodRecognizer::kByteArrayBaseSetUint16:
-        return BuildByteArrayViewStore(
-            call, class_ids[0], kTypedDataUint16ArrayCid);
+        return BuildByteArrayViewStore(call, kTypedDataUint16ArrayCid);
       case MethodRecognizer::kByteArrayBaseSetInt32:
-        return BuildByteArrayViewStore(
-            call, class_ids[0], kTypedDataInt32ArrayCid);
+        return BuildByteArrayViewStore(call, kTypedDataInt32ArrayCid);
       case MethodRecognizer::kByteArrayBaseSetUint32:
-        return BuildByteArrayViewStore(
-            call, class_ids[0], kTypedDataUint32ArrayCid);
+        return BuildByteArrayViewStore(call, kTypedDataUint32ArrayCid);
       case MethodRecognizer::kByteArrayBaseSetFloat32:
-        return BuildByteArrayViewStore(
-            call, class_ids[0], kTypedDataFloat32ArrayCid);
+        return BuildByteArrayViewStore(call, kTypedDataFloat32ArrayCid);
       case MethodRecognizer::kByteArrayBaseSetFloat64:
-        return BuildByteArrayViewStore(
-            call, class_ids[0], kTypedDataFloat64ArrayCid);
+        return BuildByteArrayViewStore(call, kTypedDataFloat64ArrayCid);
       case MethodRecognizer::kByteArrayBaseSetFloat32x4:
-        return BuildByteArrayViewStore(
-            call, class_ids[0], kTypedDataFloat32x4ArrayCid);
+        return BuildByteArrayViewStore(call, kTypedDataFloat32x4ArrayCid);
       default:
         // Unsupported method.
         return false;
@@ -2273,13 +2264,17 @@ bool FlowGraphOptimizer::BuildByteArrayViewLoad(
 }
 
 
-bool FlowGraphOptimizer::BuildByteArrayViewStore(
-    InstanceCallInstr* call,
-    intptr_t receiver_cid,
-    intptr_t view_cid) {
+bool FlowGraphOptimizer::BuildByteArrayViewStore(InstanceCallInstr* call,
+                                                 intptr_t view_cid) {
   if ((view_cid == kTypedDataFloat32x4ArrayCid) && !ShouldInlineSimd()) {
     return false;
   }
+  ASSERT(call->HasICData());
+  Function& target = Function::Handle();
+  GrowableArray<intptr_t> class_ids;
+  call->ic_data()->GetCheckAt(0, &class_ids, &target);
+  const intptr_t receiver_cid = class_ids[0];
+
   Definition* array = call->ArgumentAt(0);
   PrepareByteArrayViewOp(call, receiver_cid, view_cid, &array);
   ICData& value_check = ICData::ZoneHandle();
@@ -2292,12 +2287,12 @@ bool FlowGraphOptimizer::BuildByteArrayViewStore(
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid: {
       // Check that value is always smi.
-      value_check = ICData::New(Function::Handle(),
-                                Object::null_string(),
-                                Object::null_array(),
+      value_check = ICData::New(flow_graph_->parsed_function().function(),
+                                call->function_name(),
+                                Object::empty_array(),  // Dummy args. descr.
                                 Isolate::kNoDeoptId,
                                 1);
-      value_check.AddReceiverCheck(kSmiCid, Function::Handle());
+      value_check.AddReceiverCheck(kSmiCid, target);
       break;
     }
     case kTypedDataInt32ArrayCid:
@@ -2306,33 +2301,33 @@ bool FlowGraphOptimizer::BuildByteArrayViewStore(
       // smis first. If we ever deoptimized here, we require to unbox the value
       // before storing to handle the mint case, too.
       if (call->ic_data()->deopt_reason() == kDeoptUnknown) {
-        value_check = ICData::New(Function::Handle(),
-                                  Object::null_string(),
-                                  Object::null_array(),  // Dummy args. descr.
+        value_check = ICData::New(flow_graph_->parsed_function().function(),
+                                  call->function_name(),
+                                  Object::empty_array(),  // Dummy args. descr.
                                   Isolate::kNoDeoptId,
                                   1);
-        value_check.AddReceiverCheck(kSmiCid, Function::Handle());
+        value_check.AddReceiverCheck(kSmiCid, target);
       }
       break;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid: {
       // Check that value is always double.
-      value_check = ICData::New(Function::Handle(),
-                                Object::null_string(),
-                                Object::null_array(),  // Dummy args. descr.
+      value_check = ICData::New(flow_graph_->parsed_function().function(),
+                                call->function_name(),
+                                Object::empty_array(),  // Dummy args. descr.
                                 Isolate::kNoDeoptId,
                                 1);
-      value_check.AddReceiverCheck(kDoubleCid, Function::Handle());
+      value_check.AddReceiverCheck(kDoubleCid, target);
       break;
     }
     case kTypedDataFloat32x4ArrayCid: {
       // Check that value is always Float32x4.
-      value_check = ICData::New(Function::Handle(),
-                                Object::null_string(),
-                                Object::null_array(),  // Dummy args. descr.
+      value_check = ICData::New(flow_graph_->parsed_function().function(),
+                                call->function_name(),
+                                Object::empty_array(),  // Dummy args. descr.
                                 Isolate::kNoDeoptId,
                                 1);
-      value_check.AddReceiverCheck(kFloat32x4Cid, Function::Handle());
+      value_check.AddReceiverCheck(kFloat32x4Cid, target);
       break;
     }
     default:
