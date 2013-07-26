@@ -25,8 +25,8 @@ abstract class ByteConversionSink extends ChunkedConversionSink<List<int>> {
    *
    * If [isLast] is `true` closes `this`.
    *
-   * The given [chunk] is not held onto. Once the method returns, it is safe to
-   * overwrite the data in it.
+   * Contrary to `add` the given [chunk] must not be held onto. Once the method
+   * returns, it is safe to overwrite the data in it.
    */
   void addSlice(List<int> chunk, int start, int end, bool isLast);
 
@@ -44,11 +44,7 @@ abstract class ByteConversionSinkBase extends ByteConversionSink {
   void close();
 
   void addSlice(List<int> chunk, int start, int end, bool isLast) {
-    if (start != 0 || end != chunk.length) {
-      add(chunk.sublist(start, end));
-    } else {
-      add(chunk);
-    }
+    add(chunk.sublist(start, end));
     if (isLast) close();
   }
 }

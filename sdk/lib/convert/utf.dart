@@ -100,6 +100,9 @@ class Utf8Encoder extends Converter<String, List<int>> {
     }
     return new _Utf8EncoderSink(sink);
   }
+
+  // Override the base-classes bind, to provide a better type.
+  Stream<List<int>> bind(Stream<String> stream) => super.bind(stream);
 }
 
 /**
@@ -317,6 +320,9 @@ class Utf8Decoder extends Converter<List<int>, String> {
     }
     return stringSink.asUtf8Sink(_allowMalformed);
   }
+
+  // Override the base-classes bind, to provide a better type.
+  Stream<String> bind(Stream<List<int>> stream) => super.bind(stream);
 }
 
 // UTF-8 constants.

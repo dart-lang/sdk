@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library utf8_tests;
+library unicode_tests;
 
 // Google favorite: "Îñţérñåţîöñåļîžåţîờñ".
 const INTER_BYTES = const [0xc3, 0x8e, 0xc3, 0xb1, 0xc5, 0xa3, 0xc3, 0xa9, 0x72,
@@ -55,7 +55,7 @@ const _TEST_PAIRS = const [
     const [ DIGIT_BYTES, DIGIT_STRING ],
     const [ ASCII_BYTES, ASCII_STRING ]];
 
-_expandTestPairs() {
+List<List> _expandTestPairs() {
   assert(2 == BEE_STRING.length);
   var tests = [];
   tests.addAll(_TEST_PAIRS);

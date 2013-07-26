@@ -4,6 +4,7 @@
 
 library dart.convert;
 
+import 'dart:async';
 import 'dart:json' as OLD_JSON_LIB;
 
 part 'byte_conversion.dart';

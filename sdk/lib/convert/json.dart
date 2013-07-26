@@ -118,6 +118,9 @@ class JsonEncoder extends Converter<Object, String> {
     }
     return new _JsonEncoderSink(sink);
   }
+
+  // Override the base-classes bind, to provide a better type.
+  Stream<String> bind(Stream<Object> stream) => super.bind(stream);
 }
 
 /**
@@ -190,6 +193,9 @@ class JsonDecoder extends Converter<String, Object> {
       ChunkedConversionSink<Object> sink) {
     return new _JsonDecoderSink(_reviver, sink);
   }
+
+  // Override the base-classes bind, to provide a better type.
+  Stream<Object> bind(Stream<String> stream) => super.bind(stream);
 }
 
 /**

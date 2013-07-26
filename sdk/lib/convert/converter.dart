@@ -10,7 +10,7 @@ part of dart.convert;
  * *Converters are still experimental and are subject to change without notice.*
  *
  */
-abstract class Converter<S, T> {
+abstract class Converter<S, T> implements StreamTransformer {
   /**
    * Converts [input] and returns the result of the conversion.
    */
@@ -32,6 +32,11 @@ abstract class Converter<S, T> {
   ChunkedConversionSink startChunkedConversion(ChunkedConversionSink sink) {
     throw new UnsupportedError(
         "This converter does not support chunked conversions: $this");
+  }
+
+  // Subclasses are encouraged to provide better types.
+  Stream bind(Stream source) {
+    return new _ConverterTransformStream(source, this);
   }
 }
 
