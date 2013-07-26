@@ -427,6 +427,8 @@ class Test(object):
     """Check whether data should be captured for this platform/variant
     combination.
     """
+    if variant == 'dart_html' and platform != 'dartium':
+      return False
     if platform == 'dartium' and (variant == 'js' or variant == 'dart2js_html'):
       # Testing JavaScript performance on Dartium is a waste of time. Should be
       # same as Chrome.
