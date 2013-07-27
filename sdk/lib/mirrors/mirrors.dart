@@ -162,6 +162,16 @@ abstract class IsolateMirror implements Mirror {
    * A mirror on the root library for this isolate.
    */
   LibraryMirror get rootLibrary;
+
+  /**
+   * Returns true if this mirror is equal to [other].
+   * The equality holds if and only if 
+   * (1) [other] is a mirror of the same kind 
+   * and
+   * (2) the isolate being reflected by this mirror is the same
+   * isolate being reflected by [other].
+   */
+  bool operator == (other);
 }
 
 /**
@@ -275,8 +285,10 @@ abstract class ObjectMirror implements Mirror {
    * class of *o* (otherwise).
    * If the invocation returns a result *r*, this method returns
    * the result of calling [reflect](*r*).
+   * If the invocation causes a compilation error
+   * this method throws a [MirroredCompilationError].
    * If the invocation throws an exception *e* (that it does not catch)
-   * the the result is a [MirrorError] wrapping *e*.
+   * this method throws *e*.
    */
   /*
    * TODO(turnidge): Handle ambiguous names.
@@ -300,8 +312,10 @@ abstract class ObjectMirror implements Mirror {
    * class of *o* (otherwise).
    * If the invocation returns a result *r*, this method returns
    * the result of calling [reflect](*r*).
+   * If the invocation causes a compilation error
+   * this method throws a [MirroredCompilationError].
    * If the invocation throws an exception *e* (that it does not catch)
-   * the the result is a [MirrorError] wrapping *e*.
+   * this method throws *e*.
    */
   /* TODO(turnidge): Handle ambiguous names.*/
   InstanceMirror getField(Symbol fieldName);
@@ -321,8 +335,10 @@ abstract class ObjectMirror implements Mirror {
    * class of *o* (otherwise).
    * If the invocation returns a result *r*, this method returns
    * the result of calling [reflect]([value]).
+   * If the invocation causes a compilation error
+   * this method throws a [MirroredCompilationError].
    * If the invocation throws an exception *e* (that it does not catch)
-   * the the result is a [MirrorError] wrapping *e*.
+   * this method throws *e*.
    */
   /* TODO(turnidge): Handle ambiguous names.*/
   InstanceMirror setField(Symbol fieldName, Object value);
@@ -454,6 +470,20 @@ abstract class InstanceMirror implements ObjectMirror {
   get reflectee;
 
   /**
+   * Returns true if this mirror is equal to [other].
+   * The equality holds if and only if 
+   * (1) [other] is a mirror of the same kind
+   * and
+   * (2) either 
+   * (a) [hasReflectee] is true and so is
+   * [:identical(reflectee, other.reflectee):] 
+   * or
+   * (b) the remote objects reflected by this mirror and
+   * by [other] are identical.
+   */
+  bool operator == (other);
+
+  /**
    * Perform [invocation] on [reflectee].
    * Equivalent to
    *
@@ -494,8 +524,10 @@ abstract class ClosureMirror implements InstanceMirror {
    *  *f(a1, ..., an, k1: v1, ..., km: vm)*
    * If the invocation returns a result *r*, this method returns
    * the result of calling [reflect](*r*).
+   * If the invocation causes a compilation error
+   * this method throws a [MirrorError].
    * If the invocation throws an exception *e* (that it does not catch)
-   * the the result is a [MirrorError] wrapping *e*.
+   * this method throws *e*.
    */
   InstanceMirror apply(List positionalArguments,
                        [Map<Symbol, dynamic> namedArguments]);
@@ -598,6 +630,19 @@ abstract class LibraryMirror implements DeclarationMirror, ObjectMirror {
    * declarations in this library.
    */
   Map<Symbol, VariableMirror> get variables;
+
+  /**
+   * Returns true if this mirror is equal to [other].
+   *
+   * The equality holds if and only if 
+   * (1) [other] is a mirror of the same kind
+   * and
+   * (2)  The library being reflected by this mirror
+   * and the library being reflected by [other]
+   * are
+   * the same library in the same isolate.
+   */
+   bool operator == (other);
 }
 
 /**
@@ -726,9 +771,11 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    * In either case:
    * If the expression evaluates to a result *r*, this method returns
    * the result of calling [reflect](*r*).
-   * If evaluating the expression throws an exception *e* (that it does not
-   * catch)
-   * the the result is a [MirrorError] wrapping *e*.
+   * If evaluating the expression causes a compilation error
+   * this method throws a [MirroredCompilationError].
+   * If evaluating the expression throws an exception *e* 
+   * (that it does not catch)
+   * this method throws *e*.
    */
   InstanceMirror newInstance(Symbol constructorName,
                              List positionalArguments,
@@ -788,6 +835,16 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    * class/interface changes.
    */
   ClassMirror get defaultFactory;
+
+  /**
+   * Returns true if this mirror is equal to [other].
+   *
+   * The equality holds if and only if 
+   * (1) [other] is a mirror of the same kind
+   * and
+   * (2) This mirror and [other] reflect the same class.
+   */
+   bool operator == (other);
 }
 
 /**
@@ -822,6 +879,17 @@ abstract class TypeVariableMirror extends TypeMirror {
    * A mirror on the type that is the upper bound of this type variable.
    */
   TypeMirror get upperBound;
+
+  /**
+   * Returns true if this mirror is equal to [other].
+   *
+   * The equality holds if and only if 
+   * (1) [other] is a mirror of the same kind
+   * and
+   * (2)  [:simpleName == other.simpleName:] and
+   * [:owner == other.owner:].
+   */
+   bool operator == (other);
 }
 
 /**
@@ -923,6 +991,17 @@ abstract class MethodMirror implements DeclarationMirror {
    * Is the reflectee a factory constructor?
    */
   bool get isFactoryConstructor;
+
+  /**
+   * Returns true if this mirror is equal to [other].
+   *
+   * The equality holds if and only if 
+   * (1) [other] is a mirror of the same kind
+   * and
+   * (2) [:simpleName == other.simpleName:] and
+   * [:owner == other.owner:].
+   */
+   bool operator == (other);
 }
 
 /**
@@ -946,6 +1025,17 @@ abstract class VariableMirror implements DeclarationMirror {
    * Is the reflectee a final variable?
    */
   bool get isFinal;
+
+  /**
+   * Returns true if this mirror is equal to [other].
+   *
+   * The equality holds if and only if 
+   * (1) [other] is a mirror of the same kind
+   * and
+   * (2)  [:simpleName == other.simpleName:] and
+   * [:owner == other.owner:].
+   */
+   bool operator == (other);
 }
 
 /**
