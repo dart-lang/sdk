@@ -238,12 +238,12 @@ class Compiler extends leg.Compiler {
     }
     if (path == null) {
       if (node != null) {
-        reportError(
+        reportFatalError(
             node,
             leg.MessageKind.GENERIC,
             {'text': 'Error: Library not found ${resolvedUri}.'});
       } else {
-        reportError(
+        reportFatalError(
             null,
             leg.MessageKind.GENERIC,
             {'text': 'Error: Library not found ${resolvedUri}.'});
