@@ -116,10 +116,12 @@ class MalformedCheckedModeHelper extends CheckedModeHelper {
     DartType type = node.typeExpression;
     assert(type.isMalformed);
     String reasons = Types.fetchReasonsFromMalformedType(type);
-    arguments.add(js.string('$type'));
-    // TODO(johnniwinther): Handle escaping correctly.
-    arguments.add(js.string(reasons));
+
+    arguments.add(js.string(quote('$type')));
+    arguments.add(js.string(quote(reasons)));
   }
+
+  String quote(String string) => string.replaceAll('"', r'\"');
 }
 
 /*
@@ -1253,10 +1255,6 @@ class JavaScriptBackend extends Backend {
 
   Element getThrowRuntimeError() {
     return compiler.findHelper(const SourceString('throwRuntimeError'));
-  }
-
-  Element getMalformedTypeCheck() {
-    return compiler.findHelper(const SourceString('malformedTypeCheck'));
   }
 
   Element getThrowMalformedSubtypeError() {
