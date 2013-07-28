@@ -19,6 +19,9 @@ import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
 
 import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
 
+final MessageKind NOT_ASSIGNABLE = MessageKind.NOT_ASSIGNABLE.warning;
+final MessageKind MEMBER_NOT_FOUND = MessageKind.MEMBER_NOT_FOUND.warning;
+
 DartType voidType;
 DartType intType;
 DartType boolType;
@@ -66,10 +69,11 @@ testSimpleTypes() {
 
 testReturn() {
   analyzeTopLevel("void foo() { return 3; }", MessageKind.RETURN_VALUE_IN_VOID);
-  analyzeTopLevel("int bar() { return 'hest'; }", MessageKind.NOT_ASSIGNABLE);
+  analyzeTopLevel("int bar() { return 'hest'; }",
+                  NOT_ASSIGNABLE);
   analyzeTopLevel("void baz() { var x; return x; }");
   analyzeTopLevel(returnWithType("int", "'string'"),
-                  MessageKind.NOT_ASSIGNABLE);
+                  NOT_ASSIGNABLE);
   analyzeTopLevel(returnWithType("", "'string'"));
   analyzeTopLevel(returnWithType("Object", "'string'"));
   analyzeTopLevel(returnWithType("String", "'string'"));
@@ -85,35 +89,35 @@ testReturn() {
 testFor() {
   analyze("for (var x;true;x = x + 1) {}");
   analyze("for (var x;null;x = x + 1) {}");
-  analyze("for (var x;0;x = x + 1) {}", MessageKind.NOT_ASSIGNABLE);
-  analyze("for (var x;'';x = x + 1) {}", MessageKind.NOT_ASSIGNABLE);
+  analyze("for (var x;0;x = x + 1) {}", NOT_ASSIGNABLE);
+  analyze("for (var x;'';x = x + 1) {}", NOT_ASSIGNABLE);
 
    analyze("for (;true;) {}");
    analyze("for (;null;) {}");
-   analyze("for (;0;) {}", MessageKind.NOT_ASSIGNABLE);
-   analyze("for (;'';) {}", MessageKind.NOT_ASSIGNABLE);
+   analyze("for (;0;) {}", NOT_ASSIGNABLE);
+   analyze("for (;'';) {}", NOT_ASSIGNABLE);
 
   // Foreach tests
 //  TODO(karlklose): for each is not yet implemented.
 //  analyze("{ List<String> strings = ['1','2','3']; " +
 //          "for (String s in strings) {} }");
 //  analyze("{ List<int> ints = [1,2,3]; for (String s in ints) {} }",
-//          MessageKind.NOT_ASSIGNABLE);
+//          NOT_ASSIGNABLE);
 //  analyze("for (String s in true) {}", MessageKind.METHOD_NOT_FOUND);
 }
 
 testWhile() {
   analyze("while (true) {}");
   analyze("while (null) {}");
-  analyze("while (0) {}", MessageKind.NOT_ASSIGNABLE);
-  analyze("while ('') {}", MessageKind.NOT_ASSIGNABLE);
+  analyze("while (0) {}", NOT_ASSIGNABLE);
+  analyze("while ('') {}", NOT_ASSIGNABLE);
 
   analyze("do {} while (true);");
   analyze("do {} while (null);");
-  analyze("do {} while (0);", MessageKind.NOT_ASSIGNABLE);
-  analyze("do {} while ('');", MessageKind.NOT_ASSIGNABLE);
-  analyze("do { int i = 0.5; } while (true);", MessageKind.NOT_ASSIGNABLE);
-  analyze("do { int i = 0.5; } while (null);", MessageKind.NOT_ASSIGNABLE);
+  analyze("do {} while (0);", NOT_ASSIGNABLE);
+  analyze("do {} while ('');", NOT_ASSIGNABLE);
+  analyze("do { int i = 0.5; } while (true);", NOT_ASSIGNABLE);
+  analyze("do { int i = 0.5; } while (null);", NOT_ASSIGNABLE);
 }
 
 testTry() {
@@ -121,25 +125,25 @@ testTry() {
   analyze("try {} catch (e) { int i = e;} finally {}");
   analyze("try {} catch (e, s) { int i = e; StackTrace j = s; } finally {}");
   analyze("try {} on String catch (e) {} finally {}");
-  analyze("try { int i = ''; } finally {}", MessageKind.NOT_ASSIGNABLE);
-  analyze("try {} finally { int i = ''; }", MessageKind.NOT_ASSIGNABLE);
+  analyze("try { int i = ''; } finally {}", NOT_ASSIGNABLE);
+  analyze("try {} finally { int i = ''; }", NOT_ASSIGNABLE);
   analyze("try {} on String catch (e) { int i = e; } finally {}",
-      MessageKind.NOT_ASSIGNABLE);
+      NOT_ASSIGNABLE);
   analyze("try {} catch (e, s) { int i = e; int j = s; } finally {}",
-      MessageKind.NOT_ASSIGNABLE);
+      NOT_ASSIGNABLE);
   analyze("try {} on String catch (e, s) { int i = e; int j = s; } finally {}",
-      [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+      [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
 }
 
 
 testSwitch() {
   analyze("switch (0) { case 1: break; case 2: break; }");
   analyze("switch (0) { case 1: int i = ''; break; case 2: break; }",
-      MessageKind.NOT_ASSIGNABLE);
+      NOT_ASSIGNABLE);
   analyze("switch (0) { case '': break; case 2: break; }",
-      MessageKind.NOT_ASSIGNABLE);
+      NOT_ASSIGNABLE);
   analyze("switch ('') { case 1: break; case 2: break; }",
-      [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+      [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
 }
 
 testOperators() {
@@ -149,18 +153,18 @@ testOperators() {
     analyze("{ var i = 1 ${op} 2; }");
     analyze("{ var i = 1; i ${op}= 2; }");
     analyze("{ int i; var j = (i = true) ${op} 2; }",
-            [MessageKind.NOT_ASSIGNABLE, MessageKind.OPERATOR_NOT_FOUND]);
+            [NOT_ASSIGNABLE, MessageKind.OPERATOR_NOT_FOUND]);
     analyze("{ int i; var j = 1 ${op} (i = true); }",
-            [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+            [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
   }
   for (final op in ['-', '~']) {
     analyze("{ var i = ${op}1; }");
     analyze("{ int i; var j = ${op}(i = true); }",
-        [MessageKind.NOT_ASSIGNABLE, MessageKind.OPERATOR_NOT_FOUND]);
+        [NOT_ASSIGNABLE, MessageKind.OPERATOR_NOT_FOUND]);
   }
   for (final op in ['++', '--']) {
     analyze("{ int i = 1; int j = i${op}; }");
-    analyze("{ int i = 1; bool j = i${op}; }", MessageKind.NOT_ASSIGNABLE);
+    analyze("{ int i = 1; bool j = i${op}; }", NOT_ASSIGNABLE);
     analyze("{ bool b = true; bool j = b${op}; }",
         MessageKind.OPERATOR_NOT_FOUND);
     analyze("{ bool b = true; int j = ${op}b; }",
@@ -168,25 +172,25 @@ testOperators() {
   }
   for (final op in ['||', '&&']) {
     analyze("{ bool b = (true ${op} false); }");
-    analyze("{ int b = true ${op} false; }", MessageKind.NOT_ASSIGNABLE);
-    analyze("{ bool b = (1 ${op} false); }", MessageKind.NOT_ASSIGNABLE);
-    analyze("{ bool b = (true ${op} 2); }", MessageKind.NOT_ASSIGNABLE);
+    analyze("{ int b = true ${op} false; }", NOT_ASSIGNABLE);
+    analyze("{ bool b = (1 ${op} false); }", NOT_ASSIGNABLE);
+    analyze("{ bool b = (true ${op} 2); }", NOT_ASSIGNABLE);
   }
   for (final op in ['>', '<', '<=', '>=']) {
     analyze("{ bool b = 1 ${op} 2; }");
-    analyze("{ int i = 1 ${op} 2; }", MessageKind.NOT_ASSIGNABLE);
+    analyze("{ int i = 1 ${op} 2; }", NOT_ASSIGNABLE);
     analyze("{ int i; bool b = (i = true) ${op} 2; }",
-            [MessageKind.NOT_ASSIGNABLE, MessageKind.OPERATOR_NOT_FOUND]);
+            [NOT_ASSIGNABLE, MessageKind.OPERATOR_NOT_FOUND]);
     analyze("{ int i; bool b = 1 ${op} (i = true); }",
-            [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+            [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
   }
   for (final op in ['==', '!=']) {
     analyze("{ bool b = 1 ${op} 2; }");
-    analyze("{ int i = 1 ${op} 2; }", MessageKind.NOT_ASSIGNABLE);
+    analyze("{ int i = 1 ${op} 2; }", NOT_ASSIGNABLE);
     analyze("{ int i; bool b = (i = true) ${op} 2; }",
-        MessageKind.NOT_ASSIGNABLE);
+        NOT_ASSIGNABLE);
     analyze("{ int i; bool b = 1 ${op} (i = true); }",
-        MessageKind.NOT_ASSIGNABLE);
+        NOT_ASSIGNABLE);
   }
 }
 
@@ -221,13 +225,13 @@ void testConstructorInvocationArgumentTypes() {
   analyze("new C1('string');");
   analyze("new C2(42);");
   analyze("new C2('string');",
-          MessageKind.NOT_ASSIGNABLE);
+          NOT_ASSIGNABLE);
   analyze("new C3(42);");
   analyze("new C3('string');",
-          MessageKind.NOT_ASSIGNABLE);
+          NOT_ASSIGNABLE);
   analyze("new C3.named(42);");
   analyze("new C3.named('string');",
-          MessageKind.NOT_ASSIGNABLE);
+          NOT_ASSIGNABLE);
 }
 
 void testMethodInvocationArgumentCount() {
@@ -349,20 +353,20 @@ void testMethodInvocations() {
 
   check("int k = c.intNoArgumentMethod();");
   check("ClassWithMethods x = c.intNoArgumentMethod();",
-        MessageKind.NOT_ASSIGNABLE);
+        NOT_ASSIGNABLE);
 
-  check("int k = c.intOneArgumentMethod(c);", MessageKind.NOT_ASSIGNABLE);
+  check("int k = c.intOneArgumentMethod(c);", NOT_ASSIGNABLE);
   check("ClassWithMethods x = c.intOneArgumentMethod(1);",
-        MessageKind.NOT_ASSIGNABLE);
+        NOT_ASSIGNABLE);
   check("int k = c.intOneArgumentMethod('string');",
-        MessageKind.NOT_ASSIGNABLE);
+        NOT_ASSIGNABLE);
   check("int k = c.intOneArgumentMethod(i);");
 
   check("int k = c.intTwoArgumentMethod(1, 'string');",
-        MessageKind.NOT_ASSIGNABLE);
+        NOT_ASSIGNABLE);
   check("int k = c.intTwoArgumentMethod(i, j);");
   check("ClassWithMethods x = c.intTwoArgumentMethod(i, j);",
-        MessageKind.NOT_ASSIGNABLE);
+        NOT_ASSIGNABLE);
 
   check("c.functionField();");
   check("d.functionField();");
@@ -379,25 +383,25 @@ void testMethodInvocations() {
 
 
   check("c.intOneArgumentOneOptionalMethod('');",
-        MessageKind.NOT_ASSIGNABLE);
+        NOT_ASSIGNABLE);
   check("c.intOneArgumentOneOptionalMethod('', '');",
-        [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+        [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
 
-  check("c.intTwoOptionalMethod('');", MessageKind.NOT_ASSIGNABLE);
+  check("c.intTwoOptionalMethod('');", NOT_ASSIGNABLE);
   check("c.intTwoOptionalMethod('', '');",
-        [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+        [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
 
   check("c.intOneArgumentOneNamedMethod('');",
-        MessageKind.NOT_ASSIGNABLE);
+        NOT_ASSIGNABLE);
   check("c.intOneArgumentOneNamedMethod('', b: '');",
-        [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+        [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
 
-  check("c.intTwoNamedMethod(a: '');", MessageKind.NOT_ASSIGNABLE);
-  check("c.intTwoNamedMethod(b: '');", MessageKind.NOT_ASSIGNABLE);
+  check("c.intTwoNamedMethod(a: '');", NOT_ASSIGNABLE);
+  check("c.intTwoNamedMethod(b: '');", NOT_ASSIGNABLE);
   check("c.intTwoNamedMethod(a: '', b: '');",
-        [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+        [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
   check("c.intTwoNamedMethod(b: '', a: '');",
-        [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+        [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
 
   // Invocation of dynamic variable.
   check("e();");
@@ -406,10 +410,10 @@ void testMethodInvocations() {
 
   // Invocation on local method.
   check("localMethod();", MessageKind.MISSING_ARGUMENT);
-  check("localMethod(1);", MessageKind.NOT_ASSIGNABLE);
+  check("localMethod(1);", NOT_ASSIGNABLE);
   check("localMethod('string');");
   check("int k = localMethod('string');");
-  check("String k = localMethod('string');", MessageKind.NOT_ASSIGNABLE);
+  check("String k = localMethod('string');", NOT_ASSIGNABLE);
 
   // Invocation on parenthesized expressions.
   check("(e)();");
@@ -423,21 +427,21 @@ void testMethodInvocations() {
   check("(foo){}();", MessageKind.MISSING_ARGUMENT);
   check("(foo){}(1);");
   check("(foo){}('string');");
-  check("(int foo){}('string');", MessageKind.NOT_ASSIGNABLE);
+  check("(int foo){}('string');", NOT_ASSIGNABLE);
   check("(String foo){}('string');");
   check("int k = int bar(String foo){ return 0; }('string');");
   check("int k = String bar(String foo){ return foo; }('string');",
-        MessageKind.NOT_ASSIGNABLE);
+        NOT_ASSIGNABLE);
 
   // Static invocations.
   check("ClassWithMethods.staticMethod();",
         MessageKind.MISSING_ARGUMENT);
   check("ClassWithMethods.staticMethod(1);",
-        MessageKind.NOT_ASSIGNABLE);
+        NOT_ASSIGNABLE);
   check("ClassWithMethods.staticMethod('string');");
   check("int k = ClassWithMethods.staticMethod('string');");
   check("String k = ClassWithMethods.staticMethod('string');",
-        MessageKind.NOT_ASSIGNABLE);
+        NOT_ASSIGNABLE);
 
   // Invocation on dynamic variable.
   check("e.foo();");
@@ -449,7 +453,7 @@ void testMethodInvocations() {
   check("foo(1);");
   check("foo('string');");
   check("foo(a: 'string');");
-  check("foo(a: localMethod(1));", MessageKind.NOT_ASSIGNABLE);
+  check("foo(a: localMethod(1));", NOT_ASSIGNABLE);
 }
 
 testMethodInvocationsInClass() {
@@ -500,20 +504,20 @@ testMethodInvocationsInClass() {
 
   check(c, "int k = intNoArgumentMethod();");
   check(c, "ClassWithMethods x = intNoArgumentMethod();",
-        MessageKind.NOT_ASSIGNABLE);
+        NOT_ASSIGNABLE);
 
-  check(c, "int k = intOneArgumentMethod('');", MessageKind.NOT_ASSIGNABLE);
+  check(c, "int k = intOneArgumentMethod('');", NOT_ASSIGNABLE);
   check(c, "ClassWithMethods x = intOneArgumentMethod(1);",
-        MessageKind.NOT_ASSIGNABLE);
+        NOT_ASSIGNABLE);
   check(c, "int k = intOneArgumentMethod('string');",
-        MessageKind.NOT_ASSIGNABLE);
+        NOT_ASSIGNABLE);
   check(c, "int k = intOneArgumentMethod(i);");
 
   check(c, "int k = intTwoArgumentMethod(1, 'string');",
-        MessageKind.NOT_ASSIGNABLE);
+        NOT_ASSIGNABLE);
   check(c, "int k = intTwoArgumentMethod(i, j);");
   check(c, "ClassWithMethods x = intTwoArgumentMethod(i, j);",
-        MessageKind.NOT_ASSIGNABLE);
+        NOT_ASSIGNABLE);
 
   check(c, "functionField();");
   check(d, "functionField();");
@@ -530,25 +534,25 @@ testMethodInvocationsInClass() {
 
 
   check(c, "intOneArgumentOneOptionalMethod('');",
-        MessageKind.NOT_ASSIGNABLE);
+        NOT_ASSIGNABLE);
   check(c, "intOneArgumentOneOptionalMethod('', '');",
-        [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+        [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
 
-  check(c, "intTwoOptionalMethod('');", MessageKind.NOT_ASSIGNABLE);
+  check(c, "intTwoOptionalMethod('');", NOT_ASSIGNABLE);
   check(c, "intTwoOptionalMethod('', '');",
-        [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+        [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
 
   check(c, "intOneArgumentOneNamedMethod('');",
-        MessageKind.NOT_ASSIGNABLE);
+        NOT_ASSIGNABLE);
   check(c, "intOneArgumentOneNamedMethod('', b: '');",
-        [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+        [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
 
-  check(c, "intTwoNamedMethod(a: '');", MessageKind.NOT_ASSIGNABLE);
-  check(c, "intTwoNamedMethod(b: '');", MessageKind.NOT_ASSIGNABLE);
+  check(c, "intTwoNamedMethod(a: '');", NOT_ASSIGNABLE);
+  check(c, "intTwoNamedMethod(b: '');", NOT_ASSIGNABLE);
   check(c, "intTwoNamedMethod(a: '', b: '');",
-        [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+        [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
   check(c, "intTwoNamedMethod(b: '', a: '');",
-        [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+        [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
 
   // Invocation of dynamic variable.
   check(c, "e();");
@@ -557,46 +561,46 @@ testMethodInvocationsInClass() {
 
   // Invocation on local method.
   check(c, "localMethod();", MessageKind.MISSING_ARGUMENT);
-  check(c, "localMethod(1);", MessageKind.NOT_ASSIGNABLE);
+  check(c, "localMethod(1);", NOT_ASSIGNABLE);
   check(c, "localMethod('string');");
   check(c, "int k = localMethod('string');");
-  check(c, "String k = localMethod('string');", MessageKind.NOT_ASSIGNABLE);
+  check(c, "String k = localMethod('string');", NOT_ASSIGNABLE);
 
   // Invocation on parenthesized expressions.
   check(c, "(e)();");
   check(c, "(e)(1);");
   check(c, "(e)('string');");
-  check(c, "(foo)();", MessageKind.MEMBER_NOT_FOUND);
-  check(c, "(foo)(1);", MessageKind.MEMBER_NOT_FOUND);
-  check(c, "(foo)('string');", MessageKind.MEMBER_NOT_FOUND);
+  check(c, "(foo)();", MEMBER_NOT_FOUND);
+  check(c, "(foo)(1);", MEMBER_NOT_FOUND);
+  check(c, "(foo)('string');", MEMBER_NOT_FOUND);
 
   // Invocations on function expressions.
   check(c, "(foo){}();", MessageKind.MISSING_ARGUMENT);
   check(c, "(foo){}(1);");
   check(c, "(foo){}('string');");
-  check(c, "(int foo){}('string');", MessageKind.NOT_ASSIGNABLE);
+  check(c, "(int foo){}('string');", NOT_ASSIGNABLE);
   check(c, "(String foo){}('string');");
   check(c, "int k = int bar(String foo){ return 0; }('string');");
   check(c, "int k = String bar(String foo){ return foo; }('string');",
-        MessageKind.NOT_ASSIGNABLE);
+        NOT_ASSIGNABLE);
 
   // Static invocations.
   check(c, "staticMethod();",
         MessageKind.MISSING_ARGUMENT);
   check(c, "staticMethod(1);",
-        MessageKind.NOT_ASSIGNABLE);
+        NOT_ASSIGNABLE);
   check(c, "staticMethod('string');");
   check(c, "int k = staticMethod('string');");
   check(c, "String k = staticMethod('string');",
-        MessageKind.NOT_ASSIGNABLE);
+        NOT_ASSIGNABLE);
   check(d, "staticMethod();",
         MessageKind.MISSING_ARGUMENT);
   check(d, "staticMethod(1);",
-        MessageKind.NOT_ASSIGNABLE);
+        NOT_ASSIGNABLE);
   check(d, "staticMethod('string');");
   check(d, "int k = staticMethod('string');");
   check(d, "String k = staticMethod('string');",
-        MessageKind.NOT_ASSIGNABLE);
+        NOT_ASSIGNABLE);
 
   // Invocation on dynamic variable.
   check(c, "e.foo();");
@@ -609,7 +613,7 @@ testMethodInvocationsInClass() {
   check(c, "foo('string');", MessageKind.METHOD_NOT_FOUND);
   check(c, "foo(a: 'string');", MessageKind.METHOD_NOT_FOUND);
   check(c, "foo(a: localMethod(1));",
-      [MessageKind.METHOD_NOT_FOUND, MessageKind.NOT_ASSIGNABLE]);
+      [MessageKind.METHOD_NOT_FOUND, NOT_ASSIGNABLE]);
 }
 
 /** Tests analysis of returns (not required by the specification). */
@@ -655,7 +659,7 @@ void testControlFlow() {
 testNewExpression() {
   compiler.parseScript("class A {}");
   analyze("A a = new A();");
-  analyze("int i = new A();", MessageKind.NOT_ASSIGNABLE);
+  analyze("int i = new A();", NOT_ASSIGNABLE);
 
 // TODO(karlklose): constructors are not yet implemented.
 //  compiler.parseScript(
@@ -673,7 +677,7 @@ testNewExpression() {
 //
 //  analyze("Foo x = new Foo(0);");
 //  analyze("Foo x = new Foo();", MessageKind.MISSING_ARGUMENT);
-//  analyze("Foo x = new Foo('');", MessageKind.NOT_ASSIGNABLE);
+//  analyze("Foo x = new Foo('');", NOT_ASSIGNABLE);
 //  analyze("Foo x = new Foo(0, null);", MessageKind.ADDITIONAL_ARGUMENT);
 //
 //  analyze("Foo x = new Foo.foo();");
@@ -681,7 +685,7 @@ testNewExpression() {
 //
 //  analyze("Foo x = new Foo.bar();");
 //  analyze("Foo x = new Foo.bar(0);");
-//  analyze("Foo x = new Foo.bar('');", MessageKind.NOT_ASSIGNABLE);
+//  analyze("Foo x = new Foo.bar('');", NOT_ASSIGNABLE);
 //  analyze("Foo x = new Foo.bar(0, null);",
 //          MessageKind.ADDITIONAL_ARGUMENT);
 //
@@ -691,17 +695,17 @@ testNewExpression() {
 testConditionalExpression() {
   analyze("int i = true ? 2 : 1;");
   analyze("int i = true ? 'hest' : 1;");
-  analyze("int i = true ? 'hest' : 'fisk';", MessageKind.NOT_ASSIGNABLE);
+  analyze("int i = true ? 'hest' : 'fisk';", NOT_ASSIGNABLE);
   analyze("String s = true ? 'hest' : 'fisk';");
 
   analyze("true ? 1 : 2;");
   analyze("null ? 1 : 2;");
-  analyze("0 ? 1 : 2;", MessageKind.NOT_ASSIGNABLE);
-  analyze("'' ? 1 : 2;", MessageKind.NOT_ASSIGNABLE);
+  analyze("0 ? 1 : 2;", NOT_ASSIGNABLE);
+  analyze("'' ? 1 : 2;", NOT_ASSIGNABLE);
   analyze("{ int i; true ? i = 2.7 : 2; }",
-          MessageKind.NOT_ASSIGNABLE);
+          NOT_ASSIGNABLE);
   analyze("{ int i; true ? 2 : i = 2.7; }",
-          MessageKind.NOT_ASSIGNABLE);
+          NOT_ASSIGNABLE);
   analyze("{ int i; i = true ? 2.7 : 2; }");
 }
 
@@ -709,13 +713,13 @@ testIfStatement() {
   analyze("if (true) {}");
   analyze("if (null) {}");
   analyze("if (0) {}",
-  MessageKind.NOT_ASSIGNABLE);
+  NOT_ASSIGNABLE);
   analyze("if ('') {}",
-          MessageKind.NOT_ASSIGNABLE);
+          NOT_ASSIGNABLE);
   analyze("{ int i = 27; if (true) { i = 2.7; } else {} }",
-          MessageKind.NOT_ASSIGNABLE);
+          NOT_ASSIGNABLE);
   analyze("{ int i = 27; if (true) {} else { i = 2.7; } }",
-          MessageKind.NOT_ASSIGNABLE);
+          NOT_ASSIGNABLE);
 }
 
 testThis() {
@@ -727,7 +731,7 @@ testThis() {
   ClassElement foo = library.find(const SourceString("Foo"));
   foo.ensureResolved(compiler);
   Element method = foo.lookupLocalMember(const SourceString('method'));
-  analyzeIn(method, "{ int i = this; }", MessageKind.NOT_ASSIGNABLE);
+  analyzeIn(method, "{ int i = this; }", NOT_ASSIGNABLE);
   analyzeIn(method, "{ Object o = this; }");
   analyzeIn(method, "{ Foo f = this; }");
 }
@@ -748,7 +752,7 @@ testSuper() {
   ClassElement B = library.find(const SourceString("B"));
   B.ensureResolved(compiler);
   Element method = B.lookupLocalMember(const SourceString('method'));
-  analyzeIn(method, "{ int i = super.field; }", MessageKind.NOT_ASSIGNABLE);
+  analyzeIn(method, "{ int i = super.field; }", NOT_ASSIGNABLE);
   analyzeIn(method, "{ Object o = super.field; }");
   analyzeIn(method, "{ String s = super.field; }");
 }
@@ -885,53 +889,53 @@ testOperatorsAssignability() {
   //      on e2'.
 
   // `0` is not assignable to operator + on `a`.
-  check('c = a + 0;', MessageKind.NOT_ASSIGNABLE);
+  check('c = a + 0;', NOT_ASSIGNABLE);
   // `a + b` is not assignable to `z`.
-  check('z = a + b;', MessageKind.NOT_ASSIGNABLE);
+  check('z = a + b;', NOT_ASSIGNABLE);
 
   // `-a` is not assignable to `z`.
-  check('z = -a;', MessageKind.NOT_ASSIGNABLE);
+  check('z = -a;', NOT_ASSIGNABLE);
 
   // `0` is not assignable to operator [] on `a`.
-  check('c = a[0];', MessageKind.NOT_ASSIGNABLE);
+  check('c = a[0];', NOT_ASSIGNABLE);
   // `a[b]` is not assignable to `z`.
-  check('z = a[b];', MessageKind.NOT_ASSIGNABLE);
+  check('z = a[b];', NOT_ASSIGNABLE);
 
   // `0` is not assignable to operator [] on `a`.
   // Warning suppressed for `0` is not assignable to operator []= on `a`.
-  check('a[0] *= c;', MessageKind.NOT_ASSIGNABLE);
+  check('a[0] *= c;', NOT_ASSIGNABLE);
   // `z` is not assignable to operator * on `a[0]`.
-  check('a[b] *= z;', MessageKind.NOT_ASSIGNABLE);
+  check('a[b] *= z;', NOT_ASSIGNABLE);
 
-  check('b = a++;', MessageKind.NOT_ASSIGNABLE);
-  check('b = ++a;', MessageKind.NOT_ASSIGNABLE);
-  check('b = a--;', MessageKind.NOT_ASSIGNABLE);
-  check('b = --a;', MessageKind.NOT_ASSIGNABLE);
+  check('b = a++;', NOT_ASSIGNABLE);
+  check('b = ++a;', NOT_ASSIGNABLE);
+  check('b = a--;', NOT_ASSIGNABLE);
+  check('b = --a;', NOT_ASSIGNABLE);
 
-  check('c = a[b]++;', MessageKind.NOT_ASSIGNABLE);
-  check('c = ++a[b];', MessageKind.NOT_ASSIGNABLE);
-  check('c = a[b]--;', MessageKind.NOT_ASSIGNABLE);
-  check('c = --a[b];', MessageKind.NOT_ASSIGNABLE);
+  check('c = a[b]++;', NOT_ASSIGNABLE);
+  check('c = ++a[b];', NOT_ASSIGNABLE);
+  check('c = a[b]--;', NOT_ASSIGNABLE);
+  check('c = --a[b];', NOT_ASSIGNABLE);
 
   check('z = a == b;');
   check('z = a != b;');
 
   for (String o in ['&&', '||']) {
     check('z = z $o z;');
-    check('z = a $o z;', MessageKind.NOT_ASSIGNABLE);
-    check('z = z $o b;', MessageKind.NOT_ASSIGNABLE);
+    check('z = a $o z;', NOT_ASSIGNABLE);
+    check('z = z $o b;', NOT_ASSIGNABLE);
     check('z = a $o b;',
-        [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+        [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
     check('a = a $o b;',
-        [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE,
-         MessageKind.NOT_ASSIGNABLE]);
+        [NOT_ASSIGNABLE, NOT_ASSIGNABLE,
+         NOT_ASSIGNABLE]);
   }
 
   check('z = !z;');
-  check('z = !a;', MessageKind.NOT_ASSIGNABLE);
-  check('a = !z;', MessageKind.NOT_ASSIGNABLE);
+  check('z = !a;', NOT_ASSIGNABLE);
+  check('a = !z;', NOT_ASSIGNABLE);
   check('a = !a;',
-      [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+      [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
 
 
   // Tests against MismatchA.
@@ -945,34 +949,34 @@ testOperatorsAssignability() {
   // Tests against int operator +(MismatchA other) => 0;
 
   // `a + b` is not assignable to `c`.
-  check('c = a + b;', MessageKind.NOT_ASSIGNABLE);
+  check('c = a + b;', NOT_ASSIGNABLE);
   // `a + b` is not assignable to `a`.
-  check('a += b;', MessageKind.NOT_ASSIGNABLE);
+  check('a += b;', NOT_ASSIGNABLE);
   // `a[0] + b` is not assignable to `a[0]`.
-  check('a[0] += b;', MessageKind.NOT_ASSIGNABLE);
+  check('a[0] += b;', NOT_ASSIGNABLE);
 
   // 1 is not applicable to operator +.
-  check('b = a++;', MessageKind.NOT_ASSIGNABLE);
+  check('b = a++;', NOT_ASSIGNABLE);
   // 1 is not applicable to operator +.
   // `++a` of type int is not assignable to `b`.
   check('b = ++a;',
-      [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+      [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
 
   // 1 is not applicable to operator +.
-  check('b = a[0]++;', MessageKind.NOT_ASSIGNABLE);
+  check('b = a[0]++;', NOT_ASSIGNABLE);
   // 1 is not applicable to operator +.
   // `++a[0]` of type int is not assignable to `b`.
   check('b = ++a[0];',
-      [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+      [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
 
   // Tests against: MismatchA operator -(int other) => this;
 
   // `a - b` is not assignable to `c`.
-  check('c = a + b;', MessageKind.NOT_ASSIGNABLE);
+  check('c = a + b;', NOT_ASSIGNABLE);
   // `a - b` is not assignable to `a`.
-  check('a += b;', MessageKind.NOT_ASSIGNABLE);
+  check('a += b;', NOT_ASSIGNABLE);
   // `a[0] - b` is not assignable to `a[0]`.
-  check('a[0] += b;', MessageKind.NOT_ASSIGNABLE);
+  check('a[0] += b;', NOT_ASSIGNABLE);
 
   check('b = a--;');
   check('b = --a;');
@@ -993,16 +997,16 @@ testOperatorsAssignability() {
   // void operator []=(String key, MismatchB value) {}
 
   // `0` is not applicable to operator []= on `a`.
-  check('a[0] = b;', MessageKind.NOT_ASSIGNABLE);
+  check('a[0] = b;', NOT_ASSIGNABLE);
 
   // `0` is not applicable to operator []= on `a`.
-  check('a[0] += b;', MessageKind.NOT_ASSIGNABLE);
+  check('a[0] += b;', NOT_ASSIGNABLE);
   // `""` is not applicable to operator [] on `a`.
-  check('a[""] += b;', MessageKind.NOT_ASSIGNABLE);
+  check('a[""] += b;', NOT_ASSIGNABLE);
   // `c` is not applicable to operator [] on `a`.
   // `c` is not applicable to operator []= on `a`.
   check('a[c] += b;',
-      [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+      [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
 
 
   // Tests against MismatchB.
@@ -1018,26 +1022,26 @@ testOperatorsAssignability() {
   // void operator[]=(int key, String value) {}
 
   // `b` is not assignable to `a[0]`.
-  check('a[0] += b;', MessageKind.NOT_ASSIGNABLE);
+  check('a[0] += b;', NOT_ASSIGNABLE);
   // `0` is not applicable to operator + on `a[0]`.
   check('a[0] += "";',
-      [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+      [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
   // `true` is not applicable to operator + on `a[0]`.
   // `true` is not assignable to `a[0]`.
   check('a[0] += true;',
-      [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+      [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
 }
 
 void testFieldInitializers() {
   analyzeTopLevel("""int i = 0;""");
-  analyzeTopLevel("""int i = '';""", MessageKind.NOT_ASSIGNABLE);
+  analyzeTopLevel("""int i = '';""", NOT_ASSIGNABLE);
 
   analyzeTopLevel("""class Class {
                        int i = 0;
                      }""");
   analyzeTopLevel("""class Class {
                        int i = '';
-                     }""", MessageKind.NOT_ASSIGNABLE);
+                     }""", NOT_ASSIGNABLE);
 }
 
 void testTypeVariableExpressions() {
@@ -1051,11 +1055,11 @@ void testTypeVariableExpressions() {
   Element method = foo.lookupLocalMember(const SourceString('method'));
 
   analyzeIn(method, "{ Type type = T; }");
-  analyzeIn(method, "{ T type = T; }", MessageKind.NOT_ASSIGNABLE);
-  analyzeIn(method, "{ int type = T; }", MessageKind.NOT_ASSIGNABLE);
+  analyzeIn(method, "{ T type = T; }", NOT_ASSIGNABLE);
+  analyzeIn(method, "{ int type = T; }", NOT_ASSIGNABLE);
 
   analyzeIn(method, "{ String typeName = T.toString(); }");
-  analyzeIn(method, "{ T.foo; }", MessageKind.MEMBER_NOT_FOUND);
+  analyzeIn(method, "{ T.foo; }", MEMBER_NOT_FOUND);
   analyzeIn(method, "{ T.foo = 0; }", MessageKind.PROPERTY_NOT_FOUND);
   analyzeIn(method, "{ T.foo(); }", MessageKind.METHOD_NOT_FOUND);
   analyzeIn(method, "{ T + 1; }", MessageKind.OPERATOR_NOT_FOUND);
@@ -1070,23 +1074,23 @@ void testTypeLiteral() {
 
   // Check direct access.
   analyze('Type m() => int;');
-  analyze('int m() => int;', MessageKind.NOT_ASSIGNABLE);
+  analyze('int m() => int;', NOT_ASSIGNABLE);
 
   // Check access in assignment.
   analyze('m(Type val) => val = Class;');
-  analyze('m(int val) => val = Class;', MessageKind.NOT_ASSIGNABLE);
+  analyze('m(int val) => val = Class;', NOT_ASSIGNABLE);
 
   // Check access as argument.
   analyze('m(Type val) => m(int);');
-  analyze('m(int val) => m(int);', MessageKind.NOT_ASSIGNABLE);
+  analyze('m(int val) => m(int);', NOT_ASSIGNABLE);
 
   // Check access as argument in member access.
   analyze('m(Type val) => m(int).foo;');
-  analyze('m(int val) => m(int).foo;', MessageKind.NOT_ASSIGNABLE);
+  analyze('m(int val) => m(int).foo;', NOT_ASSIGNABLE);
 
   // Check static property access.
   analyze('m() => Class.field;');
-  analyze('m() => (Class).field;', MessageKind.MEMBER_NOT_FOUND);
+  analyze('m() => (Class).field;', MEMBER_NOT_FOUND);
 
   // Check static method access.
   analyze('m() => Class.method();');
@@ -1118,7 +1122,7 @@ void testInitializers() {
               String a;
               Class(int this.a);
             }
-            ''', MessageKind.NOT_ASSIGNABLE);
+            ''', NOT_ASSIGNABLE);
   check(r'''class Class {
               var a;
               Class(int a) : this.a = a;
@@ -1128,7 +1132,7 @@ void testInitializers() {
               String a;
               Class(int a) : this.a = a;
             }
-            ''', MessageKind.NOT_ASSIGNABLE);
+            ''', NOT_ASSIGNABLE);
 
   // Check this-calls.
   check(r'''class Class {
@@ -1142,7 +1146,7 @@ void testInitializers() {
               Class(this.a);
               Class.named(int a) : this(a);
             }
-            ''', MessageKind.NOT_ASSIGNABLE);
+            ''', NOT_ASSIGNABLE);
   check(r'''class Class {
               String a;
               Class(var a) : this.a = a;
@@ -1154,7 +1158,7 @@ void testInitializers() {
               Class(String a) : this.a = a;
               Class.named(int a) : this(a);
             }
-            ''', MessageKind.NOT_ASSIGNABLE);
+            ''', NOT_ASSIGNABLE);
 
   // Check super-calls.
   check(r'''class Super {
@@ -1172,7 +1176,7 @@ void testInitializers() {
             class Class extends Super {
               Class.named(int a) : super(a);
             }
-            ''', MessageKind.NOT_ASSIGNABLE);
+            ''', NOT_ASSIGNABLE);
   check(r'''class Super {
               String a;
               Super(var a) : this.a = a;
@@ -1188,7 +1192,7 @@ void testInitializers() {
             class Class extends Super {
               Class.named(int a) : super(a);
             }
-            ''', MessageKind.NOT_ASSIGNABLE);
+            ''', NOT_ASSIGNABLE);
 
   // Check super-calls involving generics.
   check(r'''class Super<T> {
@@ -1206,7 +1210,7 @@ void testInitializers() {
             class Class extends Super<String> {
               Class.named(int a) : super(a);
             }
-            ''', MessageKind.NOT_ASSIGNABLE);
+            ''', NOT_ASSIGNABLE);
   check(r'''class Super<T> {
               T a;
               Super(var a) : this.a = a;
@@ -1222,7 +1226,7 @@ void testInitializers() {
             class Class extends Super<String> {
               Class.named(int a) : super(a);
             }
-            ''', MessageKind.NOT_ASSIGNABLE);
+            ''', NOT_ASSIGNABLE);
 
   // Check instance creations.
   check(r'''class Class {
@@ -1236,7 +1240,7 @@ void testInitializers() {
               Class(this.a);
             }
             method(int a) => new Class(a);
-            ''', MessageKind.NOT_ASSIGNABLE);
+            ''', NOT_ASSIGNABLE);
   check(r'''class Class {
               String a;
               Class(var a) : this.a = a;
@@ -1248,7 +1252,7 @@ void testInitializers() {
               Class(String a) : this.a = a;
             }
             method(int a) => new Class(a);
-            ''', MessageKind.NOT_ASSIGNABLE);
+            ''', NOT_ASSIGNABLE);
 
   // Check instance creations involving generics.
   check(r'''class Class<T> {
@@ -1262,7 +1266,7 @@ void testInitializers() {
               Class(this.a);
             }
             method(int a) => new Class<String>(a);
-            ''', MessageKind.NOT_ASSIGNABLE);
+            ''', NOT_ASSIGNABLE);
   check(r'''class Class<T> {
               T a;
               Class(var a) : this.a = a;
@@ -1274,7 +1278,7 @@ void testInitializers() {
               Class(String a) : this.a = a;
             }
             method(int a) => new Class<String>(a);
-            ''', MessageKind.NOT_ASSIGNABLE);
+            ''', NOT_ASSIGNABLE);
 }
 
 void testGetterSetterInvocation() {
@@ -1314,41 +1318,41 @@ void testGetterSetterInvocation() {
 
   check("variable = '';");
   check("int v = variable;");
-  check("variable = 0;", MessageKind.NOT_ASSIGNABLE);
-  check("String v = variable;", MessageKind.NOT_ASSIGNABLE);
+  check("variable = 0;", NOT_ASSIGNABLE);
+  check("String v = variable;", NOT_ASSIGNABLE);
   // num is not assignable to String (the type of the setter).
-  check("variable += 0;", MessageKind.NOT_ASSIGNABLE);
+  check("variable += 0;", NOT_ASSIGNABLE);
   // String is not assignable to int (the argument type of the operator + on the
   // getter) and num (the result type of the operation) is not assignable to
   // String (the type of the setter).
   check("variable += '';",
-      [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+      [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
 
   check("c.instanceField = '';");
   check("int v = c.instanceField;");
-  check("c.instanceField = 0;", MessageKind.NOT_ASSIGNABLE);
-  check("String v = c.instanceField;", MessageKind.NOT_ASSIGNABLE);
+  check("c.instanceField = 0;", NOT_ASSIGNABLE);
+  check("String v = c.instanceField;", NOT_ASSIGNABLE);
 
   // num is not assignable to String (the type of the setter).
-  check("c.instanceField += 0;", MessageKind.NOT_ASSIGNABLE);
+  check("c.instanceField += 0;", NOT_ASSIGNABLE);
   // String is not assignable to int (the argument type of the operator + on the
   // getter) and num (the result type of the operation) is not assignable to
   // String (the type of the setter).
   check("c.instanceField += '';",
-      [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+      [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
 
   check("Class.staticField = '';");
   check("int v = Class.staticField;");
-  check("Class.staticField = 0;", MessageKind.NOT_ASSIGNABLE);
-  check("String v = Class.staticField;", MessageKind.NOT_ASSIGNABLE);
+  check("Class.staticField = 0;", NOT_ASSIGNABLE);
+  check("String v = Class.staticField;", NOT_ASSIGNABLE);
 
   // num is not assignable to String (the type of the setter).
-  check("Class.staticField += 0;", MessageKind.NOT_ASSIGNABLE);
+  check("Class.staticField += 0;", NOT_ASSIGNABLE);
   // String is not assignable to int (the argument type of the operator + on the
   // getter) and num (the result type of the operation) is not assignable to
   // String (the type of the setter).
   check("Class.staticField += '';",
-        [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+        [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
 
   check("int v = c.overriddenField;");
   check("c.overriddenField = 0;");

@@ -397,7 +397,7 @@ abstract class Compiler implements DiagnosticListener {
     } on SpannableAssertionFailure catch (ex) {
       if (!hasCrashed) {
         SourceSpan span = spanFromSpannable(ex.node);
-        reportDiagnostic(span, ex.message, api.Diagnostic.ERROR);
+        reportError(ex.node, MessageKind.GENERIC, {'text': ex.message});
         pleaseReportCrash();
       }
       hasCrashed = true;
@@ -582,7 +582,7 @@ abstract class Compiler implements DiagnosticListener {
   void internalError(String message,
                      {Node node, Token token, HInstruction instruction,
                       Element element}) {
-    cancel('Internal error: $message',
+    cancel('Internal Error: $message',
            node: node, token: token,
            instruction: instruction, element: element);
   }
@@ -608,23 +608,24 @@ abstract class Compiler implements DiagnosticListener {
                HInstruction instruction, Element element}) {
     assembledCode = null; // Compilation failed. Make sure that we
                           // don't return a bogus result.
-    SourceSpan span = null;
+    Spannable spannable = null;
     if (node != null) {
-      span = spanFromNode(node);
+      spannable = node;
     } else if (token != null) {
-      span = spanFromTokens(token, token);
+      spannable = token;
     } else if (instruction != null) {
-      span = spanFromHInstruction(instruction);
+      spannable = instruction;
     } else if (element != null) {
-      span = spanFromElement(element);
+      spannable = element;
     } else {
       throw 'No error location for error: $reason';
     }
-    reportDiagnostic(span, reason, api.Diagnostic.ERROR);
+    reportError(spannable, MessageKind.GENERIC, {'text': reason});
     throw new CompilerCancelledException(reason);
   }
 
   SourceSpan spanFromSpannable(Spannable node, [Uri uri]) {
+    if (node == null) return null;
     if (node == CURRENT_ELEMENT_SPANNABLE) {
       node = currentElement;
     }
@@ -642,14 +643,6 @@ abstract class Compiler implements DiagnosticListener {
     } else {
       throw 'No error location.';
     }
-  }
-
-  void reportFatalError(String reason, Element element,
-                        {Node node, Token token, HInstruction instruction}) {
-    withCurrentElement(element, () {
-      cancel(reason, node: node, token: token, instruction: instruction,
-             element: element);
-    });
   }
 
   void log(message) {
@@ -698,7 +691,7 @@ abstract class Compiler implements DiagnosticListener {
         library.addToScope(dynamicClass, this);
       });
     }
-    if (uri == new Uri(scheme: 'dart', path: 'dart:mirrors')) {
+    if (uri == new Uri(scheme: 'dart', path: 'mirrors')) {
       mirrorSystemClass =
           findRequiredElement(library, const SourceString('MirrorSystem'));
     } else if (uri == new Uri(scheme: 'dart', path: '_collection-dev')) {
@@ -875,22 +868,33 @@ abstract class Compiler implements DiagnosticListener {
       if (main == null) {
         if (!analyzeOnly) {
           // Allow analyze only of libraries with no main.
-          reportFatalError('Could not find $MAIN', mainApp);
+          reportFatalError(
+              mainApp,
+              MessageKind.GENERIC,
+              {'text': 'Error: Could not find "${MAIN.slowToString()}".'});
         } else if (!analyzeAll) {
           reportFatalError(
-              "Could not find $MAIN. "
-              "No source will be analyzed. "
-              "Use '--analyze-all' to analyze all code in the library.",
-              mainApp);
+              mainApp,
+              MessageKind.GENERIC,
+              {'text': 'Error: Could not find "${MAIN.slowToString()}". '
+                  'No source will be analyzed. '
+                  'Use "--analyze-all" to analyze all code in the library.'});
         }
       } else {
         if (!main.isFunction()) {
-          reportFatalError('main is not a function', main);
+          reportFatalError(
+              main,
+              MessageKind.GENERIC,
+              {'text': 'Error: "${MAIN.slowToString()}" is not a function.'});
         }
         FunctionElement mainMethod = main;
         FunctionSignature parameters = mainMethod.computeSignature(this);
         parameters.forEachParameter((Element parameter) {
-          reportFatalError('main cannot have parameters', parameter);
+          reportError(
+              parameter,
+              MessageKind.GENERIC,
+              {'text':
+                  'Error: "${MAIN.slowToString()}" cannot have parameters.'});
         });
       }
 
@@ -1136,22 +1140,23 @@ abstract class Compiler implements DiagnosticListener {
     }
     SourceSpan span = spanFromNode(node);
 
-    reportDiagnostic(span, 'Warning: $message', api.Diagnostic.WARNING);
+    reportDiagnostic(span, '$message', api.Diagnostic.WARNING);
   }
 
-  // TODO(ahe): Remove this method.
-  reportError(Node node, var message) {
-    SourceSpan span = spanFromNode(node);
-    reportDiagnostic(span, 'Error: $message', api.Diagnostic.ERROR);
-    throw new CompilerCancelledException(message.toString());
-  }
-
-  // TODO(ahe): Rename to reportError when that method has been removed.
-  void reportErrorCode(Spannable node, MessageKind errorCode,
-                       [Map arguments = const {}]) {
+  void reportError(Spannable node,
+                   MessageKind errorCode,
+                   [Map arguments = const {}]) {
     reportMessage(spanFromSpannable(node),
                   errorCode.error(arguments),
                   api.Diagnostic.ERROR);
+  }
+
+  void reportFatalError(Spannable node, MessageKind errorCode,
+                        [Map arguments = const {}]) {
+    reportError(node, errorCode, arguments);
+    // TODO(ahe): Make this only abort the current method.
+    throw new CompilerCancelledException(
+        'Error: Cannot continue due to previous error.');
   }
 
   // TODO(ahe): Rename to reportWarning when that method has been removed.
@@ -1177,9 +1182,8 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   void reportInternalError(Spannable node, String message) {
-    reportMessage(spanFromSpannable(node),
-                  MessageKind.GENERIC.error({'text': message}),
-                  api.Diagnostic.ERROR);
+    reportError(
+        node, MessageKind.GENERIC, {'text': 'Internal Error: $message'});
   }
 
   void reportMessage(SourceSpan span, Diagnostic message, api.Diagnostic kind) {

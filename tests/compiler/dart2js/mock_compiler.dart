@@ -30,7 +30,7 @@ import '../../../sdk/lib/_internal/compiler/implementation/deferred_load.dart'
 
 
 class WarningMessage {
-  Node node;
+  Spannable node;
   Message message;
   WarningMessage(this.node, this.message);
 
@@ -281,6 +281,7 @@ class MockCompiler extends Compiler {
     Uri uri = new Uri(scheme: "dart", path: name);
     var script = new Script(uri, new MockFile(source));
     var library = new LibraryElementX(script);
+    library.libraryTag = new LibraryName(null, null, null);
     parseScript(source, library);
     library.setExports(library.localScope.values.toList());
     registerSource(uri, source);
@@ -295,15 +296,18 @@ class MockCompiler extends Compiler {
         'Warning: $message', api.Diagnostic.WARNING);
   }
 
-  void reportError(Node node, var message) {
-    if (message is String && message.startsWith("no library name found in")) {
-      // TODO(ahe): Fix the MockCompiler to not have this problem.
-      return;
-    }
-    if (message is! Message) message = message.message;
+  void reportError(Spannable node,
+                   MessageKind errorCode,
+                   [Map arguments = const {}]) {
+    Message message = errorCode.message(arguments);
     errors.add(new WarningMessage(node, message));
-    reportDiagnostic(spanFromNode(node),
-        'Error: $message', api.Diagnostic.ERROR);
+    reportDiagnostic(spanFromSpannable(node), '$message', api.Diagnostic.ERROR);
+  }
+
+  void reportFatalError(Spannable node,
+                        MessageKind errorCode,
+                        [Map arguments = const {}]) {
+    reportError(node, errorCode, arguments);
   }
 
   void reportMessage(SourceSpan span, var message, api.Diagnostic kind) {

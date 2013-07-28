@@ -386,8 +386,8 @@ testExternalWithoutImplementationTopLevel() {
   Expect.isTrue(
       compiler.errors[0].message.kind ==
           MessageKind.PATCH_EXTERNAL_WITHOUT_IMPLEMENTATION);
-  Expect.equals('External method without an implementation.',
-                compiler.errors[0].message.toString());
+  Expect.stringEquals('Error: External method without an implementation.',
+                      compiler.errors[0].message.toString());
 }
 
 testExternalWithoutImplementationMember() {
@@ -417,8 +417,8 @@ testExternalWithoutImplementationMember() {
   Expect.isTrue(
       compiler.errors[0].message.kind ==
           MessageKind.PATCH_EXTERNAL_WITHOUT_IMPLEMENTATION);
-  Expect.equals('External method without an implementation.',
-                compiler.errors[0].message.toString());
+  Expect.stringEquals('Error: External method without an implementation.',
+                      compiler.errors[0].message.toString());
 }
 
 testIsSubclass() {
@@ -721,7 +721,9 @@ testPatchAndSelector() {
 void testAnalyzeAllInjectedMembers() {
   void expect(String patchText, [expectedWarnings]) {
     if (expectedWarnings == null) expectedWarnings = [];
-    if (expectedWarnings is! List) expectedWarnings = [expectedWarnings];
+    if (expectedWarnings is! List) {
+      expectedWarnings = <MessageKind>[expectedWarnings];
+    }
 
     var compiler = applyPatch('', patchText,
                               analyzeAll: true, analyzeOnly: true);
@@ -730,14 +732,14 @@ void testAnalyzeAllInjectedMembers() {
     compareWarningKinds(patchText, expectedWarnings, compiler.warnings);
   }
 
-  expect('String s = 0;', MessageKind.NOT_ASSIGNABLE);
-  expect('void method() { String s = 0; }', MessageKind.NOT_ASSIGNABLE);
+  expect('String s = 0;', MessageKind.NOT_ASSIGNABLE.warning);
+  expect('void method() { String s = 0; }', MessageKind.NOT_ASSIGNABLE.warning);
   expect('''
          class Class {
            String s = 0;
          }
          ''',
-         MessageKind.NOT_ASSIGNABLE);
+         MessageKind.NOT_ASSIGNABLE.warning);
   expect('''
          class Class {
            void method() {
@@ -745,7 +747,7 @@ void testAnalyzeAllInjectedMembers() {
            }
          }
          ''',
-         MessageKind.NOT_ASSIGNABLE);
+         MessageKind.NOT_ASSIGNABLE.warning);
 }
 
 void testTypecheckPatchedMembers() {
@@ -760,7 +762,7 @@ void testTypecheckPatchedMembers() {
   compiler.librariesToAnalyzeWhenRun = [Uri.parse('dart:core')];
   compiler.runCompiler(null);
   compareWarningKinds(patchText,
-      [MessageKind.NOT_ASSIGNABLE], compiler.warnings);
+      [MessageKind.NOT_ASSIGNABLE.warning], compiler.warnings);
 }
 
 main() {

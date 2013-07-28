@@ -3028,7 +3028,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Node argument;
     switch (arguments.length) {
     case 0:
-      compiler.reportErrorCode(
+      compiler.reportError(
           node, MessageKind.GENERIC,
           {'text': 'Error: Expected one argument to JS_GET_NAME.'});
       return;
@@ -3037,7 +3037,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       break;
     default:
       for (int i = 1; i < arguments.length; i++) {
-        compiler.reportErrorCode(
+        compiler.reportError(
             arguments[i], MessageKind.GENERIC,
             {'text': 'Error: Extra argument to JS_GET_NAME.'});
       }
@@ -3045,7 +3045,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     LiteralString string = argument.asLiteralString();
     if (string == null) {
-      compiler.reportErrorCode(
+      compiler.reportError(
           argument, MessageKind.GENERIC,
           {'text': 'Error: Expected a literal string.'});
     }
@@ -3768,7 +3768,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     if (Elements.isErroneousElement(element)) {
       ErroneousElement error = element;
-      if (error.messageKind == MessageKind.CANNOT_FIND_CONSTRUCTOR) {
+      if (error.messageKind == MessageKind.CANNOT_FIND_CONSTRUCTOR.error) {
         generateThrowNoSuchMethod(node.send,
                                   getTargetName(error, 'constructor'),
                                   argumentNodes: node.send.arguments);
@@ -4467,16 +4467,18 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           if (firstConstantType == null) {
             firstConstantType = constant.computeType(compiler);
             if (nonPrimitiveTypeOverridesEquals(constant)) {
-              compiler.reportError(match.expression,
-                  MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS.error());
+              compiler.reportFatalError(
+                  match.expression,
+                  MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS);
               failure = true;
             }
           } else {
             DartType constantType =
                 constant.computeType(compiler);
             if (constantType != firstConstantType) {
-              compiler.reportError(match.expression,
-                  MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL.error());
+              compiler.reportFatalError(
+                  match.expression,
+                  MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL);
               failure = true;
             }
           }

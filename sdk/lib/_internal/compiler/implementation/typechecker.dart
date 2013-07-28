@@ -237,7 +237,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
    */
   bool checkAssignable(Node node, DartType from, DartType to) {
     if (!types.isAssignable(from, to)) {
-      reportTypeWarning(node, MessageKind.NOT_ASSIGNABLE,
+      reportTypeWarning(node, MessageKind.NOT_ASSIGNABLE.warning,
                         {'fromType': from, 'toType': to});
       return false;
     }
@@ -413,7 +413,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
             {'className': type.name, 'memberName': name});
         break;
       case MemberKind.GETTER:
-        reportTypeWarning(node, MessageKind.MEMBER_NOT_FOUND,
+        reportTypeWarning(node, MessageKind.MEMBER_NOT_FOUND.warning,
             {'className': type.name, 'memberName': name});
         break;
       case MemberKind.SETTER:

@@ -176,9 +176,8 @@ class ConstantHandler extends CompilerTask {
       Node node = element.parseNode(compiler);
       if (pendingVariables.contains(element)) {
         if (isConst) {
-          MessageKind kind = MessageKind.CYCLIC_COMPILE_TIME_CONSTANTS;
-          compiler.reportError(node,
-                               new CompileTimeConstantError(kind));
+          compiler.reportFatalError(
+              node, MessageKind.CYCLIC_COMPILE_TIME_CONSTANTS);
         } else {
           lazyStatics.add(element);
           return null;
@@ -203,9 +202,9 @@ class ConstantHandler extends CompilerTask {
           if (elementType.isMalformed || constantType.isMalformed ||
               !constantSystem.isSubtype(compiler, constantType, elementType)) {
             if (isConst) {
-              compiler.reportError(node, new CompileTimeConstantError(
-                  MessageKind.NOT_ASSIGNABLE,
-                  {'fromType': constantType, 'toType': elementType}));
+              compiler.reportFatalError(
+                  node, MessageKind.NOT_ASSIGNABLE.error,
+                  {'fromType': constantType, 'toType': elementType});
             } else {
               // If the field can be lazily initialized, we will throw
               // the exception at runtime.
@@ -396,8 +395,8 @@ class CompileTimeConstantEvaluator extends Visitor {
       LiteralMapEntry entry = link.head;
       Constant key = evaluateConstant(entry.key);
       if (!key.isString() || entry.key.asStringNode() == null) {
-        MessageKind kind = MessageKind.KEY_NOT_A_STRING_LITERAL;
-        compiler.reportError(entry.key, new ResolutionError(kind));
+        compiler.reportFatalError(
+            entry.key, MessageKind.KEY_NOT_A_STRING_LITERAL);
       }
       StringConstant keyConstant = key;
       if (!map.containsKey(key)) keys.add(key);
@@ -669,9 +668,9 @@ class CompileTimeConstantEvaluator extends Visitor {
                                                  compileConstant,
                                                  compiler);
     if (!succeeded) {
-      MessageKind kind = MessageKind.INVALID_ARGUMENTS;
-      compiler.reportError(node,
-          new CompileTimeConstantError(kind, {'methodName': target.name}));
+      compiler.reportFatalError(
+          node,
+          MessageKind.INVALID_ARGUMENTS.error, {'methodName': target.name});
     }
     return compiledArguments;
   }
@@ -721,8 +720,8 @@ class CompileTimeConstantEvaluator extends Visitor {
   error(Node node) {
     // TODO(floitsch): get the list of constants that are currently compiled
     // and present some kind of stack-trace.
-    MessageKind kind = MessageKind.NOT_A_COMPILE_TIME_CONSTANT;
-    compiler.reportError(node, new CompileTimeConstantError(kind));
+    compiler.reportFatalError(
+        node, MessageKind.NOT_A_COMPILE_TIME_CONSTANT);
   }
 
   Constant signalNotCompileTimeConstant(Node node) {
@@ -746,8 +745,7 @@ class TryCompileTimeConstantEvaluator extends CompileTimeConstantEvaluator {
 
   error(Node node) {
     // Just fail without reporting it anywhere.
-    throw new CompileTimeConstantError(
-        MessageKind.NOT_A_COMPILE_TIME_CONSTANT);
+    throw new CompileTimeConstantError(MessageKind.NOT_A_COMPILE_TIME_CONSTANT);
   }
 }
 
@@ -794,9 +792,9 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
       if (elementType.element.isTypeVariable()) return;
       if (elementType.isMalformed || constantType.isMalformed ||
           !constantSystem.isSubtype(compiler, constantType, elementType)) {
-        compiler.reportError(node, new CompileTimeConstantError(
-            MessageKind.NOT_ASSIGNABLE,
-            {'fromType': elementType, 'toType': constantType}));
+        compiler.reportFatalError(
+            node, MessageKind.NOT_ASSIGNABLE.error,
+            {'fromType': elementType, 'toType': constantType});
       }
     }
   }

@@ -64,7 +64,7 @@ main() {
 
 deprecatedMessage(feature) {
   return
-    "warning: Warning: deprecated language feature, $feature"
+    "warning: Warning: Deprecated language feature, $feature"
     ", will be removed in a future Dart milestone.";
 }
 

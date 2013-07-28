@@ -177,7 +177,9 @@ class Compiler extends leg.Compiler {
         if (node != null) {
           cancel("$exception", node: node);
         } else {
-          reportDiagnostic(null, "$exception", api.Diagnostic.ERROR);
+          reportError(
+              null,
+              leg.MessageKind.GENERIC, {'text': 'Error: $exception'});
           throw new leg.CompilerCancelledException("$exception");
         }
       }
@@ -219,24 +221,32 @@ class Compiler extends leg.Compiler {
       }
       if (!allowInternalLibraryAccess) {
         if (node != null && importingLibrary != null) {
-          reportDiagnostic(spanFromNode(node),
-              'Error: Internal library $resolvedUri is not accessible from '
-              '${importingLibrary.canonicalUri}.',
-              api.Diagnostic.ERROR);
+          reportError(
+              node,
+              leg.MessageKind.GENERIC,
+              {'text':
+                  'Error: Internal library $resolvedUri is not accessible from '
+                  '${importingLibrary.canonicalUri}.'});
         } else {
-          reportDiagnostic(null,
-              'Error: Internal library $resolvedUri is not accessible.',
-              api.Diagnostic.ERROR);
+          reportError(
+              null,
+              leg.MessageKind.GENERIC,
+              {'text':
+                  'Error: Internal library $resolvedUri is not accessible.'});
         }
-        //path = null;
       }
     }
     if (path == null) {
       if (node != null) {
-        reportError(node, 'library not found ${resolvedUri}');
+        reportError(
+            node,
+            leg.MessageKind.GENERIC,
+            {'text': 'Error: Library not found ${resolvedUri}.'});
       } else {
-        reportDiagnostic(null, 'library not found ${resolvedUri}',
-                         api.Diagnostic.ERROR);
+        reportError(
+            null,
+            leg.MessageKind.GENERIC,
+            {'text': 'Error: Library not found ${resolvedUri}.'});
       }
       return null;
     }
@@ -257,16 +267,8 @@ class Compiler extends leg.Compiler {
 
   Uri translatePackageUri(Uri uri, tree.Node node) {
     if (packageRoot == null) {
-      if (node != null) {
-        reportErrorCode(node,
-            leg.MessageKind.PACKAGE_ROOT_NOT_SET,
-            {'uri': uri});
-      } else {
-        reportDiagnostic(null,
-            leg.MessageKind.PACKAGE_ROOT_NOT_SET.error({'uri': uri}).toString(),
-            api.Diagnostic.ERROR);
-      }
-      throw new leg.CompilerCancelledException("Package root not set.");
+      reportFatalError(
+          node, leg.MessageKind.PACKAGE_ROOT_NOT_SET, {'uri': uri});
     }
     return packageRoot.resolve(uri.path);
   }

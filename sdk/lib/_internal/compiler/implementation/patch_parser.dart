@@ -393,20 +393,15 @@ void patchElement(leg.DiagnosticListener listener,
                    Element origin,
                    Element patch) {
   if (origin == null) {
-    listener.reportMessage(
-        listener.spanFromSpannable(patch),
-        leg.MessageKind.PATCH_NON_EXISTING.error({'name': patch.name}),
-        api.Diagnostic.ERROR);
+    listener.reportError(
+        patch, leg.MessageKind.PATCH_NON_EXISTING, {'name': patch.name});
     return;
   }
   if (!(origin.isClass() ||
         origin.isConstructor() ||
         origin.isFunction() ||
         origin.isAbstractField())) {
-    listener.reportMessage(
-        listener.spanFromSpannable(origin),
-        leg.MessageKind.PATCH_NONPATCHABLE.error(),
-        api.Diagnostic.ERROR);
+    listener.reportError(origin, leg.MessageKind.PATCH_NONPATCHABLE);
     return;
   }
   if (patch.isClass()) {
@@ -420,10 +415,7 @@ void patchElement(leg.DiagnosticListener listener,
   } else if(patch.isFunction()) {
     tryPatchFunction(listener, origin, patch);
   } else {
-    listener.reportMessage(
-        listener.spanFromSpannable(patch),
-        leg.MessageKind.PATCH_NONPATCHABLE.error(),
-        api.Diagnostic.ERROR);
+    listener.reportError(patch, leg.MessageKind.PATCH_NONPATCHABLE);
   }
 }
 
@@ -431,14 +423,10 @@ void tryPatchClass(leg.DiagnosticListener listener,
                     Element origin,
                     ClassElement patch) {
   if (!origin.isClass()) {
-    listener.reportMessage(
-        listener.spanFromSpannable(origin),
-        leg.MessageKind.PATCH_NON_CLASS.error({'className': patch.name}),
-        api.Diagnostic.ERROR);
-    listener.reportMessage(
-        listener.spanFromSpannable(patch),
-        leg.MessageKind.PATCH_POINT_TO_CLASS.error({'className': patch.name}),
-        api.Diagnostic.INFO);
+    listener.reportError(
+        origin, leg.MessageKind.PATCH_NON_CLASS, {'className': patch.name});
+    listener.reportInfo(
+        patch, leg.MessageKind.PATCH_POINT_TO_CLASS, {'className': patch.name});
     return;
   }
   patchClass(listener, origin, patch);
@@ -460,26 +448,20 @@ void tryPatchGetter(leg.DiagnosticListener listener,
                      Element origin,
                      FunctionElement patch) {
   if (!origin.isAbstractField()) {
-    listener.reportMessage(
-        listener.spanFromSpannable(origin),
-        leg.MessageKind.PATCH_NON_GETTER.error({'name': origin.name}),
-        api.Diagnostic.ERROR);
-    listener.reportMessage(
-        listener.spanFromSpannable(patch),
-        leg.MessageKind.PATCH_POINT_TO_GETTER.error({'getterName': patch.name}),
-        api.Diagnostic.INFO);
+    listener.reportError(
+        origin, leg.MessageKind.PATCH_NON_GETTER, {'name': origin.name});
+    listener.reportInfo(
+        patch,
+        leg.MessageKind.PATCH_POINT_TO_GETTER, {'getterName': patch.name});
     return;
   }
   AbstractFieldElement originField = origin;
   if (originField.getter == null) {
-    listener.reportMessage(
-        listener.spanFromSpannable(origin),
-        leg.MessageKind.PATCH_NO_GETTER.error({'getterName': patch.name}),
-        api.Diagnostic.ERROR);
-    listener.reportMessage(
-        listener.spanFromSpannable(patch),
-        leg.MessageKind.PATCH_POINT_TO_GETTER.error({'getterName': patch.name}),
-        api.Diagnostic.INFO);
+    listener.reportError(
+        origin, leg.MessageKind.PATCH_NO_GETTER, {'getterName': patch.name});
+    listener.reportInfo(
+        patch,
+        leg.MessageKind.PATCH_POINT_TO_GETTER, {'getterName': patch.name});
     return;
   }
   patchFunction(listener, originField.getter, patch);
@@ -489,26 +471,20 @@ void tryPatchSetter(leg.DiagnosticListener listener,
                      Element origin,
                      FunctionElement patch) {
   if (!origin.isAbstractField()) {
-    listener.reportMessage(
-        listener.spanFromSpannable(origin),
-        leg.MessageKind.PATCH_NON_SETTER.error({'name': origin.name}),
-        api.Diagnostic.ERROR);
-    listener.reportMessage(
-        listener.spanFromSpannable(patch),
-        leg.MessageKind.PATCH_POINT_TO_SETTER.error({'setterName': patch.name}),
-        api.Diagnostic.INFO);
+    listener.reportError(
+        origin, leg.MessageKind.PATCH_NON_SETTER, {'name': origin.name});
+    listener.reportInfo(
+        patch,
+        leg.MessageKind.PATCH_POINT_TO_SETTER, {'setterName': patch.name});
     return;
   }
   AbstractFieldElement originField = origin;
   if (originField.setter == null) {
-    listener.reportMessage(
-        listener.spanFromSpannable(origin),
-        leg.MessageKind.PATCH_NO_SETTER.error({'setterName': patch.name}),
-        api.Diagnostic.ERROR);
-    listener.reportMessage(
-        listener.spanFromSpannable(patch),
-        leg.MessageKind.PATCH_POINT_TO_SETTER.error({'setterName': patch.name}),
-        api.Diagnostic.INFO);
+    listener.reportError(
+        origin, leg.MessageKind.PATCH_NO_SETTER, {'setterName': patch.name});
+    listener.reportInfo(
+        patch,
+        leg.MessageKind.PATCH_POINT_TO_SETTER, {'setterName': patch.name});
     return;
   }
   patchFunction(listener, originField.setter, patch);
@@ -518,16 +494,13 @@ void tryPatchConstructor(leg.DiagnosticListener listener,
                           Element origin,
                           FunctionElement patch) {
   if (!origin.isConstructor()) {
-    listener.reportMessage(
-        listener.spanFromSpannable(origin),
-        leg.MessageKind.PATCH_NON_CONSTRUCTOR.error(
-            {'constructorName': patch.name}),
-        api.Diagnostic.ERROR);
-    listener.reportMessage(
-        listener.spanFromSpannable(patch),
-        leg.MessageKind.PATCH_POINT_TO_CONSTRUCTOR.error(
-            {'constructorName': patch.name}),
-        api.Diagnostic.INFO);
+    listener.reportError(
+        origin,
+        leg.MessageKind.PATCH_NON_CONSTRUCTOR, {'constructorName': patch.name});
+    listener.reportInfo(
+        patch,
+        leg.MessageKind.PATCH_POINT_TO_CONSTRUCTOR,
+        {'constructorName': patch.name});
     return;
   }
   patchFunction(listener, origin, patch);
@@ -537,15 +510,12 @@ void tryPatchFunction(leg.DiagnosticListener listener,
                        Element origin,
                        FunctionElement patch) {
   if (!origin.isFunction()) {
-    listener.reportMessage(
-        listener.spanFromSpannable(origin),
-        leg.MessageKind.PATCH_NON_FUNCTION.error({'functionName': patch.name}),
-        api.Diagnostic.ERROR);
-    listener.reportMessage(
-        listener.spanFromSpannable(patch),
-        leg.MessageKind.PATCH_POINT_TO_FUNCTION.error(
-            {'functionName': patch.name}),
-        api.Diagnostic.INFO);
+    listener.reportError(
+        origin,
+        leg.MessageKind.PATCH_NON_FUNCTION, {'functionName': patch.name});
+    listener.reportInfo(
+        patch,
+        leg.MessageKind.PATCH_POINT_TO_FUNCTION, {'functionName': patch.name});
     return;
   }
   patchFunction(listener, origin, patch);
@@ -555,15 +525,10 @@ void patchFunction(leg.DiagnosticListener listener,
                     FunctionElement origin,
                     FunctionElement patch) {
   if (!origin.modifiers.isExternal()) {
-    listener.reportMessage(
-        listener.spanFromSpannable(origin),
-        leg.MessageKind.PATCH_NON_EXTERNAL.error(),
-        api.Diagnostic.ERROR);
-    listener.reportMessage(
-        listener.spanFromSpannable(patch),
-        leg.MessageKind.PATCH_POINT_TO_FUNCTION.error(
-            {'functionName': patch.name}),
-        api.Diagnostic.INFO);
+    listener.reportError(origin, leg.MessageKind.PATCH_NON_EXTERNAL);
+    listener.reportInfo(
+        patch,
+        leg.MessageKind.PATCH_POINT_TO_FUNCTION, {'functionName': patch.name});
     return;
   }
   if (origin.isPatched) {

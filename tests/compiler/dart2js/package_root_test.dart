@@ -37,7 +37,7 @@ void runCompiler(Uri main) {
   var provider = new MemorySourceFileProvider();
   var handler = new FormattingDiagnosticHandler(provider);
   var errors = [];
-  
+
   void diagnosticHandler(Uri uri, int begin, int end, String message,
                          Diagnostic kind) {
     if (kind == Diagnostic.ERROR) {
@@ -45,8 +45,8 @@ void runCompiler(Uri main) {
     }
     handler(uri, begin, end, message, kind);
   }
-  
-  
+
+
   EventSink<String> outputProvider(String name, String extension) {
     if (name != '') throw 'Attempt to output file "$name.$extension"';
     return new NullSink('$name.$extension');
@@ -58,11 +58,11 @@ void runCompiler(Uri main) {
                                    libraryRoot,
                                    null,
                                    []);
-  
+
   compiler.run(main);
   Expect.equals(1, errors.length);
-  Expect.equals("Error: Cannot resolve 'package:foo/foo.dart'. "
-                "Package root has not been set.", 
+  Expect.equals('Error: Cannot resolve "package:foo/foo.dart". '
+                'Package root has not been set.',
                 errors[0]);
 }
 

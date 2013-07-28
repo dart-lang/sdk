@@ -145,7 +145,7 @@ testTypeVariables() {
   compiler.parseScript('class Foo<T, U> {}');
   compiler.resolveStatement('Foo<notype, int> x;');
   Expect.equals(1, compiler.warnings.length);
-  Expect.equals(MessageKind.CANNOT_RESOLVE_TYPE,
+  Expect.equals(MessageKind.CANNOT_RESOLVE_TYPE.warning,
                 compiler.warnings[0].message.kind);
   Expect.equals(0, compiler.errors.length);
 
@@ -154,7 +154,7 @@ testTypeVariables() {
   compiler.resolveStatement('var x = new Foo<notype, int>();');
   Expect.equals(0, compiler.warnings.length);
   Expect.equals(1, compiler.errors.length);
-  Expect.equals(MessageKind.CANNOT_RESOLVE_TYPE,
+  Expect.equals(MessageKind.CANNOT_RESOLVE_TYPE.error,
                 compiler.errors[0].message.kind);
 
   compiler = new MockCompiler();
@@ -434,7 +434,8 @@ testTypeAnnotation() {
   Node warningNode = compiler.warnings[0].node;
 
   Expect.equals(
-      new Message(MessageKind.CANNOT_RESOLVE_TYPE,  {'typeName': 'Foo'}),
+      new Message(
+          MessageKind.CANNOT_RESOLVE_TYPE.warning,  {'typeName': 'Foo'}),
       compiler.warnings[0].message);
   VariableDefinitions definition = compiler.parsedTree;
   Expect.equals(warningNode, definition.type);
@@ -460,7 +461,7 @@ testSuperclass() {
   // ClassResolverVisitor, and once from ClassSupertypeResolver. We
   // should only the get the error once.
   Expect.equals(2, compiler.errors.length);
-  var cannotResolveBar = new Message(MessageKind.CANNOT_RESOLVE_TYPE,
+  var cannotResolveBar = new Message(MessageKind.CANNOT_RESOLVE_TYPE.error,
                                      {'typeName': 'Bar'});
   Expect.equals(cannotResolveBar, compiler.errors[0].message);
   Expect.equals(cannotResolveBar, compiler.errors[1].message);
@@ -486,7 +487,7 @@ testVarSuperclass() {
   compiler.resolveStatement("Foo bar;");
   Expect.equals(1, compiler.errors.length);
   Expect.equals(
-      new Message(MessageKind.CANNOT_RESOLVE_TYPE, {'typeName': 'var'}),
+      new Message(MessageKind.CANNOT_RESOLVE_TYPE.warning, {'typeName': 'var'}),
       compiler.errors[0].message);
   compiler.clearErrors();
 }
@@ -497,7 +498,7 @@ testOneInterface() {
   compiler.resolveStatement("Foo bar;");
   Expect.equals(1, compiler.errors.length);
   Expect.equals(
-      new Message(MessageKind.CANNOT_RESOLVE_TYPE, {'typeName': 'bar'}),
+      new Message(MessageKind.CANNOT_RESOLVE_TYPE.warning, {'typeName': 'bar'}),
       compiler.errors[0].message);
   compiler.clearErrors();
 
@@ -639,7 +640,7 @@ testClassHierarchy() {
   Expect.equals(2, compiler.errors.length);
   Expect.equals(MessageKind.CYCLIC_CLASS_HIERARCHY,
                 compiler.errors[0].message.kind);
-  Expect.equals(MessageKind.CANNOT_FIND_CONSTRUCTOR,
+  Expect.equals(MessageKind.CANNOT_FIND_CONSTRUCTOR.error,
                 compiler.errors[1].message.kind);
 
   compiler = new MockCompiler();
@@ -730,7 +731,7 @@ testInitializers() {
               }""";
   resolveConstructor(script, "A a = new A();", "A", "", 0,
                      expectedWarnings: [],
-                     expectedErrors: [MessageKind.CANNOT_RESOLVE]);
+                     expectedErrors: [MessageKind.CANNOT_RESOLVE.error]);
 
   script = """class A {
                 int foo;

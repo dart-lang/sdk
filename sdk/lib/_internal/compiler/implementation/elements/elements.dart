@@ -13,6 +13,7 @@ import '../dart2jslib.dart' show InterfaceType,
                                  DartType,
                                  TypeVariableType,
                                  TypedefType,
+                                 DualKind,
                                  MessageKind,
                                  DiagnosticListener,
                                  Script,
@@ -578,7 +579,7 @@ abstract class ErroneousElement extends Element implements FunctionElement {
 }
 
 abstract class AmbiguousElement extends Element {
-  MessageKind get messageKind;
+  DualKind get messageKind;
   Map get messageArguments;
   Element get existingElement;
   Element get newElement;

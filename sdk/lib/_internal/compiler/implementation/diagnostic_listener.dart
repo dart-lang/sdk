@@ -9,7 +9,6 @@ abstract class DiagnosticListener {
   void cancel(String reason, {node, token, instruction, element});
   // TODO(karlklose): rename log to something like reportInfo.
   void log(message);
-  // TODO(karlklose): add reportWarning and reportError to this interface.
 
   void internalErrorOnElement(Element element, String message);
   void internalError(String message,
@@ -20,8 +19,7 @@ abstract class DiagnosticListener {
 
   void reportMessage(SourceSpan span, Diagnostic message, api.Diagnostic kind);
 
-  // TODO(ahe): Rename to reportError when that method has been removed.
-  void reportErrorCode(Spannable node, MessageKind errorCode, [Map arguments]);
+  void reportError(Spannable node, MessageKind errorCode, [Map arguments]);
 
   void reportInfo(Spannable node, MessageKind errorCode, [Map arguments]);
 
