@@ -1126,8 +1126,9 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
                                               const Class& cls) {
   __ TraceSimMsg("AllocationStubForClass");
   // The generated code is different if the class is parameterized.
-  const bool is_cls_parameterized =
-      cls.type_arguments_field_offset() != Class::kNoTypeArguments;
+  const bool is_cls_parameterized = cls.HasTypeArguments();
+  ASSERT(!cls.HasTypeArguments() ||
+         (cls.type_arguments_field_offset() != Class::kNoTypeArguments));
   // kInlineInstanceSize is a constant used as a threshold for determining
   // when the object initialization should be done as a loop or as
   // straight line code.
@@ -1300,8 +1301,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
 void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
                                                 const Function& func) {
   ASSERT(func.IsClosureFunction());
-  const bool is_implicit_static_closure =
-      func.IsImplicitStaticClosureFunction();
+  ASSERT(!func.IsImplicitStaticClosureFunction());
   const bool is_implicit_instance_closure =
       func.IsImplicitInstanceClosureFunction();
   const Class& cls = Class::ZoneHandle(func.signature_class());
@@ -1356,14 +1356,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     __ sw(T0, Address(T2, Closure::function_offset()));
 
     // Setup the context for this closure.
-    if (is_implicit_static_closure) {
-      ObjectStore* object_store = Isolate::Current()->object_store();
-      ASSERT(object_store != NULL);
-      const Context& empty_context =
-          Context::ZoneHandle(object_store->empty_context());
-      __ LoadObject(T0, empty_context);
-      __ sw(T0, Address(T0, Closure::context_offset()));
-    } else if (is_implicit_instance_closure) {
+    if (is_implicit_instance_closure) {
       // Initialize the new context capturing the receiver.
       const Class& context_class = Class::ZoneHandle(Object::context_class());
       // Set the tags.
@@ -1409,40 +1402,31 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     __ Bind(&slow_case);
   }
 
-  // If it's an implicit static closure we need 2 stack slots. Otherwise,
   // If it's an implicit instance closure we need 4 stack slots, o/w only 3.
-  int num_slots = 2;
-  if (!is_implicit_static_closure) {
-    num_slots = is_implicit_instance_closure ? 4 : 3;
-  }
+  intptr_t num_slots = is_implicit_instance_closure ? 4 : 3;
   __ addiu(SP, SP, Immediate(-num_slots * kWordSize));
   // Setup space on stack for return value.
   __ LoadImmediate(T7, reinterpret_cast<intptr_t>(Object::null()));
   __ sw(T7, Address(SP, (num_slots - 1) * kWordSize));
   __ LoadObject(TMP1, func);
   __ sw(TMP1, Address(SP, (num_slots - 2) * kWordSize));
-  if (is_implicit_static_closure) {
-    __ CallRuntime(kAllocateImplicitStaticClosureRuntimeEntry);
+  __ mov(T2, T7);
+  if (is_implicit_instance_closure) {
+    __ lw(T1, Address(FP, kReceiverFPOffset));
+    __ sw(T1, Address(SP, (num_slots - 3) * kWordSize));  // Receiver.
+  }
+  if (has_type_arguments) {
+    __ lw(T2, Address(FP, kTypeArgumentsFPOffset));
+  }
+  __ sw(T2, Address(SP, 0 * kWordSize));
+
+  if (is_implicit_instance_closure) {
+    __ CallRuntime(kAllocateImplicitInstanceClosureRuntimeEntry);
     __ TraceSimMsg("AllocationStubForClosure return");
   } else {
-    __ mov(T2, T7);
-    if (is_implicit_instance_closure) {
-      __ lw(T1, Address(FP, kReceiverFPOffset));
-      __ sw(T1, Address(SP, (num_slots - 3) * kWordSize));  // Receiver.
-    }
-    if (has_type_arguments) {
-      __ lw(T2, Address(FP, kTypeArgumentsFPOffset));
-    }
-    __ sw(T2, Address(SP, 0 * kWordSize));
-
-    if (is_implicit_instance_closure) {
-      __ CallRuntime(kAllocateImplicitInstanceClosureRuntimeEntry);
-      __ TraceSimMsg("AllocationStubForClosure return");
-    } else {
-      ASSERT(func.IsNonImplicitClosureFunction());
-      __ CallRuntime(kAllocateClosureRuntimeEntry);
-      __ TraceSimMsg("AllocationStubForClosure return");
-    }
+    ASSERT(func.IsNonImplicitClosureFunction());
+    __ CallRuntime(kAllocateClosureRuntimeEntry);
+    __ TraceSimMsg("AllocationStubForClosure return");
   }
   __ lw(V0, Address(SP, (num_slots - 1) * kWordSize));  // Pop function object.
   __ addiu(SP, SP, Immediate(num_slots * kWordSize));

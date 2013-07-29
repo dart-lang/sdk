@@ -19,7 +19,6 @@ class Instance;
 DECLARE_RUNTIME_ENTRY(AllocateArray);
 DECLARE_RUNTIME_ENTRY(AllocateClosure);
 DECLARE_RUNTIME_ENTRY(AllocateImplicitInstanceClosure);
-DECLARE_RUNTIME_ENTRY(AllocateImplicitStaticClosure);
 DECLARE_RUNTIME_ENTRY(AllocateContext);
 DECLARE_RUNTIME_ENTRY(AllocateObject);
 DECLARE_RUNTIME_ENTRY(AllocateObjectWithBoundsCheck);
