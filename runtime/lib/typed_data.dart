@@ -229,6 +229,14 @@ patch class Float32x4List {
     return new _Float32x4Array(length);
   }
 
+  /* patch */ factory Float32x4List.fromList(List<Float32x4> elements) {
+    var result = new _Float32x4Array(elements.length);
+    for (int i = 0; i < elements.length; i++) {
+      result[i] = elements[i];
+    }
+    return result;
+  }
+
   /* patch */ factory Float32x4List.view(ByteBuffer buffer,
                                          [int offsetInBytes = 0, int length]) {
     return new _Float32x4ArrayView(buffer, offsetInBytes, length);
