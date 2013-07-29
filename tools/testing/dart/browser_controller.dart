@@ -424,12 +424,15 @@ class Firefox extends Browser {
       'user_pref("dom.disable_open_during_load", false);';
   static const String disableDefaultCheck =
       'user_pref("browser.shell.checkDefaultBrowser", false);';
+  static const String disableScriptTimeLimit =
+      'user_pref("dom.max_script_run_time", 0);';
 
   Future _createPreferenceFile(var path) {
     var file = new File("${path.toString()}/user.js");
     var randomFile = file.openSync(mode: FileMode.WRITE);
     randomFile.writeStringSync(enablePopUp);
     randomFile.writeStringSync(disableDefaultCheck);
+    randomFile.writeStringSync(disableScriptTimeLimit);
     randomFile.close();
   }
 
