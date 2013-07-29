@@ -124,7 +124,9 @@ class Range;
 // A list of core function that should always be inlined.
 #define INLINE_WHITE_LIST(V)                                                   \
   V(ListIterator, moveNext, ListIteratorMoveNext, 203118278)                   \
-  V(_GrowableObjectArray, get:iterator, GrowableArrayIterator, 810824939)
+  V(_GrowableObjectArray, get:iterator, GrowableArrayIterator, 810824939)      \
+  V(_GrowableObjectArray, forEach, GrowableArrayForEach, 619038738)
+
 
 // Class that recognizes the name and owner of a function and returns the
 // corresponding enum. See RECOGNIZED_LIST above for list of recognizable
