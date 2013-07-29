@@ -159,7 +159,7 @@ void main() {
       expect(int64.MIN_VALUE ~/ new int64.fromInt(1), int64.MIN_VALUE);
       expect(int64.MIN_VALUE ~/ new int64.fromInt(-1), int64.MIN_VALUE);
       expect(() => new int64.fromInt(17) ~/ int64.ZERO, throws);
-      expect(() => new int64.fromInt(17) ~/ null, throws);
+      expect(() => new int64.fromInt(17) ~/ null, throwsArgumentError);
     });
 
     test("%", () {
@@ -218,7 +218,10 @@ void main() {
     test("<", () {
       expect(new int64.fromInt(10) < new int64.fromInt(11), true);
       expect(new int64.fromInt(10) < new int64.fromInt(10), false);
-      expect(new int64.fromInt(12) < new int64.fromInt(11), false);
+      expect(new int64.fromInt(10) < new int64.fromInt(9), false);
+      expect(new int64.fromInt(10) < new int32.fromInt(11), true);
+      expect(new int64.fromInt(10) < new int32.fromInt(10), false);
+      expect(new int64.fromInt(10) < new int32.fromInt(9), false);
       expect(new int64.fromInt(-10) < new int64.fromInt(-11), false);
       expect(int64.MIN_VALUE < new int64.fromInt(0), true);
       expect(largeNeg < largePos, true);
@@ -233,7 +236,10 @@ void main() {
     test("<=", () {
       expect(new int64.fromInt(10) <= new int64.fromInt(11), true);
       expect(new int64.fromInt(10) <= new int64.fromInt(10), true);
-      expect(new int64.fromInt(12) <= new int64.fromInt(11), false);
+      expect(new int64.fromInt(10) <= new int64.fromInt(9), false);
+      expect(new int64.fromInt(10) <= new int32.fromInt(11), true);
+      expect(new int64.fromInt(10) <= new int32.fromInt(10), true);
+      expect(new int64.fromInt(10) <= new int64.fromInt(9), false);
       expect(new int64.fromInt(-10) <= new int64.fromInt(-11), false);
       expect(new int64.fromInt(-10) <= new int64.fromInt(-10), true);
       expect(largeNeg <= largePos, true);
@@ -249,20 +255,27 @@ void main() {
     test("==", () {
       expect(new int64.fromInt(10) == new int64.fromInt(11), false);
       expect(new int64.fromInt(10) == new int64.fromInt(10), true);
-      expect(new int64.fromInt(12) == new int64.fromInt(11), false);
+      expect(new int64.fromInt(10) == new int64.fromInt(9), false);
+      expect(new int64.fromInt(10) == new int32.fromInt(11), false);
+      expect(new int64.fromInt(10) == new int32.fromInt(10), true);
+      expect(new int64.fromInt(10) == new int32.fromInt(9), false);
       expect(new int64.fromInt(-10) == new int64.fromInt(-10), true);
       expect(new int64.fromInt(-10) != new int64.fromInt(-10), false);
       expect(largePos == largePos, true);
       expect(largePos == largePosPlusOne, false);
       expect(largePosPlusOne == largePos, false);
       expect(int64.MIN_VALUE == int64.MAX_VALUE, false);
+      expect(new int64.fromInt(17) == new Object(), false);
       expect(new int64.fromInt(17) == null, false);
     });
 
     test(">=", () {
       expect(new int64.fromInt(10) >= new int64.fromInt(11), false);
       expect(new int64.fromInt(10) >= new int64.fromInt(10), true);
-      expect(new int64.fromInt(12) >= new int64.fromInt(11), true);
+      expect(new int64.fromInt(10) >= new int64.fromInt(9), true);
+      expect(new int64.fromInt(10) >= new int32.fromInt(11), false);
+      expect(new int64.fromInt(10) >= new int32.fromInt(10), true);
+      expect(new int64.fromInt(10) >= new int32.fromInt(9), true);
       expect(new int64.fromInt(-10) >= new int64.fromInt(-11), true);
       expect(new int64.fromInt(-10) >= new int64.fromInt(-10), true);
       expect(largePos >= largeNeg, true);
@@ -278,7 +291,10 @@ void main() {
     test(">", () {
       expect(new int64.fromInt(10) > new int64.fromInt(11), false);
       expect(new int64.fromInt(10) > new int64.fromInt(10), false);
-      expect(new int64.fromInt(12) > new int64.fromInt(11), true);
+      expect(new int64.fromInt(10) > new int64.fromInt(9), true);
+      expect(new int64.fromInt(10) > new int32.fromInt(11), false);
+      expect(new int64.fromInt(10) > new int32.fromInt(10), false);
+      expect(new int64.fromInt(10) > new int32.fromInt(9), true);
       expect(new int64.fromInt(-10) > new int64.fromInt(-11), true);
       expect(new int64.fromInt(10) > new int64.fromInt(-11), true);
       expect(new int64.fromInt(-10) > new int64.fromInt(11), false);
@@ -305,21 +321,21 @@ void main() {
       expect(n1 & n2, new int64.fromInt(1168));
       expect(n3 & n2, new int64.fromInt(8708));
       expect(n4 & n5, new int64.fromInt(0x1034) << 32);
-      expect(() => n1 & null, throws);
+      expect(() => n1 & null, throwsArgumentError);
     });
 
     test("|", () {
       expect(n1 | n2, new int64.fromInt(9942));
       expect(n3 | n2, new int64.fromInt(-66));
       expect(n4 | n5, new int64.fromInt(0x9a76) << 32);
-      expect(() => n1 | null, throws);
+      expect(() => n1 | null, throwsArgumentError);
     });
 
     test("^", () {
       expect(n1 ^ n2, new int64.fromInt(8774));
       expect(n3 ^ n2, new int64.fromInt(-8774));
       expect(n4 ^ n5, new int64.fromInt(0x8a42) << 32);
-      expect(() => n1 ^ null, throws);
+      expect(() => n1 ^ null, throwsArgumentError);
     });
 
     test("~", () {

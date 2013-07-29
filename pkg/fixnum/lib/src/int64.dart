@@ -240,18 +240,17 @@ class int64 implements intx {
     _h = (top >> 12) & _MASK_2;
   }
 
-  int64 _promote(other) {
-    if (other == null) {
-      throw new ArgumentError(null);
-    } else if (other is intx) {
-      other = other.toInt64();
-    } else if (other is int) {
-      other = new int64.fromInt(other);
+  // Returns the [int64] representation of the specified value. Throws
+  // [ArgumentError] for non-integer arguments.
+  int64 _promote(val) {
+    if (val is int64) {
+      return val;
+    } else if (val is int) {
+      return new int64.fromInt(val);
+    } else if (val is int32) {
+      return val.toInt64();
     }
-    if (other is !int64) {
-      throw new Exception("Can't promote $other to int64");
-    }
-    return other;
+    throw new ArgumentError(val);
   }
 
   int64 operator +(other) {
@@ -266,7 +265,6 @@ class int64 implements intx {
 
   int64 operator -(other) {
     int64 o = _promote(other);
-
     int sum0 = _l - o._l;
     int sum1 = _m - o._m + _shiftRight(sum0, _BITS);
     int sum2 = _h - o._h + _shiftRight(sum1, _BITS);
@@ -286,6 +284,7 @@ class int64 implements intx {
 
   int64 operator *(other) {
     int64 o = _promote(other);
+
     // Grab 13-bit chunks.
     int a0 = _l & 0x1fff;
     int a1 = (_l >> 13) | ((_m & 0xf) << 9);
@@ -515,11 +514,18 @@ class int64 implements intx {
    * given object.  The argument may be an [int] or an [intx].
    */
   bool operator ==(other) {
-    if (other == null) {
-      return false;
+    int64 o;
+    if (other is int64) {
+      o = other;
+    } else if (other is int) {
+      o = new int64.fromInt(other);
+    } else if (other is int32) {
+      o = other.toInt64();
     }
-    int64 o = _promote(other);
-    return _l == o._l && _m == o._m && _h == o._h;
+    if (o != null) {
+      return _l == o._l && _m == o._m && _h == o._h;
+    }
+    return false;
   }
 
   int compareTo(Comparable other) {
@@ -944,7 +950,7 @@ class int64 implements intx {
     _h = b2;
   }
 
-  int64 _divModByShift(int64 a, int bpower, bool negative, bool aIsCopy,
+  static int64 _divModByShift(int64 a, int bpower, bool negative, bool aIsCopy,
       bool aIsNegative, bool computeRemainder) {
     int64 c = a >> bpower;
     if (negative) {
@@ -997,7 +1003,7 @@ class int64 implements intx {
     return -1;
   }
 
-  int64 _divMod(int64 a, int64 b, bool computeRemainder) {
+  static int64 _divMod(int64 a, int64 b, bool computeRemainder) {
     if (b.isZero) {
       throw new IntegerDivisionByZeroException();
     }
