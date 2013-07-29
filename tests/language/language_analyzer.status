@@ -121,6 +121,10 @@ f_bounded_quantification_test/02: fail
 
 function_type_alias6_test/00: fail # Issue 11987
 function_type_alias9_test/00: crash # Issue 11987
+list_literal_syntax_test/01: fail # Issue 12103
+list_literal_syntax_test/02: fail # Issue 12103
+list_literal_syntax_test/03: fail # Issue 12103
+malformed_test/none: fail
 named_parameters_aggregated_test/03: fail
 no_such_method_negative_test: fail
 non_const_super_negative_test: fail
@@ -185,8 +189,6 @@ try_catch3_test: fail
 
 # test issue 10890; on-catch UnknownType is a static warning, not error
 try_catch_on_syntax_test/01: fail
-try_catch_on_syntax_test/07: fail
-try_catch_syntax_test/08: fail
 
 # test issue 10899; it is static warning, not error, to call methods of class literal
 class_literal_test/02: fail
@@ -244,11 +246,6 @@ method_override3_test/02: fail # issue 11497
 method_override4_test: fail # issue 11497
 method_override5_test: fail # issue 11497
 method_override6_test: fail # issue 11497
-
-# testing framework problem: we do report warning, framework does not understand it
-# may be https://codereview.chromium.org/18174010/ will fix this
-type_variable_bounds_test/08: fail
-wrong_number_type_arguments_test/01: fail
 
 # test issue 11575, classes with abstrac members are not marked as abstract
 abstract_factory_constructor_test/none: fail
