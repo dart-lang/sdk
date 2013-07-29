@@ -268,13 +268,14 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
   // TODO(ahe): This is a hack, see delegate below.
   static Function _invokeOnClosure;
 
-  _LocalInstanceMirrorImpl(this._type,
-                           reflectee) : super(reflectee) {}
+  _LocalInstanceMirrorImpl(reflectee) : super(reflectee);
 
-  var _type;
+  ClassMirror _type;
   ClassMirror get type {
-    if (_type is! Mirror) {
-      _type = _type.resolve(mirrors);
+    if (_type == null) {
+      // Note it not safe to use reflectee.runtimeType because runtimeType may
+      // be overridden.
+      _type = reflectClass(_computeType(reflectee));
     }
     return _type;
   }
@@ -292,9 +293,9 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
       // private method does not work.
       
       _LocalInstanceMirrorImpl mirror =
-          _Mirrors.makeLocalInstanceMirror(invocation);
-      _invokeOnClosure =
-          reflectClass(invocation.runtimeType).getField(const Symbol('_invokeOnClosure')).reflectee;
+          reflect(invocation);
+      _invokeOnClosure = reflectClass(invocation.runtimeType)
+          .getField(const Symbol('_invokeOnClosure')).reflectee;
     }
     return _invokeOnClosure(reflectee, invocation);
   }
@@ -309,15 +310,22 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
 
   _invokeSetter(reflectee, setterName, value)
       native 'InstanceMirror_invokeSetter';
+
+  static _computeType(reflectee)
+      native 'Object_runtimeType';
 }
 
 class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
     implements ClosureMirror {
-  _LocalClosureMirrorImpl(type,
-                          reflectee,
-                          this.function) : super(type, reflectee) {}
+  _LocalClosureMirrorImpl(reflectee) : super(reflectee);
 
-  final MethodMirror function;
+  MethodMirror _function;
+  MethodMirror get function {
+    if (_function == null) {
+      _function = _computeFunction(reflectee);
+    }
+    return _function;
+  }
 
   String get source {
     throw new UnimplementedError(
@@ -352,17 +360,18 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
     }
   }
 
-
-
   Future<InstanceMirror> findInContext(Symbol name) {
     throw new UnimplementedError(
         'ClosureMirror.findInContext() is not implemented');
   }
 
+  String toString() => "ClosureMirror on '${Error.safeToString(_reflectee)}'";
+
   static _apply(reflectee, positionalArguments)
       native 'ClosureMirror_apply';
 
-  String toString() => "ClosureMirror on '${Error.safeToString(_reflectee)}'";
+  static _computeFunction(reflectee)
+      native 'ClosureMirror_function';
 }
 
 class _LazyTypeMirror {
@@ -1217,13 +1226,11 @@ class _Mirrors {
     }
   }
 
-  // Creates a new local InstanceMirror
-  static InstanceMirror makeLocalInstanceMirror(Object reflectee)
-      native 'Mirrors_makeLocalInstanceMirror';
-
   // Creates a new local mirror for some Object.
   static InstanceMirror reflect(Object reflectee) {
-    return makeLocalInstanceMirror(reflectee);
+    return reflectee is Function 
+        ? new _LocalClosureMirrorImpl(reflectee)
+        : new _LocalInstanceMirrorImpl(reflectee);
   }
 
   // Creates a new local ClassMirror.

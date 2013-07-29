@@ -420,14 +420,6 @@ static RawInstance* CreateMethodMirror(const Function& func,
 }
 
 
-static Dart_Handle CreateMethodMirrorUsingApi(Dart_Handle func,
-                                              Dart_Handle owner_mirror) {
-  Isolate* isolate = Isolate::Current();
-  return Api::NewHandle(isolate, CreateMethodMirror(
-      Api::UnwrapFunctionHandle(isolate, func),
-      Api::UnwrapInstanceHandle(isolate, owner_mirror)));
-}
-
 static RawInstance* CreateVariableMirror(const Field& field,
                                          const Instance& owner_mirror) {
   const MirrorReference& field_ref =
@@ -545,84 +537,6 @@ static Dart_Handle CreateMirrorSystem() {
 }
 
 
-static Dart_Handle CreateNullMirror() {
-  Dart_Handle cls_name = NewString("_LocalInstanceMirrorImpl");
-  Dart_Handle type = Dart_GetType(MirrorLib(), cls_name, 0, NULL);
-  if (Dart_IsError(type)) {
-    return type;
-  }
-
-  // TODO(turnidge): This is wrong.  The Null class is distinct from object.
-  Dart_Handle object_class = Dart_GetClass(CoreLib(), NewString("Object"));
-
-  Dart_Handle args[] = {
-    CreateLazyMirror(object_class),
-    Dart_Null(),
-  };
-  Dart_Handle mirror = Dart_New(type, Dart_Null(), ARRAY_SIZE(args), args);
-  return mirror;
-}
-
-
-static Dart_Handle CreateInstanceMirror(Dart_Handle instance) {
-  if (Dart_IsNull(instance)) {
-    return CreateNullMirror();
-  }
-  ASSERT(Dart_IsInstance(instance));
-
-  Dart_Handle instance_cls = Dart_InstanceGetClass(instance);
-  if (Dart_IsError(instance_cls)) {
-    return instance_cls;
-  }
-
-  if (Dart_IsClosure(instance)) {
-    Dart_Handle cls_name = NewString("_LocalClosureMirrorImpl");
-    Dart_Handle type = Dart_GetType(MirrorLib(), cls_name, 0, NULL);
-    if (Dart_IsError(type)) {
-      return type;
-    }
-    // We set the function field of ClosureMirrors outside of the constructor
-    // to break the mutual recursion.
-    Dart_Handle func = Dart_ClosureFunction(instance);
-    if (Dart_IsError(func)) {
-      return func;
-    }
-
-    // TODO(turnidge): Why not use the real function name here?
-    Dart_Handle func_owner = Dart_FunctionOwner(func);
-    if (Dart_IsError(func_owner)) {
-      return func_owner;
-    }
-
-    // TODO(turnidge): Pass the function owner here.  This will require
-    // us to support functions in CreateLazyMirror.
-    Dart_Handle func_mirror =
-        CreateMethodMirrorUsingApi(func, Dart_Null());
-    if (Dart_IsError(func_mirror)) {
-      return func_mirror;
-    }
-    Dart_Handle args[] = {
-      CreateLazyMirror(instance_cls),
-      instance,
-      func_mirror,
-    };
-    return Dart_New(type, Dart_Null(), ARRAY_SIZE(args), args);
-
-  } else {
-    Dart_Handle cls_name = NewString("_LocalInstanceMirrorImpl");
-    Dart_Handle type = Dart_GetType(MirrorLib(), cls_name, 0, NULL);
-    if (Dart_IsError(type)) {
-      return type;
-    }
-    Dart_Handle args[] = {
-      CreateLazyMirror(instance_cls),
-      instance,
-    };
-    return Dart_New(type, Dart_Null(), ARRAY_SIZE(args), args);
-  }
-}
-
-
 static RawInstance* CreateClassMirror(const Class& cls,
                                       const Instance& owner_mirror) {
   Instance& retvalue = Instance::Handle();
@@ -702,19 +616,6 @@ void NATIVE_ENTRY_FUNCTION(Mirrors_makeLocalMirrorSystem)(
     Dart_PropagateError(mirrors);
   }
   Dart_SetReturnValue(args, mirrors);
-  Dart_ExitScope();
-}
-
-
-void NATIVE_ENTRY_FUNCTION(Mirrors_makeLocalInstanceMirror)(
-    Dart_NativeArguments args) {
-  Dart_EnterScope();
-  Dart_Handle reflectee = Dart_GetNativeArgument(args, 0);
-  Dart_Handle mirror = CreateInstanceMirror(reflectee);
-  if (Dart_IsError(mirror)) {
-    Dart_PropagateError(mirror);
-  }
-  Dart_SetReturnValue(args, mirror);
   Dart_ExitScope();
 }
 
@@ -1131,6 +1032,15 @@ DEFINE_NATIVE_ENTRY(ClosureMirror_apply, 2) {
     UNREACHABLE();
   }
   return obj.raw();
+}
+
+
+DEFINE_NATIVE_ENTRY(ClosureMirror_function, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(0));
+  ASSERT(closure.IsClosure());
+
+  const Function& func = Function::Handle(Closure::function(closure));
+  return CreateMethodMirror(func, Instance::null_instance());
 }
 
 

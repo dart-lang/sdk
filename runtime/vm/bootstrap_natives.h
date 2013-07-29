@@ -240,12 +240,12 @@ namespace dart {
   V(isolate_spawnFunction, 2)                                                  \
   V(isolate_spawnUri, 1)                                                       \
   V(Mirrors_isLocalPort, 1)                                                    \
-  V(Mirrors_makeLocalInstanceMirror, 1)                                        \
   V(Mirrors_makeLocalClassMirror, 1)                                           \
   V(Mirrors_makeLocalMirrorSystem, 0)                                          \
   V(InstanceMirror_invoke, 4)                                                  \
   V(InstanceMirror_invokeGetter, 3)                                            \
   V(InstanceMirror_invokeSetter, 4)                                            \
+  V(ClosureMirror_function, 1)                                                 \
   V(ClosureMirror_apply, 2)                                                    \
   V(ClassMirror_name, 1)                                                       \
   V(ClassMirror_library, 1)                                                    \
