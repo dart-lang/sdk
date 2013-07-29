@@ -159,7 +159,7 @@ bool _isSimpleBinding(List<String> tokens) =>
  * [TEXT, (PATH, TEXT)+] if there is at least one mustache.
  */
 List<String> _parseMustacheTokens(String s) {
-  if (s.isEmpty) return;
+  if (s.isEmpty) return null;
 
   var tokens = null;
   var length = s.length;

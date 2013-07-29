@@ -67,9 +67,7 @@ class ObservableMap<K, V> extends ChangeNotifierBase implements Map<K, V> {
    * you should use [toObservable].
    */
   factory ObservableMap.from(Map<K, V> other) {
-    var result = new ObservableMap<K, V>._createFromType(other);
-    other.forEach((key, value) { result[key] = value; });
-    return result;
+    return new ObservableMap<K, V>._createFromType(other)..addAll(other);
   }
 
   factory ObservableMap._createFromType(Map<K, V> other) {
@@ -112,6 +110,10 @@ class ObservableMap<K, V> extends ChangeNotifierBase implements Map<K, V> {
         notifyChange(new MapChangeRecord(key));
       }
     }
+  }
+
+  void addAll(Map<K, V> other) {
+    other.forEach((K key, V value) { this[key] = value; });
   }
 
   V putIfAbsent(K key, V ifAbsent()) {

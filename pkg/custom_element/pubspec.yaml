@@ -1,0 +1,12 @@
+name: custom_element
+author: "Web UI Team <web-ui-dev@dartlang.org>"
+homepage: http://www.dartlang.org/
+description: >
+  Custom Elements let authors define their own elements. Authors associate code
+  with custom tag names, and then use those custom tag names as they would any
+  standard tag.
+dependencies:
+  # TODO(jmesserly): fix this, we should not depend on MDV.
+  mdv: any
+dev_dependencies:
+  unittest: any

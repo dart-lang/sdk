@@ -171,8 +171,9 @@ dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
 [ $runtime == dartium || $runtime == drt ]
 serialization/test/no_library_test: Skip # Expected Failure
 
-# Skip mdv tests on command line VM, they only run in the browser.
+# Skip tests on the VM if the package depends on dart:html
 [ $runtime == vm ]
+custom_element: Skip
 mdv: Skip
 
 [ $runtime == safari || $runtime == chrome || $runtime == ie9 || $runtime == ff || $runtime == dartium || $runtime == drt ]

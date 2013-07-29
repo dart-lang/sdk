@@ -63,6 +63,12 @@ abstract class Observable {
   void notifyChange(ChangeRecord record);
 
   /**
+   * True if this object has any observers, and should call
+   * [notifyChange] for changes.
+   */
+  bool get hasObservers;
+
+  /**
    * Performs dirty checking of objects that inherit from [ObservableMixin].
    * This scans all observed objects using mirrors and determines if any fields
    * have changed. If they have, it delivers the changes for the object.
@@ -99,10 +105,6 @@ abstract class ObservableMixin implements Observable {
     return _changes.stream;
   }
 
-  /**
-   * True if this object has any observers, and should call
-   * [notifyPropertyChange] for changes.
-   */
   bool get hasObservers => _changes != null && _changes.hasListener;
 
   void _observed() {
