@@ -290,10 +290,4 @@ factory_redirection_test/14: fail
 getters_setters2_test/03: fail
 type_variable_bounds3_test/00: fail
 type_variable_bounds2_test/05: fail
-type_variable_scope_test/00: fail
-type_variable_scope_test/01: fail
-type_variable_scope_test/02: fail
-type_variable_scope_test/03: fail
-type_variable_scope_test/04: fail
-type_variable_scope_test/05: fail
 
