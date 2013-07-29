@@ -129,7 +129,7 @@ abstract class HType {
       return HType.NULL;
     } else if (type.element == compiler.nullClass) {
       return HType.NULL;
-    } else if (type.isDynamic) {
+    } else if (type.treatAsDynamic) {
       return HType.UNKNOWN;
     } else if (compiler.world.hasAnySubtype(type.element)) {
       return new HType.nonNullSubtype(type, compiler);

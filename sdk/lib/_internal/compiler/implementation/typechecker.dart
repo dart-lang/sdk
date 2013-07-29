@@ -340,7 +340,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     DartType previous = expectedReturnType;
     expectedReturnType = returnType;
     StatementType bodyType = analyze(node.body);
-    if (returnType != types.voidType && returnType != types.dynamicType
+    if (returnType != types.voidType && !returnType.treatAsDynamic
         && bodyType != StatementType.RETURNING) {
       MessageKind kind;
       if (bodyType == StatementType.MAYBE_RETURNING) {
@@ -394,7 +394,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   ElementAccess lookupMember(Node node, DartType type, SourceString name,
                              MemberKind memberKind) {
-    if (identical(type, types.dynamicType)) {
+    if (type.treatAsDynamic) {
       return const DynamicAccess();
     }
     Member member = type.lookupMember(name,
@@ -552,9 +552,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       }
       // e.foo() for some expression e.
       DartType receiverType = analyze(node.receiver);
-      if (receiverType.isDynamic ||
-          receiverType.isMalformed ||
-          receiverType.isVoid) {
+      if (receiverType.treatAsDynamic || receiverType.isVoid) {
         return const DynamicAccess();
       }
       TypeKind receiverKind = receiverType.kind;

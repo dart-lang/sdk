@@ -1427,22 +1427,9 @@ class TypeResolver {
     }
   }
 
-  // TODO(johnniwinther): Change  [onFailure] and [whenResolved] to use boolean
-  // flags instead of closures.
-  DartType resolveTypeAnnotation(
-      MappingVisitor visitor,
-      TypeAnnotation node,
-      {onFailure(Node node, DualKind kind, [Map arguments])}) {
-    if (onFailure == null) {
-      onFailure = (n, k, [arguments]) {};
-    }
-    return resolveTypeAnnotationInContext(visitor, node, onFailure);
-  }
-
-  DartType resolveTypeAnnotationInContext(
-      MappingVisitor visitor,
-      TypeAnnotation node,
-      onFailure(Node node, DualKind kind, [Map arguments])) {
+  DartType resolveTypeAnnotation(MappingVisitor visitor, TypeAnnotation node,
+                                 {bool malformedIsError: false,
+                                  bool ambiguousIsError: false}) {
     Identifier typeName;
     SourceString prefixName;
     Send send = node.typeName.asSend();
@@ -1458,24 +1445,31 @@ class TypeResolver {
     DartType type;
 
     DartType reportFailureAndCreateType(DualKind messageKind,
-                                        Map messageArguments) {
-      onFailure(node, messageKind, messageArguments);
+                                        Map messageArguments,
+                                        {DartType userProvidedBadType,
+                                         bool isError: false,
+                                         bool isAmbiguous: false}) {
+      if (isError) {
+        visitor.error(node, messageKind.error, messageArguments);
+      } else {
+        visitor.warning(node, messageKind.warning, messageArguments);
+      }
       var erroneousElement = new ErroneousElementX(
           messageKind.error, messageArguments, typeName.source,
           visitor.enclosingElement);
       var arguments = new LinkBuilder<DartType>();
-      resolveTypeArguments(
-          visitor, node, null,
-          onFailure, arguments);
-      return new MalformedType(erroneousElement, null, arguments.toLink());
+      resolveTypeArguments(visitor, node, null, arguments);
+      return isAmbiguous
+          ? new AmbiguousType(erroneousElement, arguments.toLink())
+          : new MalformedType(erroneousElement,
+              userProvidedBadType, arguments.toLink());
     }
 
     DartType checkNoTypeArguments(DartType type) {
       var arguments = new LinkBuilder<DartType>();
-      bool hashTypeArgumentMismatch = resolveTypeArguments(
-          visitor, node, const Link<DartType>(),
-          onFailure, arguments);
-      if (hashTypeArgumentMismatch) {
+      bool hasTypeArgumentMismatch = resolveTypeArguments(
+          visitor, node, const Link<DartType>(), arguments);
+      if (hasTypeArgumentMismatch) {
         type = new MalformedType(
             new ErroneousElementX(MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH,
                 {'type': node}, typeName.source, visitor.enclosingElement),
@@ -1486,33 +1480,33 @@ class TypeResolver {
 
     if (element == null) {
       type = reportFailureAndCreateType(
-          MessageKind.CANNOT_RESOLVE_TYPE, {'typeName': node.typeName});
+          MessageKind.CANNOT_RESOLVE_TYPE, {'typeName': node.typeName},
+          isError: malformedIsError);
     } else if (element.isAmbiguous()) {
       AmbiguousElement ambiguous = element;
       type = reportFailureAndCreateType(
-          ambiguous.messageKind, ambiguous.messageArguments);
+          ambiguous.messageKind, ambiguous.messageArguments,
+          isError: ambiguousIsError, isAmbiguous: true);
       ambiguous.diagnose(visitor.mapping.currentElement, compiler);
     } else if (!element.impliesType()) {
       type = reportFailureAndCreateType(
-          MessageKind.NOT_A_TYPE, {'node': node.typeName});
+          MessageKind.NOT_A_TYPE, {'node': node.typeName},
+          isError: malformedIsError);
     } else {
       if (identical(element, compiler.types.voidType.element) ||
-          identical(element, compiler.types.dynamicType.element)) {
+          identical(element, compiler.dynamicClass)) {
         type = checkNoTypeArguments(element.computeType(compiler));
       } else if (element.isClass()) {
         ClassElement cls = element;
         compiler.resolver._ensureClassWillBeResolved(cls);
         element.computeType(compiler);
         var arguments = new LinkBuilder<DartType>();
-        bool hashTypeArgumentMismatch = resolveTypeArguments(
-            visitor, node, cls.typeVariables,
-            onFailure, arguments);
-        if (hashTypeArgumentMismatch) {
-          type = new MalformedType(
-              new ErroneousElementX(MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH,
-                  {'type': node}, typeName.source, visitor.enclosingElement),
-              new InterfaceType.userProvidedBadType(cls.declaration,
-                                                    arguments.toLink()));
+        bool hasTypeArgumentMismatch = resolveTypeArguments(
+            visitor, node, cls.typeVariables, arguments);
+        if (hasTypeArgumentMismatch) {
+          type = new BadInterfaceType(cls.declaration,
+              new InterfaceType.forUserProvidedBadType(cls.declaration,
+                                                       arguments.toLink()));
         } else {
           if (arguments.isEmpty) {
             type = cls.rawType;
@@ -1525,14 +1519,12 @@ class TypeResolver {
         // TODO(ahe): Should be [ensureResolved].
         compiler.resolveTypedef(typdef);
         var arguments = new LinkBuilder<DartType>();
-        bool hashTypeArgumentMismatch = resolveTypeArguments(
-            visitor, node, typdef.typeVariables,
-            onFailure, arguments);
-        if (hashTypeArgumentMismatch) {
-          type = new MalformedType(
-              new ErroneousElementX(MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH,
-                  {'type': node}, typeName.source, visitor.enclosingElement),
-              new TypedefType.userProvidedBadType(typdef, arguments.toLink()));
+        bool hasTypeArgumentMismatch = resolveTypeArguments(
+            visitor, node, typdef.typeVariables, arguments);
+        if (hasTypeArgumentMismatch) {
+          type = new BadTypedefType(typdef,
+              new TypedefType.forUserProvidedBadType(typdef, 
+                                                     arguments.toLink()));
         } else {
           if (arguments.isEmpty) {
             type = typdef.rawType;
@@ -1550,16 +1542,11 @@ class TypeResolver {
             !isInFactoryConstructor &&
             Elements.isInStaticContext(visitor.enclosingElement)) {
           compiler.backend.registerThrowRuntimeError(visitor.mapping);
-          compiler.reportWarningCode(
-              node,
-              MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER.warning,
-              {'typeVariableName': node});
-          type = new MalformedType(
-              new ErroneousElementX(
-                  MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER.error,
-                  {'typeVariableName': node},
-                  typeName.source, visitor.enclosingElement),
-                  element.computeType(compiler));
+          type = reportFailureAndCreateType(
+              MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
+              {'typeVariableName': node},
+              userProvidedBadType: element.computeType(compiler),
+              isError: malformedIsError);
         } else {
           type = element.computeType(compiler);
         }
@@ -1583,8 +1570,8 @@ class TypeResolver {
       MappingVisitor visitor,
       TypeAnnotation node,
       Link<DartType> typeVariables,
-      onFailure(Node node, DualKind kind, [Map arguments]),
-      LinkBuilder<DartType> arguments) {
+      LinkBuilder<DartType> arguments,
+      {bool ambiguousIsError: false}) {
     if (node.typeArguments == null) {
       return false;
     }
@@ -1593,19 +1580,20 @@ class TypeResolver {
          !typeArguments.isEmpty;
          typeArguments = typeArguments.tail) {
       if (typeVariables != null && typeVariables.isEmpty) {
-        onFailure(typeArguments.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT);
+        visitor.warning(
+            typeArguments.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT.warning);
         typeArgumentCountMismatch = true;
       }
-      DartType argType = resolveTypeAnnotationInContext(visitor,
-                                                        typeArguments.head,
-                                                        onFailure);
+      DartType argType = resolveTypeAnnotation(visitor, typeArguments.head,
+          ambiguousIsError: ambiguousIsError);
       arguments.addLast(argType);
       if (typeVariables != null && !typeVariables.isEmpty) {
         typeVariables = typeVariables.tail;
       }
     }
     if (typeVariables != null && !typeVariables.isEmpty) {
-      onFailure(node.typeArguments, MessageKind.MISSING_TYPE_ARGUMENT);
+      visitor.warning(node.typeArguments,
+                      MessageKind.MISSING_TYPE_ARGUMENT.warning);
       typeArgumentCountMismatch = true;
     }
     return typeArgumentCountMismatch;
@@ -1661,7 +1649,6 @@ class ResolverVisitor extends MappingVisitor<Element> {
   Scope scope;
   ClassElement currentClass;
   ExpressionStatement currentExpressionStatement;
-  bool typeRequired = false;
   bool sendIsMemberAccess = false;
   StatementScope statementScope;
   int allowedCategory = ElementCategory.VARIABLE | ElementCategory.FUNCTION
@@ -2280,13 +2267,13 @@ class ResolverVisitor extends MappingVisitor<Element> {
       String operatorString = node.selector.asOperator().source.stringValue;
       if (operatorString == 'is') {
         DartType type =
-            resolveTypeRequired(node.typeAnnotationFromIsCheckOrCast);
+            resolveTypeExpression(node.typeAnnotationFromIsCheckOrCast);
         if (type != null) {
           compiler.enqueuer.resolution.registerIsCheck(type, mapping);
         }
         resolvedArguments = true;
       } else if (operatorString == 'as') {
-        DartType type = resolveTypeRequired(node.arguments.head);
+        DartType type = resolveTypeExpression(node.arguments.head);
         if (type != null) {
           compiler.enqueuer.resolution.registerAsCheck(type, mapping);
         }
@@ -2698,23 +2685,17 @@ class ResolverVisitor extends MappingVisitor<Element> {
     return node.accept(new ConstructorResolver(compiler, this));
   }
 
-  DartType resolveTypeRequired(TypeAnnotation node) {
-    bool old = typeRequired;
-    typeRequired = true;
-    DartType result = resolveTypeAnnotation(node);
-    typeRequired = old;
-    return result;
+  DartType resolveTypeExpression(TypeAnnotation node) {
+    return resolveTypeAnnotation(node, isTypeExpression: true);
   }
 
-  DartType resolveTypeAnnotation(TypeAnnotation node) {
-    Function report = typeRequired ? dualError : dualWarning;
+  DartType resolveTypeAnnotation(TypeAnnotation node,
+                                 {bool isTypeExpression: false}) {
     DartType type = typeResolver.resolveTypeAnnotation(
-        this, node, onFailure: report);
+        this, node, ambiguousIsError: isTypeExpression);
     if (type == null) return null;
     if (inCheckContext) {
       compiler.enqueuer.resolution.registerIsCheck(type, mapping);
-    }
-    if (typeRequired || inCheckContext) {
       compiler.backend.registerRequiredType(type, enclosingElement);
     }
     return type;
@@ -2731,12 +2712,13 @@ class ResolverVisitor extends MappingVisitor<Element> {
     if (arguments != null) {
       Link<Node> nodes = arguments.nodes;
       if (nodes.isEmpty) {
+        // The syntax [: <>[] :] is not allowed.
         error(arguments, MessageKind.MISSING_TYPE_ARGUMENT.error);
       } else {
-        typeArgument = resolveTypeRequired(nodes.head);
+        typeArgument = resolveTypeExpression(nodes.head);
         for (nodes = nodes.tail; !nodes.isEmpty; nodes = nodes.tail) {
-          error(nodes.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT.error);
-          resolveTypeRequired(nodes.head);
+          warning(nodes.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT.warning);
+          resolveTypeAnnotation(nodes.head);
         }
       }
     }
@@ -2754,6 +2736,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     }
     mapping.setType(node, listType);
     world.registerInstantiatedType(listType, mapping);
+    compiler.backend.registerRequiredType(listType, enclosingElement);
     visit(node.elements);
   }
 
@@ -2935,17 +2918,18 @@ class ResolverVisitor extends MappingVisitor<Element> {
     if (arguments != null) {
       Link<Node> nodes = arguments.nodes;
       if (nodes.isEmpty) {
+        // The syntax [: <>{} :] is not allowed.
         error(arguments, MessageKind.MISSING_TYPE_ARGUMENT.error);
       } else {
-        keyTypeArgument = resolveTypeRequired(nodes.head);
+        keyTypeArgument = resolveTypeExpression(nodes.head);
         nodes = nodes.tail;
         if (nodes.isEmpty) {
-          error(arguments, MessageKind.MISSING_TYPE_ARGUMENT.error);
+          warning(arguments, MessageKind.MISSING_TYPE_ARGUMENT.warning);
         } else {
-          valueTypeArgument = resolveTypeRequired(nodes.head);
+          valueTypeArgument = resolveTypeExpression(nodes.head);
           for (nodes = nodes.tail; !nodes.isEmpty; nodes = nodes.tail) {
-            error(nodes.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT.error);
-            resolveTypeRequired(nodes.head);
+            warning(nodes.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT.warning);
+            resolveTypeAnnotation(nodes.head);
           }
         }
       }
@@ -2967,6 +2951,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     if (node.isConst()) {
       compiler.backend.registerConstantMap(mapping);
     }
+    compiler.backend.registerRequiredType(mapType, enclosingElement);
     node.visitChildren(this);
   }
 
@@ -3112,10 +3097,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     }
 
     Scope blockScope = new BlockScope(scope);
-    var wasTypeRequired = typeRequired;
-    typeRequired = true;
     doInCheckContext(() => visitIn(node.type, blockScope));
-    typeRequired = wasTypeRequired;
     visitIn(node.formals, blockScope);
     var oldInCatchBlock = inCatchBlock;
     inCatchBlock = true;
@@ -3173,7 +3155,7 @@ class TypeDefinitionVisitor extends MappingVisitor<DartType> {
       TypeVariableElement variableElement = typeVariable.element;
       if (typeNode.bound != null) {
         DartType boundType = typeResolver.resolveTypeAnnotation(
-            this, typeNode.bound, onFailure: dualWarning);
+            this, typeNode.bound);
         variableElement.bound = boundType;
 
         void checkTypeVariableBound() {
@@ -3445,7 +3427,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
 
   DartType resolveSupertype(ClassElement cls, TypeAnnotation superclass) {
     DartType supertype = typeResolver.resolveTypeAnnotation(
-        this, superclass, onFailure: dualError);
+        this, superclass, malformedIsError: true);
     if (supertype != null) {
       if (identical(supertype.kind, TypeKind.MALFORMED_TYPE)) {
         // Error has already been reported.
@@ -3467,7 +3449,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     if (interfaces == null) return result;
     for (Link<Node> link = interfaces.nodes; !link.isEmpty; link = link.tail) {
       DartType interfaceType = typeResolver.resolveTypeAnnotation(
-          this, link.head, onFailure: dualError);
+          this, link.head, malformedIsError: true);
       if (interfaceType != null) {
         if (identical(interfaceType.kind, TypeKind.MALFORMED_TYPE)) {
           // Error has already been reported.
@@ -3583,7 +3565,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       !identical(lib, compiler.coreLibrary) &&
       !identical(lib, compiler.jsHelperLibrary) &&
       !identical(lib, compiler.interceptorsLibrary) &&
-      (identical(type.element, compiler.dynamicClass) ||
+      (identical(type, compiler.types.dynamicType) ||
        identical(type.element, compiler.boolClass) ||
        identical(type.element, compiler.numClass) ||
        identical(type.element, compiler.intClass) ||
@@ -4027,7 +4009,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     }
     if (type == null) {
       if (Elements.isUnresolved(e)) {
-        type = compiler.dynamicClass.computeType(compiler);
+        type = compiler.types.dynamicType;
       } else {
         type = e.getEnclosingClass().computeType(compiler).asRaw();
       }
@@ -4038,7 +4020,8 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
 
   visitTypeAnnotation(TypeAnnotation node) {
     assert(invariant(node, type == null));
-    type = resolver.resolveTypeRequired(node);
+    type = resolver.resolveTypeExpression(node);
+    compiler.backend.registerRequiredType(type, resolver.enclosingElement);
     return resolver.mapping[node];
   }
 

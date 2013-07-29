@@ -1084,7 +1084,8 @@ class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
 
   bool get isObject => mirrors.compiler.objectClass == _type.element;
 
-  bool get isDynamic => mirrors.compiler.dynamicClass == _type.element;
+  // TODO(johnniwinther): How to show malformed types?
+  bool get isDynamic => _type.isDynamic;
 
   ClassMirror get originalDeclaration
       => new Dart2JsClassMirror(mirrors, _type.element);

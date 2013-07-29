@@ -310,7 +310,7 @@ class PlaceholderCollector extends Visitor {
     if (element.getLibrary().isPlatformLibrary && !element.isTopLevel()) {
       return;
     }
-    if (element == compiler.types.dynamicType.element) {
+    if (element == compiler.dynamicClass) {
       internalError(
           'Should never make element placeholder for dynamic type element',
           node: node);
@@ -365,7 +365,7 @@ class PlaceholderCollector extends Visitor {
 
   visitNewExpression(NewExpression node) {
     Send send = node.send;
-    InterfaceType type = treeElements.getType(node);
+    DartType type = treeElements.getType(node);
     assert(type != null);
     Element constructor = treeElements[send];
     assert(constructor != null);
@@ -481,7 +481,7 @@ class PlaceholderCollector extends Visitor {
       // Corner case: dart:core type with a prefix.
       // Most probably there are some additional problems with
       // coreLibPrefix.topLevels.
-      if (!identical(type.element, compiler.types.dynamicType.element)) {
+      if (!type.treatAsDynamic) {
         makeTypePlaceholder(node.typeName, type);
       } else {
         if (!isDynamicType(node)) makeUnresolvedPlaceholder(node.typeName);

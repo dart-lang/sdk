@@ -540,7 +540,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       return node;
     }
 
-    if (element == compiler.objectClass || element == compiler.dynamicClass) {
+    if (element == compiler.objectClass || type.treatAsDynamic) {
       return graph.addConstantBool(true, compiler);
     }
 
@@ -581,7 +581,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     // the notion of generics in the backend. For example, [:this:] in
     // a class [:A<T>:], is currently always considered to have the
     // raw type.
-    } else if (!RuntimeTypes.hasTypeArguments(type) && !type.isMalformed) {
+    } else if (!RuntimeTypes.hasTypeArguments(type)) {
       TypeMask expressionMask = expressionType.computeMask(compiler);
       TypeMask typeMask = new TypeMask.nonNullSubtype(type);
       if (expressionMask.union(typeMask, compiler) == typeMask) {

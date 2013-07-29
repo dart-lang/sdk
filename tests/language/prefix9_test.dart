@@ -6,7 +6,7 @@
 import "package:expect/expect.dart";
 
 // Local variables can shadow type parameters and hence should result in an
-// error.
+// static warning.
 
 class Test<T> {
   Test.named(T this.fld);
@@ -21,6 +21,6 @@ class Param {
 main() {
   Param test = new Param.named(10);
   var Param;
-  var i = new Test<Param>.named(test);  // This should be an error.
+  var i = new Test<Param>.named(test);  // This should be a static warning.
   Expect.equals(10, i.fld.fld);
 }

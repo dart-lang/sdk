@@ -80,6 +80,40 @@ const_constructor_mixin_test/01: Fail # Issue 11917
 const_constructor_mixin2_test/01: Fail # Issue 11917
 const_constructor_mixin3_test/01: Fail # Issue 11917
 
+is_not_class2_test: Fail # Issue 9055
+list_literal_syntax_test/01: Fail # Issue 9055
+list_literal_syntax_test/02: Fail # Issue 9055
+list_literal_syntax_test/03: Fail # Issue 9055
+malformed_inheritance_test/02: Fail # Issue 9055
+malformed_inheritance_test/04: Fail # Issue 9055
+malformed_inheritance_test/06: Fail # Issue 9055
+malformed_test/none: Fail # Issue 9055
+prefix9_test: Fail # Issue 9055
+try_catch_on_syntax_test/07: Fail # Issue 9055
+try_catch_syntax_test/08: Fail # Issue 9055
+type_variable_bounds_test/08: Fail # Issue 9055
+wrong_number_type_arguments_test/01: Fail # Issue 9055
+
+[ $compiler == none && $checked ]
+function_malformed_result_type_test: Fail # Issue 9055
+new_expression_type_args_test/02: Fail # Issue 9055
+prefix16_test: Fail # Issue 9055
+type_parameter_test/01: Fail # Issue 9055
+type_parameter_test/02: Fail # Issue 9055
+type_parameter_test/03: Fail # Issue 9055
+type_parameter_test/04: Fail # Issue 9055
+type_parameter_test/05: Fail # Issue 9055
+type_parameter_test/06: Fail # Issue 9055
+type_variable_bounds_test/07: Fail # Issue 9055
+type_variable_scope2_test: Fail # Issue 9055
+type_variable_scope_test/00: Fail # Issue 9055
+type_variable_scope_test/01: Fail # Issue 9055
+type_variable_scope_test/02: Fail # Issue 9055
+type_variable_scope_test/03: Fail # Issue 9055
+type_variable_scope_test/04: Fail # Issue 9055
+type_variable_scope_test/05: Fail # Issue 9055
+wrong_number_type_arguments_test/02: Fail # Issue 9055
+
 [ $compiler == none && $unchecked ]
 
 # Only checked mode reports an error on type assignment
@@ -97,8 +131,6 @@ compile_time_constant_checked3_test/03: Fail, OK
 compile_time_constant_checked3_test/04: Fail, OK
 compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
-
-type_parameter_test/05: Fail, OK # No way of specifying a compile-time type error in checked mode only.
 
 
 [ $compiler == none && $runtime == drt ]
@@ -199,7 +231,6 @@ final_syntax_test/02: Fail # http://dartbug.com/5519
 final_syntax_test/03: Fail # http://dartbug.com/5519
 final_syntax_test/04: Fail # http://dartbug.com/5519
 getter_no_setter_test/01: Fail # http://dartbug.com/5519
-isnot_malformed_type_test/01: Fail # http://dartbug.com/5519
 named_parameters_aggregated_test/01: Fail # http://dartbug.com/5519
 named_parameters_aggregated_test/03: Fail # http://dartbug.com/5519
 not_enough_positional_arguments_test/01: Fail # http://dartbug.com/5519
@@ -248,7 +279,6 @@ function_type_alias5_test/00: Fail
 function_type_alias5_test/01: Fail
 function_type_alias5_test/02: Fail
 function_type_alias7_test/00: Fail
-instanceof3_test: Fail
 parameter_initializer6_negative_test: Fail # Issue 3502
 syntax_test/47: Fail
 # DartVM problem.
@@ -265,7 +295,6 @@ no_such_method_test: Pass, Fail, OK # Hard codes the name of invoked method ("fo
 
 named_parameters_aggregated_test/05: Fail # Compile-time error reported instead of static type warning.
 
-type_variable_bounds_test/07: Fail # Wrongly reports compile-time error.
 new_expression_type_args_test/00: Fail # Wrongly reports compile-time error.
 new_expression_type_args_test/01: Fail # Wrongly reports compile-time error.
 
@@ -307,6 +336,18 @@ closures_initializer_test: Crash # VM bug: issue 8847
 closures_initializer2_test: Crash # VM bug: issue 8847
 
 bound_closure_equality_test: Fail # Issue 10849
+
+is_not_class2_test: Fail # Issue 9055
+list_literal_syntax_test/01: Fail # Issue 9055
+list_literal_syntax_test/02: Fail # Issue 9055
+list_literal_syntax_test/03: Fail # Issue 9055
+malformed_inheritance_test/02: Fail # Issue 9055
+malformed_inheritance_test/04: Fail # Issue 9055
+malformed_inheritance_test/06: Fail # Issue 9055
+malformed_test/none: Fail # Issue 9055
+try_catch_on_syntax_test/07: Fail # Issue 9055
+try_catch_syntax_test/08: Fail # Issue 9055
+
 
 [ $compiler == dart2dart && $minified ]
 super_getter_setter_test: Fail # Issue 11065.

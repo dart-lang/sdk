@@ -81,43 +81,46 @@ abstract class DartType {
   Member lookupMember(SourceString name, {bool isSetter: false}) => null;
 
   /**
-   * A type is malformed if it is itself a malformed type or contains a
-   * malformed type.
+   * If this type is malformed or a generic type created with the wrong number
+   * of type arguments then [userProvidedBadType] holds the bad type provided
+   * by the user. 
    */
-  bool get isMalformed => false;
-
+  DartType get userProvidedBadType => null;
+  
+  /// Returns [:true:] if this type contains an ambiguous type.
+  bool get containsAmbiguousTypes {
+    return !forEachAmbiguousType((_) => false);
+  }
+  
   /**
-   * Calls [f] with each [MalformedType] within this type.
+   * Calls [f] with each [AmbiguousType] within this type.
    *
    * If [f] returns [: false :], the traversal stops prematurely.
    *
-   * [forEachMalformedType] returns [: false :] if the traversal was stopped
+   * [forEachAmbiguousType] returns [: false :] if the traversal was stopped
    * prematurely.
    */
-  bool forEachMalformedType(bool f(MalformedType type)) => true;
+  bool forEachAmbiguousType(bool f(AmbiguousType type)) => true;
 
-  /**
-   * Is [: true :] if this type has no explict type arguments.
-   */
+  /// Is [: true :] if this type has no explict type arguments.
   bool get isRaw => true;
 
+  /// Returns the raw version of this type.
   DartType asRaw() => this;
 
-  /**
-   * Is [: true :] if this type is the dynamic type.
-   */
+  /// Is [: true :] if this type should be treated as the dynamic type.
+  bool get treatAsDynamic => false;
+
+  /// Is [: true :] if this type is the dynamic type.
   bool get isDynamic => false;
 
-  /**
-   * Is [: true :] if this type is the void type.
-   */
+  /// Is [: true :] if this type is the void type.
   bool get isVoid => false;
 
-  /**
-   * Returns an occurrence of a type variable within this type, if any.
-   */
+  /// Returns an occurrence of a type variable within this type, if any.
   TypeVariableType get typeVariableOccurrence => null;
 
+  /// Applies [f] to each occurence of a [TypeVariableType] within this type. 
   void forEachTypeVariable(f(TypeVariableType variable)) {}
 
   TypeVariableType _findTypeVariableOccurrence(Link<DartType> types) {
@@ -130,9 +133,7 @@ abstract class DartType {
     return null;
   }
 
-  /**
-   * Is [: true :] if this type contains any type variables.
-   */
+  /// Is [: true :] if this type contains any type variables.
   bool get containsTypeVariables => typeVariableOccurrence != null;
 
   accept(DartTypeVisitor visitor, var argument);
@@ -334,9 +335,8 @@ class MalformedType extends DartType {
     return this;
   }
 
-  bool get isMalformed => true;
-
-  bool forEachMalformedType(bool f(MalformedType type)) => f(this);
+  // Malformed types are treated as dynamic.
+  bool get treatAsDynamic => true;
 
   DartType unalias(Compiler compiler) => this;
 
@@ -364,20 +364,18 @@ class MalformedType extends DartType {
   }
 }
 
-bool hasMalformed(Link<DartType> types) {
-  for (DartType typeArgument in types) {
-    if (typeArgument.isMalformed) {
-      return true;
-    }
-  }
-  return false;
+class AmbiguousType extends MalformedType {
+  AmbiguousType(ErroneousElement element, 
+                [Link<DartType> typeArguments = null]) 
+      : super(element, null, typeArguments);
+
+  bool forEachAmbiguousType(bool f(AmbiguousType type)) => f(this);
 }
 
 abstract class GenericType extends DartType {
   final Link<DartType> typeArguments;
-  final bool isMalformed;
 
-  GenericType(Link<DartType> this.typeArguments, bool this.isMalformed);
+  GenericType(Link<DartType> this.typeArguments);
 
   TypeDeclarationElement get element;
 
@@ -403,9 +401,9 @@ abstract class GenericType extends DartType {
     return this;
   }
 
-  bool forEachMalformedType(bool f(MalformedType type)) {
+  bool forEachAmbiguousType(bool f(AmbiguousType type)) {
     for (DartType typeArgument in typeArguments) {
-      if (!typeArgument.forEachMalformedType(f)) {
+      if (!typeArgument.forEachAmbiguousType(f)) {
         return false;
       }
     }
@@ -465,7 +463,7 @@ class InterfaceType extends GenericType {
 
   InterfaceType(this.element,
                 [Link<DartType> typeArguments = const Link<DartType>()])
-      : super(typeArguments, hasMalformed(typeArguments)) {
+      : super(typeArguments) {
     assert(invariant(element, element.isDeclaration));
     assert(invariant(element, element.thisType == null ||
         typeArguments.slowLength() == element.typeVariables.slowLength(),
@@ -473,10 +471,10 @@ class InterfaceType extends GenericType {
                        'Provided type arguments: $typeArguments.'));
   }
 
-  InterfaceType.userProvidedBadType(this.element,
-                                    [Link<DartType> typeArguments =
-                                        const Link<DartType>()])
-      : super(typeArguments, true);
+  InterfaceType.forUserProvidedBadType(this.element,
+                                       [Link<DartType> typeArguments =
+                                           const Link<DartType>()])
+      : super(typeArguments);
 
   TypeKind get kind => TypeKind.INTERFACE;
 
@@ -575,6 +573,43 @@ class InterfaceType extends GenericType {
   }
 }
 
+/**
+ * Special subclass of [InterfaceType] used for generic interface types created
+ * with the wrong number of type arguments.
+ * 
+ * The type uses [:dynamic:] for all it s type arguments.
+ */
+class BadInterfaceType extends InterfaceType {
+  final InterfaceType userProvidedBadType;
+
+  BadInterfaceType(ClassElement element,
+                   InterfaceType this.userProvidedBadType)
+      : super(element, element.rawType.typeArguments);
+
+  String toString() {
+    return userProvidedBadType.toString();
+  }
+}
+
+
+/**
+ * Special subclass of [TypedefType] used for generic typedef types created
+ * with the wrong number of type arguments.
+ * 
+ * The type uses [:dynamic:] for all it s type arguments.
+ */
+class BadTypedefType extends TypedefType {
+  final TypedefType userProvidedBadType;
+
+  BadTypedefType(TypedefElement element,
+                 TypedefType this.userProvidedBadType)
+      : super(element, element.rawType.typeArguments);
+
+  String toString() {
+    return userProvidedBadType.toString();
+  }
+}
+
 class FunctionType extends DartType {
   final Element element;
   final DartType returnType;
@@ -591,38 +626,13 @@ class FunctionType extends DartType {
    * [namedParameters].
    */
   final Link<DartType> namedParameterTypes;
-  final bool isMalformed;
 
-  factory FunctionType(Element element,
-                       DartType returnType,
-                       Link<DartType> parameterTypes,
-                       Link<DartType> optionalParameterTypes,
-                       Link<SourceString> namedParameters,
-                       Link<DartType> namedParameterTypes) {
-    // Compute [isMalformed] eagerly since it is faster than a lazy computation
-    // and since [isMalformed] most likely will be accessed in [Types.isSubtype]
-    // anyway.
-    bool isMalformed = returnType != null &&
-                       returnType.isMalformed ||
-                       hasMalformed(parameterTypes) ||
-                       hasMalformed(optionalParameterTypes) ||
-                       hasMalformed(namedParameterTypes);
-    return new FunctionType.internal(element,
-                                     returnType,
-                                     parameterTypes,
-                                     optionalParameterTypes,
-                                     namedParameters,
-                                     namedParameterTypes,
-                                     isMalformed);
-  }
-
-  FunctionType.internal(Element this.element,
-                        DartType this.returnType,
-                        Link<DartType> this.parameterTypes,
-                        Link<DartType> this.optionalParameterTypes,
-                        Link<SourceString> this.namedParameters,
-                        Link<DartType> this.namedParameterTypes,
-                        bool this.isMalformed) {
+  FunctionType(Element this.element,
+               DartType this.returnType,
+               Link<DartType> this.parameterTypes,
+               Link<DartType> this.optionalParameterTypes,
+               Link<SourceString> this.namedParameters,
+               Link<DartType> this.namedParameterTypes) {
     assert(invariant(element, element.isDeclaration));
     // Assert that optional and named parameters are not used at the same time.
     assert(optionalParameterTypes.isEmpty || namedParameterTypes.isEmpty);
@@ -676,22 +686,22 @@ class FunctionType extends DartType {
     return this;
   }
 
-  bool forEachMalformedType(bool f(MalformedType type)) {
-    if (!returnType.forEachMalformedType(f)) {
+  bool forEachAmbiguousType(bool f(AmbiguousType type)) {
+    if (!returnType.forEachAmbiguousType(f)) {
       return false;
     }
     for (DartType parameterType in parameterTypes) {
-      if (!parameterType.forEachMalformedType(f)) {
+      if (!parameterType.forEachAmbiguousType(f)) {
         return false;
       }
     }
     for (DartType parameterType in optionalParameterTypes) {
-      if (!parameterType.forEachMalformedType(f)) {
+      if (!parameterType.forEachAmbiguousType(f)) {
         return false;
       }
     }
     for (DartType parameterType in namedParameterTypes) {
-      if (!parameterType.forEachMalformedType(f)) {
+      if (!parameterType.forEachAmbiguousType(f)) {
         return false;
       }
     }
@@ -805,16 +815,16 @@ class TypedefType extends GenericType {
   // match, like for [InterfaceType].
   TypedefType(this.element,
               [Link<DartType> typeArguments = const Link<DartType>()])
-      : super(typeArguments, hasMalformed(typeArguments));
+      : super(typeArguments);
 
   TypedefType _createType(Link<DartType> newTypeArguments) {
     return new TypedefType(element, newTypeArguments);
   }
 
-  TypedefType.userProvidedBadType(this.element,
-                                  [Link<DartType> typeArguments =
-                                      const Link<DartType>()])
-      : super(typeArguments, true);
+  TypedefType.forUserProvidedBadType(this.element,
+                                     [Link<DartType> typeArguments =
+                                         const Link<DartType>()])
+      : super(typeArguments);
 
   TypeKind get kind => TypeKind.TYPEDEF;
 
@@ -845,6 +855,8 @@ class DynamicType extends InterfaceType {
   DynamicType(ClassElement element) : super(element);
 
   SourceString get name => const SourceString('dynamic');
+
+  bool get treatAsDynamic => true;
 
   bool get isDynamic => true;
 
@@ -976,10 +988,8 @@ class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
 
   bool isSubtype(DartType t, DartType s) {
     if (identical(t, s) ||
-        identical(t, dynamicType) ||
-        identical(s, dynamicType) ||
-        t.isMalformed ||
-        s.isMalformed ||
+        t.treatAsDynamic || 
+        s.treatAsDynamic || 
         identical(s.element, compiler.objectClass) ||
         identical(t.element, compiler.nullClass)) {
       return true;
@@ -1229,14 +1239,15 @@ class Types {
   }
 
   /**
-   * Combine error messages in a malformed type to a single message string.
+   * Combine error messages in a type containing ambiguous types to a single 
+   * message string.
    */
-  static String fetchReasonsFromMalformedType(DartType type) {
+  static String fetchReasonsFromAmbiguousType(DartType type) {
     // TODO(johnniwinther): Figure out how to produce good error message in face
     // of multiple errors, and how to ensure non-localized error messages.
     var reasons = new List<String>();
-    type.forEachMalformedType((MalformedType malformedType) {
-      ErroneousElement error = malformedType.element;
+    type.forEachAmbiguousType((AmbiguousType ambiguousType) {
+      ErroneousElement error = ambiguousType.element;
       Message message = error.messageKind.message(error.messageArguments);
       reasons.add(message.toString());
       return true;

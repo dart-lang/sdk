@@ -33,7 +33,6 @@ class CheckedModeHelper {
   void generateAdditionalArguments(SsaCodeGenerator codegen,
                                    HTypeConversion node,
                                    List<jsAst.Expression> arguments) {
-    assert(!node.typeExpression.isMalformed);
     // No additional arguments needed.
   }
 }
@@ -45,7 +44,6 @@ class PropertyCheckedModeHelper extends CheckedModeHelper {
                                    HTypeConversion node,
                                    List<jsAst.Expression> arguments) {
     DartType type = node.typeExpression;
-    assert(!type.isMalformed);
     String additionalArgument = codegen.backend.namer.operatorIsType(type);
     arguments.add(js.string(additionalArgument));
   }
@@ -107,15 +105,15 @@ class FunctionTypeCheckedModeHelper extends CheckedModeHelper {
   }
 }
 
-class MalformedCheckedModeHelper extends CheckedModeHelper {
-  const MalformedCheckedModeHelper(SourceString name) : super(name);
+class AmbiguousTypeCheckedModeHelper extends CheckedModeHelper {
+  const AmbiguousTypeCheckedModeHelper(SourceString name) : super(name);
 
   void generateAdditionalArguments(SsaCodeGenerator codegen,
                                    HTypeConversion node,
                                    List<jsAst.Expression> arguments) {
     DartType type = node.typeExpression;
-    assert(type.isMalformed);
-    String reasons = Types.fetchReasonsFromMalformedType(type);
+    assert(type.containsAmbiguousTypes);
+    String reasons = Types.fetchReasonsFromAmbiguousType(type);
 
     arguments.add(js.string(quote('$type')));
     arguments.add(js.string(quote(reasons)));
@@ -855,11 +853,11 @@ class JavaScriptBackend extends Backend {
       // We also need the native variant of the check (for DOM types).
       helper = getNativeCheckedModeHelper(type, typeCast: false);
       if (helper != null) world.addToWorkList(helper.getElement(compiler));
-      if (type.isMalformed) {
+      if (type.containsAmbiguousTypes) {
         enqueueInResolution(getThrowMalformedSubtypeError(), elements);
         return;
       }
-    } else if (type.isMalformed) {
+    } else if (type.containsAmbiguousTypes) {
       registerThrowRuntimeError(elements);
       return;
     }
@@ -1122,14 +1120,14 @@ class JavaScriptBackend extends Backend {
     Element element = type.element;
     bool nativeCheck = nativeCheckOnly ||
         emitter.nativeEmitter.requiresNativeIsCheck(element);
-    if (type.isMalformed) {
+    if (type.containsAmbiguousTypes) {
       // Check for malformed types first, because the type may be a list type
       // with a malformed argument type.
       if (nativeCheckOnly) return null;
       return typeCast
-          ? const MalformedCheckedModeHelper(
+          ? const AmbiguousTypeCheckedModeHelper(
               const SourceString('malformedTypeCast'))
-          : const MalformedCheckedModeHelper(
+          : const AmbiguousTypeCheckedModeHelper(
               const SourceString('malformedTypeCheck'));
     } else if (type == compiler.types.voidType) {
       assert(!typeCast); // Cannot cast to void.

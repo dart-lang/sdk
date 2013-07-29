@@ -15,29 +15,7 @@ baz;
 main() {
   foo = null;
   var bar = new Map
-  <String> /// 01: compile-time error
+  <String> /// 01: static type warning
   ();
-  testNonNullAssignment(); /// 02: continued
-}
-
-isCheckedMode() {
-  try {
-    var i = 1;
-    String s = i;
-    return false;
-  } catch (e) {
-    return true;
-  }
-}
-
-void testNonNullAssignment() {
-  bool got_type_error = false;
-  try {
-    baz = new Map();
-  } on TypeError catch (error) {
-    print(error);
-    got_type_error = true;
-  }
-  // Type error in checked mode only.
-  Expect.isTrue(got_type_error == isCheckedMode());
+  baz = new Map(); /// 02: continued
 }

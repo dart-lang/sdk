@@ -1444,7 +1444,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
       Element target = constructor.targetConstructor.implementation;
       Selector.addForwardingElementArgumentsToList(
-          constructor, 
+          constructor,
           arguments,
           target,
           compileArgument,
@@ -1761,7 +1761,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                    int kind) {
     if (type == null) return original;
     type = type.unalias(compiler);
-    if (type.kind == TypeKind.INTERFACE && !type.isMalformed && !type.isRaw) {
+    if (type.kind == TypeKind.INTERFACE && !type.isRaw) {
      HType subtype = new HType.subtype(type, compiler);
      HInstruction representations = buildTypeArgumentRepresentations(type);
      add(representations);
@@ -2770,12 +2770,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     bool isNot = node.isIsNotCheck;
     DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
     type = type.unalias(compiler);
-    if (type.isMalformed) {
-      String reasons = Types.fetchReasonsFromMalformedType(type);
+    if (type.containsAmbiguousTypes) {
+      String reasons = Types.fetchReasonsFromAmbiguousType(type);
       if (compiler.enableTypeAssertions) {
         generateMalformedSubtypeError(node, expression, type, reasons);
       } else {
-        generateRuntimeError(node, '$type is malformed: $reasons');
+        generateRuntimeError(node, '$type is ambiguous: $reasons');
       }
     } else {
       HInstruction instruction = buildIsNode(node, type, expression);
@@ -3415,10 +3415,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    * Invariant: [argument] must not be malformed in checked mode.
    */
   HInstruction analyzeTypeArgument(DartType argument) {
-    assert(invariant(currentElement,
-                     !compiler.enableTypeAssertions || !argument.isMalformed,
-                     message: '$argument is malformed in checked mode'));
-    if (argument == compiler.types.dynamicType || argument.isMalformed) {
+    if (argument.treatAsDynamic) {
       // Represent [dynamic] as [null].
       return graph.addConstantNull(compiler);
     }
@@ -3474,9 +3471,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    */
   handleNewSend(NewExpression node, InterfaceType type) {
     Send send = node.send;
-    assert(invariant(send,
-                     !compiler.enableTypeAssertions || !type.isMalformed,
-                     message: '$type is malformed in checked mode'));
     bool isListConstructor = false;
     computeType(element) {
       Element originalElement = elements[send];
@@ -3788,8 +3782,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
     } else {
       DartType type = elements.getType(node);
-      if (compiler.enableTypeAssertions && type.isMalformed) {
-        String reasons = Types.fetchReasonsFromMalformedType(type);
+      if (compiler.enableTypeAssertions && type.containsAmbiguousTypes) {
+        String reasons = Types.fetchReasonsFromAmbiguousType(type);
         // TODO(johnniwinther): Change to resemble type errors from bounds check
         // on type arguments.
         generateRuntimeError(node, '$type is malformed: $reasons');
@@ -4927,18 +4921,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           if (type == null) {
             compiler.internalError('On with no type', node: catchBlock.type);
           }
-          if (type.isMalformed) {
-            // TODO(johnniwinther): Handle malformed types in [HIs] instead.
-            HInstruction condition =
-                graph.addConstantBool(true, compiler);
-            stack.add(condition);
-          } else {
-            // TODO(karlkose): support type arguments here.
-            HInstruction condition = new HIs(type,
-                                             <HInstruction>[unwrappedException],
-                                             HIs.RAW_CHECK);
-            push(condition);
-          }
+          // TODO(karlkose): support type arguments here.
+          HInstruction condition = new HIs(type,
+                                           <HInstruction>[unwrappedException],
+                                           HIs.RAW_CHECK);
+          push(condition);
         } else {
           VariableDefinitions declaration = catchBlock.formals.nodes.head;
           HInstruction condition = null;
@@ -4971,8 +4958,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           // malformed.
           if (catchBlock.onKeyword != null) {
             DartType type = elements.getType(catchBlock.type);
-            if (type != null && type.isMalformed) {
-              String reasons = Types.fetchReasonsFromMalformedType(type);
+            if (type != null && type.containsAmbiguousTypes) {
+              String reasons = Types.fetchReasonsFromAmbiguousType(type);
               generateMalformedSubtypeError(node,
                   unwrappedException, type, reasons);
               pop();

@@ -95,7 +95,7 @@ abstract class TypeInformation {
       callers[caller]--;
     }
   }
-  
+
   void addAssignment(Node node, TypeMask mask) {
     assignments[node] = mask;
   }
@@ -997,7 +997,7 @@ class InternalSimpleTypesInferrer
     if (isNativeElement(element) && element.isField()) {
       if (type == null) {
         InterfaceType rawType = element.computeType(compiler).asRaw();
-        info.type = type = rawType.isDynamic
+        info.type = type = rawType.treatAsDynamic
             ? types.dynamicType
             : new TypeMask.subtype(rawType);
       }

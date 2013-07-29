@@ -84,8 +84,7 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   TypeMask narrowType(TypeMask type,
                       DartType annotation,
                       {bool isNullable: true}) {
-    if (annotation.isDynamic) return type;
-    if (annotation.isMalformed) return type;
+    if (annotation.treatAsDynamic) return type;
     if (annotation.isVoid) return nullType;
     if (annotation.element == compiler.objectClass) return type;
     TypeMask otherType;
@@ -869,7 +868,7 @@ abstract class InferrerVisitor<T> extends ResolvedVisitor<T> {
     Node exception = node.exception;
     if (exception != null) {
       DartType type = elements.getType(node.type);
-      T mask = type == null
+      T mask = type == null || type.treatAsDynamic
           ? types.dynamicType
           : types.nonNullSubtype(type.asRaw());
       locals.update(elements[exception], mask, node);

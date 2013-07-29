@@ -321,13 +321,11 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   get type => unsupported();
   get cachedNode => unsupported();
   get functionSignature => unsupported();
-  get patch => unsupported();
-  get origin => unsupported();
+  get patch => null;
+  get origin => this;
   get defaultImplementation => unsupported();
 
   bool get isRedirectingFactory => unsupported();
-  bool get isPatched => unsupported();
-  bool get isPatch => unsupported();
 
   setPatch(patch) => unsupported();
   computeSignature(compiler) => unsupported();

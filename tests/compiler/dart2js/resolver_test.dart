@@ -152,10 +152,10 @@ testTypeVariables() {
   compiler = new MockCompiler();
   compiler.parseScript('class Foo<T, U> {}');
   compiler.resolveStatement('var x = new Foo<notype, int>();');
-  Expect.equals(0, compiler.warnings.length);
-  Expect.equals(1, compiler.errors.length);
-  Expect.equals(MessageKind.CANNOT_RESOLVE_TYPE.error,
-                compiler.errors[0].message.kind);
+  Expect.equals(1, compiler.warnings.length);
+  Expect.equals(0, compiler.errors.length);
+  Expect.equals(MessageKind.CANNOT_RESOLVE_TYPE.warning,
+                compiler.warnings[0].message.kind);
 
   compiler = new MockCompiler();
   compiler.parseScript('class Foo<T> {'

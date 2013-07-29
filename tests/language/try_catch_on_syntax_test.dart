@@ -16,7 +16,6 @@ class TryCatchTest {
     try {
       throw new MyException1();
     }
-    on MyException3 catch (e) { } /// 01: compile-time error
     on on MyException2 catch (e) { } /// 02: compile-time error
     catch MyException2 catch (e) { } /// 03: compile-time error
     catch catch catch (e) { } /// 04: compile-time error
@@ -29,7 +28,7 @@ class TryCatchTest {
     } on MyException catch (e) {
       foo = 3;
     }
-    on UndefinedClass /// 07: compile-time error
+    on UndefinedClass /// 07: static type warning
     catch(e) { foo = 4; }
     Expect.equals(2, foo);
   }

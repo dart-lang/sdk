@@ -2217,8 +2217,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void checkType(HInstruction input, DartType type, {bool negative: false}) {
-    assert(invariant(input, !type.isMalformed,
-                     message: 'Attempt to check malformed type $type'));
     Element element = type.element;
     if (element == backend.jsArrayClass) {
       checkArray(input, negative ? '!==': '===');
@@ -2349,8 +2347,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       ClassElement objectClass = compiler.objectClass;
       Element element = type.element;
 
-      if (identical(element, objectClass) ||
-          identical(element, compiler.dynamicClass)) {
+      if (identical(element, objectClass) || type.treatAsDynamic) {
         // The constant folder also does this optimization, but we make
         // it safe by assuming it may have not run.
         push(newLiteralBool(!negative), node);
