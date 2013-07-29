@@ -105,7 +105,7 @@ async/timer_test: Fail, Pass # See Issue 10982
 [ $arch == mips ]
 *: Skip
 
-[ $arch == simarm ]
+[ $arch == simarm || $arch == arm ]
 typed_data/float32x4_two_arg_shuffle_test: Skip # Unimplemented instruction.
 
 [ $arch == simmips ]
