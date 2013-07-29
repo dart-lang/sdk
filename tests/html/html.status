@@ -332,7 +332,6 @@ element_types_test/supported_embed: Fail
 element_types_test/supported_keygen: Fail
 element_types_test/supported_object: Fail
 element_types_test/supported_shadow: Fail
-element_types_test/supported_template: Fail
 element_types_test/supported_track: Fail
 fileapi_test/supported: Fail
 indexeddb_1_test/supportsDatabaseNames: Fail
@@ -346,12 +345,18 @@ input_element_test/supported_week: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
 notifications_test/supported: Fail
-rtc_test/supported: Fail # Release build does not enable by default.
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
 touchevent_test/supported: Fail
 websql_test/supported: Fail
 xhr_test/supported_HttpRequestProgressEvent: Fail
+
+[ $runtime == ff && $system == windows ]
+rtc_test/supported: Fail # Release build does not enable by default.
+element_types_test/supported_template: Fail
+
+[ $runtime == ff && $system == linux ]
+rtc_test/functionality: Fail # Issue: 12109.
 
 [ $runtime == ie9 && ($system == linux || $system == macos) ]
 *: Skip
