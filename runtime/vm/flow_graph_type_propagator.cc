@@ -1082,6 +1082,11 @@ CompileType Float32x4ToUint32x4Instr::ComputeType() const {
 }
 
 
+CompileType Float32x4TwoArgShuffleInstr::ComputeType() const {
+  return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
 CompileType Uint32x4BoolConstructorInstr::ComputeType() const {
   return CompileType::FromCid(kUint32x4Cid);
 }

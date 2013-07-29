@@ -2053,6 +2053,26 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Method(
       ReplaceCall(call, minmax);
       return true;
     }
+    case MethodRecognizer::kFloat32x4WithZWInXY:
+    case MethodRecognizer::kFloat32x4InterleaveXY:
+    case MethodRecognizer::kFloat32x4InterleaveZW:
+    case MethodRecognizer::kFloat32x4InterleaveXYPairs:
+    case MethodRecognizer::kFloat32x4InterleaveZWPairs: {
+      Definition* left = call->ArgumentAt(0);
+      Definition* right = call->ArgumentAt(1);
+      // Type check left.
+      AddCheckClass(left,
+                    ICData::ZoneHandle(
+                        call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                    call->deopt_id(),
+                    call->env(),
+                    call);
+      Float32x4TwoArgShuffleInstr* two_arg_shuffle =
+          new Float32x4TwoArgShuffleInstr(recognized_kind, new Value(left),
+                                          new Value(right), call->deopt_id());
+      ReplaceCall(call, two_arg_shuffle);
+      return true;
+    }
     case MethodRecognizer::kFloat32x4Scale: {
       Definition* left = call->ArgumentAt(0);
       Definition* right = call->ArgumentAt(1);
@@ -6369,6 +6389,11 @@ void ConstantPropagator::VisitFloat32x4With(Float32x4WithInstr* instr) {
 
 void ConstantPropagator::VisitFloat32x4ToUint32x4(
     Float32x4ToUint32x4Instr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitFloat32x4TwoArgShuffle(
+    Float32x4TwoArgShuffleInstr* instr) {
   SetValue(instr, non_constant_);
 }
 

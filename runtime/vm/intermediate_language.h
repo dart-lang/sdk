@@ -108,6 +108,11 @@ class Range;
   V(_Float32x4, withZ, Float32x4WithZ, 881355277)                              \
   V(_Float32x4, withW, Float32x4WithW, 441497035)                              \
   V(_Float32x4, _toUint32x4, Float32x4ToUint32x4, 802289205)                   \
+  V(_Float32x4, withZWInXY, Float32x4WithZWInXY, 465519415)                    \
+  V(_Float32x4, interleaveXY, Float32x4InterleaveXY, 465519415)                \
+  V(_Float32x4, interleaveZW, Float32x4InterleaveZW, 465519415)                \
+  V(_Float32x4, interleaveXYPairs, Float32x4InterleaveXYPairs, 465519415)      \
+  V(_Float32x4, interleaveZWPairs, Float32x4InterleaveZWPairs, 465519415)      \
   V(Uint32x4, Uint32x4.bool, Uint32x4BoolConstructor, 487876159)               \
   V(_Uint32x4, get:flagX, Uint32x4GetFlagX, 782547529)                         \
   V(_Uint32x4, get:flagY, Uint32x4GetFlagY, 782547529)                         \
@@ -613,6 +618,7 @@ class EmbeddedArray<T, 0> {
   M(Float32x4Clamp)                                                            \
   M(Float32x4With)                                                             \
   M(Float32x4ToUint32x4)                                                       \
+  M(Float32x4TwoArgShuffle)                                                    \
   M(MaterializeObject)                                                         \
   M(Uint32x4BoolConstructor)                                                   \
   M(Uint32x4GetFlag)                                                           \
@@ -899,6 +905,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class Float32x4ClampInstr;
   friend class Float32x4WithInstr;
   friend class Float32x4ToUint32x4Instr;
+  friend class Float32x4TwoArgShuffleInstr;
   friend class Uint32x4BoolConstructorInstr;
   friend class Uint32x4GetFlagInstr;
   friend class Uint32x4SetFlagInstr;
@@ -5509,6 +5516,59 @@ class Uint32x4GetFlagInstr : public TemplateDefinition<1> {
   const MethodRecognizer::Kind op_kind_;
 
   DISALLOW_COPY_AND_ASSIGN(Uint32x4GetFlagInstr);
+};
+
+
+class Float32x4TwoArgShuffleInstr : public TemplateDefinition<2> {
+ public:
+  Float32x4TwoArgShuffleInstr(MethodRecognizer::Kind op_kind, Value* left,
+                              Value* right, intptr_t deopt_id)
+      : op_kind_(op_kind) {
+    SetInputAt(0, left);
+    SetInputAt(1, right);
+    deopt_id_ = deopt_id;
+  }
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  MethodRecognizer::Kind op_kind() const { return op_kind_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    return kUnboxedFloat32x4;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT((idx == 0) || (idx == 1));
+    return kUnboxedFloat32x4;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Float32x4TwoArgShuffle)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind() == other->AsFloat32x4TwoArgShuffle()->op_kind();
+  }
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  const MethodRecognizer::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(Float32x4TwoArgShuffleInstr);
 };
 
 
