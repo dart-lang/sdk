@@ -8,34 +8,34 @@ part of fixnum;
  * An immutable 32-bit signed integer, in the range [-2^31, 2^31 - 1].
  * Arithmetic operations may overflow in order to maintain this range.
  */
-class int32 implements intx {
+class Int32 implements IntX {
 
   /**
-   * The maximum positive value attainable by an [int32], namely
+   * The maximum positive value attainable by an [Int32], namely
    * 2147483647.
    */
-  static const int32 MAX_VALUE = const int32._internal(0x7FFFFFFF);
+  static const Int32 MAX_VALUE = const Int32._internal(0x7FFFFFFF);
 
   /**
-   * The minimum positive value attainable by an [int32], namely
+   * The minimum positive value attainable by an [Int32], namely
    * -2147483648.
    */
-  static int32 MIN_VALUE = const int32._internal(-0x80000000);
+  static Int32 MIN_VALUE = const Int32._internal(-0x80000000);
 
   /**
-   * An [int32] constant equal to 0.
+   * An [Int32] constant equal to 0.
    */
-  static int32 ZERO = const int32._internal(0);
+  static Int32 ZERO = const Int32._internal(0);
 
   /**
-   * An [int32] constant equal to 1.
+   * An [Int32] constant equal to 1.
    */
-  static int32 ONE = const int32._internal(1);
+  static Int32 ONE = const Int32._internal(1);
 
   /**
-   * An [int32] constant equal to 2.
+   * An [Int32] constant equal to 2.
    */
-  static int32 TWO = const int32._internal(2);
+  static Int32 TWO = const Int32._internal(2);
 
   // Hex digit char codes
   static const int _CC_0 = 48; // '0'.codeUnitAt(0)
@@ -59,14 +59,14 @@ class int32 implements intx {
 
   /**
    * Parses a [String] in a given [radix] between 2 and 16 and returns an
-   * [int32].
+   * [Int32].
    */
   // TODO(rice) - Make this faster by converting several digits at once.
-  static int32 parseRadix(String s, int radix) {
+  static Int32 parseRadix(String s, int radix) {
     if ((radix <= 1) || (radix > 16)) {
       throw "Bad radix: $radix";
     }
-    int32 x = ZERO;
+    Int32 x = ZERO;
     for (int i = 0; i < s.length; i++) {
       int c = s.codeUnitAt(i);
       int digit = _decodeHex(c);
@@ -79,14 +79,14 @@ class int32 implements intx {
   }
 
   /**
-   * Parses a decimal [String] and returns an [int32].
+   * Parses a decimal [String] and returns an [Int32].
    */
-  static int32 parseInt(String s) => new int32.fromInt(int.parse(s));
+  static Int32 parseInt(String s) => new Int32.fromInt(int.parse(s));
 
   /**
-   * Parses a hexadecimal [String] and returns an [int32].
+   * Parses a hexadecimal [String] and returns an [Int32].
    */
-  static int32 parseHex(String s) => parseRadix(s, 16);
+  static Int32 parseHex(String s) => parseRadix(s, 16);
 
   // Assumes i is <= 32-bit.
   static int _bitCount(int i) {
@@ -130,18 +130,18 @@ class int32 implements intx {
   // The internal value, kept in the range [MIN_VALUE, MAX_VALUE].
   final int _i;
 
-  const int32._internal(int i) : _i = i;
+  const Int32._internal(int i) : _i = i;
 
   /**
-   * Constructs an [int32] from an [int].  Only the low 32 bits of the input
+   * Constructs an [Int32] from an [int].  Only the low 32 bits of the input
    * are used.
    */
-  int32.fromInt(int i) : _i = (i & 0x7fffffff) - (i & 0x80000000);
+  Int32.fromInt(int i) : _i = (i & 0x7fffffff) - (i & 0x80000000);
 
   // Returns the [int] representation of the specified value. Throws
   // [ArgumentError] for non-integer arguments.
   int _toInt(val) {
-    if (val is int32) {
+    if (val is Int32) {
       return val._i;
     } else if (val is int) {
       return val;
@@ -151,97 +151,97 @@ class int32 implements intx {
 
   // The +, -, * , &, |, and ^ operaters deal with types as follows:
   //
-  // int32 + int => int32
-  // int32 + int32 => int32
-  // int32 + int64 => int64
+  // Int32 + int => Int32
+  // Int32 + Int32 => Int32
+  // Int32 + Int64 => Int64
   //
-  // The %, ~/ and remainder operators return an int32 even with an int64
+  // The %, ~/ and remainder operators return an Int32 even with an Int64
   // argument, since the result cannot be greater than the value on the
   // left-hand side:
   //
-  // int32 % int => int32
-  // int32 % int32 => int32
-  // int32 % int64 => int32
+  // Int32 % int => Int32
+  // Int32 % Int32 => Int32
+  // Int32 % Int64 => Int32
 
-  intx operator +(other) {
-    if (other is int64) {
+  IntX operator +(other) {
+    if (other is Int64) {
       return this.toInt64() + other;
     }
-    return new int32.fromInt(_i + _toInt(other));
+    return new Int32.fromInt(_i + _toInt(other));
   }
 
-  intx operator -(other) {
-    if (other is int64) {
+  IntX operator -(other) {
+    if (other is Int64) {
       return this.toInt64() - other;
     }
-    return new int32.fromInt(_i - _toInt(other));
+    return new Int32.fromInt(_i - _toInt(other));
   }
 
-  int32 operator -() => new int32.fromInt(-_i);
+  Int32 operator -() => new Int32.fromInt(-_i);
 
-  intx operator *(other) {
-    if (other is int64) {
+  IntX operator *(other) {
+    if (other is Int64) {
       return this.toInt64() * other;
     }
     // TODO(rice) - optimize
     return (this.toInt64() * other).toInt32();
   }
 
-  int32 operator %(other) {
-    if (other is int64) {
-      // Result will be int32
+  Int32 operator %(other) {
+    if (other is Int64) {
+      // Result will be Int32
       return (this.toInt64() % other).toInt32();
     }
-    return new int32.fromInt(_i % _toInt(other));
+    return new Int32.fromInt(_i % _toInt(other));
   }
 
-  int32 operator ~/(other) {
-    if (other is int64) {
+  Int32 operator ~/(other) {
+    if (other is Int64) {
       return (this.toInt64() ~/ other).toInt32();
     }
-    return new int32.fromInt(_i ~/ _toInt(other));
+    return new Int32.fromInt(_i ~/ _toInt(other));
   }
 
-  int32 remainder(other) {
-    if (other is int64) {
-      int64 t = this.toInt64();
+  Int32 remainder(other) {
+    if (other is Int64) {
+      Int64 t = this.toInt64();
       return (t - (t ~/ other) * other).toInt32();
     }
     return this - (this ~/ other) * other;
   }
 
-  int32 operator &(other) {
-    if (other is int64) {
+  Int32 operator &(other) {
+    if (other is Int64) {
       return (this.toInt64() & other).toInt32();
     }
-    return new int32.fromInt(_i & _toInt(other));
+    return new Int32.fromInt(_i & _toInt(other));
   }
 
-  int32 operator |(other) {
-    if (other is int64) {
+  Int32 operator |(other) {
+    if (other is Int64) {
       return (this.toInt64() | other).toInt32();
     }
-    return new int32.fromInt(_i | _toInt(other));
+    return new Int32.fromInt(_i | _toInt(other));
   }
 
-  int32 operator ^(other) {
-    if (other is int64) {
+  Int32 operator ^(other) {
+    if (other is Int64) {
       return (this.toInt64() ^ other).toInt32();
     }
-    return new int32.fromInt(_i ^ _toInt(other));
+    return new Int32.fromInt(_i ^ _toInt(other));
   }
 
-  int32 operator ~() => new int32.fromInt(~_i);
+  Int32 operator ~() => new Int32.fromInt(~_i);
 
-  int32 operator <<(int n) {
+  Int32 operator <<(int n) {
     if (n < 0) {
       throw new ArgumentError("$n");
     }
     n &= 31;
-    return new int32.fromInt(_i << n);
+    return new Int32.fromInt(_i << n);
   }
 
-  int32 operator >>(int n) {
+  Int32 operator >>(int n) {
     if (n < 0) {
       throw new ArgumentError("$n");
     }
@@ -252,10 +252,10 @@ class int32 implements intx {
     } else {
       value = (_i >> n) | (0xffffffff << (32 - n));
     }
-    return new int32.fromInt(value);
+    return new Int32.fromInt(value);
   }
 
-  int32 shiftRightUnsigned(int n) {
+  Int32 shiftRightUnsigned(int n) {
     if (n < 0) {
       throw new ArgumentError("$n");
     }
@@ -266,17 +266,17 @@ class int32 implements intx {
     } else {
       value = (_i >> n) & ((1 << (32 - n)) - 1);
     }
-    return new int32.fromInt(value);
+    return new Int32.fromInt(value);
   }
 
   /**
-   * Returns [true] if this [int32] has the same numeric value as the
-   * given object.  The argument may be an [int] or an [intx].
+   * Returns [true] if this [Int32] has the same numeric value as the
+   * given object.  The argument may be an [int] or an [IntX].
    */
   bool operator ==(other) {
-    if (other is int32) {
+    if (other is Int32) {
       return _i == other._i;
-    } else if (other is int64) {
+    } else if (other is Int64) {
       return this.toInt64() == other;
     } else if (other is int) {
       return _i == other;
@@ -285,35 +285,35 @@ class int32 implements intx {
   }
 
   int compareTo(Comparable other) {
-    if (other is int64) {
+    if (other is Int64) {
       return this.toInt64().compareTo(other);
     }
     return _i.compareTo(_toInt(other));
   }
 
   bool operator <(other) {
-    if (other is int64) {
+    if (other is Int64) {
       return this.toInt64() < other;
     }
     return _i < _toInt(other);
   }
 
   bool operator <=(other) {
-    if (other is int64) {
+    if (other is Int64) {
       return this.toInt64() <= other;
     }
     return _i <= _toInt(other);
   }
 
   bool operator >(other) {
-    if (other is int64) {
+    if (other is Int64) {
       return this.toInt64() > other;
     }
     return _i > _toInt(other);
   }
 
   bool operator >=(other) {
-    if (other is int64) {
+    if (other is Int64) {
       return this.toInt64() >= other;
     }
     return _i >= _toInt(other);
@@ -328,7 +328,7 @@ class int32 implements intx {
 
   int get hashCode => _i;
 
-  int32 abs() => _i < 0 ? new int32.fromInt(-_i) : this;
+  Int32 abs() => _i < 0 ? new Int32.fromInt(-_i) : this;
 
   int numberOfLeadingZeros() => _numberOfLeadingZeros(_i);
   int numberOfTrailingZeros() => _numberOfTrailingZeros(_i);
@@ -343,8 +343,8 @@ class int32 implements intx {
   }
 
   int toInt() => _i;
-  int32 toInt32() => this;
-  int64 toInt64() => new int64.fromInt(_i);
+  Int32 toInt32() => this;
+  Int64 toInt64() => new Int64.fromInt(_i);
 
   String toString() => _i.toString();
   String toHexString() => _i.toRadixString(16);

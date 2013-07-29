@@ -8,7 +8,7 @@ part of fixnum;
  * An immutable 64-bit signed integer, in the range [-2^63, 2^63 - 1].
  * Arithmetic operations may overflow in order to maintain this range.
  */
-class int64 implements intx {
+class Int64 implements IntX {
 
   // A 64-bit integer is represented internally as three non-negative
   // integers, storing the 22 low, 22 middle, and 20 high bits of the
@@ -16,7 +16,7 @@ class int64 implements intx {
   // [0, 2^22 - 1] and _h (high) is in the range [0, 2^20 - 1].
   int _l, _m, _h;
 
-  // Note: instances of int64 are immutable outside of this library,
+  // Note: instances of [Int64] are immutable outside of this library,
   // therefore we may return a reference to an existing instance.
   // We take care to perform mutation only on internally-generated
   // instances before they are exposed to external code.
@@ -31,11 +31,11 @@ class int64 implements intx {
   static const int _SIGN_BIT_VALUE = 524288; // 1 << _SIGN_BIT
 
   // Cached constants
-  static int64 _MAX_VALUE;
-  static int64 _MIN_VALUE;
-  static int64 _ZERO;
-  static int64 _ONE;
-  static int64 _TWO;
+  static Int64 _MAX_VALUE;
+  static Int64 _MIN_VALUE;
+  static Int64 _ZERO;
+  static Int64 _ONE;
+  static Int64 _TWO;
 
   // Precompute the radix strings for MIN_VALUE to avoid the problem
   // of overflow of -MIN_VALUE.
@@ -59,70 +59,70 @@ class int64 implements intx {
   ];
 
   // The remainder of the last divide operation.
-  static int64 _remainder;
+  static Int64 _remainder;
 
   /**
-   * The maximum positive value attainable by an [int64], namely
+   * The maximum positive value attainable by an [Int64], namely
    * 9,223,372,036,854,775,807.
    */
-  static int64 get MAX_VALUE {
+  static Int64 get MAX_VALUE {
     if (_MAX_VALUE == null) {
-      _MAX_VALUE = new int64._bits(_MASK, _MASK, _MASK_2 >> 1);
+      _MAX_VALUE = new Int64._bits(_MASK, _MASK, _MASK_2 >> 1);
     }
     return _MAX_VALUE;
   }
 
   /**
-   * The minimum positive value attainable by an [int64], namely
+   * The minimum positive value attainable by an [Int64], namely
    * -9,223,372,036,854,775,808.
    */
-  static int64 get MIN_VALUE {
+  static Int64 get MIN_VALUE {
     if (_MIN_VALUE == null) {
-      _MIN_VALUE = new int64._bits(0, 0, _SIGN_BIT_VALUE);
+      _MIN_VALUE = new Int64._bits(0, 0, _SIGN_BIT_VALUE);
     }
     return _MIN_VALUE;
   }
 
   /**
-   * An [int64] constant equal to 0.
+   * An [Int64] constant equal to 0.
    */
-  static int64 get ZERO {
+  static Int64 get ZERO {
     if (_ZERO == null) {
-      _ZERO = new int64();
+      _ZERO = new Int64();
     }
     return _ZERO;
   }
 
   /**
-   * An [int64] constant equal to 1.
+   * An [Int64] constant equal to 1.
    */
-  static int64 get ONE {
+  static Int64 get ONE {
     if (_ONE == null) {
-      _ONE = new int64._bits(1, 0, 0);
+      _ONE = new Int64._bits(1, 0, 0);
     }
     return _ONE;
   }
 
   /**
-   * An [int64] constant equal to 2.
+   * An [Int64] constant equal to 2.
    */
-  static int64 get TWO {
+  static Int64 get TWO {
     if (_TWO == null) {
-      _TWO = new int64._bits(2, 0, 0);
+      _TWO = new Int64._bits(2, 0, 0);
     }
     return _TWO;
   }
 
   /**
    * Parses a [String] in a given [radix] between 2 and 16 and returns an
-   * [int64].
+   * [Int64].
    */
   // TODO(rice) - make this faster by converting several digits at once.
-  static int64 parseRadix(String s, int radix) {
+  static Int64 parseRadix(String s, int radix) {
     if ((radix <= 1) || (radix > 16)) {
       throw "Bad radix: $radix";
     }
-    int64 x = ZERO;
+    Int64 x = ZERO;
     int i = 0;
     bool negative = false;
     if (s[0] == '-') {
@@ -131,7 +131,7 @@ class int64 implements intx {
     }
     for (; i < s.length; i++) {
       int c = s.codeUnitAt(i);
-      int digit = int32._decodeHex(c);
+      int digit = Int32._decodeHex(c);
       if (digit < 0 || digit >= radix) {
         throw new Exception("Non-radix char code: $c");
       }
@@ -141,28 +141,28 @@ class int64 implements intx {
   }
 
   /**
-   * Parses a decimal [String] and returns an [int64].
+   * Parses a decimal [String] and returns an [Int64].
    */
-  static int64 parseInt(String s) => parseRadix(s, 10);
+  static Int64 parseInt(String s) => parseRadix(s, 10);
 
   /**
-   * Parses a hexadecimal [String] and returns an [int64].
+   * Parses a hexadecimal [String] and returns an [Int64].
    */
-  static int64 parseHex(String s) => parseRadix(s, 16);
+  static Int64 parseHex(String s) => parseRadix(s, 16);
 
   //
   // Public constructors
   //
 
   /**
-   * Constructs an [int64] equal to 0.
+   * Constructs an [Int64] equal to 0.
    */
-  int64() : _l = 0, _m = 0, _h = 0;
+  Int64() : _l = 0, _m = 0, _h = 0;
 
   /**
-   * Constructs an [int64] with a given [int] value.
+   * Constructs an [Int64] with a given [int] value.
    */
-  int64.fromInt(int value) {
+  Int64.fromInt(int value) {
     bool negative = false;
     if (value < 0) {
       negative = true;
@@ -188,7 +188,7 @@ class int64 implements intx {
     }
   }
 
-  factory int64.fromBytes(List<int> bytes) {
+  factory Int64.fromBytes(List<int> bytes) {
     int top = bytes[7] & 0xff;
     top <<= 8;
     top |= bytes[6] & 0xff;
@@ -205,10 +205,10 @@ class int64 implements intx {
     bottom <<= 8;
     bottom |= bytes[0] & 0xff;
 
-    return new int64.fromInts(top, bottom);
+    return new Int64.fromInts(top, bottom);
   }
 
-  factory int64.fromBytesBigEndian(List<int> bytes) {
+  factory Int64.fromBytesBigEndian(List<int> bytes) {
     int top = bytes[0] & 0xff;
     top <<= 8;
     top |= bytes[1] & 0xff;
@@ -225,14 +225,14 @@ class int64 implements intx {
     bottom <<= 8;
     bottom |= bytes[7] & 0xff;
 
-    return new int64.fromInts(top, bottom);
+    return new Int64.fromInts(top, bottom);
  }
 
   /**
-   * Constructs an [int64] from a pair of 32-bit integers having the value
+   * Constructs an [Int64] from a pair of 32-bit integers having the value
    * [:((top & 0xffffffff) << 32) | (bottom & 0xffffffff):].
    */
-  int64.fromInts(int top, int bottom) {
+  Int64.fromInts(int top, int bottom) {
     top &= 0xffffffff;
     bottom &= 0xffffffff;
     _l = bottom & _MASK;
@@ -240,50 +240,50 @@ class int64 implements intx {
     _h = (top >> 12) & _MASK_2;
   }
 
-  // Returns the [int64] representation of the specified value. Throws
+  // Returns the [Int64] representation of the specified value. Throws
   // [ArgumentError] for non-integer arguments.
-  int64 _promote(val) {
-    if (val is int64) {
+  Int64 _promote(val) {
+    if (val is Int64) {
       return val;
     } else if (val is int) {
-      return new int64.fromInt(val);
-    } else if (val is int32) {
+      return new Int64.fromInt(val);
+    } else if (val is Int32) {
       return val.toInt64();
     }
     throw new ArgumentError(val);
   }
 
-  int64 operator +(other) {
-    int64 o = _promote(other);
+  Int64 operator +(other) {
+    Int64 o = _promote(other);
     int sum0 = _l + o._l;
     int sum1 = _m + o._m + _shiftRight(sum0, _BITS);
     int sum2 = _h + o._h + _shiftRight(sum1, _BITS);
 
-    int64 result = new int64._bits(sum0 & _MASK, sum1 & _MASK, sum2 & _MASK_2);
+    Int64 result = new Int64._bits(sum0 & _MASK, sum1 & _MASK, sum2 & _MASK_2);
     return result;
   }
 
-  int64 operator -(other) {
-    int64 o = _promote(other);
+  Int64 operator -(other) {
+    Int64 o = _promote(other);
     int sum0 = _l - o._l;
     int sum1 = _m - o._m + _shiftRight(sum0, _BITS);
     int sum2 = _h - o._h + _shiftRight(sum1, _BITS);
 
-    int64 result = new int64._bits(sum0 & _MASK, sum1 & _MASK, sum2 & _MASK_2);
+    Int64 result = new Int64._bits(sum0 & _MASK, sum1 & _MASK, sum2 & _MASK_2);
     return result;
   }
 
-  int64 operator -() {
+  Int64 operator -() {
     // Like 0 - this.
     int sum0 = -_l;
     int sum1 = -_m + _shiftRight(sum0, _BITS);
     int sum2 = -_h + _shiftRight(sum1, _BITS);
 
-    return new int64._bits(sum0 & _MASK, sum1 & _MASK, sum2 & _MASK_2);
+    return new Int64._bits(sum0 & _MASK, sum1 & _MASK, sum2 & _MASK_2);
   }
 
-  int64 operator *(other) {
-    int64 o = _promote(other);
+  Int64 operator *(other) {
+    Int64 o = _promote(other);
 
     // Grab 13-bit chunks.
     int a0 = _l & 0x1fff;
@@ -363,63 +363,63 @@ class int64 implements intx {
     c1 &= _MASK;
     c2 &= _MASK_2;
 
-    return new int64._bits(c0, c1, c2);
+    return new Int64._bits(c0, c1, c2);
   }
 
-  int64 operator %(other) {
+  Int64 operator %(other) {
     if (other.isZero) {
       throw new IntegerDivisionByZeroException();
     }
     if (this.isZero) {
       return ZERO;
     }
-    int64 o = _promote(other).abs();
+    Int64 o = _promote(other).abs();
     _divMod(this, o, true);
     return _remainder < 0 ? (_remainder + o) : _remainder;
   }
 
-  int64 operator ~/(other) => _divMod(this, _promote(other), false);
+  Int64 operator ~/(other) => _divMod(this, _promote(other), false);
 
-  // int64 remainder(other) => this - (this ~/ other) * other;
-  int64 remainder(other) {
+  // Int64 remainder(other) => this - (this ~/ other) * other;
+  Int64 remainder(other) {
     if (other.isZero) {
       throw new IntegerDivisionByZeroException();
     }
-    int64 o = _promote(other).abs();
+    Int64 o = _promote(other).abs();
     _divMod(this, o, true);
     return _remainder;
   }
 
-  int64 operator &(other) {
-    int64 o = _promote(other);
+  Int64 operator &(other) {
+    Int64 o = _promote(other);
     int a0 = _l & o._l;
     int a1 = _m & o._m;
     int a2 = _h & o._h;
-    return new int64._bits(a0, a1, a2);
+    return new Int64._bits(a0, a1, a2);
   }
 
-  int64 operator |(other) {
-    int64 o = _promote(other);
+  Int64 operator |(other) {
+    Int64 o = _promote(other);
     int a0 = _l | o._l;
     int a1 = _m | o._m;
     int a2 = _h | o._h;
-    return new int64._bits(a0, a1, a2);
+    return new Int64._bits(a0, a1, a2);
   }
 
-  int64 operator ^(other) {
-    int64 o = _promote(other);
+  Int64 operator ^(other) {
+    Int64 o = _promote(other);
     int a0 = _l ^ o._l;
     int a1 = _m ^ o._m;
     int a2 = _h ^ o._h;
-    return new int64._bits(a0, a1, a2);
+    return new Int64._bits(a0, a1, a2);
   }
 
-  int64 operator ~() {
-    var result = new int64._bits((~_l) & _MASK, (~_m) & _MASK, (~_h) & _MASK_2);
+  Int64 operator ~() {
+    var result = new Int64._bits((~_l) & _MASK, (~_m) & _MASK, (~_h) & _MASK_2);
     return result;
   }
 
-  int64 operator <<(int n) {
+  Int64 operator <<(int n) {
     if (n < 0) {
       throw new ArgumentError("$n");
     }
@@ -440,10 +440,10 @@ class int64 implements intx {
       res2 = _l << (n - _BITS01);
     }
 
-    return new int64._bits(res0 & _MASK, res1 & _MASK, res2 & _MASK_2);
+    return new Int64._bits(res0 & _MASK, res1 & _MASK, res2 & _MASK_2);
   }
 
-  int64 operator >>(int n) {
+  Int64 operator >>(int n) {
     if (n < 0) {
       throw new ArgumentError("$n");
     }
@@ -481,10 +481,10 @@ class int64 implements intx {
       }
     }
 
-    return new int64._bits(res0 & _MASK, res1 & _MASK, res2 & _MASK_2);
+    return new Int64._bits(res0 & _MASK, res1 & _MASK, res2 & _MASK_2);
   }
 
-  int64 shiftRightUnsigned(int n) {
+  Int64 shiftRightUnsigned(int n) {
     if (n < 0) {
       throw new ArgumentError("$n");
     }
@@ -506,20 +506,20 @@ class int64 implements intx {
       res0 = a2 >> (n - _BITS01);
     }
 
-    return new int64._bits(res0 & _MASK, res1 & _MASK, res2 & _MASK_2);
+    return new Int64._bits(res0 & _MASK, res1 & _MASK, res2 & _MASK_2);
   }
 
   /**
-   * Returns [true] if this [int64] has the same numeric value as the
-   * given object.  The argument may be an [int] or an [intx].
+   * Returns [true] if this [Int64] has the same numeric value as the
+   * given object.  The argument may be an [int] or an [IntX].
    */
   bool operator ==(other) {
-    int64 o;
-    if (other is int64) {
+    Int64 o;
+    if (other is Int64) {
       o = other;
     } else if (other is int) {
-      o = new int64.fromInt(other);
-    } else if (other is int32) {
+      o = new Int64.fromInt(other);
+    } else if (other is Int32) {
       o = other.toInt64();
     }
     if (o != null) {
@@ -529,7 +529,7 @@ class int64 implements intx {
   }
 
   int compareTo(Comparable other) {
-    int64 o = _promote(other);
+    Int64 o = _promote(other);
     int signa = _h >> (_BITS2 - 1);
     int signb = o._h >> (_BITS2 - 1);
     if (signa != signb) {
@@ -577,7 +577,7 @@ class int64 implements intx {
   bool get isZero => _h == 0 && _m == 0 && _l == 0;
 
   /**
-   * Returns a hash code based on all the bits of this [int64].
+   * Returns a hash code based on all the bits of this [Int64].
    */
   int get hashCode {
     int bottom = ((_m & 0x3ff) << _BITS) | _l;
@@ -585,20 +585,20 @@ class int64 implements intx {
     return bottom ^ top;
   }
 
-  int64 abs() {
+  Int64 abs() {
     return this < 0 ? -this : this;
   }
 
   /**
-   * Returns the number of leading zeros in this [int64] as an [int]
+   * Returns the number of leading zeros in this [Int64] as an [int]
    * between 0 and 64.
    */
   int numberOfLeadingZeros() {
-    int b2 = int32._numberOfLeadingZeros(_h);
+    int b2 = Int32._numberOfLeadingZeros(_h);
     if (b2 == 32) {
-      int b1 = int32._numberOfLeadingZeros(_m);
+      int b1 = Int32._numberOfLeadingZeros(_m);
       if (b1 == 32) {
-        return int32._numberOfLeadingZeros(_l) + 32;
+        return Int32._numberOfLeadingZeros(_l) + 32;
       } else {
         return b1 + _BITS2 - (32 - _BITS);
       }
@@ -608,21 +608,21 @@ class int64 implements intx {
   }
 
   /**
-   * Returns the number of trailing zeros in this [int64] as an [int]
+   * Returns the number of trailing zeros in this [Int64] as an [int]
    * between 0 and 64.
    */
   int numberOfTrailingZeros() {
-    int zeros = int32._numberOfTrailingZeros(_l);
+    int zeros = Int32._numberOfTrailingZeros(_l);
     if (zeros < 32) {
       return zeros;
     }
 
-    zeros = int32._numberOfTrailingZeros(_m);
+    zeros = Int32._numberOfTrailingZeros(_m);
     if (zeros < 32) {
       return _BITS + zeros;
     }
 
-    zeros = int32._numberOfTrailingZeros(_h);
+    zeros = Int32._numberOfTrailingZeros(_h);
     if (zeros < 32) {
       return _BITS01 + zeros;
     }
@@ -665,23 +665,23 @@ class int64 implements intx {
   }
 
   /**
-   * Returns an [int32] containing the low 32 bits of this [int64].
+   * Returns an [Int32] containing the low 32 bits of this [Int64].
    */
-  int32 toInt32() {
-    return new int32.fromInt(((_m & 0x3ff) << _BITS) | _l);
+  Int32 toInt32() {
+    return new Int32.fromInt(((_m & 0x3ff) << _BITS) | _l);
   }
 
   /**
    * Returns [this].
    */
-  int64 toInt64() => this;
+  Int64 toInt64() => this;
 
   /**
-   * Returns the value of this [int64] as a decimal [String].
+   * Returns the value of this [Int64] as a decimal [String].
    */
   // TODO(rice) - Make this faster by converting several digits at once.
   String toString() {
-    int64 a = this;
+    Int64 a = this;
     if (a.isZero) {
       return "0";
     }
@@ -696,7 +696,7 @@ class int64 implements intx {
       a = -a;
     }
 
-    int64 ten = new int64._bits(10, 0, 0);
+    Int64 ten = new Int64._bits(10, 0, 0);
     while (!a.isZero) {
       a = _divMod(a, ten, true);
       result = "${_remainder._l}$result";
@@ -709,12 +709,12 @@ class int64 implements intx {
 
   // TODO(rice) - Make this faster by avoiding arithmetic.
   String toHexString() {
-    int64 x = new int64._copy(this);
+    Int64 x = new Int64._copy(this);
     if (isZero) {
       return "0";
     }
     String hexStr = "";
-    int64 digit_f = new int64.fromInt(0xf);
+    Int64 digit_f = new Int64.fromInt(0xf);
     while (!x.isZero) {
       int digit = x._l & 0xf;
       hexStr = "${_hexDigit(digit)}$hexStr";
@@ -727,7 +727,7 @@ class int64 implements intx {
     if ((radix <= 1) || (radix > 16)) {
       throw "Bad radix: $radix";
     }
-    int64 a = this;
+    Int64 a = this;
     if (a.isZero) {
       return "0";
     }
@@ -742,7 +742,7 @@ class int64 implements intx {
       a = -a;
     }
 
-    int64 r = new int64._bits(radix, 0, 0);
+    Int64 r = new Int64._bits(radix, 0, 0);
     while (!a.isZero) {
       a = _divMod(a, r, true);
       result = "${_hexDigit(_remainder._l)}$result";
@@ -751,19 +751,19 @@ class int64 implements intx {
   }
 
   String toDebugString() {
-    return "int64[_l=$_l, _m=$_m, _h=$_h]";
+    return "Int64[_l=$_l, _m=$_m, _h=$_h]";
   }
 
   /**
-   * Constructs an [int64] with a given bitwise representation.  No validation
+   * Constructs an [Int64] with a given bitwise representation.  No validation
    * is performed.
    */
-  int64._bits(int this._l, int this._m, int this._h);
+  Int64._bits(int this._l, int this._m, int this._h);
 
   /**
-   * Constructs an [int64] with the same value as an existing [int64].
+   * Constructs an [Int64] with the same value as an existing [Int64].
    */
-  int64._copy(int64 other) {
+  Int64._copy(Int64 other) {
     _l = other._l;
     _m = other._m;
     _h = other._h;
@@ -848,7 +848,7 @@ class int64 implements intx {
    * }
    */
   // Note: mutates [a].
-  static bool _trialSubtract(int64 a, int64 b) {
+  static bool _trialSubtract(Int64 a, Int64 b) {
     // Early exit.
     int sum2 = a._h - b._h;
     if (sum2 < 0) {
@@ -871,15 +871,15 @@ class int64 implements intx {
   }
 
   // Note: mutates [a] via _trialSubtract.
-  static int64 _divModHelper(int64 a, int64 b,
+  static Int64 _divModHelper(Int64 a, Int64 b,
       bool negative, bool aIsNegative, bool aIsMinValue,
       bool computeRemainder) {
     // Align the leading one bits of a and b by shifting b left.
     int shift = b.numberOfLeadingZeros() - a.numberOfLeadingZeros();
-    int64 bshift = b << shift;
+    Int64 bshift = b << shift;
 
     // Quotient must be a new instance since we mutate it.
-    int64 quotient = new int64();
+    Int64 quotient = new Int64();
     while (shift >= 0) {
       bool gte = _trialSubtract(a, bshift);
       if (gte) {
@@ -911,7 +911,7 @@ class int64 implements intx {
     return quotient;
   }
 
-  int64 _divModByMinValue(bool computeRemainder) {
+  Int64 _divModByMinValue(bool computeRemainder) {
     // MIN_VALUE / MIN_VALUE == 1, remainder = 0
     // (x != MIN_VALUE) / MIN_VALUE == 0, remainder == x
     if (isMinValue) {
@@ -930,7 +930,7 @@ class int64 implements intx {
    * this &= ((1L << bits) - 1)
    */
   // Note: mutates [this].
-  int64 _maskRight(int bits) {
+  Int64 _maskRight(int bits) {
     int b0, b1, b2;
     if (bits <= _BITS) {
       b0 = _l & ((1 << bits) - 1);
@@ -950,16 +950,16 @@ class int64 implements intx {
     _h = b2;
   }
 
-  static int64 _divModByShift(int64 a, int bpower, bool negative, bool aIsCopy,
+  static Int64 _divModByShift(Int64 a, int bpower, bool negative, bool aIsCopy,
       bool aIsNegative, bool computeRemainder) {
-    int64 c = a >> bpower;
+    Int64 c = a >> bpower;
     if (negative) {
       c._negate();
     }
 
     if (computeRemainder) {
       if (!aIsCopy) {
-        a = new int64._copy(a);
+        a = new Int64._copy(a);
       }
       a._maskRight(bpower);
       if (aIsNegative) {
@@ -991,19 +991,19 @@ class int64 implements intx {
       return -1;
     }
     if (h == 0 && m == 0 && l != 0) {
-      return int32._numberOfTrailingZeros(l);
+      return Int32._numberOfTrailingZeros(l);
     }
     if (h == 0 && m != 0 && l == 0) {
-      return int32._numberOfTrailingZeros(m) + _BITS;
+      return Int32._numberOfTrailingZeros(m) + _BITS;
     }
     if (h != 0 && m == 0 && l == 0) {
-      return int32._numberOfTrailingZeros(h) + _BITS01;
+      return Int32._numberOfTrailingZeros(h) + _BITS01;
     }
 
     return -1;
   }
 
-  static int64 _divMod(int64 a, int64 b, bool computeRemainder) {
+  static Int64 _divMod(Int64 a, Int64 b, bool computeRemainder) {
     if (b.isZero) {
       throw new IntegerDivisionByZeroException();
     }
@@ -1029,7 +1029,7 @@ class int64 implements intx {
 
     // True if the original value of a is negative.
     bool aIsNegative = false;
-    // True if the original value of a is int64.MIN_VALUE.
+    // True if the original value of a is Int64.MIN_VALUE.
     bool aIsMinValue = false;
 
     /*
@@ -1056,12 +1056,12 @@ class int64 implements intx {
       // If b is not a power of two, treat -a as MAX_VALUE (instead of the
       // actual value (MAX_VALUE + 1)).
       if (bpower == -1) {
-        a = new int64._copy(MAX_VALUE);
+        a = new Int64._copy(MAX_VALUE);
         aIsCopy = true;
         negative = !negative;
       } else {
         // Signed shift of MIN_VALUE produces the right answer.
-        int64 c = a >> bpower;
+        Int64 c = a >> bpower;
         if (negative) {
           c._negate();
         }
@@ -1090,14 +1090,14 @@ class int64 implements intx {
         if (aIsNegative) {
           _remainder = -a;
         } else {
-          _remainder = aIsCopy ? a : new int64._copy(a);
+          _remainder = aIsCopy ? a : new Int64._copy(a);
         }
       }
       return ZERO;
     }
 
     // Generate the quotient using bit-at-a-time long division.
-    return _divModHelper(aIsCopy ? a : new int64._copy(a), b, negative,
+    return _divModHelper(aIsCopy ? a : new Int64._copy(a), b, negative,
         aIsNegative, aIsMinValue, computeRemainder);
   }
 }
