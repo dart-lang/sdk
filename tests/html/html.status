@@ -3,10 +3,12 @@
 # BSD-style license that can be found in the LICENSE file.
 
 async_window_test: Skip #TODO(gram): investigating
-
 event_test: Skip  # Issue 1996
-custom_elements_test: Skip # Not yet implemented.
 interactive_test: Skip # Must be run manually.
+
+# Issue 9326
+custom_elements_test/register: Fail
+custom_elements_test/preregister: Fail
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug && $system == macos]
 audiobuffersourcenode_test: Pass, Fail, Crash # http://crbug.com/256601
