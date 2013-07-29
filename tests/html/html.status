@@ -10,6 +10,10 @@ interactive_test: Skip # Must be run manually.
 custom_elements_test/register: Fail
 custom_elements_test/preregister: Fail
 
+[ $compiler == dart2js ]
+# Document.register is unimplemented.
+custom_elements_test: Skip
+
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug && $system == macos]
 audiobuffersourcenode_test: Pass, Fail, Crash # http://crbug.com/256601
 
