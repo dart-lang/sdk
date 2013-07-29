@@ -348,8 +348,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void BuildConstructorCall(ConstructorCallNode* node,
                             PushArgumentInstr* alloc_value);
 
-  void BuildSaveContext(const LocalVariable& variable);
-  void BuildRestoreContext(const LocalVariable& variable);
+  void BuildStoreContext(const LocalVariable& variable);
+  void BuildLoadContext(const LocalVariable& variable);
 
   void BuildThrowNode(ThrowNode* node);
 
