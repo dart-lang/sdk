@@ -29,7 +29,7 @@ class _StdStream extends Stream<List<int>> {
 }
 
 
-class _StdinEventSink {
+class _StdinEventSink implements EventSink<String> {
   Function add;
   Function addError;
   Function close;
