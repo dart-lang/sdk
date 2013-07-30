@@ -176,6 +176,18 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
   /** Replace the classes with `value` for every element in this list. */
   set classes(Iterable<String> value);
 
+  /**
+   * Access the union of all [CssStyleDeclaration]s that are associated with an
+   * [ElementList].
+   *
+   * Grouping the style objects all together provides easy editing of specific
+   * properties of a collection of elements. Setting a specific property value
+   * will set that property in all [Element]s in the [ElementList]. Getting a
+   * specific property value will return the value of the property of the first
+   * element in the [ElementList].
+   */
+  CssStyleDeclarationBase get style;
+
   /** 
    * Access dimensions and position of the Elements in this list.
    * 
@@ -270,6 +282,9 @@ class _FrozenElementList<T extends Element> extends ListBase<T> implements Eleme
   Element get single => _nodeList.single;
 
   CssClassSet get classes => new _MultiElementCssClassSet(_elementList);
+  
+  CssStyleDeclarationBase get style => 
+      new _CssStyleDeclarationSet(_elementList);
 
   void set classes(Iterable<String> value) {
     _elementList.forEach((e) => e.classes = value);

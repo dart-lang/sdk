@@ -4,7 +4,8 @@
 
 part of $LIBRARYNAME;
 
-$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+$(ANNOTATIONS)$(CLASS_MODIFIERS) class $CLASSNAME $EXTENDS with 
+    $(CLASSNAME)Base $IMPLEMENTS$NATIVESPEC {
   factory $CLASSNAME() => new CssStyleDeclaration.css('');
 
   factory $CLASSNAME.css(String css) {
@@ -12,9 +13,7 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     style.cssText = css;
     return style;
   }
-
-$!MEMBERS
-
+  
   String getPropertyValue(String propertyName) {
     var propValue = _getPropertyValue(propertyName);
     return propValue != null ? propValue : '';
@@ -35,7 +34,7 @@ $if DART2JS
       }
     } catch (e) {}
   }
-
+  
   /**
    * Checks to see if CSS Transitions are supported.
    */
@@ -47,11 +46,6 @@ $if DART2JS
     return JS('bool', '# in document.body.style', propertyName);
   }
 $else
-  /**
-   * Checks to see if CSS Transitions are supported.
-   */
-  static bool get supportsTransitions => true;
-
   @DomName('CSSStyleDeclaration.setProperty')
   void setProperty(String propertyName, String value, [String priority]) {
     if (priority == null) {
@@ -59,7 +53,42 @@ $else
     }
     _setProperty(propertyName, value, priority);
   }
+
+  /**
+   * Checks to see if CSS Transitions are supported.
+   */
+  static bool get supportsTransitions => true;
 $endif
+$!MEMBERS
+}
+
+class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
+  final Iterable<Element> _elementIterable;
+  Iterable<CssStyleDeclaration> _elementCssStyleDeclarationSetIterable;
+
+  _CssStyleDeclarationSet(this._elementIterable) {
+    _elementCssStyleDeclarationSetIterable = new List.from(
+        _elementIterable).map((e) => e.style);
+  }
+
+  String getPropertyValue(String propertyName) =>
+      _elementCssStyleDeclarationSetIterable.first.getPropertyValue(
+          propertyName);
+
+  void setProperty(String propertyName, String value, [String priority]) {
+    _elementCssStyleDeclarationSetIterable.forEach((e) =>
+        e.setProperty(propertyName, value, priority));
+  }
+  // Important note: CssStyleDeclarationSet does NOT implement every method
+  // available in CssStyleDeclaration. Some of the methods don't make so much
+  // sense in terms of having a resonable value to return when you're
+  // considering a list of Elements. You will need to manually add any of the
+  // items in the MEMBERS set if you want that functionality.
+}
+
+abstract class CssStyleDeclarationBase {
+  String getPropertyValue(String propertyName);  
+  void setProperty(String propertyName, String value, [String priority]);
 
   // TODO(jacobr): generate this list of properties using the existing script.
   /** Gets the value of "align-content" */

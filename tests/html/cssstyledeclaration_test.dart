@@ -97,4 +97,52 @@ main() {
     // Should not throw an error.
     element.style.background = 'some_bad_value';
   });
+
+  test('css multi get', () {
+    var listElement = new Element.html('<ul class="foo">'
+        '<li class="bar" style="background-color: red; border-left: 10px;">'
+        '<li class="baz" style="background-color: black;>'
+        '<li class="baz classy" style="background-color: blue; ">'
+        '</ul>');
+    document.documentElement.children.add(listElement);
+
+    var elements = document.queryAll('li');
+    expect(elements.style.backgroundColor, equals('red'));
+    expect(elements.style.borderLeft, equals('10px'));
+    elements = document.queryAll('.baz');
+    expect(elements.style.backgroundColor, equals('black'));
+    expect(elements.style.borderLeft, equals(''));
+    elements = document.queryAll('.bar');
+    expect(elements.style.backgroundColor, equals('red'));
+  });
+
+  test('css multi set', () {
+    var listElement = new Element.html('<ul class="foo">'
+        '<li class="bar" style="background-color: red; border-left: 10px;">'
+        '<li class="baz" style="background-color: black;>'
+        '<li class="baz" id="wat" style="background-color: blue; ">'
+        '</ul>');
+    document.documentElement.children.add(listElement);
+
+    var elements = document.queryAll('li');
+    elements.style.backgroundColor = 'green';
+    expect(elements.style.backgroundColor, equals('green'));
+    expect(elements.style.borderLeft, equals('10px'));
+
+    elements = document.queryAll('.baz');
+    expect(elements.style.backgroundColor, equals('green'));
+    elements.style.backgroundColor = 'yellow';
+    expect(elements.style.backgroundColor, equals('yellow'));
+    expect(elements.style.borderLeft, equals(''));
+
+    elements = document.queryAll('.bar');
+    expect(elements.style.backgroundColor, equals('green'));
+    elements = document.queryAll('#wat');
+    expect(elements.style.backgroundColor, equals('yellow'));
+
+    elements.style.borderLeft = '18px';
+    expect(elements.style.borderLeft, equals('18px'));
+    elements = document.queryAll('li');
+    expect(elements.style.borderLeft, equals('10px'));
+  });
 }

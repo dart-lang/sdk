@@ -3128,7 +3128,8 @@ class CssRule extends NativeFieldWrapperClass1 {
 
 
 @DomName('CSSStyleDeclaration')
-class CssStyleDeclaration extends NativeFieldWrapperClass1 {
+ class CssStyleDeclaration  extends NativeFieldWrapperClass1 with 
+    CssStyleDeclarationBase  {
   factory CssStyleDeclaration() => new CssStyleDeclaration.css('');
 
   factory CssStyleDeclaration.css(String css) {
@@ -3136,7 +3137,24 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
     style.cssText = css;
     return style;
   }
+  
+  String getPropertyValue(String propertyName) {
+    var propValue = _getPropertyValue(propertyName);
+    return propValue != null ? propValue : '';
+  }
 
+  @DomName('CSSStyleDeclaration.setProperty')
+  void setProperty(String propertyName, String value, [String priority]) {
+    if (priority == null) {
+      priority = '';
+    }
+    _setProperty(propertyName, value, priority);
+  }
+
+  /**
+   * Checks to see if CSS Transitions are supported.
+   */
+  static bool get supportsTransitions => true;
 
   @DomName('CSSStyleDeclaration.cssText')
   @DocsEditable()
@@ -3178,24 +3196,35 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
   @DocsEditable()
   void _setProperty(String propertyName, String value, String priority) native "CSSStyleDeclaration_setProperty_Callback";
 
+}
 
-  String getPropertyValue(String propertyName) {
-    var propValue = _getPropertyValue(propertyName);
-    return propValue != null ? propValue : '';
+class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
+  final Iterable<Element> _elementIterable;
+  Iterable<CssStyleDeclaration> _elementCssStyleDeclarationSetIterable;
+
+  _CssStyleDeclarationSet(this._elementIterable) {
+    _elementCssStyleDeclarationSetIterable = new List.from(
+        _elementIterable).map((e) => e.style);
   }
 
-  /**
-   * Checks to see if CSS Transitions are supported.
-   */
-  static bool get supportsTransitions => true;
+  String getPropertyValue(String propertyName) =>
+      _elementCssStyleDeclarationSetIterable.first.getPropertyValue(
+          propertyName);
 
-  @DomName('CSSStyleDeclaration.setProperty')
   void setProperty(String propertyName, String value, [String priority]) {
-    if (priority == null) {
-      priority = '';
-    }
-    _setProperty(propertyName, value, priority);
+    _elementCssStyleDeclarationSetIterable.forEach((e) =>
+        e.setProperty(propertyName, value, priority));
   }
+  // Important note: CssStyleDeclarationSet does NOT implement every method
+  // available in CssStyleDeclaration. Some of the methods don't make so much
+  // sense in terms of having a resonable value to return when you're
+  // considering a list of Elements. You will need to manually add any of the
+  // items in the MEMBERS set if you want that functionality.
+}
+
+abstract class CssStyleDeclarationBase {
+  String getPropertyValue(String propertyName);  
+  void setProperty(String propertyName, String value, [String priority]);
 
   // TODO(jacobr): generate this list of properties using the existing script.
   /** Gets the value of "align-content" */
@@ -8506,6 +8535,18 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
   /** Replace the classes with `value` for every element in this list. */
   set classes(Iterable<String> value);
 
+  /**
+   * Access the union of all [CssStyleDeclaration]s that are associated with an
+   * [ElementList].
+   *
+   * Grouping the style objects all together provides easy editing of specific
+   * properties of a collection of elements. Setting a specific property value
+   * will set that property in all [Element]s in the [ElementList]. Getting a
+   * specific property value will return the value of the property of the first
+   * element in the [ElementList].
+   */
+  CssStyleDeclarationBase get style;
+
   /** 
    * Access dimensions and position of the Elements in this list.
    * 
@@ -8600,6 +8641,9 @@ class _FrozenElementList<T extends Element> extends ListBase<T> implements Eleme
   Element get single => _nodeList.single;
 
   CssClassSet get classes => new _MultiElementCssClassSet(_elementList);
+  
+  CssStyleDeclarationBase get style => 
+      new _CssStyleDeclarationSet(_elementList);
 
   void set classes(Iterable<String> value) {
     _elementList.forEach((e) => e.classes = value);
