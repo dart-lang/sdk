@@ -37,7 +37,18 @@ class ServeCommand extends PubCommand {
     // to pub's top-level error-handling machinery.
     var completer = new Completer();
 
-    return PubPackageProvider.create(entrypoint).then((provider) {
+    return new Future.value().then((_) {
+      // The server relies on an up-to-date lockfile, so install first if
+      // needed.
+      if (!entrypoint.isLockFileUpToDate()) {
+        log.message("Dependencies have changed, installing...");
+        return entrypoint.installDependencies().then((_) {
+          log.message("Dependencies installed!");
+        });
+      }
+    }).then((_) {
+      return PubPackageProvider.create(entrypoint);
+    }).then((provider) {
       var port;
       try {
         port = int.parse(commandOptions['port']);

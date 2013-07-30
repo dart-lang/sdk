@@ -21,15 +21,30 @@ ScheduledProcess _pubServer;
 int _port;
 
 /// Schedules starting the "pub serve" process.
-void startPubServe() {
+///
+/// If [shouldInstallFirst] is `true`, validates that pub install is run first.
+void startPubServe({bool shouldInstallFirst: false}) {
   // Use port 0 to get an ephemeral port.
   _pubServer = startPub(args: ["serve", "--port=0"]);
 
-  expect(_pubServer.nextLine().then((line) {
-    var match = new RegExp(r"localhost:(\d+)").firstMatch(line);
-    assert(match != null);
-    _port = int.parse(match[1]);
-  }), completes);
+  if (shouldInstallFirst) {
+    expect(_pubServer.nextLine(),
+        completion(startsWith("Dependencies have changed")));
+    expect(_pubServer.nextLine(),
+        completion(startsWith("Resolving dependencies...")));
+    expect(_pubServer.nextLine(),
+        completion(equals("Dependencies installed!")));
+  }
+
+  expect(_pubServer.nextLine().then(_parsePort), completes);
+}
+
+/// Parses the port number from the "Serving blah on localhost:1234" line
+/// printed by pub serve.
+void _parsePort(String line) {
+  var match = new RegExp(r"localhost:(\d+)").firstMatch(line);
+  assert(match != null);
+  _port = int.parse(match[1]);
 }
 
 void endPubServe() {

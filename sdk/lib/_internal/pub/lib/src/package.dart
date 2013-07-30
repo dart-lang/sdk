@@ -34,9 +34,11 @@ class Package {
   /// The parsed pubspec associated with this package.
   final Pubspec pubspec;
 
-  /// The ids of the packages that this package depends on. This is what is
-  /// specified in the pubspec when this package depends on another.
+  /// The immediate dependencies this package specifies in its pubspec.
   List<PackageDep> get dependencies => pubspec.dependencies;
+
+  /// The immediate dev dependencies this package specifies in its pubspec.
+  List<PackageDep> get devDependencies => pubspec.devDependencies;
 
   /// Returns the path to the README file at the root of the entrypoint, or null
   /// if no README file is found. If multiple READMEs are found, this uses the
