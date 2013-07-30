@@ -67,7 +67,12 @@ Set<String> qualifiedNameIndex = new Set<String>();
  */
 Future<bool> docgen(List<String> files, {String packageRoot,
     bool outputToYaml: true, bool includePrivate: false, bool includeSdk: false,
-    bool parseSdk: false}) {
+    bool parseSdk: false, bool append: false}) {
+  if (!append) {
+    var dir = new Directory('docs');
+    if (dir.existsSync()) dir.deleteSync(recursive: true);
+  }
+  
   if (packageRoot == null && !parseSdk) {
     // TODO(janicejl): At the moment, if a single file is passed it, it is
     // assumed that it does not have a package root unless it is passed in by
@@ -90,7 +95,7 @@ Future<bool> docgen(List<String> files, {String packageRoot,
       }
       _documentLibraries(mirrorSystem.libraries.values,
           includeSdk: includeSdk, includePrivate: includePrivate,
-          outputToYaml: outputToYaml);
+          outputToYaml: outputToYaml, append: append);
 
       return true;
     });
@@ -151,7 +156,7 @@ List<String> _listSdk() {
  * documentation of the libraries.
  */
 Future<MirrorSystem> getMirrorSystem(List<String> args, {String packageRoot,
-    bool parseSdk:false}) {
+    bool parseSdk: false}) {
   var libraries = !parseSdk ? _listLibraries(args) : _listSdk();
   if (libraries.isEmpty) throw new StateError('No Libraries.');
   // Finds the root of SDK library based off the location of docgen.
@@ -196,8 +201,8 @@ Future<MirrorSystem> _analyzeLibraries(List<String> libraries,
  * Creates documentation for filtered libraries.
  */
 void _documentLibraries(List<LibraryMirror> libraries,
-    {bool includeSdk:false, bool includePrivate:false, bool
-     outputToYaml:true}) {
+    {bool includeSdk: false, bool includePrivate: false, 
+    bool outputToYaml: true, bool append: false}) {
   libraries.forEach((lib) {
     // Files belonging to the SDK have a uri that begins with 'dart:'.
     if (includeSdk || !lib.uri.toString().startsWith('dart:')) {
@@ -209,14 +214,14 @@ void _documentLibraries(List<LibraryMirror> libraries,
   // the libraries. This will help the viewer know what files are available
   // to read in.
   _writeToFile(listDir('docs').join('\n').replaceAll('docs/', ''),
-      'library_list.txt');
+      'library_list.txt', append: append);
   // Outputs all the qualified names documented. This will help generate search
   // results. 
-  _writeToFile(qualifiedNameIndex.join('\n'), 'index.txt');
+  _writeToFile(qualifiedNameIndex.join('\n'), 'index.txt', append: append);
 }
 
 Library generateLibrary(dart2js.Dart2JsLibraryMirror library,
-  {bool includePrivate:false}) {
+  {bool includePrivate: false}) {
   _currentLibrary = library;
   var result = new Library(library.qualifiedName, _getComment(library),
       _getVariables(library.variables, includePrivate),
@@ -443,7 +448,7 @@ List<Type> _typeGenerics(TypeMirror mirror) {
 /**
  * Writes text to a file in the 'docs' directory.
  */
-void _writeToFile(String text, String filename) {
+void _writeToFile(String text, String filename, {bool append: false}) {
   Directory dir = new Directory('docs');
   if (!dir.existsSync()) {
     dir.createSync();
@@ -452,8 +457,7 @@ void _writeToFile(String text, String filename) {
   if (!file.existsSync()) {
     file.createSync();
   }
-  file.openSync();
-  file.writeAsString(text);
+  file.writeAsString(text, mode: append ? FileMode.APPEND : FileMode.WRITE);
 }
 
 /**

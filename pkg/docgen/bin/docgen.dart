@@ -22,7 +22,8 @@ void main() {
       outputToYaml: !results['json'],  
       includePrivate: results['include-private'], 
       includeSdk: results['parse-sdk'] || results['include-sdk'], 
-      parseSdk: results['parse-sdk']);
+      parseSdk: results['parse-sdk'],
+      append: results['append'] && new Directory('docs').existsSync());
 }
 
 /**
@@ -57,6 +58,9 @@ ArgParser _initArgParser() {
       defaultsTo: false, negatable: false);
   parser.addOption('package-root', 
       help: "Sets the package root of the library being analyzed.");
+  parser.addFlag('append', 
+      help: 'Append to the docs folder, library_list.txt and index.txt', 
+      defaultsTo: false, negatable: false);
   
   return parser;
 }
