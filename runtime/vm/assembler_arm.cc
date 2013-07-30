@@ -305,18 +305,6 @@ void Assembler::EmitShiftRegister(Condition cond,
 }
 
 
-void Assembler::EmitBranch(Condition cond, Label* label, bool link) {
-  if (label->IsBound()) {
-    EmitType5(cond, label->Position() - buffer_.Size(), link);
-  } else {
-    int position = buffer_.Size();
-    // Use the offset field of the branch instruction for linking the sites.
-    EmitType5(cond, label->position_, link);
-    label->LinkTo(position);
-  }
-}
-
-
 void Assembler::and_(Register rd, Register rn, ShifterOperand so,
                      Condition cond) {
   EmitType01(cond, so.type(), AND, 0, rn, rd, so);
@@ -1725,15 +1713,172 @@ void Assembler::CompareClassId(Register object,
 }
 
 
+static bool CanEncodeBranchOffset(int32_t offset) {
+  offset -= Instr::kPCReadOffset;
+  ASSERT(Utils::IsAligned(offset, 4));
+  return Utils::IsInt(Utils::CountOneBits(kBranchOffsetMask), offset);
+}
+
+
+int32_t Assembler::EncodeBranchOffset(int32_t offset, int32_t inst) {
+  // The offset is off by 8 due to the way the ARM CPUs read PC.
+  offset -= Instr::kPCReadOffset;
+  ASSERT(Utils::IsAligned(offset, 4));
+  ASSERT(Utils::IsInt(Utils::CountOneBits(kBranchOffsetMask), offset));
+
+  // Properly preserve only the bits supported in the instruction.
+  offset >>= 2;
+  offset &= kBranchOffsetMask;
+  return (inst & ~kBranchOffsetMask) | offset;
+}
+
+
+int Assembler::DecodeBranchOffset(int32_t inst) {
+  // Sign-extend, left-shift by 2, then add 8.
+  return ((((inst & kBranchOffsetMask) << 8) >> 6) + Instr::kPCReadOffset);
+}
+
+
+static int32_t DecodeLoadImmediate(int32_t movt, int32_t movw) {
+  int32_t offset = 0;
+  offset |= (movt & 0xf0000) << 12;
+  offset |= (movt & 0xfff) << 16;
+  offset |= (movw & 0xf0000) >> 4;
+  offset |= movw & 0xfff;
+  return offset;
+}
+
+
+class PatchFarBranch : public AssemblerFixup {
+ public:
+  PatchFarBranch() {}
+
+  void Process(const MemoryRegion& region, int position) {
+    const int32_t movw = region.Load<int32_t>(position);
+    const int32_t movt = region.Load<int32_t>(position + Instr::kInstrSize);
+    const int32_t bx = region.Load<int32_t>(position + 2 * Instr::kInstrSize);
+
+    if (((movt & 0xfff0f000) == 0xe340c000) &&  // movt IP, high
+        ((movw & 0xfff0f000) == 0xe300c000)) {   // movw IP, low
+      const int32_t offset = DecodeLoadImmediate(movt, movw);
+      const int32_t dest = region.start() + offset;
+      const uint16_t dest_high = Utils::High16Bits(dest);
+      const uint16_t dest_low = Utils::Low16Bits(dest);
+      const int32_t patched_movt =
+          0xe340c000 | ((dest_high >> 12) << 16) | (dest_high & 0xfff);
+      const int32_t patched_movw =
+          0xe300c000 | ((dest_low >> 12) << 16) | (dest_low & 0xfff);
+
+      region.Store<int32_t>(position, patched_movw);
+      region.Store<int32_t>(position + Instr::kInstrSize, patched_movt);
+      return;
+    }
+
+    // If the offset loading instructions aren't there, we must have replaced
+    // the far branch with a near one, and so these instructions should be NOPs.
+    ASSERT((movt == Instr::kNopInstruction) &&
+           (bx == Instr::kNopInstruction));
+  }
+};
+
+
+void Assembler::EmitFarBranch(Condition cond, int32_t offset, bool link) {
+  const uint16_t low = Utils::Low16Bits(offset);
+  const uint16_t high = Utils::High16Bits(offset);
+  buffer_.EmitFixup(new PatchFarBranch());
+  movw(IP, low);
+  movt(IP, high);
+  if (link) {
+    blx(IP, cond);
+  } else {
+    bx(IP, cond);
+  }
+}
+
+
+void Assembler::EmitBranch(Condition cond, Label* label, bool link) {
+  if (label->IsBound()) {
+    const int32_t dest = label->Position() - buffer_.Size();
+    if (FLAG_use_far_branches && !CanEncodeBranchOffset(dest)) {
+      EmitFarBranch(cond, label->Position(), link);
+    } else {
+      EmitType5(cond, dest, link);
+    }
+  } else {
+    const int position = buffer_.Size();
+    if (FLAG_use_far_branches) {
+      const int32_t dest = label->position_;
+      EmitFarBranch(cond, dest, link);
+    } else {
+      // Use the offset field of the branch instruction for linking the sites.
+      EmitType5(cond, label->position_, link);
+    }
+    label->LinkTo(position);
+  }
+}
+
+
 void Assembler::Bind(Label* label) {
   ASSERT(!label->IsBound());
   int bound_pc = buffer_.Size();
   while (label->IsLinked()) {
-    int32_t position = label->Position();
-    int32_t next = buffer_.Load<int32_t>(position);
-    int32_t encoded = Assembler::EncodeBranchOffset(bound_pc - position, next);
-    buffer_.Store<int32_t>(position, encoded);
-    label->position_ = Assembler::DecodeBranchOffset(next);
+    const int32_t position = label->Position();
+    int32_t dest = bound_pc - position;
+    if (FLAG_use_far_branches && !CanEncodeBranchOffset(dest)) {
+      // Far branches are enabled and we can't encode the branch offset.
+
+      // Grab instructions that load the offset.
+      const int32_t movw =
+          buffer_.Load<int32_t>(position);
+      const int32_t movt =
+          buffer_.Load<int32_t>(position + 1 * Instr::kInstrSize);
+
+      // Change from relative to the branch to relative to the assembler buffer.
+      dest = buffer_.Size();
+      const uint16_t dest_high = Utils::High16Bits(dest);
+      const uint16_t dest_low = Utils::Low16Bits(dest);
+      const int32_t patched_movt =
+          0xe340c000 | ((dest_high >> 12) << 16) | (dest_high & 0xfff);
+      const int32_t patched_movw =
+          0xe300c000 | ((dest_low >> 12) << 16) | (dest_low & 0xfff);
+
+      // Rewrite the instructions.
+      buffer_.Store<int32_t>(position, patched_movw);
+      buffer_.Store<int32_t>(position + 1 * Instr::kInstrSize, patched_movt);
+      label->position_ = DecodeLoadImmediate(movt, movw);
+    } else if (FLAG_use_far_branches && CanEncodeBranchOffset(dest)) {
+      // Far branches are enabled, but we can encode the branch offset.
+
+      // Grab instructions that load the offset, and the branch.
+      const int32_t movw =
+          buffer_.Load<int32_t>(position);
+      const int32_t movt =
+          buffer_.Load<int32_t>(position + 1 * Instr::kInstrSize);
+      const int32_t branch =
+          buffer_.Load<int32_t>(position + 2 * Instr::kInstrSize);
+
+      // Grab the branch condition, and encode the link bit.
+      const int32_t cond = branch & 0xf0000000;
+      const int32_t link = (branch & 0x20) << 19;
+
+      // Encode the branch and the offset.
+      const int32_t new_branch = cond | link | 0x0a000000;
+      const int32_t encoded = EncodeBranchOffset(dest, new_branch);
+
+      // Write the encoded branch instruction followed by two nops.
+      buffer_.Store<int32_t>(position, encoded);
+      buffer_.Store<int32_t>(position + 1 * Instr::kInstrSize,
+          Instr::kNopInstruction);
+      buffer_.Store<int32_t>(position + 2 * Instr::kInstrSize,
+          Instr::kNopInstruction);
+
+      label->position_ = DecodeLoadImmediate(movt, movw);
+    } else {
+      int32_t next = buffer_.Load<int32_t>(position);
+      int32_t encoded = Assembler::EncodeBranchOffset(dest, next);
+      buffer_.Store<int32_t>(position, encoded);
+      label->position_ = Assembler::DecodeBranchOffset(next);
+    }
   }
   label->BindTo(bound_pc);
 }
@@ -2415,10 +2560,10 @@ void Assembler::EnterOsrFrame(intptr_t extra_size) {
   const intptr_t offset = CodeSize();
 
   Comment("EnterOsrFrame");
-  mov(TMP, ShifterOperand(PC));
+  mov(IP, ShifterOperand(PC));
 
-  AddImmediate(TMP, -offset);
-  str(TMP, Address(FP, kPcMarkerSlotFromFp * kWordSize));
+  AddImmediate(IP, -offset);
+  str(IP, Address(FP, kPcMarkerSlotFromFp * kWordSize));
 
   // Setup pool pointer for this dart function.
   LoadPoolPointer();
@@ -2473,16 +2618,16 @@ void Assembler::TryAllocate(const Class& cls,
     AddImmediate(instance_reg, instance_size);
 
     // instance_reg: potential next object start.
-    LoadImmediate(TMP, heap->EndAddress());
-    ldr(TMP, Address(TMP, 0));
-    cmp(TMP, ShifterOperand(instance_reg));
+    LoadImmediate(IP, heap->EndAddress());
+    ldr(IP, Address(IP, 0));
+    cmp(IP, ShifterOperand(instance_reg));
     // fail if heap end unsigned less than or equal to instance_reg.
     b(failure, LS);
 
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
-    LoadImmediate(TMP, heap->TopAddress());
-    str(instance_reg, Address(TMP, 0));
+    LoadImmediate(IP, heap->TopAddress());
+    str(instance_reg, Address(IP, 0));
 
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(instance_reg, -instance_size + kHeapObjectTag);
@@ -2491,8 +2636,8 @@ void Assembler::TryAllocate(const Class& cls,
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
-    LoadImmediate(TMP, tags);
-    str(TMP, FieldAddress(instance_reg, Object::tags_offset()));
+    LoadImmediate(IP, tags);
+    str(IP, FieldAddress(instance_reg, Object::tags_offset()));
   } else {
     b(failure);
   }
@@ -2515,25 +2660,6 @@ void Assembler::Stop(const char* message) {
   Emit(reinterpret_cast<int32_t>(message));
   Bind(&stop);
   svc(kStopMessageSvcCode);
-}
-
-
-int32_t Assembler::EncodeBranchOffset(int32_t offset, int32_t inst) {
-  // The offset is off by 8 due to the way the ARM CPUs read PC.
-  offset -= 8;
-  ASSERT(Utils::IsAligned(offset, 4));
-  ASSERT(Utils::IsInt(Utils::CountOneBits(kBranchOffsetMask), offset));
-
-  // Properly preserve only the bits supported in the instruction.
-  offset >>= 2;
-  offset &= kBranchOffsetMask;
-  return (inst & ~kBranchOffsetMask) | offset;
-}
-
-
-int Assembler::DecodeBranchOffset(int32_t inst) {
-  // Sign-extend, left-shift by 2, then add 8.
-  return ((((inst & kBranchOffsetMask) << 8) >> 6) + 8);
 }
 
 

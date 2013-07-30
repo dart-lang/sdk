@@ -421,7 +421,11 @@ void SimulatorDebugger::Debug() {
   while (!done) {
     if (last_pc != sim_->get_pc()) {
       last_pc = sim_->get_pc();
-      Disassembler::Disassemble(last_pc, last_pc + Instr::kInstrSize);
+      if (Simulator::IsIllegalAddress(last_pc)) {
+        OS::Print("pc is out of bounds: 0x%"Px"\n", last_pc);
+      } else {
+        Disassembler::Disassemble(last_pc, last_pc + Instr::kInstrSize);
+      }
     }
     char* line = ReadLine("sim> ");
     if (line == NULL) {

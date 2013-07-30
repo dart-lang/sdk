@@ -22,8 +22,6 @@
 //   The MIPS32® Instruction Set" in short "VolII-A"
 namespace dart {
 
-DECLARE_FLAG(bool, use_far_branches);
-
 // Forward declarations.
 class RuntimeEntry;
 

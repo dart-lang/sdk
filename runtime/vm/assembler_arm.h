@@ -843,6 +843,7 @@ class Assembler : public ValueObject {
   void EmitSIMDddd(int32_t opcode, OperandSize sz,
                    DRegister dd, DRegister dn, DRegister dm);
 
+  void EmitFarBranch(Condition cond, int32_t offset, bool link);
   void EmitBranch(Condition cond, Label* label, bool link);
   static int32_t EncodeBranchOffset(int32_t offset, int32_t inst);
   static int DecodeBranchOffset(int32_t inst);
