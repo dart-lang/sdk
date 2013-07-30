@@ -199,39 +199,6 @@ class AnchorElement extends _HTMLElement native "HTMLAnchorElement" {
 
 
 @DocsEditable()
-@DomName('ANGLEInstancedArrays')
-@Experimental() // untriaged
-class AngleInstancedArrays extends Interceptor native "ANGLEInstancedArrays" {
-
-  @DomName('ANGLEInstancedArrays.VERTEX_ATTRIB_ARRAY_DIVISOR_ANGLE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int VERTEX_ATTRIB_ARRAY_DIVISOR_ANGLE = 0x88FE;
-
-  @JSName('drawArraysInstancedANGLE')
-  @DomName('ANGLEInstancedArrays.drawArraysInstancedANGLE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void drawArraysInstancedAngle(int mode, int first, int count, int primcount) native;
-
-  @JSName('drawElementsInstancedANGLE')
-  @DomName('ANGLEInstancedArrays.drawElementsInstancedANGLE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void drawElementsInstancedAngle(int mode, int count, int type, int offset, int primcount) native;
-
-  @JSName('vertexAttribDivisorANGLE')
-  @DomName('ANGLEInstancedArrays.vertexAttribDivisorANGLE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void vertexAttribDivisorAngle(int index, int divisor) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
 @DomName('WebKitAnimationEvent')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
