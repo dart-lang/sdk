@@ -6,10 +6,10 @@ library mutation_observer_test;
 
 import 'dart:html';
 import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
+import 'package:unittest/html_config.dart';
 
 main() {
-  useHtmlIndividualConfiguration();
+  useHtmlConfiguration();
 
   // Load the MutationObserver polyfill.
   HttpRequest.getString('/root_dart/pkg/mutation_observer/lib/'

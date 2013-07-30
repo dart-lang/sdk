@@ -10,6 +10,7 @@
 // https://github.com/Polymer/CustomElements/blob/master/src/sidetable.js
 // I also renamed JsMutationObserver -> MutationObserver to correctly interact
 // with dart2js interceptors.
+
 if (!window.MutationObserver && !window.WebKitMutationObserver) {
 
 (function(global) {
@@ -183,9 +184,6 @@ if (!window.MutationObserver && !window.WebKitMutationObserver) {
   }
 
   MutationObserver.prototype = {
-    // TODO(jmesserly): why is this necessary?
-    get constructor() { return MutationObserver; },
-
     observe: function(target, options) {
       target = wrapIfNeeded(target);
 
@@ -277,6 +275,13 @@ if (!window.MutationObserver && !window.WebKitMutationObserver) {
     this.attributeNamespace = null;
     this.oldValue = null;
   }
+
+  // TODO(jmesserly): this fixes the interceptor dispatch on IE.
+  // Not sure why this is necessary.
+  MutationObserver.prototype.constructor = MutationObserver;
+  MutationObserver.name = 'MutationObserver';
+  MutationRecord.prototype.constructor = MutationRecord;
+  MutationRecord.name = 'MutationRecord';
 
   function copyMutationRecord(original) {
     var record = new MutationRecord(original.type, original.target);
