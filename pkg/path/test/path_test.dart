@@ -34,4 +34,19 @@ main() {
       expect(builder.style, path.Style.windows);
     });
   });
+
+  test('posix is a default Builder for the POSIX style', () {
+    expect(path.posix.style, path.Style.posix);
+    expect(path.posix.root, ".");
+  });
+
+  test('windows is a default Builder for the Windows style', () {
+    expect(path.windows.style, path.Style.windows);
+    expect(path.windows.root, ".");
+  });
+
+  test('url is a default Builder for the URL style', () {
+    expect(path.url.style, path.Style.url);
+    expect(path.url.root, ".");
+  });
 }

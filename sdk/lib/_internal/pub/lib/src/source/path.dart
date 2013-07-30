@@ -52,6 +52,13 @@ class PathSource extends Source {
     });
   }
 
+  Future<String> getDirectory(PackageId id) {
+    return newFuture(() {
+      _validatePath(id.name, id.description);
+      return id.description["path"];
+    });
+  }
+
   /// Parses a path dependency. This takes in a path string and returns a map.
   /// The "path" key will be the original path but resolved relative to the
   /// containing path. The "relative" key will be `true` if the original path

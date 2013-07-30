@@ -21,14 +21,6 @@ abstract class PackageProvider {
   /// dependencies.
   Iterable<String> get packages;
 
-  // TODO(rnystrom): Make this async.
-  /// The paths of all available asset files in [package], relative to the
-  /// package's root directory.
-  ///
-  /// You can pass [within], which should be the relative path to a directory
-  /// within the package, to only return the files within that subdirectory.
-  List<AssetId> listAssets(String package, {String within});
-
   /// Returns the list of transformer phases that are applicable to [package].
   ///
   /// The phases will be run in sequence, with the outputs of one pipelined into

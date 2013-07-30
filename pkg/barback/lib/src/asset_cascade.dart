@@ -7,6 +7,8 @@ library barback.asset_cascade;
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:stack_trace/stack_trace.dart';
+
 import 'asset.dart';
 import 'asset_id.dart';
 import 'asset_set.dart';

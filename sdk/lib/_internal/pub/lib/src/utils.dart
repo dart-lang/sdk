@@ -72,6 +72,14 @@ class FutureGroup<T> {
   Future<List> get future => _completer.future;
 }
 
+/// Returns [posix] on POSIX machines and [windows] on Windows.
+///
+/// If [windows] is omitted, returns `""` on Windows.
+String getPlatformString(String posix, [String windows]) {
+  if (windows == null) windows = "";
+  return Platform.operatingSystem == "windows" ? windows : posix;
+}
+
 /// Like [new Future], but avoids around issue 11911 by using [new Future.value]
 /// under the covers.
 Future newFuture(callback()) => new Future.value().then((_) => callback());

@@ -55,10 +55,17 @@ import 'dart:mirrors';
 /// functional interface and not require users to create one.
 final _builder = new Builder();
 
-/**
- * Inserts [length] elements in front of the [list] and fills them with the
- * [fillValue].
- */
+/// A default builder for manipulating POSIX paths.
+final posix = new Builder(style: Style.posix);
+
+/// A default builder for manipulating Windows paths.
+final windows = new Builder(style: Style.windows);
+
+/// A default builder for manipulating URLs.
+final url = new Builder(style: Style.url);
+
+/// Inserts [length] elements in front of the [list] and fills them with the
+/// [fillValue].
 void _growListFront(List list, int length, fillValue) =>
   list.insertAll(0, new List.filled(length, fillValue));
 
@@ -376,25 +383,22 @@ class Builder {
   /// Creates a new path builder for the given style and root directory.
   ///
   /// If [style] is omitted, it uses the host operating system's path style. If
-  /// [root] is omitted, it defaults to the current working directory. If [root]
-  /// is relative, it is considered relative to the current working directory.
+  /// only [root] is omitted, it defaults ".". If *both* [style] and [root] are
+  /// omitted, [root] defaults to the current working directory.
   ///
   /// On the browser, the path style is [Style.url]. In Dartium, [root] defaults
   /// to the current URL. When using dart2js, it currently defaults to `.` due
   /// to technical constraints.
   factory Builder({Style style, String root}) {
-    if (style == null) {
-      if (_io == null) {
-        style = Style.url;
-      } else if (_io.classes[const Symbol('Platform')]
-          .getField(const Symbol('operatingSystem')).reflectee == 'windows') {
-        style = Style.windows;
+    if (root == null) {
+      if (style == null) {
+        root = current;
       } else {
-        style = Style.posix;
+        root = ".";
       }
     }
 
-    if (root == null) root = current;
+    if (style == null) style = Style.platform;
 
     return new Builder._(style, root);
   }
@@ -854,6 +858,24 @@ abstract class Style {
   /// with a protocol and optional hostname (e.g. `http://dartlang.org`,
   /// `file://`) or with "/".
   static final url = new _UrlStyle();
+
+  /// The style of the host platform.
+  ///
+  /// When running on the command line, this will be [windows] or [posix] based
+  /// on the host operating system. On a browser, this will be [url].
+  static final platform = _getPlatformStyle();
+
+  /// Gets the type of the host platform.
+  static Style _getPlatformStyle() {
+    if (_io == null) return Style.url;
+
+    if (_io.classes[const Symbol('Platform')]
+        .getField(const Symbol('operatingSystem')).reflectee == 'windows') {
+      return Style.windows;
+    }
+
+    return Style.posix;
+  }
 
   /// The name of this path style. Will be "posix" or "windows".
   String get name;

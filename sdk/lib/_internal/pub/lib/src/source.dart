@@ -184,6 +184,14 @@ abstract class Source {
     return false;
   }
 
+  /// Returns the directory where this package has been installed. If this is
+  /// a cached source, it will be in the system cache. Otherwise, it will
+  /// depend on the source.
+  Future<String> getDirectory(PackageId id) {
+    if (shouldCache) return systemCacheDirectory(id);
+    throw new UnimplementedError("Source $name must implement this.");
+  }
+
   /// Returns the directory in the system cache that the package identified by
   /// [id] should be installed to. This should return a path to a subdirectory
   /// of [systemCacheRoot].
