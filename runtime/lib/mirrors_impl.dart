@@ -125,12 +125,13 @@ class _LocalMirrorSystemImpl extends MirrorSystem {
 
   final Map<String, FunctionTypeMirror> _functionTypes;
   FunctionTypeMirror _lookupFunctionTypeMirror(
+      reflectee,
       TypeMirror returnType,
       List<ParameterMirror> parameters) {
     var sigString = _makeSignatureString(returnType, parameters);
     var mirror = _functionTypes[sigString];
     if (mirror == null) {
-      mirror = new _LocalFunctionTypeMirrorImpl(null,
+      mirror = new _LocalFunctionTypeMirrorImpl(reflectee,
                                                 sigString,
                                                 returnType,
                                                 parameters);
@@ -405,11 +406,6 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
     implements ClassMirror {
   _LocalClassMirrorImpl(reflectee,
                         String simpleName,
-                        this.isClass,
-                        this._owner,
-                        this._superclass,
-                        this._superinterfaces,
-                        this._defaultFactory,
                         Map<String, Mirror> typeVariables)
       : this._simpleName = _s(simpleName),
         this.typeVariables = _convertStringToSymbolMap(typeVariables),
@@ -438,9 +434,6 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
     if (_owner == null) {
       _owner = _library(_reflectee);
     }
-    if (_owner is! Mirror) {
-      _owner = _owner.resolve(mirrors);
-    }
     return _owner;
   }
 
@@ -453,7 +446,10 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
         'ClassMirror.location is not implemented');
   }
 
-  final bool isClass;
+  // TODO(rmacnak): Remove these left-overs from the days of separate interfaces
+  // once we send out a breaking change.
+  bool get isClass => true;
+  ClassMirror get defaultFactory => null;
 
   var _superclass;
   ClassMirror get superclass {
@@ -473,23 +469,11 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
 
   var _superinterfaces;
   List<ClassMirror> get superinterfaces {
-    if (_superinterfaces.length > 0 &&
-        _superinterfaces[0] is! Mirror) {
-      List<ClassMirror> resolved = new List<ClassMirror>();
-      for (int i = 0; i < _superinterfaces.length; i++) {
-        resolved.add(_superinterfaces[i].resolve(mirrors));
-      }
-      _superinterfaces = resolved;
+    if (_superinterfaces == null) {
+      _superinterfaces = _interfaces(_reflectee)
+          .map((i) => reflectClass(i)).toList(growable:false);
     }
     return _superinterfaces;
-  }
-
-  var _defaultFactory;
-  ClassMirror get defaultFactory {
-    if (_defaultFactory != null && _defaultFactory is! Mirror) {
-      _defaultFactory = _defaultFactory.resolve(mirrors);
-    }
-    return _defaultFactory;
   }
 
   Map<Symbol, Mirror> _members;
@@ -569,8 +553,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   }
 
   String toString() {
-    String prettyName = isClass ? 'ClassMirror' : 'TypeMirror';
-    return "$prettyName on '${_n(simpleName)}'";
+    return "ClassMirror on '${_n(simpleName)}'";
   }
 
   InstanceMirror newInstance(Symbol constructorName,
@@ -618,6 +601,9 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   static _supertype(reflectee)
       native "ClassMirror_supertype";
 
+  static _interfaces(reflectee)
+      native "ClassMirror_interfaces";
+
   _computeMembers(reflectee)
       native "ClassMirror_members";
   
@@ -638,13 +624,15 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
 }
 
 class _LazyFunctionTypeMirror {
-  _LazyFunctionTypeMirror(this.returnType, this.parameters) {}
+  _LazyFunctionTypeMirror(this.reflectee, this.returnType, this.parameters) {}
 
   ClassMirror resolve(MirrorSystem mirrors) {
-    return mirrors._lookupFunctionTypeMirror(returnType.resolve(mirrors),
+    return mirrors._lookupFunctionTypeMirror(reflectee,
+                                             returnType.resolve(mirrors),
                                              parameters);
   }
 
+  final reflectee;
   final returnType;
   final List<ParameterMirror> parameters;
 }
@@ -657,11 +645,6 @@ class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
                                this.parameters)
       : super(reflectee,
               simpleName,
-              true,
-              null,
-              new _LazyTypeMirror('dart:core', 'Object'),
-              [ new _LazyTypeMirror('dart:core', 'Function') ],
-              null,
               const {});
 
   Map<Symbol, Mirror> get members => new Map<Symbol,Mirror>();

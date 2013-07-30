@@ -156,6 +156,7 @@ static Dart_Handle CreateLazyMirror(Dart_Handle target) {
       }
 
       Dart_Handle args[] = {
+        CreateMirrorReference(target),
         CreateLazyMirror(return_type),
         CreateParameterMirrorListUsingApi(sig),
       };
@@ -189,36 +190,6 @@ static Dart_Handle CreateLazyMirror(Dart_Handle target) {
 
   UNREACHABLE();
   return Dart_Null();
-}
-
-
-static Dart_Handle CreateImplementsList(Dart_Handle intf) {
-  intptr_t len = 0;
-  Dart_Handle result = Dart_ClassGetInterfaceCount(intf, &len);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-
-  Dart_Handle mirror_list = Dart_NewList(len);
-  if (Dart_IsError(mirror_list)) {
-    return mirror_list;
-  }
-
-  for (intptr_t i = 0; i < len; i++) {
-    Dart_Handle interface = Dart_ClassGetInterfaceAt(intf, i);
-    if (Dart_IsError(interface)) {
-      return interface;
-    }
-    Dart_Handle mirror = CreateLazyMirror(interface);
-    if (Dart_IsError(mirror)) {
-      return mirror;
-    }
-    Dart_Handle result = Dart_ListSetAt(mirror_list, i, mirror);
-    if (Dart_IsError(result)) {
-      return result;
-    }
-  }
-  return mirror_list;
 }
 
 
@@ -373,10 +344,6 @@ static Dart_Handle CreateClassMirrorUsingApi(Dart_Handle intf,
     return type;
   }
 
-  Dart_Handle super_class = Dart_Null();
-  // TODO(turnidge): Simplify code, now that default classes have been removed.
-  Dart_Handle default_class = Dart_Null();
-
   Dart_Handle intf_mirror = CreateLazyMirror(intf);
   if (Dart_IsError(intf_mirror)) {
     return intf_mirror;
@@ -389,11 +356,6 @@ static Dart_Handle CreateClassMirrorUsingApi(Dart_Handle intf,
   Dart_Handle args[] = {
     CreateMirrorReference(intf),
     Dart_Null(),  // "name"
-    Dart_NewBoolean(Dart_IsClass(intf)),
-    lib_mirror,
-    super_class,
-    CreateImplementsList(intf),
-    CreateLazyMirror(default_class),
     type_var_map,
   };
   Dart_Handle mirror = Dart_New(type, Dart_Null(), ARRAY_SIZE(args), args);
@@ -735,6 +697,20 @@ DEFINE_NATIVE_ENTRY(ClassMirror_supertype, 1) {
   const Class& klass = Class::Handle(ref.GetClassReferent());
   return klass.super_type();
 }
+
+
+DEFINE_NATIVE_ENTRY(ClassMirror_interfaces, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
+  const Class& klass = Class::Handle(ref.GetClassReferent());
+
+  const Error& error = Error::Handle(klass.EnsureIsFinalized(isolate));
+  if (!error.IsNull()) {
+    ThrowInvokeError(error);
+  }
+
+  return klass.interfaces();
+}
+
 
 DEFINE_NATIVE_ENTRY(ClassMirror_members, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance,

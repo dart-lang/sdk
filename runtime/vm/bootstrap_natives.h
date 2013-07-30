@@ -250,6 +250,7 @@ namespace dart {
   V(ClassMirror_name, 1)                                                       \
   V(ClassMirror_library, 1)                                                    \
   V(ClassMirror_supertype, 1)                                                  \
+  V(ClassMirror_interfaces, 1)                                                 \
   V(ClassMirror_members, 2)                                                    \
   V(ClassMirror_constructors, 2)                                               \
   V(LibraryMirror_members, 2)                                                  \
