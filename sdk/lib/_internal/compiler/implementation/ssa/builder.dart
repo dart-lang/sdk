@@ -2770,21 +2770,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     bool isNot = node.isIsNotCheck;
     DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
     type = type.unalias(compiler);
-    if (type.containsAmbiguousTypes) {
-      String reasons = Types.fetchReasonsFromAmbiguousType(type);
-      if (compiler.enableTypeAssertions) {
-        generateMalformedSubtypeError(node, expression, type, reasons);
-      } else {
-        generateRuntimeError(node, '$type is ambiguous: $reasons');
-      }
-    } else {
-      HInstruction instruction = buildIsNode(node, type, expression);
-      if (isNot) {
-        add(instruction);
-        instruction = new HNot(instruction);
-      }
-      push(instruction);
+    HInstruction instruction = buildIsNode(node, type, expression);
+    if (isNot) {
+      add(instruction);
+      instruction = new HNot(instruction);
     }
+    push(instruction);
   }
 
   HLiteralList buildTypeVariableList(ClassElement contextClass) {
@@ -3409,11 +3400,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
-  /**
-   * Documentation wanted -- johnniwinther
-   *
-   * Invariant: [argument] must not be malformed in checked mode.
-   */
   HInstruction analyzeTypeArgument(DartType argument) {
     if (argument.treatAsDynamic) {
       // Represent [dynamic] as [null].
@@ -3464,11 +3450,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     pop();
   }
 
-  /**
-   * Documentation wanted -- johnniwinther
-   *
-   * Invariant: [type] must not be malformed in checked mode.
-   */
   handleNewSend(NewExpression node, InterfaceType type) {
     Send send = node.send;
     bool isListConstructor = false;
@@ -3745,14 +3726,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                               existingArguments: existingArguments);
   }
 
-  void generateMalformedSubtypeError(Node node, HInstruction value,
-                                     DartType type, String reasons) {
-    HInstruction typeString = addConstantString(node, type.toString());
-    HInstruction reasonsString = addConstantString(node, reasons);
-    Element helper = backend.getThrowMalformedSubtypeError();
-    pushInvokeStatic(node, helper, [value, typeString, reasonsString]);
-  }
-
   visitNewExpression(NewExpression node) {
     Element element = elements[node.send];
     final bool isSymbolConstructor = element == compiler.symbolConstructor;
@@ -3782,16 +3755,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
     } else {
       DartType type = elements.getType(node);
-      if (compiler.enableTypeAssertions && type.containsAmbiguousTypes) {
-        String reasons = Types.fetchReasonsFromAmbiguousType(type);
-        // TODO(johnniwinther): Change to resemble type errors from bounds check
-        // on type arguments.
-        generateRuntimeError(node, '$type is malformed: $reasons');
-      } else {
-        // TODO(karlklose): move this type registration to the codegen.
-        compiler.codegenWorld.instantiatedTypes.add(type);
-        handleNewSend(node, type);
-      }
+      // TODO(karlklose): move this type registration to the codegen.
+      compiler.codegenWorld.instantiatedTypes.add(type);
+      handleNewSend(node, type);
     }
   }
 
@@ -4952,21 +4918,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       void visitThen() {
         CatchBlock catchBlock = link.head;
         link = link.tail;
-
-        if (compiler.enableTypeAssertions) {
-          // In checked mode: throw a type error if the on-catch type is
-          // malformed.
-          if (catchBlock.onKeyword != null) {
-            DartType type = elements.getType(catchBlock.type);
-            if (type != null && type.containsAmbiguousTypes) {
-              String reasons = Types.fetchReasonsFromAmbiguousType(type);
-              generateMalformedSubtypeError(node,
-                  unwrappedException, type, reasons);
-              pop();
-              return;
-            }
-          }
-        }
         if (catchBlock.exception != null) {
           localsHandler.updateLocal(elements[catchBlock.exception],
                                     unwrappedException);

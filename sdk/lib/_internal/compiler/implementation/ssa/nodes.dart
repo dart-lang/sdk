@@ -1117,9 +1117,6 @@ abstract class HInstruction implements Spannable {
     // available.
     assert(type.kind != TypeKind.TYPE_VARIABLE);
     assert(type.isRaw || type.kind == TypeKind.FUNCTION);
-    if (type.containsAmbiguousTypes) {
-      return new HTypeConversion(type, kind, HType.UNKNOWN, this);
-    }
     if (type.treatAsDynamic) return this;
     if (identical(type.element, compiler.objectClass)) return this;
     if (type.kind != TypeKind.INTERFACE) {

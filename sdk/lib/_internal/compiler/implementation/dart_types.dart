@@ -86,21 +86,6 @@ abstract class DartType {
    * by the user. 
    */
   DartType get userProvidedBadType => null;
-  
-  /// Returns [:true:] if this type contains an ambiguous type.
-  bool get containsAmbiguousTypes {
-    return !forEachAmbiguousType((_) => false);
-  }
-  
-  /**
-   * Calls [f] with each [AmbiguousType] within this type.
-   *
-   * If [f] returns [: false :], the traversal stops prematurely.
-   *
-   * [forEachAmbiguousType] returns [: false :] if the traversal was stopped
-   * prematurely.
-   */
-  bool forEachAmbiguousType(bool f(AmbiguousType type)) => true;
 
   /// Is [: true :] if this type has no explict type arguments.
   bool get isRaw => true;
@@ -364,14 +349,6 @@ class MalformedType extends DartType {
   }
 }
 
-class AmbiguousType extends MalformedType {
-  AmbiguousType(ErroneousElement element, 
-                [Link<DartType> typeArguments = null]) 
-      : super(element, null, typeArguments);
-
-  bool forEachAmbiguousType(bool f(AmbiguousType type)) => f(this);
-}
-
 abstract class GenericType extends DartType {
   final Link<DartType> typeArguments;
 
@@ -399,15 +376,6 @@ abstract class GenericType extends DartType {
       return _createType(newTypeArguments);
     }
     return this;
-  }
-
-  bool forEachAmbiguousType(bool f(AmbiguousType type)) {
-    for (DartType typeArgument in typeArguments) {
-      if (!typeArgument.forEachAmbiguousType(f)) {
-        return false;
-      }
-    }
-    return true;
   }
 
   TypeVariableType get typeVariableOccurrence {
@@ -684,28 +652,6 @@ class FunctionType extends DartType {
                               newNamedParameterTypes);
     }
     return this;
-  }
-
-  bool forEachAmbiguousType(bool f(AmbiguousType type)) {
-    if (!returnType.forEachAmbiguousType(f)) {
-      return false;
-    }
-    for (DartType parameterType in parameterTypes) {
-      if (!parameterType.forEachAmbiguousType(f)) {
-        return false;
-      }
-    }
-    for (DartType parameterType in optionalParameterTypes) {
-      if (!parameterType.forEachAmbiguousType(f)) {
-        return false;
-      }
-    }
-    for (DartType parameterType in namedParameterTypes) {
-      if (!parameterType.forEachAmbiguousType(f)) {
-        return false;
-      }
-    }
-    return true;
   }
 
   DartType unalias(Compiler compiler) => this;
@@ -1236,23 +1182,6 @@ class Types {
       return builder.toLink();
     }
     return types;
-  }
-
-  /**
-   * Combine error messages in a type containing ambiguous types to a single 
-   * message string.
-   */
-  static String fetchReasonsFromAmbiguousType(DartType type) {
-    // TODO(johnniwinther): Figure out how to produce good error message in face
-    // of multiple errors, and how to ensure non-localized error messages.
-    var reasons = new List<String>();
-    type.forEachAmbiguousType((AmbiguousType ambiguousType) {
-      ErroneousElement error = ambiguousType.element;
-      Message message = error.messageKind.message(error.messageArguments);
-      reasons.add(message.toString());
-      return true;
-    });
-    return reasons.join(', ');
   }
 
   /**

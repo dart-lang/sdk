@@ -1428,8 +1428,7 @@ class TypeResolver {
   }
 
   DartType resolveTypeAnnotation(MappingVisitor visitor, TypeAnnotation node,
-                                 {bool malformedIsError: false,
-                                  bool ambiguousIsError: false}) {
+                                 {bool malformedIsError: false}) {
     Identifier typeName;
     SourceString prefixName;
     Send send = node.typeName.asSend();
@@ -1446,10 +1445,8 @@ class TypeResolver {
 
     DartType reportFailureAndCreateType(DualKind messageKind,
                                         Map messageArguments,
-                                        {DartType userProvidedBadType,
-                                         bool isError: false,
-                                         bool isAmbiguous: false}) {
-      if (isError) {
+                                        {DartType userProvidedBadType}) {
+      if (malformedIsError) {
         visitor.error(node, messageKind.error, messageArguments);
       } else {
         visitor.warning(node, messageKind.warning, messageArguments);
@@ -1459,9 +1456,7 @@ class TypeResolver {
           visitor.enclosingElement);
       var arguments = new LinkBuilder<DartType>();
       resolveTypeArguments(visitor, node, null, arguments);
-      return isAmbiguous
-          ? new AmbiguousType(erroneousElement, arguments.toLink())
-          : new MalformedType(erroneousElement,
+      return new MalformedType(erroneousElement,
               userProvidedBadType, arguments.toLink());
     }
 
@@ -1480,18 +1475,15 @@ class TypeResolver {
 
     if (element == null) {
       type = reportFailureAndCreateType(
-          MessageKind.CANNOT_RESOLVE_TYPE, {'typeName': node.typeName},
-          isError: malformedIsError);
+          MessageKind.CANNOT_RESOLVE_TYPE, {'typeName': node.typeName});
     } else if (element.isAmbiguous()) {
       AmbiguousElement ambiguous = element;
       type = reportFailureAndCreateType(
-          ambiguous.messageKind, ambiguous.messageArguments,
-          isError: ambiguousIsError, isAmbiguous: true);
+          ambiguous.messageKind, ambiguous.messageArguments);
       ambiguous.diagnose(visitor.mapping.currentElement, compiler);
     } else if (!element.impliesType()) {
       type = reportFailureAndCreateType(
-          MessageKind.NOT_A_TYPE, {'node': node.typeName},
-          isError: malformedIsError);
+          MessageKind.NOT_A_TYPE, {'node': node.typeName});
     } else {
       if (identical(element, compiler.types.voidType.element) ||
           identical(element, compiler.dynamicClass)) {
@@ -1545,8 +1537,7 @@ class TypeResolver {
           type = reportFailureAndCreateType(
               MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
               {'typeVariableName': node},
-              userProvidedBadType: element.computeType(compiler),
-              isError: malformedIsError);
+              userProvidedBadType: element.computeType(compiler));
         } else {
           type = element.computeType(compiler);
         }
@@ -1570,8 +1561,7 @@ class TypeResolver {
       MappingVisitor visitor,
       TypeAnnotation node,
       Link<DartType> typeVariables,
-      LinkBuilder<DartType> arguments,
-      {bool ambiguousIsError: false}) {
+      LinkBuilder<DartType> arguments) {
     if (node.typeArguments == null) {
       return false;
     }
@@ -1584,8 +1574,7 @@ class TypeResolver {
             typeArguments.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT.warning);
         typeArgumentCountMismatch = true;
       }
-      DartType argType = resolveTypeAnnotation(visitor, typeArguments.head,
-          ambiguousIsError: ambiguousIsError);
+      DartType argType = resolveTypeAnnotation(visitor, typeArguments.head);
       arguments.addLast(argType);
       if (typeVariables != null && !typeVariables.isEmpty) {
         typeVariables = typeVariables.tail;
@@ -2686,13 +2675,11 @@ class ResolverVisitor extends MappingVisitor<Element> {
   }
 
   DartType resolveTypeExpression(TypeAnnotation node) {
-    return resolveTypeAnnotation(node, isTypeExpression: true);
+    return resolveTypeAnnotation(node);
   }
 
-  DartType resolveTypeAnnotation(TypeAnnotation node,
-                                 {bool isTypeExpression: false}) {
-    DartType type = typeResolver.resolveTypeAnnotation(
-        this, node, ambiguousIsError: isTypeExpression);
+  DartType resolveTypeAnnotation(TypeAnnotation node) {
+    DartType type = typeResolver.resolveTypeAnnotation(this, node);
     if (type == null) return null;
     if (inCheckContext) {
       compiler.enqueuer.resolution.registerIsCheck(type, mapping);

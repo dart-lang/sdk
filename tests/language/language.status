@@ -20,6 +20,7 @@ mixin_super_constructor_named_test: Fail
 mixin_super_constructor_positionals_test: Fail
 function_type_alias6_test/00: Fail # Issue 11986
 function_type_alias9_test/00: Crash # Issue 11986
+library_ambiguous_test/04: Fail # Issue 12105
 
 [ $compiler == none ]
 mixin_super_constructor_named_test: Fail
@@ -28,6 +29,7 @@ built_in_identifier_prefix_test: Fail # http://dartbug.com/6970
 library_juxtaposition_test: Fail # Issue 6877
 pseudo_kw_illegal_test/14: Fail  # Issue 356
 bound_closure_equality_test: Fail # Issue 10849
+library_ambiguous_test/04: Fail # Issue 12105
 
 # These bugs refer currently ongoing language discussions.
 constructor5_test: Fail           # (Discussion ongoing)

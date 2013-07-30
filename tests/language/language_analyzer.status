@@ -275,6 +275,8 @@ getter_no_setter_test/none: fail
 const_constructor_mixin_test/01: fail
 const_constructor_mixin3_test/01: fail
 
+library_ambiguous_test/04: Fail # Issue 12106
+
 [ $compiler == dartanalyzer && $checked ]
 factory1_test/00: fail
 factory1_test/01: fail

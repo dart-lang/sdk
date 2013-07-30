@@ -105,23 +105,6 @@ class FunctionTypeCheckedModeHelper extends CheckedModeHelper {
   }
 }
 
-class AmbiguousTypeCheckedModeHelper extends CheckedModeHelper {
-  const AmbiguousTypeCheckedModeHelper(SourceString name) : super(name);
-
-  void generateAdditionalArguments(SsaCodeGenerator codegen,
-                                   HTypeConversion node,
-                                   List<jsAst.Expression> arguments) {
-    DartType type = node.typeExpression;
-    assert(type.containsAmbiguousTypes);
-    String reasons = Types.fetchReasonsFromAmbiguousType(type);
-
-    arguments.add(js.string(quote('$type')));
-    arguments.add(js.string(quote(reasons)));
-  }
-
-  String quote(String string) => string.replaceAll('"', r'\"');
-}
-
 /*
  * Invariants:
  *   canInline(function) implies canInline(function, insideLoop:true)
@@ -853,13 +836,6 @@ class JavaScriptBackend extends Backend {
       // We also need the native variant of the check (for DOM types).
       helper = getNativeCheckedModeHelper(type, typeCast: false);
       if (helper != null) world.addToWorkList(helper.getElement(compiler));
-      if (type.containsAmbiguousTypes) {
-        enqueueInResolution(getThrowMalformedSubtypeError(), elements);
-        return;
-      }
-    } else if (type.containsAmbiguousTypes) {
-      registerThrowRuntimeError(elements);
-      return;
     }
     bool isTypeVariable = type.kind == TypeKind.TYPE_VARIABLE;
     if (!type.isRaw || type.containsTypeVariables) {
@@ -1120,16 +1096,7 @@ class JavaScriptBackend extends Backend {
     Element element = type.element;
     bool nativeCheck = nativeCheckOnly ||
         emitter.nativeEmitter.requiresNativeIsCheck(element);
-    if (type.containsAmbiguousTypes) {
-      // Check for malformed types first, because the type may be a list type
-      // with a malformed argument type.
-      if (nativeCheckOnly) return null;
-      return typeCast
-          ? const AmbiguousTypeCheckedModeHelper(
-              const SourceString('malformedTypeCast'))
-          : const AmbiguousTypeCheckedModeHelper(
-              const SourceString('malformedTypeCheck'));
-    } else if (type == compiler.types.voidType) {
+    if (type == compiler.types.voidType) {
       assert(!typeCast); // Cannot cast to void.
       if (nativeCheckOnly) return null;
       return const CheckedModeHelper(const SourceString('voidTypeCheck'));
@@ -1253,11 +1220,6 @@ class JavaScriptBackend extends Backend {
 
   Element getThrowRuntimeError() {
     return compiler.findHelper(const SourceString('throwRuntimeError'));
-  }
-
-  Element getThrowMalformedSubtypeError() {
-    return compiler.findHelper(
-        const SourceString('throwMalformedSubtypeError'));
   }
 
   Element getThrowAbstractClassInstantiationError() {
