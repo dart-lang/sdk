@@ -277,6 +277,11 @@ patch class SecureSocket {
                                 bool useBuiltinRoots: true}) {
     throw new UnsupportedError("SecureSocket.initialize");
   }
+
+  patch static X509Certificate addCertificate(List<int> certificate,
+                                              String trust) {
+    throw new UnsupportedError("SecureSocket.addCertificate");
+  }
 }
 
 patch class _SecureFilter {

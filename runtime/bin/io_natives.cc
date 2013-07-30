@@ -50,6 +50,7 @@ namespace bin {
   V(SecureSocket_RegisterHandshakeCompleteCallback, 2)                         \
   V(SecureSocket_Renegotiate, 4)                                               \
   V(SecureSocket_InitializeLibrary, 3)                                         \
+  V(SecureSocket_AddCertificate, 2)                                            \
   V(SecureSocket_NewServicePort, 0)                                            \
   V(SecureSocket_FilterPointer, 1)                                             \
   V(ServerSocket_CreateBindListen, 5)                                          \

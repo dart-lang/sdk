@@ -278,6 +278,92 @@ void FUNCTION_NAME(SecureSocket_InitializeLibrary)
 }
 
 
+static Dart_Handle X509FromCertificate(CERTCertificate* certificate) {
+  PRTime start_validity;
+  PRTime end_validity;
+  SECStatus status =
+      CERT_GetCertTimes(certificate, &start_validity, &end_validity);
+  if (status != SECSuccess) {
+    ThrowPRException("CertificateException",
+                     "Cannot get validity times from certificate");
+  }
+  int64_t start_epoch_ms = start_validity / PR_USEC_PER_MSEC;
+  int64_t end_epoch_ms = end_validity / PR_USEC_PER_MSEC;
+  Dart_Handle subject_name_object =
+      DartUtils::NewString(certificate->subjectName);
+  Dart_Handle issuer_name_object =
+      DartUtils::NewString(certificate->issuerName);
+  Dart_Handle start_epoch_ms_int = Dart_NewInteger(start_epoch_ms);
+  Dart_Handle end_epoch_ms_int = Dart_NewInteger(end_epoch_ms);
+
+  Dart_Handle date_type =
+      DartUtils::GetDartType(DartUtils::kCoreLibURL, "DateTime");
+  Dart_Handle from_milliseconds =
+      DartUtils::NewString("fromMillisecondsSinceEpoch");
+
+  Dart_Handle start_validity_date =
+      Dart_New(date_type, from_milliseconds, 1, &start_epoch_ms_int);
+  Dart_Handle end_validity_date =
+      Dart_New(date_type, from_milliseconds, 1, &end_epoch_ms_int);
+
+  Dart_Handle x509_type =
+      DartUtils::GetDartType(DartUtils::kIOLibURL, "X509Certificate");
+  Dart_Handle arguments[] = { subject_name_object,
+                              issuer_name_object,
+                              start_validity_date,
+                              end_validity_date };
+  return Dart_New(x509_type, Dart_Null(), 4, arguments);
+}
+
+
+void FUNCTION_NAME(SecureSocket_AddCertificate)
+    (Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_Handle certificate_object =
+      ThrowIfError(Dart_GetNativeArgument(args, 0));
+  Dart_Handle trust_object = ThrowIfError(Dart_GetNativeArgument(args, 1));
+
+  if (!Dart_IsList(certificate_object) || !Dart_IsString(trust_object)) {
+    Dart_ThrowException(DartUtils::NewDartArgumentError(
+        "Bad argument to SecureSocket.addCertificate"));
+  }
+
+  intptr_t length;
+  ThrowIfError(Dart_ListLength(certificate_object, &length));
+  uint8_t* certificate = reinterpret_cast<uint8_t*>(malloc(length + 1));
+  if (certificate == NULL) {
+    FATAL("Out of memory in SecureSocket.addCertificate");
+  }
+  ThrowIfError(Dart_ListGetAsBytes(
+      certificate_object, 0, certificate, length));
+
+  const char* trust_string;
+  ThrowIfError(Dart_StringToCString(trust_object,
+                                    &trust_string));
+
+  CERTCertificate* cert = CERT_DecodeCertFromPackage(
+      reinterpret_cast<char*>(certificate), length);
+  if (cert == NULL) {
+    ThrowPRException("CertificateException", "Certificate cannot be decoded");
+  }
+  CERTCertTrust trust;
+  SECStatus status = CERT_DecodeTrustString(&trust, trust_string);
+  if (status != SECSuccess) {
+    ThrowPRException("CertificateException", "Trust string cannot be decoded");
+  }
+
+  status = CERT_ChangeCertTrust(CERT_GetDefaultCertDB(), cert, &trust);
+  if (status != SECSuccess) {
+    ThrowPRException("CertificateException", "Cannot set trust attributes");
+  }
+
+  Dart_SetReturnValue(args, X509FromCertificate(cert));
+  Dart_ExitScope();
+  return;
+}
+
+
+
 void FUNCTION_NAME(SecureSocket_PeerCertificate)
     (Dart_NativeArguments args) {
   Dart_EnterScope();
@@ -425,44 +511,6 @@ bool SSLFilter::ProcessAllBuffers(int starts[kNumBuffers],
     }
   }
   return true;
-}
-
-
-static Dart_Handle X509FromCertificate(CERTCertificate* certificate) {
-  PRTime start_validity;
-  PRTime end_validity;
-  SECStatus status =
-      CERT_GetCertTimes(certificate, &start_validity, &end_validity);
-  if (status != SECSuccess) {
-    ThrowPRException("CertificateException",
-                     "Cannot get validity times from certificate");
-  }
-  int64_t start_epoch_ms = start_validity / PR_USEC_PER_MSEC;
-  int64_t end_epoch_ms = end_validity / PR_USEC_PER_MSEC;
-  Dart_Handle subject_name_object =
-      DartUtils::NewString(certificate->subjectName);
-  Dart_Handle issuer_name_object =
-      DartUtils::NewString(certificate->issuerName);
-  Dart_Handle start_epoch_ms_int = Dart_NewInteger(start_epoch_ms);
-  Dart_Handle end_epoch_ms_int = Dart_NewInteger(end_epoch_ms);
-
-  Dart_Handle date_type =
-      DartUtils::GetDartType(DartUtils::kCoreLibURL, "DateTime");
-  Dart_Handle from_milliseconds =
-      DartUtils::NewString("fromMillisecondsSinceEpoch");
-
-  Dart_Handle start_validity_date =
-      Dart_New(date_type, from_milliseconds, 1, &start_epoch_ms_int);
-  Dart_Handle end_validity_date =
-      Dart_New(date_type, from_milliseconds, 1, &end_epoch_ms_int);
-
-  Dart_Handle x509_type =
-      DartUtils::GetDartType(DartUtils::kIOLibURL, "X509Certificate");
-  Dart_Handle arguments[] = { subject_name_object,
-                              issuer_name_object,
-                              start_validity_date,
-                              end_validity_date };
-  return Dart_New(x509_type, Dart_Null(), 4, arguments);
 }
 
 
