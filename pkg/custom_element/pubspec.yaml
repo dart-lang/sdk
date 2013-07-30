@@ -6,6 +6,8 @@ description: >
   with custom tag names, and then use those custom tag names as they would any
   standard tag.
 dependencies:
+  meta: any
+  mutation_observer: any
   # TODO(jmesserly): fix this, we should not depend on MDV.
   mdv: any
 dev_dependencies:

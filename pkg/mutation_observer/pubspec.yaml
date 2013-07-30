@@ -1,0 +1,8 @@
+name: mutation_observer
+author: "Web UI Team <web-ui-dev@dartlang.org>"
+homepage: https://code.google.com/p/dart/source/browse/branches/bleeding_edge/dart/pkg/mutation_observer/
+documentation: https://api.dartlang.org/docs/releases/latest/dart_html/MutationObserver.html
+description: >
+  Mutation Observers provide a way to react to changes in the DOM.
+dev_dependencies:
+  unittest: any

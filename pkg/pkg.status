@@ -42,7 +42,6 @@ intl/test/date_time_format_http_request_test: Skip # Timeout.
 [ $runtime == ie9 ]
 intl/test/date_time_format_http_request_test: Fail # Issue 8983
 mime/test/mime_multipart_transformer_test: Skip # No typed_data on IE9.
-custom_element: Fail # No Mutation Observers on IE9.
 
 [ $runtime == safari ]
 fixnum/test/int_64_test: Pass, Fail # Bug in JSC.
@@ -75,9 +74,11 @@ unittest/test/unittest_test: Pass, Crash # Issue 10935
 observe/test/observe_test: Fail # Issue 11970
 observe/test/path_observer_test: Fail  # Issue 11970
 mdv/test/binding_syntax_test: Fail # Issue 11970
-
 serialization/test/serialization_test: Fail # Issue 6490
 serialization/test/no_library_test: Fail # Issue 6490
+
+# This test cannot run under CSP because it is injecting a JavaScript polyfill
+mutation_observer: Skip
 
 [ $compiler == dart2js && $minified ]
 # The unminified unittest tests test that the real names of Dart types are
