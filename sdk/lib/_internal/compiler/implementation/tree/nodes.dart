@@ -66,7 +66,6 @@ abstract class Visitor<R> {
   R visitPrefix(Prefix node) => visitNodeList(node);
   R visitRethrow(Rethrow node) => visitStatement(node);
   R visitReturn(Return node) => visitStatement(node);
-  R visitScriptTag(ScriptTag node) => visitNode(node);
   R visitSend(Send node) => visitExpression(node);
   R visitSendSet(SendSet node) => visitSend(node);
   R visitStatement(Statement node) => visitNode(node);
@@ -181,7 +180,6 @@ abstract class Node extends TreeElementMixin implements Spannable {
   PartOf asPartOf() => null;
   Rethrow asRethrow() => null;
   Return asReturn() => null;
-  ScriptTag asScriptTag() => null;
   Send asSend() => null;
   SendSet asSendSet() => null;
   Statement asStatement() => null;
@@ -1693,59 +1691,6 @@ class LabeledStatement extends Statement {
   bool isValidContinueTarget() => statement.isValidContinueTarget();
 
   Node getBody() => statement;
-}
-
-class ScriptTag extends Node {
-  final Identifier tag;
-  final StringNode argument;
-  final Identifier prefixIdentifier;
-  final StringNode prefix;
-
-  final Token beginToken;
-  final Token endToken;
-
-  ScriptTag(this.tag, this.argument, this.prefixIdentifier, this.prefix,
-            this.beginToken, this.endToken);
-
-  bool isImport() => tag.source == const SourceString("import");
-  bool isSource() => tag.source == const SourceString("source");
-  bool isLibrary() => tag.source == const SourceString("library");
-
-  ScriptTag asScriptTag() => this;
-
-  accept(Visitor visitor) => visitor.visitScriptTag(this);
-
-  visitChildren(Visitor visitor) {
-    tag.accept(visitor);
-    argument.accept(visitor);
-    if (prefixIdentifier != null) prefixIdentifier.accept(visitor);
-    if (prefix != null) prefix.accept(visitor);
-  }
-
-  Token getBeginToken() => beginToken;
-
-  Token getEndToken() => endToken;
-
-  LibraryTag toLibraryTag() {
-    if (isImport()) {
-      Identifier prefixNode;
-      if (prefix != null) {
-        SourceString source = prefix.dartString.source;
-        Token prefixToken = prefix.getBeginToken();
-        Token token = new StringToken.fromSource(IDENTIFIER_INFO, source,
-                                                 prefixToken.charOffset);
-        token.next = prefixToken.next;
-        prefixNode = new Identifier(token);
-      }
-      return new Import(tag.token, argument, prefixNode, null, null);
-    } else if (isLibrary()) {
-      return new LibraryName(tag.token, argument, null);
-    } else if (isSource()) {
-      return new Part(tag.token, argument, null);
-    } else {
-      throw 'Unknown script tag ${tag.token.slowToString()}';
-    }
-  }
 }
 
 abstract class LibraryTag extends Node {

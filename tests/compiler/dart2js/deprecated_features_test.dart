@@ -54,11 +54,10 @@ main() {
       // "message" is the expected message as a [String].  This is a
       // short-term solution and should eventually changed to include
       // a symbolic reference to a MessageKind.
-      "0<#library('test');>::${deprecatedMessage('# tags')}\n"
-      "19<part 'part.dart';>::${deprecatedMessage('missing part-of tag')}\n"
+      "15<part 'part.dart';>::${deprecatedMessage('missing part-of tag')}\n"
       "0<>:/part.dart:info: Note: This file has no part-of tag, but it is being"
       " used as a part.\n"
-      "57<()>::${deprecatedMessage('getter parameters')}\n",
+      "53<()>::${deprecatedMessage('getter parameters')}\n",
       messages.toString());
 }
 
@@ -70,7 +69,7 @@ deprecatedMessage(feature) {
 
 const Map<String, String> TEST_SOURCE =
   const <String, String>{ '': """
-#library('test');
+library test;
 
 part 'part.dart';
 

@@ -477,20 +477,6 @@ class Unparser implements Visitor {
     sb.write('import "$uri"$suffix;');
   }
 
-  visitScriptTag(ScriptTag node) {
-    add(node.beginToken.value);
-    visit(node.tag);
-    sb.write('(');
-    visit(node.argument);
-    if (node.prefixIdentifier != null) {
-      visit(node.prefixIdentifier);
-      sb.write(':');
-      visit(node.prefix);
-    }
-    sb.write(')');
-    add(node.endToken.value);
-  }
-
   visitTryStatement(TryStatement node) {
     addToken(node.tryKeyword);
     visit(node.tryBlock);

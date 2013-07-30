@@ -2165,10 +2165,6 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     inferrer.fail(node, 'not yet implemented');
   }
 
-  ConcreteType visitScriptTag(ScriptTag node) {
-    inferrer.fail(node, 'not yet implemented');
-  }
-
   ConcreteType visitCatchBlock(CatchBlock node) {
     inferrer.fail(node, 'not yet implemented');
   }

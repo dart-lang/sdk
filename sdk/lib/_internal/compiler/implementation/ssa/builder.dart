@@ -5027,10 +5027,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     inTryStatement = oldInTryStatement;
   }
 
-  visitScriptTag(ScriptTag node) {
-    compiler.unimplemented('SsaBuilder.visitScriptTag', node: node);
-  }
-
   visitCatchBlock(CatchBlock node) {
     visit(node.block);
   }
