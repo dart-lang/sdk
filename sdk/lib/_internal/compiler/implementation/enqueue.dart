@@ -311,6 +311,7 @@ abstract class Enqueuer {
   }
 
   void pretendElementWasUsed(Element element, TreeElements elements) {
+    if (!compiler.backend.isNeededForReflection(element)) return;
     if (Elements.isUnresolved(element)) {
       // Ignore.
     } else if (element.isSynthesized

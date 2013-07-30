@@ -18,7 +18,7 @@ import 'dart:async';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirror.dart';
 
-Compiler compilerFor(Map<String,String> memorySourceFiles, 
+Compiler compilerFor(Map<String,String> memorySourceFiles,
                      {DiagnosticHandler diagnosticHandler,
                       List<String> options: const []}) {
   Uri script = currentDirectory.resolve(nativeToUriPath(Platform.script));
@@ -30,7 +30,7 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
   if (diagnosticHandler == null) {
     diagnosticHandler = new FormattingDiagnosticHandler(provider);
   }
-  
+
   EventSink<String> outputProvider(String name, String extension) {
     if (name != '') throw 'Attempt to output file "$name.$extension"';
     return new NullSink('$name.$extension');
@@ -45,7 +45,7 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
   return compiler;
 }
 
-Future<MirrorSystem> mirrorSystemFor(Map<String,String> memorySourceFiles, 
+Future<MirrorSystem> mirrorSystemFor(Map<String,String> memorySourceFiles,
                                      {DiagnosticHandler diagnosticHandler,
                                       List<String> options: const []}) {
   Uri script = currentDirectory.resolve(nativeToUriPath(Platform.script));
@@ -57,12 +57,12 @@ Future<MirrorSystem> mirrorSystemFor(Map<String,String> memorySourceFiles,
   if (diagnosticHandler == null) {
     diagnosticHandler = new FormattingDiagnosticHandler(provider);
   }
-  
+
   List<Uri> libraries = <Uri>[];
   memorySourceFiles.forEach((String path, _) {
     libraries.add(new Uri(scheme: 'memory', path: path));
   });
-  
-  return analyze(libraries, libraryRoot, packageRoot, 
+
+  return analyze(libraries, libraryRoot, packageRoot,
                  provider, diagnosticHandler, options);
 }

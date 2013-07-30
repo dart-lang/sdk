@@ -485,4 +485,15 @@ class ConstructedConstant extends ObjectConstant {
   List<Constant> getDependencies() => fields;
 
   accept(ConstantVisitor visitor) => visitor.visitConstructed(this);
+
+  Map<Element, Constant> get fieldElements {
+    // TODO(ahe): Refactor constant system to store this information directly.
+    ClassElement classElement = type.element;
+    int count = 0;
+    Map<Element, Constant> result = new Map<Element, Constant>();
+    classElement.implementation.forEachInstanceField((holder, field) {
+      result[field] = fields[count++];
+    }, includeSuperAndInjectedMembers: true);
+    return result;
+  }
 }

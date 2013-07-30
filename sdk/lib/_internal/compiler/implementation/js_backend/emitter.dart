@@ -726,7 +726,7 @@ class CodeEmitterTask extends CompilerTask {
           ])),
 
           js('var constructor = defineClass(name, cls, fields, desc)'),
-          optional(backend.hasRetainedMetadata,
+          optional(backend.isTreeShakingDisabled,
                    js('constructor["${namer.metadataField}"] = desc')),
           js('isolateProperties[cls] = constructor'),
           js.if_('supr', js('pendingClasses[cls] = supr'))

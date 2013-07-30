@@ -211,6 +211,17 @@ abstract class Backend {
   void registerMetadataInstantiatedType(DartType type, TreeElements elements) {}
   void registerMetadataStaticUse(Element element) {}
   void registerMetadataGetOfStaticFunction(FunctionElement element) {}
+
+  /// Called by [MirrorUsageAnalyzerTask] after it has merged all @MirrorsUsed
+  /// annotations. The arguments corresponds to the unions of the corresponding
+  /// fields of the annotations.
+  void registerMirrorUsage(Set<String> symbols,
+                           Set<Element> targets,
+                           Set<Element> metaTargets) {}
+
+  /// Returns true if this element should be retained for reflection even if it
+  /// would normally be tree-shaken away.
+  bool isNeededForReflection(Element element) => false;
 }
 
 /**
@@ -338,6 +349,9 @@ abstract class Compiler implements DiagnosticListener {
   LibraryElement foreignLibrary;
   LibraryElement mainApp;
 
+  /// Initialized when dart:mirrors is loaded.
+  LibraryElement mirrorsLibrary;
+
   ClassElement objectClass;
   ClassElement closureClass;
   ClassElement boundClosureClass;
@@ -360,6 +374,9 @@ abstract class Compiler implements DiagnosticListener {
 
   // Initialized when dart:mirrors is loaded.
   ClassElement mirrorSystemClass;
+
+  // Initialized when dart:mirrors is loaded.
+  ClassElement mirrorsUsedClass;
 
   // Initialized after mirrorSystemClass has been resolved.
   FunctionElement mirrorSystemGetNameFunction;
@@ -437,6 +454,7 @@ abstract class Compiler implements DiagnosticListener {
   EnqueueTask enqueuer;
   CompilerTask fileReadingTask;
   DeferredLoadTask deferredLoadTask;
+  MirrorUsageAnalyzerTask mirrorUsageAnalyzerTask;
   ContainerTracer containerTracer;
   String buildId;
 
@@ -545,6 +563,7 @@ abstract class Compiler implements DiagnosticListener {
       containerTracer = new ContainerTracer(this),
       constantHandler = new ConstantHandler(this, backend.constantSystem),
       deferredLoadTask = new DeferredLoadTask(this),
+      mirrorUsageAnalyzerTask = new MirrorUsageAnalyzerTask(this),
       enqueuer = new EnqueueTask(this)];
 
     tasks.addAll(backend.tasks);
@@ -692,8 +711,11 @@ abstract class Compiler implements DiagnosticListener {
       });
     }
     if (uri == new Uri(scheme: 'dart', path: 'mirrors')) {
+      mirrorsLibrary = library;
       mirrorSystemClass =
           findRequiredElement(library, const SourceString('MirrorSystem'));
+      mirrorsUsedClass =
+          findRequiredElement(library, const SourceString('MirrorsUsed'));
     } else if (uri == new Uri(scheme: 'dart', path: '_collection-dev')) {
       symbolImplementationClass =
           findRequiredElement(library, const SourceString('Symbol'));
@@ -897,6 +919,8 @@ abstract class Compiler implements DiagnosticListener {
                   'Error: "${MAIN.slowToString()}" cannot have parameters.'});
         });
       }
+
+      mirrorUsageAnalyzerTask.analyzeUsage(mainApp);
 
       // In order to see if a library is deferred, we must compute the
       // compile-time constants that are metadata.  This means adding
@@ -1179,6 +1203,11 @@ abstract class Compiler implements DiagnosticListener {
     reportMessage(spanFromSpannable(node),
                   errorCode.error(arguments),
                   api.Diagnostic.HINT);
+  }
+
+  /// For debugging only, print a message with a source location.
+  void reportHere(Spannable node, String debugMessage) {
+    reportInfo(node, MessageKind.GENERIC, {'text': 'HERE: $debugMessage'});
   }
 
   void reportInternalError(Spannable node, String message) {

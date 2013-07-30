@@ -320,6 +320,16 @@ class JavaScriptBackend extends Backend {
   /// preserved, these elements must be compiled.
   final List<FunctionElement> metadataGetOfStaticFunction = <FunctionElement>[];
 
+  /// List of symbols that the user has requested for reflection.
+  final Set<String> symbolsUsed = new Set<String>();
+
+  /// List of elements that the user has requested for reflection.
+  final Set<Element> targetsUsed = new Set<Element>();
+
+  /// List of annotations provided by user that indicate that the annotated
+  /// element must be retained.
+  final Set<Element> metaTargetsUsed = new Set<Element>();
+
   JavaScriptBackend(Compiler compiler, bool generateSourceMap, bool disableEval)
       : namer = determineNamer(compiler),
         oneShotInterceptors = new Map<String, Selector>(),
@@ -1445,6 +1455,26 @@ class JavaScriptBackend extends Backend {
     } else {
       metadataGetOfStaticFunction.add(element);
     }
+  }
+
+  void registerMirrorUsage(Set<String> symbols,
+                           Set<Element> targets,
+                           Set<Element> metaTargets) {
+    if (symbols != null) symbolsUsed.addAll(symbols);
+    if (targets != null) {
+      for (Element element in targets) {
+        // TODO(ahe): Implement finer granularity.
+        targetsUsed.add(element.getLibrary());
+      }
+    }
+    if (metaTargets != null) metaTargetsUsed.addAll(metaTargets);
+  }
+
+  bool isNeededForReflection(Element element) {
+    // TODO(ahe): Implement this.
+    if (!metaTargetsUsed.isEmpty) return true;
+    if (targetsUsed.contains(element.getLibrary())) return true;
+    return false;
   }
 }
 

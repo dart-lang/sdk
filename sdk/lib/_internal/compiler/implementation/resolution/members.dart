@@ -2217,7 +2217,9 @@ class ResolverVisitor extends MappingVisitor<Element> {
     Element target = resolveSend(node);
     sendIsMemberAccess = oldSendIsMemberAccess;
 
-    if (target != null && target == compiler.mirrorSystemGetNameFunction) {
+    if (target != null
+        && target == compiler.mirrorSystemGetNameFunction
+        && !compiler.mirrorUsageAnalyzerTask.hasMirrorUsage(enclosingElement)) {
       compiler.reportHint(
           node.selector, MessageKind.STATIC_FUNCTION_BLOAT,
           {'class': compiler.mirrorSystemClass.name,
@@ -2635,9 +2637,12 @@ class ResolverVisitor extends MappingVisitor<Element> {
           }
         }
       } else {
-        compiler.reportHint(
-            node.newToken, MessageKind.NON_CONST_BLOAT,
-            {'name': compiler.symbolClass.name});
+        if (!compiler.mirrorUsageAnalyzerTask.hasMirrorUsage(
+                enclosingElement)) {
+          compiler.reportHint(
+              node.newToken, MessageKind.NON_CONST_BLOAT,
+              {'name': compiler.symbolClass.name});
+        }
         world.registerNewSymbol(mapping);
       }
     }
