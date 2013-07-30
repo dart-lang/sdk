@@ -3342,13 +3342,52 @@ void Float32x4ToUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* Float32x4TwoArgShuffleInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::RequiresFpuRegister());
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
 }
 
 
 void Float32x4TwoArgShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  QRegister left = locs()->in(0).fpu_reg();
+  QRegister right = locs()->in(1).fpu_reg();
+  QRegister result = locs()->out().fpu_reg();
+
+  ASSERT(result == left);
+
+  DRegister dleft0 = EvenDRegisterOf(left);
+  DRegister dleft1 = OddDRegisterOf(left);
+  DRegister dright0 = EvenDRegisterOf(right);
+  DRegister dright1 = OddDRegisterOf(right);
+
+  switch (op_kind()) {
+    case MethodRecognizer::kFloat32x4WithZWInXY:
+      __ vmovd(dleft0, dright1);
+      break;
+    case MethodRecognizer::kFloat32x4InterleaveXY:
+      __ vmovq(QTMP, right);
+      __ vzipqw(left, QTMP);
+      break;
+    case MethodRecognizer::kFloat32x4InterleaveZW:
+      __ vmovq(QTMP, right);
+      __ vzipqw(left, QTMP);
+      __ vmovq(left, QTMP);
+      break;
+    case MethodRecognizer::kFloat32x4InterleaveXYPairs:
+      __ vmovd(dleft1, dright0);
+      break;
+    case MethodRecognizer::kFloat32x4InterleaveZWPairs:
+      __ vmovq(QTMP, right);
+      __ vmovd(EvenDRegisterOf(QTMP), dleft1);
+      __ vmovq(result, QTMP);
+      break;
+    default: UNREACHABLE();
+  }
 }
 
 

@@ -1412,6 +1412,11 @@ void Assembler::vtbl(DRegister dd, DRegister dn, int len, DRegister dm) {
 }
 
 
+void Assembler::vzipqw(QRegister qd, QRegister qm) {
+  EmitSIMDqqq(B24 | B23 | B21 | B20 | B19 | B17 | B8 | B7, kByte, qd, Q0, qm);
+}
+
+
 void Assembler::vceqqi(OperandSize sz,
                       QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B24 | B11 | B4, sz, qd, qn, qm);

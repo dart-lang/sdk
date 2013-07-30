@@ -105,10 +105,6 @@ async/timer_test: Fail, Pass # See Issue 10982
 [ $arch == mips ]
 *: Skip
 
-[ $arch == simarm || $arch == arm ]
-typed_data/float32x4_two_arg_shuffle_test: Skip # Unimplemented instruction.
-typed_data/float32x4_transpose_test: Skip # Unimplemented instruction.
-
 [ $arch == simmips ]
 convert/chunked_conversion_utf88_test: Pass, Slow # Issue 12025.
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow

@@ -2996,6 +2996,15 @@ static float arm_recip_estimate(float a) {
 }
 
 
+static void simd_value_swap(simd_value_t* s1, int i1,
+                            simd_value_t* s2, int i2) {
+  uint32_t tmp;
+  tmp = s1->data_[i1].u;
+  s1->data_[i1].u = s2->data_[i2].u;
+  s2->data_[i2].u = tmp;
+}
+
+
 void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
   ASSERT(instr->ConditionField() == kSpecialCondition);
 
@@ -3231,6 +3240,20 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
       } else {
         UnimplementedInstruction(instr);
       }
+    } else if ((instr->Bits(8, 4) == 1) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
+               (instr->Bit(7) == 1) && (instr->Bits(16, 4) == 10)) {
+      // Format(instr, "vzipqw 'qd, 'qm");
+      get_qregister(qd, &s8d);
+
+      // Interleave the elements with the low words in qd, and the high words
+      // in qm.
+      simd_value_swap(&s8d, 3, &s8m, 2);
+      simd_value_swap(&s8d, 3, &s8m, 1);
+      simd_value_swap(&s8d, 2, &s8m, 0);
+      simd_value_swap(&s8d, 2, &s8d, 1);
+
+      set_qregister(qm, s8m);  // Writes both qd and qm.
     } else if ((instr->Bits(8, 4) == 8) && (instr->Bit(4) == 1) &&
                (instr->Bits(23, 2) == 2)) {
       // Format(instr, "vceqq'sz 'qd, 'qn, 'qm");

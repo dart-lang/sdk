@@ -2638,6 +2638,40 @@ ASSEMBLER_TEST_RUN(Vdupw, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Vzipqw, assembler) {
+  if (CPUFeatures::neon_supported()) {
+    __ LoadSImmediate(S0, 0.0);
+    __ LoadSImmediate(S1, 1.0);
+    __ LoadSImmediate(S2, 2.0);
+    __ LoadSImmediate(S3, 3.0);
+    __ LoadSImmediate(S4, 4.0);
+    __ LoadSImmediate(S5, 5.0);
+    __ LoadSImmediate(S6, 6.0);
+    __ LoadSImmediate(S7, 7.0);
+
+    __ vzipqw(Q0, Q1);
+
+    __ vsubqs(Q0, Q1, Q0);
+
+    __ vadds(S0, S0, S1);
+    __ vadds(S0, S0, S2);
+    __ vadds(S0, S0, S3);
+    __ bx(LR);
+  } else {
+    __ LoadSImmediate(S0, 8.0);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vzipqw, test) {
+  EXPECT(test != NULL);
+  typedef float (*Vzipqw)();
+  float res = EXECUTE_TEST_CODE_FLOAT(Vzipqw, test->entry());
+  EXPECT_FLOAT_EQ(8.0, res, 0.0001f);
+}
+
+
 ASSEMBLER_TEST_GENERATE(Vceqqi32, assembler) {
   if (CPUFeatures::neon_supported()) {
     __ mov(R0, ShifterOperand(1));

@@ -1379,6 +1379,10 @@ void ARMDecoder::DecodeSIMDDataProcessing(Instr* instr) {
       } else {
         Unknown(instr);
       }
+    } else if ((instr->Bits(8, 4) == 1) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
+               (instr->Bit(7) == 1) && (instr->Bits(16, 4) == 10)) {
+      Format(instr, "vzipqw 'qd, 'qm");
     } else if ((instr->Bits(8, 4) == 8) && (instr->Bit(4) == 1) &&
                (instr->Bits(23, 2) == 2)) {
       Format(instr, "vceqq'sz 'qd, 'qn, 'qm");
