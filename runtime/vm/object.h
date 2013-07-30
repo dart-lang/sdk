@@ -5899,6 +5899,8 @@ class MirrorReference : public Instance {
 
   RawLibrary* GetLibraryReferent() const;
 
+  RawTypeParameter* GetTypeParameterReferent() const;
+
   static RawMirrorReference* New(const Object& referent,
                                  Heap::Space space = Heap::kNew);
 

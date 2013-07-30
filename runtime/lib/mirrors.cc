@@ -29,7 +29,7 @@ static RawInstance* CreateMirror(const String& mirror_class_name,
                                        mirror_class_name,
                                        constructor_name,
                                        constructor_arguments));
-  ASSERT(result.IsInstance());
+  ASSERT(!result.IsError());
   return Instance::Cast(result).raw();
 }
 
@@ -53,30 +53,6 @@ DEFINE_NATIVE_ENTRY(Mirrors_isLocalPort, 1) {
   id ^= id_obj.raw();
   Dart_Port port_id = static_cast<Dart_Port>(id.AsInt64Value());
   return Bool::Get(PortMap::IsLocalPort(port_id));
-}
-
-
-// TODO(turnidge): Add Map support to the dart embedding api instead
-// of implementing it here.
-static Dart_Handle CoreLib() {
-  Dart_Handle core_lib_name = NewString("dart:core");
-  return Dart_LookupLibrary(core_lib_name);
-}
-
-
-static Dart_Handle MapNew() {
-  // TODO(turnidge): Switch to an order-preserving map type.
-  Dart_Handle type = Dart_GetType(CoreLib(), NewString("Map"), 0, NULL);
-  if (Dart_IsError(type)) {
-    return type;
-  }
-  return Dart_New(type, Dart_Null(), 0, NULL);
-}
-
-
-static Dart_Handle MapAdd(Dart_Handle map, Dart_Handle key, Dart_Handle value) {
-  Dart_Handle args[] = { key, value };
-  return Dart_Invoke(map, NewString("[]="), ARRAY_SIZE(args), args);
 }
 
 
@@ -194,112 +170,34 @@ static Dart_Handle CreateLazyMirror(Dart_Handle target) {
 }
 
 
-static Dart_Handle CreateTypeVariableMirrorUsingApi(Dart_Handle type_var,
-                                                    Dart_Handle type_var_name,
-                                                    Dart_Handle owner_mirror) {
-  ASSERT(Dart_IsTypeVariable(type_var));
-  Dart_Handle cls_name = NewString("_LocalTypeVariableMirrorImpl");
-  Dart_Handle type = Dart_GetType(MirrorLib(), cls_name, 0, NULL);
-  if (Dart_IsError(type)) {
-    return type;
-  }
-
-  Dart_Handle upper_bound = Dart_TypeVariableUpperBound(type_var);
-  if (Dart_IsError(upper_bound)) {
-    return upper_bound;
-  }
-
-  Dart_Handle args[] = {
-    CreateMirrorReference(type_var),
-    type_var_name,
-    owner_mirror,
-    CreateLazyMirror(upper_bound),
-  };
-  Dart_Handle mirror = Dart_New(type, Dart_Null(), ARRAY_SIZE(args), args);
-  return mirror;
-}
-
-
 static RawInstance* CreateTypeVariableMirror(const TypeParameter& param,
                                              const Instance& owner_mirror) {
-  Instance& retvalue = Instance::Handle();
-  Dart_EnterScope();
-  Isolate* isolate = Isolate::Current();
-  Dart_Handle param_handle = Api::NewHandle(isolate, param.raw());
-  if (Dart_IsError(param_handle)) {
-    Dart_PropagateError(param_handle);
-  }
-  Dart_Handle name_handle = Api::NewHandle(isolate, param.Name());
-  if (Dart_IsError(name_handle)) {
-    Dart_PropagateError(name_handle);
-  }
-  // Until we get rid of lazy mirrors, we must have owners.
-  Dart_Handle owner_handle;
-  if (owner_mirror.IsNull()) {
-    owner_handle = Api::NewHandle(isolate, param.parameterized_class());
-    if (Dart_IsError(owner_handle)) {
-      Dart_PropagateError(owner_handle);
-    }
-    owner_handle = CreateLazyMirror(owner_handle);
-    if (Dart_IsError(owner_handle)) {
-      Dart_PropagateError(owner_handle);
-    }
-  } else {
-    owner_handle = Api::NewHandle(isolate, owner_mirror.raw());
-    if (Dart_IsError(owner_handle)) {
-      Dart_PropagateError(owner_handle);
-    }
-  }
-  // TODO(11742): At some point the handle calls will be replaced by inlined
-  // functionality.
-  Dart_Handle result =  CreateTypeVariableMirrorUsingApi(param_handle,
-                                                         name_handle,
-                                                         owner_handle);
-  if (Dart_IsError(result)) {
-    Dart_PropagateError(result);
-  }
-  retvalue ^= Api::UnwrapHandle(result);
-  Dart_ExitScope();
-  return retvalue.raw();
+  const Array& args = Array::Handle(Array::New(3));
+  args.SetAt(0, param);
+  args.SetAt(1, String::Handle(param.name()));
+  args.SetAt(2, owner_mirror);
+  return CreateMirror(Symbols::_LocalTypeVariableMirrorImpl(), args);
 }
 
 
-static Dart_Handle CreateTypeVariableMap(Dart_Handle owner,
-                                         Dart_Handle owner_mirror) {
-  ASSERT(Dart_IsClass(owner));
-  // TODO(turnidge): This should be an immutable map.
-  Dart_Handle map = MapNew();
-  if (Dart_IsError(map)) {
-    return map;
+// We create a list in native code and let Dart code create the type mirror
+// object and the ordered map.
+static RawInstance* CreateTypeVariableList(const Class& cls) {
+  const TypeArguments& args = TypeArguments::Handle(cls.type_parameters());
+  if (args.IsNull()) {
+    return Object::empty_array().raw();
   }
-
-  Dart_Handle names = Dart_GetTypeVariableNames(owner);
-  if (Dart_IsError(names)) {
-    return names;
+  const Array& result = Array::Handle(Array::New(args.Length() * 2));
+  TypeParameter& type = TypeParameter::Handle();
+  String& name = String::Handle();
+  for (intptr_t i = 0; i < args.Length(); i++) {
+    type ^= args.TypeAt(i);
+    ASSERT(type.IsTypeParameter());
+    name ^= type.name();
+    result.SetAt(2 * i, name);
+    result.SetAt(2 * i + 1, type);
   }
-  intptr_t len;
-  Dart_Handle result = Dart_ListLength(names, &len);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  for (intptr_t i = 0; i < len; i++) {
-    Dart_Handle type_var_name = Dart_ListGetAt(names, i);
-    Dart_Handle type_var = Dart_LookupTypeVariable(owner, type_var_name);
-    if (Dart_IsError(type_var)) {
-      return type_var;
-    }
-    ASSERT(!Dart_IsNull(type_var));
-    Dart_Handle type_var_mirror =
-        CreateTypeVariableMirrorUsingApi(type_var, type_var_name, owner_mirror);
-    if (Dart_IsError(type_var_mirror)) {
-      return type_var_mirror;
-    }
-    result = MapAdd(map, type_var_name, type_var_mirror);
-    if (Dart_IsError(result)) {
-      return result;
-    }
-  }
-  return map;
+  return result.raw();
 }
 
 
@@ -345,19 +243,9 @@ static Dart_Handle CreateClassMirrorUsingApi(Dart_Handle intf,
     return type;
   }
 
-  Dart_Handle intf_mirror = CreateLazyMirror(intf);
-  if (Dart_IsError(intf_mirror)) {
-    return intf_mirror;
-  }
-  Dart_Handle type_var_map = CreateTypeVariableMap(intf, intf_mirror);
-  if (Dart_IsError(type_var_map)) {
-    return type_var_map;
-  }
-
   Dart_Handle args[] = {
     CreateMirrorReference(intf),
     Dart_Null(),  // "name"
-    type_var_map,
   };
   Dart_Handle mirror = Dart_New(type, Dart_Null(), ARRAY_SIZE(args), args);
   return mirror;
@@ -771,6 +659,26 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_members, 2) {
   }
 
   return member_mirrors.raw();
+}
+
+
+DEFINE_NATIVE_ENTRY(ClassMirror_type_variables, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
+  const Class& klass = Class::Handle(ref.GetClassReferent());
+  return CreateTypeVariableList(klass);
+}
+
+
+DEFINE_NATIVE_ENTRY(LocalTypeVariableMirror_owner, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(TypeParameter, param, arguments->NativeArgAt(0));
+  return CreateClassMirror(Class::Handle(param.parameterized_class()),
+                           Instance::null_instance());
+}
+
+
+DEFINE_NATIVE_ENTRY(LocalTypeVariableMirror_upper_bound, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(TypeParameter, param, arguments->NativeArgAt(0));
+  return CreateTypeMirror(AbstractType::Handle(param.bound()));
 }
 
 

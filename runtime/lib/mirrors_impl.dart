@@ -4,6 +4,8 @@
 
 // VM-specific implementation of the dart:mirrors library.
 
+import "dart:collection";
+
 // These values are allowed to be passed directly over the wire.
 bool _isSimpleValue(var value) {
   return (value == null || value is num || value is String || value is bool);
@@ -396,10 +398,8 @@ class _LazyTypeMirror {
 class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
     implements ClassMirror {
   _LocalClassMirrorImpl(reflectee,
-                        String simpleName,
-                        Map<String, Mirror> typeVariables)
+                        String simpleName)
       : this._simpleName = _s(simpleName),
-        this.typeVariables = _convertStringToSymbolMap(typeVariables),
         super(reflectee);
 
   Symbol _simpleName;
@@ -526,7 +526,21 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
     return _constructors;
   }
 
-  Map<Symbol, TypeVariableMirror> typeVariables;
+  Map<Symbol, TypeVariableMirror> _typeVariables = null;
+
+  Map<Symbol, TypeVariableMirror> get typeVariables {
+    if (_typeVariables == null) {
+      List params = _ClassMirror_type_variables(_reflectee);
+      _typeVariables = new LinkedHashMap<Symbol, TypeVariableMirror>();
+      var mirror;
+      for (var i = 0; i < params.length; i += 2) {
+        mirror = new _LocalTypeVariableMirrorImpl(
+            params[i + 1], params[i], this);
+        _typeVariables[mirror.simpleName] = mirror;
+      }
+    }
+    return _typeVariables;
+  }
 
   Map<Symbol, TypeMirror> get typeArguments {
     throw new UnimplementedError(
@@ -612,6 +626,9 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
 
   static _invokeConstructor(reflectee, constructorName, positionalArguments)
       native 'ClassMirror_invokeConstructor';
+
+  static _ClassMirror_type_variables(reflectee)
+      native "ClassMirror_type_variables";
 }
 
 class _LazyFunctionTypeMirror {
@@ -635,8 +652,7 @@ class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
                                this._returnType,
                                this.parameters)
       : super(reflectee,
-              simpleName,
-              const {});
+              simpleName);
 
   Map<Symbol, Mirror> get members => new Map<Symbol,Mirror>();
   Map<Symbol, MethodMirror> get constructors => new Map<Symbol,MethodMirror>();
@@ -650,6 +666,7 @@ class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
   }
 
   final List<ParameterMirror> parameters;
+  final Map<Symbol, TypeVariableMirror> typeVariables = const {};
 
   String toString() => "FunctionTypeMirror on '${_n(simpleName)}'";
 }
@@ -658,7 +675,7 @@ abstract class _LocalDeclarationMirrorImpl extends _LocalMirrorImpl
     implements DeclarationMirror {
   _LocalDeclarationMirrorImpl(this._reflectee, this.simpleName);
 
-  final _MirrorReference _reflectee;
+  final _reflectee;
 
   final Symbol simpleName;
 
@@ -694,12 +711,15 @@ class _LocalTypeVariableMirrorImpl extends _LocalDeclarationMirrorImpl
     implements TypeVariableMirror {
   _LocalTypeVariableMirrorImpl(reflectee,
                                String simpleName,
-                               this._owner,
-                               this._upperBound)
+                               this._owner)
       : super(reflectee, _s(simpleName));
 
   var _owner;
   DeclarationMirror get owner {
+    if (_owner == null) {
+      _owner = _LocalTypeVariableMirror_owner(_reflectee);
+    }
+    // TODO(11897): This will go away, as soon as lazy mirrors go away.
     if (_owner is! Mirror) {
       _owner = _owner.resolve(mirrors);
     }
@@ -715,10 +735,10 @@ class _LocalTypeVariableMirrorImpl extends _LocalDeclarationMirrorImpl
         'TypeVariableMirror.location is not implemented');
   }
 
-  var _upperBound;
+  TypeMirror _upperBound = null;
   TypeMirror get upperBound {
-    if (_upperBound is! Mirror) {
-      _upperBound = _upperBound.resolve(mirrors);
+    if (_upperBound == null) {
+      _upperBound = _LocalTypeVariableMirror_upper_bound(_reflectee);
     }
     return _upperBound;
   }
@@ -729,6 +749,12 @@ class _LocalTypeVariableMirrorImpl extends _LocalDeclarationMirrorImpl
   }
 
   String toString() => "TypeVariableMirror on '${_n(simpleName)}'";
+
+  static DeclarationMirror _LocalTypeVariableMirror_owner(reflectee)
+      native "LocalTypeVariableMirror_owner";
+
+  static TypeMirror _LocalTypeVariableMirror_upper_bound(reflectee)
+      native "LocalTypeVariableMirror_upper_bound";
 }
 
 

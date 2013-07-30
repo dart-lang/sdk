@@ -14360,6 +14360,12 @@ RawLibrary* MirrorReference::GetLibraryReferent() const {
 }
 
 
+RawTypeParameter* MirrorReference::GetTypeParameterReferent() const {
+  ASSERT(Object::Handle(referent()).IsTypeParameter());
+  return TypeParameter::Cast(Object::Handle(referent())).raw();
+}
+
+
 RawMirrorReference* MirrorReference::New(const Object& referent,
                                          Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->mirror_reference_class()
