@@ -2777,15 +2777,14 @@ void FlowGraphOptimizer::HandleComparison(ComparisonInstr* comp,
                                           Instruction* current_instruction) {
   ASSERT(ic_data.num_args_tested() == 2);
   ASSERT(comp->operation_cid() == kIllegalCid);
-  Instruction* instr = current_iterator()->Current();
   if (HasOnlyTwoSmis(ic_data)) {
-    InsertBefore(instr,
+    InsertBefore(current_instruction,
                  new CheckSmiInstr(comp->left()->Copy(), comp->deopt_id()),
-                 instr->env(),
+                 current_instruction->env(),
                  Definition::kEffect);
-    InsertBefore(instr,
+    InsertBefore(current_instruction,
                  new CheckSmiInstr(comp->right()->Copy(), comp->deopt_id()),
-                 instr->env(),
+                 current_instruction->env(),
                  Definition::kEffect);
     comp->set_operation_cid(kSmiCid);
   } else if (HasTwoMintOrSmi(ic_data) &&
@@ -2800,11 +2799,11 @@ void FlowGraphOptimizer::HandleComparison(ComparisonInstr* comp,
         // We cannot use double comparison on two Smi-s.
         ASSERT(comp->operation_cid() == kIllegalCid);
       } else {
-        InsertBefore(instr,
+        InsertBefore(current_instruction,
                      new CheckEitherNonSmiInstr(comp->left()->Copy(),
                                                 comp->right()->Copy(),
                                                 comp->deopt_id()),
-                     instr->env(),
+                     current_instruction->env(),
                      Definition::kEffect);
         comp->set_operation_cid(kDoubleCid);
       }
