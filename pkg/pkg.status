@@ -18,9 +18,6 @@ scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 [ $runtime == vm ]
 watcher/test/no_subscription_test: Pass, Fail # Issue 12107
 
-[ $compiler == none && $runtime == drt && $mode == debug]
-mdv/test/custom_element_bindings_test: Fail # Issue 11657
-
 [ $compiler == dart2js && $runtime == ff ]
 unittest/test/unittest_test: Pass, Timeout # http://dartbug.com/11473
 
