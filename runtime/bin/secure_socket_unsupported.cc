@@ -27,6 +27,14 @@ void FUNCTION_NAME(SecureSocket_Connect)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(SecureSocket_AddCertificate)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_ThrowException(DartUtils::NewDartArgumentError(
+      "Secure Sockets unsupported on this platform"));
+  Dart_ExitScope();
+}
+
+
 void FUNCTION_NAME(SecureSocket_Destroy)(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_ThrowException(DartUtils::NewDartArgumentError(
