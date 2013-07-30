@@ -64,7 +64,7 @@ class Int32 implements IntX {
   // TODO(rice) - Make this faster by converting several digits at once.
   static Int32 parseRadix(String s, int radix) {
     if ((radix <= 1) || (radix > 16)) {
-      throw "Bad radix: $radix";
+      throw new ArgumentError("Bad radix: $radix");
     }
     Int32 x = ZERO;
     for (int i = 0; i < s.length; i++) {
@@ -235,7 +235,7 @@ class Int32 implements IntX {
 
   Int32 operator <<(int n) {
     if (n < 0) {
-      throw new ArgumentError("$n");
+      throw new ArgumentError(n);
     }
     n &= 31;
     return new Int32.fromInt(_i << n);
@@ -243,7 +243,7 @@ class Int32 implements IntX {
 
   Int32 operator >>(int n) {
     if (n < 0) {
-      throw new ArgumentError("$n");
+      throw new ArgumentError(n);
     }
     n &= 31;
     int value;
@@ -257,7 +257,7 @@ class Int32 implements IntX {
 
   Int32 shiftRightUnsigned(int n) {
     if (n < 0) {
-      throw new ArgumentError("$n");
+      throw new ArgumentError(n);
     }
     n &= 31;
     int value;

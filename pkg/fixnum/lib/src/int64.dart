@@ -120,7 +120,7 @@ class Int64 implements IntX {
   // TODO(rice) - make this faster by converting several digits at once.
   static Int64 parseRadix(String s, int radix) {
     if ((radix <= 1) || (radix > 16)) {
-      throw "Bad radix: $radix";
+      throw new ArgumentError("Bad radix: $radix");
     }
     Int64 x = ZERO;
     int i = 0;
@@ -421,7 +421,7 @@ class Int64 implements IntX {
 
   Int64 operator <<(int n) {
     if (n < 0) {
-      throw new ArgumentError("$n");
+      throw new ArgumentError(n);
     }
     n &= 63;
 
@@ -445,7 +445,7 @@ class Int64 implements IntX {
 
   Int64 operator >>(int n) {
     if (n < 0) {
-      throw new ArgumentError("$n");
+      throw new ArgumentError(n);
     }
     n &= 63;
 
@@ -486,7 +486,7 @@ class Int64 implements IntX {
 
   Int64 shiftRightUnsigned(int n) {
     if (n < 0) {
-      throw new ArgumentError("$n");
+      throw new ArgumentError(n);
     }
     n &= 63;
 
@@ -725,7 +725,7 @@ class Int64 implements IntX {
 
   String toRadixString(int radix) {
     if ((radix <= 1) || (radix > 16)) {
-      throw "Bad radix: $radix";
+      throw new ArgumentError("Bad radix: $radix");
     }
     Int64 a = this;
     if (a.isZero) {
