@@ -108,10 +108,10 @@ main() {
 
     var elements = document.queryAll('li');
     expect(elements.style.backgroundColor, equals('red'));
-    expect(elements.style.borderLeft, equals('10px'));
+    expect(elements.style.borderLeftWidth, equals('10px'));
     elements = document.queryAll('.baz');
     expect(elements.style.backgroundColor, equals('black'));
-    expect(elements.style.borderLeft, equals(''));
+    expect(elements.style.borderLeftWidth, equals(''));
     elements = document.queryAll('.bar');
     expect(elements.style.backgroundColor, equals('red'));
   });
@@ -127,22 +127,22 @@ main() {
     var elements = document.queryAll('li');
     elements.style.backgroundColor = 'green';
     expect(elements.style.backgroundColor, equals('green'));
-    expect(elements.style.borderLeft, equals('10px'));
+    expect(elements.style.borderLeftWidth, equals('10px'));
 
     elements = document.queryAll('.baz');
     expect(elements.style.backgroundColor, equals('green'));
     elements.style.backgroundColor = 'yellow';
     expect(elements.style.backgroundColor, equals('yellow'));
-    expect(elements.style.borderLeft, equals(''));
+    expect(elements.style.borderLeftWidth, equals(''));
 
     elements = document.queryAll('.bar');
     expect(elements.style.backgroundColor, equals('green'));
     elements = document.queryAll('#wat');
     expect(elements.style.backgroundColor, equals('yellow'));
 
-    elements.style.borderLeft = '18px';
-    expect(elements.style.borderLeft, equals('18px'));
+    elements.style.borderLeftWidth = '18px';
+    expect(elements.style.borderLeftWidth, equals('18px'));
     elements = document.queryAll('li');
-    expect(elements.style.borderLeft, equals('10px'));
+    expect(elements.style.borderLeftWidth, equals('10px'));
   });
 }
