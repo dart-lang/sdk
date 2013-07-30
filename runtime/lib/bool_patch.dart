@@ -5,10 +5,9 @@
 // Dart core library.
 
 patch class bool {
-  
-  /* patch */ int get hashCode {
+
+  int get hashCode {
     return this ? 1231 : 1237;
   }
 
-  /* patch */ bool operator ==(other) => identical(this, other);
 }
