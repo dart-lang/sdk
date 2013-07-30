@@ -269,6 +269,7 @@ class ObjectPointerVisitor;
   V(_A, "_A")                                                                  \
   V(_stackTrace, "_stackTrace")                                                \
   V(_SpecialTypeMirrorImpl, "_SpecialTypeMirrorImpl")                          \
+  V(_LocalLibraryMirrorImpl, "_LocalLibraryMirrorImpl")                        \
   V(_LocalMethodMirrorImpl, "_LocalMethodMirrorImpl")                          \
   V(_LocalVariableMirrorImpl, "_LocalVariableMirrorImpl")                      \
   V(_LocalParameterMirrorImpl, "_LocalParameterMirrorImpl")                    \

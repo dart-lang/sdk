@@ -402,30 +402,6 @@ static RawInstance* CreateVariableMirror(const Field& field,
 }
 
 
-static Dart_Handle CreateLibraryMirrorUsingApi(Dart_Handle lib) {
-  Dart_Handle cls_name = NewString("_LocalLibraryMirrorImpl");
-  Dart_Handle type = Dart_GetType(MirrorLib(), cls_name, 0, NULL);
-  if (Dart_IsError(type)) {
-    return type;
-  }
-  Dart_Handle lazy_lib_mirror = CreateLazyMirror(lib);
-  if (Dart_IsError(lazy_lib_mirror)) {
-    return lazy_lib_mirror;
-  }
-  Dart_Handle args[] = {
-    CreateMirrorReference(lib),
-    Dart_LibraryName(lib),
-    Dart_LibraryUrl(lib),
-  };
-  Dart_Handle lib_mirror = Dart_New(type, Dart_Null(), ARRAY_SIZE(args), args);
-  if (Dart_IsError(lib_mirror)) {
-    return lib_mirror;
-  }
-
-  return lib_mirror;
-}
-
-
 static RawInstance* CreateClassMirror(const Class& cls,
                                       const Instance& owner_mirror) {
   Instance& retvalue = Instance::Handle();
@@ -455,19 +431,14 @@ static RawInstance* CreateClassMirror(const Class& cls,
 
 
 static RawInstance* CreateLibraryMirror(const Library& lib) {
-  Instance& retvalue = Instance::Handle();
-  Dart_EnterScope();
-  Isolate* isolate = Isolate::Current();
-  Dart_Handle lib_handle = Api::NewHandle(isolate, lib.raw());
-  // TODO(11742): At some point the handle calls will be replaced by inlined
-  // functionality.
-  Dart_Handle result = CreateLibraryMirrorUsingApi(lib_handle);
-  if (Dart_IsError(result)) {
-    Dart_PropagateError(result);
-  }
-  retvalue ^= Api::UnwrapHandle(result);
-  Dart_ExitScope();
-  return retvalue.raw();
+  const Array& args = Array::Handle(Array::New(3));
+  args.SetAt(0, MirrorReference::Handle(MirrorReference::New(lib)));
+  String& str = String::Handle();
+  str = lib.name();
+  args.SetAt(1, str);
+  str = lib.url();
+  args.SetAt(2, str);
+  return CreateMirror(Symbols::_LocalLibraryMirrorImpl(), args);
 }
 
 
