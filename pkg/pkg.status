@@ -20,6 +20,7 @@ path/test/browser_test: Fail # Issue 12121
 
 [ $runtime == vm ]
 watcher/test/no_subscription_test: Pass, Fail # Issue 12107
+watcher/test/directory_watcher_test: Pass, Fail # Issue 12107
 
 [ $compiler == dart2js && $runtime == ff ]
 unittest/test/unittest_test: Pass, Timeout # http://dartbug.com/11473

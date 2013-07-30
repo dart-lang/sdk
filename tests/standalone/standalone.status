@@ -24,6 +24,9 @@ io/stdout_bad_argument_test: Fail, OK
 io/file_fuzz_test: Skip
 io/directory_fuzz_test: Skip
 
+[ $runtime == vm && $system == windows ]
+vmservice/multiple_isolate_list_test: Fail, Pass # http://dartbug.com/12124
+
 [ $runtime == vm && $system == macos ]
 # This test fails with "Too many open files" on the Mac OS buildbot.
 # This is expected as MacOS by default runs with a very low number
