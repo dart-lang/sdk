@@ -9,11 +9,3 @@
 # Pub only runs on the standalone VM, not the browser.
 [ $runtime == drt || $runtime == dartium || $runtime == opera ]
 *: Skip
-
-# These tests are failing on Windows: #12120.
-[ $system == windows ]
-test/serve/serve_from_app_asset_test: Fail
-test/serve/serve_from_app_lib_test: Fail
-test/serve/serve_from_app_web_test: Fail
-test/serve/serve_from_dependency_asset_test: Fail
-test/serve/serve_from_dependency_lib_test: Fail

@@ -61,12 +61,18 @@ class PubPackageProvider implements PackageProvider {
       var packageDir = _packageDirs[package];
       var dir = path.join(packageDir, dirPath);
       if (!dirExists(dir)) return;
-      var entries = listDir(dir, recursive: true);
-      files.addAll(entries
-          .where((entry) => !path.split(entry).contains("packages"))
-          .where(fileExists)
-          .map((entry) => new AssetId(package,
-              path.relative(entry, from: packageDir))));
+      for (var entry in listDir(dir, recursive: true)) {
+        // Ignore "packages" symlinks if there.
+        if (path.split(entry).contains("packages")) continue;
+
+        // Skip directories.
+        if (!fileExists(entry)) continue;
+
+        // AssetId paths use "/" on all platforms.
+        var relative = path.relative(entry, from: packageDir);
+        relative = path.toUri(relative).path;
+        files.add(new AssetId(package, relative));
+      }
     }
 
     // Expose the "asset" and "lib" directories.
