@@ -366,19 +366,20 @@ static Dart_Handle CreateClassMirrorUsingApi(Dart_Handle intf,
 
 static RawInstance* CreateMethodMirror(const Function& func,
                                        const Instance& owner_mirror) {
-  const Array& args = Array::Handle(Array::New(11));
+  const Array& args = Array::Handle(Array::New(12));
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(func)));
-  args.SetAt(1, owner_mirror);
-  args.SetAt(2, func.is_static() ? Bool::True() : Bool::False());
-  args.SetAt(3, func.is_abstract() ? Bool::True() : Bool::False());
-  args.SetAt(4, func.IsGetterFunction() ? Bool::True() : Bool::False());
-  args.SetAt(5, func.IsSetterFunction() ? Bool::True() : Bool::False());
-  args.SetAt(6, func.IsConstructor() ? Bool::True() : Bool::False());
+  args.SetAt(1, String::Handle(func.UserVisibleName()));
+  args.SetAt(2, owner_mirror);
+  args.SetAt(3, func.is_static() ? Bool::True() : Bool::False());
+  args.SetAt(4, func.is_abstract() ? Bool::True() : Bool::False());
+  args.SetAt(5, func.IsGetterFunction() ? Bool::True() : Bool::False());
+  args.SetAt(6, func.IsSetterFunction() ? Bool::True() : Bool::False());
+  args.SetAt(7, func.IsConstructor() ? Bool::True() : Bool::False());
   // TODO(mlippautz): Implement different constructor kinds.
-  args.SetAt(7, Bool::False());
   args.SetAt(8, Bool::False());
   args.SetAt(9, Bool::False());
   args.SetAt(10, Bool::False());
+  args.SetAt(11, Bool::False());
   return CreateMirror(Symbols::_LocalMethodMirrorImpl(), args);
 }
 
@@ -1358,13 +1359,6 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 4) {
 
   field.set_value(value);
   return value.raw();
-}
-
-
-DEFINE_NATIVE_ENTRY(MethodMirror_name, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
-  const Function& func = Function::Handle(ref.GetFunctionReferent());
-  return func.UserVisibleName();
 }
 
 

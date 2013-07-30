@@ -656,14 +656,25 @@ class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
 
 abstract class _LocalDeclarationMirrorImpl extends _LocalMirrorImpl
     implements DeclarationMirror {
-    _LocalDeclarationMirrorImpl(this._reflectee);
-    final _MirrorReference _reflectee;
+  _LocalDeclarationMirrorImpl(this._reflectee, this.simpleName);
 
-    List<InstanceMirror> get metadata {
-      // Get the metadata objects, convert them into InstanceMirrors using
-      // reflect() and then make them into a Dart list.
-      return _metadata(_reflectee).map(reflect).toList(growable:false);
+  final _MirrorReference _reflectee;
+
+  final Symbol simpleName;
+
+  Symbol _qualifiedName = null;
+  Symbol get qualifiedName {
+    if (_qualifiedName == null) {
+      _qualifiedName = _computeQualifiedName(owner, simpleName);
     }
+    return _qualifiedName;
+  }
+
+  List<InstanceMirror> get metadata {
+    // Get the metadata objects, convert them into InstanceMirrors using
+    // reflect() and then make them into a Dart list.
+    return _metadata(_reflectee).map(reflect).toList(growable:false);
+  }
 }
 
 class _LazyTypeVariableMirror {
@@ -685,18 +696,7 @@ class _LocalTypeVariableMirrorImpl extends _LocalDeclarationMirrorImpl
                                String simpleName,
                                this._owner,
                                this._upperBound)
-      : this.simpleName = _s(simpleName),
-        super(reflectee);
-
-  final Symbol simpleName;
-
-  Symbol _qualifiedName = null;
-  Symbol get qualifiedName {
-    if (_qualifiedName == null) {
-      _qualifiedName = _computeQualifiedName(owner, simpleName);
-    }
-    return _qualifiedName;
-  }
+      : super(reflectee, _s(simpleName));
 
   var _owner;
   DeclarationMirror get owner {
@@ -738,18 +738,7 @@ class _LocalTypedefMirrorImpl extends _LocalDeclarationMirrorImpl
                           String simpleName,
                           this._owner,
                           this._referent)
-      : this.simpleName = _s(simpleName),
-        super(reflectee);
-
-  final Symbol simpleName;
-
-  Symbol _qualifiedName = null;
-  Symbol get qualifiedName {
-    if (_qualifiedName == null) {
-      _qualifiedName = _computeQualifiedName(owner, simpleName);
-    }
-    return _qualifiedName;
-  }
+      : super(reflectee, _s(simpleName));
 
   var _owner;
   DeclarationMirror get owner {
@@ -902,6 +891,7 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
 class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
     implements MethodMirror {
   _LocalMethodMirrorImpl(reflectee,
+                         String simpleName,
                          this._owner,
                          this.isStatic,
                          this.isAbstract,
@@ -911,23 +901,8 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
                          this.isConstConstructor,
                          this.isGenerativeConstructor,
                          this.isRedirectingConstructor,
-                         this.isFactoryConstructor) : super(reflectee);
-
-  Symbol _simpleName = null;
-  Symbol get simpleName {
-    if (_simpleName == null) {
-      _simpleName = _s(_MethodMirror_name(_reflectee));
-    }
-    return _simpleName;
-  }
-
-  Symbol _qualifiedName = null;
-  Symbol get qualifiedName {
-    if (_qualifiedName == null) {
-      _qualifiedName = _computeQualifiedName(owner, simpleName);
-    }
-    return _qualifiedName;
-  }
+                         this.isFactoryConstructor)
+      : super(reflectee, _s(simpleName));
 
   var _owner;
   DeclarationMirror get owner {
@@ -1017,9 +992,6 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
 
   String toString() => "MethodMirror on '${_n(simpleName)}'";
 
-  static String _MethodMirror_name(reflectee)
-      native "MethodMirror_name";
-
   static dynamic _MethodMirror_owner(reflectee)
       native "MethodMirror_owner";
 
@@ -1038,18 +1010,7 @@ class _LocalVariableMirrorImpl extends _LocalDeclarationMirrorImpl
                            this._type,
                            this.isStatic,
                            this.isFinal)
-      : this.simpleName = _s(simpleName),
-        super(reflectee);
-
-  final Symbol simpleName;
-
-  Symbol _qualifiedName = null;
-  Symbol get qualifiedName {
-    if (_qualifiedName == null) {
-      _qualifiedName = _computeQualifiedName(owner, simpleName);
-    }
-    return _qualifiedName;
-  }
+      : super(reflectee, _s(simpleName));
 
   var _owner;
   DeclarationMirror get owner {
