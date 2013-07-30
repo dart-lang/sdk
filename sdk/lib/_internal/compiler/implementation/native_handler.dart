@@ -816,7 +816,7 @@ class NativeBehavior {
       lookup(name), locationNodeOrElement) {
     if (typeString == '=Object') return SpecialType.JsObject;
     if (typeString == 'dynamic') {
-      return  compiler.dynamicClass.computeType(compiler);
+      return  compiler.types.dynamicType;
     }
     DartType type = lookup(typeString);
     if (type != null) return type;

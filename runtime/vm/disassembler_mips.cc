@@ -481,6 +481,10 @@ void MIPSDecoder::DecodeRegImm(Instr* instr) {
       Format(instr, "bgezal 'rs, 'dest");
       break;
     }
+    case BLTZAL: {
+      Format(instr, "bltzal 'rs, 'dest");
+      break;
+    }
     case BGEZL: {
       Format(instr, "bgezl 'rs, 'dest");
       break;

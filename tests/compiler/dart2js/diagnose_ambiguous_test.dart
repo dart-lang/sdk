@@ -48,9 +48,9 @@ main() {
       'memory:main.dart:23:46:Info: "class(Fisk)" is imported here.:info',
       'memory:main.dart:23:46:Info: "function(fisk)" is imported here.:info',
       'memory:main.dart:23:46:Info: "function(hest)" is imported here.:info',
-      'memory:main.dart:59:63:Warning: duplicate import of Fisk:warning',
-      'memory:main.dart:76:80:duplicate import of fisk:error',
-      'memory:main.dart:86:90:duplicate import of hest:error'
+      'memory:main.dart:59:63:Warning: Duplicate import of "Fisk".:warning',
+      'memory:main.dart:76:80:Error: Duplicate import of "fisk".:error',
+      'memory:main.dart:86:90:Error: Duplicate import of "hest".:error'
   ];
   Expect.listEquals(expected, diagnostics);
   Expect.isTrue(compiler.compilationFailed);

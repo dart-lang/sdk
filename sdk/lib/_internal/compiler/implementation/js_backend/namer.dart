@@ -240,7 +240,7 @@ class Namer implements ClosureNamer {
       case 'SETTER_PREFIX': return setterPrefix;
       case 'CALL_CATCH_ALL': return callCatchAllName;
       default:
-        compiler.reportErrorCode(
+        compiler.reportError(
             node, MessageKind.GENERIC,
             {'text': 'Error: Namer has no name for "$name".'});
         return 'BROKEN';

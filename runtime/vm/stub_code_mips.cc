@@ -300,12 +300,12 @@ static void PushArgumentsArray(Assembler* assembler) {
   __ delay_slot()->addiu(T2, V0,
                          Immediate(Array::data_offset() - kHeapObjectTag));
   __ Bind(&loop);
-  __ lw(TMP, Address(T1));
+  __ lw(T3, Address(T1));
   __ addiu(A1, A1, Immediate(-Smi::RawValue(1)));
   __ addiu(T1, T1, Immediate(-kWordSize));
   __ addiu(T2, T2, Immediate(kWordSize));
   __ bgez(A1, &loop);
-  __ delay_slot()->sw(TMP, Address(T2, -kWordSize));
+  __ delay_slot()->sw(T3, Address(T2, -kWordSize));
   __ Bind(&loop_exit);
 }
 
@@ -589,8 +589,8 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // T0: points to new space object.
     // T2: potential next object start.
     // T3: array size.
-    __ lw(TMP1, Address(T0, Scavenger::end_offset()));
-    __ BranchUnsignedGreaterEqual(T2, TMP1, &slow_case);
+    __ lw(CMPRES1, Address(T0, Scavenger::end_offset()));
+    __ BranchUnsignedGreaterEqual(T2, CMPRES1, &slow_case);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
@@ -953,11 +953,11 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // T2: object size.
     // T3: potential next object start.
     __ LoadImmediate(TMP1, heap->EndAddress());
-    __ lw(TMP1, Address(TMP1, 0));
+    __ lw(CMPRES1, Address(TMP1, 0));
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
     } else {
-      __ BranchUnsignedGreaterEqual(T3, TMP1, &slow_case);
+      __ BranchUnsignedGreaterEqual(T3, CMPRES1, &slow_case);
     }
 
     // Successfully allocated the object, now update top to point to
@@ -1012,9 +1012,9 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ sll(T1, T1, 2);
     __ Bind(&loop);
     __ addiu(T1, T1, Immediate(-kWordSize));
-    __ addu(TMP1, T3, T1);
+    __ addu(T4, T3, T1);
     __ bgtz(T1, &loop);
-    __ delay_slot()->sw(T7, Address(TMP1));
+    __ delay_slot()->sw(T7, Address(T4));
     __ Bind(&loop_exit);
 
     // Done allocating and initializing the context.
@@ -1126,8 +1126,9 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
                                               const Class& cls) {
   __ TraceSimMsg("AllocationStubForClass");
   // The generated code is different if the class is parameterized.
-  const bool is_cls_parameterized =
-      cls.type_arguments_field_offset() != Class::kNoTypeArguments;
+  const bool is_cls_parameterized = cls.HasTypeArguments();
+  ASSERT(!cls.HasTypeArguments() ||
+         (cls.type_arguments_field_offset() != Class::kNoTypeArguments));
   // kInlineInstanceSize is a constant used as a threshold for determining
   // when the object initialization should be done as a loop or as
   // straight line code.
@@ -1161,11 +1162,11 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // T2: potential new object start.
     // T3: potential next object start.
     __ LoadImmediate(TMP1, heap->EndAddress());
-    __ lw(TMP1, Address(TMP1));
+    __ lw(CMPRES1, Address(TMP1));
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
     } else {
-      __ BranchUnsignedGreaterEqual(T3, TMP1, &slow_case);
+      __ BranchUnsignedGreaterEqual(T3, CMPRES1, &slow_case);
     }
 
     // Successfully allocated the object(s), now update top to point to
@@ -1300,8 +1301,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
 void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
                                                 const Function& func) {
   ASSERT(func.IsClosureFunction());
-  const bool is_implicit_static_closure =
-      func.IsImplicitStaticClosureFunction();
+  ASSERT(!func.IsImplicitStaticClosureFunction());
   const bool is_implicit_instance_closure =
       func.IsImplicitInstanceClosureFunction();
   const Class& cls = Class::ZoneHandle(func.signature_class());
@@ -1329,11 +1329,11 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     // T3: address of top of heap.
     // T4: potential new context object (only if is_implicit_closure).
     __ LoadImmediate(TMP1, heap->EndAddress());
-    __ lw(TMP1, Address(TMP1));
+    __ lw(CMPRES1, Address(TMP1));
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
     } else {
-      __ BranchUnsignedGreaterEqual(T3, TMP1, &slow_case);
+      __ BranchUnsignedGreaterEqual(T3, CMPRES1, &slow_case);
     }
 
     // Successfully allocated the object, now update top to point to
@@ -1356,14 +1356,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     __ sw(T0, Address(T2, Closure::function_offset()));
 
     // Setup the context for this closure.
-    if (is_implicit_static_closure) {
-      ObjectStore* object_store = Isolate::Current()->object_store();
-      ASSERT(object_store != NULL);
-      const Context& empty_context =
-          Context::ZoneHandle(object_store->empty_context());
-      __ LoadObject(T0, empty_context);
-      __ sw(T0, Address(T0, Closure::context_offset()));
-    } else if (is_implicit_instance_closure) {
+    if (is_implicit_instance_closure) {
       // Initialize the new context capturing the receiver.
       const Class& context_class = Class::ZoneHandle(Object::context_class());
       // Set the tags.
@@ -1409,40 +1402,31 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     __ Bind(&slow_case);
   }
 
-  // If it's an implicit static closure we need 2 stack slots. Otherwise,
   // If it's an implicit instance closure we need 4 stack slots, o/w only 3.
-  int num_slots = 2;
-  if (!is_implicit_static_closure) {
-    num_slots = is_implicit_instance_closure ? 4 : 3;
-  }
+  intptr_t num_slots = is_implicit_instance_closure ? 4 : 3;
   __ addiu(SP, SP, Immediate(-num_slots * kWordSize));
   // Setup space on stack for return value.
   __ LoadImmediate(T7, reinterpret_cast<intptr_t>(Object::null()));
   __ sw(T7, Address(SP, (num_slots - 1) * kWordSize));
   __ LoadObject(TMP1, func);
   __ sw(TMP1, Address(SP, (num_slots - 2) * kWordSize));
-  if (is_implicit_static_closure) {
-    __ CallRuntime(kAllocateImplicitStaticClosureRuntimeEntry);
+  __ mov(T2, T7);
+  if (is_implicit_instance_closure) {
+    __ lw(T1, Address(FP, kReceiverFPOffset));
+    __ sw(T1, Address(SP, (num_slots - 3) * kWordSize));  // Receiver.
+  }
+  if (has_type_arguments) {
+    __ lw(T2, Address(FP, kTypeArgumentsFPOffset));
+  }
+  __ sw(T2, Address(SP, 0 * kWordSize));
+
+  if (is_implicit_instance_closure) {
+    __ CallRuntime(kAllocateImplicitInstanceClosureRuntimeEntry);
     __ TraceSimMsg("AllocationStubForClosure return");
   } else {
-    __ mov(T2, T7);
-    if (is_implicit_instance_closure) {
-      __ lw(T1, Address(FP, kReceiverFPOffset));
-      __ sw(T1, Address(SP, (num_slots - 3) * kWordSize));  // Receiver.
-    }
-    if (has_type_arguments) {
-      __ lw(T2, Address(FP, kTypeArgumentsFPOffset));
-    }
-    __ sw(T2, Address(SP, 0 * kWordSize));
-
-    if (is_implicit_instance_closure) {
-      __ CallRuntime(kAllocateImplicitInstanceClosureRuntimeEntry);
-      __ TraceSimMsg("AllocationStubForClosure return");
-    } else {
-      ASSERT(func.IsNonImplicitClosureFunction());
-      __ CallRuntime(kAllocateClosureRuntimeEntry);
-      __ TraceSimMsg("AllocationStubForClosure return");
-    }
+    ASSERT(func.IsNonImplicitClosureFunction());
+    __ CallRuntime(kAllocateClosureRuntimeEntry);
+    __ TraceSimMsg("AllocationStubForClosure return");
   }
   __ lw(V0, Address(SP, (num_slots - 1) * kWordSize));  // Pop function object.
   __ addiu(SP, SP, Immediate(num_slots * kWordSize));
@@ -1688,9 +1672,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // NoSuchMethod or closure.
   // Mark IC call that it may be a closure call that does not collect
   // type feedback.
-  __ LoadImmediate(TMP1, 1);
+  __ LoadImmediate(T6, 1);
   __ Branch(&StubCode::InstanceFunctionLookupLabel());
-  __ delay_slot()->sb(TMP1, FieldAddress(S5, ICData::is_closure_call_offset()));
+  __ delay_slot()->sb(T6, FieldAddress(S5, ICData::is_closure_call_offset()));
 
   __ Bind(&found);
   // T0: Pointer to an IC data check group.
@@ -1718,8 +1702,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ Bind(&get_class_id_as_smi);
   Label not_smi;
   // Test if Smi -> load Smi class for comparison.
-  __ andi(TMP1, T3, Immediate(kSmiTagMask));
-  __ bne(TMP1, ZR, &not_smi);
+  __ andi(CMPRES1, T3, Immediate(kSmiTagMask));
+  __ bne(CMPRES1, ZR, &not_smi);
   __ jr(RA);
   __ delay_slot()->addiu(T3, ZR, Immediate(Smi::RawValue(kSmiCid)));
 
@@ -1854,8 +1838,8 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   // Get function and call it, if possible.
   __ lw(T3, Address(T0, target_offset));
   __ lw(T4, FieldAddress(T3, Function::code_offset()));
-  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
-  __ bne(T4, TMP, &target_is_compiled);
+  __ LoadImmediate(CMPRES1, reinterpret_cast<intptr_t>(Object::null()));
+  __ bne(T4, CMPRES1, &target_is_compiled);
 
   __ EnterStubFrame();
   // Preserve target function and IC data object.
@@ -1954,12 +1938,12 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
   __ LeaveStubFrame();
 
   // Find out which dispatch stub to call.
-  __ lw(TMP1, FieldAddress(S5, ICData::num_args_tested_offset()));
+  __ lw(T1, FieldAddress(S5, ICData::num_args_tested_offset()));
 
   Label one_arg, two_args, three_args;
-  __ BranchEqual(TMP1, 1, &one_arg);
-  __ BranchEqual(TMP1, 2, &two_args);
-  __ BranchEqual(TMP1, 3, &three_args);
+  __ BranchEqual(T1, 1, &one_arg);
+  __ BranchEqual(T1, 2, &two_args);
+  __ BranchEqual(T1, 3, &three_args);
   __ Stop("Unsupported number of arguments tested.");
 
   __ Bind(&one_arg);
@@ -2121,8 +2105,8 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
   static const intptr_t kNumArgsTested = 2;
 #if defined(DEBUG)
   { Label ok;
-    __ lw(TMP1, FieldAddress(T0, ICData::num_args_tested_offset()));
-    __ BranchEqual(TMP1, kNumArgsTested, &ok);
+    __ lw(CMPRES1, FieldAddress(T0, ICData::num_args_tested_offset()));
+    __ BranchEqual(CMPRES1, kNumArgsTested, &ok);
     __ Stop("Incorrect ICData for equality");
     __ Bind(&ok);
   }
@@ -2319,8 +2303,8 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
   __ Bind(&reference_compare);
   __ subu(CMPRES, left, right);
   __ Bind(&done);
-  // A branch or test after this comparison will check CMPRES == TMP1.
-  __ mov(TMP1, ZR);
+  // A branch or test after this comparison will check CMPRES1 == CMPRES2.
+  __ mov(CMPRES2, ZR);
 }
 
 

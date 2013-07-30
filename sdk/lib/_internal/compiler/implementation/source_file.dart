@@ -6,8 +6,6 @@ library source_file;
 
 import 'dart:math';
 
-import 'colors.dart' as colors;
-
 /**
  * Represents a file of source code.
  */

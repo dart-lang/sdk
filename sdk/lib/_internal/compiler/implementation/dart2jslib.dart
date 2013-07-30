@@ -20,14 +20,10 @@ import 'elements/modelx.dart'
          VoidElementX;
 import 'js_backend/js_backend.dart' as js_backend;
 import 'native_handler.dart' as native;
-import 'scanner/scanner_implementation.dart';
 import 'scanner/scannerlib.dart';
 import 'ssa/ssa.dart';
-import 'string_validator.dart';
-import 'source_file.dart';
 import 'tree/tree.dart';
 import 'universe/universe.dart';
-import 'util/characters.dart';
 import 'util/util.dart';
 import '../compiler.dart' as api;
 import 'patch_parser.dart';

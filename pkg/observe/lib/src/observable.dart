@@ -14,9 +14,9 @@ const Object observable = const _ObservableAnnotation();
  * model-view architectures to notify interested parties of [changes].
  *
  * This object does not require any specific technique to implement
- * observability. However if you implement change notification yourself, you
- * should also implement [ChangeNotifier], so [dirtyCheck] knows to skip the
- * object.
+ * observability. If you mixin [ObservableMixin], [dirtyCheck] will know to
+ * check for changes on the object. You may also implement change notification
+ * yourself, by calling [notifyChange].
  *
  * You can use [ObservableBase] or [ObservableMixin] to implement this.
  */
@@ -47,7 +47,20 @@ abstract class Observable {
   // that subscription. Alternatively, we could consider using something other
   // than Stream to deliver the multicast change records, and provide an
   // Observable->Stream adapter.
+  //
+  // Also: we should be delivering changes to the observer (subscription) based
+  // on the birth order of the observer. This is for compatibility with ES
+  // Harmony as well as predictability for app developers.
   bool deliverChanges();
+
+  /**
+   * Notify observers of a change.
+   *
+   * For most objects [ObservableMixin.notifyPropertyChange] is more
+   * convenient, but collections sometimes deliver other types of changes such
+   * as a [ListChangeRecord].
+   */
+  void notifyChange(ChangeRecord record);
 
   /**
    * Performs dirty checking of objects that inherit from [ObservableMixin].
@@ -76,6 +89,7 @@ abstract class ObservableMixin implements Observable {
   InstanceMirror _mirror;
 
   Map<Symbol, Object> _values;
+  List<ChangeRecord> _records;
 
   Stream<List<ChangeRecord>> get changes {
     if (_changes == null) {
@@ -132,23 +146,63 @@ abstract class ObservableMixin implements Observable {
   bool deliverChanges() {
     if (_values == null || !hasObservers) return false;
 
-    List changes = null;
+    // Start with manually notified records (computed properties, etc),
+    // then scan all fields for additional changes.
+    List records = _records;
+    _records = null;
+
     _values.forEach((name, oldValue) {
       var newValue = _mirror.getField(name).reflectee;
       if (!identical(oldValue, newValue)) {
-        if (changes == null) changes = <PropertyChangeRecord>[];
-        changes.add(new PropertyChangeRecord(name));
+        if (records == null) records = [];
+        records.add(new PropertyChangeRecord(name));
         _values[name] = newValue;
       }
     });
 
-    if (changes == null) return false;
+    if (records == null) return false;
 
-    // TODO(jmesserly): make "changes" immutable
-    _changes.add(changes);
+    _changes.add(new UnmodifiableListView<ChangeRecord>(records));
     return true;
   }
+
+  /**
+   * Notify that the field [name] of this object has been changed.
+   *
+   * The [oldValue] and [newValue] are also recorded. If the two values are
+   * identical, no change will be recorded.
+   *
+   * For convenience this returns [newValue].
+   */
+  notifyPropertyChange(Symbol field, Object oldValue, Object newValue)
+      => _notifyPropertyChange(this, field, oldValue, newValue);
+
+  /**
+   * Notify a change manually. This is *not* required for fields, but can be
+   * used for computed properties. *Note*: unlike [ChangeNotifierMixin] this
+   * will not schedule [deliverChanges]; use [Observable.dirtyCheck] instead.
+   */
+  void notifyChange(ChangeRecord record) {
+    if (!hasObservers) return;
+
+    if (_records == null) _records = [];
+    _records.add(record);
+  }
 }
+
+// TODO(jmesserly): remove the instance method and make this top-level method
+// public instead?
+_notifyPropertyChange(Observable obj, Symbol field, Object oldValue,
+    Object newValue) {
+
+  // TODO(jmesserly): should this be == instead of identical, to prevent
+  // spurious loops?
+  if (obj.hasObservers && !identical(oldValue, newValue)) {
+    obj.notifyChange(new PropertyChangeRecord(field));
+  }
+  return newValue;
+}
+
 
 /**
  * The type of the `@observable` annotation.

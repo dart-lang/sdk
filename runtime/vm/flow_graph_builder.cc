@@ -542,7 +542,6 @@ Definition* EffectGraphVisitor::BuildLoadExprTemp() {
 Definition* EffectGraphVisitor::BuildStoreLocal(
     const LocalVariable& local, Value* value, bool result_is_needed) {
   if (local.is_captured()) {
-    InlineBailout("EffectGraphVisitor::BuildStoreLocal (context)");
     if (result_is_needed) {
       value = Bind(BuildStoreExprTemp(value));
     }
@@ -575,7 +574,6 @@ Definition* EffectGraphVisitor::BuildStoreLocal(
 
 Definition* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local) {
   if (local.is_captured()) {
-    InlineBailout("EffectGraphVisitor::BuildLoadLocal (context)");
     intptr_t delta =
         owner()->context_level() - local.owner()->context_level();
     ASSERT(delta >= 0);
@@ -594,14 +592,14 @@ Definition* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local) {
 
 
 // Stores current context into the 'variable'
-void EffectGraphVisitor::BuildStoreContext(const LocalVariable& variable) {
+void EffectGraphVisitor::BuildSaveContext(const LocalVariable& variable) {
   Value* context = Bind(new CurrentContextInstr());
   Do(BuildStoreLocal(variable, context, kResultNotNeeded));
 }
 
 
 // Loads context saved in 'context_variable' into the current context.
-void EffectGraphVisitor::BuildLoadContext(const LocalVariable& variable) {
+void EffectGraphVisitor::BuildRestoreContext(const LocalVariable& variable) {
   Value* load_saved_context = Bind(BuildLoadLocal(variable));
   AddInstruction(new StoreContextInstr(load_saved_context));
 }
@@ -823,7 +821,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   ASSERT(current_context_level >= 0);
   if (owner()->parsed_function()->saved_entry_context_var() != NULL) {
     // CTX on entry was saved, but not linked as context parent.
-    BuildLoadContext(*owner()->parsed_function()->saved_entry_context_var());
+    BuildRestoreContext(*owner()->parsed_function()->saved_entry_context_var());
   } else {
     while (current_context_level-- > 0) {
       UnchainContext();
@@ -2138,7 +2136,7 @@ ClosureCallInstr* EffectGraphVisitor::BuildClosureCall(
 
   // Save context around the call.
   ASSERT(owner()->parsed_function()->saved_current_context_var() != NULL);
-  BuildStoreContext(*owner()->parsed_function()->saved_current_context_var());
+  BuildSaveContext(*owner()->parsed_function()->saved_current_context_var());
   return new ClosureCallInstr(node, arguments);
 }
 
@@ -2147,7 +2145,7 @@ void EffectGraphVisitor::VisitClosureCallNode(ClosureCallNode* node) {
   Do(BuildClosureCall(node));
   // Restore context from saved location.
   ASSERT(owner()->parsed_function()->saved_current_context_var() != NULL);
-  BuildLoadContext(*owner()->parsed_function()->saved_current_context_var());
+  BuildRestoreContext(*owner()->parsed_function()->saved_current_context_var());
 }
 
 
@@ -2155,13 +2153,12 @@ void ValueGraphVisitor::VisitClosureCallNode(ClosureCallNode* node) {
   Value* result = Bind(BuildClosureCall(node));
   // Restore context from temp.
   ASSERT(owner()->parsed_function()->saved_current_context_var() != NULL);
-  BuildLoadContext(*owner()->parsed_function()->saved_current_context_var());
+  BuildRestoreContext(*owner()->parsed_function()->saved_current_context_var());
   ReturnValue(result);
 }
 
 
 void EffectGraphVisitor::VisitCloneContextNode(CloneContextNode* node) {
-  InlineBailout("EffectGraphVisitor::VisitCloneContextNode (context)");
   Value* context = Bind(new CurrentContextInstr());
   Value* clone = Bind(new CloneContextInstr(node->token_pos(), context));
   AddInstruction(new StoreContextInstr(clone));
@@ -3068,7 +3065,6 @@ bool EffectGraphVisitor::MustSaveRestoreContext(SequenceNode* node) const {
 
 
 void EffectGraphVisitor::UnchainContext() {
-  InlineBailout("EffectGraphVisitor::UnchainContext (context)");
   Value* context = Bind(new CurrentContextInstr());
   Value* parent = Bind(
       new LoadFieldInstr(context,
@@ -3087,7 +3083,6 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       (scope != NULL) ? scope->num_context_variables() : 0;
   int previous_context_level = owner()->context_level();
   if (num_context_variables > 0) {
-    InlineBailout("EffectGraphVisitor::VisitSequenceNode (context)");
     // The loop local scope declares variables that are captured.
     // Allocate and chain a new context.
     // Allocate context computation (uses current CTX)
@@ -3205,7 +3200,8 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   if (is_open()) {
     if (MustSaveRestoreContext(node)) {
       ASSERT(num_context_variables > 0);
-      BuildLoadContext(*owner()->parsed_function()->saved_entry_context_var());
+      BuildRestoreContext(
+          *owner()->parsed_function()->saved_entry_context_var());
     } else if (num_context_variables > 0) {
       UnchainContext();
     }
@@ -3236,7 +3232,7 @@ void EffectGraphVisitor::VisitCatchClauseNode(CatchClauseNode* node) {
   // Restores CTX from local variable ':saved_context'.
   AddInstruction(
       new CatchEntryInstr(node->exception_var(), node->stacktrace_var()));
-  BuildLoadContext(node->context_var());
+  BuildRestoreContext(node->context_var());
 
   EffectGraphVisitor for_catch(owner(), temp_index());
   node->VisitChildren(&for_catch);
@@ -3251,7 +3247,7 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
   owner()->set_try_index(try_handler_index);
 
   // Preserve CTX into local variable '%saved_context'.
-  BuildStoreContext(node->context_var());
+  BuildSaveContext(node->context_var());
 
   EffectGraphVisitor for_try(owner(), temp_index());
   node->try_block()->Visit(&for_try);
@@ -3308,7 +3304,7 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
       for_finally.AddInstruction(
           new CatchEntryInstr(catch_block->exception_var(),
                               catch_block->stacktrace_var()));
-      for_finally.BuildLoadContext(catch_block->context_var());
+      for_finally.BuildRestoreContext(catch_block->context_var());
 
       finally_block->Visit(&for_finally);
       if (for_finally.is_open()) {
@@ -3478,7 +3474,7 @@ void EffectGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
     // thrown not from the current try block but the outer try block if any.
     owner()->set_try_index((try_index - 1));
   }
-  BuildLoadContext(node->context_var());
+  BuildRestoreContext(node->context_var());
 
   JoinEntryInstr* finally_entry =
       new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());

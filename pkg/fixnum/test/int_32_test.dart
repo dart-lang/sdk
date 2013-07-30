@@ -94,6 +94,9 @@ void main() {
       expect(new int32.fromInt(17) < new int32.fromInt(18), true);
       expect(new int32.fromInt(17) < new int32.fromInt(17), false);
       expect(new int32.fromInt(17) < new int32.fromInt(16), false);
+      expect(new int32.fromInt(17) < new int64.fromInt(18), true);
+      expect(new int32.fromInt(17) < new int64.fromInt(17), false);
+      expect(new int32.fromInt(17) < new int64.fromInt(16), false);
       expect(int32.MIN_VALUE < int32.MAX_VALUE, true);
       expect(int32.MAX_VALUE < int32.MIN_VALUE, false);
       expect(() => new int32.fromInt(17) < null, throws);
@@ -103,6 +106,9 @@ void main() {
       expect(new int32.fromInt(17) <= new int32.fromInt(18), true);
       expect(new int32.fromInt(17) <= new int32.fromInt(17), true);
       expect(new int32.fromInt(17) <= new int32.fromInt(16), false);
+      expect(new int32.fromInt(17) <= new int64.fromInt(18), true);
+      expect(new int32.fromInt(17) <= new int64.fromInt(17), true);
+      expect(new int32.fromInt(17) <= new int64.fromInt(16), false);
       expect(int32.MIN_VALUE <= int32.MAX_VALUE, true);
       expect(int32.MAX_VALUE <= int32.MIN_VALUE, false);
       expect(() => new int32.fromInt(17) <= null, throws);
@@ -112,7 +118,11 @@ void main() {
       expect(new int32.fromInt(17) == new int32.fromInt(18), false);
       expect(new int32.fromInt(17) == new int32.fromInt(17), true);
       expect(new int32.fromInt(17) == new int32.fromInt(16), false);
+      expect(new int32.fromInt(17) == new int64.fromInt(18), false);
+      expect(new int32.fromInt(17) == new int64.fromInt(17), true);
+      expect(new int32.fromInt(17) == new int64.fromInt(16), false);
       expect(int32.MIN_VALUE == int32.MAX_VALUE, false);
+      expect(new int32.fromInt(17) == new Object(), false);
       expect(new int32.fromInt(17) == null, false);
     });
 
@@ -120,6 +130,9 @@ void main() {
       expect(new int32.fromInt(17) >= new int32.fromInt(18), false);
       expect(new int32.fromInt(17) >= new int32.fromInt(17), true);
       expect(new int32.fromInt(17) >= new int32.fromInt(16), true);
+      expect(new int32.fromInt(17) >= new int64.fromInt(18), false);
+      expect(new int32.fromInt(17) >= new int64.fromInt(17), true);
+      expect(new int32.fromInt(17) >= new int64.fromInt(16), true);
       expect(int32.MIN_VALUE >= int32.MAX_VALUE, false);
       expect(int32.MAX_VALUE >= int32.MIN_VALUE, true);
       expect(() => new int32.fromInt(17) >= null, throws);
@@ -129,6 +142,9 @@ void main() {
       expect(new int32.fromInt(17) > new int32.fromInt(18), false);
       expect(new int32.fromInt(17) > new int32.fromInt(17), false);
       expect(new int32.fromInt(17) > new int32.fromInt(16), true);
+      expect(new int32.fromInt(17) > new int64.fromInt(18), false);
+      expect(new int32.fromInt(17) > new int64.fromInt(17), false);
+      expect(new int32.fromInt(17) > new int64.fromInt(16), true);
       expect(int32.MIN_VALUE > int32.MAX_VALUE, false);
       expect(int32.MAX_VALUE > int32.MIN_VALUE, true);
       expect(() => new int32.fromInt(17) > null, throws);

@@ -1116,12 +1116,13 @@ abstract class HInstruction implements Spannable {
     // instructions with generics. It has the generic type context
     // available.
     assert(type.kind != TypeKind.TYPE_VARIABLE);
-    assert(type.isRaw
-           || type.isMalformed
-           || type.kind == TypeKind.FUNCTION);
-    if (identical(type.element, compiler.dynamicClass)) return this;
+    assert(type.isRaw || type.kind == TypeKind.FUNCTION);
+    if (type.containsAmbiguousTypes) {
+      return new HTypeConversion(type, kind, HType.UNKNOWN, this);
+    }
+    if (type.treatAsDynamic) return this;
     if (identical(type.element, compiler.objectClass)) return this;
-    if (type.isMalformed || type.kind != TypeKind.INTERFACE) {
+    if (type.kind != TypeKind.INTERFACE) {
       return new HTypeConversion(type, kind, HType.UNKNOWN, this);
     } else if (kind == HTypeConversion.BOOLEAN_CONVERSION_CHECK) {
       // Boolean conversion checks work on non-nullable booleans.

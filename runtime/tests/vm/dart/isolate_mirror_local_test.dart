@@ -116,9 +116,8 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
   Expect.equals(null, lib_mirror.owner);
   Expect.isFalse(lib_mirror.isPrivate);
   Expect.isTrue(lib_mirror.uri.path.contains('isolate_mirror_local_test.dart'));
-  // TODO(ahe): toString() test disabled for now as Symbols are 100% opaque.
-  // Expect.equals("LibraryMirror on 'isolate_mirror_local_test'",
-  //               lib_mirror.toString());
+  Expect.equals("LibraryMirror on 'isolate_mirror_local_test'",
+                lib_mirror.toString());
 
   // Test library invocation by calling function(123).
   Expect.equals(0, global_var);
@@ -317,8 +316,7 @@ void testLibrariesMap(Map libraries) {
   Expect.isTrue(list_intf.isClass);
   Expect.equals(const Symbol('Iterable'),
                 list_intf.superinterfaces[0].simpleName);
-  // TODO(ahe): toString() test disabled for now as Symbols are 100% opaque.
-  // Expect.equals("ClassMirror on 'List'", list_intf.toString());
+  Expect.equals("ClassMirror on 'List'", list_intf.toString());
 
   // Lookup a class from a library and make sure it is sane.
   ClassMirror oom_cls = core_lib.members[const Symbol('OutOfMemoryError')];
@@ -332,9 +330,8 @@ void testLibrariesMap(Map libraries) {
   Expect.equals(const Symbol('dart.core'), oom_cls.owner.simpleName);
   Expect.isTrue(oom_cls.isClass);
   Expect.equals(const Symbol('Error'), oom_cls.superinterfaces[0].simpleName);
-  // TODO(ahe): toString() test disabled for now as Symbols are 100% opaque.
-  // Expect.equals("ClassMirror on 'OutOfMemoryError'",
-  //               oom_cls.toString());
+  Expect.equals("ClassMirror on 'OutOfMemoryError'",
+                oom_cls.toString());
   testDone('testLibrariesMap');
 }
 
@@ -434,21 +431,22 @@ void testCustomInstanceMirror(InstanceMirror mirror) {
     saw_exception = true;
   }
   Expect.isFalse(saw_exception);
-  // TODO(ahe): toString() test disabled for now as Symbols are 100% opaque.
-  // Expect.equals("InstanceMirror on instance of 'MyClass'",
-  //               mirror.toString());
+  Expect.equals("InstanceMirror on Instance of 'MyClass'",
+                mirror.toString());
 
   ClassMirror cls = mirror.type;
   Expect.isTrue(cls is ClassMirror);
   Expect.equals(const Symbol('MyClass'), cls.simpleName);
   Expect.equals(const Symbol('MySuperClass'), cls.superclass.simpleName);
   Expect.isTrue(cls.defaultFactory == null);
-  Expect.equals(const Symbol('isolate_mirror_local_test'), cls.owner.simpleName);
+  Expect.equals(const Symbol('isolate_mirror_local_test'),
+                cls.owner.simpleName);
   Expect.isTrue(cls.isClass);
   Expect.equals(const Symbol('MyInterface'), cls.superinterfaces[0].simpleName);
-  Expect.throws(() => cls.metadata, (e) => e is MirroredCompilationError, 'Bad metadata');
-  // TODO(ahe): toString() test disabled for now as Symbols are 100% opaque.
-  // Expect.equals("ClassMirror on 'MyClass'", cls.toString());
+  Expect.throws(() => cls.metadata,
+                (e) => e is MirroredCompilationError,
+                'Bad metadata');
+  Expect.equals("ClassMirror on 'MyClass'", cls.toString());
 
   // Invoke mirror.method(1000).
   mirror.invokeAsync(const Symbol('method'), [ 1000 ]).then(

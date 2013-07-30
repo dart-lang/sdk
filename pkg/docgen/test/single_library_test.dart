@@ -113,9 +113,7 @@ main() {
           var libraryDocComment = fixReference('foobar', libraryMirror,
               classMirror, methodMirror).children.first.text;
           expect(libraryDocComment == 'foobar', isTrue);
-          
-          temporaryDir.deleteSync(recursive: true);
-        }));
+        })).whenComplete(() => temporaryDir.deleteSync(recursive: true));
     });
   });
 }

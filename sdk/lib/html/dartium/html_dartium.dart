@@ -26320,6 +26320,7 @@ class Window extends EventTarget implements WindowBase, WindowTimers {
   void moveTo(Point p) {
     $dom_moveTo(p.x, p.y);
   }
+
 }
 
 /**

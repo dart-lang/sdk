@@ -91,6 +91,10 @@ class ClassFinalizer : public AllStatic {
   // needed during bootstrapping where the classes have been preloaded.
   static void VerifyBootstrapClasses();
 
+  // Resolve the type and target of the redirecting factory.
+  static void ResolveRedirectingFactory(const Class& cls,
+                                        const Function& factory);
+
  private:
   static bool IsSuperCycleFree(const Class& cls);
   static bool IsParameterTypeCycleFree(const Class& cls,

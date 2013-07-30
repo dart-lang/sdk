@@ -186,8 +186,11 @@ const Register ICREG = S5;  // IC data register.
 
 // The code that generates a comparison can be far away from the code that
 // generates the branch that uses the result of that comparison. In this case,
-// CMPRES is used for the result of the comparison.
-const Register CMPRES = T9;
+// CMPRES1 and CMPRES2 are used for the results of the comparison. We need two
+// since TMP is clobbered by a far branch.
+const Register CMPRES1 = T8;
+const Register CMPRES2 = T9;
+const Register CMPRES = CMPRES1;
 
 // Exception object is passed in this register to the catch handlers when an
 // exception is thrown.
@@ -504,6 +507,12 @@ class Instr {
     return static_cast<Opcode>(Bits(kOpcodeShift, kOpcodeBits));
   }
 
+  inline void SetOpcodeField(Opcode b) {
+    int32_t instr = InstructionBits();
+    int32_t mask = ((1 << kOpcodeBits) - 1) << kOpcodeShift;
+    SetInstructionBits((b << kOpcodeShift) | (instr & ~mask));
+  }
+
   inline Register RsField() const {
     return static_cast<Register>(Bits(kRsShift, kRsBits));
   }
@@ -551,6 +560,12 @@ class Instr {
 
   inline RtRegImm RegImmFnField() const {
     return static_cast<RtRegImm>(Bits(kRtShift, kRtBits));
+  }
+
+  inline void SetRegImmFnField(RtRegImm b) {
+    int32_t instr = InstructionBits();
+    int32_t mask = ((1 << kRtBits) - 1) << kRtShift;
+    SetInstructionBits((b << kRtShift) | (instr & ~mask));
   }
 
   inline bool IsBreakPoint() {

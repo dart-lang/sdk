@@ -4,14 +4,12 @@
 
 library universe;
 
-import '../closure.dart';
 import '../elements/elements.dart';
 import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../types/types.dart';
 import '../tree/tree.dart';
 import '../util/util.dart';
-import '../js/js.dart' as js;
 
 part 'function_set.dart';
 part 'side_effects.dart';

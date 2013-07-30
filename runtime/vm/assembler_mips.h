@@ -22,6 +22,8 @@
 //   The MIPS32® Instruction Set" in short "VolII-A"
 namespace dart {
 
+DECLARE_FLAG(bool, use_far_branches);
+
 // Forward declarations.
 class RuntimeEntry;
 
@@ -854,76 +856,80 @@ class Assembler : public ValueObject {
   }
 
   void BranchEqual(Register rd, int32_t value, Label* l) {
-    ASSERT(rd != CMPRES);
-    LoadImmediate(CMPRES, value);
-    beq(rd, CMPRES, l);
+    ASSERT(rd != CMPRES2);
+    LoadImmediate(CMPRES2, value);
+    beq(rd, CMPRES2, l);
   }
 
   void BranchEqual(Register rd, const Object& object, Label* l) {
-    ASSERT(rd != CMPRES);
-    LoadObject(CMPRES, object);
-    beq(rd, CMPRES, l);
+    ASSERT(rd != CMPRES2);
+    LoadObject(CMPRES2, object);
+    beq(rd, CMPRES2, l);
   }
 
   void BranchNotEqual(Register rd, int32_t value, Label* l) {
-    ASSERT(rd != CMPRES);
-    LoadImmediate(CMPRES, value);
-    bne(rd, CMPRES, l);
+    ASSERT(rd != CMPRES2);
+    LoadImmediate(CMPRES2, value);
+    bne(rd, CMPRES2, l);
   }
 
   void BranchNotEqual(Register rd, const Object& object, Label* l) {
-    ASSERT(rd != CMPRES);
-    LoadObject(CMPRES, object);
-    bne(rd, CMPRES, l);
+    ASSERT(rd != CMPRES2);
+    LoadObject(CMPRES2, object);
+    bne(rd, CMPRES2, l);
   }
 
   void BranchSignedGreater(Register rd, Register rs, Label* l) {
-    slt(CMPRES, rs, rd);  // CMPRES = rd > rs ? 1 : 0.
-    bne(CMPRES, ZR, l);
+    slt(CMPRES2, rs, rd);  // CMPRES2 = rd > rs ? 1 : 0.
+    bne(CMPRES2, ZR, l);
   }
 
   void BranchSignedGreater(Register rd, int32_t value, Label* l) {
-    LoadImmediate(CMPRES, value);
-    BranchSignedGreater(rd, CMPRES, l);
+    ASSERT(rd != CMPRES2);
+    LoadImmediate(CMPRES2, value);
+    BranchSignedGreater(rd, CMPRES2, l);
   }
 
   void BranchUnsignedGreater(Register rd, Register rs, Label* l) {
-    sltu(CMPRES, rs, rd);
-    bne(CMPRES, ZR, l);
+    sltu(CMPRES2, rs, rd);
+    bne(CMPRES2, ZR, l);
   }
 
   void BranchUnsignedGreater(Register rd, int32_t value, Label* l) {
-    LoadImmediate(CMPRES, value);
-    BranchUnsignedGreater(rd, CMPRES, l);
+    ASSERT(rd != CMPRES2);
+    LoadImmediate(CMPRES2, value);
+    BranchUnsignedGreater(rd, CMPRES2, l);
   }
 
   void BranchSignedGreaterEqual(Register rd, Register rs, Label* l) {
-    slt(CMPRES, rd, rs);  // CMPRES = rd < rs ? 1 : 0.
-    beq(CMPRES, ZR, l);  // If CMPRES = 0, then rd >= rs.
+    slt(CMPRES2, rd, rs);  // CMPRES2 = rd < rs ? 1 : 0.
+    beq(CMPRES2, ZR, l);  // If CMPRES2 = 0, then rd >= rs.
   }
 
   void BranchSignedGreaterEqual(Register rd, int32_t value, Label* l) {
     if (Utils::IsInt(kImmBits, value)) {
-      slti(CMPRES, rd, Immediate(value));
-      beq(CMPRES, ZR, l);
+      slti(CMPRES2, rd, Immediate(value));
+      beq(CMPRES2, ZR, l);
     } else {
-      LoadImmediate(CMPRES, value);
-      BranchSignedGreaterEqual(rd, CMPRES, l);
+      ASSERT(rd != CMPRES2);
+      LoadImmediate(CMPRES2, value);
+      BranchSignedGreaterEqual(rd, CMPRES2, l);
     }
   }
 
   void BranchUnsignedGreaterEqual(Register rd, Register rs, Label* l) {
-    sltu(CMPRES, rd, rs);  // CMPRES = rd < rs ? 1 : 0.
-    beq(CMPRES, ZR, l);
+    sltu(CMPRES2, rd, rs);  // CMPRES2 = rd < rs ? 1 : 0.
+    beq(CMPRES2, ZR, l);
   }
 
   void BranchUnsignedGreaterEqual(Register rd, int32_t value, Label* l) {
     if (Utils::IsUint(kImmBits, value)) {
-      sltiu(CMPRES, rd, Immediate(value));
-      beq(CMPRES, ZR, l);
+      sltiu(CMPRES2, rd, Immediate(value));
+      beq(CMPRES2, ZR, l);
     } else {
-      LoadImmediate(CMPRES, value);
-      BranchUnsignedGreaterEqual(rd, CMPRES, l);
+      ASSERT(rd != CMPRES2);
+      LoadImmediate(CMPRES2, value);
+      BranchUnsignedGreaterEqual(rd, CMPRES2, l);
     }
   }
 
@@ -933,11 +939,12 @@ class Assembler : public ValueObject {
 
   void BranchSignedLess(Register rd, int32_t value, Label* l) {
     if (Utils::IsInt(kImmBits, value)) {
-      slti(CMPRES, rd, Immediate(value));
-      bne(CMPRES, ZR, l);
+      slti(CMPRES2, rd, Immediate(value));
+      bne(CMPRES2, ZR, l);
     } else {
-      LoadImmediate(CMPRES, value);
-      BranchSignedGreater(CMPRES, rd, l);
+      ASSERT(rd != CMPRES2);
+      LoadImmediate(CMPRES2, value);
+      BranchSignedGreater(CMPRES2, rd, l);
     }
   }
 
@@ -947,11 +954,12 @@ class Assembler : public ValueObject {
 
   void BranchUnsignedLess(Register rd, int32_t value, Label* l) {
     if (Utils::IsUint(kImmBits, value)) {
-      sltiu(CMPRES, rd, Immediate(value));
-      bne(CMPRES, ZR, l);
+      sltiu(CMPRES2, rd, Immediate(value));
+      bne(CMPRES2, ZR, l);
     } else {
-      LoadImmediate(CMPRES, value);
-      BranchUnsignedGreater(CMPRES, rd, l);
+      ASSERT(rd != CMPRES2);
+      LoadImmediate(CMPRES2, value);
+      BranchUnsignedGreater(CMPRES2, rd, l);
     }
   }
 
@@ -960,8 +968,9 @@ class Assembler : public ValueObject {
   }
 
   void BranchSignedLessEqual(Register rd, int32_t value, Label* l) {
-    LoadImmediate(CMPRES, value);
-    BranchSignedGreaterEqual(CMPRES, rd, l);
+    ASSERT(rd != CMPRES2);
+    LoadImmediate(CMPRES2, value);
+    BranchSignedGreaterEqual(CMPRES2, rd, l);
   }
 
   void BranchUnsignedLessEqual(Register rd, Register rs, Label* l) {
@@ -969,8 +978,9 @@ class Assembler : public ValueObject {
   }
 
   void BranchUnsignedLessEqual(Register rd, int32_t value, Label* l) {
-    LoadImmediate(CMPRES, value);
-    BranchUnsignedGreaterEqual(CMPRES, rd, l);
+    ASSERT(rd != CMPRES2);
+    LoadImmediate(CMPRES2, value);
+    BranchUnsignedGreaterEqual(CMPRES2, rd, l);
   }
 
   void Push(Register rt) {
@@ -1028,6 +1038,10 @@ class Assembler : public ValueObject {
     lwc1(lo, Address(base, offset));
     lwc1(hi, Address(base, offset + kWordSize));
   }
+
+  // dest gets the address of the following instruction. If temp is given,
+  // RA is preserved using it as a temporary.
+  void GetNextPC(Register dest, Register temp = kNoRegister);
 
   void ReserveAlignedFrameSpace(intptr_t frame_space);
 
@@ -1182,60 +1196,14 @@ class Assembler : public ValueObject {
          func << kCop1FnShift);
   }
 
-  void EmitBranch(Opcode b, Register rs, Register rt, Label* label) {
-    if (label->IsBound()) {
-      // Relative destination from an instruction after the branch.
-      const int32_t dest =
-          label->Position() - (buffer_.Size() + Instr::kInstrSize);
-      const uint16_t dest_off = EncodeBranchOffset(dest, 0);
-      EmitIType(b, rs, rt, dest_off);
-    } else {
-      const int position = buffer_.Size();
-      const uint16_t dest_off = EncodeBranchOffset(label->position_, 0);
-      EmitIType(b, rs, rt, dest_off);
-      label->LinkTo(position);
-    }
-  }
 
-  void EmitRegImmBranch(RtRegImm b, Register rs, Label* label) {
-    if (label->IsBound()) {
-      // Relative destination from an instruction after the branch.
-      const int32_t dest =
-          label->Position() - (buffer_.Size() + Instr::kInstrSize);
-      const uint16_t dest_off = EncodeBranchOffset(dest, 0);
-      EmitRegImmType(REGIMM, rs, b, dest_off);
-    } else {
-      const int position = buffer_.Size();
-      const uint16_t dest_off = EncodeBranchOffset(label->position_, 0);
-      EmitRegImmType(REGIMM, rs, b, dest_off);
-      label->LinkTo(position);
-    }
-  }
-
-  void EmitFpuBranch(bool kind, Label *label) {
-    const int32_t b16 = kind ? (1 << 16) : 0;  // Bit 16 set for branch on true.
-    if (label->IsBound()) {
-      // Relative destination from an instruction after the branch.
-      const int32_t dest =
-          label->Position() - (buffer_.Size() + Instr::kInstrSize);
-      const uint16_t dest_off = EncodeBranchOffset(dest, 0);
-      Emit(COP1 << kOpcodeShift |
-           COP1_BC << kCop1SubShift |
-           b16 |
-           dest_off);
-    } else {
-      const int position = buffer_.Size();
-      const uint16_t dest_off = EncodeBranchOffset(label->position_, 0);
-      Emit(COP1 << kOpcodeShift |
-           COP1_BC << kCop1SubShift |
-           b16 |
-           dest_off);
-      label->LinkTo(position);
-    }
-  }
-
-  static int32_t EncodeBranchOffset(int32_t offset, int32_t instr);
-  static int DecodeBranchOffset(int32_t instr);
+  void EmitFarJump(int32_t offset, bool link);
+  void EmitFarBranch(Opcode b, Register rs, Register rt, int32_t offset);
+  void EmitFarRegImmBranch(RtRegImm b, Register rs, int32_t offset);
+  void EmitFarFpuBranch(bool kind, int32_t offset);
+  void EmitBranch(Opcode b, Register rs, Register rt, Label* label);
+  void EmitRegImmBranch(RtRegImm b, Register rs, Label* label);
+  void EmitFpuBranch(bool kind, Label *label);
 
   void EmitBranchDelayNop() {
     Emit(Instr::kNopInstruction);  // Branch delay NOP.

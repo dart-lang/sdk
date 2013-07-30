@@ -668,7 +668,8 @@ class _WebSocketConsumer implements StreamConsumer {
 
 
 class _WebSocketImpl extends Stream implements WebSocket {
-  final StreamController _controller = new StreamController(sync: true);
+  StreamController _controller;
+  StreamSubscription _subscription;
   StreamSink _sink;
 
   final Socket _socket;
@@ -763,7 +764,7 @@ class _WebSocketImpl extends Stream implements WebSocket {
     _readyState = WebSocket.OPEN;
 
     var transformer = new _WebSocketProtocolTransformer(_serverSide);
-    _socket.transform(transformer).listen(
+    _subscription = _socket.transform(transformer).listen(
         (data) {
           if (data is _WebSocketPing) {
             if (!_writeClosed) _consumer.add(new _WebSocketPong(data.payload));
@@ -798,6 +799,11 @@ class _WebSocketImpl extends Stream implements WebSocket {
           _controller.close();
         },
         cancelOnError: true);
+    _subscription.pause();
+    _controller = new StreamController(sync: true,
+                                       onListen: _subscription.resume,
+                                       onPause: _subscription.pause,
+                                       onResume: _subscription.resume);
   }
 
   StreamSubscription listen(void onData(message),

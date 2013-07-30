@@ -22,8 +22,6 @@ import '../string_validator.dart';
 import '../tree/tree.dart';
 import '../util/characters.dart';
 import '../util/util.dart';
-// TODO(ahe): Rename prefix to 'api' when VM bug is fixed.
-import '../../compiler.dart' as api_s;
 
 part 'class_element_parser.dart';
 part 'keyword.dart';

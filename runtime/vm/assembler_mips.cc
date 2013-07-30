@@ -17,6 +17,7 @@ namespace dart {
 DECLARE_FLAG(bool, trace_sim);
 #endif
 DEFINE_FLAG(bool, print_stop_message, false, "Print stop message.");
+DEFINE_FLAG(bool, use_far_branches, false, "Enable far branches on MIPS");
 DECLARE_FLAG(bool, inline_alloc);
 
 void Assembler::InitializeMemoryWithBreakpoints(uword data, int length) {
@@ -30,24 +31,25 @@ void Assembler::InitializeMemoryWithBreakpoints(uword data, int length) {
 }
 
 
-void Assembler::Bind(Label* label) {
-  ASSERT(!label->IsBound());
-  int bound_pc = buffer_.Size();
-  while (label->IsLinked()) {
-    const int32_t position = label->Position();
-    const int32_t next = buffer_.Load<int32_t>(position);
-    // Relative destination from an instruction after the branch.
-    const int32_t dest = bound_pc - (position + Instr::kInstrSize);
-    const int32_t encoded = Assembler::EncodeBranchOffset(dest, next);
-    buffer_.Store<int32_t>(position, encoded);
-    label->position_ = Assembler::DecodeBranchOffset(next);
+void Assembler::GetNextPC(Register dest, Register temp) {
+  if (temp != kNoRegister) {
+    mov(temp, RA);
   }
-  label->BindTo(bound_pc);
-  delay_slot_available_ = false;
+  EmitRegImmType(REGIMM, R0, BGEZAL, 1);
+  mov(dest, RA);
+  if (temp != kNoRegister) {
+    mov(RA, temp);
+  }
 }
 
 
-int32_t Assembler::EncodeBranchOffset(int32_t offset, int32_t instr) {
+static bool CanEncodeBranchOffset(int32_t offset) {
+  ASSERT(Utils::IsAligned(offset, 4));
+  return Utils::IsInt(18, offset);
+}
+
+
+static int32_t EncodeBranchOffset(int32_t offset, int32_t instr) {
   ASSERT(Utils::IsAligned(offset, 4));
   ASSERT(Utils::IsInt(18, offset));
 
@@ -58,9 +60,284 @@ int32_t Assembler::EncodeBranchOffset(int32_t offset, int32_t instr) {
 }
 
 
-int Assembler::DecodeBranchOffset(int32_t instr) {
+static int DecodeBranchOffset(int32_t instr) {
   // Sign-extend, left-shift by 2.
   return (((instr & kBranchOffsetMask) << 16) >> 14);
+}
+
+
+static int32_t DecodeLoadImmediate(int32_t ori_instr, int32_t lui_instr) {
+  return (((lui_instr & kBranchOffsetMask) << 16) |
+           (ori_instr & kBranchOffsetMask));
+}
+
+
+static int32_t EncodeLoadImmediate(int32_t dest, int32_t instr) {
+  return ((instr & ~kBranchOffsetMask) | (dest & kBranchOffsetMask));
+}
+
+
+class PatchFarJump : public AssemblerFixup {
+ public:
+  PatchFarJump() {}
+
+  void Process(const MemoryRegion& region, int position) {
+    const int32_t high = region.Load<int32_t>(position);
+    const int32_t low = region.Load<int32_t>(position + Instr::kInstrSize);
+    const int32_t offset = DecodeLoadImmediate(low, high);
+    const int32_t dest = region.start() + offset;
+
+    if ((Instr::At(reinterpret_cast<uword>(&high))->OpcodeField() == LUI) &&
+        (Instr::At(reinterpret_cast<uword>(&low))->OpcodeField() == ORI)) {
+      // Change the offset to the absolute value.
+      const int32_t encoded_low =
+          EncodeLoadImmediate(dest & kBranchOffsetMask, low);
+      const int32_t encoded_high =
+          EncodeLoadImmediate(dest >> 16, high);
+
+      region.Store<int32_t>(position, encoded_high);
+      region.Store<int32_t>(position + Instr::kInstrSize, encoded_low);
+      return;
+    }
+    // If the offset loading instructions aren't there, we must have replaced
+    // the far branch with a near one, and so these instructions should be NOPs.
+    ASSERT((high == Instr::kNopInstruction) && (low == Instr::kNopInstruction));
+  }
+};
+
+
+void Assembler::EmitFarJump(int32_t offset, bool link) {
+  const uint16_t low = Utils::Low16Bits(offset);
+  const uint16_t high = Utils::High16Bits(offset);
+  buffer_.EmitFixup(new PatchFarJump());
+  lui(TMP, Immediate(high));
+  ori(TMP, TMP, Immediate(low));
+  if (link) {
+    EmitRType(SPECIAL, TMP, R0, RA, 0, JALR);
+  } else {
+    EmitRType(SPECIAL, TMP, R0, R0, 0, JR);
+  }
+}
+
+
+static Opcode OppositeBranchOpcode(Opcode b) {
+  switch (b) {
+    case BEQ: return BNE;
+    case BNE: return BEQ;
+    case BGTZ: return BLEZ;
+    case BLEZ: return BGTZ;
+    case BEQL: return BNEL;
+    case BNEL: return BEQL;
+    case BGTZL: return BLEZL;
+    case BLEZL: return BGTZL;
+    default:
+      UNREACHABLE();
+      break;
+  }
+  return BNE;
+}
+
+
+void Assembler::EmitFarBranch(Opcode b, Register rs, Register rt,
+                              int32_t offset) {
+  EmitIType(b, rs, rt, 4);
+  nop();
+  EmitFarJump(offset, false);
+}
+
+
+static RtRegImm OppositeBranchNoLink(RtRegImm b) {
+  switch (b) {
+    case BLTZ: return BGEZ;
+    case BGEZ: return BLTZ;
+    case BLTZAL: return BGEZ;
+    case BGEZAL: return BLTZ;
+    default:
+      UNREACHABLE();
+      break;
+  }
+  return BLTZ;
+}
+
+
+void Assembler::EmitFarRegImmBranch(RtRegImm b, Register rs, int32_t offset) {
+  EmitRegImmType(REGIMM, rs, b, 4);
+  nop();
+  EmitFarJump(offset, (b == BLTZAL) || (b == BGEZAL));
+}
+
+
+void Assembler::EmitFarFpuBranch(bool kind, int32_t offset) {
+  const uint32_t b16 = kind ? (1 << 16) : 0;
+  Emit(COP1 << kOpcodeShift | COP1_BC << kCop1SubShift | b16 | 4);
+  nop();
+  EmitFarJump(offset, false);
+}
+
+
+void Assembler::EmitBranch(Opcode b, Register rs, Register rt, Label* label) {
+  if (label->IsBound()) {
+    // Relative destination from an instruction after the branch.
+    const int32_t dest =
+        label->Position() - (buffer_.Size() + Instr::kInstrSize);
+    if (FLAG_use_far_branches && !CanEncodeBranchOffset(dest)) {
+      EmitFarBranch(b, rs, rt, label->Position());
+    } else {
+      const uint16_t dest_off = EncodeBranchOffset(dest, 0);
+      EmitIType(b, rs, rt, dest_off);
+    }
+  } else {
+    const int position = buffer_.Size();
+    if (FLAG_use_far_branches) {
+      const uint32_t dest_off = label->position_;
+      EmitFarBranch(b, rs, rt, dest_off);
+    } else {
+      const uint16_t dest_off = EncodeBranchOffset(label->position_, 0);
+      EmitIType(b, rs, rt, dest_off);
+    }
+    label->LinkTo(position);
+  }
+}
+
+
+void Assembler::EmitRegImmBranch(RtRegImm b, Register rs, Label* label) {
+  if (label->IsBound()) {
+    // Relative destination from an instruction after the branch.
+    const int32_t dest =
+        label->Position() - (buffer_.Size() + Instr::kInstrSize);
+    if (FLAG_use_far_branches && !CanEncodeBranchOffset(dest)) {
+      EmitFarRegImmBranch(b, rs, label->Position());
+    } else {
+      const uint16_t dest_off = EncodeBranchOffset(dest, 0);
+      EmitRegImmType(REGIMM, rs, b, dest_off);
+    }
+  } else {
+    const int position = buffer_.Size();
+    if (FLAG_use_far_branches) {
+      const uint32_t dest_off = label->position_;
+      EmitFarRegImmBranch(b, rs, dest_off);
+    } else {
+      const uint16_t dest_off = EncodeBranchOffset(label->position_, 0);
+      EmitRegImmType(REGIMM, rs, b, dest_off);
+    }
+    label->LinkTo(position);
+  }
+}
+
+
+void Assembler::EmitFpuBranch(bool kind, Label *label) {
+  const int32_t b16 = kind ? (1 << 16) : 0;  // Bit 16 set for branch on true.
+  if (label->IsBound()) {
+    // Relative destination from an instruction after the branch.
+    const int32_t dest =
+        label->Position() - (buffer_.Size() + Instr::kInstrSize);
+    if (FLAG_use_far_branches && !CanEncodeBranchOffset(dest)) {
+      EmitFarFpuBranch(kind, label->Position());
+    } else {
+      const uint16_t dest_off = EncodeBranchOffset(dest, 0);
+      Emit(COP1 << kOpcodeShift |
+           COP1_BC << kCop1SubShift |
+           b16 |
+           dest_off);
+    }
+  } else {
+    const int position = buffer_.Size();
+    if (FLAG_use_far_branches) {
+      const uint32_t dest_off = label->position_;
+      EmitFarFpuBranch(kind, dest_off);
+    } else {
+      const uint16_t dest_off = EncodeBranchOffset(label->position_, 0);
+      Emit(COP1 << kOpcodeShift |
+           COP1_BC << kCop1SubShift |
+           b16 |
+           dest_off);
+    }
+    label->LinkTo(position);
+  }
+}
+
+
+static int32_t FlipBranchInstruction(int32_t instr) {
+  Instr* i = Instr::At(reinterpret_cast<uword>(&instr));
+  if (i->OpcodeField() == REGIMM) {
+    RtRegImm b = OppositeBranchNoLink(i->RegImmFnField());
+    i->SetRegImmFnField(b);
+    return i->InstructionBits();
+  } else if (i->OpcodeField() == COP1) {
+    return instr ^ (1 << 16);
+  }
+  Opcode b = OppositeBranchOpcode(i->OpcodeField());
+  i->SetOpcodeField(b);
+  return i->InstructionBits();
+}
+
+
+void Assembler::Bind(Label* label) {
+  ASSERT(!label->IsBound());
+  int bound_pc = buffer_.Size();
+
+  while (label->IsLinked()) {
+    int32_t position = label->Position();
+    int32_t dest = bound_pc - (position + Instr::kInstrSize);
+
+    if (FLAG_use_far_branches && !CanEncodeBranchOffset(dest)) {
+      // Far branches are enabled and we can't encode the branch offset.
+
+      // Grab the branch instruction. We'll need to flip it later.
+      const int32_t branch = buffer_.Load<int32_t>(position);
+
+      // Grab instructions that load the offset.
+      const int32_t high =
+          buffer_.Load<int32_t>(position + 2 * Instr::kInstrSize);
+      const int32_t low =
+          buffer_.Load<int32_t>(position + 3 * Instr::kInstrSize);
+
+      // Change from relative to the branch to relative to the assembler buffer.
+      dest = buffer_.Size();
+      const int32_t encoded_low =
+          EncodeLoadImmediate(dest & kBranchOffsetMask, low);
+      const int32_t encoded_high =
+          EncodeLoadImmediate(dest >> 16, high);
+
+      // Skip the unconditional far jump if the test fails by flipping the
+      // sense of the branch instruction.
+      buffer_.Store<int32_t>(position, FlipBranchInstruction(branch));
+      buffer_.Store<int32_t>(position + 2 * Instr::kInstrSize, encoded_high);
+      buffer_.Store<int32_t>(position + 3 * Instr::kInstrSize, encoded_low);
+      label->position_ = DecodeLoadImmediate(low, high);
+    } else if (FLAG_use_far_branches && CanEncodeBranchOffset(dest)) {
+      // We assembled a far branch, but we don't need it. Replace with a near
+      // branch.
+
+      // Grab the link to the next branch.
+      const int32_t high =
+          buffer_.Load<int32_t>(position + 2 * Instr::kInstrSize);
+      const int32_t low =
+          buffer_.Load<int32_t>(position + 3 * Instr::kInstrSize);
+
+      // Grab the original branch instruction.
+      int32_t branch = buffer_.Load<int32_t>(position);
+
+      // Clear out the old (far) branch.
+      for (int i = 0; i < 5; i++) {
+        buffer_.Store<int32_t>(position + i * Instr::kInstrSize,
+            Instr::kNopInstruction);
+      }
+
+      // Calculate the new offset.
+      dest = dest - 4 * Instr::kInstrSize;
+      const int32_t encoded = EncodeBranchOffset(dest, branch);
+      buffer_.Store<int32_t>(position + 4 * Instr::kInstrSize, encoded);
+      label->position_ = DecodeLoadImmediate(low, high);
+    } else {
+      const int32_t next = buffer_.Load<int32_t>(position);
+      const int32_t encoded = EncodeBranchOffset(dest, next);
+      buffer_.Store<int32_t>(position, encoded);
+      label->position_ = DecodeBranchOffset(next);
+    }
+  }
+  label->BindTo(bound_pc);
+  delay_slot_available_ = false;
 }
 
 
@@ -231,8 +508,8 @@ void Assembler::StoreIntoObjectFilterNoSmi(Register object,
   // if the bit is not set. We can't destroy the object.
   nor(TMP1, ZR, object);
   and_(TMP1, value, TMP1);
-  andi(TMP1, TMP1, Immediate(kNewObjectAlignmentOffset));
-  beq(TMP1, ZR, no_update);
+  andi(CMPRES1, TMP1, Immediate(kNewObjectAlignmentOffset));
+  beq(CMPRES1, ZR, no_update);
 }
 
 
@@ -245,10 +522,10 @@ void Assembler::StoreIntoObjectFilter(Register object,
   sll(TMP1, value, kObjectAlignmentLog2 - 1);
   and_(TMP1, value, TMP1);
   // And the result with the negated space bit of the object.
-  nor(CMPRES, ZR, object);
-  and_(TMP1, TMP1, CMPRES);
-  andi(TMP1, TMP1, Immediate(kNewObjectAlignmentOffset));
-  beq(TMP1, ZR, no_update);
+  nor(CMPRES1, ZR, object);
+  and_(TMP1, TMP1, CMPRES1);
+  andi(CMPRES1, TMP1, Immediate(kNewObjectAlignmentOffset));
+  beq(CMPRES1, ZR, no_update);
 }
 
 
@@ -359,15 +636,13 @@ void Assembler::EnterStubFrame(bool uses_pp) {
     sw(PP, Address(SP, 0 * kWordSize));
     addiu(FP, SP, Immediate(1 * kWordSize));
     // Setup pool pointer for this stub.
-    Label next;
-    bal(&next);
-    delay_slot()->mov(TMP1, RA);
+
+    GetNextPC(TMP1);  // TMP1 gets the address of the next instruction.
 
     const intptr_t object_pool_pc_dist =
         Instructions::HeaderSize() - Instructions::object_pool_offset() +
         CodeSize();
 
-    Bind(&next);
     lw(PP, Address(TMP1, -object_pool_pc_dist));
   } else {
     addiu(SP, SP, Immediate(-3 * kWordSize));
@@ -465,19 +740,12 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
   sw(FP, Address(SP, 1 * kWordSize));
   sw(PP, Address(SP, 0 * kWordSize));
 
-  Label next;
-  // Branch and link to the instruction after the delay slot to get the PC.
-  bal(&next);
-  // RA is the address of the sw instruction below. Save it in T0.
-  delay_slot()->mov(TMP1, RA);
+  GetNextPC(TMP1);  // TMP1 gets the address of the next instruction.
 
   // Calculate the offset of the pool pointer from the PC.
   const intptr_t object_pool_pc_dist =
       Instructions::HeaderSize() - Instructions::object_pool_offset() +
       CodeSize();
-
-  // TMP1 has the address of the next instruction.
-  Bind(&next);
 
   // Save PC in frame for fast identification of corresponding code.
   AddImmediate(TMP1, -offset);
@@ -501,11 +769,8 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
 // allocate. We must also set up the pool pointer for the function.
 void Assembler::EnterOsrFrame(intptr_t extra_size) {
   Comment("EnterOsrFrame");
-  Label next;
-  // Branch and link to the instruction after the delay slot to get the PC.
-  bal(&next);
-  // RA is the address of the sw instruction below. Save it in T0.
-  delay_slot()->mov(TMP, RA);
+
+  GetNextPC(TMP);  // TMP gets the address of the next instruction.
 
   // The runtime system assumes that the code marker address is
   // kEntryPointToPcMarkerOffset bytes from the entry.  Since there is no
@@ -515,9 +780,6 @@ void Assembler::EnterOsrFrame(intptr_t extra_size) {
   const intptr_t object_pool_pc_dist =
       Instructions::HeaderSize() - Instructions::object_pool_offset() +
       CodeSize();
-
-  // temp has the address of the next instruction.
-  Bind(&next);
 
   // Adjust PC by the offset, and store it in the stack frame.
   AddImmediate(TMP, TMP, offset);

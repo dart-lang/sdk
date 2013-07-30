@@ -141,7 +141,7 @@ class SsaTypeGuardInserter extends SsaNonSpeculativeTypePropagator
     Element source = instruction.sourceElement;
     if (source != null) {
       DartType sourceType = source.computeType(compiler);
-      if (!sourceType.isMalformed && !sourceType.isDynamic &&
+      if (!sourceType.treatAsDynamic &&
           sourceType.kind == TypeKind.INTERFACE) {
         TypeMask sourceMask = new TypeMask.subtype(sourceType);
         TypeMask speculatedMask = speculativeType.computeMask(compiler);

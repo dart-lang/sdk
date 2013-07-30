@@ -16,17 +16,6 @@ class A {
 
 class B extends A { }
 
-
-call_bar(x) => x.bar();
-
-testMessage() {
-  try {
-    call_bar(5);
-  } catch (e) {
-    Expect.isTrue(e.toString().indexOf("method not found") != -1);
-  }
-}
-
 class C {
   C(this.pos, this.named, this.posArgs, this.namedArgs);
   var pos, named;
@@ -69,9 +58,5 @@ main() {
     Expect.equals(123, c.bar(100, n1:101, n2:102));
     Expect.equals(123, c.bar(100, n2:102, n1:101));
   }
-
-  // Test NoSuchMethodError message.
-  for (var i = 0; i < 20; i++) testMessage();
-
 }
 

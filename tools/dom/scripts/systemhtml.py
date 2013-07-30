@@ -85,6 +85,8 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'Window.location',
     'Window.open',
     'Window.requestAnimationFrame',
+    'Window.scrollX',
+    'Window.scrollY'
     # 'WorkerContext.indexedDB', # Workers
     ], dart2jsOnly=True)
 

@@ -10,7 +10,7 @@ void testReadByte() {
   void test(String line, List<String> expected) {
     var script = join(dirname(Platform.script), "stdin_sync_script.dart");
     Process.start(Platform.executable,
-                  [script]..addAll(
+                  ["--checked", script]..addAll(
                       expected.map(stringify))).then((process) {
       process.stdin.write(line);
       process.stdin.close();

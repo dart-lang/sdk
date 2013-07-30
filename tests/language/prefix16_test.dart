@@ -2,17 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// Unresolved imported symbols are handled differently in production mode and
-// check modes. In this test, the function myFunc is malformed, because
+// Unresolved imported symbols are treated as dynamic
+// In this test, the function myFunc contains malformed types because
 // lib12.Library13 is not resolved.
-// In checked mode, the assignment type check throws a run time type error.
-// In production, no assignment type checks are performed.
 
 library Prefix16NegativeTest.dart;
 import "package:expect/expect.dart";
 import "library12.dart" as lib12;
 
 typedef lib12.Library13 myFunc(lib12.Library13 param);
+typedef lib12.Library13 myFunc2(lib12.Library13 param, int i);
 
 isCheckedMode() {
   try {
@@ -28,6 +27,7 @@ main() {
   {
     bool got_type_error = false;
     try {
+      // Malformed myFunc treated as (dynamic) => dynamic.
       myFunc i = 0;
     } on TypeError catch (error) {
       got_type_error = true;
@@ -36,14 +36,27 @@ main() {
     Expect.isTrue(got_type_error == isCheckedMode());
   }
   {
-    bool got_type_error = false;
     try {
-      // In production mode, malformed myFunc is mapped to (dynamic) => dynamic.
+      // Malformed myFunc treated as (dynamic) => dynamic.
       Expect.isTrue(((int x) => x) is myFunc);
     } on TypeError catch (error) {
-      got_type_error = true;
+      Expect.fail();
     }
-    // Type error in checked mode only.
-    Expect.isTrue(got_type_error == isCheckedMode());
+  }
+  {
+    try {
+      // Malformed myFunc2 treated as (dynamic,int) => dynamic.
+      Expect.isTrue(((int x, int y) => x) is myFunc2);
+    } on TypeError catch (error) {
+      Expect.fail();
+    }
+  }
+  {
+    try {
+      // Malformed myFunc2 treated as (dynamic,int) => dynamic.
+      Expect.isFalse(((int x, String y) => x) is myFunc2);
+    } on TypeError catch (error) {
+      Expect.fail();
+    }
   }
 }

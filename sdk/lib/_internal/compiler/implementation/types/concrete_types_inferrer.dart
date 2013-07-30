@@ -403,7 +403,7 @@ class ConcreteTypesEnvironment {
     Types types = inferrer.compiler.types;
     bool paramMatches(ConcreteType concrete, VariableElement parameter) {
       DartType parameterType = parameter.variables.type;
-      if (parameterType.isDynamic || parameterType.isRaw) {
+      if (parameterType.treatAsDynamic || parameterType.isRaw) {
         return true;
       }
       for (BaseType baseType in concrete.baseTypes) {
@@ -1221,7 +1221,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
     for (final type in typesReturned) {
       if (type == native.SpecialType.JsObject) {
         registerDynamic();
-      } else if (type.isDynamic) {
+      } else if (type.treatAsDynamic) {
         registerDynamic();
       } else {
         ClassElement element = type.element;

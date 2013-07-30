@@ -25,9 +25,11 @@ class CallbackMockCompiler extends MockCompiler {
     super.reportWarning(node, message);
   }
 
-  void reportError(Node node, var message) {
-    if (onError != null) onError(this, node, message);
-    super.reportError(node, message);
+  void reportError(Spannable node,
+                   MessageKind errorCode,
+                   [Map arguments = const {}]) {
+    if (onError != null) onError(this, node, errorCode.error(arguments));
+    super.reportError(node, errorCode, arguments);
   }
 }
 
@@ -38,7 +40,8 @@ testErrorHandling() {
   ResolverVisitor visitor = compiler.resolverVisitor();
   compiler.parseScript('NoSuchPrefix.NoSuchType foo() {}');
   FunctionElement foo = compiler.mainApp.find(buildSourceString('foo'));
-  compiler.setOnWarning((c, n, m) => Expect.equals(foo, compiler.currentElement));
+  compiler.setOnWarning(
+      (c, n, m) => Expect.equals(foo, compiler.currentElement));
   foo.computeType(compiler);
   Expect.equals(1, compiler.warnings.length);
 }

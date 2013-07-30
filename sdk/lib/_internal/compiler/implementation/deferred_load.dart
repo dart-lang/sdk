@@ -208,7 +208,7 @@ class DeferredLoadTask extends CompilerTask {
           SourceString actualName =
               new SourceString(deferredLibrary.getLibraryOrScriptName());
           if (expectedName != actualName) {
-            compiler.reportErrorCode(
+            compiler.reportError(
                 metadata,
                 MessageKind.DEFERRED_LIBRARY_NAME_MISMATCH,
                 { 'expectedName': expectedName.slowToString(),

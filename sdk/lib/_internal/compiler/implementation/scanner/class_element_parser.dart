@@ -104,7 +104,7 @@ class MemberListener extends NodeListener {
       return Elements.constructOperatorName(operator.source, isUnary);
     } else {
       if (receiver == null || receiver.source != enclosingElement.name) {
-        listener.reportErrorCode(send.receiver,
+        listener.reportError(send.receiver,
                                  MessageKind.INVALID_CONSTRUCTOR_NAME,
                                  {'name': enclosingElement.name});
       }
@@ -142,7 +142,7 @@ class MemberListener extends NodeListener {
     Identifier singleIdentifierName = method.name.asIdentifier();
     if (singleIdentifierName != null && singleIdentifierName.source == name) {
       if (name != enclosingElement.name) {
-        listener.reportErrorCode(singleIdentifierName,
+        listener.reportError(singleIdentifierName,
                                  MessageKind.INVALID_UNNAMED_CONSTRUCTOR_NAME,
                                  {'name': enclosingElement.name});
       }

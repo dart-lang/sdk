@@ -4,6 +4,7 @@
 
 #include "vm/dart_entry.h"
 
+#include "vm/class_finalizer.h"
 #include "vm/code_generator.h"
 #include "vm/compiler.h"
 #include "vm/debugger.h"
@@ -161,9 +162,11 @@ RawObject* DartEntry::InvokeConstructor(const Class& klass,
 
   Instance& new_object = Instance::Handle();
   if (ultimate_constructor.IsRedirectingFactory()) {
+    ClassFinalizer::ResolveRedirectingFactory(klass, ultimate_constructor);
     Type& type = Type::Handle(ultimate_constructor.RedirectionType());
-    ultimate_klass = type.type_class();
     ultimate_constructor = ultimate_constructor.RedirectionTarget();
+    ASSERT(!ultimate_constructor.IsNull());
+    ultimate_klass = type.type_class();
   }
   if (ultimate_constructor.IsConstructor()) {
     // "Constructors" are really instance initializers. They are passed a newly

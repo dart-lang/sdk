@@ -5,10 +5,8 @@
 library dart2js.cmdline;
 
 import 'dart:async';
-import 'dart:collection' show Queue, LinkedHashMap;
 import 'dart:io';
 import 'dart:math' as math;
-import 'dart:utf';
 
 import '../compiler.dart' as api;
 import 'source_file.dart';

@@ -631,7 +631,7 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
     addProperty(namer.functionTypeTag(), name);
     if (type.returnType.isVoid) {
       addProperty(namer.functionTypeVoidReturnTag(), js('true'));
-    } else if (!type.returnType.isDynamic) {
+    } else if (!type.returnType.treatAsDynamic) {
       addProperty(namer.functionTypeReturnTypeTag(), visit(type.returnType));
     }
     if (!type.parameterTypes.isEmpty) {

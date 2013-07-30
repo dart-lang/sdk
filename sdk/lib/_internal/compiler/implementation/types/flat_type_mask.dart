@@ -41,7 +41,7 @@ class FlatTypeMask implements TypeMask {
 
   FlatTypeMask.internal(DartType base, this.flags)
       : this.base = transformBase(base) {
-    assert(base == null || !(isExact && base.isDynamic));
+    assert(base == null || !(isExact && base.treatAsDynamic));
   }
 
   // TODO(kasperl): We temporarily transform the base to be the raw
@@ -54,7 +54,6 @@ class FlatTypeMask implements TypeMask {
       assert(base.kind == TypeKind.INTERFACE);
       return null;
     } else {
-      assert(!base.isMalformed);
       return base.asRaw();
     }
   }

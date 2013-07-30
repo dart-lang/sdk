@@ -17,6 +17,7 @@ import '../dart2jslib.dart' show invariant,
                                  DartType,
                                  TypeVariableType,
                                  TypedefType,
+                                 DualKind,
                                  MessageKind,
                                  DiagnosticListener,
                                  Script,
@@ -320,13 +321,11 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   get type => unsupported();
   get cachedNode => unsupported();
   get functionSignature => unsupported();
-  get patch => unsupported();
-  get origin => unsupported();
+  get patch => null;
+  get origin => this;
   get defaultImplementation => unsupported();
 
   bool get isRedirectingFactory => unsupported();
-  bool get isPatched => unsupported();
-  bool get isPatch => unsupported();
 
   setPatch(patch) => unsupported();
   computeSignature(compiler) => unsupported();
@@ -362,7 +361,7 @@ class AmbiguousElementX extends ElementX implements AmbiguousElement {
   /**
    * The message to report on resolving this element.
    */
-  final MessageKind messageKind;
+  final DualKind messageKind;
 
   /**
    * The message arguments to report on resolving this element.
@@ -435,8 +434,8 @@ class ScopeX {
     } else {
       Element existing = contents.putIfAbsent(name, () => element);
       if (!identical(existing, element)) {
-        listener.reportErrorCode(element,
-            MessageKind.DUPLICATE_DEFINITION, {'name': name});
+        listener.reportError(
+            element, MessageKind.DUPLICATE_DEFINITION, {'name': name});
         listener.reportMessage(
             listener.spanFromSpannable(existing),
             MessageKind.EXISTING_DEFINITION.error({'name': name}),
@@ -539,7 +538,7 @@ class CompilationUnitElementX extends ElementX
       return;
     }
     if (!localMembers.isEmpty) {
-      listener.reportErrorCode(tag, MessageKind.BEFORE_TOP_LEVEL);
+      listener.reportError(tag, MessageKind.BEFORE_TOP_LEVEL);
       return;
     }
     if (partTag != null) {
@@ -1377,7 +1376,7 @@ class ConstructorBodyElementX extends FunctionElementX
   bool isInstanceMember() => true;
 
   FunctionType computeType(Compiler compiler) {
-    compiler.reportFatalError('Internal error: $this.computeType', this);
+    compiler.internalErrorOnElement(this, '$this.computeType.');
   }
 
   Node parseNode(DiagnosticListener listener) {

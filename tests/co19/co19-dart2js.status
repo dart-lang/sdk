@@ -56,13 +56,9 @@ Language/11_Expressions/18_Assignment_A05_t05: Fail # TODO(ahe): Please triage t
 Language/11_Expressions/30_Identifier_Reference_A04_t09: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/30_Identifier_Reference_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/30_Identifier_Reference_A05_t12: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/31_Type_Test_A04_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/32_Type_Cast_A02_t03: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/32_Type_Cast_A03_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/32_Type_Cast_A03_t02: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/32_Type_Cast_A05_t01: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/32_Type_Cast_A05_t02: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/32_Type_Cast_A05_t04: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/02_Expression_Statements_A01_t08: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/03_Variable_Declaration_A04_t02: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/03_Variable_Declaration_A04_t03: Fail # TODO(ahe): Please triage this failure.
@@ -255,7 +251,6 @@ LibTest/core/AssertionError/column_A01_t02: Fail # TODO(ahe): Please triage this
 LibTest/core/AssertionError/failedAssertion_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/AssertionError/line_A01_t02: Fail # co19 issue 479
 LibTest/core/AssertionError/url_A01_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/Match/str_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/Set/intersection_A03_t01: Fail # co19 issue 480
 LibTest/core/TypeError/column_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/TypeError/dstName_A01_t01: Fail # TODO(ahe): Please triage this failure.
@@ -271,12 +266,6 @@ Language/11_Expressions/11_Instance_Creation/1_New_A12_t02: Fail # http://dartbu
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: Fail, OK # co19 issue 405
 Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail, OK # co19 issue 405
 Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail, OK # co19 issue 405
-Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t06: Fail, OK # co19 issue 405
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t02: Fail, OK # co19 issue 405
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t01: Fail, OK # co19 issue 405
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t03: Fail, OK # co19 issue 405
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t04: Fail, OK # co19 issue 405
-Language/11_Expressions/17_Getter_Invocation_A02_t02: Fail, OK # co19 issue 405
 Language/11_Expressions/18_Assignment_A05_t04: Fail, OK # co19 issue 405
 Language/11_Expressions/18_Assignment_A08_t04: Fail, OK # co19 issue 405
 
@@ -546,6 +535,38 @@ LibTest/core/String/lastIndexOf_A01_t02: Fail # Issue 427
 LibTest/core/FallThroughError/toString_A01_t01: Fail # FallThroughError is no longer const. Issue 459
 LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail # FallThroughError is no longer const. Issue 459
 
+Language/09_Generics/09_Generics_A05_t01: Fail # co19 issue 463
+Language/11_Expressions/31_Type_Test_A04_t01: Fail # co19 issue 463
+Language/11_Expressions/31_Type_Test_A05_t01: Fail # co19 issue 463
+Language/11_Expressions/31_Type_Test_A05_t02: Fail # co19 issue 463
+Language/11_Expressions/31_Type_Test_A05_t03: Fail # co19 issue 463
+Language/11_Expressions/32_Type_Cast_A03_t01: Fail # co19 issue 463
+Language/11_Expressions/32_Type_Cast_A03_t02: Fail # co19 issue 463
+Language/11_Expressions/32_Type_Cast_A04_t01: Fail # co19 issue 463
+Language/11_Expressions/32_Type_Cast_A04_t02: Fail # co19 issue 463
+
+Language/11_Expressions/11_Instance_Creation/1_New_A05_t01: Fail # co19 issue 466
+Language/11_Expressions/11_Instance_Creation/1_New_A05_t02: Fail # co19 issue 466
+Language/11_Expressions/11_Instance_Creation/1_New_A05_t03: Fail # co19 issue 466
+Language/11_Expressions/11_Instance_Creation/2_Const_A07_t01: Fail # co19 issue 466
+Language/11_Expressions/11_Instance_Creation/2_Const_A07_t02: Fail # co19 issue 466
+Language/11_Expressions/11_Instance_Creation/2_Const_A07_t03: Fail # co19 issue 466
+Language/11_Expressions/11_Instance_Creation_A03_t01: Fail # co19 issue 466
+Language/11_Expressions/11_Instance_Creation_A03_t02: Fail # co19 issue 466
+Language/11_Expressions/11_Instance_Creation_A04_t01: Fail # co19 issue 466
+Language/11_Expressions/11_Instance_Creation_A04_t02: Fail # co19 issue 466
+Language/11_Expressions/11_Instance_Creation_A04_t03: Fail # co19 issue 466
+Language/11_Expressions/11_Instance_Creation_A04_t04: Fail # co19 issue 466
+
+[ $compiler == dart2js && $checked ]
+
+Language/03_Overview/1_Scoping_A02_t30: Fail # co19 issue 463
+Language/09_Generics/09_Generics_A05_t02: Fail # co19 issue 463
+Language/11_Expressions/32_Type_Cast_A05_t01: Fail # co19 issue 463
+Language/11_Expressions/32_Type_Cast_A05_t02: Fail # co19 issue 463
+Language/11_Expressions/32_Type_Cast_A05_t04: Fail # co19 issue 463
+Language/14_Types/8_Parameterized_Types_A02_t01: Fail # co19 issue 463
+
 [ $compiler == dart2js && $unchecked ]
 LibTest/core/List/setRange_A05_t01: Fail # setRange throws StateError if there aren't enough elements in the iterable. Issue 402
 
@@ -555,15 +576,7 @@ Language/11_Expressions/30_Identifier_Reference_A07_t01: Fail, OK # test should 
 LibTest/core/Set/intersection_A01_t01: Fail # issue 390
 LibTest/core/Set/intersection_A01_t02: Fail # issue 390
 LibTest/core/Set/intersection_A01_t03: Fail # issue 390
-LibTest/core/List/List.from_A01_t01: fail # Issue 400
 LibTest/core/List/every_A01_t01: fail # Issue 400
-LibTest/collection/Queue/Queue.from_A01_t01: Fail # Issue 400
-LibTest/collection/Queue/Queue.from_A01_t02: Fail # Issue 400
-
-LibTest/async/Completer/completeError_A03_t02: Fail # No AsyncError anymore. Issue 407
-LibTest/async/Completer/complete_A02_t02: Fail # No AsyncError anymore. Issue 407
-LibTest/async/Future/catchError_A01_t01: Fail # No AsyncError anymore. Issue 407
-LibTest/async/Future/catchError_A01_t02: Fail # No AsyncError anymore. Issue 407
 
 
 # Issues with co19 test suite in browsers.

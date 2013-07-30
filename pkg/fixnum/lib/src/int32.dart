@@ -138,18 +138,15 @@ class int32 implements intx {
    */
   int32.fromInt(int i) : _i = (i & 0x7fffffff) - (i & 0x80000000);
 
-  // Convert an [int] or [intx] to an [int32].  Note that an [int64]
-  // will be truncated.
-  int _convert(other) {
-    if (other == null) {
-      throw new ArgumentError(null);
-    } else if (other is intx) {
-      return other.toInt32()._i;
-    } else if (other is int) {
-      return other;
-    } else {
-      throw new Exception("Can't retrieve 32-bit int from $other");
+  // Returns the [int] representation of the specified value. Throws
+  // [ArgumentError] for non-integer arguments.
+  int _toInt(val) {
+    if (val is int32) {
+      return val._i;
+    } else if (val is int) {
+      return val;
     }
+    throw new ArgumentError(val);
   }
 
   // The +, -, * , &, |, and ^ operaters deal with types as follows:
@@ -170,14 +167,14 @@ class int32 implements intx {
     if (other is int64) {
       return this.toInt64() + other;
     }
-    return new int32.fromInt(_i + _convert(other));
+    return new int32.fromInt(_i + _toInt(other));
   }
 
   intx operator -(other) {
     if (other is int64) {
       return this.toInt64() - other;
     }
-    return new int32.fromInt(_i - _convert(other));
+    return new int32.fromInt(_i - _toInt(other));
   }
 
   int32 operator -() => new int32.fromInt(-_i);
@@ -195,20 +192,18 @@ class int32 implements intx {
       // Result will be int32
       return (this.toInt64() % other).toInt32();
     }
-    return new int32.fromInt(_i % _convert(other));
+    return new int32.fromInt(_i % _toInt(other));
   }
 
   int32 operator ~/(other) {
     if (other is int64) {
-      // Result will be int32
       return (this.toInt64() ~/ other).toInt32();
     }
-    return new int32.fromInt(_i ~/ _convert(other));
+    return new int32.fromInt(_i ~/ _toInt(other));
   }
 
   int32 remainder(other) {
     if (other is int64) {
-      // Result will be int32
       int64 t = this.toInt64();
       return (t - (t ~/ other) * other).toInt32();
     }
@@ -219,21 +214,21 @@ class int32 implements intx {
     if (other is int64) {
       return (this.toInt64() & other).toInt32();
     }
-    return new int32.fromInt(_i & _convert(other));
+    return new int32.fromInt(_i & _toInt(other));
   }
 
   int32 operator |(other) {
     if (other is int64) {
       return (this.toInt64() | other).toInt32();
     }
-    return new int32.fromInt(_i | _convert(other));
+    return new int32.fromInt(_i | _toInt(other));
   }
 
   int32 operator ^(other) {
     if (other is int64) {
       return (this.toInt64() ^ other).toInt32();
     }
-    return new int32.fromInt(_i ^ _convert(other));
+    return new int32.fromInt(_i ^ _toInt(other));
   }
 
   int32 operator ~() => new int32.fromInt(~_i);
@@ -279,48 +274,49 @@ class int32 implements intx {
    * given object.  The argument may be an [int] or an [intx].
    */
   bool operator ==(other) {
-    if (other == null) {
-      return false;
-    }
-    if (other is int64) {
+    if (other is int32) {
+      return _i == other._i;
+    } else if (other is int64) {
       return this.toInt64() == other;
+    } else if (other is int) {
+      return _i == other;
     }
-    return _i == _convert(other);
+    return false;
   }
 
   int compareTo(Comparable other) {
     if (other is int64) {
       return this.toInt64().compareTo(other);
     }
-    return _i.compareTo(_convert(other));
+    return _i.compareTo(_toInt(other));
   }
 
   bool operator <(other) {
     if (other is int64) {
       return this.toInt64() < other;
     }
-    return _i < _convert(other);
+    return _i < _toInt(other);
   }
 
   bool operator <=(other) {
     if (other is int64) {
-      return this.toInt64() < other;
+      return this.toInt64() <= other;
     }
-    return _i <= _convert(other);
+    return _i <= _toInt(other);
   }
 
   bool operator >(other) {
     if (other is int64) {
-      return this.toInt64() < other;
+      return this.toInt64() > other;
     }
-    return _i > _convert(other);
+    return _i > _toInt(other);
   }
 
   bool operator >=(other) {
     if (other is int64) {
-      return this.toInt64() < other;
+      return this.toInt64() >= other;
     }
-    return _i >= _convert(other);
+    return _i >= _toInt(other);
   }
 
   bool get isEven => (_i & 0x1) == 0;

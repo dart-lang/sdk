@@ -976,8 +976,9 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
 void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
                                               const Class& cls) {
   // The generated code is different if the class is parameterized.
-  const bool is_cls_parameterized =
-      cls.type_arguments_field_offset() != Class::kNoTypeArguments;
+  const bool is_cls_parameterized = cls.HasTypeArguments();
+  ASSERT(!cls.HasTypeArguments() ||
+         (cls.type_arguments_field_offset() != Class::kNoTypeArguments));
   // kInlineInstanceSize is a constant used as a threshold for determining
   // when the object initialization should be done as a loop or as
   // straight line code.
@@ -1143,8 +1144,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
 void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
                                                 const Function& func) {
   ASSERT(func.IsClosureFunction());
-  const bool is_implicit_static_closure =
-      func.IsImplicitStaticClosureFunction();
+  ASSERT(!func.IsImplicitStaticClosureFunction());
   const bool is_implicit_instance_closure =
       func.IsImplicitInstanceClosureFunction();
   const Class& cls = Class::ZoneHandle(func.signature_class());
@@ -1199,14 +1199,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     __ str(R0, Address(R2, Closure::function_offset()));
 
     // Setup the context for this closure.
-    if (is_implicit_static_closure) {
-      ObjectStore* object_store = Isolate::Current()->object_store();
-      ASSERT(object_store != NULL);
-      const Context& empty_context =
-          Context::ZoneHandle(object_store->empty_context());
-      __ LoadObject(R0, empty_context);
-      __ str(R0, Address(R2, Closure::context_offset()));
-    } else if (is_implicit_instance_closure) {
+    if (is_implicit_instance_closure) {
       // Initialize the new context capturing the receiver.
       const Class& context_class = Class::ZoneHandle(Object::context_class());
       // Set the tags.
@@ -1255,27 +1248,23 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
   __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
   __ Push(R0);  // Setup space on stack for return value.
   __ PushObject(func);
-  if (is_implicit_static_closure) {
-    __ CallRuntime(kAllocateImplicitStaticClosureRuntimeEntry);
-  } else {
-    if (is_implicit_instance_closure) {
-      __ ldr(R1, Address(FP, kReceiverFPOffset));
-      __ Push(R1);  // Receiver.
-    }
-    // R0: raw null.
-    if (has_type_arguments) {
-      __ ldr(R0, Address(FP, kTypeArgumentsFPOffset));
-    }
-    __ Push(R0);  // Push type arguments of closure to be allocated or null.
+  if (is_implicit_instance_closure) {
+    __ ldr(R1, Address(FP, kReceiverFPOffset));
+    __ Push(R1);  // Receiver.
+  }
+  // R0: raw null.
+  if (has_type_arguments) {
+    __ ldr(R0, Address(FP, kTypeArgumentsFPOffset));
+  }
+  __ Push(R0);  // Push type arguments of closure to be allocated or null.
 
-    if (is_implicit_instance_closure) {
-      __ CallRuntime(kAllocateImplicitInstanceClosureRuntimeEntry);
-      __ Drop(2);  // Pop arguments (type arguments of object and receiver).
-    } else {
-      ASSERT(func.IsNonImplicitClosureFunction());
-      __ CallRuntime(kAllocateClosureRuntimeEntry);
-      __ Drop(1);  // Pop argument (type arguments of object).
-    }
+  if (is_implicit_instance_closure) {
+    __ CallRuntime(kAllocateImplicitInstanceClosureRuntimeEntry);
+    __ Drop(2);  // Pop arguments (type arguments of object and receiver).
+  } else {
+    ASSERT(func.IsNonImplicitClosureFunction());
+    __ CallRuntime(kAllocateClosureRuntimeEntry);
+    __ Drop(1);  // Pop argument (type arguments of object).
   }
   __ Drop(1);  // Pop function object.
   __ Pop(R0);

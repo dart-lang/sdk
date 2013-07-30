@@ -10,18 +10,18 @@ void main() {
   var list;
   list = <int
     I /// 00: compile-time error
-    , int /// 01: compile-time error
+    , int /// 01: static type warning
     >[0];
   Expect.equals(1, list.length);
 
   list = <int
-    , int /// 02: compile-time error
+    , int /// 02: static type warning
     , int /// 02: continued
     >[0];
   Expect.equals(1, list.length);
 
   list = <int
-    , int /// 03: compile-time error
+    , int /// 03: static type warning
     , int /// 03: continued
     , int /// 03: continued
     >[0];

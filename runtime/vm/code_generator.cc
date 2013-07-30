@@ -289,22 +289,6 @@ DEFINE_RUNTIME_ENTRY(AllocateClosure, 2) {
 }
 
 
-// Allocate a new implicit static closure.
-// Arg0: local function.
-// Return value: newly allocated closure.
-DEFINE_RUNTIME_ENTRY(AllocateImplicitStaticClosure, 1) {
-  ASSERT(arguments.ArgCount() ==
-         kAllocateImplicitStaticClosureRuntimeEntry.argument_count());
-  ObjectStore* object_store = isolate->object_store();
-  ASSERT(object_store != NULL);
-  const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
-  ASSERT(!function.IsNull());
-  ASSERT(function.IsImplicitStaticClosureFunction());
-  const Context& context = Context::Handle(object_store->empty_context());
-  arguments.SetReturn(Instance::Handle(Closure::New(function, context)));
-}
-
-
 // Allocate a new implicit instance closure.
 // Arg0: local function.
 // Arg1: receiver object.

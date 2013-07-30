@@ -130,7 +130,15 @@ class _DeepMatcher extends Matcher {
     String reason = null;
     // If _limit is 1 we can only recurse one level into object.
     bool canRecurse = depth == 0 || _limit > 1;
-    if (expected == actual) {
+    bool equal;
+    try {
+      equal = (expected == actual);
+    } catch (e,s) {
+      // TODO(gram): Add a test for this case.
+      reason = '== threw "$e"';
+      return [reason, location];
+    }
+    if (equal) {
       // Do nothing.
     } else if (depth > _limit) {
       reason = 'recursion depth limit exceeded';

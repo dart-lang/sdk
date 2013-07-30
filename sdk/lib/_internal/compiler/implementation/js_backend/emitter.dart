@@ -221,12 +221,10 @@ class CodeEmitterTask extends CompilerTask {
     checkedClasses = new Set<ClassElement>();
     checkedFunctionTypes = new Set<FunctionType>();
     compiler.codegenWorld.isChecks.forEach((DartType t) {
-      if (!t.isMalformed) {
-        if (t is InterfaceType) {
-          checkedClasses.add(t.element);
-        } else if (t is FunctionType) {
-          checkedFunctionTypes.add(t);
-        }
+      if (t is InterfaceType) {
+        checkedClasses.add(t.element);
+      } else if (t is FunctionType) {
+        checkedFunctionTypes.add(t);
       }
     });
   }
@@ -1649,7 +1647,7 @@ class CodeEmitterTask extends CompilerTask {
     DartType type = field.computeType(compiler).unalias(compiler);
     if (type.element.isTypeVariable() ||
         (type is FunctionType && type.containsTypeVariables) ||
-        type.element == compiler.dynamicClass ||
+        type.treatAsDynamic ||
         type.element == compiler.objectClass) {
       // TODO(ngeoffray): Support type checks on type parameters.
       return false;
@@ -1794,7 +1792,7 @@ class CodeEmitterTask extends CompilerTask {
               // Only the native classes can have renaming accessors.
               assert(classIsNative);
             }
-      
+
             int getterCode = 0;
             if (needsGetter) {
               if (field.isInstanceMember()) {

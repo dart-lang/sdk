@@ -10,7 +10,7 @@ class A<T> {
 
   // OK when used within instance method, but not in static method.
   m3() => new A<T>();
-  static m4() => new A<T>(); /// 02: static type warning, dynamic type error
+  static m4() => new A<T>(); /// 02: static type warning
 }
 
 main() {

@@ -105,7 +105,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                               intptr_t receiver_cid,
                               intptr_t view_cid);
   bool BuildByteArrayViewStore(InstanceCallInstr* call,
-                               intptr_t receiver_cid,
                                intptr_t view_cid);
   void PrepareByteArrayViewOp(InstanceCallInstr* call,
                               intptr_t receiver_cid,
@@ -171,6 +170,10 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void ReplaceWithMathCFunction(InstanceCallInstr* call,
                                 MethodRecognizer::Kind recognized_kind);
+
+  void HandleComparison(ComparisonInstr* comp,
+                        const ICData& ic_data,
+                        Instruction* current_instruction);
 
   void HandleRelationalOp(RelationalOpInstr* comp);
 

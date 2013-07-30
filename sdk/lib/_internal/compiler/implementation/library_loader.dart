@@ -255,7 +255,9 @@ class LibraryLoaderTask extends LibraryLoader {
      */
     int checkTag(int value, LibraryTag tag) {
       if (tagState > value) {
-        compiler.reportError(tag, 'out of order');
+        compiler.reportFatalError(
+            tag,
+            MessageKind.GENERIC, {'text': 'Error: Out of order.'});
         return tagState;
       }
       return TagState.NEXT[value];
@@ -397,8 +399,11 @@ class LibraryLoaderTask extends LibraryLoader {
 
     if (!loadedLibrary.hasLibraryName()) {
       compiler.withCurrentElement(library, () {
-        compiler.reportError(tag == null ? null : tag.uri,
-            'no library name found in ${loadedLibrary.canonicalUri}');
+        compiler.reportFatalError(
+            tag == null ? null : tag.uri,
+            MessageKind.GENERIC,
+            {'text':
+             'Error: No library name found in ${loadedLibrary.canonicalUri}.'});
       });
     }
   }
@@ -505,7 +510,9 @@ class ImportLink {
           compiler.reportWarning(new Identifier(e.position()),
           'duplicated definition');
         });
-        compiler.reportError(import.prefix, 'duplicate definition');
+        compiler.reportFatalError(
+            import.prefix,
+            MessageKind.GENERIC, {'text': 'Error: Duplicate definition.'});
       }
       PrefixElement prefixElement = e;
       importedLibrary.forEachExport((Element element) {
@@ -519,8 +526,9 @@ class ImportLink {
             'duplicated import');
           });
           compiler.withCurrentElement(element, () {
-            compiler.reportError(new Identifier(element.position()),
-            'duplicated import');
+            compiler.reportFatalError(
+                element,
+                MessageKind.GENERIC, {'text': 'Error: Duplicated import.'});
           });
         }
       });
@@ -675,15 +683,15 @@ class LibraryDependencyNode {
     Element existingElement = exportScope[name];
     if (existingElement != null) {
       if (existingElement.isErroneous()) {
-        compiler.reportErrorCode(element, MessageKind.DUPLICATE_EXPORT,
-                                 {'name': name});
+        compiler.reportError(element, MessageKind.DUPLICATE_EXPORT,
+                             {'name': name});
         element = existingElement;
       } else if (existingElement.getLibrary() != library) {
         // Declared elements hide exported elements.
-        compiler.reportErrorCode(existingElement, MessageKind.DUPLICATE_EXPORT,
-                                 {'name': name});
-        compiler.reportErrorCode(element, MessageKind.DUPLICATE_EXPORT,
-                                 {'name': name});
+        compiler.reportError(existingElement, MessageKind.DUPLICATE_EXPORT,
+                             {'name': name});
+        compiler.reportError(element, MessageKind.DUPLICATE_EXPORT,
+                             {'name': name});
         element = exportScope[name] = new ErroneousElementX(
             MessageKind.DUPLICATE_EXPORT, {'name': name}, name, library);
       }

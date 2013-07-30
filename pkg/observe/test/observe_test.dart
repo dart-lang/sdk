@@ -193,6 +193,49 @@ observeTests({bool watch: false}) {
     }));
     t.value = 42;
   });
+
+  observeTest('cannot modify changes list', () {
+    var t = createModel(123);
+    var records = null;
+    subs.add(t.changes.listen((r) { records = r; }));
+    t.value = 42;
+
+    performMicrotaskCheckpoint();
+    expectChanges(records, _changedValue(1));
+
+    // Verify that mutation operations on the list fail:
+
+    expect(() {
+      records[0] = new PropertyChangeRecord(_VALUE);
+    }, throwsUnsupportedError);
+
+    expect(() { records.clear(); }, throwsUnsupportedError);
+
+    expect(() { records.length = 0; }, throwsUnsupportedError);
+  });
+
+  observeTest('notifyChange', () {
+    var t = createModel(123);
+    var records = [];
+    subs.add(t.changes.listen((r) { records.addAll(r); }));
+    t.notifyChange(new PropertyChangeRecord(_VALUE));
+
+    performMicrotaskCheckpoint();
+    expectChanges(records, _changedValue(1));
+    expect(t.value, 123, reason: 'value did not actually change.');
+  });
+
+  observeTest('notifyPropertyChange', () {
+    var t = createModel(123);
+    var records = null;
+    subs.add(t.changes.listen((r) { records = r; }));
+    expect(t.notifyPropertyChange(_VALUE, t.value, 42), 42,
+        reason: 'notifyPropertyChange returns newValue');
+
+    performMicrotaskCheckpoint();
+    expectChanges(records, _changedValue(1));
+    expect(t.value, 123, reason: 'value did not actually change.');
+  });
 }
 
 _changedValue(len) => new List.filled(len, new PropertyChangeRecord(_VALUE));
