@@ -574,3 +574,12 @@ Language/11_Expressions/33_Argument_Definition_Test_A02_t01: Fail, OK # co19 iss
 Language/11_Expressions/33_Argument_Definition_Test_A02_t02: Fail, OK # co19 issue 436
 Language/11_Expressions/33_Argument_Definition_Test_A03_t01: Fail, OK # co19 issue 436
 Language/11_Expressions/33_Argument_Definition_Test_A03_t02: Fail, OK # co19 issue 436
+
+Language/13_Libraries_and_Scripts/1_Imports_A03_t02: Fail # 481
+Language/13_Libraries_and_Scripts/1_Imports_A03_t05: Fail # 481
+Language/13_Libraries_and_Scripts/1_Imports_A03_t22: Fail # 481
+Language/13_Libraries_and_Scripts/1_Imports_A03_t25: Fail # 481
+Language/13_Libraries_and_Scripts/1_Imports_A03_t42: Fail # 481
+Language/13_Libraries_and_Scripts/1_Imports_A03_t45: Fail # 481
+Language/13_Libraries_and_Scripts/1_Imports_A03_t62: Fail # 481
+Language/13_Libraries_and_Scripts/1_Imports_A03_t65: Fail # 481
