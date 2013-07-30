@@ -592,19 +592,9 @@ static bool HasOnlySmiOrMint(const ICData& ic_data) {
 }
 
 
-static bool HasOnlyTwoSmis(const ICData& ic_data) {
+static bool HasOnlyTwoOf(const ICData& ic_data, intptr_t cid) {
   return (ic_data.NumberOfChecks() == 1) &&
-      ICDataHasReceiverArgumentClassIds(ic_data, kSmiCid, kSmiCid);
-}
-
-static bool HasOnlyTwoFloat32x4s(const ICData& ic_data) {
-  return (ic_data.NumberOfChecks() == 1) &&
-      ICDataHasReceiverArgumentClassIds(ic_data, kFloat32x4Cid, kFloat32x4Cid);
-}
-
-static bool HasOnlyTwoUint32x4s(const ICData& ic_data) {
-  return (ic_data.NumberOfChecks() == 1) &&
-      ICDataHasReceiverArgumentClassIds(ic_data, kUint32x4Cid, kUint32x4Cid);
+      ICDataHasReceiverArgumentClassIds(ic_data, cid, cid);
 }
 
 // Returns false if the ICData contains anything other than the 4 combinations
@@ -1030,7 +1020,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
   switch (op_kind) {
     case Token::kADD:
     case Token::kSUB:
-      if (HasOnlyTwoSmis(ic_data)) {
+      if (HasOnlyTwoOf(ic_data, kSmiCid)) {
         // Don't generate smi code if the IC data is marked because
         // of an overflow.
         operands_type = (ic_data.deopt_reason() == kDeoptBinarySmiOp)
@@ -1044,14 +1034,14 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         operands_type = kMintCid;
       } else if (ShouldSpecializeForDouble(ic_data)) {
         operands_type = kDoubleCid;
-      } else if (HasOnlyTwoFloat32x4s(ic_data)) {
+      } else if (HasOnlyTwoOf(ic_data, kFloat32x4Cid)) {
         operands_type = kFloat32x4Cid;
       } else {
         return false;
       }
       break;
     case Token::kMUL:
-      if (HasOnlyTwoSmis(ic_data)) {
+      if (HasOnlyTwoOf(ic_data, kSmiCid)) {
         // Don't generate smi code if the IC data is marked because of an
         // overflow.
         // TODO(fschneider): Add unboxed mint multiplication.
@@ -1059,23 +1049,24 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         operands_type = kSmiCid;
       } else if (ShouldSpecializeForDouble(ic_data)) {
         operands_type = kDoubleCid;
-      } else if (HasOnlyTwoFloat32x4s(ic_data)) {
+      } else if (HasOnlyTwoOf(ic_data, kFloat32x4Cid)) {
         operands_type = kFloat32x4Cid;
       } else {
         return false;
       }
       break;
     case Token::kDIV:
-      if (ShouldSpecializeForDouble(ic_data) || HasOnlyTwoSmis(ic_data)) {
+      if (ShouldSpecializeForDouble(ic_data) ||
+          HasOnlyTwoOf(ic_data, kSmiCid)) {
         operands_type = kDoubleCid;
-      } else if (HasOnlyTwoFloat32x4s(ic_data)) {
+      } else if (HasOnlyTwoOf(ic_data, kFloat32x4Cid)) {
         operands_type = kFloat32x4Cid;
       } else {
         return false;
       }
       break;
     case Token::kMOD:
-      if (HasOnlyTwoSmis(ic_data)) {
+      if (HasOnlyTwoOf(ic_data, kSmiCid)) {
         operands_type = kSmiCid;
       } else {
         return false;
@@ -1084,11 +1075,11 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     case Token::kBIT_AND:
     case Token::kBIT_OR:
     case Token::kBIT_XOR:
-      if (HasOnlyTwoSmis(ic_data)) {
+      if (HasOnlyTwoOf(ic_data, kSmiCid)) {
         operands_type = kSmiCid;
       } else if (HasTwoMintOrSmi(ic_data)) {
         operands_type = kMintCid;
-      } else if (HasOnlyTwoUint32x4s(ic_data)) {
+      } else if (HasOnlyTwoOf(ic_data, kUint32x4Cid)) {
         operands_type = kUint32x4Cid;
       } else {
         return false;
@@ -1096,7 +1087,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
       break;
     case Token::kSHR:
     case Token::kSHL:
-      if (HasOnlyTwoSmis(ic_data)) {
+      if (HasOnlyTwoOf(ic_data, kSmiCid)) {
         // Left shift may overflow from smi into mint or big ints.
         // Don't generate smi code if the IC data is marked because
         // of an overflow.
@@ -1117,7 +1108,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
       }
       break;
     case Token::kTRUNCDIV:
-      if (HasOnlyTwoSmis(ic_data)) {
+      if (HasOnlyTwoOf(ic_data, kSmiCid)) {
         if (ic_data.deopt_reason() == kDeoptBinarySmiOp) return false;
         operands_type = kSmiCid;
       } else {
@@ -2777,7 +2768,7 @@ void FlowGraphOptimizer::HandleComparison(ComparisonInstr* comp,
                                           Instruction* current_instruction) {
   ASSERT(ic_data.num_args_tested() == 2);
   ASSERT(comp->operation_cid() == kIllegalCid);
-  if (HasOnlyTwoSmis(ic_data)) {
+  if (HasOnlyTwoOf(ic_data, kSmiCid)) {
     InsertBefore(current_instruction,
                  new CheckSmiInstr(comp->left()->Copy(), comp->deopt_id()),
                  current_instruction->env(),
@@ -2891,10 +2882,52 @@ bool FlowGraphOptimizer::StrictifyEqualityCompare(
 }
 
 
+// Returns true if we converted EqualityCompare to StrictCompare.
+template <typename T>
+bool FlowGraphOptimizer::StrictifyEqualityCompareWithICData(
+    EqualityCompareInstr* compare,
+    const ICData& unary_ic_data,
+    T current_instruction) {
+  ASSERT(unary_ic_data.num_args_tested() == 1);
+  if (unary_ic_data.NumberOfChecks() <= FLAG_max_polymorphic_checks) {
+    // If possible classes do not override Object's equality then replace
+    // with strict equality.
+    Function& target = Function::Handle();
+    Class& targets_class = Class::Handle();
+    for (intptr_t i = 0; i < unary_ic_data.NumberOfChecks(); i++) {
+      intptr_t cid = kIllegalCid;
+      unary_ic_data.GetOneClassCheckAt(i, &cid, &target);
+      targets_class = target.Owner();
+      if (targets_class.id() != kInstanceCid) {
+        // Overriden equality operator.
+        return false;
+      }
+    }
+    AddCheckClass(compare->left()->definition(),
+                  unary_ic_data,
+                  compare->deopt_id(),
+                  current_instruction->env(),
+                  current_instruction);
+    ASSERT((compare->kind() == Token::kEQ) || (compare->kind() == Token::kNE));
+    Token::Kind strict_kind = (compare->kind() == Token::kEQ) ?
+        Token::kEQ_STRICT : Token::kNE_STRICT;
+    StrictCompareInstr* strict_comp =
+        new StrictCompareInstr(compare->token_pos(),
+                               strict_kind,
+                               compare->left()->Copy(),
+                               compare->right()->Copy());
+    current_instruction->ReplaceWith(strict_comp, current_iterator());
+    return true;
+  }
+  return false;
+}
+
+
 template <typename T>
 void FlowGraphOptimizer::HandleEqualityCompare(EqualityCompareInstr* comp,
                                                T current_instruction) {
   if (StrictifyEqualityCompare(comp, current_instruction)) {
+    // Based on input types, equality converted to strict-equality.
     return;
   }
 
@@ -2910,6 +2943,14 @@ void FlowGraphOptimizer::HandleEqualityCompare(EqualityCompareInstr* comp,
     return;
   }
 
+  const ICData& unary_checks_0 =
+      ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecks());
+  if (StrictifyEqualityCompareWithICData(
+        comp, unary_checks_0, current_instruction)) {
+    // Based on ICData, equality converted to strict-equality.
+    return;
+  }
+
   // Check if ICDData contains checks with Smi/Null combinations. In that case
   // we can still emit the optimized Smi equality operation but need to add
   // checks for null or Smi.
@@ -2920,8 +2961,6 @@ void FlowGraphOptimizer::HandleEqualityCompare(EqualityCompareInstr* comp,
   if (ICDataHasOnlyReceiverArgumentClassIds(ic_data,
                                             smi_or_null,
                                             smi_or_null)) {
-    const ICData& unary_checks_0 =
-        ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecks());
     AddCheckClass(comp->left()->definition(),
                   unary_checks_0,
                   comp->deopt_id(),

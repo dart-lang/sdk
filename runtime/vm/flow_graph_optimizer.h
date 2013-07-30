@@ -189,6 +189,11 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   bool StrictifyEqualityCompare(EqualityCompareInstr* compare,
                                 T current_instruction) const;
 
+  template <typename T>
+  bool StrictifyEqualityCompareWithICData(EqualityCompareInstr* compare,
+                                          const ICData& unary_ic_data,
+                                          T current_instruction);
+
   void OptimizeLeftShiftBitAndSmiOp(Definition* bit_and_instr,
                                     Definition* left_instr,
                                     Definition* right_instr);
