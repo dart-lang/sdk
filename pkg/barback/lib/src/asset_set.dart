@@ -18,6 +18,18 @@ import 'asset_id.dart';
 class AssetSet extends IterableBase<Asset> {
   final _assets = new Map<AssetId, Asset>();
 
+  AssetSet();
+
+  /// Creates a new AssetSet from the contents of [other].
+  ///
+  /// If multiple assets in [other] have the same id, the last one takes
+  /// precedence.
+  AssetSet.from(Iterable<Asset> other) {
+    for (var asset in other) {
+      _assets[asset.id] = asset;
+    }
+  }
+
   Iterator<Asset> get iterator => _assets.values.iterator;
 
   int get length => _assets.length;
@@ -50,6 +62,9 @@ class AssetSet extends IterableBase<Asset> {
   bool containsId(AssetId id) {
     return _assets.containsKey(id);
   }
+
+  /// If the set contains an [Asset] with [id], removes and returns it.
+  Asset removeId(AssetId id) => _assets.remove(id);
 
   /// Removes all assets from the set.
   void clear() {

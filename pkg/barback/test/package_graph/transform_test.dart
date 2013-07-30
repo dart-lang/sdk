@@ -7,6 +7,7 @@ library barback.test.package_graph.transform_test;
 import 'dart:async';
 
 import 'package:barback/barback.dart';
+import 'package:barback/src/utils.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 
 import '../utils.dart';
@@ -104,8 +105,8 @@ main() {
     var transformerB = new RewriteTransformer("txt", "b");
     initGraph(["app|foo.txt"], {"app": [[transformerA, transformerB]]});
 
-    transformerA.wait();
-    transformerB.wait();
+    transformerA.pauseApply();
+    transformerB.pauseApply();
 
     schedule(() {
       updateSources(["app|foo.txt"]);
@@ -119,8 +120,8 @@ main() {
       expect(transformerA.isRunning, isTrue);
       expect(transformerB.isRunning, isTrue);
 
-      transformerA.complete();
-      transformerB.complete();
+      transformerA.resumeApply();
+      transformerB.resumeApply();
     });
 
     expectAsset("app|foo.a", "foo.a");
@@ -186,10 +187,8 @@ main() {
     buildShouldSucceed();
 
     // Remove the dependency on the non-primary input.
-    schedule(() {
-      modifyAsset("app|a.txt", "a.inc");
-      updateSources(["app|a.txt"]);
-    });
+    modifyAsset("app|a.txt", "a.inc");
+    schedule(() => updateSources(["app|a.txt"]));
 
     // Process it again.
     expectAsset("app|a.out", "a");
@@ -270,7 +269,7 @@ main() {
   });
 
   test("reapplies a transform when a non-primary input changes", () {
-   initGraph({
+    initGraph({
       "app|a.txt": "a.inc",
       "app|a.inc": "a"
     }, {"app": [[new ManyToOneTransformer("txt")]]});
@@ -279,10 +278,8 @@ main() {
     expectAsset("app|a.out", "a");
     buildShouldSucceed();
 
-    schedule(() {
-      modifyAsset("app|a.inc", "after");
-      updateSources(["app|a.inc"]);
-    });
+    modifyAsset("app|a.inc", "after");
+    schedule(() => updateSources(["app|a.inc"]));
 
     expectAsset("app|a.out", "after");
     buildShouldSucceed();
@@ -292,7 +289,7 @@ main() {
     var transformer = new RewriteTransformer("txt", "out");
     initGraph(["app|foo.txt"], {"app": [[transformer]]});
 
-    transformer.wait();
+    transformer.pauseApply();
 
     schedule(() {
       updateSources(["app|foo.txt"]);
@@ -304,10 +301,7 @@ main() {
     schedule(() {
       // Now update the graph during it.
       updateSources(["app|foo.txt"]);
-    });
-
-    schedule(() {
-      transformer.complete();
+      transformer.resumeApply();
     });
 
     expectAsset("app|foo.out", "foo.out");
@@ -336,11 +330,9 @@ main() {
 
     // Now switch their contents so that "shared.out" will be output by "b.b"'s
     // transformer.
-    schedule(() {
-      modifyAsset("app|a.a", "a.out");
-      modifyAsset("app|b.b", "b.out,shared.out");
-      updateSources(["app|a.a", "app|b.b"]);
-    });
+    modifyAsset("app|a.a", "a.out");
+    modifyAsset("app|b.b", "b.out,shared.out");
+    schedule(() => updateSources(["app|a.a", "app|b.b"]));
 
     expectAsset("app|a.out", "spread a");
     expectAsset("app|b.out", "spread b");
@@ -354,7 +346,7 @@ main() {
     initGraph(["app|foo.txt", "app|bar.txt"],
         {"app": [[txtToInt], [intToOut]]});
 
-    txtToInt.wait();
+    txtToInt.pauseApply();
 
     schedule(() {
       updateSources(["app|foo.txt"]);
@@ -369,7 +361,7 @@ main() {
     });
 
     schedule(() {
-      txtToInt.complete();
+      txtToInt.resumeApply();
     });
 
     expectAsset("app|foo.out", "foo.int.out");
