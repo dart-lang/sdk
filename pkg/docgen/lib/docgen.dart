@@ -74,13 +74,12 @@ Future<bool> docgen(List<String> files, {String packageRoot,
   }
   
   if (packageRoot == null && !parseSdk) {
-    // TODO(janicejl): At the moment, if a single file is passed it, it is
-    // assumed that it does not have a package root unless it is passed in by
-    // the user. In future, find a better way to find the packageRoot and also
-    // fully test finding the packageRoot.
-    if (FileSystemEntity.typeSync(files.first)
-        == FileSystemEntityType.DIRECTORY) {
+    var type = FileSystemEntity.typeSync(files.first);
+    if (type == FileSystemEntityType.DIRECTORY) {
       packageRoot = _findPackageRoot(files.first);
+    } else if (type == FileSystemEntityType.FILE) {
+      logger.warning('WARNING: No package root defined. If Docgen fails, try '
+          'again by setting the --package-root option.');
     }
   }
   logger.info('Package Root: ${packageRoot}');
@@ -102,9 +101,6 @@ Future<bool> docgen(List<String> files, {String packageRoot,
 }
 
 List<String> _listLibraries(List<String> args) {
-  // TODO(janicejl): At the moment, only have support to have either one file,
-  // or one directory. This is because there can only be one package directory
-  // since only one docgen is created per run.
   if (args.length != 1) throw new UnsupportedError(USAGE);
   var libraries = new List<String>();
   var type = FileSystemEntity.typeSync(args[0]);
