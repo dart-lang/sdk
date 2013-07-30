@@ -138,6 +138,7 @@ scheduled_test/test/scheduled_test/timeout_test: Fail # http://dartbug.com/8440
 scheduled_test/test/scheduled_test/wrap_async_test: Fail # http://dartbug.com/8440
 scheduled_test/test/scheduled_test/wrap_future_test: Fail # http://dartbug.com/8440
 
+*/test/analyzer_test: Skip  # No need to run analysis tests on browser bots
 
 [ $runtime == safari]
  # Bug in JSC: the test only passes when being debugged.
