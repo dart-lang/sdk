@@ -12,9 +12,9 @@ main() {
   useHtmlConfiguration();
 
   group('new Builder()', () {
-    test('uses the current directory if root and style are omitted', () {
+    test('uses the window location if root and style are omitted', () {
       var builder = new path.Builder();
-      expect(builder.root, io.Directory.current.path);
+      expect(builder.root, window.location.href);
     });
 
     test('uses "." if root is omitted', () {
