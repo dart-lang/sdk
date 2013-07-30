@@ -20,22 +20,22 @@ class Int32 implements IntX {
    * The minimum positive value attainable by an [Int32], namely
    * -2147483648.
    */
-  static Int32 MIN_VALUE = const Int32._internal(-0x80000000);
+  static const Int32 MIN_VALUE = const Int32._internal(-0x80000000);
 
   /**
    * An [Int32] constant equal to 0.
    */
-  static Int32 ZERO = const Int32._internal(0);
+  static const Int32 ZERO = const Int32._internal(0);
 
   /**
    * An [Int32] constant equal to 1.
    */
-  static Int32 ONE = const Int32._internal(1);
+  static const Int32 ONE = const Int32._internal(1);
 
   /**
    * An [Int32] constant equal to 2.
    */
-  static Int32 TWO = const Int32._internal(2);
+  static const Int32 TWO = const Int32._internal(2);
 
   // Hex digit char codes
   static const int _CC_0 = 48; // '0'.codeUnitAt(0)
