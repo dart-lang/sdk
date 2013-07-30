@@ -68,12 +68,10 @@ String _makeSignatureString(TypeMirror returnType,
   return buf.toString();
 }
 
-Map<Uri, LibraryMirror> _createLibrariesMap(Map<String, LibraryMirror> map) {
-    var result = new Map<Uri, LibraryMirror>();
-    map.forEach((String url, LibraryMirror mirror) {
-      result[Uri.parse(url)] = mirror;
-    });
-    return result;
+Map<Uri, LibraryMirror> _createLibrariesMap(List<LibraryMirror> list) {
+  var map = new Map<Uri, LibraryMirror>();
+  list.forEach((LibraryMirror mirror) => map[mirror.uri] = mirror);
+  return map;
 }
 
 List _metadata(reflectee)
@@ -98,7 +96,7 @@ List _unwarpAsyncPositionals(wrappedArgs){
 
 class _LocalMirrorSystemImpl extends MirrorSystem {
   // Change parameter back to "this.libraries" when native code is changed.
-  _LocalMirrorSystemImpl(Map<String, LibraryMirror> libraries, this.isolate)
+  _LocalMirrorSystemImpl(List<LibraryMirror> libraries, this.isolate)
       : this.libraries = _createLibrariesMap(libraries),
         _functionTypes = new Map<String, FunctionTypeMirror>();
 
@@ -155,18 +153,11 @@ abstract class _LocalMirrorImpl implements Mirror {
 
 class _LocalIsolateMirrorImpl extends _LocalMirrorImpl
     implements IsolateMirror {
-  _LocalIsolateMirrorImpl(this.debugName, this._rootLibrary) {}
+  _LocalIsolateMirrorImpl(this.debugName, this.rootLibrary) {}
 
   final String debugName;
   final bool isCurrent = true;
-
-  var _rootLibrary;
-  LibraryMirror get rootLibrary {
-    if (_rootLibrary is _LazyLibraryMirror) {
-      _rootLibrary = _rootLibrary.resolve(mirrors);
-    }
-    return _rootLibrary;
-  }
+  final LibraryMirror rootLibrary;
 
   String toString() => "IsolateMirror on '$debugName'";
 }

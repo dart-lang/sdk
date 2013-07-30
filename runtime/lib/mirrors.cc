@@ -11,6 +11,7 @@
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
 #include "vm/message.h"
+#include "vm/object_store.h"
 #include "vm/port.h"
 #include "vm/resolver.h"
 #include "vm/symbols.h"
@@ -425,80 +426,6 @@ static Dart_Handle CreateLibraryMirrorUsingApi(Dart_Handle lib) {
 }
 
 
-static Dart_Handle CreateLibrariesMap() {
-  // TODO(turnidge): This should be an immutable map.
-  Dart_Handle map = MapNew();
-
-  Dart_Handle lib_ids = Dart_GetLibraryIds();
-  if (Dart_IsError(lib_ids)) {
-    return lib_ids;
-  }
-  intptr_t len;
-  Dart_Handle result = Dart_ListLength(lib_ids, &len);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  for (intptr_t i = 0; i < len; i++) {
-    Dart_Handle lib_id = Dart_ListGetAt(lib_ids, i);
-    int64_t id64;
-    Dart_IntegerToInt64(lib_id, &id64);
-    Dart_Handle lib_url = Dart_GetLibraryURL(id64);
-    if (Dart_IsError(lib_url)) {
-      return lib_url;
-    }
-    Dart_Handle lib = Dart_LookupLibrary(lib_url);
-    if (Dart_IsError(lib)) {
-      return lib;
-    }
-    Dart_Handle lib_mirror = CreateLibraryMirrorUsingApi(lib);
-    if (Dart_IsError(lib_mirror)) {
-      return lib_mirror;
-    }
-    result = MapAdd(map, lib_url, lib_mirror);
-  }
-  return map;
-}
-
-
-static Dart_Handle CreateIsolateMirror() {
-  Dart_Handle cls_name = NewString("_LocalIsolateMirrorImpl");
-  Dart_Handle type = Dart_GetType(MirrorLib(), cls_name, 0, NULL);
-  if (Dart_IsError(type)) {
-    return type;
-  }
-  Dart_Handle args[] = {
-    Dart_DebugName(),
-    CreateLazyMirror(Dart_RootLibrary()),
-  };
-  return Dart_New(type, Dart_Null(), ARRAY_SIZE(args), args);
-}
-
-
-static Dart_Handle CreateMirrorSystem() {
-  Dart_Handle cls_name = NewString("_LocalMirrorSystemImpl");
-  Dart_Handle type = Dart_GetType(MirrorLib(), cls_name, 0, NULL);
-  if (Dart_IsError(type)) {
-    return type;
-  }
-
-  Dart_Handle libraries = CreateLibrariesMap();
-  if (Dart_IsError(libraries)) {
-    return libraries;
-  }
-
-  Dart_Handle args[] = {
-    libraries,
-    CreateIsolateMirror(),
-  };
-  Dart_Handle mirror = Dart_New(type, Dart_Null(), ARRAY_SIZE(args), args);
-  if (Dart_IsError(mirror)) {
-    return mirror;
-  }
-
-  return mirror;
-}
-
-
 static RawInstance* CreateClassMirror(const Class& cls,
                                       const Instance& owner_mirror) {
   Instance& retvalue = Instance::Handle();
@@ -570,15 +497,48 @@ static RawInstance* CreateTypeMirror(const AbstractType& type) {
 }
 
 
-void NATIVE_ENTRY_FUNCTION(Mirrors_makeLocalMirrorSystem)(
-    Dart_NativeArguments args) {
-  Dart_EnterScope();
-  Dart_Handle mirrors = CreateMirrorSystem();
-  if (Dart_IsError(mirrors)) {
-    Dart_PropagateError(mirrors);
+static RawInstance* CreateIsolateMirror() {
+  Isolate* isolate = Isolate::Current();
+  const String& debug_name = String::Handle(String::New(isolate->name()));
+  const Library& root_library =
+      Library::Handle(isolate, isolate->object_store()->root_library());
+  const Instance& root_library_mirror =
+      Instance::Handle(CreateLibraryMirror(root_library));
+
+  const Array& args = Array::Handle(Array::New(2));
+  args.SetAt(0, debug_name);
+  args.SetAt(1, root_library_mirror);
+  return CreateMirror(Symbols::_LocalIsolateMirrorImpl(), args);
+}
+
+
+static RawInstance* CreateMirrorSystem() {
+  Isolate* isolate = Isolate::Current();
+  const GrowableObjectArray& libraries =
+      GrowableObjectArray::Handle(isolate->object_store()->libraries());
+
+  const int num_libraries = libraries.Length();
+  const Array& library_mirrors = Array::Handle(Array::New(num_libraries));
+  Library& library = Library::Handle();
+  Instance& library_mirror = Instance::Handle();
+
+  for (int i = 0; i < num_libraries; i++) {
+    library ^= libraries.At(i);
+    library_mirror = CreateLibraryMirror(library);
+    library_mirrors.SetAt(i, library_mirror);
   }
-  Dart_SetReturnValue(args, mirrors);
-  Dart_ExitScope();
+
+  const Instance& isolate_mirror = Instance::Handle(CreateIsolateMirror());
+
+  const Array& args = Array::Handle(Array::New(2));
+  args.SetAt(0, library_mirrors);
+  args.SetAt(1, isolate_mirror);
+  return CreateMirror(Symbols::_LocalMirrorSystemImpl(), args);
+}
+
+
+DEFINE_NATIVE_ENTRY(Mirrors_makeLocalMirrorSystem, 0) {
+  return CreateMirrorSystem();
 }
 
 

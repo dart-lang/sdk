@@ -272,6 +272,8 @@ class ObjectPointerVisitor;
   V(_LocalMethodMirrorImpl, "_LocalMethodMirrorImpl")                          \
   V(_LocalVariableMirrorImpl, "_LocalVariableMirrorImpl")                      \
   V(_LocalParameterMirrorImpl, "_LocalParameterMirrorImpl")                    \
+  V(_LocalIsolateMirrorImpl, "_LocalIsolateMirrorImpl")                        \
+  V(_LocalMirrorSystemImpl, "_LocalMirrorSystemImpl")                          \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This
