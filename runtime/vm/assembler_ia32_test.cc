@@ -2639,7 +2639,7 @@ ASSEMBLER_TEST_GENERATE(ConditionalMovesCompare, assembler) {
 
 
 ASSEMBLER_TEST_RUN(ConditionalMovesCompare, test) {
-  typedef int (*ConditionalMovesCompareCode)(int i, int i);
+  typedef int (*ConditionalMovesCompareCode)(int i, int j);
   int res = reinterpret_cast<ConditionalMovesCompareCode>(test->entry())(10, 5);
   EXPECT_EQ(1, res);  // Greater equal.
   res = reinterpret_cast<ConditionalMovesCompareCode>(test->entry())(5, 5);
