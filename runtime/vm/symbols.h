@@ -275,6 +275,7 @@ class ObjectPointerVisitor;
   V(_LocalParameterMirrorImpl, "_LocalParameterMirrorImpl")                    \
   V(_LocalIsolateMirrorImpl, "_LocalIsolateMirrorImpl")                        \
   V(_LocalMirrorSystemImpl, "_LocalMirrorSystemImpl")                          \
+  V(_LocalTypedefMirrorImpl, "_LocalTypedefMirrorImpl")                        \
   V(_LocalTypeVariableMirrorImpl, "_LocalTypeVariableMirrorImpl")              \
 
 

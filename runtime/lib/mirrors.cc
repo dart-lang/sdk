@@ -74,9 +74,6 @@ static Dart_Handle CreateMirrorReference(Dart_Handle handle) {
 }
 
 
-static Dart_Handle CreateLazyMirror(Dart_Handle target);
-
-
 static RawInstance* CreateParameterMirrorList(const Function& func) {
   HANDLESCOPE(Isolate::Current());
   const intptr_t param_cnt = func.num_fixed_parameters() -
@@ -97,76 +94,6 @@ static RawInstance* CreateParameterMirrorList(const Function& func) {
   }
   results.MakeImmutable();
   return results.raw();
-}
-
-
-static Dart_Handle CreateParameterMirrorListUsingApi(Dart_Handle func) {
-  ASSERT(Dart_IsFunction(func));
-  Isolate* isolate = Isolate::Current();
-  return Api::NewHandle(
-      isolate, CreateParameterMirrorList(Api::UnwrapFunctionHandle(
-          isolate, func)));
-}
-
-
-static Dart_Handle CreateLazyMirror(Dart_Handle target) {
-  if (Dart_IsNull(target) || Dart_IsError(target)) {
-    return target;
-  }
-
-  if (Dart_IsLibrary(target)) {
-    Dart_Handle cls_name = NewString("_LazyLibraryMirror");
-    Dart_Handle type = Dart_GetType(MirrorLib(), cls_name, 0, NULL);
-    Dart_Handle args[] = { Dart_LibraryUrl(target) };
-    return Dart_New(type, Dart_Null(), ARRAY_SIZE(args), args);
-  }
-
-  if (Dart_IsClass(target)) {
-    if (Dart_ClassIsFunctionType(target)) {
-      Dart_Handle cls_name = NewString("_LazyFunctionTypeMirror");
-      Dart_Handle type = Dart_GetType(MirrorLib(), cls_name, 0, NULL);
-
-      Dart_Handle sig = Dart_ClassGetFunctionTypeSignature(target);
-      Dart_Handle return_type = Dart_FunctionReturnType(sig);
-      if (Dart_IsError(return_type)) {
-        return return_type;
-      }
-
-      Dart_Handle args[] = {
-        CreateMirrorReference(target),
-        CreateLazyMirror(return_type),
-        CreateParameterMirrorListUsingApi(sig),
-      };
-      return Dart_New(type, Dart_Null(), ARRAY_SIZE(args), args);
-    } else {
-      Dart_Handle cls_name = NewString("_LazyTypeMirror");
-      Dart_Handle type = Dart_GetType(MirrorLib(), cls_name, 0, NULL);
-      Dart_Handle lib = Dart_ClassGetLibrary(target);
-      Dart_Handle lib_url;
-      if (Dart_IsNull(lib)) {
-        lib_url = Dart_Null();
-      } else {
-        lib_url = Dart_LibraryUrl(lib);
-      }
-      Dart_Handle args[] = { lib_url, Dart_ClassName(target) };
-      return Dart_New(type, Dart_Null(), ARRAY_SIZE(args), args);
-    }
-  }
-
-  if (Dart_IsTypeVariable(target)) {
-    Dart_Handle var_name = Dart_TypeVariableName(target);
-    Dart_Handle owner = Dart_TypeVariableOwner(target);
-    Dart_Handle owner_mirror = CreateLazyMirror(owner);
-
-    Dart_Handle cls_name = NewString("_LazyTypeVariableMirror");
-    Dart_Handle type = Dart_GetType(MirrorLib(), cls_name, 0, NULL);
-
-    Dart_Handle args[] = { var_name, owner_mirror };
-    return Dart_New(type, Dart_Null(), ARRAY_SIZE(args), args);
-  }
-
-  UNREACHABLE();
-  return Dart_Null();
 }
 
 
@@ -201,29 +128,24 @@ static RawInstance* CreateTypeVariableList(const Class& cls) {
 }
 
 
-static Dart_Handle CreateTypedefMirror(Dart_Handle cls,
-                                       Dart_Handle cls_name,
-                                       Dart_Handle owner_mirror) {
-  Dart_Handle mirror_cls_name = NewString("_LocalTypedefMirrorImpl");
-  Dart_Handle mirror_type = Dart_GetType(MirrorLib(), mirror_cls_name, 0, NULL);
-  if (Dart_IsError(mirror_type)) {
-    return mirror_type;
-  }
+static RawInstance* CreateTypedefMirror(const Class& cls,
+                                        const Instance& owner_mirror) {
+  const Array& args = Array::Handle(Array::New(3));
+  args.SetAt(0, MirrorReference::Handle(MirrorReference::New(cls)));
+  args.SetAt(1, String::Handle(cls.UserVisibleName()));
+  args.SetAt(2, owner_mirror);
+  return CreateMirror(Symbols::_LocalTypedefMirrorImpl(), args);
+}
 
-  Dart_Handle referent = Dart_ClassGetTypedefReferent(cls);
-  if (Dart_IsError(referent)) {
-    return referent;
-  }
 
-  Dart_Handle args[] = {
-    CreateMirrorReference(cls),
-    cls_name,
-    owner_mirror,
-    CreateLazyMirror(referent),
-  };
-  Dart_Handle mirror =
-      Dart_New(mirror_type, Dart_Null(), ARRAY_SIZE(args), args);
-  return mirror;
+static Dart_Handle CreateTypedefMirrorUsingApi(Dart_Handle cls,
+                                               Dart_Handle cls_name,
+                                               Dart_Handle owner_mirror) {
+  Isolate* isolate = Isolate::Current();
+  return Api::NewHandle(
+      isolate, CreateTypedefMirror(
+          Api::UnwrapClassHandle(isolate, cls),
+          Api::UnwrapInstanceHandle(isolate, owner_mirror)));
 }
 
 
@@ -234,7 +156,7 @@ static Dart_Handle CreateClassMirrorUsingApi(Dart_Handle intf,
   if (Dart_ClassIsTypedef(intf)) {
     // This class is actually a typedef.  Represent it specially in
     // reflection.
-    return CreateTypedefMirror(intf, intf_name, lib_mirror);
+    return CreateTypedefMirrorUsingApi(intf, intf_name, lib_mirror);
   }
 
   Dart_Handle cls_name = NewString("_LocalClassMirrorImpl");
@@ -476,6 +398,23 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_metadata, 1) {
     ThrowInvokeError(Error::Cast(metadata));
   }
   return metadata.raw();
+}
+
+
+DEFINE_NATIVE_ENTRY(FunctionTypeMirror_parameters, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
+  const Class& cls = Class::Handle(ref.GetClassReferent());
+  const Function& func = Function::Handle(cls.signature_function());
+  return CreateParameterMirrorList(func);
+}
+
+
+DEFINE_NATIVE_ENTRY(FunctionTypeMirror_return_type, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
+  const Class& cls = Class::Handle(ref.GetClassReferent());
+  const Function& func = Function::Handle(cls.signature_function());
+  const AbstractType& return_type = AbstractType::Handle(func.result_type());
+  return CreateTypeMirror(return_type);
 }
 
 
@@ -1299,6 +1238,15 @@ DEFINE_NATIVE_ENTRY(MethodMirror_return_type, 1) {
   ASSERT(!func.IsConstructor());
   const AbstractType& return_type = AbstractType::Handle(func.result_type());
   return CreateTypeMirror(return_type);
+}
+
+
+DEFINE_NATIVE_ENTRY(TypedefMirror_referent, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
+  const Class& cls = Class::Handle(ref.GetClassReferent());
+  const Function& sig_func = Function::Handle(cls.signature_function());
+  const Class& sig_cls = Class::Handle(sig_func.signature_class());
+  return MirrorReference::New(sig_cls);
 }
 
 

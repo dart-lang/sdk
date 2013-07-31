@@ -5,6 +5,7 @@
 [ $compiler == dart2js ]
 math/*: Skip
 mirrors/class_mirror_type_variables_test: Fail # Issue 12087
+mirrors/function_type_mirror_test: Fail # Issue 12166
 mirrors/method_mirror_name_test: Fail # Issue 6335
 mirrors/method_mirror_properties_test: Fail # Issue 11861
 mirrors/method_mirror_returntype_test : Fail # Issue 11928

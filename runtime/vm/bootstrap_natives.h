@@ -265,10 +265,13 @@ namespace dart {
   V(LocalTypeVariableMirror_owner, 1)                                          \
   V(LocalTypeVariableMirror_upper_bound, 1)                                    \
   V(DeclarationMirror_metadata, 1)                                             \
+  V(FunctionTypeMirror_parameters, 1)                                          \
+  V(FunctionTypeMirror_return_type, 1)                                         \
   V(MethodMirror_owner, 1)                                                     \
   V(MethodMirror_parameters, 1)                                                \
   V(MethodMirror_return_type, 1)                                               \
   V(ParameterMirror_type, 2)                                                   \
+  V(TypedefMirror_referent, 1)                                                 \
   V(VariableMirror_type, 1)                                                    \
   V(GrowableObjectArray_allocate, 2)                                           \
   V(GrowableObjectArray_getIndexed, 2)                                         \
