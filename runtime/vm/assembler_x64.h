@@ -383,6 +383,9 @@ class Assembler : public ValueObject {
 
   void leaq(Register dst, const Address& src);
 
+  void cmovgeq(Register dst, Register src);
+  void cmovlessq(Register dst, Register src);
+
   void movss(XmmRegister dst, const Address& src);
   void movss(const Address& dst, XmmRegister src);
   void movss(XmmRegister dst, XmmRegister src);

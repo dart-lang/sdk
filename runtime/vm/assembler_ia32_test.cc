@@ -2627,6 +2627,28 @@ ASSEMBLER_TEST_RUN(ConditionalMovesSign, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(ConditionalMovesCompare, assembler) {
+  __ movl(EDX, Immediate(1));  // Greater equal.
+  __ movl(ECX, Immediate(-1));  // Less
+  __ movl(EAX, Address(ESP, 1 * kWordSize));
+  __ cmpl(EAX, Address(ESP, 2 * kWordSize));
+  __ cmovlessl(EAX, ECX);
+  __ cmovgel(EAX, EDX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(ConditionalMovesCompare, test) {
+  typedef int (*ConditionalMovesCompareCode)(int i, int i);
+  int res = reinterpret_cast<ConditionalMovesCompareCode>(test->entry())(10, 5);
+  EXPECT_EQ(1, res);  // Greater equal.
+  res = reinterpret_cast<ConditionalMovesCompareCode>(test->entry())(5, 5);
+  EXPECT_EQ(1, res);  // Greater equal.
+  res = reinterpret_cast<ConditionalMovesCompareCode>(test->entry())(2, 5);
+  EXPECT_EQ(-1, res);  // Less.
+}
+
+
 ASSEMBLER_TEST_GENERATE(TestLoadDoubleConstant, assembler) {
   __ LoadDoubleConstant(XMM3, -12.34);
   __ pushl(EAX);

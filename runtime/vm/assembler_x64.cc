@@ -406,6 +406,27 @@ void Assembler::leaq(Register dst, const Address& src) {
 }
 
 
+void Assembler::cmovgeq(Register dst, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  Operand operand(src);
+  EmitOperandREX(dst, operand, REX_W);
+  EmitUint8(0x0F);
+  EmitUint8(0x4D);
+  EmitOperand(dst & 7, operand);
+}
+
+
+void Assembler::cmovlessq(Register dst, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  Operand operand(src);
+  EmitOperandREX(dst, operand, REX_W);
+  EmitUint8(0x0F);
+  EmitUint8(0x4C);
+  EmitOperand(dst & 7, operand);
+}
+
+
+
 void Assembler::movss(XmmRegister dst, const Address& src) {
   ASSERT(dst <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);

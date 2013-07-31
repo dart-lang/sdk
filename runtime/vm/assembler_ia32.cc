@@ -330,6 +330,22 @@ void Assembler::cmovns(Register dst, Register src) {
 }
 
 
+void Assembler::cmovgel(Register dst, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x4D);
+  EmitRegisterOperand(dst, src);
+}
+
+
+void Assembler::cmovlessl(Register dst, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x4C);
+  EmitRegisterOperand(dst, src);
+}
+
+
 void Assembler::rep_movsb() {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF3);

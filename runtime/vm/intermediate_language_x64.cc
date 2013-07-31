@@ -3816,7 +3816,6 @@ void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  Label done;
   ASSERT(result_cid() == kSmiCid);
   Register left = locs()->in(0).reg();
   Register right = locs()->in(1).reg();
@@ -3824,12 +3823,10 @@ void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ cmpq(left, right);
   ASSERT(result == left);
   if (is_min) {
-    __ j(LESS_EQUAL, &done, Assembler::kNearJump);
+    __ cmovgeq(result, right);
   } else {
-    __ j(GREATER_EQUAL, &done, Assembler::kNearJump);
+    __ cmovlessq(result, right);
   }
-  __ movq(result, right);
-  __ Bind(&done);
 }
 
 

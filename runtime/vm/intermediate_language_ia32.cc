@@ -3686,6 +3686,7 @@ LocationSummary* MathMinMaxInstr::MakeLocationSummary() const {
     summary->set_temp(0, Location::RequiresRegister());
     return summary;
   }
+
   ASSERT(result_cid() == kSmiCid);
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
@@ -3746,20 +3747,17 @@ void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  Label done;
   ASSERT(result_cid() == kSmiCid);
   Register left = locs()->in(0).reg();
   Register right = locs()->in(1).reg();
   Register result = locs()->out().reg();
   __ cmpl(left, right);
+  ASSERT(result == left);
   if (is_min) {
-    ASSERT(result == left);
-    __ j(LESS_EQUAL, &done, Assembler::kNearJump);
+    __ cmovgel(result, right);
   } else {
-    __ j(GREATER_EQUAL, &done, Assembler::kNearJump);
+    __ cmovlessl(result, right);
   }
-  __ movl(result, right);
-  __ Bind(&done);
 }
 
 

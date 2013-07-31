@@ -2567,6 +2567,29 @@ ASSEMBLER_TEST_RUN(TestRepMovsBytes, test) {
   delete [] to;
 }
 
+
+ASSEMBLER_TEST_GENERATE(ConditionalMovesCompare, assembler) {
+  // RDI: Arg0.
+  // RSI: Arg1.
+  __ movq(RDX, Immediate(1));  // Greater equal.
+  __ movq(RCX, Immediate(-1));  // Less
+  __ cmpq(RDI, RSI);
+  __ cmovlessq(RAX, RCX);
+  __ cmovgeq(RAX, RDX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(ConditionalMovesCompare, test) {
+  typedef int (*ConditionalMovesCompareCode)(int i, int i);
+  int res = reinterpret_cast<ConditionalMovesCompareCode>(test->entry())(10, 5);
+  EXPECT_EQ(1, res);  // Greater equal.
+  res = reinterpret_cast<ConditionalMovesCompareCode>(test->entry())(5, 5);
+  EXPECT_EQ(1, res);  // Greater equal.
+  res = reinterpret_cast<ConditionalMovesCompareCode>(test->entry())(2, 5);
+  EXPECT_EQ(-1, res);  // Less.
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_X64
