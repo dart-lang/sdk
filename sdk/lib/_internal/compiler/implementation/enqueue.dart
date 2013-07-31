@@ -114,20 +114,16 @@ abstract class Enqueuer {
   void internalAddToWorkList(Element element);
 
   void registerInstantiatedType(InterfaceType type, TreeElements elements) {
-    ClassElement cls = type.element;
-    elements.registerDependency(cls);
-    cls.ensureResolved(compiler);
-    universe.instantiatedTypes.add(type);
-    if (universe.instantiatedClasses.contains(cls)) return;
-    if (!cls.isAbstract(compiler)) {
-      universe.instantiatedClasses.add(cls);
-    }
-    onRegisterInstantiatedClass(cls);
-    // We only tell the backend once that [cls] was instantiated, so
-    // any additional dependencies must be treated as global
-    // dependencies.
-    compiler.backend.registerInstantiatedClass(
-        cls, this, compiler.globalDependencies);
+    task.measure(() {
+      ClassElement cls = type.element;
+      elements.registerDependency(cls);
+      cls.ensureResolved(compiler);
+      universe.instantiatedTypes.add(type);
+      if (!cls.isAbstract(compiler)) {
+        universe.instantiatedClasses.add(cls);
+      }
+      onRegisterInstantiatedClass(cls);
+    });
   }
 
   void registerInstantiatedClass(ClassElement cls, TreeElements elements) {
@@ -254,6 +250,7 @@ abstract class Enqueuer {
 
   void onRegisterInstantiatedClass(ClassElement cls) {
     task.measure(() {
+      if (seenClasses.contains(cls)) return;
       // The class must be resolved to compute the set of all
       // supertypes.
       cls.ensureResolved(compiler);
@@ -267,6 +264,11 @@ abstract class Enqueuer {
         if (isResolutionQueue) {
           compiler.resolver.checkClass(cls);
         }
+        // We only tell the backend once that [cls] was instantiated, so
+        // any additional dependencies must be treated as global
+        // dependencies.
+        compiler.backend.registerInstantiatedClass(
+            cls, this, compiler.globalDependencies);
       }
       processClass(cls);
       for (Link<DartType> supertypes = cls.allSupertypes;
