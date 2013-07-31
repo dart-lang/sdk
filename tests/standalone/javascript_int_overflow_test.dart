@@ -29,12 +29,12 @@ int integer_shift() {
 
 
 int max_add_throws() {
-  return 0xFFFFFFFFFFFFF + 1;
+  return 0x1FFFFFFFFFFFFF + 1;
 }
 
 
 int min_sub_throws() {
-  return -0xFFFFFFFFFFFFF - 2;
+  return -0x1FFFFFFFFFFFFF - 1;
 }
 
 
@@ -45,39 +45,40 @@ int negate() {
 
 
 int max_literal() {
-  return 0xFFFFFFFFFFFFF;
+  return 0x1FFFFFFFFFFFFF;
 }
 
 
 int min_literal() {
-  var min_literal = -0xFFFFFFFFFFFFF - 1;
+  var min_literal = -0x1FFFFFFFFFFFFF;
   return min_literal;
 }
 
-// We don't test for the _FiftyThreeBitOverflowError since it's not visible.
-// It's should not be visible since it doesn't exist on dart2js.
-bool is53BitError(e) => e is Error && "$e".startsWith("53-bit Overflow:");
+// We don't test for the _JavascriptIntegerOverflowError since it's not visible.
+// It should not be visible since it doesn't exist on dart2js.
+bool isJavascriptIntError(e) =>
+    e is Error && "$e".startsWith("Javascript Integer Overflow:");
 
 main() {
-  Expect.equals(0xFFFFFFFFFFFFF, max_literal());
-  Expect.equals(-0xFFFFFFFFFFFFF - 1, min_literal());
+  Expect.equals(0x1FFFFFFFFFFFFF, max_literal());
+  Expect.equals(-0x1FFFFFFFFFFFFF, min_literal());
 
   // Run the tests once before optimizations.
   dti_arg = 1.9e16;
-  Expect.throws(double_to_int, is53BitError);
+  Expect.throws(double_to_int, isJavascriptIntError);
 
-  ia_arg1 = (1 << 51);
-  ia_arg2 = (1 << 51);
-  Expect.throws(integer_add, is53BitError);
+  ia_arg1 = (1 << 52);
+  ia_arg2 = (1 << 52);
+  Expect.throws(integer_add, isJavascriptIntError);
 
-  n_arg = -0xFFFFFFFFFFFFF - 1;
-  Expect.throws(negate, is53BitError);
+  n_arg = -0x1FFFFFFFFFFFFF;
+  Expect.equals(0x1FFFFFFFFFFFFF, negate());
 
-  is_arg = (1 << 51);
-  Expect.throws(integer_shift, is53BitError);
+  is_arg = (1 << 52);
+  Expect.throws(integer_shift, isJavascriptIntError);
 
-  Expect.throws(max_add_throws, is53BitError);
-  Expect.throws(min_sub_throws, is53BitError);
+  Expect.throws(max_add_throws, isJavascriptIntError);
+  Expect.throws(min_sub_throws, isJavascriptIntError);
 
   for (int i = 0; i < 20; i++) {
     dti_arg = i.toDouble();
@@ -101,18 +102,18 @@ main() {
 
    // The optimized functions should now deoptimize and throw the error.
   dti_arg = 1.9e16;
-  Expect.throws(double_to_int, is53BitError);
+  Expect.throws(double_to_int, isJavascriptIntError);
 
-  ia_arg1 = (1 << 51);
-  ia_arg2 = (1 << 51);
-  Expect.throws(integer_add, is53BitError);
+  ia_arg1 = (1 << 52);
+  ia_arg2 = (1 << 52);
+  Expect.throws(integer_add, isJavascriptIntError);
 
-  n_arg = -0xFFFFFFFFFFFFF - 1;
-  Expect.throws(negate, is53BitError);
+  n_arg = -0x1FFFFFFFFFFFFF;
+  Expect.equals(0x1FFFFFFFFFFFFF, negate());
 
-  is_arg = (1 << 51);
-  Expect.throws(integer_shift, is53BitError);
+  is_arg = (1 << 52);
+  Expect.throws(integer_shift, isJavascriptIntError);
 
-  Expect.throws(max_add_throws, is53BitError);
-  Expect.throws(min_sub_throws, is53BitError);
+  Expect.throws(max_add_throws, isJavascriptIntError);
+  Expect.throws(min_sub_throws, isJavascriptIntError);
 }

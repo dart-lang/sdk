@@ -52,12 +52,10 @@ debugger/*: Skip # Do not run standalone debugger tests in browser.
 coverage_test: Skip
 http_launch_test: Skip
 vmservice/*: Skip # Do not run standalone vm service tests in browser.
-53bit_overflow_literal_test: fail # Issue 12044
-53bit_overflow_test: fail # Issue 12044
 
 
 [ $compiler == dartanalyzer ]
-53bit_overflow_literal_test/01: fail, ok
+javascript_int_overflow_literal_test/01: fail, ok
 
 # test issue https://code.google.com/p/dart/issues/detail?id=11518
 io/file_constructor_test: fail
@@ -78,7 +76,7 @@ io/process_exit_negative_test: Skip
 package/package_isolate_test: fail
 
 [ $compiler == dart2analyzer ]
-53bit_overflow_literal_test/01: fail, ok
+javascript_int_overflow_literal_test/01: fail, ok
 package/package_isolate_test: fail # issue 11647
 
 # test issue https://code.google.com/p/dart/issues/detail?id=11518
@@ -118,8 +116,8 @@ left_shift_bit_and_op_test: Skip # Integers exceed dart2js precision.
 pow_test: Skip # Precision > 53 bits.
 double_smi_comparison_test: Skip # Precision > 53 bits.
 http_launch_test: Skip
-53bit_overflow_test: Skip
-53bit_overflow_literal_test: Skip
+javascript_int_overflow_test: Skip
+javascript_int_overflow_literal_test: Skip
 oom_error_stacktrace_test: Fail, OK # (OOM on JS may produce a stacktrace).
 vmservice/*: Skip # Do not run standalone vm service tests with dart2js.
 

@@ -379,9 +379,10 @@ RawInteger* Parser::CurrentIntegerLiteral() const {
   RawInteger* ri = Integer::RawCast(literal_token_.value());
   if (FLAG_throw_on_javascript_int_overflow) {
     const Integer& i = Integer::Handle(ri);
-    if (i.CheckFiftyThreeBitOverflow()) {
-      ErrorMsg(TokenPos(), "Integer literal does not fit in 53 bits: %s.",
-               i.ToCString());
+    if (i.CheckJavascriptIntegerOverflow()) {
+      ErrorMsg(TokenPos(),
+          "Integer literal does not fit in a Javascript integer: %s.",
+          i.ToCString());
     }
   }
   return ri;

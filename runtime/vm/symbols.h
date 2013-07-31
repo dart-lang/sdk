@@ -228,7 +228,7 @@ class ObjectPointerVisitor;
   V(NullThrownError, "NullThrownError")                                        \
   V(IsolateSpawnException, "IsolateSpawnException")                            \
   V(IsolateUnhandledException, "IsolateUnhandledException")                    \
-  V(FiftyThreeBitOverflowError, "_FiftyThreeBitOverflowError")                 \
+  V(JavascriptIntegerOverflowError, "_JavascriptIntegerOverflowError")         \
   V(MirroredCompilationError, "MirroredCompilationError")                      \
   V(MirroredUncaughtExceptionError, "MirroredUncaughtExceptionError")          \
   V(_setupFullStackTrace, "_setupFullStackTrace")                              \

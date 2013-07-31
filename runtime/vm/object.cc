@@ -52,7 +52,8 @@ DEFINE_FLAG(int, huge_method_cutoff_in_tokens, 20000,
 DEFINE_FLAG(int, huge_method_cutoff_in_code_size, 200000,
     "Huge method cutoff in unoptimized code size (in bytes).");
 DEFINE_FLAG(bool, throw_on_javascript_int_overflow, false,
-    "Throw an exception when integer arithmetic exceeds 53 bits.");
+    "Throw an exception when the result of an integer calculation will not "
+    "fit into a javascript integer.");
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
@@ -11233,12 +11234,13 @@ void Integer::PrintToJSONStream(JSONStream* stream, bool ref) const {
 }
 
 
-// Throw FiftyThreeBitOverflow exception.
-static void ThrowFiftyThreeBitOverflow(const Integer& i) {
+// Throw JavascriptIntegerOverflow exception.
+static void ThrowJavascriptIntegerOverflow(const Integer& i) {
   const Array& exc_args = Array::Handle(Array::New(1));
   const String& i_str = String::Handle(String::New(i.ToCString()));
   exc_args.SetAt(0, i_str);
-  Exceptions::ThrowByType(Exceptions::kFiftyThreeBitOverflowError, exc_args);
+  Exceptions::ThrowByType(Exceptions::kJavascriptIntegerOverflowError,
+      exc_args);
 }
 
 
@@ -11251,7 +11253,7 @@ RawInteger* Integer::New(const String& str, Heap::Space space) {
     ASSERT(!BigintOperations::FitsIntoSmi(big));
     ASSERT(!BigintOperations::FitsIntoInt64(big));
     if (FLAG_throw_on_javascript_int_overflow) {
-      ThrowFiftyThreeBitOverflow(big);
+      ThrowJavascriptIntegerOverflow(big);
     }
     return big.raw();
   }
@@ -11260,7 +11262,7 @@ RawInteger* Integer::New(const String& str, Heap::Space space) {
 
 
 // This is called from LiteralToken::New() in the parser, so we can't
-// raise an exception for 53-bit overflow here. Instead we do it in
+// raise an exception for 54-bit overflow here. Instead we do it in
 // Parser::CurrentIntegerLiteral(), which is the point in the parser where
 // integer literals escape, so we can call Parser::ErrorMsg().
 RawInteger* Integer::NewCanonical(const String& str) {
@@ -11280,13 +11282,23 @@ RawInteger* Integer::NewCanonical(const String& str) {
 }
 
 
+// dart2js represents integers as double precision floats. It does this using
+// a sign bit and 53 fraction bits. This gives us the range
+// -2^54 - 1 ... 2^54 - 1, i.e. the same as a 54-bit signed integer
+// without the most negative number. Thus, here we check if the value is
+// a 54-bit signed integer and not -2^54
+static bool Is54BitNoMinInt(int64_t value) {
+  return (Utils::IsInt(54, value)) && (value != (-0x1FFFFFFFFFFFFF - 1));
+}
+
+
 RawInteger* Integer::New(int64_t value, Heap::Space space) {
   if ((value <= Smi::kMaxValue) && (value >= Smi::kMinValue)) {
     return Smi::New(value);
   }
-  if (FLAG_throw_on_javascript_int_overflow && !Utils::IsInt(53, value)) {
+  if (FLAG_throw_on_javascript_int_overflow && !Is54BitNoMinInt(value)) {
     const Integer &i = Integer::Handle(Mint::New(value));
-    ThrowFiftyThreeBitOverflow(i);
+    ThrowJavascriptIntegerOverflow(i);
   }
   return Mint::New(value, space);
 }
@@ -11297,7 +11309,7 @@ RawInteger* Integer::NewFromUint64(uint64_t value, Heap::Space space) {
     if (FLAG_throw_on_javascript_int_overflow) {
       const Integer &i =
           Integer::Handle(BigintOperations::NewFromUint64(value));
-      ThrowFiftyThreeBitOverflow(i);
+      ThrowJavascriptIntegerOverflow(i);
     }
     return BigintOperations::NewFromUint64(value);
   } else {
@@ -11324,8 +11336,9 @@ int Integer::CompareWith(const Integer& other) const {
 }
 
 
-// Returns true if the signed Integer requires more than 53 bits.
-bool Integer::CheckFiftyThreeBitOverflow() const {
+// Returns true if the signed Integer does not fit into a
+// Javascript (54-bit) integer.
+bool Integer::CheckJavascriptIntegerOverflow() const {
   // Always overflow if the value doesn't fit into an int64_t.
   int64_t value = 1ULL << 63;
   if (IsSmi()) {
@@ -11342,14 +11355,14 @@ bool Integer::CheckFiftyThreeBitOverflow() const {
       value = BigintOperations::ToInt64(big_value);
     }
   }
-  return !Utils::IsInt(53, value);
+  return !Is54BitNoMinInt(value);
 }
 
 
 RawInteger* Integer::AsValidInteger() const {
   if (FLAG_throw_on_javascript_int_overflow &&
-      CheckFiftyThreeBitOverflow()) {
-    ThrowFiftyThreeBitOverflow(*this);
+      CheckJavascriptIntegerOverflow()) {
+    ThrowJavascriptIntegerOverflow(*this);
   }
   if (IsSmi()) return raw();
   if (IsMint()) {

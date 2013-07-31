@@ -178,9 +178,9 @@ patch class NoSuchMethodError {
   }
 }
 
-class _FiftyThreeBitOverflowError extends Error {
+class _JavascriptIntegerOverflowError extends Error {
   final Object _value;
 
-  _FiftyThreeBitOverflowError(this._value);
-  String toString() => "53-bit Overflow: $_value";
+  _JavascriptIntegerOverflowError(this._value);
+  String toString() => "Javascript Integer Overflow: $_value";
 }
