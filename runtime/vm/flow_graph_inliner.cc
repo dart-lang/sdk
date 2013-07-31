@@ -1180,6 +1180,10 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
             callee_entry->AsGraphEntry()->normal_entry();
         cursor->LinkTo(target->next());
         target->ReplaceAsPredecessorWith(current_block);
+        // Unuse all inputs of the graph entry and the normal entry. They are
+        // not in the graph anymore.
+        callee_entry->UnuseAllInputs();
+        target->UnuseAllInputs();
         // All blocks that were dominated by the normal entry are now
         // dominated by the current block.
         for (intptr_t j = 0;
@@ -1230,6 +1234,8 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
       if (callee_entry->IsGraphEntry()) {
         // Unshared.
         true_target = callee_entry->AsGraphEntry()->normal_entry();
+        // Unuse all inputs of the graph entry. It is not in the graph anymore.
+        callee_entry->UnuseAllInputs();
       } else if (callee_entry->IsTargetEntry()) {
         // Shared inlined body and this is the first entry.  We have already
         // constructed a join and this target jumps to it.
