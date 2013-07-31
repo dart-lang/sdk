@@ -41,6 +41,16 @@ verifyGraph(expected, actual) {
     eItems.add(expected);
     aItems.add(actual);
 
+    if (expected is Blob) {
+      expect(actual is Blob, isTrue,
+          reason: '$actual is Blob');
+      expect(expected.type, equals(actual.type),
+          reason: message(path, '.type'));
+      expect(expected.size, equals(actual.size),
+          reason: message(path, '.size'));
+      return;
+    }
+
     if (expected is ByteBuffer) {
       expect(actual is ByteBuffer, isTrue,
           reason: '$actual is ByteBuffer');
@@ -48,6 +58,26 @@ verifyGraph(expected, actual) {
           reason: message(path, '.lengthInBytes'));
       // TODO(antonm): one can create a view on top of those
       // and check if contents identical.  Let's do it later.
+      return;
+    }
+
+    if (expected is DateTime) {
+      expect(actual is DateTime, isTrue,
+          reason: '$actual is DateTime');
+      expect(expected.millisecondsSinceEpoch,
+          equals(actual.millisecondsSinceEpoch),
+          reason: message(path, '.millisecondsSinceEpoch'));
+      return;
+    }
+
+    if (expected is ImageData) {
+      expect(actual is ImageData, isTrue,
+          reason: '$actual is ImageData');
+      expect(expected.width, equals(actual.width),
+          reason: message(path, '.width'));
+      expect(expected.height, equals(actual.height),
+          reason: message(path, '.height'));
+      walk('$path.data', expected.data, actual.data);
       return;
     }
 

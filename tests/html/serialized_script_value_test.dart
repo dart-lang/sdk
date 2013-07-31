@@ -36,4 +36,21 @@ main() {
   serializationTest('simple list', simpleList);
   serializationTest('dag list', dagList);
   serializationTest('cyclic list', cyclicList);
+
+  serializationTest('datetime', [new DateTime.now()]);
+
+  var blob = new Blob(
+      ['Indescribable... Indestructible! Nothing can stop it!'],
+      'text/plain');
+  serializationTest('blob', [blob]);
+
+  var canvas = new CanvasElement();
+  canvas.width = 100;
+  canvas.height = 100;
+  var imageData = canvas.context2D.getImageData(0, 0, 1, 1);
+  serializationTest('imagedata', [imageData]);
+
+  expect(() {
+    new MessageEvent('', data: new DivElement(), origin: '', lastEventId: '');
+  }, throws);
 }
