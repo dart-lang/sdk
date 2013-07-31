@@ -1,5 +1,7 @@
 import 'dart:async';
 
+library barback.cancelable_future;
+
 /// A wrapper for [Future] that can be cancelled.
 ///
 /// When this is cancelled, that means it won't complete either successfully or
