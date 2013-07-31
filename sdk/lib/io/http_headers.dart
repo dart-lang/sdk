@@ -473,7 +473,7 @@ class _HttpHeaders implements HttpHeaders {
 
 class _HeaderValue implements HeaderValue {
   String _value;
-  Map<String, String> _parameters;
+  _UnmodifiableMap<String, String> _parameters;
 
   _HeaderValue([String this._value = "", Map<String, String> parameters]) {
     if (parameters != null) {
