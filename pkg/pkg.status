@@ -15,7 +15,7 @@ scheduled_test/lib/*: Skip
 scheduled_test/test/scheduled_server_test: Pass, Fail, Slow, Crash # Issue 9231, 9582
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 
-[ ($compiler = none && $runtime == drt) || $compiler == dartanalyzer ]
+[ ($compiler == none && $runtime == drt) || $compiler == dartanalyzer ]
 custom_element/test/custom_element_test: Fail # Issue 12142
 
 [ $runtime == vm ]
