@@ -572,6 +572,9 @@ class _WebSocketConsumer implements StreamConsumer {
   StreamController _controller;
   StreamSubscription _subscription;
   bool _issuedPause = false;
+  // Only report error if the last message was a user-provided message and not a
+  // ping or pong message.
+  bool _reportError = false;
   Completer _closeCompleter = new Completer();
   Completer _completer;
 
@@ -613,8 +616,13 @@ class _WebSocketConsumer implements StreamConsumer {
                 _closeCompleter.complete(webSocket);
               },
               onError: (error) {
-                if (!_done(error)) {
-                  _closeCompleter.completeError(error);
+                if (_reportError) {
+                  if (!_done(error)) {
+                    _closeCompleter.completeError(error);
+                  }
+                } else {
+                  _done();
+                  _closeCompleter.complete(webSocket);
                 }
               });
   }
@@ -635,6 +643,7 @@ class _WebSocketConsumer implements StreamConsumer {
     _completer = new Completer();
     _subscription = stream.listen(
         (data) {
+          _reportError = true;
           _controller.add(data);
         },
         onDone: () {
@@ -662,6 +671,7 @@ class _WebSocketConsumer implements StreamConsumer {
 
   void add(data) {
     _ensureController();
+    _reportError = false;
     _controller.add(data);
   }
 }
