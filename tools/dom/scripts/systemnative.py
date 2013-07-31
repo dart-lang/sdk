@@ -478,6 +478,8 @@ class DartiumBackend(HtmlDartGenerator):
     dart_element_type = self._DartType(element_type)
     if self._HasNativeIndexGetter():
       self._EmitNativeIndexGetter(dart_element_type)
+    elif self._HasExplicitIndexedGetter():
+      self._EmitExplicitIndexedGetter(dart_element_type)
     else:
       self._members_emitter.Emit(
           '\n'
@@ -525,6 +527,23 @@ class DartiumBackend(HtmlDartGenerator):
         self.SecureOutputType(element_type, True)
     self._GenerateNativeBinding('numericIndexGetter', 2, dart_declaration,
         'Callback', True)
+
+  def _HasExplicitIndexedGetter(self):
+    return any(op.id == 'getItem' for op in self._interface.operations)
+
+  def _EmitExplicitIndexedGetter(self, dart_element_type):
+    if any(op.id == 'getItem' for op in self._interface.operations):
+      indexed_getter = 'getItem'
+
+    self._members_emitter.Emit(
+        '\n'
+        '  $TYPE operator[](int index) {\n'
+        '    if (index < 0 || index >= length)\n'
+        '      throw new RangeError.range(index, 0, length);\n'
+        '    return $INDEXED_GETTER(index);\n'
+        '  }\n',
+        TYPE=dart_element_type,
+        INDEXED_GETTER=indexed_getter)
 
   def _HasNativeIndexSetter(self):
     return 'CustomIndexedSetter' in self._interface.ext_attrs

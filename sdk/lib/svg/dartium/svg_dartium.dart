@@ -3435,9 +3435,8 @@ class LengthList extends NativeFieldWrapperClass1 with ListMixin<Length>, Immuta
   Length operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
-    return _nativeIndexedGetter(index);
+    return this.getItem(index)(index);
   }
-  Length _nativeIndexedGetter(int index) native "SVGLengthList_item_Callback";
 
   void operator[]=(int index, Length value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -4025,9 +4024,8 @@ class NumberList extends NativeFieldWrapperClass1 with ListMixin<Number>, Immuta
   Number operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
-    return _nativeIndexedGetter(index);
+    return this.getItem(index)(index);
   }
-  Number _nativeIndexedGetter(int index) native "SVGNumberList_item_Callback";
 
   void operator[]=(int index, Number value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -5096,9 +5094,8 @@ class PathSegList extends NativeFieldWrapperClass1 with ListMixin<PathSeg>, Immu
   PathSeg operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
-    return _nativeIndexedGetter(index);
+    return this.getItem(index)(index);
   }
-  PathSeg _nativeIndexedGetter(int index) native "SVGPathSegList_item_Callback";
 
   void operator[]=(int index, PathSeg value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -6005,9 +6002,8 @@ class StringList extends NativeFieldWrapperClass1 with ListMixin<String>, Immuta
   String operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
-    return _nativeIndexedGetter(index);
+    return this.getItem(index)(index);
   }
-  String _nativeIndexedGetter(int index) native "SVGStringList_item_Callback";
 
   void operator[]=(int index, String value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -7143,9 +7139,8 @@ class TransformList extends NativeFieldWrapperClass1 with ListMixin<Transform>, 
   Transform operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
-    return _nativeIndexedGetter(index);
+    return this.getItem(index)(index);
   }
-  Transform _nativeIndexedGetter(int index) native "SVGTransformList_item_Callback";
 
   void operator[]=(int index, Transform value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
