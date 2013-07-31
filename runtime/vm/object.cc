@@ -11288,7 +11288,7 @@ RawInteger* Integer::NewCanonical(const String& str) {
 // without the most negative number. Thus, here we check if the value is
 // a 54-bit signed integer and not -2^54
 static bool Is54BitNoMinInt(int64_t value) {
-  return (Utils::IsInt(54, value)) && (value != (-0x1FFFFFFFFFFFFF - 1));
+  return (Utils::IsInt(54, value)) && (value != (-0x1FFFFFFFFFFFFFLL - 1));
 }
 
 

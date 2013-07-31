@@ -2163,7 +2163,7 @@ static void Emit54BitOverflowCheck(FlowGraphCompiler* compiler,
     __ sarq(result, Immediate(64 - 55));
     __ cmpq(result, TMP);
     __ j(NOT_EQUAL, overflow);  // 54-bit overflow.
-    __ cmpq(result, Immediate(-0x1FFFFFFFFFFFFF-1));
+    __ cmpq(result, Immediate(-0x1FFFFFFFFFFFFFLL - 1));
     __ j(EQUAL, overflow);  // The most negative 54-bit int is also disallowed.
   }
 }
