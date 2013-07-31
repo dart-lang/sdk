@@ -849,13 +849,8 @@ class _Predicate extends Matcher {
  * have a Widget class where each Widget has a price; we could make a
  * [CustomMatcher] that can make assertions about prices with:
  *
-<<<<<<< .mine
  *     class HasPrice extends CustomMatcher {
  *       const HasPrice(matcher) :
-=======
- *     class HasPrice extends CustomMatcher {
- *       HasPrice(matcher) :
->>>>>>> .r25321
  *           super("Widget with price that is", "price", matcher);
  *       featureValueOf(actual) => actual.price;
  *     }
@@ -898,4 +893,3 @@ class CustomMatcher extends Matcher {
     return mismatchDescription;
   }
 }
-

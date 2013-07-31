@@ -203,7 +203,7 @@ void main() {
 
     test('isZero', () {
       shouldPass(0, isZero);
-      shouldFail(1, isZero, 
+      shouldFail(1, isZero,
           "Expected: a value equal to <0> "
           "Actual: <1> "
           "Which: is not a value equal to <0>");
@@ -222,7 +222,7 @@ void main() {
           "Expected: a positive value "
           "Actual: <-1> "
           "Which: is not a positive value");
-      shouldFail(0, isPositive, 
+      shouldFail(0, isPositive,
           "Expected: a positive value "
           "Actual: <0> "
           "Which: is not a positive value");
@@ -428,7 +428,7 @@ void main() {
           "Which: has value ['foo', 'bar'] which has value 'bar' "
           "which is different. Expected: foo Actual: bar ^ "
           "Differ at offset 0 at index 1 at index 0");
-      shouldFail(d, everyElement(allOf(hasLength(greaterThan(0)), 
+      shouldFail(d, everyElement(allOf(hasLength(greaterThan(0)),
           contains('foo'))),
            "Expected: every element((an object with length of a value "
            "greater than <0> and contains 'foo')) "
@@ -759,7 +759,7 @@ class Bicycle {
     print(foo);
   }
 }
- 
+
 abstract class Abstraction {
   void norealization();
 }
