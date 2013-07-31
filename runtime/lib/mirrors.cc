@@ -13,7 +13,6 @@
 #include "vm/message.h"
 #include "vm/object_store.h"
 #include "vm/port.h"
-#include "vm/resolver.h"
 #include "vm/symbols.h"
 #include "lib/invocation_mirror.h"
 
@@ -672,11 +671,21 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invoke, 4) {
 
   ArgumentsDescriptor args_desc(
       Array::Handle(ArgumentsDescriptor::New(args.Length())));
-  // TODO(11771): This won't find private members.
-  const Function& function = Function::Handle(
-      Resolver::ResolveDynamic(reflectee,
-                               function_name,
-                               args_desc));
+
+  Class& klass = Class::Handle(reflectee.clazz());
+  Function& function = Function::Handle();
+  while (!klass.IsNull()) {
+    function = klass.LookupDynamicFunctionAllowPrivate(function_name);
+    if (!function.IsNull()) {
+      break;
+    }
+    klass = klass.SuperClass();
+  }
+
+  if (!function.IsNull() &&
+      !function.AreValidArguments(args_desc, NULL)) {
+    function = Function::null();
+  }
 
   return ReflectivelyInvokeDynamicFunction(reflectee,
                                            function,
