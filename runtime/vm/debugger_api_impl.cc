@@ -523,9 +523,16 @@ DART_EXPORT Dart_Handle Dart_GetSupertype(Dart_Handle type_in) {
   DARTSCOPE(isolate);
 
   UNWRAP_AND_CHECK_PARAM(Type, type, type_in);
+  if (!type.IsFinalized()) {
+    return Api::NewError("%s: type in 'type_in' is not a finalized type",
+                         CURRENT_FUNC);
+  }
+  if (!type.IsInstantiated()) {
+    return Api::NewError("%s: type in 'type_in' is not an instantiated type",
+                         CURRENT_FUNC);
+  }
   const Class& cls= Class::Handle(type.type_class());
-  intptr_t num_expected_type_arguments = cls.NumTypeParameters();
-  if (num_expected_type_arguments == 0) {
+  if (cls.NumTypeParameters() == 0) {
     // The super type has no type parameters or it is already instantiated
     // just return it.
     const AbstractType& type = AbstractType::Handle(cls.super_type());
@@ -536,26 +543,25 @@ DART_EXPORT Dart_Handle Dart_GetSupertype(Dart_Handle type_in) {
   }
   // Set up the type arguments array for the super class type.
   const Class& super_cls = Class::Handle(cls.SuperClass());
-  num_expected_type_arguments = super_cls.NumTypeParameters();
+  intptr_t num_expected_type_arguments = super_cls.NumTypeArguments();
+  TypeArguments& super_type_args_array = TypeArguments::Handle();
   const AbstractTypeArguments& type_args_array =
       AbstractTypeArguments::Handle(type.arguments());
-  const TypeArguments& super_type_args_array =
-      TypeArguments::Handle(TypeArguments::New(num_expected_type_arguments));
-  AbstractType& type_arg = AbstractType::Handle();
-  intptr_t index_offset =
-      super_cls.NumTypeArguments() - num_expected_type_arguments;
-  for (intptr_t i = 0; i < num_expected_type_arguments; i++) {
-    type_arg ^= type_args_array.TypeAt(i + index_offset);
-    super_type_args_array.SetTypeAt(i, type_arg);
+  if (!type_args_array.IsNull() && (num_expected_type_arguments > 0)) {
+    super_type_args_array = TypeArguments::New(num_expected_type_arguments);
+    AbstractType& type_arg = AbstractType::Handle();
+    for (intptr_t i = 0; i < num_expected_type_arguments; i++) {
+      type_arg ^= type_args_array.TypeAt(i);
+      super_type_args_array.SetTypeAt(i, type_arg);
+    }
   }
 
   // Construct the super type object, canonicalize it and return.
   Type& instantiated_type = Type::Handle(
       Type::New(super_cls, super_type_args_array, Scanner::kDummyTokenIndex));
   ASSERT(!instantiated_type.IsNull());
-  instantiated_type ^= ClassFinalizer::FinalizeType(
-      super_cls, instantiated_type, ClassFinalizer::kCanonicalize);
-  return Api::NewHandle(isolate, instantiated_type.raw());
+  instantiated_type.SetIsFinalized();
+  return Api::NewHandle(isolate, instantiated_type.Canonicalize());
 }
 
 
