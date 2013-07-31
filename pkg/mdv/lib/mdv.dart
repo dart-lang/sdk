@@ -47,27 +47,13 @@ StreamController<DocumentFragment> _instanceCreated;
  */
 // TODO(rafaelw): This is a hack, and is neccesary for the polyfill
 // because custom elements are not upgraded during clone()
+// TODO(jmesserly): polymer removed this in:
+// https://github.com/Polymer/platform/commit/344ffeaae475babb529403f6608588a0fc73f4e7
 Stream<DocumentFragment> get instanceCreated {
   if (_instanceCreated == null) {
-    _instanceCreated =
-        new StreamController<DocumentFragment>(sync: true);
+    _instanceCreated = new StreamController<DocumentFragment>(sync: true);
   }
   return _instanceCreated.stream;
-}
-
-/**
- * Binds all mustaches recursively starting from the [root] node.
- *
- * Note: this is not an official Model-Driven-Views API; it is intended to
- * support binding the [ShadowRoot]'s content to a model.
- */
-// TODO(jmesserly): this is needed to avoid two <template> nodes when using
-// bindings in a custom element's template. See also:
-// https://github.com/polymer-project/polymer/blob/master/src/bindMDV.js#L68
-// Called from:
-// https://github.com/polymer-project/polymer/blob/master/src/register.js#L99
-void bindModel(Node root, model, [BindingDelegate delegate]) {
-  _addBindings(root, model, delegate);
 }
 
 

@@ -1566,22 +1566,20 @@ templateElementTests() {
     }
   });
 
-  observeTest('BindShadowDOM bindModel', () {
+  observeTest('BindShadowDOM createInstance', () {
     if (ShadowRoot.supported) {
-      var root = createShadowTestHtml('Hi {{ name }}');
       var model = toSymbolMap({'name': 'Leela'});
-      mdv.bindModel(root, model);
+      var template = new Element.html('<template>Hi {{ name }}</template>');
+      var root = createShadowTestHtml('');
+      root.nodes.add(template.createInstance(model));
+
       performMicrotaskCheckpoint();
       expect(root.text, 'Hi Leela');
-    }
-  });
 
-  observeTest('bindModel to polyfilled shadow root', () {
-    var root = createTestHtml('Hi {{ name }}');
-    var model = toSymbolMap({'name': 'Leela'});
-    mdv.bindModel(root, model);
-    performMicrotaskCheckpoint();
-    expect(root.text, 'Hi Leela');
+      model[sym('name')] = 'Fry';
+      performMicrotaskCheckpoint();
+      expect(root.text, 'Hi Fry');
+    }
   });
 
   observeTest('BindShadowDOM Template Ref', () {

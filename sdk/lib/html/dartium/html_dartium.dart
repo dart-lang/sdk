@@ -8483,7 +8483,7 @@ class _ChildrenElementList extends ListBase<Element> {
 
 /**
  * An immutable list containing HTML elements. This list contains some
- * additional methods when compared to regular lists for ease of CSS 
+ * additional methods when compared to regular lists for ease of CSS
  * manipulation on a group of elements.
  */
 abstract class ElementList<T extends Element> extends ListBase<T> {
@@ -8514,28 +8514,28 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    */
   CssStyleDeclarationBase get style;
 
-  /** 
+  /**
    * Access dimensions and position of the Elements in this list.
-   * 
+   *
    * Setting the height or width properties will set the height or width
-   * property for all elements in the list. This returns a rectangle with the 
+   * property for all elements in the list. This returns a rectangle with the
    * dimenions actually available for content
-   * in this element, in pixels, regardless of this element's box-sizing 
+   * in this element, in pixels, regardless of this element's box-sizing
    * property. Getting the height or width returns the height or width of the
-   * first Element in this list. 
+   * first Element in this list.
    *
    * Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not.
    */
   @Experimental()
   CssRect get contentEdge;
-  
+
   /**
    * Access dimensions and position of the first Element's content + padding box
    * in this list.
-   * 
+   *
    * This returns a rectangle with the dimenions actually available for content
-   * in this element, in pixels, regardless of this element's box-sizing 
+   * in this element, in pixels, regardless of this element's box-sizing
    * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not. This
    * can be used to retrieve jQuery's `innerHeight` value for an element. This
@@ -8548,9 +8548,9 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
   /**
    * Access dimensions and position of the first Element's content + padding +
    * border box in this list.
-   * 
+   *
    * This returns a rectangle with the dimenions actually available for content
-   * in this element, in pixels, regardless of this element's box-sizing 
+   * in this element, in pixels, regardless of this element's box-sizing
    * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not. This
    * can be used to retrieve jQuery's `outerHeight` value for an element.
@@ -8561,9 +8561,9 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
   /**
    * Access dimensions and position of the first Element's content + padding +
    * border + margin box in this list.
-   * 
+   *
    * This returns a rectangle with the dimenions actually available for content
-   * in this element, in pixels, regardless of this element's box-sizing 
+   * in this element, in pixels, regardless of this element's box-sizing
    * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not. This
    * can be used to retrieve jQuery's `outerHeight` value for an element.
@@ -8608,8 +8608,8 @@ class _FrozenElementList<T extends Element> extends ListBase<T> implements Eleme
   Element get single => _nodeList.single;
 
   CssClassSet get classes => new _MultiElementCssClassSet(_elementList);
-  
-  CssStyleDeclarationBase get style => 
+
+  CssStyleDeclarationBase get style =>
       new _CssStyleDeclarationSet(_elementList);
 
   void set classes(Iterable<String> value) {
@@ -8617,7 +8617,7 @@ class _FrozenElementList<T extends Element> extends ListBase<T> implements Eleme
   }
 
   CssRect get contentEdge => new _ContentCssListRect(_elementList);
-  
+
   CssRect get paddingEdge => _elementList.first.paddingEdge;
 
   CssRect get borderEdge => _elementList.first.borderEdge;
@@ -9119,13 +9119,13 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   }
 
   /**
-   * Creates an instance of the template, using the provided model and binding
-   * delegate.
+   * Creates an instance of the template, using the provided model and optional
+   * binding delegate.
    *
    * This is only supported if [isTemplate] is true.
    */
   @Experimental()
-  DocumentFragment createInstance(model, BindingDelegate delegate) {
+  DocumentFragment createInstance(model, [BindingDelegate delegate]) {
     _ensureTemplate();
     return TemplateElement.mdvPackage(this).createInstance(model, delegate);
   }
@@ -9201,35 +9201,35 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   /**
    * Access this element's content position.
-   * 
+   *
    * This returns a rectangle with the dimenions actually available for content
-   * in this element, in pixels, regardless of this element's box-sizing 
+   * in this element, in pixels, regardless of this element's box-sizing
    * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not.
-   * 
+   *
    * _Important_ _note_: use of this method _will_ perform CSS calculations that
-   * can trigger a browser reflow. Therefore, use of this property _during_ an 
-   * animation frame is discouraged. See also: 
+   * can trigger a browser reflow. Therefore, use of this property _during_ an
+   * animation frame is discouraged. See also:
    * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
    */
   @Experimental()
   CssRect get contentEdge => new _ContentCssRect(this);
-  
+
   /**
    * Access the dimensions and position of this element's content + padding box.
-   * 
+   *
    * This returns a rectangle with the dimenions actually available for content
-   * in this element, in pixels, regardless of this element's box-sizing 
+   * in this element, in pixels, regardless of this element's box-sizing
    * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not. This
    * can be used to retrieve jQuery's
-   * [innerHeight](http://api.jquery.com/innerHeight/) value for an element. 
+   * [innerHeight](http://api.jquery.com/innerHeight/) value for an element.
    * This is also a rectangle equalling the dimensions of clientHeight and
    * clientWidth.
-   * 
+   *
    * _Important_ _note_: use of this method _will_ perform CSS calculations that
-   * can trigger a browser reflow. Therefore, use of this property _during_ an 
-   * animation frame is discouraged. See also: 
+   * can trigger a browser reflow. Therefore, use of this property _during_ an
+   * animation frame is discouraged. See also:
    * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
    */
   @Experimental()
@@ -9238,17 +9238,17 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   /**
    * Access the dimensions and position of this element's content + padding +
    * border box.
-   * 
+   *
    * This returns a rectangle with the dimenions actually available for content
-   * in this element, in pixels, regardless of this element's box-sizing 
+   * in this element, in pixels, regardless of this element's box-sizing
    * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not. This
    * can be used to retrieve jQuery's
    * [outerHeight](http://api.jquery.com/outerHeight/) value for an element.
-   * 
-   * _Important_ _note_: use of this method _will_ perform CSS calculations that 
-   * can trigger a browser reflow. Therefore, use of this property _during_ an 
-   * animation frame is discouraged. See also: 
+   *
+   * _Important_ _note_: use of this method _will_ perform CSS calculations that
+   * can trigger a browser reflow. Therefore, use of this property _during_ an
+   * animation frame is discouraged. See also:
    * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
    */
   @Experimental()
@@ -9257,38 +9257,38 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   /**
    * Access the dimensions and position of this element's content + padding +
    * border + margin box.
-   * 
+   *
    * This returns a rectangle with the dimenions actually available for content
-   * in this element, in pixels, regardless of this element's box-sizing 
+   * in this element, in pixels, regardless of this element's box-sizing
    * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not. This
    * can be used to retrieve jQuery's
    * [outerHeight](http://api.jquery.com/outerHeight/) value for an element.
-   * 
+   *
    * _Important_ _note_: use of this method will perform CSS calculations that
-   * can trigger a browser reflow. Therefore, use of this property _during_ an 
-   * animation frame is discouraged. See also: 
+   * can trigger a browser reflow. Therefore, use of this property _during_ an
+   * animation frame is discouraged. See also:
    * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
    */
   @Experimental()
   CssRect get marginEdge => new _MarginCssRect(this);
 
-  /** 
-   * Provides the coordinates of the element relative to the top of the 
-   * document. 
+  /**
+   * Provides the coordinates of the element relative to the top of the
+   * document.
    *
-   * This method is the Dart equivalent to jQuery's 
+   * This method is the Dart equivalent to jQuery's
    * [offset](http://api.jquery.com/offset/) method.
    */
   Point get documentOffset => offsetTo(document.documentElement);
 
-  /** 
+  /**
    * Provides the offset of this element's [borderEdge] relative to the
    * specified [parent].
-   * 
+   *
    * This is the Dart equivalent of jQuery's
    * [position](http://api.jquery.com/position/) method. Unlike jQuery's
-   * position, however, [parent] can be any parent element of `this`, 
+   * position, however, [parent] can be any parent element of `this`,
    * rather than only `this`'s immediate [offsetParent]. If the specified
    * element is _not_ an offset parent or transitive offset parent to this
    * element, an [ArgumentError] is thrown.
@@ -9299,7 +9299,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   static Point _offsetToHelper(Element current, Element parent) {
     // We're hopping from _offsetParent_ to offsetParent (not just parent), so
-    // offsetParent, "tops out" at BODY. But people could conceivably pass in 
+    // offsetParent, "tops out" at BODY. But people could conceivably pass in
     // the document.documentElement and I want it to return an absolute offset,
     // so we have the special case checking for HTML.
     bool foundAsParent = identical(current, parent) || parent.tagName == 'HTML';
@@ -9307,7 +9307,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
       if (foundAsParent) return new Point(0, 0);
       throw new ArgumentError("Specified element is not a transitive offset "
           "parent of this element.");
-    } 
+    }
     Element parentOffset = current.offsetParent;
     Point p = Element._offsetToHelper(parentOffset, parent);
     return new Point(p.x + current.offsetLeft, p.y + current.offsetTop);
