@@ -6,6 +6,7 @@
 // wrong number of type arguments are handled as raw types.
 
 import 'package:expect/expect.dart';
+import 'package:expect/expect.dart' as prefix;  // Define 'prefix'.
 
 checkIsUnresolved(var v) {
   Expect.isTrue(v is Unresolved);
@@ -76,8 +77,7 @@ void main() {
 
   checkIsListDynamic(true, []);
   checkIsListDynamic(true, <>[]); /// 01: compile-time error
-// TODO(johnniwinther): Create runtime type information on literal lists.
-//  checkIsListDynamic(false, <int>[]);
+  checkIsListDynamic(false, <int>[]);
   checkIsListDynamic(true, <Unresolved>[]);
   checkIsListDynamic(true, <Unresolved<int>>[]);
   checkIsListDynamic(true, <prefix.Unresolved>[]);
@@ -92,16 +92,16 @@ void main() {
   checkIsListDynamic(true, new List<prefix.Unresolved<int>>());
   checkIsListDynamic(true, new List<int, String>());
 
+  checkIsMapDynamic(true, true, <dynamic, dynamic>{});
   checkIsMapDynamic(true, true, {});
   checkIsMapDynamic(true, true, <>{}); /// 03: compile-time error
   checkIsMapDynamic(true, true, <int>{});
-// TODO(johnniwinther): Create runtime type information on literal maps.
-//  checkIsMapDynamic(false, false, <String, int>{});
+  checkIsMapDynamic(false, false, <String, int>{});
   checkIsMapDynamic(true, true, <String, int, String>{});
-//  checkIsMapDynamic(true, false, <Unresolved, int>{});
-//  checkIsMapDynamic(false, true, <String, Unresolved<int>>{});
-//  checkIsMapDynamic(true, false,  <prefix.Unresolved, int>{});
-//  checkIsMapDynamic(false, true, <String, prefix.Unresolved<int>>{});
+  checkIsMapDynamic(true, false, <Unresolved, int>{});
+  checkIsMapDynamic(false, true, <String, Unresolved<int>>{});
+  checkIsMapDynamic(true, false,  <prefix.Unresolved, int>{});
+  checkIsMapDynamic(false, true, <String, prefix.Unresolved<int>>{});
 
   checkIsMapDynamic(true, true, new Map());
   checkIsMapDynamic(true, true, new Map<>); /// 04: compile-time error
@@ -118,28 +118,36 @@ void main() {
   Expect.throws(() => new prefix.Unresolved(), (e) => true);
   Expect.throws(() => new prefix.Unresolved<int>(), (e) => true);
 
+  // The expression 'undeclared_prefix.Unresolved()' is parsed as the invocation
+  // of the named constructor 'Unresolved' on the type 'undeclared_prefix'.
+  Expect.throws(() => new undeclared_prefix.Unresolved(), (e) => true);
+  // The expression 'undeclared_prefix.Unresolved<int>' cannot be parsed.
+  Expect.throws(() => new undeclared_prefix.Unresolved<int>(), (e) => true);  /// 05: compile-time error
+
   try {
     throw 'foo';
   } on Unresolved catch (e) {
-  } catch (e) {
-    Expect.fail();
+    // Equivalent to 'on dynamic', catches 'foo'.
   }
   try {
     throw 'foo';
   } on Unresolved<int> catch (e) {
-  } catch (e) {
-    Expect.fail();
+    // Equivalent to 'on dynamic', catches 'foo'.
   }
   try {
     throw 'foo';
   } on prefix.Unresolved catch (e) {
-  } catch (e) {
-    Expect.fail();
+    // Equivalent to 'on dynamic', catches 'foo'.
   }
   try {
     throw 'foo';
   } on prefix.Unresolved<int> catch (e) {
-  } catch (e) {
-    Expect.fail();
+    // Equivalent to 'on dynamic', catches 'foo'.
+  }
+  try {
+    throw 'foo';
+  }
+    on undeclared_prefix.Unresolved<int>  /// 06: compile-time error
+    catch (e) {
   }
 }

@@ -347,7 +347,6 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
         Error::Handle(),  // No previous error.
         cls,
         factory.token_pos(),
-        kResolveTypeParameters,  // No compile-time error.
         "factory may not redirect to 'dynamic'");
     factory.SetRedirectionType(type);
     ASSERT(factory.RedirectionTarget() == Function::null());
@@ -375,7 +374,6 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
         Error::Handle(),  // No previous error.
         cls,
         factory.token_pos(),
-        kResolveTypeParameters,  // No compile-time error.
         "class '%s' has no constructor or factory named '%s'",
         target_class_name.ToCString(),
         user_visible_target_name.ToCString());
@@ -390,7 +388,6 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
         Error::Handle(),  // No previous error.
         cls,
         factory.token_pos(),
-        kResolveTypeParameters,  // No compile-time error.
         "constructor '%s' has incompatible parameters with "
         "redirecting factory '%s'",
         String::Handle(target.name()).ToCString(),
@@ -437,8 +434,7 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
       if (malformed_error.IsNull()) {
         target_type ^= FinalizeType(cls, target_type, kCanonicalize);
       } else {
-        FinalizeMalformedType(malformed_error,
-                              cls, target_type, kFinalize,
+        FinalizeMalformedType(malformed_error, cls, target_type,
                               "cannot resolve redirecting factory");
         target_target = Function::null();
       }
@@ -453,9 +449,6 @@ void ClassFinalizer::ResolveType(const Class& cls,
                                  const AbstractType& type,
                                  FinalizationKind finalization) {
   if (type.IsResolved() || type.IsFinalized()) {
-    if ((finalization == kCanonicalizeWellFormed) && type.IsMalformed()) {
-      ReportError(Error::Handle(type.malformed_error()));
-    }
     return;
   }
   if (FLAG_trace_type_finalization) {
@@ -479,17 +472,27 @@ void ClassFinalizer::ResolveType(const Class& cls,
 
     // Replace unresolved class with resolved type class.
     const Type& parameterized_type = Type::Cast(type);
-    if (!type_class.IsNull()) {
-      parameterized_type.set_type_class(type_class);
-    } else {
-      // The type class could not be resolved. The type is malformed.
-      FinalizeMalformedType(ambiguous_error,  // May be null.
-                            cls, parameterized_type, finalization,
-                            "cannot resolve class name '%s' from '%s'",
-                            String::Handle(unresolved_class.Name()).ToCString(),
-                            String::Handle(cls.Name()).ToCString());
+    if (type_class.IsNull()) {
+      if ((finalization == kCanonicalizeWellFormed) ||
+          FLAG_error_on_malformed_type) {
+        // The type class could not be resolved. The type is malformed.
+        FinalizeMalformedType(
+            ambiguous_error,  // May be null.
+            cls,
+            parameterized_type,
+            "cannot resolve class '%s' from '%s'",
+            String::Handle(unresolved_class.Name()).ToCString(),
+            String::Handle(cls.Name()).ToCString());
+      } else {
+        // Map the malformed type to dynamic and ignore type arguments.
+        parameterized_type.set_type_class(Class::Handle(
+            Object::dynamic_class()));
+        parameterized_type.set_arguments(
+            Object::null_abstract_type_arguments());
+      }
       return;
     }
+    parameterized_type.set_type_class(type_class);
   }
 
   // Resolve type arguments, if any.
@@ -708,14 +711,8 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   if (type.IsFinalized()) {
     // Ensure type is canonical if canonicalization is requested, unless type is
     // malformed.
-    if (finalization >= kCanonicalize) {
-      if (type.IsMalformed()) {
-        if (finalization == kCanonicalizeWellFormed) {
-          ReportError(Error::Handle(type.malformed_error()));
-        }
-      } else {
-        return type.Canonicalize();
-      }
+    if ((finalization >= kCanonicalize) && !type.IsMalformed()) {
+      return type.Canonicalize();
     }
     return type.raw();
   }
@@ -749,15 +746,8 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   // At this point, we can only have a parameterized_type.
   const Type& parameterized_type = Type::Cast(type);
 
-  if (parameterized_type.IsBeingFinalized()) {
-    // Self reference detected. The type is malformed.
-    FinalizeMalformedType(
-        Error::Handle(),  // No previous error.
-        cls, parameterized_type, finalization,
-        "type '%s' illegally refers to itself",
-        String::Handle(parameterized_type.UserVisibleName()).ToCString());
-    return parameterized_type.raw();
-  }
+  // Types illegally referring to themselves should have been detected earlier.
+  ASSERT(!parameterized_type.IsBeingFinalized());
 
   // Mark type as being finalized in order to detect illegal self reference.
   parameterized_type.set_is_being_finalized();
@@ -784,19 +774,8 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
       type_argument = arguments.TypeAt(i);
       type_argument = FinalizeType(cls, type_argument, finalization);
       if (type_argument.IsMalformed()) {
-        // In production mode, malformed type arguments are mapped to dynamic.
-        // In checked mode, a type with malformed type arguments is malformed.
-        if (FLAG_enable_type_checks || FLAG_error_on_malformed_type) {
-          const Error& error = Error::Handle(type_argument.malformed_error());
-          const String& type_name =
-              String::Handle(parameterized_type.UserVisibleName());
-          FinalizeMalformedType(error, cls, parameterized_type, finalization,
-                                "type '%s' has malformed type argument",
-                                type_name.ToCString());
-          return parameterized_type.raw();
-        } else {
-          type_argument = Type::DynamicType();
-        }
+        // Malformed type arguments are mapped to dynamic.
+        type_argument = Type::DynamicType();
       }
       arguments.SetTypeAt(i, type_argument);
     }
@@ -813,20 +792,17 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   // However, type parameter bounds are checked below, even for a raw type.
   if (!arguments.IsNull() && (arguments.Length() != num_type_parameters)) {
     // Wrong number of type arguments. The type is malformed.
-    if (finalization >= kCanonicalizeExpression) {
+    if (FLAG_error_on_malformed_type) {
       const Script& script = Script::Handle(cls.script());
-      const String& type_name =
-          String::Handle(parameterized_type.UserVisibleName());
+      const String& type_class_name = String::Handle(type_class.Name());
       ReportError(script, parameterized_type.token_pos(),
-                  "wrong number of type arguments in type '%s'",
-                  type_name.ToCString());
+                  "wrong number of type arguments for class '%s'",
+                  type_class_name.ToCString());
     }
-    FinalizeMalformedType(
-        Error::Handle(),  // No previous error.
-        cls, parameterized_type, finalization,
-        "wrong number of type arguments in type '%s'",
-        String::Handle(parameterized_type.UserVisibleName()).ToCString());
-    return parameterized_type.raw();
+    // Make the type raw and continue without reporting any error.
+    // A static warning should have been reported.
+    arguments = AbstractTypeArguments::null();
+    parameterized_type.set_arguments(arguments);
   }
   // The full type argument vector consists of the type arguments of the
   // super types of type_class, which may be initialized from the parsed
@@ -908,17 +884,12 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   // The malformed bound will be ignored in production mode.
   if (!bound_error.IsNull()) {
     // No compile-time error during finalization.
-    FinalizationKind bound_finalization = kResolveTypeParameters;
-    if (FLAG_enable_type_checks || FLAG_error_on_malformed_type) {
-      bound_finalization = finalization;
-    }
     const String& parameterized_type_name = String::Handle(
         parameterized_type.UserVisibleName());
     const Type& malformed_bound = Type::Handle(
         NewFinalizedMalformedType(bound_error,
                                   cls,
                                   parameterized_type.token_pos(),
-                                  bound_finalization,
                                   "type '%s' has an out of bound type argument",
                                   parameterized_type_name.ToCString()));
     return BoundedType::New(parameterized_type,
@@ -942,10 +913,8 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
   // interface.
   ResolveType(cls, type, kCanonicalize);
   type = FinalizeType(cls, type, kCanonicalize);
-  // In production mode, a malformed result type is mapped to dynamic.
-  if (!FLAG_enable_type_checks && type.IsMalformed()) {
-    type = Type::DynamicType();
-  }
+  // A malformed result type is mapped to dynamic.
+  ASSERT(!type.IsMalformed());
   function.set_result_type(type);
   // Resolve formal parameter types.
   const intptr_t num_parameters = function.NumParameters();
@@ -953,10 +922,8 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
     type = function.ParameterTypeAt(i);
     ResolveType(cls, type, kCanonicalize);
     type = FinalizeType(cls, type, kCanonicalize);
-    // In production mode, a malformed parameter type is mapped to dynamic.
-    if (!FLAG_enable_type_checks && type.IsMalformed()) {
-      type = Type::DynamicType();
-    }
+    // A malformed parameter type is mapped to dynamic.
+    ASSERT(!type.IsMalformed());
     function.SetParameterTypeAt(i, type);
   }
 }
@@ -1875,6 +1842,9 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
 
   // Resolve super type. Failures lead to a longjmp.
   ResolveType(cls, super_type, kCanonicalizeWellFormed);
+  if (super_type.IsMalformed()) {
+    ReportError(Error::Handle(super_type.malformed_error()));
+  }
   if (super_type.IsDynamicType()) {
     const Script& script = Script::Handle(cls.script());
     ReportError(script, cls.token_pos(),
@@ -1940,6 +1910,9 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
     interface ^= super_interfaces.At(i);
     ResolveType(cls, interface, kCanonicalizeWellFormed);
     ASSERT(!interface.IsTypeParameter());  // Should be detected by parser.
+    if (interface.IsMalformed()) {
+      ReportError(Error::Handle(interface.malformed_error()));
+    }
     if (interface.IsDynamicType()) {
       const Script& script = Script::Handle(cls.script());
       ReportError(script, cls.token_pos(),
@@ -2051,35 +2024,24 @@ void ClassFinalizer::PrintClassInformation(const Class& cls) {
 void ClassFinalizer::ReportMalformedType(const Error& prev_error,
                                          const Class& cls,
                                          const Type& type,
-                                         FinalizationKind finalization,
                                          const char* format,
                                          va_list args) {
   LanguageError& error = LanguageError::Handle();
-  if (FLAG_enable_type_checks ||
-      !type.HasResolvedTypeClass() ||
-      (finalization == kCanonicalizeWellFormed) ||
-      FLAG_error_on_malformed_type) {
-    const Script& script = Script::Handle(cls.script());
-    if (prev_error.IsNull()) {
-      error ^= Parser::FormatError(
-          script, type.token_pos(), "Error", format, args);
-    } else {
-      error ^= Parser::FormatErrorWithAppend(
-          prev_error, script, type.token_pos(), "Error", format, args);
-    }
-    if ((finalization == kCanonicalizeWellFormed) ||
-        FLAG_error_on_malformed_type) {
-      ReportError(error);
-    }
+  const Script& script = Script::Handle(cls.script());
+  if (prev_error.IsNull()) {
+    error ^= Parser::FormatError(
+        script, type.token_pos(), "Error", format, args);
+  } else {
+    error ^= Parser::FormatErrorWithAppend(
+        prev_error, script, type.token_pos(), "Error", format, args);
   }
-  // In checked mode, always mark the type as malformed.
-  // In production mode, mark the type as malformed only if its type class is
-  // not resolved.
-  // In both mode, make the type raw, since it may not be possible to
+  if (FLAG_error_on_malformed_type) {
+    ReportError(error);
+  }
+  type.set_malformed_error(error);
+  // Make the type raw, since it may not be possible to
   // properly finalize its type arguments.
-  if (FLAG_enable_type_checks || !type.HasResolvedTypeClass()) {
-    type.set_malformed_error(error);
-  }
+  type.set_type_class(Class::Handle(Object::dynamic_class()));
   type.set_arguments(Object::null_abstract_type_arguments());
   if (!type.IsFinalized()) {
     type.SetIsFinalized();
@@ -2092,12 +2054,10 @@ void ClassFinalizer::ReportMalformedType(const Error& prev_error,
 }
 
 
-RawType* ClassFinalizer::NewFinalizedMalformedType(
-    const Error& prev_error,
-    const Class& cls,
-    intptr_t type_pos,
-    FinalizationKind finalization,
-    const char* format, ...) {
+RawType* ClassFinalizer::NewFinalizedMalformedType(const Error& prev_error,
+                                                   const Class& cls,
+                                                   intptr_t type_pos,
+                                                   const char* format, ...) {
   va_list args;
   va_start(args, format);
   const UnresolvedClass& unresolved_class = UnresolvedClass::Handle(
@@ -2106,7 +2066,7 @@ RawType* ClassFinalizer::NewFinalizedMalformedType(
                            type_pos));
   const Type& type = Type::Handle(
       Type::New(unresolved_class, TypeArguments::Handle(), type_pos));
-  ReportMalformedType(prev_error, cls, type, finalization, format, args);
+  ReportMalformedType(prev_error, cls, type, format, args);
   va_end(args);
   ASSERT(type.IsMalformed());
   ASSERT(type.IsFinalized());
@@ -2117,11 +2077,10 @@ RawType* ClassFinalizer::NewFinalizedMalformedType(
 void ClassFinalizer::FinalizeMalformedType(const Error& prev_error,
                                            const Class& cls,
                                            const Type& type,
-                                           FinalizationKind finalization,
                                            const char* format, ...) {
   va_list args;
   va_start(args, format);
-  ReportMalformedType(prev_error, cls, type, finalization, format, args);
+  ReportMalformedType(prev_error, cls, type, format, args);
   va_end(args);
 }
 

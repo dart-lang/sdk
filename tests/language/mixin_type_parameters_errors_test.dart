@@ -16,7 +16,7 @@ main() {
   var a;
   a = new A();
   a = new A<int>();
-  a = new A<String, String>();  /// 03: static type warning, runtime error
+  a = new A<String, String>();  /// 03: static type warning
   a = new F<int>();
-  a = new F<int, String>();   /// 04: static type warning, runtime error
+  a = new F<int, String>();   /// 04: static type warning
 } 

@@ -29,6 +29,7 @@ DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
+DECLARE_FLAG(bool, error_on_malformed_type);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 
 static void CheckedModeHandler(bool value) {
@@ -2934,7 +2935,6 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
           Error::Handle(),  // No previous error.
           current_class(),
           type_pos,
-          ClassFinalizer::kResolveTypeParameters,  // No compile-time error.
           "factory '%s' may not redirect to type parameter '%s'",
           method->name->ToCString(),
           String::Handle(type.UserVisibleName()).ToCString());
@@ -4119,7 +4119,6 @@ void Parser::ParseTypeParameters(const Class& cls) {
 
 
 RawAbstractTypeArguments* Parser::ParseTypeArguments(
-    Error* malformed_error,
     ClassFinalizer::FinalizationKind finalization) {
   TRACE_PARSER("ParseTypeArguments");
   if (CurrentToken() == Token::kLT) {
@@ -4129,14 +4128,8 @@ RawAbstractTypeArguments* Parser::ParseTypeArguments(
     do {
       ConsumeToken();
       type = ParseType(finalization);
-      // Only keep the error for the first malformed type argument.
-      if (malformed_error->IsNull() && type.IsMalformed()) {
-        *malformed_error = type.malformed_error();
-      }
-      // Map a malformed type argument to dynamic, so that malformed types with
-      // a resolved type class are handled properly in production mode.
+      // Map a malformed type argument to dynamic.
       if (type.IsMalformed()) {
-        ASSERT(finalization < ClassFinalizer::kCanonicalizeWellFormed);
         type = Type::DynamicType();
       }
       types.Add(type);
@@ -6430,10 +6423,8 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
     catch_seen = true;
     if (IsLiteral("on")) {
       ConsumeToken();
-      // TODO(regis): The spec may change in the way a malformed 'on' type is
-      // treated. For now, we require the type to be wellformed.
       exception_param.type = &AbstractType::ZoneHandle(
-          ParseType(ClassFinalizer::kCanonicalizeWellFormed));
+          ParseType(ClassFinalizer::kCanonicalize));
     } else {
       exception_param.type =
           &AbstractType::ZoneHandle(Type::DynamicType());
@@ -7141,13 +7132,15 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
         }
         const intptr_t type_pos = TokenPos();
         const AbstractType& type = AbstractType::ZoneHandle(
-            ParseType(ClassFinalizer::kCanonicalizeExpression));
+            ParseType(ClassFinalizer::kCanonicalize));
         if (!type.IsInstantiated() &&
             (current_block_->scope->function_level() > 0)) {
           // Make sure that the instantiator is captured.
           CaptureInstantiator();
         }
         right_operand = new TypeNode(type_pos, type);
+        // If the type is malformed, it is actually malbounded in checked mode.
+        ASSERT(!type.IsMalformed() || FLAG_enable_type_checks);
         if (((op_kind == Token::kIS) || (op_kind == Token::kISNOT)) &&
             type.IsMalformed()) {
           // Note that a type error is thrown even if the tested value is null
@@ -8159,26 +8152,36 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
           // referenced by a static member.
           if (ParsingStaticMember()) {
             ASSERT(scope_class.raw() == current_class().raw());
-            *type = ClassFinalizer::NewFinalizedMalformedType(
-                Error::Handle(),  // No previous error.
-                scope_class,
-                type->token_pos(),
-                finalization,
-                "type parameter '%s' cannot be referenced "
-                "from static member",
-                String::Handle(type_parameter.name()).ToCString());
+            if ((finalization == ClassFinalizer::kCanonicalizeWellFormed) ||
+                FLAG_error_on_malformed_type) {
+              *type = ClassFinalizer::NewFinalizedMalformedType(
+                  Error::Handle(),  // No previous error.
+                  scope_class,
+                  type->token_pos(),
+                  "type parameter '%s' cannot be referenced "
+                  "from static member",
+                  String::Handle(type_parameter.name()).ToCString());
+            } else {
+              // Map the malformed type to dynamic and ignore type arguments.
+              *type = Type::DynamicType();
+            }
             return;
           }
           // A type parameter cannot be parameterized, so make the type
           // malformed if type arguments have previously been parsed.
           if (!AbstractTypeArguments::Handle(type->arguments()).IsNull()) {
-            *type = ClassFinalizer::NewFinalizedMalformedType(
-                Error::Handle(),  // No previous error.
-                scope_class,
-                type_parameter.token_pos(),
-                finalization,
-                "type parameter '%s' cannot be parameterized",
-                String::Handle(type_parameter.name()).ToCString());
+            if ((finalization == ClassFinalizer::kCanonicalizeWellFormed) ||
+                FLAG_error_on_malformed_type) {
+              *type = ClassFinalizer::NewFinalizedMalformedType(
+                  Error::Handle(),  // No previous error.
+                  scope_class,
+                  type_parameter.token_pos(),
+                  "type parameter '%s' cannot be parameterized",
+                  String::Handle(type_parameter.name()).ToCString());
+            } else {
+              // Map the malformed type to dynamic and ignore type arguments.
+              *type = Type::DynamicType();
+            }
             return;
           }
           *type = type_parameter.raw();
@@ -8190,22 +8193,23 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
       if (finalization > ClassFinalizer::kResolveTypeParameters) {
         // Resolve classname in the scope of the current library.
         Error& error = Error::Handle();
-        // If we finalize a type expression, as opposed to a type annotation,
-        // we tell the resolver (by passing NULL) to immediately report an
-        // ambiguous type as a compile time error.
         resolved_type_class = ResolveClassInCurrentLibraryScope(
             unresolved_class.token_pos(),
             unresolved_class_name,
-            finalization >= ClassFinalizer::kCanonicalizeExpression ?
-                NULL : &error);
+            &error);
         if (!error.IsNull()) {
-          *type = ClassFinalizer::NewFinalizedMalformedType(
-              error,
-              scope_class,
-              unresolved_class.token_pos(),
-              finalization,
-              "cannot resolve class '%s'",
-              unresolved_class_name.ToCString());
+          if ((finalization == ClassFinalizer::kCanonicalizeWellFormed) ||
+              FLAG_error_on_malformed_type) {
+            *type = ClassFinalizer::NewFinalizedMalformedType(
+                error,
+                scope_class,
+                unresolved_class.token_pos(),
+                "cannot resolve class '%s'",
+                unresolved_class_name.ToCString());
+          } else {
+            // Map the malformed type to dynamic and ignore type arguments.
+            *type = Type::DynamicType();
+          }
           return;
         }
       }
@@ -8214,39 +8218,46 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
           LibraryPrefix::Handle(unresolved_class.library_prefix());
       // Resolve class name in the scope of the library prefix.
       Error& error = Error::Handle();
-      // If we finalize a type expression, as opposed to a type annotation, we
-      // tell the resolver (by passing NULL) to immediately report an ambiguous
-      // type as a compile time error.
       resolved_type_class = ResolveClassInPrefixScope(
           unresolved_class.token_pos(),
           lib_prefix,
           unresolved_class_name,
-          finalization >= ClassFinalizer::kCanonicalizeExpression ?
-              NULL : &error);
+          &error);
       if (!error.IsNull()) {
-        *type = ClassFinalizer::NewFinalizedMalformedType(
-            error,
-            scope_class,
-            unresolved_class.token_pos(),
-            finalization,
-            "cannot resolve class '%s'",
-            unresolved_class_name.ToCString());
+        if ((finalization == ClassFinalizer::kCanonicalizeWellFormed) ||
+            FLAG_error_on_malformed_type) {
+          *type = ClassFinalizer::NewFinalizedMalformedType(
+              error,
+              scope_class,
+              unresolved_class.token_pos(),
+              "cannot resolve class '%s'",
+              unresolved_class_name.ToCString());
+        } else {
+          // Map the malformed type to dynamic and ignore type arguments.
+          *type = Type::DynamicType();
+        }
         return;
       }
     }
     // At this point, we can only have a parameterized_type.
-    Type& parameterized_type = Type::Handle();
-    parameterized_type ^= type->raw();
+    const Type& parameterized_type = Type::Cast(*type);
     if (!resolved_type_class.IsNull()) {
       // Replace unresolved class with resolved type class.
       parameterized_type.set_type_class(resolved_type_class);
     } else if (finalization >= ClassFinalizer::kCanonicalize) {
-      // The type is malformed.
-      ClassFinalizer::FinalizeMalformedType(
-          Error::Handle(),  // No previous error.
-          current_class(), parameterized_type, finalization,
-          "type '%s' is not loaded",
-          String::Handle(parameterized_type.UserVisibleName()).ToCString());
+      if ((finalization == ClassFinalizer::kCanonicalizeWellFormed) ||
+          FLAG_error_on_malformed_type) {
+        ClassFinalizer::FinalizeMalformedType(
+            Error::Handle(),  // No previous error.
+            scope_class,
+            parameterized_type,
+            "type '%s' is not loaded",
+            String::Handle(parameterized_type.UserVisibleName()).ToCString());
+      } else {
+        // Map the malformed type to dynamic and ignore type arguments.
+        *type = Type::DynamicType();
+      }
+      return;
     }
   }
   // Resolve type arguments, if any.
@@ -8954,8 +8965,17 @@ RawAbstractType* Parser::ParseType(
     if (!is_top_level_ &&
         (type_name.lib_prefix == NULL) &&
         ResolveIdentInLocalScope(type_name.ident_pos, *type_name.ident, NULL)) {
-      ErrorMsg(type_name.ident_pos, "using '%s' in this context is invalid",
-               type_name.ident->ToCString());
+      // The type is malformed. Skip over its type arguments.
+      ParseTypeArguments(ClassFinalizer::kIgnore);
+      if (finalization == ClassFinalizer::kCanonicalizeWellFormed) {
+        return ClassFinalizer::NewFinalizedMalformedType(
+            Error::Handle(),  // No previous error.
+            current_class(),
+            type_name.ident_pos,
+            "using '%s' in this context is invalid",
+            type_name.ident->ToCString());
+      }
+      return Type::DynamicType();
     }
   }
   Object& type_class = Object::Handle(isolate());
@@ -8969,27 +8989,13 @@ RawAbstractType* Parser::ParseType(
                                       *type_name.ident,
                                       type_name.ident_pos);
   }
-  Error& malformed_error = Error::Handle(isolate());
-  AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::Handle(isolate(),
-                                    ParseTypeArguments(&malformed_error,
-                                                       finalization));
+  AbstractTypeArguments& type_arguments = AbstractTypeArguments::Handle(
+      isolate(), ParseTypeArguments(finalization));
   if (finalization == ClassFinalizer::kIgnore) {
     return Type::DynamicType();
   }
   AbstractType& type = AbstractType::Handle(
-      isolate(),
-      Type::New(type_class, type_arguments, type_name.ident_pos));
-  // In production mode, malformed type arguments are mapped to dynamic.
-  // In checked mode, a type with malformed type arguments is malformed.
-  if (FLAG_enable_type_checks && !malformed_error.IsNull()) {
-    Type& parameterized_type = Type::Handle(isolate());
-    parameterized_type ^= type.raw();
-    parameterized_type.set_type_class(
-        Class::Handle(isolate(), Object::dynamic_class()));
-    parameterized_type.set_arguments(Object::null_abstract_type_arguments());
-    parameterized_type.set_malformed_error(malformed_error);
-  }
+      isolate(), Type::New(type_class, type_arguments, type_name.ident_pos));
   if (finalization >= ClassFinalizer::kResolveTypeParameters) {
     ResolveTypeFromClass(current_class(), finalization, &type);
     if (finalization >= ClassFinalizer::kCanonicalize) {
@@ -9031,16 +9037,23 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
   ConsumeToken();
 
   AbstractType& element_type = Type::ZoneHandle(Type::DynamicType());
+  AbstractTypeArguments& list_type_arguments =
+      AbstractTypeArguments::ZoneHandle(type_arguments.raw());
   // If no type argument vector is provided, leave it as null, which is
   // equivalent to using dynamic as the type argument for the element type.
-  if (!type_arguments.IsNull()) {
-    ASSERT(type_arguments.Length() > 0);
+  if (!list_type_arguments.IsNull()) {
+    ASSERT(list_type_arguments.Length() > 0);
     // List literals take a single type argument.
-    element_type = type_arguments.TypeAt(0);
-    if (type_arguments.Length() != 1) {
-      ErrorMsg(type_pos,
-               "a list literal takes one type argument specifying "
-               "the element type");
+    if (list_type_arguments.Length() == 1) {
+      element_type = list_type_arguments.TypeAt(0);
+    } else {
+      if (FLAG_error_on_malformed_type) {
+        ErrorMsg(type_pos,
+                 "a list literal takes one type argument specifying "
+                 "the element type");
+      }
+      // Ignore type arguments.
+      list_type_arguments = AbstractTypeArguments::null();
     }
     if (is_const && !element_type.IsInstantiated()) {
       ErrorMsg(type_pos,
@@ -9048,11 +9061,12 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
                "a type variable");
     }
   }
-  ASSERT(type_arguments.IsNull() || (type_arguments.Length() == 1));
+  ASSERT((list_type_arguments.IsNull() && element_type.IsDynamicType()) ||
+         ((list_type_arguments.Length() == 1) && !element_type.IsNull()));
   const Class& array_class = Class::Handle(
       isolate()->object_store()->array_class());
   Type& type = Type::ZoneHandle(
-      Type::New(array_class, type_arguments, type_pos));
+      Type::New(array_class, list_type_arguments, type_pos));
   type ^= ClassFinalizer::FinalizeType(
       current_class(), type, ClassFinalizer::kCanonicalize);
   GrowableArray<AstNode*> element_list;
@@ -9087,7 +9101,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     Array& const_list =
         Array::ZoneHandle(Array::New(element_list.length(), Heap::kOld));
     const_list.SetTypeArguments(
-        AbstractTypeArguments::Handle(type_arguments.Canonicalize()));
+        AbstractTypeArguments::Handle(list_type_arguments.Canonicalize()));
     Error& malformed_error = Error::Handle();
     for (int i = 0; i < element_list.length(); i++) {
       AstNode* elem = element_list[i];
@@ -9124,14 +9138,14 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
         factory_class.LookupFactory(
             PrivateCoreLibName(Symbols::ListLiteralFactory())));
     ASSERT(!factory_method.IsNull());
-    if (!type_arguments.IsNull() &&
-        !type_arguments.IsInstantiated() &&
+    if (!list_type_arguments.IsNull() &&
+        !list_type_arguments.IsInstantiated() &&
         (current_block_->scope->function_level() > 0)) {
       // Make sure that the instantiator is captured.
       CaptureInstantiator();
     }
     AbstractTypeArguments& factory_type_args =
-        AbstractTypeArguments::ZoneHandle(type_arguments.raw());
+        AbstractTypeArguments::ZoneHandle(list_type_arguments.raw());
     // If the factory class extends other parameterized classes, adjust the
     // type argument vector.
     if (!factory_type_args.IsNull() && (factory_class.NumTypeArguments() > 1)) {
@@ -9212,49 +9226,72 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
   const intptr_t literal_pos = TokenPos();
   ConsumeToken();
 
+  AbstractType& key_type = Type::ZoneHandle(Type::DynamicType());
   AbstractType& value_type = Type::ZoneHandle(Type::DynamicType());
   AbstractTypeArguments& map_type_arguments =
       AbstractTypeArguments::ZoneHandle(type_arguments.raw());
   // If no type argument vector is provided, leave it as null, which is
-  // equivalent to using dynamic as the type argument for the value type.
+  // equivalent to using dynamic as the type argument for the both key and value
+  // types.
   if (!map_type_arguments.IsNull()) {
     ASSERT(map_type_arguments.Length() > 0);
     // Map literals take two type arguments.
-    if (map_type_arguments.Length() != 2) {
-      ErrorMsg(type_pos,
-               "a map literal takes two type arguments specifying "
-               "the key type and the value type");
-    }
-    const AbstractType& key_type =
-        AbstractType::Handle(map_type_arguments.TypeAt(0));
-    value_type = map_type_arguments.TypeAt(1);
-    if (!key_type.IsStringType()) {
-      ErrorMsg(type_pos, "the key type of a map literal must be 'String'");
-    }
-    if (is_const && !value_type.IsInstantiated()) {
-      ErrorMsg(type_pos,
-               "the type argument of a constant map literal cannot include "
-               "a type variable");
+    if (map_type_arguments.Length() == 2) {
+      key_type = map_type_arguments.TypeAt(0);
+      value_type = map_type_arguments.TypeAt(1);
+      if (is_const && !type_arguments.IsInstantiated()) {
+        ErrorMsg(type_pos,
+                 "the type arguments of a constant map literal cannot include "
+                 "a type variable");
+      }
+      if (key_type.IsMalformed()) {
+        if (FLAG_error_on_malformed_type) {
+          ErrorMsg(Error::Handle(key_type.malformed_error()));
+        }
+        // Map malformed key type to dynamic.
+        key_type = Type::DynamicType();
+        map_type_arguments.SetTypeAt(0, key_type);
+      }
+      if (value_type.IsMalformed()) {
+        if (FLAG_error_on_malformed_type) {
+          ErrorMsg(Error::Handle(value_type.malformed_error()));
+        }
+        // Map malformed value type to dynamic.
+        value_type = Type::DynamicType();
+        map_type_arguments.SetTypeAt(1, value_type);
+      }
+    } else {
+      if (FLAG_error_on_malformed_type) {
+        ErrorMsg(type_pos,
+                 "a map literal takes two type arguments specifying "
+                 "the key type and the value type");
+      }
+      // Ignore type arguments.
+      map_type_arguments = AbstractTypeArguments::null();
     }
   }
-  ASSERT(map_type_arguments.IsNull() || (map_type_arguments.Length() == 2));
+  ASSERT((map_type_arguments.IsNull() &&
+          key_type.IsDynamicType() && value_type.IsDynamicType()) ||
+         ((map_type_arguments.Length() == 2) &&
+          !key_type.IsMalformed() && !value_type.IsMalformed()));
   map_type_arguments ^= map_type_arguments.Canonicalize();
 
   GrowableArray<AstNode*> kv_pairs_list;
   // Parse the map entries. Note: there may be an optional extra
   // comma after the last entry.
   while (CurrentToken() != Token::kRBRACE) {
-    AstNode* key = NULL;
-    if (CurrentToken() == Token::kSTRING) {
-      key = ParseStringLiteral();
-    }
-    if (key == NULL) {
-      ErrorMsg("map entry key must be string literal");
-    } else if (is_const && !key->IsLiteralNode()) {
-      ErrorMsg("map entry key must be compile-time constant string");
+    const bool saved_mode = SetAllowFunctionLiterals(true);
+    const intptr_t key_pos = TokenPos();
+    AstNode* key = ParseExpr(is_const, kConsumeCascades);
+    if (FLAG_enable_type_checks &&
+        !is_const &&
+        !key_type.IsDynamicType()) {
+      key = new AssignableNode(key_pos,
+                               key,
+                               key_type,
+                               Symbols::ListLiteralElement());
     }
     ExpectToken(Token::kCOLON);
-    const bool saved_mode = SetAllowFunctionLiterals(true);
     const intptr_t value_pos = TokenPos();
     AstNode* value = ParseExpr(is_const, kConsumeCascades);
     SetAllowFunctionLiterals(saved_mode);
@@ -9285,27 +9322,38 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     // First, create the canonicalized key-value pair array.
     Array& key_value_array =
         Array::ZoneHandle(Array::New(kv_pairs_list.length(), Heap::kOld));
+    AbstractType& arg_type = Type::Handle();
     Error& malformed_error = Error::Handle();
     for (int i = 0; i < kv_pairs_list.length(); i++) {
       AstNode* arg = kv_pairs_list[i];
       // Arguments have been evaluated to a literal value already.
       ASSERT(arg->IsLiteralNode());
       ASSERT(!is_top_level_);  // We cannot check unresolved types.
-      if (FLAG_enable_type_checks &&
-          ((i % 2) == 1) &&  // Check values only, not keys.
-          !value_type.IsDynamicType() &&
-          (!arg->AsLiteralNode()->literal().IsNull() &&
-           !arg->AsLiteralNode()->literal().IsInstanceOf(
-               value_type, TypeArguments::Handle(), &malformed_error))) {
-        // If the failure is due to a malformed type error, display it instead.
-        if (!malformed_error.IsNull()) {
-          ErrorMsg(malformed_error);
+      if (FLAG_enable_type_checks) {
+        if ((i % 2) == 0) {
+          // Check key type.
+          arg_type = key_type.raw();
         } else {
-          ErrorMsg(arg->AsLiteralNode()->token_pos(),
-                   "map literal value at index %d must be "
-                   "a constant of type '%s'",
-                   i >> 1,
-                   String::Handle(value_type.UserVisibleName()).ToCString());
+          // Check value type.
+          arg_type = value_type.raw();
+        }
+        if (!arg_type.IsDynamicType() &&
+            (!arg->AsLiteralNode()->literal().IsNull() &&
+             !arg->AsLiteralNode()->literal().IsInstanceOf(
+                 arg_type,
+                 Object::null_abstract_type_arguments(),
+                 &malformed_error))) {
+          // If the failure is due to a malformed type error, display it.
+          if (!malformed_error.IsNull()) {
+            ErrorMsg(malformed_error);
+          } else {
+            ErrorMsg(arg->AsLiteralNode()->token_pos(),
+                     "map literal %s at index %d must be "
+                     "a constant of type '%s'",
+                     ((i % 2) == 0) ? "key" : "value",
+                     i >> 1,
+                     String::Handle(arg_type.UserVisibleName()).ToCString());
+          }
         }
       }
       key_value_array.SetAt(i, arg->AsLiteralNode()->literal());
@@ -9391,15 +9439,10 @@ AstNode* Parser::ParseCompoundLiteral() {
     ConsumeToken();
   }
   const intptr_t type_pos = TokenPos();
-  Error& malformed_error = Error::Handle();
-  AbstractTypeArguments& type_arguments = AbstractTypeArguments::ZoneHandle(
-      ParseTypeArguments(&malformed_error,
-                         ClassFinalizer::kCanonicalizeWellFormed));
+  AbstractTypeArguments& type_arguments = AbstractTypeArguments::Handle(
+      ParseTypeArguments(ClassFinalizer::kCanonicalize));
   // Map and List interfaces do not declare bounds on their type parameters, so
-  // we should never see a malformed type error here.
-  // Note that a bound error is the only possible malformed type error returned
-  // when requesting kCanonicalizeWellFormed type finalization.
-  ASSERT(malformed_error.IsNull());
+  // we should never see a malformed type argument mapped to dynamic here.
   AstNode* primary = NULL;
   if ((CurrentToken() == Token::kLBRACK) ||
       (CurrentToken() == Token::kINDEX)) {
@@ -9438,7 +9481,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   }
   intptr_t type_pos = TokenPos();
   AbstractType& type = AbstractType::Handle(
-      ParseType(ClassFinalizer::kCanonicalizeExpression));
+      ParseType(ClassFinalizer::kCanonicalizeWellFormed));
   // In case the type is malformed, throw a dynamic type error after finishing
   // parsing the instance creation expression.
   if (!type.IsMalformed() && (type.IsTypeParameter() || type.IsDynamicType())) {
@@ -9447,7 +9490,6 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
         Error::Handle(),  // No previous error.
         current_class(),
         type_pos,
-        ClassFinalizer::kResolveTypeParameters,  // No compile-time error.
         "%s'%s' cannot be instantiated",
         type.IsTypeParameter() ? "type parameter " : "",
         type.IsTypeParameter() ?
@@ -9455,9 +9497,9 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   }
 
   // The grammar allows for an optional ('.' identifier)? after the type, which
-  // is a named constructor. Note that ParseType(kMustResolve) above will not
-  // consume it as part of a misinterpreted qualified identifier, because only a
-  // valid library prefix is accepted as qualifier.
+  // is a named constructor. Note that ParseType() above will not consume it as
+  // part of a misinterpreted qualified identifier, because only a valid library
+  // prefix is accepted as qualifier.
   String* named_constructor = NULL;
   if (CurrentToken() == Token::kPERIOD) {
     ConsumeToken();
@@ -9513,7 +9555,6 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
             Error::Handle(),  // No previous error.
             current_class(),
             call_pos,
-            ClassFinalizer::kResolveTypeParameters,  // No compile-time error.
             "class '%s' has no constructor or factory named '%s'",
             String::Handle(type_class.Name()).ToCString(),
             external_constructor_name.ToCString());
@@ -9633,7 +9674,6 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
               malformed_error,
               current_class(),
               new_pos,
-              ClassFinalizer::kResolveTypeParameters,  // No compile-time error.
               "const factory result is not an instance of '%s'",
               String::Handle(type_bound.UserVisibleName()).ToCString());
           new_object = ThrowTypeError(new_pos, type_bound);

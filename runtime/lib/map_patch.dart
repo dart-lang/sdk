@@ -9,7 +9,7 @@ patch class Map<K, V> {
   // in checked mode.
   // The values are at position 2*n+1 and are not yet type checked.
   factory Map._fromLiteral(List elements) {
-    var map = new LinkedHashMap<String, V>();
+    var map = new LinkedHashMap<K, V>();
     var len = elements.length;
     for (int i = 1; i < len; i += 2) {
       map[elements[i - 1]] = elements[i];

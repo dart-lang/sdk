@@ -20,7 +20,6 @@ mixin_super_constructor_named_test: Fail
 mixin_super_constructor_positionals_test: Fail
 function_type_alias6_test/00: Fail # Issue 11986
 function_type_alias9_test/00: Crash # Issue 11986
-library_ambiguous_test/04: Fail # Issue 12105
 
 [ $compiler == none ]
 mixin_super_constructor_named_test: Fail
@@ -29,7 +28,6 @@ built_in_identifier_prefix_test: Fail # http://dartbug.com/6970
 library_juxtaposition_test: Fail # Issue 6877
 pseudo_kw_illegal_test/14: Fail  # Issue 356
 bound_closure_equality_test: Fail # Issue 10849
-library_ambiguous_test/04: Fail # Issue 12105
 
 # These bugs refer currently ongoing language discussions.
 constructor5_test: Fail           # (Discussion ongoing)
@@ -81,40 +79,6 @@ mixin_type_parameter2_test: Fail # Issue 11888
 const_constructor_mixin_test/01: Fail # Issue 11917
 const_constructor_mixin2_test/01: Fail # Issue 11917
 const_constructor_mixin3_test/01: Fail # Issue 11917
-
-is_not_class2_test: Fail # Issue 9055
-list_literal_syntax_test/01: Fail # Issue 9055
-list_literal_syntax_test/02: Fail # Issue 9055
-list_literal_syntax_test/03: Fail # Issue 9055
-malformed_inheritance_test/02: Fail # Issue 9055
-malformed_inheritance_test/04: Fail # Issue 9055
-malformed_inheritance_test/06: Fail # Issue 9055
-malformed_test/none: Fail # Issue 9055
-prefix9_test: Fail # Issue 9055
-try_catch_on_syntax_test/07: Fail # Issue 9055
-try_catch_syntax_test/08: Fail # Issue 9055
-type_variable_bounds_test/08: Fail # Issue 9055
-wrong_number_type_arguments_test/01: Fail # Issue 9055
-
-[ $compiler == none && $checked ]
-function_malformed_result_type_test: Fail # Issue 9055
-new_expression_type_args_test/02: Fail # Issue 9055
-prefix16_test: Fail # Issue 9055
-type_parameter_test/01: Fail # Issue 9055
-type_parameter_test/02: Fail # Issue 9055
-type_parameter_test/03: Fail # Issue 9055
-type_parameter_test/04: Fail # Issue 9055
-type_parameter_test/05: Fail # Issue 9055
-type_parameter_test/06: Fail # Issue 9055
-type_variable_bounds_test/07: Fail # Issue 9055
-type_variable_scope2_test: Fail # Issue 9055
-type_variable_scope_test/00: Fail # Issue 9055
-type_variable_scope_test/01: Fail # Issue 9055
-type_variable_scope_test/02: Fail # Issue 9055
-type_variable_scope_test/03: Fail # Issue 9055
-type_variable_scope_test/04: Fail # Issue 9055
-type_variable_scope_test/05: Fail # Issue 9055
-wrong_number_type_arguments_test/02: Fail # Issue 9055
 
 [ $compiler == none && $unchecked ]
 
@@ -338,18 +302,6 @@ closures_initializer_test: Crash # VM bug: issue 8847
 closures_initializer2_test: Crash # VM bug: issue 8847
 
 bound_closure_equality_test: Fail # Issue 10849
-
-is_not_class2_test: Fail # Issue 9055
-list_literal_syntax_test/01: Fail # Issue 9055
-list_literal_syntax_test/02: Fail # Issue 9055
-list_literal_syntax_test/03: Fail # Issue 9055
-malformed_inheritance_test/02: Fail # Issue 9055
-malformed_inheritance_test/04: Fail # Issue 9055
-malformed_inheritance_test/06: Fail # Issue 9055
-malformed_test/none: Fail # Issue 9055
-try_catch_on_syntax_test/07: Fail # Issue 9055
-try_catch_syntax_test/08: Fail # Issue 9055
-
 
 [ $compiler == dart2dart && $minified ]
 super_getter_setter_test: Fail # Issue 11065.

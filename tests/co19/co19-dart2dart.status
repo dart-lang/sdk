@@ -402,6 +402,12 @@ LibTest/math/asin_A01_t01: Fail, OK # co19 issue 44
 LibTest/math/atan_A01_t01: Fail, OK # co19 issue 44
 
 [ $compiler == dart2dart ]
+Language/03_Overview/2_Privacy_A01_t06: Fail # co19 issue 463
+Language/09_Generics/09_Generics_A05_t01: Fail # co19 issue 463
+Language/11_Expressions/31_Type_Test_A04_t01: Fail # co19 issue 463
+Language/11_Expressions/32_Type_Cast_A03_t01: Fail # co19 issue 463
+Language/11_Expressions/32_Type_Cast_A03_t02: Fail # co19 issue 463
+Language/14_Types/2_Dynamic_Type_System_A02_t01: Fail # co19 issue 463
 Language/14_Types/4_Interface_Types_A11_t01: Pass, Crash # Issue 8857
 Language/14_Types/4_Interface_Types_A11_t02: Pass, Crash # Issue 8857
 
