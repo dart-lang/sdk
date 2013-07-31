@@ -6,6 +6,7 @@
 #define VM_DART_API_IMPL_H_
 
 #include "vm/allocation.h"
+#include "vm/native_arguments.h"
 #include "vm/object.h"
 
 namespace dart {
@@ -147,6 +148,11 @@ class Api : AllStatic {
     return !raw->IsHeapObject();
   }
 
+  // Returns true if the handle holds a Dart Instance.
+  static bool IsInstance(Dart_Handle handle) {
+    return (ClassId(handle) >= kInstanceCid);
+  }
+
   // Returns the value of a Smi.
   static intptr_t SmiValue(Dart_Handle handle) {
     // TODO(turnidge): Assumes RawObject* is at offset zero.  Fix.
@@ -187,6 +193,24 @@ class Api : AllStatic {
   // Helper function to get the peer value of an external string object.
   static bool ExternalStringGetPeerHelper(Dart_Handle object, void** peer);
 
+  // Helper function to set the return value of native functions.
+  static void SetReturnValue(NativeArguments* args, Dart_Handle retval) {
+    NoGCScope no_gc_scope;
+    args->SetReturnUnsafe(UnwrapHandle(retval));
+  }
+  static void SetSmiReturnValue(NativeArguments* args, intptr_t retval) {
+    NoGCScope no_gc_scope;
+    args->SetReturnUnsafe(Smi::New(retval));
+  }
+  static void SetIntegerReturnValue(NativeArguments* args, intptr_t retval) {
+    NoGCScope no_gc_scope;
+    args->SetReturnUnsafe(Integer::New(retval));
+  }
+  static void SetDoubleReturnValue(NativeArguments* args, double retval) {
+    NoGCScope no_gc_scope;
+    args->SetReturnUnsafe(Double::New(retval));
+  }
+
  private:
   // Thread local key used by the API. Currently holds the current
   // ApiNativeScope if any.
@@ -224,6 +248,9 @@ class IsolateSaver {
   if (isolate->no_callback_scope_depth() != 0) {                               \
     return reinterpret_cast<Dart_Handle>(Api::AcquiredError(isolate));         \
   }                                                                            \
+
+#define ASSERT_CALLBACK_STATE(isolate)                                         \
+  ASSERT(isolate->no_callback_scope_depth() == 0)
 
 }  // namespace dart.
 

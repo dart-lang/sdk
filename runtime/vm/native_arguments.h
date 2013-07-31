@@ -47,8 +47,6 @@ class Simulator;
 
 #endif
 
-void SetReturnValueHelper(Dart_NativeArguments, Dart_Handle);
-
 
 // Class NativeArguments is used to access arguments passed in from
 // generated dart code to a runtime function or a dart library native
@@ -158,9 +156,9 @@ class NativeArguments {
   class ArgcBits : public BitField<int, kArgcBit, kArgcSize> {};
   class InstanceFunctionBit : public BitField<bool, kInstanceFunctionBit, 1> {};
   class ClosureFunctionBit : public BitField<bool, kClosureFunctionBit, 1> {};
+  friend class Api;
   friend class BootstrapNatives;
   friend class Simulator;
-  friend void SetReturnValueHelper(Dart_NativeArguments, Dart_Handle);
 
   // Since this function is passed a RawObject directly, we need to be
   // exceedingly careful when we use it.  If there are any other side

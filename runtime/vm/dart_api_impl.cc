@@ -3565,7 +3565,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeFieldOfArgument(Dart_NativeArguments args,
         "%s: argument 'arg_index' out of range. Expected 0..%d but saw %d.",
         CURRENT_FUNC, arguments->NativeArgCount() - 1, arg_index);
   }
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = arguments->isolate();
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate,
                                      arguments->NativeArgAt(arg_index));
@@ -3593,14 +3593,47 @@ DART_EXPORT Dart_Handle Dart_GetNativeFieldOfArgument(Dart_NativeArguments args,
 
 DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
                                      Dart_Handle retval) {
-  const Object& ret_obj = Object::Handle(Api::UnwrapHandle(retval));
-  if (!ret_obj.IsNull() && !ret_obj.IsInstance()) {
+  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  Isolate* isolate = arguments->isolate();
+  CHECK_ISOLATE(isolate);
+  if ((retval != Api::Null()) && (!Api::IsInstance(retval))) {
+    const Object& ret_obj = Object::Handle(Api::UnwrapHandle(retval));
     FATAL1("Return value check failed: saw '%s' expected a dart Instance.",
            ret_obj.ToCString());
   }
-  NoGCScope no_gc_scope;
+  Api::SetReturnValue(arguments, retval);
+}
+
+
+DART_EXPORT void Dart_SetBooleanReturnValue(Dart_NativeArguments args,
+                                            bool retval) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-  arguments->SetReturn(ret_obj);
+  arguments->SetReturn(retval ? Bool::True() : Bool::False());
+}
+
+
+DART_EXPORT void Dart_SetIntegerReturnValue(Dart_NativeArguments args,
+                                            intptr_t retval) {
+  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  Isolate* isolate = arguments->isolate();
+  CHECK_ISOLATE(isolate);
+  if (Smi::IsValid64(retval)) {
+    Api::SetSmiReturnValue(arguments, retval);
+  } else {
+    // Slow path for Mints and Bigints.
+    ASSERT_CALLBACK_STATE(isolate);
+    Api::SetIntegerReturnValue(arguments, retval);
+  }
+}
+
+
+DART_EXPORT void Dart_SetDoubleReturnValue(Dart_NativeArguments args,
+                                           double retval) {
+  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  Isolate* isolate = arguments->isolate();
+  CHECK_ISOLATE(isolate);
+  ASSERT_CALLBACK_STATE(isolate);
+  Api::SetDoubleReturnValue(arguments, retval);
 }
 
 
