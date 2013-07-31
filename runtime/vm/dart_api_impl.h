@@ -195,19 +195,15 @@ class Api : AllStatic {
 
   // Helper function to set the return value of native functions.
   static void SetReturnValue(NativeArguments* args, Dart_Handle retval) {
-    NoGCScope no_gc_scope;
     args->SetReturnUnsafe(UnwrapHandle(retval));
   }
   static void SetSmiReturnValue(NativeArguments* args, intptr_t retval) {
-    NoGCScope no_gc_scope;
     args->SetReturnUnsafe(Smi::New(retval));
   }
   static void SetIntegerReturnValue(NativeArguments* args, intptr_t retval) {
-    NoGCScope no_gc_scope;
     args->SetReturnUnsafe(Integer::New(retval));
   }
   static void SetDoubleReturnValue(NativeArguments* args, double retval) {
-    NoGCScope no_gc_scope;
     args->SetReturnUnsafe(Double::New(retval));
   }
 

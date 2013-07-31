@@ -3601,6 +3601,7 @@ DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
     FATAL1("Return value check failed: saw '%s' expected a dart Instance.",
            ret_obj.ToCString());
   }
+  ASSERT(retval != 0);
   Api::SetReturnValue(arguments, retval);
 }
 
