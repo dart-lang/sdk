@@ -7,6 +7,7 @@ library barback.test.package_graph.source_test;
 import 'dart:async';
 
 import 'package:barback/barback.dart';
+import 'package:barback/src/utils.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 
 import '../utils.dart';
@@ -109,6 +110,24 @@ main() {
     });
 
     expectAsset("app|foo.txt");
+    buildShouldSucceed();
+  });
+
+  test("reloads an asset that's updated while loading", () {
+    initGraph({"app|foo.txt": "foo"});
+
+    pauseProvider();
+    schedule(() {
+      // The mock provider synchronously loads the value of the assets, so this
+      // will kick off two loads with different values. The second one should
+      // win.
+      updateSources(["app|foo.txt"]);
+      modifyAsset("app|foo.txt", "bar");
+      updateSources(["app|foo.txt"]);
+    });
+
+    resumeProvider();
+    expectAsset("app|foo.txt", "bar");
     buildShouldSucceed();
   });
 

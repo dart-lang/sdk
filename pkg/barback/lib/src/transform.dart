@@ -67,9 +67,17 @@ class Transform {
       // results stream.
       if (node == null) throw new MissingInputException(id);
 
-      // Keep track of which assets this transform depends on.
-      _inputs.add(node);
-      return node.asset;
+      // If the asset node is found, wait until its contents are actually
+      // available before we return them.
+      return node.whenAvailable.then((asset) {
+        _inputs.add(node);
+        return asset;
+      }).catchError((error) {
+        if (error is! AssetNotFoundException || error.id != id) throw error;
+        // If the node was removed before it could be loaded, treat it as though
+        // it never existed and throw a MissingInputException.
+        throw new MissingInputException(id);
+      });
     });
   }
 

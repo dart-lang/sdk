@@ -26,6 +26,22 @@ main() {
     buildShouldFail([isAssetCollisionException("app|foo.b")]);
   });
 
+  test("errors if a new transformer outputs the same file as an old "
+      "transformer", () {
+    initGraph(["app|foo.a", "app|foo.b"], {"app": [
+      [
+        new RewriteTransformer("a", "c"),
+        new RewriteTransformer("b", "c")
+      ]
+    ]});
+    updateSources(["app|foo.a"]);
+    expectAsset("app|foo.c", "foo.c");
+    buildShouldSucceed();
+
+    schedule(() => updateSources(["app|foo.b"]));
+    buildShouldFail([isAssetCollisionException("app|foo.c")]);
+  });
+
   test("does not report asset not found errors in results", () {
     initGraph(["app|bar.txt"]);
 
@@ -107,9 +123,7 @@ main() {
     buildShouldFail([equals(BadTransformer.ERROR)]);
   });
 
-  // TODO(rnystrom): Is this the behavior we expect? If a transformer fails
-  // to transform a file, should we just skip past it to the source?
-  test("yields a source if a transform fails on it", () {
+  test("doesn't yield a source if a transform fails on it", () {
     initGraph(["app|foo.txt"], {"app": [
       [new BadTransformer(["app|foo.txt"])]
     ]});
@@ -118,7 +132,7 @@ main() {
       updateSources(["app|foo.txt"]);
     });
 
-    expectAsset("app|foo.txt");
+    expectNoAsset("app|foo.txt");
   });
 
   test("catches errors even if nothing is waiting for process results", () {
@@ -171,5 +185,14 @@ main() {
       equals(BadTransformer.ERROR),
       equals(BadTransformer.ERROR)
     ]);
+  });
+
+  test("an error loading an asset removes the asset from the graph", () {
+    initGraph(["app|foo.txt"]);
+
+    setAssetError("app|foo.txt");
+    schedule(() => updateSources(["app|foo.txt"]));
+    expectNoAsset("app|foo.txt");
+    buildShouldFail([isMockLoadException("app|foo.txt")]);
   });
 }

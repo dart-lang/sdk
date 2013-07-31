@@ -27,5 +27,9 @@ abstract class PackageProvider {
   /// the next. All [Transformer]s in a single phase will be run in parallel.
   Iterable<Iterable<Transformer>> getTransformers(String package);
 
+  /// Loads an asset from disk.
+  ///
+  /// This should be re-entrant; it may be called multiple times with the same
+  /// id before the previously returned future has completed.
   Future<Asset> getAsset(AssetId id);
 }
