@@ -3821,6 +3821,7 @@ class Type : public AbstractType {
     (raw_ptr()->type_state_ == RawType::kFinalizedUninstantiated);
   }
   void SetIsFinalized() const;
+  void ResetIsFinalized() const;  // Ignore current state and set again.
   virtual bool IsBeingFinalized() const {
     return raw_ptr()->type_state_ == RawType::kBeingFinalized;
   }

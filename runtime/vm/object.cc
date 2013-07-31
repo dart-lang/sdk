@@ -10504,6 +10504,13 @@ void Type::SetIsFinalized() const {
 }
 
 
+void Type::ResetIsFinalized() const {
+  ASSERT(IsFinalized());
+  set_type_state(RawType::kBeingFinalized);
+  SetIsFinalized();
+}
+
+
 void Type::set_is_being_finalized() const {
   ASSERT(!IsFinalized() && !IsBeingFinalized());
   set_type_state(RawType::kBeingFinalized);

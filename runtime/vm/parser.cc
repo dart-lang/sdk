@@ -5369,6 +5369,10 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
       function_type.set_malformed_error(error);
     }
 
+    // The function type was initially marked as instantiated, but it may
+    // actually be uninstantiated.
+    function_type.ResetIsFinalized();
+
     // The function variable type should have been patched above.
     ASSERT((function_variable == NULL) ||
            (function_variable->type().raw() == function_type.raw()));
