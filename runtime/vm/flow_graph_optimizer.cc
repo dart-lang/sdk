@@ -2916,6 +2916,8 @@ bool FlowGraphOptimizer::StrictifyEqualityCompareWithICData(
                                strict_kind,
                                compare->left()->Copy(),
                                compare->right()->Copy());
+    // Numbers override equality and are therefore not part of this conversion.
+    strict_comp->set_needs_number_check(false);
     current_instruction->ReplaceWith(strict_comp, current_iterator());
     return true;
   }
