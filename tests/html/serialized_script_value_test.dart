@@ -49,8 +49,4 @@ main() {
   canvas.height = 100;
   var imageData = canvas.context2D.getImageData(0, 0, 1, 1);
   serializationTest('imagedata', [imageData]);
-
-  expect(() {
-    new MessageEvent('', data: new DivElement(), origin: '', lastEventId: '');
-  }, throws);
 }
