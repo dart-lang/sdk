@@ -37,9 +37,12 @@ customElementTests() {
     return new Future(() {
       expect(xtag.lifecycle, ['created', 'inserted']);
       element.remove();
-      return new Future(() {
+      // TODO(jmesserly): the extra future here is to give IE9 time to deliver
+      // its event. This seems wrong. We'll probably need some cooperation
+      // between Dart and the polyfill to coordinate the microtask event loop.
+      return new Future(() => new Future(() {
         expect(xtag.lifecycle, ['created', 'inserted', 'removed']);
-      });
+      }));
     });
   });
 
