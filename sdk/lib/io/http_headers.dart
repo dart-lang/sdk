@@ -475,7 +475,12 @@ class _HeaderValue implements HeaderValue {
   String _value;
   Map<String, String> _parameters;
 
-  _HeaderValue([String this._value = "", this._parameters]);
+  _HeaderValue([String this._value = "", Map<String, String> parameters]) {
+    if (parameters != null) {
+      _parameters =
+          new _UnmodifiableMap(new Map<String, String>.from(parameters));
+    }
+  }
 
   static _HeaderValue parse(String value, {parameterSeparator: ";"}) {
     // Parse the string.
@@ -486,8 +491,14 @@ class _HeaderValue implements HeaderValue {
 
   String get value => _value;
 
+  void _ensureParameters() {
+    if (_parameters == null) {
+      _parameters = new _UnmodifiableMap(new Map<String, String>());
+    }
+  }
+
   Map<String, String> get parameters {
-    if (_parameters == null) _parameters = new Map<String, String>();
+    _ensureParameters();
     return _parameters;
   }
 
@@ -540,7 +551,8 @@ class _HeaderValue implements HeaderValue {
     }
 
     void parseParameters() {
-      _parameters = new Map<String, String>();
+      var parameters = new Map<String, String>();
+      _parameters = new _UnmodifiableMap(parameters);
 
       String parseParameterName() {
         int start = index;
@@ -584,7 +596,7 @@ class _HeaderValue implements HeaderValue {
         expect("=");
         skipWS();
         String value = parseParameterValue();
-        _parameters[name] = value;
+        parameters[name] = value;
         skipWS();
         if (done()) return;
         expect(parameterSeparator);
@@ -612,14 +624,16 @@ class _ContentType extends _HeaderValue implements ContentType {
       : _primaryType = primaryType, _subType = subType, super("") {
     if (_primaryType == null) _primaryType = "";
     if (_subType == null) _subType = "";
-    _value = "$_primaryType/$_subType";;
+    _value = "$_primaryType/$_subType";
     if (parameters != null) {
+      _ensureParameters();
       parameters.forEach((String key, String value) {
-        this.parameters[key.toLowerCase()] = value.toLowerCase();
+        this._parameters._map[key.toLowerCase()] = value.toLowerCase();
       });
     }
     if (charset != null) {
-      this.parameters["charset"] = charset.toLowerCase();
+      _ensureParameters();
+      this._parameters._map["charset"] = charset.toLowerCase();
     }
   }
 
@@ -633,7 +647,8 @@ class _ContentType extends _HeaderValue implements ContentType {
       result._primaryType = result._value.trim().toLowerCase();
       result._subType = "";
     } else {
-      result._primaryType = result._value.substring(0, index).trim().toLowerCase();
+      result._primaryType =
+          result._value.substring(0, index).trim().toLowerCase();
       result._subType = result._value.substring(index + 1).trim().toLowerCase();
     }
     return result;
@@ -777,4 +792,35 @@ class _Cookie implements Cookie {
   String path;
   bool httpOnly = false;
   bool secure = false;
+}
+
+
+class _UnmodifiableMap<K, V> implements Map<K, V> {
+  final Map _map;
+  const _UnmodifiableMap(this._map);
+
+  bool containsValue(Object value) => _map.containsValue(value);
+  bool containsKey(Object key) => _map.containsKey(key);
+  V operator [](Object key) => _map[key];
+  void operator []=(K key, V value) {
+    throw new UnsupportedError("Cannot modify an unmodifiable map");
+  }
+  V putIfAbsent(K key, V ifAbsent()) {
+    throw new UnsupportedError("Cannot modify an unmodifiable map");
+  }
+  addAll(Map other) {
+    throw new UnsupportedError("Cannot modify an unmodifiable map");
+  }
+  V remove(Object key) {
+    throw new UnsupportedError("Cannot modify an unmodifiable map");
+  }
+  void clear() {
+    throw new UnsupportedError("Cannot modify an unmodifiable map");
+  }
+  void forEach(void f(K key, V value)) => _map.forEach(f);
+  Iterable<K> get keys => _map.keys;
+  Iterable<V> get values => _map.values;
+  int get length => _map.length;
+  bool get isEmpty => _map.isEmpty;
+  bool get isNotEmpty => _map.isNotEmpty;
 }

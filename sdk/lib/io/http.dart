@@ -497,7 +497,7 @@ abstract class HttpHeaders {
  */
 abstract class HeaderValue {
   /**
-   * Creates a new header value object setting the value part.
+   * Creates a new header value object setting the value and parameters.
    */
   factory HeaderValue([String value = "", Map<String, String> parameters]) {
     return new _HeaderValue(value, parameters);
@@ -519,6 +519,9 @@ abstract class HeaderValue {
 
   /**
    * Gets the map of parameters.
+   *
+   * This map cannot be modified. invoking any operation which would
+   * modify the map will throw [UnsupportedError].
    */
   Map<String, String> get parameters;
 
