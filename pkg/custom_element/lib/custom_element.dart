@@ -226,7 +226,7 @@ class CustomElement implements Element {
   get isTemplate => host.isTemplate;
   get ref => host.ref;
   get content => host.content;
-  DocumentFragment createInstance(model, BindingDelegate delegate) =>
+  DocumentFragment createInstance(model, [BindingDelegate delegate]) =>
       host.createInstance(model, delegate);
   createBinding(String name, model, String path) =>
       host.createBinding(name, model, path);
