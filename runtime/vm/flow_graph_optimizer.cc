@@ -1327,7 +1327,6 @@ void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
     }
     AddToGuardedFields(field);
   }
-  load->set_field_name(String::Handle(field.name()).ToCString());
 
   // Discard the environment from the original instruction because the load
   // can't deoptimize.
@@ -4782,8 +4781,8 @@ class LoadOptimizer : public ValueObject {
 
               if (alloc->ArgumentCount() > 0) {
                 ASSERT(alloc->ArgumentCount() == 2);
-                const Class& cls = Class::Handle(alloc->constructor().Owner());
-                intptr_t type_args_offset = cls.type_arguments_field_offset();
+                intptr_t type_args_offset =
+                    alloc->cls().type_arguments_field_offset();
                 if (load->offset_in_bytes() == type_args_offset) {
                   (*out_values)[load->place_id()] =
                       alloc->PushArgumentAt(0)->value()->definition();
@@ -7177,7 +7176,7 @@ static bool IsAllocationSinkingCandidate(AllocateObjectInstr* alloc) {
        use != NULL;
        use = use->next_use()) {
     if (!(use->instruction()->IsStoreInstanceField() &&
-          use->use_index() == 0)) {
+          (use->use_index() == 0))) {
       return false;
     }
   }
@@ -7315,6 +7314,7 @@ static void AddField(ZoneGrowableArray<const Field*>* fields,
 // present there.
 static void AddInstruction(GrowableArray<Instruction*>* exits,
                            Instruction* exit) {
+  ASSERT(!exit->IsGraphEntry());
   for (intptr_t i = 0; i < exits->length(); i++) {
     if ((*exits)[i] == exit) {
       return;
@@ -7390,10 +7390,9 @@ void AllocationSinking::InsertMaterializations(AllocateObjectInstr* alloc) {
             false,  // !static
             false,  // !final
             false,  // !const
-            Class::Handle(alloc->constructor().Owner()),
+            alloc->cls(),
             0));  // No token position.
-    const Class& cls = Class::Handle(alloc->constructor().Owner());
-    type_args_field.SetOffset(cls.type_arguments_field_offset());
+    type_args_field.SetOffset(alloc->cls().type_arguments_field_offset());
     AddField(fields, type_args_field);
   }
 
@@ -7406,9 +7405,8 @@ void AllocationSinking::InsertMaterializations(AllocateObjectInstr* alloc) {
   }
 
   // Insert materializations at environment uses.
-  const Class& cls = Class::Handle(alloc->constructor().Owner());
   for (intptr_t i = 0; i < exits.length(); i++) {
-    CreateMaterializationAt(exits[i], alloc, cls, *fields);
+    CreateMaterializationAt(exits[i], alloc, alloc->cls(), *fields);
   }
 }
 

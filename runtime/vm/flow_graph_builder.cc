@@ -1840,8 +1840,9 @@ LocalVariable* EffectGraphVisitor::EnterTempLocalScope(Value* value) {
   char name[64];
   OS::SNPrint(name, 64, ":tmp_local%"Pd, index);
   LocalVariable*  var =
-      new LocalVariable(0, String::ZoneHandle(Symbols::New(name)),
-                        Type::ZoneHandle(Type::DynamicType()));
+      new LocalVariable(0,
+                        String::ZoneHandle(Symbols::New(name)),
+                        *value->Type()->ToAbstractType());
   var->set_index(index);
   return var;
 }
@@ -1978,7 +1979,6 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
     ReturnDefinition(new ConstantInstr(closure));
     return;
   }
-  Value* receiver = NULL;
   if (function.IsNonImplicitClosureFunction()) {
     // The context scope may have already been set by the non-optimizing
     // compiler.  If it was not, set it here.
@@ -1990,40 +1990,109 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
       ASSERT(function.context_scope() == ContextScope::null());
       function.set_context_scope(context_scope);
     }
-    receiver = BuildNullValue();
+    ZoneGrowableArray<PushArgumentInstr*>* arguments =
+        new ZoneGrowableArray<PushArgumentInstr*>(2);
+    ASSERT(function.context_scope() != ContextScope::null());
+
+    // The function type of a closure may have type arguments. In that case,
+    // pass the type arguments of the instantiator.
+    const Class& cls = Class::ZoneHandle(function.signature_class());
+    ASSERT(!cls.IsNull());
+    const bool requires_type_arguments = cls.HasTypeArguments();
+    Value* type_arguments = NULL;
+    if (requires_type_arguments) {
+      ASSERT(cls.type_arguments_field_offset() ==
+             Closure::type_arguments_offset());
+      const Class& instantiator_class = Class::Handle(
+          owner()->parsed_function()->function().Owner());
+      type_arguments = BuildInstantiatorTypeArguments(node->token_pos(),
+                                                      instantiator_class,
+                                                      NULL);
+      arguments->Add(PushArgument(type_arguments));
+
+      Value* instantiator_val = Bind(new ConstantInstr(
+          Smi::ZoneHandle(Smi::New(StubCode::kNoInstantiator))));
+      arguments->Add(PushArgument(instantiator_val));
+    }
+    AllocateObjectInstr* alloc = new AllocateObjectInstr(node->token_pos(),
+                                                         cls,
+                                                         arguments);
+    alloc->set_closure_function(function);
+
+    // Create fake fields for function and context. Only the context field is
+    // stored at the allocation to be used later when inlining a closure call.
+    const Field& function_field =
+        Field::ZoneHandle(
+            Field::New(Symbols::ClosureFunctionField(),
+            false,  // !static
+            false,  // !final
+            false,  // !const
+            alloc->cls(),
+            0));  // No token position.
+    function_field.SetOffset(Closure::function_offset());
+    const Field& context_field =
+        Field::ZoneHandle(Field::New(
+            Symbols::ClosureContextField(),
+            false,  // !static
+            false,  // !final
+            false,  // !const
+            alloc->cls(),
+            0));  // No token position.
+    context_field.SetOffset(Closure::context_offset());
+    alloc->set_context_field(context_field);
+
+    Value* closure_val = Bind(alloc);
+    { LocalVariable* tmp_var = EnterTempLocalScope(closure_val);
+      // Store function.
+      Value* tmp_val = Bind(new LoadLocalInstr(*tmp_var));
+      Value* func_val =
+          Bind(new ConstantInstr(Function::ZoneHandle(function.raw())));
+      Do(new StoreInstanceFieldInstr(function_field,
+                                     tmp_val,
+                                     func_val,
+                                     kEmitStoreBarrier));
+      // Store current context.
+      tmp_val = Bind(new LoadLocalInstr(*tmp_var));
+      Value* context = Bind(new CurrentContextInstr());
+      Do(new StoreInstanceFieldInstr(context_field,
+                                     tmp_val,
+                                     context,
+                                     kEmitStoreBarrier));
+      ReturnDefinition(ExitTempLocalScope(tmp_var));
+    }
   } else {
     ASSERT(function.IsImplicitInstanceClosureFunction());
     ValueGraphVisitor for_receiver(owner(), temp_index());
     node->receiver()->Visit(&for_receiver);
     Append(for_receiver);
-    receiver = for_receiver.value();
-  }
-  PushArgumentInstr* push_receiver = PushArgument(receiver);
-  ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new ZoneGrowableArray<PushArgumentInstr*>(2);
-  arguments->Add(push_receiver);
-  ASSERT(function.context_scope() != ContextScope::null());
+    Value* receiver = for_receiver.value();
 
-  // The function type of a closure may have type arguments. In that case, pass
-  // the type arguments of the instantiator. Otherwise, pass null object.
-  const Class& cls = Class::Handle(function.signature_class());
-  ASSERT(!cls.IsNull());
-  const bool requires_type_arguments = cls.HasTypeArguments();
-  Value* type_arguments = NULL;
-  if (requires_type_arguments) {
-    ASSERT(!function.IsImplicitStaticClosureFunction());
-    const Class& instantiator_class = Class::Handle(
-        owner()->parsed_function()->function().Owner());
-    type_arguments = BuildInstantiatorTypeArguments(node->token_pos(),
-                                                    instantiator_class,
-                                                    NULL);
-  } else {
-    type_arguments = BuildNullValue();
+    PushArgumentInstr* push_receiver = PushArgument(receiver);
+    ZoneGrowableArray<PushArgumentInstr*>* arguments =
+        new ZoneGrowableArray<PushArgumentInstr*>(2);
+    arguments->Add(push_receiver);
+    ASSERT(function.context_scope() != ContextScope::null());
+
+    // The function type of a closure may have type arguments. In that case,
+    // pass the type arguments of the instantiator. Otherwise, pass null object.
+    const Class& cls = Class::Handle(function.signature_class());
+    ASSERT(!cls.IsNull());
+    const bool requires_type_arguments = cls.HasTypeArguments();
+    Value* type_arguments = NULL;
+    if (requires_type_arguments) {
+      const Class& instantiator_class = Class::Handle(
+          owner()->parsed_function()->function().Owner());
+      type_arguments = BuildInstantiatorTypeArguments(node->token_pos(),
+                                                      instantiator_class,
+                                                      NULL);
+    } else {
+      type_arguments = BuildNullValue();
+    }
+    PushArgumentInstr* push_type_arguments = PushArgument(type_arguments);
+    arguments->Add(push_type_arguments);
+    ReturnDefinition(
+        new CreateClosureInstr(node->function(), arguments, node->token_pos()));
   }
-  PushArgumentInstr* push_type_arguments = PushArgument(type_arguments);
-  arguments->Add(push_type_arguments);
-  ReturnDefinition(
-      new CreateClosureInstr(node->function(), arguments, node->token_pos()));
 }
 
 
@@ -2200,7 +2269,10 @@ Value* EffectGraphVisitor::BuildObjectAllocation(
       BuildConstructorTypeArguments(node, allocate_arguments);
     }
 
-    allocation = new AllocateObjectInstr(node, allocate_arguments);
+    allocation = new AllocateObjectInstr(
+        node->token_pos(),
+        Class::ZoneHandle(node->constructor().Owner()),
+        allocate_arguments);
   }
   return Bind(allocation);
 }

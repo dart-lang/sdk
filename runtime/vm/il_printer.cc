@@ -475,7 +475,7 @@ void RelationalOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void AllocateObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s", Class::Handle(constructor().Owner()).ToCString());
+  f->Print("%s", cls().ToCString());
   for (intptr_t i = 0; i < ArgumentCount(); i++) {
     f->Print(", ");
     PushArgumentAt(i)->value()->PrintTo(f);
@@ -526,11 +526,8 @@ void LoadFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   instance()->PrintTo(f);
   f->Print(", %"Pd, offset_in_bytes());
 
-  if (field_name_ != NULL) {
-    f->Print(" {%s}", field_name_);
-  }
-
   if (field() != NULL) {
+    f->Print(" {%s}", String::Handle(field()->name()).ToCString());
     const char* expected = "?";
     if (field()->guarded_cid() != kIllegalCid) {
       const Class& cls = Class::Handle(

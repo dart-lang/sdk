@@ -3194,7 +3194,7 @@ class DropTempsInstr : public TemplateDefinition<1> {
 
   intptr_t num_temps() const { return num_temps_; }
 
-  virtual CompileType ComputeType() const;
+  virtual CompileType* ComputeInitialType() const;
 
   virtual bool CanDeoptimize() const { return false; }
 
@@ -3678,12 +3678,15 @@ class InstanceOfInstr : public TemplateDefinition<3> {
 
 class AllocateObjectInstr : public TemplateDefinition<0> {
  public:
-  AllocateObjectInstr(ConstructorCallNode* node,
+  AllocateObjectInstr(intptr_t token_pos,
+                      const Class& cls,
                       ZoneGrowableArray<PushArgumentInstr*>* arguments)
-      : ast_node_(*node),
+      : token_pos_(token_pos),
+        cls_(cls),
         arguments_(arguments),
-        cid_(Class::Handle(node->constructor().Owner()).id()),
-        identity_(kUnknown) {
+        identity_(kUnknown),
+        closure_function_(Function::ZoneHandle()),
+        context_field_(Field::ZoneHandle()) {
     // Either no arguments or one type-argument and one instantiator.
     ASSERT(arguments->is_empty() || (arguments->length() == 2));
   }
@@ -3696,8 +3699,18 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
     return (*arguments_)[index];
   }
 
-  const Function& constructor() const { return ast_node_.constructor(); }
-  intptr_t token_pos() const { return ast_node_.token_pos(); }
+  const Class& cls() const { return cls_; }
+  intptr_t token_pos() const { return token_pos_; }
+
+  const Function& closure_function() const { return closure_function_; }
+  void set_closure_function(const Function& function) {
+    closure_function_ ^= function.raw();
+  }
+
+  const Field& context_field() const { return context_field_; }
+  void set_context_field(const Field& field) {
+    context_field_ ^= field.raw();
+  }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -3720,10 +3733,12 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
   void set_identity(Identity identity) { identity_ = identity; }
 
  private:
-  const ConstructorCallNode& ast_node_;
+  const intptr_t token_pos_;
+  const Class& cls_;
   ZoneGrowableArray<PushArgumentInstr*>* const arguments_;
-  const intptr_t cid_;
   Identity identity_;
+  Function& closure_function_;
+  Field& context_field_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectInstr);
 };
@@ -3972,7 +3987,6 @@ class LoadFieldInstr : public TemplateDefinition<1> {
         result_cid_(kDynamicCid),
         immutable_(immutable),
         recognized_kind_(MethodRecognizer::kUnknown),
-        field_name_(NULL),
         field_(NULL) {
     ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
     SetInputAt(0, instance);
@@ -3983,9 +3997,6 @@ class LoadFieldInstr : public TemplateDefinition<1> {
   const AbstractType& type() const { return type_; }
   void set_result_cid(intptr_t value) { result_cid_ = value; }
   intptr_t result_cid() const { return result_cid_; }
-
-  void set_field_name(const char* name) { field_name_ = name; }
-  const char* field_name() const { return field_name_; }
 
   const Field* field() const { return field_; }
   void set_field(const Field* field) { field_ = field; }
@@ -4030,7 +4041,6 @@ class LoadFieldInstr : public TemplateDefinition<1> {
 
   MethodRecognizer::Kind recognized_kind_;
 
-  const char* field_name_;
   const Field* field_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadFieldInstr);

@@ -60,6 +60,8 @@ class ObjectPointerVisitor;
   V(StacktraceVar, ":stacktrace_var")                                          \
   V(ListLiteralElement, "list literal element")                                \
   V(ForInIter, ":for-in-iter")                                                 \
+  V(ClosureFunctionField, ":function")                                         \
+  V(ClosureContextField, ":context")                                           \
   V(Library, "library")                                                        \
   V(Import, "import")                                                          \
   V(Source, "source")                                                          \

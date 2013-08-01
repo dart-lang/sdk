@@ -681,6 +681,13 @@ class CallSiteInliner : public ValueObject {
           new LoadFieldInstr(new Value(closure),
                              Closure::context_offset(),
                              Type::ZoneHandle());
+      AllocateObjectInstr* alloc =
+          closure_call->ArgumentAt(0)->AsAllocateObject();
+      if ((alloc != NULL) && !alloc->closure_function().IsNull()) {
+        ASSERT(!alloc->context_field().IsNull());
+        context->set_field(&alloc->context_field());
+      }
+
       context->set_ssa_temp_index(caller_graph()->alloc_ssa_temp_index());
       context->InsertAfter(callee_entry);
       StoreContextInstr* set_context =
@@ -803,9 +810,19 @@ class CallSiteInliner : public ValueObject {
       ClosureCallInstr* call = calls[i];
       // Find the closure of the callee.
       ASSERT(call->ArgumentCount() > 0);
-      const CreateClosureInstr* closure =
+      Function& target = Function::ZoneHandle();
+      CreateClosureInstr* closure =
           call->ArgumentAt(0)->AsCreateClosure();
-      if (closure == NULL) {
+      if (closure != NULL) {
+        target ^= closure->function().raw();
+      }
+      AllocateObjectInstr* alloc =
+          call->ArgumentAt(0)->AsAllocateObject();
+      if ((alloc != NULL) && !alloc->closure_function().IsNull()) {
+        target ^= alloc->closure_function().raw();
+        ASSERT(target.signature_class() == alloc->cls().raw());
+      }
+      if (target.IsNull()) {
         TRACE_INLINING(OS::Print("     Bailout: non-closure operator\n"));
         continue;
       }
@@ -814,7 +831,7 @@ class CallSiteInliner : public ValueObject {
         arguments.Add(call->PushArgumentAt(i)->value());
       }
       InlinedCallData call_data(call, &arguments);
-      if (TryInlining(closure->function(),
+      if (TryInlining(target,
                       call->argument_names(),
                       &call_data)) {
         InlineCall(&call_data);

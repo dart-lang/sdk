@@ -4849,9 +4849,8 @@ LocationSummary* AllocateObjectInstr::MakeLocationSummary() const {
 
 
 void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Class& cls = Class::ZoneHandle(constructor().Owner());
-  const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls));
-  const ExternalLabel label(cls.ToCString(), stub.EntryPoint());
+  const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls()));
+  const ExternalLabel label(cls().ToCString(), stub.EntryPoint());
   compiler->GenerateCall(token_pos(),
                          &label,
                          PcDescriptors::kOther,
