@@ -6334,6 +6334,10 @@ void Library::AddFunctionMetadata(const Function& func,
               token_pos);
 }
 
+void Library::AddLibraryMetadata(const Class& cls, intptr_t token_pos) const {
+  AddMetadata(cls, Symbols::TopLevel(), token_pos);
+}
+
 
 RawString* Library::MakeMetadataName(const Object& obj) const {
   if (obj.IsClass()) {
@@ -6342,6 +6346,8 @@ RawString* Library::MakeMetadataName(const Object& obj) const {
     return MakeFieldMetaName(Field::Cast(obj));
   } else if (obj.IsFunction()) {
     return MakeFunctionMetaName(Function::Cast(obj));
+  } else if (obj.IsLibrary()) {
+    return Symbols::TopLevel().raw();
   }
   UNIMPLEMENTED();
   return String::null();
@@ -6366,7 +6372,8 @@ RawField* Library::GetMetadataField(const String& metaname) const {
 
 
 RawObject* Library::GetMetadata(const Object& obj) const {
-  if (!obj.IsClass() && !obj.IsField() && !obj.IsFunction()) {
+  if (!obj.IsClass() && !obj.IsField() && !obj.IsFunction() &&
+      !obj.IsLibrary()) {
     return Object::null();
   }
   const String& metaname = String::Handle(MakeMetadataName(obj));

@@ -4744,6 +4744,9 @@ void Parser::ParseLibraryDefinition() {
       ErrorMsg("patch cannot override library name");
     }
     ParseLibraryName();
+    if (metadata_pos >= 0) {
+      library_.AddLibraryMetadata(current_class(), metadata_pos);
+    }
     metadata_pos = TokenPos();
     SkipMetadata();
   }
@@ -4808,6 +4811,7 @@ void Parser::ParseTopLevel() {
   toplevel_class.set_library(library_);
 
   if (is_library_source() || is_patch_source()) {
+    set_current_class(toplevel_class);
     ParseLibraryDefinition();
   } else if (is_part_source()) {
     ParsePartHeader();
