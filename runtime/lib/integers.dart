@@ -99,7 +99,7 @@ class _IntegerImplementation {
     final int EQUAL = 0, LESS = -1, GREATER = 1;
     if (other is double) {
       // TODO(floitsch): the following locals should be 'const'.
-      int MAX_EXACT_INT_TO_DOUBLE = 9007199254740992;  // 2^53.
+      int MAX_EXACT_INT_TO_DOUBLE = 9007199254740991;  // 2^53 - 1.
       int MIN_EXACT_INT_TO_DOUBLE = -MAX_EXACT_INT_TO_DOUBLE;
       double d = other;
       if (d.isInfinite) {
