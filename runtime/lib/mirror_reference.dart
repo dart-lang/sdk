@@ -7,4 +7,6 @@ class _MirrorReference {
     throw new UnsupportedError(
         "class _MirrorReference cannot be instantiated");
   }
+
+  bool operator ==(other) native "MirrorReference_equals";
 }

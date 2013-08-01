@@ -278,6 +278,13 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
 
   String toString() => 'InstanceMirror on ${Error.safeToString(_reflectee)}';
 
+  bool operator ==(other) {
+    return other is _LocalInstanceMirrorImpl &&
+           identical(_reflectee, other._reflectee);
+  }
+
+  int get hashCode => _reflectee.hashCode;
+
   _invoke(reflectee, functionName, positionalArguments)
       native 'InstanceMirror_invoke';
 
@@ -549,6 +556,13 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
     return _metadata(_reflectee).map(reflect).toList(growable:false);
   }
 
+  bool operator ==(other) {
+    return this.runtimeType == other.runtimeType &&
+           this._reflectee == other._reflectee;
+  }
+
+  int get hashCode => simpleName.hashCode;
+
   static _name(reflectee)
       native "ClassMirror_name";
 
@@ -646,6 +660,13 @@ abstract class _LocalDeclarationMirrorImpl extends _LocalMirrorImpl
     // reflect() and then make them into a Dart list.
     return _metadata(_reflectee).map(reflect).toList(growable:false);
   }
+
+  bool operator ==(other) {
+    return this.runtimeType == other.runtimeType &&
+           this._reflectee == other._reflectee; 
+  }
+
+  int get hashCode => simpleName.hashCode;
 }
 
 class _LocalTypeVariableMirrorImpl extends _LocalDeclarationMirrorImpl
@@ -826,6 +847,13 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
   }
 
   String toString() => "LibraryMirror on '${_n(simpleName)}'";
+
+  bool operator ==(other) {
+    return this.runtimeType == other.runtimeType &&
+           this._reflectee == other._reflectee; 
+  }
+
+  int get hashCode => simpleName.hashCode;
 
   _invoke(reflectee, memberName, positionalArguments)
       native 'LibraryMirror_invoke';
@@ -1057,7 +1085,7 @@ class _SpecialTypeMirrorImpl extends _LocalMirrorImpl
 
   // TODO(11955): Remove once dynamicType and voidType are canonical objects in
   // the object store.
-  operator ==(other) {
+  bool operator ==(other) {
     if (other is! _SpecialTypeMirrorImpl) {
       return false;
     }

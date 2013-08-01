@@ -375,6 +375,13 @@ static void ThrowInvokeError(const Error& error) {
 }
 
 
+DEFINE_NATIVE_ENTRY(MirrorReference_equals, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, a, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, b, arguments->NativeArgAt(1));
+  return Bool::Get(a.referent() == b.referent());
+}
+
+
 DEFINE_NATIVE_ENTRY(DeclarationMirror_metadata, 1) {
   const MirrorReference& decl_ref =
       MirrorReference::CheckedHandle(arguments->NativeArgAt(0));

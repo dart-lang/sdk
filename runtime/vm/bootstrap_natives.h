@@ -242,6 +242,7 @@ namespace dart {
   V(Mirrors_isLocalPort, 1)                                                    \
   V(Mirrors_makeLocalClassMirror, 1)                                           \
   V(Mirrors_makeLocalMirrorSystem, 0)                                          \
+  V(MirrorReference_equals, 2)                                                 \
   V(InstanceMirror_invoke, 4)                                                  \
   V(InstanceMirror_invokeGetter, 3)                                            \
   V(InstanceMirror_invokeSetter, 4)                                            \
