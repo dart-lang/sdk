@@ -14,6 +14,7 @@ import 'errors.dart';
 import 'phase.dart';
 import 'transform.dart';
 import 'transformer.dart';
+import 'utils.dart';
 
 /// Describes a transform on a set of assets and its relationship to the build
 /// dependency graph.
@@ -37,11 +38,6 @@ class TransformNode {
   /// began running.
   bool get isDirty => _isDirty;
   var _isDirty = true;
-
-  /// The inputs read by this transform the last time it was run.
-  ///
-  /// Used to tell if an input was added or removed in a later run.
-  var _inputs = new Set<AssetNode>();
 
   /// The subscriptions to each input's [AssetNode.onStateChange] stream.
   var _inputSubscriptions = new Map<AssetId, StreamSubscription>();
@@ -91,9 +87,16 @@ class TransformNode {
   /// Returns a set of asset nodes representing the outputs from this transform
   /// that weren't emitted last time it was run.
   Future<Set<AssetNode>> apply() {
-    var newInputs = new Set<AssetNode>();
     var newOutputs = new AssetSet();
-    var transform = createTransform(this, newInputs, newOutputs);
+    var transform = createTransform(this, newOutputs);
+
+    // Clear all the old input subscriptions. If an input is re-used, we'll
+    // re-subscribe.
+    for (var subscription in _inputSubscriptions.values) {
+      subscription.cancel();
+    }
+    _inputSubscriptions.clear();
+
     _isDirty = false;
     return transformer.apply(transform).catchError((error) {
       // If the transform became dirty while processing, ignore any errors from
@@ -109,31 +112,35 @@ class TransformNode {
     }).then((_) {
       if (_isDirty) return [];
 
-      _adjustInputs(newInputs);
       return _adjustOutputs(newOutputs);
     });
   }
 
-  /// Adjusts the inputs of the transform to reflect the inputs consumed on its
-  /// most recent run.
-  void _adjustInputs(Set<AssetNode> newInputs) {
-    // Stop watching any inputs that were removed.
-    for (var oldInput in _inputs.difference(newInputs)) {
-      _inputSubscriptions.remove(oldInput.id).cancel();
-    }
+  Future<Asset> getInput(AssetId id) {
+    return newFuture(() {
+      var node = phase.inputs[id];
+      // TODO(rnystrom): Need to handle passthrough where an asset from a
+      // previous phase can be found.
 
-    // Watch any new inputs so this transform will be re-processed when an
-    // input is modified.
-    for (var newInput in newInputs.difference(_inputs)) {
-      if (newInput.id == primary.id) continue;
-      // TODO(nweiz): support the case where a new secondary input changes
-      // after it's been loaded by the transform but before the transform has
-      // finished running.
-      _inputSubscriptions[newInput.id] = newInput.onStateChange
-          .listen((_) => _dirty());
-    }
+      // Throw if the input isn't found. This ensures the transformer's apply
+      // is exited. We'll then catch this and report it through the proper
+      // results stream.
+      if (node == null) throw new MissingInputException(id);
 
-    _inputs = newInputs;
+      // If the asset node is found, wait until its contents are actually
+      // available before we return them.
+      return node.whenAvailable.then((asset) {
+        _inputSubscriptions.putIfAbsent(node.id,
+            () => node.onStateChange.listen((_) => _dirty()));
+
+        return asset;
+      }).catchError((error) {
+        if (error is! AssetNotFoundException || error.id != id) throw error;
+        // If the node was removed before it could be loaded, treat it as though
+        // it never existed and throw a MissingInputException.
+        throw new MissingInputException(id);
+      });
+    });
   }
 
   /// Adjusts the outputs of the transform to reflect the outputs emitted on its

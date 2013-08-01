@@ -19,9 +19,8 @@ import 'utils.dart';
 /// Lets [TransformNode] create [Transforms] without giving a [Transform]
 /// itself a public constructor, which would be visible to external users.
 /// Unlike the [Transform] class, this function is not exported by barback.dart.
-Transform createTransform(TransformNode node, Set<AssetNode> inputs,
-                          AssetSet outputs) =>
-    new Transform._(node, inputs, outputs);
+Transform createTransform(TransformNode node, AssetSet outputs) =>
+    new Transform._(node, outputs);
 
 /// While a [Transformer] represents a *kind* of transformation, this defines
 /// one specific usage of it on a set of files.
@@ -33,7 +32,6 @@ Transform createTransform(TransformNode node, Set<AssetNode> inputs,
 class Transform {
   final TransformNode _node;
 
-  final Set<AssetNode> _inputs;
   final AssetSet _outputs;
 
   /// Gets the ID of the primary input for this transformation.
@@ -50,36 +48,13 @@ class Transform {
   /// Gets the asset for the primary input.
   Future<Asset> get primaryInput => getInput(primaryId);
 
-  Transform._(this._node, this._inputs, this._outputs);
+  Transform._(this._node, this._outputs);
 
   /// Gets the asset for for an input [id].
   ///
   /// If an input with that ID cannot be found, throws an
   /// [AssetNotFoundException].
-  Future<Asset> getInput(AssetId id) {
-    return newFuture(() {
-      var node = _node.phase.inputs[id];
-      // TODO(rnystrom): Need to handle passthrough where an asset from a
-      // previous phase can be found.
-
-      // Throw if the input isn't found. This ensures the transformer's apply
-      // is exited. We'll then catch this and report it through the proper
-      // results stream.
-      if (node == null) throw new MissingInputException(id);
-
-      // If the asset node is found, wait until its contents are actually
-      // available before we return them.
-      return node.whenAvailable.then((asset) {
-        _inputs.add(node);
-        return asset;
-      }).catchError((error) {
-        if (error is! AssetNotFoundException || error.id != id) throw error;
-        // If the node was removed before it could be loaded, treat it as though
-        // it never existed and throw a MissingInputException.
-        throw new MissingInputException(id);
-      });
-    });
-  }
+  Future<Asset> getInput(AssetId id) => _node.getInput(id);
 
   /// Stores [output] as the output created by this transformation.
   ///

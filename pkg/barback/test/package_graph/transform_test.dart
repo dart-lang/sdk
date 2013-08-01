@@ -432,6 +432,80 @@ main() {
     });
   });
 
+  test("restarts processing if a change to a new secondary input occurs during "
+      "processing", () {
+    var transformer = new ManyToOneTransformer("txt");
+    initGraph({
+      "app|foo.txt": "bar.inc",
+      "app|bar.inc": "bar"
+    }, {"app": [[transformer]]});
+
+    transformer.pauseApply();
+
+    updateSources(["app|foo.txt", "app|bar.inc"]);
+    // Wait for the transform to start.
+    schedule(() => transformer.started);
+
+    // Give the transform time to load bar.inc the first time.
+    schedule(pumpEventQueue);
+
+    // Now update the secondary input before the transform finishes.
+    modifyAsset("app|bar.inc", "baz");
+    schedule(() => updateSources(["app|bar.inc"]));
+    // Give bar.inc enough time to be loaded and marked available before the
+    // transformer completes.
+    schedule(pumpEventQueue);
+
+    schedule(transformer.resumeApply);
+
+    expectAsset("app|foo.out", "baz");
+    buildShouldSucceed();
+
+    schedule(() {
+      expect(transformer.numRuns, equals(2));
+    });
+  });
+
+  test("doesn't restart processing if a change to an old secondary input "
+      "occurs during processing", () {
+    var transformer = new ManyToOneTransformer("txt");
+    initGraph({
+      "app|foo.txt": "bar.inc",
+      "app|bar.inc": "bar",
+      "app|baz.inc": "baz"
+    }, {"app": [[transformer]]});
+
+    updateSources(["app|foo.txt", "app|bar.inc", "app|baz.inc"]);
+    expectAsset("app|foo.out", "bar");
+    buildShouldSucceed();
+
+    schedule(transformer.pauseApply);
+    modifyAsset("app|foo.txt", "baz.inc");
+    schedule(() {
+      updateSources(["app|foo.txt"]);
+      // Wait for the transform to start.
+      return transformer.started;
+    });
+
+    // Now update the old secondary input before the transform finishes.
+    modifyAsset("app|bar.inc", "new bar");
+    schedule(() => updateSources(["app|bar.inc"]));
+    // Give bar.inc enough time to be loaded and marked available before the
+    // transformer completes.
+    schedule(pumpEventQueue);
+
+    schedule(transformer.resumeApply);
+
+    expectAsset("app|foo.out", "baz");
+    buildShouldSucceed();
+
+    schedule(() {
+      // Should have run once the first time, then again when switching to
+      // baz.inc. Should not run a third time because of bar.inc being modified.
+      expect(transformer.numRuns, equals(2));
+    });
+  });
+
   test("handles an output moving from one transformer to another", () {
     // In the first run, "shared.out" is created by the "a.a" transformer.
     initGraph({
