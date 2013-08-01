@@ -918,12 +918,18 @@ class DartiumBackend(HtmlDartGenerator):
         value_expression = function_call
 
       # Generate to Dart conversion of C++ value.
-      to_dart_conversion = return_type_info.to_dart_conversion(value_expression, self._interface.id, ext_attrs)
+      if return_type_info.dart_type() == 'bool':
+        set_return_value = 'Dart_SetBooleanReturnValue(args, %s)' % (value_expression)
+      elif return_type_info.dart_type() == 'int':
+        set_return_value = 'Dart_SetIntegerReturnValue(args, %s)' % (value_expression)
+      elif return_type_info.dart_type() == 'double':
+        set_return_value = 'Dart_SetDoubleReturnValue(args, %s)' % (value_expression)
+      else:
+        to_dart_conversion = return_type_info.to_dart_conversion(value_expression, self._interface.id, ext_attrs)
+        set_return_value = 'Dart_SetReturnValue(args, %s)' % (to_dart_conversion)
       invocation_emitter.Emit(
-        '        Dart_Handle returnValue = $TO_DART_CONVERSION;\n'
-        '        if (returnValue)\n'
-        '            Dart_SetReturnValue(args, returnValue);\n',
-        TO_DART_CONVERSION=to_dart_conversion)
+        '        $RETURN_VALUE;\n',
+        RETURN_VALUE=set_return_value)
 
   def _GenerateNativeBinding(self, idl_name, argument_count, dart_declaration,
       native_suffix, is_custom, emit_metadata=True):
