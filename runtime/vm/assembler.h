@@ -13,8 +13,6 @@
 
 namespace dart {
 
-// TODO(zra): Remove once far branches are enabled automatically on a
-// per-function basis.
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
 DECLARE_FLAG(bool, use_far_branches);
 #endif

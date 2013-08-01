@@ -6,6 +6,7 @@
 #if defined(TARGET_ARCH_MIPS)
 
 #include "vm/assembler.h"
+#include "vm/longjump.h"
 #include "vm/runtime_entry.h"
 #include "vm/simulator.h"
 #include "vm/stack_frame.h"
@@ -48,9 +49,13 @@ static bool CanEncodeBranchOffset(int32_t offset) {
 }
 
 
-static int32_t EncodeBranchOffset(int32_t offset, int32_t instr) {
-  ASSERT(Utils::IsAligned(offset, 4));
-  ASSERT(Utils::IsInt(18, offset));
+int32_t Assembler::EncodeBranchOffset(int32_t offset, int32_t instr) {
+  if (!CanEncodeBranchOffset(offset)) {
+    ASSERT(!use_far_branches());
+    const Error& error = Error::Handle(LanguageError::New(
+        String::Handle(String::New("Branch offset overflow"))));
+    Isolate::Current()->long_jump_base()->Jump(1, error);
+  }
 
   // Properly preserve only the bits supported in the instruction.
   offset >>= 2;
@@ -106,6 +111,7 @@ class PatchFarJump : public AssemblerFixup {
 
 
 void Assembler::EmitFarJump(int32_t offset, bool link) {
+  ASSERT(use_far_branches());
   const uint16_t low = Utils::Low16Bits(offset);
   const uint16_t high = Utils::High16Bits(offset);
   buffer_.EmitFixup(new PatchFarJump());
@@ -179,7 +185,7 @@ void Assembler::EmitBranch(Opcode b, Register rs, Register rt, Label* label) {
     // Relative destination from an instruction after the branch.
     const int32_t dest =
         label->Position() - (buffer_.Size() + Instr::kInstrSize);
-    if (FLAG_use_far_branches && !CanEncodeBranchOffset(dest)) {
+    if (use_far_branches() && !CanEncodeBranchOffset(dest)) {
       EmitFarBranch(b, rs, rt, label->Position());
     } else {
       const uint16_t dest_off = EncodeBranchOffset(dest, 0);
@@ -187,7 +193,7 @@ void Assembler::EmitBranch(Opcode b, Register rs, Register rt, Label* label) {
     }
   } else {
     const int position = buffer_.Size();
-    if (FLAG_use_far_branches) {
+    if (use_far_branches()) {
       const uint32_t dest_off = label->position_;
       EmitFarBranch(b, rs, rt, dest_off);
     } else {
@@ -204,7 +210,7 @@ void Assembler::EmitRegImmBranch(RtRegImm b, Register rs, Label* label) {
     // Relative destination from an instruction after the branch.
     const int32_t dest =
         label->Position() - (buffer_.Size() + Instr::kInstrSize);
-    if (FLAG_use_far_branches && !CanEncodeBranchOffset(dest)) {
+    if (use_far_branches() && !CanEncodeBranchOffset(dest)) {
       EmitFarRegImmBranch(b, rs, label->Position());
     } else {
       const uint16_t dest_off = EncodeBranchOffset(dest, 0);
@@ -212,7 +218,7 @@ void Assembler::EmitRegImmBranch(RtRegImm b, Register rs, Label* label) {
     }
   } else {
     const int position = buffer_.Size();
-    if (FLAG_use_far_branches) {
+    if (use_far_branches()) {
       const uint32_t dest_off = label->position_;
       EmitFarRegImmBranch(b, rs, dest_off);
     } else {
@@ -230,7 +236,7 @@ void Assembler::EmitFpuBranch(bool kind, Label *label) {
     // Relative destination from an instruction after the branch.
     const int32_t dest =
         label->Position() - (buffer_.Size() + Instr::kInstrSize);
-    if (FLAG_use_far_branches && !CanEncodeBranchOffset(dest)) {
+    if (use_far_branches() && !CanEncodeBranchOffset(dest)) {
       EmitFarFpuBranch(kind, label->Position());
     } else {
       const uint16_t dest_off = EncodeBranchOffset(dest, 0);
@@ -241,7 +247,7 @@ void Assembler::EmitFpuBranch(bool kind, Label *label) {
     }
   } else {
     const int position = buffer_.Size();
-    if (FLAG_use_far_branches) {
+    if (use_far_branches()) {
       const uint32_t dest_off = label->position_;
       EmitFarFpuBranch(kind, dest_off);
     } else {
@@ -279,7 +285,7 @@ void Assembler::Bind(Label* label) {
     int32_t position = label->Position();
     int32_t dest = bound_pc - (position + Instr::kInstrSize);
 
-    if (FLAG_use_far_branches && !CanEncodeBranchOffset(dest)) {
+    if (use_far_branches() && !CanEncodeBranchOffset(dest)) {
       // Far branches are enabled and we can't encode the branch offset.
 
       // Grab the branch instruction. We'll need to flip it later.
@@ -304,7 +310,7 @@ void Assembler::Bind(Label* label) {
       buffer_.Store<int32_t>(position + 2 * Instr::kInstrSize, encoded_high);
       buffer_.Store<int32_t>(position + 3 * Instr::kInstrSize, encoded_low);
       label->position_ = DecodeLoadImmediate(low, high);
-    } else if (FLAG_use_far_branches && CanEncodeBranchOffset(dest)) {
+    } else if (use_far_branches() && CanEncodeBranchOffset(dest)) {
       // We assembled a far branch, but we don't need it. Replace with a near
       // branch.
 

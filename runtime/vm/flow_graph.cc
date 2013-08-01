@@ -33,6 +33,7 @@ FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
     reverse_postorder_(),
     block_effects_(NULL),
     licm_allowed_(true),
+    use_far_branches_(false),
     loop_headers_(NULL),
     loop_invariant_loads_(NULL) {
   DiscoverBlocks();

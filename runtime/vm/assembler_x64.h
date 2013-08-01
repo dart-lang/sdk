@@ -321,11 +321,14 @@ class CPUFeatures : public AllStatic {
 
 class Assembler : public ValueObject {
  public:
-  Assembler()
+  explicit Assembler(bool use_far_branches = false)
       : buffer_(),
         object_pool_(GrowableObjectArray::Handle()),
         prologue_offset_(-1),
-        comments_() { }
+        comments_() {
+    // This mode is only needed and implemented for MIPS and ARM.
+    ASSERT(!use_far_branches);
+  }
   ~Assembler() { }
 
   static const bool kNearJump = true;
