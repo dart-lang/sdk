@@ -8,12 +8,16 @@ import "package:expect/expect.dart";
 
 typedef void FooFunction(int a, double b);
 
+bar(int a) {}
+
 main() {
-  // Right now we can only get to a FunctionTypeMirror by reflecting on a
-  // typedef. See issue 12135.
   TypedefMirror tm = reflectClass(FooFunction);
   FunctionTypeMirror ftm = tm.referent;
   Expect.equals(const Symbol("void"), ftm.returnType.simpleName);
   Expect.equals(const Symbol("int"), ftm.parameters[0].type.simpleName);
   Expect.equals(const Symbol("double"), ftm.parameters[1].type.simpleName);
+  ClosureMirror cm = reflect(bar);
+  ftm = cm.type;
+  Expect.equals(const Symbol("dynamic"), ftm.returnType.simpleName);
+  Expect.equals(const Symbol("int"), ftm.parameters[0].type.simpleName);
 }
