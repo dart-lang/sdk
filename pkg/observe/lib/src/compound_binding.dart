@@ -43,7 +43,7 @@ class CompoundBinding extends ChangeNotifierBase {
    */
   // TODO(jmesserly): I don't like having this public, is the optimization
   // really needed? "runAsync" in Dart should be pretty cheap.
-  bool scheduled;
+  bool scheduled = false;
 
   /**
    * Creates a new CompoundBinding, optionally proving the [combinator] function
