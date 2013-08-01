@@ -759,7 +759,7 @@ class Framebuffer extends Interceptor native "WebGLFramebuffer" {
 @DomName('WebGLLoseContext')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_lose_context/
 @Experimental()
-class LoseContext extends Interceptor native "WebGLLoseContext" {
+class LoseContext extends Interceptor native "WebGLLoseContext,WebGLExtensionLoseContext" {
 
   @DomName('WebGLLoseContext.loseContext')
   @DocsEditable()

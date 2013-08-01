@@ -136,6 +136,8 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
 
     'TransitionEvent': 'TransitionEvent,WebKitTransitionEvent',
 
+    'WebGLLoseContext': 'WebGLLoseContext,WebGLExtensionLoseContext',
+
     'WebKitCSSKeyframeRule':
         'CSSKeyframeRule,MozCSSKeyframeRule,WebKitCSSKeyframeRule',
 
