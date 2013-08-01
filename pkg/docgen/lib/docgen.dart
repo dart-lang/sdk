@@ -50,8 +50,12 @@ MemberMirror _currentMember;
 /// Resolves reference links in doc comments.
 markdown.Resolver linkResolver;
 
-/// Index of all the qualified names documented. 
-Set<String> qualifiedNameIndex = new Set<String>();
+/// Index of all indexable items. This also ensures that no class is 
+/// created more than once. 
+Map<String, Indexable> entityMap = new Map<String, Indexable>();
+
+/// This is set from the command line arguments flag --include-private 
+bool _includePrivate = false;
 
 /**
  * Docgen constructor initializes the link resolver for markdown parsing.
@@ -68,6 +72,7 @@ Set<String> qualifiedNameIndex = new Set<String>();
 Future<bool> docgen(List<String> files, {String packageRoot,
     bool outputToYaml: true, bool includePrivate: false, bool includeSdk: false,
     bool parseSdk: false, bool append: false}) {
+  _includePrivate = includePrivate;
   if (!append) {
     var dir = new Directory('docs');
     if (dir.existsSync()) dir.deleteSync(recursive: true);
@@ -93,8 +98,7 @@ Future<bool> docgen(List<String> files, {String packageRoot,
         throw new StateError('No library mirrors were created.');
       }
       _documentLibraries(mirrorSystem.libraries.values,
-          includeSdk: includeSdk, includePrivate: includePrivate,
-          outputToYaml: outputToYaml, append: append);
+          includeSdk: includeSdk, outputToYaml: outputToYaml, append: append);
 
       return true;
     });
@@ -196,50 +200,93 @@ Future<MirrorSystem> _analyzeLibraries(List<String> libraries,
 /**
  * Creates documentation for filtered libraries.
  */
-void _documentLibraries(List<LibraryMirror> libraries,
-    {bool includeSdk: false, bool includePrivate: false, 
-    bool outputToYaml: true, bool append: false}) {
-  libraries.forEach((lib) {
+void _documentLibraries(List<LibraryMirror> libs,
+    {bool includeSdk: false, bool outputToYaml: true, bool append: false}) {
+  libs.forEach((lib) {
     // Files belonging to the SDK have a uri that begins with 'dart:'.
     if (includeSdk || !lib.uri.toString().startsWith('dart:')) {
-      var library = generateLibrary(lib, includePrivate: includePrivate);
-      _writeLibraryToFile(library, outputToYaml);
+      var library = generateLibrary(lib);
+      entityMap[library.qualifiedName] = library;
     }
   });
-  // Outputs a text file with a list of files available after creating all
-  // the libraries. This will help the viewer know what files are available
+  // After everything is created, do a pass through all classes to make sure no
+  // intermediate classes created by mixins are included. 
+  entityMap.values.where((e) => e is Class).forEach((c) => c.makeValid());
+  // Everything is a subclass of Object, therefore empty the list to avoid a
+  // giant list of subclasses to be printed out. 
+  entityMap['dart.core.Object'].subclasses.clear();
+  
+  var filteredEntities = entityMap.values.where((e) => _filterPrivate(e));
+  // Output libraries and classes to file after all information is generated.
+  filteredEntities.where((e) => e is Class || e is Library).forEach((output) {
+    _writeIndexableToFile(output, outputToYaml);
+  });
+  // Outputs a text file with a list of libraries available after creating all
+  // the libraries. This will help the viewer know what libraries are available
   // to read in.
-  _writeToFile(listDir('docs').join('\n').replaceAll('docs/', ''),
-      'library_list.txt', append: append);
+  _writeToFile(filteredEntities.where((e) => e is Library)
+      .map((e) => e.qualifiedName).join('\n'), 'library_list.txt', 
+      append: append);
   // Outputs all the qualified names documented. This will help generate search
   // results. 
-  _writeToFile(qualifiedNameIndex.join('\n'), 'index.txt', append: append);
+  _writeToFile(filteredEntities.map((e) => e.qualifiedName).join('\n'), 
+      'index.txt', append: append);
 }
 
-Library generateLibrary(dart2js.Dart2JsLibraryMirror library,
-  {bool includePrivate: false}) {
+Library generateLibrary(dart2js.Dart2JsLibraryMirror library) {
   _currentLibrary = library;
-  var result = new Library(library.qualifiedName, _getComment(library),
-      _getVariables(library.variables, includePrivate),
-      _getMethods(library.functions, includePrivate),
-      _getClasses(library.classes, includePrivate));
+  var result = new Library(library.qualifiedName, _commentToHtml(library),
+      _variables(library.variables),
+      _methods(library.functions),
+      _classes(library.classes), _isPrivate(library));
   logger.fine('Generated library for ${result.name}');
   return result;
 }
 
-void _writeLibraryToFile(Library result, bool outputToYaml) {
+void _writeIndexableToFile(Indexable result, bool outputToYaml) {
   if (outputToYaml) {
-    _writeToFile(getYamlString(result.toMap()), '${result.name}.yaml');
+    _writeToFile(getYamlString(result.toMap()), '${result.qualifiedName}.yaml');
   } else {
-    _writeToFile(stringify(result.toMap()), '${result.name}.json');
+    _writeToFile(stringify(result.toMap()), '${result.qualifiedName}.json');
   }
+}
 
+/**
+ * Returns true if a library name starts with an underscore, and false 
+ * otherwise.
+ * 
+ * An example that starts with _ is _js_helper.
+ * An example that contains ._ is dart._collection.dev
+ */
+// This is because LibraryMirror.isPrivate returns `false` all the time. 
+bool _isLibraryPrivate(LibraryMirror mirror) {
+  if (mirror.simpleName.startsWith('_') || mirror.simpleName.contains('._')) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * A declaration is private if itself is private, or the owner is private. 
+ */
+bool _isPrivate(DeclarationMirror mirror) {
+  if (mirror is LibraryMirror) {
+    return _isLibraryPrivate(mirror);
+  } else if (mirror.owner is LibraryMirror) {
+    return (mirror.isPrivate || _isLibraryPrivate(mirror.owner));
+  } else { 
+    return (mirror.isPrivate || _isPrivate(mirror.owner));
+  }
+}
+
+bool _filterPrivate(Indexable item) {
+  return _includePrivate || !item.isPrivate;
 }
 
 /**
  * Returns a list of meta annotations assocated with a mirror.
  */
-List<String> _getAnnotations(DeclarationMirror mirror) {
+List<String> _annotations(DeclarationMirror mirror) {
   var annotations = mirror.metadata.where((e) =>
       e is dart2js.Dart2JsConstructedConstantMirror);
   return annotations.map((e) => e.type.qualifiedName).toList();
@@ -249,7 +296,7 @@ List<String> _getAnnotations(DeclarationMirror mirror) {
  * Returns any documentation comments associated with a mirror with
  * simple markdown converted to html.
  */
-String _getComment(DeclarationMirror mirror) {
+String _commentToHtml(DeclarationMirror mirror) {
   String commentText;
   mirror.metadata.forEach((metadata) {
     if (metadata is CommentInstanceMirror) {
@@ -289,17 +336,18 @@ markdown.Node fixReference(String name, LibraryMirror currentLibrary,
 /**
  * Returns a map of [Variable] objects constructed from [mirrorMap].
  */
-Map<String, Variable> _getVariables(Map<String, VariableMirror> mirrorMap,
-    bool includePrivate) {
+Map<String, Variable> _variables(Map<String, VariableMirror> mirrorMap) {
   var data = {};
   // TODO(janicejl): When map to map feature is created, replace the below with
   // a filter. Issue(#9590).
   mirrorMap.forEach((String mirrorName, VariableMirror mirror) {
-    if (includePrivate || !mirror.isPrivate) {
-      _currentMember = mirror;
-      data[mirrorName] = new Variable(mirrorName, mirror.isFinal, 
-          mirror.isStatic, mirror.isConst, _type(mirror.type),
-          _getComment(mirror), _getAnnotations(mirror), mirror.qualifiedName);
+    _currentMember = mirror;
+    if (_includePrivate || !_isPrivate(mirror)) {
+      entityMap[mirror.qualifiedName] = new Variable(mirrorName, mirror.isFinal,
+         mirror.isStatic, mirror.isConst, _type(mirror.type),
+         _commentToHtml(mirror), _annotations(mirror), mirror.qualifiedName,
+         _isPrivate(mirror), mirror.owner.qualifiedName);
+      data[mirrorName] = entityMap[mirror.qualifiedName];
     }
   });
   return data;
@@ -308,104 +356,58 @@ Map<String, Variable> _getVariables(Map<String, VariableMirror> mirrorMap,
 /**
  * Returns a map of [Method] objects constructed from [mirrorMap].
  */
-Map<String, Map<String, Method>> _getMethods
-    (Map<String, MethodMirror> mirrorMap, bool includePrivate) {
-
-  var setters = {};
-  var getters = {};
-  var constructors = {};
-  var operators = {};
-  var methods = {};
-  
+MethodGroup _methods(Map<String, MethodMirror> mirrorMap) {
+  var group = new MethodGroup();
   mirrorMap.forEach((String mirrorName, MethodMirror mirror) {
-    if (includePrivate || !mirror.isPrivate) {
-      var method = new Method(mirrorName, mirror.isStatic, mirror.isAbstract,
-          mirror.isConstConstructor, _type(mirror.returnType), 
-          _getComment(mirror), _getParameters(mirror.parameters), 
-          _getAnnotations(mirror), mirror.qualifiedName);
-      _currentMember = mirror;
-      if (mirror.isSetter) {
-        setters[mirrorName] = method;
-      } else if (mirror.isGetter) {
-        getters[mirrorName] = method;
-      } else if (mirror.isConstructor) {
-        constructors[mirrorName] = method;
-      } else if (mirror.isOperator) {
-        operators[mirrorName] = method;
-      } else if (mirror.isRegularMethod) {
-         methods[mirrorName] = method;
-      } else {
-        throw new ArgumentError('$mirrorName - no method type match');
-      }
+    if (_includePrivate || !_isPrivate(mirror)) {
+      group.addMethod(mirror);
     }
   });
-  return {
-    'setters': setters,
-    'getters': getters,
-    'constructors': constructors,
-    'operators': operators,
-    'methods': methods
-  };
+  return group;
 } 
+
+/**
+ * Returns the [Class] for the given [mirror] has already been created, and if 
+ * it does not exist, creates it.
+ */
+Class _class(ClassMirror mirror) {
+  var clazz = entityMap[mirror.qualifiedName];
+  if (clazz == null) {
+    var superclass = mirror.superclass != null ? 
+        _class(mirror.superclass) : null;
+    var interfaces = 
+        mirror.superinterfaces.map((interface) => _class(interface));
+    clazz = new Class(mirror.simpleName, superclass, _commentToHtml(mirror), 
+        interfaces.toList(), _variables(mirror.variables),
+        _methods(mirror.methods), _annotations(mirror), _generics(mirror), 
+        mirror.qualifiedName, _isPrivate(mirror), mirror.owner.qualifiedName);
+    entityMap[mirror.qualifiedName] = clazz;
+  }
+  return clazz;
+}
 
 /**
  * Returns a map of [Class] objects constructed from [mirrorMap].
  */
-Map<String, Class> _getClasses(Map<String, ClassMirror> mirrorMap,
-    bool includePrivate) {
-  
-  var abstractClasses = {};
-  var classes = {};
-  var typedefs = {};
-  var errors = {};
-  
+ClassGroup _classes(Map<String, ClassMirror> mirrorMap) {
+  var group = new ClassGroup();
   mirrorMap.forEach((String mirrorName, ClassMirror mirror) {    
-    if (includePrivate || !mirror.isPrivate) {
-      var superclass = (mirror.superclass != null) ?
-          mirror.superclass.qualifiedName : '';
-      var interfaces =
-          mirror.superinterfaces.map((interface) => interface.qualifiedName);
-      var clazz = new Class(mirrorName, superclass, _getComment(mirror), 
-          interfaces.toList(), _getVariables(mirror.variables, includePrivate),
-          _getMethods(mirror.methods, includePrivate),
-          _getAnnotations(mirror), _getGenerics(mirror), mirror.qualifiedName);
-      _currentClass = mirror;
-      
-      if (isError(mirror.qualifiedName)) {
-        errors[mirrorName] = clazz;
-      } else if (mirror.isTypedef) {
-        typedefs[mirrorName] = new Typedef(mirrorName, 
-            mirror.value.returnType.qualifiedName,  _getComment(mirror), 
-            _getGenerics(mirror), _getParameters(mirror.value.parameters),
-            _getAnnotations(mirror), mirror.qualifiedName);
-      } else if (mirror.isAbstract) {
-        abstractClasses[mirrorName] = clazz;
-      } else if (mirror.isClass) {
-        classes[mirrorName] = clazz;
-      } else {
-        throw new ArgumentError('$mirrorName - no class type match. ');
-      }
-    }
+      group.addClass(mirror);
   });
-  return {
-    'abstract': abstractClasses, 
-    'class': classes,
-    'typedef': typedefs,
-    'error': errors
-  };
+  return group;
 }
 
 /**
  * Returns a map of [Parameter] objects constructed from [mirrorList].
  */
-Map<String, Parameter> _getParameters(List<ParameterMirror> mirrorList) {
+Map<String, Parameter> _parameters(List<ParameterMirror> mirrorList) {
   var data = {};
   mirrorList.forEach((ParameterMirror mirror) {
     _currentMember = mirror;
     data[mirror.simpleName] = new Parameter(mirror.simpleName, 
         mirror.isOptional, mirror.isNamed, mirror.hasDefaultValue, 
         _type(mirror.type), mirror.defaultValue, 
-        _getAnnotations(mirror));
+        _annotations(mirror));
   });
   return data;
 }
@@ -413,7 +415,7 @@ Map<String, Parameter> _getParameters(List<ParameterMirror> mirrorList) {
 /**
  * Returns a map of [Generic] objects constructed from the class mirror. 
  */
-Map<String, Generic> _getGenerics(ClassMirror mirror) {
+Map<String, Generic> _generics(ClassMirror mirror) {
   return new Map.fromIterable(mirror.typeVariables, 
       key: (e) => e.toString(), 
       value: (e) => new Generic(e.toString(), e.upperBound.qualifiedName));
@@ -482,14 +484,17 @@ bool isError(String qualifiedName) {
 class Indexable {
   String name;
   String qualifiedName;
+  bool isPrivate;
   
   /// Documentation comment with converted markdown.
   String comment;
   
-  Indexable(this.name, this.comment, String qualifiedName) {
-    this.qualifiedName = qualifiedName;
-    qualifiedNameIndex.add(qualifiedName);
-  }
+  /// Qualified Name of the owner of this Indexable Item.
+  /// For Library, owner will be ""; 
+  String owner;
+  
+  Indexable(this.name, this.comment, this.qualifiedName, this.isPrivate,
+      this.owner);
 }
 
 /**
@@ -501,23 +506,24 @@ class Library extends Indexable {
   Map<String, Variable> variables;
 
   /// Top-level functions in the library.
-  Map<String, Map<String, Method>> functions;
+  MethodGroup functions;
   
   /// Classes defined within the library
-  Map<String, Class> classes;
+  ClassGroup classes;
 
   Library(String name, String comment, this.variables,
-      this.functions, this.classes) : super(name, comment, name) {}
+      this.functions, this.classes, bool isPrivate) : super(name, comment, 
+          name, isPrivate, "") {}
 
   /// Generates a map describing the [Library] object.
   Map toMap() => {
-      'name': name,
-      'qualifiedname': qualifiedName,
-      'comment': comment,
-      'variables': recurseMap(variables),
-      'functions': recurseMap(functions),
-      'classes': recurseMap(classes)
-    };
+    'name': name,
+    'qualifiedname': qualifiedName,
+    'comment': comment,
+    'variables': recurseMap(variables),
+    'functions': functions.toMap(),
+    'classes': classes.toMap()
+  };
 }
 
 /**
@@ -526,38 +532,173 @@ class Library extends Indexable {
 class Class extends Indexable {
 
   /// List of the names of interfaces that this class implements.
-  List<String> interfaces;
+  List<Class> interfaces = [];
+  
+  /// Names of classes that extends or implements this class. 
+  Set<String> subclasses = new Set<String>();
 
   /// Top-level variables in the class.
   Map<String, Variable> variables;
+  
+  /// Inherited variables in the class.
+  Map<String, Variable> inheritedVariables = {};
 
   /// Methods in the class.
-  Map<String, Map<String, Method>> methods;
+  MethodGroup methods;
+  
+  /// Inherited methods in the class.
+  MethodGroup inheritedMethods = new MethodGroup();
   
   /// Generic infomation about the class. 
   Map<String, Generic> generics;
   
-  String superclass;
+  Class superclass;
 
   /// List of the meta annotations on the class.
   List<String> annotations;
   
   Class(String name, this.superclass, String comment, this.interfaces, 
       this.variables, this.methods, this.annotations, this.generics,
-      String qualifiedName) : super(name, comment, qualifiedName) {}
+      String qualifiedName, bool isPrivate, String owner) : super(name, comment,
+          qualifiedName, isPrivate, owner) {}
 
+  /**
+   * Returns a list of all the parent classes. 
+   */
+  List<Class> parent() {
+    var parent = superclass == null ? [] : [superclass];
+    parent.addAll(interfaces);
+    return parent;
+  }
+  
+  /**
+   * Add all inherited variables and methods from the provided superclass.
+   * If [_includePrivate] is true, it also adds the variables and methods from 
+   * the superclass. 
+   */
+  void addInherited(Class superclass) {
+    inheritedVariables.addAll(superclass.inheritedVariables);
+    if (_filterPrivate(superclass)) {
+      inheritedVariables.addAll(superclass.variables);
+    }
+    inheritedMethods.addInherited(superclass);
+  }
+  
+  /**
+   * Add the subclass to the class. 
+   * 
+   * If [this] is private, it will add the subclass to the list of subclasses in
+   * the superclasses. 
+   */
+  void addSubclass(Class subclass) {
+    if (!_includePrivate && isPrivate) {
+      if (superclass != null) superclass.addSubclass(subclass);
+      interfaces.forEach((interface) {
+        interface.addSubclass(subclass);
+      });
+    } else {
+      subclasses.add(subclass.qualifiedName);
+    }
+  }
+  
+  /**
+   * Check that the class exists in the owner library.
+   *  
+   * If it does not exist in the owner library, it is a mixin applciation and 
+   * should be removed. 
+   */
+  void makeValid() {
+    var library = entityMap[owner];
+    if (!library.classes.containsKey(name)) {
+      this.isPrivate = true;
+      // Since we are now making the mixin a private class, make all elements 
+      // with the mixin as an owner private too. 
+      entityMap.values.where((e) => e.owner == qualifiedName)
+        .forEach((element) => element.isPrivate = true);
+      // Move the subclass up to the next public superclass
+      subclasses.forEach((subclass) => addSubclass(entityMap[subclass]));
+    }
+  }
+  
   /// Generates a map describing the [Class] object.
   Map toMap() => {
-      'name': name,
-      'qualifiedname': qualifiedName,
-      'comment': comment,
-      'superclass': superclass,
-      'implements': new List.from(interfaces),
-      'variables': recurseMap(variables),
-      'methods': recurseMap(methods),
-      'annotations': new List.from(annotations),
-      'generics': recurseMap(generics)
-    };
+    'name': name,
+    'qualifiedname': qualifiedName,
+    'comment': comment,
+    'superclass': superclass == null ? "" : (_filterPrivate(superclass)) ? 
+        superclass.qualifiedName : "",
+    'implements': new List.from(interfaces.where((e) => _filterPrivate(e))
+        .map((e) => e.qualifiedName)),
+    'subclass': new List.from(subclasses),
+    'variables': recurseMap(variables),
+    'inheritedvariables': recurseMap(inheritedVariables),
+    'methods': methods.toMap(),
+    'inheritedmethods': inheritedMethods.toMap(),
+    'annotations': new List.from(annotations),
+    'generics': recurseMap(generics)
+  };
+}
+
+/**
+ * A container to categorize classes into the following groups: abstract 
+ * classes, regular classes, typedefs, and errors. 
+ */
+class ClassGroup {
+  Map<String, Class> abstractClasses = {};
+  Map<String, Class> regularClasses = {};
+  Map<String, Typedef> typedefs = {};
+  Map<String, Class> errors = {};
+  
+  void addClass(ClassMirror mirror) {
+    _currentClass = mirror;
+    var clazz = _class(mirror);
+   
+    // Adding inherited parent variables and methods. 
+    clazz.parent().forEach((parent) {
+      if (_filterPrivate(clazz)) {
+        parent.addSubclass(clazz);
+      }
+      clazz.addInherited(parent);
+    });
+    
+    if (isError(mirror.qualifiedName)) {
+      errors[mirror.simpleName] = clazz;
+    } else if (mirror.isTypedef) {
+      if (_includePrivate || !mirror.isPrivate) {
+        entityMap[mirror.qualifiedName] = new Typedef(mirror.simpleName, 
+            mirror.value.returnType.qualifiedName, _commentToHtml(mirror), 
+            _generics(mirror), _parameters(mirror.value.parameters),
+            _annotations(mirror), mirror.qualifiedName,  _isPrivate(mirror), 
+            mirror.owner.qualifiedName);
+        typedefs[mirror.simpleName] = entityMap[mirror.qualifiedName];
+      }
+    } else if (mirror.isAbstract) {
+      abstractClasses[mirror.simpleName] = clazz;
+    } else if (mirror.isClass) {
+      regularClasses[mirror.simpleName] = clazz;
+    } else {
+      throw new ArgumentError('${mirror.simpleName} - no class type match. ');
+    }
+  }
+  
+  /**
+   * Checks if the given name is a key for any of the Class Maps. 
+   */
+  bool containsKey(String name) {
+    return abstractClasses.containsKey(name) ||
+        regularClasses.containsKey(name) ||
+        errors.containsKey(name);
+  }
+  
+  Map toMap() => {
+    'abstract': new List.from(abstractClasses.values
+        .where((e) => _filterPrivate(e)).map((e) => e.qualifiedName)),
+    'class': new List.from(regularClasses.values
+        .where((e) => _filterPrivate(e)).map((e) => e.qualifiedName)),
+    'typedef': recurseMap(typedefs),
+    'error': new List.from(errors.values
+        .where((e) => _filterPrivate(e)).map((e) => e.qualifiedName))
+  };
 }
 
 class Typedef extends Indexable {
@@ -573,17 +714,18 @@ class Typedef extends Indexable {
   
   Typedef(String name, this.returnType, String comment, this.generics, 
       this.parameters, this.annotations,
-      String qualifiedName) : super(name, comment, qualifiedName) {}
+      String qualifiedName, bool isPrivate, String owner) : super(name, comment,
+          qualifiedName, isPrivate, owner) {}
   
   Map toMap() => {
-      'name': name,
-      'qualifiedname': qualifiedName,
-      'comment': comment,
-      'return': returnType,
-      'parameters': recurseMap(parameters),
-      'annotations': new List.from(annotations),
-      'generics': recurseMap(generics)
-    };
+    'name': name,
+    'qualifiedname': qualifiedName,
+    'comment': comment,
+    'return': returnType,
+    'parameters': recurseMap(parameters),
+    'annotations': new List.from(annotations),
+    'generics': recurseMap(generics)
+  };
 }
 
 /**
@@ -600,20 +742,20 @@ class Variable extends Indexable {
   List<String> annotations;
   
   Variable(String name, this.isFinal, this.isStatic, this.isConst, this.type, 
-      String comment, this.annotations, String qualifiedName) : super(name, 
-          comment, qualifiedName);
+      String comment, this.annotations, String qualifiedName, bool isPrivate,
+      String owner) : super(name, comment, qualifiedName, isPrivate, owner);
   
   /// Generates a map describing the [Variable] object.
   Map toMap() => {
-      'name': name,
-      'qualifiedname': qualifiedName,
-      'comment': comment,
-      'final': isFinal.toString(),
-      'static': isStatic.toString(),
-      'constant': isConst.toString(),
-      'type': new List.filled(1, type.toMap()),
-      'annotations': new List.from(annotations)
-    };
+    'name': name,
+    'qualifiedname': qualifiedName,
+    'comment': comment,
+    'final': isFinal.toString(),
+    'static': isStatic.toString(),
+    'constant': isConst.toString(),
+    'type': new List.filled(1, type.toMap()),
+    'annotations': new List.from(annotations)
+  };
 }
 
 /**
@@ -634,21 +776,77 @@ class Method extends Indexable {
   
   Method(String name, this.isStatic, this.isAbstract, this.isConst, 
       this.returnType, String comment, this.parameters, this.annotations,
-      String qualifiedName) 
-      : super(name, comment, qualifiedName);
+      String qualifiedName, bool isPrivate, String owner) : super(name, comment,
+          qualifiedName, isPrivate, owner);
   
   /// Generates a map describing the [Method] object.
   Map toMap() => {
-      'name': name,
-      'qualifiedname': qualifiedName,
-      'comment': comment,
-      'static': isStatic.toString(),
-      'abstract': isAbstract.toString(),
-      'constant': isConst.toString(),
-      'return': new List.filled(1, returnType.toMap()),
-      'parameters': recurseMap(parameters),
-      'annotations': new List.from(annotations)
-    };
+    'name': name,
+    'qualifiedname': qualifiedName,
+    'comment': comment,
+    'static': isStatic.toString(),
+    'abstract': isAbstract.toString(),
+    'constant': isConst.toString(),
+    'return': new List.filled(1, returnType.toMap()),
+    'parameters': recurseMap(parameters),
+    'annotations': new List.from(annotations)
+  };
+}
+
+/**
+ * A container to categorize methods into the following groups: setters, 
+ * getters, constructors, operators, regular methods. 
+ */
+class MethodGroup {
+  Map<String, Method> setters = {};
+  Map<String, Method> getters = {};
+  Map<String, Method> constructors = {};
+  Map<String, Method> operators = {};
+  Map<String, Method> regularMethods = {};
+  
+  void addMethod(MethodMirror mirror) {
+    var method = new Method(mirror.simpleName, mirror.isStatic, 
+        mirror.isAbstract, mirror.isConstConstructor, _type(mirror.returnType), 
+        _commentToHtml(mirror), _parameters(mirror.parameters), 
+        _annotations(mirror), mirror.qualifiedName, _isPrivate(mirror),
+        mirror.owner.qualifiedName);
+    entityMap[mirror.qualifiedName] = method;
+    _currentMember = mirror;
+    if (mirror.isSetter) {
+      setters[mirror.simpleName] = method;
+    } else if (mirror.isGetter) {
+      getters[mirror.simpleName] = method;
+    } else if (mirror.isConstructor) {
+      constructors[mirror.simpleName] = method;
+    } else if (mirror.isOperator) {
+      operators[mirror.simpleName] = method;
+    } else if (mirror.isRegularMethod) {
+      regularMethods[mirror.simpleName] = method;
+    } else {
+      throw new ArgumentError('${mirror.simpleName} - no method type match');
+    }
+  }
+  
+  void addInherited(Class parent) {
+    setters.addAll(parent.inheritedMethods.setters);
+    getters.addAll(parent.inheritedMethods.getters);
+    operators.addAll(parent.inheritedMethods.operators);
+    regularMethods.addAll(parent.inheritedMethods.regularMethods);
+    if (_filterPrivate(parent)) {
+      setters.addAll(parent.methods.setters);
+      getters.addAll(parent.methods.getters);
+      operators.addAll(parent.methods.operators);
+      regularMethods.addAll(parent.methods.regularMethods);
+    }
+  }
+  
+  Map toMap() => {
+    'setters': recurseMap(setters),
+    'getters': recurseMap(getters),
+    'constructors': recurseMap(constructors),
+    'operators': recurseMap(operators),
+    'methods': recurseMap(regularMethods)
+  };
 }
 
 /**
@@ -671,14 +869,14 @@ class Parameter {
   
   /// Generates a map describing the [Parameter] object.
   Map toMap() => {
-      'name': name,
-      'optional': isOptional.toString(),
-      'named': isNamed.toString(),
-      'default': hasDefaultValue.toString(),
-      'type': new List.filled(1, type.toMap()),
-      'value': defaultValue,
-      'annotations': new List.from(annotations)
-    };
+    'name': name,
+    'optional': isOptional.toString(),
+    'named': isNamed.toString(),
+    'default': hasDefaultValue.toString(),
+    'type': new List.filled(1, type.toMap()),
+    'value': defaultValue,
+    'annotations': new List.from(annotations)
+  };
 }
 
 /**
@@ -691,9 +889,9 @@ class Generic {
   Generic(this.name, this.type);
   
   Map toMap() => {
-      'name': name,
-      'type': type
-    };
+    'name': name,
+    'type': type
+  };
 }
 
 /**
@@ -733,7 +931,7 @@ class Type {
   Type(this.outer, this.inner);
   
   Map toMap() => {
-      'outer': outer,
-      'inner': new List.from(inner.map((e) => e.toMap()))
-    };
+    'outer': outer,
+    'inner': new List.from(inner.map((e) => e.toMap()))
+  };
 }
