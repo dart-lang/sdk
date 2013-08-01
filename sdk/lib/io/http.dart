@@ -943,12 +943,21 @@ abstract class HttpClient {
   factory HttpClient() => new _HttpClient();
 
   /**
-   * Opens a HTTP connection. The returned [HttpClientRequest] is used to
-   * fill in the content of the request before sending it. The 'host' header for
-   * the request will be set to the value [host]:[port]. This can be overridden
-   * through the [HttpClientRequest] interface before the request is sent.
-   * NOTE if [host] is an IP address this will still be set in the 'host'
+   * Opens a HTTP connection.
+   *
+   * The HTTP method to use is specified in [method], the server is
+   * specified using [host] and [port], and the path (including
+   * possible fragment and query) is specified using [path].
+   *
+   * The `Host` header for the request will be set to the value
+   * [host]:[port]. This can be overridden through the
+   * [HttpClientRequest] interface before the request is sent.  NOTE
+   * if [host] is an IP address this will still be set in the `Host`
    * header.
+   *
+   * For additional information on the sequence of events during an
+   * HTTP transaction, and the objects returned by the futures, see
+   * the overall documentation for the class [HttpClient].
    */
   Future<HttpClientRequest> open(String method,
                                  String host,
@@ -956,36 +965,60 @@ abstract class HttpClient {
                                  String path);
 
   /**
-   * Opens a HTTP connection. The returned [HttpClientRequest] is used to
-   * fill in the content of the request before sending it. The 'hosth header for
-   * the request will be set to the value [host]:[port]. This can be overridden
-   * through the [HttpClientRequest] interface before the request is sent.
-   * NOTE if [host] is an IP address this will still be set in the 'host'
+   * Opens a HTTP connection.
+   *
+   * The HTTP method is specified in [method] and the URL to use in
+   * [url].
+   *
+   * The `Host` header for the request will be set to the value
+   * [host]:[port]. This can be overridden through the
+   * [HttpClientRequest] interface before the request is sent.  NOTE
+   * if [host] is an IP address this will still be set in the `Host`
    * header.
+   *
+   * For additional information on the sequence of events during an
+   * HTTP transaction, and the objects returned by the futures, see
+   * the overall documentation for the class [HttpClient].
    */
   Future<HttpClientRequest> openUrl(String method, Uri url);
 
   /**
-   * Opens a HTTP connection using the GET method. See [open] for
-   * details. Using this method to open a HTTP connection will set the
-   * content length to 0.
+   * Opens a HTTP connection using the GET method.
+   *
+   * The server is specified using [host] and [port], and the path
+   * (including possible fragment and query) is specified using
+   * [path].
+   *
+   * See [open] for details.
    */
   Future<HttpClientRequest> get(String host, int port, String path);
 
   /**
-   * Opens a HTTP connection using the GET method. See [openUrl] for
-   * details. Using this method to open a HTTP connection will set the
-   * content length to 0.
+   * Opens a HTTP connection using the GET method.
+   *
+   * The URL to use is specified in [url].
+   *
+   * See [openUrl] for details.
    */
   Future<HttpClientRequest> getUrl(Uri url);
 
   /**
-   * Opens a HTTP connection using the POST method. See [open] for details.
+   * Opens a HTTP connection using the POST method.
+   *
+   * The server is specified using [host] and [port], and the path
+   * (including possible fragment and query) is specified using
+   * [path].
+   *
+   * See [open] for details.
    */
   Future<HttpClientRequest> post(String host, int port, String path);
 
   /**
-   * Opens a HTTP connection using the POST method. See [openUrl] for details.
+   * Opens a HTTP connection using the POST method.
+   *
+   * The URL to use is specified in [url].
+   *
+   * See [openUrl] for details.
    */
   Future<HttpClientRequest> postUrl(Uri url);
 
