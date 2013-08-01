@@ -9,7 +9,11 @@ patch class SecureSocket {
   /* patch */ static void initialize({String database,
                                       String password,
                                       bool useBuiltinRoots: true})
-  native "SecureSocket_InitializeLibrary";
+      native "SecureSocket_InitializeLibrary";
+
+  /* patch */ static X509Certificate addCertificate(List<int> certificate,
+                                                    String trust)
+      native "SecureSocket_AddCertificate";
 }
 
 

@@ -802,14 +802,6 @@ throwRuntimeError(message) {
   throw new RuntimeError(message);
 }
 
-/**
- * The SSA builder generates a call to this method when a malformed type is used
- * in a subtype test.
- */
-throwMalformedSubtypeError(value, type, reasons) {
-  throw new TypeErrorImplementation.malformedSubtype(value, type, reasons);
-}
-
 throwAbstractClassInstantiationError(className) {
   throw new AbstractClassInstantiationError(className);
 }
@@ -1801,16 +1793,6 @@ voidTypeCheck(value) {
   throw new TypeErrorImplementation(value, 'void');
 }
 
-malformedTypeCheck(value, type, reasons) {
-  if (value == null) return value;
-  throwMalformedSubtypeError(value, type, reasons);
-}
-
-malformedTypeCast(value, type, reasons) {
-  if (value == null) return value;
-  throw new CastErrorImplementation.malformedTypeCast(value, type, reasons);
-}
-
 /**
  * Special interface recognized by the compiler and implemented by DOM
  * objects that support integer indexing. This interface is not
@@ -1833,14 +1815,6 @@ class TypeErrorImplementation implements TypeError {
       : message = "type '${Primitives.objectTypeName(value)}' is not a subtype "
                   "of type '$type'";
 
-  /**
-   * Type error caused by a subtype test on a malformed type.
-   */
-  TypeErrorImplementation.malformedSubtype(Object value,
-                                           String type, String reasons)
-      : message = "type '${Primitives.objectTypeName(value)}' is not a subtype "
-                  "of type '$type' because '$type' is malformed: $reasons.";
-
   String toString() => message;
 }
 
@@ -1855,17 +1829,6 @@ class CastErrorImplementation implements CastError {
   CastErrorImplementation(Object actualType, Object expectedType)
       : message = "CastError: Casting value of type $actualType to"
                   " incompatible type $expectedType";
-
-
-  /**
-   * Cast error caused by a type cast to a malformed type.
-   */
-  CastErrorImplementation.malformedTypeCast(Object value,
-                                            String type, String reasons)
-      : message = "CastError: Type '${Primitives.objectTypeName(value)}' "
-                  "cannot be cast to type '$type' because '$type' is "
-                  "malformed: $reasons.";
-
 
   String toString() => message;
 }

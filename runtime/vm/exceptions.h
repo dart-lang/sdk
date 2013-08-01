@@ -52,7 +52,7 @@ class Exceptions : AllStatic {
     kNullThrown,
     kIsolateSpawn,
     kIsolateUnhandledException,
-    kFiftyThreeBitOverflowError,
+    kJavascriptIntegerOverflowError,
     kAssertion,
     kCast,
     kType,

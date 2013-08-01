@@ -226,6 +226,10 @@ static InstructionTable instruction_table;
 // Returns NULL if the instruction is not handled here.
 static const char* F0Mnem(uint8_t f0byte) {
   switch (f0byte) {
+    case 0x12: return "movhlps";
+    case 0x14: return "unpcklps";
+    case 0x15: return "unpckhps";
+    case 0x16: return "movlhps";
     case 0xA2: return "cpuid";
     case 0x31: return "rdtsc";
     case 0xBE: return "movsx_b";
@@ -255,6 +259,16 @@ static const char* F0Mnem(uint8_t f0byte) {
     case 0x11: return "movups";
     default: return NULL;
   }
+}
+
+
+static bool IsTwoXmmRegInstruction(uint8_t f0byte) {
+  return f0byte == 0x28 || f0byte == 0x11 || f0byte == 0x12 ||
+         f0byte == 0x14 || f0byte == 0x15 || f0byte == 0x16 ||
+         f0byte == 0x51 || f0byte == 0x52 || f0byte == 0x53 ||
+         f0byte == 0x54 || f0byte == 0x56 || f0byte == 0x58 ||
+         f0byte == 0x59 || f0byte == 0x5C || f0byte == 0x5D ||
+         f0byte == 0x5E || f0byte == 0x5F;
 }
 
 
@@ -1362,22 +1376,6 @@ int X86Decoder::InstructionDecode(uword pc) {
               PrintCPURegister(regop);
               Print(",cl");
             }
-          } else if (f0byte == 0x28) {
-            // movaps
-            Print(f0mnem);
-            int mod, regop, rm;
-            GetModRm(*data, &mod, &regop, &rm);
-            Print(" ");
-            PrintXmmRegister(regop);
-            Print(",");
-            data += PrintRightXmmOperand(data);
-          } else if (f0byte == 0x11) {
-            Print("movups ");
-            int mod, regop, rm;
-            GetModRm(*data, &mod, &regop, &rm);
-            data += PrintRightXmmOperand(data);
-            Print(",");
-            PrintXmmRegister(regop);
           } else if (f0byte == 0x10) {
             int mod, regop, rm;
             GetModRm(*data, &mod, &regop, &rm);
@@ -1385,10 +1383,7 @@ int X86Decoder::InstructionDecode(uword pc) {
             PrintXmmRegister(regop);
             Print(",");
             data += PrintRightOperand(data);
-          } else if (f0byte == 0x51 || f0byte == 0x52 || f0byte == 0x53 ||
-                     f0byte == 0x54 || f0byte == 0x56 || f0byte == 0x58 ||
-                     f0byte == 0x59 || f0byte == 0x5C || f0byte == 0x5D ||
-                     f0byte == 0x5E || f0byte == 0x5F) {
+          } else if (IsTwoXmmRegInstruction(f0byte)) {
             int mod, regop, rm;
             GetModRm(*data, &mod, &regop, &rm);
             Print(f0mnem);
@@ -1598,6 +1593,22 @@ int X86Decoder::InstructionDecode(uword pc) {
             } else {
               UNIMPLEMENTED();
             }
+          } else if (*data == 0x14) {
+            int mod, regop, rm;
+            GetModRm(*(data+1), &mod, &regop, &rm);
+            Print("unpcklpd ");
+            PrintXmmRegister(regop);
+            Print(",");
+            PrintXmmRegister(rm);
+            data += 2;
+          } else if (*data == 0x15) {
+            int mod, regop, rm;
+            GetModRm(*(data+1), &mod, &regop, &rm);
+            Print("unpckhpd ");
+            PrintXmmRegister(regop);
+            Print(",");
+            PrintXmmRegister(rm);
+            data += 2;
           } else {
             UNIMPLEMENTED();
           }

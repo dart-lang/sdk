@@ -8,6 +8,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
+import "package:expect/expect.dart";
 
 import 'fuzz_support.dart';
 
@@ -39,6 +40,11 @@ fuzzAsyncMethods() {
   var port = new ReceivePort();
   var futures = [];
   typeMapping.forEach((k, v) {
+    if (v is! String) {
+      Expect.throws(() => new Directory(v),
+                    (e) => e is ArgumentError);
+      return;
+    }
     var d = new Directory(v);
     futures.add(doItAsync(d.exists));
     futures.add(doItAsync(d.create));

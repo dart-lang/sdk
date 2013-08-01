@@ -34,16 +34,11 @@ class ClassFinalizer : public AllStatic {
     kDoNotResolve,             // Type resolution is postponed.
     kResolveTypeParameters,    // Resolve type parameters only.
     kFinalize,                 // Type resolution and type finalization are
-                               // required; a malformed type is tolerated, since
-                               // the type may be used as a type annotation.
+                               // required; replace a malformed type by dynamic.
     kCanonicalize,             // Same as kFinalize, but with canonicalization.
-    kCanonicalizeExpression,   // Same as kCanonicalize, but do not tolerate
-                               // wrong number of type arguments or ambiguous
-                               // type reference, since the type is not used as
-                               // a type annotation, but as a type expression.
     kCanonicalizeWellFormed    // Error-free resolution, finalization, and
                                // canonicalization are required; a malformed
-                               // type is not tolerated.
+                               // type is marked as such.
   };
 
   // Finalize given type while parsing class cls.
@@ -59,9 +54,8 @@ class ClassFinalizer : public AllStatic {
   static RawType* NewFinalizedMalformedType(const Error& prev_error,
                                             const Class& cls,
                                             intptr_t type_pos,
-                                            FinalizationKind finalization,
                                             const char* format, ...)
-       PRINTF_ATTRIBUTE(5, 6);
+       PRINTF_ATTRIBUTE(4, 5);
 
   // Depending on the given type, finalization mode, and execution mode, mark
   // the given type as malformed or report a compile time error.
@@ -70,9 +64,8 @@ class ClassFinalizer : public AllStatic {
   static void FinalizeMalformedType(const Error& prev_error,
                                     const Class& cls,
                                     const Type& type,
-                                    FinalizationKind finalization,
                                     const char* format, ...)
-       PRINTF_ATTRIBUTE(5, 6);
+       PRINTF_ATTRIBUTE(4, 5);
 
   // Return false if we still have classes pending to be finalized.
   static bool AllClassesFinalized();
@@ -145,7 +138,6 @@ class ClassFinalizer : public AllStatic {
   static void ReportMalformedType(const Error& prev_error,
                                   const Class& cls,
                                   const Type& type,
-                                  FinalizationKind finalization,
                                   const char* format,
                                   va_list args);
   static void ReportError(const Error& error);

@@ -1,13 +1,14 @@
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// Parser throws an error when parsing x is! T with malformed type T.
+
+import 'package:expect/expect.dart';
 
 f(obj) {
-  // 'Baz' is not loaded error.
-  return (obj is !Baz);  /// 01: runtime error
+  // 'Baz' is not loaded, mapped to dynamic.
+  return (obj is !Baz);
 }
 
 main () {
-  f(null);  
+  Expect.isFalse(f(null));
 }

@@ -724,8 +724,7 @@ class Namer implements ClosureNamer {
           kind == ElementKind.GETTER ||
           kind == ElementKind.SETTER ||
           kind == ElementKind.TYPEDEF ||
-          kind == ElementKind.LIBRARY ||
-          kind == ElementKind.MALFORMED_TYPE) {
+          kind == ElementKind.LIBRARY) {
         bool fixedName = false;
         if (kind == ElementKind.CLASS) {
           ClassElement classElement = element;

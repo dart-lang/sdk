@@ -9,19 +9,28 @@ import 'package:path/path.dart' as path;
 
 main() {
   group('new Builder()', () {
-    test('uses the current working directory if root is omitted', () {
+    test('uses the current directory if root and style are omitted', () {
       var builder = new path.Builder();
       expect(builder.root, io.Directory.current.path);
     });
 
-    test('uses the host OS if style is omitted', () {
-      var builder = new path.Builder();
-      if (io.Platform.operatingSystem == 'windows') {
-        expect(builder.style, path.Style.windows);
-      } else {
-        expect(builder.style, path.Style.posix);
-      }
+    test('uses "." if root is omitted', () {
+      var builder = new path.Builder(style: path.Style.platform);
+      expect(builder.root, ".");
     });
+
+    test('uses the host platform if style is omitted', () {
+      var builder = new path.Builder();
+      expect(builder.style, path.Style.platform);
+    });
+  });
+
+  test('Style.platform returns the host platform style', () {
+    if (io.Platform.operatingSystem == 'windows') {
+      expect(path.Style.platform, path.Style.windows);
+    } else {
+      expect(path.Style.platform, path.Style.posix);
+    }
   });
 
   test('current', () {

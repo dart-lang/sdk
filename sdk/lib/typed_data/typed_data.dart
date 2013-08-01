@@ -798,6 +798,12 @@ abstract class Float32x4List implements List<Float32x4>, TypedData {
   external factory Float32x4List(int length);
 
   /**
+   * Creates a [Float32x4List] with the same size as the [elements] list
+   * and copies over the elements.
+   */
+  external factory Float32x4List.fromList(List<Float32x4> elements);
+
+  /**
    * Creates a [Float32x4List] _view_ of the specified region in the specified
    * byte buffer. Changes in the [Float32x4List] will be visible in the byte
    * buffer and vice versa. If the [offsetInBytes] index of the region is not

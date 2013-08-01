@@ -15,6 +15,11 @@ namespace dart {
 
 DEFINE_FLAG(bool, code_comments, false,
             "Include comments into code and disassembly");
+// TODO(zra): Remove once far branches are enabled automatically on a
+// per-function basis.
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
+DEFINE_FLAG(bool, use_far_branches, false, "Enable far branches");
+#endif
 
 
 static uword NewContents(intptr_t capacity) {

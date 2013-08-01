@@ -366,6 +366,9 @@ class Assembler : public ValueObject {
   void cmovs(Register dst, Register src);
   void cmovns(Register dst, Register src);
 
+  void cmovgel(Register dst, Register src);
+  void cmovlessl(Register dst, Register src);
+
   void rep_movsb();
 
   void movss(XmmRegister dst, const Address& src);

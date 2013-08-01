@@ -17,7 +17,6 @@ namespace dart {
 DECLARE_FLAG(bool, trace_sim);
 #endif
 DEFINE_FLAG(bool, print_stop_message, false, "Print stop message.");
-DEFINE_FLAG(bool, use_far_branches, false, "Enable far branches on MIPS");
 DECLARE_FLAG(bool, inline_alloc);
 
 void Assembler::InitializeMemoryWithBreakpoints(uword data, int length) {

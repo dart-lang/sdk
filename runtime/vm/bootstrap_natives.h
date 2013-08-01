@@ -240,16 +240,18 @@ namespace dart {
   V(isolate_spawnFunction, 2)                                                  \
   V(isolate_spawnUri, 1)                                                       \
   V(Mirrors_isLocalPort, 1)                                                    \
-  V(Mirrors_makeLocalInstanceMirror, 1)                                        \
   V(Mirrors_makeLocalClassMirror, 1)                                           \
   V(Mirrors_makeLocalMirrorSystem, 0)                                          \
+  V(MirrorReference_equals, 2)                                                 \
   V(InstanceMirror_invoke, 4)                                                  \
   V(InstanceMirror_invokeGetter, 3)                                            \
   V(InstanceMirror_invokeSetter, 4)                                            \
+  V(ClosureMirror_function, 1)                                                 \
   V(ClosureMirror_apply, 2)                                                    \
   V(ClassMirror_name, 1)                                                       \
   V(ClassMirror_library, 1)                                                    \
   V(ClassMirror_supertype, 1)                                                  \
+  V(ClassMirror_interfaces, 1)                                                 \
   V(ClassMirror_members, 2)                                                    \
   V(ClassMirror_constructors, 2)                                               \
   V(LibraryMirror_members, 2)                                                  \
@@ -257,15 +259,20 @@ namespace dart {
   V(ClassMirror_invokeGetter, 3)                                               \
   V(ClassMirror_invokeSetter, 4)                                               \
   V(ClassMirror_invokeConstructor, 3)                                          \
+  V(ClassMirror_type_variables, 1)                                             \
   V(LibraryMirror_invoke, 4)                                                   \
   V(LibraryMirror_invokeGetter, 3)                                             \
   V(LibraryMirror_invokeSetter, 4)                                             \
+  V(LocalTypeVariableMirror_owner, 1)                                          \
+  V(LocalTypeVariableMirror_upper_bound, 1)                                    \
   V(DeclarationMirror_metadata, 1)                                             \
-  V(MethodMirror_name, 1)                                                      \
+  V(FunctionTypeMirror_parameters, 1)                                          \
+  V(FunctionTypeMirror_return_type, 1)                                         \
   V(MethodMirror_owner, 1)                                                     \
   V(MethodMirror_parameters, 1)                                                \
   V(MethodMirror_return_type, 1)                                               \
   V(ParameterMirror_type, 2)                                                   \
+  V(TypedefMirror_referent, 1)                                                 \
   V(VariableMirror_type, 1)                                                    \
   V(GrowableObjectArray_allocate, 2)                                           \
   V(GrowableObjectArray_getIndexed, 2)                                         \

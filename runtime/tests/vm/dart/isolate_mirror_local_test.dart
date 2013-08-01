@@ -390,8 +390,7 @@ void testBoolInstanceMirror(InstanceMirror mirror) {
 }
 
 void testNullInstanceMirror(InstanceMirror mirror) {
-  // TODO(turnidge): This is returning the wrong class.  Fix it.
-  Expect.equals(const Symbol('Object'), mirror.type.simpleName);
+  Expect.equals(const Symbol('Null'), mirror.type.simpleName);
   Expect.isTrue(mirror.hasReflectee);
   Expect.equals(null, mirror.reflectee);
   Expect.equals("InstanceMirror on null", mirror.toString());

@@ -717,9 +717,10 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
 
 # Manual dart: library name lookup.
 _library_names = monitored.Dict('htmlrenamer._library_names', {
-  'Window': 'html',
+  'ANGLEInstancedArrays': 'web_gl',
   'Database': 'web_sql',
   'Navigator': 'html',
+  'Window': 'html',
   'WorkerContext': 'html',
 })
 

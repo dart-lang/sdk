@@ -1981,6 +1981,15 @@ DART_EXPORT Dart_Handle Dart_GetNativeFieldOfArgument(Dart_NativeArguments args,
 DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
                                      Dart_Handle retval);
 
+DART_EXPORT void Dart_SetBooleanReturnValue(Dart_NativeArguments args,
+                                            bool retval);
+
+DART_EXPORT void Dart_SetIntegerReturnValue(Dart_NativeArguments args,
+                                            intptr_t retval);
+
+DART_EXPORT void Dart_SetDoubleReturnValue(Dart_NativeArguments args,
+                                           double retval);
+
 /**
  * A native function.
  */

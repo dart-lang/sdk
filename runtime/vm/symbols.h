@@ -60,6 +60,8 @@ class ObjectPointerVisitor;
   V(StacktraceVar, ":stacktrace_var")                                          \
   V(ListLiteralElement, "list literal element")                                \
   V(ForInIter, ":for-in-iter")                                                 \
+  V(ClosureFunctionField, ":function")                                         \
+  V(ClosureContextField, ":context")                                           \
   V(Library, "library")                                                        \
   V(Import, "import")                                                          \
   V(Source, "source")                                                          \
@@ -228,7 +230,7 @@ class ObjectPointerVisitor;
   V(NullThrownError, "NullThrownError")                                        \
   V(IsolateSpawnException, "IsolateSpawnException")                            \
   V(IsolateUnhandledException, "IsolateUnhandledException")                    \
-  V(FiftyThreeBitOverflowError, "_FiftyThreeBitOverflowError")                 \
+  V(JavascriptIntegerOverflowError, "_JavascriptIntegerOverflowError")         \
   V(MirroredCompilationError, "MirroredCompilationError")                      \
   V(MirroredUncaughtExceptionError, "MirroredUncaughtExceptionError")          \
   V(_setupFullStackTrace, "_setupFullStackTrace")                              \
@@ -269,9 +271,16 @@ class ObjectPointerVisitor;
   V(_A, "_A")                                                                  \
   V(_stackTrace, "_stackTrace")                                                \
   V(_SpecialTypeMirrorImpl, "_SpecialTypeMirrorImpl")                          \
+  V(_LocalClassMirrorImpl, "_LocalClassMirrorImpl")                            \
+  V(_LocalFunctionTypeMirrorImpl, "_LocalFunctionTypeMirrorImpl")              \
+  V(_LocalLibraryMirrorImpl, "_LocalLibraryMirrorImpl")                        \
   V(_LocalMethodMirrorImpl, "_LocalMethodMirrorImpl")                          \
   V(_LocalVariableMirrorImpl, "_LocalVariableMirrorImpl")                      \
   V(_LocalParameterMirrorImpl, "_LocalParameterMirrorImpl")                    \
+  V(_LocalIsolateMirrorImpl, "_LocalIsolateMirrorImpl")                        \
+  V(_LocalMirrorSystemImpl, "_LocalMirrorSystemImpl")                          \
+  V(_LocalTypedefMirrorImpl, "_LocalTypedefMirrorImpl")                        \
+  V(_LocalTypeVariableMirrorImpl, "_LocalTypeVariableMirrorImpl")              \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This

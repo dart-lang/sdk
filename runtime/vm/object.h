@@ -3821,6 +3821,7 @@ class Type : public AbstractType {
     (raw_ptr()->type_state_ == RawType::kFinalizedUninstantiated);
   }
   void SetIsFinalized() const;
+  void ResetIsFinalized() const;  // Ignore current state and set again.
   virtual bool IsBeingFinalized() const {
     return raw_ptr()->type_state_ == RawType::kBeingFinalized;
   }
@@ -4137,8 +4138,8 @@ class Integer : public Number {
   RawInteger* ArithmeticOp(Token::Kind operation, const Integer& other) const;
   RawInteger* BitOp(Token::Kind operation, const Integer& other) const;
 
-  // Returns true if the Integer does not fit in 53 bits.
-  bool CheckFiftyThreeBitOverflow() const;
+  // Returns true if the Integer does not fit in a Javascript integer.
+  bool CheckJavascriptIntegerOverflow() const;
 
  private:
   // Return an integer in the form of a RawBigint.
@@ -5898,6 +5899,8 @@ class MirrorReference : public Instance {
   RawFunction* GetFunctionReferent() const;
 
   RawLibrary* GetLibraryReferent() const;
+
+  RawTypeParameter* GetTypeParameterReferent() const;
 
   static RawMirrorReference* New(const Object& referent,
                                  Heap::Space space = Heap::kNew);

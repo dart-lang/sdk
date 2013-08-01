@@ -1,7 +1,7 @@
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--optimization-counter-threshold=10
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr
 
 import "package:expect/expect.dart";
 
@@ -53,6 +53,30 @@ tests() {
   }
 }
 
+boolEqualityPositiveA(a) => a == true;
+boolEqualityNegativeA(a) => a != true;
+
+boolEqualityPositiveB(a) => true == a;
+boolEqualityNegativeB(a) => true != a;
+
 main() {
-  for (int i = 0; i < 20; i++) tests();
+  for (int i = 0; i < 20; i++) {
+    tests();
+    // Do not inline calls to prevent constant folding.
+    Expect.isTrue(boolEqualityPositiveA(true));
+    Expect.isFalse(boolEqualityPositiveA(false));
+    Expect.isFalse(boolEqualityNegativeA(true));
+    Expect.isTrue(boolEqualityNegativeA(false));
+
+    Expect.isTrue(boolEqualityPositiveB(true));
+    Expect.isFalse(boolEqualityPositiveB(false));
+    Expect.isFalse(boolEqualityNegativeB(true));
+    Expect.isTrue(boolEqualityNegativeB(false));
+  }
+
+  // Deoptimize.
+  Expect.isFalse(boolEqualityPositiveA(1));
+  Expect.isTrue(boolEqualityNegativeA("hi"));
+  Expect.isFalse(boolEqualityPositiveB(2.0));
+  Expect.isTrue(boolEqualityNegativeB([]));
 }

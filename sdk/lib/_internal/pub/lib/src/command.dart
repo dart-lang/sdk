@@ -15,6 +15,7 @@ import 'command/deploy.dart';
 import 'command/help.dart';
 import 'command/install.dart';
 import 'command/lish.dart';
+import 'command/serve.dart';
 import 'command/update.dart';
 import 'command/uploader.dart';
 import 'command/version.dart';
@@ -193,6 +194,7 @@ _initCommands() {
     'help': new HelpCommand(),
     'install': new InstallCommand(),
     'publish': new LishCommand(),
+    'serve': new ServeCommand(),
     'update': new UpdateCommand(),
     'uploader': new UploaderCommand(),
     'version': new VersionCommand()

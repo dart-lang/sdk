@@ -108,6 +108,11 @@ class Range;
   V(_Float32x4, withZ, Float32x4WithZ, 881355277)                              \
   V(_Float32x4, withW, Float32x4WithW, 441497035)                              \
   V(_Float32x4, _toUint32x4, Float32x4ToUint32x4, 802289205)                   \
+  V(_Float32x4, withZWInXY, Float32x4WithZWInXY, 465519415)                    \
+  V(_Float32x4, interleaveXY, Float32x4InterleaveXY, 465519415)                \
+  V(_Float32x4, interleaveZW, Float32x4InterleaveZW, 465519415)                \
+  V(_Float32x4, interleaveXYPairs, Float32x4InterleaveXYPairs, 465519415)      \
+  V(_Float32x4, interleaveZWPairs, Float32x4InterleaveZWPairs, 465519415)      \
   V(Uint32x4, Uint32x4.bool, Uint32x4BoolConstructor, 487876159)               \
   V(_Uint32x4, get:flagX, Uint32x4GetFlagX, 782547529)                         \
   V(_Uint32x4, get:flagY, Uint32x4GetFlagY, 782547529)                         \
@@ -613,6 +618,7 @@ class EmbeddedArray<T, 0> {
   M(Float32x4Clamp)                                                            \
   M(Float32x4With)                                                             \
   M(Float32x4ToUint32x4)                                                       \
+  M(Float32x4TwoArgShuffle)                                                    \
   M(MaterializeObject)                                                         \
   M(Uint32x4BoolConstructor)                                                   \
   M(Uint32x4GetFlag)                                                           \
@@ -899,6 +905,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class Float32x4ClampInstr;
   friend class Float32x4WithInstr;
   friend class Float32x4ToUint32x4Instr;
+  friend class Float32x4TwoArgShuffleInstr;
   friend class Uint32x4BoolConstructorInstr;
   friend class Uint32x4GetFlagInstr;
   friend class Uint32x4SetFlagInstr;
@@ -3187,7 +3194,7 @@ class DropTempsInstr : public TemplateDefinition<1> {
 
   intptr_t num_temps() const { return num_temps_; }
 
-  virtual CompileType ComputeType() const;
+  virtual CompileType* ComputeInitialType() const;
 
   virtual bool CanDeoptimize() const { return false; }
 
@@ -3671,12 +3678,15 @@ class InstanceOfInstr : public TemplateDefinition<3> {
 
 class AllocateObjectInstr : public TemplateDefinition<0> {
  public:
-  AllocateObjectInstr(ConstructorCallNode* node,
+  AllocateObjectInstr(intptr_t token_pos,
+                      const Class& cls,
                       ZoneGrowableArray<PushArgumentInstr*>* arguments)
-      : ast_node_(*node),
+      : token_pos_(token_pos),
+        cls_(cls),
         arguments_(arguments),
-        cid_(Class::Handle(node->constructor().Owner()).id()),
-        identity_(kUnknown) {
+        identity_(kUnknown),
+        closure_function_(Function::ZoneHandle()),
+        context_field_(Field::ZoneHandle()) {
     // Either no arguments or one type-argument and one instantiator.
     ASSERT(arguments->is_empty() || (arguments->length() == 2));
   }
@@ -3689,8 +3699,18 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
     return (*arguments_)[index];
   }
 
-  const Function& constructor() const { return ast_node_.constructor(); }
-  intptr_t token_pos() const { return ast_node_.token_pos(); }
+  const Class& cls() const { return cls_; }
+  intptr_t token_pos() const { return token_pos_; }
+
+  const Function& closure_function() const { return closure_function_; }
+  void set_closure_function(const Function& function) {
+    closure_function_ ^= function.raw();
+  }
+
+  const Field& context_field() const { return context_field_; }
+  void set_context_field(const Field& field) {
+    context_field_ ^= field.raw();
+  }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -3713,10 +3733,12 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
   void set_identity(Identity identity) { identity_ = identity; }
 
  private:
-  const ConstructorCallNode& ast_node_;
+  const intptr_t token_pos_;
+  const Class& cls_;
   ZoneGrowableArray<PushArgumentInstr*>* const arguments_;
-  const intptr_t cid_;
   Identity identity_;
+  Function& closure_function_;
+  Field& context_field_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectInstr);
 };
@@ -3965,7 +3987,6 @@ class LoadFieldInstr : public TemplateDefinition<1> {
         result_cid_(kDynamicCid),
         immutable_(immutable),
         recognized_kind_(MethodRecognizer::kUnknown),
-        field_name_(NULL),
         field_(NULL) {
     ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
     SetInputAt(0, instance);
@@ -3976,9 +3997,6 @@ class LoadFieldInstr : public TemplateDefinition<1> {
   const AbstractType& type() const { return type_; }
   void set_result_cid(intptr_t value) { result_cid_ = value; }
   intptr_t result_cid() const { return result_cid_; }
-
-  void set_field_name(const char* name) { field_name_ = name; }
-  const char* field_name() const { return field_name_; }
 
   const Field* field() const { return field_; }
   void set_field(const Field* field) { field_ = field; }
@@ -4023,7 +4041,6 @@ class LoadFieldInstr : public TemplateDefinition<1> {
 
   MethodRecognizer::Kind recognized_kind_;
 
-  const char* field_name_;
   const Field* field_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadFieldInstr);
@@ -5509,6 +5526,59 @@ class Uint32x4GetFlagInstr : public TemplateDefinition<1> {
   const MethodRecognizer::Kind op_kind_;
 
   DISALLOW_COPY_AND_ASSIGN(Uint32x4GetFlagInstr);
+};
+
+
+class Float32x4TwoArgShuffleInstr : public TemplateDefinition<2> {
+ public:
+  Float32x4TwoArgShuffleInstr(MethodRecognizer::Kind op_kind, Value* left,
+                              Value* right, intptr_t deopt_id)
+      : op_kind_(op_kind) {
+    SetInputAt(0, left);
+    SetInputAt(1, right);
+    deopt_id_ = deopt_id;
+  }
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  MethodRecognizer::Kind op_kind() const { return op_kind_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    return kUnboxedFloat32x4;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT((idx == 0) || (idx == 1));
+    return kUnboxedFloat32x4;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Float32x4TwoArgShuffle)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind() == other->AsFloat32x4TwoArgShuffle()->op_kind();
+  }
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  const MethodRecognizer::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(Float32x4TwoArgShuffleInstr);
 };
 
 

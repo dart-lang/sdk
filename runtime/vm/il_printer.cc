@@ -475,7 +475,7 @@ void RelationalOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void AllocateObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s", Class::Handle(constructor().Owner()).ToCString());
+  f->Print("%s", cls().ToCString());
   for (intptr_t i = 0; i < ArgumentCount(); i++) {
     f->Print(", ");
     PushArgumentAt(i)->value()->PrintTo(f);
@@ -526,11 +526,8 @@ void LoadFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   instance()->PrintTo(f);
   f->Print(", %"Pd, offset_in_bytes());
 
-  if (field_name_ != NULL) {
-    f->Print(" {%s}", field_name_);
-  }
-
   if (field() != NULL) {
+    f->Print(" {%s}", String::Handle(field()->name()).ToCString());
     const char* expected = "?";
     if (field()->guarded_cid() != kIllegalCid) {
       const Class& cls = Class::Handle(
@@ -703,6 +700,14 @@ void Float32x4WithInstr::PrintOperandsTo(BufferFormatter* f) const {
 void Float32x4ToUint32x4Instr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("Float32x4.toUint32x4 ");
   left()->PrintTo(f);
+}
+
+
+void Float32x4TwoArgShuffleInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", MethodRecognizer::KindToCString(op_kind()));
+  left()->PrintTo(f);
+  f->Print(", ");
+  right()->PrintTo(f);
 }
 
 

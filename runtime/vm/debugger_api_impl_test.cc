@@ -1462,6 +1462,7 @@ TEST_CASE(Debug_GetSupertype) {
       "}\n"
       "class Test5<A, B, C> extends Test4<A, B> {\n"
       "}\n"
+      "var s = new Set();\n"
       "int main() {\n"
       "}\n";
 
@@ -1479,6 +1480,8 @@ TEST_CASE(Debug_GetSupertype) {
   Dart_Handle Test5_name = Dart_NewStringFromCString("Test5");
   Dart_Handle object_name = Dart_NewStringFromCString("Object");
   Dart_Handle int_name = Dart_NewStringFromCString("int");
+  Dart_Handle set_name = Dart_NewStringFromCString("Set");
+  Dart_Handle iterable_name = Dart_NewStringFromCString("IterableBase");
 
   Dart_Handle object_type = Dart_GetType(core_lib, object_name, 0, NULL);
   Dart_Handle int_type = Dart_GetType(core_lib, int_name, 0, NULL);
@@ -1494,14 +1497,14 @@ TEST_CASE(Debug_GetSupertype) {
   Dart_Handle Test3_type = Dart_GetType(script_lib, Test3_name, 0, NULL);
   type_args = Dart_NewList(2);
   Dart_ListSetAt(type_args, 0, int_type);
-  Dart_ListSetAt(type_args, 1, int_type);
+  Dart_ListSetAt(type_args, 1, Test_type);
   Dart_Handle Test4_int_type = Dart_GetType(script_lib,
                                             Test4_name,
                                             2,
                                             &type_args);
   type_args = Dart_NewList(3);
   Dart_ListSetAt(type_args, 0, int_type);
-  Dart_ListSetAt(type_args, 1, int_type);
+  Dart_ListSetAt(type_args, 1, Test_type);
   Dart_ListSetAt(type_args, 2, int_type);
   Dart_Handle Test5_int_type = Dart_GetType(script_lib,
                                             Test5_name,
@@ -1532,6 +1535,14 @@ TEST_CASE(Debug_GetSupertype) {
   {
     Dart_Handle super_type = Dart_GetSupertype(Test5_int_type);
     const Type& expected_type = Api::UnwrapTypeHandle(isolate, Test4_int_type);
+    const Type& actual_type = Api::UnwrapTypeHandle(isolate, super_type);
+    EXPECT(expected_type.raw() == actual_type.raw());
+  }
+  {
+    Dart_Handle set_type = Dart_GetType(core_lib, set_name, 0, NULL);
+    Dart_Handle super_type = Dart_GetSupertype(set_type);
+    Dart_Handle iterable_type = Dart_GetType(core_lib, iterable_name, 0, NULL);
+    const Type& expected_type = Api::UnwrapTypeHandle(isolate, iterable_type);
     const Type& actual_type = Api::UnwrapTypeHandle(isolate, super_type);
     EXPECT(expected_type.raw() == actual_type.raw());
   }

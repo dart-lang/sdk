@@ -3371,6 +3371,45 @@ void Float32x4ToUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* Float32x4TwoArgShuffleInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::RequiresFpuRegister());
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void Float32x4TwoArgShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister left = locs()->in(0).fpu_reg();
+  XmmRegister right = locs()->in(1).fpu_reg();
+
+  ASSERT(locs()->out().fpu_reg() == left);
+
+  switch (op_kind()) {
+    case MethodRecognizer::kFloat32x4WithZWInXY:
+      __ movhlps(left, right);
+    break;
+    case MethodRecognizer::kFloat32x4InterleaveXY:
+      __ unpcklps(left, right);
+    break;
+    case MethodRecognizer::kFloat32x4InterleaveZW:
+      __ unpckhps(left, right);
+    break;
+    case MethodRecognizer::kFloat32x4InterleaveXYPairs:
+      __ unpcklpd(left, right);
+    break;
+    case MethodRecognizer::kFloat32x4InterleaveZWPairs:
+      __ unpckhpd(left, right);
+    break;
+    default: UNREACHABLE();
+  }
+}
+
+
 LocationSummary* Uint32x4BoolConstructorInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 4;
   const intptr_t kNumTemps = 0;
@@ -3647,6 +3686,7 @@ LocationSummary* MathMinMaxInstr::MakeLocationSummary() const {
     summary->set_temp(0, Location::RequiresRegister());
     return summary;
   }
+
   ASSERT(result_cid() == kSmiCid);
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
@@ -3707,20 +3747,17 @@ void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  Label done;
   ASSERT(result_cid() == kSmiCid);
   Register left = locs()->in(0).reg();
   Register right = locs()->in(1).reg();
   Register result = locs()->out().reg();
   __ cmpl(left, right);
+  ASSERT(result == left);
   if (is_min) {
-    ASSERT(result == left);
-    __ j(LESS_EQUAL, &done, Assembler::kNearJump);
+    __ cmovgel(result, right);
   } else {
-    __ j(GREATER_EQUAL, &done, Assembler::kNearJump);
+    __ cmovlessl(result, right);
   }
-  __ movl(result, right);
-  __ Bind(&done);
 }
 
 
@@ -4812,9 +4849,8 @@ LocationSummary* AllocateObjectInstr::MakeLocationSummary() const {
 
 
 void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Class& cls = Class::ZoneHandle(constructor().Owner());
-  const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls));
-  const ExternalLabel label(cls.ToCString(), stub.EntryPoint());
+  const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls()));
+  const ExternalLabel label(cls().ToCString(), stub.EntryPoint());
   compiler->GenerateCall(token_pos(),
                          &label,
                          PcDescriptors::kOther,

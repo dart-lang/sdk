@@ -314,10 +314,6 @@ class PrettyPrinter implements Visitor {
     closeNode();
   }
 
-  visitScriptTag(ScriptTag node) {
-    visitNodeWithChildren(node, "ScriptTag");
-  }
-
   visitChildNode(Node node, String fieldName) {
     if (node == null) return;
     addCurrentIndent();

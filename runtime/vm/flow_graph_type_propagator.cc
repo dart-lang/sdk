@@ -865,8 +865,8 @@ CompileType PushTempInstr::ComputeType() const {
 }
 
 
-CompileType DropTempsInstr::ComputeType() const {
-  return CompileType::Dynamic();
+CompileType* DropTempsInstr::ComputeInitialType() const {
+  return value()->Type();
 }
 
 
@@ -915,8 +915,14 @@ CompileType CreateClosureInstr::ComputeType() const {
 
 
 CompileType AllocateObjectInstr::ComputeType() const {
+  if (!closure_function().IsNull()) {
+    ASSERT(cls().raw() == closure_function().signature_class());
+    return CompileType(CompileType::kNonNullable,
+                       cls().id(),
+                       &Type::ZoneHandle(cls().SignatureType()));
+  }
   // TODO(vegorov): Incorporate type arguments into the returned type.
-  return CompileType::FromCid(cid_);
+  return CompileType::FromCid(cls().id());
 }
 
 
@@ -1079,6 +1085,11 @@ CompileType Float32x4WithInstr::ComputeType() const {
 
 CompileType Float32x4ToUint32x4Instr::ComputeType() const {
   return CompileType::FromCid(kUint32x4Cid);
+}
+
+
+CompileType Float32x4TwoArgShuffleInstr::ComputeType() const {
+  return CompileType::FromCid(kFloat32x4Cid);
 }
 
 

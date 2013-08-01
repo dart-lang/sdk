@@ -531,8 +531,8 @@ class Dart2JsLibraryMirror extends Dart2JsContainerMirror
   LibraryMirror library() => this;
 
   /**
-   * Returns the library name (for libraries with a #library tag) or the script
-   * file name (for scripts without a #library tag). The latter case is used to
+   * Returns the library name (for libraries with a library tag) or the script
+   * file name (for scripts without a library tag). The latter case is used to
    * provide a 'library name' for scripts, to use for instance in dartdoc.
    */
   String get simpleName {

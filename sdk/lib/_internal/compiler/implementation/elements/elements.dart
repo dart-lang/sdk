@@ -119,8 +119,6 @@ class ElementKind {
       const ElementKind('ambiguous', ElementCategory.NONE);
   static const ElementKind ERROR =
       const ElementKind('error', ElementCategory.NONE);
-  static const ElementKind MALFORMED_TYPE =
-      const ElementKind('malformed', ElementCategory.NONE);
 
   toString() => id;
 }

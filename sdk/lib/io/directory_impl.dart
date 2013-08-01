@@ -14,7 +14,16 @@ class _Directory implements Directory {
   static const LIST_STOP_REQUEST = 6;
   static const RENAME_REQUEST = 7;
 
-  _Directory(String this._path);
+  final String path;
+  SendPort _directoryService;
+
+  _Directory(String this.path) {
+    if (path is! String) {
+      throw new ArgumentError('${Error.safeToString(path)} '
+                              'is not a String');
+    }
+  }
+
   _Directory.fromPath(Path path) : this(path.toNativePath());
 
   external static String _current();
@@ -43,7 +52,7 @@ class _Directory implements Directory {
     _ensureDirectoryService();
     List request = new List(2);
     request[0] = EXISTS_REQUEST;
-    request[1] = _path;
+    request[1] = path;
     return _directoryService.call(request).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionOrErrorFromResponse(response, "Exists failed");
@@ -53,12 +62,9 @@ class _Directory implements Directory {
   }
 
   bool existsSync() {
-    if (_path is !String) {
-      throw new ArgumentError();
-    }
-    var result = _exists(_path);
+    var result = _exists(path);
     if (result is OSError) {
-      throw new DirectoryException("Exists failed", _path, result);
+      throw new DirectoryException("Exists failed", path, result);
     }
     return (result == 1);
   }
@@ -92,10 +98,7 @@ class _Directory implements Directory {
   }
 
   Future<Directory> createRecursively() {
-    if (_path is !String) {
-      throw new ArgumentError();
-    }
-    var path = new Path(_path);
+    var path = new Path(path);
     var dirsToCreate = [];
     var terminator = path.isAbsolute ? '/' : '';
     while (path.toString() != terminator) {
@@ -126,7 +129,7 @@ class _Directory implements Directory {
     _ensureDirectoryService();
     List request = new List(2);
     request[0] = CREATE_REQUEST;
-    request[1] = _path;
+    request[1] = path;
     return _directoryService.call(request).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionOrErrorFromResponse(response, "Creation failed");
@@ -136,7 +139,7 @@ class _Directory implements Directory {
   }
 
   void createRecursivelySync() {
-    var path = new Path(_path);
+    var path = new Path(path);
     var dirsToCreate = [];
     var terminator = path.isAbsolute ? '/' : '';
     while (path.toString() != terminator) {
@@ -151,13 +154,10 @@ class _Directory implements Directory {
   }
 
   void createSync({recursive: false}) {
-    if (_path is !String) {
-      throw new ArgumentError();
-    }
     if (recursive) return createRecursivelySync();
-    var result = _create(_path);
+    var result = _create(path);
     if (result is OSError) {
-      throw new DirectoryException("Creation failed", _path, result);
+      throw new DirectoryException("Creation failed", path, result);
     }
   }
 
@@ -165,7 +165,7 @@ class _Directory implements Directory {
     _ensureDirectoryService();
     List request = new List(2);
     request[0] = CREATE_TEMP_REQUEST;
-    request[1] = _path;
+    request[1] = path;
     return _directoryService.call(request).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionOrErrorFromResponse(
@@ -176,13 +176,10 @@ class _Directory implements Directory {
   }
 
   Directory createTempSync() {
-    if (_path is !String) {
-      throw new ArgumentError();
-    }
     var result = _createTemp(path);
     if (result is OSError) {
       throw new DirectoryException("Creation of temporary directory failed",
-                                   _path,
+                                   path,
                                    result);
     }
     return new Directory(result);
@@ -192,7 +189,7 @@ class _Directory implements Directory {
     _ensureDirectoryService();
     List request = new List(3);
     request[0] = DELETE_REQUEST;
-    request[1] = _path;
+    request[1] = path;
     request[2] = recursive;
     return _directoryService.call(request).then((response) {
       if (_isErrorResponse(response)) {
@@ -203,12 +200,9 @@ class _Directory implements Directory {
   }
 
   void deleteSync({recursive: false}) {
-    if (_path is !String) {
-      throw new ArgumentError();
-    }
-    var result = _delete(_path, recursive);
+    var result = _delete(path, recursive);
     if (result is OSError) {
-      throw new DirectoryException("Deletion failed", _path, result);
+      throw new DirectoryException("Deletion failed", path, result);
     }
   }
 
@@ -216,7 +210,7 @@ class _Directory implements Directory {
     _ensureDirectoryService();
     List request = new List(3);
     request[0] = RENAME_REQUEST;
-    request[1] = _path;
+    request[1] = path;
     request[2] = newPath;
     return _directoryService.call(request).then((response) {
       if (_isErrorResponse(response)) {
@@ -227,12 +221,12 @@ class _Directory implements Directory {
   }
 
   Directory renameSync(String newPath) {
-    if (_path is !String || newPath is !String) {
+    if (newPath is !String) {
       throw new ArgumentError();
     }
-    var result = _rename(_path, newPath);
+    var result = _rename(path, newPath);
     if (result is OSError) {
-      throw new DirectoryException("Rename failed", _path, result);
+      throw new DirectoryException("Rename failed", path, result);
     }
     return new Directory(newPath);
   }
@@ -262,13 +256,11 @@ class _Directory implements Directory {
   }
 
   List listSync({bool recursive: false, bool followLinks: true}) {
-    if (_path is! String || recursive is! bool || followLinks is! bool) {
+    if (recursive is! bool || followLinks is! bool) {
       throw new ArgumentError();
     }
     return _list(_trimTrailingPathSeparators(path), recursive, followLinks);
   }
-
-  String get path => _path;
 
   String toString() => "Directory: '$path'";
 
@@ -284,7 +276,7 @@ class _Directory implements Directory {
       case _OSERROR_RESPONSE:
         var err = new OSError(response[_OSERROR_RESPONSE_MESSAGE],
                               response[_OSERROR_RESPONSE_ERROR_CODE]);
-        return new DirectoryException(message, _path, err);
+        return new DirectoryException(message, path, err);
       default:
         return new Exception("Unknown error");
     }
@@ -295,9 +287,6 @@ class _Directory implements Directory {
       _directoryService = _newServicePort();
     }
   }
-
-  final String _path;
-  SendPort _directoryService;
 }
 
 class _AsyncDirectoryLister {

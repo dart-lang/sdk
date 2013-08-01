@@ -538,6 +538,10 @@ class Assembler : public ValueObject {
   // a list of 'length' registers starting with dn. The result is placed in dd.
   void vtbl(DRegister dd, DRegister dn, int length, DRegister dm);
 
+  // The words of qd and qm are interleaved with the low words of the result
+  // in qd and the high words in qm.
+  void vzipqw(QRegister qd, QRegister qm);
+
   // Branch instructions.
   void b(Label* label, Condition cond = AL);
   void bl(Label* label, Condition cond = AL);
@@ -843,6 +847,7 @@ class Assembler : public ValueObject {
   void EmitSIMDddd(int32_t opcode, OperandSize sz,
                    DRegister dd, DRegister dn, DRegister dm);
 
+  void EmitFarBranch(Condition cond, int32_t offset, bool link);
   void EmitBranch(Condition cond, Label* label, bool link);
   static int32_t EncodeBranchOffset(int32_t offset, int32_t inst);
   static int DecodeBranchOffset(int32_t inst);

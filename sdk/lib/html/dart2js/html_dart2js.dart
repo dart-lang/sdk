@@ -199,39 +199,6 @@ class AnchorElement extends _HTMLElement native "HTMLAnchorElement" {
 
 
 @DocsEditable()
-@DomName('ANGLEInstancedArrays')
-@Experimental() // untriaged
-class AngleInstancedArrays extends Interceptor native "ANGLEInstancedArrays" {
-
-  @DomName('ANGLEInstancedArrays.VERTEX_ATTRIB_ARRAY_DIVISOR_ANGLE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int VERTEX_ATTRIB_ARRAY_DIVISOR_ANGLE = 0x88FE;
-
-  @JSName('drawArraysInstancedANGLE')
-  @DomName('ANGLEInstancedArrays.drawArraysInstancedANGLE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void drawArraysInstancedAngle(int mode, int first, int count, int primcount) native;
-
-  @JSName('drawElementsInstancedANGLE')
-  @DomName('ANGLEInstancedArrays.drawElementsInstancedANGLE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void drawElementsInstancedAngle(int mode, int count, int type, int offset, int primcount) native;
-
-  @JSName('vertexAttribDivisorANGLE')
-  @DomName('ANGLEInstancedArrays.vertexAttribDivisorANGLE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void vertexAttribDivisorAngle(int index, int divisor) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
 @DomName('WebKitAnimationEvent')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -2634,7 +2601,8 @@ class CssRule extends Interceptor native "CSSRule" {
 
 
 @DomName('CSSStyleDeclaration')
-class CssStyleDeclaration extends Interceptor native "CSSStyleDeclaration,MSStyleCSSProperties,CSS2Properties" {
+ class CssStyleDeclaration  extends Interceptor with 
+    CssStyleDeclarationBase  native "CSSStyleDeclaration,MSStyleCSSProperties,CSS2Properties" {
   factory CssStyleDeclaration() => new CssStyleDeclaration.css('');
 
   factory CssStyleDeclaration.css(String css) {
@@ -2642,7 +2610,37 @@ class CssStyleDeclaration extends Interceptor native "CSSStyleDeclaration,MSStyl
     style.cssText = css;
     return style;
   }
+  
+  String getPropertyValue(String propertyName) {
+    var propValue = _getPropertyValue(propertyName);
+    return propValue != null ? propValue : '';
+  }
 
+  @DomName('CSSStyleDeclaration.setProperty')
+  void setProperty(String propertyName, String value, [String priority]) {
+    // try/catch for IE9 which throws on unsupported values.
+    try {
+      if (priority == null) {
+        priority = '';
+      }
+      JS('void', '#.setProperty(#, #, #)', this, propertyName, value, priority);
+      // Bug #2772, IE9 requires a poke to actually apply the value.
+      if (JS('bool', '!!#.setAttribute', this)) {
+        JS('void', '#.setAttribute(#, #)', this, propertyName, value);
+      }
+    } catch (e) {}
+  }
+  
+  /**
+   * Checks to see if CSS Transitions are supported.
+   */
+  static bool get supportsTransitions {
+    if (JS('bool', '"transition" in document.body.style')) {
+      return true;
+    }
+    var propertyName = '${Device.propertyPrefix}Transition';
+    return JS('bool', '# in document.body.style', propertyName);
+  }
 
   @DomName('CSSStyleDeclaration.cssText')
   @DocsEditable()
@@ -2677,37 +2675,35 @@ class CssStyleDeclaration extends Interceptor native "CSSStyleDeclaration,MSStyl
   @DocsEditable()
   String removeProperty(String propertyName) native;
 
+}
 
-  String getPropertyValue(String propertyName) {
-    var propValue = _getPropertyValue(propertyName);
-    return propValue != null ? propValue : '';
+class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
+  final Iterable<Element> _elementIterable;
+  Iterable<CssStyleDeclaration> _elementCssStyleDeclarationSetIterable;
+
+  _CssStyleDeclarationSet(this._elementIterable) {
+    _elementCssStyleDeclarationSetIterable = new List.from(
+        _elementIterable).map((e) => e.style);
   }
 
-  @DomName('CSSStyleDeclaration.setProperty')
+  String getPropertyValue(String propertyName) =>
+      _elementCssStyleDeclarationSetIterable.first.getPropertyValue(
+          propertyName);
+
   void setProperty(String propertyName, String value, [String priority]) {
-    // try/catch for IE9 which throws on unsupported values.
-    try {
-      if (priority == null) {
-        priority = '';
-      }
-      JS('void', '#.setProperty(#, #, #)', this, propertyName, value, priority);
-      // Bug #2772, IE9 requires a poke to actually apply the value.
-      if (JS('bool', '!!#.setAttribute', this)) {
-        JS('void', '#.setAttribute(#, #)', this, propertyName, value);
-      }
-    } catch (e) {}
+    _elementCssStyleDeclarationSetIterable.forEach((e) =>
+        e.setProperty(propertyName, value, priority));
   }
+  // Important note: CssStyleDeclarationSet does NOT implement every method
+  // available in CssStyleDeclaration. Some of the methods don't make so much
+  // sense in terms of having a resonable value to return when you're
+  // considering a list of Elements. You will need to manually add any of the
+  // items in the MEMBERS set if you want that functionality.
+}
 
-  /**
-   * Checks to see if CSS Transitions are supported.
-   */
-  static bool get supportsTransitions {
-    if (JS('bool', '"transition" in document.body.style')) {
-      return true;
-    }
-    var propertyName = '${Device.propertyPrefix}Transition';
-    return JS('bool', '# in document.body.style', propertyName);
-  }
+abstract class CssStyleDeclarationBase {
+  String getPropertyValue(String propertyName);  
+  void setProperty(String propertyName, String value, [String priority]);
 
   // TODO(jacobr): generate this list of properties using the existing script.
   /** Gets the value of "align-content" */
@@ -7970,7 +7966,7 @@ class _ChildrenElementList extends ListBase<Element> {
 
 /**
  * An immutable list containing HTML elements. This list contains some
- * additional methods when compared to regular lists for ease of CSS 
+ * additional methods when compared to regular lists for ease of CSS
  * manipulation on a group of elements.
  */
 abstract class ElementList<T extends Element> extends ListBase<T> {
@@ -7989,28 +7985,40 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
   /** Replace the classes with `value` for every element in this list. */
   set classes(Iterable<String> value);
 
-  /** 
+  /**
+   * Access the union of all [CssStyleDeclaration]s that are associated with an
+   * [ElementList].
+   *
+   * Grouping the style objects all together provides easy editing of specific
+   * properties of a collection of elements. Setting a specific property value
+   * will set that property in all [Element]s in the [ElementList]. Getting a
+   * specific property value will return the value of the property of the first
+   * element in the [ElementList].
+   */
+  CssStyleDeclarationBase get style;
+
+  /**
    * Access dimensions and position of the Elements in this list.
-   * 
+   *
    * Setting the height or width properties will set the height or width
-   * property for all elements in the list. This returns a rectangle with the 
+   * property for all elements in the list. This returns a rectangle with the
    * dimenions actually available for content
-   * in this element, in pixels, regardless of this element's box-sizing 
+   * in this element, in pixels, regardless of this element's box-sizing
    * property. Getting the height or width returns the height or width of the
-   * first Element in this list. 
+   * first Element in this list.
    *
    * Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not.
    */
   @Experimental()
   CssRect get contentEdge;
-  
+
   /**
    * Access dimensions and position of the first Element's content + padding box
    * in this list.
-   * 
+   *
    * This returns a rectangle with the dimenions actually available for content
-   * in this element, in pixels, regardless of this element's box-sizing 
+   * in this element, in pixels, regardless of this element's box-sizing
    * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not. This
    * can be used to retrieve jQuery's `innerHeight` value for an element. This
@@ -8023,9 +8031,9 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
   /**
    * Access dimensions and position of the first Element's content + padding +
    * border box in this list.
-   * 
+   *
    * This returns a rectangle with the dimenions actually available for content
-   * in this element, in pixels, regardless of this element's box-sizing 
+   * in this element, in pixels, regardless of this element's box-sizing
    * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not. This
    * can be used to retrieve jQuery's `outerHeight` value for an element.
@@ -8036,9 +8044,9 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
   /**
    * Access dimensions and position of the first Element's content + padding +
    * border + margin box in this list.
-   * 
+   *
    * This returns a rectangle with the dimenions actually available for content
-   * in this element, in pixels, regardless of this element's box-sizing 
+   * in this element, in pixels, regardless of this element's box-sizing
    * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not. This
    * can be used to retrieve jQuery's `outerHeight` value for an element.
@@ -8084,12 +8092,15 @@ class _FrozenElementList<T extends Element> extends ListBase<T> implements Eleme
 
   CssClassSet get classes => new _MultiElementCssClassSet(_elementList);
 
+  CssStyleDeclarationBase get style =>
+      new _CssStyleDeclarationSet(_elementList);
+
   void set classes(Iterable<String> value) {
     _elementList.forEach((e) => e.classes = value);
   }
 
   CssRect get contentEdge => new _ContentCssListRect(_elementList);
-  
+
   CssRect get paddingEdge => _elementList.first.paddingEdge;
 
   CssRect get borderEdge => _elementList.first.borderEdge;
@@ -8740,13 +8751,13 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   }
 
   /**
-   * Creates an instance of the template, using the provided model and binding
-   * delegate.
+   * Creates an instance of the template, using the provided model and optional
+   * binding delegate.
    *
    * This is only supported if [isTemplate] is true.
    */
   @Experimental()
-  DocumentFragment createInstance(model, BindingDelegate delegate) {
+  DocumentFragment createInstance(model, [BindingDelegate delegate]) {
     _ensureTemplate();
     return TemplateElement.mdvPackage(this).createInstance(model, delegate);
   }
@@ -8822,35 +8833,35 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
 
   /**
    * Access this element's content position.
-   * 
+   *
    * This returns a rectangle with the dimenions actually available for content
-   * in this element, in pixels, regardless of this element's box-sizing 
+   * in this element, in pixels, regardless of this element's box-sizing
    * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not.
-   * 
+   *
    * _Important_ _note_: use of this method _will_ perform CSS calculations that
-   * can trigger a browser reflow. Therefore, use of this property _during_ an 
-   * animation frame is discouraged. See also: 
+   * can trigger a browser reflow. Therefore, use of this property _during_ an
+   * animation frame is discouraged. See also:
    * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
    */
   @Experimental()
   CssRect get contentEdge => new _ContentCssRect(this);
-  
+
   /**
    * Access the dimensions and position of this element's content + padding box.
-   * 
+   *
    * This returns a rectangle with the dimenions actually available for content
-   * in this element, in pixels, regardless of this element's box-sizing 
+   * in this element, in pixels, regardless of this element's box-sizing
    * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not. This
    * can be used to retrieve jQuery's
-   * [innerHeight](http://api.jquery.com/innerHeight/) value for an element. 
+   * [innerHeight](http://api.jquery.com/innerHeight/) value for an element.
    * This is also a rectangle equalling the dimensions of clientHeight and
    * clientWidth.
-   * 
+   *
    * _Important_ _note_: use of this method _will_ perform CSS calculations that
-   * can trigger a browser reflow. Therefore, use of this property _during_ an 
-   * animation frame is discouraged. See also: 
+   * can trigger a browser reflow. Therefore, use of this property _during_ an
+   * animation frame is discouraged. See also:
    * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
    */
   @Experimental()
@@ -8859,17 +8870,17 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   /**
    * Access the dimensions and position of this element's content + padding +
    * border box.
-   * 
+   *
    * This returns a rectangle with the dimenions actually available for content
-   * in this element, in pixels, regardless of this element's box-sizing 
+   * in this element, in pixels, regardless of this element's box-sizing
    * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not. This
    * can be used to retrieve jQuery's
    * [outerHeight](http://api.jquery.com/outerHeight/) value for an element.
-   * 
-   * _Important_ _note_: use of this method _will_ perform CSS calculations that 
-   * can trigger a browser reflow. Therefore, use of this property _during_ an 
-   * animation frame is discouraged. See also: 
+   *
+   * _Important_ _note_: use of this method _will_ perform CSS calculations that
+   * can trigger a browser reflow. Therefore, use of this property _during_ an
+   * animation frame is discouraged. See also:
    * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
    */
   @Experimental()
@@ -8878,38 +8889,38 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   /**
    * Access the dimensions and position of this element's content + padding +
    * border + margin box.
-   * 
+   *
    * This returns a rectangle with the dimenions actually available for content
-   * in this element, in pixels, regardless of this element's box-sizing 
+   * in this element, in pixels, regardless of this element's box-sizing
    * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not. This
    * can be used to retrieve jQuery's
    * [outerHeight](http://api.jquery.com/outerHeight/) value for an element.
-   * 
+   *
    * _Important_ _note_: use of this method will perform CSS calculations that
-   * can trigger a browser reflow. Therefore, use of this property _during_ an 
-   * animation frame is discouraged. See also: 
+   * can trigger a browser reflow. Therefore, use of this property _during_ an
+   * animation frame is discouraged. See also:
    * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
    */
   @Experimental()
   CssRect get marginEdge => new _MarginCssRect(this);
 
-  /** 
-   * Provides the coordinates of the element relative to the top of the 
-   * document. 
+  /**
+   * Provides the coordinates of the element relative to the top of the
+   * document.
    *
-   * This method is the Dart equivalent to jQuery's 
+   * This method is the Dart equivalent to jQuery's
    * [offset](http://api.jquery.com/offset/) method.
    */
   Point get documentOffset => offsetTo(document.documentElement);
 
-  /** 
+  /**
    * Provides the offset of this element's [borderEdge] relative to the
    * specified [parent].
-   * 
+   *
    * This is the Dart equivalent of jQuery's
    * [position](http://api.jquery.com/position/) method. Unlike jQuery's
-   * position, however, [parent] can be any parent element of `this`, 
+   * position, however, [parent] can be any parent element of `this`,
    * rather than only `this`'s immediate [offsetParent]. If the specified
    * element is _not_ an offset parent or transitive offset parent to this
    * element, an [ArgumentError] is thrown.
@@ -8920,7 +8931,7 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
 
   static Point _offsetToHelper(Element current, Element parent) {
     // We're hopping from _offsetParent_ to offsetParent (not just parent), so
-    // offsetParent, "tops out" at BODY. But people could conceivably pass in 
+    // offsetParent, "tops out" at BODY. But people could conceivably pass in
     // the document.documentElement and I want it to return an absolute offset,
     // so we have the special case checking for HTML.
     bool foundAsParent = identical(current, parent) || parent.tagName == 'HTML';
@@ -8928,7 +8939,7 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
       if (foundAsParent) return new Point(0, 0);
       throw new ArgumentError("Specified element is not a transitive offset "
           "parent of this element.");
-    } 
+    }
     Element parentOffset = current.offsetParent;
     Point p = Element._offsetToHelper(parentOffset, parent);
     return new Point(p.x + current.offsetLeft, p.y + current.offsetTop);

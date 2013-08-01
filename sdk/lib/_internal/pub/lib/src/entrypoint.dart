@@ -154,6 +154,36 @@ class Entrypoint {
     return new LockFile.load(lockFilePath, cache.sources);
   }
 
+  /// Determines whether or not the lockfile is out of date with respect to the
+  /// pubspec.
+  ///
+  /// This will be `false` if there is no lockfile at all, or if the pubspec
+  /// contains dependencies that are not in the lockfile or that don't match
+  /// what's in there.
+  bool isLockFileUpToDate() {
+    var lockFile = loadLockFile();
+
+    checkDependency(package) {
+      var locked = lockFile.packages[package.name];
+      if (locked == null) return false;
+
+      if (package.source != locked.source) return false;
+      if (!package.constraint.allows(locked.version)) return false;
+
+      var source = cache.sources[package.source];
+      if (!source.descriptionsEqual(package.description, locked.description)) {
+        return false;
+      }
+
+      return true;
+    }
+
+    if (!root.dependencies.every(checkDependency)) return false;
+    if (!root.devDependencies.every(checkDependency)) return false;
+
+    return true;
+  }
+
   /// Saves a list of concrete package versions to the `pubspec.lock` file.
   void _saveLockFile(List<PackageId> packageIds) {
     var lockFile = new LockFile.empty();

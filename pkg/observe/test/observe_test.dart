@@ -9,6 +9,9 @@ import 'package:observe/src/dirty_check.dart' as dirty_check;
 import 'package:unittest/unittest.dart';
 import 'observe_test_utils.dart';
 
+// Note: this ensures we run the dartanalyzer on the @observe package.
+// @static-clean
+
 const _VALUE = const Symbol('value');
 
 main() {

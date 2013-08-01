@@ -287,12 +287,6 @@ class Listener {
                           Token beginToken, Token endToken) {
   }
 
-  void beginScriptTag(Token token) {
-  }
-
-  void endScriptTag(bool hasPrefix, Token beginToken, Token endToken) {
-  }
-
   void beginSend(Token token) {
   }
 
@@ -729,26 +723,6 @@ class ElementListener extends Listener {
     compilationUnitElement.setPartOf(tag, listener);
   }
 
-  void endScriptTag(bool hasPrefix, Token beginToken, Token endToken) {
-    LiteralString prefix = null;
-    Identifier argumentName = null;
-    if (hasPrefix) {
-      prefix = popLiteralString();
-      argumentName = popNode();
-    }
-    LiteralString firstArgument = popLiteralString();
-    Identifier tag = popNode();
-    ScriptTag scriptTag = new ScriptTag(tag, firstArgument, argumentName,
-                                        prefix, beginToken, endToken);
-    if (const SourceString('import') == tag.source ||
-        const SourceString('source') == tag.source ||
-        const SourceString('library') == tag.source) {
-      addScriptTag(scriptTag);
-    } else {
-      recoverableError('unknown tag: ${tag.source.slowToString()}', node: tag);
-    }
-  }
-
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
     if (periodBeforeName != null) {
       popNode(); // Discard name.
@@ -1039,12 +1013,6 @@ class ElementListener extends Listener {
 
   void pushMetadata(MetadataAnnotation annotation) {
     metadata = metadata.prepend(annotation);
-  }
-
-  // TODO(ahe): Remove this method.
-  void addScriptTag(ScriptTag tag) {
-    listener.onDeprecatedFeature(tag, '# tags');
-    addLibraryTag(tag.toLibraryTag());
   }
 
   void addLibraryTag(LibraryTag tag) {

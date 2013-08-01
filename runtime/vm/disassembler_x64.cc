@@ -1268,7 +1268,11 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
         current += PrintRightXMMOperand(current);
       } else {
         const char* mnemonic = "?";
-        if (opcode == 0x54) {
+        if (opcode == 0x14) {
+          mnemonic = "unpcklpd";
+        } else if (opcode == 0x15) {
+          mnemonic = "unpckhpd";
+        } else if (opcode == 0x54) {
           mnemonic = "andpd";
         } else  if (opcode == 0x56) {
           mnemonic = "orpd";
@@ -1425,12 +1429,18 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
     byte_size_operand_ = idesc.byte_size_operation;
     current += PrintOperands(idesc.mnem, idesc.op_order_, current);
 
-  } else if (opcode == 0x51 || opcode == 0x52 || opcode == 0x53 ||
-             opcode == 0x54 || opcode == 0x56 || opcode == 0x57 ||
-             opcode == 0x58 || opcode == 0x59 || opcode == 0x5C ||
-             opcode == 0x5D || opcode == 0x5E || opcode == 0x5F) {
+  } else if (opcode == 0x12 || opcode == 0x14 || opcode == 0x15 ||
+             opcode == 0x16 || opcode == 0x51 || opcode == 0x52 ||
+             opcode == 0x53 || opcode == 0x54 || opcode == 0x56 ||
+             opcode == 0x57 || opcode == 0x58 || opcode == 0x59 ||
+             opcode == 0x5C || opcode == 0x5D || opcode == 0x5E ||
+             opcode == 0x5F) {
     const char* mnemonic = NULL;
     switch (opcode) {
+      case 0x12: mnemonic = "movhlps"; break;
+      case 0x14: mnemonic = "unpcklps"; break;
+      case 0x15: mnemonic = "unpckhps"; break;
+      case 0x16: mnemonic = "movlhps"; break;
       case 0x51: mnemonic = "sqrtps"; break;
       case 0x52: mnemonic = "rsqrtps"; break;
       case 0x53: mnemonic = "rcpps"; break;

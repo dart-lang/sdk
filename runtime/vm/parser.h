@@ -358,7 +358,6 @@ class Parser : public ValueObject {
   RawAbstractType* ParseType(ClassFinalizer::FinalizationKind finalization);
   void ParseTypeParameters(const Class& cls);
   RawAbstractTypeArguments* ParseTypeArguments(
-      Error* malformed_error,
       ClassFinalizer::FinalizationKind finalization);
   void ParseQualIdent(QualIdent* qual_ident);
   void ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method);

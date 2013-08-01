@@ -1226,10 +1226,10 @@ class MirrorsUsed {
    * The list of strings passed to new [Symbol], and symbols that might be
    * passed to [MirrorSystem.getName].
    *
-   * Combined with the names of [reflectiveTarget], [metaTargets] and their
-   * members, this forms the complete list of strings passed to new [Symbol],
-   * and symbols that might be passed to [MirrorSystem.getName] by the library
-   * to which this metadata applies.
+   * Combined with the names of [targets], [metaTargets] and their members,
+   * this forms the complete list of strings passed to new [Symbol], and
+   * symbols that might be passed to [MirrorSystem.getName] by the library to
+   * which this metadata applies.
    *
    * The following text is non-normative:
    *

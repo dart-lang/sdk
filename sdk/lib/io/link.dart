@@ -130,7 +130,13 @@ class _Link extends FileSystemEntity implements Link {
 
   SendPort _fileService;
 
-  _Link(String this.path);
+  _Link(String this.path) {
+    if (path is! String) {
+      throw new ArgumentError('${Error.safeToString(path)} '
+                              'is not a String');
+    }
+  }
+
 
   _Link.fromPath(Path inputPath) : path = inputPath.toNativePath();
 

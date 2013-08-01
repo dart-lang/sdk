@@ -1,9 +1,9 @@
 name: unittest
-author: "Dart Team <misc@dartlang.org>"
+author: Dart Team <misc@dartlang.org>
+description: A library for writing dart unit tests.
 homepage: http://www.dartlang.org
 documentation: http://api.dartlang.org/docs/pkg/unittest
-description: >
- A library for writing dart unit tests.
 dependencies:
+  json: any
   meta: any
   stack_trace: any

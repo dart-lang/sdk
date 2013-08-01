@@ -2998,6 +2998,17 @@ void Float32x4ToUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* Float32x4TwoArgShuffleInstr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void Float32x4TwoArgShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
 LocationSummary* Uint32x4BoolConstructorInstr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;
@@ -3833,9 +3844,8 @@ LocationSummary* AllocateObjectInstr::MakeLocationSummary() const {
 void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ TraceSimMsg("AllocateObjectInstr");
   __ Comment("AllocateObjectInstr");
-  const Class& cls = Class::ZoneHandle(constructor().Owner());
-  const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls));
-  const ExternalLabel label(cls.ToCString(), stub.EntryPoint());
+  const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls()));
+  const ExternalLabel label(cls().ToCString(), stub.EntryPoint());
   compiler->GenerateCall(token_pos(),
                          &label,
                          PcDescriptors::kOther,

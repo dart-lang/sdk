@@ -194,6 +194,8 @@ class DeferredLoadTask extends CompilerTask {
   Link<LibraryElement> findDeferredLibraries(LibraryElement library) {
     Link<LibraryElement> link = const Link<LibraryElement>();
     for (LibraryTag tag in library.tags) {
+      // TODO(ahe): This iterates over parts and exports as well, but should
+      // only iterate over imports.
       Link<MetadataAnnotation> metadata = tag.metadata;
       if (metadata == null) continue;
       for (MetadataAnnotation metadata in tag.metadata) {

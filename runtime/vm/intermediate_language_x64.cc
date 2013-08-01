@@ -2151,18 +2151,20 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-static void Emit53BitOverflowCheck(FlowGraphCompiler* compiler,
+static void Emit54BitOverflowCheck(FlowGraphCompiler* compiler,
                                    Label* overflow,
                                    Register result) {
   if (FLAG_throw_on_javascript_int_overflow) {
     ASSERT(overflow != NULL);
     __ movq(TMP, result);  // result is a tagged Smi.
-    // Bits 54...64 must be all 0 or all 1. (It would be bit 53, but result
+    // Bits 55...64 must be all 0 or all 1. (It would be bit 54, but result
     // is tagged.)
-    __ shlq(result, Immediate(64 - 54));
-    __ sarq(result, Immediate(64 - 54));
+    __ shlq(result, Immediate(64 - 55));
+    __ sarq(result, Immediate(64 - 55));
     __ cmpq(result, TMP);
-    __ j(NOT_EQUAL, overflow);  // 53-bit overflow.
+    __ j(NOT_EQUAL, overflow);  // 54-bit overflow.
+    __ cmpq(result, Immediate(-0x1FFFFFFFFFFFFFLL - 1));
+    __ j(EQUAL, overflow);  // The most negative 54-bit int is also disallowed.
   }
 }
 
@@ -2206,7 +2208,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       // Shift for result now we know there is no overflow.
       __ shlq(left, Immediate(value));
     }
-    Emit53BitOverflowCheck(compiler, deopt, result);
+    Emit54BitOverflowCheck(compiler, deopt, result);
     return;
   }
 
@@ -2236,7 +2238,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       __ SmiUntag(right);
       __ shlq(left, right);
     }
-    Emit53BitOverflowCheck(compiler, deopt, result);
+    Emit54BitOverflowCheck(compiler, deopt, result);
     return;
   }
 
@@ -2287,7 +2289,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     // Shift for result now we know there is no overflow.
     __ shlq(left, right);
   }
-  Emit53BitOverflowCheck(compiler, deopt, result);
+  Emit54BitOverflowCheck(compiler, deopt, result);
 }
 
 
@@ -2486,7 +2488,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         UNREACHABLE();
         break;
     }
-    Emit53BitOverflowCheck(compiler, deopt, result);
+    Emit54BitOverflowCheck(compiler, deopt, result);
     return;
   }  // locs()->in(1).IsConstant().
 
@@ -2529,7 +2531,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         UNREACHABLE();
         break;
     }
-    Emit53BitOverflowCheck(compiler, deopt, result);
+    Emit54BitOverflowCheck(compiler, deopt, result);
     return;
   }  // locs()->in(1).IsStackSlot().
 
@@ -2659,7 +2661,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       UNREACHABLE();
       break;
   }
-  Emit53BitOverflowCheck(compiler, deopt, result);
+  Emit54BitOverflowCheck(compiler, deopt, result);
 }
 
 
@@ -3412,6 +3414,45 @@ void Float32x4ToUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* Float32x4TwoArgShuffleInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::RequiresFpuRegister());
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void Float32x4TwoArgShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister left = locs()->in(0).fpu_reg();
+  XmmRegister right = locs()->in(1).fpu_reg();
+
+  ASSERT(locs()->out().fpu_reg() == left);
+
+  switch (op_kind()) {
+    case MethodRecognizer::kFloat32x4WithZWInXY:
+      __ movhlps(left, right);
+    break;
+    case MethodRecognizer::kFloat32x4InterleaveXY:
+      __ unpcklps(left, right);
+    break;
+    case MethodRecognizer::kFloat32x4InterleaveZW:
+      __ unpckhps(left, right);
+    break;
+    case MethodRecognizer::kFloat32x4InterleaveXYPairs:
+      __ unpcklpd(left, right);
+    break;
+    case MethodRecognizer::kFloat32x4InterleaveZWPairs:
+      __ unpckhpd(left, right);
+    break;
+    default: UNREACHABLE();
+  }
+}
+
+
 LocationSummary* Uint32x4BoolConstructorInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 4;
   const intptr_t kNumTemps = 1;
@@ -3775,7 +3816,6 @@ void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  Label done;
   ASSERT(result_cid() == kSmiCid);
   Register left = locs()->in(0).reg();
   Register right = locs()->in(1).reg();
@@ -3783,12 +3823,10 @@ void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ cmpq(left, right);
   ASSERT(result == left);
   if (is_min) {
-    __ j(LESS_EQUAL, &done, Assembler::kNearJump);
+    __ cmovgeq(result, right);
   } else {
-    __ j(GREATER_EQUAL, &done, Assembler::kNearJump);
+    __ cmovlessq(result, right);
   }
-  __ movq(result, right);
-  __ Bind(&done);
 }
 
 
@@ -3801,7 +3839,7 @@ void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                             kDeoptUnaryOp);
       __ negq(value);
       __ j(OVERFLOW, deopt);
-      Emit53BitOverflowCheck(compiler, deopt, value);
+      Emit54BitOverflowCheck(compiler, deopt, value);
       break;
     }
     case Token::kBIT_NOT:
@@ -3862,7 +3900,7 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ shlq(temp, Immediate(1));
   __ j(OVERFLOW, &do_call, Assembler::kNearJump);
   __ SmiTag(result);
-  Emit53BitOverflowCheck(compiler, &do_call, result);
+  Emit54BitOverflowCheck(compiler, &do_call, result);
   __ jmp(&done);
   __ Bind(&do_call);
   ASSERT(instance_call()->HasICData());
@@ -3908,7 +3946,7 @@ void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ shlq(temp, Immediate(1));
   __ j(OVERFLOW, deopt);
   __ SmiTag(result);
-  Emit53BitOverflowCheck(compiler, deopt, result);
+  Emit54BitOverflowCheck(compiler, deopt, result);
 }
 
 
@@ -4485,9 +4523,8 @@ LocationSummary* AllocateObjectInstr::MakeLocationSummary() const {
 
 
 void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Class& cls = Class::ZoneHandle(constructor().Owner());
-  const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls));
-  const ExternalLabel label(cls.ToCString(), stub.EntryPoint());
+  const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls()));
+  const ExternalLabel label(cls().ToCString(), stub.EntryPoint());
   compiler->GenerateCall(token_pos(),
                          &label,
                          PcDescriptors::kOther,

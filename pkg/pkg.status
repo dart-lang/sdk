@@ -17,15 +17,10 @@ scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 
 [ $runtime == vm ]
 watcher/test/no_subscription_test: Pass, Fail # Issue 12107
-
-[ $compiler == none && $runtime == drt && $mode == debug]
-mdv/test/custom_element_bindings_test: Fail # Issue 11657
-
-[ $compiler == dart2js && $runtime == ff ]
-unittest/test/unittest_test: Pass, Timeout # http://dartbug.com/11473
+watcher/test/directory_watcher_test: Pass, Fail # Issue 12107
 
 [ $runtime == d8 || $runtime == jsshell ]
-unittest/test/unittest_test: Pass, Fail # http://dartbug.com/10109
+unittest/test/unittest_nested_groups_setup_teardown_test: Pass, Fail # http://dartbug.com/10109
 stack_trace/test/vm_test: Fail, OK # VM-specific traces
 sequence_zip/test/stream_test: Fail, OK # Timers are not supported.
 
@@ -72,13 +67,15 @@ unittest/test/mock_regexp_negative_test: Skip
 unittest/test/mock_stepwise_negative_test: Skip
 
 [ $compiler == dart2js && $csp ]
-unittest/test/unittest_test: Pass, Crash # Issue 10935
+unittest/test/mirror_matchers_test: Skip # Issue 12151
 observe/test/observe_test: Fail # Issue 11970
 observe/test/path_observer_test: Fail  # Issue 11970
 mdv/test/binding_syntax_test: Fail # Issue 11970
-
 serialization/test/serialization_test: Fail # Issue 6490
 serialization/test/no_library_test: Fail # Issue 6490
+
+# This test cannot run under CSP because it is injecting a JavaScript polyfill
+mutation_observer: Skip
 
 [ $compiler == dart2js && $minified ]
 # The unminified unittest tests test that the real names of Dart types are
@@ -140,6 +137,7 @@ scheduled_test/test/scheduled_test/timeout_test: Fail # http://dartbug.com/8440
 scheduled_test/test/scheduled_test/wrap_async_test: Fail # http://dartbug.com/8440
 scheduled_test/test/scheduled_test/wrap_future_test: Fail # http://dartbug.com/8440
 
+*/test/analyzer_test: Skip  # No need to run analysis tests on browser bots
 
 [ $runtime == safari]
  # Bug in JSC: the test only passes when being debugged.
@@ -170,10 +168,13 @@ dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
 # test on Dartium, which requires all tests to have a library.
 [ $runtime == dartium || $runtime == drt ]
 serialization/test/no_library_test: Skip # Expected Failure
+mdv/test/template_element_test: Pass, Fail # Issue 12177
 
-# Skip mdv tests on command line VM, they only run in the browser.
+# Skip tests on the VM if the package depends on dart:html
 [ $runtime == vm ]
+custom_element: Skip
 mdv: Skip
+mutation_observer: Skip
 
 [ $runtime == safari || $runtime == chrome || $runtime == ie9 || $runtime == ff || $runtime == dartium || $runtime == drt ]
 docgen/test/single_library_test: Skip # Uses dart:io

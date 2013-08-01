@@ -115,6 +115,17 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 5) {
   const bool is_instance_of = instance.IsInstanceOf(type,
                                                     instantiator_type_arguments,
                                                     &malformed_error);
+  if (FLAG_trace_type_checks) {
+    const char* result_str = is_instance_of ? "true" : "false";
+    OS::Print("Object.instanceOf: result %s\n", result_str);
+    const Type& instance_type = Type::Handle(instance.GetType());
+    OS::Print("  instance type: %s\n",
+              String::Handle(instance_type.Name()).ToCString());
+    OS::Print("  test type: %s\n", String::Handle(type.Name()).ToCString());
+    if (!malformed_error.IsNull()) {
+      OS::Print("  malformed error: %s\n", malformed_error.ToErrorCString());
+    }
+  }
   if (!is_instance_of && !malformed_error.IsNull()) {
     // Throw a dynamic type error only if the instanceof test fails.
     DartFrameIterator iterator;
@@ -127,17 +138,6 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 5) {
         location, Symbols::Empty(), Symbols::Empty(),
         Symbols::Empty(), malformed_error_message);
     UNREACHABLE();
-  }
-
-  if (FLAG_trace_type_checks) {
-    const char* result_str = is_instance_of ? "true" : "false";
-    OS::Print("Object.instanceOf: result %s\n", result_str);
-    const Class& instance_class = Class::Handle(instance.clazz());
-    OS::Print("  instance  [class: %s]\n",
-        String::Handle(instance_class.Name()).ToCString());
-    OS::Print("  test-type [class: %s]\n",
-        String::Handle(Class::Handle(type.type_class()).Name()).ToCString());
-    OS::Print("  type-args %s\n", instantiator_type_arguments.ToCString());
   }
   return Bool::Get(negate.value() ? !is_instance_of : is_instance_of);
 }

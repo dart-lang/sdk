@@ -169,11 +169,6 @@ class CloningVisitor implements Visitor<Node> {
   visitReturn(Return node) => new Return(
       node.beginToken, node.endToken, visit(node.expression));
 
-  visitScriptTag(ScriptTag node) => new ScriptTag(
-      visit(node.tag), visit(node.argument),
-      visit(node.prefixIdentifier), visit(node.prefix),
-      node.beginToken, node.endToken);
-
   visitSend(Send node) => new Send(
       visit(node.receiver), visit(node.selector), visit(node.argumentsNode));
 

@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartanalyzer ]
-53bit_overflow_literal_test/01: fail, ok
+javascript_int_overflow_literal_test/01: fail, ok
 
 # https://code.google.com/p/dart/issues/detail?id=11665
 standalone/assert_test: fail
@@ -32,7 +32,7 @@ standalone/package/package_isolate_test: fail
 
 
 [ $compiler == dart2analyzer ]
-53bit_overflow_literal_test/01: fail, ok
+javascript_int_overflow_literal_test/01: fail, ok
 
 # https://code.google.com/p/dart/issues/detail?id=11665
 standalone/assert_test: fail

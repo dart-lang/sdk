@@ -405,6 +405,8 @@ class Instr {
     kPCReadOffset = 8
   };
 
+  static const int32_t kNopInstruction =  // nop
+      ((AL << kConditionShift) | (0x32 << 20) | (0xf << 12));
   static const int32_t kBreakPointInstruction =  // svc #kBreakpointSvcCode
       ((AL << kConditionShift) | (0xf << 24) | kBreakpointSvcCode);
   static const int kBreakPointInstructionSize = kInstrSize;

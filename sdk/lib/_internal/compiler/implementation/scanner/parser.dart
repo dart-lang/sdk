@@ -52,8 +52,6 @@ class Parser {
       return parseClass(token);
     } else if (identical(value, 'typedef')) {
       return parseTypedef(token);
-    } else if (identical(value, '#')) {
-      return parseScriptTags(token);
     } else if (identical(value, 'library')) {
       return parseLibraryName(token);
     } else if (identical(value, 'import')) {
@@ -745,24 +743,6 @@ class Parser {
     mayParseFunctionExpressions = old;
     listener.endInitializers(count, begin, token);
     return token;
-  }
-
-  Token parseScriptTags(Token token) {
-    Token begin = token;
-    listener.beginScriptTag(token);
-    token = parseIdentifier(token.next);
-    token = expect('(', token);
-    token = parseLiteralStringOrRecoverExpression(token);
-    bool hasPrefix = false;
-    if (optional(',', token)) {
-      hasPrefix = true;
-      token = parseIdentifier(token.next);
-      token = expect(':', token);
-      token = parseLiteralStringOrRecoverExpression(token);
-    }
-    token = expect(')', token);
-    listener.endScriptTag(hasPrefix, begin, token);
-    return expectSemicolon(token);
   }
 
   Token parseLiteralStringOrRecoverExpression(Token token) {

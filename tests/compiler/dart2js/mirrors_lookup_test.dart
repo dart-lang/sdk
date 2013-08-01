@@ -41,20 +41,20 @@ void main() {
 void test(MirrorSystem mirrors) {
   LibraryMirror dartCore = mirrors.libraries[Uri.parse('dart:core')];
   Expect.isNotNull(dartCore);
-  
+
   LibraryMirror dartAsync = mirrors.libraries[Uri.parse('dart:async')];
   Expect.isNotNull(dartAsync);
-  
+
   LibraryMirror library = mirrors.libraries[Uri.parse('memory:main.dart')];
   Expect.isNotNull(library);
-  
+
   // Check top-level scope.
-  
+
   DeclarationMirror String_ = library.lookupInScope('String');
   Expect.isTrue(String_ is ClassMirror);
   Expect.equals('String', String_.simpleName);
   Expect.equals(dartCore, String_.owner);
-  
+
   Expect.isNull(library.lookupInScope('async'));
   Expect.isNull(library.lookupInScope('Future'));
   DeclarationMirror Future_ = library.lookupInScope('async.Future');
@@ -65,7 +65,7 @@ void test(MirrorSystem mirrors) {
   Expect.isNull(library.lookupInScope('Timer'));
   // async.Timer is hidden.
   Expect.isNull(library.lookupInScope('async.Timer'));
-  
+
   DeclarationMirror variable = library.lookupInScope('variable');
   Expect.isTrue(variable is VariableMirror);
   Expect.equals('variable', variable.simpleName);
@@ -75,13 +75,13 @@ void test(MirrorSystem mirrors) {
   Expect.isNull(library.lookupInScope('a'));
   // Parameter `b` is not in scope.
   Expect.isNull(library.lookupInScope('b'));
-  
+
   DeclarationMirror method = library.lookupInScope('method');
   Expect.isTrue(method is MethodMirror);
   Expect.equals('method', method.simpleName);
   Expect.equals('main.method', method.qualifiedName);
   Expect.equals(library, method.owner);
-  
+
   DeclarationMirror Class = library.lookupInScope('Class');
   Expect.isTrue(Class is ClassMirror);
   Expect.equals('Class', Class.simpleName);
@@ -89,7 +89,7 @@ void test(MirrorSystem mirrors) {
   Expect.equals(library, Class.owner);
   // Type variable `A` is not in scope.
   Expect.isNull(library.lookupInScope('A'));
-  
+
   DeclarationMirror Subclass = library.lookupInScope('Subclass');
   Expect.isTrue(Subclass is ClassMirror);
   Expect.equals('Subclass', Subclass.simpleName);
@@ -97,7 +97,7 @@ void test(MirrorSystem mirrors) {
   Expect.equals(library, Subclass.owner);
   // Type variable `B` is not in scope.
   Expect.isNull(library.lookupInScope('B'));
-  
+
   // Check top-level declaration scope.
   checkTopScope(DeclarationMirror declaration) {
     Expect.equals(String_, declaration.lookupInScope('String'));
@@ -117,7 +117,7 @@ void test(MirrorSystem mirrors) {
     // Field `subfield` is not in scope.
     Expect.isNull(declaration.lookupInScope('subfield'));
   }
-  
+
   checkTopScope(variable);
   // Parameter `a` is not in scope of `variable`.
   Expect.isNull(variable.lookupInScope('a'));
@@ -135,32 +135,32 @@ void test(MirrorSystem mirrors) {
   Expect.isTrue(Class_field is VariableMirror);
   Expect.notEquals(variable, Class_field);
   Expect.equals(Class, Class_field.owner);
-  
+
   DeclarationMirror Class_variable = Class.lookupInScope('variable');
   Expect.isTrue(Class_variable is VariableMirror);
   Expect.notEquals(variable, Class_variable);
   Expect.equals(Class, Class_variable.owner);
-  
+
   DeclarationMirror Class_method = Class.lookupInScope('method');
   Expect.isTrue(Class_method is MethodMirror);
   Expect.notEquals(method, Class_method);
   Expect.equals(Class, Class_method.owner);
-  
+
   checkClassScope(DeclarationMirror declaration, {bool parametersInScope}) {
     Expect.equals(String_, declaration.lookupInScope('String'));
     Expect.equals(Future_, declaration.lookupInScope('async.Future'));
     Expect.isNull(declaration.lookupInScope('Timer'));
     Expect.isNull(declaration.lookupInScope('async.Timer'));
-  
+
     Expect.equals(Class_field, declaration.lookupInScope('field'));
     Expect.equals(Class_variable, declaration.lookupInScope('variable'));
     Expect.equals(Class_method, declaration.lookupInScope('method'));
-  
+
     // Parameter `a` is not in scope.
     Expect.isNull(declaration.lookupInScope('a'));
     // Parameter `b` is not in scope.
     Expect.isNull(declaration.lookupInScope('b'));
-    
+
     if (parametersInScope) {
       // Parameter `c` is in scope.
       Expect.isTrue(declaration.lookupInScope('c') is ParameterMirror);
@@ -172,7 +172,7 @@ void test(MirrorSystem mirrors) {
       // Parameter `d` is not in scope.
       Expect.isNull(declaration.lookupInScope('d'));
     }
-    
+
     Expect.equals(Class, declaration.lookupInScope('Class'));
     // Type variable `A` is in scope.
     Expect.isTrue(declaration.lookupInScope('A') is TypeVariableMirror);
@@ -192,28 +192,28 @@ void test(MirrorSystem mirrors) {
   Expect.isTrue(Subclass_subfield is VariableMirror);
   Expect.notEquals(variable, Subclass_subfield);
   Expect.equals(Subclass, Subclass_subfield.owner);
-  
+
   checkSubclassScope(DeclarationMirror declaration) {
     Expect.equals(String_, declaration.lookupInScope('String'));
     Expect.equals(Future_, declaration.lookupInScope('async.Future'));
     Expect.isNull(declaration.lookupInScope('Timer'));
     Expect.isNull(declaration.lookupInScope('async.Timer'));
-  
+
     // Top level `variable` is in scope.
     Expect.equals(variable, declaration.lookupInScope('variable'));
     // Top level `method` is in scope.
     Expect.equals(method, declaration.lookupInScope('method'));
-  
+
     // Parameter `a` is not in scope
     Expect.isNull(declaration.lookupInScope('a'));
     // Parameter `b` is not in scope
     Expect.isNull(declaration.lookupInScope('b'));
-    
+
     // Parameter `c` is not in scope.
     Expect.isNull(declaration.lookupInScope('c'));
     // Parameter `d` is not in scope.
     Expect.isNull(declaration.lookupInScope('d'));
-    
+
     Expect.equals(Class, declaration.lookupInScope('Class'));
     // Type variable `A` is not in scope
     Expect.isNull(declaration.lookupInScope('A'));
@@ -227,31 +227,31 @@ void test(MirrorSystem mirrors) {
   }
   checkSubclassScope(Subclass);
   checkSubclassScope(Subclass_subfield);
-  
+
   // `Timer` is in scope of `Future`.
   Expect.isTrue(Future_.lookupInScope('Timer') is ClassMirror);
-  
+
   // Check qualified lookup.
   Expect.equals(variable, lookupQualifiedInScope(library, 'variable'));
   Expect.equals(method, lookupQualifiedInScope(library, 'method'));
   Expect.isTrue(lookupQualifiedInScope(library, 'method.a') is ParameterMirror);
-  
+
   Expect.equals(Class, lookupQualifiedInScope(library, 'Class'));
   Expect.isTrue(
       lookupQualifiedInScope(library, 'Class.A') is TypeVariableMirror);
-  
+
   Expect.isNull(library.lookupInScope('Class.field'));
   Expect.equals(Class_field, lookupQualifiedInScope(library, 'Class.field'));
-  
+
   Expect.equals(Class_method, lookupQualifiedInScope(library, 'Class.method'));
   Expect.isTrue(
       lookupQualifiedInScope(library, 'Class.method.c') is ParameterMirror);
-  
+
   // `field` should not be found through the prefix `Subclass`.
   Expect.isNull(lookupQualifiedInScope(library, 'Subclass.field'));
-  Expect.equals(Subclass_subfield, 
+  Expect.equals(Subclass_subfield,
                 lookupQualifiedInScope(library, 'Subclass.subfield'));
-  
+
   Expect.equals(Future_, lookupQualifiedInScope(library, 'async.Future'));
   Expect.isTrue(
       lookupQualifiedInScope(library, 'async.Future.then') is MethodMirror);
@@ -259,5 +259,3 @@ void test(MirrorSystem mirrors) {
   Expect.isNull(
       lookupQualifiedInScope(library, 'async.Future.Timer'));
 }
-
-

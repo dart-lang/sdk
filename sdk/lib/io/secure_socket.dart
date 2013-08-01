@@ -96,6 +96,7 @@ abstract class SecureSocket implements Socket {
     return completer.future;
   }
 
+
   /**
    * Takes an already connected [socket] and starts server side TLS
    * handshake to make the communication secure. When the returned
@@ -205,6 +206,40 @@ abstract class SecureSocket implements Socket {
   external static void initialize({String database,
                                    String password,
                                    bool useBuiltinRoots: true});
+
+
+  /**
+   * Trust strings for use in [addCertificate].
+   */
+  static const String TRUST_ISSUE_SERVER_CERTIFICATES = 'C,,';
+  static const String TRUST_ISSUE_CLIENT_CERTIFICATES = 'T,,';
+  static const String TRUST_ISSUE_CLIENT_SERVER_CERTIFICATES = 'TC,,';
+  static const String TRUST_CERTIFICATE = 'P,,';
+
+
+  /**
+   * Adds a X509 certificate (for SSL and TLS secure networking) to the
+   * in-memory certificate database.  Returns an X509Certificate object
+   * with information about the added certificate.
+   *
+   * [certificate] must be a list of bytes encoding a certificate in
+   *  PEM format: a base64 encoded DER certificate, enclosed between
+   * "-----BEGIN CERTIFICATE-----" and "-----END CERTIFICATE-----".
+   *
+   * [trust] is a string specifying the allowed uses of this certificate.
+   * For example, 'TC,,' specifies that the certificate is for a certificate
+   * authority that is trusted to issue server and client certificates, so
+   * that a server or client certificate signed by this authority will be
+   * accepted.
+   *
+   * See the documentation of NSS certutil at
+   * http://developer.mozilla.org/en-US/docs/NSS_reference/NSS_tools_:_certutil
+   * or
+   * http://blogs.oracle.com/meena/entry/notes_about_trust_flags
+   * for more information about trust attributes.
+   */
+  external static X509Certificate addCertificate(List<int> certificate,
+                                                 String trust);
 }
 
 
@@ -412,7 +447,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   static final int NUM_BUFFERS = 4;
 
   // Is a buffer identifier for an encrypted buffer?
-  static bool _isBufferEncrypted(int identifier) => identifier >= READ_ENCRYPTED;
+  static bool _isBufferEncrypted(int identifier) =>
+      identifier >= READ_ENCRYPTED;
 
   RawSocket _socket;
   final Completer<_RawSecureSocket> _handshakeComplete =

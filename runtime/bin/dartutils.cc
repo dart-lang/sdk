@@ -389,6 +389,7 @@ Dart_Handle DartUtils::ReadStringFromFile(const char* filename) {
     return Dart_Error(error_msg);
   }
   Dart_Handle str = Dart_NewStringFromUTF8(text_buffer, len);
+  free(const_cast<uint8_t *>(text_buffer));
   return str;
 }
 
@@ -594,23 +595,27 @@ Dart_Handle DartUtils::LoadScript(const char* script_uri,
   Dart_StringToCString(script_path, &script_path_cstr);
   const char* error_msg = NULL;
   intptr_t len;
-  const uint8_t* text_buffer = ReadFileFully(script_path_cstr,
-                                             &len,
-                                             &error_msg);
-  if (text_buffer == NULL) {
+  const uint8_t* buffer = ReadFileFully(script_path_cstr,
+                                        &len,
+                                        &error_msg);
+  if (buffer == NULL) {
     return Dart_Error(error_msg);
   }
   bool is_snapshot = false;
-  text_buffer = SniffForMagicNumber(text_buffer, &len, &is_snapshot);
+  const uint8_t *payload = SniffForMagicNumber(buffer, &len, &is_snapshot);
+  Dart_Handle returnValue;
   if (is_snapshot) {
-    return Dart_LoadScriptFromSnapshot(text_buffer, len);
+    returnValue = Dart_LoadScriptFromSnapshot(payload, len);
   } else {
-    Dart_Handle source = Dart_NewStringFromUTF8(text_buffer, len);
+    Dart_Handle source = Dart_NewStringFromUTF8(buffer, len);
     if (Dart_IsError(source)) {
-      return source;
+      returnValue = source;
+    } else {
+      returnValue = Dart_LoadScript(resolved_script_uri, source, 0, 0);
     }
-    return Dart_LoadScript(resolved_script_uri, source, 0, 0);
   }
+  free(const_cast<uint8_t *>(buffer));
+  return returnValue;
 }
 
 

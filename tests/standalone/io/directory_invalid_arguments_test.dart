@@ -22,29 +22,13 @@ void testFailingList(Directory d, var recursive) {
 }
 
 void testInvalidArguments() {
-  Directory d = new Directory(12);
   try {
-    d.existsSync();
+    Directory d = new Directory(12);
     Expect.fail("No exception thrown");
   } catch (e) {
     Expect.isTrue(e is ArgumentError);
   }
-  try {
-    d.deleteSync();
-    Expect.fail("No exception thrown");
-  } catch (e) {
-    Expect.isTrue(e is ArgumentError);
-  }
-  try {
-    d.createSync();
-    Expect.fail("No exception thrown");
-  } catch (e) {
-    Expect.isTrue(e is ArgumentError);
-  }
-  testFailingList(d, false);
-  Expect.throws(() => d.listSync(recursive: true),
-                (e) => e is ArgumentError);
-  d = new Directory(".");
+  Directory d = new Directory(".");
   testFailingList(d, 1);
   Expect.throws(() => d.listSync(recursive: 1),
                 (e) => e is ArgumentError);

@@ -29,6 +29,11 @@ class_literal_test/29: Fail # Class literals are expression now; delete this tes
 
 constructor_initializer_test: Fail, OK # Depends on ?parameter check.
 
+# Issues related to undeclared prefix resolution.
+malformed_test/none: Fail
+malformed_test/05: Fail
+malformed_test/06: Fail
+
 # Fails due to inlining. Not all expected frames are in the trace.
 full_stacktrace1_test: Pass, Fail  # issue 9895
 full_stacktrace2_test: Pass, Fail  # issue 9895
@@ -110,7 +115,6 @@ bad_override_test/02: Fail
 call_nonexistent_constructor_test: Fail
 constructor_named_arguments_test/01: Fail # http://dartbug.com/5519
 getter_no_setter_test/01: Fail # http://dartbug.com/5519
-isnot_malformed_type_test/01: Fail # http://dartbug.com/5519
 not_enough_positional_arguments_test/01: Fail # http://dartbug.com/5519
 error_stacktrace_test: Fail # (Issue 11681).
 
@@ -163,10 +167,6 @@ mixin_type_parameters_errors_test/01: Fail
 mixin_type_parameters_errors_test/02: Fail
 mixin_type_parameters_errors_test/05: Fail
 
-# new with wrong number of type arguments should be a runtime error.
-mixin_type_parameters_errors_test/03: Fail
-mixin_type_parameters_errors_test/04: Fail
-
 # External tests.
 external_test/01: Fail
 external_test/02: Fail
@@ -184,7 +184,6 @@ external_test/31: Fail
 
 
 # Implementation errors (library or generated code).
-instanceof3_test: Fail # cannot resolve type UndeclaredType.
 instanceof4_test: Fail # Expect.isTrue(false) fails.
 list_literal4_test: Fail # Illegal argument(s): 0 -- checked mode test.
 map_literal4_test: Fail # Attempt to modify an immutable object -- checked mode test.

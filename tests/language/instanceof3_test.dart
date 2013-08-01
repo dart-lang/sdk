@@ -5,8 +5,8 @@
 
 import "package:expect/expect.dart";
 
-// In the type test 'e is T', it is a run-time error if T does not denote a type
-// available in the current lexical scope.
+// In the type test 'e is T', if T does not denote a type available in the
+// current lexical scope, then T is mapped to dynamic and the test succeeds.
 
 isCheckedMode() {
   try {
@@ -23,23 +23,23 @@ testAll() {
     bool got_type_error = false;
     var x = null;
     try {
-      Expect.isFalse(x is UndeclaredType);  // x is null.
+      Expect.isTrue(x is UndeclaredType);  // x is null.
     } on TypeError catch (error) {
       got_type_error = true;
     }
-    // Type error in production mode and in checked mode.
-    Expect.isTrue(got_type_error);
+    // No type error.
+    Expect.isFalse(got_type_error);
   }
   {
     bool got_type_error = false;
     var x = 1;
     try {
-      Expect.isFalse(x is UndeclaredType);  // x is not null.
+      Expect.isTrue(x is UndeclaredType);  // x is not null.
     } on TypeError catch (error) {
       got_type_error = true;
     }
-    // Type error in production mode and in checked mode.
-    Expect.isTrue(got_type_error);
+    // No type error.
+    Expect.isFalse(got_type_error);
   }
   {
     bool got_type_error = false;
@@ -49,8 +49,8 @@ testAll() {
     } on TypeError catch (error) {
       got_type_error = true;
     }
-    // Type error in checked mode only.
-    Expect.isTrue(got_type_error == isCheckedMode());
+    // No type error.
+    Expect.isFalse(got_type_error);
   }
   {
     bool got_type_error = false;
@@ -60,8 +60,8 @@ testAll() {
     } on TypeError catch (error) {
       got_type_error = true;
     }
-    // Type error in checked mode only.
-    Expect.isTrue(got_type_error == isCheckedMode());
+    // No type error.
+    Expect.isFalse(got_type_error);
   }
   {
     bool got_type_error = false;
@@ -71,8 +71,8 @@ testAll() {
     } on TypeError catch (error) {
       got_type_error = true;
     }
-    // Type error in checked mode only.
-    Expect.isTrue(got_type_error == isCheckedMode());
+    // No type error.
+    Expect.isFalse(got_type_error);
   }
   {
     bool got_type_error = false;
@@ -82,8 +82,8 @@ testAll() {
     } on TypeError catch (error) {
       got_type_error = true;
     }
-    // Type error in checked mode only.
-    Expect.isTrue(got_type_error == isCheckedMode());
+    // No type error.
+    Expect.isFalse(got_type_error);
   }
 }
 

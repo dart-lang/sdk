@@ -76,7 +76,7 @@ listChangeTests() {
       }
 
       // Note: compare strings for easier debugging.
-      expect('$copy', '$model', reason: '!!! summary $summary');
+      expect('$copy', '$model', reason: 'summary $summary');
     }
 
     observeTest('Contained', () {

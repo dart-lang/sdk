@@ -7,6 +7,7 @@ library barback.test.package_graph.transform_test;
 import 'dart:async';
 
 import 'package:barback/barback.dart';
+import 'package:barback/src/utils.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 
 import '../utils.dart';
@@ -104,8 +105,8 @@ main() {
     var transformerB = new RewriteTransformer("txt", "b");
     initGraph(["app|foo.txt"], {"app": [[transformerA, transformerB]]});
 
-    transformerA.wait();
-    transformerB.wait();
+    transformerA.pauseApply();
+    transformerB.pauseApply();
 
     schedule(() {
       updateSources(["app|foo.txt"]);
@@ -119,12 +120,24 @@ main() {
       expect(transformerA.isRunning, isTrue);
       expect(transformerB.isRunning, isTrue);
 
-      transformerA.complete();
-      transformerB.complete();
+      transformerA.resumeApply();
+      transformerB.resumeApply();
     });
 
     expectAsset("app|foo.a", "foo.a");
     expectAsset("app|foo.b", "foo.b");
+    buildShouldSucceed();
+  });
+
+  test("outputs are inaccessible once used", () {
+    initGraph(["app|foo.a"], {"app": [
+      [new RewriteTransformer("a", "b")],
+      [new RewriteTransformer("a", "c")]
+    ]});
+    updateSources(["app|foo.a"]);
+    expectAsset("app|foo.b", "foo.b");
+    expectNoAsset("app|foo.a");
+    expectNoAsset("app|foo.c");
     buildShouldSucceed();
   });
 
@@ -186,10 +199,8 @@ main() {
     buildShouldSucceed();
 
     // Remove the dependency on the non-primary input.
-    schedule(() {
-      modifyAsset("app|a.txt", "a.inc");
-      updateSources(["app|a.txt"]);
-    });
+    modifyAsset("app|a.txt", "a.inc");
+    schedule(() => updateSources(["app|a.txt"]));
 
     // Process it again.
     expectAsset("app|a.out", "a");
@@ -269,8 +280,25 @@ main() {
     buildShouldSucceed();
   });
 
+  test("discards outputs from a transform whose primary input is removed "
+      "during processing", () {
+    var rewrite = new RewriteTransformer("txt", "out");
+    initGraph(["app|foo.txt"], {"app": [[rewrite]]});
+
+    rewrite.pauseApply();
+    updateSources(["app|foo.txt"]);
+    schedule(() => rewrite.started);
+    schedule(() {
+      removeSources(["app|foo.txt"]);
+      rewrite.resumeApply();
+    });
+
+    expectNoAsset("app|foo.out");
+    buildShouldSucceed();
+  });
+
   test("reapplies a transform when a non-primary input changes", () {
-   initGraph({
+    initGraph({
       "app|a.txt": "a.inc",
       "app|a.inc": "a"
     }, {"app": [[new ManyToOneTransformer("txt")]]});
@@ -279,12 +307,73 @@ main() {
     expectAsset("app|a.out", "a");
     buildShouldSucceed();
 
-    schedule(() {
-      modifyAsset("app|a.inc", "after");
-      updateSources(["app|a.inc"]);
-    });
+    modifyAsset("app|a.inc", "after");
+    schedule(() => updateSources(["app|a.inc"]));
 
     expectAsset("app|a.out", "after");
+    buildShouldSucceed();
+  });
+
+  test("applies a transform when it becomes newly primary", () {
+    initGraph({
+      "app|foo.txt": "this",
+    }, {"app": [[new CheckContentTransformer("that", " and the other")]]});
+
+    updateSources(["app|foo.txt"]);
+    expectAsset("app|foo.txt", "this");
+    buildShouldSucceed();
+
+    modifyAsset("app|foo.txt", "that");
+    schedule(() => updateSources(["app|foo.txt"]));
+
+    expectAsset("app|foo.txt", "that and the other");
+    buildShouldSucceed();
+  });
+
+  test("applies the correct transform if an asset is modified during isPrimary",
+      () {
+    var check1 = new CheckContentTransformer("first", "#1");
+    var check2 = new CheckContentTransformer("second", "#2");
+    initGraph({
+      "app|foo.txt": "first",
+    }, {"app": [[check1, check2]]});
+
+    check1.pauseIsPrimary("app|foo.txt");
+    updateSources(["app|foo.txt"]);
+    // Ensure that we're waiting on check1's isPrimary.
+    schedule(pumpEventQueue);
+
+    modifyAsset("app|foo.txt", "second");
+    schedule(() {
+      updateSources(["app|foo.txt"]);
+      check1.resumeIsPrimary("app|foo.txt");
+    });
+
+    expectAsset("app|foo.txt", "second#2");
+    buildShouldSucceed();
+  });
+
+  test("applies the correct transform if an asset is removed and added during "
+      "isPrimary", () {
+    var check1 = new CheckContentTransformer("first", "#1");
+    var check2 = new CheckContentTransformer("second", "#2");
+    initGraph({
+      "app|foo.txt": "first",
+    }, {"app": [[check1, check2]]});
+
+    check1.pauseIsPrimary("app|foo.txt");
+    updateSources(["app|foo.txt"]);
+    // Ensure that we're waiting on check1's isPrimary.
+    schedule(pumpEventQueue);
+
+    schedule(() => removeSources(["app|foo.txt"]));
+    modifyAsset("app|foo.txt", "second");
+    schedule(() {
+      updateSources(["app|foo.txt"]);
+      check1.resumeIsPrimary("app|foo.txt");
+    });
+
+    expectAsset("app|foo.txt", "second#2");
     buildShouldSucceed();
   });
 
@@ -292,7 +381,7 @@ main() {
     var transformer = new RewriteTransformer("txt", "out");
     initGraph(["app|foo.txt"], {"app": [[transformer]]});
 
-    transformer.wait();
+    transformer.pauseApply();
 
     schedule(() {
       updateSources(["app|foo.txt"]);
@@ -304,16 +393,115 @@ main() {
     schedule(() {
       // Now update the graph during it.
       updateSources(["app|foo.txt"]);
-    });
-
-    schedule(() {
-      transformer.complete();
+      transformer.resumeApply();
     });
 
     expectAsset("app|foo.out", "foo.out");
     buildShouldSucceed();
 
     schedule(() {
+      expect(transformer.numRuns, equals(2));
+    });
+  });
+
+  test("aborts processing if the primary input is removed during processing",
+      () {
+    var transformer = new RewriteTransformer("txt", "out");
+    initGraph(["app|foo.txt"], {"app": [[transformer]]});
+
+    transformer.pauseApply();
+
+    schedule(() {
+      updateSources(["app|foo.txt"]);
+
+      // Wait for the transform to start.
+      return transformer.started;
+    });
+
+    schedule(() {
+      // Now remove its primary input while it's running.
+      removeSources(["app|foo.txt"]);
+      transformer.resumeApply();
+    });
+
+    expectNoAsset("app|foo.out");
+    buildShouldSucceed();
+
+    schedule(() {
+      expect(transformer.numRuns, equals(1));
+    });
+  });
+
+  test("restarts processing if a change to a new secondary input occurs during "
+      "processing", () {
+    var transformer = new ManyToOneTransformer("txt");
+    initGraph({
+      "app|foo.txt": "bar.inc",
+      "app|bar.inc": "bar"
+    }, {"app": [[transformer]]});
+
+    transformer.pauseApply();
+
+    updateSources(["app|foo.txt", "app|bar.inc"]);
+    // Wait for the transform to start.
+    schedule(() => transformer.started);
+
+    // Give the transform time to load bar.inc the first time.
+    schedule(pumpEventQueue);
+
+    // Now update the secondary input before the transform finishes.
+    modifyAsset("app|bar.inc", "baz");
+    schedule(() => updateSources(["app|bar.inc"]));
+    // Give bar.inc enough time to be loaded and marked available before the
+    // transformer completes.
+    schedule(pumpEventQueue);
+
+    schedule(transformer.resumeApply);
+
+    expectAsset("app|foo.out", "baz");
+    buildShouldSucceed();
+
+    schedule(() {
+      expect(transformer.numRuns, equals(2));
+    });
+  });
+
+  test("doesn't restart processing if a change to an old secondary input "
+      "occurs during processing", () {
+    var transformer = new ManyToOneTransformer("txt");
+    initGraph({
+      "app|foo.txt": "bar.inc",
+      "app|bar.inc": "bar",
+      "app|baz.inc": "baz"
+    }, {"app": [[transformer]]});
+
+    updateSources(["app|foo.txt", "app|bar.inc", "app|baz.inc"]);
+    expectAsset("app|foo.out", "bar");
+    buildShouldSucceed();
+
+    schedule(transformer.pauseApply);
+    modifyAsset("app|foo.txt", "baz.inc");
+    schedule(() {
+      updateSources(["app|foo.txt"]);
+      // Wait for the transform to start.
+      return transformer.started;
+    });
+
+    // Now update the old secondary input before the transform finishes.
+    modifyAsset("app|bar.inc", "new bar");
+    schedule(() => updateSources(["app|bar.inc"]));
+    // Give bar.inc enough time to be loaded and marked available before the
+    // transformer completes.
+    schedule(pumpEventQueue);
+
+    schedule(transformer.resumeApply);
+
+    expectAsset("app|foo.out", "baz");
+    buildShouldSucceed();
+
+    schedule(() {
+      // Should have run once the first time, then again when switching to
+      // baz.inc. Should not run a third time because of bar.inc being modified.
       expect(transformer.numRuns, equals(2));
     });
   });
@@ -336,11 +524,9 @@ main() {
 
     // Now switch their contents so that "shared.out" will be output by "b.b"'s
     // transformer.
-    schedule(() {
-      modifyAsset("app|a.a", "a.out");
-      modifyAsset("app|b.b", "b.out,shared.out");
-      updateSources(["app|a.a", "app|b.b"]);
-    });
+    modifyAsset("app|a.a", "a.out");
+    modifyAsset("app|b.b", "b.out,shared.out");
+    schedule(() => updateSources(["app|a.a", "app|b.b"]));
 
     expectAsset("app|a.out", "spread a");
     expectAsset("app|b.out", "spread b");
@@ -354,7 +540,7 @@ main() {
     initGraph(["app|foo.txt", "app|bar.txt"],
         {"app": [[txtToInt], [intToOut]]});
 
-    txtToInt.wait();
+    txtToInt.pauseApply();
 
     schedule(() {
       updateSources(["app|foo.txt"]);
@@ -369,7 +555,7 @@ main() {
     });
 
     schedule(() {
-      txtToInt.complete();
+      txtToInt.resumeApply();
     });
 
     expectAsset("app|foo.out", "foo.int.out");
@@ -405,6 +591,281 @@ main() {
     updateSources(["pkg1|file.foo"]);
     expectAsset("pkg1|file.bar", "file.bar");
     expectNoAsset("pkg2|file.baz");
+    buildShouldSucceed();
+  });
+
+  test("doesn't return an asset until it's finished rebuilding", () {
+    initGraph(["app|foo.in"], {"app": [
+      [new RewriteTransformer("in", "mid")],
+      [new RewriteTransformer("mid", "out")]
+    ]});
+
+    updateSources(["app|foo.in"]);
+    expectAsset("app|foo.out", "foo.mid.out");
+    buildShouldSucceed();
+
+    pauseProvider();
+    modifyAsset("app|foo.in", "new");
+    schedule(() => updateSources(["app|foo.in"]));
+    expectAssetDoesNotComplete("app|foo.out");
+    buildShouldNotBeDone();
+
+    resumeProvider();
+    expectAsset("app|foo.out", "new.mid.out");
+    buildShouldSucceed();
+  });
+
+  test("doesn't return an asset until its in-place transform is done", () {
+    var rewrite = new RewriteTransformer("txt", "txt");
+    initGraph(["app|foo.txt"], {"app": [[rewrite]]});
+
+    rewrite.pauseApply();
+    updateSources(["app|foo.txt"]);
+    expectAssetDoesNotComplete("app|foo.txt");
+
+    schedule(rewrite.resumeApply);
+    expectAsset("app|foo.txt", "foo.txt");
+    buildShouldSucceed();
+  });
+
+  test("doesn't return an asset until we know it won't be transformed",
+      () {
+    var rewrite = new RewriteTransformer("txt", "txt");
+    initGraph(["app|foo.a"], {"app": [[rewrite]]});
+
+    rewrite.pauseIsPrimary("app|foo.a");
+    updateSources(["app|foo.a"]);
+    expectAssetDoesNotComplete("app|foo.a");
+
+    schedule(() => rewrite.resumeIsPrimary("app|foo.a"));
+    expectAsset("app|foo.a", "foo");
+    buildShouldSucceed();
+  });
+
+  test("doesn't return a modified asset until we know it will still be "
+      "transformed", () {
+    var rewrite = new RewriteTransformer("txt", "txt");
+    initGraph(["app|foo.txt"], {"app": [[rewrite]]});
+
+    updateSources(["app|foo.txt"]);
+    expectAsset("app|foo.txt", "foo.txt");
+    buildShouldSucceed();
+
+    schedule(() => rewrite.pauseIsPrimary("app|foo.txt"));
+    schedule(() => updateSources(["app|foo.txt"]));
+    expectAssetDoesNotComplete("app|foo.txt");
+
+    schedule(() => rewrite.resumeIsPrimary("app|foo.txt"));
+    expectAsset("app|foo.txt", "foo.txt");
+    buildShouldSucceed();
+  });
+
+  test("doesn't return an asset that's removed during isPrimary", () {
+    var rewrite = new RewriteTransformer("txt", "txt");
+    initGraph(["app|foo.txt"], {"app": [[rewrite]]});
+
+    rewrite.pauseIsPrimary("app|foo.txt");
+    updateSources(["app|foo.txt"]);
+    // Make sure we're waiting on isPrimary.
+    schedule(pumpEventQueue);
+
+    schedule(() {
+      removeSources(["app|foo.txt"]);
+      rewrite.resumeIsPrimary("app|foo.txt");
+    });
+    expectNoAsset("app|foo.txt");
+    buildShouldSucceed();
+  });
+
+  test("doesn't transform an asset that goes from primary to non-primary "
+      "during isPrimary", () {
+    var check = new CheckContentTransformer("do", "ne");
+    initGraph({
+      "app|foo.txt": "do"
+    }, {"app": [[check]]});
+
+    check.pauseIsPrimary("app|foo.txt");
+    updateSources(["app|foo.txt"]);
+    // Make sure we're waiting on isPrimary.
+    schedule(pumpEventQueue);
+
+    modifyAsset("app|foo.txt", "don't");
+    schedule(() {
+      updateSources(["app|foo.txt"]);
+      check.resumeIsPrimary("app|foo.txt");
+    });
+
+    expectAsset("app|foo.txt", "don't");
+    buildShouldSucceed();
+  });
+
+  test("transforms an asset that goes from non-primary to primary "
+      "during isPrimary", () {
+    var check = new CheckContentTransformer("do", "ne");
+    initGraph({
+      "app|foo.txt": "don't"
+    }, {"app": [[check]]});
+
+    check.pauseIsPrimary("app|foo.txt");
+    updateSources(["app|foo.txt"]);
+    // Make sure we're waiting on isPrimary.
+    schedule(pumpEventQueue);
+
+    modifyAsset("app|foo.txt", "do");
+    schedule(() {
+      updateSources(["app|foo.txt"]);
+      check.resumeIsPrimary("app|foo.txt");
+    });
+
+    expectAsset("app|foo.txt", "done");
+    buildShouldSucceed();
+  });
+
+  test("doesn't return an asset that's removed during another transformer's "
+      "isPrimary", () {
+    var rewrite1 = new RewriteTransformer("txt", "txt");
+    var rewrite2 = new RewriteTransformer("md", "md");
+    initGraph(["app|foo.txt", "app|foo.md"], {"app": [[rewrite1, rewrite2]]});
+
+    rewrite2.pauseIsPrimary("app|foo.md");
+    updateSources(["app|foo.txt", "app|foo.md"]);
+    // Make sure we're waiting on the correct isPrimary.
+    schedule(pumpEventQueue);
+
+    schedule(() {
+      removeSources(["app|foo.txt"]);
+      rewrite2.resumeIsPrimary("app|foo.md");
+    });
+    expectNoAsset("app|foo.txt");
+    expectAsset("app|foo.md", "foo.md");
+    buildShouldSucceed();
+  });
+
+  test("doesn't transform an asset that goes from primary to non-primary "
+      "during another transformer's isPrimary", () {
+    var rewrite = new RewriteTransformer("md", "md");
+    var check = new CheckContentTransformer("do", "ne");
+    initGraph({
+      "app|foo.txt": "do",
+      "app|foo.md": "foo"
+    }, {"app": [[rewrite, check]]});
+
+    rewrite.pauseIsPrimary("app|foo.md");
+    updateSources(["app|foo.txt", "app|foo.md"]);
+    // Make sure we're waiting on the correct isPrimary.
+    schedule(pumpEventQueue);
+
+    modifyAsset("app|foo.txt", "don't");
+    schedule(() {
+      updateSources(["app|foo.txt"]);
+      rewrite.resumeIsPrimary("app|foo.md");
+    });
+
+    expectAsset("app|foo.txt", "don't");
+    expectAsset("app|foo.md", "foo.md");
+    buildShouldSucceed();
+  });
+
+  test("transforms an asset that goes from non-primary to primary "
+      "during another transformer's isPrimary", () {
+    var rewrite = new RewriteTransformer("md", "md");
+    var check = new CheckContentTransformer("do", "ne");
+    initGraph({
+      "app|foo.txt": "don't",
+      "app|foo.md": "foo"
+    }, {"app": [[rewrite, check]]});
+
+    rewrite.pauseIsPrimary("app|foo.md");
+    updateSources(["app|foo.txt", "app|foo.md"]);
+    // Make sure we're waiting on the correct isPrimary.
+    schedule(pumpEventQueue);
+
+    modifyAsset("app|foo.txt", "do");
+    schedule(() {
+      updateSources(["app|foo.txt"]);
+      rewrite.resumeIsPrimary("app|foo.md");
+    });
+
+    expectAsset("app|foo.txt", "done");
+    expectAsset("app|foo.md", "foo.md");
+    buildShouldSucceed();
+  });
+
+  test("removes pipelined transforms when the root primary input is removed",
+      () {
+    initGraph(["app|foo.txt"], {"app": [
+      [new RewriteTransformer("txt", "mid")],
+      [new RewriteTransformer("mid", "out")]
+    ]});
+
+    updateSources(["app|foo.txt"]);
+    expectAsset("app|foo.out", "foo.mid.out");
+    buildShouldSucceed();
+
+    schedule(() => removeSources(["app|foo.txt"]));
+    expectNoAsset("app|foo.out");
+    buildShouldSucceed();
+  });
+
+  test("removes pipelined transforms when the parent ceases to generate the "
+      "primary input", () {
+    initGraph({"app|foo.txt": "foo.mid"}, {'app': [
+      [new OneToManyTransformer('txt')],
+      [new RewriteTransformer('mid', 'out')]
+    ]});
+
+    updateSources(['app|foo.txt']);
+    expectAsset('app|foo.out', 'spread txt.out');
+    buildShouldSucceed();
+
+    modifyAsset("app|foo.txt", "bar.mid");
+    schedule(() => updateSources(["app|foo.txt"]));
+    expectNoAsset('app|foo.out');
+    expectAsset('app|bar.out', 'spread txt.out');
+    buildShouldSucceed();
+  });
+
+  test("returns an asset even if an unrelated build is running", () {
+    initGraph([
+      "app|foo.in",
+      "app|bar.in",
+    ], {"app": [[new RewriteTransformer("in", "out")]]});
+
+    updateSources(["app|foo.in", "app|bar.in"]);
+    expectAsset("app|foo.out", "foo.out");
+    expectAsset("app|bar.out", "bar.out");
+    buildShouldSucceed();
+
+    pauseProvider();
+    modifyAsset("app|foo.in", "new");
+    schedule(() => updateSources(["app|foo.in"]));
+    expectAssetDoesNotComplete("app|foo.out");
+    expectAsset("app|bar.out", "bar.out");
+    buildShouldNotBeDone();
+
+    resumeProvider();
+    expectAsset("app|foo.out", "new.out");
+    buildShouldSucceed();
+  });
+
+  test("doesn't report AssetNotFound until all builds are finished", () {
+    initGraph([
+      "app|foo.in",
+    ], {"app": [[new RewriteTransformer("in", "out")]]});
+
+    updateSources(["app|foo.in"]);
+    expectAsset("app|foo.out", "foo.out");
+    buildShouldSucceed();
+
+    pauseProvider();
+    schedule(() => updateSources(["app|foo.in"]));
+    expectAssetDoesNotComplete("app|foo.out");
+    expectAssetDoesNotComplete("app|non-existent.out");
+    buildShouldNotBeDone();
+
+    resumeProvider();
+    expectAsset("app|foo.out", "foo.out");
+    expectNoAsset("app|non-existent.out");
     buildShouldSucceed();
   });
 
