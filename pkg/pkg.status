@@ -168,6 +168,7 @@ dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
 # test on Dartium, which requires all tests to have a library.
 [ $runtime == dartium || $runtime == drt ]
 serialization/test/no_library_test: Skip # Expected Failure
+mdv/test/template_element_test: Pass, Fail # Issue 12177
 
 # Skip tests on the VM if the package depends on dart:html
 [ $runtime == vm ]
