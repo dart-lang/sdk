@@ -34,9 +34,22 @@ class CompoundBinding extends ChangeNotifierBase {
   // use integers.
   Map<dynamic, StreamSubscription> _observers = new Map();
   Map _values = new Map();
-  bool _scheduled = false;
   Object _value;
 
+  /**
+   * True if [resolve] is scheduled. You can set this to true if you plan to
+   * call [resolve] manually, avoiding the need for scheduling an asynchronous
+   * resolve.
+   */
+  // TODO(jmesserly): I don't like having this public, is the optimization
+  // really needed? "runAsync" in Dart should be pretty cheap.
+  bool scheduled;
+
+  /**
+   * Creates a new CompoundBinding, optionally proving the [combinator] function
+   * for computing the value. You can also set [schedule] to true if you plan
+   * to invoke [resolve] manually after initial construction of the binding.
+   */
   CompoundBinding([CompoundBindingCombinator combinator]) {
     // TODO(jmesserly): this is a tweak to the original code, it seemed to me
     // that passing the combinator to the constructor should be equivalent to
@@ -86,14 +99,14 @@ class CompoundBinding extends ChangeNotifierBase {
   // TODO(rafaelw): Consider having a seperate ChangeSummary for
   // CompoundBindings so to excess dirtyChecks.
   void _scheduleResolve() {
-    if (_scheduled) return;
-    _scheduled = true;
+    if (scheduled) return;
+    scheduled = true;
     runAsync(resolve);
   }
 
   void resolve() {
     if (_observers.isEmpty) return;
-    _scheduled = false;
+    scheduled = false;
 
     if (_combinator == null) {
       throw new StateError(

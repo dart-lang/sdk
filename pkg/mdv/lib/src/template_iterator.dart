@@ -99,14 +99,12 @@ void _setupBinding(Node node, String name, List tokens, model,
     return;
   }
 
-  var replacementBinding = new CompoundBinding();
-  for (var i = 1; i < tokens.length; i += 2) {
-    // TODO(jmesserly): not sure if this index is correct. See my comment here:
-    // https://github.com/Polymer/mdv/commit/f1af6fe683fd06eed2a7a7849f01c227db12cda3#L0L1035
-    _bindOrDelegate(replacementBinding, i, model, tokens[i], delegate);
-  }
-
-  replacementBinding.combinator = (values) {
+  // TODO(jmesserly): MDV caches the closure on the tokens, but I'm not sure
+  // why they do that instead of just caching the entire CompoundBinding object
+  // and unbindAll then bind to the new model.
+  var replacementBinding = new CompoundBinding()
+      ..scheduled = true
+      ..combinator = (values) {
     var newValue = new StringBuffer();
 
     for (var i = 0, text = true; i < tokens.length; i++, text = !text) {
@@ -122,6 +120,14 @@ void _setupBinding(Node node, String name, List tokens, model,
 
     return newValue.toString();
   };
+
+  for (var i = 1; i < tokens.length; i += 2) {
+    // TODO(jmesserly): not sure if this index is correct. See my comment here:
+    // https://github.com/Polymer/mdv/commit/f1af6fe683fd06eed2a7a7849f01c227db12cda3#L0L1035
+    _bindOrDelegate(replacementBinding, i, model, tokens[i], delegate);
+  }
+
+  replacementBinding.resolve();
 
   node.bind(name, replacementBinding, 'value');
 }
