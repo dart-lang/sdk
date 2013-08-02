@@ -4,6 +4,5 @@ description: A library for writing dart unit tests.
 homepage: http://www.dartlang.org
 documentation: http://api.dartlang.org/docs/pkg/unittest
 dependencies:
-  json: any
   meta: any
   stack_trace: any
