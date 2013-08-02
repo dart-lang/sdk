@@ -110,16 +110,18 @@ static void UseDartApi(Dart_NativeArguments args) {
   int count = Dart_GetNativeArgumentCount(args);
   EXPECT_EQ(3, count);
 
-  // Get the receiver.
-  Dart_Handle recv = Dart_GetNativeArgument(args, 0);
-  EXPECT_VALID(recv);
+  // Get native field from receiver.
+  intptr_t receiver_value;
+  Dart_Handle result = Dart_GetNativeReceiver(args, &receiver_value);
+  EXPECT_VALID(result);
+  EXPECT_EQ(7, receiver_value);
 
   // Get param1.
   Dart_Handle param1 = Dart_GetNativeArgument(args, 1);
   EXPECT_VALID(param1);
   EXPECT(Dart_IsInteger(param1));
   bool fits = false;
-  Dart_Handle result = Dart_IntegerFitsIntoInt64(param1, &fits);
+  result = Dart_IntegerFitsIntoInt64(param1, &fits);
   EXPECT_VALID(result);
   EXPECT(fits);
   int64_t value1;
@@ -128,14 +130,8 @@ static void UseDartApi(Dart_NativeArguments args) {
   EXPECT_LE(0, value1);
   EXPECT_LE(value1, 1000000);
 
-  // Get native field from receiver.
-  intptr_t value2;
-  result = Dart_GetNativeInstanceField(recv, 0, &value2);
-  EXPECT_VALID(result);
-  EXPECT_EQ(7, value2);
-
   // Return param + receiver.field.
-  Dart_SetReturnValue(args, Dart_NewInteger(value1 * value2));
+  Dart_SetReturnValue(args, Dart_NewInteger(value1 * receiver_value));
   Dart_ExitScope();
 }
 

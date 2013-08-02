@@ -3623,6 +3623,30 @@ DART_EXPORT Dart_Handle Dart_GetNativeFieldOfArgument(Dart_NativeArguments args,
   return Api::Success();
 }
 
+DART_EXPORT Dart_Handle Dart_GetNativeReceiver(Dart_NativeArguments args,
+                                               intptr_t* value) {
+  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  Isolate* isolate = arguments->isolate();
+  DARTSCOPE(isolate);
+  const Object& obj = Object::Handle(isolate, arguments->NativeArgAt(0));
+  intptr_t cid = obj.GetClassId();
+  if (cid <= kNumPredefinedCids) {
+    if (cid == kNullCid) {
+      return Api::NewError("%s expects receiver argument to be non-null.",
+                           CURRENT_FUNC);
+    }
+    return Api::NewError("%s expects receiver argument to be of"
+                         " type Instance.", CURRENT_FUNC);
+  }
+  const Instance& instance = Instance::Cast(obj);
+  ASSERT(instance.IsValidNativeIndex(0));
+  if (value == NULL) {
+    RETURN_NULL_ERROR(value);
+  }
+  *value = instance.GetNativeField(isolate, 0);
+  return Api::Success();
+}
+
 
 DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
                                      Dart_Handle retval) {
