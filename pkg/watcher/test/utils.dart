@@ -84,7 +84,7 @@ DirectoryWatcher createWatcher({bool waitForReady}) {
   // Wait until the scan is finished so that we don't miss changes to files
   // that could occur before the scan completes.
   if (waitForReady != false) {
-    schedule(() => _watcher.ready);
+    schedule(() => _watcher.ready, "wait for watcher to be ready");
   }
 
   currentSchedule.onComplete.schedule(() {
@@ -107,7 +107,7 @@ void expectEvent(ChangeType type, String path) {
 
   // Schedule it so that later file modifications don't occur until after this
   // event is received.
-  schedule(() => future);
+  schedule(() => future, "wait for $type event");
 }
 
 void expectAddEvent(String path) {
@@ -149,14 +149,14 @@ void writeFile(String path, {String contents, bool updateModified}) {
       var milliseconds = _mockFileModificationTimes.putIfAbsent(path, () => 0);
       _mockFileModificationTimes[path]++;
     }
-  });
+  }, "write file $path");
 }
 
 /// Schedules deleting a file in the sandbox at [path].
 void deleteFile(String path) {
   schedule(() {
     new File(p.join(_sandboxDir, path)).deleteSync();
-  });
+  }, "delete file $path");
 }
 
 /// Schedules renaming a file in the sandbox from [from] to [to].
@@ -172,7 +172,7 @@ void renameFile(String from, String to) {
     // Manually update the mock modification time for the file.
     var milliseconds = _mockFileModificationTimes.putIfAbsent(to, () => 0);
     _mockFileModificationTimes[to]++;
-  });
+  }, "rename file $from to $to");
 }
 
 /// A [Matcher] for [WatchEvent]s.

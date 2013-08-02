@@ -15,10 +15,6 @@ scheduled_test/lib/*: Skip
 scheduled_test/test/scheduled_server_test: Pass, Fail, Slow, Crash # Issue 9231, 9582
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 
-[ $runtime == vm ]
-watcher/test/no_subscription_test: Pass, Fail # Issue 12107
-watcher/test/directory_watcher_test: Pass, Fail # Issue 12107
-
 [ $runtime == d8 || $runtime == jsshell ]
 unittest/test/unittest_nested_groups_setup_teardown_test: Pass, Fail # http://dartbug.com/10109
 stack_trace/test/vm_test: Fail, OK # VM-specific traces

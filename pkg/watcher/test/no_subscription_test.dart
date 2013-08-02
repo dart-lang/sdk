@@ -23,11 +23,11 @@ main() {
 
     // Subscribe to the events.
     var completer = new Completer();
-    var subscription = watcher.events.listen((event) {
+    var subscription = watcher.events.listen(wrapAsync((event) {
       expect(event.type, equals(ChangeType.ADD));
       expect(event.path, endsWith("file.txt"));
       completer.complete();
-    });
+    }));
 
     writeFile("file.txt");
 
@@ -45,20 +45,20 @@ main() {
     // Then start listening again.
     schedule(() {
       completer = new Completer();
-      subscription = watcher.events.listen((event) {
+      subscription = watcher.events.listen(wrapAsync((event) {
         // We should get an event for the third file, not the one added while
         // we weren't subscribed.
         expect(event.type, equals(ChangeType.ADD));
         expect(event.path, endsWith("added.txt"));
         completer.complete();
-      });
+      }));
     });
 
     // The watcher will have been cancelled and then resumed in the middle of
     // its pause between polling loops. That means the second scan to skip
     // what changed while we were unsubscribed won't happen until after that
     // delay is done. Wait long enough for that to happen.
-    schedule(() => new Future.delayed(new Duration(seconds: 1)));
+    schedule(() => new Future.delayed(watcher.pollingDelay * 2));
 
     // And add a third file.
     writeFile("added.txt");
