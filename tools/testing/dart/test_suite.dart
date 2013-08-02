@@ -138,7 +138,6 @@ abstract class TestSuite {
     }
     var name;
     switch (configuration['compiler']) {
-      case 'dartc':
       case 'dartanalyzer':
       case 'dart2analyzer':
         name = executablePath;
@@ -179,8 +178,6 @@ abstract class TestSuite {
           return '$buildDir/dart-sdk/bin/dart$suffix';
         }
         return '$buildDir/dart$suffix';
-      case 'dartc':
-        return '$buildDir/analyzer/bin/dart_analyzer$suffix';
       case 'dartanalyzer':
         return 'sdk/bin/dartanalyzer_developer$suffix';
       case 'dart2analyzer':
@@ -807,7 +804,6 @@ class StandardTestSuite extends TestSuite {
       return commands;
 
     case 'none':
-    case 'dartc':
     case 'dartanalyzer':
     case 'dart2analyzer':
       var displayName = (configuration['compiler'] == 'none'
@@ -1193,7 +1189,6 @@ class StandardTestSuite extends TestSuite {
       case 'dart2js':
       case 'dartanalyzer':
       case 'dart2analyzer':
-      case 'dartc':
         return 'text/javascript';
       default:
         print('Non-web runtime, so no scriptType for: '
@@ -1872,7 +1867,7 @@ class TestUtils {
       const ['d8', 'jsshell'].contains(runtime);
 
   static bool isCommandLineAnalyzer(String compiler) =>
-      compiler == 'dartc' || compiler == 'dartanalyzer' || compiler == 'dart2analyzer';
+      compiler == 'dartanalyzer' || compiler == 'dart2analyzer';
 
   static String buildDir(Map configuration) {
     // FIXME(kustermann,ricow): Our code assumes that the returned 'buildDir'

@@ -35,6 +35,12 @@ class Point {
   }
 
   /**
+   * Get the straight line (Euclidean) distance between the origin (0, 0) and
+   * this point.
+   */
+  num get magnitude => sqrt(x * x + y * y);
+
+  /**
    * Returns the distance between two points.
    */
   double distanceTo(Point other) {

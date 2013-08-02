@@ -2151,20 +2151,16 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-static void Emit54BitOverflowCheck(FlowGraphCompiler* compiler,
-                                   Label* overflow,
-                                   Register result) {
-  if (FLAG_throw_on_javascript_int_overflow) {
+static void EmitJavascriptOverflowCheck(FlowGraphCompiler* compiler,
+                                        Range* range,
+                                        Label* overflow,
+                                        Register result) {
+  if (!range->IsWithin(-0x20000000000000LL, 0x20000000000000LL)) {
     ASSERT(overflow != NULL);
-    __ movq(TMP, result);  // result is a tagged Smi.
-    // Bits 55...64 must be all 0 or all 1. (It would be bit 54, but result
-    // is tagged.)
-    __ shlq(result, Immediate(64 - 55));
-    __ sarq(result, Immediate(64 - 55));
-    __ cmpq(result, TMP);
-    __ j(NOT_EQUAL, overflow);  // 54-bit overflow.
-    __ cmpq(result, Immediate(-0x1FFFFFFFFFFFFFLL - 1));
-    __ j(EQUAL, overflow);  // The most negative 54-bit int is also disallowed.
+    __ cmpq(result, Immediate(-0x20000000000000LL));
+    __ j(LESS, overflow);
+    __ cmpq(result, Immediate(0x20000000000000LL));
+    __ j(GREATER, overflow);
   }
 }
 
@@ -2208,7 +2204,9 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       // Shift for result now we know there is no overflow.
       __ shlq(left, Immediate(value));
     }
-    Emit54BitOverflowCheck(compiler, deopt, result);
+    if (FLAG_throw_on_javascript_int_overflow) {
+      EmitJavascriptOverflowCheck(compiler, shift_left->range(), deopt, result);
+    }
     return;
   }
 
@@ -2238,7 +2236,9 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       __ SmiUntag(right);
       __ shlq(left, right);
     }
-    Emit54BitOverflowCheck(compiler, deopt, result);
+    if (FLAG_throw_on_javascript_int_overflow) {
+      EmitJavascriptOverflowCheck(compiler, shift_left->range(), deopt, result);
+    }
     return;
   }
 
@@ -2289,7 +2289,9 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     // Shift for result now we know there is no overflow.
     __ shlq(left, right);
   }
-  Emit54BitOverflowCheck(compiler, deopt, result);
+  if (FLAG_throw_on_javascript_int_overflow) {
+    EmitJavascriptOverflowCheck(compiler, shift_left->range(), deopt, result);
+  }
 }
 
 
@@ -2488,7 +2490,9 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         UNREACHABLE();
         break;
     }
-    Emit54BitOverflowCheck(compiler, deopt, result);
+    if (FLAG_throw_on_javascript_int_overflow) {
+      EmitJavascriptOverflowCheck(compiler, range(), deopt, result);
+    }
     return;
   }  // locs()->in(1).IsConstant().
 
@@ -2531,7 +2535,9 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         UNREACHABLE();
         break;
     }
-    Emit54BitOverflowCheck(compiler, deopt, result);
+    if (FLAG_throw_on_javascript_int_overflow) {
+      EmitJavascriptOverflowCheck(compiler, range(), deopt, result);
+    }
     return;
   }  // locs()->in(1).IsStackSlot().
 
@@ -2661,7 +2667,9 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       UNREACHABLE();
       break;
   }
-  Emit54BitOverflowCheck(compiler, deopt, result);
+  if (FLAG_throw_on_javascript_int_overflow) {
+    EmitJavascriptOverflowCheck(compiler, range(), deopt, result);
+  }
 }
 
 
@@ -3839,7 +3847,9 @@ void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                             kDeoptUnaryOp);
       __ negq(value);
       __ j(OVERFLOW, deopt);
-      Emit54BitOverflowCheck(compiler, deopt, value);
+      if (FLAG_throw_on_javascript_int_overflow) {
+        EmitJavascriptOverflowCheck(compiler, range(), deopt, value);
+      }
       break;
     }
     case Token::kBIT_NOT:
@@ -3900,7 +3910,9 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ shlq(temp, Immediate(1));
   __ j(OVERFLOW, &do_call, Assembler::kNearJump);
   __ SmiTag(result);
-  Emit54BitOverflowCheck(compiler, &do_call, result);
+  if (FLAG_throw_on_javascript_int_overflow) {
+    EmitJavascriptOverflowCheck(compiler, range(), &do_call, result);
+  }
   __ jmp(&done);
   __ Bind(&do_call);
   ASSERT(instance_call()->HasICData());
@@ -3946,7 +3958,9 @@ void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ shlq(temp, Immediate(1));
   __ j(OVERFLOW, deopt);
   __ SmiTag(result);
-  Emit54BitOverflowCheck(compiler, deopt, result);
+  if (FLAG_throw_on_javascript_int_overflow) {
+    EmitJavascriptOverflowCheck(compiler, range(), deopt, result);
+  }
 }
 
 

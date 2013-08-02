@@ -162,6 +162,8 @@ bool VmService::_Start(intptr_t server_port) {
 
   result = LoadResources(library);
   SHUTDOWN_ON_ERROR(result);
+  result = Dart_CompileAll();
+  SHUTDOWN_ON_ERROR(result);
 
   port_ = Dart_GetMainPortId();
 

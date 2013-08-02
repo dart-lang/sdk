@@ -112,4 +112,14 @@ main() {
     var c = new Point(1, 0);
     expect(a.hashCode == c.hashCode, isFalse);
   });
+
+  test('magnitute', () {
+    var a = new Point(5, 10);
+    var b = new Point(0, 0);
+    expect(a.magnitude, a.distanceTo(b));
+    expect(b.magnitude, 0);
+
+    var c = new Point(-5, -10);
+    expect(c.magnitude, a.distanceTo(b));
+  });
 }

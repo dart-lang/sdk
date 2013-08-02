@@ -298,17 +298,23 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_metadata, 1) {
   const Object& decl = Object::Handle(decl_ref.referent());
 
   Class& klass = Class::Handle();
+  Library& library = Library::Handle();
+
   if (decl.IsClass()) {
     klass ^= decl.raw();
+    library = klass.library();
   } else if (decl.IsFunction()) {
     klass = Function::Cast(decl).origin();
+    library = klass.library();
   } else if (decl.IsField()) {
     klass = Field::Cast(decl).origin();
+    library = klass.library();
+  } else if (decl.IsLibrary()) {
+    library ^= decl.raw();
   } else {
     return Object::empty_array().raw();
   }
 
-  const Library& library = Library::Handle(klass.library());
   const Object& metadata = Object::Handle(library.GetMetadata(decl));
   if (metadata.IsError()) {
     ThrowInvokeError(Error::Cast(metadata));

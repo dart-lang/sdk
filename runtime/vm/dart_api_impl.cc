@@ -2136,6 +2136,20 @@ static RawObject* ThrowArgumentError(const char* exception_message) {
   return Api::NewError("Invalid length passed in to access array elements");   \
 
 
+static Dart_Handle CopyBytes(const TypedData& array,
+                             intptr_t offset,
+                             uint8_t* native_array,
+                             intptr_t length) {
+  ASSERT(array.IsTypedData());
+  ASSERT(array.ElementSizeInBytes() == 1);
+  NoGCScope no_gc;
+  memmove(native_array,
+          reinterpret_cast<uint8_t*>(array.DataAddr(offset)),
+          length);
+  return Api::Success();
+}
+
+
 DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
                                             intptr_t offset,
                                             uint8_t* native_array,
@@ -2146,14 +2160,32 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
   if (obj.IsTypedData()) {
     const TypedData& array = TypedData::Cast(obj);
     if (array.ElementSizeInBytes() == 1) {
-      if (Utils::RangeCheck(offset, length, array.Length())) {
-        NoGCScope no_gc;
-        memmove(native_array,
-                reinterpret_cast<uint8_t*>(array.DataAddr(offset)),
-                length);
-        return Api::Success();
+      if (!Utils::RangeCheck(offset, length, array.Length())) {
+        return Api::NewError(
+            "Invalid length passed in to access list elements");
       }
-      return Api::NewError("Invalid length passed in to access list elements");
+      return CopyBytes(array, offset, native_array, length);
+    }
+  }
+  if (RawObject::IsTypedDataViewClassId(obj.GetClassId())) {
+    const Instance& view = Instance::Cast(obj);
+    if (TypedDataView::ElementSizeInBytes(view) == 1) {
+      intptr_t view_length = Smi::Value(TypedDataView::Length(view));
+      if (!Utils::RangeCheck(offset, length, view_length)) {
+        return Api::NewError(
+            "Invalid length passed in to access list elements");
+      }
+      const Instance& data = Instance::Handle(TypedDataView::Data(view));
+      if (data.IsTypedData()) {
+        const TypedData& array = TypedData::Cast(data);
+        if (array.ElementSizeInBytes() == 1) {
+          intptr_t data_offset =
+              Smi::Value(TypedDataView::OffsetInBytes(view)) + offset;
+          // Range check already performed on the view object.
+          ASSERT(Utils::RangeCheck(data_offset, length, array.Length()));
+          return CopyBytes(array, data_offset, native_array, length);
+        }
+      }
     }
   }
   if (obj.IsArray()) {
@@ -2193,6 +2225,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
       const Array& args = Array::Handle(isolate, Array::New(kNumArgs));
       args.SetAt(0, instance);  // Set up the receiver as the first argument.
       for (int i = 0; i < length; i++) {
+        HANDLESCOPE(isolate);
         intobj = Integer::New(offset + i);
         args.SetAt(1, intobj);
         result = DartEntry::InvokeFunction(function, args);

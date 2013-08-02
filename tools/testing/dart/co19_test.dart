@@ -30,7 +30,7 @@ const List<String> COMMON_ARGUMENTS = const <String>['--report'];
 const List<List<String>> COMMAND_LINES = const <List<String>>[
     const <String>['-mrelease,debug', '-rvm', '-cnone'],
     const <String>['-mrelease,debug', '-rvm', '-cnone', '--checked'],
-    const <String>['-mrelease', '-rnone', '-cdartc'],
+    const <String>['-mrelease', '-rnone', '-cdartanalyzer'],
     const <String>['-mrelease', '-rvm', '-cdart2dart'],
     const <String>['-mrelease', '-rd8,jsshell', '-cdart2js', '--use-sdk'],
     const <String>['-mrelease', '-rd8', '-cdart2js', '--use-sdk', '--checked']];

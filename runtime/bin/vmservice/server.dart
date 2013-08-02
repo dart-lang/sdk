@@ -34,14 +34,20 @@ class Server {
       // Did not understand the request uri.
       serviceRequest.setErrorResponse('Invalid request uri: ${request.uri}');
     } else {
-      r = service.runningIsolates.route(serviceRequest);
-      if (!r) {
+      var f = service.runningIsolates.route(serviceRequest);
+      if (f != null) {
+        f.then((_) {
+          request.response.headers.contentType = jsonContentType;
+          request.response.write(serviceRequest.response);
+          request.response.close();
+        }).catchError((e) { });
+        return;
+      } else {
         // Nothing responds to this type of request.
         serviceRequest.setErrorResponse('No route for: $path');
       }
     }
 
-    // Send response back over HTTP.
     request.response.headers.contentType = jsonContentType;
     request.response.write(serviceRequest.response);
     request.response.close();
@@ -62,4 +68,3 @@ class Server {
     });
   }
 }
-

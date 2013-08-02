@@ -517,26 +517,11 @@ LibTest/math/tan_A01_t01: Fail
 [ $compiler == none && $runtime == vm && $arch != x64 ]
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 
-
-[ $compiler == none && $runtime == vm && $arch == arm && $mode == debug ]
-LibTest/core/List/sort_A01_t05: Crash # Too far relative jump.
-LibTest/core/List/sort_A01_t06: Crash # Too far relative jump.
-
 [ $compiler == none && $runtime == vm && $arch == simarm ]
 LibTest/math/cos_A01_t01: Pass, Fail # Fail on Mac
-
-[ $compiler == none && $runtime == vm && $arch == simarm && $mode == debug ]
-LibTest/core/List/sort_A01_t05: Crash # Too far relative jump.
-LibTest/core/List/sort_A01_t06: Crash # Too far relative jump.
-
 
 [ $compiler == none && $runtime == vm && $arch == mips ]
 *: Skip
 
 [ $compiler == none && $runtime == vm && $arch == simmips ]
 LibTest/math/cos_A01_t01: Pass, Fail # Fail on Mac
-
-[ $compiler == none && $runtime == vm && $arch == simmips && $mode == debug ]
-LibTest/core/List/sort_A01_t04: Crash # Too far relative jump.
-LibTest/core/List/sort_A01_t05: Crash
-LibTest/core/List/sort_A01_t06: Crash

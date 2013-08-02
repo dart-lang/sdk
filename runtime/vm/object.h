@@ -2315,6 +2315,7 @@ class Library : public Object {
   void AddClassMetadata(const Class& cls, intptr_t token_pos) const;
   void AddFieldMetadata(const Field& field, intptr_t token_pos) const;
   void AddFunctionMetadata(const Function& func, intptr_t token_pos) const;
+  void AddLibraryMetadata(const Class& cls, intptr_t token_pos) const;
   RawObject* GetMetadata(const Object& obj) const;
 
   // Library imports.

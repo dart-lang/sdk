@@ -28,12 +28,15 @@ class JSONStream : ValueObject {
   void PrintValue(intptr_t i);
   void PrintValue(double d);
   void PrintValue(const char* s);
+  void PrintfValue(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void PrintValue(const Object& o, bool ref = true);
 
   void PrintPropertyBool(const char* name, bool b);
   void PrintProperty(const char* name, intptr_t i);
   void PrintProperty(const char* name, double d);
   void PrintProperty(const char* name, const char* s);
+  void PrintfProperty(const char* name, const char* format, ...)
+      PRINTF_ATTRIBUTE(3, 4);
   void PrintProperty(const char* name, const Object& o, bool ref = true);
 
  private:

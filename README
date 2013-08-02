@@ -8,7 +8,6 @@ http://code.google.com/p/dart.
 
 Here's a brief guide to what's in here:
 
-compiler/      Dart static analyzer.
 editor/        Eclipse-based standalone Dart IDE.
 lib/           Libraries that ship with the Dart runtime (core, html, etc.).
 pkg/           Packages that are not shipped with the core runtime.

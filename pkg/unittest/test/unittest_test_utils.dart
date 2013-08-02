@@ -46,6 +46,8 @@ class TestConfiguration extends Configuration {
 
   TestConfiguration(this._port);
 
+  void onInit() {}
+
   void onSummary(int passed, int failed, int errors, List<TestCase> results,
       String uncaughtError) {
     _result = buildStatusString(passed, failed, errors, results,

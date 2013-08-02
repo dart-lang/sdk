@@ -63,6 +63,7 @@ DECLARE_RUNTIME_ENTRY(UpdateFieldCid);
   V(IntegerToDouble)                                                           \
   V(BinarySmiOp)                                                               \
   V(BinaryMintOp)                                                              \
+  V(UnaryMintOp)                                                               \
   V(ShiftMintOp)                                                               \
   V(BinaryDoubleOp)                                                            \
   V(InstanceSetter)                                                            \

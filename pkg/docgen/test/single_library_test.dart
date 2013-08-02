@@ -49,23 +49,35 @@ main() {
         .then(expectAsync1((mirrorSystem) {
           var testLibraryUri = new Uri(scheme: 'file', 
               path: path.absolute(fileName));
-          var library = generateLibrary(mirrorSystem.libraries[testLibraryUri], 
-              includePrivate: false);
+          var library = generateLibrary(mirrorSystem.libraries[testLibraryUri]);
           expect(library is Library, isTrue);
           
-          var classTypes = library.classes.values;
-          expect(classTypes.every((e) => e is Map), isTrue);
+          var classTypes = library.classes;
+          expect(classTypes is ClassGroup, isTrue);
           
           var classes = [];
-          classTypes.forEach((e) => classes.addAll(e.values));
+          classes.addAll(classTypes.abstractClasses.values);
+          classes.addAll(classTypes.regularClasses.values);
+          classes.addAll(classTypes.errors.values);
           expect(classes.every((e) => e is Class), isTrue);
           
+          expect(classTypes.typedefs.values.every((e) => e is Typedef), isTrue);
+          
           var classMethodTypes = [];
-          classes.forEach((e) => classMethodTypes.addAll(e.methods.values));
-          expect(classMethodTypes.every((e) => e is Map), isTrue);
+          classes.forEach((e) {
+            classMethodTypes.add(e.methods);
+            classMethodTypes.add(e.inheritedMethods);
+          });
+          expect(classMethodTypes.every((e) => e is MethodGroup), isTrue);
 
           var classMethods = [];
-          classMethodTypes.forEach((e) => classMethods.addAll(e.values));
+          classMethodTypes.forEach((e) {
+            classMethods.addAll(e.setters.values);
+            classMethods.addAll(e.getters.values);
+            classMethods.addAll(e.constructors.values);
+            classMethods.addAll(e.operators.values);
+            classMethods.addAll(e.regularMethods.values);
+          });
           expect(classMethods.every((e) => e is Method), isTrue);
           
           var methodParameters = [];
@@ -74,11 +86,15 @@ main() {
           });
           expect(methodParameters.every((e) => e is Parameter), isTrue);
           
-          var functionTypes = library.functions.values;
-          expect(functionTypes.every((e) => e is Map), isTrue);
+          var functionTypes = library.functions;
+          expect(functionTypes is MethodGroup, isTrue);
           
           var functions = [];
-          functionTypes.forEach((e) => functions.addAll(e.values));
+          functions.addAll(functionTypes.setters.values);
+          functions.addAll(functionTypes.getters.values);
+          functions.addAll(functionTypes.constructors.values);
+          functions.addAll(functionTypes.operators.values);
+          functions.addAll(functionTypes.regularMethods.values);
           expect(functions.every((e) => e is Method), isTrue);
           
           var functionParameters = [];

@@ -1,12 +1,6 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--short_socket_read
-// VMOptions=--short_socket_write
-// VMOptions=--short_socket_read --short_socket_write
-//
-// Test:
-//   *) Connect to VM Service and obtain list of running isolates.
 
 library multiple_isolate_list_test;
 

@@ -10,7 +10,7 @@ import "drt_updater.dart";
 import "test_suite.dart";
 
 List<String> defaultTestSelectors =
-    const ['dartc', 'samples', 'standalone', 'corelib', 'co19', 'language',
+    const ['samples', 'standalone', 'corelib', 'co19', 'language',
            'isolate', 'vm', 'html', 'json', 'benchmark_smoke',
            'utils', 'lib', 'pkg', 'analyze_library', 'analyze_tests'];
 
@@ -77,14 +77,11 @@ is 'dart file.dart' and you specify special command
          safari, ie9, ie10, firefox, opera, chromeOnAndroid,
          none (compile only)),
 
-   dartc: Perform static analysis on Dart code by running dartc.
-          (only valid with the following runtimes: none),
-
    dartanalyzer: Perform static analysis on Dart code by running the analyzer on Java.
    dart2analyzer: Perform static analysis on Dart code by running the analyzer on Dart.
           (only valid with the following runtimes: none)''',
               ['-c', '--compiler'],
-              ['none', 'dart2dart', 'dart2js', 'dartc', 'dartanalyzer', 'dart2analyzer'],
+              ['none', 'dart2dart', 'dart2js', 'dartanalyzer', 'dart2analyzer'],
               'none'),
           // TODO(antonm): fix the option drt.
           new _TestOptionSpecification(
@@ -104,8 +101,8 @@ is 'dart file.dart' and you specify special command
     [ff | chrome | safari | ie9 | ie10 | opera | chromeOnAndroid]:
         Run JavaScript in the specified browser.
 
-    none: No runtime, compile only (for example, used for dartc static analysis
-          tests).''',
+    none: No runtime, compile only (for example, used for dartanalyzer static
+          analysis tests).''',
               ['-r', '--runtime'],
               ['vm', 'd8', 'jsshell', 'drt', 'dartium', 'ff', 'firefox',
                'chrome', 'safari', 'ie9', 'ie10', 'opera', 'chromeOnAndroid',
@@ -535,7 +532,6 @@ Note: currently only implemented for dart2js.''',
                                'ff', 'chrome', 'safari', 'ie9', 'ie10',
                                'opera', 'chromeOnAndroid'];
         break;
-      case 'dartc':
       case 'dartanalyzer':
       case 'dart2analyzer':
         validRuntimes = const ['none'];
@@ -685,7 +681,6 @@ Note: currently only implemented for dart2js.''',
     if (configuration['timeout'] == -1) {
       var timeout = 60;
       switch (configuration['compiler']) {
-        case 'dartc':
         case 'dartanalyzer':
         case 'dart2analyzer':
           timeout *= 4;

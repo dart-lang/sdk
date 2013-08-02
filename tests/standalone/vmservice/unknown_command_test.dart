@@ -2,27 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library isolate_list_test;
+library unknown_command_test;
 
 import 'test_helper.dart';
 import 'package:expect/expect.dart';
 
-
-class IsolateListTest extends VmServiceRequestHelper {
-  IsolateListTest(port) : super('http://127.0.0.1:$port/isolates');
+class UnknownCommandTest extends VmServiceRequestHelper {
+  UnknownCommandTest(port) : super('http://127.0.0.1:$port/badcommand');
 
   onRequestCompleted(Map reply) {
-    IsolateListTester tester = new IsolateListTester(reply);
-    tester.checkIsolateCount(1);
-    tester.checkIsolateNameContains('isolate_list_script.dart');
+    Expect.equals('error', reply['type']);
   }
 }
 
-
 main() {
-  var process = new TestLauncher('isolate_list_script.dart');
+  var process = new TestLauncher('unknown_command_script.dart');
   process.launch().then((port) {
-    var test = new IsolateListTest(port);
+    var test = new UnknownCommandTest(port);
     test.makeRequest().then((_) {
       process.requestExit();
     });

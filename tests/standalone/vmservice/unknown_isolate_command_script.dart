@@ -2,8 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of vmservice;
+library unknown_isolate_command_script;
 
-abstract class ServiceRequestRouter {
-  Future route(ServiceRequest request);
+import 'dart:io';
+
+main() {
+  print(''); // Print blank line to signal that we are ready.
+
+  // Wait until signaled from spawning test.
+  stdin.first.then((_) => exit(0));
 }

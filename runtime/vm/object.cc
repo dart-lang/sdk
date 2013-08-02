@@ -31,6 +31,7 @@
 #include "vm/intermediate_language.h"
 #include "vm/intrinsifier.h"
 #include "vm/longjump.h"
+#include "vm/object_id_ring.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/runtime_entry.h"
@@ -2800,7 +2801,22 @@ const char* Class::ToCString() const {
 
 
 void Class::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  const char* class_name = String::Handle(UserVisibleName()).ToCString();
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  intptr_t id = ring->GetIdForObject(raw());
+  if (ref) {
+    stream->OpenObject();
+    stream->PrintProperty("type", "@Class");
+    stream->PrintProperty("id", id);
+    stream->PrintProperty("name", class_name);
+    stream->CloseObject();
+    return;
+  }
   stream->OpenObject();
+  stream->PrintProperty("type", "Class");
+  stream->PrintProperty("id", id);
+  stream->PrintProperty("name", class_name);
+  stream->PrintProperty("library", Object::Handle(library()));
   stream->CloseObject();
 }
 
@@ -4960,7 +4976,69 @@ const char* Function::ToCString() const {
 
 
 void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  const char* function_name =
+      String::Handle(QualifiedUserVisibleName()).ToCString();
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  intptr_t id = ring->GetIdForObject(raw());
+  if (ref) {
+    stream->OpenObject();
+    stream->PrintProperty("type", "@Function");
+    stream->PrintProperty("id", id);
+    stream->PrintProperty("name", function_name);
+    stream->CloseObject();
+    return;
+  }
   stream->OpenObject();
+  stream->PrintProperty("type", "Function");
+  stream->PrintProperty("name", function_name);
+  stream->PrintProperty("id", id);
+  stream->PrintPropertyBool("is_static", is_static());
+  stream->PrintPropertyBool("is_const", is_const());
+  stream->PrintPropertyBool("is_optimizable", is_optimizable());
+  stream->PrintPropertyBool("is_inlinable", IsInlineable());
+  const char* kind_string = NULL;
+  switch (kind()) {
+      case RawFunction::kRegularFunction:
+        kind_string = "regular";
+        break;
+      case RawFunction::kGetterFunction:
+        kind_string = "getter";
+        break;
+      case RawFunction::kSetterFunction:
+        kind_string = "setter";
+        break;
+      case RawFunction::kImplicitGetter:
+        kind_string = "implicit getter";
+        break;
+      case RawFunction::kImplicitSetter:
+        kind_string = "implicit setter";
+        break;
+      case RawFunction::kMethodExtractor:
+        kind_string = "method extractor";
+        break;
+      case RawFunction::kNoSuchMethodDispatcher:
+        kind_string = "no such method";
+        break;
+      case RawFunction::kClosureFunction:
+        kind_string = "closure";
+        break;
+      case RawFunction::kConstructor:
+        kind_string = "constructor";
+        break;
+      case RawFunction::kImplicitStaticFinalGetter:
+        kind_string = "static final getter";
+        break;
+      default:
+        UNREACHABLE();
+  }
+  stream->PrintProperty("kind", kind_string);
+  stream->PrintProperty("unoptimized_code", Object::Handle(unoptimized_code()));
+  stream->PrintProperty("usage_counter", usage_counter());
+  stream->PrintProperty("optimized_call_site_count",
+                        optimized_call_site_count());
+  stream->PrintProperty("code", Object::Handle(CurrentCode()));
+  stream->PrintProperty("deoptimizations",
+                        static_cast<intptr_t>(deoptimization_counter()));
   stream->CloseObject();
 }
 
@@ -6334,6 +6412,10 @@ void Library::AddFunctionMetadata(const Function& func,
               token_pos);
 }
 
+void Library::AddLibraryMetadata(const Class& cls, intptr_t token_pos) const {
+  AddMetadata(cls, Symbols::TopLevel(), token_pos);
+}
+
 
 RawString* Library::MakeMetadataName(const Object& obj) const {
   if (obj.IsClass()) {
@@ -6342,6 +6424,8 @@ RawString* Library::MakeMetadataName(const Object& obj) const {
     return MakeFieldMetaName(Field::Cast(obj));
   } else if (obj.IsFunction()) {
     return MakeFunctionMetaName(Function::Cast(obj));
+  } else if (obj.IsLibrary()) {
+    return Symbols::TopLevel().raw();
   }
   UNIMPLEMENTED();
   return String::null();
@@ -6366,7 +6450,8 @@ RawField* Library::GetMetadataField(const String& metaname) const {
 
 
 RawObject* Library::GetMetadata(const Object& obj) const {
-  if (!obj.IsClass() && !obj.IsField() && !obj.IsFunction()) {
+  if (!obj.IsClass() && !obj.IsField() && !obj.IsFunction() &&
+      !obj.IsLibrary()) {
     return Object::null();
   }
   const String& metaname = String::Handle(MakeMetadataName(obj));
@@ -7184,7 +7269,39 @@ const char* Library::ToCString() const {
 
 
 void Library::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  const char* library_name = String::Handle(name()).ToCString();
+  const char* library_url = String::Handle(url()).ToCString();
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  intptr_t id = ring->GetIdForObject(raw());
+  if (ref) {
+    // Print a reference
+    stream->OpenObject();
+    stream->PrintProperty("type", "@Library");
+    stream->PrintProperty("id", id);
+    stream->PrintProperty("name", library_name);
+    stream->CloseObject();
+    return;
+  }
   stream->OpenObject();
+  stream->PrintProperty("type", "Library");
+  stream->PrintProperty("id", id);
+  stream->PrintProperty("name", library_name);
+  stream->PrintProperty("url", library_url);
+  ClassDictionaryIterator class_iter(*this);
+  stream->OpenArray("classes");
+  Class& klass = Class::Handle();
+  while (class_iter.HasNext()) {
+    klass = class_iter.GetNextClass();
+    stream->PrintValue(klass);
+  }
+  stream->CloseArray();
+  stream->OpenArray("libraries");
+  Library& lib = Library::Handle();
+  for (intptr_t i = 0; i < num_imports(); i++) {
+    lib = ImportLibraryAt(i);
+    stream->PrintValue(lib);
+  }
+  stream->CloseArray();
   stream->CloseObject();
 }
 
@@ -8597,7 +8714,28 @@ const char* Code::ToCString() const {
 
 
 void Code::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  intptr_t id = ring->GetIdForObject(raw());
+  if (ref) {
+    stream->OpenObject();
+    stream->PrintProperty("type", "@Code");
+    stream->PrintProperty("id", id);
+    stream->CloseObject();
+    return;
+  }
   stream->OpenObject();
+  stream->PrintProperty("type", "Code");
+  stream->PrintProperty("id", id);
+  stream->PrintPropertyBool("is_optimized", is_optimized());
+  stream->PrintPropertyBool("is_alive", is_alive());
+  stream->PrintProperty("function", Object::Handle(function()));
+  stream->OpenArray("disassembly");
+  DisassembleToJSONStream formatter(stream);
+  const Instructions& instr = Instructions::Handle(instructions());
+  uword start = instr.EntryPoint();
+  Disassembler::Disassemble(start, start + instr.size(), &formatter,
+                            comments());
+  stream->CloseArray();
   stream->CloseObject();
 }
 
@@ -11269,7 +11407,7 @@ RawInteger* Integer::New(const String& str, Heap::Space space) {
 
 
 // This is called from LiteralToken::New() in the parser, so we can't
-// raise an exception for 54-bit overflow here. Instead we do it in
+// raise an exception for javascript overflow here. Instead we do it in
 // Parser::CurrentIntegerLiteral(), which is the point in the parser where
 // integer literals escape, so we can call Parser::ErrorMsg().
 RawInteger* Integer::NewCanonical(const String& str) {
@@ -11289,13 +11427,10 @@ RawInteger* Integer::NewCanonical(const String& str) {
 }
 
 
-// dart2js represents integers as double precision floats. It does this using
-// a sign bit and 53 fraction bits. This gives us the range
-// -2^54 - 1 ... 2^54 - 1, i.e. the same as a 54-bit signed integer
-// without the most negative number. Thus, here we check if the value is
-// a 54-bit signed integer and not -2^54
-static bool Is54BitNoMinInt(int64_t value) {
-  return (Utils::IsInt(54, value)) && (value != (-0x1FFFFFFFFFFFFFLL - 1));
+// dart2js represents integers as double precision floats, which can represent
+// anything in the range -2^53 ... 2^53.
+static bool IsJavascriptInt(int64_t value) {
+  return ((-0x20000000000000LL <= value) && (value <= 0x20000000000000LL));
 }
 
 
@@ -11303,7 +11438,7 @@ RawInteger* Integer::New(int64_t value, Heap::Space space) {
   if ((value <= Smi::kMaxValue) && (value >= Smi::kMinValue)) {
     return Smi::New(value);
   }
-  if (FLAG_throw_on_javascript_int_overflow && !Is54BitNoMinInt(value)) {
+  if (FLAG_throw_on_javascript_int_overflow && !IsJavascriptInt(value)) {
     const Integer &i = Integer::Handle(Mint::New(value));
     ThrowJavascriptIntegerOverflow(i);
   }
@@ -11344,7 +11479,7 @@ int Integer::CompareWith(const Integer& other) const {
 
 
 // Returns true if the signed Integer does not fit into a
-// Javascript (54-bit) integer.
+// Javascript integer.
 bool Integer::CheckJavascriptIntegerOverflow() const {
   // Always overflow if the value doesn't fit into an int64_t.
   int64_t value = 1ULL << 63;
@@ -11362,7 +11497,7 @@ bool Integer::CheckJavascriptIntegerOverflow() const {
       value = BigintOperations::ToInt64(big_value);
     }
   }
-  return !Is54BitNoMinInt(value);
+  return !IsJavascriptInt(value);
 }
 
 

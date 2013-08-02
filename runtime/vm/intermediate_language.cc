@@ -1076,7 +1076,11 @@ bool EqualityCompareInstr::IsCheckedStrictEqual() const {
 
 
 bool BinarySmiOpInstr::CanDeoptimize() const {
-  if (FLAG_throw_on_javascript_int_overflow) return true;
+  if (FLAG_throw_on_javascript_int_overflow && (Smi::kBits > 32)) {
+    // If Smi's are bigger than 32-bits, then the instruction could deoptimize
+    // if the result is too big.
+    return true;
+  }
   switch (op_kind()) {
     case Token::kBIT_AND:
     case Token::kBIT_OR:

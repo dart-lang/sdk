@@ -1022,7 +1022,8 @@ void Simulator::DoBreak(Instr *instr) {
         SimulatorRuntimeCall target =
             reinterpret_cast<SimulatorRuntimeCall>(external);
         target(arguments);
-        set_register(V0, icount_);  // Zap result register from void function.
+        set_register(V0, icount_);  // Zap result registers from void function.
+        set_register(V1, icount_);
       } else if (redirection->call_kind() == kLeafRuntimeCall) {
         int32_t a0 = get_register(A0);
         int32_t a1 = get_register(A1);
@@ -1032,6 +1033,7 @@ void Simulator::DoBreak(Instr *instr) {
             reinterpret_cast<SimulatorLeafRuntimeCall>(external);
         a0 = target(a0, a1, a2, a3);
         set_register(V0, a0);  // Set returned result from function.
+        set_register(V1, icount_);  // Zap second result register.
       } else if (redirection->call_kind() == kLeafFloatRuntimeCall) {
         ASSERT((0 <= redirection->argument_count()) &&
                (redirection->argument_count() <= 2));
@@ -1051,6 +1053,7 @@ void Simulator::DoBreak(Instr *instr) {
             reinterpret_cast<SimulatorNativeCall>(external);
         target(arguments);
         set_register(V0, icount_);  // Zap result register from void function.
+        set_register(V1, icount_);
       }
       set_top_exit_frame_info(0);
 

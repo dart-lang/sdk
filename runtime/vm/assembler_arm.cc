@@ -6,8 +6,9 @@
 #if defined(TARGET_ARCH_ARM)
 
 #include "vm/assembler.h"
-#include "vm/simulator.h"
+#include "vm/longjump.h"
 #include "vm/runtime_entry.h"
+#include "vm/simulator.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 
@@ -1719,7 +1720,6 @@ void Assembler::CompareClassId(Register object,
 
 
 static bool CanEncodeBranchOffset(int32_t offset) {
-  offset -= Instr::kPCReadOffset;
   ASSERT(Utils::IsAligned(offset, 4));
   return Utils::IsInt(Utils::CountOneBits(kBranchOffsetMask), offset);
 }
@@ -1728,8 +1728,13 @@ static bool CanEncodeBranchOffset(int32_t offset) {
 int32_t Assembler::EncodeBranchOffset(int32_t offset, int32_t inst) {
   // The offset is off by 8 due to the way the ARM CPUs read PC.
   offset -= Instr::kPCReadOffset;
-  ASSERT(Utils::IsAligned(offset, 4));
-  ASSERT(Utils::IsInt(Utils::CountOneBits(kBranchOffsetMask), offset));
+
+  if (!CanEncodeBranchOffset(offset)) {
+    ASSERT(!use_far_branches());
+    const Error& error = Error::Handle(LanguageError::New(
+        String::Handle(String::New("Branch offset overflow"))));
+    Isolate::Current()->long_jump_base()->Jump(1, error);
+  }
 
   // Properly preserve only the bits supported in the instruction.
   offset >>= 2;
@@ -1804,14 +1809,14 @@ void Assembler::EmitFarBranch(Condition cond, int32_t offset, bool link) {
 void Assembler::EmitBranch(Condition cond, Label* label, bool link) {
   if (label->IsBound()) {
     const int32_t dest = label->Position() - buffer_.Size();
-    if (FLAG_use_far_branches && !CanEncodeBranchOffset(dest)) {
+    if (use_far_branches() && !CanEncodeBranchOffset(dest)) {
       EmitFarBranch(cond, label->Position(), link);
     } else {
       EmitType5(cond, dest, link);
     }
   } else {
     const int position = buffer_.Size();
-    if (FLAG_use_far_branches) {
+    if (use_far_branches()) {
       const int32_t dest = label->position_;
       EmitFarBranch(cond, dest, link);
     } else {
@@ -1829,7 +1834,7 @@ void Assembler::Bind(Label* label) {
   while (label->IsLinked()) {
     const int32_t position = label->Position();
     int32_t dest = bound_pc - position;
-    if (FLAG_use_far_branches && !CanEncodeBranchOffset(dest)) {
+    if (use_far_branches() && !CanEncodeBranchOffset(dest)) {
       // Far branches are enabled and we can't encode the branch offset.
 
       // Grab instructions that load the offset.
@@ -1851,7 +1856,7 @@ void Assembler::Bind(Label* label) {
       buffer_.Store<int32_t>(position, patched_movw);
       buffer_.Store<int32_t>(position + 1 * Instr::kInstrSize, patched_movt);
       label->position_ = DecodeLoadImmediate(movt, movw);
-    } else if (FLAG_use_far_branches && CanEncodeBranchOffset(dest)) {
+    } else if (use_far_branches() && CanEncodeBranchOffset(dest)) {
       // Far branches are enabled, but we can encode the branch offset.
 
       // Grab instructions that load the offset, and the branch.

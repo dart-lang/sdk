@@ -13,6 +13,7 @@ namespace dart {
 
 // Froward declaration.
 class MemoryRegion;
+class JSONStream;
 
 // Disassembly formatter interface, which consumes the
 // disassembled instructions in any desired form.
@@ -51,6 +52,28 @@ class DisassembleToStdout : public DisassemblyFormatter {
  private:
   DISALLOW_ALLOCATION()
   DISALLOW_COPY_AND_ASSIGN(DisassembleToStdout);
+};
+
+
+// Disassemble into a JSONStream.
+class DisassembleToJSONStream : public DisassemblyFormatter {
+ public:
+  explicit DisassembleToJSONStream(JSONStream* stream) : DisassemblyFormatter(),
+      stream_(stream) { }
+  ~DisassembleToJSONStream() { }
+
+  virtual void ConsumeInstruction(char* hex_buffer,
+                                  intptr_t hex_size,
+                                  char* human_buffer,
+                                  intptr_t human_size,
+                                  uword pc);
+
+  virtual void Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
+
+ private:
+  JSONStream* stream_;
+  DISALLOW_ALLOCATION();
+  DISALLOW_COPY_AND_ASSIGN(DisassembleToJSONStream);
 };
 
 

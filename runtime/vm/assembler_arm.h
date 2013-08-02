@@ -297,10 +297,11 @@ class FieldAddress : public Address {
 
 class Assembler : public ValueObject {
  public:
-  Assembler()
+  explicit Assembler(bool use_far_branches = false)
       : buffer_(),
         object_pool_(GrowableObjectArray::Handle()),
         prologue_offset_(-1),
+        use_far_branches_(use_far_branches),
         comments_() { }
   ~Assembler() { }
 
@@ -316,6 +317,10 @@ class Assembler : public ValueObject {
     return buffer_.pointer_offsets();
   }
   const GrowableObjectArray& object_pool() const { return object_pool_; }
+
+  bool use_far_branches() const {
+    return FLAG_use_far_branches || use_far_branches_;
+  }
 
   void FinalizeInstructions(const MemoryRegion& region) {
     buffer_.FinalizeInstructions(region);
@@ -733,6 +738,8 @@ class Assembler : public ValueObject {
   GrowableObjectArray& object_pool_;  // Objects and patchable jump targets.
   int32_t prologue_offset_;
 
+  const bool use_far_branches_;
+
   int32_t AddObject(const Object& obj);
   int32_t AddExternalLabel(const ExternalLabel* label);
 
@@ -849,7 +856,7 @@ class Assembler : public ValueObject {
 
   void EmitFarBranch(Condition cond, int32_t offset, bool link);
   void EmitBranch(Condition cond, Label* label, bool link);
-  static int32_t EncodeBranchOffset(int32_t offset, int32_t inst);
+  int32_t EncodeBranchOffset(int32_t offset, int32_t inst);
   static int DecodeBranchOffset(int32_t inst);
   int32_t EncodeTstOffset(int32_t offset, int32_t inst);
   int DecodeTstOffset(int32_t inst);

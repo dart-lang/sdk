@@ -30691,6 +30691,12 @@ class Point {
   }
 
   /**
+   * Get the straight line (Euclidean) distance between the origin (0, 0) and
+   * this point.
+   */
+  num get magnitude => sqrt(x * x + y * y);
+
+  /**
    * Returns the distance between two points.
    */
   double distanceTo(Point other) {
@@ -32031,6 +32037,8 @@ class _Utils {
   // TODO(jacobr): we need a failsafe way to determine that a Node is really a
   // DOM node rather than just a class that extends Node.
   static bool isNode(obj) => obj is Node;
+
+  static bool isNoSuchMethodError(obj) => obj is NoSuchMethodError;
 }
 
 class _NPObject extends NativeFieldWrapperClass1 {

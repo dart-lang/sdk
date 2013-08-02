@@ -24,6 +24,7 @@ namespace dart {
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, propagate_ic_data);
 DECLARE_FLAG(bool, use_osr);
+DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 
 // Generic summary for call instructions that have all arguments pushed
 // on the stack and return the result in a fixed register EAX.
@@ -645,6 +646,32 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
     __ LoadObject(result, Bool::True());
     __ Bind(&done);
   }
+}
+
+
+static void EmitJavascriptIntOverflowCheck(FlowGraphCompiler* compiler,
+                                           Label* overflow,
+                                           XmmRegister result,
+                                           Register tmp) {
+  // Compare upper half.
+  Label check_lower, done;
+  __ pextrd(tmp, result, Immediate(1));
+  __ cmpl(tmp, Immediate(0x00200000));
+  __ j(GREATER, overflow);
+  __ j(NOT_EQUAL, &check_lower);
+
+  __ pextrd(tmp, result, Immediate(0));
+  __ cmpl(tmp, Immediate(0));
+  __ j(ABOVE, overflow);
+
+  __ Bind(&check_lower);
+  __ pextrd(tmp, result, Immediate(1));
+  __ cmpl(tmp, Immediate(-0x00200000));
+  __ j(LESS, overflow);
+  // Anything in the lower part would make the number bigger than the lower
+  // bound, so we are done.
+
+  __ Bind(&done);
 }
 
 
@@ -4273,11 +4300,15 @@ LocationSummary* BinaryMintOpInstr::MakeLocationSummary() const {
     case Token::kBIT_AND:
     case Token::kBIT_OR:
     case Token::kBIT_XOR: {
-      const intptr_t kNumTemps = 0;
+      const intptr_t kNumTemps =
+          FLAG_throw_on_javascript_int_overflow ? 1 : 0;
       LocationSummary* summary =
           new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
       summary->set_in(0, Location::RequiresFpuRegister());
       summary->set_in(1, Location::RequiresFpuRegister());
+      if (FLAG_throw_on_javascript_int_overflow) {
+        summary->set_temp(0, Location::RequiresRegister());
+      }
       summary->set_out(Location::SameAsFirstInput());
       return summary;
     }
@@ -4306,6 +4337,10 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   ASSERT(locs()->out().fpu_reg() == left);
 
+  Label* deopt = NULL;
+  if (FLAG_throw_on_javascript_int_overflow) {
+    deopt = compiler->AddDeoptStub(deopt_id(), kDeoptBinaryMintOp);
+  }
   switch (op_kind()) {
     case Token::kBIT_AND: __ andpd(left, right); break;
     case Token::kBIT_OR:  __ orpd(left, right); break;
@@ -4314,8 +4349,10 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kSUB: {
       Register lo = locs()->temp(0).reg();
       Register hi = locs()->temp(1).reg();
-      Label* deopt  = compiler->AddDeoptStub(deopt_id(),
-                                             kDeoptBinaryMintOp);
+      if (!FLAG_throw_on_javascript_int_overflow) {
+        deopt  = compiler->AddDeoptStub(deopt_id(), kDeoptBinaryMintOp);
+      }
+
       Label done, overflow;
       __ pextrd(lo, right, Immediate(0));  // Lower half
       __ pextrd(hi, right, Immediate(1));  // Upper half
@@ -4339,6 +4376,10 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     default: UNREACHABLE();
+  }
+  if (FLAG_throw_on_javascript_int_overflow) {
+    Register tmp = locs()->temp(0).reg();
+    EmitJavascriptIntOverflowCheck(compiler, deopt, left, tmp);
   }
 }
 
@@ -4410,12 +4451,17 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ movq(left, Address(ESP, 0));
   __ addl(ESP, Immediate(2 * kWordSize));
   __ Bind(&done);
+  if (FLAG_throw_on_javascript_int_overflow) {
+    Register tmp = locs()->temp(0).reg();
+    EmitJavascriptIntOverflowCheck(compiler, deopt, left, tmp);
+  }
 }
 
 
 LocationSummary* UnaryMintOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps =
+      FLAG_throw_on_javascript_int_overflow ? 1 : 0;
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
@@ -4428,8 +4474,17 @@ void UnaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(op_kind() == Token::kBIT_NOT);
   XmmRegister value = locs()->in(0).fpu_reg();
   ASSERT(value == locs()->out().fpu_reg());
+  Label* deopt = NULL;
+  if (FLAG_throw_on_javascript_int_overflow) {
+    deopt = compiler->AddDeoptStub(deopt_id(),
+                                   kDeoptUnaryMintOp);
+  }
   __ pcmpeqq(XMM0, XMM0);  // Generate all 1's.
   __ pxor(value, XMM0);
+  if (FLAG_throw_on_javascript_int_overflow) {
+    Register tmp = locs()->temp(0).reg();
+    EmitJavascriptIntOverflowCheck(compiler, deopt, value, tmp);
+  }
 }
 
 

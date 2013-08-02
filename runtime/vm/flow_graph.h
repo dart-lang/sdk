@@ -41,7 +41,7 @@ class BlockIterator : public ValueObject {
 };
 
 
-// Class to incapsulate the construction and manipulation of the flow graph.
+// Class to encapsulate the construction and manipulation of the flow graph.
 class FlowGraph : public ZoneAllocated {
  public:
   FlowGraph(const FlowGraphBuilder& builder,
@@ -163,6 +163,11 @@ class FlowGraph : public ZoneAllocated {
   // after this point.
   void disallow_licm() { licm_allowed_ = false; }
 
+  bool use_far_branches() const { return use_far_branches_; }
+  void set_use_far_branches(bool value) {
+    use_far_branches_ = value;
+  }
+
   const ZoneGrowableArray<BlockEntryInstr*>& loop_headers() {
     if (loop_headers_ == NULL) {
       loop_headers_ = ComputeLoops();
@@ -248,6 +253,8 @@ class FlowGraph : public ZoneAllocated {
 
   BlockEffects* block_effects_;
   bool licm_allowed_;
+
+  bool use_far_branches_;
 
   ZoneGrowableArray<BlockEntryInstr*>* loop_headers_;
   ZoneGrowableArray<BitVector*>* loop_invariant_loads_;

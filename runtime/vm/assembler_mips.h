@@ -145,10 +145,11 @@ class CPUFeatures : public AllStatic {
 
 class Assembler : public ValueObject {
  public:
-  Assembler()
+  explicit Assembler(bool use_far_branches = false)
       : buffer_(),
         object_pool_(GrowableObjectArray::Handle()),
         prologue_offset_(-1),
+        use_far_branches_(use_far_branches),
         delay_slot_available_(false),
         in_delay_slot_(false),
         comments_() { }
@@ -167,6 +168,10 @@ class Assembler : public ValueObject {
   const GrowableObjectArray& object_pool() const { return object_pool_; }
   void FinalizeInstructions(const MemoryRegion& region) {
     buffer_.FinalizeInstructions(region);
+  }
+
+  bool use_far_branches() const {
+    return FLAG_use_far_branches || use_far_branches_;
   }
 
   // Set up a stub frame so that the stack traversal code can easily identify
@@ -1094,6 +1099,7 @@ class Assembler : public ValueObject {
   GrowableObjectArray& object_pool_;  // Objects and patchable jump targets.
   int prologue_offset_;
 
+  const bool use_far_branches_;
   bool delay_slot_available_;
   bool in_delay_slot_;
 
@@ -1194,6 +1200,7 @@ class Assembler : public ValueObject {
          func << kCop1FnShift);
   }
 
+  int32_t EncodeBranchOffset(int32_t offset, int32_t instr);
 
   void EmitFarJump(int32_t offset, bool link);
   void EmitFarBranch(Opcode b, Register rs, Register rt, int32_t offset);

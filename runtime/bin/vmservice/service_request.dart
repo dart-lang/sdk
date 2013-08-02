@@ -31,17 +31,14 @@ class ServiceRequest {
     return true;
   }
 
-  String toServiceCallMessage() {
-    return JSON.stringify({
-      'p': pathSegments,
-      'k': parameters.keys.toList(),
-      'v': parameters.values.toList()
-    });
+  List toServiceCallMessage() {
+    return [pathSegments, parameters.keys.toList(), parameters.values.toList()];
   }
 
   void setErrorResponse(String error) {
     _response = JSON.stringify({
-        'error': error,
+        'type': 'error',
+        'msg': error,
         'pathSegments': pathSegments,
         'parameters': parameters
     });

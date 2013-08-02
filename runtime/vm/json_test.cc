@@ -141,7 +141,7 @@ TEST_CASE(JSON_JSONStream_Primitives) {
   EXPECT_STREQ("false", tb.buf());
 
   js.Clear();
-  js.PrintValue((intptr_t)4);
+  js.PrintValue(static_cast<intptr_t>(4));
   EXPECT_STREQ("4", tb.buf());
 
   js.Clear();
@@ -216,6 +216,26 @@ TEST_CASE(JSON_JSONStream_ArrayArray) {
   js.CloseArray();
   js.CloseArray();
   EXPECT_STREQ("[[4],[false]]", tb.buf());
+}
+
+
+TEST_CASE(JSON_JSONStream_Printf) {
+  TextBuffer tb(256);
+  JSONStream js(&tb);
+  js.OpenArray();
+  js.PrintfValue("%d %s", 2, "hello");
+  js.CloseArray();
+  EXPECT_STREQ("[\"2 hello\"]", tb.buf());
+}
+
+
+TEST_CASE(JSON_JSONStream_ObjectPrintf) {
+  TextBuffer tb(256);
+  JSONStream js(&tb);
+  js.OpenObject();
+  js.PrintfProperty("key", "%d %s", 2, "hello");
+  js.CloseObject();
+  EXPECT_STREQ("{\"key\":\"2 hello\"}", tb.buf());
 }
 
 

@@ -15,12 +15,10 @@ namespace dart {
 
 DEFINE_FLAG(bool, code_comments, false,
             "Include comments into code and disassembly");
-// TODO(zra): Remove once far branches are enabled automatically on a
-// per-function basis.
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
-DEFINE_FLAG(bool, use_far_branches, false, "Enable far branches");
+DEFINE_FLAG(bool, use_far_branches, false,
+            "Enable far branches for ARM and MIPS");
 #endif
-
 
 static uword NewContents(intptr_t capacity) {
   Zone* zone = Isolate::Current()->current_zone();

@@ -189,6 +189,8 @@ class _Utils {
 
   static String addTrailingDot(String str) => '${str}.';
 
+  static bool isNoSuchMethodError(obj) => obj is NoSuchMethodError;
+
   // TODO(jacobr): we need a failsafe way to determine that a Node is really a
   // DOM node rather than just a class that extends Node.
   static bool isNode(obj) => obj is Node;

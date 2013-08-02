@@ -9,7 +9,6 @@
       'type': 'none',
       'dependencies': [
         'analyzer',
-        'compiler',
         'create_sdk',
         'dart2js',
         'editor',
@@ -18,14 +17,6 @@
         'samples',
         'upload_sdk',
       ],
-    },
-    {
-      'target_name': 'compiler',
-      'type': 'none',
-      'dependencies': [
-        'compiler/dart-compiler.gyp:dart_analyzer',
-      ],
-      'actions': []
     },
     {
       # This is the target that is built on the VM build bots.  It
@@ -59,7 +50,6 @@
         'utils/compiler/compiler.gyp:dart2js',
         'utils/pub/pub.gyp:pub',
         'analyzer',
-        'compiler',
       ],
       'actions': [
         {
@@ -72,7 +62,6 @@
             '<(SHARED_INTERMEDIATE_DIR)/dart2js.dart.snapshot',
             '<(SHARED_INTERMEDIATE_DIR)/utils_wrapper.dart.snapshot',
             '<(SHARED_INTERMEDIATE_DIR)/pub.dart.snapshot',
-            '<(PRODUCT_DIR)/analyzer/bin/dart_analyzer',
             '<(PRODUCT_DIR)/dartanalyzer/dartanalyzer.jar',
           ],
           'outputs': [

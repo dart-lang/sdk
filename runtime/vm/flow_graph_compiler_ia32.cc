@@ -44,8 +44,7 @@ FlowGraphCompiler::~FlowGraphCompiler() {
 
 bool FlowGraphCompiler::SupportsUnboxedMints() {
   // Support unboxed mints when SSE 4.1 is available.
-  return FLAG_unbox_mints && CPUFeatures::sse4_1_supported() &&
-         !FLAG_throw_on_javascript_int_overflow;
+  return FLAG_unbox_mints && CPUFeatures::sse4_1_supported();
 }
 
 

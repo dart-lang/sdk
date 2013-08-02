@@ -32,10 +32,8 @@ Future<HttpServer> setupServer() {
       addRequestHandler(
          "/$number",
          (HttpRequest request, HttpResponse response) {
-         response.headers.set(HttpHeaders.LOCATION,
-                              "http://127.0.0.1:${server.port}/${number + 1}");
-         response.statusCode = statusCode;
-         response.close();
+           response.redirect(
+               Uri.parse("http://127.0.0.1:${server.port}/${number + 1}"));
        });
     }
 
@@ -43,10 +41,9 @@ Future<HttpServer> setupServer() {
     addRequestHandler(
        "/redirect",
        (HttpRequest request, HttpResponse response) {
-         response.headers.set(HttpHeaders.LOCATION,
-                              "http://127.0.0.1:${server.port}/location");
-         response.statusCode = HttpStatus.MOVED_PERMANENTLY;
-         response.close();
+         response.redirect(
+             Uri.parse("http://127.0.0.1:${server.port}/location"),
+             status: HttpStatus.MOVED_PERMANENTLY);
        }
     );
     addRequestHandler(
@@ -79,6 +76,13 @@ Future<HttpServer> setupServer() {
        "/some/relativeUrl",
        (HttpRequest request, HttpResponse response) {
          response.close();
+       }
+    );
+
+    addRequestHandler(
+       "/some/relativeToAbsolute",
+       (HttpRequest request, HttpResponse response) {
+         response.redirect(Uri.parse("xxx"), status: HttpStatus.SEE_OTHER);
        }
     );
 
@@ -456,6 +460,34 @@ void testRedirectRelativeUrl() {
   testPath("/redirectUrl5");
 }
 
+void testRedirectRelativeToAbsolute() {
+  setupServer().then((server) {
+    HttpClient client = new HttpClient();
+
+    int redirectCount = 0;
+    handleResponse(HttpClientResponse response) {
+      response.listen(
+          (_) => Expect.fail("Response data not expected"),
+          onDone: () {
+            Expect.equals(HttpStatus.SEE_OTHER, response.statusCode);
+            Expect.equals("xxx",
+                          response.headers["Location"][0]);
+            Expect.isTrue(response.isRedirect);
+            server.close();
+            client.close();
+          });
+    }
+    client.getUrl(
+        Uri.parse("http://127.0.0.1:${server.port}/some/relativeToAbsolute"))
+      .then((HttpClientRequest request) {
+        request.followRedirects = false;
+        return request.close();
+      })
+      .then(handleResponse);
+  });
+}
+
+
 main() {
   testManualRedirect();
   testManualRedirectWithHeaders();
@@ -467,4 +499,5 @@ main() {
   testRedirectLoop();
   testRedirectClosingConnection();
   testRedirectRelativeUrl();
+  testRedirectRelativeToAbsolute();
 }

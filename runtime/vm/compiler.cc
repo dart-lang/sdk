@@ -252,303 +252,331 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
   bool is_compiled = false;
   Isolate* isolate = Isolate::Current();
   HANDLESCOPE(isolate);
-  const intptr_t prev_deopt_id = isolate->deopt_id();
-  isolate->set_deopt_id(0);
-  LongJump* old_base = isolate->long_jump_base();
-  LongJump bailout_jump;
-  isolate->set_long_jump_base(&bailout_jump);
-  if (setjmp(*bailout_jump.Set()) == 0) {
-    FlowGraph* flow_graph = NULL;
-    // TimerScope needs an isolate to be properly terminated in case of a
-    // LongJump.
-    {
-      TimerScope timer(FLAG_compiler_stats,
-                       &CompilerStats::graphbuilder_timer,
-                       isolate);
-      Array& ic_data_array = Array::Handle();
-      if (optimized) {
-        ASSERT(function.HasCode());
-        // Extract type feedback before the graph is built, as the graph
-        // builder uses it to attach it to nodes.
-        ASSERT(function.deoptimization_counter() <
-               FLAG_deoptimization_counter_threshold);
-        const Code& unoptimized_code =
-            Code::Handle(function.unoptimized_code());
-        ic_data_array = unoptimized_code.ExtractTypeFeedbackArray();
-      }
 
-      // Build the flow graph.
-      FlowGraphBuilder builder(parsed_function,
-                               ic_data_array,
-                               NULL,  // NULL = not inlining.
-                               osr_id);
-      flow_graph = builder.BuildGraph();
-    }
-
-    if (FLAG_print_flow_graph ||
-        (optimized && FLAG_print_flow_graph_optimized)) {
-      if (osr_id == Isolate::kNoDeoptId) {
-        FlowGraphPrinter::PrintGraph("Before Optimizations", flow_graph);
-      } else {
-        FlowGraphPrinter::PrintGraph("For OSR", flow_graph);
-      }
-    }
-
-    if (optimized) {
-      TimerScope timer(FLAG_compiler_stats,
-                       &CompilerStats::ssa_timer,
-                       isolate);
-      // Transform to SSA (virtual register 0 and no inlining arguments).
-      flow_graph->ComputeSSA(0, NULL);
-      DEBUG_ASSERT(flow_graph->VerifyUseLists());
-      if (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized) {
-        FlowGraphPrinter::PrintGraph("After SSA", flow_graph);
-      }
-    }
-
-
-    // Collect all instance fields that are loaded in the graph and
-    // have non-generic type feedback attached to them that can
-    // potentially affect optimizations.
-    GrowableArray<const Field*> guarded_fields(10);
-    if (optimized) {
-      TimerScope timer(FLAG_compiler_stats,
-                       &CompilerStats::graphoptimizer_timer,
-                       isolate);
-
-      FlowGraphOptimizer optimizer(flow_graph, &guarded_fields);
-      optimizer.ApplyICData();
-      DEBUG_ASSERT(flow_graph->VerifyUseLists());
-
-      // Optimize (a << b) & c patterns. Must occur before
-      // 'SelectRepresentations' which inserts conversion nodes.
-      // TODO(srdjan): Moved before inlining until environment use list can
-      // be used to detect when shift-left is outside the scope of bit-and.
-      optimizer.TryOptimizeLeftShiftWithBitAndPattern();
-      DEBUG_ASSERT(flow_graph->VerifyUseLists());
-
-      // Inlining (mutates the flow graph)
-      if (FLAG_use_inlining) {
+  // We may reattempt compilation if the function needs to be assembled using
+  // far branches on ARM and MIPS. In the else branch of the setjmp call,
+  // done is set to false, and use_far_branches is set to true if there is a
+  // longjmp from the ARM or MIPS assemblers. In all other paths through this
+  // while loop, done is set to true. use_far_branches is always false on ia32
+  // and x64.
+  bool done = false;
+  // static to evade gcc's longjmp variable smashing checks.
+  static bool use_far_branches = false;
+  while (!done) {
+    const intptr_t prev_deopt_id = isolate->deopt_id();
+    isolate->set_deopt_id(0);
+    LongJump* old_base = isolate->long_jump_base();
+    LongJump bailout_jump;
+    isolate->set_long_jump_base(&bailout_jump);
+    if (setjmp(*bailout_jump.Set()) == 0) {
+      FlowGraph* flow_graph = NULL;
+      // TimerScope needs an isolate to be properly terminated in case of a
+      // LongJump.
+      {
         TimerScope timer(FLAG_compiler_stats,
-                         &CompilerStats::graphinliner_timer);
-        FlowGraphInliner inliner(flow_graph, &guarded_fields);
-        inliner.Inline();
-        // Use lists are maintained and validated by the inliner.
-        DEBUG_ASSERT(flow_graph->VerifyUseLists());
+                         &CompilerStats::graphbuilder_timer,
+                         isolate);
+        Array& ic_data_array = Array::Handle();
+        if (optimized) {
+          ASSERT(function.HasCode());
+          // Extract type feedback before the graph is built, as the graph
+          // builder uses it to attach it to nodes.
+          ASSERT(function.deoptimization_counter() <
+                 FLAG_deoptimization_counter_threshold);
+          const Code& unoptimized_code =
+              Code::Handle(function.unoptimized_code());
+          ic_data_array = unoptimized_code.ExtractTypeFeedbackArray();
+        }
+
+        // Build the flow graph.
+        FlowGraphBuilder builder(parsed_function,
+                                 ic_data_array,
+                                 NULL,  // NULL = not inlining.
+                                 osr_id);
+        flow_graph = builder.BuildGraph();
       }
 
-      // Propagate types and eliminate more type tests.
-      if (FLAG_propagate_types) {
-        FlowGraphTypePropagator propagator(flow_graph);
-        propagator.Propagate();
-        DEBUG_ASSERT(flow_graph->VerifyUseLists());
-      }
-
-      // Use propagated class-ids to optimize further.
-      optimizer.ApplyClassIds();
-      DEBUG_ASSERT(flow_graph->VerifyUseLists());
-
-      // Do optimizations that depend on the propagated type information.
-      optimizer.Canonicalize();
-      DEBUG_ASSERT(flow_graph->VerifyUseLists());
-
-      BranchSimplifier::Simplify(flow_graph);
-      DEBUG_ASSERT(flow_graph->VerifyUseLists());
-
-      IfConverter::Simplify(flow_graph);
-      DEBUG_ASSERT(flow_graph->VerifyUseLists());
-
-      if (FLAG_constant_propagation) {
-        ConstantPropagator::Optimize(flow_graph);
-        DEBUG_ASSERT(flow_graph->VerifyUseLists());
-        // A canonicalization pass to remove e.g. smi checks on smi constants.
-        optimizer.Canonicalize();
-        DEBUG_ASSERT(flow_graph->VerifyUseLists());
-        // Canonicalization introduced more opportunities for constant
-        // propagation.
-        ConstantPropagator::Optimize(flow_graph);
-        DEBUG_ASSERT(flow_graph->VerifyUseLists());
-      }
-
-      // Propagate types and eliminate even more type tests.
-      if (FLAG_propagate_types) {
-        // Recompute types after constant propagation to infer more precise
-        // types for uses that were previously reached by now eliminated phis.
-        FlowGraphTypePropagator propagator(flow_graph);
-        propagator.Propagate();
-        DEBUG_ASSERT(flow_graph->VerifyUseLists());
-      }
-
-      // Unbox doubles. Performed after constant propagation to minimize
-      // interference from phis merging double values and tagged
-      // values comming from dead paths.
-      optimizer.SelectRepresentations();
-      DEBUG_ASSERT(flow_graph->VerifyUseLists());
-
-      if (FLAG_common_subexpression_elimination ||
-          FLAG_loop_invariant_code_motion) {
-        flow_graph->ComputeBlockEffects();
-      }
-
-      if (FLAG_common_subexpression_elimination) {
-        if (DominatorBasedCSE::Optimize(flow_graph)) {
-          DEBUG_ASSERT(flow_graph->VerifyUseLists());
-          // Do another round of CSE to take secondary effects into account:
-          // e.g. when eliminating dependent loads (a.x[0] + a.x[0])
-          // TODO(fschneider): Change to a one-pass optimization pass.
-          DominatorBasedCSE::Optimize(flow_graph);
-          DEBUG_ASSERT(flow_graph->VerifyUseLists());
+      if (FLAG_print_flow_graph ||
+          (optimized && FLAG_print_flow_graph_optimized)) {
+        if (osr_id == Isolate::kNoDeoptId) {
+          FlowGraphPrinter::PrintGraph("Before Optimizations", flow_graph);
+        } else {
+          FlowGraphPrinter::PrintGraph("For OSR", flow_graph);
         }
       }
-      if (FLAG_loop_invariant_code_motion &&
-          (function.deoptimization_counter() <
-           FLAG_deoptimization_counter_licm_threshold)) {
-        LICM licm(flow_graph);
-        licm.Optimize();
-        DEBUG_ASSERT(flow_graph->VerifyUseLists());
-      }
-      flow_graph->RemoveRedefinitions();
 
-      if (FLAG_range_analysis) {
+      if (optimized) {
+        TimerScope timer(FLAG_compiler_stats,
+                         &CompilerStats::ssa_timer,
+                         isolate);
+        // Transform to SSA (virtual register 0 and no inlining arguments).
+        flow_graph->ComputeSSA(0, NULL);
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
+        if (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized) {
+          FlowGraphPrinter::PrintGraph("After SSA", flow_graph);
+        }
+      }
+
+
+      // Collect all instance fields that are loaded in the graph and
+      // have non-generic type feedback attached to them that can
+      // potentially affect optimizations.
+      GrowableArray<const Field*> guarded_fields(10);
+      if (optimized) {
+        TimerScope timer(FLAG_compiler_stats,
+                         &CompilerStats::graphoptimizer_timer,
+                         isolate);
+
+        FlowGraphOptimizer optimizer(flow_graph, &guarded_fields);
+        optimizer.ApplyICData();
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
+
+        // Optimize (a << b) & c patterns. Must occur before
+        // 'SelectRepresentations' which inserts conversion nodes.
+        // TODO(srdjan): Moved before inlining until environment use list can
+        // be used to detect when shift-left is outside the scope of bit-and.
+        optimizer.TryOptimizeLeftShiftWithBitAndPattern();
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
+
+        // Inlining (mutates the flow graph)
+        if (FLAG_use_inlining) {
+          TimerScope timer(FLAG_compiler_stats,
+                           &CompilerStats::graphinliner_timer);
+          FlowGraphInliner inliner(flow_graph, &guarded_fields);
+          inliner.Inline();
+          // Use lists are maintained and validated by the inliner.
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
+        }
+
+        // Propagate types and eliminate more type tests.
         if (FLAG_propagate_types) {
-          // Propagate types after store-load-forwarding. Some phis may have
-          // become smi phis that can be processed by range analysis.
           FlowGraphTypePropagator propagator(flow_graph);
           propagator.Propagate();
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
         }
-        // We have to perform range analysis after LICM because it
-        // optimistically moves CheckSmi through phis into loop preheaders
-        // making some phis smi.
-        optimizer.InferSmiRanges();
+
+        // Use propagated class-ids to optimize further.
+        optimizer.ApplyClassIds();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
-      }
 
-      if (FLAG_constant_propagation) {
-        // Constant propagation can use information from range analysis to
-        // find unreachable branch targets.
-        ConstantPropagator::OptimizeBranches(flow_graph);
-        DEBUG_ASSERT(flow_graph->VerifyUseLists());
-      }
-
-      if (FLAG_propagate_types) {
-        // Recompute types after code movement was done to ensure correct
-        // reaching types for hoisted values.
-        FlowGraphTypePropagator propagator(flow_graph);
-        propagator.Propagate();
-        DEBUG_ASSERT(flow_graph->VerifyUseLists());
-      }
-
-      // Optimize try-blocks.
-      TryCatchAnalyzer::Optimize(flow_graph);
-
-      // Detach environments from the instructions that can't deoptimize.
-      // Do it before we attempt to perform allocation sinking to minimize
-      // amount of materializations it has to perform.
-      optimizer.EliminateEnvironments();
-
-      // Attempt to sink allocations of temporary non-escaping objects to
-      // the deoptimization path.
-      AllocationSinking* sinking = NULL;
-      if (FLAG_allocation_sinking &&
-          (flow_graph->graph_entry()->SuccessorCount()  == 1)) {
-        // TODO(fschneider): Support allocation sinking with try-catch.
-        sinking = new AllocationSinking(flow_graph);
-        sinking->Optimize();
-      }
-
-      // Ensure that all phis inserted by optimization passes have consistent
-      // representations.
-      optimizer.SelectRepresentations();
-
-      if (optimizer.Canonicalize()) {
-        // To fully remove redundant boxing (e.g. BoxDouble used only in
-        // environments and UnboxDouble instructions) instruction we
-        // first need to replace all their uses and then fold them away.
-        // For now we just repeat Canonicalize twice to do that.
-        // TODO(vegorov): implement a separate representation folding pass.
+        // Do optimizations that depend on the propagated type information.
         optimizer.Canonicalize();
-      }
-      DEBUG_ASSERT(flow_graph->VerifyUseLists());
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
-      if (sinking != NULL) {
-        // Remove all MaterializeObject instructions inserted by allocation
-        // sinking from the flow graph and let them float on the side referenced
-        // only from environments. Register allocator will consider them
-        // as part of a deoptimization environment.
-        sinking->DetachMaterializations();
-      }
+        BranchSimplifier::Simplify(flow_graph);
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
-      // Perform register allocation on the SSA graph.
-      FlowGraphAllocator allocator(*flow_graph);
-      allocator.AllocateRegisters();
+        IfConverter::Simplify(flow_graph);
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
-      if (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized) {
-        FlowGraphPrinter::PrintGraph("After Optimizations", flow_graph);
-      }
-    }
+        if (FLAG_constant_propagation) {
+          ConstantPropagator::Optimize(flow_graph);
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
+          // A canonicalization pass to remove e.g. smi checks on smi constants.
+          optimizer.Canonicalize();
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
+          // Canonicalization introduced more opportunities for constant
+          // propagation.
+          ConstantPropagator::Optimize(flow_graph);
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
+        }
 
-    Assembler assembler;
-    FlowGraphCompiler graph_compiler(&assembler,
-                                     *flow_graph,
-                                     optimized);
-    {
-      TimerScope timer(FLAG_compiler_stats,
-                       &CompilerStats::graphcompiler_timer,
-                       isolate);
-      graph_compiler.CompileGraph();
-    }
-    {
-      TimerScope timer(FLAG_compiler_stats,
-                       &CompilerStats::codefinalizer_timer,
-                       isolate);
-      const Code& code = Code::Handle(
-          Code::FinalizeCode(function, &assembler, optimized));
-      code.set_is_optimized(optimized);
-      graph_compiler.FinalizePcDescriptors(code);
-      graph_compiler.FinalizeDeoptInfo(code);
-      graph_compiler.FinalizeStackmaps(code);
-      graph_compiler.FinalizeVarDescriptors(code);
-      graph_compiler.FinalizeExceptionHandlers(code);
-      graph_compiler.FinalizeComments(code);
-      graph_compiler.FinalizeStaticCallTargetsTable(code);
+        // Propagate types and eliminate even more type tests.
+        if (FLAG_propagate_types) {
+          // Recompute types after constant propagation to infer more precise
+          // types for uses that were previously reached by now eliminated phis.
+          FlowGraphTypePropagator propagator(flow_graph);
+          propagator.Propagate();
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
+        }
 
-      if (optimized) {
-        if (osr_id == Isolate::kNoDeoptId) {
-          CodePatcher::PatchEntry(Code::Handle(function.CurrentCode()));
-          if (FLAG_trace_compiler) {
-            OS::Print("--> patching entry %#"Px"\n",
-                      Code::Handle(function.unoptimized_code()).EntryPoint());
+        // Unbox doubles. Performed after constant propagation to minimize
+        // interference from phis merging double values and tagged
+        // values comming from dead paths.
+        optimizer.SelectRepresentations();
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
+
+        if (FLAG_common_subexpression_elimination ||
+            FLAG_loop_invariant_code_motion) {
+          flow_graph->ComputeBlockEffects();
+        }
+
+        if (FLAG_common_subexpression_elimination) {
+          if (DominatorBasedCSE::Optimize(flow_graph)) {
+            DEBUG_ASSERT(flow_graph->VerifyUseLists());
+            // Do another round of CSE to take secondary effects into account:
+            // e.g. when eliminating dependent loads (a.x[0] + a.x[0])
+            // TODO(fschneider): Change to a one-pass optimization pass.
+            DominatorBasedCSE::Optimize(flow_graph);
+            DEBUG_ASSERT(flow_graph->VerifyUseLists());
           }
         }
-        function.SetCode(code);
-
-        for (intptr_t i = 0; i < guarded_fields.length(); i++) {
-          const Field& field = *guarded_fields[i];
-          field.RegisterDependentCode(code);
+        if (FLAG_loop_invariant_code_motion &&
+            (function.deoptimization_counter() <
+             FLAG_deoptimization_counter_licm_threshold)) {
+          LICM licm(flow_graph);
+          licm.Optimize();
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
         }
-      } else {
-        function.set_unoptimized_code(code);
-        function.SetCode(code);
-        ASSERT(CodePatcher::CodeIsPatchable(code));
+        flow_graph->RemoveRedefinitions();
+
+        if (FLAG_range_analysis) {
+          if (FLAG_propagate_types) {
+            // Propagate types after store-load-forwarding. Some phis may have
+            // become smi phis that can be processed by range analysis.
+            FlowGraphTypePropagator propagator(flow_graph);
+            propagator.Propagate();
+            DEBUG_ASSERT(flow_graph->VerifyUseLists());
+          }
+          // We have to perform range analysis after LICM because it
+          // optimistically moves CheckSmi through phis into loop preheaders
+          // making some phis smi.
+          optimizer.InferSmiRanges();
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
+        }
+
+        if (FLAG_constant_propagation) {
+          // Constant propagation can use information from range analysis to
+          // find unreachable branch targets.
+          ConstantPropagator::OptimizeBranches(flow_graph);
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
+        }
+
+        if (FLAG_propagate_types) {
+          // Recompute types after code movement was done to ensure correct
+          // reaching types for hoisted values.
+          FlowGraphTypePropagator propagator(flow_graph);
+          propagator.Propagate();
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
+        }
+
+        // Optimize try-blocks.
+        TryCatchAnalyzer::Optimize(flow_graph);
+
+        // Detach environments from the instructions that can't deoptimize.
+        // Do it before we attempt to perform allocation sinking to minimize
+        // amount of materializations it has to perform.
+        optimizer.EliminateEnvironments();
+
+        // Attempt to sink allocations of temporary non-escaping objects to
+        // the deoptimization path.
+        AllocationSinking* sinking = NULL;
+        if (FLAG_allocation_sinking &&
+            (flow_graph->graph_entry()->SuccessorCount()  == 1)) {
+          // TODO(fschneider): Support allocation sinking with try-catch.
+          sinking = new AllocationSinking(flow_graph);
+          sinking->Optimize();
+        }
+
+        // Ensure that all phis inserted by optimization passes have consistent
+        // representations.
+        optimizer.SelectRepresentations();
+
+        if (optimizer.Canonicalize()) {
+          // To fully remove redundant boxing (e.g. BoxDouble used only in
+          // environments and UnboxDouble instructions) instruction we
+          // first need to replace all their uses and then fold them away.
+          // For now we just repeat Canonicalize twice to do that.
+          // TODO(vegorov): implement a separate representation folding pass.
+          optimizer.Canonicalize();
+        }
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
+
+        if (sinking != NULL) {
+          // Remove all MaterializeObject instructions inserted by allocation
+          // sinking from the flow graph and let them float on the side
+          // referenced only from environments. Register allocator will consider
+          // them as part of a deoptimization environment.
+          sinking->DetachMaterializations();
+        }
+
+        // Perform register allocation on the SSA graph.
+        FlowGraphAllocator allocator(*flow_graph);
+        allocator.AllocateRegisters();
+
+        if (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized) {
+          FlowGraphPrinter::PrintGraph("After Optimizations", flow_graph);
+        }
       }
+
+      Assembler assembler(use_far_branches);
+      FlowGraphCompiler graph_compiler(&assembler,
+                                       *flow_graph,
+                                       optimized);
+      {
+        TimerScope timer(FLAG_compiler_stats,
+                         &CompilerStats::graphcompiler_timer,
+                         isolate);
+        graph_compiler.CompileGraph();
+      }
+      {
+        TimerScope timer(FLAG_compiler_stats,
+                         &CompilerStats::codefinalizer_timer,
+                         isolate);
+        const Code& code = Code::Handle(
+            Code::FinalizeCode(function, &assembler, optimized));
+        code.set_is_optimized(optimized);
+        graph_compiler.FinalizePcDescriptors(code);
+        graph_compiler.FinalizeDeoptInfo(code);
+        graph_compiler.FinalizeStackmaps(code);
+        graph_compiler.FinalizeVarDescriptors(code);
+        graph_compiler.FinalizeExceptionHandlers(code);
+        graph_compiler.FinalizeComments(code);
+        graph_compiler.FinalizeStaticCallTargetsTable(code);
+
+        if (optimized) {
+          if (osr_id == Isolate::kNoDeoptId) {
+            CodePatcher::PatchEntry(Code::Handle(function.CurrentCode()));
+            if (FLAG_trace_compiler) {
+              OS::Print("--> patching entry %#"Px"\n",
+                  Code::Handle(function.unoptimized_code()).EntryPoint());
+            }
+          }
+          function.SetCode(code);
+
+          for (intptr_t i = 0; i < guarded_fields.length(); i++) {
+            const Field& field = *guarded_fields[i];
+            field.RegisterDependentCode(code);
+          }
+        } else {
+          function.set_unoptimized_code(code);
+          function.SetCode(code);
+          ASSERT(CodePatcher::CodeIsPatchable(code));
+        }
+      }
+      is_compiled = true;
+      done = true;
+    } else {
+      // We bailed out.
+      const Error& bailout_error = Error::Handle(
+          isolate->object_store()->sticky_error());
+
+      ASSERT(bailout_error.IsLanguageError());
+      const LanguageError& le = LanguageError::CheckedHandle(
+          isolate->object_store()->sticky_error());
+      const String& msg = String::Handle(le.message());
+      if (msg.Equals("Branch offset overflow")) {
+        done = false;
+        ASSERT(!use_far_branches);
+        use_far_branches = true;
+      } else {
+        // If not for a branch offset overflow, we only bail out from
+        // generating ssa code.
+        if (FLAG_trace_bailout) {
+          OS::Print("%s\n", bailout_error.ToErrorCString());
+        }
+        done = true;
+        ASSERT(optimized);
+      }
+
+      isolate->object_store()->clear_sticky_error();
+      is_compiled = false;
     }
-    is_compiled = true;
-  } else {
-    // We bailed out.
-    Error& bailout_error = Error::Handle(
-        isolate->object_store()->sticky_error());
-    isolate->object_store()->clear_sticky_error();
-    if (FLAG_trace_bailout) {
-      OS::Print("%s\n", bailout_error.ToErrorCString());
-    }
-    // We only bail out from generating ssa code.
-    ASSERT(optimized);
-    is_compiled = false;
+    // Reset global isolate state.
+    isolate->set_long_jump_base(old_base);
+    isolate->set_deopt_id(prev_deopt_id);
   }
-  // Reset global isolate state.
-  isolate->set_long_jump_base(old_base);
-  isolate->set_deopt_id(prev_deopt_id);
+  use_far_branches = false;
   return is_compiled;
 }
 

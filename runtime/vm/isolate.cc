@@ -153,6 +153,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   return success;
 }
 
+
 RawFunction* IsolateMessageHandler::ResolveCallbackFunction() {
   ASSERT(isolate_->object_store()->unhandled_exception_handler() != NULL);
   String& callback_name = String::Handle(isolate_);

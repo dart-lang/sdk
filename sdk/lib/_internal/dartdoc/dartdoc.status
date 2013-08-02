@@ -7,7 +7,7 @@ test/dartdoc_test: Pass
 test/dartdoc_search_test: Pass, Skip
 
 # Dartdoc only runs on the VM, so just rule out all compilers.
-[ $compiler == dart2js || $compiler == dart2dart || $compiler == dartc ]
+[ $compiler == dart2js || $compiler == dart2dart ]
 *: Skip
 
 # Dartdoc only runs on the standalone VM, not in dartium.
