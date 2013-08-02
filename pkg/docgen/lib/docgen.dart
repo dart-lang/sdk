@@ -216,7 +216,7 @@ void _documentLibraries(List<LibraryMirror> libs,
   // giant list of subclasses to be printed out. 
   entityMap['dart.core.Object'].subclasses.clear();
   
-  var filteredEntities = entityMap.values.where((e) => _filterPrivate(e));
+  var filteredEntities = entityMap.values.where(_isVisible);
   // Output libraries and classes to file after all information is generated.
   filteredEntities.where((e) => e is Class || e is Library).forEach((output) {
     _writeIndexableToFile(output, outputToYaml);
@@ -279,7 +279,7 @@ bool _isPrivate(DeclarationMirror mirror) {
   }
 }
 
-bool _filterPrivate(Indexable item) {
+bool _isVisible(Indexable item) {
   return _includePrivate || !item.isPrivate;
 }
 
@@ -578,7 +578,7 @@ class Class extends Indexable {
    */
   void addInherited(Class superclass) {
     inheritedVariables.addAll(superclass.inheritedVariables);
-    if (_filterPrivate(superclass)) {
+    if (_isVisible(superclass)) {
       inheritedVariables.addAll(superclass.variables);
     }
     inheritedMethods.addInherited(superclass);
@@ -620,14 +620,23 @@ class Class extends Indexable {
     }
   }
   
+  /** 
+   * If a class extends a private superclass, find the closest public superclass
+   * of the private superclass. 
+   */
+  String validSuperclass() {
+    if (superclass == null) return 'dart.core.Object';
+    if (_isVisible(superclass)) return superclass.qualifiedName;
+    return superclass.validSuperclass();
+  }
+  
   /// Generates a map describing the [Class] object.
   Map toMap() => {
     'name': name,
     'qualifiedname': qualifiedName,
     'comment': comment,
-    'superclass': superclass == null ? "" : (_filterPrivate(superclass)) ? 
-        superclass.qualifiedName : "",
-    'implements': new List.from(interfaces.where((e) => _filterPrivate(e))
+    'superclass': validSuperclass(),
+    'implements': new List.from(interfaces.where(_isVisible)
         .map((e) => e.qualifiedName)),
     'subclass': new List.from(subclasses),
     'variables': recurseMap(variables),
@@ -655,7 +664,7 @@ class ClassGroup {
    
     // Adding inherited parent variables and methods. 
     clazz.parent().forEach((parent) {
-      if (_filterPrivate(clazz)) {
+      if (_isVisible(clazz)) {
         parent.addSubclass(clazz);
       }
       clazz.addInherited(parent);
@@ -692,12 +701,12 @@ class ClassGroup {
   
   Map toMap() => {
     'abstract': new List.from(abstractClasses.values
-        .where((e) => _filterPrivate(e)).map((e) => e.qualifiedName)),
+        .where(_isVisible).map((e) => e.qualifiedName)),
     'class': new List.from(regularClasses.values
-        .where((e) => _filterPrivate(e)).map((e) => e.qualifiedName)),
+        .where(_isVisible).map((e) => e.qualifiedName)),
     'typedef': recurseMap(typedefs),
     'error': new List.from(errors.values
-        .where((e) => _filterPrivate(e)).map((e) => e.qualifiedName))
+        .where(_isVisible).map((e) => e.qualifiedName))
   };
 }
 
@@ -832,7 +841,7 @@ class MethodGroup {
     getters.addAll(parent.inheritedMethods.getters);
     operators.addAll(parent.inheritedMethods.operators);
     regularMethods.addAll(parent.inheritedMethods.regularMethods);
-    if (_filterPrivate(parent)) {
+    if (_isVisible(parent)) {
       setters.addAll(parent.methods.setters);
       getters.addAll(parent.methods.getters);
       operators.addAll(parent.methods.operators);
