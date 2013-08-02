@@ -2152,13 +2152,14 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 static void EmitJavascriptOverflowCheck(FlowGraphCompiler* compiler,
+                                        Range* range,
                                         Label* overflow,
                                         Register result) {
-  if (FLAG_throw_on_javascript_int_overflow) {
+  if (!range->IsWithin(-0x20000000000000LL, 0x20000000000000LL)) {
     ASSERT(overflow != NULL);
-    __ cmpq(result, Immediate(-0x20000000000000));
+    __ cmpq(result, Immediate(-0x20000000000000LL));
     __ j(LESS, overflow);
-    __ cmpq(result, Immediate(0x20000000000000));
+    __ cmpq(result, Immediate(0x20000000000000LL));
     __ j(GREATER, overflow);
   }
 }
@@ -2203,7 +2204,9 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       // Shift for result now we know there is no overflow.
       __ shlq(left, Immediate(value));
     }
-    EmitJavascriptOverflowCheck(compiler, deopt, result);
+    if (FLAG_throw_on_javascript_int_overflow) {
+      EmitJavascriptOverflowCheck(compiler, shift_left->range(), deopt, result);
+    }
     return;
   }
 
@@ -2233,7 +2236,9 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       __ SmiUntag(right);
       __ shlq(left, right);
     }
-    EmitJavascriptOverflowCheck(compiler, deopt, result);
+    if (FLAG_throw_on_javascript_int_overflow) {
+      EmitJavascriptOverflowCheck(compiler, shift_left->range(), deopt, result);
+    }
     return;
   }
 
@@ -2284,7 +2289,9 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     // Shift for result now we know there is no overflow.
     __ shlq(left, right);
   }
-  EmitJavascriptOverflowCheck(compiler, deopt, result);
+  if (FLAG_throw_on_javascript_int_overflow) {
+    EmitJavascriptOverflowCheck(compiler, shift_left->range(), deopt, result);
+  }
 }
 
 
@@ -2483,7 +2490,9 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         UNREACHABLE();
         break;
     }
-    EmitJavascriptOverflowCheck(compiler, deopt, result);
+    if (FLAG_throw_on_javascript_int_overflow) {
+      EmitJavascriptOverflowCheck(compiler, range(), deopt, result);
+    }
     return;
   }  // locs()->in(1).IsConstant().
 
@@ -2526,7 +2535,9 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         UNREACHABLE();
         break;
     }
-    EmitJavascriptOverflowCheck(compiler, deopt, result);
+    if (FLAG_throw_on_javascript_int_overflow) {
+      EmitJavascriptOverflowCheck(compiler, range(), deopt, result);
+    }
     return;
   }  // locs()->in(1).IsStackSlot().
 
@@ -2656,7 +2667,9 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       UNREACHABLE();
       break;
   }
-  EmitJavascriptOverflowCheck(compiler, deopt, result);
+  if (FLAG_throw_on_javascript_int_overflow) {
+    EmitJavascriptOverflowCheck(compiler, range(), deopt, result);
+  }
 }
 
 
@@ -3834,7 +3847,9 @@ void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                             kDeoptUnaryOp);
       __ negq(value);
       __ j(OVERFLOW, deopt);
-      EmitJavascriptOverflowCheck(compiler, deopt, value);
+      if (FLAG_throw_on_javascript_int_overflow) {
+        EmitJavascriptOverflowCheck(compiler, range(), deopt, value);
+      }
       break;
     }
     case Token::kBIT_NOT:
@@ -3895,7 +3910,9 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ shlq(temp, Immediate(1));
   __ j(OVERFLOW, &do_call, Assembler::kNearJump);
   __ SmiTag(result);
-  EmitJavascriptOverflowCheck(compiler, &do_call, result);
+  if (FLAG_throw_on_javascript_int_overflow) {
+    EmitJavascriptOverflowCheck(compiler, range(), &do_call, result);
+  }
   __ jmp(&done);
   __ Bind(&do_call);
   ASSERT(instance_call()->HasICData());
@@ -3941,7 +3958,9 @@ void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ shlq(temp, Immediate(1));
   __ j(OVERFLOW, deopt);
   __ SmiTag(result);
-  EmitJavascriptOverflowCheck(compiler, deopt, result);
+  if (FLAG_throw_on_javascript_int_overflow) {
+    EmitJavascriptOverflowCheck(compiler, range(), deopt, result);
+  }
 }
 
 

@@ -14,6 +14,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
+
 class BitVector;
 class BlockEntryInstr;
 class BufferFormatter;
@@ -5807,7 +5809,8 @@ class BinaryMintOpInstr : public TemplateDefinition<2> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const {
-    return (op_kind() == Token::kADD) || (op_kind() == Token::kSUB);
+    return FLAG_throw_on_javascript_int_overflow ||
+        (op_kind() == Token::kADD) || (op_kind() == Token::kSUB);
   }
 
   virtual Representation representation() const {
@@ -5921,7 +5924,9 @@ class UnaryMintOpInstr : public TemplateDefinition<1> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool CanDeoptimize() const {
+    return FLAG_throw_on_javascript_int_overflow;
+  }
 
   virtual Representation representation() const {
     return kUnboxedMint;
