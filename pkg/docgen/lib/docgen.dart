@@ -238,7 +238,7 @@ Library generateLibrary(dart2js.Dart2JsLibraryMirror library) {
   var result = new Library(library.qualifiedName, _commentToHtml(library),
       _variables(library.variables),
       _methods(library.functions),
-      _classes(library.classes), _isPrivate(library));
+      _classes(library.classes), _isHidden(library));
   logger.fine('Generated library for ${result.name}');
   return result;
 }
@@ -269,13 +269,14 @@ bool _isLibraryPrivate(LibraryMirror mirror) {
 /**
  * A declaration is private if itself is private, or the owner is private. 
  */
-bool _isPrivate(DeclarationMirror mirror) {
+// Issue(12202) - A declaration is public even if it's owner is private. 
+bool _isHidden(DeclarationMirror mirror) {
   if (mirror is LibraryMirror) {
     return _isLibraryPrivate(mirror);
   } else if (mirror.owner is LibraryMirror) {
     return (mirror.isPrivate || _isLibraryPrivate(mirror.owner));
   } else { 
-    return (mirror.isPrivate || _isPrivate(mirror.owner));
+    return (mirror.isPrivate || _isHidden(mirror.owner));
   }
 }
 
@@ -287,9 +288,19 @@ bool _isVisible(Indexable item) {
  * Returns a list of meta annotations assocated with a mirror.
  */
 List<String> _annotations(DeclarationMirror mirror) {
-  var annotations = mirror.metadata.where((e) =>
+  var annotationMirrors = mirror.metadata.where((e) =>
       e is dart2js.Dart2JsConstructedConstantMirror);
-  return annotations.map((e) => e.type.qualifiedName).toList();
+  var annotations = [];
+  annotationMirrors.forEach((annotation) {
+    var parameterList = annotation.type.variables.values
+      .where((e) => e.isFinal)
+      .map((e) => annotation.getField(e.simpleName).reflectee)
+      .where((e) => e != null)
+      .toList();
+    annotations.add(new Annotation(annotation.type.qualifiedName,
+        parameterList));
+  });
+  return annotations;
 }
 
 /**
@@ -342,11 +353,11 @@ Map<String, Variable> _variables(Map<String, VariableMirror> mirrorMap) {
   // a filter. Issue(#9590).
   mirrorMap.forEach((String mirrorName, VariableMirror mirror) {
     _currentMember = mirror;
-    if (_includePrivate || !_isPrivate(mirror)) {
+    if (_includePrivate || !_isHidden(mirror)) {
       entityMap[mirror.qualifiedName] = new Variable(mirrorName, mirror.isFinal,
          mirror.isStatic, mirror.isConst, _type(mirror.type),
          _commentToHtml(mirror), _annotations(mirror), mirror.qualifiedName,
-         _isPrivate(mirror), mirror.owner.qualifiedName);
+         _isHidden(mirror), mirror.owner.qualifiedName);
       data[mirrorName] = entityMap[mirror.qualifiedName];
     }
   });
@@ -359,7 +370,7 @@ Map<String, Variable> _variables(Map<String, VariableMirror> mirrorMap) {
 MethodGroup _methods(Map<String, MethodMirror> mirrorMap) {
   var group = new MethodGroup();
   mirrorMap.forEach((String mirrorName, MethodMirror mirror) {
-    if (_includePrivate || !_isPrivate(mirror)) {
+    if (_includePrivate || !_isHidden(mirror)) {
       group.addMethod(mirror);
     }
   });
@@ -380,7 +391,7 @@ Class _class(ClassMirror mirror) {
     clazz = new Class(mirror.simpleName, superclass, _commentToHtml(mirror), 
         interfaces.toList(), _variables(mirror.variables),
         _methods(mirror.methods), _annotations(mirror), _generics(mirror), 
-        mirror.qualifiedName, _isPrivate(mirror), mirror.owner.qualifiedName);
+        mirror.qualifiedName, _isHidden(mirror), mirror.owner.qualifiedName);
     entityMap[mirror.qualifiedName] = clazz;
   }
   return clazz;
@@ -646,14 +657,14 @@ class Class extends Indexable {
     'qualifiedname': qualifiedName,
     'comment': comment,
     'superclass': validSuperclass(),
-    'implements': new List.from(interfaces.where(_isVisible)
-        .map((e) => e.qualifiedName)),
-    'subclass': new List.from(subclasses),
+    'implements': interfaces.where(_isVisible)
+        .map((e) => e.qualifiedName).toList(),
+    'subclass': subclasses,
     'variables': recurseMap(variables),
     'inheritedvariables': recurseMap(inheritedVariables),
     'methods': methods.toMap(),
     'inheritedmethods': inheritedMethods.toMap(),
-    'annotations': new List.from(annotations),
+    'annotations': annotations.map((a) => a.toMap()).toList(),
     'generics': recurseMap(generics)
   };
 }
@@ -689,7 +700,7 @@ class ClassGroup {
         entityMap[mirror.qualifiedName] = new Typedef(mirror.simpleName, 
             mirror.value.returnType.qualifiedName, _commentToHtml(mirror), 
             _generics(mirror), _parameters(mirror.value.parameters),
-            _annotations(mirror), mirror.qualifiedName,  _isPrivate(mirror), 
+            _annotations(mirror), mirror.qualifiedName,  _isHidden(mirror), 
             mirror.owner.qualifiedName);
         typedefs[mirror.simpleName] = entityMap[mirror.qualifiedName];
       }
@@ -712,13 +723,13 @@ class ClassGroup {
   }
   
   Map toMap() => {
-    'abstract': new List.from(abstractClasses.values
-        .where(_isVisible).map((e) => e.qualifiedName)),
-    'class': new List.from(regularClasses.values
-        .where(_isVisible).map((e) => e.qualifiedName)),
+    'abstract': abstractClasses.values.where(_isVisible)
+      .map((e) => e.qualifiedName).toList(),
+    'class': regularClasses.values.where(_isVisible)
+      .map((e) => e.qualifiedName).toList(),
     'typedef': recurseMap(typedefs),
-    'error': new List.from(errors.values
-        .where(_isVisible).map((e) => e.qualifiedName))
+    'error': errors.values.where(_isVisible)
+      .map((e) => e.qualifiedName).toList()
   };
 }
 
@@ -744,7 +755,7 @@ class Typedef extends Indexable {
     'comment': comment,
     'return': returnType,
     'parameters': recurseMap(parameters),
-    'annotations': new List.from(annotations),
+    'annotations': annotations.map((a) => a.toMap()).toList(),
     'generics': recurseMap(generics)
   };
 }
@@ -775,7 +786,7 @@ class Variable extends Indexable {
     'static': isStatic.toString(),
     'constant': isConst.toString(),
     'type': new List.filled(1, type.toMap()),
-    'annotations': new List.from(annotations)
+    'annotations': annotations.map((a) => a.toMap()).toList()
   };
 }
 
@@ -825,7 +836,7 @@ class Method extends Indexable {
     'constant': isConst.toString(),
     'return': new List.filled(1, returnType.toMap()),
     'parameters': recurseMap(parameters),
-    'annotations': new List.from(annotations)
+    'annotations': annotations.map((a) => a.toMap()).toList()
   };
 }
 
@@ -844,7 +855,7 @@ class MethodGroup {
     var method = new Method(mirror.simpleName, mirror.isStatic, 
         mirror.isAbstract, mirror.isConstConstructor, _type(mirror.returnType), 
         _commentToHtml(mirror), _parameters(mirror.parameters), 
-        _annotations(mirror), mirror.qualifiedName, _isPrivate(mirror),
+        _annotations(mirror), mirror.qualifiedName, _isHidden(mirror),
         mirror.owner.qualifiedName);
     entityMap[mirror.qualifiedName] = method;
     _currentMember = mirror;
@@ -928,7 +939,7 @@ class Parameter {
     'default': hasDefaultValue.toString(),
     'type': new List.filled(1, type.toMap()),
     'value': defaultValue,
-    'annotations': new List.from(annotations)
+    'annotations': annotations.map((a) => a.toMap()).toList()
   };
 }
 
@@ -985,6 +996,21 @@ class Type {
   
   Map toMap() => {
     'outer': outer,
-    'inner': new List.from(inner.map((e) => e.toMap()))
+    'inner': inner.map((e) => e.toMap()).toList()
+  };
+}
+
+/**
+ * Holds the name of the annotation, and its parameters. 
+ */
+class Annotation {
+  String qualifiedName;
+  List<String> parameters; 
+  
+  Annotation(this.qualifiedName, this.parameters);
+  
+  Map toMap() => {
+    'name': qualifiedName,
+    'parameters': parameters
   };
 }
