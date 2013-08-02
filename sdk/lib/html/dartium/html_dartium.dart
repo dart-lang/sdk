@@ -32037,6 +32037,8 @@ class _Utils {
   // TODO(jacobr): we need a failsafe way to determine that a Node is really a
   // DOM node rather than just a class that extends Node.
   static bool isNode(obj) => obj is Node;
+
+  static bool isNoSuchMethodError(obj) => obj is NoSuchMethodError;
 }
 
 class _NPObject extends NativeFieldWrapperClass1 {
