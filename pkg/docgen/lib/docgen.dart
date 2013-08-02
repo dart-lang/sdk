@@ -620,6 +620,16 @@ class Class extends Indexable {
     }
   }
   
+  /**
+   * Makes sure that all methods with inherited equivalents have comments.  
+   */
+  void ensureComments() {
+    inheritedMethods.forEach((qualifiedName, inheritedMethod) {
+      var method = methods[qualifiedName];
+      if (method != null) method.ensureCommentFor(inheritedMethod);
+    });
+  }
+  
   /** 
    * If a class extends a private superclass, find the closest public superclass
    * of the private superclass. 
@@ -669,6 +679,8 @@ class ClassGroup {
       }
       clazz.addInherited(parent);
     });
+
+    clazz.ensureComments();
     
     if (isError(mirror.qualifiedName)) {
       errors[mirror.simpleName] = clazz;
@@ -780,6 +792,9 @@ class Method extends Indexable {
   bool isConst;
   Type returnType;
   
+  /// Qualified name to state where the comment is inherited from. 
+  String commentInheritedFrom = "";
+  
   /// List of the meta annotations on the method.
   List<String> annotations;
   
@@ -788,11 +803,23 @@ class Method extends Indexable {
       String qualifiedName, bool isPrivate, String owner) : super(name, comment,
           qualifiedName, isPrivate, owner);
   
+  /**
+   * Makes sure that the method with an inherited equivalent have comments.  
+   */
+  void ensureCommentFor(Method inheritedMethod) {
+    if (comment.isNotEmpty) return;
+    entityMap[inheritedMethod.owner].ensureComments();
+    comment = inheritedMethod.comment;
+    commentInheritedFrom = inheritedMethod.commentInheritedFrom == '' ? 
+        inheritedMethod.qualifiedName : inheritedMethod.commentInheritedFrom;
+  }
+  
   /// Generates a map describing the [Method] object.
   Map toMap() => {
     'name': name,
     'qualifiedname': qualifiedName,
     'comment': comment,
+    'commentfrom': commentInheritedFrom,
     'static': isStatic.toString(),
     'abstract': isAbstract.toString(),
     'constant': isConst.toString(),
@@ -856,6 +883,23 @@ class MethodGroup {
     'operators': recurseMap(operators),
     'methods': recurseMap(regularMethods)
   };
+
+  Method operator [](String qualifiedName) {
+    if (setters.containsKey(qualifiedName)) return setters[qualifiedName];
+    if (getters.containsKey(qualifiedName)) return getters[qualifiedName];
+    if (operators.containsKey(qualifiedName)) return operators[qualifiedName];
+    if (regularMethods.containsKey(qualifiedName)) {
+      return regularMethods[qualifiedName];
+    } 
+    return null;
+  }
+
+  void forEach(void f(String key, Method value)) {
+    setters.forEach(f);
+    getters.forEach(f);
+    operators.forEach(f);
+    regularMethods.forEach(f);
+  }
 }
 
 /**
