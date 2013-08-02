@@ -430,3 +430,25 @@ Language/11_Expressions/11_Instance_Creation/1_New_A05_t03: fail, OK
 Language/11_Expressions/11_Instance_Creation_A03_t01: fail, OK
 Language/11_Expressions/11_Instance_Creation_A04_t01: fail, OK
 Language/11_Expressions/11_Instance_Creation_A04_t02: fail, OK
+
+# co19 issue #481
+Language/13_Libraries_and_Scripts/1_Imports_A03_t02: fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A03_t05: fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A03_t08: fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A03_t09: fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A03_t10: fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A03_t22: fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A03_t25: fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A03_t29: fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A03_t28: fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A03_t30: fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A03_t42: fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A03_t45: fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A03_t48: fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A03_t49: fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A03_t50: fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A03_t62: fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A03_t65: fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A03_t68: fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A03_t69: fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A03_t70: fail, OK
