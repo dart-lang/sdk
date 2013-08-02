@@ -845,6 +845,21 @@ abstract class HttpResponse implements IOSink {
   List<Cookie> get cookies;
 
   /**
+   * Respond with a redirect to [location].
+   *
+   * The URI in [location] should be absolute, but there are no checks
+   * to enforce that.
+   *
+   * By default the HTTP status code `HttpStatus.MOVED_TEMPORARILY`
+   * (`302`) is used for the redirect, but an alternative one can be
+   * specified using the [status] argument.
+   *
+   * This method will also call `close`, and the returned future is
+   * the furure returned by `close`.
+   */
+  Future redirect(Uri location, {int status: HttpStatus.MOVED_TEMPORARILY});
+
+  /**
    * Detaches the underlying socket from the HTTP server. When the
    * socket is detached the HTTP server will no longer perform any
    * operations on it.

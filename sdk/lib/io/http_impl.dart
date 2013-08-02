@@ -708,6 +708,13 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
     _reasonPhrase = reasonPhrase;
   }
 
+  Future redirect(Uri location, {int status: HttpStatus.MOVED_TEMPORARILY}) {
+    if (_headersWritten) throw new StateError("Header already sent");
+    statusCode = status;
+    headers.set("Location", location.toString());
+    return close();
+  }
+
   Future<Socket> detachSocket() {
     if (_headersWritten) throw new StateError("Headers already sent");
     deadline = null;  // Be sure to stop any deadline.
