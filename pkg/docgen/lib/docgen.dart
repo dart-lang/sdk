@@ -97,8 +97,8 @@ Future<bool> docgen(List<String> files, {String packageRoot,
       if (mirrorSystem.libraries.isEmpty) {
         throw new StateError('No library mirrors were created.');
       }
-      _documentLibraries(mirrorSystem.libraries.values,
-          includeSdk: includeSdk, outputToYaml: outputToYaml, append: append);
+      _documentLibraries(mirrorSystem.libraries.values,includeSdk: includeSdk,
+          outputToYaml: outputToYaml, append: append, parseSdk: parseSdk);
 
       return true;
     });
@@ -200,8 +200,8 @@ Future<MirrorSystem> _analyzeLibraries(List<String> libraries,
 /**
  * Creates documentation for filtered libraries.
  */
-void _documentLibraries(List<LibraryMirror> libs,
-    {bool includeSdk: false, bool outputToYaml: true, bool append: false}) {
+void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
+    bool outputToYaml: true, bool append: false, bool parseSdk: false}) {
   libs.forEach((lib) {
     // Files belonging to the SDK have a uri that begins with 'dart:'.
     if (includeSdk || !lib.uri.toString().startsWith('dart:')) {
@@ -213,8 +213,8 @@ void _documentLibraries(List<LibraryMirror> libs,
   // intermediate classes created by mixins are included. 
   entityMap.values.where((e) => e is Class).forEach((c) => c.makeValid());
   // Everything is a subclass of Object, therefore empty the list to avoid a
-  // giant list of subclasses to be printed out. 
-  entityMap['dart.core.Object'].subclasses.clear();
+  // giant list of subclasses to be printed out.
+  if (parseSdk) entityMap['dart.core.Object'].subclasses.clear();
   
   var filteredEntities = entityMap.values.where(_isVisible);
   // Output libraries and classes to file after all information is generated.
