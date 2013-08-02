@@ -84,6 +84,23 @@ void JSONStream::PrintValue(const char* s) {
 }
 
 
+void JSONStream::PrintfValue(const char* format, ...) {
+  PrintCommaIfNeeded();
+
+  va_list args;
+  va_start(args, format);
+  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
+  va_end(args);
+  char* p = reinterpret_cast<char*>(malloc(len+1));
+  va_start(args, format);
+  intptr_t len2 = OS::VSNPrint(p, len+1, format, args);
+  va_end(args);
+  ASSERT(len == len2);
+  buffer_->Printf("\"%s\"", p);
+  free(p);
+}
+
+
 void JSONStream::PrintValue(const Object& o, bool ref) {
   PrintCommaIfNeeded();
   o.PrintToJSONStream(this, ref);
@@ -111,6 +128,22 @@ void JSONStream::PrintProperty(const char* name, double d) {
 void JSONStream::PrintProperty(const char* name, const char* s) {
   PrintPropertyName(name);
   PrintValue(s);
+}
+
+
+void JSONStream::PrintfProperty(const char* name, const char* format, ...) {
+  PrintPropertyName(name);
+  va_list args;
+  va_start(args, format);
+  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
+  va_end(args);
+  char* p = reinterpret_cast<char*>(malloc(len+1));
+  va_start(args, format);
+  intptr_t len2 = OS::VSNPrint(p, len+1, format, args);
+  va_end(args);
+  ASSERT(len == len2);
+  buffer_->Printf("\"%s\"", p);
+  free(p);
 }
 
 

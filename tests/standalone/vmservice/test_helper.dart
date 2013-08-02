@@ -87,6 +87,7 @@ class TestLauncher {
     String dartExecutable = Platform.executable;
     return Process.start(dartExecutable,
                          ['--enable-vm-service:0', scriptPath]).then((p) {
+
       Completer completer = new Completer();
       process = p;
       var portNumber;
@@ -108,17 +109,21 @@ class TestLauncher {
           // Stop repeat completions.
           first = false;
         }
+        print(line);
       });
       process.stderr.transform(new StringDecoder())
                     .transform(new LineTransformer()).listen((line) {
+        print(line);
       });
-      process.exitCode.then((_) { });
+      process.exitCode.then((code) {
+        Expect.equals(0, code, 'Launched dart executable exited with error.');
+      });
       return completer.future;
     });
   }
 
   void requestExit() {
-    process.stdin.add([32]);
+    process.stdin.add([32, 13, 10]);
   }
 }
 
@@ -144,14 +149,17 @@ class IsolateListTester {
     Expect.isTrue(exists, 'No isolate with id: $id');
   }
 
-  void checkIsolateNameContains(String name) {
+  int checkIsolateNameContains(String name) {
     var exists = false;
+    int id;
     isolateList['members'].forEach((isolate) {
       if (isolate['name'].contains(name)) {
         exists = true;
+        id = isolate['id'];
       }
     });
     Expect.isTrue(exists, 'No isolate with name: $name');
+    return id;
   }
 
   void checkIsolateNamePrefix(int id, String name) {

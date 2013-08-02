@@ -15,7 +15,7 @@ class RunningIsolates implements ServiceRequestRouter {
     }
     var ri = new RunningIsolate(sp);
     isolates[sp.hashCode] = ri;
-    ri.sendIdRequest();
+    ri._sendNameRequest();
   }
 
   void isolateShutdown(SendPort sp) {
@@ -31,7 +31,7 @@ class RunningIsolates implements ServiceRequestRouter {
     isolates.forEach((sp, ri) {
       members.add({
         'id': sp,
-        'name': ri.id
+        'name': ri.name
         });
     });
     result['type'] = 'IsolateList';
@@ -39,32 +39,37 @@ class RunningIsolates implements ServiceRequestRouter {
     request.setResponse(JSON.stringify(result));
   }
 
-  bool route(ServiceRequest request) {
+  Future route(ServiceRequest request) {
     if (request.pathSegments.length == 0) {
-      return false;
+      return null;
     }
     if (request.pathSegments[0] != 'isolates') {
-      return false;
+      return null;
     }
     if (request.pathSegments.length == 1) {
       // Requesting list of running isolates.
       _isolateCollectionRequest(request);
-      return true;
+      return new Future.value(request);
     }
     var isolateId;
     try {
       isolateId = int.parse(request.pathSegments[1]);
     } catch (e) {
       request.setErrorResponse('Could not parse isolate id: $e');
-      return true;
+      return new Future.value(request);
     }
     var isolate = isolates[isolateId];
     if (isolate == null) {
       request.setErrorResponse('Cannot find isolate id: $isolateId');
-      return true;
+      return new Future.value(request);
     }
     // Consume '/isolates/isolateId'
     request.pathSegments.removeRange(0, 2);
+    if (request.pathSegments.length == 0) {
+      // The request is now empty.
+      request.setErrorResponse('No request for isolate: /isolates/$isolateId');
+      return new Future.value(request);
+    }
     return isolate.route(request);
   }
 }

@@ -31,6 +31,7 @@
 #include "vm/intermediate_language.h"
 #include "vm/intrinsifier.h"
 #include "vm/longjump.h"
+#include "vm/object_id_ring.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/runtime_entry.h"
@@ -2800,7 +2801,22 @@ const char* Class::ToCString() const {
 
 
 void Class::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  const char* class_name = String::Handle(UserVisibleName()).ToCString();
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  intptr_t id = ring->GetIdForObject(raw());
+  if (ref) {
+    stream->OpenObject();
+    stream->PrintProperty("type", "@Class");
+    stream->PrintProperty("id", id);
+    stream->PrintProperty("name", class_name);
+    stream->CloseObject();
+    return;
+  }
   stream->OpenObject();
+  stream->PrintProperty("type", "Class");
+  stream->PrintProperty("id", id);
+  stream->PrintProperty("name", class_name);
+  stream->PrintProperty("library", Object::Handle(library()));
   stream->CloseObject();
 }
 
@@ -4960,7 +4976,69 @@ const char* Function::ToCString() const {
 
 
 void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  const char* function_name =
+      String::Handle(QualifiedUserVisibleName()).ToCString();
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  intptr_t id = ring->GetIdForObject(raw());
+  if (ref) {
+    stream->OpenObject();
+    stream->PrintProperty("type", "@Function");
+    stream->PrintProperty("id", id);
+    stream->PrintProperty("name", function_name);
+    stream->CloseObject();
+    return;
+  }
   stream->OpenObject();
+  stream->PrintProperty("type", "Function");
+  stream->PrintProperty("name", function_name);
+  stream->PrintProperty("id", id);
+  stream->PrintPropertyBool("is_static", is_static());
+  stream->PrintPropertyBool("is_const", is_const());
+  stream->PrintPropertyBool("is_optimizable", is_optimizable());
+  stream->PrintPropertyBool("is_inlinable", IsInlineable());
+  const char* kind_string = NULL;
+  switch (kind()) {
+      case RawFunction::kRegularFunction:
+        kind_string = "regular";
+        break;
+      case RawFunction::kGetterFunction:
+        kind_string = "getter";
+        break;
+      case RawFunction::kSetterFunction:
+        kind_string = "setter";
+        break;
+      case RawFunction::kImplicitGetter:
+        kind_string = "implicit getter";
+        break;
+      case RawFunction::kImplicitSetter:
+        kind_string = "implicit setter";
+        break;
+      case RawFunction::kMethodExtractor:
+        kind_string = "method extractor";
+        break;
+      case RawFunction::kNoSuchMethodDispatcher:
+        kind_string = "no such method";
+        break;
+      case RawFunction::kClosureFunction:
+        kind_string = "closure";
+        break;
+      case RawFunction::kConstructor:
+        kind_string = "constructor";
+        break;
+      case RawFunction::kImplicitStaticFinalGetter:
+        kind_string = "static final getter";
+        break;
+      default:
+        UNREACHABLE();
+  }
+  stream->PrintProperty("kind", kind_string);
+  stream->PrintProperty("unoptimized_code", Object::Handle(unoptimized_code()));
+  stream->PrintProperty("usage_counter", usage_counter());
+  stream->PrintProperty("optimized_call_site_count",
+                        optimized_call_site_count());
+  stream->PrintProperty("code", Object::Handle(CurrentCode()));
+  stream->PrintProperty("deoptimizations",
+                        static_cast<intptr_t>(deoptimization_counter()));
   stream->CloseObject();
 }
 
@@ -7191,7 +7269,39 @@ const char* Library::ToCString() const {
 
 
 void Library::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  const char* library_name = String::Handle(name()).ToCString();
+  const char* library_url = String::Handle(url()).ToCString();
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  intptr_t id = ring->GetIdForObject(raw());
+  if (ref) {
+    // Print a reference
+    stream->OpenObject();
+    stream->PrintProperty("type", "@Library");
+    stream->PrintProperty("id", id);
+    stream->PrintProperty("name", library_name);
+    stream->CloseObject();
+    return;
+  }
   stream->OpenObject();
+  stream->PrintProperty("type", "Library");
+  stream->PrintProperty("id", id);
+  stream->PrintProperty("name", library_name);
+  stream->PrintProperty("url", library_url);
+  ClassDictionaryIterator class_iter(*this);
+  stream->OpenArray("classes");
+  Class& klass = Class::Handle();
+  while (class_iter.HasNext()) {
+    klass = class_iter.GetNextClass();
+    stream->PrintValue(klass);
+  }
+  stream->CloseArray();
+  stream->OpenArray("libraries");
+  Library& lib = Library::Handle();
+  for (intptr_t i = 0; i < num_imports(); i++) {
+    lib = ImportLibraryAt(i);
+    stream->PrintValue(lib);
+  }
+  stream->CloseArray();
   stream->CloseObject();
 }
 
@@ -8604,7 +8714,28 @@ const char* Code::ToCString() const {
 
 
 void Code::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  intptr_t id = ring->GetIdForObject(raw());
+  if (ref) {
+    stream->OpenObject();
+    stream->PrintProperty("type", "@Code");
+    stream->PrintProperty("id", id);
+    stream->CloseObject();
+    return;
+  }
   stream->OpenObject();
+  stream->PrintProperty("type", "Code");
+  stream->PrintProperty("id", id);
+  stream->PrintPropertyBool("is_optimized", is_optimized());
+  stream->PrintPropertyBool("is_alive", is_alive());
+  stream->PrintProperty("function", Object::Handle(function()));
+  stream->OpenArray("disassembly");
+  DisassembleToJSONStream formatter(stream);
+  const Instructions& instr = Instructions::Handle(instructions());
+  uword start = instr.EntryPoint();
+  Disassembler::Disassemble(start, start + instr.size(), &formatter,
+                            comments());
+  stream->CloseArray();
   stream->CloseObject();
 }
 

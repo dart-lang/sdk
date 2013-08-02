@@ -6,11 +6,11 @@ part of vmservice;
 
 class RunningIsolate implements ServiceRequestRouter {
   final SendPort sendPort;
-  String id = 'Unknown';
+  String name = 'Unknown';
 
   RunningIsolate(this.sendPort);
 
-  Future sendMessage(String request) {
+  Future sendMessage(List request) {
     final completer = new Completer.sync();
     final receivePort = new ReceivePort();
     sendServiceMessage(sendPort, receivePort, request);
@@ -25,24 +25,31 @@ class RunningIsolate implements ServiceRequestRouter {
     return completer.future;
   }
 
-  bool route(ServiceRequest request) {
-    // Do nothing for now.
-    return false;
+  Future route(ServiceRequest request) {
+    // Send message to isolate.
+    var message = request.toServiceCallMessage();
+    return sendMessage(message).then((response) {
+      request.setResponse(response);
+      return new Future.value(request);
+    });
   }
 
-  void sendIdRequest() {
-    var request = JSON.stringify({'p': ['id'], 'k': [], 'v': []});
-    sendMessage(request).then(_handleIdResponse);
+  void _sendNameRequest() {
+    var request = new ServiceRequest();
+    request.parse(Uri.parse('/name'));
+    sendMessage(request.toServiceCallMessage()).then(_handleNameResponse);
   }
 
-  void _handleIdResponse(responseString) {
-    var response;
+  void _handleNameResponse(String responseString) {
     try {
-      response = JSON.parse(responseString);
+      var response = JSON.parse(responseString);
+      name = response['name'];
     } catch (e) {
-      id = 'Error retrieving isolate id.';
+      name = 'Error retrieving isolate name.';
       return;
     }
-    id = response['id'];
+    if (name == null) {
+      name = 'Error retrieving isolate name.';
+    }
   }
 }

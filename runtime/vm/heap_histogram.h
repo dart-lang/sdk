@@ -12,6 +12,8 @@
 
 namespace dart {
 
+class JSONStream;
+
 DECLARE_FLAG(bool, print_object_histogram);
 
 // ObjectHistogram is used to compute an average object histogram over
@@ -33,6 +35,8 @@ class ObjectHistogram {
   // Print the histogram on stdout.
   void Print();
 
+  void PrintToJSONStream(JSONStream* stream);
+
  private:
   // Add obj to histogram
   void Add(RawObject* obj);
@@ -51,6 +55,10 @@ class ObjectHistogram {
 
   // Compare function for sorting result.
   static int compare(const Element** a, const Element** b);
+
+  // This function returns a malloced array. Caller is responsible for calling
+  // free().
+  Element** GetSortedArray(intptr_t* array_length);
 
   intptr_t major_gc_count_;
   intptr_t table_length_;
