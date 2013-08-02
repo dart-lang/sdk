@@ -490,7 +490,9 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
         if (i == ERROR_EVENT) {
           reportError(nativeGetError(), "");
         } else if (!isClosed) {
-          handler();
+          // If the connection is closed right after it's accepted, there's a
+          // chance the close-handler is not set.
+          if (handler != null) handler();
         }
       }
     }
