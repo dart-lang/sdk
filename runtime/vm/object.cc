@@ -11407,7 +11407,7 @@ RawInteger* Integer::New(const String& str, Heap::Space space) {
 
 
 // This is called from LiteralToken::New() in the parser, so we can't
-// raise an exception for 54-bit overflow here. Instead we do it in
+// raise an exception for javascript overflow here. Instead we do it in
 // Parser::CurrentIntegerLiteral(), which is the point in the parser where
 // integer literals escape, so we can call Parser::ErrorMsg().
 RawInteger* Integer::NewCanonical(const String& str) {
@@ -11427,13 +11427,10 @@ RawInteger* Integer::NewCanonical(const String& str) {
 }
 
 
-// dart2js represents integers as double precision floats. It does this using
-// a sign bit and 53 fraction bits. This gives us the range
-// -2^54 - 1 ... 2^54 - 1, i.e. the same as a 54-bit signed integer
-// without the most negative number. Thus, here we check if the value is
-// a 54-bit signed integer and not -2^54
-static bool Is54BitNoMinInt(int64_t value) {
-  return (Utils::IsInt(54, value)) && (value != (-0x1FFFFFFFFFFFFFLL - 1));
+// dart2js represents integers as double precision floats, which can represent
+// anything in the range -2^53 ... 2^53.
+static bool IsJavascriptInt(int64_t value) {
+  return ((-0x20000000000000LL <= value) && (value <= 0x20000000000000LL));
 }
 
 
@@ -11441,7 +11438,7 @@ RawInteger* Integer::New(int64_t value, Heap::Space space) {
   if ((value <= Smi::kMaxValue) && (value >= Smi::kMinValue)) {
     return Smi::New(value);
   }
-  if (FLAG_throw_on_javascript_int_overflow && !Is54BitNoMinInt(value)) {
+  if (FLAG_throw_on_javascript_int_overflow && !IsJavascriptInt(value)) {
     const Integer &i = Integer::Handle(Mint::New(value));
     ThrowJavascriptIntegerOverflow(i);
   }
@@ -11482,7 +11479,7 @@ int Integer::CompareWith(const Integer& other) const {
 
 
 // Returns true if the signed Integer does not fit into a
-// Javascript (54-bit) integer.
+// Javascript integer.
 bool Integer::CheckJavascriptIntegerOverflow() const {
   // Always overflow if the value doesn't fit into an int64_t.
   int64_t value = 1ULL << 63;
@@ -11500,7 +11497,7 @@ bool Integer::CheckJavascriptIntegerOverflow() const {
       value = BigintOperations::ToInt64(big_value);
     }
   }
-  return !Is54BitNoMinInt(value);
+  return !IsJavascriptInt(value);
 }
 
 

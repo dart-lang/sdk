@@ -29,12 +29,12 @@ int integer_shift() {
 
 
 int max_add_throws() {
-  return 0x1FFFFFFFFFFFFF + 1;
+  return 0x20000000000000 + 1;
 }
 
 
 int min_sub_throws() {
-  return -0x1FFFFFFFFFFFFF - 1;
+  return -0x20000000000000 - 1;
 }
 
 
@@ -45,12 +45,12 @@ int negate() {
 
 
 int max_literal() {
-  return 0x1FFFFFFFFFFFFF;
+  return 0x20000000000000;
 }
 
 
 int min_literal() {
-  var min_literal = -0x1FFFFFFFFFFFFF;
+  var min_literal = -0x20000000000000;
   return min_literal;
 }
 
@@ -60,21 +60,21 @@ bool isJavascriptIntError(e) =>
     e is Error && "$e".startsWith("Javascript Integer Overflow:");
 
 main() {
-  Expect.equals(0x1FFFFFFFFFFFFF, max_literal());
-  Expect.equals(-0x1FFFFFFFFFFFFF, min_literal());
+  Expect.equals(0x20000000000000, max_literal());
+  Expect.equals(-0x20000000000000, min_literal());
 
   // Run the tests once before optimizations.
-  dti_arg = 1.9e16;
+  dti_arg = 1.9e17;
   Expect.throws(double_to_int, isJavascriptIntError);
 
-  ia_arg1 = (1 << 52);
-  ia_arg2 = (1 << 52);
+  ia_arg1 = (1 << 53);
+  ia_arg2 = (1 << 53);
   Expect.throws(integer_add, isJavascriptIntError);
 
-  n_arg = -0x1FFFFFFFFFFFFF;
-  Expect.equals(0x1FFFFFFFFFFFFF, negate());
+  n_arg = -0x20000000000000;
+  Expect.equals(0x20000000000000, negate());
 
-  is_arg = (1 << 52);
+  is_arg = (1 << 53);
   Expect.throws(integer_shift, isJavascriptIntError);
 
   Expect.throws(max_add_throws, isJavascriptIntError);
@@ -101,17 +101,17 @@ main() {
   }
 
    // The optimized functions should now deoptimize and throw the error.
-  dti_arg = 1.9e16;
+  dti_arg = 1.9e17;
   Expect.throws(double_to_int, isJavascriptIntError);
 
-  ia_arg1 = (1 << 52);
-  ia_arg2 = (1 << 52);
+  ia_arg1 = (1 << 53);
+  ia_arg2 = (1 << 53);
   Expect.throws(integer_add, isJavascriptIntError);
 
-  n_arg = -0x1FFFFFFFFFFFFF;
-  Expect.equals(0x1FFFFFFFFFFFFF, negate());
+  n_arg = -0x20000000000000;
+  Expect.equals(0x20000000000000, negate());
 
-  is_arg = (1 << 52);
+  is_arg = (1 << 53);
   Expect.throws(integer_shift, isJavascriptIntError);
 
   Expect.throws(max_add_throws, isJavascriptIntError);

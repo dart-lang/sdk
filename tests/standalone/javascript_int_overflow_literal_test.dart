@@ -8,11 +8,11 @@
 import "package:expect/expect.dart";
 
 int literals() {
-  var okay_literal = 0x1FFFFFFFFFFFFF;
-  var too_big_literal = 0x20000000000000;  /// 01: compile-time error
+  var okay_literal = 0x20000000000000;
+  var too_big_literal = 0x20000000000001;  /// 01: compile-time error
   return okay_literal;
 }
 
 main() {
-  Expect.equals(0x1FFFFFFFFFFFFF, literals());
+  Expect.equals(0x20000000000000, literals());
 }
