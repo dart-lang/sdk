@@ -25,7 +25,7 @@ class BuildInfo(object):
   """
   Encapsulation of build information.
 
-  - compiler: None, 'dart2dart', 'dart2js' or 'dartc'.
+  - compiler: None, 'dart2dart' or 'dart2js'
   - runtime: 'd8', 'ie', 'ff', 'safari', 'chrome', 'opera', or None.
   - mode: 'debug' or 'release'.
   - system: 'linux', 'mac', or 'win7'.

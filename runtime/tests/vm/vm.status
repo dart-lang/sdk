@@ -27,7 +27,7 @@ cc/ExternalizeConstantStrings: Skip
 [ $runtime == drt ]
 dart/isolate_mirror_local_test: Skip
 
-[ $compiler == dart2js || $compiler == dartc ]
+[ $compiler == dart2js ]
 dart/isolate_mirror*: Skip # compilers not aware of dart:mirrors
 dart/byte_array_test: Skip # compilers not aware of byte arrays
 dart/byte_array_optimized_test: Skip # compilers not aware of byte arrays

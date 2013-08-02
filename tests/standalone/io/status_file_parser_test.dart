@@ -10,9 +10,6 @@ import "../../../tools/testing/dart/status_file_parser.dart";
 
 
 void main() {
-  TestReadStatusFile("client/tests/dartc/dartc.status");
-  TestReadStatusFile("compiler/tests/dartc/dartc.status");
-  TestReadStatusFile("frog/tests/frog/frog.status");
   TestReadStatusFile("runtime/tests/vm/vm.status");
   TestReadStatusFile("samples/tests/samples/samples.status");
   TestReadStatusFile("tests/co19/co19-compiler.status");

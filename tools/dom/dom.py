@@ -58,17 +58,6 @@ def build():
 def dart2js():
   compile_dart2js(argv.pop(0), True)
 
-def dartc():
-  return call([
-    os.path.join('tools', 'test.py'),
-    '-m',
-    'release',
-    '-c',
-    'dartc',
-    '-r',
-    'none'
-  ])
-
 def docs():
   return call([
     os.path.join(dart_out_dir, 'dart-sdk', 'bin', 'dart'),
@@ -176,7 +165,6 @@ commands = {
   'analyze': [analyze, 'Run the dart analyzer'],
   'build': [build, 'Build dart in release mode'],
   'dart2js': [dart2js, 'Run dart2js on the .dart file specified'],
-  'dartc': [dartc, 'Runs dartc in release mode'],
   'docs': [docs, 'Generates docs.json'],
   'gen': [gen, 'Re-generate DOM generated files (run go.sh)'],
   'size_check': [size_check, 'Check the size of dart2js compiled Swarm'],

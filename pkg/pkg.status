@@ -60,7 +60,7 @@ intl/test/message_extraction/message_extraction_test: Fail # Issue 9167
 analyzer_experimental/test/generated/ast_test: Fail, Slow # Issue 11230
 stack_trace/test/trace_test: Pass, Timeout # Issue 11645
 
-[ $compiler == dartc || $compiler == dartanalyzer || $compiler == dart2analyzer]
+[ $compiler == dartanalyzer || $compiler == dart2analyzer]
 # These tests are runtime negative but statically positive, so we skip
 # them in the analyzer.
 unittest/test/mock_regexp_negative_test: Skip

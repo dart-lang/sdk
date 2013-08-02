@@ -36,7 +36,6 @@ import "testing/dart/test_runner.dart";
 import "testing/dart/test_suite.dart";
 import "testing/dart/utils.dart";
 
-import "../compiler/tests/dartc/test_config.dart";
 import "../runtime/tests/vm/test_config.dart";
 import "../samples/tests/dartc/test_config.dart";
 import "../tests/co19/test_config.dart";
@@ -182,13 +181,6 @@ void testConfigurations(List<Map> configurations) {
         // in [TEST_SUITE_DIRECTORIES]).
         testSuites.add(new VMTestSuite(conf));
       } else if (conf['analyzer']) {
-        if (key == 'dartc' && conf['compiler'] == 'dartc') {
-          testSuites.add(new JUnitDartcTestSuite(conf));
-        }
-        // TODO(devoncarew): get these running with the new analyzer
-        if (key == 'dartc' && conf['compiler'] == 'dartc') {
-          testSuites.add(new SamplesDartcTestSuite(conf));
-        }
         if (key == 'analyze_library') {
           testSuites.add(new AnalyzeLibraryTestSuite(conf));
         }
