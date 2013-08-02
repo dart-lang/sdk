@@ -5349,7 +5349,7 @@ class TypedData : public Instance {
   }
 
 
-  TypeDataElementType ElementType() const {
+  TypedDataElementType ElementType() const {
     intptr_t cid = raw()->GetClassId();
     return ElementType(cid);
   }
@@ -5383,6 +5383,8 @@ class TypedData : public Instance {
   TYPED_GETTER_SETTER(Float64, double)
   TYPED_GETTER_SETTER(Float32x4, simd128_value_t)
 
+#undef TYPED_GETTER_SETTER
+
   static intptr_t length_offset() {
     return OFFSET_OF(RawTypedData, length_);
   }
@@ -5406,9 +5408,9 @@ class TypedData : public Instance {
     return element_size[ElementType(class_id)];
   }
 
-  static TypeDataElementType ElementType(intptr_t class_id) {
+  static TypedDataElementType ElementType(intptr_t class_id) {
     ASSERT(RawObject::IsTypedDataClassId(class_id));
-    return static_cast<TypeDataElementType>(
+    return static_cast<TypedDataElementType>(
         class_id - kTypedDataInt8ArrayCid);
   }
 
@@ -5475,7 +5477,7 @@ class ExternalTypedData : public Instance {
     return ElementSizeInBytes(cid);
   }
 
-  TypeDataElementType ElementType() const {
+  TypedDataElementType ElementType() const {
     intptr_t cid = raw()->GetClassId();
     return ElementType(cid);
   }
@@ -5513,6 +5515,8 @@ class ExternalTypedData : public Instance {
   TYPED_GETTER_SETTER(Float64, double)
   TYPED_GETTER_SETTER(Float32x4, simd128_value_t);
 
+#undef TYPED_GETTER_SETTER
+
   FinalizablePersistentHandle* AddFinalizer(
       void* peer, Dart_WeakPersistentHandleFinalizer callback) const;
 
@@ -5533,9 +5537,9 @@ class ExternalTypedData : public Instance {
     return TypedData::element_size[ElementType(class_id)];
   }
 
-  static TypeDataElementType ElementType(intptr_t class_id) {
+  static TypedDataElementType ElementType(intptr_t class_id) {
     ASSERT(RawObject::IsExternalTypedDataClassId(class_id));
-    return static_cast<TypeDataElementType>(
+    return static_cast<TypedDataElementType>(
         class_id - kExternalTypedDataInt8ArrayCid);
   }
 

@@ -98,7 +98,7 @@ namespace dart {
   V(::, sqrt, Math_sqrt, 1662640002)                                           \
   V(::, sin, Math_sin, 1273932041)                                             \
   V(::, cos, Math_cos, 1749547468)                                             \
-  V(_Random, _nextState, Random_nextState, 287494804)                          \
+  V(_Random, _nextState, Random_nextState, 776416255)                          \
 
 
 #define TYPED_DATA_LIB_INTRINSIC_LIST(V)                                       \

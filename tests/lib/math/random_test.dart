@@ -47,6 +47,12 @@ main() {
   Expect.equals(2134030067, rnd.nextInt(1 << ++i));
   Expect.equals(721180690, rnd.nextInt(1 << ++i));
   Expect.equals(32, i);
-  // If max is too large expect an ArgumentError. 
+  // If max is too large expect an ArgumentError.
   Expect.throws(() => rnd.nextInt((1 << i)+1), (e) => e is ArgumentError);
+
+  rnd = new Random(6790);
+  Expect.approxEquals(0.7360144236, rnd.nextDouble());
+  Expect.approxEquals(0.3292339731, rnd.nextDouble());
+  Expect.approxEquals(0.3489622548, rnd.nextDouble());
+  Expect.approxEquals(0.9815975892, rnd.nextDouble());
 }
