@@ -124,8 +124,8 @@ void Intrinsifier::InitializeState() {
   CORE_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
 
   // Integer intrinsics are in the core library, but we don't want to intrinsify
-  // if we are looking for javascript integer overflow.
-  if (!FLAG_throw_on_javascript_int_overflow) {
+  // when Smi > 32 bits if we are looking for javascript integer overflow.
+  if (!FLAG_throw_on_javascript_int_overflow || (Smi::kBits < 32)) {
     CORE_INTEGER_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
   }
 
@@ -159,7 +159,7 @@ bool Intrinsifier::Intrinsify(const Function& function, Assembler* assembler) {
 
   if (lib.raw() == Library::CoreLibrary()) {
     CORE_LIB_INTRINSIC_LIST(FIND_INTRINSICS);
-    if (!FLAG_throw_on_javascript_int_overflow) {
+    if (!FLAG_throw_on_javascript_int_overflow || (Smi::kBits < 32)) {
       CORE_INTEGER_LIB_INTRINSIC_LIST(FIND_INTRINSICS);
     }
   } else if (lib.raw() == Library::TypedDataLibrary()) {
