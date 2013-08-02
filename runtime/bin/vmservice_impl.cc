@@ -42,19 +42,10 @@ extern const uint8_t* snapshot_buffer;
   }
 
 #define kLibraryResourceNamePrefix "/vmservice"
-static const char* kLibraryScriptResourceName =
+static const char* kVMServiceIOLibraryScriptResourceName =
+    kLibraryResourceNamePrefix "/vmservice_io.dart";
+static const char* kVMServiceLibraryName =
     kLibraryResourceNamePrefix "/vmservice.dart";
-static const char* kLibrarySourceResourceNames[] = {
-    kLibraryResourceNamePrefix "/constants.dart",
-    kLibraryResourceNamePrefix "/resources.dart",
-    kLibraryResourceNamePrefix "/running_isolate.dart",
-    kLibraryResourceNamePrefix "/running_isolates.dart",
-    kLibraryResourceNamePrefix "/server.dart",
-    kLibraryResourceNamePrefix "/service_request.dart",
-    kLibraryResourceNamePrefix "/service_request_router.dart",
-    kLibraryResourceNamePrefix "/vmservice_io.dart",
-    NULL
-};
 
 #define kClientResourceNamePrefix "/client/web/out"
 
@@ -110,7 +101,7 @@ bool VmService::_Start(intptr_t server_port) {
   }
 
   // Set up the library tag handler for this isolate.
-  Dart_Handle result = Dart_SetLibraryTagHandler(DartUtils::LibraryTagHandler);
+  Dart_Handle result = Dart_SetLibraryTagHandler(LibraryTagHandler);
   SHUTDOWN_ON_ERROR(result);
 
   // Load the specified application script into the newly created isolate.
@@ -129,10 +120,8 @@ bool VmService::_Start(intptr_t server_port) {
 
   {
     // Load source into service isolate.
-    Dart_Handle library = LoadScript(kLibraryScriptResourceName);
+    Dart_Handle library = LoadScript(kVMServiceIOLibraryScriptResourceName);
     SHUTDOWN_ON_ERROR(library);
-    result = LoadSources(library, kLibrarySourceResourceNames);
-    SHUTDOWN_ON_ERROR(result);
   }
 
   // Make the isolate runnable so that it is ready to handle messages.
@@ -154,9 +143,6 @@ bool VmService::_Start(intptr_t server_port) {
   Dart_Handle library = Dart_RootLibrary();
   // Set requested port.
   DartUtils::SetIntegerField(library, "_port", server_port);
-  // Install native resolver.
-  result = Dart_SetNativeResolver(library, VmServiceNativeResolver);
-  SHUTDOWN_ON_ERROR(result);
   result = Dart_Invoke(library, DartUtils::NewString("main"), 0, NULL);
   SHUTDOWN_ON_ERROR(result);
 
@@ -194,25 +180,24 @@ bool VmService::IsRunning() {
 }
 
 
-Dart_Handle VmService::LoadScript(const char* name) {
-  Dart_Handle url = Dart_NewStringFromCString(name);
+Dart_Handle VmService::GetSource(const char* name) {
   const char* vmservice_source = NULL;
   int r = Resources::ResourceLookup(name, &vmservice_source);
   ASSERT(r != Resources::kNoSuchInstance);
-  Dart_Handle source = Dart_NewStringFromCString(vmservice_source);
+  return Dart_NewStringFromCString(vmservice_source);
+}
+
+
+Dart_Handle VmService::LoadScript(const char* name) {
+  Dart_Handle url = Dart_NewStringFromCString(name);
+  Dart_Handle source = GetSource(name);
   return Dart_LoadScript(url, source, 0, 0);
 }
 
 
 Dart_Handle VmService::LoadSource(Dart_Handle library, const char* name) {
   Dart_Handle url = Dart_NewStringFromCString(name);
-  const char* vmservice_source = NULL;
-  int r = Resources::ResourceLookup(name, &vmservice_source);
-  if (r == Resources::kNoSuchInstance) {
-    printf("Can't find %s\n", name);
-  }
-  ASSERT(r != Resources::kNoSuchInstance);
-  Dart_Handle source = Dart_NewStringFromCString(vmservice_source);
+  Dart_Handle source = GetSource(name);
   return Dart_LoadSource(library, url, source);
 }
 
@@ -281,6 +266,85 @@ Dart_Handle VmService::LoadResources(Dart_Handle library) {
       }
     }
   }
+  return result;
+}
+
+
+static bool IsVMServiceURL(const char* url) {
+  static const intptr_t kLibraryResourceNamePrefixLen =
+      strlen(kLibraryResourceNamePrefix);
+  return 0 == strncmp(kLibraryResourceNamePrefix, url,
+                      kLibraryResourceNamePrefixLen);
+}
+
+
+static bool IsVMServiceLibrary(const char* url) {
+  return 0 == strcmp(kVMServiceLibraryName, url);
+}
+
+
+Dart_Handle VmService::LibraryTagHandler(Dart_LibraryTag tag,
+                                         Dart_Handle library,
+                                         Dart_Handle url) {
+  if (!Dart_IsLibrary(library)) {
+    return Dart_Error("not a library");
+  }
+  if (!Dart_IsString(url)) {
+    return Dart_Error("url is not a string");
+  }
+  const char* url_string = NULL;
+  Dart_Handle result = Dart_StringToCString(url, &url_string);
+  if (Dart_IsError(result)) {
+    return result;
+  }
+  Dart_Handle library_url = Dart_LibraryUrl(library);
+  const char* library_url_string = NULL;
+  result = Dart_StringToCString(library_url, &library_url_string);
+  if (Dart_IsError(result)) {
+    return result;
+  }
+  bool is_vm_service_url = IsVMServiceURL(url_string);
+  if (!is_vm_service_url) {
+    // Pass to DartUtils.
+    return DartUtils::LibraryTagHandler(tag, library, url);
+  }
+  switch (tag) {
+    case Dart_kCanonicalizeUrl:
+      // The URL is already canonicalized.
+      return url;
+    break;
+    case Dart_kImportTag: {
+      Dart_Handle source = GetSource(url_string);
+      if (Dart_IsError(source)) {
+        return source;
+      }
+      Dart_Handle lib = Dart_LoadLibrary(url, source);
+      if (Dart_IsError(lib)) {
+        return lib;
+      }
+      if (IsVMServiceLibrary(url_string)) {
+        // Install native resolver for this library.
+        result = Dart_SetNativeResolver(lib, VmServiceNativeResolver);
+        if (Dart_IsError(result)) {
+          return result;
+        }
+      }
+      return lib;
+    }
+    break;
+    case Dart_kSourceTag: {
+      Dart_Handle source = GetSource(url_string);
+      if (Dart_IsError(source)) {
+        return source;
+      }
+      return Dart_LoadSource(library, url, source);
+    }
+    break;
+    default:
+      UNIMPLEMENTED();
+    break;
+  }
+  UNREACHABLE();
   return result;
 }
 
