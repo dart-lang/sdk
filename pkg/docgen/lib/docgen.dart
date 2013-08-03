@@ -47,6 +47,10 @@ ClassMirror _currentClass;
 /// Current member being documented to be used for comment links.
 MemberMirror _currentMember;
 
+/// Support for [:foo:]-style code comments to the markdown parser.
+List<markdown.InlineSyntax> markdownSyntaxes = 
+  [new markdown.CodeSyntax(r'\[:\s?((?:.|\n)*?)\s?:\]')];
+ 
 /// Resolves reference links in doc comments.
 markdown.Resolver linkResolver;
 
@@ -323,7 +327,8 @@ String _commentToHtml(DeclarationMirror mirror) {
   });
   
   commentText = commentText == null ? '' : 
-      markdown.markdownToHtml(commentText.trim(), linkResolver: linkResolver);
+      markdown.markdownToHtml(commentText.trim(), linkResolver: linkResolver,
+          inlineSyntaxes: markdownSyntaxes);
   return commentText;
 }
 
@@ -335,11 +340,18 @@ markdown.Node fixReference(String name, LibraryMirror currentLibrary,
   var reference;
   var memberScope = currentMember == null ?
       null : currentMember.lookupInScope(name);
-  if (memberScope != null) reference = memberScope.qualifiedName;
-  else {
+  if (memberScope != null) {
+    reference = memberScope.qualifiedName;
+  } else {
     var classScope = currentClass == null ?
         null : currentClass.lookupInScope(name);
-    reference = classScope != null ? classScope.qualifiedName : name;
+    if (classScope != null) {
+      reference = classScope.qualifiedName;
+    } else {
+      var libraryScope = currentLibrary == null ?
+          null : currentLibrary.lookupInScope(name);
+      reference = libraryScope != null ? libraryScope.qualifiedName : name;
+    }
   }
   return new markdown.Element.text('a', reference);
 }
@@ -620,7 +632,7 @@ class Class extends Indexable {
    */
   void makeValid() {
     var library = entityMap[owner];
-    if (!library.classes.containsKey(name)) {
+    if (library != null && !library.classes.containsKey(name)) {
       this.isPrivate = true;
       // Since we are now making the mixin a private class, make all elements 
       // with the mixin as an owner private too. 
