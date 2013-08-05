@@ -47,8 +47,8 @@ default_implementation2_test: fail
 f_bounded_quantification_test/01: fail
 f_bounded_quantification_test/02: fail
 
-function_type_alias6_test/00: fail # Issue 11987
 function_type_alias9_test/00: crash # Issue 11987
+
 list_literal_syntax_test/01: fail # Issue 12103
 list_literal_syntax_test/02: fail # Issue 12103
 list_literal_syntax_test/03: fail # Issue 12103
