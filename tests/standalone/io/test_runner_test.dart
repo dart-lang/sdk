@@ -102,7 +102,7 @@ class CustomTestSuite extends TestSuite {
 void testProcessQueue() {
   var maxProcesses = 2;
   var maxBrowserProcesses = maxProcesses;
-  new ProcessQueue({}, maxProcesses, maxBrowserProcesses,
+  new ProcessQueue({'noBatch' : true}, maxProcesses, maxBrowserProcesses,
       new DateTime.now(), [new CustomTestSuite()],
       [new EventListener()], TestController.finished);
 }
