@@ -41,7 +41,9 @@ class _TemplateExtension extends _ElementExtension {
     var instance = _createDeepCloneAndDecorateTemplates(
         template.ref.content, delegate);
 
-    if (_instanceCreated != null) _instanceCreated.add(instance);
+    if (_instanceCreated != null) {
+      for (var callback in _instanceCreated) callback(instance);
+    }
 
     _addBindings(instance, model, delegate);
     _addTemplateInstanceRecord(instance, model);

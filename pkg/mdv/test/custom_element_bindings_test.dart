@@ -126,11 +126,12 @@ customElementBindingsTest() {
           '</my-custom-element>'
         '</template>');
 
-    mdv.instanceCreated.listen((fragment) {
+    callback(fragment) {
       for (var e in fragment.queryAll('my-custom-element')) {
         new MyCustomElement.attach(e);
       }
-    });
+    }
+    mdv.instanceCreated.add(callback);
 
     div.query('template').model = model;
     performMicrotaskCheckpoint();
@@ -161,6 +162,8 @@ customElementBindingsTest() {
 
     expect(element.xtag.myPoint, null, reason: 'model was unbound');
     expect(element.xtag.scaryMonster.health, 100, reason: 'model was unbound');
+
+    mdv.instanceCreated.remove(callback);
   });
 
 }
@@ -177,63 +180,44 @@ class MyCustomElement implements Element {
   Point myPoint;
   Monster scaryMonster;
 
-  StreamSubscription _sub1, _sub2;
-
   MyCustomElement() : this.attach(new Element.tag('my-custom-element'));
 
   MyCustomElement.attach(this.real) {
     real.xtag = this;
   }
 
-
   get attributes => real.attributes;
+  get bindings => real.bindings;
 
-  void bind(String name, model, String path) {
+  NodeBinding createBinding(String name, model, String path) {
     switch (name) {
       case 'my-point':
-        unbind('my-point');
-        attributes.remove('my-point');
-
-        _sub1 = new PathObserver(model, path).bindSync((v) {
-          myPoint = v;
-        });
-        return;
       case 'scary-monster':
-        unbind('scary-monster');
-        attributes.remove('scary-monster');
-
-        _sub2 = new PathObserver(model, path).bindSync((v) {
-          scaryMonster = v;
-        });
-        return;
+        return new _MyCustomBinding(this, name, model, path);
     }
-    real.bind(name, model, path);
+    return real.createBinding(name, model, path);
   }
 
-  void unbind(String name) {
-    switch (name) {
-      case 'my-point':
-        if (_sub1 != null) {
-          _sub1.cancel();
-          _sub1 = null;
-        }
-        return;
-      case 'scary-monster':
-        if (_sub2 != null) {
-          _sub2.cancel();
-          _sub2 = null;
-        }
-        return;
-    }
-    real.unbind(name);
+  bind(String name, model, String path) => real.bind(name, model, path);
+  void unbind(String name) => real.unbind(name);
+  void unbindAll() => real.unbindAll();
+}
+
+class _MyCustomBinding extends mdv.NodeBinding {
+  _MyCustomBinding(MyCustomElement node, property, model, path)
+      : super(node, property, model, path) {
+
+    node.attributes.remove(property);
   }
 
-  void unbindAll() {
-    unbind('my-point');
-    unbind('scary-monster');
-    real.unbindAll();
+  MyCustomElement get node => super.node;
+
+  void boundValueChanged(newValue) {
+    if (property == 'my-point') node.myPoint = newValue;
+    if (property == 'scary-monster') node.scaryMonster = newValue;
   }
 }
+
 
 /**
  * Demonstrates a custom element can override attributes []= and remove.
@@ -253,7 +237,9 @@ class WithAttrsCustomElement implements Element {
     real.xtag = this;
   }
 
-  void bind(String name, model, String path) => real.bind(name, model, path);
+  createBinding(String name, model, String path) =>
+      real.createBinding(name, model, path);
+  bind(String name, model, String path) => real.bind(name, model, path);
   void unbind(String name) => real.unbind(name);
   void unbindAll() => real.unbindAll();
 }

@@ -1694,10 +1694,12 @@ templateElementTests() {
 
   observeTest('instanceCreated hack', () {
     var called = false;
-    var sub = mdv.instanceCreated.listen((node) {
+
+    callback(node) {
       called = true;
       expect(node.nodeType, Node.DOCUMENT_FRAGMENT_NODE);
-    });
+    }
+    mdv.instanceCreated.add(callback);
 
     var div = createTestHtml('<template bind="{{}}">Foo</template>');
     expect(called, false);
@@ -1706,7 +1708,7 @@ templateElementTests() {
     performMicrotaskCheckpoint();
     expect(called, true);
 
-    sub.cancel();
+    mdv.instanceCreated.remove(callback);
   });
 }
 
