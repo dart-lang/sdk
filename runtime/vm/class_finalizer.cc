@@ -1376,9 +1376,9 @@ void ClassFinalizer::CreateForwardingConstructors(
           Function::New(clone_name,
                         func.kind(),
                         func.is_static(),
-                        func.is_const(),
-                        func.is_abstract(),
-                        func.is_external(),
+                        false,  // Not const.
+                        false,  // Not abstract.
+                        false,  // Not external.
                         mixin_app,
                         mixin_app.token_pos()));
 
