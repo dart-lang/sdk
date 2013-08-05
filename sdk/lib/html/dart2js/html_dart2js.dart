@@ -12186,6 +12186,40 @@ class HttpRequest extends EventTarget native "XMLHttpRequest" {
   }
 
   /**
+   * Makes a server POST request with the specified data encoded as form data.
+   *
+   * This is similar to sending a FormData object with broader browser
+   * support but limited to string values.
+   *
+   * See also:
+   *
+   * * [request]
+   */
+  static Future<HttpRequest> postFormData(String url, Map<String, String> data,
+      {bool withCredentials, String responseType,
+      Map<String, String> requestHeaders,
+      void onProgress(ProgressEvent e)}) {
+
+    var parts = [];
+    data.forEach((key, value) {
+      parts.add('${Uri.encodeQueryComponent(key)}='
+          '${Uri.encodeQueryComponent(value)}');
+    });
+    var formData = parts.join('&');
+
+    if (requestHeaders == null) {
+      requestHeaders = <String, String>{};
+    }
+    requestHeaders.putIfAbsent('Content-Type',
+        () => 'application/x-www-form-urlencoded; charset=UTF-8');
+
+    return request(url, method: 'POST', withCredentials: withCredentials,
+        responseType: responseType,
+        requestHeaders: requestHeaders, sendData: formData,
+        onProgress: onProgress);
+  }
+
+  /**
    * Creates a URL request for the specified [url].
    *
    * By default this will do an HTTP GET request, this can be overridden with
