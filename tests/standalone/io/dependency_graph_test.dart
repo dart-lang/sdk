@@ -4,7 +4,7 @@
 
 import 'package:expect/expect.dart';
 
-import '../../tools/testing/dart/dependency_graph.dart' as graph;
+import '../../../tools/testing/dart/dependency_graph.dart' as graph;
 
 main() {
   var dgraph = new graph.Graph();
