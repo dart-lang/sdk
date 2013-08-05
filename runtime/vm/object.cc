@@ -146,10 +146,10 @@ const double MegamorphicCache::kLoadFactor = 0.75;
   V(CoreLibrary, Object, _as)                                                  \
   V(CoreLibrary, Object, _instanceOf)                                          \
   V(CoreLibrary, _ObjectArray, _ObjectArray.)                                  \
-  V(CoreLibrary, _AssertionErrorImplementation, _throwNew)                     \
-  V(CoreLibrary, _TypeErrorImplementation, _throwNew)                          \
-  V(CoreLibrary, _FallThroughErrorImplementation, _throwNew)                   \
-  V(CoreLibrary, _AbstractClassInstantiationErrorImplementation, _throwNew)    \
+  V(CoreLibrary, AssertionError, _throwNew)                                    \
+  V(CoreLibrary, TypeError, _throwNew)                                         \
+  V(CoreLibrary, FallThroughError, _throwNew)                                  \
+  V(CoreLibrary, AbstractClassInstantiationError, _throwNew)                   \
   V(CoreLibrary, NoSuchMethodError, _throwNew)                                 \
   V(CoreLibrary, int, _throwFormatException)                                   \
   V(CoreLibrary, int, _parse)                                                  \
@@ -1925,6 +1925,15 @@ const char* Class::ApplyPatch(const Class& patch) const {
   // new private methods.
   Function& func = Function::Handle();
   Function& orig_func = Function::Handle();
+  // Lookup the original implicit constructor, if any.
+  member_name = Name();
+  member_name = String::Concat(member_name, Symbols::Dot());
+  Function& orig_implicit_ctor = Function::Handle(LookupFunction(member_name));
+  if (!orig_implicit_ctor.IsNull() &&
+      !orig_implicit_ctor.IsImplicitConstructor()) {
+    // Not an implicit constructor, but a user declared one.
+    orig_implicit_ctor = Function::null();
+  }
   const GrowableObjectArray& new_functions = GrowableObjectArray::Handle(
       GrowableObjectArray::New(orig_len));
   for (intptr_t i = 0; i < orig_len; i++) {
@@ -1934,7 +1943,11 @@ const char* Class::ApplyPatch(const Class& patch) const {
     if (func.IsNull()) {
       // Non-patched function is preserved, all patched functions are added in
       // the loop below.
-      new_functions.Add(orig_func);
+      // However, an implicitly created constructor should not be preserved if
+      // the patch provides a constructor or a factory. Wait for now.
+      if (orig_func.raw() != orig_implicit_ctor.raw()) {
+        new_functions.Add(orig_func);
+      }
     } else if (!func.HasCompatibleParametersWith(orig_func) &&
                !(func.IsFactory() && orig_func.IsConstructor() &&
                  (func.num_fixed_parameters() + 1 ==
@@ -1944,8 +1957,16 @@ const char* Class::ApplyPatch(const Class& patch) const {
   }
   for (intptr_t i = 0; i < patch_len; i++) {
     func ^= patch_list.At(i);
+    if (func.IsConstructor() || func.IsFactory()) {
+      // Do not preserve the original implicit constructor, if any.
+      orig_implicit_ctor = Function::null();
+    }
     func.set_owner(patch_class);
     new_functions.Add(func);
+  }
+  if (!orig_implicit_ctor.IsNull()) {
+    // Preserve the original implicit constructor.
+    new_functions.Add(orig_implicit_ctor);
   }
   Array& new_list = Array::Handle(Array::MakeArray(new_functions));
   SetFunctions(new_list);

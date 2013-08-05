@@ -22,7 +22,6 @@ DECLARE_RUNTIME_ENTRY(AllocateImplicitInstanceClosure);
 DECLARE_RUNTIME_ENTRY(AllocateContext);
 DECLARE_RUNTIME_ENTRY(AllocateObject);
 DECLARE_RUNTIME_ENTRY(AllocateObjectWithBoundsCheck);
-DECLARE_RUNTIME_ENTRY(ArgumentDefinitionTest);
 DECLARE_RUNTIME_ENTRY(BreakpointRuntimeHandler);
 DECLARE_RUNTIME_ENTRY(BreakpointStaticHandler);
 DECLARE_RUNTIME_ENTRY(BreakpointReturnHandler);
@@ -37,6 +36,9 @@ DECLARE_RUNTIME_ENTRY(InlineCacheMissHandlerThreeArgs);
 DECLARE_RUNTIME_ENTRY(StaticCallMissHandlerTwoArgs);
 DECLARE_RUNTIME_ENTRY(InstanceFunctionLookup);
 DECLARE_RUNTIME_ENTRY(Instanceof);
+DECLARE_RUNTIME_ENTRY(TypeCheck);
+DECLARE_RUNTIME_ENTRY(MalformedTypeError);
+DECLARE_RUNTIME_ENTRY(ConditionTypeError);
 DECLARE_RUNTIME_ENTRY(InstantiateType);
 DECLARE_RUNTIME_ENTRY(InstantiateTypeArguments);
 DECLARE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction);
@@ -53,7 +55,6 @@ DECLARE_RUNTIME_ENTRY(TraceFunctionExit);
 DECLARE_RUNTIME_ENTRY(DeoptimizeMaterialize);
 DECLARE_RUNTIME_ENTRY(UpdateICDataTwoArgs);
 DECLARE_RUNTIME_ENTRY(UpdateFieldCid);
-
 
 #define DEOPT_REASONS(V)                                                       \
   V(Unknown)                                                                   \

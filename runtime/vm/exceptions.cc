@@ -496,40 +496,31 @@ RawInstance* Exceptions::NewInstance(const char* class_name) {
 }
 
 
-// Allocate, initialize, and throw a TypeError.
+// Allocate, initialize, and throw a TypeError or CastError.
 void Exceptions::CreateAndThrowTypeError(intptr_t location,
                                          const String& src_type_name,
                                          const String& dst_type_name,
                                          const String& dst_name,
                                          const String& malformed_error) {
-  const Array& args = Array::Handle(Array::New(8));
+  const Array& args = Array::Handle(Array::New(7));
 
   ExceptionType exception_type =
       dst_name.Equals(kCastErrorDstName) ? kCast : kType;
 
-  // Initialize argument 'failedAssertion'.
-  // Printing the src_obj value would be possible, but ToString() is expensive
-  // and not meaningful for all classes, so we just print '$expr instanceof...'.
-  // Users should look at TypeError.ToString(), which contains more useful
-  // information than AssertionError.failedAssertion.
-  String& failed_assertion = String::Handle(String::New("$expr instanceof "));
-  failed_assertion = String::Concat(failed_assertion, dst_type_name);
-  args.SetAt(0, failed_assertion);
-
-  // Initialize 'url', 'line', and 'column' arguments.
   DartFrameIterator iterator;
   const Script& script = Script::Handle(GetCallerScript(&iterator));
   intptr_t line, column;
   script.GetTokenLocation(location, &line, &column);
-  args.SetAt(1, String::Handle(script.url()));
-  args.SetAt(2, Smi::Handle(Smi::New(line)));
-  args.SetAt(3, Smi::Handle(Smi::New(column)));
+  // Initialize '_url', '_line', and '_column' arguments.
+  args.SetAt(0, String::Handle(script.url()));
+  args.SetAt(1, Smi::Handle(Smi::New(line)));
+  args.SetAt(2, Smi::Handle(Smi::New(column)));
 
-  // Initialize argument 'srcType'.
-  args.SetAt(4, src_type_name);
-  args.SetAt(5, dst_type_name);
-  args.SetAt(6, dst_name);
-  args.SetAt(7, malformed_error);
+  // Initialize '_srcType', '_dstType', '_dstName', and '_malformedError'.
+  args.SetAt(3, src_type_name);
+  args.SetAt(4, dst_type_name);
+  args.SetAt(5, dst_name);
+  args.SetAt(6, malformed_error);
 
   // Type errors in the core library may be difficult to diagnose.
   // Print type error information before throwing the error when debugging.
@@ -550,7 +541,7 @@ void Exceptions::CreateAndThrowTypeError(intptr_t location,
       OS::Print("malformed type used.\n");
     }
   }
-  // Throw TypeError instance.
+  // Throw TypeError or CastError instance.
   Exceptions::ThrowByType(exception_type, args);
   UNREACHABLE();
 }
@@ -645,7 +636,7 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
     case kNoSuchMethod:
       library = Library::CoreLibrary();
       class_name = &Symbols::NoSuchMethodError();
-      constructor_name = &String::Handle(Symbols::New("._withType"));
+      constructor_name = &Symbols::DotWithType();
       break;
     case kFormat:
       library = Library::CoreLibrary();
@@ -678,22 +669,27 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
     case kAssertion:
       library = Library::CoreLibrary();
       class_name = &Symbols::AssertionError();
+      constructor_name = &Symbols::DotCreate();
       break;
     case kCast:
       library = Library::CoreLibrary();
       class_name = &Symbols::CastError();
+      constructor_name = &Symbols::DotCreate();
       break;
     case kType:
       library = Library::CoreLibrary();
       class_name = &Symbols::TypeError();
+      constructor_name = &Symbols::DotCreate();
       break;
     case kFallThrough:
       library = Library::CoreLibrary();
       class_name = &Symbols::FallThroughError();
+      constructor_name = &Symbols::DotCreate();
       break;
     case kAbstractClassInstantiation:
       library = Library::CoreLibrary();
       class_name = &Symbols::AbstractClassInstantiationError();
+      constructor_name = &Symbols::DotCreate();
       break;
     case kMirroredUncaughtExceptionError:
       library = Library::MirrorsLibrary();

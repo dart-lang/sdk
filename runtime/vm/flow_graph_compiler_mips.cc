@@ -7,7 +7,6 @@
 
 #include "vm/flow_graph_compiler.h"
 
-#include "lib/error.h"
 #include "vm/ast_printer.h"
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"

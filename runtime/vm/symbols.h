@@ -34,12 +34,11 @@ class ObjectPointerVisitor;
   V(ClosureParameter, ":closure")                                              \
   V(PhaseParameter, ":phase")                                                  \
   V(TypeArgumentsParameter, ":type_arguments")                                 \
-  V(AssertionError, "_AssertionErrorImplementation")                           \
-  V(CastError, "_CastErrorImplementation")                                     \
-  V(TypeError, "_TypeErrorImplementation")                                     \
-  V(FallThroughError, "_FallThroughErrorImplementation")                       \
-  V(AbstractClassInstantiationError,                                           \
-    "_AbstractClassInstantiationErrorImplementation")                          \
+  V(AssertionError, "AssertionError")                                          \
+  V(CastError, "CastError")                                                    \
+  V(TypeError, "TypeError")                                                    \
+  V(FallThroughError, "FallThroughError")                                      \
+  V(AbstractClassInstantiationError, "AbstractClassInstantiationError")        \
   V(NoSuchMethodError, "NoSuchMethodError")                                    \
   V(ThrowNew, "_throwNew")                                                     \
   V(List, "List")                                                              \
@@ -218,6 +217,8 @@ class ObjectPointerVisitor;
   V(_handleMessage, "_handleMessage")                                          \
   V(_SendPortImpl, "_SendPortImpl")                                            \
   V(_create, "_create")                                                        \
+  V(DotCreate, "._create")                                                     \
+  V(DotWithType, "._withType")                                                 \
   V(_id, "_id")                                                                \
   V(_get_or_create, "_get_or_create")                                          \
   V(RangeError, "RangeError")                                                  \

@@ -7,7 +7,6 @@
 
 #include "vm/intermediate_language.h"
 
-#include "lib/error.h"
 #include "vm/dart_entry.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/locations.h"

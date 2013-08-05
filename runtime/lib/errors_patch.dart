@@ -12,6 +12,118 @@ patch class Error {
   StackTrace _stackTrace;
 }
 
+patch class AssertionError extends Error {
+  AssertionError._create(
+      this._failedAssertion, this._url, this._line, this._column);
+
+  static _throwNew(int assertionStart, int assertionEnd)
+      native "AssertionError_throwNew";
+
+  String toString() {
+    return "'$_url': Failed assertion: line $_line pos $_column: "
+        "'$_failedAssertion' is not true.";
+  }
+  final String _failedAssertion;
+  final String _url;
+  final int _line;
+  final int _column;
+}
+
+patch class TypeError extends AssertionError {
+  TypeError._create(String url, int line, int column,
+                    this._srcType, this._dstType, this._dstName,
+                    this._malformedError)
+      : super._create("is assignable", url, line, column);
+
+  static _throwNew(int location,
+                   Object src_value,
+                   String dst_type_name,
+                   String dst_name,
+                   String malformed_error)
+      native "TypeError_throwNew";
+
+  String toString() {
+    String str = (_malformedError != null) ? _malformedError : "";
+    if ((_dstName != null) && (_dstName.length > 0)) {
+      str = "${str}type '$_srcType' is not a subtype of "
+            "type '$_dstType' of '$_dstName'.";
+    } else {
+      str = "${str}malformed type used.";
+    }
+    return str;
+  }
+
+  final String _srcType;
+  final String _dstType;
+  final String _dstName;
+  final String _malformedError;
+}
+
+patch class CastError extends Error {
+  CastError._create(this._url, this._line, this._column,
+                    this._srcType, this._dstType, this._dstName,
+                    this._malformedError);
+
+  // A CastError is allocated by TypeError._throwNew() when dst_name equals
+  // Exceptions::kCastErrorDstName.
+
+  String toString() {
+    String str = (_malformedError != null) ? _malformedError : "";
+    str = "${str}type '$_srcType' is not a subtype of "
+          "type '$_dstType' in type cast.";
+    return str;
+  }
+
+  // Fields _url, _line, and _column are only used for debugging purposes.
+  final String _url;
+  final int _line;
+  final int _column;
+  final String _srcType;
+  final String _dstType;
+  final String _dstName;
+  final String _malformedError;
+}
+
+patch class FallThroughError {
+  FallThroughError._create(this._url, this._line);
+
+  static _throwNew(int case_clause_pos) native "FallThroughError_throwNew";
+
+  /* patch */ String toString() {
+    return "'$_url': Switch case fall-through at line $_line.";
+  }
+
+  // These new fields cannot be declared final, because a constructor exists
+  // in the original version of this patched class.
+  String _url;
+  int _line;
+}
+
+class _InternalError {
+  const _InternalError(this._msg);
+  String toString() => "InternalError: '${_msg}'";
+  final String _msg;
+}
+
+
+patch class AbstractClassInstantiationError {
+  AbstractClassInstantiationError._create(
+      this._className, this._url, this._line);
+
+  static _throwNew(int case_clause_pos, String className)
+      native "AbstractClassInstantiationError_throwNew";
+
+  /* patch */ String toString() {
+    return "Cannot instantiate abstract class $_className: "
+           "_url '$_url' line $_line";
+  }
+
+  // These new fields cannot be declared final, because a constructor exists
+  // in the original version of this patched class.
+  String _url;
+  int _line;
+}
+
 patch class NoSuchMethodError {
   // The compiler emits a call to _throwNew when it cannot resolve a static
   // method at compile time. The receiver is actually the literal class of the

@@ -3,7 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--enable_type_checks --no_show_internal_names
 // Dart test program testing type checks.
+
 import "package:expect/expect.dart";
+
+class C {
+  factory C() {
+    return 1;  // Implicit result type is 'C', not int.
+  }
+}
 
 class TypeTest {
   static test() {
@@ -12,17 +19,12 @@ class TypeTest {
       int i = "hello";  // Throws a TypeError if type checks are enabled.
     } on TypeError catch (error) {
       result = 1;
-      Expect.equals("int", error.dstType);
-      Expect.equals("String", error.srcType);
-      Expect.equals("i", error.dstName);
-      int pos = error.url.lastIndexOf("/", error.url.length);
-      if (pos == -1) {
-        pos = error.url.lastIndexOf("\\", error.url.length);
-      }
-      String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("type_vm_test.dart", subs);
-      Expect.equals(12, error.line);
-      Expect.equals(15, error.column);
+      var msg = error.toString();
+      Expect.isTrue(msg.contains("'int'"));  // dstType
+      Expect.isTrue(msg.contains("'String'"));  // srcType
+      Expect.isTrue(msg.contains("'i'"));  // dstName
+      Expect.isTrue(error.stackTrace.toString().contains(
+          "type_vm_test.dart:19:15"));
     }
     return result;
   }
@@ -53,17 +55,12 @@ class TypeTest {
       int i = f("hello");  // Throws a TypeError if type checks are enabled.
     } on TypeError catch (error) {
       result = 1;
-      Expect.equals("int", error.dstType);
-      Expect.equals("String", error.srcType);
-      Expect.equals("i", error.dstName);
-      int pos = error.url.lastIndexOf("/", error.url.length);
-      if (pos == -1) {
-        pos = error.url.lastIndexOf("\\", error.url.length);
-      }
-      String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("type_vm_test.dart", subs);
-      Expect.equals(49, error.line);
-      Expect.equals(15, error.column);
+      var msg = error.toString();
+      Expect.isTrue(msg.contains("'int'"));  // dstType
+      Expect.isTrue(msg.contains("'String'"));  // srcType
+      Expect.isTrue(msg.contains("'i'"));  // dstName
+      Expect.isTrue(error.stackTrace.toString().contains(
+          "type_vm_test.dart:51:15"));
     }
     return result;
   }
@@ -77,17 +74,12 @@ class TypeTest {
       int i = f("hello");  // Throws a TypeError if type checks are enabled.
     } on TypeError catch (error) {
       result = 1;
-      Expect.equals("int", error.dstType);
-      Expect.equals("String", error.srcType);
-      Expect.equals("function result", error.dstName);
-      int pos = error.url.lastIndexOf("/", error.url.length);
-      if (pos == -1) {
-        pos = error.url.lastIndexOf("\\", error.url.length);
-      }
-      String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("type_vm_test.dart", subs);
-      Expect.equals(74, error.line);
-      Expect.equals(14, error.column);
+      var msg = error.toString();
+      Expect.isTrue(msg.contains("'int'"));  // dstType
+      Expect.isTrue(msg.contains("'String'"));  // srcType
+      Expect.isTrue(msg.contains("function result"));  // dstName
+      Expect.isTrue(error.stackTrace.toString().contains(
+          "type_vm_test.dart:71:14"));
     }
     return result;
   }
@@ -99,17 +91,12 @@ class TypeTest {
       field = "hello";  // Throws a TypeError if type checks are enabled.
     } on TypeError catch (error) {
       result = 1;
-      Expect.equals("int", error.dstType);
-      Expect.equals("String", error.srcType);
-      Expect.equals("field", error.dstName);
-      int pos = error.url.lastIndexOf("/", error.url.length);
-      if (pos == -1) {
-        pos = error.url.lastIndexOf("\\", error.url.length);
-      }
-      String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("type_vm_test.dart", subs);
-      Expect.equals(99, error.line);
-      Expect.equals(15, error.column);
+      var msg = error.toString();
+      Expect.isTrue(msg.contains("'int'"));  // dstType
+      Expect.isTrue(msg.contains("'String'"));  // srcType
+      Expect.isTrue(msg.contains("'field'"));  // dstName
+      Expect.isTrue(error.stackTrace.toString().contains(
+          "type_vm_test.dart:91:15"));
     }
     return result;
   }
@@ -123,17 +110,12 @@ class TypeTest {
       int i = f;  // Throws a TypeError if type checks are enabled.
     } on TypeError catch (error) {
       result = 1;
-      Expect.equals("int", error.dstType);
-      Expect.equals("() => dynamic", error.srcType);
-      Expect.equals("i", error.dstName);
-      int pos = error.url.lastIndexOf("/", error.url.length);
-      if (pos == -1) {
-        pos = error.url.lastIndexOf("\\", error.url.length);
-      }
-      String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("type_vm_test.dart", subs);
-      Expect.equals(123, error.line);
-      Expect.equals(15, error.column);
+      var msg = error.toString();
+      Expect.isTrue(msg.contains("'int'"));  // dstType
+      Expect.isTrue(msg.contains("'() => dynamic'"));  // srcType
+      Expect.isTrue(msg.contains("'i'"));  // dstName
+      Expect.isTrue(error.stackTrace.toString().contains(
+          "type_vm_test.dart:110:15"));
     }
     return result;
   }
@@ -154,17 +136,12 @@ class TypeTest {
       acceptObjFunObj(voidFunObj);  // Throws a TypeError.
     } on TypeError catch (error) {
       result = 1;
-      Expect.equals("(Object) => Object", error.dstType);
-      Expect.equals("(Object) => void", error.srcType);
-      Expect.equals("objFunObj", error.dstName);
-      int pos = error.url.lastIndexOf("/", error.url.length);
-      if (pos == -1) {
-        pos = error.url.lastIndexOf("\\", error.url.length);
-      }
-      String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("type_vm_test.dart", subs);
-      Expect.equals(145, error.line);
-      Expect.equals(33, error.column);
+      var msg = error.toString();
+      Expect.isTrue(msg.contains("'(Object) => Object'"));  // dstType
+      Expect.isTrue(msg.contains("'(Object) => void'"));  // srcType
+      Expect.isTrue(msg.contains("'objFunObj'"));  // dstName
+      Expect.isTrue(error.stackTrace.toString().contains(
+          "type_vm_test.dart:127:33"));
     }
     return result;
   }
@@ -188,17 +165,12 @@ class TypeTest {
       acceptFunNum(funString);  // Throws an error.
     } on TypeError catch (error) {
       result = 1;
-      Expect.equals("(num) => void", error.dstType);
-      Expect.equals("(String) => void", error.srcType);
-      Expect.equals("funNum", error.dstName);
-      int pos = error.url.lastIndexOf("/", error.url.length);
-      if (pos == -1) {
-        pos = error.url.lastIndexOf("\\", error.url.length);
-      }
-      String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("type_vm_test.dart", subs);
-      Expect.equals(175, error.line);
-      Expect.equals(28, error.column);
+      var msg = error.toString();
+      Expect.isTrue(msg.contains("'(num) => void'"));  // dstType
+      Expect.isTrue(msg.contains("'(String) => void'"));  // srcType
+      Expect.isTrue(msg.contains("'funNum'"));  // dstName
+      Expect.isTrue(error.stackTrace.toString().contains(
+          "type_vm_test.dart:152:28"));
     }
     return result;
   }
@@ -209,145 +181,100 @@ class TypeTest {
       bool i = !"hello";  // Throws a TypeError if type checks are enabled.
     } on TypeError catch (error) {
       result++;
-      Expect.equals("bool", error.dstType);
-      Expect.equals("String", error.srcType);
-      Expect.equals("boolean expression", error.dstName);
-      int pos = error.url.lastIndexOf("/", error.url.length);
-      if (pos == -1) {
-        pos = error.url.lastIndexOf("\\", error.url.length);
-      }
-      String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("type_vm_test.dart", subs);
-      Expect.equals(209, error.line);
-      Expect.equals(17, error.column);
+      var msg = error.toString();
+      Expect.isTrue(msg.contains("'bool'"));  // dstType
+      Expect.isTrue(msg.contains("'String'"));  // srcType
+      Expect.isTrue(msg.contains("boolean expression"));  // dstName
+      Expect.isTrue(error.stackTrace.toString().contains(
+          "type_vm_test.dart:181:17"));
     }
     try {
       while ("hello") {};  // Throws a TypeError if type checks are enabled.
     } on TypeError catch (error) {
       result++;
-      Expect.equals("bool", error.dstType);
-      Expect.equals("String", error.srcType);
-      Expect.equals("boolean expression", error.dstName);
-      int pos = error.url.lastIndexOf("/", error.url.length);
-      if (pos == -1) {
-        pos = error.url.lastIndexOf("\\", error.url.length);
-      }
-      String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("type_vm_test.dart", subs);
-      Expect.equals(225, error.line);
-      Expect.equals(14, error.column);
+      var msg = error.toString();
+      Expect.isTrue(msg.contains("'bool'"));  // dstType
+      Expect.isTrue(msg.contains("'String'"));  // srcType
+      Expect.isTrue(msg.contains("boolean expression"));  // dstName
+      Expect.isTrue(error.stackTrace.toString().contains(
+          "type_vm_test.dart:192:14"));
     }
     try {
       do {} while ("hello");  // Throws a TypeError if type checks are enabled.
     } on TypeError catch (error) {
       result++;
-      Expect.equals("bool", error.dstType);
-      Expect.equals("String", error.srcType);
-      Expect.equals("boolean expression", error.dstName);
-      int pos = error.url.lastIndexOf("/", error.url.length);
-      if (pos == -1) {
-        pos = error.url.lastIndexOf("\\", error.url.length);
-      }
-      String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("type_vm_test.dart", subs);
-      Expect.equals(241, error.line);
-      Expect.equals(20, error.column);
+      var msg = error.toString();
+      Expect.isTrue(msg.contains("'bool'"));  // dstType
+      Expect.isTrue(msg.contains("'String'"));  // srcType
+      Expect.isTrue(msg.contains("boolean expression"));  // dstName
+      Expect.isTrue(error.stackTrace.toString().contains(
+          "type_vm_test.dart:203:20"));
     }
     try {
       for (;"hello";) {};  // Throws a TypeError if type checks are enabled.
     } on TypeError catch (error) {
       result++;
-      Expect.equals("bool", error.dstType);
-      Expect.equals("String", error.srcType);
-      Expect.equals("boolean expression", error.dstName);
-      int pos = error.url.lastIndexOf("/", error.url.length);
-      if (pos == -1) {
-        pos = error.url.lastIndexOf("\\", error.url.length);
-      }
-      String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("type_vm_test.dart", subs);
-      Expect.equals(257, error.line);
-      Expect.equals(13, error.column);
+      var msg = error.toString();
+      Expect.isTrue(msg.contains("'bool'"));  // dstType
+      Expect.isTrue(msg.contains("'String'"));  // srcType
+      Expect.isTrue(msg.contains("boolean expression"));  // dstName
+      Expect.isTrue(error.stackTrace.toString().contains(
+          "type_vm_test.dart:214:13"));
     }
     try {
       int i = "hello" ? 1 : 0;  // Throws a TypeError if type checks are enabled.
     } on TypeError catch (error) {
       result++;
-      Expect.equals("bool", error.dstType);
-      Expect.equals("String", error.srcType);
-      Expect.equals("boolean expression", error.dstName);
-      int pos = error.url.lastIndexOf("/", error.url.length);
-      if (pos == -1) {
-        pos = error.url.lastIndexOf("\\", error.url.length);
-      }
-      String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("type_vm_test.dart", subs);
-      Expect.equals(273, error.line);
-      Expect.equals(15, error.column);
+      var msg = error.toString();
+      Expect.isTrue(msg.contains("'bool'"));  // dstType
+      Expect.isTrue(msg.contains("'String'"));  // srcType
+      Expect.isTrue(msg.contains("boolean expression"));  // dstName
+      Expect.isTrue(error.stackTrace.toString().contains(
+          "type_vm_test.dart:225:15"));
     }
     try {
       if ("hello") {};  // Throws a TypeError if type checks are enabled.
     } on TypeError catch (error) {
       result++;
-      Expect.equals("bool", error.dstType);
-      Expect.equals("String", error.srcType);
-      Expect.equals("boolean expression", error.dstName);
-      int pos = error.url.lastIndexOf("/", error.url.length);
-      if (pos == -1) {
-        pos = error.url.lastIndexOf("\\", error.url.length);
-      }
-      String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("type_vm_test.dart", subs);
-      Expect.equals(289, error.line);
-      Expect.equals(11, error.column);
+      var msg = error.toString();
+      Expect.isTrue(msg.contains("'bool'"));  // dstType
+      Expect.isTrue(msg.contains("'String'"));  // srcType
+      Expect.isTrue(msg.contains("boolean expression"));  // dstName
+      Expect.isTrue(error.stackTrace.toString().contains(
+          "type_vm_test.dart:236:11"));
     }
     try {
       if ("hello" || false) {};  // Throws a TypeError if type checks are enabled.
     } on TypeError catch (error) {
       result++;
-      Expect.equals("bool", error.dstType);
-      Expect.equals("String", error.srcType);
-      Expect.equals("boolean expression", error.dstName);
-      int pos = error.url.lastIndexOf("/", error.url.length);
-      if (pos == -1) {
-        pos = error.url.lastIndexOf("\\", error.url.length);
-      }
-      String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("type_vm_test.dart", subs);
-      Expect.equals(305, error.line);
-      Expect.equals(11, error.column);
+      var msg = error.toString();
+      Expect.isTrue(msg.contains("'bool'"));  // dstType
+      Expect.isTrue(msg.contains("'String'"));  // srcType
+      Expect.isTrue(msg.contains("boolean expression"));  // dstName
+      Expect.isTrue(error.stackTrace.toString().contains(
+          "type_vm_test.dart:247:11"));
     }
     try {
       if (false || "hello") {};  // Throws a TypeError if type checks are enabled.
     } on TypeError catch (error) {
       result++;
-      Expect.equals("bool", error.dstType);
-      Expect.equals("String", error.srcType);
-      Expect.equals("boolean expression", error.dstName);
-      int pos = error.url.lastIndexOf("/", error.url.length);
-      if (pos == -1) {
-        pos = error.url.lastIndexOf("\\", error.url.length);
-      }
-      String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("type_vm_test.dart", subs);
-      Expect.equals(321, error.line);
-      Expect.equals(20, error.column);
+      var msg = error.toString();
+      Expect.isTrue(msg.contains("'bool'"));  // dstType
+      Expect.isTrue(msg.contains("'String'"));  // srcType
+      Expect.isTrue(msg.contains("boolean expression"));  // dstName
+      Expect.isTrue(error.stackTrace.toString().contains(
+          "type_vm_test.dart:258:20"));
     }
     try {
       if (null) {};  // Throws a TypeError if type checks are enabled.
     } on TypeError catch (error) {
       result++;
-      Expect.equals("bool", error.dstType);
-      Expect.equals("Null", error.srcType);
-      Expect.equals("boolean expression", error.dstName);
-      int pos = error.url.lastIndexOf("/", error.url.length);
-      if (pos == -1) {
-        pos = error.url.lastIndexOf("\\", error.url.length);
-      }
-      String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("type_vm_test.dart", subs);
-      Expect.equals(337, error.line);
-      Expect.equals(11, error.column);
+      var msg = error.toString();
+      Expect.isTrue(msg.contains("'bool'"));  // dstType
+      Expect.isTrue(msg.contains("'Null'"));  // srcType
+      Expect.isTrue(msg.contains("boolean expression"));  // dstName
+      Expect.isTrue(error.stackTrace.toString().contains(
+          "type_vm_test.dart:269:11"));
     }
     return result;
   }
@@ -359,17 +286,12 @@ class TypeTest {
       var x = new C();
     } on TypeError catch (error) {
       result++;
-      Expect.equals("C", error.dstType);
-      Expect.equals("int", error.srcType);
-      Expect.equals("function result", error.dstName);
-      int pos = error.url.lastIndexOf("/", error.url.length);
-      if (pos == -1) {
-        pos = error.url.lastIndexOf("\\", error.url.length);
-      }
-      String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("type_vm_test.dart", subs);
-      Expect.equals(560, error.line);
-      Expect.equals(12, error.column);
+      var msg = error.toString();
+      Expect.isTrue(msg.contains("'C'"));  // dstType
+      Expect.isTrue(msg.contains("'int'"));  // srcType
+      Expect.isTrue(msg.contains("function result"));  // dstName
+      Expect.isTrue(error.stackTrace.toString().contains(
+          "type_vm_test.dart:11:12"));
     }
     return result;
   }
@@ -392,49 +314,34 @@ class TypeTest {
         List<int> ai = a;
       } on TypeError catch (error) {
         result++;
-        Expect.equals("List<int>", error.dstType);
-        Expect.equals("List<Object>", error.srcType);
-        Expect.equals("ai", error.dstName);
-        int pos = error.url.lastIndexOf("/", error.url.length);
-        if (pos == -1) {
-          pos = error.url.lastIndexOf("\\", error.url.length);
-        }
-        String subs = error.url.substring(pos + 1, error.url.length);
-        Expect.equals("type_vm_test.dart", subs);
-        Expect.equals(392, error.line);
-        Expect.equals(24, error.column);
+        var msg = error.toString();
+        Expect.isTrue(msg.contains("'List<int>'"));  // dstType
+        Expect.isTrue(msg.contains("'List<Object>'"));  // srcType
+        Expect.isTrue(msg.contains("'ai'"));  // dstName
+        Expect.isTrue(error.stackTrace.toString().contains(
+            "type_vm_test.dart:314:24"));
       }
       try {
         List<num> an = a;
       } on TypeError catch (error) {
         result++;
-        Expect.equals("List<num>", error.dstType);
-        Expect.equals("List<Object>", error.srcType);
-        Expect.equals("an", error.dstName);
-        int pos = error.url.lastIndexOf("/", error.url.length);
-        if (pos == -1) {
-          pos = error.url.lastIndexOf("\\", error.url.length);
-        }
-        String subs = error.url.substring(pos + 1, error.url.length);
-        Expect.equals("type_vm_test.dart", subs);
-        Expect.equals(408, error.line);
-        Expect.equals(24, error.column);
+        var msg = error.toString();
+        Expect.isTrue(msg.contains("'List<num>'"));  // dstType
+        Expect.isTrue(msg.contains("'List<Object>'"));  // srcType
+        Expect.isTrue(msg.contains("'an'"));  // dstName
+        Expect.isTrue(error.stackTrace.toString().contains(
+            "type_vm_test.dart:325:24"));
       }
       try {
         List<String> as = a;
       } on TypeError catch (error) {
         result++;
-        Expect.equals("List<String>", error.dstType);
-        Expect.equals("List<Object>", error.srcType);
-        Expect.equals("as", error.dstName);
-        int pos = error.url.lastIndexOf("/", error.url.length);
-        if (pos == -1) {
-          pos = error.url.lastIndexOf("\\", error.url.length);
-        }
-        String subs = error.url.substring(pos + 1, error.url.length);
-        Expect.equals("type_vm_test.dart", subs);
-        Expect.equals(424, error.line);
-        Expect.equals(27, error.column);
+        var msg = error.toString();
+        Expect.isTrue(msg.contains("'List<String>'"));  // dstType
+        Expect.isTrue(msg.contains("'List<Object>'"));  // srcType
+        Expect.isTrue(msg.contains("'as'"));  // dstName
+        Expect.isTrue(error.stackTrace.toString().contains(
+            "type_vm_test.dart:336:27"));
       }
     }
     {
@@ -447,17 +354,12 @@ class TypeTest {
         List<String> as = a;
       } on TypeError catch (error) {
         result++;
-        Expect.equals("List<String>", error.dstType);
-        Expect.equals("List<int>", error.srcType);
-        Expect.equals("as", error.dstName);
-        int pos = error.url.lastIndexOf("/", error.url.length);
-        if (pos == -1) {
-          pos = error.url.lastIndexOf("\\", error.url.length);
-        }
-        String subs = error.url.substring(pos + 1, error.url.length);
-        Expect.equals("type_vm_test.dart", subs);
-        Expect.equals(447, error.line);
-        Expect.equals(27, error.column);
+        var msg = error.toString();
+        Expect.isTrue(msg.contains("'List<String>'"));  // dstType
+        Expect.isTrue(msg.contains("'List<int>'"));  // srcType
+        Expect.isTrue(msg.contains("'as'"));  // dstName
+        Expect.isTrue(error.stackTrace.toString().contains(
+            "type_vm_test.dart:354:27"));
       }
     }
     {
@@ -468,34 +370,24 @@ class TypeTest {
         List<int> ai = a;
       } on TypeError catch (error) {
         result++;
-        Expect.equals("List<int>", error.dstType);
-        Expect.equals("List<num>", error.srcType);
-        Expect.equals("ai", error.dstName);
-        int pos = error.url.lastIndexOf("/", error.url.length);
-        if (pos == -1) {
-          pos = error.url.lastIndexOf("\\", error.url.length);
-        }
-        String subs = error.url.substring(pos + 1, error.url.length);
-        Expect.equals("type_vm_test.dart", subs);
-        Expect.equals(468, error.line);
-        Expect.equals(24, error.column);
+        var msg = error.toString();
+        Expect.isTrue(msg.contains("'List<int>'"));  // dstType
+        Expect.isTrue(msg.contains("'List<num>'"));  // srcType
+        Expect.isTrue(msg.contains("'ai'"));  // dstName
+        Expect.isTrue(error.stackTrace.toString().contains(
+            "type_vm_test.dart:370:24"));
       }
       List<num> an = a;
       try {
         List<String> as = a;
       } on TypeError catch (error) {
         result++;
-        Expect.equals("List<String>", error.dstType);
-        Expect.equals("List<num>", error.srcType);
-        Expect.equals("as", error.dstName);
-        int pos = error.url.lastIndexOf("/", error.url.length);
-        if (pos == -1) {
-          pos = error.url.lastIndexOf("\\", error.url.length);
-        }
-        String subs = error.url.substring(pos + 1, error.url.length);
-        Expect.equals("type_vm_test.dart", subs);
-        Expect.equals(485, error.line);
-        Expect.equals(27, error.column);
+        var msg = error.toString();
+        Expect.isTrue(msg.contains("'List<String>'"));  // dstType
+        Expect.isTrue(msg.contains("'List<num>'"));  // srcType
+        Expect.isTrue(msg.contains("'as'"));  // dstName
+        Expect.isTrue(error.stackTrace.toString().contains(
+            "type_vm_test.dart:382:27"));
       }
     }
     {
@@ -506,33 +398,23 @@ class TypeTest {
         List<int> ai = a;
       } on TypeError catch (error) {
         result++;
-        Expect.equals("List<int>", error.dstType);
-        Expect.equals("List<String>", error.srcType);
-        Expect.equals("ai", error.dstName);
-        int pos = error.url.lastIndexOf("/", error.url.length);
-        if (pos == -1) {
-          pos = error.url.lastIndexOf("\\", error.url.length);
-        }
-        String subs = error.url.substring(pos + 1, error.url.length);
-        Expect.equals("type_vm_test.dart", subs);
-        Expect.equals(506, error.line);
-        Expect.equals(24, error.column);
+        var msg = error.toString();
+        Expect.isTrue(msg.contains("'List<int>'"));  // dstType
+        Expect.isTrue(msg.contains("'List<String>'"));  // srcType
+        Expect.isTrue(msg.contains("'ai'"));  // dstName
+        Expect.isTrue(error.stackTrace.toString().contains(
+            "type_vm_test.dart:398:24"));
       }
       try {
         List<num> an = a;
       } on TypeError catch (error) {
         result++;
-        Expect.equals("List<num>", error.dstType);
-        Expect.equals("List<String>", error.srcType);
-        Expect.equals("an", error.dstName);
-        int pos = error.url.lastIndexOf("/", error.url.length);
-        if (pos == -1) {
-          pos = error.url.lastIndexOf("\\", error.url.length);
-        }
-        String subs = error.url.substring(pos + 1, error.url.length);
-        Expect.equals("type_vm_test.dart", subs);
-        Expect.equals(522, error.line);
-        Expect.equals(24, error.column);
+        var msg = error.toString();
+        Expect.isTrue(msg.contains("'List<num>'"));  // dstType
+        Expect.isTrue(msg.contains("'List<String>'"));  // srcType
+        Expect.isTrue(msg.contains("'an'"));  // dstName
+        Expect.isTrue(error.stackTrace.toString().contains(
+            "type_vm_test.dart:409:24"));
       }
       List<String> as = a;
     }
@@ -553,14 +435,6 @@ class TypeTest {
     Expect.equals(8, testListAssigment());
   }
 }
-
-
-class C {
-  factory C() {
-    return 1;  // Implicit result type is 'C', not int.
-  }
-}
-
 
 main() {
   TypeTest.testMain();

@@ -25,15 +25,23 @@ class NamedParametersTypeTest {
       acceptFunNumOptBool(funNum);  // No static type warning.
     } on TypeError catch (error) {
       result += 1;
-      Expect.stringEquals("(num, [bool]) => void", error.dstType);
-      Expect.stringEquals("(num) => void", error.srcType);
+      var msg = error.toString();
+      Expect.isTrue(msg.contains("'(num, [bool]) => void'"));  // dstType
+      Expect.isTrue(msg.contains("'(num) => void'"));  // srcType
+      Expect.isTrue(msg.contains("'funNumOptBool'"));  // dstName
+      Expect.isTrue(error.stackTrace.toString().contains(
+          "positional_parameters_type_test.dart:14:35"));
     }
     try {
       acceptFunNumOptBool(funNumBool);  /// static type warning
     } on TypeError catch (error) {
       result += 10;
-      Expect.stringEquals("(num, [bool]) => void", error.dstType);
-      Expect.stringEquals("(num, bool) => void", error.srcType);
+      var msg = error.toString();
+      Expect.isTrue(msg.contains("'(num, [bool]) => void'"));  // dstType
+      Expect.isTrue(msg.contains("'(num, bool) => void'"));  // srcType
+      Expect.isTrue(msg.contains("'funNumOptBool'"));  // dstName
+      Expect.isTrue(error.stackTrace.toString().contains(
+          "positional_parameters_type_test.dart:14:35"));
     }
     try {
       acceptFunNumOptBool(funNumOptBoolX);  // No static type warning.

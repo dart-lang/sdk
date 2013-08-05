@@ -448,9 +448,19 @@ Language/13_Libraries_and_Scripts/1_Imports_A03_t66: Fail # co19 issue 463, boun
 Language/13_Libraries_and_Scripts/1_Imports_A03_t31: Fail # co19 issue 463
 Language/14_Types/8_Parameterized_Types_A02_t01: Fail # co19 issue 463
 
-LibTest/core/AssertionError/line_A01_t02: Fail # co19 issue 479
 LibTest/core/Set/intersection_A03_t01: Fail # co19 issue 480
+
+LibTest/core/AssertionError/column_A01_t02: Fail # co19 issue 479
+LibTest/core/AssertionError/failedAssertion_A01_t01: Fail # co19 issue 479
+LibTest/core/AssertionError/line_A01_t02: Fail # co19 issue 479
+LibTest/core/AssertionError/url_A01_t01: Fail # co19 issue 479
+LibTest/core/TypeError/column_A01_t01: Fail # co19 issue 479
+LibTest/core/TypeError/dstName_A01_t01: Fail # co19 issue 479
+LibTest/core/TypeError/dstType_A01_t01: Fail # co19 issue 479
+LibTest/core/TypeError/failedAssertion_A01_t01: Fail # co19 issue 479
 LibTest/core/TypeError/line_A01_t01: Fail # co19 issue 479
+LibTest/core/TypeError/srcType_A01_t01: Fail # co19 issue 479
+LibTest/core/TypeError/url_A01_t01: Fail # co19 issue 479
 
 LibTest/core/Strings/concatAll_A04_t01: Fail, OK # checks for ArgumentError. TypeError is ok too. co19 issue 366
 LibTest/core/Strings/join_A04_t01: Fail, OK # checks for ArgumentError. TypeError is ok too. co19 issue 366
@@ -474,9 +484,12 @@ Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t03: Pass # 
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t04: Pass # co19 issues 405 and 463
 Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t06: Pass # co19 issues 405 and 463
 Language/11_Expressions/17_Getter_Invocation_A02_t02: Pass # co19 issues 405 and 463
-Language/11_Expressions/32_Type_Cast_A05_t01: Fail # co19 issue 463 and issue 5280
-Language/11_Expressions/32_Type_Cast_A05_t02: Pass # co19 issue 463 and issue 5280
-Language/11_Expressions/32_Type_Cast_A05_t04: Pass # co19 issue 463 and issue 5280
+
+Language/11_Expressions/32_Type_Cast_A05_t01: Fail # co19 issue 463
+Language/11_Expressions/32_Type_Cast_A05_t02: Fail # co19 issue 463
+Language/11_Expressions/32_Type_Cast_A05_t03: Fail # co19 issue 463
+Language/11_Expressions/32_Type_Cast_A05_t04: Fail # co19 issue 463
+Language/11_Expressions/32_Type_Cast_A05_t05: Fail # co19 issue 463
 
 Language/12_Statements/09_Switch_A05_t01: Fail # co19 issue 442
 
