@@ -726,7 +726,13 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
     }
   }
 
-  bool didFail(TestCase testCase) {
+  bool get canRunDependendCommands {
+    // We cannot rely on the exit code of content_shell as a method to determine
+    // if we were successful or not.
+    return super.canRunDependendCommands && !didFail(null);
+  }
+
+  bool didFail(TestCase _) {
     if (_failedBecauseOfMissingXDisplay) {
       return true;
     }
