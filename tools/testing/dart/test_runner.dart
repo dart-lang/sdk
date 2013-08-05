@@ -1606,6 +1606,9 @@ class CommandQueue {
             Timer.run(() => _tryRunNextCommand());
           }
     });
+    eventCondition((event) => event is dgraph.GraphSealedEvent).listen((_) {
+      _checkDone();
+    });
   }
 
   Stream<CommandOutput> get completedCommands => _commandOutputStream.stream;
