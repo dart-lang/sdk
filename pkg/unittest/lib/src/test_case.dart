@@ -68,7 +68,14 @@ class TestCase {
   bool get isComplete => !enabled || result != null;
 
   Function _errorHandler(String stage) => (e) {
-    var stack = getAttachedStackTrace(e);
+    var stack;
+    // TODO(kevmoo): Ideally, getAttachedStackTrace should handle Error as well?
+    // https://code.google.com/p/dart/issues/detail?id=12240
+    if(e is Error) {
+      stack = e.stackTrace;
+    } else {
+      stack = getAttachedStackTrace(e);
+    }
     if (result == null || result == PASS) {
       if (e is TestFailure) {
         fail("$e", stack);
