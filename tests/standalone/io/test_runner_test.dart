@@ -8,6 +8,7 @@ import "dart:async";
 import "dart:utf";
 import "../../../tools/testing/dart/test_runner.dart";
 import "../../../tools/testing/dart/test_suite.dart";
+import "../../../tools/testing/dart/test_progress.dart" as progress;
 import "../../../tools/testing/dart/status_file_parser.dart";
 import "../../../tools/testing/dart/test_options.dart";
 import "process_test_util.dart";
@@ -22,13 +23,12 @@ class TestController {
   // Used as TestCase.completedCallback.
   static processCompletedTest(TestCase testCase) {
     numCompletedTests++;
-    CommandOutput output = testCase.lastCommandOutput;
     if (testCase.displayName == "fail-unexpected") {
-      if (!output.unexpectedOutput) {
+      if (!testCase.unexpectedOutput) {
         throw "Expected fail-unexpected";
       }
     } else {
-      if (output.unexpectedOutput) {
+      if (testCase.unexpectedOutput) {
         throw "Unexpected fail";
       }
     }
@@ -71,16 +71,16 @@ class CustomTestSuite extends TestSuite {
   }
 
   TestCase _makeNormalTestCase(name, expectations) {
-    var command = new Command('custom',
-                              Platform.executable,
-                              [Platform.script, name]);
+    var command = CommandBuilder.instance.getCommand(
+        'custom', Platform.executable, [Platform.script, name],
+        'ReleaseIA32');
     return _makeTestCase(name, DEFAULT_TIMEOUT, command, expectations);
   }
 
   _makeCrashTestCase(name, expectations) {
-    var crashCommand = new Command('custom_crash',
-                                   getProcessTestFileName(),
-                                   ["0", "0", "1", "1"]);
+    var crashCommand = CommandBuilder.instance.getCommand(
+        'custom_crash', getProcessTestFileName(), ["0", "0", "1", "1"],
+        'ReleaseIA32');
     // The crash test sometimes times out. Run it with a large timeout
     // to help diagnose the delay.
     // The test loads a new executable, which may sometimes take a long time.
@@ -95,7 +95,6 @@ class CustomTestSuite extends TestSuite {
     return new TestCase(name,
                         [command],
                         configuration,
-                        TestController.processCompletedTest,
                         new Set<String>.from(expectations));
   }
 }
@@ -103,8 +102,15 @@ class CustomTestSuite extends TestSuite {
 void testProcessQueue() {
   var maxProcesses = 2;
   var maxBrowserProcesses = maxProcesses;
-  new ProcessQueue(maxProcesses, maxBrowserProcesses,
-      new DateTime.now(), [new CustomTestSuite()], [], TestController.finished);
+  new ProcessQueue({}, maxProcesses, maxBrowserProcesses,
+      new DateTime.now(), [new CustomTestSuite()],
+      [new EventListener()], TestController.finished);
+}
+
+class EventListener extends progress.EventListener{
+  void done(TestCase test) {
+    TestController.processCompletedTest(test);
+  }
 }
 
 void main() {

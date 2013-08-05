@@ -17,6 +17,8 @@ import "dart:collection" show Queue;
 // CommandOutput.exitCode in subclasses of CommandOutput.
 import "dart:io" as io;
 import "dart:isolate";
+import "dart:math" as math;
+import 'dependency_graph.dart' as dgraph;
 import "browser_controller.dart";
 import "http_server.dart" as http_server;
 import "status_file_parser.dart";
@@ -25,10 +27,8 @@ import "test_suite.dart";
 import "utils.dart";
 import 'record_and_replay.dart';
 
-const int NO_TIMEOUT = 0;
-const int SLOW_TIMEOUT_MULTIPLIER = 4;
-
 const int CRASHING_BROWSER_EXITCODE = -10;
+const int SLOW_TIMEOUT_MULTIPLIER = 4;
 
 typedef void TestCaseEvent(TestCase testCase);
 typedef void ExitCodeEvent(int exitCode);
@@ -41,68 +41,10 @@ const List<String> EXCLUDED_ENVIRONMENT_VARIABLES =
            'HTTP_PROXY', 'HTTPS_PROXY', 'NO_PROXY'];
 
 
-/**
- * [areByteArraysEqual] compares a range of bytes from [buffer1] with a
- * range of bytes from [buffer2].
- *
- * Returns [true] if the [count] bytes in [buffer1] (starting at
- * [offset1]) match the [count] bytes in [buffer2] (starting at
- * [offset2]).
- * Otherwise [false] is returned.
- */
-bool areByteArraysEqual(List<int> buffer1, int offset1,
-                        List<int> buffer2, int offset2,
-                        int count) {
-  if ((offset1 + count) > buffer1.length ||
-      (offset2 + count) > buffer2.length) {
-    return false;
-  }
-
-  for (var i = 0; i < count; i++) {
-    if (buffer1[offset1 + i] != buffer2[offset2 + i]) {
-      return false;
-    }
-  }
-  return true;
-}
-
-/**
- * [findBytes] searches for [pattern] in [data] beginning at [startPos].
- *
- * Returns [true] if [pattern] was found in [data].
- * Otherwise [false] is returned.
- */
-int findBytes(List<int> data, List<int> pattern, [int startPos=0]) {
-  // TODO(kustermann): Use one of the fast string-matching algorithms!
-  for (int i=startPos; i < (data.length-pattern.length); i++) {
-    bool found = true;
-    for (int j=0; j<pattern.length; j++) {
-      if (data[i+j] != pattern[j]) {
-        found = false;
-      }
-    }
-    if (found) {
-      return i;
-    }
-  }
-  return -1;
-}
-
-
 /** A command executed as a step in a test case. */
 class Command {
-  static int nextHashCode = 0;
-  final int hashCode = nextHashCode++;
-  operator ==(other) => super == (other);
-
   /** Path to the executable of this command. */
   String executable;
-
-  /** Command line arguments to the executable. */
-  List<String> arguments;
-
-  /** Environment for the command */
-  Map<String,String> environment;
 
   /** The actual command line that will be executed. */
   String commandLine;
@@ -110,8 +52,22 @@ class Command {
   /** A descriptive name for this command. */
   String displayName;
 
-  Command(this.displayName, this.executable,
-          this.arguments, [this.environment = null]) {
+  /** Command line arguments to the executable. */
+  List<String> arguments;
+
+  /** Environment for the command */
+  Map<String, String> environmentOverrides;
+
+  /** Number of times this command can be retried */
+  int get numRetries => 0;
+
+  // We compute the Command.hashCode lazily and cache it here, since it might
+  // be expensive to compute (and hashCode is called often).
+  int _cachedHashCode;
+
+  Command._(this.displayName, this.executable,
+            this.arguments, String configurationDir,
+            [this.environmentOverrides = null]) {
     if (io.Platform.operatingSystem == 'windows') {
       // Windows can't handle the first command if it is a .bat file or the like
       // with the slashes going the other direction.
@@ -122,6 +78,76 @@ class Command {
     quotedArguments.add(escapeCommandLineArgument(executable));
     quotedArguments.addAll(arguments.map(escapeCommandLineArgument));
     commandLine = quotedArguments.join(' ');
+
+    if (configurationDir != null) {
+      if (environmentOverrides == null) {
+        environmentOverrides = new Map<String, String>();
+      }
+      environmentOverrides['DART_CONFIGURATION'] = configurationDir;
+    }
+  }
+
+  int get hashCode {
+    if (_cachedHashCode == null) {
+      var builder = new HashCodeBuilder();
+      _buildHashCode(builder);
+      _cachedHashCode = builder.value;
+    }
+    return _cachedHashCode;
+  }
+
+  operator ==(other) {
+    if (other is Command) {
+      return identical(this, other) || _equal(other as Command);
+    }
+    return false;
+  }
+
+  void _buildHashCode(HashCodeBuilder builder) {
+    builder.add(executable);
+    builder.add(commandLine);
+    builder.add(displayName);
+    for (var object in arguments) builder.add(object);
+    if (environmentOverrides != null) {
+      for (var key in environmentOverrides.keys) {
+        builder.add(key);
+        builder.add(environmentOverrides[key]);
+      }
+    }
+  }
+
+  bool _equal(Command other) {
+    if (hashCode != other.hashCode ||
+        executable != other.executable ||
+        commandLine != other.commandLine ||
+        displayName != other.displayName ||
+        arguments.length != other.arguments.length) {
+      return false;
+    }
+
+    if ((environmentOverrides != other.environmentOverrides) &&
+        (environmentOverrides == null || other.environmentOverrides == null)) {
+      return false;
+    }
+
+    if (environmentOverrides != null &&
+        environmentOverrides.length != other.environmentOverrides.length) {
+      return false;
+    }
+
+    for (var i = 0; i < arguments.length; i++) {
+      if (arguments[i] != other.arguments[i]) return false;
+    }
+
+    if (environmentOverrides != null) {
+      for (var key in environmentOverrides.keys) {
+        if (!other.environmentOverrides.containsKey(key) ||
+            environmentOverrides[key] != other.environmentOverrides[key]) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   String toString() => commandLine;
@@ -136,13 +162,18 @@ class CompilationCommand extends Command {
   bool _neverSkipCompilation;
   List<Uri> _bootstrapDependencies;
 
-  CompilationCommand(String displayName,
-                     this._outputFile,
-                     this._neverSkipCompilation,
-                     this._bootstrapDependencies,
-                     String executable,
-                     List<String> arguments)
-      : super(displayName, executable, arguments);
+  CompilationCommand._(String displayName,
+                       this._outputFile,
+                       this._neverSkipCompilation,
+                       List<String> bootstrapDependencies,
+                       String executable,
+                       List<String> arguments,
+                       String configurationDir)
+      : super._(displayName, executable, arguments, configurationDir) {
+    // We sort here, so we can do a fast hashCode/operator==
+    _bootstrapDependencies = new List.from(bootstrapDependencies);
+    _bootstrapDependencies.sort();
+  }
 
   Future<bool> get outputIsUpToDate {
     if (_neverSkipCompilation) return new Future.value(false);
@@ -184,6 +215,29 @@ class CompilationCommand extends Command {
       return false;
     });
   }
+
+  void _buildHashCode(HashCodeBuilder builder) {
+    super._buildHashCode(builder);
+    builder.add(_outputFile);
+    builder.add(_neverSkipCompilation);
+    for (var uri in _bootstrapDependencies) builder.add(uri);
+  }
+
+  bool _equal(Command other) {
+    if (other is CompilationCommand &&
+        super._equal(other) &&
+        _outputFile == other._outputFile &&
+        _neverSkipCompilation == other._neverSkipCompilation &&
+        _bootstrapDependencies.length == other._bootstrapDependencies.length) {
+      for (var i = 0; i < _bootstrapDependencies.length; i++) {
+        if (_bootstrapDependencies[i] != other._bootstrapDependencies[i]) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
 }
 
 class ContentShellCommand extends Command {
@@ -195,25 +249,25 @@ class ContentShellCommand extends Command {
    */
   io.Path expectedOutputPath;
 
-  ContentShellCommand(String executable,
-                      String htmlFile,
-                      List<String> options,
-                      List<String> dartFlags,
-                      io.Path this.expectedOutputPath)
-      : super("content_shell",
-              executable,
-              _getArguments(options, htmlFile),
-              _getEnvironment(dartFlags));
+  ContentShellCommand._(String executable,
+                        String htmlFile,
+                        List<String> options,
+                        List<String> dartFlags,
+                        io.Path this.expectedOutputPath,
+                        String configurationDir)
+      : super._("content_shell",
+               executable,
+               _getArguments(options, htmlFile),
+               configurationDir,
+               _getEnvironment(dartFlags));
 
   static Map _getEnvironment(List<String> dartFlags) {
     var needDartFlags = dartFlags != null && dartFlags.length > 0;
 
     var env = null;
     if (needDartFlags) {
-      env = new Map.from(io.Platform.environment);
-      if (needDartFlags) {
-        env['DART_FLAGS'] = dartFlags.join(" ");
-      }
+      env = new Map<String, String>();
+      env['DART_FLAGS'] = dartFlags.join(" ");
     }
 
     return env;
@@ -228,8 +282,186 @@ class ContentShellCommand extends Command {
   io.Path get expectedOutputFile => expectedOutputPath;
   bool get isPixelTest => (expectedOutputFile != null &&
                            expectedOutputFile.filename.endsWith(".png"));
+
+  void _buildHashCode(HashCodeBuilder builder) {
+    super._buildHashCode(builder);
+    builder.add(expectedOutputPath.toString());
+  }
+
+  bool _equal(Command other) {
+    return
+        other is ContentShellCommand &&
+        super._equal(other) &&
+        expectedOutputPath.toString() == other.expectedOutputPath.toString();
+  }
+
+  // FIXME(kustermann): Remove this once we're stable
+  int get numRetries => 2;
 }
 
+class BrowserTestCommand extends Command {
+  final String browser;
+  final String url;
+
+  BrowserTestCommand._(String _browser,
+                       this.url,
+                       String executable,
+                       List<String> arguments,
+                       String configurationDir)
+      : super._(_browser, executable, arguments, configurationDir),
+        browser = _browser;
+
+  void _buildHashCode(HashCodeBuilder builder) {
+    super._buildHashCode(builder);
+    builder.add(browser);
+    builder.add(url);
+  }
+
+  bool _equal(Command other) {
+    return
+        other is BrowserTestCommand &&
+        super._equal(other) &&
+        browser == other.browser &&
+        url == other.url;
+  }
+
+  // FIXME(kustermann): Remove this once we're stable
+  int get numRetries => 2;
+}
+
+class SeleniumTestCommand extends Command {
+  final String browser;
+  final String url;
+
+  SeleniumTestCommand._(String _browser,
+                        this.url,
+                        String executable,
+                        List<String> arguments,
+                        String configurationDir)
+      : super._(_browser, executable, arguments, configurationDir),
+        browser = _browser;
+
+  void _buildHashCode(HashCodeBuilder builder) {
+    super._buildHashCode(builder);
+    builder.add(browser);
+    builder.add(url);
+  }
+
+  bool _equal(Command other) {
+    return
+        other is SeleniumTestCommand &&
+        super._equal(other) &&
+        browser == other.browser &&
+        url == other.url;
+  }
+
+  // FIXME(kustermann): Remove this once we're stable
+  int get numRetries => 2;
+}
+
+class AnalysisCommand extends Command {
+  final String flavor;
+
+  AnalysisCommand._(this.flavor,
+                    String displayName,
+                    String executable,
+                    List<String> arguments,
+                    String configurationDir)
+      : super._(displayName, executable, arguments, configurationDir);
+
+  void _buildHashCode(HashCodeBuilder builder) {
+    super._buildHashCode(builder);
+    builder.add(flavor);
+  }
+
+  bool _equal(Command other) {
+    return
+        other is AnalysisCommand &&
+        super._equal(other) &&
+        flavor == other.flavor;
+  }
+}
+
+class CommandBuilder {
+  static final instance = new CommandBuilder._();
+
+  final _cachedCommands = new Map<Command, Command>();
+
+  CommandBuilder._();
+
+  ContentShellCommand getContentShellCommand(String executable,
+                                             String htmlFile,
+                                             List<String> options,
+                                             List<String> dartFlags,
+                                             io.Path expectedOutputPath,
+                                             String configurationDir) {
+    ContentShellCommand command = new ContentShellCommand._(
+        executable, htmlFile, options, dartFlags, expectedOutputPath,
+        configurationDir);
+    return _getUniqueCommand(command);
+  }
+
+  BrowserTestCommand getBrowserTestCommand(String browser,
+                                           String url,
+                                           String executable,
+                                           List<String> arguments,
+                                           String configurationDir) {
+    var command = new BrowserTestCommand._(
+        browser, url, executable, arguments, configurationDir);
+    return _getUniqueCommand(command);
+  }
+
+  SeleniumTestCommand getSeleniumTestCommand(String browser,
+                                             String url,
+                                             String executable,
+                                             List<String> arguments,
+                                             String configurationDir) {
+    var command = new SeleniumTestCommand._(
+        browser, url, executable, arguments, configurationDir);
+    return _getUniqueCommand(command);
+  }
+
+  CompilationCommand getCompilationCommand(String displayName,
+                                           outputFile,
+                                           neverSkipCompilation,
+                                           List<String> bootstrapDependencies,
+                                           String executable,
+                                           List<String> arguments,
+                                           String configurationDir) {
+    var command =
+        new CompilationCommand._(displayName, outputFile, neverSkipCompilation,
+                                 bootstrapDependencies, executable, arguments,
+                                 configurationDir);
+    return _getUniqueCommand(command);
+  }
+
+  AnalysisCommand getAnalysisCommand(
+      String displayName, executable, arguments, String configurationDir,
+      {String flavor: 'dartanalyzer'}) {
+    var command = new AnalysisCommand._(
+        flavor, displayName, executable, arguments, configurationDir);
+    return _getUniqueCommand(command);
+  }
+
+  Command getCommand(String displayName, executable, arguments,
+                     String configurationDir, [environment = null]) {
+    var command = new Command._(displayName, executable, arguments,
+                                configurationDir, environment);
+    return _getUniqueCommand(command);
+  }
+
+  Command _getUniqueCommand(Command command) {
+    // All Command classes have hashCode/operator==, so we check if this command
+    // has already been build, if so we return the cached one, otherwise we
+    // store the one given as [command] argument.
+    var cachedCommand = _cachedCommands[command];
+    if (cachedCommand != null) {
+      return cachedCommand;
+    }
+    _cachedCommands[command] = command;
+    return command;
+  }
+}
 
 /**
  * TestCase contains all the information needed to run a test and evaluate
@@ -248,7 +480,7 @@ class ContentShellCommand extends Command {
  * The TestCase has a callback function, [completedHandler], that is run when
  * the test is completed.
  */
-class TestCase {
+class TestCase extends UniqueObject {
   /**
    * A list of commands to execute. Most test cases have a single command.
    * Dart2js tests have two commands, one to compile the source and another
@@ -262,68 +494,24 @@ class TestCase {
   String displayName;
   bool isNegative;
   Set<String> expectedOutcomes;
-  TestCaseEvent completedHandler;
   TestInformation info;
 
   TestCase(this.displayName,
            this.commands,
            this.configuration,
-           this.completedHandler,
            this.expectedOutcomes,
            {this.isNegative: false,
             this.info: null}) {
     if (!isNegative) {
       this.isNegative = displayName.contains("negative_test");
     }
-
-    // Special command handling. If a special command is specified
-    // we have to completely rewrite the command that we are using.
-    // We generate a new command-line that is the special command where we
-    // replace '@' with the original command executable, and generate
-    // a command formed like the following
-    // Let PREFIX be what is before the @.
-    // Let SUFFIX be what is after the @.
-    // Let EXECUTABLE be the existing executable of the command.
-    // Let ARGUMENTS be the existing arguments to the existing executable.
-    // The new command will be:
-    // PREFIX EXECUTABLE SUFFIX ARGUMENTS
-    var specialCommand = configuration['special-command'];
-    if (!specialCommand.isEmpty) {
-      if (!specialCommand.contains('@')) {
-        throw new FormatException("special-command must contain a '@' char");
-      }
-      var specialCommandSplit = specialCommand.split('@');
-      var prefix = specialCommandSplit[0].trim();
-      var suffix = specialCommandSplit[1].trim();
-      List<Command> newCommands = [];
-      for (Command c in commands) {
-        // If we don't have a new prefix we will use the existing executable.
-        var newExecutablePath = c.executable;;
-        var newArguments = [];
-
-        if (prefix.length > 0) {
-          var prefixSplit = prefix.split(' ');
-          newExecutablePath = prefixSplit[0];
-          for (int i = 1; i < prefixSplit.length; i++) {
-            var current = prefixSplit[i];
-            if (!current.isEmpty) newArguments.add(current);
-          }
-          newArguments.add(c.executable);
-        }
-
-        // Add any suffixes to the arguments of the original executable.
-        var suffixSplit = suffix.split(' ');
-        suffixSplit.forEach((e) {
-          if (!e.isEmpty) newArguments.add(e);
-        });
-
-        newArguments.addAll(c.arguments);
-        final newCommand = new Command(newExecutablePath, newArguments);
-        newCommands.add(newCommand);
-      }
-      commands = newCommands;
-    }
   }
+
+  bool get unexpectedOutput {
+    return !expectedOutcomes.contains(lastCommandOutput.result(this));
+  }
+
+  String get result => lastCommandOutput.result(this);
 
   CommandOutput get lastCommandOutput {
     if (commandOutputs.length == 0) {
@@ -351,14 +539,9 @@ class TestCase {
     return "$compiler-$runtime$checked ${mode}_$arch";
   }
 
-  List<String> get batchRunnerArguments => ['-batch'];
   List<String> get batchTestArguments => commands.last.arguments;
 
   bool get usesWebDriver => TestUtils.usesWebDriver(configuration['runtime']);
-
-  bool get usesBrowserController => configuration['use_browser_controller'];
-
-  void completed() { completedHandler(this); }
 
   bool get isFlaky {
       if (expectedOutcomes.contains(SKIP)) {
@@ -370,6 +553,11 @@ class TestCase {
            ..remove(SLOW);
       return flags.contains(PASS) && flags.length > 1;
   }
+
+  bool get isFinished {
+    return !lastCommandOutput.successfull ||
+           commands.length == commandOutputs.length;
+  }
 }
 
 
@@ -379,60 +567,16 @@ class TestCase {
  * If the compilation command fails, then the rest of the test is not run.
  */
 class BrowserTestCase extends TestCase {
-  /**
-   * Indicates the number of potential retries remaining, to compensate for
-   * flaky browser tests.
-   */
-  int numRetries;
 
-  /**
-   * True if this test is dependent on another test completing before it can
-   * star (for example, we might need to depend on some other test completing
-   * first).
-   */
-  bool waitingForOtherTest;
-
-  /**
-   * The set of test cases that wish to be notified when this test has
-   * completed.
-   */
-  List<BrowserTestCase> observers;
-
-  BrowserTestCase(displayName, commands, configuration, completedHandler,
-                  expectedOutcomes, info, isNegative, this._testingUrl,
-                  [this.waitingForOtherTest = false])
-    : super(displayName, commands, configuration, completedHandler,
-        expectedOutcomes, isNegative: isNegative, info: info) {
-    numRetries = 2; // Allow two retries to compensate for flaky browser tests.
-    observers = [];
-  }
-
-  List<String> get _lastArguments => commands.last.arguments;
-
-  List<String> get batchRunnerArguments => [_lastArguments[0], '--batch'];
-
-  List<String> get batchTestArguments => _lastArguments.sublist(1);
+  BrowserTestCase(displayName, commands, configuration,
+                  expectedOutcomes, info, isNegative, this._testingUrl)
+    : super(displayName, commands, configuration,
+            expectedOutcomes, isNegative: isNegative, info: info);
 
   String _testingUrl;
 
-  /** Add a test case to listen for when this current test has completed. */
-  void addObserver(BrowserTestCase testCase) {
-    observers.add(testCase);
-  }
-
-  /**
-   * Notify all of the test cases that are dependent on this one that they can
-   * proceed.
-   */
-  void notifyObservers() {
-    for (BrowserTestCase testCase in observers) {
-      testCase.waitingForOtherTest = false;
-    }
-  }
-
   String get testingUrl => _testingUrl;
 }
-
 
 /**
  * CommandOutput records the output of a completed command: the process's exit
@@ -441,43 +585,21 @@ class BrowserTestCase extends TestCase {
  * [TestCase] this is the output of.
  */
 abstract class CommandOutput {
-  factory CommandOutput.fromCase(TestCase testCase,
-                                 Command command,
-                                 int exitCode,
-                                 bool incomplete,
-                                 bool timedOut,
-                                 List<int> stdout,
-                                 List<int> stderr,
-                                 Duration time,
-                                 bool compilationSkipped) {
-    return new CommandOutputImpl.fromCase(testCase,
-                                          command,
-                                          exitCode,
-                                          incomplete,
-                                          timedOut,
-                                          stdout,
-                                          stderr,
-                                          time,
-                                          compilationSkipped);
-  }
-
   Command get command;
 
-  TestCase testCase;
-
-  bool get incomplete;
-
-  String get result;
-
-  bool get unexpectedOutput;
+  String result(TestCase testCase);
 
   bool get hasCrashed;
 
   bool get hasTimedOut;
 
-  bool get didFail;
+  bool didFail(testcase);
 
-  bool requestRetry;
+  bool hasFailed(TestCase testCase);
+
+  bool get canRunDependendCommands;
+
+  bool get successfull; // otherwise we might to retry running
 
   Duration get time;
 
@@ -492,16 +614,11 @@ abstract class CommandOutput {
   bool get compilationSkipped;
 }
 
-class CommandOutputImpl implements CommandOutput {
+class CommandOutputImpl extends UniqueObject implements CommandOutput {
   Command command;
-  TestCase testCase;
   int exitCode;
 
-  /// Records if all commands were run, true if they weren't.
-  final bool incomplete;
-
   bool timedOut;
-  bool failed = false;
   List<int> stdout;
   List<int> stderr;
   Duration time;
@@ -514,80 +631,19 @@ class CommandOutputImpl implements CommandOutput {
    */
   bool alreadyPrintedWarning = false;
 
-  /**
-   * Set to true if we encounter a condition in the output that indicates we
-   * need to rerun this test.
-   */
-  bool requestRetry = false;
-
-  // Don't call this constructor, call CommandOutput.fromCase() to
-  // get a new TestOutput instance.
-  CommandOutputImpl(TestCase this.testCase,
-                    Command this.command,
+  // TODO(kustermann): Remove testCase from this class.
+  CommandOutputImpl(Command this.command,
                     int this.exitCode,
-                    bool this.incomplete,
                     bool this.timedOut,
                     List<int> this.stdout,
                     List<int> this.stderr,
                     Duration this.time,
                     bool this.compilationSkipped) {
-    testCase.commandOutputs[command] = this;
     diagnostics = [];
   }
-  factory CommandOutputImpl.fromCase(TestCase testCase,
-                                     Command command,
-                                     int exitCode,
-                                     bool incomplete,
-                                     bool timedOut,
-                                     List<int> stdout,
-                                     List<int> stderr,
-                                     Duration time,
-                                     bool compilationSkipped) {
-    if (testCase.usesBrowserController) {
-      return new HTMLBrowserCommandOutputImpl(testCase,
-                                              command,
-                                              exitCode,
-                                              incomplete,
-                                              timedOut,
-                                              stdout,
-                                              stderr,
-                                              time,
-                                              compilationSkipped);
-    } else if (testCase is BrowserTestCase) {
-      return new BrowserCommandOutputImpl(testCase,
-                                          command,
-                                          exitCode,
-                                          incomplete,
-                                          timedOut,
-                                          stdout,
-                                          stderr,
-                                          time,
-                                          compilationSkipped);
-    } else if (testCase.configuration['analyzer']) {
-      return new AnalysisCommandOutputImpl(testCase,
-                                           command,
-                                           exitCode,
-                                           timedOut,
-                                           stdout,
-                                           stderr,
-                                           time,
-                                           compilationSkipped);
-    }
-    return new CommandOutputImpl(testCase,
-                                 command,
-                                 exitCode,
-                                 incomplete,
-                                 timedOut,
-                                 stdout,
-                                 stderr,
-                                 time,
-                                 compilationSkipped);
-  }
 
-  String get result =>
-      hasCrashed ? CRASH : (hasTimedOut ? TIMEOUT : (hasFailed ? FAIL : PASS));
-
-  bool get unexpectedOutput => !testCase.expectedOutcomes.contains(result);
+  String result(TestCase testCase) => hasCrashed ? CRASH :
+      (hasTimedOut ? TIMEOUT : (hasFailed(testCase) ? FAIL : PASS));
 
   bool get hasCrashed {
     // The Java dartc runner and dart2js exits with code 253 in case
@@ -617,42 +673,60 @@ class CommandOutputImpl implements CommandOutput {
 
   bool get hasTimedOut => timedOut;
 
-  bool get didFail {
+  bool didFail(TestCase testCase) {
     return (exitCode != 0 && !hasCrashed);
   }
 
+  bool get canRunDependendCommands {
+    // FIXME(kustermann): We may need to change this
+    return !hasTimedOut && exitCode == 0;
+  }
+
+  bool get successfull {
+    // FIXME(kustermann): We may need to change this
+    return !hasTimedOut && exitCode == 0;
+  }
+
   // Reverse result of a negative test.
-  bool get hasFailed {
-    // Always fail if a runtime-error is expected and compilation failed.
-    if (testCase.info != null && testCase.info.hasRuntimeError && incomplete) {
-      return true;
+  bool hasFailed(TestCase testCase) {
+    // FIXME(kustermann): this is a hack, remove it
+    bool isCompilationCommand = testCase.commands.first == command
+        && testCase.commands.length > 1;
+    if (isCompilationCommand &&
+        testCase.info != null && testCase.info.hasRuntimeError) {
+      return exitCode != 0;
     }
-    return testCase.isNegative ? !didFail : didFail;
+    return testCase.isNegative ? !didFail(testCase) : didFail(testCase);
   }
 }
 
 class BrowserCommandOutputImpl extends CommandOutputImpl {
+  bool _failedBecauseOfMissingXDisplay;
+
   BrowserCommandOutputImpl(
-      testCase,
       command,
       exitCode,
-      incomplete,
       timedOut,
       stdout,
       stderr,
       time,
       compilationSkipped) :
-    super(testCase,
-          command,
+    super(command,
           exitCode,
-          incomplete,
           timedOut,
           stdout,
           stderr,
           time,
-          compilationSkipped);
+          compilationSkipped) {
+    _failedBecauseOfMissingXDisplay = _didFailBecauseOfMissingXDisplay();
+    if (_failedBecauseOfMissingXDisplay) {
+      DebugLogger.warning("Warning: Test failure because of missing XDisplay");
+      // If we get the X server error, or DRT crashes with a core dump, retry
+      // the test.
+    }
+  }
 
-  bool get didFail {
+  bool didFail(TestCase testCase) {
     if (_failedBecauseOfMissingXDisplay) {
       return true;
     }
@@ -664,7 +738,7 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
     return _browserTestFailure;
   }
 
-  bool get _failedBecauseOfMissingXDisplay {
+  bool _didFailBecauseOfMissingXDisplay() {
     // Browser case:
     // If the browser test failed, it may have been because content shell
     // and the virtual framebuffer X server didn't hook up, or it crashed with
@@ -676,12 +750,6 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
       // This seems to happen quite frequently, we need to figure out why.
       if (line.contains('Gtk-WARNING **: cannot open display') ||
           line.contains('Failed to run command. return code=1')) {
-        // If we get the X server error, or DRT crashes with a core dump, retry
-        // the test.
-        if ((testCase as BrowserTestCase).numRetries > 0) {
-          requestRetry = true;
-        }
-        print("Warning: Test failure because of missing XDisplay");
         return true;
       }
     }
@@ -705,7 +773,6 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
      * On a layout tests, the DRT output is directly compared with the
      * content of the expected output.
      */
-    var stdout = testCase.commandOutputs[command].stdout;
     var file = new io.File.fromPath(command.expectedOutputFile);
     if (file.existsSync()) {
       var bytesContentLength = "Content-Length:".codeUnits;
@@ -754,16 +821,9 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
         case 'PASS':
           if (has_content_type) {
             if (exitCode != 0) {
-              print("Warning: All tests passed, but exitCode != 0 "
-                    "(${testCase.displayName})");
+              print("Warning: All tests passed, but exitCode != 0 ($this)");
             }
-            if (testCase.configuration['runtime'] == 'drt') {
-              // TODO(kustermann/ricow): Issue: 7563
-              // We should eventually get rid of this hack.
-              return false;
-            } else {
-              return (exitCode != 0 && !hasCrashed);
-            }
+            return (exitCode != 0 && !hasCrashed);
           }
           break;
       }
@@ -774,19 +834,15 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
 
 class HTMLBrowserCommandOutputImpl extends BrowserCommandOutputImpl {
  HTMLBrowserCommandOutputImpl(
-      testCase,
       command,
       exitCode,
-      incomplete,
       timedOut,
       stdout,
       stderr,
       time,
       compilationSkipped) :
-    super(testCase,
-          command,
+    super(command,
           exitCode,
-          incomplete,
           timedOut,
           stdout,
           stderr,
@@ -815,33 +871,31 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
   bool alreadyComputed = false;
   bool failResult;
 
-  AnalysisCommandOutputImpl(testCase,
-                            command,
+  // TODO(kustermann): Remove testCase from this class
+  AnalysisCommandOutputImpl(command,
                             exitCode,
                             timedOut,
                             stdout,
                             stderr,
                             time,
                             compilationSkipped) :
-    super(testCase,
-          command,
+    super(command,
           exitCode,
-          false,
           timedOut,
           stdout,
           stderr,
           time,
           compilationSkipped);
 
-  bool get didFail {
+  bool didFail(TestCase testCase) {
     if (!alreadyComputed) {
-      failResult = _didFail();
+      failResult = _didFail(testCase);
       alreadyComputed = true;
     }
     return failResult;
   }
 
-  bool _didFail() {
+  bool _didFail(TestCase testCase) {
     if (hasCrashed) return false;
 
     List<String> errors = [];
@@ -859,14 +913,16 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
       }
       // OK to Skip error output that doesn't match the machine format
     }
+    // FIXME(kustermann): This is wrong, we should give the expectations
+    // to Command
     if (testCase.info != null
         && testCase.info.optionsFromFile['isMultitest']) {
-      return _didMultitestFail(errors, staticWarnings);
+      return _didMultitestFail(testCase, errors, staticWarnings);
     }
-    return _didStandardTestFail(errors, staticWarnings);
+    return _didStandardTestFail(testCase, errors, staticWarnings);
   }
 
-  bool _didMultitestFail(List errors, List staticWarnings) {
+  bool _didMultitestFail(TestCase testCase, List errors, List staticWarnings) {
     Set<String> outcome = testCase.info.multitestOutcome;
     if (outcome == null) throw "outcome must not be null";
     if (outcome.contains('compile-time error') && errors.length > 0) {
@@ -881,7 +937,7 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
     return false;
   }
 
-  bool _didStandardTestFail(List errors, List staticWarnings) {
+  bool _didStandardTestFail(TestCase testCase, List errors, List staticWarnings) {
     bool hasFatalTypeErrors = false;
     int numStaticTypeAnnotations = 0;
     int numCompileTimeAnnotations = 0;
@@ -978,6 +1034,36 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
 }
 
 
+CommandOutput createCommandOutput(Command command,
+                                  int exitCode,
+                                  bool timedOut,
+                                  List<int> stdout,
+                                  List<int> stderr,
+                                  Duration time,
+                                  bool compilationSkipped) {
+  if (command is ContentShellCommand) {
+    return new BrowserCommandOutputImpl(
+        command, exitCode, timedOut, stdout, stderr,
+        time, compilationSkipped);
+  } else if (command is BrowserTestCommand) {
+    return new HTMLBrowserCommandOutputImpl(
+        command, exitCode, timedOut, stdout, stderr,
+        time, compilationSkipped);
+  } else if (command is SeleniumTestCommand) {
+    return new BrowserCommandOutputImpl(
+        command, exitCode, timedOut, stdout, stderr,
+        time, compilationSkipped);
+  } else if (command is AnalysisCommand) {
+    return new AnalysisCommandOutputImpl(
+        command, exitCode, timedOut, stdout, stderr,
+        time, compilationSkipped);
+  }
+  return new CommandOutputImpl(
+      command, exitCode, timedOut, stdout, stderr,
+      time, compilationSkipped);
+}
+
+
 /** Modifies the --timeout=XX parameter passed to run_selenium.py */
 List<String> _modifySeleniumTimeout(List<String> arguments, int timeout) {
   return arguments.map((argument) {
@@ -1001,8 +1087,8 @@ List<String> _modifySeleniumTimeout(List<String> arguments, int timeout) {
  * be garbage collected as soon as it is done.
  */
 class RunningProcess {
-  TestCase testCase;
   Command command;
+  int timeout;
   bool timedOut = false;
   DateTime startTime;
   Timer timeoutTimer;
@@ -1011,13 +1097,9 @@ class RunningProcess {
   bool compilationSkipped = false;
   Completer<CommandOutput> completer;
 
-  RunningProcess(TestCase this.testCase, Command this.command);
+  RunningProcess(Command this.command, this.timeout);
 
-  Future<CommandOutput> start() {
-    if (testCase.expectedOutcomes.contains(SKIP)) {
-      throw "testCase.expectedOutcomes must not contain 'SKIP'.";
-    }
-
+  Future<CommandOutput> run() {
     completer = new Completer<CommandOutput>();
     startTime = new DateTime.now();
     _runCommand();
@@ -1032,7 +1114,7 @@ class RunningProcess {
       } else {
         var processEnvironment = _createProcessEnvironment();
         var commandArguments = _modifySeleniumTimeout(command.arguments,
-                                                      testCase.timeout);
+                                                      timeout);
         Future processFuture =
             io.Process.start(command.executable,
                              commandArguments,
@@ -1049,7 +1131,7 @@ class RunningProcess {
           process.exitCode.then(_commandComplete);
           _drainStream(process.stdout, stdout);
           _drainStream(process.stderr, stderr);
-          timeoutTimer = new Timer(new Duration(seconds: testCase.timeout),
+          timeoutTimer = new Timer(new Duration(seconds: timeout),
                                    timeoutHandler);
         }).catchError((e) {
           // TODO(floitsch): should we try to report the stacktrace?
@@ -1072,12 +1154,9 @@ class RunningProcess {
   }
 
   CommandOutput _createCommandOutput(Command command, int exitCode) {
-    var incomplete = command != testCase.commands.last;
-    var commandOutput = new CommandOutput.fromCase(
-        testCase,
+    var commandOutput = createCommandOutput(
         command,
         exitCode,
-        incomplete,
         timedOut,
         stdout,
         stderr,
@@ -1091,12 +1170,13 @@ class RunningProcess {
   }
 
   Map<String, String> _createProcessEnvironment() {
-    var baseEnvironment = command.environment != null ?
-        command.environment : io.Platform.environment;
-    var environment = new Map<String, String>.from(baseEnvironment);
-    environment['DART_CONFIGURATION'] =
-        TestUtils.configurationDir(testCase.configuration);
+    var environment = io.Platform.environment;
 
+    if (command.environmentOverrides != null) {
+      for (var key in command.environmentOverrides.keys) {
+        environment[key] = command.environmentOverrides[key];
+      }
+    }
     for (var excludedEnvironmentVariable in EXCLUDED_ENVIRONMENT_VARIABLES) {
       environment.remove(excludedEnvironmentVariable);
     }
@@ -1106,73 +1186,94 @@ class RunningProcess {
 }
 
 class BatchRunnerProcess {
+  final batchRunnerTypes = {
+      'selenium' : {
+          'run_executable' : 'python',
+          'run_arguments' : ['tools/testing/run_selenium.py', '--batch'],
+          'terminate_command' : ['--terminate'],
+      },
+      'dartanalyzer' : {
+        'run_executable' : 'sdk/bin/dartanalyzer_developer', // $suffix
+        'run_arguments' : ['--batch'],
+        'terminate_command' : null,
+      },
+      'dart2analyzer' : {
+        'run_executable' : 'editor/tools/analyzer_experimental',
+        'run_arguments' : ['--batch'],
+        'terminate_command' : null,
+    },
+  };
+
+  Completer<CommandOutput> _completer;
   Command _command;
-  String _executable;
-  List<String> _batchArguments;
+  List<String> _arguments;
+  String _runnerType;
 
   io.Process _process;
+  Map _processEnvironmentOverrides;
   Completer _stdoutCompleter;
   Completer _stderrCompleter;
   StreamSubscription<String> _stdoutSubscription;
   StreamSubscription<String> _stderrSubscription;
   Function _processExitHandler;
 
-  TestCase _currentTest;
+  bool _currentlyRunning = false;
   List<int> _testStdout;
   List<int> _testStderr;
   String _status;
   DateTime _startTime;
   Timer _timer;
-  bool _isWebDriver;
 
-  BatchRunnerProcess(TestCase testCase) {
-    _command = testCase.commands.last;
-    _executable = testCase.commands.last.executable;
-    _batchArguments = testCase.batchRunnerArguments;
-    _isWebDriver = testCase.usesWebDriver;
-  }
+  BatchRunnerProcess();
 
-  bool get active => _currentTest != null;
+  Future<CommandOutput> runCommand(String runnerType, Command command,
+                                   int timeout, List<String> arguments) {
+    assert(_completer == null);
+    assert(!_currentlyRunning);
 
-  void startTest(TestCase testCase) {
-    if (_currentTest != null) throw "_currentTest must be null.";
-    _currentTest = testCase;
-    _command = testCase.commands.last;
+    _completer = new Completer<CommandOutput>();
+    bool sameRunnerType = _runnerType == runnerType &&
+        _dictEquals(_processEnvironmentOverrides, command.environmentOverrides);
+    _runnerType = runnerType;
+    _currentlyRunning = true;
+    _command = command;
+    _arguments = arguments;
+
+    _processEnvironmentOverrides = command.environmentOverrides;
+
     if (_process == null) {
       // Start process if not yet started.
-      _executable = testCase.commands.last.executable;
       _startProcess(() {
-        doStartTest(testCase);
+        doStartTest(command, timeout);
       });
-    } else if (testCase.commands.last.executable != _executable) {
-      // Restart this runner with the right executable for this test
-      // if needed.
-      _executable = testCase.commands.last.executable;
-      _batchArguments = testCase.batchRunnerArguments;
+    } else if (!sameRunnerType) {
+      // Restart this runner with the right executable for this test if needed.
       _processExitHandler = (_) {
         _startProcess(() {
-          doStartTest(testCase);
+          doStartTest(command, timeout);
         });
       };
       _process.kill();
     } else {
-      doStartTest(testCase);
+      doStartTest(command, timeout);
     }
+    return _completer.future;
   }
 
   Future terminate() {
     if (_process == null) return new Future.value(true);
-    Completer completer = new Completer();
+    Completer terminateCompleter = new Completer();
     Timer killTimer;
     _processExitHandler = (_) {
       if (killTimer != null) killTimer.cancel();
-      completer.complete(true);
+      terminateCompleter.complete(true);
     };
-    if (_isWebDriver) {
+    var shutdownCommand = batchRunnerTypes[_runnerType]['terminate_command'];
+    if (shutdownCommand != null && !shutdownCommand.isEmpty) {
       // Use a graceful shutdown so our Selenium script can close
       // the open browser processes. On Windows, signals do not exist
       // and a kill is a hard kill.
-      _process.stdin.writeln('--terminate');
+      _process.stdin.writeln(shutdownCommand.join(' '));
 
       // In case the run_selenium process didn't close, kill it after 30s
       killTimer = new Timer(new Duration(seconds: 30), _process.kill);
@@ -1180,26 +1281,20 @@ class BatchRunnerProcess {
       _process.kill();
     }
 
-    return completer.future;
+    return terminateCompleter.future;
   }
 
-  void doStartTest(TestCase testCase) {
+  void doStartTest(Command command, int timeout) {
     _startTime = new DateTime.now();
     _testStdout = [];
     _testStderr = [];
     _status = null;
     _stdoutCompleter = new Completer();
     _stderrCompleter = new Completer();
-    _timer = new Timer(new Duration(seconds: testCase.timeout),
+    _timer = new Timer(new Duration(seconds: timeout),
                        _timeoutHandler);
 
-    if (testCase.commands.last.environment != null) {
-      print("Warning: command.environment != null, but we don't support custom "
-            "environments for batch runner tests!");
-    }
-
-    var line = _createArgumentsLine(testCase.batchTestArguments,
-                                    testCase.timeout);
+    var line = _createArgumentsLine(_arguments, timeout);
     _process.stdin.write(line);
     _stdoutSubscription.resume();
     _stderrSubscription.resume();
@@ -1213,30 +1308,29 @@ class BatchRunnerProcess {
   }
 
   void _reportResult() {
-    if (!active) return;
+    if (!_currentlyRunning) return;
     // _status == '>>> TEST {PASS, FAIL, OK, CRASH, FAIL, TIMEOUT}'
 
     var outcome = _status.split(" ")[2];
     var exitCode = 0;
     if (outcome == "CRASH") exitCode = CRASHING_BROWSER_EXITCODE;
     if (outcome == "FAIL" || outcome == "TIMEOUT") exitCode = 1;
-    new CommandOutput.fromCase(_currentTest,
-                               _command,
-                               exitCode,
-                               false,
-                               (outcome == "TIMEOUT"),
-                               _testStdout,
-                               _testStderr,
-                               new DateTime.now().difference(_startTime),
-                               false);
-    var test = _currentTest;
-    _currentTest = null;
-    test.completed();
+    var output = createCommandOutput(_command,
+                        exitCode,
+                        (outcome == "TIMEOUT"),
+                        _testStdout,
+                        _testStderr,
+                        new DateTime.now().difference(_startTime),
+                        false);
+    assert(_completer != null);
+    _completer.complete(output);
+    _completer = null;
+    _currentlyRunning = false;
   }
 
   ExitCodeEvent makeExitHandler(String status) {
     void handler(int exitCode) {
-      if (active) {
+      if (_currentlyRunning) {
         if (_timer != null) _timer.cancel();
         _status = status;
         _stdoutSubscription.cancel();
@@ -1255,7 +1349,17 @@ class BatchRunnerProcess {
   }
 
   _startProcess(callback) {
-    Future processFuture = io.Process.start(_executable, _batchArguments);
+    var executable = batchRunnerTypes[_runnerType]['run_executable'];
+    var arguments = batchRunnerTypes[_runnerType]['run_arguments'];
+    var environment = new Map.from(io.Platform.environment);
+    if (_processEnvironmentOverrides != null) {
+      for (var key in _processEnvironmentOverrides.keys) {
+        environment[key] = _processEnvironmentOverrides[key];
+      }
+    }
+    Future processFuture = io.Process.start(executable,
+                                            arguments,
+                                            environment: environment);
     processFuture.then((io.Process p) {
       _process = p;
 
@@ -1312,7 +1416,7 @@ class BatchRunnerProcess {
     }).catchError((e) {
       // TODO(floitsch): should we try to report the stacktrace?
       print("Process error:");
-      print("  Command: $_executable ${_batchArguments.join(' ')}");
+      print("  Command: $executable ${arguments.join(' ')} ($_arguments)");
       print("  Error: $e");
       // If there is an error starting a batch process, chances are that
       // it will always fail. So rather than re-trying a 1000+ times, we
@@ -1321,342 +1425,401 @@ class BatchRunnerProcess {
       return true;
     });
   }
+
+  bool _dictEquals(Map a, Map b) {
+    if (a == null) return b == null;
+    if (b == null) return false;
+    for (var key in a.keys) {
+      if (a[key] != b[key]) return false;
+    }
+    return true;
+  }
 }
 
+
 /**
- * ProcessQueue is the master control class, responsible for running all
- * the tests in all the TestSuites that have been registered.  It includes
- * a rate-limited queue to run a limited number of tests in parallel,
- * a ProgressIndicator which prints output when tests are started and
- * and completed, and a summary report when all tests are completed,
- * and counters to determine when all of the tests in all of the test suites
- * have completed.
+ * [TestCaseEnqueuer] takes a list of TestSuites, generates TestCases and
+ * builds a dependency graph of all commands in every TestSuite.
  *
- * Because multiple configurations may be run on each test suite, the
- * ProcessQueue contains a cache in which a test suite may record information
- * about its list of tests, and may retrieve that information when it is called
- * upon to enqueue its tests again.
+ * It will maintain three helper data structures
+ *  - command2node: A mapping from a [Command] to a node in the dependency graph
+ *  - command2testCases: A mapping from [Command] to all TestCases that it is
+ *    part of.
+ *  - remainingTestCases: A set of TestCases that were enqueued but are not
+ *    finished
+ *
+ * [Command] and it's subclasses all have hashCode/operator== methods defined
+ * on them, so we can safely use them as keys in Map/Set objects.
  */
-class ProcessQueue {
-  int _numProcesses = 0;
-  int _maxProcesses;
-  int _numBrowserProcesses = 0;
-  int _maxBrowserProcesses;
-  int _numFailedTests = 0;
-  bool _allTestsWereEnqueued = false;
+class TestCaseEnqueuer {
+  final dgraph.Graph graph;
+  final Function _onTestCaseAdded;
 
-  // Support for recording and replaying test commands.
-  TestCaseRecorder _testCaseRecorder;
-  TestCaseOutputArchive _testCaseOutputArchive;
+  final command2node = new Map<Command, dgraph.Node>();
+  final command2testCases = new Map<Command, List<TestCase>>();
+  final remainingTestCases = new Set<TestCase>();
 
-  /** The number of tests we allow to actually fail before we stop retrying. */
-  int _MAX_FAILED_NO_RETRY = 4;
-  bool _verbose;
-  bool _listTests;
-  Function _allDone;
-  Queue<TestCase> _tests;
-  List<EventListener> _eventListener;
+  TestCaseEnqueuer(this.graph, this._onTestCaseAdded);
 
-  // For dartc/selenium batch processing we keep a list of batch processes.
-  Map<String, List<BatchRunnerProcess>> _batchProcesses;
+  void enqueueTestSuites(List<TestSuite> testSuites) {
+    void newTest(TestCase testCase) {
+      remainingTestCases.add(testCase);
 
-  // Cache information about test cases per test suite. For multiple
-  // configurations there is no need to repeatedly search the file
-  // system, generate tests, and search test files for options.
-  Map<String, List<TestInformation>> _testCache;
+      var lastNode;
+      for (var command in testCase.commands) {
+        // Make exactly *one* node in the dependency graph for every command.
+        // This ensures that we never have two commands c1 and c2 in the graph
+        // with "c1 == c2".
+        var node = command2node[command];
+        if (node == null) {
+          var requiredNodes = (lastNode != null) ? [lastNode] : [];
+          node = graph.newNode(command, requiredNodes);
+          command2node[command] = node;
+          command2testCases[command] = <TestCase>[];
+        }
+        // Keep mapping from command to all testCases that refer to it
+        command2testCases[command].add(testCase);
 
-  Map<String, BrowserTestRunner> _browserTestRunners;
-
-  /**
-   * String indicating the browser used to run the tests. Empty if no browser
-   * used.
-   */
-  String browserUsed = '';
-
-  /**
-   * Process running the selenium server .jar (only used for Safari and Opera
-   * tests.)
-   */
-  io.Process _seleniumServer = null;
-
-  /** True if we are in the process of starting the server. */
-  bool _startingServer = false;
-
-  /** True if we find that there is already a selenium jar running. */
-  bool _seleniumAlreadyRunning = false;
-
-  ProcessQueue(this._maxProcesses,
-               this._maxBrowserProcesses,
-               DateTime startTime,
-               testSuites,
-               this._eventListener,
-               this._allDone,
-               [bool verbose = false,
-                bool listTests = false,
-                this._testCaseRecorder,
-                this._testCaseOutputArchive])
-      : _verbose = verbose,
-        _listTests = listTests,
-        _tests = new Queue<TestCase>(),
-        _batchProcesses = new Map<String, List<BatchRunnerProcess>>(),
-        _testCache = new Map<String, List<TestInformation>>(),
-        _browserTestRunners = new Map<String, BrowserTestRunner>() {
-    _runTests(testSuites);
-  }
-
-  /**
-   * Perform any cleanup needed once all tests in a TestSuite have completed
-   * and notify our progress indicator that we are done.
-   */
-  void _cleanupAndMarkDone() {
-    _allDone();
-    if (browserUsed != '' && _seleniumServer != null) {
-      _seleniumServer.kill();
-    }
-    eventAllTestsDone();
-  }
-
-  void _checkDone() {
-    if (_allTestsWereEnqueued && _tests.isEmpty && _numProcesses == 0) {
-      _terminateBatchRunners().then((_) {
-        _terminateBrowserRunners().then((_) => _cleanupAndMarkDone());
-      });
-    }
-  }
-
-  void _runTests(List<TestSuite> testSuites) {
-    var newTest;
-    var allTestsKnown;
-
-    if (_testCaseRecorder != null) {
-      // Mode: recording.
-      newTest = _testCaseRecorder.nextTestCase;
-      allTestsKnown = () {
-        // We don't call any event*() methods, so test_progress.dart will not be
-        // notified (that's fine, since we're not running any tests).
-        _testCaseRecorder.finish();
-        _allDone();
-      };
-    } else {
-      if (_testCaseOutputArchive != null) {
-        // Mode: replaying.
-        newTest = (TestCase testCase) {
-          // We're doing this asynchronously to emulate the normal behaviour.
-          eventTestAdded(testCase);
-          Timer.run(() {
-            var output = _testCaseOutputArchive.outputOf(testCase);
-            testCase.completed();
-            eventFinishedTestCase(testCase);
-          });
-        };
-        allTestsKnown = () {
-          // If we're replaying commands, we need to call [_cleanupAndMarkDone]
-          // manually. We're putting it at the end of the event queue to make
-          // sure all the previous events were fired.
-          Timer.run(() => _cleanupAndMarkDone());
-        };
-      } else {
-        // Mode: none (we're not recording/replaying).
-        newTest = (TestCase testCase) {
-          _tests.add(testCase);
-          eventTestAdded(testCase);
-          _runTest(testCase);
-        };
-        allTestsKnown = _checkDone;
+        lastNode = node;
       }
+      _onTestCaseAdded(testCase);
     }
 
-    // FIXME: For some reason we cannot call this method on all test suites
-    // in parallel.
-    // If we do, not all tests get enqueued (if --arch=all was specified,
-    // we don't get twice the number of tests [tested on -rvm -cnone])
-    // Issue: 7927
+    // Cache information about test cases per test suite. For multiple
+    // configurations there is no need to repeatedly search the file
+    // system, generate tests, and search test files for options.
+    var testCache = new Map<String, List<TestInformation>>();
+
     Iterator<TestSuite> iterator = testSuites.iterator;
     void enqueueNextSuite() {
       if (!iterator.moveNext()) {
-        _allTestsWereEnqueued = true;
-        allTestsKnown();
-        eventAllTestsKnown();
+        // We're finished with building the dependency graph.
+        graph.sealGraph();
       } else {
-        iterator.current.forEachTest(newTest, _testCache, enqueueNextSuite);
+        iterator.current.forEachTest(newTest, testCache, enqueueNextSuite);
       }
     }
     enqueueNextSuite();
   }
+}
 
-  /**
-   * True if we are using a browser + platform combination that needs the
-   * Selenium server jar.
-   */
-  bool get _needsSelenium => (io.Platform.operatingSystem == 'macos' &&
-      browserUsed == 'safari') || browserUsed == 'opera';
 
-  /** True if the Selenium Server is ready to be used. */
-  bool get _isSeleniumAvailable => _seleniumServer != null ||
-      _seleniumAlreadyRunning;
+/*
+ * [CommandEnqueuer] will
+ *  - change node.state to NodeState.Enqueuing as soon as all dependencies have
+ *    a state of NodeState.Successful
+ *  - change node.state to NodeState.UnableToRun if one or more dependencies
+ *    have a state of NodeState.Failed/NodeState.UnableToRun.
+ */
+class CommandEnqueuer {
+  static final INIT_STATES = [dgraph.NodeState.Initialized,
+                              dgraph.NodeState.Waiting];
+  static final FINISHED_STATES = [dgraph.NodeState.Successful,
+                                  dgraph.NodeState.Failed,
+                                  dgraph.NodeState.UnableToRun];
+  final dgraph.Graph _graph;
 
-  /**
-   * Restart all the processes that have been waiting/stopped for the server to
-   * start up. If we just call this once we end up with a single-"threaded" run.
-   */
-  void resumeTesting() {
-    for (int i = 0; i < _maxProcesses; i++) _tryRunTest();
-  }
+  CommandEnqueuer(this._graph) {
+    var eventCondition = _graph.events.where;
 
-  /** Start the Selenium Server jar, if appropriate for this platform. */
-  void _ensureSeleniumServerRunning() {
-    if (!_isSeleniumAvailable && !_startingServer) {
-      _startingServer = true;
+    eventCondition((e) => e is dgraph.NodeAddedEvent).listen((event) {
+      dgraph.Node node = event.node;
+      _changeNodeStateIfNecessary(node);
+    });
 
-      // Check to see if the jar was already running before the program started.
-      String cmd = 'ps';
-      var arg = ['aux'];
-      if (io.Platform.operatingSystem == 'windows') {
-        cmd = 'tasklist';
-        arg.add('/v');
-      }
-
-      Future processFuture = io.Process.start(cmd, arg);
-      processFuture.then((io.Process p) {
-        // Drain stderr to not leak resources.
-        p.stderr.listen((_) {});
-        final Stream<String> stdoutStringStream =
-            p.stdout.transform(new io.StringDecoder())
-                    .transform(new io.LineTransformer());
-        stdoutStringStream.listen((String line) {
-          var regexp = new RegExp(r".*selenium-server-standalone.*");
-          if (regexp.hasMatch(line)) {
-            _seleniumAlreadyRunning = true;
-            resumeTesting();
-          }
-          if (!_isSeleniumAvailable) {
-            _startSeleniumServer();
-          }
-        });
-      }).catchError((e) {
-      // TODO(floitsch): should we try to report the stacktrace?
-        print("Error starting process:");
-        print("  Command: $cmd ${arg.join(' ')}");
-        print("  Error: $e");
-        // TODO(ahe): How to report this as a test failure?
-        io.exit(1);
-        return true;
-      });
-    }
-  }
-
-  void _runTest(TestCase test) {
-    if (test.usesWebDriver) {
-      browserUsed = test.configuration['runtime'];
-      if (_needsSelenium) _ensureSeleniumServerRunning();
-    }
-    _tryRunTest();
-  }
-
-  /**
-   * Monitor the output of the Selenium server, to know when we are ready to
-   * begin running tests.
-   * source: Output(Stream) from the Java server.
-   */
-  void seleniumServerHandler(String line) {
-    if (new RegExp(r".*Started.*Server.*").hasMatch(line) ||
-        new RegExp(r"Exception.*Selenium is already running.*").hasMatch(
-        line)) {
-      resumeTesting();
-    }
-  }
-
-  /**
-   * For browser tests using Safari or Opera, we need to use the Selenium 1.0
-   * Java server.
-   */
-  void _startSeleniumServer() {
-    // Get the absolute path to the Selenium jar.
-    String filePath = TestUtils.testScriptPath;
-    String pathSep = io.Platform.pathSeparator;
-    int index = filePath.lastIndexOf(pathSep);
-    filePath = '${filePath.substring(0, index)}${pathSep}testing${pathSep}';
-    new io.Directory(filePath).list().listen((io.FileSystemEntity fse) {
-      if (fse is io.File) {
-        String file = fse.path;
-        if (new RegExp(r"selenium-server-standalone-.*\.jar").hasMatch(file)
-            && _seleniumServer == null) {
-          Future processFuture = io.Process.start('java', ['-jar', file]);
-          processFuture.then((io.Process server) {
-            _seleniumServer = server;
-            // Heads up: there seems to an obscure data race of some form in
-            // the VM between launching the server process and launching the
-            // test tasks that disappears when you read IO (which is
-            // convenient, since that is our condition for knowing that the
-            // server is ready).
-            Stream<String> stdoutStringStream =
-                _seleniumServer.stdout.transform(new io.StringDecoder())
-                .transform(new io.LineTransformer());
-            Stream<String> stderrStringStream =
-                _seleniumServer.stderr.transform(new io.StringDecoder())
-                .transform(new io.LineTransformer());
-            stdoutStringStream.listen(seleniumServerHandler);
-            stderrStringStream.listen(seleniumServerHandler);
-          }).catchError((e) {
-            // TODO(floitsch): should we try to report the stacktrace?
-            print("Process error:");
-            print("  Command: java -jar $file");
-            print("  Error: $e");
-            // TODO(ahe): How to report this as a test failure?
-            io.exit(1);
-            return true;
-          });
+    eventCondition((e) => e is dgraph.StateChangedEvent).listen((event) {
+      if (event.from == dgraph.NodeState.Processing) {
+        assert(FINISHED_STATES.contains(event.to));
+        for (var dependendNode in event.node.neededFor) {
+          _changeNodeStateIfNecessary(dependendNode);
         }
       }
     });
   }
 
-  Future _terminateBatchRunners() {
-    var futures = new List();
-    for (var runners in _batchProcesses.values) {
-      for (var runner in runners) {
-        futures.add(runner.terminate());
+  // Called when either a new node was added or if one of it's dependencies
+  // changed it's state.
+  void _changeNodeStateIfNecessary(dgraph.Node node) {
+    assert(INIT_STATES.contains(node.state));
+    bool allDependenciesFinished =
+        node.dependencies.every((node) => FINISHED_STATES.contains(node.state));
+
+    var newState = dgraph.NodeState.Waiting;
+    if (allDependenciesFinished) {
+      bool allDependenciesSuccessful = node.dependencies.every(
+          (dep) => dep.state == dgraph.NodeState.Successful);
+
+      if (allDependenciesSuccessful) {
+        newState = dgraph.NodeState.Enqueuing;
+      } else {
+        newState = dgraph.NodeState.UnableToRun;
       }
     }
-    // Change to Future.wait when updating binaries.
-    return Future.wait(futures);
-  }
-
-  Future _terminateBrowserRunners() {
-    var futures = [];
-    for (BrowserTestRunner runner in _browserTestRunners.values) {
-      futures.add(runner.terminate());
+    if (node.state != newState) {
+      _graph.changeState(node, newState);
     }
-    return Future.wait(futures);
+  }
+}
+
+// TODO(kustermann): Add support for '--list' and '--verbose'!
+
+/*
+ * [CommandQueue] will listen for nodes entering the NodeState.ENQUEUING state,
+ * queue them up and run them. While nodes are processed they will be in the
+ * NodeState.PROCESSING state. After running a command, the node will change
+ * to a state of NodeState.Successfull or NodeState.Failed.
+ *
+ * It provides a synchronous stream [completedCommands] which provides the
+ * [CommandOutputs] for the finished commands.
+ *
+ * It provides a [done] future, which will complete once there are no more
+ * nodes left in the states Initialized/Waiting/Enqueing/Processing
+ * and the [executor] has cleaned up it's resources.
+ */
+class CommandQueue {
+  final dgraph.Graph graph;
+  final CommandExecutor executor;
+  final TestCaseEnqueuer enqueuer;
+
+  final Queue<Command> _runQueue = new Queue<Command>();
+  final _commandOutputStream =  new StreamController<CommandOutput>(sync: true);
+  final _completer =  new Completer();
+
+  int _numProcesses = 0;
+  int _maxProcesses;
+  int _numBrowserProcesses = 0;
+  int _maxBrowserProcesses;
+  bool _finishing = false;
+  bool _verbose = false;
+
+  CommandQueue(this.graph, this.enqueuer, this.executor,
+               this._maxProcesses, this._maxBrowserProcesses, this._verbose) {
+    var eventCondition = graph.events.where;
+    eventCondition((event) => event is dgraph.StateChangedEvent)
+        .listen((event) {
+          if (event.to == dgraph.NodeState.Enqueuing) {
+            assert(event.from == dgraph.NodeState.Initialized ||
+                   event.from == dgraph.NodeState.Waiting);
+            graph.changeState(event.node, dgraph.NodeState.Processing);
+            var command = event.node.userData;
+            _runQueue.add(command);
+            Timer.run(() => _tryRunNextCommand());
+          }
+    });
   }
 
-  BatchRunnerProcess _getBatchRunner(TestCase test) {
+  Stream<CommandOutput> get completedCommands => _commandOutputStream.stream;
+
+  Future get done => _completer.future;
+
+  void _tryRunNextCommand() {
+    _checkDone();
+
+    if (_numProcesses < _maxProcesses && !_runQueue.isEmpty) {
+      Command command = _runQueue.removeFirst();
+      var isBrowserCommand =
+          command is SeleniumTestCommand ||
+          command is BrowserTestCommand;
+
+      if (isBrowserCommand && _numBrowserProcesses == _maxBrowserProcesses) {
+        // If there is no free browser runner, put it back into the queue.
+        _runQueue.add(command);
+        // Don't lose a process.
+        new Timer(new Duration(milliseconds: 100), _tryRunNextCommand);
+        return;
+      }
+
+      _numProcesses++;
+      if (isBrowserCommand) _numBrowserProcesses++;
+
+      var node = enqueuer.command2node[command];
+      Iterable<TestCase> testCases = enqueuer.command2testCases[command];
+      // If a command is part of many TestCases we set the timeout to be
+      // the maximum over all [TestCase.timeout]s. At some point, we might
+      // eliminate [TestCase.timeout] completely and move it to [Command].
+      int timeout = testCases.map((TestCase test) => test.timeout)
+          .fold(0, math.max);
+
+      if (_verbose) {
+        print('Running "${command.displayName}" command: $command');
+      }
+
+      executor.runCommand(node, command, timeout).then((CommandOutput output) {
+        assert(command == output.command);
+
+        _commandOutputStream.add(output);
+        if (output.canRunDependendCommands) {
+          graph.changeState(node, dgraph.NodeState.Successful);
+        } else {
+          graph.changeState(node, dgraph.NodeState.Failed);
+        }
+
+        _numProcesses--;
+        if (isBrowserCommand) _numBrowserProcesses--;
+
+        // Don't loose a process
+        Timer.run(() => _tryRunNextCommand());
+      });
+    }
+  }
+
+  void _checkDone() {
+    if (!_finishing &&
+        _runQueue.isEmpty &&
+        _numProcesses == 0 &&
+        graph.isSealed &&
+        graph.stateCount(dgraph.NodeState.Initialized) == 0 &&
+        graph.stateCount(dgraph.NodeState.Waiting) == 0 &&
+        graph.stateCount(dgraph.NodeState.Enqueuing) == 0 &&
+        graph.stateCount(dgraph.NodeState.Processing) == 0) {
+      _finishing = true;
+      executor.cleanup().then((_) {
+        _completer.complete();
+        _commandOutputStream.close();
+      });
+    }
+  }
+}
+
+
+/*
+ * [CommandExecutor] is responsible for executing commands. It will make sure
+ * that the the following two constraints are satisfied
+ *  - [:numberOfProcessesUsed <= maxProcesses:]
+ *  - [:numberOfBrowserProcessesUsed <= maxBrowserProcesses:]
+ *
+ * It provides a [runCommand] method which will complete with a
+ * [CommandOutput] object.
+ *
+ * It provides a [cleanup] method to free all the allocated resources.
+ */
+abstract class CommandExecutor {
+  Future cleanup();
+  // TODO(kustermann): The [timeout] parameter should be a property of Command
+  Future<CommandOutput> runCommand(
+      dgraph.Node node, Command command, int timeout);
+}
+
+class CommandExecutorImpl implements CommandExecutor {
+  final Map globalConfiguration;
+  final int maxProcesses;
+  final int maxBrowserProcesses;
+
+  // For dartc/selenium batch processing we keep a list of batch processes.
+  final _batchProcesses = new Map<String, List<BatchRunnerProcess>>();
+  // For browser tests we keepa [BrowserTestRunner]
+  final _browserTestRunners = new Map<String, BrowserTestRunner>();
+
+  bool _finishing = false;
+
+  CommandExecutorImpl(
+      this.globalConfiguration, this.maxProcesses, this.maxBrowserProcesses);
+
+  Future cleanup() {
+    assert(!_finishing);
+    _finishing = true;
+
+    Future _terminateBatchRunners() {
+      var futures = [];
+      for (var runners in _batchProcesses.values) {
+        futures.addAll(runners.map((runner) => runner.terminate()));
+      }
+      return Future.wait(futures);
+    }
+
+    Future _terminateBrowserRunners() {
+      var futures =
+          _browserTestRunners.values.map((runner) => runner.terminate());
+      return Future.wait(futures);
+    }
+
+    return Future.wait([_terminateBatchRunners(), _terminateBrowserRunners()]);
+  }
+
+  Future<CommandOutput> runCommand(node, Command command, int timeout) {
+    assert(!_finishing);
+
+    Future<CommandOutput> runCommand(int retriesLeft) {
+      return _runCommand(command, timeout).then((CommandOutput output) {
+        if (!output.canRunDependendCommands && retriesLeft > 0) {
+          DebugLogger.warning("Rerunning Command: ($retriesLeft "
+                              "attempt(s) remains) [cmd: $command]");
+          return runCommand(retriesLeft - 1);
+        } else {
+          return new Future.value(output);
+        }
+      });
+    }
+    return runCommand(command.numRetries);
+  }
+
+  Future<CommandOutput> _runCommand(Command command, int timeout) {
+    var batchMode = !globalConfiguration['noBatch'];
+
+    if (command is BrowserTestCommand) {
+      return _startBrowserControllerTest(command, timeout);
+    } else if (command is SeleniumTestCommand && batchMode) {
+      var arguments = ['--force-refresh', '--browser=${command.browser}',
+                       '--timeout=${timeout}', '--out', '${command.url}'];
+      return _getBatchRunner(command.browser)
+          .runCommand('selenium', command, timeout, arguments);
+    } else if (command is AnalysisCommand && batchMode) {
+      return _getBatchRunner(command.flavor)
+          .runCommand(command.flavor, command, timeout, command.arguments);
+    } else {
+      return new RunningProcess(command, timeout).run();
+    }
+  }
+
+  BatchRunnerProcess _getBatchRunner(String identifier) {
     // Start batch processes if needed
-    var compiler = test.configuration['compiler'];
-    var runners = _batchProcesses[compiler];
+    var runners = _batchProcesses[identifier];
     if (runners == null) {
-      runners = new List<BatchRunnerProcess>(_maxProcesses);
-      for (int i = 0; i < _maxProcesses; i++) {
-        runners[i] = new BatchRunnerProcess(test);
+      runners = new List<BatchRunnerProcess>(maxProcesses);
+      for (int i = 0; i < maxProcesses; i++) {
+        runners[i] = new BatchRunnerProcess();
       }
-      _batchProcesses[compiler] = runners;
+      _batchProcesses[identifier] = runners;
     }
 
     for (var runner in runners) {
-      if (!runner.active) return runner;
+      if (!runner._currentlyRunning) return runner;
     }
     throw new Exception('Unable to find inactive batch runner.');
   }
 
-  Future<BrowserTestRunner> _getBrowserTestRunner(TestCase test) {
-    var local_ip = test.configuration['local_ip'];
-    var runtime = test.configuration['runtime'];
-    var num_browsers = _maxBrowserProcesses;
-    if (_browserTestRunners[runtime] == null) {
+  Future<CommandOutput> _startBrowserControllerTest(
+      BrowserTestCommand browserCommand, int timeout) {
+    var completer = new Completer<CommandOutput>();
+
+    var callback = (var output, var duration) {
+      var commandOutput = createCommandOutput(browserCommand,
+                          0,
+                          output == "TIMEOUT",
+                          encodeUtf8(output),
+                          [],
+                          duration,
+                          false);
+      completer.complete(commandOutput);
+    };
+    BrowserTest browserTest = new BrowserTest(browserCommand.url,
+                                              callback,
+                                              timeout);
+    _getBrowserTestRunner(browserCommand.browser).then((testRunner) {
+      testRunner.queueTest(browserTest);
+    });
+
+    return completer.future;
+  }
+
+  Future<BrowserTestRunner> _getBrowserTestRunner(String browser) {
+    var local_ip = globalConfiguration['local_ip'];
+    var num_browsers = maxBrowserProcesses;
+    if (_browserTestRunners[browser] == null) {
       var testRunner =
-        new BrowserTestRunner(local_ip, runtime, num_browsers);
+        new BrowserTestRunner(local_ip, browser, num_browsers);
       testRunner.logger = DebugLogger.info;
-      _browserTestRunners[runtime] = testRunner;
+      _browserTestRunners[browser] = testRunner;
       return testRunner.start().then((started) {
         if (started) {
           return testRunner;
@@ -1665,251 +1828,215 @@ class ProcessQueue {
         io.exit(1);
       });
     }
-    return new Future.value(_browserTestRunners[runtime]);
+    return new Future.value(_browserTestRunners[browser]);
+  }
+}
+
+class RecordingCommandExecutor implements CommandExecutor {
+  TestCaseRecorder _recorder;
+
+  RecordingCommandExecutor(io.Path path)
+      : _recorder = new TestCaseRecorder(path);
+
+  Future<CommandOutput> runCommand(node, Command command, int timeout) {
+    assert(node.dependencies.length == 0);
+    assert(_cleanEnvironmentOverrides(command.environmentOverrides));
+    _recorder.nextCommand(command, timeout);
+    // Return dummy CommandOutput
+    var output =
+        createCommandOutput(command, 0, false, [], [], const Duration(), false);
+    return new Future.value(output);
   }
 
-  void _startBrowserControllerTest(var test) {
-    var callback = (var output, var duration) {
-      var nextCommandIndex = test.commandOutputs.keys.length;
-      new CommandOutput.fromCase(test,
-                                 test.commands[nextCommandIndex],
-                                 0,
-                                 false,
-                                 output == "TIMEOUT",
-                                 encodeUtf8(output),
-                                 [],
-                                 duration,
-                                 false);
-      test.completedHandler(test);
-    };
-    BrowserTest browserTest = new BrowserTest(test.testingUrl,
-                                              callback,
-                                              test.timeout);
-    _getBrowserTestRunner(test).then((testRunner) {
-      testRunner.queueTest(browserTest);
+  Future cleanup() {
+    _recorder.finish();
+    return new Future.value();
+  }
+
+  // Returns [:true:] if the environment contains only 'DART_CONFIGURATION'
+  bool _cleanEnvironmentOverrides(Map environment) {
+    if (environment == null) return true;
+    return environment.length == 0 ||
+        (environment.length == 1 &&
+         environment.containsKey("DART_CONFIGURATION"));
+
+  }
+}
+
+class ReplayingCommandExecutor implements CommandExecutor {
+  TestCaseOutputArchive _archive = new TestCaseOutputArchive();
+
+  ReplayingCommandExecutor(io.Path path) {
+    _archive.loadFromPath(path);
+  }
+
+  Future cleanup() => new Future.value();
+
+  Future<CommandOutput> runCommand(node, Command command, int timeout) {
+    assert(node.dependencies.length == 0);
+    return new Future.value(_archive.outputOf(command));
+  }
+}
+
+
+/*
+ * [TestCaseCompleter] will listen for
+ * NodeState.Processing -> NodeState.{Successfull,Failed} state changes and
+ * will complete a TestCase if it is finished.
+ *
+ * It provides a stream [finishedTestCases], which will stream all TestCases
+ * once they're finished. After all TestCases are done, the stream will be
+ * closed.
+ */
+class TestCaseCompleter {
+  static final COMPLETED_STATES = [dgraph.NodeState.Failed,
+                                   dgraph.NodeState.Successful];
+  final dgraph.Graph graph;
+  final TestCaseEnqueuer enqueuer;
+  final CommandQueue commandQueue;
+
+  Map<Command, CommandOutput> _outputs = new Map<Command, CommandOutput>();
+  StreamController<TestCase> _controller = new StreamController<TestCase>();
+
+  TestCaseCompleter(this.graph, this.enqueuer, this.commandQueue) {
+    var eventCondition = graph.events.where;
+
+    // Store all the command outputs -- they will be delivered synchronously
+    // (i.e. before state changes in the graph)
+    commandQueue.completedCommands.listen((CommandOutput output) {
+      _outputs[output.command] = output;
+    });
+
+    // Listen for NodeState.Processing -> NodeState.{Successfull,Failed}
+    // changes.
+    eventCondition((event) => event is dgraph.StateChangedEvent)
+        .listen((dgraph.StateChangedEvent event) {
+          if (event.from == dgraph.NodeState.Processing) {
+            assert(COMPLETED_STATES.contains(event.to));
+            _completeTestCasesIfPossible(event.node.userData);
+
+            if (graph.isSealed && enqueuer.remainingTestCases.isEmpty) {
+              _controller.close();
+            }
+          }
     });
   }
 
-  void _tryRunTest() {
-    _checkDone();
-    // TODO(ricow): remove most of the hacked selenium code below when
-    // we have eliminated the need.
+  Stream<TestCase> get finishedTestCases => _controller.stream;
 
-    if (_numProcesses < _maxProcesses && !_tests.isEmpty) {
-      TestCase test = _tests.removeFirst();
-      if (_listTests) {
-        var fields = [test.displayName,
-                      test.expectedOutcomes.join(','),
-                      test.isNegative.toString()];
-        fields.addAll(test.commands.last.arguments);
-        print(fields.join('\t'));
-        return;
-      }
+  void _completeTestCasesIfPossible(Command command) {
+    assert(_outputs[command] != null);
 
-      if (test.usesWebDriver && _needsSelenium && !test.usesBrowserController
-          && !_isSeleniumAvailable ||
-          (test is BrowserTestCase && test.waitingForOtherTest)) {
-        // The test is not yet ready to run. Put the test back in
-        // the queue.  Avoid spin-polling by using a timeout.
-        _tests.add(test);
-        new Timer(new Duration(milliseconds: 100),
-                  _tryRunTest);  // Don't lose a process.
-        return;
-      }
-      // Before running any commands, we print out all commands if '--verbose'
-      // was specified.
-      if (_verbose && test.commandOutputs.length == 0) {
-        int i = 1;
-        if (test is BrowserTestCase) {
-          // Additional command for rerunning the steps locally after the fact.
-          var command =
-            test.configuration["_servers_"].httpServerCommandline();
-          print('$i. $command');
-          i++;
-        }
-        for (Command command in test.commands) {
-          print('$i. $command');
-          i++;
+    var testCases = enqueuer.command2testCases[command];
+
+    // Update TestCases with command outputs
+    for (TestCase test in testCases) {
+      for (var icommand in test.commands) {
+        var output = _outputs[icommand];
+        if (output != null) {
+          test.commandOutputs[icommand] = output;
         }
       }
+    }
 
-      var isLastCommand =
-          ((test.commands.length-1) == test.commandOutputs.length);
-      var isBrowserCommand = isLastCommand && (test is BrowserTestCase);
-      if (isBrowserCommand && _numBrowserProcesses == _maxBrowserProcesses) {
-        // If there is no free browser runner, put it back into the queue.
-        _tests.add(test);
-        new Timer(new Duration(milliseconds: 100),
-                  _tryRunTest);  // Don't lose a process.
-        return;
-      }
-
-      eventStartTestCase(test);
-
-      // Analyzer and browser test commands can be run by a [BatchRunnerProcess]
-      var nextCommandIndex = test.commandOutputs.keys.length;
-      var numberOfCommands = test.commands.length;
-
-      var useBatchRunnerForAnalyzer =
-          test.configuration['analyzer'] &&
-          test.displayName != 'dartc/junit_tests';
-      var isWebdriverCommand = nextCommandIndex == (numberOfCommands - 1) &&
-                               test.usesWebDriver &&
-                               !test.configuration['noBatch'];
-      if (useBatchRunnerForAnalyzer || isWebdriverCommand) {
-        TestCaseEvent oldCallback = test.completedHandler;
-        void testCompleted(TestCase test_arg) {
-          _numProcesses--;
-          if (isBrowserCommand) {
-            _numBrowserProcesses--;
-          }
-          eventFinishedTestCase(test_arg);
-          if (test_arg is BrowserTestCase) {
-            (test_arg as BrowserTestCase).notifyObservers();
-          }
-          oldCallback(test_arg);
-          _tryRunTest();
-        };
-        test.completedHandler = testCompleted;
-        if (test.usesBrowserController) {
-          _startBrowserControllerTest(test);
-        } else {
-          _getBatchRunner(test).startTest(test);
-        }
+    void completeTestCase(TestCase testCase) {
+      if (enqueuer.remainingTestCases.contains(testCase)) {
+        _controller.add(testCase);
+        enqueuer.remainingTestCases.remove(testCase);
       } else {
-        // Once we've actually failed a test, technically, we wouldn't need to
-        // bother retrying any subsequent tests since the bot is already red.
-        // However, we continue to retry tests until we have actually failed
-        // four tests (arbitrarily chosen) for more debugable output, so that
-        // the developer doesn't waste his or her time trying to fix a bunch of
-        // tests that appear to be broken but were actually just flakes that
-        // didn't get retried because there had already been one failure.
-        bool allowRetry = _MAX_FAILED_NO_RETRY > _numFailedTests;
-        runNextCommandWithRetries(test, allowRetry).then((TestCase testCase) {
-          _numProcesses--;
-          if (isBrowserCommand) {
-            _numBrowserProcesses--;
-          }
-          if (isTestCaseFinished(testCase)) {
-            testCase.completed();
-            eventFinishedTestCase(testCase);
-            if (testCase is BrowserTestCase) {
-              (testCase as BrowserTestCase).notifyObservers();
-            }
-          } else {
-            _tests.addFirst(testCase);
-          }
-          _tryRunTest();
-        });
+        DebugLogger.error("${testCase.displayName} would be finished twice");
       }
+    }
 
-      _numProcesses++;
-      if (isBrowserCommand) {
-        _numBrowserProcesses++;
+    for (var testCase in testCases) {
+      // Ask the [testCase] if it's done. Note that we assume, that
+      // [TestCase.isFinished] will return true if all commands were executed
+      // or if a previous one failed.
+      if (testCase.isFinished) {
+        completeTestCase(testCase);
       }
     }
   }
+}
 
-  bool isTestCaseFinished(TestCase testCase) {
-    var numberOfCommandOutputs = testCase.commandOutputs.keys.length;
-    var numberOfCommands = testCase.commands.length;
 
-    var lastCommandCompleted = (numberOfCommandOutputs == numberOfCommands);
-    var lastCommandOutput = testCase.lastCommandOutput;
-    var lastCommand = lastCommandOutput.command;
-    var timedOut = lastCommandOutput.hasTimedOut;
-    var nonZeroExitCode = lastCommandOutput.exitCode != 0;
-    // NOTE: If this was the last command or there was unexpected output
-    // we're done with the test.
-    // Otherwise we need to enqueue it again into the test queue.
-    if (lastCommandCompleted || timedOut || nonZeroExitCode) {
-      var verbose = testCase.configuration['verbose'];
-      if (lastCommandOutput.unexpectedOutput && verbose != null && verbose) {
-        print(testCase.displayName);
-        print("stderr:");
-        print(decodeUtf8(lastCommandOutput.stderr));
-        if (!lastCommand.isPixelTest) {
-          print("stdout:");
-          print(decodeUtf8(lastCommandOutput.stdout));
-        } else {
-          print("");
-          print("DRT pixel test failed! stdout is not printed because it "
-                "contains binary data!");
-        }
-      }
-      return true;
+
+class ProcessQueue {
+  Map _globalConfiguration;
+
+  bool _allTestsWereEnqueued = false;
+
+  bool _listTests;
+  Function _allDone;
+  final dgraph.Graph _graph = new dgraph.Graph();
+  List<EventListener> _eventListener;
+
+  ProcessQueue(this._globalConfiguration,
+               maxProcesses,
+               maxBrowserProcesses,
+               DateTime startTime,
+               testSuites,
+               this._eventListener,
+               this._allDone,
+               [bool verbose = false,
+                this._listTests = false,
+                String recordingOutputFile,
+                String recordedInputFile]) {
+    bool recording = recordingOutputFile != null;
+    bool replaying = recordedInputFile != null;
+
+    // When the graph building is finished, notify event listeners.
+    _graph.events
+      .where((event) => event is dgraph.GraphSealedEvent).listen((event) {
+        eventAllTestsKnown();
+    });
+
+    // Build up the dependency graph
+    var testCaseEnqueuer = new TestCaseEnqueuer(_graph, (TestCase newTestCase) {
+      eventTestAdded(newTestCase);
+    });
+
+    // Queue commands as they become "runnable"
+    var commandEnqueuer = new CommandEnqueuer(_graph);
+
+    // CommandExecutor will execute commands
+    var executor;
+    if (recording) {
+      executor = new RecordingCommandExecutor(new io.Path(recordingOutputFile));
+    } else if (replaying) {
+      executor = new ReplayingCommandExecutor(new io.Path(recordedInputFile));
     } else {
-      return false;
+      executor = new CommandExecutorImpl(
+          _globalConfiguration, maxProcesses, maxBrowserProcesses);
     }
-  }
 
-  Future runNextCommandWithRetries(TestCase testCase, bool allowRetry) {
-    var completer = new Completer();
+    // Run "runnable commands" using [executor] subject to
+    // maxProcesses/maxBrowserProcesses constraint
+    var commandQueue = new CommandQueue(
+        _graph, testCaseEnqueuer, executor, maxProcesses, maxBrowserProcesses,
+        verbose);
 
-    var nextCommandIndex = testCase.commandOutputs.keys.length;
-    var numberOfCommands = testCase.commands.length;
-    if (nextCommandIndex >= numberOfCommands) {
-      throw "nextCommandIndex must be less than numberOfCommands";
-    }
-    var command = testCase.commands[nextCommandIndex];
-    var isLastCommand = nextCommandIndex == (numberOfCommands - 1);
-
-    void runCommand() {
-      var runningProcess = new RunningProcess(testCase, command);
-      runningProcess.start().then((CommandOutput commandOutput) {
-        if (isLastCommand) {
-          // NOTE: We need to call commandOutput.unexpectedOutput here.
-          // Calling this getter may result in the side-effect, that
-          // commandOutput.requestRetry is set to true.
-          // (BrowserCommandOutputImpl._failedBecauseOfMissingXDisplay
-          // does that for example)
-          // TODO(ricow/kustermann): Issue 8206
-          var unexpectedOutput = commandOutput.unexpectedOutput;
-          if (unexpectedOutput && allowRetry) {
-            if (testCase.usesWebDriver
-                && (testCase as BrowserTestCase).numRetries > 0) {
-              // Selenium tests can be flaky. Try rerunning.
-              commandOutput.requestRetry = true;
-            }
-            // FIXME(kustermann): Remove this condition once we figured out why
-            // content_shell is sometimes not able to fetch resources from the
-            // HttpServer.
-            var configuration  = testCase.configuration;
-            if (configuration['runtime'] == 'drt' &&
-                configuration['system'] == 'windows' &&
-                (testCase as BrowserTestCase).numRetries > 0) {
-              assert(TestUtils.isBrowserRuntime(configuration['runtime']));
-              commandOutput.requestRetry = true;
-            }
-          }
+    // Finish test cases when all commands were run (or some failed)
+    var testCaseCompleter =
+        new TestCaseCompleter(_graph, testCaseEnqueuer, commandQueue);
+    testCaseCompleter.finishedTestCases.listen(
+      (TestCase finishedTestCase) {
+        // If we're recording, we don't report any TestCases to listeners.
+        if (!recording) {
+          eventFinishedTestCase(finishedTestCase);
         }
-        if (commandOutput.requestRetry) {
-          commandOutput.requestRetry = false;
-          (testCase as BrowserTestCase).numRetries--;
-          DebugLogger.warning("Rerunning Test: ${testCase.displayName} "
-                              "(${(testCase as BrowserTestCase).numRetries} "
-                              "attempt(s) remains) [cmd:$command]");
-          runCommand();
-        } else {
-          completer.complete(testCase);
-        }
+      },
+      onDone: () {
+        // Wait until the commandQueue/execturo is done (it may need to stop
+        // batch runners, browser controllers, ....)
+        commandQueue.done.then((_) => eventAllTestsDone());
       });
-    }
-    runCommand();
 
-    return completer.future;
-  }
-
-  void eventStartTestCase(TestCase testCase) {
-    for (var listener in _eventListener) {
-      listener.start(testCase);
-    }
+    // Start enqueing all TestCases
+    testCaseEnqueuer.enqueueTestSuites(testSuites);
   }
 
   void eventFinishedTestCase(TestCase testCase) {
-    if (testCase.lastCommandOutput.unexpectedOutput) {
-      _numFailedTests++;
-    }
     for (var listener in _eventListener) {
       listener.done(testCase);
     }
@@ -1931,6 +2058,6 @@ class ProcessQueue {
     for (var listener in _eventListener) {
       listener.allDone();
     }
+    _allDone();
   }
 }
-

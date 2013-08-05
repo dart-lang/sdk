@@ -64,6 +64,55 @@ class DebugLogger {
   static String get _datetime => "${new DateTime.now()}";
 }
 
+
+/**
+ * [areByteArraysEqual] compares a range of bytes from [buffer1] with a
+ * range of bytes from [buffer2].
+ *
+ * Returns [true] if the [count] bytes in [buffer1] (starting at
+ * [offset1]) match the [count] bytes in [buffer2] (starting at
+ * [offset2]).
+ * Otherwise [false] is returned.
+ */
+bool areByteArraysEqual(List<int> buffer1, int offset1,
+                        List<int> buffer2, int offset2,
+                        int count) {
+  if ((offset1 + count) > buffer1.length ||
+      (offset2 + count) > buffer2.length) {
+    return false;
+  }
+
+  for (var i = 0; i < count; i++) {
+    if (buffer1[offset1 + i] != buffer2[offset2 + i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * [findBytes] searches for [pattern] in [data] beginning at [startPos].
+ *
+ * Returns [true] if [pattern] was found in [data].
+ * Otherwise [false] is returned.
+ */
+int findBytes(List<int> data, List<int> pattern, [int startPos=0]) {
+  // TODO(kustermann): Use one of the fast string-matching algorithms!
+  for (int i = startPos; i < (data.length - pattern.length); i++) {
+    bool found = true;
+    for (int j = 0; j < pattern.length; j++) {
+      if (data[i + j] != pattern[j]) {
+        found = false;
+        break;
+      }
+    }
+    if (found) {
+      return i;
+    }
+  }
+  return -1;
+}
+
 List<int> encodeUtf8(String string) {
   return utf.encodeUtf8(string);
 }
@@ -84,3 +133,22 @@ String escapeCommandLineArgument(String argument) {
   return argument;
 }
 
+class HashCodeBuilder {
+  int _value = 0;
+
+  void add(Object object) {
+    _value = ((_value * 31) ^ object.hashCode)  & 0x3FFFFFFF;
+  }
+
+  int get value => _value;
+}
+
+class UniqueObject {
+  static int _nextId = 1;
+  final int _hashCode;
+
+  int get hashCode => _hashCode;
+  operator==(other) => other is UniqueObject && _hashCode == other._hashCode;
+
+  UniqueObject() : _hashCode = ++_nextId;
+}
