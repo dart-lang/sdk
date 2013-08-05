@@ -12,6 +12,7 @@ import 'asset_id.dart';
 import 'asset_node.dart';
 import 'asset_set.dart';
 import 'errors.dart';
+import 'stream_pool.dart';
 import 'transform_node.dart';
 import 'transformer.dart';
 import 'utils.dart';
@@ -73,12 +74,31 @@ class Phase {
   /// output.
   final _outputs = new Set<AssetId>();
 
+  /// A stream that emits an event whenever this phase becomes dirty and needs
+  /// to be run.
+  ///
+  /// This may emit events when the phase was already dirty or while processing
+  /// transforms. Events are emitted synchronously to ensure that the dirty
+  /// state is thoroughly propagated as soon as any assets are changed.
+  Stream get onDirty => _onDirtyPool.stream;
+  final _onDirtyPool = new StreamPool.broadcast();
+
+  /// A controller whose stream feeds into [_onDirtyPool].
+  ///
+  /// This is used whenever an input is added, changed, or removed. It's
+  /// sometimes redundant with the events collected from [_transforms], but this
+  /// stream is necessary for new and removed inputs, and the transform stream
+  /// is necessary for modified secondary inputs.
+  final _onDirtyController = new StreamController.broadcast(sync: true);
+
   /// The phase after this one.
   ///
   /// Outputs from this phase will be passed to it.
   final Phase _next;
 
-  Phase(this.cascade, this._index, this._transformers, this._next);
+  Phase(this.cascade, this._index, this._transformers, this._next) {
+    _onDirtyPool.add(_onDirtyController.stream);
+  }
 
   /// Adds a new asset as an input for this phase.
   ///
@@ -168,6 +188,11 @@ class Phase {
   /// time it takes to adjust its transformers, they're appropriately
   /// re-adjusted. Its progress can be tracked in [_adjustTransformersFutures].
   void _adjustTransformers(AssetNode node) {
+    // Mark the phase as dirty. This may not actually end up creating any new
+    // transforms, but we want adding or removing a source asset to consistently
+    // kick off a build, even if that build does nothing.
+    _onDirtyController.add(null);
+
     // Once the input is available, hook up transformers for it. If it changes
     // while that's happening, try again.
     _adjustTransformersFutures[node.id] = node.tryUntilStable((asset) {
@@ -182,6 +207,7 @@ class Phase {
       // future.
       node.onStateChange.first.then((state) {
         if (state.isRemoved) {
+          _onDirtyController.add(null);
           _transforms.remove(node.id);
         } else {
           _adjustTransformers(node);
@@ -214,6 +240,7 @@ class Phase {
       return transform.transformer.isPrimary(asset).then((isPrimary) {
         if (isPrimary) return;
         _transforms[asset.id].remove(transform);
+        _onDirtyPool.remove(transform.onDirty);
         transform.remove();
       });
     }));
@@ -240,7 +267,9 @@ class Phase {
       // results.
       return transformer.isPrimary(node.asset).then((isPrimary) {
         if (!isPrimary) return;
-        _transforms[node.id].add(new TransformNode(this, transformer, node));
+        var transform = new TransformNode(this, transformer, node);
+        _transforms[node.id].add(transform);
+        _onDirtyPool.add(transform.onDirty);
       });
     }));
   }

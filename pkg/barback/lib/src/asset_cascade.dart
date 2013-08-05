@@ -103,6 +103,10 @@ class AssetCascade {
     for (var transformers in phases.reversed) {
       nextPhase = new Phase(this, _phases.length, transformers.toList(),
           nextPhase);
+      nextPhase.onDirty.listen((_) {
+        _newChanges = true;
+        _waitForProcess();
+      });
       _phases.insert(0, nextPhase);
     }
   }
@@ -165,8 +169,6 @@ class AssetCascade {
   /// given source is already known, it is considered modified and all
   /// transforms that use it will be re-applied.
   void updateSources(Iterable<AssetId> sources) {
-    _newChanges = true;
-
     for (var id in sources) {
       var controller = _sourceControllerMap[id];
       if (controller != null) {
@@ -193,14 +195,10 @@ class AssetCascade {
         _sourceControllerMap.remove(id).setRemoved();
       });
     }
-
-    _waitForProcess();
   }
 
   /// Removes [removed] from the graph's known set of source assets.
   void removeSources(Iterable<AssetId> removed) {
-    _newChanges = true;
-
     removed.forEach((id) {
       // If the source was being loaded, cancel that load.
       if (_loadingSources.containsKey(id)) _loadingSources.remove(id).cancel();
@@ -209,8 +207,6 @@ class AssetCascade {
       // Don't choke if an id is double-removed for some reason.
       if (controller != null) controller.setRemoved();
     });
-
-    _waitForProcess();
   }
 
   void reportError(error) {
