@@ -362,7 +362,13 @@ DEFINE_NATIVE_ENTRY(ClassMirror_name, 1) {
 DEFINE_NATIVE_ENTRY(ClassMirror_library, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
   const Class& klass = Class::Handle(ref.GetClassReferent());
-  return CreateLibraryMirror(Library::Handle(klass.library()));
+  const Library& library = Library::Handle(klass.library());
+  // TODO(rmacnak): Revisit when we decide what to do about
+  // reflectClass(dynamic).
+  if (library.IsNull()) {
+    return Instance::null();
+  }
+  return CreateLibraryMirror(library);
 }
 
 
