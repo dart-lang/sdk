@@ -671,7 +671,7 @@ class Class extends Indexable {
     'superclass': validSuperclass(),
     'implements': interfaces.where(_isVisible)
         .map((e) => e.qualifiedName).toList(),
-    'subclass': subclasses,
+    'subclass': subclasses.toList(),
     'variables': recurseMap(variables),
     'inheritedvariables': recurseMap(inheritedVariables),
     'methods': methods.toMap(),
