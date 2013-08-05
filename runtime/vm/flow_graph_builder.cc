@@ -57,7 +57,6 @@ FlowGraphBuilder::FlowGraphBuilder(ParsedFunction* parsed_function,
     exit_collector_(exit_collector),
     last_used_block_id_(0),  // 0 is used for the graph entry.
     context_level_(0),
-    last_used_try_index_(CatchClauseNode::kInvalidTryIndex),
     try_index_(CatchClauseNode::kInvalidTryIndex),
     loop_depth_(0),
     graph_entry_(NULL),
@@ -3315,7 +3314,8 @@ void EffectGraphVisitor::VisitCatchClauseNode(CatchClauseNode* node) {
 void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
   InlineBailout("EffectGraphVisitor::VisitTryCatchNode (exception)");
   intptr_t original_handler_index = owner()->try_index();
-  intptr_t try_handler_index = owner()->AllocateTryIndex();
+  intptr_t try_handler_index = node->try_index();
+  ASSERT(try_handler_index != original_handler_index);
   owner()->set_try_index(try_handler_index);
 
   // Preserve CTX into local variable '%saved_context'.
@@ -3348,7 +3348,8 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
     // block.
     intptr_t catch_handler_index = (finally_block == NULL)
         ? original_handler_index
-        : owner()->AllocateTryIndex();
+        : catch_block->catch_handler_index();
+
     owner()->set_try_index(catch_handler_index);
     EffectGraphVisitor for_catch(owner(), temp_index());
     catch_block->Visit(&for_catch);
@@ -3403,7 +3404,6 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
       AppendFragment(finally_entry, for_finally);
     }
   }
-
   // Generate code for the finally block if one exists.
   if ((finally_block != NULL) && is_open()) {
     EffectGraphVisitor for_finally_block(owner(), temp_index());
@@ -3544,7 +3544,8 @@ void EffectGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
     // We are about to generate code for an inlined finally block. Exceptions
     // thrown in this block of code should be treated as though they are
     // thrown not from the current try block but the outer try block if any.
-    owner()->set_try_index((try_index - 1));
+    intptr_t outer_try_index = node->try_index();
+    owner()->set_try_index(outer_try_index);
   }
   BuildRestoreContext(node->context_var());
 

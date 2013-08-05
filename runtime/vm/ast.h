@@ -1556,13 +1556,15 @@ class CatchClauseNode : public AstNode {
                   const Array& handler_types,
                   const LocalVariable* context_var,
                   const LocalVariable* exception_var,
-                  const LocalVariable* stacktrace_var)
+                  const LocalVariable* stacktrace_var,
+                  intptr_t catch_handler_index)
       : AstNode(token_pos),
         catch_block_(catch_block),
         handler_types_(handler_types),
         context_var_(*context_var),
         exception_var_(*exception_var),
-        stacktrace_var_(*stacktrace_var) {
+        stacktrace_var_(*stacktrace_var),
+        catch_handler_index_(catch_handler_index) {
     ASSERT(catch_block_ != NULL);
     ASSERT(handler_types.IsZoneHandle());
     ASSERT(context_var != NULL);
@@ -1574,6 +1576,7 @@ class CatchClauseNode : public AstNode {
   const LocalVariable& context_var() const { return context_var_; }
   const LocalVariable& exception_var() const { return exception_var_; }
   const LocalVariable& stacktrace_var() const { return stacktrace_var_; }
+  intptr_t catch_handler_index() const { return catch_handler_index_; }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
     catch_block_->Visit(visitor);
@@ -1587,6 +1590,7 @@ class CatchClauseNode : public AstNode {
   const LocalVariable& context_var_;
   const LocalVariable& exception_var_;
   const LocalVariable& stacktrace_var_;
+  const intptr_t catch_handler_index_;
 
   DISALLOW_COPY_AND_ASSIGN(CatchClauseNode);
 };
@@ -1599,13 +1603,15 @@ class TryCatchNode : public AstNode {
                SourceLabel* end_catch_label,
                const LocalVariable* context_var,
                CatchClauseNode* catch_block,
-               SequenceNode* finally_block)
+               SequenceNode* finally_block,
+               intptr_t try_index)
       : AstNode(token_pos),
         try_block_(try_block),
         end_catch_label_(end_catch_label),
         context_var_(*context_var),
         catch_block_(catch_block),
-        finally_block_(finally_block) {
+        finally_block_(finally_block),
+        try_index_(try_index) {
     ASSERT(try_block_ != NULL);
     ASSERT(context_var != NULL);
     ASSERT(catch_block_ != NULL || finally_block_ != NULL);
@@ -1617,6 +1623,7 @@ class TryCatchNode : public AstNode {
   CatchClauseNode* catch_block() const { return catch_block_; }
   SequenceNode* finally_block() const { return finally_block_; }
   const LocalVariable& context_var() const { return context_var_; }
+  intptr_t try_index() const { return try_index_; }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
     try_block_->Visit(visitor);
@@ -1636,6 +1643,7 @@ class TryCatchNode : public AstNode {
   const LocalVariable& context_var_;
   CatchClauseNode* catch_block_;
   SequenceNode* finally_block_;
+  const intptr_t try_index_;
 
   DISALLOW_COPY_AND_ASSIGN(TryCatchNode);
 };
@@ -1672,16 +1680,19 @@ class InlinedFinallyNode : public AstNode {
  public:
   InlinedFinallyNode(intptr_t token_pos,
                      AstNode* finally_block,
-                     const LocalVariable* context_var)
+                     const LocalVariable* context_var,
+                     intptr_t try_index)
       : AstNode(token_pos),
         finally_block_(finally_block),
-        context_var_(*context_var) {
+        context_var_(*context_var),
+        try_index_(try_index) {
     ASSERT(finally_block_ != NULL);
     ASSERT(context_var != NULL);
   }
 
   AstNode* finally_block() const { return finally_block_; }
   const LocalVariable& context_var() const { return context_var_; }
+  intptr_t try_index() const { return try_index_; }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
     finally_block()->Visit(visitor);
@@ -1692,6 +1703,7 @@ class InlinedFinallyNode : public AstNode {
  private:
   AstNode* finally_block_;
   const LocalVariable& context_var_;
+  const intptr_t try_index_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(InlinedFinallyNode);
 };

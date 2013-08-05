@@ -821,7 +821,12 @@ void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
 
 
 void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("B%"Pd"[join]:%"Pd" pred(", block_id(), GetDeoptId());
+  if (try_index() != CatchClauseNode::kInvalidTryIndex) {
+    f->Print("B%"Pd"[join try_idx %"Pd"]:%"Pd" pred(",
+             block_id(), try_index(), GetDeoptId());
+  } else {
+    f->Print("B%"Pd"[join]:%"Pd" pred(", block_id(), GetDeoptId());
+  }
   for (intptr_t i = 0; i < predecessors_.length(); ++i) {
     if (i > 0) f->Print(", ");
     f->Print("B%"Pd, predecessors_[i]->block_id());
@@ -877,7 +882,12 @@ void CheckStackOverflowInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("B%"Pd"[target]:%"Pd, block_id(), GetDeoptId());
+  if (try_index() != CatchClauseNode::kInvalidTryIndex) {
+    f->Print("B%"Pd"[target try_idx %"Pd"]:%"Pd,
+             block_id(), try_index(), GetDeoptId());
+  } else {
+    f->Print("B%"Pd"[target]:%"Pd, block_id(), GetDeoptId());
+  }
   if (HasParallelMove()) {
     f->Print(" ");
     parallel_move()->PrintTo(f);
@@ -886,7 +896,8 @@ void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
 
 
 void CatchBlockEntryInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("B%"Pd"[target catch %"Pd"]", block_id(), catch_try_index());
+  f->Print("B%"Pd"[target catch try_idx %"Pd" catch_try_idx %"Pd"]",
+           block_id(), try_index(), catch_try_index());
   if (HasParallelMove()) {
     f->Print(" ");
     parallel_move()->PrintTo(f);

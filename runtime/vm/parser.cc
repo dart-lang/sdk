@@ -204,13 +204,15 @@ struct Parser::Block : public ZoneAllocated {
 // block using 'return', 'break' or 'continue'.
 class Parser::TryBlocks : public ZoneAllocated {
  public:
-  TryBlocks(Block* try_block, TryBlocks* outer_try_block)
+  TryBlocks(Block* try_block, TryBlocks* outer_try_block, intptr_t try_index)
       : try_block_(try_block),
         inlined_finally_nodes_(),
-        outer_try_block_(outer_try_block) { }
+        outer_try_block_(outer_try_block),
+        try_index_(try_index) { }
 
   TryBlocks* outer_try_block() const { return outer_try_block_; }
   Block* try_block() const { return try_block_; }
+  intptr_t try_index() const { return try_index_; }
 
   void AddNodeForFinallyInlining(AstNode* node);
   AstNode* GetNodeToInlineFinally(int index) {
@@ -224,6 +226,7 @@ class Parser::TryBlocks : public ZoneAllocated {
   Block* try_block_;
   GrowableArray<AstNode*> inlined_finally_nodes_;
   TryBlocks* outer_try_block_;
+  const intptr_t try_index_;
 
   DISALLOW_COPY_AND_ASSIGN(TryBlocks);
 };
@@ -250,7 +253,8 @@ Parser::Parser(const Script& script, const Library& library, intptr_t token_pos)
       literal_token_(LiteralToken::Handle(isolate_)),
       current_class_(Class::Handle(isolate_)),
       library_(Library::Handle(isolate_, library.raw())),
-      try_blocks_list_(NULL) {
+      try_blocks_list_(NULL),
+      last_used_try_index_(CatchClauseNode::kInvalidTryIndex) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!library.IsNull());
 }
@@ -278,7 +282,8 @@ Parser::Parser(const Script& script,
       library_(Library::Handle(Class::Handle(
           isolate_,
           parsed_function->function().origin()).library())),
-      try_blocks_list_(NULL) {
+      try_blocks_list_(NULL),
+      last_used_try_index_(CatchClauseNode::kInvalidTryIndex) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!current_function().IsNull());
   if (FLAG_enable_type_checks) {
@@ -6298,7 +6303,8 @@ SequenceNode* Parser::ParseFinallyBlock() {
 
 
 void Parser::PushTryBlock(Block* try_block) {
-  TryBlocks* block = new TryBlocks(try_block, try_blocks_list_);
+  intptr_t try_index = AllocateTryIndex();
+  TryBlocks* block = new TryBlocks(try_block, try_blocks_list_, try_index);
   try_blocks_list_ = block;
 }
 
@@ -6550,6 +6556,11 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   }
   catch_handler_list = CloseBlock();
   TryBlocks* inner_try_block = PopTryBlock();
+  intptr_t try_index = inner_try_block->try_index();
+  TryBlocks* outer_try_block = try_blocks_list_;
+  intptr_t outer_try_index = (outer_try_block != NULL)
+      ? outer_try_block->try_index()
+      : CatchClauseNode::kInvalidTryIndex;
 
   // Finally parse the 'finally' block.
   SequenceNode* finally_block = NULL;
@@ -6565,7 +6576,8 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       finally_block = ParseFinallyBlock();
       InlinedFinallyNode* node = new InlinedFinallyNode(finally_pos,
                                                         finally_block,
-                                                        context_var);
+                                                        context_var,
+                                                        outer_try_index);
       AddFinallyBlockToNode(node_to_inline, node);
       node_index += 1;
       node_to_inline = inner_try_block->GetNodeToInlineFinally(node_index);
@@ -6592,14 +6604,17 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
                           Array::ZoneHandle(Array::MakeArray(handler_types)),
                           context_var,
                           catch_excp_var,
-                          catch_trace_var);
+                          catch_trace_var,
+                          (finally_block != NULL)
+                              ? AllocateTryIndex()
+                              : CatchClauseNode::kInvalidTryIndex);
 
   // Now create the try/catch ast node and return it. If there is a label
   // on the try/catch, close the block that's embedding the try statement
   // and attach the label to it.
   AstNode* try_catch_node =
       new TryCatchNode(try_pos, try_block, end_catch_label,
-                       context_var, catch_block, finally_block);
+                       context_var, catch_block, finally_block, try_index);
 
   if (try_label != NULL) {
     current_block_->statements->Add(try_catch_node);
