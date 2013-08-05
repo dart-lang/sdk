@@ -31,7 +31,7 @@ import 'src/custom_tag_name.dart';
 void registerCustomElement(String localName, CustomElement create()) {
   if (_customElements == null) {
     _customElements = {};
-    CustomElement.templateCreated.add(initCustomElements);
+    mdv.instanceCreated.add(initCustomElements);
     // TODO(jmesserly): use MutationObserver to watch for inserts?
   }
 
@@ -159,46 +159,6 @@ class CustomElement implements Element {
 
   getShadowRoot(String componentName) => _generatedRoots[componentName];
 
-
-  /**
-   * *Warning*: This is an implementation helper for Custom Elements and
-   * should not be used in your code.
-   *
-   * Clones the template, instantiates custom elements and hooks events, then
-   * returns it.
-   */
-  DocumentFragment cloneTemplate(DocumentFragment shadowTemplate) {
-    var result = shadowTemplate.clone(true);
-    // TODO(jmesserly): should bindModel ensure this happens?
-    TemplateElement.bootstrap(result);
-    if (_templateCreated != null) {
-      for (var callback in _templateCreated) callback(result);
-    }
-    return result;
-  }
-
-  // TODO(jmesserly): ideally this would be a stream, but they don't allow
-  // reentrancy.
-  static Set<DocumentFragmentCreated> _templateCreated;
-
-  /**
-   * *Warning*: This is an implementation helper for Custom Elements and
-   * should not be used in your code.
-   *
-   * This event is fired whenever a template is instantiated via
-   * [cloneTemplate] or via [Element.createInstance]
-   */
-  // TODO(jmesserly): This is a hack, and is neccesary for the polyfill
-  // because custom elements are not upgraded during clone()
-  static Set<DocumentFragmentCreated> get templateCreated {
-    if (_templateCreated == null) {
-      _templateCreated = new Set<DocumentFragmentCreated>();
-      mdv.instanceCreated.listen((value) {
-        for (var callback in _templateCreated) callback(value);
-      });
-    }
-    return _templateCreated;
-  }
   /**
    * Invoked when this component gets created.
    * Note that [root] will be a [ShadowRoot] if the browser supports Shadow DOM.
@@ -230,7 +190,7 @@ class CustomElement implements Element {
       host.createInstance(model, delegate);
   createBinding(String name, model, String path) =>
       host.createBinding(name, model, path);
-  void bind(String name, model, String path) => host.bind(name, model, path);
+  bind(String name, model, String path) => host.bind(name, model, path);
   void unbind(String name) => host.unbind(name);
   void unbindAll() => host.unbindAll();
   get bindings => host.bindings;
@@ -658,8 +618,6 @@ class CustomElement implements Element {
   }
 }
 
-
-typedef DocumentFragmentCreated(DocumentFragment fragment);
 
 Map<String, Function> _customElements;
 

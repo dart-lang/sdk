@@ -80,6 +80,10 @@ import 'dart:mirrors';
 // above.
 import 'src/dirty_check.dart';
 
+// TODO(jmesserly): should this be public? For now we're just using it inside
+// Polymer.
+import 'src/microtask.dart';
+
 part 'src/change_notifier.dart';
 part 'src/change_record.dart';
 part 'src/compound_binding.dart';

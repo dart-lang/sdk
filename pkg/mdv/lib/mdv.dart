@@ -36,7 +36,12 @@ void initialize() {
   TemplateElement.mdvPackage = _mdv;
 }
 
-StreamController<DocumentFragment> _instanceCreated;
+
+typedef DocumentFragmentCreated(DocumentFragment fragment);
+
+// TODO(jmesserly): ideally this would be a stream, but they don't allow
+// reentrancy.
+Set<DocumentFragmentCreated> _instanceCreated;
 
 /**
  * *Warning*: This is an implementation helper for Model-Driven Views and
@@ -49,11 +54,11 @@ StreamController<DocumentFragment> _instanceCreated;
 // because custom elements are not upgraded during clone()
 // TODO(jmesserly): polymer removed this in:
 // https://github.com/Polymer/platform/commit/344ffeaae475babb529403f6608588a0fc73f4e7
-Stream<DocumentFragment> get instanceCreated {
+Set<DocumentFragmentCreated> get instanceCreated {
   if (_instanceCreated == null) {
-    _instanceCreated = new StreamController<DocumentFragment>(sync: true);
+    _instanceCreated = new Set<DocumentFragmentCreated>();
   }
-  return _instanceCreated.stream;
+  return _instanceCreated;
 }
 
 

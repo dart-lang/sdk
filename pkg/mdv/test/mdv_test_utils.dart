@@ -9,6 +9,9 @@ import 'dart:html';
 import 'package:observe/observe.dart';
 import 'package:unittest/unittest.dart';
 
+import 'package:observe/src/microtask.dart';
+export 'package:observe/src/microtask.dart';
+
 final bool parserHasNativeTemplate = () {
   var div = new DivElement()..innerHtml = '<table><template>';
   return div.firstChild.firstChild != null &&
@@ -59,42 +62,6 @@ class FooBarNotifyModel extends ChangeNotifierBase implements FooBarModel {
   set bar(value) {
     _bar = notifyPropertyChange(const Symbol('bar'), _bar, value);
   }
-}
-
-// TODO(jmesserly): this is a copy/paste from observe_test_utils.dart
-// Is it worth putting it in its own package, or in an existing one?
-
-void performMicrotaskCheckpoint() {
-  Observable.dirtyCheck();
-
-  while (_pending.length > 0) {
-    var pending = _pending;
-    _pending = [];
-
-    for (var callback in pending) {
-      try {
-        callback();
-      } catch (e, s) {
-        new Completer().completeError(e, s);
-      }
-    }
-
-    Observable.dirtyCheck();
-  }
-}
-
-List<Function> _pending = [];
-
-wrapMicrotask(void testCase()) {
-  return () {
-    runZonedExperimental(() {
-      try {
-        testCase();
-      } finally {
-        performMicrotaskCheckpoint();
-      }
-    }, onRunAsync: (callback) => _pending.add(callback));
-  };
 }
 
 observeTest(name, testCase) => test(name, wrapMicrotask(testCase));

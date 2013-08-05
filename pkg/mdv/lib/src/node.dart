@@ -19,9 +19,12 @@ class _NodeExtension {
    */
   NodeBinding bind(String name, model, String path) {
     var binding = bindings[name];
-    if (binding != null)  binding.close();
+    if (binding != null) binding.close();
 
-    binding = createBinding(name, model, path);
+    // Note: dispatch through the xtag so a custom element can override it.
+    binding = (node is Element ? (node as Element).xtag : node)
+        .createBinding(name, model, path);
+
     bindings[name] = binding;
     if (binding == null) {
       window.console.error('Unhandled binding to Node: '
