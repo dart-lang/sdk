@@ -59,7 +59,6 @@ static char** ExtractCStringList(Dart_Handle strings,
 }
 
 void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_Handle process =  Dart_GetNativeArgument(args, 0);
   intptr_t process_stdin;
   intptr_t process_stdout;
@@ -157,54 +156,44 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
   delete[] string_environment;
   free(os_error_message);
   Dart_SetReturnValue(args, Dart_NewBoolean(error_code == 0));
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(Process_Kill)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_Handle process = Dart_GetNativeArgument(args, 1);
   intptr_t pid = -1;
   Process::GetProcessIdNativeField(process, &pid);
   int signal = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
   bool success = Process::Kill(pid, signal);
   Dart_SetReturnValue(args, Dart_NewBoolean(success));
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(Process_Exit)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   int64_t status = 0;
   // Ignore result if passing invalid argument and just exit 0.
   DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 0), &status);
-  Dart_ExitScope();
   exit(static_cast<int>(status));
 }
 
 
 void FUNCTION_NAME(Process_SetExitCode)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   int64_t status = 0;
   // Ignore result if passing invalid argument and just set exit code to 0.
   DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 0), &status);
   Process::SetGlobalExitCode(status);
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(Process_Sleep)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   int64_t milliseconds = 0;
   // Ignore result if passing invalid argument and just set exit code to 0.
   DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 0), &milliseconds);
   TimerUtils::Sleep(milliseconds);
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(Process_Pid)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   // Ignore result if passing invalid argument and just set exit code to 0.
   intptr_t pid = -1;
   Dart_Handle process = Dart_GetNativeArgument(args, 0);
@@ -214,7 +203,6 @@ void FUNCTION_NAME(Process_Pid)(Dart_NativeArguments args) {
     Process::GetProcessIdNativeField(process, &pid);
   }
   Dart_SetReturnValue(args, Dart_NewInteger(pid));
-  Dart_ExitScope();
 }
 
 
@@ -231,7 +219,6 @@ Dart_Handle Process::SetProcessIdNativeField(Dart_Handle process,
 
 
 void FUNCTION_NAME(SystemEncodingToString)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_Handle bytes = Dart_GetNativeArgument(args, 0);
   intptr_t bytes_length = 0;
   Dart_Handle result = Dart_ListLength(bytes, &bytes_length);
@@ -247,12 +234,10 @@ void FUNCTION_NAME(SystemEncodingToString)(Dart_NativeArguments args) {
       StringUtils::ConsoleStringToUtf8(reinterpret_cast<char*>(buffer));
   Dart_SetReturnValue(args, DartUtils::NewString(str));
   if (str != reinterpret_cast<char*>(buffer)) free(str);
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(StringToSystemEncoding)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_Handle str = Dart_GetNativeArgument(args, 0);
   const char* utf8 = DartUtils::GetStringValue(str);
   const char* system_string = StringUtils::Utf8ToConsoleString(utf8);
@@ -262,7 +247,6 @@ void FUNCTION_NAME(StringToSystemEncoding)(Dart_NativeArguments args) {
   memmove(buffer, system_string, external_length);
   if (utf8 != system_string) free(const_cast<char*>(system_string));
   Dart_SetReturnValue(args, external_array);
-  Dart_ExitScope();
 }
 
 }  // namespace bin

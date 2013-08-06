@@ -22,6 +22,7 @@ class RawCode;
 #define VM_STUB_CODE_LIST(V)                                                   \
   V(CallToRuntime)                                                             \
   V(PrintStopMessage)                                                          \
+  V(CallBootstrapCFunction)                                                    \
   V(CallNativeCFunction)                                                       \
   V(AllocateArray)                                                             \
   V(CallNoSuchMethodFunction)                                                  \

@@ -106,7 +106,6 @@ static void InitNativeFields(Dart_NativeArguments args) {
 // The specific api functions called here are a bit arbitrary.  We are
 // trying to get a sense of the overhead for using the dart api.
 static void UseDartApi(Dart_NativeArguments args) {
-  Dart_EnterScope();
   int count = Dart_GetNativeArgumentCount(args);
   EXPECT_EQ(3, count);
 
@@ -132,7 +131,6 @@ static void UseDartApi(Dart_NativeArguments args) {
 
   // Return param + receiver.field.
   Dart_SetReturnValue(args, Dart_NewInteger(value1 * receiver_value));
-  Dart_ExitScope();
 }
 
 
@@ -306,7 +304,6 @@ BENCHMARK(Dart2JSCompileAll) {
 //
 static void StackFrame_accessFrame(Dart_NativeArguments args) {
   const int kNumIterations = 100;
-  Dart_EnterScope();
   Code& code = Code::Handle();
   Timer timer(true, "LookupDartCode benchmark");
   timer.Start();
@@ -327,7 +324,6 @@ static void StackFrame_accessFrame(Dart_NativeArguments args) {
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
   Dart_SetReturnValue(args, Dart_NewInteger(elapsed_time));
-  Dart_ExitScope();
 }
 
 

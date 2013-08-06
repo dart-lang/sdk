@@ -12,7 +12,6 @@ namespace dart {
 namespace bin {
 
 void FUNCTION_NAME(Crypto_GetRandomBytes)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_Handle count_obj = Dart_GetNativeArgument(args, 0);
   int64_t count = 0;
   if (!DartUtils::GetInt64Value(count_obj, &count)) {
@@ -35,7 +34,6 @@ void FUNCTION_NAME(Crypto_GetRandomBytes)(Dart_NativeArguments args) {
   Dart_ListSetAsBytes(result, 0, buffer, count);
   Dart_SetReturnValue(args, result);
   delete[] buffer;
-  Dart_ExitScope();
 }
 
 }  // namespace bin

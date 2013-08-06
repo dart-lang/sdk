@@ -97,7 +97,6 @@ Dart_NativeFunction Builtin::NativeLookup(Dart_Handle name,
 // Implementation of native functions which are used for some
 // test/debug functionality in standalone dart mode.
 void FUNCTION_NAME(Logger_PrintString)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   intptr_t length = 0;
   uint8_t* chars = NULL;
   Dart_Handle str = Dart_GetNativeArgument(args, 0);
@@ -113,7 +112,6 @@ void FUNCTION_NAME(Logger_PrintString)(Dart_NativeArguments args) {
   }
   fputc('\n', stdout);
   fflush(stdout);
-  Dart_ExitScope();
 }
 
 }  // namespace bin

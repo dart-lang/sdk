@@ -28,6 +28,7 @@ DEFINE_FLAG(bool, use_slow_path, false,
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
 
+
 // Input parameters:
 //   RSP : points to return address.
 //   RSP + 8 : address of last argument in argument array.
@@ -121,6 +122,75 @@ void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
 //   RBX : address of the native function to call.
 //   R10 : argc_tag including number of arguments and function kind.
 void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
+  const intptr_t native_args_struct_offset = 0;
+  const intptr_t isolate_offset =
+      NativeArguments::isolate_offset() + native_args_struct_offset;
+  const intptr_t argc_tag_offset =
+      NativeArguments::argc_tag_offset() + native_args_struct_offset;
+  const intptr_t argv_offset =
+      NativeArguments::argv_offset() + native_args_struct_offset;
+  const intptr_t retval_offset =
+      NativeArguments::retval_offset() + native_args_struct_offset;
+
+  __ EnterFrame(0);
+
+  // Load current Isolate pointer from Context structure into R8.
+  __ movq(R8, FieldAddress(CTX, Context::isolate_offset()));
+
+  // Save exit frame information to enable stack walking as we are about
+  // to transition to native code.
+  __ movq(Address(R8, Isolate::top_exit_frame_info_offset()), RSP);
+
+  // Save current Context pointer into Isolate structure.
+  __ movq(Address(R8, Isolate::top_context_offset()), CTX);
+
+  // Cache Isolate pointer into CTX while executing native code.
+  __ movq(CTX, R8);
+
+  // Reserve space for the native arguments structure passed on the stack (the
+  // outgoing pointer parameter to the native arguments structure is passed in
+  // RDI) and align frame before entering the C++ world.
+  __ AddImmediate(RSP, Immediate(-sizeof(NativeArguments)));
+  if (OS::ActivationFrameAlignment() > 0) {
+    __ andq(RSP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
+  }
+
+  // Pass NativeArguments structure by value and call native function.
+  __ movq(Address(RSP, isolate_offset), CTX);  // Set isolate in NativeArgs.
+  __ movq(Address(RSP, argc_tag_offset), R10);  // Set argc in NativeArguments.
+  __ movq(Address(RSP, argv_offset), RAX);  // Set argv in NativeArguments.
+  __ leaq(RAX, Address(RBP, 2 * kWordSize));  // Compute return value addr.
+  __ movq(Address(RSP, retval_offset), RAX);  // Set retval in NativeArguments.
+  __ movq(RDI, RSP);  // Pass the pointer to the NativeArguments.
+  __ movq(RSI, RBX);  // Pass pointer to function entrypoint.
+  __ call(&NativeEntry::NativeCallWrapperLabel());
+
+  // Reset exit frame information in Isolate structure.
+  __ movq(Address(CTX, Isolate::top_exit_frame_info_offset()), Immediate(0));
+
+  // Load Context pointer from Isolate structure into R8.
+  __ movq(R8, Address(CTX, Isolate::top_context_offset()));
+
+  // Reset Context pointer in Isolate structure.
+  const Immediate& raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  __ movq(Address(CTX, Isolate::top_context_offset()), raw_null);
+
+  // Cache Context pointer into CTX while executing Dart code.
+  __ movq(CTX, R8);
+
+  __ LeaveFrame();
+  __ ret();
+}
+
+
+// Input parameters:
+//   RSP : points to return address.
+//   RSP + 8 : address of return value.
+//   RAX : address of first argument in argument array.
+//   RBX : address of the native function to call.
+//   R10 : argc_tag including number of arguments and function kind.
+void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   const intptr_t native_args_struct_offset = 0;
   const intptr_t isolate_offset =
       NativeArguments::isolate_offset() + native_args_struct_offset;

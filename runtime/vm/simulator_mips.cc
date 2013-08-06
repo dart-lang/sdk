@@ -973,7 +973,8 @@ typedef int32_t (*SimulatorLeafRuntimeCall)(
 typedef double (*SimulatorLeafFloatRuntimeCall)(double d0, double d1);
 
 // Calls to native Dart functions are based on this interface.
-typedef void (*SimulatorNativeCall)(NativeArguments* arguments);
+typedef void (*SimulatorBootstrapNativeCall)(NativeArguments* arguments);
+typedef void (*SimulatorNativeCall)(NativeArguments* arguments, uword target);
 
 
 void Simulator::DoBreak(Instr *instr) {
@@ -1008,6 +1009,7 @@ void Simulator::DoBreak(Instr *instr) {
       }
 
       if ((redirection->call_kind() == kRuntimeCall) ||
+          (redirection->call_kind() == kBootstrapNativeCall) ||
           (redirection->call_kind() == kNativeCall)) {
         // Set the top_exit_frame_info of this simulator to the native stack.
         set_top_exit_frame_info(reinterpret_cast<uword>(&buffer));
@@ -1045,13 +1047,22 @@ void Simulator::DoBreak(Instr *instr) {
         double d7 = get_fregister_double(F14);
         d0 = target(d6, d7);
         set_fregister_double(F0, d0);
+      } else if (redirection->call_kind() == kBootstrapNativeCall) {
+        NativeArguments* arguments;
+        arguments = reinterpret_cast<NativeArguments*>(get_register(A0));
+        SimulatorBootstrapNativeCall target =
+            reinterpret_cast<SimulatorBootstrapNativeCall>(external);
+        target(arguments);
+        set_register(V0, icount_);  // Zap result register from void function.
+        set_register(V1, icount_);
       } else {
         ASSERT(redirection->call_kind() == kNativeCall);
         NativeArguments* arguments;
         arguments = reinterpret_cast<NativeArguments*>(get_register(A0));
+        uword target_func = get_register(A1);
         SimulatorNativeCall target =
             reinterpret_cast<SimulatorNativeCall>(external);
-        target(arguments);
+        target(arguments, target_func);
         set_register(V0, icount_);  // Zap result register from void function.
         set_register(V1, icount_);
       }

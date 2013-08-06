@@ -5,6 +5,7 @@
 #ifndef VM_BOOTSTRAP_H_
 #define VM_BOOTSTRAP_H_
 
+#include "include/dart_api.h"
 #include "vm/allocation.h"
 
 namespace dart {
@@ -16,6 +17,7 @@ class Bootstrap : public AllStatic {
  public:
   static RawError* LoadandCompileScripts();
   static void SetupNativeResolver();
+  static bool IsBootstapResolver(Dart_NativeEntryResolver resolver);
 
   // Source path mapping for library URI and 'parts'.
   static const char* async_source_paths_[];

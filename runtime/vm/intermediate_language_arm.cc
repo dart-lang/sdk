@@ -999,15 +999,23 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // this is a redirection address that forces the simulator to call
   // into the runtime system.
   uword entry = reinterpret_cast<uword>(native_c_function());
+  const ExternalLabel* stub_entry;
+  if (is_bootstrap_native()) {
+    stub_entry = &StubCode::CallBootstrapCFunctionLabel();
 #if defined(USING_SIMULATOR)
-  entry = Simulator::RedirectExternalReference(entry,
-                                               Simulator::kNativeCall,
-                                               function().NumParameters());
+    entry = Simulator::RedirectExternalReference(
+        entry, Simulator::kBootstrapNativeCall, function().NumParameters());
 #endif
+  } else {
+    // In the case of non bootstrap native methods the CallNativeCFunction
+    // stub generates the redirection address when running under the simulator
+    // and hence we do not change 'entry' here.
+    stub_entry = &StubCode::CallNativeCFunctionLabel();
+  }
   __ LoadImmediate(R5, entry);
   __ LoadImmediate(R1, NativeArguments::ComputeArgcTag(function()));
   compiler->GenerateCall(token_pos(),
-                         &StubCode::CallNativeCFunctionLabel(),
+                         stub_entry,
                          PcDescriptors::kOther,
                          locs());
   __ Pop(result);

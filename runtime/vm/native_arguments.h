@@ -12,13 +12,16 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, deoptimize_alot);
+DECLARE_FLAG(bool, trace_natives);
+DECLARE_FLAG(bool, verify_on_transition);
+
 // Forward declarations.
 class BootstrapNatives;
 class Isolate;
 class Object;
 class RawObject;
 class Simulator;
-
 
 #if defined(TESTING) || defined(DEBUG)
 
@@ -41,9 +44,26 @@ class Simulator;
 }
 #endif
 
+#define VERIFY_ON_TRANSITION                                                   \
+  if (FLAG_verify_on_transition) {                                             \
+    VerifyPointersVisitor::VerifyPointers();                                   \
+    Isolate::Current()->heap()->Verify();                                      \
+  }
+#define TRACE_NATIVES(name)                                                    \
+  if (FLAG_trace_natives) {                                                    \
+    OS::Print("Calling native: %s\n", name);                                   \
+  }
+#define DEOPTIMIZE_ALOT                                                        \
+  if (FLAG_deoptimize_alot) {                                                  \
+    DeoptimizeAll();                                                           \
+  }
+
 #else
 
 #define CHECK_STACK_ALIGNMENT { }
+#define VERIFY_ON_TRANSITION { }
+#define TRACE_NATIVES(name) { }
+#define DEOPTIMIZE_ALOT { }
 
 #endif
 

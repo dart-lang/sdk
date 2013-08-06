@@ -18,27 +18,21 @@ namespace dart {
 namespace bin {
 
 void FUNCTION_NAME(Stdin_ReadByte)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_SetReturnValue(args, Dart_NewInteger(Stdin::ReadByte()));
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(Stdin_SetEchoMode)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   bool enabled = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 1));
   Stdin::SetEchoMode(enabled);
   Dart_SetReturnValue(args, Dart_Null());
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(Stdin_SetLineMode)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   bool enabled = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 1));
   Stdin::SetLineMode(enabled);
   Dart_SetReturnValue(args, Dart_Null());
-  Dart_ExitScope();
 }
 
 }  // namespace bin

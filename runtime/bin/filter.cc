@@ -37,7 +37,6 @@ void EndFilter(Dart_Handle filter_obj, Filter* filter) {
 }
 
 void FUNCTION_NAME(Filter_CreateZLibInflate)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_Handle filter_obj = Dart_GetNativeArgument(args, 0);
   Filter* filter = new ZLibInflateFilter();
   if (filter == NULL || !filter->Init()) {
@@ -50,11 +49,9 @@ void FUNCTION_NAME(Filter_CreateZLibInflate)(Dart_NativeArguments args) {
     delete filter;
     Dart_PropagateError(result);
   }
-  Dart_ExitScope();
 }
 
 void FUNCTION_NAME(Filter_CreateZLibDeflate)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_Handle filter_obj = Dart_GetNativeArgument(args, 0);
   Dart_Handle gzip_obj = Dart_GetNativeArgument(args, 1);
   Dart_Handle level_obj = Dart_GetNativeArgument(args, 2);
@@ -79,11 +76,9 @@ void FUNCTION_NAME(Filter_CreateZLibDeflate)(Dart_NativeArguments args) {
     delete filter;
     Dart_PropagateError(result);
   }
-  Dart_ExitScope();
 }
 
 void FUNCTION_NAME(Filter_Process)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_Handle filter_obj = Dart_GetNativeArgument(args, 0);
   Filter* filter = GetFilter(filter_obj);
   Dart_Handle data_obj = Dart_GetNativeArgument(args, 1);
@@ -121,12 +116,10 @@ void FUNCTION_NAME(Filter_Process)(Dart_NativeArguments args) {
     Dart_ThrowException(DartUtils::NewInternalError(
         "Call to Process while still processing data"));
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(Filter_Processed)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_Handle filter_obj = Dart_GetNativeArgument(args, 0);
   Filter* filter = GetFilter(filter_obj);
   Dart_Handle flush_obj = Dart_GetNativeArgument(args, 1);
@@ -158,16 +151,13 @@ void FUNCTION_NAME(Filter_Processed)(Dart_NativeArguments args) {
     memmove(io_buffer, filter->processed_buffer(), read);
     Dart_SetReturnValue(args, result);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(Filter_End)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_Handle filter_obj = Dart_GetNativeArgument(args, 0);
   Filter* filter = GetFilter(filter_obj);
   EndFilter(filter_obj, filter);
-  Dart_ExitScope();
 }
 
 

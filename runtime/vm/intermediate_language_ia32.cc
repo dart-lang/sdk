@@ -1070,8 +1070,11 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   __ movl(ECX, Immediate(reinterpret_cast<uword>(native_c_function())));
   __ movl(EDX, Immediate(NativeArguments::ComputeArgcTag(function())));
+  const ExternalLabel* stub_entry =
+      (is_bootstrap_native()) ? &StubCode::CallBootstrapCFunctionLabel() :
+                                &StubCode::CallNativeCFunctionLabel();
   compiler->GenerateCall(token_pos(),
-                         &StubCode::CallNativeCFunctionLabel(),
+                         stub_entry,
                          PcDescriptors::kOther,
                          locs());
   __ popl(result);

@@ -81,4 +81,10 @@ void Bootstrap::SetupNativeResolver() {
   library.set_native_entry_resolver(resolver);
 }
 
+
+bool Bootstrap::IsBootstapResolver(Dart_NativeEntryResolver resolver) {
+  return (resolver ==
+          reinterpret_cast<Dart_NativeEntryResolver>(BootstrapNatives::Lookup));
+}
+
 }  // namespace dart

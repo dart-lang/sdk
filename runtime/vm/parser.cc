@@ -6,6 +6,7 @@
 
 #include "lib/invocation_mirror.h"
 #include "vm/bigint_operations.h"
+#include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler.h"
 #include "vm/compiler_stats.h"
@@ -5009,6 +5010,7 @@ void Parser::ParseNativeFunctionBlock(const ParamList* params,
   func.set_is_native(true);
   TRACE_PARSER("ParseNativeFunctionBlock");
   const Class& cls = Class::Handle(func.Owner());
+  const Library& library = Library::Handle(cls.library());
   ASSERT(func.NumParameters() == params->parameters->length());
 
   // Parse the function name out.
@@ -5018,19 +5020,22 @@ void Parser::ParseNativeFunctionBlock(const ParamList* params,
   // Now resolve the native function to the corresponding native entrypoint.
   const int num_params = NativeArguments::ParameterCountForResolution(func);
   NativeFunction native_function = NativeEntry::ResolveNative(
-      cls, native_name, num_params);
+      library, native_name, num_params);
   if (native_function == NULL) {
     ErrorMsg(native_pos, "native function '%s' cannot be found",
         native_name.ToCString());
   }
 
   // Now add the NativeBodyNode and return statement.
+  Dart_NativeEntryResolver resolver = library.native_entry_resolver();
+  bool is_bootstrap_native = Bootstrap::IsBootstapResolver(resolver);
   current_block_->statements->Add(
       new ReturnNode(TokenPos(),
                      new NativeBodyNode(TokenPos(),
                                         Function::ZoneHandle(func.raw()),
                                         native_name,
-                                        native_function)));
+                                        native_function,
+                                        is_bootstrap_native)));
 }
 
 

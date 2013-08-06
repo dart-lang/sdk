@@ -13,28 +13,21 @@ namespace dart {
 namespace bin {
 
 void FUNCTION_NAME(Platform_NumberOfProcessors)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_SetReturnValue(args, Dart_NewInteger(Platform::NumberOfProcessors()));
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(Platform_OperatingSystem)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_SetReturnValue(args, DartUtils::NewString(Platform::OperatingSystem()));
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(Platform_PathSeparator)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_SetReturnValue(args, DartUtils::NewString(File::PathSeparator()));
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(Platform_LocalHostname)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   const intptr_t HOSTNAME_LENGTH = 256;
   char hostname[HOSTNAME_LENGTH];
   if (Platform::LocalHostname(hostname, HOSTNAME_LENGTH)) {
@@ -42,12 +35,10 @@ void FUNCTION_NAME(Platform_LocalHostname)(Dart_NativeArguments args) {
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(Platform_Environment)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   intptr_t count = 0;
   char** env = Platform::Environment(&count);
   if (env == NULL) {
@@ -76,14 +67,11 @@ void FUNCTION_NAME(Platform_Environment)(Dart_NativeArguments args) {
     Platform::FreeEnvironment(env, count);
     Dart_SetReturnValue(args, result);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(Platform_GetVersion)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_SetReturnValue(args, Dart_NewStringFromCString(Dart_VersionString()));
-  Dart_ExitScope();
 }
 
 }  // namespace bin

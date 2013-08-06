@@ -16,9 +16,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, deoptimize_alot);
-DECLARE_FLAG(bool, trace_natives);
-
 // Forward declarations.
 class Class;
 class String;
@@ -46,13 +43,12 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
     VERIFY_ON_TRANSITION;                                                      \
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);     \
     ASSERT(arguments->NativeArgCount() == argument_count);                     \
-    if (FLAG_trace_natives) OS::Print("Calling native: %s\n", ""#name);        \
+    TRACE_NATIVES(""#name);                                                    \
     {                                                                          \
       StackZone zone(arguments->isolate());                                    \
-      HANDLESCOPE(arguments->isolate());                                       \
       SET_NATIVE_RETVAL(arguments,                                             \
                         DN_Helper##name(arguments->isolate(), arguments));     \
-      if (FLAG_deoptimize_alot) DeoptimizeAll();                               \
+      DEOPTIMIZE_ALOT;                                                         \
     }                                                                          \
     VERIFY_ON_TRANSITION;                                                      \
   }                                                                            \
@@ -92,10 +88,15 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
 // Helper class for resolving and handling native functions.
 class NativeEntry : public AllStatic {
  public:
+  static const intptr_t kNumCallWrapperArguments = 2;
+
   // Resolve specified dart native function to the actual native entrypoint.
-  static NativeFunction ResolveNative(const Class& cls,
+  static NativeFunction ResolveNative(const Library& library,
                                       const String& function_name,
                                       int number_of_arguments);
+  static void NativeCallWrapper(Dart_NativeArguments args,
+                                Dart_NativeFunction func);
+  static const ExternalLabel& NativeCallWrapperLabel();
 };
 
 }  // namespace dart

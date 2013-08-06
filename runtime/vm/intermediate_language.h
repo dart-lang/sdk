@@ -3280,6 +3280,10 @@ class NativeCallInstr : public TemplateDefinition<0> {
     return ast_node_.native_c_function();
   }
 
+  bool is_bootstrap_native() const {
+    return ast_node_.is_bootstrap_native();
+  }
+
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }

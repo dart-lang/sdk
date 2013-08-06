@@ -106,17 +106,14 @@ static void SetFilter(Dart_NativeArguments args, SSLFilter* filter) {
 
 
 void FUNCTION_NAME(SecureSocket_Init)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_Handle dart_this = ThrowIfError(Dart_GetNativeArgument(args, 0));
   SSLFilter* filter = new SSLFilter;
   SetFilter(args, filter);
   filter->Init(dart_this);
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(SecureSocket_Connect)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_Handle host_name_object = ThrowIfError(Dart_GetNativeArgument(args, 1));
   Dart_Handle host_sockaddr_storage_object =
       ThrowIfError(Dart_GetNativeArgument(args, 2));
@@ -168,29 +165,23 @@ void FUNCTION_NAME(SecureSocket_Connect)(Dart_NativeArguments args) {
                            request_client_certificate,
                            require_client_certificate,
                            send_client_certificate);
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(SecureSocket_Destroy)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   SSLFilter* filter = GetFilter(args);
   SetFilter(args, NULL);
   filter->Destroy();
   delete filter;
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(SecureSocket_Handshake)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   GetFilter(args)->Handshake();
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(SecureSocket_Renegotiate)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   bool use_session_cache =
       DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 1));
   bool request_client_certificate =
@@ -200,13 +191,11 @@ void FUNCTION_NAME(SecureSocket_Renegotiate)(Dart_NativeArguments args) {
   GetFilter(args)->Renegotiate(use_session_cache,
                                request_client_certificate,
                                require_client_certificate);
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(SecureSocket_RegisterHandshakeCompleteCallback)(
     Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_Handle handshake_complete =
       ThrowIfError(Dart_GetNativeArgument(args, 1));
   if (!Dart_IsClosure(handshake_complete)) {
@@ -214,13 +203,11 @@ void FUNCTION_NAME(SecureSocket_RegisterHandshakeCompleteCallback)(
         "Illegal argument to RegisterHandshakeCompleteCallback"));
   }
   GetFilter(args)->RegisterHandshakeCompleteCallback(handshake_complete);
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(SecureSocket_RegisterBadCertificateCallback)(
     Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_Handle callback =
       ThrowIfError(Dart_GetNativeArgument(args, 1));
   if (!Dart_IsClosure(callback) && !Dart_IsNull(callback)) {
@@ -228,13 +215,11 @@ void FUNCTION_NAME(SecureSocket_RegisterBadCertificateCallback)(
         "Illegal argument to RegisterBadCertificateCallback"));
   }
   GetFilter(args)->RegisterBadCertificateCallback(callback);
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(SecureSocket_InitializeLibrary)
     (Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_Handle certificate_database_object =
       ThrowIfError(Dart_GetNativeArgument(args, 0));
   // Check that the type is string, and get the UTF-8 C string value from it.
@@ -274,7 +259,6 @@ void FUNCTION_NAME(SecureSocket_InitializeLibrary)
   }
 
   SSLFilter::InitializeLibrary(certificate_database, password, builtin_roots);
-  Dart_ExitScope();
 }
 
 
@@ -318,7 +302,6 @@ static Dart_Handle X509FromCertificate(CERTCertificate* certificate) {
 
 void FUNCTION_NAME(SecureSocket_AddCertificate)
     (Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_Handle certificate_object =
       ThrowIfError(Dart_GetNativeArgument(args, 0));
   Dart_Handle trust_object = ThrowIfError(Dart_GetNativeArgument(args, 1));
@@ -358,7 +341,6 @@ void FUNCTION_NAME(SecureSocket_AddCertificate)
   }
 
   Dart_SetReturnValue(args, X509FromCertificate(cert));
-  Dart_ExitScope();
   return;
 }
 
@@ -366,17 +348,13 @@ void FUNCTION_NAME(SecureSocket_AddCertificate)
 
 void FUNCTION_NAME(SecureSocket_PeerCertificate)
     (Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_SetReturnValue(args, GetFilter(args)->PeerCertificate());
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(SecureSocket_FilterPointer)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   intptr_t filter_pointer = reinterpret_cast<intptr_t>(GetFilter(args));
   Dart_SetReturnValue(args, Dart_NewInteger(filter_pointer));
-  Dart_ExitScope();
 }
 
 
@@ -1039,7 +1017,6 @@ Dart_Port SSLFilter::GetServicePort() {
 
 
 void FUNCTION_NAME(SecureSocket_NewServicePort)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_SetReturnValue(args, Dart_Null());
   Dart_Port service_port = SSLFilter::GetServicePort();
   if (service_port != ILLEGAL_PORT) {
@@ -1047,7 +1024,6 @@ void FUNCTION_NAME(SecureSocket_NewServicePort)(Dart_NativeArguments args) {
     Dart_Handle send_port = Dart_NewSendPort(service_port);
     Dart_SetReturnValue(args, send_port);
   }
-  Dart_ExitScope();
 }
 
 

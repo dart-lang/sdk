@@ -22,18 +22,15 @@ NativeService Directory::directory_service_("DirectoryService",
 
 
 void FUNCTION_NAME(Directory_Current)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   char* current = Directory::Current();
   if (current != NULL) {
     Dart_SetReturnValue(args, DartUtils::NewString(current));
     free(current);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(Directory_SetCurrent)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   int argc = Dart_GetNativeArgumentCount(args);
   Dart_Handle path;
   if (argc == 1) {
@@ -50,14 +47,12 @@ void FUNCTION_NAME(Directory_SetCurrent)(Dart_NativeArguments args) {
       Dart_SetReturnValue(args, err);
     }
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(Directory_Exists)(Dart_NativeArguments args) {
   static const int kExists = 1;
   static const int kDoesNotExist = 0;
-  Dart_EnterScope();
   Dart_Handle path = Dart_GetNativeArgument(args, 0);
   Directory::ExistsResult result =
       Directory::Exists(DartUtils::GetStringValue(path));
@@ -70,12 +65,10 @@ void FUNCTION_NAME(Directory_Exists)(Dart_NativeArguments args) {
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(Directory_Create)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_Handle path = Dart_GetNativeArgument(args, 0);
   if (Directory::Create(DartUtils::GetStringValue(path))) {
     Dart_SetReturnValue(args, Dart_True());
@@ -84,12 +77,10 @@ void FUNCTION_NAME(Directory_Create)(Dart_NativeArguments args) {
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(Directory_CreateTemp)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_Handle path = Dart_GetNativeArgument(args, 0);
   char* result = Directory::CreateTemp(DartUtils::GetStringValue(path));
   if (result != NULL) {
@@ -100,12 +91,10 @@ void FUNCTION_NAME(Directory_CreateTemp)(Dart_NativeArguments args) {
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(Directory_Delete)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_Handle path = Dart_GetNativeArgument(args, 0);
   Dart_Handle recursive = Dart_GetNativeArgument(args, 1);
   if (Directory::Delete(DartUtils::GetStringValue(path),
@@ -116,12 +105,10 @@ void FUNCTION_NAME(Directory_Delete)(Dart_NativeArguments args) {
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(Directory_Rename)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_Handle path = Dart_GetNativeArgument(args, 0);
   Dart_Handle newPath = Dart_GetNativeArgument(args, 1);
   if (Directory::Rename(DartUtils::GetStringValue(path),
@@ -132,12 +119,10 @@ void FUNCTION_NAME(Directory_Rename)(Dart_NativeArguments args) {
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(Directory_List)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_Handle path = Dart_GetNativeArgument(args, 0);
   Dart_Handle recursive = Dart_GetNativeArgument(args, 1);
   // Create the list to hold the directory listing here, and pass it to the
@@ -156,7 +141,6 @@ void FUNCTION_NAME(Directory_List)(Dart_NativeArguments args) {
                                     DartUtils::GetBooleanValue(follow_links));
   Directory::List(&sync_listing);
   Dart_SetReturnValue(args, results);
-  Dart_ExitScope();
 }
 
 
@@ -356,7 +340,6 @@ Dart_Port Directory::GetServicePort() {
 
 
 void FUNCTION_NAME(Directory_NewServicePort)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_SetReturnValue(args, Dart_Null());
   Dart_Port service_port = Directory::GetServicePort();
   if (service_port != ILLEGAL_PORT) {
@@ -364,7 +347,6 @@ void FUNCTION_NAME(Directory_NewServicePort)(Dart_NativeArguments args) {
     Dart_Handle send_port = Dart_NewSendPort(service_port);
     Dart_SetReturnValue(args, send_port);
   }
-  Dart_ExitScope();
 }
 
 
