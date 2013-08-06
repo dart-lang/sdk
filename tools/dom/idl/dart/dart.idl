@@ -35,6 +35,11 @@ interface Document {
 };
 
 [Supplemental]
+interface Node {
+  Node cloneNode([Default=Undefined] optional boolean deep);
+};
+
+[Supplemental]
 interface ScriptProcessorNode {
   [Suppressed] attribute EventListener onaudioprocess;
   [Custom] void _setEventListener(EventListener eventListener);
