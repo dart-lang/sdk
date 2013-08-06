@@ -821,22 +821,6 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
                                           [Map<Symbol, dynamic> namedArguments]);
 
   /**
-   * Does this mirror represent a class?
-   *
-   * TODO(turnidge): This functions goes away after the
-   * class/interface changes.
-   */
-  bool get isClass;
-
-  /**
-   * A mirror on the default factory class or null if there is none.
-   *
-   * TODO(turnidge): This functions goes away after the
-   * class/interface changes.
-   */
-  ClassMirror get defaultFactory;
-
-  /**
    * Returns true if this mirror is equal to [other].
    *
    * The equality holds if and only if 
