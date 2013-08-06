@@ -61,7 +61,7 @@ var french = {
       ], null)),
   // TODO(alanknight): These are pretty horrible to write out manually. Provide
   // a better way of reading/writing translations. A real format would be good.
-  "whereTheyWent" : writer.write(new Gender.from("gender",
+  "whereTheyWentMessage" : writer.write(new Gender.from("gender",
     [
       ["male", [0, " est allé à sa ", 2]],
       ["female", [0, " est allée à sa ", 2]],
@@ -131,7 +131,7 @@ var german = {
     ], null)),
   // TODO(alanknight): These are pretty horrible to write out manually. Provide
   // a better way of reading/writing translations. A real format would be good.
-  "whereTheyWent" : writer.write(new Gender.from("gender",
+  "whereTheyWentMessage" : writer.write(new Gender.from("gender",
     [
       ["male", [0, " ging zu seinem ", 2]],
       ["female", [0, " ging zu ihrem ", 2]],

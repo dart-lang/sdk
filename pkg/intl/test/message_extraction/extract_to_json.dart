@@ -33,6 +33,8 @@ main() {
   var parser = new ArgParser();
   parser.addFlag("suppress-warnings", defaultsTo: false,
       callback: (x) => suppressWarnings = x);
+  parser.addFlag("warnings-are-errors", defaultsTo: false,
+      callback: (x) => warningsAreErrors = x);
 
   parser.addOption("output-dir", defaultsTo: '.',
       callback: (value) => targetDir = value);
@@ -49,6 +51,9 @@ main() {
   }
   var file = new File(path.join(targetDir, 'intl_messages.json'));
   file.writeAsStringSync(json.stringify(allMessages));
+  if (hasWarnings && warningsAreErrors) {
+    exit(1);
+  }
 }
 
 /**

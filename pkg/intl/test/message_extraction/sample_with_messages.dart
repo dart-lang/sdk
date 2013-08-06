@@ -38,7 +38,7 @@ types(int a, String b, List c) => Intl.message("$a, $b, $c", name: 'types',
 
 // This string will be printed with a French locale, so it will always show
 // up in the French version, regardless of the current locale.
-alwaysAccented() =>
+alwaysTranslated() =>
     Intl.message("This string is always translated", locale: 'fr',
         name: 'alwaysTranslated');
 
@@ -99,14 +99,15 @@ printStuff(Intl locale) {
     }
   }
 
-  // A function that is unnamed and assigned to a variable. It's also nested
+  // A function that is assigned to a variable. It's also nested
   // within another function definition.
-  var messageVariable = (a, b, c) => Intl.message(
+  message3(a, b, c) => Intl.message(
       "Characters that need escaping, e.g slashes \\ dollars \${ (curly braces "
       "are ok) and xml reserved characters <& and quotes \" "
       "parameters $a, $b, and $c",
       name: 'message3',
       args: [a, b, c]);
+  var messageVariable = message3;
 
   print("-------------------------------------------");
   print("Printing messages for ${locale.locale}");
@@ -117,7 +118,7 @@ printStuff(Intl locale) {
     print(multiLine());
     print(types(1, "b", ["c", "d"]));
     print(leadingQuotes());
-    print(alwaysAccented());
+    print(alwaysTranslated());
     print(trickyInterpolation("this"));
     var thing = new YouveGotMessages();
     print(thing.method());

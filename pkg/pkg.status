@@ -106,6 +106,7 @@ intl/test/date_time_format_file_even_test: Fail, OK # Uses dart:io.
 intl/test/date_time_format_file_odd_test: Fail, OK # Uses dart:io.
 intl/test/find_default_locale_standalone_test: Fail, OK # Uses dart:io.
 intl/test/message_extraction/message_extraction_test: Fail, OK # Uses dart:io.
+intl/test/message_extraction/failed_extraction_test: Fail, OK # Users dart:io
 oauth2/test/authorization_code_grant_test: Fail, OK # Uses dart:io.
 oauth2/test/client_test: Fail, OK # Uses dart:io.
 oauth2/test/credentials_test: Fail, OK # Uses dart:io.

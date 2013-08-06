@@ -33,6 +33,21 @@ import 'package:intl/src/intl_message.dart';
 bool suppressWarnings = false;
 
 /**
+ * If this is true, then treat all warnings as errors.
+ */
+bool warningsAreErrors = false;
+
+/**
+ * This accumulates a list of all warnings/errors we have found. These are
+ * saved as strings right now, so all that can really be done is print and
+ * count them.
+ */
+List<String> warnings = [];
+
+/** Were there any warnings or errors in extracting messages. */
+bool get hasWarnings => warnings.isNotEmpty;
+
+/**
  * Parse the source of the Dart program file [file] and return a Map from
  * message names to [IntlMessage] instances.
  */
@@ -58,13 +73,15 @@ CompilationUnit _root;
  */
 String _origin;
 
-void _reportErrorLocation(ASTNode node) {
-  if (_origin != null) print("    from $_origin");
+String _reportErrorLocation(ASTNode node) {
+  var result = new StringBuffer();
+  if (_origin != null) result.write("    from $_origin");
   var info = _root.lineInfo;
   if (info != null) {
     var line = info.getLocation(node.offset);
-    print("    line: ${line.lineNumber}, column: ${line.columnNumber}");
+    result.write("    line: ${line.lineNumber}, column: ${line.columnNumber}");
   }
+  return result.toString();
 }
 
 /**
@@ -129,8 +146,16 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
     if (!values.every((each) => each is SimpleStringLiteral)) {
       "Intl.message arguments must be simple string literals";
     }
-    if (!notArgs.any((each) => each.name.label.name == 'name')) {
+    var messageName = notArgs.firstWhere(
+        (eachArg) => eachArg.name.label.name == 'name',
+        orElse: () => null);
+    if (messageName == null) {
       return "The 'name' argument for Intl.message must be specified";
+    }
+    if ((messageName.expression is! SimpleStringLiteral)
+        || messageName.expression.value != name) {
+      return "The 'name' argument for Intl.message must be a simple string "
+          "literal and match the containing function name.";
     }
     var hasArgs = namedArguments.any((each) => each.name.label.name == 'args');
     var hasParameters = !parameters.parameters.isEmpty;
@@ -146,18 +171,8 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
    */
   void visitMethodDeclaration(MethodDeclaration node) {
     parameters = node.parameters;
-    String name = node.name.name;
+    name = node.name.name;
     super.visitMethodDeclaration(node);
-  }
-
-  /**
-   * Record the parameters of the function or method declaration we last
-   * encountered before seeing the Intl.message call.
-   */
-  void visitFunctionExpression(FunctionExpression node) {
-    parameters = node.parameters;
-    name = null;
-    super.visitFunctionExpression(node);
   }
 
   /**
@@ -193,9 +208,12 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
     var reason = checkValidity(node);
     if (reason != null) {
       if (!suppressWarnings) {
-        print("Skipping invalid Intl.message invocation\n    <$node>");
-        print("    reason: $reason");
-        _reportErrorLocation(node);
+        var err = new StringBuffer();
+        err.write("Skipping invalid Intl.message invocation\n    <$node>\n");
+        err.write("    reason: $reason\n");
+        err.write(_reportErrorLocation(node));
+        warnings.add(err.toString());
+        print(err);
       }
       // We found one, but it's not valid. Stop recursing.
       return true;
@@ -249,9 +267,12 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
         message.messagePieces.addAll(interpolation.pieces);
       } on IntlMessageExtractionException catch (e) {
         message = null;
-        print("Error $e");
-        print("Processing <$node>");
-        _reportErrorLocation(node);
+        var err = new StringBuffer();
+        err.write("Error $e\n");
+        err.write("Processing <$node>\n");
+        err.write(_reportErrorLocation(node));
+        print(err);
+        warnings.add(err);
       }
     }
 
@@ -437,9 +458,12 @@ class PluralAndGenderVisitor extends SimpleASTVisitor {
         message[arg.name.label.token.toString()] = interpolation.pieces;
       } on IntlMessageExtractionException catch (e) {
         message = null;
-        print("Error $e");
-        print("Processing <$node>");
-        _reportErrorLocation(node);
+        var err = new StringBuffer();
+        err.write("Error $e");
+        err.write("Processing <$node>");
+        err.write(_reportErrorLocation(node));
+        print(err);
+        warnings.add(err);
       }
     }
     var mainArg = node.argumentList.arguments.elements.firstWhere(
