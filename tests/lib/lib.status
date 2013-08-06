@@ -4,6 +4,7 @@
 
 [ $compiler == dart2js ]
 math/*: Skip
+mirrors/invoke_test: Fail # Issue 11954
 mirrors/class_mirror_type_variables_test: Fail # Issue 12087
 mirrors/invoke_private_test: Fail # Issue 12164
 mirrors/function_type_mirror_test: Fail # Issue 12166
