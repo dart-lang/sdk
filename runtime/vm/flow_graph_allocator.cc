@@ -264,12 +264,16 @@ void LiveRange::AddUseInterval(intptr_t start, intptr_t end) {
     // If the first use interval and the use interval we are adding
     // touch then we can just extend the first interval to cover their
     // union.
-    if (start >= first_use_interval()->start()) {
+    if (start > first_use_interval()->start()) {
       // The only case when we can add intervals with start greater than
       // start of an already created interval is BlockLocation.
-      ASSERT((start == first_use_interval()->start()) ||
-             (vreg() == kNoVirtualRegister));
+      ASSERT(vreg() == kNoVirtualRegister);
       ASSERT(end <= first_use_interval()->end());
+      return;
+    } else if (start == first_use_interval()->start()) {
+      // Grow first interval if necessary.
+      if (end <= first_use_interval()->end()) return;
+      first_use_interval_->end_ = end;
       return;
     } else if (end == first_use_interval()->start()) {
       first_use_interval()->start_ = start;
