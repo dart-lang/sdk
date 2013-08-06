@@ -3683,7 +3683,7 @@ void BinaryUint32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* MathSqrtInstr::MakeLocationSummary() const {
+LocationSummary* MathUnaryInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -3694,8 +3694,27 @@ LocationSummary* MathSqrtInstr::MakeLocationSummary() const {
 }
 
 
-void MathSqrtInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ sqrtsd(locs()->out().fpu_reg(), locs()->in(0).fpu_reg());
+void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (kind() == MethodRecognizer::kMathSqrt) {
+    __ sqrtsd(locs()->out().fpu_reg(), locs()->in(0).fpu_reg());
+  } else if ((kind() == MethodRecognizer::kMathCos) ||
+             (kind() == MethodRecognizer::kMathSin)) {
+    __ pushl(EAX);
+    __ pushl(EAX);
+    __ movsd(Address(ESP, 0), locs()->in(0).fpu_reg());
+    __ fldl(Address(ESP, 0));
+    if (kind() == MethodRecognizer::kMathSin) {
+      __ fsin();
+    } else {
+      ASSERT(kind() == MethodRecognizer::kMathCos);
+      __ fcos();
+    }
+    __ fstpl(Address(ESP, 0));
+    __ movsd(locs()->out().fpu_reg(), Address(ESP, 0));
+    __ addl(ESP, Immediate(2 * kWordSize));
+  } else {
+    UNREACHABLE();
+  }
 }
 
 

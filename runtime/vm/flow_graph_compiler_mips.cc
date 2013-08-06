@@ -43,6 +43,12 @@ bool FlowGraphCompiler::SupportsUnboxedMints() {
 }
 
 
+// TODO(srdjan): Enable by calling C-functions.
+bool FlowGraphCompiler::SupportsInlinedTrigonometrics() {
+  return false;
+}
+
+
 RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
                                                  DeoptInfoBuilder* builder) {
   if (deopt_env_ == NULL) return DeoptInfo::null();

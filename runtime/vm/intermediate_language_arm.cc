@@ -3622,7 +3622,7 @@ void BinaryUint32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* MathSqrtInstr::MakeLocationSummary() const {
+LocationSummary* MathUnaryInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -3633,10 +3633,14 @@ LocationSummary* MathSqrtInstr::MakeLocationSummary() const {
 }
 
 
-void MathSqrtInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  DRegister val = EvenDRegisterOf(locs()->in(0).fpu_reg());
-  DRegister result = EvenDRegisterOf(locs()->out().fpu_reg());
-  __ vsqrtd(result, val);
+void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (kind() == MethodRecognizer::kMathSqrt) {
+    DRegister val = EvenDRegisterOf(locs()->in(0).fpu_reg());
+    DRegister result = EvenDRegisterOf(locs()->out().fpu_reg());
+    __ vsqrtd(result, val);
+  } else {
+    UNIMPLEMENTED();
+  }
 }
 
 

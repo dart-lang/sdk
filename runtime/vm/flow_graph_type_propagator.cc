@@ -1122,7 +1122,7 @@ CompileType BinaryUint32x4OpInstr::ComputeType() const {
 }
 
 
-CompileType MathSqrtInstr::ComputeType() const {
+CompileType MathUnaryInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }
 

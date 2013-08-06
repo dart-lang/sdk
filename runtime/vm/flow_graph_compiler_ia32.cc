@@ -47,6 +47,11 @@ bool FlowGraphCompiler::SupportsUnboxedMints() {
 }
 
 
+bool FlowGraphCompiler::SupportsInlinedTrigonometrics() {
+  return true;
+}
+
+
 RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
                                                  DeoptInfoBuilder* builder) {
   if (deopt_env_ == NULL) return DeoptInfo::null();

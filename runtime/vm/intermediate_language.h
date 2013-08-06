@@ -80,6 +80,8 @@ class Range;
   V(_Double, pow, DoublePow, 102305574)                                        \
   V(_Double, _modulo, DoubleMod, 663439671)                                    \
   V(::, sqrt, MathSqrt, 1662640002)                                            \
+  V(::, sin, MathSin, 1273932041)                                              \
+  V(::, cos, MathCos, 1749547468)                                              \
   V(::, min, MathMin, 269896129)                                               \
   V(::, max, MathMax, 1286442186)                                              \
   V(Float32x4, Float32x4., Float32x4Constructor, 1492157358)                   \
@@ -588,7 +590,7 @@ class EmbeddedArray<T, 0> {
   M(Constant)                                                                  \
   M(CheckEitherNonSmi)                                                         \
   M(BinaryDoubleOp)                                                            \
-  M(MathSqrt)                                                                  \
+  M(MathUnary)                                                                 \
   M(MathMinMax)                                                                \
   M(UnboxDouble)                                                               \
   M(BoxDouble)                                                                 \
@@ -919,7 +921,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class UnarySmiOpInstr;
   friend class ShiftMintOpInstr;
   friend class UnaryMintOpInstr;
-  friend class MathSqrtInstr;
+  friend class MathUnaryInstr;
   friend class MathMinMaxInstr;
   friend class CheckClassInstr;
   friend class GuardFieldInstr;
@@ -4607,14 +4609,17 @@ class UnboxIntegerInstr : public TemplateDefinition<1> {
 };
 
 
-class MathSqrtInstr : public TemplateDefinition<1> {
+class MathUnaryInstr : public TemplateDefinition<1> {
  public:
-  MathSqrtInstr(Value* value, intptr_t deopt_id) {
+  MathUnaryInstr(MethodRecognizer::Kind kind, Value* value, intptr_t deopt_id)
+      : kind_(kind) {
     SetInputAt(0, value);
     deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
+
+  MethodRecognizer::Kind kind() const { return kind_; }
 
   virtual bool CanDeoptimize() const { return false; }
 
@@ -4633,7 +4638,7 @@ class MathSqrtInstr : public TemplateDefinition<1> {
     return deopt_id_;
   }
 
-  DECLARE_INSTRUCTION(MathSqrt)
+  DECLARE_INSTRUCTION(MathUnary)
   virtual CompileType ComputeType() const;
 
   virtual bool AllowsCSE() const { return true; }
@@ -4644,7 +4649,9 @@ class MathSqrtInstr : public TemplateDefinition<1> {
   virtual bool MayThrow() const { return false; }
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(MathSqrtInstr);
+  const MethodRecognizer::Kind kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(MathUnaryInstr);
 };
 
 

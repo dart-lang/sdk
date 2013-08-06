@@ -2627,14 +2627,20 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   }
 }
 
-
 void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(call->function());
-  if (recognized_kind == MethodRecognizer::kMathSqrt) {
-    MathSqrtInstr* sqrt =
-        new MathSqrtInstr(new Value(call->ArgumentAt(0)), call->deopt_id());
-    ReplaceCall(call, sqrt);
+  if ((recognized_kind == MethodRecognizer::kMathSqrt) ||
+      (recognized_kind == MethodRecognizer::kMathSin) ||
+      (recognized_kind == MethodRecognizer::kMathCos)) {
+    if ((recognized_kind == MethodRecognizer::kMathSqrt) ||
+        FlowGraphCompiler::SupportsInlinedTrigonometrics()) {
+      MathUnaryInstr* math_unary =
+          new MathUnaryInstr(recognized_kind,
+                             new Value(call->ArgumentAt(0)),
+                             call->deopt_id());
+      ReplaceCall(call, math_unary);
+    }
   } else if ((recognized_kind == MethodRecognizer::kFloat32x4Zero) ||
              (recognized_kind == MethodRecognizer::kFloat32x4Splat) ||
              (recognized_kind == MethodRecognizer::kFloat32x4Constructor)) {
@@ -6469,12 +6475,12 @@ void ConstantPropagator::VisitBinaryUint32x4Op(BinaryUint32x4OpInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitMathSqrt(MathSqrtInstr* instr) {
+void ConstantPropagator::VisitMathUnary(MathUnaryInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsNonConstant(value)) {
     SetValue(instr, non_constant_);
   } else if (IsConstant(value)) {
-    // TODO(kmillikin): Handle sqrt.
+    // TODO(kmillikin): Handle Math's unary operations (sqrt, cos, sin).
     SetValue(instr, non_constant_);
   }
 }
