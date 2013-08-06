@@ -949,10 +949,6 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
       code = frame->LookupDartCode();
       ActivationFrame* activation =
           new ActivationFrame(frame->pc(), frame->fp(), frame->sp(), code);
-      // Check if frame is a debuggable function.
-      if (!IsDebuggable(activation->function())) {
-        continue;
-      }
       // If this activation frame called a closure, the function has
       // saved its context before the call.
       if ((callee_activation != NULL) &&
@@ -972,16 +968,19 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
               callee.ToFullyQualifiedCString(),
               line, col);
         }
-        ASSERT(!ctx.IsNull());
       }
       if (optimized_frame_found || code.is_optimized()) {
         // Set context to null, to avoid returning bad context variable values.
         activation->SetContext(Context::Handle());
         optimized_frame_found = true;
       } else {
+        ASSERT(!ctx.IsNull());
         activation->SetContext(ctx);
       }
-      stack_trace->AddActivation(activation);
+      // Check if frame is a debuggable function.
+      if (IsDebuggable(activation->function())) {
+        stack_trace->AddActivation(activation);
+      }
       callee_activation = activation;
       // Get caller's context if this function saved it on entry.
       ctx = activation->GetSavedEntryContext(ctx);
