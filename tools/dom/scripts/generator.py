@@ -19,6 +19,7 @@ _pure_interfaces = monitored.Set('generator._pure_interfaces', [
     'ChildNode',
     'ElementTimeControl',
     'EventListener',
+    'FileException',
     'MediaQueryListListener',
     'MutationCallback',
     'ParentNode',
@@ -32,8 +33,8 @@ _pure_interfaces = monitored.Set('generator._pure_interfaces', [
     'SVGURIReference',
     'SVGZoomAndPan',
     'TimeoutHandler',
+    'WindowBase64',
     'WindowTimers',
-    'WorkerPerformance',
     ])
 
 def IsPureInterface(interface_name):
@@ -694,12 +695,7 @@ class IDLTypeInfo(object):
     if not self._idl_type.startswith('SVG'):
       return ['"%s.h"' % self.native_type()]
 
-    if self._idl_type in ['SVGNumber', 'SVGPoint']:
-      return ['"SVGPropertyTearOff.h"']
-    if self._idl_type.startswith('SVGPathSeg'):
-      include = self._idl_type.replace('Abs', '').replace('Rel', '')
-    else:
-      include = self._idl_type
+    include = self._idl_type
     return ['"%s.h"' % include] + _svg_supplemental_includes
 
   def receiver(self):
@@ -1108,7 +1104,7 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'SVGLength': TypeData(clazz='SVGTearOff'),
     'SVGLengthList': TypeData(clazz='SVGTearOff', item_type='SVGLength'),
     'SVGMatrix': TypeData(clazz='SVGTearOff'),
-    'SVGNumber': TypeData(clazz='SVGTearOff', native_type='SVGPropertyTearOff<float>'),
+    'SVGNumber': TypeData(clazz='SVGTearOff', native_type='SVGPropertyTearOff<SVGNumber>'),
     'SVGNumberList': TypeData(clazz='SVGTearOff', item_type='SVGNumber'),
     'SVGPathSegList': TypeData(clazz='SVGTearOff', item_type='SVGPathSeg',
         native_type='SVGPathSegListPropertyTearOff'),
@@ -1150,8 +1146,6 @@ class TypeRegistry(object):
     match = re.match(r'(?:sequence<(\w+)>|(\w+)\[\])$', type_name)
     if match:
       type_data = TypeData('Sequence')
-      if type_name == 'DOMString[]':
-        return DOMStringArrayTypeInfo(type_data, self.TypeInfo('DOMString'))
       item_info = self.TypeInfo(match.group(1) or match.group(2))
       # TODO(vsm): Generalize this code.
       if 'SourceInfo' in type_name:
@@ -1198,8 +1192,11 @@ class TypeRegistry(object):
           type_name, type_data, dart_interface_name, self)
 
     if type_data.clazz == 'BasicTypedList':
-      dart_interface_name = self._renamer.RenameInterface(
-          self._database.GetInterface(type_name))
+      if type_name == 'ArrayBuffer':
+        dart_interface_name = 'ByteBuffer'
+      else:
+        dart_interface_name = self._renamer.RenameInterface(
+            self._database.GetInterface(type_name))
       return BasicTypedListIDLTypeInfo(
           type_name, type_data, dart_interface_name, self)
 

@@ -312,6 +312,7 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'WebKitCSSKeyframesRule.insertRule': 'appendRule',
     'CSSStyleDeclaration.getPropertyValue': '_getPropertyValue',
     'CSSStyleDeclaration.setProperty': '_setProperty',
+    'CSSStyleDeclaration.var': '_var',
     'DirectoryEntry.getDirectory': '_getDirectory',
     'DirectoryEntry.getFile': '_getFile',
     'Document.createCDATASection': 'createCDataSection',
@@ -350,6 +351,7 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'WebGLRenderingContext.texSubImage2D': '_texSubImageImage2D',
     'WheelEvent.wheelDeltaX': '_wheelDeltaX',
     'WheelEvent.wheelDeltaY': '_wheelDeltaY',
+    'Window.createImageBitmap': '_createImageBitmap',
     #'WorkerContext.webkitRequestFileSystem': '_requestFileSystem',
     #'WorkerContext.webkitRequestFileSystemSync': '_requestFileSystemSync',
 })
@@ -362,6 +364,8 @@ renamed_overloads = monitored.Dict('htmldartgenreator.renamed_overloads', {
   'CSS.supports(DOMString conditionText)': 'supportsCondition',
   'CanvasRenderingContext2D.createPattern(HTMLImageElement image, '
       'DOMString repetitionType)': 'createPatternFromImage',
+  'CryptoOperation.process(ArrayBuffer data)': 'processByteBuffer',
+  'CryptoOperation.process(ArrayBufferView data)': 'processTypedData',
   'DataTransferItemList.add(File file)': 'addFile',
   'DataTransferItemList.add(DOMString data, DOMString type)': 'addData',
   'FormData.append(DOMString name, Blob value, DOMString filename)':
@@ -564,6 +568,9 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'Element.set:outerHTML',
     'Element.setAttributeNode',
     'Element.setAttributeNodeNS',
+    'Element.webkitCreateShadowRoot',
+    'Element.webkitPseudo',
+    'Element.webkitShadowRoot',
     'Event.returnValue',
     'Event.srcElement',
     'EventSource.URL',

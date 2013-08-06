@@ -19,7 +19,7 @@ interface WaveShaperNode {
 interface AudioParam {
   // TODO(ager): Auto-generate this custom method when the info about retaining
   // typed arrays is in the IDL.
-  [Custom] void setValueCurveAtTime(Float32Array values, float time, float duration);
+  [Custom] void setValueCurveAtTime(Float32Array values, double time, double duration);
 };
 
 [Supplemental]

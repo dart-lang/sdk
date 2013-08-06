@@ -13,7 +13,9 @@ from htmldartgenerator import *
 from idlnode import IDLArgument, IDLAttribute
 from systemhtml import js_support_checks, GetCallbackInfo, HTML_LIBRARY_NAMES
 
-_cpp_type_map = {
+# TODO(vsm): This logic needs to pulled from the source IDL.  These tables are
+# an ugly workaround.
+_cpp_callback_map = {
   ('DataTransferItem', 'webkitGetAsEntry'): 'DataTransferItemFileSystem',
   ('Document', 'webkitIsFullScreen'): 'DocumentFullscreen',
   ('Document', 'webkitFullScreenKeyboardInputAllowed'): 'DocumentFullscreen',
@@ -22,15 +24,19 @@ _cpp_type_map = {
   ('Document', 'webkitFullscreenEnabled'): 'DocumentFullscreen',
   ('Document', 'webkitFullscreenElement'): 'DocumentFullscreen',
   ('Document', 'webkitExitFullscreen'): 'DocumentFullscreen',
-  ('Window', 'crypto'): 'DOMWindowCrypto',
-  ('Window', 'indexedDB'): 'DOMWindowIndexedDatabase',
-  ('Window', 'speechSynthesis'): 'DOMWindowSpeechSynthesis',
-  ('Window', 'webkitNotifications'): 'DOMWindowNotifications',
-  ('Window', 'storage'): 'DOMWindowQuota',
-  ('Window', 'webkitStorageInfo'): 'DOMWindowQuota',
-  ('Window', 'openDatabase'): 'DOMWindowWebDatabase',
-  ('Window', 'webkitRequestFileSystem'): 'DOMWindowFileSystem',
-  ('Window', 'webkitResolveLocalFileSystemURL'): 'DOMWindowFileSystem',
+  ('DOMWindow', 'crypto'): 'DOMWindowCrypto',
+  ('DOMWindow', 'indexedDB'): 'DOMWindowIndexedDatabase',
+  ('DOMWindow', 'speechSynthesis'): 'DOMWindowSpeechSynthesis',
+  ('DOMWindow', 'webkitNotifications'): 'DOMWindowNotifications',
+  ('DOMWindow', 'storage'): 'DOMWindowQuota',
+  ('DOMWindow', 'webkitStorageInfo'): 'DOMWindowQuota',
+  ('DOMWindow', 'openDatabase'): 'DOMWindowWebDatabase',
+  ('DOMWindow', 'webkitRequestFileSystem'): 'DOMWindowFileSystem',
+  ('DOMWindow', 'webkitResolveLocalFileSystemURL'): 'DOMWindowFileSystem',
+  ('DOMWindow', 'atob'): 'DOMWindowBase64',
+  ('DOMWindow', 'btoa'): 'DOMWindowBase64',
+  ('DOMWindow', 'clearTimeout'): 'DOMWindowTimers',
+  ('DOMWindow', 'clearInterval'): 'DOMWindowTimers',
   ('HTMLInputElement', 'webkitEntries'): 'HTMLInputElementFileSystem',
   ('Navigator', 'doNotTrack'): 'NavigatorDoNotTrack',
   ('Navigator', 'geolocation'): 'NavigatorGeolocation',
@@ -42,29 +48,60 @@ _cpp_type_map = {
   ('Navigator', 'webkitGetGamepads'): 'NavigatorGamepad',
   ('Navigator', 'requestMIDIAccess'): 'NavigatorWebMIDI',
   ('Navigator', 'vibrate'): 'NavigatorVibration',
+  ('WorkerGlobalScope', 'crypto'): 'WorkerGlobalScopeCrypto',
+  ('WorkerGlobalScope', 'indexedDB'): 'WorkerGlobalScopeIndexedDatabase',
+  ('WorkerGlobalScope', 'webkitNotifications'): 'WorkerGlobalScopeNotifications',
+  ('WorkerGlobalScope', 'openDatabase'): 'WorkerGlobalScopeWebDatabase',
+  ('WorkerGlobalScope', 'openDatabaseSync'): 'WorkerGlobalScopeWebDatabase',
+  ('WorkerGlobalScope', 'performance'): 'WorkerGlobalScopePerformance',
+  ('WorkerGlobalScope', 'webkitRequestFileSystem'): 'WorkerGlobalScopeFileSystem',
+  ('WorkerGlobalScope', 'webkitRequestFileSystemSync'): 'WorkerGlobalScopeFileSystem',
+  ('WorkerGlobalScope', 'webkitResolveLocalFileSystemURL'): 'WorkerGlobalScopeFileSystem',
+  ('WorkerGlobalScope', 'webkitResolveLocalFileSystemSyncURL'): 'WorkerGlobalScopeFileSystem',
+  ('WorkerGlobalScope', 'atob'): 'DOMWindowBase64',
+  ('WorkerGlobalScope', 'btoa'): 'DOMWindowBase64',
+  ('WorkerGlobalScope', 'clearTimeout'): 'DOMWindowTimers',
+  ('WorkerGlobalScope', 'clearInterval'): 'DOMWindowTimers',
   }
+
+_cpp_overloaded_callback_map = {
+  ('DOMURL', 'createObjectUrlFromSourceCallback'): 'URLMediaSource',
+  ('DOMURL', 'createObjectUrlFromStreamCallback'): 'URLMediaStream',
+  ('DOMURL', '_createObjectUrlFromWebKitSourceCallback'): 'URLMediaSource',
+  ('DOMURL', '_createObjectURL_2Callback'): 'URLMediaSource',
+  ('DOMURL', '_createObjectURL_3Callback'): 'URLMediaSource',
+  ('DOMURL', '_createObjectURL_4Callback'): 'URLMediaStream',
+}
 
 _cpp_partial_map = {}
 
-def _GetCPPPartialNames(interface_name):
+def _GetCPPPartialNames(interface):
+  interface_name = interface.ext_attrs.get('ImplementedAs', interface.id)
   if not _cpp_partial_map:
-    for (type, member) in _cpp_type_map.keys():
+    for (type, member) in _cpp_callback_map.keys():
       if type not in _cpp_partial_map:
         _cpp_partial_map[type] = set([])
-      _cpp_partial_map[type].add(_cpp_type_map[(type, member)])
+      _cpp_partial_map[type].add(_cpp_callback_map[(type, member)])
+
+    for (type, member) in _cpp_overloaded_callback_map.keys():
+      if type not in _cpp_partial_map:
+        _cpp_partial_map[type] = set([])
+      _cpp_partial_map[type].add(_cpp_overloaded_callback_map[(type, member)])
 
   if interface_name in _cpp_partial_map:
     return _cpp_partial_map[interface_name]
   else:
     return set([])
 
-def _GetCPPTypeName(interface_name, callback_name):
+def _GetCPPTypeName(interface_name, callback_name, cpp_name):
   # TODO(vsm): We need to track the original IDL file name in order to recover
   # the proper CPP name.
 
   cpp_tuple = (interface_name, callback_name)
-  if cpp_tuple in _cpp_type_map:
-    cpp_type_name = _cpp_type_map[cpp_tuple]
+  if cpp_tuple in _cpp_callback_map:
+    cpp_type_name = _cpp_callback_map[cpp_tuple]
+  elif (interface_name, cpp_name) in _cpp_overloaded_callback_map:
+    cpp_type_name = _cpp_overloaded_callback_map[(interface_name, cpp_name)]
   else:
     cpp_type_name = interface_name
   return cpp_type_name
@@ -97,7 +134,7 @@ class DartiumBackend(HtmlDartGenerator):
       return
 
     cpp_impl_includes = set(['"' + partial + '.h"'
-                             for partial in _GetCPPPartialNames(self._interface.id)])
+                             for partial in _GetCPPPartialNames(self._interface)])
     cpp_header_handlers_emitter = emitter.Emitter()
     cpp_impl_handlers_emitter = emitter.Emitter()
     class_name = 'Dart%s' % self._interface.id
@@ -187,7 +224,7 @@ class DartiumBackend(HtmlDartGenerator):
     self._members_emitter = members_emitter
     self._cpp_declarations_emitter = emitter.Emitter()
     self._cpp_impl_includes = set(['"' + partial + '.h"'
-                                   for partial in _GetCPPPartialNames(self._interface.id)])
+                                   for partial in _GetCPPPartialNames(self._interface)])
     self._cpp_definitions_emitter = emitter.Emitter()
     self._cpp_resolver_emitter = emitter.Emitter()
 
@@ -412,8 +449,6 @@ class DartiumBackend(HtmlDartGenerator):
         webcore_function_name = 'css'
       else:
         webcore_function_name = self._ToWebKitName(attr.id)
-      if attr.type.id.startswith('SVGAnimated'):
-        webcore_function_name += 'Animated'
 
     function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, attr)
     self._GenerateNativeCallback(
@@ -442,8 +477,6 @@ class DartiumBackend(HtmlDartGenerator):
                                      lambda s: s.group(1).upper(),
                                      attr.id)
       webcore_function_name = 'set%s' % webcore_function_name
-      if attr.type.id.startswith('SVGAnimated'):
-        webcore_function_name += 'Animated'
 
     function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, attr)
     self._GenerateNativeCallback(
@@ -614,7 +647,7 @@ class DartiumBackend(HtmlDartGenerator):
 
   def _GenerateOperationNativeCallback(self, operation, arguments, cpp_callback_name):
     webcore_function_name = operation.ext_attrs.get('ImplementedAs', operation.id)
-    function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, operation)
+    function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, operation, cpp_callback_name)
     self._GenerateNativeCallback(
         cpp_callback_name,
         not operation.is_static,
@@ -634,6 +667,7 @@ class DartiumBackend(HtmlDartGenerator):
       return_type,
       return_type_is_nullable,
       raises_dom_exception):
+
     ext_attrs = node.ext_attrs
 
     cpp_arguments = []
@@ -642,7 +676,9 @@ class DartiumBackend(HtmlDartGenerator):
 
     # TODO(antonm): unify with ScriptState below.
     requires_stack_info = (ext_attrs.get('CallWith') == 'ScriptArguments|ScriptState' or
-                           ext_attrs.get('ConstructorCallWith') == 'ScriptArguments|ScriptState')
+                           ext_attrs.get('ConstructorCallWith') == 'ScriptArguments|ScriptState' or
+                           ext_attrs.get('CallWith') == 'ScriptArguments&ScriptState' or
+                           ext_attrs.get('ConstructorCallWith') == 'ScriptArguments&ScriptState')
     if requires_stack_info:
       raises_exceptions = True
       cpp_arguments = ['&state', 'scriptArguments.release()']
@@ -817,7 +853,9 @@ class DartiumBackend(HtmlDartGenerator):
           type_info.to_native_info(argument, self._interface.id)
 
       def AllowsNull():
-        assert argument.ext_attrs.get('TreatNullAs', 'NullString') == 'NullString'
+        # TODO(vsm): HTMLSelectElement's indexed setter treats a null as a remove.
+        # We need to handle that.
+        # assert argument.ext_attrs.get('TreatNullAs', 'NullString') == 'NullString'
         if argument.ext_attrs.get('TreatNullAs') == 'NullString':
           return True
 
@@ -869,29 +907,25 @@ class DartiumBackend(HtmlDartGenerator):
 
     invocation_emitter = body_emitter
     if raises_dom_exception:
-      cpp_arguments.append('ec')
+      cpp_arguments.append('es')
       invocation_emitter = body_emitter.Emit(
-        '        ExceptionCode ec = 0;\n'
+        # TODO(vsm): The move from ExceptionCode to ExceptionState adds
+        # a V8 dependency.  Constructing with a NULL V8 isolate....
+        '        ExceptionState es(0);\n'
         '$!INVOCATION'
-        '        if (UNLIKELY(ec)) {\n'
-        '            exception = DartDOMWrapper::exceptionCodeToDartException(ec);\n'
+        '        if (es.hadException()) {\n'
+        '            exception = DartDOMWrapper::exceptionCodeToDartException(es);\n'
         '            goto fail;\n'
         '        }\n')
 
 
     if needs_receiver:
       interface_name = self._interface_type_info.native_type()
-      cpp_type_name = _GetCPPTypeName(interface_name,
-                                      node.id)
-      # Hack to determine if this came from the _cpp_type_map.
+      # Hack to determine if this came from the _cpp_callback_map.
       # In this case, the getter is mapped to a static method.
       if (not function_expression.startswith('receiver->') and
           not function_expression.startswith(interface_name + '::')):
-        if 'childNodes' in callback_name:
-          print function_expression
-          print interface_name
-          raise 'hell'
-        if interface_name == 'DOMWindow' or interface_name == 'Navigator':
+        if interface_name == 'DOMWindow' or interface_name == 'Navigator' or interface_name == 'WorkerGlobalScope':
           cpp_arguments.insert(0, 'receiver')
         else:
           cpp_arguments.append('receiver')
@@ -978,17 +1012,17 @@ class DartiumBackend(HtmlDartGenerator):
     attribute_name = attr.ext_attrs['Reflect'] or attr.id.lower()
     return 'WebCore::%s::%sAttr' % (namespace, attribute_name)
 
-  def _GenerateWebCoreFunctionExpression(self, function_name, idl_node):
+  def _GenerateWebCoreFunctionExpression(self, function_name, idl_node, cpp_callback_name=None):
     if 'ImplementedBy' in idl_node.ext_attrs:
       return '%s::%s' % (idl_node.ext_attrs['ImplementedBy'], function_name)
+    cpp_type_name = self._interface_type_info.native_type()
+    impl_type_name = _GetCPPTypeName(cpp_type_name, function_name, cpp_callback_name)
     if idl_node.is_static:
-      return '%s::%s' % (self._interface_type_info.native_type(), function_name)
-    interface_name = self._interface_type_info.idl_type()
-    cpp_type_name = _GetCPPTypeName(interface_name, function_name)
-    if cpp_type_name == interface_name:
+      return '%s::%s' % (impl_type_name, function_name)
+    if cpp_type_name == impl_type_name:
       return '%s%s' % (self._interface_type_info.receiver(), function_name)
     else:
-      return '%s::%s' % (cpp_type_name, function_name)
+      return '%s::%s' % (impl_type_name, function_name)
 
   def _IsArgumentOptionalInWebCore(self, operation, argument):
     if not IsOptional(argument):

@@ -91,7 +91,7 @@ class IDLParser(object):
          '{', _Definitions, '}', MAYBE(';')])
 
     def CallbackDeclaration():
-      return [Callback, Type, '=', Type,'(', ')', ';']
+      return [Callback, Type, '=', Type,'(', _Arguments, ')', ';']
 
     def Callback():
       return ['callback']
@@ -243,7 +243,7 @@ class IDLParser(object):
         [MAYBE(ExtAttrs), MAYBE(Optional), MAYBE('in'),
          MAYBE(Optional), Type, MAYBE(AnEllipsis), Id],
         # WebKit:
-        [MAYBE(ExtAttrs), MAYBE(Optional), Type, Id])
+        [MAYBE(ExtAttrs), MAYBE(Optional), Type, MAYBE(AnEllipsis), Id])
 
     def Optional():
       return 'optional'

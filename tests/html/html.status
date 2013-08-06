@@ -24,6 +24,24 @@ audiobuffersourcenode_test: Pass, Fail, Crash # http://crbug.com/256601
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 # postMessage in dartium always transfers the typed array buffer, never a view
 postmessage_structured_test/typed_arrays: Fail
+# TODO(vsm): Triage from latest Blink merge
+event_customevent_test: Skip
+shadowroot_test: Skip
+shadow_dom_test: Skip
+indexeddb_1_test: Skip
+indexeddb_2_test: Skip
+indexeddb_3_test: Skip
+indexeddb_4_test: Skip
+indexeddb_5_test: Skip
+js_test: Skip
+js_interop_2_test: Skip
+js_interop_3_test: Skip
+js_interop_4_test: Skip
+xhr_test: Skip
+crypto_test: Skip
+notifications_test: Skip
+dromaeo_smoke_test: Skip
+native_gc_test: Skip
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
