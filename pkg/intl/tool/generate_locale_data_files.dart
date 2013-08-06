@@ -12,7 +12,6 @@
  * which is sourced by the date_symbol_data... files.
  */
 
-import '../lib/date_symbols.dart';
 import '../lib/date_symbol_data_local.dart';
 import '../lib/date_time_patterns.dart';
 import '../lib/intl.dart';

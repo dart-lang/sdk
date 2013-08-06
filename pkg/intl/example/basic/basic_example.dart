@@ -19,7 +19,6 @@ library intl_basic_example;
 import 'dart:async';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
-import 'package:intl/message_lookup_by_library.dart';
 import 'messages_all.dart';
 
 /**

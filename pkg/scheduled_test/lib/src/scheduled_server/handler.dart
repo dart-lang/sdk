@@ -5,7 +5,6 @@
 library scheduled_server.handler;
 
 import 'dart:async';
-import 'dart:io';
 
 import '../../scheduled_server.dart';
 import '../../scheduled_test.dart';

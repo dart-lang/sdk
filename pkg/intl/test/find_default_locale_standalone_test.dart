@@ -7,7 +7,6 @@ library find_default_locale_browser_test;
 import 'package:intl/intl.dart';
 import 'package:intl/intl_standalone.dart';
 import 'package:unittest/unittest.dart';
-import 'dart:io';
 
 main() {
   test("Find system locale standalone", () {

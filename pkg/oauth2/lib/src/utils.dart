@@ -5,9 +5,6 @@
 library utils;
 
 import 'dart:async';
-import 'dart:isolate';
-
-import "package:crypto/crypto.dart";
 
 /// Adds additional query parameters to [url], overwriting the original
 /// parameters if a name conflict occurs.

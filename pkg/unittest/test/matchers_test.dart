@@ -7,7 +7,6 @@ import 'dart:collection';
 
 import 'package:unittest/unittest.dart';
 
-import 'test_common.dart';
 import 'test_utils.dart';
 
 void main() {

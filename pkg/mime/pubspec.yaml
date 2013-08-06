@@ -1,5 +1,6 @@
 name: mime
-author: "Dart Team <misc@dartlang.org>"
+author: Dart Team <misc@dartlang.org>
+description: Helper-package for working with MIME.
 homepage: http://www.dartlang.org
-description: >
- Helper-package for working with MIME.
+dev_dependencies:
+  unittest: any

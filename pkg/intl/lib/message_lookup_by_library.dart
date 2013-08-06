@@ -13,9 +13,7 @@
  */
 library message_lookup_by_library;
 
-import 'dart:async';
 import 'intl.dart';
-import 'src/intl_helpers.dart';
 
 /**
  * This is a message lookup mechanism that delegates to one of a collection

@@ -4,10 +4,8 @@
 
 library custom_element_bindings_test;
 
-import 'dart:async';
 import 'dart:html';
 import 'package:mdv/mdv.dart' as mdv;
-import 'package:observe/observe.dart';
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
 import 'mdv_test_utils.dart';

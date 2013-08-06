@@ -5,11 +5,9 @@
 library descriptor.async;
 
 import 'dart:async';
-import 'dart:io' as io;
 
 import '../../descriptor.dart';
 import '../../scheduled_test.dart';
-import '../utils.dart';
 
 /// A descriptor that wraps a [Future<Descriptor>] and forwards all asynchronous
 /// operations to the result of the future. It's designed for use when the full

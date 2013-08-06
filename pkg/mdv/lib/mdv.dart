@@ -12,8 +12,6 @@ library mdv;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:html';
-import 'dart:math' as math;
-import 'dart:mirrors';
 import 'package:observe/observe.dart';
 
 // TODO(jmesserly): get this from somewhere else. See http://dartbug.com/4161.

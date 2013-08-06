@@ -20,7 +20,6 @@ library unittest_interactive_html_config;
 import 'dart:html';
 import 'dart:async';
 import 'dart:json' as json;
-import 'dart:math';
 
 import 'package:stack_trace/stack_trace.dart';
 

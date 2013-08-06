@@ -5,7 +5,6 @@
 library watcher.directory_watcher;
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';

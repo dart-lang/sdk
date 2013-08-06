@@ -1,11 +1,13 @@
 name: observe
-author: "Web UI Team <web-ui-dev@dartlang.org>"
-homepage: https://github.com/dart-lang/web-ui
+author: Web UI Team <web-ui-dev@dartlang.org>
 description: >
   Observable properties and objects for use in Model-Driven-Views (MDV).
   MDV extends HTML and the DOM APIs to support a sensible separation between the
   UI (DOM) of a document or application and its underlying data (model).
   Updates to the model are reflected in the DOM and user input into the DOM is
   immediately assigned to the model.
+homepage: https://github.com/dart-lang/web-ui
+dependencies:
+  logging: any
 dev_dependencies:
   unittest: any

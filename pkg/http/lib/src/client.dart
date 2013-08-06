@@ -12,7 +12,6 @@ import 'base_request.dart';
 import 'io_client.dart';
 import 'streamed_response.dart';
 import 'response.dart';
-import 'utils.dart';
 
 /// The interface for HTTP clients that take care of maintaining persistent
 /// connections across multiple requests to the same server. If you only need to

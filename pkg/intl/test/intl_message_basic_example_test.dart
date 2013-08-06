@@ -7,7 +7,6 @@
  */
 library intl_message_test_2;
 
-import 'package:intl/intl.dart';
 import '../example/basic/basic_example.dart';
 import 'package:unittest/unittest.dart';
 import 'dart:async';

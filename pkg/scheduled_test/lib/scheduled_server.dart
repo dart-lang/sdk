@@ -9,7 +9,6 @@ import 'dart:collection';
 import 'dart:io';
 
 import 'scheduled_test.dart';
-import 'src/utils.dart';
 import 'src/scheduled_server/handler.dart';
 import 'src/scheduled_server/safe_http_server.dart';
 

@@ -4,8 +4,6 @@
 
 library authorization_exception;
 
-import 'dart:io';
-
 /// An exception raised when OAuth2 authorization fails.
 class AuthorizationException implements Exception {
   /// The name of the error. Possible names are enumerated in [the spec][].

@@ -31,7 +31,7 @@
  */
 library intl;
 
-import 'dart:async';
+import 'dart:collection';
 import 'src/intl_helpers.dart';
 import 'dart:math';
 import 'date_symbols.dart';

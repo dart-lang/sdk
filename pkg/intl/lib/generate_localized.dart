@@ -13,7 +13,6 @@
  */
 library generate_localized;
 
-import 'extract_messages.dart';
 import 'src/intl_message.dart';
 import 'dart:io';
 import 'package:path/path.dart' as path;

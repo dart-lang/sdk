@@ -5,7 +5,6 @@
 library credentials_test;
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:json' as JSON;
 
 import 'package:http/http.dart' as http;
@@ -82,7 +81,7 @@ void main() {
       }), 200, headers: {'content-type': 'application/json'}));
     });
 
-    
+
     expect(credentials.refresh('identifier', 'secret', httpClient: httpClient)
         .then((credentials) {
       expect(credentials.accessToken, equals('new access token'));
@@ -111,7 +110,7 @@ void main() {
       }), 200, headers: {'content-type': 'application/json'}));
     });
 
-    
+
     expect(credentials.refresh('identifier', 'secret', httpClient: httpClient)
         .then((credentials) {
       expect(credentials.accessToken, equals('new access token'));

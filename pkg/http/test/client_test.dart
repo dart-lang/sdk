@@ -7,7 +7,6 @@ library client_test;
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
-import 'package:http/src/utils.dart';
 import 'package:unittest/unittest.dart';
 
 import 'utils.dart';

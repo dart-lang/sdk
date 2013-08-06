@@ -195,7 +195,6 @@ import 'package:unittest/unittest.dart' as unittest;
 
 import 'src/schedule.dart';
 import 'src/schedule_error.dart';
-import 'src/utils.dart';
 
 export 'package:unittest/matcher.dart' hide completes, completion;
 export 'package:unittest/unittest.dart' show
@@ -327,7 +326,7 @@ void _setUpScheduledTest([void setUpFn()]) {
         _setUpFn = setUpFn;
       }
     });
- 
+
     unittest.tearDown(() {
       _currentSchedule = null;
       _setUpFn = null;

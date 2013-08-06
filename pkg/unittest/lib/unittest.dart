@@ -146,7 +146,6 @@ library unittest;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:isolate';
-import 'dart:math' show max;
 import 'matcher.dart';
 export 'matcher.dart';
 

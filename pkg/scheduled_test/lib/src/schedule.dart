@@ -8,14 +8,12 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:stack_trace/stack_trace.dart';
-import 'package:unittest/unittest.dart' as unittest;
 
 import 'mock_clock.dart' as mock_clock;
 import 'schedule_error.dart';
 import 'substitute_future.dart';
 import 'task.dart';
 import 'utils.dart';
-import 'value_future.dart';
 
 /// The schedule of tasks to run for a single test. This has three separate task
 /// queues: [tasks], [onComplete], and [onException]. It also provides

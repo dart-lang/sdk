@@ -8,7 +8,6 @@
  */
 
 library intl_helpers;
-import '../date_symbols.dart';
 
 import 'dart:async';
 

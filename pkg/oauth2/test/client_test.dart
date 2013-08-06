@@ -5,7 +5,6 @@
 library client_test;
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:json' as JSON;
 
 import 'package:http/http.dart' as http;
