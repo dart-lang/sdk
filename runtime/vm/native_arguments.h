@@ -7,6 +7,7 @@
 
 #include "platform/assert.h"
 #include "vm/globals.h"
+#include "vm/handles_impl.h"
 #include "vm/simulator.h"
 #include "vm/stub_code.h"
 
@@ -130,7 +131,9 @@ class NativeArguments {
     }
   }
 
-  void SetReturn(const Object& value) const;
+  void SetReturn(const Object& value) const {
+    *retval_ = value.raw();
+  }
 
   static intptr_t isolate_offset() {
     return OFFSET_OF(NativeArguments, isolate_);
@@ -184,7 +187,9 @@ class NativeArguments {
   // exceedingly careful when we use it.  If there are any other side
   // effects in the statement that may cause GC, it could lead to
   // bugs.
-  void SetReturnUnsafe(RawObject* value) const;
+  void SetReturnUnsafe(RawObject* value) const {
+    *retval_ = value;
+  }
 
   Isolate* isolate_;  // Current isolate pointer.
   int argc_tag_;  // Encodes argument count and invoked native call type.

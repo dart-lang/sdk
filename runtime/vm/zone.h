@@ -12,6 +12,8 @@
 
 namespace dart {
 
+DECLARE_DEBUG_FLAG(bool, trace_zones);
+
 // Zones support very fast allocation of small chunks of memory. The
 // chunks cannot be deallocated individually, but instead zones
 // support deallocating all chunks in one fast operation.
@@ -57,8 +59,29 @@ class Zone {
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
  private:
-  Zone();
-  ~Zone();  // Delete all memory associated with the zone.
+  Zone()
+    : initial_buffer_(buffer_, kInitialChunkSize),
+      position_(initial_buffer_.start()),
+      limit_(initial_buffer_.end()),
+      head_(NULL),
+      large_segments_(NULL),
+      handles_(),
+      previous_(NULL) {
+#ifdef DEBUG
+    // Zap the entire initial buffer.
+    memset(initial_buffer_.pointer(), kZapUninitializedByte,
+           initial_buffer_.size());
+#endif
+  }
+
+  ~Zone() {  // Delete all memory associated with the zone.
+#if defined(DEBUG)
+    if (FLAG_trace_zones) {
+      DumpZoneSizes();
+    }
+#endif
+    DeleteAll();
+  }
 
   // All pointers returned from AllocateUnsafe() and New() have this alignment.
   static const intptr_t kAlignment = kWordSize;
@@ -134,10 +157,32 @@ class Zone {
 class StackZone : public StackResource {
  public:
   // Create an empty zone and set is at the current zone for the Isolate.
-  explicit StackZone(BaseIsolate* isolate);
+  explicit StackZone(BaseIsolate* isolate)
+    : StackResource(isolate),
+      zone_() {
+#ifdef DEBUG
+    if (FLAG_trace_zones) {
+      OS::PrintErr("*** Starting a new Stack zone 0x%"Px"(0x%"Px")\n",
+                   reinterpret_cast<intptr_t>(this),
+                   reinterpret_cast<intptr_t>(&zone_));
+    }
+#endif
+    zone_.Link(isolate->current_zone());
+    isolate->set_current_zone(&zone_);
+  }
 
   // Delete all memory associated with the zone.
-  ~StackZone();
+  ~StackZone() {
+    ASSERT(isolate()->current_zone() == &zone_);
+    isolate()->set_current_zone(zone_.previous_);
+#ifdef DEBUG
+    if (FLAG_trace_zones) {
+      OS::PrintErr("*** Deleting Stack zone 0x%"Px"(0x%"Px")\n",
+                   reinterpret_cast<intptr_t>(this),
+                   reinterpret_cast<intptr_t>(&zone_));
+    }
+#endif
+  }
 
   // Compute the total size of this zone. This includes wasted space that is
   // due to internal fragmentation in the segments.
