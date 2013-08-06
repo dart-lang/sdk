@@ -1608,7 +1608,11 @@ class CommandQueue {
                    event.from == dgraph.NodeState.Waiting);
             graph.changeState(event.node, dgraph.NodeState.Processing);
             var command = event.node.userData;
-            _runQueue.add(command);
+            if (event.node.dependencies.length > 0) {
+              _runQueue.addFirst(command);
+            } else {
+              _runQueue.add(command);
+            }
             Timer.run(() => _tryRunNextCommand());
           }
     });
