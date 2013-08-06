@@ -11,6 +11,7 @@ mirrors/function_type_mirror_test: Fail # Issue 12166
 mirrors/method_mirror_name_test: Fail # Issue 6335
 mirrors/method_mirror_properties_test: Fail # Issue 11861
 mirrors/method_mirror_returntype_test : Fail # Issue 11928
+mirrors/mixin_members_test : Fail # Issue 11863
 mirrors/mirrors_test: Fail # TODO(ahe): I'm working on fixing this.
 mirrors/null_test : Fail # Issue 12129
 mirrors/library_uri_io_test: Skip # Not intended for dart2js as it uses dart:io.
