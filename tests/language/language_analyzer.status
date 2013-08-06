@@ -281,14 +281,6 @@ static_call_wrong_argument_count_negative_test: fail
 static_final_field_negative_test: fail
 constructor2_negative_test: fail
 
-# test issue 12158, 'native' is not in spec, so analyzer does not generate compile-time error
-syntax_test/28: fail
-syntax_test/29: fail
-syntax_test/30: fail
-syntax_test/31: fail
-syntax_test/32: fail
-syntax_test/33: fail
-
 # test issue 12159, print(exception.message_); causes static warning, not an error
 throw7_negative_test: fail
 
