@@ -39,12 +39,33 @@ class JSONStream : ValueObject {
       PRINTF_ATTRIBUTE(3, 4);
   void PrintProperty(const char* name, const Object& o, bool ref = true);
 
+  void SetArguments(const char** arguments, intptr_t num_arguments);
+  void SetOptions(const char** option_keys, const char** option_values,
+                  intptr_t num_options);
+
+  intptr_t num_arguments() const { return num_arguments_; }
+  const char* GetArgument(intptr_t i) const {
+    return arguments_[i];
+  }
+  intptr_t num_options() const { return num_options_; }
+  const char* GetOptionKey(intptr_t i) const {
+    return option_keys_[i];
+  }
+  const char* GetOptionValue(intptr_t i) const {
+    return option_values_[i];
+  }
+
  private:
   void PrintPropertyName(const char* name);
   void PrintCommaIfNeeded();
   bool NeedComma();
   intptr_t open_objects_;
   TextBuffer* buffer_;
+  const char** arguments_;
+  intptr_t num_arguments_;
+  const char** option_keys_;
+  const char** option_values_;
+  intptr_t num_options_;
 };
 
 }  // namespace dart

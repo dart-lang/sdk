@@ -13,6 +13,11 @@ JSONStream::JSONStream(TextBuffer* buffer) {
   ASSERT(buffer != NULL);
   buffer_ = buffer;
   open_objects_ = 0;
+  arguments_ = NULL;
+  num_arguments_ = 0;
+  option_keys_ = NULL;
+  option_values_ = NULL;
+  num_options_ = 0;
 }
 
 
@@ -144,6 +149,21 @@ void JSONStream::PrintfProperty(const char* name, const char* format, ...) {
   ASSERT(len == len2);
   buffer_->Printf("\"%s\"", p);
   free(p);
+}
+
+
+void JSONStream::SetArguments(const char** arguments, intptr_t num_arguments) {
+  arguments_ = arguments;
+  num_arguments_ = num_arguments;
+}
+
+
+void JSONStream::SetOptions(const char** option_keys,
+                            const char** option_values,
+                            intptr_t num_options) {
+  option_keys_ = option_keys;
+  option_values_ = option_values;
+  num_options_ = num_options;
 }
 
 
