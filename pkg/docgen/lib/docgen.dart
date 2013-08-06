@@ -404,6 +404,11 @@ Class _class(ClassMirror mirror) {
         interfaces.toList(), _variables(mirror.variables),
         _methods(mirror.methods), _annotations(mirror), _generics(mirror), 
         mirror.qualifiedName, _isHidden(mirror), mirror.owner.qualifiedName);
+    if (superclass != null)
+      clazz.addInherited(superclass);
+    interfaces.forEach((interface) {
+      clazz.addInherited(interface);
+    });
     entityMap[mirror.qualifiedName] = clazz;
   }
   return clazz;
@@ -700,7 +705,6 @@ class ClassGroup {
       if (_isVisible(clazz)) {
         parent.addSubclass(clazz);
       }
-      clazz.addInherited(parent);
     });
 
     clazz.ensureComments();
