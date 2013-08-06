@@ -79,8 +79,7 @@
           'inputs': [
             '../tools/make_version.py',
             '../tools/utils.py',
-            '../tools/version.dart',
-            '../tools/release/version.dart',
+            '../tools/print_version.py',
             '../tools/VERSION',
             '<(version_in_cc_file)',
             # Depend on libdart_dependency_helper to track the libraries it

@@ -205,7 +205,6 @@ def GetBuildbotGSUtilPath():
   return gsutil
 
 def GetBuildMode(mode):
-  global BUILD_MODES
   return BUILD_MODES[mode]
 
 
@@ -214,10 +213,10 @@ def GetBuildConf(mode, arch):
 
 ARCH_GUESS = GuessArchitecture()
 BASE_DIR = os.path.abspath(os.path.join(os.curdir, '..'))
+DART_DIR = os.path.abspath(os.path.join(__file__, '..', '..'))
 
 
 def GetBuildDir(host_os, target_os):
-  global BUILD_ROOT
   build_dir = BUILD_ROOT[host_os]
   if target_os and target_os != host_os:
     build_dir = os.path.join(build_dir, target_os)
@@ -233,28 +232,71 @@ def GetBaseDir():
   return BASE_DIR
 
 def GetVersion():
-  dartbin = DartBinary()
-  version_script = VersionScript()
-  p = subprocess.Popen([dartbin, version_script], stdout = subprocess.PIPE,
-      stderr = subprocess.STDOUT, shell=IsWindows())
-  output, not_used = p.communicate()
-  return output.strip()
+  version_tuple = ReadVersionFile()
+  if not version_tuple:
+    return None
+
+  (major, minor, build, patch) = version_tuple
+  revision = GetSVNRevision()
+  user = GetUserName()
+  # We don't add username to release builds (or any builds on the bots)
+  if user == 'chrome-bot':
+    user = ''
+
+  user_string = ''
+  revision_string = ''
+  if user:
+    user_string = '_%s' % user
+  if revision:
+    revision_string = '_r%s' % revision
+
+  return ("%s.%s.%s.%s%s%s" %
+          (major, minor, build, patch, revision_string, user_string))
+
+def GetUserName():
+  key = 'USER'
+  if sys.platform == 'win32':
+    key = 'USERNAME'
+  return os.environ.get(key, '')
+
+def ReadVersionFile():
+  version_file = os.path.join(DART_DIR, 'tools', 'VERSION')
+  try:
+    fd = open(version_file)
+    content = fd.read()
+    fd.close()
+  except:
+    print "Warning: Couldn't read VERSION file (%s)" % version_file
+    return None
+  major_match = re.search('MAJOR (\d+)', content)
+  minor_match = re.search('MINOR (\d+)', content)
+  build_match = re.search('BUILD (\d+)', content)
+  patch_match = re.search('PATCH (\d+)', content)
+  if major_match and minor_match and build_match and patch_match:
+    return (major_match.group(1), minor_match.group(1), build_match.group(1),
+            patch_match.group(1))
+  else:
+    print "Warning: VERSION file (%s) has wrong format" % version_file
+    return None
 
 def GetSVNRevision():
+  # FIXME(kustermann): Make this work for newer SVN versions as well (where
+  # we've got only one '.svn' directory)
   custom_env = dict(os.environ)
   custom_env['LC_MESSAGES'] = 'en_GB'
   p = subprocess.Popen(['svn', 'info'], stdout = subprocess.PIPE,
                        stderr = subprocess.STDOUT, shell=IsWindows(),
-                       env = custom_env)
-  output, not_used = p.communicate()
+                       env = custom_env,
+                       cwd = DART_DIR)
+  output, _ = p.communicate()
   revision = ParseSvnInfoOutput(output)
   if revision:
     return revision
 
   # maybe the builder is using git-svn, try that
   p = subprocess.Popen(['git', 'svn', 'info'], stdout = subprocess.PIPE,
-      stderr = subprocess.STDOUT, shell=IsWindows())
-  output, not_used = p.communicate()
+      stderr = subprocess.STDOUT, shell=IsWindows(), cwd = DART_DIR)
+  output, _ = p.communicate()
   revision = ParseSvnInfoOutput(output)
   if revision:
     return revision
@@ -262,9 +304,9 @@ def GetSVNRevision():
   return None
 
 def ParseSvnInfoOutput(output):
-  for line in output.split('\n'):
-    if 'Revision' in line:
-      return (line.strip().split())[1]
+  revision_match = re.search('Last Changed Rev: (\d+)', output)
+  if revision_match:
+    return revision_match.group(1)
   return None
 
 def RewritePathSeparator(path, workspace):
@@ -387,11 +429,6 @@ def DiagnoseExitCode(exit_code, command):
 def Touch(name):
   with file(name, 'a'):
     os.utime(name, None)
-
-
-def VersionScript():
-  tools_dir = os.path.dirname(os.path.realpath(__file__))
-  return os.path.join(tools_dir, 'version.dart')
 
 
 def DartBinary():

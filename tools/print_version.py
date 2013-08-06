@@ -13,8 +13,12 @@
 import sys
 import utils
 
-def Main(argv):
-  print(utils.GetVersion())
+def Main():
+  version = utils.GetVersion()
+  if not version:
+    print 'Error: Couldn\'t determine version string.'
+    return 1
+  print version
 
 if __name__ == '__main__':
-  sys.exit(Main(sys.argv))
+  sys.exit(Main())
