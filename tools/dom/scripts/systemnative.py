@@ -753,7 +753,6 @@ class DartiumBackend(HtmlDartGenerator):
         '\n'
         'static void $CALLBACK_NAME(Dart_NativeArguments args)\n'
         '{\n'
-        '    DartApiScope dartApiScope;\n'
         '$!BODY'
         '}\n',
         CALLBACK_NAME=callback_name)
