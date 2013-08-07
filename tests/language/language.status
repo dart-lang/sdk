@@ -15,6 +15,9 @@
 # 2) File a bug on each architecture for the failure due to the language change.
 # 3) Update the language/src directory with the updated test.
 
+[ $compiler == dart2js && ($runtime == ie9 || $runtime == ie10) ]
+licm2_test: Skip # Issue: 12298
+
 [ $compiler == dart2dart ]
 mixin_super_constructor_named_test: Fail
 mixin_super_constructor_positionals_test: Fail
