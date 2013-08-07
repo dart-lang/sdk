@@ -54,6 +54,19 @@ void main() {
       'Too many compiled methods: '
       '${generatedCode.length} > $expectedMethodCount');
 
+  // The following names should be retained:
+  List expectedNames = [
+      'Foo', // The name of class Foo.
+      r'Foo$', // The name of class Foo's constructor.
+      'Foo_staticMethod', // The name of Foo.staticMethod.
+      r'get$field', // The (getter) name of Foo.field.
+      r'instanceMethod$0']; // The name of Foo.instanceMethod.
+  Set recordedNames = new Set()
+      ..addAll(compiler.backend.emitter.recordedMangledNames)
+      ..addAll(compiler.backend.emitter.mangledFieldNames.keys)
+      ..addAll(compiler.backend.emitter.mangledGlobalFieldNames.keys);
+  Expect.setEquals(new Set.from(expectedNames), recordedNames);
+
   for (var library in compiler.libraries.values) {
     library.forEachLocalMember((member) {
       if (library == compiler.mainApp

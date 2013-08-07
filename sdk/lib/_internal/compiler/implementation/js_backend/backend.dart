@@ -308,6 +308,9 @@ class JavaScriptBackend extends Backend {
   /// True if a call to disableTreeShaking has been seen.
   bool isTreeShakingDisabled = false;
 
+  /// True if there isn't sufficient @MirrorsUsed data.
+  bool hasInsufficientMirrorsUsed = false;
+
   /// List of instantiated types from metadata.  If metadata must be preserved,
   /// these types must registered.
   final List<Dependency> metadataInstantiatedTypes = <Dependency>[];
@@ -1359,10 +1362,9 @@ class JavaScriptBackend extends Backend {
 
   void registerStaticUse(Element element, Enqueuer enqueuer) {
     if (element == disableTreeShakingMarker) {
-      enqueuer.enqueueEverything();
-      if (isTreeShakingDisabled) return;
       compiler.disableTypeInferenceForMirrors = true;
       isTreeShakingDisabled = true;
+      enqueuer.enqueueEverything();
     } else if (element == preserveNamesMarker) {
       if (mustPreserveNames) return;
       mustPreserveNames = true;
@@ -1395,17 +1397,25 @@ class JavaScriptBackend extends Backend {
 
   /// Called when [:const Symbol(name):] is seen.
   void registerConstSymbol(String name, TreeElements elements) {
+    symbolsUsed.add(name);
   }
 
   /// Called when [:new Symbol(...):] is seen.
   void registerNewSymbol(TreeElements elements) {
   }
 
-  bool retainGetter(Element element) => isTreeShakingDisabled;
+  /// Should [element] (a getter) be retained for reflection?
+  bool shouldRetainGetter(Element element) => isNeededForReflection(element);
 
-  bool retainSetter(Element element) => isTreeShakingDisabled;
+  /// Should [element] (a setter) be retained for reflection?
+  bool shouldRetainSetter(Element element) => isNeededForReflection(element);
 
-  bool retainName(SourceString name) => mustPreserveNames;
+  /// Should [name] be retained for reflection?
+  bool shouldRetainName(SourceString name) {
+    if (hasInsufficientMirrorsUsed) return mustPreserveNames;
+    if (name == const SourceString('')) return false;
+    return symbolsUsed.contains(name.slowToString());
+  }
 
   bool get rememberLazies => isTreeShakingDisabled;
 
@@ -1460,6 +1470,12 @@ class JavaScriptBackend extends Backend {
   void registerMirrorUsage(Set<String> symbols,
                            Set<Element> targets,
                            Set<Element> metaTargets) {
+    if (symbols == null && targets == null && metaTargets == null) {
+      // The user didn't specify anything, or there are imports of
+      // 'dart:mirrors' without @MirrorsUsed.
+      hasInsufficientMirrorsUsed = true;
+      return;
+    }
     if (symbols != null) symbolsUsed.addAll(symbols);
     if (targets != null) {
       for (Element target in targets) {
@@ -1476,11 +1492,25 @@ class JavaScriptBackend extends Backend {
   }
 
   bool isNeededForReflection(Element element) {
-    // TODO(ahe): Implement this.
-    if (!metaTargetsUsed.isEmpty) return true;
+    if (hasInsufficientMirrorsUsed) return isTreeShakingDisabled;
+    /// Record the name of [element] in [symbolsUsed]. Return true for
+    /// convenience.
+    bool registerNameOf(Element element) {
+      symbolsUsed.add(element.name.slowToString());
+      if (element.isConstructor()) {
+        symbolsUsed.add(element.getEnclosingClass().name.slowToString());
+      }
+      return true;
+    }
+
+    if (!metaTargetsUsed.isEmpty) {
+      // TODO(ahe): Implement this.
+      return registerNameOf(element);
+    }
+
     if (!targetsUsed.isEmpty) {
       for (Element e = element; e != null; e = e.enclosingElement) {
-        if (targetsUsed.contains(e)) return true;
+        if (targetsUsed.contains(e)) return registerNameOf(element);
       }
     }
     return false;

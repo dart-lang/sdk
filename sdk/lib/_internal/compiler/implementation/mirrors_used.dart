@@ -189,7 +189,7 @@ class MirrorUsageAnalyzer {
     if (librariesWithoutUsage.isEmpty) {
       mergedMirrorUsage = mergeUsages(usageMap);
     } else {
-      mergedMirrorUsage = new MirrorUsage(null, wildcard, null, null);
+      mergedMirrorUsage = new MirrorUsage(null, null, null, null);
     }
   }
 

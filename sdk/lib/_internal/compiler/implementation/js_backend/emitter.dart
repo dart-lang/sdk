@@ -1220,7 +1220,7 @@ class CodeEmitterTask extends CompilerTask {
   bool fieldNeedsGetter(VariableElement field) {
     assert(field.isField());
     if (fieldAccessNeverThrows(field)) return false;
-    return backend.retainGetter(field)
+    return backend.shouldRetainGetter(field)
         || compiler.codegenWorld.hasInvokedGetter(field, compiler);
   }
 
@@ -1228,7 +1228,7 @@ class CodeEmitterTask extends CompilerTask {
     assert(field.isField());
     if (fieldAccessNeverThrows(field)) return false;
     return (!field.modifiers.isFinalOrConst())
-        && (backend.retainSetter(field)
+        && (backend.shouldRetainSetter(field)
             || compiler.codegenWorld.hasInvokedSetter(field, compiler));
   }
 
@@ -1288,8 +1288,25 @@ class CodeEmitterTask extends CompilerTask {
     emitExtraAccessors(member, builder);
   }
 
+  /// Returns the "reflection name" of an [Element] or [Selector].
+  /// The reflection name of a getter 'foo' is 'foo'.
+  /// The reflection name of a setter 'foo' is 'foo='.
+  /// The reflection name of a method 'foo' is 'foo:N:M:O', where N is the
+  /// number of required arguments, M is the number of optional arguments, and
+  /// O is the named arguments.
+  /// The reflection name of a constructor is similar to a regular method but
+  /// starts with 'new '.
+  /// This is used by js_mirrors.dart.
   String getReflectionName(elementOrSelector, String mangledName) {
-    if (!backend.retainName(elementOrSelector.name)) return null;
+    SourceString name = elementOrSelector.name;
+    if (!backend.shouldRetainName(name)) {
+      if (name == const SourceString('') && elementOrSelector is Element) {
+        // Make sure to retain names of unnamed constructors.
+        if (!backend.isNeededForReflection(elementOrSelector)) return null;
+      } else {
+        return null;
+      }
+    }
     // TODO(ahe): Enable the next line when I can tell the difference between
     // an instance method and a global.  They may have the same mangled name.
     // if (recordedMangledNames.contains(mangledName)) return null;
@@ -1701,7 +1718,7 @@ class CodeEmitterTask extends CompilerTask {
   void recordMangledField(Element member,
                           String accessorName,
                           String memberName) {
-    if (!backend.retainGetter(member)) return;
+    if (!backend.shouldRetainGetter(member)) return;
     String previousName;
     if (member.isInstanceMember()) {
       previousName = mangledFieldNames.putIfAbsent(
@@ -1959,8 +1976,9 @@ class CodeEmitterTask extends CompilerTask {
     }
     buffer.write('$className:$_');
     buffer.write(jsAst.prettyPrint(builder.toObjectInitializer(), compiler));
-    if (backend.retainName(classElement.name)) {
+    if (backend.shouldRetainName(classElement.name)) {
       buffer.write(',$n$n"+${classElement.name.slowToString()}": 0');
+      recordedMangledNames.add(className);
     }
   }
 
