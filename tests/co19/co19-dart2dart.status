@@ -153,8 +153,6 @@ Language/07_Classes/1_Instance_Methods_A02_t02: Fail # http://dartbug.com/5519
 Language/07_Classes/1_Instance_Methods_A02_t05: Fail # http://dartbug.com/5519
 Language/07_Classes/1_Instance_Methods_A06_t01: Fail # Inherited from dart2js
 Language/07_Classes/1_Instance_Methods_A06_t02: Fail # Inherited from dart2js
-Language/07_Classes/2_Getters_A01_t03: Fail # inherited from VM
-Language/07_Classes/2_Getters_A01_t05: Fail # inherited from VM
 Language/07_Classes/3_Setters_A04_t01: Fail # inherited from VM
 Language/07_Classes/3_Setters_A04_t02: Fail # inherited from VM
 Language/07_Classes/3_Setters_A04_t03: Fail # inherited from VM
