@@ -364,12 +364,12 @@ Dart_Handle DartUtils::ReadStringFromHttp(const char* script_uri) {
 static const uint8_t* ReadFileFully(const char* filename,
                                     intptr_t* file_len,
                                     const char** error_msg) {
+  *file_len = -1;
   void* stream = DartUtils::OpenFile(filename, false);
   if (stream == NULL) {
     SET_ERROR_MSG(error_msg, "Unable to open file: %s", filename);
     return NULL;
   }
-  *file_len = -1;
   const uint8_t* text_buffer = NULL;
   DartUtils::ReadFile(&text_buffer, file_len, stream);
   if (text_buffer == NULL || *file_len == -1) {

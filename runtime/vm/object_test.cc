@@ -1613,7 +1613,7 @@ TEST_CASE(SymbolUnicode) {
   uint16_t monkey_utf16[] = { 0xd83d, 0xdc35 };  // Unicode Monkey Face.
   String& monkey = String::Handle(Symbols::FromUTF16(monkey_utf16, 2));
   EXPECT(monkey.IsSymbol());
-  const char monkey_utf8[] = {0xf0, 0x9f, 0x90, 0xb5, 0};
+  const char monkey_utf8[] = {'\xf0', '\x9f', '\x90', '\xb5', 0};
   EXPECT_EQ(monkey.raw(), Symbols::New(monkey_utf8));
 
   int32_t kMonkeyFace = 0x1f435;

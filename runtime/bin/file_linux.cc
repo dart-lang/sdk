@@ -47,10 +47,7 @@ void File::Close() {
   ASSERT(handle_->fd() >= 0);
   int err = TEMP_FAILURE_RETRY(close(handle_->fd()));
   if (err != 0) {
-    const int kBufferSize = 1024;
-    char error_message[kBufferSize];
-    strerror_r(errno, error_message, kBufferSize);
-    Log::PrintErr("%s\n", error_message);
+    Log::PrintErr("%s\n", strerror(errno));
   }
   handle_->set_fd(kClosedFd);
 }

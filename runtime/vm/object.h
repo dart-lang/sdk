@@ -5988,9 +5988,7 @@ intptr_t Instance::GetNativeField(Isolate* isolate, int index) const {
   if (native_fields == TypedData::null()) {
     return 0;
   }
-  intptr_t byte_offset = index * sizeof(intptr_t);
-  return *reinterpret_cast<intptr_t*>(native_fields->ptr()->data_ +
-                                      byte_offset);
+  return *(reinterpret_cast<intptr_t*>(native_fields->ptr()->data_) + index);
 }
 
 
