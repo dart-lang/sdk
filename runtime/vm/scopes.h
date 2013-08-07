@@ -283,6 +283,10 @@ class LocalScope : public ZoneAllocated {
   // Returns NULL if this scope is not embedded in a switch.
   LocalScope* LookupSwitchScope();
 
+  // Looks up variable in this scope and mark as captured if applicable.
+  // Finds the variable even if it is marked invisible.
+  void CaptureVariable(const String& name);
+
   // Look for unresolved forward references to labels in this scope.
   // If there are any, propagate the forward reference to the next
   // outer scope of a switch statement. If there is no outer switch

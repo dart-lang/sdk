@@ -309,7 +309,7 @@ LocalVariable* LocalScope::LocalLookupVariable(const String& name) const {
   for (intptr_t i = 0; i < variables_.length(); i++) {
     LocalVariable* var = variables_[i];
     ASSERT(var->name().IsSymbol());
-    if ((var->name().raw() == name.raw()) && !var->is_invisible_) {
+    if (var->name().raw() == name.raw()) {
       return var;
     }
   }
@@ -321,7 +321,7 @@ LocalVariable* LocalScope::LookupVariable(const String& name, bool test_only) {
   LocalScope* current_scope = this;
   while (current_scope != NULL) {
     LocalVariable* var = current_scope->LocalLookupVariable(name);
-    if (var != NULL) {
+    if ((var != NULL) && !var->is_invisible_) {
       if (!test_only) {
         if (var->owner()->function_level() != function_level()) {
           var->set_is_captured();
@@ -339,6 +339,29 @@ LocalVariable* LocalScope::LookupVariable(const String& name, bool test_only) {
     current_scope = current_scope->parent();
   }
   return NULL;
+}
+
+
+void LocalScope::CaptureVariable(const String& name) {
+  ASSERT(name.IsSymbol());
+  LocalScope* current_scope = this;
+  while (current_scope != NULL) {
+    LocalVariable* var = current_scope->LocalLookupVariable(name);
+    if (var != NULL) {
+      if (var->owner()->function_level() != function_level()) {
+        var->set_is_captured();
+      }
+      // Insert aliases of the variable in intermediate scopes.
+      LocalScope* intermediate_scope = this;
+      while (intermediate_scope != current_scope) {
+        intermediate_scope->variables_.Add(var);
+        ASSERT(var->owner() != intermediate_scope);  // Item is an alias.
+        intermediate_scope = intermediate_scope->parent();
+      }
+      return;
+    }
+    current_scope = current_scope->parent();
+  }
 }
 
 

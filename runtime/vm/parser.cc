@@ -5062,16 +5062,11 @@ LocalVariable* Parser::LookupPhaseParameter() {
 
 void Parser::CaptureInstantiator() {
   ASSERT(current_block_->scope->function_level() > 0);
-  const bool kTestOnly = false;
-  // Side effect of lookup captures the instantiator variable.
-  LocalVariable* instantiator = NULL;
   if (current_function().IsInFactoryScope()) {
-    instantiator = LookupTypeArgumentsParameter(current_block_->scope,
-                                                kTestOnly);
+    current_block_->scope->CaptureVariable(Symbols::TypeArgumentsParameter());
   } else {
-    instantiator = LookupReceiver(current_block_->scope, kTestOnly);
+    current_block_->scope->CaptureVariable(Symbols::This());
   }
-  ASSERT(instantiator != NULL);
 }
 
 
