@@ -96,6 +96,7 @@ crypto/test/sha1_test: Slow, Pass
 [ $browser ]
 analyzer_experimental/test/error_test: Fail, OK # Uses dart:io.
 analyzer_experimental/test/generated/element_test: Fail, OK # Uses dart:io.
+analyzer_experimental/test/generated/parser_test: Fail, OK # Uses dart:io.
 analyzer_experimental/test/generated/resolver_test: Fail, OK # Uses dart:io.
 analyzer_experimental/test/options_test: Fail, OK # Uses dart:io.
 analyzer_experimental/test/services/formatter_test: Fail, OK # Uses dart:io.

@@ -66,6 +66,6 @@ bool isEntrypoint(CompilationUnit dart) {
   // but it parts in another file that does.
   return dart.declarations.any((node) {
     return node is FunctionDeclaration && node.name.name == "main" &&
-        node.functionExpression.parameters.elements.isEmpty;
+        node.functionExpression.parameters.parameters.isEmpty;
   });
 }
