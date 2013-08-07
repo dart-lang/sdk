@@ -42,6 +42,7 @@ crypto_test: Skip
 notifications_test: Skip
 dromaeo_smoke_test: Skip
 native_gc_test: Skip
+location_test: Skip
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
