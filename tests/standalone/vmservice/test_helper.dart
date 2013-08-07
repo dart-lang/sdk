@@ -25,6 +25,7 @@ abstract class VmServiceRequestHelper {
         return response
             .fold(new BytesBuilder(), (b, d) => b..add(d))
             .then((builder) {
+              print('** GET: $uri');
               _requestCompleted(builder.takeBytes(), response);
             });
       }).catchError((error) {
@@ -41,6 +42,7 @@ abstract class VmServiceRequestHelper {
       onRequestFailed(e);
       return;
     }
+    print('** Response: $replyAsString');
     var reply;
     try {
       reply = JSON.parse(replyAsString);
@@ -85,6 +87,7 @@ class TestLauncher {
 
   Future<int> launch() {
     String dartExecutable = Platform.executable;
+    print('** Launching $scriptPath');
     return Process.start(dartExecutable,
                          ['--enable-vm-service:0', scriptPath]).then((p) {
 
@@ -108,6 +111,7 @@ class TestLauncher {
           completer.complete(portNumber);
           // Stop repeat completions.
           first = false;
+          print('** Signaled to run test queries on $portNumber');
         }
         print(line);
       });
@@ -123,6 +127,7 @@ class TestLauncher {
   }
 
   void requestExit() {
+    print('** Requesting script to exit.');
     process.stdin.add([32, 13, 10]);
   }
 }
