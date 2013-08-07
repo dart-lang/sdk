@@ -169,15 +169,6 @@ lazy_static3_test: fail
 # test issue 10752, there are 'implicit' scopes for 'if', 'while' and 'do-while'
 implicit_scope_test: fail
 
-# test issue 10889, "throw" requires expression, "rethrow" should be used instead
-execute_finally10_test: fail
-execute_finally11_test: fail
-final_used_in_try_test: fail
-full_stacktrace2_test: fail
-stack_trace_test: fail
-throw3_test: fail
-try_catch3_test: fail
-
 # test issue 10890; on-catch UnknownType is a static warning, not error
 try_catch_on_syntax_test/01: fail
 try_catch_on_syntax_test/07: fail

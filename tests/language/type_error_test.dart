@@ -145,7 +145,7 @@ checkAssert(o) {
     assert(o);
   } on TypeError catch (e) {
     print(e); // This might provoke an error.
-    if (!assertionsEnabled) throw; // Unexpected error.
+    if (!assertionsEnabled) rethrow; // Unexpected error.
   }
 }
 
@@ -154,7 +154,7 @@ checkCastError(o) {
     print(o);
   } on TypeError catch (e) {
     print('unexpected type error: ${Error.safeToString(e)}');
-    throw; // Unexpected type error.
+    rethrow; // Unexpected type error.
   } on CastError catch (e) {
     print(e); // This might provoke an error.
     return; // Expected a cast error.

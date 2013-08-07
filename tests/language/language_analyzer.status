@@ -104,16 +104,6 @@ method_override6_test: fail # issue 11497
 block_scope_test: fail
 lazy_static3_test: fail
 
-# test issue 10889, "throw" requires expression, "rethrow" should be used instead
-execute_finally10_test: fail
-execute_finally11_test: fail
-final_used_in_try_test: fail
-full_stacktrace2_test: fail
-stack_trace_test: fail
-throw3_test: fail
-try_catch3_test: fail
-type_error_test: fail
-
 # test issue 10890; on-catch UnknownType is a static warning, not error
 try_catch_on_syntax_test/01: fail
 
