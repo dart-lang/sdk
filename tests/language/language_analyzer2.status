@@ -57,9 +57,6 @@ instantiate_type_variable_negative_test: fail
 # test issue 11596. e is Unknown is not a compile time error
 is_not_class2_negative_test: fail
 
-# test issue 11597, It is a compile-time error if part has no "part of" directive
-library_juxtaposition_test: fail
-
 # test issue 11598, 	Any use of a malbounded type gives rise to a static warning
 mixin_type_parameters_errors_test/01: fail
 mixin_type_parameters_errors_test/02: fail
