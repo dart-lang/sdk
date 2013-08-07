@@ -149,6 +149,12 @@ class Database extends EventTarget {
   @DocsEditable()
   static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
 
+  @DomName('IDBDatabase.closeEvent')
+  @DocsEditable()
+  // https://www.w3.org/Bugs/Public/show_bug.cgi?id=22540
+  @Experimental()
+  static const EventStreamProvider<Event> closeEvent = const EventStreamProvider<Event>('close');
+
   @DomName('IDBDatabase.errorEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
@@ -169,10 +175,6 @@ class Database extends EventTarget {
   @DocsEditable()
   dynamic get version native "IDBDatabase_version_Getter";
 
-  @DomName('IDBDatabase.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "IDBDatabase_addEventListener_Callback";
-
   @DomName('IDBDatabase.close')
   @DocsEditable()
   void close() native "IDBDatabase_close_Callback";
@@ -184,14 +186,6 @@ class Database extends EventTarget {
   @DomName('IDBDatabase.deleteObjectStore')
   @DocsEditable()
   void deleteObjectStore(String name) native "IDBDatabase_deleteObjectStore_Callback";
-
-  @DomName('IDBDatabase.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event evt) native "IDBDatabase_dispatchEvent_Callback";
-
-  @DomName('IDBDatabase.removeEventListener')
-  @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBDatabase_removeEventListener_Callback";
 
   Transaction transaction(storeName_OR_storeNames, String mode) {
     if ((mode is String || mode == null) && (storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null)) {
@@ -227,6 +221,12 @@ class Database extends EventTarget {
   @DomName('IDBDatabase.onabort')
   @DocsEditable()
   Stream<Event> get onAbort => abortEvent.forTarget(this);
+
+  @DomName('IDBDatabase.onclose')
+  @DocsEditable()
+  // https://www.w3.org/Bugs/Public/show_bug.cgi?id=22540
+  @Experimental()
+  Stream<Event> get onClose => closeEvent.forTarget(this);
 
   @DomName('IDBDatabase.onerror')
   @DocsEditable()
@@ -917,7 +917,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('IDBOpenDBRequest')
 @Unstable()
-class OpenDBRequest extends Request implements EventTarget {
+class OpenDBRequest extends Request {
   // To suppress missing implicit constructor warnings.
   factory OpenDBRequest._() { throw new UnsupportedError("Not supported"); }
 
@@ -979,18 +979,6 @@ class Request extends EventTarget {
   @DomName('IDBRequest.transaction')
   @DocsEditable()
   Transaction get transaction native "IDBRequest_transaction_Getter";
-
-  @DomName('IDBRequest.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "IDBRequest_addEventListener_Callback";
-
-  @DomName('IDBRequest.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event evt) native "IDBRequest_dispatchEvent_Callback";
-
-  @DomName('IDBRequest.removeEventListener')
-  @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBRequest_removeEventListener_Callback";
 
   @DomName('IDBRequest.onerror')
   @DocsEditable()
@@ -1066,21 +1054,9 @@ class Transaction extends EventTarget {
   @DocsEditable()
   void abort() native "IDBTransaction_abort_Callback";
 
-  @DomName('IDBTransaction.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "IDBTransaction_addEventListener_Callback";
-
-  @DomName('IDBTransaction.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event evt) native "IDBTransaction_dispatchEvent_Callback";
-
   @DomName('IDBTransaction.objectStore')
   @DocsEditable()
   ObjectStore objectStore(String name) native "IDBTransaction_objectStore_Callback";
-
-  @DomName('IDBTransaction.removeEventListener')
-  @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBTransaction_removeEventListener_Callback";
 
   @DomName('IDBTransaction.onabort')
   @DocsEditable()

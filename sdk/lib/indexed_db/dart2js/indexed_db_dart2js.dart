@@ -305,6 +305,12 @@ class Database extends EventTarget native "IDBDatabase" {
   @DocsEditable()
   static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
 
+  @DomName('IDBDatabase.closeEvent')
+  @DocsEditable()
+  // https://www.w3.org/Bugs/Public/show_bug.cgi?id=22540
+  @Experimental()
+  static const EventStreamProvider<Event> closeEvent = const EventStreamProvider<Event>('close');
+
   @DomName('IDBDatabase.errorEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
@@ -328,11 +334,6 @@ class Database extends EventTarget native "IDBDatabase" {
   @Creates('int|String|Null')
   @Returns('int|String|Null')
   final dynamic version;
-
-  @JSName('addEventListener')
-  @DomName('IDBDatabase.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @DomName('IDBDatabase.close')
   @DocsEditable()
@@ -360,18 +361,15 @@ class Database extends EventTarget native "IDBDatabase" {
   @DocsEditable()
   void deleteObjectStore(String name) native;
 
-  @DomName('IDBDatabase.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event evt) native;
-
-  @JSName('removeEventListener')
-  @DomName('IDBDatabase.removeEventListener')
-  @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
-
   @DomName('IDBDatabase.onabort')
   @DocsEditable()
   Stream<Event> get onAbort => abortEvent.forTarget(this);
+
+  @DomName('IDBDatabase.onclose')
+  @DocsEditable()
+  // https://www.w3.org/Bugs/Public/show_bug.cgi?id=22540
+  @Experimental()
+  Stream<Event> get onClose => closeEvent.forTarget(this);
 
   @DomName('IDBDatabase.onerror')
   @DocsEditable()
@@ -1085,7 +1083,7 @@ class ObjectStore extends Interceptor native "IDBObjectStore" {
 @DocsEditable()
 @DomName('IDBOpenDBRequest')
 @Unstable()
-class OpenDBRequest extends Request implements EventTarget native "IDBOpenDBRequest,IDBVersionChangeRequest" {
+class OpenDBRequest extends Request native "IDBOpenDBRequest,IDBVersionChangeRequest" {
   // To suppress missing implicit constructor warnings.
   factory OpenDBRequest._() { throw new UnsupportedError("Not supported"); }
 
@@ -1148,20 +1146,6 @@ class Request extends EventTarget native "IDBRequest" {
   @DomName('IDBRequest.transaction')
   @DocsEditable()
   final Transaction transaction;
-
-  @JSName('addEventListener')
-  @DomName('IDBRequest.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  @DomName('IDBRequest.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event evt) native;
-
-  @JSName('removeEventListener')
-  @DomName('IDBRequest.removeEventListener')
-  @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @DomName('IDBRequest.onerror')
   @DocsEditable()
@@ -1236,23 +1220,9 @@ class Transaction extends EventTarget native "IDBTransaction" {
   @DocsEditable()
   void abort() native;
 
-  @JSName('addEventListener')
-  @DomName('IDBTransaction.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  @DomName('IDBTransaction.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event evt) native;
-
   @DomName('IDBTransaction.objectStore')
   @DocsEditable()
   ObjectStore objectStore(String name) native;
-
-  @JSName('removeEventListener')
-  @DomName('IDBTransaction.removeEventListener')
-  @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @DomName('IDBTransaction.onabort')
   @DocsEditable()

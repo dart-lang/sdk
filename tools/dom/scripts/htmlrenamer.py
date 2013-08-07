@@ -71,7 +71,6 @@ _removed_html_interfaces = [
   'DOMFileSystemSync', # Workers
   'DatabaseSync', # Workers
   'DataView', # Typed arrays
-  'DedicatedWorkerContext', # Workers
   'DirectoryEntrySync', # Workers
   'DirectoryReaderSync', # Workers
   'EntrySync', # Workers
@@ -114,11 +113,9 @@ _removed_html_interfaces = [
   'SVGTRefElement',
   'SVGVKernElement',
   'SharedWorker', # Workers
-  'SharedWorkerContext', # Workers
   'WebKitMediaSource',
   'WebKitSourceBuffer',
   'WebKitSourceBufferList',
-  'WorkerContext', # Workers
   'WorkerLocation', # Workers
   'WorkerNavigator', # Workers
 ]
@@ -148,8 +145,8 @@ convert_to_future_members = monitored.Set(
   'RTCPeerConnection.setLocalDescription',
   'RTCPeerConnection.setRemoteDescription',
   'StorageInfo.requestQuota',
-  'WorkerContext.webkitResolveLocalFileSystemURL',
-  'WorkerContext.webkitRequestFileSystem',
+  'WorkerGlobalScope.webkitResolveLocalFileSystemURL',
+  'WorkerGlobalScope.webkitRequestFileSystem',
 ])
 
 # Members from the standard dom that should not be exposed publicly in dart:html
@@ -329,7 +326,6 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'Window.webkitRequestFileSystem': '_requestFileSystem',
     'Window.webkitResolveLocalFileSystemURL': 'resolveLocalFileSystemUrl',
     'Element.querySelector': 'query',
-    'Element.webkitCreateShadowRoot': 'createShadowRoot',
     'Element.webkitMatchesSelector' : 'matches',
     'MutationObserver.observe': '_observe',
     'Navigator.webkitGetUserMedia': '_getUserMedia',
@@ -380,7 +376,7 @@ renamed_overloads = monitored.Dict('htmldartgenreator.renamed_overloads', {
   'RTCDataChannel.send(ArrayBufferView data)': 'sendTypedData',
   'RTCDataChannel.send(Blob data)': 'sendBlob',
   'RTCDataChannel.send(DOMString data)': 'sendString',
-  'SourceBuffer.appendBuffer(ArrayBufferView view)': 'appendBufferView',
+  'SourceBuffer.appendBuffer(ArrayBufferView data)': 'appendBufferView',
   'URL.createObjectURL(MediaSource source)':
       'createObjectUrlFromSource',
   'URL.createObjectURL(WebKitMediaSource source)':
@@ -506,12 +502,10 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'Document.get:documentURI',
     'Document.get:embeds',
     'Document.get:forms',
-    'Document.get:height',
     'Document.get:inputEncoding',
     'Document.get:links',
     'Document.get:plugins',
     'Document.get:scripts',
-    'Document.get:width',
     'Document.get:xmlEncoding',
     'Document.getElementsByTagNameNS',
     'Document.getOverrideStyle',
@@ -716,7 +710,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'ShadowRoot.getElementsByTagNameNS',
     'SVGStyledElement.getPresentationAttribute',
     'WheelEvent.wheelDelta',
-    'WorkerContext.webkitIndexedDB',
+    'WorkerGlobalScope.webkitIndexedDB',
 # TODO(jacobr): should these be removed?
     'Document.close',
     'Document.hasFocus',
@@ -728,7 +722,6 @@ _library_names = monitored.Dict('htmlrenamer._library_names', {
   'Database': 'web_sql',
   'Navigator': 'html',
   'Window': 'html',
-  'WorkerContext': 'html',
 })
 
 class HtmlRenamer(object):

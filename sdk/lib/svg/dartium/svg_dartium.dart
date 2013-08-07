@@ -63,7 +63,7 @@ class _SvgSvgElementFactoryProvider {
 @DocsEditable()
 @DomName('SVGAElement')
 @Unstable()
-class AElement extends StyledElement implements Transformable, ExternalResourcesRequired, UriReference, Tests, LangSpace {
+class AElement extends GraphicsElement implements UriReference, ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory AElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -78,66 +78,6 @@ class AElement extends StyledElement implements Transformable, ExternalResources
   @DomName('SVGAElement.externalResourcesRequired')
   @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGAElement_externalResourcesRequired_Getter";
-
-  @DomName('SVGAElement.xmllang')
-  @DocsEditable()
-  String get xmllang native "SVGAElement_xmllang_Getter";
-
-  @DomName('SVGAElement.xmllang')
-  @DocsEditable()
-  void set xmllang(String value) native "SVGAElement_xmllang_Setter";
-
-  @DomName('SVGAElement.xmlspace')
-  @DocsEditable()
-  String get xmlspace native "SVGAElement_xmlspace_Getter";
-
-  @DomName('SVGAElement.xmlspace')
-  @DocsEditable()
-  void set xmlspace(String value) native "SVGAElement_xmlspace_Setter";
-
-  @DomName('SVGAElement.farthestViewportElement')
-  @DocsEditable()
-  SvgElement get farthestViewportElement native "SVGAElement_farthestViewportElement_Getter";
-
-  @DomName('SVGAElement.nearestViewportElement')
-  @DocsEditable()
-  SvgElement get nearestViewportElement native "SVGAElement_nearestViewportElement_Getter";
-
-  @DomName('SVGAElement.getBBox')
-  @DocsEditable()
-  Rect getBBox() native "SVGAElement_getBBox_Callback";
-
-  @DomName('SVGAElement.getCTM')
-  @DocsEditable()
-  Matrix getCtm() native "SVGAElement_getCTM_Callback";
-
-  @DomName('SVGAElement.getScreenCTM')
-  @DocsEditable()
-  Matrix getScreenCtm() native "SVGAElement_getScreenCTM_Callback";
-
-  @DomName('SVGAElement.getTransformToElement')
-  @DocsEditable()
-  Matrix getTransformToElement(SvgElement element) native "SVGAElement_getTransformToElement_Callback";
-
-  @DomName('SVGAElement.requiredExtensions')
-  @DocsEditable()
-  StringList get requiredExtensions native "SVGAElement_requiredExtensions_Getter";
-
-  @DomName('SVGAElement.requiredFeatures')
-  @DocsEditable()
-  StringList get requiredFeatures native "SVGAElement_requiredFeatures_Getter";
-
-  @DomName('SVGAElement.systemLanguage')
-  @DocsEditable()
-  StringList get systemLanguage native "SVGAElement_systemLanguage_Getter";
-
-  @DomName('SVGAElement.hasExtension')
-  @DocsEditable()
-  bool hasExtension(String extension) native "SVGAElement_hasExtension_Callback";
-
-  @DomName('SVGAElement.transform')
-  @DocsEditable()
-  AnimatedTransformList get transform native "SVGAElement_transform_Getter";
 
   @DomName('SVGAElement.href')
   @DocsEditable()
@@ -615,7 +555,7 @@ class AnimatedTransformList extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('SVGAnimationElement')
 @Unstable()
-class AnimationElement extends SvgElement implements ExternalResourcesRequired, ElementTimeControl, Tests {
+class AnimationElement extends SvgElement implements ExternalResourcesRequired, Tests {
   // To suppress missing implicit constructor warnings.
   factory AnimationElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -626,18 +566,6 @@ class AnimationElement extends SvgElement implements ExternalResourcesRequired, 
   @DomName('SVGAnimationElement.targetElement')
   @DocsEditable()
   SvgElement get targetElement native "SVGAnimationElement_targetElement_Getter";
-
-  @DomName('SVGAnimationElement.getCurrentTime')
-  @DocsEditable()
-  num getCurrentTime() native "SVGAnimationElement_getCurrentTime_Callback";
-
-  @DomName('SVGAnimationElement.getSimpleDuration')
-  @DocsEditable()
-  num getSimpleDuration() native "SVGAnimationElement_getSimpleDuration_Callback";
-
-  @DomName('SVGAnimationElement.getStartTime')
-  @DocsEditable()
-  num getStartTime() native "SVGAnimationElement_getStartTime_Callback";
 
   @DomName('SVGAnimationElement.beginElement')
   @DocsEditable()
@@ -654,6 +582,18 @@ class AnimationElement extends SvgElement implements ExternalResourcesRequired, 
   @DomName('SVGAnimationElement.endElementAt')
   @DocsEditable()
   void endElementAt(num offset) native "SVGAnimationElement_endElementAt_Callback";
+
+  @DomName('SVGAnimationElement.getCurrentTime')
+  @DocsEditable()
+  num getCurrentTime() native "SVGAnimationElement_getCurrentTime_Callback";
+
+  @DomName('SVGAnimationElement.getSimpleDuration')
+  @DocsEditable()
+  num getSimpleDuration() native "SVGAnimationElement_getSimpleDuration_Callback";
+
+  @DomName('SVGAnimationElement.getStartTime')
+  @DocsEditable()
+  num getStartTime() native "SVGAnimationElement_getStartTime_Callback";
 
   @DomName('SVGAnimationElement.externalResourcesRequired')
   @DocsEditable()
@@ -686,7 +626,7 @@ class AnimationElement extends SvgElement implements ExternalResourcesRequired, 
 @DocsEditable()
 @DomName('SVGCircleElement')
 @Unstable()
-class CircleElement extends StyledElement implements Transformable, ExternalResourcesRequired, Tests, LangSpace {
+class CircleElement extends GraphicsElement implements ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory CircleElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -710,66 +650,6 @@ class CircleElement extends StyledElement implements Transformable, ExternalReso
   @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGCircleElement_externalResourcesRequired_Getter";
 
-  @DomName('SVGCircleElement.xmllang')
-  @DocsEditable()
-  String get xmllang native "SVGCircleElement_xmllang_Getter";
-
-  @DomName('SVGCircleElement.xmllang')
-  @DocsEditable()
-  void set xmllang(String value) native "SVGCircleElement_xmllang_Setter";
-
-  @DomName('SVGCircleElement.xmlspace')
-  @DocsEditable()
-  String get xmlspace native "SVGCircleElement_xmlspace_Getter";
-
-  @DomName('SVGCircleElement.xmlspace')
-  @DocsEditable()
-  void set xmlspace(String value) native "SVGCircleElement_xmlspace_Setter";
-
-  @DomName('SVGCircleElement.farthestViewportElement')
-  @DocsEditable()
-  SvgElement get farthestViewportElement native "SVGCircleElement_farthestViewportElement_Getter";
-
-  @DomName('SVGCircleElement.nearestViewportElement')
-  @DocsEditable()
-  SvgElement get nearestViewportElement native "SVGCircleElement_nearestViewportElement_Getter";
-
-  @DomName('SVGCircleElement.getBBox')
-  @DocsEditable()
-  Rect getBBox() native "SVGCircleElement_getBBox_Callback";
-
-  @DomName('SVGCircleElement.getCTM')
-  @DocsEditable()
-  Matrix getCtm() native "SVGCircleElement_getCTM_Callback";
-
-  @DomName('SVGCircleElement.getScreenCTM')
-  @DocsEditable()
-  Matrix getScreenCtm() native "SVGCircleElement_getScreenCTM_Callback";
-
-  @DomName('SVGCircleElement.getTransformToElement')
-  @DocsEditable()
-  Matrix getTransformToElement(SvgElement element) native "SVGCircleElement_getTransformToElement_Callback";
-
-  @DomName('SVGCircleElement.requiredExtensions')
-  @DocsEditable()
-  StringList get requiredExtensions native "SVGCircleElement_requiredExtensions_Getter";
-
-  @DomName('SVGCircleElement.requiredFeatures')
-  @DocsEditable()
-  StringList get requiredFeatures native "SVGCircleElement_requiredFeatures_Getter";
-
-  @DomName('SVGCircleElement.systemLanguage')
-  @DocsEditable()
-  StringList get systemLanguage native "SVGCircleElement_systemLanguage_Getter";
-
-  @DomName('SVGCircleElement.hasExtension')
-  @DocsEditable()
-  bool hasExtension(String extension) native "SVGCircleElement_hasExtension_Callback";
-
-  @DomName('SVGCircleElement.transform')
-  @DocsEditable()
-  AnimatedTransformList get transform native "SVGCircleElement_transform_Getter";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -781,7 +661,7 @@ class CircleElement extends StyledElement implements Transformable, ExternalReso
 @DocsEditable()
 @DomName('SVGClipPathElement')
 @Unstable()
-class ClipPathElement extends StyledElement implements Transformable, ExternalResourcesRequired, Tests, LangSpace {
+class ClipPathElement extends GraphicsElement implements ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory ClipPathElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -797,66 +677,6 @@ class ClipPathElement extends StyledElement implements Transformable, ExternalRe
   @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGClipPathElement_externalResourcesRequired_Getter";
 
-  @DomName('SVGClipPathElement.xmllang')
-  @DocsEditable()
-  String get xmllang native "SVGClipPathElement_xmllang_Getter";
-
-  @DomName('SVGClipPathElement.xmllang')
-  @DocsEditable()
-  void set xmllang(String value) native "SVGClipPathElement_xmllang_Setter";
-
-  @DomName('SVGClipPathElement.xmlspace')
-  @DocsEditable()
-  String get xmlspace native "SVGClipPathElement_xmlspace_Getter";
-
-  @DomName('SVGClipPathElement.xmlspace')
-  @DocsEditable()
-  void set xmlspace(String value) native "SVGClipPathElement_xmlspace_Setter";
-
-  @DomName('SVGClipPathElement.farthestViewportElement')
-  @DocsEditable()
-  SvgElement get farthestViewportElement native "SVGClipPathElement_farthestViewportElement_Getter";
-
-  @DomName('SVGClipPathElement.nearestViewportElement')
-  @DocsEditable()
-  SvgElement get nearestViewportElement native "SVGClipPathElement_nearestViewportElement_Getter";
-
-  @DomName('SVGClipPathElement.getBBox')
-  @DocsEditable()
-  Rect getBBox() native "SVGClipPathElement_getBBox_Callback";
-
-  @DomName('SVGClipPathElement.getCTM')
-  @DocsEditable()
-  Matrix getCtm() native "SVGClipPathElement_getCTM_Callback";
-
-  @DomName('SVGClipPathElement.getScreenCTM')
-  @DocsEditable()
-  Matrix getScreenCtm() native "SVGClipPathElement_getScreenCTM_Callback";
-
-  @DomName('SVGClipPathElement.getTransformToElement')
-  @DocsEditable()
-  Matrix getTransformToElement(SvgElement element) native "SVGClipPathElement_getTransformToElement_Callback";
-
-  @DomName('SVGClipPathElement.requiredExtensions')
-  @DocsEditable()
-  StringList get requiredExtensions native "SVGClipPathElement_requiredExtensions_Getter";
-
-  @DomName('SVGClipPathElement.requiredFeatures')
-  @DocsEditable()
-  StringList get requiredFeatures native "SVGClipPathElement_requiredFeatures_Getter";
-
-  @DomName('SVGClipPathElement.systemLanguage')
-  @DocsEditable()
-  StringList get systemLanguage native "SVGClipPathElement_systemLanguage_Getter";
-
-  @DomName('SVGClipPathElement.hasExtension')
-  @DocsEditable()
-  bool hasExtension(String extension) native "SVGClipPathElement_hasExtension_Callback";
-
-  @DomName('SVGClipPathElement.transform')
-  @DocsEditable()
-  AnimatedTransformList get transform native "SVGClipPathElement_transform_Getter";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -868,7 +688,7 @@ class ClipPathElement extends StyledElement implements Transformable, ExternalRe
 @DocsEditable()
 @DomName('SVGDefsElement')
 @Unstable()
-class DefsElement extends StyledElement implements Transformable, ExternalResourcesRequired, Tests, LangSpace {
+class DefsElement extends GraphicsElement implements ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory DefsElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -879,66 +699,6 @@ class DefsElement extends StyledElement implements Transformable, ExternalResour
   @DomName('SVGDefsElement.externalResourcesRequired')
   @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGDefsElement_externalResourcesRequired_Getter";
-
-  @DomName('SVGDefsElement.xmllang')
-  @DocsEditable()
-  String get xmllang native "SVGDefsElement_xmllang_Getter";
-
-  @DomName('SVGDefsElement.xmllang')
-  @DocsEditable()
-  void set xmllang(String value) native "SVGDefsElement_xmllang_Setter";
-
-  @DomName('SVGDefsElement.xmlspace')
-  @DocsEditable()
-  String get xmlspace native "SVGDefsElement_xmlspace_Getter";
-
-  @DomName('SVGDefsElement.xmlspace')
-  @DocsEditable()
-  void set xmlspace(String value) native "SVGDefsElement_xmlspace_Setter";
-
-  @DomName('SVGDefsElement.farthestViewportElement')
-  @DocsEditable()
-  SvgElement get farthestViewportElement native "SVGDefsElement_farthestViewportElement_Getter";
-
-  @DomName('SVGDefsElement.nearestViewportElement')
-  @DocsEditable()
-  SvgElement get nearestViewportElement native "SVGDefsElement_nearestViewportElement_Getter";
-
-  @DomName('SVGDefsElement.getBBox')
-  @DocsEditable()
-  Rect getBBox() native "SVGDefsElement_getBBox_Callback";
-
-  @DomName('SVGDefsElement.getCTM')
-  @DocsEditable()
-  Matrix getCtm() native "SVGDefsElement_getCTM_Callback";
-
-  @DomName('SVGDefsElement.getScreenCTM')
-  @DocsEditable()
-  Matrix getScreenCtm() native "SVGDefsElement_getScreenCTM_Callback";
-
-  @DomName('SVGDefsElement.getTransformToElement')
-  @DocsEditable()
-  Matrix getTransformToElement(SvgElement element) native "SVGDefsElement_getTransformToElement_Callback";
-
-  @DomName('SVGDefsElement.requiredExtensions')
-  @DocsEditable()
-  StringList get requiredExtensions native "SVGDefsElement_requiredExtensions_Getter";
-
-  @DomName('SVGDefsElement.requiredFeatures')
-  @DocsEditable()
-  StringList get requiredFeatures native "SVGDefsElement_requiredFeatures_Getter";
-
-  @DomName('SVGDefsElement.systemLanguage')
-  @DocsEditable()
-  StringList get systemLanguage native "SVGDefsElement_systemLanguage_Getter";
-
-  @DomName('SVGDefsElement.hasExtension')
-  @DocsEditable()
-  bool hasExtension(String extension) native "SVGDefsElement_hasExtension_Callback";
-
-  @DomName('SVGDefsElement.transform')
-  @DocsEditable()
-  AnimatedTransformList get transform native "SVGDefsElement_transform_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -951,29 +711,13 @@ class DefsElement extends StyledElement implements Transformable, ExternalResour
 @DocsEditable()
 @DomName('SVGDescElement')
 @Unstable()
-class DescElement extends StyledElement implements LangSpace {
+class DescElement extends StyledElement {
   // To suppress missing implicit constructor warnings.
   factory DescElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGDescElement.SVGDescElement')
   @DocsEditable()
   factory DescElement() => _SvgElementFactoryProvider.createSvgElement_tag("desc");
-
-  @DomName('SVGDescElement.xmllang')
-  @DocsEditable()
-  String get xmllang native "SVGDescElement_xmllang_Getter";
-
-  @DomName('SVGDescElement.xmllang')
-  @DocsEditable()
-  void set xmllang(String value) native "SVGDescElement_xmllang_Setter";
-
-  @DomName('SVGDescElement.xmlspace')
-  @DocsEditable()
-  String get xmlspace native "SVGDescElement_xmlspace_Getter";
-
-  @DomName('SVGDescElement.xmlspace')
-  @DocsEditable()
-  void set xmlspace(String value) native "SVGDescElement_xmlspace_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1093,6 +837,16 @@ class ElementInstance extends EventTarget {
   @DomName('SVGElementInstance.mousedownEvent')
   @DocsEditable()
   static const EventStreamProvider<MouseEvent> mouseDownEvent = const EventStreamProvider<MouseEvent>('mousedown');
+
+  @DomName('SVGElementInstance.mouseenterEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<MouseEvent> mouseEnterEvent = const EventStreamProvider<MouseEvent>('mouseenter');
+
+  @DomName('SVGElementInstance.mouseleaveEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<MouseEvent> mouseLeaveEvent = const EventStreamProvider<MouseEvent>('mouseleave');
 
   @DomName('SVGElementInstance.mousemoveEvent')
   @DocsEditable()
@@ -1288,6 +1042,16 @@ class ElementInstance extends EventTarget {
   @DocsEditable()
   Stream<MouseEvent> get onMouseDown => mouseDownEvent.forTarget(this);
 
+  @DomName('SVGElementInstance.onmouseenter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<MouseEvent> get onMouseEnter => mouseEnterEvent.forTarget(this);
+
+  @DomName('SVGElementInstance.onmouseleave')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<MouseEvent> get onMouseLeave => mouseLeaveEvent.forTarget(this);
+
   @DomName('SVGElementInstance.onmousemove')
   @DocsEditable()
   Stream<MouseEvent> get onMouseMove => mouseMoveEvent.forTarget(this);
@@ -1357,7 +1121,7 @@ class ElementInstance extends EventTarget {
 @DocsEditable()
 @DomName('SVGEllipseElement')
 @Unstable()
-class EllipseElement extends StyledElement implements Transformable, ExternalResourcesRequired, Tests, LangSpace {
+class EllipseElement extends GraphicsElement implements ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory EllipseElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -1384,66 +1148,6 @@ class EllipseElement extends StyledElement implements Transformable, ExternalRes
   @DomName('SVGEllipseElement.externalResourcesRequired')
   @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGEllipseElement_externalResourcesRequired_Getter";
-
-  @DomName('SVGEllipseElement.xmllang')
-  @DocsEditable()
-  String get xmllang native "SVGEllipseElement_xmllang_Getter";
-
-  @DomName('SVGEllipseElement.xmllang')
-  @DocsEditable()
-  void set xmllang(String value) native "SVGEllipseElement_xmllang_Setter";
-
-  @DomName('SVGEllipseElement.xmlspace')
-  @DocsEditable()
-  String get xmlspace native "SVGEllipseElement_xmlspace_Getter";
-
-  @DomName('SVGEllipseElement.xmlspace')
-  @DocsEditable()
-  void set xmlspace(String value) native "SVGEllipseElement_xmlspace_Setter";
-
-  @DomName('SVGEllipseElement.farthestViewportElement')
-  @DocsEditable()
-  SvgElement get farthestViewportElement native "SVGEllipseElement_farthestViewportElement_Getter";
-
-  @DomName('SVGEllipseElement.nearestViewportElement')
-  @DocsEditable()
-  SvgElement get nearestViewportElement native "SVGEllipseElement_nearestViewportElement_Getter";
-
-  @DomName('SVGEllipseElement.getBBox')
-  @DocsEditable()
-  Rect getBBox() native "SVGEllipseElement_getBBox_Callback";
-
-  @DomName('SVGEllipseElement.getCTM')
-  @DocsEditable()
-  Matrix getCtm() native "SVGEllipseElement_getCTM_Callback";
-
-  @DomName('SVGEllipseElement.getScreenCTM')
-  @DocsEditable()
-  Matrix getScreenCtm() native "SVGEllipseElement_getScreenCTM_Callback";
-
-  @DomName('SVGEllipseElement.getTransformToElement')
-  @DocsEditable()
-  Matrix getTransformToElement(SvgElement element) native "SVGEllipseElement_getTransformToElement_Callback";
-
-  @DomName('SVGEllipseElement.requiredExtensions')
-  @DocsEditable()
-  StringList get requiredExtensions native "SVGEllipseElement_requiredExtensions_Getter";
-
-  @DomName('SVGEllipseElement.requiredFeatures')
-  @DocsEditable()
-  StringList get requiredFeatures native "SVGEllipseElement_requiredFeatures_Getter";
-
-  @DomName('SVGEllipseElement.systemLanguage')
-  @DocsEditable()
-  StringList get systemLanguage native "SVGEllipseElement_systemLanguage_Getter";
-
-  @DomName('SVGEllipseElement.hasExtension')
-  @DocsEditable()
-  bool hasExtension(String extension) native "SVGEllipseElement_hasExtension_Callback";
-
-  @DomName('SVGEllipseElement.transform')
-  @DocsEditable()
-  AnimatedTransformList get transform native "SVGEllipseElement_transform_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2289,7 +1993,7 @@ class FEGaussianBlurElement extends StyledElement implements FilterPrimitiveStan
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-class FEImageElement extends StyledElement implements FilterPrimitiveStandardAttributes, UriReference, ExternalResourcesRequired, LangSpace {
+class FEImageElement extends StyledElement implements FilterPrimitiveStandardAttributes, UriReference, ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory FEImageElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2327,22 +2031,6 @@ class FEImageElement extends StyledElement implements FilterPrimitiveStandardAtt
   @DomName('SVGFEImageElement.y')
   @DocsEditable()
   AnimatedLength get y native "SVGFEImageElement_y_Getter";
-
-  @DomName('SVGFEImageElement.xmllang')
-  @DocsEditable()
-  String get xmllang native "SVGFEImageElement_xmllang_Getter";
-
-  @DomName('SVGFEImageElement.xmllang')
-  @DocsEditable()
-  void set xmllang(String value) native "SVGFEImageElement_xmllang_Setter";
-
-  @DomName('SVGFEImageElement.xmlspace')
-  @DocsEditable()
-  String get xmlspace native "SVGFEImageElement_xmlspace_Getter";
-
-  @DomName('SVGFEImageElement.xmlspace')
-  @DocsEditable()
-  void set xmlspace(String value) native "SVGFEImageElement_xmlspace_Setter";
 
   @DomName('SVGFEImageElement.href')
   @DocsEditable()
@@ -2870,7 +2558,7 @@ class FETurbulenceElement extends StyledElement implements FilterPrimitiveStanda
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-class FilterElement extends StyledElement implements UriReference, ExternalResourcesRequired, LangSpace {
+class FilterElement extends StyledElement implements UriReference, ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory FilterElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2920,22 +2608,6 @@ class FilterElement extends StyledElement implements UriReference, ExternalResou
   @DomName('SVGFilterElement.externalResourcesRequired')
   @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGFilterElement_externalResourcesRequired_Getter";
-
-  @DomName('SVGFilterElement.xmllang')
-  @DocsEditable()
-  String get xmllang native "SVGFilterElement_xmllang_Getter";
-
-  @DomName('SVGFilterElement.xmllang')
-  @DocsEditable()
-  void set xmllang(String value) native "SVGFilterElement_xmllang_Setter";
-
-  @DomName('SVGFilterElement.xmlspace')
-  @DocsEditable()
-  String get xmlspace native "SVGFilterElement_xmlspace_Getter";
-
-  @DomName('SVGFilterElement.xmlspace')
-  @DocsEditable()
-  void set xmlspace(String value) native "SVGFilterElement_xmlspace_Setter";
 
   @DomName('SVGFilterElement.href')
   @DocsEditable()
@@ -3009,7 +2681,7 @@ abstract class FitToViewBox extends NativeFieldWrapperClass1 {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-class ForeignObjectElement extends StyledElement implements Transformable, ExternalResourcesRequired, Tests, LangSpace {
+class ForeignObjectElement extends GraphicsElement implements ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory ForeignObjectElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -3040,66 +2712,6 @@ class ForeignObjectElement extends StyledElement implements Transformable, Exter
   @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGForeignObjectElement_externalResourcesRequired_Getter";
 
-  @DomName('SVGForeignObjectElement.xmllang')
-  @DocsEditable()
-  String get xmllang native "SVGForeignObjectElement_xmllang_Getter";
-
-  @DomName('SVGForeignObjectElement.xmllang')
-  @DocsEditable()
-  void set xmllang(String value) native "SVGForeignObjectElement_xmllang_Setter";
-
-  @DomName('SVGForeignObjectElement.xmlspace')
-  @DocsEditable()
-  String get xmlspace native "SVGForeignObjectElement_xmlspace_Getter";
-
-  @DomName('SVGForeignObjectElement.xmlspace')
-  @DocsEditable()
-  void set xmlspace(String value) native "SVGForeignObjectElement_xmlspace_Setter";
-
-  @DomName('SVGForeignObjectElement.farthestViewportElement')
-  @DocsEditable()
-  SvgElement get farthestViewportElement native "SVGForeignObjectElement_farthestViewportElement_Getter";
-
-  @DomName('SVGForeignObjectElement.nearestViewportElement')
-  @DocsEditable()
-  SvgElement get nearestViewportElement native "SVGForeignObjectElement_nearestViewportElement_Getter";
-
-  @DomName('SVGForeignObjectElement.getBBox')
-  @DocsEditable()
-  Rect getBBox() native "SVGForeignObjectElement_getBBox_Callback";
-
-  @DomName('SVGForeignObjectElement.getCTM')
-  @DocsEditable()
-  Matrix getCtm() native "SVGForeignObjectElement_getCTM_Callback";
-
-  @DomName('SVGForeignObjectElement.getScreenCTM')
-  @DocsEditable()
-  Matrix getScreenCtm() native "SVGForeignObjectElement_getScreenCTM_Callback";
-
-  @DomName('SVGForeignObjectElement.getTransformToElement')
-  @DocsEditable()
-  Matrix getTransformToElement(SvgElement element) native "SVGForeignObjectElement_getTransformToElement_Callback";
-
-  @DomName('SVGForeignObjectElement.requiredExtensions')
-  @DocsEditable()
-  StringList get requiredExtensions native "SVGForeignObjectElement_requiredExtensions_Getter";
-
-  @DomName('SVGForeignObjectElement.requiredFeatures')
-  @DocsEditable()
-  StringList get requiredFeatures native "SVGForeignObjectElement_requiredFeatures_Getter";
-
-  @DomName('SVGForeignObjectElement.systemLanguage')
-  @DocsEditable()
-  StringList get systemLanguage native "SVGForeignObjectElement_systemLanguage_Getter";
-
-  @DomName('SVGForeignObjectElement.hasExtension')
-  @DocsEditable()
-  bool hasExtension(String extension) native "SVGForeignObjectElement_hasExtension_Callback";
-
-  @DomName('SVGForeignObjectElement.transform')
-  @DocsEditable()
-  AnimatedTransformList get transform native "SVGForeignObjectElement_transform_Getter";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3111,7 +2723,7 @@ class ForeignObjectElement extends StyledElement implements Transformable, Exter
 @DocsEditable()
 @DomName('SVGGElement')
 @Unstable()
-class GElement extends StyledElement implements Transformable, ExternalResourcesRequired, Tests, LangSpace {
+class GElement extends GraphicsElement implements ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory GElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -3123,65 +2735,75 @@ class GElement extends StyledElement implements Transformable, ExternalResources
   @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGGElement_externalResourcesRequired_Getter";
 
-  @DomName('SVGGElement.xmllang')
-  @DocsEditable()
-  String get xmllang native "SVGGElement_xmllang_Getter";
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
-  @DomName('SVGGElement.xmllang')
-  @DocsEditable()
-  void set xmllang(String value) native "SVGGElement_xmllang_Setter";
+// WARNING: Do not edit - generated code.
 
-  @DomName('SVGGElement.xmlspace')
-  @DocsEditable()
-  String get xmlspace native "SVGGElement_xmlspace_Getter";
 
-  @DomName('SVGGElement.xmlspace')
-  @DocsEditable()
-  void set xmlspace(String value) native "SVGGElement_xmlspace_Setter";
+@DocsEditable()
+@DomName('SVGGraphicsElement')
+@Experimental() // untriaged
+class GraphicsElement extends StyledElement implements Tests {
+  // To suppress missing implicit constructor warnings.
+  factory GraphicsElement._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('SVGGElement.farthestViewportElement')
+  @DomName('SVGGraphicsElement.farthestViewportElement')
   @DocsEditable()
-  SvgElement get farthestViewportElement native "SVGGElement_farthestViewportElement_Getter";
+  @Experimental() // untriaged
+  SvgElement get farthestViewportElement native "SVGGraphicsElement_farthestViewportElement_Getter";
 
-  @DomName('SVGGElement.nearestViewportElement')
+  @DomName('SVGGraphicsElement.nearestViewportElement')
   @DocsEditable()
-  SvgElement get nearestViewportElement native "SVGGElement_nearestViewportElement_Getter";
+  @Experimental() // untriaged
+  SvgElement get nearestViewportElement native "SVGGraphicsElement_nearestViewportElement_Getter";
 
-  @DomName('SVGGElement.getBBox')
+  @DomName('SVGGraphicsElement.transform')
   @DocsEditable()
-  Rect getBBox() native "SVGGElement_getBBox_Callback";
+  @Experimental() // untriaged
+  AnimatedTransformList get transform native "SVGGraphicsElement_transform_Getter";
 
-  @DomName('SVGGElement.getCTM')
+  @DomName('SVGGraphicsElement.getBBox')
   @DocsEditable()
-  Matrix getCtm() native "SVGGElement_getCTM_Callback";
+  @Experimental() // untriaged
+  Rect getBBox() native "SVGGraphicsElement_getBBox_Callback";
 
-  @DomName('SVGGElement.getScreenCTM')
+  @DomName('SVGGraphicsElement.getCTM')
   @DocsEditable()
-  Matrix getScreenCtm() native "SVGGElement_getScreenCTM_Callback";
+  @Experimental() // untriaged
+  Matrix getCtm() native "SVGGraphicsElement_getCTM_Callback";
 
-  @DomName('SVGGElement.getTransformToElement')
+  @DomName('SVGGraphicsElement.getScreenCTM')
   @DocsEditable()
-  Matrix getTransformToElement(SvgElement element) native "SVGGElement_getTransformToElement_Callback";
+  @Experimental() // untriaged
+  Matrix getScreenCtm() native "SVGGraphicsElement_getScreenCTM_Callback";
 
-  @DomName('SVGGElement.requiredExtensions')
+  @DomName('SVGGraphicsElement.getTransformToElement')
   @DocsEditable()
-  StringList get requiredExtensions native "SVGGElement_requiredExtensions_Getter";
+  @Experimental() // untriaged
+  Matrix getTransformToElement(SvgElement element) native "SVGGraphicsElement_getTransformToElement_Callback";
 
-  @DomName('SVGGElement.requiredFeatures')
+  @DomName('SVGGraphicsElement.requiredExtensions')
   @DocsEditable()
-  StringList get requiredFeatures native "SVGGElement_requiredFeatures_Getter";
+  @Experimental() // untriaged
+  StringList get requiredExtensions native "SVGGraphicsElement_requiredExtensions_Getter";
 
-  @DomName('SVGGElement.systemLanguage')
+  @DomName('SVGGraphicsElement.requiredFeatures')
   @DocsEditable()
-  StringList get systemLanguage native "SVGGElement_systemLanguage_Getter";
+  @Experimental() // untriaged
+  StringList get requiredFeatures native "SVGGraphicsElement_requiredFeatures_Getter";
 
-  @DomName('SVGGElement.hasExtension')
+  @DomName('SVGGraphicsElement.systemLanguage')
   @DocsEditable()
-  bool hasExtension(String extension) native "SVGGElement_hasExtension_Callback";
+  @Experimental() // untriaged
+  StringList get systemLanguage native "SVGGraphicsElement_systemLanguage_Getter";
 
-  @DomName('SVGGElement.transform')
+  @DomName('SVGGraphicsElement.hasExtension')
   @DocsEditable()
-  AnimatedTransformList get transform native "SVGGElement_transform_Getter";
+  @Experimental() // untriaged
+  bool hasExtension(String extension) native "SVGGraphicsElement_hasExtension_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3194,7 +2816,7 @@ class GElement extends StyledElement implements Transformable, ExternalResources
 @DocsEditable()
 @DomName('SVGImageElement')
 @Unstable()
-class ImageElement extends StyledElement implements Transformable, ExternalResourcesRequired, UriReference, Tests, LangSpace {
+class ImageElement extends GraphicsElement implements UriReference, ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory ImageElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -3226,101 +2848,9 @@ class ImageElement extends StyledElement implements Transformable, ExternalResou
   @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGImageElement_externalResourcesRequired_Getter";
 
-  @DomName('SVGImageElement.xmllang')
-  @DocsEditable()
-  String get xmllang native "SVGImageElement_xmllang_Getter";
-
-  @DomName('SVGImageElement.xmllang')
-  @DocsEditable()
-  void set xmllang(String value) native "SVGImageElement_xmllang_Setter";
-
-  @DomName('SVGImageElement.xmlspace')
-  @DocsEditable()
-  String get xmlspace native "SVGImageElement_xmlspace_Getter";
-
-  @DomName('SVGImageElement.xmlspace')
-  @DocsEditable()
-  void set xmlspace(String value) native "SVGImageElement_xmlspace_Setter";
-
-  @DomName('SVGImageElement.farthestViewportElement')
-  @DocsEditable()
-  SvgElement get farthestViewportElement native "SVGImageElement_farthestViewportElement_Getter";
-
-  @DomName('SVGImageElement.nearestViewportElement')
-  @DocsEditable()
-  SvgElement get nearestViewportElement native "SVGImageElement_nearestViewportElement_Getter";
-
-  @DomName('SVGImageElement.getBBox')
-  @DocsEditable()
-  Rect getBBox() native "SVGImageElement_getBBox_Callback";
-
-  @DomName('SVGImageElement.getCTM')
-  @DocsEditable()
-  Matrix getCtm() native "SVGImageElement_getCTM_Callback";
-
-  @DomName('SVGImageElement.getScreenCTM')
-  @DocsEditable()
-  Matrix getScreenCtm() native "SVGImageElement_getScreenCTM_Callback";
-
-  @DomName('SVGImageElement.getTransformToElement')
-  @DocsEditable()
-  Matrix getTransformToElement(SvgElement element) native "SVGImageElement_getTransformToElement_Callback";
-
-  @DomName('SVGImageElement.requiredExtensions')
-  @DocsEditable()
-  StringList get requiredExtensions native "SVGImageElement_requiredExtensions_Getter";
-
-  @DomName('SVGImageElement.requiredFeatures')
-  @DocsEditable()
-  StringList get requiredFeatures native "SVGImageElement_requiredFeatures_Getter";
-
-  @DomName('SVGImageElement.systemLanguage')
-  @DocsEditable()
-  StringList get systemLanguage native "SVGImageElement_systemLanguage_Getter";
-
-  @DomName('SVGImageElement.hasExtension')
-  @DocsEditable()
-  bool hasExtension(String extension) native "SVGImageElement_hasExtension_Callback";
-
-  @DomName('SVGImageElement.transform')
-  @DocsEditable()
-  AnimatedTransformList get transform native "SVGImageElement_transform_Getter";
-
   @DomName('SVGImageElement.href')
   @DocsEditable()
   AnimatedString get href native "SVGImageElement_href_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('SVGLangSpace')
-@Unstable()
-abstract class LangSpace extends NativeFieldWrapperClass1 {
-
-  /// Checks if this type is supported on the current platform.
-  static bool supported(SvgElement element) => true;
-
-  @DomName('SVGLangSpace.xmllang')
-  @DocsEditable()
-  String get xmllang native "SVGLangSpace_xmllang_Getter";
-
-  @DomName('SVGLangSpace.xmllang')
-  @DocsEditable()
-  void set xmllang(String value) native "SVGLangSpace_xmllang_Setter";
-
-  @DomName('SVGLangSpace.xmlspace')
-  @DocsEditable()
-  String get xmlspace native "SVGLangSpace_xmlspace_Getter";
-
-  @DomName('SVGLangSpace.xmlspace')
-  @DocsEditable()
-  void set xmlspace(String value) native "SVGLangSpace_xmlspace_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3517,7 +3047,7 @@ class LengthList extends NativeFieldWrapperClass1 with ListMixin<Length>, Immuta
 @DocsEditable()
 @DomName('SVGLineElement')
 @Unstable()
-class LineElement extends StyledElement implements Transformable, ExternalResourcesRequired, Tests, LangSpace {
+class LineElement extends GraphicsElement implements ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory LineElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -3544,66 +3074,6 @@ class LineElement extends StyledElement implements Transformable, ExternalResour
   @DomName('SVGLineElement.externalResourcesRequired')
   @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGLineElement_externalResourcesRequired_Getter";
-
-  @DomName('SVGLineElement.xmllang')
-  @DocsEditable()
-  String get xmllang native "SVGLineElement_xmllang_Getter";
-
-  @DomName('SVGLineElement.xmllang')
-  @DocsEditable()
-  void set xmllang(String value) native "SVGLineElement_xmllang_Setter";
-
-  @DomName('SVGLineElement.xmlspace')
-  @DocsEditable()
-  String get xmlspace native "SVGLineElement_xmlspace_Getter";
-
-  @DomName('SVGLineElement.xmlspace')
-  @DocsEditable()
-  void set xmlspace(String value) native "SVGLineElement_xmlspace_Setter";
-
-  @DomName('SVGLineElement.farthestViewportElement')
-  @DocsEditable()
-  SvgElement get farthestViewportElement native "SVGLineElement_farthestViewportElement_Getter";
-
-  @DomName('SVGLineElement.nearestViewportElement')
-  @DocsEditable()
-  SvgElement get nearestViewportElement native "SVGLineElement_nearestViewportElement_Getter";
-
-  @DomName('SVGLineElement.getBBox')
-  @DocsEditable()
-  Rect getBBox() native "SVGLineElement_getBBox_Callback";
-
-  @DomName('SVGLineElement.getCTM')
-  @DocsEditable()
-  Matrix getCtm() native "SVGLineElement_getCTM_Callback";
-
-  @DomName('SVGLineElement.getScreenCTM')
-  @DocsEditable()
-  Matrix getScreenCtm() native "SVGLineElement_getScreenCTM_Callback";
-
-  @DomName('SVGLineElement.getTransformToElement')
-  @DocsEditable()
-  Matrix getTransformToElement(SvgElement element) native "SVGLineElement_getTransformToElement_Callback";
-
-  @DomName('SVGLineElement.requiredExtensions')
-  @DocsEditable()
-  StringList get requiredExtensions native "SVGLineElement_requiredExtensions_Getter";
-
-  @DomName('SVGLineElement.requiredFeatures')
-  @DocsEditable()
-  StringList get requiredFeatures native "SVGLineElement_requiredFeatures_Getter";
-
-  @DomName('SVGLineElement.systemLanguage')
-  @DocsEditable()
-  StringList get systemLanguage native "SVGLineElement_systemLanguage_Getter";
-
-  @DomName('SVGLineElement.hasExtension')
-  @DocsEditable()
-  bool hasExtension(String extension) native "SVGLineElement_hasExtension_Callback";
-
-  @DomName('SVGLineElement.transform')
-  @DocsEditable()
-  AnimatedTransformList get transform native "SVGLineElement_transform_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3649,46 +3119,9 @@ class LinearGradientElement extends _GradientElement {
 
 
 @DocsEditable()
-@DomName('SVGLocatable')
-@Unstable()
-abstract class Locatable extends NativeFieldWrapperClass1 {
-
-  @DomName('SVGLocatable.farthestViewportElement')
-  @DocsEditable()
-  SvgElement get farthestViewportElement native "SVGLocatable_farthestViewportElement_Getter";
-
-  @DomName('SVGLocatable.nearestViewportElement')
-  @DocsEditable()
-  SvgElement get nearestViewportElement native "SVGLocatable_nearestViewportElement_Getter";
-
-  @DomName('SVGLocatable.getBBox')
-  @DocsEditable()
-  Rect getBBox() native "SVGLocatable_getBBox_Callback";
-
-  @DomName('SVGLocatable.getCTM')
-  @DocsEditable()
-  Matrix getCtm() native "SVGLocatable_getCTM_Callback";
-
-  @DomName('SVGLocatable.getScreenCTM')
-  @DocsEditable()
-  Matrix getScreenCtm() native "SVGLocatable_getScreenCTM_Callback";
-
-  @DomName('SVGLocatable.getTransformToElement')
-  @DocsEditable()
-  Matrix getTransformToElement(SvgElement element) native "SVGLocatable_getTransformToElement_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
 @DomName('SVGMarkerElement')
 @Unstable()
-class MarkerElement extends StyledElement implements FitToViewBox, ExternalResourcesRequired, LangSpace {
+class MarkerElement extends StyledElement implements FitToViewBox, ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory MarkerElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -3768,22 +3201,6 @@ class MarkerElement extends StyledElement implements FitToViewBox, ExternalResou
   @DocsEditable()
   AnimatedRect get viewBox native "SVGMarkerElement_viewBox_Getter";
 
-  @DomName('SVGMarkerElement.xmllang')
-  @DocsEditable()
-  String get xmllang native "SVGMarkerElement_xmllang_Getter";
-
-  @DomName('SVGMarkerElement.xmllang')
-  @DocsEditable()
-  void set xmllang(String value) native "SVGMarkerElement_xmllang_Setter";
-
-  @DomName('SVGMarkerElement.xmlspace')
-  @DocsEditable()
-  String get xmlspace native "SVGMarkerElement_xmlspace_Getter";
-
-  @DomName('SVGMarkerElement.xmlspace')
-  @DocsEditable()
-  void set xmlspace(String value) native "SVGMarkerElement_xmlspace_Setter";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3795,7 +3212,7 @@ class MarkerElement extends StyledElement implements FitToViewBox, ExternalResou
 @DocsEditable()
 @DomName('SVGMaskElement')
 @Unstable()
-class MaskElement extends StyledElement implements ExternalResourcesRequired, Tests, LangSpace {
+class MaskElement extends StyledElement implements ExternalResourcesRequired, Tests {
   // To suppress missing implicit constructor warnings.
   factory MaskElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -3830,22 +3247,6 @@ class MaskElement extends StyledElement implements ExternalResourcesRequired, Te
   @DomName('SVGMaskElement.externalResourcesRequired')
   @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGMaskElement_externalResourcesRequired_Getter";
-
-  @DomName('SVGMaskElement.xmllang')
-  @DocsEditable()
-  String get xmllang native "SVGMaskElement_xmllang_Getter";
-
-  @DomName('SVGMaskElement.xmllang')
-  @DocsEditable()
-  void set xmllang(String value) native "SVGMaskElement_xmllang_Setter";
-
-  @DomName('SVGMaskElement.xmlspace')
-  @DocsEditable()
-  String get xmlspace native "SVGMaskElement_xmlspace_Getter";
-
-  @DomName('SVGMaskElement.xmlspace')
-  @DocsEditable()
-  void set xmlspace(String value) native "SVGMaskElement_xmlspace_Setter";
 
   @DomName('SVGMaskElement.requiredExtensions')
   @DocsEditable()
@@ -4106,7 +3507,7 @@ class NumberList extends NativeFieldWrapperClass1 with ListMixin<Number>, Immuta
 @DocsEditable()
 @DomName('SVGPathElement')
 @Unstable()
-class PathElement extends StyledElement implements Transformable, ExternalResourcesRequired, Tests, LangSpace {
+class PathElement extends GraphicsElement implements ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory PathElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -4225,66 +3626,6 @@ class PathElement extends StyledElement implements Transformable, ExternalResour
   @DomName('SVGPathElement.externalResourcesRequired')
   @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGPathElement_externalResourcesRequired_Getter";
-
-  @DomName('SVGPathElement.xmllang')
-  @DocsEditable()
-  String get xmllang native "SVGPathElement_xmllang_Getter";
-
-  @DomName('SVGPathElement.xmllang')
-  @DocsEditable()
-  void set xmllang(String value) native "SVGPathElement_xmllang_Setter";
-
-  @DomName('SVGPathElement.xmlspace')
-  @DocsEditable()
-  String get xmlspace native "SVGPathElement_xmlspace_Getter";
-
-  @DomName('SVGPathElement.xmlspace')
-  @DocsEditable()
-  void set xmlspace(String value) native "SVGPathElement_xmlspace_Setter";
-
-  @DomName('SVGPathElement.farthestViewportElement')
-  @DocsEditable()
-  SvgElement get farthestViewportElement native "SVGPathElement_farthestViewportElement_Getter";
-
-  @DomName('SVGPathElement.nearestViewportElement')
-  @DocsEditable()
-  SvgElement get nearestViewportElement native "SVGPathElement_nearestViewportElement_Getter";
-
-  @DomName('SVGPathElement.getBBox')
-  @DocsEditable()
-  Rect getBBox() native "SVGPathElement_getBBox_Callback";
-
-  @DomName('SVGPathElement.getCTM')
-  @DocsEditable()
-  Matrix getCtm() native "SVGPathElement_getCTM_Callback";
-
-  @DomName('SVGPathElement.getScreenCTM')
-  @DocsEditable()
-  Matrix getScreenCtm() native "SVGPathElement_getScreenCTM_Callback";
-
-  @DomName('SVGPathElement.getTransformToElement')
-  @DocsEditable()
-  Matrix getTransformToElement(SvgElement element) native "SVGPathElement_getTransformToElement_Callback";
-
-  @DomName('SVGPathElement.requiredExtensions')
-  @DocsEditable()
-  StringList get requiredExtensions native "SVGPathElement_requiredExtensions_Getter";
-
-  @DomName('SVGPathElement.requiredFeatures')
-  @DocsEditable()
-  StringList get requiredFeatures native "SVGPathElement_requiredFeatures_Getter";
-
-  @DomName('SVGPathElement.systemLanguage')
-  @DocsEditable()
-  StringList get systemLanguage native "SVGPathElement_systemLanguage_Getter";
-
-  @DomName('SVGPathElement.hasExtension')
-  @DocsEditable()
-  bool hasExtension(String extension) native "SVGPathElement_hasExtension_Callback";
-
-  @DomName('SVGPathElement.transform')
-  @DocsEditable()
-  AnimatedTransformList get transform native "SVGPathElement_transform_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5238,7 +4579,7 @@ class PathSegMovetoRel extends PathSeg {
 @DocsEditable()
 @DomName('SVGPatternElement')
 @Unstable()
-class PatternElement extends StyledElement implements FitToViewBox, UriReference, ExternalResourcesRequired, Tests, LangSpace {
+class PatternElement extends StyledElement implements FitToViewBox, UriReference, ExternalResourcesRequired, Tests {
   // To suppress missing implicit constructor warnings.
   factory PatternElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -5285,22 +4626,6 @@ class PatternElement extends StyledElement implements FitToViewBox, UriReference
   @DomName('SVGPatternElement.viewBox')
   @DocsEditable()
   AnimatedRect get viewBox native "SVGPatternElement_viewBox_Getter";
-
-  @DomName('SVGPatternElement.xmllang')
-  @DocsEditable()
-  String get xmllang native "SVGPatternElement_xmllang_Getter";
-
-  @DomName('SVGPatternElement.xmllang')
-  @DocsEditable()
-  void set xmllang(String value) native "SVGPatternElement_xmllang_Setter";
-
-  @DomName('SVGPatternElement.xmlspace')
-  @DocsEditable()
-  String get xmlspace native "SVGPatternElement_xmlspace_Getter";
-
-  @DomName('SVGPatternElement.xmlspace')
-  @DocsEditable()
-  void set xmlspace(String value) native "SVGPatternElement_xmlspace_Setter";
 
   @DomName('SVGPatternElement.requiredExtensions')
   @DocsEditable()
@@ -5411,7 +4736,7 @@ class PointList extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('SVGPolygonElement')
 @Unstable()
-class PolygonElement extends StyledElement implements Transformable, ExternalResourcesRequired, Tests, LangSpace {
+class PolygonElement extends GraphicsElement implements ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory PolygonElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -5431,66 +4756,6 @@ class PolygonElement extends StyledElement implements Transformable, ExternalRes
   @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGPolygonElement_externalResourcesRequired_Getter";
 
-  @DomName('SVGPolygonElement.xmllang')
-  @DocsEditable()
-  String get xmllang native "SVGPolygonElement_xmllang_Getter";
-
-  @DomName('SVGPolygonElement.xmllang')
-  @DocsEditable()
-  void set xmllang(String value) native "SVGPolygonElement_xmllang_Setter";
-
-  @DomName('SVGPolygonElement.xmlspace')
-  @DocsEditable()
-  String get xmlspace native "SVGPolygonElement_xmlspace_Getter";
-
-  @DomName('SVGPolygonElement.xmlspace')
-  @DocsEditable()
-  void set xmlspace(String value) native "SVGPolygonElement_xmlspace_Setter";
-
-  @DomName('SVGPolygonElement.farthestViewportElement')
-  @DocsEditable()
-  SvgElement get farthestViewportElement native "SVGPolygonElement_farthestViewportElement_Getter";
-
-  @DomName('SVGPolygonElement.nearestViewportElement')
-  @DocsEditable()
-  SvgElement get nearestViewportElement native "SVGPolygonElement_nearestViewportElement_Getter";
-
-  @DomName('SVGPolygonElement.getBBox')
-  @DocsEditable()
-  Rect getBBox() native "SVGPolygonElement_getBBox_Callback";
-
-  @DomName('SVGPolygonElement.getCTM')
-  @DocsEditable()
-  Matrix getCtm() native "SVGPolygonElement_getCTM_Callback";
-
-  @DomName('SVGPolygonElement.getScreenCTM')
-  @DocsEditable()
-  Matrix getScreenCtm() native "SVGPolygonElement_getScreenCTM_Callback";
-
-  @DomName('SVGPolygonElement.getTransformToElement')
-  @DocsEditable()
-  Matrix getTransformToElement(SvgElement element) native "SVGPolygonElement_getTransformToElement_Callback";
-
-  @DomName('SVGPolygonElement.requiredExtensions')
-  @DocsEditable()
-  StringList get requiredExtensions native "SVGPolygonElement_requiredExtensions_Getter";
-
-  @DomName('SVGPolygonElement.requiredFeatures')
-  @DocsEditable()
-  StringList get requiredFeatures native "SVGPolygonElement_requiredFeatures_Getter";
-
-  @DomName('SVGPolygonElement.systemLanguage')
-  @DocsEditable()
-  StringList get systemLanguage native "SVGPolygonElement_systemLanguage_Getter";
-
-  @DomName('SVGPolygonElement.hasExtension')
-  @DocsEditable()
-  bool hasExtension(String extension) native "SVGPolygonElement_hasExtension_Callback";
-
-  @DomName('SVGPolygonElement.transform')
-  @DocsEditable()
-  AnimatedTransformList get transform native "SVGPolygonElement_transform_Getter";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5502,7 +4767,7 @@ class PolygonElement extends StyledElement implements Transformable, ExternalRes
 @DocsEditable()
 @DomName('SVGPolylineElement')
 @Unstable()
-class PolylineElement extends StyledElement implements Transformable, ExternalResourcesRequired, Tests, LangSpace {
+class PolylineElement extends GraphicsElement implements ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory PolylineElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -5521,66 +4786,6 @@ class PolylineElement extends StyledElement implements Transformable, ExternalRe
   @DomName('SVGPolylineElement.externalResourcesRequired')
   @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGPolylineElement_externalResourcesRequired_Getter";
-
-  @DomName('SVGPolylineElement.xmllang')
-  @DocsEditable()
-  String get xmllang native "SVGPolylineElement_xmllang_Getter";
-
-  @DomName('SVGPolylineElement.xmllang')
-  @DocsEditable()
-  void set xmllang(String value) native "SVGPolylineElement_xmllang_Setter";
-
-  @DomName('SVGPolylineElement.xmlspace')
-  @DocsEditable()
-  String get xmlspace native "SVGPolylineElement_xmlspace_Getter";
-
-  @DomName('SVGPolylineElement.xmlspace')
-  @DocsEditable()
-  void set xmlspace(String value) native "SVGPolylineElement_xmlspace_Setter";
-
-  @DomName('SVGPolylineElement.farthestViewportElement')
-  @DocsEditable()
-  SvgElement get farthestViewportElement native "SVGPolylineElement_farthestViewportElement_Getter";
-
-  @DomName('SVGPolylineElement.nearestViewportElement')
-  @DocsEditable()
-  SvgElement get nearestViewportElement native "SVGPolylineElement_nearestViewportElement_Getter";
-
-  @DomName('SVGPolylineElement.getBBox')
-  @DocsEditable()
-  Rect getBBox() native "SVGPolylineElement_getBBox_Callback";
-
-  @DomName('SVGPolylineElement.getCTM')
-  @DocsEditable()
-  Matrix getCtm() native "SVGPolylineElement_getCTM_Callback";
-
-  @DomName('SVGPolylineElement.getScreenCTM')
-  @DocsEditable()
-  Matrix getScreenCtm() native "SVGPolylineElement_getScreenCTM_Callback";
-
-  @DomName('SVGPolylineElement.getTransformToElement')
-  @DocsEditable()
-  Matrix getTransformToElement(SvgElement element) native "SVGPolylineElement_getTransformToElement_Callback";
-
-  @DomName('SVGPolylineElement.requiredExtensions')
-  @DocsEditable()
-  StringList get requiredExtensions native "SVGPolylineElement_requiredExtensions_Getter";
-
-  @DomName('SVGPolylineElement.requiredFeatures')
-  @DocsEditable()
-  StringList get requiredFeatures native "SVGPolylineElement_requiredFeatures_Getter";
-
-  @DomName('SVGPolylineElement.systemLanguage')
-  @DocsEditable()
-  StringList get systemLanguage native "SVGPolylineElement_systemLanguage_Getter";
-
-  @DomName('SVGPolylineElement.hasExtension')
-  @DocsEditable()
-  bool hasExtension(String extension) native "SVGPolylineElement_hasExtension_Callback";
-
-  @DomName('SVGPolylineElement.transform')
-  @DocsEditable()
-  AnimatedTransformList get transform native "SVGPolylineElement_transform_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5766,7 +4971,7 @@ class Rect extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('SVGRectElement')
 @Unstable()
-class RectElement extends StyledElement implements Transformable, ExternalResourcesRequired, Tests, LangSpace {
+class RectElement extends GraphicsElement implements ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory RectElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -5801,66 +5006,6 @@ class RectElement extends StyledElement implements Transformable, ExternalResour
   @DomName('SVGRectElement.externalResourcesRequired')
   @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGRectElement_externalResourcesRequired_Getter";
-
-  @DomName('SVGRectElement.xmllang')
-  @DocsEditable()
-  String get xmllang native "SVGRectElement_xmllang_Getter";
-
-  @DomName('SVGRectElement.xmllang')
-  @DocsEditable()
-  void set xmllang(String value) native "SVGRectElement_xmllang_Setter";
-
-  @DomName('SVGRectElement.xmlspace')
-  @DocsEditable()
-  String get xmlspace native "SVGRectElement_xmlspace_Getter";
-
-  @DomName('SVGRectElement.xmlspace')
-  @DocsEditable()
-  void set xmlspace(String value) native "SVGRectElement_xmlspace_Setter";
-
-  @DomName('SVGRectElement.farthestViewportElement')
-  @DocsEditable()
-  SvgElement get farthestViewportElement native "SVGRectElement_farthestViewportElement_Getter";
-
-  @DomName('SVGRectElement.nearestViewportElement')
-  @DocsEditable()
-  SvgElement get nearestViewportElement native "SVGRectElement_nearestViewportElement_Getter";
-
-  @DomName('SVGRectElement.getBBox')
-  @DocsEditable()
-  Rect getBBox() native "SVGRectElement_getBBox_Callback";
-
-  @DomName('SVGRectElement.getCTM')
-  @DocsEditable()
-  Matrix getCtm() native "SVGRectElement_getCTM_Callback";
-
-  @DomName('SVGRectElement.getScreenCTM')
-  @DocsEditable()
-  Matrix getScreenCtm() native "SVGRectElement_getScreenCTM_Callback";
-
-  @DomName('SVGRectElement.getTransformToElement')
-  @DocsEditable()
-  Matrix getTransformToElement(SvgElement element) native "SVGRectElement_getTransformToElement_Callback";
-
-  @DomName('SVGRectElement.requiredExtensions')
-  @DocsEditable()
-  StringList get requiredExtensions native "SVGRectElement_requiredExtensions_Getter";
-
-  @DomName('SVGRectElement.requiredFeatures')
-  @DocsEditable()
-  StringList get requiredFeatures native "SVGRectElement_requiredFeatures_Getter";
-
-  @DomName('SVGRectElement.systemLanguage')
-  @DocsEditable()
-  StringList get systemLanguage native "SVGRectElement_systemLanguage_Getter";
-
-  @DomName('SVGRectElement.hasExtension')
-  @DocsEditable()
-  bool hasExtension(String extension) native "SVGRectElement_hasExtension_Callback";
-
-  @DomName('SVGRectElement.transform')
-  @DocsEditable()
-  AnimatedTransformList get transform native "SVGRectElement_transform_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6085,7 +5230,7 @@ class StringList extends NativeFieldWrapperClass1 with ListMixin<String>, Immuta
 @DomName('SVGStyleElement')
 // http://www.w3.org/TR/SVG/types.html#InterfaceSVGStylable
 @Experimental() // nonstandard
-class StyleElement extends SvgElement implements LangSpace {
+class StyleElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory StyleElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -6124,22 +5269,6 @@ class StyleElement extends SvgElement implements LangSpace {
   @DomName('SVGStyleElement.type')
   @DocsEditable()
   void set type(String value) native "SVGStyleElement_type_Setter";
-
-  @DomName('SVGStyleElement.xmllang')
-  @DocsEditable()
-  String get xmllang native "SVGStyleElement_xmllang_Getter";
-
-  @DomName('SVGStyleElement.xmllang')
-  @DocsEditable()
-  void set xmllang(String value) native "SVGStyleElement_xmllang_Setter";
-
-  @DomName('SVGStyleElement.xmlspace')
-  @DocsEditable()
-  String get xmlspace native "SVGStyleElement_xmlspace_Getter";
-
-  @DomName('SVGStyleElement.xmlspace')
-  @DocsEditable()
-  void set xmlspace(String value) native "SVGStyleElement_xmlspace_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6327,6 +5456,26 @@ class SvgElement extends Element {
   @DocsEditable()
   void set xmlbase(String value) native "SVGElement_xmlbase_Setter";
 
+  @DomName('SVGElement.xmllang')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get xmllang native "SVGElement_xmllang_Getter";
+
+  @DomName('SVGElement.xmllang')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set xmllang(String value) native "SVGElement_xmllang_Setter";
+
+  @DomName('SVGElement.xmlspace')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get xmlspace native "SVGElement_xmlspace_Getter";
+
+  @DomName('SVGElement.xmlspace')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set xmlspace(String value) native "SVGElement_xmlspace_Setter";
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6335,7 +5484,7 @@ class SvgElement extends Element {
 
 @DomName('SVGSVGElement')
 @Unstable()
-class SvgSvgElement extends StyledElement implements FitToViewBox, Transformable, Tests, ExternalResourcesRequired, ZoomAndPan, LangSpace {
+class SvgSvgElement extends GraphicsElement implements FitToViewBox, ExternalResourcesRequired, ZoomAndPan {
   factory SvgSvgElement() => _SvgSvgElementFactoryProvider.createSvgSvgElement();
 
   // To suppress missing implicit constructor warnings.
@@ -6517,66 +5666,6 @@ class SvgSvgElement extends StyledElement implements FitToViewBox, Transformable
   @DocsEditable()
   AnimatedRect get viewBox native "SVGSVGElement_viewBox_Getter";
 
-  @DomName('SVGSVGElement.xmllang')
-  @DocsEditable()
-  String get xmllang native "SVGSVGElement_xmllang_Getter";
-
-  @DomName('SVGSVGElement.xmllang')
-  @DocsEditable()
-  void set xmllang(String value) native "SVGSVGElement_xmllang_Setter";
-
-  @DomName('SVGSVGElement.xmlspace')
-  @DocsEditable()
-  String get xmlspace native "SVGSVGElement_xmlspace_Getter";
-
-  @DomName('SVGSVGElement.xmlspace')
-  @DocsEditable()
-  void set xmlspace(String value) native "SVGSVGElement_xmlspace_Setter";
-
-  @DomName('SVGSVGElement.farthestViewportElement')
-  @DocsEditable()
-  SvgElement get farthestViewportElement native "SVGSVGElement_farthestViewportElement_Getter";
-
-  @DomName('SVGSVGElement.nearestViewportElement')
-  @DocsEditable()
-  SvgElement get nearestViewportElement native "SVGSVGElement_nearestViewportElement_Getter";
-
-  @DomName('SVGSVGElement.getBBox')
-  @DocsEditable()
-  Rect getBBox() native "SVGSVGElement_getBBox_Callback";
-
-  @DomName('SVGSVGElement.getCTM')
-  @DocsEditable()
-  Matrix getCtm() native "SVGSVGElement_getCTM_Callback";
-
-  @DomName('SVGSVGElement.getScreenCTM')
-  @DocsEditable()
-  Matrix getScreenCtm() native "SVGSVGElement_getScreenCTM_Callback";
-
-  @DomName('SVGSVGElement.getTransformToElement')
-  @DocsEditable()
-  Matrix getTransformToElement(SvgElement element) native "SVGSVGElement_getTransformToElement_Callback";
-
-  @DomName('SVGSVGElement.requiredExtensions')
-  @DocsEditable()
-  StringList get requiredExtensions native "SVGSVGElement_requiredExtensions_Getter";
-
-  @DomName('SVGSVGElement.requiredFeatures')
-  @DocsEditable()
-  StringList get requiredFeatures native "SVGSVGElement_requiredFeatures_Getter";
-
-  @DomName('SVGSVGElement.systemLanguage')
-  @DocsEditable()
-  StringList get systemLanguage native "SVGSVGElement_systemLanguage_Getter";
-
-  @DomName('SVGSVGElement.hasExtension')
-  @DocsEditable()
-  bool hasExtension(String extension) native "SVGSVGElement_hasExtension_Callback";
-
-  @DomName('SVGSVGElement.transform')
-  @DocsEditable()
-  AnimatedTransformList get transform native "SVGSVGElement_transform_Getter";
-
   @DomName('SVGSVGElement.zoomAndPan')
   @DocsEditable()
   int get zoomAndPan native "SVGSVGElement_zoomAndPan_Getter";
@@ -6596,7 +5685,7 @@ class SvgSvgElement extends StyledElement implements FitToViewBox, Transformable
 @DocsEditable()
 @DomName('SVGSwitchElement')
 @Unstable()
-class SwitchElement extends StyledElement implements Transformable, ExternalResourcesRequired, Tests, LangSpace {
+class SwitchElement extends GraphicsElement implements ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory SwitchElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -6607,66 +5696,6 @@ class SwitchElement extends StyledElement implements Transformable, ExternalReso
   @DomName('SVGSwitchElement.externalResourcesRequired')
   @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGSwitchElement_externalResourcesRequired_Getter";
-
-  @DomName('SVGSwitchElement.xmllang')
-  @DocsEditable()
-  String get xmllang native "SVGSwitchElement_xmllang_Getter";
-
-  @DomName('SVGSwitchElement.xmllang')
-  @DocsEditable()
-  void set xmllang(String value) native "SVGSwitchElement_xmllang_Setter";
-
-  @DomName('SVGSwitchElement.xmlspace')
-  @DocsEditable()
-  String get xmlspace native "SVGSwitchElement_xmlspace_Getter";
-
-  @DomName('SVGSwitchElement.xmlspace')
-  @DocsEditable()
-  void set xmlspace(String value) native "SVGSwitchElement_xmlspace_Setter";
-
-  @DomName('SVGSwitchElement.farthestViewportElement')
-  @DocsEditable()
-  SvgElement get farthestViewportElement native "SVGSwitchElement_farthestViewportElement_Getter";
-
-  @DomName('SVGSwitchElement.nearestViewportElement')
-  @DocsEditable()
-  SvgElement get nearestViewportElement native "SVGSwitchElement_nearestViewportElement_Getter";
-
-  @DomName('SVGSwitchElement.getBBox')
-  @DocsEditable()
-  Rect getBBox() native "SVGSwitchElement_getBBox_Callback";
-
-  @DomName('SVGSwitchElement.getCTM')
-  @DocsEditable()
-  Matrix getCtm() native "SVGSwitchElement_getCTM_Callback";
-
-  @DomName('SVGSwitchElement.getScreenCTM')
-  @DocsEditable()
-  Matrix getScreenCtm() native "SVGSwitchElement_getScreenCTM_Callback";
-
-  @DomName('SVGSwitchElement.getTransformToElement')
-  @DocsEditable()
-  Matrix getTransformToElement(SvgElement element) native "SVGSwitchElement_getTransformToElement_Callback";
-
-  @DomName('SVGSwitchElement.requiredExtensions')
-  @DocsEditable()
-  StringList get requiredExtensions native "SVGSwitchElement_requiredExtensions_Getter";
-
-  @DomName('SVGSwitchElement.requiredFeatures')
-  @DocsEditable()
-  StringList get requiredFeatures native "SVGSwitchElement_requiredFeatures_Getter";
-
-  @DomName('SVGSwitchElement.systemLanguage')
-  @DocsEditable()
-  StringList get systemLanguage native "SVGSwitchElement_systemLanguage_Getter";
-
-  @DomName('SVGSwitchElement.hasExtension')
-  @DocsEditable()
-  bool hasExtension(String extension) native "SVGSwitchElement_hasExtension_Callback";
-
-  @DomName('SVGSwitchElement.transform')
-  @DocsEditable()
-  AnimatedTransformList get transform native "SVGSwitchElement_transform_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6679,7 +5708,7 @@ class SwitchElement extends StyledElement implements Transformable, ExternalReso
 @DocsEditable()
 @DomName('SVGSymbolElement')
 @Unstable()
-class SymbolElement extends StyledElement implements FitToViewBox, ExternalResourcesRequired, LangSpace {
+class SymbolElement extends StyledElement implements FitToViewBox, ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory SymbolElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -6698,22 +5727,6 @@ class SymbolElement extends StyledElement implements FitToViewBox, ExternalResou
   @DomName('SVGSymbolElement.viewBox')
   @DocsEditable()
   AnimatedRect get viewBox native "SVGSymbolElement_viewBox_Getter";
-
-  @DomName('SVGSymbolElement.xmllang')
-  @DocsEditable()
-  String get xmllang native "SVGSymbolElement_xmllang_Getter";
-
-  @DomName('SVGSymbolElement.xmllang')
-  @DocsEditable()
-  void set xmllang(String value) native "SVGSymbolElement_xmllang_Setter";
-
-  @DomName('SVGSymbolElement.xmlspace')
-  @DocsEditable()
-  String get xmlspace native "SVGSymbolElement_xmlspace_Getter";
-
-  @DomName('SVGSymbolElement.xmlspace')
-  @DocsEditable()
-  void set xmlspace(String value) native "SVGSymbolElement_xmlspace_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6774,7 +5787,7 @@ abstract class Tests extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('SVGTextContentElement')
 @Unstable()
-class TextContentElement extends StyledElement implements ExternalResourcesRequired, Tests, LangSpace {
+class TextContentElement extends GraphicsElement implements ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory TextContentElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -6838,38 +5851,6 @@ class TextContentElement extends StyledElement implements ExternalResourcesRequi
   @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGTextContentElement_externalResourcesRequired_Getter";
 
-  @DomName('SVGTextContentElement.xmllang')
-  @DocsEditable()
-  String get xmllang native "SVGTextContentElement_xmllang_Getter";
-
-  @DomName('SVGTextContentElement.xmllang')
-  @DocsEditable()
-  void set xmllang(String value) native "SVGTextContentElement_xmllang_Setter";
-
-  @DomName('SVGTextContentElement.xmlspace')
-  @DocsEditable()
-  String get xmlspace native "SVGTextContentElement_xmlspace_Getter";
-
-  @DomName('SVGTextContentElement.xmlspace')
-  @DocsEditable()
-  void set xmlspace(String value) native "SVGTextContentElement_xmlspace_Setter";
-
-  @DomName('SVGTextContentElement.requiredExtensions')
-  @DocsEditable()
-  StringList get requiredExtensions native "SVGTextContentElement_requiredExtensions_Getter";
-
-  @DomName('SVGTextContentElement.requiredFeatures')
-  @DocsEditable()
-  StringList get requiredFeatures native "SVGTextContentElement_requiredFeatures_Getter";
-
-  @DomName('SVGTextContentElement.systemLanguage')
-  @DocsEditable()
-  StringList get systemLanguage native "SVGTextContentElement_systemLanguage_Getter";
-
-  @DomName('SVGTextContentElement.hasExtension')
-  @DocsEditable()
-  bool hasExtension(String extension) native "SVGTextContentElement_hasExtension_Callback";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6881,41 +5862,13 @@ class TextContentElement extends StyledElement implements ExternalResourcesRequi
 @DocsEditable()
 @DomName('SVGTextElement')
 @Unstable()
-class TextElement extends TextPositioningElement implements Transformable {
+class TextElement extends TextPositioningElement {
   // To suppress missing implicit constructor warnings.
   factory TextElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGTextElement.SVGTextElement')
   @DocsEditable()
   factory TextElement() => _SvgElementFactoryProvider.createSvgElement_tag("text");
-
-  @DomName('SVGTextElement.farthestViewportElement')
-  @DocsEditable()
-  SvgElement get farthestViewportElement native "SVGTextElement_farthestViewportElement_Getter";
-
-  @DomName('SVGTextElement.nearestViewportElement')
-  @DocsEditable()
-  SvgElement get nearestViewportElement native "SVGTextElement_nearestViewportElement_Getter";
-
-  @DomName('SVGTextElement.getBBox')
-  @DocsEditable()
-  Rect getBBox() native "SVGTextElement_getBBox_Callback";
-
-  @DomName('SVGTextElement.getCTM')
-  @DocsEditable()
-  Matrix getCtm() native "SVGTextElement_getCTM_Callback";
-
-  @DomName('SVGTextElement.getScreenCTM')
-  @DocsEditable()
-  Matrix getScreenCtm() native "SVGTextElement_getScreenCTM_Callback";
-
-  @DomName('SVGTextElement.getTransformToElement')
-  @DocsEditable()
-  Matrix getTransformToElement(SvgElement element) native "SVGTextElement_getTransformToElement_Callback";
-
-  @DomName('SVGTextElement.transform')
-  @DocsEditable()
-  AnimatedTransformList get transform native "SVGTextElement_transform_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7018,29 +5971,13 @@ class TextPositioningElement extends TextContentElement {
 @DocsEditable()
 @DomName('SVGTitleElement')
 @Unstable()
-class TitleElement extends StyledElement implements LangSpace {
+class TitleElement extends StyledElement {
   // To suppress missing implicit constructor warnings.
   factory TitleElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGTitleElement.SVGTitleElement')
   @DocsEditable()
   factory TitleElement() => _SvgElementFactoryProvider.createSvgElement_tag("title");
-
-  @DomName('SVGTitleElement.xmllang')
-  @DocsEditable()
-  String get xmllang native "SVGTitleElement_xmllang_Getter";
-
-  @DomName('SVGTitleElement.xmllang')
-  @DocsEditable()
-  void set xmllang(String value) native "SVGTitleElement_xmllang_Setter";
-
-  @DomName('SVGTitleElement.xmlspace')
-  @DocsEditable()
-  String get xmlspace native "SVGTitleElement_xmlspace_Getter";
-
-  @DomName('SVGTitleElement.xmlspace')
-  @DocsEditable()
-  void set xmlspace(String value) native "SVGTitleElement_xmlspace_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7227,47 +6164,6 @@ class TransformList extends NativeFieldWrapperClass1 with ListMixin<Transform>, 
 
 
 @DocsEditable()
-@DomName('SVGTransformable')
-@Unstable()
-abstract class Transformable extends NativeFieldWrapperClass1 implements Locatable {
-
-  @DomName('SVGTransformable.transform')
-  @DocsEditable()
-  AnimatedTransformList get transform native "SVGTransformable_transform_Getter";
-
-  @DomName('SVGTransformable.farthestViewportElement')
-  @DocsEditable()
-  SvgElement get farthestViewportElement native "SVGTransformable_farthestViewportElement_Getter";
-
-  @DomName('SVGTransformable.nearestViewportElement')
-  @DocsEditable()
-  SvgElement get nearestViewportElement native "SVGTransformable_nearestViewportElement_Getter";
-
-  @DomName('SVGTransformable.getBBox')
-  @DocsEditable()
-  Rect getBBox() native "SVGTransformable_getBBox_Callback";
-
-  @DomName('SVGTransformable.getCTM')
-  @DocsEditable()
-  Matrix getCtm() native "SVGTransformable_getCTM_Callback";
-
-  @DomName('SVGTransformable.getScreenCTM')
-  @DocsEditable()
-  Matrix getScreenCtm() native "SVGTransformable_getScreenCTM_Callback";
-
-  @DomName('SVGTransformable.getTransformToElement')
-  @DocsEditable()
-  Matrix getTransformToElement(SvgElement element) native "SVGTransformable_getTransformToElement_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
 @DomName('SVGUnitTypes')
 @Unstable()
 class UnitTypes extends NativeFieldWrapperClass1 {
@@ -7312,7 +6208,7 @@ abstract class UriReference extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('SVGUseElement')
 @Unstable()
-class UseElement extends StyledElement implements Transformable, ExternalResourcesRequired, UriReference, Tests, LangSpace {
+class UseElement extends GraphicsElement implements UriReference, ExternalResourcesRequired, Tests {
   // To suppress missing implicit constructor warnings.
   factory UseElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -7348,46 +6244,6 @@ class UseElement extends StyledElement implements Transformable, ExternalResourc
   @DocsEditable()
   AnimatedBoolean get externalResourcesRequired native "SVGUseElement_externalResourcesRequired_Getter";
 
-  @DomName('SVGUseElement.xmllang')
-  @DocsEditable()
-  String get xmllang native "SVGUseElement_xmllang_Getter";
-
-  @DomName('SVGUseElement.xmllang')
-  @DocsEditable()
-  void set xmllang(String value) native "SVGUseElement_xmllang_Setter";
-
-  @DomName('SVGUseElement.xmlspace')
-  @DocsEditable()
-  String get xmlspace native "SVGUseElement_xmlspace_Getter";
-
-  @DomName('SVGUseElement.xmlspace')
-  @DocsEditable()
-  void set xmlspace(String value) native "SVGUseElement_xmlspace_Setter";
-
-  @DomName('SVGUseElement.farthestViewportElement')
-  @DocsEditable()
-  SvgElement get farthestViewportElement native "SVGUseElement_farthestViewportElement_Getter";
-
-  @DomName('SVGUseElement.nearestViewportElement')
-  @DocsEditable()
-  SvgElement get nearestViewportElement native "SVGUseElement_nearestViewportElement_Getter";
-
-  @DomName('SVGUseElement.getBBox')
-  @DocsEditable()
-  Rect getBBox() native "SVGUseElement_getBBox_Callback";
-
-  @DomName('SVGUseElement.getCTM')
-  @DocsEditable()
-  Matrix getCtm() native "SVGUseElement_getCTM_Callback";
-
-  @DomName('SVGUseElement.getScreenCTM')
-  @DocsEditable()
-  Matrix getScreenCtm() native "SVGUseElement_getScreenCTM_Callback";
-
-  @DomName('SVGUseElement.getTransformToElement')
-  @DocsEditable()
-  Matrix getTransformToElement(SvgElement element) native "SVGUseElement_getTransformToElement_Callback";
-
   @DomName('SVGUseElement.requiredExtensions')
   @DocsEditable()
   StringList get requiredExtensions native "SVGUseElement_requiredExtensions_Getter";
@@ -7403,10 +6259,6 @@ class UseElement extends StyledElement implements Transformable, ExternalResourc
   @DomName('SVGUseElement.hasExtension')
   @DocsEditable()
   bool hasExtension(String extension) native "SVGUseElement_hasExtension_Callback";
-
-  @DomName('SVGUseElement.transform')
-  @DocsEditable()
-  AnimatedTransformList get transform native "SVGUseElement_transform_Getter";
 
   @DomName('SVGUseElement.href')
   @DocsEditable()

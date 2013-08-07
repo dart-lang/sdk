@@ -149,6 +149,11 @@ class AudioBufferSourceNode extends AudioSourceNode native "AudioBufferSourceNod
   // To suppress missing implicit constructor warnings.
   factory AudioBufferSourceNode._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('AudioBufferSourceNode.endedEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
+
   @DomName('AudioBufferSourceNode.FINISHED_STATE')
   @DocsEditable()
   static const int FINISHED_STATE = 3;
@@ -204,6 +209,11 @@ class AudioBufferSourceNode extends AudioSourceNode native "AudioBufferSourceNod
   @DomName('AudioBufferSourceNode.noteOn')
   @DocsEditable()
   void noteOn(num when) native;
+
+  @DomName('AudioBufferSourceNode.onended')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<Event> get onEnded => endedEvent.forTarget(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -318,13 +328,14 @@ class AudioContext extends EventTarget native "AudioContext" {
   @DocsEditable()
   PannerNode createPanner() native;
 
+  @DomName('AudioContext.createPeriodicWave')
+  @DocsEditable()
+  @Experimental() // untriaged
+  PeriodicWave createPeriodicWave(Float32List real, Float32List imag) native;
+
   @DomName('AudioContext.createWaveShaper')
   @DocsEditable()
   WaveShaperNode createWaveShaper() native;
-
-  @DomName('AudioContext.createWaveTable')
-  @DocsEditable()
-  WaveTable createWaveTable(Float32List real, Float32List imag) native;
 
   @JSName('decodeAudioData')
   @DomName('AudioContext.decodeAudioData')
@@ -461,11 +472,6 @@ class AudioNode extends EventTarget native "AudioNode" {
   @DocsEditable()
   final int numberOfOutputs;
 
-  @JSName('addEventListener')
-  @DomName('AudioNode.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
-
   @JSName('connect')
   @DomName('AudioNode.connect')
   @DocsEditable()
@@ -474,15 +480,6 @@ class AudioNode extends EventTarget native "AudioNode" {
   @DomName('AudioNode.disconnect')
   @DocsEditable()
   void disconnect(int output) native;
-
-  @DomName('AudioNode.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) native;
-
-  @JSName('removeEventListener')
-  @DomName('AudioNode.removeEventListener')
-  @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @DomName('AudioNode.connect')
   void connectNode(AudioNode destination, [int output = 0, int input = 0]) =>
@@ -803,7 +800,7 @@ class MediaElementAudioSourceNode extends AudioSourceNode native "MediaElementAu
 @DomName('MediaStreamAudioDestinationNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#MediaStreamAudioDestinationNode
 @Experimental()
-class MediaStreamAudioDestinationNode extends AudioSourceNode native "MediaStreamAudioDestinationNode" {
+class MediaStreamAudioDestinationNode extends AudioNode native "MediaStreamAudioDestinationNode" {
   // To suppress missing implicit constructor warnings.
   factory MediaStreamAudioDestinationNode._() { throw new UnsupportedError("Not supported"); }
 
@@ -854,7 +851,7 @@ class OfflineAudioCompletionEvent extends Event native "OfflineAudioCompletionEv
 @DomName('OfflineAudioContext')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#OfflineAudioContext-section
 @Experimental()
-class OfflineAudioContext extends AudioContext implements EventTarget native "OfflineAudioContext" {
+class OfflineAudioContext extends AudioContext native "OfflineAudioContext" {
   // To suppress missing implicit constructor warnings.
   factory OfflineAudioContext._() { throw new UnsupportedError("Not supported"); }
 
@@ -877,6 +874,11 @@ class OfflineAudioContext extends AudioContext implements EventTarget native "Of
 class OscillatorNode extends AudioSourceNode native "OscillatorNode,Oscillator" {
   // To suppress missing implicit constructor warnings.
   factory OscillatorNode._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('OscillatorNode.endedEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
   @DomName('OscillatorNode.CUSTOM')
   @DocsEditable()
@@ -948,9 +950,10 @@ class OscillatorNode extends AudioSourceNode native "OscillatorNode,Oscillator" 
   @DocsEditable()
   void noteOn(num when) native;
 
-  @DomName('OscillatorNode.setWaveTable')
+  @DomName('OscillatorNode.setPeriodicWave')
   @DocsEditable()
-  void setWaveTable(WaveTable waveTable) native;
+  @Experimental() // untriaged
+  void setPeriodicWave(PeriodicWave periodicWave) native;
 
   @DomName('OscillatorNode.start')
   @DocsEditable()
@@ -959,6 +962,11 @@ class OscillatorNode extends AudioSourceNode native "OscillatorNode,Oscillator" 
   @DomName('OscillatorNode.stop')
   @DocsEditable()
   void stop(num when) native;
+
+  @DomName('OscillatorNode.onended')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<Event> get onEnded => endedEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1053,6 +1061,16 @@ class PannerNode extends AudioNode native "PannerNode,AudioPannerNode" {
   @DocsEditable()
   void setVelocity(num x, num y, num z) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('PeriodicWave')
+@Experimental() // untriaged
+class PeriodicWave extends Interceptor native "PeriodicWave" {
+}
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -1122,15 +1140,4 @@ class WaveShaperNode extends AudioNode native "WaveShaperNode" {
   @DomName('WaveShaperNode.oversample')
   @DocsEditable()
   String oversample;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('WaveTable')
-// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#WaveTable-section
-@Experimental()
-class WaveTable extends Interceptor native "WaveTable" {
 }

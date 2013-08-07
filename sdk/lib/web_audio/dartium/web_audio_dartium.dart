@@ -145,6 +145,11 @@ class AudioBufferSourceNode extends AudioSourceNode {
   // To suppress missing implicit constructor warnings.
   factory AudioBufferSourceNode._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('AudioBufferSourceNode.endedEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
+
   @DomName('AudioBufferSourceNode.FINISHED_STATE')
   @DocsEditable()
   static const int FINISHED_STATE = 3;
@@ -242,6 +247,11 @@ class AudioBufferSourceNode extends AudioSourceNode {
   @DomName('AudioBufferSourceNode.stop')
   @DocsEditable()
   void stop(num when) native "AudioBufferSourceNode_stop_Callback";
+
+  @DomName('AudioBufferSourceNode.onended')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<Event> get onEnded => endedEvent.forTarget(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -406,6 +416,11 @@ class AudioContext extends EventTarget {
   @DocsEditable()
   PannerNode createPanner() native "AudioContext_createPanner_Callback";
 
+  @DomName('AudioContext.createPeriodicWave')
+  @DocsEditable()
+  @Experimental() // untriaged
+  PeriodicWave createPeriodicWave(Float32List real, Float32List imag) native "AudioContext_createPeriodicWave_Callback";
+
   ScriptProcessorNode createScriptProcessor(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) {
     if (numberOfOutputChannels != null) {
       return _createScriptProcessor_1(bufferSize, numberOfInputChannels, numberOfOutputChannels);
@@ -425,10 +440,6 @@ class AudioContext extends EventTarget {
   @DomName('AudioContext.createWaveShaper')
   @DocsEditable()
   WaveShaperNode createWaveShaper() native "AudioContext_createWaveShaper_Callback";
-
-  @DomName('AudioContext.createWaveTable')
-  @DocsEditable()
-  WaveTable createWaveTable(Float32List real, Float32List imag) native "AudioContext_createWaveTable_Callback";
 
   @DomName('AudioContext.decodeAudioData')
   @DocsEditable()
@@ -561,10 +572,6 @@ class AudioNode extends EventTarget {
   @DocsEditable()
   int get numberOfOutputs native "AudioNode_numberOfOutputs_Getter";
 
-  @DomName('AudioNode.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "AudioNode_addEventListener_Callback";
-
   void $dom_connect(destination, int output, [int input]) {
     if ((input is int || input == null) && (output is int || output == null) && (destination is AudioNode || destination == null)) {
       _connect_1(destination, output, input);
@@ -584,14 +591,6 @@ class AudioNode extends EventTarget {
   @DomName('AudioNode.disconnect')
   @DocsEditable()
   void disconnect(int output) native "AudioNode_disconnect_Callback";
-
-  @DomName('AudioNode.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) native "AudioNode_dispatchEvent_Callback";
-
-  @DomName('AudioNode.removeEventListener')
-  @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "AudioNode_removeEventListener_Callback";
 
   @DomName('AudioNode.connect')
   void connectNode(AudioNode destination, [int output = 0, int input = 0]) =>
@@ -963,7 +962,7 @@ class MediaElementAudioSourceNode extends AudioSourceNode {
 @DomName('MediaStreamAudioDestinationNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#MediaStreamAudioDestinationNode
 @Experimental()
-class MediaStreamAudioDestinationNode extends AudioSourceNode {
+class MediaStreamAudioDestinationNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory MediaStreamAudioDestinationNode._() { throw new UnsupportedError("Not supported"); }
 
@@ -1023,7 +1022,7 @@ class OfflineAudioCompletionEvent extends Event {
 @DomName('OfflineAudioContext')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#OfflineAudioContext-section
 @Experimental()
-class OfflineAudioContext extends AudioContext implements EventTarget {
+class OfflineAudioContext extends AudioContext {
   // To suppress missing implicit constructor warnings.
   factory OfflineAudioContext._() { throw new UnsupportedError("Not supported"); }
 
@@ -1051,6 +1050,11 @@ class OfflineAudioContext extends AudioContext implements EventTarget {
 class OscillatorNode extends AudioSourceNode {
   // To suppress missing implicit constructor warnings.
   factory OscillatorNode._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('OscillatorNode.endedEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
   @DomName('OscillatorNode.CUSTOM')
   @DocsEditable()
@@ -1126,9 +1130,10 @@ class OscillatorNode extends AudioSourceNode {
   @DocsEditable()
   void noteOn(num when) native "OscillatorNode_noteOn_Callback";
 
-  @DomName('OscillatorNode.setWaveTable')
+  @DomName('OscillatorNode.setPeriodicWave')
   @DocsEditable()
-  void setWaveTable(WaveTable waveTable) native "OscillatorNode_setWaveTable_Callback";
+  @Experimental() // untriaged
+  void setPeriodicWave(PeriodicWave periodicWave) native "OscillatorNode_setPeriodicWave_Callback";
 
   @DomName('OscillatorNode.start')
   @DocsEditable()
@@ -1137,6 +1142,11 @@ class OscillatorNode extends AudioSourceNode {
   @DomName('OscillatorNode.stop')
   @DocsEditable()
   void stop(num when) native "OscillatorNode_stop_Callback";
+
+  @DomName('OscillatorNode.onended')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<Event> get onEnded => endedEvent.forTarget(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1267,6 +1277,19 @@ class PannerNode extends AudioNode {
   void setVelocity(num x, num y, num z) native "PannerNode_setVelocity_Callback";
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('PeriodicWave')
+@Experimental() // untriaged
+class PeriodicWave extends NativeFieldWrapperClass1 {
+
+}
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -1347,19 +1370,5 @@ class WaveShaperNode extends AudioNode {
   @DomName('WaveShaperNode.oversample')
   @DocsEditable()
   void set oversample(String value) native "WaveShaperNode_oversample_Setter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('WaveTable')
-// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#WaveTable-section
-@Experimental()
-class WaveTable extends NativeFieldWrapperClass1 {
 
 }

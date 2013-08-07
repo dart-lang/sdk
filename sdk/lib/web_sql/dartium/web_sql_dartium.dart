@@ -177,60 +177,6 @@ class SqlError extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable()
-@DomName('SQLException')
-// http://www.w3.org/TR/webdatabase/#sqlexception
-@Experimental() // deprecated
-class SqlException extends NativeFieldWrapperClass1 {
-
-  @DomName('SQLException.CONSTRAINT_ERR')
-  @DocsEditable()
-  static const int CONSTRAINT_ERR = 6;
-
-  @DomName('SQLException.DATABASE_ERR')
-  @DocsEditable()
-  static const int DATABASE_ERR = 1;
-
-  @DomName('SQLException.QUOTA_ERR')
-  @DocsEditable()
-  static const int QUOTA_ERR = 4;
-
-  @DomName('SQLException.SYNTAX_ERR')
-  @DocsEditable()
-  static const int SYNTAX_ERR = 5;
-
-  @DomName('SQLException.TIMEOUT_ERR')
-  @DocsEditable()
-  static const int TIMEOUT_ERR = 7;
-
-  @DomName('SQLException.TOO_LARGE_ERR')
-  @DocsEditable()
-  static const int TOO_LARGE_ERR = 3;
-
-  @DomName('SQLException.UNKNOWN_ERR')
-  @DocsEditable()
-  static const int UNKNOWN_ERR = 0;
-
-  @DomName('SQLException.VERSION_ERR')
-  @DocsEditable()
-  static const int VERSION_ERR = 2;
-
-  @DomName('SQLException.code')
-  @DocsEditable()
-  int get code native "SQLException_code_Getter";
-
-  @DomName('SQLException.message')
-  @DocsEditable()
-  String get message native "SQLException_message_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
 @DomName('SQLResultSet')
 // http://www.w3.org/TR/webdatabase/#sqlresultset
 @Experimental() // deprecated
