@@ -1573,8 +1573,6 @@ class CommandEnqueuer {
   }
 }
 
-// TODO(kustermann): Add support for '--list' and '--verbose'!
-
 /*
  * [CommandQueue] will listen for nodes entering the NodeState.ENQUEUING state,
  * queue them up and run them. While nodes are processed they will be in the
@@ -1622,8 +1620,18 @@ class CommandQueue {
             Timer.run(() => _tryRunNextCommand());
           }
     });
-    eventCondition((event) => event is dgraph.GraphSealedEvent).listen((_) {
-      _checkDone();
+    // We're finished if the graph is sealed and all nodes are in a finished
+    // state (Successfull, Failed or UnableToRun).
+    // So we're calling '_checkDone()' to check whether that condition is met
+    // and we can cleanup.
+    graph.events.listen((dgraph.GraphEvent event) {
+      if (event is dgraph.GraphSealedEvent) {
+        _checkDone();
+      } else if (event is dgraph.StateChangedEvent) {
+        if (event.to == dgraph.NodeState.UnableToRun) {
+          _checkDone();
+        }
+      }
     });
   }
 
@@ -1977,7 +1985,6 @@ class TestCaseCompleter {
     }
   }
 }
-
 
 
 class ProcessQueue {
