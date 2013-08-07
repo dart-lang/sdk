@@ -965,7 +965,11 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
     }
 
     if (errors.length == 0) {
-      if (!hasFatalTypeErrors && exitCode != 0) {
+      // If the analyzer has warnings it will exit 1.
+      // We should reconsider how we do this once we have landed a dart
+      // only version of the analyzer for stable use (as in not run in batch
+      // mode).
+      if (!hasFatalTypeErrors && exitCode != 0 && staticWarnings.length == 0) {
         diagnostics.add("EXIT CODE MISMATCH: Expected error message:");
         diagnostics.add("  command[0]:${testCase.commands[0]}");
         diagnostics.add("  exitCode:${exitCode}");
