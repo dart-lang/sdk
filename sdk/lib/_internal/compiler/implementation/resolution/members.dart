@@ -2131,17 +2131,22 @@ class ResolverVisitor extends MappingVisitor<Element> {
       if (identical(string, '!') ||
           identical(string, '&&') || identical(string, '||') ||
           identical(string, 'is') || identical(string, 'as') ||
-          identical(string, '===') || identical(string, '!==') ||
           identical(string, '?') ||
           identical(string, '>>>')) {
         return null;
       }
+      SourceString op = source;
       if (!isUserDefinableOperator(source.stringValue)) {
-        source = Elements.mapToUserOperator(source);
+        op = Elements.mapToUserOperatorOrNull(source);
+      }
+      if (op == null) {
+        // Unsupported operator. An error has been reported during parsing.
+        return new Selector.call(
+            source, library, node.argumentsNode.slowLength(), []);
       }
       return node.arguments.isEmpty
-          ? new Selector.unaryOperator(source)
-          : new Selector.binaryOperator(source);
+          ? new Selector.unaryOperator(op)
+          : new Selector.binaryOperator(op);
     }
 
     Identifier identifier = node.selector.asIdentifier();

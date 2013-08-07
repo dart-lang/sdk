@@ -23,9 +23,6 @@ abstract class DiagnosticListener {
 
   void reportInfo(Spannable node, MessageKind errorCode, [Map arguments]);
 
-  /// Returns true if a diagnostic was emitted.
-  bool onDeprecatedFeature(Spannable span, String feature);
-
   // TODO(ahe): We should not expose this here.  Perhaps a
   // [SourceSpan] should implement [Spannable], and we should have a
   // way to construct a [SourceSpan] from a [Spannable] and an

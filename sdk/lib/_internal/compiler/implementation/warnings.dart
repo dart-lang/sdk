@@ -468,18 +468,6 @@ class MessageKind {
   static const MessageKind OPERATOR_NAMED_PARAMETERS = const MessageKind(
       'Error: Operator "#{operatorName}" cannot have named parameters.');
 
-  // TODO(ahe): This message is hard to localize.  This is acceptable,
-  // as it will be removed when we ship Dart version 1.0.
-  static const MessageKind DEPRECATED_FEATURE_WARNING = const MessageKind(
-      'Warning: Deprecated language feature, #{featureName}, '
-      'will be removed in a future Dart milestone.');
-
-  // TODO(ahe): This message is hard to localize.  This is acceptable,
-  // as it will be removed when we ship Dart version 1.0.
-  static const MessageKind DEPRECATED_FEATURE_ERROR = const MessageKind(
-      'Error: #{featureName} are not legal '
-      'due to option --reject-deprecated-language-features.');
-
   static const MessageKind CONSTRUCTOR_WITH_RETURN_TYPE = const MessageKind(
       'Error: Cannot have return type for constructor.');
 
@@ -615,6 +603,18 @@ Error: "#{value}" is not a valid Symbol name because is not:
 
   static const MessageKind PACKAGE_ROOT_NOT_SET = const MessageKind(
       'Error: Cannot resolve "#{uri}". Package root has not been set.');
+
+  static const MessageKind UNSUPPORTED_EQ_EQ_EQ = const MessageKind(
+      'Error: "===" is not an operator. '
+      'Did you mean "#{lhs} == #{rhs}" or "identical(#{lhs}, #{rhs})"?');
+
+  static const MessageKind UNSUPPORTED_BANG_EQ_EQ = const MessageKind(
+      'Error: "!==" is not an operator. '
+      'Did you mean "#{lhs} != #{rhs}" or "!identical(#{lhs}, #{rhs})"?');
+
+  static const MessageKind UNSUPPORTED_THROW_WITHOUT_EXP = const MessageKind(
+      'Error: No expression after "throw". '
+      'Did you mean "rethrow"?');
 
   static const MessageKind COMPILER_CRASHED = const MessageKind(
       'Error: The compiler crashed when compiling this element.');

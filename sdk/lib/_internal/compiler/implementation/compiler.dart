@@ -306,8 +306,6 @@ abstract class Compiler implements DiagnosticListener {
    */
   final bool analyzeSignaturesOnly;
   final bool enableNativeLiveTypeAnalysis;
-  final bool rejectDeprecatedFeatures;
-  final bool checkDeprecationInSdk;
 
   /**
    * If [:true:], comment tokens are collected in [commentMap] during scanning.
@@ -518,8 +516,6 @@ abstract class Compiler implements DiagnosticListener {
             this.analyzeAllFlag: false,
             bool analyzeOnly: false,
             bool analyzeSignaturesOnly: false,
-            this.rejectDeprecatedFeatures: false,
-            this.checkDeprecationInSdk: false,
             this.preserveComments: false,
             this.verbose: false,
             this.sourceMapUri: null,
@@ -1219,24 +1215,6 @@ abstract class Compiler implements DiagnosticListener {
     // TODO(ahe): The names Diagnostic and api.Diagnostic are in
     // conflict. Fix it.
     reportDiagnostic(span, "$message", kind);
-  }
-
-  /// Returns true if a diagnostic was emitted.
-  bool onDeprecatedFeature(Spannable span, String feature) {
-    if (currentElement == null)
-      throw new SpannableAssertionFailure(span, feature);
-    if (!checkDeprecationInSdk &&
-        currentElement.getLibrary().isPlatformLibrary) {
-      return false;
-    }
-    var kind = rejectDeprecatedFeatures
-        ? api.Diagnostic.ERROR : api.Diagnostic.WARNING;
-    var message = rejectDeprecatedFeatures
-        ? MessageKind.DEPRECATED_FEATURE_ERROR.error({'featureName': feature})
-        : MessageKind.DEPRECATED_FEATURE_WARNING.error(
-            {'featureName': feature});
-    reportMessage(spanFromSpannable(span), message, kind);
-    return true;
   }
 
   void reportDiagnostic(SourceSpan span, String message, api.Diagnostic kind);

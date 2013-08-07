@@ -48,11 +48,6 @@ class Compiler extends leg.Compiler {
             analyzeOnly: hasOption(options, '--analyze-only'),
             analyzeSignaturesOnly:
                 hasOption(options, '--analyze-signatures-only'),
-            rejectDeprecatedFeatures:
-                hasOption(options, '--reject-deprecated-language-features'),
-            checkDeprecationInSdk:
-                hasOption(options,
-                          '--report-sdk-use-of-deprecated-language-features'),
             strips: extractCsvOption(options, '--force-strip='),
             enableConcreteTypeInference:
                 hasOption(options, '--enable-concrete-type-inference'),

@@ -1346,8 +1346,13 @@ class NodeListener extends ElementListener {
       NodeList arguments = new NodeList.singleton(argument);
       pushNode(new Send(receiver, new Operator(token), arguments));
     }
-    if (identical(tokenString, '===') || identical(tokenString, '!==')) {
-      listener.onDeprecatedFeature(token, tokenString);
+    if (identical(tokenString, '===')) {
+      listener.reportError(token, MessageKind.UNSUPPORTED_EQ_EQ_EQ,
+                           {'lhs': receiver, 'rhs': argument});
+    }
+    if (identical(tokenString, '!==')) {
+      listener.reportError(token, MessageKind.UNSUPPORTED_BANG_EQ_EQ,
+                           {'lhs': receiver, 'rhs': argument});
     }
   }
 
@@ -1497,7 +1502,8 @@ class NodeListener extends ElementListener {
   void endRethrowStatement(Token throwToken, Token endToken) {
     pushNode(new Rethrow(throwToken, endToken));
     if (identical(throwToken.stringValue, 'throw')) {
-      listener.onDeprecatedFeature(throwToken, 'throw without an expression');
+      listener.reportError(throwToken,
+                           MessageKind.UNSUPPORTED_THROW_WITHOUT_EXP);
     }
   }
 
