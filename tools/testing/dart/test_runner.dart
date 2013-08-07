@@ -1192,6 +1192,8 @@ class RunningProcess {
 }
 
 class BatchRunnerProcess {
+  static bool isWindows = io.Platform.operatingSystem == 'windows';
+
   final batchRunnerTypes = {
       'selenium' : {
           'run_executable' : 'python',
@@ -1199,11 +1201,15 @@ class BatchRunnerProcess {
           'terminate_command' : ['--terminate'],
       },
       'dartanalyzer' : {
-        'run_executable' : 'sdk/bin/dartanalyzer_developer', // $suffix
+        'run_executable' :
+           isWindows ?
+             'sdk\\bin\\dartanalyzer_developer.bat'
+              : 'sdk/bin/dartanalyzer_developer',
         'run_arguments' : ['--batch'],
         'terminate_command' : null,
       },
       'dart2analyzer' : {
+        // This is a unix shell script, no windows equivalent available
         'run_executable' : 'editor/tools/analyzer_experimental',
         'run_arguments' : ['--batch'],
         'terminate_command' : null,
