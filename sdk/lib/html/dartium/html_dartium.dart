@@ -9279,6 +9279,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   bool _templateIsDecorated;
 
 
+
   /**
    * Gets the template this node refers to.
    * This is only supported if [isTemplate] is true.

@@ -905,6 +905,17 @@ $endif
 
   bool _templateIsDecorated;
 
+$if DART2JS
+  @DomName('Element.createShadowRoot')
+  @SupportedBrowser(SupportedBrowser.CHROME, '25')
+  @Experimental()
+  ShadowRoot createShadowRoot() {
+    return JS('ShadowRoot',
+      '(#.createShadowRoot || #.webkitCreateShadowRoot).call(#)',
+      this, this, this);
+  }
+$endif
+
 
   /**
    * Gets the template this node refers to.

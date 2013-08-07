@@ -8870,6 +8870,15 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
 
   bool _templateIsDecorated;
 
+  @DomName('Element.createShadowRoot')
+  @SupportedBrowser(SupportedBrowser.CHROME, '25')
+  @Experimental()
+  ShadowRoot createShadowRoot() {
+    return JS('ShadowRoot',
+      '(#.createShadowRoot || #.webkitCreateShadowRoot).call(#)',
+      this, this, this);
+  }
+
 
   /**
    * Gets the template this node refers to.
@@ -9505,13 +9514,6 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   @DomName('Element.blur')
   @DocsEditable()
   void blur() native;
-
-  @DomName('Element.createShadowRoot')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME, '25')
-  @Experimental()
-  // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#api-shadow-aware-create-shadow-root
-  ShadowRoot createShadowRoot() native;
 
   @DomName('Element.focus')
   @DocsEditable()

@@ -48,6 +48,7 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'Console.warn',
     'WebKitCSSKeyframesRule.insertRule',
     'CSSStyleDeclaration.setProperty',
+    'Element.createShadowRoot',
     'Element.insertAdjacentElement',
     'Element.insertAdjacentHTML',
     'Element.insertAdjacentText',
