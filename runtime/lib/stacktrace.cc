@@ -49,7 +49,7 @@ DEFINE_NATIVE_ENTRY(Stacktrace_setupFullStacktrace, 1) {
   Code& code = Code::Handle();
   Smi& offset = Smi::Handle();
   bool catch_frame_skipped = false;  // Tracks if catch frame has been skipped.
-  while (!frame->IsEntryFrame()) {
+  while (frame != NULL) {
     if (frame->IsDartFrame()) {
       code = frame->LookupDartCode();
       if (code.is_optimized()) {
@@ -88,7 +88,6 @@ DEFINE_NATIVE_ENTRY(Stacktrace_setupFullStacktrace, 1) {
       }
     }
     frame = frames.NextFrame();
-    ASSERT(frame != NULL);
   }
   const Array& func_array = Array::Handle(Array::MakeArray(func_list));
   const Array& code_array = Array::Handle(Array::MakeArray(code_list));
