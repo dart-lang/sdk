@@ -54,7 +54,7 @@ main() {
       // "message" is the expected message as a [String].  This is a
       // short-term solution and should eventually changed to include
       // a symbolic reference to a MessageKind.
-      "19<()>::${deprecatedMessage('getter parameters')}\n",
+      "",
       messages.toString());
 }
 
@@ -67,7 +67,6 @@ deprecatedMessage(feature) {
 const Map<String, String> TEST_SOURCE =
   const <String, String>{ '': """
 class Foo {
-  get x() => null;
 }
 
 main() {

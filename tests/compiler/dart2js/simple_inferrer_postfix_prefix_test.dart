@@ -28,7 +28,7 @@ class A {
 }
 
 class B extends A {
-  get foo() => 42;
+  get foo => 42;
   operator[](index) => 42;
 
   returnString1() => super.foo--;

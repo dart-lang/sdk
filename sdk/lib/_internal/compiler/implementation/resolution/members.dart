@@ -1515,7 +1515,7 @@ class TypeResolver {
             visitor, node, typdef.typeVariables, arguments);
         if (hasTypeArgumentMismatch) {
           type = new BadTypedefType(typdef,
-              new TypedefType.forUserProvidedBadType(typdef, 
+              new TypedefType.forUserProvidedBadType(typdef,
                                                      arguments.toLink()));
         } else {
           if (arguments.isEmpty) {
@@ -3854,14 +3854,8 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
         if (!identical(formalParameters.getEndToken().next.stringValue,
                        // TODO(ahe): Remove the check for native keyword.
                        'native')) {
-          if (compiler.rejectDeprecatedFeatures &&
-              // TODO(ahe): Remove isPlatformLibrary check.
-              !element.getLibrary().isPlatformLibrary) {
-            compiler.reportError(formalParameters,
-                                     MessageKind.EXTRA_FORMALS);
-          } else {
-            compiler.onDeprecatedFeature(formalParameters, 'getter parameters');
-          }
+          compiler.reportError(formalParameters,
+                               MessageKind.EXTRA_FORMALS);
         }
       }
       LinkBuilder<Element> parametersBuilder =
@@ -3889,10 +3883,6 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
         compiler.reportError(formalParameters,
                                  MessageKind.ILLEGAL_SETTER_FORMALS);
       }
-    }
-    if (element.isGetter() && (requiredParameterCount != 0
-                               || visitor.optionalParameterCount != 0)) {
-      compiler.reportError(formalParameters, MessageKind.EXTRA_FORMALS);
     }
     return new FunctionSignatureX(parameters,
                                   visitor.optionalParameters,
