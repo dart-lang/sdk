@@ -259,6 +259,7 @@ void compile(List<String> argv) {
     new OptionHandler('--categories=.*', setCategories),
     new OptionHandler('--global-js-name=.*', checkGlobalName),
     new OptionHandler('--disable-type-inference', passThrough),
+    new OptionHandler('--terse', passThrough),
 
     // The following two options must come last.
     new OptionHandler('-.*', (String argument) {
@@ -499,6 +500,10 @@ Supported options:
 
   --enable-diagnostic-colors
     Add colors to diagnostic messages.
+
+  --terse
+    Emit diagnostics without suggestions for how to get rid of the diagnosed
+    problems.
 
 The following options are only used for compiler development and may
 be removed in a future version:

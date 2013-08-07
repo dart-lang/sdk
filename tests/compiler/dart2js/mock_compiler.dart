@@ -340,7 +340,7 @@ class MockCompiler extends Compiler {
     errors = [];
   }
 
-  TreeElementMapping resolveStatement(String text) {
+  CollectingTreeElements resolveStatement(String text) {
     parsedTree = parseStatement(text);
     return resolveNodeStatement(parsedTree, mainApp);
   }
@@ -378,10 +378,6 @@ class MockCompiler extends Compiler {
 
   LibraryElement scanBuiltinLibrary(String name) {
     // Do nothing. The mock core library is already handled in the constructor.
-  }
-
-  void importCoreLibrary(LibraryElement library) {
-    scanner.importLibrary(library, coreLibrary, null);
   }
 
   Uri translateResolvedUri(LibraryElement importingLibrary,
@@ -427,7 +423,7 @@ void compareWarningKinds(String text, expectedWarnings, foundWarnings) {
   }
 }
 
-void importLibrary(LibraryElement target, LibraryElement imported,
+void importLibrary(LibraryElement target, LibraryElementX imported,
                    Compiler compiler) {
   for (var element in imported.localMembers) {
     compiler.withCurrentElement(element, () {

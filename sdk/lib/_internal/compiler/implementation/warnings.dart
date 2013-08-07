@@ -9,34 +9,33 @@ part of dart2js;
  *
  * 1. The message should start with exactly one of "Error", "Internal error",
  * "Warning", "Info", or "Hint" followed by a colon. It is crucial to users to
- * be able to locate errors in the midst of warnings, but we are operating
- * under the assumption that these messages will eventually be translated to
- * other languages than English, and that it is therefor not possible to
- * automatically apply these prefixes.
+ * be able to locate errors in the midst of warnings.
+ * TODO(ahe): Remove these prefixes from the error message.
  *
  * 2. After the colon, one space and a complete sentence starting with an
  * uppercase letter, and ending with a period.
  *
- * 3. Reserved words and embedded identifiers should be in quotes (double
- * quotes), so prefer single quotes for the complete message. For example,
- * 'Error: The class "#{className}" cannot use "super".' Notice that the word
- * "class" in the preceding message is not quoted as it refers to the concept
- * "class", not the reserved word. On the other hand, "super" refers to the
- * reserved word. Do not quote "null" and numeric literals.
+ * 3. Reserved words and embedded identifiers should be in single quotes, so
+ * prefer double quotes for the complete message. For example, "Error: The
+ * class '#{className}' can't use 'super'." Notice that the word 'class' in the
+ * preceding message is not quoted as it refers to the concept 'class', not the
+ * reserved word. On the other hand, 'super' refers to the reserved word. Do
+ * not quote 'null' and numeric literals.
  *
  * 4. Do not try to compose messages, as it can make translating them hard.
  *
  * 5. Try to keep the error messages short, but informative.
  *
- * 6. Use simple words and terminology, assume the reader of the message does
- * not have an advanced degree in math, and that English is not the reader's
- * native language. Do not assume any formal computer science training. For
- * example, do not use Latin abbreviations (prefer "that is" over "i.e.", and
- * "for example" over "e.g."). Also avoid phrases such as "if and only if" and
- * "iff", that level of precision is unnecessary.
+ * 6. Use simple words and terminology, assume the reader of the message
+ * doesn't have an advanced degree in math, and that English is not the
+ * reader's native language. Do not assume any formal computer science
+ * training. For example, do not use Latin abbreviations (prefer "that is" over
+ * "i.e.", and "for example" over "e.g."). Also avoid phrases such as "if and
+ * only if" and "iff", that level of precision is unnecessary.
  *
- * 7. Do not use contractions, for example, prefer "cannot" over "can't". This
- * is again to benefit readers to whom English is not their first language.
+ * 7. Prefer contractions when they are in common use, for example, prefer
+ * "can't" over "cannot". Using "cannot", "must not", "shall not", etc. is
+ * off-putting to people new to programming.
  *
  * 8. Use common terminology, preferably from the Dart Language
  * Specification. This increases the user's chance of finding a good
@@ -47,13 +46,38 @@ part of dart2js;
  * not want to use this product to begin with with.
  *
  * 10. Do not lie, that is, do not write error messages containing phrases like
- * "cannot happen".  If the user ever saw this message, it would be a
- * lie. Prefer messages like: 'Internal error: This function should not be
- * called when "x" is null.'.
+ * "can't happen".  If the user ever saw this message, it would be a
+ * lie. Prefer messages like: "Internal error: This function should not be
+ * called when 'x' is null.".
+ *
+ * 11. Prefer to not use imperative tone. That is, the message should not sound
+ * accusing or like it is ordering the user around. The computer should
+ * describe the problem, not criticize for violating the specification.
+ *
+ * Other things to keep in mind:
+ *
+ * An INFO message should always be preceded by a non-INFO message, and the
+ * INFO messages are additional details about the preceding non-INFO
+ * message. For example, consider duplicated elements. First report a WARNING
+ * or ERROR about the duplicated element, and then report an INFO about the
+ * location of the existing element.
+ *
+ * Generally, we want to provide messages that consists of three sentences:
+ * 1. what is wrong, 2. why is it wrong, 3. how do I fix it. However, we
+ * combine the first two in [template] and the last in [howToFix].
  */
 class MessageKind {
+  /// Should describe what is wrong and why.
   final String template;
-  const MessageKind(this.template);
+
+  /// Should describe how to fix the problem. Elided when using --terse option.
+  final String howToFix;
+
+  /// Examples will be checked by
+  /// tests/compiler/dart2js/message_kind_test.dart.
+  final List<String> examples;
+
+  const MessageKind(this.template, {this.howToFix, this.examples});
 
   /// Do not use this. It is here for legacy and debugging. It violates item 4
   /// above.
@@ -619,6 +643,105 @@ Error: "#{value}" is not a valid Symbol name because is not:
       'Error: No expression after "throw". '
       'Did you mean "rethrow"?');
 
+  static const MessageKind MIRRORS_EXPECTED_STRING = const MessageKind(
+      "Hint: Can't use '#{name}' here because it's an instance of '#{type}' "
+      "and a 'String' value is expected.",
+      howToFix: "Did you forget to add quotes?",
+      examples: const [
+          """
+// 'main' is a method, not a class.
+@MirrorsUsed(symbols: const [Foo])
+import 'dart:mirrors';
+
+class Foo {}
+
+main() {}
+"""]);
+
+  static const MessageKind MIRRORS_EXPECTED_STRING_OR_TYPE = const MessageKind(
+      "Hint: Can't use '#{name}' here because it's an instance of '#{type}' "
+      "and a 'String' or 'Type' value is expected.",
+      howToFix: "Did you forget to add quotes?",
+      examples: const [
+          """
+// 'main' is a method, not a class.
+@MirrorsUsed(targets: const [main])
+import 'dart:mirrors';
+
+main() {}
+"""]);
+
+  static const MessageKind MIRRORS_EXPECTED_STRING_OR_LIST = const MessageKind(
+      "Hint: Can't use '#{name}' here because it's an instance of '#{type}' "
+      "and a 'String' or 'List' value is expected.",
+      howToFix: "Did you forget to add quotes?",
+      examples: const [
+          """
+// 'Foo' is not a string.
+@MirrorsUsed(symbols: Foo)
+import 'dart:mirrors';
+
+class Foo {}
+
+main() {}
+"""]);
+
+  static const MessageKind MIRRORS_EXPECTED_STRING_TYPE_OR_LIST =
+      const MessageKind(
+      "Hint: Can't use '#{name}' here because it's an instance of '#{type}' "
+      "but a 'String', 'Type', or 'List' value is expected.",
+      howToFix: "Did you forget to add quotes?",
+      examples: const [
+          """
+// '1' is not a string.
+@MirrorsUsed(targets: 1)
+import 'dart:mirrors';
+
+main() {}
+"""]);
+
+  static const MessageKind MIRRORS_CANNOT_RESOLVE_IN_CURRENT_LIBRARY =
+      const MessageKind(
+      "Hint: Can't find '#{name}' in the current library.",
+      // TODO(ahe): The closest identifiers in edit distance would be nice.
+      howToFix: "Did you forget to add an import?",
+      examples: const [
+          """
+// 'window' is not in scope because dart:html isn't imported.
+@MirrorsUsed(targets: 'window')
+import 'dart:mirrors';
+
+main() {}
+"""]);
+
+  static const MessageKind MIRRORS_CANNOT_RESOLVE_IN_LIBRARY =
+      const MessageKind(
+      "Hint: Can't find '#{name}' in the library '#{library}'.",
+      // TODO(ahe): The closest identifiers in edit distance would be nice.
+      howToFix: "Is '#{name}' spelled right?",
+      examples: const [
+          """
+// 'List' is misspelled.
+@MirrorsUsed(targets: 'dart.core.Lsit')
+import 'dart:mirrors';
+
+main() {}
+"""]);
+
+  static const MessageKind MIRRORS_CANNOT_FIND_IN_ELEMENT =
+      const MessageKind(
+      "Hint: Can't find '#{name}' in '#{element}'.",
+      // TODO(ahe): The closest identifiers in edit distance would be nice.
+      howToFix: "Is '#{name}' spelled right?",
+      examples: const [
+          """
+// 'addAll' is misspelled.
+@MirrorsUsed(targets: 'dart.core.List.addAl')
+import 'dart:mirrors';
+
+main() {}
+"""]);
+
   static const MessageKind COMPILER_CRASHED = const MessageKind(
       'Error: The compiler crashed when compiling this element.');
 
@@ -736,12 +859,12 @@ Please include the following information:
 
   toString() => template;
 
-  Message message([Map arguments = const {}]) {
-    return new Message(this, arguments);
+  Message message([Map arguments = const {}, bool terse = false]) {
+    return new Message(this, arguments, terse);
   }
 
-  CompilationError error([Map arguments = const {}]) {
-    return new CompilationError(this, arguments);
+  CompilationError error([Map arguments = const {}, bool terse = false]) {
+    return new CompilationError(this, arguments, terse);
   }
 }
 
@@ -753,11 +876,12 @@ class DualKind {
 }
 
 class Message {
-  final kind;
+  final MessageKind kind;
   final Map arguments;
+  final bool terse;
   String message;
 
-  Message(this.kind, this.arguments) {
+  Message(this.kind, this.arguments, this.terse) {
     assert(() { computeMessage(); return true; });
   }
 
@@ -772,6 +896,14 @@ class Message {
           CURRENT_ELEMENT_SPANNABLE,
           !message.contains(new RegExp(r'#\{.+\}')),
           message: 'Missing arguments in error message: "$message"'));
+      if (!terse && kind.howToFix != null) {
+        String howToFix = kind.howToFix;
+        arguments.forEach((key, value) {
+          String string = slowToString(value);
+          howToFix = howToFix.replaceAll('#{${key}}', string);
+        });
+        message = '$message\n$howToFix';
+      }
     }
     return message;
   }
@@ -798,27 +930,27 @@ class Message {
 
 class Diagnostic {
   final Message message;
-  Diagnostic(MessageKind kind, [Map arguments = const {}])
-      : message = new Message(kind, arguments);
+  Diagnostic(MessageKind kind, Map arguments, bool terse)
+      : message = new Message(kind, arguments, terse);
   String toString() => message.toString();
 }
 
 class TypeWarning extends Diagnostic {
-  TypeWarning(MessageKind kind, [Map arguments = const {}])
-    : super(kind, arguments);
+  TypeWarning(MessageKind kind, Map arguments, bool terse)
+    : super(kind, arguments, terse);
 }
 
 class ResolutionWarning extends Diagnostic {
-  ResolutionWarning(MessageKind kind, [Map arguments = const {}])
-    : super(kind, arguments);
+  ResolutionWarning(MessageKind kind, Map arguments, bool terse)
+    : super(kind, arguments, terse);
 }
 
 class CompileTimeConstantError extends Diagnostic {
-  CompileTimeConstantError(MessageKind kind, [Map arguments = const {}])
-    : super(kind, arguments);
+  CompileTimeConstantError(MessageKind kind, Map arguments, bool terse)
+    : super(kind, arguments, terse);
 }
 
 class CompilationError extends Diagnostic {
-  CompilationError(MessageKind kind, [Map arguments = const {}])
-    : super(kind, arguments);
+  CompilationError(MessageKind kind, Map arguments, bool terse)
+    : super(kind, arguments, terse);
 }

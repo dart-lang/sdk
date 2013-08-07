@@ -189,7 +189,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   LibraryElement get currentLibrary => elements.currentElement.getLibrary();
 
   reportTypeWarning(Node node, MessageKind kind, [Map arguments = const {}]) {
-    compiler.reportWarning(node, new TypeWarning(kind, arguments));
+    compiler.reportWarning(
+        node, new TypeWarning(kind, arguments, compiler.terseDiagnostics));
   }
 
   reportTypeInfo(Spannable node, MessageKind kind, [Map arguments = const {}]) {

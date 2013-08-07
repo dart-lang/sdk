@@ -58,6 +58,7 @@ class Compiler extends leg.Compiler {
             sourceMapUri: extractSourceMapUri(options),
             globalJsName: extractStringOption(
                 options, '--global-js-name=', r'$'),
+            terseDiagnostics: hasOption(options, '--terse'),
             buildId: extractStringOption(
                 options, '--build-id=',
                 "build number could not be determined")) {

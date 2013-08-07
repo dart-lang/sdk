@@ -1462,9 +1462,14 @@ class JavaScriptBackend extends Backend {
                            Set<Element> metaTargets) {
     if (symbols != null) symbolsUsed.addAll(symbols);
     if (targets != null) {
-      for (Element element in targets) {
-        // TODO(ahe): Implement finer granularity.
-        targetsUsed.add(element.getLibrary());
+      for (Element target in targets) {
+        if (target.isAbstractField()) {
+          AbstractFieldElement field = target;
+          targetsUsed.add(field.getter);
+          targetsUsed.add(field.setter);
+        } else {
+          targetsUsed.add(target);
+        }
       }
     }
     if (metaTargets != null) metaTargetsUsed.addAll(metaTargets);
@@ -1473,7 +1478,11 @@ class JavaScriptBackend extends Backend {
   bool isNeededForReflection(Element element) {
     // TODO(ahe): Implement this.
     if (!metaTargetsUsed.isEmpty) return true;
-    if (targetsUsed.contains(element.getLibrary())) return true;
+    if (!targetsUsed.isEmpty) {
+      for (Element e = element; e != null; e = e.enclosingElement) {
+        if (targetsUsed.contains(e)) return true;
+      }
+    }
     return false;
   }
 }

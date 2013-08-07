@@ -585,7 +585,7 @@ abstract class AmbiguousElement extends Element {
 
 // TODO(kasperl): This probably shouldn't be called an element. It's
 // just an interface shared by classes and libraries.
-abstract class ScopeContainerElement {
+abstract class ScopeContainerElement implements Element {
   Element localLookup(SourceString elementName);
 
   void forEachLocalMember(f(Element element));

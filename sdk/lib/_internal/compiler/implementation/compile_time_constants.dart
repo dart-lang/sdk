@@ -744,7 +744,9 @@ class TryCompileTimeConstantEvaluator extends CompileTimeConstantEvaluator {
 
   error(Node node) {
     // Just fail without reporting it anywhere.
-    throw new CompileTimeConstantError(MessageKind.NOT_A_COMPILE_TIME_CONSTANT);
+    throw new CompileTimeConstantError(
+        MessageKind.NOT_A_COMPILE_TIME_CONSTANT, const {},
+        compiler.terseDiagnostics);
   }
 }
 

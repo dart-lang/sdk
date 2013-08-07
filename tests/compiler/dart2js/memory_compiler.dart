@@ -20,7 +20,8 @@ import '../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirro
 
 Compiler compilerFor(Map<String,String> memorySourceFiles,
                      {DiagnosticHandler diagnosticHandler,
-                      List<String> options: const []}) {
+                      List<String> options: const [],
+                      Compiler cachedCompiler}) {
   Uri script = currentDirectory.resolve(nativeToUriPath(Platform.script));
   Uri libraryRoot = script.resolve('../../../sdk/');
   Uri packageRoot = script.resolve('./packages/');
@@ -42,6 +43,37 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
                                    libraryRoot,
                                    packageRoot,
                                    options);
+  if (cachedCompiler != null) {
+    compiler.coreLibrary = cachedCompiler.libraries['dart:core'];
+    compiler.types = cachedCompiler.types;
+    cachedCompiler.libraries.forEach((String uri, library) {
+      if (library.isPlatformLibrary) {
+        compiler.libraries[uri] = library;
+        compiler.onLibraryScanned(library, library.canonicalUri);
+      }
+    });
+
+    compiler.symbolConstructor = cachedCompiler.symbolConstructor;
+    compiler.mirrorSystemClass = cachedCompiler.mirrorSystemClass;
+    compiler.mirrorsUsedClass = cachedCompiler.mirrorsUsedClass;
+    compiler.mirrorSystemGetNameFunction =
+        cachedCompiler.mirrorSystemGetNameFunction;
+    compiler.symbolImplementationClass =
+        cachedCompiler.symbolImplementationClass;
+    compiler.symbolValidatedConstructor =
+        cachedCompiler.symbolValidatedConstructor;
+    compiler.mirrorsUsedConstructor = cachedCompiler.mirrorsUsedConstructor;
+    compiler.deferredLibraryClass = cachedCompiler.deferredLibraryClass;
+
+    Map cachedTreeElements =
+        cachedCompiler.enqueuer.resolution.resolvedElements;
+    cachedTreeElements.forEach((element, treeElements) {
+      if (element.getLibrary().isPlatformLibrary) {
+        compiler.enqueuer.resolution.resolvedElements[element] =
+            treeElements;
+      }
+    });
+  }
   return compiler;
 }
 
