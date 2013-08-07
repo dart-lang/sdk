@@ -2514,6 +2514,7 @@ TEST_CASE(ICData) {
   o1.GetOneClassCheckAt(0, &test_class_id, &test_target);
   EXPECT_EQ(kSmiCid, test_class_id);
   EXPECT_EQ(target1.raw(), test_target.raw());
+  EXPECT_EQ(kSmiCid, o1.GetCidAt(0));
   GrowableArray<intptr_t> test_class_ids;
   o1.GetCheckAt(0, &test_class_ids, &test_target);
   EXPECT_EQ(1, test_class_ids.length());
@@ -2526,6 +2527,7 @@ TEST_CASE(ICData) {
   o1.GetOneClassCheckAt(1, &test_class_id, &test_target);
   EXPECT_EQ(kDoubleCid, test_class_id);
   EXPECT_EQ(target2.raw(), test_target.raw());
+  EXPECT_EQ(kDoubleCid, o1.GetCidAt(1));
 
   ICData& o2 = ICData::Handle();
   o2 = ICData::New(function, target_name, args_descriptor, 57, 2);

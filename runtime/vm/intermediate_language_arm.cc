@@ -4008,7 +4008,7 @@ LocationSummary* CheckClassInstr::MakeLocationSummary() const {
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  if (!null_check()) {
+  if (!IsNullCheck()) {
     summary->AddTemp(Location::RequiresRegister());
   }
   return summary;
@@ -4016,7 +4016,7 @@ LocationSummary* CheckClassInstr::MakeLocationSummary() const {
 
 
 void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (null_check()) {
+  if (IsNullCheck()) {
     Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                           kDeoptCheckClass);
     __ CompareImmediate(locs()->in(0).reg(),

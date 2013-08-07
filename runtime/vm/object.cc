@@ -9252,9 +9252,17 @@ void ICData::GetOneClassCheckAt(intptr_t index,
   ASSERT(target != NULL);
   ASSERT(num_args_tested() == 1);
   const Array& data = Array::Handle(ic_data());
-  intptr_t data_pos = index * TestEntryLength();
+  const intptr_t data_pos = index * TestEntryLength();
   *class_id = Smi::Value(Smi::RawCast(data.At(data_pos)));
   *target ^= data.At(data_pos + 1);
+}
+
+
+intptr_t ICData::GetCidAt(intptr_t index) const {
+  ASSERT(num_args_tested() == 1);
+  const Array& data = Array::Handle(ic_data());
+  const intptr_t data_pos = index * TestEntryLength();
+  return Smi::Value(Smi::RawCast(data.At(data_pos)));
 }
 
 

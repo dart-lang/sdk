@@ -86,8 +86,7 @@ bool Value::Equals(Value* other) const {
 CheckClassInstr::CheckClassInstr(Value* value,
                                  intptr_t deopt_id,
                                  const ICData& unary_checks)
-    : unary_checks_(unary_checks),
-      null_check_(false) {
+    : unary_checks_(unary_checks) {
   ASSERT(unary_checks.IsZoneHandle());
   // Expected useful check data.
   ASSERT(!unary_checks_.IsNull());
@@ -125,6 +124,16 @@ EffectSet CheckClassInstr::Dependencies() const {
       unary_checks().HasReceiverClassId(kOneByteStringCid) ||
       unary_checks().HasReceiverClassId(kTwoByteStringCid);
   return externalizable ? EffectSet::Externalization() : EffectSet::None();
+}
+
+
+bool CheckClassInstr::IsNullCheck() const {
+  if (unary_checks().NumberOfChecks() != 1) {
+    return false;
+  }
+  CompileType* in_type = value()->Type();
+  const intptr_t cid = unary_checks().GetCidAt(0);
+  return in_type->is_nullable() && (in_type->ToNullableCid() == cid);
 }
 
 

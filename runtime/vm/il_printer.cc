@@ -793,7 +793,7 @@ void UnarySmiOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 void CheckClassInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
   PrintICData(f, unary_checks());
-  if (null_check()) {
+  if (IsNullCheck()) {
     f->Print(" nullcheck");
   }
 }

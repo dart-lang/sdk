@@ -6330,9 +6330,7 @@ class CheckClassInstr : public TemplateInstruction<1> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  void set_null_check(bool flag) { null_check_ = flag; }
-
-  bool null_check() const { return null_check_; }
+  bool IsNullCheck() const;
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
@@ -6343,8 +6341,6 @@ class CheckClassInstr : public TemplateInstruction<1> {
 
  private:
   const ICData& unary_checks_;
-
-  bool null_check_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckClassInstr);
 };

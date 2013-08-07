@@ -3338,6 +3338,9 @@ class ICData : public Object {
   void GetOneClassCheckAt(intptr_t index,
                           intptr_t* class_id,
                           Function* target) const;
+  // Only for 'num_args_checked == 1'.
+  intptr_t GetCidAt(intptr_t index) const;
+
   intptr_t GetReceiverClassIdAt(intptr_t index) const;
   intptr_t GetClassIdAt(intptr_t index, intptr_t arg_nr) const;
 
