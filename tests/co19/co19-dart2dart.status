@@ -280,10 +280,6 @@ Language/12_Statements/04_Local_Function_Declaration_A01_t01: Fail # Inherited f
 Language/12_Statements/04_Local_Function_Declaration_A02_t02: Fail # Inherited from dart2js
 Language/12_Statements/06_For_A01_t11: Fail # Inherited from dart2js
 Language/12_Statements/09_Switch_A01_t02: Fail # Inherited from VM (switch case with several labels).
-Language/12_Statements/09_Switch_A02_t01: Fail # Inherited from dart2js
-Language/12_Statements/09_Switch_A02_t02: Fail # Inherited from dart2js
-Language/12_Statements/09_Switch_A03_t01: Fail # Inherited from dart2js
-Language/12_Statements/09_Switch_A03_t02: Fail # Inherited from dart2js
 Language/12_Statements/09_Switch_A06_t02: Fail # Inherited from VM (does not throw NSME).
 Language/12_Statements/10_Try_A06_t01: Fail, Pass # Passes in conservative renaming mode. Test depends on function names.
 Language/12_Statements/10_Try_A07_t03: Fail # Test depends on out file name.
