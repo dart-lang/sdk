@@ -8598,7 +8598,6 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
         // be found.
         AstNode* receiver = NULL;
         const bool kTestOnly = true;
-        ASSERT(!current_function().IsInFactoryScope());
         if (!current_function().is_static() &&
             (LookupReceiver(current_block_->scope, kTestOnly) != NULL)) {
           receiver = LoadReceiver(ident_pos);
