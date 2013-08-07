@@ -5140,8 +5140,17 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
   // Add variable to scope after parsing the initalizer expression.
   // The expression must not be able to refer to the variable.
   if (!current_block_->scope->AddVariable(variable)) {
-    ErrorMsg(ident_pos, "identifier '%s' already defined",
-             variable->name().ToCString());
+    LocalVariable* existing_var =
+        current_block_->scope->LookupVariable(variable->name(), true);
+    ASSERT(existing_var != NULL);
+    if (existing_var->owner() == current_block_->scope) {
+      ErrorMsg(ident_pos, "identifier '%s' already defined",
+               variable->name().ToCString());
+    } else {
+      ErrorMsg(ident_pos,
+               "'%s' from outer scope has already been used, cannot redefine",
+               variable->name().ToCString());
+    }
   }
   if (is_final || is_const) {
     variable->set_is_final();
@@ -5300,8 +5309,18 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     ASSERT(current_block_ != NULL);
     ASSERT(current_block_->scope != NULL);
     if (!current_block_->scope->AddVariable(function_variable)) {
-      ErrorMsg(ident_pos, "identifier '%s' already defined",
-               function_variable->name().ToCString());
+      LocalVariable* existing_var =
+          current_block_->scope->LookupVariable(function_variable->name(),
+                                                true);
+      ASSERT(existing_var != NULL);
+      if (existing_var->owner() == current_block_->scope) {
+        ErrorMsg(ident_pos, "identifier '%s' already defined",
+                 function_variable->name().ToCString());
+      } else {
+        ErrorMsg(ident_pos,
+                 "'%s' from outer scope has already been used, cannot redefine",
+                 function_variable->name().ToCString());
+      }
     }
   }
 
