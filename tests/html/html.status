@@ -31,6 +31,7 @@ indexeddb_3_test: Skip
 indexeddb_4_test: Skip
 indexeddb_5_test: Skip
 js_test: Skip
+js_interop_2_test: Skip
 js_interop_4_test: Skip
 xhr_test: Skip
 crypto_test: Skip
@@ -39,6 +40,8 @@ dromaeo_smoke_test: Skip
 native_gc_test: Skip
 location_test: Skip
 history_test: Skip
+postmessage_structured_test: Skip # Timing out
+form_data_test: Skip # Timing out
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
