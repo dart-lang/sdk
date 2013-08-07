@@ -49,6 +49,8 @@
     'string_patch.dart',
     'string_buffer_patch.dart',
     'type_patch.dart',
+    'uri.cc',
+    'uri_patch.dart',
     'weak_property.dart',
     'weak_property.cc',
   ],

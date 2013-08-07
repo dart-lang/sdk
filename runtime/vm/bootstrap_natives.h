@@ -287,6 +287,7 @@ namespace dart {
   V(WeakProperty_getKey, 1)                                                    \
   V(WeakProperty_getValue, 1)                                                  \
   V(WeakProperty_setValue, 2)                                                  \
+  V(Uri_isWindowsPlatform, 0)                                                  \
 
 class BootstrapNatives : public AllStatic {
  public:
