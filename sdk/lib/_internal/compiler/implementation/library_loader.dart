@@ -368,17 +368,7 @@ class LibraryLoaderTask extends LibraryLoader {
     compiler.withCurrentElement(unit, () {
       compiler.scanner.scan(unit);
       if (unit.partTag == null) {
-        bool wasDiagnosticEmitted = false;
-        compiler.withCurrentElement(library, () {
-          wasDiagnosticEmitted =
-              compiler.onDeprecatedFeature(part, 'missing part-of tag');
-        });
-        if (wasDiagnosticEmitted) {
-          compiler.reportMessage(
-              compiler.spanFromElement(unit),
-              MessageKind.MISSING_PART_OF_TAG.error(),
-              api.Diagnostic.INFO);
-        }
+        compiler.reportError(unit, MessageKind.MISSING_PART_OF_TAG);
       }
     });
   }

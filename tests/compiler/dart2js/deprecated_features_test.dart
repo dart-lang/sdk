@@ -54,10 +54,7 @@ main() {
       // "message" is the expected message as a [String].  This is a
       // short-term solution and should eventually changed to include
       // a symbolic reference to a MessageKind.
-      "15<part 'part.dart';>::${deprecatedMessage('missing part-of tag')}\n"
-      "0<>:/part.dart:info: Note: This file has no part-of tag, but it is being"
-      " used as a part.\n"
-      "53<()>::${deprecatedMessage('getter parameters')}\n",
+      "19<()>::${deprecatedMessage('getter parameters')}\n",
       messages.toString());
 }
 
@@ -69,10 +66,6 @@ deprecatedMessage(feature) {
 
 const Map<String, String> TEST_SOURCE =
   const <String, String>{ '': """
-library test;
-
-part 'part.dart';
-
 class Foo {
   get x() => null;
 }
@@ -81,6 +74,4 @@ main() {
   var a = new Foo();
 }
 """,
-    // TODO(ahe): Why isn't this 'part.dart'? Why the leading slash?
-    '/part.dart': '',
   };

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of inline_position_crash_test;
+
 /*******************************************************************************
  * Long comment to make positions in this file exceed those in
  * 'inline_position_crash_source.dart'.
