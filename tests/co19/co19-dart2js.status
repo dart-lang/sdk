@@ -571,6 +571,8 @@ Language/13_Libraries_and_Scripts/1_Imports_A03_t45: Fail # 481
 Language/13_Libraries_and_Scripts/1_Imports_A03_t62: Fail # 481
 Language/13_Libraries_and_Scripts/1_Imports_A03_t65: Fail # 481
 
+Language/14_Types/2_Dynamic_Type_System_A02_t01: Fail # co19 issue 481
+
 [ $compiler == dart2js && $checked ]
 
 Language/03_Overview/1_Scoping_A02_t30: Fail # co19 issue 463
@@ -734,8 +736,6 @@ Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # Checks that Unicode whites
 # Unexpected compile-time errors.
 #
 [ $compiler == dart2js ]
-Language/14_Types/2_Dynamic_Type_System_A02_t01: Fail # http://dartbug.com/5029
-
 Language/07_Classes/3_Setters_A04_t01: Fail # http://dartbug.com/5023
 Language/07_Classes/3_Setters_A04_t02: Fail # http://dartbug.com/5023
 Language/07_Classes/3_Setters_A04_t03: Fail # http://dartbug.com/5023
