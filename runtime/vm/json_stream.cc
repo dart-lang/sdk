@@ -85,7 +85,9 @@ void JSONStream::PrintValue(double d) {
 
 void JSONStream::PrintValue(const char* s) {
   PrintCommaIfNeeded();
-  buffer_->Printf("\"%s\"", s);
+  buffer_->AddChar('"');
+  buffer_->AddEscapedString(s);
+  buffer_->AddChar('"');
 }
 
 
@@ -101,7 +103,9 @@ void JSONStream::PrintfValue(const char* format, ...) {
   intptr_t len2 = OS::VSNPrint(p, len+1, format, args);
   va_end(args);
   ASSERT(len == len2);
-  buffer_->Printf("\"%s\"", p);
+  buffer_->AddChar('"');
+  buffer_->AddEscapedString(p);
+  buffer_->AddChar('"');
   free(p);
 }
 
@@ -147,7 +151,9 @@ void JSONStream::PrintfProperty(const char* name, const char* format, ...) {
   intptr_t len2 = OS::VSNPrint(p, len+1, format, args);
   va_end(args);
   ASSERT(len == len2);
-  buffer_->Printf("\"%s\"", p);
+  buffer_->AddChar('"');
+  buffer_->AddEscapedString(p);
+  buffer_->AddChar('"');
   free(p);
 }
 
@@ -176,7 +182,10 @@ void JSONStream::PrintProperty(const char* name, const Object& o, bool ref) {
 void JSONStream::PrintPropertyName(const char* name) {
   ASSERT(name != NULL);
   PrintCommaIfNeeded();
-  buffer_->Printf("\"%s\":", name);
+  buffer_->AddChar('"');
+  buffer_->AddEscapedString(name);
+  buffer_->AddChar('"');
+  buffer_->AddChar(':');
 }
 
 
