@@ -6,7 +6,7 @@
 // block as a successor of a catch block that throws.
 
 import "package:expect/expect.dart";
- 
+
 class A {
   var field;
   start() {}
@@ -26,7 +26,7 @@ class B {
       // variable.
       runCompiler.toString();
       runCompiler.toString();
-      throw;
+      rethrow;
     } finally {
       totalCompileTime.stop();
     }

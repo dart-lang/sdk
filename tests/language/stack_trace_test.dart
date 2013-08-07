@@ -70,7 +70,7 @@ class Helper {
     try {
       func();
     } on MyException catch (exception) {
-      throw;
+      rethrow;
     }
     return 10;
   }

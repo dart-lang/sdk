@@ -529,6 +529,10 @@ Language/14_Types/5_Function_Types_A02_t06: Fail # co19 issue 410
 LibTest/core/Match/pattern_A01_t01: Fail # co19 Issue 400, 422
 LibTest/core/RegExp/allMatches_A01_t01: Fail # co19 Issue 400, 422
 
+Language/11_Expressions/08_Throw_A05_t01: Fail # co19 issue 420
+Language/11_Expressions/08_Throw_A05_t02: Fail # co19 issue 420
+Language/11_Expressions/08_Throw_A05_t03: Fail # co19 issue 420
+
 LibTest/core/String/indexOf_A01_t02: Fail # Issue 427
 LibTest/core/String/lastIndexOf_A01_t02: Fail # Issue 427
 

@@ -20,8 +20,8 @@ void main() {
     new File(1);
     Expect.fail('Error expected.');
   } on ArgumentError catch(e) {
-    if (developerMode) throw;
+    if (developerMode) rethrow;
   } on TypeError catch(e) {
-    if (!developerMode) throw;
+    if (!developerMode) rethrow;
   }
 }

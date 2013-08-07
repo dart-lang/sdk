@@ -133,7 +133,7 @@ checkTypeError(o) {
   } on TypeError catch (e) {
     print(e); // This might provoke an error.
     if (assertionsEnabled) return; // Expected type error.
-    throw; // Rethrow unexpected type error.
+    rethrow; // Rethrow unexpected type error.
   }
   if (assertionsEnabled) {
     throw 'expected TypeError';

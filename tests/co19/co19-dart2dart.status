@@ -4,6 +4,10 @@
 
 [ $compiler == dart2dart ]
 
+Language/11_Expressions/08_Throw_A05_t01: Fail # co19 issue 420
+Language/11_Expressions/08_Throw_A05_t02: Fail # co19 issue 420
+Language/11_Expressions/08_Throw_A05_t03: Fail # co19 issue 420
+
 LibTest/math/max_A01_t03: Fail # co19 issue 467
 LibTest/math/min_A01_t03: Fail # co19 issue 467
 
