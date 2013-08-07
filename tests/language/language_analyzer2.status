@@ -3,69 +3,11 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2analyzer ]
-#argument_definition_test/01: fail  # issue 11565 (passing for the wrong reason)
 
-# test issue 11581, it is not warning to call dynamic
-call_through_getter_test: fail
-
-# test issue 11582, non-final field with 'const' constructor
-compile_time_constant10_test/none: fail
-
-# test issue 11583, int is valid key for constant map literal
-compile_time_constant_c_test/01: fail
-
-# test issue 11589, export D from 2 export directives
-export_cyclic_test: fail
-
-# test issue 11580, Function is not a malformed type
-black_listed_test/11: fail
-
-# test issue 11584, positional arguments cannot be used for named parameters
-compile_time_constant_e_test: fail
-
-# test issue 11585, static warning, not negative test
-constructor3_negative_test: fail # issue 11585
-constructor_call_wrong_argument_count_negative_test: fail
-instance_call_wrong_argument_count_negative_test: fail
-
-# test issue 11586, Class(args) is compile-time warning, not error
-constructor_negative_test: fail
-
-# test issue 11590, runtime only negative test
-field_method4_negative_test: fail
-
-# test issue 11591, assigning to the final variable is warning, not error
-final_for_in_variable_test/01: fail
-final_param_negative_test: fail
-final_var_negative_test: fail
-final_variable_assignment_test/01: fail
-final_variable_assignment_test/02: fail
-final_variable_assignment_test/03: fail
-final_variable_assignment_test/04: fail
-getter_no_setter_test/01: fail
-
-# test issue 11592, Function type alias (typedef) is not a constant
-first_class_types_constants_test: fail
-
-# test issue 11594, Reference to a not resolve identifier is static warning
-import_combinators_negative_test: fail
-interface_static_non_final_fields_negative_test: fail
-
-# test issue 11595, It is static warning to create instance (new) of the malformed type
-instantiate_type_variable_negative_test: fail
-
-# test issue 11596. e is Unknown is not a compile time error
-is_not_class2_negative_test: fail
-
-# test issue 11598, 	Any use of a malbounded type gives rise to a static warning
-mixin_type_parameters_errors_test/01: fail
-mixin_type_parameters_errors_test/02: fail
-mixin_type_parameters_errors_test/05: fail
+# Runtime negative test. No static errors or warnings.
+closure_call_wrong_argument_count_negative_test: skip
 
 illegal_invocation_test/01: fail # Issue: 11892
-
-# TBF: a.imethod = () { return 1; };
-assign_instance_method_negative_test: fail
 
 # TBF: m([int p = 'String'])
 assign_static_type_test/06: fail
@@ -78,24 +20,13 @@ cast_test/04: fail
 cast_test/05: fail
 
 # TBF: It is a compile-time error if the superclass of a class C appears in the implements clause of C.
-closure_call_wrong_argument_count_negative_test: fail
 const_constructor_super_test/01: fail
 compile_time_constant10_test/none: fail
 compile_time_constant_c_test/01: fail
 
-# Runtime negative test. No static errors or warnings.
-closure_call_wrong_argument_count_negative_test: skip
-
 # TBF: m([int p = 'String']) and call 'const' instance creation
 compile_time_constant_checked2_test/03: fail
 compile_time_constant_checked3_test/03: fail
-
-# TBF: not initialized final instance variable
-constructor2_negative_test: fail
-constructor3_negative_test: fail
-constructor_call_wrong_argument_count_negative_test: fail
-constructor_initializer_test: fail # uses argument definition test
-constructor_negative_test: fail
 
 # TBF: It is a static type warning if a type parameter is a supertype of its upper bound.
 cyclic_type_variable_test/01: fail
@@ -113,66 +44,68 @@ default_implementation2_test: fail
 f_bounded_quantification_test/01: fail
 f_bounded_quantification_test/02: fail
 
+function_type_alias9_test/00: crash # Issue 11987
+
+list_literal_syntax_test/01: fail # Issue 12103
+list_literal_syntax_test/02: fail # Issue 12103
+list_literal_syntax_test/03: fail # Issue 12103
+malformed_test/none: fail
+
+# TBF: disallowed in the most recent spec
 named_parameters_aggregated_test/03: fail
-no_such_method_negative_test: fail
+positional_parameters_type_test: fail
+
+# TBF: non-const superinitializer; 7.6.3 Constant Constructors: The superinitializer that appears, explicitly or implicitly, in the initializer list of a constant constructor must specify a constant constructor of the superclass of the immediately enclosing class.
 non_const_super_negative_test: fail
+
+# TBF: 1is int; invalid character in number
 number_identifier_negative_test: fail
+
+# TBF: we should check conflicts not only for methods, but for accessors too
 override_field_test/01: fail
 override_field_test/02: fail
 override_field_test/03: fail
+
+# TBF: prefix T hidden by type variable T in 'new T.Class()'
 prefix10_negative_test: fail
-prefix11_negative_test: fail
-prefix12_negative_test: fail
-prefix1_negative_test: fail
-prefix2_negative_test: fail
-prefix4_negative_test: fail
-prefix5_negative_test: fail
-prefix6_negative_test: fail
-prefix8_negative_test: fail
-prefix9_negative_test: fail
+
+# TBF: no error if A in our library, B extends A in other library, reference B._private from Test extends B in our library.
 private_member1_negative_test: fail
 private_member2_negative_test: fail
 private_member3_negative_test: fail
-pseudo_kw_illegal_test/14: fail
+
+# TBF
 pseudo_kw_test: fail
+
+# TBF: hiding at start of the block and declared after declaration statement
 scope_negative_test: fail
-static_call_wrong_argument_count_negative_test: fail
+
+# TBF: 'instance.staticMethod()' is static warning
 static_field_test/01: fail
 static_field_test/02: fail
 static_field_test/03: fail
-static_final_field2_negative_test: fail
-static_final_field_negative_test: fail
-syntax_test/28: fail
-syntax_test/29: fail
-syntax_test/30: fail
-syntax_test/31: fail
-syntax_test/32: fail
-syntax_test/33: fail
-throw7_negative_test: fail
-type_error_test: fail
-type_parameter_test/none: fail
-type_variable_bounds2_test/00: fail
-type_variable_bounds2_test/01: fail
-type_variable_bounds2_test/02: fail
-type_variable_bounds2_test/03: fail
-type_variable_bounds2_test/04: fail
-type_variable_bounds2_test/06: fail
-type_variable_static_context_negative_test: fail
-unresolved_in_factory_negative_test: fail
-unresolved_top_level_method_negative_test: fail
-unresolved_top_level_var_negative_test: fail
+
+# TBF
+method_override2_test/00: fail # issue 11497
+method_override2_test/01: fail # issue 11497
+method_override2_test/02: fail # issue 11497
+method_override2_test/03: fail # issue 11497
+method_override3_test/00: fail # issue 11497
+method_override3_test/01: fail # issue 11497
+method_override3_test/02: fail # issue 11497
+method_override4_test: fail # issue 11497
+method_override5_test: fail # issue 11497
+method_override6_test: fail # issue 11497
+
+
+
 
 # test issue 10683, It is a compile-time error if e refers to the name v or the name v=.
 block_scope_test: fail
 lazy_static3_test: fail
 
-# test issue 10752, there are 'implicit' scopes for 'if', 'while' and 'do-while'
-implicit_scope_test: fail
-
 # test issue 10890; on-catch UnknownType is a static warning, not error
 try_catch_on_syntax_test/01: fail
-try_catch_on_syntax_test/07: fail
-try_catch_syntax_test/08: fail
 
 # test issue 10899; it is static warning, not error, to call methods of class literal
 class_literal_test/02: fail
@@ -219,23 +152,6 @@ metadata_test: fail
 # Test issue 11564, named parameter starts with '_'
 named_parameters_with_object_property_names_test: fail
 
-# TBF
-method_override2_test/00: fail # issue 11497
-method_override2_test/01: fail # issue 11497
-method_override2_test/02: fail # issue 11497
-method_override2_test/03: fail # issue 11497
-method_override3_test/00: fail # issue 11497
-method_override3_test/01: fail # issue 11497
-method_override3_test/02: fail # issue 11497
-method_override4_test: fail # issue 11497
-method_override5_test: fail # issue 11497
-method_override6_test: fail # issue 11497
-
-# testing framework problem: we do report warning, framework does not understand it
-# may be https://codereview.chromium.org/18174010/ will fix this
-type_variable_bounds_test/08: fail
-wrong_number_type_arguments_test/01: fail
-
 # test issue 11575, classes with abstrac members are not marked as abstract
 abstract_factory_constructor_test/none: fail
 abstract_syntax_test/none: fail
@@ -260,9 +176,131 @@ factory_implementation_test/none: fail
 # test issue 11579, assignment, no setter
 getter_no_setter_test/none: fail
 
-# issue 11918: mixin and const constructor
+# test issue 11580, Function is not a malformed type
+black_listed_test/11: fail
+
+# test issue 11581, it is not warning to call dynamic
+call_through_getter_test: fail
+
+# test issue 11582, non-final field with 'const' constructor
+compile_time_constant10_test/none: fail
+
+# test issue 11583, int is valid key for constant map literal
+compile_time_constant_c_test/01: fail
+
+# test issue 11584, positional arguments cannot be used for named parameters
+compile_time_constant_e_test: fail
+
+# test issue 11585, static warning, not negative test
+constructor3_negative_test: fail
+constructor_call_wrong_argument_count_negative_test: fail
+instance_call_wrong_argument_count_negative_test: fail
+
+# test issue 11586, Class(args) is compile-time warning, not error
+constructor_negative_test: fail
+
+# test issue 11589, export D from 2 export directives
+export_cyclic_test: fail
+
+# test issue 11590, runtime only negative test
+field_method4_negative_test: fail
+
+# test issue 11591, assigning to the final variable is warning, not error
+final_for_in_variable_test/01: fail
+final_param_negative_test: fail
+final_var_negative_test: fail
+final_variable_assignment_test/01: fail
+final_variable_assignment_test/02: fail
+final_variable_assignment_test/03: fail
+final_variable_assignment_test/04: fail
+getter_no_setter_test/01: fail
+
+# test issue 11592, Function type alias (typedef) is not a constant
+first_class_types_constants_test: fail
+
+# test issue 11594, Reference to a not resolve identifier is static warning
+import_combinators_negative_test: fail
+interface_static_non_final_fields_negative_test: fail
+
+# test issue 11595, It is static warning to create instance (new) of the malformed type
+instantiate_type_variable_negative_test: fail
+
+# test issue 11596. e is Unknown is not a compile time error
+is_not_class2_negative_test: fail
+
+# test issue 11598, Any use of a malbounded type gives rise to a static warning
+mixin_type_parameters_errors_test/01: fail
+mixin_type_parameters_errors_test/02: fail
+mixin_type_parameters_errors_test/05: fail
+
+# test issue 11698, no setter, so warning, not error
+assign_instance_method_negative_test: fail
+
+# test issue 11918: mixin and const constructor
 const_constructor_mixin_test/01: fail
 const_constructor_mixin3_test/01: fail
+
+# test issue 11958, fails only at runtime
+no_such_method_negative_test: fail
+
+# test issue 11962, it is warning, not error to reference undeclared identifier
+prefix1_negative_test: fail
+prefix2_negative_test: fail
+prefix4_negative_test: fail
+prefix5_negative_test: fail
+prefix12_negative_test: fail
+
+# test issue 11963, it is fine to access any property of the dynamic variable
+prefix6_negative_test: fail
+
+# test issue 11964, Any use of a malformed type gives rise to a static warning.
+prefix8_negative_test: fail
+prefix9_negative_test: fail
+prefix11_negative_test: fail
+
+# test issue 11965, 'source' is not built-in identifier anymore
+pseudo_kw_illegal_test/14: fail
+
+# test issue 12156, fails only at runtime
+static_call_wrong_argument_count_negative_test: fail
+
+# test issue 12157, uninitializer instance variable is warning, so not negative test
+static_final_field_negative_test: fail
+constructor2_negative_test: fail
+
+# test issue 12159, print(exception.message_); causes static warning, not an error
+throw7_negative_test: fail
+
+# test issue 12160, not annotated warnings for type variables from static member
+type_parameter_test/none: fail
+# test issue 12161, type variable in static, malformed type, static warning
+type_variable_static_context_negative_test: fail
+
+# test issue 12162, 'a' has dynamic type, so it statically it is assignable to anything
+type_variable_bounds2_test/00: fail
+type_variable_bounds2_test/01: fail
+type_variable_bounds2_test/02: fail
+type_variable_bounds2_test/03: fail
+type_variable_bounds2_test/04: fail
+type_variable_bounds2_test/06: fail
+
+# test issue 12163, unresolved identifier is static warning in static context
+unresolved_in_factory_negative_test: fail
+unresolved_top_level_method_negative_test: fail
+unresolved_top_level_var_negative_test: fail
+
+# test issue 12181, uses argument definition test
+constructor_initializer_test: fail
+
+# test issue 12184, It is static warning, not error, to assign to a constant variable.
+static_final_field2_negative_test: fail
+
+# test issue 12191, ambuguous import is always warning now
+prefix3_negative_test: fail
+library_ambiguous_test/00: fail
+library_ambiguous_test/01: fail
+library_ambiguous_test/02: fail
+library_ambiguous_test/03: fail
 
 # test issue 12289, assignment in assert statement
 type_error_test: fail
@@ -282,10 +320,4 @@ factory_redirection_test/14: fail
 getters_setters2_test/03: fail
 type_variable_bounds3_test/00: fail
 type_variable_bounds2_test/05: fail
-type_variable_scope_test/00: fail
-type_variable_scope_test/01: fail
-type_variable_scope_test/02: fail
-type_variable_scope_test/03: fail
-type_variable_scope_test/04: fail
-type_variable_scope_test/05: fail
 

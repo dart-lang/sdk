@@ -56,7 +56,14 @@ class FileBasedSource implements Source {
     this._contentCache = contentCache;
     this._file = file;
     this._uriKind = uriKind;
-    this._encoding = "${uriKind.encoding}${file.toURI().toString()}";
+    if (file.getPath().indexOf(':') > 2) {
+      try {
+        throw new IllegalArgumentException("Invalid source path: ${file}");
+      } on IllegalArgumentException catch (e) {
+        AnalysisEngine.instance.logger.logError3(e);
+        throw e;
+      }
+    }
   }
   bool operator ==(Object object) => object != null && this.runtimeType == object.runtimeType && _file == ((object as FileBasedSource))._file;
   bool exists() => _contentCache.getContents(this) != null || (_file.exists() && !_file.isDirectory());
@@ -70,7 +77,12 @@ class FileBasedSource implements Source {
     }
     receiver.accept2(_file.readAsStringSync(), _file.lastModified());
   }
-  String get encoding => _encoding;
+  String get encoding {
+    if (_encoding == null) {
+      _encoding = "${_uriKind.encoding}${_file.toURI().toString()}";
+    }
+    return _encoding;
+  }
   String get fullName => _file.getAbsolutePath();
   int get modificationStamp {
     int stamp = _contentCache.getModificationStamp(this);
@@ -226,7 +238,7 @@ class PackageUriResolver extends UriResolver {
     JavaFile pkgDir = new JavaFile.relative(packagesDirectory, pkgName);
     try {
       pkgDir = pkgDir.getCanonicalFile();
-    } on IOException catch (e) {
+    } on JavaIOException catch (e) {
       if (!e.toString().contains("Required key not available")) {
         AnalysisEngine.instance.logger.logError2("Canonical failed: ${pkgDir}", e);
       } else if (_CanLogRequiredKeyIoException) {

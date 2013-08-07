@@ -14,7 +14,7 @@ custom_elements_test/preregister: Fail
 # Document.register is unimplemented.
 custom_elements_test: Skip
 
-[ $compiler == dartanalyzer ]
+[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 # Document.register is unimplemented.
 custom_elements_test: Skip
 

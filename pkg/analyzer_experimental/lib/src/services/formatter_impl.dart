@@ -5,8 +5,6 @@
 library formatter_impl;
 
 
-import 'dart:io';
-
 import 'package:analyzer_experimental/analyzer.dart';
 import 'package:analyzer_experimental/src/generated/parser.dart';
 import 'package:analyzer_experimental/src/generated/scanner.dart';
@@ -536,7 +534,7 @@ class SourceVisitor implements ASTVisitor {
     if (node.isCascaded) {
       writer.print('..');
     } else {
-      visit(node.array);
+      visit(node.target);
     }
     writer.print('[');
     visit(node.index);

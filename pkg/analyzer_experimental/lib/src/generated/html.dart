@@ -924,7 +924,7 @@ class ToSourceVisitor implements XmlVisitor<Object> {
  *
  * @coverage dart.engine.html
  */
-class TokenType implements Comparable<TokenType> {
+class TokenType implements Enum<TokenType> {
 
   /**
    * The type of the token that marks the end of the input.

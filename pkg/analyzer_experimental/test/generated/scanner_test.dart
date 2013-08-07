@@ -1,9 +1,8 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
 library engine.scanner_test;
-import 'dart:collection';
 import 'package:analyzer_experimental/src/generated/java_core.dart';
-import 'package:analyzer_experimental/src/generated/java_engine.dart';
+import 'package:analyzer_experimental/src/generated/java_engine_io.dart';
 import 'package:analyzer_experimental/src/generated/java_junit.dart';
 import 'package:analyzer_experimental/src/generated/source.dart';
 import 'package:analyzer_experimental/src/generated/error.dart';
@@ -2149,7 +2148,7 @@ abstract class AbstractScannerTest extends JUnitTestCase {
   }
   Token scan(String source, GatheringErrorListener listener);
   void assertComment(TokenType commentType, String source) {
-    Token token = scan2(source);
+    Token token = scan2("${source}${OSUtilities.LINE_SEPARATOR}");
     JUnitTestCase.assertNotNull(token);
     JUnitTestCase.assertEquals(TokenType.EOF, token.type);
     Token comment = token.precedingComments;

@@ -31,52 +31,64 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertEquals(5, identifier.offset);
   }
   void test_computeStringValue_emptyInterpolationPrefix() {
-    JUnitTestCase.assertEquals("", computeStringValue("'''"));
+    JUnitTestCase.assertEquals("", computeStringValue("'''", true, false));
   }
   void test_computeStringValue_escape_b() {
-    JUnitTestCase.assertEquals("\b", computeStringValue("'\\b'"));
+    JUnitTestCase.assertEquals("\b", computeStringValue("'\\b'", true, true));
   }
   void test_computeStringValue_escape_f() {
-    JUnitTestCase.assertEquals("\f", computeStringValue("'\\f'"));
+    JUnitTestCase.assertEquals("\f", computeStringValue("'\\f'", true, true));
   }
   void test_computeStringValue_escape_n() {
-    JUnitTestCase.assertEquals("\n", computeStringValue("'\\n'"));
+    JUnitTestCase.assertEquals("\n", computeStringValue("'\\n'", true, true));
   }
   void test_computeStringValue_escape_notSpecial() {
-    JUnitTestCase.assertEquals(":", computeStringValue("'\\:'"));
+    JUnitTestCase.assertEquals(":", computeStringValue("'\\:'", true, true));
   }
   void test_computeStringValue_escape_r() {
-    JUnitTestCase.assertEquals("\r", computeStringValue("'\\r'"));
+    JUnitTestCase.assertEquals("\r", computeStringValue("'\\r'", true, true));
   }
   void test_computeStringValue_escape_t() {
-    JUnitTestCase.assertEquals("\t", computeStringValue("'\\t'"));
+    JUnitTestCase.assertEquals("\t", computeStringValue("'\\t'", true, true));
   }
   void test_computeStringValue_escape_u_fixed() {
-    JUnitTestCase.assertEquals("\u4321", computeStringValue("'\\u4321'"));
+    JUnitTestCase.assertEquals("\u4321", computeStringValue("'\\u4321'", true, true));
   }
   void test_computeStringValue_escape_u_variable() {
-    JUnitTestCase.assertEquals("\u0123", computeStringValue("'\\u{123}'"));
+    JUnitTestCase.assertEquals("\u0123", computeStringValue("'\\u{123}'", true, true));
   }
   void test_computeStringValue_escape_v() {
-    JUnitTestCase.assertEquals("\u000B", computeStringValue("'\\v'"));
+    JUnitTestCase.assertEquals("\u000B", computeStringValue("'\\v'", true, true));
   }
   void test_computeStringValue_escape_x() {
-    JUnitTestCase.assertEquals("\u00FF", computeStringValue("'\\xFF'"));
+    JUnitTestCase.assertEquals("\u00FF", computeStringValue("'\\xFF'", true, true));
   }
   void test_computeStringValue_noEscape_single() {
-    JUnitTestCase.assertEquals("text", computeStringValue("'text'"));
+    JUnitTestCase.assertEquals("text", computeStringValue("'text'", true, true));
   }
   void test_computeStringValue_noEscape_triple() {
-    JUnitTestCase.assertEquals("text", computeStringValue("'''text'''"));
+    JUnitTestCase.assertEquals("text", computeStringValue("'''text'''", true, true));
   }
   void test_computeStringValue_raw_single() {
-    JUnitTestCase.assertEquals("text", computeStringValue("r'text'"));
+    JUnitTestCase.assertEquals("text", computeStringValue("r'text'", true, true));
   }
   void test_computeStringValue_raw_triple() {
-    JUnitTestCase.assertEquals("text", computeStringValue("r'''text'''"));
+    JUnitTestCase.assertEquals("text", computeStringValue("r'''text'''", true, true));
   }
   void test_computeStringValue_raw_withEscape() {
-    JUnitTestCase.assertEquals("two\\nlines", computeStringValue("r'two\\nlines'"));
+    JUnitTestCase.assertEquals("two\\nlines", computeStringValue("r'two\\nlines'", true, true));
+  }
+  void test_computeStringValue_triple_internalQuote_first_empty() {
+    JUnitTestCase.assertEquals("'", computeStringValue("''''", true, false));
+  }
+  void test_computeStringValue_triple_internalQuote_first_nonEmpty() {
+    JUnitTestCase.assertEquals("'text", computeStringValue("''''text", true, false));
+  }
+  void test_computeStringValue_triple_internalQuote_last_empty() {
+    JUnitTestCase.assertEquals("", computeStringValue("'''", false, true));
+  }
+  void test_computeStringValue_triple_internalQuote_last_nonEmpty() {
+    JUnitTestCase.assertEquals("text", computeStringValue("text'''", false, true));
   }
   void test_constFactory() {
     ParserTestCase.parse("parseClassMember", <Object> ["C"], "const factory C() = A;");
@@ -326,7 +338,7 @@ class SimpleParserTest extends ParserTestCase {
   }
   void test_parseAssignableExpression_expression_index() {
     IndexExpression expression = ParserTestCase.parse("parseAssignableExpression", <Object> [false], "(x)[y]");
-    JUnitTestCase.assertNotNull(expression.array);
+    JUnitTestCase.assertNotNull(expression.target);
     JUnitTestCase.assertNotNull(expression.leftBracket);
     JUnitTestCase.assertNotNull(expression.index);
     JUnitTestCase.assertNotNull(expression.rightBracket);
@@ -353,7 +365,7 @@ class SimpleParserTest extends ParserTestCase {
   }
   void test_parseAssignableExpression_identifier_index() {
     IndexExpression expression = ParserTestCase.parse("parseAssignableExpression", <Object> [false], "x[y]");
-    JUnitTestCase.assertNotNull(expression.array);
+    JUnitTestCase.assertNotNull(expression.target);
     JUnitTestCase.assertNotNull(expression.leftBracket);
     JUnitTestCase.assertNotNull(expression.index);
     JUnitTestCase.assertNotNull(expression.rightBracket);
@@ -366,7 +378,7 @@ class SimpleParserTest extends ParserTestCase {
   }
   void test_parseAssignableExpression_super_index() {
     IndexExpression expression = ParserTestCase.parse("parseAssignableExpression", <Object> [false], "super[y]");
-    EngineTestCase.assertInstanceOf(SuperExpression, expression.array);
+    EngineTestCase.assertInstanceOf(SuperExpression, expression.target);
     JUnitTestCase.assertNotNull(expression.leftBracket);
     JUnitTestCase.assertNotNull(expression.index);
     JUnitTestCase.assertNotNull(expression.rightBracket);
@@ -454,7 +466,7 @@ class SimpleParserTest extends ParserTestCase {
   }
   void test_parseCascadeSection_i() {
     IndexExpression section = ParserTestCase.parse5("parseCascadeSection", "..[i]", []);
-    JUnitTestCase.assertNull(section.array);
+    JUnitTestCase.assertNull(section.target);
     JUnitTestCase.assertNotNull(section.leftBracket);
     JUnitTestCase.assertNotNull(section.index);
     JUnitTestCase.assertNotNull(section.rightBracket);
@@ -2828,7 +2840,7 @@ class SimpleParserTest extends ParserTestCase {
   }
   void test_parsePostfixExpression_none_indexExpression() {
     IndexExpression expression = ParserTestCase.parse5("parsePostfixExpression", "a[0]", []);
-    JUnitTestCase.assertNotNull(expression.array);
+    JUnitTestCase.assertNotNull(expression.target);
     JUnitTestCase.assertNotNull(expression.index);
   }
   void test_parsePostfixExpression_none_methodInvocation() {
@@ -3197,18 +3209,25 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseSymbolLiteral_multiple() {
     SymbolLiteral literal = ParserTestCase.parse5("parseSymbolLiteral", "#a.b.c", []);
     JUnitTestCase.assertNotNull(literal.poundSign);
-    NodeList<SimpleIdentifier> components = literal.components;
-    EngineTestCase.assertSize(3, components);
-    JUnitTestCase.assertEquals("a", components[0].name);
-    JUnitTestCase.assertEquals("b", components[1].name);
-    JUnitTestCase.assertEquals("c", components[2].name);
+    List<Token> components = literal.components;
+    EngineTestCase.assertLength(3, components);
+    JUnitTestCase.assertEquals("a", components[0].lexeme);
+    JUnitTestCase.assertEquals("b", components[1].lexeme);
+    JUnitTestCase.assertEquals("c", components[2].lexeme);
+  }
+  void test_parseSymbolLiteral_operator() {
+    SymbolLiteral literal = ParserTestCase.parse5("parseSymbolLiteral", "#==", []);
+    JUnitTestCase.assertNotNull(literal.poundSign);
+    List<Token> components = literal.components;
+    EngineTestCase.assertLength(1, components);
+    JUnitTestCase.assertEquals("==", components[0].lexeme);
   }
   void test_parseSymbolLiteral_single() {
     SymbolLiteral literal = ParserTestCase.parse5("parseSymbolLiteral", "#a", []);
     JUnitTestCase.assertNotNull(literal.poundSign);
-    NodeList<SimpleIdentifier> components = literal.components;
-    EngineTestCase.assertSize(1, components);
-    JUnitTestCase.assertEquals("a", components[0].name);
+    List<Token> components = literal.components;
+    EngineTestCase.assertLength(1, components);
+    JUnitTestCase.assertEquals("a", components[0].lexeme);
   }
   void test_parseThrowExpression() {
     ThrowExpression expression = ParserTestCase.parse5("parseThrowExpression", "throw x;", []);
@@ -3753,13 +3772,15 @@ class SimpleParserTest extends ParserTestCase {
    * Invoke the method [Parser#computeStringValue] with the given argument.
    *
    * @param lexeme the argument to the method
+   * @param first `true` if this is the first token in a string literal
+   * @param last `true` if this is the last token in a string literal
    * @return the result of invoking the method
    * @throws Exception if the method could not be invoked or throws an exception
    */
-  String computeStringValue(String lexeme) {
-    AnalysisErrorListener listener = new AnalysisErrorListener_21();
+  String computeStringValue(String lexeme, bool first, bool last) {
+    AnalysisErrorListener listener = new AnalysisErrorListener_22();
     Parser parser = new Parser(null, listener);
-    return invokeParserMethodImpl(parser, "computeStringValue", <Object> [lexeme], null) as String;
+    return invokeParserMethodImpl(parser, "computeStringValue", <Object> [lexeme, first, last], null) as String;
   }
 
   /**
@@ -3929,6 +3950,22 @@ class SimpleParserTest extends ParserTestCase {
       _ut.test('test_computeStringValue_raw_withEscape', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_computeStringValue_raw_withEscape);
+      });
+      _ut.test('test_computeStringValue_triple_internalQuote_first_empty', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_computeStringValue_triple_internalQuote_first_empty);
+      });
+      _ut.test('test_computeStringValue_triple_internalQuote_first_nonEmpty', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_computeStringValue_triple_internalQuote_first_nonEmpty);
+      });
+      _ut.test('test_computeStringValue_triple_internalQuote_last_empty', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_computeStringValue_triple_internalQuote_last_empty);
+      });
+      _ut.test('test_computeStringValue_triple_internalQuote_last_nonEmpty', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_computeStringValue_triple_internalQuote_last_nonEmpty);
       });
       _ut.test('test_constFactory', () {
         final __test = new SimpleParserTest();
@@ -5654,6 +5691,10 @@ class SimpleParserTest extends ParserTestCase {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseSymbolLiteral_multiple);
       });
+      _ut.test('test_parseSymbolLiteral_operator', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseSymbolLiteral_operator);
+      });
       _ut.test('test_parseSymbolLiteral_single', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseSymbolLiteral_single);
@@ -5965,7 +6006,7 @@ class SimpleParserTest extends ParserTestCase {
     });
   }
 }
-class AnalysisErrorListener_21 implements AnalysisErrorListener {
+class AnalysisErrorListener_22 implements AnalysisErrorListener {
   void onError(AnalysisError event) {
     JUnitTestCase.fail("Unexpected compilation error: ${event.message} (${event.offset}, ${event.length})");
   }
@@ -9256,7 +9297,7 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'parseStatements_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseStatements(arg0)),
   'advance_0': new MethodTrampoline(0, (Parser target) => target.advance()),
   'appendScalarValue_5': new MethodTrampoline(5, (Parser target, arg0, arg1, arg2, arg3, arg4) => target.appendScalarValue(arg0, arg1, arg2, arg3, arg4)),
-  'computeStringValue_1': new MethodTrampoline(1, (Parser target, arg0) => target.computeStringValue(arg0)),
+  'computeStringValue_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.computeStringValue(arg0, arg1, arg2)),
   'convertToFunctionDeclaration_1': new MethodTrampoline(1, (Parser target, arg0) => target.convertToFunctionDeclaration(arg0)),
   'couldBeStartOfCompilationUnitMember_0': new MethodTrampoline(0, (Parser target) => target.couldBeStartOfCompilationUnitMember()),
   'createSyntheticIdentifier_0': new MethodTrampoline(0, (Parser target) => target.createSyntheticIdentifier()),

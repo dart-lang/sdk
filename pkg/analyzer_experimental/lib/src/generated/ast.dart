@@ -51,8 +51,11 @@ abstract class ASTNode {
   accept(ASTVisitor visitor);
 
   /**
-   * @return the [ASTNode] of given [Class] which is [ASTNode] itself, or one of
-   *         its parents.
+   * Return the node of the given class that most immediately encloses this node, or `null` if
+   * there is no enclosing node of the given class.
+   *
+   * @param nodeClass the class of the node to be returned
+   * @return the node of the given type that encloses this node
    */
   ASTNode getAncestor(Type enclosingClass) {
     ASTNode node = this;
@@ -946,7 +949,7 @@ class ArgumentList extends ASTNode {
    *
    * @param parameters the parameter elements corresponding to the arguments
    */
-  void set correspondingParameters(List<ParameterElement> parameters) {
+  void set correspondingPropagatedParameters(List<ParameterElement> parameters) {
     if (parameters.length != _arguments.length) {
       throw new IllegalArgumentException("Expected ${_arguments.length} parameters, not ${parameters.length}");
     }
@@ -996,7 +999,7 @@ class ArgumentList extends ASTNode {
    * element representing the parameter to which the value of the given expression will be bound.
    * Otherwise, return `null`.
    *
-   * This method is only intended to be used by [Expression#getParameterElement].
+   * This method is only intended to be used by [Expression#getPropagatedParameterElement].
    *
    * @param expression the expression corresponding to the parameter to be returned
    * @return the parameter element representing the parameter to which the value of the expression
@@ -1088,9 +1091,9 @@ class AsExpression extends Expression {
   accept(ASTVisitor visitor) => visitor.visitAsExpression(this);
 
   /**
-   * Return the is operator being applied.
+   * Return the as operator being applied.
    *
-   * @return the is operator being applied
+   * @return the as operator being applied
    */
   Token get asOperator => _asOperator;
   Token get beginToken => _expression.beginToken;
@@ -1358,14 +1361,20 @@ class AssignmentExpression extends Expression {
   Token get beginToken => _leftHandSide.beginToken;
 
   /**
-   * Return the element associated with the operator based on the propagated type of the
-   * left-hand-side, or `null` if the AST structure has not been resolved, if the operator is
-   * not a compound operator, or if the operator could not be resolved. One example of the latter
-   * case is an operator that is not defined for the type of the left-hand operand.
+   * Return the best element available for this operator. If resolution was able to find a better
+   * element based on type propagation, that element will be returned. Otherwise, the element found
+   * using the result of static analysis will be returned. If resolution has not been performed,
+   * then `null` will be returned.
    *
-   * @return the element associated with the operator
+   * @return the best element available for this operator
    */
-  MethodElement get element => _propagatedElement;
+  MethodElement get bestElement {
+    MethodElement element = propagatedElement;
+    if (element == null) {
+      element = staticElement;
+    }
+    return element;
+  }
   Token get endToken => _rightHandSide.endToken;
 
   /**
@@ -1381,6 +1390,16 @@ class AssignmentExpression extends Expression {
    * @return the assignment operator being applied
    */
   Token get operator => _operator;
+
+  /**
+   * Return the element associated with the operator based on the propagated type of the
+   * left-hand-side, or `null` if the AST structure has not been resolved, if the operator is
+   * not a compound operator, or if the operator could not be resolved. One example of the latter
+   * case is an operator that is not defined for the type of the left-hand operand.
+   *
+   * @return the element associated with the operator
+   */
+  MethodElement get propagatedElement => _propagatedElement;
 
   /**
    * Return the expression used to compute the right hand side.
@@ -1400,16 +1419,6 @@ class AssignmentExpression extends Expression {
   MethodElement get staticElement => _staticElement;
 
   /**
-   * Set the element associated with the operator based on the propagated type of the left-hand-side
-   * to the given element.
-   *
-   * @param element the element to be associated with the operator
-   */
-  void set element(MethodElement element2) {
-    _propagatedElement = element2;
-  }
-
-  /**
    * Return the expression used to compute the left hand side.
    *
    * @param expression the expression used to compute the left hand side
@@ -1425,6 +1434,16 @@ class AssignmentExpression extends Expression {
    */
   void set operator(Token operator2) {
     this._operator = operator2;
+  }
+
+  /**
+   * Set the element associated with the operator based on the propagated type of the left-hand-side
+   * to the given element.
+   *
+   * @param element the element to be associated with the operator
+   */
+  void set propagatedElement(MethodElement element) {
+    _propagatedElement = element;
   }
 
   /**
@@ -1448,6 +1467,48 @@ class AssignmentExpression extends Expression {
   void visitChildren(ASTVisitor<Object> visitor) {
     safelyVisitChild(_leftHandSide, visitor);
     safelyVisitChild(_rightHandSide, visitor);
+  }
+
+  /**
+   * If the AST structure has been resolved, and the function being invoked is known based on
+   * propagated type information, then return the parameter element representing the parameter to
+   * which the value of the right operand will be bound. Otherwise, return `null`.
+   *
+   * This method is only intended to be used by [Expression#getPropagatedParameterElement].
+   *
+   * @return the parameter element representing the parameter to which the value of the right
+   *         operand will be bound
+   */
+  ParameterElement get propagatedParameterElementForRightHandSide {
+    if (_propagatedElement == null) {
+      return null;
+    }
+    List<ParameterElement> parameters = _propagatedElement.parameters;
+    if (parameters.length < 1) {
+      return null;
+    }
+    return parameters[0];
+  }
+
+  /**
+   * If the AST structure has been resolved, and the function being invoked is known based on static
+   * type information, then return the parameter element representing the parameter to which the
+   * value of the right operand will be bound. Otherwise, return `null`.
+   *
+   * This method is only intended to be used by [Expression#getStaticParameterElement].
+   *
+   * @return the parameter element representing the parameter to which the value of the right
+   *         operand will be bound
+   */
+  ParameterElement get staticParameterElementForRightHandSide {
+    if (_staticElement == null) {
+      return null;
+    }
+    List<ParameterElement> parameters = _staticElement.parameters;
+    if (parameters.length < 1) {
+      return null;
+    }
+    return parameters[0];
   }
 }
 /**
@@ -1516,14 +1577,20 @@ class BinaryExpression extends Expression {
   Token get beginToken => _leftOperand.beginToken;
 
   /**
-   * Return the element associated with the operator based on the propagated type of the left
-   * operand, or `null` if the AST structure has not been resolved, if the operator is not
-   * user definable, or if the operator could not be resolved. One example of the latter case is an
-   * operator that is not defined for the type of the left-hand operand.
+   * Return the best element available for this operator. If resolution was able to find a better
+   * element based on type propagation, that element will be returned. Otherwise, the element found
+   * using the result of static analysis will be returned. If resolution has not been performed,
+   * then `null` will be returned.
    *
-   * @return the element associated with the operator
+   * @return the best element available for this operator
    */
-  MethodElement get element => _propagatedElement;
+  MethodElement get bestElement {
+    MethodElement element = propagatedElement;
+    if (element == null) {
+      element = staticElement;
+    }
+    return element;
+  }
   Token get endToken => _rightOperand.endToken;
 
   /**
@@ -1539,6 +1606,16 @@ class BinaryExpression extends Expression {
    * @return the binary operator being applied
    */
   Token get operator => _operator;
+
+  /**
+   * Return the element associated with the operator based on the propagated type of the left
+   * operand, or `null` if the AST structure has not been resolved, if the operator is not
+   * user definable, or if the operator could not be resolved. One example of the latter case is an
+   * operator that is not defined for the type of the left-hand operand.
+   *
+   * @return the element associated with the operator
+   */
+  MethodElement get propagatedElement => _propagatedElement;
 
   /**
    * Return the expression used to compute the right operand.
@@ -1558,16 +1635,6 @@ class BinaryExpression extends Expression {
   MethodElement get staticElement => _staticElement;
 
   /**
-   * Set the element associated with the operator based on the propagated type of the left operand
-   * to the given element.
-   *
-   * @param element the element to be associated with the operator
-   */
-  void set element(MethodElement element2) {
-    _propagatedElement = element2;
-  }
-
-  /**
    * Set the expression used to compute the left operand to the given expression.
    *
    * @param expression the expression used to compute the left operand
@@ -1583,6 +1650,16 @@ class BinaryExpression extends Expression {
    */
   void set operator(Token operator2) {
     this._operator = operator2;
+  }
+
+  /**
+   * Set the element associated with the operator based on the propagated type of the left operand
+   * to the given element.
+   *
+   * @param element the element to be associated with the operator
+   */
+  void set propagatedElement(MethodElement element) {
+    _propagatedElement = element;
   }
 
   /**
@@ -1613,7 +1690,7 @@ class BinaryExpression extends Expression {
    * propagated type information, then return the parameter element representing the parameter to
    * which the value of the right operand will be bound. Otherwise, return `null`.
    *
-   * This method is only intended to be used by [Expression#getParameterElement].
+   * This method is only intended to be used by [Expression#getPropagatedParameterElement].
    *
    * @return the parameter element representing the parameter to which the value of the right
    *         operand will be bound
@@ -2108,12 +2185,14 @@ class CatchClause extends ASTNode {
   SimpleIdentifier _exceptionParameter;
 
   /**
-   * The comma separating the exception parameter from the stack trace parameter.
+   * The comma separating the exception parameter from the stack trace parameter, or `null` if
+   * there is no stack trace parameter.
    */
   Token _comma;
 
   /**
-   * The parameter whose value will be the stack trace associated with the exception.
+   * The parameter whose value will be the stack trace associated with the exception, or
+   * `null` if there is no stack trace parameter.
    */
   SimpleIdentifier _stackTraceParameter;
 
@@ -2190,7 +2269,7 @@ class CatchClause extends ASTNode {
   Token get catchKeyword => _catchKeyword;
 
   /**
-   * Return the comma.
+   * Return the comma, or `null` if there is no stack trace parameter.
    *
    * @return the comma
    */
@@ -2234,7 +2313,8 @@ class CatchClause extends ASTNode {
   Token get rightParenthesis => _rightParenthesis;
 
   /**
-   * Return the parameter whose value will be the stack trace associated with the exception.
+   * Return the parameter whose value will be the stack trace associated with the exception, or
+   * `null` if there is no stack trace parameter.
    *
    * @return the parameter whose value will be the stack trace associated with the exception
    */
@@ -2629,6 +2709,7 @@ class ClassDeclaration extends CompilationUnitMember {
     safelyVisitChild(_extendsClause, visitor);
     safelyVisitChild(_withClause, visitor);
     safelyVisitChild(_implementsClause, visitor);
+    safelyVisitChild(_nativeClause, visitor);
     members.accept(visitor);
   }
   Token get firstTokenAfterCommentAndMetadata {
@@ -3077,7 +3158,7 @@ class Comment extends ASTNode {
  * The enumeration `CommentType` encodes all the different types of comments that are
  * recognized by the parser.
  */
-class CommentType implements Comparable<CommentType> {
+class CommentType implements Enum<CommentType> {
 
   /**
    * An end-of-line comment.
@@ -3247,7 +3328,7 @@ class CompilationUnit extends ASTNode {
   CompilationUnitElement _element;
 
   /**
-   * The [LineInfo] for this [CompilationUnit].
+   * The line information for this compilation unit.
    */
   LineInfo _lineInfo;
 
@@ -3317,11 +3398,10 @@ class CompilationUnit extends ASTNode {
   Token get endToken => _endToken;
 
   /**
-   * Return an array containing all of the errors associated with the receiver. If the receiver has
-   * not been resolved, then return `null`.
+   * Return an array containing all of the errors associated with the receiver. The array will be
+   * empty if the receiver has not been resolved and there were no parse errors.
    *
-   * @return an array of errors (contains no `null`s) or `null` if the receiver has not
-   *         been resolved
+   * @return the errors associated with the receiver
    */
   List<AnalysisError> get errors {
     List<AnalysisError> parserErrors = parsingErrors;
@@ -3346,9 +3426,9 @@ class CompilationUnit extends ASTNode {
   }
 
   /**
-   * Get the [LineInfo] object for this compilation unit.
+   * Return the line information for this compilation unit.
    *
-   * @return the associated [LineInfo]
+   * @return the line information for this compilation unit
    */
   LineInfo get lineInfo => _lineInfo;
   int get offset => 0;
@@ -3356,16 +3436,15 @@ class CompilationUnit extends ASTNode {
   /**
    * Return an array containing all of the parsing errors associated with the receiver.
    *
-   * @return an array of errors (not `null`, contains no `null`s).
+   * @return the parsing errors associated with the receiver
    */
   List<AnalysisError> get parsingErrors => _parsingErrors;
 
   /**
-   * Return an array containing all of the resolution errors associated with the receiver. If the
-   * receiver has not been resolved, then return `null`.
+   * Return an array containing all of the resolution errors associated with the receiver. The array
+   * will be empty if the receiver has not been resolved.
    *
-   * @return an array of errors (contains no `null`s) or `null` if the receiver has not
-   *         been resolved
+   * @return the resolution errors associated with the receiver
    */
   List<AnalysisError> get resolutionErrors => _resolutionErrors;
 
@@ -3387,29 +3466,27 @@ class CompilationUnit extends ASTNode {
   }
 
   /**
-   * Set the [LineInfo] object for this compilation unit.
+   * Set the line information for this compilation unit to the given line information.
    *
-   * @param errors LineInfo to associate with this compilation unit
+   * @param errors the line information to associate with this compilation unit
    */
   void set lineInfo(LineInfo lineInfo2) {
     this._lineInfo = lineInfo2;
   }
 
   /**
-   * Called to cache the parsing errors when the unit is parsed.
+   * Set the parse errors associated with this compilation unit to the given errors.
    *
-   * @param errors an array of parsing errors, if `null` is passed, the error array is set to
-   *          an empty array, [AnalysisError#NO_ERRORS]
+   * @param the parse errors to be associated with this compilation unit
    */
   void set parsingErrors(List<AnalysisError> errors) {
     _parsingErrors = errors == null ? AnalysisError.NO_ERRORS : errors;
   }
 
   /**
-   * Called to cache the resolution errors when the unit is resolved.
+   * Set the resolution errors associated with this compilation unit to the given errors.
    *
-   * @param errors an array of resolution errors, if `null` is passed, the error array is set
-   *          to an empty array, [AnalysisError#NO_ERRORS]
+   * @param the resolution errors to be associated with this compilation unit
    */
   void set resolutionErrors(List<AnalysisError> errors) {
     _resolutionErrors = errors == null ? AnalysisError.NO_ERRORS : errors;
@@ -3721,19 +3798,13 @@ class ConstructorDeclaration extends ClassMember {
   SimpleIdentifier _name;
 
   /**
-   * The element associated with this constructor, or `null` if the AST structure has not been
-   * resolved or if this constructor could not be resolved.
-   */
-  ConstructorElement _element;
-
-  /**
    * The parameters associated with the constructor.
    */
   FormalParameterList _parameters;
 
   /**
-   * The token for the separator (colon or equals) before the initializers, or `null` if there
-   * are no initializers.
+   * The token for the separator (colon or equals) before the initializer list or redirection, or
+   * `null` if there are no initializers.
    */
   Token _separator;
 
@@ -3752,6 +3823,12 @@ class ConstructorDeclaration extends ClassMember {
    * The body of the constructor, or `null` if the constructor does not have a body.
    */
   FunctionBody _body;
+
+  /**
+   * The element associated with this constructor, or `null` if the AST structure has not been
+   * resolved or if this constructor could not be resolved.
+   */
+  ConstructorElement _element;
 
   /**
    * Initialize a newly created constructor declaration.
@@ -3893,10 +3970,10 @@ class ConstructorDeclaration extends ClassMember {
   Identifier get returnType => _returnType;
 
   /**
-   * Return the token for the separator (colon or equals) before the initializers, or `null`
-   * if there are no initializers.
+   * Return the token for the separator (colon or equals) before the initializer list or
+   * redirection, or `null` if there are no initializers.
    *
-   * @return the token for the separator (colon or equals) before the initializers
+   * @return the token for the separator before the initializer list or redirection
    */
   Token get separator => _separator;
 
@@ -4585,7 +4662,8 @@ class DeclaredIdentifier extends Declaration {
   SimpleIdentifier get identifier => _identifier;
 
   /**
-   * Return the token representing either the 'final', 'const' or 'var' keyword.
+   * Return the token representing either the 'final', 'const' or 'var' keyword, or `null` if
+   * no keyword was used.
    *
    * @return the token representing either the 'final', 'const' or 'var' keyword
    */
@@ -5328,6 +5406,23 @@ abstract class Expression extends ASTNode {
   Type2 _propagatedType;
 
   /**
+   * Return the best type information available for this expression. If type propagation was able to
+   * find a better type than static analysis, that type will be returned. Otherwise, the result of
+   * static analysis will be returned. If no type analysis has been performed, then the type
+   * 'dynamic' will be returned.
+   *
+   * @return the best type information available for this expression
+   */
+  Type2 get bestType {
+    if (_propagatedType != null) {
+      return _propagatedType;
+    } else if (_staticType != null) {
+      return _staticType;
+    }
+    return DynamicTypeImpl.instance;
+  }
+
+  /**
    * If this expression is an argument to an invocation, and the AST structure has been resolved,
    * and the function being invoked is known based on propagated type information, and this
    * expression corresponds to one of the parameters of the function being invoked, then return the
@@ -5337,7 +5432,7 @@ abstract class Expression extends ASTNode {
    * @return the parameter element representing the parameter to which the value of this expression
    *         will be bound
    */
-  ParameterElement get parameterElement {
+  ParameterElement get propagatedParameterElement {
     ASTNode parent = this.parent;
     if (parent is ArgumentList) {
       return ((parent as ArgumentList)).getPropagatedParameterElementFor(this);
@@ -5350,6 +5445,11 @@ abstract class Expression extends ASTNode {
       BinaryExpression binaryExpression = parent as BinaryExpression;
       if (identical(binaryExpression.rightOperand, this)) {
         return binaryExpression.propagatedParameterElementForRightOperand;
+      }
+    } else if (parent is AssignmentExpression) {
+      AssignmentExpression assignmentExpression = parent as AssignmentExpression;
+      if (identical(assignmentExpression.rightHandSide, this)) {
+        return assignmentExpression.propagatedParameterElementForRightHandSide;
       }
     } else if (parent is PrefixExpression) {
       return ((parent as PrefixExpression)).propagatedParameterElementForOperand;
@@ -5390,6 +5490,11 @@ abstract class Expression extends ASTNode {
       BinaryExpression binaryExpression = parent as BinaryExpression;
       if (identical(binaryExpression.rightOperand, this)) {
         return binaryExpression.staticParameterElementForRightOperand;
+      }
+    } else if (parent is AssignmentExpression) {
+      AssignmentExpression assignmentExpression = parent as AssignmentExpression;
+      if (identical(assignmentExpression.rightHandSide, this)) {
+        return assignmentExpression.staticParameterElementForRightHandSide;
       }
     } else if (parent is PrefixExpression) {
       return ((parent as PrefixExpression)).staticParameterElementForOperand;
@@ -5564,7 +5669,7 @@ class ExpressionStatement extends Statement {
 
   /**
    * The semicolon terminating the statement, or `null` if the expression is a function
-   * expression and isn't followed by a semicolon.
+   * expression and therefore isn't followed by a semicolon.
    */
   Token _semicolon;
 
@@ -5603,7 +5708,8 @@ class ExpressionStatement extends Statement {
   Expression get expression => _expression;
 
   /**
-   * Return the semicolon terminating the statement.
+   * Return the semicolon terminating the statement, or `null` if the expression is a function
+   * expression and therefore isn't followed by a semicolon.
    *
    * @return the semicolon terminating the statement
    */
@@ -5869,7 +5975,8 @@ class FieldFormalParameter extends NormalFormalParameter {
   Token _period;
 
   /**
-   * The parameters of the function-typed parameter.
+   * The parameters of the function-typed parameter, or `null` if this is not a function-typed
+   * field formal parameter.
    */
   FormalParameterList _parameters;
 
@@ -5920,7 +6027,8 @@ class FieldFormalParameter extends NormalFormalParameter {
   Token get endToken => identifier.endToken;
 
   /**
-   * Return the token representing either the 'final', 'const' or 'var' keyword.
+   * Return the token representing either the 'final', 'const' or 'var' keyword, or `null` if
+   * no keyword was used.
    *
    * @return the token representing either the 'final', 'const' or 'var' keyword
    */
@@ -6258,7 +6366,8 @@ class ForStatement extends Statement {
   Token _leftSeparator;
 
   /**
-   * The condition used to determine when to terminate the loop.
+   * The condition used to determine when to terminate the loop, or `null` if there is no
+   * condition.
    */
   Expression _condition;
 
@@ -6336,7 +6445,8 @@ class ForStatement extends Statement {
   Statement get body => _body;
 
   /**
-   * Return the condition used to determine when to terminate the loop.
+   * Return the condition used to determine when to terminate the loop, or `null` if there is
+   * no condition.
    *
    * @return the condition used to determine when to terminate the loop
    */
@@ -6590,12 +6700,14 @@ class FormalParameterList extends ASTNode {
   NodeList<FormalParameter> _parameters;
 
   /**
-   * The left square bracket ('[') or left curly brace ('{') introducing the optional parameters.
+   * The left square bracket ('[') or left curly brace ('{') introducing the optional parameters, or
+   * `null` if there are no optional parameters.
    */
   Token _leftDelimiter;
 
   /**
-   * The right square bracket (']') or right curly brace ('}') introducing the optional parameters.
+   * The right square bracket (']') or right curly brace ('}') introducing the optional parameters,
+   * or `null` if there are no optional parameters.
    */
   Token _rightDelimiter;
 
@@ -6634,26 +6746,11 @@ class FormalParameterList extends ASTNode {
   FormalParameterList({Token leftParenthesis, List<FormalParameter> parameters, Token leftDelimiter, Token rightDelimiter, Token rightParenthesis}) : this.full(leftParenthesis, parameters, leftDelimiter, rightDelimiter, rightParenthesis);
   accept(ASTVisitor visitor) => visitor.visitFormalParameterList(this);
   Token get beginToken => _leftParenthesis;
-
-  /**
-   * Return an array containing the elements representing the parameters in this list. The array
-   * will contain `null`s if the parameters in this list have not been resolved.
-   *
-   * @return the elements representing the parameters in this list
-   */
-  List<ParameterElement> get elements {
-    int count = _parameters.length;
-    List<ParameterElement> types = new List<ParameterElement>(count);
-    for (int i = 0; i < count; i++) {
-      types[i] = _parameters[i].element;
-    }
-    return types;
-  }
   Token get endToken => _rightParenthesis;
 
   /**
    * Return the left square bracket ('[') or left curly brace ('{') introducing the optional
-   * parameters.
+   * parameters, or `null` if there are no optional parameters.
    *
    * @return the left square bracket ('[') or left curly brace ('{') introducing the optional
    *         parameters
@@ -6668,6 +6765,21 @@ class FormalParameterList extends ASTNode {
   Token get leftParenthesis => _leftParenthesis;
 
   /**
+   * Return an array containing the elements representing the parameters in this list. The array
+   * will contain `null`s if the parameters in this list have not been resolved.
+   *
+   * @return the elements representing the parameters in this list
+   */
+  List<ParameterElement> get parameterElements {
+    int count = _parameters.length;
+    List<ParameterElement> types = new List<ParameterElement>(count);
+    for (int i = 0; i < count; i++) {
+      types[i] = _parameters[i].element;
+    }
+    return types;
+  }
+
+  /**
    * Return the parameters associated with the method.
    *
    * @return the parameters associated with the method
@@ -6676,7 +6788,7 @@ class FormalParameterList extends ASTNode {
 
   /**
    * Return the right square bracket (']') or right curly brace ('}') introducing the optional
-   * parameters.
+   * parameters, or `null` if there are no optional parameters.
    *
    * @return the right square bracket (']') or right curly brace ('}') introducing the optional
    *         parameters
@@ -7174,14 +7286,20 @@ class FunctionExpressionInvocation extends Expression {
   Token get beginToken => _function.beginToken;
 
   /**
-   * Return the element associated with the function being invoked based on propagated type
-   * information, or `null` if the AST structure has not been resolved or the function could
-   * not be resolved. One common example of the latter case is an expression whose value can change
-   * over time.
+   * Return the best element available for the function being invoked. If resolution was able to
+   * find a better element based on type propagation, that element will be returned. Otherwise, the
+   * element found using the result of static analysis will be returned. If resolution has not been
+   * performed, then `null` will be returned.
    *
-   * @return the element associated with the function being invoked
+   * @return the best element available for this function
    */
-  ExecutableElement get element => _propagatedElement;
+  ExecutableElement get bestElement {
+    ExecutableElement element = propagatedElement;
+    if (element == null) {
+      element = staticElement;
+    }
+    return element;
+  }
   Token get endToken => _argumentList.endToken;
 
   /**
@@ -7190,6 +7308,16 @@ class FunctionExpressionInvocation extends Expression {
    * @return the expression producing the function being invoked
    */
   Expression get function => _function;
+
+  /**
+   * Return the element associated with the function being invoked based on propagated type
+   * information, or `null` if the AST structure has not been resolved or the function could
+   * not be resolved. One common example of the latter case is an expression whose value can change
+   * over time.
+   *
+   * @return the element associated with the function being invoked
+   */
+  ExecutableElement get propagatedElement => _propagatedElement;
 
   /**
    * Return the element associated with the function being invoked based on static type information,
@@ -7211,22 +7339,22 @@ class FunctionExpressionInvocation extends Expression {
   }
 
   /**
-   * Set the element associated with the function being invoked based on propagated type information
-   * to the given element.
-   *
-   * @param element the element to be associated with the function being invoked
-   */
-  void set element(ExecutableElement element2) {
-    _propagatedElement = element2;
-  }
-
-  /**
    * Set the expression producing the function being invoked to the given expression.
    *
    * @param function the expression producing the function being invoked
    */
   void set function(Expression function2) {
     function2 = becomeParentOf(function2);
+  }
+
+  /**
+   * Set the element associated with the function being invoked based on propagated type information
+   * to the given element.
+   *
+   * @param element the element to be associated with the function being invoked
+   */
+  void set propagatedElement(ExecutableElement element) {
+    _propagatedElement = element;
   }
 
   /**
@@ -7625,7 +7753,7 @@ class IfStatement extends Statement {
   Statement _thenStatement;
 
   /**
-   * The token representing the 'else' keyword.
+   * The token representing the 'else' keyword, or `null` if there is no else statement.
    */
   Token _elseKeyword;
 
@@ -7679,7 +7807,8 @@ class IfStatement extends Statement {
   Expression get condition => _condition;
 
   /**
-   * Return the token representing the 'else' keyword.
+   * Return the token representing the 'else' keyword, or `null` if there is no else
+   * statement.
    *
    * @return the token representing the 'else' keyword
    */
@@ -8074,15 +8203,6 @@ class IndexExpression extends Expression {
    */
   IndexExpression.forCascade({Token period, Token leftBracket, Expression index, Token rightBracket}) : this.forCascade_full(period, leftBracket, index, rightBracket);
   accept(ASTVisitor visitor) => visitor.visitIndexExpression(this);
-
-  /**
-   * Return the expression used to compute the object being indexed, or `null` if this index
-   * expression is part of a cascade expression.
-   *
-   * @return the expression used to compute the object being indexed
-   * @see #getRealTarget()
-   */
-  Expression get array => _target;
   Token get beginToken {
     if (_target != null) {
       return _target.beginToken;
@@ -8091,14 +8211,20 @@ class IndexExpression extends Expression {
   }
 
   /**
-   * Return the element associated with the operator based on the propagated type of the target, or
-   * `null` if the AST structure has not been resolved or if the operator could not be
-   * resolved. One example of the latter case is an operator that is not defined for the type of the
-   * target.
+   * Return the best element available for this operator. If resolution was able to find a better
+   * element based on type propagation, that element will be returned. Otherwise, the element found
+   * using the result of static analysis will be returned. If resolution has not been performed,
+   * then `null` will be returned.
    *
-   * @return the element associated with this operator
+   * @return the best element available for this operator
    */
-  MethodElement get element => _propagatedElement;
+  MethodElement get bestElement {
+    MethodElement element = propagatedElement;
+    if (element == null) {
+      element = staticElement;
+    }
+    return element;
+  }
   Token get endToken => _rightBracket;
 
   /**
@@ -8124,13 +8250,23 @@ class IndexExpression extends Expression {
   Token get period => _period;
 
   /**
+   * Return the element associated with the operator based on the propagated type of the target, or
+   * `null` if the AST structure has not been resolved or if the operator could not be
+   * resolved. One example of the latter case is an operator that is not defined for the type of the
+   * target.
+   *
+   * @return the element associated with this operator
+   */
+  MethodElement get propagatedElement => _propagatedElement;
+
+  /**
    * Return the expression used to compute the object being indexed. If this index expression is not
-   * part of a cascade expression, then this is the same as [getArray]. If this index
+   * part of a cascade expression, then this is the same as [getTarget]. If this index
    * expression is part of a cascade expression, then the target expression stored with the cascade
    * expression is returned.
    *
    * @return the expression used to compute the object being indexed
-   * @see #getArray()
+   * @see #getTarget()
    */
   Expression get realTarget {
     if (isCascaded) {
@@ -8162,6 +8298,15 @@ class IndexExpression extends Expression {
    * @return the element associated with the operator
    */
   MethodElement get staticElement => _staticElement;
+
+  /**
+   * Return the expression used to compute the object being indexed, or `null` if this index
+   * expression is part of a cascade expression.
+   *
+   * @return the expression used to compute the object being indexed
+   * @see #getRealTarget()
+   */
+  Expression get target => _target;
 
   /**
    * Return `true` if this expression is computing a right-hand value.
@@ -8216,25 +8361,6 @@ class IndexExpression extends Expression {
   bool get isCascaded => _period != null;
 
   /**
-   * Set the expression used to compute the object being indexed to the given expression.
-   *
-   * @param expression the expression used to compute the object being indexed
-   */
-  void set array(Expression expression) {
-    _target = becomeParentOf(expression);
-  }
-
-  /**
-   * Set the element associated with the operator based on the propagated type of the target to the
-   * given element.
-   *
-   * @param element the element to be associated with this operator
-   */
-  void set element(MethodElement element2) {
-    _propagatedElement = element2;
-  }
-
-  /**
    * Set the expression used to compute the index to the given expression.
    *
    * @param expression the expression used to compute the index
@@ -8262,6 +8388,16 @@ class IndexExpression extends Expression {
   }
 
   /**
+   * Set the element associated with the operator based on the propagated type of the target to the
+   * given element.
+   *
+   * @param element the element to be associated with this operator
+   */
+  void set propagatedElement(MethodElement element) {
+    _propagatedElement = element;
+  }
+
+  /**
    * Set the right square bracket to the given token.
    *
    * @param bracket the right square bracket
@@ -8279,6 +8415,15 @@ class IndexExpression extends Expression {
   void set staticElement(MethodElement element) {
     _staticElement = element;
   }
+
+  /**
+   * Set the expression used to compute the object being indexed to the given expression.
+   *
+   * @param expression the expression used to compute the object being indexed
+   */
+  void set target(Expression expression) {
+    _target = becomeParentOf(expression);
+  }
   void visitChildren(ASTVisitor<Object> visitor) {
     safelyVisitChild(_target, visitor);
     safelyVisitChild(_index, visitor);
@@ -8289,7 +8434,7 @@ class IndexExpression extends Expression {
    * propagated type information, then return the parameter element representing the parameter to
    * which the value of the index expression will be bound. Otherwise, return `null`.
    *
-   * This method is only intended to be used by [Expression#getParameterElement].
+   * This method is only intended to be used by [Expression#getPropagatedParameterElement].
    *
    * @return the parameter element representing the parameter to which the value of the index
    *         expression will be bound
@@ -10313,7 +10458,9 @@ class NativeClause extends ASTNode {
   Token get keyword => _keyword;
 
   /**
-   * @return the name of the native object that implements the class.
+   * Return the name of the native object that implements the class.
+   *
+   * @return the name of the native object that implements the class
    */
   StringLiteral get name => _name;
 
@@ -10983,14 +11130,20 @@ class PostfixExpression extends Expression {
   Token get beginToken => _operand.beginToken;
 
   /**
-   * Return the element associated with the operator based on the propagated type of the operand, or
-   * `null` if the AST structure has not been resolved, if the operator is not user definable,
-   * or if the operator could not be resolved. One example of the latter case is an operator that is
-   * not defined for the type of the operand.
+   * Return the best element available for this operator. If resolution was able to find a better
+   * element based on type propagation, that element will be returned. Otherwise, the element found
+   * using the result of static analysis will be returned. If resolution has not been performed,
+   * then `null` will be returned.
    *
-   * @return the element associated with the operator
+   * @return the best element available for this operator
    */
-  MethodElement get element => _propagatedElement;
+  MethodElement get bestElement {
+    MethodElement element = propagatedElement;
+    if (element == null) {
+      element = staticElement;
+    }
+    return element;
+  }
   Token get endToken => _operator;
 
   /**
@@ -11008,6 +11161,16 @@ class PostfixExpression extends Expression {
   Token get operator => _operator;
 
   /**
+   * Return the element associated with the operator based on the propagated type of the operand, or
+   * `null` if the AST structure has not been resolved, if the operator is not user definable,
+   * or if the operator could not be resolved. One example of the latter case is an operator that is
+   * not defined for the type of the operand.
+   *
+   * @return the element associated with the operator
+   */
+  MethodElement get propagatedElement => _propagatedElement;
+
+  /**
    * Return the element associated with the operator based on the static type of the operand, or
    * `null` if the AST structure has not been resolved, if the operator is not user definable,
    * or if the operator could not be resolved. One example of the latter case is an operator that is
@@ -11016,16 +11179,6 @@ class PostfixExpression extends Expression {
    * @return the element associated with the operator
    */
   MethodElement get staticElement => _staticElement;
-
-  /**
-   * Set the element associated with the operator based on the propagated type of the operand to the
-   * given element.
-   *
-   * @param element the element to be associated with the operator
-   */
-  void set element(MethodElement element2) {
-    _propagatedElement = element2;
-  }
 
   /**
    * Set the expression computing the operand for the operator to the given expression.
@@ -11046,6 +11199,16 @@ class PostfixExpression extends Expression {
   }
 
   /**
+   * Set the element associated with the operator based on the propagated type of the operand to the
+   * given element.
+   *
+   * @param element the element to be associated with the operator
+   */
+  void set propagatedElement(MethodElement element) {
+    _propagatedElement = element;
+  }
+
+  /**
    * Set the element associated with the operator based on the static type of the operand to the
    * given element.
    *
@@ -11063,7 +11226,7 @@ class PostfixExpression extends Expression {
    * propagated type information, then return the parameter element representing the parameter to
    * which the value of the operand will be bound. Otherwise, return `null`.
    *
-   * This method is only intended to be used by [Expression#getParameterElement].
+   * This method is only intended to be used by [Expression#getPropagatedParameterElement].
    *
    * @return the parameter element representing the parameter to which the value of the right
    *         operand will be bound
@@ -11158,14 +11321,20 @@ class PrefixExpression extends Expression {
   Token get beginToken => _operator;
 
   /**
-   * Return the element associated with the operator based on the propagated type of the operand, or
-   * `null` if the AST structure has not been resolved, if the operator is not user definable,
-   * or if the operator could not be resolved. One example of the latter case is an operator that is
-   * not defined for the type of the operand.
+   * Return the best element available for this operator. If resolution was able to find a better
+   * element based on type propagation, that element will be returned. Otherwise, the element found
+   * using the result of static analysis will be returned. If resolution has not been performed,
+   * then `null` will be returned.
    *
-   * @return the element associated with the operator
+   * @return the best element available for this operator
    */
-  MethodElement get element => _propagatedElement;
+  MethodElement get bestElement {
+    MethodElement element = propagatedElement;
+    if (element == null) {
+      element = staticElement;
+    }
+    return element;
+  }
   Token get endToken => _operand.endToken;
 
   /**
@@ -11183,6 +11352,16 @@ class PrefixExpression extends Expression {
   Token get operator => _operator;
 
   /**
+   * Return the element associated with the operator based on the propagated type of the operand, or
+   * `null` if the AST structure has not been resolved, if the operator is not user definable,
+   * or if the operator could not be resolved. One example of the latter case is an operator that is
+   * not defined for the type of the operand.
+   *
+   * @return the element associated with the operator
+   */
+  MethodElement get propagatedElement => _propagatedElement;
+
+  /**
    * Return the element associated with the operator based on the static type of the operand, or
    * `null` if the AST structure has not been resolved, if the operator is not user definable,
    * or if the operator could not be resolved. One example of the latter case is an operator that is
@@ -11191,16 +11370,6 @@ class PrefixExpression extends Expression {
    * @return the element associated with the operator
    */
   MethodElement get staticElement => _staticElement;
-
-  /**
-   * Set the element associated with the operator based on the propagated type of the operand to the
-   * given element.
-   *
-   * @param element the element to be associated with the operator
-   */
-  void set element(MethodElement element2) {
-    _propagatedElement = element2;
-  }
 
   /**
    * Set the expression computing the operand for the operator to the given expression.
@@ -11221,6 +11390,16 @@ class PrefixExpression extends Expression {
   }
 
   /**
+   * Set the element associated with the operator based on the propagated type of the operand to the
+   * given element.
+   *
+   * @param element the element to be associated with the operator
+   */
+  void set propagatedElement(MethodElement element) {
+    _propagatedElement = element;
+  }
+
+  /**
    * Set the element associated with the operator based on the static type of the operand to the
    * given element.
    *
@@ -11238,7 +11417,7 @@ class PrefixExpression extends Expression {
    * propagated type information, then return the parameter element representing the parameter to
    * which the value of the operand will be bound. Otherwise, return `null`.
    *
-   * This method is only intended to be used by [Expression#getParameterElement].
+   * This method is only intended to be used by [Expression#getPropagatedParameterElement].
    *
    * @return the parameter element representing the parameter to which the value of the right
    *         operand will be bound
@@ -13191,7 +13370,7 @@ class SwitchStatement extends Statement {
  *
  * <pre>
  * symbolLiteral ::=
- *     '#' [SimpleIdentifier] ('.' [SimpleIdentifier])*
+ *     '#' (operator | (identifier ('.' identifier)*))
  * </pre>
  *
  * @coverage dart.engine.ast
@@ -13206,7 +13385,7 @@ class SymbolLiteral extends Literal {
   /**
    * The components of the literal.
    */
-  NodeList<SimpleIdentifier> _components;
+  List<Token> _components;
 
   /**
    * Initialize a newly created symbol literal.
@@ -13214,10 +13393,9 @@ class SymbolLiteral extends Literal {
    * @param poundSign the token introducing the literal
    * @param components the components of the literal
    */
-  SymbolLiteral.full(Token poundSign, List<SimpleIdentifier> components) {
-    this._components = new NodeList<SimpleIdentifier>(this);
+  SymbolLiteral.full(Token poundSign, List<Token> components) {
     this._poundSign = poundSign;
-    this._components.addAll(components);
+    this._components = components;
   }
 
   /**
@@ -13226,7 +13404,7 @@ class SymbolLiteral extends Literal {
    * @param poundSign the token introducing the literal
    * @param components the components of the literal
    */
-  SymbolLiteral({Token poundSign, List<SimpleIdentifier> components}) : this.full(poundSign, components);
+  SymbolLiteral({Token poundSign, List<Token> components}) : this.full(poundSign, components);
   accept(ASTVisitor visitor) => visitor.visitSymbolLiteral(this);
   Token get beginToken => _poundSign;
 
@@ -13235,8 +13413,8 @@ class SymbolLiteral extends Literal {
    *
    * @return the components of the literal
    */
-  NodeList<SimpleIdentifier> get components => _components;
-  Token get endToken => _components.endToken;
+  List<Token> get components => _components;
+  Token get endToken => _components[_components.length - 1];
 
   /**
    * Return the token introducing the literal.
@@ -13254,7 +13432,6 @@ class SymbolLiteral extends Literal {
     this._poundSign = poundSign2;
   }
   void visitChildren(ASTVisitor<Object> visitor) {
-    _components.accept(visitor);
   }
 }
 /**
@@ -14004,9 +14181,10 @@ class TypeParameter extends Declaration {
   }
 
   /**
-   * Return the token representing the 'assert' keyword.
+   * Return the token representing the 'extends' keyword, or `null` if there was no explicit
+   * upper bound.
    *
-   * @return the token representing the 'assert' keyword
+   * @return the token representing the 'extends' keyword
    */
   Token get keyword => _keyword;
 
@@ -14027,9 +14205,9 @@ class TypeParameter extends Declaration {
   }
 
   /**
-   * Set the token representing the 'assert' keyword to the given token.
+   * Set the token representing the 'extends' keyword to the given token.
    *
-   * @param keyword the token representing the 'assert' keyword
+   * @param keyword the token representing the 'extends' keyword
    */
   void set keyword(Token keyword2) {
     this._keyword = keyword2;
@@ -14881,16 +15059,35 @@ class WithClause extends ASTNode {
  * visitor uses a breadth-first ordering rather than the depth-first ordering of
  * [GeneralizingASTVisitor].
  *
+ * Subclasses that override a visit method must either invoke the overridden visit method or
+ * explicitly invoke the more general visit method. Failure to do so will cause the visit methods
+ * for superclasses of the node to not be invoked and will cause the children of the visited node to
+ * not be visited.
+ *
+ * In addition, subclasses should <b>not</b> explicitly visit the children of a node, but should
+ * ensure that the method [visitNode] is used to visit the children (either directly
+ * or indirectly). Failure to do will break the order in which nodes are visited.
+ *
  * @coverage dart.engine.ast
  */
 class BreadthFirstVisitor<R> extends GeneralizingASTVisitor<R> {
+
+  /**
+   * A queue holding the nodes that have not yet been visited in the order in which they ought to be
+   * visited.
+   */
   Queue<ASTNode> _queue = new Queue<ASTNode>();
+
+  /**
+   * A visitor, used to visit the children of the current node, that will add the nodes it visits to
+   * the [queue].
+   */
   GeneralizingASTVisitor<Object> _childVisitor;
 
   /**
-   * Visit all nodes in the tree starting at the given `root` node, in depth-first order.
+   * Visit all nodes in the tree starting at the given `root` node, in breadth-first order.
    *
-   * @param root the root of the ASTNode tree
+   * @param root the root of the AST structure to be visited
    */
   void visitAllNodes(ASTNode root) {
     _queue.add(root);
@@ -15189,11 +15386,11 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
   }
   Object visitSymbolLiteral(SymbolLiteral node) {
     JavaStringBuilder builder = new JavaStringBuilder();
-    for (SimpleIdentifier component in node.components) {
+    for (Token component in node.components) {
       if (builder.length > 0) {
         builder.appendChar(0x2E);
       }
-      builder.append(component.name);
+      builder.append(component.lexeme);
     }
     return builder.toString();
   }
@@ -15236,7 +15433,8 @@ class ElementLocator {
  * Visitor that maps nodes to elements.
  */
 class ElementLocator_ElementMapper extends GeneralizingASTVisitor<Element> {
-  Element visitBinaryExpression(BinaryExpression node) => node.element;
+  Element visitAssignmentExpression(AssignmentExpression node) => node.bestElement;
+  Element visitBinaryExpression(BinaryExpression node) => node.bestElement;
   Element visitClassDeclaration(ClassDeclaration node) => node.element;
   Element visitCompilationUnit(CompilationUnit node) => node.element;
   Element visitConstructorDeclaration(ConstructorDeclaration node) => node.element;
@@ -15266,17 +15464,21 @@ class ElementLocator_ElementMapper extends GeneralizingASTVisitor<Element> {
         }
       }
     }
-    return node.element;
+    Element element = node.element;
+    if (element == null) {
+      element = node.staticElement;
+    }
+    return element;
   }
   Element visitImportDirective(ImportDirective node) => node.element;
-  Element visitIndexExpression(IndexExpression node) => node.element;
+  Element visitIndexExpression(IndexExpression node) => node.bestElement;
   Element visitInstanceCreationExpression(InstanceCreationExpression node) => node.element;
   Element visitLibraryDirective(LibraryDirective node) => node.element;
   Element visitMethodDeclaration(MethodDeclaration node) => node.element;
   Element visitMethodInvocation(MethodInvocation node) => node.methodName.element;
-  Element visitPostfixExpression(PostfixExpression node) => node.element;
+  Element visitPostfixExpression(PostfixExpression node) => node.bestElement;
   Element visitPrefixedIdentifier(PrefixedIdentifier node) => node.element;
-  Element visitPrefixExpression(PrefixExpression node) => node.element;
+  Element visitPrefixExpression(PrefixExpression node) => node.bestElement;
   Element visitStringLiteral(StringLiteral node) {
     ASTNode parent = node.parent;
     if (parent is UriBasedDirective) {
@@ -16461,7 +16663,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     if (node.isCascaded) {
       _writer.print("..");
     } else {
-      visit(node.array);
+      visit(node.target);
     }
     _writer.print('[');
     visit(node.index);
@@ -16720,7 +16922,13 @@ class ToSourceVisitor implements ASTVisitor<Object> {
   }
   Object visitSymbolLiteral(SymbolLiteral node) {
     _writer.print("#");
-    visitList2(node.components, ".");
+    List<Token> components = node.components;
+    for (int i = 0; i < components.length; i++) {
+      if (i > 0) {
+        _writer.print(".");
+      }
+      _writer.print(components[i].lexeme);
+    }
     return null;
   }
   Object visitThisExpression(ThisExpression node) {
@@ -17004,7 +17212,7 @@ class ASTCloner implements ASTVisitor<ASTNode> {
   IndexExpression visitIndexExpression(IndexExpression node) {
     Token period = node.period;
     if (period == null) {
-      return new IndexExpression.forTarget_full(clone2(node.array), node.leftBracket, clone2(node.index), node.rightBracket);
+      return new IndexExpression.forTarget_full(clone2(node.target), node.leftBracket, clone2(node.index), node.rightBracket);
     } else {
       return new IndexExpression.forCascade_full(period, node.leftBracket, clone2(node.index), node.rightBracket);
     }
@@ -17048,7 +17256,7 @@ class ASTCloner implements ASTVisitor<ASTNode> {
   SwitchCase visitSwitchCase(SwitchCase node) => new SwitchCase.full(clone3(node.labels), node.keyword, clone2(node.expression), node.colon, clone3(node.statements));
   SwitchDefault visitSwitchDefault(SwitchDefault node) => new SwitchDefault.full(clone3(node.labels), node.keyword, node.colon, clone3(node.statements));
   SwitchStatement visitSwitchStatement(SwitchStatement node) => new SwitchStatement.full(node.keyword, node.leftParenthesis, clone2(node.expression), node.rightParenthesis, node.leftBracket, clone3(node.members), node.rightBracket);
-  ASTNode visitSymbolLiteral(SymbolLiteral node) => new SymbolLiteral.full(node.poundSign, clone3(node.components));
+  ASTNode visitSymbolLiteral(SymbolLiteral node) => new SymbolLiteral.full(node.poundSign, node.components);
   ThisExpression visitThisExpression(ThisExpression node) => new ThisExpression.full(node.keyword);
   ThrowExpression visitThrowExpression(ThrowExpression node) => new ThrowExpression.full(node.keyword, clone2(node.expression));
   TopLevelVariableDeclaration visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) => new TopLevelVariableDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), clone2(node.variables), node.semicolon);
@@ -17057,8 +17265,8 @@ class ASTCloner implements ASTVisitor<ASTNode> {
   TypeName visitTypeName(TypeName node) => new TypeName.full(clone2(node.name), clone2(node.typeArguments));
   TypeParameter visitTypeParameter(TypeParameter node) => new TypeParameter.full(clone2(node.documentationComment), clone3(node.metadata), clone2(node.name), node.keyword, clone2(node.bound));
   TypeParameterList visitTypeParameterList(TypeParameterList node) => new TypeParameterList.full(node.leftBracket, clone3(node.typeParameters), node.rightBracket);
-  VariableDeclaration visitVariableDeclaration(VariableDeclaration node) => new VariableDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), clone2(node.name), node.equals, clone2(node.initializer));
-  VariableDeclarationList visitVariableDeclarationList(VariableDeclarationList node) => new VariableDeclarationList.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.type), clone3(node.variables));
+  VariableDeclaration visitVariableDeclaration(VariableDeclaration node) => new VariableDeclaration.full(null, clone3(node.metadata), clone2(node.name), node.equals, clone2(node.initializer));
+  VariableDeclarationList visitVariableDeclarationList(VariableDeclarationList node) => new VariableDeclarationList.full(null, clone3(node.metadata), node.keyword, clone2(node.type), clone3(node.variables));
   VariableDeclarationStatement visitVariableDeclarationStatement(VariableDeclarationStatement node) => new VariableDeclarationStatement.full(clone2(node.variables), node.semicolon);
   WhileStatement visitWhileStatement(WhileStatement node) => new WhileStatement.full(node.keyword, node.leftParenthesis, clone2(node.condition), node.rightParenthesis, clone2(node.body));
   WithClause visitWithClause(WithClause node) => new WithClause.full(node.withKeyword, clone3(node.mixinTypes));

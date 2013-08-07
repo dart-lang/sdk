@@ -258,10 +258,14 @@ class RuntimeException implements Exception {
 
 class JavaException implements Exception {
   final String message;
-  final Exception e;
-  JavaException([this.message = "", this.e = null]);
-  JavaException.withCause(this.e) : message = null;
-  String toString() => "JavaException: $message $e";
+  final Exception cause;
+  JavaException([this.message = "", this.cause = null]);
+  JavaException.withCause(this.cause) : message = null;
+  String toString() => "JavaException: $message $cause";
+}
+
+class JavaIOException extends JavaException {
+  JavaIOException([message = "", cause = null]) : super(message, cause);
 }
 
 class IllegalArgumentException implements Exception {
@@ -478,6 +482,12 @@ bool javaSetAdd(Set s, o) {
   return false;
 }
 
+javaMapPut(Map target, key, value) {
+  var oldValue = target[key];
+  target[key] = value;
+  return oldValue;
+}
+
 void javaMapPutAll(Map target, Map source) {
   source.forEach((k, v) {
     target[k] = v;
@@ -520,4 +530,9 @@ class JavaStringBuilder {
   void clear() {
     sb = new StringBuffer();
   }
+}
+
+abstract class Enum<E> implements Comparable<E> {
+  int get ordinal;
+  String get name;
 }

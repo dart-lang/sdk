@@ -38,13 +38,13 @@ class Instrumentation {
   /**
    * A builder that will silently ignore all data and logging requests.
    */
-  static InstrumentationBuilder _NULL_INSTRUMENTATION_BUILDER = new InstrumentationBuilder_13();
+  static InstrumentationBuilder _NULL_INSTRUMENTATION_BUILDER = new InstrumentationBuilder_14();
 
   /**
    * An instrumentation logger that can be used when no other instrumentation logger has been
    * configured. This logger will silently ignore all data and logging requests.
    */
-  static InstrumentationLogger _NULL_LOGGER = new InstrumentationLogger_14();
+  static InstrumentationLogger _NULL_LOGGER = new InstrumentationLogger_15();
 
   /**
    * The current instrumentation logger.
@@ -96,7 +96,7 @@ class Instrumentation {
     _CURRENT_LOGGER = logger2 == null ? _NULL_LOGGER : logger2;
   }
 }
-class InstrumentationBuilder_13 implements InstrumentationBuilder {
+class InstrumentationBuilder_14 implements InstrumentationBuilder {
   InstrumentationBuilder data(String name, bool value) => this;
   InstrumentationBuilder data2(String name, int value) => this;
   InstrumentationBuilder data3(String name, String value) => this;
@@ -104,13 +104,15 @@ class InstrumentationBuilder_13 implements InstrumentationBuilder {
   InstrumentationLevel get instrumentationLevel => InstrumentationLevel.OFF;
   void log() {
   }
+  void log2(int minTimeToLong) {
+  }
   InstrumentationBuilder metric(String name, bool value) => this;
   InstrumentationBuilder metric2(String name, int value) => this;
   InstrumentationBuilder metric3(String name, String value) => this;
   InstrumentationBuilder metric4(String name, List<String> value) => this;
   InstrumentationBuilder record(Exception exception) => this;
 }
-class InstrumentationLogger_14 implements InstrumentationLogger {
+class InstrumentationLogger_15 implements InstrumentationLogger {
   InstrumentationBuilder createBuilder(String name) => Instrumentation._NULL_INSTRUMENTATION_BUILDER;
 }
 /**
@@ -183,6 +185,15 @@ abstract class InstrumentationBuilder {
   void log();
 
   /**
+   * Log the data that has been collected. The instrumentation builder should not be used after this
+   * method is invoked. The behavior of any method defined on this interface that is used after this
+   * method is invoked is undefined.
+   *
+   * @param minTimeToLog if the total elapsed time is less than this, do not record
+   */
+  void log2(int minTimeToLog);
+
+  /**
    * Append the given metric to the data being collected by this builder. The information is
    * declared to contain only metrics data (data that is not user identifiable and does not contain
    * user intellectual property).
@@ -244,7 +255,7 @@ abstract class InstrumentationBuilder {
  *
  * @coverage dart.engine.utilities
  */
-class InstrumentationLevel implements Comparable<InstrumentationLevel> {
+class InstrumentationLevel implements Enum<InstrumentationLevel> {
 
   /** Recording all instrumented information */
   static final InstrumentationLevel EVERYTHING = new InstrumentationLevel('EVERYTHING', 0);
