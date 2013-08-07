@@ -24,7 +24,7 @@ void func3() {
     Expect.isTrue(fullTrace.contains("func7"));
     Expect.isTrue(fullTrace.contains("main"));
 
-    throw;  // This is a rethrow.
+    rethrow;  // This is a rethrow.
   }
 }
 int func4() {

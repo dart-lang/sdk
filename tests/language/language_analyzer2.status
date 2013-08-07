@@ -264,6 +264,9 @@ getter_no_setter_test/none: fail
 const_constructor_mixin_test/01: fail
 const_constructor_mixin3_test/01: fail
 
+# test issue 12289, assignment in assert statement
+type_error_test: fail
+
 [ $compiler == dart2analyzer && $checked ]
 factory1_test/00: fail
 factory1_test/01: fail

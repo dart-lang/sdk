@@ -15,7 +15,7 @@ void runFunctions() {
     firstFunction();
   } catch (e) {
     new Timer(Duration.ZERO, finishFunction);
-    throw;
+    rethrow;
   }
 }
 
