@@ -11,6 +11,10 @@ package/invalid_uri_test: Fail, OK # Fails intentionally
 
 [ $runtime == vm ]
 package/package_isolate_test: Fail # http://dartbug.com/7520.
+vmservice/isolate_echo_test: Pass, Fail # Issue: 12294
+vmservice/isolate_list_test: Pass, Fail # Issue: 12294
+vmservice/isolate_stacktrace_command_test: Pass, Fail # Issue: 12294
+vmservice/unknown_isolate_command_test: Pass, Fail # Issue: 12294
 
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
