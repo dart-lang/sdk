@@ -7116,6 +7116,47 @@ static Dart_NativeFunction ExternalStringDeoptimize_native_lookup(
 }
 
 
+// Do not use guarding mechanism on externalizable classes, since their class
+// can change on the fly,
+TEST_CASE(GuardExternalizedString) {
+  const char* kScriptChars =
+      "main() {\n"
+      "  var a = new A('hello');\n"
+      "  var res = runOne(a);\n"
+      "  if (res != 10640000) return -1;\n"
+      "  change_str(a.f);\n"
+      "  res = runOne(a);\n"
+      "  return res;\n"
+      "}\n"
+      "runOne(a) {\n"
+      "  var sum = 0;\n"
+      "  for (int i = 0; i < 20000; i++) {\n"
+      "    for (int j = 0; j < a.f.length; j++) {\n"
+      "      sum += a.f.codeUnitAt(j);\n"
+      "    }\n"
+      "  }\n"
+      "  return sum;\n"
+      "}\n"
+      "class A {\n"
+      "  var f;\n"
+      "  A(this.f);\n"
+      "}\n"
+      "change_str(String s) native 'A_change_str';\n"
+      "";
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars,
+                               &ExternalStringDeoptimize_native_lookup);
+  Dart_Handle result = Dart_Invoke(lib,
+                                   NewString("main"),
+                                   0,
+                                   NULL);
+  int64_t value = 0;
+  result = Dart_IntegerToInt64(result, &value);
+  EXPECT_VALID(result);
+  EXPECT_EQ(10640000, value);
+}
+
+
 TEST_CASE(ExternalStringDeoptimize) {
   const char* kScriptChars =
       "String str = 'A';\n"

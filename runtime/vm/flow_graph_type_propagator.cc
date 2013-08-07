@@ -945,14 +945,19 @@ CompileType LoadFieldInstr::ComputeType() const {
   }
 
   if (FLAG_enable_type_checks) {
+    ASSERT(!type().HasResolvedTypeClass() ||
+           !Field::IsExternalizableCid(Class::Handle(
+                type().type_class()).id()));
     return CompileType::FromAbstractType(type());
   }
 
-  if (field_ != NULL && (field_->guarded_cid() != kIllegalCid)) {
+  if ((field_ != NULL) && (field_->guarded_cid() != kIllegalCid)) {
+    ASSERT(!Field::IsExternalizableCid(field_->guarded_cid()));
     return CompileType::CreateNullable(field_->is_nullable(),
                                        field_->guarded_cid());
   }
 
+  ASSERT(!Field::IsExternalizableCid(result_cid_));
   return CompileType::FromCid(result_cid_);
 }
 
