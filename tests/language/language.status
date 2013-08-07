@@ -28,6 +28,8 @@ built_in_identifier_prefix_test: Fail # http://dartbug.com/6970
 library_juxtaposition_test: Fail # Issue 6877
 pseudo_kw_illegal_test/14: Fail  # Issue 356
 bound_closure_equality_test: Fail # Issue 10849
+switch_int_double_test/01: Fail # Issue 7307
+switch_int_double_test/02: Fail # Issue 7307
 
 # These bugs refer currently ongoing language discussions.
 constructor5_test: Fail           # (Discussion ongoing)

@@ -1187,18 +1187,50 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   visitSwitchStatement(SwitchStatement node) {
     // TODO(johnniwinther): Handle reachability based on reachability of
     // switch cases.
-    // TODO(johnniwinther): Check assignability to constants.
     DartType expressionType = analyze(node.expression);
+    Map<CaseMatch, DartType> caseTypeMap =
+        new LinkedHashMap<CaseMatch, DartType>();
     for (SwitchCase switchCase in node.cases) {
       for (Node labelOrCase in switchCase.labelsAndCases) {
         CaseMatch caseMatch = labelOrCase.asCaseMatch();
         if (caseMatch == null) continue;
 
         DartType caseType = analyze(caseMatch.expression);
+        caseTypeMap[caseMatch] = caseType;
         checkAssignable(caseMatch, expressionType, caseType);
       }
+
       analyze(switchCase);
     }
+
+    CaseMatch firstCase = null;
+    DartType firstCaseType = null;
+    bool hasReportedProblem = false;
+    caseTypeMap.forEach((CaseMatch caseMatch, DartType caseType) {
+      if (firstCaseType == null) {
+        firstCase = caseMatch;
+        firstCaseType = caseType;
+      } else {
+        if (caseType != firstCaseType) {
+          if (!hasReportedProblem) {
+            compiler.reportError(
+                node,
+                MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL,
+                {'type': firstCaseType});
+            compiler.reportInfo(
+                firstCase.expression,
+                MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
+                {'type': firstCaseType});
+            hasReportedProblem = true;
+          }
+          compiler.reportInfo(
+              caseMatch.expression,
+              MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
+              {'type': caseType});
+        }
+      }
+    });
+
     return StatementType.NOT_RETURNING;
   }
 

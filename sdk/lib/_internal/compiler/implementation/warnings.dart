@@ -326,7 +326,10 @@ class MessageKind {
       'Error: "default" only allowed on last case of a switch.');
 
   static const MessageKind SWITCH_CASE_TYPES_NOT_EQUAL = const MessageKind(
-      'Error: "case" expressions do not all have the same type.');
+      'Error: "case" expressions do not all have type "#{type}".');
+
+  static const MessageKind SWITCH_CASE_TYPES_NOT_EQUAL_CASE = const MessageKind(
+      'Info: "case" expression of type "#{type}".');
 
   static const MessageKind SWITCH_CASE_VALUE_OVERRIDES_EQUALS =
       const MessageKind(

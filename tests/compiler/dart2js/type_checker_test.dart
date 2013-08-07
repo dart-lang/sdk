@@ -140,10 +140,19 @@ testSwitch() {
   analyze("switch (0) { case 1: break; case 2: break; }");
   analyze("switch (0) { case 1: int i = ''; break; case 2: break; }",
       NOT_ASSIGNABLE);
-  analyze("switch (0) { case '': break; case 2: break; }",
+  analyze("switch (0) { case '': break; }",
       NOT_ASSIGNABLE);
   analyze("switch ('') { case 1: break; case 2: break; }",
       [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
+
+  analyze("switch (0.5) { case 0.5: break; case 1.5: break; }",
+      [], []);
+  analyze("switch (1.0) { case 1.0: break; case 1.5: break; }",
+      [], []);
+  analyze("switch (null) { case 1.0: break; case 2: break; }",
+      [MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE, 
+       MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE], 
+      [MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL]);
 }
 
 testOperators() {
@@ -1543,9 +1552,11 @@ api.DiagnosticHandler createHandler(String text) {
   };
 }
 
-analyze(String text, [expectedWarnings]) {
+analyze(String text, [expectedWarnings, expectedErrors]) {
   if (expectedWarnings == null) expectedWarnings = [];
   if (expectedWarnings is !List) expectedWarnings = [expectedWarnings];
+  if (expectedErrors == null) expectedErrors = [];
+  if (expectedErrors is !List) expectedErrors = [expectedErrors];
 
   compiler.diagnosticHandler = createHandler(text);
 
@@ -1562,8 +1573,10 @@ analyze(String text, [expectedWarnings]) {
   TypeCheckerVisitor checker = new TypeCheckerVisitor(compiler, elements,
                                                                 types);
   compiler.clearWarnings();
+  compiler.clearErrors();
   checker.analyze(node);
   compareWarningKinds(text, expectedWarnings, compiler.warnings);
+  compareWarningKinds(text, expectedErrors, compiler.errors);
   compiler.diagnosticHandler = null;
 }
 
