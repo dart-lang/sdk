@@ -147,6 +147,12 @@ void testConfigurations(List<Map> configurations) {
                                        conf['runtime']);
       serverFutures.add(servers.startServers(conf['local_ip']));
       conf['_servers_'] = servers;
+      if (verbose) {
+        serverFutures.last.then((_) {
+          var commandline = servers.httpServerCommandline();
+          print('Started HttpServers: $commandline');
+        });
+      }
     }
 
     // There should not be more than one InternetExplorerDriver instance
