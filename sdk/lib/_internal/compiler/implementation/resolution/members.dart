@@ -3365,9 +3365,8 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
 
   FunctionElement createForwardingConstructor(FunctionElement target,
                                               ClassElement enclosing) {
-    return new SynthesizedConstructorElementX(target.name,
-                                              target,
-                                              enclosing);
+    return new SynthesizedConstructorElementX(
+        target.name, target, enclosing, false);
   }
 
   void doApplyMixinTo(MixinApplicationElement mixinApplication,
