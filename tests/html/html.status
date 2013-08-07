@@ -26,8 +26,6 @@ audiobuffersourcenode_test: Pass, Fail, Crash # http://crbug.com/256601
 postmessage_structured_test/typed_arrays: Fail
 # TODO(vsm): Triage from latest Blink merge
 event_customevent_test: Skip
-shadowroot_test: Skip
-shadow_dom_test: Skip
 indexeddb_1_test: Skip
 indexeddb_2_test: Skip
 indexeddb_3_test: Skip
