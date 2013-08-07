@@ -545,7 +545,7 @@ class Library extends Indexable {
   /// Generates a map describing the [Library] object.
   Map toMap() => {
     'name': name,
-    'qualifiedname': qualifiedName,
+    'qualifiedName': qualifiedName,
     'comment': comment,
     'variables': recurseMap(variables),
     'functions': functions.toMap(),
@@ -670,16 +670,16 @@ class Class extends Indexable {
   /// Generates a map describing the [Class] object.
   Map toMap() => {
     'name': name,
-    'qualifiedname': qualifiedName,
+    'qualifiedName': qualifiedName,
     'comment': comment,
     'superclass': validSuperclass(),
     'implements': interfaces.where(_isVisible)
         .map((e) => e.qualifiedName).toList(),
     'subclass': subclasses.toList(),
     'variables': recurseMap(variables),
-    'inheritedvariables': recurseMap(inheritedVariables),
+    'inheritedVariables': recurseMap(inheritedVariables),
     'methods': methods.toMap(),
-    'inheritedmethods': inheritedMethods.toMap(),
+    'inheritedMethods': inheritedMethods.toMap(),
     'annotations': annotations.map((a) => a.toMap()).toList(),
     'generics': recurseMap(generics)
   };
@@ -766,7 +766,7 @@ class Typedef extends Indexable {
 
   Map toMap() => {
     'name': name,
-    'qualifiedname': qualifiedName,
+    'qualifiedName': qualifiedName,
     'comment': comment,
     'return': returnType,
     'parameters': recurseMap(parameters),
@@ -795,7 +795,7 @@ class Variable extends Indexable {
   /// Generates a map describing the [Variable] object.
   Map toMap() => {
     'name': name,
-    'qualifiedname': qualifiedName,
+    'qualifiedName': qualifiedName,
     'comment': comment,
     'final': isFinal.toString(),
     'static': isStatic.toString(),
@@ -843,9 +843,9 @@ class Method extends Indexable {
   /// Generates a map describing the [Method] object.
   Map toMap() => {
     'name': name,
-    'qualifiedname': qualifiedName,
+    'qualifiedName': qualifiedName,
     'comment': comment,
-    'commentfrom': commentInheritedFrom,
+    'commentFrom': commentInheritedFrom,
     'static': isStatic.toString(),
     'abstract': isAbstract.toString(),
     'constant': isConst.toString(),
