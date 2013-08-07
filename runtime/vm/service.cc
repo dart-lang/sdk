@@ -7,6 +7,8 @@
 #include "vm/isolate.h"
 #include "vm/message.h"
 #include "vm/object.h"
+#include "vm/object_id_ring.h"
+#include "vm/object_store.h"
 #include "vm/port.h"
 #include "vm/service.h"
 
@@ -116,6 +118,37 @@ void Service::HandleServiceMessage(Isolate* isolate, Dart_Port reply_port,
 }
 
 
+static void PrintArgumentsAndOptions(JSONStream* js) {
+  js->OpenObject("message");
+  js->OpenArray("arguments");
+  for (intptr_t i = 0; i < js->num_arguments(); i++) {
+    js->PrintValue(js->GetArgument(i));
+  }
+  js->CloseArray();
+  js->OpenArray("option_keys");
+  for (intptr_t i = 0; i < js->num_options(); i++) {
+    js->PrintValue(js->GetOptionKey(i));
+  }
+  js->CloseArray();
+  js->OpenArray("option_values");
+  for (intptr_t i = 0; i < js->num_options(); i++) {
+    js->PrintValue(js->GetOptionValue(i));
+  }
+  js->CloseArray();
+  js->CloseObject();
+}
+
+
+static void PrintCollectionErrorResponse(const char* collection_name,
+                                         JSONStream* js) {
+  js->OpenObject();
+  js->PrintProperty("type", "error");
+  js->PrintfProperty("text", "Must specify collection object id: /%s/id",
+                     collection_name);
+  js->CloseObject();
+}
+
+
 static void HandleName(Isolate* isolate, JSONStream* js) {
   js->OpenObject();
   js->PrintProperty("type", "IsolateName");
@@ -154,33 +187,12 @@ static void HandleObjectHistogram(Isolate* isolate, JSONStream* js) {
   ObjectHistogram* histogram = Isolate::Current()->object_histogram();
   if (histogram == NULL) {
     js->OpenObject();
-    js->PrintProperty("type", "ObjectHistogram");
-    js->PrintProperty("error", "Run with --print_object_histogram");
+    js->PrintProperty("type", "error");
+    js->PrintProperty("text", "Run with --print_object_histogram");
     js->CloseObject();
     return;
   }
   histogram->PrintToJSONStream(js);
-}
-
-
-static void PrintArgumentsAndOptions(JSONStream* js) {
-  js->OpenObject("message");
-  js->OpenArray("arguments");
-  for (intptr_t i = 0; i < js->num_arguments(); i++) {
-    js->PrintValue(js->GetArgument(i));
-  }
-  js->CloseArray();
-  js->OpenArray("option_keys");
-  for (intptr_t i = 0; i < js->num_options(); i++) {
-    js->PrintValue(js->GetOptionKey(i));
-  }
-  js->CloseArray();
-  js->OpenArray("option_values");
-  for (intptr_t i = 0; i < js->num_options(); i++) {
-    js->PrintValue(js->GetOptionValue(i));
-  }
-  js->CloseArray();
-  js->CloseObject();
 }
 
 
@@ -191,11 +203,62 @@ static void HandleEcho(Isolate* isolate, JSONStream* js) {
   js->CloseObject();
 }
 
+// Print an error message if there is no ID argument.
+#define REQUIRE_COLLECTION_ID(collection)                                      \
+  if (js->num_arguments() == 1) {                                              \
+    PrintCollectionErrorResponse(collection, js);                              \
+    return;                                                                    \
+  }
+
+// Print a Dart object to the stream if found in ring. Otherwise print null.
+#define PRINT_RING_OBJ(type)                                                   \
+  ASSERT(js->num_arguments() >= 2);                                            \
+  ObjectIdRing* ring = isolate->object_id_ring();                              \
+  ASSERT(ring != NULL);                                                        \
+  intptr_t id = atoi(js->GetArgument(1));                                      \
+  Object& obj = Object::Handle(ring->GetObjectForId(id));                      \
+  if (!obj.Is##type()) {                                                       \
+    /* Object is not type, replace with null. */                               \
+    obj = Object::null();                                                      \
+  }                                                                            \
+  js->PrintValue(obj, false)
+
+
+static void HandleLibraries(Isolate* isolate, JSONStream* js) {
+  if (js->num_arguments() == 1) {
+    js->PrintValue(Library::Handle(isolate->object_store()->root_library()));
+    return;
+  }
+  PRINT_RING_OBJ(Library);
+}
+
+
+static void HandleFunctions(Isolate* isolate, JSONStream* js) {
+  REQUIRE_COLLECTION_ID("functions");
+  PRINT_RING_OBJ(Function);
+}
+
+
+static void HandleClasses(Isolate* isolate, JSONStream* js) {
+  REQUIRE_COLLECTION_ID("classes");
+  PRINT_RING_OBJ(Class);
+}
+
+
+static void HandleCodes(Isolate* isolate, JSONStream* js) {
+  REQUIRE_COLLECTION_ID("codes");
+  PRINT_RING_OBJ(Code);
+}
+
 
 static ServiceMessageHandlerEntry __message_handlers[] = {
   { "name", HandleName },
   { "stacktrace", HandleStackTrace },
   { "objecthistogram", HandleObjectHistogram},
+  { "libraries", HandleLibraries },
+  { "functions", HandleFunctions },
+  { "classes", HandleClasses },
+  { "codes", HandleCodes },
   { "_echo", HandleEcho },
 };
 

@@ -129,6 +129,9 @@ bool ObjectIdRing::IsValidId(int32_t id) {
   if (id == kInvalidId) {
     return false;
   }
+  if (id < 0) {
+    return false;
+  }
   if (id >= max_serial_) {
     return false;
   }
