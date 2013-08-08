@@ -6002,7 +6002,7 @@ intptr_t Instance::GetNativeField(Isolate* isolate, int index) const {
   if (native_fields == TypedData::null()) {
     return 0;
   }
-  return *(reinterpret_cast<intptr_t*>(native_fields->ptr()->data_) + index);
+  return reinterpret_cast<intptr_t*>(native_fields->ptr()->data_)[index];
 }
 
 
