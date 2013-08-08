@@ -483,7 +483,7 @@ void _writeToFile(String text, String filename, {bool append: false}) {
   if (!file.existsSync()) {
     file.createSync();
   }
-  file.writeAsString(text, mode: append ? FileMode.APPEND : FileMode.WRITE);
+  file.writeAsStringSync(text, mode: append ? FileMode.APPEND : FileMode.WRITE);
 }
 
 /**
