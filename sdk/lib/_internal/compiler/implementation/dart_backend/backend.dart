@@ -122,6 +122,12 @@ class DartBackend extends Backend {
   final bool stripAsserts;
   // TODO(antonm): make available from command-line options.
   final bool outputAst = false;
+  final Map<Node, String> renames;
+  final Map<LibraryElement, String> imports;
+  final Map<ClassNode, List<Node>> memberNodes;
+  // TODO(zarah) Maybe change this to a command-line option.
+  // Right now, it is set by the tests.
+  bool useMirrorHelperLibrary = false;
 
   Map<Element, TreeElements> get resolvedElements =>
       compiler.enqueuer.resolution.resolvedElements;
@@ -171,6 +177,9 @@ class DartBackend extends Backend {
 
   DartBackend(Compiler compiler, List<String> strips)
       : tasks = <CompilerTask>[],
+        renames = new Map<Node, String>(),
+        imports = new Map<LibraryElement, String>(),
+        memberNodes = new Map<ClassNode, List<Node>>(),
         forceStripTypes = strips.indexOf('types') != -1,
         stripAsserts = strips.indexOf('asserts') != -1,
         super(compiler);
@@ -395,8 +404,6 @@ class DartBackend extends Backend {
     }
     topLevelElements.forEach(makePlaceholders);
     // Create renames.
-    Map<Node, String> renames = new Map<Node, String>();
-    Map<LibraryElement, String> imports = new Map<LibraryElement, String>();
     bool shouldCutDeclarationTypes = forceStripTypes
         || (compiler.enableMinification
             && isSafeToRemoveTypeDeclarations(classMembers));
@@ -431,7 +438,6 @@ class DartBackend extends Backend {
     }
 
     final topLevelNodes = <Node>[];
-    final memberNodes = new Map<ClassNode, List<Node>>();
     for (final element in sortedTopLevels) {
       topLevelNodes.add(elementAsts[element].ast);
       if (element.isClass() && !element.isMixinApplication) {
@@ -441,6 +447,10 @@ class DartBackend extends Backend {
         }
         memberNodes[elementAsts[element].ast] = members;
       }
+    }
+
+    if (useMirrorHelperLibrary && compiler.mirrorsLibrary != null) {
+      MirrorRenamer.addMirrorHelperImport(imports);
     }
 
     final unparser = new EmitterUnparser(renames);
@@ -468,6 +478,12 @@ class DartBackend extends Backend {
   }
 
   log(String message) => compiler.log('[DartBackend] $message');
+
+  void registerStaticSend(Element element, Node node) {
+    if (useMirrorHelperLibrary && compiler.mirrorsLibrary != null) {
+      MirrorRenamer.handleStaticSend(renames, element, node, compiler);
+    }
+  }
 }
 
 class EmitterUnparser extends Unparser {
