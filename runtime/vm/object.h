@@ -5905,6 +5905,8 @@ class MirrorReference : public Instance {
     StorePointer(&raw_ptr()->referent_, referent.raw());
   }
 
+  RawAbstractType* GetAbstractTypeReferent() const;
+
   RawClass* GetClassReferent() const;
 
   RawField* GetFieldReferent() const;

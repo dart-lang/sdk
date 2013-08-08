@@ -14519,6 +14519,11 @@ void WeakProperty::PrintToJSONStream(JSONStream* stream, bool ref) const {
   stream->CloseObject();
 }
 
+RawAbstractType* MirrorReference::GetAbstractTypeReferent() const {
+  ASSERT(Object::Handle(referent()).IsAbstractType());
+  return AbstractType::Cast(Object::Handle(referent())).raw();
+}
+
 
 RawClass* MirrorReference::GetClassReferent() const {
   ASSERT(Object::Handle(referent()).IsClass());

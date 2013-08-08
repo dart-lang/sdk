@@ -251,7 +251,7 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
     if (_type == null) {
       // Note it not safe to use reflectee.runtimeType because runtimeType may
       // be overridden.
-      _type = reflectClass(_computeType(reflectee));
+      _type = _Mirrors._reflectType(_computeType(reflectee));
     }
     return _type;
   }
@@ -360,9 +360,14 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
 class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
     implements ClassMirror {
   _LocalClassMirrorImpl(reflectee,
-                        String simpleName)
+                        this._reflectedType,
+                        String simpleName,
+                        this._isGeneric)
       : this._simpleName = _s(simpleName),
         super(reflectee);
+
+  final Type _reflectedType;
+  final bool _isGeneric;
 
   Symbol _simpleName;
   Symbol get simpleName {
@@ -501,19 +506,30 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
     return _typeVariables;
   }
 
+  Map<Symbol, TypeMirror> _typeArguments = null;
   Map<Symbol, TypeMirror> get typeArguments {
-    throw new UnimplementedError(
-        'ClassMirror.typeArguments is not implemented');
+    if(_typeArguments == null) {
+      if(_reflectedType == null) {
+        _typeArguments = new LinkedHashMap<Symbol, TypeMirror>();
+      } else {
+        _typeArguments =
+            new LinkedHashMap<Symbol, TypeMirror>.fromIterables(typeVariables.keys,
+                                                                _computeTypeArguments(_reflectedType));
+      }
+    }
+    return _typeArguments;
   }
 
   bool get isOriginalDeclaration {
-    throw new UnimplementedError(
-        'ClassMirror.isOriginalDeclaration is not implemented');
+    return !_isGeneric || _reflectedType == null;
   }
 
-  ClassMirror get genericDeclaration {
-    throw new UnimplementedError(
-        'ClassMirror.originalDeclaration is not implemented');
+  ClassMirror get originalDeclaration {
+    if (isOriginalDeclaration) {
+      return this;
+    } else {
+      return reflectClass(_reflectedType);
+    }
   }
 
   String toString() {
@@ -558,7 +574,9 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
 
   bool operator ==(other) {
     return this.runtimeType == other.runtimeType &&
-           this._reflectee == other._reflectee;
+           this._reflectee == other._reflectee &&
+           (isOriginalDeclaration || 
+            this._reflectedType == other._reflectedType);
   }
 
   int get hashCode => simpleName.hashCode;
@@ -595,11 +613,15 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
 
   static _ClassMirror_type_variables(reflectee)
       native "ClassMirror_type_variables";
+
+  static _computeTypeArguments(reflectee)
+      native "ClassMirror_type_arguments";
 }
 
 class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
     implements FunctionTypeMirror {
-  _LocalFunctionTypeMirrorImpl(reflectee) : super(reflectee, null);
+  _LocalFunctionTypeMirrorImpl(reflectee, reflectedType)
+      : super(reflectee, reflectedType, null, false);
 
   // FunctionTypeMirrors have a simpleName generated from their signature.
   Symbol _simpleName = null;
@@ -613,7 +635,8 @@ class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
   TypeMirror _returnType = null;
   TypeMirror get returnType {
     if (_returnType == null) {
-      _returnType = _FunctionTypeMirror_return_type(_reflectee);
+      _returnType =
+          _Mirrors._reflectType(_FunctionTypeMirror_return_type(_reflectee));
     }
     return _returnType;
   }
@@ -632,7 +655,7 @@ class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
 
   String toString() => "FunctionTypeMirror on '${_n(simpleName)}'";
 
-  static TypeMirror _FunctionTypeMirror_return_type(reflectee)
+  static Type _FunctionTypeMirror_return_type(reflectee)
       native "FunctionTypeMirror_return_type";
 
   static List<ParameterMirror> _FunctionTypeMirror_parameters(reflectee)
@@ -679,7 +702,7 @@ class _LocalTypeVariableMirrorImpl extends _LocalDeclarationMirrorImpl
   DeclarationMirror _owner;
   DeclarationMirror get owner {
     if (_owner == null) {
-      _owner = _LocalTypeVariableMirror_owner(_reflectee);
+      _owner = _TypeVariableMirror_owner(_reflectee);
     }
     return _owner;
   }
@@ -696,7 +719,8 @@ class _LocalTypeVariableMirrorImpl extends _LocalDeclarationMirrorImpl
   TypeMirror _upperBound = null;
   TypeMirror get upperBound {
     if (_upperBound == null) {
-      _upperBound = _LocalTypeVariableMirror_upper_bound(_reflectee);
+      _upperBound =
+          _Mirrors._reflectType(_TypeVariableMirror_upper_bound(_reflectee));
     }
     return _upperBound;
   }
@@ -706,13 +730,16 @@ class _LocalTypeVariableMirrorImpl extends _LocalDeclarationMirrorImpl
         'TypeVariableMirror.metadata is not implemented');
   }
 
+  bool get isOriginalDeclaration => true;
+  ClassMirror get originalDeclaration => this;
+
   String toString() => "TypeVariableMirror on '${_n(simpleName)}'";
 
-  static DeclarationMirror _LocalTypeVariableMirror_owner(reflectee)
-      native "LocalTypeVariableMirror_owner";
+  static DeclarationMirror _TypeVariableMirror_owner(reflectee)
+      native "TypeVariableMirror_owner";
 
-  static TypeMirror _LocalTypeVariableMirror_upper_bound(reflectee)
-      native "LocalTypeVariableMirror_upper_bound";
+  static Type _TypeVariableMirror_upper_bound(reflectee)
+      native "TypeVariableMirror_upper_bound";
 }
 
 
@@ -722,6 +749,9 @@ class _LocalTypedefMirrorImpl extends _LocalDeclarationMirrorImpl
                           String simpleName,
                           this._owner)
       : super(reflectee, _s(simpleName));
+
+  // TODO(12282): Deal with generic typedefs.
+  bool get _isGeneric => false;
 
   DeclarationMirror _owner;
   DeclarationMirror get owner {
@@ -743,8 +773,9 @@ class _LocalTypedefMirrorImpl extends _LocalDeclarationMirrorImpl
   TypeMirror _referent = null;
   TypeMirror get referent {
     if (_referent == null) {
+      // TODO(12282): Deal with generic typedef.
       return new _LocalFunctionTypeMirrorImpl(
-          _TypedefMirror_referent(_reflectee));
+          _TypedefMirror_referent(_reflectee), null);
     }
     return _referent;
   }
@@ -912,7 +943,8 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
       if (isConstructor) {
         _returnType = owner;
       } else {
-        _returnType = _MethodMirror_return_type(_reflectee);
+        _returnType =
+            _Mirrors._reflectType(_MethodMirror_return_type(_reflectee));
       }
     }
     return _returnType;
@@ -1006,7 +1038,7 @@ class _LocalVariableMirrorImpl extends _LocalDeclarationMirrorImpl
   TypeMirror _type;
   TypeMirror get type {
     if (_type == null) {
-       _type = _VariableMirror_type(_reflectee);
+       _type = _Mirrors._reflectType(_VariableMirror_type(_reflectee));
     }
     return _type;
   }
@@ -1050,12 +1082,13 @@ class _LocalParameterMirrorImpl extends _LocalVariableMirrorImpl
   TypeMirror _type = null;
   TypeMirror get type {
     if (_type == null) {
-      _type = _ParameterMirror_type(_reflectee, _position);
+      _type =
+          _Mirrors._reflectType(_ParameterMirror_type(_reflectee, _position));
     }
     return _type;
   }
 
-  static TypeMirror _ParameterMirror_type(_reflectee, _position)
+  static Type _ParameterMirror_type(_reflectee, _position)
       native "ParameterMirror_type";
 }
 
@@ -1135,17 +1168,35 @@ class _Mirrors {
         : new _LocalInstanceMirrorImpl(reflectee);
   }
 
-  // Creates a new local ClassMirror.
   static ClassMirror makeLocalClassMirror(Type key)
       native "Mirrors_makeLocalClassMirror";
+  static TypeMirror makeLocalTypeMirror(Type key)
+      native "Mirrors_makeLocalTypeMirror";
 
-  static Expando<ClassMirror> _classMirrorCache = new Expando("ClassMirror");
+  static Expando<ClassMirror> _declarationCache = new Expando("ClassMirror");
+  static Expando<ClassMirror> _instanitationCache = new Expando("TypeMirror");
+
   static ClassMirror reflectClass(Type key) {
-    var classMirror = _classMirrorCache[key];
+    var classMirror = _declarationCache[key];
     if (classMirror == null) {
       classMirror = makeLocalClassMirror(key);
-      _classMirrorCache[key] = classMirror;
+      _declarationCache[key] = classMirror;
+      if (!classMirror._isGeneric) {
+        _instanitationCache[key] = classMirror;
+      }
     }
     return classMirror;
+  }
+
+  static TypeMirror _reflectType(Type key) {
+    var typeMirror = _instanitationCache[key];
+    if (typeMirror == null) {
+      typeMirror = makeLocalTypeMirror(key);
+      _instanitationCache[key] = typeMirror;
+      if (typeMirror is ClassMirror && !typeMirror._isGeneric) {
+        _declarationCache[key] = typeMirror;
+      }
+    }
+    return typeMirror;
   }
 }
