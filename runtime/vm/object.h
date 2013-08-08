@@ -1961,14 +1961,8 @@ class Field : public Object {
   // Return class id that any non-null value read from this field is guaranteed
   // to have or kDynamicCid if such class id is not known.
   // Stores to this field must update this information hence the name.
-  intptr_t guarded_cid() const {
-    const intptr_t cid = raw_ptr()->guarded_cid_;
-    if (IsExternalizableCid(cid)) {
-      return kDynamicCid;
-    } else {
-      return cid;
-    }
-  }
+  intptr_t guarded_cid() const { return raw_ptr()->guarded_cid_; }
+
   void set_guarded_cid(intptr_t cid) const {
     raw_ptr()->guarded_cid_ = cid;
   }

@@ -952,9 +952,13 @@ CompileType LoadFieldInstr::ComputeType() const {
   }
 
   if ((field_ != NULL) && (field_->guarded_cid() != kIllegalCid)) {
-    ASSERT(!Field::IsExternalizableCid(field_->guarded_cid()));
-    return CompileType::CreateNullable(field_->is_nullable(),
-                                       field_->guarded_cid());
+    intptr_t field_cid =  field_->guarded_cid();
+    if (Field::IsExternalizableCid(field_cid)) {
+      // We cannot assume that the type of the value in the field has not
+      // changed on the fly.
+      field_cid = kDynamicCid;
+    }
+    return CompileType::CreateNullable(field_->is_nullable(), field_cid);
   }
 
   ASSERT(!Field::IsExternalizableCid(result_cid_));
