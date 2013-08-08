@@ -16,6 +16,12 @@ vmservice/isolate_list_test: Pass, Fail # Issue: 12294
 vmservice/isolate_stacktrace_command_test: Pass, Fail # Issue: 12294
 vmservice/unknown_isolate_command_test: Pass, Fail # Issue: 12294
 
+[ $runtime == vm && $system == windows ]
+vmservice/isolate_class_test: Pass, Fail # Issue: 12294
+vmservice/isolate_code_test: Pass, Fail # Issue: 12294
+vmservice/isolate_function_test: Pass, Fail # Issue: 12294
+vmservice/isolate_library_test: Pass, Fail # Issue: 12294
+
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
 io/process_invalid_arguments_test: Fail, OK
