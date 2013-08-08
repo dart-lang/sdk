@@ -56,8 +56,7 @@ main() {
           expect(classTypes is ClassGroup, isTrue);
           
           var classes = [];
-          classes.addAll(classTypes.abstractClasses.values);
-          classes.addAll(classTypes.regularClasses.values);
+          classes.addAll(classTypes.classes.values);
           classes.addAll(classTypes.errors.values);
           expect(classes.every((e) => e is Class), isTrue);
           
