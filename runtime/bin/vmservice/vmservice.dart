@@ -21,10 +21,10 @@ class VMService {
   static VMService _instance;
   RunningIsolates runningIsolates = new RunningIsolates();
 
-  void controlMessageHandler(int code, SendPort sp) {
+  void controlMessageHandler(int code, SendPort sp, String name) {
     switch (code) {
       case Constants.ISOLATE_STARTUP_MESSAGE_ID:
-        runningIsolates.isolateStartup(sp);
+        runningIsolates.isolateStartup(sp, name);
       break;
       case Constants.ISOLATE_SHUTDOWN_MESSAGE_ID:
         runningIsolates.isolateShutdown(sp);
@@ -33,8 +33,8 @@ class VMService {
   }
 
   void messageHandler(message, SendPort replyTo) {
-    if (message is List && message.length == 2) {
-      controlMessageHandler(message[0], message[1]);
+    if (message is List && message.length == 3) {
+      controlMessageHandler(message[0], message[1], message[2]);
     }
   }
 

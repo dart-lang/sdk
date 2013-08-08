@@ -826,7 +826,7 @@ DART_EXPORT void* Dart_CurrentIsolateData() {
 
 DART_EXPORT Dart_Handle Dart_DebugName() {
   Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
+  DARTSCOPE(isolate);
   return Api::NewHandle(isolate, String::New(isolate->name()));
 }
 

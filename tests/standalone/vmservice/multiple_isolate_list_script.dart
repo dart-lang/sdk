@@ -8,7 +8,9 @@ import 'dart:io';
 import 'dart:isolate';
 
 void isolateMain1() {
-  // Die immediately.
+  // Spawn another isolate.
+  spawnFunction(myIsolateName);
+  // Kill this isolate.
   port.close();
 }
 
@@ -17,12 +19,11 @@ void myIsolateName() {
   port.receive((a, b) {
     port.close();
   });
+  print(''); // Print blank line to signal that we are ready.
 }
 
 main() {
   spawnFunction(isolateMain1);
-  spawnFunction(myIsolateName);
-  print(''); // Print blank line to signal that we are ready.
   // Wait until signaled from spawning test.
   stdin.first.then((_) => exit(0));
 }

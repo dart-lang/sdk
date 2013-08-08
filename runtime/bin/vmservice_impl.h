@@ -23,7 +23,7 @@ class VmService {
 
   static bool IsRunning();
 
-  static bool SendIsolateStartupMessage(Dart_Port port);
+  static bool SendIsolateStartupMessage(Dart_Port port, Dart_Handle name);
   static bool SendIsolateShutdownMessage(Dart_Port port);
 
   static void VmServiceShutdownCallback(void* callback_data);

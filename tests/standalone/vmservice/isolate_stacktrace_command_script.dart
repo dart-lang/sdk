@@ -9,6 +9,7 @@ import 'dart:isolate';
 
 void a() {
   int x = 0;
+  print(''); // Print blank line to signal that we are ready.
   while (true) {
     x &= x;
   }
@@ -30,7 +31,6 @@ void myIsolateName() {
 
 main() {
   spawnFunction(myIsolateName);
-  print(''); // Print blank line to signal that we are ready.
   // Wait until signaled from spawning test.
   stdin.first.then((_) => exit(0));
 }

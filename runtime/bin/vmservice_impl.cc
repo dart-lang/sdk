@@ -387,26 +387,34 @@ void VmService::ThreadMain(uword parameters) {
 }
 
 
-static Dart_Handle MakeServiceControlMessage(Dart_Port port) {
-  Dart_Handle list = Dart_NewList(2);
+static Dart_Handle MakeServiceControlMessage(Dart_Port port, intptr_t code) {
+  Dart_Handle result;
+  Dart_Handle list = Dart_NewList(3);
   ASSERT(!Dart_IsError(list));
+  Dart_Handle codeHandle = Dart_NewInteger(code);
+  ASSERT(!Dart_IsError(codeHandle));
+  result = Dart_ListSetAt(list, 0, codeHandle);
+  ASSERT(!Dart_IsError(result));
   Dart_Handle sendPort = Dart_NewSendPort(port);
   ASSERT(!Dart_IsError(sendPort));
-  Dart_ListSetAt(list, 1, sendPort);
+  result = Dart_ListSetAt(list, 1, sendPort);
+  ASSERT(!Dart_IsError(result));
   return list;
 }
 
 
-bool VmService::SendIsolateStartupMessage(Dart_Port port) {
+bool VmService::SendIsolateStartupMessage(Dart_Port port, Dart_Handle name) {
   if (!IsRunning()) {
     return false;
   }
   Dart_Isolate isolate = Dart_CurrentIsolate();
   ASSERT(isolate != NULL);
   ASSERT(Dart_GetMainPortId() == port);
-  Dart_Handle list = MakeServiceControlMessage(port);
-  Dart_ListSetAt(list, 0,
-                 Dart_NewInteger(VM_SERVICE_ISOLATE_STARTUP_MESSAGE_ID));
+  Dart_Handle list =
+      MakeServiceControlMessage(port, VM_SERVICE_ISOLATE_STARTUP_MESSAGE_ID);
+  ASSERT(!Dart_IsError(list));
+  Dart_Handle result = Dart_ListSetAt(list, 2, name);
+  ASSERT(!Dart_IsError(result));
   return Dart_Post(port_, list);
 }
 
@@ -418,9 +426,9 @@ bool VmService::SendIsolateShutdownMessage(Dart_Port port) {
   Dart_Isolate isolate = Dart_CurrentIsolate();
   ASSERT(isolate != NULL);
   ASSERT(Dart_GetMainPortId() == port);
-  Dart_Handle list = MakeServiceControlMessage(port);
-  Dart_ListSetAt(list, 0,
-                 Dart_NewInteger(VM_SERVICE_ISOLATE_SHUTDOWN_MESSAGE_ID));
+  Dart_Handle list =
+      MakeServiceControlMessage(port, VM_SERVICE_ISOLATE_SHUTDOWN_MESSAGE_ID);
+  ASSERT(!Dart_IsError(list));
   return Dart_Post(port_, list);
 }
 
