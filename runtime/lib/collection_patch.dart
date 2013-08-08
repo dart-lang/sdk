@@ -94,7 +94,7 @@ patch class HashMap<K, V> {
     for (int offset = 0; offset < table.length; offset += entrySize) {
       Object entry = table[offset];
       if (!_hashTable._isFree(entry)) {
-        K key = entry;
+        K key = identical(entry, _NULL) ? null : entry;
         V value = _hashTable._value(offset);
         action(key, value);
         _hashTable._checkModification(modificationCount);
