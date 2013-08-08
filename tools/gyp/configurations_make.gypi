@@ -30,7 +30,7 @@
       },
 
       'Dart_ia32_Base': {
-        'cflags': [ '-m32', '-msse2', '-mfpmath=sse'],
+        'cflags': [ '-m32', '-msse2' ],
         'ldflags': [ '-m32', ],
       },
 
