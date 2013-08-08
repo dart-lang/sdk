@@ -2047,6 +2047,9 @@ class CodeEmitterTask extends CompilerTask {
 
     bool haveSameTypeVariables(ClassElement a, ClassElement b) {
       if (a.isClosure()) return true;
+      if (b.isUnnamedMixinApplication) {
+        return false;
+      }
       return a.typeVariables == b.typeVariables;
     }
 

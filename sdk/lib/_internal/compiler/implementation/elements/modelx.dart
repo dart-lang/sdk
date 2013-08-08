@@ -1532,6 +1532,8 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
 
   bool get hasBackendMembers => !backendMembers.isEmpty;
 
+  bool get isUnnamedMixinApplication => false;
+
   InterfaceType computeType(Compiler compiler) {
     if (thisType == null) {
       if (origin == null) {
@@ -1994,6 +1996,7 @@ class MixinApplicationElementX extends BaseClassElementX
       : super(name, enclosing, id, STATE_NOT_STARTED);
 
   bool get isMixinApplication => true;
+  bool get isUnnamedMixinApplication => node is! NamedMixinApplication;
   bool get hasConstructor => !constructors.isEmpty;
   bool get hasLocalScopeMembers => !constructors.isEmpty;
 

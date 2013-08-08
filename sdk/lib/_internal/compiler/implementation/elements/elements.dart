@@ -819,6 +819,7 @@ abstract class ClassElement extends TypeDeclarationElement
   SourceString get nativeTagInfo;
 
   bool get isMixinApplication;
+  bool get isUnnamedMixinApplication;
   bool get hasBackendMembers;
   bool get hasLocalScopeMembers;
 
