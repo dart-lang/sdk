@@ -4,9 +4,7 @@
 
 import 'package:unittest/unittest.dart';
 
-import 'package:analyzer_experimental/src/generated/ast.dart';
 import 'package:analyzer_experimental/src/generated/scanner.dart';
-import 'package:analyzer_experimental/src/services/formatter.dart';
 import 'package:analyzer_experimental/src/services/formatter_impl.dart';
 import 'package:analyzer_experimental/src/services/writer.dart';
 
@@ -57,6 +55,20 @@ main() {
         );
     });
 
+    test('CU w/class decl comment', () {
+      expectCUFormatsTo(
+          'import "foo";\n\n'
+          '//Killer class\n'
+          'class A {\n'
+          '}',
+          'import "foo";\n\n'
+          '//Killer class\n'
+          'class A {\n'
+          '}\n'
+        );
+    });
+
+
     test('CU (method indent)', () {
       expectCUFormatsTo(
           'class A {\n'
@@ -99,7 +111,7 @@ main() {
           'class A {\n'
           ' int x() { \n'
           'if (true) {return 42;\n'
-          '} else { return false; }\n'
+          '} else { return 13; }\n'
           '   }'
           '}',
           'class A {\n'
@@ -107,7 +119,7 @@ main() {
           '    if (true) {\n'
           '      return 42;\n'
           '    } else {\n'
-          '      return false;\n'
+          '      return 13;\n'
           '    }\n'
           '  }\n'
           '}\n'
@@ -131,15 +143,18 @@ main() {
       expectCUFormatsTo(
           'class A {\n'
           '}\n\n'
-          'class B {\n'
+          'class B {\n\n\n'
+          '  int b() => 42;\n\n'
+          '  int c() => b();\n\n'
           '}\n',
           'class A {\n'
           '}\n\n'
-          'class B {\n'
+          'class B {\n\n\n'
+          '  int b() => 42;\n\n'
+          '  int c() => b();\n\n'
           '}\n'
         );
     });
-    
 
     test('stmt', () {
       expectStmtFormatsTo(
@@ -167,7 +182,6 @@ main() {
          '}'
         );
     });
-
 
     test('initialIndent', () {
       var formatter = new CodeFormatter(
@@ -210,6 +224,11 @@ main() {
       expect(line.toString(), equals('  foo'));
     });
 
+    test('isWhitespace', () {
+      var line = new Line(indent: 1);
+      expect(line.isWhitespace(), isTrue);
+    });
+
   });
 
 
@@ -229,6 +248,12 @@ main() {
       writer.print('foo');
       writer.newline();
       expect(writer.toString(), equals('foo\n'));
+    });
+
+    test('newline trims whitespace', () {
+      var writer = new SourceWriter(indentCount:2);
+      writer.newline();
+      expect(writer.toString(), equals('\n'));
     });
 
     test('basic print (with indents)', () {

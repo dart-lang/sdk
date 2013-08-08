@@ -33,6 +33,15 @@ class Line {
     tokens.add(token);
   }
 
+  bool isWhitespace() {
+    for (var tok in tokens) {
+      if (!(tok is SpaceToken)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   _indent(int n) {
     tokens.add(useTabs ? new TabToken(n) : new SpaceToken(n * spacesPerIndent));
   }
@@ -100,9 +109,18 @@ class SourceWriter {
   }
 
   newline() {
+    if (currentLine.isWhitespace()) {
+      currentLine.tokens.clear();
+    }
     currentLine.addToken(new NewlineToken(this.lineSeparator));
     buffer.write(currentLine.toString());
     currentLine = new Line(indent: indentCount);
+  }
+
+  newlines(int num) {
+    while (num-- > 0) {
+      newline();
+    }
   }
 
   space() {
@@ -120,9 +138,12 @@ class SourceWriter {
 
   String toString() {
     var source = new StringBuffer(buffer.toString());
-    source.write(currentLine);
+    if (!currentLine.isWhitespace()) {
+      source.write(currentLine);
+    }
     return source.toString();
   }
+
 }
 
 

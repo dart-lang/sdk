@@ -4,6 +4,7 @@
 
 library formatter_impl;
 
+import 'dart:math';
 
 import 'package:analyzer_experimental/analyzer.dart';
 import 'package:analyzer_experimental/src/generated/parser.dart';
@@ -75,7 +76,7 @@ abstract class CodeFormatter {
   /// Format the specified portion (from [offset] with [length]) of the given
   /// [source] string, optionally providing an [indentationLevel].
   String format(CodeKind kind, String source, {int offset, int end,
-    int indentationLevel:0});
+    int indentationLevel: 0});
 
 }
 
@@ -89,7 +90,7 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
   CodeFormatterImpl(this.options);
 
   String format(CodeKind kind, String source, {int offset, int end,
-      int indentationLevel:0}) {
+      int indentationLevel: 0}) {
 
     var start = tokenize(source);
     checkForErrors();
@@ -137,14 +138,17 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
 }
 
 
-
 /// An AST visitor that drives formatting heuristics.
 class SourceVisitor implements ASTVisitor {
 
   /// The writer to which the source is to be written.
   SourceWriter writer;
 
+  /// Cached line info for calculating blank lines.
   LineInfo lineInfo;
+
+  /// Cached previous token for calculating preceding whitespace.
+  Token previousToken;
 
   /// Initialize a newly created visitor to write source code representing
   /// the visited nodes to the given [writer].
@@ -214,6 +218,7 @@ class SourceVisitor implements ASTVisitor {
     writer.unindent();
     writer.newline();
     writer.print('}');
+    previousToken = node.rightBracket;
   }
 
   visitBlockFunctionBody(BlockFunctionBody node) {
@@ -252,23 +257,26 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitClassDeclaration(ClassDeclaration node) {
-    visitToken(node.abstractKeyword, ' ');
-    writer.print('class ');
+    emitToken(node.abstractKeyword, ' ');
+    emitToken(node.classKeyword, ' ');
     visit(node.name);
     visit(node.typeParameters);
     visitPrefixed(' ', node.extendsClause);
     visitPrefixed(' ', node.withClause);
     visitPrefixed(' ', node.implementsClause);
-    writer.print(' {');
+//    writer.print(' {');
+//    writer.print(' ');
+//    emit(node.leftBracket);
+    emitPrefixedToken(' ', node.leftBracket);
     writer.indent();
-    for (var member in node.members) {
-      writer.newline();
-      visit(member);
+
+    for (var i = 0; i < node.members.length; i++) {
+      visit(node.members[i]);
     }
 
     writer.unindent();
-    writer.newline();
-    writer.print('}');
+
+    emit(node.rightBracket, min: 1);
   }
 
   visitClassTypeAlias(ClassTypeAlias node) {
@@ -295,8 +303,9 @@ class SourceVisitor implements ASTVisitor {
     visit(scriptTag);
     var prefix = scriptTag == null ? '' : ' ';
     visitPrefixedList(prefix, directives, ' ');
-    prefix = scriptTag == null && directives.isEmpty ? '' : ' ';
-    visitPrefixedListWithBlanks(prefix, node.declarations);
+    //prefix = scriptTag == null && directives.isEmpty ? '' : ' ';
+    prefix = '';
+    visitPrefixedList(prefix, node.declarations);
 
     //TODO(pquitslund): move this?
     writer.newline();
@@ -311,9 +320,9 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitConstructorDeclaration(ConstructorDeclaration node) {
-    visitToken(node.externalKeyword, ' ');
-    visitToken(node.constKeyword, ' ');
-    visitToken(node.factoryKeyword, ' ');
+    emitToken(node.externalKeyword, ' ');
+    emitToken(node.constKeyword, ' ');
+    emitToken(node.factoryKeyword, ' ');
     visit(node.returnType);
     visitPrefixed('.', node.name);
     visit(node.parameters);
@@ -323,7 +332,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    visitToken(node.keyword, '.');
+    emitToken(node.keyword, '.');
     visit(node.fieldName);
     writer.print(' = ');
     visit(node.expression);
@@ -341,7 +350,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitDeclaredIdentifier(DeclaredIdentifier node) {
-    visitToken(node.keyword, ' ');
+    emitToken(node.keyword, ' ');
     visitSuffixed(node.type, ' ');
     visit(node.identifier);
   }
@@ -401,13 +410,13 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitFieldDeclaration(FieldDeclaration node) {
-    visitToken(node.keyword, ' ');
+    emitToken(node.keyword, ' ');
     visit(node.fields);
     writer.print(';');
   }
 
   visitFieldFormalParameter(FieldFormalParameter node) {
-    visitToken(node.keyword, ' ');
+    emitToken(node.keyword, ' ');
     visitSuffixed(node.type, ' ');
     writer.print('this.');
     visit(node.identifier);
@@ -468,7 +477,7 @@ class SourceVisitor implements ASTVisitor {
 
   visitFunctionDeclaration(FunctionDeclaration node) {
     visitSuffixed(node.returnType, ' ');
-    visitToken(node.propertyKeyword, ' ');
+    emitToken(node.propertyKeyword, ' ');
     visit(node.name);
     visit(node.functionExpression);
   }
@@ -527,7 +536,9 @@ class SourceVisitor implements ASTVisitor {
     visit(node.uri);
     visitPrefixed(' as ', node.prefix);
     visitPrefixedList(' ', node.combinators, ' ');
-    writer.print(';');
+//    writer.print(';');
+    emit(node.semicolon);
+//    writer.newline();
   }
 
   visitIndexExpression(IndexExpression node) {
@@ -542,7 +553,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitInstanceCreationExpression(InstanceCreationExpression node) {
-    visitToken(node.keyword, ' ');
+    emitToken(node.keyword, ' ');
     visit(node.constructorName);
     visit(node.argumentList);
   }
@@ -625,11 +636,11 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitMethodDeclaration(MethodDeclaration node) {
-    visitToken(node.externalKeyword, ' ');
-    visitToken(node.modifierKeyword, ' ');
+    emitToken(node.externalKeyword, ' ');
+    emitToken(node.modifierKeyword, ' ');
     visitSuffixed(node.returnType, ' ');
-    visitToken(node.propertyKeyword, ' ');
-    visitToken(node.operatorKeyword, ' ');
+    emitToken(node.propertyKeyword, ' ');
+    emitToken(node.operatorKeyword, ' ');
     visit(node.name);
     if (!node.isGetter) {
       visit(node.parameters);
@@ -742,13 +753,14 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitSimpleFormalParameter(SimpleFormalParameter node) {
-    visitToken(node.keyword, ' ');
+    emitToken(node.keyword, ' ');
     visitSuffixed(node.type, ' ');
     visit(node.identifier);
   }
 
   visitSimpleIdentifier(SimpleIdentifier node) {
-    writer.print(node.token.lexeme);
+    emit(node.token);
+//    writer.print(node.token.lexeme);
   }
 
   visitSimpleStringLiteral(SimpleStringLiteral node) {
@@ -843,7 +855,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitVariableDeclarationList(VariableDeclarationList node) {
-    visitToken(node.keyword, ' ');
+    emitToken(node.keyword, ' ');
     visitSuffixed(node.type, ' ');
     visitList(node.variables, ', ');
   }
@@ -899,11 +911,20 @@ class SourceVisitor implements ASTVisitor {
     visit(body);
   }
 
-  /// Safely visit the given [token], printing the suffix after the [token]
-  /// node if it is non-null.
-  visitToken(Token token, String suffix) {
+  /// Emit the given [token], printing the prefix before the [token]
+  /// if it is non-null.
+  emitPrefixedToken(String prefix, Token token) {
     if (token != null) {
-      writer.print(token.lexeme);
+      writer.print(prefix);
+      emit(token);
+    }
+  }
+
+  /// Emit the given [token], printing the suffix after the [token]
+  /// node if it is non-null.
+  emitToken(Token token, String suffix) {
+    if (token != null) {
+      emit(token);
       writer.print(suffix);
     }
   }
@@ -938,13 +959,14 @@ class SourceVisitor implements ASTVisitor {
   }
 
   /// Print a list of [nodes], separated by the given [separator].
-  visitPrefixedList(String prefix, NodeList<ASTNode> nodes, String separator) {
+  visitPrefixedList(String prefix, NodeList<ASTNode> nodes,
+      [String separator = null]) {
     if (nodes != null) {
       var size = nodes.length;
       if (size > 0) {
         writer.print(prefix);
         for (var i = 0; i < size; i++) {
-          if (i > 0) {
+          if (i > 0 && separator != null) {
             writer.print(separator);
           }
           nodes[i].accept(this);
@@ -953,29 +975,45 @@ class SourceVisitor implements ASTVisitor {
     }
   }
 
-  /// Print a list of [nodes], preserving blank lines between nodes.
-  visitPrefixedListWithBlanks(String prefix,
-      NodeList<ASTNode> nodes) {
-    if (nodes != null) {
-      var size = nodes.length;
-      if (size > 0) {
-        writer.print(prefix);
-        for (var i = 0; i < size; i++) {
-          if (i > 0) {
-            // Emit blanks lines
-            var lastLine =
-                lineInfo.getLocation(nodes[i-1].endToken.offset).lineNumber;
-            var currentLine =
-                lineInfo.getLocation(nodes[i].beginToken.offset).lineNumber;
-            var blanks = currentLine - lastLine;
-            for (var i = 0; i < blanks; i++) {
-              writer.newline();
-            }
-          }
-          nodes[i].accept(this);
-        }
-      }
+  /// Emit the given [token], preceeded by any detected newlines or a minimum
+  /// as specified by [min].
+  emit(Token token, {min: 0}) {
+    var comment = token.precedingComments;
+    var currentToken = comment != null ? comment : token;
+    var newlines = max(min, countNewlinesBetween(previousToken, currentToken));
+    writer.newlines(newlines);
+    while (comment != null) {
+      writer.print(comment.toString().trim());
+      writer.newline();
+      comment = comment.next;
     }
+
+    previousToken = token;
+    writer.print(token.lexeme);
+  }
+
+  /// Count the blanks between these two nodes.
+  int countBlankLinesBetween(ASTNode lastNode, ASTNode currentNode) =>
+      countNewlinesBetween(lastNode.endToken, currentNode.beginToken);
+
+  /// Count newlines preceeding this [node].
+  int countPrecedingNewlines(ASTNode node) =>
+      countNewlinesBetween(node.beginToken.previous, node.beginToken);
+
+  /// Count newlines succeeding this [node].
+  int countSucceedingNewlines(ASTNode node) => node == null ? 0 :
+      countNewlinesBetween(node.endToken, node.endToken.next);
+
+  /// Count the blanks between these two nodes.
+  int countNewlinesBetween(Token last, Token current) {
+    if (last == null || current == null) {
+      return 0;
+    }
+    var lastLine =
+        lineInfo.getLocation(last.offset).lineNumber;
+    var currentLine =
+        lineInfo.getLocation(current.offset).lineNumber;
+    return  currentLine - lastLine;
   }
 
 }
