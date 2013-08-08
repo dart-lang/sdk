@@ -133,6 +133,8 @@ bool CheckClassInstr::IsNullCheck() const {
   }
   CompileType* in_type = value()->Type();
   const intptr_t cid = unary_checks().GetCidAt(0);
+  // Performance check: use CheckSmiInstr instead.
+  ASSERT(cid != kSmiCid);
   return in_type->is_nullable() && (in_type->ToNullableCid() == cid);
 }
 
