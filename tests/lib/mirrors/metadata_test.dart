@@ -20,6 +20,7 @@ class MyClass {
 
   @string @symbol @string
   myMethod() => 1;
+  myOtherMethod() => 2;
 }
 
 checkMetadata(DeclarationMirror mirror, List expectedMetadata) {
@@ -57,6 +58,8 @@ main() {
   checkMetadata(function, [symbol, string, symbol]);
   MethodMirror method = myClassMirror.methods[const Symbol('myMethod')];
   checkMetadata(method, [string, symbol, string]);
+  method = myClassMirror.methods[const Symbol('myOtherMethod')];
+  checkMetadata(method, []);
 
   VariableMirror xMirror = myClassMirror.variables[const Symbol('x')];
   checkMetadata(xMirror, [hest, hest, symbol]);

@@ -4743,8 +4743,8 @@ void Parser::ParseLibraryDefinition() {
   // declaration that follows the library definitions. Therefore, we
   // need to remember the position of the last token that was
   // successfully consumed.
-  intptr_t metadata_pos = TokenPos();
-  SkipMetadata();
+  intptr_t rewind_pos = TokenPos();
+  intptr_t metadata_pos = SkipMetadata();
   if (CurrentToken() == Token::kLIBRARY) {
     if (is_patch_source()) {
       ErrorMsg("patch cannot override library name");
@@ -4753,14 +4753,14 @@ void Parser::ParseLibraryDefinition() {
     if (metadata_pos >= 0) {
       library_.AddLibraryMetadata(current_class(), metadata_pos);
     }
-    metadata_pos = TokenPos();
-    SkipMetadata();
+    rewind_pos = TokenPos();
+    metadata_pos = SkipMetadata();
   }
   while ((CurrentToken() == Token::kIMPORT) ||
       (CurrentToken() == Token::kEXPORT)) {
     ParseLibraryImportExport();
-    metadata_pos = TokenPos();
-    SkipMetadata();
+    rewind_pos = TokenPos();
+    metadata_pos = SkipMetadata();
   }
   // Core lib has not been explicitly imported, so we implicitly
   // import it here.
@@ -4773,10 +4773,10 @@ void Parser::ParseLibraryDefinition() {
   }
   while (CurrentToken() == Token::kPART) {
     ParseLibraryPart();
-    metadata_pos = TokenPos();
-    SkipMetadata();
+    rewind_pos = TokenPos();
+    metadata_pos = SkipMetadata();
   }
-  SetPosition(metadata_pos);
+  SetPosition(rewind_pos);
 }
 
 
