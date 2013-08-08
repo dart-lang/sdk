@@ -5062,11 +5062,14 @@ LocalVariable* Parser::LookupPhaseParameter() {
 
 void Parser::CaptureInstantiator() {
   ASSERT(current_block_->scope->function_level() > 0);
+  bool found = false;
   if (current_function().IsInFactoryScope()) {
-    current_block_->scope->CaptureVariable(Symbols::TypeArgumentsParameter());
+    found = current_block_->scope->CaptureVariable(
+        Symbols::TypeArgumentsParameter());
   } else {
-    current_block_->scope->CaptureVariable(Symbols::This());
+    found = current_block_->scope->CaptureVariable(Symbols::This());
   }
+  ASSERT(found);
 }
 
 

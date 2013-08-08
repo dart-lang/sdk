@@ -342,7 +342,7 @@ LocalVariable* LocalScope::LookupVariable(const String& name, bool test_only) {
 }
 
 
-void LocalScope::CaptureVariable(const String& name) {
+bool LocalScope::CaptureVariable(const String& name) {
   ASSERT(name.IsSymbol());
   LocalScope* current_scope = this;
   while (current_scope != NULL) {
@@ -358,10 +358,11 @@ void LocalScope::CaptureVariable(const String& name) {
         ASSERT(var->owner() != intermediate_scope);  // Item is an alias.
         intermediate_scope = intermediate_scope->parent();
       }
-      return;
+      return true;
     }
     current_scope = current_scope->parent();
   }
+  return false;
 }
 
 

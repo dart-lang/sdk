@@ -284,8 +284,9 @@ class LocalScope : public ZoneAllocated {
   LocalScope* LookupSwitchScope();
 
   // Looks up variable in this scope and mark as captured if applicable.
-  // Finds the variable even if it is marked invisible.
-  void CaptureVariable(const String& name);
+  // Finds the variable even if it is marked invisible. Returns true if
+  // the variable was found, false if it was not found.
+  bool CaptureVariable(const String& name);
 
   // Look for unresolved forward references to labels in this scope.
   // If there are any, propagate the forward reference to the next
