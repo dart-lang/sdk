@@ -632,6 +632,14 @@ class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
     return _simpleName;
   }
 
+  MethodMirror _callMethod;
+  MethodMirror get callMethod {
+    if (_callMethod == null) {
+      _callMethod = this._FunctionTypeMirror_call_method(_reflectee);
+    }
+    return _callMethod;
+  }
+
   TypeMirror _returnType = null;
   TypeMirror get returnType {
     if (_returnType == null) {
@@ -654,6 +662,9 @@ class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
   final Map<Symbol, TypeVariableMirror> typeVariables = const {};
 
   String toString() => "FunctionTypeMirror on '${_n(simpleName)}'";
+
+  MethodMirror _FunctionTypeMirror_call_method(reflectee)
+      native "FunctionTypeMirror_call_method";
 
   static Type _FunctionTypeMirror_return_type(reflectee)
       native "FunctionTypeMirror_return_type";

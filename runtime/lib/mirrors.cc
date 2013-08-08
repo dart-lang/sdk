@@ -156,6 +156,22 @@ static RawInstance* CreateVariableMirror(const Field& field,
   return CreateMirror(Symbols::_LocalVariableMirrorImpl(), args);
 }
 
+static RawFunction* CallMethod(const Class& cls) {
+  if (cls.IsSignatureClass()) {
+    return cls.signature_function();
+  }
+
+  Class& lookup_cls = Class::Handle(cls.raw());
+  Function& call_function = Function::Handle();
+  do {
+    call_function = lookup_cls.LookupDynamicFunction(Symbols::Call());
+    if (!call_function.IsNull()) {
+      return call_function.raw();
+    }
+    lookup_cls = lookup_cls.SuperClass();
+  } while (!lookup_cls.IsNull());
+  return Function::null();
+}
 
 static RawInstance* CreateClassMirror(const Class& cls,
                                       const AbstractType& type,
@@ -350,10 +366,23 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_metadata, 1) {
 }
 
 
+DEFINE_NATIVE_ENTRY(FunctionTypeMirror_call_method, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance,
+                               owner_mirror,
+                               arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
+  const Class& cls = Class::Handle(ref.GetClassReferent());
+  const Function& func = Function::Handle(CallMethod(cls));
+  ASSERT(!func.IsNull());
+  return CreateMethodMirror(func, owner_mirror);
+}
+
+
 DEFINE_NATIVE_ENTRY(FunctionTypeMirror_parameters, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
   const Class& cls = Class::Handle(ref.GetClassReferent());
-  const Function& func = Function::Handle(cls.signature_function());
+  const Function& func = Function::Handle(CallMethod(cls));
+  ASSERT(!func.IsNull());
   return CreateParameterMirrorList(func);
 }
 
@@ -361,7 +390,8 @@ DEFINE_NATIVE_ENTRY(FunctionTypeMirror_parameters, 1) {
 DEFINE_NATIVE_ENTRY(FunctionTypeMirror_return_type, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
   const Class& cls = Class::Handle(ref.GetClassReferent());
-  const Function& func = Function::Handle(cls.signature_function());
+  const Function& func = Function::Handle(CallMethod(cls));
+  ASSERT(!func.IsNull());
   return func.result_type();
 }
 
@@ -777,10 +807,13 @@ DEFINE_NATIVE_ENTRY(ClosureMirror_apply, 2) {
 
 DEFINE_NATIVE_ENTRY(ClosureMirror_function, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(0));
-  ASSERT(closure.IsClosure());
+  ASSERT(!closure.IsNull());
 
-  const Function& func = Function::Handle(Closure::function(closure));
-  return CreateMethodMirror(func, Instance::null_instance());
+  Function& function = Function::Handle();
+  bool callable = closure.IsCallable(&function, NULL);
+  ASSERT(callable);
+
+  return CreateMethodMirror(function, Instance::null_instance());
 }
 
 

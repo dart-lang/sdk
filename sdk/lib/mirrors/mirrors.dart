@@ -890,8 +890,6 @@ abstract class FunctionTypeMirror implements ClassMirror {
 
   /**
    * A mirror on the [:call:] method for the reflectee.
-   *
-   * TODO(turnidge): What is this and what is it for?
    */
   MethodMirror get callMethod;
 }
