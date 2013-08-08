@@ -289,7 +289,6 @@ static bool Utf8ConvertArgv(int argc, char** argv) {
 static int ParseArguments(int argc,
                           char** argv,
                           CommandLineOptions* vm_options,
-                          char** executable_name,
                           char** script_name,
                           CommandLineOptions* dart_options,
                           bool* print_flags_seen,
@@ -297,8 +296,8 @@ static int ParseArguments(int argc,
   const char* kPrefix = "--";
   const intptr_t kPrefixLen = strlen(kPrefix);
 
-  // Get the executable name.
-  *executable_name = argv[0];
+  // Store the executable name.
+  Platform::SetExecutableName(argv[0]);
 
   // Start the rest after the executable name.
   int i = 1;
@@ -360,17 +359,8 @@ static int ParseArguments(int argc,
 
 
 static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
-                                       const char* executable_name,
                                        const char* script_name) {
   int options_count = options->count();
-  Dart_Handle dart_executable = DartUtils::NewString(executable_name);
-  if (Dart_IsError(dart_executable)) {
-    return dart_executable;
-  }
-  Dart_Handle dart_script = DartUtils::NewString(script_name);
-  if (Dart_IsError(dart_script)) {
-    return dart_script;
-  }
   Dart_Handle dart_arguments = Dart_NewList(options_count);
   if (Dart_IsError(dart_arguments)) {
     return dart_arguments;
@@ -393,35 +383,6 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
   Dart_Handle io_lib = Dart_LookupLibrary(io_lib_url);
   if (Dart_IsError(io_lib)) {
     return io_lib;
-  }
-  Dart_Handle platform_class_name = DartUtils::NewString("Platform");
-  if (Dart_IsError(platform_class_name)) {
-    return platform_class_name;
-  }
-  Dart_Handle platform_type =
-      Dart_GetType(io_lib, platform_class_name, 0, NULL);
-  if (Dart_IsError(platform_type)) {
-    return platform_type;
-  }
-  Dart_Handle executable_name_name = DartUtils::NewString("_nativeExecutable");
-  if (Dart_IsError(executable_name_name)) {
-    return executable_name_name;
-  }
-  Dart_Handle set_executable_name =
-      Dart_SetField(platform_type,
-                    executable_name_name,
-                    dart_executable);
-  if (Dart_IsError(set_executable_name)) {
-    return set_executable_name;
-  }
-  Dart_Handle script_name_name = DartUtils::NewString("_nativeScript");
-  if (Dart_IsError(script_name_name)) {
-    return script_name_name;
-  }
-  Dart_Handle set_script_name =
-      Dart_SetField(platform_type, script_name_name, dart_script);
-  if (Dart_IsError(set_script_name)) {
-    return set_script_name;
   }
   Dart_Handle runtime_options_class_name = DartUtils::NewString("_OptionsImpl");
   if (Dart_IsError(runtime_options_class_name)) {
@@ -499,6 +460,23 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
     Dart_ShutdownIsolate();
     return NULL;
   }
+
+  Dart_Handle io_lib_url = DartUtils::NewString("dart:io");
+  CHECK_RESULT(io_lib_url);
+  Dart_Handle io_lib = Dart_LookupLibrary(io_lib_url);
+  CHECK_RESULT(io_lib);
+  Dart_Handle platform_class_name = DartUtils::NewString("Platform");
+  CHECK_RESULT(platform_class_name);
+  Dart_Handle platform_type =
+      Dart_GetType(io_lib, platform_class_name, 0, NULL);
+  CHECK_RESULT(platform_type);
+  Dart_Handle script_name_name = DartUtils::NewString("_nativeScript");
+  CHECK_RESULT(script_name_name);
+  Dart_Handle dart_script = DartUtils::NewString(script_uri);
+  CHECK_RESULT(dart_script);
+  Dart_Handle set_script_name =
+      Dart_SetField(platform_type, script_name_name, dart_script);
+  CHECK_RESULT(set_script_name);
 
   VmService::SendIsolateStartupMessage(Dart_GetMainPortId());
 
@@ -696,7 +674,6 @@ static Dart_Handle GenerateScriptSource() {
 
 
 int main(int argc, char** argv) {
-  char* executable_name;
   char* script_name;
   CommandLineOptions vm_options(argc);
   CommandLineOptions dart_options(argc);
@@ -716,7 +693,6 @@ int main(int argc, char** argv) {
   if (ParseArguments(argc,
                      argv,
                      &vm_options,
-                     &executable_name,
                      &script_name,
                      &dart_options,
                      &print_flags_seen,
@@ -833,7 +809,7 @@ int main(int argc, char** argv) {
 
     // Create a dart options object that can be accessed from dart code.
     Dart_Handle options_result =
-        SetupRuntimeOptions(&dart_options, executable_name, script_name);
+        SetupRuntimeOptions(&dart_options, script_name);
     if (Dart_IsError(options_result)) {
       return DartErrorExit(options_result);
     }

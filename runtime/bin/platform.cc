@@ -12,6 +12,8 @@
 namespace dart {
 namespace bin {
 
+const char* Platform::executable_name_ = NULL;
+
 void FUNCTION_NAME(Platform_NumberOfProcessors)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, Dart_NewInteger(Platform::NumberOfProcessors()));
 }
@@ -37,6 +39,12 @@ void FUNCTION_NAME(Platform_LocalHostname)(Dart_NativeArguments args) {
   }
 }
 
+
+void FUNCTION_NAME(Platform_ExecutableName)(Dart_NativeArguments args) {
+  ASSERT(Platform::GetExecutableName() != NULL);
+  Dart_SetReturnValue(
+      args, Dart_NewStringFromCString(Platform::GetExecutableName()));
+}
 
 void FUNCTION_NAME(Platform_Environment)(Dart_NativeArguments args) {
   intptr_t count = 0;

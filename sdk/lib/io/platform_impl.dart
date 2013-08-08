@@ -9,6 +9,7 @@ class _Platform {
   external static String _pathSeparator();
   external static String _operatingSystem();
   external static _localHostname();
+  external static _executable();
   external static _environment();
   external static String _version();
 
@@ -24,6 +25,8 @@ class _Platform {
       return result;
     }
   }
+
+  static String executable = _executable();
 
   static Map<String, String> get environment {
     var env = _environment();

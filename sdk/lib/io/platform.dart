@@ -15,9 +15,6 @@ class Platform {
   static final _localHostname = _Platform.localHostname;
   static final _version = _Platform.version;
 
-  // This executable singleton is written to by the embedder if applicable.
-  static String _nativeExecutable = '';
-
   // This script singleton is written to by the embedder if applicable.
   static String _nativeScript = '';
 
@@ -80,10 +77,12 @@ class Platform {
    * If the execution environment does not support [executable] an empty
    * string is returned.
    */
-  static String get executable => _nativeExecutable;
+  static String get executable => _Platform.executable;
 
   /**
-   * Returns the path of the script being run in this isolate.
+   * Returns the URI (in String form) of the script being run in this
+   * isolate. If the URI is relative it is relative to the file URI of
+   * the working directory of the VM when it was started.
    *
    * If the executable environment does not support [script] an empty
    * string is returned.

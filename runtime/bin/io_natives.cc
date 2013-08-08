@@ -33,6 +33,7 @@ namespace bin {
   V(Platform_OperatingSystem, 0)                                               \
   V(Platform_PathSeparator, 0)                                                 \
   V(Platform_LocalHostname, 0)                                                 \
+  V(Platform_ExecutableName, 0)                                                \
   V(Platform_Environment, 0)                                                   \
   V(Platform_GetVersion, 0)                                                    \
   V(Process_Start, 10)                                                         \
