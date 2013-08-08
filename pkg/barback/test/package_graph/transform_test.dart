@@ -894,4 +894,123 @@ main() {
     resumeProvider();
     buildShouldSucceed();
   });
+
+  group('cross-package transforms', () {
+    test("can access other packages' source assets", () {
+      initGraph({
+        "pkg1|a.txt": "pkg2|a.inc",
+        "pkg2|a.inc": "a"
+      }, {"pkg1": [[new ManyToOneTransformer("txt")]]});
+
+      updateSources(["pkg1|a.txt", "pkg2|a.inc"]);
+      expectAsset("pkg1|a.out", "a");
+      buildShouldSucceed();
+    });
+
+    test("can access other packages' transformed assets", () {
+      initGraph({
+        "pkg1|a.txt": "pkg2|a.inc",
+        "pkg2|a.txt": "a"
+      }, {
+        "pkg1": [[new ManyToOneTransformer("txt")]],
+        "pkg2": [[new RewriteTransformer("txt", "inc")]]
+      });
+
+      updateSources(["pkg1|a.txt", "pkg2|a.txt"]);
+      expectAsset("pkg1|a.out", "a.inc");
+      buildShouldSucceed();
+    });
+
+    test("re-runs a transform when an input from another package changes", () {
+      initGraph({
+        "pkg1|a.txt": "pkg2|a.inc",
+        "pkg2|a.inc": "a"
+      }, {
+        "pkg1": [[new ManyToOneTransformer("txt")]]
+      });
+
+      updateSources(["pkg1|a.txt", "pkg2|a.inc"]);
+      expectAsset("pkg1|a.out", "a");
+      buildShouldSucceed();
+
+      modifyAsset("pkg2|a.inc", "new a");
+      schedule(() => updateSources(["pkg2|a.inc"]));
+      expectAsset("pkg1|a.out", "new a");
+      buildShouldSucceed();
+    });
+
+    test("re-runs a transform when a transformed input from another package "
+        "changes", () {
+      initGraph({
+        "pkg1|a.txt": "pkg2|a.inc",
+        "pkg2|a.txt": "a"
+      }, {
+        "pkg1": [[new ManyToOneTransformer("txt")]],
+        "pkg2": [[new RewriteTransformer("txt", "inc")]]
+      });
+
+      updateSources(["pkg1|a.txt", "pkg2|a.txt"]);
+      expectAsset("pkg1|a.out", "a.inc");
+      buildShouldSucceed();
+
+      modifyAsset("pkg2|a.txt", "new a");
+      schedule(() => updateSources(["pkg2|a.txt"]));
+      expectAsset("pkg1|a.out", "new a.inc");
+      buildShouldSucceed();
+    });
+
+    test("runs a transform that's added because of a change in another package",
+        () {
+      initGraph({
+        "pkg1|a.txt": "pkg2|a.inc",
+        "pkg2|a.inc": "b"
+      }, {
+        "pkg1": [
+          [new ManyToOneTransformer("txt")],
+          [new OneToManyTransformer("out")],
+          [new RewriteTransformer("md", "done")]
+        ],
+      });
+
+      // pkg1|a.txt generates outputs based on the contents of pkg2|a.inc. At
+      // first pkg2|a.inc only includes "b", which is not transformed. Then
+      // pkg2|a.inc is updated to include "b,c.md". pkg1|c.md triggers the
+      // md->done rewrite transformer, producing pkg1|c.done.
+
+      updateSources(["pkg1|a.txt", "pkg2|a.inc"]);
+      expectAsset("pkg1|b", "spread out");
+      buildShouldSucceed();
+
+      modifyAsset("pkg2|a.inc", "b,c.md");
+      schedule(() => updateSources(["pkg2|a.inc"]));
+      expectAsset("pkg1|b", "spread out");
+      expectAsset("pkg1|c.done", "spread out.done");
+      buildShouldSucceed();
+    });
+
+    test("doesn't run a transform that's removed because of a change in "
+        "another package", () {
+      initGraph({
+        "pkg1|a.txt": "pkg2|a.inc",
+        "pkg2|a.inc": "b,c.md"
+      }, {
+        "pkg1": [
+          [new ManyToOneTransformer("txt")],
+          [new OneToManyTransformer("out")],
+          [new RewriteTransformer("md", "done")]
+        ],
+      });
+
+      updateSources(["pkg1|a.txt", "pkg2|a.inc"]);
+      expectAsset("pkg1|b", "spread out");
+      expectAsset("pkg1|c.done", "spread out.done");
+      buildShouldSucceed();
+
+      modifyAsset("pkg2|a.inc", "b");
+      schedule(() => updateSources(["pkg2|a.inc"]));
+      expectAsset("pkg1|b", "spread out");
+      expectNoAsset("pkg1|c.done");
+      buildShouldSucceed();
+    });
+  });
 }

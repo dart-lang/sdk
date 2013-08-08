@@ -50,7 +50,7 @@ class Transform {
 
   Transform._(this._node, this._outputs);
 
-  /// Gets the asset for for an input [id].
+  /// Gets the asset for an input [id].
   ///
   /// If an input with that ID cannot be found, throws an
   /// [AssetNotFoundException].

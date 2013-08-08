@@ -9,10 +9,8 @@ import 'dart:collection';
 import 'dart:io';
 
 import 'package:barback/barback.dart';
-import 'package:barback/src/asset_cascade.dart';
 import 'package:barback/src/asset_set.dart';
 import 'package:barback/src/cancelable_future.dart';
-import 'package:barback/src/package_graph.dart';
 import 'package:barback/src/utils.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:scheduled_test/scheduled_test.dart';
@@ -30,11 +28,11 @@ export 'transformer/rewrite.dart';
 var _configured = false;
 
 MockProvider _provider;
-PackageGraph _graph;
+Barback _barback;
 
 /// Calls to [buildShouldSucceed] and [buildShouldFail] set expectations on
-/// successive [BuildResult]s from [_graph]. This keeps track of how many calls
-/// have already been made so later calls know which result to look for.
+/// successive [BuildResult]s from [_barback]. This keeps track of how many
+/// calls have already been made so later calls know which result to look for.
 int _nextBuildResult;
 
 void initConfig() {
@@ -64,7 +62,7 @@ void initGraph([assets,
   if (transformers == null) transformers = {};
 
   _provider = new MockProvider(assets, transformers);
-  _graph = new PackageGraph(_provider);
+  _barback = new Barback(_provider);
   _nextBuildResult = 0;
 }
 
@@ -79,7 +77,7 @@ void updateSources(Iterable assets) {
     return asset;
   });
 
-  _graph.updateSources(assets);
+  _barback.updateSources(assets);
 }
 
 /// Removes [assets] from the current [PackageProvider].
@@ -93,7 +91,7 @@ void removeSources(Iterable assets) {
     return asset;
   });
 
-  _graph.removeSources(assets);
+  _barback.removeSources(assets);
 }
 
 /// Schedules a change to the contents of an asset identified by [name] to
@@ -138,7 +136,7 @@ void resumeProvider() {
 /// after this.
 void buildShouldNotBeDone() {
   _futureShouldNotCompleteUntil(
-      _graph.results.elementAt(_nextBuildResult),
+      _barback.results.elementAt(_nextBuildResult),
       schedule(() => pumpEventQueue(), "build should not terminate"),
       "build");
 }
@@ -167,14 +165,14 @@ void buildShouldFail(List matchers) {
 }
 
 Future<BuildResult> _getNextBuildResult() =>
-  _graph.results.elementAt(_nextBuildResult++);
+  _barback.results.elementAt(_nextBuildResult++);
 
 /// Pauses the schedule until the currently running build completes.
 ///
 /// Validates that the build completed successfully.
 void waitForBuild() {
   schedule(() {
-    return _graph.results.first.then((result) {
+    return _barback.results.first.then((result) {
       expect(result.succeeded, isTrue);
     });
   }, "wait for build");
@@ -193,7 +191,7 @@ void expectAsset(String name, [String contents]) {
   }
 
   schedule(() {
-    return _graph.getAssetById(id).then((asset) {
+    return _barback.getAssetById(id).then((asset) {
       // TODO(rnystrom): Make an actual Matcher class for this.
       expect(asset.id, equals(id));
       expect(asset.readAsString(), completion(equals(contents)));
@@ -208,7 +206,7 @@ void expectNoAsset(String name) {
 
   // Make sure the future gets the error.
   schedule(() {
-    return _graph.getAssetById(id).then((asset) {
+    return _barback.getAssetById(id).then((asset) {
       fail("Should have thrown error but got $asset.");
     }).catchError((error) {
       expect(error, new isInstanceOf<AssetNotFoundException>());
@@ -224,7 +222,7 @@ void expectAssetDoesNotComplete(String name) {
 
   schedule(() {
     return _futureShouldNotCompleteUntil(
-        _graph.getAssetById(id),
+        _barback.getAssetById(id),
         pumpEventQueue(),
         "asset $id");
   }, "asset $id should not complete");

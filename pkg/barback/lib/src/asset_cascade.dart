@@ -7,11 +7,10 @@ library barback.asset_cascade;
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:stack_trace/stack_trace.dart';
-
 import 'asset.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
+import 'build_result.dart';
 import 'cancelable_future.dart';
 import 'errors.dart';
 import 'change_batch.dart';
@@ -24,7 +23,7 @@ import 'utils.dart';
 ///
 /// This keeps track of which [Transformer]s are applied to which assets, and
 /// re-runs those transformers when their dependencies change. The transformed
-/// assets are accessible via [getAssetById].
+/// asset nodes are accessible via [getAssetNode].
 ///
 /// A cascade consists of one or more [Phases], each of which has one or more
 /// [Transformer]s that run in parallel, potentially on the same inputs. The
@@ -37,7 +36,7 @@ class AssetCascade {
 
   /// The [PackageGraph] that tracks all [AssetCascade]s for all dependencies of
   /// the current app.
-  final PackageGraph _graph;
+  final PackageGraph graph;
 
   /// The controllers for the [AssetNode]s that provide information about this
   /// cascade's package's source assets.
@@ -89,7 +88,7 @@ class AssetCascade {
   /// It loads source assets within [package] using [provider] and then uses
   /// [transformerPhases] to generate output files from them.
   //TODO(rnystrom): Better way of specifying transformers and their ordering.
-  AssetCascade(this._graph, this.package,
+  AssetCascade(this.graph, this.package,
       Iterable<Iterable<Transformer>> transformerPhases) {
     // Flatten the phases to a list so we can traverse backwards to wire up
     // each phase to its next.
@@ -113,10 +112,10 @@ class AssetCascade {
 
   /// Gets the asset identified by [id].
   ///
-  /// If [id] is for a generated or transformed asset, this will wait until
-  /// it has been created and return it. If the asset cannot be found, throws
-  /// [AssetNotFoundException].
-  Future<Asset> getAssetById(AssetId id) {
+  /// If [id] is for a generated or transformed asset, this will wait until it
+  /// has been created and return it. If the asset cannot be found, returns
+  /// null.
+  Future<AssetNode> getAssetNode(AssetId id) {
     assert(id.package == package);
 
     // TODO(rnystrom): Waiting for the entire build to complete is unnecessary
@@ -131,17 +130,17 @@ class AssetCascade {
       var node = _getAssetNode(id);
 
       // If the requested asset is available, we can just return it.
-      if (node != null) return node.asset;
+      if (node != null) return node;
 
       // If there's a build running, that build might generate the asset, so we
       // wait for it to complete and then try again.
       if (_processDone != null) {
-        return _processDone.then((_) => getAssetById(id));
+        return _processDone.then((_) => getAssetNode(id));
       }
 
       // If the asset hasn't been built and nothing is building now, the asset
-      // won't be generated, so we throw an error.
-      throw new AssetNotFoundException(id);
+      // won't be generated, so we return null.
+      return null;
     });
   }
 
@@ -183,7 +182,7 @@ class AssetCascade {
       if (_loadingSources.containsKey(id)) _loadingSources[id].cancel();
 
       _loadingSources[id] =
-          new CancelableFuture<Asset>(_graph.provider.getAsset(id));
+          new CancelableFuture<Asset>(graph.provider.getAsset(id));
       _loadingSources[id].whenComplete(() {
         _loadingSources.remove(id);
       }).then((asset) {
@@ -270,45 +269,5 @@ class AssetCascade {
       // Process that phase and then loop onto the next.
       return future.then((_) => _process());
     });
-  }
-}
-
-/// An event indicating that the cascade has finished building all assets.
-///
-/// A build can end either in success or failure. If there were no errors during
-/// the build, it's considered to be a success; any errors render it a failure,
-/// although individual assets may still have built successfully.
-class BuildResult {
-  /// All errors that occurred during the build.
-  final List errors;
-
-  /// `true` if the build succeeded.
-  bool get succeeded => errors.isEmpty;
-
-  BuildResult(Iterable errors)
-      : errors = errors.toList();
-
-  /// Creates a build result indicating a successful build.
-  ///
-  /// This equivalent to a build result with no errors.
-  BuildResult.success()
-      : this([]);
-
-  String toString() {
-    if (succeeded) return "success";
-
-    return "errors:\n" + errors.map((error) {
-      var stackTrace = getAttachedStackTrace(error);
-      if (stackTrace != null) stackTrace = new Trace.from(stackTrace);
-
-      var msg = new StringBuffer();
-      msg.write(prefixLines(error.toString()));
-      if (stackTrace != null) {
-        msg.write("\n\n");
-        msg.write("Stack trace:\n");
-        msg.write(prefixLines(stackTrace.toString()));
-      }
-      return msg.toString();
-    }).join("\n\n");
   }
 }

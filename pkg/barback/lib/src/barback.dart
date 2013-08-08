@@ -8,7 +8,8 @@ import 'dart:async';
 
 import 'asset.dart';
 import 'asset_id.dart';
-import 'asset_cascade.dart';
+import 'build_result.dart';
+import 'errors.dart';
 import 'package_graph.dart';
 import 'package_provider.dart';
 
@@ -69,7 +70,12 @@ class Barback {
   /// If [id] is for a generated or transformed asset, this will wait until
   /// it has been created and return it. If the asset cannot be found, throws
   /// [AssetNotFoundException].
-  Future<Asset> getAssetById(AssetId id) => _graph.getAssetById(id);
+  Future<Asset> getAssetById(AssetId id) {
+    return _graph.getAssetNode(id).then((node) {
+      if (node == null) throw new AssetNotFoundException(id);
+      return node.whenAvailable;
+    });
+  }
 
   /// Adds [sources] to the graph's known set of source assets.
   ///

@@ -45,7 +45,7 @@ class Phase {
   ///
   /// For the first phase, these will be the source assets. For all other
   /// phases, they will be the outputs from the previous phase.
-  final inputs = new Map<AssetId, AssetNode>();
+  final _inputs = new Map<AssetId, AssetNode>();
 
   /// The transforms currently applicable to assets in [inputs], indexed by
   /// the ids of their primary inputs.
@@ -116,8 +116,8 @@ class Phase {
     // have to wait on [_adjustTransformers]. It's important that [inputs] is
     // always up-to-date so that the [AssetCascade] can look there for available
     // assets.
-    inputs[node.id] = node;
-    node.whenRemoved.then((_) => inputs.remove(node.id));
+    _inputs[node.id] = node;
+    node.whenRemoved.then((_) => _inputs.remove(node.id));
 
     if (!_adjustTransformersFutures.containsKey(node.id)) {
       _transforms[node.id] = new Set<TransformNode>();
@@ -166,7 +166,7 @@ class Phase {
   /// returned instead. This means that the return value is guaranteed to always
   /// be [AssetState.AVAILABLE].
   AssetNode getUnconsumedInput(AssetId id) {
-    if (!inputs.containsKey(id)) return null;
+    if (!_inputs.containsKey(id)) return null;
 
     // If the asset has transforms, it's not unconsumed.
     if (!_transforms[id].isEmpty) return null;
@@ -177,8 +177,20 @@ class Phase {
 
     // The asset should be available. If it were removed, it wouldn't be in
     // _inputs, and if it were dirty, it'd be in _adjustTransformersFutures.
-    assert(inputs[id].state.isAvailable);
-    return inputs[id];
+    assert(_inputs[id].state.isAvailable);
+    return _inputs[id];
+  }
+
+  /// Gets the asset node for an input [id].
+  ///
+  /// If an input with that ID cannot be found, returns null.
+  Future<AssetNode> getInput(AssetId id) {
+    return newFuture(() {
+      // TODO(rnystrom): Need to handle passthrough where an asset from a
+      // previous phase can be found.
+      if (id.package == cascade.package) return _inputs[id];
+      return cascade.graph.getAssetNode(id);
+    });
   }
 
   /// Asynchronously determines which transformers can consume [node] as a

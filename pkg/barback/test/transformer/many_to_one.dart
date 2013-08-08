@@ -33,7 +33,12 @@ class ManyToOneTransformer extends MockTransformer {
         .then((contents) {
       // Get all of the included inputs.
       return Future.wait(contents.split(",").map((path) {
-        var id = new AssetId(transform.primaryId.package, path);
+        var id;
+        if (path.contains("|")) {
+          id = new AssetId.parse(path);
+        } else {
+          id = new AssetId(transform.primaryId.package, path);
+        }
         return getInput(transform, id).then((input) => input.readAsString());
       }));
     }).then((outputs) {

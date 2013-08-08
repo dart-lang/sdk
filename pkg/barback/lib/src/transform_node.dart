@@ -127,12 +127,12 @@ class TransformNode {
     });
   }
 
+  /// Gets the asset for an input [id].
+  ///
+  /// If an input with that ID cannot be found, throws an
+  /// [AssetNotFoundException].
   Future<Asset> getInput(AssetId id) {
-    return newFuture(() {
-      var node = phase.inputs[id];
-      // TODO(rnystrom): Need to handle passthrough where an asset from a
-      // previous phase can be found.
-
+    return phase.getInput(id).then((node) {
       // Throw if the input isn't found. This ensures the transformer's apply
       // is exited. We'll then catch this and report it through the proper
       // results stream.
