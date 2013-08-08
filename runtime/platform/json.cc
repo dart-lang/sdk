@@ -234,7 +234,7 @@ void JSONReader::CheckValue() {
         if ((*s == '\n') || (*s == '\t')) {
           OS::Print("Un-escaped character in JSON string: '%s'\n",
                     ValueChars());
-          ASSERT(!"illegal character in JSON string value");
+          FATAL("illegal character in JSON string value");
         }
         s++;
         remaining--;
@@ -251,7 +251,7 @@ void JSONReader::CheckValue() {
     default:
       OS::Print("Malformed JSON: expected a value but got '%s'\n",
                 scanner_.TokenChars());
-      ASSERT(!"illegal JSON value found");
+      FATAL("illegal JSON value found");
   }
 }
 
