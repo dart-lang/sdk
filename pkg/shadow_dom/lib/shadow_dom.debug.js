@@ -1437,10 +1437,19 @@ var ShadowDOMPolyfill = {};
       // This only wraps, it therefore only operates on the composed DOM and not
       // the logical DOM.
       return originalCompareDocumentPosition.call(this.impl, unwrap(otherNode));
+    },
+
+    // TODO(jmesserly): this is a workaround for
+    // https://github.com/Polymer/ShadowDOM/issues/200
+    get ownerDocument() {
+      scope.renderAllPending();
+      return wrap(this.impl.ownerDocument);
     }
   });
 
-  defineWrapGetter(Node, 'ownerDocument');
+  // TODO(jmesserly): this is commented out to workaround:
+  // https://github.com/Polymer/ShadowDOM/issues/200
+  //defineWrapGetter(Node, 'ownerDocument');
 
   // We use a DocumentFragment as a base and then delete the properties of
   // DocumentFragment.prototype from the wrapper Node. Since delete makes
