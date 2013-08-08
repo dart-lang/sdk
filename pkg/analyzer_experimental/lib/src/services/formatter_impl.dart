@@ -40,7 +40,7 @@ class FormatterOptions {
 class FormatterException implements Exception {
 
   /// A message describing the error.
-  final message;
+  final String message;
 
   /// Creates a new FormatterException with an optional error [message].
   const FormatterException([this.message = '']);
@@ -55,15 +55,15 @@ class FormatterException implements Exception {
 /// Specifies the kind of code snippet to format.
 class CodeKind {
 
-  final index;
+  final int _index;
 
-  const CodeKind(this.index);
+  const CodeKind._(this._index);
 
   /// A compilation unit snippet.
-  static const COMPILATION_UNIT = const CodeKind(0);
+  static const COMPILATION_UNIT = const CodeKind._(0);
 
   /// A statement snippet.
-  static const STATEMENT = const CodeKind(1);
+  static const STATEMENT = const CodeKind._(1);
 
 }
 
@@ -118,7 +118,7 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
     throw new FormatterException('Unsupported format kind: $kind');
   }
 
-  checkForErrors() {
+  void checkForErrors() {
     if (errors.length > 0) {
       throw new FormatterException.forError(errors);
     }
@@ -142,7 +142,7 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
 class SourceVisitor implements ASTVisitor {
 
   /// The writer to which the source is to be written.
-  SourceWriter writer;
+  final SourceWriter writer;
 
   /// Cached line info for calculating blank lines.
   LineInfo lineInfo;

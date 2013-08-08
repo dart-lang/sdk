@@ -19,30 +19,23 @@ class Line {
     }
   }
 
-  addSpace() {
+  void addSpace() {
     addSpaces(1);
   }
 
-  addSpaces(int n) {
+  void addSpaces(int n) {
     if (n > 0) {
       tokens.add(new SpaceToken(n));
     }
   }
 
-  addToken(LineToken token) {
+  void addToken(LineToken token) {
     tokens.add(token);
   }
 
-  bool isWhitespace() {
-    for (var tok in tokens) {
-      if (!(tok is SpaceToken)) {
-        return false;
-      }
-    }
-    return true;
-  }
+  bool isWhitespace() => tokens.every((tok) => tok is SpaceToken);
 
-  _indent(int n) {
+  void _indent(int n) {
     tokens.add(useTabs ? new TabToken(n) : new SpaceToken(n * spacesPerIndent));
   }
 
@@ -96,19 +89,19 @@ class SourceWriter {
     currentLine = new Line(indent: indentCount);
   }
 
-  indent() {
+  void indent() {
     ++indentCount;
   }
 
-  unindent() {
+  void unindent() {
     --indentCount;
   }
 
-  print(x) {
+  void print(x) {
     currentLine.addToken(new LineToken(x));
   }
 
-  newline() {
+  void newline() {
     if (currentLine.isWhitespace()) {
       currentLine.tokens.clear();
     }
@@ -117,21 +110,21 @@ class SourceWriter {
     currentLine = new Line(indent: indentCount);
   }
 
-  newlines(int num) {
+  void newlines(int num) {
     while (num-- > 0) {
       newline();
     }
   }
 
-  space() {
+  void space() {
     spaces(1);
   }
 
-  spaces(n) {
+  void spaces(n) {
     currentLine.addSpaces(n);
   }
 
-  println(String s) {
+  void println(String s) {
     print(s);
     newline();
   }
@@ -148,7 +141,7 @@ class SourceWriter {
 
 
 const SPACE = ' ';
-final SPACES = [
+const SPACES = const [
           '',
           ' ',
           '  ',
@@ -167,7 +160,7 @@ final SPACES = [
           '               ',
           '                ',
 ];
-final TABS = [
+const TABS = const [
           '',
           '\t',
           '\t\t',

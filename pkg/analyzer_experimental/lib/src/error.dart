@@ -4,7 +4,6 @@
 library error;
 
 import 'dart:collection';
-import 'dart:io';
 import 'dart:math' as math;
 
 import 'generated/error.dart';
