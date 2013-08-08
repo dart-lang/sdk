@@ -48,7 +48,10 @@ intptr_t Socket::Create(RawAddr addr) {
 
   fd = TEMP_FAILURE_RETRY(socket(addr.ss.ss_family, SOCK_STREAM, 0));
   if (fd < 0) {
-    Log::PrintErr("Error Create: %s\n", strerror(errno));
+    const int kBufferSize = 1024;
+    char error_buf[kBufferSize];
+    Log::PrintErr("Error Create: %s\n",
+                  strerror_r(errno, error_buf, kBufferSize));
     return -1;
   }
 
@@ -122,7 +125,10 @@ intptr_t Socket::GetPort(intptr_t fd) {
           getsockname(fd,
                       &raw.addr,
                       &size))) {
-    Log::PrintErr("Error getsockname: %s\n", strerror(errno));
+    const int kBufferSize = 1024;
+    char error_buf[kBufferSize];
+    Log::PrintErr("Error getsockname: %s\n",
+                  strerror_r(errno, error_buf, kBufferSize));
     return 0;
   }
   return SocketAddress::GetAddrPort(&raw);
@@ -137,7 +143,10 @@ bool Socket::GetRemotePeer(intptr_t fd, char *host, intptr_t *port) {
           getpeername(fd,
                       &raw.addr,
                       &size))) {
-    Log::PrintErr("Error getpeername: %s\n", strerror(errno));
+    const int kBufferSize = 1024;
+    char error_buf[kBufferSize];
+    Log::PrintErr("Error getpeername: %s\n",
+                  strerror_r(errno, error_buf, kBufferSize));
     return false;
   }
   const void* src;
@@ -150,7 +159,10 @@ bool Socket::GetRemotePeer(intptr_t fd, char *host, intptr_t *port) {
                 src,
                 host,
                 INET_ADDRSTRLEN) == NULL) {
-    Log::PrintErr("Error inet_ntop: %s\n", strerror(errno));
+    const int kBufferSize = 1024;
+    char error_buf[kBufferSize];
+    Log::PrintErr("Error inet_ntop: %s\n",
+                  strerror_r(errno, error_buf, kBufferSize));
     return false;
   }
   *port = SocketAddress::GetAddrPort(&raw);
@@ -381,7 +393,9 @@ void Socket::Close(intptr_t fd) {
   ASSERT(fd >= 0);
   int err = TEMP_FAILURE_RETRY(close(fd));
   if (err != 0) {
-    Log::PrintErr("%s\n", strerror(errno));
+    const int kBufferSize = 1024;
+    char error_buf[kBufferSize];
+    Log::PrintErr("%s\n", strerror_r(errno, error_buf, kBufferSize));
   }
 }
 

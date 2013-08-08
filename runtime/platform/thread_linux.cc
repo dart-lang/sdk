@@ -16,15 +16,21 @@ namespace dart {
 
 #define VALIDATE_PTHREAD_RESULT(result) \
   if (result != 0) { \
-    FATAL2("pthread error: %d (%s)", result, strerror(result)); \
+    const int kBufferSize = 1024; \
+    char error_buf[kBufferSize]; \
+    FATAL2("pthread error: %d (%s)", result, \
+           strerror_r(result, error_buf, kBufferSize)); \
   }
 
 
 #ifdef DEBUG
 #define RETURN_ON_PTHREAD_FAILURE(result) \
   if (result != 0) { \
+    const int kBufferSize = 1024; \
+    char error_buf[kBufferSize]; \
     fprintf(stderr, "%s:%d: pthread error: %d (%s)\n", \
-            __FILE__, __LINE__, result, strerror(result)); \
+            __FILE__, __LINE__, result, \
+            strerror_r(result, error_buf, kBufferSize)); \
     return result; \
   }
 #else

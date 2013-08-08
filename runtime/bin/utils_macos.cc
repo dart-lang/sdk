@@ -19,7 +19,10 @@ namespace bin {
 OSError::OSError() : sub_system_(kSystem), code_(0), message_(NULL) {
   set_sub_system(kSystem);
   set_code(errno);
-  SetMessage(strerror(errno));
+  const int kBufferSize = 1024;
+  char error_message[kBufferSize];
+  strerror_r(errno, error_message, kBufferSize);
+  SetMessage(error_message);
 }
 
 
@@ -27,7 +30,10 @@ void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
   set_sub_system(sub_system);
   set_code(code);
   if (sub_system == kSystem) {
-    SetMessage(strerror(code));
+    const int kBufferSize = 1024;
+    char error_message[kBufferSize];
+    strerror_r(code, error_message, kBufferSize);
+    SetMessage(error_message);
   } else if (sub_system == kGetAddressInfo) {
     SetMessage(gai_strerror(code));
   } else {

@@ -47,7 +47,9 @@ void File::Close() {
   ASSERT(handle_->fd() >= 0);
   int err = TEMP_FAILURE_RETRY(close(handle_->fd()));
   if (err != 0) {
-    Log::PrintErr("%s\n", strerror(errno));
+    const int kBufferSize = 1024;
+    char error_buf[kBufferSize];
+    Log::PrintErr("%s\n", strerror_r(errno, error_buf, kBufferSize));
   }
   handle_->set_fd(kClosedFd);
 }
@@ -308,7 +310,10 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
   struct stat buf;
   int result = fstat(fd, &buf);
   if (result == -1) {
-    FATAL2("Failed stat on file descriptor %d: %s", fd, strerror(errno));
+    const int kBufferSize = 1024;
+    char error_buf[kBufferSize];
+    FATAL2("Failed stat on file descriptor %d: %s", fd,
+           strerror_r(errno, error_buf, kBufferSize));
   }
   if (S_ISCHR(buf.st_mode)) return kTerminal;
   if (S_ISFIFO(buf.st_mode)) return kPipe;

@@ -88,7 +88,10 @@ void DebuggerConnectionImpl::HandleEvent(struct kevent* event) {
     int status =
         TEMP_FAILURE_RETRY(kevent(kqueue_fd_, &ev_add, 1, NULL, 0, NULL));
     if (status == -1) {
-      FATAL1("Failed adding debugger socket to kqueue: %s\n", strerror(errno));
+      const int kBufferSize = 1024;
+      char error_message[kBufferSize];
+      strerror_r(errno, error_message, kBufferSize);
+      FATAL1("Failed adding debugger socket to kqueue: %s\n", error_message);
     }
     */
   } else if (ident == wakeup_fds_[0]) {
@@ -112,7 +115,10 @@ void DebuggerConnectionImpl::Handler(uword args) {
     int result = TEMP_FAILURE_RETRY(
         kevent(kqueue_fd_, NULL, 0, events, kMaxEvents, NULL));
     if (result == -1) {
-      FATAL1("kevent failed %s\n", strerror(errno));
+      const int kBufferSize = 1024;
+      char error_message[kBufferSize];
+      strerror_r(errno, error_message, kBufferSize);
+      FATAL1("kevent failed %s\n", error_message);
     } else {
       ASSERT(result <= kMaxEvents);
       for (int i = 0; i < result; i++) {
@@ -141,7 +147,10 @@ void DebuggerConnectionImpl::SetupPollQueue() {
   EV_SET(&event, wakeup_fds_[0], EVFILT_READ, EV_ADD, 0, 0, NULL);
   int status = TEMP_FAILURE_RETRY(kevent(kqueue_fd_, &event, 1, NULL, 0, NULL));
   if (status == -1) {
-    FATAL1("Failed adding wakeup pipe fd to kqueue: %s\n", strerror(errno));
+    const int kBufferSize = 1024;
+    char error_message[kBufferSize];
+    strerror_r(errno, error_message, kBufferSize);
+    FATAL1("Failed adding wakeup pipe fd to kqueue: %s\n", error_message);
   }
 
   // Register the listening socket.
@@ -149,7 +158,10 @@ void DebuggerConnectionImpl::SetupPollQueue() {
          EVFILT_READ, EV_ADD, 0, 0, NULL);
   status = TEMP_FAILURE_RETRY(kevent(kqueue_fd_, &event, 1, NULL, 0, NULL));
   if (status == -1) {
-    FATAL1("Failed adding listener socket to kqueue: %s\n", strerror(errno));
+    const int kBufferSize = 1024;
+    char error_message[kBufferSize];
+    strerror_r(errno, error_message, kBufferSize);
+    FATAL1("Failed adding listener socket to kqueue: %s\n", error_message);
   }
 }
 

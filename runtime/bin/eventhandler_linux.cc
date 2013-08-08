@@ -320,7 +320,10 @@ intptr_t EventHandlerImplementation::GetPollEvents(intptr_t events,
             event_mask = (1 << kCloseEvent);
             sd->MarkClosedRead();
           } else if (errno != EWOULDBLOCK) {
-            Log::PrintErr("Error recv: %s\n", strerror(errno));
+            const int kBufferSize = 1024;
+            char error_buf[kBufferSize];
+            Log::PrintErr("Error recv: %s\n",
+                          strerror_r(errno, error_buf, kBufferSize));
           }
         }
       }

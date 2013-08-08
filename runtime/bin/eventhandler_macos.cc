@@ -63,7 +63,10 @@ static void RemoveFromKqueue(intptr_t kqueue_fd_, SocketData* sd) {
     int status =
       TEMP_FAILURE_RETRY(kevent(kqueue_fd_, events, changes, NULL, 0, NULL));
     if (status == -1) {
-      FATAL1("Failed deleting events from kqueue: %s\n", strerror(errno));
+      const int kBufferSize = 1024;
+      char error_message[kBufferSize];
+      strerror_r(errno, error_message, kBufferSize);
+      FATAL1("Failed deleting events from kqueue: %s\n", error_message);
     }
   }
 }
@@ -142,7 +145,10 @@ EventHandlerImplementation::EventHandlerImplementation()
   EV_SET(&event, interrupt_fds_[0], EVFILT_READ, EV_ADD, 0, 0, NULL);
   int status = TEMP_FAILURE_RETRY(kevent(kqueue_fd_, &event, 1, NULL, 0, NULL));
   if (status == -1) {
-    FATAL1("Failed adding interrupt fd to kqueue: %s\n", strerror(errno));
+    const int kBufferSize = 1024;
+    char error_message[kBufferSize];
+    strerror_r(errno, error_message, kBufferSize);
+    FATAL1("Failed adding interrupt fd to kqueue: %s\n", error_message);
   }
 }
 
@@ -337,7 +343,10 @@ void EventHandlerImplementation::HandleEvents(struct kevent* events,
   for (int i = 0; i < size; i++) {
     // If flag EV_ERROR is set it indicates an error in kevent processing.
     if ((events[i].flags & EV_ERROR) != 0) {
-      FATAL1("kevent failed %s\n", strerror(events[i].data));
+      const int kBufferSize = 1024;
+      char error_message[kBufferSize];
+      strerror_r(events[i].data, error_message, kBufferSize);
+      FATAL1("kevent failed %s\n", error_message);
     }
     if (events[i].udata != NULL) {
       SocketData* sd = reinterpret_cast<SocketData*>(events[i].udata);
@@ -405,7 +414,10 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
                                                 kMaxEvents,
                                                 timeout));
     if (result == -1) {
-      FATAL1("kevent failed %s\n", strerror(errno));
+      const int kBufferSize = 1024;
+      char error_message[kBufferSize];
+      strerror_r(errno, error_message, kBufferSize);
+      FATAL1("kevent failed %s\n", error_message);
     } else {
       handler_impl->HandleTimeout();
       handler_impl->HandleEvents(events, result);
