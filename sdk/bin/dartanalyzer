@@ -28,7 +28,7 @@ do
 done
 
 DART_SDK=""
-if [ $FOUND_SDK = 0 ] ; then
+if [ $FOUND_SDK -eq 0 ] ; then
   if [ -f "$DART_ANALYZER_HOME/lib/core/core.dart" ] ; then
     DART_SDK=(--dart-sdk "$DART_ANALYZER_HOME")
   else
@@ -70,7 +70,7 @@ else
   # On other architectures
   # -batch invocations will do better with a server vm
   # invocations for analyzing a single file do better with a client vm
-  if [ $FOUND_BATCH = 0 ] ; then
+  if [ $FOUND_BATCH -eq 0 ] ; then
     EXTRA_JVMARGS+=" -client "
   fi
 fi
