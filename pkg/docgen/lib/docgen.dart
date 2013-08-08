@@ -402,8 +402,7 @@ Class _class(ClassMirror mirror) {
     clazz = new Class(mirror.simpleName, superclass, _commentToHtml(mirror),
         interfaces.toList(), _variables(mirror.variables),
         _methods(mirror.methods), _annotations(mirror), _generics(mirror),
-        mirror.qualifiedName, _isHidden(mirror), mirror.owner.qualifiedName,
-        mirror.isAbstract);
+        mirror.qualifiedName, _isHidden(mirror), mirror.owner.qualifiedName);
     if (superclass != null)
       clazz.addInherited(superclass);
     interfaces.forEach((interface) {
@@ -501,6 +500,11 @@ Map recurseMap(Map inputMap) {
   return outputMap;
 }
 
+bool isError(String qualifiedName) {
+  return qualifiedName.toLowerCase().contains('error') ||
+      qualifiedName.toLowerCase().contains('exception');
+}
+
 /**
  * A class representing all programming constructs, like library or class.
  */
@@ -576,15 +580,14 @@ class Class extends Indexable {
   Map<String, Generic> generics;
 
   Class superclass;
-  bool isAbstract;
 
   /// List of the meta annotations on the class.
   List<String> annotations;
 
   Class(String name, this.superclass, String comment, this.interfaces,
       this.variables, this.methods, this.annotations, this.generics,
-      String qualifiedName, bool isPrivate, String owner, this.isAbstract) 
-      : super(name, comment, qualifiedName, isPrivate, owner);
+      String qualifiedName, bool isPrivate, String owner) : super(name, comment,
+          qualifiedName, isPrivate, owner) {}
 
   /**
    * Returns a list of all the parent classes.
@@ -623,20 +626,6 @@ class Class extends Indexable {
     } else {
       subclasses.add(subclass.qualifiedName);
     }
-  }
-  
-  /**
-   * Check if this [Class] is an error or exception.
-   */
-  bool isError() {
-    if (qualifiedName == 'dart.core.Error' || 
-        qualifiedName == 'dart.core.Exception')
-      return true;
-    for (var interface in interfaces) {
-      if (interface.isError()) return true;
-    }
-    if (superclass == null) return false;
-    return superclass.isError();
   }
 
   /**
@@ -683,7 +672,6 @@ class Class extends Indexable {
     'name': name,
     'qualifiedName': qualifiedName,
     'comment': comment,
-    'isAbstract' : isAbstract,
     'superclass': validSuperclass(),
     'implements': interfaces.where(_isVisible)
         .map((e) => e.qualifiedName).toList(),
@@ -702,7 +690,8 @@ class Class extends Indexable {
  * classes, regular classes, typedefs, and errors.
  */
 class ClassGroup {
-  Map<String, Class> classes = {};
+  Map<String, Class> abstractClasses = {};
+  Map<String, Class> regularClasses = {};
   Map<String, Typedef> typedefs = {};
   Map<String, Class> errors = {};
 
@@ -719,7 +708,7 @@ class ClassGroup {
 
     clazz.ensureComments();
 
-    if (clazz.isError()) {
+    if (isError(mirror.qualifiedName)) {
       errors[mirror.simpleName] = clazz;
     } else if (mirror.isTypedef) {
       if (_includePrivate || !mirror.isPrivate) {
@@ -730,8 +719,10 @@ class ClassGroup {
             mirror.owner.qualifiedName);
         typedefs[mirror.simpleName] = entityMap[mirror.qualifiedName];
       }
+    } else if (mirror.isAbstract) {
+      abstractClasses[mirror.simpleName] = clazz;
     } else if (mirror.isClass) {
-      classes[mirror.simpleName] = clazz;
+      regularClasses[mirror.simpleName] = clazz;
     } else {
       throw new ArgumentError('${mirror.simpleName} - no class type match. ');
     }
@@ -741,27 +732,19 @@ class ClassGroup {
    * Checks if the given name is a key for any of the Class Maps.
    */
   bool containsKey(String name) {
-    return classes.containsKey(name) || errors.containsKey(name);
+    return abstractClasses.containsKey(name) ||
+        regularClasses.containsKey(name) ||
+        errors.containsKey(name);
   }
 
-  /**
-   * Creates a [Map] with [Class] names and a preview comment.
-   */
-  Map classMap(Class clazz) {
-    var finalMap = { 'name' : clazz.qualifiedName };
-    if (clazz.comment != '') {
-      var index = clazz.comment.indexOf('</p>');
-      finalMap['preview'] = '${clazz.comment.substring(0, index)}</p>';
-    }
-    return finalMap;
-  }
-  
   Map toMap() => {
-    'class': classes.values.where(_isVisible)
-      .map((e) => classMap(e)).toList(),
+    'abstract': abstractClasses.values.where(_isVisible)
+      .map((e) => e.qualifiedName).toList(),
+    'class': regularClasses.values.where(_isVisible)
+      .map((e) => e.qualifiedName).toList(),
     'typedef': recurseMap(typedefs),
     'error': errors.values.where(_isVisible)
-      .map((e) => classMap(e)).toList()
+      .map((e) => e.qualifiedName).toList()
   };
 }
 
@@ -778,8 +761,8 @@ class Typedef extends Indexable {
 
   Typedef(String name, this.returnType, String comment, this.generics,
       this.parameters, this.annotations,
-      String qualifiedName, bool isPrivate, String owner) 
-        : super(name, comment, qualifiedName, isPrivate, owner);
+      String qualifiedName, bool isPrivate, String owner) : super(name, comment,
+          qualifiedName, isPrivate, owner) {}
 
   Map toMap() => {
     'name': name,
