@@ -5,7 +5,7 @@
 // TODO(jmesserly): more commentary here.
 /**
  * This library provides access to Model-Driven-Views APIs on HTML elements.
- * More information can be found at: <https://github.com/toolkitchen/mdv>.
+ * More information can be found at: <https://github.com/Polymer/mdv>.
  */
 library mdv;
 
