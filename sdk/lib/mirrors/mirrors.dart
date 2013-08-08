@@ -118,17 +118,28 @@ external MirrorSystem currentMirrorSystem();
 external Future<MirrorSystem> mirrorSystemOf(SendPort port);
 
 /**
- * Returns an [InstanceMirror] for some Dart language object.
+ * Returns an [InstanceMirror] reflecting [reflectee].
+ * If [reflectee] is function or an instance of a class 
+ * that has a [:call:] method, the returned instance mirror
+ * will be a [ClosureMirror].
  *
- * This only works with objects local to the current isolate.
+ * Note that since one cannot obtain an object from
+ * another isolate, this function can only be used to
+ * obtain  mirrors on objects of the current isolate.
  */
 external InstanceMirror reflect(Object reflectee);
 
 /**
- * Returns a [ClassMirror] for the class represented by a Dart
- * Type object.
+ * Let *C* be the original class declaration of the class
+ * represented by [key]. 
+ * This function returns a [ClassMirror] reflecting *C*.
  *
- * This only works with objects local to the current isolate.
+ * If [key] is not an instance of [Type] then this function
+ * throws an [ArgumentError].
+ *
+ * Note that since one cannot obtain a [Type] object from
+ * another isolate, this function can only be used to
+ * obtain class mirrors on classes of the current isolate.
  */
 external ClassMirror reflectClass(Type key);
 
@@ -149,22 +160,27 @@ abstract class Mirror {
  */
 abstract class IsolateMirror implements Mirror {
   /**
-   * A unique name used to refer to an isolate in debugging messages.
+   * Returns a unique name used to refer to an isolate 
+   * in debugging messages.
    */
   String get debugName;
 
   /**
-   * Does this mirror reflect the currently running isolate?
+   * Returns [:true:] if and only if this mirror reflects 
+   * the currently running isolate. Otherwise returns
+   * [:false:].
    */
   bool get isCurrent;
 
   /**
-   * A mirror on the root library for this isolate.
+   * Returns a [LibraryMirror] on the root library for this 
+   * isolate.
    */
   LibraryMirror get rootLibrary;
 
   /**
-   * Returns true if this mirror is equal to [other].
+   * Returns [:true:] if this mirror is equal to [other]. 
+   * Otherwise returns [:false:].
    * The equality holds if and only if 
    * (1) [other] is a mirror of the same kind 
    * and
@@ -210,20 +226,28 @@ abstract class DeclarationMirror implements Mirror {
    * immediately surrounding the reflectee.
    *
    * For a library, the owner is [:null:].
-   * For a class, typedef or top level function or variable, the owner is
-   * the enclosing library. For a method, instance variable or
-   * a static variable, the owner is the immediately enclosing class.
+   * For a class declaration, typedef or top level function 
+   * or variable, the owner is the enclosing library. 
+   * For a mixin application *S with M*, the owner is the owner
+   * of *M*.
+   * For class Null, the owner is the dart:core library.
+   * For a constructor, the owner is the immediately enclosing class.
+   * For a method, instance variable or
+   * a static variable, the owner is the immediately enclosing class,
+   * unless the class is a mixin application *S with M*, in which case 
+   * the owner is *M*. Note that *M* may be an invocation of a generic.
    * For a parameter, local variable or local function the owner is the
    * immediately enclosing function.
    */
   DeclarationMirror get owner;
 
   /**
-   * Is this declaration private?
-   *
-   * A declaration is private if and only if it is considered private
+   * Returns [:true:] if this declaration is considered private
    * according to the Dart language specification.
-   * Note that for libraries, this will be [:false:].
+   * Always returns [: false :] if this declaration
+   * is a library.
+   * Otherwise return [:false:].
+   *
    */
   bool get isPrivate;
 
@@ -452,7 +476,7 @@ abstract class InstanceMirror implements ObjectMirror {
    * mirror reflects a simple value.
    *
    * A value is simple if one of the following holds:
-   *  - the value is null
+   *  - the value is [:null:]
    *  - the value is of type [num]
    *  - the value is of type [bool]
    *  - the value is of type [String]
@@ -632,7 +656,8 @@ abstract class LibraryMirror implements DeclarationMirror, ObjectMirror {
   Map<Symbol, VariableMirror> get variables;
 
   /**
-   * Returns true if this mirror is equal to [other].
+   * Returns [:true:] if this mirror is equal to [other].
+   * Otherwise returns [:false:].
    *
    * The equality holds if and only if 
    * (1) [other] is a mirror of the same kind
@@ -715,6 +740,11 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
   /**
    * An immutable map from names to mirrors for all type variables for
    * this type.
+   * If this type is a generic declaration or an invocation of
+   * a generic declaration, the returned map has the names of the formal
+   * type parameters of the original declaration as its keys, and
+   * each such key maps to a TypeVariableMirror on the corresponding
+   * type variable. Otherwise, the returned map is empty.
    *
    * This map preserves the order of declaration of the type variables.
    */
@@ -722,8 +752,15 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
 
   /**
    * An immutable map from names to mirrors for all type arguments for
-   * this type.
-   *
+   * this type.  The keys of the map are the names of the 
+   * corresponding type variables.
+   * 
+   * If the the reflectee is an invocation of a generic class,
+   * the type arguments are the bindings of its type parameters.
+   * If the reflectee is the original declaration of a generic,
+   * it has no type arguments and this method returns an empty map.
+   * If the reflectee is a not generic, then
+   * it has no type arguments and this method returns an empty map.
    * This map preserves the order of declaration of the type variables.
    */
   Map<Symbol, TypeMirror> get typeArguments;
@@ -821,12 +858,17 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
                                           [Map<Symbol, dynamic> namedArguments]);
 
   /**
-   * Returns true if this mirror is equal to [other].
+   * Returns [:true:] if this mirror is equal to [other].
+   * Otherwise returns [:false:].
    *
    * The equality holds if and only if 
    * (1) [other] is a mirror of the same kind
    * and
    * (2) This mirror and [other] reflect the same class.
+   * 
+   * Note that if the reflected class is an invocation of
+   * a generic class,(2) implies that the reflected class 
+   * and [other] have equal type arguments.
    */
    bool operator == (other);
 }
@@ -837,12 +879,12 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
  */
 abstract class FunctionTypeMirror implements ClassMirror {
   /**
-   * The return type of the reflectee.
+   * Returns the return type of the reflectee.
    */
   TypeMirror get returnType;
 
   /**
-   * A list of the parameter types of the reflectee.
+   * Returns a list of the parameter types of the reflectee.
    */
   List<ParameterMirror> get parameters;
 
@@ -865,7 +907,8 @@ abstract class TypeVariableMirror extends TypeMirror {
   TypeMirror get upperBound;
 
   /**
-   * Returns true if this mirror is equal to [other].
+   * Returns [:true:] if this mirror is equal to [other].
+   * Otherwise returns [:false:].
    *
    * The equality holds if and only if 
    * (1) [other] is a mirror of the same kind
@@ -993,12 +1036,13 @@ abstract class MethodMirror implements DeclarationMirror {
  */
 abstract class VariableMirror implements DeclarationMirror {
   /**
-   * A mirror on the type of the reflectee.
+   * Returns a mirror on the type of the reflectee.
    */
   TypeMirror get type;
 
   /**
-   * Is the reflectee a static variable?
+   * Returns [:true:] if the reflectee is a static variable.
+   * Otherwise returns [:false:].
    *
    * For the purposes of the mirror library, top-level variables are
    * implicitly declared static.
@@ -1006,7 +1050,8 @@ abstract class VariableMirror implements DeclarationMirror {
   bool get isStatic;
 
   /**
-   * Is the reflectee a final variable?
+   * Returns [:true:] if the reflectee is a final variable.
+   * Otherwise returns [:false:].
    */
   bool get isFinal;
 
@@ -1032,17 +1077,20 @@ abstract class ParameterMirror implements VariableMirror {
   TypeMirror get type;
 
   /**
-   * Is this parameter optional?
+   * Returns [:true:] if the reflectee is an optional parameter.
+   * Otherwise returns [:false:].
    */
   bool get isOptional;
 
   /**
-   * Is this parameter named?
+   * Returns [:true:] if the reflectee is a named parameter.
+   * Otherwise returns [:false:].
    */
   bool get isNamed;
 
   /**
-   * Does this parameter have a default value?
+   * Returns [:true:] if the reflectee has a default value.
+   * Otherwise returns [:false:].
    */
   bool get hasDefaultValue;
 
