@@ -908,9 +908,7 @@ class DartiumBackend(HtmlDartGenerator):
     if raises_dom_exception:
       cpp_arguments.append('es')
       invocation_emitter = body_emitter.Emit(
-        # TODO(vsm): The move from ExceptionCode to ExceptionState adds
-        # a V8 dependency.  Constructing with a NULL V8 isolate....
-        '        ExceptionState es(0);\n'
+        '        DartExceptionState es;\n'
         '$!INVOCATION'
         '        if (es.hadException()) {\n'
         '            exception = DartDOMWrapper::exceptionCodeToDartException(es);\n'

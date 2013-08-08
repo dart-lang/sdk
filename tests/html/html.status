@@ -25,7 +25,6 @@ audiobuffersourcenode_test: Pass, Fail, Crash # http://crbug.com/256601
 # postMessage in dartium always transfers the typed array buffer, never a view
 postmessage_structured_test/typed_arrays: Fail
 # TODO(vsm): Triage from latest Blink merge
-crypto_test: Skip
 notifications_test: Skip
 
 [ $compiler == none && $runtime == drt && $system == windows ]
