@@ -1927,6 +1927,7 @@ class TestCaseCompleter {
   final CommandQueue commandQueue;
 
   Map<Command, CommandOutput> _outputs = new Map<Command, CommandOutput>();
+  bool _closed = false;
   StreamController<TestCase> _controller = new StreamController<TestCase>();
 
   TestCaseCompleter(this.graph, this.enqueuer, this.commandQueue) {
@@ -1946,9 +1947,22 @@ class TestCaseCompleter {
             assert(COMPLETED_STATES.contains(event.to));
             _completeTestCasesIfPossible(event.node.userData);
 
-            if (graph.isSealed && enqueuer.remainingTestCases.isEmpty) {
+            if (!_closed &&
+                graph.isSealed &&
+                enqueuer.remainingTestCases.isEmpty) {
               _controller.close();
+              _closed = true;
             }
+          }
+    });
+
+    // Listen also for GraphSealedEvent's. If there is not a single node in the
+    // graph, we still want to finish after the graph was sealed.
+    eventCondition((event) => event is dgraph.GraphSealedEvent)
+        .listen((dgraph.GraphSealedEvent event) {
+          if (!_closed && enqueuer.remainingTestCases.isEmpty) {
+            _controller.close();
+            _closed = true;
           }
     });
   }
