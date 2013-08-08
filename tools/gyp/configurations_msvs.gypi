@@ -12,6 +12,7 @@
         'msvs_settings': {
           'VCCLCompilerTool': {
             'Optimization': '<(dart_debug_optimization_level)',
+            'FloatingPointModel': '1',  # /fp:strict
             'BasicRuntimeChecks': '0',  # disable /RTC1 when compiling /O2
             'DebugInformationFormat': '3',
             'ExceptionHandling': '0',
@@ -35,6 +36,7 @@
         'msvs_settings': {
           'VCCLCompilerTool': {
             'Optimization': '2',
+            'FloatingPointModel': '1',  # /fp:strict
             'InlineFunctionExpansion': '2',
             'EnableIntrinsicFunctions': 'true',
             'FavorSizeOrSpeed': '0',
