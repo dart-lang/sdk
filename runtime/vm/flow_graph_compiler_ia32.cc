@@ -810,10 +810,9 @@ void FlowGraphCompiler::EmitTrySync(Instruction* instr, intptr_t try_index) {
   }
 
   // Process locals. Skip exception_var and stacktrace_var.
-  CatchEntryInstr* catch_entry = catch_block->next()->AsCatchEntry();
   intptr_t local_base = kFirstLocalSlotFromFp + num_non_copied_params;
-  intptr_t ex_idx = local_base - catch_entry->exception_var().index();
-  intptr_t st_idx = local_base - catch_entry->stacktrace_var().index();
+  intptr_t ex_idx = local_base - catch_block->exception_var().index();
+  intptr_t st_idx = local_base - catch_block->stacktrace_var().index();
   for (; i < flow_graph().variable_count(); ++i) {
     if (i == ex_idx || i == st_idx) continue;
     if ((*idefs)[i]->IsConstant()) continue;

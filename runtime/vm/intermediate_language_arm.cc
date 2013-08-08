@@ -2043,16 +2043,26 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* CatchEntryInstr::MakeLocationSummary() const {
-  return LocationSummary::Make(0,
-                               Location::NoLocation(),
-                               LocationSummary::kNoCall);
+LocationSummary* CatchBlockEntryInstr::MakeLocationSummary() const {
+  UNREACHABLE();
+  return NULL;
 }
 
 
-// Restore stack and initialize the two exception variables:
-// exception and stack trace variables.
-void CatchEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ Bind(compiler->GetJumpLabel(this));
+  compiler->AddExceptionHandler(catch_try_index(),
+                                try_index(),
+                                compiler->assembler()->CodeSize(),
+                                catch_handler_types_);
+
+  // Restore the pool pointer.
+  __ LoadPoolPointer();
+
+  if (HasParallelMove()) {
+    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+  }
+
   // Restore SP from FP as we are coming from a throw and the code for
   // popping arguments has not been run.
   const intptr_t fp_sp_dist =
@@ -2060,15 +2070,12 @@ void CatchEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(fp_sp_dist <= 0);
   __ AddImmediate(SP, FP, fp_sp_dist);
 
-  ASSERT(!exception_var().is_captured());
-  ASSERT(!stacktrace_var().is_captured());
+  // Restore stack and initialize the two exception variables:
+  // exception and stack trace variables.
   __ StoreToOffset(kWord, kExceptionObjectReg,
                    FP, exception_var().index() * kWordSize);
   __ StoreToOffset(kWord, kStackTraceObjectReg,
                    FP, stacktrace_var().index() * kWordSize);
-
-  // Restore the pool pointer.
-  __ LoadPoolPointer();
 }
 
 

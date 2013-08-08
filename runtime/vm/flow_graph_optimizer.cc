@@ -3631,15 +3631,14 @@ void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
   for (intptr_t catch_idx = 0;
        catch_idx < catch_entries.length();
        ++catch_idx) {
-    CatchBlockEntryInstr* cb = catch_entries[catch_idx];
-    CatchEntryInstr* catch_entry = cb->next()->AsCatchEntry();
+    CatchBlockEntryInstr* catch_entry = catch_entries[catch_idx];
 
     // Initialize cdefs with the original initial definitions (ParameterInstr).
     // The following representation is used:
     // ParameterInstr => unknown
     // ConstantInstr => known constant
     // NULL => non-constant
-    GrowableArray<Definition*>* idefs = cb->initial_definitions();
+    GrowableArray<Definition*>* idefs = catch_entry->initial_definitions();
     GrowableArray<Definition*> cdefs(idefs->length());
     cdefs.AddArray(*idefs);
 
@@ -3652,7 +3651,7 @@ void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
          !block_it.Done();
          block_it.Advance()) {
       BlockEntryInstr* block = block_it.Current();
-      if (block->try_index() == cb->catch_try_index()) {
+      if (block->try_index() == catch_entry->catch_try_index()) {
         for (ForwardInstructionIterator instr_it(block);
              !instr_it.Done();
              instr_it.Advance()) {
@@ -5724,9 +5723,6 @@ void ConstantPropagator::VisitBranch(BranchInstr* instr) {
 // Analysis of non-definition instructions.  They do not have values so they
 // cannot have constant values.
 void ConstantPropagator::VisitStoreContext(StoreContextInstr* instr) { }
-
-
-void ConstantPropagator::VisitCatchEntry(CatchEntryInstr* instr) { }
 
 
 void ConstantPropagator::VisitCheckStackOverflow(

@@ -301,13 +301,5 @@ prefix22_test: Pass
 invocation_mirror_test: Fail, OK # hardcoded names.
 super_call4_test: Fail, OK # hardcoded names.
 
-
-[ $arch == simarm || $arch == arm ]
-try_catch4_test: Crash, Fail
-
-
 [ $arch == mips ]
 *: Skip
-
-[ $arch == simmips ]
-try_catch4_test: Fail

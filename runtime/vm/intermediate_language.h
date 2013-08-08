@@ -577,7 +577,6 @@ class EmbeddedArray<T, 0> {
   M(ExtractConstructorInstantiator)                                            \
   M(AllocateContext)                                                           \
   M(CloneContext)                                                              \
-  M(CatchEntry)                                                                \
   M(BinarySmiOp)                                                               \
   M(UnarySmiOp)                                                                \
   M(CheckStackOverflow)                                                        \
@@ -1489,11 +1488,15 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
   CatchBlockEntryInstr(intptr_t block_id,
                        intptr_t try_index,
                        const Array& handler_types,
-                       intptr_t catch_try_index)
+                       intptr_t catch_try_index,
+                       const LocalVariable& exception_var,
+                       const LocalVariable& stacktrace_var)
       : BlockEntryInstr(block_id, try_index),
         predecessor_(NULL),
         catch_handler_types_(Array::ZoneHandle(handler_types.raw())),
-        catch_try_index_(catch_try_index) { }
+        catch_try_index_(catch_try_index),
+        exception_var_(exception_var),
+        stacktrace_var_(stacktrace_var) { }
 
   DECLARE_INSTRUCTION(CatchBlockEntry)
 
@@ -1504,6 +1507,9 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
     ASSERT((index == 0) && (predecessor_ != NULL));
     return predecessor_;
   }
+
+  const LocalVariable& exception_var() const { return exception_var_; }
+  const LocalVariable& stacktrace_var() const { return stacktrace_var_; }
 
   // Returns try index for the try block to which this catch handler
   // corresponds.
@@ -1529,6 +1535,8 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
   const Array& catch_handler_types_;
   const intptr_t catch_try_index_;
   GrowableArray<Definition*> initial_definitions_;
+  const LocalVariable& exception_var_;
+  const LocalVariable& stacktrace_var_;
 
   DISALLOW_COPY_AND_ASSIGN(CatchBlockEntryInstr);
 };
@@ -4292,35 +4300,6 @@ class CloneContextInstr : public TemplateDefinition<1> {
   const intptr_t token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(CloneContextInstr);
-};
-
-
-class CatchEntryInstr : public TemplateInstruction<0> {
- public:
-  CatchEntryInstr(const LocalVariable& exception_var,
-                  const LocalVariable& stacktrace_var)
-      : exception_var_(exception_var), stacktrace_var_(stacktrace_var) {}
-
-  const LocalVariable& exception_var() const { return exception_var_; }
-  const LocalVariable& stacktrace_var() const { return stacktrace_var_; }
-
-  DECLARE_INSTRUCTION(CatchEntry)
-
-  virtual intptr_t ArgumentCount() const { return 0; }
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual EffectSet Effects() const { return EffectSet::All(); }
-
-  virtual bool MayThrow() const { return false; }
-
- private:
-  const LocalVariable& exception_var_;
-  const LocalVariable& stacktrace_var_;
-
-  DISALLOW_COPY_AND_ASSIGN(CatchEntryInstr);
 };
 
 

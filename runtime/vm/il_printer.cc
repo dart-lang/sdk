@@ -578,13 +578,6 @@ void AllocateContextInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void CatchEntryInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, %s",
-           exception_var().name().ToCString(),
-           stacktrace_var().name().ToCString());
-}
-
-
 void BinarySmiOpInstr::PrintTo(BufferFormatter* f) const {
   Definition::PrintTo(f);
   f->Print(" %co", overflow_ ? '+' : '-');
@@ -899,7 +892,7 @@ void CatchBlockEntryInstr::PrintTo(BufferFormatter* f) const {
   f->Print("B%"Pd"[target catch try_idx %"Pd" catch_try_idx %"Pd"]",
            block_id(), try_index(), catch_try_index());
   if (HasParallelMove()) {
-    f->Print(" ");
+    f->Print("\n");
     parallel_move()->PrintTo(f);
   }
 
