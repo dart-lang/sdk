@@ -200,11 +200,25 @@ class DartGenerator(object):
       visit(interface)
     return ordered
 
+  def IsEventTarget(self, database, interface):
+    if interface.id == 'EventTarget':
+      return True
+    for parent in interface.parents:
+      parent_name = parent.type.id
+      if database.HasInterface(parent_name):
+        parent_interface = database.GetInterface(parent.type.id)
+        if self.IsEventTarget(database, parent_interface):
+          return True
+    return False
+
   def FixEventTargets(self, database):
     for interface in database.GetInterfaces():
-      # Create fake EventTarget parent interface for interfaces that have
-      # 'EventTarget' extended attribute.
-      if 'EventTarget' in interface.ext_attrs and interface.id != 'EventTarget':
+      if self.IsEventTarget(database, interface):
+        # Add as an attribute for easy querying in generation code.
+        interface.ext_attrs['EventTarget'] = None
+      elif 'EventTarget' in interface.ext_attrs:
+        # Create fake EventTarget parent interface for interfaces that have
+        # 'EventTarget' extended attribute.
         ast = [('Annotation', [('Id', 'WebKit')]),
                ('InterfaceType', ('ScopedName', 'EventTarget'))]
         interface.parents.append(idlnode.IDLParentInterface(ast))
