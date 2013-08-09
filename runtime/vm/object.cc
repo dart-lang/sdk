@@ -7065,7 +7065,7 @@ RawLibrary* Library::New() {
 RawLibrary* Library::NewLibraryHelper(const String& url,
                                       bool import_core_lib) {
   const Library& result = Library::Handle(Library::New());
-  result.StorePointer(&result.raw_ptr()->name_, url.raw());
+  result.StorePointer(&result.raw_ptr()->name_, Symbols::Empty().raw());
   result.StorePointer(&result.raw_ptr()->url_, url.raw());
   result.raw_ptr()->private_key_ = Scanner::AllocatePrivateKey(result);
   result.raw_ptr()->dictionary_ = Object::empty_array().raw();

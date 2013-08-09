@@ -22,6 +22,7 @@ mirrors/mirrors_test: Fail # TODO(ahe): I'm working on fixing this.
 mirrors/null_test : Fail # Issue 12129
 mirrors/library_metadata_test: Fail # Issue 10905
 mirrors/library_uri_io_test: Skip # Not intended for dart2js as it uses dart:io.
+mirrors/unnamed_library_test: Fail # Issue 10580
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9002
 async/run_async4_test: Pass, Fail # no global exception handler in isolates. http://dartbug.com/9012
 async/run_async6_test: Fail # global error handling is not supported. http://dartbug.com/5958
