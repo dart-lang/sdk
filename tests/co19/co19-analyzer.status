@@ -42,7 +42,7 @@ LibTest/core/String/charCodeAt_A01_t01: fail, OK
 LibTest/core/String/splitChars_A01_t01: fail, OK
 
 # co19 issue #389, ceil, floor, truncate and round return integers
-LibTest/core/int/operator_division_A01_t01: fail
+LibTest/core/int/operator_division_A01_t01: fail, OK
 
 # co19 issue #395, uses dart:io API (outdated)
 Language/15_Reference/1_Lexical_Rules_A01_t10: Fail, OK
@@ -168,8 +168,8 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A08_t02: fail, 
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A09_t01: fail, OK
 
 #co19 issue #432, missing @static-warning annotation
-Language/14_Types/8_Parameterized_Types_A03_t03: fail,OK
-Language/14_Types/8_Parameterized_Types_A03_t05: fail,OK
+Language/14_Types/8_Parameterized_Types_A03_t03: fail, OK
+Language/14_Types/8_Parameterized_Types_A03_t05: fail, OK
 
 # co19 issue #433, missing @static-warning annotation
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t01: fail, OK
@@ -191,8 +191,8 @@ LibTest/core/AssertionError/line_A01_t02: fail, OK
 LibTest/core/AssertionError/url_A01_t01: fail, OK
 
 # co19 issue 459, FallThroughError is no longer const
-LibTest/core/FallThroughError/toString_A01_t01: Fail
-LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail
+LibTest/core/FallThroughError/toString_A01_t01: fail, OK
+LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail, OK
 
 # co19 issue #437, annotation should be constant _variable_ or constant constructor invocation
 Language/07_Classes/07_Classes_A01_t20: fail, OK
@@ -452,3 +452,6 @@ Language/13_Libraries_and_Scripts/1_Imports_A03_t65: fail, OK
 Language/13_Libraries_and_Scripts/1_Imports_A03_t68: fail, OK
 Language/13_Libraries_and_Scripts/1_Imports_A03_t69: fail, OK
 Language/13_Libraries_and_Scripts/1_Imports_A03_t70: fail, OK
+
+# co19 issue 483, instance access to static member
+Language/11_Expressions/15_Method_Invocation/2_Cascaded_Invocation_A01_t19: fail, OK
