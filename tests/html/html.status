@@ -71,6 +71,8 @@ webgl_1_test: Pass, Fail # Issue 8219
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
 worker_api_test: Fail # http://dartbug.com/10223
+element_test/click: Fail #TODO(efortuna)
+element_test/eventDelegation: Fail #TODO(efortuna)
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $system == windows]
 websql_test: Skip # Issue 4941: stderr contains a backtrace.

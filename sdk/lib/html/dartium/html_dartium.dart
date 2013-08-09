@@ -9734,23 +9734,6 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   }
 
 
-  /**
-   * Checks if this element matches the CSS selectors.
-   */
-  @Experimental()
-  bool matches(String selectors) {
-    if (JS('bool', '!!#.matches', this)) {
-      return JS('bool', '#.matches(#)', this, selectors);
-    } else if (JS('bool', '!!#.webkitMatchesSelector', this)) {
-      return JS('bool', '#.webkitMatchesSelector(#)', this, selectors);
-    } else if (JS('bool', '!!#.mozMatchesSelector', this)) {
-      return JS('bool', '#.mozMatchesSelector(#)', this, selectors);
-    } else if (JS('bool', '!!#.msMatchesSelector', this)) {
-      return JS('bool', '#.msMatchesSelector(#)', this, selectors);
-    }
-    throw new UnsupportedError("Not supported on this platform");
-  }
-
   Element _templateInstanceRef;
 
   // Note: only used if `this is! TemplateElement`

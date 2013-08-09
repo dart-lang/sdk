@@ -874,7 +874,6 @@ $if DART2JS
         throw new ArgumentError("Invalid position ${where}");
     }
   }
-$endif
 
   /**
    * Checks if this element matches the CSS selectors.
@@ -904,6 +903,8 @@ $endif
     } while(includeAncestors && elem != null);
     return false;
   }
+$else
+$endif
 
 $if DART2JS
   @Creates('Null')  // Set from Dart code; does not instantiate a native type.
