@@ -185,7 +185,3 @@ mutation_observer: Skip
 
 [ $runtime == safari || $runtime == chrome || $runtime == ie9 || $runtime == ff || $runtime == dartium || $runtime == drt ]
 docgen/test/single_library_test: Skip # Uses dart:io
-
-[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
-# TODO(vsm): Triage from latest Blink merge
-custom_element/test/custom_element_test: Skip
