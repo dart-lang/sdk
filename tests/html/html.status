@@ -96,6 +96,8 @@ websocket_test/websocket: Fail # TODO(efortuna): Issue 7875.
 canvasrenderingcontext2d_test/drawImage_video_element: Fail # IE does not support drawImage w/ video element
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does not support drawImage w/ video element
 worker_test/functional: Fail # IE uses incorrect security context for Blob URIs.
+element_test/eventDelegation: Fail # TODO(efortuna)
+element_test/matches: Fail # TODO(efortuna)
 
 # IE10 Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
@@ -158,6 +160,7 @@ canvasrenderingcontext2d_test/drawImage_video_element: Fail # IE does not suppor
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does not support drawImage w/ video element
 canvasrenderingcontext2d_test/drawImage_image_element: Pass, Fail # Issue: 11416
 input_element_test/attributes: Fail # IE returns null while others ''
+element_test/eventDelegation: Fail # TODO(efortuna)
 
 # IE9 Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
