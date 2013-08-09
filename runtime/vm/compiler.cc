@@ -260,8 +260,8 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
   // while loop, done is set to true. use_far_branches is always false on ia32
   // and x64.
   bool done = false;
-  // static to evade gcc's longjmp variable smashing checks.
-  static bool use_far_branches = false;
+  // volatile because the variable may be clobbered by a longjmp.
+  volatile bool use_far_branches = false;
   while (!done) {
     const intptr_t prev_deopt_id = isolate->deopt_id();
     isolate->set_deopt_id(0);
@@ -576,7 +576,6 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
     isolate->set_long_jump_base(old_base);
     isolate->set_deopt_id(prev_deopt_id);
   }
-  use_far_branches = false;
   return is_compiled;
 }
 
