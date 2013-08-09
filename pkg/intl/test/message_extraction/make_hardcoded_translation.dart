@@ -103,6 +103,21 @@ var french = {
             [["male", "\$number homme"], ["other", "\$number autre"]], null),
         ]
       ], null)),
+  "outerSelect" : writer.write(new Select.from("currency",
+      [
+        ['CDN', '\$amount dollars Canadiens'],
+        ['other', '\$amount certaine devise ou autre.'],
+      ], null)),
+  "nestedSelect" : writer.write(new Select.from("currency",
+      [
+        ['CDN', new Plural.from('amount',
+            [
+              ["other", '\$amount dollars Canadiens'],
+              ["one", '\$amount dollar Canadien'],
+            ], null)
+        ],
+        ['other', 'N''importe quoi'],
+      ], null)),
 };
 
 /** A list of the German translations that we will produce. */
@@ -174,6 +189,21 @@ var german = {
           [["male", "\$number Mann"], ["other", "\$number andere"]], null),
         ]
        ], null)),
+  "outerSelect" : writer.write(new Select.from("currency",
+      [
+        ['CDN', '\$amount Kanadischen dollar'],
+        ['other', '\$amount einige Währung oder anderen.'],
+      ], null)),
+  "nestedSelect" : writer.write(new Select.from("currency",
+      [
+        ['CDN', new Plural.from('amount',
+            [
+              ["other", '\$amount Kanadischen dollar'],
+              ["one", '\$amount Kanadischer dollar'],
+            ], null)
+        ],
+        ['other', 'whatever'],
+      ], null)),
 };
 
 /** The output directory for translated files. */

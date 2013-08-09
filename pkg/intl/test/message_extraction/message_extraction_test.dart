@@ -177,6 +177,10 @@ verifyResult(results) {
   verify('m');
   verify('f');
   verify('7 male');
+  verify('7 Canadian dollars');
+  verify('5 some currency or other.');
+  verify('1 Canadian dollar');
+  verify('2 Canadian dollars');
 
   var fr_lines = lines.skip(1).skipWhile(
       (line) => !line.contains('----')).toList();
@@ -220,6 +224,10 @@ verifyResult(results) {
   verify('homme');
   verify('femme');
   verify('7 homme');
+  verify('7 dollars Canadiens');
+  verify('5 certaine devise ou autre.');
+  verify('1 dollar Canadien');
+  verify('2 dollars Canadiens');
 
   var de_lines = fr_lines.skip(1).skipWhile(
       (line) => !line.contains('----')).toList();
@@ -263,4 +271,8 @@ verifyResult(results) {
   verify('Mann');
   verify('Frau');
   verify('7 Mann');
+  verify('7 Kanadischen dollar');
+  verify('5 einige Währung oder anderen.');
+  verify('1 Kanadischer dollar');
+  verify('2 Kanadischen dollar');
 }

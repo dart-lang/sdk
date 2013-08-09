@@ -109,12 +109,22 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
 
   /** Return true if [node] matches the pattern we expect for Intl.message() */
   bool looksLikeIntlMessage(MethodInvocation node) {
-    const validNames = const ["message", "plural", "gender"];
+    const validNames = const ["message", "plural", "gender", "select"];
     if (!validNames.contains(node.methodName.name)) return false;
     if (!(node.target is SimpleIdentifier)) return false;
     SimpleIdentifier target = node.target;
     if (target.token.toString() != "Intl") return false;
     return true;
+  }
+
+  Message _expectedInstance(String type) {
+    switch (type) {
+      case 'message' : return new MainMessage();
+      case 'plural' : return new Plural();
+      case 'gender' : return new Gender();
+      case 'select' : return new Select();
+      default: return null;
+    }
   }
 
   /**
@@ -127,42 +137,8 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
       return "Named parameters on message functions are not supported.";
     }
     var arguments = node.argumentList.arguments;
-
-    if (node.methodName.name == 'message') {
-      if (!(arguments.first is StringLiteral)) {
-        return "Intl.message messages must be string literals";
-      }
-    }
-
-    var namedArguments = arguments.skip(1);
-    // This seems unlikely to happen, but make sure all are NamedExpression
-    // before doing the tests below.
-    if (!namedArguments.every((each) => each is NamedExpression)) {
-      return "Message arguments except the message must be named";
-    }
-    var notArgs = namedArguments.where(
-        (each) => each.name.label.name != 'args');
-    var values = notArgs.map((each) => each.expression).toList();
-    if (!values.every((each) => each is SimpleStringLiteral)) {
-      "Intl.message arguments must be simple string literals";
-    }
-    var messageName = notArgs.firstWhere(
-        (eachArg) => eachArg.name.label.name == 'name',
-        orElse: () => null);
-    if (messageName == null) {
-      return "The 'name' argument for Intl.message must be specified";
-    }
-    if ((messageName.expression is! SimpleStringLiteral)
-        || messageName.expression.value != name) {
-      return "The 'name' argument for Intl.message must be a simple string "
-          "literal and match the containing function name.";
-    }
-    var hasArgs = namedArguments.any((each) => each.name.label.name == 'args');
-    var hasParameters = !parameters.parameters.isEmpty;
-    if (!hasArgs && hasParameters) {
-      return "The 'args' argument for Intl.message must be specified";
-    }
-    return null;
+    var instance = _expectedInstance(node.methodName.name);
+    return instance.checkValidity(node, arguments, name, parameters);
   }
 
   /**
@@ -244,7 +220,7 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
     var arguments = node.argumentList.arguments.elements;
     extract(message, arguments);
 
-    for (NamedExpression namedArgument in arguments.skip(1)) {
+    for (var namedArgument in arguments.where((x) => x is NamedExpression)) {
       var name = namedArgument.name.label.name;
       var exp = namedArgument.expression;
       var string = exp is SimpleStringLiteral ? exp.value : exp.toString();
@@ -419,7 +395,9 @@ class PluralAndGenderVisitor extends SimpleASTVisitor {
 
   /** Return true if [node] matches the pattern for plural or gender message.*/
   bool looksLikePluralOrGender(MethodInvocation node) {
-    if (!["plural", "gender"].contains(node.methodName.name)) return false;
+    if (!["plural", "gender", "select"].contains(node.methodName.name)) {
+      return false;
+    }
     if (!(node.target is SimpleIdentifier)) return false;
     SimpleIdentifier target = node.target;
     if (target.token.toString() != "Intl") return false;
@@ -441,21 +419,21 @@ class PluralAndGenderVisitor extends SimpleASTVisitor {
    */
   Message messageFromMethodInvocation(MethodInvocation node) {
     var message;
-    if (node.methodName.name == "gender") {
-      message = new Gender();
-    } else if (node.methodName.name == "plural") {
-      message = new Plural();
-    } else {
-      throw new IntlMessageExtractionException("Invalid plural/gender message");
+    switch(node.methodName.name) {
+      case "gender" : message = new Gender(); break;
+      case "plural" : message = new Plural(); break;
+      case "select" : message = new Select(); break;
+      default: throw new IntlMessageExtractionException(
+          "Invalid plural/gender/select message");
     }
     message.parent = parent;
 
-    var arguments = node.argumentList.arguments.elements;
-    for (var arg in arguments.where((each) => each is NamedExpression)) {
+    var arguments = message.argumentsOfInterestFor(node);
+    arguments.forEach((key, value) {
       try {
         var interpolation = new InterpolationVisitor(message);
-        arg.expression.accept(interpolation);
-        message[arg.name.label.token.toString()] = interpolation.pieces;
+        value.accept(interpolation);
+        message[key] = interpolation.pieces;
       } on IntlMessageExtractionException catch (e) {
         message = null;
         var err = new StringBuffer();
@@ -465,7 +443,7 @@ class PluralAndGenderVisitor extends SimpleASTVisitor {
         print(err);
         warnings.add(err);
       }
-    }
+    });
     var mainArg = node.argumentList.arguments.elements.firstWhere(
         (each) => each is! NamedExpression);
     if (mainArg is SimpleStringLiteral) {

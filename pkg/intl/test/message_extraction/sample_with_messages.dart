@@ -75,6 +75,25 @@ outerGender(g) => Intl.gender(g, male: 'm', female: 'f', other: 'o',
 // be rejected by validation code.
 invalidOuterGender(g) => Intl.gender(g, other: 'o');
 
+// A general select
+outerSelect(currency, amount) => Intl.select(currency,
+    {
+      "CDN" : "$amount Canadian dollars",
+      "other" : "$amount some currency or other."
+    },
+    name: "outerSelect",
+    args: [currency, amount]);
+
+// A select with a plural inside the expressions.
+nestedSelect(currency, amount) => Intl.select(currency,
+    {
+      "CDN" : """${Intl.plural(amount, one: '$amount Canadian dollar',
+          other: '$amount Canadian dollars')}""",
+      "other" : "Whatever",
+    },
+    name: "nestedSelect",
+    args: [currency, amount]);
+
 // A trivial nested plural/gender where both are done directly rather than
 // in interpolations.
 nestedOuter(number, gen) => Intl.plural(number,
@@ -146,6 +165,10 @@ printStuff(Intl locale) {
     print(outerGender("male"));
     print(outerGender("female"));
     print(nestedOuter(7, "male"));
+    print(outerSelect("CDN", 7));
+    print(outerSelect("EUR", 5));
+    print(nestedSelect("CDN", 1));
+    print(nestedSelect("CDN", 2));
   });
 }
 

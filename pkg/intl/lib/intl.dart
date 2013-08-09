@@ -302,6 +302,33 @@ class Intl {
   }
 
   /**
+   * Format a message differently depending on [choice]. We look up the value
+   * of [choice] in [cases] and return the result, or an empty string if
+   * it is not found. Normally used as part
+   * of an Intl.message message that is to be translated.
+   */
+  static String select(String choice, Map<String, String> cases,
+       {String desc, Map examples, String locale, String name,
+       List<String>args}) {
+    // If we are passed a name and arguments, then we are operating as a
+    // top-level message, so look up our translation by calling Intl.message
+    // with ourselves as an argument.
+    if (name != null) {
+      return Intl.message(
+          Intl.select(choice, cases),
+          name: name,
+          args: args,
+          locale: locale);
+    }
+    var exact = cases[choice];
+    if (exact != null) return exact;
+    var other = cases["other"];
+    if (other == null)
+      throw new ArgumentError("The 'other' case must be specified");
+    return other;
+  }
+
+  /**
    * Format the given function with a specific [locale], given a
    * [message_function] that takes no parameters. The [message_function] can be
    * a simple message function that just returns the result of `Intl.message()`
@@ -322,17 +349,6 @@ class Intl {
     var result = message_function();
     _defaultLocale = oldLocale;
     return result;
-  }
-
-  /**
-   * Support method for message formatting. Select the correct exact (gender,
-   * usually) form from [cases] given the user [choice].
-   */
-  static String select(String choice, Map cases) {
-    var exact = cases[choice];
-    if (exact != null) return exact;
-    var other = cases["other"];
-    return (other == null) ? '' : other;
   }
 
   /**
