@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:barback/barback.dart';
 import 'package:barback/src/utils.dart';
+import 'package:scheduled_test/scheduled_test.dart';
 
 /// The abstract base class for transformers used to test barback.
 ///
@@ -20,7 +21,10 @@ import 'package:barback/src/utils.dart';
 /// [getPrimary] rather than [transform.getInput] and [transform.primaryInput].
 abstract class MockTransformer extends Transformer {
   /// The number of times the transformer has been applied.
-  int get numRuns => _numRuns;
+  ///
+  /// This is scheduled. The Future will complete at the point in the schedule
+  /// that this is called.
+  Future<int> get numRuns => schedule(() => _numRuns);
   var _numRuns = 0;
 
   /// The number of currently running transforms.
@@ -37,56 +41,83 @@ abstract class MockTransformer extends Transformer {
   // the [Transform].
   final _getInput = new Map<AssetId, Completer>();
 
-  /// A future that completes when this transformer begins running.
+  /// A completer that completes once this transformer begins running.
   ///
   /// Once this transformer finishes running, this is reset to a new completer,
   /// so it can be used multiple times.
-  Future get started => _started.future;
   var _started = new Completer();
 
   /// `true` if any transforms are currently running.
-  bool get isRunning => _runningTransforms > 0;
+  ///
+  /// This is scheduled. The Future will complete at the point in the schedule
+  /// that this is called.
+  Future<bool> get isRunning => schedule(() => _runningTransforms > 0);
+
+  /// Pauses the schedule until this transformer begins running.
+  void waitUntilStarted() {
+    schedule(() => _started.future, "wait until $this starts");
+  }
 
   /// Causes the transformer to pause after running [apply] but before the
   /// returned Future completes.
   ///
-  /// This can be resumed by calling [resumeApply].
+  /// This can be resumed by calling [resumeApply]. This operation is scheduled.
   void pauseApply() {
-    _apply = new Completer();
+    schedule(() {
+      _apply = new Completer();
+    }, "pause apply for $this");
   }
 
   /// Resumes the transformer's [apply] call after [pauseApply] was called.
+  ///
+  /// This operation is scheduled.
   void resumeApply() {
-    _apply.complete();
-    _apply = null;
+    schedule(() {
+      _apply.complete();
+      _apply = null;
+    }, "resume apply for $this");
   }
 
   /// Causes the transformer to pause after running [isPrimary] on the asset
   /// with the given [name], but before the returned Future completes.
   ///
-  /// This can be resumed by calling [resumeIsPrimary].
+  /// This can be resumed by calling [resumeIsPrimary]. This operation is
+  /// scheduled.
   void pauseIsPrimary(String name) {
-    _isPrimary[new AssetId.parse(name)] = new Completer();
+    schedule(() {
+      _isPrimary[new AssetId.parse(name)] = new Completer();
+    }, "pause isPrimary($name) for $this");
   }
 
   /// Resumes the transformer's [isPrimary] call on the asset with the given
   /// [name] after [pauseIsPrimary] was called.
+  ///
+  /// This operation is scheduled.
   void resumeIsPrimary(String name) {
-    _isPrimary.remove(new AssetId.parse(name)).complete();
+    schedule(() {
+      _isPrimary.remove(new AssetId.parse(name)).complete();
+    }, "resume isPrimary($name) for $this");
   }
 
   /// Causes the transformer to pause while loading the input with the given
   /// [name]. This can be the primary input or a secondary input.
   ///
-  /// This can be resumed by calling [resumeGetInput].
+  /// This can be resumed by calling [resumeGetInput]. This operation is
+  /// scheduled.
   void pauseGetInput(String name) {
-    _getInput[new AssetId.parse(name)] = new Completer();
+    schedule(() {
+      _getInput[new AssetId.parse(name)] = new Completer();
+    }, "pause getInput($name) for $this");
   }
 
   /// Resumes the transformer's loading of the input with the given [name] after
   /// [pauseGetInput] was called.
+  ///
+  /// This operation is scheduled.
   void resumeGetInput(String name) {
-    _getInput.remove(new AssetId.parse(name)).complete();
+    schedule(() {
+      _getInput.remove(new AssetId.parse(name)).complete();
+    }, "resume getInput($name) for $this");
   }
 
   /// Like [Transform.getInput], but respects [pauseGetInput].

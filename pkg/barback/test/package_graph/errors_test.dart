@@ -38,7 +38,7 @@ main() {
     expectAsset("app|foo.c", "foo.c");
     buildShouldSucceed();
 
-    schedule(() => updateSources(["app|foo.b"]));
+    updateSources(["app|foo.b"]);
     buildShouldFail([isAssetCollisionException("app|foo.c")]);
   });
 
@@ -54,7 +54,7 @@ main() {
 
   test("reports an error for an unprovided package", () {
     initGraph();
-    expect(() => updateSources(["unknown|foo.txt"]), throwsArgumentError);
+    expect(() => updateSourcesSync(["unknown|foo.txt"]), throwsArgumentError);
   });
 
   test("reports an error for an unprovided source", () {
@@ -69,11 +69,9 @@ main() {
       [new ManyToOneTransformer("txt")]
     ]});
 
-    buildShouldFail([isMissingInputException("app|a.inc")]);
-
     updateSources(["app|a.txt"]);
-
     expectNoAsset("app|a.out");
+    buildShouldFail([isMissingInputException("app|a.inc")]);
   });
 
   test("reports an error if a transformer emits an asset for another package",
@@ -82,9 +80,8 @@ main() {
       "app": [[new CreateAssetTransformer("wrong|foo.txt")]]
     });
 
-    buildShouldFail([isInvalidOutputException("app", "wrong|foo.txt")]);
-
     updateSources(["app|foo.txt"]);
+    buildShouldFail([isInvalidOutputException("app", "wrong|foo.txt")]);
   });
 
   test("fails if a non-primary input is removed", () {
@@ -101,10 +98,7 @@ main() {
     expectAsset("app|a.out", "abc");
     buildShouldSucceed();
 
-    schedule(() {
-      removeSources(["app|b.inc"]);
-    });
-
+    removeSources(["app|b.inc"]);
     buildShouldFail([isMissingInputException("app|b.inc")]);
     expectNoAsset("app|a.out");
   });
@@ -114,12 +108,8 @@ main() {
       [new BadTransformer(["app|foo.out"])]
     ]});
 
-    schedule(() {
-      updateSources(["app|foo.txt"]);
-    });
-
+    updateSources(["app|foo.txt"]);
     expectNoAsset("app|foo.out");
-
     buildShouldFail([equals(BadTransformer.ERROR)]);
   });
 
@@ -128,22 +118,15 @@ main() {
       [new BadTransformer(["app|foo.txt"])]
     ]});
 
-    schedule(() {
-      updateSources(["app|foo.txt"]);
-    });
-
+    updateSources(["app|foo.txt"]);
     expectNoAsset("app|foo.txt");
   });
 
   test("catches errors even if nothing is waiting for process results", () {
     initGraph(["app|foo.txt"], {"app": [[new BadTransformer([])]]});
 
-    schedule(() {
-      updateSources(["app|foo.txt"]);
-    });
-
+    updateSources(["app|foo.txt"]);
     // Note: No asset requests here.
-
     buildShouldFail([equals(BadTransformer.ERROR)]);
   });
 
@@ -152,10 +135,7 @@ main() {
       [new BadTransformer(["a.out", "b.out"])]
     ]});
 
-    schedule(() {
-      updateSources(["app|foo.txt"]);
-    });
-
+    updateSources(["app|foo.txt"]);
     expectNoAsset("app|a.out");
   });
 
@@ -163,10 +143,7 @@ main() {
     initGraph(["pkg1|foo.txt", "pkg2|foo.txt"],
         {"pkg1": [[new BadTransformer([])]]});
 
-    schedule(() {
-      updateSources(["pkg1|foo.txt", "pkg2|foo.txt"]);
-    });
-
+    updateSources(["pkg1|foo.txt", "pkg2|foo.txt"]);
     expectAsset("pkg2|foo.txt", "foo");
     buildShouldFail([equals(BadTransformer.ERROR)]);
   });
@@ -177,10 +154,7 @@ main() {
       "pkg2": [[new BadTransformer([])]]
     });
 
-    schedule(() {
-      updateSources(["pkg1|foo.txt", "pkg2|foo.txt"]);
-    });
-
+    updateSources(["pkg1|foo.txt", "pkg2|foo.txt"]);
     buildShouldFail([
       equals(BadTransformer.ERROR),
       equals(BadTransformer.ERROR)
@@ -191,7 +165,7 @@ main() {
     initGraph(["app|foo.txt"]);
 
     setAssetError("app|foo.txt");
-    schedule(() => updateSources(["app|foo.txt"]));
+    updateSources(["app|foo.txt"]);
     expectNoAsset("app|foo.txt");
     buildShouldFail([isMockLoadException("app|foo.txt")]);
   });

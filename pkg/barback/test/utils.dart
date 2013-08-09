@@ -69,29 +69,45 @@ void initGraph([assets,
 /// Updates [assets] in the current [PackageProvider].
 ///
 /// Each item in the list may either be an [AssetId] or a string that can be
-/// parsed as one. Note that this method is not automatically scheduled.
+/// parsed as one.
 void updateSources(Iterable assets) {
-  // Allow strings as asset IDs.
-  assets = assets.map((asset) {
-    if (asset is String) return new AssetId.parse(asset);
-    return asset;
-  });
+  assets = _parseAssets(assets);
+  schedule(() => _barback.updateSources(assets),
+      "updating ${assets.join(', ')}");
+}
 
-  _barback.updateSources(assets);
+/// Updates [assets] in the current [PackageProvider].
+///
+/// Each item in the list may either be an [AssetId] or a string that can be
+/// parsed as one. Unlike [updateSources], this is not automatically scheduled
+/// and will be run synchronously when called.
+void updateSourcesSync(Iterable assets) =>
+    _barback.updateSources(_parseAssets(assets));
+
+/// Removes [assets] from the current [PackageProvider].
+///
+/// Each item in the list may either be an [AssetId] or a string that can be
+/// parsed as one.
+void removeSources(Iterable assets) {
+  assets = _parseAssets(assets);
+  schedule(() => _barback.removeSources(assets),
+      "removing ${assets.join(', ')}");
 }
 
 /// Removes [assets] from the current [PackageProvider].
 ///
 /// Each item in the list may either be an [AssetId] or a string that can be
-/// parsed as one. Note that this method is not automatically scheduled.
-void removeSources(Iterable assets) {
-  // Allow strings as asset IDs.
-  assets = assets.map((asset) {
+/// parsed as one. Unlike [removeSources], this is not automatically scheduled
+/// and will be run synchronously when called.
+void removeSourcesSync(Iterable assets) =>
+    _barback.removeSources(_parseAssets(assets));
+
+/// Parse a list of strings or [AssetId]s into a list of [AssetId]s.
+List<AssetId> _parseAssets(Iterable assets) {
+  return assets.map((asset) {
     if (asset is String) return new AssetId.parse(asset);
     return asset;
-  });
-
-  _barback.removeSources(assets);
+  }).toList();
 }
 
 /// Schedules a change to the contents of an asset identified by [name] to
@@ -143,7 +159,7 @@ void buildShouldNotBeDone() {
 
 /// Expects that the next [BuildResult] is a build success.
 void buildShouldSucceed() {
-  expect(_getNextBuildResult().then((result) {
+  expect(_getNextBuildResult("build should succeed").then((result) {
     result.errors.forEach(currentSchedule.signalError);
     expect(result.succeeded, isTrue);
   }), completes);
@@ -155,7 +171,7 @@ void buildShouldSucceed() {
 /// build to fail. Every matcher is expected to match an error, but the order of
 /// matchers is unimportant.
 void buildShouldFail(List matchers) {
-  expect(_getNextBuildResult().then((result) {
+  expect(_getNextBuildResult("build should fail").then((result) {
     expect(result.succeeded, isFalse);
     expect(result.errors.length, equals(matchers.length));
     for (var matcher in matchers) {
@@ -164,18 +180,10 @@ void buildShouldFail(List matchers) {
   }), completes);
 }
 
-Future<BuildResult> _getNextBuildResult() =>
-  _barback.results.elementAt(_nextBuildResult++);
-
-/// Pauses the schedule until the currently running build completes.
-///
-/// Validates that the build completed successfully.
-void waitForBuild() {
-  schedule(() {
-    return _barback.results.first.then((result) {
-      expect(result.succeeded, isTrue);
-    });
-  }, "wait for build");
+Future<BuildResult> _getNextBuildResult(String description) {
+  var result = currentSchedule.wrapFuture(
+      _barback.results.elementAt(_nextBuildResult++));
+  return schedule(() => result, description);
 }
 
 /// Schedules an expectation that the graph will deliver an asset matching

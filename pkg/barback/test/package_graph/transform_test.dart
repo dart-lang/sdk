@@ -95,9 +95,7 @@ main() {
     expectAsset("app|foo.b", "foo.b");
     expectAsset("app|foo.c", "foo.c");
     buildShouldSucceed();
-    schedule(() {
-      expect(transformer.numRuns, equals(1));
-    });
+    expect(transformer.numRuns, completion(equals(1)));
   });
 
   test("runs transforms in the same phase in parallel", () {
@@ -108,21 +106,17 @@ main() {
     transformerA.pauseApply();
     transformerB.pauseApply();
 
-    schedule(() {
-      updateSources(["app|foo.txt"]);
+    updateSources(["app|foo.txt"]);
 
-      // Wait for them both to start.
-      return Future.wait([transformerA.started, transformerB.started]);
-    });
+    transformerA.waitUntilStarted();
+    transformerB.waitUntilStarted();
 
-    schedule(() {
-      // They should both still be running.
-      expect(transformerA.isRunning, isTrue);
-      expect(transformerB.isRunning, isTrue);
+    // They should both still be running.
+    expect(transformerA.isRunning, completion(isTrue));
+    expect(transformerB.isRunning, completion(isTrue));
 
-      transformerA.resumeApply();
-      transformerB.resumeApply();
-    });
+    transformerA.resumeApply();
+    transformerB.resumeApply();
 
     expectAsset("app|foo.a", "foo.a");
     expectAsset("app|foo.b", "foo.b");
@@ -150,39 +144,26 @@ main() {
     expectAsset("app|foo.blab", "foo.blab");
     buildShouldSucceed();
 
-    schedule(() {
-      expect(transformer.numRuns, equals(1));
-    });
+    expect(transformer.numRuns, completion(equals(1)));
   });
 
   test("reapplies a transform when its input is modified", () {
     var transformer = new RewriteTransformer("blub", "blab");
     initGraph(["app|foo.blub"], {"app": [[transformer]]});
 
-    schedule(() {
-      updateSources(["app|foo.blub"]);
-    });
-
+    updateSources(["app|foo.blub"]);
     expectAsset("app|foo.blab", "foo.blab");
     buildShouldSucceed();
 
-    schedule(() {
-      updateSources(["app|foo.blub"]);
-    });
-
+    updateSources(["app|foo.blub"]);
     expectAsset("app|foo.blab", "foo.blab");
     buildShouldSucceed();
 
-    schedule(() {
-      updateSources(["app|foo.blub"]);
-    });
-
+    updateSources(["app|foo.blub"]);
     expectAsset("app|foo.blab", "foo.blab");
     buildShouldSucceed();
 
-    schedule(() {
-      expect(transformer.numRuns, equals(3));
-    });
+    expect(transformer.numRuns, completion(equals(3)));
   });
 
   test("does not reapply transform when a removed input is modified", () {
@@ -200,23 +181,18 @@ main() {
 
     // Remove the dependency on the non-primary input.
     modifyAsset("app|a.txt", "a.inc");
-    schedule(() => updateSources(["app|a.txt"]));
+    updateSources(["app|a.txt"]);
 
     // Process it again.
     expectAsset("app|a.out", "a");
     buildShouldSucceed();
 
     // Now touch the removed input. It should not trigger another build.
-    schedule(() {
-      updateSources(["app|b.inc"]);
-    });
-
+    updateSources(["app|b.inc"]);
     expectAsset("app|a.out", "a");
     buildShouldSucceed();
 
-    schedule(() {
-      expect(transformer.numRuns, equals(2));
-    });
+    expect(transformer.numRuns, completion(equals(2)));
   });
 
   test("allows a transform to generate multiple outputs", () {
@@ -248,18 +224,13 @@ main() {
     expectAsset("app|foo.bbb", "foo.bb.bbb");
     buildShouldSucceed();
 
-    schedule(() {
-      updateSources(["app|foo.a"]);
-    });
-
+    updateSources(["app|foo.a"]);
     expectAsset("app|foo.aaa", "foo.aa.aaa");
     expectAsset("app|foo.bbb", "foo.bb.bbb");
     buildShouldSucceed();
 
-    schedule(() {
-      expect(aa.numRuns, equals(2));
-      expect(bb.numRuns, equals(1));
-    });
+    expect(aa.numRuns, completion(equals(2)));
+    expect(bb.numRuns, completion(equals(1)));
   });
 
   test("doesn't get an output from a transform whose primary input is removed",
@@ -272,10 +243,7 @@ main() {
     expectAsset("app|foo.out", "foo.out");
     buildShouldSucceed();
 
-    schedule(() {
-      removeSources(["app|foo.txt"]);
-    });
-
+    removeSources(["app|foo.txt"]);
     expectNoAsset("app|foo.out");
     buildShouldSucceed();
   });
@@ -287,12 +255,10 @@ main() {
 
     rewrite.pauseApply();
     updateSources(["app|foo.txt"]);
-    schedule(() => rewrite.started);
-    schedule(() {
-      removeSources(["app|foo.txt"]);
-      rewrite.resumeApply();
-    });
+    rewrite.waitUntilStarted();
 
+    removeSources(["app|foo.txt"]);
+    rewrite.resumeApply();
     expectNoAsset("app|foo.out");
     buildShouldSucceed();
   });
@@ -308,7 +274,7 @@ main() {
     buildShouldSucceed();
 
     modifyAsset("app|a.inc", "after");
-    schedule(() => updateSources(["app|a.inc"]));
+    updateSources(["app|a.inc"]);
 
     expectAsset("app|a.out", "after");
     buildShouldSucceed();
@@ -324,7 +290,7 @@ main() {
     buildShouldSucceed();
 
     modifyAsset("app|foo.txt", "that");
-    schedule(() => updateSources(["app|foo.txt"]));
+    updateSources(["app|foo.txt"]);
 
     expectAsset("app|foo.txt", "that and the other");
     buildShouldSucceed();
@@ -344,10 +310,8 @@ main() {
     schedule(pumpEventQueue);
 
     modifyAsset("app|foo.txt", "second");
-    schedule(() {
-      updateSources(["app|foo.txt"]);
-      check1.resumeIsPrimary("app|foo.txt");
-    });
+    updateSources(["app|foo.txt"]);
+    check1.resumeIsPrimary("app|foo.txt");
 
     expectAsset("app|foo.txt", "second#2");
     buildShouldSucceed();
@@ -366,12 +330,10 @@ main() {
     // Ensure that we're waiting on check1's isPrimary.
     schedule(pumpEventQueue);
 
-    schedule(() => removeSources(["app|foo.txt"]));
+    removeSources(["app|foo.txt"]);
     modifyAsset("app|foo.txt", "second");
-    schedule(() {
-      updateSources(["app|foo.txt"]);
-      check1.resumeIsPrimary("app|foo.txt");
-    });
+    updateSources(["app|foo.txt"]);
+    check1.resumeIsPrimary("app|foo.txt");
 
     expectAsset("app|foo.txt", "second#2");
     buildShouldSucceed();
@@ -383,25 +345,17 @@ main() {
 
     transformer.pauseApply();
 
-    schedule(() {
-      updateSources(["app|foo.txt"]);
+    updateSources(["app|foo.txt"]);
+    transformer.waitUntilStarted();
 
-      // Wait for the transform to start.
-      return transformer.started;
-    });
-
-    schedule(() {
-      // Now update the graph during it.
-      updateSources(["app|foo.txt"]);
-      transformer.resumeApply();
-    });
+    // Now update the graph during it.
+    updateSources(["app|foo.txt"]);
+    transformer.resumeApply();
 
     expectAsset("app|foo.out", "foo.out");
     buildShouldSucceed();
 
-    schedule(() {
-      expect(transformer.numRuns, equals(2));
-    });
+    expect(transformer.numRuns, completion(equals(2)));
   });
 
   test("aborts processing if the primary input is removed during processing",
@@ -411,25 +365,17 @@ main() {
 
     transformer.pauseApply();
 
-    schedule(() {
-      updateSources(["app|foo.txt"]);
+    updateSources(["app|foo.txt"]);
+    transformer.waitUntilStarted();
 
-      // Wait for the transform to start.
-      return transformer.started;
-    });
-
-    schedule(() {
-      // Now remove its primary input while it's running.
-      removeSources(["app|foo.txt"]);
-      transformer.resumeApply();
-    });
+    // Now remove its primary input while it's running.
+    removeSources(["app|foo.txt"]);
+    transformer.resumeApply();
 
     expectNoAsset("app|foo.out");
     buildShouldSucceed();
 
-    schedule(() {
-      expect(transformer.numRuns, equals(1));
-    });
+    expect(transformer.numRuns, completion(equals(1)));
   });
 
   test("restarts processing if a change to a new secondary input occurs during "
@@ -443,27 +389,24 @@ main() {
     transformer.pauseApply();
 
     updateSources(["app|foo.txt", "app|bar.inc"]);
-    // Wait for the transform to start.
-    schedule(() => transformer.started);
+    transformer.waitUntilStarted();
 
     // Give the transform time to load bar.inc the first time.
     schedule(pumpEventQueue);
 
     // Now update the secondary input before the transform finishes.
     modifyAsset("app|bar.inc", "baz");
-    schedule(() => updateSources(["app|bar.inc"]));
+    updateSources(["app|bar.inc"]);
     // Give bar.inc enough time to be loaded and marked available before the
     // transformer completes.
     schedule(pumpEventQueue);
 
-    schedule(transformer.resumeApply);
+    transformer.resumeApply();
 
     expectAsset("app|foo.out", "baz");
     buildShouldSucceed();
 
-    schedule(() {
-      expect(transformer.numRuns, equals(2));
-    });
+    expect(transformer.numRuns, completion(equals(2)));
   });
 
   test("doesn't restart processing if a change to an old secondary input "
@@ -479,31 +422,25 @@ main() {
     expectAsset("app|foo.out", "bar");
     buildShouldSucceed();
 
-    schedule(transformer.pauseApply);
+    transformer.pauseApply();
     modifyAsset("app|foo.txt", "baz.inc");
-    schedule(() {
-      updateSources(["app|foo.txt"]);
-      // Wait for the transform to start.
-      return transformer.started;
-    });
+    updateSources(["app|foo.txt"]);
+    transformer.waitUntilStarted();
 
     // Now update the old secondary input before the transform finishes.
     modifyAsset("app|bar.inc", "new bar");
-    schedule(() => updateSources(["app|bar.inc"]));
+    updateSources(["app|bar.inc"]);
     // Give bar.inc enough time to be loaded and marked available before the
     // transformer completes.
     schedule(pumpEventQueue);
 
-    schedule(transformer.resumeApply);
-
+    transformer.resumeApply();
     expectAsset("app|foo.out", "baz");
     buildShouldSucceed();
 
-    schedule(() {
-      // Should have run once the first time, then again when switching to
-      // baz.inc. Should not run a third time because of bar.inc being modified.
-      expect(transformer.numRuns, equals(2));
-    });
+    // Should have run once the first time, then again when switching to
+    // baz.inc. Should not run a third time because of bar.inc being modified.
+    expect(transformer.numRuns, completion(equals(2)));
   });
 
   test("handles an output moving from one transformer to another", () {
@@ -526,7 +463,7 @@ main() {
     // transformer.
     modifyAsset("app|a.a", "a.out");
     modifyAsset("app|b.b", "b.out,shared.out");
-    schedule(() => updateSources(["app|a.a", "app|b.b"]));
+    updateSources(["app|a.a", "app|b.b"]);
 
     expectAsset("app|a.out", "spread a");
     expectAsset("app|b.out", "spread b");
@@ -542,31 +479,20 @@ main() {
 
     txtToInt.pauseApply();
 
-    schedule(() {
-      updateSources(["app|foo.txt"]);
+    updateSources(["app|foo.txt"]);
+    txtToInt.waitUntilStarted();
 
-      // Wait for the first transform to start.
-      return txtToInt.started;
-    });
-
-    schedule(() {
-      // Now update the graph during it.
-      updateSources(["app|bar.txt"]);
-    });
-
-    schedule(() {
-      txtToInt.resumeApply();
-    });
+    // Now update the graph during it.
+    updateSources(["app|bar.txt"]);
+    txtToInt.resumeApply();
 
     expectAsset("app|foo.out", "foo.int.out");
     expectAsset("app|bar.out", "bar.int.out");
     buildShouldSucceed();
 
-    schedule(() {
-      // Should only have run each transform once for each primary.
-      expect(txtToInt.numRuns, equals(2));
-      expect(intToOut.numRuns, equals(2));
-    });
+    // Should only have run each transform once for each primary.
+    expect(txtToInt.numRuns, completion(equals(2)));
+    expect(intToOut.numRuns, completion(equals(2)));
   });
 
   test("applies transforms to the correct packages", () {
@@ -606,7 +532,7 @@ main() {
 
     pauseProvider();
     modifyAsset("app|foo.in", "new");
-    schedule(() => updateSources(["app|foo.in"]));
+    updateSources(["app|foo.in"]);
     expectAssetDoesNotComplete("app|foo.out");
     buildShouldNotBeDone();
 
@@ -623,7 +549,7 @@ main() {
     updateSources(["app|foo.txt"]);
     expectAssetDoesNotComplete("app|foo.txt");
 
-    schedule(rewrite.resumeApply);
+    rewrite.resumeApply();
     expectAsset("app|foo.txt", "foo.txt");
     buildShouldSucceed();
   });
@@ -637,7 +563,7 @@ main() {
     updateSources(["app|foo.a"]);
     expectAssetDoesNotComplete("app|foo.a");
 
-    schedule(() => rewrite.resumeIsPrimary("app|foo.a"));
+    rewrite.resumeIsPrimary("app|foo.a");
     expectAsset("app|foo.a", "foo");
     buildShouldSucceed();
   });
@@ -651,11 +577,11 @@ main() {
     expectAsset("app|foo.txt", "foo.txt");
     buildShouldSucceed();
 
-    schedule(() => rewrite.pauseIsPrimary("app|foo.txt"));
-    schedule(() => updateSources(["app|foo.txt"]));
+    rewrite.pauseIsPrimary("app|foo.txt");
+    updateSources(["app|foo.txt"]);
     expectAssetDoesNotComplete("app|foo.txt");
 
-    schedule(() => rewrite.resumeIsPrimary("app|foo.txt"));
+    rewrite.resumeIsPrimary("app|foo.txt");
     expectAsset("app|foo.txt", "foo.txt");
     buildShouldSucceed();
   });
@@ -669,10 +595,8 @@ main() {
     // Make sure we're waiting on isPrimary.
     schedule(pumpEventQueue);
 
-    schedule(() {
-      removeSources(["app|foo.txt"]);
-      rewrite.resumeIsPrimary("app|foo.txt");
-    });
+    removeSources(["app|foo.txt"]);
+    rewrite.resumeIsPrimary("app|foo.txt");
     expectNoAsset("app|foo.txt");
     buildShouldSucceed();
   });
@@ -690,10 +614,8 @@ main() {
     schedule(pumpEventQueue);
 
     modifyAsset("app|foo.txt", "don't");
-    schedule(() {
-      updateSources(["app|foo.txt"]);
-      check.resumeIsPrimary("app|foo.txt");
-    });
+    updateSources(["app|foo.txt"]);
+    check.resumeIsPrimary("app|foo.txt");
 
     expectAsset("app|foo.txt", "don't");
     buildShouldSucceed();
@@ -712,10 +634,8 @@ main() {
     schedule(pumpEventQueue);
 
     modifyAsset("app|foo.txt", "do");
-    schedule(() {
-      updateSources(["app|foo.txt"]);
-      check.resumeIsPrimary("app|foo.txt");
-    });
+    updateSources(["app|foo.txt"]);
+    check.resumeIsPrimary("app|foo.txt");
 
     expectAsset("app|foo.txt", "done");
     buildShouldSucceed();
@@ -732,10 +652,8 @@ main() {
     // Make sure we're waiting on the correct isPrimary.
     schedule(pumpEventQueue);
 
-    schedule(() {
-      removeSources(["app|foo.txt"]);
-      rewrite2.resumeIsPrimary("app|foo.md");
-    });
+    removeSources(["app|foo.txt"]);
+    rewrite2.resumeIsPrimary("app|foo.md");
     expectNoAsset("app|foo.txt");
     expectAsset("app|foo.md", "foo.md");
     buildShouldSucceed();
@@ -756,10 +674,8 @@ main() {
     schedule(pumpEventQueue);
 
     modifyAsset("app|foo.txt", "don't");
-    schedule(() {
-      updateSources(["app|foo.txt"]);
-      rewrite.resumeIsPrimary("app|foo.md");
-    });
+    updateSources(["app|foo.txt"]);
+    rewrite.resumeIsPrimary("app|foo.md");
 
     expectAsset("app|foo.txt", "don't");
     expectAsset("app|foo.md", "foo.md");
@@ -781,10 +697,8 @@ main() {
     schedule(pumpEventQueue);
 
     modifyAsset("app|foo.txt", "do");
-    schedule(() {
-      updateSources(["app|foo.txt"]);
-      rewrite.resumeIsPrimary("app|foo.md");
-    });
+    updateSources(["app|foo.txt"]);
+    rewrite.resumeIsPrimary("app|foo.md");
 
     expectAsset("app|foo.txt", "done");
     expectAsset("app|foo.md", "foo.md");
@@ -802,7 +716,7 @@ main() {
     expectAsset("app|foo.out", "foo.mid.out");
     buildShouldSucceed();
 
-    schedule(() => removeSources(["app|foo.txt"]));
+    removeSources(["app|foo.txt"]);
     expectNoAsset("app|foo.out");
     buildShouldSucceed();
   });
@@ -819,7 +733,7 @@ main() {
     buildShouldSucceed();
 
     modifyAsset("app|foo.txt", "bar.mid");
-    schedule(() => updateSources(["app|foo.txt"]));
+    updateSources(["app|foo.txt"]);
     expectNoAsset('app|foo.out');
     expectAsset('app|bar.out', 'spread txt.out');
     buildShouldSucceed();
@@ -838,7 +752,7 @@ main() {
 
     pauseProvider();
     modifyAsset("app|foo.in", "new");
-    schedule(() => updateSources(["app|foo.in"]));
+    updateSources(["app|foo.in"]);
     expectAssetDoesNotComplete("app|foo.out");
     expectAsset("app|bar.out", "bar.out");
     buildShouldNotBeDone();
@@ -858,7 +772,7 @@ main() {
     buildShouldSucceed();
 
     pauseProvider();
-    schedule(() => updateSources(["app|foo.in"]));
+    updateSources(["app|foo.in"]);
     expectAssetDoesNotComplete("app|foo.out");
     expectAssetDoesNotComplete("app|non-existent.out");
     buildShouldNotBeDone();
@@ -885,7 +799,7 @@ main() {
     // pkg1 is still successful, but pkg2 is waiting on the provider, so the
     // overall build shouldn't finish.
     pauseProvider();
-    schedule(() => updateSources(["pkg2|foo.txt"]));
+    updateSources(["pkg2|foo.txt"]);
     expectAsset("pkg1|foo.out", "foo.out");
     buildShouldNotBeDone();
 
@@ -934,7 +848,7 @@ main() {
       buildShouldSucceed();
 
       modifyAsset("pkg2|a.inc", "new a");
-      schedule(() => updateSources(["pkg2|a.inc"]));
+      updateSources(["pkg2|a.inc"]);
       expectAsset("pkg1|a.out", "new a");
       buildShouldSucceed();
     });
@@ -954,7 +868,7 @@ main() {
       buildShouldSucceed();
 
       modifyAsset("pkg2|a.txt", "new a");
-      schedule(() => updateSources(["pkg2|a.txt"]));
+      updateSources(["pkg2|a.txt"]);
       expectAsset("pkg1|a.out", "new a.inc");
       buildShouldSucceed();
     });
@@ -982,7 +896,7 @@ main() {
       buildShouldSucceed();
 
       modifyAsset("pkg2|a.inc", "b,c.md");
-      schedule(() => updateSources(["pkg2|a.inc"]));
+      updateSources(["pkg2|a.inc"]);
       expectAsset("pkg1|b", "spread out");
       expectAsset("pkg1|c.done", "spread out.done");
       buildShouldSucceed();
@@ -1007,7 +921,7 @@ main() {
       buildShouldSucceed();
 
       modifyAsset("pkg2|a.inc", "b");
-      schedule(() => updateSources(["pkg2|a.inc"]));
+      updateSources(["pkg2|a.inc"]);
       expectAsset("pkg1|b", "spread out");
       expectNoAsset("pkg1|c.done");
       buildShouldSucceed();
