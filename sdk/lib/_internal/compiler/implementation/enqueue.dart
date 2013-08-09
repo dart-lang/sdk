@@ -572,6 +572,13 @@ class ResolutionEnqueuer extends Enqueuer {
 
   bool isProcessed(Element member) => resolvedElements.containsKey(member);
 
+  /// Returns [:true:] if [element] has actually been used.
+  bool isLive(Element element) {
+    if (seenClasses.contains(element)) return true;
+    if (getCachedElements(element) != null) return true;
+    return false;
+  }
+
   TreeElements getCachedElements(Element element) {
     // TODO(ngeoffray): Get rid of this check.
     if (element.enclosingElement.isClosure()) {
