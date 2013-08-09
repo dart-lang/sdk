@@ -88,6 +88,7 @@ Bool* Object::bool_true_ = NULL;
 Bool* Object::bool_false_ = NULL;
 Smi* Object::smi_illegal_cid_ = NULL;
 LanguageError* Object::snapshot_writer_error_ = NULL;
+LanguageError* Object::branch_offset_error_ = NULL;
 
 RawObject* Object::null_ = reinterpret_cast<RawObject*>(RAW_NULL);
 RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -360,6 +361,8 @@ void Object::InitOnce() {
   bool_false_ = Bool::ReadOnlyHandle();
   smi_illegal_cid_ = Smi::ReadOnlyHandle();
   snapshot_writer_error_ = LanguageError::ReadOnlyHandle();
+  branch_offset_error_ = LanguageError::ReadOnlyHandle();
+
 
   // Allocate and initialize the null instance.
   // 'null_' must be the first object allocated as it is used in allocation to
@@ -571,8 +574,12 @@ void Object::InitOnce() {
   *bool_false_ = Bool::New(false);
 
   *smi_illegal_cid_ = Smi::New(kIllegalCid);
-  *snapshot_writer_error_ =
-      LanguageError::New(String::Handle(String::New("SnapshotWriter Error")));
+
+  String& error_str = String::Handle();
+  error_str = String::New("SnapshotWriter Error");
+  *snapshot_writer_error_ = LanguageError::New(error_str);
+  error_str = String::New("Branch offset overflow");
+  *branch_offset_error_ = LanguageError::New(error_str);
 
   ASSERT(!null_object_->IsSmi());
   ASSERT(!null_array_->IsSmi());
@@ -600,6 +607,8 @@ void Object::InitOnce() {
   ASSERT(smi_illegal_cid_->IsSmi());
   ASSERT(!snapshot_writer_error_->IsSmi());
   ASSERT(snapshot_writer_error_->IsLanguageError());
+  ASSERT(!branch_offset_error_->IsSmi());
+  ASSERT(branch_offset_error_->IsLanguageError());
 }
 
 

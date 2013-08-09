@@ -404,6 +404,11 @@ class Object {
     return *snapshot_writer_error_;
   }
 
+  static const LanguageError& branch_offset_error() {
+    ASSERT(branch_offset_error_ != NULL);
+    return *branch_offset_error_;
+  }
+
   static RawClass* class_class() { return class_class_; }
   static RawClass* null_class() { return null_class_; }
   static RawClass* dynamic_class() { return dynamic_class_; }
@@ -604,6 +609,7 @@ class Object {
   static Bool* bool_false_;
   static Smi* smi_illegal_cid_;
   static LanguageError* snapshot_writer_error_;
+  static LanguageError* branch_offset_error_;
 
   friend void ClassTable::Register(const Class& cls);
   friend void RawObject::Validate(Isolate* isolate) const;

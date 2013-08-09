@@ -548,21 +548,21 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
       done = true;
     } else {
       // We bailed out.
-      const Error& bailout_error = Error::Handle(
-          isolate->object_store()->sticky_error());
 
-      ASSERT(bailout_error.IsLanguageError());
-      const LanguageError& le = LanguageError::CheckedHandle(
-          isolate->object_store()->sticky_error());
-      const String& msg = String::Handle(le.message());
-      if (msg.Equals("Branch offset overflow")) {
+      if (isolate->object_store()->sticky_error() ==
+          Object::branch_offset_error().raw()) {
+        // Compilation failed due to an out of range branch offset in the
+        // assembler. We try again (done = false) with far branches enabled.
         done = false;
         ASSERT(!use_far_branches);
         use_far_branches = true;
       } else {
-        // If not for a branch offset overflow, we only bail out from
-        // generating ssa code.
+        // If the error isn't due to an out of range branch offset, we don't
+        // try again (done = true), and indicate that we did not finish
+        // compiling (is_compiled = false).
         if (FLAG_trace_bailout) {
+          const Error& bailout_error = Error::Handle(
+              isolate->object_store()->sticky_error());
           OS::Print("%s\n", bailout_error.ToErrorCString());
         }
         done = true;
