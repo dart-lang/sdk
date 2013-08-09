@@ -326,7 +326,7 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'Window.webkitRequestFileSystem': '_requestFileSystem',
     'Window.webkitResolveLocalFileSystemURL': 'resolveLocalFileSystemUrl',
     'Element.querySelector': 'query',
-    'Element.webkitMatchesSelector' : 'matches',
+    'Element.webkitMatchesSelector' : '_matches',
     'MutationObserver.observe': '_observe',
     'Navigator.webkitGetUserMedia': '_getUserMedia',
     'Node.appendChild': 'append',

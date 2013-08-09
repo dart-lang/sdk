@@ -9316,6 +9316,25 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
 
   /**
    * Checks if this element matches the CSS selectors.
+   */
+  @Experimental()
+  bool _matches(String selectors) {
+    if (JS('bool', '!!#.matches', this)) {
+      return JS('bool', '#.matches(#)', this, selectors);
+    } else if (JS('bool', '!!#.webkitMatchesSelector', this)) {
+      return JS('bool', '#.webkitMatchesSelector(#)', this, selectors);
+    } else if (JS('bool', '!!#.mozMatchesSelector', this)) {
+      return JS('bool', '#.mozMatchesSelector(#)', this, selectors);
+    } else if (JS('bool', '!!#.msMatchesSelector', this)) {
+      return matches = JS('bool', '#.msMatchesSelector(#)', this, selectors);
+    } else {
+      throw new UnsupportedError("Not supported on this platform");
+    }
+    return false;
+  }
+
+  /**
+   * Checks if this element matches the CSS selectors.
    *
    * If `includeAncestors` is true, we examine all of this element's parent
    * elements and also return true if any of its parent elements matches
@@ -9325,19 +9344,7 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   bool matches(String selectors, [includeAncestors = false]) {
     var elem = this;
     do {
-      bool matches = false;
-      if (JS('bool', '!!#.matches', elem)) {
-        matches = JS('bool', '#.matches(#)', elem, selectors);
-      } else if (JS('bool', '!!#.webkitMatchesSelector', elem)) {
-        matches = JS('bool', '#.webkitMatchesSelector(#)', elem, selectors);
-      } else if (JS('bool', '!!#.mozMatchesSelector', elem)) {
-        matches = JS('bool', '#.mozMatchesSelector(#)', elem, selectors);
-      } else if (JS('bool', '!!#.msMatchesSelector', elem)) {
-        matches = JS('bool', '#.msMatchesSelector(#)', elem, selectors);
-      } else {
-        throw new UnsupportedError("Not supported on this platform");
-      }
-      if (matches) return true;
+      if (elem._matches(selectors)) return true;
       elem = elem.parent;
     } while(includeAncestors && elem != null);
     return false;

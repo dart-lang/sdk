@@ -9734,6 +9734,23 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   }
 
 
+  /**
+   * Checks if this element matches the CSS selectors.
+   *
+   * If `includeAncestors` is true, we examine all of this element's parent
+   * elements and also return true if any of its parent elements matches
+   * `selectors`.
+   */
+  @Experimental()
+  bool matches(String selectors, [includeAncestors = false]) {
+    var elem = this;
+    do {
+      if (elem._matches(selectors)) return true;
+      elem = elem.parent;
+    } while(includeAncestors && elem != null);
+    return false;
+  }
+
   Element _templateInstanceRef;
 
   // Note: only used if `this is! TemplateElement`
@@ -10494,7 +10511,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   @DocsEditable()
   @Experimental()
   // http://dev.w3.org/2006/webapi/selectors-api2/#matches
-  bool matches(String selectors) native "Element_webkitMatchesSelector_Callback";
+  bool _matches(String selectors) native "Element_webkitMatchesSelector_Callback";
 
   @DomName('Element.webkitRequestFullScreen')
   @DocsEditable()
