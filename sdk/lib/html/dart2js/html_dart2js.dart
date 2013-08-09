@@ -29475,7 +29475,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
     // charCode.
     event._shadowCharCode = _findCharCodeKeyDown(event);
     if (_keyDownList.length > 0 && event.keyCode != _keyDownList.last.keyCode &&
-        !_firesKeyPressEvent(event)) {
+        !_firesKeyPressEvent(e)) {
       // Some browsers have quirks not firing keypress events where all other
       // browsers do. This makes them more consistent.
       processKeyPress(event);
