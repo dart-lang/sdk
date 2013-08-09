@@ -15,6 +15,9 @@ scheduled_test/lib/*: Skip
 scheduled_test/test/scheduled_server_test: Pass, Fail, Slow, Crash # Issue 9231, 9582
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 
+[ $compiler == dart2js ]
+analyzer_experimental/test/generated/ast_test: Fail #Issue 12341
+
 [ $compiler == dart2js && ($runtime == d8 || $runtime == drt) ]
 crypto/test/hmac_sha256_test: Pass, Fail # v8 bug: Issue 12293
 crypto/test/sha1_test: Pass, Fail # v8 bug: Issue 12293
