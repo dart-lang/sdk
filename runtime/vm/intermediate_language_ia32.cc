@@ -4493,6 +4493,9 @@ LocationSummary* UnaryMintOpInstr::MakeLocationSummary() const {
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
   summary->set_out(Location::SameAsFirstInput());
+  if (FLAG_throw_on_javascript_int_overflow) {
+    summary->set_temp(0, Location::RequiresRegister());
+  }
   return summary;
 }
 
