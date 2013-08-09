@@ -7,7 +7,6 @@
 /// representation graph.
 library model;
 
-import 'model.dart';
 import 'parser.dart';
 import 'utils.dart';
 import 'visitor.dart';

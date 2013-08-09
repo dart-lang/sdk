@@ -2793,8 +2793,19 @@ class RenderingContext extends CanvasRenderingContext {
   @DomName('WebGLRenderingContext.texImage2D')
   void texImage2D(int targetTexture, int levelOfDetail, int internalFormat,
       int format, int type, data) {
-    _texImage2D(targetTexture, levelOfDetail, internalFormat,
-        format, type, data);
+    if (data is ImageElement) {
+      texImage2DImage(targetTexture, levelOfDetail, internalFormat, format,
+          type, data);
+    } else if (data is ImageData) {
+      texImage2DImageData(targetTexture, levelOfDetail, internalFormat, format,
+          type, data);
+    } else if (data is CanvasElement) {
+      texImage2DCanvas(targetTexture, levelOfDetail, internalFormat, format,
+          type, data);
+    } else {
+      texImage2DVideo(targetTexture, levelOfDetail, internalFormat, format,
+          type, data);
+    }
   }
 
   /**

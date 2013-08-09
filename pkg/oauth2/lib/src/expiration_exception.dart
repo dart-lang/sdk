@@ -4,8 +4,6 @@
 
 library expiration_exception;
 
-import 'dart:io';
-
 import 'credentials.dart';
 
 /// An exception raised when attempting to use expired OAuth2 credentials.

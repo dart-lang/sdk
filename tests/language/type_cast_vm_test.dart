@@ -22,13 +22,13 @@ class TypeTest {
     int result = 0;
     try {
       var i = "hello" as int;  // Throws a CastError
-    } on TypeError catch (error, stacktrace) {
+    } catch (error) {
       result = 1;
       Expect.isTrue(error is CastError);
-      Expect.equals("int", error.dstType);
-      Expect.equals("String", error.srcType);
-      Expect.equals("type cast", error.dstName);
-      checkTopFunction("type_cast_vm_test.dart:24:23", stacktrace);
+      var msg = error.toString();
+      Expect.isTrue(msg.contains("int"));  // dstType
+      Expect.isTrue(msg.contains("String"));  // srcType
+      checkTopFunction("type_cast_vm_test.dart:24:23", error.stackTrace);
     }
     return result;
   }
@@ -44,7 +44,7 @@ class TypeTest {
       a[0] = 0;
       a[index()]++;  // Type check succeeds, but does not create side effects.
       Expect.equals(1, a[0]);
-    } on TypeError catch (error) {
+    } catch (error) {
       result = 100;
     }
     return result;
@@ -57,13 +57,13 @@ class TypeTest {
     }
     try {
       int i = f("hello" as int);  // Throws a CastError
-    } on TypeError catch (error, stacktrace) {
+    } catch (error) {
       result = 1;
       Expect.isTrue(error is CastError);
-      Expect.equals("int", error.dstType);
-      Expect.equals("String", error.srcType);
-      Expect.equals("type cast", error.dstName);
-      checkTopFunction("type_cast_vm_test.dart:59:25", stacktrace);
+      var msg = error.toString();
+      Expect.isTrue(msg.contains("int"));  // dstType
+      Expect.isTrue(msg.contains("String"));  // srcType
+      checkTopFunction("type_cast_vm_test.dart:59:25", error.stackTrace);
     }
     return result;
   }
@@ -75,13 +75,13 @@ class TypeTest {
     }
     try {
       int i = f("hello");
-    } on TypeError catch (error, stacktrace) {
+    } catch (error) {
       result = 1;
       Expect.isTrue(error is CastError);
-      Expect.equals("int", error.dstType);
-      Expect.equals("String", error.srcType);
-      Expect.equals("type cast", error.dstName);
-      checkTopFunction("type_cast_vm_test.dart:74:16", stacktrace);
+      var msg = error.toString();
+      Expect.isTrue(msg.contains("int"));  // dstType
+      Expect.isTrue(msg.contains("String"));  // srcType
+      checkTopFunction("type_cast_vm_test.dart:74:16", error.stackTrace);
     }
     return result;
   }
@@ -93,12 +93,12 @@ class TypeTest {
     Expect.equals(5, (field as String).length);
     try {
       field as int;  // Throws a CastError
-    } on TypeError catch (error, stacktrace) {
+    } catch (error) {
       result = 1;
-      Expect.equals("int", error.dstType);
-      Expect.equals("String", error.srcType);
-      Expect.equals("type cast", error.dstName);
-      checkTopFunction("type_cast_vm_test.dart:95:13", stacktrace);
+      var msg = error.toString();
+      Expect.isTrue(msg.contains("int"));  // dstType
+      Expect.isTrue(msg.contains("String"));  // srcType
+      checkTopFunction("type_cast_vm_test.dart:95:13", error.stackTrace);
     }
     return result;
   }
@@ -111,12 +111,12 @@ class TypeTest {
     anyFunction = null as Function;  // No error.
     try {
       var i = f as int;  // Throws a TypeError if type checks are enabled.
-    } on TypeError catch (error, stacktrace) {
+    } catch (error) {
       result = 1;
-      Expect.equals("int", error.dstType);
-      Expect.equals("() => dynamic", error.srcType);
-      Expect.equals("type cast", error.dstName);
-      checkTopFunction("type_cast_vm_test.dart:113:17", stacktrace);
+      var msg = error.toString();
+      Expect.isTrue(msg.contains("int"));  // dstType
+      Expect.isTrue(msg.contains("() => dynamic"));  // srcType
+      checkTopFunction("type_cast_vm_test.dart:113:17", error.stackTrace);
     }
     return result;
   }

@@ -207,8 +207,6 @@ library serialization;
 
 import 'src/mirrors_helpers.dart';
 import 'src/serialization_helpers.dart';
-import 'dart:async';
-import 'dart:json' as json;
 import 'dart:collection';
 
 part 'src/reader_writer.dart';

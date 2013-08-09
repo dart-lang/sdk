@@ -443,11 +443,11 @@ void testNoChangeLengthList(List original, List wrapped, String name) {
   });
 
   testThrows("$name - removeWhere throws", () {
-    wrapped.removeWhere((E element) => false);
+    wrapped.removeWhere((element) => false);
   });
 
   testThrows("$name - retainWhere throws", () {
-    wrapped.retainWhere((E element) => true);
+    wrapped.retainWhere((element) => true);
   });
 
   testThrows("$name - removeRange throws", () {

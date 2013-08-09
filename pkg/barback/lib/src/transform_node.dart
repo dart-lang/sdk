@@ -45,6 +45,15 @@ class TransformNode {
   /// The controllers for the asset nodes emitted by this node.
   var _outputControllers = new Map<AssetId, AssetNodeController>();
 
+  /// A stream that emits an event whenever this transform becomes dirty and
+  /// needs to be re-run.
+  ///
+  /// This may emit events when the transform was already dirty or while
+  /// processing transforms. Events are emitted synchronously to ensure that the
+  /// dirty state is thoroughly propagated as soon as any assets are changed.
+  Stream get onDirty => _onDirtyController.stream;
+  final _onDirtyController = new StreamController.broadcast(sync: true);
+
   TransformNode(this.phase, this.transformer, this.primary) {
     _primarySubscription = primary.onStateChange.listen((state) {
       if (state.isRemoved) {
@@ -63,6 +72,7 @@ class TransformNode {
   /// valid even if its primary input still exists.
   void remove() {
     _isDirty = true;
+    _onDirtyController.close();
     _primarySubscription.cancel();
     for (var subscription in _inputSubscriptions.values) {
       subscription.cancel();
@@ -80,6 +90,7 @@ class TransformNode {
     for (var controller in _outputControllers.values) {
       controller.setDirty();
     }
+    _onDirtyController.add(null);
   }
 
   /// Applies this transform.
@@ -116,12 +127,12 @@ class TransformNode {
     });
   }
 
+  /// Gets the asset for an input [id].
+  ///
+  /// If an input with that ID cannot be found, throws an
+  /// [AssetNotFoundException].
   Future<Asset> getInput(AssetId id) {
-    return newFuture(() {
-      var node = phase.inputs[id];
-      // TODO(rnystrom): Need to handle passthrough where an asset from a
-      // previous phase can be found.
-
+    return phase.getInput(id).then((node) {
       // Throw if the input isn't found. This ensures the transformer's apply
       // is exited. We'll then catch this and report it through the proper
       // results stream.

@@ -75,10 +75,6 @@ class _EqualsWithMessage extends Matcher {
   Description describe(Description mismatchDescription) {
     return mismatchDescription.replace(msg);
   }
-  Description describeMismatch(item, Description mismatchDescription,
-                               Map matchState, bool verbose) {
-    return mismatchDescription.replace(msg).add(" $item != $expectedValue");
-  }
 }
 
 Matcher isTrueMsg(String msg) => new _IsTrueWithMessage(msg);
@@ -90,10 +86,6 @@ class _IsTrueWithMessage extends Matcher {
   }
   Description describe(Description mismatchDescription) {
     return mismatchDescription.replace(msg);
-  }
-  Description describeMismatch(item, Description mismatchDescription,
-                               Map matchState, bool verbose) {
-    return mismatchDescription.replace(msg).add(" $item is not true");
   }
 }
 
@@ -107,10 +99,6 @@ class _IsFalseWithMessage extends Matcher {
   Description describe(Description mismatchDescription) {
     return mismatchDescription.replace(msg);
   }
-  Description describeMismatch(item, Description mismatchDescription,
-                               Map matchState, bool verbose) {
-    return mismatchDescription.replace(msg).add(" $item is not false");
-  }
 }
 
 Matcher isNotNullMsg(String msg) => new _IsNotNullWithMessage(msg);
@@ -122,9 +110,5 @@ class _IsNotNullWithMessage extends Matcher {
   }
   Description describe(Description mismatchDescription) {
     return mismatchDescription.replace(msg);
-  }
-  Description describeMismatch(item, Description mismatchDescription,
-                               Map matchState, bool verbose) {
-    return mismatchDescription.replace(msg).add(" $item is null");
   }
 }

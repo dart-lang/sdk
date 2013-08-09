@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "lib/error.h"
-
 #include "vm/bootstrap_natives.h"
 #include "vm/exceptions.h"
 #include "vm/object_store.h"
@@ -51,7 +49,7 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 2) {
 }
 
 
-// Allocate and throw a new TypeError.
+// Allocate and throw a new TypeError or CastError.
 // Arg0: index of the token of the failed type check.
 // Arg1: src value.
 // Arg2: dst type name.

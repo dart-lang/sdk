@@ -1613,7 +1613,7 @@ TEST_CASE(SymbolUnicode) {
   uint16_t monkey_utf16[] = { 0xd83d, 0xdc35 };  // Unicode Monkey Face.
   String& monkey = String::Handle(Symbols::FromUTF16(monkey_utf16, 2));
   EXPECT(monkey.IsSymbol());
-  const char monkey_utf8[] = {0xf0, 0x9f, 0x90, 0xb5, 0};
+  const char monkey_utf8[] = {'\xf0', '\x9f', '\x90', '\xb5', 0};
   EXPECT_EQ(monkey.raw(), Symbols::New(monkey_utf8));
 
   int32_t kMonkeyFace = 0x1f435;
@@ -2514,6 +2514,7 @@ TEST_CASE(ICData) {
   o1.GetOneClassCheckAt(0, &test_class_id, &test_target);
   EXPECT_EQ(kSmiCid, test_class_id);
   EXPECT_EQ(target1.raw(), test_target.raw());
+  EXPECT_EQ(kSmiCid, o1.GetCidAt(0));
   GrowableArray<intptr_t> test_class_ids;
   o1.GetCheckAt(0, &test_class_ids, &test_target);
   EXPECT_EQ(1, test_class_ids.length());
@@ -2526,6 +2527,7 @@ TEST_CASE(ICData) {
   o1.GetOneClassCheckAt(1, &test_class_id, &test_target);
   EXPECT_EQ(kDoubleCid, test_class_id);
   EXPECT_EQ(target2.raw(), test_target.raw());
+  EXPECT_EQ(kDoubleCid, o1.GetCidAt(1));
 
   ICData& o2 = ICData::Handle();
   o2 = ICData::New(function, target_name, args_descriptor, 57, 2);

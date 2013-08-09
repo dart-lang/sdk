@@ -401,11 +401,11 @@ class ASTFactory {
   static SwitchDefault switchDefault2(List<Statement> statements) => switchDefault(new List<Label>(), statements);
   static SwitchStatement switchStatement(Expression expression, List<SwitchMember> members) => new SwitchStatement.full(TokenFactory.token(Keyword.SWITCH), TokenFactory.token3(TokenType.OPEN_PAREN), expression, TokenFactory.token3(TokenType.CLOSE_PAREN), TokenFactory.token3(TokenType.OPEN_CURLY_BRACKET), list(members), TokenFactory.token3(TokenType.CLOSE_CURLY_BRACKET));
   static SymbolLiteral symbolLiteral(List<String> components) {
-    List<SimpleIdentifier> identifierList = new List<SimpleIdentifier>();
+    List<Token> identifierList = new List<Token>();
     for (String component in components) {
-      identifierList.add(identifier3(component));
+      identifierList.add(TokenFactory.token4(TokenType.IDENTIFIER, component));
     }
-    return new SymbolLiteral.full(TokenFactory.token3(TokenType.HASH), identifierList);
+    return new SymbolLiteral.full(TokenFactory.token3(TokenType.HASH), new List.from(identifierList));
   }
   static ThisExpression thisExpression() => new ThisExpression.full(TokenFactory.token(Keyword.THIS));
   static ThrowExpression throwExpression() => throwExpression2(null);
@@ -717,7 +717,7 @@ class SimpleIdentifierTest extends ParserTestCase {
     });
   }
 }
-class AssignmentKind implements Comparable<AssignmentKind> {
+class AssignmentKind implements Enum<AssignmentKind> {
   static final AssignmentKind BINARY = new AssignmentKind('BINARY', 0);
   static final AssignmentKind COMPOUND_LEFT = new AssignmentKind('COMPOUND_LEFT', 1);
   static final AssignmentKind COMPOUND_RIGHT = new AssignmentKind('COMPOUND_RIGHT', 2);
@@ -750,7 +750,7 @@ class AssignmentKind implements Comparable<AssignmentKind> {
   int get hashCode => ordinal;
   String toString() => name;
 }
-class WrapperKind implements Comparable<WrapperKind> {
+class WrapperKind implements Enum<WrapperKind> {
   static final WrapperKind PREFIXED_LEFT = new WrapperKind('PREFIXED_LEFT', 0);
   static final WrapperKind PREFIXED_RIGHT = new WrapperKind('PREFIXED_RIGHT', 1);
   static final WrapperKind PROPERTY_LEFT = new WrapperKind('PROPERTY_LEFT', 2);
@@ -796,7 +796,7 @@ class BreadthFirstVisitorTest extends ParserTestCase {
         "}"]);
     CompilationUnit unit = ParserTestCase.parseCompilationUnit(source, []);
     List<ASTNode> nodes = new List<ASTNode>();
-    BreadthFirstVisitor<Object> visitor = new BreadthFirstVisitor_15(nodes);
+    BreadthFirstVisitor<Object> visitor = new BreadthFirstVisitor_16(nodes);
     visitor.visitAllNodes(unit);
     EngineTestCase.assertSize(59, nodes);
     EngineTestCase.assertInstanceOf(CompilationUnit, nodes[0]);
@@ -814,9 +814,9 @@ class BreadthFirstVisitorTest extends ParserTestCase {
     });
   }
 }
-class BreadthFirstVisitor_15 extends BreadthFirstVisitor<Object> {
+class BreadthFirstVisitor_16 extends BreadthFirstVisitor<Object> {
   List<ASTNode> nodes;
-  BreadthFirstVisitor_15(this.nodes) : super();
+  BreadthFirstVisitor_16(this.nodes) : super();
   Object visitNode(ASTNode node) {
     nodes.add(node);
     return super.visitNode(node);

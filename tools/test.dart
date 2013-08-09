@@ -102,18 +102,6 @@ void testConfigurations(List<Map> configurations) {
     exit(1);
   }
 
-  var testCaseRecorder;
-  if (recordingPath != null) {
-    testCaseRecorder = new TestCaseRecorder(new Path(recordingPath));
-  }
-
-  var testCaseOutputArchive;
-  if (recordingOutputPath != null) {
-      testCaseOutputArchive = new TestCaseOutputArchive();
-      testCaseOutputArchive.loadFromPath(new Path(recordingOutputPath));
-  }
-
-
   if (!firstConf['append_logs'])  {
     var file = new File(TestUtils.flakyFileName());
     if (file.existsSync()) {
@@ -159,6 +147,12 @@ void testConfigurations(List<Map> configurations) {
                                        conf['runtime']);
       serverFutures.add(servers.startServers(conf['local_ip']));
       conf['_servers_'] = servers;
+      if (verbose) {
+        serverFutures.last.then((_) {
+          var commandline = servers.httpServerCommandline();
+          print('Started HttpServers: $commandline');
+        });
+      }
     }
 
     // There should not be more than one InternetExplorerDriver instance
@@ -242,8 +236,10 @@ void testConfigurations(List<Map> configurations) {
   eventListener.add(new ExitCodeSetter());
 
   void startProcessQueue() {
-    // Start process queue.
-    new ProcessQueue(maxProcesses,
+    // [firstConf] is needed here, since the ProcessQueue needs to know the
+    // settings of 'noBatch' and 'local_ip'
+    new ProcessQueue(firstConf,
+                     maxProcesses,
                      maxBrowserProcesses,
                      startTime,
                      testSuites,
@@ -251,8 +247,8 @@ void testConfigurations(List<Map> configurations) {
                      allTestsFinished,
                      verbose,
                      listTests,
-                     testCaseRecorder,
-                     testCaseOutputArchive);
+                     recordingPath,
+                     recordingOutputPath);
   }
 
   // Start all the HTTP servers required before starting the process queue.

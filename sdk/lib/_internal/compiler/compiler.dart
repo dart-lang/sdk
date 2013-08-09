@@ -140,7 +140,12 @@ class Diagnostic {
   static const Diagnostic HINT = const Diagnostic(4, 'hint');
 
   /**
-   * Informational messages.
+   * Additional information about the preceding non-info diagnostic from the
+   * compiler.
+   *
+   * For example, consider a duplicated definition. The compiler first emits a
+   * message about the duplicated definition, then emits an info message about
+   * the location of the existing definition.
    */
   static const Diagnostic INFO = const Diagnostic(8, 'info');
 

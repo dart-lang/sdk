@@ -13,5 +13,6 @@ part 'codec.dart';
 part 'converter.dart';
 part 'encoding.dart';
 part 'json.dart';
+part 'line_splitter.dart';
 part 'string_conversion.dart';
 part 'utf.dart';

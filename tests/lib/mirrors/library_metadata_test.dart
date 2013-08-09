@@ -13,4 +13,6 @@ main() {
   MirrorSystem mirrors = currentMirrorSystem();
   checkMetadata(mirrors.findLibrary(const Symbol('test.library_metadata_test')).first,
                 [string, symbol]);
+  checkMetadata(mirrors.findLibrary(const Symbol('test.metadata_test')).first,
+                []);
 }

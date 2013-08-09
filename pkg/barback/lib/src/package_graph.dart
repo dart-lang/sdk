@@ -11,6 +11,8 @@ import 'package:stack_trace/stack_trace.dart';
 import 'asset.dart';
 import 'asset_cascade.dart';
 import 'asset_id.dart';
+import 'asset_node.dart';
+import 'build_result.dart';
 import 'errors.dart';
 import 'package_provider.dart';
 import 'utils.dart';
@@ -80,17 +82,15 @@ class PackageGraph {
     _errors = mergeStreams(_cascades.values.map((cascade) => cascade.errors));
   }
 
-  /// Gets the asset identified by [id].
+  /// Gets the asset node identified by [id].
   ///
-  /// If [id] is for a generated or transformed asset, this will wait until
-  /// it has been created and return it. If the asset cannot be found, throws
-  /// [AssetNotFoundException].
-  Future<Asset> getAssetById(AssetId id) {
+  /// If [id] is for a generated or transformed asset, this will wait until it
+  /// has been created and return it. If the asset cannot be found, returns
+  /// null.
+  Future<AssetNode> getAssetNode(AssetId id) {
     var cascade = _cascades[id.package];
-    if (cascade != null) return cascade.getAssetById(id);
-    return new Future.error(
-        new AssetNotFoundException(id),
-        new Trace.current().vmTrace);
+    if (cascade != null) return cascade.getAssetNode(id);
+    return new Future.value(null);
   }
 
   /// Adds [sources] to the graph's known set of source assets.

@@ -70,6 +70,8 @@ _html_event_types = monitored.Dict('htmleventgenerator._html_event_types', {
   '*.loadedmetadata': ('loadedMetadata', 'Event'),
   '*.message': ('message', 'MessageEvent'),
   '*.mousedown': ('mouseDown', 'MouseEvent'),
+  '*.mouseenter': ('mouseEnter', 'MouseEvent'),
+  '*.mouseleave': ('mouseLeave', 'MouseEvent'),
   '*.mousemove': ('mouseMove', 'MouseEvent'),
   '*.mouseout': ('mouseOut', 'MouseEvent'),
   '*.mouseover': ('mouseOver', 'MouseEvent'),
@@ -153,6 +155,7 @@ _html_event_types = monitored.Dict('htmleventgenerator._html_event_types', {
   'HTMLMediaElement.webkitkeyerror': ('keyError', 'MediaKeyEvent'),
   'HTMLMediaElement.webkitkeymessage': ('keyMessage', 'MediaKeyEvent'),
   'HTMLMediaElement.webkitneedkey': ('needKey', 'MediaKeyEvent'),
+  'IDBDatabase.close': ('close', 'Event'),
   'IDBDatabase.versionchange': ('versionChange', 'VersionChangeEvent'),
   'IDBOpenDBRequest.blocked': ('blocked', 'Event'),
   'IDBOpenDBRequest.upgradeneeded': ('upgradeNeeded', 'VersionChangeEvent'),
@@ -173,7 +176,6 @@ _html_event_types = monitored.Dict('htmleventgenerator._html_event_types', {
   'Notification.close': ('close', 'Event'),
   'Notification.display': ('display', 'Event'),
   'Notification.show': ('show', 'Event'),
-  'Performance.webkitresourcetimingbufferfull': ('resourceTimingBufferFull', 'Event'),
   'RTCDTMFSender.tonechange': ('toneChange', 'RtcDtmfToneChangeEvent'),
   'RTCDataChannel.close': ('close', 'Event'),
   'RTCDataChannel.open': ('open', 'Event'),
@@ -184,7 +186,6 @@ _html_event_types = monitored.Dict('htmleventgenerator._html_event_types', {
   'RTCPeerConnection.negotiationneeded': ('negotiationNeeded', 'Event'),
   'RTCPeerConnection.removestream': ('removeStream', 'MediaStreamEvent'),
   'RTCPeerConnection.signalingstatechange': ('signalingStateChange', 'Event'),
-  'SharedWorkerContext.connect': ('connect', 'Event'),
   'SpeechRecognition.audioend': ('audioEnd', 'Event'),
   'SpeechRecognition.audiostart': ('audioStart', 'Event'),
   'SpeechRecognition.end': ('end', 'Event'),
@@ -271,7 +272,8 @@ class HtmlEventGenerator(object):
           TYPE=event_type)
 
   def EmitStreamGetters(self, interface, custom_events,
-      members_emitter, library_name):
+      members_emitter, library_name, stream_getter_signatures_emitter=None,
+      element_stream_getters_emitter=None):
     events = self._GetEvents(interface, custom_events)
     if not events:
       return
@@ -291,14 +293,33 @@ class HtmlEventGenerator(object):
       annotations = self._metadata.GetFormattedMetadata(
           library_name, interface, annotation_name, '  ')
 
-      members_emitter.Emit(
-          "\n"
-          "  $(ANNOTATIONS)Stream<$TYPE> get $(NAME) => "
-          "$PROVIDER.forTarget(this);\n",
-          ANNOTATIONS=annotations,
-          NAME=getter_name,
-          PROVIDER=provider,
-          TYPE=event_type)
+      isElement = False
+      for parent in self._database.Hierarchy(interface):
+        if parent.id == 'Element':
+          isElement = True
+      # We add the same event stream getters Element, ElementList, and
+      # _FrozenElementList. So, in impl_Element.darttemplate, we have two
+      # additional emitters to add the correct variation of the stream getter
+      # for that context.
+      for emitter in [members_emitter, stream_getter_signatures_emitter,
+          element_stream_getters_emitter]:
+        if emitter == None:
+          continue
+        elem_type = 'Element' if isElement else ''
+        call_name = 'forElement' if isElement else 'forTarget'
+        if emitter == element_stream_getters_emitter:
+          call_name = '_forElementList'
+        emitter.Emit(
+            "\n"
+            "  $(ANNOTATIONS)$(ELEM_TYPE)Stream<$TYPE> get $(NAME)$BODY;\n",
+            ANNOTATIONS=annotations,
+            ELEM_TYPE=elem_type,
+            NAME=getter_name,
+            BODY = ('' if emitter == stream_getter_signatures_emitter else
+                ' => %s.%s(this)' % (((''
+                if emitter != element_stream_getters_emitter else 'Element.')
+                  + provider), call_name)),
+            TYPE=event_type)
 
   def _GetRawEvents(self, interface):
     all_interfaces = ([ interface ] +

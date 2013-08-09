@@ -121,6 +121,78 @@ void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
 //   EDX : argc_tag including number of arguments and function kind.
 // Uses EDI.
 void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
+  const intptr_t native_args_struct_offset =
+      NativeEntry::kNumCallWrapperArguments * kWordSize;
+  const intptr_t isolate_offset =
+      NativeArguments::isolate_offset() + native_args_struct_offset;
+  const intptr_t argc_tag_offset =
+      NativeArguments::argc_tag_offset() + native_args_struct_offset;
+  const intptr_t argv_offset =
+      NativeArguments::argv_offset() + native_args_struct_offset;
+  const intptr_t retval_offset =
+      NativeArguments::retval_offset() + native_args_struct_offset;
+
+  __ EnterFrame(0);
+
+  // Load current Isolate pointer from Context structure into EDI.
+  __ movl(EDI, FieldAddress(CTX, Context::isolate_offset()));
+
+  // Save exit frame information to enable stack walking as we are about
+  // to transition to dart VM code.
+  __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), ESP);
+
+  // Save current Context pointer into Isolate structure.
+  __ movl(Address(EDI, Isolate::top_context_offset()), CTX);
+
+  // Cache Isolate pointer into CTX while executing native code.
+  __ movl(CTX, EDI);
+
+  // Reserve space for the native arguments structure, the outgoing parameters
+  // (pointer to the native arguments structure, the C function entry point)
+  // and align frame before entering the C++ world.
+  __ AddImmediate(ESP, Immediate(-sizeof(NativeArguments) - (2 * kWordSize)));
+  if (OS::ActivationFrameAlignment() > 0) {
+    __ andl(ESP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
+  }
+
+  // Pass NativeArguments structure by value and call native function.
+  __ movl(Address(ESP, isolate_offset), CTX);  // Set isolate in NativeArgs.
+  __ movl(Address(ESP, argc_tag_offset), EDX);  // Set argc in NativeArguments.
+  __ movl(Address(ESP, argv_offset), EAX);  // Set argv in NativeArguments.
+  __ leal(EAX, Address(EBP, 2 * kWordSize));  // Compute return value addr.
+  __ movl(Address(ESP, retval_offset), EAX);  // Set retval in NativeArguments.
+  __ leal(EAX, Address(ESP, 2 * kWordSize));  // Pointer to the NativeArguments.
+  __ movl(Address(ESP, 0), EAX);  // Pass the pointer to the NativeArguments.
+  __ movl(Address(ESP, kWordSize), ECX);  // Function to call.
+  __ call(&NativeEntry::NativeCallWrapperLabel());
+
+  // Reset exit frame information in Isolate structure.
+  __ movl(Address(CTX, Isolate::top_exit_frame_info_offset()), Immediate(0));
+
+  // Load Context pointer from Isolate structure into EDI.
+  __ movl(EDI, Address(CTX, Isolate::top_context_offset()));
+
+  // Reset Context pointer in Isolate structure.
+  const Immediate& raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  __ movl(Address(CTX, Isolate::top_context_offset()), raw_null);
+
+  // Cache Context pointer into CTX while executing Dart code.
+  __ movl(CTX, EDI);
+
+  __ LeaveFrame();
+  __ ret();
+}
+
+
+// Input parameters:
+//   ESP : points to return address.
+//   ESP + 4 : address of return value.
+//   EAX : address of first argument in argument array.
+//   ECX : address of the native function to call.
+//   EDX : argc_tag including number of arguments and function kind.
+// Uses EDI.
+void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   const intptr_t native_args_struct_offset = kWordSize;
   const intptr_t isolate_offset =
       NativeArguments::isolate_offset() + native_args_struct_offset;

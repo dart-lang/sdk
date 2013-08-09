@@ -57,8 +57,6 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   const Code& code = Code::Handle(function.CurrentCode());
   ASSERT(!code.IsNull());
   ASSERT(Isolate::Current()->no_callback_scope_depth() == 0);
-  IsolateRunStateManager run_state_manager;
-  run_state_manager.SetRunState(Isolate::kIsolateRunning);
 #if defined(USING_SIMULATOR)
     return bit_copy<RawObject*, int64_t>(Simulator::Current()->Call(
         reinterpret_cast<int32_t>(entrypoint),

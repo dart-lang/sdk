@@ -4432,15 +4432,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                   MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS);
               failure = true;
             }
-          } else {
-            DartType constantType =
-                constant.computeType(compiler);
-            if (constantType != firstConstantType) {
-              compiler.reportFatalError(
-                  match.expression,
-                  MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL);
-              failure = true;
-            }
           }
           constants[labelOrCase] = constant;
         }

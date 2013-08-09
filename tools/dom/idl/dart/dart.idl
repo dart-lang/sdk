@@ -19,7 +19,7 @@ interface WaveShaperNode {
 interface AudioParam {
   // TODO(ager): Auto-generate this custom method when the info about retaining
   // typed arrays is in the IDL.
-  [Custom] void setValueCurveAtTime(Float32Array values, float time, float duration);
+  [Custom] void setValueCurveAtTime(Float32Array values, double time, double duration);
 };
 
 [Supplemental]
@@ -32,6 +32,11 @@ interface Clipboard {
 interface Document {
   [Suppressed] DOMObject getCSSCanvasContext(DOMString contextId, DOMString name, long width, long height);
   CanvasRenderingContext getCSSCanvasContext(DOMString contextId, DOMString name, long width, long height);
+};
+
+[Supplemental]
+interface Node {
+  Node cloneNode([Default=Undefined] optional boolean deep);
 };
 
 [Supplemental]
@@ -333,5 +338,3 @@ interface Location {
 [Supplemental]
 interface Window : EventTarget {};
 
-[Supplemental]
-interface AbstractWorker : EventTarget {};

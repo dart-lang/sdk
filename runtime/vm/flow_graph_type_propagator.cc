@@ -945,14 +945,23 @@ CompileType LoadFieldInstr::ComputeType() const {
   }
 
   if (FLAG_enable_type_checks) {
+    ASSERT(!type().HasResolvedTypeClass() ||
+           !Field::IsExternalizableCid(Class::Handle(
+                type().type_class()).id()));
     return CompileType::FromAbstractType(type());
   }
 
-  if (field_ != NULL && (field_->guarded_cid() != kIllegalCid)) {
-    return CompileType::CreateNullable(field_->is_nullable(),
-                                       field_->guarded_cid());
+  if ((field_ != NULL) && (field_->guarded_cid() != kIllegalCid)) {
+    intptr_t field_cid =  field_->guarded_cid();
+    if (Field::IsExternalizableCid(field_cid)) {
+      // We cannot assume that the type of the value in the field has not
+      // changed on the fly.
+      field_cid = kDynamicCid;
+    }
+    return CompileType::CreateNullable(field_->is_nullable(), field_cid);
   }
 
+  ASSERT(!Field::IsExternalizableCid(result_cid_));
   return CompileType::FromCid(result_cid_);
 }
 
@@ -1122,7 +1131,7 @@ CompileType BinaryUint32x4OpInstr::ComputeType() const {
 }
 
 
-CompileType MathSqrtInstr::ComputeType() const {
+CompileType MathUnaryInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }
 

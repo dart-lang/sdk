@@ -18,7 +18,6 @@ library generate_from_json;
 import 'dart:io';
 import 'package:intl/extract_messages.dart';
 import 'package:intl/src/intl_message.dart';
-import 'extract_to_json.dart';
 import 'package:intl/generate_localized.dart';
 import 'dart:json' as json;
 import 'package:path/path.dart' as path;

@@ -105,6 +105,7 @@ class Simulator {
     kRuntimeCall,
     kLeafRuntimeCall,
     kLeafFloatRuntimeCall,
+    kBootstrapNativeCall,
     kNativeCall
   };
   static uword RedirectExternalReference(uword function,

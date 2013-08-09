@@ -17,6 +17,7 @@ import 'dart:_collection-dev';
 import 'dart:collection' show LinkedHashSet,
                               LinkedList,
                               LinkedListEntry;
+import 'dart:convert';
 import 'dart:isolate';
 import 'dart:json' as JSON;
 import 'dart:math';

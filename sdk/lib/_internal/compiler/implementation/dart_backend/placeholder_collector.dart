@@ -45,6 +45,7 @@ class SendVisitor extends ResolvedVisitor {
   final PlaceholderCollector collector;
 
   get compiler => collector.compiler;
+  DartBackend get backend => compiler.backend;
 
   SendVisitor(this.collector, TreeElements elements) : super(elements);
 
@@ -106,6 +107,8 @@ class SendVisitor extends ResolvedVisitor {
 
   visitStaticSend(Send node) {
     final element = elements[node];
+    backend.registerStaticSend(element, node);
+
     if (Elements.isUnresolved(element)
         || identical(element, compiler.assertMethod)) {
       return;

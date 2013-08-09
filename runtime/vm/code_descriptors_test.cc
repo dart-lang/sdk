@@ -182,7 +182,6 @@ CODEGEN_TEST_RUN(StackmapCodegen, Smi::New(1))
 
 
 static void NativeFunc(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_Handle i = Dart_GetNativeArgument(args, 0);
   Dart_Handle k = Dart_GetNativeArgument(args, 1);
   int64_t value = -1;
@@ -191,7 +190,6 @@ static void NativeFunc(Dart_NativeArguments args) {
   EXPECT_VALID(Dart_IntegerToInt64(k, &value));
   EXPECT_EQ(20, value);
   Isolate::Current()->heap()->CollectAllGarbage();
-  Dart_ExitScope();
 }
 
 
@@ -283,4 +281,3 @@ TEST_CASE(StackmapGC) {
 }
 
 }  // namespace dart
-

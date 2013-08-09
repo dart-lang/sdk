@@ -5,19 +5,15 @@
 import 'dart:io';
 
 Future<String> getVersion(var options, var rootPath) {
-  var os = Platform.operatingSystem;
-  var suffix = os == 'windows' ? '.exe' : '';
-  var checkedInBinary =
-      rootPath.join(new Path('tools/testing/bin/$os/dart$suffix'));
-  var versionPath = rootPath.append("tools").append("version.dart");
-  return Process.run(checkedInBinary.toNativePath(),
-                     [versionPath.toNativePath()])
-      .then((result) {
-        if (result.exitCode != 0) {
-          throw "Could not generate version";
-        }
-        return result.stdout.trim();
-      });
+  var suffix = Platform.operatingSystem == 'windows' ? '.exe' : '';
+  var printVersionScript =
+      rootPath.append("tools").append("print_version.py").toNativePath();
+  return Process.run("python$suffix", [printVersionScript]).then((result) {
+    if (result.exitCode != 0) {
+      throw "Could not generate version";
+    }
+    return result.stdout.trim();
+  });
 }
 
 Future<String> getSnapshotGenerationFile(var options, var args, var rootPath) {

@@ -89,7 +89,6 @@ void FUNCTION_NAME(EventHandler_Start)(Dart_NativeArguments args) {
  * holds the reference to the dart EventHandler object.
  */
 void FUNCTION_NAME(EventHandler_SendData)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_Handle sender = Dart_GetNativeArgument(args, 1);
   intptr_t id = kInvalidId;
   if (Dart_IsNull(sender)) {
@@ -109,7 +108,6 @@ void FUNCTION_NAME(EventHandler_SendData)(Dart_NativeArguments args) {
       event_handler->SendData(id, dart_port, data);
     }
   }
-  Dart_ExitScope();
 }
 
 }  // namespace bin

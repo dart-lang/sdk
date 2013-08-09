@@ -218,11 +218,13 @@ CODEGEN_TEST_GENERATE(NativeDecCodegen, test) {
       String::ZoneHandle(Symbols::New("TestSmiSub"));
   NativeFunction native_function =
       reinterpret_cast<NativeFunction>(TestSmiSub);
-  node_seq->Add(new ReturnNode(kPos,
-                               new NativeBodyNode(kPos,
-                                                  function,
-                                                  native_name,
-                                                  native_function)));
+  node_seq->Add(
+      new ReturnNode(kPos,
+                     new NativeBodyNode(kPos,
+                                        function,
+                                        native_name,
+                                        native_function,
+                                        false /* not bootstrap native */)));
 }
 
 
@@ -398,11 +400,13 @@ CODEGEN_TEST_GENERATE(NativeSumCodegen, test) {
       String::ZoneHandle(Symbols::New("TestSmiSum"));
   NativeFunction native_function =
       reinterpret_cast<NativeFunction>(TestSmiSum);
-  node_seq->Add(new ReturnNode(kPos,
-                               new NativeBodyNode(kPos,
-                                                  function,
-                                                  native_name,
-                                                  native_function)));
+  node_seq->Add(
+      new ReturnNode(kPos,
+                     new NativeBodyNode(kPos,
+                                        function,
+                                        native_name,
+                                        native_function,
+                                        false /* Not bootstrap native */)));
 }
 
 
@@ -485,11 +489,13 @@ CODEGEN_TEST_GENERATE(NativeNonNullSumCodegen, test) {
       String::ZoneHandle(Symbols::New("TestNonNullSmiSum"));
   NativeFunction native_function =
       reinterpret_cast<NativeFunction>(TestNonNullSmiSum);
-  node_seq->Add(new ReturnNode(kPos,
-                               new NativeBodyNode(kPos,
-                                                  function,
-                                                  native_name,
-                                                  native_function)));
+  node_seq->Add(
+      new ReturnNode(kPos,
+                     new NativeBodyNode(kPos,
+                                        function,
+                                        native_name,
+                                        native_function,
+                                        false /* Not bootstrap native */)));
 }
 
 

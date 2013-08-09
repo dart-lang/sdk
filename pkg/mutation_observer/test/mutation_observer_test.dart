@@ -62,7 +62,7 @@ testMutationObserver() {
       var mutationObserver = new MutationObserver(
           (mutations, observer) { expect(false, isTrue,
               reason: 'Should not be reached'); });
-      expect(() { mutationObserver.observe(document, {}); },
+      expect(() { mutationObserver.observe(document); },
              throws);
     });
 

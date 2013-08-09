@@ -256,10 +256,6 @@ class Database(object):
     def walk(parents):
       for parent in parents:
         parent_name = parent.type.id
-        if parent_name == 'EventTarget':
-          # Currently EventTarget is implemented as a mixin, not a proper
-          # super interface---ignore its members.
-          continue
         if IsDartCollectionType(parent_name):
           result.append(parent_name)
           continue
@@ -271,7 +267,7 @@ class Database(object):
     result = []
     if interface.parents:
       parent = interface.parents[0]
-      if IsPureInterface(parent.type.id):
+      if IsPureInterface(parent.type.id) or parent.type.id == 'EventTarget':
         walk(interface.parents)
       else:
         walk(interface.parents[1:])

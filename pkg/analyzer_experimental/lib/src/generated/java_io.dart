@@ -1,6 +1,7 @@
 library java.io;
 
 import "dart:io";
+import 'java_core.dart' show JavaIOException;
 import 'package:path/path.dart' as pathos;
 
 class JavaSystemIO {
@@ -90,7 +91,13 @@ class JavaFile {
     return new JavaFile(parent);
   }
   String getAbsolutePath() => pathos.absolute(_path);
-  String getCanonicalPath() => _newFile().fullPathSync();
+  String getCanonicalPath() {
+    try {
+      return _newFile().fullPathSync();
+    } catch (e) {
+      throw new JavaIOException('IOException', e);
+    }
+  }
   JavaFile getAbsoluteFile() => new JavaFile(getAbsolutePath());
   JavaFile getCanonicalFile() => new JavaFile(getCanonicalPath());
   bool exists() {

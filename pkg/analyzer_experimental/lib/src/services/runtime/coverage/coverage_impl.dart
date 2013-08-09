@@ -8,11 +8,9 @@ library runtime.coverage.impl;
 import 'dart:async';
 import 'dart:collection' show SplayTreeMap;
 import 'dart:io';
-import 'dart:json' as json;
 
 import 'package:path/path.dart' as pathos;
 
-import 'package:analyzer_experimental/src/generated/source.dart' show Source, SourceRange;
 import 'package:analyzer_experimental/src/generated/scanner.dart' show StringScanner;
 import 'package:analyzer_experimental/src/generated/parser.dart' show Parser;
 import 'package:analyzer_experimental/src/generated/ast.dart';
@@ -20,7 +18,6 @@ import 'package:analyzer_experimental/src/generated/engine.dart' show RecordingE
 
 import '../log.dart' as log;
 import 'models.dart';
-import 'utils.dart';
 
 /// Run the [targetPath] with code coverage rewriting.
 /// Redirects stdandard process streams.

@@ -56,14 +56,11 @@ class GenericTest {
       E e = new E();  // Throws a type error, if type checks are enabled.
     } on TypeError catch (error) {
       result = 1;
-      int pos = error.url.lastIndexOf("/", error.url.length);
-      if (pos == -1) {
-        pos = error.url.lastIndexOf("\\", error.url.length);
-      }
-      String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("generic_test.dart", subs);
-      Expect.equals(31, error.line);  // new B<T>(t); AX does not extend A.
-      Expect.equals(21, error.column);
+      // Location of malformed error: T extends A, but AX does not extend A.
+      Expect.isTrue(error.toString().contains("line 20 pos 9"));
+      // Location of failed type check: new B<T>(t)/
+      Expect.isTrue(error.stackTrace.toString().contains(
+          "generic_test.dart:31:21"));
     }
     return result;
   }

@@ -12,15 +12,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, verify_on_transition);
-
-#define VERIFY_ON_TRANSITION                                                   \
-  if (FLAG_verify_on_transition) {                                             \
-    VerifyPointersVisitor::VerifyPointers();                                   \
-    Isolate::Current()->heap()->Verify();                                      \
-  }                                                                            \
-
-
 // Forward declarations.
 class Isolate;
 class ObjectSet;

@@ -826,7 +826,7 @@ DART_EXPORT void* Dart_CurrentIsolateData() {
 
 DART_EXPORT Dart_Handle Dart_DebugName() {
   Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
+  DARTSCOPE(isolate);
   return Api::NewHandle(isolate, String::New(isolate->name()));
 }
 
@@ -3620,6 +3620,30 @@ DART_EXPORT Dart_Handle Dart_GetNativeFieldOfArgument(Dart_NativeArguments args,
     RETURN_NULL_ERROR(value);
   }
   *value = instance.GetNativeField(isolate, fld_index);
+  return Api::Success();
+}
+
+DART_EXPORT Dart_Handle Dart_GetNativeReceiver(Dart_NativeArguments args,
+                                               intptr_t* value) {
+  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  Isolate* isolate = arguments->isolate();
+  DARTSCOPE(isolate);
+  const Object& obj = Object::Handle(isolate, arguments->NativeArgAt(0));
+  intptr_t cid = obj.GetClassId();
+  if (cid <= kNumPredefinedCids) {
+    if (cid == kNullCid) {
+      return Api::NewError("%s expects receiver argument to be non-null.",
+                           CURRENT_FUNC);
+    }
+    return Api::NewError("%s expects receiver argument to be of"
+                         " type Instance.", CURRENT_FUNC);
+  }
+  const Instance& instance = Instance::Cast(obj);
+  ASSERT(instance.IsValidNativeIndex(0));
+  if (value == NULL) {
+    RETURN_NULL_ERROR(value);
+  }
+  *value = instance.GetNativeField(isolate, 0);
   return Api::Success();
 }
 

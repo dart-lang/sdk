@@ -226,7 +226,6 @@
     'message_handler.h',
     'message_handler_test.cc',
     'message_test.cc',
-    'native_arguments.cc',
     'native_arguments.h',
     'native_entry.cc',
     'native_entry.h',

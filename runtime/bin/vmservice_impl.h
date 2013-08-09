@@ -23,7 +23,7 @@ class VmService {
 
   static bool IsRunning();
 
-  static bool SendIsolateStartupMessage(Dart_Port port);
+  static bool SendIsolateStartupMessage(Dart_Port port, Dart_Handle name);
   static bool SendIsolateShutdownMessage(Dart_Port port);
 
   static void VmServiceShutdownCallback(void* callback_data);
@@ -31,12 +31,16 @@ class VmService {
  private:
   static bool _Start(intptr_t server_port);
   static void _Stop();
+  static Dart_Handle GetSource(const char* name);
   static Dart_Handle LoadScript(const char* name);
   static Dart_Handle LoadSources(Dart_Handle library, const char** names);
   static Dart_Handle LoadSource(Dart_Handle library, const char* name);
   static Dart_Handle LoadResources(Dart_Handle library);
   static Dart_Handle LoadResource(Dart_Handle library, const char* name,
                                   const char* prefix);
+
+  static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag, Dart_Handle library,
+                                       Dart_Handle url);
 
   static void ThreadMain(uword parameters);
 

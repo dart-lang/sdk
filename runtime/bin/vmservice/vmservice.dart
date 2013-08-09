@@ -6,21 +6,25 @@ library vmservice;
 
 import 'dart:async';
 import 'dart:json' as JSON;
-// TODO(11927): Factor 'dart:io' dependency into separate library.
-import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 import 'dart:utf' as UTF;
 
+part 'constants.dart';
+part 'resources.dart';
+part 'running_isolate.dart';
+part 'running_isolates.dart';
+part 'service_request.dart';
+part 'service_request_router.dart';
 
-class VmService {
-  static VmService _instance;
+class VMService {
+  static VMService _instance;
   RunningIsolates runningIsolates = new RunningIsolates();
 
-  void controlMessageHandler(int code, SendPort sp) {
+  void controlMessageHandler(int code, SendPort sp, String name) {
     switch (code) {
       case Constants.ISOLATE_STARTUP_MESSAGE_ID:
-        runningIsolates.isolateStartup(sp);
+        runningIsolates.isolateStartup(sp, name);
       break;
       case Constants.ISOLATE_SHUTDOWN_MESSAGE_ID:
         runningIsolates.isolateShutdown(sp);
@@ -29,18 +33,18 @@ class VmService {
   }
 
   void messageHandler(message, SendPort replyTo) {
-    if (message is List && message.length == 2) {
-      controlMessageHandler(message[0], message[1]);
+    if (message is List && message.length == 3) {
+      controlMessageHandler(message[0], message[1], message[2]);
     }
   }
 
-  VmService._internal() {
+  VMService._internal() {
     port.receive(messageHandler);
   }
 
-  factory VmService() {
-    if (VmService._instance == null) {
-      VmService._instance = new VmService._internal();
+  factory VMService() {
+    if (VMService._instance == null) {
+      VMService._instance = new VMService._internal();
     }
     return _instance;
   }

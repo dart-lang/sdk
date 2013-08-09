@@ -4,8 +4,6 @@
 
 library observe.test.observe_test_utils;
 
-import 'dart:async';
-import 'package:observe/observe.dart';
 import 'package:unittest/unittest.dart';
 
 import 'package:observe/src/microtask.dart';

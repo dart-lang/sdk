@@ -398,14 +398,14 @@ _annotations = monitored.Dict('dartmetadata._annotations', {
   'Window.webkitNotifications': _webkit_experimental_annotations,
   'Window.webkitRequestFileSystem': _file_system_annotations,
   'Window.webkitResolveLocalFileSystemURL': _file_system_annotations,
+  'Element.createShadowRoot': [
+    "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
+    "@Experimental()",
+  ],
   'Element.ontransitionend': _all_but_ie9_annotations,
   # Placeholder to add experimental flag, implementation for this is
   # pending in a separate CL.
   'Element.webkitMatchesSelector': ['@Experimental()'],
-  'Element.webkitCreateShadowRoot': [
-    "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
-    "@Experimental()",
-  ],
   'Event.clipboardData': _webkit_experimental_annotations,
   'FormData': _all_but_ie9_annotations,
   'HashChangeEvent': [

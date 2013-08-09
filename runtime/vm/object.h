@@ -1962,11 +1962,16 @@ class Field : public Object {
   // to have or kDynamicCid if such class id is not known.
   // Stores to this field must update this information hence the name.
   intptr_t guarded_cid() const { return raw_ptr()->guarded_cid_; }
+
   void set_guarded_cid(intptr_t cid) const {
     raw_ptr()->guarded_cid_ = cid;
   }
   static intptr_t guarded_cid_offset() {
     return OFFSET_OF(RawField, guarded_cid_);
+  }
+
+  static bool IsExternalizableCid(intptr_t cid) {
+    return (cid == kOneByteStringCid) || (cid == kTwoByteStringCid);
   }
 
   // Returns false if any value read from this field is guaranteed to be
@@ -3327,6 +3332,9 @@ class ICData : public Object {
   void GetOneClassCheckAt(intptr_t index,
                           intptr_t* class_id,
                           Function* target) const;
+  // Only for 'num_args_checked == 1'.
+  intptr_t GetCidAt(intptr_t index) const;
+
   intptr_t GetReceiverClassIdAt(intptr_t index) const;
   intptr_t GetClassIdAt(intptr_t index, intptr_t arg_nr) const;
 
@@ -5349,7 +5357,7 @@ class TypedData : public Instance {
   }
 
 
-  TypeDataElementType ElementType() const {
+  TypedDataElementType ElementType() const {
     intptr_t cid = raw()->GetClassId();
     return ElementType(cid);
   }
@@ -5383,6 +5391,8 @@ class TypedData : public Instance {
   TYPED_GETTER_SETTER(Float64, double)
   TYPED_GETTER_SETTER(Float32x4, simd128_value_t)
 
+#undef TYPED_GETTER_SETTER
+
   static intptr_t length_offset() {
     return OFFSET_OF(RawTypedData, length_);
   }
@@ -5406,9 +5416,9 @@ class TypedData : public Instance {
     return element_size[ElementType(class_id)];
   }
 
-  static TypeDataElementType ElementType(intptr_t class_id) {
+  static TypedDataElementType ElementType(intptr_t class_id) {
     ASSERT(RawObject::IsTypedDataClassId(class_id));
-    return static_cast<TypeDataElementType>(
+    return static_cast<TypedDataElementType>(
         class_id - kTypedDataInt8ArrayCid);
   }
 
@@ -5475,7 +5485,7 @@ class ExternalTypedData : public Instance {
     return ElementSizeInBytes(cid);
   }
 
-  TypeDataElementType ElementType() const {
+  TypedDataElementType ElementType() const {
     intptr_t cid = raw()->GetClassId();
     return ElementType(cid);
   }
@@ -5513,6 +5523,8 @@ class ExternalTypedData : public Instance {
   TYPED_GETTER_SETTER(Float64, double)
   TYPED_GETTER_SETTER(Float32x4, simd128_value_t);
 
+#undef TYPED_GETTER_SETTER
+
   FinalizablePersistentHandle* AddFinalizer(
       void* peer, Dart_WeakPersistentHandleFinalizer callback) const;
 
@@ -5533,9 +5545,9 @@ class ExternalTypedData : public Instance {
     return TypedData::element_size[ElementType(class_id)];
   }
 
-  static TypeDataElementType ElementType(intptr_t class_id) {
+  static TypedDataElementType ElementType(intptr_t class_id) {
     ASSERT(RawObject::IsExternalTypedDataClassId(class_id));
-    return static_cast<TypeDataElementType>(
+    return static_cast<TypedDataElementType>(
         class_id - kExternalTypedDataInt8ArrayCid);
   }
 
@@ -5893,6 +5905,8 @@ class MirrorReference : public Instance {
     StorePointer(&raw_ptr()->referent_, referent.raw());
   }
 
+  RawAbstractType* GetAbstractTypeReferent() const;
+
   RawClass* GetClassReferent() const;
 
   RawField* GetFieldReferent() const;
@@ -5984,9 +5998,7 @@ intptr_t Instance::GetNativeField(Isolate* isolate, int index) const {
   if (native_fields == TypedData::null()) {
     return 0;
   }
-  intptr_t byte_offset = index * sizeof(intptr_t);
-  return *reinterpret_cast<intptr_t*>(native_fields->ptr()->data_ +
-                                      byte_offset);
+  return reinterpret_cast<intptr_t*>(native_fields->ptr()->data_)[index];
 }
 
 

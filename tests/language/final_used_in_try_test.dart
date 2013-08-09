@@ -10,7 +10,7 @@ main() {
     try {
       Expect.equals('f', a);
     } catch (e) {
-      throw;
+      rethrow;
     }
     break;
   }

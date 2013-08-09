@@ -5,12 +5,10 @@
 library authorization_code_grant_test;
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:json' as JSON;
 
 import 'package:unittest/unittest.dart';
 import 'package:http/http.dart' as http;
-import 'package:http/testing.dart';
 import 'package:oauth2/oauth2.dart' as oauth2;
 
 import 'utils.dart';

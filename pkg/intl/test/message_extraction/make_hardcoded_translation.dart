@@ -61,7 +61,7 @@ var french = {
       ], null)),
   // TODO(alanknight): These are pretty horrible to write out manually. Provide
   // a better way of reading/writing translations. A real format would be good.
-  "whereTheyWent" : writer.write(new Gender.from("gender",
+  "whereTheyWentMessage" : writer.write(new Gender.from("gender",
     [
       ["male", [0, " est allé à sa ", 2]],
       ["female", [0, " est allée à sa ", 2]],
@@ -103,6 +103,21 @@ var french = {
             [["male", "\$number homme"], ["other", "\$number autre"]], null),
         ]
       ], null)),
+  "outerSelect" : writer.write(new Select.from("currency",
+      [
+        ['CDN', '\$amount dollars Canadiens'],
+        ['other', '\$amount certaine devise ou autre.'],
+      ], null)),
+  "nestedSelect" : writer.write(new Select.from("currency",
+      [
+        ['CDN', new Plural.from('amount',
+            [
+              ["other", '\$amount dollars Canadiens'],
+              ["one", '\$amount dollar Canadien'],
+            ], null)
+        ],
+        ['other', 'N''importe quoi'],
+      ], null)),
 };
 
 /** A list of the German translations that we will produce. */
@@ -131,7 +146,7 @@ var german = {
     ], null)),
   // TODO(alanknight): These are pretty horrible to write out manually. Provide
   // a better way of reading/writing translations. A real format would be good.
-  "whereTheyWent" : writer.write(new Gender.from("gender",
+  "whereTheyWentMessage" : writer.write(new Gender.from("gender",
     [
       ["male", [0, " ging zu seinem ", 2]],
       ["female", [0, " ging zu ihrem ", 2]],
@@ -174,6 +189,21 @@ var german = {
           [["male", "\$number Mann"], ["other", "\$number andere"]], null),
         ]
        ], null)),
+  "outerSelect" : writer.write(new Select.from("currency",
+      [
+        ['CDN', '\$amount Kanadischen dollar'],
+        ['other', '\$amount einige Währung oder anderen.'],
+      ], null)),
+  "nestedSelect" : writer.write(new Select.from("currency",
+      [
+        ['CDN', new Plural.from('amount',
+            [
+              ["other", '\$amount Kanadischen dollar'],
+              ["one", '\$amount Kanadischer dollar'],
+            ], null)
+        ],
+        ['other', 'whatever'],
+      ], null)),
 };
 
 /** The output directory for translated files. */

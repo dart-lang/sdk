@@ -10,14 +10,8 @@ library analyzer;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analyzer_experimental/src/generated/java_io.dart';
 import 'package:analyzer_experimental/src/generated/engine.dart';
 import 'package:analyzer_experimental/src/generated/error.dart';
-import 'package:analyzer_experimental/src/generated/source_io.dart';
-import 'package:analyzer_experimental/src/generated/sdk.dart';
-import 'package:analyzer_experimental/src/generated/sdk_io.dart';
-import 'package:analyzer_experimental/src/generated/ast.dart';
-import 'package:analyzer_experimental/src/generated/element.dart';
 import 'package:analyzer_experimental/options.dart';
 
 import 'package:analyzer_experimental/src/analyzer_impl.dart';

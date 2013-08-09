@@ -974,6 +974,23 @@ class ResolverTask extends CompilerTask {
   }
 }
 
+class ConstantMapper extends Visitor {
+  final Map<Constant, Node> constantToNodeMap = new Map<Constant, Node>();
+  final CompileTimeConstantEvaluator evaluator;
+
+  ConstantMapper(ConstantHandler handler,
+                 TreeElements elements,
+                 Compiler compiler)
+      : evaluator = new CompileTimeConstantEvaluator(
+          handler, elements, compiler, isConst: false);
+
+  visitNode(Node node) {
+    Constant constant = evaluator.evaluate(node);
+    if (constant != null) constantToNodeMap[constant] = node;
+    node.visitChildren(this);
+  }
+}
+
 class InitializerResolver {
   final ResolverVisitor visitor;
   final Map<Element, Node> initialized;
@@ -1274,7 +1291,8 @@ class CommonResolverVisitor<R> extends Visitor<R> {
   }
 
   void warning(Node node, MessageKind kind, [Map arguments = const {}]) {
-    ResolutionWarning message  = new ResolutionWarning(kind, arguments);
+    ResolutionWarning message =
+        new ResolutionWarning(kind, arguments, compiler.terseDiagnostics);
     compiler.reportWarning(node, message);
   }
 
@@ -1515,7 +1533,7 @@ class TypeResolver {
             visitor, node, typdef.typeVariables, arguments);
         if (hasTypeArgumentMismatch) {
           type = new BadTypedefType(typdef,
-              new TypedefType.forUserProvidedBadType(typdef, 
+              new TypedefType.forUserProvidedBadType(typdef,
                                                      arguments.toLink()));
         } else {
           if (arguments.isEmpty) {
@@ -1750,7 +1768,8 @@ class ResolverVisitor extends MappingVisitor<Element> {
                                                  SourceString name,
                                                  DualKind kind,
                                                  [Map arguments = const {}]) {
-    ResolutionWarning warning = new ResolutionWarning(kind.warning, arguments);
+    ResolutionWarning warning = new ResolutionWarning(
+        kind.warning, arguments, compiler.terseDiagnostics);
     compiler.reportWarning(node, warning);
     return new ErroneousElementX(kind.error, arguments, name, enclosingElement);
   }
@@ -2131,17 +2150,22 @@ class ResolverVisitor extends MappingVisitor<Element> {
       if (identical(string, '!') ||
           identical(string, '&&') || identical(string, '||') ||
           identical(string, 'is') || identical(string, 'as') ||
-          identical(string, '===') || identical(string, '!==') ||
           identical(string, '?') ||
           identical(string, '>>>')) {
         return null;
       }
+      SourceString op = source;
       if (!isUserDefinableOperator(source.stringValue)) {
-        source = Elements.mapToUserOperator(source);
+        op = Elements.mapToUserOperatorOrNull(source);
+      }
+      if (op == null) {
+        // Unsupported operator. An error has been reported during parsing.
+        return new Selector.call(
+            source, library, node.argumentsNode.slowLength(), []);
       }
       return node.arguments.isEmpty
-          ? new Selector.unaryOperator(source)
-          : new Selector.binaryOperator(source);
+          ? new Selector.unaryOperator(op)
+          : new Selector.binaryOperator(op);
     }
 
     Identifier identifier = node.selector.asIdentifier();
@@ -2593,6 +2617,8 @@ class ResolverVisitor extends MappingVisitor<Element> {
     Node selector = node.send.selector;
     FunctionElement constructor = resolveConstructor(node);
     final bool isSymbolConstructor = constructor == compiler.symbolConstructor;
+    final bool isMirrorsUsedConstant =
+        node.isConst() && (constructor == compiler.mirrorsUsedConstructor);
     resolveSelector(node.send, constructor);
     resolveArguments(node.send.argumentsNode);
     useElement(node.send, constructor);
@@ -2645,6 +2671,8 @@ class ResolverVisitor extends MappingVisitor<Element> {
         }
         world.registerNewSymbol(mapping);
       }
+    } else if (isMirrorsUsedConstant) {
+      compiler.mirrorUsageAnalyzerTask.validate(node, mapping);
     }
 
     return null;
@@ -3337,9 +3365,8 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
 
   FunctionElement createForwardingConstructor(FunctionElement target,
                                               ClassElement enclosing) {
-    return new SynthesizedConstructorElementX(target.name,
-                                              target,
-                                              enclosing);
+    return new SynthesizedConstructorElementX(
+        target.name, target, enclosing, false);
   }
 
   void doApplyMixinTo(MixinApplicationElement mixinApplication,
@@ -3854,14 +3881,8 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
         if (!identical(formalParameters.getEndToken().next.stringValue,
                        // TODO(ahe): Remove the check for native keyword.
                        'native')) {
-          if (compiler.rejectDeprecatedFeatures &&
-              // TODO(ahe): Remove isPlatformLibrary check.
-              !element.getLibrary().isPlatformLibrary) {
-            compiler.reportError(formalParameters,
-                                     MessageKind.EXTRA_FORMALS);
-          } else {
-            compiler.onDeprecatedFeature(formalParameters, 'getter parameters');
-          }
+          compiler.reportError(formalParameters,
+                               MessageKind.EXTRA_FORMALS);
         }
       }
       LinkBuilder<Element> parametersBuilder =
@@ -3889,10 +3910,6 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
         compiler.reportError(formalParameters,
                                  MessageKind.ILLEGAL_SETTER_FORMALS);
       }
-    }
-    if (element.isGetter() && (requiredParameterCount != 0
-                               || visitor.optionalParameterCount != 0)) {
-      compiler.reportError(formalParameters, MessageKind.EXTRA_FORMALS);
     }
     return new FunctionSignatureX(parameters,
                                   visitor.optionalParameters,
@@ -3939,7 +3956,8 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
       error(diagnosticNode, kind.error, arguments);
     } else {
       ResolutionWarning warning  =
-          new ResolutionWarning(kind.warning, arguments);
+          new ResolutionWarning(
+              kind.warning, arguments, compiler.terseDiagnostics);
       compiler.reportWarning(diagnosticNode, warning);
       return new ErroneousElementX(
           kind.error, arguments, targetName, enclosing);

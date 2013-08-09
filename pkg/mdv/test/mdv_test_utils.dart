@@ -4,7 +4,6 @@
 
 library observe_utils;
 
-import 'dart:async';
 import 'dart:html';
 import 'package:observe/observe.dart';
 import 'package:unittest/unittest.dart';

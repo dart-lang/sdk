@@ -208,6 +208,24 @@ main() {
         });
       });
     }
+
+    test('xhr postFormData', () {
+      var data = { 'name': 'John', 'time': '2 pm' };
+
+      var parts = [];
+      for (var key in data.keys) {
+        parts.add('${Uri.encodeQueryComponent(key)}='
+          '${Uri.encodeQueryComponent(data[key])}');
+      }
+      var encodedData = parts.join('&');
+
+      return HttpRequest.postFormData(
+          '${window.location.protocol}//${window.location.host}/echo', data)
+          .then((xhr) {
+          expect(xhr.responseText, encodedData);
+        });
+    });
+
   });
 
   group('xhr_requestBlob', () {

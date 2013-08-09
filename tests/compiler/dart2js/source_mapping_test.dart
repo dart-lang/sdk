@@ -61,7 +61,7 @@ String NOT_TEST = 'void main() { ((x) { if (@!x) print(x); })(false); }';
 
 String UNARY_TEST = 'void main() { ((x, y) { print(@-x + @~y); })(1,2); }';
 
-String BINARY_TEST = 'void main() { ((x, y) { if (x @!== y) print(x @* y); })(1,2); }';
+String BINARY_TEST = 'void main() { ((x, y) { if (x @!= y) print(x @* y); })(1,2); }';
 
 String SEND_TEST = '''
 void main() {

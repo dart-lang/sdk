@@ -248,7 +248,7 @@ void main() {
       } else {
         s = null;
         return new Serialization.blank()
-            ..namedObjects['Node'] = reflect(new Node('')).type;;
+            ..namedObjects['Node'] = reflect(new Node('')).type;
       }
     }
 

@@ -306,8 +306,6 @@ abstract class Compiler implements DiagnosticListener {
    */
   final bool analyzeSignaturesOnly;
   final bool enableNativeLiveTypeAnalysis;
-  final bool rejectDeprecatedFeatures;
-  final bool checkDeprecationInSdk;
 
   /**
    * If [:true:], comment tokens are collected in [commentMap] during scanning.
@@ -330,6 +328,9 @@ abstract class Compiler implements DiagnosticListener {
    * value is "$".
    */
   final String globalJsName;
+
+  /// Emit terse diagnostics without howToFix.
+  final bool terseDiagnostics;
 
   final api.CompilerOutputProvider outputProvider;
 
@@ -386,6 +387,9 @@ abstract class Compiler implements DiagnosticListener {
 
   // Initialized when symbolImplementationClass has been resolved.
   FunctionElement symbolValidatedConstructor;
+
+  // Initialized when mirrorsUsedClass has been resolved.
+  FunctionElement mirrorsUsedConstructor;
 
   // Initialized when dart:mirrors is loaded.
   ClassElement deferredLibraryClass;
@@ -518,13 +522,12 @@ abstract class Compiler implements DiagnosticListener {
             this.analyzeAllFlag: false,
             bool analyzeOnly: false,
             bool analyzeSignaturesOnly: false,
-            this.rejectDeprecatedFeatures: false,
-            this.checkDeprecationInSdk: false,
             this.preserveComments: false,
             this.verbose: false,
             this.sourceMapUri: null,
             this.buildId: UNDETERMINED_BUILD_ID,
             this.globalJsName: r'$',
+            this.terseDiagnostics: false,
             outputProvider,
             List<String> strips: const []})
       : this.analyzeOnly = analyzeOnly || analyzeSignaturesOnly,
@@ -746,6 +749,8 @@ abstract class Compiler implements DiagnosticListener {
     } else if (symbolImplementationClass == cls) {
       symbolValidatedConstructor = symbolImplementationClass.lookupConstructor(
           symbolValidatedConstructorSelector);
+    } else if (mirrorsUsedClass == cls) {
+      mirrorsUsedConstructor = cls.constructors.head;
     }
   }
 
@@ -801,7 +806,9 @@ abstract class Compiler implements DiagnosticListener {
           '$missingHelperClasses');
     }
 
-    types = new Types(this, dynamicClass);
+    if (types == null) {
+      types = new Types(this, dynamicClass);
+    }
     backend.initializeHelperClasses();
 
     dynamicClass.ensureResolved(this);
@@ -1171,7 +1178,7 @@ abstract class Compiler implements DiagnosticListener {
                    MessageKind errorCode,
                    [Map arguments = const {}]) {
     reportMessage(spanFromSpannable(node),
-                  errorCode.error(arguments),
+                  errorCode.error(arguments, terseDiagnostics),
                   api.Diagnostic.ERROR);
   }
 
@@ -1187,21 +1194,21 @@ abstract class Compiler implements DiagnosticListener {
   void reportWarningCode(Spannable node, MessageKind errorCode,
                          [Map arguments = const {}]) {
     reportMessage(spanFromSpannable(node),
-                  errorCode.error(arguments),
+                  errorCode.error(arguments, terseDiagnostics),
                   api.Diagnostic.WARNING);
   }
 
   void reportInfo(Spannable node, MessageKind errorCode,
                   [Map arguments = const {}]) {
     reportMessage(spanFromSpannable(node),
-                  errorCode.error(arguments),
+                  errorCode.error(arguments, terseDiagnostics),
                   api.Diagnostic.INFO);
   }
 
   void reportHint(Spannable node, MessageKind errorCode,
                   [Map arguments = const {}]) {
     reportMessage(spanFromSpannable(node),
-                  errorCode.error(arguments),
+                  errorCode.error(arguments, terseDiagnostics),
                   api.Diagnostic.HINT);
   }
 
@@ -1219,24 +1226,6 @@ abstract class Compiler implements DiagnosticListener {
     // TODO(ahe): The names Diagnostic and api.Diagnostic are in
     // conflict. Fix it.
     reportDiagnostic(span, "$message", kind);
-  }
-
-  /// Returns true if a diagnostic was emitted.
-  bool onDeprecatedFeature(Spannable span, String feature) {
-    if (currentElement == null)
-      throw new SpannableAssertionFailure(span, feature);
-    if (!checkDeprecationInSdk &&
-        currentElement.getLibrary().isPlatformLibrary) {
-      return false;
-    }
-    var kind = rejectDeprecatedFeatures
-        ? api.Diagnostic.ERROR : api.Diagnostic.WARNING;
-    var message = rejectDeprecatedFeatures
-        ? MessageKind.DEPRECATED_FEATURE_ERROR.error({'featureName': feature})
-        : MessageKind.DEPRECATED_FEATURE_WARNING.error(
-            {'featureName': feature});
-    reportMessage(spanFromSpannable(span), message, kind);
-    return true;
   }
 
   void reportDiagnostic(SourceSpan span, String message, api.Diagnostic kind);

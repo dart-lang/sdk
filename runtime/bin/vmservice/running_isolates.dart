@@ -9,13 +9,12 @@ class RunningIsolates implements ServiceRequestRouter {
 
   RunningIsolates();
 
-  void isolateStartup(SendPort sp) {
+  void isolateStartup(SendPort sp, String name) {
     if (isolates[sp.hashCode] != null) {
       throw new StateError('Duplicate isolate startup.');
     }
-    var ri = new RunningIsolate(sp);
+    var ri = new RunningIsolate(sp, name);
     isolates[sp.hashCode] = ri;
-    ri._sendNameRequest();
   }
 
   void isolateShutdown(SendPort sp) {

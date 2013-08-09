@@ -13,6 +13,10 @@ class _ElementExtension extends _NodeExtension {
   // (see "BindImperative" test in original JS code).
   NodeBinding createBinding(String name, model, String path) =>
       new _AttributeBinding(node, name, model, path);
+
+  // Normally we issue this error in Element._ensureTemplate, but we
+  // avoid calling that from the model getter, so issue the error here.
+  get model => throw new UnsupportedError('$node is not a template.');
 }
 
 class _AttributeBinding extends NodeBinding {

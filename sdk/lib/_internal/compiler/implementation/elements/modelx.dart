@@ -1398,17 +1398,19 @@ class ConstructorBodyElementX extends FunctionElementX
  */
 class SynthesizedConstructorElementX extends FunctionElementX {
   final FunctionElement superMember;
+  final bool isDefaultConstructor;
 
   SynthesizedConstructorElementX(SourceString name,
                                  this.superMember,
-                                 Element enclosing)
+                                 Element enclosing,
+                                 this.isDefaultConstructor)
       : super(name,
               ElementKind.GENERATIVE_CONSTRUCTOR,
               Modifiers.EMPTY,
               enclosing);
 
   SynthesizedConstructorElementX.forDefault(superMember, Element enclosing)
-      : this(const SourceString(''), superMember, enclosing);
+      : this(const SourceString(''), superMember, enclosing, true);
 
   Token position() => enclosingElement.position();
 
@@ -1417,6 +1419,11 @@ class SynthesizedConstructorElementX extends FunctionElementX {
   FunctionElement get targetConstructor => superMember;
 
   FunctionSignature computeSignature(compiler) {
+    if (isDefaultConstructor) {
+      return new FunctionSignatureX(
+          const Link<Element>(), const Link<Element>(), 0, 0, false,
+          getEnclosingClass().thisType);
+    }
     if (superMember.isErroneous()) {
       return compiler.objectClass.localLookup(
           const SourceString('')).computeSignature(compiler);
@@ -1524,6 +1531,8 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
   ClassElement get implementation => super.implementation;
 
   bool get hasBackendMembers => !backendMembers.isEmpty;
+
+  bool get isUnnamedMixinApplication => false;
 
   InterfaceType computeType(Compiler compiler) {
     if (thisType == null) {
@@ -1987,6 +1996,7 @@ class MixinApplicationElementX extends BaseClassElementX
       : super(name, enclosing, id, STATE_NOT_STARTED);
 
   bool get isMixinApplication => true;
+  bool get isUnnamedMixinApplication => node is! NamedMixinApplication;
   bool get hasConstructor => !constructors.isEmpty;
   bool get hasLocalScopeMembers => !constructors.isEmpty;
 

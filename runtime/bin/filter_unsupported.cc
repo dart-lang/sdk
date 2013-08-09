@@ -12,32 +12,22 @@ namespace dart {
 namespace bin {
 
 void FUNCTION_NAME(Filter_CreateZLibInflate)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_ThrowException(DartUtils::NewInternalError(
         "ZLibInflater and Deflater not supported on this platform"));
-  Dart_ExitScope();
 }
 
 void FUNCTION_NAME(Filter_CreateZLibDeflate)(Dart_NativeArguments args) {
-  Dart_EnterScope();
-  Dart_ExitScope();
 }
 
 void FUNCTION_NAME(Filter_Process)(Dart_NativeArguments args) {
-  Dart_EnterScope();
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(Filter_Processed)(Dart_NativeArguments args) {
-  Dart_EnterScope();
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(Filter_End)(Dart_NativeArguments args) {
-  Dart_EnterScope();
-  Dart_ExitScope();
 }
 
 }  // namespace bin

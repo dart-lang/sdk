@@ -686,6 +686,10 @@ class Parser : public ValueObject {
   // done using 'return', 'break' or 'continue' statements.
   TryBlocks* try_blocks_list_;
 
+  // Each try in this function gets its own try index.
+  intptr_t AllocateTryIndex() { return ++last_used_try_index_; }
+  intptr_t last_used_try_index_;
+
   DISALLOW_COPY_AND_ASSIGN(Parser);
 };
 

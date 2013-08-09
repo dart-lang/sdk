@@ -42,6 +42,6 @@ testIllegalCatch() {
 }
 
 testIllegalRethrow() {
-  try { throw; } catch (e) { }             /// 16: compile-time error
-  try { } catch (e) { } finally { throw; } /// 17: compile-time error
+  try { rethrow; } catch (e) { }             /// 16: compile-time error
+  try { } catch (e) { } finally { rethrow; } /// 17: compile-time error
 }

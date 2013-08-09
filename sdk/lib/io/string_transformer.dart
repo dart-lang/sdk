@@ -259,63 +259,19 @@ List<int> _encodeString(String string, [Encoding encoding = Encoding.UTF_8]) {
   return bytes;
 }
 
+// TODO(floitsch) Remove usage of LineTransformer
+// TODO(kevmoo) Remove usage of LineTransformer
+/**
+ * Use [LineSplitter] from `dart:convert` instead.
+ *
+ * [LineTransformer] will be removed the 28 August 2013.
+ */
+ @deprecated
+ class LineTransformer implements StreamTransformer<String, String> {
+  final _decoder = new LineSplitter();
 
-class LineTransformer extends StreamEventTransformer<String, String> {
-  static const int _LF = 10;
-  static const int _CR = 13;
-
-  StringBuffer _buffer = new StringBuffer();
-  String _carry;
-
-  void _handle(String data, EventSink<String> sink, bool isClosing) {
-    if (_carry != null) {
-      data = _carry + data;
-      _carry = null;
-    }
-    int startPos = 0;
-    int pos = 0;
-    while (pos < data.length) {
-      int skip = 0;
-      int char = data.codeUnitAt(pos);
-      if (char == _LF) {
-        skip = 1;
-      } else if (char == _CR) {
-        skip = 1;
-        if (pos + 1 < data.length) {
-          if (data.codeUnitAt(pos + 1) == _LF) {
-            skip = 2;
-          }
-        } else if (!isClosing) {
-          _carry = data.substring(startPos);
-          return;
-        }
-      }
-      if (skip > 0) {
-        _buffer.write(data.substring(startPos, pos));
-        sink.add(_buffer.toString());
-        _buffer = new StringBuffer();
-        startPos = pos = pos + skip;
-      } else {
-        pos++;
-      }
-    }
-    if (pos != startPos) {
-      // Add remaining
-      _buffer.write(data.substring(startPos, pos));
-    }
-    if (isClosing && !_buffer.isEmpty) {
-      sink.add(_buffer.toString());
-      _buffer = new StringBuffer();
-    }
-  }
-
-  void handleData(String data, EventSink<String> sink) {
-    _handle(data, sink, false);
-  }
-
-  void handleDone(EventSink<String> sink) {
-    _handle("", sink, true);
-    sink.close();
+  Stream<String> bind(Stream<String> stream) {
+    return _decoder.bind(stream);
   }
 }
 

@@ -16,7 +16,6 @@ import 'test_runner.dart';
  * [
  *   {
  *     'name' : '...',
- *     'configuration' : '...',
  *     'command' : {
  *       'timeout_limit' : 60,
  *       'executable' : '...',
@@ -34,6 +33,18 @@ import 'test_runner.dart';
  * ]
  */
 
+List<String> makePathsRelativeToDart(String cwd, List<String> arguments) {
+  var relativeArguments = [];
+  for (var rawArgument in arguments) {
+    if (rawArgument.startsWith(cwd)) {
+      var relative = new Path(rawArgument).relativeTo(new Path(cwd));
+      relativeArguments.add(relative.toNativePath());
+    } else {
+      relativeArguments.add(rawArgument);
+    }
+  }
+  return relativeArguments;
+}
 
 class TestCaseRecorder {
   Path _outputPath;
@@ -44,27 +55,17 @@ class TestCaseRecorder {
     _cwd  = Directory.current.path;
   }
 
-  void nextTestCase(TestCase testCase) {
-    assert(testCase.commands.length == 1);
-
-    var command = testCase.commands[0];
-    assert(command.environment == null);
-
-    var arguments = [];
-    for (var rawArgument in command.arguments) {
-      if (rawArgument.startsWith(_cwd)) {
-        var relative = new Path(rawArgument).relativeTo(new Path(_cwd));
-        arguments.add(relative.toNativePath());
-      } else {
-        arguments.add(rawArgument);
-      }
-    }
+  void nextCommand(Command command, int timeout) {
+    // Convert arguments from absolute to relative paths (relative to the dart
+    // directory) because the absolute path on the machine where we record
+    // may be different from the absolute path on the machine where we execute
+    // the commands.
+    var arguments = makePathsRelativeToDart(_cwd, command.arguments);
 
     var commandExecution = {
-      'name' : testCase.displayName,
-      'configuration' : testCase.configurationString,
+      'name' : command.displayName,
       'command' : {
-        'timeout_limit' : testCase.timeout,
+        'timeout_limit' : timeout,
         'executable' : command.executable,
         'arguments' : arguments,
       },
@@ -81,36 +82,45 @@ class TestCaseRecorder {
 }
 
 class TestCaseOutputArchive {
-  Map<String, Map> _testCaseOutputRecords;
+  Map<String, Map> _commandOutputRecordings;
+  var _cwd;
+
+  TestCaseOutputArchive() {
+    _cwd  = Directory.current.path;
+  }
 
   void loadFromPath(Path recordingPath) {
     var file = new File.fromPath(recordingPath);
-    var testCases = json.parse(file.readAsStringSync());
-    _testCaseOutputRecords = {};
-    for (var testCase in testCases) {
-      var key = _indexKey(testCase['configuration'], testCase['name']);
-      _testCaseOutputRecords[key] = testCase['command_output'];
+    var commandRecordings = json.parse(file.readAsStringSync());
+    _commandOutputRecordings = {};
+    for (var commandRecording in commandRecordings) {
+      var key = _indexKey(commandRecording['command']['executable'],
+                          commandRecording['command']['arguments'].join(' '));
+      _commandOutputRecordings[key] = commandRecording['command_output'];
     }
   }
 
-  CommandOutput outputOf(TestCase testCase) {
-    var key = _indexKey(testCase.configurationString, testCase.displayName);
-    var command_output = _testCaseOutputRecords[key];
-    if (command_output == null) {
-      print("Sorry, but there is no command output for "
-            "${testCase.displayName}");
+  CommandOutput outputOf(Command command) {
+    // Convert arguments from absolute to relative paths (relative to the dart
+    // directory) because the absolute path on the machine where we record
+    // may be different from the absolute path on the machine where we execute
+    // the commands.
+    var arguments = makePathsRelativeToDart(_cwd, command.arguments);
 
+    var key = _indexKey(command.executable, arguments.join(' '));
+    var command_output = _commandOutputRecordings[key];
+    if (command_output == null) {
+      print("Sorry, but there is no command output for ${command.displayName}"
+            " ($command)");
       exit(42);
     }
 
     double seconds = command_output['duration'];
     var duration = new Duration(seconds: seconds.round(),
                                 milliseconds: (seconds/1000).round());
-    var commandOutput = new CommandOutput.fromCase(
-        testCase,
-        testCase.commands.first,
+    var commandOutput = createCommandOutput(
+        command,
         command_output['exit_code'],
-        false,
         command_output['did_timeout'],
         encodeUtf8(command_output['stdout']),
         encodeUtf8(command_output['stderr']),
@@ -119,8 +129,8 @@ class TestCaseOutputArchive {
     return commandOutput;
   }
 
-  String _indexKey(String configuration, String name) {
-    return "${configuration}__$name";
+  String _indexKey(String executable, String arguments) {
+    return "${executable}__$arguments";
   }
 }
 

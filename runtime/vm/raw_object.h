@@ -176,7 +176,7 @@ enum {
   kSmiTagShift = 1,
 };
 
-enum TypeDataElementType {
+enum TypedDataElementType {
 #define V(name) k##name##Element,
 CLASS_LIST_TYPED_DATA(V)
 #undef V

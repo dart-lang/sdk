@@ -270,10 +270,15 @@ class Entrypoint {
 
     return git.isInstalled.then((gitInstalled) {
       if (dirExists(path.join(root.dir, '.git')) && gitInstalled) {
+        // Later versions of git do not allow a path for ls-files that appears
+        // to be outside of the repo, so make sure we give it a relative path.
+        var relativeBeneath = path.relative(beneath, from: root.dir);
+
         // List all files that aren't gitignored, including those not checked
         // in to Git.
         return git.run(
-            ["ls-files", "--cached", "--others", "--exclude-standard", beneath],
+            ["ls-files", "--cached", "--others", "--exclude-standard",
+             relativeBeneath],
             workingDir: root.dir).then((files) {
           // Git always prints files relative to the project root, but we want
           // them relative to the working directory. It also prints forward

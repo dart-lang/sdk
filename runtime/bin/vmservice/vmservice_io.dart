@@ -2,15 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(johnmccutchan): Convert this into separate library which imports
-// the vmservice library.
+library vmservice_io;
 
-part of vmservice;
+import 'dart:io';
+import 'vmservice.dart';
+
+part 'server.dart';
 
 var _port;
 
 main() {
-  var service = new VmService();
+  // Create VmService.
+  var service = new VMService();
+  // Start HTTP server.
   var server = new Server(service, _port);
   server.startServer();
 }

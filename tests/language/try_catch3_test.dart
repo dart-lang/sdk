@@ -81,7 +81,7 @@ class Helper {
     } on MyParameterizedException<String, TestException> catch (e, trace) {
       i = 800;
       trace.printStackTrace(e);
-      throw;
+      rethrow;
     } on MyException catch (exception) {
       i = 100;
       print(exception.getMessage());

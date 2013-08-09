@@ -7,7 +7,6 @@
 
 #include "vm/flow_graph_compiler.h"
 
-#include "lib/error.h"
 #include "vm/ast_printer.h"
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
@@ -45,6 +44,11 @@ FlowGraphCompiler::~FlowGraphCompiler() {
 bool FlowGraphCompiler::SupportsUnboxedMints() {
   // Support unboxed mints when SSE 4.1 is available.
   return FLAG_unbox_mints && CPUFeatures::sse4_1_supported();
+}
+
+
+bool FlowGraphCompiler::SupportsInlinedTrigonometrics() {
+  return true;
 }
 
 
@@ -806,10 +810,9 @@ void FlowGraphCompiler::EmitTrySync(Instruction* instr, intptr_t try_index) {
   }
 
   // Process locals. Skip exception_var and stacktrace_var.
-  CatchEntryInstr* catch_entry = catch_block->next()->AsCatchEntry();
   intptr_t local_base = kFirstLocalSlotFromFp + num_non_copied_params;
-  intptr_t ex_idx = local_base - catch_entry->exception_var().index();
-  intptr_t st_idx = local_base - catch_entry->stacktrace_var().index();
+  intptr_t ex_idx = local_base - catch_block->exception_var().index();
+  intptr_t st_idx = local_base - catch_block->stacktrace_var().index();
   for (; i < flow_graph().variable_count(); ++i) {
     if (i == ex_idx || i == st_idx) continue;
     if ((*idefs)[i]->IsConstant()) continue;

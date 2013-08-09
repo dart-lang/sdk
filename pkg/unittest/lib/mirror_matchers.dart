@@ -27,9 +27,7 @@
  */
 library mirror_matchers;
 
-import 'dart:async';
 import 'dart:mirrors';
-import 'package:meta/meta.dart';
 
 import 'matcher.dart';
 

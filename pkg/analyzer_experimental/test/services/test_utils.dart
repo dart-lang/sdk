@@ -4,8 +4,6 @@
 
 library test_utils;
 
-import 'dart:collection';
-
 import 'package:unittest/unittest.dart';
 
 import 'package:analyzer_experimental/src/generated/engine.dart' show AnalysisContext, AnalysisContextImpl;

@@ -39,18 +39,6 @@ class _TestOptionSpecification {
  * Parser of test options.
  */
 class TestOptionsParser {
-  String specialCommandHelp =
-"""
-Special command support. Wraps the command line in
-a special command. The special command should contain
-an '@' character which will be replaced by the normal
-command executable.
-
-For example if the normal command line that will be executed
-is 'dart file.dart' and you specify special command
-'python -u valgrind.py @ suffix' the final command will be
-'python -u valgrind.py dart suffix file.dart'""";
-
   /**
    * Creates a test options parser initialized with the known options.
    */
@@ -224,19 +212,6 @@ is 'dart file.dart' and you specify special command
               [],
               false,
               'bool'),
-          new _TestOptionSpecification(
-              'valgrind',
-              'Run tests through valgrind',
-              ['--valgrind'],
-              [],
-              false,
-              'bool'),
-          new _TestOptionSpecification(
-              'special-command',
-              specialCommandHelp,
-              ['--special-command'],
-              [],
-              ''),
           new _TestOptionSpecification(
               'time',
               'Print timing information after running tests',
@@ -581,16 +556,6 @@ Note: currently only implemented for dart2js.''',
     }
     if (configuration['mode'] == 'all') {
       configuration['mode'] = 'debug,release';
-    }
-    if (configuration['valgrind']) {
-      // TODO(ager): Get rid of this when there is only one checkout and
-      // we don't have to special case for the runtime checkout.
-      File valgrindFile = new File('runtime/tools/valgrind.py');
-      if (!valgrindFile.existsSync()) {
-        valgrindFile = new File('../runtime/tools/valgrind.py');
-      }
-      String valgrind = valgrindFile.fullPathSync();
-      configuration['special-command'] = 'python -u $valgrind @';
     }
 
     // Use verbose progress indication for verbose output unless buildbot

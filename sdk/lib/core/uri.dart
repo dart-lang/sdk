@@ -263,6 +263,175 @@ class Uri {
   }
 
   /**
+   * Creates a new file URI from an absolute or relative file path.
+   *
+   * The file path is passed in [path].
+   *
+   * This path is interpreted using either Windows or non-Windows
+   * semantics.
+   *
+   * With non-Windows semantics the slash ("/") is used to separate
+   * path segments.
+   *
+   * With Windows semantics, backslash ("\") and forward-slash ("/")
+   * are used to separate path segments, except if the path starts
+   * with "\\?\" in which case, only backslash ("\") separates path
+   * segments.
+   *
+   * If the path starts with a path separator an absolute URI is
+   * created. Otherwise a relative URI is created. One exception from
+   * this rule is that when Windows semantics is used and the path
+   * starts with a drive letter followed by a colon (":") and a
+   * path separator then an absolute URI is created.
+   *
+   * The default for whether to use Windows or non-Windows semantics
+   * determined from the platform Dart is running on. When running in
+   * the standalone VM this is detected by the VM based on the
+   * operating system. When running in a browser non-Windows semantics
+   * is always used.
+   *
+   * To override the automatic detection of which semantics to use pass
+   * a value for [windows]. Passing `true` will use Windows
+   * semantics and passing `false` will use non-Windows semantics.
+   *
+   * Examples using non-Windows semantics (resulting URI in comment):
+   *
+   *     new Uri.file("xxx/yyy");  // xxx/yyy
+   *     new Uri.file("xxx/yyy/");  // xxx/yyy/
+   *     new Uri.file("/xxx/yyy");  // file:///xxx/yyy
+   *     new Uri.file("/xxx/yyy/");  // file:///xxx/yyy/
+   *     new Uri.file("C:");  // C:
+   *
+   * Examples using Windows semantics (resulting URI in comment):
+   *
+   *     new Uri.file(r"xxx\yyy");  // xxx/yyy
+   *     new Uri.file(r"xxx\yyy\");  // xxx/yyy/
+   *     new Uri.file(r"\xxx\yyy");  // file:///xxx/yyy
+   *     new Uri.file(r"\xxx\yyy/");  // file:///xxx/yyy/
+   *     new Uri.file(r"C:\xxx\yyy");  // file:///C:/xxx/yyy
+   *     new Uri.file(r"C:xxx\yyy");  // Throws as path with drive letter
+   *                                  // is not absolute.
+   *     new Uri.file(r"\\server\share\file");  // file://server/share/file
+   *     new Uri.file(r"C:");  // Throws as path with drive letter
+   *                           // is not absolute.
+   *
+   * If the path passed is not a legal file path [ArgumentError] is thrown.
+   */
+  factory Uri.file(String path, {bool windows}) {
+    windows = windows == null ? Uri._isWindows : windows;
+    return windows ? _makeWindowsFileUrl(path) : _makeFileUri(path);
+  }
+
+  external static bool get _isWindows;
+
+  static _checkNonWindowsPathReservedCharacters(List<String> segments,
+                                                bool argumentError) {
+    segments.forEach((segment) {
+      if (segment.contains("/")) {
+        if (argumentError) {
+          throw new ArgumentError("Illegal path character $segment");
+        } else {
+          throw new UnsupportedError("Illegal path character $segment");
+        }
+      }
+    });
+  }
+
+  static _checkWindowsPathReservedCharacters(List<String> segments,
+                                             bool argumentError,
+                                             [int firstSegment = 0]) {
+    segments.skip(firstSegment).forEach((segment) {
+      if (segment.contains(new RegExp(r'["*/:<>?\\|]'))) {
+        if (argumentError) {
+          throw new ArgumentError("Illegal character in path}");
+        } else {
+          throw new UnsupportedError("Illegal character in path}");
+        }
+      }
+    });
+  }
+
+  static _checkWindowsDriveLetter(int charCode, bool argumentError) {
+    if ((_UPPER_CASE_A <= charCode && charCode <= _UPPER_CASE_Z) ||
+        (_LOWER_CASE_A <= charCode && charCode <= _LOWER_CASE_Z)) {
+      return;
+    }
+    if (argumentError) {
+      throw new ArgumentError("Illegal drive letter " +
+                              new String.fromCharCode(charCode));
+    } else {
+      throw new UnsupportedError("Illegal drive letter " +
+                              new String.fromCharCode(charCode));
+    }
+  }
+
+  static _makeFileUri(String path) {
+    String sep = "/";
+    if (path.length > 0 && path[0] == sep) {
+      // Absolute file:// URI.
+      return new Uri(scheme: "file", pathSegments: path.split(sep));
+    } else {
+      // Relative URI.
+      return new Uri(pathSegments: path.split(sep));
+    }
+  }
+
+  static _makeWindowsFileUrl(String path) {
+    if (path.startsWith("\\\\?\\")) {
+      if (path.startsWith("\\\\?\\UNC\\")) {
+        path = "\\${path.substring(7)}";
+      } else {
+        path = path.substring(4);
+        if (path.length < 3 ||
+            path.codeUnitAt(1) != _COLON ||
+            path.codeUnitAt(2) != _BACKSLASH) {
+          throw new ArgumentError(
+              "Windows paths with \\\\?\\ prefix must be absolute");
+        }
+      }
+    } else {
+      path = path.replaceAll("/", "\\");
+    }
+    String sep = "\\";
+    if (path.length > 1 && path[1] == ":") {
+      _checkWindowsDriveLetter(path.codeUnitAt(0), true);
+      if (path.length == 2 || path.codeUnitAt(2) != _BACKSLASH) {
+        throw new ArgumentError(
+            "Windows paths with drive letter must be absolute");
+      }
+      // Absolute file://C:/ URI.
+      var pathSegments = path.split(sep);
+      _checkWindowsPathReservedCharacters(pathSegments, true, 1);
+      return new Uri(scheme: "file", pathSegments: pathSegments);
+    }
+
+    if (path.length > 0 && path[0] == sep) {
+      if (path.length > 1 && path[1] == sep) {
+        // Absolute file:// URI with host.
+        int pathStart = path.indexOf("\\", 2);
+        String hostPart =
+            pathStart == -1 ? path.substring(2) : path.substring(2, pathStart);
+        String pathPart =
+            pathStart == -1 ? "" : path.substring(pathStart + 1);
+        var pathSegments = pathPart.split(sep);
+        _checkWindowsPathReservedCharacters(pathSegments, true);
+        return new Uri(
+            scheme: "file", host: hostPart, pathSegments: pathSegments);
+      } else {
+        // Absolute file:// URI.
+        var pathSegments = path.split(sep);
+        _checkWindowsPathReservedCharacters(pathSegments, true);
+        return new Uri(scheme: "file", pathSegments: pathSegments);
+      }
+    } else {
+      // Relative URI.
+      var pathSegments = path.split(sep);
+      _checkWindowsPathReservedCharacters(pathSegments, true);
+      return new Uri(pathSegments: pathSegments);
+    }
+  }
+
+  /**
    * Returns the URI path split into its segments. Each of the
    * segments in the returned list have been decoded. If the path is
    * empty the empty list will be returned. A leading slash `/` does
@@ -651,6 +820,127 @@ class Uri {
     return "$scheme://$host:$port";
   }
 
+  /**
+   * Returns the file path from a file URI.
+   *
+   * The returned path has either Windows or non-Windows
+   * semantics.
+   *
+   * For non-Windows semantics the slash ("/") is used to separate
+   * path segments.
+   *
+   * For Windows semantics the backslash ("\") separator is used to
+   * separate path segments.
+   *
+   * If the URI is absolute the path starts with a path separator
+   * unless Windows semantics is used and the first path segment is a
+   * drive letter. When Windows semantics is used a host component in
+   * the uri in interpreted as a file server and a UNC path is
+   * returned.
+   *
+   * The default for whether to use Windows or non-Windows semantics
+   * determined from the platform Dart is running on. When running in
+   * the standalone VM this is detected by the VM based on the
+   * operating system. When running in a browser non-Windows semantics
+   * is always used.
+   *
+   * To override the automatic detection of which semantics to use pass
+   * a value for [windows]. Passing `true` will use Windows
+   * semantics and passing `false` will use non-Windows semantics.
+   *
+   * If the URI ends with a slash (i.e. the last path component is
+   * empty) the returned file path will also end with a slash.
+   *
+   * With Windows semantics URIs starting with a drive letter cannot
+   * be relative to the current drive on the designated drive. That is
+   * for the URI `file:///c:abc` calling `toFilePath` will throw as a
+   * path segment cannot contain colon on Windows.
+   *
+   * Examples using non-Windows semantics (resulting of calling
+   * toFilePath in comment):
+   *
+   *     Uri.parse("xxx/yyy");  // xxx/yyy
+   *     Uri.parse("xxx/yyy/");  // xxx/yyy/
+   *     Uri.parse("file:///xxx/yyy");  // /xxx/yyy
+   *     Uri.parse("file:///xxx/yyy/");  // /xxx/yyy/
+   *     Uri.parse("file:///C:");  // /C:
+   *     Uri.parse("file:///C:a");  // /C:a
+   *
+   * Examples using Windows semantics (resulting URI in comment):
+   *
+   *     Uri.parse("xxx/yyy");  // xxx\yyy
+   *     Uri.parse("xxx/yyy/");  // xxx\yyy\
+   *     Uri.parse("file:///xxx/yyy");  // \xxx\yyy
+   *     Uri.parse("file:///xxx/yyy/");  // \xxx\yyy/
+   *     Uri.parse("file:///C:/xxx/yyy");  // C:\xxx\yyy
+   *     Uri.parse("file:C:xxx/yyy");  // Throws as a path segment
+   *                                   // cannot contain colon on Windows.
+   *     Uri.parse("file://server/share/file");  // \\server\share\file
+   *
+   * If the URI is not a file URI calling this throws
+   * [UnsupportedError].
+   *
+   * If the URI cannot be converted to a file path calling this throws
+   * [UnsupportedError].
+   */
+  String toFilePath({bool windows}) {
+    if (scheme != "" && scheme != "file") {
+      throw new UnsupportedError(
+          "Cannot extract a file path from a $scheme URI");
+    }
+    if (scheme != "" && scheme != "file") {
+      throw new UnsupportedError(
+          "Cannot extract a file path from a $scheme URI");
+    }
+    if (query != "") {
+      throw new UnsupportedError(
+          "Cannot extract a file path from a URI with a query component");
+    }
+    if (fragment != "") {
+      throw new UnsupportedError(
+          "Cannot extract a file path from a URI with a fragment component");
+    }
+    if (windows == null) windows = _isWindows;
+    return windows ? _toWindowsFilePath() : _toFilePath();
+  }
+
+  String _toFilePath() {
+    if (host != "") {
+      throw new UnsupportedError(
+          "Cannot extract a non-Windows file path from a file URI "
+          "with an authority");
+    }
+    _checkNonWindowsPathReservedCharacters(pathSegments, false);
+    var result = new StringBuffer();
+    if (isAbsolute) result.write("/");
+    result.writeAll(pathSegments, "/");
+    return result.toString();
+  }
+
+  String _toWindowsFilePath() {
+    bool hasDriveLetter = false;
+    var segments = pathSegments;
+    if (segments.length > 0 &&
+        segments[0].length == 2 &&
+        segments[0].codeUnitAt(1) == _COLON) {
+      _checkWindowsDriveLetter(segments[0].codeUnitAt(0), false);
+      _checkWindowsPathReservedCharacters(segments, false, 1);
+      hasDriveLetter = true;
+    } else {
+      _checkWindowsPathReservedCharacters(segments, false);
+    }
+    var result = new StringBuffer();
+    if (isAbsolute && !hasDriveLetter) result.write("\\");
+    if (host != "") {
+      result.write("\\");
+      result.write(host);
+      result.write("\\");
+    }
+    result.writeAll(segments, "\\");
+    if (hasDriveLetter && segments.length == 1) result.write("\\");
+    return result.toString();
+  }
+
   void _writeAuthority(StringSink ss) {
     _addIfNonEmpty(ss, userInfo, userInfo, "@");
     ss.write(host == null ? "null" :
@@ -840,17 +1130,26 @@ class Uri {
   }
 
   // Frequently used character codes.
+  static const int _DOUBLE_QUOTE = 0x22;
   static const int _PERCENT = 0x25;
+  static const int _ASTERISK = 0x2A;
   static const int _PLUS = 0x2B;
   static const int _SLASH = 0x2F;
   static const int _ZERO = 0x30;
   static const int _NINE = 0x39;
   static const int _COLON = 0x3A;
+  static const int _LESS = 0x3C;
+  static const int _GREATER = 0x3E;
+  static const int _QUESTION = 0x3F;
   static const int _AT_SIGN = 0x40;
   static const int _UPPER_CASE_A = 0x41;
   static const int _UPPER_CASE_F = 0x46;
+  static const int _UPPER_CASE_Z = 0x5A;
+  static const int _BACKSLASH = 0x5C;
   static const int _LOWER_CASE_A = 0x61;
   static const int _LOWER_CASE_F = 0x66;
+  static const int _LOWER_CASE_Z = 0x7A;
+  static const int _BAR = 0x7C;
 
   /**
    * This is the internal implementation of JavaScript's encodeURI function.

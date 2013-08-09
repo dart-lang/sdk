@@ -269,7 +269,9 @@ dart::Monitor* ExitCodeHandler::thread_terminate_monitor_ = new dart::Monitor();
 
 
 static void SetChildOsErrorMessage(char** os_error_message) {
-  *os_error_message = strdup(strerror(errno));
+  const int kBufferSize = 1024;
+  char error_buf[kBufferSize];
+  *os_error_message = strdup(strerror_r(errno, error_buf, kBufferSize));
 }
 
 
@@ -292,7 +294,9 @@ static void ReportChildError(int exec_control_fd) {
   // In the case of failure in the child process write the errno and
   // the OS error message to the exec control pipe and exit.
   int child_errno = errno;
-  char* os_error_message = strerror(errno);
+  const int kBufferSize = 1024;
+  char error_buf[kBufferSize];
+  char* os_error_message = strerror_r(errno, error_buf, kBufferSize);
   ASSERT(sizeof(child_errno) == sizeof(errno));
   int bytes_written =
       FDUtils::WriteToBlocking(

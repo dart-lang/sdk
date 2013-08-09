@@ -379,11 +379,6 @@ class Isolate : public BaseIsolate {
         kVmStatusInterrupt,
   };
 
-  enum IsolateRunState {
-    kIsolateWaiting = 0,      // The isolate is waiting for code to execute.
-    kIsolateRunning,          // The isolate is executing code.
-  };
-
   void ScheduleInterrupts(uword interrupt_bits);
   uword GetAndClearInterrupts();
 
@@ -395,9 +390,6 @@ class Isolate : public BaseIsolate {
 
   bool is_runnable() const { return is_runnable_; }
   void set_is_runnable(bool value) { is_runnable_ = value; }
-
-  IsolateRunState running_state() const { return running_state_; }
-  void set_running_state(IsolateRunState value) { running_state_ = value; }
 
   uword spawn_data() const { return spawn_data_; }
   void set_spawn_data(uword value) { spawn_data_ = value; }
@@ -673,7 +665,6 @@ class Isolate : public BaseIsolate {
   MessageHandler* message_handler_;
   uword spawn_data_;
   bool is_runnable_;
-  IsolateRunState running_state_;
   GcPrologueCallbacks gc_prologue_callbacks_;
   GcEpilogueCallbacks gc_epilogue_callbacks_;
   intptr_t defer_finalization_count_;
@@ -881,29 +872,6 @@ class IsolateSpawnState {
   char* library_url_;
   char* function_name_;
   char* exception_callback_name_;
-};
-
-
-class IsolateRunStateManager : public StackResource {
- public:
-  explicit IsolateRunStateManager()
-      : StackResource(Isolate::Current()),
-        saved_state_(Isolate::kIsolateWaiting) {
-    saved_state_ = reinterpret_cast<Isolate*>(isolate())->running_state();
-  }
-
-  virtual ~IsolateRunStateManager() {
-    reinterpret_cast<Isolate*>(isolate())->set_running_state(saved_state_);
-  }
-
-  void SetRunState(Isolate::IsolateRunState run_state) {
-    reinterpret_cast<Isolate*>(isolate())->set_running_state(run_state);
-  }
-
- private:
-  Isolate::IsolateRunState saved_state_;
-
-  DISALLOW_COPY_AND_ASSIGN(IsolateRunStateManager);
 };
 
 }  // namespace dart

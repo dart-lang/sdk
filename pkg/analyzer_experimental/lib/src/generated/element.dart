@@ -4,6 +4,7 @@ library engine.element;
 import 'dart:collection';
 import 'java_core.dart';
 import 'java_engine.dart';
+import 'utilities_collection.dart';
 import 'source.dart';
 import 'scanner.dart' show Keyword;
 import 'ast.dart' show Identifier, LibraryIdentifier;
@@ -561,7 +562,7 @@ abstract class ElementAnnotation {
  *
  * @coverage dart.engine.element
  */
-class ElementKind implements Comparable<ElementKind> {
+class ElementKind implements Enum<ElementKind> {
   static final ElementKind CLASS = new ElementKind('CLASS', 0, "class");
   static final ElementKind COMPILATION_UNIT = new ElementKind('COMPILATION_UNIT', 1, "compilation unit");
   static final ElementKind CONSTRUCTOR = new ElementKind('CONSTRUCTOR', 2, "constructor");
@@ -1167,6 +1168,13 @@ abstract class MultiplyDefinedElement implements Element {
    * @return the elements that were defined with the same name
    */
   List<Element> get conflictingElements;
+
+  /**
+   * Return the type of this element as the dynamic type.
+   *
+   * @return the type of this element as the dynamic type
+   */
+  Type2 get type;
 }
 /**
  * The interface `NamespaceCombinator` defines the behavior common to objects that control how
@@ -2668,7 +2676,7 @@ abstract class ElementImpl implements Element {
   /**
    * A bit-encoded form of the modifiers associated with this element.
    */
-  Set<Modifier> _modifiers;
+  int _modifiers = 0;
 
   /**
    * An array containing all of the metadata associated with this element.
@@ -2820,7 +2828,7 @@ abstract class ElementImpl implements Element {
    * @param modifier the modifier being tested for
    * @return `true` if this element has the given modifier associated with it
    */
-  bool hasModifier(Modifier modifier) => _modifiers != null && _modifiers.contains(modifier);
+  bool hasModifier(Modifier modifier) => BooleanArray.get(_modifiers, modifier);
 
   /**
    * If the given child is not `null`, use the given visitor to visit it.
@@ -2865,19 +2873,7 @@ abstract class ElementImpl implements Element {
    * @param value `true` if the modifier is to be associated with this element
    */
   void setModifier(Modifier modifier, bool value) {
-    if (value) {
-      if (_modifiers == null) {
-        _modifiers = new Set();
-      }
-      _modifiers.add(modifier);
-    } else {
-      if (_modifiers != null) {
-        _modifiers.remove(modifier);
-        if (_modifiers.isEmpty) {
-          _modifiers = null;
-        }
-      }
-    }
+    _modifiers = BooleanArray.set(_modifiers, modifier, value);
   }
 }
 /**
@@ -2961,7 +2957,20 @@ class ElementLocationImpl implements ElementLocation {
     }
     return builder.toString();
   }
-  int get hashCode => JavaArrays.makeHashCode(_components);
+  int get hashCode {
+    int result = 1;
+    for (int i = 0; i < _components.length; i++) {
+      String component = _components[i];
+      int componentHash;
+      if (i <= 1) {
+        componentHash = hashSourceComponent(component);
+      } else {
+        componentHash = component.hashCode;
+      }
+      result = 31 * result + componentHash;
+    }
+    return result;
+  }
   String toString() => encoding;
 
   /**
@@ -3032,6 +3041,19 @@ class ElementLocationImpl implements ElementLocation {
       return left == right;
     }
     return left.substring(1) == right.substring(1);
+  }
+
+  /**
+   * Return the hash code of the given encoded source component, ignoring the source type indicator.
+   *
+   * @param sourceComponent the component to compute a hash code
+   * @return the hash code of the given encoded source component
+   */
+  int hashSourceComponent(String sourceComponent) {
+    if (sourceComponent.length <= 1) {
+      return sourceComponent.hashCode;
+    }
+    return sourceComponent.substring(1).hashCode;
   }
 }
 /**
@@ -3595,6 +3617,28 @@ class FunctionTypeAliasElementImpl extends ElementImpl implements FunctionTypeAl
     for (TypeVariableElement variable in typeVariables2) {
       ((variable as TypeVariableElementImpl)).enclosingElement = this;
     }
+    this._typeVariables = typeVariables2;
+  }
+
+  /**
+   * Set the parameters defined by this type alias to the given parameters without becoming the
+   * parent of the parameters. This should only be used by the [TypeResolverVisitor] when
+   * creating a synthetic type alias.
+   *
+   * @param parameters the parameters defined by this type alias
+   */
+  void shareParameters(List<ParameterElement> parameters2) {
+    this._parameters = parameters2;
+  }
+
+  /**
+   * Set the type variables defined for this type to the given variables without becoming the parent
+   * of the variables. This should only be used by the [TypeResolverVisitor] when creating a
+   * synthetic type alias.
+   *
+   * @param typeVariables the type variables defined for this type
+   */
+  void shareTypeVariables(List<TypeVariableElement> typeVariables2) {
     this._typeVariables = typeVariables2;
   }
   void visitChildren(ElementVisitor<Object> visitor) {
@@ -4313,7 +4357,7 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
  *
  * @coverage dart.engine.element
  */
-class Modifier implements Comparable<Modifier> {
+class Modifier implements Enum<Modifier> {
   static final Modifier ABSTRACT = new Modifier('ABSTRACT', 0);
   static final Modifier CONST = new Modifier('CONST', 1);
   static final Modifier FACTORY = new Modifier('FACTORY', 2);
@@ -4396,6 +4440,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   String get name => _name;
   int get nameOffset => -1;
   Source get source => null;
+  Type2 get type => DynamicTypeImpl.instance;
   bool isAccessibleIn(LibraryElement library) {
     for (Element element in _conflictingElements) {
       if (element.isAccessibleIn(library)) {
@@ -5081,6 +5126,9 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
       return baseConstructor;
     }
     FunctionType baseType = baseConstructor.type;
+    if (baseType == null) {
+      return baseConstructor;
+    }
     List<Type2> argumentTypes = definingType.typeArguments;
     List<Type2> parameterTypes = definingType.element.type.typeArguments;
     FunctionType substitutedType = baseType.substitute2(argumentTypes, parameterTypes);

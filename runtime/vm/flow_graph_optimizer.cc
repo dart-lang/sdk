@@ -2627,14 +2627,20 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   }
 }
 
-
 void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(call->function());
-  if (recognized_kind == MethodRecognizer::kMathSqrt) {
-    MathSqrtInstr* sqrt =
-        new MathSqrtInstr(new Value(call->ArgumentAt(0)), call->deopt_id());
-    ReplaceCall(call, sqrt);
+  if ((recognized_kind == MethodRecognizer::kMathSqrt) ||
+      (recognized_kind == MethodRecognizer::kMathSin) ||
+      (recognized_kind == MethodRecognizer::kMathCos)) {
+    if ((recognized_kind == MethodRecognizer::kMathSqrt) ||
+        FlowGraphCompiler::SupportsInlinedTrigonometrics()) {
+      MathUnaryInstr* math_unary =
+          new MathUnaryInstr(recognized_kind,
+                             new Value(call->ArgumentAt(0)),
+                             call->deopt_id());
+      ReplaceCall(call, math_unary);
+    }
   } else if ((recognized_kind == MethodRecognizer::kFloat32x4Zero) ||
              (recognized_kind == MethodRecognizer::kFloat32x4Splat) ||
              (recognized_kind == MethodRecognizer::kFloat32x4Constructor)) {
@@ -2874,6 +2880,8 @@ bool FlowGraphOptimizer::StrictifyEqualityCompare(
                                strict_kind,
                                compare->left()->CopyWithType(),
                                compare->right()->CopyWithType());
+    // Numbers override equality and are therefore not part of this conversion.
+    strict_comp->set_needs_number_check(false);
     current_instruction->ReplaceWith(strict_comp, current_iterator());
     return true;
   }
@@ -3623,15 +3631,14 @@ void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
   for (intptr_t catch_idx = 0;
        catch_idx < catch_entries.length();
        ++catch_idx) {
-    CatchBlockEntryInstr* cb = catch_entries[catch_idx];
-    CatchEntryInstr* catch_entry = cb->next()->AsCatchEntry();
+    CatchBlockEntryInstr* catch_entry = catch_entries[catch_idx];
 
     // Initialize cdefs with the original initial definitions (ParameterInstr).
     // The following representation is used:
     // ParameterInstr => unknown
     // ConstantInstr => known constant
     // NULL => non-constant
-    GrowableArray<Definition*>* idefs = cb->initial_definitions();
+    GrowableArray<Definition*>* idefs = catch_entry->initial_definitions();
     GrowableArray<Definition*> cdefs(idefs->length());
     cdefs.AddArray(*idefs);
 
@@ -3644,7 +3651,7 @@ void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
          !block_it.Done();
          block_it.Advance()) {
       BlockEntryInstr* block = block_it.Current();
-      if (block->try_index() == cb->catch_try_index()) {
+      if (block->try_index() == catch_entry->catch_try_index()) {
         for (ForwardInstructionIterator instr_it(block);
              !instr_it.Done();
              instr_it.Advance()) {
@@ -5718,9 +5725,6 @@ void ConstantPropagator::VisitBranch(BranchInstr* instr) {
 void ConstantPropagator::VisitStoreContext(StoreContextInstr* instr) { }
 
 
-void ConstantPropagator::VisitCatchEntry(CatchEntryInstr* instr) { }
-
-
 void ConstantPropagator::VisitCheckStackOverflow(
     CheckStackOverflowInstr* instr) { }
 
@@ -6469,12 +6473,12 @@ void ConstantPropagator::VisitBinaryUint32x4Op(BinaryUint32x4OpInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitMathSqrt(MathSqrtInstr* instr) {
+void ConstantPropagator::VisitMathUnary(MathUnaryInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsNonConstant(value)) {
     SetValue(instr, non_constant_);
   } else if (IsConstant(value)) {
-    // TODO(kmillikin): Handle sqrt.
+    // TODO(kmillikin): Handle Math's unary operations (sqrt, cos, sin).
     SetValue(instr, non_constant_);
   }
 }

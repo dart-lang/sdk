@@ -256,12 +256,10 @@ void compile(List<String> argv) {
     new OptionHandler('--analyze-only', setAnalyzeOnly),
     new OptionHandler('--analyze-signatures-only', passThrough),
     new OptionHandler('--disable-native-live-type-analysis', passThrough),
-    new OptionHandler('--reject-deprecated-language-features', passThrough),
-    new OptionHandler('--report-sdk-use-of-deprecated-language-features',
-                      passThrough),
     new OptionHandler('--categories=.*', setCategories),
     new OptionHandler('--global-js-name=.*', checkGlobalName),
     new OptionHandler('--disable-type-inference', passThrough),
+    new OptionHandler('--terse', passThrough),
 
     // The following two options must come last.
     new OptionHandler('-.*', (String argument) {
@@ -503,6 +501,10 @@ Supported options:
   --enable-diagnostic-colors
     Add colors to diagnostic messages.
 
+  --terse
+    Emit diagnostics without suggestions for how to get rid of the diagnosed
+    problems.
+
 The following options are only used for compiler development and may
 be removed in a future version:
 
@@ -525,19 +527,6 @@ be removed in a future version:
   --disable-native-live-type-analysis
     Disable the optimization that removes unused native types from dart:html
     and related libraries.
-
-  --reject-deprecated-language-features
-    Reject deprecated language features.  Without this option, the
-    compiler will accept language features that are no longer valid
-    according to The Dart Programming Language Specification, version
-    0.12, M1.
-
-  --report-sdk-use-of-deprecated-language-features
-    Report use of deprecated features in Dart platform libraries.
-    Without this option, the compiler will silently accept use of
-    deprecated language features from these libraries.  The option
-    --reject-deprecated-language-features controls if these usages are
-    reported as errors or warnings.
 
   --categories=<categories>
     A comma separated list of allowed library categories.  The default

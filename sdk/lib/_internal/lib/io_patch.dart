@@ -162,6 +162,9 @@ patch class _Platform {
   patch static _localHostname() {
     throw new UnsupportedError("Platform._localHostname");
   }
+  patch static _executable() {
+    throw new UnsupportedError("Platform_Executable");
+  }
   patch static _environment() {
     throw new UnsupportedError("Platform._environment");
   }

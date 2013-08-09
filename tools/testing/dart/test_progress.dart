@@ -77,9 +77,10 @@ List<String> _buildFailureOutput(TestCase test,
     expected.write('$expectation ');
   }
   output.add(expected.toString());
-  output.add('Actual: ${test.lastCommandOutput.result}');
+  output.add('Actual: ${test.result}');
   if (!test.lastCommandOutput.hasTimedOut && test.info != null) {
-    if (test.lastCommandOutput.incomplete && !test.info.hasCompileError) {
+    if (test.commandOutputs.length != test.commands.length
+        && !test.info.hasCompileError) {
       output.add('Unexpected compile-time error.');
     } else {
       if (test.info.hasCompileError) {
@@ -130,7 +131,7 @@ List<String> _buildFailureOutput(TestCase test,
     var command = test.commands[i];
     var commandOutput = test.commandOutputs[command];
     output.add('');
-    output.add('Command[$i]: $command');
+    output.add('Command[${command.displayName}]: $command');
     if (commandOutput != null) {
       output.add('Took ${commandOutput.time}');
     } else {
@@ -161,7 +162,6 @@ String _buildSummaryEnd(int failedTests) {
 
 class EventListener {
   void testAdded() { }
-  void start(TestCase test) { }
   void done(TestCase test) { }
   void allTestsKnown() { }
   void allDone() { }
@@ -169,7 +169,7 @@ class EventListener {
 
 class ExitCodeSetter extends EventListener {
   void done(TestCase test) {
-    if (test.lastCommandOutput.unexpectedOutput) {
+    if (test.unexpectedOutput) {
       io.exitCode = 1;
     }
   }
@@ -177,7 +177,7 @@ class ExitCodeSetter extends EventListener {
 
 class FlakyLogWriter extends EventListener {
   void done(TestCase test) {
-    if (test.isFlaky && test.lastCommandOutput.result != PASS) {
+    if (test.isFlaky && test.result != PASS) {
       var buf = new StringBuffer();
       for (var l in _buildFailureOutput(test)) {
         buf.write("$l\n");
@@ -203,31 +203,41 @@ class SummaryPrinter extends EventListener {
 }
 
 class TimingPrinter extends EventListener {
-  List<CommandOutput> _commandOutputs = <CommandOutput>[];
+  final _command2testCases = new Map<Command, List<TestCase>>();
+  final _commandOutputs = new Set<CommandOutput>();
   DateTime _startTime;
 
   TimingPrinter(this._startTime);
 
   void done(TestCase testCase) {
     for (var commandOutput in testCase.commandOutputs.values) {
+      var command = commandOutput.command;
       _commandOutputs.add(commandOutput);
+      _command2testCases.putIfAbsent(command, () => <TestCase>[]);
+      _command2testCases[command].add(testCase);
     }
   }
 
   void allDone() {
     Duration d = (new DateTime.now()).difference(_startTime);
     print('\n--- Total time: ${_timeString(d)} ---');
-    _commandOutputs.sort((a, b) {
+    var outputs = _commandOutputs.toList();
+    outputs.sort((a, b) {
       return b.time.inMilliseconds - a.time.inMilliseconds;
     });
-    for (int i = 0; i < 20 && i < _commandOutputs.length; i++) {
-      var commandOutput = _commandOutputs[i];
+    for (int i = 0; i < 20 && i < outputs.length; i++) {
+      var commandOutput = outputs[i];
       var command = commandOutput.command;
-      var testCase = commandOutput.testCase;
+      var testCases = _command2testCases[command];
       var duration = commandOutput.time;
-      var configuration = testCase.configurationString;
-      print('${commandOutput.time} - $configuration'
-            ' - ${testCase.displayName} (${command.displayName})');
+
+      var testCasesDescription = testCases.map((testCase) {
+        return "${testCase.configurationString}/${testCase.displayName}";
+      }).join(', ');
+
+      print('${commandOutput.time} - '
+            '${command.displayName} - '
+            '$testCasesDescription');
     }
   }
 }
@@ -237,7 +247,7 @@ class StatusFileUpdatePrinter extends EventListener {
   var _failureSummary = <String>[];
 
   void done(TestCase test) {
-    if (test.lastCommandOutput.unexpectedOutput) {
+    if (test.unexpectedOutput) {
       _printFailureOutput(test);
     }
   }
@@ -248,7 +258,7 @@ class StatusFileUpdatePrinter extends EventListener {
 
 
   void _printFailureOutput(TestCase test) {
-    String status = '${test.displayName}: ${test.lastCommandOutput.result}';
+    String status = '${test.displayName}: ${test.result}';
     List<String> configs =
         statusToConfigs.putIfAbsent(status, () => <String>[]);
     configs.add(test.configurationString);
@@ -348,7 +358,7 @@ class LeftOverTempDirPrinter extends EventListener {
 class LineProgressIndicator extends EventListener {
   void done(TestCase test) {
     var status = 'pass';
-    if (test.lastCommandOutput.unexpectedOutput) {
+    if (test.unexpectedOutput) {
       status = 'fail';
     }
     print('Done ${test.configurationString} ${test.displayName}: $status');
@@ -365,7 +375,7 @@ class TestFailurePrinter extends EventListener {
                      [this._formatter = const Formatter()]);
 
   void done(TestCase test) {
-    if (test.lastCommandOutput.unexpectedOutput) {
+    if (test.unexpectedOutput) {
       _failedTests++;
       var lines = _buildFailureOutput(test, _formatter);
       for (var line in lines) {
@@ -400,12 +410,8 @@ class ProgressIndicator extends EventListener {
 
   void testAdded() { _foundTests++; }
 
-  void start(TestCase test) {
-    _printStartProgress(test);
-  }
-
   void done(TestCase test) {
-    if (test.lastCommandOutput.unexpectedOutput) {
+    if (test.unexpectedOutput) {
       _failedTests++;
     } else {
       _passedTests++;
@@ -417,7 +423,6 @@ class ProgressIndicator extends EventListener {
     _allTestsKnown = true;
   }
 
-  void _printStartProgress(TestCase test) {}
   void _printDoneProgress(TestCase test) {}
 
   int _completedTests() => _passedTests + _failedTests;
@@ -441,7 +446,6 @@ abstract class CompactIndicator extends ProgressIndicator {
     print('');
   }
 
-  void _printStartProgress(TestCase test) => _printProgress();
   void _printDoneProgress(TestCase test) => _printProgress();
 
   void _printProgress();
@@ -473,13 +477,9 @@ class VerboseProgressIndicator extends ProgressIndicator {
   VerboseProgressIndicator(DateTime startTime)
       : super(startTime);
 
-  void _printStartProgress(TestCase test) {
-    print('Starting ${test.configurationString} ${test.displayName}...');
-  }
-
   void _printDoneProgress(TestCase test) {
     var status = 'pass';
-    if (test.lastCommandOutput.unexpectedOutput) {
+    if (test.unexpectedOutput) {
       status = 'fail';
     }
     print('Done ${test.configurationString} ${test.displayName}: $status');
@@ -495,14 +495,14 @@ class BuildbotProgressIndicator extends ProgressIndicator {
 
   void done(TestCase test) {
     super.done(test);
-    if (test.lastCommandOutput.unexpectedOutput) {
+    if (test.unexpectedOutput) {
       _failureSummary.addAll(_buildFailureOutput(test));
     }
   }
 
   void _printDoneProgress(TestCase test) {
     var status = 'pass';
-    if (test.lastCommandOutput.unexpectedOutput) {
+    if (test.unexpectedOutput) {
       status = 'fail';
     }
     var percent = ((_completedTests() / _foundTests) * 100).toInt().toString();

@@ -124,9 +124,6 @@ class FlowGraphBuilder: public ValueObject {
   void DecrementLoopDepth() { --loop_depth_; }
   intptr_t loop_depth() const { return loop_depth_; }
 
-  // Each try in this function gets its own try index.
-  intptr_t AllocateTryIndex() { return ++last_used_try_index_; }
-
   // Manage the currently active try index.
   void set_try_index(intptr_t value) { try_index_ = value; }
   intptr_t try_index() const { return try_index_; }
@@ -171,7 +168,6 @@ class FlowGraphBuilder: public ValueObject {
 
   intptr_t last_used_block_id_;
   intptr_t context_level_;
-  intptr_t last_used_try_index_;
   intptr_t try_index_;
   intptr_t loop_depth_;
   GraphEntryInstr* graph_entry_;

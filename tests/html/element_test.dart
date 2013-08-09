@@ -285,6 +285,17 @@ main() {
       expect(firedEvent, false);
       e.click();
       expect(firedEvent, true);
+
+      var e2 = new DivElement();
+      var firedEvent2 = false;
+      e2.onClick.matches('.foo').listen((event) {
+        firedEvent2 = true;
+      });
+      e2.click();
+      expect(firedEvent2, false);
+      e2.classes.add('foo');
+      e2.click();
+      expect(firedEvent2, true);
     });
   });
 
@@ -726,6 +737,87 @@ main() {
       expect(range, isElementList);
       expect(range[0], isImageElement);
       expect(range[1], isInputElement);
+    });
+  });
+
+  group('eventDelegation', () {
+    test('matches', () {
+      Element elem = new Element.div()..classes.addAll(['a', 'b']);
+      Element img = new Element.img()
+        ..classes.addAll(['b', 'a', 'd'])
+        ..id = 'cookie';
+      Element input = new InputElement()..classes.addAll(['c', 'd']);
+      var div = new Element.div()
+        ..classes.add('a')
+        ..id = 'wat';
+      document.body.append(elem);
+      document.body.append(img);
+      document.body.append(input);
+      document.body.append(div);
+
+      Element elem4 = new Element.div()..classes.addAll(['i', 'j']);
+      Element elem5 = new Element.div()
+        ..classes.addAll(['g', 'h'])
+        ..children.add(elem4);
+      Element elem6 = new Element.div()
+        ..classes.addAll(['e', 'f'])
+        ..children.add(elem5);
+      document.body.append(elem6);
+
+      var firedEvent = false;
+      var elems = queryAll('.a');
+      queryAll('.a').onClick.listen((event) {
+        firedEvent = true;
+      });
+      expect(firedEvent, false);
+      query('.c').click();
+      expect(firedEvent, false);
+      query('#wat').click();
+      expect(firedEvent, true);
+
+      var firedEvent4 = false;
+      queryAll('.a').onClick.matches('.d').listen((event) {
+        firedEvent4 = true;
+      });
+      expect(firedEvent4, false);
+      query('.c').click();
+      expect(firedEvent4, false);
+      query('#wat').click();
+      expect(firedEvent4, false);
+      query('#cookie').click();
+      expect(firedEvent4, true);
+
+      var firedEvent2 = false;
+      queryAll('.a').onClick.listen((event) {
+        firedEvent2 = true;
+      });
+      Element elem2 = new Element.html('<div class="a"><br/>');
+      document.body.append(elem2);
+      elem2.click();
+      expect(firedEvent2, false);
+      elem2.classes.add('a');
+      elem2.click();
+      expect(firedEvent2, false);
+
+      var firedEvent3 = false;
+      queryAll(':root').onClick.matches('.a').listen((event) {
+        firedEvent3 = true;
+      });
+      Element elem3 = new Element.html('<div class="d"><br/>');
+      document.body.append(elem3);
+      elem3.click();
+      expect(firedEvent3, false);
+      elem3.classes.add('a');
+      elem3.click();
+      expect(firedEvent3, true);
+
+      var firedEvent5 = false;
+      queryAll(':root').onClick.matches('.e').listen((event) {
+        firedEvent5 = true;
+      });
+      expect(firedEvent5, false);
+      query('.i').click();
+      expect(firedEvent5, true);
     });
   });
 }

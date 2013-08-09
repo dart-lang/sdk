@@ -13,13 +13,12 @@ Compiles dart client apps with dartc, and run the client tests both in headless
 chromium and headless dartium.
 """
 
+import imp
 import os
 import re
 import socket
 import subprocess
 import sys
-import shutil
-import glob
 
 BUILDER_NAME = 'BUILDBOT_BUILDERNAME'
 BUILDER_CLOBBER = 'BUILDBOT_CLOBBER'
@@ -29,6 +28,13 @@ REVISION = 'BUILDBOT_REVISION'
 DARTIUM_VERSION_FILE = 'client/tests/drt/LAST_VERSION'
 DARTIUM_V_MATCHER = (
     'gs://dartium-archive/[^/]*/dartium-\w*-inc-([0-9]*).([0-9]*).zip')
+
+def GetUtils():
+  '''Dynamically load the tools/utils.py python module.'''
+  dart_dir = os.path.abspath(os.path.join(__file__, '..', '..', '..'))
+  return imp.load_source('utils', os.path.join(dart_dir, 'tools', 'utils.py'))
+
+utils = GetUtils()
 
 def GetBuildInfo():
   """Returns a tuple (name, version, mode) where:
@@ -58,21 +64,7 @@ def GetBuildInfo():
       version = 'unknown'
   return (name, version)
 
-
-def GetUtils():
-  '''
-  dynamically get the utils module
-  We use a dynamic import for tools/util.py because we derive its location
-  dynamically using sys.argv[0]. This allows us to run this script from
-  different directories.
-
-  args:
-  '''
-  sys.path.append(os.path.abspath(os.path.join('.', 'tools')))
-  utils = __import__('utils')
-  return utils
-
-def GetOutDir(utils, mode):
+def GetOutDir(mode):
   '''
   get the location to place the output
 
@@ -99,8 +91,7 @@ def ProcessTools(mode, name, version):
   # get the latest changed revision from the current repository sub-tree
   version = GetLatestChangedRevision()
 
-  utils = GetUtils()
-  outdir = GetOutDir(utils, mode)
+  outdir = GetOutDir(mode)
   cmds = [sys.executable, toolsBuildScript,
           '--mode=' + mode, '--revision=' + version,
           '--name=' + name, '--out=' + outdir]
@@ -162,32 +153,11 @@ def ClobberBuilder():
 def GetShouldClobber():
   return os.environ.get(BUILDER_CLOBBER) == "1"
 
-def RunDart(scriptPath):
-  if sys.platform == 'darwin':
-    pipe = subprocess.Popen(
-          ['./tools/testing/bin/macos/dart', scriptPath],
-          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-  elif os.name == 'posix':
-    pipe = subprocess.Popen(
-          ['./tools/testing/bin/linux/dart', scriptPath],
-          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-  else:
-    pipe = subprocess.Popen(
-          ['tools\\testing\\bin\\windows\\dart.exe', scriptPath],
-          stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-
-  output = pipe.communicate()
-  return output[0]
-
 def GetLatestChangedRevision():
-  # 0.1.2.0_r13661
-  # 0.1.2.0_r13661_username
-  fullVersion = RunDart("tools/version.dart")
-
-  m = re.search('._r(\d+)', fullVersion)
-  svnRev = m.group(1)
-
-  return svnRev
+  revision = utils.GetSVNRevision()
+  if not revision:
+    raise Exception("Couldn't determine last changed revision.")
+  return revision
 
 def main():
   if len(sys.argv) == 0:

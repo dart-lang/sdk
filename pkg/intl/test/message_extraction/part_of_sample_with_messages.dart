@@ -44,7 +44,7 @@ class YouveGotMessages {
             female: '$name went to her $place',
             other: '$name went to its $place')
         }",
-        name: "whereTheyWent",
+        name: "whereTheyWentMessage",
         args: [name, gender, place],
         desc: 'A person went to some place that they own, e.g. their room'
     );

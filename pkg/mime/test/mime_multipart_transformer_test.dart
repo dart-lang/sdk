@@ -6,7 +6,6 @@ import "package:unittest/unittest.dart";
 import "package:mime/mime.dart";
 import 'dart:async';
 import 'dart:math';
-import 'dart:isolate';
 
 void testParse(String message,
                String boundary,

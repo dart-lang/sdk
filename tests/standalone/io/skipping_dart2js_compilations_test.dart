@@ -122,17 +122,15 @@ class FileUtils {
   }
 }
 
-class TestCompletedHandler {
+class CommandCompletedHandler {
   FileUtils fileUtils;
   DateTime _expectedTimestamp;
   bool _shouldHaveRun;
 
-  TestCompletedHandler(FileUtils this.fileUtils, bool this._shouldHaveRun);
+  CommandCompletedHandler(FileUtils this.fileUtils, bool this._shouldHaveRun);
 
-  void processCompletedTest(runner.TestCase testCase) {
-    var output = testCase.lastCommandOutput;
-
-    Expect.isFalse(output.unexpectedOutput);
+  void processCompletedTest(CommandOutput output) {
+    Expect.isTrue(output.exitCode == 0);
     Expect.isTrue(output.stderr.length == 0);
     if (_shouldHaveRun) {
       Expect.isTrue(output.stdout.length == 0);
@@ -145,7 +143,7 @@ class TestCompletedHandler {
   }
 }
 
-runner.TestCase makeTestCase(String testName, FileUtils fileUtils) {
+runner.Command makeCompilationCommand(String testName, FileUtils fileUtils) {
   var config = new options.TestOptionsParser().parse(['--timeout', '2'])[0];
   var createFileScript = join(dirname(Platform.script),
       'skipping_dart2js_compilations_helper.dart');
@@ -153,19 +151,14 @@ runner.TestCase makeTestCase(String testName, FileUtils fileUtils) {
   var arguments = [createFileScript, fileUtils.scriptOutputPath.toNativePath()];
   var bootstrapDeps = [
       Uri.parse("file://${fileUtils.testSnapshotFilePath}")];
-  var commands = [new runner.CompilationCommand(
+  return runner.CommandBuilder.instance.getCompilationCommand(
       'dart2js',
       fileUtils.testJsFilePath.toNativePath(),
       false,
       bootstrapDeps,
       executable,
-      arguments)];
-  return new runner.TestCase(
-      testName,
-      commands,
-      config,
-      (_) {},
-      new Set<String>.from([status.PASS]));
+      arguments,
+      'ReleaseIA32');
 }
 
 void main() {
@@ -213,11 +206,11 @@ void main() {
     fs_upToDate.touchFile(fs_upToDate.testJs);
 
     Future runTest(String name, FileUtils fileUtils, bool shouldRun) {
-      var completedHandler = new TestCompletedHandler(fileUtils, shouldRun);
-      var testCase = makeTestCase(name, fileUtils);
-      var process = new runner.RunningProcess(testCase, testCase.commands[0]);
-      return process.start().then((_) {
-        completedHandler.processCompletedTest(testCase);
+      var completedHandler = new CommandCompletedHandler(fileUtils, shouldRun);
+      var command = makeCompilationCommand(name, fileUtils);
+      var process = new runner.RunningProcess(command, 60);
+      return process.run().then((CommandOutput output) {
+        completedHandler.processCompletedTest(output);
       });
     }
     // We run the tests in sequence, so that if one of them failes we clean up

@@ -403,7 +403,6 @@ Isolate::Isolate()
       message_handler_(NULL),
       spawn_data_(0),
       is_runnable_(false),
-      running_state_(kIsolateWaiting),
       gc_prologue_callbacks_(),
       gc_epilogue_callbacks_(),
       defer_finalization_count_(0),

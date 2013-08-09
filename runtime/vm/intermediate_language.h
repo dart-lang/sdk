@@ -80,6 +80,8 @@ class Range;
   V(_Double, pow, DoublePow, 102305574)                                        \
   V(_Double, _modulo, DoubleMod, 663439671)                                    \
   V(::, sqrt, MathSqrt, 1662640002)                                            \
+  V(::, sin, MathSin, 1273932041)                                              \
+  V(::, cos, MathCos, 1749547468)                                              \
   V(::, min, MathMin, 269896129)                                               \
   V(::, max, MathMax, 1286442186)                                              \
   V(Float32x4, Float32x4., Float32x4Constructor, 1492157358)                   \
@@ -575,7 +577,6 @@ class EmbeddedArray<T, 0> {
   M(ExtractConstructorInstantiator)                                            \
   M(AllocateContext)                                                           \
   M(CloneContext)                                                              \
-  M(CatchEntry)                                                                \
   M(BinarySmiOp)                                                               \
   M(UnarySmiOp)                                                                \
   M(CheckStackOverflow)                                                        \
@@ -588,7 +589,7 @@ class EmbeddedArray<T, 0> {
   M(Constant)                                                                  \
   M(CheckEitherNonSmi)                                                         \
   M(BinaryDoubleOp)                                                            \
-  M(MathSqrt)                                                                  \
+  M(MathUnary)                                                                 \
   M(MathMinMax)                                                                \
   M(UnboxDouble)                                                               \
   M(BoxDouble)                                                                 \
@@ -919,7 +920,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class UnarySmiOpInstr;
   friend class ShiftMintOpInstr;
   friend class UnaryMintOpInstr;
-  friend class MathSqrtInstr;
+  friend class MathUnaryInstr;
   friend class MathMinMaxInstr;
   friend class CheckClassInstr;
   friend class GuardFieldInstr;
@@ -1487,11 +1488,15 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
   CatchBlockEntryInstr(intptr_t block_id,
                        intptr_t try_index,
                        const Array& handler_types,
-                       intptr_t catch_try_index)
+                       intptr_t catch_try_index,
+                       const LocalVariable& exception_var,
+                       const LocalVariable& stacktrace_var)
       : BlockEntryInstr(block_id, try_index),
         predecessor_(NULL),
         catch_handler_types_(Array::ZoneHandle(handler_types.raw())),
-        catch_try_index_(catch_try_index) { }
+        catch_try_index_(catch_try_index),
+        exception_var_(exception_var),
+        stacktrace_var_(stacktrace_var) { }
 
   DECLARE_INSTRUCTION(CatchBlockEntry)
 
@@ -1502,6 +1507,9 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
     ASSERT((index == 0) && (predecessor_ != NULL));
     return predecessor_;
   }
+
+  const LocalVariable& exception_var() const { return exception_var_; }
+  const LocalVariable& stacktrace_var() const { return stacktrace_var_; }
 
   // Returns try index for the try block to which this catch handler
   // corresponds.
@@ -1527,6 +1535,8 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
   const Array& catch_handler_types_;
   const intptr_t catch_try_index_;
   GrowableArray<Definition*> initial_definitions_;
+  const LocalVariable& exception_var_;
+  const LocalVariable& stacktrace_var_;
 
   DISALLOW_COPY_AND_ASSIGN(CatchBlockEntryInstr);
 };
@@ -3278,6 +3288,10 @@ class NativeCallInstr : public TemplateDefinition<0> {
     return ast_node_.native_c_function();
   }
 
+  bool is_bootstrap_native() const {
+    return ast_node_.is_bootstrap_native();
+  }
+
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
@@ -4289,35 +4303,6 @@ class CloneContextInstr : public TemplateDefinition<1> {
 };
 
 
-class CatchEntryInstr : public TemplateInstruction<0> {
- public:
-  CatchEntryInstr(const LocalVariable& exception_var,
-                  const LocalVariable& stacktrace_var)
-      : exception_var_(exception_var), stacktrace_var_(stacktrace_var) {}
-
-  const LocalVariable& exception_var() const { return exception_var_; }
-  const LocalVariable& stacktrace_var() const { return stacktrace_var_; }
-
-  DECLARE_INSTRUCTION(CatchEntry)
-
-  virtual intptr_t ArgumentCount() const { return 0; }
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual EffectSet Effects() const { return EffectSet::All(); }
-
-  virtual bool MayThrow() const { return false; }
-
- private:
-  const LocalVariable& exception_var_;
-  const LocalVariable& stacktrace_var_;
-
-  DISALLOW_COPY_AND_ASSIGN(CatchEntryInstr);
-};
-
-
 class CheckEitherNonSmiInstr : public TemplateInstruction<2> {
  public:
   CheckEitherNonSmiInstr(Value* left,
@@ -4607,14 +4592,17 @@ class UnboxIntegerInstr : public TemplateDefinition<1> {
 };
 
 
-class MathSqrtInstr : public TemplateDefinition<1> {
+class MathUnaryInstr : public TemplateDefinition<1> {
  public:
-  MathSqrtInstr(Value* value, intptr_t deopt_id) {
+  MathUnaryInstr(MethodRecognizer::Kind kind, Value* value, intptr_t deopt_id)
+      : kind_(kind) {
     SetInputAt(0, value);
     deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
+
+  MethodRecognizer::Kind kind() const { return kind_; }
 
   virtual bool CanDeoptimize() const { return false; }
 
@@ -4633,7 +4621,7 @@ class MathSqrtInstr : public TemplateDefinition<1> {
     return deopt_id_;
   }
 
-  DECLARE_INSTRUCTION(MathSqrt)
+  DECLARE_INSTRUCTION(MathUnary)
   virtual CompileType ComputeType() const;
 
   virtual bool AllowsCSE() const { return true; }
@@ -4644,7 +4632,9 @@ class MathSqrtInstr : public TemplateDefinition<1> {
   virtual bool MayThrow() const { return false; }
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(MathSqrtInstr);
+  const MethodRecognizer::Kind kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(MathUnaryInstr);
 };
 
 
@@ -6319,9 +6309,7 @@ class CheckClassInstr : public TemplateInstruction<1> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  void set_null_check(bool flag) { null_check_ = flag; }
-
-  bool null_check() const { return null_check_; }
+  bool IsNullCheck() const;
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
@@ -6332,8 +6320,6 @@ class CheckClassInstr : public TemplateInstruction<1> {
 
  private:
   const ICData& unary_checks_;
-
-  bool null_check_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckClassInstr);
 };

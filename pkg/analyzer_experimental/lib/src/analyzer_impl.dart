@@ -4,7 +4,6 @@
 
 library analyzer_impl;
 
-import 'dart:async';
 import 'dart:io';
 
 import 'generated/java_io.dart';
@@ -13,7 +12,6 @@ import 'generated/error.dart';
 import 'generated/source_io.dart';
 import 'generated/sdk.dart';
 import 'generated/sdk_io.dart';
-import 'generated/ast.dart';
 import 'generated/element.dart';
 import '../options.dart';
 

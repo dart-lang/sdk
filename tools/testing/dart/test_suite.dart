@@ -27,7 +27,6 @@ import "http_server.dart" show PREFIX_BUILDDIR, PREFIX_DARTDIR;
 part "browser_test.dart";
 
 
-// TODO(rnystrom): Add to dart:core?
 /**
  * A simple function that tests [arg] and returns `true` or `false`.
  */
@@ -109,6 +108,10 @@ abstract class TestSuite {
   final String suiteName;
 
   TestSuite(this.configuration, this.suiteName);
+
+  String get configurationDir {
+    return TestUtils.configurationDir(configuration);
+  }
 
   /**
    * Whether or not binaries should be found in the root build directory or
@@ -307,7 +310,7 @@ class CCTestSuite extends TestSuite {
   String hostRunnerPath;
   final String dartDir;
   List<String> statusFilePaths;
-  TestCaseEvent doTest;
+  Function doTest;
   VoidFunction doDone;
   ReceivePort receiveTestName;
   TestExpectations testExpectations;
@@ -357,16 +360,17 @@ class CCTestSuite extends TestSuite {
       var args = TestUtils.standardOptions(configuration);
       args.add(testName);
 
+      var command = CommandBuilder.instance.getCommand(
+          'run_vm_unittest', targetRunnerPath, args, configurationDir);
       doTest(
           new TestCase(constructedName,
-                       [new Command('run_vm_unittest', targetRunnerPath, args)],
+                       [command],
                        configuration,
-                       completeHandler,
                        expectations));
     }
   }
 
-  void forEachTest(TestCaseEvent onTest, Map testCache, [VoidFunction onDone]) {
+  void forEachTest(Function onTest, Map testCache, [VoidFunction onDone]) {
     doTest = onTest;
     doDone = onDone;
 
@@ -388,9 +392,6 @@ class CCTestSuite extends TestSuite {
                                configuration,
                                statusFileRead);
     }
-  }
-
-  void completeHandler(TestCase testCase) {
   }
 }
 
@@ -419,7 +420,7 @@ class TestInformation {
 class StandardTestSuite extends TestSuite {
   final Path suiteDir;
   final List<String> statusFilePaths;
-  TestCaseEvent doTest;
+  Function doTest;
   TestExpectations testExpectations;
   List<TestInformation> cachedTests;
   final Path dartDir;
@@ -505,7 +506,7 @@ class StandardTestSuite extends TestSuite {
 
   List<String> additionalOptions(Path filePath) => [];
 
-  void forEachTest(TestCaseEvent onTest, Map testCache, [VoidFunction onDone]) {
+  void forEachTest(Function onTest, Map testCache, [VoidFunction onDone]) {
     updateDartium().then((_) {
       doTest = onTest;
 
@@ -743,7 +744,6 @@ class StandardTestSuite extends TestSuite {
       doTest(new TestCase('$suiteName/$testName',
                           makeCommands(info, allVmOptions, commonArguments),
                           configuration,
-                          completeHandler,
                           expectations,
                           isNegative: isNegative,
                           info: info));
@@ -758,21 +758,20 @@ class StandardTestSuite extends TestSuite {
       String tempDir = createOutputDirectory(info.filePath, '');
       args.add('--out=$tempDir/out.js');
 
-       List<Command> commands =
-           <Command>[new CompilationCommand(compiler,
-                                            "$tempDir/out.js",
-                                            !useSdk,
-                                            dart2JsBootstrapDependencies,
-                                            compilerPath,
-                                            args)];
+      var command = CommandBuilder.instance.getCompilationCommand(
+          compiler, "$tempDir/out.js", !useSdk,
+          dart2JsBootstrapDependencies, compilerPath, args, configurationDir);
+
+      List<Command> commands = <Command>[command];
       if (info.hasCompileError) {
         // Do not attempt to run the compiled result. A compilation
         // error should be reported by the compilation command.
       } else if (configuration['runtime'] == 'd8') {
-        commands.add(new Command("d8", d8FileName, ['$tempDir/out.js']));
+        commands.add(CommandBuilder.instance.getCommand(
+            "d8", d8FileName, ['$tempDir/out.js'], configurationDir));
       } else if (configuration['runtime'] == 'jsshell') {
-        commands.add(
-            new Command("jsshell", jsShellFileName, ['$tempDir/out.js']));
+        commands.add(CommandBuilder.instance.getCommand(
+            "jsshell", jsShellFileName, ['$tempDir/out.js'], configurationDir));
       }
       return commands;
 
@@ -783,12 +782,10 @@ class StandardTestSuite extends TestSuite {
       args.add('--out=$tempDir/out.dart');
 
       List<Command> commands =
-          <Command>[new CompilationCommand(compiler,
-                                           "$tempDir/out.dart",
-                                           !useSdk,
-                                           dart2JsBootstrapDependencies,
-                                           compilerPath,
-                                           args)];
+          <Command>[CommandBuilder.instance.getCompilationCommand(
+              compiler, "$tempDir/out.dart", !useSdk,
+              dart2JsBootstrapDependencies, compilerPath, args,
+              configurationDir)];
       if (info.hasCompileError) {
         // Do not attempt to run the compiled result. A compilation
         // error should be reported by the compilation command.
@@ -797,21 +794,24 @@ class StandardTestSuite extends TestSuite {
         var vmArguments = new List.from(vmOptions);
         vmArguments.addAll([
             '--ignore-unrecognized-flags', '$tempDir/out.dart']);
-        commands.add(new Command("vm", vmFileName, vmArguments));
+        commands.add(CommandBuilder.instance.getCommand(
+            "vm", vmFileName, vmArguments, configurationDir));
       } else {
         throw 'Unsupported runtime ${configuration["runtime"]} for dart2dart';
       }
       return commands;
 
     case 'none':
-    case 'dartanalyzer':
-    case 'dart2analyzer':
-      var displayName = (configuration['compiler'] == 'none'
-          ? 'vm' : configuration['compiler']);
       var arguments = new List.from(vmOptions);
       arguments.addAll(args);
-      return <Command>[
-          new Command(displayName, dartShellFileName, arguments)];
+      return <Command>[CommandBuilder.instance.getCommand(
+          'vm', dartShellFileName, arguments, configurationDir)];
+
+    case 'dartanalyzer':
+    case 'dart2analyzer':
+      return <Command>[CommandBuilder.instance.getAnalysisCommand(
+          compiler, dartShellFileName, args, configurationDir,
+          flavor: compiler)];
 
     default:
       throw 'Unknown compiler ${configuration["compiler"]}';
@@ -902,7 +902,6 @@ class StandardTestSuite extends TestSuite {
                                                 libraryPathComponent));
     dartWrapper.closeSync();
   }
-
 
   /**
    * The [StandardTestSuite] has support for tests that
@@ -1011,17 +1010,10 @@ class StandardTestSuite extends TestSuite {
 
       // Variables for browser multi-tests.
       List<String> subtestNames = info.optionsFromFile['subtestNames'];
-      BrowserTestCase multitestParentTest;
       int subtestIndex = 0;
       // Construct the command that executes the browser test
       do {
         List<Command> commandSet = new List<Command>.from(commands);
-        if (subtestIndex != 0) {
-          // NOTE: The first time we enter this loop, all the compilation
-          // commands will be executed. On subsequent loop iterations, we
-          // don't need to do any compilations. Thus we set "commandSet = []".
-          commandSet = [];
-        }
 
         var htmlPath_subtest = _createUrlPathFromFile(new Path(htmlPath));
         var fullHtmlPath = _getUriForBrowserTest(info, htmlPath_subtest,
@@ -1035,9 +1027,9 @@ class StandardTestSuite extends TestSuite {
           args = ['tools/testing/dart/launch_browser.dart',
                   runtime,
                   fullHtmlPath];
-          commandSet.add(new Command(runtime,
-                                     TestUtils.dartTestExecutable.toString(),
-                                     args));
+          commandSet.add(CommandBuilder.instance.getBrowserTestCommand(
+              runtime, fullHtmlPath,
+              TestUtils.dartTestExecutable.toString(), args, configurationDir));
         } else if (TestUtils.usesWebDriver(runtime)) {
           args = [
               dartDir.append('tools/testing/run_selenium.py').toNativePath(),
@@ -1051,12 +1043,10 @@ class StandardTestSuite extends TestSuite {
           if (subtestIndex != 0) {
             args.add('--force-refresh');
           }
-          commandSet.add(new Command(runtime, 'python', args));
+          commandSet.add(CommandBuilder.instance.getSeleniumTestCommand(
+                  runtime, fullHtmlPath, 'python', args, configurationDir));
         } else {
-          if (runtime != "drt") {
-            print("Unknown runtime $runtime");
-            exit(1);
-          }
+          assert(runtime == "drt");
 
           var dartFlags = [];
           var contentShellOptions = [];
@@ -1080,11 +1070,9 @@ class StandardTestSuite extends TestSuite {
               fullHtmlPath = "${fullHtmlPath}'-p";
             }
           }
-          commandSet.add(new ContentShellCommand(contentShellFilename,
-                                                 fullHtmlPath,
-                                                 contentShellOptions,
-                                                 dartFlags,
-                                                 expectedOutput));
+          commandSet.add(CommandBuilder.instance.getContentShellCommand(
+              contentShellFilename, fullHtmlPath, contentShellOptions,
+              dartFlags, expectedOutput, configurationDir));
         }
 
         // Create BrowserTestCase and queue it.
@@ -1093,20 +1081,13 @@ class StandardTestSuite extends TestSuite {
         if (info.optionsFromFile['isMultiHtmlTest']) {
           testDisplayName = '$testDisplayName/${subtestNames[subtestIndex]}';
           testCase = new BrowserTestCase(testDisplayName,
-              commandSet, configuration, completeHandler,
+              commandSet, configuration,
               expectations['$testName/${subtestNames[subtestIndex]}'],
-              info, info.hasCompileError || info.hasRuntimeError, fullHtmlPath,
-              subtestIndex != 0);
+              info, info.hasCompileError || info.hasRuntimeError, fullHtmlPath);
         } else {
           testCase = new BrowserTestCase(testDisplayName,
-              commandSet, configuration, completeHandler, expectations,
-              info, info.hasCompileError || info.hasRuntimeError, fullHtmlPath,
-              false);
-        }
-        if (subtestIndex == 0) {
-          multitestParentTest = testCase;
-        } else {
-          multitestParentTest.addObserver(testCase);
+              commandSet, configuration, expectations,
+              info, info.hasCompileError || info.hasRuntimeError, fullHtmlPath);
         }
 
         doTest(testCase);
@@ -1133,12 +1114,9 @@ class StandardTestSuite extends TestSuite {
       args.insert(0, executable);
       executable = dartShellFileName;
     }
-    return new CompilationCommand(compiler,
-                                  outputFile,
-                                  !useSdk,
-                                  dart2JsBootstrapDependencies,
-                                  compilerPath,
-                                  args);
+    return CommandBuilder.instance.getCompilationCommand(
+        compiler, outputFile, !useSdk,
+        dart2JsBootstrapDependencies, compilerPath, args, configurationDir);
   }
 
   /**
@@ -1228,9 +1206,6 @@ class StandardTestSuite extends TestSuite {
                             'MacOS/Chromium').toNativePath();
     }
     return dartDir.append('client/tests/dartium/chrome').toNativePath();
-  }
-
-  void completeHandler(TestCase testCase) {
   }
 
   List<String> commonArgumentsFromFile(Path filePath, Map optionsFromFile) {
@@ -1669,15 +1644,13 @@ class JUnitTestSuite extends TestSuite {
       updatedConfiguration[key] = value;
     });
     updatedConfiguration['timeout'] *= 3;
+    var command = CommandBuilder.instance.getCommand(
+        'junit_test', 'java', args, configurationDir);
     doTest(new TestCase(suiteName,
-                        [new Command('junit_test', 'java', args)],
+                        [command],
                         updatedConfiguration,
-                        completeHandler,
                         new Set<String>.from([PASS])));
     doDone();
-  }
-
-  void completeHandler(TestCase testCase) {
   }
 
   void computeClassPath() {
@@ -1693,7 +1666,7 @@ class JUnitTestSuite extends TestSuite {
          '$dartDir/third_party/hamcrest/v1_3/hamcrest-integration-1.3.0RC2.jar',
          '$dartDir/third_party/hamcrest/v1_3/hamcrest-library-1.3.0RC2.jar',
          '$dartDir/third_party/junit/v4_8_2/junit.jar']
-        .join(Platform.operatingSystem == 'windows'? ';': ':');  // Path separator.
+        .join(Platform.operatingSystem == 'windows'? ';': ':');
   }
 }
 

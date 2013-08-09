@@ -11,7 +11,6 @@ import 'package:path/path.dart' as path;
 
 import '../../descriptor.dart';
 import '../../scheduled_test.dart';
-import '../utils.dart';
 
 /// A descriptor that validates that no file exists with the given name.
 /// Creating this descriptor is a no-op and loading from it is invalid.

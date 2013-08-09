@@ -7,10 +7,15 @@
 
 #include "platform/assert.h"
 #include "vm/globals.h"
+#include "vm/handles_impl.h"
 #include "vm/simulator.h"
 #include "vm/stub_code.h"
 
 namespace dart {
+
+DECLARE_FLAG(bool, deoptimize_alot);
+DECLARE_FLAG(bool, trace_natives);
+DECLARE_FLAG(bool, verify_on_transition);
 
 // Forward declarations.
 class BootstrapNatives;
@@ -18,7 +23,6 @@ class Isolate;
 class Object;
 class RawObject;
 class Simulator;
-
 
 #if defined(TESTING) || defined(DEBUG)
 
@@ -41,9 +45,26 @@ class Simulator;
 }
 #endif
 
+#define VERIFY_ON_TRANSITION                                                   \
+  if (FLAG_verify_on_transition) {                                             \
+    VerifyPointersVisitor::VerifyPointers();                                   \
+    Isolate::Current()->heap()->Verify();                                      \
+  }
+#define TRACE_NATIVES(name)                                                    \
+  if (FLAG_trace_natives) {                                                    \
+    OS::Print("Calling native: %s\n", name);                                   \
+  }
+#define DEOPTIMIZE_ALOT                                                        \
+  if (FLAG_deoptimize_alot) {                                                  \
+    DeoptimizeAll();                                                           \
+  }
+
 #else
 
 #define CHECK_STACK_ALIGNMENT { }
+#define VERIFY_ON_TRANSITION { }
+#define TRACE_NATIVES(name) { }
+#define DEOPTIMIZE_ALOT { }
 
 #endif
 
@@ -110,7 +131,9 @@ class NativeArguments {
     }
   }
 
-  void SetReturn(const Object& value) const;
+  void SetReturn(const Object& value) const {
+    *retval_ = value.raw();
+  }
 
   static intptr_t isolate_offset() {
     return OFFSET_OF(NativeArguments, isolate_);
@@ -164,7 +187,9 @@ class NativeArguments {
   // exceedingly careful when we use it.  If there are any other side
   // effects in the statement that may cause GC, it could lead to
   // bugs.
-  void SetReturnUnsafe(RawObject* value) const;
+  void SetReturnUnsafe(RawObject* value) const {
+    *retval_ = value;
+  }
 
   Isolate* isolate_;  // Current isolate pointer.
   int argc_tag_;  // Encodes argument count and invoked native call type.

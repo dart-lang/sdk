@@ -251,5 +251,12 @@ TEST_CASE(JSON_JSONStream_DartObject) {
                tb.buf());
 }
 
+TEST_CASE(JSON_JSONStream_EscapedString) {
+  TextBuffer tb(256);
+  JSONStream js(&tb);
+  js.PrintValue("Hel\"\"lo\r\n\t");
+  EXPECT_STREQ("\"Hel\\\"\\\"lo\\r\\n\\t\"", tb.buf());
+}
+
 
 }  // namespace dart

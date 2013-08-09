@@ -91,18 +91,14 @@ _callPortSync(num id, var message) {
   _callPortLastResult = null;
   return result;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
 
 
 @DocsEditable()
 @DomName('AbstractWorker')
-class AbstractWorker extends EventTarget {
-  // To suppress missing implicit constructor warnings.
-  factory AbstractWorker._() { throw new UnsupportedError("Not supported"); }
+class AbstractWorker extends NativeFieldWrapperClass1 implements EventTarget {
 
   @DomName('AbstractWorker.errorEvent')
   @DocsEditable()
@@ -111,6 +107,63 @@ class AbstractWorker extends EventTarget {
   @DomName('AbstractWorker.onerror')
   @DocsEditable()
   Stream<ErrorEvent> get onError => errorEvent.forTarget(this);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('AesCbcParams')
+@Experimental() // untriaged
+class AesCbcParams extends Algorithm {
+  // To suppress missing implicit constructor warnings.
+  factory AesCbcParams._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('AesCbcParams.iv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Uint8List get iv native "AesCbcParams_iv_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('AesKeyGenParams')
+@Experimental() // untriaged
+class AesKeyGenParams extends Algorithm {
+  // To suppress missing implicit constructor warnings.
+  factory AesKeyGenParams._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('AesKeyGenParams.length')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get length native "AesKeyGenParams_length_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('Algorithm')
+@Experimental() // untriaged
+class Algorithm extends NativeFieldWrapperClass1 {
+
+  @DomName('Algorithm.name')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get name native "Algorithm_name_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -384,18 +437,6 @@ class ApplicationCache extends EventTarget {
   @DocsEditable()
   void abort() native "DOMApplicationCache_abort_Callback";
 
-  @DomName('DOMApplicationCache.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "DOMApplicationCache_addEventListener_Callback";
-
-  @DomName('DOMApplicationCache.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event evt) native "DOMApplicationCache_dispatchEvent_Callback";
-
-  @DomName('DOMApplicationCache.removeEventListener')
-  @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "DOMApplicationCache_removeEventListener_Callback";
-
   @DomName('DOMApplicationCache.swapCache')
   @DocsEditable()
   void swapCache() native "DOMApplicationCache_swapCache_Callback";
@@ -403,6 +444,18 @@ class ApplicationCache extends EventTarget {
   @DomName('DOMApplicationCache.update')
   @DocsEditable()
   void update() native "DOMApplicationCache_update_Callback";
+
+  @DomName('DOMApplicationCache.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "DOMApplicationCache_addEventListener_Callback";
+
+  @DomName('DOMApplicationCache.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "DOMApplicationCache_dispatchEvent_Callback";
+
+  @DomName('DOMApplicationCache.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "DOMApplicationCache_removeEventListener_Callback";
 
   @DomName('DOMApplicationCache.oncached')
   @DocsEditable()
@@ -790,51 +843,51 @@ class BodyElement extends _HTMLElement {
 
   @DomName('HTMLBodyElement.onblur')
   @DocsEditable()
-  Stream<Event> get onBlur => blurEvent.forTarget(this);
+  ElementStream<Event> get onBlur => blurEvent.forElement(this);
 
   @DomName('HTMLBodyElement.onerror')
   @DocsEditable()
-  Stream<Event> get onError => errorEvent.forTarget(this);
+  ElementStream<Event> get onError => errorEvent.forElement(this);
 
   @DomName('HTMLBodyElement.onfocus')
   @DocsEditable()
-  Stream<Event> get onFocus => focusEvent.forTarget(this);
+  ElementStream<Event> get onFocus => focusEvent.forElement(this);
 
   @DomName('HTMLBodyElement.onhashchange')
   @DocsEditable()
-  Stream<Event> get onHashChange => hashChangeEvent.forTarget(this);
+  ElementStream<Event> get onHashChange => hashChangeEvent.forElement(this);
 
   @DomName('HTMLBodyElement.onload')
   @DocsEditable()
-  Stream<Event> get onLoad => loadEvent.forTarget(this);
+  ElementStream<Event> get onLoad => loadEvent.forElement(this);
 
   @DomName('HTMLBodyElement.onmessage')
   @DocsEditable()
-  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
+  ElementStream<MessageEvent> get onMessage => messageEvent.forElement(this);
 
   @DomName('HTMLBodyElement.onoffline')
   @DocsEditable()
-  Stream<Event> get onOffline => offlineEvent.forTarget(this);
+  ElementStream<Event> get onOffline => offlineEvent.forElement(this);
 
   @DomName('HTMLBodyElement.ononline')
   @DocsEditable()
-  Stream<Event> get onOnline => onlineEvent.forTarget(this);
+  ElementStream<Event> get onOnline => onlineEvent.forElement(this);
 
   @DomName('HTMLBodyElement.onpopstate')
   @DocsEditable()
-  Stream<PopStateEvent> get onPopState => popStateEvent.forTarget(this);
+  ElementStream<PopStateEvent> get onPopState => popStateEvent.forElement(this);
 
   @DomName('HTMLBodyElement.onresize')
   @DocsEditable()
-  Stream<Event> get onResize => resizeEvent.forTarget(this);
+  ElementStream<Event> get onResize => resizeEvent.forElement(this);
 
   @DomName('HTMLBodyElement.onstorage')
   @DocsEditable()
-  Stream<StorageEvent> get onStorage => storageEvent.forTarget(this);
+  ElementStream<StorageEvent> get onStorage => storageEvent.forElement(this);
 
   @DomName('HTMLBodyElement.onunload')
   @DocsEditable()
-  Stream<Event> get onUnload => unloadEvent.forTarget(this);
+  ElementStream<Event> get onUnload => unloadEvent.forElement(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1099,11 +1152,11 @@ class CanvasElement extends _HTMLElement implements CanvasImageSource {
 
   @DomName('HTMLCanvasElement.onwebglcontextlost')
   @DocsEditable()
-  Stream<gl.ContextEvent> get onWebGlContextLost => webGlContextLostEvent.forTarget(this);
+  ElementStream<gl.ContextEvent> get onWebGlContextLost => webGlContextLostEvent.forElement(this);
 
   @DomName('HTMLCanvasElement.onwebglcontextrestored')
   @DocsEditable()
-  Stream<gl.ContextEvent> get onWebGlContextRestored => webGlContextRestoredEvent.forTarget(this);
+  ElementStream<gl.ContextEvent> get onWebGlContextRestored => webGlContextRestoredEvent.forElement(this);
 
   /** An API for drawing on this canvas. */
   CanvasRenderingContext2D get context2D => getContext('2d');
@@ -1483,63 +1536,81 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DocsEditable()
   CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native "CanvasRenderingContext2D_createRadialGradient_Callback";
 
-  void _drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) {
-    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
-      _drawImage_1(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
+  void _drawImage(canvas_OR_image_OR_imageBitmap_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) {
+    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
+      _drawImage_1(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
       return;
     }
-    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
-      _drawImage_2(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
+      _drawImage_2(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
       return;
     }
-    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video == null)) {
-      _drawImage_3(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageElement || canvas_OR_image_OR_imageBitmap_OR_video == null)) {
+      _drawImage_3(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
       return;
     }
-    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_video is CanvasElement || canvas_OR_image_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
-      _drawImage_4(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
+    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is CanvasElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
+      _drawImage_4(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
       return;
     }
-    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_video is CanvasElement || canvas_OR_image_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
-      _drawImage_5(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is CanvasElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
+      _drawImage_5(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
       return;
     }
-    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_video is CanvasElement || canvas_OR_image_OR_video == null)) {
-      _drawImage_6(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is CanvasElement || canvas_OR_image_OR_imageBitmap_OR_video == null)) {
+      _drawImage_6(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
       return;
     }
-    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_video is VideoElement || canvas_OR_image_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
-      _drawImage_7(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
+    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is VideoElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
+      _drawImage_7(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
       return;
     }
-    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_video is VideoElement || canvas_OR_image_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
-      _drawImage_8(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is VideoElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
+      _drawImage_8(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
       return;
     }
-    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_video is VideoElement || canvas_OR_image_OR_video == null)) {
-      _drawImage_9(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is VideoElement || canvas_OR_image_OR_imageBitmap_OR_video == null)) {
+      _drawImage_9(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+      return;
+    }
+    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageBitmap || canvas_OR_image_OR_imageBitmap_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
+      _drawImage_10(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
+      return;
+    }
+    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageBitmap || canvas_OR_image_OR_imageBitmap_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
+      _drawImage_11(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+      return;
+    }
+    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageBitmap || canvas_OR_image_OR_imageBitmap_OR_video == null)) {
+      _drawImage_12(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  void _drawImage_1(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D__drawImage_1_Callback";
+  void _drawImage_1(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D__drawImage_1_Callback";
 
-  void _drawImage_2(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D__drawImage_2_Callback";
+  void _drawImage_2(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D__drawImage_2_Callback";
 
-  void _drawImage_3(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D__drawImage_3_Callback";
+  void _drawImage_3(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D__drawImage_3_Callback";
 
-  void _drawImage_4(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D__drawImage_4_Callback";
+  void _drawImage_4(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D__drawImage_4_Callback";
 
-  void _drawImage_5(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D__drawImage_5_Callback";
+  void _drawImage_5(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D__drawImage_5_Callback";
 
-  void _drawImage_6(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D__drawImage_6_Callback";
+  void _drawImage_6(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D__drawImage_6_Callback";
 
-  void _drawImage_7(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D__drawImage_7_Callback";
+  void _drawImage_7(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D__drawImage_7_Callback";
 
-  void _drawImage_8(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D__drawImage_8_Callback";
+  void _drawImage_8(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D__drawImage_8_Callback";
 
-  void _drawImage_9(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D__drawImage_9_Callback";
+  void _drawImage_9(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D__drawImage_9_Callback";
+
+  void _drawImage_10(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D__drawImage_10_Callback";
+
+  void _drawImage_11(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D__drawImage_11_Callback";
+
+  void _drawImage_12(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D__drawImage_12_Callback";
 
   void fill([String winding]) {
     if (winding != null) {
@@ -2068,13 +2139,19 @@ class Comment extends CharacterData {
 @Experimental()
 class Composition extends NativeFieldWrapperClass1 {
 
-  @DomName('Composition.caret')
+  @DomName('Composition.selectionEnd')
   @DocsEditable()
-  Range get caret native "Composition_caret_Getter";
+  @Experimental() // untriaged
+  int get selectionEnd native "Composition_selectionEnd_Getter";
+
+  @DomName('Composition.selectionStart')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get selectionStart native "Composition_selectionStart_Getter";
 
   @DomName('Composition.text')
   @DocsEditable()
-  Node get text native "Composition_text_Getter";
+  String get text native "Composition_text_Getter";
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -2329,6 +2406,44 @@ class Crypto extends NativeFieldWrapperClass1 {
   @DomName('Crypto.getRandomValues')
   @DocsEditable()
   TypedData getRandomValues(TypedData array) native "Crypto_getRandomValues_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('CryptoOperation')
+@Experimental() // untriaged
+class CryptoOperation extends NativeFieldWrapperClass1 {
+
+  @DomName('CryptoOperation.algorithm')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Algorithm get algorithm native "CryptoOperation_algorithm_Getter";
+
+  @DomName('CryptoOperation.abort')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object abort() native "CryptoOperation_abort_Callback";
+
+  @DomName('CryptoOperation.finish')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object finish() native "CryptoOperation_finish_Callback";
+
+  @DomName('CryptoOperation.processByteBuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  CryptoOperation processByteBuffer(ByteBuffer data) native "CryptoOperation_processByteBuffer_Callback";
+
+  @DomName('CryptoOperation.processTypedData')
+  @DocsEditable()
+  @Experimental() // untriaged
+  CryptoOperation processTypedData(TypedData data) native "CryptoOperation_processTypedData_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3138,6 +3253,11 @@ class CssRule extends NativeFieldWrapperClass1 {
   @DomName('CSSStyleDeclaration.parentRule')
   @DocsEditable()
   CssRule get parentRule native "CSSStyleDeclaration_parentRule_Getter";
+
+  @DomName('CSSStyleDeclaration.var')
+  @DocsEditable()
+  @Experimental() // untriaged
+  CssVariablesMap get _var native "CSSStyleDeclaration_var_Getter";
 
   @DomName('CSSStyleDeclaration.__setter__')
   @DocsEditable()
@@ -6599,6 +6719,49 @@ class CssUnknownRule extends CssRule {
 
 
 @DocsEditable()
+@DomName('CSSVariablesMap')
+@Experimental() // untriaged
+class CssVariablesMap extends NativeFieldWrapperClass1 {
+
+  @DomName('CSSVariablesMap.size')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get size native "CSSVariablesMap_size_Getter";
+
+  @DomName('CSSVariablesMap.clear')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void clear() native "CSSVariablesMap_clear_Callback";
+
+  @DomName('CSSVariablesMap.delete')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool delete(String name) native "CSSVariablesMap_delete_Callback";
+
+  @DomName('CSSVariablesMap.get')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get(String name) native "CSSVariablesMap_get_Callback";
+
+  @DomName('CSSVariablesMap.has')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool has(String name) native "CSSVariablesMap_has_Callback";
+
+  @DomName('CSSVariablesMap.set')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set(String name, String value) native "CSSVariablesMap_set_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('CSSViewportRule')
 @Experimental() // untriaged
 class CssViewportRule extends CssRule {
@@ -6873,6 +7036,36 @@ typedef void DatabaseCallback(database);
 
 
 @DocsEditable()
+@DomName('DedicatedWorkerGlobalScope')
+@Experimental() // untriaged
+class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
+  // To suppress missing implicit constructor warnings.
+  factory DedicatedWorkerGlobalScope._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('DedicatedWorkerGlobalScope.messageEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
+
+  @DomName('DedicatedWorkerGlobalScope.postMessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void postMessage(Object message, [List messagePorts]) native "DedicatedWorkerGlobalScope_postMessage_Callback";
+
+  @DomName('DedicatedWorkerGlobalScope.onmessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('HTMLDetailsElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -7045,9 +7238,19 @@ class DialogElement extends _HTMLElement {
   @DocsEditable()
   void set open(bool value) native "HTMLDialogElement_open_Setter";
 
+  @DomName('HTMLDialogElement.returnValue')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get returnValue native "HTMLDialogElement_returnValue_Getter";
+
+  @DomName('HTMLDialogElement.returnValue')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set returnValue(String value) native "HTMLDialogElement_returnValue_Setter";
+
   @DomName('HTMLDialogElement.close')
   @DocsEditable()
-  void close() native "HTMLDialogElement_close_Callback";
+  void close(String returnValue) native "HTMLDialogElement_close_Callback";
 
   @DomName('HTMLDialogElement.show')
   @DocsEditable()
@@ -7787,6 +7990,16 @@ class Document extends Node
   @DomName('Document.onmousedown')
   @DocsEditable()
   Stream<MouseEvent> get onMouseDown => Element.mouseDownEvent.forTarget(this);
+
+  @DomName('Document.onmouseenter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<MouseEvent> get onMouseEnter => Element.mouseEnterEvent.forTarget(this);
+
+  @DomName('Document.onmouseleave')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<MouseEvent> get onMouseLeave => Element.mouseLeaveEvent.forTarget(this);
 
   @DomName('Document.onmousemove')
   @DocsEditable()
@@ -8570,6 +8783,234 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    */
   @Experimental()
   CssRect get marginEdge;
+
+  @DomName('Element.onabort')
+  @DocsEditable()
+  ElementStream<Event> get onAbort;
+
+  @DomName('Element.onbeforecopy')
+  @DocsEditable()
+  ElementStream<Event> get onBeforeCopy;
+
+  @DomName('Element.onbeforecut')
+  @DocsEditable()
+  ElementStream<Event> get onBeforeCut;
+
+  @DomName('Element.onbeforepaste')
+  @DocsEditable()
+  ElementStream<Event> get onBeforePaste;
+
+  @DomName('Element.onblur')
+  @DocsEditable()
+  ElementStream<Event> get onBlur;
+
+  @DomName('Element.onchange')
+  @DocsEditable()
+  ElementStream<Event> get onChange;
+
+  @DomName('Element.onclick')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onClick;
+
+  @DomName('Element.oncontextmenu')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onContextMenu;
+
+  @DomName('Element.oncopy')
+  @DocsEditable()
+  ElementStream<Event> get onCopy;
+
+  @DomName('Element.oncut')
+  @DocsEditable()
+  ElementStream<Event> get onCut;
+
+  @DomName('Element.ondblclick')
+  @DocsEditable()
+  ElementStream<Event> get onDoubleClick;
+
+  @DomName('Element.ondrag')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onDrag;
+
+  @DomName('Element.ondragend')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onDragEnd;
+
+  @DomName('Element.ondragenter')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onDragEnter;
+
+  @DomName('Element.ondragleave')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onDragLeave;
+
+  @DomName('Element.ondragover')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onDragOver;
+
+  @DomName('Element.ondragstart')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onDragStart;
+
+  @DomName('Element.ondrop')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onDrop;
+
+  @DomName('Element.onerror')
+  @DocsEditable()
+  ElementStream<Event> get onError;
+
+  @DomName('Element.onfocus')
+  @DocsEditable()
+  ElementStream<Event> get onFocus;
+
+  @DomName('Element.oninput')
+  @DocsEditable()
+  ElementStream<Event> get onInput;
+
+  @DomName('Element.oninvalid')
+  @DocsEditable()
+  ElementStream<Event> get onInvalid;
+
+  @DomName('Element.onkeydown')
+  @DocsEditable()
+  ElementStream<KeyboardEvent> get onKeyDown;
+
+  @DomName('Element.onkeypress')
+  @DocsEditable()
+  ElementStream<KeyboardEvent> get onKeyPress;
+
+  @DomName('Element.onkeyup')
+  @DocsEditable()
+  ElementStream<KeyboardEvent> get onKeyUp;
+
+  @DomName('Element.onload')
+  @DocsEditable()
+  ElementStream<Event> get onLoad;
+
+  @DomName('Element.onmousedown')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onMouseDown;
+
+  @DomName('Element.onmouseenter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<MouseEvent> get onMouseEnter;
+
+  @DomName('Element.onmouseleave')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<MouseEvent> get onMouseLeave;
+
+  @DomName('Element.onmousemove')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onMouseMove;
+
+  @DomName('Element.onmouseout')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onMouseOut;
+
+  @DomName('Element.onmouseover')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onMouseOver;
+
+  @DomName('Element.onmouseup')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onMouseUp;
+
+  @DomName('Element.onmousewheel')
+  @DocsEditable()
+  // http://www.w3.org/TR/DOM-Level-3-Events/#events-wheelevents
+  @Experimental() // non-standard
+  ElementStream<WheelEvent> get onMouseWheel;
+
+  @DomName('Element.onpaste')
+  @DocsEditable()
+  ElementStream<Event> get onPaste;
+
+  @DomName('Element.onreset')
+  @DocsEditable()
+  ElementStream<Event> get onReset;
+
+  @DomName('Element.onscroll')
+  @DocsEditable()
+  ElementStream<Event> get onScroll;
+
+  @DomName('Element.onsearch')
+  @DocsEditable()
+  // http://www.w3.org/TR/html-markup/input.search.html
+  @Experimental()
+  ElementStream<Event> get onSearch;
+
+  @DomName('Element.onselect')
+  @DocsEditable()
+  ElementStream<Event> get onSelect;
+
+  @DomName('Element.onselectstart')
+  @DocsEditable()
+  @Experimental() // nonstandard
+  ElementStream<Event> get onSelectStart;
+
+  @DomName('Element.onsubmit')
+  @DocsEditable()
+  ElementStream<Event> get onSubmit;
+
+  @DomName('Element.ontouchcancel')
+  @DocsEditable()
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental()
+  ElementStream<TouchEvent> get onTouchCancel;
+
+  @DomName('Element.ontouchend')
+  @DocsEditable()
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental()
+  ElementStream<TouchEvent> get onTouchEnd;
+
+  @DomName('Element.ontouchenter')
+  @DocsEditable()
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental()
+  ElementStream<TouchEvent> get onTouchEnter;
+
+  @DomName('Element.ontouchleave')
+  @DocsEditable()
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental()
+  ElementStream<TouchEvent> get onTouchLeave;
+
+  @DomName('Element.ontouchmove')
+  @DocsEditable()
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental()
+  ElementStream<TouchEvent> get onTouchMove;
+
+  @DomName('Element.ontouchstart')
+  @DocsEditable()
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental()
+  ElementStream<TouchEvent> get onTouchStart;
+
+  @DomName('Element.ontransitionend')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  ElementStream<TransitionEvent> get onTransitionEnd;
+
+  @DomName('Element.onwebkitfullscreenchange')
+  @DocsEditable()
+  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
+  @Experimental()
+  ElementStream<Event> get onFullscreenChange;
+
+  @DomName('Element.onwebkitfullscreenerror')
+  @DocsEditable()
+  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
+  @Experimental()
+  ElementStream<Event> get onFullscreenError;
+ 
 }
 
 // TODO(jacobr): this is an inefficient implementation but it is hard to see
@@ -8623,6 +9064,234 @@ class _FrozenElementList<T extends Element> extends ListBase<T> implements Eleme
   CssRect get borderEdge => _elementList.first.borderEdge;
 
   CssRect get marginEdge => _elementList.first.marginEdge;
+
+  @DomName('Element.onabort')
+  @DocsEditable()
+  ElementStream<Event> get onAbort => Element.abortEvent._forElementList(this);
+
+  @DomName('Element.onbeforecopy')
+  @DocsEditable()
+  ElementStream<Event> get onBeforeCopy => Element.beforeCopyEvent._forElementList(this);
+
+  @DomName('Element.onbeforecut')
+  @DocsEditable()
+  ElementStream<Event> get onBeforeCut => Element.beforeCutEvent._forElementList(this);
+
+  @DomName('Element.onbeforepaste')
+  @DocsEditable()
+  ElementStream<Event> get onBeforePaste => Element.beforePasteEvent._forElementList(this);
+
+  @DomName('Element.onblur')
+  @DocsEditable()
+  ElementStream<Event> get onBlur => Element.blurEvent._forElementList(this);
+
+  @DomName('Element.onchange')
+  @DocsEditable()
+  ElementStream<Event> get onChange => Element.changeEvent._forElementList(this);
+
+  @DomName('Element.onclick')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onClick => Element.clickEvent._forElementList(this);
+
+  @DomName('Element.oncontextmenu')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onContextMenu => Element.contextMenuEvent._forElementList(this);
+
+  @DomName('Element.oncopy')
+  @DocsEditable()
+  ElementStream<Event> get onCopy => Element.copyEvent._forElementList(this);
+
+  @DomName('Element.oncut')
+  @DocsEditable()
+  ElementStream<Event> get onCut => Element.cutEvent._forElementList(this);
+
+  @DomName('Element.ondblclick')
+  @DocsEditable()
+  ElementStream<Event> get onDoubleClick => Element.doubleClickEvent._forElementList(this);
+
+  @DomName('Element.ondrag')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onDrag => Element.dragEvent._forElementList(this);
+
+  @DomName('Element.ondragend')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onDragEnd => Element.dragEndEvent._forElementList(this);
+
+  @DomName('Element.ondragenter')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onDragEnter => Element.dragEnterEvent._forElementList(this);
+
+  @DomName('Element.ondragleave')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onDragLeave => Element.dragLeaveEvent._forElementList(this);
+
+  @DomName('Element.ondragover')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onDragOver => Element.dragOverEvent._forElementList(this);
+
+  @DomName('Element.ondragstart')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onDragStart => Element.dragStartEvent._forElementList(this);
+
+  @DomName('Element.ondrop')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onDrop => Element.dropEvent._forElementList(this);
+
+  @DomName('Element.onerror')
+  @DocsEditable()
+  ElementStream<Event> get onError => Element.errorEvent._forElementList(this);
+
+  @DomName('Element.onfocus')
+  @DocsEditable()
+  ElementStream<Event> get onFocus => Element.focusEvent._forElementList(this);
+
+  @DomName('Element.oninput')
+  @DocsEditable()
+  ElementStream<Event> get onInput => Element.inputEvent._forElementList(this);
+
+  @DomName('Element.oninvalid')
+  @DocsEditable()
+  ElementStream<Event> get onInvalid => Element.invalidEvent._forElementList(this);
+
+  @DomName('Element.onkeydown')
+  @DocsEditable()
+  ElementStream<KeyboardEvent> get onKeyDown => Element.keyDownEvent._forElementList(this);
+
+  @DomName('Element.onkeypress')
+  @DocsEditable()
+  ElementStream<KeyboardEvent> get onKeyPress => Element.keyPressEvent._forElementList(this);
+
+  @DomName('Element.onkeyup')
+  @DocsEditable()
+  ElementStream<KeyboardEvent> get onKeyUp => Element.keyUpEvent._forElementList(this);
+
+  @DomName('Element.onload')
+  @DocsEditable()
+  ElementStream<Event> get onLoad => Element.loadEvent._forElementList(this);
+
+  @DomName('Element.onmousedown')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onMouseDown => Element.mouseDownEvent._forElementList(this);
+
+  @DomName('Element.onmouseenter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<MouseEvent> get onMouseEnter => Element.mouseEnterEvent._forElementList(this);
+
+  @DomName('Element.onmouseleave')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<MouseEvent> get onMouseLeave => Element.mouseLeaveEvent._forElementList(this);
+
+  @DomName('Element.onmousemove')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onMouseMove => Element.mouseMoveEvent._forElementList(this);
+
+  @DomName('Element.onmouseout')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onMouseOut => Element.mouseOutEvent._forElementList(this);
+
+  @DomName('Element.onmouseover')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onMouseOver => Element.mouseOverEvent._forElementList(this);
+
+  @DomName('Element.onmouseup')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onMouseUp => Element.mouseUpEvent._forElementList(this);
+
+  @DomName('Element.onmousewheel')
+  @DocsEditable()
+  // http://www.w3.org/TR/DOM-Level-3-Events/#events-wheelevents
+  @Experimental() // non-standard
+  ElementStream<WheelEvent> get onMouseWheel => Element.mouseWheelEvent._forElementList(this);
+
+  @DomName('Element.onpaste')
+  @DocsEditable()
+  ElementStream<Event> get onPaste => Element.pasteEvent._forElementList(this);
+
+  @DomName('Element.onreset')
+  @DocsEditable()
+  ElementStream<Event> get onReset => Element.resetEvent._forElementList(this);
+
+  @DomName('Element.onscroll')
+  @DocsEditable()
+  ElementStream<Event> get onScroll => Element.scrollEvent._forElementList(this);
+
+  @DomName('Element.onsearch')
+  @DocsEditable()
+  // http://www.w3.org/TR/html-markup/input.search.html
+  @Experimental()
+  ElementStream<Event> get onSearch => Element.searchEvent._forElementList(this);
+
+  @DomName('Element.onselect')
+  @DocsEditable()
+  ElementStream<Event> get onSelect => Element.selectEvent._forElementList(this);
+
+  @DomName('Element.onselectstart')
+  @DocsEditable()
+  @Experimental() // nonstandard
+  ElementStream<Event> get onSelectStart => Element.selectStartEvent._forElementList(this);
+
+  @DomName('Element.onsubmit')
+  @DocsEditable()
+  ElementStream<Event> get onSubmit => Element.submitEvent._forElementList(this);
+
+  @DomName('Element.ontouchcancel')
+  @DocsEditable()
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental()
+  ElementStream<TouchEvent> get onTouchCancel => Element.touchCancelEvent._forElementList(this);
+
+  @DomName('Element.ontouchend')
+  @DocsEditable()
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental()
+  ElementStream<TouchEvent> get onTouchEnd => Element.touchEndEvent._forElementList(this);
+
+  @DomName('Element.ontouchenter')
+  @DocsEditable()
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental()
+  ElementStream<TouchEvent> get onTouchEnter => Element.touchEnterEvent._forElementList(this);
+
+  @DomName('Element.ontouchleave')
+  @DocsEditable()
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental()
+  ElementStream<TouchEvent> get onTouchLeave => Element.touchLeaveEvent._forElementList(this);
+
+  @DomName('Element.ontouchmove')
+  @DocsEditable()
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental()
+  ElementStream<TouchEvent> get onTouchMove => Element.touchMoveEvent._forElementList(this);
+
+  @DomName('Element.ontouchstart')
+  @DocsEditable()
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental()
+  ElementStream<TouchEvent> get onTouchStart => Element.touchStartEvent._forElementList(this);
+
+  @DomName('Element.ontransitionend')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  ElementStream<TransitionEvent> get onTransitionEnd => Element.transitionEndEvent._forElementList(this);
+
+  @DomName('Element.onwebkitfullscreenchange')
+  @DocsEditable()
+  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
+  @Experimental()
+  ElementStream<Event> get onFullscreenChange => Element.fullscreenChangeEvent._forElementList(this);
+
+  @DomName('Element.onwebkitfullscreenerror')
+  @DocsEditable()
+  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
+  @Experimental()
+  ElementStream<Event> get onFullscreenError => Element.fullscreenErrorEvent._forElementList(this);
+
 }
 
 /**
@@ -9073,6 +9742,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   bool _templateIsDecorated;
 
 
+
   /**
    * Gets the template this node refers to.
    * This is only supported if [isTemplate] is true.
@@ -9423,6 +10093,16 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   @DocsEditable()
   static const EventStreamProvider<MouseEvent> mouseDownEvent = const EventStreamProvider<MouseEvent>('mousedown');
 
+  @DomName('Element.mouseenterEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<MouseEvent> mouseEnterEvent = const EventStreamProvider<MouseEvent>('mouseenter');
+
+  @DomName('Element.mouseleaveEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<MouseEvent> mouseLeaveEvent = const EventStreamProvider<MouseEvent>('mouseleave');
+
   @DomName('Element.mousemoveEvent')
   @DocsEditable()
   static const EventStreamProvider<MouseEvent> mouseMoveEvent = const EventStreamProvider<MouseEvent>('mousemove');
@@ -9624,6 +10304,16 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   @DocsEditable()
   int get offsetWidth native "Element_offsetWidth_Getter";
 
+  @DomName('Element.pseudo')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get pseudo native "Element_pseudo_Getter";
+
+  @DomName('Element.pseudo')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set pseudo(String value) native "Element_pseudo_Setter";
+
   @DomName('Element.scrollHeight')
   @DocsEditable()
   int get scrollHeight native "Element_scrollHeight_Getter";
@@ -9648,6 +10338,12 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   @DocsEditable()
   int get scrollWidth native "Element_scrollWidth_Getter";
 
+  @DomName('Element.shadowRoot')
+  @DocsEditable()
+  // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#api-shadow-aware-create-shadow-root
+  @Experimental()
+  ShadowRoot get shadowRoot native "Element_shadowRoot_Getter";
+
   @DomName('Element.style')
   @DocsEditable()
   CssStyleDeclaration get style native "Element_style_Getter";
@@ -9655,22 +10351,6 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   @DomName('Element.tagName')
   @DocsEditable()
   String get tagName native "Element_tagName_Getter";
-
-  @DomName('Element.webkitPseudo')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  @Experimental() // nonstandard
-  String get pseudo native "Element_webkitPseudo_Getter";
-
-  @DomName('Element.webkitPseudo')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  @Experimental() // nonstandard
-  void set pseudo(String value) native "Element_webkitPseudo_Setter";
 
   @DomName('Element.webkitRegionOverset')
   @DocsEditable()
@@ -9680,17 +10360,16 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   // http://dev.w3.org/csswg/css-regions/#dom-region-regionoverset
   String get regionOverset native "Element_webkitRegionOverset_Getter";
 
-  @DomName('Element.webkitShadowRoot')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#api-shadow-aware-create-shadow-root
-  ShadowRoot get shadowRoot native "Element_webkitShadowRoot_Getter";
-
   @DomName('Element.blur')
   @DocsEditable()
   void blur() native "Element_blur_Callback";
+
+  @DomName('Element.createShadowRoot')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME, '25')
+  @Experimental()
+  // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#api-shadow-aware-create-shadow-root
+  ShadowRoot createShadowRoot() native "Element_createShadowRoot_Callback";
 
   @DomName('Element.focus')
   @DocsEditable()
@@ -9803,13 +10482,6 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   @DocsEditable()
   void $dom_setAttributeNS(String namespaceURI, String qualifiedName, String value) native "Element_setAttributeNS_Callback";
 
-  @DomName('Element.webkitCreateShadowRoot')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME, '25')
-  @Experimental()
-  // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#api-shadow-aware-create-shadow-root
-  ShadowRoot createShadowRoot() native "Element_webkitCreateShadowRoot_Callback";
-
   @DomName('Element.webkitGetRegionFlowRanges')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -9879,200 +10551,210 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   @DomName('Element.onabort')
   @DocsEditable()
-  Stream<Event> get onAbort => abortEvent.forTarget(this);
+  ElementStream<Event> get onAbort => abortEvent.forElement(this);
 
   @DomName('Element.onbeforecopy')
   @DocsEditable()
-  Stream<Event> get onBeforeCopy => beforeCopyEvent.forTarget(this);
+  ElementStream<Event> get onBeforeCopy => beforeCopyEvent.forElement(this);
 
   @DomName('Element.onbeforecut')
   @DocsEditable()
-  Stream<Event> get onBeforeCut => beforeCutEvent.forTarget(this);
+  ElementStream<Event> get onBeforeCut => beforeCutEvent.forElement(this);
 
   @DomName('Element.onbeforepaste')
   @DocsEditable()
-  Stream<Event> get onBeforePaste => beforePasteEvent.forTarget(this);
+  ElementStream<Event> get onBeforePaste => beforePasteEvent.forElement(this);
 
   @DomName('Element.onblur')
   @DocsEditable()
-  Stream<Event> get onBlur => blurEvent.forTarget(this);
+  ElementStream<Event> get onBlur => blurEvent.forElement(this);
 
   @DomName('Element.onchange')
   @DocsEditable()
-  Stream<Event> get onChange => changeEvent.forTarget(this);
+  ElementStream<Event> get onChange => changeEvent.forElement(this);
 
   @DomName('Element.onclick')
   @DocsEditable()
-  Stream<MouseEvent> get onClick => clickEvent.forTarget(this);
+  ElementStream<MouseEvent> get onClick => clickEvent.forElement(this);
 
   @DomName('Element.oncontextmenu')
   @DocsEditable()
-  Stream<MouseEvent> get onContextMenu => contextMenuEvent.forTarget(this);
+  ElementStream<MouseEvent> get onContextMenu => contextMenuEvent.forElement(this);
 
   @DomName('Element.oncopy')
   @DocsEditable()
-  Stream<Event> get onCopy => copyEvent.forTarget(this);
+  ElementStream<Event> get onCopy => copyEvent.forElement(this);
 
   @DomName('Element.oncut')
   @DocsEditable()
-  Stream<Event> get onCut => cutEvent.forTarget(this);
+  ElementStream<Event> get onCut => cutEvent.forElement(this);
 
   @DomName('Element.ondblclick')
   @DocsEditable()
-  Stream<Event> get onDoubleClick => doubleClickEvent.forTarget(this);
+  ElementStream<Event> get onDoubleClick => doubleClickEvent.forElement(this);
 
   @DomName('Element.ondrag')
   @DocsEditable()
-  Stream<MouseEvent> get onDrag => dragEvent.forTarget(this);
+  ElementStream<MouseEvent> get onDrag => dragEvent.forElement(this);
 
   @DomName('Element.ondragend')
   @DocsEditable()
-  Stream<MouseEvent> get onDragEnd => dragEndEvent.forTarget(this);
+  ElementStream<MouseEvent> get onDragEnd => dragEndEvent.forElement(this);
 
   @DomName('Element.ondragenter')
   @DocsEditable()
-  Stream<MouseEvent> get onDragEnter => dragEnterEvent.forTarget(this);
+  ElementStream<MouseEvent> get onDragEnter => dragEnterEvent.forElement(this);
 
   @DomName('Element.ondragleave')
   @DocsEditable()
-  Stream<MouseEvent> get onDragLeave => dragLeaveEvent.forTarget(this);
+  ElementStream<MouseEvent> get onDragLeave => dragLeaveEvent.forElement(this);
 
   @DomName('Element.ondragover')
   @DocsEditable()
-  Stream<MouseEvent> get onDragOver => dragOverEvent.forTarget(this);
+  ElementStream<MouseEvent> get onDragOver => dragOverEvent.forElement(this);
 
   @DomName('Element.ondragstart')
   @DocsEditable()
-  Stream<MouseEvent> get onDragStart => dragStartEvent.forTarget(this);
+  ElementStream<MouseEvent> get onDragStart => dragStartEvent.forElement(this);
 
   @DomName('Element.ondrop')
   @DocsEditable()
-  Stream<MouseEvent> get onDrop => dropEvent.forTarget(this);
+  ElementStream<MouseEvent> get onDrop => dropEvent.forElement(this);
 
   @DomName('Element.onerror')
   @DocsEditable()
-  Stream<Event> get onError => errorEvent.forTarget(this);
+  ElementStream<Event> get onError => errorEvent.forElement(this);
 
   @DomName('Element.onfocus')
   @DocsEditable()
-  Stream<Event> get onFocus => focusEvent.forTarget(this);
+  ElementStream<Event> get onFocus => focusEvent.forElement(this);
 
   @DomName('Element.oninput')
   @DocsEditable()
-  Stream<Event> get onInput => inputEvent.forTarget(this);
+  ElementStream<Event> get onInput => inputEvent.forElement(this);
 
   @DomName('Element.oninvalid')
   @DocsEditable()
-  Stream<Event> get onInvalid => invalidEvent.forTarget(this);
+  ElementStream<Event> get onInvalid => invalidEvent.forElement(this);
 
   @DomName('Element.onkeydown')
   @DocsEditable()
-  Stream<KeyboardEvent> get onKeyDown => keyDownEvent.forTarget(this);
+  ElementStream<KeyboardEvent> get onKeyDown => keyDownEvent.forElement(this);
 
   @DomName('Element.onkeypress')
   @DocsEditable()
-  Stream<KeyboardEvent> get onKeyPress => keyPressEvent.forTarget(this);
+  ElementStream<KeyboardEvent> get onKeyPress => keyPressEvent.forElement(this);
 
   @DomName('Element.onkeyup')
   @DocsEditable()
-  Stream<KeyboardEvent> get onKeyUp => keyUpEvent.forTarget(this);
+  ElementStream<KeyboardEvent> get onKeyUp => keyUpEvent.forElement(this);
 
   @DomName('Element.onload')
   @DocsEditable()
-  Stream<Event> get onLoad => loadEvent.forTarget(this);
+  ElementStream<Event> get onLoad => loadEvent.forElement(this);
 
   @DomName('Element.onmousedown')
   @DocsEditable()
-  Stream<MouseEvent> get onMouseDown => mouseDownEvent.forTarget(this);
+  ElementStream<MouseEvent> get onMouseDown => mouseDownEvent.forElement(this);
+
+  @DomName('Element.onmouseenter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<MouseEvent> get onMouseEnter => mouseEnterEvent.forElement(this);
+
+  @DomName('Element.onmouseleave')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<MouseEvent> get onMouseLeave => mouseLeaveEvent.forElement(this);
 
   @DomName('Element.onmousemove')
   @DocsEditable()
-  Stream<MouseEvent> get onMouseMove => mouseMoveEvent.forTarget(this);
+  ElementStream<MouseEvent> get onMouseMove => mouseMoveEvent.forElement(this);
 
   @DomName('Element.onmouseout')
   @DocsEditable()
-  Stream<MouseEvent> get onMouseOut => mouseOutEvent.forTarget(this);
+  ElementStream<MouseEvent> get onMouseOut => mouseOutEvent.forElement(this);
 
   @DomName('Element.onmouseover')
   @DocsEditable()
-  Stream<MouseEvent> get onMouseOver => mouseOverEvent.forTarget(this);
+  ElementStream<MouseEvent> get onMouseOver => mouseOverEvent.forElement(this);
 
   @DomName('Element.onmouseup')
   @DocsEditable()
-  Stream<MouseEvent> get onMouseUp => mouseUpEvent.forTarget(this);
+  ElementStream<MouseEvent> get onMouseUp => mouseUpEvent.forElement(this);
 
   @DomName('Element.onmousewheel')
   @DocsEditable()
   // http://www.w3.org/TR/DOM-Level-3-Events/#events-wheelevents
   @Experimental() // non-standard
-  Stream<WheelEvent> get onMouseWheel => mouseWheelEvent.forTarget(this);
+  ElementStream<WheelEvent> get onMouseWheel => mouseWheelEvent.forElement(this);
 
   @DomName('Element.onpaste')
   @DocsEditable()
-  Stream<Event> get onPaste => pasteEvent.forTarget(this);
+  ElementStream<Event> get onPaste => pasteEvent.forElement(this);
 
   @DomName('Element.onreset')
   @DocsEditable()
-  Stream<Event> get onReset => resetEvent.forTarget(this);
+  ElementStream<Event> get onReset => resetEvent.forElement(this);
 
   @DomName('Element.onscroll')
   @DocsEditable()
-  Stream<Event> get onScroll => scrollEvent.forTarget(this);
+  ElementStream<Event> get onScroll => scrollEvent.forElement(this);
 
   @DomName('Element.onsearch')
   @DocsEditable()
   // http://www.w3.org/TR/html-markup/input.search.html
   @Experimental()
-  Stream<Event> get onSearch => searchEvent.forTarget(this);
+  ElementStream<Event> get onSearch => searchEvent.forElement(this);
 
   @DomName('Element.onselect')
   @DocsEditable()
-  Stream<Event> get onSelect => selectEvent.forTarget(this);
+  ElementStream<Event> get onSelect => selectEvent.forElement(this);
 
   @DomName('Element.onselectstart')
   @DocsEditable()
   @Experimental() // nonstandard
-  Stream<Event> get onSelectStart => selectStartEvent.forTarget(this);
+  ElementStream<Event> get onSelectStart => selectStartEvent.forElement(this);
 
   @DomName('Element.onsubmit')
   @DocsEditable()
-  Stream<Event> get onSubmit => submitEvent.forTarget(this);
+  ElementStream<Event> get onSubmit => submitEvent.forElement(this);
 
   @DomName('Element.ontouchcancel')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
-  Stream<TouchEvent> get onTouchCancel => touchCancelEvent.forTarget(this);
+  ElementStream<TouchEvent> get onTouchCancel => touchCancelEvent.forElement(this);
 
   @DomName('Element.ontouchend')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
-  Stream<TouchEvent> get onTouchEnd => touchEndEvent.forTarget(this);
+  ElementStream<TouchEvent> get onTouchEnd => touchEndEvent.forElement(this);
 
   @DomName('Element.ontouchenter')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
-  Stream<TouchEvent> get onTouchEnter => touchEnterEvent.forTarget(this);
+  ElementStream<TouchEvent> get onTouchEnter => touchEnterEvent.forElement(this);
 
   @DomName('Element.ontouchleave')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
-  Stream<TouchEvent> get onTouchLeave => touchLeaveEvent.forTarget(this);
+  ElementStream<TouchEvent> get onTouchLeave => touchLeaveEvent.forElement(this);
 
   @DomName('Element.ontouchmove')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
-  Stream<TouchEvent> get onTouchMove => touchMoveEvent.forTarget(this);
+  ElementStream<TouchEvent> get onTouchMove => touchMoveEvent.forElement(this);
 
   @DomName('Element.ontouchstart')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
-  Stream<TouchEvent> get onTouchStart => touchStartEvent.forTarget(this);
+  ElementStream<TouchEvent> get onTouchStart => touchStartEvent.forElement(this);
 
   @DomName('Element.ontransitionend')
   @DocsEditable()
@@ -10080,22 +10762,21 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  Stream<TransitionEvent> get onTransitionEnd => transitionEndEvent.forTarget(this);
+  ElementStream<TransitionEvent> get onTransitionEnd => transitionEndEvent.forElement(this);
 
   @DomName('Element.onwebkitfullscreenchange')
   @DocsEditable()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
   @Experimental()
-  Stream<Event> get onFullscreenChange => fullscreenChangeEvent.forTarget(this);
+  ElementStream<Event> get onFullscreenChange => fullscreenChangeEvent.forElement(this);
 
   @DomName('Element.onwebkitfullscreenerror')
   @DocsEditable()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
   @Experimental()
-  Stream<Event> get onFullscreenError => fullscreenErrorEvent.forTarget(this);
+  ElementStream<Event> get onFullscreenError => fullscreenErrorEvent.forElement(this);
 
 }
-
 
 final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 class _ElementFactoryProvider {
@@ -10231,35 +10912,6 @@ class ScrollAlignment {
   static const CENTER = const ScrollAlignment._internal('CENTER');
   /// Attempt to align the element to the bottom of the scrollable area.
   static const BOTTOM = const ScrollAlignment._internal('BOTTOM');
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('ElementTimeControl')
-@Unstable()
-abstract class ElementTimeControl extends NativeFieldWrapperClass1 {
-
-  @DomName('ElementTimeControl.beginElement')
-  @DocsEditable()
-  void beginElement() native "ElementTimeControl_beginElement_Callback";
-
-  @DomName('ElementTimeControl.beginElementAt')
-  @DocsEditable()
-  void beginElementAt(num offset) native "ElementTimeControl_beginElementAt_Callback";
-
-  @DomName('ElementTimeControl.endElement')
-  @DocsEditable()
-  void endElement() native "ElementTimeControl_endElement_Callback";
-
-  @DomName('ElementTimeControl.endElementAt')
-  @DocsEditable()
-  void endElementAt(num offset) native "ElementTimeControl_endElementAt_Callback";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10811,17 +11463,17 @@ class EventSource extends EventTarget {
   @DocsEditable()
   bool get withCredentials native "EventSource_withCredentials_Getter";
 
-  @DomName('EventSource.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "EventSource_addEventListener_Callback";
-
   @DomName('EventSource.close')
   @DocsEditable()
   void close() native "EventSource_close_Callback";
 
+  @DomName('EventSource.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "EventSource_addEventListener_Callback";
+
   @DomName('EventSource.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event evt) native "EventSource_dispatchEvent_Callback";
+  bool dispatchEvent(Event event) native "EventSource_dispatchEvent_Callback";
 
   @DomName('EventSource.removeEventListener')
   @DocsEditable()
@@ -11143,84 +11795,6 @@ class FileError extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable()
-@DomName('FileException')
-// http://dev.w3.org/2009/dap/file-system/pub/FileSystem/
-@Experimental()
-class FileException extends NativeFieldWrapperClass1 {
-
-  @DomName('FileException.ABORT_ERR')
-  @DocsEditable()
-  static const int ABORT_ERR = 3;
-
-  @DomName('FileException.ENCODING_ERR')
-  @DocsEditable()
-  static const int ENCODING_ERR = 5;
-
-  @DomName('FileException.INVALID_MODIFICATION_ERR')
-  @DocsEditable()
-  static const int INVALID_MODIFICATION_ERR = 9;
-
-  @DomName('FileException.INVALID_STATE_ERR')
-  @DocsEditable()
-  static const int INVALID_STATE_ERR = 7;
-
-  @DomName('FileException.NOT_FOUND_ERR')
-  @DocsEditable()
-  static const int NOT_FOUND_ERR = 1;
-
-  @DomName('FileException.NOT_READABLE_ERR')
-  @DocsEditable()
-  static const int NOT_READABLE_ERR = 4;
-
-  @DomName('FileException.NO_MODIFICATION_ALLOWED_ERR')
-  @DocsEditable()
-  static const int NO_MODIFICATION_ALLOWED_ERR = 6;
-
-  @DomName('FileException.PATH_EXISTS_ERR')
-  @DocsEditable()
-  static const int PATH_EXISTS_ERR = 12;
-
-  @DomName('FileException.QUOTA_EXCEEDED_ERR')
-  @DocsEditable()
-  static const int QUOTA_EXCEEDED_ERR = 10;
-
-  @DomName('FileException.SECURITY_ERR')
-  @DocsEditable()
-  static const int SECURITY_ERR = 2;
-
-  @DomName('FileException.SYNTAX_ERR')
-  @DocsEditable()
-  static const int SYNTAX_ERR = 8;
-
-  @DomName('FileException.TYPE_MISMATCH_ERR')
-  @DocsEditable()
-  static const int TYPE_MISMATCH_ERR = 11;
-
-  @DomName('FileException.code')
-  @DocsEditable()
-  int get code native "FileException_code_Getter";
-
-  @DomName('FileException.message')
-  @DocsEditable()
-  String get message native "FileException_message_Getter";
-
-  @DomName('FileException.name')
-  @DocsEditable()
-  String get name native "FileException_name_Getter";
-
-  @DomName('FileException.toString')
-  @DocsEditable()
-  String toString() native "FileException_toString_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
 @DomName('FileList')
 class FileList extends NativeFieldWrapperClass1 with ListMixin<File>, ImmutableListMixin<File> implements List<File> {
 
@@ -11352,14 +11926,6 @@ class FileReader extends EventTarget {
   @DocsEditable()
   void abort() native "FileReader_abort_Callback";
 
-  @DomName('FileReader.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "FileReader_addEventListener_Callback";
-
-  @DomName('FileReader.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event evt) native "FileReader_dispatchEvent_Callback";
-
   @DomName('FileReader.readAsArrayBuffer')
   @DocsEditable()
   void readAsArrayBuffer(Blob blob) native "FileReader_readAsArrayBuffer_Callback";
@@ -11386,6 +11952,14 @@ class FileReader extends EventTarget {
   void _readAsText_1(blob, encoding) native "FileReader__readAsText_1_Callback";
 
   void _readAsText_2(blob) native "FileReader__readAsText_2_Callback";
+
+  @DomName('FileReader.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "FileReader_addEventListener_Callback";
+
+  @DomName('FileReader.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "FileReader_dispatchEvent_Callback";
 
   @DomName('FileReader.removeEventListener')
   @DocsEditable()
@@ -11542,18 +12116,6 @@ class FileWriter extends EventTarget {
   @DocsEditable()
   void abort() native "FileWriter_abort_Callback";
 
-  @DomName('FileWriter.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "FileWriter_addEventListener_Callback";
-
-  @DomName('FileWriter.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event evt) native "FileWriter_dispatchEvent_Callback";
-
-  @DomName('FileWriter.removeEventListener')
-  @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "FileWriter_removeEventListener_Callback";
-
   @DomName('FileWriter.seek')
   @DocsEditable()
   void seek(int position) native "FileWriter_seek_Callback";
@@ -11565,6 +12127,18 @@ class FileWriter extends EventTarget {
   @DomName('FileWriter.write')
   @DocsEditable()
   void write(Blob data) native "FileWriter_write_Callback";
+
+  @DomName('FileWriter.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "FileWriter_addEventListener_Callback";
+
+  @DomName('FileWriter.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "FileWriter_dispatchEvent_Callback";
+
+  @DomName('FileWriter.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "FileWriter_removeEventListener_Callback";
 
   @DomName('FileWriter.onabort')
   @DocsEditable()
@@ -11659,17 +12233,9 @@ class FontLoader extends EventTarget {
   @DocsEditable()
   bool get loading native "FontLoader_loading_Getter";
 
-  @DomName('FontLoader.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "FontLoader_addEventListener_Callback";
-
   @DomName('FontLoader.checkFont')
   @DocsEditable()
   bool checkFont(String font, String text) native "FontLoader_checkFont_Callback";
-
-  @DomName('FontLoader.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event evt) native "FontLoader_dispatchEvent_Callback";
 
   @DomName('FontLoader.loadFont')
   @DocsEditable()
@@ -11678,6 +12244,14 @@ class FontLoader extends EventTarget {
   @DomName('FontLoader.notifyWhenFontsReady')
   @DocsEditable()
   void notifyWhenFontsReady(VoidCallback callback) native "FontLoader_notifyWhenFontsReady_Callback";
+
+  @DomName('FontLoader.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "FontLoader_addEventListener_Callback";
+
+  @DomName('FontLoader.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "FontLoader_dispatchEvent_Callback";
 
   @DomName('FontLoader.removeEventListener')
   @DocsEditable()
@@ -11873,13 +12447,13 @@ class FormElement extends _HTMLElement {
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/association-of-controls-and-forms.html#autofilling-form-controls:-the-autocomplete-attribute
   @Experimental()
-  Stream<Event> get onAutocomplete => autocompleteEvent.forTarget(this);
+  ElementStream<Event> get onAutocomplete => autocompleteEvent.forElement(this);
 
   @DomName('HTMLFormElement.onautocompleteerror')
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/association-of-controls-and-forms.html#autofilling-form-controls:-the-autocomplete-attribute
   @Experimental()
-  Stream<AutocompleteErrorEvent> get onAutocompleteError => autocompleteErrorEvent.forTarget(this);
+  ElementStream<AutocompleteErrorEvent> get onAutocompleteError => autocompleteErrorEvent.forElement(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12202,6 +12776,26 @@ class History extends NativeFieldWrapperClass1 implements HistoryBase {
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
   void replaceState(Object data, String title, [String url]) native "History_replaceState_Callback";
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('HmacParams')
+@Experimental() // untriaged
+class HmacParams extends Algorithm {
+  // To suppress missing implicit constructor warnings.
+  factory HmacParams._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('HmacParams.hash')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Algorithm get hash native "HmacParams_hash_Getter";
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12631,6 +13225,40 @@ class HttpRequest extends EventTarget {
   }
 
   /**
+   * Makes a server POST request with the specified data encoded as form data.
+   *
+   * This is similar to sending a FormData object with broader browser
+   * support but limited to string values.
+   *
+   * See also:
+   *
+   * * [request]
+   */
+  static Future<HttpRequest> postFormData(String url, Map<String, String> data,
+      {bool withCredentials, String responseType,
+      Map<String, String> requestHeaders,
+      void onProgress(ProgressEvent e)}) {
+
+    var parts = [];
+    data.forEach((key, value) {
+      parts.add('${Uri.encodeQueryComponent(key)}='
+          '${Uri.encodeQueryComponent(value)}');
+    });
+    var formData = parts.join('&');
+
+    if (requestHeaders == null) {
+      requestHeaders = <String, String>{};
+    }
+    requestHeaders.putIfAbsent('Content-Type',
+        () => 'application/x-www-form-urlencoded; charset=UTF-8');
+
+    return request(url, method: 'POST', withCredentials: withCredentials,
+        responseType: responseType,
+        requestHeaders: requestHeaders, sendData: formData,
+        onProgress: onProgress);
+  }
+
+  /**
    * Creates a URL request for the specified [url].
    *
    * By default this will do an HTTP GET request, this can be overridden with
@@ -12784,7 +13412,7 @@ class HttpRequest extends EventTarget {
    *
    *     var request = new HttpRequest();
    *     request.open('GET', 'http://dartlang.org')
-   *     request.onLoad.add((event) => print('Request complete'));
+   *     request.onLoad.listen((event) => print('Request complete'));
    *
    * is the (more verbose) equivalent of
    *
@@ -12981,14 +13609,6 @@ class HttpRequest extends EventTarget {
   @DocsEditable()
   void abort() native "XMLHttpRequest_abort_Callback";
 
-  @DomName('XMLHttpRequest.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequest_addEventListener_Callback";
-
-  @DomName('XMLHttpRequest.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event evt) native "XMLHttpRequest_dispatchEvent_Callback";
-
   /**
    * Retrieve all the response headers from a request.
    *
@@ -13043,10 +13663,6 @@ class HttpRequest extends EventTarget {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   void overrideMimeType(String override) native "XMLHttpRequest_overrideMimeType_Callback";
 
-  @DomName('XMLHttpRequest.removeEventListener')
-  @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequest_removeEventListener_Callback";
-
   /**
    * Send the request with any given `data`.
    *
@@ -13062,6 +13678,18 @@ class HttpRequest extends EventTarget {
   @DomName('XMLHttpRequest.setRequestHeader')
   @DocsEditable()
   void setRequestHeader(String header, String value) native "XMLHttpRequest_setRequestHeader_Callback";
+
+  @DomName('XMLHttpRequest.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequest_addEventListener_Callback";
+
+  @DomName('XMLHttpRequest.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "XMLHttpRequest_dispatchEvent_Callback";
+
+  @DomName('XMLHttpRequest.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequest_removeEventListener_Callback";
 
   /**
    * Event listeners to be notified when request has been aborted,
@@ -13205,7 +13833,7 @@ class HttpRequestUpload extends EventTarget {
 
   @DomName('XMLHttpRequestUpload.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event evt) native "XMLHttpRequestUpload_dispatchEvent_Callback";
+  bool dispatchEvent(Event event) native "XMLHttpRequestUpload_dispatchEvent_Callback";
 
   @DomName('XMLHttpRequestUpload.removeEventListener')
   @DocsEditable()
@@ -13314,6 +13942,39 @@ class IFrameElement extends _HTMLElement {
   void set width(String value) native "HTMLIFrameElement_width_Setter";
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('ImageBitmap')
+@Experimental() // untriaged
+class ImageBitmap extends NativeFieldWrapperClass1 {
+
+  @DomName('ImageBitmap.height')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get height native "ImageBitmap_height_Getter";
+
+  @DomName('ImageBitmap.width')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get width native "ImageBitmap_width_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DomName('ImageBitmapCallback')
+@Experimental() // untriaged
+typedef void ImageBitmapCallback(ImageBitmap bitmap);
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -13666,6 +14327,16 @@ class InputElement extends _HTMLElement implements
   @DocsEditable()
   void set indeterminate(bool value) native "HTMLInputElement_indeterminate_Setter";
 
+  @DomName('HTMLInputElement.inputMode')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get inputMode native "HTMLInputElement_inputMode_Getter";
+
+  @DomName('HTMLInputElement.inputMode')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set inputMode(String value) native "HTMLInputElement_inputMode_Setter";
+
   @DomName('HTMLInputElement.labels')
   @DocsEditable()
   List<Node> get labels native "HTMLInputElement_labels_Getter";
@@ -13985,7 +14656,7 @@ class InputElement extends _HTMLElement implements
   @DocsEditable()
   // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#extending_html_elements
   @Experimental()
-  Stream<Event> get onSpeechChange => speechChangeEvent.forTarget(this);
+  ElementStream<Event> get onSpeechChange => speechChangeEvent.forElement(this);
 
 }
 
@@ -14561,25 +15232,18 @@ class InputMethodContext extends NativeFieldWrapperClass1 {
   @DocsEditable()
   Composition get composition native "InputMethodContext_composition_Getter";
 
-  @DomName('InputMethodContext.enabled')
-  @DocsEditable()
-  bool get enabled native "InputMethodContext_enabled_Getter";
-
-  @DomName('InputMethodContext.enabled')
-  @DocsEditable()
-  void set enabled(bool value) native "InputMethodContext_enabled_Setter";
-
   @DomName('InputMethodContext.locale')
   @DocsEditable()
   String get locale native "InputMethodContext_locale_Getter";
 
+  @DomName('InputMethodContext.target')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Element get target native "InputMethodContext_target_Getter";
+
   @DomName('InputMethodContext.confirmComposition')
   @DocsEditable()
   void confirmComposition() native "InputMethodContext_confirmComposition_Callback";
-
-  @DomName('InputMethodContext.open')
-  @DocsEditable()
-  bool open() native "InputMethodContext_open_Callback";
 
   @DomName('InputMethodContext.setCaretRectangle')
   @DocsEditable()
@@ -14588,6 +15252,39 @@ class InputMethodContext extends NativeFieldWrapperClass1 {
   @DomName('InputMethodContext.setExclusionRectangle')
   @DocsEditable()
   void setExclusionRectangle(Node anchor, int x, int y, int w, int h) native "InputMethodContext_setExclusionRectangle_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('Key')
+@Experimental() // untriaged
+class Key extends NativeFieldWrapperClass1 {
+
+  @DomName('Key.algorithm')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Algorithm get algorithm native "Key_algorithm_Getter";
+
+  @DomName('Key.extractable')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool get extractable native "Key_extractable_Getter";
+
+  @DomName('Key.type')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get type native "Key_type_Getter";
+
+  @DomName('Key.usages')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<String> get usages native "Key_usages_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15054,7 +15751,7 @@ typedef void MidiErrorCallback(DomError error);
 
 @DomName('MIDISuccessCallback')
 @Experimental() // untriaged
-typedef void MidiSuccessCallback(MidiAccess access, bool sysexEnabled);
+typedef void MidiSuccessCallback(MidiAccess access, bool sysex);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -15173,14 +15870,6 @@ class MediaController extends EventTarget {
   @DocsEditable()
   void set volume(num value) native "MediaController_volume_Setter";
 
-  @DomName('MediaController.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaController_addEventListener_Callback";
-
-  @DomName('MediaController.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event evt) native "MediaController_dispatchEvent_Callback";
-
   @DomName('MediaController.pause')
   @DocsEditable()
   void pause() native "MediaController_pause_Callback";
@@ -15189,13 +15878,21 @@ class MediaController extends EventTarget {
   @DocsEditable()
   void play() native "MediaController_play_Callback";
 
-  @DomName('MediaController.removeEventListener')
-  @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaController_removeEventListener_Callback";
-
   @DomName('MediaController.unpause')
   @DocsEditable()
   void unpause() native "MediaController_unpause_Callback";
+
+  @DomName('MediaController.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaController_addEventListener_Callback";
+
+  @DomName('MediaController.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "MediaController_dispatchEvent_Callback";
+
+  @DomName('MediaController.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaController_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15668,113 +16365,113 @@ class MediaElement extends _HTMLElement {
 
   @DomName('HTMLMediaElement.oncanplay')
   @DocsEditable()
-  Stream<Event> get onCanPlay => canPlayEvent.forTarget(this);
+  ElementStream<Event> get onCanPlay => canPlayEvent.forElement(this);
 
   @DomName('HTMLMediaElement.oncanplaythrough')
   @DocsEditable()
-  Stream<Event> get onCanPlayThrough => canPlayThroughEvent.forTarget(this);
+  ElementStream<Event> get onCanPlayThrough => canPlayThroughEvent.forElement(this);
 
   @DomName('HTMLMediaElement.ondurationchange')
   @DocsEditable()
-  Stream<Event> get onDurationChange => durationChangeEvent.forTarget(this);
+  ElementStream<Event> get onDurationChange => durationChangeEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onemptied')
   @DocsEditable()
-  Stream<Event> get onEmptied => emptiedEvent.forTarget(this);
+  ElementStream<Event> get onEmptied => emptiedEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onended')
   @DocsEditable()
-  Stream<Event> get onEnded => endedEvent.forTarget(this);
+  ElementStream<Event> get onEnded => endedEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onloadeddata')
   @DocsEditable()
-  Stream<Event> get onLoadedData => loadedDataEvent.forTarget(this);
+  ElementStream<Event> get onLoadedData => loadedDataEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onloadedmetadata')
   @DocsEditable()
-  Stream<Event> get onLoadedMetadata => loadedMetadataEvent.forTarget(this);
+  ElementStream<Event> get onLoadedMetadata => loadedMetadataEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onloadstart')
   @DocsEditable()
-  Stream<Event> get onLoadStart => loadStartEvent.forTarget(this);
+  ElementStream<Event> get onLoadStart => loadStartEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onpause')
   @DocsEditable()
-  Stream<Event> get onPause => pauseEvent.forTarget(this);
+  ElementStream<Event> get onPause => pauseEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onplay')
   @DocsEditable()
-  Stream<Event> get onPlay => playEvent.forTarget(this);
+  ElementStream<Event> get onPlay => playEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onplaying')
   @DocsEditable()
-  Stream<Event> get onPlaying => playingEvent.forTarget(this);
+  ElementStream<Event> get onPlaying => playingEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onprogress')
   @DocsEditable()
-  Stream<Event> get onProgress => progressEvent.forTarget(this);
+  ElementStream<Event> get onProgress => progressEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onratechange')
   @DocsEditable()
-  Stream<Event> get onRateChange => rateChangeEvent.forTarget(this);
+  ElementStream<Event> get onRateChange => rateChangeEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onseeked')
   @DocsEditable()
-  Stream<Event> get onSeeked => seekedEvent.forTarget(this);
+  ElementStream<Event> get onSeeked => seekedEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onseeking')
   @DocsEditable()
-  Stream<Event> get onSeeking => seekingEvent.forTarget(this);
+  ElementStream<Event> get onSeeking => seekingEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onshow')
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#event-media-loadstart
   @Experimental()
-  Stream<Event> get onShow => showEvent.forTarget(this);
+  ElementStream<Event> get onShow => showEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onstalled')
   @DocsEditable()
-  Stream<Event> get onStalled => stalledEvent.forTarget(this);
+  ElementStream<Event> get onStalled => stalledEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onsuspend')
   @DocsEditable()
-  Stream<Event> get onSuspend => suspendEvent.forTarget(this);
+  ElementStream<Event> get onSuspend => suspendEvent.forElement(this);
 
   @DomName('HTMLMediaElement.ontimeupdate')
   @DocsEditable()
-  Stream<Event> get onTimeUpdate => timeUpdateEvent.forTarget(this);
+  ElementStream<Event> get onTimeUpdate => timeUpdateEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onvolumechange')
   @DocsEditable()
-  Stream<Event> get onVolumeChange => volumeChangeEvent.forTarget(this);
+  ElementStream<Event> get onVolumeChange => volumeChangeEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onwaiting')
   @DocsEditable()
-  Stream<Event> get onWaiting => waitingEvent.forTarget(this);
+  ElementStream<Event> get onWaiting => waitingEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onwebkitkeyadded')
   @DocsEditable()
   // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-keyadded
   @Experimental()
-  Stream<MediaKeyEvent> get onKeyAdded => keyAddedEvent.forTarget(this);
+  ElementStream<MediaKeyEvent> get onKeyAdded => keyAddedEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onwebkitkeyerror')
   @DocsEditable()
   // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-keyadded
   @Experimental()
-  Stream<MediaKeyEvent> get onKeyError => keyErrorEvent.forTarget(this);
+  ElementStream<MediaKeyEvent> get onKeyError => keyErrorEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onwebkitkeymessage')
   @DocsEditable()
   // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-keyadded
   @Experimental()
-  Stream<MediaKeyEvent> get onKeyMessage => keyMessageEvent.forTarget(this);
+  ElementStream<MediaKeyEvent> get onKeyMessage => keyMessageEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onwebkitneedkey')
   @DocsEditable()
   // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-keyadded
   @Experimental()
-  Stream<MediaKeyEvent> get onNeedKey => needKeyEvent.forTarget(this);
+  ElementStream<MediaKeyEvent> get onNeedKey => needKeyEvent.forElement(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15999,25 +16696,25 @@ class MediaKeySession extends EventTarget {
   @DocsEditable()
   String get sessionId native "MediaKeySession_sessionId_Getter";
 
-  @DomName('MediaKeySession.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaKeySession_addEventListener_Callback";
-
   @DomName('MediaKeySession.close')
   @DocsEditable()
   void close() native "MediaKeySession_close_Callback";
 
+  @DomName('MediaKeySession.update')
+  @DocsEditable()
+  void update(Uint8List key) native "MediaKeySession_update_Callback";
+
+  @DomName('MediaKeySession.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaKeySession_addEventListener_Callback";
+
   @DomName('MediaKeySession.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event evt) native "MediaKeySession_dispatchEvent_Callback";
+  bool dispatchEvent(Event event) native "MediaKeySession_dispatchEvent_Callback";
 
   @DomName('MediaKeySession.removeEventListener')
   @DocsEditable()
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaKeySession_removeEventListener_Callback";
-
-  @DomName('MediaKeySession.update')
-  @DocsEditable()
-  void update(Uint8List key) native "MediaKeySession_update_Callback";
 
   @DomName('MediaKeySession.onwebkitkeyadded')
   @DocsEditable()
@@ -16190,17 +16887,9 @@ class MediaSource extends EventTarget {
   @DocsEditable()
   SourceBufferList get sourceBuffers native "MediaSource_sourceBuffers_Getter";
 
-  @DomName('MediaSource.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaSource_addEventListener_Callback";
-
   @DomName('MediaSource.addSourceBuffer')
   @DocsEditable()
   SourceBuffer addSourceBuffer(String type) native "MediaSource_addSourceBuffer_Callback";
-
-  @DomName('MediaSource.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) native "MediaSource_dispatchEvent_Callback";
 
   @DomName('MediaSource.endOfStream')
   @DocsEditable()
@@ -16210,13 +16899,21 @@ class MediaSource extends EventTarget {
   @DocsEditable()
   static bool isTypeSupported(String type) native "MediaSource_isTypeSupported_Callback";
 
-  @DomName('MediaSource.removeEventListener')
-  @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaSource_removeEventListener_Callback";
-
   @DomName('MediaSource.removeSourceBuffer')
   @DocsEditable()
   void removeSourceBuffer(SourceBuffer buffer) native "MediaSource_removeSourceBuffer_Callback";
+
+  @DomName('MediaSource.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaSource_addEventListener_Callback";
+
+  @DomName('MediaSource.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "MediaSource_dispatchEvent_Callback";
+
+  @DomName('MediaSource.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaSource_removeEventListener_Callback";
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -16281,17 +16978,9 @@ class MediaStream extends EventTarget {
   @Experimental() // non-standard
   String get label native "MediaStream_label_Getter";
 
-  @DomName('MediaStream.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStream_addEventListener_Callback";
-
   @DomName('MediaStream.addTrack')
   @DocsEditable()
   void addTrack(MediaStreamTrack track) native "MediaStream_addTrack_Callback";
-
-  @DomName('MediaStream.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) native "MediaStream_dispatchEvent_Callback";
 
   @DomName('MediaStream.getAudioTracks')
   @DocsEditable()
@@ -16305,10 +16994,6 @@ class MediaStream extends EventTarget {
   @DocsEditable()
   List<MediaStreamTrack> getVideoTracks() native "MediaStream_getVideoTracks_Callback";
 
-  @DomName('MediaStream.removeEventListener')
-  @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStream_removeEventListener_Callback";
-
   @DomName('MediaStream.removeTrack')
   @DocsEditable()
   void removeTrack(MediaStreamTrack track) native "MediaStream_removeTrack_Callback";
@@ -16316,6 +17001,18 @@ class MediaStream extends EventTarget {
   @DomName('MediaStream.stop')
   @DocsEditable()
   void stop() native "MediaStream_stop_Callback";
+
+  @DomName('MediaStream.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStream_addEventListener_Callback";
+
+  @DomName('MediaStream.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "MediaStream_dispatchEvent_Callback";
+
+  @DomName('MediaStream.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStream_removeEventListener_Callback";
 
   @DomName('MediaStream.onaddtrack')
   @DocsEditable()
@@ -16415,6 +17112,11 @@ class MediaStreamTrack extends EventTarget {
   @DocsEditable()
   String get readyState native "MediaStreamTrack_readyState_Getter";
 
+  @DomName('MediaStreamTrack.getSources')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static void getSources(MediaStreamTrackSourcesCallback callback) native "MediaStreamTrack_getSources_Callback";
+
   @DomName('MediaStreamTrack.addEventListener')
   @DocsEditable()
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStreamTrack_addEventListener_Callback";
@@ -16422,11 +17124,6 @@ class MediaStreamTrack extends EventTarget {
   @DomName('MediaStreamTrack.dispatchEvent')
   @DocsEditable()
   bool dispatchEvent(Event event) native "MediaStreamTrack_dispatchEvent_Callback";
-
-  @DomName('MediaStreamTrack.getSources')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static void getSources(MediaStreamTrackSourcesCallback callback) native "MediaStreamTrack_getSources_Callback";
 
   @DomName('MediaStreamTrack.removeEventListener')
   @DocsEditable()
@@ -16629,29 +17326,29 @@ class MessagePort extends EventTarget {
   @DocsEditable()
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
-  @DomName('MessagePort.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MessagePort_addEventListener_Callback";
-
   @DomName('MessagePort.close')
   @DocsEditable()
   void close() native "MessagePort_close_Callback";
-
-  @DomName('MessagePort.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event evt) native "MessagePort_dispatchEvent_Callback";
 
   @DomName('MessagePort.postMessage')
   @DocsEditable()
   void postMessage(Object message, [List messagePorts]) native "MessagePort_postMessage_Callback";
 
-  @DomName('MessagePort.removeEventListener')
-  @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MessagePort_removeEventListener_Callback";
-
   @DomName('MessagePort.start')
   @DocsEditable()
   void start() native "MessagePort_start_Callback";
+
+  @DomName('MessagePort.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MessagePort_addEventListener_Callback";
+
+  @DomName('MessagePort.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "MessagePort_dispatchEvent_Callback";
+
+  @DomName('MessagePort.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MessagePort_removeEventListener_Callback";
 
   @DomName('MessagePort.onmessage')
   @DocsEditable()
@@ -16834,14 +17531,6 @@ class MidiAccess extends EventTarget {
   @DocsEditable()
   static const EventStreamProvider<MidiConnectionEvent> disconnectEvent = const EventStreamProvider<MidiConnectionEvent>('disconnect');
 
-  @DomName('MIDIAccess.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MIDIAccess_addEventListener_Callback";
-
-  @DomName('MIDIAccess.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) native "MIDIAccess_dispatchEvent_Callback";
-
   @DomName('MIDIAccess.inputs')
   @DocsEditable()
   List<MidiInput> inputs() native "MIDIAccess_inputs_Callback";
@@ -16849,6 +17538,14 @@ class MidiAccess extends EventTarget {
   @DomName('MIDIAccess.outputs')
   @DocsEditable()
   List<MidiOutput> outputs() native "MIDIAccess_outputs_Callback";
+
+  @DomName('MIDIAccess.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MIDIAccess_addEventListener_Callback";
+
+  @DomName('MIDIAccess.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "MIDIAccess_dispatchEvent_Callback";
 
   @DomName('MIDIAccess.removeEventListener')
   @DocsEditable()
@@ -16912,7 +17609,7 @@ class MidiConnectionEvent extends Event {
 @DomName('MIDIInput')
 // http://webaudio.github.io/web-midi-api/#idl-def-MIDIInput
 @Experimental()
-class MidiInput extends MidiPort implements EventTarget {
+class MidiInput extends MidiPort {
   // To suppress missing implicit constructor warnings.
   factory MidiInput._() { throw new UnsupportedError("Not supported"); }
 
@@ -17554,14 +18251,6 @@ class NamedFlow extends EventTarget {
   @DocsEditable()
   bool get overset native "WebKitNamedFlow_overset_Getter";
 
-  @DomName('WebKitNamedFlow.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WebKitNamedFlow_addEventListener_Callback";
-
-  @DomName('WebKitNamedFlow.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) native "WebKitNamedFlow_dispatchEvent_Callback";
-
   @DomName('WebKitNamedFlow.getContent')
   @DocsEditable()
   List<Node> getContent() native "WebKitNamedFlow_getContent_Callback";
@@ -17573,6 +18262,14 @@ class NamedFlow extends EventTarget {
   @DomName('WebKitNamedFlow.getRegionsByContent')
   @DocsEditable()
   List<Node> getRegionsByContent(Node contentNode) native "WebKitNamedFlow_getRegionsByContent_Callback";
+
+  @DomName('WebKitNamedFlow.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WebKitNamedFlow_addEventListener_Callback";
+
+  @DomName('WebKitNamedFlow.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "WebKitNamedFlow_dispatchEvent_Callback";
 
   @DomName('WebKitNamedFlow.removeEventListener')
   @DocsEditable()
@@ -18267,10 +18964,6 @@ class Node extends EventTarget {
   @DocsEditable()
   void set text(String value) native "Node_textContent_Setter";
 
-  @DomName('Node.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "Node_addEventListener_Callback";
-
   /**
    * Adds a node to the end of the child [nodes] list of this node.
    *
@@ -18292,10 +18985,6 @@ class Node extends EventTarget {
   @DocsEditable()
   bool contains(Node other) native "Node_contains_Callback";
 
-  @DomName('Node.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) native "Node_dispatchEvent_Callback";
-
   @DomName('Node.hasChildNodes')
   @DocsEditable()
   bool hasChildNodes() native "Node_hasChildNodes_Callback";
@@ -18308,13 +18997,21 @@ class Node extends EventTarget {
   @DocsEditable()
   Node $dom_removeChild(Node oldChild) native "Node_removeChild_Callback";
 
-  @DomName('Node.removeEventListener')
-  @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "Node_removeEventListener_Callback";
-
   @DomName('Node.replaceChild')
   @DocsEditable()
   Node $dom_replaceChild(Node newChild, Node oldChild) native "Node_replaceChild_Callback";
+
+  @DomName('Node.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "Node_addEventListener_Callback";
+
+  @DomName('Node.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "Node_dispatchEvent_Callback";
+
+  @DomName('Node.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "Node_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18618,10 +19315,6 @@ class Notification extends EventTarget {
   @Experimental() // nonstandard
   void set tag(String value) native "Notification_tag_Setter";
 
-  @DomName('Notification.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "Notification_addEventListener_Callback";
-
   @DomName('Notification.cancel')
   @DocsEditable()
   @Experimental() // nonstandard
@@ -18630,14 +19323,6 @@ class Notification extends EventTarget {
   @DomName('Notification.close')
   @DocsEditable()
   void close() native "Notification_close_Callback";
-
-  @DomName('Notification.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event evt) native "Notification_dispatchEvent_Callback";
-
-  @DomName('Notification.removeEventListener')
-  @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "Notification_removeEventListener_Callback";
 
   @DomName('Notification.requestPermission')
   @DocsEditable()
@@ -18654,6 +19339,18 @@ class Notification extends EventTarget {
   @DocsEditable()
   @Experimental() // nonstandard
   void show() native "Notification_show_Callback";
+
+  @DomName('Notification.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "Notification_addEventListener_Callback";
+
+  @DomName('Notification.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "Notification_dispatchEvent_Callback";
+
+  @DomName('Notification.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "Notification_removeEventListener_Callback";
 
   @DomName('Notification.onclick')
   @DocsEditable()
@@ -19307,17 +20004,7 @@ class Path extends NativeFieldWrapperClass1 {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE)
-class Performance extends EventTarget {
-  // To suppress missing implicit constructor warnings.
-  factory Performance._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('Performance.webkitresourcetimingbufferfullEvent')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming-methods
-  static const EventStreamProvider<Event> resourceTimingBufferFullEvent = const EventStreamProvider<Event>('webkitresourcetimingbufferfull');
+class Performance extends NativeFieldWrapperClass1 {
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -19396,12 +20083,6 @@ class Performance extends EventTarget {
   @Experimental()
   // http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming-methods
   void setResourceTimingBufferSize(int maxSize) native "Performance_webkitSetResourceTimingBufferSize_Callback";
-
-  @DomName('Performance.onwebkitresourcetimingbufferfull')
-  @DocsEditable()
-  // http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming-methods
-  @Experimental()
-  Stream<Event> get onResourceTimingBufferFull => resourceTimingBufferFullEvent.forTarget(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20011,6 +20692,36 @@ class ProgressEvent extends Event {
 @Experimental() // untriaged
 class Promise extends NativeFieldWrapperClass1 {
 
+  @DomName('Promise._any')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static Promise _any(Object values) native "Promise__any_Callback";
+
+  @DomName('Promise.every')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static Promise every(Object values) native "Promise_every_Callback";
+
+  @DomName('Promise.fulfill')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static Promise fulfill(Object value) native "Promise_fulfill_Callback";
+
+  @DomName('Promise.reject')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static Promise reject(Object value) native "Promise_reject_Callback";
+
+  @DomName('Promise.resolve')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static Promise resolve(Object value) native "Promise_resolve_Callback";
+
+  @DomName('Promise.some')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static Promise some(Object values) native "Promise_some_Callback";
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20023,6 +20734,21 @@ class Promise extends NativeFieldWrapperClass1 {
 @DomName('PromiseResolver')
 @Experimental() // untriaged
 class PromiseResolver extends NativeFieldWrapperClass1 {
+
+  @DomName('PromiseResolver.fulfill')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void fulfill([Object value]) native "PromiseResolver_fulfill_Callback";
+
+  @DomName('PromiseResolver.reject')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void reject([Object value]) native "PromiseResolver_reject_Callback";
+
+  @DomName('PromiseResolver.resolve')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void resolve([Object value]) native "PromiseResolver_resolve_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20356,21 +21082,9 @@ class RtcDataChannel extends EventTarget {
   @DocsEditable()
   bool get reliable native "RTCDataChannel_reliable_Getter";
 
-  @DomName('RTCDataChannel.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDataChannel_addEventListener_Callback";
-
   @DomName('RTCDataChannel.close')
   @DocsEditable()
   void close() native "RTCDataChannel_close_Callback";
-
-  @DomName('RTCDataChannel.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) native "RTCDataChannel_dispatchEvent_Callback";
-
-  @DomName('RTCDataChannel.removeEventListener')
-  @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDataChannel_removeEventListener_Callback";
 
   void send(data) {
     if ((data is TypedData || data == null)) {
@@ -20415,6 +21129,18 @@ class RtcDataChannel extends EventTarget {
   @DomName('RTCDataChannel.sendTypedData')
   @DocsEditable()
   void sendTypedData(TypedData data) native "RTCDataChannel_sendTypedData_Callback";
+
+  @DomName('RTCDataChannel.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDataChannel_addEventListener_Callback";
+
+  @DomName('RTCDataChannel.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "RTCDataChannel_dispatchEvent_Callback";
+
+  @DomName('RTCDataChannel.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDataChannel_removeEventListener_Callback";
 
   @DomName('RTCDataChannel.onclose')
   @DocsEditable()
@@ -20492,14 +21218,6 @@ class RtcDtmfSender extends EventTarget {
   @DocsEditable()
   MediaStreamTrack get track native "RTCDTMFSender_track_Getter";
 
-  @DomName('RTCDTMFSender.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDTMFSender_addEventListener_Callback";
-
-  @DomName('RTCDTMFSender.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) native "RTCDTMFSender_dispatchEvent_Callback";
-
   void insertDtmf(String tones, [int duration, int interToneGap]) {
     if (interToneGap != null) {
       _insertDTMF_1(tones, duration, interToneGap);
@@ -20518,6 +21236,14 @@ class RtcDtmfSender extends EventTarget {
   void _insertDTMF_2(tones, duration) native "RTCDTMFSender__insertDTMF_2_Callback";
 
   void _insertDTMF_3(tones) native "RTCDTMFSender__insertDTMF_3_Callback";
+
+  @DomName('RTCDTMFSender.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDTMFSender_addEventListener_Callback";
+
+  @DomName('RTCDTMFSender.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "RTCDTMFSender_dispatchEvent_Callback";
 
   @DomName('RTCDTMFSender.removeEventListener')
   @DocsEditable()
@@ -20695,10 +21421,6 @@ class RtcPeerConnection extends EventTarget {
   @DocsEditable()
   String get signalingState native "RTCPeerConnection_signalingState_Getter";
 
-  @DomName('RTCPeerConnection.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCPeerConnection_addEventListener_Callback";
-
   @DomName('RTCPeerConnection.addIceCandidate')
   @DocsEditable()
   void addIceCandidate(RtcIceCandidate candidate) native "RTCPeerConnection_addIceCandidate_Callback";
@@ -20727,10 +21449,6 @@ class RtcPeerConnection extends EventTarget {
   @DocsEditable()
   void _createOffer(_RtcSessionDescriptionCallback successCallback, [_RtcErrorCallback failureCallback, Map mediaConstraints]) native "RTCPeerConnection_createOffer_Callback";
 
-  @DomName('RTCPeerConnection.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) native "RTCPeerConnection_dispatchEvent_Callback";
-
   @DomName('RTCPeerConnection.getLocalStreams')
   @DocsEditable()
   List<MediaStream> getLocalStreams() native "RTCPeerConnection_getLocalStreams_Callback";
@@ -20746,10 +21464,6 @@ class RtcPeerConnection extends EventTarget {
   @DomName('RTCPeerConnection.getStreamById')
   @DocsEditable()
   MediaStream getStreamById(String streamId) native "RTCPeerConnection_getStreamById_Callback";
-
-  @DomName('RTCPeerConnection.removeEventListener')
-  @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCPeerConnection_removeEventListener_Callback";
 
   @DomName('RTCPeerConnection.removeStream')
   @DocsEditable()
@@ -20782,6 +21496,18 @@ class RtcPeerConnection extends EventTarget {
   @DomName('RTCPeerConnection.updateIce')
   @DocsEditable()
   void updateIce([Map configuration, Map mediaConstraints]) native "RTCPeerConnection_updateIce_Callback";
+
+  @DomName('RTCPeerConnection.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCPeerConnection_addEventListener_Callback";
+
+  @DomName('RTCPeerConnection.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "RTCPeerConnection_dispatchEvent_Callback";
+
+  @DomName('RTCPeerConnection.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCPeerConnection_removeEventListener_Callback";
 
   @DomName('RTCPeerConnection.onaddstream')
   @DocsEditable()
@@ -21197,6 +21923,11 @@ class SecurityPolicyViolationEvent extends Event {
   @DocsEditable()
   String get sourceFile native "SecurityPolicyViolationEvent_sourceFile_Getter";
 
+  @DomName('SecurityPolicyViolationEvent.statusCode')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get statusCode native "SecurityPolicyViolationEvent_statusCode_Getter";
+
   @DomName('SecurityPolicyViolationEvent.violatedDirective')
   @DocsEditable()
   String get violatedDirective native "SecurityPolicyViolationEvent_violatedDirective_Getter";
@@ -21596,6 +22327,26 @@ class ShadowRoot extends DocumentFragment {
 
 
 @DocsEditable()
+@DomName('SharedWorkerGlobalScope')
+@Experimental() // untriaged
+class SharedWorkerGlobalScope extends WorkerGlobalScope {
+  // To suppress missing implicit constructor warnings.
+  factory SharedWorkerGlobalScope._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('SharedWorkerGlobalScope.name')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get name native "SharedWorkerGlobalScope_name_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('SourceBuffer')
 // https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#sourcebuffer
 @Experimental()
@@ -21624,26 +22375,20 @@ class SourceBuffer extends EventTarget {
   @DocsEditable()
   void abort() native "SourceBuffer_abort_Callback";
 
+  @DomName('SourceBuffer.appendBuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void appendBuffer(ByteBuffer data) native "SourceBuffer_appendBuffer_Callback";
+
+  @DomName('SourceBuffer.appendBufferView')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void appendBufferView(TypedData data) native "SourceBuffer_appendBufferView_Callback";
+
   @DomName('SourceBuffer.addEventListener')
   @DocsEditable()
   @Experimental() // untriaged
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "SourceBuffer_addEventListener_Callback";
-
-  void appendBuffer(data) {
-    if ((data is TypedData || data == null)) {
-      _appendBuffer_1(data);
-      return;
-    }
-    if ((data is ByteBuffer || data == null)) {
-      _appendBuffer_2(data);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  void _appendBuffer_1(data) native "SourceBuffer__appendBuffer_1_Callback";
-
-  void _appendBuffer_2(data) native "SourceBuffer__appendBuffer_2_Callback";
 
   @DomName('SourceBuffer.dispatchEvent')
   @DocsEditable()
@@ -21720,6 +22465,10 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
   SourceBuffer elementAt(int index) => this[index];
   // -- end List<SourceBuffer> mixins.
 
+  @DomName('SourceBufferList.item')
+  @DocsEditable()
+  SourceBuffer item(int index) native "SourceBufferList_item_Callback";
+
   @DomName('SourceBufferList.addEventListener')
   @DocsEditable()
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "SourceBufferList_addEventListener_Callback";
@@ -21727,10 +22476,6 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
   @DomName('SourceBufferList.dispatchEvent')
   @DocsEditable()
   bool dispatchEvent(Event event) native "SourceBufferList_dispatchEvent_Callback";
-
-  @DomName('SourceBufferList.item')
-  @DocsEditable()
-  SourceBuffer item(int index) native "SourceBufferList_item_Callback";
 
   @DomName('SourceBufferList.removeEventListener')
   @DocsEditable()
@@ -22129,18 +22874,6 @@ class SpeechRecognition extends EventTarget {
   @DocsEditable()
   void abort() native "SpeechRecognition_abort_Callback";
 
-  @DomName('SpeechRecognition.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "SpeechRecognition_addEventListener_Callback";
-
-  @DomName('SpeechRecognition.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event evt) native "SpeechRecognition_dispatchEvent_Callback";
-
-  @DomName('SpeechRecognition.removeEventListener')
-  @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "SpeechRecognition_removeEventListener_Callback";
-
   @DomName('SpeechRecognition.start')
   @DocsEditable()
   void start() native "SpeechRecognition_start_Callback";
@@ -22148,6 +22881,18 @@ class SpeechRecognition extends EventTarget {
   @DomName('SpeechRecognition.stop')
   @DocsEditable()
   void stop() native "SpeechRecognition_stop_Callback";
+
+  @DomName('SpeechRecognition.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "SpeechRecognition_addEventListener_Callback";
+
+  @DomName('SpeechRecognition.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "SpeechRecognition_dispatchEvent_Callback";
+
+  @DomName('SpeechRecognition.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "SpeechRecognition_removeEventListener_Callback";
 
   @DomName('SpeechRecognition.onaudioend')
   @DocsEditable()
@@ -22476,6 +23221,21 @@ class SpeechSynthesisUtterance extends EventTarget {
   @DocsEditable()
   void set volume(num value) native "SpeechSynthesisUtterance_volume_Setter";
 
+  @DomName('SpeechSynthesisUtterance.addEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "SpeechSynthesisUtterance_addEventListener_Callback";
+
+  @DomName('SpeechSynthesisUtterance.dispatchEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool dispatchEvent(Event event) native "SpeechSynthesisUtterance_dispatchEvent_Callback";
+
+  @DomName('SpeechSynthesisUtterance.removeEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "SpeechSynthesisUtterance_removeEventListener_Callback";
+
   @DomName('SpeechSynthesisUtterance.onboundary')
   @DocsEditable()
   Stream<SpeechSynthesisEvent> get onBoundary => boundaryEvent.forTarget(this);
@@ -22702,7 +23462,7 @@ class Storage extends NativeFieldWrapperClass1
 @DomName('StorageErrorCallback')
 // http://www.w3.org/TR/quota-api/#storageerrorcallback-callback
 @Experimental()
-typedef void StorageErrorCallback(DomException error);
+typedef void StorageErrorCallback(DomError error);
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -22991,6 +23751,36 @@ class StyleSheet extends NativeFieldWrapperClass1 {
 @DomName('SubtleCrypto')
 @Experimental() // untriaged
 class SubtleCrypto extends NativeFieldWrapperClass1 {
+
+  @DomName('SubtleCrypto.decrypt')
+  @DocsEditable()
+  @Experimental() // untriaged
+  CryptoOperation decrypt(Map algorithm) native "SubtleCrypto_decrypt_Callback";
+
+  @DomName('SubtleCrypto.digest')
+  @DocsEditable()
+  @Experimental() // untriaged
+  CryptoOperation digest(Map algorithm) native "SubtleCrypto_digest_Callback";
+
+  @DomName('SubtleCrypto.encrypt')
+  @DocsEditable()
+  @Experimental() // untriaged
+  CryptoOperation encrypt(Map algorithm) native "SubtleCrypto_encrypt_Callback";
+
+  @DomName('SubtleCrypto.importKey')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object importKey(String format, TypedData keyData, Map algorithm, bool extractable, List<String> keyUsages) native "SubtleCrypto_importKey_Callback";
+
+  @DomName('SubtleCrypto.sign')
+  @DocsEditable()
+  @Experimental() // untriaged
+  CryptoOperation sign(Map algorithm) native "SubtleCrypto_sign_Callback";
+
+  @DomName('SubtleCrypto.verify')
+  @DocsEditable()
+  @Experimental() // untriaged
+  CryptoOperation verify(Map algorithm) native "SubtleCrypto_verify_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23679,6 +24469,16 @@ class TextAreaElement extends _HTMLElement {
   @DocsEditable()
   FormElement get form native "HTMLTextAreaElement_form_Getter";
 
+  @DomName('HTMLTextAreaElement.inputMode')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get inputMode native "HTMLTextAreaElement_inputMode_Getter";
+
+  @DomName('HTMLTextAreaElement.inputMode')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set inputMode(String value) native "HTMLTextAreaElement_inputMode_Setter";
+
   @DomName('HTMLTextAreaElement.labels')
   @DocsEditable()
   @Unstable()
@@ -23932,17 +24732,17 @@ class TextTrack extends EventTarget {
   @DocsEditable()
   void addCue(TextTrackCue cue) native "TextTrack_addCue_Callback";
 
+  @DomName('TextTrack.removeCue')
+  @DocsEditable()
+  void removeCue(TextTrackCue cue) native "TextTrack_removeCue_Callback";
+
   @DomName('TextTrack.addEventListener')
   @DocsEditable()
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrack_addEventListener_Callback";
 
   @DomName('TextTrack.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event evt) native "TextTrack_dispatchEvent_Callback";
-
-  @DomName('TextTrack.removeCue')
-  @DocsEditable()
-  void removeCue(TextTrackCue cue) native "TextTrack_removeCue_Callback";
+  bool dispatchEvent(Event event) native "TextTrack_dispatchEvent_Callback";
 
   @DomName('TextTrack.removeEventListener')
   @DocsEditable()
@@ -24091,18 +24891,18 @@ class TextTrackCue extends EventTarget {
   @Experimental() // nonstandard
   void set vertical(String value) native "TextTrackCue_vertical_Setter";
 
+  @DomName('TextTrackCue.getCueAsHTML')
+  @DocsEditable()
+  @Experimental() // nonstandard
+  DocumentFragment getCueAsHtml() native "TextTrackCue_getCueAsHTML_Callback";
+
   @DomName('TextTrackCue.addEventListener')
   @DocsEditable()
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackCue_addEventListener_Callback";
 
   @DomName('TextTrackCue.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event evt) native "TextTrackCue_dispatchEvent_Callback";
-
-  @DomName('TextTrackCue.getCueAsHTML')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  DocumentFragment getCueAsHtml() native "TextTrackCue_getCueAsHTML_Callback";
+  bool dispatchEvent(Event event) native "TextTrackCue_dispatchEvent_Callback";
 
   @DomName('TextTrackCue.removeEventListener')
   @DocsEditable()
@@ -24256,17 +25056,17 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
   TextTrack elementAt(int index) => this[index];
   // -- end List<TextTrack> mixins.
 
+  @DomName('TextTrackList.item')
+  @DocsEditable()
+  TextTrack item(int index) native "TextTrackList_item_Callback";
+
   @DomName('TextTrackList.addEventListener')
   @DocsEditable()
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackList_addEventListener_Callback";
 
   @DomName('TextTrackList.dispatchEvent')
   @DocsEditable()
-  bool dispatchEvent(Event evt) native "TextTrackList_dispatchEvent_Callback";
-
-  @DomName('TextTrackList.item')
-  @DocsEditable()
-  TextTrack item(int index) native "TextTrackList_item_Callback";
+  bool dispatchEvent(Event event) native "TextTrackList_dispatchEvent_Callback";
 
   @DomName('TextTrackList.removeEventListener')
   @DocsEditable()
@@ -24908,16 +25708,16 @@ class Url extends NativeFieldWrapperClass1 {
   static String _createObjectUrlFromWebKitSource(_WebKitMediaSource source) native "URL__createObjectUrlFromWebKitSource_Callback";
 
   static String createObjectUrl(blob_OR_source_OR_stream) {
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -25268,10 +26068,6 @@ class WebSocket extends EventTarget {
   @DocsEditable()
   String get url native "WebSocket_url_Getter";
 
-  @DomName('WebSocket.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WebSocket_addEventListener_Callback";
-
   void close([int code, String reason]) {
     if (reason != null) {
       _close_1(code, reason);
@@ -25290,14 +26086,6 @@ class WebSocket extends EventTarget {
   void _close_2(code) native "WebSocket__close_2_Callback";
 
   void _close_3() native "WebSocket__close_3_Callback";
-
-  @DomName('WebSocket.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event evt) native "WebSocket_dispatchEvent_Callback";
-
-  @DomName('WebSocket.removeEventListener')
-  @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WebSocket_removeEventListener_Callback";
 
   /**
    * Transmit data to the server over this connection.
@@ -25325,6 +26113,18 @@ class WebSocket extends EventTarget {
   @DomName('WebSocket.sendTypedData')
   @DocsEditable()
   void sendTypedData(TypedData data) native "WebSocket_sendTypedData_Callback";
+
+  @DomName('WebSocket.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WebSocket_addEventListener_Callback";
+
+  @DomName('WebSocket.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "WebSocket_dispatchEvent_Callback";
+
+  @DomName('WebSocket.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WebSocket_removeEventListener_Callback";
 
   @DomName('WebSocket.onclose')
   @DocsEditable()
@@ -25452,7 +26252,7 @@ class WheelEvent extends MouseEvent {
 
 
 @DomName('Window')
-class Window extends EventTarget implements WindowBase, WindowTimers {
+class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase64 {
 
   /**
    * Executes a [callback] after the immediate execution stack has completed.
@@ -25904,21 +26704,9 @@ class Window extends EventTarget implements WindowBase, WindowTimers {
 
   WindowBase ___getter___2(index_OR_name) native "Window____getter___2_Callback";
 
-  @DomName('Window.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "Window_addEventListener_Callback";
-
   @DomName('Window.alert')
   @DocsEditable()
   void alert(String message) native "Window_alert_Callback";
-
-  @DomName('Window.atob')
-  @DocsEditable()
-  String atob(String string) native "Window_atob_Callback";
-
-  @DomName('Window.btoa')
-  @DocsEditable()
-  String btoa(String string) native "Window_btoa_Callback";
 
   @DomName('Window.cancelAnimationFrame')
   @DocsEditable()
@@ -25932,9 +26720,81 @@ class Window extends EventTarget implements WindowBase, WindowTimers {
   @DocsEditable()
   bool confirm(String message) native "Window_confirm_Callback";
 
-  @DomName('Window.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event evt) native "Window_dispatchEvent_Callback";
+  void _createImageBitmap(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, ImageBitmapCallback callback, [int sx, int sy, int sw, int sh]) {
+    if ((callback is ImageBitmapCallback || callback == null) && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is ImageElement || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
+      _createImageBitmap_1(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback);
+      return;
+    }
+    if ((sh is int || sh == null) && (sw is int || sw == null) && (sy is int || sy == null) && (sx is int || sx == null) && (callback is ImageBitmapCallback || callback == null) && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is ImageElement || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null)) {
+      _createImageBitmap_2(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh);
+      return;
+    }
+    if ((callback is ImageBitmapCallback || callback == null) && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is VideoElement || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
+      _createImageBitmap_3(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback);
+      return;
+    }
+    if ((sh is int || sh == null) && (sw is int || sw == null) && (sy is int || sy == null) && (sx is int || sx == null) && (callback is ImageBitmapCallback || callback == null) && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is VideoElement || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null)) {
+      _createImageBitmap_4(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh);
+      return;
+    }
+    if ((callback is ImageBitmapCallback || callback == null) && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is CanvasRenderingContext2D || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
+      _createImageBitmap_5(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback);
+      return;
+    }
+    if ((sh is int || sh == null) && (sw is int || sw == null) && (sy is int || sy == null) && (sx is int || sx == null) && (callback is ImageBitmapCallback || callback == null) && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is CanvasRenderingContext2D || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null)) {
+      _createImageBitmap_6(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh);
+      return;
+    }
+    if ((callback is ImageBitmapCallback || callback == null) && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is CanvasElement || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
+      _createImageBitmap_7(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback);
+      return;
+    }
+    if ((sh is int || sh == null) && (sw is int || sw == null) && (sy is int || sy == null) && (sx is int || sx == null) && (callback is ImageBitmapCallback || callback == null) && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is CanvasElement || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null)) {
+      _createImageBitmap_8(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh);
+      return;
+    }
+    if ((callback is ImageBitmapCallback || callback == null) && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is ImageData || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
+      _createImageBitmap_9(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback);
+      return;
+    }
+    if ((sh is int || sh == null) && (sw is int || sw == null) && (sy is int || sy == null) && (sx is int || sx == null) && (callback is ImageBitmapCallback || callback == null) && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is ImageData || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null)) {
+      _createImageBitmap_10(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh);
+      return;
+    }
+    if ((callback is ImageBitmapCallback || callback == null) && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is ImageBitmap || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
+      _createImageBitmap_11(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback);
+      return;
+    }
+    if ((sh is int || sh == null) && (sw is int || sw == null) && (sy is int || sy == null) && (sx is int || sx == null) && (callback is ImageBitmapCallback || callback == null) && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is ImageBitmap || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null)) {
+      _createImageBitmap_12(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  void _createImageBitmap_1(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback) native "Window__createImageBitmap_1_Callback";
+
+  void _createImageBitmap_2(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh) native "Window__createImageBitmap_2_Callback";
+
+  void _createImageBitmap_3(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback) native "Window__createImageBitmap_3_Callback";
+
+  void _createImageBitmap_4(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh) native "Window__createImageBitmap_4_Callback";
+
+  void _createImageBitmap_5(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback) native "Window__createImageBitmap_5_Callback";
+
+  void _createImageBitmap_6(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh) native "Window__createImageBitmap_6_Callback";
+
+  void _createImageBitmap_7(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback) native "Window__createImageBitmap_7_Callback";
+
+  void _createImageBitmap_8(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh) native "Window__createImageBitmap_8_Callback";
+
+  void _createImageBitmap_9(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback) native "Window__createImageBitmap_9_Callback";
+
+  void _createImageBitmap_10(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh) native "Window__createImageBitmap_10_Callback";
+
+  void _createImageBitmap_11(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback) native "Window__createImageBitmap_11_Callback";
+
+  void _createImageBitmap_12(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh) native "Window__createImageBitmap_12_Callback";
 
   @DomName('Window.find')
   @DocsEditable()
@@ -25986,10 +26846,6 @@ class Window extends EventTarget implements WindowBase, WindowTimers {
   @DomName('Window.print')
   @DocsEditable()
   void print() native "Window_print_Callback";
-
-  @DomName('Window.removeEventListener')
-  @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "Window_removeEventListener_Callback";
 
   @DomName('Window.requestAnimationFrame')
   @DocsEditable()
@@ -26072,6 +26928,26 @@ class Window extends EventTarget implements WindowBase, WindowTimers {
         (error) { completer.completeError(error); });
     return completer.future;
   }
+
+  @DomName('Window.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "Window_addEventListener_Callback";
+
+  @DomName('Window.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "Window_dispatchEvent_Callback";
+
+  @DomName('Window.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "Window_removeEventListener_Callback";
+
+  @DomName('Window.atob')
+  @DocsEditable()
+  String atob(String string) native "Window_atob_Callback";
+
+  @DomName('Window.btoa')
+  @DocsEditable()
+  String btoa(String string) native "Window_btoa_Callback";
 
   @DomName('Window.clearInterval')
   @DocsEditable()
@@ -26200,6 +27076,16 @@ class Window extends EventTarget implements WindowBase, WindowTimers {
   @DomName('Window.onmousedown')
   @DocsEditable()
   Stream<MouseEvent> get onMouseDown => Element.mouseDownEvent.forTarget(this);
+
+  @DomName('Window.onmouseenter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<MouseEvent> get onMouseEnter => Element.mouseEnterEvent.forTarget(this);
+
+  @DomName('Window.onmouseleave')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<MouseEvent> get onMouseLeave => Element.mouseLeaveEvent.forTarget(this);
 
   @DomName('Window.onmousemove')
   @DocsEditable()
@@ -26391,6 +27277,29 @@ class _BeforeUnloadEventStreamProvider implements
 
 
 @DocsEditable()
+@DomName('WindowBase64')
+@Experimental() // untriaged
+abstract class WindowBase64 extends NativeFieldWrapperClass1 {
+
+  @DomName('WindowBase64.atob')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String atob(String string) native "WindowBase64_atob_Callback";
+
+  @DomName('WindowBase64.btoa')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String btoa(String string) native "WindowBase64_btoa_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('WindowTimers')
 @Experimental() // untriaged
 abstract class WindowTimers extends NativeFieldWrapperClass1 {
@@ -26464,6 +27373,21 @@ class Worker extends EventTarget implements AbstractWorker {
   @DocsEditable()
   void terminate() native "Worker_terminate_Callback";
 
+  @DomName('Worker.addEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "Worker_addEventListener_Callback";
+
+  @DomName('Worker.dispatchEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool dispatchEvent(Event event) native "Worker_dispatchEvent_Callback";
+
+  @DomName('Worker.removeEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "Worker_removeEventListener_Callback";
+
   @DomName('Worker.onerror')
   @DocsEditable()
   @Experimental() // untriaged
@@ -26500,9 +27424,189 @@ class WorkerCrypto extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable()
+@DomName('WorkerGlobalScope')
+@Experimental() // untriaged
+class WorkerGlobalScope extends EventTarget implements WindowTimers, WindowBase64 {
+  // To suppress missing implicit constructor warnings.
+  factory WorkerGlobalScope._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('WorkerGlobalScope.errorEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  @DomName('WorkerGlobalScope.PERSISTENT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int PERSISTENT = 1;
+
+  @DomName('WorkerGlobalScope.TEMPORARY')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEMPORARY = 0;
+
+  @DomName('WorkerGlobalScope.crypto')
+  @DocsEditable()
+  @Experimental() // untriaged
+  WorkerCrypto get crypto native "WorkerGlobalScope_crypto_Getter";
+
+  @DomName('WorkerGlobalScope.indexedDB')
+  @DocsEditable()
+  @Experimental() // untriaged
+  IdbFactory get indexedDB native "WorkerGlobalScope_indexedDB_Getter";
+
+  @DomName('WorkerGlobalScope.location')
+  @DocsEditable()
+  @Experimental() // untriaged
+  _WorkerLocation get location native "WorkerGlobalScope_location_Getter";
+
+  @DomName('WorkerGlobalScope.navigator')
+  @DocsEditable()
+  @Experimental() // untriaged
+  _WorkerNavigator get navigator native "WorkerGlobalScope_navigator_Getter";
+
+  @DomName('WorkerGlobalScope.performance')
+  @DocsEditable()
+  @Experimental() // untriaged
+  WorkerPerformance get performance native "WorkerGlobalScope_performance_Getter";
+
+  @DomName('WorkerGlobalScope.self')
+  @DocsEditable()
+  @Experimental() // untriaged
+  WorkerGlobalScope get self native "WorkerGlobalScope_self_Getter";
+
+  @DomName('WorkerGlobalScope.webkitNotifications')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  @Experimental() // untriaged
+  NotificationCenter get notifications native "WorkerGlobalScope_webkitNotifications_Getter";
+
+  @DomName('WorkerGlobalScope.close')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void close() native "WorkerGlobalScope_close_Callback";
+
+  @DomName('WorkerGlobalScope.importScripts')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void importScripts() native "WorkerGlobalScope_importScripts_Callback";
+
+  @DomName('WorkerGlobalScope.openDatabase')
+  @DocsEditable()
+  @Experimental() // untriaged
+  SqlDatabase openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "WorkerGlobalScope_openDatabase_Callback";
+
+  @DomName('WorkerGlobalScope.openDatabaseSync')
+  @DocsEditable()
+  @Experimental() // untriaged
+  _DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "WorkerGlobalScope_openDatabaseSync_Callback";
+
+  @DomName('WorkerGlobalScope.webkitRequestFileSystem')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _webkitRequestFileSystem(int type, int size, [_FileSystemCallback successCallback, _ErrorCallback errorCallback]) native "WorkerGlobalScope_webkitRequestFileSystem_Callback";
+
+  Future<FileSystem> webkitRequestFileSystem(int type, int size) {
+    var completer = new Completer<FileSystem>();
+    _webkitRequestFileSystem(type, size,
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
+
+  @DomName('WorkerGlobalScope.webkitRequestFileSystemSync')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  @Experimental() // untriaged
+  _DOMFileSystemSync requestFileSystemSync(int type, int size) native "WorkerGlobalScope_webkitRequestFileSystemSync_Callback";
+
+  @DomName('WorkerGlobalScope.webkitResolveLocalFileSystemSyncURL')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  @Experimental() // untriaged
+  _EntrySync resolveLocalFileSystemSyncUrl(String url) native "WorkerGlobalScope_webkitResolveLocalFileSystemSyncURL_Callback";
+
+  @DomName('WorkerGlobalScope.webkitResolveLocalFileSystemURL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _webkitResolveLocalFileSystemUrl(String url, _EntryCallback successCallback, [_ErrorCallback errorCallback]) native "WorkerGlobalScope_webkitResolveLocalFileSystemURL_Callback";
+
+  Future<Entry> webkitResolveLocalFileSystemUrl(String url) {
+    var completer = new Completer<Entry>();
+    _webkitResolveLocalFileSystemUrl(url,
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
+
+  @DomName('WorkerGlobalScope.addEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WorkerGlobalScope_addEventListener_Callback";
+
+  @DomName('WorkerGlobalScope.dispatchEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool dispatchEvent(Event event) native "WorkerGlobalScope_dispatchEvent_Callback";
+
+  @DomName('WorkerGlobalScope.removeEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WorkerGlobalScope_removeEventListener_Callback";
+
+  @DomName('WorkerGlobalScope.atob')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String atob(String string) native "WorkerGlobalScope_atob_Callback";
+
+  @DomName('WorkerGlobalScope.btoa')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String btoa(String string) native "WorkerGlobalScope_btoa_Callback";
+
+  @DomName('WorkerGlobalScope.clearInterval')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void clearInterval(int handle) native "WorkerGlobalScope_clearInterval_Callback";
+
+  @DomName('WorkerGlobalScope.clearTimeout')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void clearTimeout(int handle) native "WorkerGlobalScope_clearTimeout_Callback";
+
+  @DomName('WorkerGlobalScope.setInterval')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int setInterval(Object handler, int timeout) native "WorkerGlobalScope_setInterval_Callback";
+
+  @DomName('WorkerGlobalScope.setTimeout')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int setTimeout(Object handler, int timeout) native "WorkerGlobalScope_setTimeout_Callback";
+
+  @DomName('WorkerGlobalScope.onerror')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('WorkerPerformance')
 @Experimental() // untriaged
-abstract class WorkerPerformance extends NativeFieldWrapperClass1 {
+class WorkerPerformance extends NativeFieldWrapperClass1 {
 
   @DomName('WorkerPerformance.now')
   @DocsEditable()
@@ -27199,22 +28303,6 @@ abstract class _DOMFileSystemSync extends NativeFieldWrapperClass1 {
 // http://www.w3.org/TR/webdatabase/#databasesync
 @deprecated // deprecated
 abstract class _DatabaseSync extends NativeFieldWrapperClass1 {
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('DedicatedWorkerContext')
-// http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html
-@Experimental()
-abstract class _DedicatedWorkerContext extends _WorkerContext {
-  // To suppress missing implicit constructor warnings.
-  factory _DedicatedWorkerContext._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28031,22 +29119,6 @@ abstract class _SharedWorker extends EventTarget implements AbstractWorker {
 
 
 @DocsEditable()
-@DomName('SharedWorkerContext')
-// http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#shared-workers-and-the-sharedworkerglobalscope-interface
-@Experimental() // nonstandard
-abstract class _SharedWorkerContext extends _WorkerContext {
-  // To suppress missing implicit constructor warnings.
-  factory _SharedWorkerContext._() { throw new UnsupportedError("Not supported"); }
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
 @DomName('SpeechInputResultList')
 // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#speech_input_result_list_interface
 @Experimental()
@@ -28297,20 +29369,6 @@ abstract class _WebKitSourceBufferList extends EventTarget {
   @DocsEditable()
   @Experimental() // untriaged
   _WebKitSourceBuffer _item(int index) native "WebKitSourceBufferList_item_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('WorkerContext')
-// http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#WorkerGlobalScope-partial
-@Experimental() // stable
-abstract class _WorkerContext extends NativeFieldWrapperClass1 implements EventTarget, WindowTimers {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29271,6 +30329,123 @@ class _EventStream<T extends Event> extends Stream<T> {
   }
 }
 
+/** A specialized Stream available to [Element]s to enable event delegation. */
+abstract class ElementStream<T extends Event> implements Stream<T> {
+  /**
+   * Return a stream that only fires when the particular event fires for
+   * elements matching the specified CSS selector.
+   *
+   * This is the Dart equivalent to jQuery's
+   * [delegate](http://api.jquery.com/delegate/).
+   */
+  Stream<T> matches(String selector);
+}
+
+/**
+ * Adapter for exposing DOM Element events as streams, while also allowing
+ * event delegation.
+ */
+class _ElementEventStreamImpl<T extends Event> extends _EventStream<T>
+    implements ElementStream<T> {
+  _ElementEventStreamImpl(target, eventType, useCapture) :
+      super(target, eventType, useCapture);
+
+  Stream<T> matches(String selector) =>
+      this.where((event) => event.target.matches(selector, true));
+}
+
+/**
+ * Adapter for exposing events on a collection of DOM Elements as streams,
+ * while also allowing event delegation.
+ */
+class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
+    implements ElementStream<T> {
+  final _StreamPool _pool;
+  Stream<T> _stream;
+
+  _ElementListEventStreamImpl(targetList, eventType, useCapture) :
+      _pool = new _StreamPool.broadcast() {
+    for (Element target in targetList) {
+      var stream = new _EventStream(target, eventType, useCapture);
+      _pool.add(stream);
+    }
+    _stream = _pool.stream;
+  }
+
+  Stream<T> matches(String selector) =>
+      this.where((event) => event.target.matches(selector, true));
+
+  // Delegate all regular Stream behavor to our wrapped Stream.
+  StreamSubscription<T> listen(void onData(T event),
+      { void onError(error),
+        void onDone(),
+        bool cancelOnError}) =>
+      _stream.listen(onData, onError: onError, onDone: onDone,
+          cancelOnError: cancelOnError);
+  Stream<T> asBroadcastStream({void onListen(StreamSubscription subscription),
+                               void onCancel(StreamSubscription subscription)})
+      => _stream;
+  bool get isBroadcast => true;
+}
+
+/**
+ * A pool of streams whose events are unified and emitted through a central
+ * stream.
+ */
+// TODO (efortuna): Remove this when Issue 12218 is addressed.
+class _StreamPool<T> {
+  StreamController<T> _controller;
+
+  /// Subscriptions to the streams that make up the pool.
+  var _subscriptions = new Map<Stream<T>, StreamSubscription<T>>();
+
+  /**
+   * Creates a new stream pool where [stream] can be listened to more than
+   * once.
+   *
+   * Any events from buffered streams in the pool will be emitted immediately,
+   * regardless of whether [stream] has any subscribers.
+   */
+  _StreamPool.broadcast() {
+    _controller = new StreamController<T>.broadcast(sync: true,
+        onCancel: close);
+  }
+
+  /**
+   * The stream through which all events from streams in the pool are emitted.
+   */
+  Stream<T> get stream => _controller.stream;
+
+  /**
+   * Adds [stream] as a member of this pool.
+   *
+   * Any events from [stream] will be emitted through [this.stream]. If
+   * [stream] is sync, they'll be emitted synchronously; if [stream] is async,
+   * they'll be emitted asynchronously.
+   */
+  void add(Stream<T> stream) {
+    if (_subscriptions.containsKey(stream)) return;
+    _subscriptions[stream] = stream.listen(_controller.add,
+        onError: _controller.addError,
+        onDone: () => remove(stream));
+  }
+
+  /** Removes [stream] as a member of this pool. */
+  void remove(Stream<T> stream) {
+    var subscription = _subscriptions.remove(stream);
+    if (subscription != null) subscription.cancel();
+  }
+
+  /** Removes all streams from this pool and closes [stream]. */
+  void close() {
+    for (var subscription in _subscriptions.values) {
+      subscription.cancel();
+    }
+    _subscriptions.clear();
+    _controller.close();
+  }
+}
+
 class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   int _pauseCount = 0;
   EventTarget _target;
@@ -29348,7 +30523,6 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   }
 }
 
-
 /**
  * A factory to expose DOM events as Streams.
  */
@@ -29375,8 +30549,43 @@ class EventStreamProvider<T extends Event> {
    *
    * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
    */
-  Stream<T> forTarget(EventTarget e, {bool useCapture: false}) {
-    return new _EventStream(e, _eventType, useCapture);
+  Stream<T> forTarget(EventTarget e, {bool useCapture: false}) =>
+    new _EventStream(e, _eventType, useCapture);
+
+  /**
+   * Gets an [ElementEventStream] for this event type, on the specified element.
+   *
+   * This will always return a broadcast stream so multiple listeners can be
+   * used simultaneously.
+   *
+   * This may be used to capture DOM events:
+   *
+   *     Element.keyDownEvent.forElement(element, useCapture: true).listen(...);
+   *
+   * See also:
+   *
+   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
+   */
+  ElementStream<T> forElement(Element e, {bool useCapture: false}) {
+    return new _ElementEventStreamImpl(e, _eventType, useCapture);
+  }
+
+  /**
+   * Gets an [ElementEventStream] for this event type, on the list of elements.
+   *
+   * This will always return a broadcast stream so multiple listeners can be
+   * used simultaneously.
+   *
+   * This may be used to capture DOM events:
+   *
+   *     Element.keyDownEvent._forElementList(element, useCapture: true).listen(...);
+   *
+   * See also:
+   *
+   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
+   */
+  ElementStream<T> _forElementList(ElementList e, {bool useCapture: false}) {
+    return new _ElementListEventStreamImpl(e, _eventType, useCapture);
   }
 
   /**
@@ -29403,6 +30612,15 @@ class _CustomEventStreamProvider<T extends Event>
 
   Stream<T> forTarget(EventTarget e, {bool useCapture: false}) {
     return new _EventStream(e, _eventTypeGetter(e), useCapture);
+  }
+
+  ElementStream<T> forElement(Element e, {bool useCapture: false}) {
+    return new _ElementEventStreamImpl(e, _eventTypeGetter(e), useCapture);
+  }
+
+  ElementStream<T> _forElementList(ElementList e,
+      {bool useCapture: false}) {
+    return new _ElementListEventStreamImpl(e, _eventTypeGetter(e), useCapture);
   }
 
   String getEventType(EventTarget target) {
@@ -32034,11 +33252,11 @@ class _Utils {
 
   static String addTrailingDot(String str) => '${str}.';
 
+  static bool isNoSuchMethodError(obj) => obj is NoSuchMethodError;
+
   // TODO(jacobr): we need a failsafe way to determine that a Node is really a
   // DOM node rather than just a class that extends Node.
   static bool isNode(obj) => obj is Node;
-
-  static bool isNoSuchMethodError(obj) => obj is NoSuchMethodError;
 }
 
 class _NPObject extends NativeFieldWrapperClass1 {

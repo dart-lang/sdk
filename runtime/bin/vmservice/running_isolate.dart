@@ -6,9 +6,9 @@ part of vmservice;
 
 class RunningIsolate implements ServiceRequestRouter {
   final SendPort sendPort;
-  String name = 'Unknown';
+  final String name;
 
-  RunningIsolate(this.sendPort);
+  RunningIsolate(this.sendPort, this.name);
 
   Future sendMessage(List request) {
     final completer = new Completer.sync();
@@ -32,24 +32,5 @@ class RunningIsolate implements ServiceRequestRouter {
       request.setResponse(response);
       return new Future.value(request);
     });
-  }
-
-  void _sendNameRequest() {
-    var request = new ServiceRequest();
-    request.parse(Uri.parse('/name'));
-    sendMessage(request.toServiceCallMessage()).then(_handleNameResponse);
-  }
-
-  void _handleNameResponse(String responseString) {
-    try {
-      var response = JSON.parse(responseString);
-      name = response['name'];
-    } catch (e) {
-      name = 'Error retrieving isolate name.';
-      return;
-    }
-    if (name == null) {
-      name = 'Error retrieving isolate name.';
-    }
   }
 }

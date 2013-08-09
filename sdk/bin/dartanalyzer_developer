@@ -16,6 +16,18 @@ function follow_links() {
   echo "$1"
 }
 
+FOUND_BATCH=0
+for ARG in "$@"
+do
+  case $ARG in
+    -batch|--batch)
+      FOUND_BATCH=1
+      ;;
+    *)
+      ;;
+  esac
+done
+
 # Unlike $0, $BASH_SOURCE points to the absolute path of this file.
 PROG_NAME="$(follow_links "$BASH_SOURCE")"
 
@@ -29,12 +41,12 @@ then
   DART_CONFIGURATION="ReleaseIA32"
 fi
 
-if [[ `uname` == 'Darwin' ]]; 
+if [ `uname` == 'Darwin' ];
 then
   JAR_DIR="$CUR_DIR"/../../xcodebuild/$DART_CONFIGURATION/dartanalyzer
 else
   JAR_DIR="$CUR_DIR"/../../out/$DART_CONFIGURATION/dartanalyzer
-fi 
+fi
 
 JAR_FILE="$JAR_DIR/dartanalyzer.jar"
 
@@ -47,7 +59,7 @@ else
   # On other architectures
   # -batch invocations will do better with a server vm
   # invocations for analyzing a single file do better with a client vm
-  if [ $FOUND_BATCH = 0 ] ; then
+  if [ $FOUND_BATCH -eq 0 ] ; then
     EXTRA_JVMARGS+=" -client "
   fi
 fi

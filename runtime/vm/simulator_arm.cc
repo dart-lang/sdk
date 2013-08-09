@@ -1491,7 +1491,8 @@ typedef int32_t (*SimulatorLeafRuntimeCall)(
 typedef double (*SimulatorLeafFloatRuntimeCall)(double d0, double d1);
 
 // Calls to native Dart functions are based on this interface.
-typedef void (*SimulatorNativeCall)(NativeArguments* arguments);
+typedef void (*SimulatorBootstrapNativeCall)(NativeArguments* arguments);
+typedef void (*SimulatorNativeCall)(NativeArguments* arguments, uword target);
 
 
 void Simulator::SupervisorCall(Instr* instr) {
@@ -1509,6 +1510,7 @@ void Simulator::SupervisorCall(Instr* instr) {
         }
 
         if ((redirection->call_kind() == kRuntimeCall) ||
+            (redirection->call_kind() == kBootstrapNativeCall) ||
             (redirection->call_kind() == kNativeCall)) {
           // Set the top_exit_frame_info of this simulator to the native stack.
           set_top_exit_frame_info(reinterpret_cast<uword>(&buffer));
@@ -1548,13 +1550,21 @@ void Simulator::SupervisorCall(Instr* instr) {
           double d1 = get_dregister(D1);
           d0 = target(d0, d1);
           set_dregister(D0, d0);
+        } else if (redirection->call_kind() == kBootstrapNativeCall) {
+          NativeArguments* arguments;
+          arguments = reinterpret_cast<NativeArguments*>(get_register(R0));
+          SimulatorBootstrapNativeCall target =
+              reinterpret_cast<SimulatorBootstrapNativeCall>(external);
+          target(arguments);
+          set_register(R0, icount_);  // Zap result register from void function.
         } else {
           ASSERT(redirection->call_kind() == kNativeCall);
           NativeArguments* arguments;
           arguments = reinterpret_cast<NativeArguments*>(get_register(R0));
+          uword target_func = get_register(R1);
           SimulatorNativeCall target =
               reinterpret_cast<SimulatorNativeCall>(external);
-          target(arguments);
+          target(arguments, target_func);
           set_register(R0, icount_);  // Zap result register from void function.
         }
         set_top_exit_frame_info(0);

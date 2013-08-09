@@ -6,7 +6,7 @@
 // block as a successor of a nested try block.
 
 import "package:expect/expect.dart";
- 
+
 class A {
   var field;
   start() {}
@@ -29,7 +29,7 @@ class B {
         runCompiler.toString();
       } catch (exception) {
       }
-      throw;
+      rethrow;
     } finally {
       totalCompileTime.stop();
     }

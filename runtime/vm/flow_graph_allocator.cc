@@ -60,12 +60,6 @@ static intptr_t ToInstructionEnd(intptr_t pos) {
 }
 
 
-static intptr_t NextInstructionPos(intptr_t pos) {
-  ASSERT(IsInstructionStartPosition(pos));
-  return pos + 2;
-}
-
-
 FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph)
   : flow_graph_(flow_graph),
     reaching_defs_(flow_graph),
@@ -264,12 +258,16 @@ void LiveRange::AddUseInterval(intptr_t start, intptr_t end) {
     // If the first use interval and the use interval we are adding
     // touch then we can just extend the first interval to cover their
     // union.
-    if (start >= first_use_interval()->start()) {
+    if (start > first_use_interval()->start()) {
       // The only case when we can add intervals with start greater than
       // start of an already created interval is BlockLocation.
-      ASSERT((start == first_use_interval()->start()) ||
-             (vreg() == kNoVirtualRegister));
+      ASSERT(vreg() == kNoVirtualRegister);
       ASSERT(end <= first_use_interval()->end());
+      return;
+    } else if (start == first_use_interval()->start()) {
+      // Grow first interval if necessary.
+      if (end <= first_use_interval()->end()) return;
+      first_use_interval_->end_ = end;
       return;
     } else if (end == first_use_interval()->start()) {
       first_use_interval()->start_ = start;
@@ -518,16 +516,16 @@ void FlowGraphAllocator::BuildLiveRanges() {
         range->DefineAt(catch_entry->start_pos());  // Defined at block entry.
         ProcessInitialDefinition(defn, range, catch_entry);
       }
-      // Block the two registers used by CatchEntryInstr from the block start to
-      // until the end of the instruction so that they are preserved.
-      ASSERT(catch_entry->next()->IsCatchEntry());
+      // Block the two fixed registers used by CatchBlockEntryInstr from the
+      // block start to until the end of the instruction so that they are
+      // preserved.
       intptr_t start = catch_entry->start_pos();
       BlockLocation(Location::RegisterLocation(kExceptionObjectReg),
                     start,
-                    ToInstructionEnd(NextInstructionPos(start)));
+                    ToInstructionEnd(start));
       BlockLocation(Location::RegisterLocation(kStackTraceObjectReg),
                     start,
-                    ToInstructionEnd(NextInstructionPos(start)));
+                    ToInstructionEnd(start));
     }
   }
 

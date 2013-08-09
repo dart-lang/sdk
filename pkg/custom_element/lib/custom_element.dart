@@ -591,6 +591,8 @@ class CustomElement implements Element {
   Stream<KeyboardEvent> get onKeyUp => host.onKeyUp;
   Stream<Event> get onLoad => host.onLoad;
   Stream<MouseEvent> get onMouseDown => host.onMouseDown;
+  Stream<MouseEvent> get onMouseEnter => host.onMouseEnter;
+  Stream<MouseEvent> get onMouseLeave => host.onMouseLeave;
   Stream<MouseEvent> get onMouseMove => host.onMouseMove;
   Stream<Event> get onFullscreenChange => host.onFullscreenChange;
   Stream<Event> get onFullscreenError => host.onFullscreenError;

@@ -699,7 +699,7 @@ Iterator _iterator(String s) => new _StringIterator(s);
  * Provides an Iterable that wraps [_iterator] so it can be used in a `for`
  * loop.
  */
-class _StringIterable extends Iterable<String> {
+class _StringIterable extends IterableBase<String> {
   final Iterator<String> iterator;
 
   _StringIterable(String s)

@@ -75,32 +75,6 @@ Zone::Segment* Zone::Segment::New(intptr_t size, Zone::Segment* next) {
 }
 
 
-Zone::Zone()
-    : initial_buffer_(buffer_, kInitialChunkSize),
-      position_(initial_buffer_.start()),
-      limit_(initial_buffer_.end()),
-      head_(NULL),
-      large_segments_(NULL),
-      handles_(),
-      previous_(NULL) {
-#ifdef DEBUG
-  // Zap the entire initial buffer.
-  memset(initial_buffer_.pointer(), kZapUninitializedByte,
-         initial_buffer_.size());
-#endif
-}
-
-
-Zone::~Zone() {
-#if defined(DEBUG)
-  if (FLAG_trace_zones) {
-    DumpZoneSizes();
-  }
-#endif
-  DeleteAll();
-}
-
-
 void Zone::DeleteAll() {
   // Traverse the chained list of segments, zapping (in debug mode)
   // and freeing every zone segment.
@@ -210,34 +184,6 @@ void Zone::DumpZoneSizes() {
                reinterpret_cast<intptr_t>(this), SizeInBytes(), size);
 }
 #endif
-
-
-StackZone::StackZone(BaseIsolate* isolate)
-    : StackResource(isolate),
-      zone_() {
-#ifdef DEBUG
-  if (FLAG_trace_zones) {
-    OS::PrintErr("*** Starting a new Stack zone 0x%"Px"(0x%"Px")\n",
-                 reinterpret_cast<intptr_t>(this),
-                 reinterpret_cast<intptr_t>(&zone_));
-  }
-#endif
-  zone_.Link(isolate->current_zone());
-  isolate->set_current_zone(&zone_);
-}
-
-
-StackZone::~StackZone() {
-  ASSERT(isolate()->current_zone() == &zone_);
-  isolate()->set_current_zone(zone_.previous_);
-#ifdef DEBUG
-  if (FLAG_trace_zones) {
-    OS::PrintErr("*** Deleting Stack zone 0x%"Px"(0x%"Px")\n",
-                 reinterpret_cast<intptr_t>(this),
-                 reinterpret_cast<intptr_t>(&zone_));
-  }
-#endif
-}
 
 
 void Zone::VisitObjectPointers(ObjectPointerVisitor* visitor) {

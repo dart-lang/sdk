@@ -1463,6 +1463,7 @@ TEST_CASE(Debug_GetSupertype) {
       "class Test5<A, B, C> extends Test4<A, B> {\n"
       "}\n"
       "var s = new Set();\n"
+      "var l = new List();\n"
       "int main() {\n"
       "}\n";
 
@@ -1482,6 +1483,7 @@ TEST_CASE(Debug_GetSupertype) {
   Dart_Handle int_name = Dart_NewStringFromCString("int");
   Dart_Handle set_name = Dart_NewStringFromCString("Set");
   Dart_Handle iterable_name = Dart_NewStringFromCString("IterableBase");
+  Dart_Handle list_name = Dart_NewStringFromCString("List");
 
   Dart_Handle object_type = Dart_GetType(core_lib, object_name, 0, NULL);
   Dart_Handle int_type = Dart_GetType(core_lib, int_name, 0, NULL);
@@ -1546,6 +1548,49 @@ TEST_CASE(Debug_GetSupertype) {
     const Type& actual_type = Api::UnwrapTypeHandle(isolate, super_type);
     EXPECT(expected_type.raw() == actual_type.raw());
   }
+  {
+    Dart_Handle list_type = Dart_GetType(core_lib, list_name, 0, NULL);
+    Dart_Handle super_type = Dart_GetSupertype(list_type);
+    EXPECT(!Dart_IsError(super_type));
+    super_type = Dart_GetSupertype(super_type);
+    EXPECT(!Dart_IsError(super_type));
+    EXPECT(super_type == Dart_Null());
+  }
+}
+
+
+TEST_CASE(Debug_ListSuperType) {
+  const char* kScriptChars =
+      "List testMain() {"
+      "  List a = new List();"
+      "  a.add(10);"
+      "  a.add(20);"
+      "  a.add(30);"
+      "  return a;"
+      "}"
+      ""
+      "List immutable() {"
+      "  return const [0, 1, 2];"
+      "}";
+  Dart_Handle result;
+
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  // Invoke a function which returns an object of type List.
+  result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
+  EXPECT_VALID(result);
+
+  // First ensure that the returned object is a list.
+  Dart_Handle list_access_test_obj = result;
+  EXPECT(Dart_IsList(list_access_test_obj));
+
+  Dart_Handle list_type = Dart_InstanceGetType(list_access_test_obj);
+  Dart_Handle super_type = Dart_GetSupertype(list_type);
+  EXPECT(!Dart_IsError(super_type));
+  super_type = Dart_GetSupertype(super_type);
+  EXPECT(!Dart_IsError(super_type));
+  EXPECT(super_type == Dart_Null());
 }
 
 }  // namespace dart

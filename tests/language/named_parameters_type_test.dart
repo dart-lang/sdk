@@ -25,22 +25,25 @@ class NamedParametersTypeTest {
       acceptFunNumOptBool(funNum);  // No static type warning.
     } on TypeError catch (error) {
       result += 1;
-      Expect.stringEquals("(num, {b: bool}) => void", error.dstType);
-      Expect.stringEquals("(num) => void", error.srcType);
+      var msg = error.toString();
+      Expect.isTrue(msg.contains("(num, {b: bool}) => void"));  // dstType
+      Expect.isTrue(msg.contains("(num) => void"));  // srcType
     }
     try {
       acceptFunNumOptBool(funNumBool);  /// static type warning
     } on TypeError catch (error) {
       result += 10;
-      Expect.stringEquals("(num, {b: bool}) => void", error.dstType);
-      Expect.stringEquals("(num, bool) => void", error.srcType);
+      var msg = error.toString();
+      Expect.isTrue(msg.contains("(num, {b: bool}) => void"));  // dstType
+      Expect.isTrue(msg.contains("(num, bool) => void"));  // srcType
     }
     try {
       acceptFunNumOptBool(funNumOptBoolX);  /// static type warning
     } on TypeError catch (error) {
       result += 100;
-      Expect.stringEquals("(num, {b: bool}) => void", error.dstType);
-      Expect.stringEquals("(num, {x: bool}) => void", error.srcType);
+      var msg = error.toString();
+      Expect.isTrue(msg.contains("(num, {b: bool}) => void"));  // dstType
+      Expect.isTrue(msg.contains("(num, {x: bool}) => void"));  // srcType
     }
     return result;
   }

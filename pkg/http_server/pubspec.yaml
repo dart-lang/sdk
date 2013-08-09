@@ -1,7 +1,8 @@
 name: http_server
-author: "Dart Team <misc@dartlang.org>"
+author: Dart Team <misc@dartlang.org>
+description: Library of HTTP server classes.
 homepage: http://www.dartlang.org
-description: >
- Library of HTTP server classes.
 dependencies:
   mime: any
+dev_dependencies:
+  unittest: any

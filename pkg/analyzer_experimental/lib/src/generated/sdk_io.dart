@@ -272,7 +272,7 @@ class DirectoryBasedDartSdk implements DartSdk {
           if (revision != null) {
             _sdkVersion = revision;
           }
-        } on IOException catch (exception) {
+        } on JavaIOException catch (exception) {
         }
       }
     }

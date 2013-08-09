@@ -7,7 +7,6 @@
 
 #include "vm/intermediate_language.h"
 
-#include "lib/error.h"
 #include "vm/dart_entry.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/locations.h"
@@ -1000,15 +999,23 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // this is a redirection address that forces the simulator to call
   // into the runtime system.
   uword entry = reinterpret_cast<uword>(native_c_function());
+  const ExternalLabel* stub_entry;
+  if (is_bootstrap_native()) {
+    stub_entry = &StubCode::CallBootstrapCFunctionLabel();
 #if defined(USING_SIMULATOR)
-  entry = Simulator::RedirectExternalReference(entry,
-                                               Simulator::kNativeCall,
-                                               function().NumParameters());
+    entry = Simulator::RedirectExternalReference(
+        entry, Simulator::kBootstrapNativeCall, function().NumParameters());
 #endif
+  } else {
+    // In the case of non bootstrap native methods the CallNativeCFunction
+    // stub generates the redirection address when running under the simulator
+    // and hence we do not change 'entry' here.
+    stub_entry = &StubCode::CallNativeCFunctionLabel();
+  }
   __ LoadImmediate(R5, entry);
   __ LoadImmediate(R1, NativeArguments::ComputeArgcTag(function()));
   compiler->GenerateCall(token_pos(),
-                         &StubCode::CallNativeCFunctionLabel(),
+                         stub_entry,
                          PcDescriptors::kOther,
                          locs());
   __ Pop(result);
@@ -2036,16 +2043,26 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* CatchEntryInstr::MakeLocationSummary() const {
-  return LocationSummary::Make(0,
-                               Location::NoLocation(),
-                               LocationSummary::kNoCall);
+LocationSummary* CatchBlockEntryInstr::MakeLocationSummary() const {
+  UNREACHABLE();
+  return NULL;
 }
 
 
-// Restore stack and initialize the two exception variables:
-// exception and stack trace variables.
-void CatchEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ Bind(compiler->GetJumpLabel(this));
+  compiler->AddExceptionHandler(catch_try_index(),
+                                try_index(),
+                                compiler->assembler()->CodeSize(),
+                                catch_handler_types_);
+
+  // Restore the pool pointer.
+  __ LoadPoolPointer();
+
+  if (HasParallelMove()) {
+    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+  }
+
   // Restore SP from FP as we are coming from a throw and the code for
   // popping arguments has not been run.
   const intptr_t fp_sp_dist =
@@ -2053,15 +2070,12 @@ void CatchEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(fp_sp_dist <= 0);
   __ AddImmediate(SP, FP, fp_sp_dist);
 
-  ASSERT(!exception_var().is_captured());
-  ASSERT(!stacktrace_var().is_captured());
+  // Restore stack and initialize the two exception variables:
+  // exception and stack trace variables.
   __ StoreToOffset(kWord, kExceptionObjectReg,
                    FP, exception_var().index() * kWordSize);
   __ StoreToOffset(kWord, kStackTraceObjectReg,
                    FP, stacktrace_var().index() * kWordSize);
-
-  // Restore the pool pointer.
-  __ LoadPoolPointer();
 }
 
 
@@ -3623,7 +3637,7 @@ void BinaryUint32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* MathSqrtInstr::MakeLocationSummary() const {
+LocationSummary* MathUnaryInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -3634,10 +3648,14 @@ LocationSummary* MathSqrtInstr::MakeLocationSummary() const {
 }
 
 
-void MathSqrtInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  DRegister val = EvenDRegisterOf(locs()->in(0).fpu_reg());
-  DRegister result = EvenDRegisterOf(locs()->out().fpu_reg());
-  __ vsqrtd(result, val);
+void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (kind() == MethodRecognizer::kMathSqrt) {
+    DRegister val = EvenDRegisterOf(locs()->in(0).fpu_reg());
+    DRegister result = EvenDRegisterOf(locs()->out().fpu_reg());
+    __ vsqrtd(result, val);
+  } else {
+    UNIMPLEMENTED();
+  }
 }
 
 
@@ -3997,7 +4015,7 @@ LocationSummary* CheckClassInstr::MakeLocationSummary() const {
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  if (!null_check()) {
+  if (!IsNullCheck()) {
     summary->AddTemp(Location::RequiresRegister());
   }
   return summary;
@@ -4005,7 +4023,7 @@ LocationSummary* CheckClassInstr::MakeLocationSummary() const {
 
 
 void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (null_check()) {
+  if (IsNullCheck()) {
     Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                           kDeoptCheckClass);
     __ CompareImmediate(locs()->in(0).reg(),

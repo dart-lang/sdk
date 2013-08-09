@@ -21,7 +21,6 @@ namespace dart {
 // Arg1: a smi.
 // Result: a smi representing arg0 - arg1.
 void TestSmiSub(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_Handle left = Dart_GetNativeArgument(args, 0);
   Dart_Handle right = Dart_GetNativeArgument(args, 1);
   int64_t left_value = -1;
@@ -32,7 +31,6 @@ void TestSmiSub(Dart_NativeArguments args) {
   // Ignoring overflow in the calculation below.
   int64_t result = left_value - right_value;
   Dart_SetReturnValue(args, Dart_NewInteger(result));
-  Dart_ExitScope();
 }
 
 
@@ -40,7 +38,6 @@ void TestSmiSub(Dart_NativeArguments args) {
 // Arg0-4: 5 smis.
 // Result: a smi representing the sum of all arguments.
 void TestSmiSum(Dart_NativeArguments args) {
-  Dart_EnterScope();
   int64_t result = 0;
   int arg_count = Dart_GetNativeArgumentCount(args);
   for (int i = 0; i < arg_count; i++) {
@@ -52,7 +49,6 @@ void TestSmiSum(Dart_NativeArguments args) {
     result += arg_value;
   }
   Dart_SetReturnValue(args, Dart_NewInteger(result));
-  Dart_ExitScope();
 }
 
 
@@ -60,7 +56,6 @@ void TestSmiSum(Dart_NativeArguments args) {
 // Arg0-4: 5 smis or null.
 // Result: a smi representing the sum of all non-null arguments.
 void TestNonNullSmiSum(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Isolate* isolate = Isolate::Current();
   int64_t result = 0;
   int arg_count = Dart_GetNativeArgumentCount(args);
@@ -84,7 +79,6 @@ void TestNonNullSmiSum(Dart_NativeArguments args) {
     }
   }
   Dart_SetReturnValue(args, Dart_NewInteger(result));
-  Dart_ExitScope();
 }
 
 }  // namespace dart

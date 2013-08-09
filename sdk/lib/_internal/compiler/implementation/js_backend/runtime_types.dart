@@ -463,15 +463,13 @@ class RuntimeTypes {
                                    { bool alwaysGenerateFunction: false }) {
     if (isTrivialSubstitution(cls, check)) return null;
 
+    // Unnamed mixin application classes do not need substitutions, because they
+    // are never instantiated and their checks are overwritten by the class that
+    // they are mixed into.
+    if (cls.isUnnamedMixinApplication) return null;
     InterfaceType type = cls.computeType(compiler);
     InterfaceType target = type.asInstanceOf(check);
-    Link<DartType> typeVariables;
-    if (cls.isMixinApplication) {
-      MixinApplicationElement mixinApplication = cls;
-      typeVariables = mixinApplication.mixin.typeVariables;
-    } else {
-      typeVariables = cls.typeVariables;
-    }
+    Link<DartType> typeVariables = cls.typeVariables;
     if (typeVariables.isEmpty && !alwaysGenerateFunction) {
       return new Substitution.list(target.typeArguments);
     } else {

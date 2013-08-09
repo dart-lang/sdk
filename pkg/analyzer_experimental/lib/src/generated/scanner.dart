@@ -135,7 +135,7 @@ class KeywordState {
  *
  * @coverage dart.engine.parser
  */
-class ScannerErrorCode implements Comparable<ScannerErrorCode>, ErrorCode {
+class ScannerErrorCode implements Enum<ScannerErrorCode>, ErrorCode {
   static final ScannerErrorCode CHARACTER_EXPECTED_AFTER_SLASH = new ScannerErrorCode('CHARACTER_EXPECTED_AFTER_SLASH', 0, "Character expected after slash");
   static final ScannerErrorCode ILLEGAL_CHARACTER = new ScannerErrorCode('ILLEGAL_CHARACTER', 1, "Illegal character %x");
   static final ScannerErrorCode MISSING_DIGIT = new ScannerErrorCode('MISSING_DIGIT', 2, "Decimal digit expected");
@@ -209,7 +209,7 @@ class StringTokenWithComment extends StringToken {
  *
  * @coverage dart.engine.parser
  */
-class Keyword implements Comparable<Keyword> {
+class Keyword implements Enum<Keyword> {
   static final Keyword ASSERT = new Keyword.con1('ASSERT', 0, "assert");
   static final Keyword BREAK = new Keyword.con1('BREAK', 1, "break");
   static final Keyword CASE = new Keyword.con1('CASE', 2, "case");
@@ -503,7 +503,7 @@ abstract class AbstractScanner {
       instrumentation.metric2("tokensCount", tokenCounter);
       return firstToken();
     } finally {
-      instrumentation.log();
+      instrumentation.log2(2);
     }
   }
 
@@ -1233,7 +1233,7 @@ abstract class AbstractScanner {
     while (true) {
       next = advance();
       if (0xA == next || 0xD == next || -1 == next) {
-        appendCommentToken(TokenType.SINGLE_LINE_COMMENT, getString(_tokenStart, 0));
+        appendCommentToken(TokenType.SINGLE_LINE_COMMENT, getString(_tokenStart, -1));
         return next;
       }
     }
@@ -1800,7 +1800,7 @@ class BeginToken extends Token {
  *
  * @coverage dart.engine.parser
  */
-class TokenClass implements Comparable<TokenClass> {
+class TokenClass implements Enum<TokenClass> {
 
   /**
    * A value used to indicate that the token type is not part of any specific class of token.
@@ -1958,7 +1958,7 @@ class KeywordTokenWithComment extends KeywordToken {
  *
  * @coverage dart.engine.parser
  */
-class TokenType implements Comparable<TokenType> {
+class TokenType implements Enum<TokenType> {
 
   /**
    * The type of the token that marks the end of the input.

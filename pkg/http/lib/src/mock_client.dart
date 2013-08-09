@@ -5,7 +5,6 @@
 library mock_client;
 
 import 'dart:async';
-import 'dart:io';
 
 import 'base_client.dart';
 import 'base_request.dart';

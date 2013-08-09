@@ -1976,6 +1976,12 @@ DART_EXPORT Dart_Handle Dart_GetNativeFieldOfArgument(Dart_NativeArguments args,
                                                       intptr_t* value);
 
 /**
+ * Gets the native field of the receiver.
+ */
+DART_EXPORT Dart_Handle Dart_GetNativeReceiver(Dart_NativeArguments args,
+                                               intptr_t* value);
+
+/**
  * Sets the return value for a native function.
  */
 DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,

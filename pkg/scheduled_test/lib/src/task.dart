@@ -9,7 +9,6 @@ import 'dart:collection';
 
 import 'package:stack_trace/stack_trace.dart';
 
-import '../scheduled_test.dart' show currentSchedule;
 import 'future_group.dart';
 import 'schedule.dart';
 import 'utils.dart';

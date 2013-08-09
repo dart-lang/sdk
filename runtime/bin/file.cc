@@ -77,7 +77,6 @@ File::FileOpenMode File::DartModeToFileMode(DartFileOpenMode mode) {
 
 
 void FUNCTION_NAME(File_Open)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   const char* filename =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
   int64_t mode = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
@@ -98,32 +97,26 @@ void FUNCTION_NAME(File_Open)(Dart_NativeArguments args) {
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(File_Exists)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   const char* filename =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
   bool exists = File::Exists(filename);
   Dart_SetReturnValue(args, Dart_NewBoolean(exists));
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(File_Close)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
   ASSERT(file != NULL);
   delete file;
   Dart_SetReturnValue(args, Dart_NewInteger(0));
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(File_ReadByte)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
   ASSERT(file != NULL);
   uint8_t buffer;
@@ -137,12 +130,10 @@ void FUNCTION_NAME(File_ReadByte)(Dart_NativeArguments args) {
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(File_WriteByte)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
   ASSERT(file != NULL);
   int64_t byte = 0;
@@ -162,12 +153,10 @@ void FUNCTION_NAME(File_WriteByte)(Dart_NativeArguments args) {
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(File_Read)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
   ASSERT(file != NULL);
   Dart_Handle length_object = Dart_GetNativeArgument(args, 1);
@@ -208,12 +197,10 @@ void FUNCTION_NAME(File_Read)(Dart_NativeArguments args) {
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(File_ReadInto)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
   ASSERT(file != NULL);
   Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
@@ -246,12 +233,10 @@ void FUNCTION_NAME(File_ReadInto)(Dart_NativeArguments args) {
     Dart_SetReturnValue(args, err);
   }
   delete[] buffer;
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(File_WriteFrom)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
   ASSERT(file != NULL);
 
@@ -292,12 +277,10 @@ void FUNCTION_NAME(File_WriteFrom)(Dart_NativeArguments args) {
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(File_Position)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
   ASSERT(file != NULL);
   intptr_t return_value = file->Position();
@@ -308,12 +291,10 @@ void FUNCTION_NAME(File_Position)(Dart_NativeArguments args) {
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(File_SetPosition)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
   ASSERT(file != NULL);
   int64_t position = 0;
@@ -331,12 +312,10 @@ void FUNCTION_NAME(File_SetPosition)(Dart_NativeArguments args) {
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(File_Truncate)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
   ASSERT(file != NULL);
   int64_t length = 0;
@@ -354,12 +333,10 @@ void FUNCTION_NAME(File_Truncate)(Dart_NativeArguments args) {
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(File_Length)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
   ASSERT(file != NULL);
   intptr_t return_value = file->Length();
@@ -370,12 +347,10 @@ void FUNCTION_NAME(File_Length)(Dart_NativeArguments args) {
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(File_LengthFromPath)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   const char* path =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
   intptr_t return_value = File::LengthFromPath(path);
@@ -386,12 +361,10 @@ void FUNCTION_NAME(File_LengthFromPath)(Dart_NativeArguments args) {
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(File_LastModified)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   const char* name =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
   int64_t return_value = File::LastModified(name);
@@ -402,12 +375,10 @@ void FUNCTION_NAME(File_LastModified)(Dart_NativeArguments args) {
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(File_Flush)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
   ASSERT(file != NULL);
   if (file->Flush()) {
@@ -417,12 +388,10 @@ void FUNCTION_NAME(File_Flush)(Dart_NativeArguments args) {
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(File_Create)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   const char* str =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
   bool result = File::Create(str);
@@ -433,12 +402,10 @@ void FUNCTION_NAME(File_Create)(Dart_NativeArguments args) {
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(File_CreateLink)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   if (Dart_IsString(Dart_GetNativeArgument(args, 0)) &&
       Dart_IsString(Dart_GetNativeArgument(args, 1))) {
     const char* name =
@@ -456,12 +423,10 @@ void FUNCTION_NAME(File_CreateLink)(Dart_NativeArguments args) {
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(File_LinkTarget)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   if (Dart_IsString(Dart_GetNativeArgument(args, 0))) {
     const char* name =
         DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
@@ -480,12 +445,10 @@ void FUNCTION_NAME(File_LinkTarget)(Dart_NativeArguments args) {
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(File_Delete)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   const char* str =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
   bool result = File::Delete(str);
@@ -496,12 +459,10 @@ void FUNCTION_NAME(File_Delete)(Dart_NativeArguments args) {
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(File_DeleteLink)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   const char* str =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
   bool result = File::DeleteLink(str);
@@ -512,12 +473,10 @@ void FUNCTION_NAME(File_DeleteLink)(Dart_NativeArguments args) {
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(File_Rename)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   const char* old_path =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
   const char* new_path =
@@ -530,12 +489,10 @@ void FUNCTION_NAME(File_Rename)(Dart_NativeArguments args) {
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(File_RenameLink)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   const char* old_path =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
   const char* new_path =
@@ -548,12 +505,10 @@ void FUNCTION_NAME(File_RenameLink)(Dart_NativeArguments args) {
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(File_FullPath)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   const char* str =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
   char* path = File::GetCanonicalPath(str);
@@ -565,32 +520,26 @@ void FUNCTION_NAME(File_FullPath)(Dart_NativeArguments args) {
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(File_OpenStdio)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   int64_t fd = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
   ASSERT(fd == 0 || fd == 1 || fd == 2);
   File* file = File::OpenStdio(static_cast<int>(fd));
   Dart_SetReturnValue(args, Dart_NewInteger(reinterpret_cast<intptr_t>(file)));
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(File_GetStdioHandleType)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   int64_t fd = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
   ASSERT(fd == 0 || fd == 1 || fd == 2);
   File::StdioHandleType type = File::GetStdioHandleType(static_cast<int>(fd));
   Dart_SetReturnValue(args, Dart_NewInteger(type));
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(File_GetType)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   if (Dart_IsString(Dart_GetNativeArgument(args, 0)) &&
       Dart_IsBoolean(Dart_GetNativeArgument(args, 1))) {
     const char* str =
@@ -605,12 +554,10 @@ void FUNCTION_NAME(File_GetType)(Dart_NativeArguments args) {
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(File_Stat)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   if (Dart_IsString(Dart_GetNativeArgument(args, 0))) {
     const char* path =
         DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
@@ -644,12 +591,10 @@ void FUNCTION_NAME(File_Stat)(Dart_NativeArguments args) {
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  Dart_ExitScope();
 }
 
 
 void FUNCTION_NAME(File_AreIdentical)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   if (Dart_IsString(Dart_GetNativeArgument(args, 0)) &&
       Dart_IsString(Dart_GetNativeArgument(args, 1))) {
     const char* path_1 =
@@ -670,7 +615,6 @@ void FUNCTION_NAME(File_AreIdentical)(Dart_NativeArguments args) {
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }
-  Dart_ExitScope();
 }
 
 
@@ -1324,7 +1268,6 @@ Dart_Port File::GetServicePort() {
 
 
 void FUNCTION_NAME(File_NewServicePort)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_SetReturnValue(args, Dart_Null());
   Dart_Port service_port = File::GetServicePort();
   if (service_port != ILLEGAL_PORT) {
@@ -1332,7 +1275,6 @@ void FUNCTION_NAME(File_NewServicePort)(Dart_NativeArguments args) {
     Dart_Handle send_port = Dart_NewSendPort(service_port);
     Dart_SetReturnValue(args, send_port);
   }
-  Dart_ExitScope();
 }
 
 }  // namespace bin

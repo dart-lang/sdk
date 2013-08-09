@@ -173,6 +173,92 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // For now, space is reserved on the stack and we pass a pointer to it.
   __ stm(IA, SP,  (1 << R0) | (1 << R1) | (1 << R2) | (1 << R3));
   __ mov(R0, ShifterOperand(SP));  // Pass the pointer to the NativeArguments.
+  __ mov(R1, ShifterOperand(R5));  // Pass the function entrypoint to call.
+
+  // Call native function invocation wrapper or redirection via simulator.
+#if defined(USING_SIMULATOR)
+  uword entry = reinterpret_cast<uword>(NativeEntry::NativeCallWrapper);
+  entry = Simulator::RedirectExternalReference(
+      entry, Simulator::kNativeCall, NativeEntry::kNumCallWrapperArguments);
+  __ LoadImmediate(R2, entry);
+  __ blx(R2);
+#else
+  __ BranchLink(&NativeEntry::NativeCallWrapperLabel());
+#endif
+
+  // Reset exit frame information in Isolate structure.
+  __ LoadImmediate(R2, 0);
+  __ StoreToOffset(kWord, R2, CTX, Isolate::top_exit_frame_info_offset());
+
+  // Load Context pointer from Isolate structure into R2.
+  __ LoadFromOffset(kWord, R2, CTX, Isolate::top_context_offset());
+
+  // Reset Context pointer in Isolate structure.
+  __ LoadImmediate(R3, reinterpret_cast<intptr_t>(Object::null()));
+  __ StoreToOffset(kWord, R3, CTX, Isolate::top_context_offset());
+
+  // Cache Context pointer into CTX while executing Dart code.
+  __ mov(CTX, ShifterOperand(R2));
+
+  __ LeaveFrame((1 << FP) | (1 << LR));
+  __ Ret();
+}
+
+
+// Input parameters:
+//   LR : return address.
+//   SP : address of return value.
+//   R5 : address of the native function to call.
+//   R2 : address of first argument in argument array.
+//   R1 : argc_tag including number of arguments and function kind.
+void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
+  const intptr_t isolate_offset = NativeArguments::isolate_offset();
+  const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
+  const intptr_t argv_offset = NativeArguments::argv_offset();
+  const intptr_t retval_offset = NativeArguments::retval_offset();
+
+  __ EnterFrame((1 << FP) | (1 << LR), 0);
+
+  // Load current Isolate pointer from Context structure into R0.
+  __ ldr(R0, FieldAddress(CTX, Context::isolate_offset()));
+
+  // Save exit frame information to enable stack walking as we are about
+  // to transition to native code.
+  __ StoreToOffset(kWord, SP, R0, Isolate::top_exit_frame_info_offset());
+
+  // Save current Context pointer into Isolate structure.
+  __ StoreToOffset(kWord, CTX, R0, Isolate::top_context_offset());
+
+  // Cache Isolate pointer into CTX while executing native code.
+  __ mov(CTX, ShifterOperand(R0));
+
+  // Reserve space for the native arguments structure passed on the stack (the
+  // outgoing pointer parameter to the native arguments structure is passed in
+  // R0) and align frame before entering the C++ world.
+  __ ReserveAlignedFrameSpace(sizeof(NativeArguments));
+
+  // Initialize NativeArguments structure and call native function.
+  // Registers R0, R1, R2, and R3 are used.
+
+  ASSERT(isolate_offset == 0 * kWordSize);
+  // Set isolate in NativeArgs: R0 already contains CTX.
+
+  // There are no native calls to closures, so we do not need to set the tag
+  // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
+  ASSERT(argc_tag_offset == 1 * kWordSize);
+  // Set argc in NativeArguments: R1 already contains argc.
+
+  ASSERT(argv_offset == 2 * kWordSize);
+  // Set argv in NativeArguments: R2 already contains argv.
+
+  ASSERT(retval_offset == 3 * kWordSize);
+  __ add(R3, FP, ShifterOperand(2 * kWordSize));  // Set retval in NativeArgs.
+
+  // TODO(regis): Should we pass the structure by value as in runtime calls?
+  // It would require changing Dart API for native functions.
+  // For now, space is reserved on the stack and we pass a pointer to it.
+  __ stm(IA, SP,  (1 << R0) | (1 << R1) | (1 << R2) | (1 << R3));
+  __ mov(R0, ShifterOperand(SP));  // Pass the pointer to the NativeArguments.
 
   // Call native function or redirection via simulator.
   __ blx(R5);

@@ -135,6 +135,9 @@ class SourceFactory {
    * @return the source representing the contained URI
    */
   Source resolveUri(Source containingSource, String containedUri) {
+    if (containedUri == null) {
+      return null;
+    }
     try {
       return resolveUri2(containingSource, parseUriWithException(containedUri));
     } on URISyntaxException catch (exception) {
@@ -165,10 +168,9 @@ class SourceFactory {
    *
    * @param source the source whose contents are being overridden
    * @param contents the new contents of the source
+   * @return `true` if the new cached contents are different from the old, else `false`
    */
-  void setContents(Source source, String contents) {
-    _contentCache.setContents(source, contents);
-  }
+  bool setContents(Source source, String contents) => _contentCache.setContents(source, contents);
 
   /**
    * Set the analysis context that this source factory is associated with to the given context.
@@ -420,7 +422,7 @@ abstract class Source_ContentReceiver {
  *
  * @coverage dart.engine.source
  */
-class SourceKind implements Comparable<SourceKind> {
+class SourceKind implements Enum<SourceKind> {
 
   /**
    * A source containing HTML. The HTML might or might not contain Dart scripts.
@@ -462,7 +464,7 @@ class SourceKind implements Comparable<SourceKind> {
  *
  * @coverage dart.engine.source
  */
-class UriKind implements Comparable<UriKind> {
+class UriKind implements Enum<UriKind> {
 
   /**
    * A 'dart:' URI.
@@ -877,14 +879,16 @@ class ContentCache {
    *
    * @param source the source whose contents are being overridden
    * @param contents the new contents of the source
+   * @return `true` if the new cached contents are different than the old, else `false`
    */
-  void setContents(Source source, String contents) {
+  bool setContents(Source source, String contents) {
     if (contents == null) {
-      _contentMap.remove(source);
       _stampMap.remove(source);
+      return _contentMap.remove(source) != null;
     } else {
-      _contentMap[source] = contents;
       _stampMap[source] = JavaSystem.currentTimeMillis();
+      String originalContents = javaMapPut(_contentMap, source, contents);
+      return contents != originalContents;
     }
   }
 }

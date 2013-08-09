@@ -10,7 +10,6 @@ import 'dart:io';
 import 'base_client.dart';
 import 'base_request.dart';
 import 'streamed_response.dart';
-import 'utils.dart';
 
 /// A `dart:io`-based HTTP client. This is the default client.
 class IOClient extends BaseClient {

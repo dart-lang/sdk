@@ -7,12 +7,14 @@
 #include "vm/isolate.h"
 #include "vm/message.h"
 #include "vm/object.h"
+#include "vm/object_id_ring.h"
+#include "vm/object_store.h"
 #include "vm/port.h"
 #include "vm/service.h"
 
 namespace dart {
 
-typedef RawString* (*ServiceMessageHandler)(Isolate* isolate);
+typedef void (*ServiceMessageHandler)(Isolate* isolate, JSONStream* stream);
 
 struct ServiceMessageHandlerEntry {
   const char* command;
@@ -73,33 +75,94 @@ void Service::HandleServiceMessage(Isolate* isolate, Dart_Port reply_port,
 
     ServiceMessageHandler handler =
         FindServiceMessageHandler(pathSegment.ToCString());
-    String& reply = String::Handle();
-    reply ^= handler(isolate);
-    ASSERT(!reply.IsNull());
-    PostReply(reply, reply_port);
+    ASSERT(handler != NULL);
+    {
+      TextBuffer buffer(256);
+      JSONStream js(&buffer);
+
+      // Setup JSONStream arguments and options. The arguments and options
+      // are zone allocated and will be freed immediately after handling the
+      // message.
+      Zone* zoneAllocator = zone.GetZone();
+      const char** arguments = zoneAllocator->Alloc<const char*>(path.Length());
+      String& string_iterator = String::Handle();
+      for (intptr_t i = 0; i < path.Length(); i++) {
+        string_iterator ^= path.At(i);
+        arguments[i] =
+            zoneAllocator->MakeCopyOfString(string_iterator.ToCString());
+      }
+      js.SetArguments(arguments, path.Length());
+      if (option_keys.Length() > 0) {
+        const char** option_keys_native =
+            zoneAllocator->Alloc<const char*>(option_keys.Length());
+        const char** option_values_native =
+            zoneAllocator->Alloc<const char*>(option_keys.Length());
+        for (intptr_t i = 0; i < option_keys.Length(); i++) {
+          string_iterator ^= option_keys.At(i);
+          option_keys_native[i] =
+              zoneAllocator->MakeCopyOfString(string_iterator.ToCString());
+          string_iterator ^= option_values.At(i);
+          option_values_native[i] =
+              zoneAllocator->MakeCopyOfString(string_iterator.ToCString());
+        }
+        js.SetOptions(option_keys_native, option_values_native,
+                      option_keys.Length());
+      }
+
+      handler(isolate, &js);
+      const String& reply = String::Handle(String::New(buffer.buf()));
+      ASSERT(!reply.IsNull());
+      PostReply(reply, reply_port);
+    }
   }
 }
 
 
-static RawString* HandleName(Isolate* isolate) {
-  TextBuffer buffer(256);
-  JSONStream js(&buffer);
-  js.OpenObject();
-  js.PrintProperty("type", "IsolateName");
-  js.PrintProperty("id", static_cast<intptr_t>(isolate->main_port()));
-  js.PrintProperty("name", isolate->name());
-  js.CloseObject();
-  return String::New(buffer.buf());
+static void PrintArgumentsAndOptions(JSONStream* js) {
+  js->OpenObject("message");
+  js->OpenArray("arguments");
+  for (intptr_t i = 0; i < js->num_arguments(); i++) {
+    js->PrintValue(js->GetArgument(i));
+  }
+  js->CloseArray();
+  js->OpenArray("option_keys");
+  for (intptr_t i = 0; i < js->num_options(); i++) {
+    js->PrintValue(js->GetOptionKey(i));
+  }
+  js->CloseArray();
+  js->OpenArray("option_values");
+  for (intptr_t i = 0; i < js->num_options(); i++) {
+    js->PrintValue(js->GetOptionValue(i));
+  }
+  js->CloseArray();
+  js->CloseObject();
 }
 
 
-RawString* HandleStackTrace(Isolate* isolate) {
-  TextBuffer buffer(256);
-  JSONStream js(&buffer);
+static void PrintCollectionErrorResponse(const char* collection_name,
+                                         JSONStream* js) {
+  js->OpenObject();
+  js->PrintProperty("type", "error");
+  js->PrintfProperty("text", "Must specify collection object id: /%s/id",
+                     collection_name);
+  js->CloseObject();
+}
+
+
+static void HandleName(Isolate* isolate, JSONStream* js) {
+  js->OpenObject();
+  js->PrintProperty("type", "IsolateName");
+  js->PrintProperty("id", static_cast<intptr_t>(isolate->main_port()));
+  js->PrintProperty("name", isolate->name());
+  js->CloseObject();
+}
+
+
+static void HandleStackTrace(Isolate* isolate, JSONStream* js) {
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
-  js.OpenObject();
-  js.PrintProperty("type", "StackTrace");
-  js.OpenArray("members");
+  js->OpenObject();
+  js->PrintProperty("type", "StackTrace");
+  js->OpenArray("members");
   intptr_t n_frames = stack->Length();
   String& url = String::Handle();
   String& function = String::Handle();
@@ -107,33 +170,84 @@ RawString* HandleStackTrace(Isolate* isolate) {
     ActivationFrame* frame = stack->ActivationFrameAt(i);
     url ^= frame->SourceUrl();
     function ^= frame->function().UserVisibleName();
-    js.OpenObject();
-    js.PrintProperty("name", function.ToCString());
-    js.PrintProperty("url", url.ToCString());
-    js.PrintProperty("line", frame->LineNumber());
-    js.PrintProperty("function", frame->function());
-    js.PrintProperty("code", frame->code());
-    js.CloseObject();
+    js->OpenObject();
+    js->PrintProperty("name", function.ToCString());
+    js->PrintProperty("url", url.ToCString());
+    js->PrintProperty("line", frame->LineNumber());
+    js->PrintProperty("function", frame->function());
+    js->PrintProperty("code", frame->code());
+    js->CloseObject();
   }
-  js.CloseArray();
-  js.CloseObject();
-  return String::New(buffer.buf());
+  js->CloseArray();
+  js->CloseObject();
 }
 
 
-RawString* HandleObjectHistogram(Isolate* isolate) {
-  TextBuffer buffer(256);
-  JSONStream js(&buffer);
+static void HandleObjectHistogram(Isolate* isolate, JSONStream* js) {
   ObjectHistogram* histogram = Isolate::Current()->object_histogram();
   if (histogram == NULL) {
-    js.OpenObject();
-    js.PrintProperty("type", "ObjectHistogram");
-    js.PrintProperty("error", "Run with --print_object_histogram");
-    js.CloseObject();
-    return String::New(buffer.buf());
+    js->OpenObject();
+    js->PrintProperty("type", "error");
+    js->PrintProperty("text", "Run with --print_object_histogram");
+    js->CloseObject();
+    return;
   }
-  histogram->PrintToJSONStream(&js);
-  return String::New(buffer.buf());
+  histogram->PrintToJSONStream(js);
+}
+
+
+static void HandleEcho(Isolate* isolate, JSONStream* js) {
+  js->OpenObject();
+  js->PrintProperty("type", "message");
+  PrintArgumentsAndOptions(js);
+  js->CloseObject();
+}
+
+// Print an error message if there is no ID argument.
+#define REQUIRE_COLLECTION_ID(collection)                                      \
+  if (js->num_arguments() == 1) {                                              \
+    PrintCollectionErrorResponse(collection, js);                              \
+    return;                                                                    \
+  }
+
+// Print a Dart object to the stream if found in ring. Otherwise print null.
+#define PRINT_RING_OBJ(type)                                                   \
+  ASSERT(js->num_arguments() >= 2);                                            \
+  ObjectIdRing* ring = isolate->object_id_ring();                              \
+  ASSERT(ring != NULL);                                                        \
+  intptr_t id = atoi(js->GetArgument(1));                                      \
+  Object& obj = Object::Handle(ring->GetObjectForId(id));                      \
+  if (!obj.Is##type()) {                                                       \
+    /* Object is not type, replace with null. */                               \
+    obj = Object::null();                                                      \
+  }                                                                            \
+  js->PrintValue(obj, false)
+
+
+static void HandleLibraries(Isolate* isolate, JSONStream* js) {
+  if (js->num_arguments() == 1) {
+    js->PrintValue(Library::Handle(isolate->object_store()->root_library()));
+    return;
+  }
+  PRINT_RING_OBJ(Library);
+}
+
+
+static void HandleFunctions(Isolate* isolate, JSONStream* js) {
+  REQUIRE_COLLECTION_ID("functions");
+  PRINT_RING_OBJ(Function);
+}
+
+
+static void HandleClasses(Isolate* isolate, JSONStream* js) {
+  REQUIRE_COLLECTION_ID("classes");
+  PRINT_RING_OBJ(Class);
+}
+
+
+static void HandleCodes(Isolate* isolate, JSONStream* js) {
+  REQUIRE_COLLECTION_ID("codes");
+  PRINT_RING_OBJ(Code);
 }
 
 
@@ -141,17 +255,20 @@ static ServiceMessageHandlerEntry __message_handlers[] = {
   { "name", HandleName },
   { "stacktrace", HandleStackTrace },
   { "objecthistogram", HandleObjectHistogram},
+  { "libraries", HandleLibraries },
+  { "functions", HandleFunctions },
+  { "classes", HandleClasses },
+  { "codes", HandleCodes },
+  { "_echo", HandleEcho },
 };
 
 
-static RawString* HandleFallthrough(Isolate* isolate) {
-  TextBuffer buffer(256);
-  JSONStream js(&buffer);
-  js.OpenObject();
-  js.PrintProperty("type", "error");
-  js.PrintProperty("text", "request not supported.");
-  js.CloseObject();
-  return String::New(buffer.buf());
+static void HandleFallthrough(Isolate* isolate, JSONStream* js) {
+  js->OpenObject();
+  js->PrintProperty("type", "error");
+  js->PrintProperty("text", "request not understood.");
+  PrintArgumentsAndOptions(js);
+  js->CloseObject();
 }
 
 

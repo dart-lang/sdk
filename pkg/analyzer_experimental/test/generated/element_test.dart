@@ -64,6 +64,17 @@ class ElementLocationImplTest extends EngineTestCase {
     ElementLocationImpl location = new ElementLocationImpl.con2(encoding);
     JUnitTestCase.assertEquals(encoding, location.encoding);
   }
+  void test_hashCode_equal() {
+    String encoding = "a;b;c";
+    ElementLocationImpl first = new ElementLocationImpl.con2(encoding);
+    ElementLocationImpl second = new ElementLocationImpl.con2(encoding);
+    JUnitTestCase.assertTrue(first.hashCode == second.hashCode);
+  }
+  void test_hashCode_equalWithDifferentUriKind() {
+    ElementLocationImpl first = new ElementLocationImpl.con2("fa;fb;c");
+    ElementLocationImpl second = new ElementLocationImpl.con2("pa;pb;c");
+    JUnitTestCase.assertTrue(first.hashCode == second.hashCode);
+  }
   static dartSuite() {
     _ut.group('ElementLocationImplTest', () {
       _ut.test('test_create_encoding', () {
@@ -97,6 +108,14 @@ class ElementLocationImplTest extends EngineTestCase {
       _ut.test('test_getEncoding', () {
         final __test = new ElementLocationImplTest();
         runJUnitTest(__test, __test.test_getEncoding);
+      });
+      _ut.test('test_hashCode_equal', () {
+        final __test = new ElementLocationImplTest();
+        runJUnitTest(__test, __test.test_hashCode_equal);
+      });
+      _ut.test('test_hashCode_equalWithDifferentUriKind', () {
+        final __test = new ElementLocationImplTest();
+        runJUnitTest(__test, __test.test_hashCode_equalWithDifferentUriKind);
       });
     });
   }
@@ -2339,7 +2358,7 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
   void test_isSubtypeOf_baseCase_classFunction() {
     ClassElementImpl functionElement = ElementFactory.classElement2("Function", []);
-    InterfaceTypeImpl functionType = new InterfaceTypeImpl_20(functionElement);
+    InterfaceTypeImpl functionType = new InterfaceTypeImpl_21(functionElement);
     FunctionType f = ElementFactory.functionElement("f").type;
     JUnitTestCase.assertTrue(f.isSubtypeOf(functionType));
   }
@@ -2799,8 +2818,8 @@ class FunctionTypeImplTest extends EngineTestCase {
     });
   }
 }
-class InterfaceTypeImpl_20 extends InterfaceTypeImpl {
-  InterfaceTypeImpl_20(ClassElement arg0) : super.con1(arg0);
+class InterfaceTypeImpl_21 extends InterfaceTypeImpl {
+  InterfaceTypeImpl_21(ClassElement arg0) : super.con1(arg0);
   bool get isDartCoreFunction => true;
 }
 main() {

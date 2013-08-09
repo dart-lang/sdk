@@ -310,3 +310,7 @@ patch class NoSuchMethodError {
     }
   }
 }
+
+patch class Uri {
+  patch static bool get _isWindows => false;
+}

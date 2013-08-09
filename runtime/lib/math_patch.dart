@@ -46,14 +46,12 @@ patch class Random {
     if (seed == null) {
       seed = _Random._nextSeed();
     }
-    do {
-      seed = (seed + 0x5A17) & _Random._MASK_64;
-    } while (seed == 0);
     // Crank a couple of times to distribute the seed bits a bit further.
-    return new _Random._internal(seed).._nextState()
-                                      .._nextState()
-                                      .._nextState()
-                                      .._nextState();
+    return new _Random().._setupSeed(seed)
+                        .._nextState()
+                        .._nextState()
+                        .._nextState()
+                        .._nextState();
   }
 }
 
@@ -64,19 +62,27 @@ class _Random implements Random {
   static const kSTATE_LO = 0;
   static const kSTATE_HI = 1;
 
-  _Random._internal(state) {
-    _state[kSTATE_LO] = state & _MASK_32;
-    _state[kSTATE_HI] = state >> 32;
-  }
+  // Implements:
+  //   do {
+  //     seed = (seed + 0x5A17) & _Random._MASK_64;
+  //   } while (seed == 0);
+  //   _state[kSTATE_LO] = seed & _MASK_32;
+  //   _state[kSTATE_HI] = seed >> 32;
+  // This is a native to prevent 64-bit operations in Dart, which
+  // fail with --throw_on_javascript_int_overflow.
+  void _setupSeed(int seed) native "Random_setupSeed";
 
   // The algorithm used here is Multiply with Carry (MWC) with a Base b = 2^32.
   // http://en.wikipedia.org/wiki/Multiply-with-carry
   // The constant A is selected from "Numerical Recipes 3rd Edition" p.348 B1.
-  void _nextState() {
-    var state = ((_A * (_state[kSTATE_LO])) + _state[kSTATE_HI]) & _MASK_64;
-    _state[kSTATE_LO] = state & _MASK_32;
-    _state[kSTATE_HI] = state >> 32;
-  }
+
+  // Implements:
+  //   var state = ((_A * (_state[kSTATE_LO])) + _state[kSTATE_HI]) & _MASK_64;
+  //   _state[kSTATE_LO] = state & _MASK_32;
+  //   _state[kSTATE_HI] = state >> 32;
+  // This is a native to prevent 64-bit operations in Dart, which
+  // fail with --throw_on_javascript_int_overflow.
+  void _nextState() native "Random_nextState";
 
   int nextInt(int max) {
     // TODO(srdjan): Remove the 'limit' check once optimizing  comparison of
@@ -103,7 +109,7 @@ class _Random implements Random {
   }
 
   double nextDouble() {
-    return ((nextInt(1 << 26) << 27) + nextInt(1 << 27)) / _POW2_53_D;
+    return ((nextInt(1 << 26) * _POW2_27_D) + nextInt(1 << 27)) / _POW2_53_D;
   }
 
   bool nextBool() {
@@ -115,6 +121,7 @@ class _Random implements Random {
   static const _MASK_64 = (1 << 64) - 1;
   static const _POW2_32 = 1 << 32;
   static const _POW2_53_D = 1.0 * (1 << 53);
+  static const _POW2_27_D = 1.0 * (1 << 27);
 
   static const _A = 0xffffda61;
 

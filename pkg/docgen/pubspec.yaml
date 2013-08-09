@@ -5,5 +5,5 @@ dependencies:
   logging: any
   markdown: any
   path: any
-  scheduled_test: any
+dev_dependencies:
   unittest: any

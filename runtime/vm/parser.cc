@@ -6,6 +6,7 @@
 
 #include "lib/invocation_mirror.h"
 #include "vm/bigint_operations.h"
+#include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler.h"
 #include "vm/compiler_stats.h"
@@ -204,13 +205,15 @@ struct Parser::Block : public ZoneAllocated {
 // block using 'return', 'break' or 'continue'.
 class Parser::TryBlocks : public ZoneAllocated {
  public:
-  TryBlocks(Block* try_block, TryBlocks* outer_try_block)
+  TryBlocks(Block* try_block, TryBlocks* outer_try_block, intptr_t try_index)
       : try_block_(try_block),
         inlined_finally_nodes_(),
-        outer_try_block_(outer_try_block) { }
+        outer_try_block_(outer_try_block),
+        try_index_(try_index) { }
 
   TryBlocks* outer_try_block() const { return outer_try_block_; }
   Block* try_block() const { return try_block_; }
+  intptr_t try_index() const { return try_index_; }
 
   void AddNodeForFinallyInlining(AstNode* node);
   AstNode* GetNodeToInlineFinally(int index) {
@@ -224,6 +227,7 @@ class Parser::TryBlocks : public ZoneAllocated {
   Block* try_block_;
   GrowableArray<AstNode*> inlined_finally_nodes_;
   TryBlocks* outer_try_block_;
+  const intptr_t try_index_;
 
   DISALLOW_COPY_AND_ASSIGN(TryBlocks);
 };
@@ -250,7 +254,8 @@ Parser::Parser(const Script& script, const Library& library, intptr_t token_pos)
       literal_token_(LiteralToken::Handle(isolate_)),
       current_class_(Class::Handle(isolate_)),
       library_(Library::Handle(isolate_, library.raw())),
-      try_blocks_list_(NULL) {
+      try_blocks_list_(NULL),
+      last_used_try_index_(CatchClauseNode::kInvalidTryIndex) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!library.IsNull());
 }
@@ -278,7 +283,8 @@ Parser::Parser(const Script& script,
       library_(Library::Handle(Class::Handle(
           isolate_,
           parsed_function->function().origin()).library())),
-      try_blocks_list_(NULL) {
+      try_blocks_list_(NULL),
+      last_used_try_index_(CatchClauseNode::kInvalidTryIndex) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!current_function().IsNull());
   if (FLAG_enable_type_checks) {
@@ -4737,8 +4743,8 @@ void Parser::ParseLibraryDefinition() {
   // declaration that follows the library definitions. Therefore, we
   // need to remember the position of the last token that was
   // successfully consumed.
-  intptr_t metadata_pos = TokenPos();
-  SkipMetadata();
+  intptr_t rewind_pos = TokenPos();
+  intptr_t metadata_pos = SkipMetadata();
   if (CurrentToken() == Token::kLIBRARY) {
     if (is_patch_source()) {
       ErrorMsg("patch cannot override library name");
@@ -4747,14 +4753,14 @@ void Parser::ParseLibraryDefinition() {
     if (metadata_pos >= 0) {
       library_.AddLibraryMetadata(current_class(), metadata_pos);
     }
-    metadata_pos = TokenPos();
-    SkipMetadata();
+    rewind_pos = TokenPos();
+    metadata_pos = SkipMetadata();
   }
   while ((CurrentToken() == Token::kIMPORT) ||
       (CurrentToken() == Token::kEXPORT)) {
     ParseLibraryImportExport();
-    metadata_pos = TokenPos();
-    SkipMetadata();
+    rewind_pos = TokenPos();
+    metadata_pos = SkipMetadata();
   }
   // Core lib has not been explicitly imported, so we implicitly
   // import it here.
@@ -4767,10 +4773,10 @@ void Parser::ParseLibraryDefinition() {
   }
   while (CurrentToken() == Token::kPART) {
     ParseLibraryPart();
-    metadata_pos = TokenPos();
-    SkipMetadata();
+    rewind_pos = TokenPos();
+    metadata_pos = SkipMetadata();
   }
-  SetPosition(metadata_pos);
+  SetPosition(rewind_pos);
 }
 
 
@@ -5004,6 +5010,7 @@ void Parser::ParseNativeFunctionBlock(const ParamList* params,
   func.set_is_native(true);
   TRACE_PARSER("ParseNativeFunctionBlock");
   const Class& cls = Class::Handle(func.Owner());
+  const Library& library = Library::Handle(cls.library());
   ASSERT(func.NumParameters() == params->parameters->length());
 
   // Parse the function name out.
@@ -5013,19 +5020,22 @@ void Parser::ParseNativeFunctionBlock(const ParamList* params,
   // Now resolve the native function to the corresponding native entrypoint.
   const int num_params = NativeArguments::ParameterCountForResolution(func);
   NativeFunction native_function = NativeEntry::ResolveNative(
-      cls, native_name, num_params);
+      library, native_name, num_params);
   if (native_function == NULL) {
     ErrorMsg(native_pos, "native function '%s' cannot be found",
         native_name.ToCString());
   }
 
   // Now add the NativeBodyNode and return statement.
+  Dart_NativeEntryResolver resolver = library.native_entry_resolver();
+  bool is_bootstrap_native = Bootstrap::IsBootstapResolver(resolver);
   current_block_->statements->Add(
       new ReturnNode(TokenPos(),
                      new NativeBodyNode(TokenPos(),
                                         Function::ZoneHandle(func.raw()),
                                         native_name,
-                                        native_function)));
+                                        native_function,
+                                        is_bootstrap_native)));
 }
 
 
@@ -5052,16 +5062,14 @@ LocalVariable* Parser::LookupPhaseParameter() {
 
 void Parser::CaptureInstantiator() {
   ASSERT(current_block_->scope->function_level() > 0);
-  const bool kTestOnly = false;
-  // Side effect of lookup captures the instantiator variable.
-  LocalVariable* instantiator = NULL;
+  bool found = false;
   if (current_function().IsInFactoryScope()) {
-    instantiator = LookupTypeArgumentsParameter(current_block_->scope,
-                                                kTestOnly);
+    found = current_block_->scope->CaptureVariable(
+        Symbols::TypeArgumentsParameter());
   } else {
-    instantiator = LookupReceiver(current_block_->scope, kTestOnly);
+    found = current_block_->scope->CaptureVariable(Symbols::This());
   }
-  ASSERT(instantiator != NULL);
+  ASSERT(found);
 }
 
 
@@ -5130,8 +5138,17 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
   // Add variable to scope after parsing the initalizer expression.
   // The expression must not be able to refer to the variable.
   if (!current_block_->scope->AddVariable(variable)) {
-    ErrorMsg(ident_pos, "identifier '%s' already defined",
-             variable->name().ToCString());
+    LocalVariable* existing_var =
+        current_block_->scope->LookupVariable(variable->name(), true);
+    ASSERT(existing_var != NULL);
+    if (existing_var->owner() == current_block_->scope) {
+      ErrorMsg(ident_pos, "identifier '%s' already defined",
+               variable->name().ToCString());
+    } else {
+      ErrorMsg(ident_pos,
+               "'%s' from outer scope has already been used, cannot redefine",
+               variable->name().ToCString());
+    }
   }
   if (is_final || is_const) {
     variable->set_is_final();
@@ -5290,8 +5307,18 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     ASSERT(current_block_ != NULL);
     ASSERT(current_block_->scope != NULL);
     if (!current_block_->scope->AddVariable(function_variable)) {
-      ErrorMsg(ident_pos, "identifier '%s' already defined",
-               function_variable->name().ToCString());
+      LocalVariable* existing_var =
+          current_block_->scope->LookupVariable(function_variable->name(),
+                                                true);
+      ASSERT(existing_var != NULL);
+      if (existing_var->owner() == current_block_->scope) {
+        ErrorMsg(ident_pos, "identifier '%s' already defined",
+                 function_variable->name().ToCString());
+      } else {
+        ErrorMsg(ident_pos,
+                 "'%s' from outer scope has already been used, cannot redefine",
+                 function_variable->name().ToCString());
+      }
     }
   }
 
@@ -6298,7 +6325,8 @@ SequenceNode* Parser::ParseFinallyBlock() {
 
 
 void Parser::PushTryBlock(Block* try_block) {
-  TryBlocks* block = new TryBlocks(try_block, try_blocks_list_);
+  intptr_t try_index = AllocateTryIndex();
+  TryBlocks* block = new TryBlocks(try_block, try_blocks_list_, try_index);
   try_blocks_list_ = block;
 }
 
@@ -6550,6 +6578,11 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   }
   catch_handler_list = CloseBlock();
   TryBlocks* inner_try_block = PopTryBlock();
+  intptr_t try_index = inner_try_block->try_index();
+  TryBlocks* outer_try_block = try_blocks_list_;
+  intptr_t outer_try_index = (outer_try_block != NULL)
+      ? outer_try_block->try_index()
+      : CatchClauseNode::kInvalidTryIndex;
 
   // Finally parse the 'finally' block.
   SequenceNode* finally_block = NULL;
@@ -6565,7 +6598,8 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       finally_block = ParseFinallyBlock();
       InlinedFinallyNode* node = new InlinedFinallyNode(finally_pos,
                                                         finally_block,
-                                                        context_var);
+                                                        context_var,
+                                                        outer_try_index);
       AddFinallyBlockToNode(node_to_inline, node);
       node_index += 1;
       node_to_inline = inner_try_block->GetNodeToInlineFinally(node_index);
@@ -6592,14 +6626,17 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
                           Array::ZoneHandle(Array::MakeArray(handler_types)),
                           context_var,
                           catch_excp_var,
-                          catch_trace_var);
+                          catch_trace_var,
+                          (finally_block != NULL)
+                              ? AllocateTryIndex()
+                              : CatchClauseNode::kInvalidTryIndex);
 
   // Now create the try/catch ast node and return it. If there is a label
   // on the try/catch, close the block that's embedding the try statement
   // and attach the label to it.
   AstNode* try_catch_node =
       new TryCatchNode(try_pos, try_block, end_catch_label,
-                       context_var, catch_block, finally_block);
+                       context_var, catch_block, finally_block, try_index);
 
   if (try_label != NULL) {
     current_block_->statements->Add(try_catch_node);
@@ -8564,7 +8601,6 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
         // be found.
         AstNode* receiver = NULL;
         const bool kTestOnly = true;
-        ASSERT(!current_function().IsInFactoryScope());
         if (!current_function().is_static() &&
             (LookupReceiver(current_block_->scope, kTestOnly) != NULL)) {
           receiver = LoadReceiver(ident_pos);

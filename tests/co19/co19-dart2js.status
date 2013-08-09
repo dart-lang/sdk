@@ -2,6 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == dart2js && ($runtime == d8 || $runtime == drt) ]
+LibTest/core/List/sort_A01_t02: Pass, Fail # v8 bug: Issue 12293
+LibTest/core/List/sort_A01_t03: Pass, Fail # v8 bug: Issue 12293
+LibTest/core/Map/Map_class_A01_t04: Pass, Fail # v8 bug: Issue 12293
+
 [ $compiler == dart2js && $runtime == jsshell ]
 LibTest/isolate/isolate_api/spawnUri_A02_t01: Crash # TODO(ahe): Please triage this crash.
 LibTest/core/List/sort_A01_t04: Pass, Timeout # Must be a bug in jsshell, test sometimes times out.
@@ -69,7 +74,6 @@ Language/12_Statements/03_Variable_Declaration_A04_t07: Fail # TODO(ahe): Please
 Language/12_Statements/03_Variable_Declaration_A04_t08: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/04_Local_Function_Declaration_A01_t01: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/04_Local_Function_Declaration_A02_t02: Fail # TODO(ahe): Please triage this failure.
-Language/12_Statements/09_Switch_A02_t02: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/09_Switch_A06_t02: Fail # co19 issue 413
 Language/12_Statements/10_Try_A06_t01: Fail # Issue 11850: dart2js inlining results in stack traces not as accurate
 Language/12_Statements/10_Try_A07_t03: Fail # TODO(ahe): Please triage this failure.
@@ -529,6 +533,10 @@ Language/14_Types/5_Function_Types_A02_t06: Fail # co19 issue 410
 LibTest/core/Match/pattern_A01_t01: Fail # co19 Issue 400, 422
 LibTest/core/RegExp/allMatches_A01_t01: Fail # co19 Issue 400, 422
 
+Language/11_Expressions/08_Throw_A05_t01: Fail # co19 issue 420
+Language/11_Expressions/08_Throw_A05_t02: Fail # co19 issue 420
+Language/11_Expressions/08_Throw_A05_t03: Fail # co19 issue 420
+
 LibTest/core/String/indexOf_A01_t02: Fail # Issue 427
 LibTest/core/String/lastIndexOf_A01_t02: Fail # Issue 427
 
@@ -566,6 +574,8 @@ Language/13_Libraries_and_Scripts/1_Imports_A03_t42: Fail # 481
 Language/13_Libraries_and_Scripts/1_Imports_A03_t45: Fail # 481
 Language/13_Libraries_and_Scripts/1_Imports_A03_t62: Fail # 481
 Language/13_Libraries_and_Scripts/1_Imports_A03_t65: Fail # 481
+
+Language/14_Types/2_Dynamic_Type_System_A02_t01: Fail # co19 issue 481
 
 [ $compiler == dart2js && $checked ]
 
@@ -707,8 +717,6 @@ Language/07_Classes/07_Classes_A04_t24: Fail # Checks that a static abstract get
 Language/07_Classes/07_Classes_A04_t25: Fail # Checks that a static abstract setter can't be used in place of a class member definition.
 Language/07_Classes/1_Instance_Methods_A02_t02: Fail # Checks that a compile-time error is produced if m1 has fewer named parameters than m2 (1 vs. 0) and neither have any required parameters.
 Language/07_Classes/1_Instance_Methods_A02_t05: Fail # Checks that a compile-time error is produced if m1 has almost the same set of named  parameters as m2 except for one of them having a different name.
-Language/07_Classes/2_Getters_A01_t03: Fail # Checks that a compile-time error is produced if empty formal parameter list is present.
-Language/07_Classes/2_Getters_A01_t05: Fail # Checks that a compile-time error is produced if an static getter has empty formal parameter list.
 Language/07_Classes/4_Abstract_Instance_Members_A04_t01: Fail # Checks that a compile-time error is produced when the overriding abstract method has fewer named parameters than the instance method being overridden (2 vs 3) and neither  have any required parameters.
 Language/07_Classes/4_Abstract_Instance_Members_A04_t05: Fail # Checks that a compile-time error is produced when the overriding non-abstract  instance method has the same set of named parameters as the abstract method being overriden,  but in a different order.
 Language/07_Classes/4_Abstract_Instance_Members_A04_t06: Fail # Checks that a compile-time error is produced when the overriding non-abstract  instance method has almost the same set of named parameters as the abstract method being overriden,  except for one that has a different name.
@@ -732,8 +740,6 @@ Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # Checks that Unicode whites
 # Unexpected compile-time errors.
 #
 [ $compiler == dart2js ]
-Language/14_Types/2_Dynamic_Type_System_A02_t01: Fail # http://dartbug.com/5029
-
 Language/07_Classes/3_Setters_A04_t01: Fail # http://dartbug.com/5023
 Language/07_Classes/3_Setters_A04_t02: Fail # http://dartbug.com/5023
 Language/07_Classes/3_Setters_A04_t03: Fail # http://dartbug.com/5023

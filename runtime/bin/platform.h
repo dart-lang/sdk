@@ -34,7 +34,17 @@ class Platform {
   static char** Environment(intptr_t* count);
   static void FreeEnvironment(char** env, intptr_t count);
 
+  // Stores and gets the executable name.
+  static void SetExecutableName(const char* executable_name) {
+    executable_name_ = executable_name;
+  }
+  static const char* GetExecutableName() {
+    return executable_name_;
+  }
+
  private:
+  static const char* executable_name_;
+
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Platform);
 };

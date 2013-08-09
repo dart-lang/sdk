@@ -252,7 +252,7 @@ testLocalsOne() {
   MockCompiler compiler = testLocals([["foo", false], ["foo", false]]);
   Expect.equals(1, compiler.errors.length);
   Expect.equals(
-      new Message(MessageKind.DUPLICATE_DEFINITION, {'name': 'foo'}),
+      new Message(MessageKind.DUPLICATE_DEFINITION, {'name': 'foo'}, false),
       compiler.errors[0].message);
 }
 
@@ -435,7 +435,7 @@ testTypeAnnotation() {
 
   Expect.equals(
       new Message(
-          MessageKind.CANNOT_RESOLVE_TYPE.warning,  {'typeName': 'Foo'}),
+          MessageKind.CANNOT_RESOLVE_TYPE.warning,  {'typeName': 'Foo'}, false),
       compiler.warnings[0].message);
   VariableDefinitions definition = compiler.parsedTree;
   Expect.equals(warningNode, definition.type);
@@ -462,7 +462,7 @@ testSuperclass() {
   // should only the get the error once.
   Expect.equals(2, compiler.errors.length);
   var cannotResolveBar = new Message(MessageKind.CANNOT_RESOLVE_TYPE.error,
-                                     {'typeName': 'Bar'});
+                                     {'typeName': 'Bar'}, false);
   Expect.equals(cannotResolveBar, compiler.errors[0].message);
   Expect.equals(cannotResolveBar, compiler.errors[1].message);
   compiler.clearErrors();
@@ -487,7 +487,8 @@ testVarSuperclass() {
   compiler.resolveStatement("Foo bar;");
   Expect.equals(1, compiler.errors.length);
   Expect.equals(
-      new Message(MessageKind.CANNOT_RESOLVE_TYPE.warning, {'typeName': 'var'}),
+      new Message(
+          MessageKind.CANNOT_RESOLVE_TYPE.warning, {'typeName': 'var'}, false),
       compiler.errors[0].message);
   compiler.clearErrors();
 }
@@ -498,7 +499,8 @@ testOneInterface() {
   compiler.resolveStatement("Foo bar;");
   Expect.equals(1, compiler.errors.length);
   Expect.equals(
-      new Message(MessageKind.CANNOT_RESOLVE_TYPE.warning, {'typeName': 'bar'}),
+      new Message(
+          MessageKind.CANNOT_RESOLVE_TYPE.warning, {'typeName': 'bar'}, false),
       compiler.errors[0].message);
   compiler.clearErrors();
 
@@ -811,7 +813,7 @@ testInitializers() {
 }
 
 map(ResolverVisitor visitor) {
-  TreeElementMapping elements = visitor.mapping;
+  CollectingTreeElements elements = visitor.mapping;
   return elements.map;
 }
 
@@ -832,8 +834,8 @@ compileScript(String source) {
 }
 
 checkMemberResolved(compiler, className, memberName) {
-  Element memberElement = findElement(compiler, className)
-      .lookupLocalMember(memberName);
+  ClassElement cls = findElement(compiler, className);
+  Element memberElement = cls.lookupLocalMember(memberName);
   Expect.isNotNull(memberElement);
   Expect.isNotNull(
       compiler.enqueuer.resolution.getCachedElements(memberElement));

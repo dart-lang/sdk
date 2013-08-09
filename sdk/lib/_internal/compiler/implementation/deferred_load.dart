@@ -83,21 +83,23 @@ class DeferredLoadTask extends CompilerTask {
           new LinkedHashMap<LibraryElement, Set<Element>>();
       Set<Element> eagerElements = new LinkedHashSet<Element>();
 
-      // Iterate through the local members of the main script.  Create
+      // Iterate through live local members of the main script.  Create
       // a root-set of elements that must be loaded eagerly
       // (everything that is directly referred to from the main
       // script, but not imported from a deferred library), as well as
       // root-sets for deferred libraries.
       mainApp.forEachLocalMember((Element e) {
-        for (Element dependency in allElementsResolvedFrom(e)) {
-          if (isExplicitlyDeferred(dependency)) {
-            Set<Element> deferredElementsFromLibrary =
-                deferredElements.putIfAbsent(
-                    dependency.getLibrary(),
-                    () => new LinkedHashSet<Element>());
-            deferredElementsFromLibrary.add(dependency);
-          } else if (dependency.getLibrary() != mainApp) {
-            eagerElements.add(dependency.implementation);
+        if (compiler.enqueuer.resolution.isLive(e)) {
+          for (Element dependency in allElementsResolvedFrom(e)) {
+            if (isExplicitlyDeferred(dependency)) {
+              Set<Element> deferredElementsFromLibrary =
+                  deferredElements.putIfAbsent(
+                      dependency.getLibrary(),
+                      () => new LinkedHashSet<Element>());
+              deferredElementsFromLibrary.add(dependency);
+            } else if (dependency.getLibrary() != mainApp) {
+              eagerElements.add(dependency.implementation);
+            }
           }
         }
       });

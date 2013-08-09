@@ -9,8 +9,6 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:utf';
 
-import "package:crypto/crypto.dart";
-
 import 'byte_stream.dart';
 
 /// Converts a URL query string (or `application/x-www-form-urlencoded` body)

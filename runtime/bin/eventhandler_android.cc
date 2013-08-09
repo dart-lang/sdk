@@ -88,7 +88,10 @@ static void UpdateEpollInstance(intptr_t epoll_fd_, SocketData* sd) {
       sd->set_tracked_by_epoll(true);
     }
     if (status == -1) {
-      FATAL1("Failed updating epoll instance: %s", strerror(errno));
+      const int kBufferSize = 1024;
+      char error_message[kBufferSize];
+      strerror_r(errno, error_message, kBufferSize);
+      FATAL1("Failed updating epoll instance: %s", error_message);
     }
   }
 }
@@ -306,7 +309,10 @@ intptr_t EventHandlerImplementation::GetPollEvents(intptr_t events,
             event_mask = (1 << kCloseEvent);
             sd->MarkClosedRead();
           } else if (errno != EWOULDBLOCK) {
-            Log::PrintErr("Error recv: %s\n", strerror(errno));
+            const int kBufferSize = 1024;
+            char error_message[kBufferSize];
+            strerror_r(errno, error_message, kBufferSize);
+            Log::PrintErr("Error recv: %s\n", error_message);
           }
         }
       }

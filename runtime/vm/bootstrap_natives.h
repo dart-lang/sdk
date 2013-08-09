@@ -107,6 +107,8 @@ namespace dart {
   V(Math_atan2, 2)                                                             \
   V(Math_exp, 1)                                                               \
   V(Math_log, 1)                                                               \
+  V(Random_nextState, 1)                                                       \
+  V(Random_setupSeed, 2)                                                       \
   V(DateNatives_currentTimeMillis, 0)                                          \
   V(DateNatives_timeZoneName, 1)                                               \
   V(DateNatives_timeZoneOffsetInSeconds, 1)                                    \
@@ -241,6 +243,7 @@ namespace dart {
   V(isolate_spawnUri, 1)                                                       \
   V(Mirrors_isLocalPort, 1)                                                    \
   V(Mirrors_makeLocalClassMirror, 1)                                           \
+  V(Mirrors_makeLocalTypeMirror, 1)                                            \
   V(Mirrors_makeLocalMirrorSystem, 0)                                          \
   V(MirrorReference_equals, 2)                                                 \
   V(InstanceMirror_invoke, 4)                                                  \
@@ -260,12 +263,14 @@ namespace dart {
   V(ClassMirror_invokeSetter, 4)                                               \
   V(ClassMirror_invokeConstructor, 3)                                          \
   V(ClassMirror_type_variables, 1)                                             \
+  V(ClassMirror_type_arguments, 1)                                             \
   V(LibraryMirror_invoke, 4)                                                   \
   V(LibraryMirror_invokeGetter, 3)                                             \
   V(LibraryMirror_invokeSetter, 4)                                             \
-  V(LocalTypeVariableMirror_owner, 1)                                          \
-  V(LocalTypeVariableMirror_upper_bound, 1)                                    \
+  V(TypeVariableMirror_owner, 1)                                               \
+  V(TypeVariableMirror_upper_bound, 1)                                         \
   V(DeclarationMirror_metadata, 1)                                             \
+  V(FunctionTypeMirror_call_method, 2)                                         \
   V(FunctionTypeMirror_parameters, 1)                                          \
   V(FunctionTypeMirror_return_type, 1)                                         \
   V(MethodMirror_owner, 1)                                                     \
@@ -285,6 +290,7 @@ namespace dart {
   V(WeakProperty_getKey, 1)                                                    \
   V(WeakProperty_getValue, 1)                                                  \
   V(WeakProperty_setValue, 2)                                                  \
+  V(Uri_isWindowsPlatform, 0)                                                  \
 
 class BootstrapNatives : public AllStatic {
  public:

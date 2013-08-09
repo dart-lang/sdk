@@ -48,19 +48,36 @@ void main() {
   // 2. Some code was refactored, and there are more methods.
   // Either situation could be problematic, but in situation 2, it is often
   // acceptable to increase [expectedMethodCount] a little.
-  int expectedMethodCount = 315;
+  int expectedMethodCount = 317;
   Expect.isTrue(
       generatedCode.length <= expectedMethodCount,
       'Too many compiled methods: '
       '${generatedCode.length} > $expectedMethodCount');
 
+  // The following names should be retained:
+  List expectedNames = [
+      'Foo', // The name of class Foo.
+      r'Foo$', // The name of class Foo's constructor.
+      'Foo_staticMethod', // The name of Foo.staticMethod.
+      r'get$field', // The (getter) name of Foo.field.
+      r'instanceMethod$0']; // The name of Foo.instanceMethod.
+  Set recordedNames = new Set()
+      ..addAll(compiler.backend.emitter.recordedMangledNames)
+      ..addAll(compiler.backend.emitter.mangledFieldNames.keys)
+      ..addAll(compiler.backend.emitter.mangledGlobalFieldNames.keys);
+  Expect.setEquals(new Set.from(expectedNames), recordedNames);
+
   for (var library in compiler.libraries.values) {
     library.forEachLocalMember((member) {
-      if (library == compiler.mainApp) {
-        // TODO(ahe): We currently retain the entire library. Update this test
-        // to test that only Foo is retained.
+      if (library == compiler.mainApp
+          && member.name == const SourceString('Foo')) {
         Expect.isTrue(
             compiler.backend.isNeededForReflection(member), '$member');
+        member.forEachLocalMember((classMember) {
+          Expect.isTrue(
+              compiler.backend.isNeededForReflection(classMember),
+              '$classMember');
+        });
       } else {
         Expect.isFalse(
             compiler.backend.isNeededForReflection(member), '$member');
@@ -76,7 +93,14 @@ import 'dart:mirrors';
 
 import 'library.dart';
 
-class Foo {}
+class Foo {
+  int field;
+  instanceMethod() {}
+  static staticMethod() {}
+}
+
+unusedFunction() {
+}
 
 main() {
   useReflect(Foo);

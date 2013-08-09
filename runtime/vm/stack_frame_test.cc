@@ -75,7 +75,6 @@ void FUNCTION_NAME(StackFrame_dartFrameCount)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(StackFrame_validateFrame)(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_Handle index = Dart_GetNativeArgument(args, 0);
   Dart_Handle name = Dart_GetNativeArgument(args, 1);
   const Smi& frame_index_smi = Smi::CheckedHandle(Api::UnwrapHandle(index));
@@ -108,7 +107,6 @@ void FUNCTION_NAME(StackFrame_validateFrame)(Dart_NativeArguments args) {
       if (strcmp(full_name, name) != 0) {
         FATAL("StackFrame_validateFrame fails, incorrect frame.\n");
       }
-      Dart_ExitScope();
       return;
     }
     count += 1;  // Count the dart frames.

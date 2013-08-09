@@ -6,8 +6,6 @@ library descriptor.descriptor;
 
 import 'dart:async';
 
-import '../utils.dart';
-
 /// The base class for various declarative descriptions of filesystem entries.
 /// All asynchronous operations on descriptors are [schedule]d unless otherwise
 /// noted.
