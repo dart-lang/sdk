@@ -1064,11 +1064,13 @@ void Debugger::SignalExceptionThrown(const Instance& exc) {
   ASSERT(stack_trace_ == NULL);
   stack_trace_ = stack_trace;
   ASSERT(obj_cache_ == NULL);
+  in_event_notification_ = true;
   obj_cache_ = new RemoteObjectCache(64);
   DebuggerEvent event;
   event.type = kExceptionThrown;
   event.exception = &exc;
   (*event_handler_)(&event);
+  in_event_notification_ = false;
   stack_trace_ = NULL;
   obj_cache_ = NULL;  // Remote object cache is zone allocated.
 }
