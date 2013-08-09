@@ -52,7 +52,7 @@ class _ElementEventStreamImpl<T extends Event> extends _EventStream<T>
       super(target, eventType, useCapture);
 
   Stream<T> matches(String selector) =>
-      this.where((event) => event.target.matches(selector, true));
+      this.where((event) => event.target.matchesWithAncestors(selector));
 }
 
 /**
@@ -74,7 +74,7 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
   }
 
   Stream<T> matches(String selector) =>
-      this.where((event) => event.target.matches(selector, true));
+      this.where((event) => event.target.matchesWithAncestors(selector));
 
   // Delegate all regular Stream behavor to our wrapped Stream.
   StreamSubscription<T> listen(void onData(T event),

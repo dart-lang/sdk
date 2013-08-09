@@ -9318,7 +9318,7 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
    * Checks if this element matches the CSS selectors.
    */
   @Experimental()
-  bool _matches(String selectors) {
+  bool matches(String selectors) {
     if (JS('bool', '!!#.matches', this)) {
       return JS('bool', '#.matches(#)', this, selectors);
     } else if (JS('bool', '!!#.webkitMatchesSelector', this)) {
@@ -9330,23 +9330,16 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
     } else {
       throw new UnsupportedError("Not supported on this platform");
     }
-    return false;
   }
 
-  /**
-   * Checks if this element matches the CSS selectors.
-   *
-   * If `includeAncestors` is true, we examine all of this element's parent
-   * elements and also return true if any of its parent elements matches
-   * `selectors`.
-   */
+  /** Checks if this element or any of its parents match the CSS selectors. */
   @Experimental()
-  bool matches(String selectors, [includeAncestors = false]) {
+  bool matchesWithAncestors(String selectors) {
     var elem = this;
     do {
-      if (elem._matches(selectors)) return true;
+      if (elem.matches(selectors)) return true;
       elem = elem.parent;
-    } while(includeAncestors && elem != null);
+    } while(elem != null);
     return false;
   }
 
@@ -28817,7 +28810,7 @@ class _ElementEventStreamImpl<T extends Event> extends _EventStream<T>
       super(target, eventType, useCapture);
 
   Stream<T> matches(String selector) =>
-      this.where((event) => event.target.matches(selector, true));
+      this.where((event) => event.target.matchesWithAncestors(selector));
 }
 
 /**
@@ -28839,7 +28832,7 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
   }
 
   Stream<T> matches(String selector) =>
-      this.where((event) => event.target.matches(selector, true));
+      this.where((event) => event.target.matchesWithAncestors(selector));
 
   // Delegate all regular Stream behavor to our wrapped Stream.
   StreamSubscription<T> listen(void onData(T event),

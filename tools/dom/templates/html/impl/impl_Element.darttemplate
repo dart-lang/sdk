@@ -879,7 +879,7 @@ $if DART2JS
    * Checks if this element matches the CSS selectors.
    */
   @Experimental()
-  bool _matches(String selectors) {
+  bool matches(String selectors) {
     if (JS('bool', '!!#.matches', this)) {
       return JS('bool', '#.matches(#)', this, selectors);
     } else if (JS('bool', '!!#.webkitMatchesSelector', this)) {
@@ -891,25 +891,18 @@ $if DART2JS
     } else {
       throw new UnsupportedError("Not supported on this platform");
     }
-    return false;
   }
 $else
 $endif
 
-  /**
-   * Checks if this element matches the CSS selectors.
-   *
-   * If `includeAncestors` is true, we examine all of this element's parent
-   * elements and also return true if any of its parent elements matches
-   * `selectors`.
-   */
+  /** Checks if this element or any of its parents match the CSS selectors. */
   @Experimental()
-  bool matches(String selectors, [includeAncestors = false]) {
+  bool matchesWithAncestors(String selectors) {
     var elem = this;
     do {
-      if (elem._matches(selectors)) return true;
+      if (elem.matches(selectors)) return true;
       elem = elem.parent;
-    } while(includeAncestors && elem != null);
+    } while(elem != null);
     return false;
   }
 
