@@ -147,6 +147,9 @@
     "members": {
       "AudioContext": {},
       "activeSourceCount": {},
+      "addEventListener": {
+        "support_level": "untriaged"
+      },
       "createAnalyser": {},
       "createBiquadFilter": {},
       "createBuffer": {},
@@ -176,8 +179,14 @@
       "currentTime": {},
       "decodeAudioData": {},
       "destination": {},
+      "dispatchEvent": {
+        "support_level": "untriaged"
+      },
       "listener": {},
       "oncomplete": {},
+      "removeEventListener": {
+        "support_level": "untriaged"
+      },
       "sampleRate": {},
       "startRendering": {}
     },
@@ -7309,9 +7318,15 @@
     "comment": "http://www.w3.org/TR/SVG/struct.html#InterfaceSVGElementInstance",
     "dart_action": "unstable",
     "members": {
+      "addEventListener": {
+        "support_level": "untriaged"
+      },
       "childNodes": {},
       "correspondingElement": {},
       "correspondingUseElement": {},
+      "dispatchEvent": {
+        "support_level": "untriaged"
+      },
       "firstChild": {},
       "lastChild": {},
       "nextSibling": {},
@@ -7365,7 +7380,10 @@
       "onsubmit": {},
       "onunload": {},
       "parentNode": {},
-      "previousSibling": {}
+      "previousSibling": {},
+      "removeEventListener": {
+        "support_level": "untriaged"
+      }
     },
     "support_level": "stable"
   },
@@ -10221,6 +10239,12 @@
     "comment": "https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section",
     "members": {
       "SpeechSynthesisUtterance": {},
+      "addEventListener": {
+        "support_level": "untriaged"
+      },
+      "dispatchEvent": {
+        "support_level": "untriaged"
+      },
       "lang": {},
       "onboundary": {},
       "onend": {},
@@ -10231,6 +10255,9 @@
       "onstart": {},
       "pitch": {},
       "rate": {},
+      "removeEventListener": {
+        "support_level": "untriaged"
+      },
       "text": {},
       "voice": {},
       "volume": {}
@@ -12017,11 +12044,20 @@
     "dart_action": "experimental",
     "members": {
       "Worker": {},
+      "addEventListener": {
+        "support_level": "untriaged"
+      },
+      "dispatchEvent": {
+        "support_level": "untriaged"
+      },
       "onerror": {
         "support_level": "untriaged"
       },
       "onmessage": {},
       "postMessage": {},
+      "removeEventListener": {
+        "support_level": "untriaged"
+      },
       "terminate": {}
     },
     "support_level": "stable"
@@ -12121,6 +12157,9 @@
       "TEMPORARY": {
         "support_level": "untriaged"
       },
+      "addEventListener": {
+        "support_level": "untriaged"
+      },
       "atob": {
         "support_level": "untriaged"
       },
@@ -12137,6 +12176,9 @@
         "support_level": "untriaged"
       },
       "crypto": {
+        "support_level": "untriaged"
+      },
+      "dispatchEvent": {
         "support_level": "untriaged"
       },
       "importScripts": {
@@ -12161,6 +12203,9 @@
         "support_level": "untriaged"
       },
       "performance": {
+        "support_level": "untriaged"
+      },
+      "removeEventListener": {
         "support_level": "untriaged"
       },
       "self": {

@@ -100,9 +100,7 @@ _callPortSync(num id, var message) {
 
 @DocsEditable()
 @DomName('AbstractWorker')
-class AbstractWorker extends EventTarget {
-  // To suppress missing implicit constructor warnings.
-  factory AbstractWorker._() { throw new UnsupportedError("Not supported"); }
+class AbstractWorker extends NativeFieldWrapperClass1 {
 
   @DomName('AbstractWorker.errorEvent')
   @DocsEditable()
@@ -449,6 +447,18 @@ class ApplicationCache extends EventTarget {
   @DomName('DOMApplicationCache.update')
   @DocsEditable()
   void update() native "DOMApplicationCache_update_Callback";
+
+  @DomName('DOMApplicationCache.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "DOMApplicationCache_addEventListener_Callback";
+
+  @DomName('DOMApplicationCache.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "DOMApplicationCache_dispatchEvent_Callback";
+
+  @DomName('DOMApplicationCache.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "DOMApplicationCache_removeEventListener_Callback";
 
   @DomName('DOMApplicationCache.oncached')
   @DocsEditable()
@@ -11005,6 +11015,18 @@ class EventSource extends EventTarget {
   @DocsEditable()
   void close() native "EventSource_close_Callback";
 
+  @DomName('EventSource.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "EventSource_addEventListener_Callback";
+
+  @DomName('EventSource.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "EventSource_dispatchEvent_Callback";
+
+  @DomName('EventSource.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "EventSource_removeEventListener_Callback";
+
   @DomName('EventSource.onerror')
   @DocsEditable()
   Stream<Event> get onError => errorEvent.forTarget(this);
@@ -11479,6 +11501,18 @@ class FileReader extends EventTarget {
 
   void _readAsText_2(blob) native "FileReader__readAsText_2_Callback";
 
+  @DomName('FileReader.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "FileReader_addEventListener_Callback";
+
+  @DomName('FileReader.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "FileReader_dispatchEvent_Callback";
+
+  @DomName('FileReader.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "FileReader_removeEventListener_Callback";
+
   @DomName('FileReader.onabort')
   @DocsEditable()
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
@@ -11642,6 +11676,18 @@ class FileWriter extends EventTarget {
   @DocsEditable()
   void write(Blob data) native "FileWriter_write_Callback";
 
+  @DomName('FileWriter.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "FileWriter_addEventListener_Callback";
+
+  @DomName('FileWriter.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "FileWriter_dispatchEvent_Callback";
+
+  @DomName('FileWriter.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "FileWriter_removeEventListener_Callback";
+
   @DomName('FileWriter.onabort')
   @DocsEditable()
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
@@ -11746,6 +11792,18 @@ class FontLoader extends EventTarget {
   @DomName('FontLoader.notifyWhenFontsReady')
   @DocsEditable()
   void notifyWhenFontsReady(VoidCallback callback) native "FontLoader_notifyWhenFontsReady_Callback";
+
+  @DomName('FontLoader.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "FontLoader_addEventListener_Callback";
+
+  @DomName('FontLoader.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "FontLoader_dispatchEvent_Callback";
+
+  @DomName('FontLoader.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "FontLoader_removeEventListener_Callback";
 
   @DomName('FontLoader.onerror')
   @DocsEditable()
@@ -13169,6 +13227,18 @@ class HttpRequest extends EventTarget {
   @DocsEditable()
   void setRequestHeader(String header, String value) native "XMLHttpRequest_setRequestHeader_Callback";
 
+  @DomName('XMLHttpRequest.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequest_addEventListener_Callback";
+
+  @DomName('XMLHttpRequest.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "XMLHttpRequest_dispatchEvent_Callback";
+
+  @DomName('XMLHttpRequest.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequest_removeEventListener_Callback";
+
   /**
    * Event listeners to be notified when request has been aborted,
    * generally due to calling `httpRequest.abort()`.
@@ -13304,6 +13374,18 @@ class HttpRequestUpload extends EventTarget {
   @DomName('XMLHttpRequestUpload.progressEvent')
   @DocsEditable()
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
+
+  @DomName('XMLHttpRequestUpload.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequestUpload_addEventListener_Callback";
+
+  @DomName('XMLHttpRequestUpload.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "XMLHttpRequestUpload_dispatchEvent_Callback";
+
+  @DomName('XMLHttpRequestUpload.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequestUpload_removeEventListener_Callback";
 
   @DomName('XMLHttpRequestUpload.onabort')
   @DocsEditable()
@@ -15348,6 +15430,18 @@ class MediaController extends EventTarget {
   @DocsEditable()
   void unpause() native "MediaController_unpause_Callback";
 
+  @DomName('MediaController.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaController_addEventListener_Callback";
+
+  @DomName('MediaController.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "MediaController_dispatchEvent_Callback";
+
+  @DomName('MediaController.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaController_removeEventListener_Callback";
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16158,6 +16252,18 @@ class MediaKeySession extends EventTarget {
   @DocsEditable()
   void update(Uint8List key) native "MediaKeySession_update_Callback";
 
+  @DomName('MediaKeySession.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaKeySession_addEventListener_Callback";
+
+  @DomName('MediaKeySession.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "MediaKeySession_dispatchEvent_Callback";
+
+  @DomName('MediaKeySession.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaKeySession_removeEventListener_Callback";
+
   @DomName('MediaKeySession.onwebkitkeyadded')
   @DocsEditable()
   Stream<MediaKeyEvent> get onKeyAdded => keyAddedEvent.forTarget(this);
@@ -16345,6 +16451,18 @@ class MediaSource extends EventTarget {
   @DocsEditable()
   void removeSourceBuffer(SourceBuffer buffer) native "MediaSource_removeSourceBuffer_Callback";
 
+  @DomName('MediaSource.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaSource_addEventListener_Callback";
+
+  @DomName('MediaSource.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "MediaSource_dispatchEvent_Callback";
+
+  @DomName('MediaSource.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaSource_removeEventListener_Callback";
+
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16431,6 +16549,18 @@ class MediaStream extends EventTarget {
   @DomName('MediaStream.stop')
   @DocsEditable()
   void stop() native "MediaStream_stop_Callback";
+
+  @DomName('MediaStream.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStream_addEventListener_Callback";
+
+  @DomName('MediaStream.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "MediaStream_dispatchEvent_Callback";
+
+  @DomName('MediaStream.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStream_removeEventListener_Callback";
 
   @DomName('MediaStream.onaddtrack')
   @DocsEditable()
@@ -16534,6 +16664,18 @@ class MediaStreamTrack extends EventTarget {
   @DocsEditable()
   @Experimental() // untriaged
   static void getSources(MediaStreamTrackSourcesCallback callback) native "MediaStreamTrack_getSources_Callback";
+
+  @DomName('MediaStreamTrack.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStreamTrack_addEventListener_Callback";
+
+  @DomName('MediaStreamTrack.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "MediaStreamTrack_dispatchEvent_Callback";
+
+  @DomName('MediaStreamTrack.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStreamTrack_removeEventListener_Callback";
 
   @DomName('MediaStreamTrack.onended')
   @DocsEditable()
@@ -16744,6 +16886,18 @@ class MessagePort extends EventTarget {
   @DocsEditable()
   void start() native "MessagePort_start_Callback";
 
+  @DomName('MessagePort.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MessagePort_addEventListener_Callback";
+
+  @DomName('MessagePort.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "MessagePort_dispatchEvent_Callback";
+
+  @DomName('MessagePort.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MessagePort_removeEventListener_Callback";
+
   @DomName('MessagePort.onmessage')
   @DocsEditable()
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
@@ -16933,6 +17087,18 @@ class MidiAccess extends EventTarget {
   @DocsEditable()
   List<MidiOutput> outputs() native "MIDIAccess_outputs_Callback";
 
+  @DomName('MIDIAccess.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MIDIAccess_addEventListener_Callback";
+
+  @DomName('MIDIAccess.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "MIDIAccess_dispatchEvent_Callback";
+
+  @DomName('MIDIAccess.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MIDIAccess_removeEventListener_Callback";
+
   @DomName('MIDIAccess.onconnect')
   @DocsEditable()
   Stream<MidiConnectionEvent> get onConnect => connectEvent.forTarget(this);
@@ -17095,6 +17261,18 @@ class MidiPort extends EventTarget {
   @DomName('MIDIPort.version')
   @DocsEditable()
   String get version native "MIDIPort_version_Getter";
+
+  @DomName('MIDIPort.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MIDIPort_addEventListener_Callback";
+
+  @DomName('MIDIPort.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "MIDIPort_dispatchEvent_Callback";
+
+  @DomName('MIDIPort.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MIDIPort_removeEventListener_Callback";
 
   @DomName('MIDIPort.ondisconnect')
   @DocsEditable()
@@ -17632,6 +17810,18 @@ class NamedFlow extends EventTarget {
   @DomName('WebKitNamedFlow.getRegionsByContent')
   @DocsEditable()
   List<Node> getRegionsByContent(Node contentNode) native "WebKitNamedFlow_getRegionsByContent_Callback";
+
+  @DomName('WebKitNamedFlow.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WebKitNamedFlow_addEventListener_Callback";
+
+  @DomName('WebKitNamedFlow.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "WebKitNamedFlow_dispatchEvent_Callback";
+
+  @DomName('WebKitNamedFlow.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WebKitNamedFlow_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18359,6 +18549,18 @@ class Node extends EventTarget {
   @DocsEditable()
   Node $dom_replaceChild(Node newChild, Node oldChild) native "Node_replaceChild_Callback";
 
+  @DomName('Node.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "Node_addEventListener_Callback";
+
+  @DomName('Node.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "Node_dispatchEvent_Callback";
+
+  @DomName('Node.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "Node_removeEventListener_Callback";
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18685,6 +18887,18 @@ class Notification extends EventTarget {
   @DocsEditable()
   @Experimental() // nonstandard
   void show() native "Notification_show_Callback";
+
+  @DomName('Notification.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "Notification_addEventListener_Callback";
+
+  @DomName('Notification.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "Notification_dispatchEvent_Callback";
+
+  @DomName('Notification.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "Notification_removeEventListener_Callback";
 
   @DomName('Notification.onclick')
   @DocsEditable()
@@ -20464,6 +20678,18 @@ class RtcDataChannel extends EventTarget {
   @DocsEditable()
   void sendTypedData(TypedData data) native "RTCDataChannel_sendTypedData_Callback";
 
+  @DomName('RTCDataChannel.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDataChannel_addEventListener_Callback";
+
+  @DomName('RTCDataChannel.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "RTCDataChannel_dispatchEvent_Callback";
+
+  @DomName('RTCDataChannel.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDataChannel_removeEventListener_Callback";
+
   @DomName('RTCDataChannel.onclose')
   @DocsEditable()
   Stream<Event> get onClose => closeEvent.forTarget(this);
@@ -20558,6 +20784,18 @@ class RtcDtmfSender extends EventTarget {
   void _insertDTMF_2(tones, duration) native "RTCDTMFSender__insertDTMF_2_Callback";
 
   void _insertDTMF_3(tones) native "RTCDTMFSender__insertDTMF_3_Callback";
+
+  @DomName('RTCDTMFSender.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDTMFSender_addEventListener_Callback";
+
+  @DomName('RTCDTMFSender.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "RTCDTMFSender_dispatchEvent_Callback";
+
+  @DomName('RTCDTMFSender.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDTMFSender_removeEventListener_Callback";
 
   @DomName('RTCDTMFSender.ontonechange')
   @DocsEditable()
@@ -20806,6 +21044,18 @@ class RtcPeerConnection extends EventTarget {
   @DomName('RTCPeerConnection.updateIce')
   @DocsEditable()
   void updateIce([Map configuration, Map mediaConstraints]) native "RTCPeerConnection_updateIce_Callback";
+
+  @DomName('RTCPeerConnection.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCPeerConnection_addEventListener_Callback";
+
+  @DomName('RTCPeerConnection.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "RTCPeerConnection_dispatchEvent_Callback";
+
+  @DomName('RTCPeerConnection.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCPeerConnection_removeEventListener_Callback";
 
   @DomName('RTCPeerConnection.onaddstream')
   @DocsEditable()
@@ -21683,6 +21933,21 @@ class SourceBuffer extends EventTarget {
   @Experimental() // untriaged
   void appendBufferView(TypedData data) native "SourceBuffer_appendBufferView_Callback";
 
+  @DomName('SourceBuffer.addEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "SourceBuffer_addEventListener_Callback";
+
+  @DomName('SourceBuffer.dispatchEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool dispatchEvent(Event event) native "SourceBuffer_dispatchEvent_Callback";
+
+  @DomName('SourceBuffer.removeEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "SourceBuffer_removeEventListener_Callback";
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21751,6 +22016,18 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
   @DomName('SourceBufferList.item')
   @DocsEditable()
   SourceBuffer item(int index) native "SourceBufferList_item_Callback";
+
+  @DomName('SourceBufferList.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "SourceBufferList_addEventListener_Callback";
+
+  @DomName('SourceBufferList.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "SourceBufferList_dispatchEvent_Callback";
+
+  @DomName('SourceBufferList.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "SourceBufferList_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22153,6 +22430,18 @@ class SpeechRecognition extends EventTarget {
   @DocsEditable()
   void stop() native "SpeechRecognition_stop_Callback";
 
+  @DomName('SpeechRecognition.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "SpeechRecognition_addEventListener_Callback";
+
+  @DomName('SpeechRecognition.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "SpeechRecognition_dispatchEvent_Callback";
+
+  @DomName('SpeechRecognition.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "SpeechRecognition_removeEventListener_Callback";
+
   @DomName('SpeechRecognition.onaudioend')
   @DocsEditable()
   Stream<Event> get onAudioEnd => audioEndEvent.forTarget(this);
@@ -22479,6 +22768,21 @@ class SpeechSynthesisUtterance extends EventTarget {
   @DomName('SpeechSynthesisUtterance.volume')
   @DocsEditable()
   void set volume(num value) native "SpeechSynthesisUtterance_volume_Setter";
+
+  @DomName('SpeechSynthesisUtterance.addEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "SpeechSynthesisUtterance_addEventListener_Callback";
+
+  @DomName('SpeechSynthesisUtterance.dispatchEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool dispatchEvent(Event event) native "SpeechSynthesisUtterance_dispatchEvent_Callback";
+
+  @DomName('SpeechSynthesisUtterance.removeEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "SpeechSynthesisUtterance_removeEventListener_Callback";
 
   @DomName('SpeechSynthesisUtterance.onboundary')
   @DocsEditable()
@@ -23980,6 +24284,18 @@ class TextTrack extends EventTarget {
   @DocsEditable()
   void removeCue(TextTrackCue cue) native "TextTrack_removeCue_Callback";
 
+  @DomName('TextTrack.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrack_addEventListener_Callback";
+
+  @DomName('TextTrack.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "TextTrack_dispatchEvent_Callback";
+
+  @DomName('TextTrack.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrack_removeEventListener_Callback";
+
   @DomName('TextTrack.oncuechange')
   @DocsEditable()
   Stream<Event> get onCueChange => cueChangeEvent.forTarget(this);
@@ -24127,6 +24443,18 @@ class TextTrackCue extends EventTarget {
   @DocsEditable()
   @Experimental() // nonstandard
   DocumentFragment getCueAsHtml() native "TextTrackCue_getCueAsHTML_Callback";
+
+  @DomName('TextTrackCue.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackCue_addEventListener_Callback";
+
+  @DomName('TextTrackCue.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "TextTrackCue_dispatchEvent_Callback";
+
+  @DomName('TextTrackCue.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackCue_removeEventListener_Callback";
 
   @DomName('TextTrackCue.onenter')
   @DocsEditable()
@@ -24279,6 +24607,18 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
   @DomName('TextTrackList.item')
   @DocsEditable()
   TextTrack item(int index) native "TextTrackList_item_Callback";
+
+  @DomName('TextTrackList.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackList_addEventListener_Callback";
+
+  @DomName('TextTrackList.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "TextTrackList_dispatchEvent_Callback";
+
+  @DomName('TextTrackList.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackList_removeEventListener_Callback";
 
   @DomName('TextTrackList.onaddtrack')
   @DocsEditable()
@@ -24919,13 +25259,13 @@ class Url extends NativeFieldWrapperClass1 {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -25321,6 +25661,18 @@ class WebSocket extends EventTarget {
   @DomName('WebSocket.sendTypedData')
   @DocsEditable()
   void sendTypedData(TypedData data) native "WebSocket_sendTypedData_Callback";
+
+  @DomName('WebSocket.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WebSocket_addEventListener_Callback";
+
+  @DomName('WebSocket.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "WebSocket_dispatchEvent_Callback";
+
+  @DomName('WebSocket.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WebSocket_removeEventListener_Callback";
 
   @DomName('WebSocket.onclose')
   @DocsEditable()
@@ -26125,6 +26477,18 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
     return completer.future;
   }
 
+  @DomName('Window.addEventListener')
+  @DocsEditable()
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "Window_addEventListener_Callback";
+
+  @DomName('Window.dispatchEvent')
+  @DocsEditable()
+  bool dispatchEvent(Event event) native "Window_dispatchEvent_Callback";
+
+  @DomName('Window.removeEventListener')
+  @DocsEditable()
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "Window_removeEventListener_Callback";
+
   @DomName('Window.atob')
   @DocsEditable()
   String atob(String string) native "Window_atob_Callback";
@@ -26557,6 +26921,21 @@ class Worker extends EventTarget implements AbstractWorker {
   @DocsEditable()
   void terminate() native "Worker_terminate_Callback";
 
+  @DomName('Worker.addEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "Worker_addEventListener_Callback";
+
+  @DomName('Worker.dispatchEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool dispatchEvent(Event event) native "Worker_dispatchEvent_Callback";
+
+  @DomName('Worker.removeEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "Worker_removeEventListener_Callback";
+
   @DomName('Worker.onerror')
   @DocsEditable()
   @Experimental() // untriaged
@@ -26713,6 +27092,21 @@ class WorkerGlobalScope extends EventTarget implements WindowTimers, WindowBase6
         (error) { completer.completeError(error); });
     return completer.future;
   }
+
+  @DomName('WorkerGlobalScope.addEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WorkerGlobalScope_addEventListener_Callback";
+
+  @DomName('WorkerGlobalScope.dispatchEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool dispatchEvent(Event event) native "WorkerGlobalScope_dispatchEvent_Callback";
+
+  @DomName('WorkerGlobalScope.removeEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WorkerGlobalScope_removeEventListener_Callback";
 
   @DomName('WorkerGlobalScope.atob')
   @DocsEditable()

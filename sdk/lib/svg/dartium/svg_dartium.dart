@@ -938,6 +938,21 @@ class ElementInstance extends EventTarget {
   @DocsEditable()
   ElementInstance get previousSibling native "SVGElementInstance_previousSibling_Getter";
 
+  @DomName('SVGElementInstance.addEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "SVGElementInstance_addEventListener_Callback";
+
+  @DomName('SVGElementInstance.dispatchEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool dispatchEvent(Event event) native "SVGElementInstance_dispatchEvent_Callback";
+
+  @DomName('SVGElementInstance.removeEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "SVGElementInstance_removeEventListener_Callback";
+
   @DomName('SVGElementInstance.onabort')
   @DocsEditable()
   Stream<Event> get onAbort => abortEvent.forTarget(this);
