@@ -24,7 +24,7 @@ bool RawObject::IsVMHeapObject() const {
 
 
 void RawObject::Validate(Isolate* isolate) const {
-  if (Object::null_class_ == reinterpret_cast<RawClass*>(kHeapObjectTag)) {
+  if (Object::void_class_ == reinterpret_cast<RawClass*>(kHeapObjectTag)) {
     // Validation relies on properly initialized class classes. Skip if the
     // VM is still being initialized.
     return;

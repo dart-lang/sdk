@@ -410,7 +410,6 @@ class Object {
   }
 
   static RawClass* class_class() { return class_class_; }
-  static RawClass* null_class() { return null_class_; }
   static RawClass* dynamic_class() { return dynamic_class_; }
   static RawClass* void_class() { return void_class_; }
   static RawClass* unresolved_class_class() { return unresolved_class_class_; }
@@ -558,7 +557,6 @@ class Object {
   static RawObject* null_;
 
   static RawClass* class_class_;  // Class of the Class vm object.
-  static RawClass* null_class_;  // Class of the null object.
   static RawClass* dynamic_class_;  // Class of the 'dynamic' type.
   static RawClass* void_class_;  // Class of the 'void' type.
   static RawClass* unresolved_class_class_;  // Class of UnresolvedClass.
@@ -3751,9 +3749,7 @@ class AbstractType : public Instance {
   }
 
   // Check if this type represents the 'Null' type.
-  bool IsNullType() const {
-    return HasResolvedTypeClass() && (type_class() == Object::null_class());
-  }
+  bool IsNullType() const;
 
   // Check if this type represents the 'void' type.
   bool IsVoidType() const {

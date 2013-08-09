@@ -203,7 +203,7 @@ TEST_CASE(IdentityEquals) {
   {
     Isolate* isolate = Isolate::Current();
     DARTSCOPE(isolate);
-    Dart_Handle class1 = Api::NewHandle(isolate, Object::null_class());
+    Dart_Handle class1 = Api::NewHandle(isolate, Object::void_class());
     Dart_Handle class2 = Api::NewHandle(isolate, Object::class_class());
 
     EXPECT(Dart_IdentityEquals(class1, class1));

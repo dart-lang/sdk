@@ -102,7 +102,6 @@ mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9001.
 mirrors/parameter_test: Fail # http://dartbug.com/11567
 mirrors/operator_test: Fail # http://dartbug.com/11944
-mirrors/null_test: Fail # Issue 12128
 
 [ $compiler == none && $runtime == drt ]
 async/timer_isolate_test: Skip # See Issue 4997

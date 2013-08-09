@@ -11,6 +11,8 @@ import 'package:expect/expect.dart';
 main() {
   InstanceMirror nullMirror = reflect(null);
   Expect.isTrue(nullMirror.getField(const Symbol('hashCode')).reflectee is int);
+  Expect.equals(null.hashCode,
+                nullMirror.getField(const Symbol('hashCode')).reflectee);
   Expect.equals('Null',
                 nullMirror.getField(const Symbol('runtimeType')).reflectee
                 .toString());
@@ -27,5 +29,7 @@ main() {
   Expect.equals(const Symbol('Null'), NullMirror.simpleName);
   Expect.equals(const Symbol('Object'), NullMirror.superclass.simpleName);
   Expect.equals(null, NullMirror.superclass.superclass);
-  Expect.equals(null, NullMirror.owner);  // Null belongs to no library.
+  Expect.listEquals([], NullMirror.superinterfaces);
+  Expect.equals(currentMirrorSystem().libraries[Uri.parse('dart:core')],
+                NullMirror.owner);
 }

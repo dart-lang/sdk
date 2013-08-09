@@ -50,6 +50,12 @@ class ObjectStore {
     object_type_ = value.raw();
   }
 
+  RawClass* null_class() const {
+    ASSERT(null_class_ != Object::null());
+    return null_class_;
+  }
+  void set_null_class(const Class& value) { null_class_ = value.raw(); }
+
   RawType* null_type() const { return null_type_; }
   void set_null_type(const Type& value) {
     null_type_ = value.raw();
@@ -427,6 +433,7 @@ class ObjectStore {
   RawObject** from() { return reinterpret_cast<RawObject**>(&object_class_); }
   RawClass* object_class_;
   RawType* object_type_;
+  RawClass* null_class_;
   RawType* null_type_;
   RawType* dynamic_type_;
   RawType* void_type_;
