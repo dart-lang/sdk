@@ -119,6 +119,7 @@ oauth2/test/authorization_code_grant_test: Fail, OK # Uses dart:io.
 oauth2/test/client_test: Fail, OK # Uses dart:io.
 oauth2/test/credentials_test: Fail, OK # Uses dart:io.
 oauth2/test/handle_access_token_response_test: Fail, OK # Uses dart:io.
+observe/test/transform_test: Fail, OK # Uses dart:io.
 path/test/io_test: Fail, OK # Uses dart:io.
 watcher/test/*: Fail, OK # Uses dart:io.
 

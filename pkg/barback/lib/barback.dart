@@ -11,4 +11,5 @@ export 'src/build_result.dart';
 export 'src/errors.dart';
 export 'src/package_provider.dart';
 export 'src/transform.dart' show Transform;
+export 'src/transform_logger.dart';
 export 'src/transformer.dart';

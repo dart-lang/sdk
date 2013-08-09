@@ -79,4 +79,44 @@ main() {
     expect(printer2.text, out);
     expect(printer2.map, printer.map);
   });
+
+  group('nested printer', () {
+    test('simple use', () {
+      var printer = new NestedPrinter();
+      printer..add('var ')
+             ..add('x = 3;\n', location: inputVar1)
+             ..add('f(', location: inputFunction)
+             ..add('y) => ', location: inputVar2)
+             ..add('x + y;\n', location: inputExpr)
+             ..build('output.dart');
+      expect(printer.text, OUTPUT);
+      expect(printer.map, json.stringify(EXPECTED_MAP));
+    });
+
+    test('nested use', () {
+      var printer = new NestedPrinter();
+      printer..add('var ')
+             ..add(new NestedPrinter()..add('x = 3;\n', location: inputVar1))
+             ..add('f(', location: inputFunction)
+             ..add(new NestedPrinter()..add('y) => ', location: inputVar2))
+             ..add('x + y;\n', location: inputExpr)
+             ..build('output.dart');
+      expect(printer.text, OUTPUT);
+      expect(printer.map, json.stringify(EXPECTED_MAP));
+    });
+
+    test('add indentation', () {
+      var out = INPUT.replaceAll('long', '_s');
+      var lines = INPUT.trim().split('\n');
+      expect(lines.length, 7);
+      var printer = new NestedPrinter();
+      for (int i = 0; i < lines.length; i++) {
+        if (i == 5) printer.indent++;
+        printer.addLine(lines[i].replaceAll('long', '_s').trim());
+        if (i == 5) printer.indent--;
+      }
+      printer.build('output.dart');
+      expect(printer.text, out);
+    });
+  });
 }

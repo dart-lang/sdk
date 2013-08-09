@@ -11,6 +11,7 @@ import 'asset_id.dart';
 import 'asset_node.dart';
 import 'asset_set.dart';
 import 'errors.dart';
+import 'transform_logger.dart';
 import 'transform_node.dart';
 import 'utils.dart';
 
@@ -45,6 +46,9 @@ class Transform {
   /// would be secondary inputs.
   AssetId get primaryId => _node.primary.id;
 
+  /// A logger so that the [Transformer] can report build details.
+  TransformLogger get logger => _logger;
+
   /// Gets the asset for the primary input.
   Future<Asset> get primaryInput => getInput(primaryId);
 
@@ -65,3 +69,6 @@ class Transform {
     _outputs.add(output);
   }
 }
+
+// TODO(sigmund,rnystrom): create a separate logger for each Transfom.
+final TransformLogger _logger = new TransformLogger(true);

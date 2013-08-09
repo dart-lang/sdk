@@ -13,6 +13,7 @@ description: >
   responsiveness.
 dependencies:
   path: any
+  source_maps: any
   stack_trace: any
 dev_dependencies:
   scheduled_test: any
