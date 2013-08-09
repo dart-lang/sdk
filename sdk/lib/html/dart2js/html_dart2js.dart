@@ -694,51 +694,51 @@ class BodyElement extends _HTMLElement native "HTMLBodyElement" {
 
   @DomName('HTMLBodyElement.onblur')
   @DocsEditable()
-  Stream<Event> get onBlur => blurEvent.forTarget(this);
+  ElementStream<Event> get onBlur => blurEvent.forElement(this);
 
   @DomName('HTMLBodyElement.onerror')
   @DocsEditable()
-  Stream<Event> get onError => errorEvent.forTarget(this);
+  ElementStream<Event> get onError => errorEvent.forElement(this);
 
   @DomName('HTMLBodyElement.onfocus')
   @DocsEditable()
-  Stream<Event> get onFocus => focusEvent.forTarget(this);
+  ElementStream<Event> get onFocus => focusEvent.forElement(this);
 
   @DomName('HTMLBodyElement.onhashchange')
   @DocsEditable()
-  Stream<Event> get onHashChange => hashChangeEvent.forTarget(this);
+  ElementStream<Event> get onHashChange => hashChangeEvent.forElement(this);
 
   @DomName('HTMLBodyElement.onload')
   @DocsEditable()
-  Stream<Event> get onLoad => loadEvent.forTarget(this);
+  ElementStream<Event> get onLoad => loadEvent.forElement(this);
 
   @DomName('HTMLBodyElement.onmessage')
   @DocsEditable()
-  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
+  ElementStream<MessageEvent> get onMessage => messageEvent.forElement(this);
 
   @DomName('HTMLBodyElement.onoffline')
   @DocsEditable()
-  Stream<Event> get onOffline => offlineEvent.forTarget(this);
+  ElementStream<Event> get onOffline => offlineEvent.forElement(this);
 
   @DomName('HTMLBodyElement.ononline')
   @DocsEditable()
-  Stream<Event> get onOnline => onlineEvent.forTarget(this);
+  ElementStream<Event> get onOnline => onlineEvent.forElement(this);
 
   @DomName('HTMLBodyElement.onpopstate')
   @DocsEditable()
-  Stream<PopStateEvent> get onPopState => popStateEvent.forTarget(this);
+  ElementStream<PopStateEvent> get onPopState => popStateEvent.forElement(this);
 
   @DomName('HTMLBodyElement.onresize')
   @DocsEditable()
-  Stream<Event> get onResize => resizeEvent.forTarget(this);
+  ElementStream<Event> get onResize => resizeEvent.forElement(this);
 
   @DomName('HTMLBodyElement.onstorage')
   @DocsEditable()
-  Stream<StorageEvent> get onStorage => storageEvent.forTarget(this);
+  ElementStream<StorageEvent> get onStorage => storageEvent.forElement(this);
 
   @DomName('HTMLBodyElement.onunload')
   @DocsEditable()
-  Stream<Event> get onUnload => unloadEvent.forTarget(this);
+  ElementStream<Event> get onUnload => unloadEvent.forElement(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -956,11 +956,11 @@ class CanvasElement extends _HTMLElement implements CanvasImageSource native "HT
 
   @DomName('HTMLCanvasElement.onwebglcontextlost')
   @DocsEditable()
-  Stream<gl.ContextEvent> get onWebGlContextLost => webGlContextLostEvent.forTarget(this);
+  ElementStream<gl.ContextEvent> get onWebGlContextLost => webGlContextLostEvent.forElement(this);
 
   @DomName('HTMLCanvasElement.onwebglcontextrestored')
   @DocsEditable()
-  Stream<gl.ContextEvent> get onWebGlContextRestored => webGlContextRestoredEvent.forTarget(this);
+  ElementStream<gl.ContextEvent> get onWebGlContextRestored => webGlContextRestoredEvent.forElement(this);
 
   /** An API for drawing on this canvas. */
   CanvasRenderingContext2D get context2D =>
@@ -8233,6 +8233,234 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    */
   @Experimental()
   CssRect get marginEdge;
+
+  @DomName('Element.onabort')
+  @DocsEditable()
+  ElementStream<Event> get onAbort;
+
+  @DomName('Element.onbeforecopy')
+  @DocsEditable()
+  ElementStream<Event> get onBeforeCopy;
+
+  @DomName('Element.onbeforecut')
+  @DocsEditable()
+  ElementStream<Event> get onBeforeCut;
+
+  @DomName('Element.onbeforepaste')
+  @DocsEditable()
+  ElementStream<Event> get onBeforePaste;
+
+  @DomName('Element.onblur')
+  @DocsEditable()
+  ElementStream<Event> get onBlur;
+
+  @DomName('Element.onchange')
+  @DocsEditable()
+  ElementStream<Event> get onChange;
+
+  @DomName('Element.onclick')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onClick;
+
+  @DomName('Element.oncontextmenu')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onContextMenu;
+
+  @DomName('Element.oncopy')
+  @DocsEditable()
+  ElementStream<Event> get onCopy;
+
+  @DomName('Element.oncut')
+  @DocsEditable()
+  ElementStream<Event> get onCut;
+
+  @DomName('Element.ondblclick')
+  @DocsEditable()
+  ElementStream<Event> get onDoubleClick;
+
+  @DomName('Element.ondrag')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onDrag;
+
+  @DomName('Element.ondragend')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onDragEnd;
+
+  @DomName('Element.ondragenter')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onDragEnter;
+
+  @DomName('Element.ondragleave')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onDragLeave;
+
+  @DomName('Element.ondragover')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onDragOver;
+
+  @DomName('Element.ondragstart')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onDragStart;
+
+  @DomName('Element.ondrop')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onDrop;
+
+  @DomName('Element.onerror')
+  @DocsEditable()
+  ElementStream<Event> get onError;
+
+  @DomName('Element.onfocus')
+  @DocsEditable()
+  ElementStream<Event> get onFocus;
+
+  @DomName('Element.oninput')
+  @DocsEditable()
+  ElementStream<Event> get onInput;
+
+  @DomName('Element.oninvalid')
+  @DocsEditable()
+  ElementStream<Event> get onInvalid;
+
+  @DomName('Element.onkeydown')
+  @DocsEditable()
+  ElementStream<KeyboardEvent> get onKeyDown;
+
+  @DomName('Element.onkeypress')
+  @DocsEditable()
+  ElementStream<KeyboardEvent> get onKeyPress;
+
+  @DomName('Element.onkeyup')
+  @DocsEditable()
+  ElementStream<KeyboardEvent> get onKeyUp;
+
+  @DomName('Element.onload')
+  @DocsEditable()
+  ElementStream<Event> get onLoad;
+
+  @DomName('Element.onmousedown')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onMouseDown;
+
+  @DomName('Element.onmouseenter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<MouseEvent> get onMouseEnter;
+
+  @DomName('Element.onmouseleave')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<MouseEvent> get onMouseLeave;
+
+  @DomName('Element.onmousemove')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onMouseMove;
+
+  @DomName('Element.onmouseout')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onMouseOut;
+
+  @DomName('Element.onmouseover')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onMouseOver;
+
+  @DomName('Element.onmouseup')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onMouseUp;
+
+  @DomName('Element.onmousewheel')
+  @DocsEditable()
+  // http://www.w3.org/TR/DOM-Level-3-Events/#events-wheelevents
+  @Experimental() // non-standard
+  ElementStream<WheelEvent> get onMouseWheel;
+
+  @DomName('Element.onpaste')
+  @DocsEditable()
+  ElementStream<Event> get onPaste;
+
+  @DomName('Element.onreset')
+  @DocsEditable()
+  ElementStream<Event> get onReset;
+
+  @DomName('Element.onscroll')
+  @DocsEditable()
+  ElementStream<Event> get onScroll;
+
+  @DomName('Element.onsearch')
+  @DocsEditable()
+  // http://www.w3.org/TR/html-markup/input.search.html
+  @Experimental()
+  ElementStream<Event> get onSearch;
+
+  @DomName('Element.onselect')
+  @DocsEditable()
+  ElementStream<Event> get onSelect;
+
+  @DomName('Element.onselectstart')
+  @DocsEditable()
+  @Experimental() // nonstandard
+  ElementStream<Event> get onSelectStart;
+
+  @DomName('Element.onsubmit')
+  @DocsEditable()
+  ElementStream<Event> get onSubmit;
+
+  @DomName('Element.ontouchcancel')
+  @DocsEditable()
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental()
+  ElementStream<TouchEvent> get onTouchCancel;
+
+  @DomName('Element.ontouchend')
+  @DocsEditable()
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental()
+  ElementStream<TouchEvent> get onTouchEnd;
+
+  @DomName('Element.ontouchenter')
+  @DocsEditable()
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental()
+  ElementStream<TouchEvent> get onTouchEnter;
+
+  @DomName('Element.ontouchleave')
+  @DocsEditable()
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental()
+  ElementStream<TouchEvent> get onTouchLeave;
+
+  @DomName('Element.ontouchmove')
+  @DocsEditable()
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental()
+  ElementStream<TouchEvent> get onTouchMove;
+
+  @DomName('Element.ontouchstart')
+  @DocsEditable()
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental()
+  ElementStream<TouchEvent> get onTouchStart;
+
+  @DomName('Element.ontransitionend')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  ElementStream<TransitionEvent> get onTransitionEnd;
+
+  @DomName('Element.onwebkitfullscreenchange')
+  @DocsEditable()
+  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
+  @Experimental()
+  ElementStream<Event> get onFullscreenChange;
+
+  @DomName('Element.onwebkitfullscreenerror')
+  @DocsEditable()
+  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
+  @Experimental()
+  ElementStream<Event> get onFullscreenError;
+ 
 }
 
 // TODO(jacobr): this is an inefficient implementation but it is hard to see
@@ -8286,6 +8514,234 @@ class _FrozenElementList<T extends Element> extends ListBase<T> implements Eleme
   CssRect get borderEdge => _elementList.first.borderEdge;
 
   CssRect get marginEdge => _elementList.first.marginEdge;
+
+  @DomName('Element.onabort')
+  @DocsEditable()
+  ElementStream<Event> get onAbort => Element.abortEvent._forElementList(this);
+
+  @DomName('Element.onbeforecopy')
+  @DocsEditable()
+  ElementStream<Event> get onBeforeCopy => Element.beforeCopyEvent._forElementList(this);
+
+  @DomName('Element.onbeforecut')
+  @DocsEditable()
+  ElementStream<Event> get onBeforeCut => Element.beforeCutEvent._forElementList(this);
+
+  @DomName('Element.onbeforepaste')
+  @DocsEditable()
+  ElementStream<Event> get onBeforePaste => Element.beforePasteEvent._forElementList(this);
+
+  @DomName('Element.onblur')
+  @DocsEditable()
+  ElementStream<Event> get onBlur => Element.blurEvent._forElementList(this);
+
+  @DomName('Element.onchange')
+  @DocsEditable()
+  ElementStream<Event> get onChange => Element.changeEvent._forElementList(this);
+
+  @DomName('Element.onclick')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onClick => Element.clickEvent._forElementList(this);
+
+  @DomName('Element.oncontextmenu')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onContextMenu => Element.contextMenuEvent._forElementList(this);
+
+  @DomName('Element.oncopy')
+  @DocsEditable()
+  ElementStream<Event> get onCopy => Element.copyEvent._forElementList(this);
+
+  @DomName('Element.oncut')
+  @DocsEditable()
+  ElementStream<Event> get onCut => Element.cutEvent._forElementList(this);
+
+  @DomName('Element.ondblclick')
+  @DocsEditable()
+  ElementStream<Event> get onDoubleClick => Element.doubleClickEvent._forElementList(this);
+
+  @DomName('Element.ondrag')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onDrag => Element.dragEvent._forElementList(this);
+
+  @DomName('Element.ondragend')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onDragEnd => Element.dragEndEvent._forElementList(this);
+
+  @DomName('Element.ondragenter')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onDragEnter => Element.dragEnterEvent._forElementList(this);
+
+  @DomName('Element.ondragleave')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onDragLeave => Element.dragLeaveEvent._forElementList(this);
+
+  @DomName('Element.ondragover')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onDragOver => Element.dragOverEvent._forElementList(this);
+
+  @DomName('Element.ondragstart')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onDragStart => Element.dragStartEvent._forElementList(this);
+
+  @DomName('Element.ondrop')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onDrop => Element.dropEvent._forElementList(this);
+
+  @DomName('Element.onerror')
+  @DocsEditable()
+  ElementStream<Event> get onError => Element.errorEvent._forElementList(this);
+
+  @DomName('Element.onfocus')
+  @DocsEditable()
+  ElementStream<Event> get onFocus => Element.focusEvent._forElementList(this);
+
+  @DomName('Element.oninput')
+  @DocsEditable()
+  ElementStream<Event> get onInput => Element.inputEvent._forElementList(this);
+
+  @DomName('Element.oninvalid')
+  @DocsEditable()
+  ElementStream<Event> get onInvalid => Element.invalidEvent._forElementList(this);
+
+  @DomName('Element.onkeydown')
+  @DocsEditable()
+  ElementStream<KeyboardEvent> get onKeyDown => Element.keyDownEvent._forElementList(this);
+
+  @DomName('Element.onkeypress')
+  @DocsEditable()
+  ElementStream<KeyboardEvent> get onKeyPress => Element.keyPressEvent._forElementList(this);
+
+  @DomName('Element.onkeyup')
+  @DocsEditable()
+  ElementStream<KeyboardEvent> get onKeyUp => Element.keyUpEvent._forElementList(this);
+
+  @DomName('Element.onload')
+  @DocsEditable()
+  ElementStream<Event> get onLoad => Element.loadEvent._forElementList(this);
+
+  @DomName('Element.onmousedown')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onMouseDown => Element.mouseDownEvent._forElementList(this);
+
+  @DomName('Element.onmouseenter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<MouseEvent> get onMouseEnter => Element.mouseEnterEvent._forElementList(this);
+
+  @DomName('Element.onmouseleave')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<MouseEvent> get onMouseLeave => Element.mouseLeaveEvent._forElementList(this);
+
+  @DomName('Element.onmousemove')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onMouseMove => Element.mouseMoveEvent._forElementList(this);
+
+  @DomName('Element.onmouseout')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onMouseOut => Element.mouseOutEvent._forElementList(this);
+
+  @DomName('Element.onmouseover')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onMouseOver => Element.mouseOverEvent._forElementList(this);
+
+  @DomName('Element.onmouseup')
+  @DocsEditable()
+  ElementStream<MouseEvent> get onMouseUp => Element.mouseUpEvent._forElementList(this);
+
+  @DomName('Element.onmousewheel')
+  @DocsEditable()
+  // http://www.w3.org/TR/DOM-Level-3-Events/#events-wheelevents
+  @Experimental() // non-standard
+  ElementStream<WheelEvent> get onMouseWheel => Element.mouseWheelEvent._forElementList(this);
+
+  @DomName('Element.onpaste')
+  @DocsEditable()
+  ElementStream<Event> get onPaste => Element.pasteEvent._forElementList(this);
+
+  @DomName('Element.onreset')
+  @DocsEditable()
+  ElementStream<Event> get onReset => Element.resetEvent._forElementList(this);
+
+  @DomName('Element.onscroll')
+  @DocsEditable()
+  ElementStream<Event> get onScroll => Element.scrollEvent._forElementList(this);
+
+  @DomName('Element.onsearch')
+  @DocsEditable()
+  // http://www.w3.org/TR/html-markup/input.search.html
+  @Experimental()
+  ElementStream<Event> get onSearch => Element.searchEvent._forElementList(this);
+
+  @DomName('Element.onselect')
+  @DocsEditable()
+  ElementStream<Event> get onSelect => Element.selectEvent._forElementList(this);
+
+  @DomName('Element.onselectstart')
+  @DocsEditable()
+  @Experimental() // nonstandard
+  ElementStream<Event> get onSelectStart => Element.selectStartEvent._forElementList(this);
+
+  @DomName('Element.onsubmit')
+  @DocsEditable()
+  ElementStream<Event> get onSubmit => Element.submitEvent._forElementList(this);
+
+  @DomName('Element.ontouchcancel')
+  @DocsEditable()
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental()
+  ElementStream<TouchEvent> get onTouchCancel => Element.touchCancelEvent._forElementList(this);
+
+  @DomName('Element.ontouchend')
+  @DocsEditable()
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental()
+  ElementStream<TouchEvent> get onTouchEnd => Element.touchEndEvent._forElementList(this);
+
+  @DomName('Element.ontouchenter')
+  @DocsEditable()
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental()
+  ElementStream<TouchEvent> get onTouchEnter => Element.touchEnterEvent._forElementList(this);
+
+  @DomName('Element.ontouchleave')
+  @DocsEditable()
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental()
+  ElementStream<TouchEvent> get onTouchLeave => Element.touchLeaveEvent._forElementList(this);
+
+  @DomName('Element.ontouchmove')
+  @DocsEditable()
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental()
+  ElementStream<TouchEvent> get onTouchMove => Element.touchMoveEvent._forElementList(this);
+
+  @DomName('Element.ontouchstart')
+  @DocsEditable()
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental()
+  ElementStream<TouchEvent> get onTouchStart => Element.touchStartEvent._forElementList(this);
+
+  @DomName('Element.ontransitionend')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  ElementStream<TransitionEvent> get onTransitionEnd => Element.transitionEndEvent._forElementList(this);
+
+  @DomName('Element.onwebkitfullscreenchange')
+  @DocsEditable()
+  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
+  @Experimental()
+  ElementStream<Event> get onFullscreenChange => Element.fullscreenChangeEvent._forElementList(this);
+
+  @DomName('Element.onwebkitfullscreenerror')
+  @DocsEditable()
+  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
+  @Experimental()
+  ElementStream<Event> get onFullscreenError => Element.fullscreenErrorEvent._forElementList(this);
+
 }
 
 /**
@@ -8860,19 +9316,31 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
 
   /**
    * Checks if this element matches the CSS selectors.
+   *
+   * If `includeAncestors` is true, we examine all of this element's parent
+   * elements and also return true if any of its parent elements matches
+   * `selectors`.
    */
   @Experimental()
-  bool matches(String selectors) {
-    if (JS('bool', '!!#.matches', this)) {
-      return JS('bool', '#.matches(#)', this, selectors);
-    } else if (JS('bool', '!!#.webkitMatchesSelector', this)) {
-      return JS('bool', '#.webkitMatchesSelector(#)', this, selectors);
-    } else if (JS('bool', '!!#.mozMatchesSelector', this)) {
-      return JS('bool', '#.mozMatchesSelector(#)', this, selectors);
-    } else if (JS('bool', '!!#.msMatchesSelector', this)) {
-      return JS('bool', '#.msMatchesSelector(#)', this, selectors);
-    }
-    throw new UnsupportedError("Not supported on this platform");
+  bool matches(String selectors, [includeAncestors = false]) {
+    var elem = this;
+    do {
+      bool matches = false;
+      if (JS('bool', '!!#.matches', elem)) {
+        matches = JS('bool', '#.matches(#)', elem, selectors);
+      } else if (JS('bool', '!!#.webkitMatchesSelector', elem)) {
+        matches = JS('bool', '#.webkitMatchesSelector(#)', elem, selectors);
+      } else if (JS('bool', '!!#.mozMatchesSelector', elem)) {
+        matches = JS('bool', '#.mozMatchesSelector(#)', elem, selectors);
+      } else if (JS('bool', '!!#.msMatchesSelector', elem)) {
+        matches = JS('bool', '#.msMatchesSelector(#)', elem, selectors);
+      } else {
+        throw new UnsupportedError("Not supported on this platform");
+      }
+      if (matches) return true;
+      elem = elem.parent;
+    } while(includeAncestors && elem != null);
+    return false;
   }
 
   @Creates('Null')  // Set from Dart code; does not instantiate a native type.
@@ -9716,210 +10184,210 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
 
   @DomName('Element.onabort')
   @DocsEditable()
-  Stream<Event> get onAbort => abortEvent.forTarget(this);
+  ElementStream<Event> get onAbort => abortEvent.forElement(this);
 
   @DomName('Element.onbeforecopy')
   @DocsEditable()
-  Stream<Event> get onBeforeCopy => beforeCopyEvent.forTarget(this);
+  ElementStream<Event> get onBeforeCopy => beforeCopyEvent.forElement(this);
 
   @DomName('Element.onbeforecut')
   @DocsEditable()
-  Stream<Event> get onBeforeCut => beforeCutEvent.forTarget(this);
+  ElementStream<Event> get onBeforeCut => beforeCutEvent.forElement(this);
 
   @DomName('Element.onbeforepaste')
   @DocsEditable()
-  Stream<Event> get onBeforePaste => beforePasteEvent.forTarget(this);
+  ElementStream<Event> get onBeforePaste => beforePasteEvent.forElement(this);
 
   @DomName('Element.onblur')
   @DocsEditable()
-  Stream<Event> get onBlur => blurEvent.forTarget(this);
+  ElementStream<Event> get onBlur => blurEvent.forElement(this);
 
   @DomName('Element.onchange')
   @DocsEditable()
-  Stream<Event> get onChange => changeEvent.forTarget(this);
+  ElementStream<Event> get onChange => changeEvent.forElement(this);
 
   @DomName('Element.onclick')
   @DocsEditable()
-  Stream<MouseEvent> get onClick => clickEvent.forTarget(this);
+  ElementStream<MouseEvent> get onClick => clickEvent.forElement(this);
 
   @DomName('Element.oncontextmenu')
   @DocsEditable()
-  Stream<MouseEvent> get onContextMenu => contextMenuEvent.forTarget(this);
+  ElementStream<MouseEvent> get onContextMenu => contextMenuEvent.forElement(this);
 
   @DomName('Element.oncopy')
   @DocsEditable()
-  Stream<Event> get onCopy => copyEvent.forTarget(this);
+  ElementStream<Event> get onCopy => copyEvent.forElement(this);
 
   @DomName('Element.oncut')
   @DocsEditable()
-  Stream<Event> get onCut => cutEvent.forTarget(this);
+  ElementStream<Event> get onCut => cutEvent.forElement(this);
 
   @DomName('Element.ondblclick')
   @DocsEditable()
-  Stream<Event> get onDoubleClick => doubleClickEvent.forTarget(this);
+  ElementStream<Event> get onDoubleClick => doubleClickEvent.forElement(this);
 
   @DomName('Element.ondrag')
   @DocsEditable()
-  Stream<MouseEvent> get onDrag => dragEvent.forTarget(this);
+  ElementStream<MouseEvent> get onDrag => dragEvent.forElement(this);
 
   @DomName('Element.ondragend')
   @DocsEditable()
-  Stream<MouseEvent> get onDragEnd => dragEndEvent.forTarget(this);
+  ElementStream<MouseEvent> get onDragEnd => dragEndEvent.forElement(this);
 
   @DomName('Element.ondragenter')
   @DocsEditable()
-  Stream<MouseEvent> get onDragEnter => dragEnterEvent.forTarget(this);
+  ElementStream<MouseEvent> get onDragEnter => dragEnterEvent.forElement(this);
 
   @DomName('Element.ondragleave')
   @DocsEditable()
-  Stream<MouseEvent> get onDragLeave => dragLeaveEvent.forTarget(this);
+  ElementStream<MouseEvent> get onDragLeave => dragLeaveEvent.forElement(this);
 
   @DomName('Element.ondragover')
   @DocsEditable()
-  Stream<MouseEvent> get onDragOver => dragOverEvent.forTarget(this);
+  ElementStream<MouseEvent> get onDragOver => dragOverEvent.forElement(this);
 
   @DomName('Element.ondragstart')
   @DocsEditable()
-  Stream<MouseEvent> get onDragStart => dragStartEvent.forTarget(this);
+  ElementStream<MouseEvent> get onDragStart => dragStartEvent.forElement(this);
 
   @DomName('Element.ondrop')
   @DocsEditable()
-  Stream<MouseEvent> get onDrop => dropEvent.forTarget(this);
+  ElementStream<MouseEvent> get onDrop => dropEvent.forElement(this);
 
   @DomName('Element.onerror')
   @DocsEditable()
-  Stream<Event> get onError => errorEvent.forTarget(this);
+  ElementStream<Event> get onError => errorEvent.forElement(this);
 
   @DomName('Element.onfocus')
   @DocsEditable()
-  Stream<Event> get onFocus => focusEvent.forTarget(this);
+  ElementStream<Event> get onFocus => focusEvent.forElement(this);
 
   @DomName('Element.oninput')
   @DocsEditable()
-  Stream<Event> get onInput => inputEvent.forTarget(this);
+  ElementStream<Event> get onInput => inputEvent.forElement(this);
 
   @DomName('Element.oninvalid')
   @DocsEditable()
-  Stream<Event> get onInvalid => invalidEvent.forTarget(this);
+  ElementStream<Event> get onInvalid => invalidEvent.forElement(this);
 
   @DomName('Element.onkeydown')
   @DocsEditable()
-  Stream<KeyboardEvent> get onKeyDown => keyDownEvent.forTarget(this);
+  ElementStream<KeyboardEvent> get onKeyDown => keyDownEvent.forElement(this);
 
   @DomName('Element.onkeypress')
   @DocsEditable()
-  Stream<KeyboardEvent> get onKeyPress => keyPressEvent.forTarget(this);
+  ElementStream<KeyboardEvent> get onKeyPress => keyPressEvent.forElement(this);
 
   @DomName('Element.onkeyup')
   @DocsEditable()
-  Stream<KeyboardEvent> get onKeyUp => keyUpEvent.forTarget(this);
+  ElementStream<KeyboardEvent> get onKeyUp => keyUpEvent.forElement(this);
 
   @DomName('Element.onload')
   @DocsEditable()
-  Stream<Event> get onLoad => loadEvent.forTarget(this);
+  ElementStream<Event> get onLoad => loadEvent.forElement(this);
 
   @DomName('Element.onmousedown')
   @DocsEditable()
-  Stream<MouseEvent> get onMouseDown => mouseDownEvent.forTarget(this);
+  ElementStream<MouseEvent> get onMouseDown => mouseDownEvent.forElement(this);
 
   @DomName('Element.onmouseenter')
   @DocsEditable()
   @Experimental() // untriaged
-  Stream<MouseEvent> get onMouseEnter => mouseEnterEvent.forTarget(this);
+  ElementStream<MouseEvent> get onMouseEnter => mouseEnterEvent.forElement(this);
 
   @DomName('Element.onmouseleave')
   @DocsEditable()
   @Experimental() // untriaged
-  Stream<MouseEvent> get onMouseLeave => mouseLeaveEvent.forTarget(this);
+  ElementStream<MouseEvent> get onMouseLeave => mouseLeaveEvent.forElement(this);
 
   @DomName('Element.onmousemove')
   @DocsEditable()
-  Stream<MouseEvent> get onMouseMove => mouseMoveEvent.forTarget(this);
+  ElementStream<MouseEvent> get onMouseMove => mouseMoveEvent.forElement(this);
 
   @DomName('Element.onmouseout')
   @DocsEditable()
-  Stream<MouseEvent> get onMouseOut => mouseOutEvent.forTarget(this);
+  ElementStream<MouseEvent> get onMouseOut => mouseOutEvent.forElement(this);
 
   @DomName('Element.onmouseover')
   @DocsEditable()
-  Stream<MouseEvent> get onMouseOver => mouseOverEvent.forTarget(this);
+  ElementStream<MouseEvent> get onMouseOver => mouseOverEvent.forElement(this);
 
   @DomName('Element.onmouseup')
   @DocsEditable()
-  Stream<MouseEvent> get onMouseUp => mouseUpEvent.forTarget(this);
+  ElementStream<MouseEvent> get onMouseUp => mouseUpEvent.forElement(this);
 
   @DomName('Element.onmousewheel')
   @DocsEditable()
   // http://www.w3.org/TR/DOM-Level-3-Events/#events-wheelevents
   @Experimental() // non-standard
-  Stream<WheelEvent> get onMouseWheel => mouseWheelEvent.forTarget(this);
+  ElementStream<WheelEvent> get onMouseWheel => mouseWheelEvent.forElement(this);
 
   @DomName('Element.onpaste')
   @DocsEditable()
-  Stream<Event> get onPaste => pasteEvent.forTarget(this);
+  ElementStream<Event> get onPaste => pasteEvent.forElement(this);
 
   @DomName('Element.onreset')
   @DocsEditable()
-  Stream<Event> get onReset => resetEvent.forTarget(this);
+  ElementStream<Event> get onReset => resetEvent.forElement(this);
 
   @DomName('Element.onscroll')
   @DocsEditable()
-  Stream<Event> get onScroll => scrollEvent.forTarget(this);
+  ElementStream<Event> get onScroll => scrollEvent.forElement(this);
 
   @DomName('Element.onsearch')
   @DocsEditable()
   // http://www.w3.org/TR/html-markup/input.search.html
   @Experimental()
-  Stream<Event> get onSearch => searchEvent.forTarget(this);
+  ElementStream<Event> get onSearch => searchEvent.forElement(this);
 
   @DomName('Element.onselect')
   @DocsEditable()
-  Stream<Event> get onSelect => selectEvent.forTarget(this);
+  ElementStream<Event> get onSelect => selectEvent.forElement(this);
 
   @DomName('Element.onselectstart')
   @DocsEditable()
   @Experimental() // nonstandard
-  Stream<Event> get onSelectStart => selectStartEvent.forTarget(this);
+  ElementStream<Event> get onSelectStart => selectStartEvent.forElement(this);
 
   @DomName('Element.onsubmit')
   @DocsEditable()
-  Stream<Event> get onSubmit => submitEvent.forTarget(this);
+  ElementStream<Event> get onSubmit => submitEvent.forElement(this);
 
   @DomName('Element.ontouchcancel')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
-  Stream<TouchEvent> get onTouchCancel => touchCancelEvent.forTarget(this);
+  ElementStream<TouchEvent> get onTouchCancel => touchCancelEvent.forElement(this);
 
   @DomName('Element.ontouchend')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
-  Stream<TouchEvent> get onTouchEnd => touchEndEvent.forTarget(this);
+  ElementStream<TouchEvent> get onTouchEnd => touchEndEvent.forElement(this);
 
   @DomName('Element.ontouchenter')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
-  Stream<TouchEvent> get onTouchEnter => touchEnterEvent.forTarget(this);
+  ElementStream<TouchEvent> get onTouchEnter => touchEnterEvent.forElement(this);
 
   @DomName('Element.ontouchleave')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
-  Stream<TouchEvent> get onTouchLeave => touchLeaveEvent.forTarget(this);
+  ElementStream<TouchEvent> get onTouchLeave => touchLeaveEvent.forElement(this);
 
   @DomName('Element.ontouchmove')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
-  Stream<TouchEvent> get onTouchMove => touchMoveEvent.forTarget(this);
+  ElementStream<TouchEvent> get onTouchMove => touchMoveEvent.forElement(this);
 
   @DomName('Element.ontouchstart')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
-  Stream<TouchEvent> get onTouchStart => touchStartEvent.forTarget(this);
+  ElementStream<TouchEvent> get onTouchStart => touchStartEvent.forElement(this);
 
   @DomName('Element.ontransitionend')
   @DocsEditable()
@@ -9927,22 +10395,21 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  Stream<TransitionEvent> get onTransitionEnd => transitionEndEvent.forTarget(this);
+  ElementStream<TransitionEvent> get onTransitionEnd => transitionEndEvent.forElement(this);
 
   @DomName('Element.onwebkitfullscreenchange')
   @DocsEditable()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
   @Experimental()
-  Stream<Event> get onFullscreenChange => fullscreenChangeEvent.forTarget(this);
+  ElementStream<Event> get onFullscreenChange => fullscreenChangeEvent.forElement(this);
 
   @DomName('Element.onwebkitfullscreenerror')
   @DocsEditable()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
   @Experimental()
-  Stream<Event> get onFullscreenError => fullscreenErrorEvent.forTarget(this);
+  ElementStream<Event> get onFullscreenError => fullscreenErrorEvent.forElement(this);
 
 }
-
 
 final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 class _ElementFactoryProvider {
@@ -11543,13 +12010,13 @@ class FormElement extends _HTMLElement native "HTMLFormElement" {
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/association-of-controls-and-forms.html#autofilling-form-controls:-the-autocomplete-attribute
   @Experimental()
-  Stream<Event> get onAutocomplete => autocompleteEvent.forTarget(this);
+  ElementStream<Event> get onAutocomplete => autocompleteEvent.forElement(this);
 
   @DomName('HTMLFormElement.onautocompleteerror')
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/association-of-controls-and-forms.html#autofilling-form-controls:-the-autocomplete-attribute
   @Experimental()
-  Stream<AutocompleteErrorEvent> get onAutocompleteError => autocompleteErrorEvent.forTarget(this);
+  ElementStream<AutocompleteErrorEvent> get onAutocompleteError => autocompleteErrorEvent.forElement(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13440,7 +13907,7 @@ class InputElement extends _HTMLElement implements
   @DocsEditable()
   // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#extending_html_elements
   @Experimental()
-  Stream<Event> get onSpeechChange => speechChangeEvent.forTarget(this);
+  ElementStream<Event> get onSpeechChange => speechChangeEvent.forElement(this);
 
 }
 
@@ -14949,113 +15416,113 @@ class MediaElement extends _HTMLElement native "HTMLMediaElement" {
 
   @DomName('HTMLMediaElement.oncanplay')
   @DocsEditable()
-  Stream<Event> get onCanPlay => canPlayEvent.forTarget(this);
+  ElementStream<Event> get onCanPlay => canPlayEvent.forElement(this);
 
   @DomName('HTMLMediaElement.oncanplaythrough')
   @DocsEditable()
-  Stream<Event> get onCanPlayThrough => canPlayThroughEvent.forTarget(this);
+  ElementStream<Event> get onCanPlayThrough => canPlayThroughEvent.forElement(this);
 
   @DomName('HTMLMediaElement.ondurationchange')
   @DocsEditable()
-  Stream<Event> get onDurationChange => durationChangeEvent.forTarget(this);
+  ElementStream<Event> get onDurationChange => durationChangeEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onemptied')
   @DocsEditable()
-  Stream<Event> get onEmptied => emptiedEvent.forTarget(this);
+  ElementStream<Event> get onEmptied => emptiedEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onended')
   @DocsEditable()
-  Stream<Event> get onEnded => endedEvent.forTarget(this);
+  ElementStream<Event> get onEnded => endedEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onloadeddata')
   @DocsEditable()
-  Stream<Event> get onLoadedData => loadedDataEvent.forTarget(this);
+  ElementStream<Event> get onLoadedData => loadedDataEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onloadedmetadata')
   @DocsEditable()
-  Stream<Event> get onLoadedMetadata => loadedMetadataEvent.forTarget(this);
+  ElementStream<Event> get onLoadedMetadata => loadedMetadataEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onloadstart')
   @DocsEditable()
-  Stream<Event> get onLoadStart => loadStartEvent.forTarget(this);
+  ElementStream<Event> get onLoadStart => loadStartEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onpause')
   @DocsEditable()
-  Stream<Event> get onPause => pauseEvent.forTarget(this);
+  ElementStream<Event> get onPause => pauseEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onplay')
   @DocsEditable()
-  Stream<Event> get onPlay => playEvent.forTarget(this);
+  ElementStream<Event> get onPlay => playEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onplaying')
   @DocsEditable()
-  Stream<Event> get onPlaying => playingEvent.forTarget(this);
+  ElementStream<Event> get onPlaying => playingEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onprogress')
   @DocsEditable()
-  Stream<Event> get onProgress => progressEvent.forTarget(this);
+  ElementStream<Event> get onProgress => progressEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onratechange')
   @DocsEditable()
-  Stream<Event> get onRateChange => rateChangeEvent.forTarget(this);
+  ElementStream<Event> get onRateChange => rateChangeEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onseeked')
   @DocsEditable()
-  Stream<Event> get onSeeked => seekedEvent.forTarget(this);
+  ElementStream<Event> get onSeeked => seekedEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onseeking')
   @DocsEditable()
-  Stream<Event> get onSeeking => seekingEvent.forTarget(this);
+  ElementStream<Event> get onSeeking => seekingEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onshow')
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#event-media-loadstart
   @Experimental()
-  Stream<Event> get onShow => showEvent.forTarget(this);
+  ElementStream<Event> get onShow => showEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onstalled')
   @DocsEditable()
-  Stream<Event> get onStalled => stalledEvent.forTarget(this);
+  ElementStream<Event> get onStalled => stalledEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onsuspend')
   @DocsEditable()
-  Stream<Event> get onSuspend => suspendEvent.forTarget(this);
+  ElementStream<Event> get onSuspend => suspendEvent.forElement(this);
 
   @DomName('HTMLMediaElement.ontimeupdate')
   @DocsEditable()
-  Stream<Event> get onTimeUpdate => timeUpdateEvent.forTarget(this);
+  ElementStream<Event> get onTimeUpdate => timeUpdateEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onvolumechange')
   @DocsEditable()
-  Stream<Event> get onVolumeChange => volumeChangeEvent.forTarget(this);
+  ElementStream<Event> get onVolumeChange => volumeChangeEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onwaiting')
   @DocsEditable()
-  Stream<Event> get onWaiting => waitingEvent.forTarget(this);
+  ElementStream<Event> get onWaiting => waitingEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onwebkitkeyadded')
   @DocsEditable()
   // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-keyadded
   @Experimental()
-  Stream<MediaKeyEvent> get onKeyAdded => keyAddedEvent.forTarget(this);
+  ElementStream<MediaKeyEvent> get onKeyAdded => keyAddedEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onwebkitkeyerror')
   @DocsEditable()
   // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-keyadded
   @Experimental()
-  Stream<MediaKeyEvent> get onKeyError => keyErrorEvent.forTarget(this);
+  ElementStream<MediaKeyEvent> get onKeyError => keyErrorEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onwebkitkeymessage')
   @DocsEditable()
   // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-keyadded
   @Experimental()
-  Stream<MediaKeyEvent> get onKeyMessage => keyMessageEvent.forTarget(this);
+  ElementStream<MediaKeyEvent> get onKeyMessage => keyMessageEvent.forElement(this);
 
   @DomName('HTMLMediaElement.onwebkitneedkey')
   @DocsEditable()
   // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-keyadded
   @Experimental()
-  Stream<MediaKeyEvent> get onNeedKey => needKeyEvent.forTarget(this);
+  ElementStream<MediaKeyEvent> get onNeedKey => needKeyEvent.forElement(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28321,6 +28788,123 @@ class _EventStream<T extends Event> extends Stream<T> {
   }
 }
 
+/** A specialized Stream available to [Element]s to enable event delegation. */
+abstract class ElementStream<T extends Event> implements Stream<T> {
+  /**
+   * Return a stream that only fires when the particular event fires for
+   * elements matching the specified CSS selector.
+   *
+   * This is the Dart equivalent to jQuery's
+   * [delegate](http://api.jquery.com/delegate/).
+   */
+  Stream<T> matches(String selector);
+}
+
+/**
+ * Adapter for exposing DOM Element events as streams, while also allowing
+ * event delegation.
+ */
+class _ElementEventStreamImpl<T extends Event> extends _EventStream<T>
+    implements ElementStream<T> {
+  _ElementEventStreamImpl(target, eventType, useCapture) :
+      super(target, eventType, useCapture);
+
+  Stream<T> matches(String selector) =>
+      this.where((event) => event.target.matches(selector, true));
+}
+
+/**
+ * Adapter for exposing events on a collection of DOM Elements as streams,
+ * while also allowing event delegation.
+ */
+class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
+    implements ElementStream<T> {
+  final _StreamPool _pool;
+  Stream<T> _stream;
+
+  _ElementListEventStreamImpl(targetList, eventType, useCapture) :
+      _pool = new _StreamPool.broadcast() {
+    for (Element target in targetList) {
+      var stream = new _EventStream(target, eventType, useCapture);
+      _pool.add(stream);
+    }
+    _stream = _pool.stream;
+  }
+
+  Stream<T> matches(String selector) =>
+      this.where((event) => event.target.matches(selector, true));
+
+  // Delegate all regular Stream behavor to our wrapped Stream.
+  StreamSubscription<T> listen(void onData(T event),
+      { void onError(error),
+        void onDone(),
+        bool cancelOnError}) =>
+      _stream.listen(onData, onError: onError, onDone: onDone,
+          cancelOnError: cancelOnError);
+  Stream<T> asBroadcastStream({void onListen(StreamSubscription subscription),
+                               void onCancel(StreamSubscription subscription)})
+      => _stream;
+  bool get isBroadcast => true;
+}
+
+/**
+ * A pool of streams whose events are unified and emitted through a central
+ * stream.
+ */
+// TODO (efortuna): Remove this when Issue 12218 is addressed.
+class _StreamPool<T> {
+  StreamController<T> _controller;
+
+  /// Subscriptions to the streams that make up the pool.
+  var _subscriptions = new Map<Stream<T>, StreamSubscription<T>>();
+
+  /**
+   * Creates a new stream pool where [stream] can be listened to more than
+   * once.
+   *
+   * Any events from buffered streams in the pool will be emitted immediately,
+   * regardless of whether [stream] has any subscribers.
+   */
+  _StreamPool.broadcast() {
+    _controller = new StreamController<T>.broadcast(sync: true,
+        onCancel: close);
+  }
+
+  /**
+   * The stream through which all events from streams in the pool are emitted.
+   */
+  Stream<T> get stream => _controller.stream;
+
+  /**
+   * Adds [stream] as a member of this pool.
+   *
+   * Any events from [stream] will be emitted through [this.stream]. If
+   * [stream] is sync, they'll be emitted synchronously; if [stream] is async,
+   * they'll be emitted asynchronously.
+   */
+  void add(Stream<T> stream) {
+    if (_subscriptions.containsKey(stream)) return;
+    _subscriptions[stream] = stream.listen(_controller.add,
+        onError: _controller.addError,
+        onDone: () => remove(stream));
+  }
+
+  /** Removes [stream] as a member of this pool. */
+  void remove(Stream<T> stream) {
+    var subscription = _subscriptions.remove(stream);
+    if (subscription != null) subscription.cancel();
+  }
+
+  /** Removes all streams from this pool and closes [stream]. */
+  void close() {
+    for (var subscription in _subscriptions.values) {
+      subscription.cancel();
+    }
+    _subscriptions.clear();
+    _controller.close();
+  }
+}
+
 class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   int _pauseCount = 0;
   EventTarget _target;
@@ -28398,7 +28982,6 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   }
 }
 
-
 /**
  * A factory to expose DOM events as Streams.
  */
@@ -28425,8 +29008,43 @@ class EventStreamProvider<T extends Event> {
    *
    * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
    */
-  Stream<T> forTarget(EventTarget e, {bool useCapture: false}) {
-    return new _EventStream(e, _eventType, useCapture);
+  Stream<T> forTarget(EventTarget e, {bool useCapture: false}) =>
+    new _EventStream(e, _eventType, useCapture);
+
+  /**
+   * Gets an [ElementEventStream] for this event type, on the specified element.
+   *
+   * This will always return a broadcast stream so multiple listeners can be
+   * used simultaneously.
+   *
+   * This may be used to capture DOM events:
+   *
+   *     Element.keyDownEvent.forElement(element, useCapture: true).listen(...);
+   *
+   * See also:
+   *
+   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
+   */
+  ElementStream<T> forElement(Element e, {bool useCapture: false}) {
+    return new _ElementEventStreamImpl(e, _eventType, useCapture);
+  }
+
+  /**
+   * Gets an [ElementEventStream] for this event type, on the list of elements.
+   *
+   * This will always return a broadcast stream so multiple listeners can be
+   * used simultaneously.
+   *
+   * This may be used to capture DOM events:
+   *
+   *     Element.keyDownEvent._forElementList(element, useCapture: true).listen(...);
+   *
+   * See also:
+   *
+   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
+   */
+  ElementStream<T> _forElementList(ElementList e, {bool useCapture: false}) {
+    return new _ElementListEventStreamImpl(e, _eventType, useCapture);
   }
 
   /**
@@ -28453,6 +29071,15 @@ class _CustomEventStreamProvider<T extends Event>
 
   Stream<T> forTarget(EventTarget e, {bool useCapture: false}) {
     return new _EventStream(e, _eventTypeGetter(e), useCapture);
+  }
+
+  ElementStream<T> forElement(Element e, {bool useCapture: false}) {
+    return new _ElementEventStreamImpl(e, _eventTypeGetter(e), useCapture);
+  }
+
+  ElementStream<T> _forElementList(ElementList e,
+      {bool useCapture: false}) {
+    return new _ElementListEventStreamImpl(e, _eventTypeGetter(e), useCapture);
   }
 
   String getEventType(EventTarget target) {

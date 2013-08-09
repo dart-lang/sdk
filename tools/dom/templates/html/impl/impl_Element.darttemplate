@@ -244,6 +244,7 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    */
   @Experimental()
   CssRect get marginEdge;
+$!STREAM_GETTER_SIGNATURES 
 }
 
 // TODO(jacobr): this is an inefficient implementation but it is hard to see
@@ -297,6 +298,7 @@ class _FrozenElementList<T extends Element> extends ListBase<T> implements Eleme
   CssRect get borderEdge => _elementList.first.borderEdge;
 
   CssRect get marginEdge => _elementList.first.marginEdge;
+$!ELEMENT_STREAM_GETTERS
 }
 
 /**
@@ -875,19 +877,31 @@ $if DART2JS
 
   /**
    * Checks if this element matches the CSS selectors.
+   *
+   * If `includeAncestors` is true, we examine all of this element's parent
+   * elements and also return true if any of its parent elements matches
+   * `selectors`.
    */
   @Experimental()
-  bool matches(String selectors) {
-    if (JS('bool', '!!#.matches', this)) {
-      return JS('bool', '#.matches(#)', this, selectors);
-    } else if (JS('bool', '!!#.webkitMatchesSelector', this)) {
-      return JS('bool', '#.webkitMatchesSelector(#)', this, selectors);
-    } else if (JS('bool', '!!#.mozMatchesSelector', this)) {
-      return JS('bool', '#.mozMatchesSelector(#)', this, selectors);
-    } else if (JS('bool', '!!#.msMatchesSelector', this)) {
-      return JS('bool', '#.msMatchesSelector(#)', this, selectors);
-    }
-    throw new UnsupportedError("Not supported on this platform");
+  bool matches(String selectors, [includeAncestors = false]) {
+    var elem = this;
+    do {
+      bool matches = false;
+      if (JS('bool', '!!#.matches', elem)) {
+        matches = JS('bool', '#.matches(#)', elem, selectors);
+      } else if (JS('bool', '!!#.webkitMatchesSelector', elem)) {
+        matches = JS('bool', '#.webkitMatchesSelector(#)', elem, selectors);
+      } else if (JS('bool', '!!#.mozMatchesSelector', elem)) {
+        matches = JS('bool', '#.mozMatchesSelector(#)', elem, selectors);
+      } else if (JS('bool', '!!#.msMatchesSelector', elem)) {
+        matches = JS('bool', '#.msMatchesSelector(#)', elem, selectors);
+      } else {
+        throw new UnsupportedError("Not supported on this platform");
+      }
+      if (matches) return true;
+      elem = elem.parent;
+    } while(includeAncestors && elem != null);
+    return false;
   }
 $else
 $endif
@@ -1158,7 +1172,6 @@ $endif
   }
 $!MEMBERS
 }
-
 
 final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 class _ElementFactoryProvider {

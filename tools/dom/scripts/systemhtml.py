@@ -570,6 +570,17 @@ class HtmlDartInterfaceGenerator(object):
         MIXINS=mixins_str,
         DOMNAME=self._interface.doc_js_name,
         NATIVESPEC=native_spec)
+    stream_getter_signatures_emitter = None
+    element_stream_getters_emitter = None
+    if type(self._implementation_members_emitter) == tuple:
+      # We add event stream getters for both Element and ElementList, so in
+      # impl_Element.darttemplate, we have two additional "holes" for emitters
+      # to fill in, with small variations. These store these specialized
+      # emitters.
+      stream_getter_signatures_emitter = self._implementation_members_emitter[0]
+      element_stream_getters_emitter = self._implementation_members_emitter[1]
+      self._implementation_members_emitter = \
+          self._implementation_members_emitter[2]
     self._backend.StartInterface(self._implementation_members_emitter)
 
     self._backend.EmitHelpers(base_class)
@@ -594,7 +605,8 @@ class HtmlDartInterfaceGenerator(object):
         self._interface,
         [],
         self._implementation_members_emitter,
-        self._library_name)
+        self._library_name, stream_getter_signatures_emitter,
+        element_stream_getters_emitter)
     self._backend.FinishInterface()
 
   def _ImplementationEmitter(self):
