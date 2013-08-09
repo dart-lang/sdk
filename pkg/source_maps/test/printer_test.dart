@@ -84,10 +84,10 @@ main() {
     test('simple use', () {
       var printer = new NestedPrinter();
       printer..add('var ')
-             ..add('x = 3;\n', location: inputVar1)
-             ..add('f(', location: inputFunction)
-             ..add('y) => ', location: inputVar2)
-             ..add('x + y;\n', location: inputExpr)
+             ..add('x = 3;\n', span: inputVar1)
+             ..add('f(', span: inputFunction)
+             ..add('y) => ', span: inputVar2)
+             ..add('x + y;\n', span: inputExpr)
              ..build('output.dart');
       expect(printer.text, OUTPUT);
       expect(printer.map, json.stringify(EXPECTED_MAP));
@@ -96,10 +96,10 @@ main() {
     test('nested use', () {
       var printer = new NestedPrinter();
       printer..add('var ')
-             ..add(new NestedPrinter()..add('x = 3;\n', location: inputVar1))
-             ..add('f(', location: inputFunction)
-             ..add(new NestedPrinter()..add('y) => ', location: inputVar2))
-             ..add('x + y;\n', location: inputExpr)
+             ..add(new NestedPrinter()..add('x = 3;\n', span: inputVar1))
+             ..add('f(', span: inputFunction)
+             ..add(new NestedPrinter()..add('y) => ', span: inputVar2))
+             ..add('x + y;\n', span: inputExpr)
              ..build('output.dart');
       expect(printer.text, OUTPUT);
       expect(printer.map, json.stringify(EXPECTED_MAP));
