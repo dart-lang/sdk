@@ -1731,9 +1731,8 @@ int32_t Assembler::EncodeBranchOffset(int32_t offset, int32_t inst) {
 
   if (!CanEncodeBranchOffset(offset)) {
     ASSERT(!use_far_branches());
-    const Error& error = Error::Handle(LanguageError::New(
-        String::Handle(String::New("Branch offset overflow"))));
-    Isolate::Current()->long_jump_base()->Jump(1, error);
+    Isolate::Current()->long_jump_base()->Jump(
+        1, Object::branch_offset_error());
   }
 
   // Properly preserve only the bits supported in the instruction.

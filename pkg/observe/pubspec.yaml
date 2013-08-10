@@ -8,6 +8,10 @@ description: >
   immediately assigned to the model.
 homepage: https://github.com/dart-lang/web-ui
 dependencies:
+  analyzer_experimental: any
+  barback: any
   logging: any
+  path: any
+  source_maps: any
 dev_dependencies:
   unittest: any

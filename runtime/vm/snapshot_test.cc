@@ -460,7 +460,6 @@ TEST_CASE(SerializeSingletons) {
   uint8_t* buffer;
   MessageWriter writer(&buffer, &malloc_allocator);
   writer.WriteObject(Object::class_class());
-  writer.WriteObject(Object::null_class());
   writer.WriteObject(Object::type_arguments_class());
   writer.WriteObject(Object::instantiated_type_arguments_class());
   writer.WriteObject(Object::function_class());
@@ -480,7 +479,6 @@ TEST_CASE(SerializeSingletons) {
   SnapshotReader reader(buffer, buffer_len, Snapshot::kMessage,
                         Isolate::Current());
   EXPECT(Object::class_class() == reader.ReadObject());
-  EXPECT(Object::null_class() == reader.ReadObject());
   EXPECT(Object::type_arguments_class() == reader.ReadObject());
   EXPECT(Object::instantiated_type_arguments_class() == reader.ReadObject());
   EXPECT(Object::function_class() == reader.ReadObject());

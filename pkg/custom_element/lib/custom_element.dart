@@ -397,6 +397,9 @@ class CustomElement implements Element {
 
   bool matches(String selectors) => host.matches(selectors);
 
+  bool matchesWithAncestors(String selectors) =>
+      host.matchesWithAncestors(selectors);
+
   @deprecated
   void requestFullScreen(int flags) { requestFullscreen(); }
 

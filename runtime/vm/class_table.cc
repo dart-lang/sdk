@@ -29,7 +29,6 @@ ClassTable::ClassTable()
       table_[i] = vm_class_table->At(i);
     }
     table_[kFreeListElement] = vm_class_table->At(kFreeListElement);
-    table_[kNullCid] = vm_class_table->At(kNullCid);
     table_[kDynamicCid] = vm_class_table->At(kDynamicCid);
     table_[kVoidCid] = vm_class_table->At(kVoidCid);
   }

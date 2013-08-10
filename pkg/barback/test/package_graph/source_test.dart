@@ -61,10 +61,7 @@ main() {
     expectAsset("app|foo.txt");
     buildShouldSucceed();
 
-    schedule(() {
-      removeSources(["app|foo.txt"]);
-    });
-
+    removeSources(["app|foo.txt"]);
     expectNoAsset("app|foo.txt");
     buildShouldSucceed();
   });
@@ -75,26 +72,24 @@ main() {
 
     schedule(() {
       // Make a bunch of synchronous update calls.
-      updateSources(["app|foo.blub"]);
-      updateSources(["app|foo.blub"]);
-      updateSources(["app|foo.blub"]);
-      updateSources(["app|foo.blub"]);
+      updateSourcesSync(["app|foo.blub"]);
+      updateSourcesSync(["app|foo.blub"]);
+      updateSourcesSync(["app|foo.blub"]);
+      updateSourcesSync(["app|foo.blub"]);
     });
 
     expectAsset("app|foo.blab", "foo.blab");
     buildShouldSucceed();
 
-    schedule(() {
-      expect(transformer.numRuns, equals(1));
-    });
+    expect(transformer.numRuns, completion(equals(1)));
   });
 
   test("a removal cancels out an update", () {
     initGraph(["app|foo.txt"]);
 
     schedule(() {
-      updateSources(["app|foo.txt"]);
-      removeSources(["app|foo.txt"]);
+      updateSourcesSync(["app|foo.txt"]);
+      removeSourcesSync(["app|foo.txt"]);
     });
 
     expectNoAsset("app|foo.txt");
@@ -105,8 +100,8 @@ main() {
     initGraph(["app|foo.txt"]);
 
     schedule(() {
-      removeSources(["app|foo.txt"]);
-      updateSources(["app|foo.txt"]);
+      removeSourcesSync(["app|foo.txt"]);
+      updateSourcesSync(["app|foo.txt"]);
     });
 
     expectAsset("app|foo.txt");
@@ -117,14 +112,12 @@ main() {
     initGraph({"app|foo.txt": "foo"});
 
     pauseProvider();
-    schedule(() {
-      // The mock provider synchronously loads the value of the assets, so this
-      // will kick off two loads with different values. The second one should
-      // win.
-      updateSources(["app|foo.txt"]);
-      modifyAsset("app|foo.txt", "bar");
-      updateSources(["app|foo.txt"]);
-    });
+    // The mock provider synchronously loads the value of the assets, so this
+    // will kick off two loads with different values. The second one should
+    // win.
+    updateSources(["app|foo.txt"]);
+    modifyAsset("app|foo.txt", "bar");
+    updateSources(["app|foo.txt"]);
 
     resumeProvider();
     expectAsset("app|foo.txt", "bar");
@@ -145,23 +138,16 @@ main() {
     // Make the provider slow to load a source.
     pauseProvider();
 
-    schedule(() {
-      // Update an asset that doesn't trigger any transformers.
-      updateSources(["app|other.bar"]);
-    });
+    // Update an asset that doesn't trigger any transformers.
+    updateSources(["app|other.bar"]);
 
-    schedule(() {
-      // Now update an asset that does trigger a transformer.
-      updateSources(["app|foo.txt"]);
-    });
+    // Now update an asset that does trigger a transformer.
+    updateSources(["app|foo.txt"]);
 
     resumeProvider();
 
     buildShouldSucceed();
-    waitForBuild();
 
-    schedule(() {
-      expect(transformer.numRuns, equals(2));
-    });
+    expect(transformer.numRuns, completion(equals(2)));
   });
 }

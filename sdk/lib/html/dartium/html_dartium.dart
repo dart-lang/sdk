@@ -9734,6 +9734,17 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   }
 
 
+  /** Checks if this element or any of its parents match the CSS selectors. */
+  @Experimental()
+  bool matchesWithAncestors(String selectors) {
+    var elem = this;
+    do {
+      if (elem.matches(selectors)) return true;
+      elem = elem.parent;
+    } while(elem != null);
+    return false;
+  }
+
   Element _templateInstanceRef;
 
   // Note: only used if `this is! TemplateElement`
@@ -30351,7 +30362,7 @@ class _ElementEventStreamImpl<T extends Event> extends _EventStream<T>
       super(target, eventType, useCapture);
 
   Stream<T> matches(String selector) =>
-      this.where((event) => event.target.matches(selector, true));
+      this.where((event) => event.target.matchesWithAncestors(selector));
 }
 
 /**
@@ -30373,7 +30384,7 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
   }
 
   Stream<T> matches(String selector) =>
-      this.where((event) => event.target.matches(selector, true));
+      this.where((event) => event.target.matchesWithAncestors(selector));
 
   // Delegate all regular Stream behavor to our wrapped Stream.
   StreamSubscription<T> listen(void onData(T event),

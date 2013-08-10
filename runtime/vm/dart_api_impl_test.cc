@@ -203,7 +203,7 @@ TEST_CASE(IdentityEquals) {
   {
     Isolate* isolate = Isolate::Current();
     DARTSCOPE(isolate);
-    Dart_Handle class1 = Api::NewHandle(isolate, Object::null_class());
+    Dart_Handle class1 = Api::NewHandle(isolate, Object::void_class());
     Dart_Handle class2 = Api::NewHandle(isolate, Object::class_class());
 
     EXPECT(Dart_IdentityEquals(class1, class1));
@@ -4464,6 +4464,7 @@ TEST_CASE(GetNativeArgumentCount) {
 
 TEST_CASE(GetType) {
   const char* kScriptChars =
+      "library testlib;\n"
       "class Class {\n"
       "  static var name = 'Class';\n"
       "}\n"
@@ -4495,7 +4496,7 @@ TEST_CASE(GetType) {
   // Lookup a class that does not exist.
   type = Dart_GetType(lib, NewString("DoesNotExist"), 0, NULL);
   EXPECT(Dart_IsError(type));
-  EXPECT_STREQ("Type 'DoesNotExist' not found in library 'dart:test-lib'.",
+  EXPECT_STREQ("Type 'DoesNotExist' not found in library 'testlib'.",
                Dart_GetError(type));
 
   // Lookup a class from an error library.  The error propagates.
@@ -4654,6 +4655,7 @@ TEST_CASE(LoadScript) {
 
 TEST_CASE(RootLibrary) {
   const char* kScriptChars =
+      "library testlib;"
       "main() {"
       "  return 12345;"
       "}";
@@ -4673,7 +4675,14 @@ TEST_CASE(RootLibrary) {
   EXPECT(!Dart_IsNull(root_lib));
   const char* name_cstr = "";
   EXPECT_VALID(Dart_StringToCString(lib_name, &name_cstr));
-  EXPECT_STREQ(TestCase::url(), name_cstr);
+  EXPECT_STREQ("testlib", name_cstr);
+
+  Dart_Handle lib_uri = Dart_LibraryUrl(root_lib);
+  EXPECT_VALID(lib_uri);
+  EXPECT(!Dart_IsNull(lib_uri));
+  const char* uri_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(lib_uri, &uri_cstr));
+  EXPECT_STREQ(TestCase::url(), uri_cstr);
 }
 
 

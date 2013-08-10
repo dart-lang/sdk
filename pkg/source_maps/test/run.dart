@@ -13,6 +13,7 @@ import 'builder_test.dart' as builder_test;
 import 'end2end_test.dart' as end2end_test;
 import 'parser_test.dart' as parser_test;
 import 'printer_test.dart' as printer_test;
+import 'refactor_test.dart' as refactor_test;
 import 'span_test.dart' as span_test;
 import 'utils_test.dart' as utils_test;
 import 'vlq_test.dart' as vlq_test;
@@ -32,6 +33,7 @@ main() {
   addGroup('end2end_test.dart', end2end_test.main);
   addGroup('parser_test.dart', parser_test.main);
   addGroup('printer_test.dart', printer_test.main);
+  addGroup('refactor_test.dart', refactor_test.main);
   addGroup('span_test.dart', span_test.main);
   addGroup('utils_test.dart', utils_test.main);
   addGroup('vlq_test.dart', vlq_test.main);

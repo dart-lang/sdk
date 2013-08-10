@@ -88,10 +88,10 @@ Bool* Object::bool_true_ = NULL;
 Bool* Object::bool_false_ = NULL;
 Smi* Object::smi_illegal_cid_ = NULL;
 LanguageError* Object::snapshot_writer_error_ = NULL;
+LanguageError* Object::branch_offset_error_ = NULL;
 
 RawObject* Object::null_ = reinterpret_cast<RawObject*>(RAW_NULL);
 RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
-RawClass* Object::null_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::dynamic_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::void_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::unresolved_class_class_ =
@@ -360,6 +360,8 @@ void Object::InitOnce() {
   bool_false_ = Bool::ReadOnlyHandle();
   smi_illegal_cid_ = Smi::ReadOnlyHandle();
   snapshot_writer_error_ = LanguageError::ReadOnlyHandle();
+  branch_offset_error_ = LanguageError::ReadOnlyHandle();
+
 
   // Allocate and initialize the null instance.
   // 'null_' must be the first object allocated as it is used in allocation to
@@ -413,7 +415,7 @@ void Object::InitOnce() {
   cls = Class::New<Instance>(kNullCid);
   cls.set_is_finalized();
   cls.set_is_type_finalized();
-  null_class_ = cls.raw();
+  isolate->object_store()->set_null_class(cls);
 
   // Allocate and initialize the free list element class.
   cls = Class::New<FreeListElement::FakeInstance>(kFreeListElement);
@@ -571,8 +573,12 @@ void Object::InitOnce() {
   *bool_false_ = Bool::New(false);
 
   *smi_illegal_cid_ = Smi::New(kIllegalCid);
-  *snapshot_writer_error_ =
-      LanguageError::New(String::Handle(String::New("SnapshotWriter Error")));
+
+  String& error_str = String::Handle();
+  error_str = String::New("SnapshotWriter Error");
+  *snapshot_writer_error_ = LanguageError::New(error_str);
+  error_str = String::New("Branch offset overflow");
+  *branch_offset_error_ = LanguageError::New(error_str);
 
   ASSERT(!null_object_->IsSmi());
   ASSERT(!null_array_->IsSmi());
@@ -600,6 +606,8 @@ void Object::InitOnce() {
   ASSERT(smi_illegal_cid_->IsSmi());
   ASSERT(!snapshot_writer_error_->IsSmi());
   ASSERT(snapshot_writer_error_->IsLanguageError());
+  ASSERT(!branch_offset_error_->IsSmi());
+  ASSERT(branch_offset_error_->IsLanguageError());
 }
 
 
@@ -612,7 +620,6 @@ void Object::RegisterSingletonClassNames() {
 
   // Set up names for all VM singleton classes.
   SET_CLASS_NAME(class, Class);
-  SET_CLASS_NAME(null, Null);
   SET_CLASS_NAME(dynamic, Dynamic);
   SET_CLASS_NAME(void, Void);
   SET_CLASS_NAME(unresolved_class, UnresolvedClass);
@@ -832,6 +839,20 @@ RawError* Object::Init(Isolate* isolate) {
   object_store->set_bool_class(cls);
   RegisterClass(cls, Symbols::Bool(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
+
+  cls = Class::New<Instance>(kNullCid);
+  cls.set_name(Symbols::Null());
+  // We immediately mark Null as finalized because it has no corresponding
+  // source.
+  cls.set_is_finalized();
+  cls.set_is_type_finalized();
+  object_store->set_null_class(cls);
+  cls.set_library(core_lib);  // A sort of fiction for the mirrors.
+  // When/if we promote Null to an ordinary class, it should be added to the
+  // core library, given source and added to the list of classes pending
+  // finalization.
+  // RegisterClass(cls, Symbols::Null(), core_lib);
+  // pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->array_class();  // Was allocated above.
   RegisterPrivateClass(cls, Symbols::ObjectArray(), core_lib);
@@ -1091,22 +1112,25 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_mint_type(type);
 
-  // The classes 'Null' and 'void' are not registered in the class dictionary,
-  // because their names are reserved keywords. Their names are not heap
-  // allocated, because the classes reside in the VM isolate.
+  // The class 'Null' is not register in the class dictionary because it is not
+  // The classes 'void' and 'dynamic' are phoney classes to make type checking
+  // more regular; they live in the VM isolate. The class 'void' is not
+  // registered in the class dictionary because its name is a reserved word.
+  // The class 'dynamic' is registered in the class dictionary because its name
+  // is a built-in identifier (this is wrong).
   // The corresponding types are stored in the object store.
-  cls = null_class();
+  cls = object_store->null_class();
   type = Type::NewNonParameterizedType(cls);
   object_store->set_null_type(type);
+
+  // Consider removing when/if Null becomes an ordinary class.
+  type = object_store->object_type();
+  cls.set_super_type(type);
 
   cls = void_class();
   type = Type::NewNonParameterizedType(cls);
   object_store->set_void_type(type);
 
-  // The class 'dynamic' is registered in the class dictionary because its name
-  // is a built-in identifier, rather than a reserved keyword. Its name is not
-  // heap allocated, because the class resides in the VM isolate.
-  // The corresponding type, the "unknown type", is stored in the object store.
   cls = dynamic_class();
   type = Type::NewNonParameterizedType(cls);
   object_store->set_dynamic_type(type);
@@ -1210,6 +1234,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   cls = Class::New<Bool>();
   object_store->set_bool_class(cls);
+
+  cls = Class::New<Instance>(kNullCid);
+  object_store->set_null_class(cls);
 
   cls = Class::New<Stacktrace>();
   object_store->set_stacktrace_class(cls);
@@ -7056,7 +7083,7 @@ RawLibrary* Library::New() {
 RawLibrary* Library::NewLibraryHelper(const String& url,
                                       bool import_core_lib) {
   const Library& result = Library::Handle(Library::New());
-  result.StorePointer(&result.raw_ptr()->name_, url.raw());
+  result.StorePointer(&result.raw_ptr()->name_, Symbols::Empty().raw());
   result.StorePointer(&result.raw_ptr()->url_, url.raw());
   result.raw_ptr()->private_key_ = Scanner::AllocatePrivateKey(result);
   result.raw_ptr()->dictionary_ = Object::empty_array().raw();
@@ -10431,6 +10458,12 @@ RawString* AbstractType::ClassName() const {
   } else {
     return UnresolvedClass::Handle(unresolved_class()).Name();
   }
+}
+
+
+bool AbstractType::IsNullType() const {
+  return HasResolvedTypeClass() &&
+      (type_class() == Type::Handle(Type::NullType()).type_class());
 }
 
 

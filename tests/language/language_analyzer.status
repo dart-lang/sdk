@@ -80,11 +80,6 @@ pseudo_kw_test: fail
 # TBF: hiding at start of the block and declared after declaration statement
 scope_negative_test: fail
 
-# TBF: 'instance.staticMethod()' is static warning
-static_field_test/01: fail
-static_field_test/02: fail
-static_field_test/03: fail
-
 # TBF
 method_override2_test/00: fail # issue 11497
 method_override2_test/01: fail # issue 11497

@@ -39,4 +39,5 @@ library source_maps;
 export "builder.dart";
 export "parser.dart";
 export "printer.dart";
+export "refactor.dart";
 export "span.dart";
