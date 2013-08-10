@@ -230,9 +230,10 @@ void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
   _writeToFile(filteredEntities.where((e) => e is Library)
       .map((e) => e.qualifiedName).join('\n'), 'library_list.txt',
       append: append);
-  // Outputs all the qualified names documented. This will help generate search
-  // results.
-  _writeToFile(filteredEntities.map((e) => e.qualifiedName).join('\n'),
+  // Outputs all the qualified names documented with their type.
+  // This will help generate search results.
+  _writeToFile(filteredEntities.map((e) => 
+      '${e.qualifiedName} ${e.typeName}').join('\n'),
       'index.txt', append: append);
 }
 
@@ -518,6 +519,9 @@ class Indexable {
 
   Indexable(this.name, this.comment, this.qualifiedName, this.isPrivate,
       this.owner);
+  
+  /// The type of this member to be used in index.txt.
+  String get typeName => '';
 }
 
 /**
@@ -547,6 +551,8 @@ class Library extends Indexable {
     'functions': functions.toMap(),
     'classes': classes.toMap()
   };
+  
+  String get typeName => 'library';
 }
 
 /**
@@ -586,6 +592,8 @@ class Class extends Indexable {
       String qualifiedName, bool isPrivate, String owner, this.isAbstract) 
       : super(name, comment, qualifiedName, isPrivate, owner);
 
+  String get typeName => 'class';
+  
   /**
    * Returns a list of all the parent classes.
    */
@@ -790,6 +798,8 @@ class Typedef extends Indexable {
     'annotations': annotations.map((a) => a.toMap()).toList(),
     'generics': recurseMap(generics)
   };
+  
+  String get typeName => 'typedef';
 }
 
 /**
@@ -820,6 +830,8 @@ class Variable extends Indexable {
     'type': new List.filled(1, type.toMap()),
     'annotations': annotations.map((a) => a.toMap()).toList()
   };
+  
+  String get typeName => 'property';
 }
 
 /**
@@ -833,6 +845,10 @@ class Method extends Indexable {
   bool isStatic;
   bool isAbstract;
   bool isConst;
+  bool isConstructor;
+  bool isGetter;
+  bool isSetter;
+  bool isOperator;
   Type returnType;
 
   /// Qualified name to state where the comment is inherited from.
@@ -843,8 +859,9 @@ class Method extends Indexable {
 
   Method(String name, this.isStatic, this.isAbstract, this.isConst,
       this.returnType, String comment, this.parameters, this.annotations,
-      String qualifiedName, bool isPrivate, String owner) : super(name, comment,
-          qualifiedName, isPrivate, owner);
+      String qualifiedName, bool isPrivate, String owner, this.isConstructor,
+      this.isGetter, this.isSetter, this.isOperator) 
+        : super(name, comment, qualifiedName, isPrivate, owner);
 
   /**
    * Makes sure that the method with an inherited equivalent have comments.
@@ -870,6 +887,10 @@ class Method extends Indexable {
     'parameters': recurseMap(parameters),
     'annotations': annotations.map((a) => a.toMap()).toList()
   };
+  
+  String get typeName => isConstructor ? 'constructor' :
+    isGetter ? 'getter' : isSetter ? 'setter' :
+    isOperator ? 'operator' : 'method';
 }
 
 /**
@@ -888,7 +909,8 @@ class MethodGroup {
         mirror.isAbstract, mirror.isConstConstructor, _type(mirror.returnType),
         _commentToHtml(mirror), _parameters(mirror.parameters),
         _annotations(mirror), mirror.qualifiedName, _isHidden(mirror),
-        mirror.owner.qualifiedName);
+        mirror.owner.qualifiedName, mirror.isConstructor, mirror.isGetter,
+        mirror.isSetter, mirror.isOperator);
     entityMap[mirror.qualifiedName] = method;
     _currentMember = mirror;
     if (mirror.isSetter) {
