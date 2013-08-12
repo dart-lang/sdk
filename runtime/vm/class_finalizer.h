@@ -76,8 +76,13 @@ class ClassFinalizer : public AllStatic {
   // in the object store.
   static bool FinalizePendingClasses();
 
+  // Finalize the types appearing in the declaration of class 'cls', i.e. its
+  // type parameters and their upper bounds, its super type and interfaces.
+  // Note that the fields and functions have not been parsed yet (unless cls
+  // is an anonymous top level class).
   static void FinalizeTypesInClass(const Class& cls);
 
+  // Finalize the class including its fields and functions.
   static void FinalizeClass(const Class& cls);
 
   // Verify that the classes have been properly prefinalized. This is
@@ -141,9 +146,10 @@ class ClassFinalizer : public AllStatic {
                                   const char* format,
                                   va_list args);
   static void ReportError(const Error& error);
-  static void ReportError(const Script& script,
+  static void ReportError(const Error& prev_error,
+                          const Script& script,
                           intptr_t token_index,
-                          const char* format, ...) PRINTF_ATTRIBUTE(3, 4);
+                          const char* format, ...) PRINTF_ATTRIBUTE(4, 5);
   static void ReportError(const char* format, ...) PRINTF_ATTRIBUTE(1, 2);
 
   // Verify implicit offsets recorded in the VM for direct access to fields of

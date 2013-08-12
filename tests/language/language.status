@@ -154,8 +154,10 @@ type_annotation_test/06: Fail
 # Calling unresolved class constructor:
 call_nonexistent_constructor_test: Fail
 
-bad_override_test/01: Fail
-bad_override_test/02: Fail
+bad_override_test/01: Fail # Issue 11496
+bad_override_test/02: Fail # Issue 11496
+bad_override_test/06: Fail # Issue 11496
+class_override_test/00: Fail # Issue 11496
 
 # Missing compile-time error when modifying final local variables
 final_variable_assignment_test/01: Fail

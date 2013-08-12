@@ -388,9 +388,18 @@ LibTest/core/String/lastIndexOf_A01_t02: Fail # Issue 427
 LibTest/core/FallThroughError/toString_A01_t01: Fail # FallThroughError is no longer const. Issue 459
 LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail # FallThroughError is no longer const. Issue 459
 
-Language/07_Classes/4_Abstract_Instance_Members_A04_t01: Fail # Override rules have been relaxed. Issue
-Language/07_Classes/1_Instance_Methods_A02_t02: Fail # Override rules have been relaxed. Issue
-Language/07_Classes/1_Instance_Methods_A02_t05: Fail # Override rules have been relaxed. Issue
+Language/07_Classes/1_Instance_Methods_A01_t01: Fail # Issue 485
+Language/07_Classes/1_Instance_Methods_A01_t02: Fail # Issue 485
+Language/07_Classes/1_Instance_Methods_A01_t03: Fail # Issue 485
+Language/07_Classes/1_Instance_Methods_A01_t04: Fail # Issue 485
+Language/07_Classes/1_Instance_Methods_A01_t05: Fail # Issue 485
+Language/07_Classes/1_Instance_Methods_A01_t06: Fail # Issue 485
+Language/07_Classes/1_Instance_Methods_A02_t02: Fail # Issue 485
+Language/07_Classes/1_Instance_Methods_A02_t05: Fail # Issue 485
+Language/07_Classes/1_Instance_Methods_A06_t01: Fail # Issue 485
+Language/07_Classes/1_Instance_Methods_A06_t02: Fail # Issue 485
+Language/07_Classes/4_Abstract_Instance_Members_A03_t01: Fail # Issue 485
+Language/07_Classes/4_Abstract_Instance_Members_A04_t01: Fail # Issue 485
 
 Language/03_Overview/1_Scoping_A02_t28: Fail # Issue 463
 Language/03_Overview/2_Privacy_A01_t06: Fail # Issue 463

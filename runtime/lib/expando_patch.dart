@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 patch class Expando<T> {
-  /* patch */ Expando([this.name])
+  /* patch */ Expando([String this.name])
       : _data = new List(_minSize),
         _used = 0;
 

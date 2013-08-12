@@ -278,10 +278,6 @@ type_error_test: fail
 issue11724_test: fail
 call_nonexistent_static_test/08: fail
 
-# test issue 12386
-class_override_negative_test: fail
-bad_override_test/06: fail
-
 [ $compiler == dartanalyzer && $checked ]
 factory1_test/00: fail
 factory1_test/01: fail

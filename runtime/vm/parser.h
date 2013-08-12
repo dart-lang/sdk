@@ -162,7 +162,7 @@ class Parser : public ValueObject {
                                   intptr_t token_pos,
                                   const char* message_header,
                                   const char* format, ...)
-    PRINTF_ATTRIBUTE(4, 5);
+      PRINTF_ATTRIBUTE(4, 5);
 
   // Same as FormatError, but appends the new error to the 'prev_error'.
   static RawError* FormatErrorWithAppend(const Error& prev_error,
@@ -171,6 +171,8 @@ class Parser : public ValueObject {
                                          const char* message_header,
                                          const char* format,
                                          va_list args);
+
+  static void AddImplicitConstructor(const Class& cls);
 
  private:
   friend class EffectGraphVisitor;  // For BuildNoSuchMethodArguments.
@@ -298,19 +300,19 @@ class Parser : public ValueObject {
                                   const char* format,
                                   va_list args);
 
-  // Reports error/warning message at location of current token.
+  // Reports error/warning msg at location of current token in current script.
   void ErrorMsg(const char* msg, ...) PRINTF_ATTRIBUTE(2, 3);
   void Warning(const char* msg, ...)  PRINTF_ATTRIBUTE(2, 3);
   void Unimplemented(const char* msg);
 
-  // Reports error message at given location.
+  // Reports error message at given location in current script.
   void ErrorMsg(intptr_t token_pos, const char* msg, ...) const
       PRINTF_ATTRIBUTE(3, 4);
   void Warning(intptr_t token_pos, const char* msg, ...)
       PRINTF_ATTRIBUTE(3, 4);
 
   // Reports an already formatted error message.
-  void ErrorMsg(const Error& error);
+  static void ErrorMsg(const Error& error);
 
   // Concatenates two error messages, the previous and the current one.
   void AppendErrorMsg(
@@ -371,7 +373,6 @@ class Parser : public ValueObject {
   void ParseFormalParameterList(bool allow_explicit_default_values,
                                 ParamList* params);
   void CheckConstFieldsInitialized(const Class& cls);
-  void AddImplicitConstructor(const Class& cls);
   void CheckConstructors(ClassDesc* members);
   AstNode* ParseExternalInitializedField(const Field& field);
   void ParseInitializedInstanceFields(
@@ -422,7 +423,8 @@ class Parser : public ValueObject {
   AstNode* CreateImplicitClosureNode(const Function& func,
                                      intptr_t token_pos,
                                      AstNode* receiver);
-  void AddFormalParamsToFunction(const ParamList* params, const Function& func);
+  static void AddFormalParamsToFunction(const ParamList* params,
+                                        const Function& func);
   void AddFormalParamsToScope(const ParamList* params, LocalScope* scope);
 
   SequenceNode* ParseConstructor(const Function& func,
@@ -555,7 +557,7 @@ class Parser : public ValueObject {
   LocalVariable* LookupLocalScope(const String& ident);
   void CheckInstanceFieldAccess(intptr_t field_pos, const String& field_name);
   bool ParsingStaticMember() const;
-  const Type* ReceiverType() const;
+  static const AbstractType* ReceiverType(const Class& cls);
   bool IsInstantiatorRequired() const;
   bool ResolveIdentInLocalScope(intptr_t ident_pos,
                                 const String &ident,

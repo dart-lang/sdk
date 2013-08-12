@@ -31,8 +31,25 @@ TEST_CASE(Class) {
   const Script& script = Script::Handle();
   const Class& cls = Class::Handle(CreateDummyClass(class_name, script));
 
-  // Class has no fields.
-  cls.SetFields(Object::empty_array());
+  // Class has no fields and no functions yet.
+  EXPECT_EQ(Array::Handle(cls.fields()).Length(), 0);
+  EXPECT_EQ(Array::Handle(cls.functions()).Length(), 0);
+
+  // Setup the interfaces in the class.
+  const Array& interfaces = Array::Handle(Array::New(2));
+  Class& interface = Class::Handle();
+  String& interface_name = String::Handle();
+  interface_name = Symbols::New("Harley");
+  interface = CreateDummyClass(interface_name, script);
+  interfaces.SetAt(0, Type::Handle(Type::NewNonParameterizedType(interface)));
+  interface_name = Symbols::New("Norton");
+  interface = CreateDummyClass(interface_name, script);
+  interfaces.SetAt(1, Type::Handle(Type::NewNonParameterizedType(interface)));
+  cls.set_interfaces(interfaces);
+
+  // Finalization of types happens before the fields and functions have been
+  // parsed.
+  ClassFinalizer::FinalizeTypesInClass(cls);
 
   // Create and populate the function arrays.
   const Array& functions = Array::Handle(Array::New(6));
@@ -79,19 +96,10 @@ TEST_CASE(Class) {
       true, false, false, false, cls, 0);
   functions.SetAt(5, function);
 
-  // Setup the functions and interfaces in the class.
+  // Setup the functions in the class.
   cls.SetFunctions(functions);
-  const Array& interfaces = Array::Handle(Array::New(2));
-  Class& interface = Class::Handle();
-  String& interface_name = String::Handle();
-  interface_name = Symbols::New("Harley");
-  interface = CreateDummyClass(interface_name, script);
-  interfaces.SetAt(0, Type::Handle(Type::NewNonParameterizedType(interface)));
-  interface_name = Symbols::New("Norton");
-  interface = CreateDummyClass(interface_name, script);
-  interfaces.SetAt(1, Type::Handle(Type::NewNonParameterizedType(interface)));
-  cls.set_interfaces(interfaces);
-  ClassFinalizer::FinalizeTypesInClass(cls);
+
+  // The class can now be finalized.
   cls.Finalize();
 
   function_name = String::New("Foo");
@@ -176,10 +184,13 @@ TEST_CASE(InstanceClass) {
   const Class& empty_class =
       Class::Handle(CreateDummyClass(class_name, script));
 
-  // No functions and no super class for the EmptyClass.
-  empty_class.SetFields(Object::empty_array());
+  // EmptyClass has no fields and no functions.
+  EXPECT_EQ(Array::Handle(empty_class.fields()).Length(), 0);
+  EXPECT_EQ(Array::Handle(empty_class.functions()).Length(), 0);
+
   ClassFinalizer::FinalizeTypesInClass(empty_class);
   empty_class.Finalize();
+
   EXPECT_EQ(kObjectAlignment, empty_class.instance_size());
   Instance& instance = Instance::Handle(Instance::New(empty_class));
   EXPECT_EQ(empty_class.raw(), instance.clazz());
@@ -188,14 +199,18 @@ TEST_CASE(InstanceClass) {
   const Class& one_field_class =
       Class::Handle(CreateDummyClass(class_name, script));
 
-  // No functions and no super class for the OneFieldClass.
+  // No fields, functions, or super type for the OneFieldClass.
+  EXPECT_EQ(Array::Handle(empty_class.fields()).Length(), 0);
+  EXPECT_EQ(Array::Handle(empty_class.functions()).Length(), 0);
+  EXPECT_EQ(empty_class.super_type(), AbstractType::null());
+  ClassFinalizer::FinalizeTypesInClass(one_field_class);
+
   const Array& one_fields = Array::Handle(Array::New(1));
   const String& field_name = String::Handle(Symbols::New("the_field"));
   const Field& field = Field::Handle(
        Field::New(field_name, false, false, false, one_field_class, 0));
   one_fields.SetAt(0, field);
   one_field_class.SetFields(one_fields);
-  ClassFinalizer::FinalizeTypesInClass(one_field_class);
   one_field_class.Finalize();
   intptr_t header_size = sizeof(RawObject);
   EXPECT_EQ(Utils::RoundUp((header_size + (1 * kWordSize)), kObjectAlignment),

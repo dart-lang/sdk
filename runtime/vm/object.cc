@@ -58,6 +58,7 @@ DEFINE_FLAG(bool, throw_on_javascript_int_overflow, false,
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
+DECLARE_FLAG(bool, error_on_bad_override);
 
 static const char* kGetterPrefix = "get:";
 static const intptr_t kGetterPrefixLength = strlen(kGetterPrefix);
@@ -1925,17 +1926,24 @@ void Class::Finalize() const {
 }
 
 
-static const char* FormatPatchError(const char* format, const Object& obj) {
-  const char* msg = obj.ToCString();
-  intptr_t len = OS::SNPrint(NULL, 0, format, msg) + 1;
-  char* result = Isolate::Current()->current_zone()->Alloc<char>(len);
-  OS::SNPrint(result, len, format, msg);
-  return result;
+static RawError* FormatError(const Error& prev_error,
+                             const Script& script,
+                             intptr_t token_pos,
+                             const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  if (prev_error.IsNull()) {
+    return Parser::FormatError(script, token_pos, "Error", format, args);
+  } else {
+    return Parser::FormatErrorWithAppend(prev_error, script, token_pos,
+                                         "Error", format, args);
+  }
 }
 
 
 // Apply the members from the patch class to the original class.
-const char* Class::ApplyPatch(const Class& patch) const {
+bool Class::ApplyPatch(const Class& patch, Error* error) const {
+  ASSERT(error != NULL);
   ASSERT(!is_finalized());
   // Shared handles used during the iteration.
   String& member_name = String::Handle();
@@ -1975,11 +1983,14 @@ const char* Class::ApplyPatch(const Class& patch) const {
       if (orig_func.raw() != orig_implicit_ctor.raw()) {
         new_functions.Add(orig_func);
       }
-    } else if (!func.HasCompatibleParametersWith(orig_func) &&
-               !(func.IsFactory() && orig_func.IsConstructor() &&
-                 (func.num_fixed_parameters() + 1 ==
-                  orig_func.num_fixed_parameters()))) {
-      return FormatPatchError("mismatched parameters: %s", member_name);
+    } else if (func.UserVisibleSignature() !=
+               orig_func.UserVisibleSignature()) {
+      // Compare user visible signatures to ignore different implicit parameters
+      // when patching a constructor with a factory.
+      *error = FormatError(*error,  // No previous error.
+                           Script::Handle(patch.script()), func.token_pos(),
+                           "signature mismatch: '%s'", member_name.ToCString());
+      return false;
     }
   }
   for (intptr_t i = 0; i < patch_len; i++) {
@@ -2017,7 +2028,10 @@ const char* Class::ApplyPatch(const Class& patch) const {
     // Verify no duplicate additions.
     orig_field ^= LookupField(member_name);
     if (!orig_field.IsNull()) {
-      return FormatPatchError("duplicate field: %s", member_name);
+      *error = FormatError(*error,  // No previous error.
+                           Script::Handle(patch.script()), field.token_pos(),
+                           "duplicate field: %s", member_name.ToCString());
+      return false;
     }
     new_list.SetAt(i, field);
   }
@@ -2030,7 +2044,7 @@ const char* Class::ApplyPatch(const Class& patch) const {
   // The functions and fields in the patch class are no longer needed.
   patch.SetFunctions(Object::empty_array());
   patch.SetFields(Object::empty_array());
-  return NULL;
+  return true;
 }
 
 
@@ -3135,21 +3149,6 @@ bool AbstractTypeArguments::IsDynamicTypes(bool raw_instantiated,
     }
   }
   return true;
-}
-
-
-static RawError* FormatError(const Error& prev_error,
-                             const Script& script,
-                             intptr_t token_pos,
-                             const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  if (prev_error.IsNull()) {
-    return Parser::FormatError(script, token_pos, "Error", format, args);
-  } else {
-    return Parser::FormatErrorWithAppend(prev_error, script, token_pos,
-                                         "Error", format, args);
-  }
 }
 
 
@@ -4372,24 +4371,33 @@ const char* Function::ToFullyQualifiedCString() const {
 }
 
 
-bool Function::HasCompatibleParametersWith(const Function& other) const {
-  const intptr_t num_fixed_params = num_fixed_parameters();
-  const intptr_t num_opt_pos_params = NumOptionalPositionalParameters();
-  const intptr_t other_num_fixed_params = other.num_fixed_parameters();
-  const intptr_t other_num_opt_pos_params =
-      other.NumOptionalPositionalParameters();
-  // A generative constructor may be compared to a redirecting factory and be
-  // compatible although it has an additional phase parameter.
-  const intptr_t num_ignored_params =
-      (other.IsRedirectingFactory() && IsConstructor()) ? 1 : 0;
-  // The default values of optional parameters can differ.
-  // This function requires the same arguments or less and accepts the same
-  // arguments or more.
-  if (((num_fixed_params - num_ignored_params) > other_num_fixed_params) ||
-      ((num_fixed_params - num_ignored_params) + num_opt_pos_params <
-       other_num_fixed_params + other_num_opt_pos_params)) {
+bool Function::HasCompatibleParametersWith(const Function& other,
+                                           Error* error) const {
+  ASSERT(FLAG_error_on_bad_override);
+  // Check that this function's signature type is a subtype of the other
+  // function's signature type.
+  if (!TypeTest(kIsSubtypeOf, Object::null_abstract_type_arguments(),
+                other, Object::null_abstract_type_arguments(), error)) {
+    // For more informative error reporting, use the location of the other
+    // function here, since the caller will use the location of this function.
+    *error = FormatError(
+        *error,  // A malformed error if non null.
+        Script::Handle(other.script()),
+        other.token_pos(),
+        "signature type '%s' of function '%s' is not a subtype of signature "
+        "type '%s' of function '%s'",
+        String::Handle(UserVisibleSignature()).ToCString(),
+        String::Handle(UserVisibleName()).ToCString(),
+        String::Handle(other.UserVisibleSignature()).ToCString(),
+        String::Handle(other.UserVisibleName()).ToCString());
     return false;
   }
+  // We should also check that if the other function explicitly specifies a
+  // default value for a formal parameter, this function does not specify a
+  // different default value for the same parameter. However, this check is not
+  // possible in the current implementation, because the default parameter
+  // values are not stored in the Function object, but discarded after a
+  // function is compiled.
   return true;
 }
 
@@ -4459,9 +4467,16 @@ bool Function::TypeTest(TypeTestKind test_kind,
       other.NumOptionalNamedParameters();
   // This function requires the same arguments or less and accepts the same
   // arguments or more.
-  if ((num_fixed_params > other_num_fixed_params) ||
-      (num_fixed_params + num_opt_pos_params <
-       other_num_fixed_params + other_num_opt_pos_params) ||
+  // A generative constructor may be compared to a redirecting factory and be
+  // compatible although it has an additional phase parameter.
+  // More generally, we can ignore implicit parameters.
+  const intptr_t num_ignored_params = NumImplicitParameters();
+  const intptr_t other_num_ignored_params = other.NumImplicitParameters();
+  if (((num_fixed_params - num_ignored_params) >
+       (other_num_fixed_params - other_num_ignored_params)) ||
+      ((num_fixed_params - num_ignored_params + num_opt_pos_params) <
+       (other_num_fixed_params - other_num_ignored_params +
+        other_num_opt_pos_params)) ||
       (num_opt_named_params < other_num_opt_named_params)) {
     return false;
   }
@@ -4494,10 +4509,11 @@ bool Function::TypeTest(TypeTestKind test_kind,
     }
   }
   // Check the types of fixed and optional positional parameters.
-  for (intptr_t i = 0;
-       i < other_num_fixed_params + other_num_opt_pos_params; i++) {
+  for (intptr_t i = 0; i < (other_num_fixed_params - other_num_ignored_params +
+                            other_num_opt_pos_params); i++) {
     if (!TestParameterType(test_kind,
-                           i, i, type_arguments, other, other_type_arguments,
+                           i + num_ignored_params, i + other_num_ignored_params,
+                           type_arguments, other, other_type_arguments,
                            malformed_error)) {
       return false;
     }

@@ -39,7 +39,7 @@ class Range;
 // See intrinsifier for fingerprint computation.
 #define RECOGNIZED_LIST(V)                                                     \
   V(::, identical, ObjectIdentical, 1018911876)                                \
-  V(Object, Object., ObjectConstructor, 2030609793)                            \
+  V(Object, Object., ObjectConstructor, 502077293)                             \
   V(Object, get:_cid, ObjectCid, 732498573)                                    \
   V(_ObjectArray, get:length, ObjectArrayLength, 405297088)                    \
   V(_ImmutableArray, get:length, ImmutableArrayLength, 433698233)              \

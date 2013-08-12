@@ -939,7 +939,9 @@ class Class : public Object {
 
   void Finalize() const;
 
-  const char* ApplyPatch(const Class& patch) const;
+  // Apply given patch class to this class.
+  // Return true on success, or false and error otherwise.
+  bool ApplyPatch(const Class& patch, Error* error) const;
 
   RawError* EnsureIsFinalized(Isolate* isolate) const;
 
@@ -1662,8 +1664,9 @@ class Function : public Object {
 
   // Returns true if this function has parameters that are compatible with the
   // parameters of the other function in order for this function to override the
-  // other function. Parameter types are ignored.
-  bool HasCompatibleParametersWith(const Function& other) const;
+  // other function.
+  bool HasCompatibleParametersWith(const Function& other,
+                                   Error* malformed_error) const;
 
   // Returns true if the type of this function is a subtype of the type of
   // the other function.

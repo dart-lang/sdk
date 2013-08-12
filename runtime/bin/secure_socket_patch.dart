@@ -24,7 +24,7 @@ patch class SecureSocket {
                                                  String trust)
       native "SecureSocket_ChangeTrust";
 
-  /* patch */ static getCertificate(String nickname)
+  /* patch */ static X509Certificate getCertificate(String nickname)
       native "SecureSocket_GetCertificate";
 
   /* patch */ static removeCertificate(String nickname)

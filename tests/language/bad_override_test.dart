@@ -21,7 +21,7 @@ class Hest extends Fisk {
   static foo() {}   /// 03: compile-time error
   field() {}        /// 04: compile-time error
   var method;       /// 05: compile-time error
-  nullary(x) {}     /// 06: compile-time error
+  nullary(x) {}     /// 06: static type warning
 }
 
 main() {

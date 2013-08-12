@@ -47,7 +47,7 @@ patch class StringBuffer {
     _length += str.length;
   }
 
-  /* patch */ writeCharCode(int charCode) {
+  /* patch */ void writeCharCode(int charCode) {
     if (charCode <= 0xFFFF) {
       if (charCode < 0) {
         throw new RangeError.range(charCode, 0, 0x10FFFF);

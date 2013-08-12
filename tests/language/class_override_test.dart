@@ -2,19 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// 8.1 Methods: It is a compile-time error if a method m1 overrides
-// a method m2 and has a different number of required parameters.
+// It is a static warning if a method m1 overrides a method m2 and has a
+// different number of required parameters.
 
 class A {
   foo() {}
 }
 
 class B extends A {
-  foo(a) { }
+  foo(a) {}  /// 00: static type warning
 }
 
 main() {
   B instance = new B();
-  instance.foo(1);
+  try {
+    instance.foo();
+  } on NoSuchMethodEror catch (error) {  /// 00: continued
+  } finally {
+  }
   print("Success");
 }
