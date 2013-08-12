@@ -544,7 +544,10 @@ void main() {
   checkReturn('testLabeledIf', typesTask.intType.nullable());
   checkReturn('testSwitch1', typesTask.intType
       .union(typesTask.doubleType, compiler).nullable().simplify(compiler));
-  checkReturn('testSwitch2', typesTask.intType);
+  // TODO(12320): testSwitch2 should be non-nullable.  The quick fix for 12320
+  // models control flow through as though there is an additional empty default
+  // case.
+  checkReturn('testSwitch2', typesTask.intType.nullable());
   checkReturn('testSwitch3', interceptorType.nullable());
   checkReturn('testSwitch4', typesTask.intType);
   checkReturn('testContinue1', interceptorType.nullable());
