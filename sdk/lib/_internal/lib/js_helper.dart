@@ -1780,7 +1780,7 @@ abstract class JavaScriptIndexingBehavior extends JSMutableIndexable {
 // When they are, remove the 'Implementation' here.
 
 /** Thrown by type assertions that fail. */
-class TypeErrorImplementation implements TypeError {
+class TypeErrorImplementation extends Error implements TypeError {
   final String message;
 
   /**
@@ -1794,7 +1794,7 @@ class TypeErrorImplementation implements TypeError {
 }
 
 /** Thrown by the 'as' operator if the cast isn't valid. */
-class CastErrorImplementation implements CastError {
+class CastErrorImplementation extends Error implements CastError {
   // TODO(lrn): Rename to CastError (and move implementation into core).
   final String message;
 
