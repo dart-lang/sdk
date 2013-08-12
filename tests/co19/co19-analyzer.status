@@ -405,11 +405,7 @@ Language/07_Classes/07_Classes_A07_t10: fail, OK
 Language/11_Expressions/11_Instance_Creation/1_New_A01_t04: fail, OK
 
 # co19 issue #455, undeclared identifier is static warning
-Language/11_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t10: fail, OK
-Language/12_Statements/04_Local_Function_Declaration_A02_t02: fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A02_t12: fail, OK
 Language/13_Libraries_and_Scripts/1_Imports_A02_t14: fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A02_t15: fail, OK
 
 # co19 issue #456
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t04: fail, OK

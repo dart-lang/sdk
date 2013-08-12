@@ -7,8 +7,6 @@
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
 
-illegal_invocation_test/01: fail # Issue: 11892
-
 # TBD: using built-in identifers
 built_in_identifier_prefix_test: fail
 
@@ -274,7 +272,6 @@ type_variable_bounds2_test/06: fail
 
 # test issue 12163, unresolved identifier is static warning in static context
 unresolved_in_factory_negative_test: fail
-unresolved_top_level_method_negative_test: fail
 unresolved_top_level_var_negative_test: fail
 
 # test issue 12181, uses argument definition test
@@ -292,6 +289,10 @@ library_ambiguous_test/03: fail
 
 # test issue 12289, assignment in assert statement
 type_error_test: fail
+
+# test issue 12381, It is compile-time error to invoke not existing function
+issue11724_test: fail
+call_nonexistent_static_test/08: fail
 
 [ $compiler == dartanalyzer && $checked ]
 factory1_test/00: fail

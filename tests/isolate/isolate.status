@@ -22,7 +22,6 @@ spawn_uri_negative_test: Skip # ditto
 
 [ $compiler == dartanalyzer ]
 isolate2_negative_test: fail
-isolate_import_negative_test: fail
 isolate_negative_test: fail
 spawn_function_negative_test: fail
 spawn_uri_negative_test: fail
