@@ -42,9 +42,6 @@ list_literal_syntax_test/02: fail # Issue 12103
 list_literal_syntax_test/03: fail # Issue 12103
 malformed_test/none: fail
 
-# TBF: '(bool) -> void' is not a subtype of type '([bool]) ->', and rule for assigning function types is not the same as for interface types
-positional_parameters_type_test: fail
-
 # TBF: non-const superinitializer; 7.6.3 Constant Constructors: The superinitializer that appears, explicitly or implicitly, in the initializer list of a constant constructor must specify a constant constructor of the superclass of the immediately enclosing class.
 non_const_super_negative_test: fail
 

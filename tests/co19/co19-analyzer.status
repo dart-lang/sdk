@@ -471,3 +471,6 @@ Language/07_Classes/4_Abstract_Instance_Members_A03_t05: fail, OK
 Language/07_Classes/4_Abstract_Instance_Members_A04_t01: fail, OK
 Language/07_Classes/4_Abstract_Instance_Members_A04_t05: fail, OK
 Language/07_Classes/4_Abstract_Instance_Members_A04_t06: fail, OK
+
+# co19 issue #487, Function type T may be assigned to function type T iff T <: S
+Language/14_Types/5_Function_Types_A01_t01: fail, OK
