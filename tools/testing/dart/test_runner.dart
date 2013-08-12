@@ -30,6 +30,9 @@ import 'record_and_replay.dart';
 const int CRASHING_BROWSER_EXITCODE = -10;
 const int SLOW_TIMEOUT_MULTIPLIER = 4;
 
+const MESSAGE_CANNOT_OPEN_DISPLAY = 'Gtk-WARNING **: cannot open display';
+const MESSAGE_FAILED_TO_RUN_COMMAND = 'Failed to run command. return code=1';
+
 typedef void TestCaseEvent(TestCase testCase);
 typedef void ExitCodeEvent(int exitCode);
 typedef void EnqueueMoreWork(ProcessQueue queue);
@@ -58,8 +61,8 @@ class Command {
   /** Environment for the command */
   Map<String, String> environmentOverrides;
 
-  /** Number of times this command can be retried */
-  int get numRetries => 0;
+  /** Number of times this command *can* be retried */
+  int get maxNumRetries => 2;
 
   // We compute the Command.hashCode lazily and cache it here, since it might
   // be expensive to compute (and hashCode is called often).
@@ -295,8 +298,7 @@ class ContentShellCommand extends Command {
         expectedOutputPath.toString() == other.expectedOutputPath.toString();
   }
 
-  // FIXME(kustermann): Remove this once we're stable
-  int get numRetries => 2;
+  int get maxNumRetries => 3;
 }
 
 class BrowserTestCommand extends Command {
@@ -324,9 +326,6 @@ class BrowserTestCommand extends Command {
         browser == other.browser &&
         url == other.url;
   }
-
-  // FIXME(kustermann): Remove this once we're stable
-  int get numRetries => 2;
 }
 
 class SeleniumTestCommand extends Command {
@@ -354,9 +353,6 @@ class SeleniumTestCommand extends Command {
         browser == other.browser &&
         url == other.url;
   }
-
-  // FIXME(kustermann): Remove this once we're stable
-  int get numRetries => 2;
 }
 
 class AnalysisCommand extends Command {
@@ -555,7 +551,7 @@ class TestCase extends UniqueObject {
   }
 
   bool get isFinished {
-    return !lastCommandOutput.successfull ||
+    return !lastCommandOutput.successful ||
            commands.length == commandOutputs.length;
   }
 }
@@ -599,7 +595,7 @@ abstract class CommandOutput {
 
   bool get canRunDependendCommands;
 
-  bool get successfull; // otherwise we might to retry running
+  bool get successful; // otherwise we might to retry running
 
   Duration get time;
 
@@ -682,7 +678,7 @@ class CommandOutputImpl extends UniqueObject implements CommandOutput {
     return !hasTimedOut && exitCode == 0;
   }
 
-  bool get successfull {
+  bool get successful {
     // FIXME(kustermann): We may need to change this
     return !hasTimedOut && exitCode == 0;
   }
@@ -726,6 +722,8 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
     }
   }
 
+  bool get successful => canRunDependendCommands;
+
   bool get canRunDependendCommands {
     // We cannot rely on the exit code of content_shell as a method to determine
     // if we were successful or not.
@@ -754,8 +752,8 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
     for (String line in stderrLines) {
       // TODO(kustermann,ricow): Issue: 7564
       // This seems to happen quite frequently, we need to figure out why.
-      if (line.contains('Gtk-WARNING **: cannot open display') ||
-          line.contains('Failed to run command. return code=1')) {
+      if (line.contains(MESSAGE_CANNOT_OPEN_DISPLAY) ||
+          line.contains(MESSAGE_FAILED_TO_RUN_COMMAND)) {
         return true;
       }
     }
@@ -1772,7 +1770,7 @@ class CommandExecutorImpl implements CommandExecutor {
 
     Future<CommandOutput> runCommand(int retriesLeft) {
       return _runCommand(command, timeout).then((CommandOutput output) {
-        if (!output.canRunDependendCommands && retriesLeft > 0) {
+        if (retriesLeft > 0 && shouldRetryCommand(output)) {
           DebugLogger.warning("Rerunning Command: ($retriesLeft "
                               "attempt(s) remains) [cmd: $command]");
           return runCommand(retriesLeft - 1);
@@ -1781,7 +1779,7 @@ class CommandExecutorImpl implements CommandExecutor {
         }
       });
     }
-    return runCommand(command.numRetries);
+    return runCommand(command.maxNumRetries);
   }
 
   Future<CommandOutput> _runCommand(Command command, int timeout) {
@@ -1909,6 +1907,50 @@ class ReplayingCommandExecutor implements CommandExecutor {
   }
 }
 
+bool shouldRetryCommand(CommandOutput output) {
+  var command = output.command;
+
+  if (!output.successful) {
+    List<String> stdout, stderr;
+
+    decodeOutput() {
+      if (stdout == null && stderr == null) {
+        stdout = decodeUtf8(output.stderr).split("\n");
+        stderr = decodeUtf8(output.stderr).split("\n");
+      }
+    }
+
+    if (io.Platform.operatingSystem == 'linux') {
+      decodeOutput();
+      // No matter which command we ran: If we get failures due to the
+      // "xvfb-run" issue 7564, try re-running the test.
+      bool containsFailureMsg(String line) {
+        return line.contains(MESSAGE_CANNOT_OPEN_DISPLAY) ||
+               line.contains(MESSAGE_FAILED_TO_RUN_COMMAND);
+      }
+      if (stdout.any(containsFailureMsg) || stderr.any(containsFailureMsg)) {
+        return true;
+      }
+    }
+
+    if (command is BrowserTestCommand) {
+      // We do not re-run tests on the new browser controller, since it should
+      // not be as flaky as selenium.
+      return false;
+    } else if (command is SeleniumTestCommand) {
+      // Selenium tests can be flaky. Try re-running.
+      return true;
+    } else if (command is ContentShellCommand) {
+      // FIXME(kustermann): Remove this condition once we figured out why
+      // content_shell is sometimes not able to fetch resources from the
+      // HttpServer on windows.
+      // TODO(kustermann): Don't blindly re-run DRT tests on windows but rather
+      // check if the stderr/stdout indicates that we actually have this issue.
+      return io.Platform.operatingSystem == 'windows';
+    }
+  }
+  return false;
+}
 
 /*
  * [TestCaseCompleter] will listen for
