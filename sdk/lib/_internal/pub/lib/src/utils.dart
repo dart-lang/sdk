@@ -191,7 +191,10 @@ Future<Stream> validateStream(Stream stream) {
     controller.add(value);
   }, onError: (error) {
     // If the error came after values, it's OK.
-    if (completer.isCompleted) controller.addError(error);
+    if (completer.isCompleted) {
+      controller.addError(error);
+      return;
+    }
 
     // Otherwise, the error came first and the stream is invalid.
     completer.completeError(error);
