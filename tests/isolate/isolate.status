@@ -48,10 +48,6 @@ illegal_msg_stream_test: Fail, Pass # Issue 6750
 [ $compiler == dart2js && $runtime == drt ]
 unresolved_ports_negative_test: Pass, Crash # Issue 10613
 
-[ $compiler == dart2js && $runtime == chrome ]
-spawn_uri_negative_test: Pass, Fail, Timeout # Issue: 12239
-spawn_uri_test: Pass, Fail, Timeout # Issue: 12239
-
 [ $compiler == dart2js ]
 serialization_test: Fail # Tries to access class TestingOnly declared in isolate_patch.dart
 illegal_msg_test: Fail # Issue 6750

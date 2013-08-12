@@ -162,9 +162,6 @@ out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
 io/web_socket_ping_test: Skip # TODO(ajohnsen): Timeout issue
 
-[ $arch == simarm ]
-io/test_runner_test: Pass, Fail # Issue: 12239
-
 [ $arch == mips ]
 *: Skip
 
