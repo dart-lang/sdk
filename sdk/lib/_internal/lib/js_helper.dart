@@ -708,21 +708,32 @@ checkString(value) {
  */
 wrapException(ex) {
   if (ex == null) ex = new NullThrownError();
-  var wrapper = new DartError(ex);
+  var wrapper = JS('', 'new Error()');
+  // [unwrapException] looks for the property 'dartException'.
+  JS('void', '#.dartException = #', wrapper, ex);
 
-  if (JS('bool', '!!Error.captureStackTrace')) {
-    // Use V8 API for recording a "fast" stack trace (this installs a
-    // "stack" property getter on [wrapper]).
-    JS('void', r'Error.captureStackTrace(#, #)',
-       wrapper, RAW_DART_FUNCTION_REF(wrapException));
+  if (JS('bool', '"defineProperty" in Object')) {
+    // Define a JavaScript getter for 'message'. This is to work around V8 bug
+    // (https://code.google.com/p/v8/issues/detail?id=2519).  The default
+    // toString on Error returns the value of 'message' if 'name' is
+    // empty. Setting toString directly doesn't work, see the bug.
+    JS('void', 'Object.defineProperty(#, "message", { get: # })',
+       wrapper, DART_CLOSURE_TO_JS(toStringWrapper));
+    JS('void', '#.name = ""', wrapper);
   } else {
-    // Otherwise, produce a stack trace and record it in the wrapper.
-    // This is a slower way to create a stack trace which works on
-    // some browsers, but may simply evaluate to null.
-    String stackTrace = JS('', 'new Error().stack');
-    JS('void', '#.stack = #', wrapper, stackTrace);
+    // In the unlikely event the browser doesn't support Object.defineProperty,
+    // hope that it just calls toString.
+    JS('void', '#.toString = #', wrapper, DART_CLOSURE_TO_JS(toStringWrapper));
   }
+
   return wrapper;
+}
+
+/// Do not call directly.
+toStringWrapper() {
+  // This method gets installed as toString on a JavaScript object. Due to the
+  // weird scope rules of JavaScript, JS 'this' will refer to that object.
+  return JS('', r'this.dartException').toString();
 }
 
 /**
@@ -733,63 +744,6 @@ wrapException(ex) {
  */
 throwExpression(ex) {
   JS('void', 'throw #', wrapException(ex));
-}
-
-/**
- * Wrapper class for throwing exceptions.
- */
-class DartError {
-  /// The Dart object (or primitive JavaScript value) which was thrown is
-  /// attached to this object as a field named 'dartException'.  We do this
-  /// only in raw JS so that we can use the 'in' operator and so that the
-  /// minifier does not rename the field.  Therefore it is not declared as a
-  /// real field.
-
-  DartError(var dartException) {
-    JS('void', '#.dartException = #', this, dartException);
-    // Install a toString method that the JavaScript system will call
-    // to format uncaught exceptions.
-    JS('void', '#.toString = #', this, DART_CLOSURE_TO_JS(toStringWrapper));
-  }
-
-  /**
-   * V8/Chrome installs a property getter, "stack", when calling
-   * Error.captureStackTrace (see [wrapException]). In [wrapException], we make
-   * sure that this property is always set.
-   */
-  String get stack => JS('', '#.stack', this);
-
-  /**
-   * This method can be invoked by calling toString from
-   * JavaScript. See the constructor of this class.
-   *
-   * We only expect this method to be called (indirectly) by the
-   * browser when an uncaught exception occurs. Instance of this class
-   * should never escape into Dart code (except for [wrapException] above).
-   */
-  String toString() {
-    // If Error.captureStackTrace is available, accessing stack from
-    // this method would cause recursion because the stack property
-    // (on this object) is actually a getter which calls toString on
-    // this object (via the wrapper installed in this class'
-    // constructor). Fortunately, both Chrome and d8 prints the stack
-    // trace and Chrome even applies source maps to the stack
-    // trace. Remeber, this method is only ever invoked by the browser
-    // when an uncaught exception occurs.
-    var dartException = JS('var', r'#.dartException', this);
-    if (JS('bool', '!!Error.captureStackTrace') || (stack == null)) {
-      return dartException.toString();
-    } else {
-      return '$dartException\n$stack';
-    }
-  }
-
-  /**
-   * This method is installed as JavaScript toString method on
-   * [DartError].  So JavaScript 'this' binds to an instance of
-   * DartError.
-   */
-  static toStringWrapper() => JS('', r'this').toString();
 }
 
 makeLiteralListConst(list) {
@@ -1317,18 +1271,23 @@ StackTrace getTraceFromException(exception) {
   if (exception == null) return null;
   if (JS('bool', 'typeof # !== "object"', exception)) return null;
   if (JS('bool', r'"stack" in #', exception)) {
-    return new _StackTrace(JS("var", r"#.stack", exception));
+    return new _StackTrace(exception);
   } else {
     return null;
   }
 }
 
 class _StackTrace implements StackTrace {
-  var _stack;
-  _StackTrace(this._stack);
-  String toString() => _stack != null ? _stack : '';
-}
+  var _exception;
+  String _trace;
+  _StackTrace(this._exception);
 
+  String toString() {
+    if (_trace != null) return _trace;
+    String trace = JS("String|Null", r"#.stack", _exception);
+    return _trace = (trace == null) ? '' : trace;
+  }
+}
 
 /**
  * Called by generated code to build a map literal. [keyValuePairs] is
