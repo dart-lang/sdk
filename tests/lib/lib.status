@@ -115,9 +115,6 @@ async/run_async6_test: Fail # Issue 10910
 async/multiple_timer_test: Fail, Pass # See Issue 10982
 async/timer_test: Fail, Pass # See Issue 10982
 
-[ $arch == mips ]
-*: Skip
-
-[ $arch == simmips ]
+[ $arch == simmips || $arch == mips ]
 convert/chunked_conversion_utf88_test: Pass, Slow # Issue 12025.
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow

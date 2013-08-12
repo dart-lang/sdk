@@ -302,6 +302,3 @@ import_core_prefix_test: Pass
 prefix22_test: Pass
 invocation_mirror_test: Fail, OK # hardcoded names.
 super_call4_test: Fail, OK # hardcoded names.
-
-[ $arch == mips ]
-*: Skip

@@ -54,15 +54,16 @@ dart/inline_stack_frame_test: Fail # Issue: 7414
 # Skip until we stabilize language tests.
 *: Skip
 
-[ $arch == mips ]
-*: Skip
-
 [ $arch == simarm ]
 dart/isolate_mirror_local_test: Skip
 
-[ $arch == simmips ]
+[ $arch == simmips || $arch == mips ]
 dart/isolate_mirror_local_test: Pass, Crash
-cc/FindCodeObject: Skip #  Relative offsets are too far
+
+[ $arch == mips ]
+cc/Sdc1Ldc1: Crash # Illegal instructions
+cc/Cop1CvtDL: Crash
+cc/Cop1CvtDL_neg: Crash
 
 # TODO(ajohnsen): Fix this as part of library changes.
 [ $compiler == none ]

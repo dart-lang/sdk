@@ -543,7 +543,11 @@ LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 LibTest/math/cos_A01_t01: Pass, Fail # Fail on Mac
 
 [ $compiler == none && $runtime == vm && $arch == mips ]
-*: Skip
+LibTest/math/cos_A01_t01: Pass, Fail # Fail on Mac
+LibTest/math/log_A01_t01: Fail
+LibTest/math/asin_A01_t01: Fail
+LibTest/math/acos_A01_t01: Fail
+LibTest/core/double/toInt_A01_t01: Fail
 
 [ $compiler == none && $runtime == vm && $arch == simmips ]
 LibTest/math/cos_A01_t01: Pass, Fail # Fail on Mac

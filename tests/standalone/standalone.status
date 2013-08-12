@@ -162,13 +162,16 @@ out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
 io/web_socket_ping_test: Skip # TODO(ajohnsen): Timeout issue
 
-[ $arch == mips ]
-*: Skip
-
-[ $arch == simmips ]
+[ $arch == simmips || $arch == mips ]
 io/file_fuzz_test: Pass, Timeout
 io/web_socket_test: Pass, Slow
 io/http_server_response_test: Pass, Slow
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
 io/web_socket_ping_test: Skip # TODO(ajohnsen): Timeout issue
+
+[ $arch == mips ]
+io/test_extension_test: Fail
+io/test_extension_fail_test: Fail
+io/dart_std_io_pipe_test: Fail
+io/file_read_special_device_test: Fail
