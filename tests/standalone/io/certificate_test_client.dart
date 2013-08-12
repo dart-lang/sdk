@@ -21,7 +21,7 @@ void main() {
   } on CertificateException catch (e) {
     threw = true;
   }
-  if (!threw) throw new AssertException("Expected bad certificate to throw");
+  if (!threw) throw "Expected bad certificate to throw";
 
   threw = false;
   try {
@@ -29,13 +29,37 @@ void main() {
   } on CertificateException catch (e) {
     threw = true;
   }
-  if (!threw) throw new AssertException("Expected bad trust string to throw");
+  if (!threw) throw "Expected bad trust string to throw";
 
   SecureSocket.addCertificate(mycert,
                               SecureSocket.TRUST_ISSUE_SERVER_CERTIFICATES);
+
   SecureSocket.connect('localhost', port).then((SecureSocket socket) {
-    socket.writeln("hello world");
+    socket.writeln('hello world');
     socket.listen((data) { });
-    socket.close();
+    return socket.close();
+  }).then((_) {
+    SecureSocket.changeTrust('myauthority_cert', ',,');
+    return SecureSocket.connect('localhost', port);
+  }).then((_) {
+    throw "Expected untrusted authority to stop connection";
+  }, onError: (e) {
+    if (e is! CertificateException) throw e;
+  }).then((_) {
+    SecureSocket.changeTrust('myauthority_cert', 'C,,');
+    return SecureSocket.connect('localhost', port);
+  }).then((SecureSocket socket) {
+    socket.writeln('hello world');
+    socket.listen((data) { });
+    return socket.close();
+  }).then((_) {
+    SecureSocket.removeCertificate('myauthority_cert');
+    return SecureSocket.connect('localhost', port);
+  }).then((_) {
+    throw "Expected untrusted root to stop connection";
+  }, onError: (e) {
+    if (e is! CertificateException) throw e;
+  }).then((_) {
+    print('SUCCESS');  // Checked by parent process.
   });
 }

@@ -21,9 +21,9 @@ void main() {
                         server.port.toString(),
                         join(scriptDir, 'pkcert', 'myauthority.pem')]);
   }).then((ProcessResult result) {
-    if (result.exitCode != 0) {
+    if (result.exitCode != 0 || !result.stdout.contains("SUCCESS")) {
       print("Client failed with exit code ${result.exitCode}");
-      print("  stdout:");
+      print("  stdout (expects \"SUCCESS\\n\"):");
       print(result.stdout);
       print("  stderr:");
       print(result.stderr);

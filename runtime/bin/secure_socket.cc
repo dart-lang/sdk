@@ -10,9 +10,12 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <certdb.h>
 #include <key.h>
 #include <keyt.h>
 #include <nss.h>
+#include <p12.h>
+#include <p12plcy.h>
 #include <pk11pub.h>
 #include <prerror.h>
 #include <prinit.h>
@@ -37,10 +40,10 @@ namespace bin {
 
 bool SSLFilter::library_initialized_ = false;
 // To protect library initialization.
-dart::Mutex* SSLFilter::mutex_ = new dart::Mutex();
+dart::Mutex* SSLFilter::mutex = new dart::Mutex();
 // The password is needed when creating secure server sockets.  It can
 // be null if only secure client sockets are used.
-const char* SSLFilter::password_ = NULL;
+char* SSLFilter::password_ = NULL;
 
 // Forward declaration.
 static void ProcessFilter(Dart_Port dest_port_id,
@@ -229,7 +232,7 @@ void FUNCTION_NAME(SecureSocket_InitializeLibrary)
                                       &certificate_database));
   } else if (!Dart_IsNull(certificate_database_object)) {
     Dart_ThrowException(DartUtils::NewDartArgumentError(
-        "Non-String certificate directory argument to SetCertificateDatabase"));
+        "SecureSocket.initialize: database argument is not a String or null"));
   }
   // Leave certificate_database as NULL if no value was provided.
 
@@ -244,7 +247,7 @@ void FUNCTION_NAME(SecureSocket_InitializeLibrary)
     password = "";
   } else {
     Dart_ThrowException(DartUtils::NewDartArgumentError(
-        "Password argument to SetCertificateDatabase is not a String or null"));
+        "SecureSocket.initialize: password argument is not a String or null"));
   }
 
   Dart_Handle builtin_roots_object =
@@ -255,10 +258,22 @@ void FUNCTION_NAME(SecureSocket_InitializeLibrary)
     ThrowIfError(Dart_BooleanValue(builtin_roots_object, &builtin_roots));
   } else {
     Dart_ThrowException(DartUtils::NewDartArgumentError(
-        "UseBuiltinRoots argument to SetCertificateDatabase is not a bool"));
+        "SecureSocket.initialize: useBuiltinRoots argument is not a bool"));
   }
 
-  SSLFilter::InitializeLibrary(certificate_database, password, builtin_roots);
+  Dart_Handle read_only_object =
+      ThrowIfError(Dart_GetNativeArgument(args, 3));
+  // Check that the type is boolean, and get the boolean value from it.
+  bool read_only = true;
+  if (Dart_IsBoolean(read_only_object)) {
+    ThrowIfError(Dart_BooleanValue(read_only_object, &read_only));
+  } else {
+    Dart_ThrowException(DartUtils::NewDartArgumentError(
+        "SecureSocket.initialize: readOnly argument is not a bool"));
+  }
+
+  SSLFilter::InitializeLibrary(
+      certificate_database, password, builtin_roots, read_only);
 }
 
 
@@ -300,6 +315,14 @@ static Dart_Handle X509FromCertificate(CERTCertificate* certificate) {
 }
 
 
+char* PasswordCallback(PK11SlotInfo* slot, PRBool retry, void* arg) {
+  if (!retry) {
+    return PL_strdup(static_cast<char*>(arg));  // Freed by NSS internals.
+  }
+  return NULL;
+}
+
+
 void FUNCTION_NAME(SecureSocket_AddCertificate)
     (Dart_NativeArguments args) {
   Dart_Handle certificate_object =
@@ -324,18 +347,28 @@ void FUNCTION_NAME(SecureSocket_AddCertificate)
   ThrowIfError(Dart_StringToCString(trust_object,
                                     &trust_string));
 
+  PK11SlotInfo* slot = PK11_GetInternalKeySlot();
+  SECStatus status = PK11_Authenticate(slot, PR_TRUE, SSLFilter::GetPassword());
+  PK11_FreeSlot(slot);
+  if (status == SECFailure) {
+    ThrowPRException("CertificateException",
+                     "Could not authenticate to certificate database");
+  }
+
   CERTCertificate* cert = CERT_DecodeCertFromPackage(
       reinterpret_cast<char*>(certificate), length);
   if (cert == NULL) {
     ThrowPRException("CertificateException", "Certificate cannot be decoded");
   }
   CERTCertTrust trust;
-  SECStatus status = CERT_DecodeTrustString(&trust, trust_string);
+  status = CERT_DecodeTrustString(&trust, trust_string);
   if (status != SECSuccess) {
     ThrowPRException("CertificateException", "Trust string cannot be decoded");
   }
-
-  status = CERT_ChangeCertTrust(CERT_GetDefaultCertDB(), cert, &trust);
+  {
+    MutexLocker locker(SSLFilter::mutex);
+    status = CERT_ChangeCertTrust(CERT_GetDefaultCertDB(), cert, &trust);
+  }
   if (status != SECSuccess) {
     ThrowPRException("CertificateException", "Cannot set trust attributes");
   }
@@ -344,6 +377,204 @@ void FUNCTION_NAME(SecureSocket_AddCertificate)
   return;
 }
 
+
+/*
+ * Called by the PKCS#12 decoder if a certificate's nickname collides with
+ * the nickname of a different existing certificate in the database.
+ */
+SECItem* nickname_callback(SECItem *old_nickname,
+                           PRBool *cancel,
+                           void *arg) {
+  *cancel = PR_TRUE;
+  return NULL;
+}
+
+
+void FUNCTION_NAME(SecureSocket_ImportCertificatesWithPrivateKeys)
+    (Dart_NativeArguments args) {
+  Dart_Handle pk12_object = ThrowIfError(Dart_GetNativeArgument(args, 0));
+  if (!Dart_IsList(pk12_object)) {
+    Dart_ThrowException(DartUtils::NewDartArgumentError(
+        "SecureSocket.importPrivateCertificates: certificates is not a List"));
+  }
+
+  Dart_Handle password_object = ThrowIfError(Dart_GetNativeArgument(args, 1));
+  if (!Dart_IsString(password_object)) {
+    Dart_ThrowException(DartUtils::NewDartArgumentError(
+        "SecureSocket.importPrivateCertificates: password is not a String"));
+  }
+
+  intptr_t length;
+  ThrowIfError(Dart_ListLength(pk12_object, &length));
+  uint8_t* pk12 = Dart_ScopeAllocate(length);
+  if (pk12 == NULL) {
+    FATAL("Out of memory in SecureSocket.importPrivateCertificates");
+  }
+  ThrowIfError(Dart_ListGetAsBytes(pk12_object, 0, pk12, length));
+
+  // A big-endian Unicode (UTF16) password.
+  intptr_t password_length;
+  ThrowIfError(Dart_StringLength(password_object, &password_length));
+  password_length++;
+  uint16_t* password = reinterpret_cast<uint16_t*>(
+      Dart_ScopeAllocate(sizeof(uint16_t) * password_length));
+  if (password == NULL) {
+    FATAL("Out of memory in SecureSocket.importPrivateCertificates");
+  }
+  intptr_t returned_length = password_length;
+  ThrowIfError(Dart_StringToUTF16(password_object, password, &returned_length));
+  ASSERT(password_length == returned_length + 1);
+  password[password_length - 1] = 0;
+  for (int i = 0; i < password_length; ++i) {
+    password[i] = Utils::HostToBigEndian16(password[i]);
+  }
+  SECItem p12_password;
+  p12_password.type = siBuffer;
+  p12_password.data = reinterpret_cast<unsigned char*>(password);
+  p12_password.len = sizeof(uint16_t) * password_length;
+
+  Dart_SetReturnValue(args, Dart_Null());
+  // Set the password callback for the certificate database we are importing to.
+  // The password for a slot is gotten from a callback, and it is freed by the
+  // caller of the callback.  The argument to the callback comes from the wincx
+  // argument to a PK11 function.
+  PK11SlotInfo* slot = PK11_GetInternalKeySlot();
+  SECStatus status = PK11_Authenticate(slot, PR_TRUE, SSLFilter::GetPassword());
+  if (status == SECFailure) {
+    PK11_FreeSlot(slot);
+    ThrowPRException("CertificateException",
+                     "Could not authenticate to certificate database");
+  }
+
+  SEC_PKCS12DecoderContext* context = SEC_PKCS12DecoderStart(
+      &p12_password,
+      slot,
+      SSLFilter::GetPassword(),
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      NULL);
+  PK11_FreeSlot(slot);
+  if (!context) {
+    FATAL("Unexpected error: SecureSocket.addPrivateCertificates DecoderStart");
+  }
+  bool success;
+  {
+    MutexLocker locker(SSLFilter::mutex);
+    success =
+        SECSuccess == SEC_PKCS12DecoderUpdate(context, pk12, length) &&
+        SECSuccess == SEC_PKCS12DecoderVerify(context) &&
+        SECSuccess == SEC_PKCS12DecoderValidateBags(context,
+                                                    nickname_callback) &&
+        SECSuccess == SEC_PKCS12DecoderImportBags(context);
+  }
+  SEC_PKCS12DecoderFinish(context);
+  if (!success) {
+    ThrowPRException("CertificateException", "Could not import PKCS#12 file");
+  }
+}
+
+
+void FUNCTION_NAME(SecureSocket_ChangeTrust)(Dart_NativeArguments args) {
+  Dart_Handle nickname_object = ThrowIfError(Dart_GetNativeArgument(args, 0));
+  if (!Dart_IsString(nickname_object)) {
+    Dart_ThrowException(DartUtils::NewDartArgumentError(
+        "SecureSocket.changeTrust: nickname argument is not a String"));
+  }
+  const char* nickname;
+  ThrowIfError(Dart_StringToCString(nickname_object, &nickname));
+
+  Dart_Handle trust_object = ThrowIfError(Dart_GetNativeArgument(args, 1));
+  if (!Dart_IsString(trust_object)) {
+    Dart_ThrowException(DartUtils::NewDartArgumentError(
+        "SecureSocket.changeTrust: trust argument is not a String"));
+  }
+  const char* trust_string;
+  ThrowIfError(Dart_StringToCString(trust_object, &trust_string));
+
+  PK11SlotInfo* slot = PK11_GetInternalKeySlot();
+  SECStatus status = PK11_Authenticate(slot, PR_TRUE, SSLFilter::GetPassword());
+  if (status == SECFailure) {
+    ThrowPRException("CertificateException",
+                     "Could not authenticate to certificate database");
+  }
+  PK11_FreeSlot(slot);
+
+  CERTCertificate* certificate =
+      PK11_FindCertFromNickname(nickname, SSLFilter::GetPassword());
+  if (certificate == NULL) {
+    ThrowCertificateException("Cannot find certificate with nickname %s",
+                              nickname);
+  }
+  CERTCertTrust trust;
+  if (SECSuccess != CERT_DecodeTrustString(&trust, trust_string)) {
+    CERT_DestroyCertificate(certificate);
+    ThrowPRException("CertificateException", "Trust string cannot be decoded");
+  }
+  {
+    MutexLocker locker(SSLFilter::mutex);
+    status = CERT_ChangeCertTrust(CERT_GetDefaultCertDB(), certificate, &trust);
+  }
+  if (status != SECSuccess) {
+    CERT_DestroyCertificate(certificate);
+    ThrowCertificateException("Cannot set trust on certificate %s", nickname);
+  }
+  Dart_SetReturnValue(args, X509FromCertificate(certificate));
+  CERT_DestroyCertificate(certificate);
+}
+
+
+void FUNCTION_NAME(SecureSocket_GetCertificate)(Dart_NativeArguments args) {
+  Dart_Handle nickname_object = ThrowIfError(Dart_GetNativeArgument(args, 0));
+  if (!Dart_IsString(nickname_object)) {
+    Dart_ThrowException(DartUtils::NewDartArgumentError(
+        "SecureSocket.getCertificate: nickname argument is not a String"));
+  }
+  const char* nickname;
+  ThrowIfError(Dart_StringToCString(nickname_object, &nickname));
+
+  CERTCertificate* certificate = PK11_FindCertFromNickname(
+                                     nickname, SSLFilter::GetPassword());
+  if (certificate != NULL) {
+    Dart_SetReturnValue(args, X509FromCertificate(certificate));
+    CERT_DestroyCertificate(certificate);
+  }
+}
+
+
+void FUNCTION_NAME(SecureSocket_RemoveCertificate)(Dart_NativeArguments args) {
+  Dart_Handle nickname_object =
+      ThrowIfError(Dart_GetNativeArgument(args, 0));
+  if (!Dart_IsString(nickname_object)) {
+    Dart_ThrowException(DartUtils::NewDartArgumentError(
+        "SecureSocket.removeCertificate: nickname is not a String"));
+  }
+  const char* nickname;
+  ThrowIfError(Dart_StringToCString(nickname_object, &nickname));
+
+  CERTCertificate* certificate =
+      PK11_FindCertFromNickname(nickname, SSLFilter::GetPassword());
+  if (certificate == NULL) {
+    ThrowCertificateException("Cannot find certificate with nickname %s",
+                              nickname);
+  }
+  SECKEYPrivateKey* key =
+      PK11_FindKeyByAnyCert(certificate, SSLFilter::GetPassword());
+  // Free the copy returned from FindKeyByAnyCert.
+  SECKEY_DestroyPrivateKey(key);
+  SECStatus status;
+  {
+    MutexLocker locker(SSLFilter::mutex);
+    status = (key == NULL) ?
+        SEC_DeletePermCertificate(certificate) :
+        PK11_DeleteTokenCertAndKey(certificate, SSLFilter::GetPassword());
+  }
+  CERT_DestroyCertificate(certificate);
+  if (status != SECSuccess) {
+    ThrowCertificateException("Cannot remove certificate %s", nickname);
+  }
+}
 
 
 void FUNCTION_NAME(SecureSocket_PeerCertificate)
@@ -494,7 +725,7 @@ bool SSLFilter::ProcessAllBuffers(int starts[kNumBuffers],
 
 void SSLFilter::Init(Dart_Handle dart_this) {
   if (!library_initialized_) {
-    InitializeLibrary(NULL, "", true, false);
+    InitializeLibrary(NULL, "", true, true, false);
   }
   ASSERT(string_start_ == NULL);
   string_start_ = Dart_NewPersistentHandle(DartUtils::NewString("start"));
@@ -567,14 +798,6 @@ void SSLFilter::RegisterBadCertificateCallback(Dart_Handle callback) {
 }
 
 
-char* PasswordCallback(PK11SlotInfo* slot, PRBool retry, void* arg) {
-  if (!retry) {
-    return PL_strdup(static_cast<char*>(arg));  // Freed by NSS internals.
-  }
-  return NULL;
-}
-
-
 static const char* builtin_roots_module =
 #if defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID)
     "name=\"Root Certs\" library=\"libnssckbi.so\"";
@@ -591,8 +814,9 @@ static const char* builtin_roots_module =
 void SSLFilter::InitializeLibrary(const char* certificate_database,
                                   const char* password,
                                   bool use_builtin_root_certificates,
+                                  bool read_only,
                                   bool report_duplicate_initialization) {
-  MutexLocker locker(mutex_);
+  MutexLocker locker(mutex);
   SECStatus status;
   if (!library_initialized_) {
     PR_Init(PR_USER_THREAD, PR_PRIORITY_NORMAL, 0);
@@ -600,7 +824,7 @@ void SSLFilter::InitializeLibrary(const char* certificate_database,
     if (certificate_database == NULL || certificate_database[0] == '\0') {
       status = NSS_NoDB_Init(NULL);
       if (status != SECSuccess) {
-        mutex_->Unlock();  // MutexLocker destructor not called when throwing.
+        mutex->Unlock();  // MutexLocker destructor not called when throwing.
         ThrowPRException("TlsException",
                          "Failed NSS_NoDB_Init call.");
       }
@@ -608,13 +832,13 @@ void SSLFilter::InitializeLibrary(const char* certificate_database,
         SECMODModule* module = SECMOD_LoadUserModule(
             const_cast<char*>(builtin_roots_module), NULL, PR_FALSE);
         if (!module) {
-          mutex_->Unlock();  // MutexLocker destructor not called when throwing.
+          mutex->Unlock();  // MutexLocker destructor not called when throwing.
           ThrowPRException("TlsException",
                            "Failed to load builtin root certificates.");
         }
       }
     } else {
-      PRUint32 init_flags = NSS_INIT_READONLY;
+      PRUint32 init_flags = read_only ? NSS_INIT_READONLY : 0;
       if (!use_builtin_root_certificates) {
         init_flags |= NSS_INIT_NOMODDB;
       }
@@ -624,7 +848,7 @@ void SSLFilter::InitializeLibrary(const char* certificate_database,
                               SECMOD_DB,
                               init_flags);
       if (status != SECSuccess) {
-        mutex_->Unlock();  // MutexLocker destructor not called when throwing.
+        mutex->Unlock();  // MutexLocker destructor not called when throwing.
         ThrowPRException("TlsException",
                          "Failed NSS_Init call.");
       }
@@ -633,28 +857,34 @@ void SSLFilter::InitializeLibrary(const char* certificate_database,
     }
     library_initialized_ = true;
 
+    // Allow encoding and decoding of private keys in PKCS#12 files.
+    SEC_PKCS12EnableCipher(PKCS12_RC2_CBC_40, 1);
+    SEC_PKCS12EnableCipher(PKCS12_DES_EDE3_168, 1);
+    SEC_PKCS12SetPreferredCipher(PKCS12_DES_EDE3_168, 1);
+
     status = NSS_SetDomesticPolicy();
     if (status != SECSuccess) {
-      mutex_->Unlock();  // MutexLocker destructor not called when throwing.
+      mutex->Unlock();  // MutexLocker destructor not called when throwing.
       ThrowPRException("TlsException",
                        "Failed NSS_SetDomesticPolicy call.");
     }
+
     // Enable TLS, as well as SSL3 and SSL2.
     status = SSL_OptionSetDefault(SSL_ENABLE_TLS, PR_TRUE);
     if (status != SECSuccess) {
-      mutex_->Unlock();  // MutexLocker destructor not called when throwing.
+      mutex->Unlock();  // MutexLocker destructor not called when throwing.
       ThrowPRException("TlsException",
                        "Failed SSL_OptionSetDefault enable TLS call.");
     }
     status = SSL_ConfigServerSessionIDCache(0, 0, 0, NULL);
     if (status != SECSuccess) {
-      mutex_->Unlock();  // MutexLocker destructor not called when throwing.
+      mutex->Unlock();  // MutexLocker destructor not called when throwing.
       ThrowPRException("TlsException",
                        "Failed SSL_ConfigServerSessionIDCache call.");
     }
 
   } else if (report_duplicate_initialization) {
-    mutex_->Unlock();  // MutexLocker destructor not called when throwing.
+    mutex->Unlock();  // MutexLocker destructor not called when throwing.
     // Like ThrowPRException, without adding an OSError.
     Dart_ThrowException(DartUtils::NewDartIOException("TlsException",
         "Called SecureSocket.initialize more than once",
@@ -729,23 +959,20 @@ void SSLFilter::Connect(const char* host_name,
           const_cast<char*>(certificate_name));
       if (certificate == NULL) {
         ThrowCertificateException(
-            "Cannot find server certificate by distinguished name: %s",
+            "Cannot find server certificate with distinguished name %s",
             certificate_name);
       }
     } else {
       // Look up certificate using the nickname certificate_name.
       certificate = PK11_FindCertFromNickname(
-          const_cast<char*>(certificate_name),
-          static_cast<void*>(const_cast<char*>(password_)));
+          const_cast<char*>(certificate_name), GetPassword());
       if (certificate == NULL) {
         ThrowCertificateException(
-            "Cannot find server certificate by nickname: %s",
+            "Cannot find server certificate with nickname %s",
             certificate_name);
       }
     }
-    SECKEYPrivateKey* key = PK11_FindKeyByAnyCert(
-        certificate,
-        static_cast<void*>(const_cast<char*>(password_)));
+    SECKEYPrivateKey* key = PK11_FindKeyByAnyCert(certificate, GetPassword());
     if (key == NULL) {
       CERT_DestroyCertificate(certificate);
       if (PR_GetError() == -8177) {
