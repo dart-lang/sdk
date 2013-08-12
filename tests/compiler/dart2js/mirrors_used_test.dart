@@ -48,7 +48,7 @@ void main() {
   // 2. Some code was refactored, and there are more methods.
   // Either situation could be problematic, but in situation 2, it is often
   // acceptable to increase [expectedMethodCount] a little.
-  int expectedMethodCount = 317;
+  int expectedMethodCount = 321;
   Expect.isTrue(
       generatedCode.length <= expectedMethodCount,
       'Too many compiled methods: '
