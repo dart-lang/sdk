@@ -1285,17 +1285,9 @@ unwrapException(ex) {
 
 /**
  * Called by generated code to fetch the stack trace from an
- * exception.
+ * exception. Should never return null.
  */
-StackTrace getTraceFromException(exception) {
-  if (exception == null) return null;
-  if (JS('bool', 'typeof # !== "object"', exception)) return null;
-  if (JS('bool', r'"stack" in #', exception)) {
-    return new _StackTrace(exception);
-  } else {
-    return null;
-  }
-}
+StackTrace getTraceFromException(exception) => new _StackTrace(exception);
 
 class _StackTrace implements StackTrace {
   var _exception;
@@ -1304,7 +1296,11 @@ class _StackTrace implements StackTrace {
 
   String toString() {
     if (_trace != null) return _trace;
-    String trace = JS("String|Null", r"#.stack", _exception);
+
+    String trace;
+    if (JS('bool', 'typeof # === "object"', _exception)) {
+      trace = JS("String|Null", r"#.stack", _exception);
+    }
     return _trace = (trace == null) ? '' : trace;
   }
 }
