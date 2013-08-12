@@ -44,9 +44,19 @@ testDoublePow() {
 }
 
 
+testSinCos(a) {
+  double sVal = sin(a);
+  double cVal = cos(a);
+  return sVal + cVal;
+}
+
 main() {
+  const double value = 1.54;
+  final firstRes = testSinCos(value);
   for (int i = 0; i < 200; i++) {
     MathTest.testMain();
     testDoublePow();
+    testSinCos(value);
   }
+  Expect.equals(firstRes, testSinCos(value));
 }
