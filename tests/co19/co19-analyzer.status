@@ -451,3 +451,23 @@ Language/13_Libraries_and_Scripts/1_Imports_A03_t70: fail, OK
 
 # co19 issue 483, instance access to static member
 Language/11_Expressions/15_Method_Invocation/2_Cascaded_Invocation_A01_t19: fail, OK
+
+# co19 issue #486, some override errors are now warnings
+Language/07_Classes/1_Instance_Methods_A01_t01: fail, OK
+Language/07_Classes/1_Instance_Methods_A01_t02: fail, OK
+Language/07_Classes/1_Instance_Methods_A01_t03: fail, OK
+Language/07_Classes/1_Instance_Methods_A01_t04: fail, OK
+Language/07_Classes/1_Instance_Methods_A01_t05: fail, OK
+Language/07_Classes/1_Instance_Methods_A01_t06: fail, OK
+Language/07_Classes/1_Instance_Methods_A02_t02: fail, OK
+Language/07_Classes/1_Instance_Methods_A02_t05: fail, OK
+Language/07_Classes/1_Instance_Methods_A06_t01: fail, OK
+Language/07_Classes/1_Instance_Methods_A06_t02: fail, OK
+Language/07_Classes/4_Abstract_Instance_Members_A03_t01: fail, OK
+Language/07_Classes/4_Abstract_Instance_Members_A03_t02: fail, OK
+Language/07_Classes/4_Abstract_Instance_Members_A03_t03: fail, OK
+Language/07_Classes/4_Abstract_Instance_Members_A03_t04: fail, OK
+Language/07_Classes/4_Abstract_Instance_Members_A03_t05: fail, OK
+Language/07_Classes/4_Abstract_Instance_Members_A04_t01: fail, OK
+Language/07_Classes/4_Abstract_Instance_Members_A04_t05: fail, OK
+Language/07_Classes/4_Abstract_Instance_Members_A04_t06: fail, OK
