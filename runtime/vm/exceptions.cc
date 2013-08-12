@@ -364,7 +364,7 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
                                           &frame_builder);
   } else {
     const Field& stacktrace_field =
-        Field::Handle(LookupStacktraceField(incoming_exception));
+        Field::Handle(LookupStacktraceField(exception));
     bool full_stacktrace = !stacktrace_field.IsNull();
     RegularStacktraceBuilder frame_builder(full_stacktrace);
     handler_exists = FindExceptionHandler(&handler_pc,
@@ -396,8 +396,8 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
       stacktrace.SetCatchStacktrace(catch_func_array,
                                     catch_code_array,
                                     catch_pc_offset_array);
-      if (incoming_exception.GetField(stacktrace_field) == Object::null()) {
-        incoming_exception.SetField(stacktrace_field, stacktrace);
+      if (exception.GetField(stacktrace_field) == Object::null()) {
+        exception.SetField(stacktrace_field, stacktrace);
       }
     }
     // TODO(5411263): At some point we can optimize by figuring out if a
