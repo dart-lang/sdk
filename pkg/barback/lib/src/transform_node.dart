@@ -98,6 +98,8 @@ class TransformNode {
   /// Returns a set of asset nodes representing the outputs from this transform
   /// that weren't emitted last time it was run.
   Future<Set<AssetNode>> apply() {
+    assert(!_onDirtyController.isClosed);
+
     var newOutputs = new AssetSet();
     var transform = createTransform(this, newOutputs);
 

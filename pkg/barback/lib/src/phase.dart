@@ -5,6 +5,7 @@
 library barback.phase;
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'asset.dart';
 import 'asset_cascade.dart';
@@ -68,11 +69,14 @@ class Phase {
   /// being run on an old version of that asset.
   var _pendingNewInputs = new Map<AssetId, AssetNode>();
 
-  /// The ids of assets that are emitted by transforms in this phase.
+  /// A map of output ids to the asset node outputs for those ids.
   ///
-  /// This is used to detect collisions where multiple transforms emit the same
-  /// output.
-  final _outputs = new Set<AssetId>();
+  /// Usually there's only one node for a given output id. However, it's
+  /// possible for multiple transformers in this phase to output an asset with
+  /// the same id. In that case, the chronologically first output emitted is
+  /// passed forward. We keep track of the other nodes so that if that output is
+  /// removed, we know which asset to replace it with.
+  final _outputs = new Map<AssetId, Queue<AssetNode>>();
 
   /// A stream that emits an event whenever this phase becomes dirty and needs
   /// to be run.
@@ -310,27 +314,62 @@ class Phase {
         .where((transform) => transform.isDirty).toList();
     if (dirtyTransforms.isEmpty) return null;
 
-    return Future.wait(dirtyTransforms.map((transform) => transform.apply()))
-        .then((allNewOutputs) {
-      var newOutputs = allNewOutputs.reduce((set1, set2) => set1.union(set2));
+    var collisions = new Set<AssetId>();
+    return Future.wait(dirtyTransforms.map((transform) {
+      return transform.apply().then((outputs) {
+        for (var output in outputs) {
+          if (_outputs.containsKey(output.id)) {
+            _outputs[output.id].add(output);
+            collisions.add(output.id);
+          } else {
+            _outputs[output.id] = new Queue<AssetNode>.from([output]);
+            _next.addInput(output);
+          }
 
-      var collisions = new Set<AssetId>();
-      for (var newOutput in newOutputs) {
-        if (_outputs.contains(newOutput.id)) {
-          collisions.add(newOutput.id);
-        } else {
-          _next.addInput(newOutput);
-          _outputs.add(newOutput.id);
-          newOutput.whenRemoved.then((_) => _outputs.remove(newOutput.id));
+          _handleOutputRemoval(output);
         }
-      }
-
+      });
+    })).then((_) {
       // Report collisions in a deterministic order.
       collisions = collisions.toList();
-      collisions.sort((a, b) => a.toString().compareTo(b.toString()));
+      collisions.sort((a, b) => a.compareTo(b));
       for (var collision in collisions) {
+        // Ensure that there's still a collision. It's possible it was resolved
+        // while another transform was running.
+        if (_outputs[collision].length <= 1) continue;
         cascade.reportError(new AssetCollisionException(collision));
-        // TODO(rnystrom): Define what happens after a collision occurs.
+      }
+    });
+  }
+
+  /// Properly resolve collisions when [output] is removed.
+  void _handleOutputRemoval(AssetNode output) {
+    output.whenRemoved.then((_) {
+      var assets = _outputs[output.id];
+      if (assets.length == 1) {
+        assert(assets.single == output);
+        _outputs.remove(output.id);
+        return;
+      }
+
+      // If there was more than one asset, we're resolving a collision --
+      // possibly partially.
+      var wasFirst = assets.first == output;
+      assets.remove(output);
+
+      // If this was the first asset, we need to pass the next asset
+      // (chronologically) to the next phase. Pump the event queue first to give
+      // [_next] a chance to handle the removal of its input before getting a
+      // new input.
+      if (wasFirst) newFuture(() => _next.addInput(assets.first));
+
+      // If there's still a collision, report it. This lets the user know
+      // if they've successfully resolved the collision or not.
+      if (assets.length > 1) {
+        // Pump the event queue to ensure that the removal of the input triggers
+        // a new build to which we can attach the error.
+        newFuture(() =>
+            cascade.reportError(new AssetCollisionException(output.id)));
       }
     });
   }

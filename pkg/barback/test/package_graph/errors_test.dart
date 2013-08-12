@@ -7,6 +7,7 @@ library barback.test.package_graph.source_test;
 import 'dart:async';
 
 import 'package:barback/barback.dart';
+import 'package:barback/src/utils.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 
 import '../utils.dart';
@@ -168,5 +169,114 @@ main() {
     updateSources(["app|foo.txt"]);
     expectNoAsset("app|foo.txt");
     buildShouldFail([isMockLoadException("app|foo.txt")]);
+  });
+
+  test("a collision returns the first-produced output", () {
+    var rewrite1 = new RewriteTransformer("one", "out");
+    var rewrite2 = new RewriteTransformer("two", "out");
+    initGraph({
+      "app|foo.one": "one",
+      "app|foo.two": "two"
+    }, {"app": [[rewrite1, rewrite2]]});
+
+    rewrite1.pauseApply();
+    updateSources(["app|foo.one", "app|foo.two"]);
+    // Wait long enough to ensure that rewrite2 has completed.
+    schedule(pumpEventQueue);
+
+    rewrite1.resumeApply();
+    expectAsset("app|foo.out", "two.out");
+    buildShouldFail([isAssetCollisionException("app|foo.out")]);
+
+    // Even after the collision is discovered, the first-produced output should
+    // be returned.
+    expectAsset("app|foo.out", "two.out");
+
+    // Even if the other output is updated more recently, the first output
+    // should continue to take precedence.
+    updateSources(["app|foo.one"]);
+    expectAsset("app|foo.out", "two.out");
+  });
+
+  test("a collision that is later resolved produces an output", () {
+    initGraph({
+      "app|foo.one": "one",
+      "app|foo.two": "two"
+    }, {"app": [
+      [
+        new RewriteTransformer("one", "out"),
+        new RewriteTransformer("two", "out")
+      ]
+    ]});
+
+    updateSources(["app|foo.one"]);
+    expectAsset("app|foo.out", "one.out");
+    buildShouldSucceed();
+
+    updateSources(["app|foo.two"]);
+    expectAsset("app|foo.out", "one.out");
+    buildShouldFail([isAssetCollisionException("app|foo.out")]);
+
+    removeSources(["app|foo.one"]);
+    expectAsset("app|foo.out", "two.out");
+    buildShouldSucceed();
+  });
+
+  test("a collision that is later resolved runs transforms", () {
+    initGraph({
+      "app|foo.one": "one",
+      "app|foo.two": "two"
+    }, {"app": [
+      [
+        new RewriteTransformer("one", "mid"),
+        new RewriteTransformer("two", "mid")
+      ],
+      [new RewriteTransformer("mid", "out")]
+    ]});
+
+    updateSources(["app|foo.one"]);
+    expectAsset("app|foo.out", "one.mid.out");
+    buildShouldSucceed();
+
+    updateSources(["app|foo.two"]);
+    expectAsset("app|foo.out", "one.mid.out");
+    buildShouldFail([isAssetCollisionException("app|foo.mid")]);
+
+    removeSources(["app|foo.one"]);
+    expectAsset("app|foo.out", "two.mid.out");
+    buildShouldSucceed();
+  });
+
+  test("a collision that is partially resolved returns the second completed "
+      "output", () {
+    var rewrite1 = new RewriteTransformer("one", "out");
+    var rewrite2 = new RewriteTransformer("two", "out");
+    var rewrite3 = new RewriteTransformer("three", "out");
+    initGraph({
+      "app|foo.one": "one",
+      "app|foo.two": "two",
+      "app|foo.three": "three"
+    }, {"app": [[rewrite1, rewrite2, rewrite3]]});
+
+    // Make rewrite3 the most-recently-completed transformer from the first run.
+    rewrite2.pauseApply();
+    rewrite3.pauseApply();
+    updateSources(["app|foo.one", "app|foo.two", "app|foo.three"]);
+    schedule(pumpEventQueue);
+    rewrite2.resumeApply();
+    schedule(pumpEventQueue);
+    rewrite3.resumeApply();
+    buildShouldFail([isAssetCollisionException("app|foo.out")]);
+
+    // Then update rewrite3 in a separate build. rewrite2 should still be the
+    // next version of foo.out in line.
+    // TODO(nweiz): Should this emit a collision error as well? Or should they
+    // only be emitted when a file is added or removed?
+    updateSources(["app|foo.three"]);
+    buildShouldSucceed();
+
+    removeSources(["app|foo.one"]);
+    expectAsset("app|foo.out", "two.out");
+    buildShouldFail([isAssetCollisionException("app|foo.out")]);
   });
 }
