@@ -641,6 +641,10 @@ class Primitives {
       ? JS('bool', '# == null', b)
       : JS('bool', '# === #', a, b);
   }
+
+  static StackTrace extractStackTrace(Error error) {
+    return getTraceFromException(JS('', r'#.$thrownJsError', error));
+  }
 }
 
 /**
@@ -1094,7 +1098,7 @@ class TypeErrorDecoder {
   }
 }
 
-class NullError implements NoSuchMethodError {
+class NullError extends Error implements NoSuchMethodError {
   final String _message;
   final String _method;
 
@@ -1107,7 +1111,7 @@ class NullError implements NoSuchMethodError {
   }
 }
 
-class JsNoSuchMethodError implements NoSuchMethodError {
+class JsNoSuchMethodError extends Error implements NoSuchMethodError {
   final String _message;
   final String _method;
   final String _receiver;
@@ -1127,7 +1131,7 @@ class JsNoSuchMethodError implements NoSuchMethodError {
   }
 }
 
-class UnknownJsTypeError implements Error {
+class UnknownJsTypeError extends Error {
   final String _message;
 
   UnknownJsTypeError(this._message);
@@ -1144,13 +1148,26 @@ class UnknownJsTypeError implements Error {
  * returned unmodified.
  */
 unwrapException(ex) {
+  /// If error implements Error, save [ex] in [error.$thrownJsError].
+  /// Otherwise, do nothing. Later, the stack trace can then be extraced from
+  /// [ex].
+  saveStackTrace(error) {
+    if (error is Error) {
+      var thrownStackTrace = JS('', r'#.$thrownJsError', error);
+      if (thrownStackTrace == null) {
+        JS('void', r'#.$thrownJsError = #', error, ex);
+      }
+    }
+    return error;
+  }
+
   // Note that we are checking if the object has the property. If it
   // has, it could be set to null if the thrown value is null.
   if (ex == null) return null;
   if (JS('bool', 'typeof # !== "object"', ex)) return ex;
 
   if (JS('bool', r'"dartException" in #', ex)) {
-    return JS('', r'#.dartException', ex);
+    return saveStackTrace(JS('', r'#.dartException', ex));
   } else if (!JS('bool', r'"message" in #', ex)) {
     return ex;
   }
@@ -1176,10 +1193,12 @@ unwrapException(ex) {
     if (ieFacilityNumber == 10) {
       switch (ieErrorCode) {
       case 438:
-        return new JsNoSuchMethodError('$message (Error $ieErrorCode)', null);
+        return saveStackTrace(
+            new JsNoSuchMethodError('$message (Error $ieErrorCode)', null));
       case 445:
       case 5007:
-        return new NullError('$message (Error $ieErrorCode)', null);
+        return saveStackTrace(
+            new NullError('$message (Error $ieErrorCode)', null));
       }
     }
   }
@@ -1212,14 +1231,14 @@ unwrapException(ex) {
         JS('TypeErrorDecoder', '#',
            TypeErrorDecoder.undefinedLiteralPropertyPattern);
     if ((match = nsme.matchTypeError(message)) != null) {
-      return new JsNoSuchMethodError(message, match);
+      return saveStackTrace(new JsNoSuchMethodError(message, match));
     } else if ((match = notClosure.matchTypeError(message)) != null) {
       // notClosure may match "({c:null}).c()" or "({c:1}).c()", so we
       // cannot tell if this an attempt to invoke call on null or a
       // non-function object.
       // But we do know the method name is "call".
       JS('', '#.method = "call"', match);
-      return new JsNoSuchMethodError(message, match);
+      return saveStackTrace(new JsNoSuchMethodError(message, match));
     } else if ((match = nullCall.matchTypeError(message)) != null ||
                (match = nullLiteralCall.matchTypeError(message)) != null ||
                (match = undefCall.matchTypeError(message)) != null ||
@@ -1228,13 +1247,14 @@ unwrapException(ex) {
                (match = nullLiteralCall.matchTypeError(message)) != null ||
                (match = undefProperty.matchTypeError(message)) != null ||
                (match = undefLiteralProperty.matchTypeError(message)) != null) {
-      return new NullError(message, match);
+      return saveStackTrace(new NullError(message, match));
     }
 
     // If we cannot determine what kind of error this is, we fall back
     // to reporting this as a generic error. It's probably better than
     // nothing.
-    return new UnknownJsTypeError(message is String ? message : '');
+    return saveStackTrace(
+        new UnknownJsTypeError(message is String ? message : ''));
   }
 
   if (JS('bool', r'# instanceof RangeError', ex)) {
@@ -1245,7 +1265,7 @@ unwrapException(ex) {
     // In general, a RangeError is thrown when trying to pass a number
     // as an argument to a function that does not allow a range that
     // includes that number.
-    return new ArgumentError();
+    return saveStackTrace(new ArgumentError());
   }
 
   // Check for the Firefox specific stack overflow signal.

@@ -63,9 +63,6 @@ string_base_vm_test: Fail, OK # VM specific test.
 
 string_replace_func_test: Skip # Bug 6554 - doesn't terminate.
 
-error_stack_trace_test: Fail  # Bug http://dartbug.com/11681
-error_stack_trace2_test: Fail  # Bug http://dartbug.com/11681
-
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
