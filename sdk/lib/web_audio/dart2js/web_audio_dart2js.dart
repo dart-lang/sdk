@@ -357,25 +357,6 @@ class AudioContext extends EventTarget native "AudioContext" {
   @DocsEditable()
   void startRendering() native;
 
-  // From EventTarget
-
-  @JSName('addEventListener')
-  @DomName('AudioContext.addEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  @DomName('AudioContext.dispatchEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool dispatchEvent(Event event) native;
-
-  @JSName('removeEventListener')
-  @DomName('AudioContext.removeEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
-
   @DomName('AudioContext.oncomplete')
   @DocsEditable()
   Stream<Event> get onComplete => completeEvent.forTarget(this);
@@ -499,22 +480,6 @@ class AudioNode extends EventTarget native "AudioNode" {
   @DomName('AudioNode.disconnect')
   @DocsEditable()
   void disconnect(int output) native;
-
-  // From EventTarget
-
-  @JSName('addEventListener')
-  @DomName('AudioNode.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  @DomName('AudioNode.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) native;
-
-  @JSName('removeEventListener')
-  @DomName('AudioNode.removeEventListener')
-  @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @DomName('AudioNode.connect')
   void connectNode(AudioNode destination, [int output = 0, int input = 0]) =>

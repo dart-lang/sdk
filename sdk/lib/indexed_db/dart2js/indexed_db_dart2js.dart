@@ -361,22 +361,6 @@ class Database extends EventTarget native "IDBDatabase" {
   @DocsEditable()
   void deleteObjectStore(String name) native;
 
-  // From EventTarget
-
-  @JSName('addEventListener')
-  @DomName('IDBDatabase.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  @DomName('IDBDatabase.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) native;
-
-  @JSName('removeEventListener')
-  @DomName('IDBDatabase.removeEventListener')
-  @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
-
   @DomName('IDBDatabase.onabort')
   @DocsEditable()
   Stream<Event> get onAbort => abortEvent.forTarget(this);
@@ -1163,22 +1147,6 @@ class Request extends EventTarget native "IDBRequest" {
   @DocsEditable()
   final Transaction transaction;
 
-  // From EventTarget
-
-  @JSName('addEventListener')
-  @DomName('IDBRequest.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  @DomName('IDBRequest.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) native;
-
-  @JSName('removeEventListener')
-  @DomName('IDBRequest.removeEventListener')
-  @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
-
   @DomName('IDBRequest.onerror')
   @DocsEditable()
   Stream<Event> get onError => errorEvent.forTarget(this);
@@ -1255,22 +1223,6 @@ class Transaction extends EventTarget native "IDBTransaction" {
   @DomName('IDBTransaction.objectStore')
   @DocsEditable()
   ObjectStore objectStore(String name) native;
-
-  // From EventTarget
-
-  @JSName('addEventListener')
-  @DomName('IDBTransaction.addEventListener')
-  @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  @DomName('IDBTransaction.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) native;
-
-  @JSName('removeEventListener')
-  @DomName('IDBTransaction.removeEventListener')
-  @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @DomName('IDBTransaction.onabort')
   @DocsEditable()

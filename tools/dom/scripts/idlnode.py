@@ -496,6 +496,10 @@ class IDLOperation(IDLMember):
   def _extra_repr(self):
     return [self.arguments]
 
+  def SameSignatureAs(self, operation):
+    if self.type != operation.type:
+      return False
+    return [a.type for a in self.arguments] == [a.type for a in operation.arguments]
 
 class IDLAttribute(IDLMember):
   """IDLNode specialization for 'attribute type name' declarations."""

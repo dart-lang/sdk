@@ -848,25 +848,6 @@ class ElementInstance extends EventTarget native "SVGElementInstance" {
   @DocsEditable()
   final ElementInstance previousSibling;
 
-  // From EventTarget
-
-  @JSName('addEventListener')
-  @DomName('SVGElementInstance.addEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  @DomName('SVGElementInstance.dispatchEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool dispatchEvent(Event event) native;
-
-  @JSName('removeEventListener')
-  @DomName('SVGElementInstance.removeEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
-
   @DomName('SVGElementInstance.onabort')
   @DocsEditable()
   Stream<Event> get onAbort => abortEvent.forTarget(this);
@@ -4759,11 +4740,6 @@ class SvgDocument extends Document native "SVGDocument" {
   @DomName('SVGDocument.rootElement')
   @DocsEditable()
   final SvgSvgElement rootElement;
-
-  @JSName('createEvent')
-  @DomName('SVGDocument.createEvent')
-  @DocsEditable()
-  Event $dom_createEvent(String eventType) native;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
