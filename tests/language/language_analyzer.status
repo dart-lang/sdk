@@ -9,9 +9,6 @@ closure_call_wrong_argument_count_negative_test: skip
 
 illegal_invocation_test/01: fail # Issue: 11892
 
-# TBF: m([int p = 'String'])
-assign_static_type_test/06: fail
-
 # TBD: using built-in identifers
 built_in_identifier_prefix_test: fail
 
@@ -23,10 +20,6 @@ cast_test/05: fail
 const_constructor_super_test/01: fail
 compile_time_constant10_test/none: fail
 compile_time_constant_c_test/01: fail
-
-# TBF: m([int p = 'String']) and call 'const' instance creation
-compile_time_constant_checked2_test/03: fail
-compile_time_constant_checked3_test/03: fail
 
 # TBF: It is a static type warning if a type parameter is a supertype of its upper bound.
 cyclic_type_variable_test/01: fail
