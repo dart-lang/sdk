@@ -4627,7 +4627,9 @@ class MathUnaryInstr : public TemplateDefinition<1> {
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return kind() == other->AsMathUnary()->kind();
+  }
 
   virtual bool MayThrow() const { return false; }
 
