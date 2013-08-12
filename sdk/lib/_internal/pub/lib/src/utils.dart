@@ -7,7 +7,6 @@ library pub.utils;
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:json' as json;
 import 'dart:mirrors';
 

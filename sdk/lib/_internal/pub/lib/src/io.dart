@@ -8,13 +8,10 @@ library pub.io;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
-import 'dart:isolate';
-import 'dart:json';
 
 import 'package:path/path.dart' as path;
 import 'package:http/http.dart' show ByteStream;
 import 'error_group.dart';
-import 'exit_codes.dart' as exit_codes;
 import 'log.dart' as log;
 import 'sdk.dart' as sdk;
 import 'utils.dart';

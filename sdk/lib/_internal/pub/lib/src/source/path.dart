@@ -5,16 +5,12 @@
 library pub.source.path;
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:path/path.dart' as path;
-
-import '../log.dart' as log;
 
 import '../io.dart';
 import '../package.dart';
 import '../pubspec.dart';
-import '../version.dart';
 import '../source.dart';
 import '../utils.dart';
 

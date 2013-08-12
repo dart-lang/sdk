@@ -4,9 +4,6 @@
 
 library pub_tests;
 
-import 'package:path/path.dart' as path;
-
-import '../../../lib/src/io.dart';
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 

@@ -5,13 +5,11 @@
 library pub.validator.name;
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
 import '../entrypoint.dart';
 import '../io.dart';
-import '../utils.dart';
 import '../validator.dart';
 
 /// Dart reserved words, from the Dart spec.

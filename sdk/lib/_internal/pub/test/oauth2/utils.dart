@@ -14,7 +14,6 @@ import 'package:scheduled_test/scheduled_server.dart';
 
 import '../../lib/src/io.dart';
 import '../../lib/src/utils.dart';
-import '../test_pub.dart';
 
 void authorizePub(ScheduledProcess pub, ScheduledServer server,
     [String accessToken="access token"]) {

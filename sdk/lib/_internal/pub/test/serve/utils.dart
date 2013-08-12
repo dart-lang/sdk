@@ -5,13 +5,11 @@
 library pub_tests;
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:scheduled_test/scheduled_process.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 
-import '../descriptor.dart' as d;
 import '../test_pub.dart';
 
 /// The pub process running "pub serve".

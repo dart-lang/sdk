@@ -7,11 +7,8 @@ library pub.validator.utf8_readme;
 import 'dart:async';
 import 'dart:utf';
 
-import 'package:path/path.dart' as path;
-
 import '../entrypoint.dart';
 import '../io.dart';
-import '../utils.dart';
 import '../validator.dart';
 
 /// Validates that a package's README is valid utf-8.

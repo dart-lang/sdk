@@ -9,20 +9,16 @@
 library test_pub;
 
 import 'dart:async';
-import 'dart:collection' show Queue;
 import 'dart:io';
 import 'dart:json' as json;
 import 'dart:math';
-import 'dart:utf';
 
 import 'package:http/testing.dart';
-import 'package:oauth2/oauth2.dart' as oauth2;
 import 'package:path/path.dart' as path;
 import 'package:scheduled_test/scheduled_process.dart';
 import 'package:scheduled_test/scheduled_server.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:unittest/compact_vm_config.dart';
-import 'package:yaml/yaml.dart';
 
 import '../lib/src/entrypoint.dart';
 // TODO(rnystrom): Using "gitlib" as the prefix here is ugly, but "git" collides
@@ -33,9 +29,6 @@ import '../lib/src/http.dart';
 import '../lib/src/io.dart';
 import '../lib/src/log.dart' as log;
 import '../lib/src/safe_http_server.dart';
-import '../lib/src/source/git.dart';
-import '../lib/src/source/hosted.dart';
-import '../lib/src/source/path.dart';
 import '../lib/src/system_cache.dart';
 import '../lib/src/utils.dart';
 import '../lib/src/validator.dart';

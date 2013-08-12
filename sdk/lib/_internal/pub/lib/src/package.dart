@@ -4,8 +4,6 @@
 
 library pub.package;
 
-import 'dart:async';
-
 import 'package:path/path.dart' as path;
 
 import 'io.dart';

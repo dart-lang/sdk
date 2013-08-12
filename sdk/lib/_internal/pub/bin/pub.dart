@@ -14,7 +14,6 @@ import '../lib/src/exit_codes.dart' as exit_codes;
 import '../lib/src/io.dart';
 import '../lib/src/log.dart' as log;
 import '../lib/src/sdk.dart' as sdk;
-import '../lib/src/system_cache.dart';
 import '../lib/src/utils.dart';
 
 final pubArgParser = initArgParser();

@@ -7,9 +7,7 @@ library pub.validator.pubspec_field;
 import 'dart:async';
 
 import '../entrypoint.dart';
-import '../system_cache.dart';
 import '../validator.dart';
-import '../version.dart';
 
 /// A validator that checks that the pubspec has valid "author" and "homepage"
 /// fields.

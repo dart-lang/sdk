@@ -5,14 +5,11 @@
 library pub.validator.lib;
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
 import '../entrypoint.dart';
 import '../io.dart';
-import '../system_cache.dart';
-import '../utils.dart';
 import '../validator.dart';
 
 // TODO(nweiz): When issue 7196 is fixed, complain about non-Dart files in lib.

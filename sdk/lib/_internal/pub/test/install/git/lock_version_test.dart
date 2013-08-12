@@ -4,8 +4,6 @@
 
 library pub_tests;
 
-import 'dart:io';
-
 import 'package:path/path.dart' as path;
 import 'package:scheduled_test/scheduled_test.dart';
 

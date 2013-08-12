@@ -7,11 +7,7 @@ library pub.validator.dependency;
 import 'dart:async';
 
 import '../entrypoint.dart';
-import '../http.dart';
 import '../package.dart';
-import '../source/hosted.dart';
-import '../source/path.dart';
-import '../utils.dart';
 import '../validator.dart';
 import '../version.dart';
 

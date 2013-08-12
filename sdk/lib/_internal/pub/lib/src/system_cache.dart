@@ -4,7 +4,6 @@
 
 library pub.system_cache;
 
-import 'dart:io';
 import 'dart:async';
 
 import 'package:path/path.dart' as path;
@@ -13,14 +12,11 @@ import 'io.dart';
 import 'io.dart' as io show createTempDir;
 import 'log.dart' as log;
 import 'package.dart';
-import 'pubspec.dart';
 import 'source/git.dart';
 import 'source/hosted.dart';
 import 'source/path.dart';
 import 'source.dart';
 import 'source_registry.dart';
-import 'utils.dart';
-import 'version.dart';
 
 /// The system-wide cache of installed packages.
 ///

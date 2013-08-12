@@ -4,7 +4,6 @@
 
 library pub_tests;
 
-import 'dart:io';
 import 'dart:json' as json;
 
 import 'descriptor.dart' as d;

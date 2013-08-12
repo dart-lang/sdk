@@ -9,9 +9,6 @@ library pub.version;
 
 import 'dart:math';
 
-import 'utils.dart';
-
-
 /// Regex that matches a version number at the beginning of a string.
 final _START_VERSION = new RegExp(
     r'^'                                        // Start at beginning.

@@ -7,18 +7,15 @@ library pub.command.uploader;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
 
 import '../command.dart';
 import '../entrypoint.dart';
 import '../exit_codes.dart' as exit_codes;
 import '../http.dart';
-import '../io.dart';
 import '../log.dart' as log;
 import '../oauth2.dart' as oauth2;
 import '../source/hosted.dart';
-import '../utils.dart';
 
 /// Handles the `uploader` pub command.
 class UploaderCommand extends PubCommand {
