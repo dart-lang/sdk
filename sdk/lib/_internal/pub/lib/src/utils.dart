@@ -168,6 +168,46 @@ void chainToCompleter(Future future, Completer completer) {
       onError: (e) => completer.completeError(e));
 }
 
+/// Ensures that [stream] can emit at least one value successfully (or close
+/// without any values).
+///
+/// For example, reading asynchronously from a non-existent file will return a
+/// stream that fails on the first chunk. In order to handle that more
+/// gracefully, you may want to check that the stream looks like it's working
+/// before you pipe the stream to something else.
+///
+/// This lets you do that. It returns a [Future] that completes to a [Stream]
+/// emitting the same values and errors as [stream], but only if at least one
+/// value can be read successfully. If an error occurs before any values are
+/// emitted, the returned Future completes to that error.
+Future<Stream> validateStream(Stream stream) {
+  var completer = new Completer<Stream>();
+  var controller = new StreamController(sync: true);
+
+  StreamSubscription subscription;
+  subscription = stream.listen((value) {
+    // We got a value, so the stream is valid.
+    if (!completer.isCompleted) completer.complete(controller.stream);
+    controller.add(value);
+  }, onError: (error) {
+    // If the error came after values, it's OK.
+    if (completer.isCompleted) controller.addError(error);
+
+    // Otherwise, the error came first and the stream is invalid.
+    completer.completeError(error);
+
+    // We don't be returning the stream at all in this case, so unsubscribe
+    // and swallow the error.
+    subscription.cancel();
+  }, onDone: () {
+    // It closed with no errors, so the stream is valid.
+    if (!completer.isCompleted) completer.complete(controller.stream);
+    controller.close();
+  });
+
+  return completer.future;
+}
+
 // TODO(nweiz): remove this when issue 7964 is fixed.
 /// Returns a [Future] that will complete to the first element of [stream].
 /// Unlike [Stream.first], this is safe to use with single-subscription streams.
