@@ -975,17 +975,9 @@ abstract class InferrerVisitor<T> extends ResolvedVisitor<T> {
       List<LocalsHandler<T>> localsToMerge = <LocalsHandler<T>>[];
 
       for (SwitchCase switchCase in node.cases) {
-        if (switchCase.isDefaultCase) {
-          // If there is a default case, the current values of the local
-          // variable might be overwritten, so we don't need the current
-          // [locals] for the join block.
-          locals = saved;
-          visit(switchCase);
-        } else {
-          locals = new LocalsHandler<T>.from(saved, switchCase);
-          visit(switchCase);
-          localsToMerge.add(locals);
-        }
+        locals = new LocalsHandler<T>.from(saved, switchCase);
+        visit(switchCase);
+        localsToMerge.add(locals);
       }
       saved.mergeAll(localsToMerge);
       locals = saved;
