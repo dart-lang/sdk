@@ -25722,13 +25722,13 @@ class Url extends NativeFieldWrapperClass1 {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -31027,10 +31027,10 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
     // charCode.
     event._shadowCharCode = _findCharCodeKeyDown(event);
     if (_keyDownList.length > 0 && event.keyCode != _keyDownList.last.keyCode &&
-        !_firesKeyPressEvent(e)) {
+        !_firesKeyPressEvent(event)) {
       // Some browsers have quirks not firing keypress events where all other
       // browsers do. This makes them more consistent.
-      processKeyPress(event);
+      processKeyPress(e);
     }
     _keyDownList.add(event);
     _dispatch(event);
