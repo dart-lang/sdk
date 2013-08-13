@@ -12885,8 +12885,10 @@ class HttpRequest extends EventTarget native "XMLHttpRequest" {
    * This call is used in conjunction with [open]:
    *
    *     var request = new HttpRequest();
-   *     request.open('GET', 'http://dartlang.org')
-   *     request.onLoad.listen((event) => print('Request complete'));
+   *     request.open('GET', 'http://dartlang.org');
+   *     request.onLoad.listen((event) => print(
+   *         'Request complete ${event.target.reponseText}'));
+   *     request.send();
    *
    * is the (more verbose) equivalent of
    *
