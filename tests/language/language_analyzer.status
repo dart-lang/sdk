@@ -56,8 +56,11 @@ private_member3_negative_test: fail
 # TBF
 pseudo_kw_test: fail
 
-# TBF: hiding at start of the block and declared after declaration statement
-scope_negative_test: fail
+# TBD
+dynamic_test: Fail # Issue 12404
+
+
+
 
 # test issue 10683, It is a compile-time error if e refers to the name v or the name v=.
 block_scope_test: fail
@@ -267,7 +270,8 @@ type_error_test: fail
 issue11724_test: fail
 call_nonexistent_static_test/08: fail
 
-dynamic_test: Fail # Issue 12404
+# test issue 12397; it is static warning, not error to use variable before declaration (or hidden)
+scope_negative_test: fail
 
 [ $compiler == dartanalyzer && $checked ]
 factory1_test/00: fail
