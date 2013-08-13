@@ -679,7 +679,7 @@ class JsCache {
   static fetch(cache, String key) => JS('', '#[#]', cache, key);
 
   static void update(cache, String key, value) {
-    return JS('void', '#[#] = #', cache, key, value);
+    JS('void', '#[#] = #', cache, key, value);
   }
 }
 
