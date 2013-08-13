@@ -1489,4 +1489,6 @@ class RedirectException implements HttpException {
                           List<RedirectInfo> this.redirects);
 
   String toString() => "RedirectException: $message";
+
+  Uri get uri => redirects.last.location;
 }

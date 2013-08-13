@@ -826,7 +826,7 @@ class _WebSocketImpl extends Stream implements WebSocket {
                                      cancelOnError: cancelOnError);
   }
 
-  Duration get pingnterval => _pingInterval;
+  Duration get pingInterval => _pingInterval;
 
   void set pingInterval(Duration interval) {
     if (_writeClosed) return;

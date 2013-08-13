@@ -98,7 +98,7 @@ class _Directory implements Directory {
   }
 
   Future<Directory> createRecursively() {
-    var path = new Path(path);
+    var path = new Path(this.path);
     var dirsToCreate = [];
     var terminator = path.isAbsolute ? '/' : '';
     while (path.toString() != terminator) {
@@ -139,7 +139,7 @@ class _Directory implements Directory {
   }
 
   void createRecursivelySync() {
-    var path = new Path(path);
+    var path = new Path(this.path);
     var dirsToCreate = [];
     var terminator = path.isAbsolute ? '/' : '';
     while (path.toString() != terminator) {
