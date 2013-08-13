@@ -11,16 +11,6 @@ package/invalid_uri_test: Fail, OK # Fails intentionally
 
 [ $runtime == vm ]
 package/package_isolate_test: Fail # http://dartbug.com/7520.
-vmservice/isolate_echo_test: Pass, Fail # Issue: 12294
-vmservice/isolate_list_test: Pass, Fail # Issue: 12294
-vmservice/isolate_stacktrace_command_test: Pass, Fail # Issue: 12294
-vmservice/unknown_isolate_command_test: Pass, Fail # Issue: 12294
-
-[ $runtime == vm && $system == windows ]
-vmservice/isolate_class_test: Pass, Fail # Issue: 12294
-vmservice/isolate_code_test: Pass, Fail # Issue: 12294
-vmservice/isolate_function_test: Pass, Fail # Issue: 12294
-vmservice/isolate_library_test: Pass, Fail # Issue: 12294
 
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
@@ -33,9 +23,6 @@ io/stdout_bad_argument_test: Fail, OK
 # checked mode with no benefit. Skip.
 io/file_fuzz_test: Skip
 io/directory_fuzz_test: Skip
-
-[ $runtime == vm && $system == windows ]
-vmservice/multiple_isolate_list_test: Fail, Pass # http://dartbug.com/12124
 
 [ $runtime == vm && $system == macos ]
 # This test fails with "Too many open files" on the Mac OS buildbot.
