@@ -526,6 +526,7 @@ struct MemberDesc {
   Token::Kind operator_token;
   const AbstractType* type;
   intptr_t name_pos;
+  intptr_t decl_begin_pos;
   String* name;
   // For constructors: NULL or name of redirected to constructor.
   String* redirect_name;
@@ -764,6 +765,9 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
     case RawFunction::kConstructor:
       // The call to a redirecting factory is redirected.
       ASSERT(!func.IsRedirectingFactory());
+      if (!func.IsImplicitConstructor()) {
+        parser.SkipFunctionPreamble();
+      }
       node_sequence = parser.ParseFunc(func, default_parameter_values);
       break;
     case RawFunction::kImplicitGetter:
@@ -2832,7 +2836,6 @@ void Parser::ParseQualIdent(QualIdent* qual_ident) {
 void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   TRACE_PARSER("ParseMethodOrConstructor");
   ASSERT(CurrentToken() == Token::kLPAREN || method->IsGetter());
-  intptr_t method_pos = this->TokenPos();
   ASSERT(method->type != NULL);
   ASSERT(method->name_pos > 0);
   ASSERT(current_member_ == method);
@@ -3086,7 +3089,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
                     method->has_abstract,
                     method->has_external,
                     current_class(),
-                    method_pos));
+                    method->decl_begin_pos));
   func.set_result_type(*method->type);
   func.set_end_token_pos(method_end_pos);
   if (method->metadata_pos > 0) {
@@ -3282,6 +3285,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
   MemberDesc member;
   current_member_ = &member;
   member.metadata_pos = metadata_pos;
+  member.decl_begin_pos = TokenPos();
   if ((CurrentToken() == Token::kEXTERNAL) &&
       (LookaheadToken(1) != Token::kLPAREN)) {
     ConsumeToken();
@@ -4328,6 +4332,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
 void Parser::ParseTopLevelFunction(TopLevel* top_level,
                                    intptr_t metadata_pos) {
   TRACE_PARSER("ParseTopLevelFunction");
+  const intptr_t decl_begin_pos = TokenPos();
   AbstractType& result_type = Type::Handle(Type::DynamicType());
   const bool is_static = true;
   bool is_external = false;
@@ -4401,7 +4406,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
                     /* is_abstract = */ false,
                     is_external,
                     current_class(),
-                    function_pos));
+                    decl_begin_pos));
   func.set_result_type(result_type);
   func.set_end_token_pos(function_end_pos);
   AddFormalParamsToFunction(&params, func);
@@ -4420,6 +4425,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
 void Parser::ParseTopLevelAccessor(TopLevel* top_level,
                                    intptr_t metadata_pos) {
   TRACE_PARSER("ParseTopLevelAccessor");
+  const intptr_t decl_begin_pos = TokenPos();
   const bool is_static = true;
   bool is_external = false;
   bool is_patch = false;
@@ -4526,7 +4532,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
                     /* is_abstract = */ false,
                     is_external,
                     current_class(),
-                    accessor_pos));
+                    decl_begin_pos));
   func.set_result_type(result_type);
   func.set_end_token_pos(accessor_end_pos);
   AddFormalParamsToFunction(&params, func);
@@ -5242,7 +5248,6 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
                (LookaheadToken(1) != Token::kLPAREN)) {
       result_type = ParseType(ClassFinalizer::kCanonicalize);
     }
-    ident_pos = TokenPos();
     variable_name = ExpectIdentifier("function name expected");
     function_name = variable_name;
   }
@@ -5268,7 +5273,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     is_new_closure = true;
     function = Function::NewClosureFunction(*function_name,
                                             innermost_function(),
-                                            function_pos);
+                                            ident_pos);
     function.set_result_type(result_type);
     current_class().AddClosureFunction(function);
   }
@@ -10031,6 +10036,30 @@ void Parser::SkipFunctionLiteral() {
   } else if (CurrentToken() == Token::kARROW) {
     ConsumeToken();
     SkipExpr();
+  }
+}
+
+
+// Skips function/method/constructor/getter/setter preambles until the formal
+// parameter list. It is enough to skip the tokens, since we have already
+// previously parsed the function.
+void Parser::SkipFunctionPreamble() {
+  while (true) {
+    if (CurrentToken() == Token::kLPAREN ||
+        CurrentToken() == Token::kARROW ||
+        CurrentToken() == Token::kSEMICOLON ||
+        CurrentToken() == Token::kLBRACE) {
+      return;
+    }
+    // Case handles "native" keyword, but also return types of form
+    // native.SomeType where native is the name of a library.
+    if (CurrentToken() == Token::kIDENT &&
+        LookaheadToken(1) != Token::kPERIOD) {
+      if (CurrentLiteral()->raw() == Symbols::Native().raw()) {
+        return;
+      }
+    }
+    ConsumeToken();
   }
 }
 

@@ -3229,6 +3229,14 @@ static RawFunction* GetFunction(const Class& cls, const char* name) {
 }
 
 
+static RawFunction* GetStaticFunction(const Class& cls, const char* name) {
+  const Function& result = Function::Handle(cls.LookupStaticFunction(
+      String::Handle(String::New(name))));
+  EXPECT(!result.IsNull());
+  return result.raw();
+}
+
+
 static RawField* GetField(const Class& cls, const char* name) {
   const Field& field =
       Field::Handle(cls.LookupField(String::Handle(String::New(name))));
@@ -3340,27 +3348,39 @@ TEST_CASE(Metadata) {
 TEST_CASE(FunctionSourceFingerprint) {
   const char* kScriptChars =
       "class A {\n"
-      "  void test1(int a) {\n"
+      "  static void test1(int a) {\n"
       "    return a > 1 ? a + 1 : a;\n"
       "  }\n"
-      "  void test2(int a) {\n"
+      "  static void test2(a) {\n"
       "    return a > 1 ? a + 1 : a;\n"
       "  }\n"
-      "  void test3(a) {\n"
-      "    return a > 1 ? a + 1 : a;\n"
-      "  }\n"
-      "  void test4(b) {\n"
+      "  static void test3(b) {\n"
       "    return b > 1 ? b + 1 : b;\n"
       "  }\n"
-      "  void test5(b) {\n"
+      "  static void test4(b) {\n"
       "    return b > 1 ? b - 1 : b;\n"
       "  }\n"
-      "  void test6(b) {\n"
+      "  static void test5(b) {\n"
       "    return b > 1 ? b - 2 : b;\n"
       "  }\n"
-      "  void test7(b) {\n"
+      "  void test6(int a) {\n"
+      "    return a > 1 ? a + 1 : a;\n"
+      "  }\n"
+      "}\n"
+      "class B {\n"
+      "  static void /* Different declaration style. */\n"
+      "  test1(int a) {\n"
+      "    /* Returns a + 1 for a > 1, a otherwise. */\n"
+      "    return a > 1 ?\n"
+      "        a + 1 :\n"
+      "        a;\n"
+      "  }\n"
+      "  static void test5(b) {\n"
       "    return b > 1 ?\n"
       "        b - 2 : b;\n"
+      "  }\n"
+      "  void test6(int a) {\n"
+      "    return a > 1 ? a + 1 : a;\n"
       "  }\n"
       "}";
   TestCase::LoadTestScript(kScriptChars, NULL);
@@ -3371,19 +3391,34 @@ TEST_CASE(FunctionSourceFingerprint) {
 
   const Class& class_a = Class::Handle(
       lib.LookupClass(String::Handle(Symbols::New("A")), NULL));
-  const Function& test1 = Function::Handle(GetFunction(class_a, "test1"));
-  const Function& test2 = Function::Handle(GetFunction(class_a, "test2"));
-  const Function& test3 = Function::Handle(GetFunction(class_a, "test3"));
-  const Function& test4 = Function::Handle(GetFunction(class_a, "test4"));
-  const Function& test5 = Function::Handle(GetFunction(class_a, "test5"));
-  const Function& test6 = Function::Handle(GetFunction(class_a, "test6"));
-  const Function& test7 = Function::Handle(GetFunction(class_a, "test7"));
-  EXPECT_EQ(test1.SourceFingerprint(), test2.SourceFingerprint());
-  EXPECT_NE(test1.SourceFingerprint(), test3.SourceFingerprint());
-  EXPECT_NE(test3.SourceFingerprint(), test4.SourceFingerprint());
-  EXPECT_NE(test4.SourceFingerprint(), test5.SourceFingerprint());
-  EXPECT_NE(test5.SourceFingerprint(), test6.SourceFingerprint());
-  EXPECT_EQ(test6.SourceFingerprint(), test7.SourceFingerprint());
+  const Class& class_b = Class::Handle(
+      lib.LookupClass(String::Handle(Symbols::New("B")), NULL));
+  const Function& a_test1 =
+      Function::Handle(GetStaticFunction(class_a, "test1"));
+  const Function& b_test1 =
+      Function::Handle(GetStaticFunction(class_b, "test1"));
+  const Function& a_test2 =
+      Function::Handle(GetStaticFunction(class_a, "test2"));
+  const Function& a_test3 =
+      Function::Handle(GetStaticFunction(class_a, "test3"));
+  const Function& a_test4 =
+      Function::Handle(GetStaticFunction(class_a, "test4"));
+  const Function& a_test5 =
+      Function::Handle(GetStaticFunction(class_a, "test5"));
+  const Function& b_test5 =
+      Function::Handle(GetStaticFunction(class_b, "test5"));
+  const Function& a_test6 =
+      Function::Handle(GetFunction(class_a, "test6"));
+  const Function& b_test6 =
+      Function::Handle(GetFunction(class_b, "test6"));
+
+  EXPECT_EQ(a_test1.SourceFingerprint(), b_test1.SourceFingerprint());
+  EXPECT_NE(a_test1.SourceFingerprint(), a_test2.SourceFingerprint());
+  EXPECT_NE(a_test2.SourceFingerprint(), a_test3.SourceFingerprint());
+  EXPECT_NE(a_test3.SourceFingerprint(), a_test4.SourceFingerprint());
+  EXPECT_NE(a_test4.SourceFingerprint(), a_test5.SourceFingerprint());
+  EXPECT_EQ(a_test5.SourceFingerprint(), b_test5.SourceFingerprint());
+  EXPECT_NE(a_test6.SourceFingerprint(), b_test6.SourceFingerprint());
 }
 
 

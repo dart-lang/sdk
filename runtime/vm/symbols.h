@@ -62,6 +62,7 @@ class ObjectPointerVisitor;
   V(ClosureFunctionField, ":function")                                         \
   V(ClosureContextField, ":context")                                           \
   V(Library, "library")                                                        \
+  V(Native, "native")                                                          \
   V(Import, "import")                                                          \
   V(Source, "source")                                                          \
   V(Class, "Class")                                                            \

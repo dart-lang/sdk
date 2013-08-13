@@ -287,6 +287,7 @@ class Parser : public ValueObject {
   void SkipFunctionLiteral();
   void SkipStringLiteral();
   void SkipQualIdent();
+  void SkipFunctionPreamble();
 
   void CheckConstructorCallTypeArguments(
     intptr_t pos,
