@@ -389,8 +389,6 @@ InstanceMirror reflect(Object reflectee) {
   }
 }
 
-final Expando<ClassMirror> classMirrors = new Expando<ClassMirror>();
-
 ClassMirror reflectType(Type key) {
   return reflectClassByMangledName('$key'.split('<')[0]);
 }
@@ -401,7 +399,12 @@ ClassMirror reflectClassByMangledName(String mangledName) {
   return reflectClassByName(s(unmangledName), mangledName);
 }
 
+var classMirrors;
+
 ClassMirror reflectClassByName(Symbol symbol, String mangledName) {
+  if (classMirrors == null) classMirrors = JsCache.allocate();
+  var mirror = JsCache.fetch(classMirrors, mangledName);
+  if (mirror != null) return mirror;
   disableTreeShaking();
   var constructorOrInterceptor =
       Primitives.getConstructorOrInterceptor(mangledName);
@@ -431,12 +434,9 @@ ClassMirror reflectClassByName(Symbol symbol, String mangledName) {
       fields = '';
     }
   }
-  var mirror = classMirrors[constructorOrInterceptor];
-  if (mirror == null) {
-    mirror = new JsClassMirror(
-        symbol, mangledName, constructorOrInterceptor, fields, fieldsMetadata);
-    classMirrors[constructorOrInterceptor] = mirror;
-  }
+  mirror = new JsClassMirror(
+      symbol, mangledName, constructorOrInterceptor, fields, fieldsMetadata);
+  JsCache.update(classMirrors, mangledName, mirror);
   return mirror;
 }
 
