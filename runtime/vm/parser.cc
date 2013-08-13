@@ -9242,7 +9242,6 @@ static void AddKeyValuePair(GrowableArray<AstNode*>* pairs,
                             AstNode* value) {
   if (is_const) {
     ASSERT(key->IsLiteralNode());
-    ASSERT(key->AsLiteralNode()->literal().IsString());
     const Instance& new_key = key->AsLiteralNode()->literal();
     for (int i = 0; i < pairs->length(); i += 2) {
       const Instance& key_i =
@@ -10075,6 +10074,8 @@ void Parser::SkipListLiteral() {
     SkipNestedExpr();
     if (CurrentToken() == Token::kCOMMA) {
       ConsumeToken();
+    } else {
+      break;
     }
   }
   ExpectToken(Token::kRBRACK);
@@ -10083,12 +10084,14 @@ void Parser::SkipListLiteral() {
 
 void Parser::SkipMapLiteral() {
   ExpectToken(Token::kLBRACE);
-  while (CurrentToken() == Token::kSTRING) {
-    SkipStringLiteral();
+  while (CurrentToken() != Token::kRBRACE) {
+    SkipNestedExpr();
     ExpectToken(Token::kCOLON);
     SkipNestedExpr();
     if (CurrentToken() == Token::kCOMMA) {
       ConsumeToken();
+    } else {
+      break;
     }
   }
   ExpectToken(Token::kRBRACE);

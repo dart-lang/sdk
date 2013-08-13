@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js || $compiler == dart2dart ]
+compile_time_constant_c_test/none: Fail # Map literal with int key.
 class_literal_test/01: Fail # Class literals are expression now; delete this test.
 class_literal_test/02: Fail # Class literals are expression now; delete this test.
 class_literal_test/05: Fail # Class literals are expression now; delete this test.

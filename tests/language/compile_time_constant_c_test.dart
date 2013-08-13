@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 const m1 = const {
-  499: 400 + 99  /// 01: compile-time error
+  499: 400 + 99
 };
 const m2 = const {
   "foo" + "bar": 42  /// 02: compile-time error
