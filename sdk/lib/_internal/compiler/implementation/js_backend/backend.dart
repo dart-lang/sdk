@@ -1420,15 +1420,14 @@ class JavaScriptBackend extends Backend {
   bool get rememberLazies => isTreeShakingDisabled;
 
   bool retainMetadataOf(Element element) {
-    if (mustRetainMetadata) {
-      // TODO(ahe): This is a little hacky, but I'll have to rewrite this when
-      // implementing @MirrorsUsed anyways.
-      compiler.constantHandler.compiledConstants.addAll(
-          compiler.metadataHandler.compiledConstants);
-      compiler.metadataHandler.compiledConstants.clear();
-    }
     if (mustRetainMetadata) hasRetainedMetadata = true;
-    return mustRetainMetadata;
+    if (mustRetainMetadata && isNeededForReflection(element)) {
+      for (MetadataAnnotation metadata in element.metadata) {
+        metadata.value.accept(new ConstantCopier(compiler.constantHandler));
+      }
+      return true;
+    }
+    return false;
   }
 
   void onLibraryScanned(LibraryElement library, Uri uri) {
@@ -1509,10 +1508,22 @@ class JavaScriptBackend extends Backend {
     }
 
     if (!targetsUsed.isEmpty) {
-      for (Element e = element; e != null; e = e.enclosingElement) {
-        if (targetsUsed.contains(e)) return registerNameOf(element);
+      if (targetsUsed.contains(element)) return registerNameOf(element);
+      Element enclosing = element.enclosingElement;
+      if (enclosing != null && isNeededForReflection(enclosing)) {
+        return registerNameOf(element);
       }
     }
+
+    if (element is ClosureClassElement) {
+      // TODO(ahe): Try to fix the enclosing element of ClosureClassElement
+      // instead.
+      ClosureClassElement closureClass = element;
+      if (isNeededForReflection(closureClass.methodElement)) {
+        return registerNameOf(element);
+      }
+    }
+
     return false;
   }
 }
@@ -1523,4 +1534,53 @@ class Dependency {
   final TreeElements user;
 
   const Dependency(this.type, this.user);
+}
+
+/// Used to copy metadata to the the actual constant handler.
+class ConstantCopier implements ConstantVisitor {
+  final ConstantHandler target;
+
+  ConstantCopier(this.target);
+
+  void copy(/* Constant or List<Constant> */ value) {
+    if (value is Constant) {
+      target.compiledConstants.add(value);
+    } else {
+      target.compiledConstants.addAll(value);
+    }
+  }
+
+  void visitFunction(FunctionConstant constant) => copy(constant);
+
+  void visitNull(NullConstant constant) => copy(constant);
+
+  void visitInt(IntConstant constant) => copy(constant);
+
+  void visitDouble(DoubleConstant constant) => copy(constant);
+
+  void visitTrue(TrueConstant constant) => copy(constant);
+
+  void visitFalse(FalseConstant constant) => copy(constant);
+
+  void visitString(StringConstant constant) => copy(constant);
+
+  void visitType(TypeConstant constant) => copy(constant);
+
+  void visitInterceptor(InterceptorConstant constant) => copy(constant);
+
+  void visitList(ListConstant constant) {
+    copy(constant.entries);
+    copy(constant);
+  }
+  void visitMap(MapConstant constant) {
+    copy(constant.keys);
+    copy(constant.values);
+    copy(constant.protoValue);
+    copy(constant);
+  }
+
+  void visitConstructed(ConstructedConstant constant) {
+    copy(constant.fields);
+    copy(constant);
+  }
 }
