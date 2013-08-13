@@ -9,15 +9,19 @@ import 'package:expect/expect.dart';
 class MyCodec extends Codec<int, String> {
   const MyCodec();
 
-  Converter<int, String> get encoder => new IntStringConverter();
-  Converter<String, int> get decoder => new StringIntConverter();
+  final Converter<int, String> encoder = const IntStringConverter();
+  final Converter<String, int> decoder = const StringIntConverter();
 }
 
 class IntStringConverter extends Converter<int, String> {
+  const IntStringConverter();
+
   String convert(int i) => i.toString();
 }
 
 class StringIntConverter extends Converter<String, int> {
+  const StringIntConverter();
+
   int convert(String str) => int.parse(str);
 }
 
