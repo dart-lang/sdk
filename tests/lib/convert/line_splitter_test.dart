@@ -117,64 +117,22 @@ void testReadLine2() {
     .transform(new Utf8Decoder())
     .transform(new LineSplitter());
 
-  var done = false;
+  var expectedLines = ['Line1', 'Line2','Line3', 'Line4',
+                       '', '', '', '', '', '',
+                       'Line5', 'Line6'];
 
-  var stage = 0;
-  var subStage = 0;
+  var index = 0;
+
   stream.listen((line) {
-      if (stage == 0) {
-        if (subStage == 0) {
-          Expect.equals("Line1", line);
-          subStage++;
-        } else if (subStage == 1) {
-          Expect.equals("Line2", line);
-          subStage++;
-        } else if (subStage == 2) {
-          Expect.equals("Line3", line);
-          subStage = 0;
-          stage++;
-        } else {
-          Expect.fail("Stage 0 failed");
-        }
-      } else if (stage == 1) {
-        if (subStage == 0) {
-          Expect.equals("Line4", line);
-          subStage = 0;
-          stage++;
-        } else {
-          Expect.fail("Stage 1 failed");
-        }
-      } else if (stage == 2) {
-        if (subStage < 4) {
-          // Expect 5 empty lines. As long as the stream is not closed the
-          // final \r cannot be interpreted as a end of line.
-          Expect.equals("", line);
-          subStage++;
-        } else if (subStage == 4) {
-          Expect.equals("", line);
-          subStage = 0;
-          stage++;
-        } else {
-          Expect.fail("Stage 2 failed");
-        }
-      } else if (stage == 3) {
-        if (subStage == 0) {
-          Expect.equals("", line);
-          stage++;
-        } else {
-          Expect.fail("Stage 3 failed");
-        }
-      }
-    }, onDone: () {
-      Expect.equals(4, stage);
-      Expect.equals(0, subStage);
-      done = true;
-    });
+    Expect.equals(expectedLines[index++], line);
+  });
 
   // Note: codeUnits is fine. Text is ASCII.
   controller.add("Line1\nLine2\r\nLine3\rLi".codeUnits);
   controller.add("ne4\n".codeUnits);
   controller.add("\n\n\r\n\r\n\r\r".codeUnits);
+  controller.add("Line5\r".codeUnits);
+  controller.add("\nLine6\n".codeUnits);
   controller.close();
-  Expect.isTrue(done, 'should be done here...');
+  Expect.equals(expectedLines.length, index);
 }

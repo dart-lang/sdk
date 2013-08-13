@@ -38,21 +38,23 @@ class _LineSplitterSink extends StringConversionSinkBase {
   _LineSplitterSink(this._sink);
 
   void addSlice(String chunk, int start, int end, bool isLast) {
-    if(_carry != null) {
+    if (_carry != null) {
       chunk = _carry + chunk.substring(start, end);
       start = 0;
       end = chunk.length;
       _carry = null;
     }
     _carry = _addSlice(chunk, start, end, isLast, _sink.add);
-    if(isLast) _sink.close();
+    if (isLast) _sink.close();
   }
 
   void close() {
     addSlice('', 0, 0, true);
   }
 
-  static String _addSlice(String chunk, int start, int end, bool isLast, void adder(String val)) {
+  static String _addSlice(String chunk, int start, int end, bool isLast,
+                          void adder(String val)) {
+
     int pos = start;
     while (pos < end) {
       int skip = 0;
@@ -78,7 +80,7 @@ class _LineSplitterSink extends StringConversionSinkBase {
     }
     if (pos != start) {
       var carry = chunk.substring(start, pos);
-      if(isLast) {
+      if (isLast) {
         // Add remaining
         adder(carry);
       } else {
