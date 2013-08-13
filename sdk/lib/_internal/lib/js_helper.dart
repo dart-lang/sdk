@@ -663,6 +663,26 @@ class Primitives {
   }
 }
 
+/// Helper class for allocating and using JS object literals as caches.
+class JsCache {
+  /// Returns a JavaScript object suitable for use as a cache.
+  static allocate() {
+    var result = JS('=Object', '{x:0}');
+    // Deleting a property makes V8 assume that it shouldn't create a hidden
+    // class for [result] and map transitions. Although these map transitions
+    // pay off if there are many cache hits for the same keys, it becomes
+    // really slow when there aren't many repeated hits.
+    JS('void', 'delete #.x', result);
+    return result;
+  }
+
+  static fetch(cache, String key) => JS('', '#[#]', cache, key);
+
+  static void update(cache, String key, value) {
+    return JS('void', '#[#] = #', cache, key, value);
+  }
+}
+
 /**
  * Called by generated code to throw an illegal-argument exception,
  * for example, if a non-integer index is given to an optimized

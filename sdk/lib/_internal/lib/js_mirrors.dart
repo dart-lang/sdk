@@ -18,6 +18,7 @@ import 'dart:_js_helper' show
     BoundClosure,
     Closure,
     JSInvocationMirror,
+    JsCache,
     Null,
     Primitives,
     RuntimeError,
@@ -532,6 +533,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   final _jsConstructorOrInterceptor;
   final String _fieldsDescriptor;
   final List _fieldsMetadata;
+  final _jsConstructorCache = JsCache.allocate();
   List _metadata;
   JsClassMirror _superclass;
   List<JsMethodMirror> _cachedMethods;
@@ -767,15 +769,20 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     if (namedArguments != null && !namedArguments.isEmpty) {
       throw new UnsupportedError('Named arguments are not implemented.');
     }
-    JsMethodMirror mirror = constructors.values.firstWhere(
-        (m) => m.constructorName == constructorName,
-        orElse: () {
-          // TODO(ahe): Pass namedArguments when NoSuchMethodError has been
-          // fixed to use Symbol.
-          // TODO(ahe): What receiver to use?
-          throw new NoSuchMethodError(
-              owner, n(constructorName), positionalArguments, null);
-        });
+    JsMethodMirror mirror =
+        JsCache.fetch(_jsConstructorCache, n(constructorName));
+    if (mirror == null) {
+      mirror = constructors.values.firstWhere(
+          (m) => m.constructorName == constructorName,
+          orElse: () {
+            // TODO(ahe): Pass namedArguments when NoSuchMethodError has been
+            // fixed to use Symbol.
+            // TODO(ahe): What receiver to use?
+            throw new NoSuchMethodError(
+                owner, n(constructorName), positionalArguments, null);
+          });
+      JsCache.update(_jsConstructorCache, n(constructorName), mirror);
+    }
     return reflect(mirror._invoke(positionalArguments, namedArguments));
   }
 
