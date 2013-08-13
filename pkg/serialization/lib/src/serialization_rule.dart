@@ -107,7 +107,7 @@ abstract class SerializationRule {
    * variables from the representation in [state]. Where there are references
    * to other objects they are resolved in the context of [reader].
    */
-  inflateNonEssential(state, object, Reader reader);
+  void inflateNonEssential(state, object, Reader reader);
 
   /**
    * If we have [object] as part of our state, should we represent that
@@ -155,7 +155,7 @@ class ListRule extends SerializationRule {
 
   // For a list, we consider all of its state non-essential and add it
   // after creation.
-  inflateNonEssential(List state, List newList, Reader r) {
+  void inflateNonEssential(List state, List newList, Reader r) {
     populateContents(state, newList, r);
   }
 
@@ -183,7 +183,7 @@ class ListRuleEssential extends ListRule {
   }
 
   /** Does nothing, because all the work has been done in inflateEssential. */
-  inflateNonEssential(state, newList, reader) {}
+  void inflateNonEssential(state, newList, reader) {}
 
   bool get mustBePrimary => true;
 }
@@ -237,7 +237,7 @@ class MapRule extends SerializationRule {
 
   // For a map, we consider all of its state non-essential and add it
   // after creation.
-  inflateNonEssential(state, Map newMap, Reader r) {
+  void inflateNonEssential(state, Map newMap, Reader r) {
     if (state is List) {
       inflateNonEssentialFromList(state, newMap, r);
     } else {
@@ -276,7 +276,7 @@ class PrimitiveRule extends SerializationRule {
   extractState(object, Function f, Writer w) => object;
   flatten(object, Writer writer) {}
   inflateEssential(state, Reader r) => state;
-  inflateNonEssential(object, _, Reader r) {}
+  void inflateNonEssential(object, _, Reader r) {}
 
   bool get storesStateAsPrimitives => true;
 
@@ -310,13 +310,13 @@ class ClosureRule extends CustomRule {
   final Type type;
 
   /** The function for constructing new objects when reading. */
-  ConstructType construct;
+  final ConstructType construct;
 
   /** The function for returning an object's state as a Map. */
-  GetStateType getStateFunction;
+  final GetStateType getStateFunction;
 
   /** The function for setting an object's state from a Map. */
-  NonEssentialStateType setNonEssentialState;
+  final NonEssentialStateType setNonEssentialState;
 
   /**
    * Create a ClosureToMapRule for the given [type] which gets an object's
@@ -374,7 +374,7 @@ class NamedObjectRule extends SerializationRule {
       r.objectNamed(r.resolveReference(state.first));
 
   /** Set any non-essential state on the object. For this rule, a no-op. */
-  inflateNonEssential(state, object, Reader r) {}
+  void inflateNonEssential(state, object, Reader r) {}
 
   /** Return the name for this object in the Writer. */
   String nameFor(object, Writer writer) => writer.nameFor(object);
@@ -496,7 +496,7 @@ class SymbolRule extends CustomRule {
 class DateTimeRule extends CustomRule {
   bool appliesTo(instance, _) => instance is DateTime;
   List getState(DateTime date) => [date.millisecondsSinceEpoch, date.isUtc];
-  create(List state) =>
+  DateTime create(List state) =>
       new DateTime.fromMillisecondsSinceEpoch(state[0], isUtc: state[1]);
   void setState(date, state) {}
   // Let the system know we don't have to store a length for these.
@@ -558,7 +558,7 @@ class _LazyMap implements Map {
  * looks like it's just a list of objects to a [CustomRule] without needing
  * to inflate all the references in advance.
  */
-class _LazyList extends IterableBase with ListMixin implements List {
+class _LazyList extends ListBase {
   _LazyList(this._raw, this._reader);
 
   final List _raw;

@@ -220,12 +220,13 @@ part 'src/format.dart';
  * See library comment for examples of usage.
  */
 class Serialization {
+  final List<SerializationRule> _rules;
 
   /**
    * The serialization is controlled by the list of Serialization rules. These
    * are most commonly added via [addRuleFor].
    */
-  final List<SerializationRule> rules = new List<SerializationRule>();
+  final UnmodifiableListView<SerializationRule> rules;
 
   /**
    * When reading, we may need to resolve references to existing objects in
@@ -279,16 +280,21 @@ class Serialization {
    * Creates a new serialization with a default set of rules for primitives
    * and lists.
    */
-  Serialization() {
-    addDefaultRules();
-  }
+  factory Serialization() =>
+    new Serialization.blank()
+      ..addDefaultRules();
 
   /**
    * Creates a new serialization with no default rules at all. The most common
    * use for this is if we are reading self-describing serialized data and
    * will populate the rules from that data.
    */
-  Serialization.blank() { }
+  factory Serialization.blank()
+    => new Serialization._(new List<SerializationRule>());
+
+  Serialization._(List<SerializationRule> rules) :
+    this._rules = rules,
+    this.rules = new UnmodifiableListView(rules);
 
   /**
    * Create a [BasicRule] rule for the type of
@@ -350,8 +356,8 @@ class Serialization {
    * method.
    */
   void addRule(SerializationRule rule) {
-    rule.number = rules.length;
-    rules.add(rule);
+    rule.number = _rules.length;
+    _rules.add(rule);
   }
 
   /**
