@@ -92,6 +92,9 @@ map_values2_test: Fail # Generic types aren't right
 iterable_to_list_test: Fail
 iterable_to_set_test: Fail
 
+[ $compiler == dart2dart && $minified ]
+error_stack_trace1_test: Fail # Fails in minified mode, test depends on method names.
+
 [ $compiler == dartanalyzer ]
 symbol_test/02: Fail
 symbol_test/03: Fail
