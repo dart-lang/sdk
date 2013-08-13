@@ -56,9 +56,6 @@ private_member3_negative_test: fail
 # TBF
 pseudo_kw_test: fail
 
-# TBD
-dynamic_test: Fail # Issue 12404
-
 
 
 
