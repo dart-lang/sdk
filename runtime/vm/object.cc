@@ -1080,9 +1080,9 @@ RawError* Object::Init(Isolate* isolate) {
   type = object_store->object_type();
   cls.set_super_type(type);
 
-  // Note: The abstract class Function is represented by VM class
-  // DartFunction, not VM class Function.
-  cls = Class::New<DartFunction>();
+  // Abstract class that represents the Dart class Function.
+  cls = Class::New<Instance>(kIllegalCid);
+  cls.set_is_prefinalized();
   RegisterClass(cls, Symbols::Function(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
@@ -1255,7 +1255,6 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   // Some classes are not stored in the object store. Yet we still need to
   // create their Class object so that they get put into the class_table
   // (as a side effect of Class::New()).
-  cls = Class::New<DartFunction>();
   cls = Class::New<Number>();
 
   cls = Class::New<WeakProperty>();
@@ -14188,17 +14187,6 @@ RawInstance* Closure::New(const Function& function,
   Closure::set_function(result, function);
   Closure::set_context(result, context);
   return result.raw();
-}
-
-
-const char* DartFunction::ToCString() const {
-  return "Function type class";
-}
-
-
-void DartFunction::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
 }
 
 

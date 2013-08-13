@@ -67,7 +67,6 @@ namespace dart {
     V(JSRegExp)                                                                \
     V(WeakProperty)                                                            \
     V(MirrorReference)                                                         \
-    V(DartFunction)                                                            \
     V(Float32x4)                                                               \
     V(Uint32x4)                                                                \
 
@@ -1461,11 +1460,6 @@ class RawExternalTypedData : public RawInstance {
 
   friend class TokenStream;
   friend class RawTokenStream;
-};
-
-
-class RawDartFunction : public RawInstance {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(DartFunction);
 };
 
 

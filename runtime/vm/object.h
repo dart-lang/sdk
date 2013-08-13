@@ -5662,15 +5662,6 @@ class TypedDataView : public AllStatic {
 };
 
 
-// DartFunction represents the abstract Dart class 'Function'.
-class DartFunction : public Instance {
- private:
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(DartFunction, Instance);
-  friend class Class;
-  friend class Instance;
-};
-
-
 class Closure : public AllStatic {
  public:
   static RawFunction* function(const Instance& closure) {

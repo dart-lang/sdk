@@ -48,7 +48,7 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
       cls = reader->NewClass(class_id);
     } else {
       if (class_id < kNumPredefinedCids) {
-        ASSERT((class_id >= kInstanceCid) && (class_id <= kDartFunctionCid));
+        ASSERT((class_id >= kInstanceCid) && (class_id <= kMirrorReferenceCid));
         cls = reader->isolate()->class_table()->At(class_id);
       } else {
         cls = New<Instance>(kIllegalCid);
@@ -2471,22 +2471,6 @@ void RawExternalTypedData::WriteTo(SnapshotWriter* writer,
 }
 #undef TYPED_DATA_WRITE
 #undef EXT_TYPED_DATA_WRITE
-
-
-RawDartFunction* DartFunction::ReadFrom(SnapshotReader* reader,
-                                        intptr_t object_id,
-                                        intptr_t tags,
-                                        Snapshot::Kind kind) {
-  UNREACHABLE();  // DartFunction is an abstract class.
-  return DartFunction::null();
-}
-
-
-void RawDartFunction::WriteTo(SnapshotWriter* writer,
-                              intptr_t object_id,
-                              Snapshot::Kind kind) {
-  UNREACHABLE();  // DartFunction is an abstract class.
-}
 
 
 RawStacktrace* Stacktrace::ReadFrom(SnapshotReader* reader,

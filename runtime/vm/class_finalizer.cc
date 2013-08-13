@@ -1927,7 +1927,6 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
       CLASS_LIST_TYPED_DATA(DO_NOT_EXTEND_TYPED_DATA_CLASSES)
 #undef DO_NOT_EXTEND_TYPED_DATA_CLASSES
       case kByteDataViewCid:
-      case kDartFunctionCid:
       case kWeakPropertyCid:
         is_error = true;
         break;
@@ -1935,7 +1934,8 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
         // Special case: classes for which we don't have a known class id.
         if (super_type.IsDoubleType() ||
             super_type.IsIntType() ||
-            super_type.IsStringType()) {
+            super_type.IsStringType() ||
+            super_type.IsFunctionType()) {
           is_error = true;
         }
         break;
