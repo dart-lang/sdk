@@ -491,9 +491,10 @@ DEFINE_NATIVE_ENTRY(ClassMirror_members, 2) {
   Function& func = Function::Handle();
   for (intptr_t i = 0; i < num_functions; i++) {
     func ^= functions.At(i);
-    if (func.kind() == RawFunction::kRegularFunction ||
+    if (func.is_visible() &&
+        (func.kind() == RawFunction::kRegularFunction ||
         func.kind() == RawFunction::kGetterFunction ||
-        func.kind() == RawFunction::kSetterFunction) {
+        func.kind() == RawFunction::kSetterFunction)) {
       member_mirror = CreateMethodMirror(func, owner_mirror);
       member_mirrors.Add(member_mirror);
     }
@@ -637,7 +638,7 @@ static RawObject* ReflectivelyInvokeDynamicFunction(const Instance& receiver,
   // Note "arguments" is already the internal arguments with the receiver as
   // the first element.
   Object& result = Object::Handle();
-  if (function.IsNull()) {
+  if (function.IsNull() || !function.is_visible()) {
     const Array& arguments_descriptor =
         Array::Handle(ArgumentsDescriptor::New(arguments.Length()));
     result = DartEntry::InvokeNoSuchMethod(receiver,
@@ -896,7 +897,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 4) {
   if (function.IsNull() ||
       !function.AreValidArgumentCounts(number_of_arguments,
                                        /* named_args */ 0,
-                                       NULL)) {
+                                       NULL) ||
+      !function.is_visible()) {
     ThrowNoSuchMethod(klass,
                       function_name,
                       function,
@@ -931,7 +933,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeGetter, 3) {
     const Function& getter = Function::Handle(
         klass.LookupStaticFunctionAllowPrivate(internal_getter_name));
 
-    if (getter.IsNull()) {
+    if (getter.IsNull() || !getter.is_visible()) {
       ThrowNoSuchMethod(klass,
                         getter_name,
                         getter,
@@ -970,7 +972,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 4) {
     const Function& setter = Function::Handle(
       klass.LookupStaticFunctionAllowPrivate(internal_setter_name));
 
-    if (setter.IsNull()) {
+    if (setter.IsNull() || !setter.is_visible()) {
       ThrowNoSuchMethod(klass,
                         setter_name,
                         setter,
@@ -1037,7 +1039,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 3) {
      !constructor.AreValidArgumentCounts(number_of_arguments +
                                          constructor.NumImplicitParameters(),
                                          /* named args */ 0,
-                                         NULL)) {
+                                         NULL) ||
+     !constructor.is_visible()) {
     // Pretend we didn't find the constructor at all when the arity is wrong
     // so as to produce the same NoSuchMethodError as the non-reflective case.
     constructor = Function::null();
@@ -1088,7 +1091,8 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 4) {
   if (function.IsNull() ||
      !function.AreValidArgumentCounts(number_of_arguments,
                                       0,
-                                      NULL) ) {
+                                      NULL) ||
+     !function.is_visible()) {
     ThrowNoSuchMethod(library,
                       function_name,
                       function,
@@ -1136,7 +1140,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeGetter, 3) {
     getter = klass.LookupStaticFunctionAllowPrivate(internal_getter_name);
   }
 
-  if (!getter.IsNull()) {
+  if (!getter.IsNull() && getter.is_visible()) {
     // Invoke the getter and return the result.
     const Object& result = Object::Handle(
         DartEntry::InvokeFunction(getter, Object::empty_array()));
@@ -1185,7 +1189,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 4) {
     const Function& setter = Function::Handle(
         library.LookupFunctionAllowPrivate(internal_setter_name,
                                            &ambiguity_error_msg));
-    if (setter.IsNull()) {
+    if (setter.IsNull() || !setter.is_visible()) {
       if (ambiguity_error_msg.IsNull()) {
         ThrowNoSuchMethod(library,
                           setter_name,
