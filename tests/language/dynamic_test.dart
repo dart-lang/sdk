@@ -31,6 +31,9 @@ class HasMethodDynamic {
 }
 
 main() {
+  Expect.isTrue(dynamic is Type);
+  Expect.equals(dynamic, dynamic);
+
   M1<dynamic, dynamic> m1 = new M1<dynamic, dynamic>();
   Expect.isTrue(m1 is Iface<dynamic, num>);
   Expect.isTrue(m1 is Iface<String, dynamic>);

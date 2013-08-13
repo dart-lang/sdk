@@ -19,8 +19,6 @@ ObjectStore::ObjectStore()
     object_type_(Type::null()),
     null_class_(Class::null()),
     null_type_(Type::null()),
-    dynamic_type_(Type::null()),
-    void_type_(Type::null()),
     function_type_(Type::null()),
     type_class_(Class::null()),
     number_type_(Type::null()),

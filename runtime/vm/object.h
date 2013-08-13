@@ -412,6 +412,8 @@ class Object {
   static RawClass* class_class() { return class_class_; }
   static RawClass* dynamic_class() { return dynamic_class_; }
   static RawClass* void_class() { return void_class_; }
+  static RawType* dynamic_type() { return dynamic_type_; }
+  static RawType* void_type() { return void_type_; }
   static RawClass* unresolved_class_class() { return unresolved_class_class_; }
   static RawClass* type_arguments_class() { return type_arguments_class_; }
   static RawClass* instantiated_type_arguments_class() {
@@ -559,6 +561,8 @@ class Object {
   static RawClass* class_class_;  // Class of the Class vm object.
   static RawClass* dynamic_class_;  // Class of the 'dynamic' type.
   static RawClass* void_class_;  // Class of the 'void' type.
+  static RawType* dynamic_type_;  // Class of the 'dynamic' type.
+  static RawType* void_type_;  // Class of the 'void' type.
   static RawClass* unresolved_class_class_;  // Class of UnresolvedClass.
   // Class of the TypeArguments vm object.
   static RawClass* type_arguments_class_;

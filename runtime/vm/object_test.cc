@@ -3386,4 +3386,35 @@ TEST_CASE(FunctionSourceFingerprint) {
   EXPECT_EQ(test6.SourceFingerprint(), test7.SourceFingerprint());
 }
 
+
+TEST_CASE(SpecialClassesHaveEmptyArrays) {
+  ObjectStore* object_store = Isolate::Current()->object_store();
+  Class& cls = Class::Handle();
+  Object& array = Object::Handle();
+
+  cls = object_store->null_class();
+  array = cls.fields();
+  EXPECT(!array.IsNull());
+  EXPECT(array.IsArray());
+  array = cls.functions();
+  EXPECT(!array.IsNull());
+  EXPECT(array.IsArray());
+
+  cls = Object::void_class();
+  array = cls.fields();
+  EXPECT(!array.IsNull());
+  EXPECT(array.IsArray());
+  array = cls.functions();
+  EXPECT(!array.IsNull());
+  EXPECT(array.IsArray());
+
+  cls = Object::dynamic_class();
+  array = cls.fields();
+  EXPECT(!array.IsNull());
+  EXPECT(array.IsArray());
+  array = cls.functions();
+  EXPECT(!array.IsNull());
+  EXPECT(array.IsArray());
+}
+
 }  // namespace dart

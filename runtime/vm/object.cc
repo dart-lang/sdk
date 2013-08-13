@@ -95,6 +95,8 @@ RawObject* Object::null_ = reinterpret_cast<RawObject*>(RAW_NULL);
 RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::dynamic_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::void_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawType* Object::dynamic_type_ = reinterpret_cast<RawType*>(RAW_NULL);
+RawType* Object::void_type_ = reinterpret_cast<RawType*>(RAW_NULL);
 RawClass* Object::unresolved_class_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::type_arguments_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -440,20 +442,9 @@ void Object::InitOnce() {
         Object::Allocate(kNullCid, Instance::InstanceSize(), Heap::kOld);
   }
 
-  cls = Class::New<Instance>(kDynamicCid);
-  cls.set_is_finalized();
-  cls.set_is_type_finalized();
-  cls.set_is_abstract();
-  dynamic_class_ = cls.raw();
-
   // Allocate the remaining VM internal classes.
   cls = Class::New<UnresolvedClass>();
   unresolved_class_class_ = cls.raw();
-
-  cls = Class::New<Instance>(kVoidCid);
-  cls.set_is_finalized();
-  cls.set_is_type_finalized();
-  void_class_ = cls.raw();
 
   cls = Class::New<TypeArguments>();
   type_arguments_class_ = cls.raw();
@@ -566,6 +557,28 @@ void Object::InitOnce() {
         reinterpret_cast<RawArray*>(address + kHeapObjectTag));
     empty_array_->raw()->ptr()->length_ = Smi::New(0);
   }
+
+  cls = Class::New<Instance>(kDynamicCid);
+  cls.set_is_finalized();
+  cls.set_is_type_finalized();
+  cls.set_is_abstract();
+  dynamic_class_ = cls.raw();
+
+  cls = Class::New<Instance>(kVoidCid);
+  cls.set_is_finalized();
+  cls.set_is_type_finalized();
+  void_class_ = cls.raw();
+
+  cls = Class::New<Type>();
+  cls.set_is_finalized();
+  cls.set_is_type_finalized();
+  isolate->object_store()->set_type_class(cls);
+
+  cls = dynamic_class_;
+  dynamic_type_ = Type::NewNonParameterizedType(cls);
+
+  cls = void_class_;
+  void_type_ = Type::NewNonParameterizedType(cls);
 
   // Allocate and initialize singleton true and false boolean objects.
   cls = Class::New<Bool>();
@@ -841,6 +854,8 @@ RawError* Object::Init(Isolate* isolate) {
   RegisterClass(cls, Symbols::Bool(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
+  // TODO(12364): The class 'Null' is not registered in the class dictionary
+  // because it is not exported by dart:core.
   cls = Class::New<Instance>(kNullCid);
   cls.set_name(Symbols::Null());
   // We immediately mark Null as finalized because it has no corresponding
@@ -1113,7 +1128,6 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_mint_type(type);
 
-  // The class 'Null' is not register in the class dictionary because it is not
   // The classes 'void' and 'dynamic' are phoney classes to make type checking
   // more regular; they live in the VM isolate. The class 'void' is not
   // registered in the class dictionary because its name is a reserved word.
@@ -1127,14 +1141,6 @@ RawError* Object::Init(Isolate* isolate) {
   // Consider removing when/if Null becomes an ordinary class.
   type = object_store->object_type();
   cls.set_super_type(type);
-
-  cls = void_class();
-  type = Type::NewNonParameterizedType(cls);
-  object_store->set_void_type(type);
-
-  cls = dynamic_class();
-  type = Type::NewNonParameterizedType(cls);
-  object_store->set_dynamic_type(type);
 
   // Finish the initialization by compiling the bootstrap scripts containing the
   // base interfaces and the implementation of the internal classes.
@@ -2666,10 +2672,7 @@ RawFunction* Class::LookupFunction(const String& name, intptr_t type) const {
   ReusableHandleScope reused_handles(isolate);
   Array& funcs = reused_handles.ArrayHandle();
   funcs ^= functions();
-  if (funcs.IsNull()) {
-    // This can occur, e.g., for Null classes.
-    return Function::null();
-  }
+  ASSERT(!funcs.IsNull());
   Function& function = reused_handles.FunctionHandle();
   const intptr_t len = funcs.Length();
   if (name.IsSymbol()) {
@@ -2705,10 +2708,7 @@ RawFunction* Class::LookupFunctionAllowPrivate(const String& name,
   ReusableHandleScope reused_handles(isolate);
   Array& funcs = reused_handles.ArrayHandle();
   funcs ^= functions();
-  if (funcs.IsNull()) {
-    // This can occur, e.g., for Null classes.
-    return Function::null();
-  }
+  ASSERT(!funcs.IsNull());
   Function& function = reused_handles.FunctionHandle();
   String& function_name = reused_handles.StringHandle();
   intptr_t len = funcs.Length();
@@ -2809,10 +2809,7 @@ RawField* Class::LookupField(const String& name, intptr_t type) const {
   ReusableHandleScope reused_handles(isolate);
   Array& flds = reused_handles.ArrayHandle();
   flds ^= fields();
-  if (flds.IsNull()) {
-    // This can occur, e.g., for Null classes.
-    return Field::null();
-  }
+  ASSERT(!flds.IsNull());
   Field& field = reused_handles.FieldHandle();
   String& field_name = reused_handles.StringHandle();
   intptr_t len = flds.Length();
@@ -10478,8 +10475,8 @@ RawString* AbstractType::ClassName() const {
 
 
 bool AbstractType::IsNullType() const {
-  return HasResolvedTypeClass() &&
-      (type_class() == Type::Handle(Type::NullType()).type_class());
+  ASSERT(Type::Handle(Type::NullType()).IsCanonical());
+  return raw() == Type::NullType();
 }
 
 
@@ -10628,12 +10625,12 @@ RawType* Type::NullType() {
 
 
 RawType* Type::DynamicType() {
-  return Isolate::Current()->object_store()->dynamic_type();
+  return Object::dynamic_type();
 }
 
 
 RawType* Type::VoidType() {
-  return Isolate::Current()->object_store()->void_type();
+  return Object::void_type();
 }
 
 

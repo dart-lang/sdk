@@ -461,15 +461,9 @@ DEFINE_NATIVE_ENTRY(ClassMirror_members, 2) {
   }
 
   const Array& fields = Array::Handle(klass.fields());
-  // Some special types like 'dynamic' have a null fields list, but they should
-  // not wind up as the reflectees of ClassMirrors.
-  ASSERT(!fields.IsNull());
   const intptr_t num_fields = fields.Length();
 
   const Array& functions = Array::Handle(klass.functions());
-  // Some special types like 'dynamic' have a null functions list, but they
-  // should not wind up as the reflectees of ClassMirrors.
-  ASSERT(!functions.IsNull());
   const intptr_t num_functions = functions.Length();
 
   Instance& member_mirror = Instance::Handle();
@@ -511,9 +505,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_constructors, 2) {
   }
 
   const Array& functions = Array::Handle(klass.functions());
-  // Some special types like 'dynamic' have a null functions list, but they
-  // should not wind up as the reflectees of ClassMirrors.
-  ASSERT(!functions.IsNull());
   const intptr_t num_functions = functions.Length();
 
   Instance& constructor_mirror = Instance::Handle();
