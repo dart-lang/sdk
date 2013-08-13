@@ -153,7 +153,7 @@ main() {
           '  int b() => 42;\n\n'
           '  int c() => b();\n\n'
           '}\n'
-        );
+      );
     });
 
     test('stmt', () {
@@ -180,7 +180,7 @@ main() {
          '} else {\n'
          '  return false;\n'
          '}'
-        );
+      );
     });
 
     test('stmt (switch)', () {
@@ -225,7 +225,6 @@ main() {
         '}\n'
       );
     });
-    
     
     test('stmt (binary/ternary ops)', () {
       expectStmtFormatsTo(
