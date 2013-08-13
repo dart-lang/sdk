@@ -183,6 +183,69 @@ main() {
         );
     });
 
+    test('stmt (switch)', () {
+      expectStmtFormatsTo(
+        'switch (fruit) {\n'
+        'case "apple":\n'
+        'print("delish");\n'
+        'break;\n'
+        'case "fig":\n'
+        'print("bleh");\n'
+        'break;\n'
+        '}\n',
+        'switch (fruit) {\n'
+        '  case "apple":\n'
+        '    print("delish");\n'
+        '    break;\n'
+        '  case "fig":\n'
+        '    print("bleh");\n'
+        '    break;\n'
+        '}\n'
+      );
+    });
+  
+    test('stmt (generics)', () {
+      expectStmtFormatsTo(
+        'var numbers = <int>[1, 2, (3 + 4)];',
+        'var numbers = <int>[1, 2, (3 + 4)];'
+      );
+    });
+    
+    test('stmt (try/catch)', () {
+      expectStmtFormatsTo(
+        'try {\n'
+        'doSomething();\n'
+        '} catch (e) {\n'
+        'print(e);\n'
+        '}\n',
+        'try {\n'
+        '  doSomething();\n'
+        '} catch (e) {\n'
+        '  print(e);\n'
+        '}\n'
+      );
+    });
+    
+    
+    test('stmt (binary/ternary ops)', () {
+      expectStmtFormatsTo(
+        'var a = 1 + 2 / (3 * -b);',
+        'var a = 1 + 2 / (3 * -b);'
+      );
+      expectStmtFormatsTo(
+        'var c = !condition == a > b;',
+        'var c = !condition == a > b;'
+      );
+      expectStmtFormatsTo(
+        'var d = condition ? b : object.method(a, b, c);',
+        'var d = condition ? b : object.method(a, b, c);'
+      );
+      expectStmtFormatsTo(
+        'var d = obj is! SomeType;',
+        'var d = obj is! SomeType;'
+      );
+    });
+    
     test('initialIndent', () {
       var formatter = new CodeFormatter(
           new FormatterOptions(initialIndentationLevel: 2));

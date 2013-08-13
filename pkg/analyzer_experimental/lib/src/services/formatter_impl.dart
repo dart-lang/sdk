@@ -207,11 +207,12 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitBlock(Block node) {
-    writer.print('{');
+//    writer.print('{');
+    emitToken(node.leftBracket);
     writer.indent();
 
     for (var stmt in node.statements) {
-      writer.newline();
+      //writer.newline();
       visit(stmt);
     }
 
@@ -230,7 +231,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitBreakStatement(BreakStatement node) {
-    writer.print('break');
+    emitToken(node.keyword);
     visitPrefixed(' ', node.label);
     writer.print(';');
   }
@@ -254,6 +255,7 @@ class SourceVisitor implements ASTVisitor {
       writer.print(' ');
     }
     visit(node.body);
+    writer.newline();
   }
 
   visitClassDeclaration(ClassDeclaration node) {
@@ -519,7 +521,8 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitIfStatement(IfStatement node) {
-    writer.print('if (');
+    emitToken(node.ifKeyword);
+    writer.print(' (');
     visit(node.condition);
     writer.print(') ');
     visit(node.thenStatement);
@@ -537,7 +540,7 @@ class SourceVisitor implements ASTVisitor {
     visitPrefixed(' as ', node.prefix);
     visitPrefixedList(' ', node.combinators, ' ');
 //    writer.print(';');
-    emit(node.semicolon);
+    emitToken(node.semicolon);
 //    writer.newline();
   }
 
@@ -612,7 +615,7 @@ class SourceVisitor implements ASTVisitor {
       writer.print(node.modifier.lexeme);
       writer.print(' ');
     }
-    visitSuffixed(node.typeArguments, ' ');
+    visit(node.typeArguments);
     writer.print('[');
     visitList(node.elements, ', ');
     writer.print(']');
@@ -735,9 +738,11 @@ class SourceVisitor implements ASTVisitor {
   visitReturnStatement(ReturnStatement node) {
     var expression = node.expression;
     if (expression == null) {
-      writer.print('return;');
+      emit(node.keyword, min: 1);
+      writer.print(';');
     } else {
-      writer.print('return ');
+      emit(node.keyword, min: 1);
+      writer.print(' ');
       expression.accept(this);
       writer.print(';');
     }
@@ -759,8 +764,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitSimpleIdentifier(SimpleIdentifier node) {
-    emit(node.token);
-//    writer.print(node.token.lexeme);
+    emitToken(node.token);
   }
 
   visitSimpleStringLiteral(SimpleStringLiteral node) {
@@ -783,10 +787,13 @@ class SourceVisitor implements ASTVisitor {
 
   visitSwitchCase(SwitchCase node) {
     visitSuffixedList(node.labels, ' ', ' ');
-    writer.print('case ');
+    emitToken(node.keyword);
+    writer.print(' ');
     visit(node.expression);
-    writer.print(': ');
-    visitList(node.statements, ' ');
+    writer.print(':');
+    writer.indent();
+    visitList(node.statements);
+    writer.unindent();
   }
 
   visitSwitchDefault(SwitchDefault node) {
@@ -796,11 +803,16 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitSwitchStatement(SwitchStatement node) {
-    writer.print('switch (');
+    emitToken(node.keyword);
+    writer.print(' (');
     visit(node.expression);
-    writer.print(') {');
-    visitList(node.members, ' ');
-    writer.print('}');
+    writer.print(') ');
+    emitToken(node.leftBracket);
+    writer.indent();
+    visitList(node.members);
+    writer.unindent();
+    emitToken(node.rightBracket);
+    writer.newline();
   }
 
   visitSymbolLiteral(SymbolLiteral node) {
@@ -916,16 +928,18 @@ class SourceVisitor implements ASTVisitor {
   emitPrefixedToken(String prefix, Token token) {
     if (token != null) {
       writer.print(prefix);
-      emit(token);
+      emitToken(token);
     }
   }
 
   /// Emit the given [token], printing the suffix after the [token]
   /// node if it is non-null.
-  emitToken(Token token, String suffix) {
+  emitToken(Token token, [String suffix]) {
     if (token != null) {
       emit(token);
-      writer.print(suffix);
+      if (suffix != null) {
+        writer.print(suffix);
+      }
     }
   }
 
@@ -1016,4 +1030,6 @@ class SourceVisitor implements ASTVisitor {
     return  currentLine - lastLine;
   }
 
+  String toString() => writer.toString();
+  
 }
