@@ -505,6 +505,7 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
       JS('void', r'#.constructor[#] = #', reflectee, cacheName, cache);
     }
     var cacheEntry = JsCache.fetch(cache, reflectiveName);
+    cacheEntry = null; // Work around bug in caching.
     var result;
     Invocation invocation;
     if (cacheEntry == null) {
