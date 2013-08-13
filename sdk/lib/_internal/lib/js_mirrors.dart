@@ -958,6 +958,10 @@ class JsClosureMirror extends JsInstanceMirror implements ClosureMirror {
       : super(reflectee);
 
   MethodMirror get function {
+    String cacheName = Primitives.mirrorFunctionCacheName;
+    JsMethodMirror cachedFunction =
+        JS('JsMethodMirror|Null', r'#.constructor[#]', reflectee, cacheName);
+    if (cachedFunction != null) return cachedFunction;
     disableTreeShaking();
     // TODO(ahe): What about optional parameters (named or not).
     var extractCallName = JS('', r'''
@@ -977,15 +981,17 @@ function(reflectee) {
     if (reflectee is BoundClosure) {
       var target = BoundClosure.targetOf(reflectee);
       var self = BoundClosure.selfOf(reflectee);
-      return new JsMethodMirror(
+      cachedFunction = new JsMethodMirror(
           s(target), JS('', '#[#]', self, target), parameterCount,
           false, false, isStatic, false, false);
     } else {
       var jsFunction = JS('', '#[#]', reflectee, callName);
-      return new JsMethodMirror(
+      cachedFunction = new JsMethodMirror(
           s(callName), jsFunction, parameterCount,
           false, false, isStatic, false, false);
     }
+    JS('void', r'#.constructor[#] = #', reflectee, cacheName, cachedFunction);
+    return cachedFunction;
   }
 
   InstanceMirror apply(List positionalArguments,
