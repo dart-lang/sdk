@@ -113,8 +113,10 @@ List<String> _listLibraries(List<String> args) {
   var type = FileSystemEntity.typeSync(args[0]);
 
   if (type == FileSystemEntityType.FILE) {
-    libraries.add(path.absolute(args[0]));
-    logger.info('Added to libraries: ${libraries.last}');
+    if (args[0].endsWith('.dart')) {
+      libraries.add(path.absolute(args[0]));
+      logger.info('Added to libraries: ${libraries.last}');
+    }
   } else {
     libraries.addAll(_listDartFromDir(args[0]));
   }
@@ -122,14 +124,25 @@ List<String> _listLibraries(List<String> args) {
 }
 
 List<String> _listDartFromDir(String args) {
-  var files = listDir(args, recursive: true);
+  var libraries = [];
   // To avoid anaylzing package files twice, only files with paths not
   // containing '/packages' will be added. The only exception is if the file to
   // analyze already has a '/package' in its path.
-  return files.where((f) => f.endsWith('.dart') &&
+  var files = listDir(args, recursive: true).where((f) => f.endsWith('.dart') &&
       (!f.contains('${path.separator}packages') ||
-          args.contains('${path.separator}packages'))).toList()
-      ..forEach((lib) => logger.info('Added to libraries: $lib'));
+          args.contains('${path.separator}packages'))).toList();
+  
+  files.forEach((f) {
+    // Only add the file if it does not contain 'part of' 
+    // TODO(janicejl): Remove when Issue(12406) is resolved.
+    var contents = new File(f).readAsStringSync();
+    if (!(contents.contains(new RegExp('\npart of ')) || 
+        contents.startsWith(new RegExp('part of ')))) {
+      libraries.add(f);
+      logger.info('Added to libraries: $f');
+    }
+  });
+  return libraries;
 }
 
 String _findPackageRoot(String directory) {
