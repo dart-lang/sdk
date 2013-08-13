@@ -14,11 +14,6 @@ built_in_identifier_prefix_test: fail
 cast_test/04: fail
 cast_test/05: fail
 
-# TBF: It is a compile-time error if the superclass of a class C appears in the implements clause of C.
-const_constructor_super_test/01: fail
-compile_time_constant10_test/none: fail
-compile_time_constant_c_test/01: fail
-
 # TBF: It is a static type warning if a type parameter is a supertype of its upper bound.
 cyclic_type_variable_test/01: fail
 cyclic_type_variable_test/02: fail
@@ -41,9 +36,6 @@ list_literal_syntax_test/01: fail # Issue 12103
 list_literal_syntax_test/02: fail # Issue 12103
 list_literal_syntax_test/03: fail # Issue 12103
 malformed_test/none: fail
-
-# TBF: non-const superinitializer; 7.6.3 Constant Constructors: The superinitializer that appears, explicitly or implicitly, in the initializer list of a constant constructor must specify a constant constructor of the superclass of the immediately enclosing class.
-non_const_super_negative_test: fail
 
 # TBF: 1is int; invalid character in number
 number_identifier_negative_test: fail
