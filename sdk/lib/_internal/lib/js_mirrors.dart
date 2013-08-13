@@ -25,7 +25,9 @@ import 'dart:_js_helper' show
     createRuntimeType,
     createUnmangledInvocationMirror,
     runtimeTypeToString;
-import 'dart:_interceptors' show Interceptor, JSExtendableArray;
+import 'dart:_interceptors' show
+    Interceptor,
+    JSExtendableArray;
 import 'dart:_js_names';
 
 /// No-op method that is called to inform the compiler that tree-shaking needs
@@ -483,38 +485,67 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
     if (namedArguments != null && !namedArguments.isEmpty) {
       throw new UnsupportedError('Named arguments are not implemented.');
     }
-    // Copy the list to ensure that it can safely be passed to
-    // JavaScript.
-    var jsList = new List.from(positionalArguments);
-    String reflectiveName = '${n(memberName)}:${positionalArguments.length}:0';
-    String mangledName = reflectiveNames[reflectiveName];
-    return _invoke(memberName, JSInvocationMirror.METHOD, mangledName, jsList);
+    String reflectiveName =
+        JS('String', '# + ":" + # + ":0"',
+           n(memberName), positionalArguments.length);
+    // We can safely pass positionalArguments to _invoke as it will wrap it in
+    // a JSArray if needed.
+    return _invoke(memberName, JSInvocationMirror.METHOD, reflectiveName,
+                   positionalArguments);
   }
 
   InstanceMirror _invoke(Symbol name,
                          int type,
-                         String mangledName,
+                         String reflectiveName,
                          List arguments) {
-    disableTreeShaking();
-    // TODO(ahe): Get the argument names.
-    List<String> argumentNames = [];
-    Invocation invocation = createUnmangledInvocationMirror(
-        name, mangledName, type, arguments, argumentNames);
+    String cacheName = Primitives.mirrorInvokeCacheName;
+    var cache = JS('', r'#.constructor[#]', reflectee, cacheName);
+    if (cache == null) {
+      cache = JsCache.allocate();
+      JS('void', r'#.constructor[#] = #', reflectee, cacheName, cache);
+    }
+    var cacheEntry = JsCache.fetch(cache, reflectiveName);
+    var result;
+    Invocation invocation;
+    if (cacheEntry == null) {
+      disableTreeShaking();
+      String mangledName = reflectiveNames[reflectiveName];
+      // TODO(ahe): Get the argument names.
+      List<String> argumentNames = [];
+      // TODO(ahe): We don't need to create an invocation mirror here. The
+      // logic from JSInvocationMirror.getCachedInvocation could easily be
+      // inlined here.
+      invocation = createUnmangledInvocationMirror(
+          name, mangledName, type, arguments, argumentNames);
 
-    return reflect(delegate(invocation));
+      cacheEntry =
+          JSInvocationMirror.getCachedInvocation(invocation, reflectee);
+      JsCache.update(cache, reflectiveName, cacheEntry);
+    }
+    if (cacheEntry.isNoSuchMethod) {
+      if (invocation == null) {
+        String mangledName = reflectiveNames[reflectiveName];
+        // TODO(ahe): Get the argument names.
+        List<String> argumentNames = [];
+        invocation = createUnmangledInvocationMirror(
+            name, mangledName, type, arguments, argumentNames);
+      }
+      return reflect(cacheEntry.invokeOn(reflectee, invocation));
+    } else {
+      return reflect(cacheEntry.invokeOn(reflectee, arguments));
+    }
   }
 
   InstanceMirror setField(Symbol fieldName, Object arg) {
     String reflectiveName = '${n(fieldName)}=';
-    String mangledName = reflectiveNames[reflectiveName];
-    _invoke(s(reflectiveName), JSInvocationMirror.SETTER, mangledName, [arg]);
+    _invoke(
+        s(reflectiveName), JSInvocationMirror.SETTER, reflectiveName, [arg]);
     return reflect(arg);
   }
 
   InstanceMirror getField(Symbol fieldName) {
     String reflectiveName = n(fieldName);
-    String mangledName = reflectiveNames[reflectiveName];
-    return _invoke(fieldName, JSInvocationMirror.GETTER, mangledName, []);
+    return _invoke(fieldName, JSInvocationMirror.GETTER, reflectiveName, []);
   }
 
   delegate(Invocation invocation) {

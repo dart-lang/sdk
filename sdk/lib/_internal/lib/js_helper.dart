@@ -29,7 +29,7 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    RAW_DART_FUNCTION_REF;
 import 'dart:_interceptors';
 import 'dart:_collection-dev' as _symbol_dev;
-import 'dart:_js_names' show mangledNames;
+import 'dart:_js_names' show mangledNames, mangledGlobalNames;
 
 part 'constant_map.dart';
 part 'native_helper.dart';
@@ -142,7 +142,7 @@ class JSInvocationMirror implements Invocation {
     return map;
   }
 
-  _invokeOn(Object object) {
+  _getCachedInvocation(Object object) {
     var interceptor = getInterceptor(object);
     var receiver = object;
     var name = _internalName;
@@ -151,26 +151,74 @@ class JSInvocationMirror implements Invocation {
     // critical, we might want to dynamically change [interceptedNames]
     // to be a JavaScript object with intercepted names as property
     // instead of a JavaScript array.
-    if (JS('int', '#.indexOf(#)', interceptedNames, name) == -1) {
-      if (arguments is! JSArray) arguments = new List.from(arguments);
-    } else {
-      arguments = [object]..addAll(arguments);
+    bool isIntercepted =
+        JS('int', '#.indexOf(#)', interceptedNames, name) != -1;
+    if (isIntercepted) {
       receiver = interceptor;
     }
     var method = JS('var', '#[#]', receiver, name);
     if (JS('String', 'typeof #', method) == 'function') {
-      return JS("var", "#.apply(#, #)", method, receiver, arguments);
+      return new CachedInvocation(method, isIntercepted ? interceptor : null);
     } else {
       // In this case, receiver doesn't implement name.  So we should
       // invoke noSuchMethod instead (which will often throw a
       // NoSuchMethodError).
-      return receiver.noSuchMethod(this);
+      return new CachedNoSuchMethodInvocation(
+          isIntercepted ? interceptor : null);
     }
   }
 
   /// This method is called by [InstanceMirror.delegate].
-  static invokeFromMirror(JSInvocationMirror invocation, victim) {
-    return invocation._invokeOn(victim);
+  static invokeFromMirror(JSInvocationMirror invocation, Object victim) {
+    var cached = invocation._getCachedInvocation(victim);
+    if (cached.isNoSuchMethod) {
+      return cached.invokeOn(victim, invocation);
+    } else {
+      return cached.invokeOn(victim, invocation._arguments);
+    }
+  }
+
+  static getCachedInvocation(JSInvocationMirror invocation, Object victim) {
+    return invocation._getCachedInvocation(victim);
+  }
+}
+
+class CachedInvocation {
+  /// The JS function to call.
+  var jsFunction;
+
+  /// Non-null interceptor if this is an intercepted call, otherwise null.
+  var interceptor;
+
+  CachedInvocation(this.jsFunction, this.interceptor);
+
+  bool get isNoSuchMethod => false;
+
+  /// Applies [jsFunction] to object with [arguments].
+  /// Users of this class must take care to check the arguments first.
+  invokeOn(Object victim, List arguments) {
+    var receiver = victim;
+    if (interceptor == null) {
+      if (arguments is! JSArray) arguments = new List.from(arguments);
+    } else {
+      arguments = [victim]..addAll(arguments);
+      receiver = interceptor;
+    }
+    return JS("var", "#.apply(#, #)", jsFunction, receiver, arguments);
+  }
+}
+
+class CachedNoSuchMethodInvocation {
+  /// Non-null interceptor if this is an intercepted call, otherwise null.
+  var interceptor;
+
+  CachedNoSuchMethodInvocation(this.interceptor);
+
+  bool get isNoSuchMethod => true;
+
+  invokeOn(Object victim, Invocation invocation) {
+    var receiver = (interceptor == null) ? victim : interceptor;
+    return receiver.noSuchMethod(invocation);
   }
 }
 
@@ -181,6 +229,9 @@ class Primitives {
   /// calling [initializeStatics].
   static String mirrorFunctionCacheName = '\$cachedFunction';
 
+  /// Isolate-unique ID for caching [JsInstanceMirror._invoke].
+  static String mirrorInvokeCacheName = '\$cachedInvocation';
+
   /// Called when creating a new isolate (see _IsolateContext constructor in
   /// isolate_helper.dart).
   /// Please don't add complicated code to this method, as it will impact
@@ -189,6 +240,7 @@ class Primitives {
     // Benchmarking shows significant performance improvements if this is a
     // fixed value.
     mirrorFunctionCacheName += '_$id';
+    mirrorInvokeCacheName += '_$id';
   }
 
   static int objectHashCode(object) {
