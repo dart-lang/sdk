@@ -201,51 +201,60 @@ static bool FindExceptionHandler(uword* handler_pc,
   Function& func = Function::Handle();
   Code& code = Code::Handle();
   Smi& offset = Smi::Handle();
-  bool handler_found = false;
-  while (!frame->IsEntryFrame()) {
-    if (frame->IsDartFrame()) {
-      code = frame->LookupDartCode();
-      if (code.is_optimized()) {
-        // For optimized frames, extract all the inlined functions if any
-        // into the stack trace.
-        for (InlinedFunctionsIterator it(frame); !it.Done(); it.Advance()) {
-          func = it.function();
-          code = it.code();
-          uword pc = it.pc();
-          ASSERT(pc != 0);
-          ASSERT(code.EntryPoint() <= pc);
-          ASSERT(pc < (code.EntryPoint() + code.Size()));
+  bool dart_handler_found = false;
+  bool handler_pc_set = false;
+  while (frame != NULL) {
+    while (!frame->IsEntryFrame()) {
+      if (frame->IsDartFrame()) {
+        code = frame->LookupDartCode();
+        if (code.is_optimized()) {
+          // For optimized frames, extract all the inlined functions if any
+          // into the stack trace.
+          for (InlinedFunctionsIterator it(frame); !it.Done(); it.Advance()) {
+            func = it.function();
+            code = it.code();
+            uword pc = it.pc();
+            ASSERT(pc != 0);
+            ASSERT(code.EntryPoint() <= pc);
+            ASSERT(pc < (code.EntryPoint() + code.Size()));
+            if (ShouldShowFunction(func)) {
+              offset = Smi::New(pc - code.EntryPoint());
+              builder->AddFrame(func, code, offset, dart_handler_found);
+            }
+          }
+        } else {
+          offset = Smi::New(frame->pc() - code.EntryPoint());
+          func = code.function();
           if (ShouldShowFunction(func)) {
-            offset = Smi::New(pc - code.EntryPoint());
-            builder->AddFrame(func, code, offset, handler_found);
+            builder->AddFrame(func, code, offset, dart_handler_found);
           }
         }
-      } else {
-        offset = Smi::New(frame->pc() - code.EntryPoint());
-        func = code.function();
-        if (ShouldShowFunction(func)) {
-          builder->AddFrame(func, code, offset, handler_found);
+        if (!handler_pc_set && frame->FindExceptionHandler(handler_pc)) {
+          handler_pc_set = true;
+          *handler_sp = frame->sp();
+          *handler_fp = frame->fp();
+          dart_handler_found = true;
+          if (!builder->FullStacktrace()) {
+            return dart_handler_found;
+          }
         }
       }
-      if (!handler_found && frame->FindExceptionHandler(handler_pc)) {
-        *handler_sp = frame->sp();
-        *handler_fp = frame->fp();
-        handler_found = true;
-        if (!builder->FullStacktrace()) {
-          return handler_found;
-        }
+      frame = frames.NextFrame();
+      ASSERT(frame != NULL);
+    }
+    ASSERT(frame->IsEntryFrame());
+    if (!handler_pc_set) {
+      handler_pc_set = true;
+      *handler_pc = frame->pc();
+      *handler_sp = frame->sp();
+      *handler_fp = frame->fp();
+      if (!builder->FullStacktrace()) {
+        return dart_handler_found;
       }
     }
     frame = frames.NextFrame();
-    ASSERT(frame != NULL);
   }
-  ASSERT(frame->IsEntryFrame());
-  if (!handler_found) {
-    *handler_pc = frame->pc();
-    *handler_sp = frame->sp();
-    *handler_fp = frame->fp();
-  }
-  return handler_found;
+  return dart_handler_found;
 }
 
 
