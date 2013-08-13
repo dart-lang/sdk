@@ -34,6 +34,7 @@
 #include "vm/object_id_ring.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
+#include "vm/reusable_handles.h"
 #include "vm/runtime_entry.h"
 #include "vm/scopes.h"
 #include "vm/stack_frame.h"

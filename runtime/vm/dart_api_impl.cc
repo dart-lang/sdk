@@ -26,6 +26,7 @@
 #include "vm/object_store.h"
 #include "vm/port.h"
 #include "vm/resolver.h"
+#include "vm/reusable_handles.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 #include "vm/timer.h"
@@ -259,6 +260,13 @@ bool Api::ExternalStringGetPeerHelper(Dart_Handle object, void** peer) {
     }
   }
   return false;
+}
+
+
+void Api::SetWeakHandleReturnValue(NativeArguments* args,
+                                   Dart_WeakPersistentHandle retval) {
+  args->SetReturnUnsafe(
+      reinterpret_cast<FinalizablePersistentHandle*>(retval)->raw());
 }
 
 
@@ -1132,7 +1140,7 @@ DART_EXPORT Dart_Handle Dart_Null() {
 
 
 DART_EXPORT bool Dart_IsNull(Dart_Handle object) {
-  return Api::ClassId(object) == kNullCid;
+  return Api::UnwrapHandle(object) == Object::null();
 }
 
 
@@ -1839,6 +1847,28 @@ DART_EXPORT Dart_Handle Dart_MakeExternalString(Dart_Handle str,
   }
   return Api::NewHandle(isolate,
                         str_obj.MakeExternal(array, length, peer, cback));
+}
+
+
+DART_EXPORT Dart_Handle Dart_StringGetProperties(Dart_Handle object,
+                                                 intptr_t* char_size,
+                                                 intptr_t* str_len,
+                                                 void** peer) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const String& str = Api::UnwrapStringHandle(isolate, object);
+  if (str.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, object, String);
+  }
+  if (str.IsExternal()) {
+    *peer = str.GetPeer();
+    ASSERT(*peer != NULL);
+  } else {
+    *peer = NULL;
+  }
+  *char_size = str.CharSize();
+  *str_len = str.Length();
+  return Api::Success();
 }
 
 
@@ -3623,12 +3653,15 @@ DART_EXPORT Dart_Handle Dart_GetNativeFieldOfArgument(Dart_NativeArguments args,
   return Api::Success();
 }
 
+
 DART_EXPORT Dart_Handle Dart_GetNativeReceiver(Dart_NativeArguments args,
                                                intptr_t* value) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   Isolate* isolate = arguments->isolate();
-  DARTSCOPE(isolate);
-  const Object& obj = Object::Handle(isolate, arguments->NativeArgAt(0));
+  CHECK_ISOLATE(isolate);
+  ReusableObjectHandleScope reused_obj_handle(isolate);
+  Object& obj = reused_obj_handle.Handle();
+  obj = arguments->NativeArgAt(0);
   intptr_t cid = obj.GetClassId();
   if (cid <= kNumPredefinedCids) {
     if (cid == kNullCid) {
@@ -3648,6 +3681,31 @@ DART_EXPORT Dart_Handle Dart_GetNativeReceiver(Dart_NativeArguments args,
 }
 
 
+DART_EXPORT Dart_Handle Dart_GetNativeStringArgument(Dart_NativeArguments args,
+                                                     int arg_index,
+                                                     void** peer) {
+  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  Isolate* isolate = arguments->isolate();
+  CHECK_ISOLATE(isolate);
+  ReusableObjectHandleScope reused_obj_handle(isolate);
+  Object& obj = reused_obj_handle.Handle();
+  obj = arguments->NativeArgAt(arg_index);
+  intptr_t cid = obj.GetClassId();
+  if (RawObject::IsExternalStringClassId(cid)) {
+    const String& str = String::Cast(obj);
+    *peer = str.GetPeer();
+    ASSERT(*peer != NULL);
+    return Api::Success();
+  }
+  *peer = NULL;
+  if (RawObject::IsStringClassId(cid)) {
+    return Api::NewHandle(isolate, obj.raw());
+  }
+  return Api::NewError("%s expects argument to be of"
+                       " type String.", CURRENT_FUNC);
+}
+
+
 DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
                                      Dart_Handle retval) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
@@ -3660,6 +3718,18 @@ DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
   }
   ASSERT(retval != 0);
   Api::SetReturnValue(arguments, retval);
+}
+
+
+DART_EXPORT void Dart_SetWeakHandleReturnValue(Dart_NativeArguments args,
+                                               Dart_WeakPersistentHandle rval) {
+  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  Isolate* isolate = arguments->isolate();
+  CHECK_ISOLATE(isolate);
+  ASSERT(isolate->api_state() != NULL &&
+         (isolate->api_state()->IsValidWeakPersistentHandle(rval) ||
+          isolate->api_state()->IsValidPrologueWeakPersistentHandle(rval)));
+  Api::SetWeakHandleReturnValue(arguments, rval);
 }
 
 

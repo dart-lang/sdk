@@ -707,82 +707,9 @@ class Isolate : public BaseIsolate {
   static Dart_IsolateInterruptCallback vmstats_callback_;
 
   friend class ReusableHandleScope;
+  friend class ReusableObjectHandleScope;
   DISALLOW_COPY_AND_ASSIGN(Isolate);
 };
-
-// The class ReusableHandleScope is used in regions of the
-// virtual machine where isolate specific reusable handles are used.
-// This class asserts that we do not add code that will result in recursive
-// uses of reusable handles.
-// It is used as follows:
-// {
-//   ReusableHandleScope reused_handles(isolate);
-//   ....
-//   .....
-//   code that uses isolate specific reusable handles.
-//   Array& funcs = reused_handles.ArrayHandle();
-//   ....
-// }
-#if defined(DEBUG)
-class ReusableHandleScope : public StackResource {
- public:
-  explicit ReusableHandleScope(Isolate* isolate)
-      : StackResource(isolate), isolate_(isolate) {
-    ASSERT(!isolate->reusable_handle_scope_active());
-    isolate->set_reusable_handle_scope_active(true);
-  }
-  ReusableHandleScope()
-      : StackResource(Isolate::Current()), isolate_(Isolate::Current()) {
-    ASSERT(!isolate()->reusable_handle_scope_active());
-    isolate()->set_reusable_handle_scope_active(true);
-  }
-  ~ReusableHandleScope() {
-    ASSERT(isolate()->reusable_handle_scope_active());
-    isolate()->set_reusable_handle_scope_active(false);
-    ResetHandles();
-  }
-
-#define REUSABLE_HANDLE_ACCESSORS(object)                                      \
-  object& object##Handle() {                                                   \
-    ASSERT(isolate_->object##_handle_ != NULL);                                \
-    return *isolate_->object##_handle_;                                        \
-  }                                                                            \
-
-  REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_ACCESSORS)
-#undef REUSABLE_HANDLE_ACCESSORS
-
- private:
-  void ResetHandles();
-  Isolate* isolate_;
-  DISALLOW_COPY_AND_ASSIGN(ReusableHandleScope);
-};
-#else
-class ReusableHandleScope : public ValueObject {
- public:
-  explicit ReusableHandleScope(Isolate* isolate) : isolate_(isolate) {
-  }
-  ReusableHandleScope() : isolate_(Isolate::Current()) {
-  }
-  ~ReusableHandleScope() {
-    ResetHandles();
-  }
-
-#define REUSABLE_HANDLE_ACCESSORS(object)                                      \
-  object& object##Handle() {                                                   \
-    ASSERT(isolate_->object##_handle_ != NULL);                                \
-    return *isolate_->object##_handle_;                                        \
-  }                                                                            \
-
-  REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_ACCESSORS)
-#undef REUSABLE_HANDLE_ACCESSORS
-
- private:
-  void ResetHandles();
-  Isolate* isolate_;
-  DISALLOW_COPY_AND_ASSIGN(ReusableHandleScope);
-};
-#endif  // defined(DEBUG)
-
 
 
 // When we need to execute code in an isolate, we use the

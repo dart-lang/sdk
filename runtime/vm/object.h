@@ -35,6 +35,7 @@ class DeoptInstr;
 class FinalizablePersistentHandle;
 class LocalScope;
 class ReusableHandleScope;
+class ReusableObjectHandleScope;
 class Symbols;
 
 #if defined(DEBUG)
@@ -623,6 +624,7 @@ class Object {
   friend class ExternalTwoByteString;
   friend class Isolate;
   friend class ReusableHandleScope;
+  friend class ReusableObjectHandleScope;
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Object);

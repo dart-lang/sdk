@@ -20,6 +20,7 @@
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/port.h"
+#include "vm/reusable_handles.h"
 #include "vm/service.h"
 #include "vm/simulator.h"
 #include "vm/stack_frame.h"
@@ -1102,16 +1103,6 @@ void Isolate::MaterializeDeferredBoxes() {
 
 void Isolate::MaterializeDeferredObjects() {
   FillDeferredSlots(&deferred_object_refs_);
-}
-
-
-void ReusableHandleScope::ResetHandles() {
-#define CLEAR_REUSABLE_HANDLE(object)                                          \
-  if (!object##Handle().IsNull()) {                                            \
-    object##Handle().raw_ = Object::null();                                    \
-  }
-
-  REUSABLE_HANDLE_LIST(CLEAR_REUSABLE_HANDLE);
 }
 
 
