@@ -9310,7 +9310,7 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
     } else if (JS('bool', '!!#.mozMatchesSelector', this)) {
       return JS('bool', '#.mozMatchesSelector(#)', this, selectors);
     } else if (JS('bool', '!!#.msMatchesSelector', this)) {
-      return matches = JS('bool', '#.msMatchesSelector(#)', this, selectors);
+      return JS('bool', '#.msMatchesSelector(#)', this, selectors);
     } else {
       throw new UnsupportedError("Not supported on this platform");
     }
