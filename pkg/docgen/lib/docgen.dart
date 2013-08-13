@@ -224,12 +224,12 @@ void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
   filteredEntities.where((e) => e is Class || e is Library).forEach((output) {
     _writeIndexableToFile(output, outputToYaml);
   });
-  // Outputs a text file with a list of libraries available after creating all
-  // the libraries. This will help the viewer know what libraries are available
-  // to read in.
-  _writeToFile(filteredEntities.where((e) => e is Library)
-      .map((e) => e.qualifiedName).join('\n'), 'library_list.txt',
-      append: append);
+  // Outputs a yaml file with all libraries and their preview comments after 
+  // creating all libraries. This will help the viewer know what libraries are 
+  // available to read in.
+  var libraryMap = {'libraries' : filteredEntities.where((e) => 
+      e is Library).map((e) => e.previewMap).toList()};
+  _writeToFile(getYamlString(libraryMap), 'library_list.yaml', append: append);
   // Outputs all the qualified names documented with their type.
   // This will help generate search results.
   _writeToFile(filteredEntities.map((e) => 
@@ -522,6 +522,18 @@ class Indexable {
   
   /// The type of this member to be used in index.txt.
   String get typeName => '';
+  
+  /**
+   * Creates a [Map] with this [Indexable]'s name and a preview comment.
+   */
+  Map get previewMap {
+    var finalMap = { 'name' : qualifiedName };
+    if (comment != '') {
+      var index = comment.indexOf('</p>');
+      finalMap['preview'] = '${comment.substring(0, index)}</p>';
+    }
+    return finalMap;
+  }
 }
 
 /**
@@ -751,25 +763,13 @@ class ClassGroup {
   bool containsKey(String name) {
     return classes.containsKey(name) || errors.containsKey(name);
   }
-
-  /**
-   * Creates a [Map] with [Class] names and a preview comment.
-   */
-  Map classMap(Class clazz) {
-    var finalMap = { 'name' : clazz.qualifiedName };
-    if (clazz.comment != '') {
-      var index = clazz.comment.indexOf('</p>');
-      finalMap['preview'] = '${clazz.comment.substring(0, index)}</p>';
-    }
-    return finalMap;
-  }
   
   Map toMap() => {
     'class': classes.values.where(_isVisible)
-      .map((e) => classMap(e)).toList(),
+      .map((e) => e.previewMap).toList(),
     'typedef': recurseMap(typedefs),
     'error': errors.values.where(_isVisible)
-      .map((e) => classMap(e)).toList()
+      .map((e) => e.previewMap).toList()
   };
 }
 
