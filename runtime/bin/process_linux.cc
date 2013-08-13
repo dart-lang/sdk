@@ -638,7 +638,8 @@ bool Process::Wait(intptr_t pid,
     }
 
     // Process incoming data.
-    for (int i = 0; i < alive; i++) {
+    int current_alive = alive;
+    for (int i = 0; i < current_alive; i++) {
       if (fds[i].revents & POLLIN) {
         intptr_t avail = FDUtils::AvailableBytes(fds[i].fd);
         if (fds[i].fd == out) {
@@ -661,10 +662,6 @@ bool Process::Wait(intptr_t pid,
           UNREACHABLE();
         }
       }
-    }
-
-    // Process closed.
-    for (int i = 0; i < alive; i++) {
       if (fds[i].revents & POLLHUP) {
         VOID_TEMP_FAILURE_RETRY(close(fds[i].fd));
         alive--;

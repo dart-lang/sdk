@@ -575,8 +575,8 @@ class BufferList: public BufferListBase {
       if (free_size_ == 0) Allocate();
       ASSERT(free_size_ > 0);
       ASSERT(free_size_ <= kBufferSize);
-      intptr_t block_size = dart::Utils::Minimum(free_size_, available);
-      intptr_t bytes = TEMP_FAILURE_RETRY(read(
+      size_t block_size = dart::Utils::Minimum(free_size_, available);
+      ssize_t bytes = TEMP_FAILURE_RETRY(read(
           fd,
           reinterpret_cast<void*>(FreeSpaceAddress()),
           block_size));
@@ -636,9 +636,11 @@ bool Process::Wait(intptr_t pid,
     }
 
     // Process incoming data.
-    for (int i = 0; i < alive; i++) {
+    int current_alive = alive;
+    for (int i = 0; i < current_alive; i++) {
+      intptr_t avail;
       if (fds[i].revents & POLLIN) {
-        intptr_t avail = FDUtils::AvailableBytes(fds[i].fd);
+        avail = FDUtils::AvailableBytes(fds[i].fd);
         // On Mac OS POLLIN can be set with zero available
         // bytes. POLLHUP is most likely also set in this case.
         if (avail > 0) {
@@ -663,11 +665,8 @@ bool Process::Wait(intptr_t pid,
           }
         }
       }
-    }
-
-    // Process closed.
-    for (int i = 0; i < alive; i++) {
-      if (fds[i].revents & POLLHUP) {
+      if (fds[i].revents & POLLHUP ||
+          ((fds[i].revents & POLLIN) && avail == 0)) {
         VOID_TEMP_FAILURE_RETRY(close(fds[i].fd));
         alive--;
         if (i < alive) {
