@@ -159,6 +159,48 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(Process_Wait)(Dart_NativeArguments args) {
+  Dart_Handle process =  Dart_GetNativeArgument(args, 0);
+  Dart_Handle stdin_handle =  Dart_GetNativeArgument(args, 1);
+  Dart_Handle stdout_handle =  Dart_GetNativeArgument(args, 2);
+  Dart_Handle stderr_handle =  Dart_GetNativeArgument(args, 3);
+  Dart_Handle exit_handle =  Dart_GetNativeArgument(args, 4);
+  intptr_t process_stdin;
+  intptr_t process_stdout;
+  intptr_t process_stderr;
+  intptr_t exit_event;
+  Socket::GetSocketIdNativeField(stdin_handle, &process_stdin);
+  Socket::GetSocketIdNativeField(stdout_handle, &process_stdout);
+  Socket::GetSocketIdNativeField(stderr_handle, &process_stderr);
+  Socket::GetSocketIdNativeField(exit_handle, &exit_event);
+  ProcessResult result;
+  intptr_t pid;
+  Process::GetProcessIdNativeField(process, &pid);
+  if (Process::Wait(pid,
+                    process_stdin,
+                    process_stdout,
+                    process_stderr,
+                    exit_event,
+                    &result)) {
+    Dart_Handle out = result.stdout_data();
+    if (Dart_IsError(out)) Dart_PropagateError(out);
+    Dart_Handle err = result.stderr_data();
+    if (Dart_IsError(err)) Dart_PropagateError(err);
+    Dart_Handle list = Dart_NewList(4);
+    Dart_ListSetAt(list, 0, Dart_NewInteger(pid));
+    Dart_ListSetAt(list, 1, Dart_NewInteger(result.exit_code()));
+    Dart_ListSetAt(list, 2, out);
+    Dart_ListSetAt(list, 3, err);
+    Dart_SetReturnValue(args, list);
+  } else {
+    Dart_Handle error = DartUtils::NewDartOSError();
+    Process::Kill(pid, 9);
+    if (Dart_IsError(error)) Dart_PropagateError(error);
+    Dart_ThrowException(error);
+  }
+}
+
+
 void FUNCTION_NAME(Process_Kill)(Dart_NativeArguments args) {
   Dart_Handle process = Dart_GetNativeArgument(args, 1);
   intptr_t pid = -1;

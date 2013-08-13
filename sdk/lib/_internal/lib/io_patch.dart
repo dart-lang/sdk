@@ -210,6 +210,18 @@ patch class Process {
        Encoding stderrEncoding: Encoding.SYSTEM}) {
     throw new UnsupportedError("Process.run");
   }
+
+  patch static ProcessResult runSync(
+      String executable,
+      List<String> arguments,
+      {String workingDirectory,
+       Map<String, String> environment,
+       bool includeParentEnvironment: true,
+       bool runInShell: false,
+       Encoding stdoutEncoding: Encoding.SYSTEM,
+       Encoding stderrEncoding: Encoding.SYSTEM}) {
+    throw new UnsupportedError("Process.runSync");
+  }
 }
 
 patch class InternetAddress {

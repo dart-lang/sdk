@@ -49,6 +49,25 @@ patch class Process {
                                      stdoutEncoding,
                                      stderrEncoding);
   }
+
+  /* patch */ static ProcessResult runSync(
+      String executable,
+      List<String> arguments,
+      {String workingDirectory,
+       Map<String, String> environment,
+       bool includeParentEnvironment: true,
+       bool runInShell: false,
+       Encoding stdoutEncoding: Encoding.SYSTEM,
+       Encoding stderrEncoding: Encoding.SYSTEM}) {
+    return _runNonInteractiveProcessSync(executable,
+                                         arguments,
+                                         workingDirectory,
+                                         environment,
+                                         includeParentEnvironment,
+                                         runInShell,
+                                         stdoutEncoding,
+                                         stderrEncoding);
+  }
 }
 
 
@@ -278,6 +297,43 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
     return completer.future;
   }
 
+  ProcessResult _runAndWait(Encoding stdoutEncoding,
+                            Encoding stderrEncoding) {
+    var status = new _ProcessStartStatus();
+    bool success = _startNative(_path,
+                                _arguments,
+                                _workingDirectory,
+                                _environment,
+                                _stdin._sink._nativeSocket,
+                                _stdout._stream._nativeSocket,
+                                _stderr._stream._nativeSocket,
+                                _exitHandler._nativeSocket,
+                                status);
+    if (!success) {
+      throw new ProcessException(_path,
+                                 _arguments,
+                                 status._errorMessage,
+                                 status._errorCode);
+    }
+
+    var result = _wait(
+        _stdin._sink._nativeSocket,
+        _stdout._stream._nativeSocket,
+        _stderr._stream._nativeSocket,
+        _exitHandler._nativeSocket);
+
+    getOutput(output, encoding) {
+      if (stderrEncoding == null) return output;
+      return _decodeString(output, encoding);
+    }
+
+    return new _ProcessResult(
+        result[0],
+        result[1],
+        getOutput(result[2], stdoutEncoding),
+        getOutput(result[3], stderrEncoding));
+  }
+
   bool _startNative(String path,
                     List<String> arguments,
                     String workingDirectory,
@@ -287,6 +343,11 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
                     _NativeSocket stderr,
                     _NativeSocket exitHandler,
                     _ProcessStartStatus status) native "Process_Start";
+
+  _wait(_NativeSocket stdin,
+        _NativeSocket stdout,
+        _NativeSocket stderr,
+        _NativeSocket exitHandler) native "Process_Wait";
 
   Stream<List<int>> get stdout {
     return _stdout;
@@ -381,6 +442,24 @@ Future<ProcessResult> _runNonInteractiveProcess(String path,
       return new _ProcessResult(pid, result[0], result[1], result[2]);
     });
   });
+}
+
+ProcessResult _runNonInteractiveProcessSync(
+      String executable,
+      List<String> arguments,
+      String workingDirectory,
+      Map<String, String> environment,
+      bool includeParentEnvironment,
+      bool runInShell,
+      Encoding stdoutEncoding,
+      Encoding stderrEncoding) {
+  var process = new _ProcessImpl(executable,
+                                 arguments,
+                                 workingDirectory,
+                                 environment,
+                                 includeParentEnvironment,
+                                 runInShell);
+  return process._runAndWait(stdoutEncoding, stderrEncoding);
 }
 
 

@@ -21,6 +21,7 @@
 #include "bin/log.h"
 #include "bin/thread.h"
 
+
 extern char **environ;
 
 
@@ -565,6 +566,126 @@ int Process::Start(const char* path,
 
   *id = pid;
   return 0;
+}
+
+
+class BufferList: public BufferListBase {
+ public:
+  bool Read(int fd, intptr_t available) {
+    // Read all available bytes.
+    while (available > 0) {
+      if (free_size_ == 0) Allocate();
+      ASSERT(free_size_ > 0);
+      ASSERT(free_size_ <= kBufferSize);
+      intptr_t block_size = dart::Utils::Minimum(free_size_, available);
+      intptr_t bytes = TEMP_FAILURE_RETRY(read(
+          fd,
+          reinterpret_cast<void*>(FreeSpaceAddress()),
+          block_size));
+      if (bytes < 0) return false;
+      data_size_ += bytes;
+      free_size_ -= bytes;
+      available -= bytes;
+    }
+    return true;
+  }
+};
+
+
+static bool CloseProcessBuffers(struct pollfd fds[3]) {
+  int e = errno;
+  VOID_TEMP_FAILURE_RETRY(close(fds[0].fd));
+  VOID_TEMP_FAILURE_RETRY(close(fds[1].fd));
+  VOID_TEMP_FAILURE_RETRY(close(fds[2].fd));
+  errno = e;
+  return false;
+}
+
+
+bool Process::Wait(intptr_t pid,
+                   intptr_t in,
+                   intptr_t out,
+                   intptr_t err,
+                   intptr_t exit_event,
+                   ProcessResult* result) {
+  // Close input to the process right away.
+  VOID_TEMP_FAILURE_RETRY(close(in));
+
+  // There is no return from this function using Dart_PropagateError
+  // as memory used by the buffer lists is freed through their
+  // destructors.
+  BufferList out_data;
+  BufferList err_data;
+  union {
+    uint8_t bytes[8];
+    int32_t ints[2];
+  } exit_code_data;
+
+  struct pollfd fds[3];
+  fds[0].fd = out;
+  fds[1].fd = err;
+  fds[2].fd = exit_event;
+
+  for (int i = 0; i < 3; i++) {
+    fds[i].events = POLLIN;
+  }
+
+  int alive = 3;
+  while (alive > 0) {
+    // Blocking call waiting for events from the child process.
+    if (TEMP_FAILURE_RETRY(poll(fds, alive, -1)) <= 0) {
+      return CloseProcessBuffers(fds);
+    }
+
+    // Process incoming data.
+    for (int i = 0; i < alive; i++) {
+      if (fds[i].revents & POLLIN) {
+        intptr_t avail = FDUtils::AvailableBytes(fds[i].fd);
+        if (fds[i].fd == out) {
+          if (!out_data.Read(out, avail)) {
+            return CloseProcessBuffers(fds);
+          }
+        } else if (fds[i].fd == err) {
+          if (!err_data.Read(err, avail)) {
+            return CloseProcessBuffers(fds);
+          }
+        } else if (fds[i].fd == exit_event) {
+          if (avail == 8) {
+            intptr_t b = TEMP_FAILURE_RETRY(read(exit_event,
+                                                 exit_code_data.bytes, 8));
+            if (b != 8) {
+              return CloseProcessBuffers(fds);
+            }
+          }
+        } else {
+          UNREACHABLE();
+        }
+      }
+    }
+
+    // Process closed.
+    for (int i = 0; i < alive; i++) {
+      if (fds[i].revents & POLLHUP) {
+        VOID_TEMP_FAILURE_RETRY(close(fds[i].fd));
+        alive--;
+        if (i < alive) {
+          fds[i] = fds[alive];
+        }
+      }
+    }
+  }
+
+  // All handles closed and all data read.
+  result->set_stdout_data(out_data.GetData());
+  result->set_stderr_data(err_data.GetData());
+
+  // Calculate the exit code.
+  intptr_t exit_code = exit_code_data.ints[0];
+  intptr_t negative = exit_code_data.ints[1];
+  if (negative) exit_code = -exit_code;
+  result->set_exit_code(exit_code);
+
+  return true;
 }
 
 

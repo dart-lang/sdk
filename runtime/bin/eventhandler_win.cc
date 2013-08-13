@@ -26,51 +26,54 @@ namespace dart {
 namespace bin {
 
 static const int kBufferSize = 64 * 1024;
-static const int kStdioBufferSize = 16 * 1024;
+static const int kStdOverlappedBufferSize = 16 * 1024;
 
 static const int kInfinityTimeout = -1;
 static const int kTimeoutId = -1;
 static const int kShutdownId = -2;
 
-IOBuffer* IOBuffer::AllocateBuffer(int buffer_size, Operation operation) {
-  IOBuffer* buffer = new(buffer_size) IOBuffer(buffer_size, operation);
+OverlappedBuffer* OverlappedBuffer::AllocateBuffer(int buffer_size,
+                                                   Operation operation) {
+  OverlappedBuffer* buffer =
+      new(buffer_size) OverlappedBuffer(buffer_size, operation);
   return buffer;
 }
 
 
-IOBuffer* IOBuffer::AllocateAcceptBuffer(int buffer_size) {
-  IOBuffer* buffer = AllocateBuffer(buffer_size, kAccept);
+OverlappedBuffer* OverlappedBuffer::AllocateAcceptBuffer(int buffer_size) {
+  OverlappedBuffer* buffer = AllocateBuffer(buffer_size, kAccept);
   return buffer;
 }
 
 
-IOBuffer* IOBuffer::AllocateReadBuffer(int buffer_size) {
+OverlappedBuffer* OverlappedBuffer::AllocateReadBuffer(int buffer_size) {
   return AllocateBuffer(buffer_size, kRead);
 }
 
 
-IOBuffer* IOBuffer::AllocateWriteBuffer(int buffer_size) {
+OverlappedBuffer* OverlappedBuffer::AllocateWriteBuffer(int buffer_size) {
   return AllocateBuffer(buffer_size, kWrite);
 }
 
 
-IOBuffer* IOBuffer::AllocateDisconnectBuffer() {
+OverlappedBuffer* OverlappedBuffer::AllocateDisconnectBuffer() {
   return AllocateBuffer(0, kDisconnect);
 }
 
 
-void IOBuffer::DisposeBuffer(IOBuffer* buffer) {
+void OverlappedBuffer::DisposeBuffer(OverlappedBuffer* buffer) {
   delete buffer;
 }
 
 
-IOBuffer* IOBuffer::GetFromOverlapped(OVERLAPPED* overlapped) {
-  IOBuffer* buffer = CONTAINING_RECORD(overlapped, IOBuffer, overlapped_);
+OverlappedBuffer* OverlappedBuffer::GetFromOverlapped(OVERLAPPED* overlapped) {
+  OverlappedBuffer* buffer =
+      CONTAINING_RECORD(overlapped, OverlappedBuffer, overlapped_);
   return buffer;
 }
 
 
-int IOBuffer::Read(void* buffer, int num_bytes) {
+int OverlappedBuffer::Read(void* buffer, int num_bytes) {
   if (num_bytes > GetRemainingLength()) {
     num_bytes = GetRemainingLength();
   }
@@ -80,7 +83,7 @@ int IOBuffer::Read(void* buffer, int num_bytes) {
 }
 
 
-int IOBuffer::Write(const void* buffer, int num_bytes) {
+int OverlappedBuffer::Write(const void* buffer, int num_bytes) {
   ASSERT(num_bytes == buflen_);
   memcpy(GetBufferStart(), buffer, num_bytes);
   data_length_ = num_bytes;
@@ -88,7 +91,7 @@ int IOBuffer::Write(const void* buffer, int num_bytes) {
 }
 
 
-int IOBuffer::GetRemainingLength() {
+int OverlappedBuffer::GetRemainingLength() {
   ASSERT(operation_ == kRead);
   return data_length_ - index_;
 }
@@ -183,7 +186,7 @@ bool Handle::HasPendingWrite() {
 }
 
 
-void Handle::ReadComplete(IOBuffer* buffer) {
+void Handle::ReadComplete(OverlappedBuffer* buffer) {
   ScopedLock lock(this);
   // Currently only one outstanding read at the time.
   ASSERT(pending_read_ == buffer);
@@ -191,17 +194,17 @@ void Handle::ReadComplete(IOBuffer* buffer) {
   if (!IsClosing() && !buffer->IsEmpty()) {
     data_ready_ = pending_read_;
   } else {
-    IOBuffer::DisposeBuffer(buffer);
+    OverlappedBuffer::DisposeBuffer(buffer);
   }
   pending_read_ = NULL;
 }
 
 
-void Handle::WriteComplete(IOBuffer* buffer) {
+void Handle::WriteComplete(OverlappedBuffer* buffer) {
   ScopedLock lock(this);
   // Currently only one outstanding write at the time.
   ASSERT(pending_write_ == buffer);
-  IOBuffer::DisposeBuffer(buffer);
+  OverlappedBuffer::DisposeBuffer(buffer);
   pending_write_ = NULL;
 }
 
@@ -215,11 +218,11 @@ static unsigned int __stdcall ReadFileThread(void* args) {
 
 void Handle::ReadSyncCompleteAsync() {
   ASSERT(pending_read_ != NULL);
-  ASSERT(pending_read_->GetBufferSize() >= kStdioBufferSize);
+  ASSERT(pending_read_->GetBufferSize() >= kStdOverlappedBufferSize);
 
   DWORD buffer_size = pending_read_->GetBufferSize();
   if (GetFileType(handle_) == FILE_TYPE_CHAR) {
-    buffer_size = kStdioBufferSize;
+    buffer_size = kStdOverlappedBufferSize;
   }
   DWORD bytes_read = 0;
   BOOL ok = ReadFile(handle_,
@@ -248,7 +251,7 @@ bool Handle::IssueRead() {
   ScopedLock lock(this);
   ASSERT(type_ != kListenSocket);
   ASSERT(pending_read_ == NULL);
-  IOBuffer* buffer = IOBuffer::AllocateReadBuffer(kBufferSize);
+  OverlappedBuffer* buffer = OverlappedBuffer::AllocateReadBuffer(kBufferSize);
   if (SupportsOverlappedIO()) {
     ASSERT(completion_port_ != INVALID_HANDLE_VALUE);
 
@@ -262,7 +265,7 @@ bool Handle::IssueRead() {
       pending_read_ = buffer;
       return true;
     }
-    IOBuffer::DisposeBuffer(buffer);
+    OverlappedBuffer::DisposeBuffer(buffer);
     HandleIssueError();
     return false;
   } else {
@@ -284,9 +287,9 @@ bool Handle::IssueWrite() {
   ASSERT(type_ != kListenSocket);
   ASSERT(completion_port_ != INVALID_HANDLE_VALUE);
   ASSERT(pending_write_ != NULL);
-  ASSERT(pending_write_->operation() == IOBuffer::kWrite);
+  ASSERT(pending_write_->operation() == OverlappedBuffer::kWrite);
 
-  IOBuffer* buffer = pending_write_;
+  OverlappedBuffer* buffer = pending_write_;
   BOOL ok = WriteFile(handle_,
                       buffer->GetBufferStart(),
                       buffer->GetBufferSize(),
@@ -297,7 +300,7 @@ bool Handle::IssueWrite() {
     pending_write_ = buffer;
     return true;
   }
-  IOBuffer::DisposeBuffer(buffer);
+  OverlappedBuffer::DisposeBuffer(buffer);
   HandleIssueError();
   return false;
 }
@@ -383,8 +386,8 @@ bool ListenSocket::IssueAccept() {
   static const int kAcceptExAddressAdditionalBytes = 16;
   static const int kAcceptExAddressStorageSize =
       sizeof(SOCKADDR_STORAGE) + kAcceptExAddressAdditionalBytes;
-  IOBuffer* buffer =
-      IOBuffer::AllocateAcceptBuffer(2 * kAcceptExAddressStorageSize);
+  OverlappedBuffer* buffer =
+      OverlappedBuffer::AllocateAcceptBuffer(2 * kAcceptExAddressStorageSize);
   DWORD received;
   BOOL ok;
   ok = AcceptEx_(socket(),
@@ -399,7 +402,7 @@ bool ListenSocket::IssueAccept() {
     if (WSAGetLastError() != WSA_IO_PENDING) {
       Log::PrintErr("AcceptEx failed: %d\n", WSAGetLastError());
       closesocket(buffer->client());
-      IOBuffer::DisposeBuffer(buffer);
+      OverlappedBuffer::DisposeBuffer(buffer);
       return false;
     }
   }
@@ -410,7 +413,8 @@ bool ListenSocket::IssueAccept() {
 }
 
 
-void ListenSocket::AcceptComplete(IOBuffer* buffer, HANDLE completion_port) {
+void ListenSocket::AcceptComplete(OverlappedBuffer* buffer,
+                                  HANDLE completion_port) {
   ScopedLock lock(this);
   if (!IsClosing()) {
     // Update the accepted socket to support the full range of API calls.
@@ -441,7 +445,7 @@ void ListenSocket::AcceptComplete(IOBuffer* buffer, HANDLE completion_port) {
   }
 
   pending_accept_count_--;
-  IOBuffer::DisposeBuffer(buffer);
+  OverlappedBuffer::DisposeBuffer(buffer);
 }
 
 
@@ -508,7 +512,7 @@ int Handle::Read(void* buffer, int num_bytes) {
   if (data_ready_ == NULL) return 0;
   num_bytes = data_ready_->Read(buffer, num_bytes);
   if (data_ready_->IsEmpty()) {
-    IOBuffer::DisposeBuffer(data_ready_);
+    OverlappedBuffer::DisposeBuffer(data_ready_);
     data_ready_ = NULL;
   }
   return num_bytes;
@@ -521,7 +525,7 @@ int Handle::Write(const void* buffer, int num_bytes) {
     if (pending_write_ != NULL) return 0;
     if (completion_port_ == INVALID_HANDLE_VALUE) return 0;
     if (num_bytes > kBufferSize) num_bytes = kBufferSize;
-    pending_write_ = IOBuffer::AllocateWriteBuffer(num_bytes);
+    pending_write_ = OverlappedBuffer::AllocateWriteBuffer(num_bytes);
     pending_write_->Write(buffer, num_bytes);
     if (!IssueWrite()) return -1;
     return num_bytes;
@@ -587,7 +591,7 @@ bool ClientSocket::IssueRead() {
   ASSERT(completion_port_ != INVALID_HANDLE_VALUE);
   ASSERT(pending_read_ == NULL);
 
-  IOBuffer* buffer = IOBuffer::AllocateReadBuffer(1024);
+  OverlappedBuffer* buffer = OverlappedBuffer::AllocateReadBuffer(1024);
 
   DWORD flags;
   flags = 0;
@@ -602,7 +606,7 @@ bool ClientSocket::IssueRead() {
     pending_read_ = buffer;
     return true;
   }
-  IOBuffer::DisposeBuffer(buffer);
+  OverlappedBuffer::DisposeBuffer(buffer);
   pending_read_ = NULL;
   HandleIssueError();
   return false;
@@ -613,7 +617,7 @@ bool ClientSocket::IssueWrite() {
   ScopedLock lock(this);
   ASSERT(completion_port_ != INVALID_HANDLE_VALUE);
   ASSERT(pending_write_ != NULL);
-  ASSERT(pending_write_->operation() == IOBuffer::kWrite);
+  ASSERT(pending_write_->operation() == OverlappedBuffer::kWrite);
 
   int rc = WSASend(socket(),
                    pending_write_->GetWASBUF(),
@@ -625,7 +629,7 @@ bool ClientSocket::IssueWrite() {
   if (rc == NO_ERROR || WSAGetLastError() == WSA_IO_PENDING) {
     return true;
   }
-  IOBuffer::DisposeBuffer(pending_write_);
+  OverlappedBuffer::DisposeBuffer(pending_write_);
   pending_write_ = NULL;
   HandleIssueError();
   return false;
@@ -634,7 +638,7 @@ bool ClientSocket::IssueWrite() {
 
 void ClientSocket::IssueDisconnect() {
   Dart_Port p = port();
-  IOBuffer* buffer = IOBuffer::AllocateDisconnectBuffer();
+  OverlappedBuffer* buffer = OverlappedBuffer::AllocateDisconnectBuffer();
   BOOL ok = DisconnectEx_(
     socket(), buffer->GetCleanOverlapped(), TF_REUSE_SOCKET, 0);
   if (!ok && WSAGetLastError() != WSA_IO_PENDING) {
@@ -644,11 +648,11 @@ void ClientSocket::IssueDisconnect() {
 }
 
 
-void ClientSocket::DisconnectComplete(IOBuffer* buffer) {
-  IOBuffer::DisposeBuffer(buffer);
+void ClientSocket::DisconnectComplete(OverlappedBuffer* buffer) {
+  OverlappedBuffer::DisposeBuffer(buffer);
   closesocket(socket());
   if (data_ready_ != NULL) {
-    IOBuffer::DisposeBuffer(data_ready_);
+    OverlappedBuffer::DisposeBuffer(data_ready_);
   }
   // When disconnect is complete get rid of the object.
   delete this;
@@ -776,7 +780,7 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
 
 
 void EventHandlerImplementation::HandleAccept(ListenSocket* listen_socket,
-                                              IOBuffer* buffer) {
+                                              OverlappedBuffer* buffer) {
   listen_socket->AcceptComplete(buffer, completion_port_);
 
   if (!listen_socket->IsClosing()) {
@@ -810,7 +814,7 @@ void EventHandlerImplementation::HandleError(Handle* handle) {
 
 void EventHandlerImplementation::HandleRead(Handle* handle,
                                             int bytes,
-                                            IOBuffer* buffer) {
+                                            OverlappedBuffer* buffer) {
   buffer->set_data_length(bytes);
   handle->ReadComplete(buffer);
   if (bytes > 0) {
@@ -835,7 +839,7 @@ void EventHandlerImplementation::HandleRead(Handle* handle,
 
 void EventHandlerImplementation::HandleWrite(Handle* handle,
                                              int bytes,
-                                             IOBuffer* buffer) {
+                                             OverlappedBuffer* buffer) {
   handle->WriteComplete(buffer);
 
   if (bytes > 0) {
@@ -858,7 +862,7 @@ void EventHandlerImplementation::HandleWrite(Handle* handle,
 void EventHandlerImplementation::HandleDisconnect(
     ClientSocket* client_socket,
     int bytes,
-    IOBuffer* buffer) {
+    OverlappedBuffer* buffer) {
   client_socket->DisconnectComplete(buffer);
 }
 
@@ -872,24 +876,24 @@ void EventHandlerImplementation::HandleTimeout() {
 void EventHandlerImplementation::HandleIOCompletion(DWORD bytes,
                                                     ULONG_PTR key,
                                                     OVERLAPPED* overlapped) {
-  IOBuffer* buffer = IOBuffer::GetFromOverlapped(overlapped);
+  OverlappedBuffer* buffer = OverlappedBuffer::GetFromOverlapped(overlapped);
   switch (buffer->operation()) {
-    case IOBuffer::kAccept: {
+    case OverlappedBuffer::kAccept: {
       ListenSocket* listen_socket = reinterpret_cast<ListenSocket*>(key);
       HandleAccept(listen_socket, buffer);
       break;
     }
-    case IOBuffer::kRead: {
+    case OverlappedBuffer::kRead: {
       Handle* handle = reinterpret_cast<Handle*>(key);
       HandleRead(handle, bytes, buffer);
       break;
     }
-    case IOBuffer::kWrite: {
+    case OverlappedBuffer::kWrite: {
       Handle* handle = reinterpret_cast<Handle*>(key);
       HandleWrite(handle, bytes, buffer);
       break;
     }
-    case IOBuffer::kDisconnect: {
+    case OverlappedBuffer::kDisconnect: {
       ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(key);
       HandleDisconnect(client_socket, bytes, buffer);
       break;
