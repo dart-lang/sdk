@@ -45,20 +45,31 @@ DEFINE_NATIVE_ENTRY(Mirrors_isLocalPort, 1) {
 }
 
 
-static RawInstance* CreateParameterMirrorList(const Function& func) {
+static RawInstance* CreateParameterMirrorList(const Function& func,
+                                              const Instance& owner_mirror) {
   HANDLESCOPE(Isolate::Current());
-  const intptr_t param_cnt = func.num_fixed_parameters() -
-                             func.NumImplicitParameters() +
-                             func.NumOptionalParameters();
-  const Array& results = Array::Handle(Array::New(param_cnt));
-  const Array& args = Array::Handle(Array::New(3));
+  const intptr_t implicit_param_count = func.NumImplicitParameters();
+  const intptr_t non_implicit_param_count = func.NumParameters() -
+                                            implicit_param_count;
+  const intptr_t index_of_first_optional_param =
+      non_implicit_param_count - func.NumOptionalParameters();
+  const intptr_t index_of_first_named_param =
+      non_implicit_param_count - func.NumOptionalNamedParameters();
+  const Array& results = Array::Handle(Array::New(non_implicit_param_count));
+  const Array& args = Array::Handle(Array::New(6));
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(func)));
+  args.SetAt(2, owner_mirror);
   Smi& pos = Smi::Handle();
+  String& name = String::Handle();
   Instance& param = Instance::Handle();
-  for (intptr_t i = 0; i < param_cnt; i++) {
+  for (intptr_t i = 0; i < non_implicit_param_count; i++) {
     pos ^= Smi::New(i);
-    args.SetAt(1, pos);
-    args.SetAt(2, (i >= func.num_fixed_parameters()) ?
+    name ^= func.ParameterNameAt(implicit_param_count + i);
+    args.SetAt(1, name);
+    args.SetAt(3, pos);
+    args.SetAt(4, (i >= index_of_first_optional_param) ?
+        Bool::True() : Bool::False());
+    args.SetAt(5, (i >= index_of_first_named_param) ?
         Bool::True() : Bool::False());
     param ^= CreateMirror(Symbols::_LocalParameterMirrorImpl(), args);
     results.SetAt(i, param);
@@ -378,12 +389,12 @@ DEFINE_NATIVE_ENTRY(FunctionTypeMirror_call_method, 2) {
 }
 
 
-DEFINE_NATIVE_ENTRY(FunctionTypeMirror_parameters, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(FunctionTypeMirror_parameters, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, owner, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
   const Class& cls = Class::Handle(ref.GetClassReferent());
-  const Function& func = Function::Handle(CallMethod(cls));
-  ASSERT(!func.IsNull());
-  return CreateParameterMirrorList(func);
+  const Function& func = Function::Handle(cls.signature_function());
+  return CreateParameterMirrorList(func, owner);
 }
 
 
@@ -1231,10 +1242,11 @@ DEFINE_NATIVE_ENTRY(MethodMirror_owner, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(MethodMirror_parameters, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(MethodMirror_parameters, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, owner, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
   const Function& func = Function::Handle(ref.GetFunctionReferent());
-  return CreateParameterMirrorList(func);
+  return CreateParameterMirrorList(func, owner);
 }
 
 

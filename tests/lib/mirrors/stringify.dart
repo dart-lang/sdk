@@ -66,9 +66,11 @@ stringifyParameter(ParameterMirror parameter) {
   writeVariableOn(parameter, buffer);
   if (parameter.isOptional) buffer.write(', optional');
   if (parameter.isNamed) buffer.write(', named');
-  if (parameter.hasDefaultValue) {
-    buffer.write(', value = ${stringify(parameter.defaultValue)}');
-  }
+  // TODO(6490,12430): Add this check as soon as it's properly implemented in
+  // the VM and dart2js.
+  // if (parameter.hasDefaultValue) {
+  //  buffer.write(', value = ${stringify(parameter.defaultValue)}');
+  // }
   // TODO(ahe): Move to writeVariableOn.
   buffer.write(', type = ${stringify(parameter.type)}');
   return 'Parameter($buffer)';
