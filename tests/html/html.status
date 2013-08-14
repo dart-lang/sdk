@@ -8,7 +8,9 @@ interactive_test: Skip # Must be run manually.
 
 # Issue 9326
 custom_elements_test/register: Fail
+custom_elements_test/innerHtml: Fail
 custom_elements_test/preregister: Fail
+custom_elements_test/lifecycle: Fail
 
 [ $compiler == dart2js ]
 # Document.register is unimplemented.

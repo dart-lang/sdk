@@ -194,6 +194,38 @@ class _Utils {
   // TODO(jacobr): we need a failsafe way to determine that a Node is really a
   // DOM node rather than just a class that extends Node.
   static bool isNode(obj) => obj is Node;
+
+  static void register(String tag, Type type) {
+    // TODO(vsm): Move these checks into native code.
+    if (type == null) {
+      throw new UnsupportedError("Invalid null type.");
+    }
+    ClassMirror cls = reflectClass(type);
+    LibraryMirror lib = cls.owner;
+    String libName = lib.uri.toString();
+    if (libName.startsWith('dart:')) {
+      throw new UnsupportedError("Invalid custom element from $libName.");
+    }
+    ClassMirror superClass = cls.superclass;
+
+    Symbol objectName = reflectClass(Object).qualifiedName;
+    bool isRoot(ClassMirror cls) =>
+      cls == null || cls.qualifiedName == objectName;
+    Symbol elementName = reflectClass(Element).qualifiedName;
+    bool isElement(ClassMirror cls) =>
+      cls != null && cls.qualifiedName == elementName;
+
+    while(!isRoot(superClass) && !isElement(superClass)) {
+      superClass = superClass.superclass;
+    }
+
+    if (isRoot(superClass)) {
+      throw new UnsupportedError("Invalid custom element doesn't inherit from Element.");
+    }
+    _register(tag, type);
+  }
+
+  static void _register(String tag, Type type) native "Utils_register";
 }
 
 class _NPObject extends NativeFieldWrapperClass1 {

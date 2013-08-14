@@ -166,6 +166,16 @@ $endif
   @Experimental()
   String get visibilityState => $dom_webkitVisibilityState;
 
+  @Experimental
+$if DART2JS
+  void register(String tag, Type custom) {
+    throw new UnsupportedError("Custom DOM types not supported");
+  }
+$else
+  void register(String tag, Type custom) {
+    _Utils.register(tag, custom);
+  }
+$endif
 
 $if DART2JS
   @Creates('Null')  // Set from Dart code; does not instantiate a native type.
