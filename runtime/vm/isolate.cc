@@ -721,14 +721,10 @@ void Isolate::PrintInvokedFunctions() {
   for (int i = 0; i < libraries.Length(); i++) {
     library ^= libraries.At(i);
     Class& cls = Class::Handle();
-    ClassDictionaryIterator iter(library);
+    ClassDictionaryIterator iter(library,
+                                 ClassDictionaryIterator::kIteratePrivate);
     while (iter.HasNext()) {
       cls = iter.GetNextClass();
-      AddFunctionsFromClass(cls, &invoked_functions);
-    }
-    Array& anon_classes = Array::Handle(library.raw_ptr()->anonymous_classes_);
-    for (int i = 0; i < library.raw_ptr()->num_anonymous_; i++) {
-      cls ^= anon_classes.At(i);
       AddFunctionsFromClass(cls, &invoked_functions);
     }
   }

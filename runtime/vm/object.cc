@@ -6316,7 +6316,7 @@ void Script::PrintToJSONStream(JSONStream* stream, bool ref) const {
 
 DictionaryIterator::DictionaryIterator(const Library& library)
     : array_(Array::Handle(library.dictionary())),
-      // Last element in array is a Smi.
+      // Last element in array is a Smi indicating the number of entries used.
       size_(Array::Handle(library.dictionary()).Length() - 1),
       next_ix_(0) {
   MoveToNextObject();
@@ -6341,26 +6341,41 @@ void DictionaryIterator::MoveToNextObject() {
 }
 
 
-ClassDictionaryIterator::ClassDictionaryIterator(const Library& library)
-    : DictionaryIterator(library) {
+ClassDictionaryIterator::ClassDictionaryIterator(const Library& library,
+                                                 IterationKind kind)
+    : DictionaryIterator(library),
+      anon_array_((kind == kIteratePrivate) ?
+          Array::Handle(library.anonymous_classes()) : Object::empty_array()),
+      anon_size_((kind == kIteratePrivate) ?
+                 library.num_anonymous_classes() : 0),
+      anon_ix_(0) {
   MoveToNextClass();
 }
 
 
 RawClass* ClassDictionaryIterator::GetNextClass() {
   ASSERT(HasNext());
-  int ix = next_ix_++;
-  Object& obj = Object::Handle(array_.At(ix));
-  MoveToNextClass();
-  return Class::Cast(obj).raw();
+  Class& cls = Class::Handle();
+  if (next_ix_ < size_) {
+    int ix = next_ix_++;
+    cls ^= array_.At(ix);
+    MoveToNextClass();
+    return cls.raw();
+  }
+  ASSERT(anon_ix_ < anon_size_);
+  cls ^= anon_array_.At(anon_ix_++);
+  return cls.raw();
 }
 
 
 void ClassDictionaryIterator::MoveToNextClass() {
-  Object& obj = Object::Handle(array_.At(next_ix_));
-  while (!obj.IsClass() && HasNext()) {
-    next_ix_++;
+  Object& obj = Object::Handle();
+  while (next_ix_ < size_) {
     obj = array_.At(next_ix_);
+    if (obj.IsClass()) {
+      return;
+    }
+    next_ix_++;
   }
 }
 
@@ -6747,22 +6762,9 @@ RawFunction* Library::LookupFunctionInScript(const Script& script,
                                              intptr_t token_pos) const {
   Class& cls = Class::Handle();
   Function& func = Function::Handle();
-  ClassDictionaryIterator it(*this);
+  ClassDictionaryIterator it(*this, ClassDictionaryIterator::kIteratePrivate);
   while (it.HasNext()) {
     cls = it.GetNextClass();
-    if (script.raw() == cls.script()) {
-      func = cls.LookupFunctionAtToken(token_pos);
-      if (!func.IsNull()) {
-        return func.raw();
-      }
-    }
-  }
-  // Look in anonymous classes for toplevel functions.
-  Array& anon_classes = Array::Handle(this->raw_ptr()->anonymous_classes_);
-  intptr_t num_anonymous = raw_ptr()->num_anonymous_;
-  for (int i = 0; i < num_anonymous; i++) {
-    cls ^= anon_classes.At(i);
-    ASSERT(!cls.IsNull());
     if (script.raw() == cls.script()) {
       func = cls.LookupFunctionAtToken(token_pos);
       if (!func.IsNull()) {
@@ -7627,21 +7629,13 @@ RawError* Library::CompileAll() {
   Class& cls = Class::Handle();
   for (int i = 0; i < libs.Length(); i++) {
     lib ^= libs.At(i);
-    ClassDictionaryIterator it(lib);
+    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
       error = cls.EnsureIsFinalized(Isolate::Current());
       if (!error.IsNull()) {
         return error.raw();
       }
-      error = Compiler::CompileAllFunctions(cls);
-      if (!error.IsNull()) {
-        return error.raw();
-      }
-    }
-    Array& anon_classes = Array::Handle(lib.raw_ptr()->anonymous_classes_);
-    for (int i = 0; i < lib.raw_ptr()->num_anonymous_; i++) {
-      cls ^= anon_classes.At(i);
       error = Compiler::CompileAllFunctions(cls);
       if (!error.IsNull()) {
         return error.raw();

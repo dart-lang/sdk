@@ -2246,13 +2246,25 @@ class DictionaryIterator : public ValueObject {
 
 class ClassDictionaryIterator : public DictionaryIterator {
  public:
-  explicit ClassDictionaryIterator(const Library& library);
+  enum IterationKind {
+    kIteratePrivate,
+    kNoIteratePrivate
+  };
+
+  ClassDictionaryIterator(const Library& library,
+                          IterationKind kind = kNoIteratePrivate);
+
+  bool HasNext() const { return (next_ix_ < size_) || (anon_ix_ < anon_size_); }
 
   // Returns a non-null raw class.
   RawClass* GetNextClass();
 
  private:
   void MoveToNextClass();
+
+  const Array& anon_array_;
+  const int anon_size_;  // Number of anonymous classes to iterate over.
+  int anon_ix_;  // Index of next anonymous class.
 
   DISALLOW_COPY_AND_ASSIGN(ClassDictionaryIterator);
 };
@@ -2335,6 +2347,9 @@ class Library : public Object {
   void AddFunctionMetadata(const Function& func, intptr_t token_pos) const;
   void AddLibraryMetadata(const Class& cls, intptr_t token_pos) const;
   RawObject* GetMetadata(const Object& obj) const;
+
+  intptr_t num_anonymous_classes() const { return raw_ptr()->num_anonymous_; }
+  RawArray* anonymous_classes() const { return raw_ptr()->anonymous_classes_; }
 
   // Library imports.
   void AddImport(const Namespace& ns) const;
