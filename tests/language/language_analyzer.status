@@ -10,10 +10,6 @@ closure_call_wrong_argument_count_negative_test: skip
 # TBD: using built-in identifers
 built_in_identifier_prefix_test: fail
 
-# TBF: (o as C) is not rolled back
-cast_test/04: fail
-cast_test/05: fail
-
 # TBF: It is a static type warning if a type parameter is a supertype of its upper bound.
 cyclic_type_variable_test/01: fail
 cyclic_type_variable_test/02: fail
