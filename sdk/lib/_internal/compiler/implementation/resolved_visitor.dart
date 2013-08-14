@@ -10,22 +10,23 @@ abstract class ResolvedVisitor<R> extends Visitor<R> {
   ResolvedVisitor(this.elements);
 
   R visitSend(Send node) {
+    Element element = elements[node];
     if (node.isSuperCall) {
       return visitSuperSend(node);
     } else if (node.isOperator) {
       return visitOperatorSend(node);
     } else if (node.isPropertyAccess) {
-      Element element = elements[node];
       if (!Elements.isUnresolved(element) && element.impliesType()) {
         // A reference to a class literal, typedef or type variable.
         return visitTypeReferenceSend(node);
       } else {
         return visitGetterSend(node);
       }
-    } else if (Elements.isClosureSend(node, elements[node])) {
+    } else if (element != null && Initializers.isConstructorRedirect(node)) {
+      return visitStaticSend(node);
+    } else if (Elements.isClosureSend(node, element)) {
       return visitClosureSend(node);
     } else {
-      Element element = elements[node];
       if (Elements.isUnresolved(element)) {
         if (element == null) {
           // Example: f() with 'f' unbound.
