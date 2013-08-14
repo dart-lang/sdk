@@ -741,20 +741,7 @@ class ClassGroup {
 
   void addClass(ClassMirror mirror) {
     _currentClass = mirror;
-    var clazz = _class(mirror);
-
-    // Adding inherited parent variables and methods.
-    clazz.parent().forEach((parent) {
-      if (_isVisible(clazz)) {
-        parent.addSubclass(clazz);
-      }
-    });
-
-    clazz.ensureComments();
-
-    if (clazz.isError()) {
-      errors[mirror.simpleName] = clazz;
-    } else if (mirror.isTypedef) {
+    if (mirror.isTypedef) {
       if (_includePrivate || !mirror.isPrivate) {
         entityMap[mirror.qualifiedName] = new Typedef(mirror.simpleName,
             mirror.value.returnType.qualifiedName, _commentToHtml(mirror),
@@ -763,10 +750,25 @@ class ClassGroup {
             mirror.owner.qualifiedName);
         typedefs[mirror.simpleName] = entityMap[mirror.qualifiedName];
       }
-    } else if (mirror.isClass) {
-      classes[mirror.simpleName] = clazz;
     } else {
-      throw new ArgumentError('${mirror.simpleName} - no class type match. ');
+      var clazz = _class(mirror);
+  
+      // Adding inherited parent variables and methods.
+      clazz.parent().forEach((parent) {
+        if (_isVisible(clazz)) {
+          parent.addSubclass(clazz);
+        }
+      });
+  
+      clazz.ensureComments();
+  
+      if (clazz.isError()) {
+        errors[mirror.simpleName] = clazz;
+      } else if (mirror.isClass) {
+        classes[mirror.simpleName] = clazz;
+      } else {
+        throw new ArgumentError('${mirror.simpleName} - no class type match. ');
+      }
     }
   }
 
