@@ -397,6 +397,22 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     converted = new UnboxUint32x4Instr(use->CopyWithType(), deopt_id);
   } else if ((from == kUnboxedUint32x4) && (to == kTagged)) {
     converted = new BoxUint32x4Instr(use->CopyWithType());
+  } else {
+    const intptr_t deopt_id = (deopt_target != NULL) ?
+        deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+    // We have failed to find a suitable conversion instruction.
+    // Insert a "dummy" conversion instruction with the correct
+    // "to" representation. The inserted instruction will trigger a
+    // a deoptimization if executed. See issue #12417 for a discussion.
+    if (to == kUnboxedDouble) {
+      converted = new UnboxDoubleInstr(use->CopyWithType(), deopt_id);
+    } else if (to == kUnboxedUint32x4) {
+      converted = new UnboxDoubleInstr(use->CopyWithType(), deopt_id);
+    } else if (to == kUnboxedFloat32x4) {
+      converted = new UnboxDoubleInstr(use->CopyWithType(), deopt_id);
+    } else if (to == kUnboxedMint) {
+      converted = new UnboxIntegerInstr(use->CopyWithType(), deopt_id);
+    }
   }
   ASSERT(converted != NULL);
   use->BindTo(converted);
