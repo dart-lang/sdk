@@ -74,7 +74,6 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
     DartUtils::SetStringField(
         status_handle, "_errorMessage", "Path must be a builtin string");
     Dart_SetReturnValue(args, Dart_NewBoolean(false));
-    Dart_ExitScope();
     return;
   }
   const char* path = DartUtils::GetStringValue(path_handle);
@@ -87,7 +86,6 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
                          &args_length);
   if (string_args == NULL) {
     Dart_SetReturnValue(args, Dart_NewBoolean(false));
-    Dart_ExitScope();
     return;
   }
   Dart_Handle working_directory_handle = Dart_GetNativeArgument(args, 3);
@@ -102,7 +100,6 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
         status_handle, "_errorMessage",
         "WorkingDirectory must be a builtin string");
     Dart_SetReturnValue(args, Dart_NewBoolean(false));
-    Dart_ExitScope();
     return;
   }
   Dart_Handle environment = Dart_GetNativeArgument(args, 4);
@@ -117,7 +114,6 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
     if (string_environment == NULL) {
       delete[] string_args;
       Dart_SetReturnValue(args, Dart_NewBoolean(false));
-      Dart_ExitScope();
       return;
     }
   }
