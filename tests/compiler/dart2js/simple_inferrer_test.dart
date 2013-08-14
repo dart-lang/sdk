@@ -296,11 +296,18 @@ testSwitch3() {
 }
 
 testSwitch4() {
-  switch(topLevelGetter) {
+  switch (topLevelGetter) {
     case 1: break;
     default: break;
   }
   return 42;
+}
+
+testSwitch5() {
+  switch (topLevelGetter) {
+    case 1: return 1;
+    default: return 2;
+  }
 }
 
 testContinue1() {
@@ -362,6 +369,43 @@ testReturnElementOfConstList2() {
 testReturnItselfOrInt(a) {
   if (a) return 42;
   return testReturnItselfOrInt(a);
+}
+
+testDoWhile1() {
+  var a = 42;
+  do {
+    a = 'foo';
+  } while (true);
+  return a;
+}
+
+testDoWhile2() {
+  var a = 42;
+  do {
+    a = 'foo';
+    return;
+  } while (true);
+  return a;
+}
+
+testDoWhile3() {
+  var a = 42;
+  do {
+    a = 'foo';
+    if (true) continue;
+    return 42;
+  } while (true);
+  return a;
+}
+
+testDoWhile4() {
+  var a = 'foo';
+  do {
+    a = 54;
+    if (true) break;
+    return 3.5;
+  } while (true);
+  return a;
 }
 
 testReturnInvokeDynamicGetter() => new A().myFactory();
@@ -453,10 +497,15 @@ main() {
   testSwitch2();
   testSwitch3();
   testSwitch4();
+  testSwitch5();
   testContinue1();
   testBreak1();
   testContinue2();
   testBreak2();
+  testDoWhile1();
+  testDoWhile2();
+  testDoWhile3();
+  testDoWhile4();
   new A() == null;
   new A()..returnInt1()
          ..returnInt2()
@@ -544,12 +593,10 @@ void main() {
   checkReturn('testLabeledIf', typesTask.intType.nullable());
   checkReturn('testSwitch1', typesTask.intType
       .union(typesTask.doubleType, compiler).nullable().simplify(compiler));
-  // TODO(12320): testSwitch2 should be non-nullable.  The quick fix for 12320
-  // models control flow through as though there is an additional empty default
-  // case.
-  checkReturn('testSwitch2', typesTask.intType.nullable());
+  checkReturn('testSwitch2', typesTask.intType);
   checkReturn('testSwitch3', interceptorType.nullable());
   checkReturn('testSwitch4', typesTask.intType);
+  checkReturn('testSwitch5', typesTask.intType);
   checkReturn('testContinue1', interceptorType.nullable());
   checkReturn('testBreak1', interceptorType.nullable());
   checkReturn('testContinue2', interceptorType.nullable());
@@ -558,6 +605,11 @@ void main() {
   checkReturn('testReturnElementOfConstList2', typesTask.intType);
   checkReturn('testReturnItselfOrInt', typesTask.intType);
   checkReturn('testReturnInvokeDynamicGetter', typesTask.dynamicType);
+
+  checkReturn('testDoWhile1', typesTask.stringType);
+  checkReturn('testDoWhile2', typesTask.nullType);
+  checkReturn('testDoWhile3', interceptorType);
+  checkReturn('testDoWhile4', typesTask.numType);
 
   checkReturnInClass(String className, String methodName, type) {
     var cls = findElement(compiler, className);

@@ -224,14 +224,23 @@ class VariableScope<T> {
     variables.forEach(f);
   }
 
-  void forEachLocalUntil(Node node, void f(Element, T type)) {
-    forEachOwnLocal(f);
+  void forEachLocalUntilNode(Node node,
+                             void f(Element element, T type),
+                             [Set<Element> seenLocals]) {
+    if (seenLocals == null) seenLocals = new Set<Element>();
+    if (variables != null) {
+      variables.forEach((element, type) {
+        if (seenLocals.contains(element)) return;
+        seenLocals.add(element);
+        f(element, type);
+      });
+    }
     if (block == node) return;
-    if (parent != null) parent.forEachLocalUntil(node, f);
+    if (parent != null) parent.forEachLocalUntilNode(node, f, seenLocals);
   }
 
   void forEachLocal(void f(Element, T type)) {
-    forEachLocalUntil(null, f);
+    forEachLocalUntilNode(null, f);
   }
 
   void remove(Element element) {
@@ -410,13 +419,31 @@ class LocalsHandler<T> {
   /**
    * Merge all [LocalsHandler] in [handlers] into [:this:]. Returns
    * whether a local in [:this:] has changed.
+   *
+   * If [keepOwnLocals] is true, the types of locals in this
+   * [LocalsHandler] are being used in the merge. [keepOwnLocals]
+   * should be true if this [LocalsHandler], the dominator of
+   * all [handlers], also direclty flows into the join point,
+   * that is the code after all [handlers]. For example, consider:
+   *
+   * [: switch (...) {
+   *      case 1: ...; break;
+   *    }
+   * :]
+   *
+   * The [LocalsHandler] at entry of the switch also flows into the
+   * exit of the switch, because there is no default case. So the
+   * types of locals at entry of the switch have to take part to the
+   * merge.
    */
-  bool mergeAll(List<LocalsHandler<T>> handlers) {
+  bool mergeAll(List<LocalsHandler<T>> handlers,
+                {bool keepOwnLocals: true}) {
     bool changed = false;
-    handlers.forEach((LocalsHandler<T> handler) {
-      if (handler.seenReturnOrThrow) return;
-      Node level = locals.block;
-      handler.locals.forEachLocalUntil(level, (Element local, T otherType) {
+    Node level = locals.block;
+
+    void mergeHandler(LocalsHandler<T> other) {
+      if (other.seenReturnOrThrow) return;
+      other.locals.forEachLocalUntilNode(level, (local, otherType) {
         T myType = locals[local];
         if (myType == null) return;
         T newType = types.addPhiInput(local, myType, otherType);
@@ -425,7 +452,40 @@ class LocalsHandler<T> {
           locals[local] = newType;
         }
       });
-    });
+    }
+
+    if (keepOwnLocals && !seenReturnOrThrow) {
+      handlers.forEach(mergeHandler);
+    } else {
+      // Find the first handler that does not abort.
+      int index = 0;
+      LocalsHandler<T> startWith;
+      while (index < handlers.length
+             && (startWith = handlers[index]).seenReturnOrThrow) {
+        index++;
+      }
+      if (index == handlers.length) {
+        // If we haven't found a handler that does not abort, we know
+        // this handler aborts.
+        seenReturnOrThrow = true;
+      } else {
+        // Otherwise, this handler does not abort.
+        seenReturnOrThrow = false;
+        // Use [startWith] to initialize the types of locals.
+        startWith.locals.forEachLocalUntilNode(level, (local, otherType) {
+          T myType = locals[local];
+          if (myType == null) return;
+          if (myType != otherType) {
+            changed = true;
+            locals[local] = otherType;
+          }
+        });
+        // Merge all other handlers.
+        for (int i = index + 1; i < handlers.length; i++) {
+          mergeHandler(handlers[i]);
+        }
+      }
+    }
     return changed;
   }
 
@@ -795,14 +855,22 @@ abstract class InferrerVisitor<T> extends ResolvedVisitor<T> {
     loopLevel++;
     bool changed = false;
     TargetElement target = elements[node];
-    setupBreaksAndContinues(target);
     locals.startLoop(node);
     LocalsHandler<T> saved;
+    bool keepOwnLocals = node.asDoWhile() == null;
     do {
+      // Setup (and clear in case of multiple iterations of the loop)
+      // the lists of breaks and continues seen in the loop.
+      setupBreaksAndContinues(target);
       saved = locals;
       locals = new LocalsHandler<T>.from(locals, node);
       logic();
-      changed = saved.mergeAll(getLoopBackEdges(target));
+      changed = saved.mergeAll(getLoopBackEdges(target),
+                               keepOwnLocals: keepOwnLocals);
+      // Now that we have done the initial merge, following merges to
+      // reach a fixed point must use the previously computed types of
+      // locals at entry of the loop.
+      keepOwnLocals = true;
       locals = saved;
     } while (changed);
     loopLevel--;
@@ -973,25 +1041,20 @@ abstract class InferrerVisitor<T> extends ResolvedVisitor<T> {
     } else {
       LocalsHandler<T> saved = locals;
       List<LocalsHandler<T>> localsToMerge = <LocalsHandler<T>>[];
+      bool hasDefaultCase = false;
 
       for (SwitchCase switchCase in node.cases) {
+        if (switchCase.isDefaultCase) {
+          hasDefaultCase = true;
+        }
         locals = new LocalsHandler<T>.from(saved, switchCase);
         visit(switchCase);
         localsToMerge.add(locals);
       }
-      saved.mergeAll(localsToMerge);
+      saved.mergeAll(localsToMerge, keepOwnLocals: !hasDefaultCase);
       locals = saved;
     }
     clearBreaksAndContinues(elements[node]);
-    // In case there is a default in the switch we discard the
-    // incoming localsHandler, because the types it holds do not need
-    // to be merged after the switch statement. This means that, if all
-    // cases, including the default, break or continue, the [result]
-    // handler may think it just aborts the current block. Therefore
-    // we set the current locals to not have any break or continue, so
-    // that the [visitBlock] method does not assume the code after the
-    // switch is dead code.
-    locals.seenBreakOrContinue = false;
   }
 
   T visitCascadeReceiver(CascadeReceiver node) {
