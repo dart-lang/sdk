@@ -76,9 +76,17 @@ void createSandbox() {
 /// Normally, this will pause the schedule until the watcher is done scanning
 /// and is polling for changes. If you pass `false` for [waitForReady], it will
 /// not schedule this delay.
-DirectoryWatcher createWatcher({bool waitForReady}) {
+///
+/// If [dir] is provided, watches a subdirectory in the sandbox with that name.
+DirectoryWatcher createWatcher({String dir, bool waitForReady}) {
+  if (dir == null) {
+    dir = _sandboxDir;
+  } else {
+    dir = p.join(_sandboxDir, dir);
+  }
+
   // Use a short delay to make the tests run quickly.
-  _watcher = new DirectoryWatcher(_sandboxDir,
+  _watcher = new DirectoryWatcher(dir,
       pollingDelay: new Duration(milliseconds: 100));
 
   // Wait until the scan is finished so that we don't miss changes to files
@@ -95,31 +103,45 @@ DirectoryWatcher createWatcher({bool waitForReady}) {
   return _watcher;
 }
 
-void expectEvent(ChangeType type, String path) {
-  // Immediately create the future. This ensures we don't register too late and
-  // drop the event before we receive it.
-  var future = _watcher.events.elementAt(_nextEvent++).then((event) {
-    expect(event, new _ChangeMatcher(type, path));
-  });
+/// Expects that the next set of events will all be changes of [type] on
+/// [paths].
+///
+/// Validates that events are delivered for all paths in [paths], but allows
+/// them in any order.
+void expectEvents(ChangeType type, Iterable<String> paths) {
+  var pathSet = paths.map((path) => p.join(_sandboxDir, path)).toSet();
 
-  // Make sure the schedule is watching it in case it fails.
-  currentSchedule.wrapFuture(future);
+  // Create an expectation for as many paths as we have.
+  var futures = [];
+
+  for (var i = 0; i < paths.length; i++) {
+    // Immediately create the futures. This ensures we don't register too
+    // late and drop the event before we receive it.
+    var future = _watcher.events.elementAt(_nextEvent++).then((event) {
+      expect(event.type, equals(type));
+      expect(pathSet, contains(event.path));
+
+      pathSet.remove(event.path);
+    });
+
+    // Make sure the schedule is watching it in case it fails.
+    currentSchedule.wrapFuture(future);
+
+    futures.add(future);
+  }
 
   // Schedule it so that later file modifications don't occur until after this
   // event is received.
-  schedule(() => future, "wait for $type event");
+  schedule(() => Future.wait(futures),
+      "wait for $type events on ${paths.join(', ')}");
 }
 
-void expectAddEvent(String path) {
-  expectEvent(ChangeType.ADD, p.join(_sandboxDir, path));
-}
+void expectAddEvent(String path) => expectEvents(ChangeType.ADD, [path]);
+void expectModifyEvent(String path) => expectEvents(ChangeType.MODIFY, [path]);
+void expectRemoveEvent(String path) => expectEvents(ChangeType.REMOVE, [path]);
 
-void expectModifyEvent(String path) {
-  expectEvent(ChangeType.MODIFY, p.join(_sandboxDir, path));
-}
-
-void expectRemoveEvent(String path) {
-  expectEvent(ChangeType.REMOVE, p.join(_sandboxDir, path));
+void expectRemoveEvents(Iterable<String> paths) {
+  expectEvents(ChangeType.REMOVE, paths);
 }
 
 /// Schedules writing a file in the sandbox at [path] with [contents].
@@ -173,6 +195,13 @@ void renameFile(String from, String to) {
     var milliseconds = _mockFileModificationTimes.putIfAbsent(to, () => 0);
     _mockFileModificationTimes[to]++;
   }, "rename file $from to $to");
+}
+
+/// Schedules deleting a directory in the sandbox at [path].
+void deleteDir(String path) {
+  schedule(() {
+    new Directory(p.join(_sandboxDir, path)).deleteSync(recursive: true);
+  }, "delete directory $path");
 }
 
 /// A [Matcher] for [WatchEvent]s.

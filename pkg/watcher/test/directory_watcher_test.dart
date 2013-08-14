@@ -86,4 +86,23 @@ main() {
     writeFile("a/b/c/d/file.txt");
     expectAddEvent("a/b/c/d/file.txt");
   });
+
+  test('watches a directory created after the watcher', () {
+    // Watch a subdirectory that doesn't exist yet.
+    createWatcher(dir: "a");
+
+    // This implicity creates it.
+    writeFile("a/b/c/d/file.txt");
+    expectAddEvent("a/b/c/d/file.txt");
+  });
+
+  test('when the watched directory is deleted, removes all files', () {
+    writeFile("dir/a.txt");
+    writeFile("dir/b.txt");
+
+    createWatcher(dir: "dir");
+
+    deleteDir("dir");
+    expectRemoveEvents(["dir/a.txt", "dir/b.txt"]);
+  });
 }
