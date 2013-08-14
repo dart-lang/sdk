@@ -1072,8 +1072,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
                     super_class_name.ToCString());
       }
     }
-    if ((FLAG_enable_type_checks || FLAG_error_on_malformed_type) &&
-        field.is_static() && field.is_const() &&
+    if (field.is_static() && (field.is_const() || field.is_final()) &&
         (field.value() != Object::null()) &&
         (field.value() != Object::sentinel().raw())) {
       // The parser does not preset the value if the type is a type parameter or
@@ -1090,18 +1089,43 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
            !const_value.IsInstanceOf(type,
                                      AbstractTypeArguments::Handle(),
                                      &malformed_error))) {
-        const AbstractType& const_value_type = AbstractType::Handle(
-            const_value.GetType());
-        const String& const_value_type_name = String::Handle(
-            const_value_type.UserVisibleName());
-        const String& type_name = String::Handle(type.UserVisibleName());
-        const Script& script = Script::Handle(cls.script());
-        ReportError(malformed_error, script, field.token_pos(),
-                    "error initializing const field '%s': type '%s' is not a "
-                    "subtype of type '%s'",
-                    name.ToCString(),
-                    const_value_type_name.ToCString(),
-                    type_name.ToCString());
+        if (FLAG_error_on_malformed_type) {
+          const AbstractType& const_value_type = AbstractType::Handle(
+              const_value.GetType());
+          const String& const_value_type_name = String::Handle(
+              const_value_type.UserVisibleName());
+          const String& type_name = String::Handle(type.UserVisibleName());
+          const Script& script = Script::Handle(cls.script());
+          ReportError(malformed_error, script, field.token_pos(),
+                      "error initializing static %s field '%s': "
+                      "type '%s' is not a subtype of type '%s'",
+                      field.is_const() ? "const" : "final",
+                      name.ToCString(),
+                      const_value_type_name.ToCString(),
+                      type_name.ToCString());
+        } else {
+          // Do not report an error yet, even in checked mode, since the field
+          // may not actually be used.
+          // Also, we may be generating a snapshot in production mode that will
+          // later be executed in checked mode, in which case an error needs to
+          // be reported, should the field be accessed.
+          // Therefore, we undo the optimization performed by the parser, i.e.
+          // we create an implicit static final getter and reset the field value
+          // to the sentinel value.
+          const String& getter_name = String::Handle(Field::GetterSymbol(name));
+          const Function& getter = Function::Handle(
+              Function::New(getter_name,
+                            RawFunction::kImplicitStaticFinalGetter,
+                            /* is_static = */ true,
+                            /* is_const = */ field.is_const(),
+                            /* is_abstract = */ false,
+                            /* is_external = */ false,
+                            cls,
+                            field.token_pos()));
+          getter.set_result_type(type);
+          cls.AddFunction(getter);
+          field.set_value(Instance::Handle(Object::sentinel().raw()));
+        }
       }
     }
   }

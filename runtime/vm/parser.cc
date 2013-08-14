@@ -3148,20 +3148,21 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     if (has_initializer) {
       ConsumeToken();
       init_value = Object::sentinel().raw();
-      // For static const fields, the initialization expression
-      // will be parsed through the kImplicitStaticFinalGetter method
-      // invocation/compilation.
+      // For static const fields and static final non-const fields, the
+      // initialization expression will be parsed through the
+      // kImplicitStaticFinalGetter method invocation/compilation.
       // For instance fields, the expression is parsed when a constructor
       // is compiled.
-      // For static const fields with very simple initializer expressions
-      // (e.g. a literal number or string) we optimize away the
-      // kImplicitStaticFinalGetter and initialize the field here.
-      // We also do it for static final non-const fields, but only in production
-      // mode.
+      // For static const fields and static final non-const fields with very
+      // simple initializer expressions (e.g. a literal number or string), we
+      // optimize away the kImplicitStaticFinalGetter and initialize the field
+      // here. However, the class finalizer will check the value type for
+      // assignability once the declared field type can be resolved. If the
+      // value is not assignable (assuming checked mode and disregarding actual
+      // mode), the field value is reset and a kImplicitStaticFinalGetter is
+      // created at finalization time.
 
-      if (field->has_static &&
-          (field->has_const ||
-           (!FLAG_enable_type_checks && field->has_final)) &&
+      if (field->has_static && (field->has_const || field->has_final) &&
           (LookaheadToken(1) == Token::kSEMICOLON)) {
         has_simple_literal = IsSimpleLiteral(*field->type, &init_value);
       }
@@ -4252,10 +4253,8 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
   // Const fields are implicitly final.
   const bool is_final = is_const || (CurrentToken() == Token::kFINAL);
   const bool is_static = true;
-  const AbstractType& type =
-      AbstractType::ZoneHandle(ParseConstFinalVarOrType(
-          FLAG_enable_type_checks ? ClassFinalizer::kResolveTypeParameters :
-                                    ClassFinalizer::kIgnore));
+  const AbstractType& type = AbstractType::ZoneHandle(ParseConstFinalVarOrType(
+      ClassFinalizer::kResolveTypeParameters));
   Field& field = Field::Handle();
   Function& getter = Function::Handle();
   while (true) {
@@ -4293,15 +4292,14 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
       ConsumeToken();
       Instance& field_value = Instance::Handle(Object::sentinel().raw());
       bool has_simple_literal = false;
-      if ((is_const || (!FLAG_enable_type_checks && is_final)) &&
-          (LookaheadToken(1) == Token::kSEMICOLON)) {
+      if ((is_const || is_final) && (LookaheadToken(1) == Token::kSEMICOLON)) {
         has_simple_literal = IsSimpleLiteral(type, &field_value);
       }
       SkipExpr();
       field.set_value(field_value);
       if (!has_simple_literal) {
-        // Create a static const getter.
-        String& getter_name = String::ZoneHandle(Field::GetterSymbol(var_name));
+        // Create a static final getter.
+        String& getter_name = String::Handle(Field::GetterSymbol(var_name));
         getter = Function::New(getter_name,
                                RawFunction::kImplicitStaticFinalGetter,
                                is_static,
