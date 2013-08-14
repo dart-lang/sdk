@@ -122,7 +122,7 @@ class ConstantReferenceEmitter implements ConstantVisitor<jsAst.Expression> {
   jsAst.Expression emitCanonicalVersion(Constant constant) {
     String name = namer.constantName(constant);
     return new jsAst.PropertyAccess.field(
-        new jsAst.VariableUse(namer.CURRENT_ISOLATE), name);
+        new jsAst.VariableUse(namer.globalObjectForConstant(constant)), name);
   }
 
   jsAst.Expression visitList(ListConstant constant) {

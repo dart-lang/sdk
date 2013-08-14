@@ -879,6 +879,10 @@ class CodeEmitterTask extends CompilerTask {
 
       js('str += "}\\n"'),
 
+      js('var Constants = #', js.fun('', [])),
+      // Install 'C' as a prototype to ensure it has a hidden class.
+      js('Constants.prototype = ${namer.globalObjectForConstant(null)}'),
+
       js('var newIsolate = new Function(str)'),
       js('newIsolate.prototype = isolatePrototype'),
       js('isolatePrototype.constructor = newIsolate'),
@@ -2683,6 +2687,7 @@ class CodeEmitterTask extends CompilerTask {
     List<Constant> constants = handler.getConstantsForEmission(
         compareConstants);
     bool addedMakeConstantList = false;
+    eagerBuffer.write('var ${namer.globalObjectForConstant(null)}$_=$_{}$N');
     for (Constant constant in constants) {
       if (isConstantInlinedOrAlreadyEmitted(constant)) continue;
       String name = namer.constantName(constant);
@@ -2691,7 +2696,8 @@ class CodeEmitterTask extends CompilerTask {
         emitMakeConstantList(eagerBuffer);
       }
       CodeBuffer buffer = bufferForConstant(constant, eagerBuffer);
-      jsAst.Expression init = js('$isolateProperties.$name = #',
+      jsAst.Expression init = js(
+          '${namer.globalObjectForConstant(constant)}.$name = #',
           constantInitializerExpression(constant));
       buffer.write(jsAst.prettyPrint(init, compiler));
       buffer.write('$N');

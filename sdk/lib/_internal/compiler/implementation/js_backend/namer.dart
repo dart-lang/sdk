@@ -145,7 +145,10 @@ class Namer implements ClosureNamer {
     // These keywords trigger the loading of the java-plugin. For the
     // next-generation plugin, this results in starting a new Java process.
     "java", "Packages", "netscape", "sun", "JavaObject", "JavaClass",
-    "JavaArray", "JavaMember"
+    "JavaArray", "JavaMember",
+
+    // Global object for constants.
+    "C",
   ];
 
   Set<String> _jsReserved = null;
@@ -774,6 +777,8 @@ class Namer implements ClosureNamer {
   String isolateStaticClosureAccess(Element element) {
     return "$CURRENT_ISOLATE.${getStaticClosureName(element)}";
   }
+
+  String globalObjectForConstant(Constant constant) => 'C';
 
   String operatorIsPrefix() => r'$is';
 
