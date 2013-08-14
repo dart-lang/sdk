@@ -25,6 +25,11 @@ io/file_fuzz_test: Skip
 io/directory_fuzz_test: Skip
 
 [ $runtime == vm && $system == macos ]
+# These tests fail intermittently on MacOS due to an https request that
+# fails not completing the future it returns: Issue 12451
+io/https_unauthorized_test: Pass, Fail
+io/https_bad_certificate_test: Pass, Fail
+
 # This test fails with "Too many open files" on the Mac OS buildbot.
 # This is expected as MacOS by default runs with a very low number
 # of allowed open files ('ulimit -n' says something like 256).

@@ -47,7 +47,7 @@ Future runHttpClient(int port, result) {
     }));
 
   client.badCertificateCallback = badCertificateCallback;
-  testFutures.add( client.getUrl(Uri.parse('https://$HOST_NAME:$port/$result'))
+  testFutures.add(client.getUrl(Uri.parse('https://$HOST_NAME:$port/$result'))
     .then((HttpClientRequest request) {
       expect(result == 'true');
       request.close().then((result) { });
