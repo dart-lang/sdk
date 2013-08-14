@@ -1,0 +1,10 @@
+name: html5lib
+author: Dart Team <misc@dartlang.org>
+description: A library for working with HTML documents.
+homepage: https://github.com/dart-lang/html5lib
+dependencies:
+  source_maps: any
+dev_dependencies:
+  browser: any
+  path: any
+  unittest: any

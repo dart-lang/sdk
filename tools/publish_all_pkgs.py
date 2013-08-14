@@ -18,11 +18,11 @@ import subprocess
 import sys
 
 def Main(argv):
-  pkgs_to_publish = []
-  for name in os.listdir('pkg'):
-    if os.path.isdir(os.path.join('pkg', name)):
-      if (name != '.svn' and name != 'expect'):
-        pkgs_to_publish.append(os.path.join('pkg', name))
+  for pkgdir in ['pkg', 'pkg/third_party']:
+    for name in os.listdir(pkgdir):
+      if os.path.isdir(os.path.join(pkgdir, name)):
+        if (name != '.svn' and name != 'expect' and name != 'third_party'):
+          pkgs_to_publish.append(os.path.join(pkgdir, name))
 
   for pkg in pkgs_to_publish:
     print "\n\nPublishing [32m%s[0m:\n-------------------------------" % pkg

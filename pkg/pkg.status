@@ -15,6 +15,9 @@ scheduled_test/lib/*: Skip
 scheduled_test/test/scheduled_server_test: Pass, Fail, Slow, Crash # Issue 9231, 9582
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 
+# Skip test not runnable via test.dart
+third_party/html5lib/test/dom_compat_test: Skip
+
 [ $compiler == dart2js && $runtime == d8 ]
 unmodifiable_collection/test/unmodifiable_collection_test: Pass, Fail # Issue 12429
 
@@ -149,6 +152,10 @@ scheduled_test/test/scheduled_test/wrap_future_test: Fail # http://dartbug.com/8
 
 */test/analyzer_test: Skip  # No need to run analysis tests on browser bots
 
+# Skip tests on the browser if the test depends on dart:io
+third_party/html5lib/test/parser_test: Skip
+third_party/html5lib/test/tokenizer_test: Skip
+
 [ $runtime == safari]
  # Bug in JSC: the test only passes when being debugged.
 crypto/test/hmac_md5_test: Fail, Pass
@@ -184,6 +191,7 @@ serialization/test/no_library_test: Skip # Expected Failure
 custom_element: Skip
 mdv: Skip
 mutation_observer: Skip
+third_party/html5lib/test/browser/browser_test: Skip
 
 [ $runtime == safari || $runtime == chrome || $runtime == ie9 || $runtime == ff || $runtime == dartium || $runtime == drt ]
 docgen/test/single_library_test: Skip # Uses dart:io
