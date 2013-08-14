@@ -213,7 +213,7 @@ abstract class ComplexMessage extends Message {
 class CompositeMessage extends Message {
   List<Message> pieces;
 
-  CompositeMessage.parent(parent) : super(parent);
+  CompositeMessage.withParent(parent) : super(parent);
   CompositeMessage(this.pieces, ComplexMessage parent) : super(parent) {
     pieces.forEach((x) => x.parent = this);
   }
