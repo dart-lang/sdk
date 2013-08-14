@@ -8,7 +8,7 @@ import "compiler_annotations.dart";
 class A {
   int field;
 
-  @DontInline
+  @DontInline()
   A(param) {
     // Currently defeat inlining by using a closure.
     var bar = () => 42;     

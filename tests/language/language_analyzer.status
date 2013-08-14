@@ -100,11 +100,6 @@ final_syntax_test/03: fail
 const_escape_frog_test: fail
 compile_time_constant_test/none: fail
 
-# Test issue 11544, using @TypeName as annotation is not valid
-inferrer_constructor2_test: fail
-inferrer_constructor3_test: fail
-multiple_field_assignment_constructor_test: fail
-
 # Test issue 11545, using not existing constructor name in annotation
 metadata_test: fail
 
