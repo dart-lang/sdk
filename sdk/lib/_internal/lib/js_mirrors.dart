@@ -678,7 +678,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   final List _fieldsMetadata;
   final _jsConstructorCache = JsCache.allocate();
   List _metadata;
-  JsClassMirror _superclass;
+  ClassMirror _superclass;
   List<JsMethodMirror> _cachedMethods;
   List<JsVariableMirror> _cachedFields;
   UnmodifiableMapView<Symbol, MethodMirror> _cachedConstructors;
