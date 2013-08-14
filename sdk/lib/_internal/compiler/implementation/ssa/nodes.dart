@@ -2695,16 +2695,12 @@ class HSwitchBlockInformation implements HStatementInformation {
   final HExpressionInformation expression;
   final List<List<Constant>> matchExpressions;
   final List<HStatementInformation> statements;
-  // If the switch has a default, it's the last statement block, which
-  // may or may not have other expresions.
-  final bool hasDefault;
   final TargetElement target;
   final List<LabelElement> labels;
 
   HSwitchBlockInformation(this.expression,
                           this.matchExpressions,
                           this.statements,
-                          this.hasDefault,
                           this.target,
                           this.labels);
 

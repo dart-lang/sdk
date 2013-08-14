@@ -4670,16 +4670,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     // TODO(ngeoffray): Handle switch-instruction in bailout code.
     work.allowSpeculativeOptimization = false;
-    // Then build a switch structure.
     HBasicBlock expressionStart = openNewBlock();
     HInstruction expression = buildExpression();
     if (switchCases.isEmpty) {
       return;
     }
-    HBasicBlock expressionEnd = current;
 
     HSwitch switchInstruction = new HSwitch(<HInstruction>[expression]);
-    HBasicBlock expressionBlock = close(switchInstruction);
+    HBasicBlock expressionEnd = close(switchInstruction);
     LocalsHandler savedLocals = localsHandler;
 
     List<List<Constant>> matchExpressions = <List<Constant>>[];
@@ -4697,23 +4695,30 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         HConstant hConstant = graph.addConstant(constant, compiler);
         switchInstruction.inputs.add(hConstant);
         hConstant.usedBy.add(switchInstruction);
-        expressionBlock.addSuccessor(block);
+        expressionEnd.addSuccessor(block);
       }
       matchExpressions.add(caseConstants);
 
       if (isDefaultCase(switchCase)) {
         // An HSwitch has n inputs and n+1 successors, the last being the
         // default case.
-        expressionBlock.addSuccessor(block);
+        expressionEnd.addSuccessor(block);
         hasDefault = true;
       }
       open(block);
       localsHandler = new LocalsHandler.from(savedLocals);
       buildSwitchCase(switchCase);
-      if (!isAborted() && caseIterator.hasNext) {
-        pushInvokeStatic(switchCase, getFallThroughErrorElement, []);
-        HInstruction error = pop();
-        closeAndGotoExit(new HThrow(error));
+      if (!isAborted()) {
+        if (caseIterator.hasNext) {
+          pushInvokeStatic(switchCase, getFallThroughErrorElement, []);
+          HInstruction error = pop();
+          closeAndGotoExit(new HThrow(error));
+        } else if (!isDefaultCase(switchCase)) {
+          // If there is no default, we will add one later to avoid
+          // the critical edge. So we generate a break statement to make
+          // sure the last case does not fall through to the default case.
+          jumpHandler.generateBreak();
+        }
       }
       statements.add(
           new HSubGraphBlockInformation(new SubGraph(block, lastOpenedBlock)));
@@ -4742,11 +4747,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       caseHandlers.add(localsHandler);
     }
     if (!hasDefault) {
-      // The current flow is only aborted if the switch has a default that
-      // aborts (all previous cases must abort, and if there is no default,
-      // it's possible to miss all the cases).
-      expressionEnd.addSuccessor(joinBlock);
+      // Always create a default case, to avoid a critical edge in the
+      // graph.
+      HBasicBlock defaultCase = addNewBlock();
+      expressionEnd.addSuccessor(defaultCase);
+      open(defaultCase);
+      close(new HGoto());
+      defaultCase.addSuccessor(joinBlock);
       caseHandlers.add(savedLocals);
+      matchExpressions.add(<Constant>[]);
+      statements.add(new HSubGraphBlockInformation(new SubGraph(
+          defaultCase, defaultCase)));
     }
     assert(caseHandlers.length == joinBlock.predecessors.length);
     if (caseHandlers.length != 0) {
@@ -4769,7 +4780,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         new HSwitchBlockInformation(expressionInfo,
                                     matchExpressions,
                                     statements,
-                                    hasDefault,
                                     jumpHandler.target,
                                     jumpHandler.labels()),
         joinBlock);

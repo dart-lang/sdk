@@ -700,7 +700,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         currentContainer = new js.Block.empty();
         cases.add(new js.Case(pop(), currentContainer));
       }
-      if (i == info.matchExpressions.length - 1 && info.hasDefault) {
+      if (i == info.matchExpressions.length - 1) {
         currentContainer = new js.Block.empty();
         cases.add(new js.Default(currentContainer));
       }
