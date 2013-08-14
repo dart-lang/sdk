@@ -309,7 +309,13 @@ void cleanDir(String dir) {
 /// Renames (i.e. moves) the directory [from] to [to].
 void renameDir(String from, String to) {
   log.io("Renaming directory $from to $to.");
-  new Directory(from).renameSync(to);
+  try {
+    new Directory(from).renameSync(to);
+  } on IOException catch (error) {
+    // Ensure that [to] isn't left in an inconsistent state. See issue 12436.
+    if (entryExists(to)) deleteEntry(to);
+    rethrow;
+  }
 }
 
 /// Creates a new symlink at path [symlink] that points to [target]. Returns a
