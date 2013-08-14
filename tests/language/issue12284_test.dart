@@ -19,5 +19,6 @@ class A {
 
 main() {
   Expect.equals(42 + 42, new A(42).field);
-  Expect.throws(() => new A.redirect(), (e) => e is ArgumentError);
+  Expect.throws(() => new A.redirect(),
+                (e) => e is ArgumentError || e is TypeError);
 }
