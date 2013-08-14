@@ -77,18 +77,17 @@ abstract class Message {
     if (messageName == null) {
       return "The 'name' argument for Intl.message must be specified";
     }
-    if ((messageName.expression is! SimpleStringLiteral)
-        || messageName.expression.value != outerName) {
+    if (messageName.expression is! SimpleStringLiteral) {
       return "The 'name' argument for Intl.message must be a simple string "
-          "literal and match the containing function name.";
+          "literal.";
     }
     var simpleArguments = arguments.where(
         (each) => each is NamedExpression
-        && ["desc", "locale", "name"].contains(each.name.label.name));
+        && ["desc", "name"].contains(each.name.label.name));
     var values = simpleArguments.map((each) => each.expression).toList();
     for (var arg in values) {
       if (arg is! SimpleStringLiteral) {
-        return "Intl.message argument '${arg.name.label.name}' must be "
+        return "Intl.message argument '$arg' must be "
             "a simple string literal";
       }
     }
