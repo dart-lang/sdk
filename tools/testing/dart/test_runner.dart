@@ -1847,7 +1847,9 @@ class CommandExecutorImpl implements CommandExecutor {
     if (_browserTestRunners[browser] == null) {
       var testRunner =
         new BrowserTestRunner(local_ip, browser, num_browsers);
-      testRunner.logger = DebugLogger.info;
+      if (globalConfiguration['verbose']) {
+        testRunner.logger = DebugLogger.info;
+      }
       _browserTestRunners[browser] = testRunner;
       return testRunner.start().then((started) {
         if (started) {

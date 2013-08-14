@@ -54,13 +54,15 @@ abstract class Browser {
       return new Chrome();
     } else if (name == 'safari') {
       return new Safari();
+    } else if (name.startsWith('ie')) {
+      return new IE();
     } else {
       throw "Non supported browser";
     }
   }
 
   static const List<String> SUPPORTED_BROWSERS =
-      const ['safari', 'ff', 'firefox', 'chrome'];
+    const ['safari', 'ff', 'firefox', 'chrome', 'ie9', 'ie10'];
 
   static const List<String> BROWSERS_WITH_WINDOW_SUPPORT =
       const ['safari', 'ff', 'firefox', 'chrome'];
@@ -144,7 +146,9 @@ abstract class Browser {
           if (_cleanup != null) {
             _cleanup();
           }
-          doneCompleter.complete(exitCode);
+          doneCompleter.complete(true);
+        }).catchError((error) {
+          _logEvent("Error closing browsers: $error");
         });
       });
       return true;
@@ -346,6 +350,42 @@ class Chrome extends Browser {
 
   String toString() => "Chrome";
 }
+
+class IE extends Browser {
+
+  static const String binary =
+      "c:\\Program Files\\Internet Explorer\\iexplore.exe";
+
+  Future<String> getVersion() {
+    var args = ["query",
+                "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Internet Explorer",
+                "/v",
+                "version"];
+    return Process.run("reg", args).then((result) {
+      if (result.exitCode == 0) {
+        // The string we get back looks like this:
+        // HKEY_LOCAL_MACHINE\Software\Microsoft\Internet Explorer
+        //    version    REG_SZ    9.0.8112.16421
+        var findString = "REG_SZ";
+        var index = result.stdout.indexOf(findString);
+        if (index > 0) {
+          return result.stdout.substring(index + findString.length).trim();
+        }
+      }
+      return "Could not get the version of internet explorer";
+    });
+  }
+
+  Future<bool> start(String url) {
+    _logEvent("Starting ie browser on: $url");
+    return getVersion().then((version) {
+      _logEvent("Got version: $version");
+      return startBrowser(binary, [url]);
+    });
+  }
+  String toString() => "IE";
+}
+
 
 class AndroidChrome extends Browser {
   static const String viewAction = 'android.intent.action.VIEW';
@@ -609,7 +649,6 @@ class BrowserTestRunner {
 
   void handleResults(String browserId, String output, int testId) {
     var status = browserStatus[browserId];
-    DebugLogger.info("Handling result for browser ${browserId}");
     if (testCache.containsKey(testId)) {
       doubleReportingTests.add(testId);
       return;
@@ -631,12 +670,10 @@ class BrowserTestRunner {
         throw("This should never happen, wrong test id");
       }
       testCache[testId] = status.currentTest.url;
-      DebugLogger.info("Size of output for test $testId : ${output.length}");
       Stopwatch watch = new Stopwatch()..start();
       status.currentTest.doneCallback(output,
                                       status.currentTest.stopwatch.elapsed);
       watch.stop();
-      DebugLogger.info("Handling of test $testId took : ${watch.elapsed}");
       status.lastTest = status.currentTest;
       status.currentTest = null;
     } else {
@@ -652,7 +689,6 @@ class BrowserTestRunner {
   void handleTimeout(BrowserTestingStatus status) {
     // We simply kill the browser and starts up a new one!
     // We could be smarter here, but it does not seems like it is worth it.
-    DebugLogger.info("Handling timeout for browser ${status.browser.id}");
     status.timeout = true;
     timedOut.add(status.currentTest.url);
     var id = status.browser.id;
@@ -701,8 +737,6 @@ class BrowserTestRunner {
     if (testQueue.isEmpty) return null;
     var status = browserStatus[browserId];
     if (status == null) return null;
-    DebugLogger.info("Handling getNext for browser "
-                     "${browserId} timeout status: ${status.timeout}");
 
     // We are currently terminating this browser, don't start a new test.
     if (status.timeout) return null;
@@ -801,10 +835,13 @@ class BrowserTestingServer {
     return HttpServer.bind(local_ip, 0).then((createdServer) {
       httpServer = createdServer;
       void handler(HttpRequest request) {
-        DebugLogger.info("Handling request to: ${request.uri.path}");
+        // Don't allow caching of resources from the browser controller, i.e.,
+        // we don't want the browser to cache the result of getNextTest.
+        request.response.headers.set("Cache-Control",
+                                     "no-cache, no-store, must-revalidate");
         if (request.uri.path.startsWith(reportPath)) {
           var browserId = request.uri.path.substring(reportPath.length + 1);
-          var testId = 
+          var testId =
               int.parse(request.uri.queryParameters["id"].split("=")[1]);
           handleReport(request, browserId, testId);
           // handleReport will asynchroniously fetch the data and will handle
@@ -819,14 +856,11 @@ class BrowserTestingServer {
           var browserId = request.uri.path.substring(nextTestPath.length + 1);
           textResponse = getNextTest(browserId);
         } else {
-          DebugLogger.info("Handling non standard request to: "
-                           "${request.uri.path}");
+          // /favicon.ico requests
         }
         request.response.write(textResponse);
         request.listen((_) {}, onDone: request.response.close);
-        request.response.done.then((_) {
-          DebugLogger.info("Done handling request to: ${request.uri.path}");
-        }).catchError((error) {
+        request.response.done.catchError((error) {
           if (!underTermination) {
             print("URI ${request.uri}");
             print("Textresponse $textResponse");
@@ -851,7 +885,6 @@ class BrowserTestingServer {
           }, onDone: () {
               String back = buffer.toString();
               request.response.headers.set("Access-Control-Allow-Origin", "*");
-
               request.response.done.catchError((error) {
                 DebugLogger.error("Error getting error from browser"
                                   "on uri ${request.uri.path}: $error");
@@ -876,7 +909,6 @@ class BrowserTestingServer {
         String back = buffer.toString();
         request.response.close();
         testDoneCallBack(browserId, back, testId);
-        DebugLogger.info("Done handling request to: ${request.uri.path}");
       }, onError: (error) { print(error); });
   }
 
@@ -917,11 +949,11 @@ class BrowserTestingServer {
     function startTesting() {
       var number_of_tests = 0;
       var current_id;
-      var last_reported_id;
+      var next_id;
+      // Describes a state where we are currently fetching the next test
+      // from the server. We use this to never double request tasks.
+      var test_completed = true;
       var testing_window;
-      // We use this to determine if we did actually get back a start event
-      // from the test we just loaded.
-      var did_start = false;
 
       var embedded_iframe = document.getElementById('embedded_iframe');
       var use_iframe = ${useIframe};
@@ -936,15 +968,11 @@ class BrowserTestingServer {
               // Don't do anything, we will be killed shortly.
             } else {
               var elapsed = new Date() - start;
-              // TODO(ricow): Do something more clever here.
-              if (nextTask != undefined) alert('This is really bad');
               // The task is send to us as:
               // URL#ID
               var split = this.responseText.split('#');
               var nextTask = split[0];
-              current_id = split[1];
-              reportError('Done getting task : ' + elapsed);
-              did_start = false;
+              next_id = split[1];
               run(nextTask);
             }
           } else {
@@ -954,8 +982,8 @@ class BrowserTestingServer {
       }
 
       function getNextTask() {
-        var elapsed = new Date() - start;
-        reportError('Getting task at: ' + elapsed);
+        // Until we have the next task we set the current_id to a specific
+        // negative value.
         var client = new XMLHttpRequest();
         client.onreadystatechange = newTaskHandler;
         client.open('GET', '$nextTestPath/$browserId');
@@ -1001,36 +1029,31 @@ class BrowserTestingServer {
 
       function reportMessage(msg) {
         if (msg == 'STARTING') {
-          did_start = true;
+          test_completed = false;
+          current_id = next_id;
           return;
         }
-        var client = new XMLHttpRequest();
+
+        var is_double_report = test_completed;
+        test_completed = true;
+
         function handleReady() {
           if (this.readyState == this.DONE) {
             if (this.status == 200) {
-              if (last_reported_id != current_id && did_start) {
-                var elapsed = new Date() - start;
-                reportError('Done sending results at: ' + elapsed);
+              if (!is_double_report) {
                 getNextTask();
-                last_reported_id = current_id;
               }
             } else {
               reportError('Error sending result to server');
             }
           }
         }
+        var client = new XMLHttpRequest();
         client.onreadystatechange = handleReady;
-        // If did_start is false it means that we did actually set the url on
-        // the testing_window, but this is a report left in the event loop or
-        // a callback because the page did not load yet.
-        // In both cases this is a double report from the last test.
-        var posting_id = did_start ? current_id : last_reported_id;
-        client.open('POST', '$reportPath/${browserId}?id=' + posting_id);
+        client.open('POST', '$reportPath/${browserId}?id=' + current_id);
         client.setRequestHeader('Content-type',
                                 'application/x-www-form-urlencoded');
         client.send(msg);
-        var elapsed = new Date() - start;
-        reportError('Sending results at: ' + elapsed);
       }
 
       function messageHandler(e) {
