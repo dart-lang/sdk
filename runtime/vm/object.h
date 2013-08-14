@@ -4144,7 +4144,10 @@ class Integer : public Number {
   // Returns a canonical Integer object allocated in the old gen space.
   static RawInteger* NewCanonical(const String& str);
 
-  static RawInteger* New(int64_t value, Heap::Space space = Heap::kNew);
+  // Do not throw JavascriptIntegerOverflow if 'silent' is true.
+  static RawInteger* New(int64_t value,
+                         Heap::Space space = Heap::kNew,
+                         const bool silent = false);
 
   virtual double AsDoubleValue() const;
   virtual int64_t AsInt64Value() const;
@@ -4219,7 +4222,9 @@ class Smi : public Integer {
     return (value >= kMinValue) && (value <= kMaxValue);
   }
 
-  RawInteger* ShiftOp(Token::Kind kind, const Smi& other) const;
+  RawInteger* ShiftOp(Token::Kind kind,
+                      const Smi& other,
+                      const bool silent = false) const;
 
   void operator=(RawSmi* value) {
     raw_ = value;

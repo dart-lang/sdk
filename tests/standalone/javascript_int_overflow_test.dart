@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--throw_on_javascript_int_overflow --optimization_counter_threshold=10
+// VMOptions=--throw_on_javascript_int_overflow --optimization_counter_threshold=10 --no-use-osr
 
 
 import "package:expect/expect.dart";
@@ -53,6 +53,26 @@ int min_literal() {
   var min_literal = -0x20000000000000;
   return min_literal;
 }
+
+
+int doNotThrow1(a, b) {
+  return (a << b) & 0xFFFFFFFF;
+}
+
+int doNotThrow2(a, b) {
+  return (a << b) & 0xFFFFFFFF;
+}
+
+
+int doNotThrow3(a, b) {
+  return (a << b) & 0x7FFFFFFF;
+}
+
+
+int doNotThrow4(a, b) {
+  return (a << b) & 0x7FFFFFFF;
+}
+
 
 // We don't test for the _JavascriptIntegerOverflowError since it's not visible.
 // It should not be visible since it doesn't exist on dart2js.
@@ -116,4 +136,16 @@ main() {
 
   Expect.throws(max_add_throws, isJavascriptIntError);
   Expect.throws(min_sub_throws, isJavascriptIntError);
+
+  for (int i = 0; i < 20; i++) {
+    Expect.equals(0xAFAFA000, doNotThrow1(0xFAFAFA, 12));
+    Expect.equals(0x2FAFA000, doNotThrow3(0xFAFAFA, 12));
+    Expect.equals(0xABABA000, doNotThrow2(0xFAFAFAABABA, 12));
+    Expect.equals(0x2BABA000, doNotThrow4(0xFAFAFAABABA, 12));
+  }
+  for (int i = 0; i < 20; i++) {
+    Expect.equals(0xABABA000, doNotThrow1(0xFAFAFAABABA, 12));
+    Expect.equals(0x2BABA000, doNotThrow3(0xFAFAFAABABA, 12));
+  }
+
 }

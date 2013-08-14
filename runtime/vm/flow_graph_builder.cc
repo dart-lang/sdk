@@ -983,12 +983,13 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
   arguments->Add(push_left);
   arguments->Add(push_right);
   const String& name = String::ZoneHandle(Symbols::New(node->Name()));
+  const intptr_t kNumArgsChecked = 2;
   InstanceCallInstr* call = new InstanceCallInstr(node->token_pos(),
                                                   name,
                                                   node->kind(),
                                                   arguments,
                                                   Object::null_array(),
-                                                  2,
+                                                  kNumArgsChecked,
                                                   owner()->ic_data_array());
   ReturnDefinition(call);
 }
@@ -1041,6 +1042,54 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     return;
   }
   EffectGraphVisitor::VisitBinaryOpNode(node);
+}
+
+
+static const String& BinaryOpAndMaskName(BinaryOpNode* node) {
+  if (node->kind() == Token::kSHL) {
+    return PrivateCoreLibName(Symbols::_leftShiftWithMask32());
+  }
+  UNIMPLEMENTED();
+  return String::ZoneHandle();
+}
+
+
+// <Expression> :: BinaryOp { kind:  Token::Kind
+//                            left:  <Expression>
+//                            right: <Expression>
+//                            mask32: constant }
+void EffectGraphVisitor::VisitBinaryOpWithMask32Node(
+    BinaryOpWithMask32Node* node) {
+  ASSERT((node->kind() != Token::kAND) && (node->kind() != Token::kOR));
+  ValueGraphVisitor for_left_value(owner(), temp_index());
+  node->left()->Visit(&for_left_value);
+  Append(for_left_value);
+  PushArgumentInstr* push_left = PushArgument(for_left_value.value());
+
+  ValueGraphVisitor for_right_value(owner(), temp_index());
+  node->right()->Visit(&for_right_value);
+  Append(for_right_value);
+  PushArgumentInstr* push_right = PushArgument(for_right_value.value());
+
+  Value* mask_value = Bind(new ConstantInstr(
+      Integer::ZoneHandle(Integer::New(node->mask32(), Heap::kOld))));
+  PushArgumentInstr* push_mask = PushArgument(mask_value);
+
+  ZoneGrowableArray<PushArgumentInstr*>* arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>(3);
+  arguments->Add(push_left);
+  arguments->Add(push_right);
+  // Call to special method 'BinaryOpAndMaskName(node)'.
+  arguments->Add(push_mask);
+  const intptr_t kNumArgsChecked = 2;
+  InstanceCallInstr* call = new InstanceCallInstr(node->token_pos(),
+                                                  BinaryOpAndMaskName(node),
+                                                  Token::kILLEGAL,
+                                                  arguments,
+                                                  Object::null_array(),
+                                                  kNumArgsChecked,
+                                                  owner()->ic_data_array());
+  ReturnDefinition(call);
 }
 
 

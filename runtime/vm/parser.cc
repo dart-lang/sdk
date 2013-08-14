@@ -7290,6 +7290,29 @@ AstNode* Parser::OptimizeBinaryOpNode(intptr_t op_pos,
   if ((binary_op == Token::kAND) || (binary_op == Token::kOR)) {
     EnsureExpressionTemp();
   }
+  if (binary_op == Token::kBIT_AND) {
+    // Normalize so that rhs is a literal if any is.
+    if ((rhs_literal == NULL) && (lhs_literal != NULL)) {
+      // Swap.
+      LiteralNode* temp = rhs_literal;
+      rhs_literal = lhs_literal;
+      lhs_literal = temp;
+    }
+    if ((rhs_literal != NULL) &&
+        (rhs_literal->literal().IsSmi() || rhs_literal->literal().IsMint())) {
+      const int64_t val = Integer::Cast(rhs_literal->literal()).AsInt64Value();
+      if ((0 <= val) && (Utils::IsUint(32, val))) {
+        if (lhs->IsBinaryOpNode() &&
+            (lhs->AsBinaryOpNode()->kind() == Token::kSHL)) {
+          // Merge SHL and BIT_AND into one "SHL with mask" node.
+          BinaryOpNode* old = lhs->AsBinaryOpNode();
+          BinaryOpWithMask32Node* binop = new BinaryOpWithMask32Node(
+              old->token_pos(), old->kind(), old->left(), old->right(), val);
+          return binop;
+        }
+      }
+    }
+  }
   return new BinaryOpNode(op_pos, binary_op, lhs, rhs);
 }
 

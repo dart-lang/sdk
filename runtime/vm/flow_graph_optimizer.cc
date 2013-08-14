@@ -1942,6 +1942,67 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   if ((class_ids[0] == kUint32x4Cid) && (ic_data.NumberOfChecks() == 1)) {
     return TryInlineUint32x4Method(call, recognized_kind);
   }
+
+  if (recognized_kind == MethodRecognizer::kIntegerLeftShiftWithMask32) {
+    ASSERT(call->ArgumentCount() == 3);
+    ASSERT(ic_data.num_args_tested() == 2);
+    Definition* value = call->ArgumentAt(0);
+    Definition* count = call->ArgumentAt(1);
+    Definition* int32_mask = call->ArgumentAt(2);
+    if (HasOnlyTwoOf(ic_data, kSmiCid)) {
+      if (ic_data.deopt_reason() == kDeoptShiftMintOp) {
+        return false;
+      }
+      // We cannot overflow. The input value must be a Smi
+      AddCheckSmi(value, call->deopt_id(), call->env(), call);
+      AddCheckSmi(count, call->deopt_id(), call->env(), call);
+      ASSERT(int32_mask->IsConstant());
+      const Integer& mask_literal = Integer::Cast(
+          int32_mask->AsConstant()->value());
+      const int64_t mask_value = mask_literal.AsInt64Value();
+      ASSERT(mask_value >= 0);
+      if (mask_value > Smi::kMaxValue) {
+        // The result will not be Smi.
+        return false;
+      }
+      BinarySmiOpInstr* left_shift =
+          new BinarySmiOpInstr(Token::kSHL,
+                               new Value(value), new Value(count),
+                               call->deopt_id());
+      left_shift->set_is_truncating(true);
+      if ((kBitsPerWord == 32) && (mask_value == 0xffffffffLL)) {
+        // No BIT_AND operation needed.
+        ReplaceCall(call, left_shift);
+      } else {
+        InsertBefore(call, left_shift, call->env(), Definition::kValue);
+        BinarySmiOpInstr* bit_and =
+            new BinarySmiOpInstr(Token::kBIT_AND,
+                                 new Value(left_shift), new Value(int32_mask),
+                                 call->deopt_id());
+        ReplaceCall(call, bit_and);
+      }
+      return true;
+    }
+
+    if (HasTwoMintOrSmi(ic_data) &&
+        HasOnlyOneSmi(ICData::Handle(ic_data.AsUnaryClassChecksForArgNr(1)))) {
+      if (!FlowGraphCompiler::SupportsUnboxedMints() ||
+          (ic_data.deopt_reason() == kDeoptShiftMintOp)) {
+        return false;
+      }
+      ShiftMintOpInstr* left_shift =
+          new ShiftMintOpInstr(Token::kSHL,
+                               new Value(value), new Value(count),
+                               call->deopt_id());
+      InsertBefore(call, left_shift, call->env(), Definition::kValue);
+      BinaryMintOpInstr* bit_and =
+          new BinaryMintOpInstr(Token::kBIT_AND,
+                                new Value(left_shift), new Value(int32_mask),
+                                call->deopt_id());
+      ReplaceCall(call, bit_and);
+      return true;
+    }
+  }
   return false;
 }
 

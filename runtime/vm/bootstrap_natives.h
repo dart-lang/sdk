@@ -38,6 +38,7 @@ namespace dart {
   V(Integer_greaterThanFromInteger, 2)                                         \
   V(Integer_equalToInteger, 2)                                                 \
   V(Integer_parse, 1)                                                          \
+  V(Integer_leftShiftWithMask32, 3)                                            \
   V(ReceivePortImpl_factory, 1)                                                \
   V(ReceivePortImpl_closeInternal, 1)                                          \
   V(SendPortImpl_sendInternal_, 3)                                             \

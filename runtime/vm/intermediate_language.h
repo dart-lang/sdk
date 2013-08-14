@@ -72,6 +72,8 @@ class Range;
   V(_StringBase, [], StringBaseCharAt, 924930519)                              \
   V(_OneByteString, _setAt, OneByteStringSetAt, 456985263)                     \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 2141284842)             \
+  V(_IntegerImplementation, _leftShiftWithMask32, IntegerLeftShiftWithMask32,  \
+      964472615)                                                               \
   V(_Double, toInt, DoubleToInteger, 1580473283)                               \
   V(_Double, truncateToDouble, DoubleTruncate, 849350203)                      \
   V(_Double, roundToDouble, DoubleRound, 500368418)                            \

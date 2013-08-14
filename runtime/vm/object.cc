@@ -11516,11 +11516,13 @@ static bool IsJavascriptInt(int64_t value) {
 }
 
 
-RawInteger* Integer::New(int64_t value, Heap::Space space) {
+RawInteger* Integer::New(int64_t value, Heap::Space space, const bool silent) {
   if ((value <= Smi::kMaxValue) && (value >= Smi::kMinValue)) {
     return Smi::New(value);
   }
-  if (FLAG_throw_on_javascript_int_overflow && !IsJavascriptInt(value)) {
+  if (!silent &&
+      FLAG_throw_on_javascript_int_overflow &&
+      !IsJavascriptInt(value)) {
     const Integer &i = Integer::Handle(Mint::New(value));
     ThrowJavascriptIntegerOverflow(i);
   }
@@ -11763,7 +11765,9 @@ RawInteger* Integer::BitOp(Token::Kind kind, const Integer& other) const {
 
 
 // TODO(srdjan): Clarify handling of negative right operand in a shift op.
-RawInteger* Smi::ShiftOp(Token::Kind kind, const Smi& other) const {
+RawInteger* Smi::ShiftOp(Token::Kind kind,
+                         const Smi& other,
+                         const bool silent) const {
   intptr_t result = 0;
   const intptr_t left_value = Value();
   const intptr_t right_value = other.Value();
@@ -11782,7 +11786,7 @@ RawInteger* Smi::ShiftOp(Token::Kind kind, const Smi& other) const {
                                right_value);
           } else {
             int64_t left_64 = left_value;
-            return Integer::New(left_64 << right_value);
+            return Integer::New(left_64 << right_value, Heap::kNew, silent);
           }
         }
       }

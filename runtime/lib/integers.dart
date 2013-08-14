@@ -172,7 +172,10 @@ class _IntegerImplementation {
         result *= base;
       }
       exponent >>= 1;
-      base *= base;
+      // Skip unnecessary operation (can overflow to Mint or Bigint).
+      if (exponent != 0) {
+        base *= base;
+      }
     }
     return result;
   }
@@ -213,6 +216,8 @@ class _IntegerImplementation {
     }
     return buffer.toString();
   }
+
+  _leftShiftWithMask32(count, mask)  native "Integer_leftShiftWithMask32";
 }
 
 class _Smi extends _IntegerImplementation implements int {

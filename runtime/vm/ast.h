@@ -21,6 +21,7 @@ namespace dart {
   V(TypeNode, "type")                                                          \
   V(AssignableNode, "assignable")                                              \
   V(BinaryOpNode, "binop")                                                     \
+  V(BinaryOpWithMask32Node, "binop with mask 32")                              \
   V(ComparisonNode, "compare")                                                 \
   V(UnaryOpNode, "unaryop")                                                    \
   V(ConditionalExprNode, "?:")                                                 \
@@ -579,6 +580,12 @@ class BinaryOpNode : public AstNode {
   AstNode* left() const { return left_; }
   AstNode* right() const { return right_; }
 
+  virtual bool has_mask32() const { return false; }
+  virtual int64_t mask32() const {
+    UNREACHABLE();
+    return 0;
+  }
+
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
     left()->Visit(visitor);
     right()->Visit(visitor);
@@ -599,6 +606,37 @@ class BinaryOpNode : public AstNode {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(BinaryOpNode);
 };
+
+
+class BinaryOpWithMask32Node : public BinaryOpNode {
+ public:
+  BinaryOpWithMask32Node(intptr_t token_pos,
+                         Token::Kind kind_value,
+                         AstNode* left,
+                         AstNode* right,
+                         int64_t mask32)
+      : BinaryOpNode(token_pos, kind_value, left, right), mask32_(mask32) {
+    ASSERT(mask32 >= 0 && Utils::IsUint(32, mask32));
+    ASSERT((kind_value != Token::kAND) && (kind_value != Token::kOR));
+  }
+
+  // The optional 32-bit mask must be a an unsigned 32-bit value.
+  virtual bool has_mask32() const { return true; }
+  virtual int64_t mask32() const {
+    ASSERT(has_mask32());
+    return mask32_;
+  }
+
+  virtual const char* Name() const;
+  DECLARE_COMMON_NODE_FUNCTIONS(BinaryOpWithMask32Node);
+
+ private:
+  // Optional unsigned 32 bit mask applied on result. No mask: -1.
+  const int64_t mask32_;
+
+  DISALLOW_IMPLICIT_CONSTRUCTORS(BinaryOpWithMask32Node);
+};
+
 
 
 class UnaryOpNode : public AstNode {
