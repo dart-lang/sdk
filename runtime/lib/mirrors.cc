@@ -593,19 +593,33 @@ DEFINE_NATIVE_ENTRY(ClassMirror_type_variables, 1) {
 DEFINE_NATIVE_ENTRY(ClassMirror_type_arguments, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
 
-  const AbstractTypeArguments& args =
-      AbstractTypeArguments::Handle(type.arguments());
-  if (args.IsNull()) {
-    return Object::empty_array().raw();
-  }
-
   const Class& cls = Class::Handle(type.type_class());
   const intptr_t num_params = cls.NumTypeParameters();
-  const intptr_t num_inherited_args = args.Length() - num_params;
+
+  if (num_params == 0) {
+    return Object::empty_array().raw();
+  }
 
   const Array& result = Array::Handle(Array::New(num_params));
   AbstractType& arg_type = AbstractType::Handle();
   Instance& type_mirror = Instance::Handle();
+  const AbstractTypeArguments& args =
+      AbstractTypeArguments::Handle(type.arguments());
+
+  // Handle argument lists that have been optimized away, because either no
+  // arguments have been provided, or all arguments are dynamic. Return a list
+  // of typemirrors on dynamic in this case.
+  if (args.IsNull()) {
+    arg_type ^= Object::dynamic_type();
+    type_mirror ^= CreateTypeMirror(arg_type);
+    for (intptr_t i = 0; i < num_params; i++) {
+      result.SetAt(i, type_mirror);
+    }
+    return result.raw();
+  }
+
+  ASSERT(args.Length() >= num_params);
+  const intptr_t num_inherited_args = args.Length() - num_params;
   for (intptr_t i = 0; i < num_params; i++) {
     arg_type ^= args.TypeAt(i + num_inherited_args);
     type_mirror = CreateTypeMirror(arg_type);
