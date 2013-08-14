@@ -155,16 +155,20 @@ class JSInvocationMirror implements Invocation {
         JS('int', '#.indexOf(#)', interceptedNames, name) != -1;
     if (isIntercepted) {
       receiver = interceptor;
+      if (JS('bool', '# === #', object, interceptor)) {
+        interceptor = null;
+      }
+    } else {
+      interceptor = null;
     }
     var method = JS('var', '#[#]', receiver, name);
     if (JS('String', 'typeof #', method) == 'function') {
-      return new CachedInvocation(method, isIntercepted ? interceptor : null);
+      return new CachedInvocation(method, isIntercepted, interceptor);
     } else {
       // In this case, receiver doesn't implement name.  So we should
       // invoke noSuchMethod instead (which will often throw a
       // NoSuchMethodError).
-      return new CachedNoSuchMethodInvocation(
-          isIntercepted ? interceptor : null);
+      return new CachedNoSuchMethodInvocation(interceptor);
     }
   }
 
@@ -187,10 +191,14 @@ class CachedInvocation {
   /// The JS function to call.
   var jsFunction;
 
-  /// Non-null interceptor if this is an intercepted call, otherwise null.
-  var interceptor;
+  /// True if this is an intercepted call.
+  bool isIntercepted;
 
-  CachedInvocation(this.jsFunction, this.interceptor);
+  /// Non-null interceptor if this is an intercepted call through an
+  /// [Interceptor].
+  Interceptor cachedInterceptor;
+
+  CachedInvocation(this.jsFunction, this.isIntercepted, this.cachedInterceptor);
 
   bool get isNoSuchMethod => false;
 
@@ -198,18 +206,19 @@ class CachedInvocation {
   /// Users of this class must take care to check the arguments first.
   invokeOn(Object victim, List arguments) {
     var receiver = victim;
-    if (interceptor == null) {
+    if (!isIntercepted) {
       if (arguments is! JSArray) arguments = new List.from(arguments);
     } else {
       arguments = [victim]..addAll(arguments);
-      receiver = interceptor;
+      if (cachedInterceptor != null) receiver = cachedInterceptor;
     }
     return JS("var", "#.apply(#, #)", jsFunction, receiver, arguments);
   }
 }
 
 class CachedNoSuchMethodInvocation {
-  /// Non-null interceptor if this is an intercepted call, otherwise null.
+  /// Non-null interceptor if this is an intercepted call through an
+  /// [Interceptor].
   var interceptor;
 
   CachedNoSuchMethodInvocation(this.interceptor);
