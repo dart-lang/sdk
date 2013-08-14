@@ -265,8 +265,7 @@ bool Api::ExternalStringGetPeerHelper(Dart_Handle object, void** peer) {
 
 void Api::SetWeakHandleReturnValue(NativeArguments* args,
                                    Dart_WeakPersistentHandle retval) {
-  args->SetReturnUnsafe(
-      reinterpret_cast<FinalizablePersistentHandle*>(retval)->raw());
+  args->SetReturnUnsafe(Api::UnwrapAsWeakPersistentHandle(retval)->raw());
 }
 
 
