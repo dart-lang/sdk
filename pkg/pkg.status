@@ -99,7 +99,9 @@ csslib: Pass, Crash # crashing randomly, see issue 12468
 stack_trace/test/vm_test: Fail, OK # VM-specific traces
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
-csslib/test/var_test: Fail # looking for VM-specific stack traces
+
+[ $compiler == dart2js ]
+csslib/test/var_test: Fail # looking for VM-specific stack traces, issue 12469
 
 [ $compiler == dart2js && $runtime == drt ]
 third_party/html5lib/test/parser_feature_test: Fail # issue 12466
