@@ -37,6 +37,11 @@ var logger = new Logger('Docgen');
 
 const String USAGE = 'Usage: dart docgen.dart [OPTIONS] [fooDir/barFile]';
 
+
+List<String> validAnnotations = const ['metadata.Experimental', 
+    'metadata.DomName', 'metadata.Deprecated', 'metadata.Unstable', 
+    'meta.deprecated', 'metadata.SupportedBrowser'];
+
 /// Current library being documented to be used for comment links.
 LibraryMirror _currentLibrary;
 
@@ -318,8 +323,10 @@ List<String> _annotations(DeclarationMirror mirror) {
       .map((e) => annotation.getField(e.simpleName).reflectee)
       .where((e) => e != null)
       .toList();
-    annotations.add(new Annotation(annotation.type.qualifiedName,
-        parameterList));
+    if (validAnnotations.contains(annotation.type.qualifiedName)) {
+      annotations.add(new Annotation(annotation.type.qualifiedName,
+          parameterList));
+    }
   });
   return annotations;
 }
