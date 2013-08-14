@@ -27,7 +27,7 @@ get serialization => new Serialization()
       constructorFields: ["index", "parent"])
   ..addRuleFor(new LiteralString("a", null),
       constructorFields: ["string", "parent"])
-  ..addRuleFor(new CompositeMessage([], null), constructor: "parent",
+  ..addRuleFor(new CompositeMessage([], null), constructor: "withParent",
       constructorFields: ["parent"]);
 var format = const SimpleFlatFormat();
 get writer => serialization.newWriter(format);
