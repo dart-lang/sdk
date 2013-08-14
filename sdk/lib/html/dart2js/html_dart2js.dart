@@ -2021,6 +2021,36 @@ class Crypto extends Interceptor native "Crypto" {
 
 
 @DocsEditable()
+@DomName('Key')
+@Experimental() // untriaged
+class CryptoKey extends Interceptor native "Key" {
+
+  @DomName('Key.algorithm')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Algorithm algorithm;
+
+  @DomName('Key.extractable')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final bool extractable;
+
+  @DomName('Key.type')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String type;
+
+  @DomName('Key.usages')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final List<String> usages;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
 @DomName('CryptoOperation')
 @Experimental() // untriaged
 class CryptoOperation extends Interceptor native "CryptoOperation" {
@@ -14387,36 +14417,6 @@ class InputMethodContext extends Interceptor native "InputMethodContext" {
   @DomName('InputMethodContext.setExclusionRectangle')
   @DocsEditable()
   void setExclusionRectangle(Node anchor, int x, int y, int w, int h) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('Key')
-@Experimental() // untriaged
-class Key extends Interceptor native "Key" {
-
-  @DomName('Key.algorithm')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final Algorithm algorithm;
-
-  @DomName('Key.extractable')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final bool extractable;
-
-  @DomName('Key.type')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final String type;
-
-  @DomName('Key.usages')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final List<String> usages;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

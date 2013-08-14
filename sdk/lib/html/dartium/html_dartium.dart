@@ -2416,6 +2416,39 @@ class Crypto extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable()
+@DomName('Key')
+@Experimental() // untriaged
+class CryptoKey extends NativeFieldWrapperClass1 {
+
+  @DomName('Key.algorithm')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Algorithm get algorithm native "Key_algorithm_Getter";
+
+  @DomName('Key.extractable')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool get extractable native "Key_extractable_Getter";
+
+  @DomName('Key.type')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get type native "Key_type_Getter";
+
+  @DomName('Key.usages')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<String> get usages native "Key_usages_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('CryptoOperation')
 @Experimental() // untriaged
 class CryptoOperation extends NativeFieldWrapperClass1 {
@@ -15271,39 +15304,6 @@ class InputMethodContext extends NativeFieldWrapperClass1 {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('Key')
-@Experimental() // untriaged
-class Key extends NativeFieldWrapperClass1 {
-
-  @DomName('Key.algorithm')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Algorithm get algorithm native "Key_algorithm_Getter";
-
-  @DomName('Key.extractable')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool get extractable native "Key_extractable_Getter";
-
-  @DomName('Key.type')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get type native "Key_type_Getter";
-
-  @DomName('Key.usages')
-  @DocsEditable()
-  @Experimental() // untriaged
-  List<String> get usages native "Key_usages_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 @DomName('KeyboardEvent')
 class KeyboardEvent extends UIEvent {
@@ -25724,13 +25724,13 @@ class Url extends NativeFieldWrapperClass1 {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
