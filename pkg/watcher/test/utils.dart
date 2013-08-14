@@ -109,7 +109,10 @@ DirectoryWatcher createWatcher({String dir, bool waitForReady}) {
 /// Validates that events are delivered for all paths in [paths], but allows
 /// them in any order.
 void expectEvents(ChangeType type, Iterable<String> paths) {
-  var pathSet = paths.map((path) => p.join(_sandboxDir, path)).toSet();
+  var pathSet = paths
+      .map((path) => p.join(_sandboxDir, path))
+      .map(p.normalize)
+      .toSet();
 
   // Create an expectation for as many paths as we have.
   var futures = [];
