@@ -40,8 +40,11 @@ Future runHttpClient(int port, result) {
 
   var testFutures = [];
   testFutures.add(client.getUrl(Uri.parse('https://$HOST_NAME:$port/$result'))
-    .then((HttpClientRequest request) { expect(false); },
-        onError: (e) { expect(e is HandshakeException); }));
+    .then((HttpClientRequest request) {
+      expect(false);
+    }, onError: (e) {
+      expect(e is HandshakeException || e is SocketException);
+    }));
 
   client.badCertificateCallback = badCertificateCallback;
   testFutures.add( client.getUrl(Uri.parse('https://$HOST_NAME:$port/$result'))
@@ -49,9 +52,11 @@ Future runHttpClient(int port, result) {
       expect(result == 'true');
       request.close().then((result) { });
     }, onError: (e) {
-      if (result == 'false') expect (e is HandshakeException);
-      else if (result == 'exception') expect (e is ExpectException);
-      else expect (e is ArgumentError);
+      if (result == 'false') expect (e is HandshakeException ||
+                                     e is SocketException);
+      else if (result == 'exception') expect (e is ExpectException ||
+                                              e is SocketException);
+      else expect (e is ArgumentError || e is SocketException);
     }));
 
   client.badCertificateCallback = null;
@@ -59,7 +64,7 @@ Future runHttpClient(int port, result) {
     .then((HttpClientRequest request) {
       expect(false);
     }, onError: (e) {
-      expect(e is HandshakeException);
+      expect(e is HandshakeException || e is SocketException);
     }));
 
   return Future.wait(testFutures);
