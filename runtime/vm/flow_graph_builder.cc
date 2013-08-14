@@ -3496,6 +3496,8 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
                              push_arguments,
                              owner()->ic_data_array());
 }
+
+
 StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
     intptr_t token_pos,
     const Class& function_class,

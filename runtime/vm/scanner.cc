@@ -581,7 +581,17 @@ void Scanner::ScanLiteralStringChars(bool is_raw) {
         string_chars.Add(string_delimiter_);
       }
     } else {
-      string_chars.Add(c0_);
+      // Test for a two part utf16 sequence, and decode to a code point
+      // if we find one.
+      int32_t ch1 = c0_;
+      if (Utf16::IsLeadSurrogate(ch1)) {
+        const int32_t ch2 = LookaheadChar(1);
+        if (Utf16::IsTrailSurrogate(ch2)) {
+          ch1 = Utf16::Decode(ch1, ch2);
+          ReadChar();
+        }
+      }
+      string_chars.Add(ch1);
     }
     ReadChar();
   }
