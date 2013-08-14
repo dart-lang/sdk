@@ -448,6 +448,22 @@ class B extends A {
   returnInt9() => super.myField;
 }
 
+testCascade1() {
+  return [1, 2, 3]..add(4)..add(5);
+}
+
+testCascade2() {
+  return new CascadeHelper()
+      ..a = "hello"
+      ..b = 42
+      ..i += 1;
+}
+
+class CascadeHelper {
+  var a, b;
+  var i = 0;
+}
+
 main() {
   // Ensure a function class is being instantiated.
   () => 42;
@@ -527,6 +543,8 @@ main() {
   testReturnElementOfConstList2();
   testReturnItselfOrInt(topLevelGetter());
   testReturnInvokeDynamicGetter();
+  testCascade1();
+  testCascade2();
 }
 """;
 
@@ -643,4 +661,8 @@ void main() {
                   typesInferrer.getReturnTypeOfElement(element));
   }
   checkFactoryConstructor('A', '');
+
+  checkReturn('testCascade1', typesTask.growableListType);
+  checkReturn('testCascade2', new TypeMask.nonNullExact(
+      typesTask.rawTypeOf(findElement(compiler, 'CascadeHelper'))));
 }

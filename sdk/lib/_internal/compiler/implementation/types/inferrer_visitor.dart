@@ -522,6 +522,7 @@ abstract class InferrerVisitor<T> extends ResolvedVisitor<T> {
   final Map<TargetElement, List<LocalsHandler>> continuesFor =
       new Map<TargetElement, List<LocalsHandler<T>>>();
   LocalsHandler<T> locals;
+  final List<T> cascadeReceiverStack = new List<T>();
 
   bool accumulateIsChecks = false;
   bool conditionIsSimple = false;
@@ -1058,14 +1059,15 @@ abstract class InferrerVisitor<T> extends ResolvedVisitor<T> {
   }
 
   T visitCascadeReceiver(CascadeReceiver node) {
-    // TODO(ngeoffray): Implement.
-    node.visitChildren(this);
-    return types.dynamicType;
+    var type = visit(node.expression);
+    cascadeReceiverStack.add(type);
+    return type;
   }
 
   T visitCascade(Cascade node) {
-    // TODO(ngeoffray): Implement.
-    node.visitChildren(this);
-    return types.dynamicType;
+    // Ignore the result of the cascade send and return the type of the cascade
+    // receiver.
+    visit(node.expression);
+    return cascadeReceiverStack.removeLast();
   }
 }
