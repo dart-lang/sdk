@@ -581,6 +581,7 @@ class EmbeddedArray<T, 0> {
   M(CloneContext)                                                              \
   M(BinarySmiOp)                                                               \
   M(UnarySmiOp)                                                                \
+  M(UnaryDoubleOp)                                                             \
   M(CheckStackOverflow)                                                        \
   M(SmiToDouble)                                                               \
   M(DoubleToInteger)                                                           \
@@ -920,6 +921,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class BinaryMintOpInstr;
   friend class BinarySmiOpInstr;
   friend class UnarySmiOpInstr;
+  friend class UnaryDoubleOpInstr;
   friend class ShiftMintOpInstr;
   friend class UnaryMintOpInstr;
   friend class MathUnaryInstr;
@@ -4714,7 +4716,7 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2> {
       : op_kind_(op_kind) {
     SetInputAt(0, left);
     SetInputAt(1, right);
-    // Overrided generated deopt_id.
+    // Overriden generated deopt_id.
     deopt_id_ = deopt_id;
   }
 
@@ -6050,6 +6052,58 @@ class UnarySmiOpInstr : public TemplateDefinition<1> {
   const Token::Kind op_kind_;
 
   DISALLOW_COPY_AND_ASSIGN(UnarySmiOpInstr);
+};
+
+
+// Handles only NEGATE.
+class UnaryDoubleOpInstr : public TemplateDefinition<1> {
+ public:
+  UnaryDoubleOpInstr(Token::Kind op_kind,
+                     Value* value,
+                     intptr_t deopt_id)
+      : op_kind_(op_kind) {
+    ASSERT(op_kind == Token::kNEGATE);
+    SetInputAt(0, value);
+    // Overriden generated deopt_id.
+    deopt_id_ = deopt_id;
+  }
+
+  Value* value() const { return inputs_[0]; }
+  Token::Kind op_kind() const { return op_kind_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  DECLARE_INSTRUCTION(UnaryDoubleOp)
+  virtual CompileType ComputeType() const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  virtual Representation representation() const {
+    return kUnboxedDouble;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedDouble;
+  }
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  const Token::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(UnaryDoubleOpInstr);
 };
 
 

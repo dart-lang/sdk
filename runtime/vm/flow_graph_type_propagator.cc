@@ -981,6 +981,11 @@ CompileType UnarySmiOpInstr::ComputeType() const {
 }
 
 
+CompileType UnaryDoubleOpInstr::ComputeType() const {
+  return CompileType::FromCid(kDoubleCid);
+}
+
+
 CompileType DoubleToSmiInstr::ComputeType() const {
   return CompileType::FromCid(kSmiCid);
 }

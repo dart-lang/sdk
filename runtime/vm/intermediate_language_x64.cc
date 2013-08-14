@@ -3776,6 +3776,48 @@ LocationSummary* UnarySmiOpInstr::MakeLocationSummary() const {
 }
 
 
+void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register value = locs()->in(0).reg();
+  ASSERT(value == locs()->out().reg());
+  switch (op_kind()) {
+    case Token::kNEGATE: {
+      Label* deopt = compiler->AddDeoptStub(deopt_id(),
+                                            kDeoptUnaryOp);
+      __ negq(value);
+      __ j(OVERFLOW, deopt);
+      if (FLAG_throw_on_javascript_int_overflow) {
+        EmitJavascriptOverflowCheck(compiler, range(), deopt, value);
+      }
+      break;
+    }
+    case Token::kBIT_NOT:
+      __ notq(value);
+      __ andq(value, Immediate(~kSmiTagMask));  // Remove inverted smi-tag.
+      break;
+    default:
+      UNREACHABLE();
+  }
+}
+
+
+LocationSummary* UnaryDoubleOpInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void UnaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister value = locs()->in(0).fpu_reg();
+  ASSERT(locs()->out().fpu_reg() == value);
+  __ DoubleNegate(value);
+}
+
+
 LocationSummary* MathMinMaxInstr::MakeLocationSummary() const {
   if (result_cid() == kDoubleCid) {
     const intptr_t kNumInputs = 2;
@@ -3861,30 +3903,6 @@ void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ cmovgeq(result, right);
   } else {
     __ cmovlessq(result, right);
-  }
-}
-
-
-void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register value = locs()->in(0).reg();
-  ASSERT(value == locs()->out().reg());
-  switch (op_kind()) {
-    case Token::kNEGATE: {
-      Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                            kDeoptUnaryOp);
-      __ negq(value);
-      __ j(OVERFLOW, deopt);
-      if (FLAG_throw_on_javascript_int_overflow) {
-        EmitJavascriptOverflowCheck(compiler, range(), deopt, value);
-      }
-      break;
-    }
-    case Token::kBIT_NOT:
-      __ notq(value);
-      __ andq(value, Immediate(~kSmiTagMask));  // Remove inverted smi-tag.
-      break;
-    default:
-      UNREACHABLE();
   }
 }
 

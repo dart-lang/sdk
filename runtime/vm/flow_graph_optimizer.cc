@@ -1236,15 +1236,12 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
   } else if (HasOnlyOneDouble(*call->ic_data()) &&
              (op_kind == Token::kNEGATE)) {
     AddReceiverCheck(call);
-    ConstantInstr* minus_one =
-        flow_graph()->GetConstant(Double::ZoneHandle(Double::NewCanonical(-1)));
-    unary_op = new BinaryDoubleOpInstr(Token::kMUL,
-                                       new Value(input),
-                                       new Value(minus_one),
-                                       call->deopt_id());
+    unary_op = new UnaryDoubleOpInstr(
+        Token::kNEGATE, new Value(input), call->deopt_id());
+  } else {
+    return false;
   }
-  if (unary_op == NULL) return false;
-
+  ASSERT(unary_op != NULL);
   ReplaceCall(call, unary_op);
   return true;
 }
@@ -6362,6 +6359,17 @@ void ConstantPropagator::VisitUnaryMintOp(
 
 
 void ConstantPropagator::VisitUnarySmiOp(UnarySmiOpInstr* instr) {
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsNonConstant(value)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(value)) {
+    // TODO(kmillikin): Handle unary operations.
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitUnaryDoubleOp(UnaryDoubleOpInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsNonConstant(value)) {
     SetValue(instr, non_constant_);

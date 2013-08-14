@@ -3230,6 +3230,33 @@ void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* UnaryDoubleOpInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 2;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(Location::RequiresFpuRegister());
+  summary->set_temp(0, Location::RequiresRegister());
+  summary->set_in(2, Location::RequiresFpuRegister());
+  return summary;
+}
+
+
+void UnaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // TODO(zra): Implement vneg.
+  Register temp = locs()->temp(0).reg();
+  const Double& minus_one = Double::ZoneHandle(Double::NewCanonical(-1));
+  __ LoadObject(temp, minus_one);
+  FpuRegister result = locs()->out().fpu_reg();
+  FpuRegister value = locs()->in(0).fpu_reg();
+  FpuRegister temp_fp = locs()->temp(1).fpu_reg();
+  __ LoadDFromOffset(temp_fp, temp, Double::value_offset() - kHeapObjectTag);
+  __ muld(result, value, temp_fp);
+}
+
+
+
 LocationSummary* SmiToDoubleInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
