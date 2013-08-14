@@ -14,6 +14,7 @@ LibTest/math/min_A01_t03: Fail # co19 issue 467
 
 [ $runtime == vm && $system == windows ]
 LibTest/core/Stopwatch/elapsed_A01_t01: Pass, Fail # Issue 11382.
+LibTest/core/Stopwatch/elapsed_A01_t03: Pass, Fail # Issue 12383.
 
 [ $runtime == vm ]
 Language/11_Expressions/33_Argument_Definition_Test_A02_t02: Crash, Pass # Issue 9597 (question-mark operator)
