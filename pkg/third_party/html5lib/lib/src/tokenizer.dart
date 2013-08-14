@@ -59,7 +59,9 @@ class HtmlTokenizer implements Iterator<Token> {
   /**
    * Holds a reference to the method to be invoked for the next parser state.
    */
-  Predicate state;
+  // TODO(jmesserly): the type should be "Predicate" but a dart2js checked mode
+  // bug prevents us from doing that. See http://dartbug.com/12465
+  Function state;
 
   String temporaryBuffer;
 

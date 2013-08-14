@@ -102,6 +102,7 @@ csslib/test/var_test: Fail # looking for VM-specific stack traces
 
 [ $compiler == dart2js && $runtime == drt ]
 csslib/test/nested_test: Fail # crashing DRT
+third_party/html5lib/test/parser_feature_test: Fail # issue 12466
 
 [ $browser ]
 analyzer_experimental/test/error_test: Fail, OK # Uses dart:io.
