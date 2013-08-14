@@ -277,7 +277,11 @@ void _writeIndexableToFile(Indexable result, bool outputToYaml) {
  */
 // This is because LibraryMirror.isPrivate returns `false` all the time.
 bool _isLibraryPrivate(LibraryMirror mirror) {
-  if (mirror.simpleName.startsWith('_') || mirror.simpleName.contains('._')) {
+  var sdkLibrary = LIBRARIES[mirror.simpleName];
+  if (sdkLibrary != null) {
+    return !sdkLibrary.documented;
+  } else if (mirror.simpleName.startsWith('_') || 
+      mirror.simpleName.contains('._')) {
     return true;
   }
   return false;
