@@ -72,14 +72,19 @@ class Trace implements StackTrace {
   /// [trace] should be formatted in the same way as a Dart VM or browser stack
   /// trace.
   factory Trace.parse(String trace) {
-    if (trace.isEmpty) return new Trace(<Frame>[]);
-    if (trace.startsWith("Error\n")) return new Trace.parseV8(trace);
-    if (trace.contains(_firefoxTrace)) return new Trace.parseFirefox(trace);
-    if (trace.contains(_friendlyTrace)) return new Trace.parseFriendly(trace);
+    try {
+      if (trace.isEmpty) return new Trace(<Frame>[]);
+      if (trace.startsWith("Error\n")) return new Trace.parseV8(trace);
+      if (trace.contains(_firefoxTrace)) return new Trace.parseFirefox(trace);
+      if (trace.contains(_friendlyTrace)) return new Trace.parseFriendly(trace);
 
-    // Default to parsing the stack trace as a VM trace. This is also hit on IE
-    // and Safari, where the stack trace is just an empty string (issue 11257).
-    return new Trace.parseVM(trace);
+      // Default to parsing the stack trace as a VM trace. This is also hit on
+      // IE and Safari, where the stack trace is just an empty string (issue
+      // 11257).
+      return new Trace.parseVM(trace);
+    } on FormatException catch (error) {
+      throw new FormatException('${error.message}\nStack trace:\n$trace');
+    }
   }
 
   /// Parses a string representation of a Dart VM stack trace.
