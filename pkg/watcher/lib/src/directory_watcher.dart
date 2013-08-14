@@ -134,18 +134,17 @@ class DirectoryWatcher {
       if (entity is! File) return;
       _filesToProcess.add(entity.path);
     }, onError: (error) {
-      if (isDirectoryNotFoundException(error)) {
-        // If the directory doesn't exist, we end the listing normally, which
-        // has the desired effect of marking all files that were in the
-        // directory as being removed.
-        endListing();
-        return;
+      if (!isDirectoryNotFoundException(error)) {
+        // It's some unknown error. Pipe it over to the event stream so the
+        // user can see it.
+        _events.addError(error);
       }
 
-      // It's some unknown error. Pipe it over to the event stream so we don't
-      // take down the whole isolate.
-      _events.addError(error);
-    }, onDone: endListing);
+      // When an error occurs, we end the listing normally, which has the
+      // desired effect of marking all files that were in the directory as
+      // being removed.
+      endListing();
+    }, onDone: endListing, cancelOnError: true);
   }
 
   /// Processes [file] to determine if it has been modified since the last
