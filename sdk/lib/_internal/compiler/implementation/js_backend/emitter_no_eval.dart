@@ -64,7 +64,9 @@ class CodeEmitterNoEvalTask extends CodeEmitterTask {
                  bool needsCheckedSetter) {
       fields.add(name);
     });
-    String constructorName = namer.safeName(classElement.name.slowToString());
+    String constructorName =
+        // TODO(ahe): Shouldn't this just be 'namer.getName(classElement)'?
+        namer.safeName(classElement.name.slowToString().replaceAll('+', '_'));
     if (classElement.isNative()) {
       builder.addProperty('', buildUnusedConstructor(constructorName));
     } else {

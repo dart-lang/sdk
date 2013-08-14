@@ -158,6 +158,7 @@ abstract class JsDeclarationMirror extends JsMirror
 
   bool get isTopLevel => owner != null && owner is LibraryMirror;
 
+  // TODO(ahe): This should use qualifiedName.
   String toString() => "$_prettyName on '${n(simpleName)}'";
 
   List<JsMethodMirror> get _methods {
@@ -224,9 +225,11 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
     if (_cachedClasses != null) return _cachedClasses;
     var result = new Map();
     for (String className in _classes) {
-      JsClassMirror cls = reflectClassByMangledName(className);
-      result[cls.simpleName] = cls;
-      cls._owner = this;
+      var cls = reflectClassByMangledName(className);
+      if (cls is JsClassMirror) {
+        result[cls.simpleName] = cls;
+        cls._owner = this;
+      }
     }
     return _cachedClasses =
         new UnmodifiableMapView<Symbol, ClassMirror>(result);
@@ -392,6 +395,9 @@ InstanceMirror reflect(Object reflectee) {
 }
 
 ClassMirror reflectType(Type key) {
+  // TODO(ahe): Don't discard type arguments to support
+  // [ClassMirror.isOriginalDeclaration] and [ClassMirror.originalDeclaration]
+  // correctly.
   return reflectClassByMangledName('$key'.split('<')[0]);
 }
 
@@ -436,10 +442,116 @@ ClassMirror reflectClassByName(Symbol symbol, String mangledName) {
       fields = '';
     }
   }
-  mirror = new JsClassMirror(
-      symbol, mangledName, constructorOrInterceptor, fields, fieldsMetadata);
+
+  var superclassName = fields.split(';')[0];
+  var mixins = superclassName.split('+');
+  if (mixins.length > 1 && mangledGlobalNames[mangledName] == null) {
+    mirror = reflectMixinApplication(mixins, mangledName);
+  } else {
+    mirror = new JsClassMirror(
+        symbol, mangledName, constructorOrInterceptor, fields, fieldsMetadata);
+  }
+
   JsCache.update(classMirrors, mangledName, mirror);
   return mirror;
+}
+
+int counter = 0;
+
+ClassMirror reflectMixinApplication(mixinNames, String mangledName) {
+  disableTreeShaking();
+  var mixins = [];
+  for (String mangledName in mixinNames) {
+    mixins.add(reflectClassByMangledName(mangledName));
+  }
+  var it = mixins.iterator;
+  it.moveNext();
+  var superclass = it.current;
+  while (it.moveNext()) {
+    superclass = new JsMixinApplication(superclass, it.current, mangledName);
+  }
+  return superclass;
+}
+
+class JsMixinApplication extends JsTypeMirror with JsObjectMirror
+    implements ClassMirror {
+  final ClassMirror superclass;
+  final ClassMirror mixin;
+
+  JsMixinApplication(ClassMirror superclass, ClassMirror mixin,
+                     String mangledName)
+      : this.superclass = superclass,
+        this.mixin = mixin,
+        super(s(mangledName));
+
+  String get _prettyName => 'ClassMirror';
+
+  Symbol get simpleName {
+    return s('${n(mixin.qualifiedName)}(${n(superclass.qualifiedName)})');
+  }
+
+  Symbol get qualifiedName => simpleName;
+
+  Map<Symbol, Mirror> get members => mixin.members;
+
+  Map<Symbol, MethodMirror> get methods => mixin.methods;
+
+  Map<Symbol, MethodMirror> get getters => mixin.getters;
+
+  Map<Symbol, MethodMirror> get setters => mixin.setters;
+
+  Map<Symbol, VariableMirror> get variables => mixin.variables;
+
+  InstanceMirror invoke(
+      Symbol memberName,
+      List positionalArguments,
+      [Map<Symbol,dynamic> namedArguments]) {
+    // TODO(ahe): Pass namedArguments when NoSuchMethodError has
+    // been fixed to use Symbol.
+    // TODO(ahe): What receiver to use?
+    throw new NoSuchMethodError(this, n(memberName), positionalArguments, null);
+  }
+
+  InstanceMirror getField(Symbol fieldName) {
+    // TODO(ahe): What receiver to use?
+    throw new NoSuchMethodError(this, n(fieldName), null, null);
+  }
+
+  InstanceMirror setField(Symbol fieldName, Object arg) {
+    // TODO(ahe): What receiver to use?
+    throw new NoSuchMethodError(this, '${n(fieldName)}=', [arg], null);
+  }
+
+  List<ClassMirror> get superinterfaces => mixin.superinterfaces;
+
+  Map<Symbol, MethodMirror> get constructors => mixin.constructors;
+
+  InstanceMirror newInstance(
+      Symbol constructorName,
+      List positionalArguments,
+      [Map<Symbol,dynamic> namedArguments]) {
+    throw new UnsupportedError(
+        "Can't instantiate mixin application '${n(qualifiedName)}'");
+  }
+
+  Future<InstanceMirror> newInstanceAsync(
+      Symbol constructorName,
+      List positionalArguments,
+      [Map<Symbol, dynamic> namedArguments]) {
+    return new Future<InstanceMirror>(
+        () => this.newInstance(
+            constructorName, positionalArguments, namedArguments));
+  }
+
+  bool get isOriginalDeclaration => true;
+
+  ClassMirror get originalDeclaration => this;
+
+  // TODO(ahe): Implement these.
+  Map<Symbol, TypeVariableMirror> get typeVariables {
+    throw new UnimplementedError();
+  }
+  Map<Symbol, TypeMirror> get typeArguments => throw new UnimplementedError();
 }
 
 abstract class JsObjectMirror implements ObjectMirror {
@@ -862,9 +974,17 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   ClassMirror get superclass {
     if (_superclass == null) {
       var superclassName = _fieldsDescriptor.split(';')[0];
-      // Use _superclass == this to represent class with no superclass (Object).
-      _superclass = (superclassName == '')
-          ? this : reflectClassByMangledName(superclassName);
+      var mixins = superclassName.split('+');
+      if (mixins.length > 1) {
+        if (mixins.length != 2) {
+          throw new RuntimeError('Strange mixin: $_fieldsDescriptor');
+        }
+        _superclass = reflectClassByMangledName(mixins[0]);
+      } else {
+        // Use _superclass == this to represent class with no superclass (Object).
+        _superclass = (superclassName == '')
+            ? this : reflectClassByMangledName(superclassName);
+      }
     }
     return _superclass == this ? null : _superclass;
   }
@@ -889,15 +1009,15 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     return reflect(mirror._invoke(positionalArguments, namedArguments));
   }
 
+  bool get isOriginalDeclaration => true;
+
+  ClassMirror get originalDeclaration => this;
+
   // TODO(ahe): Implement these.
   List<ClassMirror> get superinterfaces => throw new UnimplementedError();
   Map<Symbol, TypeVariableMirror> get typeVariables
       => throw new UnimplementedError();
   Map<Symbol, TypeMirror> get typeArguments => throw new UnimplementedError();
-  bool get isOriginalDeclaration => throw new UnimplementedError();
-  ClassMirror get originalDeclaration => throw new UnimplementedError();
-  bool get isClass => throw new UnimplementedError();
-  ClassMirror get defaultFactory => throw new UnimplementedError();
 }
 
 class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
@@ -1228,6 +1348,9 @@ class JsParameterMirror extends JsDeclarationMirror implements ParameterMirror {
 
   // TODO(ahe): Implement this.
   get defaultValue => null;
+
+  // TODO(ahe): Implement this.
+  List<InstanceMirror> get metadata => throw new UnimplementedError();
 }
 
 TypeMirror typeMirrorFromRuntimeTypeRepresentation(type) {

@@ -19,24 +19,22 @@ class EnqueueTask extends CompilerTask {
     void addMemberByName(Element element) {
       element = element.declaration;
       String name = element.name.slowToString();
-      Link<Element> members = const Link<Element>();
+      ScopeContainerElement container = null;
       if (element.isLibrary()) {
-        LibraryElementX library = element;
+        LibraryElement library = element;
         // Don't include private implementation libraries.  These
         // libraries contain special classes that cause problems
         // in other parts of the resolver (in particular Null and Void).
         // TODO(ahe): Consider lifting this restriction.
         if (!library.isInternalLibrary) {
-          members = library.localMembers;
+          container = library;
           // TODO(ahe): Is this right?  Is this necessary?
           name = library.getLibraryOrScriptName();
         }
-      } else if (element.isClass() && !element.isMixinApplication) {
-        // TODO(ahe): Investigate what makes mixin applications crash
-        // this method.
-        ClassElementX cls = element;
+      } else if (element.isClass()) {
+        ClassElement cls = element;
         cls.ensureResolved(compiler);
-        members = cls.localMembers;
+        container = cls;
         for (var link = cls.computeTypeParameters(compiler);
              !link.isEmpty;
              link = link.tail) {
@@ -45,8 +43,8 @@ class EnqueueTask extends CompilerTask {
       }
       allElementsByName[name] = allElementsByName.putIfAbsent(
           name, () => const Link<Element>()).prepend(element);
-      for (var link = members; !link.isEmpty; link = link.tail) {
-        addMemberByName(link.head);
+      if (container != null) {
+        container.forEachLocalMember(addMemberByName);
       }
     }
 
@@ -323,11 +321,9 @@ abstract class Enqueuer {
       ClassElement cls = element.declaration.getEnclosingClass();
       registerInstantiatedType(cls.rawType, elements);
       registerStaticUse(element.declaration);
-    } else if (element.isMixinApplication) {
-      // Don't enqueue mixin applications.
     } else if (element.isClass()) {
       ClassElement cls = element.declaration;
-      registerInstantiatedType(cls.rawType, elements);
+      registerInstantiatedClass(cls, elements);
       // Make sure that even abstract classes are considered instantiated.
       universe.instantiatedClasses.add(cls);
     } else if (element.impliesType()) {

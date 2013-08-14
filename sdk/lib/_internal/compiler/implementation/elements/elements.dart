@@ -882,6 +882,8 @@ abstract class ClassElement extends TypeDeclarationElement
   void forEachStaticField(void f(ClassElement enclosingClass, Element field));
 
   void forEachBackendMember(void f(Element member));
+
+  Link<DartType> computeTypeParameters(Compiler compiler);
 }
 
 abstract class MixinApplicationElement extends ClassElement {

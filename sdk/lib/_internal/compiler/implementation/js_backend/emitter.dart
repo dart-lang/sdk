@@ -1367,6 +1367,10 @@ class CodeEmitterTask extends CompilerTask {
     Element element = elementOrSelector;
     if (element.isGenerativeConstructorBody()) {
       return null;
+    } else if (element.isClass()) {
+      ClassElement cls = element;
+      if (cls.isUnnamedMixinApplication) return null;
+      return cls.name.slowToString();
     }
     throw compiler.internalErrorOnElement(
         element, 'Do not know how to reflect on this $element');
@@ -1977,8 +1981,8 @@ class CodeEmitterTask extends CompilerTask {
     buffer.write('$className:$_');
     buffer.write(jsAst.prettyPrint(builder.toObjectInitializer(), compiler));
     if (backend.shouldRetainName(classElement.name)) {
-      buffer.write(',$n$n"+${classElement.name.slowToString()}": 0');
-      recordedMangledNames.add(className);
+      String reflectionName = getReflectionName(classElement, className);
+      buffer.write(',$n$n"+$reflectionName": 0');
     }
   }
 

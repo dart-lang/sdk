@@ -544,7 +544,7 @@ class Namer implements ClosureNamer {
         name = "${enclosingClass.name.slowToString()}_"
                "${element.name.slowToString()}";
       } else {
-        name = element.name.slowToString();
+        name = element.name.slowToString().replaceAll('+', '_');
       }
     } else if (element.isLibrary()) {
       name = LIBRARY_PREFIX;
