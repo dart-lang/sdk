@@ -98,6 +98,10 @@ unittest/test/*_unminified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART
 stack_trace/test/vm_test: Fail, OK # VM-specific traces
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
+csslib/test/var_test: Fail # looking for VM-specific stack traces
+
+[ $compiler == dart2js && $runtime == drt ]
+csslib/test/nested_test: Fail # crashing DRT
 
 [ $browser ]
 analyzer_experimental/test/error_test: Fail, OK # Uses dart:io.
