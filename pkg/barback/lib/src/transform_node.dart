@@ -64,6 +64,12 @@ class TransformNode {
     });
   }
 
+  /// The [TransformInfo] describing this node.
+  ///
+  /// [TransformInfo] is the publicly-visible representation of a transform
+  /// node.
+  TransformInfo get info => new TransformInfo(transformer, primary.id);
+
   /// Marks this transform as removed.
   ///
   /// This causes all of the transform's outputs to be marked as removed as
@@ -116,6 +122,10 @@ class TransformNode {
       // it.
       if (_isDirty) return;
 
+      if (error is! MissingInputException) {
+        error = new TransformerException(info, error);
+      }
+
       // Catch all transformer errors and pipe them to the results stream.
       // This is so a broken transformer doesn't take down the whole graph.
       phase.cascade.reportError(error);
@@ -138,7 +148,7 @@ class TransformNode {
       // Throw if the input isn't found. This ensures the transformer's apply
       // is exited. We'll then catch this and report it through the proper
       // results stream.
-      if (node == null) throw new MissingInputException(id);
+      if (node == null) throw new MissingInputException(info, id);
 
       // If the asset node is found, wait until its contents are actually
       // available before we return them.
@@ -151,7 +161,7 @@ class TransformNode {
         if (error is! AssetNotFoundException || error.id != id) throw error;
         // If the node was removed before it could be loaded, treat it as though
         // it never existed and throw a MissingInputException.
-        throw new MissingInputException(id);
+        throw new MissingInputException(info, id);
       });
     });
   }
@@ -167,8 +177,7 @@ class TransformNode {
     for (var id in invalidIds) {
       newOutputs.removeId(id);
       // TODO(nweiz): report this as a warning rather than a failing error.
-      phase.cascade.reportError(
-          new InvalidOutputException(phase.cascade.package, id));
+      phase.cascade.reportError(new InvalidOutputException(info, id));
     }
 
     // Remove outputs that used to exist but don't anymore.
@@ -184,7 +193,7 @@ class TransformNode {
       if (controller != null) {
         controller.setAvailable(asset);
       } else {
-        var controller = new AssetNodeController.available(asset);
+        var controller = new AssetNodeController.available(asset, this);
         _outputControllers[asset.id] = controller;
         brandNewOutputs.add(controller.node);
       }

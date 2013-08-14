@@ -69,7 +69,8 @@ class Phase {
   /// being run on an old version of that asset.
   var _pendingNewInputs = new Map<AssetId, AssetNode>();
 
-  /// A map of output ids to the asset node outputs for those ids.
+  /// A map of output ids to the asset node outputs for those ids and the
+  /// transforms that produced those asset nodes.
   ///
   /// Usually there's only one node for a given output id. However, it's
   /// possible for multiple transformers in this phase to output an asset with
@@ -337,7 +338,10 @@ class Phase {
         // Ensure that there's still a collision. It's possible it was resolved
         // while another transform was running.
         if (_outputs[collision].length <= 1) continue;
-        cascade.reportError(new AssetCollisionException(collision));
+        cascade.reportError(new AssetCollisionException(
+            _outputs[collision].where((asset) => asset.transform != null)
+                .map((asset) => asset.transform.info),
+            collision));
       }
     });
   }
@@ -361,15 +365,19 @@ class Phase {
       // (chronologically) to the next phase. Pump the event queue first to give
       // [_next] a chance to handle the removal of its input before getting a
       // new input.
-      if (wasFirst) newFuture(() => _next.addInput(assets.first));
+      if (wasFirst) {
+        newFuture(() => _next.addInput(assets.first));
+      }
 
       // If there's still a collision, report it. This lets the user know
       // if they've successfully resolved the collision or not.
       if (assets.length > 1) {
         // Pump the event queue to ensure that the removal of the input triggers
         // a new build to which we can attach the error.
-        newFuture(() =>
-            cascade.reportError(new AssetCollisionException(output.id)));
+        newFuture(() => cascade.reportError(new AssetCollisionException(
+            assets.where((asset) => asset.transform != null)
+                .map((asset) => asset.transform.info),
+            output.id)));
       }
     });
   }

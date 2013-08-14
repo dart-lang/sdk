@@ -62,7 +62,10 @@ main() {
     initGraph(["app|known.txt"]);
     updateSources(["app|unknown.txt"]);
 
-    buildShouldFail([isAssetNotFoundException("app|unknown.txt")]);
+    buildShouldFail([
+      isAssetLoadException("app|unknown.txt",
+          isAssetNotFoundException("app|unknown.txt"))
+    ]);
   });
 
   test("reports missing input errors in results", () {
@@ -82,7 +85,7 @@ main() {
     });
 
     updateSources(["app|foo.txt"]);
-    buildShouldFail([isInvalidOutputException("app", "wrong|foo.txt")]);
+    buildShouldFail([isInvalidOutputException("wrong|foo.txt")]);
   });
 
   test("fails if a non-primary input is removed", () {
@@ -111,7 +114,7 @@ main() {
 
     updateSources(["app|foo.txt"]);
     expectNoAsset("app|foo.out");
-    buildShouldFail([equals(BadTransformer.ERROR)]);
+    buildShouldFail([isTransformerException(equals(BadTransformer.ERROR))]);
   });
 
   test("doesn't yield a source if a transform fails on it", () {
@@ -128,7 +131,7 @@ main() {
 
     updateSources(["app|foo.txt"]);
     // Note: No asset requests here.
-    buildShouldFail([equals(BadTransformer.ERROR)]);
+    buildShouldFail([isTransformerException(equals(BadTransformer.ERROR))]);
   });
 
   test("discards outputs from failed transforms", () {
@@ -146,7 +149,7 @@ main() {
 
     updateSources(["pkg1|foo.txt", "pkg2|foo.txt"]);
     expectAsset("pkg2|foo.txt", "foo");
-    buildShouldFail([equals(BadTransformer.ERROR)]);
+    buildShouldFail([isTransformerException(equals(BadTransformer.ERROR))]);
   });
 
   test("emits multiple failures if multiple packages fail", () {
@@ -157,8 +160,8 @@ main() {
 
     updateSources(["pkg1|foo.txt", "pkg2|foo.txt"]);
     buildShouldFail([
-      equals(BadTransformer.ERROR),
-      equals(BadTransformer.ERROR)
+      isTransformerException(equals(BadTransformer.ERROR)),
+      isTransformerException(equals(BadTransformer.ERROR))
     ]);
   });
 
@@ -168,7 +171,9 @@ main() {
     setAssetError("app|foo.txt");
     updateSources(["app|foo.txt"]);
     expectNoAsset("app|foo.txt");
-    buildShouldFail([isMockLoadException("app|foo.txt")]);
+    buildShouldFail([
+      isAssetLoadException("app|foo.txt", isMockLoadException("app|foo.txt"))
+    ]);
   });
 
   test("a collision returns the first-produced output", () {

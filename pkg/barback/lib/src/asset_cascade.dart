@@ -66,13 +66,13 @@ class AssetCascade {
   ///
   /// This will not emit programming errors from barback itself. Those will be
   /// emitted through the [results] stream's error channel.
-  Stream get errors => _errorsController.stream;
-  final _errorsController = new StreamController.broadcast();
+  Stream<BarbackException> get errors => _errorsController.stream;
+  final _errorsController = new StreamController<BarbackException>.broadcast();
 
   /// The errors that have occurred since the current build started.
   ///
   /// This will be empty if no build is occurring.
-  Queue _accumulatedErrors;
+  Queue<BarbackException> _accumulatedErrors;
 
   /// A future that completes when the currently running build process finishes.
   ///
@@ -188,7 +188,7 @@ class AssetCascade {
       }).then((asset) {
         var controller = _sourceControllerMap[id].setAvailable(asset);
       }).catchError((error) {
-        reportError(error);
+        reportError(new AssetLoadException(id, error));
 
         // TODO(nweiz): propagate error information through asset nodes.
         _sourceControllerMap.remove(id).setRemoved();
@@ -208,7 +208,7 @@ class AssetCascade {
     });
   }
 
-  void reportError(error) {
+  void reportError(BarbackException error) {
     _accumulatedErrors.add(error);
     _errorsController.add(error);
   }
