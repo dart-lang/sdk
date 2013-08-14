@@ -21,6 +21,7 @@
     'errors_patch.dart',
     'expando_patch.dart',
     'function.cc',
+    'function.dart',
     'function_patch.dart',
     'growable_array.cc',
     'growable_array.dart',

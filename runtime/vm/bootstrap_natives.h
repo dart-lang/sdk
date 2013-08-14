@@ -22,6 +22,8 @@ namespace dart {
   V(Object_as, 4)                                                              \
   V(Object_cid, 1)                                                             \
   V(Function_apply, 2)                                                         \
+  V(FunctionImpl_equals, 2)                                                    \
+  V(FunctionImpl_hashCode, 1)                                                  \
   V(InvocationMirror_invoke, 4)                                                \
   V(AbstractType_toString, 1)                                                  \
   V(Identical_comparison, 2)                                                   \

@@ -979,6 +979,14 @@ RawError* Object::Init(Isolate* isolate) {
   RegisterPrivateClass(cls, Symbols::_Double(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
+  // Abstract super class for all signature classes.
+  cls = Class::New<Instance>(kIllegalCid);
+  cls.set_is_prefinalized();
+  RegisterPrivateClass(cls, Symbols::FunctionImpl(), core_lib);
+  pending_classes.Add(cls, Heap::kOld);
+  type = Type::NewNonParameterizedType(cls);
+  object_store->set_function_impl_type(type);
+
   cls = Class::New<WeakProperty>();
   object_store->set_weak_property_class(cls);
   RegisterPrivateClass(cls, Symbols::_WeakProperty(), core_lib);
@@ -1110,7 +1118,6 @@ RawError* Object::Init(Isolate* isolate) {
 
   name = Symbols::New("String");
   cls = Class::New<Instance>(kIllegalCid);
-  cls.set_is_prefinalized();
   RegisterClass(cls, name, core_lib);
   cls.set_is_prefinalized();
   pending_classes.Add(cls, Heap::kOld);
@@ -1881,9 +1888,9 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
   invocation.SetNumOptionalParameters(desc.NamedCount(),
                                       false);  // Not positional.
   invocation.set_parameter_types(Array::Handle(Array::New(desc.Count(),
-                                                         Heap::kOld)));
+                                                          Heap::kOld)));
   invocation.set_parameter_names(Array::Handle(Array::New(desc.Count(),
-                                                         Heap::kOld)));
+                                                          Heap::kOld)));
   // Receiver.
   invocation.SetParameterTypeAt(0, Type::Handle(Type::DynamicType()));
   invocation.SetParameterNameAt(0, Symbols::This());
@@ -2129,12 +2136,12 @@ RawClass* Class::NewSignatureClass(const String& name,
                                    const Script& script,
                                    intptr_t token_pos) {
   const Class& result = Class::Handle(New(name, script, token_pos));
-  const Type& super_type = Type::Handle(Type::ObjectType());
-  ASSERT(!super_type.IsNull());
   // Instances of a signature class can only be closures.
   result.set_instance_size(Closure::InstanceSize());
   result.set_next_field_offset(Closure::InstanceSize());
-  result.set_super_type(super_type);
+  // Signature classes extend the _FunctionImpl class.
+  result.set_super_type(Type::Handle(
+      Isolate::Current()->object_store()->function_impl_type()));
   result.set_is_synthesized_class();
   result.set_type_arguments_field_offset(Closure::type_arguments_offset());
   // Implements interface "Function".

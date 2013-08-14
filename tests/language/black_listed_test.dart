@@ -37,7 +37,8 @@ abstract class MyStringInterface implements String default F {  /// 10: compile-
 }                                                       /// 10: continued
 
 // Function.
-class MyFunction implements Function {}                     /// 11: compile-time error
+class MyFunction implements Function {}
+class MyOtherFunction extends Function {}
 abstract class MyFunctionInterface implements Function default F {  /// 12: compile-time error
   MyFunctionInterface();                                    /// 12: continued
 }                                                           /// 12: continued
@@ -71,7 +72,8 @@ main() {
   new MyDoubleInterface();   /// 08: continued
   new MyString();            /// 09: continued
   new MyStringInterface();   /// 10: continued
-  new MyFunction();          /// 11: continued
+  new MyFunction();
+  new MyOtherFunction();
   new MyFunctionInterface(); /// 12: continued
   new MyDynamic();           /// 13: continued
   new MyDynamicInterface();  /// 14: continued

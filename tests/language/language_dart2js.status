@@ -30,6 +30,8 @@ class_literal_test/29: Fail # Class literals are expression now; delete this tes
 
 constructor_initializer_test: Fail, OK # Depends on ?parameter check.
 
+black_listed_test/none: Fail # Issue 12446.
+
 # Issues related to undeclared prefix resolution.
 malformed_test/none: Fail
 malformed_test/05: Fail

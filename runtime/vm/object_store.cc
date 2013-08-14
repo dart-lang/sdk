@@ -20,6 +20,7 @@ ObjectStore::ObjectStore()
     null_class_(Class::null()),
     null_type_(Type::null()),
     function_type_(Type::null()),
+    function_impl_type_(Type::null()),
     type_class_(Class::null()),
     number_type_(Type::null()),
     int_type_(Type::null()),

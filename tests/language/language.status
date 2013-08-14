@@ -30,7 +30,6 @@ mixin_super_constructor_positionals_test: Fail
 built_in_identifier_prefix_test: Fail # http://dartbug.com/6970
 library_juxtaposition_test: Fail # Issue 6877
 pseudo_kw_illegal_test/14: Fail  # Issue 356
-bound_closure_equality_test: Fail # Issue 10849
 switch_int_double_test/01: Fail # Issue 7307
 switch_int_double_test/02: Fail # Issue 7307
 
@@ -289,8 +288,6 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 positional_parameters_type_test: Fail # Triage this.
-
-bound_closure_equality_test: Fail # Issue 10849
 
 [ $compiler == dart2dart && $minified ]
 super_getter_setter_test: Fail # Issue 11065.

@@ -1540,9 +1540,6 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
                   name.ToCString());
     }
     cls.set_is_type_finalized();
-    // Signature classes extend Object. No need to add this class to the direct
-    // subclasses of Object.
-    ASSERT(super_type.IsNull() || super_type.IsObjectType());
 
     // The type parameters of signature classes may have bounds.
     FinalizeUpperBounds(cls);
@@ -1934,8 +1931,7 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
         // Special case: classes for which we don't have a known class id.
         if (super_type.IsDoubleType() ||
             super_type.IsIntType() ||
-            super_type.IsStringType() ||
-            super_type.IsFunctionType()) {
+            super_type.IsStringType()) {
           is_error = true;
         }
         break;
@@ -1985,7 +1981,6 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
           interface.IsIntType() ||
           interface.IsDoubleType() ||
           interface.IsStringType() ||
-          (interface.IsFunctionType() && !cls.IsSignatureClass()) ||
           interface.IsDynamicType()) {
         const Script& script = Script::Handle(cls.script());
         ReportError(Error::Handle(),  // No previous error.
