@@ -1335,7 +1335,7 @@ class _HttpClientConnection {
         .then((_) => _socket.destroy());
   }
 
-  Future<_HttpClientConnection> createProxyTunnel(host, port, proxy) {
+  Future<_HttpClientConnection> createProxyTunnel(host, port, proxy, callback) {
     _HttpClientRequest request =
         send(new Uri(host: host, port: port),
              port,
@@ -1355,7 +1355,8 @@ class _HttpClientConnection {
                   "(${response.statusCode} ${response.reasonPhrase})";
           }
           var socket = response._httpRequest._httpClientConnection._socket;
-          return SecureSocket.secure(socket, host: host);
+          return SecureSocket.secure(
+              socket, host: host, onBadCertificate: callback);
         })
         .then((secureSocket) {
           String key = _HttpClientConnection.makeKey(true, host, port);
@@ -1409,6 +1410,7 @@ class _HttpClient implements HttpClient {
   Function _authenticateProxy;
   Function _findProxy = HttpClient.findProxyFromEnvironment;
   Duration _idleTimeout = const Duration(seconds: 15);
+  Function _badCertificateCallback;
 
   Timer _noActiveTimer;
 
@@ -1424,6 +1426,12 @@ class _HttpClient implements HttpClient {
           c.stopTimer();
           c.startTimer();
         }));
+  }
+
+  set badCertificateCallback(bool callback(X509Certificate cert,
+                                           String host,
+                                           int port)) {
+    _badCertificateCallback = callback;
   }
 
 
@@ -1674,17 +1682,23 @@ class _HttpClient implements HttpClient {
         _updateTimers();
         return new Future.value(new _ConnnectionInfo(connection, proxy));
       }
+      var currentBadCertificateCallback = _badCertificateCallback;
+      bool callback(X509Certificate certificate) =>
+          currentBadCertificateCallback == null ? false :
+          currentBadCertificateCallback(certificate, uriHost, uriPort);
       return (isSecure && proxy.isDirect
                   ? SecureSocket.connect(host,
                                          port,
-                                         sendClientCertificate: true)
+                                         sendClientCertificate: true,
+                                         onBadCertificate: callback)
                   : Socket.connect(host, port))
         .then((socket) {
           socket.setOption(SocketOption.TCP_NODELAY, true);
           var connection = new _HttpClientConnection(key, socket, this);
           if (isSecure && !proxy.isDirect) {
             connection._dispose = true;
-            return connection.createProxyTunnel(uriHost, uriPort, proxy)
+            return connection.createProxyTunnel(
+                uriHost, uriPort, proxy, callback)
                 .then((tunnel) {
                   _activeConnections.add(tunnel);
                   return new _ConnnectionInfo(tunnel, proxy);

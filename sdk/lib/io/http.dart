@@ -142,10 +142,10 @@ abstract class HttpServer implements Stream<HttpRequest> {
    * value of [:0:] (the default) a reasonable value will be chosen by
    * the system.
    *
-   * The certificate with Distinguished Name [certificateName] is looked
-   * up in the certificate database, and is used as the server certificate.
-   * if [requestClientCertificate] is true, the server will request clients
-   * to authenticate with a client certificate.
+   * The certificate with nickname or distinguished name (DN) [certificateName]
+   * is looked up in the certificate database, and is used as the server
+   * certificate. If [requestClientCertificate] is true, the server will
+   * request clients to authenticate with a client certificate.
    */
 
   static Future<HttpServer> bindSecure(address,
@@ -1172,6 +1172,32 @@ abstract class HttpClient {
                            HttpClientCredentials credentials);
 
   /**
+   * Sets a callback that will decide whether to accept a secure connection
+   * with a server certificate that cannot be authenticated by any of our
+   * trusted root certificates.
+   *
+   * When an secure HTTP request if made, using this HttpClient, and the
+   * server returns a server certificate that cannot be authenticated, the
+   * callback is called asynchronously with the [X509Certificate] object and
+   * the server's hostname and port.  If the value of [badCertificateCallback]
+   * is [null], the bad certificate is rejected, as if the callback
+   * returned [false]
+   *
+   * If the callback returns true, the secure connection is accepted and the
+   * [:Future<HttpClientRequest>:] that was returned from the call making the
+   * request completes with a valid HttpRequest object. If the callback returns
+   * false, the [:Future<HttpClientRequest>:] completes with an exception.
+   *
+   * If a bad certificate is received on a connection attempt, the library calls
+   * the function that was the value of badCertificateCallback at the time
+   * the the request is made, even if the value of badCertificateCallback
+   * has changed since then.
+   */
+  set badCertificateCallback(bool callback(X509Certificate cert,
+                                           String host,
+                                           int port));
+
+  /**
    * Shutdown the HTTP client. If [force] is [:false:] (the default)
    * the [:HttpClient:] will be kept alive until all active
    * connections are done. If [force] is [:true:] any active
@@ -1314,8 +1340,8 @@ abstract class HttpClientResponse implements Stream<List<int>> {
   String get reasonPhrase;
 
   /**
-   * Returns the content length of the request body. Returns -1 if the size of
-   * the request body is not known in advance.
+   * Returns the content length of the response body. Returns -1 if the size of
+   * the response body is not known in advance.
    */
   int get contentLength;
 
