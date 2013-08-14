@@ -15,6 +15,12 @@ scheduled_test/lib/*: Skip
 scheduled_test/test/scheduled_server_test: Pass, Fail, Slow, Crash # Issue 9231, 9582
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 
+# Skip test not runnable via test.dart
+third_party/html5lib/test/dom_compat_test: Skip
+
+[ $compiler == dart2js && $runtime == d8 ]
+unmodifiable_collection/test/unmodifiable_collection_test: Pass, Fail # Issue 12429
+
 [ $compiler == dart2js ]
 analyzer_experimental/test/generated/ast_test: Fail #Issue 12341
 
@@ -45,13 +51,11 @@ intl/test/date_time_format_http_request_test: Skip # Timeout.
 intl/test/date_time_format_http_request_test: Fail # Issue 8983
 mime/test/mime_multipart_transformer_test: Skip # No typed_data on IE9.
 
-[ $runtime == chrome && $compiler == dart2js ]
-intl/test/date_time_format_http_request_test: Pass, Fail # Issue: 12239
-
 [ $runtime == safari ]
 fixnum/test/int_64_test: Pass, Fail # Bug in JSC.
 crypto/test/hmac_sha1_test: Fail # Issue 11407.
 crypto/test/sha1_test: Fail # Issue 11407.
+stack_trace/test/trace_test: Fail # http://dartbug.com/12380
 
 # Skip browser-specific tests on VM
 [ $runtime == vm ]
@@ -89,11 +93,19 @@ mutation_observer: Skip
 # printed. Minified versions of these tests exist that test the behavior when
 # minified.
 unittest/test/*_unminified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
+csslib: Pass, Crash # crashing randomly, see issue 12468
 
 [ $compiler == dart2js && $browser ]
 stack_trace/test/vm_test: Fail, OK # VM-specific traces
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
+
+[ $compiler == dart2js ]
+csslib/test/var_test: Fail # looking for VM-specific stack traces, issue 12469
+
+[ $compiler == dart2js && $runtime == drt ]
+third_party/html5lib/test/parser_feature_test: Fail # issue 12466
+csslib: Pass, Fail # issue 12466
 
 [ $browser ]
 analyzer_experimental/test/error_test: Fail, OK # Uses dart:io.
@@ -148,6 +160,10 @@ scheduled_test/test/scheduled_test/wrap_future_test: Fail # http://dartbug.com/8
 
 */test/analyzer_test: Skip  # No need to run analysis tests on browser bots
 
+# Skip tests on the browser if the test depends on dart:io
+third_party/html5lib/test/parser_test: Skip
+third_party/html5lib/test/tokenizer_test: Skip
+
 [ $runtime == safari]
  # Bug in JSC: the test only passes when being debugged.
 crypto/test/hmac_md5_test: Fail, Pass
@@ -183,6 +199,7 @@ serialization/test/no_library_test: Skip # Expected Failure
 custom_element: Skip
 mdv: Skip
 mutation_observer: Skip
+third_party/html5lib/test/browser/browser_test: Skip
 
 [ $runtime == safari || $runtime == chrome || $runtime == ie9 || $runtime == ff || $runtime == dartium || $runtime == drt ]
 docgen/test/single_library_test: Skip # Uses dart:io

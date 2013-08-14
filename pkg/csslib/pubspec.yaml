@@ -1,0 +1,12 @@
+name: csslib
+author: "Web UI Team <web-ui-dev@dartlang.org>"
+description: A library for parsing CSS.
+homepage: https://www.dartlang.org
+dependencies:
+  args: any
+  logging: any
+  path: any
+  source_maps: any
+dev_dependencies:
+  browser: any
+  unittest: any

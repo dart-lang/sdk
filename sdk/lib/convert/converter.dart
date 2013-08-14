@@ -11,6 +11,8 @@ part of dart.convert;
  *
  */
 abstract class Converter<S, T> implements StreamTransformer {
+  const Converter();
+
   /**
    * Converts [input] and returns the result of the conversion.
    */

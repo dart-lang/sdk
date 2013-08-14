@@ -11,7 +11,7 @@ class A {
   var foo;
   var bar;
 
-  @DontInline
+  @DontInline()
   A() {
     // Currently defeat inlining by using a closure.
     bar = () => 42;
@@ -24,7 +24,7 @@ class B {
   var foo;
   var bar;
 
-  @DontInline
+  @DontInline()
   B() {
     // Currently defeat inlining by using a closure.
     bar = () => 42;
@@ -44,7 +44,7 @@ main() {
   new B();
 }
 
-@DontInline
+@DontInline()
 bar() {
   // Currently defeat inlining by using a closure.
   Expect.throws(() => new A().foo + 42, (e) => e is NoSuchMethodError);

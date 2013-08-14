@@ -8,6 +8,16 @@ import "dart:io";
 import "dart:isolate";
 import "dart:utf";
 
+void main() {
+  testUtf8();
+  testLatin1();
+  testAscii();
+  testReadLine1();
+  testReadLine2();
+  testErrorHandler();
+  testLatin1EncoderError();
+}
+
 void testUtf8() {
   List<int> data = [0x01,
                     0x7f,
@@ -96,26 +106,23 @@ void testReadLine1() {
   var stage = 0;
 
   void stringData(line) {
-    var line;
-    if (stage == 0) {
-      Expect.equals(null, line);
-      stage++;
-      controller.close();
-    } else if (stage == 1) {
-      Expect.equals("Line", line);
-      stage++;
-    }
+    Expect.equals(stage, 0);
+    Expect.equals("Line", line);
+    stage++;
   }
 
   void streamClosed() {
-    Expect.equals(2, stage);
+    Expect.equals(1, stage);
   }
 
   stream.listen(
       stringData,
       onDone: streamClosed);
 
+  // Note: codeUnits is fine. Text is ASCII.
   controller.add("Line".codeUnits);
+  controller.close();
+  Expect.equals(1, stage);
 }
 
 void testReadLine2() {
@@ -125,68 +132,31 @@ void testReadLine2() {
     .transform(new StringDecoder())
     .transform(new LineTransformer());
 
-  var stage = 0;
-  var subStage = 0;
-  stream.listen((line) {
-      if (stage == 0) {
-        if (subStage == 0) {
-          Expect.equals("Line1", line);
-          subStage++;
-        } else if (subStage == 1) {
-          Expect.equals("Line2", line);
-          subStage++;
-        } else if (subStage == 2) {
-          Expect.equals("Line3", line);
-          subStage = 0;
-          stage++;
-          controller.add("ne4\n".codeUnits);
-        } else {
-          Expect.fail("Stage 0 failed");
-        }
-      } else if (stage == 1) {
-        if (subStage == 0) {
-          Expect.equals("Line4", line);
-          subStage = 0;
-          stage++;
-          controller.add("\n\n\r\n\r\n\r\r".codeUnits);
-        } else {
-          Expect.fail("Stage 1 failed");
-        }
-      } else if (stage == 2) {
-        if (subStage < 4) {
-          // Expect 5 empty lines. As long as the stream is not closed the
-          // final \r cannot be interpreted as a end of line.
-          Expect.equals("", line);
-          subStage++;
-        } else if (subStage == 4) {
-          Expect.equals("", line);
-          subStage = 0;
-          stage++;
-          controller.close();
-        } else {
-          Expect.fail("Stage 2 failed");
-        }
-      } else if (stage == 3) {
-        if (subStage == 0) {
-          Expect.equals("", line);
-          stage++;
-        } else {
-          Expect.fail("Stage 3 failed");
-        }
-      }
-    }, onDone: () {
-      Expect.equals(4, stage);
-      Expect.equals(0, subStage);
-    });
+  var expectedLines = ['Line1', 'Line2','Line3', 'Line4',
+                       '', '', '', '', '', '',
+                       'Line5', 'Line6'];
 
+  var index = 0;
+
+  stream.listen((line) {
+    Expect.equals(expectedLines[index++], line);
+  });
+
+  // Note: codeUnits is fine. Text is ASCII.
   controller.add("Line1\nLine2\r\nLine3\rLi".codeUnits);
+  controller.add("ne4\n".codeUnits);
+  controller.add("\n\n\r\n\r\n\r\r".codeUnits);
+  controller.add("Line5\r".codeUnits);
+  controller.add("\nLine6\n".codeUnits);
+  controller.close();
+  Expect.equals(expectedLines.length, index);
 }
 
 class TestException implements Exception {
   TestException();
 }
 
-testErrorHandler() {
+void testErrorHandler() {
   var controller = new StreamController(sync: true);
   var errors = 0;
   var stream = controller.stream
@@ -205,7 +175,7 @@ testErrorHandler() {
   controller.close();
 }
 
-testLatin1EncoderError() {
+void testLatin1EncoderError() {
   List<int> data = [0x01,
                     0x7f,
                     0x44, 0x61, 0x72, 0x74,
@@ -225,14 +195,4 @@ testLatin1EncoderError() {
       Expect.isTrue(error is FormatException);
     });
 
-}
-
-main() {
-  testUtf8();
-  testLatin1();
-  testAscii();
-  testReadLine1();
-  testReadLine2();
-  testErrorHandler();
-  testLatin1EncoderError();
 }

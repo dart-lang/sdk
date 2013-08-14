@@ -51,6 +51,8 @@ function notifyStart() {
     driver.postMessage("STARTING", "*");
   }
 }
+// We call notifyStart here to notify the encapsulating browser.
+notifyStart();
 
 function notifyDone() {
   if (testRunner) testRunner.notifyDone();
@@ -158,8 +160,6 @@ function dartPrint(msg) {
 // dart2js will generate code to call this function instead of calling
 // Dart [main] directly. The argument is a closure that invokes main.
 function dartMainRunner(main) {
-  // We call notifyStart here to notify the encapsulating browser.
-  notifyStart();
   window.postMessage('dart-calling-main', '*');
   try {
     main();

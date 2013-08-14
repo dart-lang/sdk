@@ -7,26 +7,8 @@
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
 
-illegal_invocation_test/01: fail # Issue: 11892
-
-# TBF: m([int p = 'String'])
-assign_static_type_test/06: fail
-
 # TBD: using built-in identifers
 built_in_identifier_prefix_test: fail
-
-# TBF: (o as C) is not rolled back
-cast_test/04: fail
-cast_test/05: fail
-
-# TBF: It is a compile-time error if the superclass of a class C appears in the implements clause of C.
-const_constructor_super_test/01: fail
-compile_time_constant10_test/none: fail
-compile_time_constant_c_test/01: fail
-
-# TBF: m([int p = 'String']) and call 'const' instance creation
-compile_time_constant_checked2_test/03: fail
-compile_time_constant_checked3_test/03: fail
 
 # TBF: It is a static type warning if a type parameter is a supertype of its upper bound.
 cyclic_type_variable_test/01: fail
@@ -51,13 +33,6 @@ list_literal_syntax_test/02: fail # Issue 12103
 list_literal_syntax_test/03: fail # Issue 12103
 malformed_test/none: fail
 
-# TBF: disallowed in the most recent spec
-named_parameters_aggregated_test/03: fail
-positional_parameters_type_test: fail
-
-# TBF: non-const superinitializer; 7.6.3 Constant Constructors: The superinitializer that appears, explicitly or implicitly, in the initializer list of a constant constructor must specify a constant constructor of the superclass of the immediately enclosing class.
-non_const_super_negative_test: fail
-
 # TBF: 1is int; invalid character in number
 number_identifier_negative_test: fail
 
@@ -76,21 +51,6 @@ private_member3_negative_test: fail
 
 # TBF
 pseudo_kw_test: fail
-
-# TBF: hiding at start of the block and declared after declaration statement
-scope_negative_test: fail
-
-# TBF
-method_override2_test/00: fail # issue 11497
-method_override2_test/01: fail # issue 11497
-method_override2_test/02: fail # issue 11497
-method_override2_test/03: fail # issue 11497
-method_override3_test/00: fail # issue 11497
-method_override3_test/01: fail # issue 11497
-method_override3_test/02: fail # issue 11497
-method_override4_test: fail # issue 11497
-method_override5_test: fail # issue 11497
-method_override6_test: fail # issue 11497
 
 
 
@@ -135,11 +95,6 @@ final_syntax_test/03: fail
 # Test issue 11123, Only static fields can be declared as 'const'
 const_escape_frog_test: fail
 compile_time_constant_test/none: fail
-
-# Test issue 11544, using @TypeName as annotation is not valid
-inferrer_constructor2_test: fail
-inferrer_constructor3_test: fail
-multiple_field_assignment_constructor_test: fail
 
 # Test issue 11545, using not existing constructor name in annotation
 metadata_test: fail
@@ -281,7 +236,6 @@ type_variable_bounds2_test/06: fail
 
 # test issue 12163, unresolved identifier is static warning in static context
 unresolved_in_factory_negative_test: fail
-unresolved_top_level_method_negative_test: fail
 unresolved_top_level_var_negative_test: fail
 
 # test issue 12181, uses argument definition test
@@ -299,6 +253,13 @@ library_ambiguous_test/03: fail
 
 # test issue 12289, assignment in assert statement
 type_error_test: fail
+
+# test issue 12381, It is compile-time error to invoke not existing function
+issue11724_test: fail
+call_nonexistent_static_test/08: fail
+
+# test issue 12397; it is static warning, not error to use variable before declaration (or hidden)
+scope_negative_test: fail
 
 [ $compiler == dartanalyzer && $checked ]
 factory1_test/00: fail

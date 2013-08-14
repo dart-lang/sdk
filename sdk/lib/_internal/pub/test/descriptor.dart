@@ -7,7 +7,6 @@ library descriptor;
 
 import 'package:oauth2/oauth2.dart' as oauth2;
 import 'package:scheduled_test/scheduled_server.dart';
-import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/descriptor.dart';
 
 import '../lib/src/utils.dart';

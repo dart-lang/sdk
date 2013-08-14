@@ -642,6 +642,201 @@ int Process::Start(const char* path,
 }
 
 
+class BufferList: public BufferListBase {
+ public:
+  BufferList() : read_pending_(true) { }
+
+  // Indicate that data has been read into the buffer provided to
+  // overlapped read.
+  void DataIsRead(intptr_t size) {
+    ASSERT(read_pending_ == true);
+    data_size_ += size;
+    free_size_ -= size;
+    ASSERT(free_size_ >= 0);
+    read_pending_ = false;
+  }
+
+  // The access to the read buffer for overlapped read.
+  void GetReadBuffer(uint8_t** buffer, intptr_t* size) {
+    ASSERT(!read_pending_);
+    if (free_size_ == 0) Allocate();
+    ASSERT(free_size_ > 0);
+    ASSERT(free_size_ <= kBufferSize);
+    *buffer = FreeSpaceAddress();
+    *size = free_size_;
+    read_pending_ = true;
+  }
+
+  intptr_t GetDataSize() {
+    return data_size_;
+  }
+
+  uint8_t* GetFirstDataBuffer() {
+    ASSERT(head_ != NULL);
+    ASSERT(head_ == tail_);
+    ASSERT(data_size_ <= kBufferSize);
+    return head_->data_;
+  }
+
+  void FreeDataBuffer() {
+    Free();
+  }
+
+ private:
+  bool read_pending_;
+};
+
+
+class OverlappedHandle {
+ public:
+  void Init(HANDLE handle, HANDLE event) {
+    handle_ = handle;
+    event_ = event;
+    ClearOverlapped();
+  }
+
+  bool HasEvent(HANDLE event) {
+    return event_ == event;
+  }
+
+  bool Read() {
+    // Get the data read as a result of a completed overlapped operation.
+    if (overlapped_.InternalHigh > 0) {
+      buffer_.DataIsRead(overlapped_.InternalHigh);
+    } else {
+      buffer_.DataIsRead(0);
+    }
+
+    // Keep reading until error or pending operation.
+    while (true) {
+      ClearOverlapped();
+      uint8_t* buffer;
+      intptr_t buffer_size;
+      buffer_.GetReadBuffer(&buffer, &buffer_size);
+      BOOL ok = ReadFile(handle_, buffer, buffer_size, NULL, &overlapped_);
+      if (!ok) return GetLastError() == ERROR_IO_PENDING;
+      buffer_.DataIsRead(overlapped_.InternalHigh);
+    }
+  }
+
+  Dart_Handle GetData() {
+    return buffer_.GetData();
+  }
+
+  intptr_t GetDataSize() {
+    return buffer_.GetDataSize();
+  }
+
+  uint8_t* GetFirstDataBuffer() {
+    return buffer_.GetFirstDataBuffer();
+  }
+
+  void FreeDataBuffer() {
+    return buffer_.FreeDataBuffer();
+  }
+
+  void Close() {
+    CloseHandle(handle_);
+    CloseHandle(event_);
+    handle_ = INVALID_HANDLE_VALUE;
+    overlapped_.hEvent = INVALID_HANDLE_VALUE;
+  }
+
+ private:
+  void ClearOverlapped() {
+    memset(&overlapped_, 0, sizeof(overlapped_));
+    overlapped_.hEvent = event_;
+  }
+
+  OVERLAPPED overlapped_;
+  HANDLE handle_;
+  HANDLE event_;
+  BufferList buffer_;
+
+  DISALLOW_ALLOCATION();
+};
+
+
+bool Process::Wait(intptr_t pid,
+                   intptr_t in,
+                   intptr_t out,
+                   intptr_t err,
+                   intptr_t exit_event,
+                   ProcessResult* result) {
+  // Close input to the process right away.
+  reinterpret_cast<FileHandle*>(in)->Close();
+
+  // All pipes created to the sub-process support overlapped IO.
+  FileHandle* stdout_handle = reinterpret_cast<FileHandle*>(out);
+  ASSERT(stdout_handle->SupportsOverlappedIO());
+  FileHandle* stderr_handle = reinterpret_cast<FileHandle*>(err);
+  ASSERT(stderr_handle->SupportsOverlappedIO());
+  FileHandle* exit_handle = reinterpret_cast<FileHandle*>(exit_event);
+  ASSERT(exit_handle->SupportsOverlappedIO());
+
+  // Create three events for overlapped IO. These are created as already
+  // signalled to ensure they have read called at least once.
+  static const int kHandles = 3;
+  HANDLE events[kHandles];
+  for (int i = 0; i < kHandles; i++) {
+    events[i] = CreateEvent(NULL, FALSE, TRUE, NULL);
+  }
+
+  // Setup the structure for handling overlapped IO.
+  OverlappedHandle oh[kHandles];
+  oh[0].Init(stdout_handle->handle(), events[0]);
+  oh[1].Init(stderr_handle->handle(), events[1]);
+  oh[2].Init(exit_handle->handle(), events[2]);
+
+  // Continue until all handles are closed.
+  int alive = kHandles;
+  while (alive > 0) {
+    // Blocking call waiting for events from the child process.
+    DWORD wait_result = WaitForMultipleObjects(alive, events, FALSE, INFINITE);
+
+    // Find the handle signalled.
+    int index = wait_result - WAIT_OBJECT_0;
+    for (int i = 0; i < kHandles; i++) {
+      if (oh[i].HasEvent(events[index])) {
+        bool ok = oh[i].Read();
+        if (!ok) {
+          if (GetLastError() == ERROR_BROKEN_PIPE) {
+            oh[i].Close();
+            alive--;
+            if (index < alive) {
+              events[index] = events[alive];
+            }
+          } else if (err != ERROR_IO_PENDING) {
+            DWORD e = GetLastError();
+            oh[0].Close();
+            oh[1].Close();
+            oh[2].Close();
+            SetLastError(e);
+            return false;
+          }
+        }
+        break;
+      }
+    }
+  }
+
+  // All handles closed and all data read.
+  result->set_stdout_data(oh[0].GetData());
+  result->set_stderr_data(oh[1].GetData());
+
+  // Calculate the exit code.
+  ASSERT(oh[2].GetDataSize() == 8);
+  uint32_t exit[2];
+  memcpy(&exit, oh[2].GetFirstDataBuffer(), sizeof(exit));
+  oh[2].FreeDataBuffer();
+  intptr_t exit_code = exit[0];
+  intptr_t negative = exit[1];
+  if (negative) exit_code = -exit_code;
+  result->set_exit_code(exit_code);
+  return true;
+}
+
+
 bool Process::Kill(intptr_t id, int signal) {
   USE(signal);  // signal is not used on windows.
   HANDLE process_handle;

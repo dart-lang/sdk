@@ -669,7 +669,7 @@ class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
   static Type _FunctionTypeMirror_return_type(reflectee)
       native "FunctionTypeMirror_return_type";
 
-  static List<ParameterMirror> _FunctionTypeMirror_parameters(reflectee)
+  List<ParameterMirror> _FunctionTypeMirror_parameters(reflectee)
       native "FunctionTypeMirror_parameters";
 }
 
@@ -1017,7 +1017,7 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
   static dynamic _MethodMirror_return_type(reflectee)
       native "MethodMirror_return_type";
 
-  static List<MethodMirror> _MethodMirror_parameters(reflectee)
+  List<ParameterMirror> _MethodMirror_parameters(reflectee)
       native "MethodMirror_parameters";
 }
 
@@ -1065,14 +1065,22 @@ class _LocalVariableMirrorImpl extends _LocalDeclarationMirrorImpl
 
 class _LocalParameterMirrorImpl extends _LocalVariableMirrorImpl
     implements ParameterMirror {
-  _LocalParameterMirrorImpl(this._reflectee,
+  _LocalParameterMirrorImpl(reflectee,
+                            String simpleName,
+                            DeclarationMirror owner,
                             this._position,
-                            this.isOptional)
-      : super(null, '<TODO:unnamed>', null, null, false, false);
+                            this.isOptional,
+                            this.isNamed)
+      : super(reflectee,
+              simpleName,
+              owner,
+              null,  // We override the type.
+              false, // isStatic does not apply.
+              false);  // TODO(12196): Not yet implemented.
 
-  final _MirrorReference _reflectee;
   final int _position;
   final bool isOptional;
+  final bool isNamed;
 
   String get defaultValue {
     throw new UnimplementedError(

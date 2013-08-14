@@ -9,7 +9,6 @@ import 'package:unittest/unittest.dart';
 import '../lib/src/pubspec.dart';
 import '../lib/src/source.dart';
 import '../lib/src/source_registry.dart';
-import '../lib/src/utils.dart';
 import '../lib/src/version.dart';
 import 'test_pub.dart';
 

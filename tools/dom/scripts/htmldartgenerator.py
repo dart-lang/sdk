@@ -93,6 +93,9 @@ class HtmlDartGenerator(object):
     # Group overloaded operations by name.
     self._AddRenamedOverloads(interface)
     operationsByName = self._OperationsByName(interface)
+    if self.OmitOperationOverrides():
+      self._RemoveShadowingOperationsWithSameSignature(operationsByName,
+          interface)
 
     # Generate operations.
     for id in sorted(operationsByName.keys()):
@@ -121,6 +124,10 @@ class HtmlDartGenerator(object):
       # Group overloaded operations by name.
       operationsByName =self._OperationsByName(parent_interface)
 
+      if self.OmitOperationOverrides():
+        self._RemoveShadowingOperationsWithSameSignature(operationsByName,
+            interface)
+
       # Generate operations.
       for id in sorted(operationsByName.keys()):
         if not any(op.id == id for op in interface.operations):
@@ -128,6 +135,21 @@ class HtmlDartGenerator(object):
           info = AnalyzeOperation(interface, operations)
           self.SecondaryContext(parent_interface)
           self.AddOperation(info)
+
+  def _RemoveShadowingOperationsWithSameSignature(self, operationsByName,
+      interface):
+    if not interface.parents:
+      return
+
+    parent = self._database.GetInterface(interface.parents[0].type.id)
+    if parent == self._interface or parent == interface:
+      return
+    for operation in parent.operations:
+      if operation.id in operationsByName:
+        operations = operationsByName[operation.id]
+        for existing_operation in operations:
+          if existing_operation.SameSignatureAs(operation):
+            del operationsByName[operation.id]
 
   def _AddRenamedOverloads(self, interface):
     """The IDL has a number of functions with the same name but that accept
@@ -200,6 +222,9 @@ class HtmlDartGenerator(object):
       name = operation.ext_attrs.get('DartName', operation.id)
       operationsByName.setdefault(name, []).append(operation)
     return operationsByName
+
+  def OmitOperationOverrides(self):
+    return False
 
   def AddConstant(self, constant):
     const_name = self._renamer.RenameMember(

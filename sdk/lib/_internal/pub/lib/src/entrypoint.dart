@@ -13,11 +13,8 @@ import 'io.dart';
 import 'lock_file.dart';
 import 'log.dart' as log;
 import 'package.dart';
-import 'pubspec.dart';
-import 'sdk.dart' as sdk;
 import 'system_cache.dart';
 import 'utils.dart';
-import 'version.dart';
 import 'solver/version_solver.dart';
 
 /// Pub operates over a directed graph of dependencies that starts at a root

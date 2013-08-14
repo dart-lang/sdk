@@ -96,7 +96,6 @@ abstract class SecureSocket implements Socket {
     return completer.future;
   }
 
-
   /**
    * Takes an already connected [socket] and starts server side TLS
    * handshake to make the communication secure. When the returned
@@ -205,22 +204,28 @@ abstract class SecureSocket implements Socket {
    */
   external static void initialize({String database,
                                    String password,
-                                   bool useBuiltinRoots: true});
-
+                                   bool useBuiltinRoots: true,
+                                   bool readOnly: true});
 
   /**
-   * Trust strings for use in [addCertificate].
+   * Trust strings for use in [addCertificate] and [changeTrust].
    */
   static const String TRUST_ISSUE_SERVER_CERTIFICATES = 'C,,';
   static const String TRUST_ISSUE_CLIENT_CERTIFICATES = 'T,,';
   static const String TRUST_ISSUE_CLIENT_SERVER_CERTIFICATES = 'TC,,';
   static const String TRUST_CERTIFICATE = 'P,,';
 
-
   /**
    * Adds a X509 certificate (for SSL and TLS secure networking) to the
-   * in-memory certificate database.  Returns an X509Certificate object
+   * in-memory certificate cache.  Returns an X509Certificate object
    * with information about the added certificate.
+   *
+   * The in-memory certificate cache is different from the certificate
+   * database opened by `SecureSocket.initialize`, and certificates added
+   * by [addCertificate] cannot be modified or removed by [changeTrust]
+   * or [removeCertificate].  However, if the certificate is already in the
+   * database, then [removeCertificate] will remove it from both the database
+   * and the in-memory cache.
    *
    * [certificate] must be a list of bytes encoding a certificate in
    *  PEM format: a base64 encoded DER certificate, enclosed between
@@ -240,6 +245,76 @@ abstract class SecureSocket implements Socket {
    */
   external static X509Certificate addCertificate(List<int> certificate,
                                                  String trust);
+
+  /**
+   * Adds a X509 certificates (for SSL and TLS secure networking) with
+   * their private keys to the certificate database.  SecureSocket.initialize
+   * must have been called with the path to a certificate database, and with
+   * readOnly set to `false`.
+   *
+   * [certificates] must be a list containing the bytes of a PKCS #12 encoded
+   * list of certificates and private keys.  These are commonly called
+   * `.pfx` or `.p12` files.  Only PKCS #12 files using
+   * 3-key triple-DES and 40 bit RC2 encryption are accepted.
+   *
+   * All certificates are imported with no default trust, and the appropriate
+   * uses of each certificate must be added with `SecureSocket.changeTrust`.
+   *
+   * See the documentation of NSS certutil at
+   * http://developer.mozilla.org/en-US/docs/NSS_reference/NSS_tools_:_certutil
+   * or
+   * http://blogs.oracle.com/meena/entry/notes_about_trust_flags
+   * for more information about trust attributes.
+   *
+   * Returns a CertificateError if it fails. The error code -8183 does not
+   * indicate that the PKCS #12 file is corrupt.  It also is returned if
+   * the certificate database is read-only, or is the default internal database,
+   * or if the password for the file or database is incorrect.
+   */
+  external static importCertificatesWithPrivateKeys(List<int> certificates,
+                                                    String password);
+
+  /**
+   * Changes the trust settings for the certificate with nickname [nickname].
+   * This certificate must exist in the certificate database.
+   * SecureSocket.initialize must have been called with the path to a
+   * certificate database, and with readOnly set to false.
+   *
+   * [trust] is a string specifying the allowed uses of this certificate.
+   * For example, 'TC,,' specifies that the certificate is for a certificate
+   * authority that is trusted to issue server and client certificates, so
+   * that a server or client certificate signed by this authority will be
+   * accepted.
+   *
+   * See the documentation of NSS certutil at
+   * http://developer.mozilla.org/en-US/docs/NSS_reference/NSS_tools_:_certutil
+   * or
+   * http://blogs.oracle.com/meena/entry/notes_about_trust_flags
+   * for more information about trust attributes.
+   */
+  external static X509Certificate changeTrust(String nickname,
+                                              String trust);
+
+  /**
+   * Gets the certificate with nickname [nickname] from
+   * the certificate database.  Returns an X509Certificate object with
+   * information about the certificate.
+   *
+   * Throws a CertificateException if it cannot find the certificate with
+   * the given nickname.
+   */
+  external static X509Certificate getCertificate(String nickname);
+
+  /**
+   * Removes the certificate with nickname [nickname] permanently from
+   * the certificate database.
+   * This certificate must exist in the certificate database.
+   * SecureSocket.initialize must have been called with the path to a
+   * certificate database, and with readOnly set to false.
+   *
+   * Returns null if it cannot find the certificate with that nickname.
+   */
+  external static removeCertificate(String nickname);
 }
 
 

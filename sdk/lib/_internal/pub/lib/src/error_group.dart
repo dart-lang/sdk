@@ -6,8 +6,6 @@ library pub.error_group;
 
 import 'dart:async';
 
-import 'utils.dart';
-
 /// An [ErrorGroup] entangles the errors of multiple [Future]s and [Stream]s
 /// with one another. This allows APIs to expose multiple [Future]s and
 /// [Stream]s that have identical error conditions without forcing API consumers

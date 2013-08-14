@@ -29,6 +29,15 @@ void main() {
           equals('<fn>.<fn>.bar'));
     });
 
+    test('parses a folded frame correctly', () {
+      var frame = new Frame.parseVM('...');
+
+      expect(frame.member, equals('...'));
+      expect(frame.uri, equals(new Uri()));
+      expect(frame.line, isNull);
+      expect(frame.column, isNull);
+    });
+
     test('throws a FormatException for malformed frames', () {
       expect(() => new Frame.parseVM(''), throwsFormatException);
       expect(() => new Frame.parseVM('#1'), throwsFormatException);

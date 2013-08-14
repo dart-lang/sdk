@@ -260,14 +260,30 @@ Matcher isMissingInputException(String name) {
       predicate((error) => error.id == id, 'id == $name'));
 }
 
-/// Returns a matcher for an [InvalidOutputException] with the given id and
-/// package name.
-Matcher isInvalidOutputException(String package, String name) {
+/// Returns a matcher for an [InvalidOutputException] with the given id.
+Matcher isInvalidOutputException(String name) {
   var id = new AssetId.parse(name);
   return allOf(
       new isInstanceOf<InvalidOutputException>(),
-      predicate((error) => error.package == package, 'package is $package'),
       predicate((error) => error.id == id, 'id == $name'));
+}
+
+/// Returns a matcher for an [AssetLoadException] with the given id and a
+/// wrapped error that matches [error].
+Matcher isAssetLoadException(String name, error) {
+  var id = new AssetId.parse(name);
+  return allOf(
+      new isInstanceOf<AssetLoadException>(),
+      transform((error) => error.id, equals(id), 'id'),
+      transform((error) => error.error, wrapMatcher(error), 'error'));
+}
+
+/// Returns a matcher for a [TransformerException] with a wrapped error that
+/// matches [error].
+Matcher isTransformerException(error) {
+  return allOf(
+      new isInstanceOf<TransformerException>(),
+      transform((error) => error.error, wrapMatcher(error), 'error'));
 }
 
 /// Returns a matcher for a [MockLoadException] with the given [id].
@@ -276,6 +292,28 @@ Matcher isMockLoadException(String name) {
   return allOf(
       new isInstanceOf<MockLoadException>(),
       predicate((error) => error.id == id, 'id == $name'));
+}
+
+/// Returns a matcher that runs [transformation] on its input, then matches
+/// the output against [matcher].
+///
+/// [description] should be a noun phrase that describes the relation of the
+/// output of [transformation] to its input.
+Matcher transform(transformation(value), matcher, String description) =>
+  new _TransformMatcher(transformation, wrapMatcher(matcher), description);
+
+class _TransformMatcher extends Matcher {
+  final Function _transformation;
+  final Matcher _matcher;
+  final String _description;
+
+  _TransformMatcher(this._transformation, this._matcher, this._description);
+
+  bool matches(item, Map matchState) =>
+    _matcher.matches(_transformation(item), matchState);
+
+  Description describe(Description description) =>
+    description.add(_description).add(' ').addDescriptionOf(_matcher);
 }
 
 /// Asserts that [future] shouldn't complete until after [delay] completes.

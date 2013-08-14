@@ -24,14 +24,14 @@ main() {
   bar();
 }
 
-@DontInline
+@DontInline()
 doIt() {
   () => 42;
   var c = new A(null);
   Expect.throws(() => c.field + 42, (e) => e is NoSuchMethodError);
 }
 
-@DontInline
+@DontInline()
 bar() {
   () => 42;
   return inlineLevel1();

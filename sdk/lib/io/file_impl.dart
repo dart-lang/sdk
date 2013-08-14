@@ -346,7 +346,7 @@ class _File implements File {
   }
 
   Directory get directory {
-    Path path = new Path(path).directoryPath;
+    Path path = new Path(this.path).directoryPath;
     return new Directory.fromPath(path);
   }
 

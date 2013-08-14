@@ -9,7 +9,6 @@ import 'dart:io' as io;
 
 import '../command.dart';
 import '../exit_codes.dart' as exit_codes;
-import '../io.dart';
 import '../log.dart' as log;
 
 /// Handles the `help` pub command.

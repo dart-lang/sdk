@@ -17,7 +17,6 @@ import '../log.dart' as log;
 import '../package.dart';
 import '../pubspec.dart';
 import '../source.dart';
-import '../source_registry.dart';
 import '../utils.dart';
 import '../version.dart';
 

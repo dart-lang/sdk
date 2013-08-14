@@ -161,63 +161,60 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitAnnotation(Annotation node) {
-    writer.print('@');
+    emitToken(node.atSign);
     visit(node.name);
     visitPrefixed('.', node.constructorName);
     visit(node.arguments);
   }
 
   visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
-    writer.print('?');
+    emitToken(node.question);
     visit(node.identifier);
   }
 
   visitArgumentList(ArgumentList node) {
-    writer.print('(');
+    emitToken(node.leftParenthesis);
     visitList(node.arguments, ', ');
-    writer.print(')');
+    emitToken(node.rightParenthesis);
   }
 
   visitAsExpression(AsExpression node) {
     visit(node.expression);
-    writer.print(' as ');
+    emitToken(node.asOperator, prefix: ' ', suffix: ' ');
     visit(node.type);
   }
 
   visitAssertStatement(AssertStatement node) {
-    writer.print('assert (');
+    emitToken(node.keyword, suffix: ' (');
     visit(node.condition);
-    writer.print(');');
+    emitToken(node.semicolon, prefix: ')');
   }
 
   visitAssignmentExpression(AssignmentExpression node) {
     visit(node.leftHandSide);
-    writer.print(' ');
-    writer.print(node.operator.lexeme);
-    writer.print(' ');
+    emitToken(node.operator, prefix: ' ', suffix: ' ');
     visit(node.rightHandSide);
   }
 
   visitBinaryExpression(BinaryExpression node) {
     visit(node.leftOperand);
-    writer.print(' ');
-    writer.print(node.operator.lexeme);
-    writer.print(' ');
+    emitToken(node.operator, prefix: ' ', suffix: ' ');
     visit(node.rightOperand);
   }
 
   visitBlock(Block node) {
-    writer.print('{');
-    writer.indent();
+    emitToken(node.leftBracket);
+    indent();
 
     for (var stmt in node.statements) {
-      writer.newline();
       visit(stmt);
     }
 
-    writer.unindent();
-    writer.newline();
-    writer.print('}');
+    unindent();
+    newline();
+    print('}');
+//TODO(pquitslund): make this work    
+//    emitToken(node.rightBracket);
     previousToken = node.rightBracket;
   }
 
@@ -226,13 +223,13 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitBooleanLiteral(BooleanLiteral node) {
-    writer.print(node.literal.lexeme);
+    emitToken(node.literal);
   }
 
   visitBreakStatement(BreakStatement node) {
-    writer.print('break');
+    emitToken(node.keyword);
     visitPrefixed(' ', node.label);
-    writer.print(';');
+    emitToken(node.semicolon);
   }
 
   visitCascadeExpression(CascadeExpression node) {
@@ -244,53 +241,51 @@ class SourceVisitor implements ASTVisitor {
     visitPrefixed('on ', node.exceptionType);
     if (node.catchKeyword != null) {
       if (node.exceptionType != null) {
-        writer.print(' ');
+        print(' ');
       }
-      writer.print('catch (');
+      print('catch (');
       visit(node.exceptionParameter);
       visitPrefixed(', ', node.stackTraceParameter);
-      writer.print(') ');
+      print(') ');
     } else {
-      writer.print(' ');
+      print(' ');
     }
     visit(node.body);
+    newline();
   }
 
   visitClassDeclaration(ClassDeclaration node) {
-    emitToken(node.abstractKeyword, ' ');
-    emitToken(node.classKeyword, ' ');
+    emitToken(node.abstractKeyword, suffix: ' ');
+    emitToken(node.classKeyword, suffix: ' ');
     visit(node.name);
     visit(node.typeParameters);
     visitPrefixed(' ', node.extendsClause);
     visitPrefixed(' ', node.withClause);
     visitPrefixed(' ', node.implementsClause);
-//    writer.print(' {');
-//    writer.print(' ');
-//    emit(node.leftBracket);
-    emitPrefixedToken(' ', node.leftBracket);
-    writer.indent();
+    emitToken(node.leftBracket, prefix: ' ');
+    indent();
 
     for (var i = 0; i < node.members.length; i++) {
       visit(node.members[i]);
     }
 
-    writer.unindent();
+    unindent();
 
-    emit(node.rightBracket, min: 1);
+    emitToken(node.rightBracket, minNewlines: 1);
   }
 
   visitClassTypeAlias(ClassTypeAlias node) {
-    writer.print('typedef ');
+    emitToken(node.keyword, suffix: ' ');
     visit(node.name);
     visit(node.typeParameters);
-    writer.print(' = ');
+    print(' = ');
     if (node.abstractKeyword != null) {
-      writer.print('abstract ');
+      print('abstract ');
     }
     visit(node.superclass);
     visitPrefixed(' ', node.withClause);
     visitPrefixed(' ', node.implementsClause);
-    writer.print(';');
+    emitToken(node.semicolon);
   }
 
   visitComment(Comment node) => null;
@@ -308,21 +303,21 @@ class SourceVisitor implements ASTVisitor {
     visitPrefixedList(prefix, node.declarations);
 
     //TODO(pquitslund): move this?
-    writer.newline();
+    newline();
   }
 
   visitConditionalExpression(ConditionalExpression node) {
     visit(node.condition);
-    writer.print(' ? ');
+    print(' ? ');
     visit(node.thenExpression);
-    writer.print(' : ');
+    print(' : ');
     visit(node.elseExpression);
   }
 
   visitConstructorDeclaration(ConstructorDeclaration node) {
-    emitToken(node.externalKeyword, ' ');
-    emitToken(node.constKeyword, ' ');
-    emitToken(node.factoryKeyword, ' ');
+    emitToken(node.externalKeyword, suffix: ' ');
+    emitToken(node.constKeyword, suffix: ' ');
+    emitToken(node.factoryKeyword, suffix: ' ');
     visit(node.returnType);
     visitPrefixed('.', node.name);
     visit(node.parameters);
@@ -332,9 +327,9 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    emitToken(node.keyword, '.');
+    emitToken(node.keyword, suffix: '.');
     visit(node.fieldName);
-    writer.print(' = ');
+    print(' = ');
     visit(node.expression);
   }
 
@@ -344,13 +339,13 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitContinueStatement(ContinueStatement node) {
-    writer.print('continue');
+    emitToken(node.keyword);
     visitPrefixed(' ', node.label);
-    writer.print(';');
+    emitToken(node.semicolon);
   }
 
   visitDeclaredIdentifier(DeclaredIdentifier node) {
-    emitToken(node.keyword, ' ');
+    emitToken(node.keyword, suffix: ' ');
     visitSuffixed(node.type, ' ');
     visit(node.identifier);
   }
@@ -358,138 +353,136 @@ class SourceVisitor implements ASTVisitor {
   visitDefaultFormalParameter(DefaultFormalParameter node) {
     visit(node.parameter);
     if (node.separator != null) {
-      writer.print(' ');
-      writer.print(node.separator.lexeme);
+      print(' ');
+      print(node.separator.lexeme);
       visitPrefixed(' ', node.defaultValue);
     }
   }
 
   visitDoStatement(DoStatement node) {
-    writer.print('do ');
+    emitToken(node.doKeyword, suffix: ' ');
     visit(node.body);
-    writer.print(' while (');
+    emitToken(node.whileKeyword, prefix: ' ', suffix: ' (');
     visit(node.condition);
-    writer.print(');');
+    emitToken(node.semicolon, prefix: ')');
   }
 
   visitDoubleLiteral(DoubleLiteral node) {
-    writer.print(node.literal.lexeme);
+    print(node.literal.lexeme);
   }
 
   visitEmptyFunctionBody(EmptyFunctionBody node) {
-    writer.print(';');
+    emitToken(node.semicolon);
   }
 
   visitEmptyStatement(EmptyStatement node) {
-    writer.print(';');
+    emitToken(node.semicolon);
   }
 
   visitExportDirective(ExportDirective node) {
-    writer.print('export ');
+    emitToken(node.keyword, suffix: ' ');
     visit(node.uri);
     visitPrefixedList(' ', node.combinators, ' ');
-    writer.print(';');
+    emitToken(node.semicolon);
   }
 
   visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    writer.print('=> ');
+    emitToken(node.functionDefinition, suffix: ' ');
     visit(node.expression);
-    if (node.semicolon != null) {
-      writer.print(';');
-    }
+    emitToken(node.semicolon);
   }
 
   visitExpressionStatement(ExpressionStatement node) {
     visit(node.expression);
-    writer.print(';');
+    emitToken(node.semicolon);
   }
 
   visitExtendsClause(ExtendsClause node) {
-    writer.print('extends ');
+    emitToken(node.keyword, suffix: ' ');
     visit(node.superclass);
   }
 
   visitFieldDeclaration(FieldDeclaration node) {
-    emitToken(node.keyword, ' ');
+    emitToken(node.keyword, suffix: ' ');
     visit(node.fields);
-    writer.print(';');
+    emitToken(node.semicolon);
   }
 
   visitFieldFormalParameter(FieldFormalParameter node) {
-    emitToken(node.keyword, ' ');
+    emitToken(node.keyword, suffix: ' ');
     visitSuffixed(node.type, ' ');
-    writer.print('this.');
+    print('this.');
     visit(node.identifier);
     visit(node.parameters);
   }
 
   visitForEachStatement(ForEachStatement node) {
-    writer.print('for (');
+    print('for (');
     visit(node.loopVariable);
-    writer.print(' in ');
+    print(' in ');
     visit(node.iterator);
-    writer.print(') ');
+    print(') ');
     visit(node.body);
   }
 
   visitFormalParameterList(FormalParameterList node) {
     var groupEnd = null;
-    writer.print('(');
+    print('(');
     var parameters = node.parameters;
     var size = parameters.length;
     for (var i = 0; i < size; i++) {
       var parameter = parameters[i];
       if (i > 0) {
-        writer.print(', ');
+        print(', ');
       }
       if (groupEnd == null && parameter is DefaultFormalParameter) {
         if (identical(parameter.kind, ParameterKind.NAMED)) {
           groupEnd = '}';
-          writer.print('{');
+          print('{');
         } else {
           groupEnd = ']';
-          writer.print('[');
+          print('[');
         }
       }
       parameter.accept(this);
     }
     if (groupEnd != null) {
-      writer.print(groupEnd);
+      print(groupEnd);
     }
-    writer.print(')');
+    print(')');
   }
 
   visitForStatement(ForStatement node) {
     var initialization = node.initialization;
-    writer.print('for (');
+    print('for (');
     if (initialization != null) {
       visit(initialization);
     } else {
       visit(node.variables);
     }
-    writer.print(';');
+    print(';');
     visitPrefixed(' ', node.condition);
-    writer.print(';');
+    print(';');
     visitPrefixedList(' ', node.updaters, ', ');
-    writer.print(') ');
+    print(') ');
     visit(node.body);
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {
     visitSuffixed(node.returnType, ' ');
-    emitToken(node.propertyKeyword, ' ');
+    emitToken(node.propertyKeyword, suffix: ' ');
     visit(node.name);
     visit(node.functionExpression);
   }
 
   visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
     visit(node.functionDeclaration);
-    writer.print(';');
+    print(';');
   }
 
   visitFunctionExpression(FunctionExpression node) {
     visit(node.parameters);
-    writer.print(' ');
+    print(' ');
     visit(node.body);
   }
 
@@ -499,12 +492,12 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitFunctionTypeAlias(FunctionTypeAlias node) {
-    writer.print('typedef ');
+    emitToken(node.keyword, suffix: ' ');
     visitSuffixed(node.returnType, ' ');
     visit(node.name);
     visit(node.typeParameters);
     visit(node.parameters);
-    writer.print(';');
+    emitToken(node.semicolon);
   }
 
   visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
@@ -514,82 +507,81 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitHideCombinator(HideCombinator node) {
-    writer.print('hide ');
+    emitToken(node.keyword, suffix: ' ');
     visitList(node.hiddenNames, ', ');
   }
 
   visitIfStatement(IfStatement node) {
-    writer.print('if (');
+    emitToken(node.ifKeyword);
+    print(' (');
     visit(node.condition);
-    writer.print(') ');
+    print(') ');
     visit(node.thenStatement);
     visitPrefixed(' else ', node.elseStatement);
   }
 
   visitImplementsClause(ImplementsClause node) {
-    writer.print('implements ');
+    emitToken(node.keyword, suffix: ' ');
     visitList(node.interfaces, ', ');
   }
 
   visitImportDirective(ImportDirective node) {
-    writer.print('import ');
+    emitToken(node.keyword, suffix: ' ');
     visit(node.uri);
     visitPrefixed(' as ', node.prefix);
     visitPrefixedList(' ', node.combinators, ' ');
-//    writer.print(';');
-    emit(node.semicolon);
-//    writer.newline();
+    emitToken(node.semicolon);
   }
 
   visitIndexExpression(IndexExpression node) {
     if (node.isCascaded) {
-      writer.print('..');
+      print('..');
     } else {
       visit(node.target);
     }
-    writer.print('[');
+    print('[');
     visit(node.index);
-    writer.print(']');
+    print(']');
   }
 
   visitInstanceCreationExpression(InstanceCreationExpression node) {
-    emitToken(node.keyword, ' ');
+    emitToken(node.keyword, suffix: ' ');
     visit(node.constructorName);
     visit(node.argumentList);
   }
 
   visitIntegerLiteral(IntegerLiteral node) {
-    writer.print(node.literal.lexeme);
+    print(node.literal.lexeme);
   }
 
   visitInterpolationExpression(InterpolationExpression node) {
     if (node.rightBracket != null) {
-      writer.print('\${');
+      print('\${');
       visit(node.expression);
-      writer.print('}');
+      print('}');
     } else {
-      writer.print('\$');
+      print('\$');
       visit(node.expression);
     }
   }
 
   visitInterpolationString(InterpolationString node) {
-    writer.print(node.contents.lexeme);
+    print(node.contents.lexeme);
   }
 
   visitIsExpression(IsExpression node) {
     visit(node.expression);
     if (node.notOperator == null) {
-      writer.print(' is ');
+      print(' is ');
     } else {
-      writer.print(' is! ');
+      print(' is! ');
     }
     visit(node.type);
   }
 
   visitLabel(Label node) {
     visit(node.label);
-    writer.print(':');
+    print(':');
   }
 
   visitLabeledStatement(LabeledStatement node) {
@@ -598,49 +590,49 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitLibraryDirective(LibraryDirective node) {
-    writer.print('library ');
+    emitToken(node.keyword, suffix: ' ');
     visit(node.name);
-    writer.print(';');
+    emitToken(node.semicolon);
   }
 
   visitLibraryIdentifier(LibraryIdentifier node) {
-    writer.print(node.name);
+    print(node.name);
   }
 
   visitListLiteral(ListLiteral node) {
     if (node.modifier != null) {
-      writer.print(node.modifier.lexeme);
-      writer.print(' ');
+      print(node.modifier.lexeme);
+      print(' ');
     }
-    visitSuffixed(node.typeArguments, ' ');
-    writer.print('[');
+    visit(node.typeArguments);
+    print('[');
     visitList(node.elements, ', ');
-    writer.print(']');
+    print(']');
   }
 
   visitMapLiteral(MapLiteral node) {
     if (node.modifier != null) {
-      writer.print(node.modifier.lexeme);
-      writer.print(' ');
+      print(node.modifier.lexeme);
+      print(' ');
     }
     visitSuffixed(node.typeArguments, ' ');
-    writer.print('{');
+    print('{');
     visitList(node.entries, ', ');
-    writer.print('}');
+    print('}');
   }
 
   visitMapLiteralEntry(MapLiteralEntry node) {
     visit(node.key);
-    writer.print(' : ');
+    print(' : ');
     visit(node.value);
   }
 
   visitMethodDeclaration(MethodDeclaration node) {
-    emitToken(node.externalKeyword, ' ');
-    emitToken(node.modifierKeyword, ' ');
+    emitToken(node.externalKeyword, suffix: ' ');
+    emitToken(node.modifierKeyword, suffix: ' ');
     visitSuffixed(node.returnType, ' ');
-    emitToken(node.propertyKeyword, ' ');
-    emitToken(node.operatorKeyword, ' ');
+    emitToken(node.propertyKeyword, suffix: ' ');
+    emitToken(node.operatorKeyword, suffix: ' ');
     visit(node.name);
     if (!node.isGetter) {
       visit(node.parameters);
@@ -650,7 +642,7 @@ class SourceVisitor implements ASTVisitor {
 
   visitMethodInvocation(MethodInvocation node) {
     if (node.isCascaded) {
-      writer.print('..');
+      print('..');
     } else {
       visitSuffixed(node.target, '.');
     }
@@ -664,107 +656,107 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitNativeClause(NativeClause node) {
-    writer.print('native ');
+    emitToken(node.keyword, suffix: ' ');
     visit(node.name);
   }
 
   visitNativeFunctionBody(NativeFunctionBody node) {
-    writer.print('native ');
+    emitToken(node.nativeToken, suffix: ' ');
     visit(node.stringLiteral);
-    writer.print(';');
+    emitToken(node.semicolon);
   }
 
   visitNullLiteral(NullLiteral node) {
-    writer.print('null');
+    emitToken(node.literal);
   }
 
   visitParenthesizedExpression(ParenthesizedExpression node) {
-    writer.print('(');
+    emitToken(node.leftParenthesis);
     visit(node.expression);
-    writer.print(')');
+    emitToken(node.rightParenthesis);
   }
 
   visitPartDirective(PartDirective node) {
-    writer.print('part ');
+    emitToken(node.keyword, suffix: ' ');
     visit(node.uri);
-    writer.print(';');
+    emitToken(node.semicolon);
   }
 
   visitPartOfDirective(PartOfDirective node) {
-    writer.print('part of ');
+    emitToken(node.keyword, suffix: ' ');
     visit(node.libraryName);
-    writer.print(';');
+    emitToken(node.semicolon);
   }
 
   visitPostfixExpression(PostfixExpression node) {
     visit(node.operand);
-    writer.print(node.operator.lexeme);
+    print(node.operator.lexeme);
   }
 
   visitPrefixedIdentifier(PrefixedIdentifier node) {
     visit(node.prefix);
-    writer.print('.');
+    print('.');
     visit(node.identifier);
   }
 
   visitPrefixExpression(PrefixExpression node) {
-    writer.print(node.operator.lexeme);
+    emitToken(node.operator);
     visit(node.operand);
   }
 
   visitPropertyAccess(PropertyAccess node) {
     if (node.isCascaded) {
-      writer.print('..');
+      print('..');
     } else {
       visit(node.target);
-      writer.print('.');
+      print('.');
     }
     visit(node.propertyName);
   }
 
   visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
-    writer.print('this');
+    emitToken(node.keyword);
     visitPrefixed('.', node.constructorName);
     visit(node.argumentList);
   }
 
   visitRethrowExpression(RethrowExpression node) {
-    writer.print('rethrow');
+    emitToken(node.keyword);
   }
 
   visitReturnStatement(ReturnStatement node) {
     var expression = node.expression;
     if (expression == null) {
-      writer.print('return;');
+      emitToken(node.keyword, minNewlines: 1);
+      emitToken(node.semicolon);
     } else {
-      writer.print('return ');
+      emitToken(node.keyword, suffix: ' ', minNewlines: 1);
       expression.accept(this);
-      writer.print(';');
+      emitToken(node.semicolon);
     }
   }
 
   visitScriptTag(ScriptTag node) {
-    writer.print(node.scriptTag.lexeme);
+    print(node.scriptTag.lexeme);
   }
 
   visitShowCombinator(ShowCombinator node) {
-    writer.print('show ');
+    emitToken(node.keyword, suffix: ' ');
     visitList(node.shownNames, ', ');
   }
 
   visitSimpleFormalParameter(SimpleFormalParameter node) {
-    emitToken(node.keyword, ' ');
+    emitToken(node.keyword, suffix: ' ');
     visitSuffixed(node.type, ' ');
     visit(node.identifier);
   }
 
   visitSimpleIdentifier(SimpleIdentifier node) {
-    emit(node.token);
-//    writer.print(node.token.lexeme);
+    emitToken(node.token);
   }
 
   visitSimpleStringLiteral(SimpleStringLiteral node) {
-    writer.print(node.literal.lexeme);
+    emitToken(node.literal);
   }
 
   visitStringInterpolation(StringInterpolation node) {
@@ -772,35 +764,42 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    writer.print('super');
+    emitToken(node.keyword);
     visitPrefixed('.', node.constructorName);
     visit(node.argumentList);
   }
 
   visitSuperExpression(SuperExpression node) {
-    writer.print('super');
+    emitToken(node.keyword);
   }
 
   visitSwitchCase(SwitchCase node) {
     visitSuffixedList(node.labels, ' ', ' ');
-    writer.print('case ');
+    emitToken(node.keyword, suffix: ' ');
     visit(node.expression);
-    writer.print(': ');
-    visitList(node.statements, ' ');
+    print(':');
+    indent();
+    visitList(node.statements);
+    unindent();
   }
 
   visitSwitchDefault(SwitchDefault node) {
     visitSuffixedList(node.labels, ' ', ' ');
-    writer.print('default: ');
+    emitToken(node.keyword, suffix: ': ');
     visitList(node.statements, ' ');
   }
 
   visitSwitchStatement(SwitchStatement node) {
-    writer.print('switch (');
+    emitToken(node.keyword);
+    print(' (');
     visit(node.expression);
-    writer.print(') {');
-    visitList(node.members, ' ');
-    writer.print('}');
+    print(') ');
+    emitToken(node.leftBracket);
+    indent();
+    visitList(node.members);
+    unindent();
+    emitToken(node.rightBracket);
+    newline();
   }
 
   visitSymbolLiteral(SymbolLiteral node) {
@@ -808,11 +807,11 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitThisExpression(ThisExpression node) {
-    writer.print('this');
+    emitToken(node.keyword);
   }
 
   visitThrowExpression(ThrowExpression node) {
-    writer.print('throw ');
+    emitToken(node.keyword, suffix: ' ');
     visit(node.expression);
   }
 
@@ -821,16 +820,16 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitTryStatement(TryStatement node) {
-    writer.print('try ');
+    emitToken(node.tryKeyword, suffix: ' ');
     visit(node.body);
     visitPrefixedList(' ', node.catchClauses, ' ');
     visitPrefixed(' finally ', node.finallyClause);
   }
 
   visitTypeArgumentList(TypeArgumentList node) {
-    writer.print('<');
+    emitToken(node.leftBracket);
     visitList(node.arguments, ', ');
-    writer.print('>');
+    emitToken(node.rightBracket);
   }
 
   visitTypeName(TypeName node) {
@@ -844,9 +843,9 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitTypeParameterList(TypeParameterList node) {
-    writer.print('<');
+    emitToken(node.leftBracket);
     visitList(node.typeParameters, ', ');
-    writer.print('>');
+    emitToken(node.rightBracket);
   }
 
   visitVariableDeclaration(VariableDeclaration node) {
@@ -855,25 +854,25 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitVariableDeclarationList(VariableDeclarationList node) {
-    emitToken(node.keyword, ' ');
+    emitToken(node.keyword, suffix: ' ');
     visitSuffixed(node.type, ' ');
     visitList(node.variables, ', ');
   }
 
   visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     visit(node.variables);
-    writer.print(';');
+    emitToken(node.semicolon);
   }
 
   visitWhileStatement(WhileStatement node) {
-    writer.print('while (');
+    emitToken(node.keyword, suffix: ' (');
     visit(node.condition);
-    writer.print(') ');
+    print(') ');
     visit(node.body);
   }
 
   visitWithClause(WithClause node) {
-    writer.print('with ');
+    emitToken(node.withKeyword, suffix: ' ');
     visitList(node.mixinTypes, ', ');
   }
 
@@ -889,7 +888,7 @@ class SourceVisitor implements ASTVisitor {
   visitSuffixed(ASTNode node, String suffix) {
     if (node != null) {
       node.accept(this);
-      writer.print(suffix);
+      print(suffix);
     }
   }
 
@@ -897,7 +896,7 @@ class SourceVisitor implements ASTVisitor {
   /// it is non-null.
   visitPrefixed(String prefix, ASTNode node) {
     if (node != null) {
-      writer.print(prefix);
+      print(prefix);
       node.accept(this);
     }
   }
@@ -906,36 +905,18 @@ class SourceVisitor implements ASTVisitor {
   /// body is not empty.
   visitPrefixedBody(String prefix, FunctionBody body) {
     if (body is! EmptyFunctionBody) {
-      writer.print(prefix);
+      print(prefix);
     }
     visit(body);
   }
 
-  /// Emit the given [token], printing the prefix before the [token]
-  /// if it is non-null.
-  emitPrefixedToken(String prefix, Token token) {
-    if (token != null) {
-      writer.print(prefix);
-      emit(token);
-    }
-  }
-
-  /// Emit the given [token], printing the suffix after the [token]
-  /// node if it is non-null.
-  emitToken(Token token, String suffix) {
-    if (token != null) {
-      emit(token);
-      writer.print(suffix);
-    }
-  }
-
-  /// Print a list of [nodes], separated by the given [separator].
+  /// Print a list of [nodes], optionally separated by the given [separator].
   visitList(NodeList<ASTNode> nodes, [String separator = '']) {
     if (nodes != null) {
       var size = nodes.length;
       for (var i = 0; i < size; i++) {
         if (i > 0) {
-          writer.print(separator);
+          print(separator);
         }
         nodes[i].accept(this);
       }
@@ -949,11 +930,11 @@ class SourceVisitor implements ASTVisitor {
       if (size > 0) {
         for (var i = 0; i < size; i++) {
           if (i > 0) {
-            writer.print(separator);
+            print(separator);
           }
           nodes[i].accept(this);
         }
-        writer.print(suffix);
+        print(suffix);
       }
     }
   }
@@ -964,10 +945,10 @@ class SourceVisitor implements ASTVisitor {
     if (nodes != null) {
       var size = nodes.length;
       if (size > 0) {
-        writer.print(prefix);
+        print(prefix);
         for (var i = 0; i < size; i++) {
           if (i > 0 && separator != null) {
-            writer.print(separator);
+            print(separator);
           }
           nodes[i].accept(this);
         }
@@ -975,21 +956,60 @@ class SourceVisitor implements ASTVisitor {
     }
   }
 
-  /// Emit the given [token], preceeded by any detected newlines or a minimum
-  /// as specified by [min].
-  emit(Token token, {min: 0}) {
+
+  /// Emit the given [token], if it's non-null, preceded by any detected 
+  /// newlines or a minimum as specified by [minNewlines], printing a [prefix] 
+  /// before and a [suffix] after.
+  emitToken(Token token, {String prefix, String suffix, 
+      int minNewlines: 0}) {
+    if (token != null) {
+      print(prefix);
+      emitPrecedingNewlines(token, min: minNewlines);
+      print(token.lexeme);
+      print(suffix);
+    }
+  }
+  
+  /// Print the given [string] to the source writer if it's non-null.
+  print(String string) {
+    if (string != null) {
+      writer.print(string);
+    }
+  }
+  
+  /// Emit a newline.
+  newline() {
+   writer.newline();
+  }
+  
+  /// Emit [n] newlines.
+  newlines(n) {
+   writer.newlines(n);
+  }
+  
+  /// Indent.
+  indent() {
+    writer.indent();
+  }
+  
+  /// Unindent
+  unindent() {
+    writer.unindent();
+  }
+  
+  /// Emit any detected newlines or a minimum as specified by [minNewlines].
+  emitPrecedingNewlines(Token token, {min: 0}) {
     var comment = token.precedingComments;
     var currentToken = comment != null ? comment : token;
-    var newlines = max(min, countNewlinesBetween(previousToken, currentToken));
-    writer.newlines(newlines);
+    var lines = max(min, countNewlinesBetween(previousToken, currentToken));
+    newlines(lines);
     while (comment != null) {
-      writer.print(comment.toString().trim());
-      writer.newline();
+      print(comment.toString().trim());
+      newline();
       comment = comment.next;
     }
 
     previousToken = token;
-    writer.print(token.lexeme);
   }
 
   /// Count the blanks between these two nodes.
@@ -1016,4 +1036,6 @@ class SourceVisitor implements ASTVisitor {
     return  currentLine - lastLine;
   }
 
+  String toString() => writer.toString();
+  
 }

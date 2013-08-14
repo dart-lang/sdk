@@ -10,7 +10,6 @@ import 'package:path/path.dart' as path;
 
 import '../entrypoint.dart';
 import '../io.dart';
-import '../system_cache.dart';
 import '../validator.dart';
 
 /// A validator that checks that a LICENSE-like file exists.

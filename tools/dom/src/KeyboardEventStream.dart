@@ -315,7 +315,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
         !_firesKeyPressEvent(event)) {
       // Some browsers have quirks not firing keypress events where all other
       // browsers do. This makes them more consistent.
-      processKeyPress(event);
+      processKeyPress(e);
     }
     _keyDownList.add(event);
     _dispatch(event);

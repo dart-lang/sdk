@@ -9,12 +9,15 @@
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_message.h"
 #include "vm/dart_api_state.h"
+#include "vm/flags.h"
 #include "vm/snapshot.h"
 #include "vm/symbols.h"
 #include "vm/unicode.h"
 #include "vm/unit_test.h"
 
 namespace dart {
+
+DECLARE_FLAG(bool, enable_type_checks);
 
 // Check if serialized and deserialized objects are equal.
 static bool Equals(const Object& expected, const Object& actual) {
@@ -1220,6 +1223,112 @@ UNIT_TEST_CASE(ScriptSnapshot1) {
     EXPECT(script_snapshot != NULL);
     result = Dart_LoadScriptFromSnapshot(script_snapshot, size);
     EXPECT_VALID(result);
+  }
+  Dart_ShutdownIsolate();
+  free(full_snapshot);
+  free(script_snapshot);
+}
+
+
+UNIT_TEST_CASE(ScriptSnapshot2) {
+  // The snapshot of this library is always created in production mode, but
+  // loaded and executed in both production and checked modes.
+  // This test verifies that type information is still contained in the snapshot
+  // although it was created in production mode and that type errors and
+  // compilation errors (for const fields) are correctly reported according to
+  // the execution mode.
+  const char* kLibScriptChars =
+      "library dart_import_lib;"
+      "const String s = 1.0;"
+      "final int i = true;"
+      "bool b;";
+  const char* kScriptChars =
+      "test_s() {"
+      "  s;"
+      "}"
+      "test_i() {"
+      "  i;"
+      "}"
+      "test_b() {"
+      "  b = 0;"
+      "}";
+  Dart_Handle result;
+
+  uint8_t* buffer;
+  intptr_t size;
+  uint8_t* full_snapshot = NULL;
+  uint8_t* script_snapshot = NULL;
+
+  // Force creation of snapshot in production mode.
+  bool saved_mode = FLAG_enable_type_checks;
+  FLAG_enable_type_checks = false;
+
+  {
+    // Start an Isolate, and create a full snapshot of it.
+    TestIsolateScope __test_isolate__;
+    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+
+    // Write out the script snapshot.
+    result = Dart_CreateSnapshot(&buffer, &size);
+    EXPECT_VALID(result);
+    full_snapshot = reinterpret_cast<uint8_t*>(malloc(size));
+    memmove(full_snapshot, buffer, size);
+    Dart_ExitScope();
+  }
+
+  {
+    // Create an Isolate using the full snapshot, load a script and create
+    // a script snapshot of the script.
+    TestCase::CreateTestIsolateFromSnapshot(full_snapshot);
+    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+
+    // Load the library.
+    Dart_Handle import_lib = Dart_LoadLibrary(NewString("dart_import_lib"),
+                                              NewString(kLibScriptChars));
+    EXPECT_VALID(import_lib);
+
+    // Create a test library and Load up a test script in it.
+    TestCase::LoadTestScript(kScriptChars, NULL);
+
+    EXPECT_VALID(Dart_LibraryImportLibrary(TestCase::lib(),
+                                           import_lib,
+                                           Dart_Null()));
+    EXPECT_VALID(Api::CheckIsolateState(Isolate::Current()));
+
+    // Write out the script snapshot.
+    result = Dart_CreateScriptSnapshot(&buffer, &size);
+    EXPECT_VALID(result);
+    script_snapshot = reinterpret_cast<uint8_t*>(malloc(size));
+    memmove(script_snapshot, buffer, size);
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+  }
+
+  // Continue in originally saved mode.
+  FLAG_enable_type_checks = saved_mode;
+
+  {
+    // Now Create an Isolate using the full snapshot and load the
+    // script snapshot created above and execute it.
+    TestCase::CreateTestIsolateFromSnapshot(full_snapshot);
+    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+
+    // Load the test library from the snapshot.
+    EXPECT(script_snapshot != NULL);
+    Dart_Handle lib = Dart_LoadScriptFromSnapshot(script_snapshot, size);
+    EXPECT_VALID(lib);
+
+    // Invoke the test_s function.
+    result = Dart_Invoke(lib, NewString("test_s"), 0, NULL);
+    EXPECT(Dart_IsError(result) == saved_mode);
+
+    // Invoke the test_i function.
+    result = Dart_Invoke(lib, NewString("test_i"), 0, NULL);
+    EXPECT(Dart_IsError(result) == saved_mode);
+
+    // Invoke the test_b function.
+    result = Dart_Invoke(lib, NewString("test_b"), 0, NULL);
+    EXPECT(Dart_IsError(result) == saved_mode);
   }
   Dart_ShutdownIsolate();
   free(full_snapshot);

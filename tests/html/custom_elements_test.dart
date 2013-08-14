@@ -8,11 +8,16 @@ import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
 
 class CustomType extends Element {
+  factory CustomType() => null;
+
   bool onCreatedCalled = false;
   void onCreated() {
     onCreatedCalled = true;
+    customCreatedCount++;
   }
 }
+
+int customCreatedCount = 0;
 
 class NotAnElement {}
 
@@ -93,6 +98,32 @@ main() {
       postElement.dispatchEvent(new Event('focus'));
       expect(firedOnPre, isFalse);
       expect(firedOnPost, isTrue);
+    });
+  });
+
+  group('innerHtml', () {
+    test('query', () {
+      document.register('x-type8', CustomType);
+      var element = new DivElement();
+      element.innerHtml = '<x-type8></x-type8>';
+      document.body.nodes.add(element);
+      var queried = query('x-type8');
+
+      expect(queried, isNotNull);
+      expect(queried is CustomType, isTrue);
+      expect(queried.onCreatedCalled, isTrue);
+    });
+  });
+
+  group('lifecycle', () {
+    test('onCreated', () {
+      int oldCount = customCreatedCount;
+
+      document.register('x-type9', CustomType);
+      var element = new DivElement();
+      element.innerHtml = '<x-type9></x-type9>';
+      document.body.nodes.add(element);
+      expect(customCreatedCount, oldCount + 1);
     });
   });
 }

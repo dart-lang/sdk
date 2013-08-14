@@ -4,8 +4,6 @@
 
 library pub_tests;
 
-import 'dart:io';
-
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 

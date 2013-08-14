@@ -351,12 +351,19 @@ class DartiumBackend(HtmlDartGenerator):
     if self._interface_type_info.custom_to_native():
       return_type = 'PassRefPtr<NativeType>'
       to_native_body = ';'
+      to_native_arg_body = ';'
     else:
       return_type = 'NativeType*'
       to_native_body = emitter.Format(
           '\n'
           '    {\n'
           '        return DartDOMWrapper::unwrapDartWrapper<Dart$INTERFACE>(handle, exception);\n'
+          '    }',
+          INTERFACE=self._interface.id)
+      to_native_arg_body = emitter.Format(
+          '\n'
+          '    {\n'
+          '        return DartDOMWrapper::unwrapDartWrapper<Dart$INTERFACE>(args, index, exception);\n'
           '    }',
           INTERFACE=self._interface.id)
 
@@ -366,9 +373,18 @@ class DartiumBackend(HtmlDartGenerator):
         '    static $RETURN_TYPE toNativeWithNullCheck(Dart_Handle handle, Dart_Handle& exception)\n'
         '    {\n'
         '        return Dart_IsNull(handle) ? 0 : toNative(handle, exception);\n'
+        '    }\n'
+        '\n'
+        '    static $RETURN_TYPE toNative(Dart_NativeArguments args, int index, Dart_Handle& exception)$TO_NATIVE_ARG_BODY\n'
+        '\n'
+        '    static $RETURN_TYPE toNativeWithNullCheck(Dart_NativeArguments args, int index, Dart_Handle& exception)\n'
+        '    {\n'
+        '        // toNative accounts for Null objects also.\n'
+        '        return toNative(args, index, exception);\n'
         '    }\n',
         RETURN_TYPE=return_type,
         TO_NATIVE_BODY=to_native_body,
+        TO_NATIVE_ARG_BODY=to_native_arg_body,
         INTERFACE=self._interface.id)
 
     to_dart_emitter = emitter.Emitter()
@@ -882,10 +898,10 @@ class DartiumBackend(HtmlDartGenerator):
       if type_info.pass_native_by_ref():
         invocation_template =\
             '        $TYPE $ARGUMENT_NAME;\n'\
-            '        $CLS::$FUNCTION(Dart_GetNativeArgument(args, $INDEX), $ARGUMENT_NAME, exception);\n'
+            '        $CLS::$FUNCTION(args, $INDEX, $ARGUMENT_NAME, exception);\n'
       else:
         invocation_template =\
-            '        $TYPE $ARGUMENT_NAME = $CLS::$FUNCTION(Dart_GetNativeArgument(args, $INDEX), exception);\n'
+            '        $TYPE $ARGUMENT_NAME = $CLS::$FUNCTION(args, $INDEX, exception);\n'
       body_emitter.Emit(
           '\n' +
           invocation_template +
@@ -955,6 +971,11 @@ class DartiumBackend(HtmlDartGenerator):
         set_return_value = 'Dart_SetIntegerReturnValue(args, %s)' % (value_expression)
       elif return_type_info.dart_type() == 'double':
         set_return_value = 'Dart_SetDoubleReturnValue(args, %s)' % (value_expression)
+      elif return_type_info.dart_type() == 'String':
+        if ext_attrs and 'TreatReturnedNullStringAs' in ext_attrs:
+          set_return_value = 'DartUtilities::setDartStringReturnValueWithNullCheck(args, %s)' % (value_expression)
+        else:
+          set_return_value = 'DartUtilities::setDartStringReturnValue(args, %s)' % (value_expression)
       else:
         to_dart_conversion = return_type_info.to_dart_conversion(value_expression, self._interface.id, ext_attrs)
         set_return_value = 'Dart_SetReturnValue(args, %s)' % (to_dart_conversion)

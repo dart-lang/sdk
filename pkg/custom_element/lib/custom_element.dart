@@ -86,9 +86,9 @@ Node initCustomElements(Node node) {
     initCustomElements(c);
   }
   if (node is Element) {
-    var ctor = _customElements[node.localName];
+    var ctor = _customElements[(node as Element).localName];
     if (ctor == null) {
-      var attr = node.attributes['is'];
+      var attr = (node as Element).attributes['is'];
       if (attr != null) ctor = _customElements[attr];
     }
     if (ctor != null) _initCustomElement(node, ctor);

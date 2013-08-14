@@ -22,7 +22,6 @@ spawn_uri_negative_test: Skip # ditto
 
 [ $compiler == dartanalyzer ]
 isolate2_negative_test: fail
-isolate_import_negative_test: fail
 isolate_negative_test: fail
 spawn_function_negative_test: fail
 spawn_uri_negative_test: fail
@@ -47,10 +46,6 @@ illegal_msg_stream_test: Fail, Pass # Issue 6750
 
 [ $compiler == dart2js && $runtime == drt ]
 unresolved_ports_negative_test: Pass, Crash # Issue 10613
-
-[ $compiler == dart2js && $runtime == chrome ]
-spawn_uri_negative_test: Pass, Fail, Timeout # Issue: 12239
-spawn_uri_test: Pass, Fail, Timeout # Issue: 12239
 
 [ $compiler == dart2js ]
 serialization_test: Fail # Tries to access class TestingOnly declared in isolate_patch.dart

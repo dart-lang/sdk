@@ -181,6 +181,24 @@ Future testRename() {
     .then((_) => Expect.isFalse(link2.existsSync()));
   }
 
+  Future testUpdate(String base , String target1, String target2) {
+    Link link1;
+    return new Link(join(base, 'c')).create(target1)
+    .then((link) {
+      link1 = link;
+      Expect.isTrue(link1.existsSync());
+      return link1.update(target2);
+    })
+    .then((Link link) {
+      Expect.isTrue(link1.existsSync());
+      Expect.isTrue(link.existsSync());
+      return FutureExpect.equals(target2, link.target())
+      .then((_) => FutureExpect.equals(target2, link1.target()))
+      .then((_) => link.delete());
+    })
+    .then((_) => Expect.isFalse(link1.existsSync()));
+  }
+
   return new Directory('').createTemp().then((baseDir) {
     String base = baseDir.path;
     var targetsFutures = [];
@@ -195,6 +213,7 @@ Future testRename() {
     return Future.wait(targetsFutures).then((targets) {
       return testRename(base, targets[0].path)
       .then((_) => testRename(base, targets[1].path))
+      .then((_) => testUpdate(base, targets[0].path, targets[1].path))
       .then((_) => baseDir.delete(recursive: true));
     });
   });

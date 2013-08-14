@@ -456,7 +456,7 @@ struct ParamList {
     this->parameters->Add(param);
   }
 
-  void AddReceiver(const Type* receiver_type, intptr_t token_pos) {
+  void AddReceiver(const AbstractType* receiver_type, intptr_t token_pos) {
     ASSERT(this->parameters->is_empty());
     AddFinalParameter(token_pos, &Symbols::This(), receiver_type);
   }
@@ -526,6 +526,7 @@ struct MemberDesc {
   Token::Kind operator_token;
   const AbstractType* type;
   intptr_t name_pos;
+  intptr_t decl_begin_pos;
   String* name;
   // For constructors: NULL or name of redirected to constructor.
   String* redirect_name;
@@ -764,6 +765,9 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
     case RawFunction::kConstructor:
       // The call to a redirecting factory is redirected.
       ASSERT(!func.IsRedirectingFactory());
+      if (!func.IsImplicitConstructor()) {
+        parser.SkipFunctionPreamble();
+      }
       node_sequence = parser.ParseFunc(func, default_parameter_values);
       break;
     case RawFunction::kImplicitGetter:
@@ -1016,7 +1020,7 @@ SequenceNode* Parser::ParseInstanceGetter(const Function& func) {
   // func.token_pos() points to the name of the field.
   intptr_t ident_pos = func.token_pos();
   ASSERT(current_class().raw() == func.Owner());
-  params.AddReceiver(ReceiverType(), ident_pos);
+  params.AddReceiver(ReceiverType(current_class()), ident_pos);
   ASSERT(func.num_fixed_parameters() == 1);  // receiver.
   ASSERT(!func.HasOptionalParameters());
   ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
@@ -1060,7 +1064,7 @@ SequenceNode* Parser::ParseInstanceSetter(const Function& func) {
 
   ParamList params;
   ASSERT(current_class().raw() == func.Owner());
-  params.AddReceiver(ReceiverType(), ident_pos);
+  params.AddReceiver(ReceiverType(current_class()), ident_pos);
   params.AddFinalParameter(ident_pos,
                            &Symbols::Value(),
                            &field_type);
@@ -1093,7 +1097,7 @@ SequenceNode* Parser::ParseMethodExtractor(const Function& func) {
   const intptr_t ident_pos = func.token_pos();
   ASSERT(func.token_pos() == 0);
   ASSERT(current_class().raw() == func.Owner());
-  params.AddReceiver(ReceiverType(), ident_pos);
+  params.AddReceiver(ReceiverType(current_class()), ident_pos);
   ASSERT(func.num_fixed_parameters() == 1);  // Receiver.
   ASSERT(!func.HasOptionalParameters());
 
@@ -1123,7 +1127,7 @@ void Parser::BuildDispatcherScope(const Function& func,
   ParamList params;
   // Receiver first.
   intptr_t token_pos = func.token_pos();
-  params.AddReceiver(ReceiverType(), token_pos);
+  params.AddReceiver(ReceiverType(current_class()), token_pos);
   // Remaining positional parameters.
   intptr_t i = 1;
   for (; i < desc.PositionalCount(); ++i) {
@@ -2283,20 +2287,16 @@ void Parser::ParseConstructorRedirection(const Class& cls,
 
 SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   ASSERT(func.IsConstructor());
+  ASSERT(func.Owner() == current_class().raw());
   const intptr_t ctor_pos = TokenPos();
   OpenFunctionBlock(func);
-  const Class& cls = Class::Handle(func.Owner());
 
   LocalVariable* receiver = new LocalVariable(
-      ctor_pos,
-      Symbols::This(),
-      Type::ZoneHandle(Type::DynamicType()));
+      ctor_pos, Symbols::This(), *ReceiverType(current_class()));
   current_block_->scope->AddVariable(receiver);
 
   LocalVariable* phase_parameter = new LocalVariable(
-       ctor_pos,
-       Symbols::PhaseParameter(),
-       Type::ZoneHandle(Type::SmiType()));
+      ctor_pos, Symbols::PhaseParameter(), Type::ZoneHandle(Type::SmiType()));
   current_block_->scope->AddVariable(phase_parameter);
 
   // Parse expressions of instance fields that have an explicit
@@ -2304,7 +2304,8 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   // The receiver must not be visible to field initializer expressions.
   receiver->set_invisible(true);
   GrowableArray<Field*> initialized_fields;
-  ParseInitializedInstanceFields(cls, receiver, &initialized_fields);
+  ParseInitializedInstanceFields(
+      current_class(), receiver, &initialized_fields);
   receiver->set_invisible(false);
 
   // If the class of this implicit constructor is a mixin application class,
@@ -2313,7 +2314,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   // expressions and then calls the respective super constructor with
   // the same name and number of parameters.
   ArgumentListNode* forwarding_args = NULL;
-  if (cls.mixin() != Type::null()) {
+  if (current_class().mixin() != Type::null()) {
     // At this point we don't support forwarding constructors
     // that have optional parameters because we don't know the default
     // values of the optional parameters. We would have to compile the super
@@ -2339,8 +2340,8 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
     }
   }
 
-  GenerateSuperConstructorCall(cls, receiver, forwarding_args);
-  CheckConstFieldsInitialized(cls);
+  GenerateSuperConstructorCall(current_class(), receiver, forwarding_args);
+  CheckConstFieldsInitialized(current_class());
 
   // Empty constructor body.
   SequenceNode* statements = CloseBlock();
@@ -2388,7 +2389,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   // Add implicit receiver parameter which is passed the allocated
   // but uninitialized instance to construct.
   ASSERT(current_class().raw() == func.Owner());
-  params.AddReceiver(ReceiverType(), func.token_pos());
+  params.AddReceiver(ReceiverType(current_class()), func.token_pos());
 
   // Add implicit parameter for construction phase.
   params.AddFinalParameter(
@@ -2610,21 +2611,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
       Function::Handle(innermost_function().raw());
   innermost_function_ = func.raw();
 
-  // Check to ensure we don't have classes with native fields in libraries
-  // which do not have a native resolver. This check is delayed until the class
-  // is actually used. Invocation of a function in the class is the first point
-  // of use. Access of const static fields in the class do not trigger an error.
-  if (current_class().num_native_fields() != 0) {
-    const Library& lib = Library::Handle(current_class().library());
-    if (lib.native_entry_resolver() == NULL) {
-      const String& cls_name = String::Handle(current_class().Name());
-      const String& lib_name = String::Handle(lib.url());
-      ErrorMsg(current_class().token_pos(),
-               "class '%s' is trying to extend a native fields class, "
-               "but library '%s' has no native resolvers",
-               cls_name.ToCString(), lib_name.ToCString());
-    }
-  }
+  // TODO(12455) : Need better validation mechanism.
 
   if (func.IsConstructor()) {
     SequenceNode* statements = ParseConstructor(func, default_parameter_values);
@@ -2648,7 +2635,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   } else if (!func.is_static()) {
     // Static functions do not have a receiver.
     ASSERT(current_class().raw() == func.Owner());
-    params.AddReceiver(ReceiverType(), func.token_pos());
+    params.AddReceiver(ReceiverType(current_class()), func.token_pos());
   } else if (func.IsFactory()) {
     // The first parameter of a factory is the AbstractTypeArguments vector of
     // the type of the instance to be allocated.
@@ -2835,7 +2822,6 @@ void Parser::ParseQualIdent(QualIdent* qual_ident) {
 void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   TRACE_PARSER("ParseMethodOrConstructor");
   ASSERT(CurrentToken() == Token::kLPAREN || method->IsGetter());
-  intptr_t method_pos = this->TokenPos();
   ASSERT(method->type != NULL);
   ASSERT(method->name_pos > 0);
   ASSERT(current_member_ == method);
@@ -2870,7 +2856,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   // The first parameter of a factory is the AbstractTypeArguments vector of
   // the type of the instance to be allocated.
   if (!method->has_static || method->IsConstructor()) {
-    method->params.AddReceiver(ReceiverType(), formal_param_pos);
+    method->params.AddReceiver(ReceiverType(current_class()), formal_param_pos);
   } else if (method->IsFactory()) {
     method->params.AddFinalParameter(
         formal_param_pos,
@@ -3089,7 +3075,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
                     method->has_abstract,
                     method->has_external,
                     current_class(),
-                    method_pos));
+                    method->decl_begin_pos));
   func.set_result_type(*method->type);
   func.set_end_token_pos(method_end_pos);
   if (method->metadata_pos > 0) {
@@ -3148,20 +3134,21 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     if (has_initializer) {
       ConsumeToken();
       init_value = Object::sentinel().raw();
-      // For static const fields, the initialization expression
-      // will be parsed through the kImplicitStaticFinalGetter method
-      // invocation/compilation.
+      // For static const fields and static final non-const fields, the
+      // initialization expression will be parsed through the
+      // kImplicitStaticFinalGetter method invocation/compilation.
       // For instance fields, the expression is parsed when a constructor
       // is compiled.
-      // For static const fields with very simple initializer expressions
-      // (e.g. a literal number or string) we optimize away the
-      // kImplicitStaticFinalGetter and initialize the field here.
-      // We also do it for static final non-const fields, but only in production
-      // mode.
+      // For static const fields and static final non-const fields with very
+      // simple initializer expressions (e.g. a literal number or string), we
+      // optimize away the kImplicitStaticFinalGetter and initialize the field
+      // here. However, the class finalizer will check the value type for
+      // assignability once the declared field type can be resolved. If the
+      // value is not assignable (assuming checked mode and disregarding actual
+      // mode), the field value is reset and a kImplicitStaticFinalGetter is
+      // created at finalization time.
 
-      if (field->has_static &&
-          (field->has_const ||
-           (!FLAG_enable_type_checks && field->has_final)) &&
+      if (field->has_static && (field->has_const || field->has_final) &&
           (LookaheadToken(1) == Token::kSEMICOLON)) {
         has_simple_literal = IsSimpleLiteral(*field->type, &init_value);
       }
@@ -3221,7 +3208,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
                              field->name_pos);
       ParamList params;
       ASSERT(current_class().raw() == getter.Owner());
-      params.AddReceiver(ReceiverType(), field->name_pos);
+      params.AddReceiver(ReceiverType(current_class()), field->name_pos);
       getter.set_result_type(*field->type);
       AddFormalParamsToFunction(&params, getter);
       members->AddFunction(getter);
@@ -3237,7 +3224,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
                                field->name_pos);
         ParamList params;
         ASSERT(current_class().raw() == setter.Owner());
-        params.AddReceiver(ReceiverType(), field->name_pos);
+        params.AddReceiver(ReceiverType(current_class()), field->name_pos);
         params.AddFinalParameter(TokenPos(),
                                  &Symbols::Value(),
                                  field->type);
@@ -3285,6 +3272,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
   MemberDesc member;
   current_member_ = &member;
   member.metadata_pos = metadata_pos;
+  member.decl_begin_pos = TokenPos();
   if ((CurrentToken() == Token::kEXTERNAL) &&
       (LookaheadToken(1) != Token::kLPAREN)) {
     ConsumeToken();
@@ -3368,22 +3356,26 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
         ErrorMsg(member.name_pos, "factory name must be '%s'",
                  members->class_name().ToCString());
       }
-      // Do not bypass class resolution by using current_class() directly, since
-      // it may be a patch class.
-      const Object& result_type_class = Object::Handle(
-          UnresolvedClass::New(LibraryPrefix::Handle(),
-                               *member.name,
-                               member.name_pos));
-      // The type arguments of the result type are the type parameters of the
-      // current class. Note that in the case of a patch class, they are copied
-      // from the class being patched.
-      member.type = &Type::ZoneHandle(Type::New(
-          result_type_class,
-          TypeArguments::Handle(current_class().type_parameters()),
-          member.name_pos));
     } else if (member.has_static) {
       ErrorMsg(member.name_pos, "constructor cannot be static");
     }
+    if (member.type != NULL) {
+      ErrorMsg(member.name_pos, "constructor must not specify return type");
+    }
+    // Do not bypass class resolution by using current_class() directly, since
+    // it may be a patch class.
+    const Object& result_type_class = Object::Handle(
+        UnresolvedClass::New(LibraryPrefix::Handle(),
+                             *member.name,
+                             member.name_pos));
+    // The type arguments of the result type are the type parameters of the
+    // current class. Note that in the case of a patch class, they are copied
+    // from the class being patched.
+    member.type = &Type::ZoneHandle(Type::New(
+        result_type_class,
+        TypeArguments::Handle(current_class().type_parameters()),
+        member.name_pos));
+
     // We must be dealing with a constructor or named constructor.
     member.kind = RawFunction::kConstructor;
     *member.name = String::Concat(*member.name, Symbols::Dot());
@@ -3395,18 +3387,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
     }
     // Ensure that names are symbols.
     *member.name = Symbols::New(*member.name);
-    if (member.type == NULL) {
-      ASSERT(!member.has_factory);
-      // The body of the constructor cannot modify the type arguments of the
-      // constructed instance, which is passed in as a hidden parameter.
-      // Therefore, there is no need to set the result type to be checked.
-      member.type = &Type::ZoneHandle(Type::DynamicType());
-    } else {
-      // The type can only be already set in the factory case.
-      if (!member.has_factory) {
-        ErrorMsg(member.name_pos, "constructor must not specify return type");
-      }
-    }
+
     if (CurrentToken() != Token::kLPAREN) {
       ErrorMsg("left parenthesis expected");
     }
@@ -3690,9 +3671,9 @@ void Parser::ParseClassDefinition(const Class& cls) {
     // The patched class must not be finalized yet.
     const Class& orig_class = Class::Cast(obj);
     ASSERT(!orig_class.is_finalized());
-    const char* err_msg = orig_class.ApplyPatch(cls);
-    if (err_msg != NULL) {
-      ErrorMsg(class_pos, "applying patch failed with '%s'", err_msg);
+    Error& error = Error::Handle();
+    if (!orig_class.ApplyPatch(cls, &error)) {
+      AppendErrorMsg(error, class_pos, "applying patch failed");
     }
   }
 }
@@ -3719,10 +3700,9 @@ void Parser::AddImplicitConstructor(const Class& cls) {
   ctor.set_end_token_pos(ctor.token_pos());
 
   ParamList params;
-  // Add implicit 'this' parameter. We don't care about the specific type
-  // and just specify dynamic.
-  const Type& receiver_type = Type::Handle(Type::DynamicType());
-  params.AddReceiver(&receiver_type, cls.token_pos());
+  // Add implicit 'this' parameter.
+  const AbstractType* receiver_type = ReceiverType(cls);
+  params.AddReceiver(receiver_type, cls.token_pos());
   // Add implicit parameter for construction phase.
   params.AddFinalParameter(cls.token_pos(),
                            &Symbols::PhaseParameter(),
@@ -3731,7 +3711,7 @@ void Parser::AddImplicitConstructor(const Class& cls) {
   AddFormalParamsToFunction(&params, ctor);
   // The body of the constructor cannot modify the type of the constructed
   // instance, which is passed in as the receiver.
-  ctor.set_result_type(receiver_type);
+  ctor.set_result_type(*receiver_type);
   cls.AddFunction(ctor);
 }
 
@@ -3822,7 +3802,9 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes) {
   mixin_application.set_super_type(type);
   mixin_application.set_is_synthesized_class();
 
-  AddImplicitConstructor(mixin_application);
+  // This mixin application typedef needs an implicit constructor, but it is
+  // too early to call 'AddImplicitConstructor(mixin_application)' here,
+  // because this class should be lazily compiled.
   if (CurrentToken() == Token::kIMPLEMENTS) {
     ParseInterfaceList(mixin_application);
   }
@@ -4257,10 +4239,8 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
   // Const fields are implicitly final.
   const bool is_final = is_const || (CurrentToken() == Token::kFINAL);
   const bool is_static = true;
-  const AbstractType& type =
-      AbstractType::ZoneHandle(ParseConstFinalVarOrType(
-          FLAG_enable_type_checks ? ClassFinalizer::kResolveTypeParameters :
-                                    ClassFinalizer::kIgnore));
+  const AbstractType& type = AbstractType::ZoneHandle(ParseConstFinalVarOrType(
+      ClassFinalizer::kResolveTypeParameters));
   Field& field = Field::Handle();
   Function& getter = Function::Handle();
   while (true) {
@@ -4298,15 +4278,14 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
       ConsumeToken();
       Instance& field_value = Instance::Handle(Object::sentinel().raw());
       bool has_simple_literal = false;
-      if ((is_const || (!FLAG_enable_type_checks && is_final)) &&
-          (LookaheadToken(1) == Token::kSEMICOLON)) {
+      if ((is_const || is_final) && (LookaheadToken(1) == Token::kSEMICOLON)) {
         has_simple_literal = IsSimpleLiteral(type, &field_value);
       }
       SkipExpr();
       field.set_value(field_value);
       if (!has_simple_literal) {
-        // Create a static const getter.
-        String& getter_name = String::ZoneHandle(Field::GetterSymbol(var_name));
+        // Create a static final getter.
+        String& getter_name = String::Handle(Field::GetterSymbol(var_name));
         getter = Function::New(getter_name,
                                RawFunction::kImplicitStaticFinalGetter,
                                is_static,
@@ -4337,6 +4316,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
 void Parser::ParseTopLevelFunction(TopLevel* top_level,
                                    intptr_t metadata_pos) {
   TRACE_PARSER("ParseTopLevelFunction");
+  const intptr_t decl_begin_pos = TokenPos();
   AbstractType& result_type = Type::Handle(Type::DynamicType());
   const bool is_static = true;
   bool is_external = false;
@@ -4410,7 +4390,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
                     /* is_abstract = */ false,
                     is_external,
                     current_class(),
-                    function_pos));
+                    decl_begin_pos));
   func.set_result_type(result_type);
   func.set_end_token_pos(function_end_pos);
   AddFormalParamsToFunction(&params, func);
@@ -4429,6 +4409,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
 void Parser::ParseTopLevelAccessor(TopLevel* top_level,
                                    intptr_t metadata_pos) {
   TRACE_PARSER("ParseTopLevelAccessor");
+  const intptr_t decl_begin_pos = TokenPos();
   const bool is_static = true;
   bool is_external = false;
   bool is_patch = false;
@@ -4535,7 +4516,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
                     /* is_abstract = */ false,
                     is_external,
                     current_class(),
-                    accessor_pos));
+                    decl_begin_pos));
   func.set_result_type(result_type);
   func.set_end_token_pos(accessor_end_pos);
   AddFormalParamsToFunction(&params, func);
@@ -4960,7 +4941,10 @@ void Parser::AddFormalParamsToFunction(const ParamList* params,
           params->has_optional_named_parameters));
   if (!Utils::IsInt(16, params->num_fixed_parameters) ||
       !Utils::IsInt(16, params->num_optional_parameters)) {
-    ErrorMsg(func.token_pos(), "too many formal parameters");
+    const Script& script = Script::Handle(Class::Handle(func.Owner()).script());
+    const Error& error = Error::Handle(FormatErrorMsg(
+        script, func.token_pos(), "Error", "too many formal parameters"));
+    ErrorMsg(error);
   }
   func.set_num_fixed_parameters(params->num_fixed_parameters);
   func.SetNumOptionalParameters(params->num_optional_parameters,
@@ -4973,7 +4957,6 @@ void Parser::AddFormalParamsToFunction(const ParamList* params,
                                                     Heap::kOld)));
   for (int i = 0; i < num_parameters; i++) {
     ParamDesc& param_desc = (*params->parameters)[i];
-    ASSERT(is_top_level_ || param_desc.type->IsResolved());
     func.SetParameterTypeAt(i, *param_desc.type);
     func.SetParameterNameAt(i, *param_desc.name);
   }
@@ -5249,7 +5232,6 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
                (LookaheadToken(1) != Token::kLPAREN)) {
       result_type = ParseType(ClassFinalizer::kCanonicalize);
     }
-    ident_pos = TokenPos();
     variable_name = ExpectIdentifier("function name expected");
     function_name = variable_name;
   }
@@ -5275,7 +5257,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     is_new_closure = true;
     function = Function::NewClosureFunction(*function_name,
                                             innermost_function(),
-                                            function_pos);
+                                            ident_pos);
     function.set_result_type(result_type);
     current_class().AddClosureFunction(function);
   }
@@ -6940,7 +6922,7 @@ void Parser::ErrorMsg(const char* format, ...) {
 
 
 void Parser::ErrorMsg(const Error& error) {
-  isolate()->long_jump_base()->Jump(1, error);
+  Isolate::Current()->long_jump_base()->Jump(1, error);
   UNREACHABLE();
 }
 
@@ -7291,6 +7273,29 @@ AstNode* Parser::OptimizeBinaryOpNode(intptr_t op_pos,
   }
   if ((binary_op == Token::kAND) || (binary_op == Token::kOR)) {
     EnsureExpressionTemp();
+  }
+  if (binary_op == Token::kBIT_AND) {
+    // Normalize so that rhs is a literal if any is.
+    if ((rhs_literal == NULL) && (lhs_literal != NULL)) {
+      // Swap.
+      LiteralNode* temp = rhs_literal;
+      rhs_literal = lhs_literal;
+      lhs_literal = temp;
+    }
+    if ((rhs_literal != NULL) &&
+        (rhs_literal->literal().IsSmi() || rhs_literal->literal().IsMint())) {
+      const int64_t val = Integer::Cast(rhs_literal->literal()).AsInt64Value();
+      if ((0 <= val) && (Utils::IsUint(32, val))) {
+        if (lhs->IsBinaryOpNode() &&
+            (lhs->AsBinaryOpNode()->kind() == Token::kSHL)) {
+          // Merge SHL and BIT_AND into one "SHL with mask" node.
+          BinaryOpNode* old = lhs->AsBinaryOpNode();
+          BinaryOpWithMask32Node* binop = new BinaryOpWithMask32Node(
+              old->token_pos(), old->kind(), old->left(), old->right(), val);
+          return binop;
+        }
+      }
+    }
   }
   return new BinaryOpNode(op_pos, binary_op, lhs, rhs);
 }
@@ -8353,17 +8358,18 @@ bool Parser::ParsingStaticMember() const {
 }
 
 
-const Type* Parser::ReceiverType() const {
-  ASSERT(!current_class().IsNull());
+const AbstractType* Parser::ReceiverType(const Class& cls) {
+  ASSERT(!cls.IsNull());
   TypeArguments& type_arguments = TypeArguments::Handle();
-  if (current_class().NumTypeParameters() > 0) {
-    type_arguments = current_class().type_parameters();
+  if (cls.NumTypeParameters() > 0) {
+    type_arguments = cls.type_parameters();
   }
-  Type& type = Type::ZoneHandle(
-      Type::New(current_class(), type_arguments, current_class().token_pos()));
-  if (!is_top_level_ || current_class().is_type_finalized()) {
+  AbstractType& type = AbstractType::ZoneHandle(
+      Type::New(cls, type_arguments, cls.token_pos()));
+  if (cls.is_type_finalized()) {
     type ^= ClassFinalizer::FinalizeType(
-        current_class(), type, ClassFinalizer::kCanonicalizeWellFormed);
+        cls, type, ClassFinalizer::kCanonicalizeWellFormed);
+    // Note that the receiver type may now be a malbounded type.
   }
   return &type;
 }
@@ -9243,7 +9249,6 @@ static void AddKeyValuePair(GrowableArray<AstNode*>* pairs,
                             AstNode* value) {
   if (is_const) {
     ASSERT(key->IsLiteralNode());
-    ASSERT(key->AsLiteralNode()->literal().IsString());
     const Instance& new_key = key->AsLiteralNode()->literal();
     for (int i = 0; i < pairs->length(); i += 2) {
       const Instance& key_i =
@@ -10041,6 +10046,30 @@ void Parser::SkipFunctionLiteral() {
 }
 
 
+// Skips function/method/constructor/getter/setter preambles until the formal
+// parameter list. It is enough to skip the tokens, since we have already
+// previously parsed the function.
+void Parser::SkipFunctionPreamble() {
+  while (true) {
+    if (CurrentToken() == Token::kLPAREN ||
+        CurrentToken() == Token::kARROW ||
+        CurrentToken() == Token::kSEMICOLON ||
+        CurrentToken() == Token::kLBRACE) {
+      return;
+    }
+    // Case handles "native" keyword, but also return types of form
+    // native.SomeType where native is the name of a library.
+    if (CurrentToken() == Token::kIDENT &&
+        LookaheadToken(1) != Token::kPERIOD) {
+      if (CurrentLiteral()->raw() == Symbols::Native().raw()) {
+        return;
+      }
+    }
+    ConsumeToken();
+  }
+}
+
+
 void Parser::SkipListLiteral() {
   if (CurrentToken() == Token::kINDEX) {
     // Empty list literal.
@@ -10052,6 +10081,8 @@ void Parser::SkipListLiteral() {
     SkipNestedExpr();
     if (CurrentToken() == Token::kCOMMA) {
       ConsumeToken();
+    } else {
+      break;
     }
   }
   ExpectToken(Token::kRBRACK);
@@ -10060,12 +10091,14 @@ void Parser::SkipListLiteral() {
 
 void Parser::SkipMapLiteral() {
   ExpectToken(Token::kLBRACE);
-  while (CurrentToken() == Token::kSTRING) {
-    SkipStringLiteral();
+  while (CurrentToken() != Token::kRBRACE) {
+    SkipNestedExpr();
     ExpectToken(Token::kCOLON);
     SkipNestedExpr();
     if (CurrentToken() == Token::kCOMMA) {
       ConsumeToken();
+    } else {
+      break;
     }
   }
   ExpectToken(Token::kRBRACE);

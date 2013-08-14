@@ -6,8 +6,6 @@ library pub.command.update;
 
 import 'dart:async';
 
-import 'package:args/args.dart';
-
 import '../command.dart';
 import '../entrypoint.dart';
 import '../log.dart' as log;

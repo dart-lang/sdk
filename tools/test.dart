@@ -158,7 +158,7 @@ void testConfigurations(List<Map> configurations) {
     // There should not be more than one InternetExplorerDriver instance
     // running at a time. For details, see
     // http://code.google.com/p/selenium/wiki/InternetExplorerDriver.
-    if (conf['runtime'].startsWith('ie')) {
+    if (conf['runtime'].startsWith('ie') && !conf["use_browser_controller"]) {
       maxBrowserProcesses = 1;
     } else if (conf['runtime'].startsWith('safari') &&
                conf['use_browser_controller']) {

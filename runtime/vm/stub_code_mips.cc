@@ -2174,13 +2174,15 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 // A1: stack_pointer.
 // A2: frame_pointer.
 // A3: error object.
-// SP: address of stacktrace object.
+// SP + 4*kWordSize: address of stacktrace object.
 // Does not return.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == V0);
   ASSERT(kStackTraceObjectReg == V1);
   __ mov(V0, A3);  // Exception object.
-  __ lw(V1, Address(SP, 0));  // StackTrace object.
+  // MIPS ABI reserves stack space for all arguments. The StackTrace object is
+  // the last of five arguments, so it is first pushed on the stack.
+  __ lw(V1, Address(SP, 4 * kWordSize));  // StackTrace object.
   __ mov(FP, A2);  // Frame_pointer.
   __ jr(A0);  // Jump to the exception handler code.
   __ delay_slot()->mov(SP, A1);  // Stack pointer.

@@ -405,11 +405,7 @@ Language/07_Classes/07_Classes_A07_t10: fail, OK
 Language/11_Expressions/11_Instance_Creation/1_New_A01_t04: fail, OK
 
 # co19 issue #455, undeclared identifier is static warning
-Language/11_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t10: fail, OK
-Language/12_Statements/04_Local_Function_Declaration_A02_t02: fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A02_t12: fail, OK
 Language/13_Libraries_and_Scripts/1_Imports_A02_t14: fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A02_t15: fail, OK
 
 # co19 issue #456
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t04: fail, OK
@@ -455,3 +451,26 @@ Language/13_Libraries_and_Scripts/1_Imports_A03_t70: fail, OK
 
 # co19 issue 483, instance access to static member
 Language/11_Expressions/15_Method_Invocation/2_Cascaded_Invocation_A01_t19: fail, OK
+
+# co19 issue #486, some override errors are now warnings
+Language/07_Classes/1_Instance_Methods_A01_t01: fail, OK
+Language/07_Classes/1_Instance_Methods_A01_t02: fail, OK
+Language/07_Classes/1_Instance_Methods_A01_t03: fail, OK
+Language/07_Classes/1_Instance_Methods_A01_t04: fail, OK
+Language/07_Classes/1_Instance_Methods_A01_t05: fail, OK
+Language/07_Classes/1_Instance_Methods_A01_t06: fail, OK
+Language/07_Classes/1_Instance_Methods_A02_t02: fail, OK
+Language/07_Classes/1_Instance_Methods_A02_t05: fail, OK
+Language/07_Classes/1_Instance_Methods_A06_t01: fail, OK
+Language/07_Classes/1_Instance_Methods_A06_t02: fail, OK
+Language/07_Classes/4_Abstract_Instance_Members_A03_t01: fail, OK
+Language/07_Classes/4_Abstract_Instance_Members_A03_t02: fail, OK
+Language/07_Classes/4_Abstract_Instance_Members_A03_t03: fail, OK
+Language/07_Classes/4_Abstract_Instance_Members_A03_t04: fail, OK
+Language/07_Classes/4_Abstract_Instance_Members_A03_t05: fail, OK
+Language/07_Classes/4_Abstract_Instance_Members_A04_t01: fail, OK
+Language/07_Classes/4_Abstract_Instance_Members_A04_t05: fail, OK
+Language/07_Classes/4_Abstract_Instance_Members_A04_t06: fail, OK
+
+# co19 issue #487, Function type T may be assigned to function type T iff T <: S
+Language/14_Types/5_Function_Types_A01_t01: fail, OK

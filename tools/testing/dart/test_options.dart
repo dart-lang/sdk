@@ -100,7 +100,7 @@ class TestOptionsParser {
               'arch',
               'The architecture to run tests for',
               ['-a', '--arch'],
-              ['all', 'ia32', 'x64', 'simarm', 'simmips', 'arm'],
+              ['all', 'ia32', 'x64', 'simarm', 'simmips', 'arm', 'mips'],
               'ia32'),
           new _TestOptionSpecification(
               'system',
@@ -668,6 +668,10 @@ Note: currently only implemented for dart2js.''',
           if (configuration['arch'] == 'simarm') {
             timeout *= 4;
           } else if (configuration['arch'] == 'arm') {
+            timeout *= 4;
+          } else if (configuration['arch'] == 'simmips') {
+            timeout *= 4;
+          } else if (configuration['arch'] == 'mips') {
             timeout *= 4;
           }
           if (configuration['mode'] == 'debug') {

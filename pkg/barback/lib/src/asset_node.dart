@@ -22,6 +22,11 @@ class AssetNode {
   /// The id of the asset that this node represents.
   final AssetId id;
 
+  /// The transform that created this asset node.
+  ///
+  /// This is `null` for source assets.
+  final TransformNode transform;
+
   /// The current state of the asset node.
   AssetState get state => _state;
   AssetState _state;
@@ -106,10 +111,10 @@ class AssetNode {
     return onStateChange.firstWhere(test);
   }
 
-  AssetNode._(this.id)
+  AssetNode._(this.id, this.transform)
       : _state = AssetState.DIRTY;
 
-  AssetNode._available(Asset asset)
+  AssetNode._available(Asset asset, this.transform)
       : id = asset.id,
         _asset = asset,
         _state = AssetState.AVAILABLE;
@@ -122,13 +127,13 @@ class AssetNodeController {
   final AssetNode node;
 
   /// Creates a controller for a dirty node.
-  AssetNodeController(AssetId id)
-      : node = new AssetNode._(id);
+  AssetNodeController(AssetId id, [TransformNode transform])
+      : node = new AssetNode._(id, transform);
 
   /// Creates a controller for an available node with the given concrete
   /// [asset].
-  AssetNodeController.available(Asset asset)
-      : node = new AssetNode._available(asset);
+  AssetNodeController.available(Asset asset, [TransformNode transform])
+      : node = new AssetNode._available(asset, transform);
 
   /// Marks the node as [AssetState.DIRTY].
   void setDirty() {

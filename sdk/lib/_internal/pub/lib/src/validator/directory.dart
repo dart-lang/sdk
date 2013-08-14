@@ -10,7 +10,6 @@ import 'package:path/path.dart' as path;
 
 import '../entrypoint.dart';
 import '../io.dart';
-import '../utils.dart';
 import '../validator.dart';
 
 /// A validator that validates a package's top-level directories.

@@ -11,6 +11,7 @@ import 'package:crypto/crypto.dart';
 
 import 'async_queue.dart';
 import 'stat.dart';
+import 'utils.dart';
 import 'watch_event.dart';
 
 /// Watches the contents of a directory and emits [WatchEvent]s when something
@@ -118,19 +119,32 @@ class DirectoryWatcher {
     _filesToProcess.clear();
     _polledFiles.clear();
 
+    endListing() {
+      assert(_state != _WatchState.UNSUBSCRIBED);
+      _listSubscription = null;
+
+      // Null tells the queue consumer that we're done listing.
+      _filesToProcess.add(null);
+    }
+
     var stream = new Directory(directory).list(recursive: true);
     _listSubscription = stream.listen((entity) {
       assert(_state != _WatchState.UNSUBSCRIBED);
 
       if (entity is! File) return;
       _filesToProcess.add(entity.path);
-    }, onDone: () {
-      assert(_state != _WatchState.UNSUBSCRIBED);
-      _listSubscription = null;
+    }, onError: (error) {
+      if (!isDirectoryNotFoundException(error)) {
+        // It's some unknown error. Pipe it over to the event stream so the
+        // user can see it.
+        _events.addError(error);
+      }
 
-      // Null tells the queue consumer that we're done listing.
-      _filesToProcess.add(null);
-    });
+      // When an error occurs, we end the listing normally, which has the
+      // desired effect of marking all files that were in the directory as
+      // being removed.
+      endListing();
+    }, onDone: endListing, cancelOnError: true);
   }
 
   /// Processes [file] to determine if it has been modified since the last

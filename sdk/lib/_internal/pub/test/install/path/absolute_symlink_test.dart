@@ -4,7 +4,6 @@
 
 import 'package:path/path.dart' as path;
 
-import '../../../lib/src/exit_codes.dart' as exit_codes;
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 

@@ -38,8 +38,9 @@ library _foreign_helper;
  *     that have no corresponing Dart type (e.g. cross-frame documents),
  *     `=Object` can be used to describe these untyped' values.
  *
- *  + `var`.  If the entire [typeDescription] is `var` then the type is
- *    `dynamic` but the code is known to not create any instances.
+ *  + `var` (or empty string).  If the entire [typeDescription] is `var` (or
+ *    empty string) then the type is `dynamic` but the code is known to not
+ *    create any instances.
  *
  * Examples:
  *

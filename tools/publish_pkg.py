@@ -139,7 +139,7 @@ def Main(argv):
   if not os.path.exists(os.path.join(tmpDir, pkgName, 'LICENSE')):
     with open(os.path.join(tmpDir, pkgName, 'LICENSE'), 'w') as licenseFile:
       licenseFile.write(
-'''Copyright 2012, the Dart project authors. All rights reserved.
+'''Copyright 2013, the Dart project authors. All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
 met:

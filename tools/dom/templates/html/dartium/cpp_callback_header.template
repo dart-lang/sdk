@@ -29,6 +29,21 @@ public:
             return 0;
         return create(object, exception);
     }
+
+    static PassRefPtr<NativeType> create(Dart_NativeArguments args, int idx, Dart_Handle& exception)
+    {
+        Dart_Handle object = Dart_GetNativeArgument(args, idx);
+        return create(object, exception);
+    }
+
+    static PassRefPtr<NativeType> createWithNullCheck(Dart_NativeArguments args, int idx, Dart_Handle& exception)
+    {
+        Dart_Handle object = Dart_GetNativeArgument(args, idx);
+        if (Dart_IsNull(object))
+            return 0;
+        return create(object, exception);
+    }
+
 $HANDLERS
 
 private:

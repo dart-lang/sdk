@@ -13,7 +13,7 @@ import 'package:path/path.dart' as pathos;
 final _posix = new pathos.Builder(style: pathos.Style.posix);
 
 /// Identifies an asset within a package.
-class AssetId {
+class AssetId implements Comparable<AssetId> {
   /// The name of the package containing this asset.
   final String package;
 
@@ -72,6 +72,12 @@ class AssetId {
       path == other.path;
 
   int get hashCode => package.hashCode ^ path.hashCode;
+
+  int compareTo(AssetId other) {
+    var packageComp = package.compareTo(other.package);
+    if (packageComp != 0) return packageComp;
+    return path.compareTo(other.path);
+  }
 
   /// Returns a new [AssetId] with the same [package] as this one and with the
   /// [path] extended to include [extension].

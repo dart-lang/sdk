@@ -97,6 +97,12 @@ class Frame {
 
   /// Parses a string representation of a Dart VM stack frame.
   factory Frame.parseVM(String frame) {
+    // The VM sometimes folds multiple stack frames together and replaces them
+    // with "...".
+    if (frame == '...') {
+      return new Frame(new Uri(), null, null, '...');
+    }
+
     var match = _vmFrame.firstMatch(frame);
     if (match == null) {
       throw new FormatException("Couldn't parse VM stack trace line '$frame'.");

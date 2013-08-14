@@ -244,6 +244,11 @@ const char* BinaryOpNode::Name() const {
 }
 
 
+const char* BinaryOpWithMask32Node::Name() const {
+  return Token::Str(kind());
+}
+
+
 bool BinaryOpNode::IsPotentiallyConst() const {
   switch (kind_) {
     case Token::kADD:

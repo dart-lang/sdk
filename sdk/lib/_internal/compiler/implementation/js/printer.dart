@@ -1060,7 +1060,7 @@ class MinifyRenamer implements LocalNamer {
   }
 
   static const LOWER_CASE_LETTERS = 26;
-  static const LETTERS = 52;
+  static const LETTERS = LOWER_CASE_LETTERS;
   static const DIGITS = 10;
 
   static int nthLetter(int n) {

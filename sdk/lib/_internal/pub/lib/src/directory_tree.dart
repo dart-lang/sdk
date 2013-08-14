@@ -7,8 +7,6 @@ library pub.directory_tree;
 
 import 'package:path/path.dart' as path;
 
-import 'log.dart' as log;
-
 /// Draws a directory tree for the given list of files. Given a list of files
 /// like:
 ///

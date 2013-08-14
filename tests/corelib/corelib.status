@@ -20,7 +20,6 @@ symbol_test/03: Fail, Pass # bug 11669
 
 [ $compiler == none || $compiler == dart2dart ]
 symbol_test/none: Fail # bug 11669
-error_stack_trace_test: Fail  # Bug http://dartbug.com/11680
 error_stack_trace2_test: Fail  # Bug 5802
 
 [ $runtime == ff || $runtime == ie9 || $runtime == jsshell ]
@@ -53,6 +52,7 @@ unicode_test: Fail
 string_trim_unicode_test: Fail  # Bug 6569
 
 [ $compiler == dart2js ]
+error_stack_trace1_test: Fail # Issue 12399
 math_parse_double_test: Fail # Expect.equals(expected: <78187493520>, actual: <0>)
 math_test: Fail # issue 3333
 surrogate_pair_toUpper_test: Fail # Issue 6707
@@ -62,9 +62,6 @@ compare_to2_test: Fail, OK    # Requires bigint support.
 string_base_vm_test: Fail, OK # VM specific test.
 
 string_replace_func_test: Skip # Bug 6554 - doesn't terminate.
-
-error_stack_trace_test: Fail  # Bug http://dartbug.com/11681
-error_stack_trace2_test: Fail  # Bug http://dartbug.com/11681
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
@@ -95,6 +92,9 @@ map_values2_test: Fail # Generic types aren't right
 iterable_to_list_test: Fail
 iterable_to_set_test: Fail
 
+[ $compiler == dart2dart && $minified ]
+error_stack_trace1_test: Fail # Fails in minified mode, test depends on method names.
+
 [ $compiler == dartanalyzer ]
 symbol_test/02: Fail
 symbol_test/03: Fail
@@ -114,9 +114,6 @@ collection_to_string_test: Pass, Crash # Issue: 11207
 
 [ $arch == simarm && $mode == debug ]
 collection_to_string_test: Pass, Crash # Issue: 11207
-
-[ $arch == mips ]
-*: Skip
 
 [ $arch == simmips ]
 int_parse_radix_test: Skip # Timeout

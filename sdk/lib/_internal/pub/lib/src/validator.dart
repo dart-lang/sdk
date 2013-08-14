@@ -8,8 +8,6 @@ import 'dart:async';
 
 import 'entrypoint.dart';
 import 'log.dart' as log;
-import 'io.dart';
-import 'system_cache.dart';
 import 'utils.dart';
 import 'validator/compiled_dartdoc.dart';
 import 'validator/dependency.dart';

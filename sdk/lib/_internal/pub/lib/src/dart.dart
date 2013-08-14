@@ -6,16 +6,10 @@
 library pub.dart;
 
 import 'dart:async';
-import 'dart:io';
-import 'dart:math' as math;
 
 import 'package:analyzer_experimental/analyzer.dart';
 import 'package:path/path.dart' as path;
 import '../../../compiler/compiler.dart' as compiler;
-import '../../../compiler/implementation/mirrors/dart2js_mirror.dart' as dart2js
-    show analyze, Dart2JsMirrorSystem;
-import '../../../compiler/implementation/mirrors/mirrors.dart'
-    show MirrorSystem;
 import '../../../compiler/implementation/source_file_provider.dart'
     show FormattingDiagnosticHandler, SourceFileProvider;
 import '../../../compiler/implementation/filenames.dart'

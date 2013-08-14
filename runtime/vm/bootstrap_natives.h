@@ -22,6 +22,8 @@ namespace dart {
   V(Object_as, 4)                                                              \
   V(Object_cid, 1)                                                             \
   V(Function_apply, 2)                                                         \
+  V(FunctionImpl_equals, 2)                                                    \
+  V(FunctionImpl_hashCode, 1)                                                  \
   V(InvocationMirror_invoke, 4)                                                \
   V(AbstractType_toString, 1)                                                  \
   V(Identical_comparison, 2)                                                   \
@@ -36,6 +38,7 @@ namespace dart {
   V(Integer_greaterThanFromInteger, 2)                                         \
   V(Integer_equalToInteger, 2)                                                 \
   V(Integer_parse, 1)                                                          \
+  V(Integer_leftShiftWithMask32, 3)                                            \
   V(ReceivePortImpl_factory, 1)                                                \
   V(ReceivePortImpl_closeInternal, 1)                                          \
   V(SendPortImpl_sendInternal_, 3)                                             \
@@ -271,10 +274,10 @@ namespace dart {
   V(TypeVariableMirror_upper_bound, 1)                                         \
   V(DeclarationMirror_metadata, 1)                                             \
   V(FunctionTypeMirror_call_method, 2)                                         \
-  V(FunctionTypeMirror_parameters, 1)                                          \
+  V(FunctionTypeMirror_parameters, 2)                                          \
   V(FunctionTypeMirror_return_type, 1)                                         \
   V(MethodMirror_owner, 1)                                                     \
-  V(MethodMirror_parameters, 1)                                                \
+  V(MethodMirror_parameters, 2)                                                \
   V(MethodMirror_return_type, 1)                                               \
   V(ParameterMirror_type, 2)                                                   \
   V(TypedefMirror_referent, 1)                                                 \

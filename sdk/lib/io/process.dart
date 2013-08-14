@@ -147,6 +147,26 @@ abstract class Process {
        Encoding stdoutEncoding: Encoding.SYSTEM,
        Encoding stderrEncoding: Encoding.SYSTEM});
 
+
+  /**
+   * Starts a process and runs it to completion. This is a synchronous
+   * call and will block until the child process terminates.
+   *
+   * The arguments are the same as for `Process.run`.
+   *
+   * Returns a `ProcessResult` with the result of running the process,
+   * i.e., exit code, standard out and standard in.
+   */
+  external static ProcessResult runSync(
+      String executable,
+      List<String> arguments,
+      {String workingDirectory,
+       Map<String, String> environment,
+       bool includeParentEnvironment: true,
+       bool runInShell: false,
+       Encoding stdoutEncoding: Encoding.SYSTEM,
+       Encoding stderrEncoding: Encoding.SYSTEM});
+
   /**
    * Returns the standard output stream of the process as a [:Stream:].
    *

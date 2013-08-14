@@ -62,6 +62,7 @@ class ObjectPointerVisitor;
   V(ClosureFunctionField, ":function")                                         \
   V(ClosureContextField, ":context")                                           \
   V(Library, "library")                                                        \
+  V(Native, "native")                                                          \
   V(Import, "import")                                                          \
   V(Source, "source")                                                          \
   V(Class, "Class")                                                            \
@@ -77,6 +78,7 @@ class ObjectPointerVisitor;
   V(InstantiatedTypeArguments, "InstantiatedTypeArguments")                    \
   V(PatchClass, "PatchClass")                                                  \
   V(Function, "Function")                                                      \
+  V(FunctionImpl, "_FunctionImpl")                                             \
   V(FunctionResult, "function result")                                         \
   V(FactoryResult, "factory result")                                           \
   V(ClosureData, "ClosureData")                                                \
@@ -282,6 +284,7 @@ class ObjectPointerVisitor;
   V(_LocalMirrorSystemImpl, "_LocalMirrorSystemImpl")                          \
   V(_LocalTypedefMirrorImpl, "_LocalTypedefMirrorImpl")                        \
   V(_LocalTypeVariableMirrorImpl, "_LocalTypeVariableMirrorImpl")              \
+  V(_leftShiftWithMask32, "_leftShiftWithMask32")                              \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This

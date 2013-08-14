@@ -51,9 +51,10 @@ getInterceptor(object) {
   // This is a magic method: the compiler does specialization of it
   // depending on the uses of intercepted methods and instantiated
   // primitive types.
-  // This method is recursive to prevent the type analyzer from thinking that
-  // the method returns `null`.
-  return getInterceptor(object);
+
+  // The [JS] call prevents the type analyzer from making assumptions about the
+  // return type.
+  return JS('', 'void 0');
 }
 
 /**

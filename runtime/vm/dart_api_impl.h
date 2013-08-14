@@ -206,6 +206,8 @@ class Api : AllStatic {
   static void SetDoubleReturnValue(NativeArguments* args, double retval) {
     args->SetReturnUnsafe(Double::New(retval));
   }
+  static void SetWeakHandleReturnValue(NativeArguments* args,
+                                       Dart_WeakPersistentHandle retval);
 
  private:
   // Thread local key used by the API. Currently holds the current

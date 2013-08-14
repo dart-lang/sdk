@@ -468,7 +468,12 @@ abstract class Compiler implements DiagnosticListener {
   static const int NO_SUCH_METHOD_ARG_COUNT = 1;
   static const SourceString CREATE_INVOCATION_MIRROR =
       const SourceString('createInvocationMirror');
-  static const SourceString INVOKE_ON = const SourceString('_invokeOn');
+
+  // TODO(ahe): Rename this field and move this logic to backend, similar to how
+  // we disable tree-shaking when seeing disableTreeShaking in js_mirrors.dart.
+  static const SourceString INVOKE_ON =
+      const SourceString('_getCachedInvocation');
+
   static const SourceString RUNTIME_TYPE = const SourceString('runtimeType');
   static const SourceString START_ROOT_ISOLATE =
       const SourceString('startRootIsolate');

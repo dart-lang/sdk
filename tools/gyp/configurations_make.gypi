@@ -54,7 +54,6 @@
             '-Wno-psabi', # suppresses va_list warning
             '-fno-strict-overflow',
           ],
-          'ldflags': ['-static'],
         }],
         ['_toolset=="host"', {
           'cflags': ['-m32', '-msse2'],

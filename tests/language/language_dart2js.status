@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js || $compiler == dart2dart ]
+compile_time_constant_c_test/none: Fail # Map literal with int key.
 class_literal_test/01: Fail # Class literals are expression now; delete this test.
 class_literal_test/02: Fail # Class literals are expression now; delete this test.
 class_literal_test/05: Fail # Class literals are expression now; delete this test.
@@ -28,6 +29,8 @@ class_literal_test/28: Fail # Class literals are expression now; delete this tes
 class_literal_test/29: Fail # Class literals are expression now; delete this test.
 
 constructor_initializer_test: Fail, OK # Depends on ?parameter check.
+
+black_listed_test/none: Fail # Issue 12446.
 
 # Issues related to undeclared prefix resolution.
 malformed_test/none: Fail
@@ -110,13 +113,15 @@ final_variable_assignment_test/01: Fail
 final_variable_assignment_test/02: Fail
 final_variable_assignment_test/03: Fail
 final_variable_assignment_test/04: Fail
-bad_override_test/01: Fail
-bad_override_test/02: Fail
+bad_override_test/01: Fail # Issue 11496
+bad_override_test/02: Fail # Issue 11496
+bad_override_test/06: Fail # Issue 11496
+class_override_test/00: Fail # Issue 11496
 call_nonexistent_constructor_test: Fail
 constructor_named_arguments_test/01: Fail # http://dartbug.com/5519
 getter_no_setter_test/01: Fail # http://dartbug.com/5519
 not_enough_positional_arguments_test/01: Fail # http://dartbug.com/5519
-error_stacktrace_test: Fail # (Issue 11681).
+dynamic_test: Fail # http://dartbug.com/12398
 
 constructor_negative_test: Pass # Wrong reason: the expression 'C()' is valid with class literals.
 

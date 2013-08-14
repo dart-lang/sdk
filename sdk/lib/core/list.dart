@@ -287,10 +287,13 @@ abstract class List<E> implements Iterable<E> {
   /**
    * Returns a new list containing the elements from [start] to [end].
    *
+   * The result contains elements of this list with indices greater than or
+   * equal to [start] and less than [end].
+   *
    * If [end] is omitted, the [length] of `this` is used.
    *
-   * It is an error if [start] or [end] are not indices into `this`,
-   * or if [end] is before [start].
+   * It is an error if [start] is outside the range `0` .. `[length]` or if
+   * [end] is outside the range `[start]` .. `[length]`.
    */
   List<E> sublist(int start, [int end]);
 

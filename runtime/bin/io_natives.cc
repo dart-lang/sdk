@@ -37,6 +37,7 @@ namespace bin {
   V(Platform_Environment, 0)                                                   \
   V(Platform_GetVersion, 0)                                                    \
   V(Process_Start, 10)                                                         \
+  V(Process_Wait, 5)                                                           \
   V(Process_Kill, 3)                                                           \
   V(Process_SetExitCode, 1)                                                    \
   V(Process_Exit, 1)                                                           \
@@ -50,8 +51,12 @@ namespace bin {
   V(SecureSocket_RegisterBadCertificateCallback, 2)                            \
   V(SecureSocket_RegisterHandshakeCompleteCallback, 2)                         \
   V(SecureSocket_Renegotiate, 4)                                               \
-  V(SecureSocket_InitializeLibrary, 3)                                         \
+  V(SecureSocket_InitializeLibrary, 4)                                         \
   V(SecureSocket_AddCertificate, 2)                                            \
+  V(SecureSocket_ChangeTrust, 2)                                               \
+  V(SecureSocket_ImportCertificatesWithPrivateKeys, 2)                         \
+  V(SecureSocket_GetCertificate, 1)                                            \
+  V(SecureSocket_RemoveCertificate, 1)                                         \
   V(SecureSocket_NewServicePort, 0)                                            \
   V(SecureSocket_FilterPointer, 1)                                             \
   V(ServerSocket_CreateBindListen, 5)                                          \

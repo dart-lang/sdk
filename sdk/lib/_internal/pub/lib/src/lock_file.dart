@@ -4,12 +4,9 @@
 
 library pub.lock_file;
 
-import 'dart:collection';
-
 import 'package:yaml/yaml.dart';
 
 import 'io.dart';
-import 'log.dart' as log;
 import 'package.dart';
 import 'source_registry.dart';
 import 'utils.dart';

@@ -223,9 +223,11 @@ DEFINE_NATIVE_ENTRY(Integer_parse, 1) {
 }
 
 
+// Passing true for 'silent' prevents throwing JavascriptIntegerOverflow.
 static RawInteger* ShiftOperationHelper(Token::Kind kind,
                                         const Integer& value,
-                                        const Smi& amount) {
+                                        const Smi& amount,
+                                        const bool silent = false) {
   if (amount.Value() < 0) {
     const Array& args = Array::Handle(Array::New(1));
     args.SetAt(0, amount);
@@ -233,7 +235,7 @@ static RawInteger* ShiftOperationHelper(Token::Kind kind,
   }
   if (value.IsSmi()) {
     const Smi& smi_value = Smi::Cast(value);
-    return smi_value.ShiftOp(kind, amount);
+    return smi_value.ShiftOp(kind, amount, silent);
   }
   Bigint& big_value = Bigint::Handle();
   if (value.IsMint()) {
@@ -242,9 +244,9 @@ static RawInteger* ShiftOperationHelper(Token::Kind kind,
     if ((count + amount.Value()) < Mint::kBits) {
       switch (kind) {
         case Token::kSHL:
-          return Integer::New(mint_value << amount.Value());
+          return Integer::New(mint_value << amount.Value(), Heap::kNew, silent);
         case Token::kSHR:
-          return Integer::New(mint_value >> amount.Value());
+          return Integer::New(mint_value >> amount.Value(), Heap::kNew, silent);
         default:
           UNIMPLEMENTED();
       }
@@ -265,6 +267,28 @@ static RawInteger* ShiftOperationHelper(Token::Kind kind,
       UNIMPLEMENTED();
   }
   return Integer::null();
+}
+
+
+DEFINE_NATIVE_ENTRY(Integer_leftShiftWithMask32, 3) {
+  const Integer& value = Integer::CheckedHandle(arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, shift_count, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, mask, arguments->NativeArgAt(2));
+  ASSERT(CheckInteger(value));
+  ASSERT(CheckInteger(shift_count));
+  ASSERT(CheckInteger(mask));
+  if (!shift_count.IsSmi()) {
+    // Shift count is too large..
+    const Instance& exception =
+        Instance::Handle(isolate->object_store()->out_of_memory());
+    Exceptions::Throw(exception);
+  }
+  const Smi& smi_shift_count = Smi::Cast(shift_count);
+  const Integer& shift_result = Integer::Handle(
+      ShiftOperationHelper(Token::kSHL, value, smi_shift_count, true));
+  const Integer& result =
+      Integer::Handle(shift_result.BitOp(Token::kBIT_AND, mask));
+  return result.AsValidInteger();
 }
 
 

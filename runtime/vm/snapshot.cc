@@ -65,8 +65,6 @@ static RawType* GetType(ObjectStore* object_store, int index) {
   switch (index) {
     case kObjectType: return object_store->object_type();
     case kNullType: return object_store->null_type();
-    case kDynamicType: return object_store->dynamic_type();
-    case kVoidType: return object_store->void_type();
     case kFunctionType: return object_store->function_type();
     case kNumberType: return object_store->number_type();
     case kSmiType: return object_store->smi_type();
@@ -89,10 +87,6 @@ static int GetTypeIndex(ObjectStore* object_store, const RawType* raw_type) {
     return kObjectType;
   } else if (raw_type == object_store->null_type()) {
     return kNullType;
-  } else if (raw_type == object_store->dynamic_type()) {
-    return kDynamicType;
-  } else if (raw_type == object_store->void_type()) {
-    return kVoidType;
   } else if (raw_type == object_store->function_type()) {
     return kFunctionType;
   } else if (raw_type == object_store->number_type()) {
@@ -726,6 +720,12 @@ RawObject* SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
   if (object_id == kEmptyArrayObject) {
     return Object::empty_array().raw();
   }
+  if (object_id == kDynamicType) {
+    return Object::dynamic_type();
+  }
+  if (object_id == kVoidType) {
+    return Object::void_type();
+  }
   if (object_id == kTrueValue) {
     return Bool::True().raw();
   }
@@ -890,6 +890,18 @@ void SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
   // Check if it is a singleton empty array object.
   if (rawobj == Object::empty_array().raw()) {
     WriteVMIsolateObject(kEmptyArrayObject);
+    return;
+  }
+
+  // Check if it is a singleton dyanmic Type object.
+  if (rawobj == Object::dynamic_type()) {
+    WriteVMIsolateObject(kDynamicType);
+    return;
+  }
+
+  // Check if it is a singleton void Type object.
+  if (rawobj == Object::void_type()) {
+    WriteVMIsolateObject(kVoidType);
     return;
   }
 

@@ -8,13 +8,10 @@ library pub.io;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
-import 'dart:isolate';
-import 'dart:json';
 
 import 'package:path/path.dart' as path;
 import 'package:http/http.dart' show ByteStream;
 import 'error_group.dart';
-import 'exit_codes.dart' as exit_codes;
 import 'log.dart' as log;
 import 'sdk.dart' as sdk;
 import 'utils.dart';
@@ -312,7 +309,13 @@ void cleanDir(String dir) {
 /// Renames (i.e. moves) the directory [from] to [to].
 void renameDir(String from, String to) {
   log.io("Renaming directory $from to $to.");
-  new Directory(from).renameSync(to);
+  try {
+    new Directory(from).renameSync(to);
+  } on IOException catch (error) {
+    // Ensure that [to] isn't left in an inconsistent state. See issue 12436.
+    if (entryExists(to)) deleteEntry(to);
+    rethrow;
+  }
 }
 
 /// Creates a new symlink at path [symlink] that points to [target]. Returns a

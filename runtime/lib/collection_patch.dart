@@ -155,7 +155,7 @@ patch class HashSet<E> {
     return offset >= 0;
   }
 
-  /* patch */ void removeAll(Iterable objectsToRemove) {
+  /* patch */ void removeAll(Iterable<Object> objectsToRemove) {
     for (Object object in objectsToRemove) {
       _table._remove(object);
       _table._checkCapacity();

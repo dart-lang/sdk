@@ -52,8 +52,8 @@ class PackageGraph {
   ///
   /// This will not emit programming errors from barback itself. Those will be
   /// emitted through the [results] stream's error channel.
-  Stream get errors => _errors;
-  Stream _errors;
+  Stream<BarbackException> get errors => _errors;
+  Stream<BarbackException> _errors;
 
   /// Creates a new [PackageGraph] that will transform assets in all packages
   /// made available by [provider].
@@ -74,7 +74,7 @@ class PackageGraph {
 
         // Include all build errors for all cascades. If no cascades have
         // errors, the result will automatically be considered a success.
-        _resultsController.add(new BuildResult(flatten(
+        _resultsController.add(new BuildResult(unionAll(
             _cascadeResults.values.map((result) => result.errors))));
       }, onError: _resultsController.addError);
     }

@@ -34,21 +34,21 @@ struct InterruptMessage {
 };
 
 
-// An IOBuffer encapsulates the OVERLAPPED structure and the
+// An OverlappedBuffer encapsulates the OVERLAPPED structure and the
 // associated data buffer. For accept it also contains the pre-created
 // socket for the client.
-class IOBuffer {
+class OverlappedBuffer {
  public:
   enum Operation { kAccept, kRead, kWrite, kDisconnect };
 
-  static IOBuffer* AllocateAcceptBuffer(int buffer_size);
-  static IOBuffer* AllocateReadBuffer(int buffer_size);
-  static IOBuffer* AllocateWriteBuffer(int buffer_size);
-  static IOBuffer* AllocateDisconnectBuffer();
-  static void DisposeBuffer(IOBuffer* buffer);
+  static OverlappedBuffer* AllocateAcceptBuffer(int buffer_size);
+  static OverlappedBuffer* AllocateReadBuffer(int buffer_size);
+  static OverlappedBuffer* AllocateWriteBuffer(int buffer_size);
+  static OverlappedBuffer* AllocateDisconnectBuffer();
+  static void DisposeBuffer(OverlappedBuffer* buffer);
 
   // Find the IO buffer from the OVERLAPPED address.
-  static IOBuffer* GetFromOverlapped(OVERLAPPED* overlapped);
+  static OverlappedBuffer* GetFromOverlapped(OVERLAPPED* overlapped);
 
   // Read data from a buffer which has been received. It will read up
   // to num_bytes bytes of data returning the actual number of bytes
@@ -88,7 +88,7 @@ class IOBuffer {
   void set_data_length(int data_length) { data_length_ = data_length; }
 
  private:
-  IOBuffer(int buffer_size, Operation operation)
+  OverlappedBuffer(int buffer_size, Operation operation)
       : operation_(operation), buflen_(buffer_size) {
     memset(GetBufferStart(), 0, GetBufferSize());
     index_ = 0;
@@ -106,7 +106,8 @@ class IOBuffer {
     free(buffer);
   }
 
-  static IOBuffer* AllocateBuffer(int buffer_size, Operation operation);
+  static OverlappedBuffer* AllocateBuffer(int buffer_size,
+                                          Operation operation);
 
   OVERLAPPED overlapped_;  // OVERLAPPED structure for overlapped IO.
   SOCKET client_;  // Used for AcceptEx client socket.
@@ -157,8 +158,8 @@ class Handle {
   virtual bool IssueWrite();
   bool HasPendingRead();
   bool HasPendingWrite();
-  void ReadComplete(IOBuffer* buffer);
-  void WriteComplete(IOBuffer* buffer);
+  void ReadComplete(OverlappedBuffer* buffer);
+  void WriteComplete(OverlappedBuffer* buffer);
 
   bool IsClosing() { return (flags_ & (1 << kClosing)) != 0; }
   bool IsClosedRead() { return (flags_ & (1 << kCloseRead)) != 0; }
@@ -230,9 +231,9 @@ class Handle {
   HANDLE completion_port_;
   EventHandlerImplementation* event_handler_;
 
-  IOBuffer* data_ready_;  // IO buffer for data ready to be read.
-  IOBuffer* pending_read_;  // IO buffer for pending read.
-  IOBuffer* pending_write_;  // IO buffer for pending write
+  OverlappedBuffer* data_ready_;  // Buffer for data ready to be read.
+  OverlappedBuffer* pending_read_;  // Buffer for pending read.
+  OverlappedBuffer* pending_write_;  // Buffer for pending write
 
   DWORD last_error_;
 
@@ -291,7 +292,7 @@ class ListenSocket : public SocketHandle {
   // Internal interface used by the event handler.
   bool HasPendingAccept() { return pending_accept_count_ > 0; }
   bool IssueAccept();
-  void AcceptComplete(IOBuffer* buffer, HANDLE completion_port);
+  void AcceptComplete(OverlappedBuffer* buffer, HANDLE completion_port);
 
   virtual void EnsureInitialized(
     EventHandlerImplementation* event_handler);
@@ -342,7 +343,7 @@ class ClientSocket : public SocketHandle {
   virtual bool IssueRead();
   virtual bool IssueWrite();
   void IssueDisconnect();
-  void DisconnectComplete(IOBuffer* buffer);
+  void DisconnectComplete(OverlappedBuffer* buffer);
 
   virtual void EnsureInitialized(
     EventHandlerImplementation* event_handler);
@@ -375,14 +376,14 @@ class EventHandlerImplementation {
   int64_t GetTimeout();
   void HandleInterrupt(InterruptMessage* msg);
   void HandleTimeout();
-  void HandleAccept(ListenSocket* listen_socket, IOBuffer* buffer);
+  void HandleAccept(ListenSocket* listen_socket, OverlappedBuffer* buffer);
   void HandleClosed(Handle* handle);
   void HandleError(Handle* handle);
-  void HandleRead(Handle* handle, int bytes, IOBuffer* buffer);
-  void HandleWrite(Handle* handle, int bytes, IOBuffer* buffer);
+  void HandleRead(Handle* handle, int bytes, OverlappedBuffer* buffer);
+  void HandleWrite(Handle* handle, int bytes, OverlappedBuffer* buffer);
   void HandleDisconnect(ClientSocket* client_socket,
                         int bytes,
-                        IOBuffer* buffer);
+                        OverlappedBuffer* buffer);
   void HandleIOCompletion(DWORD bytes, ULONG_PTR key, OVERLAPPED* overlapped);
 
   HANDLE completion_port() { return completion_port_; }

@@ -78,13 +78,13 @@ class ServeCommand extends PubCommand {
       // are added or modified.
 
       HttpServer.bind("localhost", port).then((server) {
-        log.message("Serving ${entrypoint.root.name} "
-                    "on http://localhost:${server.port}");
-
         // Add all of the visible files.
         for (var package in provider.packages) {
           barback.updateSources(provider.listAssets(package));
         }
+
+        log.message("Serving ${entrypoint.root.name} "
+            "on http://localhost:${server.port}");
 
         server.listen((request) {
           var id = getIdFromUri(request.uri);
@@ -93,14 +93,31 @@ class ServeCommand extends PubCommand {
           }
 
           barback.getAssetById(id).then((asset) {
-            log.message(
-                "$_green${request.method}$_none ${request.uri} -> $asset");
-            // TODO(rnystrom): Set content-type based on asset type.
-            return request.response.addStream(asset.read()).then((_) {
+            return validateStream(asset.read()).then((stream) {
+              log.message(
+                  "$_green${request.method}$_none ${request.uri} -> $asset");
+              // TODO(rnystrom): Set content-type based on asset type.
+              return request.response.addStream(stream).then((_) {
+                request.response.close();
+              });
+            }).catchError((error) {
+              log.error("$_red${request.method}$_none "
+                  "${request.uri} -> $error");
+
+              // If we couldn't read the asset, handle the error gracefully.
+              if (error is FileException) {
+                // Assume this means the asset was a file-backed source asset
+                // and we couldn't read it, so treat it like a missing asset.
+                notFound(request, error);
+                return;
+              }
+
+              // Otherwise, it's some internal error.
+              request.response.statusCode = 500;
+              request.response.reasonPhrase = "Internal Error";
+              request.response.write(error);
               request.response.close();
             });
-            // TODO(rnystrom): Serve up a 500 if we get an error reading the
-            // asset.
           }).catchError((error) {
             log.error("$_red${request.method}$_none ${request.uri} -> $error");
             if (error is! AssetNotFoundException) {

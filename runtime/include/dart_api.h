@@ -1523,7 +1523,6 @@ DART_EXPORT Dart_Handle Dart_StringToUTF16(Dart_Handle str,
  */
 DART_EXPORT Dart_Handle Dart_StringStorageSize(Dart_Handle str, intptr_t* size);
 
-
 /**
  * Converts a String into an ExternalString.
  * The original object is morphed into an external string object.
@@ -1554,6 +1553,23 @@ DART_EXPORT Dart_Handle Dart_MakeExternalString(Dart_Handle str,
                                                 void* peer,
                                                 Dart_PeerFinalizer cback);
 
+/**
+ * Retrieves some properties associated with a String.
+ * Properties retrieved are:
+ * - character size of the string (one or two byte)
+ * - length of the string
+ * - peer pointer of string if it is an external string.
+ * \param str A String.
+ * \param char_size Returns the character size of the String.
+ * \param str_len Returns the length of the String.
+ * \param peer Returns the peer pointer if the String is an external String.
+ * \return Success if no error occurs. Otherwise returns
+ *   an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_StringGetProperties(Dart_Handle str,
+                                                 intptr_t* char_size,
+                                                 intptr_t* str_len,
+                                                 void** peer);
 
 /*
  * =====
@@ -1982,10 +1998,25 @@ DART_EXPORT Dart_Handle Dart_GetNativeReceiver(Dart_NativeArguments args,
                                                intptr_t* value);
 
 /**
+ * Gets a string native argument at some index.
+ * \param args Native arguments structure.
+ * \param arg_index Index of the desired argument in the structure above.
+ * \param peer Returns the peer pointer if the String is an external String.
+ * \return the String object if no error occurs. Otherwise returns
+ *   an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_GetNativeStringArgument(Dart_NativeArguments args,
+                                                     int arg_index,
+                                                     void** peer);
+
+/**
  * Sets the return value for a native function.
  */
 DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
                                      Dart_Handle retval);
+
+DART_EXPORT void Dart_SetWeakHandleReturnValue(Dart_NativeArguments args,
+                                               Dart_WeakPersistentHandle rval);
 
 DART_EXPORT void Dart_SetBooleanReturnValue(Dart_NativeArguments args,
                                             bool retval);

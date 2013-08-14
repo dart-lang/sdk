@@ -210,6 +210,18 @@ patch class Process {
        Encoding stderrEncoding: Encoding.SYSTEM}) {
     throw new UnsupportedError("Process.run");
   }
+
+  patch static ProcessResult runSync(
+      String executable,
+      List<String> arguments,
+      {String workingDirectory,
+       Map<String, String> environment,
+       bool includeParentEnvironment: true,
+       bool runInShell: false,
+       Encoding stdoutEncoding: Encoding.SYSTEM,
+       Encoding stderrEncoding: Encoding.SYSTEM}) {
+    throw new UnsupportedError("Process.runSync");
+  }
 }
 
 patch class InternetAddress {
@@ -277,13 +289,32 @@ patch class SecureSocket {
 
   patch static void initialize({String database,
                                 String password,
-                                bool useBuiltinRoots: true}) {
+                                bool useBuiltinRoots: true,
+                                bool readOnly: true}) {
     throw new UnsupportedError("SecureSocket.initialize");
   }
 
   patch static X509Certificate addCertificate(List<int> certificate,
                                               String trust) {
     throw new UnsupportedError("SecureSocket.addCertificate");
+  }
+
+  patch static importCertificatesWithPrivateKeys(List<int> certificates,
+                                                 String password) {
+    throw new UnsupportedError(
+        "SecureSocket.importCertificatesWithPrivateKeys");
+  }
+
+  patch static X509Certificate getCertificate(String nickname) {
+    throw new UnsupportedError("SecureSocket.getCertificate");
+  }
+
+  patch static removeCertificate(String nickname) {
+    throw new UnsupportedError("SecureSocket.removeCertificate");
+  }
+
+  patch static X509Certificate changeTrust(String nickname, String trust) {
+    throw new UnsupportedError("SecureSocket.changeTrust");
   }
 }
 

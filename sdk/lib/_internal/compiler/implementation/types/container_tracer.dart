@@ -320,9 +320,7 @@ class TracerForConcreteContainer {
   bool couldBeTheList(resolved) {
     if (resolved is Selector) {
       return escapingElements.any((e) {
-        return e.isInstanceMember()
-            && (e.isField() || e.isFunction())
-            && resolved.applies(e, compiler);
+        return e.isInstanceMember() && resolved.applies(e, compiler);
       });
     } else if (resolved is Node) {
       return analyzedNode == resolved;

@@ -19,5 +19,10 @@ class HTTPRequestDataReader implements LocaleDataReader {
   String url;
   HTTPRequestDataReader(this.url);
 
-  Future read(String locale) => HttpRequest.getString('$url$locale.json');
+  Future read(String locale) {
+    // TODO(alanknight): Remove this once it's not necessary for Chrome.
+    // Without it, the tests will be flaky on Chrome. Issue 11834.
+    var someNumber = new DateTime.now().millisecondsSinceEpoch;
+    return HttpRequest.getString('$url$locale.json?cacheBlocker=$someNumber');
+  }
 }

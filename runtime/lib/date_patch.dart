@@ -190,7 +190,7 @@ patch class DateTime {
         ((y.remainder(100) != 0) || (y.remainder(400) == 0));
   }
 
-  static _brokenDownDateToMillisecondsSinceEpoch(
+  /* patch */ static int _brokenDownDateToMillisecondsSinceEpoch(
       int year, int month, int day,
       int hour, int minute, int second, int millisecond,
       bool isUtc) {
@@ -249,7 +249,7 @@ patch class DateTime {
    * Leap seconds are ignored.
    * Adapted from V8's date implementation. See ECMA 262 - 15.9.1.9.
    */
-  static _equivalentYear(int year) {
+  static int _equivalentYear(int year) {
     // Returns the week day (in range 0 - 6).
     // 1/1/1956 was a Sunday (i.e. weekday 0). 1956 was a leap-year.
     // 1/1/1967 was a Sunday (i.e. weekday 0).

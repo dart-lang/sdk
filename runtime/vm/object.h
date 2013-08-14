@@ -35,6 +35,7 @@ class DeoptInstr;
 class FinalizablePersistentHandle;
 class LocalScope;
 class ReusableHandleScope;
+class ReusableObjectHandleScope;
 class Symbols;
 
 #if defined(DEBUG)
@@ -412,6 +413,8 @@ class Object {
   static RawClass* class_class() { return class_class_; }
   static RawClass* dynamic_class() { return dynamic_class_; }
   static RawClass* void_class() { return void_class_; }
+  static RawType* dynamic_type() { return dynamic_type_; }
+  static RawType* void_type() { return void_type_; }
   static RawClass* unresolved_class_class() { return unresolved_class_class_; }
   static RawClass* type_arguments_class() { return type_arguments_class_; }
   static RawClass* instantiated_type_arguments_class() {
@@ -559,6 +562,8 @@ class Object {
   static RawClass* class_class_;  // Class of the Class vm object.
   static RawClass* dynamic_class_;  // Class of the 'dynamic' type.
   static RawClass* void_class_;  // Class of the 'void' type.
+  static RawType* dynamic_type_;  // Class of the 'dynamic' type.
+  static RawType* void_type_;  // Class of the 'void' type.
   static RawClass* unresolved_class_class_;  // Class of UnresolvedClass.
   // Class of the TypeArguments vm object.
   static RawClass* type_arguments_class_;
@@ -619,6 +624,7 @@ class Object {
   friend class ExternalTwoByteString;
   friend class Isolate;
   friend class ReusableHandleScope;
+  friend class ReusableObjectHandleScope;
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Object);
@@ -939,7 +945,9 @@ class Class : public Object {
 
   void Finalize() const;
 
-  const char* ApplyPatch(const Class& patch) const;
+  // Apply given patch class to this class.
+  // Return true on success, or false and error otherwise.
+  bool ApplyPatch(const Class& patch, Error* error) const;
 
   RawError* EnsureIsFinalized(Isolate* isolate) const;
 
@@ -1662,8 +1670,9 @@ class Function : public Object {
 
   // Returns true if this function has parameters that are compatible with the
   // parameters of the other function in order for this function to override the
-  // other function. Parameter types are ignored.
-  bool HasCompatibleParametersWith(const Function& other) const;
+  // other function.
+  bool HasCompatibleParametersWith(const Function& other,
+                                   Error* malformed_error) const;
 
   // Returns true if the type of this function is a subtype of the type of
   // the other function.
@@ -2237,13 +2246,25 @@ class DictionaryIterator : public ValueObject {
 
 class ClassDictionaryIterator : public DictionaryIterator {
  public:
-  explicit ClassDictionaryIterator(const Library& library);
+  enum IterationKind {
+    kIteratePrivate,
+    kNoIteratePrivate
+  };
+
+  ClassDictionaryIterator(const Library& library,
+                          IterationKind kind = kNoIteratePrivate);
+
+  bool HasNext() const { return (next_ix_ < size_) || (anon_ix_ < anon_size_); }
 
   // Returns a non-null raw class.
   RawClass* GetNextClass();
 
  private:
   void MoveToNextClass();
+
+  const Array& anon_array_;
+  const int anon_size_;  // Number of anonymous classes to iterate over.
+  int anon_ix_;  // Index of next anonymous class.
 
   DISALLOW_COPY_AND_ASSIGN(ClassDictionaryIterator);
 };
@@ -2326,6 +2347,9 @@ class Library : public Object {
   void AddFunctionMetadata(const Function& func, intptr_t token_pos) const;
   void AddLibraryMetadata(const Class& cls, intptr_t token_pos) const;
   RawObject* GetMetadata(const Object& obj) const;
+
+  intptr_t num_anonymous_classes() const { return raw_ptr()->num_anonymous_; }
+  RawArray* anonymous_classes() const { return raw_ptr()->anonymous_classes_; }
 
   // Library imports.
   void AddImport(const Namespace& ns) const;
@@ -4135,7 +4159,10 @@ class Integer : public Number {
   // Returns a canonical Integer object allocated in the old gen space.
   static RawInteger* NewCanonical(const String& str);
 
-  static RawInteger* New(int64_t value, Heap::Space space = Heap::kNew);
+  // Do not throw JavascriptIntegerOverflow if 'silent' is true.
+  static RawInteger* New(int64_t value,
+                         Heap::Space space = Heap::kNew,
+                         const bool silent = false);
 
   virtual double AsDoubleValue() const;
   virtual int64_t AsInt64Value() const;
@@ -4210,7 +4237,9 @@ class Smi : public Integer {
     return (value >= kMinValue) && (value <= kMaxValue);
   }
 
-  RawInteger* ShiftOp(Token::Kind kind, const Smi& other) const;
+  RawInteger* ShiftOp(Token::Kind kind,
+                      const Smi& other,
+                      const bool silent = false) const;
 
   void operator=(RawSmi* value) {
     raw_ = value;
@@ -5650,15 +5679,6 @@ class TypedDataView : public AllStatic {
     kOffsetInBytesOffset = 3,
     kLengthOffset = 4,
   };
-};
-
-
-// DartFunction represents the abstract Dart class 'Function'.
-class DartFunction : public Instance {
- private:
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(DartFunction, Instance);
-  friend class Class;
-  friend class Instance;
 };
 
 

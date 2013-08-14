@@ -15,7 +15,9 @@ import '../../../sdk/lib/_internal/compiler/implementation/apiimpl.dart' show
     Compiler;
 
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart' show
-    SourceString;
+    Constant,
+    SourceString,
+    TypeConstant;
 
 import
     '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart'
@@ -48,7 +50,7 @@ void main() {
   // 2. Some code was refactored, and there are more methods.
   // Either situation could be problematic, but in situation 2, it is often
   // acceptable to increase [expectedMethodCount] a little.
-  int expectedMethodCount = 317;
+  int expectedMethodCount = 322;
   Expect.isTrue(
       generatedCode.length <= expectedMethodCount,
       'Too many compiled methods: '
@@ -84,6 +86,36 @@ void main() {
       }
     });
   }
+
+  // There should at least be three metadata constants:
+  // 1. The type literal 'Foo'.
+  // 2. The list 'const [Foo]'.
+  // 3. The constructed constant for 'MirrorsUsed'.
+  Expect.isTrue(compiler.metadataHandler.compiledConstants.length >= 3);
+
+  // Make sure that most of the metadata constants aren't included in the
+  // generated code.
+  for (Constant constant in compiler.metadataHandler.compiledConstants) {
+    if (constant is TypeConstant && '${constant.representedType}' == 'Foo') {
+      // The type literal 'Foo' is retained as a constant because it is being
+      // passed to reflectClass.
+      continue;
+    }
+    Expect.isFalse(
+        compiler.constantHandler.compiledConstants.contains(constant),
+        '$constant');
+  }
+
+  // The type literal 'Foo' is both used as metadata, and as a plain value in
+  // the program. Make sure that it isn't duplicated.
+  int fooConstantCount = 0;
+  for (Constant constant in compiler.metadataHandler.compiledConstants) {
+    if (constant is TypeConstant && '${constant.representedType}' == 'Foo') {
+      fooConstantCount++;
+    }
+  }
+  Expect.equals(
+      1, fooConstantCount, "The type literal 'Foo' is duplicated or missing.");
 }
 
 const MEMORY_SOURCE_FILES = const <String, String> {

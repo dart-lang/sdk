@@ -13,7 +13,7 @@ class A {
   var foo;
   var bar;
 
-  @DontInline
+  @DontInline()
   A() {
     // Currently defeat inlining by using a closure.
     bar = () => 42;
@@ -33,7 +33,7 @@ main() {
 class B {
   var bar;
   var closure;
-  @DontInline
+  @DontInline()
   B() {
     // Currently defeat inlining by using a closure.
     closure = () => 42;
@@ -41,7 +41,7 @@ class B {
   }
 }
 
-@DontInline
+@DontInline()
 bar() {
   // Make sure B's constructor is analyzed first by surrounding the
   // body by two allocations.
@@ -52,7 +52,7 @@ bar() {
   new B();
 }
 
-@DontInline
+@DontInline()
 codegenLast() {
   // This assignment currently defeats simple type inference, but not
   // the optimistic inferrer.

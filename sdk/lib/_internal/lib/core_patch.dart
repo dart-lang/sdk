@@ -115,10 +115,8 @@ patch class Error {
     return Primitives.objectToString(object);
   }
 
-  // TODO(11681): implement stackTrace in error object.
-  patch StackTrace get stackTrace => null;
+  patch StackTrace get stackTrace => Primitives.extractStackTrace(this);
 }
-
 
 // Patch for DateTime implementation.
 patch class DateTime {

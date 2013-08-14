@@ -29,7 +29,7 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    RAW_DART_FUNCTION_REF;
 import 'dart:_interceptors';
 import 'dart:_collection-dev' as _symbol_dev;
-import 'dart:_js_names' show mangledNames;
+import 'dart:_js_names' show mangledNames, mangledGlobalNames;
 
 part 'constant_map.dart';
 part 'native_helper.dart';
@@ -142,7 +142,7 @@ class JSInvocationMirror implements Invocation {
     return map;
   }
 
-  _invokeOn(Object object) {
+  _getCachedInvocation(Object object) {
     var interceptor = getInterceptor(object);
     var receiver = object;
     var name = _internalName;
@@ -151,30 +151,107 @@ class JSInvocationMirror implements Invocation {
     // critical, we might want to dynamically change [interceptedNames]
     // to be a JavaScript object with intercepted names as property
     // instead of a JavaScript array.
-    if (JS('int', '#.indexOf(#)', interceptedNames, name) == -1) {
-      if (arguments is! JSArray) arguments = new List.from(arguments);
-    } else {
-      arguments = [object]..addAll(arguments);
+    bool isIntercepted =
+        JS('int', '#.indexOf(#)', interceptedNames, name) != -1;
+    if (isIntercepted) {
       receiver = interceptor;
+      if (JS('bool', '# === #', object, interceptor)) {
+        interceptor = null;
+      }
+    } else {
+      interceptor = null;
     }
     var method = JS('var', '#[#]', receiver, name);
     if (JS('String', 'typeof #', method) == 'function') {
-      return JS("var", "#.apply(#, #)", method, receiver, arguments);
+      return new CachedInvocation(method, isIntercepted, interceptor);
     } else {
       // In this case, receiver doesn't implement name.  So we should
       // invoke noSuchMethod instead (which will often throw a
       // NoSuchMethodError).
-      return receiver.noSuchMethod(this);
+      return new CachedNoSuchMethodInvocation(interceptor);
     }
   }
 
   /// This method is called by [InstanceMirror.delegate].
-  static invokeFromMirror(JSInvocationMirror invocation, victim) {
-    return invocation._invokeOn(victim);
+  static invokeFromMirror(JSInvocationMirror invocation, Object victim) {
+    var cached = invocation._getCachedInvocation(victim);
+    if (cached.isNoSuchMethod) {
+      return cached.invokeOn(victim, invocation);
+    } else {
+      return cached.invokeOn(victim, invocation._arguments);
+    }
+  }
+
+  static getCachedInvocation(JSInvocationMirror invocation, Object victim) {
+    return invocation._getCachedInvocation(victim);
+  }
+}
+
+class CachedInvocation {
+  /// The JS function to call.
+  var jsFunction;
+
+  /// True if this is an intercepted call.
+  bool isIntercepted;
+
+  /// Non-null interceptor if this is an intercepted call through an
+  /// [Interceptor].
+  Interceptor cachedInterceptor;
+
+  CachedInvocation(this.jsFunction, this.isIntercepted, this.cachedInterceptor);
+
+  bool get isNoSuchMethod => false;
+
+  /// Applies [jsFunction] to object with [arguments].
+  /// Users of this class must take care to check the arguments first.
+  invokeOn(Object victim, List arguments) {
+    var receiver = victim;
+    if (!isIntercepted) {
+      if (arguments is! JSArray) arguments = new List.from(arguments);
+    } else {
+      arguments = [victim]..addAll(arguments);
+      if (cachedInterceptor != null) receiver = cachedInterceptor;
+    }
+    return JS("var", "#.apply(#, #)", jsFunction, receiver, arguments);
+  }
+}
+
+class CachedNoSuchMethodInvocation {
+  /// Non-null interceptor if this is an intercepted call through an
+  /// [Interceptor].
+  var interceptor;
+
+  CachedNoSuchMethodInvocation(this.interceptor);
+
+  bool get isNoSuchMethod => true;
+
+  invokeOn(Object victim, Invocation invocation) {
+    var receiver = (interceptor == null) ? victim : interceptor;
+    return receiver.noSuchMethod(invocation);
   }
 }
 
 class Primitives {
+  /// Isolate-unique ID for caching [JsClosureMirror.function].
+  /// Note the initial value is used by the first isolate (or if there are no
+  /// isolates), new isolates will update this value to avoid conflicts by
+  /// calling [initializeStatics].
+  static String mirrorFunctionCacheName = '\$cachedFunction';
+
+  /// Isolate-unique ID for caching [JsInstanceMirror._invoke].
+  static String mirrorInvokeCacheName = '\$cachedInvocation';
+
+  /// Called when creating a new isolate (see _IsolateContext constructor in
+  /// isolate_helper.dart).
+  /// Please don't add complicated code to this method, as it will impact
+  /// start-up performance.
+  static void initializeStatics(int id) {
+    // Benchmarking shows significant performance improvements if this is a
+    // fixed value.
+    mirrorFunctionCacheName += '_$id';
+    mirrorInvokeCacheName += '_$id';
+  }
+
   static int objectHashCode(object) {
     int hash = JS('int|Null', r'#.$identityHash', object);
     if (hash == null) {
@@ -641,6 +718,30 @@ class Primitives {
       ? JS('bool', '# == null', b)
       : JS('bool', '# === #', a, b);
   }
+
+  static StackTrace extractStackTrace(Error error) {
+    return getTraceFromException(JS('', r'#.$thrownJsError', error));
+  }
+}
+
+/// Helper class for allocating and using JS object literals as caches.
+class JsCache {
+  /// Returns a JavaScript object suitable for use as a cache.
+  static allocate() {
+    var result = JS('=Object', '{x:0}');
+    // Deleting a property makes V8 assume that it shouldn't create a hidden
+    // class for [result] and map transitions. Although these map transitions
+    // pay off if there are many cache hits for the same keys, it becomes
+    // really slow when there aren't many repeated hits.
+    JS('void', 'delete #.x', result);
+    return result;
+  }
+
+  static fetch(cache, String key) => JS('', '#[#]', cache, key);
+
+  static void update(cache, String key, value) {
+    JS('void', '#[#] = #', cache, key, value);
+  }
 }
 
 /**
@@ -708,21 +809,32 @@ checkString(value) {
  */
 wrapException(ex) {
   if (ex == null) ex = new NullThrownError();
-  var wrapper = new DartError(ex);
+  var wrapper = JS('', 'new Error()');
+  // [unwrapException] looks for the property 'dartException'.
+  JS('void', '#.dartException = #', wrapper, ex);
 
-  if (JS('bool', '!!Error.captureStackTrace')) {
-    // Use V8 API for recording a "fast" stack trace (this installs a
-    // "stack" property getter on [wrapper]).
-    JS('void', r'Error.captureStackTrace(#, #)',
-       wrapper, RAW_DART_FUNCTION_REF(wrapException));
+  if (JS('bool', '"defineProperty" in Object')) {
+    // Define a JavaScript getter for 'message'. This is to work around V8 bug
+    // (https://code.google.com/p/v8/issues/detail?id=2519).  The default
+    // toString on Error returns the value of 'message' if 'name' is
+    // empty. Setting toString directly doesn't work, see the bug.
+    JS('void', 'Object.defineProperty(#, "message", { get: # })',
+       wrapper, DART_CLOSURE_TO_JS(toStringWrapper));
+    JS('void', '#.name = ""', wrapper);
   } else {
-    // Otherwise, produce a stack trace and record it in the wrapper.
-    // This is a slower way to create a stack trace which works on
-    // some browsers, but may simply evaluate to null.
-    String stackTrace = JS('', 'new Error().stack');
-    JS('void', '#.stack = #', wrapper, stackTrace);
+    // In the unlikely event the browser doesn't support Object.defineProperty,
+    // hope that it just calls toString.
+    JS('void', '#.toString = #', wrapper, DART_CLOSURE_TO_JS(toStringWrapper));
   }
+
   return wrapper;
+}
+
+/// Do not call directly.
+toStringWrapper() {
+  // This method gets installed as toString on a JavaScript object. Due to the
+  // weird scope rules of JavaScript, JS 'this' will refer to that object.
+  return JS('', r'this.dartException').toString();
 }
 
 /**
@@ -733,63 +845,6 @@ wrapException(ex) {
  */
 throwExpression(ex) {
   JS('void', 'throw #', wrapException(ex));
-}
-
-/**
- * Wrapper class for throwing exceptions.
- */
-class DartError {
-  /// The Dart object (or primitive JavaScript value) which was thrown is
-  /// attached to this object as a field named 'dartException'.  We do this
-  /// only in raw JS so that we can use the 'in' operator and so that the
-  /// minifier does not rename the field.  Therefore it is not declared as a
-  /// real field.
-
-  DartError(var dartException) {
-    JS('void', '#.dartException = #', this, dartException);
-    // Install a toString method that the JavaScript system will call
-    // to format uncaught exceptions.
-    JS('void', '#.toString = #', this, DART_CLOSURE_TO_JS(toStringWrapper));
-  }
-
-  /**
-   * V8/Chrome installs a property getter, "stack", when calling
-   * Error.captureStackTrace (see [wrapException]). In [wrapException], we make
-   * sure that this property is always set.
-   */
-  String get stack => JS('', '#.stack', this);
-
-  /**
-   * This method can be invoked by calling toString from
-   * JavaScript. See the constructor of this class.
-   *
-   * We only expect this method to be called (indirectly) by the
-   * browser when an uncaught exception occurs. Instance of this class
-   * should never escape into Dart code (except for [wrapException] above).
-   */
-  String toString() {
-    // If Error.captureStackTrace is available, accessing stack from
-    // this method would cause recursion because the stack property
-    // (on this object) is actually a getter which calls toString on
-    // this object (via the wrapper installed in this class'
-    // constructor). Fortunately, both Chrome and d8 prints the stack
-    // trace and Chrome even applies source maps to the stack
-    // trace. Remeber, this method is only ever invoked by the browser
-    // when an uncaught exception occurs.
-    var dartException = JS('var', r'#.dartException', this);
-    if (JS('bool', '!!Error.captureStackTrace') || (stack == null)) {
-      return dartException.toString();
-    } else {
-      return '$dartException\n$stack';
-    }
-  }
-
-  /**
-   * This method is installed as JavaScript toString method on
-   * [DartError].  So JavaScript 'this' binds to an instance of
-   * DartError.
-   */
-  static toStringWrapper() => JS('', r'this').toString();
 }
 
 makeLiteralListConst(list) {
@@ -1140,7 +1195,7 @@ class TypeErrorDecoder {
   }
 }
 
-class NullError implements NoSuchMethodError {
+class NullError extends Error implements NoSuchMethodError {
   final String _message;
   final String _method;
 
@@ -1153,7 +1208,7 @@ class NullError implements NoSuchMethodError {
   }
 }
 
-class JsNoSuchMethodError implements NoSuchMethodError {
+class JsNoSuchMethodError extends Error implements NoSuchMethodError {
   final String _message;
   final String _method;
   final String _receiver;
@@ -1173,7 +1228,7 @@ class JsNoSuchMethodError implements NoSuchMethodError {
   }
 }
 
-class UnknownJsTypeError implements Error {
+class UnknownJsTypeError extends Error {
   final String _message;
 
   UnknownJsTypeError(this._message);
@@ -1190,13 +1245,26 @@ class UnknownJsTypeError implements Error {
  * returned unmodified.
  */
 unwrapException(ex) {
+  /// If error implements Error, save [ex] in [error.$thrownJsError].
+  /// Otherwise, do nothing. Later, the stack trace can then be extraced from
+  /// [ex].
+  saveStackTrace(error) {
+    if (error is Error) {
+      var thrownStackTrace = JS('', r'#.$thrownJsError', error);
+      if (thrownStackTrace == null) {
+        JS('void', r'#.$thrownJsError = #', error, ex);
+      }
+    }
+    return error;
+  }
+
   // Note that we are checking if the object has the property. If it
   // has, it could be set to null if the thrown value is null.
   if (ex == null) return null;
   if (JS('bool', 'typeof # !== "object"', ex)) return ex;
 
   if (JS('bool', r'"dartException" in #', ex)) {
-    return JS('', r'#.dartException', ex);
+    return saveStackTrace(JS('', r'#.dartException', ex));
   } else if (!JS('bool', r'"message" in #', ex)) {
     return ex;
   }
@@ -1222,10 +1290,12 @@ unwrapException(ex) {
     if (ieFacilityNumber == 10) {
       switch (ieErrorCode) {
       case 438:
-        return new JsNoSuchMethodError('$message (Error $ieErrorCode)', null);
+        return saveStackTrace(
+            new JsNoSuchMethodError('$message (Error $ieErrorCode)', null));
       case 445:
       case 5007:
-        return new NullError('$message (Error $ieErrorCode)', null);
+        return saveStackTrace(
+            new NullError('$message (Error $ieErrorCode)', null));
       }
     }
   }
@@ -1258,14 +1328,14 @@ unwrapException(ex) {
         JS('TypeErrorDecoder', '#',
            TypeErrorDecoder.undefinedLiteralPropertyPattern);
     if ((match = nsme.matchTypeError(message)) != null) {
-      return new JsNoSuchMethodError(message, match);
+      return saveStackTrace(new JsNoSuchMethodError(message, match));
     } else if ((match = notClosure.matchTypeError(message)) != null) {
       // notClosure may match "({c:null}).c()" or "({c:1}).c()", so we
       // cannot tell if this an attempt to invoke call on null or a
       // non-function object.
       // But we do know the method name is "call".
       JS('', '#.method = "call"', match);
-      return new JsNoSuchMethodError(message, match);
+      return saveStackTrace(new JsNoSuchMethodError(message, match));
     } else if ((match = nullCall.matchTypeError(message)) != null ||
                (match = nullLiteralCall.matchTypeError(message)) != null ||
                (match = undefCall.matchTypeError(message)) != null ||
@@ -1274,13 +1344,14 @@ unwrapException(ex) {
                (match = nullLiteralCall.matchTypeError(message)) != null ||
                (match = undefProperty.matchTypeError(message)) != null ||
                (match = undefLiteralProperty.matchTypeError(message)) != null) {
-      return new NullError(message, match);
+      return saveStackTrace(new NullError(message, match));
     }
 
     // If we cannot determine what kind of error this is, we fall back
     // to reporting this as a generic error. It's probably better than
     // nothing.
-    return new UnknownJsTypeError(message is String ? message : '');
+    return saveStackTrace(
+        new UnknownJsTypeError(message is String ? message : ''));
   }
 
   if (JS('bool', r'# instanceof RangeError', ex)) {
@@ -1291,7 +1362,7 @@ unwrapException(ex) {
     // In general, a RangeError is thrown when trying to pass a number
     // as an argument to a function that does not allow a range that
     // includes that number.
-    return new ArgumentError();
+    return saveStackTrace(new ArgumentError());
   }
 
   // Check for the Firefox specific stack overflow signal.
@@ -1311,24 +1382,25 @@ unwrapException(ex) {
 
 /**
  * Called by generated code to fetch the stack trace from an
- * exception.
+ * exception. Should never return null.
  */
-StackTrace getTraceFromException(exception) {
-  if (exception == null) return null;
-  if (JS('bool', 'typeof # !== "object"', exception)) return null;
-  if (JS('bool', r'"stack" in #', exception)) {
-    return new _StackTrace(JS("var", r"#.stack", exception));
-  } else {
-    return null;
-  }
-}
+StackTrace getTraceFromException(exception) => new _StackTrace(exception);
 
 class _StackTrace implements StackTrace {
-  var _stack;
-  _StackTrace(this._stack);
-  String toString() => _stack != null ? _stack : '';
-}
+  var _exception;
+  String _trace;
+  _StackTrace(this._exception);
 
+  String toString() {
+    if (_trace != null) return _trace;
+
+    String trace;
+    if (JS('bool', 'typeof # === "object"', _exception)) {
+      trace = JS("String|Null", r"#.stack", _exception);
+    }
+    return _trace = (trace == null) ? '' : trace;
+  }
+}
 
 /**
  * Called by generated code to build a map literal. [keyValuePairs] is
@@ -1805,7 +1877,7 @@ abstract class JavaScriptIndexingBehavior extends JSMutableIndexable {
 // When they are, remove the 'Implementation' here.
 
 /** Thrown by type assertions that fail. */
-class TypeErrorImplementation implements TypeError {
+class TypeErrorImplementation extends Error implements TypeError {
   final String message;
 
   /**
@@ -1819,7 +1891,7 @@ class TypeErrorImplementation implements TypeError {
 }
 
 /** Thrown by the 'as' operator if the cast isn't valid. */
-class CastErrorImplementation implements CastError {
+class CastErrorImplementation extends Error implements CastError {
   // TODO(lrn): Rename to CastError (and move implementation into core).
   final String message;
 

@@ -10,10 +10,8 @@ import 'package:path/path.dart' as path;
 
 import '../git.dart' as git;
 import '../io.dart';
-import '../log.dart' as log;
 import '../package.dart';
 import '../source.dart';
-import '../source_registry.dart';
 import '../utils.dart';
 
 /// A package source that installs packages from Git repos.

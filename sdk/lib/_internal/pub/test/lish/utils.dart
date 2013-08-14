@@ -11,7 +11,6 @@ import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/scheduled_server.dart';
 
 import '../../lib/src/io.dart';
-import '../test_pub.dart';
 
 void handleUploadForm(ScheduledServer server, [Map body]) {
   server.handle('GET', '/api/packages/versions/new', (request) {

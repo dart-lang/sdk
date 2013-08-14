@@ -187,9 +187,9 @@ patch class _Isolate {
     return _portInternal;
   }
 
-  /* patch */ static spawnFunction(void topLevelFunction(),
+  /* patch */ static SendPort spawnFunction(void topLevelFunction(),
       [bool unhandledExceptionCallback(IsolateUnhandledException e)])
       native "isolate_spawnFunction";
 
-  /* patch */ static spawnUri(String uri) native "isolate_spawnUri";
+  /* patch */ static SendPort spawnUri(String uri) native "isolate_spawnUri";
 }

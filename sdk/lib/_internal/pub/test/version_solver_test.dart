@@ -5,7 +5,6 @@
 library pub_update_test;
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:unittest/unittest.dart';
 
@@ -17,7 +16,6 @@ import '../lib/src/sdk.dart' as sdk;
 import '../lib/src/source.dart';
 import '../lib/src/source_registry.dart';
 import '../lib/src/system_cache.dart';
-import '../lib/src/utils.dart';
 import '../lib/src/version.dart';
 import '../lib/src/solver/version_solver.dart';
 import 'test_pub.dart';

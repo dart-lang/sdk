@@ -925,6 +925,9 @@ class Dart2JSBackend(HtmlDartGenerator):
   def RootClassName(self):
     return 'Interceptor'
 
+  def OmitOperationOverrides(self):
+    return True
+
   def EmitOperation(self, info, html_name):
     """
     Arguments:

@@ -6,7 +6,6 @@ library version_test;
 
 import 'package:unittest/unittest.dart';
 import 'test_pub.dart';
-import '../lib/src/utils.dart';
 import '../lib/src/version.dart';
 
 main() {

@@ -121,7 +121,7 @@ def UseBrowserController(runtime, system):
   fyi_supported_platforms = {
     'linux': [],
     'mac': [],
-    'windows': []
+    'windows': ['ie9']
   }
 
   if (runtime in supported_platforms[system]):

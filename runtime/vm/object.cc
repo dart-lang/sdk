@@ -34,6 +34,7 @@
 #include "vm/object_id_ring.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
+#include "vm/reusable_handles.h"
 #include "vm/runtime_entry.h"
 #include "vm/scopes.h"
 #include "vm/stack_frame.h"
@@ -58,6 +59,7 @@ DEFINE_FLAG(bool, throw_on_javascript_int_overflow, false,
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
+DECLARE_FLAG(bool, error_on_bad_override);
 
 static const char* kGetterPrefix = "get:";
 static const intptr_t kGetterPrefixLength = strlen(kGetterPrefix);
@@ -94,6 +96,8 @@ RawObject* Object::null_ = reinterpret_cast<RawObject*>(RAW_NULL);
 RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::dynamic_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::void_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawType* Object::dynamic_type_ = reinterpret_cast<RawType*>(RAW_NULL);
+RawType* Object::void_type_ = reinterpret_cast<RawType*>(RAW_NULL);
 RawClass* Object::unresolved_class_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::type_arguments_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -439,20 +443,9 @@ void Object::InitOnce() {
         Object::Allocate(kNullCid, Instance::InstanceSize(), Heap::kOld);
   }
 
-  cls = Class::New<Instance>(kDynamicCid);
-  cls.set_is_finalized();
-  cls.set_is_type_finalized();
-  cls.set_is_abstract();
-  dynamic_class_ = cls.raw();
-
   // Allocate the remaining VM internal classes.
   cls = Class::New<UnresolvedClass>();
   unresolved_class_class_ = cls.raw();
-
-  cls = Class::New<Instance>(kVoidCid);
-  cls.set_is_finalized();
-  cls.set_is_type_finalized();
-  void_class_ = cls.raw();
 
   cls = Class::New<TypeArguments>();
   type_arguments_class_ = cls.raw();
@@ -565,6 +558,28 @@ void Object::InitOnce() {
         reinterpret_cast<RawArray*>(address + kHeapObjectTag));
     empty_array_->raw()->ptr()->length_ = Smi::New(0);
   }
+
+  cls = Class::New<Instance>(kDynamicCid);
+  cls.set_is_finalized();
+  cls.set_is_type_finalized();
+  cls.set_is_abstract();
+  dynamic_class_ = cls.raw();
+
+  cls = Class::New<Instance>(kVoidCid);
+  cls.set_is_finalized();
+  cls.set_is_type_finalized();
+  void_class_ = cls.raw();
+
+  cls = Class::New<Type>();
+  cls.set_is_finalized();
+  cls.set_is_type_finalized();
+  isolate->object_store()->set_type_class(cls);
+
+  cls = dynamic_class_;
+  dynamic_type_ = Type::NewNonParameterizedType(cls);
+
+  cls = void_class_;
+  void_type_ = Type::NewNonParameterizedType(cls);
 
   // Allocate and initialize singleton true and false boolean objects.
   cls = Class::New<Bool>();
@@ -840,6 +855,8 @@ RawError* Object::Init(Isolate* isolate) {
   RegisterClass(cls, Symbols::Bool(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
+  // TODO(12364): The class 'Null' is not registered in the class dictionary
+  // because it is not exported by dart:core.
   cls = Class::New<Instance>(kNullCid);
   cls.set_name(Symbols::Null());
   // We immediately mark Null as finalized because it has no corresponding
@@ -962,6 +979,14 @@ RawError* Object::Init(Isolate* isolate) {
   RegisterPrivateClass(cls, Symbols::_Double(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
+  // Abstract super class for all signature classes.
+  cls = Class::New<Instance>(kIllegalCid);
+  cls.set_is_prefinalized();
+  RegisterPrivateClass(cls, Symbols::FunctionImpl(), core_lib);
+  pending_classes.Add(cls, Heap::kOld);
+  type = Type::NewNonParameterizedType(cls);
+  object_store->set_function_impl_type(type);
+
   cls = Class::New<WeakProperty>();
   object_store->set_weak_property_class(cls);
   RegisterPrivateClass(cls, Symbols::_WeakProperty(), core_lib);
@@ -1063,9 +1088,9 @@ RawError* Object::Init(Isolate* isolate) {
   type = object_store->object_type();
   cls.set_super_type(type);
 
-  // Note: The abstract class Function is represented by VM class
-  // DartFunction, not VM class Function.
-  cls = Class::New<DartFunction>();
+  // Abstract class that represents the Dart class Function.
+  cls = Class::New<Instance>(kIllegalCid);
+  cls.set_is_prefinalized();
   RegisterClass(cls, Symbols::Function(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
@@ -1093,7 +1118,6 @@ RawError* Object::Init(Isolate* isolate) {
 
   name = Symbols::New("String");
   cls = Class::New<Instance>(kIllegalCid);
-  cls.set_is_prefinalized();
   RegisterClass(cls, name, core_lib);
   cls.set_is_prefinalized();
   pending_classes.Add(cls, Heap::kOld);
@@ -1112,7 +1136,6 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_mint_type(type);
 
-  // The class 'Null' is not register in the class dictionary because it is not
   // The classes 'void' and 'dynamic' are phoney classes to make type checking
   // more regular; they live in the VM isolate. The class 'void' is not
   // registered in the class dictionary because its name is a reserved word.
@@ -1126,14 +1149,6 @@ RawError* Object::Init(Isolate* isolate) {
   // Consider removing when/if Null becomes an ordinary class.
   type = object_store->object_type();
   cls.set_super_type(type);
-
-  cls = void_class();
-  type = Type::NewNonParameterizedType(cls);
-  object_store->set_void_type(type);
-
-  cls = dynamic_class();
-  type = Type::NewNonParameterizedType(cls);
-  object_store->set_dynamic_type(type);
 
   // Finish the initialization by compiling the bootstrap scripts containing the
   // base interfaces and the implementation of the internal classes.
@@ -1247,7 +1262,6 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   // Some classes are not stored in the object store. Yet we still need to
   // create their Class object so that they get put into the class_table
   // (as a side effect of Class::New()).
-  cls = Class::New<DartFunction>();
   cls = Class::New<Number>();
 
   cls = Class::New<WeakProperty>();
@@ -1874,9 +1888,9 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
   invocation.SetNumOptionalParameters(desc.NamedCount(),
                                       false);  // Not positional.
   invocation.set_parameter_types(Array::Handle(Array::New(desc.Count(),
-                                                         Heap::kOld)));
+                                                          Heap::kOld)));
   invocation.set_parameter_names(Array::Handle(Array::New(desc.Count(),
-                                                         Heap::kOld)));
+                                                          Heap::kOld)));
   // Receiver.
   invocation.SetParameterTypeAt(0, Type::Handle(Type::DynamicType()));
   invocation.SetParameterNameAt(0, Symbols::This());
@@ -1925,17 +1939,24 @@ void Class::Finalize() const {
 }
 
 
-static const char* FormatPatchError(const char* format, const Object& obj) {
-  const char* msg = obj.ToCString();
-  intptr_t len = OS::SNPrint(NULL, 0, format, msg) + 1;
-  char* result = Isolate::Current()->current_zone()->Alloc<char>(len);
-  OS::SNPrint(result, len, format, msg);
-  return result;
+static RawError* FormatError(const Error& prev_error,
+                             const Script& script,
+                             intptr_t token_pos,
+                             const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  if (prev_error.IsNull()) {
+    return Parser::FormatError(script, token_pos, "Error", format, args);
+  } else {
+    return Parser::FormatErrorWithAppend(prev_error, script, token_pos,
+                                         "Error", format, args);
+  }
 }
 
 
 // Apply the members from the patch class to the original class.
-const char* Class::ApplyPatch(const Class& patch) const {
+bool Class::ApplyPatch(const Class& patch, Error* error) const {
+  ASSERT(error != NULL);
   ASSERT(!is_finalized());
   // Shared handles used during the iteration.
   String& member_name = String::Handle();
@@ -1975,11 +1996,14 @@ const char* Class::ApplyPatch(const Class& patch) const {
       if (orig_func.raw() != orig_implicit_ctor.raw()) {
         new_functions.Add(orig_func);
       }
-    } else if (!func.HasCompatibleParametersWith(orig_func) &&
-               !(func.IsFactory() && orig_func.IsConstructor() &&
-                 (func.num_fixed_parameters() + 1 ==
-                  orig_func.num_fixed_parameters()))) {
-      return FormatPatchError("mismatched parameters: %s", member_name);
+    } else if (func.UserVisibleSignature() !=
+               orig_func.UserVisibleSignature()) {
+      // Compare user visible signatures to ignore different implicit parameters
+      // when patching a constructor with a factory.
+      *error = FormatError(*error,  // No previous error.
+                           Script::Handle(patch.script()), func.token_pos(),
+                           "signature mismatch: '%s'", member_name.ToCString());
+      return false;
     }
   }
   for (intptr_t i = 0; i < patch_len; i++) {
@@ -2017,7 +2041,10 @@ const char* Class::ApplyPatch(const Class& patch) const {
     // Verify no duplicate additions.
     orig_field ^= LookupField(member_name);
     if (!orig_field.IsNull()) {
-      return FormatPatchError("duplicate field: %s", member_name);
+      *error = FormatError(*error,  // No previous error.
+                           Script::Handle(patch.script()), field.token_pos(),
+                           "duplicate field: %s", member_name.ToCString());
+      return false;
     }
     new_list.SetAt(i, field);
   }
@@ -2030,7 +2057,7 @@ const char* Class::ApplyPatch(const Class& patch) const {
   // The functions and fields in the patch class are no longer needed.
   patch.SetFunctions(Object::empty_array());
   patch.SetFields(Object::empty_array());
-  return NULL;
+  return true;
 }
 
 
@@ -2109,12 +2136,12 @@ RawClass* Class::NewSignatureClass(const String& name,
                                    const Script& script,
                                    intptr_t token_pos) {
   const Class& result = Class::Handle(New(name, script, token_pos));
-  const Type& super_type = Type::Handle(Type::ObjectType());
-  ASSERT(!super_type.IsNull());
   // Instances of a signature class can only be closures.
   result.set_instance_size(Closure::InstanceSize());
   result.set_next_field_offset(Closure::InstanceSize());
-  result.set_super_type(super_type);
+  // Signature classes extend the _FunctionImpl class.
+  result.set_super_type(Type::Handle(
+      Isolate::Current()->object_store()->function_impl_type()));
   result.set_is_synthesized_class();
   result.set_type_arguments_field_offset(Closure::type_arguments_offset());
   // Implements interface "Function".
@@ -2652,10 +2679,7 @@ RawFunction* Class::LookupFunction(const String& name, intptr_t type) const {
   ReusableHandleScope reused_handles(isolate);
   Array& funcs = reused_handles.ArrayHandle();
   funcs ^= functions();
-  if (funcs.IsNull()) {
-    // This can occur, e.g., for Null classes.
-    return Function::null();
-  }
+  ASSERT(!funcs.IsNull());
   Function& function = reused_handles.FunctionHandle();
   const intptr_t len = funcs.Length();
   if (name.IsSymbol()) {
@@ -2691,10 +2715,7 @@ RawFunction* Class::LookupFunctionAllowPrivate(const String& name,
   ReusableHandleScope reused_handles(isolate);
   Array& funcs = reused_handles.ArrayHandle();
   funcs ^= functions();
-  if (funcs.IsNull()) {
-    // This can occur, e.g., for Null classes.
-    return Function::null();
-  }
+  ASSERT(!funcs.IsNull());
   Function& function = reused_handles.FunctionHandle();
   String& function_name = reused_handles.StringHandle();
   intptr_t len = funcs.Length();
@@ -2795,10 +2816,7 @@ RawField* Class::LookupField(const String& name, intptr_t type) const {
   ReusableHandleScope reused_handles(isolate);
   Array& flds = reused_handles.ArrayHandle();
   flds ^= fields();
-  if (flds.IsNull()) {
-    // This can occur, e.g., for Null classes.
-    return Field::null();
-  }
+  ASSERT(!flds.IsNull());
   Field& field = reused_handles.FieldHandle();
   String& field_name = reused_handles.StringHandle();
   intptr_t len = flds.Length();
@@ -3135,21 +3153,6 @@ bool AbstractTypeArguments::IsDynamicTypes(bool raw_instantiated,
     }
   }
   return true;
-}
-
-
-static RawError* FormatError(const Error& prev_error,
-                             const Script& script,
-                             intptr_t token_pos,
-                             const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  if (prev_error.IsNull()) {
-    return Parser::FormatError(script, token_pos, "Error", format, args);
-  } else {
-    return Parser::FormatErrorWithAppend(prev_error, script, token_pos,
-                                         "Error", format, args);
-  }
 }
 
 
@@ -4372,24 +4375,33 @@ const char* Function::ToFullyQualifiedCString() const {
 }
 
 
-bool Function::HasCompatibleParametersWith(const Function& other) const {
-  const intptr_t num_fixed_params = num_fixed_parameters();
-  const intptr_t num_opt_pos_params = NumOptionalPositionalParameters();
-  const intptr_t other_num_fixed_params = other.num_fixed_parameters();
-  const intptr_t other_num_opt_pos_params =
-      other.NumOptionalPositionalParameters();
-  // A generative constructor may be compared to a redirecting factory and be
-  // compatible although it has an additional phase parameter.
-  const intptr_t num_ignored_params =
-      (other.IsRedirectingFactory() && IsConstructor()) ? 1 : 0;
-  // The default values of optional parameters can differ.
-  // This function requires the same arguments or less and accepts the same
-  // arguments or more.
-  if (((num_fixed_params - num_ignored_params) > other_num_fixed_params) ||
-      ((num_fixed_params - num_ignored_params) + num_opt_pos_params <
-       other_num_fixed_params + other_num_opt_pos_params)) {
+bool Function::HasCompatibleParametersWith(const Function& other,
+                                           Error* error) const {
+  ASSERT(FLAG_error_on_bad_override);
+  // Check that this function's signature type is a subtype of the other
+  // function's signature type.
+  if (!TypeTest(kIsSubtypeOf, Object::null_abstract_type_arguments(),
+                other, Object::null_abstract_type_arguments(), error)) {
+    // For more informative error reporting, use the location of the other
+    // function here, since the caller will use the location of this function.
+    *error = FormatError(
+        *error,  // A malformed error if non null.
+        Script::Handle(other.script()),
+        other.token_pos(),
+        "signature type '%s' of function '%s' is not a subtype of signature "
+        "type '%s' of function '%s'",
+        String::Handle(UserVisibleSignature()).ToCString(),
+        String::Handle(UserVisibleName()).ToCString(),
+        String::Handle(other.UserVisibleSignature()).ToCString(),
+        String::Handle(other.UserVisibleName()).ToCString());
     return false;
   }
+  // We should also check that if the other function explicitly specifies a
+  // default value for a formal parameter, this function does not specify a
+  // different default value for the same parameter. However, this check is not
+  // possible in the current implementation, because the default parameter
+  // values are not stored in the Function object, but discarded after a
+  // function is compiled.
   return true;
 }
 
@@ -4459,9 +4471,16 @@ bool Function::TypeTest(TypeTestKind test_kind,
       other.NumOptionalNamedParameters();
   // This function requires the same arguments or less and accepts the same
   // arguments or more.
-  if ((num_fixed_params > other_num_fixed_params) ||
-      (num_fixed_params + num_opt_pos_params <
-       other_num_fixed_params + other_num_opt_pos_params) ||
+  // A generative constructor may be compared to a redirecting factory and be
+  // compatible although it has an additional phase parameter.
+  // More generally, we can ignore implicit parameters.
+  const intptr_t num_ignored_params = NumImplicitParameters();
+  const intptr_t other_num_ignored_params = other.NumImplicitParameters();
+  if (((num_fixed_params - num_ignored_params) >
+       (other_num_fixed_params - other_num_ignored_params)) ||
+      ((num_fixed_params - num_ignored_params + num_opt_pos_params) <
+       (other_num_fixed_params - other_num_ignored_params +
+        other_num_opt_pos_params)) ||
       (num_opt_named_params < other_num_opt_named_params)) {
     return false;
   }
@@ -4494,10 +4513,11 @@ bool Function::TypeTest(TypeTestKind test_kind,
     }
   }
   // Check the types of fixed and optional positional parameters.
-  for (intptr_t i = 0;
-       i < other_num_fixed_params + other_num_opt_pos_params; i++) {
+  for (intptr_t i = 0; i < (other_num_fixed_params - other_num_ignored_params +
+                            other_num_opt_pos_params); i++) {
     if (!TestParameterType(test_kind,
-                           i, i, type_arguments, other, other_type_arguments,
+                           i + num_ignored_params, i + other_num_ignored_params,
+                           type_arguments, other, other_type_arguments,
                            malformed_error)) {
       return false;
     }
@@ -6296,7 +6316,7 @@ void Script::PrintToJSONStream(JSONStream* stream, bool ref) const {
 
 DictionaryIterator::DictionaryIterator(const Library& library)
     : array_(Array::Handle(library.dictionary())),
-      // Last element in array is a Smi.
+      // Last element in array is a Smi indicating the number of entries used.
       size_(Array::Handle(library.dictionary()).Length() - 1),
       next_ix_(0) {
   MoveToNextObject();
@@ -6321,26 +6341,41 @@ void DictionaryIterator::MoveToNextObject() {
 }
 
 
-ClassDictionaryIterator::ClassDictionaryIterator(const Library& library)
-    : DictionaryIterator(library) {
+ClassDictionaryIterator::ClassDictionaryIterator(const Library& library,
+                                                 IterationKind kind)
+    : DictionaryIterator(library),
+      anon_array_((kind == kIteratePrivate) ?
+          Array::Handle(library.anonymous_classes()) : Object::empty_array()),
+      anon_size_((kind == kIteratePrivate) ?
+                 library.num_anonymous_classes() : 0),
+      anon_ix_(0) {
   MoveToNextClass();
 }
 
 
 RawClass* ClassDictionaryIterator::GetNextClass() {
   ASSERT(HasNext());
-  int ix = next_ix_++;
-  Object& obj = Object::Handle(array_.At(ix));
-  MoveToNextClass();
-  return Class::Cast(obj).raw();
+  Class& cls = Class::Handle();
+  if (next_ix_ < size_) {
+    int ix = next_ix_++;
+    cls ^= array_.At(ix);
+    MoveToNextClass();
+    return cls.raw();
+  }
+  ASSERT(anon_ix_ < anon_size_);
+  cls ^= anon_array_.At(anon_ix_++);
+  return cls.raw();
 }
 
 
 void ClassDictionaryIterator::MoveToNextClass() {
-  Object& obj = Object::Handle(array_.At(next_ix_));
-  while (!obj.IsClass() && HasNext()) {
-    next_ix_++;
+  Object& obj = Object::Handle();
+  while (next_ix_ < size_) {
     obj = array_.At(next_ix_);
+    if (obj.IsClass()) {
+      return;
+    }
+    next_ix_++;
   }
 }
 
@@ -6727,22 +6762,9 @@ RawFunction* Library::LookupFunctionInScript(const Script& script,
                                              intptr_t token_pos) const {
   Class& cls = Class::Handle();
   Function& func = Function::Handle();
-  ClassDictionaryIterator it(*this);
+  ClassDictionaryIterator it(*this, ClassDictionaryIterator::kIteratePrivate);
   while (it.HasNext()) {
     cls = it.GetNextClass();
-    if (script.raw() == cls.script()) {
-      func = cls.LookupFunctionAtToken(token_pos);
-      if (!func.IsNull()) {
-        return func.raw();
-      }
-    }
-  }
-  // Look in anonymous classes for toplevel functions.
-  Array& anon_classes = Array::Handle(this->raw_ptr()->anonymous_classes_);
-  intptr_t num_anonymous = raw_ptr()->num_anonymous_;
-  for (int i = 0; i < num_anonymous; i++) {
-    cls ^= anon_classes.At(i);
-    ASSERT(!cls.IsNull());
     if (script.raw() == cls.script()) {
       func = cls.LookupFunctionAtToken(token_pos);
       if (!func.IsNull()) {
@@ -7607,21 +7629,13 @@ RawError* Library::CompileAll() {
   Class& cls = Class::Handle();
   for (int i = 0; i < libs.Length(); i++) {
     lib ^= libs.At(i);
-    ClassDictionaryIterator it(lib);
+    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
       error = cls.EnsureIsFinalized(Isolate::Current());
       if (!error.IsNull()) {
         return error.raw();
       }
-      error = Compiler::CompileAllFunctions(cls);
-      if (!error.IsNull()) {
-        return error.raw();
-      }
-    }
-    Array& anon_classes = Array::Handle(lib.raw_ptr()->anonymous_classes_);
-    for (int i = 0; i < lib.raw_ptr()->num_anonymous_; i++) {
-      cls ^= anon_classes.At(i);
       error = Compiler::CompileAllFunctions(cls);
       if (!error.IsNull()) {
         return error.raw();
@@ -10462,8 +10476,8 @@ RawString* AbstractType::ClassName() const {
 
 
 bool AbstractType::IsNullType() const {
-  return HasResolvedTypeClass() &&
-      (type_class() == Type::Handle(Type::NullType()).type_class());
+  ASSERT(Type::Handle(Type::NullType()).IsCanonical());
+  return raw() == Type::NullType();
 }
 
 
@@ -10612,12 +10626,12 @@ RawType* Type::NullType() {
 
 
 RawType* Type::DynamicType() {
-  return Isolate::Current()->object_store()->dynamic_type();
+  return Object::dynamic_type();
 }
 
 
 RawType* Type::VoidType() {
-  return Isolate::Current()->object_store()->void_type();
+  return Object::void_type();
 }
 
 
@@ -11496,11 +11510,13 @@ static bool IsJavascriptInt(int64_t value) {
 }
 
 
-RawInteger* Integer::New(int64_t value, Heap::Space space) {
+RawInteger* Integer::New(int64_t value, Heap::Space space, const bool silent) {
   if ((value <= Smi::kMaxValue) && (value >= Smi::kMinValue)) {
     return Smi::New(value);
   }
-  if (FLAG_throw_on_javascript_int_overflow && !IsJavascriptInt(value)) {
+  if (!silent &&
+      FLAG_throw_on_javascript_int_overflow &&
+      !IsJavascriptInt(value)) {
     const Integer &i = Integer::Handle(Mint::New(value));
     ThrowJavascriptIntegerOverflow(i);
   }
@@ -11743,7 +11759,9 @@ RawInteger* Integer::BitOp(Token::Kind kind, const Integer& other) const {
 
 
 // TODO(srdjan): Clarify handling of negative right operand in a shift op.
-RawInteger* Smi::ShiftOp(Token::Kind kind, const Smi& other) const {
+RawInteger* Smi::ShiftOp(Token::Kind kind,
+                         const Smi& other,
+                         const bool silent) const {
   intptr_t result = 0;
   const intptr_t left_value = Value();
   const intptr_t right_value = other.Value();
@@ -11762,7 +11780,7 @@ RawInteger* Smi::ShiftOp(Token::Kind kind, const Smi& other) const {
                                right_value);
           } else {
             int64_t left_64 = left_value;
-            return Integer::New(left_64 << right_value);
+            return Integer::New(left_64 << right_value, Heap::kNew, silent);
           }
         }
       }
@@ -14174,17 +14192,6 @@ RawInstance* Closure::New(const Function& function,
   Closure::set_function(result, function);
   Closure::set_context(result, context);
   return result.raw();
-}
-
-
-const char* DartFunction::ToCString() const {
-  return "Function type class";
-}
-
-
-void DartFunction::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  stream->OpenObject();
-  stream->CloseObject();
 }
 
 

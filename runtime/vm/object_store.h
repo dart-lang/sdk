@@ -61,19 +61,14 @@ class ObjectStore {
     null_type_ = value.raw();
   }
 
-  RawType* dynamic_type() const { return dynamic_type_; }
-  void set_dynamic_type(const Type& value) {
-    dynamic_type_ = value.raw();
-  }
-
-  RawType* void_type() const { return void_type_; }
-  void set_void_type(const Type& value) {
-    void_type_ = value.raw();
-  }
-
   RawType* function_type() const { return function_type_; }
   void set_function_type(const Type& value) {
     function_type_ = value.raw();
+  }
+
+  RawType* function_impl_type() const { return function_impl_type_; }
+  void set_function_impl_type(const Type& value) {
+    function_impl_type_ = value.raw();
   }
 
   RawClass* type_class() const { return type_class_; }
@@ -435,9 +430,8 @@ class ObjectStore {
   RawType* object_type_;
   RawClass* null_class_;
   RawType* null_type_;
-  RawType* dynamic_type_;
-  RawType* void_type_;
   RawType* function_type_;
+  RawType* function_impl_type_;
   RawClass* type_class_;
   RawClass* type_parameter_class_;
   RawClass* bounded_type_class_;

@@ -5,7 +5,6 @@
 library pub.pub_package_provider;
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;

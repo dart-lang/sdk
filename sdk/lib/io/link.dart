@@ -55,14 +55,20 @@ abstract class Link implements FileSystemEntity {
    * Synchronously updates the link. Calling [updateSync] on a non-existing link
    * will throw an exception.
    *
-   * If [linkRelative] is true, the target argument should be a relative path,
-   * and the link will interpret the target as a path relative to the link's
-   * directory.
+   * On the Windows platform, this will only work with directories, and the
+   * target directory must exist.
+   */
+  void updateSync(String target);
+
+  /**
+   * Updates the link. Returns a [:Future<Link>:] that completes with the
+   * link when it has been updated.  Calling [update] on a non-existing link
+   * will complete its returned future with an exception.
    *
    * On the Windows platform, this will only work with directories, and the
    * target directory must exist.
    */
-  void updateSync(String target, {bool linkRelative: false });
+  Future<Link> update(String target);
 
   /**
    * Deletes the link. Returns a [:Future<Link>:] that completes with
@@ -198,10 +204,21 @@ class _Link extends FileSystemEntity implements Link {
     return target;
   }
 
-  void updateSync(String target, {bool linkRelative: false }) {
-    // TODO(whesse): Replace with atomic update, where supported by platform.
+  void updateSync(String target) {
+    // TODO(12414): Replace with atomic update, where supported by platform.
+    // Atomically changing a link can be done by creating the new link, with
+    // a different name, and using the rename() posix call to move it to
+    // the old name atomically.
     deleteSync();
     createSync(target);
+  }
+
+  Future<Link> update(String target) {
+    // TODO(12414): Replace with atomic update, where supported by platform.
+    // Atomically changing a link can be done by creating the new link, with
+    // a different name, and using the rename() posix call to move it to
+    // the old name atomically.
+    return delete().then((_) => create(target));
   }
 
   Future<Link> delete() {

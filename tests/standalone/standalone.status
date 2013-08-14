@@ -11,16 +11,6 @@ package/invalid_uri_test: Fail, OK # Fails intentionally
 
 [ $runtime == vm ]
 package/package_isolate_test: Fail # http://dartbug.com/7520.
-vmservice/isolate_echo_test: Pass, Fail # Issue: 12294
-vmservice/isolate_list_test: Pass, Fail # Issue: 12294
-vmservice/isolate_stacktrace_command_test: Pass, Fail # Issue: 12294
-vmservice/unknown_isolate_command_test: Pass, Fail # Issue: 12294
-
-[ $runtime == vm && $system == windows ]
-vmservice/isolate_class_test: Pass, Fail # Issue: 12294
-vmservice/isolate_code_test: Pass, Fail # Issue: 12294
-vmservice/isolate_function_test: Pass, Fail # Issue: 12294
-vmservice/isolate_library_test: Pass, Fail # Issue: 12294
 
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
@@ -34,10 +24,12 @@ io/stdout_bad_argument_test: Fail, OK
 io/file_fuzz_test: Skip
 io/directory_fuzz_test: Skip
 
-[ $runtime == vm && $system == windows ]
-vmservice/multiple_isolate_list_test: Fail, Pass # http://dartbug.com/12124
-
 [ $runtime == vm && $system == macos ]
+# These tests fail intermittently on MacOS due to an https request that
+# fails not completing the future it returns: Issue 12451
+io/https_unauthorized_test: Pass, Fail
+io/https_bad_certificate_test: Pass, Fail
+
 # This test fails with "Too many open files" on the Mac OS buildbot.
 # This is expected as MacOS by default runs with a very low number
 # of allowed open files ('ulimit -n' says something like 256).
@@ -161,17 +153,18 @@ io/list_input_stream_test: Skip # Timeout TODO(ngeoffray): investigate
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
 io/web_socket_ping_test: Skip # TODO(ajohnsen): Timeout issue
+io/test_runner_test: Pass, Fail # Issue 12413
 
-[ $arch == simarm ]
-io/test_runner_test: Pass, Fail # Issue: 12239
-
-[ $arch == mips ]
-*: Skip
-
-[ $arch == simmips ]
+[ $arch == simmips || $arch == mips ]
 io/file_fuzz_test: Pass, Timeout
 io/web_socket_test: Pass, Slow
 io/http_server_response_test: Pass, Slow
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
 io/web_socket_ping_test: Skip # TODO(ajohnsen): Timeout issue
+
+[ $arch == mips ]
+io/test_extension_test: Fail
+io/test_extension_fail_test: Fail
+io/dart_std_io_pipe_test: Fail
+io/file_read_special_device_test: Fail

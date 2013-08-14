@@ -45,20 +45,31 @@ DEFINE_NATIVE_ENTRY(Mirrors_isLocalPort, 1) {
 }
 
 
-static RawInstance* CreateParameterMirrorList(const Function& func) {
+static RawInstance* CreateParameterMirrorList(const Function& func,
+                                              const Instance& owner_mirror) {
   HANDLESCOPE(Isolate::Current());
-  const intptr_t param_cnt = func.num_fixed_parameters() -
-                             func.NumImplicitParameters() +
-                             func.NumOptionalParameters();
-  const Array& results = Array::Handle(Array::New(param_cnt));
-  const Array& args = Array::Handle(Array::New(3));
+  const intptr_t implicit_param_count = func.NumImplicitParameters();
+  const intptr_t non_implicit_param_count = func.NumParameters() -
+                                            implicit_param_count;
+  const intptr_t index_of_first_optional_param =
+      non_implicit_param_count - func.NumOptionalParameters();
+  const intptr_t index_of_first_named_param =
+      non_implicit_param_count - func.NumOptionalNamedParameters();
+  const Array& results = Array::Handle(Array::New(non_implicit_param_count));
+  const Array& args = Array::Handle(Array::New(6));
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(func)));
+  args.SetAt(2, owner_mirror);
   Smi& pos = Smi::Handle();
+  String& name = String::Handle();
   Instance& param = Instance::Handle();
-  for (intptr_t i = 0; i < param_cnt; i++) {
+  for (intptr_t i = 0; i < non_implicit_param_count; i++) {
     pos ^= Smi::New(i);
-    args.SetAt(1, pos);
-    args.SetAt(2, (i >= func.num_fixed_parameters()) ?
+    name ^= func.ParameterNameAt(implicit_param_count + i);
+    args.SetAt(1, name);
+    args.SetAt(3, pos);
+    args.SetAt(4, (i >= index_of_first_optional_param) ?
+        Bool::True() : Bool::False());
+    args.SetAt(5, (i >= index_of_first_named_param) ?
         Bool::True() : Bool::False());
     param ^= CreateMirror(Symbols::_LocalParameterMirrorImpl(), args);
     results.SetAt(i, param);
@@ -378,12 +389,12 @@ DEFINE_NATIVE_ENTRY(FunctionTypeMirror_call_method, 2) {
 }
 
 
-DEFINE_NATIVE_ENTRY(FunctionTypeMirror_parameters, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(FunctionTypeMirror_parameters, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, owner, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
   const Class& cls = Class::Handle(ref.GetClassReferent());
-  const Function& func = Function::Handle(CallMethod(cls));
-  ASSERT(!func.IsNull());
-  return CreateParameterMirrorList(func);
+  const Function& func = Function::Handle(cls.signature_function());
+  return CreateParameterMirrorList(func, owner);
 }
 
 
@@ -461,15 +472,9 @@ DEFINE_NATIVE_ENTRY(ClassMirror_members, 2) {
   }
 
   const Array& fields = Array::Handle(klass.fields());
-  // Some special types like 'dynamic' have a null fields list, but they should
-  // not wind up as the reflectees of ClassMirrors.
-  ASSERT(!fields.IsNull());
   const intptr_t num_fields = fields.Length();
 
   const Array& functions = Array::Handle(klass.functions());
-  // Some special types like 'dynamic' have a null functions list, but they
-  // should not wind up as the reflectees of ClassMirrors.
-  ASSERT(!functions.IsNull());
   const intptr_t num_functions = functions.Length();
 
   Instance& member_mirror = Instance::Handle();
@@ -486,9 +491,10 @@ DEFINE_NATIVE_ENTRY(ClassMirror_members, 2) {
   Function& func = Function::Handle();
   for (intptr_t i = 0; i < num_functions; i++) {
     func ^= functions.At(i);
-    if (func.kind() == RawFunction::kRegularFunction ||
+    if (func.is_visible() &&
+        (func.kind() == RawFunction::kRegularFunction ||
         func.kind() == RawFunction::kGetterFunction ||
-        func.kind() == RawFunction::kSetterFunction) {
+        func.kind() == RawFunction::kSetterFunction)) {
       member_mirror = CreateMethodMirror(func, owner_mirror);
       member_mirrors.Add(member_mirror);
     }
@@ -511,9 +517,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_constructors, 2) {
   }
 
   const Array& functions = Array::Handle(klass.functions());
-  // Some special types like 'dynamic' have a null functions list, but they
-  // should not wind up as the reflectees of ClassMirrors.
-  ASSERT(!functions.IsNull());
   const intptr_t num_functions = functions.Length();
 
   Instance& constructor_mirror = Instance::Handle();
@@ -590,19 +593,33 @@ DEFINE_NATIVE_ENTRY(ClassMirror_type_variables, 1) {
 DEFINE_NATIVE_ENTRY(ClassMirror_type_arguments, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
 
-  const AbstractTypeArguments& args =
-      AbstractTypeArguments::Handle(type.arguments());
-  if (args.IsNull()) {
-    return Object::empty_array().raw();
-  }
-
   const Class& cls = Class::Handle(type.type_class());
   const intptr_t num_params = cls.NumTypeParameters();
-  const intptr_t num_inherited_args = args.Length() - num_params;
+
+  if (num_params == 0) {
+    return Object::empty_array().raw();
+  }
 
   const Array& result = Array::Handle(Array::New(num_params));
   AbstractType& arg_type = AbstractType::Handle();
   Instance& type_mirror = Instance::Handle();
+  const AbstractTypeArguments& args =
+      AbstractTypeArguments::Handle(type.arguments());
+
+  // Handle argument lists that have been optimized away, because either no
+  // arguments have been provided, or all arguments are dynamic. Return a list
+  // of typemirrors on dynamic in this case.
+  if (args.IsNull()) {
+    arg_type ^= Object::dynamic_type();
+    type_mirror ^= CreateTypeMirror(arg_type);
+    for (intptr_t i = 0; i < num_params; i++) {
+      result.SetAt(i, type_mirror);
+    }
+    return result.raw();
+  }
+
+  ASSERT(args.Length() >= num_params);
+  const intptr_t num_inherited_args = args.Length() - num_params;
   for (intptr_t i = 0; i < num_params; i++) {
     arg_type ^= args.TypeAt(i + num_inherited_args);
     type_mirror = CreateTypeMirror(arg_type);
@@ -635,7 +652,7 @@ static RawObject* ReflectivelyInvokeDynamicFunction(const Instance& receiver,
   // Note "arguments" is already the internal arguments with the receiver as
   // the first element.
   Object& result = Object::Handle();
-  if (function.IsNull()) {
+  if (function.IsNull() || !function.is_visible()) {
     const Array& arguments_descriptor =
         Array::Handle(ArgumentsDescriptor::New(arguments.Length()));
     result = DartEntry::InvokeNoSuchMethod(receiver,
@@ -894,7 +911,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 4) {
   if (function.IsNull() ||
       !function.AreValidArgumentCounts(number_of_arguments,
                                        /* named_args */ 0,
-                                       NULL)) {
+                                       NULL) ||
+      !function.is_visible()) {
     ThrowNoSuchMethod(klass,
                       function_name,
                       function,
@@ -929,7 +947,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeGetter, 3) {
     const Function& getter = Function::Handle(
         klass.LookupStaticFunctionAllowPrivate(internal_getter_name));
 
-    if (getter.IsNull()) {
+    if (getter.IsNull() || !getter.is_visible()) {
       ThrowNoSuchMethod(klass,
                         getter_name,
                         getter,
@@ -968,7 +986,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 4) {
     const Function& setter = Function::Handle(
       klass.LookupStaticFunctionAllowPrivate(internal_setter_name));
 
-    if (setter.IsNull()) {
+    if (setter.IsNull() || !setter.is_visible()) {
       ThrowNoSuchMethod(klass,
                         setter_name,
                         setter,
@@ -1035,7 +1053,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 3) {
      !constructor.AreValidArgumentCounts(number_of_arguments +
                                          constructor.NumImplicitParameters(),
                                          /* named args */ 0,
-                                         NULL)) {
+                                         NULL) ||
+     !constructor.is_visible()) {
     // Pretend we didn't find the constructor at all when the arity is wrong
     // so as to produce the same NoSuchMethodError as the non-reflective case.
     constructor = Function::null();
@@ -1086,7 +1105,8 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 4) {
   if (function.IsNull() ||
      !function.AreValidArgumentCounts(number_of_arguments,
                                       0,
-                                      NULL) ) {
+                                      NULL) ||
+     !function.is_visible()) {
     ThrowNoSuchMethod(library,
                       function_name,
                       function,
@@ -1134,7 +1154,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeGetter, 3) {
     getter = klass.LookupStaticFunctionAllowPrivate(internal_getter_name);
   }
 
-  if (!getter.IsNull()) {
+  if (!getter.IsNull() && getter.is_visible()) {
     // Invoke the getter and return the result.
     const Object& result = Object::Handle(
         DartEntry::InvokeFunction(getter, Object::empty_array()));
@@ -1183,7 +1203,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 4) {
     const Function& setter = Function::Handle(
         library.LookupFunctionAllowPrivate(internal_setter_name,
                                            &ambiguity_error_msg));
-    if (setter.IsNull()) {
+    if (setter.IsNull() || !setter.is_visible()) {
       if (ambiguity_error_msg.IsNull()) {
         ThrowNoSuchMethod(library,
                           setter_name,
@@ -1240,10 +1260,11 @@ DEFINE_NATIVE_ENTRY(MethodMirror_owner, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(MethodMirror_parameters, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(MethodMirror_parameters, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, owner, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
   const Function& func = Function::Handle(ref.GetFunctionReferent());
-  return CreateParameterMirrorList(func);
+  return CreateParameterMirrorList(func, owner);
 }
 
 

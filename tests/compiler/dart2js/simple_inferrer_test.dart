@@ -296,11 +296,18 @@ testSwitch3() {
 }
 
 testSwitch4() {
-  switch(topLevelGetter) {
+  switch (topLevelGetter) {
     case 1: break;
     default: break;
   }
   return 42;
+}
+
+testSwitch5() {
+  switch (topLevelGetter) {
+    case 1: return 1;
+    default: return 2;
+  }
 }
 
 testContinue1() {
@@ -364,6 +371,43 @@ testReturnItselfOrInt(a) {
   return testReturnItselfOrInt(a);
 }
 
+testDoWhile1() {
+  var a = 42;
+  do {
+    a = 'foo';
+  } while (true);
+  return a;
+}
+
+testDoWhile2() {
+  var a = 42;
+  do {
+    a = 'foo';
+    return;
+  } while (true);
+  return a;
+}
+
+testDoWhile3() {
+  var a = 42;
+  do {
+    a = 'foo';
+    if (true) continue;
+    return 42;
+  } while (true);
+  return a;
+}
+
+testDoWhile4() {
+  var a = 'foo';
+  do {
+    a = 54;
+    if (true) break;
+    return 3.5;
+  } while (true);
+  return a;
+}
+
 testReturnInvokeDynamicGetter() => new A().myFactory();
 
 var topLevelConstList = const [42];
@@ -402,6 +446,22 @@ class B extends A {
   returnInt7() => ++super[0];
   returnInt8() => super[0] += 54;
   returnInt9() => super.myField;
+}
+
+testCascade1() {
+  return [1, 2, 3]..add(4)..add(5);
+}
+
+testCascade2() {
+  return new CascadeHelper()
+      ..a = "hello"
+      ..b = 42
+      ..i += 1;
+}
+
+class CascadeHelper {
+  var a, b;
+  var i = 0;
 }
 
 main() {
@@ -453,10 +513,15 @@ main() {
   testSwitch2();
   testSwitch3();
   testSwitch4();
+  testSwitch5();
   testContinue1();
   testBreak1();
   testContinue2();
   testBreak2();
+  testDoWhile1();
+  testDoWhile2();
+  testDoWhile3();
+  testDoWhile4();
   new A() == null;
   new A()..returnInt1()
          ..returnInt2()
@@ -478,6 +543,8 @@ main() {
   testReturnElementOfConstList2();
   testReturnItselfOrInt(topLevelGetter());
   testReturnInvokeDynamicGetter();
+  testCascade1();
+  testCascade2();
 }
 """;
 
@@ -547,6 +614,7 @@ void main() {
   checkReturn('testSwitch2', typesTask.intType);
   checkReturn('testSwitch3', interceptorType.nullable());
   checkReturn('testSwitch4', typesTask.intType);
+  checkReturn('testSwitch5', typesTask.intType);
   checkReturn('testContinue1', interceptorType.nullable());
   checkReturn('testBreak1', interceptorType.nullable());
   checkReturn('testContinue2', interceptorType.nullable());
@@ -555,6 +623,11 @@ void main() {
   checkReturn('testReturnElementOfConstList2', typesTask.intType);
   checkReturn('testReturnItselfOrInt', typesTask.intType);
   checkReturn('testReturnInvokeDynamicGetter', typesTask.dynamicType);
+
+  checkReturn('testDoWhile1', typesTask.stringType);
+  checkReturn('testDoWhile2', typesTask.nullType);
+  checkReturn('testDoWhile3', interceptorType);
+  checkReturn('testDoWhile4', typesTask.numType);
 
   checkReturnInClass(String className, String methodName, type) {
     var cls = findElement(compiler, className);
@@ -588,4 +661,8 @@ void main() {
                   typesInferrer.getReturnTypeOfElement(element));
   }
   checkFactoryConstructor('A', '');
+
+  checkReturn('testCascade1', typesTask.growableListType);
+  checkReturn('testCascade2', new TypeMask.nonNullExact(
+      typesTask.rawTypeOf(findElement(compiler, 'CascadeHelper'))));
 }

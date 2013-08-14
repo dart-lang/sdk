@@ -6,6 +6,23 @@ library barback.utils;
 
 import 'dart:async';
 
+/// A pair of values.
+class Pair<E, F> {
+  E first;
+  F last;
+
+  Pair(this.first, this.last);
+
+  String toString() => '($first, $last)';
+
+  bool operator==(other) {
+    if (other is! Pair) return false;
+    return other.first == first && other.last == last;
+  }
+
+  int get hashCode => first.hashCode ^ last.hashCode;
+}
+
 /// Converts a number in the range [0-255] to a two digit hex string.
 ///
 /// For example, given `255`, returns `ff`.
@@ -45,6 +62,10 @@ List flatten(Iterable nested) {
   helper(nested);
   return result;
 }
+
+/// Returns the union of all elements in each set in [sets].
+Set unionAll(Iterable<Set> sets) =>
+  sets.fold(new Set(), (union, set) => union.union(set));
 
 /// Passes each key/value pair in [map] to [fn] and returns a new [Map] whose
 /// values are the return values of [fn].

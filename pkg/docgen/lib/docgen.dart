@@ -37,6 +37,11 @@ var logger = new Logger('Docgen');
 
 const String USAGE = 'Usage: dart docgen.dart [OPTIONS] [fooDir/barFile]';
 
+
+List<String> validAnnotations = const ['metadata.Experimental', 
+    'metadata.DomName', 'metadata.Deprecated', 'metadata.Unstable', 
+    'meta.deprecated', 'metadata.SupportedBrowser'];
+
 /// Current library being documented to be used for comment links.
 LibraryMirror _currentLibrary;
 
@@ -113,8 +118,10 @@ List<String> _listLibraries(List<String> args) {
   var type = FileSystemEntity.typeSync(args[0]);
 
   if (type == FileSystemEntityType.FILE) {
-    libraries.add(path.absolute(args[0]));
-    logger.info('Added to libraries: ${libraries.last}');
+    if (args[0].endsWith('.dart')) {
+      libraries.add(path.absolute(args[0]));
+      logger.info('Added to libraries: ${libraries.last}');
+    }
   } else {
     libraries.addAll(_listDartFromDir(args[0]));
   }
@@ -122,14 +129,25 @@ List<String> _listLibraries(List<String> args) {
 }
 
 List<String> _listDartFromDir(String args) {
-  var files = listDir(args, recursive: true);
+  var libraries = [];
   // To avoid anaylzing package files twice, only files with paths not
   // containing '/packages' will be added. The only exception is if the file to
   // analyze already has a '/package' in its path.
-  return files.where((f) => f.endsWith('.dart') &&
+  var files = listDir(args, recursive: true).where((f) => f.endsWith('.dart') &&
       (!f.contains('${path.separator}packages') ||
-          args.contains('${path.separator}packages'))).toList()
-      ..forEach((lib) => logger.info('Added to libraries: $lib'));
+          args.contains('${path.separator}packages'))).toList();
+  
+  files.forEach((f) {
+    // Only add the file if it does not contain 'part of' 
+    // TODO(janicejl): Remove when Issue(12406) is resolved.
+    var contents = new File(f).readAsStringSync();
+    if (!(contents.contains(new RegExp('\npart of ')) || 
+        contents.startsWith(new RegExp('part of ')))) {
+      libraries.add(f);
+      logger.info('Added to libraries: $f');
+    }
+  });
+  return libraries;
 }
 
 String _findPackageRoot(String directory) {
@@ -224,15 +242,16 @@ void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
   filteredEntities.where((e) => e is Class || e is Library).forEach((output) {
     _writeIndexableToFile(output, outputToYaml);
   });
-  // Outputs a text file with a list of libraries available after creating all
-  // the libraries. This will help the viewer know what libraries are available
-  // to read in.
-  _writeToFile(filteredEntities.where((e) => e is Library)
-      .map((e) => e.qualifiedName).join('\n'), 'library_list.txt',
-      append: append);
-  // Outputs all the qualified names documented. This will help generate search
-  // results.
-  _writeToFile(filteredEntities.map((e) => e.qualifiedName).join('\n'),
+  // Outputs a yaml file with all libraries and their preview comments after 
+  // creating all libraries. This will help the viewer know what libraries are 
+  // available to read in.
+  var libraryMap = {'libraries' : filteredEntities.where((e) => 
+      e is Library).map((e) => e.previewMap).toList()};
+  _writeToFile(getYamlString(libraryMap), 'library_list.yaml', append: append);
+  // Outputs all the qualified names documented with their type.
+  // This will help generate search results.
+  _writeToFile(filteredEntities.map((e) => 
+      '${e.qualifiedName} ${e.typeName}').join('\n'),
       'index.txt', append: append);
 }
 
@@ -263,7 +282,11 @@ void _writeIndexableToFile(Indexable result, bool outputToYaml) {
  */
 // This is because LibraryMirror.isPrivate returns `false` all the time.
 bool _isLibraryPrivate(LibraryMirror mirror) {
-  if (mirror.simpleName.startsWith('_') || mirror.simpleName.contains('._')) {
+  var sdkLibrary = LIBRARIES[mirror.simpleName];
+  if (sdkLibrary != null) {
+    return !sdkLibrary.documented;
+  } else if (mirror.simpleName.startsWith('_') || 
+      mirror.simpleName.contains('._')) {
     return true;
   }
   return false;
@@ -300,8 +323,10 @@ List<String> _annotations(DeclarationMirror mirror) {
       .map((e) => annotation.getField(e.simpleName).reflectee)
       .where((e) => e != null)
       .toList();
-    annotations.add(new Annotation(annotation.type.qualifiedName,
-        parameterList));
+    if (validAnnotations.contains(annotation.type.qualifiedName)) {
+      annotations.add(new Annotation(annotation.type.qualifiedName,
+          parameterList));
+    }
   });
   return annotations;
 }
@@ -518,6 +543,21 @@ class Indexable {
 
   Indexable(this.name, this.comment, this.qualifiedName, this.isPrivate,
       this.owner);
+  
+  /// The type of this member to be used in index.txt.
+  String get typeName => '';
+  
+  /**
+   * Creates a [Map] with this [Indexable]'s name and a preview comment.
+   */
+  Map get previewMap {
+    var finalMap = { 'name' : qualifiedName };
+    if (comment != '') {
+      var index = comment.indexOf('</p>');
+      finalMap['preview'] = '${comment.substring(0, index)}</p>';
+    }
+    return finalMap;
+  }
 }
 
 /**
@@ -547,6 +587,8 @@ class Library extends Indexable {
     'functions': functions.toMap(),
     'classes': classes.toMap()
   };
+  
+  String get typeName => 'library';
 }
 
 /**
@@ -586,6 +628,8 @@ class Class extends Indexable {
       String qualifiedName, bool isPrivate, String owner, this.isAbstract) 
       : super(name, comment, qualifiedName, isPrivate, owner);
 
+  String get typeName => 'class';
+  
   /**
    * Returns a list of all the parent classes.
    */
@@ -708,20 +752,7 @@ class ClassGroup {
 
   void addClass(ClassMirror mirror) {
     _currentClass = mirror;
-    var clazz = _class(mirror);
-
-    // Adding inherited parent variables and methods.
-    clazz.parent().forEach((parent) {
-      if (_isVisible(clazz)) {
-        parent.addSubclass(clazz);
-      }
-    });
-
-    clazz.ensureComments();
-
-    if (clazz.isError()) {
-      errors[mirror.simpleName] = clazz;
-    } else if (mirror.isTypedef) {
+    if (mirror.isTypedef) {
       if (_includePrivate || !mirror.isPrivate) {
         entityMap[mirror.qualifiedName] = new Typedef(mirror.simpleName,
             mirror.value.returnType.qualifiedName, _commentToHtml(mirror),
@@ -730,10 +761,25 @@ class ClassGroup {
             mirror.owner.qualifiedName);
         typedefs[mirror.simpleName] = entityMap[mirror.qualifiedName];
       }
-    } else if (mirror.isClass) {
-      classes[mirror.simpleName] = clazz;
     } else {
-      throw new ArgumentError('${mirror.simpleName} - no class type match. ');
+      var clazz = _class(mirror);
+  
+      // Adding inherited parent variables and methods.
+      clazz.parent().forEach((parent) {
+        if (_isVisible(clazz)) {
+          parent.addSubclass(clazz);
+        }
+      });
+  
+      clazz.ensureComments();
+  
+      if (clazz.isError()) {
+        errors[mirror.simpleName] = clazz;
+      } else if (mirror.isClass) {
+        classes[mirror.simpleName] = clazz;
+      } else {
+        throw new ArgumentError('${mirror.simpleName} - no class type match. ');
+      }
     }
   }
 
@@ -743,25 +789,13 @@ class ClassGroup {
   bool containsKey(String name) {
     return classes.containsKey(name) || errors.containsKey(name);
   }
-
-  /**
-   * Creates a [Map] with [Class] names and a preview comment.
-   */
-  Map classMap(Class clazz) {
-    var finalMap = { 'name' : clazz.qualifiedName };
-    if (clazz.comment != '') {
-      var index = clazz.comment.indexOf('</p>');
-      finalMap['preview'] = '${clazz.comment.substring(0, index)}</p>';
-    }
-    return finalMap;
-  }
   
   Map toMap() => {
     'class': classes.values.where(_isVisible)
-      .map((e) => classMap(e)).toList(),
+      .map((e) => e.previewMap).toList(),
     'typedef': recurseMap(typedefs),
     'error': errors.values.where(_isVisible)
-      .map((e) => classMap(e)).toList()
+      .map((e) => e.previewMap).toList()
   };
 }
 
@@ -790,6 +824,8 @@ class Typedef extends Indexable {
     'annotations': annotations.map((a) => a.toMap()).toList(),
     'generics': recurseMap(generics)
   };
+  
+  String get typeName => 'typedef';
 }
 
 /**
@@ -820,6 +856,8 @@ class Variable extends Indexable {
     'type': new List.filled(1, type.toMap()),
     'annotations': annotations.map((a) => a.toMap()).toList()
   };
+  
+  String get typeName => 'property';
 }
 
 /**
@@ -833,6 +871,10 @@ class Method extends Indexable {
   bool isStatic;
   bool isAbstract;
   bool isConst;
+  bool isConstructor;
+  bool isGetter;
+  bool isSetter;
+  bool isOperator;
   Type returnType;
 
   /// Qualified name to state where the comment is inherited from.
@@ -843,8 +885,9 @@ class Method extends Indexable {
 
   Method(String name, this.isStatic, this.isAbstract, this.isConst,
       this.returnType, String comment, this.parameters, this.annotations,
-      String qualifiedName, bool isPrivate, String owner) : super(name, comment,
-          qualifiedName, isPrivate, owner);
+      String qualifiedName, bool isPrivate, String owner, this.isConstructor,
+      this.isGetter, this.isSetter, this.isOperator) 
+        : super(name, comment, qualifiedName, isPrivate, owner);
 
   /**
    * Makes sure that the method with an inherited equivalent have comments.
@@ -870,6 +913,10 @@ class Method extends Indexable {
     'parameters': recurseMap(parameters),
     'annotations': annotations.map((a) => a.toMap()).toList()
   };
+  
+  String get typeName => isConstructor ? 'constructor' :
+    isGetter ? 'getter' : isSetter ? 'setter' :
+    isOperator ? 'operator' : 'method';
 }
 
 /**
@@ -888,7 +935,8 @@ class MethodGroup {
         mirror.isAbstract, mirror.isConstConstructor, _type(mirror.returnType),
         _commentToHtml(mirror), _parameters(mirror.parameters),
         _annotations(mirror), mirror.qualifiedName, _isHidden(mirror),
-        mirror.owner.qualifiedName);
+        mirror.owner.qualifiedName, mirror.isConstructor, mirror.isGetter,
+        mirror.isSetter, mirror.isOperator);
     entityMap[mirror.qualifiedName] = method;
     _currentMember = mirror;
     if (mirror.isSetter) {

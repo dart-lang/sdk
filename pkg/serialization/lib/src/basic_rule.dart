@@ -25,10 +25,10 @@ class BasicRule extends SerializationRule {
   final ClassMirror type;
 
   /** Used to create new objects when reading. */
-  Constructor constructor;
+  final Constructor constructor;
 
   /** This holds onto our list of fields, and can also calculate them. */
-  _FieldList _fields;
+  final _FieldList _fields;
 
   /**
    * Instances can either use maps or lists to hold the object's state. The list
@@ -58,12 +58,23 @@ class BasicRule extends SerializationRule {
    * [excludeFields] lets you tell it to find the fields automatically, but
    *   omit some that would otherwise be included.
    */
-  BasicRule(ClassMirror this.type, String constructorName,
-      List constructorFields, List regularFields,
-      List excludeFields) {
-    _findFields(constructorFields, regularFields, excludeFields);
-    constructor = new Constructor(
-        type, constructorName, _fields.constructorFieldIndices());
+  factory BasicRule(ClassMirror type, String constructorName,
+      List constructorFields, List regularFields, List excludeFields) {
+
+    var fields = new _FieldList(type);
+    fields.constructorFields = constructorFields;
+    fields.regular = regularFields;
+    // TODO(alanknight): The order of this matters. It shouldn't.
+    fields.exclude = excludeFields;
+    fields.figureOutFields();
+
+    var constructor = new Constructor(type, constructorName,
+        fields.constructorFieldIndices());
+
+    return new BasicRule._(type, constructor, fields);
+  }
+
+  BasicRule._(this.type, this.constructor, this._fields) {
     configureForLists();
   }
 
@@ -242,20 +253,6 @@ class BasicRule extends SerializationRule {
    */
   // TODO(alanknight): This seems likely to be slow. Verify. Other options?
   bool appliesTo(object, Writer w) => reflect(object).type == type;
-
-  /**
-   * Given the various field lists provided by the user, construct the list
-   * of field names that we want.
-   */
-  void _findFields(List constructorFields, List regularFields,
-      List excludeFields) {
-    _fields = new _FieldList(type);
-    _fields.constructorFields = constructorFields;
-    _fields.regular = regularFields;
-    // TODO(alanknight): The order of this matters. It shouldn't.
-    _fields.exclude = excludeFields;
-    _fields.figureOutFields();
-  }
 
   bool get hasVariableLengthEntries => false;
 

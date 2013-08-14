@@ -17,13 +17,13 @@ import 'utils.dart';
 /// although individual assets may still have built successfully.
 class BuildResult {
   /// All errors that occurred during the build.
-  final List errors;
+  final Set<BarbackException> errors;
 
   /// `true` if the build succeeded.
   bool get succeeded => errors.isEmpty;
 
-  BuildResult(Iterable errors)
-      : errors = errors.toList();
+  BuildResult(Iterable<BarbackException> errors)
+      : errors = errors.toSet();
 
   /// Creates a build result indicating a successful build.
   ///

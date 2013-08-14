@@ -20,6 +20,7 @@
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/port.h"
+#include "vm/reusable_handles.h"
 #include "vm/service.h"
 #include "vm/simulator.h"
 #include "vm/stack_frame.h"
@@ -720,14 +721,10 @@ void Isolate::PrintInvokedFunctions() {
   for (int i = 0; i < libraries.Length(); i++) {
     library ^= libraries.At(i);
     Class& cls = Class::Handle();
-    ClassDictionaryIterator iter(library);
+    ClassDictionaryIterator iter(library,
+                                 ClassDictionaryIterator::kIteratePrivate);
     while (iter.HasNext()) {
       cls = iter.GetNextClass();
-      AddFunctionsFromClass(cls, &invoked_functions);
-    }
-    Array& anon_classes = Array::Handle(library.raw_ptr()->anonymous_classes_);
-    for (int i = 0; i < library.raw_ptr()->num_anonymous_; i++) {
-      cls ^= anon_classes.At(i);
       AddFunctionsFromClass(cls, &invoked_functions);
     }
   }
@@ -1102,16 +1099,6 @@ void Isolate::MaterializeDeferredBoxes() {
 
 void Isolate::MaterializeDeferredObjects() {
   FillDeferredSlots(&deferred_object_refs_);
-}
-
-
-void ReusableHandleScope::ResetHandles() {
-#define CLEAR_REUSABLE_HANDLE(object)                                          \
-  if (!object##Handle().IsNull()) {                                            \
-    object##Handle().raw_ = Object::null();                                    \
-  }
-
-  REUSABLE_HANDLE_LIST(CLEAR_REUSABLE_HANDLE);
 }
 
 

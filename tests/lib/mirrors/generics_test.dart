@@ -15,6 +15,7 @@ class D extends A<int> {}
 class E<S> extends A<S> {}
 class F<R> extends A<int> {}
 class G {}
+class H<A,B,C> {}
 
 typeParameters(mirror, parameterNames) {
   Expect.listEquals(parameterNames.map((n) => new Symbol(n)).toList(),
@@ -72,15 +73,25 @@ main() {
   typeParameters(reflect(new E()).type, ['S']);
   typeParameters(reflect(new F<num>()).type, ['R']);
   typeParameters(reflect(new G()).type, []);
+  typeParameters(reflect(new H()).type, ['A', 'B', 'C']);
 
   var numMirror = reflectClass(num);
+  var dynamicMirror = currentMirrorSystem().dynamicType;
   typeArguments(reflect(new A<num>()).type, [numMirror]);
+  typeArguments(reflect(new A<dynamic>()).type, [dynamicMirror]);
+  typeArguments(reflect(new A()).type, [dynamicMirror]);
   typeArguments(reflect(new B()).type, []);
   typeArguments(reflect(new C()).type, []);
   typeArguments(reflect(new D()).type, []);
   typeArguments(reflect(new E<num>()).type, [numMirror]);
+  typeArguments(reflect(new E<dynamic>()).type, [dynamicMirror]);
+  typeArguments(reflect(new E()).type, [dynamicMirror]);
   typeArguments(reflect(new F<num>()).type, [numMirror]);
+  typeArguments(reflect(new F<dynamic>()).type, [dynamicMirror]);
+  typeArguments(reflect(new F()).type, [dynamicMirror]);
   typeArguments(reflect(new G()).type, []);
+  typeArguments(reflect(new H<dynamic, num, dynamic>()).type,
+      [dynamicMirror, numMirror, dynamicMirror]);
 
   Expect.isFalse(reflect(new A<num>()).type.isOriginalDeclaration);
   Expect.isTrue(reflect(new B()).type.isOriginalDeclaration);
@@ -89,6 +100,7 @@ main() {
   Expect.isFalse(reflect(new E<num>()).type.isOriginalDeclaration);
   Expect.isFalse(reflect(new F<num>()).type.isOriginalDeclaration);
   Expect.isTrue(reflect(new G()).type.isOriginalDeclaration);
+  Expect.isFalse(reflect(new H()).type.isOriginalDeclaration);
 
   Expect.equals(reflectClass(A),
                 reflect(new A<num>()).type.originalDeclaration);
@@ -104,6 +116,8 @@ main() {
                 reflect(new F<num>()).type.originalDeclaration);
   Expect.equals(reflectClass(G),
                 reflect(new G()).type.originalDeclaration);
+  Expect.equals(reflectClass(H),
+                reflect(new H()).type.originalDeclaration);
 
   Expect.notEquals(reflect(new A<num>()).type,
                    reflect(new A<num>()).type.originalDeclaration);
@@ -119,6 +133,8 @@ main() {
                    reflect(new F<num>()).type.originalDeclaration);
   Expect.equals(reflect(new G()).type,
                 reflect(new G()).type.originalDeclaration);
+  Expect.notEquals(reflect(new H()).type,
+                   reflect(new H()).type.originalDeclaration);
 
   // Library members are all uninstantaited generics or non-generics.
   currentMirrorSystem().libraries.values.forEach((libraryMirror) {

@@ -168,6 +168,14 @@ void AstPrinter::VisitBinaryOpNode(BinaryOpNode* node) {
 }
 
 
+void AstPrinter::VisitBinaryOpWithMask32Node(BinaryOpWithMask32Node* node) {
+  OS::Print("(%s ", node->Name());
+  node->VisitChildren(this);
+  OS::Print(" & 0x%"Px64"", node->mask32());
+  OS::Print(")");
+}
+
+
 void AstPrinter::VisitUnaryOpNode(UnaryOpNode* node) {
   VisitGenericAstNode(node);
 }

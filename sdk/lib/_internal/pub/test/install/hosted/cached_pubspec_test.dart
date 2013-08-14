@@ -4,10 +4,8 @@
 
 library pub_tests;
 
-import 'package:path/path.dart' as path;
 import 'package:scheduled_test/scheduled_test.dart';
 
-import '../../../lib/src/io.dart';
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 

@@ -3347,7 +3347,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     String superName = supertype.name.slowToString();
     String mixinName = mixinType.name.slowToString();
     ClassElement mixinApplication = new MixinApplicationElementX(
-        new SourceString("${superName}_${mixinName}"),
+        new SourceString("${superName}+${mixinName}"),
         element.getCompilationUnit(),
         compiler.getNextFreeClassId(),
         node,

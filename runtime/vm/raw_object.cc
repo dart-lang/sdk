@@ -772,14 +772,6 @@ intptr_t RawExternalTypedData::VisitExternalTypedDataPointers(
 }
 
 
-intptr_t RawDartFunction::VisitDartFunctionPointers(
-    RawDartFunction* raw_obj, ObjectPointerVisitor* visitor) {
-  // Function (defined in core library) is an abstract class.
-  UNREACHABLE();
-  return 0;
-}
-
-
 intptr_t RawStacktrace::VisitStacktracePointers(RawStacktrace* raw_obj,
                                                 ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.

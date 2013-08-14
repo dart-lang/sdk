@@ -267,6 +267,7 @@
     'resolver.cc',
     'resolver.h',
     'resolver_test.cc',
+    'reusable_handles.h',
     'runtime_entry.h',
     'runtime_entry_arm.cc',
     'runtime_entry_ia32.cc',
