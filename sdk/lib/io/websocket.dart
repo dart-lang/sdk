@@ -76,9 +76,10 @@ abstract class WebSocketTransformer
 
 
 /**
- * A client or server web socket connection. The stream exposes the
- * messages received. A text message will be of type [:String:] and a
- * binary message will be of type [:List<int>:].
+ * A two-way HTTP communication object for client or server applications.
+ *
+ * The stream exposes the messages received. A text message will be of type 
+ * [:String:] and a binary message will be of type [:List<int>:].
  */
 abstract class WebSocket implements Stream, StreamSink {
   /**
