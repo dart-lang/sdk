@@ -857,7 +857,11 @@ class CodeEmitterTask extends CompilerTask {
     return js.fun('oldIsolate', [
       js('var isolateProperties = oldIsolate.${namer.isolatePropertiesName}'),
 
-      js(r'isolateProperties.$currentScript = null'),
+      js(r'isolateProperties.$currentScript ='
+              'typeof document == "object" ?'
+              '(document.currentScript ||'
+                     'document.scripts[document.scripts.length - 1]) :'
+              'null'),
 
       js('var isolatePrototype = oldIsolate.prototype'),
       js('var str = "{\\n"'),
@@ -2974,47 +2978,24 @@ class CodeEmitterTask extends CompilerTask {
       buffer.write(N);
     }
     addComment('BEGIN invoke [main].', buffer);
-    // This code finds the currently executing script by listening to the
-    // onload event of all script tags and getting the first script which
-    // finishes. Since onload is called immediately after execution this should
-    // not substantially change execution order.
     buffer.write("""
-;(function (callback) {
-  if (typeof document === 'undefined') {
-    callback(null);
-    return;
-  }
-  if (document.currentScript) {
-    callback(document.currentScript);
-    return;
-  }
-
-  var scripts = document.scripts;
-  function onLoad() {
-    for (var i = 0; i < scripts.length; ++i) {
-      scripts[i].removeEventListener('load', onLoad, false);
+if (typeof document !== "undefined" && document.readyState !== "complete") {
+  document.addEventListener("readystatechange", function () {
+    if (document.readyState == "complete") {
+      if (typeof dartMainRunner === "function") {
+        dartMainRunner(function() { ${mainCall}; });
+      } else {
+        ${mainCall};
+      }
     }
-    callback(event.target);
-  }
-  for (var i = 0; i < scripts.length; ++i) {
-    scripts[i].addEventListener('load', onLoad, false);
-  }
-})(function(currentScript) {
-  ${namer.isolateName}.${namer.isolatePropertiesName}.\$currentScript =
-      currentScript;
-
-  if (typeof console !== 'undefined' && typeof document !== 'undefined' &&
-      document.readyState == "loading") {
-    console.warn("Dart script executed synchronously, use <script src='" +
-        currentScript.src + "' defer></scr" + "ipt> to execute after parsing " +
-        "has completed. See also http://dartbug.com/12281.");
-  }
+  }, false);
+} else {
   if (typeof dartMainRunner === "function") {
     dartMainRunner(function() { ${mainCall}; });
   } else {
     ${mainCall};
   }
-});
+}
 """);
     addComment('END invoke [main].', buffer);
   }

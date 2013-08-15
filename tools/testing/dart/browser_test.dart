@@ -25,8 +25,7 @@ String getHtmlContents(String title,
   <script type="text/javascript"
           src="/root_dart/pkg/unittest/lib/test_controller.js">
   </script>
-  <script type="$scriptType" src="$sourceScript" onerror="externalError(null)"
-          defer>
+  <script type="$scriptType" src="$sourceScript" onerror="externalError(null)">
   </script>
   <script type="text/javascript"
           src="/root_dart/pkg/browser/lib/dart.js"></script>
@@ -47,7 +46,7 @@ String getHtmlLayoutContents(String scriptType, Path sourceScript) =>
   <script type="text/javascript">
     if (navigator.webkitStartDart) navigator.webkitStartDart();
   </script>
-  <script type="$scriptType" src="$sourceScript" defer></script>
+  <script type="$scriptType" src="$sourceScript"></script>
 </body>
 </html>
 """;
