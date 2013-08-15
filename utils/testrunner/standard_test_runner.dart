@@ -41,7 +41,7 @@ Function action;
 /**
  * A special marker string used to separate group names and
  * identify non-debug output.
- */ 
+ */
 final marker = '###';
 
 class Macros {
@@ -53,7 +53,7 @@ class Macros {
   static const String testStacktrace = '<STACK>';
 }
 
-class TestRunnerConfiguration extends Configuration {
+class TestRunnerConfiguration extends SimpleConfiguration {
   get name => 'Minimal test runner configuration';
   get autoStart => false;
 
@@ -191,7 +191,7 @@ listTests() {
 
 // Support for running in isolates.
 
-class TestRunnerChildConfiguration extends Configuration {
+class TestRunnerChildConfiguration extends SimpleConfiguration {
   get name => 'Test runner child configuration';
   get autoStart => false;
 

@@ -146,13 +146,15 @@ library unittest;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:isolate';
+import 'package:stack_trace/stack_trace.dart';
+
 import 'matcher.dart';
 export 'matcher.dart';
 
-import 'package:stack_trace/stack_trace.dart';
-
 import 'src/utils.dart';
-part 'src/config.dart';
+
+part 'src/configuration.dart';
+part 'src/simple_configuration.dart';
 part 'src/test_case.dart';
 
 Configuration _config;
@@ -656,16 +658,16 @@ void _nextTestCase() {
   _runTest();
 }
 
-/**
- * Utility function that can be used to notify the test framework that an
- *  error was caught outside of this library.
- */
-void _reportTestError(String msg, trace) {
- if (_currentTestCaseIndex < testCases.length) {
-    final testCase = testCases[_currentTestCaseIndex];
-    testCase.error(msg, trace);
+/** Handle errors that happen outside the tests. */
+// TODO(vsm): figure out how to expose the stack trace here
+// Currently e.message works in dartium, but not in dartc.
+void handleExternalError(e, String message, [stack]) {
+  var msg = '$message\nCaught $e';
+
+  if (currentTestCase != null) {
+    currentTestCase.error(msg, stack);
   } else {
-    _uncaughtErrorMessage = "$msg: $trace";
+    _uncaughtErrorMessage = "$msg: $stack";
   }
 }
 

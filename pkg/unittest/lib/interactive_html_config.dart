@@ -64,7 +64,7 @@ class _Message {
 }
 
 
-class HtmlConfiguration extends Configuration {
+class HtmlConfiguration extends SimpleConfiguration {
   StreamSubscription _errorSubscription;
 
   void _installErrorHandler() {
