@@ -68,3 +68,33 @@ void requestShould404(String urlPath) {
     });
   }, "request $urlPath");
 }
+
+/// Reads lines from pub serve's stdout until it prints the build success
+/// message.
+///
+/// The schedule will not proceed until the output is found. If not found, it
+/// will eventually time out.
+void waitForBuildSuccess() {
+  nextLine() {
+    return _pubServer.nextLine().then((line) {
+      if (line.contains("successfully")) return;
+
+      // This line wasn't it, so ignore it and keep trying.
+      return nextLine();
+    });
+  }
+
+  schedule(nextLine);
+}
+
+/// Returns a [Future] that completes after pumping the event queue [times]
+/// times. By default, this should pump the event queue enough times to allow
+/// any code to run, as long as it's not waiting on some external event.
+Future _pumpEventQueue([int times=20]) {
+  if (times == 0) return new Future.value();
+  // We use a delayed future to allow runAsync events to finish. The
+  // Future.value or Future() constructors use runAsync themselves and would
+  // therefore not wait for runAsync callbacks that are scheduled after invoking
+  // this method.
+  return new Future.delayed(Duration.ZERO, () => _pumpEventQueue(times - 1));
+}

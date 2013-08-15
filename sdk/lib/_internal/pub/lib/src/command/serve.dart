@@ -9,10 +9,12 @@ import 'dart:io';
 
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
+import 'package:watcher/watcher.dart';
 
 import '../command.dart';
 import '../entrypoint.dart';
 import '../exit_codes.dart' as exit_codes;
+import '../io.dart';
 import '../log.dart' as log;
 import '../pub_package_provider.dart';
 import '../utils.dart';
@@ -26,18 +28,58 @@ class ServeCommand extends PubCommand {
   String get description => "Run a local web development server.";
   String get usage => 'pub serve';
 
+  PubPackageProvider _provider;
+  Barback _barback;
+
+  /// The completer for the top-level future returned by the command.
+  ///
+  /// Only used to keep pub running (by not completing) and to pipe fatal
+  /// errors to pub's top-level error-handling machinery.
+  final _commandCompleter = new Completer();
+
   ServeCommand() {
     commandParser.addOption('port', defaultsTo: '8080',
         help: 'The port to listen on.');
   }
 
   Future onRun() {
-    // The completer for the top-level future returned by the command. Only
-    // used to keep pub running (by not completing) and to pipe fatal errors
-    // to pub's top-level error-handling machinery.
-    var completer = new Completer();
+    var port = parsePort();
 
-    return new Future.value().then((_) {
+    return ensureLockFileIsUpToDate().then((_) {
+      return PubPackageProvider.create(entrypoint);
+    }).then((provider) {
+      _provider = provider;
+
+      initBarback();
+
+      HttpServer.bind("localhost", port).then((server) {
+        watchSources();
+
+        log.message("Serving ${entrypoint.root.name} "
+            "on http://localhost:${server.port}");
+
+        server.listen(handleRequest);
+      });
+
+      return _commandCompleter.future;
+    });
+  }
+
+  /// Parses the `--port` command-line argument and exits if it isn't valid.
+  int parsePort() {
+    try {
+      return int.parse(commandOptions['port']);
+    } on FormatException catch(_) {
+      log.error('Could not parse port "${commandOptions['port']}"');
+      this.printUsage();
+      exit(exit_codes.USAGE);
+    }
+  }
+
+  /// Installs dependencies is the lockfile is out of date with respect to the
+  /// pubspec.
+  Future ensureLockFileIsUpToDate() {
+    return new Future.sync(() {
       // The server relies on an up-to-date lockfile, so install first if
       // needed.
       if (!entrypoint.isLockFileUpToDate()) {
@@ -46,91 +88,50 @@ class ServeCommand extends PubCommand {
           log.message("Dependencies installed!");
         });
       }
-    }).then((_) {
-      return PubPackageProvider.create(entrypoint);
-    }).then((provider) {
-      var port;
-      try {
-        port = int.parse(commandOptions['port']);
-      } on FormatException catch(_) {
-        log.error('Could not parse port "${commandOptions['port']}"');
-        this.printUsage();
-        exit(exit_codes.USAGE);
+    });
+  }
+
+  void handleRequest(HttpRequest request) {
+    var id = getIdFromUri(request.uri);
+    if (id == null) {
+      notFound(request, "Path ${request.uri.path} is not valid.");
+      return;
+    }
+
+    _barback.getAssetById(id).then((asset) {
+      return validateStream(asset.read()).then((stream) {
+        log.message(
+            "$_green${request.method}$_none ${request.uri} -> $asset");
+        // TODO(rnystrom): Set content-type based on asset type.
+        return request.response.addStream(stream).then((_) {
+          request.response.close();
+        });
+      }).catchError((error) {
+        log.error("$_red${request.method}$_none "
+            "${request.uri} -> $error");
+
+        // If we couldn't read the asset, handle the error gracefully.
+        if (error is FileException) {
+          // Assume this means the asset was a file-backed source asset
+          // and we couldn't read it, so treat it like a missing asset.
+          notFound(request, error);
+          return;
+        }
+
+        // Otherwise, it's some internal error.
+        request.response.statusCode = 500;
+        request.response.reasonPhrase = "Internal Error";
+        request.response.write(error);
+        request.response.close();
+      });
+    }).catchError((error) {
+      log.error("$_red${request.method}$_none ${request.uri} -> $error");
+      if (error is! AssetNotFoundException) {
+        _commandCompleter.completeError(error);
+        return;
       }
 
-      var barback = new Barback(provider);
-
-      barback.results.listen((result) {
-        if (result.succeeded) {
-          // TODO(rnystrom): Report using growl/inotify-send where available.
-          log.message("Build completed ${_green}successfully$_none");
-        } else {
-          log.message("Build completed with "
-              "${_red}${result.errors.length}$_none errors.");
-        }
-      });
-
-      barback.errors.listen((error) {
-        log.error("${_red}Build error:\n$error$_none");
-      });
-
-      // TODO(rnystrom): Watch file system and update sources again when they
-      // are added or modified.
-
-      HttpServer.bind("localhost", port).then((server) {
-        // Add all of the visible files.
-        for (var package in provider.packages) {
-          barback.updateSources(provider.listAssets(package));
-        }
-
-        log.message("Serving ${entrypoint.root.name} "
-            "on http://localhost:${server.port}");
-
-        server.listen((request) {
-          var id = getIdFromUri(request.uri);
-          if (id == null) {
-            return notFound(request, "Path ${request.uri.path} is not valid.");
-          }
-
-          barback.getAssetById(id).then((asset) {
-            return validateStream(asset.read()).then((stream) {
-              log.message(
-                  "$_green${request.method}$_none ${request.uri} -> $asset");
-              // TODO(rnystrom): Set content-type based on asset type.
-              return request.response.addStream(stream).then((_) {
-                request.response.close();
-              });
-            }).catchError((error) {
-              log.error("$_red${request.method}$_none "
-                  "${request.uri} -> $error");
-
-              // If we couldn't read the asset, handle the error gracefully.
-              if (error is FileException) {
-                // Assume this means the asset was a file-backed source asset
-                // and we couldn't read it, so treat it like a missing asset.
-                notFound(request, error);
-                return;
-              }
-
-              // Otherwise, it's some internal error.
-              request.response.statusCode = 500;
-              request.response.reasonPhrase = "Internal Error";
-              request.response.write(error);
-              request.response.close();
-            });
-          }).catchError((error) {
-            log.error("$_red${request.method}$_none ${request.uri} -> $error");
-            if (error is! AssetNotFoundException) {
-              completer.completeError(error);
-              return;
-            }
-
-            notFound(request, error);
-          });
-        });
-      });
-
-      return completer.future;
+      notFound(request, error);
     });
   }
 
@@ -185,5 +186,92 @@ class ServeCommand extends PubCommand {
     // Otherwise, it's a path in current package's web directory.
     return new AssetId(entrypoint.root.name,
         path.url.join("web", path.url.joinAll(parts)));
+  }
+
+  /// Creates the [Barback] instance and listens to its outputs.
+  void initBarback() {
+    assert(_provider != null);
+
+    _barback = new Barback(_provider);
+
+    _barback.results.listen((result) {
+      if (result.succeeded) {
+        // TODO(rnystrom): Report using growl/inotify-send where available.
+        log.message("Build completed ${_green}successfully$_none");
+      } else {
+        log.message("Build completed with "
+            "${_red}${result.errors.length}$_none errors.");
+      }
+    });
+
+    _barback.errors.listen((error) {
+      log.error("${_red}Build error:\n$error$_none");
+    });
+  }
+
+  /// Adds all of the source assets in the provided packages to barback and
+  /// then watches the public directories for changes.
+  void watchSources() {
+    assert(_provider != null);
+    assert(_barback != null);
+
+    for (var package in _provider.packages) {
+      // Add the initial sources.
+      _barback.updateSources(listAssets(package));
+
+      // Watch the visible package directories for changes.
+      var packageDir = _provider.getPackageDir(package);
+
+      for (var name in getPublicDirectories(package)) {
+        var subdirectory = path.join(packageDir, name);
+        var watcher = new DirectoryWatcher(subdirectory);
+        watcher.events.listen((event) {
+          var relativePath = path.relative(event.path, from: packageDir);
+          var id = new AssetId(package, relativePath);
+          if (event.type == ChangeType.REMOVE) {
+            _barback.removeSources([id]);
+          } else {
+            _barback.updateSources([id]);
+          }
+        });
+      }
+    }
+  }
+
+  /// Lists all of the visible files in [package].
+  ///
+  /// This is the recursive contents of the "asset" and "lib" directories (if
+  /// present). If [package] is the entrypoint package, it also includes the
+  /// contents of "web".
+  List<AssetId> listAssets(String package) {
+    var files = <AssetId>[];
+
+    for (var dirPath in getPublicDirectories(package)) {
+      var packageDir = _provider.getPackageDir(package);
+      var dir = path.join(packageDir, dirPath);
+      if (!dirExists(dir)) continue;
+      for (var entry in listDir(dir, recursive: true)) {
+        // Ignore "packages" symlinks if there.
+        if (path.split(entry).contains("packages")) continue;
+
+        // Skip directories.
+        if (!fileExists(entry)) continue;
+
+        // AssetId paths use "/" on all platforms.
+        var relative = path.relative(entry, from: packageDir);
+        relative = path.toUri(relative).path;
+        files.add(new AssetId(package, relative));
+      }
+    }
+
+    return files;
+  }
+
+  /// Gets the names of the top-level directories in [package] whose contents
+  /// should be provided as source assets.
+  Iterable<String> getPublicDirectories(String package) {
+    var directories = ["asset", "lib"];
+    if (package == entrypoint.root.name) directories.add("web");
+    return directories;
   }
 }
