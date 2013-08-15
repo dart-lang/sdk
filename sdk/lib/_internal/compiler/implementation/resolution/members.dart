@@ -2285,14 +2285,14 @@ class ResolverVisitor extends MappingVisitor<Element> {
     bool resolvedArguments = false;
     if (node.isOperator) {
       String operatorString = node.selector.asOperator().source.stringValue;
-      if (operatorString == 'is') {
+      if (identical(operatorString, 'is')) {
         DartType type =
             resolveTypeExpression(node.typeAnnotationFromIsCheckOrCast);
         if (type != null) {
           compiler.enqueuer.resolution.registerIsCheck(type, mapping);
         }
         resolvedArguments = true;
-      } else if (operatorString == 'as') {
+      } else if (identical(operatorString, 'as')) {
         DartType type = resolveTypeExpression(node.arguments.head);
         if (type != null) {
           compiler.enqueuer.resolution.registerAsCheck(type, mapping);
@@ -2582,10 +2582,6 @@ class ResolverVisitor extends MappingVisitor<Element> {
   }
 
   visitThrow(Throw node) {
-    // We don't know ahead of time whether we will need the throw in a
-    // statement context or an expression context, so we register both
-    // here, even though we may not need ThrowExpression.
-    compiler.backend.registerWrapException(mapping);
     compiler.backend.registerThrowExpression(mapping);
     visit(node.expression);
   }

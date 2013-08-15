@@ -34,21 +34,18 @@ class SsaOptimizerTask extends CompilerTask {
     JavaScriptItemCompilationContext context = work.compilationContext;
     measure(() {
       List<OptimizationPhase> phases = <OptimizationPhase>[
-          // Run trivial constant folding first to optimize
+          // Run trivial instruction simplification first to optimize
           // some patterns useful for type conversion.
-          new SsaConstantFolder(constantSystem, backend, work),
+          new SsaInstructionSimplifier(constantSystem, backend, work),
           new SsaTypeConversionInserter(compiler),
           new SsaNonSpeculativeTypePropagator(compiler),
-          new SsaConstantFolder(constantSystem, backend, work),
-          // The constant folder affects the types of instructions, so
-          // we run the type propagator again. Note that this would
-          // not be necessary if types were directly stored on
-          // instructions.
-          new SsaNonSpeculativeTypePropagator(compiler),
+          // After type propagation, more instructions can be
+          // simplified.
+          new SsaInstructionSimplifier(constantSystem, backend, work),
           new SsaCheckInserter(backend, work, context.boundsChecked),
           new SsaRedundantPhiEliminator(),
           new SsaDeadPhiEliminator(),
-          new SsaConstantFolder(constantSystem, backend, work),
+          new SsaInstructionSimplifier(constantSystem, backend, work),
           new SsaNonSpeculativeTypePropagator(compiler),
           // Run a dead code eliminator before LICM because dead
           // interceptors are often in the way of LICM'able instructions.
@@ -57,8 +54,8 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaCodeMotion(),
           new SsaValueRangeAnalyzer(compiler, constantSystem, work),
           // Previous optimizations may have generated new
-          // opportunities for constant folding.
-          new SsaConstantFolder(constantSystem, backend, work),
+          // opportunities for instruction simplification.
+          new SsaInstructionSimplifier(constantSystem, backend, work),
           new SsaSimplifyInterceptors(compiler, constantSystem, work),
           new SsaDeadCodeEliminator()];
       runPhases(graph, phases);
@@ -122,15 +119,16 @@ class SsaOptimizerTask extends CompilerTask {
  * If both inputs to known operations are available execute the operation at
  * compile-time.
  */
-class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
-  final String name = "SsaConstantFolder";
+class SsaInstructionSimplifier extends HBaseVisitor
+    implements OptimizationPhase {
+  final String name = "SsaInstructionSimplifier";
   final JavaScriptBackend backend;
   final CodegenWorkItem work;
   final ConstantSystem constantSystem;
   HGraph graph;
   Compiler get compiler => backend.compiler;
 
-  SsaConstantFolder(this.constantSystem, this.backend, this.work);
+  SsaInstructionSimplifier(this.constantSystem, this.backend, this.work);
 
   void visitGraph(HGraph visitee) {
     graph = visitee;

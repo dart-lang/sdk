@@ -129,30 +129,69 @@ abstract class Backend {
   bool classNeedsRti(ClassElement cls);
   bool methodNeedsRti(FunctionElement function);
 
-  // The following methods are hooks for the backend to register its
-  // helper methods.
+  /// Called during resolution to notify to the backend that a class is
+  /// being instantiated.
   void registerInstantiatedClass(ClassElement cls,
                                  Enqueuer enqueuer,
                                  TreeElements elements) {}
+
+  /// Called during resolution to notify to the backend that the
+  /// program uses string interpolation.
   void registerStringInterpolation(TreeElements elements) {}
+
+  /// Called during resolution to notify to the backend that the
+  /// program has a catch statement.
   void registerCatchStatement(Enqueuer enqueuer,
                               TreeElements elements) {}
-  void registerWrapException(TreeElements elements) {}
+
+  /// Called during resolution to notify to the backend that the
+  /// program explicitly throws an exception.
   void registerThrowExpression(TreeElements elements) {}
+
+  /// Called during resolution to notify to the backend that the
+  /// program has a global variable with a lazy initializer.
   void registerLazyField(TreeElements elements) {}
+
+  /// Called during resolution to notify to the backend that the
+  /// program uses a type variable as an expression.
   void registerTypeVariableExpression(TreeElements elements) {}
+
+  /// Called during resolution to notify to the backend that the
+  /// program uses a type literal.
   void registerTypeLiteral(Element element, TreeElements elements) {}
+
+  /// Called during resolution to notify to the backend that the
+  /// program has a catch statement with a stack trace.
   void registerStackTraceInCatch(TreeElements elements) {}
+
+  /// Register an is check to the backend.
   void registerIsCheck(DartType type,
                        Enqueuer enqueuer,
                        TreeElements elements) {}
+
+  /// Register an as check to the backend.
   void registerAsCheck(DartType type, TreeElements elements) {}
+
+  /// Register that the application may throw a [NoSuchMethodError].
   void registerThrowNoSuchMethod(TreeElements elements) {}
+
+  /// Register that the application may throw a [RuntimeError].
   void registerThrowRuntimeError(TreeElements elements) {}
+
+  /// Register that the application may throw an
+  /// [AbstractClassInstantiationError].
   void registerAbstractClassInstantiation(TreeElements elements) {}
+
+  /// Register that the application may throw a [FallThroughError].
   void registerFallThroughError(TreeElements elements) {}
+
+  /// Register that a super call will end up calling
+  /// [: super.noSuchMethod :].
   void registerSuperNoSuchMethod(TreeElements elements) {}
+
+  /// Register that the application creates a constant map.
   void registerConstantMap(TreeElements elements) {}
+
   /**
    * Call this to register that an instantiated generic class has a call
    * method.

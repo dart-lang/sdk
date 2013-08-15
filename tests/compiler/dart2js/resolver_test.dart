@@ -76,6 +76,7 @@ main() {
   testIncrementsAndDecrements();
   testOverrideHashCodeCheck();
   testSupertypeOrder();
+  testConstructorArgumentMismatch();
 }
 
 testSupertypeOrder() {
@@ -573,6 +574,20 @@ testNewExpression() {
   Element element = elements[expression.send];
   Expect.equals(ElementKind.GENERATIVE_CONSTRUCTOR, element.kind);
   Expect.isTrue(element.isSynthesized);
+}
+
+testConstructorArgumentMismatch() {
+  String script = "class A {} foo() { print(new A(42)); }";
+  MockCompiler compiler = new MockCompiler();
+  compiler.parseScript(script);
+  FunctionElement fooElement = compiler.mainApp.find(buildSourceString('foo'));
+  Expect.isNotNull(fooElement);
+  fooElement.parseNode(compiler);
+  compiler.resolver.resolve(fooElement);
+
+  compareWarningKinds(
+      script, [MessageKind.INVALID_ARGUMENTS.warning], compiler.warnings);
+  compareWarningKinds(script, [], compiler.errors);
 }
 
 testTopLevelFields() {

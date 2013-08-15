@@ -772,11 +772,11 @@ class JavaScriptBackend extends Backend {
     ensure(jsUnknownJavaScriptObjectClass);
   }
 
-  void registerWrapException(TreeElements elements) {
-    enqueueInResolution(getWrapExceptionHelper(), elements);
-  }
-
   void registerThrowExpression(TreeElements elements) {
+    // We don't know ahead of time whether we will need the throw in a
+    // statement context or an expression context, so we register both
+    // here, even though we may not need the throwExpression helper.
+    enqueueInResolution(getWrapExceptionHelper(), elements);
     enqueueInResolution(getThrowExpressionHelper(), elements);
   }
 
