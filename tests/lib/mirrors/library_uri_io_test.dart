@@ -24,10 +24,8 @@ main() {
   var mirrors = currentMirrorSystem();
   test("Test current library uri", () {
     String appendSlash(String path) => path.endsWith('/') ? path : '$path/';
-    Uri cwd = new Uri(
-        scheme: 'file',
-        path: appendSlash(new File('.').fullPathSync()));
-    Uri uri = cwd.resolve(Platform.script);
+    Uri cwd = new Uri.file(appendSlash(new File('.').fullPathSync()));
+    Uri uri = cwd.resolveUri(new Uri.file(Platform.script));
     testLibraryUri(new Class(), uri);
   });
 }

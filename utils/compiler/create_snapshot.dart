@@ -22,8 +22,8 @@ Future<String> getSnapshotGenerationFile(var options, var args, var rootPath) {
   return getVersion(options, rootPath).then((version) {
     var snapshotGenerationText =
 """
-import '${dart2js.toFilePath()}' as dart2jsMain;
-import '${dartdoc.toFilePath()}' as dartdocMain;
+import '${dart2js.toFilePath(windows: false)}' as dart2jsMain;
+import '${dartdoc.toFilePath(windows: false)}' as dartdocMain;
 import 'dart:io';
 
 void main() {
