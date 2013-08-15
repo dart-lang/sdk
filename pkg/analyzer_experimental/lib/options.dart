@@ -154,8 +154,8 @@ class CommandLineOptions {
 
   static String _getVersion() {
     try {
-      Path versionPath = join(dirname(Platform.script), '..', 'version');;
-      File versionFile = new File.fromPath(versionPath);
+      String versionPath = join(dirname(Platform.script), '..', 'version');;
+      File versionFile = new File(versionPath);
       return versionFile.readAsStringSync().trim();
     } catch (_) {
       // This happens when the script is not running in the context of an SDK.

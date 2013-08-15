@@ -11,7 +11,6 @@ import 'package:path/path.dart' as pathos;
 import 'src/error.dart';
 import 'src/generated/ast.dart';
 import 'src/generated/error.dart';
-import 'src/generated/java_io.dart';
 import 'src/generated/parser.dart';
 import 'src/generated/scanner.dart';
 import 'src/generated/source_io.dart';
@@ -49,13 +48,7 @@ CompilationUnit parseDartFile(String path) {
 
 /// Converts an AST node representing a string literal into a [String].
 String stringLiteralToString(StringLiteral literal) {
-  if (literal is AdjacentStrings) {
-    return literal.strings.map(stringLiteralToString).join();
-  } else if (literal is SimpleStringLiteral) {
-    return literal.value;
-  } else {
-    throw new ArgumentError("Can't convert $literal to a Dart string.");
-  }
+  return literal.stringValue;
 }
 
 /// A simple error listener that collects errors into an [AnalysisErrorGroup].
