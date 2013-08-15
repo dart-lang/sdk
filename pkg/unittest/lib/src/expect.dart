@@ -5,15 +5,12 @@
 part of matcher;
 
 /** The objects thrown by the default failure handler. */
-class TestFailure {
-  String _message;
+class TestFailure extends Error{
+  final String message;
 
-  get message => _message;
-  set message(String value) => _message = value;
+  TestFailure(this.message);
 
-  TestFailure(String message) : _message = message;
-
-  String toString() => _message;
+  String toString() => message;
 }
 
 /**
@@ -30,7 +27,7 @@ void addStateInfo(Map matchState, Map values) {
 /**
  * Some matchers, like those for Futures and exception testing,
  * can fail in asynchronous sections, and throw exceptions.
- * A user of this library will typically want to catch and handle 
+ * A user of this library will typically want to catch and handle
  * such exceptions. The [wrapAsync] property is a function that
  * can wrap callbacks used by these Matchers so that they can be
  * used safely. For example, the unittest library will set this
