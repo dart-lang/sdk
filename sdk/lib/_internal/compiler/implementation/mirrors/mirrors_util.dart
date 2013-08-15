@@ -105,7 +105,8 @@ LibraryMirror findLibrary(MemberMirror member) {
   if (owner is LibraryMirror) {
     return owner;
   } else if (owner is TypeMirror) {
-    return owner.library;
+    TypeMirror mirror = owner;
+    return mirror.library;
   }
   throw new Exception('Unexpected owner: ${owner}');
 }
@@ -250,16 +251,19 @@ DeclarationMirror lookupQualifiedInScope(DeclarationMirror declaration,
 DeclarationMirror _lookupLocal(Mirror mirror, String id) {
   DeclarationMirror result;
   if (mirror is ContainerMirror) {
+    ContainerMirror containerMirror = mirror;
     // Try member lookup.
-    result = mirror.members[id];
+    result = containerMirror.members[id];
   }
   if (result != null) return result;
   if (mirror is ClassMirror) {
+    ClassMirror classMirror = mirror;
     // Try type variables.
-    result = mirror.typeVariables.firstWhere(
+    result = classMirror.typeVariables.firstWhere(
         (TypeVariableMirror v) => v.simpleName == id, orElse: () => null);
   } else if (mirror is MethodMirror) {
-    result = mirror.parameters.firstWhere(
+    MethodMirror methodMirror = mirror;
+    result = methodMirror.parameters.firstWhere(
         (ParameterMirror p) => p.simpleName == id, orElse: () => null);
   }
   return result;
