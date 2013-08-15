@@ -469,7 +469,7 @@ Map<String, Variable> _variables(Map<String, VariableMirror> mirrorMap) {
 MethodGroup _methods(Map<String, MethodMirror> mirrorMap) {
   var group = new MethodGroup();
   mirrorMap.forEach((String mirrorName, MethodMirror mirror) {
-    if (_includePrivate || !_isHidden(mirror)) {
+    if (_includePrivate || !mirror.isPrivate) {
       group.addMethod(mirror);
     }
   });
@@ -492,11 +492,8 @@ Class _class(ClassMirror mirror) {
         _methods(mirror.methods), _annotations(mirror), _generics(mirror),
         mirror.qualifiedName, _isHidden(mirror), mirror.owner.qualifiedName,
         mirror.isAbstract);
-    if (superclass != null)
-      clazz.addInherited(superclass);
-    interfaces.forEach((interface) {
-      clazz.addInherited(interface);
-    });
+    if (superclass != null) clazz.addInherited(superclass);
+    interfaces.forEach((interface) => clazz.addInherited(interface));
     entityMap[mirror.qualifiedName] = clazz;
   }
   return clazz;
@@ -711,9 +708,7 @@ class Class extends Indexable {
    */
   void addInherited(Class superclass) {
     inheritedVariables.addAll(superclass.inheritedVariables);
-    if (_isVisible(superclass)) {
-      inheritedVariables.addAll(superclass.variables);
-    }
+    inheritedVariables.addAll(superclass.variables);
     inheritedMethods.addInherited(superclass);
   }
 
@@ -1025,15 +1020,13 @@ class MethodGroup {
 
   void addInherited(Class parent) {
     setters.addAll(parent.inheritedMethods.setters);
+    setters.addAll(parent.methods.setters);
     getters.addAll(parent.inheritedMethods.getters);
+    getters.addAll(parent.methods.getters);
     operators.addAll(parent.inheritedMethods.operators);
+    operators.addAll(parent.methods.operators);
     regularMethods.addAll(parent.inheritedMethods.regularMethods);
-    if (_isVisible(parent)) {
-      setters.addAll(parent.methods.setters);
-      getters.addAll(parent.methods.getters);
-      operators.addAll(parent.methods.operators);
-      regularMethods.addAll(parent.methods.regularMethods);
-    }
+    regularMethods.addAll(parent.methods.regularMethods);
   }
 
   Map toMap() => {
