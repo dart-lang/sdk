@@ -303,5 +303,9 @@ super_call4_test: Fail, OK # hardcoded names.
 [ $compiler == dart2js || $compiler == dart2dart]
 null_test/03: Fail    # Issue 12445.
 
-[$ compiler == dart2js]
+[ $compiler == dart2js ]
 null_test/none: Fail  # Issue 12482
+
+[ $compiler == dartanalyzer ]
+null_test/02: Fail  # Issue 12484
+null_test/03: Fail  # Issue 12484

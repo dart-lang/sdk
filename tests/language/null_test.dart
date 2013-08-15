@@ -37,7 +37,7 @@ class Generic2<T, S> {
 // at compile time. If the result is computed at compile time, the dynamic code
 // will not be tested.
 confuse(x) {
-  try { throw [x]; } catch (e) { return e[0]; }
+  try { throw [x]; } on dynamic catch (e) { return e[0]; }
   return 42;
 }
 
@@ -189,7 +189,7 @@ void test() {
   Expect.equals("null", toString());
   Expect.equals("null", Function.apply(toString, []));
 
-  Expect.throws(() => null.notDeclared());
+  Expect.throws(() => obj.notDeclared());
   var noSuchMethod = null.noSuchMethod;
   // Assing to "var" to prevent warning.
   var capture = new CaptureInvocationMirror();
