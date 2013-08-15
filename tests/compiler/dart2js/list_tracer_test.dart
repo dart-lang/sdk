@@ -154,14 +154,14 @@ main() {
   listOnlySetWithConstraint[0]++;
 
   listEscapingInSetterValue[0] = anInt;
-  new A().callSetter = listEscapingInSetterValue;
+  new A(null).callSetter = listEscapingInSetterValue;
 
   listEscapingInIndex[0] = anInt;
-  new A()[listEscapingInIndex];
+  new A(null)[listEscapingInIndex];
 
-  new A()[listEscapingInIndexSet] = 42;
+  new A(null)[listEscapingInIndexSet] = 42;
 
-  new A()[listEscapingTwiceInIndexSet] = listEscapingTwiceInIndexSet;
+  new A(null)[listEscapingTwiceInIndexSet] = listEscapingTwiceInIndexSet;
 
   listPassedAsOptionalParameter[0] = anInt;
   takeOptional(listPassedAsOptionalParameter);

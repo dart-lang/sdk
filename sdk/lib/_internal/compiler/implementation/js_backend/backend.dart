@@ -358,8 +358,6 @@ class JavaScriptBackend extends Backend {
   }
 
   bool canBeUsedForGlobalOptimizations(Element element) {
-    // TODO(ngeoffray): Re-enable after investigating bug.
-    return true;
     if (element.isParameter() || element.isFieldParameter()) {
       element = element.enclosingElement;
     }
