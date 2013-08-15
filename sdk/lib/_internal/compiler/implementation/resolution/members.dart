@@ -1467,6 +1467,7 @@ class TypeResolver {
       if (malformedIsError) {
         visitor.error(node, messageKind.error, messageArguments);
       } else {
+        compiler.backend.registerThrowRuntimeError(visitor.mapping);
         visitor.warning(node, messageKind.warning, messageArguments);
       }
       var erroneousElement = new ErroneousElementX(
