@@ -15,7 +15,8 @@ import '../tree/tree.dart';
 import '../util/util.dart' show Link;
 import 'types.dart'
     show TypesInferrer, FlatTypeMask, TypeMask, ContainerTypeMask,
-         ElementTypeMask;
+         ElementTypeMask, TypeSystem, MinimalInferrerEngine;
+import 'inferrer_visitor.dart';
 
 // BUG(8802): There's a bug in the analyzer that makes the re-export
 // of Selector from dart2jslib.dart fail. For now, we work around that
@@ -23,7 +24,105 @@ import 'types.dart'
 import '../dart2jslib.dart' hide Selector, TypedSelector;
 import '../universe/universe.dart' show Selector, SideEffects, TypedSelector;
 
-part 'inferrer_visitor.dart';
+/**
+ * An implementation of [TypeSystem] for [TypeMask].
+ */
+class TypeMaskSystem implements TypeSystem<TypeMask> {
+  final Compiler compiler;
+  TypeMaskSystem(this.compiler);
+
+  TypeMask narrowType(TypeMask type,
+                      DartType annotation,
+                      {bool isNullable: true}) {
+    if (annotation.treatAsDynamic) return type;
+    if (annotation.isVoid) return nullType;
+    if (annotation.element == compiler.objectClass) return type;
+    TypeMask otherType;
+    if (annotation.kind == TypeKind.TYPEDEF
+        || annotation.kind == TypeKind.FUNCTION) {
+      otherType = functionType;
+    } else if (annotation.kind == TypeKind.TYPE_VARIABLE) {
+      // TODO(ngeoffray): Narrow to bound.
+      return type;
+    } else {
+      assert(annotation.kind == TypeKind.INTERFACE);
+      otherType = new TypeMask.nonNullSubtype(annotation);
+    }
+    if (isNullable) otherType = otherType.nullable();
+    if (type == null) return otherType;
+    return type.intersection(otherType, compiler);
+  }
+
+  TypeMask computeLUB(TypeMask firstType, TypeMask secondType) {
+    if (firstType == null) {
+      return secondType;
+    } else if (secondType == dynamicType || firstType == dynamicType) {
+      return dynamicType;
+    } else if (firstType == secondType) {
+      return firstType;
+    } else {
+      TypeMask union = firstType.union(secondType, compiler);
+      // TODO(kasperl): If the union isn't nullable it seems wasteful
+      // to use dynamic. Fix that.
+      return union.containsAll(compiler) ? dynamicType : union;
+    }
+  }
+
+  TypeMask allocateDiamondPhi(TypeMask firstType, TypeMask secondType) {
+    return computeLUB(firstType, secondType);
+  }
+
+  TypeMask get dynamicType => compiler.typesTask.dynamicType;
+  TypeMask get nullType => compiler.typesTask.nullType;
+  TypeMask get intType => compiler.typesTask.intType;
+  TypeMask get doubleType => compiler.typesTask.doubleType;
+  TypeMask get numType => compiler.typesTask.numType;
+  TypeMask get boolType => compiler.typesTask.boolType;
+  TypeMask get functionType => compiler.typesTask.functionType;
+  TypeMask get listType => compiler.typesTask.listType;
+  TypeMask get constListType => compiler.typesTask.constListType;
+  TypeMask get fixedListType => compiler.typesTask.fixedListType;
+  TypeMask get growableListType => compiler.typesTask.growableListType;
+  TypeMask get mapType => compiler.typesTask.mapType;
+  TypeMask get constMapType => compiler.typesTask.constMapType;
+  TypeMask get stringType => compiler.typesTask.stringType;
+  TypeMask get typeType => compiler.typesTask.typeType;
+
+  TypeMask nonNullSubtype(DartType type) => new TypeMask.nonNullSubtype(type);
+  TypeMask nonNullSubclass(DartType type) => new TypeMask.nonNullSubclass(type);
+  TypeMask nonNullExact(DartType type) => new TypeMask.nonNullExact(type);
+  TypeMask nonNullEmpty() => new TypeMask.nonNullEmpty();
+
+  TypeMask nullable(TypeMask type) {
+    return type.nullable();
+  }
+
+  TypeMask allocateContainer(TypeMask type,
+                             Node node,
+                             Element enclosing,
+                             [TypeMask elementType, int length]) {
+    ContainerTypeMask mask = new ContainerTypeMask(type, node, enclosing);
+    mask.elementType = elementType;
+    mask.length = length;
+    return mask;
+  }
+
+  Selector newTypedSelector(TypeMask receiver, Selector selector) {
+    return new TypedSelector(receiver, selector);
+  }
+
+  TypeMask addPhiInput(Element element, TypeMask phiType, TypeMask newType) {
+    return computeLUB(phiType, newType);
+  }
+
+  TypeMask allocatePhi(Node node, Element element, TypeMask inputType) {
+    return inputType;
+  }
+
+  TypeMask simplifyPhi(Node node, Element element, TypeMask phiType) {
+    return phiType;
+  }
+}
 
 /**
  * A work queue that ensures there are no duplicates, and adds and
@@ -223,7 +322,7 @@ class SimpleTypesInferrer extends TypesInferrer {
  * type information about visited nodes, as well as to request type
  * information of elements.
  */
-abstract class InferrerEngine<T> {
+abstract class InferrerEngine<T> implements MinimalInferrerEngine<T> {
   final Compiler compiler;
   final TypeSystem<T> types;
   final Map<Node, T> concreteTypes = new Map<Node, T>();
@@ -1472,49 +1571,8 @@ class InternalSimpleTypesInferrer
   }
 }
 
-class CallSite {
-  final Selector selector;
-  final ArgumentsTypes arguments;
-  CallSite(this.selector, this.arguments) {
-    assert(selector != null);
-  }
-}
-
-/**
- * Placeholder for inferred arguments types on sends.
- */
-class ArgumentsTypes<T> {
-  final List<T> positional;
-  final Map<SourceString, T> named;
-  ArgumentsTypes(this.positional, named)
-    : this.named = (named == null) ? new Map<SourceString, T>() : named;
-
-  int get length => positional.length + named.length;
-
-  String toString() => "{ positional = $positional, named = $named }";
-
-  bool operator==(other) {
-    if (positional.length != other.positional.length) return false;
-    if (named.length != other.named.length) return false;
-    for (int i = 0; i < positional.length; i++) {
-      if (positional[i] != other.positional[i]) return false;
-    }
-    named.forEach((name, type) {
-      if (other.named[name] != type) return false;
-    });
-    return true;
-  }
-
-  int get hashCode => throw new UnsupportedError('ArgumentsTypes.hashCode');
-
-  bool hasNoArguments() => positional.isEmpty && named.isEmpty;
-
-  bool hasOnePositionalArgumentWithType(T type) {
-    return named.isEmpty && positional.length == 1 && positional[0] == type;
-  }
-}
-
-class SimpleTypeInferrerVisitor<T> extends InferrerVisitor<T> {
+class SimpleTypeInferrerVisitor<T>
+    extends InferrerVisitor<T, InferrerEngine<T>> {
   T returnType;
   bool visitingInitializers = false;
   bool isConstructorRedirect = false;

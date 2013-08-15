@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import '../../../sdk/lib/_internal/compiler/implementation/scanner/scannerlib.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/types/types.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/types/concrete_types_inferrer.dart';
 
 import "parser_helper.dart";
 import "compiler_helper.dart";

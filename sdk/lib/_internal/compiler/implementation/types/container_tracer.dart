@@ -12,6 +12,7 @@ import '../util/util.dart' show Link;
 import 'simple_types_inferrer.dart'
     show InferrerEngine, InferrerVisitor, LocalsHandler;
 import 'types.dart';
+import 'inferrer_visitor.dart';
 
 /**
  * A set of selector names that [List] implements, that we know do not
@@ -179,7 +180,7 @@ class TracerForConcreteContainer {
 
   /**
    * A set of selectors that both use and update the list, for example
-   * [: list[0]++; :] or [: list[0] |= 42; :]. 
+   * [: list[0]++; :] or [: list[0] |= 42; :].
    */
   final Set<Selector> constraints = new Set<Selector>();
 
@@ -326,7 +327,7 @@ class TracerForConcreteContainer {
       return analyzedNode == resolved;
     } else {
       assert(resolved is Element);
-      return escapingElements.contains(resolved); 
+      return escapingElements.contains(resolved);
     }
   }
 
@@ -335,7 +336,8 @@ class TracerForConcreteContainer {
   }
 }
 
-class ContainerTracerVisitor extends InferrerVisitor<TypeMask> {
+class ContainerTracerVisitor
+    extends InferrerVisitor<TypeMask, InferrerEngine<TypeMask>> {
   final Element analyzedElement;
   final TracerForConcreteContainer tracer;
   final bool visitingClosure;
@@ -746,7 +748,7 @@ class ContainerTracerVisitor extends InferrerVisitor<TypeMask> {
     if (node.expression == null) {
       return types.nullType;
     }
-    
+
     TypeMask type;
     bool isEscaping = visitAndCatchEscaping(() {
       type = visit(node.expression);
@@ -761,7 +763,7 @@ class ContainerTracerVisitor extends InferrerVisitor<TypeMask> {
     }
     return type;
   }
-  
+
   TypeMask visitForIn(ForIn node) {
     visit(node.expression);
     Selector iteratorSelector = elements.getIteratorSelector(node);
