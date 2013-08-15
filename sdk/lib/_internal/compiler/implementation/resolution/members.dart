@@ -1708,8 +1708,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
       // TODO(karlklose): clean this up (dartbug.com/8870).
       inCheckContext = compiler.enableTypeAssertions &&
           !element.isTypedef() &&
-          (element.enclosingElement == null ||
-           !element.enclosingElement.isTypedef()),
+          !element.enclosingElement.isTypedef(),
       inCatchBlock = false,
       super(compiler, mapping);
 
