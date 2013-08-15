@@ -981,9 +981,6 @@ class InternalSimpleTypesInferrer
    */
   bool recordReturnType(Element analyzedElement, TypeMask returnType) {
     if (isNativeElement(analyzedElement)) return false;
-    if (!compiler.backend.canBeUsedForGlobalOptimizations(analyzedElement)) {
-      return false;
-    }
     assert(analyzedElement.implementation == analyzedElement);
     TypeMask existing = typeInformationOf(analyzedElement).returnType;
     if (optimismState == OPTIMISTIC

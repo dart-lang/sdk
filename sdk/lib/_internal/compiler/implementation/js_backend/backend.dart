@@ -903,14 +903,25 @@ class JavaScriptBackend extends Backend {
 
   void registerThrowNoSuchMethod(TreeElements elements) {
     enqueueInResolution(getThrowNoSuchMethod(), elements);
+    // Also register the types of the arguments passed to this method.
+    compiler.enqueuer.resolution.registerInstantiatedClass(
+        compiler.listClass, elements);
+    compiler.enqueuer.resolution.registerInstantiatedClass(
+        compiler.stringClass, elements);
   }
 
   void registerThrowRuntimeError(TreeElements elements) {
     enqueueInResolution(getThrowRuntimeError(), elements);
+    // Also register the types of the arguments passed to this method.
+    compiler.enqueuer.resolution.registerInstantiatedClass(
+        compiler.stringClass, elements);
   }
 
   void registerAbstractClassInstantiation(TreeElements elements) {
     enqueueInResolution(getThrowAbstractClassInstantiationError(), elements);
+    // Also register the types of the arguments passed to this method.
+    compiler.enqueuer.resolution.registerInstantiatedClass(
+        compiler.stringClass, elements);
   }
 
   void registerFallThroughError(TreeElements elements) {
