@@ -227,7 +227,7 @@ abstract class Backend {
   /// can apply to this element. One category of elements that do not
   /// apply is runtime helpers that the backend calls, but the
   /// optimizations don't see those calls.
-  bool canBeUsedForGlobalOptimizations(Element element);
+  bool canBeUsedForGlobalOptimizations(Element element) => true;
 }
 
 /**
