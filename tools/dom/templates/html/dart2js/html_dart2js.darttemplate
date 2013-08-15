@@ -27,8 +27,12 @@ import 'dart:svg' as svg;
 import 'dart:web_audio' as web_audio;
 import 'dart:web_gl' as gl;
 import 'dart:web_sql';
-import 'dart:_js_helper' show convertDartClosureToJS, Creates, JavaScriptIndexingBehavior, JSName, Null, Returns;
-import 'dart:_interceptors' show Interceptor, JSExtendableArray;
+import 'dart:_js_helper' show
+    convertDartClosureToJS, Creates, JavaScriptIndexingBehavior,
+    JSName, Null, Returns,
+    findDispatchTagForInterceptorClass, setNativeSubclassDispatchRecord;
+import 'dart:_interceptors' show
+    Interceptor, JSExtendableArray, findInterceptorConstructorForType;
 import 'dart:_isolate_helper' show IsolateNatives;
 import 'dart:_foreign_helper' show JS;
 
@@ -57,6 +61,7 @@ part '$AUXILIARY_DIR/Serialization.dart';
 part '$AUXILIARY_DIR/WrappedEvent.dart';
 part '$AUXILIARY_DIR/WrappedList.dart';
 part '$AUXILIARY_DIR/dart2js_Conversions.dart';
+part '$AUXILIARY_DIR/dart2js_CustomElementSupport.dart';
 part '$AUXILIARY_DIR/dart2js_DOMImplementation.dart';
 part '$AUXILIARY_DIR/dart2js_KeyEvent.dart';
 part '$AUXILIARY_DIR/dart2js_LocationWrapper.dart';

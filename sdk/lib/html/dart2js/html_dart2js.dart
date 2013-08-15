@@ -18,8 +18,6 @@ import 'dart:svg' as svg;
 import 'dart:web_audio' as web_audio;
 import 'dart:web_gl' as gl;
 import 'dart:web_sql';
-import 'dart:_js_helper' show convertDartClosureToJS, Creates, JavaScriptIndexingBehavior, JSName, Null, Returns;
-import 'dart:_interceptors' show Interceptor, JSExtendableArray;
 import 'dart:_isolate_helper' show IsolateNatives;
 import 'dart:_foreign_helper' show JS;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32,6 +30,12 @@ import 'dart:_foreign_helper' show JS;
 
 
 // Not actually used, but imported since dart:html can generate these objects.
+import 'dart:_js_helper' show
+    convertDartClosureToJS, Creates, JavaScriptIndexingBehavior,
+    JSName, Null, Returns,
+    findDispatchTagForInterceptorClass, setNativeSubclassDispatchRecord;
+import 'dart:_interceptors' show
+    Interceptor, JSExtendableArray, findInterceptorConstructorForType;
 
 
 
@@ -12625,6 +12629,10 @@ class HtmlDocument extends Document native "HTMLDocument" {
   @Experimental()
   String get visibilityState => $dom_webkitVisibilityState;
 
+  @Experimental
+  void register(String tag, Type customElementClass) {
+    _registerCustomElement(JS('', 'window'), this, tag, customElementClass);
+  }
 
   @Creates('Null')  // Set from Dart code; does not instantiate a native type.
   // Note: used to polyfill <template>
@@ -30805,6 +30813,73 @@ EventTarget _convertDartToNative_EventTarget(e) {
   } else {
     return e;
   }
+}
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+_callOnCreated(receiver) {
+  return receiver.onCreated();
+}
+
+_makeCreatedCallbackMethod() {
+  return JS('',
+      '''((function(invokeCallback) {
+             return function() {
+               return invokeCallback(this);
+             };
+          })(#))''',
+      convertDartClosureToJS(_callOnCreated, 1));
+}
+
+void _registerCustomElement(context, document, String tag, Type type) {
+  // Function follows the same pattern as the following JavaScript code for
+  // registering a custom element.
+  //
+  //    var proto = Object.create(HTMLElement.prototype, {
+  //        createdCallback: {
+  //          value: function() {
+  //            window.console.log('here');
+  //          }
+  //        }
+  //    });
+  //    document.register('x-foo', { prototype: proto });
+  //    ...
+  //    var e = document.createElement('x-foo');
+
+  var interceptorClass = findInterceptorConstructorForType(type);
+  if (interceptorClass == null) {
+    throw new ArgumentError(type);
+  }
+
+  String baseClassName = findDispatchTagForInterceptorClass(interceptorClass);
+  if (baseClassName == null) {
+    throw new ArgumentError(type);
+  }
+  if (baseClassName == 'Element') baseClassName = 'HTMLElement';
+
+  var baseConstructor = JS('=Object', '#[#]', context, baseClassName);
+  if (JS('bool', "typeof(#) != 'function'", baseConstructor)) {
+    throw new ArgumentError(type);
+  }
+
+  var properties = JS('=Object', '{}');
+
+  var jsCreatedCallback = _makeCreatedCallbackMethod();
+
+  JS('void', '#.createdCallback = #', properties,
+      JS('=Object', '{value: #}', jsCreatedCallback));
+
+  var baseProto = JS('=Object', '#.prototype', baseConstructor);
+  var proto = JS('=Object', 'Object.create(#, #)', baseProto, properties);
+
+  var interceptor = JS('=Object', '#.prototype', interceptorClass);
+
+  setNativeSubclassDispatchRecord(proto, interceptor);
+
+  JS('void', '#.register(#, #)',
+      document, tag, JS('', '{prototype: #}', proto));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

@@ -13,6 +13,7 @@ import 'dart:indexed_db';
 import 'dart:isolate';
 import 'dart:json' as json;
 import 'dart:math';
+import 'dart:mirrors';
 import 'dart:nativewrappers';
 import 'dart:typed_data';
 import 'dart:web_gl' as gl;
@@ -27,6 +28,8 @@ import 'dart:web_audio' as web_audio;
 // Auto-generated dart:html library.
 
 
+// TODO(vsm): Remove this when we can do the proper checking in
+// native code for custom elements.
 // Not actually used, but imported since dart:html can generate these objects.
 
 
@@ -13157,6 +13160,10 @@ class HtmlDocument extends Document {
   @Experimental()
   String get visibilityState => $dom_webkitVisibilityState;
 
+  @Experimental
+  void register(String tag, Type custom) {
+    _Utils.register(tag, custom);
+  }
 
   // Note: used to polyfill <template>
   Document _templateContentsOwner;
@@ -25724,13 +25731,13 @@ class Url extends NativeFieldWrapperClass1 {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -33270,6 +33277,38 @@ class _Utils {
   // TODO(jacobr): we need a failsafe way to determine that a Node is really a
   // DOM node rather than just a class that extends Node.
   static bool isNode(obj) => obj is Node;
+
+  static void register(String tag, Type type) {
+    // TODO(vsm): Move these checks into native code.
+    if (type == null) {
+      throw new UnsupportedError("Invalid null type.");
+    }
+    ClassMirror cls = reflectClass(type);
+    LibraryMirror lib = cls.owner;
+    String libName = lib.uri.toString();
+    if (libName.startsWith('dart:')) {
+      throw new UnsupportedError("Invalid custom element from $libName.");
+    }
+    ClassMirror superClass = cls.superclass;
+
+    Symbol objectName = reflectClass(Object).qualifiedName;
+    bool isRoot(ClassMirror cls) =>
+      cls == null || cls.qualifiedName == objectName;
+    Symbol elementName = reflectClass(Element).qualifiedName;
+    bool isElement(ClassMirror cls) =>
+      cls != null && cls.qualifiedName == elementName;
+
+    while(!isRoot(superClass) && !isElement(superClass)) {
+      superClass = superClass.superclass;
+    }
+
+    if (isRoot(superClass)) {
+      throw new UnsupportedError("Invalid custom element doesn't inherit from Element.");
+    }
+    _register(tag, type);
+  }
+
+  static void _register(String tag, Type type) native "Utils_register";
 }
 
 class _NPObject extends NativeFieldWrapperClass1 {

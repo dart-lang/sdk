@@ -303,7 +303,6 @@ class NativeEmitter {
           .add(classElement);
       }
     }
-
     return map;
   }
 

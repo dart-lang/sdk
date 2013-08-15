@@ -168,8 +168,8 @@ $endif
 
   @Experimental
 $if DART2JS
-  void register(String tag, Type custom) {
-    throw new UnsupportedError("Custom DOM types not supported");
+  void register(String tag, Type customElementClass) {
+    _registerCustomElement(JS('', 'window'), this, tag, customElementClass);
   }
 $else
   void register(String tag, Type custom) {

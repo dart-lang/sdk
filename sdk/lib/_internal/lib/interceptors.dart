@@ -260,7 +260,7 @@ var interceptedNames;
 // TODO(sra): Mark this as initialized to a constant with unknown value.
 var mapTypeToInterceptor;
 
-findClassConstructorForType(Type type) {
+findInterceptorConstructorForType(Type type) {
   JS_EFFECT((_){ mapTypeToInterceptor = _; });
   if (mapTypeToInterceptor == null) return null;
   List map = JS('JSFixedArray', '#', mapTypeToInterceptor);
@@ -273,7 +273,7 @@ findClassConstructorForType(Type type) {
 }
 
 findInterceptorForType(Type type) {
-  var constructor = findClassConstructorForType(type);
+  var constructor = findInterceptorConstructorForType(type);
   if (constructor == null) return null;
   return JS('', '#.prototype', constructor);
 }
