@@ -23,7 +23,9 @@ void main() {
       includePrivate: results['include-private'], 
       includeSdk: results['parse-sdk'] || results['include-sdk'], 
       parseSdk: results['parse-sdk'],
-      append: results['append'] && new Directory('docs').existsSync());
+      append: results['append'] && new Directory('docs').existsSync(),
+      introduction: results['parse-sdk'] ? 
+          'sdk-introduction.md' : results['introduction']);
 }
 
 /**
@@ -57,10 +59,13 @@ ArgParser _initArgParser() {
       help: 'Parses the SDK libraries only.', 
       defaultsTo: false, negatable: false);
   parser.addOption('package-root', 
-      help: "Sets the package root of the library being analyzed.");
+      help: 'Sets the package root of the library being analyzed.');
   parser.addFlag('append', 
       help: 'Append to the docs folder, library_list.txt and index.txt', 
       defaultsTo: false, negatable: false);
+  parser.addOption('introduction', 
+      help: 'Adds the provided markdown text file as the introduction' 
+        'for the outputted documentation.', defaultsTo: '');
   
   return parser;
 }

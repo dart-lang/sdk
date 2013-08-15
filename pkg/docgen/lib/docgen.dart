@@ -65,6 +65,8 @@ Map<String, Indexable> entityMap = new Map<String, Indexable>();
 /// This is set from the command line arguments flag --include-private
 bool _includePrivate = false;
 
+// TODO(janicejl): Make MDN content generic or pluggable. Maybe move 
+// MDN-specific code to its own library that is imported into the default impl?
 /// Map of all the comments for dom elements from MDN. 
 Map _mdn;
 
@@ -82,7 +84,7 @@ Map _mdn;
  */
 Future<bool> docgen(List<String> files, {String packageRoot,
     bool outputToYaml: true, bool includePrivate: false, bool includeSdk: false,
-    bool parseSdk: false, bool append: false}) {
+    bool parseSdk: false, bool append: false, String introduction: ''}) {
   _includePrivate = includePrivate;
   if (!append) {
     var dir = new Directory('docs');
@@ -108,7 +110,8 @@ Future<bool> docgen(List<String> files, {String packageRoot,
         throw new StateError('No library mirrors were created.');
       }
       _documentLibraries(mirrorSystem.libraries.values,includeSdk: includeSdk,
-          outputToYaml: outputToYaml, append: append, parseSdk: parseSdk);
+          outputToYaml: outputToYaml, append: append, parseSdk: parseSdk, 
+          introduction: introduction);
 
       return true;
     });
@@ -224,7 +227,8 @@ Future<MirrorSystem> _analyzeLibraries(List<String> libraries,
  * Creates documentation for filtered libraries.
  */
 void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
-    bool outputToYaml: true, bool append: false, bool parseSdk: false}) {
+    bool outputToYaml: true, bool append: false, bool parseSdk: false, 
+    String introduction: ''}) {
   libs.forEach((lib) {
     // Files belonging to the SDK have a uri that begins with 'dart:'.
     if (includeSdk || !lib.uri.toString().startsWith('dart:')) {
@@ -247,8 +251,13 @@ void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
   // Outputs a yaml file with all libraries and their preview comments after 
   // creating all libraries. This will help the viewer know what libraries are 
   // available to read in.
-  var libraryMap = {'libraries' : filteredEntities.where((e) => 
-      e is Library).map((e) => e.previewMap).toList()};
+  var libraryMap = {
+    'libraries' : filteredEntities.where((e) => 
+        e is Library).map((e) => e.previewMap).toList(),
+    'introduction' : introduction == '' ? 
+        '' : markdown.markdownToHtml(new File(introduction).readAsStringSync(),
+            linkResolver: linkResolver, inlineSyntaxes: markdownSyntaxes)
+  };
   _writeToFile(getYamlString(libraryMap), 'library_list.yaml', append: append);
   // Outputs all the qualified names documented with their type.
   // This will help generate search results.
