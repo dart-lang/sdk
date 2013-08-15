@@ -151,7 +151,9 @@ io/list_input_stream_test: Skip # Timeout TODO(ngeoffray): investigate
 *: Skip
 
 [ $arch == arm ]
-*: Skip # Shared libraries problem.
+io/test_extension_test: Fail
+io/test_extension_fail_test: Fail
+io/internet_address_test: Fail  # localhost is an Unknown name?
 
 [ $arch == simarm ]
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
