@@ -56,6 +56,13 @@ class Phase {
   /// is a transformer. "dart2js on web/main.dart" is a transform.
   final _transforms = new Map<AssetId, Set<TransformNode>>();
 
+  /// Controllers for assets that aren't consumed by transforms in this phase.
+  ///
+  /// These assets are passed to the next phase unmodified. They need
+  /// intervening controllers to ensure that the outputs can be marked dirty
+  /// when determining whether transforms apply, and removed if they do.
+  final _passThroughControllers = new Map<AssetId, AssetNodeController>();
+
   /// Futures that will complete once the transformers that can consume a given
   /// asset are determined.
   ///
@@ -73,10 +80,10 @@ class Phase {
   /// transforms that produced those asset nodes.
   ///
   /// Usually there's only one node for a given output id. However, it's
-  /// possible for multiple transformers in this phase to output an asset with
-  /// the same id. In that case, the chronologically first output emitted is
-  /// passed forward. We keep track of the other nodes so that if that output is
-  /// removed, we know which asset to replace it with.
+  /// possible for multiple transformers to output an asset with the same id. In
+  /// that case, the chronologically first output emitted is passed forward. We
+  /// keep track of the other nodes so that if that output is removed, we know
+  /// which asset to replace it with.
   final _outputs = new Map<AssetId, Queue<AssetNode>>();
 
   /// A stream that emits an event whenever this phase becomes dirty and needs
@@ -163,36 +170,11 @@ class Phase {
     });
   }
 
-  /// Returns the input for this phase with the given [id], but only if that
-  /// input is known not to be consumed as a transformer's primary input.
-  ///
-  /// If the input is unavailable, or if the phase hasn't determined whether or
-  /// not any transformers will consume it as a primary input, null will be
-  /// returned instead. This means that the return value is guaranteed to always
-  /// be [AssetState.AVAILABLE].
-  AssetNode getUnconsumedInput(AssetId id) {
-    if (!_inputs.containsKey(id)) return null;
-
-    // If the asset has transforms, it's not unconsumed.
-    if (!_transforms[id].isEmpty) return null;
-
-    // If we're working on figuring out if the asset has transforms, we can't
-    // prove that it's unconsumed.
-    if (_adjustTransformersFutures.containsKey(id)) return null;
-
-    // The asset should be available. If it were removed, it wouldn't be in
-    // _inputs, and if it were dirty, it'd be in _adjustTransformersFutures.
-    assert(_inputs[id].state.isAvailable);
-    return _inputs[id];
-  }
-
   /// Gets the asset node for an input [id].
   ///
   /// If an input with that ID cannot be found, returns null.
   Future<AssetNode> getInput(AssetId id) {
     return newFuture(() {
-      // TODO(rnystrom): Need to handle passthrough where an asset from a
-      // previous phase can be found.
       if (id.package == cascade.package) return _inputs[id];
       return cascade.graph.getAssetNode(id);
     });
@@ -210,6 +192,11 @@ class Phase {
     // kick off a build, even if that build does nothing.
     _onDirtyController.add(null);
 
+    // If there's a pass-through for this node, mark it dirty while we figure
+    // out whether we need to add any transforms for it.
+    var controller = _passThroughControllers[node.id];
+    if (controller != null) controller.setDirty();
+
     // Once the input is available, hook up transformers for it. If it changes
     // while that's happening, try again.
     _adjustTransformersFutures[node.id] = node.tryUntilStable((asset) {
@@ -219,6 +206,8 @@ class Phase {
       return _removeStaleTransforms(asset)
           .then((_) => _addFreshTransforms(node, oldTransformers));
     }).then((_) {
+      _adjustPassThrough(node);
+
       // Now all the transforms are set up correctly and the asset is available
       // for the time being. Set up handlers for when the asset changes in the
       // future.
@@ -226,6 +215,8 @@ class Phase {
         if (state.isRemoved) {
           _onDirtyController.add(null);
           _transforms.remove(node.id);
+          var passThrough = _passThroughControllers.remove(node.id);
+          if (passThrough != null) passThrough.setRemoved();
         } else {
           _adjustTransformers(node);
         }
@@ -291,6 +282,28 @@ class Phase {
     }));
   }
 
+  /// Adjust whether [node] is passed through the phase unmodified, based on
+  /// whether it's consumed by other transforms in this phase.
+  ///
+  /// If [node] was already passed-through, this will update the passed-through
+  /// value.
+  void _adjustPassThrough(AssetNode node) {
+    assert(node.state.isAvailable);
+
+    if (_transforms[node.id].isEmpty) {
+      var controller = _passThroughControllers[node.id];
+      if (controller != null) {
+        controller.setAvailable(node.asset);
+      } else {
+        _passThroughControllers[node.id] =
+            new AssetNodeController.available(node.asset, node.transform);
+      }
+    } else {
+      var controller = _passThroughControllers.remove(node.id);
+      if (controller != null) controller.setRemoved();
+    }
+  }
+
   /// Processes this phase.
   ///
   /// Returns a future that completes when processing is done. If there is
@@ -308,14 +321,24 @@ class Phase {
 
   /// Applies all currently wired up and dirty transforms.
   Future _processTransforms() {
+    if (_next == null) return;
+
+    var newPassThroughs = _passThroughControllers.values
+        .map((controller) => controller.node)
+        .where((output) {
+      return !_outputs.containsKey(output.id) ||
+        !_outputs[output.id].contains(output);
+    }).toSet();
+
     // Convert this to a list so we can safely modify _transforms while
     // iterating over it.
     var dirtyTransforms =
         flatten(_transforms.values.map((transforms) => transforms.toList()))
         .where((transform) => transform.isDirty).toList();
-    if (dirtyTransforms.isEmpty) return null;
 
-    var collisions = new Set<AssetId>();
+    if (dirtyTransforms.isEmpty && newPassThroughs.isEmpty) return null;
+
+    var collisions = _passAssetsThrough(newPassThroughs);
     return Future.wait(dirtyTransforms.map((transform) {
       return transform.apply().then((outputs) {
         for (var output in outputs) {
@@ -344,6 +367,30 @@ class Phase {
             collision));
       }
     });
+  }
+
+  /// Pass all new assets that aren't consumed by transforms through to the next
+  /// phase.
+  ///
+  /// Returns a set of asset ids that have collisions between new passed-through
+  /// assets and pre-existing transform outputs.
+  Set<AssetId> _passAssetsThrough(Set<AssetId> newPassThroughs) {
+    var collisions = new Set<AssetId>();
+    for (var output in newPassThroughs) {
+      if (_outputs.containsKey(output.id)) {
+        // There shouldn't be another pass-through asset with the same id.
+        assert(!_outputs[output.id].any((asset) => asset.transform == null));
+
+        _outputs[output.id].add(output);
+        collisions.add(output.id);
+      } else {
+        _outputs[output.id] = new Queue<AssetNode>.from([output]);
+        _next.addInput(output);
+      }
+
+      _handleOutputRemoval(output);
+    }
+    return collisions;
   }
 
   /// Properly resolve collisions when [output] is removed.

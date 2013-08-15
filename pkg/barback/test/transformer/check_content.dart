@@ -10,15 +10,15 @@ import 'package:barback/barback.dart';
 
 import 'mock.dart';
 
-/// A transformer that modifies assets with the given content.
+/// A transformer that modifies assets that contains the given content.
 class CheckContentTransformer extends MockTransformer {
-  final String content;
+  final Pattern content;
   final String addition;
 
   CheckContentTransformer(this.content, this.addition);
 
   Future<bool> doIsPrimary(Asset asset) =>
-    asset.readAsString().then((value) => value == content);
+    asset.readAsString().then((value) => value.contains(content));
 
   Future doApply(Transform transform) {
     return getPrimary(transform).then((primary) {

@@ -113,8 +113,10 @@ class AssetCascade {
   /// Gets the asset identified by [id].
   ///
   /// If [id] is for a generated or transformed asset, this will wait until it
-  /// has been created and return it. If the asset cannot be found, returns
-  /// null.
+  /// has been created and return it. This means that the returned asset will
+  /// always be [AssetState.AVAILABLE].
+  ///
+  /// If the asset cannot be found, returns null.
   Future<AssetNode> getAssetNode(AssetId id) {
     assert(id.package == package);
 
@@ -126,11 +128,9 @@ class AssetCascade {
     // * If [id] has never been generated and all active transformers provide
     //   metadata about the file names of assets it can emit, we can prove that
     //   none of them can emit [id] and fail early.
-    return newFuture(() {
-      var node = _getAssetNode(id);
-
+    return _phases.last.getInput(id).then((node) {
       // If the requested asset is available, we can just return it.
-      if (node != null) return node;
+      if (node != null && node.state.isAvailable) return node;
 
       // If there's a build running, that build might generate the asset, so we
       // wait for it to complete and then try again.
@@ -142,24 +142,6 @@ class AssetCascade {
       // won't be generated, so we return null.
       return null;
     });
-  }
-
-  // Returns the post-transformation asset node for [id], if one is available.
-  //
-  // This will only return a node that has an asset available, and only if that
-  // node is guaranteed not to be consumed by any transforms. If the phase is
-  // still working to figure out if a node will be consumed by a transformer,
-  // that node won't be returned.
-  AssetNode _getAssetNode(AssetId id) {
-    // Each phase's inputs are the outputs of the previous phase. Find the last
-    // phase that contains the asset. Since the last phase has no transformers,
-    // this will find the latest output for that id.
-    for (var i = _phases.length - 1; i >= 0; i--) {
-      var node = _phases[i].getUnconsumedInput(id);
-      if (node != null) return node;
-    }
-
-    return null;
   }
 
   /// Adds [sources] to the graph's known set of source assets.

@@ -603,7 +603,7 @@ main() {
 
   test("doesn't transform an asset that goes from primary to non-primary "
       "during isPrimary", () {
-    var check = new CheckContentTransformer("do", "ne");
+    var check = new CheckContentTransformer(new RegExp(r"^do$"), "ne");
     initGraph({
       "app|foo.txt": "do"
     }, {"app": [[check]]});
@@ -662,7 +662,7 @@ main() {
   test("doesn't transform an asset that goes from primary to non-primary "
       "during another transformer's isPrimary", () {
     var rewrite = new RewriteTransformer("md", "md");
-    var check = new CheckContentTransformer("do", "ne");
+    var check = new CheckContentTransformer(new RegExp(r"^do$"), "ne");
     initGraph({
       "app|foo.txt": "do",
       "app|foo.md": "foo"
@@ -807,6 +807,118 @@ main() {
     // overall build succeeds.
     resumeProvider();
     buildShouldSucceed();
+  });
+
+  group("pass-through", () {
+    test("passes an asset through a phase in which no transforms apply", () {
+      initGraph([
+        "app|foo.in",
+        "app|bar.zip",
+      ], {"app": [
+        [new RewriteTransformer("in", "mid")],
+        [new RewriteTransformer("zip", "zap")],
+        [new RewriteTransformer("mid", "out")],
+      ]});
+
+      updateSources(["app|foo.in", "app|bar.zip"]);
+      expectAsset("app|foo.out", "foo.mid.out");
+      expectAsset("app|bar.zap", "bar.zap");
+      buildShouldSucceed();
+    });
+
+    test("doesn't pass an asset through a phase in which a transform consumes "
+        "it", () {
+      initGraph([
+        "app|foo.in",
+      ], {"app": [
+        [new RewriteTransformer("in", "mid")],
+        [new RewriteTransformer("mid", "phase2")],
+        [new RewriteTransformer("mid", "phase3")],
+      ]});
+
+      updateSources(["app|foo.in"]);
+      expectAsset("app|foo.phase2", "foo.mid.phase2");
+      expectNoAsset("app|foo.phase3");
+      buildShouldSucceed();
+    });
+
+    test("removes a pass-through asset when the source is removed", () {
+      initGraph([
+        "app|foo.in",
+        "app|bar.zip",
+      ], {"app": [
+        [new RewriteTransformer("zip", "zap")],
+        [new RewriteTransformer("in", "out")],
+      ]});
+
+      updateSources(["app|foo.in", "app|bar.zip"]);
+      expectAsset("app|foo.out", "foo.out");
+      buildShouldSucceed();
+
+      removeSources(["app|foo.in"]);
+      expectNoAsset("app|foo.in");
+      expectNoAsset("app|foo.out");
+      buildShouldSucceed();
+    });
+
+    test("updates a pass-through asset when the source is updated", () {
+      initGraph([
+        "app|foo.in",
+        "app|bar.zip",
+      ], {"app": [
+        [new RewriteTransformer("zip", "zap")],
+        [new RewriteTransformer("in", "out")],
+      ]});
+
+      updateSources(["app|foo.in", "app|bar.zip"]);
+      expectAsset("app|foo.out", "foo.out");
+      buildShouldSucceed();
+
+      modifyAsset("app|foo.in", "boo");
+      updateSources(["app|foo.in"]);
+      expectAsset("app|foo.out", "boo.out");
+      buildShouldSucceed();
+    });
+
+    test("passes an asset through a phase in which transforms have ceased to "
+        "apply", () {
+      initGraph([
+        "app|foo.in",
+      ], {"app": [
+        [new RewriteTransformer("in", "mid")],
+        [new CheckContentTransformer("foo.mid", ".phase2")],
+        [new CheckContentTransformer(new RegExp(r"\.mid$"), ".phase3")],
+      ]});
+
+      updateSources(["app|foo.in"]);
+      expectAsset("app|foo.mid", "foo.mid.phase2");
+      buildShouldSucceed();
+
+      modifyAsset("app|foo.in", "bar");
+      updateSources(["app|foo.in"]);
+      expectAsset("app|foo.mid", "bar.mid.phase3");
+      buildShouldSucceed();
+    });
+
+    test("doesn't pass an asset through a phase in which transforms have "
+        "started to apply", () {
+      initGraph([
+        "app|foo.in",
+      ], {"app": [
+        [new RewriteTransformer("in", "mid")],
+        [new CheckContentTransformer("bar.mid", ".phase2")],
+        [new CheckContentTransformer(new RegExp(r"\.mid$"), ".phase3")],
+      ]});
+
+      updateSources(["app|foo.in"]);
+      expectAsset("app|foo.mid", "foo.mid.phase3");
+      buildShouldSucceed();
+
+      modifyAsset("app|foo.in", "bar");
+      updateSources(["app|foo.in"]);
+      expectAsset("app|foo.mid", "bar.mid.phase2");
+      buildShouldSucceed();
+    });
   });
 
   group('cross-package transforms', () {
