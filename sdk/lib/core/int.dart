@@ -17,6 +17,8 @@ part of dart.core;
  * values. The behavior of the operators and methods in the [int]
  * class therefore sometimes differs between the Dart VM and Dart code
  * compiled to JavaScript.*
+ *
+ * It is a compile-time error for a class to attempt to extend or implement int.
  */
 abstract class int extends num {
   /** The bit-wise and operator. */

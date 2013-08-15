@@ -16,6 +16,9 @@ part of dart.core;
  * terminology to Go we use the name "rune" for an integer representing a
  * Unicode code point. The runes of a string are accessible through the [runes]
  * getter.
+ *
+ * It is a compile-time error for a class to attempt to extend or implement
+ * String.
  */
 abstract class String implements Comparable<String>, Pattern {
   /**

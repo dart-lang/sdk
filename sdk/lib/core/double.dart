@@ -11,10 +11,14 @@ part of dart.core;
 /**
  * Representation of Dart doubles containing double specific constants
  * and operations and specializations of operations inherited from
- * [num].
+ * [num]. Dart doubles are 64-bit floating-point numbers as specified in the
+ * IEEE 754 standard.
  *
  * The [double] type is contagious. Operations on [double]s return
  * [double] results.
+ *
+ * It is a compile-time error for a class to attempt to extend or implement
+ * double.
  */
 abstract class double extends num {
   static const double NAN = 0.0 / 0.0;

@@ -5,11 +5,11 @@
 part of dart.core;
 
 /**
- * Class of the `null` value.
- *
- * The only instance of the [Null] class is the `null` object.
- *
- * It is an error for a class to extend or implement Null.
+ * The reserved word [:null:] denotes an object that is the sole instance of 
+ * this class.
+ * 
+ * It is a compile-time error for a class to attempt to extend or implement
+ * Null.
  */
 class Null {
   factory Null._uninstantiable() {
