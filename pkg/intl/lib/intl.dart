@@ -249,8 +249,8 @@ class Intl {
     // top-level message, so look up our translation by calling Intl.message
     // with ourselves as an argument.
     if (name != null) {
-      return Intl.message(
-        Intl.plural(howMany,
+      return message(
+        plural(howMany,
             zero: zero, one: one, two: two, few: few, many: many, other: other),
         name: name,
         args: args,
@@ -273,10 +273,10 @@ class Intl {
   }
 
   /**
-   * Format a message differently depending on [gender]. Normally used as part
-   * of an Intl.message message that is to be translated.
+   * Format a message differently depending on [targetGender]. Normally used as
+   * part of an Intl.message message that is to be translated.
    */
-  static String gender(String gender,
+  static String gender(String targetGender,
       {String male, String female, String other,
        String desc, Map examples, String locale, String name,
        List<String>args}) {
@@ -284,8 +284,8 @@ class Intl {
     // top-level message, so look up our translation by calling Intl.message
     // with ourselves as an argument.
     if (name != null) {
-      return Intl.message(
-        Intl.gender(gender, male: male, female: female, other: other),
+      return message(
+        gender(targetGender, male: male, female: female, other: other),
         name: name,
         args: args,
         locale: locale);
@@ -294,7 +294,7 @@ class Intl {
     if (other == null) {
       throw new ArgumentError("The 'other' named argument must be specified");
     }
-    switch(gender) {
+    switch(targetGender) {
       case "female" : return female == null ? other : female;
       case "male" : return male == null ? other : male;
       default: return other;
@@ -314,8 +314,8 @@ class Intl {
     // top-level message, so look up our translation by calling Intl.message
     // with ourselves as an argument.
     if (name != null) {
-      return Intl.message(
-          Intl.select(choice, cases),
+      return message(
+          select(choice, cases),
           name: name,
           args: args,
           locale: locale);
