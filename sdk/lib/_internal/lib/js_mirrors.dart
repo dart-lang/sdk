@@ -24,6 +24,7 @@ import 'dart:_js_helper' show
     RuntimeError,
     createRuntimeType,
     createUnmangledInvocationMirror,
+    getMangledTypeName,
     runtimeTypeToString;
 import 'dart:_interceptors' show
     Interceptor,
@@ -398,7 +399,7 @@ ClassMirror reflectType(Type key) {
   // TODO(ahe): Don't discard type arguments to support
   // [ClassMirror.isOriginalDeclaration] and [ClassMirror.originalDeclaration]
   // correctly.
-  return reflectClassByMangledName('$key'.split('<')[0]);
+  return reflectClassByMangledName(getMangledTypeName(key).split('<')[0]);
 }
 
 ClassMirror reflectClassByMangledName(String mangledName) {

@@ -30,7 +30,10 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    RAW_DART_FUNCTION_REF;
 import 'dart:_interceptors';
 import 'dart:_collection-dev' as _symbol_dev;
-import 'dart:_js_names' show mangledNames, mangledGlobalNames;
+
+import 'dart:_js_names' show
+    mangledNames,
+    unmangleGlobalNameIfPreservedAnyways;
 
 part 'constant_map.dart';
 part 'native_helper.dart';

@@ -46,10 +46,17 @@ Type createRuntimeType(String name) => new TypeImpl(name);
 
 class TypeImpl implements Type {
   final String _typeName;
+  String _unmangledName;
 
   TypeImpl(this._typeName);
 
-  String toString() => _typeName;
+  String toString() {
+    if (_unmangledName != null) return _unmangledName;
+    String unmangledName = unmangleGlobalNameIfPreservedAnyways(_typeName);
+    // TODO(ahe): Handle type arguments.
+    if (unmangledName == null) unmangledName = _typeName;
+    return _unmangledName = unmangledName;
+  }
 
   // TODO(ahe): This is a poor hashCode as it collides with its name.
   int get hashCode => _typeName.hashCode;
@@ -58,6 +65,8 @@ class TypeImpl implements Type {
     return  (other is TypeImpl) && _typeName == other._typeName;
   }
 }
+
+getMangledTypeName(TypeImpl type) => type._typeName;
 
 /**
  * Sets the runtime type information on [target]. [typeInfo] is a type
@@ -678,9 +687,9 @@ bool isJsArray(var value) {
   return value is JSArray;
 }
 
-hasField(var object, var name) => JS('bool', r'#[#] != null', object, name);
+hasField(var object, var name) => JS('bool', r'# in #', name, object);
 
-hasNoField(var object, var name) => JS('bool', r'#[#] == null', object, name);
+hasNoField(var object, var name) => !hasField(object, name);
 
 /// Returns [:true:] if [o] is a JavaScript function.
 bool isJsFunction(var o) => JS('bool', r'typeof # == "function"', o);

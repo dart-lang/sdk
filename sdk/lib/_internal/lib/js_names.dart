@@ -6,6 +6,8 @@ library dart._js_names;
 
 import 'dart:_foreign_helper' show JS, JS_GET_NAME;
 
+import 'dart:_js_helper' show JsCache;
+
 /// No-op method that is called to inform the compiler that unmangled named
 /// must be preserved.
 preserveNames() {}
@@ -14,7 +16,7 @@ preserveNames() {}
 /// with some additional information, such as, number of required arguments.
 /// This map is for mangled names used as instance members.
 final Map<String, String> mangledNames =
-    computeMangledNames(JS('', 'init.mangledNames'), false);
+    computeMangledNames(JS('=Object', 'init.mangledNames'), false);
 
 /// A map from "reflective" names to mangled names (the reverse of
 /// [mangledNames]).
@@ -24,7 +26,7 @@ final Map<String, String> reflectiveNames =
 /// A map from mangled names to "reflective" names (see [mangledNames]).  This
 /// map is for globals, that is, static and top-level members.
 final Map<String, String> mangledGlobalNames =
-    computeMangledNames(JS('', 'init.mangledGlobalNames'), true);
+    computeMangledNames(JS('=Object', 'init.mangledGlobalNames'), true);
 
 /// A map from "reflective" names to mangled names (the reverse of
 /// [mangledGlobalNames]).
@@ -70,4 +72,20 @@ List extractKeys(victim) {
   }
   return result;
 })(#, Object.prototype.hasOwnProperty)''', victim);
+}
+
+/**
+ * Returns the (global) unmangled version of [name].
+ *
+ * Normally, you should use [mangledGlobalNames] directly, but this method
+ * doesn't tell the compiler to preserve names. So this method only returns a
+ * non-null value if some other component has made the compiler preserve names.
+ *
+ * This is used, for example, to return unmangled names from TypeImpl.toString
+ * *if* names are being preserved for other reasons (use of dart:mirrors, for
+ * example).
+ */
+String unmangleGlobalNameIfPreservedAnyways(String name) {
+  var names = JS('=Object', 'init.mangledGlobalNames');
+  return JsCache.fetch(names, name);
 }
