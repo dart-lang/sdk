@@ -36,13 +36,13 @@ TEMPLATE_CONTENT = """
 // DO NOT EDIT
 // Auto-generated dart:chrome library.
 
-/// Native wrappers for the Chrome Packaged App APIs.
+/// Native wrappers for the Chrome packaged app APIs.
 ///
-/// These functions allow direct access to the Packaged App APIs, allowing
-/// Chrome Packaged Apps to be written using Dart.
+/// These functions allow direct access to the chrome.* APIs, allowing
+/// Chrome packaged apps to be written using Dart.
 ///
-/// For more information on these APIs, see the Chrome.* APIs Documentation:
-///   http://developer.chrome.com/extensions/api_index.html
+/// For more information on these APIs, see the
+/// [chrome.* API documentation](http://developer.chrome.com/apps/api_index.html).
 library chrome;
 
 import 'dart:_foreign_helper' show JS;
