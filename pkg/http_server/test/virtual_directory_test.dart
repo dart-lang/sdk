@@ -5,8 +5,9 @@
 import 'dart:async';
 import 'dart:io';
 
-import "package:unittest/unittest.dart";
 import "package:http_server/http_server.dart";
+import "package:path/path.dart";
+import "package:unittest/unittest.dart";
 
 import 'utils.dart';
 
@@ -296,7 +297,7 @@ void main() {
           test('relative-parent-link', () {
             expect(HttpServer.bind('localhost', 0).then((server) {
               var dir = new Directory('').createTempSync();
-              var name = new Path(dir.path).filename;
+              var name = basename(dir.path);
               var file = new File('${dir.path}/file')..createSync();
               var link = new Link('${dir.path}/dir3')
                   ..createSync('../$name/file');

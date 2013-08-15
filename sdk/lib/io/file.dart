@@ -41,12 +41,6 @@ abstract class File implements FileSystemEntity {
   factory File(String path) => new _File(path);
 
   /**
-   * Create a File object from a Path object.
-   */
-  @deprecated
-  factory File.fromPath(Path path) => new _File.fromPath(path);
-
-  /**
    * Create the file. Returns a [:Future<File>:] that completes with
    * the file when it has been created.
    *

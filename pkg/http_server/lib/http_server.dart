@@ -9,6 +9,7 @@ import 'dart:io';
 import 'dart:json' as JSON;
 
 import 'package:mime/mime.dart';
+import "package:path/path.dart";
 
 part 'src/http_body.dart';
 part 'src/http_body_impl.dart';

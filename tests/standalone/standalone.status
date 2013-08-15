@@ -7,6 +7,10 @@
 # listed in tests/lib/analyzer/analyze_tests.status without the "standalone"
 # prefix.
 
+# The testing infrastructure is using the dart:io Path class.
+io/skipping_dart2js_compilations_test: Skip # http/dartbug.com/12449
+io/dependency_graph_test: Skip # http/dartbug.com/12449
+
 package/invalid_uri_test: Fail, OK # Fails intentionally
 
 [ $runtime == vm ]

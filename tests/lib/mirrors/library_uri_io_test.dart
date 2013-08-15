@@ -26,8 +26,8 @@ main() {
     String appendSlash(String path) => path.endsWith('/') ? path : '$path/';
     Uri cwd = new Uri(
         scheme: 'file',
-        path: appendSlash(new Path(new File('.').fullPathSync()).toString()));
-    Uri uri = cwd.resolve(new Path(Platform.script).toString());
+        path: appendSlash(new File('.').fullPathSync()));
+    Uri uri = cwd.resolve(Platform.script);
     testLibraryUri(new Class(), uri);
   });
 }

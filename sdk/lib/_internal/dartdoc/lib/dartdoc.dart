@@ -2128,15 +2128,15 @@ class Dartdoc {
     write("# VERSION: ${new DateTime.now()}\n\n");
     write("NETWORK:\n*\n\n");
     write("CACHE:\n");
-    var toCache = new Directory.fromPath(outputDir);
+    var toCache = new Directory(outputDir);
     toCache.list(recursive: true).listen(
         (FileSystemEntity entity) {
-          if (entity.isFile) {
+          if (entity is File) {
             var filename = entity.path;
             if (filename.endsWith('appcache.manifest')) {
               return;
             }
-            Path relativeFilePath = new Path(filename).relativeTo(outputDir);
+            String relativeFilePath = path.relative(filename, from: outputDir);
             write("$relativeFilePath\n");
           }
         },

@@ -5,6 +5,7 @@
 library options;
 
 import 'package:args/args.dart';
+import 'package:path/path.dart';
 
 import 'dart:io';
 
@@ -153,8 +154,7 @@ class CommandLineOptions {
 
   static String _getVersion() {
     try {
-      Path path = new Path(Platform.script);
-      Path versionPath = path.directoryPath.append('..').append('version');
+      Path versionPath = join(dirname(Platform.script), '..', 'version');;
       File versionFile = new File.fromPath(versionPath);
       return versionFile.readAsStringSync().trim();
     } catch (_) {

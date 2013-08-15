@@ -104,7 +104,7 @@ class Source {
       }
     });
 
-    String srcPath = new Path(Uri.parse(url).path).toNativePath();
+    String srcPath = Uri.parse(url).toFilePath();
     List lines = new File(srcPath).readAsLinesSync();
     for (int line = 1; line <= lines.length; line++) {
       String prefix = "      ";
