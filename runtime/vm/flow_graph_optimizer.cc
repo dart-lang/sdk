@@ -46,6 +46,8 @@ DECLARE_FLAG(bool, trace_type_check_elimination);
 static bool ShouldInlineSimd() {
 #if defined(TARGET_ARCH_MIPS)
   return false;
+#elif defined(TARGET_ARCH_ARM)
+  return CPUFeatures::neon_supported() && FLAG_enable_simd_inline;
 #endif
   return FLAG_enable_simd_inline;
 }
