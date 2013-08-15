@@ -177,7 +177,7 @@ class BuildJsonListener extends JsonListener {
   void handleString(String value) { this.value = value; }
   void handleNumber(num value) { this.value = value; }
   void handleBool(bool value) { this.value = value; }
-  void handleNull() { this.value = value; }
+  void handleNull() { this.value = null; }
 
   void beginObject() {
     pushContainer();
