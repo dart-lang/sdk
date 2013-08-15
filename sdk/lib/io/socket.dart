@@ -417,9 +417,10 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
 }
 
 /**
- * A high-level class for communicating over a TCP socket. The [Socket] exposes
- * both a [Stream] and a [IOSink] interface, making it ideal for
- * using together with other [Stream]s.
+ * A high-level class for communicating over a TCP socket. 
+ *
+ * The [Socket] exposes both a [Stream] and a [IOSink] interface, making it 
+ * ideal for using together with other [Stream]s.
  */
 abstract class Socket implements Stream<List<int>>, IOSink {
   /**
