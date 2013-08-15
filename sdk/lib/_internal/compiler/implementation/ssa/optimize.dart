@@ -583,7 +583,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     // raw type.
     } else if (!RuntimeTypes.hasTypeArguments(type)) {
       TypeMask expressionMask = expressionType.computeMask(compiler);
-      TypeMask typeMask = new TypeMask.nonNullSubtype(type);
+      TypeMask typeMask = (element == compiler.nullClass)
+          ? new TypeMask.subtype(type) : new TypeMask.nonNullSubtype(type);
       if (expressionMask.union(typeMask, compiler) == typeMask) {
         return graph.addConstantBool(true, compiler);
       } else if (expressionMask.intersection(typeMask, compiler).isEmpty) {

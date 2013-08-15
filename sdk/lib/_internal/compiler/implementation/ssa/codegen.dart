@@ -2346,8 +2346,13 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       LibraryElement coreLibrary = compiler.coreLibrary;
       ClassElement objectClass = compiler.objectClass;
       Element element = type.element;
-
-      if (identical(element, objectClass) || type.treatAsDynamic) {
+      if (element == compiler.nullClass) {
+        if (negative) {
+          checkNonNull(input);
+        } else {
+          checkNull(input);
+        }
+      } else if (identical(element, objectClass) || type.treatAsDynamic) {
         // The constant folder also does this optimization, but we make
         // it safe by assuming it may have not run.
         push(newLiteralBool(!negative), node);

@@ -780,6 +780,7 @@ abstract class Compiler implements DiagnosticListener {
     listClass = lookupCoreClass('List');
     typeClass = lookupCoreClass('Type');
     mapClass = lookupCoreClass('Map');
+    nullClass = lookupCoreClass('Null');
     stackTraceClass = lookupCoreClass('StackTrace');
     if (!missingCoreClasses.isEmpty) {
       internalErrorOnElement(coreLibrary,
@@ -804,7 +805,6 @@ abstract class Compiler implements DiagnosticListener {
     boundClosureClass = lookupHelperClass('BoundClosure');
     closureClass = lookupHelperClass('Closure');
     dynamicClass = lookupHelperClass('Dynamic_');
-    nullClass = lookupHelperClass('Null');
     if (!missingHelperClasses.isEmpty) {
       internalErrorOnElement(jsHelperLibrary,
           'dart:_js_helper library does not contain required classes: '

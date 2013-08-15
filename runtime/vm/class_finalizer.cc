@@ -1927,6 +1927,7 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
     // Prevent extending core implementation classes.
     bool is_error = false;
     switch (interface_class.id()) {
+      case kNullCid:
       case kNumberCid:
       case kIntegerCid:  // Class Integer, not int.
       case kSmiCid:
@@ -1996,11 +1997,12 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
                   String::Handle(interface_class.Name()).ToCString());
     }
     // Verify that unless cls belongs to core lib, it cannot extend or implement
-    // any of bool, num, int, double, String, Function, dynamic.
+    // any of Null, bool, num, int, double, String, Function, dynamic.
     // The exception is signature classes, which are compiler generated and
     // represent a function type, therefore implementing the Function interface.
     if (!cls_belongs_to_core_lib) {
-      if (interface.IsBoolType() ||
+      if (interface.IsNullType() ||
+          interface.IsBoolType() ||
           interface.IsNumberType() ||
           interface.IsIntType() ||
           interface.IsDoubleType() ||

@@ -299,3 +299,9 @@ import_core_prefix_test: Pass
 prefix22_test: Pass
 invocation_mirror_test: Fail, OK # hardcoded names.
 super_call4_test: Fail, OK # hardcoded names.
+
+[ $compiler == dart2js || $compiler == dart2dart]
+null_test/03: Fail    # Issue 12445.
+
+[$ compiler == dart2js]
+null_test/none: Fail  # Issue 12482

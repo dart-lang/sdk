@@ -417,8 +417,7 @@ void Object::InitOnce() {
 
   // Allocate and initialize the null class.
   cls = Class::New<Instance>(kNullCid);
-  cls.set_is_finalized();
-  cls.set_is_type_finalized();
+  cls.set_is_prefinalized();
   isolate->object_store()->set_null_class(cls);
 
   // Allocate and initialize the free list element class.
@@ -858,18 +857,10 @@ RawError* Object::Init(Isolate* isolate) {
   // TODO(12364): The class 'Null' is not registered in the class dictionary
   // because it is not exported by dart:core.
   cls = Class::New<Instance>(kNullCid);
-  cls.set_name(Symbols::Null());
-  // We immediately mark Null as finalized because it has no corresponding
-  // source.
-  cls.set_is_finalized();
-  cls.set_is_type_finalized();
   object_store->set_null_class(cls);
-  cls.set_library(core_lib);  // A sort of fiction for the mirrors.
-  // When/if we promote Null to an ordinary class, it should be added to the
-  // core library, given source and added to the list of classes pending
-  // finalization.
-  // RegisterClass(cls, Symbols::Null(), core_lib);
-  // pending_classes.Add(cls, Heap::kOld);
+  cls.set_is_prefinalized();
+  RegisterClass(cls, Symbols::Null(), core_lib);
+  pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->array_class();  // Was allocated above.
   RegisterPrivateClass(cls, Symbols::ObjectArray(), core_lib);
@@ -10476,8 +10467,8 @@ RawString* AbstractType::ClassName() const {
 
 
 bool AbstractType::IsNullType() const {
-  ASSERT(Type::Handle(Type::NullType()).IsCanonical());
-  return raw() == Type::NullType();
+  return HasResolvedTypeClass() &&
+      (type_class() == Type::Handle(Type::NullType()).type_class());
 }
 
 

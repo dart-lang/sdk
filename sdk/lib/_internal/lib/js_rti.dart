@@ -383,7 +383,8 @@ computeSignature(var signature, var context, var contextName) {
  */
 bool isSupertypeOfNull(var type) {
   // `null` means `dynamic`.
-  return isNull(type) || getConstructorName(type) == JS_OBJECT_CLASS_NAME();
+  return isNull(type) || getConstructorName(type) == JS_OBJECT_CLASS_NAME()
+                      || getConstructorName(type) == JS_NULL_CLASS_NAME();
 }
 
 /**

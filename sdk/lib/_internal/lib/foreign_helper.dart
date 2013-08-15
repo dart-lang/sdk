@@ -177,6 +177,9 @@ String JS_OPERATOR_AS_PREFIX() {}
 /// Returns the name of the class `Object` in the generated code.
 String JS_OBJECT_CLASS_NAME() {}
 
+/// Returns the name of the class `Null` in the generated code.
+String JS_NULL_CLASS_NAME() {}
+
 /// Returns the name of the class `Function` in the generated code.
 String JS_FUNCTION_CLASS_NAME() {}
 

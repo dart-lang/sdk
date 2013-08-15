@@ -2058,7 +2058,8 @@ class SimpleTypeInferrerVisitor<T>
       return inferrer.typeOfNativeBehavior(nativeBehavior);
     } else if (name == const SourceString('JS_OPERATOR_IS_PREFIX')
                || name == const SourceString('JS_OPERATOR_AS_PREFIX')
-               || name == const SourceString('JS_OBJECT_CLASS_NAME')) {
+               || name == const SourceString('JS_OBJECT_CLASS_NAME')
+               || name == const SourceString('JS_NULL_CLASS_NAME')) {
       return types.stringType;
     } else {
       sideEffects.setAllSideEffects();

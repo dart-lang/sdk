@@ -1222,27 +1222,20 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
       node->left()->IsLiteralNode() &&
       type.IsInstantiated()) {
     const Instance& literal_value = node->left()->AsLiteralNode()->literal();
-    const Class& cls = Class::Handle(literal_value.clazz());
     ConstantInstr* result = NULL;
-    if (cls.IsNullClass()) {
-      // A null object is only an instance of Object and dynamic, which has
-      // already been checked above (if the type is instantiated). So we can
-      // return false here if the instance is null (and if the type is
-      // instantiated).
-      result = new ConstantInstr(negate_result ? Bool::True() : Bool::False());
+
+    Error& malformed_error = Error::Handle();
+    if (literal_value.IsInstanceOf(type,
+                                   TypeArguments::Handle(),
+                                   &malformed_error)) {
+      result = new ConstantInstr(negate_result ?
+                                 Bool::False() : Bool::True());
     } else {
-      Error& malformed_error = Error::Handle();
-      if (literal_value.IsInstanceOf(type,
-                                     TypeArguments::Handle(),
-                                     &malformed_error)) {
-        result = new ConstantInstr(negate_result ?
-                                   Bool::False() : Bool::True());
-      } else {
-        result = new ConstantInstr(negate_result ?
-                                   Bool::True() : Bool::False());
-      }
-      ASSERT(malformed_error.IsNull());
+      result = new ConstantInstr(negate_result ?
+                                 Bool::True() : Bool::False());
     }
+    ASSERT(malformed_error.IsNull());
+
     ReturnDefinition(result);
     return;
   }

@@ -3187,6 +3187,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     } else if (name == const SourceString('JS_OBJECT_CLASS_NAME')) {
       String name = backend.namer.getRuntimeTypeName(compiler.objectClass);
       stack.add(addConstantString(node, name));
+    } else if (name == const SourceString('JS_NULL_CLASS_NAME')) {
+      String name = backend.namer.getRuntimeTypeName(compiler.nullClass);
+      stack.add(addConstantString(node, name));
     } else if (name == const SourceString('JS_FUNCTION_CLASS_NAME')) {
       String name = backend.namer.getRuntimeTypeName(compiler.functionClass);
       stack.add(addConstantString(node, name));
