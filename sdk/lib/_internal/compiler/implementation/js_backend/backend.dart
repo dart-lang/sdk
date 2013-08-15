@@ -333,6 +333,9 @@ class JavaScriptBackend extends Backend {
   /// element must be retained.
   final Set<Element> metaTargetsUsed = new Set<Element>();
 
+  /// List of elements that the backend may use.
+  final Set<Element> helpersUsed = new Set<Element>();
+
   JavaScriptBackend(Compiler compiler, bool generateSourceMap, bool disableEval)
       : namer = determineNamer(compiler),
         oneShotInterceptors = new Map<String, Selector>(),
@@ -352,6 +355,13 @@ class JavaScriptBackend extends Backend {
     return compiler.enableMinification ?
         new MinifyNamer(compiler) :
         new Namer(compiler);
+  }
+
+  bool canBeUsedForGlobalOptimizations(Element element) {
+    if (element.isParameter() || element.isFieldParameter()) {
+      element = element.enclosingElement;
+    }
+    return !helpersUsed.contains(element.declaration);
   }
 
   bool isInterceptorClass(ClassElement element) {
@@ -741,7 +751,7 @@ class JavaScriptBackend extends Backend {
       // TODO(ngeoffray): Should we have the resolver register those instead?
       Element e =
           compiler.findHelper(const SourceString('boolConversionCheck'));
-      if (e != null) world.addToWorkList(e);
+      if (e != null) enqueue(world, e, elements);
     }
   }
 
@@ -845,10 +855,10 @@ class JavaScriptBackend extends Backend {
     // need to register checked mode helpers.
     if (inCheckedMode) {
       CheckedModeHelper helper = getCheckedModeHelper(type, typeCast: false);
-      if (helper != null) world.addToWorkList(helper.getElement(compiler));
+      if (helper != null) enqueue(world, helper.getElement(compiler), elements);
       // We also need the native variant of the check (for DOM types).
       helper = getNativeCheckedModeHelper(type, typeCast: false);
-      if (helper != null) world.addToWorkList(helper.getElement(compiler));
+      if (helper != null) enqueue(world, helper.getElement(compiler), elements);
     }
     bool isTypeVariable = type.kind == TypeKind.TYPE_VARIABLE;
     if (!type.isRaw || type.containsTypeVariables) {
@@ -874,8 +884,9 @@ class JavaScriptBackend extends Backend {
       // We will neeed to add the "$is" and "$as" properties on the
       // JavaScript object prototype, so we make sure
       // [:defineProperty:] is compiled.
-      world.addToWorkList(
-          compiler.findHelper(const SourceString('defineProperty')));
+      enqueue(world,
+              compiler.findHelper(const SourceString('defineProperty')),
+              elements);
     }
    }
 
@@ -976,7 +987,15 @@ class JavaScriptBackend extends Backend {
            compiler.enabledRuntimeType;
   }
 
+  // Enqueue [e] in [enqueuer].
+  //
+  // The backend must *always* call this method when enqueuing an
+  // element. Calls done by the backend are not seen by global
+  // optimizations, so they would make these optimizations unsound.
+  // Therefore we need to collect the list of helpers the backend may
+  // use.
   void enqueue(Enqueuer enqueuer, Element e, TreeElements elements) {
+    helpersUsed.add(e.declaration);
     enqueuer.addToWorkList(e);
     elements.registerDependency(e);
   }
@@ -1327,19 +1346,6 @@ class JavaScriptBackend extends Backend {
 
   Element getCyclicThrowHelper() {
     return compiler.findHelper(const SourceString("throwCyclicInit"));
-  }
-
-  /**
-   * Remove [element] from the set of generated code, and put it back
-   * into the worklist.
-   *
-   * Invariant: [element] must be a declaration element.
-   */
-  void eagerRecompile(Element element) {
-    assert(invariant(element, element.isDeclaration));
-    generatedCode.remove(element);
-    generatedBailoutCode.remove(element);
-    compiler.enqueuer.codegen.addToWorkList(element);
   }
 
   bool isNullImplementation(ClassElement cls) {

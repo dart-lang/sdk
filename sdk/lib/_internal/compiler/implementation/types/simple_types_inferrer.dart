@@ -958,6 +958,9 @@ class InternalSimpleTypesInferrer
 
   bool recordType(Element analyzedElement, TypeMask type) {
     if (isNativeElement(analyzedElement)) return false;
+    if (!compiler.backend.canBeUsedForGlobalOptimizations(analyzedElement)) {
+      return false;
+    }
     assert(type != null);
     assert(analyzedElement.isField()
            || analyzedElement.isParameter()
@@ -978,6 +981,9 @@ class InternalSimpleTypesInferrer
    */
   bool recordReturnType(Element analyzedElement, TypeMask returnType) {
     if (isNativeElement(analyzedElement)) return false;
+    if (!compiler.backend.canBeUsedForGlobalOptimizations(analyzedElement)) {
+      return false;
+    }
     assert(analyzedElement.implementation == analyzedElement);
     TypeMask existing = typeInformationOf(analyzedElement).returnType;
     if (optimismState == OPTIMISTIC
@@ -1210,8 +1216,8 @@ class InternalSimpleTypesInferrer
   }
 
   bool updateParameterType(Element parameter) {
-    FunctionTypeInformation functionInfo =
-        typeInformationOf(parameter.enclosingElement);
+    Element function = parameter.enclosingElement;
+    FunctionTypeInformation functionInfo = typeInformationOf(function);
     if (functionInfo.canBeClosurized) return false;
     if (!isNotClosure(parameter.enclosingElement)) return false;
 

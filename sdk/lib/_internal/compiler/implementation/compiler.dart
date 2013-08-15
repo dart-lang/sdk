@@ -222,6 +222,12 @@ abstract class Backend {
   /// Returns true if this element should be retained for reflection even if it
   /// would normally be tree-shaken away.
   bool isNeededForReflection(Element element) => false;
+
+  /// Returns true if global optimizations such as type inferencing
+  /// can apply to this element. One category of elements that do not
+  /// apply is runtime helpers that the backend calls, but the
+  /// optimizations don't see those calls.
+  bool canBeUsedForGlobalOptimizations(Element element);
 }
 
 /**
