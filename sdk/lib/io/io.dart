@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
+ * File, socket, HTTP, and other I/O support for server applications.
+ * 
  * The IO library is used for Dart server applications,
  * which run on a stand-alone Dart VM from the command line.
  * *This library does not work in browser based applications.*
