@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/**
+ * Classes and utilities that supplement the collection support in dart:core.
+ */
 library dart.collection;
 
 import 'dart:_collection-dev';
