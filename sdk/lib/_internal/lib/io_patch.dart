@@ -289,32 +289,8 @@ patch class SecureSocket {
 
   patch static void initialize({String database,
                                 String password,
-                                bool useBuiltinRoots: true,
-                                bool readOnly: true}) {
+                                bool useBuiltinRoots: true}) {
     throw new UnsupportedError("SecureSocket.initialize");
-  }
-
-  patch static X509Certificate addCertificate(List<int> certificate,
-                                              String trust) {
-    throw new UnsupportedError("SecureSocket.addCertificate");
-  }
-
-  patch static importCertificatesWithPrivateKeys(List<int> certificates,
-                                                 String password) {
-    throw new UnsupportedError(
-        "SecureSocket.importCertificatesWithPrivateKeys");
-  }
-
-  patch static X509Certificate getCertificate(String nickname) {
-    throw new UnsupportedError("SecureSocket.getCertificate");
-  }
-
-  patch static removeCertificate(String nickname) {
-    throw new UnsupportedError("SecureSocket.removeCertificate");
-  }
-
-  patch static X509Certificate changeTrust(String nickname, String trust) {
-    throw new UnsupportedError("SecureSocket.changeTrust");
   }
 }
 

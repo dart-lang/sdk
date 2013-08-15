@@ -46,8 +46,6 @@ class SSLFilter {
     kFirstEncrypted = kReadEncrypted
   };
 
-  static dart::Mutex* mutex;  // To protect library initialization.
-
   SSLFilter()
       : callback_error(NULL),
         string_start_(NULL),
@@ -89,17 +87,15 @@ class SSLFilter {
   static void InitializeLibrary(const char* certificate_database,
                                 const char* password,
                                 bool use_builtin_root_certificates,
-                                bool read_only,
                                 bool report_duplicate_initialization = true);
   static Dart_Port GetServicePort();
   Dart_Handle callback_error;
 
-  static char* GetPassword() { return password_; }
-
  private:
   static const int kMemioBufferSize = 20 * KB;
   static bool library_initialized_;
-  static char* password_;
+  static const char* password_;
+  static dart::Mutex* mutex_;  // To protect library initialization.
   static NativeService filter_service_;
 
   uint8_t* buffers_[kNumBuffers];
@@ -119,6 +115,7 @@ class SSLFilter {
     return static_cast<BufferIndex>(i) >= kFirstEncrypted;
   }
   void InitializeBuffers(Dart_Handle dart_this);
+  void InitializePlatformData();
 
   DISALLOW_COPY_AND_ASSIGN(SSLFilter);
 };

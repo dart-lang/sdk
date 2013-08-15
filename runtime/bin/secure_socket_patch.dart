@@ -8,27 +8,8 @@ patch class SecureSocket {
 
   /* patch */ static void initialize({String database,
                                       String password,
-                                      bool useBuiltinRoots: true,
-                                      bool readOnly: true})
-      native "SecureSocket_InitializeLibrary";
-
-  /* patch */ static X509Certificate addCertificate(List<int> certificate,
-                                                    String trust)
-      native "SecureSocket_AddCertificate";
-
-  /* patch */ static importCertificatesWithPrivateKeys(List<int> certificates,
-                                                       String password)
-      native "SecureSocket_ImportCertificatesWithPrivateKeys";
-
-  /* patch */ static X509Certificate changeTrust(String nickname,
-                                                 String trust)
-      native "SecureSocket_ChangeTrust";
-
-  /* patch */ static X509Certificate getCertificate(String nickname)
-      native "SecureSocket_GetCertificate";
-
-  /* patch */ static removeCertificate(String nickname)
-      native "SecureSocket_RemoveCertificate";
+                                      bool useBuiltinRoots: true})
+  native "SecureSocket_InitializeLibrary";
 }
 
 
