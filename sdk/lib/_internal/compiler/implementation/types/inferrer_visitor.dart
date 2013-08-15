@@ -243,8 +243,9 @@ class VariableScope<T> {
     forEachLocalUntilNode(null, f);
   }
 
-  void remove(Element element) {
-    variables.remove(element);
+  bool updates(Element element) {
+    if (variables == null) return false;
+    return variables.containsKey(element);
   }
 
   String toString() {
@@ -399,21 +400,43 @@ class LocalsHandler<T> {
         && elseBranch != null
         && elseBranch.seenBreakOrContinue;
     if (aborts) return;
-    if (thenBranch.aborts) {
-      thenBranch = this;
-      if (elseBranch == null) return;
-    } else if (elseBranch == null || elseBranch.aborts) {
-      elseBranch = this;
+
+    void mergeOneBranch(LocalsHandler<T> other) {
+      other.locals.forEachOwnLocal((Element local, T type) {
+        T myType = locals[local];
+        if (myType == null) return;
+        if (type == myType) return;
+        locals[local] = types.allocateDiamondPhi(myType, type);
+      });
     }
 
-    thenBranch.locals.forEachOwnLocal((Element local, T type) {
-      T otherType = elseBranch.locals[local];
-      if (otherType == null) return;
-      T existing = locals[local];
-      if (type == existing && otherType == existing) return;
-      locals[local] = types.allocateDiamondPhi(type, otherType);
-    });
+    if (thenBranch.aborts) {
+      if (elseBranch == null) return;
+      mergeOneBranch(elseBranch);
+    } else if (elseBranch == null || elseBranch.aborts) {
+      mergeOneBranch(thenBranch);
+    } else {
+      void mergeLocal(Element local) {
+        T myType = locals[local];
+        if (myType == null) return;
+        T elseType = elseBranch.locals[local];
+        T thenType = thenBranch.locals[local];
+        if (thenType == elseType) {
+          locals[local] = thenType;
+        } else {
+          locals[local] = types.allocateDiamondPhi(thenType, elseType);
+        }
+      }
 
+      thenBranch.locals.forEachOwnLocal((Element local, _) {
+        mergeLocal(local);
+      });
+      elseBranch.locals.forEachOwnLocal((Element local, _) {
+        // Discard locals we already processed when iterating over
+        // [thenBranch]'s locals.
+        if (!thenBranch.locals.updates(local)) mergeLocal(local);
+      });
+    }
   }
 
   /**

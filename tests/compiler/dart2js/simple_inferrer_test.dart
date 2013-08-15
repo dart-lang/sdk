@@ -233,6 +233,24 @@ testIsCheck20() {
   }
 }
 
+testIf1(a) {
+  var c = null;
+  if (a) {
+    c = 10;
+  } else {
+  }
+  return c;
+}
+
+testIf2(a) {
+  var c = null;
+  if (a) {
+  } else {
+    c = 10;
+  }
+  return c;
+}
+
 returnAsString() {
   return topLevelGetter() as String;
 }
@@ -503,6 +521,8 @@ main() {
   testIsCheck18(topLevelGetter());
   testIsCheck19(topLevelGetter());
   testIsCheck20();
+  testIf1(topLevelGetter());
+  testIf2(topLevelGetter());
   returnAsString();
   returnIntAsNum();
   returnAsTypedef();
@@ -602,6 +622,8 @@ void main() {
   checkReturn('testIsCheck18', typesTask.dynamicType);
   checkReturn('testIsCheck19', typesTask.dynamicType);
   checkReturn('testIsCheck20', typesTask.dynamicType.nonNullable());
+  checkReturn('testIf1', typesTask.intType.nullable());
+  checkReturn('testIf2', typesTask.intType.nullable());
   checkReturn('returnAsString',
       new TypeMask.subtype(compiler.stringClass.computeType(compiler)));
   checkReturn('returnIntAsNum', typesTask.intType);
