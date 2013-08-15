@@ -13,37 +13,37 @@
 // setters for the purposes of member lookup.
 
 /**
- * The mirrors library provides basic reflection support for Dart.
- * Reflection here is limited to introspection and dynamic
- * evaluation.
+ * Basic reflection in Dart,
+ * with support for introspection and dynamic evaluation.
  *
- * Introspection is that subset of reflection by which a running
+ * *Introspection* is that subset of reflection by which a running
  * program can examine its own structure. For example, a function
  * that prints out the names of all the members of an arbitrary object.
  *
- * Dynamic evaluation refers the ability to evaluate code that
+ * *Dynamic evaluation* refers the ability to evaluate code that
  * has not been literally specified at compile time, such as calling a method
  * whose name is provided as an argument (because it is looked up
  * in a database, or provided interactively by the user).
  *
- * How to Interpret the Dartdoc specifications below
+ * ## How to interpret this library's documentation
  *
  * As a rule, the names of Dart declarations are represented using
- * instances of class [Symbol]. Whenever we speak of an object *s*
- * of class [Symbol] denoting a name, we mean the string that
+ * instances of class [Symbol]. Whenever the doc speaks of an object *s*
+ * of class [Symbol] denoting a name, it means the string that
  * was used to construct *s*.
  *
- * We will also frequently abuse notation and write
- * Dart pseudo-code such as [:o.x(a):], where we have defined
- * o and a to be objects; what is actually meant in these
+ * The documentation frequently abuses notation with
+ * Dart pseudo-code such as [:o.x(a):], where
+ * o and a are defined to be objects; what is actually meant in these
  * cases is [:o'.x(a'):] where *o'* and *a'* are Dart variables
  * bound to *o* and *a* respectively. Furthermore, *o'* and *a'*
  * are assumed to be fresh variables (meaning that they are
  * distinct from any other variables in the program).
  *
+ * Sometimes the documentation refers to *serializable* objects.
  * An object is serializable across isolates if and only if it is an instance of
- * either num, bool, String, a list of objects that are serializable
- * across isolates or a map whose keys and values are all serializable across
+ * num, bool, String, a list of objects that are serializable
+ * across isolates, or a map with keys and values that are all serializable across
  * isolates.
  */
 library dart.mirrors;
