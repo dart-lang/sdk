@@ -56,7 +56,7 @@ class ValueRangeInfo {
  */
 abstract class Value {
   final ValueRangeInfo info;
-  const Value([this.info = null]);
+  const Value(this.info);
 
   Value operator +(Value other) => const UnknownValue();
   Value operator -(Value other) => const UnknownValue();
