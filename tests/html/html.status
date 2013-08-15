@@ -24,6 +24,7 @@ audiobuffersourcenode_test: Pass, Fail, Crash # http://crbug.com/256601
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 # postMessage in dartium always transfers the typed array buffer, never a view
 postmessage_structured_test/typed_arrays: Fail
+events_test: Pass, Fail # Issue 12489
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
