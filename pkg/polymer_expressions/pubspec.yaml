@@ -1,0 +1,10 @@
+name: polymer_expressions
+author: Web UI Authors <html-dev@dartlang.org>
+description: An expressive custom binding syntax for MDV templates
+homepage: http://www.dartlang.org/
+dependencies:
+  browser: any
+  mdv: any
+  observe: any
+dev_dependencies:
+  unittest: any
