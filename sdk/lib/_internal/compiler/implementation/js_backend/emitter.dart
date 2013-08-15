@@ -1296,6 +1296,8 @@ class CodeEmitterTask extends CompilerTask {
   /// O is the named arguments.
   /// The reflection name of a constructor is similar to a regular method but
   /// starts with 'new '.
+  /// The reflection name of class 'C' is 'C'.
+  /// An anonymous mixin application has no reflection name.
   /// This is used by js_mirrors.dart.
   String getReflectionName(elementOrSelector, String mangledName) {
     SourceString name = elementOrSelector.name;
@@ -1982,7 +1984,11 @@ class CodeEmitterTask extends CompilerTask {
     buffer.write(jsAst.prettyPrint(builder.toObjectInitializer(), compiler));
     if (backend.shouldRetainName(classElement.name)) {
       String reflectionName = getReflectionName(classElement, className);
-      buffer.write(',$n$n"+$reflectionName": 0');
+      List<int> interfaces = <int>[];
+      for (DartType interface in classElement.interfaces) {
+        interfaces.add(reifyType(interface));
+      }
+      buffer.write(',$n$n"+$reflectionName": $interfaces');
     }
   }
 
@@ -4013,10 +4019,17 @@ class CodeEmitterTask extends CompilerTask {
     String metadataField = '"${namer.metadataField}"';
     return '''
 (function (reflectionData) {
+'''
+// [map] returns an object literal that V8 shouldn't try to optimize with a
+// hidden class. This prevents a potential performance problem where V8 tries
+// to build a hidden class for an object used as a hashMap.
+'''
+  function map(x){x={x:x};delete x.x;return x}
   if (!init.libraries) init.libraries = [];
-  if (!init.mangledNames) init.mangledNames = {};
-  if (!init.mangledGlobalNames) init.mangledGlobalNames = {};
-  if (!init.statics) init.statics = {};
+  if (!init.mangledNames) init.mangledNames = map();
+  if (!init.mangledGlobalNames) init.mangledGlobalNames = map();
+  if (!init.statics) init.statics = map();
+  if (!init.interfaces) init.interfaces = map();
   var libraries = init.libraries;
   var mangledNames = init.mangledNames;
   var mangledGlobalNames = init.mangledGlobalNames;
@@ -4052,6 +4065,8 @@ class CodeEmitterTask extends CompilerTask {
         var previousProperty;
         if (firstChar === "+") {
           mangledGlobalNames[previousProperty] = property.substring(1);
+          if (element && element.length) ''' // Breaking long line.
+'''init.interfaces[previousProperty] = element;
         } else if (firstChar === "@") {
           property = property.substring(1);
           ${namer.CURRENT_ISOLATE}[property][$metadataField] = element;

@@ -65,11 +65,14 @@ testMixin() {
       'Class(s(Mixin) in s(test.mixin_test), top-level)',
       'Class(s(Object) in s(dart.core), top-level)',
   ]);
+
   expect(
-      '{Mixin: Method(s(Mixin) in s(Mixin), constructor),'
-      ' i: Variable(s(i) in s(Mixin)),'
+      '{i: Variable(s(i) in s(Mixin)),'
       ' m: Method(s(m) in s(Mixin))}',
       reflectClass(Mixin).members);
+
+  expect('{Mixin: Method(s(Mixin) in s(Mixin), constructor)}',
+         reflectClass(Mixin).constructors);
 }
 
 testMixin2() {
@@ -77,11 +80,14 @@ testMixin2() {
       'Class(s(Mixin2) in s(test.mixin_test), top-level)',
       'Class(s(Object) in s(dart.core), top-level)',
   ]);
+
   expect(
-      '{Mixin2: Method(s(Mixin2) in s(Mixin2), constructor),'
-      ' i2: Variable(s(i2) in s(Mixin2)),'
+      '{i2: Variable(s(i2) in s(Mixin2)),'
       ' m2: Method(s(m2) in s(Mixin2))}',
       reflectClass(Mixin2).members);
+
+  expect('{Mixin2: Method(s(Mixin2) in s(Mixin2), constructor)}',
+         reflectClass(Mixin2).constructors);
 }
 
 testMixinApplication() {
@@ -94,11 +100,13 @@ testMixinApplication() {
   ]);
 
   expect(
-      '{MixinApplication: Method(s(MixinApplication) in s(MixinApplication),'
-      ' constructor),'
-      ' i: Variable(s(i) in s(MixinApplication)),'
+      '{i: Variable(s(i) in s(MixinApplication)),'
       ' m: Method(s(m) in s(MixinApplication))}',
       reflectClass(MixinApplication).members);
+
+  expect('{MixinApplication: Method(s(MixinApplication) in s(MixinApplication),'
+         ' constructor)}',
+         reflectClass(MixinApplication).constructors);
 
   expectSame(reflectClass(C), reflectClass(MixinApplication).superclass);
 }
@@ -114,18 +122,25 @@ testMixinApplicationA() {
   ]);
 
   expect(
-      '{MixinApplicationA: Method(s(MixinApplicationA) in s(MixinApplicationA),'
-      ' constructor),'
-      ' i2: Variable(s(i2) in s(MixinApplicationA)),'
+      // TODO(ahe): The owner should be the mixin.
+      '{i2: Variable(s(i2) in s(MixinApplicationA)),'
       ' m2: Method(s(m2) in s(MixinApplicationA))}',
       reflectClass(MixinApplicationA).members);
 
   expect(
-       // TODO(ahe): The owner should probably be the mixin application.
-      '{Mixin: Method(s(Mixin) in s(Mixin), constructor),'
-      ' i: Variable(s(i) in s(Mixin)),'
+      '{MixinApplicationA: Method(s(MixinApplicationA) in s(MixinApplicationA),'
+      ' constructor)}',
+      reflectClass(MixinApplicationA).constructors);
+
+  expect(
+      '{i: Variable(s(i) in s(Mixin)),'
       ' m: Method(s(m) in s(Mixin))}',
       reflectClass(MixinApplicationA).superclass.members);
+
+  expect(
+      // TODO(ahe): The owner should be the mixin application.
+      '{Mixin: Method(s(Mixin) in s(Mixin), constructor)}',
+      reflectClass(MixinApplicationA).superclass.constructors);
 
   expectSame(
       reflectClass(C),
@@ -142,11 +157,14 @@ testUnusedMixinApplication() {
   ]);
 
   expect(
-      '{UnusedMixinApplication: Method(s(UnusedMixinApplication)'
-      ' in s(UnusedMixinApplication), constructor),'
-      ' i: Variable(s(i) in s(UnusedMixinApplication)),'
+      '{i: Variable(s(i) in s(UnusedMixinApplication)),'
       ' m: Method(s(m) in s(UnusedMixinApplication))}',
       reflectClass(UnusedMixinApplication).members);
+
+  expect(
+      '{UnusedMixinApplication: Method(s(UnusedMixinApplication)'
+      ' in s(UnusedMixinApplication), constructor)}',
+      reflectClass(UnusedMixinApplication).constructors);
 
   expectSame(reflectClass(C), reflectClass(UnusedMixinApplication).superclass);
 }
@@ -162,16 +180,22 @@ testSubclass() {
   ]);
 
   expect(
-      '{Subclass: Method(s(Subclass) in s(Subclass), constructor),'
-      ' f: Method(s(f) in s(Subclass))}',
+      '{f: Method(s(f) in s(Subclass))}',
       reflectClass(Subclass).members);
 
   expect(
-       // TODO(ahe): The owner should probably be the mixin application.
-      '{Mixin: Method(s(Mixin) in s(Mixin), constructor),'
-      ' i: Variable(s(i) in s(Mixin)),'
+      '{Subclass: Method(s(Subclass) in s(Subclass), constructor)}',
+      reflectClass(Subclass).constructors);
+
+  expect(
+      '{i: Variable(s(i) in s(Mixin)),'
       ' m: Method(s(m) in s(Mixin))}',
       reflectClass(Subclass).superclass.members);
+
+  expect(
+       // TODO(ahe): The owner should be the mixin application.
+      '{Mixin: Method(s(Mixin) in s(Mixin), constructor)}',
+      reflectClass(Subclass).superclass.constructors);
 
   expectSame(
       reflectClass(C),
@@ -189,9 +213,12 @@ testSubclass2() {
   ]);
 
   expect(
-      '{Subclass2: Method(s(Subclass2) in s(Subclass2), constructor),'
-      ' g: Method(s(g) in s(Subclass2))}',
+      '{g: Method(s(g) in s(Subclass2))}',
       reflectClass(Subclass2).members);
+
+  expect(
+      '{Subclass2: Method(s(Subclass2) in s(Subclass2), constructor)}',
+      reflectClass(Subclass2).constructors);
 
   expectSame(
       reflectClass(MixinApplication),
@@ -211,23 +238,32 @@ testSubclassA() {
   ]);
 
   expect(
-      '{SubclassA: Method(s(SubclassA) in s(SubclassA), constructor),'
-      ' fa: Method(s(fa) in s(SubclassA))}',
+      '{fa: Method(s(fa) in s(SubclassA))}',
       reflectClass(SubclassA).members);
 
   expect(
-       // TODO(ahe): The owner should probably be the mixin application.
-      '{Mixin2: Method(s(Mixin2) in s(Mixin2), constructor),'
-      ' i2: Variable(s(i2) in s(Mixin2)),'
+      '{SubclassA: Method(s(SubclassA) in s(SubclassA), constructor)}',
+      reflectClass(SubclassA).constructors);
+
+  expect(
+      '{i2: Variable(s(i2) in s(Mixin2)),'
       ' m2: Method(s(m2) in s(Mixin2))}',
       reflectClass(SubclassA).superclass.members);
 
   expect(
-       // TODO(ahe): The owner should probably be the mixin application.
-      '{Mixin: Method(s(Mixin) in s(Mixin), constructor),'
-      ' i: Variable(s(i) in s(Mixin)),'
+       // TODO(ahe): The owner should be the mixin application.
+      '{Mixin2: Method(s(Mixin2) in s(Mixin2), constructor)}',
+      reflectClass(SubclassA).superclass.constructors);
+
+  expect(
+      '{i: Variable(s(i) in s(Mixin)),'
       ' m: Method(s(m) in s(Mixin))}',
       reflectClass(SubclassA).superclass.superclass.members);
+
+  expect(
+       // TODO(ahe): The owner should be the mixin application.
+      '{Mixin: Method(s(Mixin) in s(Mixin), constructor)}',
+      reflectClass(SubclassA).superclass.superclass.constructors);
 
   expectSame(
       reflectClass(C),
@@ -246,9 +282,12 @@ testSubclass2A() {
   ]);
 
   expect(
-      '{Subclass2A: Method(s(Subclass2A) in s(Subclass2A), constructor),'
-      ' ga: Method(s(ga) in s(Subclass2A))}',
+      '{ga: Method(s(ga) in s(Subclass2A))}',
       reflectClass(Subclass2A).members);
+
+  expect(
+      '{Subclass2A: Method(s(Subclass2A) in s(Subclass2A), constructor)}',
+      reflectClass(Subclass2A).constructors);
 
   expectSame(reflectClass(MixinApplicationA),
              reflectClass(Subclass2A).superclass);
