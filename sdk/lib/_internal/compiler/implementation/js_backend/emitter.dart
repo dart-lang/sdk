@@ -3587,7 +3587,7 @@ class CodeEmitterTask extends CompilerTask {
     if (!backend.retainMetadataOf(element)) return code;
     return compiler.withCurrentElement(element, () {
       List<int> metadata = <int>[];
-      FunctionSignature signature = element.computeSignature(compiler);
+      FunctionSignature signature = element.functionSignature;
       if (element.isConstructor()) {
         metadata.add(reifyType(element.getEnclosingClass().thisType));
       } else {

@@ -341,6 +341,10 @@ class ResolverTask extends CompilerTask {
       }
       if (element.isSynthesized) {
         Element target = element.targetConstructor;
+        // Ensure the signature of the synthesized element is
+        // resolved. This is the only place where the resolver is
+        // seeing this element.
+        element.computeSignature(compiler);
         if (!target.isErroneous()) {
           compiler.enqueuer.resolution.registerStaticUse(
               element.targetConstructor);
