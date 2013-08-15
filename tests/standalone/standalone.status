@@ -151,8 +151,6 @@ io/list_input_stream_test: Skip # Timeout TODO(ngeoffray): investigate
 *: Skip
 
 [ $arch == arm ]
-io/test_extension_test: Fail
-io/test_extension_fail_test: Fail
 io/internet_address_test: Fail  # localhost is an Unknown name?
 
 [ $arch == simarm ]
