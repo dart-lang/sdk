@@ -417,7 +417,6 @@ void Object::InitOnce() {
 
   // Allocate and initialize the null class.
   cls = Class::New<Instance>(kNullCid);
-  cls.set_is_prefinalized();
   isolate->object_store()->set_null_class(cls);
 
   // Allocate and initialize the free list element class.
@@ -849,19 +848,6 @@ RawError* Object::Init(Isolate* isolate) {
   // well as the core implementation dictionary have been setup, preallocate
   // remaining classes and register them by name in the dictionaries.
   String& name = String::Handle();
-  cls = Class::New<Bool>();
-  object_store->set_bool_class(cls);
-  RegisterClass(cls, Symbols::Bool(), core_lib);
-  pending_classes.Add(cls, Heap::kOld);
-
-  // TODO(12364): The class 'Null' is not registered in the class dictionary
-  // because it is not exported by dart:core.
-  cls = Class::New<Instance>(kNullCid);
-  object_store->set_null_class(cls);
-  cls.set_is_prefinalized();
-  RegisterClass(cls, Symbols::Null(), core_lib);
-  pending_classes.Add(cls, Heap::kOld);
-
   cls = object_store->array_class();  // Was allocated above.
   RegisterPrivateClass(cls, Symbols::ObjectArray(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
@@ -928,6 +914,17 @@ RawError* Object::Init(Isolate* isolate) {
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_object_type(type);
+
+  cls = Class::New<Bool>();
+  object_store->set_bool_class(cls);
+  RegisterClass(cls, Symbols::Bool(), core_lib);
+  pending_classes.Add(cls, Heap::kOld);
+
+  cls = Class::New<Instance>(kNullCid);
+  cls.set_is_prefinalized();
+  object_store->set_null_class(cls);
+  RegisterClass(cls, Symbols::Null(), core_lib);
+  pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->type_class();
   RegisterPrivateClass(cls, Symbols::Type(), core_lib);
@@ -10468,13 +10465,13 @@ RawString* AbstractType::ClassName() const {
 
 bool AbstractType::IsNullType() const {
   return HasResolvedTypeClass() &&
-      (type_class() == Type::Handle(Type::NullType()).type_class());
+      (type_class() == Isolate::Current()->object_store()->null_class());
 }
 
 
 bool AbstractType::IsBoolType() const {
   return HasResolvedTypeClass() &&
-      (type_class() == Type::Handle(Type::BoolType()).type_class());
+      (type_class() == Isolate::Current()->object_store()->bool_class());
 }
 
 

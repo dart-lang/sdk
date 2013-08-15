@@ -1927,7 +1927,6 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
     // Prevent extending core implementation classes.
     bool is_error = false;
     switch (interface_class.id()) {
-      case kNullCid:
       case kNumberCid:
       case kIntegerCid:  // Class Integer, not int.
       case kSmiCid:
@@ -1939,6 +1938,7 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
       case kExternalOneByteStringCid:
       case kExternalTwoByteStringCid:
       case kBoolCid:
+      case kNullCid:
       case kArrayCid:
       case kImmutableArrayCid:
       case kGrowableObjectArrayCid:
@@ -2001,8 +2001,8 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
     // The exception is signature classes, which are compiler generated and
     // represent a function type, therefore implementing the Function interface.
     if (!cls_belongs_to_core_lib) {
-      if (interface.IsNullType() ||
-          interface.IsBoolType() ||
+      if (interface.IsBoolType() ||
+          interface.IsNullType() ||
           interface.IsNumberType() ||
           interface.IsIntType() ||
           interface.IsDoubleType() ||

@@ -35,6 +35,7 @@
     'invocation_mirror.h',
     'invocation_mirror_patch.dart',
     'map_patch.dart',
+    'null_patch.dart',
     'object.cc',
     'object_patch.dart',
     'print_patch.dart',

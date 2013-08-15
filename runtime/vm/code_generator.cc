@@ -1032,11 +1032,6 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
   const MegamorphicCache& cache = MegamorphicCache::Handle(
       isolate->megamorphic_cache_table()->Lookup(name, descriptor));
   Class& cls = Class::Handle(receiver.clazz());
-  const bool is_null = cls.IsNullClass();
-  // For lookups treat null as an instance of class Object.
-  if (is_null) {
-    cls = isolate->object_store()->object_class();
-  }
   ASSERT(!cls.IsNull());
   if (FLAG_trace_ic || FLAG_trace_ic_miss_in_optimized) {
     OS::PrintErr("Megamorphic IC miss, class=%s, function=%s\n",
@@ -1064,8 +1059,7 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
   if (instructions.IsNull()) return;
 
   cache.EnsureCapacity();
-  const Smi& class_id = Smi::Handle(Smi::New(
-      is_null ? static_cast<intptr_t>(kNullCid) : cls.id()));
+  const Smi& class_id = Smi::Handle(Smi::New(cls.id()));
   cache.Insert(class_id, target);
   return;
 }
@@ -1217,11 +1211,7 @@ DEFINE_RUNTIME_ENTRY(InstanceFunctionLookup, 4) {
   const Array& args_descriptor = Array::CheckedHandle(arguments.ArgAt(2));
   const Array& args = Array::CheckedHandle(arguments.ArgAt(3));
 
-  Class& receiver_class = Class::Handle(receiver.clazz());
-  // For lookups treat null as an instance of class Object.
-  if (receiver_class.IsNullClass()) {
-    receiver_class = isolate->object_store()->object_class();
-  }
+  const Class& receiver_class = Class::Handle(receiver.clazz());
   const String& target_name = String::Handle(ic_data.target_name());
 
   Object& result = Object::Handle();

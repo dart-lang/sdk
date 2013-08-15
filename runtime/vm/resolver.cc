@@ -26,14 +26,7 @@ RawFunction* Resolver::ResolveDynamic(const Instance& receiver,
                                       const String& function_name,
                                       const ArgumentsDescriptor& args_desc) {
   // Figure out type of receiver first.
-  Class& cls = Class::Handle();
-  cls = receiver.clazz();
-  // For lookups treat null as an instance of class Object.
-  if (cls.IsNullClass()) {
-    cls = Isolate::Current()->object_store()->object_class();
-  }
-  ASSERT(!cls.IsNull());
-
+  const Class& cls = Class::Handle(receiver.clazz());
   return ResolveDynamicForReceiverClass(cls, function_name, args_desc);
 }
 
