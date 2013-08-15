@@ -201,6 +201,14 @@ class JavaScriptBackend extends Backend {
   Element getInterceptorMethod;
   Element interceptedNames;
 
+  /**
+   * This element is a top-level variable (in generated output) that the
+   * compiler initializes to a datastructure used to map from a Type to the
+   * interceptor.  See declaration of `mapTypeToInterceptor` in
+   * `interceptors.dart`.
+   */
+  Element mapTypeToInterceptor;
+
   HType stringType;
   HType indexablePrimitiveType;
   HType readableArrayType;
@@ -366,7 +374,7 @@ class JavaScriptBackend extends Backend {
 
   bool isInterceptorClass(ClassElement element) {
     if (element == null) return false;
-    if (element.isNative()) return true;
+    if (Elements.isNativeOrExtendsNative(element)) return true;
     if (interceptedClasses.contains(element)) return true;
     if (classesMixedIntoNativeClasses.contains(element)) return true;
     return false;
@@ -422,7 +430,7 @@ class JavaScriptBackend extends Backend {
       Set<ClassElement> result = new Set<ClassElement>();
       for (Element element in intercepted) {
         ClassElement classElement = element.getEnclosingClass();
-        if (classElement.isNative()
+        if (Elements.isNativeOrExtendsNative(classElement)
             || interceptedClasses.contains(classElement)) {
           result.add(classElement);
         }
@@ -464,6 +472,8 @@ class JavaScriptBackend extends Backend {
         compiler.findInterceptor(const SourceString('getInterceptor'));
     interceptedNames =
         compiler.findInterceptor(const SourceString('interceptedNames'));
+    mapTypeToInterceptor =
+        compiler.findInterceptor(const SourceString('mapTypeToInterceptor'));
     dispatchPropertyName =
         compiler.findInterceptor(const SourceString('dispatchPropertyName'));
     getDispatchPropertyMethod =
@@ -604,7 +614,7 @@ class JavaScriptBackend extends Backend {
             member.name, () => new Set<Element>());
         set.add(member);
         if (classElement == jsInterceptorClass) return;
-        if (!classElement.isNative()) {
+        if (classElement.isMixinApplication) {
           MixinApplicationElement mixinApplication = classElement;
           assert(member.getEnclosingClass() == mixinApplication.mixin);
           classesMixedIntoNativeClasses.add(mixinApplication.mixin);
@@ -713,7 +723,7 @@ class JavaScriptBackend extends Backend {
       addInterceptors(jsPlainJavaScriptObjectClass, enqueuer, elements);
     } else if (cls == jsUnknownJavaScriptObjectClass) {
       addInterceptors(jsUnknownJavaScriptObjectClass, enqueuer, elements);
-    } else if (cls.isNative()) {
+    } else if (Elements.isNativeOrExtendsNative(cls)) {
       addInterceptorsForNativeClassMembers(cls, enqueuer);
     }
   }

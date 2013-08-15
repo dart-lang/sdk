@@ -9,7 +9,6 @@ import 'dart:html';
 
 class CustomType extends Element {
   factory CustomType() => null;
-
   bool onCreatedCalled = false;
   void onCreated() {
     onCreatedCalled = true;

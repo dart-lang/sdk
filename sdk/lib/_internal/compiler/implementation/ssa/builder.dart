@@ -3227,6 +3227,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       handleForeignJsCurrentIsolate(node);
     } else if (name == const SourceString('JS_GET_NAME')) {
       handleForeignJsGetName(node);
+    } else if (name == const SourceString('JS_EFFECT')) {
+      stack.add(graph.addConstantNull(compiler));
     } else {
       throw "Unknown foreign: ${selector}";
     }

@@ -93,6 +93,12 @@ class NativeEmitter {
     return backend.namer.isolateAccess(element);
   }
 
+  String get defineNativeMethodsExtendedName {
+    Element element = compiler.findHelper(
+        const SourceString('defineNativeMethodsExtended'));
+    return backend.namer.isolateAccess(element);
+  }
+
   String get defineNativeMethodsFinishName {
     Element element = compiler.findHelper(
         const SourceString('defineNativeMethodsFinish'));
@@ -118,6 +124,10 @@ class NativeEmitter {
    * benefit), due to how [getNativeInterceptor] works.  Finding the interceptor
    * of a leaf class in the hierarchy is more efficient that a non-leaf, so it
    * improves performance when more classes can be treated as leaves.
+   *
+   * [classes] contains native classes, mixin applications, and user subclasses
+   * of native classes.  ONLY the native classes are generated here.  [classes]
+   * is sorted in desired output order.
    */
   void generateNativeClasses(List<ClassElement> classes,
                              CodeBuffer mainBuffer) {
@@ -127,8 +137,10 @@ class NativeEmitter {
 
     List<ClassElement> preOrder = <ClassElement>[];
     Set<ClassElement> seen = new Set<ClassElement>();
+    seen..add(compiler.objectClass)
+        ..add(backend.jsInterceptorClass);
     void walk(ClassElement element) {
-      if (seen.contains(element) || element == compiler.objectClass) return;
+      if (seen.contains(element)) return;
       seen.add(element);
       walk(element.superclass);
       preOrder.add(element);
@@ -140,8 +152,10 @@ class NativeEmitter {
     Map<ClassElement, ClassBuilder> builders =
         new Map<ClassElement, ClassBuilder>();
     for (ClassElement classElement in classes) {
-      ClassBuilder builder = generateNativeClass(classElement);
-      builders[classElement] = builder;
+      if (classElement.isNative()) {
+        ClassBuilder builder = generateNativeClass(classElement);
+        builders[classElement] = builder;
+      }
     }
 
     // Find which classes are needed and which are non-leaf classes.  Any class
@@ -150,6 +164,10 @@ class NativeEmitter {
 
     Set<ClassElement> neededClasses = new Set<ClassElement>();
     Set<ClassElement> nonleafClasses = new Set<ClassElement>();
+
+    Map<ClassElement, List<ClassElement>> extensionPoints =
+        computeExtensionPoints(preOrder);
+
     neededClasses.add(compiler.objectClass);
 
     Set<ClassElement> neededByConstant =
@@ -176,6 +194,8 @@ class NativeEmitter {
         // TODO(9556): Remove this test when [emitRuntimeTypeSupport] no longer
         // adds information to a class prototype or constructor.
         needed = true;
+      } else if (extensionPoints.containsKey(classElement)) {
+        needed = true;
       }
 
       if (needed || neededClasses.contains(classElement)) {
@@ -185,7 +205,7 @@ class NativeEmitter {
       }
     }
 
-    // Collect all the tags that map to each class.
+    // Collect all the tags that map to each native class.
 
     Map<ClassElement, Set<String>> leafTags =
         new Map<ClassElement, Set<String>>();
@@ -193,9 +213,11 @@ class NativeEmitter {
         new Map<ClassElement, Set<String>>();
 
     for (ClassElement classElement in classes) {
+      if (!classElement.isNative()) continue;
       List<String> nativeTags = nativeTagsOfClass(classElement);
 
-      if (nonleafClasses.contains(classElement)) {
+      if (nonleafClasses.contains(classElement) ||
+          extensionPoints.containsKey(classElement)) {
         nonleafTags
             .putIfAbsent(classElement, () => new Set<String>())
             .addAll(nativeTags);
@@ -218,10 +240,19 @@ class NativeEmitter {
     if (compiler.enqueuer.codegen.nativeEnqueuer
         .hasInstantiatedNativeClasses()) {
       void generateDefines(ClassElement classElement) {
-        generateDefineNativeMethods(leafTags[classElement], classElement,
-            defineNativeMethodsName);
-        generateDefineNativeMethods(nonleafTags[classElement], classElement,
-            defineNativeMethodsNonleafName);
+        generateDefineNativeMethods(leafTags[classElement],
+            null,
+            classElement, defineNativeMethodsName);
+        List<ClassElement> extensions = extensionPoints[classElement];
+        if (extensions == null) {
+          generateDefineNativeMethods(nonleafTags[classElement],
+              null,
+              classElement, defineNativeMethodsNonleafName);
+        } else {
+          generateDefineNativeMethods(nonleafTags[classElement],
+              makeSubclassList(extensions),
+              classElement, defineNativeMethodsExtendedName);
+        }
       }
       generateDefines(backend.jsInterceptorClass);
       for (ClassElement classElement in classes) {
@@ -231,6 +262,7 @@ class NativeEmitter {
 
     // Emit the native class interceptors that were actually used.
     for (ClassElement classElement in classes) {
+      if (!classElement.isNative()) continue;
       if (neededClasses.contains(classElement)) {
         // Define interceptor class for [classElement].
         emitter.emitClassBuilderWithReflectionData(
@@ -242,6 +274,39 @@ class NativeEmitter {
     }
   }
 
+  /**
+   * Computes the native classes that are extended (subclassed) by non-native
+   * classes and the set non-mative classes that extend them.  (A List is used
+   * instead of a Set for out stability).
+   */
+  Map<ClassElement, List<ClassElement>> computeExtensionPoints(
+      List<ClassElement> classes) {
+    ClassElement nativeSuperclassOf(ClassElement element) {
+      if (element == null) return null;
+      if (element.isNative()) return element;
+      return nativeSuperclassOf(element.superclass);
+    }
+
+    ClassElement nativeAncestorOf(ClassElement element) {
+      return nativeSuperclassOf(element.superclass);
+    }
+
+    Map<ClassElement, List<ClassElement>> map =
+        new Map<ClassElement, List<ClassElement>>();
+
+    for (ClassElement classElement in classes) {
+      if (classElement.isNative()) continue;
+      ClassElement nativeAncestor = nativeAncestorOf(classElement);
+      if (nativeAncestor != null) {
+        map
+          .putIfAbsent(nativeAncestor, () => <ClassElement>[])
+          .add(classElement);
+      }
+    }
+
+    return map;
+  }
+
   ClassBuilder generateNativeClass(ClassElement classElement) {
     assert(!classElement.hasBackendMembers);
     nativeClasses.add(classElement);
@@ -249,6 +314,7 @@ class NativeEmitter {
     ClassElement superclass = classElement.superclass;
     assert(superclass != null);
     // Fix superclass.  TODO(sra): make native classes inherit from Interceptor.
+    assert(superclass != compiler.objectClass);
     if (superclass == compiler.objectClass) {
       superclass = backend.jsInterceptorClass;
     }
@@ -275,18 +341,28 @@ class NativeEmitter {
   }
 
   void generateDefineNativeMethods(
-      Set<String> tags, ClassElement classElement, String definer) {
+      Set<String> tags, jsAst.Expression extraArgument,
+      ClassElement classElement, String definer) {
     if (tags == null) return;
     String tagsString = (tags.toList()..sort()).join('|');
-    jsAst.Expression definition =
-        js(definer)(
-            [js.string(tagsString),
-             js(backend.namer.isolateAccess(classElement))]);
+
+    List arguments = [
+        js.string(tagsString),
+        js(backend.namer.isolateAccess(classElement))];
+    if (extraArgument != null) {
+      arguments.add(extraArgument);
+    }
+    jsAst.Expression definition = js(definer)(arguments);
 
     nativeBuffer.add(jsAst.prettyPrint(definition, compiler));
     nativeBuffer.add('$N$n');
   }
 
+  jsAst.Expression makeSubclassList(List<ClassElement> classes) {
+    return new jsAst.ArrayInitializer.from(
+        classes.map((ClassElement classElement) =>
+            js(backend.namer.isolateAccess(classElement))));
+  }
 
   void finishGenerateNativeClasses() {
     // TODO(sra): Put specialized version of getNativeMethods on

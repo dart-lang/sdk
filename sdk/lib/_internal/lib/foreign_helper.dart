@@ -239,3 +239,19 @@ JS_GLOBAL_OBJECT() {}
  * Obtain [name] from Namer.
  */
 String JS_GET_NAME(String name) {}
+
+/**
+ * Pretend [code] is executed.  Generates no executable code.  This is used to
+ * model effects at some other point in external code.  For example, the
+ * following models an assignment to foo with an unknown value.
+ *
+ *     var foo;
+ *
+ *     main() {
+ *       JS_EFFECT((_){ foo = _; })
+ *     }
+ *
+ * TODO(sra): Replace this hack with something to mark the volatile or
+ * externally initialized elements.
+ */
+void JS_EFFECT(Function code) { code(null); }

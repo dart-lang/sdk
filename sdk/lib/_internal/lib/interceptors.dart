@@ -25,7 +25,7 @@ import 'dart:_js_helper' show allMatchesInStringUnchecked,
                               lookupDispatchRecord,
                               StringMatch,
                               firstMatchAfter;
-import 'dart:_foreign_helper' show JS;
+import 'dart:_foreign_helper' show JS, JS_EFFECT;
 
 part 'js_array.dart';
 part 'js_number.dart';
@@ -246,6 +246,37 @@ void initializeDispatchPropertyCSP(
  * intercepted.
  */
 var interceptedNames;
+
+
+/**
+ * Data structure used to map a [Type] to the [Interceptor] for that type.  It
+ * is JavaScript array of 2N entries of adjacent slots containing a [Type]
+ * followed by an [Interceptor] class for the type.
+ *
+ * The value of this variable is set by the compiler and contains only types
+ * that are user extensions of native classes where the type occurs as a
+ * constant in the program.
+ */
+// TODO(sra): Mark this as initialized to a constant with unknown value.
+var mapTypeToInterceptor;
+
+findClassConstructorForType(Type type) {
+  JS_EFFECT((_){ mapTypeToInterceptor = _; });
+  if (mapTypeToInterceptor == null) return null;
+  List map = JS('JSFixedArray', '#', mapTypeToInterceptor);
+  for (int i = 0; i + 1 < map.length; i += 2) {
+    if (type == map[i]) {
+      return map[i + 1];
+    }
+  }
+  return null;
+}
+
+findInterceptorForType(Type type) {
+  var constructor = findClassConstructorForType(type);
+  if (constructor == null) return null;
+  return JS('', '#.prototype', constructor);
+}
 
 /**
  * The base interceptor class.

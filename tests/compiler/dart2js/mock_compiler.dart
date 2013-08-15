@@ -164,6 +164,7 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   getInterceptor(x) {}
   getNativeInterceptor(x) {}
   var dispatchPropertyName;
+  var mapTypeToInterceptor;
   getDispatchProperty(o) {}
   initializeDispatchProperty(f,p,i) {}
   initializeDispatchPropertyCSP(f,p,i) {}

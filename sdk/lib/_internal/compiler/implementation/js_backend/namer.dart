@@ -569,11 +569,11 @@ class Namer implements ClosureNamer {
       return cls.name.slowToString();
     }
     List<String> names = classes
-        .where((cls) => !cls.isNative())
+        .where((cls) => !Elements.isNativeOrExtendsNative(cls))
         .map(abbreviate)
         .toList();
     // There is one dispatch mechanism for all native classes.
-    if (classes.any((cls) => cls.isNative())) {
+    if (classes.any((cls) => Elements.isNativeOrExtendsNative(cls))) {
       names.add("x");
     }
     // Sort the names of the classes after abbreviating them to ensure

@@ -86,6 +86,11 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   bool hasInstantiatedNativeClasses() => !registeredClasses.isEmpty;
 
+  final Set<ClassElement> nativeClassesAndSubclasses = new Set<ClassElement>();
+
+  final Map<ClassElement, Set<ClassElement>> nonNativeSubclasses =
+      new Map<ClassElement, Set<ClassElement>>();
+
   /**
    * Records matched constraints ([SpecialType] or [DartType]).  Once a type
    * constraint has been matched, there is no need to match it again.
@@ -115,6 +120,9 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   void processNativeClasses(Iterable<LibraryElement> libraries) {
     libraries.forEach(processNativeClassesInLibrary);
     processNativeClassesInLibrary(compiler.isolateHelperLibrary);
+
+    processSubclassesOfNativeClasses(libraries);
+
     if (!enableLiveTypeAnalysis) {
       nativeClasses.forEach((c) => enqueueClass(c, 'forced'));
       flushQueue();
@@ -135,6 +143,124 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     unusedClasses.add(classElement);
     // Resolve class to ensure the class has valid inheritance info.
     classElement.ensureResolved(compiler);
+  }
+
+  void processSubclassesOfNativeClasses(Iterable<LibraryElement> libraries) {
+    // Collect potential subclasses, e.g.
+    //
+    //     class B extends foo.A {}
+    //
+    // SourceString "A" has a potential subclass B.
+
+    var potentialExtends = new Map<SourceString, Set<ClassElement>>();
+
+    libraries.forEach((library) {
+      library.implementation.forEachLocalMember((element) {
+        if (element.isClass()) {
+          SourceString name = element.name;
+          SourceString extendsName = findExtendsNameOfClass(element);
+          if (extendsName != null) {
+            Set<ClassElement> potentialSubclasses =
+                potentialExtends.putIfAbsent(
+                    extendsName,
+                    () => new Set<ClassElement>());
+            potentialSubclasses.add(element);
+          }
+        }
+      });
+    });
+
+    // Resolve all the native classes and any classes that might extend them in
+    // [potentialExtends], and then check that the properly resolved class is in
+    // fact a subclass of a native class.
+
+    ClassElement nativeSuperclassOf(ClassElement classElement) {
+      if (classElement.isNative()) return classElement;
+      if (classElement.superclass == null) return null;
+      return nativeSuperclassOf(classElement.superclass);
+    }
+
+    void walkPotentialSubclasses(ClassElement element) {
+      if (nativeClassesAndSubclasses.contains(element)) return;
+      element.ensureResolved(compiler);
+      ClassElement nativeSuperclass = nativeSuperclassOf(element);
+      if (nativeSuperclass != null) {
+        nativeClassesAndSubclasses.add(element);
+        if (!element.isNative()) {
+          nonNativeSubclasses.putIfAbsent(nativeSuperclass,
+              () => new Set<ClassElement>())
+            .add(element);
+        }
+        Set<ClassElement> potentialSubclasses = potentialExtends[element.name];
+        if (potentialSubclasses != null) {
+          potentialSubclasses.forEach(walkPotentialSubclasses);
+        }
+      }
+    }
+
+    nativeClasses.forEach(walkPotentialSubclasses);
+
+    nativeClasses.addAll(nativeClassesAndSubclasses);
+    unusedClasses.addAll(nativeClassesAndSubclasses);
+  }
+
+  /**
+   * Returns the source string of the class named in the extends clause, or
+   * `null` if there is no extends clause.
+   */
+  SourceString findExtendsNameOfClass(ClassElement classElement) {
+    //  "class B extends A ... {}"  --> "A"
+    //  "class B extends foo.A ... {}"  --> "A"
+    //  "class B<T> extends foo.A<T,T> with M1, M2 ... {}"  --> "A"
+
+    // We want to avoid calling classElement.parseNode on every class.  Doing so
+    // will slightly increase parse time and size and cause compiler errors and
+    // warnings to me emitted in more unused code.
+
+    // An alternative to this code is to extend the API of ClassElement to
+    // expose the name of the extended element.
+
+    // Pattern match the above cases in the token stream.
+    //  [abstract] class X extends [id.]* id
+
+    Token skipTypeParameters(Token token) {
+      BeginGroupToken beginGroupToken = token;
+      Token endToken = beginGroupToken.endGroup;
+      return endToken.next;
+      //for (;;) {
+      //  token = token.next;
+      //  if (token.stringValue == '>') return token.next;
+      //  if (token.stringValue == '<') return skipTypeParameters(token);
+      //}
+    }
+
+    SourceString scanForExtendsName(Token token) {
+      if (token.stringValue == 'abstract') token = token.next;
+      if (token.stringValue != 'class') return null;
+      token = token.next;
+      if (!token.isIdentifier()) return null;
+      token = token.next;
+      //  class F<X extends B<X>> extends ...
+      if (token.stringValue == '<') {
+        token = skipTypeParameters(token);
+      }
+      if (token.stringValue != 'extends') return null;
+      token = token.next;
+      Token id = token;
+      while (token.kind != EOF_TOKEN) {
+        token = token.next;
+        if (token.stringValue != '.') break;
+        token = token.next;
+        if (!token.isIdentifier()) return null;
+        id = token;
+      }
+      // Should be at '{', 'with', 'implements', '<' or 'native'.
+      return id.value;
+    }
+
+    return compiler.withCurrentElement(classElement, () {
+      return scanForExtendsName(classElement.position());
+    });
   }
 
   ClassElement get annotationCreatesClass {
@@ -385,6 +511,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     staticUse(const SourceString('convertDartClosureToJS'));
     staticUse(const SourceString('defineNativeMethods'));
     staticUse(const SourceString('defineNativeMethodsNonleaf'));
+    staticUse(const SourceString('defineNativeMethodsExtended'));
     // TODO(9577): Registering `defineNativeMethodsFinish` seems redundant with
     // respect to the registering in the backend. When the backend registering
     // is removed as part of fixing Issue 9577, this can be the sole place

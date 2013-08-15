@@ -76,7 +76,8 @@ class JSNull {}
 class JSBool {}
 getInterceptor(o){}
 getDispatchProperty(o) {}
-setDispatchProperty(o, v) {}""";
+setDispatchProperty(o, v) {}
+var mapTypeToInterceptor;""";
     } else if (uri.path.endsWith('js_helper.dart')) {
       source = 'library jshelper; class JSInvocationMirror {} '
                'class ConstantMap {} class TypeImpl {} '

@@ -2641,6 +2641,8 @@ class CodeEmitterTask extends CompilerTask {
     for (Element element in Elements.sortedByPosition(staticNonFinalFields)) {
       // [:interceptedNames:] is handled in [emitInterceptedNames].
       if (element == backend.interceptedNames) continue;
+      // `mapTypeToInterceptor` is handled in [emitMapTypeToInterceptor].
+      if (element == backend.mapTypeToInterceptor) continue;
       compiler.withCurrentElement(element, () {
         Constant initialValue = handler.getInitialValueFor(element);
         jsAst.Expression init =
@@ -3043,6 +3045,9 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     bool hasNumber = false;
     bool hasString = false;
     bool hasNative = false;
+    bool anyNativeClasses = compiler.enqueuer.codegen.nativeEnqueuer
+          .hasInstantiatedNativeClasses();
+
     for (ClassElement cls in classes) {
       if (cls == backend.jsArrayClass ||
           cls == backend.jsMutableArrayClass ||
@@ -3055,10 +3060,18 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       else if (cls == backend.jsNumberClass) hasNumber = true;
       else if (cls == backend.jsStringClass) hasString = true;
       else {
-        // TODO(sra): The set of classes includes classes mixed-in to
-        // interceptor classes.
-        // assert(cls == compiler.objectClass || cls.isNative());
-        if (cls.isNative()) hasNative = true;
+        // The set of classes includes classes mixed-in to interceptor classes
+        // and user extensions of native classes.
+        //
+        // The set of classes also includes the 'primitive' interceptor
+        // PlainJavaScriptObject even when it has not been resolved, since it is
+        // only resolved through the reference in getNativeInterceptor when
+        // getNativeInterceptor is marked as used.  Guard against probing
+        // unresolved PlainJavaScriptObject by testing for anyNativeClasses.
+
+        if (anyNativeClasses) {
+          if (Elements.isNativeOrExtendsNative(cls)) hasNative = true;
+        }
       }
     }
     if (hasDouble) {
@@ -3068,8 +3081,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
 
     if (classes == backend.interceptedClasses) {
       // I.e. this is the general interceptor.
-      hasNative = compiler.enqueuer.codegen.nativeEnqueuer
-          .hasInstantiatedNativeClasses();
+      hasNative = anyNativeClasses;
     }
 
     jsAst.Block block = new jsAst.Block.empty();
@@ -3232,9 +3244,13 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     for (ClassElement element in sortedClasses) {
       if (rtiNeededClasses.contains(element)) {
         regularClasses.add(element);
-      } else if (element.isNative()) {
-        // For now, native classes cannot be deferred.
+      } else if (Elements.isNativeOrExtendsNative(element)) {
+        // For now, native classes and related classes cannot be deferred.
         nativeClasses.add(element);
+        if (!element.isNative()) {
+          assert(invariant(element, !isDeferred(element)));
+          regularClasses.add(element);
+        }
       } else if (isDeferred(element)) {
         deferredClasses.add(element);
       } else {
@@ -3492,6 +3508,37 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     jsAst.ArrayInitializer array =
         new jsAst.ArrayInitializer(invocationNames.length, elements);
 
+    jsAst.Expression assignment = js('$isolateProperties.$name = #', array);
+
+    buffer.write(jsAst.prettyPrint(assignment, compiler));
+    buffer.write(N);
+  }
+
+  /**
+   * Emit initializer for [mapTypeToInterceptor] data structure used by
+   * [findInterceptorForType].  See declaration of [mapTypeToInterceptor] in
+   * `interceptors.dart`.
+   */
+  void emitMapTypeToInterceptor(CodeBuffer buffer) {
+    // TODO(sra): Perhaps inject a constant instead?
+    // TODO(sra): Filter by subclasses of native types.
+    List<jsAst.Expression> elements = <jsAst.Expression>[];
+    ConstantHandler handler = compiler.constantHandler;
+    List<Constant> constants = handler.getConstantsForEmission();
+    for (Constant constant in constants) {
+      if (constant is TypeConstant) {
+        TypeConstant typeConstant = constant;
+        Element element = typeConstant.representedType.element;
+        if (element is ClassElement) {
+          ClassElement classElement = element;
+          elements.add(backend.emitter.constantReference(constant));
+          elements.add(js(namer.isolateAccess(classElement)));
+        }
+      }
+    }
+
+    jsAst.ArrayInitializer array = new jsAst.ArrayInitializer.from(elements);
+    String name = backend.namer.getName(backend.mapTypeToInterceptor);
     jsAst.Expression assignment = js('$isolateProperties.$name = #', array);
 
     buffer.write(jsAst.prettyPrint(assignment, compiler));
@@ -3830,6 +3877,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       emitStaticNonFinalFieldInitializations(mainBuffer);
       emitOneShotInterceptors(mainBuffer);
       emitInterceptedNames(mainBuffer);
+      emitMapTypeToInterceptor(mainBuffer);
       emitLazilyInitializedStaticFields(mainBuffer);
 
       mainBuffer.add(nativeBuffer);

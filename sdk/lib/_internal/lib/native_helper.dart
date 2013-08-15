@@ -240,10 +240,17 @@ var interceptorsByTag;
 /// A JavaScript object mapping tags to `true` or `false`.
 var leafTags;
 
+/// A JavaScript list mapping subclass interceptor constructors to the native
+/// superclass tag.
+var interceptorToTag;
+
 /**
- * Associates tags with an interceptor.  Called from generated code.  The tags
- * are all 'leaf' tags representing classes that have no subclasses with
- * different behaviour.
+ * Associates dispatch tags (JavaScript constructor names e.g. DOM interface
+ * names like HTMLDivElement) with an interceptor.  Called from generated code
+ * during initial isolate definition.
+ *
+ * The tags are all 'leaf' tags representing classes that have no subclasses
+ * with different behaviour.
  *
  * [tags] is a string of `|`-separated tags.
  */
@@ -252,14 +259,45 @@ void defineNativeMethods(String tags, interceptorClass) {
 }
 
 /**
- * Associates tags with an interceptor.  Called from generated code.  The tags
- * are all non-'leaf' tags, representing classes that have a subclass with
- * different behaviour.
+ * Associates dispatch tags (JavaScript constructor names e.g. DOM interface
+ * names like HTMLElement) with an interceptor.  Called from generated code
+ * during initial isolate definition.
+ *
+ * The tags are all non-'leaf' tags, representing classes that have a subclass
+ * with different behaviour.
  */
 void defineNativeMethodsNonleaf(String tags, interceptorClass) {
   defineNativeMethodsCommon(tags, interceptorClass, false);
 }
 
+/**
+ * Associates dispatch tags (JavaScript constructor names e.g. DOM interface
+ * names like HTMLElement) with an interceptor.  Called from generated code
+ * during initial isolate definition.
+ *
+ * The tags are all non-'leaf' tags, representing classes that have a user
+ * defined subclass that requires additional dispatch.
+ * [subclassInterceptorClasses] is a list of interceptor classes
+ * (i.e. constructors) for the user defined subclasses.
+ */
+void defineNativeMethodsExtended(String tags, interceptorClass,
+                                 subclassInterceptorClasses) {
+  if (interceptorToTag == null) {
+    interceptorToTag = [];
+  }
+  List classes = JS('JSFixedArray', '#', subclassInterceptorClasses);
+  for (int i = 0; i < classes.length; i++) {
+    interceptorToTag.add(classes[i]);
+    // 'tags' is a single tag.
+    interceptorToTag.add(tags);
+  }
+
+  defineNativeMethodsCommon(tags, interceptorClass, false);
+}
+
+// TODO(sra): Try to encode all the calls to defineNativeMethodsXXX as pure
+// data.  The challenge is that the calls remove a lot of redundancy that is
+// expanded by the loops in these methods.
 void defineNativeMethodsCommon(String tags, var interceptorClass, bool isLeaf) {
   var methods = JS('', '#.prototype', interceptorClass);
   if (interceptorsByTag == null) interceptorsByTag = JS('=Object', '{}');
@@ -278,6 +316,14 @@ void defineNativeMethodsFinish() {
   // returns an interceptor for JavaScript objects.  This avoids needing a test
   // in every interceptor, and prioritizes the performance of known native
   // classes over unknown.
+}
+
+String findDispatchTagForInterceptorClass(interceptorClassConstructor) {
+  if (interceptorToTag == null) return null;
+  int i =
+      JS('int', '#.indexOf(#)', interceptorToTag, interceptorClassConstructor);
+  if (i < 0) return null;
+  return JS('', '#[#]', interceptorToTag, i + 1);
 }
 
 lookupInterceptor(var hasOwnPropertyFunction, String tag) {
@@ -313,11 +359,23 @@ lookupDispatchRecord(obj) {
   var isLeaf =
       (leafTags != null) && JS('bool', '(#[#]) === true', leafTags, tag);
   if (isLeaf) {
-    var fieldName = JS_IS_INDEXABLE_FIELD_NAME();
-    bool indexability = JS('bool', r'!!#[#]', interceptor, fieldName);
-    return makeDispatchRecord(interceptor, false, null, indexability);
+    return makeLeafDispatchRecord(interceptor);
   } else {
     var proto = JS('', 'Object.getPrototypeOf(#)', obj);
     return makeDispatchRecord(interceptor, proto, null, null);
   }
+}
+
+makeLeafDispatchRecord(interceptor) {
+  var fieldName = JS_IS_INDEXABLE_FIELD_NAME();
+  bool indexability = JS('bool', r'!!#[#]', interceptor, fieldName);
+  return makeDispatchRecord(interceptor, false, null, indexability);
+}
+
+/**
+ * [proto] should have no shadowing prototypes that are not also assigned a
+ * dispatch rescord.
+ */
+setNativeSubclassDispatchRecord(proto, interceptor) {
+  setDispatchProperty(proto, makeLeafDispatchRecord(interceptor));
 }
