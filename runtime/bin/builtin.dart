@@ -77,6 +77,7 @@ void _makeHttpRequest(String uri) {
 
 // Are we running on Windows?
 var _isWindows = false;
+var _workingWindowsDrivePrefix;
 // The current working directory
 var _workingDirectoryUri;
 // The URI that the entry point script was loaded from. Remembered so that
@@ -115,6 +116,7 @@ _sanitizeWindowsPath(path) {
   return fixedPath;
 }
 
+
 _enforceTrailingSlash(uri) {
   // Ensure we have a trailing slash character.
   if (!uri.endsWith('/')) {
@@ -124,7 +126,19 @@ _enforceTrailingSlash(uri) {
 }
 
 
+_extractDriveLetterPrefix(cwd) {
+  if (!_isWindows) {
+    return null;
+  }
+  if (cwd.length > 1 && cwd[1] == ':') {
+    return '/${cwd[0]}:';
+  }
+  return null;
+}
+
+
 void _setWorkingDirectory(cwd) {
+  _workingWindowsDrivePrefix = _extractDriveLetterPrefix(cwd);
   cwd = _sanitizeWindowsPath(cwd);
   cwd = _enforceTrailingSlash(cwd);
   _workingDirectoryUri = new Uri(scheme: 'file', path: cwd);
@@ -227,8 +241,20 @@ String _filePathFromFileUri(Uri uri) {
     throw "URIs using the 'file:' scheme may not contain a host.";
   }
 
-  _logResolution('# Path: $uri -> ${uri.path}');
-  return uri.path;
+  String path = uri.path;
+  _logResolution('# Path: $uri -> ${path}');
+  // Check that the path is not already in the form of /X:.
+  if (_isWindows && (path.length > 2) && path.startsWith('/') &&
+      (path[2] != ':')) {
+    // Absolute path on Windows without a drive letter.
+    if (_workingWindowsDrivePrefix == null) {
+      throw 'Could not determine windows drive letter prefix.';
+    }
+    _logResolution('# Path: Windows absolute path needs a drive letter.'
+                   ' Prepending $_workingWindowsDrivePrefix.');
+    path = '$_workingWindowsDrivePrefix$path';
+  }
+  return path;
 }
 
 
