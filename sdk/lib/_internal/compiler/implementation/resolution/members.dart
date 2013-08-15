@@ -1707,6 +1707,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
       // The type annotations on a typedef do not imply type checks.
       // TODO(karlklose): clean this up (dartbug.com/8870).
       inCheckContext = compiler.enableTypeAssertions &&
+          !element.isLibrary() &&
           !element.isTypedef() &&
           !element.enclosingElement.isTypedef(),
       inCatchBlock = false,
