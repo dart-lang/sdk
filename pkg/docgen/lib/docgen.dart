@@ -65,6 +65,9 @@ Map<String, Indexable> entityMap = new Map<String, Indexable>();
 /// This is set from the command line arguments flag --include-private
 bool _includePrivate = false;
 
+/// Map of all the comments for dom elements from MDN. 
+Map _mdn;
+
 /**
  * Docgen constructor initializes the link resolver for markdown parsing.
  * Also initializes the command line arguments.
@@ -96,7 +99,6 @@ Future<bool> docgen(List<String> files, {String packageRoot,
     }
   }
   logger.info('Package Root: ${packageRoot}');
-
   linkResolver = (name) =>
       fixReference(name, _currentLibrary, _currentClass, _currentMember);
 
@@ -313,7 +315,7 @@ bool _isVisible(Indexable item) {
 /**
  * Returns a list of meta annotations assocated with a mirror.
  */
-List<String> _annotations(DeclarationMirror mirror) {
+List<Annotation> _annotations(DeclarationMirror mirror) {
   var annotationMirrors = mirror.metadata.where((e) =>
       e is dart2js.Dart2JsConstructedConstantMirror);
   var annotations = [];
@@ -354,6 +356,58 @@ String _commentToHtml(DeclarationMirror mirror) {
       markdown.markdownToHtml(commentText.trim(), linkResolver: linkResolver,
           inlineSyntaxes: markdownSyntaxes);
   return commentText;
+}
+
+/**
+ * Generates MDN comments from database.json. 
+ */
+void _mdnComment(Indexable item) {
+  //Check if MDN is loaded. 
+  if (_mdn == null) {
+    // Reading in MDN related json file. 
+    var mdnDir = path.join(path.dirname(path.dirname(path.dirname(path.dirname(
+        path.absolute(new Options().script))))), 'utils', 'apidoc', 'mdn');
+    _mdn = parse(new File(path.join(mdnDir, 'database.json'))
+        .readAsStringSync());
+  }
+  if (item.comment.isNotEmpty) return;
+  var domAnnotation = item.annotations.firstWhere(
+      (e) => e.qualifiedName == 'metadata.DomName', orElse: () => null);
+  if (domAnnotation == null) return;
+  var domName = domAnnotation.parameters.single;
+  var parts = domName.split('.');
+  if (parts.length == 2) item.comment = _mdnMemberComment(parts[0], parts[1]);
+  if (parts.length == 1) item.comment = _mdnTypeComment(parts[0]);
+}
+
+/**
+ * Generates the MDN Comment for variables and method DOM elements. 
+ */
+String _mdnMemberComment(String type, String member) {
+  var mdnType = _mdn[type];
+  if (mdnType == null) return '';
+  var mdnMember = mdnType['members'].firstWhere((e) => e['name'] == member, 
+      orElse: () => null);
+  if (mdnMember == null) return '';
+  if (mdnMember['help'] == null || mdnMember['help'] == '') return '';
+  if (mdnMember['url'] == null) return '';
+  return _htmlMdn(mdnMember['help'], mdnMember['url']);
+}
+
+/**
+ * Generates the MDN Comment for class DOM elements. 
+ */
+String _mdnTypeComment(String type) {
+  var mdnType = _mdn[type];
+  if (mdnType == null) return '';
+  if (mdnType['summary'] == null || mdnType['summary'] == "") return '';
+  if (mdnType['srcUrl'] == null) return '';
+  return _htmlMdn(mdnType['summary'], mdnType['srcUrl']);
+}
+
+String _htmlMdn(String content, String url) {
+  return '<div class="mdn">' + content.trim() + '<p class="mdn-note">'
+      '<a href="' + url.trim() + '">from Mdn</a></p></div>';
 }
 
 /**
@@ -621,12 +675,14 @@ class Class extends Indexable {
   bool isAbstract;
 
   /// List of the meta annotations on the class.
-  List<String> annotations;
+  List<Annotation> annotations;
 
   Class(String name, this.superclass, String comment, this.interfaces,
       this.variables, this.methods, this.annotations, this.generics,
       String qualifiedName, bool isPrivate, String owner, this.isAbstract) 
-      : super(name, comment, qualifiedName, isPrivate, owner);
+      : super(name, comment, qualifiedName, isPrivate, owner) {
+    _mdnComment(this);
+  }
 
   String get typeName => 'class';
   
@@ -808,7 +864,7 @@ class Typedef extends Indexable {
   Map<String, Generic> generics;
 
   /// List of the meta annotations on the typedef.
-  List<String> annotations;
+  List<Annotation> annotations;
 
   Typedef(String name, this.returnType, String comment, this.generics,
       this.parameters, this.annotations,
@@ -839,11 +895,13 @@ class Variable extends Indexable {
   Type type;
 
   /// List of the meta annotations on the variable.
-  List<String> annotations;
+  List<Annotation> annotations;
 
   Variable(String name, this.isFinal, this.isStatic, this.isConst, this.type,
       String comment, this.annotations, String qualifiedName, bool isPrivate,
-      String owner) : super(name, comment, qualifiedName, isPrivate, owner);
+      String owner) : super(name, comment, qualifiedName, isPrivate, owner) {
+    _mdnComment(this);
+  }
 
   /// Generates a map describing the [Variable] object.
   Map toMap() => {
@@ -881,13 +939,15 @@ class Method extends Indexable {
   String commentInheritedFrom = "";
 
   /// List of the meta annotations on the method.
-  List<String> annotations;
+  List<Annotation> annotations;
 
   Method(String name, this.isStatic, this.isAbstract, this.isConst,
       this.returnType, String comment, this.parameters, this.annotations,
       String qualifiedName, bool isPrivate, String owner, this.isConstructor,
       this.isGetter, this.isSetter, this.isOperator) 
-        : super(name, comment, qualifiedName, isPrivate, owner);
+        : super(name, comment, qualifiedName, isPrivate, owner) {
+    _mdnComment(this);
+  }
 
   /**
    * Makes sure that the method with an inherited equivalent have comments.
@@ -1006,7 +1066,7 @@ class Parameter {
   String defaultValue;
 
   /// List of the meta annotations on the parameter.
-  List<String> annotations;
+  List<Annotation> annotations;
 
   Parameter(this.name, this.isOptional, this.isNamed, this.hasDefaultValue,
       this.type, this.defaultValue, this.annotations);
