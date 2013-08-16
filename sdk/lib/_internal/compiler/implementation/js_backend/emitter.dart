@@ -3326,8 +3326,10 @@ class CodeEmitterTask extends CompilerTask {
     return rtiNeededClasses;
   }
 
-  // Optimize performance critical one shot interceptors.
-  jsAst.Statement tryOptimizeOneShotInterceptor(Selector selector,
+  // Returns a statement that takes care of performance critical
+  // common case for a one-shot interceptor, or null if there is no
+  // fast path.
+  jsAst.Statement fastPathForOneShotInterceptor(Selector selector,
                                                 Set<ClassElement> classes) {
     jsAst.Expression isNumber(String variable) {
       return js('typeof $variable == "number"');
@@ -3350,11 +3352,10 @@ class CodeEmitterTask extends CompilerTask {
       String name = selector.name.stringValue;
       if (name == '==') {
         // Unfolds to:
-        // [: if (receiver == null) return a0 == null;
+        //    if (receiver == null) return a0 == null;
         //    if (typeof receiver != 'object') {
         //      return a0 != null && receiver === a0;
         //    }
-        // :].
         List<jsAst.Statement> body = <jsAst.Statement>[];
         body.add(js.if_('receiver == null', js.return_(js('a0 == null'))));
         body.add(js.if_(
@@ -3370,23 +3371,21 @@ class CodeEmitterTask extends CompilerTask {
       if (selector.argumentCount == 1) {
         // The following operators do not map to a JavaScript
         // operator.
-        if (name != '~/' && name != '<<' && name != '%' && name != '>>') {
-          jsAst.Expression result = js('receiver').binary(name, js('a0'));
-          if (name == '&' || name == '|' || name == '^') {
-            result = tripleShiftZero(result);
-          }
-          // Unfolds to:
-          // [: if (typeof receiver == "number" && typeof a0 == "number")
-          //      return receiver op a0;
-          // :].
-          return js.if_(
-              isNumber('receiver').binary('&&', isNumber('a0')),
-              js.return_(result));
+        if (name == '~/' || name != '<<' || name != '%' || name != '>>') {
+          return null;
         }
-      } else if (name == 'unary-') {
-        // operator~ does not map to a JavaScript operator.
+        jsAst.Expression result = js('receiver').binary(name, js('a0'));
+        if (name == '&' || name == '|' || name == '^') {
+          result = tripleShiftZero(result);
+        }
         // Unfolds to:
-        // [: if (typeof receiver == "number") return -receiver:].
+        //    if (typeof receiver == "number" && typeof a0 == "number")
+        //      return receiver op a0;
+        return js.if_(
+            isNumber('receiver').binary('&&', isNumber('a0')),
+            js.return_(result));
+      } else if (name == 'unary-') {
+        // [: if (typeof receiver == "number") return -receiver :].
         return js.if_(isNumber('receiver'),
                       js.return_(js('-receiver')));
       } else {
@@ -3397,21 +3396,19 @@ class CodeEmitterTask extends CompilerTask {
     } else if (selector.isIndex() || selector.isIndexSet()) {
       // For an index operation, this code generates:
       //
-      // [: if (receiver.constructor == Array || typeof receiver == "string") {
+      //    if (receiver.constructor == Array || typeof receiver == "string") {
       //      if (a0 >>> 0 === a0 && a0 < receiver.length) {
       //        return receiver[a0];
       //      }
       //    }
-      // :]
       //
       // For an index set operation, this code generates:
       //
-      // [: if (receiver.constructor == Array && !receiver.immutable$list) {
+      //    if (receiver.constructor == Array && !receiver.immutable$list) {
       //      if (a0 >>> 0 === a0 && a0 < receiver.length) {
       //        return receiver[a0] = a1;
       //      }
       //    }
-      // :]
       bool containsArray = classes.contains(backend.jsArrayClass);
       bool containsString = classes.contains(backend.jsStringClass);
       // The index set operator requires a check on its set value in
@@ -3484,7 +3481,7 @@ class CodeEmitterTask extends CompilerTask {
 
       List<jsAst.Statement> body = <jsAst.Statement>[];
       jsAst.Statement optimizedPath =
-          tryOptimizeOneShotInterceptor(selector, classes);
+          fastPathForOneShotInterceptor(selector, classes);
       if (optimizedPath != null) {
         body.add(optimizedPath);
       }
