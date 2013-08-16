@@ -354,7 +354,7 @@ final _pureIsolatePrintClosure = (s) {
 
 final _forwardingPrintClosure = _Utils.forwardingPrint;
 
- class _Timer implements Timer{
+ class _Timer implements Timer {
   var _canceler;
 
   _Timer(int milliSeconds, void callback(Timer timer), bool repeating) {

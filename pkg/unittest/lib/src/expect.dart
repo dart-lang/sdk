@@ -5,7 +5,7 @@
 part of matcher;
 
 /** The objects thrown by the default failure handler. */
-class TestFailure extends Error{
+class TestFailure extends Error {
   final String message;
 
   TestFailure(this.message);

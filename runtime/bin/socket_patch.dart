@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-patch class RawServerSocket  {
+patch class RawServerSocket {
   /* patch */ static Future<RawServerSocket> bind(address,
                                                   int port,
                                                   {int backlog: 0,
@@ -145,7 +145,7 @@ class _InternetAddress implements InternetAddress {
   static Uint8List _fixed(int id) native "InternetAddress_Fixed";
 }
 
-class _NetworkInterface implements NetworkInterface{
+class _NetworkInterface implements NetworkInterface {
   final String name;
   final List<InternetAddress> addresses;
 
