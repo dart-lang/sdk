@@ -12,52 +12,21 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: fail
 
 # invalid argument for constant constructor
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: fail
-Language/11_Expressions/01_Constants_A16_t03: fail
-
-# final instance variable created instance of the enclosing class
-Language/11_Expressions/01_Constants_A17_t03: fail
-
-# analyzer problem: forward reference of typedef with type parameters
-Language/13_Libraries_and_Scripts/3_Parts_A02_t03: skip
-
-# not clear: typedef int func2(int);
-Language/14_Types/6_Type_dynamic_A04_t01: fail
 
 # TBF: _f is private, so does not collide
 Language/07_Classes/1_Instance_Methods_A05_t08: fail
-
-# TBF: return without value is not a warning
-Language/12_Statements/11_Return_A07_t01: fail
-
 
 # co19 issue #380, Strings class has been removed
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: fail, OK
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: fail, OK
 
-# co19 issue #382, Deprecated parts of String interface is being removed.
-LibTest/core/String/charCodes_A01_t01: fail, OK
-LibTest/core/String/charCodeAt_A02_t01: fail, OK
-LibTest/core/String/charCodeAt_A03_t01: fail, OK
-LibTest/core/String/charCodeAt_A01_t01: fail, OK
-LibTest/core/String/splitChars_A01_t01: fail, OK
-
 # co19 issue #389, ceil, floor, truncate and round return integers
 LibTest/core/int/operator_division_A01_t01: fail, OK
 
-# co19 issue #395, uses dart:io API (outdated)
-Language/15_Reference/1_Lexical_Rules_A01_t10: Fail, OK
-
 # co19 issue #397, List.addLast removed
-Language/11_Expressions/06_Lists_A06_t01: fail, OK
 LibTest/core/Iterable/where_A01_t07: fail, OK
-LibTest/core/List/addLast_A01_t01: fail, OK
-LibTest/core/List/addLast_A01_t03: fail, OK
-LibTest/core/List/addLast_A02_t01: fail, OK
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: fail, OK
 
 # co19 issue #400, collection library reorg
-LibTest/core/List/List.fixedLength_A01_t01: fail, OK
-LibTest/core/List/operator_subscript_A01_t02: fail, OK
 LibTest/core/String/String_class_A01_t01: fail, OK
 LibTest/core/String/concat_A01_t01: fail, OK
 LibTest/core/String/concat_A02_t01: fail, OK
@@ -66,51 +35,20 @@ LibTest/core/Set/isSubsetOf_A01_t01: fail, OK
 LibTest/core/Set/isSubsetOf_A01_t02: fail, OK
 
 # co19 issue #403
-LibTest/core/List/List_A01_t02: fail, OK
 LibTest/core/List/every_A01_t01: fail, OK
-LibTest/core/List/insertRange_A01_t01: fail, OK
-LibTest/core/List/insertRange_A02_t01: fail, OK
-LibTest/core/List/insertRange_A03_t01: fail, OK
-LibTest/core/List/insertRange_A04_t01: fail, OK
-LibTest/core/List/insertRange_A05_t01: fail, OK
-LibTest/core/List/insertRange_A06_t01: fail, OK
-LibTest/core/List/insertRange_A07_t01: fail, OK
-LibTest/core/List/insertRange_A08_t01: fail, OK
-
-# co19 issue #412, using 'null' as operand
-Language/11_Expressions/01_Constants_A11_t01: fail, OK
-Language/11_Expressions/01_Constants_A12_t01: fail, OK
-Language/11_Expressions/01_Constants_A13_t06: fail, OK
 
 # co19 issue #414, extra @compile-error
 Language/03_Overview/1_Scoping_A02_t28: fail, OK
 
 # co19 issue #416, function name is declared the parameter scope
 Language/03_Overview/1_Scoping_A02_t07: fail, OK
-Language/12_Statements/04_Local_Function_Declaration_A01_t01: fail, OK
-
-# co19 issue #420, 'throw' without exception; deprecated; rethrow should be used
-Language/11_Expressions/08_Throw_A05_t01: fail, OK
-Language/11_Expressions/08_Throw_A05_t02: fail, OK
-Language/11_Expressions/08_Throw_A05_t03: fail, OK
-
-# analyzer issue https://code.google.com/p/dart/issues/detail?id=11534
-Language/14_Types/4_Interface_Types_A11_t01: skip
-Language/14_Types/4_Interface_Types_A11_t02: skip
 
 # co19 issue #424, Uninitialized finals are warnings not errors
-Language/05_Variables/05_Variables_A05_t05: fail, OK
-Language/05_Variables/05_Variables_A05_t06: fail, OK
-Language/05_Variables/05_Variables_A05_t07: fail, OK
-Language/05_Variables/05_Variables_A05_t08: fail, OK
-Language/05_Variables/05_Variables_A05_t09: fail, OK
-Language/05_Variables/05_Variables_A05_t10: fail, OK
 Language/05_Variables/05_Variables_A07_t05: fail, OK
 Language/05_Variables/05_Variables_A07_t06: fail, OK
 Language/05_Variables/05_Variables_A07_t07: fail, OK
 Language/05_Variables/05_Variables_A07_t08: fail, OK
 Language/05_Variables/05_Variables_A08_t01: fail, OK
-Language/11_Expressions/11_Instance_Creation/2_Const_A01_t02: fail, OK
 
 # co19 issue #425, Only static fields can be declared as 'const'
 Language/05_Variables/05_Variables_A12_t01: fail, OK
@@ -128,242 +66,24 @@ Language/07_Classes/6_Constructors/2_Factories_A06_t04: fail, OK
 
 # co19 issue #431, it is OK to use 'double' argument for const constructor
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: fail, OK
-Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t03: fail, OK
 
 # co19 issue #428, number literals with a + prefix
-Language/11_Expressions/01_Constants_A01_t01: fail, OK
-Language/11_Expressions/03_Numbers_A01_t01: fail, OK
-Language/11_Expressions/03_Numbers_A01_t02: fail, OK
-Language/11_Expressions/03_Numbers_A01_t03: fail, OK
-Language/11_Expressions/03_Numbers_A01_t04: fail, OK
-Language/11_Expressions/03_Numbers_A01_t08: fail, OK
-Language/11_Expressions/03_Numbers_A01_t10: fail, OK
-Language/12_Statements/02_Expression_Statements_A01_t06: fail, OK
 LibTest/core/double/ceil_A01_t05: fail, OK
 LibTest/core/double/floor_A01_t05: fail, OK
 
-# co19 issue #385, library name is not required
-Language/13_Libraries_and_Scripts/1_Imports_A04_t03: fail, OK
-Language/13_Libraries_and_Scripts/2_Exports_A05_t01: fail, OK
-
-# co19 issue #388, StringBuffer renamed add to write
-Language/11_Expressions/05_Strings/1_String_Interpolation_A03_t01: fail, OK
-Language/11_Expressions/05_Strings/1_String_Interpolation_A04_t01: fail, OK
-Language/11_Expressions/14_Function_Invocation/1_Actual_Argument_List_Evaluation_A02_t01: fail, OK
-Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A04_t01: fail, OK
-Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t05: fail, OK
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: fail, OK
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t02: fail, OK
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A04_t01: fail, OK
-LibTest/core/StringBuffer/addAll_A03_t01: fail, OK
-LibTest/core/StringBuffer/add_A01_t01: fail, OK
-LibTest/core/StringBuffer/add_A01_t02: fail, OK
-LibTest/core/StringBuffer/addAll_A01_t01: fail, OK
-LibTest/core/StringBuffer/addAll_A01_t02: fail, OK
-LibTest/core/StringBuffer/isEmpty_A01_t01: fail, OK
-LibTest/core/StringBuffer/toString_A01_t01: fail, OK
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A07_t01: fail, OK
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A08_t01: fail, OK
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A08_t02: fail, OK
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A09_t01: fail, OK
-
-#co19 issue #432, missing @static-warning annotation
-Language/14_Types/8_Parameterized_Types_A03_t03: fail, OK
-Language/14_Types/8_Parameterized_Types_A03_t05: fail, OK
-
-# co19 issue #433, missing @static-warning annotation
-Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t01: fail, OK
-Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t07: fail, OK
-
-# co19 issue #434, argument definition was dropped
-Language/11_Expressions/33_Argument_Definition_Test_A01_t02: fail, OK
-#Language/11_Expressions/33_Argument_Definition_Test_A01_t14: fail, OK (this is passing for the wrong reason)
-#Language/11_Expressions/33_Argument_Definition_Test_A01_t18: fail, OK (this is passing for the wrong reason)
-Language/11_Expressions/33_Argument_Definition_Test_A02_t01: fail, OK
-Language/11_Expressions/33_Argument_Definition_Test_A02_t02: fail, OK
-Language/11_Expressions/33_Argument_Definition_Test_A03_t01: fail, OK
-Language/11_Expressions/33_Argument_Definition_Test_A03_t02: fail, OK
-
-# co19 issue #435, AssertionError has not properties
-LibTest/core/AssertionError/column_A01_t02: fail, OK
-LibTest/core/AssertionError/failedAssertion_A01_t01: fail, OK
-LibTest/core/AssertionError/line_A01_t02: fail, OK
-LibTest/core/AssertionError/url_A01_t01: fail, OK
-
 # co19 issue 459, FallThroughError is no longer const
-LibTest/core/FallThroughError/toString_A01_t01: fail, OK
 LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail, OK
 
 # co19 issue #437, annotation should be constant _variable_ or constant constructor invocation
 Language/07_Classes/07_Classes_A01_t20: fail, OK
 Language/07_Classes/07_Classes_A02_t34: fail, OK
 Language/07_Classes/07_Classes_A03_t10: fail, OK
-Language/13_Libraries_and_Scripts/2_Exports_A01_t17: fail, OK
-
-# co19 issue 438, Static variables are initialized lazily, need not be constants
-Language/11_Expressions/01_Constants_A16_t01: fail, OK
-Language/11_Expressions/01_Constants_A16_t02: fail, OK
-
-# co19 issue 439, it is warning, not error to import two different libraries with the same name
-Language/13_Libraries_and_Scripts/1_Imports_A05_t01: fail, OK
-
-# co19 issue #440, adj strings is not a string interpolation
-Language/13_Libraries_and_Scripts/5_URIs_A01_t24: fail, OK
-Language/13_Libraries_and_Scripts/5_URIs_A01_t25: fail, OK
-
-# co19 issue #441, assignment in constructor is not initializing
-Language/05_Variables/05_Variables_A05_t04: fail, OK
-
-# co19 issue #462, const instance creation with invalid arguments is error
-Language/11_Expressions/11_Instance_Creation/2_Const_A09_t02: fail, OK
-Language/11_Expressions/11_Instance_Creation/2_Const_A09_t03: fail, OK
 
 # co19 issue #464, not initialized final instance variable is warning, not error
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: fail
 
 # co19 issue #442, undefined name "Expect"
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t04: fail, OK
-Language/07_Classes/6_Constructors/2_Factories_A06_t03: fail, OK
-Language/09_Generics/09_Generics_A05_t02: fail, OK
-Language/09_Generics/09_Generics_A05_t01: fail, OK
-Language/11_Expressions/04_Booleans/1_Boolean_Conversion_A01_t01: fail, OK
-Language/11_Expressions/04_Booleans/1_Boolean_Conversion_A02_t01: fail, OK
-Language/11_Expressions/06_Lists_A09_t01: fail, OK
-Language/11_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A02_t01: fail, OK
-Language/11_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A03_t01: fail, OK
-Language/11_Expressions/18_Assignment_A02_t01: fail, OK
-Language/11_Expressions/18_Assignment_A04_t06: fail, OK
-Language/11_Expressions/18_Assignment_A06_t01: fail, OK
-Language/11_Expressions/19_Conditional_A02_t03: fail, OK
-Language/11_Expressions/19_Conditional_A02_t04: fail, OK
-Language/11_Expressions/19_Conditional_A04_t03: fail, OK
-Language/11_Expressions/27_Unary_Expressions_A02_t03: fail, OK
-Language/12_Statements/03_Variable_Declaration_A01_t01: fail, OK
-Language/12_Statements/03_Variable_Declaration_A01_t02: fail, OK
-Language/12_Statements/05_If_A02_t01: fail, OK
-Language/12_Statements/05_If_A02_t02: fail, OK
-Language/12_Statements/10_Try_A01_t01: fail, OK
-Language/12_Statements/11_Return_A03_t02: fail, OK
-Language/12_Statements/11_Return_A04_t01: fail, OK
-Language/12_Statements/15_Assert_A03_t03: fail, OK
-Language/12_Statements/15_Assert_A03_t09: fail, OK
-Language/12_Statements/15_Assert_A03_t08: fail, OK
-Language/12_Statements/15_Assert_A04_t02: fail, OK
-Language/14_Types/2_Dynamic_Type_System_A01_t01: fail, OK
-Language/14_Types/4_Interface_Types_A08_t03: fail, OK
-Language/14_Types/7_Type_Void_A04_t02: fail, OK
-Language/15_Reference/1_Lexical_Rules/2_Comments_A04_t03: fail, OK
-LibTest/core/AssertionError/toString_A01_t01: fail, OK
-LibTest/core/Date/add_A01_t01: fail, OK
-LibTest/core/Date/add_A03_t01: fail, OK
-LibTest/core/Date/add_A02_t01: fail, OK
-LibTest/core/Date/add_A05_t01: fail, OK
-LibTest/core/Date/compareTo_A01_t01: fail, OK
-LibTest/core/Date/compareTo_A02_t01: fail, OK
-LibTest/core/Date/compareTo_A03_t01: fail, OK
-LibTest/core/Date/compareTo_A01_t02: fail, OK
-LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A01_t01: fail, OK
-LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A01_t02: fail, OK
-LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A02_t01: fail, OK
-LibTest/core/Date/Date.fromString_A01_t01: fail, OK
-LibTest/core/Date/Date.fromString_A01_t02: fail, OK
-LibTest/core/Date/Date.fromString_A02_t01: fail, OK
-LibTest/core/Date/Date.fromString_A03_t01: fail, OK
-LibTest/core/Date/Date.now_A01_t01: fail, OK
-LibTest/core/Date/Date.now_A01_t02: fail, OK
-LibTest/core/Date/Date.now_A01_t03: fail, OK
-LibTest/core/Date/Date.utc_A01_t01: fail, OK
-LibTest/core/Date/Date_A01_t01: fail, OK
-LibTest/core/Date/Date_A01_t03: fail, OK
-LibTest/core/Date/Date_A01_t02: fail, OK
-LibTest/core/Date/Date_A01_t04: fail, OK
-LibTest/core/Date/day_A01_t01: fail, OK
-LibTest/core/Date/difference_A01_t01: fail, OK
-LibTest/core/Date/difference_A01_t02: fail, OK
-LibTest/core/Date/difference_A02_t01: fail, OK
-LibTest/core/Date/hour_A01_t01: fail, OK
-LibTest/core/Date/isUtc_A01_t01: fail, OK
-LibTest/core/Date/millisecond_A01_t01: fail, OK
-LibTest/core/Date/millisecondsSinceEpoch_A01_t01: fail, OK
-LibTest/core/Date/minute_A01_t01: fail, OK
-LibTest/core/Date/month_A01_t01: fail, OK
-LibTest/core/Date/operator_equality_A01_t01: fail, OK
-LibTest/core/Date/operator_GE_A01_t01: fail, OK
-LibTest/core/Date/operator_GT_A01_t01: fail, OK
-LibTest/core/Date/operator_LE_A01_t01: fail, OK
-LibTest/core/Date/operator_LT_A01_t01: fail, OK
-LibTest/core/Date/second_A01_t01: fail, OK
-LibTest/core/Date/subtract_A01_t01: fail, OK
-LibTest/core/Date/subtract_A03_t01: fail, OK
-LibTest/core/Date/subtract_A02_t01: fail, OK
-LibTest/core/Date/subtract_A05_t01: fail, OK
-LibTest/core/Date/timeZoneName_A01_t01: fail, OK
-LibTest/core/Date/timeZoneOffset_A01_t01: fail, OK
-LibTest/core/Date/toLocal_A01_t01: fail, OK
-LibTest/core/Date/toString_A01_t01: fail, OK
-LibTest/core/Date/toString_A02_t01: fail, OK
-LibTest/core/Date/toUtc_A01_t01: fail, OK
-LibTest/core/Date/year_A01_t01: fail, OK
-LibTest/core/Date/weekday_A01_t01: fail, OK
-LibTest/core/List/getRange_A06_t01: fail, OK
-LibTest/core/List/indexOf_A06_t01: fail, OK
-LibTest/core/List/operator_subscript_A03_t01: fail, OK
-LibTest/core/List/operator_subscripted_assignment_A03_t01: fail, OK
-LibTest/core/Map/putIfAbsent_A01_t04: fail, OK
-LibTest/core/Strings/concatAll_A04_t01: fail, OK
-LibTest/core/Strings/join_A04_t01: fail, OK
-
-# co19 issue #443, Undefined class 'InvocationMirror'
-Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: fail, OK
-Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: fail, OK
-Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: fail, OK
-Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t06: fail, OK
-Language/11_Expressions/17_Getter_Invocation_A02_t01: fail, OK
-Language/11_Expressions/17_Getter_Invocation_A02_t02: fail, OK
-
-# co19 issue #444, AsyncError has been removed
-LibTest/async/Completer/complete_A02_t02: fail, OK
-LibTest/async/Completer/completeError_A01_t01: fail, OK
-LibTest/async/Completer/completeError_A03_t02: fail, OK
-LibTest/async/Future/catchError_A01_t01: fail, OK
-LibTest/async/Future/catchError_A01_t02: fail, OK
-LibTest/async/Future/catchError_A02_t01: fail, OK
-LibTest/async/Future/catchError_A03_t01: fail, OK
-LibTest/async/Future/catchError_A03_t02: fail, OK
-LibTest/async/Future/catchError_A03_t03: fail, OK
-LibTest/async/Future/forEach_A03_t01: fail, OK
-LibTest/async/Future/Future.delayed_A02_t01: fail, OK
-LibTest/async/Future/then_A02_t01: fail, OK
-LibTest/async/Future/then_A02_t02: fail, OK
-LibTest/async/Future/then_A03_t01: fail, OK
-LibTest/async/Future/then_A04_t01: fail, OK
-LibTest/async/Future/whenComplete_A03_t01: fail, OK
-LibTest/async/Future/whenComplete_A04_t02: fail, OK
-
-# co19 issue #445, Future.immediate was repalce with Future.value
-LibTest/async/Future/asStream_A01_t01: fail, OK
-LibTest/async/Future/asStream_A01_t02: fail, OK
-LibTest/async/Future/asStream_A02_t01: fail, OK
-LibTest/async/Future/Future.immediate_A01_t01: fail, OK
-LibTest/async/Future/Future.immediateError_A01_t01: fail, OK
-LibTest/async/Future/then_A01_t03: fail, OK
-
-# co19 issue #446, Date was replaced with DateTime
-Language/14_Types/6_Type_dynamic_A03_t01: fail, OK
-
-# co19 issue 447, In Future delayed int replaced with Duration
-LibTest/async/Future/asStream_A01_t02: fail, OK
-LibTest/async/Future/asStream_A02_t01: fail, OK
-LibTest/async/Future/forEach_A01_t01: fail, OK
-LibTest/async/Future/forEach_A02_t01: fail, OK
-LibTest/async/Future/then_A01_t03: fail, OK
-LibTest/async/Future/wait_A01_t01: fail, OK
-LibTest/async/Future/wait_A01_t04: fail, OK
-LibTest/async/Future/wait_A01_t05: fail, OK
-LibTest/async/Future/wait_A01_t06: fail, OK
-LibTest/async/Future/whenComplete_A01_t01: fail, OK
-LibTest/async/Future/whenComplete_A02_t01: fail, OK
-LibTest/async/Future/whenComplete_A04_t01: fail, OK
+Language/15_Types/4_Interface_Types_A08_t03: fail, OK
 
 # co19 issue #448, Collection was removed
 LibTest/collection/Queue/Queue.from_A01_t01: fail, OK
@@ -374,83 +94,14 @@ LibTest/core/Match/str_A01_t01: fail, OK
 LibTest/core/RegExp/allMatches_A01_t01: fail, OK
 LibTest/core/Set/intersection_A01_t02: fail, OK
 
-# co19 issue #449, Strings was removed
-LibTest/core/Strings/concatAll_A01_t01: fail, OK
-LibTest/core/Strings/concatAll_A02_t01: fail, OK
-LibTest/core/Strings/concatAll_A03_t01: fail, OK
-LibTest/core/Strings/join_A01_t01: fail, OK
-LibTest/core/Strings/join_A02_t01: fail, OK
-LibTest/core/Strings/join_A03_t01: fail, OK
-
-# co19 issue #450, The class 'List' does not have a constructor 'fixedLength'
-LibTest/core/List/add_A02_t01: fail, OK
-LibTest/core/List/addAll_A02_t01: fail, OK
-LibTest/core/List/clear_A02_t01: fail, OK
-LibTest/core/List/length_A04_t01: fail, OK
-LibTest/core/List/removeLast_A02_t01: fail, OK
-LibTest/core/List/removeRange_A02_t01: fail, OK
-
-# co19 issue 451, Set.intersection() requires Set argument
-LibTest/core/Set/intersection_A01_t01: fail, OK
-LibTest/core/Set/intersection_A01_t03: fail, OK
-LibTest/core/Set/intersection_A03_t01: fail, OK
-
 # co19 issue 452, more method in Iterable
 LibTest/core/Set/Set.from_A01_t02: fail, OK
 
-# co19 issue #453, abstract member in concrete class
-Language/07_Classes/07_Classes_A07_t10: fail, OK
-
-# co19 issue #454, should be static warning
-Language/11_Expressions/11_Instance_Creation/1_New_A01_t04: fail, OK
-
 # co19 issue #455, undeclared identifier is static warning
-Language/13_Libraries_and_Scripts/1_Imports_A02_t14: fail, OK
-
-# co19 issue #456
-Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t04: fail, OK
-Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t05: fail, OK
-Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t08: fail, OK
-
-# co19 issue 457, malformed type is static warning
-Language/11_Expressions/31_Type_Test_A05_t01: fail, OK
-Language/11_Expressions/31_Type_Test_A05_t02: fail, OK
-Language/11_Expressions/31_Type_Test_A05_t03: fail, OK
-Language/11_Expressions/32_Type_Cast_A04_t01: fail, OK
-Language/11_Expressions/32_Type_Cast_A04_t02: fail, OK
-
-# co19 issue #465, any use of a malbounded type gives rise to a static warning.
-Language/11_Expressions/11_Instance_Creation/1_New_A05_t01: fail, OK
-Language/11_Expressions/11_Instance_Creation/1_New_A05_t02: fail, OK
-Language/11_Expressions/11_Instance_Creation/1_New_A05_t03: fail, OK
-Language/11_Expressions/11_Instance_Creation_A03_t01: fail, OK
-Language/11_Expressions/11_Instance_Creation_A04_t01: fail, OK
-Language/11_Expressions/11_Instance_Creation_A04_t02: fail, OK
-
-# co19 issue #481
-Language/13_Libraries_and_Scripts/1_Imports_A03_t02: fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A03_t05: fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A03_t08: fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A03_t09: fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A03_t10: fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A03_t22: fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A03_t25: fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A03_t29: fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A03_t28: fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A03_t30: fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A03_t42: fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A03_t45: fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A03_t48: fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A03_t49: fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A03_t50: fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A03_t62: fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A03_t65: fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A03_t68: fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A03_t69: fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A03_t70: fail, OK
-
-# co19 issue 483, instance access to static member
-Language/11_Expressions/15_Method_Invocation/2_Cascaded_Invocation_A01_t19: fail, OK
+Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t10: fail, OK
+Language/13_Statements/04_Local_Function_Declaration_A02_t02: fail, OK
+Language/14_Libraries_and_Scripts/1_Imports_A02_t12: fail, OK
+Language/14_Libraries_and_Scripts/1_Imports_A02_t15: fail, OK
 
 # co19 issue #486, some override errors are now warnings
 Language/07_Classes/1_Instance_Methods_A01_t01: fail, OK
@@ -472,5 +123,190 @@ Language/07_Classes/4_Abstract_Instance_Members_A04_t01: fail, OK
 Language/07_Classes/4_Abstract_Instance_Members_A04_t05: fail, OK
 Language/07_Classes/4_Abstract_Instance_Members_A04_t06: fail, OK
 
-# co19 issue #487, Function type T may be assigned to function type T iff T <: S
-Language/14_Types/5_Function_Types_A01_t01: fail, OK
+# co19-roll r546 (11.08.2013) caused these failures
+Language/05_Variables/05_Variables_A05_t01: fail # co19-roll r546: Please triage this failure
+Language/05_Variables/05_Variables_A05_t02: fail # co19-roll r546: Please triage this failure
+Language/05_Variables/05_Variables_A05_t03: fail # co19-roll r546: Please triage this failure
+Language/07_Classes/3_Setters_A08_t01: fail # co19-roll r546: Please triage this failure
+Language/07_Classes/3_Setters_A08_t02: fail # co19-roll r546: Please triage this failure
+Language/07_Classes/3_Setters_A08_t03: fail # co19-roll r546: Please triage this failure
+Language/07_Classes/3_Setters_A08_t04: fail # co19-roll r546: Please triage this failure
+Language/07_Classes/3_Setters_A08_t05: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/00_Object_Identity/1_Object_Identity_A04_t01: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/00_Object_Identity/1_Object_Identity_A04_t02: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/01_Constants_A01_t01: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/01_Constants_A11_t01: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/01_Constants_A12_t01: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/01_Constants_A13_t06: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/01_Constants_A16_t01: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/01_Constants_A16_t02: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/01_Constants_A16_t03: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/01_Constants_A17_t03: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/03_Numbers_A01_t01: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/03_Numbers_A01_t02: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/03_Numbers_A01_t03: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/03_Numbers_A01_t04: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/03_Numbers_A01_t08: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/03_Numbers_A01_t10: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/06_Lists_A06_t01: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/07_Maps_A01_t01: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/08_Throw_A05_t01: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/08_Throw_A05_t02: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/08_Throw_A05_t03: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/12_Instance_Creation/1_New_A01_t04: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/12_Instance_Creation/1_New_A02_t01: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/12_Instance_Creation/1_New_A02_t02: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/12_Instance_Creation/1_New_A02_t03: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/12_Instance_Creation/1_New_A02_t05: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/12_Instance_Creation/1_New_A02_t07: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/12_Instance_Creation/1_New_A05_t01: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/12_Instance_Creation/1_New_A05_t02: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/12_Instance_Creation/1_New_A05_t03: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/12_Instance_Creation/1_New_A06_t01: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/12_Instance_Creation/1_New_A06_t02: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/12_Instance_Creation/1_New_A06_t03: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/12_Instance_Creation/1_New_A06_t04: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/12_Instance_Creation/1_New_A06_t05: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/12_Instance_Creation/1_New_A06_t06: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/12_Instance_Creation/1_New_A06_t07: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/12_Instance_Creation/1_New_A06_t08: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/12_Instance_Creation/1_New_A06_t09: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/12_Instance_Creation/1_New_A06_t12: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/12_Instance_Creation/2_Const_A09_t02: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/12_Instance_Creation/2_Const_A09_t03: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/12_Instance_Creation_A01_t02: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/12_Instance_Creation_A01_t05: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/12_Instance_Creation_A01_t06: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/12_Instance_Creation_A01_t08: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/15_Method_Invocation/2_Cascaded_Invocation_A01_t19: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t01: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t07: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t05: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/32_Type_Test_A04_t02: fail # co19-roll r546: Please triage this failure
+Language/13_Statements/02_Expression_Statements_A01_t06: fail # co19-roll r546: Please triage this failure
+Language/13_Statements/04_Local_Function_Declaration_A01_t01: fail # co19-roll r546: Please triage this failure
+Language/13_Statements/11_Return_A07_t01: fail # co19-roll r546: Please triage this failure
+Language/13_Statements/11_Try_A02_t03: fail # co19-roll r546: Please triage this failure
+Language/13_Statements/11_Try_A03_t03: fail # co19-roll r546: Please triage this failure
+Language/13_Statements/11_Try_A04_t03: fail # co19-roll r546: Please triage this failure
+Language/14_Libraries_and_Scripts/1_Imports_A03_t27: fail # co19-roll r546: Please triage this failure
+Language/14_Libraries_and_Scripts/1_Imports_A03_t47: fail # co19-roll r546: Please triage this failure
+Language/14_Libraries_and_Scripts/1_Imports_A03_t67: fail # co19-roll r546: Please triage this failure
+Language/14_Libraries_and_Scripts/2_Exports_A01_t17: fail # co19-roll r546: Please triage this failure
+Language/14_Libraries_and_Scripts/2_Exports_A05_t01: fail # co19-roll r546: Please triage this failure
+Language/14_Libraries_and_Scripts/5_URIs_A01_t24: fail # co19-roll r546: Please triage this failure
+Language/14_Libraries_and_Scripts/5_URIs_A01_t25: fail # co19-roll r546: Please triage this failure
+Language/15_Types/1_Static_Types_A03_t01: fail # co19-roll r546: Please triage this failure
+Language/15_Types/5_Function_Types_A01_t01: fail # co19-roll r546: Please triage this failure
+Language/15_Types/6_Type_dynamic_A03_t01: fail # co19-roll r546: Please triage this failure
+Language/15_Types/6_Type_dynamic_A04_t01: fail # co19-roll r546: Please triage this failure
+Language/16_Reference/1_Lexical_Rules/2_Comments_A04_t03: fail # co19-roll r546: Please triage this failure
+LibTest/async/EventTransformStream/asBroadcastStream_A01_t02: fail # co19-roll r546: Please triage this failure
+LibTest/async/EventTransformStream/distinct_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/EventTransformStream/distinct_A01_t02: fail # co19-roll r546: Please triage this failure
+LibTest/async/EventTransformStream/drain_A02_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/EventTransformStream/drain_A02_t02: fail # co19-roll r546: Please triage this failure
+LibTest/async/EventTransformStream/EventTransformStream_A01_t02: fail # co19-roll r546: Please triage this failure
+LibTest/async/EventTransformStream/expand_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/EventTransformStream/first_A02_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/EventTransformStream/handleError_A03_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/EventTransformStream/listen_A03_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/EventTransformStream/listen_A04_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/EventTransformStream/transform_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/EventTransformStream/where_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/Future/asStream_A01_t02: pass # co19-roll r546: Please triage this failure
+LibTest/async/Future/asStream_A02_t01: pass # co19-roll r546: Please triage this failure
+LibTest/async/Future/whenComplete_A03_t01: pass # co19-roll r546: Please triage this failure
+LibTest/async/Stream/asBroadcastStream_A01_t02: fail # co19-roll r546: Please triage this failure
+LibTest/async/Stream/asBroadcastStream_A02_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/Stream/contains_A03_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/StreamController/hasListener_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/StreamController/hasListener_A01_t02: fail # co19-roll r546: Please triage this failure
+LibTest/async/StreamController/isClosed_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/StreamController/isClosed_A01_t02: fail # co19-roll r546: Please triage this failure
+LibTest/async/StreamController/isPaused_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/StreamController/isPaused_A01_t03: fail # co19-roll r546: Please triage this failure
+LibTest/async/StreamController/sink_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/StreamController/StreamController.broadcast_A04_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/Stream/distinct_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/Stream/distinct_A01_t02: fail # co19-roll r546: Please triage this failure
+LibTest/async/Stream/drain_A02_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/Stream/drain_A02_t02: fail # co19-roll r546: Please triage this failure
+LibTest/async/StreamEventTransformer/handleData_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/StreamEventTransformer/handleDone_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/StreamEventTransformer/handleError_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/Stream/expand_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/Stream/handleError_A03_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/Stream/isBroadcast_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/Stream/isBroadcast_A01_t02: fail # co19-roll r546: Please triage this failure
+LibTest/async/StreamIterator/cancel_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/Stream/listen_A03_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/Stream/listen_A04_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/StreamSink/close_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/Stream/Stream_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/Stream/Stream.fromFuture_A02_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/Stream/Stream.fromFuture_A02_t02: fail # co19-roll r546: Please triage this failure
+LibTest/async/Stream/Stream.fromIterable_A01_t02: fail # co19-roll r546: Please triage this failure
+LibTest/async/Stream/Stream.periodic_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/Stream/transform_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/Stream/where_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/Timer/cancel_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/Timer/Timer.periodic_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/async/Timer/Timer.periodic_A02_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/DateTime/compareTo_A02_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/DateTime/isAtSameMomentAs_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/DateTime/subtract_A02_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/double/parse_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/Duration/operator_div_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/Duration/operator_eq_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/Duration/operator_gt_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/Duration/operator_gte_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/Duration/operator_lt_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/Duration/operator_lte_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/Duration/operator_minus_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/Duration/operator_mult_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/Duration/operator_plus_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/FallThroughError/toString_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/int/ceilToDouble_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/int/floorToDouble_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/int/roundToDouble_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/int/truncateToDouble_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/List/asMap_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/List/every_A03_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/List/forEach_A01_t02: fail # co19-roll r546: Please triage this failure
+LibTest/core/List/join_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/List/lastWhere_A03_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/List/List_A01_t03: fail # co19-roll r546: Please triage this failure
+LibTest/core/List/List.filled_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/List/List.from_A01_t03: fail # co19-roll r546: Please triage this failure
+LibTest/core/List/List.generate_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/List/List.generate_A01_t02: fail # co19-roll r546: Please triage this failure
+LibTest/core/List/List.generate_A01_t03: fail # co19-roll r546: Please triage this failure
+LibTest/core/List/map_A02_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/List/removeAt_A02_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/List/replaceRange_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/List/replaceRange_A01_t02: fail # co19-roll r546: Please triage this failure
+LibTest/core/List/skipWhile_A02_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/List/takeWhile_A02_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/List/toList_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/List/toList_A01_t03: fail # co19-roll r546: Please triage this failure
+LibTest/core/List/toSet_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/StringBuffer/writeAll_A03_t01: fail # co19-roll r546: Please triage this failure
+LibTest/isolate/isolate_api/spawnFunction_A03_t01: fail # co19-roll r546: Please triage this failure
+LibTest/isolate/isolate_api/streamSpawnFunction_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/isolate/IsolateSink/add_A01_t02: fail # co19-roll r546: Please triage this failure
+LibTest/isolate/IsolateSink/addError_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/isolate/IsolateSink/addError_A01_t02: fail # co19-roll r546: Please triage this failure
+LibTest/isolate/IsolateSink/operator_equality_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/isolate/IsolateStream/any_A02_t01: fail # co19-roll r546: Please triage this failure
+LibTest/isolate/IsolateStream/asBroadcastStream_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/isolate/IsolateStream/contains_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/isolate/IsolateStream/contains_A02_t01: fail # co19-roll r546: Please triage this failure
+LibTest/isolate/IsolateStream/isBroadcast_A01_t02: fail # co19-roll r546: Please triage this failure
+LibTest/isolate/IsolateStream/last_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/isolate/IsolateStream/length_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/isolate/IsolateStream/single_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/isolate/SendPort/send_A02_t02: fail # co19-roll r546: Please triage this failure
+LibTest/isolate/SendPort/send_A02_t03: fail # co19-roll r546: Please triage this failure
+LibTest/isolate/SendPort/send_A02_t04: fail # co19-roll r546: Please triage this failure
