@@ -90,7 +90,8 @@ main() {
       var dom = new Element.html('<div><$tag></$tag></div>');
       var preElement = dom.children[0];
       expect(preElement, isNotNull);
-      expect(preElement is UnknownElement, isTrue);
+      expect(preElement is HtmlElement, isTrue);
+      expect(preElement is CustomType, isFalse);
       var firedOnPre = false;
       preElement.onFocus.listen((_) {
         firedOnPre = true;
@@ -104,17 +105,17 @@ main() {
       expect(postElement.onCreatedCalled, isTrue);
 
       // Element from first query remains an UnknownElement.
-      expect(preElement is UnknownElement, isTrue);
-      expect(preElement.parent, isNull);
+      expect(preElement is HtmlElement, isTrue);
+      expect(preElement.parent, dom);
       expect(dom.children.length, 1);
 
       var firedOnPost = false;
       postElement.onFocus.listen((_) {
         firedOnPost = true;
       });
-      // Event handlers should not persist to new element.
+      // Event handlers persist on old and new element.
       postElement.dispatchEvent(new Event('focus'));
-      expect(firedOnPre, isFalse);
+      expect(firedOnPre, isTrue);
       expect(firedOnPost, isTrue);
     });
   });
