@@ -1479,13 +1479,23 @@ bool FlowGraphOptimizer::InlineFloat32x4Getter(InstanceCallInstr* call,
     ASSERT(call->ArgumentCount() == 2);
     // Extract shuffle mask.
     Definition* mask_definition = call->ArgumentAt(1);
+    if (!mask_definition->IsConstant()) {
+      // Not a constant.
+      return false;
+    }
     ASSERT(mask_definition->IsConstant());
     ConstantInstr* constant_instruction = mask_definition->AsConstant();
     const Object& constant_mask = constant_instruction->value();
+    if (!constant_mask.IsSmi()) {
+      // Not a smi.
+      return false;
+    }
     ASSERT(constant_mask.IsSmi());
     mask = Smi::Cast(constant_mask).Value();
-    ASSERT(mask >= 0);
-    ASSERT(mask <= 255);
+    if (mask < 0 || mask > 255) {
+      // Not a valid mask.
+      return false;
+    }
   }
   Float32x4ShuffleInstr* instr = new Float32x4ShuffleInstr(
       getter,

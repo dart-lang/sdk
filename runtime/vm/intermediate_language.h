@@ -89,7 +89,7 @@ class Range;
   V(Float32x4, Float32x4., Float32x4Constructor, 1876089990)                   \
   V(Float32x4, Float32x4.zero, Float32x4Zero, 1903586222)                      \
   V(Float32x4, Float32x4.splat, Float32x4Splat, 38462589)                      \
-  V(_Float32x4, _shuffle, Float32x4Shuffle, 2044955136)                        \
+  V(_Float32x4, shuffle, Float32x4Shuffle, 713523911)                          \
   V(_Float32x4, get:x, Float32x4ShuffleX, 1019523296)                          \
   V(_Float32x4, get:y, Float32x4ShuffleY, 710282243)                           \
   V(_Float32x4, get:z, Float32x4ShuffleZ, 1612806041)                          \
