@@ -314,6 +314,11 @@ LibTest/async/Future/asStream_A02_t01: pass # co19-roll r546: Please triage this
 LibTest/async/Future/forEach_A03_t01: pass # co19-roll r546: Please triage this failure
 LibTest/async/StreamSink/close_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/async/Stream/Stream.periodic_A01_t01: fail, pass # co19-roll r546: Please triage this failure
+LibTest/async/Stream/Stream.periodic_A03_t01: fail, pass # co19-roll r546: Please triage this failure
+LibTest/async/Timer/run_A01_t01: fail, pass # co19-roll r546: Please triage this failure
+LibTest/async/Timer/Timer_A02_t01: fail, pass # co19-roll r546: Please triage this failure
+LibTest/async/Timer/Timer_A02_t01: fail, pass # co19-roll r546: Please triage this failure
+LibTest/async/Timer/Timer.periodic_A02_t01: fail, pass # co19-roll r546: Please triage this failure
 LibTest/core/DateTime/isAtSameMomentAs_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/core/DateTime/parse_A03_t01: fail # co19-roll r546: Please triage this failure
 LibTest/core/DateTime/year_A01_t01: fail # co19-roll r546: Please triage this failure
@@ -326,18 +331,13 @@ LibTest/isolate/isolate_api/streamSpawnFunction_A02_t01: fail # co19-roll r546: 
 LibTest/isolate/IsolateSink/addError_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateSink/addError_A01_t02: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateStream/any_A02_t01: fail # co19-roll r546: Please triage this failure
+LibTest/isolate/IsolateStream/contains_A02_t01: fail, pass # co19-roll r546: Please triage this failure
 LibTest/isolate/SendPort/send_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/SendPort/send_A02_t04: fail # co19-roll r546: Please triage this failure
 Utils/tests/Expect/listEquals_A02_t01: fail # co19-roll r546: Please triage this failure
 Utils/tests/Expect/listEquals_A03_t01: fail # co19-roll r546: Please triage this failure
 Utils/tests/Expect/setEquals_A02_t01: fail # co19-roll r546: Please triage this failure
 
-# co19-roll r546 (11.08.2013) caused these failures
-[ $compiler == none && $runtime == vm && $system == windows ]
-LibTest/async/Stream/Stream.periodic_A03_t01: fail, pass # co19-roll r546: Please triage this failure
-LibTest/async/Timer/run_A01_t01: fail, pass # co19-roll r546: Please triage this failure
-LibTest/async/Timer/Timer.periodic_A02_t01: fail, pass # co19-roll r546: Please triage this failure
-LibTest/isolate/IsolateStream/contains_A02_t01: fail, pass # co19-roll r546: Please triage this failure
 
 
 # co19-roll r546 (11.08.2013) caused these failures

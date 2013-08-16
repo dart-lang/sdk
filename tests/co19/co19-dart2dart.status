@@ -390,6 +390,8 @@ Language/15_Types/5_Function_Types_A06_t01: fail # co19-roll r546: Please triage
 Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: fail # co19-roll r546: Please triage this failure
 Language/16_Reference/1_Lexical_Rules/2_Comments_A04_t03: fail # co19-roll r546: Please triage this failure
 Language/16_Reference/1_Lexical_Rules_A02_t06: fail # co19-roll r546: Please triage this failure
+LibTest/async/Stream/Stream.periodic_A03_t01: fail, pass # co19-roll r546: Please triage this failure
+LibTest/async/Timer/Timer.periodic_A02_t01: fail, pass # co19-roll r546: Please triage this failure
 LibTest/core/DateTime/isAtSameMomentAs_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/core/DateTime/parse_A03_t01: fail # co19-roll r546: Please triage this failure
 LibTest/core/DateTime/year_A01_t01: fail # co19-roll r546: Please triage this failure
