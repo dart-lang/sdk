@@ -228,8 +228,10 @@ class Phase {
 
       // If the asset is removed, [tryUntilStable] will throw an
       // [AssetNotFoundException]. In that case, just remove all transforms for
-      // the node.
+      // the node, and its pass-through.
       _transforms.remove(node.id);
+      var passThrough = _passThroughControllers.remove(node.id);
+      if (passThrough != null) passThrough.setRemoved();
     }).whenComplete(() {
       _adjustTransformersFutures.remove(node.id);
     });

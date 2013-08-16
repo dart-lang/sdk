@@ -919,6 +919,26 @@ main() {
       expectAsset("app|foo.mid", "bar.mid.phase2");
       buildShouldSucceed();
     });
+
+    test("doesn't pass an asset through if it's removed during isPrimary", () {
+      var check = new CheckContentTransformer("bar", " modified");
+      initGraph(["app|foo.txt"], {"app": [[check]]});
+
+      updateSources(["app|foo.txt"]);
+      expectAsset("app|foo.txt", "foo");
+      buildShouldSucceed();
+
+      check.pauseIsPrimary("app|foo.txt");
+      modifyAsset("app|foo.txt", "bar");
+      updateSources(["app|foo.txt"]);
+      // Ensure we're waiting on [check.isPrimary]
+      schedule(pumpEventQueue);
+
+      removeSources(["app|foo.txt"]);
+      check.resumeIsPrimary("app|foo.txt");
+      expectNoAsset("app|foo.txt");
+      buildShouldSucceed();
+    });
   });
 
   group('cross-package transforms', () {
