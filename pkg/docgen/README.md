@@ -38,6 +38,9 @@ Run  `dart docgen.dart [OPTIONS] <path to directory or file>`
 - `--parse-sdk` Parses the SDK libraries only. (Ignores the path passed in.)
 - `--package-root` Sets the package root of the library being analyzed.
 - `--append` Appends to the docs folder, library_list.txt, and index.txt.
+- `--introduction` Adds the provided markdown text file as the introduction
+for the outputted documentation.
+
 
 ###### Output Directory
 Documented libraries will be located at bin/docs in either YAML or JSON format 

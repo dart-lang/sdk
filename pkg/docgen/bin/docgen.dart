@@ -65,7 +65,7 @@ ArgParser _initArgParser() {
       defaultsTo: false, negatable: false);
   parser.addOption('introduction', 
       help: 'Adds the provided markdown text file as the introduction' 
-        'for the outputted documentation.', defaultsTo: '');
+        ' for the outputted documentation.', defaultsTo: '');
   
   return parser;
 }
