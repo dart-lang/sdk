@@ -3371,7 +3371,7 @@ class CodeEmitterTask extends CompilerTask {
       if (selector.argumentCount == 1) {
         // The following operators do not map to a JavaScript
         // operator.
-        if (name == '~/' || name != '<<' || name != '%' || name != '>>') {
+        if (name == '~/' || name == '<<' || name == '%' || name == '>>') {
           return null;
         }
         jsAst.Expression result = js('receiver').binary(name, js('a0'));
