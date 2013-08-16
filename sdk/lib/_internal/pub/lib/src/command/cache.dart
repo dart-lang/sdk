@@ -16,6 +16,7 @@ import '../log.dart' as log;
 class CacheCommand extends PubCommand {
   String get description => "Inspect the system cache.";
   String get usage => 'pub cache list';
+  bool get hidden => true;
   bool get requiresEntrypoint => false;
 
   Future onRun() {

@@ -151,6 +151,10 @@ void printUsage([String description = 'Pub is a package manager for Dart.']) {
   for (var command in PubCommand.commands.keys) {
     // Hide aliases.
     if (PubCommand.commands[command].aliases.indexOf(command) >= 0) continue;
+
+    // Hide undocumented commands.
+    if (PubCommand.commands[command].hidden) continue;
+
     length = math.max(length, command.length);
     names.add(command);
   }
