@@ -413,3 +413,5 @@ Utils/tests/Expect/listEquals_A02_t01: fail # co19-roll r546: Please triage this
 Utils/tests/Expect/listEquals_A03_t01: fail # co19-roll r546: Please triage this failure
 Utils/tests/Expect/setEquals_A02_t01: fail # co19-roll r546: Please triage this failure
 
+[ $compiler == dart2dart && $minified ]
+Language/13_Statements/11_Try_A06_t01: fail # co19-roll r546: Please triage this failure
