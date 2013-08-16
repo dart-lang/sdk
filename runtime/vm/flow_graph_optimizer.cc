@@ -400,20 +400,49 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
   } else if ((from == kUnboxedUint32x4) && (to == kTagged)) {
     converted = new BoxUint32x4Instr(use->CopyWithType());
   } else {
+    // We have failed to find a suitable conversion instruction.
+    // Insert two "dummy" conversion instructions with the correct
+    // "from" and "to" representation. The inserted instructions will
+    // trigger a deoptimization if executed. See #12417 for a discussion.
     const intptr_t deopt_id = (deopt_target != NULL) ?
         deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
-    // We have failed to find a suitable conversion instruction.
-    // Insert a "dummy" conversion instruction with the correct
-    // "to" representation. The inserted instruction will trigger a
-    // a deoptimization if executed. See issue #12417 for a discussion.
+    ASSERT(from != kTagged);
+    ASSERT(to != kTagged);
+    Value* to_value = NULL;
+    if (from == kUnboxedDouble) {
+      BoxDoubleInstr* boxed = new BoxDoubleInstr(use->CopyWithType());
+      use->BindTo(boxed);
+      InsertBefore(insert_before, boxed, NULL, Definition::kValue);
+      to_value = new Value(boxed);
+    } else if (from == kUnboxedUint32x4) {
+      BoxUint32x4Instr* boxed = new BoxUint32x4Instr(use->CopyWithType());
+      use->BindTo(boxed);
+      InsertBefore(insert_before, boxed, NULL, Definition::kValue);
+      to_value = new Value(boxed);
+    } else if (from == kUnboxedFloat32x4) {
+      BoxFloat32x4Instr* boxed = new BoxFloat32x4Instr(use->CopyWithType());
+      use->BindTo(boxed);
+      InsertBefore(insert_before, boxed, NULL, Definition::kValue);
+      to_value = new Value(boxed);
+    } else if (from == kUnboxedMint) {
+      BoxIntegerInstr* boxed = new BoxIntegerInstr(use->CopyWithType());
+      use->BindTo(boxed);
+      InsertBefore(insert_before, boxed, NULL, Definition::kValue);
+      to_value = new Value(boxed);
+    } else {
+      UNIMPLEMENTED();
+    }
+    ASSERT(to_value != NULL);
     if (to == kUnboxedDouble) {
-      converted = new UnboxDoubleInstr(use->CopyWithType(), deopt_id);
+      converted = new UnboxDoubleInstr(to_value, deopt_id);
     } else if (to == kUnboxedUint32x4) {
-      converted = new UnboxDoubleInstr(use->CopyWithType(), deopt_id);
+      converted = new UnboxUint32x4Instr(to_value, deopt_id);
     } else if (to == kUnboxedFloat32x4) {
-      converted = new UnboxDoubleInstr(use->CopyWithType(), deopt_id);
+      converted = new UnboxFloat32x4Instr(to_value, deopt_id);
     } else if (to == kUnboxedMint) {
-      converted = new UnboxIntegerInstr(use->CopyWithType(), deopt_id);
+      converted = new UnboxIntegerInstr(to_value, deopt_id);
+    } else {
+      UNIMPLEMENTED();
     }
   }
   ASSERT(converted != NULL);
