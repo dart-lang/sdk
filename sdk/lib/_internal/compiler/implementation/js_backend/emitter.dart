@@ -2973,7 +2973,7 @@ class CodeEmitterTask extends CompilerTask {
       buffer.write(
           jsAst.prettyPrint(generateDispatchPropertyInitialization(),
                             compiler));
-      buffer.write(';$n');
+      buffer.write(N);
     }
     addComment('BEGIN invoke [main].', buffer);
     // This code finds the currently executing script by listening to the
@@ -2981,7 +2981,7 @@ class CodeEmitterTask extends CompilerTask {
     // finishes. Since onload is called immediately after execution this should
     // not substantially change execution order.
     buffer.write("""
-(function (callback) {
+;(function (callback) {
   if (typeof document === 'undefined') {
     callback(null);
     return;
