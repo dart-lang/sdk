@@ -263,6 +263,9 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # E
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Expect.fail('Some exception expected')
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Expect.fail('Some exception expected')
 
+[ $compiler == dart2js && ($runtime == ie10 || $runtime == ff || $runtime == chrome || $runtime == drt || $runtime == safari || $runtime == opera) ]
+*: Skip
+
 #
 # Missing compile-time errors.
 #
