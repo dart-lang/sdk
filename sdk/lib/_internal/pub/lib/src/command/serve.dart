@@ -226,8 +226,7 @@ class ServeCommand extends PubCommand {
         var subdirectory = path.join(packageDir, name);
         var watcher = new DirectoryWatcher(subdirectory);
         watcher.events.listen((event) {
-          var relativePath = path.relative(event.path, from: packageDir);
-          var id = new AssetId(package, relativePath);
+          var id = pathToAssetId(package, packageDir, event.path);
           if (event.type == ChangeType.REMOVE) {
             _barback.removeSources([id]);
           } else {
@@ -257,10 +256,7 @@ class ServeCommand extends PubCommand {
         // Skip directories.
         if (!fileExists(entry)) continue;
 
-        // AssetId paths use "/" on all platforms.
-        var relative = path.relative(entry, from: packageDir);
-        relative = path.toUri(relative).path;
-        files.add(new AssetId(package, relative));
+        files.add(pathToAssetId(package, packageDir, entry));
       }
     }
 
@@ -273,5 +269,15 @@ class ServeCommand extends PubCommand {
     var directories = ["asset", "lib"];
     if (package == entrypoint.root.name) directories.add("web");
     return directories;
+  }
+
+  /// Converts a local file path to an [AssetId].
+  AssetId pathToAssetId(String package, String packageDir, String filePath) {
+    var relative = path.relative(filePath, from: packageDir);
+
+    // AssetId paths use "/" on all platforms.
+    relative = path.toUri(relative).path;
+
+    return new AssetId(package, relative);
   }
 }
