@@ -146,15 +146,16 @@ abstract class double extends num {
    * (optional) exponent part consists of the character "e" or "E", an optional
    * sign, and one or more digits.
    *
-   * The input string is trimmed (see [String.trim]) before conversion.
+   * Leading and trailing whitespace is ignored.
    *
-   * If the [source] is not a valid double literal, the [handleError]
+   * If the [source] is not a valid double literal, the [onError]
    * is called with the [source] as argument, and its return value is
-   * used instead. If no handleError is provided, a [FormatException]
-   * is thrown.
+   * used instead. If no `onError` is provided, a [FormatException]
+   * is thrown instead.
    *
-   * The [onError] function is only invoked if [source] is a [String]. It is
-   * not invoked if the [source] is, for example, `null`.
+   * The [onError] function is only invoked if [source] is a [String] with an
+   * invalid format. It is not invoked if the [source] is invalid for some
+   * other reason, for example by being `null`.
    *
    * Examples of accepted strings:
    *
@@ -168,5 +169,5 @@ abstract class double extends num {
    *     "-NaN"
    */
   external static double parse(String source,
-                               [double handleError(String source)]);
+                               [double onError(String source)]);
 }
