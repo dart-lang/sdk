@@ -23,8 +23,8 @@ LibTest/collection/Queue/iterator_current_A01_t02: Fail # co19 issue 475
 LibTest/collection/Queue/iterator_moveNext_A01_t02: Fail # co19 issue 475
 LibTest/core/int/toStringAsExponential_A02_t01: Fail # co19 issue 477
 
-LibTest/core/Match/pattern_A01_t01: Fail # Issue 422
-LibTest/core/RegExp/allMatches_A01_t01: Fail # Issue 422
+LibTest/core/Match/pattern_A01_t01: Fail # co19 issue 422
+LibTest/core/RegExp/allMatches_A01_t01: Fail # co19 issue 422
 
 Language/07_Classes/4_Abstract_Instance_Members_A03_t02: Fail # Dart issue 978
 Language/07_Classes/4_Abstract_Instance_Members_A03_t03: Fail # Dart issue 978
@@ -35,75 +35,62 @@ Language/07_Classes/4_Abstract_Instance_Members_A04_t06: Fail # Dart issue 978
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: Fail # Dart issue 6954
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: Fail # co19 issue 426
 LibTest/core/double/parse_A02_t01: Fail # co19 issue 418
-LibTest/math/pow_A01_t01: Fail # Dart issue 7318
+LibTest/math/pow_A01_t01: Fail # co19 issue 44
 LibTest/math/pow_A11_t01: Fail # Dart issue 449
 LibTest/math/pow_A13_t01: Fail # Dart issue 449
 
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Fail # Dart issue 5802
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # Dart issue 5894
 
-LibTest/core/double/truncate_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
-LibTest/core/double/truncate_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
-LibTest/core/double/ceil_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
-LibTest/core/double/ceil_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
-LibTest/core/double/floor_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
-LibTest/core/double/floor_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
-LibTest/core/double/round_A01_t02: Fail # truncate/ceil/floor/round returns ints, issue 389
-LibTest/core/double/round_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/truncate_A01_t03: Fail # truncate/ceil/floor/round returns ints, co19 issue 389
+LibTest/core/double/truncate_A01_t04: Fail # truncate/ceil/floor/round returns ints, co19 issue 389
+LibTest/core/double/ceil_A01_t03: Fail # truncate/ceil/floor/round returns ints, co19 issue 389
+LibTest/core/double/ceil_A01_t04: Fail # truncate/ceil/floor/round returns ints, co19 issue 389
+LibTest/core/double/floor_A01_t03: Fail # truncate/ceil/floor/round returns ints, co19 issue 389
+LibTest/core/double/floor_A01_t04: Fail # truncate/ceil/floor/round returns ints, co19 issue 389
+LibTest/core/double/round_A01_t02: Fail # truncate/ceil/floor/round returns ints, co19 issue 389
+LibTest/core/double/round_A01_t04: Fail # truncate/ceil/floor/round returns ints, co19 issue 389
 
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # issue 6085
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # Issue 6085
 
-LibTest/async/Future/asStream_A01_t01: Fail # Future constructors have changed # issue 408
-LibTest/async/Future/forEach_A03_t01: Fail # Future constructors have changed # issue 408
-LibTest/async/Future/asStream_A01_t02: Fail # Future constructors have changed # issue 408
-LibTest/async/Future/asStream_A02_t01: Fail # Future constructors have changed # issue 408
+LibTest/async/Future/asStream_A01_t01: Fail # Future constructors have changed # co19 issue 408
+LibTest/async/Future/forEach_A03_t01: Fail # Future constructors have changed # co19 issue 408
+LibTest/async/Future/asStream_A01_t02: Fail # Future constructors have changed # co19 issue 408
+LibTest/async/Future/asStream_A02_t01: Fail # Future constructors have changed # co19 issue 408
 
 # Some of these tests are expected to fail for another reason. These are marked as Skip.
-Language/07_Classes/07_Classes_A02_t29: Skip # must not instantiate an abstract class, co19 issue 183
-Language/07_Classes/07_Classes_A02_t31: Skip # must not instantiate an abstract class, co19 issue 183
+Language/07_Classes/07_Classes_A02_t29: Skip # co19 issue 490
+Language/07_Classes/07_Classes_A02_t31: Skip # co19 issue 490
 
-LibTest/core/List/every_A03_t01: Skip # Promise removed (co19 issue #79)
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail # Issue 12508
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail # Issue 12508
+LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # Issue 12508
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # Issue 12508
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail # Issue 12508
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail # Issue 12508
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail # Issue 12508
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Issue 12508
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Issue 12508
 
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail
-LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail
-LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail
+LibTest/core/Match/operator_subscript_A01_t01: Fail # Issue 12508
+LibTest/core/RegExp/firstMatch_A01_t01: Fail # Issue 12508
+LibTest/core/double/toRadixString_A01_t01: Fail # co19 issue 491
+LibTest/core/int/toRadixString_A01_t01: Fail # co19 issue 492
 
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail
+LibTest/math/sin_A01_t01: Pass, Fail, OK # co19 issue 44
 
-LibTest/core/Match/operator_subscript_A01_t01: Fail
-LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail
-LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail
-LibTest/core/RegExp/firstMatch_A01_t01: Fail
-LibTest/core/double/toRadixString_A01_t01: Fail # Issue 463
-LibTest/core/int/toRadixString_A01_t01: Fail # Issue 461
+LibTest/isolate/SendPort/send_A02_t02: Skip # co19 issue 493
 
-LibTest/math/sin_A01_t01: Pass, Fail, OK # Issue co19 - 44
+LibTest/core/String/contains_A01_t02: Fail  # Issue 12508
 
+LibTest/isolate/SendPort/send_A02_t03: Skip # co19 issue 495
 
-LibTest/isolate/SendPort/send_A02_t02: Skip # co19 issue 293
-LibTest/isolate/SendPort/send_A02_t03: Skip # co19 issue 293
-
-LibTest/core/Match/operator_subscript_A01_t01: Fail, OK # co19 issue 294
-LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # co19 issue 294
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail, OK # co19 issue 294
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail, OK # co19 issue 294
+LibTest/isolate/ReceivePort/receive_A01_t02: Fail # VM triage, check spec.
+LibTest/isolate/isolate_api/spawnUri_A02_t02: Fail # VM triage, check spec.
+LibTest/isolate/isolate_api/spawnUri_A02_t03: Fail # VM triage, check spec.
 
 
-LibTest/core/String/contains_A01_t03: Skip # Times out.
-
-LibTest/core/String/contains_A01_t02: Fail
-
-Language/07_Classes/07_Classes_A02_t29: Fail
-Language/07_Classes/07_Classes_A02_t31: Fail
-LibTest/isolate/ReceivePort/receive_A01_t02: Fail
-LibTest/isolate/isolate_api/spawnUri_A02_t02: Fail
-LibTest/isolate/isolate_api/spawnUri_A02_t03: Fail
-
-# parameter name or type expected
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t07: Fail
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t07: Fail $ co19 issue 494
 
 LibTest/core/Iterable/where_A01_t07: Fail # Issue 397
 
