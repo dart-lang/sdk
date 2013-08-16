@@ -1038,7 +1038,15 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
     HBasicBlock preheader = loopHeader.predecessors[0];
     int dependsFlags = SideEffects.computeDependsOnFlags(changesFlags);
     HInstruction instruction = block.first;
-    bool firstInstructionInLoop = block == loopHeader;
+    bool isLoopAlwaysTaken() {
+      HInstruction instruction = loopHeader.last;
+      return instruction is HGoto || instruction.inputs[0].isConstantTrue();
+    }
+    bool firstInstructionInLoop = block == loopHeader
+        // Compensate for lack of code motion.
+        || (blockChangesFlags[loopHeader.id] == 0
+            && isLoopAlwaysTaken()
+            && loopHeader.successors[0] == block);
     while (instruction != null) {
       HInstruction next = instruction.next;
       if (instruction.useGvn()
