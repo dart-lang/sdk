@@ -53,11 +53,6 @@ LibTest/core/double/round_A01_t04: Fail # truncate/ceil/floor/round returns ints
 
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # Issue 6085
 
-LibTest/async/Future/asStream_A01_t01: Fail # Future constructors have changed # co19 issue 408
-LibTest/async/Future/forEach_A03_t01: Fail # Future constructors have changed # co19 issue 408
-LibTest/async/Future/asStream_A01_t02: Fail # Future constructors have changed # co19 issue 408
-LibTest/async/Future/asStream_A02_t01: Fail # Future constructors have changed # co19 issue 408
-
 # Some of these tests are expected to fail for another reason. These are marked as Skip.
 Language/07_Classes/07_Classes_A02_t29: Skip # co19 issue 490
 Language/07_Classes/07_Classes_A02_t31: Skip # co19 issue 490
@@ -94,7 +89,6 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t07: Fail $ co1
 
 LibTest/core/Iterable/where_A01_t07: Fail # Issue 397
 
-LibTest/core/List/getRange_A04_t01: Fail # getRange now takes end-argument and returns Iterable. Issue 399
 LibTest/core/Set/isSubsetOf_A01_t01: fail # Issue 400
 LibTest/core/Set/isSubsetOf_A01_t02: fail # Issue 400
 
@@ -286,33 +280,28 @@ Language/14_Libraries_and_Scripts/1_Imports_A03_t70: fail # co19-roll r546: Plea
 Language/14_Libraries_and_Scripts/2_Exports_A04_t02: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/2_Exports_A04_t03: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/2_Exports_A05_t01: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/5_URIs_A01_t01: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/5_URIs_A01_t04: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/5_URIs_A01_t05: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/5_URIs_A01_t11: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/5_URIs_A01_t14: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/5_URIs_A01_t15: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/5_URIs_A01_t21: fail # co19-roll r546: Please triage this failure
-Language/15_Types/1_Static_Types_A03_t01: fail # co19-roll r546: Please triage this failure
-Language/16_Reference/1_Lexical_Rules/2_Comments_A04_t03: fail # co19-roll r546: Please triage this failure
-LibTest/async/Future/asStream_A01_t01: pass # co19-roll r546: Please triage this failure
-LibTest/async/Future/asStream_A01_t02: pass # co19-roll r546: Please triage this failure
-LibTest/async/Future/asStream_A02_t01: pass # co19-roll r546: Please triage this failure
-LibTest/async/Future/forEach_A03_t01: pass # co19-roll r546: Please triage this failure
-LibTest/async/StreamSink/close_A01_t01: fail # co19-roll r546: Please triage this failure
+Language/14_Libraries_and_Scripts/5_URIs_A01_t01: fail # Issue 12521
+Language/14_Libraries_and_Scripts/5_URIs_A01_t04: fail # Issue 12521
+Language/14_Libraries_and_Scripts/5_URIs_A01_t05: fail # Issue 12521
+Language/14_Libraries_and_Scripts/5_URIs_A01_t11: fail # Issue 12521
+Language/14_Libraries_and_Scripts/5_URIs_A01_t14: fail # Issue 12521
+Language/14_Libraries_and_Scripts/5_URIs_A01_t15: fail # Issue 12521
+Language/14_Libraries_and_Scripts/5_URIs_A01_t21: fail # Issue 12518
+Language/15_Types/1_Static_Types_A03_t01: fail # co19 issue 506
+Language/16_Reference/1_Lexical_Rules/2_Comments_A04_t03: fail # co19 issue 505
+LibTest/async/StreamSink/close_A01_t01: fail # co19 503
 LibTest/async/Stream/Stream.periodic_A01_t01: fail, pass # co19-roll r546: Please triage this failure
 LibTest/async/Stream/Stream.periodic_A03_t01: fail, pass # co19-roll r546: Please triage this failure
 LibTest/async/Timer/run_A01_t01: fail, pass # co19-roll r546: Please triage this failure
 LibTest/async/Timer/Timer_A02_t01: fail, pass # co19-roll r546: Please triage this failure
 LibTest/async/Timer/Timer_A02_t01: fail, pass # co19-roll r546: Please triage this failure
 LibTest/async/Timer/Timer.periodic_A02_t01: fail, pass # co19-roll r546: Please triage this failure
-LibTest/core/DateTime/isAtSameMomentAs_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/DateTime/parse_A03_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/DateTime/year_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/double/parse_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/List/getRange_A04_t01: pass # co19-roll r546: Please triage this failure
-LibTest/core/List/skip_A03_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/List/take_A02_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/DateTime/isAtSameMomentAs_A01_t01: fail # co19 issue 503
+LibTest/core/DateTime/parse_A03_t01: fail # Issue 12514
+LibTest/core/DateTime/year_A01_t01: fail # co19 issue 504
+LibTest/core/double/parse_A01_t01: fail # co19 issue 503
+LibTest/core/List/skip_A03_t01: fail # co19 issue 502
+LibTest/core/List/take_A02_t01: fail # co19 issue 502
 LibTest/isolate/isolate_api/spawnFunction_A04_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/isolate_api/streamSpawnFunction_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateSink/addError_A01_t01: fail # co19-roll r546: Please triage this failure
@@ -320,82 +309,82 @@ LibTest/isolate/IsolateSink/addError_A01_t02: fail # co19-roll r546: Please tria
 LibTest/isolate/IsolateStream/any_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateStream/contains_A02_t01: fail, pass # co19-roll r546: Please triage this failure
 LibTest/isolate/SendPort/send_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/SendPort/send_A02_t04: fail # co19-roll r546: Please triage this failure
-Utils/tests/Expect/listEquals_A02_t01: fail # co19-roll r546: Please triage this failure
-Utils/tests/Expect/listEquals_A03_t01: fail # co19-roll r546: Please triage this failure
-Utils/tests/Expect/setEquals_A02_t01: fail # co19-roll r546: Please triage this failure
+LibTest/isolate/SendPort/send_A02_t04: fail # co19 issue 501
+Utils/tests/Expect/listEquals_A02_t01: fail # co19 issue 499
+Utils/tests/Expect/listEquals_A03_t01: fail # co19 issue 500
+Utils/tests/Expect/setEquals_A02_t01: fail # co19 issue 499
 
 
 
 # co19-roll r546 (11.08.2013) caused these failures
 [ $compiler == none && $runtime == vm && $checked ]
-Language/12_Expressions/12_Instance_Creation_A01_t08: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/09_Switch_A05_t01: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/1_Imports_A03_t26: fail # co19-roll r546: Please triage this failure
-Language/15_Types/1_Static_Types_A03_t03: fail # co19-roll r546: Please triage this failure
-Language/15_Types/1_Static_Types_A03_t04: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/asBroadcastStream_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/contains_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/contains_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/distinct_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/drain_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/firstWhere_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/firstWhere_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/first_A03_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/fold_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/fold_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/forEach_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/forEach_A02_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/handleError_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/isBroadcast_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/lastWhere_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/lastWhere_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/listen_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/listen_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/listen_A03_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/map_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/reduce_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/reduce_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/singleWhere_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/skip_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/take_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/take_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/toList_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/toSet_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/transform_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/where_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/where_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/drain_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/firstWhere_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/firstWhere_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/fold_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/fold_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/lastWhere_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/lastWhere_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/reduce_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/reduce_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/singleWhere_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/take_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/transform_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/where_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/where_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/StreamEventTransformer/bind_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/DateTime/compareTo_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/List/join_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/List/removeAt_A02_t01: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/12_Instance_Creation_A01_t08: fail  # co19 issue 498
+Language/13_Statements/09_Switch_A05_t01: fail  # co19 issue 498
+Language/14_Libraries_and_Scripts/1_Imports_A03_t26: fail  # co19 issue 498
+Language/15_Types/1_Static_Types_A03_t03: fail  # co19 issue 498
+Language/15_Types/1_Static_Types_A03_t04: fail  # co19 issue 498
+LibTest/async/EventTransformStream/asBroadcastStream_A01_t01: fail  # co19 issue 498
+LibTest/async/EventTransformStream/contains_A01_t01: fail  # co19 issue 498
+LibTest/async/EventTransformStream/contains_A02_t01: fail  # co19 issue 498
+LibTest/async/EventTransformStream/distinct_A01_t01: fail  # co19 issue 498
+LibTest/async/EventTransformStream/drain_A01_t01: fail  # co19 issue 498
+LibTest/async/EventTransformStream/firstWhere_A01_t01: fail  # co19 issue 498
+LibTest/async/EventTransformStream/firstWhere_A02_t01: fail  # co19 issue 498
+LibTest/async/EventTransformStream/first_A03_t01: fail  # co19 issue 498
+LibTest/async/EventTransformStream/fold_A01_t01: fail  # co19 issue 498
+LibTest/async/EventTransformStream/fold_A01_t02: fail  # co19 issue 498
+LibTest/async/EventTransformStream/forEach_A01_t01: fail  # co19 issue 498
+LibTest/async/EventTransformStream/forEach_A02_t02: fail  # co19 issue 498
+LibTest/async/EventTransformStream/handleError_A02_t01: fail  # co19 issue 498
+LibTest/async/EventTransformStream/isBroadcast_A01_t02: fail  # co19 issue 498
+LibTest/async/EventTransformStream/lastWhere_A01_t01: fail  # co19 issue 498
+LibTest/async/EventTransformStream/lastWhere_A02_t01: fail  # co19 issue 498
+LibTest/async/EventTransformStream/listen_A01_t01: fail  # co19 issue 498
+LibTest/async/EventTransformStream/listen_A02_t01: fail  # co19 issue 498
+LibTest/async/EventTransformStream/listen_A03_t01: fail  # co19 issue 498
+LibTest/async/EventTransformStream/map_A01_t01: fail  # co19 issue 498
+LibTest/async/EventTransformStream/reduce_A01_t01: fail  # co19 issue 498
+LibTest/async/EventTransformStream/reduce_A01_t02: fail  # co19 issue 498
+LibTest/async/EventTransformStream/singleWhere_A01_t01: fail  # co19 issue 498
+LibTest/async/EventTransformStream/skip_A01_t01: fail  # co19 issue 498
+LibTest/async/EventTransformStream/take_A01_t01: fail  # co19 issue 498
+LibTest/async/EventTransformStream/take_A01_t02: fail  # co19 issue 498
+LibTest/async/EventTransformStream/toList_A01_t01: fail  # co19 issue 498
+LibTest/async/EventTransformStream/toSet_A01_t01: fail  # co19 issue 498
+LibTest/async/EventTransformStream/transform_A01_t01: fail  # co19 issue 498
+LibTest/async/EventTransformStream/where_A01_t01: fail  # co19 issue 498
+LibTest/async/EventTransformStream/where_A01_t02: fail  # co19 issue 498
+LibTest/async/Stream/drain_A01_t01: fail  # co19 issue 498
+LibTest/async/Stream/firstWhere_A01_t01: fail  # co19 issue 498
+LibTest/async/Stream/firstWhere_A02_t01: fail  # co19 issue 498
+LibTest/async/Stream/fold_A01_t01: fail  # co19 issue 498
+LibTest/async/Stream/fold_A01_t02: fail  # co19 issue 498
+LibTest/async/Stream/lastWhere_A01_t01: fail  # co19 issue 498
+LibTest/async/Stream/lastWhere_A02_t01: fail  # co19 issue 498
+LibTest/async/Stream/reduce_A01_t01: fail  # co19 issue 498
+LibTest/async/Stream/reduce_A01_t02: fail  # co19 issue 498
+LibTest/async/Stream/singleWhere_A01_t01: fail  # co19 issue 498
+LibTest/async/Stream/take_A01_t02: fail  # co19 issue 498
+LibTest/async/Stream/transform_A01_t01: fail  # co19 issue 498
+LibTest/async/Stream/where_A01_t01: fail  # co19 issue 498
+LibTest/async/Stream/where_A01_t02: fail  # co19 issue 498
+LibTest/async/StreamEventTransformer/bind_A01_t01: fail  # co19 issue 498
+LibTest/core/DateTime/compareTo_A02_t01: fail  # co19 issue 498
+LibTest/core/List/join_A01_t01: fail  # co19 issue 498
+LibTest/core/List/removeAt_A02_t01: fail  # co19 issue 498
 LibTest/core/Set/intersection_A01_t01: pass # co19-roll r546: Please triage this failure
 LibTest/core/Set/intersection_A01_t03: pass # co19-roll r546: Please triage this failure
 LibTest/core/Set/intersection_A03_t01: pass # co19-roll r546: Please triage this failure
-LibTest/core/int/ceilToDouble_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/int/floorToDouble_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/int/roundToDouble_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/int/truncateToDouble_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/IsolateStream/last_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/IsolateStream/length_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/IsolateStream/single_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/isolate_api/spawnFunction_A03_t01: fail # co19-roll r546: Please triage this failure
+LibTest/core/int/ceilToDouble_A01_t01: fail  # co19 issue 498
+LibTest/core/int/floorToDouble_A01_t01: fail  # co19 issue 498
+LibTest/core/int/roundToDouble_A01_t01: fail  # co19 issue 498
+LibTest/core/int/truncateToDouble_A01_t01: fail  # co19 issue 498
+LibTest/isolate/IsolateStream/last_A01_t01: fail # co19 issue 498
+LibTest/isolate/IsolateStream/length_A01_t01: fail # co19 issue 498
+LibTest/isolate/IsolateStream/single_A01_t01: fail # co19 issue 498
+LibTest/isolate/isolate_api/spawnFunction_A03_t01: fail # co19 issue 497
 
 # co19-roll r546 (11.08.2013) caused these failures
 [ $compiler == none && $runtime == vm && $unchecked ]
-Language/12_Expressions/12_Instance_Creation/2_Const_A09_t02: Fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/12_Instance_Creation/2_Const_A09_t02: Fail # co19 issue 496
 
