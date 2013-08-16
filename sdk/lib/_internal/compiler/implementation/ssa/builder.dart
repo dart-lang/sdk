@@ -1153,7 +1153,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // Create the inlining state after evaluating the arguments, that
     // may have an impact on the state of the current method.
     InliningState state = new InliningState(
-        function, returnElement, returnType, elements, stack, localsHandler);
+        function, returnElement, returnType, elements, stack,
+        localsHandler, inTryStatement);
+    inTryStatement = false;
     LocalsHandler newLocalsHandler = new LocalsHandler(this);
     newLocalsHandler.closureData =
         compiler.closureToClassMapper.computeClosureToClassMapping(
@@ -1206,6 +1208,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     state.oldStack.add(stack[0]);
     stack = state.oldStack;
     localsHandler = state.oldLocalsHandler;
+    inTryStatement = state.inTryStatement;
   }
 
   /**
@@ -5219,13 +5222,15 @@ class InliningState {
   final TreeElements oldElements;
   final List<HInstruction> oldStack;
   final LocalsHandler oldLocalsHandler;
+  final bool inTryStatement;
 
   InliningState(this.function,
                 this.oldReturnElement,
                 this.oldReturnType,
                 this.oldElements,
                 this.oldStack,
-                this.oldLocalsHandler) {
+                this.oldLocalsHandler,
+                this.inTryStatement) {
     assert(function.isImplementation);
   }
 }

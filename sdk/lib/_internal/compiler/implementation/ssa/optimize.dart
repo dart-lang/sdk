@@ -1040,7 +1040,9 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
     HInstruction instruction = block.first;
     bool isLoopAlwaysTaken() {
       HInstruction instruction = loopHeader.last;
-      return instruction is HGoto || instruction.inputs[0].isConstantTrue();
+      assert(instruction is HGoto || instruction is HLoopBranch);
+      return instruction is HGoto
+          || instruction.inputs[0].isConstantTrue();
     }
     bool firstInstructionInLoop = block == loopHeader
         // Compensate for lack of code motion.
