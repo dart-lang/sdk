@@ -932,16 +932,21 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
 }
 
 
-// Check if an instance field or method of same name exists
+// Check if an instance field, getter, or method of same name exists
 // in any super class.
 static RawClass* FindSuperOwnerOfInstanceMember(const Class& cls,
-                                                const String& name) {
+                                                const String& name,
+                                                const String& getter_name) {
   Class& super_class = Class::Handle();
   Function& function = Function::Handle();
   Field& field = Field::Handle();
   super_class = cls.SuperClass();
   while (!super_class.IsNull()) {
     function = super_class.LookupFunction(name);
+    if (!function.IsNull() && !function.is_static()) {
+      return super_class.raw();
+    }
+    function = super_class.LookupFunction(getter_name);
     if (!function.IsNull() && !function.is_static()) {
       return super_class.raw();
     }
@@ -1019,17 +1024,30 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
   // Note that getters and setters are explicitly listed as such in the list of
   // functions of a class, so we do not need to consider fields as implicitly
   // generating getters and setters.
-  // The only compile errors we report are therefore:
-  // - a getter having the same name as a method (but not a getter) in a super
-  //   class or in a subclass.
-  // - a static field, instance field, or static method (but not an instance
-  //   method) having the same name as an instance member in a super class.
+  // Most overriding conflicts are only static warnings, i.e. they are not
+  // reported as compile-time errors by the vm. However, signature conflicts in
+  // overrides can be reported if the flag --error_on_bad_override is specified.
+  // Static warning examples are:
+  // - a static getter 'v' conflicting with an inherited instance setter 'v='.
+  // - a static setter 'v=' conflicting with an inherited instance member 'v'.
+  // - an instance member 'v' conflicting with an accessible static member 'v'
+  //   or 'v=' of a super class (except that an instance method 'v' does not
+  //   conflict with an accessible static setter 'v=' of a super class).
+  // The compile-time errors we report are:
+  // - a static member 'v' conflicting with an inherited instance member 'v'.
+  // - a static setter 'v=' conflicting with an inherited instance setter 'v='.
+  // - an instance method conflicting with an inherited instance field or
+  //   instance getter.
+  // - an instance field or instance getter conflicting with an inherited
+  //   instance method.
 
   // Resolve type of fields and check for conflicts in super classes.
   Array& array = Array::Handle(cls.fields());
   Field& field = Field::Handle();
   AbstractType& type = AbstractType::Handle();
   String& name = String::Handle();
+  String& getter_name = String::Handle();
+  String& setter_name = String::Handle();
   Class& super_class = Class::Handle();
   const intptr_t num_fields = array.Length();
   for (intptr_t i = 0; i < num_fields; i++) {
@@ -1040,7 +1058,8 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
     field.set_type(type);
     name = field.name();
     if (field.is_static()) {
-      super_class = FindSuperOwnerOfInstanceMember(cls, name);
+      getter_name = Field::GetterSymbol(name);
+      super_class = FindSuperOwnerOfInstanceMember(cls, name, getter_name);
       if (!super_class.IsNull()) {
         const String& class_name = String::Handle(cls.Name());
         const String& super_class_name = String::Handle(super_class.Name());
@@ -1054,6 +1073,25 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
                     name.ToCString(),
                     super_class_name.ToCString());
       }
+      // An implicit setter is not generated for a static field, therefore, we
+      // cannot rely on the code below handling the static setter case to report
+      // a conflict with an instance setter. So we check explicitly here.
+      setter_name = Field::SetterSymbol(name);
+      super_class = FindSuperOwnerOfFunction(cls, setter_name);
+      if (!super_class.IsNull()) {
+        const String& class_name = String::Handle(cls.Name());
+        const String& super_class_name = String::Handle(super_class.Name());
+        const Script& script = Script::Handle(cls.script());
+        ReportError(Error::Handle(),  // No previous error.
+                    script, field.token_pos(),
+                    "static field '%s' of class '%s' conflicts with "
+                    "instance setter '%s=' of super class '%s'",
+                    name.ToCString(),
+                    class_name.ToCString(),
+                    name.ToCString(),
+                    super_class_name.ToCString());
+      }
+
     } else {
       // Instance field. Check whether the field overrides a method
       // (but not getter).
@@ -1112,7 +1150,6 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
           // Therefore, we undo the optimization performed by the parser, i.e.
           // we create an implicit static final getter and reset the field value
           // to the sentinel value.
-          const String& getter_name = String::Handle(Field::GetterSymbol(name));
           const Function& getter = Function::Handle(
               Function::New(getter_name,
                             RawFunction::kImplicitStaticFinalGetter,
@@ -1146,52 +1183,78 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
   Function& function = Function::Handle();
   Function& overridden_function = Function::Handle();
   const intptr_t num_functions = array.Length();
-  String& function_name = String::Handle();
   Error& error = Error::Handle();
   for (intptr_t i = 0; i < num_functions; i++) {
     function ^= array.At(i);
     ResolveAndFinalizeSignature(cls, function);
-    function_name = function.name();
+    name = function.name();
+    if (FLAG_error_on_bad_override &&  // Report signature conflicts only.
+        !function.is_static() && !function.IsConstructor()) {
+      // A constructor cannot override anything.
+      for (int i = 0; i < interfaces.Length(); i++) {
+        super_class ^= interfaces.At(i);
+        overridden_function = super_class.LookupDynamicFunction(name);
+        if (!overridden_function.IsNull() &&
+            !function.HasCompatibleParametersWith(overridden_function,
+                                                  &error)) {
+          const String& class_name = String::Handle(cls.Name());
+          const String& super_class_name = String::Handle(super_class.Name());
+          const Script& script = Script::Handle(cls.script());
+          ReportError(error, script, function.token_pos(),
+                      "class '%s' overrides method '%s' of super class '%s' "
+                      "with incompatible parameters",
+                      class_name.ToCString(),
+                      name.ToCString(),
+                      super_class_name.ToCString());
+        }
+      }
+    }
+    if (function.IsSetterFunction() || function.IsImplicitSetterFunction()) {
+      if (function.is_static()) {
+        super_class = FindSuperOwnerOfFunction(cls, name);
+        if (!super_class.IsNull()) {
+          const String& class_name = String::Handle(cls.Name());
+          const String& super_class_name = String::Handle(super_class.Name());
+          const Script& script = Script::Handle(cls.script());
+          ReportError(Error::Handle(),  // No previous error.
+                      script, function.token_pos(),
+                      "static setter '%s=' of class '%s' conflicts with "
+                      "instance setter '%s=' of super class '%s'",
+                      name.ToCString(),
+                      class_name.ToCString(),
+                      name.ToCString(),
+                      super_class_name.ToCString());
+        }
+      }
+      continue;
+    }
+    if (function.IsGetterFunction() || function.IsImplicitGetterFunction()) {
+      getter_name = name.raw();
+      name = Field::NameFromGetter(getter_name);
+    } else {
+      getter_name = Field::GetterSymbol(name);
+    }
     if (function.is_static()) {
-      super_class = FindSuperOwnerOfInstanceMember(cls, function_name);
+      super_class = FindSuperOwnerOfInstanceMember(cls, name, getter_name);
       if (!super_class.IsNull()) {
         const String& class_name = String::Handle(cls.Name());
         const String& super_class_name = String::Handle(super_class.Name());
         const Script& script = Script::Handle(cls.script());
         ReportError(Error::Handle(),  // No previous error.
                     script, function.token_pos(),
-                    "static function '%s' of class '%s' conflicts with "
+                    "static %s '%s' of class '%s' conflicts with "
                     "instance member '%s' of super class '%s'",
-                    function_name.ToCString(),
+                    (function.IsGetterFunction() ||
+                     function.IsImplicitGetterFunction()) ? "getter" : "method",
+                    name.ToCString(),
                     class_name.ToCString(),
-                    function_name.ToCString(),
+                    name.ToCString(),
                     super_class_name.ToCString());
       }
       // The function may be a still unresolved redirecting factory. Do not yet
       // try to resolve it in order to avoid cycles in class finalization.
-    } else if (FLAG_error_on_bad_override && !function.IsConstructor()) {
-      // A constructor cannot override anything.
-      for (int i = 0; i < interfaces.Length(); i++) {
-        super_class ^= interfaces.At(i);
-        overridden_function = super_class.LookupDynamicFunction(function_name);
-        if (!overridden_function.IsNull() &&
-            !function.HasCompatibleParametersWith(overridden_function,
-                                                  &error)) {
-          // Function types are purposely not checked for subtyping.
-          const String& class_name = String::Handle(cls.Name());
-          const String& super_class_name = String::Handle(super_class.Name());
-          const Script& script = Script::Handle(cls.script());
-          ReportError(error, script, function.token_pos(),
-                      "class '%s' overrides function '%s' of super class '%s' "
-                      "with incompatible parameters",
-                      class_name.ToCString(),
-                      function_name.ToCString(),
-                      super_class_name.ToCString());
-        }
-      }
-    }
-    if (function.IsGetterFunction()) {
-      name = Field::NameFromGetter(function_name);
+    } else if (function.IsGetterFunction() ||
+               function.IsImplicitGetterFunction()) {
       super_class = FindSuperOwnerOfFunction(cls, name);
       if (!super_class.IsNull()) {
         const String& class_name = String::Handle(cls.Name());
@@ -1200,28 +1263,28 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
         ReportError(Error::Handle(),  // No previous error.
                     script, function.token_pos(),
                     "getter '%s' of class '%s' conflicts with "
-                    "function '%s' of super class '%s'",
+                    "method '%s' of super class '%s'",
                     name.ToCString(),
                     class_name.ToCString(),
                     name.ToCString(),
                     super_class_name.ToCString());
       }
-    } else if (!function.IsSetterFunction()) {
+    } else if (!function.IsSetterFunction() &&
+               !function.IsImplicitSetterFunction()) {
       // A function cannot conflict with a setter, since they cannot
       // have the same name. Thus, we do not need to check setters.
-      name = Field::GetterName(function_name);
-      super_class = FindSuperOwnerOfFunction(cls, name);
+      super_class = FindSuperOwnerOfFunction(cls, getter_name);
       if (!super_class.IsNull()) {
         const String& class_name = String::Handle(cls.Name());
         const String& super_class_name = String::Handle(super_class.Name());
         const Script& script = Script::Handle(cls.script());
         ReportError(Error::Handle(),  // No previous error.
                     script, function.token_pos(),
-                    "function '%s' of class '%s' conflicts with "
+                    "method '%s' of class '%s' conflicts with "
                     "getter '%s' of super class '%s'",
-                    function_name.ToCString(),
+                    name.ToCString(),
                     class_name.ToCString(),
-                    function_name.ToCString(),
+                    name.ToCString(),
                     super_class_name.ToCString());
       }
     }

@@ -117,6 +117,20 @@ bad_override_test/01: Fail # Issue 11496
 bad_override_test/02: Fail # Issue 11496
 bad_override_test/06: Fail # Issue 11496
 class_override_test/00: Fail # Issue 11496
+field_override3_test/00: Fail # Issue 11496
+field_override3_test/01: Fail # Issue 11496
+field_override3_test/02: Fail # Issue 11496
+field_override3_test/03: Fail # Issue 11496
+getter_override_test/00: Fail # Issue 11496
+getter_override_test/01: Fail # Issue 11496
+getter_override_test/02: Fail # Issue 11496
+method_override7_test/00: Fail # Issue 11496
+method_override7_test/01: Fail # Issue 11496
+method_override7_test/02: Fail # Issue 11496
+method_override8_test/03: Fail # Issue 11496
+setter_override_test/00: Fail # Issue 11496
+setter_override_test/03: Fail # Issue 11496
+setter_override2_test/02: Fail # Issue 11496
 call_nonexistent_constructor_test: Fail
 constructor_named_arguments_test/01: Fail # http://dartbug.com/5519
 getter_no_setter_test/01: Fail # http://dartbug.com/5519

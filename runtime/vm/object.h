@@ -1715,6 +1715,11 @@ class Function : public Object {
     return kind() == RawFunction::kSetterFunction;
   }
 
+  // Returns true if this function represents an implicit setter function.
+  bool IsImplicitSetterFunction() const {
+    return kind() == RawFunction::kImplicitSetter;
+  }
+
   // Returns true if this function represents a (possibly implicit) closure
   // function.
   bool IsClosureFunction() const {

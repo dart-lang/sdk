@@ -157,6 +157,20 @@ bad_override_test/01: Fail # Issue 11496
 bad_override_test/02: Fail # Issue 11496
 bad_override_test/06: Fail # Issue 11496
 class_override_test/00: Fail # Issue 11496
+field_override3_test/00: Fail # Issue 11496
+field_override3_test/01: Fail # Issue 11496
+field_override3_test/02: Fail # Issue 11496
+field_override3_test/03: Fail # Issue 11496
+getter_override_test/00: Fail # Issue 11496
+getter_override_test/01: Fail # Issue 11496
+getter_override_test/02: Fail # Issue 11496
+method_override7_test/00: Fail # Issue 11496
+method_override7_test/01: Fail # Issue 11496
+method_override7_test/02: Fail # Issue 11496
+method_override8_test/03: Fail # Issue 11496
+setter_override_test/00: Fail # Issue 11496
+setter_override_test/03: Fail # Issue 11496
+setter_override2_test/02: Fail # Issue 11496
 
 # Missing compile-time error when modifying final local variables
 final_variable_assignment_test/01: Fail

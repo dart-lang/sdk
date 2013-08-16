@@ -3122,7 +3122,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
   }
   if (members->FieldNameExists(*field->name, !field->has_final)) {
     ErrorMsg(field->name_pos,
-             "'%s' field/method already defined\n", field->name->ToCString());
+             "field or method '%s' already defined", field->name->ToCString());
   }
   Function& getter = Function::Handle();
   Function& setter = Function::Handle();
