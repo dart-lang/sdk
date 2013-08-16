@@ -244,26 +244,44 @@ void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
   if (parseSdk) entityMap['dart.core.Object'].subclasses.clear();
 
   var filteredEntities = entityMap.values.where(_isVisible);
+  
+  // Outputs a JSON file with all libraries and their preview comments. 
+  // This will help the viewer know what libraries are available to read in.
+  var libraryMap;
+  if (append) {
+    var docsDir = listDir('docs');
+    if (!docsDir.contains('docs/library_list.json')) {
+      throw new StateError('No library_list.json');
+    }
+    libraryMap = parse(new File('docs/library_list.json').readAsStringSync());
+    libraryMap['libraries'].addAll(filteredEntities
+        .where((e) => e is Library)
+        .map((e) => e.previewMap));
+    if (introduction.isNotEmpty) {
+      var intro = libraryMap['introduction'];
+      if (intro.isNotEmpty) intro += '<br/><br/>';
+      intro += markdown.markdownToHtml(
+          new File(introduction).readAsStringSync(), 
+              linkResolver: linkResolver, inlineSyntaxes: markdownSyntaxes);
+      libraryMap['introduction'] = intro;
+    }
+    outputToYaml = libraryMap['filetype'] == 'yaml';
+  } else {
+    libraryMap = {
+      'libraries' : filteredEntities.where((e) => 
+          e is Library).map((e) => e.previewMap).toList(),
+      'introduction' : introduction == '' ? 
+          '' : markdown.markdownToHtml(new File(introduction)
+              .readAsStringSync(), linkResolver: linkResolver, 
+                  inlineSyntaxes: markdownSyntaxes), 
+      'filetype' : outputToYaml ? 'yaml' : 'json'
+    };
+  }
+  _writeToFile(stringify(libraryMap), 'library_list.json');
   // Output libraries and classes to file after all information is generated.
   filteredEntities.where((e) => e is Class || e is Library).forEach((output) {
     _writeIndexableToFile(output, outputToYaml);
   });
-  // Outputs a YAML or JSON file with all libraries and their preview comments 
-  // after creating all libraries. This will help the viewer know what 
-  // libraries are available to read in.
-  var libraryMap = {
-    'libraries' : filteredEntities.where((e) => 
-        e is Library).map((e) => e.previewMap).toList(),
-    'introduction' : introduction == '' ? 
-        '' : markdown.markdownToHtml(new File(introduction).readAsStringSync(),
-            linkResolver: linkResolver, inlineSyntaxes: markdownSyntaxes)
-  };
-  if (outputToYaml) {
-    _writeToFile(getYamlString(libraryMap), 'library_list.yaml', 
-        append: append);
-  } else {
-    _writeToFile(stringify(libraryMap), 'library_list.json', append: append);
-  }
   // Outputs all the qualified names documented with their type.
   // This will help generate search results.
   _writeToFile(filteredEntities.map((e) => 
