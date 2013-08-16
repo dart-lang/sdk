@@ -736,8 +736,6 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
 
   def implementation_name(self):
     implementation_name = self._dart_interface_name
-    if self.merged_into():
-      return '_%s' % self.idl_type()
 
     if not self.has_generated_interface():
       implementation_name = '_%s' % implementation_name
