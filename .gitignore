@@ -54,10 +54,6 @@ pubspec.lock
 # Vim temporary swap files.
 *.swp
 
-# Third party files
-third_party/nss_pkcs12
-third_party/polymer
-
 # Generated files.
 tools/out
 tools/xcodebuild
