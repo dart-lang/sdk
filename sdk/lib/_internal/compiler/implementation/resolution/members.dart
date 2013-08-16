@@ -341,6 +341,10 @@ class ResolverTask extends CompilerTask {
       }
       if (element.isSynthesized) {
         Element target = element.targetConstructor;
+        // Ensure the signature of the synthesized element is
+        // resolved. This is the only place where the resolver is
+        // seeing this element.
+        element.computeSignature(compiler);
         if (!target.isErroneous()) {
           compiler.enqueuer.resolution.registerStaticUse(
               element.targetConstructor);
@@ -1467,6 +1471,7 @@ class TypeResolver {
       if (malformedIsError) {
         visitor.error(node, messageKind.error, messageArguments);
       } else {
+        compiler.backend.registerThrowRuntimeError(visitor.mapping);
         visitor.warning(node, messageKind.warning, messageArguments);
       }
       var erroneousElement = new ErroneousElementX(
@@ -1702,9 +1707,9 @@ class ResolverVisitor extends MappingVisitor<Element> {
       // The type annotations on a typedef do not imply type checks.
       // TODO(karlklose): clean this up (dartbug.com/8870).
       inCheckContext = compiler.enableTypeAssertions &&
+          !element.isLibrary() &&
           !element.isTypedef() &&
-          (element.enclosingElement == null ||
-           !element.enclosingElement.isTypedef()),
+          !element.enclosingElement.isTypedef(),
       inCatchBlock = false,
       super(compiler, mapping);
 
@@ -2280,14 +2285,14 @@ class ResolverVisitor extends MappingVisitor<Element> {
     bool resolvedArguments = false;
     if (node.isOperator) {
       String operatorString = node.selector.asOperator().source.stringValue;
-      if (operatorString == 'is') {
+      if (identical(operatorString, 'is')) {
         DartType type =
             resolveTypeExpression(node.typeAnnotationFromIsCheckOrCast);
         if (type != null) {
           compiler.enqueuer.resolution.registerIsCheck(type, mapping);
         }
         resolvedArguments = true;
-      } else if (operatorString == 'as') {
+      } else if (identical(operatorString, 'as')) {
         DartType type = resolveTypeExpression(node.arguments.head);
         if (type != null) {
           compiler.enqueuer.resolution.registerAsCheck(type, mapping);
@@ -2577,10 +2582,6 @@ class ResolverVisitor extends MappingVisitor<Element> {
   }
 
   visitThrow(Throw node) {
-    // We don't know ahead of time whether we will need the throw in a
-    // statement context or an expression context, so we register both
-    // here, even though we may not need ThrowExpression.
-    compiler.backend.registerWrapException(mapping);
     compiler.backend.registerThrowExpression(mapping);
     visit(node.expression);
   }

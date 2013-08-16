@@ -116,7 +116,7 @@ main() {
     check('form', () => new FormElement() is FormElement);
     check('head', () => new HeadElement() is HeadElement);
     check('hr', () => new HRElement() is HRElement);
-    check('html', () => new HtmlElement() is HtmlElement);
+    check('html', () => new HtmlHtmlElement() is HtmlHtmlElement);
     check('h1', () => new HeadingElement.h1() is HeadingElement);
     check('h2', () => new HeadingElement.h2() is HeadingElement);
     check('h3', () => new HeadingElement.h3() is HeadingElement);

@@ -2,9 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library mixin_members_test;
+
+// TODO(ahe): Don't add mirrors used, the test doesn't work without it.
+@MirrorsUsed(targets: 'mixin_members_test', override: '*')
 import "dart:mirrors";
 
 import "package:expect/expect.dart";
+
+import 'stringify.dart';
 
 class Fooer {
   foo1();
@@ -29,21 +35,24 @@ class C extends S with M1, M2 {}
 
 main() {
   ClassMirror cm = reflectClass(C);
-  Classmirror sM1M2 = cm.superclass;
-  Classmirror sM1 = sM1M2.superclass;
+  ClassMirror sM1M2 = cm.superclass;
+  ClassMirror sM1 = sM1M2.superclass;
   ClassMirror s = sM1.superclass;
-  Expect.equals(0, cm.members.length);
-  Expect.setEquals(sM1M2.members.keys,
-                   [const Symbol("baz1"), const Symbol("baz2")]);
-  Expect.setEquals(sM1M2.superinterfaces.map((e) => e.simpleName),
-                   [const Symbol("M2")]);
-  Expect.setEquals(sM1.members.keys,
-                   [const Symbol("bar1"), const Symbol("bar2")]);
-  Expect.setEquals(sM1.superinterfaces.map((e) => e.simpleName),
-                   [const Symbol("M1")]);
-  Expect.setEquals(s.members.keys.toSet(),
-                   [const Symbol("foo1"), const Symbol("foo2")]);
-  Expect.setEquals(s.superinterfaces.map((e) => e.simpleName),
-                   [const Symbol("Fooer")]);
-  Expect.equals(true, reflectClass(S) == s);
+  expect('{}', cm.members);
+  expect('[s(baz1), s(baz2)]',
+         // TODO(ahe): Shouldn't have to sort.
+         sort(sM1M2.members.keys),
+         '(S with M1, M2).members');
+  expect('[s(M2)]', simpleNames(sM1M2.superinterfaces),
+         '(S with M1, M2).superinterfaces');
+  expect('[s(bar1), s(bar2)]',
+         // TODO(ahe): Shouldn't have to sort.
+         sort(sM1.members.keys), '(S with M1).members');
+  expect('[s(M1)]', simpleNames(sM1.superinterfaces),
+         '(S with M1).superinterfaces');
+  expect('[s(foo1), s(foo2)]',
+         // TODO(ahe): Shouldn't have to sort.
+         sort(s.members.keys), 's.members');
+  expect('[s(Fooer)]', simpleNames(s.superinterfaces), 's.superinterfaces');
+  Expect.equals(s, reflectClass(S));
 }

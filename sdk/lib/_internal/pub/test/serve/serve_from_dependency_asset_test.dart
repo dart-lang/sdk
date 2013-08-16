@@ -27,8 +27,7 @@ main() {
       })
     ]).create();
 
-    pubInstall();
-    startPubServe();
+    startPubServe(shouldInstallFirst: true);
     requestShouldSucceed("assets/foo/foo.txt", "foo");
     requestShouldSucceed("assets/foo/sub/bar.txt", "bar");
 

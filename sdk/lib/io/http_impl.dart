@@ -1590,8 +1590,8 @@ class _HttpClient implements HttpClient {
       scheme = previous.uri.scheme;
     }
     if (!uri.path.startsWith('/')) {
-      var absolute = new Path.raw(previous.uri.path).directoryPath;
-      absolute = absolute.join(new Path.raw(u.path));
+      var absolute = new _Path.raw(previous.uri.path).directoryPath;
+      absolute = absolute.join(new _Path.raw(u.path));
       path = absolute.canonicalize().toString();
     }
     replaceComponents(scheme: scheme, host: host, port: port, path: path);

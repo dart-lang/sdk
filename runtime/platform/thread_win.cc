@@ -71,7 +71,7 @@ ThreadLocalKey Thread::kUnsetThreadLocalKey = TLS_OUT_OF_INDEXES;
 ThreadLocalKey Thread::CreateThreadLocal() {
   ThreadLocalKey key = TlsAlloc();
   if (key == kUnsetThreadLocalKey) {
-    FATAL("TlsAlloc failed");
+    FATAL1("TlsAlloc failed %d", GetLastError());
   }
   return key;
 }
@@ -81,7 +81,7 @@ void Thread::DeleteThreadLocal(ThreadLocalKey key) {
   ASSERT(key != kUnsetThreadLocalKey);
   BOOL result = TlsFree(key);
   if (!result) {
-    FATAL("TlsFree failed");
+    FATAL1("TlsFree failed %d", GetLastError());
   }
 }
 
@@ -96,7 +96,7 @@ void Thread::SetThreadLocal(ThreadLocalKey key, uword value) {
   ASSERT(key != kUnsetThreadLocalKey);
   BOOL result = TlsSetValue(key, reinterpret_cast<void*>(value));
   if (!result) {
-    FATAL("TlsSetValue failed");
+    FATAL1("TlsSetValue failed %d", GetLastError());
   }
 }
 
@@ -105,7 +105,7 @@ Mutex::Mutex() {
   // Allocate unnamed semaphore with initial count 1 and max count 1.
   data_.semaphore_ = CreateSemaphore(NULL, 1, 1, NULL);
   if (data_.semaphore_ == NULL) {
-    FATAL("Mutex allocation failed");
+    FATAL1("Mutex allocation failed %d", GetLastError());
   }
 }
 
@@ -118,7 +118,7 @@ Mutex::~Mutex() {
 void Mutex::Lock() {
   DWORD result = WaitForSingleObject(data_.semaphore_, INFINITE);
   if (result != WAIT_OBJECT_0) {
-    FATAL("Mutex lock failed");
+    FATAL1("Mutex lock failed %d", GetLastError());
   }
 }
 
@@ -130,7 +130,7 @@ bool Mutex::TryLock() {
     return true;
   }
   if (result == WAIT_ABANDONED || result == WAIT_FAILED) {
-    FATAL("Mutex try lock failed");
+    FATAL1("Mutex try lock failed %d", GetLastError());
   }
   ASSERT(result == WAIT_TIMEOUT);
   return false;
@@ -140,7 +140,7 @@ bool Mutex::TryLock() {
 void Mutex::Unlock() {
   BOOL result = ReleaseSemaphore(data_.semaphore_, 1, NULL);
   if (result == 0) {
-    FATAL("Mutex unlock failed");
+    FATAL1("Mutex unlock failed", GetLastError());
   }
 }
 
@@ -244,7 +244,7 @@ void MonitorData::SignalAndRemoveFirstWaiter() {
     // Signal event.
     BOOL result = SetEvent(first->event_);
     if (result == 0) {
-      FATAL("Monitor::Notify failed to signal event");
+      FATAL1("Monitor::Notify failed to signal event", GetLastError());
     }
   }
   LeaveCriticalSection(&waiters_cs_);
@@ -261,7 +261,7 @@ void MonitorData::SignalAndRemoveAllWaiters() {
   while (current != NULL) {
     BOOL result = SetEvent(current->event_);
     if (result == 0) {
-      FATAL("Failed to set event for NotifyAll");
+      FATAL1("Failed to set event for NotifyAll", GetLastError());
     }
     current = current->next_;
   }
@@ -315,14 +315,14 @@ Monitor::WaitResult Monitor::Wait(int64_t millis) {
     // Wait forever for a Notify or a NotifyAll event.
     result = WaitForSingleObject(wait_data->event_, INFINITE);
     if (result == WAIT_FAILED) {
-      FATAL("Monitor::Wait failed");
+      FATAL1("Monitor::Wait failed", GetLastError());
     }
   } else {
     // Wait for the given period of time for a Notify or a NotifyAll
     // event.
     result = WaitForSingleObject(wait_data->event_, millis);
     if (result == WAIT_FAILED) {
-      FATAL("Monitor::Wait with timeout failed");
+      FATAL1("Monitor::Wait with timeout failed", GetLastError());
     }
     if (result == WAIT_TIMEOUT) {
       // No longer waiting. Remove from the list of waiters.

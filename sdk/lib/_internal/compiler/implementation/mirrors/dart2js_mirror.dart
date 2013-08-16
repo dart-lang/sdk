@@ -90,11 +90,12 @@ Iterable<Dart2JsMemberMirror> _convertElementMemberToMemberMirrors(
     return <Dart2JsMemberMirror>[new Dart2JsMethodMirror(library, element)];
   } else if (element is AbstractFieldElement) {
     var members = <Dart2JsMemberMirror>[];
-    if (element.getter != null) {
-      members.add(new Dart2JsMethodMirror(library, element.getter));
+    AbstractFieldElement field = element;
+    if (field.getter != null) {
+      members.add(new Dart2JsMethodMirror(library, field.getter));
     }
-    if (element.setter != null) {
-      members.add(new Dart2JsMethodMirror(library, element.setter));
+    if (field.setter != null) {
+      members.add(new Dart2JsMethodMirror(library, field.setter));
     }
     return members;
   }
@@ -882,7 +883,7 @@ class Dart2JsClassMirror extends Dart2JsContainerMirror
     return _typeVariables;
   }
 
-  bool operator ==(Object other) {
+  bool operator ==(other) {
     if (identical(this, other)) {
       return true;
     }
@@ -1138,7 +1139,7 @@ class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
   // TODO(johnniwinther): Substitute type arguments for type variables.
   Map<String, VariableMirror> get variables => originalDeclaration.variables;
 
-  bool operator ==(Object other) {
+  bool operator ==(other) {
     if (identical(this, other)) {
       return true;
     }
@@ -1257,7 +1258,7 @@ class Dart2JsVoidMirror extends Dart2JsTypeElementMirror {
 
   bool get isVoid => true;
 
-  bool operator ==(Object other) {
+  bool operator ==(other) {
     if (identical(this, other)) {
       return true;
     }
@@ -1289,7 +1290,7 @@ class Dart2JsDynamicMirror extends Dart2JsTypeElementMirror {
 
   bool get isDynamic => true;
 
-  bool operator ==(Object other) {
+  bool operator ==(other) {
     if (identical(this, other)) {
       return true;
     }

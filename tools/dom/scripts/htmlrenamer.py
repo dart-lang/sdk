@@ -39,6 +39,8 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames',
     'FileSystemCallback': '_FileSystemCallback',
     'FileWriterCallback': '_FileWriterCallback',
     'HTMLDocument' : 'HtmlDocument',
+    'HTMLElement' : 'HtmlElement',
+    'HTMLHtmlElement' : 'HtmlHtmlElement',
     'IDBFactory': 'IdbFactory', # Manual to avoid name conflicts.
     'Key': 'CryptoKey',
     'NamedNodeMap': '_NamedNodeMap',

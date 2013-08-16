@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+-->
+
+<html>
+  <head>
+    <title>example</title>
+    <style>
+      .jname {
+        background: #faa;
+      }
+      .fname {
+        border: solid 1px #88f;
+      }
+    </style>
+  </head>
+
+  <body>
+    <template id="test" bind>
+      <h1>Polymer Expression Syntax</h1>
+      <label> first name: <input value="{{ firstName }}"></label>
+      <label> last name: <input value="{{ lastName }}"></label>
+      <div>Hello {{ getFullName() }}!</div>
+      <div>{{ firstName }} {{ lastName }}</div>
+      <div>
+        <h2>Iteration</h2>
+        <ul>
+          <template repeat="{{ item in items.take(2) }}">
+            <li>{{ item }}</li>
+          </template>
+        </ul>
+        <ul>
+          <template repeat="{{ people }}">
+            <li class="{{ {'jname': firstName.startsWith('J'),
+                'fname': lastName.startsWith('F')} }}">
+              {{ firstName }} {{ lastName }}
+            </li>
+            <ul>
+              <template repeat="{{ item in items }}">
+                <li checked?="{{ item == 'A'}}">{{ firstName }} {{ item }}</li>
+              </template>
+            </ul>
+          </template>
+        </ul>
+      </div>
+    </template>
+
+    <template id="test2" bind>
+      <h1>Default  Syntax</h1>
+      <label> first name: <input value="{{ firstName }}"></label>
+      <label> last name: <input value="{{ lastName }}"></label>
+    </template>
+
+    <script type="application/dart" src="example.dart"></script>
+    <script src="packages/browser/dart.js"></script>
+  </body>
+</html>

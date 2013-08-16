@@ -22,6 +22,7 @@
     'iterator.dart',
     'list.dart',
     'map.dart',
+    'null.dart',
     'num.dart',
     'object.dart',
     'pattern.dart',

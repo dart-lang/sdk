@@ -57,3 +57,7 @@ pubspec.lock
 # Generated files.
 tools/out
 tools/xcodebuild
+pkg/shadow_dom/tool/node_modules
+
+
+

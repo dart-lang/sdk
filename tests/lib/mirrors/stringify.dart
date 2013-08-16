@@ -26,7 +26,7 @@ stringifyMap(Map map) {
   return '{$buffer}';
 }
 
-stringifyList(List list) {
+stringifyIterable(Iterable list) {
   var buffer = new StringBuffer();
   bool first = true;
   for (String value in list.map(stringify)) {
@@ -100,7 +100,7 @@ stringifyMethod(MethodMirror method) {
 
 stringify(value) {
   if (value is Map) return stringifyMap(value);
-  if (value is List) return stringifyList(value);
+  if (value is Iterable) return stringifyIterable(value);
   if (value is ParameterMirror) return stringifyParameter(value);
   if (value is VariableMirror) return stringifyVariable(value);
   if (value is MethodMirror) return stringifyMethod(value);
@@ -111,8 +111,14 @@ stringify(value) {
   throw 'Unexpected value: $value';
 }
 
-expect(expected, actual) => Expect.stringEquals(expected, stringify(actual));
+expect(expected, actual, [String reason]) {
+  Expect.stringEquals(expected, stringify(actual), reason);
+}
 
 compareSymbols(Symbol a, Symbol b) {
   return MirrorSystem.getName(a).compareTo(MirrorSystem.getName(b));
 }
+
+simpleNames(Iterable<Mirror> i) => i.map((e) => e.simpleName);
+
+sort(Iterable<Symbol> symbols) => symbols.toList()..sort(compareSymbols);

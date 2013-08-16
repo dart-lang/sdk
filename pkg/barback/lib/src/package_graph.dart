@@ -85,8 +85,10 @@ class PackageGraph {
   /// Gets the asset node identified by [id].
   ///
   /// If [id] is for a generated or transformed asset, this will wait until it
-  /// has been created and return it. If the asset cannot be found, returns
-  /// null.
+  /// has been created and return it. This means that the returned asset will
+  /// always be [AssetState.AVAILABLE].
+  ///
+  /// If the asset cannot be found, returns null.
   Future<AssetNode> getAssetNode(AssetId id) {
     var cascade = _cascades[id.package];
     if (cascade != null) return cascade.getAssetNode(id);

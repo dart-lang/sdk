@@ -2,6 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/**
+ * Support for asynchronous programming,
+ * with classes such as Future and Stream.
+ *
+ * For an introduction to using dart:async, see the
+ * [dart:async section of the language tour]
+ * (https://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html#ch03-asynchronous-programming).
+ * Also see
+ * [articles](https://www.dartlang.org/articles/)
+ * such as
+ * [Using Future Based APIs]
+ * (https://www.dartlang.org/articles/using-future-based-apis/).
+ */
 library dart.async;
 
 import "dart:collection";

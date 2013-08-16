@@ -15,12 +15,6 @@ abstract class Link implements FileSystemEntity {
   factory Link(String path) => new _Link(path);
 
   /**
-   * Creates a Link object from a Path object.
-   */
-  @deprecated
-  factory Link.fromPath(Path path) => new _Link.fromPath(path);
-
-  /**
    * Creates a symbolic link. Returns a [:Future<Link>:] that completes with
    * the link when it has been created. If the link exists,
    * the future will complete with an error.
@@ -143,8 +137,6 @@ class _Link extends FileSystemEntity implements Link {
     }
   }
 
-
-  _Link.fromPath(Path inputPath) : path = inputPath.toNativePath();
 
   String toString() => "Link: '$path'";
 

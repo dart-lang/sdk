@@ -96,18 +96,6 @@ def gen():
   os.chdir(os.path.join('..', '..', '..'))
   return result
 
-def http_server():
-  print('Browse tests at '
-      '\033[94mhttp://localhost:5400/root_build/generated_tests/\033[0m')
-  return call([
-    utils.DartBinary(),
-    os.path.join('tools', 'testing', 'dart', 'http_server.dart'),
-    '--port=5400',
-    '--crossOriginPort=5401',
-    '--network=0.0.0.0',
-    '--build-directory=%s' % os.path.join('out', 'ReleaseIA32')
-  ])
-
 def size_check():
   ''' Displays the dart2js size of swarm. '''
   dart_file = os.path.join('samples', 'swarm', 'swarm.dart')
@@ -151,6 +139,25 @@ def test_dart2js(browser, argv):
     cmd.append('html')
   return call(cmd)
 
+def test_server():
+  start_test_server(5400, os.path.join('out', 'ReleaseIA32'))
+
+def test_server_dartium():
+  start_test_server(5500, os.path.join('..', 'out', 'Release'))
+
+def start_test_server(port, build_directory):
+  print('Browse tests at '
+      '\033[94mhttp://localhost:%d/root_build/generated_tests/\033[0m' % port)
+  return call([
+    utils.DartBinary(),
+    os.path.join('tools', 'testing', 'dart', 'http_server.dart'),
+    '--port=%d' % port,
+    '--crossOriginPort=%d' % (port + 1),
+    '--network=0.0.0.0',
+    '--build-directory=%s' % build_directory
+  ])
+
+
 def call(args):
   print ' '.join(args)
   pipe = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -176,8 +183,10 @@ commands = {
       '\t\tOptionally provide name of test to run.'],
   'test_ff': [test_ff, 'Run tests in checked mode in Firefox.\n'
       '\t\tOptionally provide name of test to run.'],
-  'http_server': [http_server, 'Starts the testing server for manually '
+  'test_server': [test_server, 'Starts the testing server for manually '
       'running browser tests.'],
+  'test_server_dartium': [test_server_dartium, 'Starts the testing server for '
+      'manually running browser tests from a dartium enlistment.'],
 }
 
 def main():

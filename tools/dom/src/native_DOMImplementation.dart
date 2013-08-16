@@ -211,7 +211,8 @@ class _Utils {
     Symbol objectName = reflectClass(Object).qualifiedName;
     bool isRoot(ClassMirror cls) =>
       cls == null || cls.qualifiedName == objectName;
-    Symbol elementName = reflectClass(Element).qualifiedName;
+    // TODO(vsm): Support extending SvgElement as well.
+    Symbol elementName = reflectClass(HtmlElement).qualifiedName;
     bool isElement(ClassMirror cls) =>
       cls != null && cls.qualifiedName == elementName;
 
@@ -220,7 +221,7 @@ class _Utils {
     }
 
     if (isRoot(superClass)) {
-      throw new UnsupportedError("Invalid custom element doesn't inherit from Element.");
+      throw new UnsupportedError("Invalid custom element doesn't inherit from HtmlElement.");
     }
     _register(tag, type);
   }
@@ -353,7 +354,7 @@ final _pureIsolatePrintClosure = (s) {
 
 final _forwardingPrintClosure = _Utils.forwardingPrint;
 
- class _Timer implements Timer{
+ class _Timer implements Timer {
   var _canceler;
 
   _Timer(int milliSeconds, void callback(Timer timer), bool repeating) {

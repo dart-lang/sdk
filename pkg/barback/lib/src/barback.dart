@@ -73,7 +73,7 @@ class Barback {
   Future<Asset> getAssetById(AssetId id) {
     return _graph.getAssetNode(id).then((node) {
       if (node == null) throw new AssetNotFoundException(id);
-      return node.whenAvailable;
+      return node.asset;
     });
   }
 

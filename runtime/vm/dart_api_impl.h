@@ -191,6 +191,9 @@ class Api : AllStatic {
   static void InitHandles();
 
   // Helper function to get the peer value of an external string object.
+  static bool ExternalStringGetPeerHelper(Dart_NativeArguments args,
+                                          int arg_index,
+                                          void** peer);
   static bool ExternalStringGetPeerHelper(Dart_Handle object, void** peer);
 
   // Helper function to set the return value of native functions.

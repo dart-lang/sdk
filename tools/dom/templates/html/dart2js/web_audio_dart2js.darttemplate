@@ -2,6 +2,9 @@
 // https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
 // Auto-generated dart:audio library.
 
+/**
+ * High-fidelity audio programming in the browser.
+ */
 library dart.dom.web_audio;
 
 import 'dart:async';

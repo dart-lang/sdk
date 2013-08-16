@@ -33,7 +33,7 @@ String buildStatusString(int passed, int failed, int errors,
       '$setup:$teardown:$uncaughtError$testDetails';
 }
 
-class TestConfiguration extends Configuration {
+class TestConfiguration extends SimpleConfiguration {
 
   // Some test state that is captured.
   int count = 0; // A count of callbacks.

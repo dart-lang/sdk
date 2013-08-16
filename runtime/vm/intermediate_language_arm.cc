@@ -3779,6 +3779,24 @@ void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* UnaryDoubleOpInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(Location::RequiresFpuRegister());
+  return summary;
+}
+
+
+void UnaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  DRegister result = EvenDRegisterOf(locs()->out().fpu_reg());
+  DRegister value = EvenDRegisterOf(locs()->in(0).fpu_reg());
+  __ vnegd(result, value);
+}
+
+
 LocationSummary* SmiToDoubleInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;

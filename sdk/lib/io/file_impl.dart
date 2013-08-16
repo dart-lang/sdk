@@ -246,9 +246,6 @@ class _File implements File {
     }
   }
 
-  // Constructor from Path for file.
-  _File.fromPath(Path path) : this(path.toNativePath());
-
   Future<bool> exists() {
     _ensureFileService();
     List request = new List(2);
@@ -346,8 +343,8 @@ class _File implements File {
   }
 
   Directory get directory {
-    Path path = new Path(this.path).directoryPath;
-    return new Directory.fromPath(path);
+    _Path path = new _Path(this.path).directoryPath;
+    return new Directory(path.toNativePath());
   }
 
   Future<RandomAccessFile> open({FileMode mode: FileMode.READ}) {

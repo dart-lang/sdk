@@ -4,8 +4,6 @@
 
 library types;
 
-import 'dart:collection' show Queue, IterableBase;
-
 import '../dart2jslib.dart' hide Selector, TypedSelector;
 import '../tree/tree.dart';
 import '../elements/elements.dart';
@@ -13,9 +11,9 @@ import '../native_handler.dart' as native;
 import '../util/util.dart';
 import '../universe/universe.dart';
 import 'simple_types_inferrer.dart' show SimpleTypesInferrer;
+import 'concrete_types_inferrer.dart' show ConcreteTypesInferrer;
 import '../dart_types.dart';
 
-part 'concrete_types_inferrer.dart';
 part 'container_type_mask.dart';
 part 'element_type_mask.dart';
 part 'flat_type_mask.dart';

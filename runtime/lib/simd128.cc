@@ -233,6 +233,13 @@ DEFINE_NATIVE_ENTRY(Float32x4_shuffle, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, mask, arguments->NativeArgAt(1));
   int64_t m = mask.AsInt64Value();
+  if (m < 0 || m > 255) {
+    const String& error = String::Handle(
+      String::NewFormatted("mask (%"Pd64") must be in the range [0..256)", m));
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, error);
+    Exceptions::ThrowByType(Exceptions::kRange, args);
+  }
   float data[4] = { self.x(), self.y(), self.z(), self.w() };
   float _x = data[m & 0x3];
   float _y = data[(m >> 2) & 0x3];

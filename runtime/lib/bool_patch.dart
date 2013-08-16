@@ -10,4 +10,7 @@ patch class bool {
     return this ? 1231 : 1237;
   }
 
+  String toString() {
+  	return this ? "true" : "false";
+  }
 }

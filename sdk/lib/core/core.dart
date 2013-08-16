@@ -25,6 +25,7 @@ part "iterable.dart";
 part "iterator.dart";
 part "list.dart";
 part "map.dart";
+part "null.dart";
 part "num.dart";
 part "object.dart";
 part "pattern.dart";

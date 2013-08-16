@@ -4,16 +4,16 @@
 
 part of dart.io;
 
-class _Path implements Path {
+class __Path implements _Path {
   final String _path;
   final bool isWindowsShare;
 
-  _Path(String source)
+  __Path(String source)
       : _path = _clean(source), isWindowsShare = _isWindowsShare(source);
 
-  _Path.raw(String source) : _path = source, isWindowsShare = false;
+  __Path.raw(String source) : _path = source, isWindowsShare = false;
 
-  _Path._internal(String this._path, bool this.isWindowsShare);
+  __Path._internal(String this._path, bool this.isWindowsShare);
 
   static String _clean(String source) {
     if (Platform.operatingSystem == 'windows') return _cleanWindows(source);
@@ -44,14 +44,14 @@ class _Path implements Path {
 
   String toString() => _path;
 
-  Path relativeTo(Path base) {
+  _Path relativeTo(_Path base) {
     // Returns a path "relative" such that
     // base.join(relative) == this.canonicalize.
     // Throws exception if an impossible case is reached.
     if (base.isAbsolute != isAbsolute ||
         base.isWindowsShare != isWindowsShare) {
       throw new ArgumentError(
-          "Invalid case of Path.relativeTo(base):\n"
+          "Invalid case of _Path.relativeTo(base):\n"
           "  Path and base must both be relative, or both absolute.\n"
           "  Arguments: $_path.relativeTo($base)");
     }
@@ -71,17 +71,17 @@ class _Path implements Path {
           if(basePath[1] != _path[1]) {
             // Replace the drive letter in basePath with that from _path.
             basePath = '/${_path[1]}:/${basePath.substring(4)}';
-            base = new Path(basePath);
+            base = new _Path(basePath);
           }
         } else {
           throw new ArgumentError(
-              "Invalid case of Path.relativeTo(base):\n"
+              "Invalid case of _Path.relativeTo(base):\n"
               "  Base path and target path are on different Windows drives.\n"
               "  Arguments: $_path.relativeTo($base)");
         }
       } else if (baseHasDrive != pathHasDrive) {
         throw new ArgumentError(
-            "Invalid case of Path.relativeTo(base):\n"
+            "Invalid case of _Path.relativeTo(base):\n"
             "  Base path must start with a drive letter if and "
             "only if target path does.\n"
             "  Arguments: $_path.relativeTo($base)");
@@ -89,7 +89,7 @@ class _Path implements Path {
 
     }
     if (_path.startsWith(basePath)) {
-      if (_path == basePath) return new Path('.');
+      if (_path == basePath) return new _Path('.');
       // There must be a '/' at the end of the match, or immediately after.
       int matchEnd = basePath.length;
       if (_path[matchEnd - 1] == '/' || _path[matchEnd] == '/') {
@@ -97,7 +97,7 @@ class _Path implements Path {
         while (matchEnd < _path.length && _path[matchEnd] == '/') {
           matchEnd++;
         }
-        return new Path(_path.substring(matchEnd)).canonicalize();
+        return new _Path(_path.substring(matchEnd)).canonicalize();
       }
     }
 
@@ -118,7 +118,7 @@ class _Path implements Path {
 
     if (common < baseSegments.length && baseSegments[common] == '..') {
       throw new ArgumentError(
-          "Invalid case of Path.relativeTo(base):\n"
+          "Invalid case of _Path.relativeTo(base):\n"
           "  Base path has more '..'s than path does.\n"
           "  Arguments: $_path.relativeTo($base)");
     }
@@ -134,11 +134,11 @@ class _Path implements Path {
     if (hasTrailingSeparator) {
         segments.add('');
     }
-    return new Path(segments.join('/'));
+    return new _Path(segments.join('/'));
   }
 
 
-  Path join(Path further) {
+  _Path join(_Path further) {
     if (further.isAbsolute) {
       throw new ArgumentError(
           "Path.join called with absolute Path as argument.");
@@ -147,17 +147,17 @@ class _Path implements Path {
       return further.canonicalize();
     }
     if (hasTrailingSeparator) {
-      var joined = new _Path._internal('$_path${further}', isWindowsShare);
+      var joined = new __Path._internal('$_path${further}', isWindowsShare);
       return joined.canonicalize();
     }
-    var joined = new _Path._internal('$_path/${further}', isWindowsShare);
+    var joined = new __Path._internal('$_path/${further}', isWindowsShare);
     return joined.canonicalize();
   }
 
   // Note: The URI RFC names for canonicalize, join, and relativeTo
   // are normalize, resolve, and relativize.  But resolve and relativize
   // drop the last segment of the base path (the filename), on URIs.
-  Path canonicalize() {
+  _Path canonicalize() {
     if (isCanonical) return this;
     return makeCanonical();
   }
@@ -184,7 +184,7 @@ class _Path implements Path {
     return !segs.any((s) => s == '' || s == '.' || s == '..');
   }
 
-  Path makeCanonical() {
+  _Path makeCanonical() {
     bool isAbs = isAbsolute;
     List segs = segments();
     String drive;
@@ -242,7 +242,7 @@ class _Path implements Path {
         segmentsToJoin.add('');
       }
     }
-    return new _Path._internal(segmentsToJoin.join('/'), isWindowsShare);
+    return new __Path._internal(segmentsToJoin.join('/'), isWindowsShare);
   }
 
   String toNativePath() {
@@ -271,13 +271,13 @@ class _Path implements Path {
     return result;
   }
 
-  Path append(String finalSegment) {
+  _Path append(String finalSegment) {
     if (isEmpty) {
-      return new _Path._internal(finalSegment, isWindowsShare);
+      return new __Path._internal(finalSegment, isWindowsShare);
     } else if (hasTrailingSeparator) {
-      return new _Path._internal('$_path$finalSegment', isWindowsShare);
+      return new __Path._internal('$_path$finalSegment', isWindowsShare);
     } else {
-      return new _Path._internal('$_path/$finalSegment', isWindowsShare);
+      return new __Path._internal('$_path/$finalSegment', isWindowsShare);
     }
   }
 
@@ -294,12 +294,12 @@ class _Path implements Path {
     return (pos < 0) ? '' : name.substring(pos + 1);
   }
 
-  Path get directoryPath {
+  _Path get directoryPath {
     int pos = _path.lastIndexOf('/');
-    if (pos < 0) return new Path('');
+    if (pos < 0) return new _Path('');
     while (pos > 0 && _path[pos - 1] == '/') --pos;
     var dirPath = (pos > 0) ? _path.substring(0, pos) : '/';
-    return new _Path._internal(dirPath, isWindowsShare);
+    return new __Path._internal(dirPath, isWindowsShare);
   }
 
   String get filename {

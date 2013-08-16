@@ -2,7 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of types;
+library concrete_types_inferrer;
+
+import 'dart:collection' show Queue, IterableBase;
+import '../dart2jslib.dart' hide Selector, TypedSelector;
+import '../dart_types.dart';
+import '../elements/elements.dart';
+import '../native_handler.dart' as native;
+import '../tree/tree.dart';
+import '../universe/universe.dart';
+import '../util/util.dart';
+
+import 'types.dart' show TypeMask, TypesInferrer;
 
 class CancelTypeInferenceException {
   final Node node;

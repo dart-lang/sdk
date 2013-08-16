@@ -17,7 +17,6 @@ mirrors/fake_function_test: Fail # Issue 11612
 mirrors/method_mirror_name_test: Fail # Issue 6335
 mirrors/method_mirror_properties_test: Fail # Issue 11861
 mirrors/method_mirror_returntype_test : Fail # Issue 11928
-mirrors/mixin_members_test : Fail # Issue 11863
 mirrors/mirrors_test: Fail # TODO(ahe): I'm working on fixing this.
 mirrors/null_test : Fail # Issue 12129
 mirrors/library_metadata_test: Fail # Issue 10905
@@ -102,6 +101,7 @@ mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9001.
 mirrors/operator_test: Fail # http://dartbug.com/11944
 mirrors/mixin_test: Fail # TODO(ahe): This test is slightly broken. http://dartbug.com/12464
+mirrors/hierarchy_test: Fail # TODO(ahe): This test is slightly broken. http://dartbug.com/12464
 
 [ $compiler == none && $runtime == drt ]
 async/timer_isolate_test: Skip # See Issue 4997

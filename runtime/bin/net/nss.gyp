@@ -17,7 +17,6 @@
   'variables': {
     # Added by Dart.
     'nss_directory': '../../../third_party/nss',
-    'pkcs12_directory': '../../../third_party/nss_pkcs12',
     'conditions': [
       ['OS=="ios"', {
         'exclude_nss_root_certs%': 0,
@@ -1069,19 +1068,6 @@
         '<(nss_directory)/nss/lib/util/utilpars.h',
         '<(nss_directory)/nss/lib/util/utilparst.h',
         '<(nss_directory)/nss/lib/util/utilrename.h',
-        '<(pkcs12_directory)/p12creat.c',
-        '<(pkcs12_directory)/p12d.c',
-        '<(pkcs12_directory)/p12dec.c',
-        '<(pkcs12_directory)/p12e.c',
-        '<(pkcs12_directory)/p12.h',
-        '<(pkcs12_directory)/p12local.c',
-        '<(pkcs12_directory)/p12local.h',
-        '<(pkcs12_directory)/p12plcy.c',
-        '<(pkcs12_directory)/p12plcy.h',
-        '<(pkcs12_directory)/p12t.h',
-        '<(pkcs12_directory)/p12tmpl.c',
-        '<(pkcs12_directory)/pkcs12.h',
-        '<(pkcs12_directory)/pkcs12t.h',
       ],
       'sources!': [
         # mpi_arm.c is included by mpi_arm_mac.c.
@@ -1147,7 +1133,6 @@
         '<(nss_directory)/nss/lib/softoken',
         '<(nss_directory)/nss/lib/ssl',
         '<(nss_directory)/nss/lib/util',
-        '<(pkcs12_directory)',
       ],
       'direct_dependent_settings': {
         'defines': [
@@ -1174,7 +1159,6 @@
           '<(nss_directory)/nss/lib/smime',
           '<(nss_directory)/nss/lib/softoken',
           '<(nss_directory)/nss/lib/util',
-          '<(pkcs12_directory)',
         ],
       },
       'msvs_disabled_warnings': [4018, 4101, 4267, ],

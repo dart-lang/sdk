@@ -284,4 +284,53 @@ main() {
     expectAsset("app|foo.out", "two.out");
     buildShouldFail([isAssetCollisionException("app|foo.out")]);
   });
+
+  test("a collision with a pass-through asset returns the pass-through asset",
+      () {
+    initGraph([
+      "app|foo.txt",
+      "app|foo.in"
+    ], {"app": [
+      [new RewriteTransformer("in", "txt")]
+    ]});
+
+    updateSources(["app|foo.txt", "app|foo.in"]);
+    expectAsset("app|foo.txt", "foo");
+    buildShouldFail([isAssetCollisionException("app|foo.txt")]);
+  });
+
+  test("a new pass-through asset that collides returns the previous asset", () {
+    initGraph([
+      "app|foo.txt",
+      "app|foo.in"
+    ], {"app": [
+      [new RewriteTransformer("in", "txt")]
+    ]});
+
+    updateSources(["app|foo.in"]);
+    expectAsset("app|foo.txt", "foo.txt");
+    buildShouldSucceed();
+
+    updateSources(["app|foo.txt"]);
+    expectAsset("app|foo.txt", "foo.txt");
+    buildShouldFail([isAssetCollisionException("app|foo.txt")]);
+  });
+
+  test("a new transform output that collides with a pass-through asset returns "
+      "the pass-through asset", () {
+    initGraph([
+      "app|foo.txt",
+      "app|foo.in"
+    ], {"app": [
+      [new RewriteTransformer("in", "txt")]
+    ]});
+
+    updateSources(["app|foo.txt"]);
+    expectAsset("app|foo.txt", "foo");
+    buildShouldSucceed();
+
+    updateSources(["app|foo.in"]);
+    expectAsset("app|foo.txt", "foo");
+    buildShouldFail([isAssetCollisionException("app|foo.txt")]);
+  });
 }

@@ -11,6 +11,9 @@ dummy_compiler_test: Skip # http://dartbug.com/7233
 dart2js_test: Skip # Uses dart:io.
 txt_layout_test: Skip # Might just go away.
 
+[ $compiler == none && $runtime == drt && $mode == debug ]
+recursive_import_test: Fail # 12501
+
 [ $compiler == dart2js && $browser ]
 *: Skip
 

@@ -15,7 +15,7 @@ import 'dart:collection' show LinkedHashMap;
 import 'dart:html';
 import 'unittest.dart';
 
-class HtmlEnhancedConfiguration extends Configuration {
+class HtmlEnhancedConfiguration extends SimpleConfiguration {
   /** Whether this is run within dartium layout tests. */
   final bool _isLayoutTest;
   HtmlEnhancedConfiguration(this._isLayoutTest);

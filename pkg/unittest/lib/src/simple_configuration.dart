@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,9 +7,9 @@ part of unittest;
 // A custom failure handler for [expect] that routes expect failures
 // to the config.
 class _ExpectFailureHandler extends DefaultFailureHandler {
-  Configuration _config;
+  final SimpleConfiguration _config;
 
-  _ExpectFailureHandler(this._config) : super();
+  _ExpectFailureHandler(this._config);
 
   void fail(String reason) {
     _config.onExpectFailure(reason);
@@ -22,8 +22,7 @@ class _ExpectFailureHandler extends DefaultFailureHandler {
  * advantage of the platform can create a subclass and override methods from
  * this class.
  */
-
-class Configuration {
+class SimpleConfiguration implements Configuration {
   // The VM won't shut down if a receive port is open. Use this to make sure
   // we correctly wait for asynchronous tests.
   ReceivePort _receivePort;
@@ -35,11 +34,7 @@ class Configuration {
    */
   final String name = 'Configuration';
 
-  /**
-   * If true, then tests are started automatically (otherwise [runTests]
-   * must be called explicitly after the tests are set up.
-   */
-  final bool autoStart = true;
+  bool get autoStart => true;
 
   /**
    * If true (the default), throw an exception at the end if any tests failed.
@@ -61,22 +56,15 @@ class Configuration {
    * The constructor sets up a failure handler for [expect] that redirects
    * [expect] failures to [onExpectFailure].
    */
-  Configuration() {
+  SimpleConfiguration() {
     configureExpectFailureHandler(new _ExpectFailureHandler(this));
   }
-  /**
-   * Called as soon as the unittest framework becomes initialized. This is done
-   * even before tests are added to the test framework. It might be used to
-   * determine/debug errors that occur before the test harness starts executing.
-   * It is also used to tell the vm or browser that tests are going to be run
-   * asynchronously and that the process should wait until they are done.
-   */
+
   void onInit() {
     _receivePort = new ReceivePort();
     _postMessage('unittest-suite-wait-for-done');
   }
 
-  /** Called as soon as the unittest framework starts running. */
   void onStart() {}
 
   /**
@@ -91,7 +79,7 @@ class Configuration {
 
   /**
    * Called when each test is first completed. Useful to show intermediate
-   * progress on a test suite. Derived classes should call this first 
+   * progress on a test suite. Derived classes should call this first
    * before their own override code.
    */
   void onTestResult(TestCase testCase) {
@@ -112,25 +100,20 @@ class Configuration {
       if (testCase.result == PASS) {
         testCase._result = FAIL;
         testCase._message = reason.toString();
-        // Use the last stack as the overall failure stack.    
+        // Use the last stack as the overall failure stack.
         testCase._stackTrace = lastReasonAndTrace.last;
       } else {
         // Add the last stack to the message; we have a further stack
         // caused by some other failure.
         reason.write(lastReasonAndTrace.last);
         reason.write('\n');
-        // Add the existing reason to the end of the expect log to 
+        // Add the existing reason to the end of the expect log to
         // create the final message.
         testCase._message = '${reason.toString()}\n${testCase._message}';
       }
     }
   }
 
-  /**
-   * Called when an already completed test changes state; for example a test
-   * that was marked as passing may later be marked as being in error because
-   * it still had callbacks being invoked.
-   */
   void onTestResultChanged(TestCase testCase) {
     assert(testCase != null);
   }
@@ -159,7 +142,7 @@ class Configuration {
       }
     }
   }
-  
+
   /**
    * Format a test result.
    */
@@ -213,10 +196,6 @@ class Configuration {
     }
   }
 
-  /**
-   * Called when the unittest framework is done running. [success] indicates
-   * whether all tests passed successfully.
-   */
   void onDone(bool success) {
     if (success) {
       _postMessage('unittest-suite-success');
@@ -229,13 +208,7 @@ class Configuration {
     }
   }
 
-  /** Handle errors that happen outside the tests. */
-  // TODO(vsm): figure out how to expose the stack trace here
-  // Currently e.message works in dartium, but not in dartc.
-  void handleExternalError(e, String message, [stack]) =>
-      _reportTestError('$message\nCaught $e', stack);
-
-  _postMessage(String message) {
+  void _postMessage(String message) {
     // In dart2js browser tests, the JavaScript-based test controller
     // intercepts calls to print and listens for "secret" messages.
     print(message);

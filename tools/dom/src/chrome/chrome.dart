@@ -44,6 +44,7 @@ class API_Chrome {
    * Members
    */
   API_ChromeApp app;
+  API_file_system fileSystem;
 
   /*
    * Constructor
@@ -57,6 +58,11 @@ class API_Chrome {
     if (app_object == null)
       throw new UnsupportedError('Not supported by current browser.');
     app = new API_ChromeApp(app_object);
+
+    var file_system_object = JS('', '#.fileSystem', this._jsObject);
+    if (file_system_object == null)
+      throw new UnsupportedError('Not supported by current browser.');
+    fileSystem = new API_file_system(file_system_object);
   }
 }
 

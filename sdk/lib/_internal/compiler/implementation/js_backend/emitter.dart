@@ -1296,6 +1296,8 @@ class CodeEmitterTask extends CompilerTask {
   /// O is the named arguments.
   /// The reflection name of a constructor is similar to a regular method but
   /// starts with 'new '.
+  /// The reflection name of class 'C' is 'C'.
+  /// An anonymous mixin application has no reflection name.
   /// This is used by js_mirrors.dart.
   String getReflectionName(elementOrSelector, String mangledName) {
     SourceString name = elementOrSelector.name;
@@ -1982,7 +1984,11 @@ class CodeEmitterTask extends CompilerTask {
     buffer.write(jsAst.prettyPrint(builder.toObjectInitializer(), compiler));
     if (backend.shouldRetainName(classElement.name)) {
       String reflectionName = getReflectionName(classElement, className);
-      buffer.write(',$n$n"+$reflectionName": 0');
+      List<int> interfaces = <int>[];
+      for (DartType interface in classElement.interfaces) {
+        interfaces.add(reifyType(interface));
+      }
+      buffer.write(',$n$n"+$reflectionName": $interfaces');
     }
   }
 
@@ -2631,6 +2637,8 @@ class CodeEmitterTask extends CompilerTask {
     for (Element element in Elements.sortedByPosition(staticNonFinalFields)) {
       // [:interceptedNames:] is handled in [emitInterceptedNames].
       if (element == backend.interceptedNames) continue;
+      // `mapTypeToInterceptor` is handled in [emitMapTypeToInterceptor].
+      if (element == backend.mapTypeToInterceptor) continue;
       compiler.withCurrentElement(element, () {
         Constant initialValue = handler.getInitialValueFor(element);
         jsAst.Expression init =
@@ -2984,7 +2992,7 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   var scripts = document.scripts;
-  function onLoad() {
+  function onLoad(event) {
     for (var i = 0; i < scripts.length; ++i) {
       scripts[i].removeEventListener('load', onLoad, false);
     }
@@ -3008,8 +3016,7 @@ class CodeEmitterTask extends CompilerTask {
   } else {
     ${mainCall};
   }
-});
-""");
+})$N""");
     addComment('END invoke [main].', buffer);
   }
 
@@ -3056,6 +3063,9 @@ class CodeEmitterTask extends CompilerTask {
     bool hasNumber = false;
     bool hasString = false;
     bool hasNative = false;
+    bool anyNativeClasses = compiler.enqueuer.codegen.nativeEnqueuer
+          .hasInstantiatedNativeClasses();
+
     for (ClassElement cls in classes) {
       if (cls == backend.jsArrayClass ||
           cls == backend.jsMutableArrayClass ||
@@ -3068,10 +3078,18 @@ class CodeEmitterTask extends CompilerTask {
       else if (cls == backend.jsNumberClass) hasNumber = true;
       else if (cls == backend.jsStringClass) hasString = true;
       else {
-        // TODO(sra): The set of classes includes classes mixed-in to
-        // interceptor classes.
-        // assert(cls == compiler.objectClass || cls.isNative());
-        if (cls.isNative()) hasNative = true;
+        // The set of classes includes classes mixed-in to interceptor classes
+        // and user extensions of native classes.
+        //
+        // The set of classes also includes the 'primitive' interceptor
+        // PlainJavaScriptObject even when it has not been resolved, since it is
+        // only resolved through the reference in getNativeInterceptor when
+        // getNativeInterceptor is marked as used.  Guard against probing
+        // unresolved PlainJavaScriptObject by testing for anyNativeClasses.
+
+        if (anyNativeClasses) {
+          if (Elements.isNativeOrExtendsNative(cls)) hasNative = true;
+        }
       }
     }
     if (hasDouble) {
@@ -3081,8 +3099,7 @@ class CodeEmitterTask extends CompilerTask {
 
     if (classes == backend.interceptedClasses) {
       // I.e. this is the general interceptor.
-      hasNative = compiler.enqueuer.codegen.nativeEnqueuer
-          .hasInstantiatedNativeClasses();
+      hasNative = anyNativeClasses;
     }
 
     jsAst.Block block = new jsAst.Block.empty();
@@ -3245,9 +3262,13 @@ class CodeEmitterTask extends CompilerTask {
     for (ClassElement element in sortedClasses) {
       if (rtiNeededClasses.contains(element)) {
         regularClasses.add(element);
-      } else if (element.isNative()) {
-        // For now, native classes cannot be deferred.
+      } else if (Elements.isNativeOrExtendsNative(element)) {
+        // For now, native classes and related classes cannot be deferred.
         nativeClasses.add(element);
+        if (!element.isNative()) {
+          assert(invariant(element, !isDeferred(element)));
+          regularClasses.add(element);
+        }
       } else if (isDeferred(element)) {
         deferredClasses.add(element);
       } else {
@@ -3305,8 +3326,10 @@ class CodeEmitterTask extends CompilerTask {
     return rtiNeededClasses;
   }
 
-  // Optimize performance critical one shot interceptors.
-  jsAst.Statement tryOptimizeOneShotInterceptor(Selector selector,
+  // Returns a statement that takes care of performance critical
+  // common case for a one-shot interceptor, or null if there is no
+  // fast path.
+  jsAst.Statement fastPathForOneShotInterceptor(Selector selector,
                                                 Set<ClassElement> classes) {
     jsAst.Expression isNumber(String variable) {
       return js('typeof $variable == "number"');
@@ -3329,11 +3352,10 @@ class CodeEmitterTask extends CompilerTask {
       String name = selector.name.stringValue;
       if (name == '==') {
         // Unfolds to:
-        // [: if (receiver == null) return a0 == null;
+        //    if (receiver == null) return a0 == null;
         //    if (typeof receiver != 'object') {
         //      return a0 != null && receiver === a0;
         //    }
-        // :].
         List<jsAst.Statement> body = <jsAst.Statement>[];
         body.add(js.if_('receiver == null', js.return_(js('a0 == null'))));
         body.add(js.if_(
@@ -3349,23 +3371,21 @@ class CodeEmitterTask extends CompilerTask {
       if (selector.argumentCount == 1) {
         // The following operators do not map to a JavaScript
         // operator.
-        if (name != '~/' && name != '<<' && name != '%' && name != '>>') {
-          jsAst.Expression result = js('receiver').binary(name, js('a0'));
-          if (name == '&' || name == '|' || name == '^') {
-            result = tripleShiftZero(result);
-          }
-          // Unfolds to:
-          // [: if (typeof receiver == "number" && typeof a0 == "number")
-          //      return receiver op a0;
-          // :].
-          return js.if_(
-              isNumber('receiver').binary('&&', isNumber('a0')),
-              js.return_(result));
+        if (name == '~/' || name == '<<' || name == '%' || name == '>>') {
+          return null;
         }
-      } else if (name == 'unary-') {
-        // operator~ does not map to a JavaScript operator.
+        jsAst.Expression result = js('receiver').binary(name, js('a0'));
+        if (name == '&' || name == '|' || name == '^') {
+          result = tripleShiftZero(result);
+        }
         // Unfolds to:
-        // [: if (typeof receiver == "number") return -receiver:].
+        //    if (typeof receiver == "number" && typeof a0 == "number")
+        //      return receiver op a0;
+        return js.if_(
+            isNumber('receiver').binary('&&', isNumber('a0')),
+            js.return_(result));
+      } else if (name == 'unary-') {
+        // [: if (typeof receiver == "number") return -receiver :].
         return js.if_(isNumber('receiver'),
                       js.return_(js('-receiver')));
       } else {
@@ -3376,21 +3396,19 @@ class CodeEmitterTask extends CompilerTask {
     } else if (selector.isIndex() || selector.isIndexSet()) {
       // For an index operation, this code generates:
       //
-      // [: if (receiver.constructor == Array || typeof receiver == "string") {
+      //    if (receiver.constructor == Array || typeof receiver == "string") {
       //      if (a0 >>> 0 === a0 && a0 < receiver.length) {
       //        return receiver[a0];
       //      }
       //    }
-      // :]
       //
       // For an index set operation, this code generates:
       //
-      // [: if (receiver.constructor == Array && !receiver.immutable$list) {
+      //    if (receiver.constructor == Array && !receiver.immutable$list) {
       //      if (a0 >>> 0 === a0 && a0 < receiver.length) {
       //        return receiver[a0] = a1;
       //      }
       //    }
-      // :]
       bool containsArray = classes.contains(backend.jsArrayClass);
       bool containsString = classes.contains(backend.jsStringClass);
       // The index set operator requires a check on its set value in
@@ -3463,7 +3481,7 @@ class CodeEmitterTask extends CompilerTask {
 
       List<jsAst.Statement> body = <jsAst.Statement>[];
       jsAst.Statement optimizedPath =
-          tryOptimizeOneShotInterceptor(selector, classes);
+          fastPathForOneShotInterceptor(selector, classes);
       if (optimizedPath != null) {
         body.add(optimizedPath);
       }
@@ -3505,6 +3523,37 @@ class CodeEmitterTask extends CompilerTask {
     jsAst.ArrayInitializer array =
         new jsAst.ArrayInitializer(invocationNames.length, elements);
 
+    jsAst.Expression assignment = js('$isolateProperties.$name = #', array);
+
+    buffer.write(jsAst.prettyPrint(assignment, compiler));
+    buffer.write(N);
+  }
+
+  /**
+   * Emit initializer for [mapTypeToInterceptor] data structure used by
+   * [findInterceptorForType].  See declaration of [mapTypeToInterceptor] in
+   * `interceptors.dart`.
+   */
+  void emitMapTypeToInterceptor(CodeBuffer buffer) {
+    // TODO(sra): Perhaps inject a constant instead?
+    // TODO(sra): Filter by subclasses of native types.
+    List<jsAst.Expression> elements = <jsAst.Expression>[];
+    ConstantHandler handler = compiler.constantHandler;
+    List<Constant> constants = handler.getConstantsForEmission();
+    for (Constant constant in constants) {
+      if (constant is TypeConstant) {
+        TypeConstant typeConstant = constant;
+        Element element = typeConstant.representedType.element;
+        if (element is ClassElement) {
+          ClassElement classElement = element;
+          elements.add(backend.emitter.constantReference(constant));
+          elements.add(js(namer.isolateAccess(classElement)));
+        }
+      }
+    }
+
+    jsAst.ArrayInitializer array = new jsAst.ArrayInitializer.from(elements);
+    String name = backend.namer.getName(backend.mapTypeToInterceptor);
     jsAst.Expression assignment = js('$isolateProperties.$name = #', array);
 
     buffer.write(jsAst.prettyPrint(assignment, compiler));
@@ -3587,7 +3636,7 @@ class CodeEmitterTask extends CompilerTask {
     if (!backend.retainMetadataOf(element)) return code;
     return compiler.withCurrentElement(element, () {
       List<int> metadata = <int>[];
-      FunctionSignature signature = element.computeSignature(compiler);
+      FunctionSignature signature = element.functionSignature;
       if (element.isConstructor()) {
         metadata.add(reifyType(element.getEnclosingClass().thisType));
       } else {
@@ -3843,6 +3892,7 @@ class CodeEmitterTask extends CompilerTask {
       emitStaticNonFinalFieldInitializations(mainBuffer);
       emitOneShotInterceptors(mainBuffer);
       emitInterceptedNames(mainBuffer);
+      emitMapTypeToInterceptor(mainBuffer);
       emitLazilyInitializedStaticFields(mainBuffer);
 
       mainBuffer.add(nativeBuffer);
@@ -4013,10 +4063,17 @@ class CodeEmitterTask extends CompilerTask {
     String metadataField = '"${namer.metadataField}"';
     return '''
 (function (reflectionData) {
+'''
+// [map] returns an object literal that V8 shouldn't try to optimize with a
+// hidden class. This prevents a potential performance problem where V8 tries
+// to build a hidden class for an object used as a hashMap.
+'''
+  function map(x){x={x:x};delete x.x;return x}
   if (!init.libraries) init.libraries = [];
-  if (!init.mangledNames) init.mangledNames = {};
-  if (!init.mangledGlobalNames) init.mangledGlobalNames = {};
-  if (!init.statics) init.statics = {};
+  if (!init.mangledNames) init.mangledNames = map();
+  if (!init.mangledGlobalNames) init.mangledGlobalNames = map();
+  if (!init.statics) init.statics = map();
+  if (!init.interfaces) init.interfaces = map();
   var libraries = init.libraries;
   var mangledNames = init.mangledNames;
   var mangledGlobalNames = init.mangledGlobalNames;
@@ -4052,6 +4109,8 @@ class CodeEmitterTask extends CompilerTask {
         var previousProperty;
         if (firstChar === "+") {
           mangledGlobalNames[previousProperty] = property.substring(1);
+          if (element && element.length) ''' // Breaking long line.
+'''init.interfaces[previousProperty] = element;
         } else if (firstChar === "@") {
           property = property.substring(1);
           ${namer.CURRENT_ISOLATE}[property][$metadataField] = element;

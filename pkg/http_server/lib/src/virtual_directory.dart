@@ -77,7 +77,7 @@ class _VirtualDirectory implements VirtualDirectory {
   }
 
   void serveRequest(HttpRequest request) {
-    _locateResource(new Path('.'), request.uri.pathSegments.iterator..moveNext())
+    _locateResource('.', request.uri.pathSegments.iterator..moveNext())
         .then((entity) {
           if (entity == null) {
             _serveErrorPage(HttpStatus.NOT_FOUND, request);
@@ -101,39 +101,39 @@ class _VirtualDirectory implements VirtualDirectory {
     _errorCallback = callback;
   }
 
-  Future<FileSystemEntity> _locateResource(Path path,
+  Future<FileSystemEntity> _locateResource(String path,
                                            Iterator<String> segments) {
-    path = path.canonicalize();
-    if (path.segments().first == "..") return new Future.value(null);
-    Path fullPath() => new Path(root).join(path);
-    return FileSystemEntity.type(fullPath().toNativePath(), followLinks: false)
+    path = normalize(path);
+    if (split(path).first == "..") return new Future.value(null);
+    String fullPath() => join(root, path);
+    return FileSystemEntity.type(fullPath(), followLinks: false)
         .then((type) {
           switch (type) {
             case FileSystemEntityType.FILE:
               if (segments.current == null) {
-                return new File.fromPath(fullPath());
+                return new File(fullPath());
               }
               break;
 
             case FileSystemEntityType.DIRECTORY:
               if (segments.current == null) {
                 if (allowDirectoryListing) {
-                  return new Directory.fromPath(fullPath());
+                  return new Directory(fullPath());
                 }
               } else {
                 if (_invalidPathRegExp.hasMatch(segments.current)) break;
-                return _locateResource(path.append(segments.current),
+                return _locateResource(join(path, segments.current),
                                        segments..moveNext());
               }
               break;
 
             case FileSystemEntityType.LINK:
               if (followLinks) {
-                return new Link.fromPath(fullPath()).target()
+                return new Link(fullPath()).target()
                     .then((target) {
-                      var targetPath = new Path(target).canonicalize();
-                      if (targetPath.isAbsolute) return null;
-                      targetPath = path.directoryPath.join(targetPath);
+                      String targetPath = normalize(target);
+                      if (isAbsolute(targetPath)) return null;
+                      targetPath = join(dirname(path), targetPath);
                       return _locateResource(targetPath, segments);
                     });
               }
@@ -254,7 +254,7 @@ $server
       void add(String name, String modified, var size) {
         if (size == null) size = "-";
         if (modified == null) modified = "";
-        var p = new Path(path).append(name).canonicalize().toString();
+        var p = normalize(join(path, name));
         var entry =
 '''  <tr>
     <td><a href="$p">$name</a></td>
@@ -272,11 +272,11 @@ $server
         // TODO(ajohnsen): Consider async dir listing.
         if (entity is File) {
           var stat = entity.statSync();
-          add(new Path(entity.path).filename,
+          add(basename(entity.path),
               stat.modified.toString(),
               stat.size);
         } else if (entity is Directory) {
-          add(new Path(entity.path).filename + '/',
+          add(basename(entity.path) + '/',
               entity.statSync().modified.toString(),
               null);
         }

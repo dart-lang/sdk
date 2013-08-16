@@ -47,7 +47,7 @@ class JSArray {
   add(x) { }
 }
 class JSMutableArray extends JSArray {}
-class JSExtendableArray extends JSMutableArray{}
+class JSExtendableArray extends JSMutableArray {}
 class JSFixedArray extends JSMutableArray {}
 class JSString {
   split(x) => null;

@@ -1153,7 +1153,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // Create the inlining state after evaluating the arguments, that
     // may have an impact on the state of the current method.
     InliningState state = new InliningState(
-        function, returnElement, returnType, elements, stack, localsHandler);
+        function, returnElement, returnType, elements, stack,
+        localsHandler, inTryStatement);
+    inTryStatement = false;
     LocalsHandler newLocalsHandler = new LocalsHandler(this);
     newLocalsHandler.closureData =
         compiler.closureToClassMapper.computeClosureToClassMapping(
@@ -1206,6 +1208,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     state.oldStack.add(stack[0]);
     stack = state.oldStack;
     localsHandler = state.oldLocalsHandler;
+    inTryStatement = state.inTryStatement;
   }
 
   /**
@@ -3187,6 +3190,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     } else if (name == const SourceString('JS_OBJECT_CLASS_NAME')) {
       String name = backend.namer.getRuntimeTypeName(compiler.objectClass);
       stack.add(addConstantString(node, name));
+    } else if (name == const SourceString('JS_NULL_CLASS_NAME')) {
+      String name = backend.namer.getRuntimeTypeName(compiler.nullClass);
+      stack.add(addConstantString(node, name));
     } else if (name == const SourceString('JS_FUNCTION_CLASS_NAME')) {
       String name = backend.namer.getRuntimeTypeName(compiler.functionClass);
       stack.add(addConstantString(node, name));
@@ -3224,6 +3230,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       handleForeignJsCurrentIsolate(node);
     } else if (name == const SourceString('JS_GET_NAME')) {
       handleForeignJsGetName(node);
+    } else if (name == const SourceString('JS_EFFECT')) {
+      stack.add(graph.addConstantNull(compiler));
     } else {
       throw "Unknown foreign: ${selector}";
     }
@@ -5214,13 +5222,15 @@ class InliningState {
   final TreeElements oldElements;
   final List<HInstruction> oldStack;
   final LocalsHandler oldLocalsHandler;
+  final bool inTryStatement;
 
   InliningState(this.function,
                 this.oldReturnElement,
                 this.oldReturnType,
                 this.oldElements,
                 this.oldStack,
-                this.oldLocalsHandler) {
+                this.oldLocalsHandler,
+                this.inTryStatement) {
     assert(function.isImplementation);
   }
 }

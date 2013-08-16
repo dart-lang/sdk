@@ -13,9 +13,6 @@ patch class Object {
   static _setHash(obj, hash) native "Object_setHash";
 
   /* patch */ int get hashCode {
-    if (this == null) {
-      return 2011;  // The year Dart was announced and a prime.
-    }
     var result = _getHash(this);
     if (result == 0) {
       // We want the hash to be a Smi value greater than 0.

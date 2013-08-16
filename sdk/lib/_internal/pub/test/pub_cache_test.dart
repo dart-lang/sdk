@@ -4,11 +4,18 @@
 
 library pub_cache_test;
 
+import 'package:path/path.dart' as path;
+
 import 'descriptor.dart' as d;
 import 'test_pub.dart';
 
 main() {
   initConfig();
+
+  hostedDir(package) {
+    return path.join(sandboxDir, cachePath, "hosted",
+        "pub.dartlang.org", package);
+  }
 
   integration('running pub cache displays error message', () {
     schedulePub(args: ['cache'],
@@ -47,7 +54,7 @@ main() {
       ])
     ]).create();
 
-    schedulePub(args: ['cache', 'list'], output: '{"packages":{}}');
+    schedulePub(args: ['cache', 'list'], outputJson: {"packages":{}});
   });
 
   integration('running pub cache list', () {
@@ -66,10 +73,12 @@ main() {
       ])
     ]).create();
 
-    schedulePub(args: ['cache', 'list'], output:
-      new RegExp(r'\{"packages":\{"bar":\{"2\.0\.0":\{"location":'
-          r'"[^"]+bar-2\.0\.0"\}},"foo":\{"1\.2\.3":\{"location":'
-          r'"[^"]+foo-1\.2\.3"\}\}\}\}$'));
+    schedulePub(args: ['cache', 'list'], outputJson: {
+      "packages": {
+        "bar": {"2.0.0": {"location": hostedDir('bar-2.0.0')}},
+        "foo": {"1.2.3": {"location": hostedDir('foo-1.2.3')}}
+      }
+    });
   });
 
   integration('includes packages containing deps with bad sources', () {
@@ -85,8 +94,10 @@ main() {
       ])
     ]).create();
 
-    schedulePub(args: ['cache', 'list'], output:
-      new RegExp(r'\{"packages":\{"foo":\{"1\.2\.3":\{"location":'
-          r'"[^"]+foo-1\.2\.3"\}\}\}\}$'));
+    schedulePub(args: ['cache', 'list'], outputJson: {
+      "packages": {
+        "foo": {"1.2.3": {"location": hostedDir('foo-1.2.3')}}
+      }
+    });
   });
 }

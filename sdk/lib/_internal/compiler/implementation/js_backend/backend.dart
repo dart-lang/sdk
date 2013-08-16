@@ -201,6 +201,14 @@ class JavaScriptBackend extends Backend {
   Element getInterceptorMethod;
   Element interceptedNames;
 
+  /**
+   * This element is a top-level variable (in generated output) that the
+   * compiler initializes to a datastructure used to map from a Type to the
+   * interceptor.  See declaration of `mapTypeToInterceptor` in
+   * `interceptors.dart`.
+   */
+  Element mapTypeToInterceptor;
+
   HType stringType;
   HType indexablePrimitiveType;
   HType readableArrayType;
@@ -333,6 +341,9 @@ class JavaScriptBackend extends Backend {
   /// element must be retained.
   final Set<Element> metaTargetsUsed = new Set<Element>();
 
+  /// List of elements that the backend may use.
+  final Set<Element> helpersUsed = new Set<Element>();
+
   JavaScriptBackend(Compiler compiler, bool generateSourceMap, bool disableEval)
       : namer = determineNamer(compiler),
         oneShotInterceptors = new Map<String, Selector>(),
@@ -354,9 +365,16 @@ class JavaScriptBackend extends Backend {
         new Namer(compiler);
   }
 
+  bool canBeUsedForGlobalOptimizations(Element element) {
+    if (element.isParameter() || element.isFieldParameter()) {
+      element = element.enclosingElement;
+    }
+    return !helpersUsed.contains(element.declaration);
+  }
+
   bool isInterceptorClass(ClassElement element) {
     if (element == null) return false;
-    if (element.isNative()) return true;
+    if (Elements.isNativeOrExtendsNative(element)) return true;
     if (interceptedClasses.contains(element)) return true;
     if (classesMixedIntoNativeClasses.contains(element)) return true;
     return false;
@@ -412,7 +430,7 @@ class JavaScriptBackend extends Backend {
       Set<ClassElement> result = new Set<ClassElement>();
       for (Element element in intercepted) {
         ClassElement classElement = element.getEnclosingClass();
-        if (classElement.isNative()
+        if (Elements.isNativeOrExtendsNative(classElement)
             || interceptedClasses.contains(classElement)) {
           result.add(classElement);
         }
@@ -434,7 +452,7 @@ class JavaScriptBackend extends Backend {
       Iterable<ClassElement> subclasses = compiler.world.subclassesOf(use);
       if (subclasses != null) {
         for (ClassElement subclass in subclasses) {
-          if (subclass.isNative()) {
+          if (Elements.isNativeOrExtendsNative(subclass)) {
             if (result == null) result = new Set<ClassElement>();
             result.add(subclass);
           }
@@ -454,6 +472,8 @@ class JavaScriptBackend extends Backend {
         compiler.findInterceptor(const SourceString('getInterceptor'));
     interceptedNames =
         compiler.findInterceptor(const SourceString('interceptedNames'));
+    mapTypeToInterceptor =
+        compiler.findInterceptor(const SourceString('mapTypeToInterceptor'));
     dispatchPropertyName =
         compiler.findInterceptor(const SourceString('dispatchPropertyName'));
     getDispatchPropertyMethod =
@@ -594,7 +614,7 @@ class JavaScriptBackend extends Backend {
             member.name, () => new Set<Element>());
         set.add(member);
         if (classElement == jsInterceptorClass) return;
-        if (!classElement.isNative()) {
+        if (classElement.isMixinApplication) {
           MixinApplicationElement mixinApplication = classElement;
           assert(member.getEnclosingClass() == mixinApplication.mixin);
           classesMixedIntoNativeClasses.add(mixinApplication.mixin);
@@ -703,7 +723,7 @@ class JavaScriptBackend extends Backend {
       addInterceptors(jsPlainJavaScriptObjectClass, enqueuer, elements);
     } else if (cls == jsUnknownJavaScriptObjectClass) {
       addInterceptors(jsUnknownJavaScriptObjectClass, enqueuer, elements);
-    } else if (cls.isNative()) {
+    } else if (Elements.isNativeOrExtendsNative(cls)) {
       addInterceptorsForNativeClassMembers(cls, enqueuer);
     }
   }
@@ -741,7 +761,7 @@ class JavaScriptBackend extends Backend {
       // TODO(ngeoffray): Should we have the resolver register those instead?
       Element e =
           compiler.findHelper(const SourceString('boolConversionCheck'));
-      if (e != null) world.addToWorkList(e);
+      if (e != null) enqueue(world, e, elements);
     }
   }
 
@@ -762,11 +782,11 @@ class JavaScriptBackend extends Backend {
     ensure(jsUnknownJavaScriptObjectClass);
   }
 
-  void registerWrapException(TreeElements elements) {
-    enqueueInResolution(getWrapExceptionHelper(), elements);
-  }
-
   void registerThrowExpression(TreeElements elements) {
+    // We don't know ahead of time whether we will need the throw in a
+    // statement context or an expression context, so we register both
+    // here, even though we may not need the throwExpression helper.
+    enqueueInResolution(getWrapExceptionHelper(), elements);
     enqueueInResolution(getThrowExpressionHelper(), elements);
   }
 
@@ -845,10 +865,10 @@ class JavaScriptBackend extends Backend {
     // need to register checked mode helpers.
     if (inCheckedMode) {
       CheckedModeHelper helper = getCheckedModeHelper(type, typeCast: false);
-      if (helper != null) world.addToWorkList(helper.getElement(compiler));
+      if (helper != null) enqueue(world, helper.getElement(compiler), elements);
       // We also need the native variant of the check (for DOM types).
       helper = getNativeCheckedModeHelper(type, typeCast: false);
-      if (helper != null) world.addToWorkList(helper.getElement(compiler));
+      if (helper != null) enqueue(world, helper.getElement(compiler), elements);
     }
     bool isTypeVariable = type.kind == TypeKind.TYPE_VARIABLE;
     if (!type.isRaw || type.containsTypeVariables) {
@@ -874,8 +894,9 @@ class JavaScriptBackend extends Backend {
       // We will neeed to add the "$is" and "$as" properties on the
       // JavaScript object prototype, so we make sure
       // [:defineProperty:] is compiled.
-      world.addToWorkList(
-          compiler.findHelper(const SourceString('defineProperty')));
+      enqueue(world,
+              compiler.findHelper(const SourceString('defineProperty')),
+              elements);
     }
    }
 
@@ -892,14 +913,25 @@ class JavaScriptBackend extends Backend {
 
   void registerThrowNoSuchMethod(TreeElements elements) {
     enqueueInResolution(getThrowNoSuchMethod(), elements);
+    // Also register the types of the arguments passed to this method.
+    compiler.enqueuer.resolution.registerInstantiatedClass(
+        compiler.listClass, elements);
+    compiler.enqueuer.resolution.registerInstantiatedClass(
+        compiler.stringClass, elements);
   }
 
   void registerThrowRuntimeError(TreeElements elements) {
     enqueueInResolution(getThrowRuntimeError(), elements);
+    // Also register the types of the arguments passed to this method.
+    compiler.enqueuer.resolution.registerInstantiatedClass(
+        compiler.stringClass, elements);
   }
 
   void registerAbstractClassInstantiation(TreeElements elements) {
     enqueueInResolution(getThrowAbstractClassInstantiationError(), elements);
+    // Also register the types of the arguments passed to this method.
+    compiler.enqueuer.resolution.registerInstantiatedClass(
+        compiler.stringClass, elements);
   }
 
   void registerFallThroughError(TreeElements elements) {
@@ -976,7 +1008,15 @@ class JavaScriptBackend extends Backend {
            compiler.enabledRuntimeType;
   }
 
+  // Enqueue [e] in [enqueuer].
+  //
+  // The backend must *always* call this method when enqueuing an
+  // element. Calls done by the backend are not seen by global
+  // optimizations, so they would make these optimizations unsound.
+  // Therefore we need to collect the list of helpers the backend may
+  // use.
   void enqueue(Enqueuer enqueuer, Element e, TreeElements elements) {
+    helpersUsed.add(e.declaration);
     enqueuer.addToWorkList(e);
     elements.registerDependency(e);
   }
@@ -1327,19 +1367,6 @@ class JavaScriptBackend extends Backend {
 
   Element getCyclicThrowHelper() {
     return compiler.findHelper(const SourceString("throwCyclicInit"));
-  }
-
-  /**
-   * Remove [element] from the set of generated code, and put it back
-   * into the worklist.
-   *
-   * Invariant: [element] must be a declaration element.
-   */
-  void eagerRecompile(Element element) {
-    assert(invariant(element, element.isDeclaration));
-    generatedCode.remove(element);
-    generatedBailoutCode.remove(element);
-    compiler.enqueuer.codegen.addToWorkList(element);
   }
 
   bool isNullImplementation(ClassElement cls) {

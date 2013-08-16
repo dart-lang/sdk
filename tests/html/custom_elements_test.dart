@@ -7,17 +7,31 @@ import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
 
-class CustomType extends Element {
-  factory CustomType() => null;
+class CustomMixin {
+  var mixinMethodCalled;
 
-  bool onCreatedCalled = false;
+  void mixinMethod() {
+    mixinMethodCalled = true;
+  }
+}
+
+class CustomType extends HtmlElement with CustomMixin{
+  factory CustomType() => null;
+  bool onCreatedCalled; // = false;
   void onCreated() {
     onCreatedCalled = true;
     customCreatedCount++;
   }
+
+  void invokeMixinMethod() {
+    mixinMethod();
+  }
 }
 
 int customCreatedCount = 0;
+
+int nextTagId = 0;
+String get nextTag => 'x-type${nextTagId++}';
 
 class NotAnElement {}
 
@@ -26,42 +40,45 @@ main() {
 
   group('register', () {
     test('register', () {
-      document.register('x-type1', CustomType);
+      var tag = nextTag;
+      document.register(tag, CustomType);
 
-      var element = new Element.tag('x-type1');
+      var element = new Element.tag(tag);
       expect(element, isNotNull);
       expect(element is CustomType, isTrue);
       expect(element.onCreatedCalled, isTrue);
     });
 
     test('register twice', () {
-      document.register('x-type2', CustomType);
+      var tag = nextTag;
+      document.register(tag, CustomType);
       expect(() {
-        document.register('x-type2', CustomType);
+        document.register(tag, CustomType);
       }, throws, reason: 'Cannot register a tag more than once.');
 
-      document.register('x-type3', CustomType);
+      var newTag = nextTag;
+      document.register(newTag, CustomType);
 
-      var element = new Element.tag('x-type3');
+      var element = new Element.tag(newTag);
       expect(element, isNotNull);
       expect(element is CustomType, isTrue);
     });
 
     test('register null', () {
       expect(() {
-        document.register('x-type4', null);
+        document.register(nextTag, null);
       }, throws, reason: 'Cannot register a null type.');
     });
 
     test('register native', () {
       expect(() {
-        document.register('x-type5', BodyElement);
+        document.register(nextTag, BodyElement);
       }, throws, reason: 'Cannot register a native element.');
     });
 
     test('register non-element', () {
       expect(() {
-        document.register('x-type6', NotAnElement);
+        document.register(nextTag, NotAnElement);
       }, throws, reason: 'Cannot register a non-element.');
     });
   });
@@ -69,16 +86,18 @@ main() {
   group('preregister', () {
     // TODO(vsm): Modify this test once we agree on the proper semantics.
     test('pre-registration construction', () {
-      var dom = new Element.html('<div><x-type7></x-type7></div>');
+      var tag = nextTag;
+      var dom = new Element.html('<div><$tag></$tag></div>');
       var preElement = dom.children[0];
       expect(preElement, isNotNull);
-      expect(preElement is UnknownElement, isTrue);
+      expect(preElement is HtmlElement, isTrue);
+      expect(preElement is CustomType, isFalse);
       var firedOnPre = false;
       preElement.onFocus.listen((_) {
         firedOnPre = true;
       });
 
-      document.register('x-type7', CustomType);
+      document.register(tag, CustomType);
 
       var postElement = dom.children[0];
       expect(postElement, isNotNull);
@@ -86,44 +105,69 @@ main() {
       expect(postElement.onCreatedCalled, isTrue);
 
       // Element from first query remains an UnknownElement.
-      expect(preElement is UnknownElement, isTrue);
-      expect(preElement.parent, isNull);
+      expect(preElement is HtmlElement, isTrue);
+      expect(preElement.parent, dom);
       expect(dom.children.length, 1);
 
       var firedOnPost = false;
       postElement.onFocus.listen((_) {
         firedOnPost = true;
       });
-      // Event handlers should not persist to new element.
+      // Event handlers persist on old and new element.
       postElement.dispatchEvent(new Event('focus'));
-      expect(firedOnPre, isFalse);
+      expect(firedOnPre, isTrue);
       expect(firedOnPost, isTrue);
     });
   });
 
   group('innerHtml', () {
     test('query', () {
-      document.register('x-type8', CustomType);
+      var tag = nextTag;
+      document.register(tag, CustomType);
       var element = new DivElement();
-      element.innerHtml = '<x-type8></x-type8>';
+      element.innerHtml = '<$tag></$tag>';
       document.body.nodes.add(element);
-      var queried = query('x-type8');
+      var queried = query(tag);
 
       expect(queried, isNotNull);
       expect(queried is CustomType, isTrue);
       expect(queried.onCreatedCalled, isTrue);
+    });
+
+    test('query id', () {
+      var tag = nextTag;
+      document.register(tag, CustomType);
+      var element = new DivElement();
+      element.innerHtml = '<$tag id="someid"></$tag>';
+      document.body.nodes.add(element);
+      var queried = query('#someid');
+
+      expect(queried, isNotNull);
+      expect(queried is CustomType, isTrue);
+      expect(queried.id, "someid");
     });
   });
 
   group('lifecycle', () {
     test('onCreated', () {
       int oldCount = customCreatedCount;
-
-      document.register('x-type9', CustomType);
+      var tag = nextTag;
+      document.register(tag, CustomType);
       var element = new DivElement();
-      element.innerHtml = '<x-type9></x-type9>';
+      element.innerHtml = '<$tag></$tag>';
       document.body.nodes.add(element);
       expect(customCreatedCount, oldCount + 1);
+    });
+  });
+
+  group('mixins', () {
+    test('can invoke mixin methods', () {
+      var tag = nextTag;
+      document.register(tag, CustomType);
+
+      var element = new Element.tag(tag);
+      element.invokeMixinMethod();
+      expect(element.mixinMethodCalled, isTrue);
     });
   });
 }

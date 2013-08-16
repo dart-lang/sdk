@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+-->
+
+<html>
+  <body>
+    <template id="test" bind="{{ mouseDown | count }}">
+      Clicks: {{ value }}
+    </template>
+    <script type="application/dart">
+      import 'dart:async';
+      import 'dart:html';
+      import 'package:polymer_expressions/polymer_expressions.dart';
+      import 'package:polymer_expressions/async.dart';
+      import 'package:mdv/mdv.dart' as mdv;
+      import 'package:observe/observe.dart';
+
+      count(StreamBinding s) {
+        var box = new ObservableBox();
+        box.value = 0;
+        s.stream.listen((e) { box.value++; });
+        return box;
+      }
+
+      main() {
+        mdv.initialize();
+
+        var globals = {
+          'mouseDown': document.onMouseDown,
+          'count': count,
+        };
+
+        query('#test')
+            ..bindingDelegate = new PolymerExpressions(globals: globals)
+            ..model = null;
+      }
+    </script>
+    <script src="packages/browser/dart.js"></script>
+  </body>
+</html>

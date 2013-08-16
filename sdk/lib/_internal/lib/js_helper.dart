@@ -23,13 +23,17 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS_HAS_EQUALS,
                                    JS_IS_INDEXABLE_FIELD_NAME,
                                    JS_OBJECT_CLASS_NAME,
+                                   JS_NULL_CLASS_NAME,
                                    JS_OPERATOR_AS_PREFIX,
                                    JS_OPERATOR_IS_PREFIX,
                                    JS_SIGNATURE_NAME,
                                    RAW_DART_FUNCTION_REF;
 import 'dart:_interceptors';
 import 'dart:_collection-dev' as _symbol_dev;
-import 'dart:_js_names' show mangledNames, mangledGlobalNames;
+
+import 'dart:_js_names' show
+    mangledNames,
+    unmangleGlobalNameIfPreservedAnyways;
 
 part 'constant_map.dart';
 part 'native_helper.dart';
@@ -1608,18 +1612,6 @@ class Returns {
 class JSName {
   final String name;
   const JSName(this.name);
-}
-
-/**
- * Represents the type of Null. The compiler treats this specially.
- * TODO(lrn): Null should be defined in core. It's a class, like int.
- * It just happens to act differently in assignability tests and,
- * like int, can't be extended or implemented.
- */
-class Null {
-  factory Null() {
-    throw new UnsupportedError('new Null()');
-  }
 }
 
 /**

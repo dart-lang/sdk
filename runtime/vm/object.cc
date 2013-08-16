@@ -417,8 +417,6 @@ void Object::InitOnce() {
 
   // Allocate and initialize the null class.
   cls = Class::New<Instance>(kNullCid);
-  cls.set_is_finalized();
-  cls.set_is_type_finalized();
   isolate->object_store()->set_null_class(cls);
 
   // Allocate and initialize the free list element class.
@@ -850,27 +848,6 @@ RawError* Object::Init(Isolate* isolate) {
   // well as the core implementation dictionary have been setup, preallocate
   // remaining classes and register them by name in the dictionaries.
   String& name = String::Handle();
-  cls = Class::New<Bool>();
-  object_store->set_bool_class(cls);
-  RegisterClass(cls, Symbols::Bool(), core_lib);
-  pending_classes.Add(cls, Heap::kOld);
-
-  // TODO(12364): The class 'Null' is not registered in the class dictionary
-  // because it is not exported by dart:core.
-  cls = Class::New<Instance>(kNullCid);
-  cls.set_name(Symbols::Null());
-  // We immediately mark Null as finalized because it has no corresponding
-  // source.
-  cls.set_is_finalized();
-  cls.set_is_type_finalized();
-  object_store->set_null_class(cls);
-  cls.set_library(core_lib);  // A sort of fiction for the mirrors.
-  // When/if we promote Null to an ordinary class, it should be added to the
-  // core library, given source and added to the list of classes pending
-  // finalization.
-  // RegisterClass(cls, Symbols::Null(), core_lib);
-  // pending_classes.Add(cls, Heap::kOld);
-
   cls = object_store->array_class();  // Was allocated above.
   RegisterPrivateClass(cls, Symbols::ObjectArray(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
@@ -937,6 +914,17 @@ RawError* Object::Init(Isolate* isolate) {
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_object_type(type);
+
+  cls = Class::New<Bool>();
+  object_store->set_bool_class(cls);
+  RegisterClass(cls, Symbols::Bool(), core_lib);
+  pending_classes.Add(cls, Heap::kOld);
+
+  cls = Class::New<Instance>(kNullCid);
+  cls.set_is_prefinalized();
+  object_store->set_null_class(cls);
+  RegisterClass(cls, Symbols::Null(), core_lib);
+  pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->type_class();
   RegisterPrivateClass(cls, Symbols::Type(), core_lib);
@@ -10476,14 +10464,14 @@ RawString* AbstractType::ClassName() const {
 
 
 bool AbstractType::IsNullType() const {
-  ASSERT(Type::Handle(Type::NullType()).IsCanonical());
-  return raw() == Type::NullType();
+  return HasResolvedTypeClass() &&
+      (type_class() == Isolate::Current()->object_store()->null_class());
 }
 
 
 bool AbstractType::IsBoolType() const {
   return HasResolvedTypeClass() &&
-      (type_class() == Type::Handle(Type::BoolType()).type_class());
+      (type_class() == Isolate::Current()->object_store()->bool_class());
 }
 
 

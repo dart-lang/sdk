@@ -26,6 +26,7 @@ main() {
                 'noSuchMethod');
 
   ClassMirror NullMirror = nullMirror.type;
+  Expect.equals(reflectClass(Null), NullMirror);
   Expect.equals(const Symbol('Null'), NullMirror.simpleName);
   Expect.equals(const Symbol('Object'), NullMirror.superclass.simpleName);
   Expect.equals(null, NullMirror.superclass.superclass);

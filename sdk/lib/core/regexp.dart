@@ -69,7 +69,7 @@ abstract class Match {
 
 
 /**
- * [RegExp] represents regular expressions.
+ * A class for working with regular expressions.
  *
  * Dart regular expressions have the same syntax and semantics as
  * JavaScript regular expressions. See

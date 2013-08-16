@@ -332,6 +332,12 @@ class Elements {
            && (identical(element.kind, ElementKind.FUNCTION));
   }
 
+  static bool isNativeOrExtendsNative(ClassElement element) {
+    if (element == null) return false;
+    if (element.isNative()) return true;
+    return isNativeOrExtendsNative(element.superclass);
+  }
+
   static bool isInstanceSend(Send send, TreeElements elements) {
     Element element = elements[send];
     if (element == null) return !isClosureSend(send, element);
@@ -358,7 +364,7 @@ class Elements {
       return new SourceString(reconstructConstructorName(element));
     }
   }
-  
+
   // TODO(johnniwinther): Remove this method.
   static String reconstructConstructorName(Element element) {
     String className = element.getEnclosingClass().name.slowToString();

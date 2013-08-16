@@ -105,8 +105,8 @@ patch class int {
 
 patch class double {
   patch static double parse(String source,
-                            [double handleError(String source)]) {
-    return Primitives.parseDouble(source, handleError);
+                            [double onError(String source)]) {
+    return Primitives.parseDouble(source, onError);
   }
 }
 

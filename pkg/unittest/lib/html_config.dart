@@ -95,7 +95,7 @@ String _htmlEscape(String string) {
                .replaceAll('>','&gt;');
 }
 
-class HtmlConfiguration extends Configuration {
+class HtmlConfiguration extends SimpleConfiguration {
   /** Whether this is run within dartium layout tests. */
   final bool _isLayoutTest;
   HtmlConfiguration(this._isLayoutTest);

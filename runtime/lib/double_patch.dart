@@ -39,11 +39,11 @@ patch class double {
   }
 
   /* patch */ static double parse(String str,
-                                  [double handleError(String str)]) {
+                                  [double onError(String str)]) {
     var result = _parse(str);
     if (result == null) {
-      if (handleError == null) throw new FormatException(str);
-      return handleError(str);
+      if (onError == null) throw new FormatException(str);
+      return onError(str);
     }
     return result;
   }

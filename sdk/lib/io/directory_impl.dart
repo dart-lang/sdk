@@ -24,8 +24,6 @@ class _Directory implements Directory {
     }
   }
 
-  _Directory.fromPath(Path path) : this(path.toNativePath());
-
   external static String _current();
   external static _setCurrent(path);
   external static _createTemp(String template);
@@ -98,11 +96,11 @@ class _Directory implements Directory {
   }
 
   Future<Directory> createRecursively() {
-    var path = new Path(this.path);
+    var path = new _Path(this.path);
     var dirsToCreate = [];
     var terminator = path.isAbsolute ? '/' : '';
     while (path.toString() != terminator) {
-      dirsToCreate.add(new Directory.fromPath(path));
+      dirsToCreate.add(new Directory(path.toNativePath()));
       path = path.directoryPath;
     }
     return _computeExistingIndex(dirsToCreate).then((index) {
@@ -139,11 +137,11 @@ class _Directory implements Directory {
   }
 
   void createRecursivelySync() {
-    var path = new Path(this.path);
+    var path = new _Path(this.path);
     var dirsToCreate = [];
     var terminator = path.isAbsolute ? '/' : '';
     while (path.toString() != terminator) {
-      var dir = new Directory.fromPath(path);
+      var dir = new Directory(path.toNativePath());
       if (dir.existsSync()) break;
       dirsToCreate.add(dir);
       path = path.directoryPath;

@@ -548,7 +548,7 @@ abstract class _DelayedEvent {
 }
 
 /** A delayed data event. */
-class _DelayedData<T> extends _DelayedEvent{
+class _DelayedData<T> extends _DelayedEvent {
   final T value;
   _DelayedData(this.value);
   void perform(_EventDispatch<T> dispatch) {

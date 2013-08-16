@@ -738,10 +738,29 @@ class Uri {
     return output.join("/");
   }
 
-  Uri resolve(String uri) {
-    return resolveUri(Uri.parse(uri));
+  /**
+   * Resolve [reference] as an URI relative to `this`.
+   *
+   * First turn [reference] into a URI using [Uri.parse]. Then resolve the
+   * resulting URI relative to `this`.
+   *
+   * Returns the resolved URI.
+   *
+   * See [resolveUri] for details.
+   */
+  Uri resolve(String reference) {
+    return resolveUri(Uri.parse(reference));
   }
 
+  /**
+   * Resolve [reference] as an URI relative to `this`.
+   *
+   * Returns the resolved URI.
+   *
+   * The algorithm for resolving a reference is described in
+   * [RFC-3986 Section 5]
+   * (http://tools.ietf.org/html/rfc3986#section-5 "RFC-1123").
+   */
   Uri resolveUri(Uri reference) {
     // From RFC 3986.
     String targetScheme;

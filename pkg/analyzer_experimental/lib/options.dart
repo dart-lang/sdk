@@ -5,6 +5,7 @@
 library options;
 
 import 'package:args/args.dart';
+import 'package:path/path.dart';
 
 import 'dart:io';
 
@@ -153,9 +154,8 @@ class CommandLineOptions {
 
   static String _getVersion() {
     try {
-      Path path = new Path(Platform.script);
-      Path versionPath = path.directoryPath.append('..').append('version');
-      File versionFile = new File.fromPath(versionPath);
+      String versionPath = join(dirname(Platform.script), '..', 'version');;
+      File versionFile = new File(versionPath);
       return versionFile.readAsStringSync().trim();
     } catch (_) {
       // This happens when the script is not running in the context of an SDK.

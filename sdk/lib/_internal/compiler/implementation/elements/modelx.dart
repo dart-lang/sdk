@@ -1419,16 +1419,17 @@ class SynthesizedConstructorElementX extends FunctionElementX {
   FunctionElement get targetConstructor => superMember;
 
   FunctionSignature computeSignature(compiler) {
+    if (functionSignature != null) return functionSignature;
     if (isDefaultConstructor) {
-      return new FunctionSignatureX(
+      return functionSignature = new FunctionSignatureX(
           const Link<Element>(), const Link<Element>(), 0, 0, false,
           getEnclosingClass().thisType);
     }
     if (superMember.isErroneous()) {
-      return compiler.objectClass.localLookup(
+      return functionSignature = compiler.objectClass.localLookup(
           const SourceString('')).computeSignature(compiler);
     }
-    return superMember.computeSignature(compiler);
+    return functionSignature = superMember.computeSignature(compiler);
   }
 
   get declaration => this;

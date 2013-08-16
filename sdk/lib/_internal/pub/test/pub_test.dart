@@ -28,7 +28,6 @@ final USAGE_STRING = """
     -v, --verbose         Shortcut for "--verbosity=all".
 
     Available commands:
-      cache      Inspect the system cache.
       deploy     Copy and compile all Dart entrypoints in the 'web' directory.
       help       Display help information for Pub.
       install    Install the current package's dependencies.

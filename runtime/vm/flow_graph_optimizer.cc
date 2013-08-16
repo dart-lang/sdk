@@ -46,6 +46,8 @@ DECLARE_FLAG(bool, trace_type_check_elimination);
 static bool ShouldInlineSimd() {
 #if defined(TARGET_ARCH_MIPS)
   return false;
+#elif defined(TARGET_ARCH_ARM)
+  return CPUFeatures::neon_supported() && FLAG_enable_simd_inline;
 #endif
   return FLAG_enable_simd_inline;
 }
@@ -398,20 +400,49 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
   } else if ((from == kUnboxedUint32x4) && (to == kTagged)) {
     converted = new BoxUint32x4Instr(use->CopyWithType());
   } else {
+    // We have failed to find a suitable conversion instruction.
+    // Insert two "dummy" conversion instructions with the correct
+    // "from" and "to" representation. The inserted instructions will
+    // trigger a deoptimization if executed. See #12417 for a discussion.
     const intptr_t deopt_id = (deopt_target != NULL) ?
         deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
-    // We have failed to find a suitable conversion instruction.
-    // Insert a "dummy" conversion instruction with the correct
-    // "to" representation. The inserted instruction will trigger a
-    // a deoptimization if executed. See issue #12417 for a discussion.
+    ASSERT(from != kTagged);
+    ASSERT(to != kTagged);
+    Value* to_value = NULL;
+    if (from == kUnboxedDouble) {
+      BoxDoubleInstr* boxed = new BoxDoubleInstr(use->CopyWithType());
+      use->BindTo(boxed);
+      InsertBefore(insert_before, boxed, NULL, Definition::kValue);
+      to_value = new Value(boxed);
+    } else if (from == kUnboxedUint32x4) {
+      BoxUint32x4Instr* boxed = new BoxUint32x4Instr(use->CopyWithType());
+      use->BindTo(boxed);
+      InsertBefore(insert_before, boxed, NULL, Definition::kValue);
+      to_value = new Value(boxed);
+    } else if (from == kUnboxedFloat32x4) {
+      BoxFloat32x4Instr* boxed = new BoxFloat32x4Instr(use->CopyWithType());
+      use->BindTo(boxed);
+      InsertBefore(insert_before, boxed, NULL, Definition::kValue);
+      to_value = new Value(boxed);
+    } else if (from == kUnboxedMint) {
+      BoxIntegerInstr* boxed = new BoxIntegerInstr(use->CopyWithType());
+      use->BindTo(boxed);
+      InsertBefore(insert_before, boxed, NULL, Definition::kValue);
+      to_value = new Value(boxed);
+    } else {
+      UNIMPLEMENTED();
+    }
+    ASSERT(to_value != NULL);
     if (to == kUnboxedDouble) {
-      converted = new UnboxDoubleInstr(use->CopyWithType(), deopt_id);
+      converted = new UnboxDoubleInstr(to_value, deopt_id);
     } else if (to == kUnboxedUint32x4) {
-      converted = new UnboxDoubleInstr(use->CopyWithType(), deopt_id);
+      converted = new UnboxUint32x4Instr(to_value, deopt_id);
     } else if (to == kUnboxedFloat32x4) {
-      converted = new UnboxDoubleInstr(use->CopyWithType(), deopt_id);
+      converted = new UnboxFloat32x4Instr(to_value, deopt_id);
     } else if (to == kUnboxedMint) {
-      converted = new UnboxIntegerInstr(use->CopyWithType(), deopt_id);
+      converted = new UnboxIntegerInstr(to_value, deopt_id);
+    } else {
+      UNIMPLEMENTED();
     }
   }
   ASSERT(converted != NULL);
@@ -1236,15 +1267,12 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
   } else if (HasOnlyOneDouble(*call->ic_data()) &&
              (op_kind == Token::kNEGATE)) {
     AddReceiverCheck(call);
-    ConstantInstr* minus_one =
-        flow_graph()->GetConstant(Double::ZoneHandle(Double::NewCanonical(-1)));
-    unary_op = new BinaryDoubleOpInstr(Token::kMUL,
-                                       new Value(input),
-                                       new Value(minus_one),
-                                       call->deopt_id());
+    unary_op = new UnaryDoubleOpInstr(
+        Token::kNEGATE, new Value(input), call->deopt_id());
+  } else {
+    return false;
   }
-  if (unary_op == NULL) return false;
-
+  ASSERT(unary_op != NULL);
   ReplaceCall(call, unary_op);
   return true;
 }
@@ -1480,13 +1508,23 @@ bool FlowGraphOptimizer::InlineFloat32x4Getter(InstanceCallInstr* call,
     ASSERT(call->ArgumentCount() == 2);
     // Extract shuffle mask.
     Definition* mask_definition = call->ArgumentAt(1);
+    if (!mask_definition->IsConstant()) {
+      // Not a constant.
+      return false;
+    }
     ASSERT(mask_definition->IsConstant());
     ConstantInstr* constant_instruction = mask_definition->AsConstant();
     const Object& constant_mask = constant_instruction->value();
+    if (!constant_mask.IsSmi()) {
+      // Not a smi.
+      return false;
+    }
     ASSERT(constant_mask.IsSmi());
     mask = Smi::Cast(constant_mask).Value();
-    ASSERT(mask >= 0);
-    ASSERT(mask <= 255);
+    if (mask < 0 || mask > 255) {
+      // Not a valid mask.
+      return false;
+    }
   }
   Float32x4ShuffleInstr* instr = new Float32x4ShuffleInstr(
       getter,
@@ -6362,6 +6400,17 @@ void ConstantPropagator::VisitUnaryMintOp(
 
 
 void ConstantPropagator::VisitUnarySmiOp(UnarySmiOpInstr* instr) {
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsNonConstant(value)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(value)) {
+    // TODO(kmillikin): Handle unary operations.
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitUnaryDoubleOp(UnaryDoubleOpInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsNonConstant(value)) {
     SetValue(instr, non_constant_);

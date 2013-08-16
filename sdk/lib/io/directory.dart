@@ -16,14 +16,6 @@ abstract class Directory implements FileSystemEntity {
   factory Directory(String path) => new _Directory(path);
 
   /**
-   * Creates a directory object from a Path object. The path is either
-   * an absolute path, or it is a relative path which is interpreted
-   * relative to the directory in which the Dart VM was started.
-   */
-  @deprecated
-  factory Directory.fromPath(Path path) => new _Directory.fromPath(path);
-
-  /**
    * Creates a directory object pointing to the current working
    * directory.
    */

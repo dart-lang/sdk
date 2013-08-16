@@ -6,16 +6,7 @@ async_window_test: Skip #TODO(gram): investigating
 event_test: Skip  # Issue 1996
 interactive_test: Skip # Must be run manually.
 
-# Issue 9326
-custom_elements_test/preregister: Fail
-custom_elements_test/lifecycle: Fail
-
-[ $compiler == dart2js ]
-# Document.register is unimplemented.
-custom_elements_test: Skip
-
-[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
-# Document.register is unimplemented.
+[ $compiler == dart2js && $runtime != drt ]
 custom_elements_test: Skip
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug && $system == macos]
@@ -24,6 +15,8 @@ audiobuffersourcenode_test: Pass, Fail, Crash # http://crbug.com/256601
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 # postMessage in dartium always transfers the typed array buffer, never a view
 postmessage_structured_test/typed_arrays: Fail
+events_test: Pass, Fail # Issue 12489
+custom_elements_test/lifecycle: Fail   # Issue 9326 - Implement "extends Element" in dartium
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.

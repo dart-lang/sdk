@@ -85,7 +85,7 @@ abstract class TranslatedMessage {
  * We can't use a hyphen in a Dart library name, so convert the locale
  * separator to an underscore.
  */
-String asLibraryName(String x) => x.replaceAll('-', '_');
+String _libraryName(String x) => x.replaceAll('-', '_');
 
 /**
  * Generate a file <[generated_file_prefix]>_messages_<[locale]>.dart
@@ -146,6 +146,9 @@ class MessageLookup extends MessageLookupByLibrary {
   get localeName => '$locale';
 """;
 
+
+_deferredName(locale) => "lazy_${_libraryName(locale)}";
+
 /**
  * This section generates the messages_all.dart file based on the list of
  * [allLocales].
@@ -153,17 +156,28 @@ class MessageLookup extends MessageLookupByLibrary {
 String generateMainImportFile() {
   var output = new StringBuffer();
   output.write(mainPrologue);
-  for (var each in allLocales) {
-    var baseFile = '${generatedFilePrefix}messages_$each.dart';
+  for (var locale in allLocales) {
+    var baseFile = '${generatedFilePrefix}messages_$locale.dart';
     var file = importForGeneratedFile(baseFile);
-    output.write("import '$file' as ${asLibraryName(each)};\n");
+    output.write("@${_deferredName(locale)} ");
+    output.write("import '$file' as ${_libraryName(locale)};\n");
   }
+  output.write("\n");
+  for (var locale in allLocales) {
+    output.write("const ${_deferredName(locale)} = const DeferredLibrary");
+    output.write("('${_libraryName(locale)}');\n");
+  }
+  output.write("\nconst deferredLibraries = const {\n");
+  for (var locale in allLocales) {
+    output.write("  '$locale' : ${_deferredName(locale)},\n");
+  }
+  output.write("};\n");
   output.write(
     "\nMessageLookupByLibrary _findExact(localeName) {\n"
     "  switch (localeName) {\n");
-  for (var each in allLocales) {
+  for (var locale in allLocales) {
     output.write(
-        "    case '$each' : return ${asLibraryName(each)}.messages;\n");
+        "    case '$locale' : return ${_libraryName(locale)}.messages;\n");
   }
   output.write(closing);
   return output.toString();
@@ -198,10 +212,10 @@ const closing = """
 }
 
 /** User programs should call this before using [localeName] for messages.*/
-initializeMessages(localeName) {
+Future initializeMessages(String localeName) {
   initializeInternalMessageLookup(() => new CompositeMessageLookup());
   messageLookup.addLocale(localeName, _findGeneratedMessagesFor);
-  return new Future.value();
+  return deferredLibraries[localeName].load();
 }
 
 MessageLookupByLibrary _findGeneratedMessagesFor(locale) {

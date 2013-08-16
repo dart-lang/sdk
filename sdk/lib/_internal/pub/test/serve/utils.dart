@@ -68,3 +68,21 @@ void requestShould404(String urlPath) {
     });
   }, "request $urlPath");
 }
+
+/// Reads lines from pub serve's stdout until it prints the build success
+/// message.
+///
+/// The schedule will not proceed until the output is found. If not found, it
+/// will eventually time out.
+void waitForBuildSuccess() {
+  nextLine() {
+    return _pubServer.nextLine().then((line) {
+      if (line.contains("successfully")) return;
+
+      // This line wasn't it, so ignore it and keep trying.
+      return nextLine();
+    });
+  }
+
+  schedule(nextLine);
+}

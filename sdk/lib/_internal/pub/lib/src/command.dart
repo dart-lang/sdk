@@ -15,6 +15,7 @@ import 'command/deploy.dart';
 import 'command/help.dart';
 import 'command/install.dart';
 import 'command/lish.dart';
+import 'command/list_package_dirs.dart';
 import 'command/serve.dart';
 import 'command/update.dart';
 import 'command/uploader.dart';
@@ -41,6 +42,10 @@ abstract class PubCommand {
 
   /// A one-line description of this command.
   String get description;
+
+  /// If the command is undocumented and should not appear in command listings,
+  /// this will be `true`.
+  bool get hidden => false;
 
   /// How to invoke this command (e.g. `"pub install [package]"`).
   String get usage;
@@ -193,6 +198,7 @@ _initCommands() {
     'deploy': new DeployCommand(),
     'help': new HelpCommand(),
     'install': new InstallCommand(),
+    'list-package-dirs': new ListPackageDirsCommand(),
     'publish': new LishCommand(),
     'serve': new ServeCommand(),
     'update': new UpdateCommand(),

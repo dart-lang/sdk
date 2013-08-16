@@ -366,20 +366,40 @@ void scheduleSymlink(String target, String symlink) {
       'symlinking $target to $symlink');
 }
 
-/// Schedules a call to the Pub command-line utility. Runs Pub with [args] and
-/// validates that its results match [output], [error], and [exitCode].
-void schedulePub({List args, Pattern output, Pattern error,
+/// Schedules a call to the Pub command-line utility.
+///
+/// Runs Pub with [args] and validates that its results match [output] (or
+/// [outputJson]), [error], and [exitCode]. If [outputJson] is given, validates
+/// that pub outputs stringified JSON matching that object.
+void schedulePub({List args, Pattern output, Pattern error, outputJson,
     Future<Uri> tokenEndpoint, int exitCode: 0}) {
+  // Cannot pass both output and outputJson.
+  assert(output == null || outputJson == null);
+
   var pub = startPub(args: args, tokenEndpoint: tokenEndpoint);
   pub.shouldExit(exitCode);
+
+  var failures = [];
+  var stderr;
 
   expect(Future.wait([
     pub.remainingStdout(),
     pub.remainingStderr()
   ]).then((results) {
-    var failures = [];
-    _validateOutput(failures, 'stdout', output, results[0].split('\n'));
-    _validateOutput(failures, 'stderr', error, results[1].split('\n'));
+    stderr = results[1];
+
+    if (outputJson == null) {
+      _validateOutput(failures, 'stdout', output, results[0]);
+      return;
+    }
+
+    // Allow the expected JSON to contain futures.
+    return awaitObject(outputJson).then((resolved) {
+      _validateOutputJson(failures, 'stdout', resolved, results[0]);
+    });
+  }).then((_) {
+    _validateOutput(failures, 'stderr', error, stderr);
+
     if (!failures.isEmpty) throw new TestFailure(failures.join('\n'));
   }), completes);
 }
@@ -647,13 +667,14 @@ Map packageVersionApiMap(Map pubspec, {bool full: false}) {
 /// report the offending difference in a nice way. For other [Pattern]s, just
 /// reports whether the output contained the pattern.
 void _validateOutput(List<String> failures, String pipe, Pattern expected,
-                     List<String> actual) {
+                     String actual) {
   if (expected == null) return;
 
+  var actualLines = actual.split("\n");
   if (expected is RegExp) {
-    _validateOutputRegex(failures, pipe, expected, actual);
+    _validateOutputRegex(failures, pipe, expected, actualLines);
   } else {
-    _validateOutputString(failures, pipe, expected, actual);
+    _validateOutputString(failures, pipe, expected, actualLines);
   }
 }
 
@@ -717,6 +738,22 @@ void _validateOutputString(List<String> failures, String pipe,
     failures.add('Got:');
     failures.addAll(results);
   }
+}
+
+void _validateOutputJson(List<String> failures, String pipe,
+                         expected, String actualText) {
+  var actual;
+  try {
+    actual = json.parse(actualText);
+  } on FormatException catch(error) {
+    failures.add('Expected $pipe JSON:');
+    failures.add(expected);
+    failures.add('Got invalid JSON:');
+    failures.add(actualText);
+  }
+
+  // Do a deep comparison of the JSON objects.
+  expect(actual, equals(expected));
 }
 
 /// A function that creates a [Validator] subclass.

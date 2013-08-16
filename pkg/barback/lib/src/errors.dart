@@ -29,6 +29,10 @@ abstract class BarbackException implements Exception {}
 /// Error thrown when two or more transformers both output an asset with [id].
 class AssetCollisionException implements BarbackException {
   /// All the transforms that output an asset with [id].
+  ///
+  /// If this only contains a single transform, that indicates that a
+  /// transformer produced an output that collides with a source asset or an
+  /// asset from a previous phase.
   final Set<TransformInfo> transforms;
   final AssetId id;
 

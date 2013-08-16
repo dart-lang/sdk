@@ -783,6 +783,12 @@ void UnarySmiOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void UnaryDoubleOpInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", Token::Str(op_kind()));
+  value()->PrintTo(f);
+}
+
+
 void CheckClassInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
   PrintICData(f, unary_checks());

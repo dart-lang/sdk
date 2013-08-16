@@ -567,9 +567,6 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
     return false;
   }
 
-  // We should never test for an instance of null.
-  ASSERT(!type.IsNullType());
-
   // Consider the compile type of the value.
   const AbstractType& compile_type = *ToAbstractType();
   if (compile_type.IsMalformed()) {
@@ -978,6 +975,11 @@ CompileType BinarySmiOpInstr::ComputeType() const {
 
 CompileType UnarySmiOpInstr::ComputeType() const {
   return CompileType::FromCid(kSmiCid);
+}
+
+
+CompileType UnaryDoubleOpInstr::ComputeType() const {
+  return CompileType::FromCid(kDoubleCid);
 }
 
 

@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/**
+ * Utilities for encoding and decoding JSON (JavaScript Object Notation) data.
+ */
+
 library dart.json;
 
 // JSON parsing and serialization.
@@ -57,7 +61,7 @@ class JsonCyclicError extends JsonUnsupportedObjectError {
  * The optional [reviver] function, if provided, is called once for each
  * object or list property parsed. The arguments are the property name
  * ([String]) or list index ([int]), and the value is the parsed value.
- * The return value of the revivier will be used as the value of that property
+ * The return value of the reviver will be used as the value of that property
  * instead the parsed value.
  *
  * Throws [FormatException] if the input is not valid JSON text.
@@ -177,7 +181,7 @@ class BuildJsonListener extends JsonListener {
   void handleString(String value) { this.value = value; }
   void handleNumber(num value) { this.value = value; }
   void handleBool(bool value) { this.value = value; }
-  void handleNull() { this.value = value; }
+  void handleNull() { this.value = null; }
 
   void beginObject() {
     pushContainer();

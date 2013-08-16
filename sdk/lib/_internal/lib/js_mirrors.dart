@@ -24,6 +24,7 @@ import 'dart:_js_helper' show
     RuntimeError,
     createRuntimeType,
     createUnmangledInvocationMirror,
+    getMangledTypeName,
     runtimeTypeToString;
 import 'dart:_interceptors' show
     Interceptor,
@@ -398,7 +399,7 @@ ClassMirror reflectType(Type key) {
   // TODO(ahe): Don't discard type arguments to support
   // [ClassMirror.isOriginalDeclaration] and [ClassMirror.originalDeclaration]
   // correctly.
-  return reflectClassByMangledName('$key'.split('<')[0]);
+  return reflectClassByMangledName(getMangledTypeName(key).split('<')[0]);
 }
 
 ClassMirror reflectClassByMangledName(String mangledName) {
@@ -522,7 +523,7 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
     throw new NoSuchMethodError(this, '${n(fieldName)}=', [arg], null);
   }
 
-  List<ClassMirror> get superinterfaces => mixin.superinterfaces;
+  List<ClassMirror> get superinterfaces => [mixin];
 
   Map<Symbol, MethodMirror> get constructors => mixin.constructors;
 
@@ -688,6 +689,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   UnmodifiableMapView<Symbol, VariableMirror> _cachedVariables;
   UnmodifiableMapView<Symbol, Mirror> _cachedMembers;
   UnmodifiableListView<InstanceMirror> _cachedMetadata;
+  UnmodifiableListView<ClassMirror> _cachedSuperinterfaces;
 
   // Set as side-effect of accessing JsLibraryMirror.classes.
   JsLibraryMirror _owner;
@@ -868,6 +870,8 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
         // Filter-out setters corresponding to variables.
         if (result[s(name)] is VariableMirror) continue;
       }
+      // Constructors aren't 'members'.
+      if (method.isConstructor) continue;
       // Use putIfAbsent to filter-out getters corresponding to variables.
       result.putIfAbsent(method.simpleName, () => method);
     }
@@ -1013,8 +1017,22 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
 
   ClassMirror get originalDeclaration => this;
 
+  List<ClassMirror> get superinterfaces {
+    if (_cachedSuperinterfaces != null) return _cachedSuperinterfaces;
+    List<int> interfaces = JS('List|Null', 'init.interfaces[#]', _mangledName);
+    var result = const [];
+    if (interfaces != null) {
+      ClassMirror lookupType(int i) {
+        var type = JS('=Object', 'init.metadata[#]', i);
+        return typeMirrorFromRuntimeTypeRepresentation(type);
+      }
+      result = interfaces.map(lookupType).toList();
+    }
+    return _cachedSuperinterfaces =
+        new UnmodifiableListView<ClassMirror>(result);
+  }
+
   // TODO(ahe): Implement these.
-  List<ClassMirror> get superinterfaces => throw new UnimplementedError();
   Map<Symbol, TypeVariableMirror> get typeVariables
       => throw new UnimplementedError();
   Map<Symbol, TypeMirror> get typeArguments => throw new UnimplementedError();

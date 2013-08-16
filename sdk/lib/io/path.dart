@@ -16,7 +16,7 @@ part of dart.io;
  * August 2013.*
  */
 @deprecated
-abstract class Path {
+abstract class _Path {
   /**
    * Creates a Path from a String that uses the native filesystem's conventions.
    *
@@ -26,7 +26,7 @@ abstract class Path {
    * If the path starts with a drive letter, like 'C:',  a '/' is added
    * before the drive letter.
    *
-   *     new Path(r'c:\a\b').toString() == '/c:/a/b'
+   *     new _Path(r'c:\a\b').toString() == '/c:/a/b'
    *
    * A path starting with a drive letter is
    * treated specially.  Backwards links ('..') cannot cancel the drive letter.
@@ -34,14 +34,14 @@ abstract class Path {
    * If the path is a share path this is recorded in the Path object and
    * maintained in operations on the Path object.
    *
-   *     var share = new Path(r'\\share\a\b\c');
+   *     var share = new _Path(r'\\share\a\b\c');
    *     share.isWindowsShare == true
    *     share.toString() == '/share/a/b/c'
    *     share.toNativePath() == r'\\share\a\b\c'
    *     share.append('final').isWindowsShare == true
    */
   @deprecated
-  factory Path(String source) => new _Path(source);
+  factory _Path(String source) => new __Path(source);
 
   /**
    * Creates a Path from the String [source].  [source] is used as-is, so if
@@ -49,7 +49,7 @@ abstract class Path {
    * behavior may not be as expected.  Paths are immutable.
    */
   @deprecated
-  factory Path.raw(String source) => new _Path.raw(source);
+  factory _Path.raw(String source) => new __Path.raw(source);
 
   /**
    * Is this path the empty string?
@@ -86,7 +86,7 @@ abstract class Path {
    * and combining consecutive '/'s.  Leading '..' segments
    * are kept on relative paths, and dropped from absolute paths.
    */
-  Path canonicalize();
+  _Path canonicalize();
 
   /**
    * Joins the relative path [further] to this path.  Canonicalizes the
@@ -97,13 +97,13 @@ abstract class Path {
    * If [further] is an absolute path, an IllegalArgument exception is thrown.
    *
    * Examples:
-   *   `new Path('/a/b/c').join(new Path('d/e'))` returns the Path object
+   *   `new _Path('/a/b/c').join(new _Path('d/e'))` returns the Path object
    *   containing `'a/b/c/d/e'`.
    *
-   *   `new Path('a/b/../c/').join(new Path('d/./e//')` returns the Path
+   *   `new _Path('a/b/../c/').join(new _Path('d/./e//')` returns the Path
    *   containing `'a/c/d/e/'`.
    *
-   *   `new Path('a/b/c').join(new Path('d/../../e')` returns the Path
+   *   `new _Path('a/b/c').join(new _Path('d/../../e')` returns the Path
    *   containing `'a/b/e'`.
    *
    * Note that the join operation does not drop the last segment of the
@@ -115,7 +115,7 @@ abstract class Path {
    * parent directories in the base, you can check whether
    * `further.canonicalize()` starts with '../' or equals '..'.
    */
-  Path join(Path further);
+  _Path join(_Path further);
 
 
   /**
@@ -129,7 +129,7 @@ abstract class Path {
    * path component of the base is dropped unless it ends with a slash,
    * call [: a.relativeTo(b.directoryPath) :] instead of [: a.relativeTo(b) :].
    */
-  Path relativeTo(Path base);
+  _Path relativeTo(_Path base);
 
   /**
    * Converts a path to a string using the native filesystem's conventions.
@@ -138,14 +138,14 @@ abstract class Path {
    * On Windows, converts '/'s to backwards slashes, and removes
    * the leading '/' if the path starts with a drive specification.
    * For most valid Windows paths, this should be the inverse of the
-   * conversion that the constructor new Path() performs.  If the path is
+   * conversion that the constructor new _Path() performs.  If the path is
    * a Windows share, restores the '\\' at the start of the path.
    */
   String toNativePath();
 
   /**
    * Returns the path as a string.  If this path is constructed using
-   * new Path.raw(), or new Path() on a non-Windows system, the
+   * new _Path.raw(), or new _Path() on a non-Windows system, the
    * returned value is the original string argument to the constructor.
    */
   String toString();
@@ -156,8 +156,8 @@ abstract class Path {
    * beginning does not create an empty segment before it, and a '/' at
    * the end does not create an empty segment after it.
    *
-   *     new Path('/a/b/c/d').segments() == ['a', 'b', 'c', d'];
-   *     new Path(' foo bar //../') == [' foo bar ', '', '..'];
+   *     new _Path('/a/b/c/d').segments() == ['a', 'b', 'c', d'];
+   *     new _Path(' foo bar //../') == [' foo bar ', '', '..'];
    */
   List<String> segments();
 
@@ -167,7 +167,7 @@ abstract class Path {
    * a '/'.  The path is not canonicalized, and [finalSegment] may
    * contain '/'s.
    */
-  Path append(String finalSegment);
+  _Path append(String finalSegment);
 
   /**
    * Drops the final '/' and whatever follows it from this Path,
@@ -175,20 +175,20 @@ abstract class Path {
    * this Path is the first character, returns '/' instead of the empty string.
    * If there is no '/' in the Path, returns the empty string.
    *
-   *     new Path('../images/dot.gif').directoryPath == '../images'
-   *     new Path('/usr/geoffrey/www/').directoryPath == '/usr/geoffrey/www'
-   *     new Path('lost_file_old').directoryPath == ''
-   *     new Path('/src').directoryPath == '/'
-   *     Note: new Path('/D:/src').directoryPath == '/D:'
+   *     new _Path('../images/dot.gif').directoryPath == '../images'
+   *     new _Path('/usr/geoffrey/www/').directoryPath == '/usr/geoffrey/www'
+   *     new _Path('lost_file_old').directoryPath == ''
+   *     new _Path('/src').directoryPath == '/'
+   *     Note: new _Path('/D:/src').directoryPath == '/D:'
    */
-  Path get directoryPath;
+  _Path get directoryPath;
 
   /**
    * The part of the path after the last '/', or the entire path if
    * it contains no '/'.
    *
-   *     new Path('images/DSC_0027.jpg).filename == 'DSC_0027.jpg'
-   *     new Path('users/fred/').filename == ''
+   *     new _Path('images/DSC_0027.jpg).filename == 'DSC_0027.jpg'
+   *     new _Path('users/fred/').filename == ''
    */
   String get filename;
 
@@ -196,9 +196,9 @@ abstract class Path {
    * The part of [filename] before the last '.', or the entire filename if it
    * contains no '.'.  If [filename] is '.' or '..' it is unchanged.
    *
-   *     new Path('/c:/My Documents/Heidi.txt').filenameWithoutExtension
+   *     new _Path('/c:/My Documents/Heidi.txt').filenameWithoutExtension
    *     would return 'Heidi'.
-   *     new Path('not what I would call a path').filenameWithoutExtension
+   *     new _Path('not what I would call a path').filenameWithoutExtension
    *     would return 'not what I would call a path'.
    */
   String get filenameWithoutExtension;
@@ -207,8 +207,8 @@ abstract class Path {
    * The part of [filename] after the last '.', or '' if [filename]
    * contains no '.'.  If [filename] is '.' or '..', returns ''.
    *
-   *     new Path('tiger.svg').extension == 'svg'
-   *     new Path('/src/dart/dart_secrets').extension == ''
+   *     new _Path('tiger.svg').extension == 'svg'
+   *     new _Path('/src/dart/dart_secrets').extension == ''
    */
   String get extension;
 }

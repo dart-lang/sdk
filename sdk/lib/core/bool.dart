@@ -4,9 +4,22 @@
 
 part of dart.core;
 
+/**
+ * The reserved words [:true:] and [:false:] denote objects that are the only
+ * instances of this class.
+ * 
+ * It is a compile-time error for a class to attempt to extend or implement
+ * bool.
+ */
 class bool {
   factory bool._uninstantiable() {
     throw new UnsupportedError(
         "class bool cannot be instantiated");
   }
+
+  /**
+   * Returns [:"true":] if the receiver is [:true:], or [:"false":] if the
+   * receiver is [:false:].
+   */
+  String toString();
 }

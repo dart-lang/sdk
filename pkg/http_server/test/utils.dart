@@ -6,7 +6,7 @@ library utils;
 
 import 'dart:async';
 import 'dart:io';
-
+import "package:path/path.dart";
 
 Future<int> getStatusCode(int port,
                           String path,
@@ -57,8 +57,8 @@ const CERTIFICATE = "localhost_cert";
 
 
 setupSecure() {
-  Path scriptDir = new Path(new Options().script).directoryPath;
-  Path certificateDatabase = scriptDir.append('pkcert');
-  SecureSocket.initialize(database: certificateDatabase.toNativePath(),
+  String scriptDir = dirname(new Options().script);
+  String certificateDatabase = join(scriptDir, 'pkcert');
+  SecureSocket.initialize(database: certificateDatabase,
                           password: 'dartdart');
 }
