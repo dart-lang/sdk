@@ -8,6 +8,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:json' as json;
 
+import 'package:path/path.dart' as path;
+
 import '../command.dart';
 import '../exit_codes.dart' as exit_codes;
 import '../log.dart' as log;
@@ -32,13 +34,25 @@ class ListPackageDirsCommand extends PubCommand {
     }
 
     var output = {};
+
+    // Include the local paths to all locked packages.
+    var packages = {};
     var futures = [];
     entrypoint.loadLockFile().packages.forEach((name, package) {
       var source = entrypoint.cache.sources[package.source];
       futures.add(source.getDirectory(package).then((packageDir) {
-        output[name] = packageDir;
+        packages[name] = path.join(packageDir, "lib");
       }));
     });
+
+    output["packages"] = packages;
+
+    // Include the self link.
+    packages[entrypoint.root.name] = path.join(entrypoint.root.dir, "lib");
+
+    // Include the file(s) which when modified will affect the results. For pub,
+    // that's just the lockfile.
+    output["input_files"] = [entrypoint.lockFilePath];
 
     return Future.wait(futures).then((_) {
       log.message(json.stringify(output));

@@ -54,7 +54,10 @@ class Entrypoint {
   String get packagesDir => path.join(root.dir, 'packages');
 
   /// `true` if the entrypoint package currently has a lock file.
-  bool get lockFileExists => entryExists(_lockFilePath);
+  bool get lockFileExists => entryExists(lockFilePath);
+
+  /// The path to the entrypoint package's lockfile.
+  String get lockFilePath => path.join(root.dir, 'pubspec.lock');
 
   /// Ensures that the package identified by [id] is installed to the directory.
   /// Returns the resolved [PackageId].
@@ -150,7 +153,7 @@ class Entrypoint {
   /// exists. If it doesn't, this completes to an empty [LockFile].
   LockFile loadLockFile() {
     if (!lockFileExists) return new LockFile.empty();
-    return new LockFile.load(_lockFilePath, cache.sources);
+    return new LockFile.load(lockFilePath, cache.sources);
   }
 
   /// Determines whether or not the lockfile is out of date with respect to the
@@ -182,9 +185,6 @@ class Entrypoint {
 
     return true;
   }
-
-  /// The path to the entrypoint package's lockfile.
-  String get _lockFilePath => path.join(root.dir, 'pubspec.lock');
 
   /// Saves a list of concrete package versions to the `pubspec.lock` file.
   void _saveLockFile(List<PackageId> packageIds) {
