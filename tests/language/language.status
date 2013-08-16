@@ -307,5 +307,4 @@ null_test/03: Fail    # Issue 12445.
 null_test/none: Fail  # Issue 12482
 
 [ $compiler == dartanalyzer ]
-null_test/02: Fail  # Issue 12484
 null_test/03: Fail  # Issue 12484
