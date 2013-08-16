@@ -86,15 +86,3 @@ void waitForBuildSuccess() {
 
   schedule(nextLine);
 }
-
-/// Returns a [Future] that completes after pumping the event queue [times]
-/// times. By default, this should pump the event queue enough times to allow
-/// any code to run, as long as it's not waiting on some external event.
-Future _pumpEventQueue([int times=20]) {
-  if (times == 0) return new Future.value();
-  // We use a delayed future to allow runAsync events to finish. The
-  // Future.value or Future() constructors use runAsync themselves and would
-  // therefore not wait for runAsync callbacks that are scheduled after invoking
-  // this method.
-  return new Future.delayed(Duration.ZERO, () => _pumpEventQueue(times - 1));
-}
