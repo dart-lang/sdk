@@ -168,7 +168,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     // If there is an instruction that dominates all others, we can
     // use only the selector of that instruction.
     if (dominator != null) {
-      interceptedClasses = 
+      interceptedClasses =
             backend.getInterceptedClassesOn(dominator.selector.name);
 
       // If we found that we need number, we must still go through all

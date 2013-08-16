@@ -452,7 +452,7 @@ class JavaScriptBackend extends Backend {
       Iterable<ClassElement> subclasses = compiler.world.subclassesOf(use);
       if (subclasses != null) {
         for (ClassElement subclass in subclasses) {
-          if (subclass.isNative()) {
+          if (Elements.isNativeOrExtendsNative(subclass)) {
             if (result == null) result = new Set<ClassElement>();
             result.add(subclass);
           }
