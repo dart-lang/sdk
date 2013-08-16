@@ -20,6 +20,8 @@ third_party/html5lib/test/dom_compat_test: Skip
 
 [ $compiler == dart2js && $runtime == d8 ]
 unmodifiable_collection/test/unmodifiable_collection_test: Pass, Fail # Issue 12429
+csslib/test/declaration_test: Pass, Crash # V8 issue 2846
+
 
 [ $compiler == dart2js ]
 analyzer_experimental/test/generated/ast_test: Fail #Issue 12341
