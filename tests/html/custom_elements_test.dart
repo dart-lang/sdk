@@ -7,7 +7,7 @@ import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
 
-class CustomType extends Element {
+class CustomType extends HtmlElement {
   factory CustomType() => null;
   bool onCreatedCalled; // = false;
   void onCreated() {
@@ -112,15 +112,27 @@ main() {
       expect(queried is CustomType, isTrue);
       expect(queried.onCreatedCalled, isTrue);
     });
+
+    test('query id', () {
+      document.register('x-type9', CustomType);
+      var element = new DivElement();
+      element.innerHtml = '<x-type9 id="someid"></x-type9>';
+      document.body.nodes.add(element);
+      var queried = query('#someid');
+
+      expect(queried, isNotNull);
+      expect(queried is CustomType, isTrue);
+      expect(queried.id, "someid");
+    });
   });
 
   group('lifecycle', () {
     test('onCreated', () {
       int oldCount = customCreatedCount;
 
-      document.register('x-type9', CustomType);
+      document.register('x-type10', CustomType);
       var element = new DivElement();
-      element.innerHtml = '<x-type9></x-type9>';
+      element.innerHtml = '<x-type10></x-type10>';
       document.body.nodes.add(element);
       expect(customCreatedCount, oldCount + 1);
     });
