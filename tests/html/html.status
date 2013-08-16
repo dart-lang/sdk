@@ -17,6 +17,7 @@ audiobuffersourcenode_test: Pass, Fail, Crash # http://crbug.com/256601
 postmessage_structured_test/typed_arrays: Fail
 events_test: Pass, Fail # Issue 12489
 custom_elements_test/lifecycle: Fail   # Issue 9326 - Implement "extends Element" in dartium
+custom_elements_test/preregister: skip # Issue 12522 - Crash after upgrading elements
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
