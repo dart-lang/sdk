@@ -248,9 +248,9 @@ void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
   filteredEntities.where((e) => e is Class || e is Library).forEach((output) {
     _writeIndexableToFile(output, outputToYaml);
   });
-  // Outputs a yaml file with all libraries and their preview comments after 
-  // creating all libraries. This will help the viewer know what libraries are 
-  // available to read in.
+  // Outputs a YAML or JSON file with all libraries and their preview comments 
+  // after creating all libraries. This will help the viewer know what 
+  // libraries are available to read in.
   var libraryMap = {
     'libraries' : filteredEntities.where((e) => 
         e is Library).map((e) => e.previewMap).toList(),
@@ -258,7 +258,12 @@ void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
         '' : markdown.markdownToHtml(new File(introduction).readAsStringSync(),
             linkResolver: linkResolver, inlineSyntaxes: markdownSyntaxes)
   };
-  _writeToFile(getYamlString(libraryMap), 'library_list.yaml', append: append);
+  if (outputToYaml) {
+    _writeToFile(getYamlString(libraryMap), 'library_list.yaml', 
+        append: append);
+  } else {
+    _writeToFile(stringify(libraryMap), 'library_list.json', append: append);
+  }
   // Outputs all the qualified names documented with their type.
   // This will help generate search results.
   _writeToFile(filteredEntities.map((e) => 
