@@ -83,8 +83,10 @@ main() {
     });
   });
 
+  // TODO(vsm): Modify this test once we agree on the proper semantics.
+  /*
   group('preregister', () {
-    // TODO(vsm): Modify this test once we agree on the proper semantics.
+
     test('pre-registration construction', () {
       var tag = nextTag;
       var dom = new Element.html('<div><$tag></$tag></div>');
@@ -118,7 +120,7 @@ main() {
       expect(firedOnPre, isTrue);
       expect(firedOnPost, isTrue);
     });
-  });
+  });*/
 
   group('innerHtml', () {
     test('query', () {
