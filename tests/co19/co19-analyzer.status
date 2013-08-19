@@ -123,9 +123,10 @@ Language/07_Classes/4_Abstract_Instance_Members_A04_t01: fail, OK
 Language/07_Classes/4_Abstract_Instance_Members_A04_t05: fail, OK
 Language/07_Classes/4_Abstract_Instance_Members_A04_t06: fail, OK
 
+# co19 issue #513, rules for finals were loosened, contradiction in spec was fixed
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A21_t01: fail, OK
+
 # co19-roll r546 (11.08.2013) caused these failures
-Language/05_Variables/05_Variables_A05_t01: fail # co19-roll r546: Please triage this failure
-Language/05_Variables/05_Variables_A05_t02: fail # co19-roll r546: Please triage this failure
 Language/05_Variables/05_Variables_A05_t03: fail # co19-roll r546: Please triage this failure
 Language/07_Classes/3_Setters_A08_t01: fail # co19-roll r546: Please triage this failure
 Language/07_Classes/3_Setters_A08_t02: fail # co19-roll r546: Please triage this failure

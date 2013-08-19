@@ -270,6 +270,9 @@ call_nonexistent_static_test/08: fail
 # test issue 12397; it is static warning, not error to use variable before declaration (or hidden)
 scope_negative_test: fail
 
+# test issue 12539, rules for finals were loosened, contradiction in spec was fixed
+const_syntax_test/09: fail
+
 [ $compiler == dartanalyzer && $checked ]
 factory1_test/00: fail
 factory1_test/01: fail
