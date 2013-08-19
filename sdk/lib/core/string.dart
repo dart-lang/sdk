@@ -5,11 +5,11 @@
 part of dart.core;
 
 /**
- * The String class represents sequences of characters. Strings are
- * immutable. A string is represented by a sequence of Unicode UTF-16
- * code units accessible through the [codeUnitAt] or the
- * [codeUnits] members. Their string representation is accessible through
- * the index-operator.
+ * A class for working with a sequence of characters.
+ *
+ * A string is represented by a sequence of Unicode UTF-16 code units
+ * accessible through the [codeUnitAt] or the [codeUnits] members. Their
+ * string representation is accessible through the index-operator.
  *
  * The characters of a string are encoded in UTF-16. Decoding UTF-16, which
  * combines surrogate pairs, yields Unicode code points. Following a similar
@@ -17,8 +17,13 @@ part of dart.core;
  * Unicode code point. The runes of a string are accessible through the [runes]
  * getter.
  *
+ * Strings are immutable.
+ *
  * It is a compile-time error for a class to attempt to extend or implement
  * String.
+ *
+ * For concatenating strings efficiently, use the [StringBuffer] class. For
+ * working with regular expressions, use the [RegExp] class.
  */
 abstract class String implements Comparable<String>, Pattern {
   /**
