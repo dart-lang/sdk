@@ -126,15 +126,19 @@ Language/07_Classes/4_Abstract_Instance_Members_A04_t06: fail, OK
 # co19 issue #513, rules for finals were loosened, contradiction in spec was fixed
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A21_t01: fail, OK
 
+# co19 issue #514, it is still an error to have both a n initializing formal and an initializer in the constructor's initializer list
+Language/05_Variables/05_Variables_A05_t03: fail, OK
+
+# co19 issue #515, it is a compile-time error if there is more than one entity with the same name declared in the same scope
+Language/07_Classes/3_Setters_A08_t01: fail, OK
+Language/07_Classes/3_Setters_A08_t02: fail, OK
+Language/07_Classes/3_Setters_A08_t03: fail, OK
+Language/07_Classes/3_Setters_A08_t04: fail, OK
+
+# co19 issue #516, it is a compile-time error if a class has both a getter and a method with the same name.
+Language/07_Classes/3_Setters_A08_t05: fail, OK
+
 # co19-roll r546 (11.08.2013) caused these failures
-Language/05_Variables/05_Variables_A05_t03: fail # co19-roll r546: Please triage this failure
-Language/07_Classes/3_Setters_A08_t01: fail # co19-roll r546: Please triage this failure
-Language/07_Classes/3_Setters_A08_t02: fail # co19-roll r546: Please triage this failure
-Language/07_Classes/3_Setters_A08_t03: fail # co19-roll r546: Please triage this failure
-Language/07_Classes/3_Setters_A08_t04: fail # co19-roll r546: Please triage this failure
-Language/07_Classes/3_Setters_A08_t05: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/00_Object_Identity/1_Object_Identity_A04_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/00_Object_Identity/1_Object_Identity_A04_t02: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/01_Constants_A01_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/01_Constants_A11_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/01_Constants_A12_t01: fail # co19-roll r546: Please triage this failure
