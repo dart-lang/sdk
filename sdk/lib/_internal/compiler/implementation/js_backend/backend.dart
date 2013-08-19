@@ -1457,7 +1457,7 @@ class JavaScriptBackend extends Backend {
     return false;
   }
 
-  void onLibraryScanned(LibraryElement library, Uri uri) {
+  void onLibraryLoaded(LibraryElement library, Uri uri) {
     if (uri == Uri.parse('dart:_js_mirrors')) {
       disableTreeShakingMarker =
           library.find(const SourceString('disableTreeShaking'));

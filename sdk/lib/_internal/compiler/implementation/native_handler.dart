@@ -119,10 +119,10 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   void processNativeClasses(Iterable<LibraryElement> libraries) {
     libraries.forEach(processNativeClassesInLibrary);
-    processNativeClassesInLibrary(compiler.isolateHelperLibrary);
-
+    if (compiler.isolateHelperLibrary != null) {
+      processNativeClassesInLibrary(compiler.isolateHelperLibrary);
+    }
     processSubclassesOfNativeClasses(libraries);
-
     if (!enableLiveTypeAnalysis) {
       nativeClasses.forEach((c) => enqueueClass(c, 'forced'));
       flushQueue();

@@ -245,7 +245,7 @@ abstract class Backend {
 
   void registerStaticUse(Element element, Enqueuer enqueuer) {}
 
-  void onLibraryScanned(LibraryElement library, Uri uri) {}
+  void onLibraryLoaded(LibraryElement library, Uri uri) {}
 
   void registerMetadataInstantiatedType(DartType type, TreeElements elements) {}
   void registerMetadataStaticUse(Element element) {}
@@ -754,7 +754,7 @@ abstract class Compiler implements DiagnosticListener {
    * This method is called before [library] import and export scopes have been
    * set up.
    */
-  void onLibraryScanned(LibraryElement library, Uri uri) {
+  void onLibraryLoaded(LibraryElement library, Uri uri) {
     if (dynamicClass != null) {
       // When loading the built-in libraries, dynamicClass is null. We
       // take advantage of this as core imports js_helper and sees [dynamic]
@@ -775,8 +775,14 @@ abstract class Compiler implements DiagnosticListener {
     } else if (uri == new Uri(scheme: 'dart', path: 'async')) {
       deferredLibraryClass =
           findRequiredElement(library, const SourceString('DeferredLibrary'));
+    } else if (isolateHelperLibrary == null
+	       && (uri == new Uri(scheme: 'dart', path: '_isolate_helper'))) {
+      isolateHelperLibrary = scanBuiltinLibrary('_isolate_helper');
+    } else if (foreignLibrary == null
+	       && (uri == new Uri(scheme: 'dart', path: '_foreign_helper'))) {
+      foreignLibrary = scanBuiltinLibrary('_foreign_helper');
     }
-    backend.onLibraryScanned(library, uri);
+    backend.onLibraryLoaded(library, uri);
   }
 
   Element findRequiredElement(LibraryElement library, SourceString name) {
@@ -885,9 +891,6 @@ abstract class Compiler implements DiagnosticListener {
   void scanBuiltinLibraries() {
     jsHelperLibrary = scanBuiltinLibrary('_js_helper');
     interceptorsLibrary = scanBuiltinLibrary('_interceptors');
-    foreignLibrary = scanBuiltinLibrary('_foreign_helper');
-    isolateHelperLibrary = scanBuiltinLibrary('_isolate_helper');
-
     assertMethod = jsHelperLibrary.find(const SourceString('assertHelper'));
     identicalFunction = coreLibrary.find(const SourceString('identical'));
 

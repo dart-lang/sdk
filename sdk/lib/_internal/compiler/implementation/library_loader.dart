@@ -220,6 +220,7 @@ class HideFilter extends CombinatorFilter {
 class LibraryLoaderTask extends LibraryLoader {
   LibraryLoaderTask(Compiler compiler) : super(compiler);
   String get name => 'LibraryLoader';
+  List onLibraryLoadedCallbacks = [];
 
   final Map<String, LibraryElement> libraryNames =
       new LinkedHashMap<String, LibraryElement>();
@@ -234,6 +235,9 @@ class LibraryLoaderTask extends LibraryLoader {
           createLibrary(currentHandler, null, resolvedUri, node, canonicalUri);
       currentHandler.computeExports();
       currentHandler = null;
+      var workList = onLibraryLoadedCallbacks;
+      onLibraryLoadedCallbacks = [];
+      workList.forEach((f) => f());
       return library;
     });
   }
@@ -433,7 +437,8 @@ class LibraryLoaderTask extends LibraryLoader {
         compiler.scanner.scanLibrary(library);
         processLibraryTags(handler, library);
         handler.registerLibraryExports(library);
-        compiler.onLibraryScanned(library, resolvedUri);
+        onLibraryLoadedCallbacks.add(
+            () => compiler.onLibraryLoaded(library, resolvedUri));
       });
     }
     return library;

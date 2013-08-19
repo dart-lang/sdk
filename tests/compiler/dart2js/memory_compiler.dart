@@ -49,7 +49,7 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
     cachedCompiler.libraries.forEach((String uri, library) {
       if (library.isPlatformLibrary) {
         compiler.libraries[uri] = library;
-        compiler.onLibraryScanned(library, library.canonicalUri);
+        compiler.onLibraryLoaded(library, library.canonicalUri);
       }
     });
 
