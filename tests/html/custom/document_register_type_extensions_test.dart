@@ -40,7 +40,7 @@ main() {
   var testForm = new FormElement()..id = 'testForm';
   document.body.append(testForm);
 
-  var isFormElement = (element) {
+  var isFormControl = (element) {
     testForm.append(element);
     return element.form == testForm;
   };
@@ -67,7 +67,7 @@ main() {
     expect(barNewed.outerHtml, barOuterHtml);
     expect(barNewed is Bar, isTrue);
     expect(barNewed is InputElement, isTrue);
-    expect(isFormElement(barNewed), isTrue);
+    expect(isFormControl(barNewed), isTrue);
 
     var bazNewed = new Baz();
     var bazOuterHtml = "<x-baz></x-baz>";
@@ -81,7 +81,7 @@ main() {
     expect(quxNewed.outerHtml, quxOuterHtml);
     expect(quxNewed is Qux, isTrue);
     expect(quxNewed is InputElement, isTrue);
-    expect(isFormElement(quxNewed), isTrue);
+    expect(isFormControl(quxNewed), isTrue);
 
     // new Element.tag
 
@@ -128,7 +128,7 @@ main() {
 
     var fooBarCreated =
 	document.$dom_createElement(Foo.tag, Bar.tag);
-    expect(fooBasedCreated.outerHtml, '<x-foo is="x-bar"></x-foo>');
+    expect(fooBarCreated.outerHtml, '<x-foo is="x-bar"></x-foo>');
     expect(fooBarCreated is Foo, isTrue);
 
     var barFooCreated = document.$dom_createElement(Bar.tag,
