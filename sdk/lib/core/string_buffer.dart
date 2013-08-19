@@ -5,9 +5,11 @@
 part of dart.core;
 
 /**
- * The StringBuffer class is useful for concatenating strings
- * efficiently. Only on a call to [toString] are the strings
- * concatenated to a single String.
+ * A class for concatenating strings efficiently.
+ *
+ * Allows for the incremental building of a string using write*() methods.
+ * The strings are concatenated to a single string only when [toString] is
+ * called.
  */
 class StringBuffer implements StringSink {
 
