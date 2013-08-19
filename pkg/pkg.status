@@ -20,7 +20,6 @@ third_party/html5lib/test/dom_compat_test: Skip
 
 [ $compiler == dart2js && $runtime == d8 ]
 unmodifiable_collection/test/unmodifiable_collection_test: Pass, Fail # Issue 12429
-csslib/test/declaration_test: Pass, Crash # V8 issue 2846
 
 [ $compiler == dart2js ]
 analyzer_experimental/test/generated/ast_test: Fail #Issue 12341
@@ -28,7 +27,7 @@ analyzer_experimental/test/generated/ast_test: Fail #Issue 12341
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 crypto/test/base64_test: Timeout # Issue 12486
 
-[ $compiler == dart2js && ($runtime == d8 || $runtime == drt) ]
+[ $compiler == dart2js && $runtime == drt ]
 crypto/test/hmac_sha256_test: Pass, Fail # v8 bug: Issue 12293
 crypto/test/sha1_test: Pass, Fail # v8 bug: Issue 12293
 crypto/test/sha256_test: Pass, Fail # v8 bug: Issue 12293

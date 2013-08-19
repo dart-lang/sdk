@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dart2js && ($runtime == d8 || $runtime == drt) ]
+[ $compiler == dart2js && $runtime == drt ]
 LibTest/core/List/sort_A01_t02: Pass, Fail # v8 bug: Issue 12293
 LibTest/core/List/sort_A01_t03: Pass, Fail # v8 bug: Issue 12293
 LibTest/core/Map/Map_class_A01_t04: Pass, Fail # v8 bug: Issue 12293

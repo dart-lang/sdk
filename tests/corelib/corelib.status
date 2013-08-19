@@ -4,7 +4,7 @@
 
 reg_exp_unicode_2_test: Fail # Bug 6592
 
-[ $compiler == dart2js && ($runtime == d8 || $runtime == drt) ]
+[ $compiler == dart2js && $runtime == drt ]
 hash_set_test: Pass, Fail # v8 bug: Issue 12293
 list_test: Pass, Fail # v8 bug: Issue 12293
 
