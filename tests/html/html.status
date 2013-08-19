@@ -8,6 +8,12 @@ interactive_test: Skip # Must be run manually.
 
 [ $compiler == dart2js && $runtime != drt ]
 custom_elements_test: Skip
+custom/*: Skip
+
+[ $compiler == dart2js && $browser ]
+# Issue 9325 failures
+custom/attribute_changed_callback_test: Fail
+custom/document_register_type_extensions_test: Fail
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug && $system == macos]
 audiobuffersourcenode_test: Pass, Fail, Crash # http://crbug.com/256601
@@ -17,6 +23,10 @@ audiobuffersourcenode_test: Pass, Fail, Crash # http://crbug.com/256601
 postmessage_structured_test/typed_arrays: Fail
 events_test: Pass, Fail # Issue 12489
 custom_elements_test/lifecycle: Fail   # Issue 9326 - Implement "extends Element" in dartium
+# Issue 9326 failures
+custom/attribute_changed_callback_test: Fail
+custom/created_callback_test: Fail
+custom/document_register_type_extensions_test: Fail
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
