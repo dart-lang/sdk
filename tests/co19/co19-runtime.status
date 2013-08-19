@@ -36,8 +36,8 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: Fail # Dar
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: Fail # co19 issue 426
 LibTest/core/double/parse_A02_t01: Fail # co19 issue 418
 LibTest/math/pow_A01_t01: Fail # co19 issue 44
-LibTest/math/pow_A11_t01: Fail # Dart issue 449
-LibTest/math/pow_A13_t01: Fail # Dart issue 449
+LibTest/math/pow_A11_t01: Fail # co19 issue 512
+LibTest/math/pow_A13_t01: Fail # co19 issue 507
 
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Fail # Dart issue 5802
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # Dart issue 5894
@@ -52,10 +52,6 @@ LibTest/core/double/round_A01_t02: Fail # truncate/ceil/floor/round returns ints
 LibTest/core/double/round_A01_t04: Fail # truncate/ceil/floor/round returns ints, co19 issue 389
 
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # Issue 6085
-
-# Some of these tests are expected to fail for another reason. These are marked as Skip.
-Language/07_Classes/07_Classes_A02_t29: Skip # co19 issue 490
-Language/07_Classes/07_Classes_A02_t31: Skip # co19 issue 490
 
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail # Issue 12508
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail # Issue 12508
@@ -92,7 +88,7 @@ LibTest/core/Iterable/where_A01_t07: Fail # Issue 397
 LibTest/core/Set/isSubsetOf_A01_t01: fail # Issue 400
 LibTest/core/Set/isSubsetOf_A01_t02: fail # Issue 400
 
-LibTest/core/Iterable/any_A01_t04: Fail # setRange now takes end-argument. Issue 402
+LibTest/core/Iterable/any_A01_t04: Fail # co19 issue 508.
 
 LibTest/core/String/indexOf_A01_t02: Fail # Issue 427
 LibTest/core/String/lastIndexOf_A01_t02: Fail # Issue 427
@@ -121,26 +117,20 @@ Language/03_Overview/2_Privacy_A01_t06: Fail # Issue 463
 
 [ $compiler == none && $runtime == vm && $checked ]
 LibTest/async/Future/catchError_A01_t01: Fail # Future constructors have changed # issue 408
-LibTest/core/List/every_A01_t01: Fail # insertRange is removed. Issue 403
 LibTest/core/List/getRange_A01_t01: Fail # getRange now takes end-argument and returns Iterable. Issue 399
-LibTest/core/Set/intersection_A03_t01: Fail # co19 issue 480
-LibTest/core/TypeError/column_A01_t01: Fail # co19 issue 479
-LibTest/core/TypeError/dstName_A01_t01: Fail # co19 issue 479
-LibTest/core/TypeError/dstType_A01_t01: Fail # co19 issue 479
-LibTest/core/TypeError/failedAssertion_A01_t01: Fail # co19 issue 479
-LibTest/core/TypeError/line_A01_t01: Fail # co19 issue 479
-LibTest/core/TypeError/srcType_A01_t01: Fail # co19 issue 479
-LibTest/core/TypeError/url_A01_t01: Fail # co19 issue 479
-LibTest/core/int/operator_division_A01_t01: Fail # ~/ returns ints, issue 361
+LibTest/core/Set/intersection_A03_t01: Fail # co19 issue 510
+LibTest/core/TypeError/column_A01_t01: Fail # co19 issue 510
+LibTest/core/TypeError/dstName_A01_t01: Fail # co19 issue 510
+LibTest/core/TypeError/dstType_A01_t01: Fail # co19 issue 510
+LibTest/core/TypeError/failedAssertion_A01_t01: Fail # co19 issue 510
+LibTest/core/TypeError/line_A01_t01: Fail # co19 issue 510
+LibTest/core/TypeError/srcType_A01_t01: Fail # co19 issue 510
+LibTest/core/TypeError/url_A01_t01: Fail # co19 issue 510
+LibTest/core/int/operator_division_A01_t01: Fail # co19 issue 509
 
 LibTest/core/Set/intersection_A01_t01: Fail # issue 390
 LibTest/core/Set/intersection_A01_t02: Fail # issue 390
 LibTest/core/Set/intersection_A01_t03: Fail # issue 390
-LibTest/collection/Queue/Queue.from_A01_t01: Pass # Issue 400 and 463
-LibTest/collection/Queue/Queue.from_A01_t02: Pass # Issue 400 and 463
-LibTest/core/List/List.from_A01_t01: Pass # Issue 400 and 463
-LibTest/core/List/every_A01_t01: Pass # Issue 400 and 463
-LibTest/core/Match/str_A01_t01: Pass # Issue 400 and 463
 
 # Passing for the wrong reasons:
 LibTest/async/Completer/completeError_A03_t02: Pass # No AsyncError anymore. Issue 407 and 463
@@ -188,9 +178,9 @@ LibTest/math/cos_A01_t01: Pass, Fail # Fail on Mac
 
 # co19-roll r546 (11.08.2013) caused these failures
 [ $compiler == none && $runtime == vm ]
-Language/05_Variables/05_Variables_A05_t01: fail # co19-roll r546: Please triage this failure
-Language/05_Variables/05_Variables_A05_t02: fail # co19-roll r546: Please triage this failure
-Language/05_Variables/05_Variables_A05_t03: fail # co19-roll r546: Please triage this failure
+Language/05_Variables/05_Variables_A05_t01: fail # Dart issue 12539
+Language/05_Variables/05_Variables_A05_t02: fail # Dart issue 12539
+Language/05_Variables/05_Variables_A05_t03: fail # Dart issue 12539
 Language/05_Variables/05_Variables_A06_t01: fail # co19-roll r546: Please triage this failure
 Language/05_Variables/05_Variables_A06_t02: fail # co19-roll r546: Please triage this failure
 Language/05_Variables/05_Variables_A06_t03: fail # co19-roll r546: Please triage this failure
