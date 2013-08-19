@@ -409,7 +409,8 @@ class DartBackend extends Backend {
             && isSafeToRemoveTypeDeclarations(classMembers));
     renamePlaceholders(
         compiler, collector, renames, imports,
-        fixedMemberNames, shouldCutDeclarationTypes);
+        fixedMemberNames, shouldCutDeclarationTypes,
+        uniqueGlobalNaming: useMirrorHelperLibrary);
 
     // Sort elements.
     final sortedTopLevels = sortElements(topLevelElements);

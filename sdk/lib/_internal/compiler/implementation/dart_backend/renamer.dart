@@ -67,7 +67,8 @@ void renamePlaceholders(
     Map<Node, String> renames,
     Map<LibraryElement, String> imports,
     Set<String> fixedMemberNames,
-    bool cutDeclarationTypes) {
+    bool cutDeclarationTypes,
+    {uniqueGlobalNaming: false}) {
   final Map<LibraryElement, Map<String, String>> renamed
       = new Map<LibraryElement, Map<String, String>>();
 
@@ -178,24 +179,34 @@ void renamePlaceholders(
     rename = makeRenamer(generateUniqueName);
     renameElement = makeElementRenamer(rename, generateUniqueName);
 
-    // Build a sorted (by usage) list of local nodes that will be renamed to
-    // the same identifier. So the top-used local variables in all functions
-    // will be renamed first and will all share the same new identifier.
-    List<Set<Node>> allSortedLocals = new List<Set<Node>>();
-    for (var functionScope in placeholderCollector.functionScopes.values) {
-      // Add current sorted local identifiers to the whole sorted list
-      // of all local identifiers for all functions.
-      List<LocalPlaceholder> currentSortedPlaceholders =
-          sorted(functionScope.localPlaceholders,
-              compareBy((LocalPlaceholder ph) => -ph.nodes.length));
-      List<Set<Node>> currentSortedNodes =
-          currentSortedPlaceholders.map((ph) => ph.nodes).toList();
-      // Make room in all sorted locals list for new stuff.
-      while (currentSortedNodes.length > allSortedLocals.length) {
-        allSortedLocals.add(new Set<Node>());
+    List<Set<Node>> allLocals = new List<Set<Node>>();
+    // If we are using the mirror_helper library we need all names to be
+    // globally unique.
+    if (uniqueGlobalNaming) {
+      //TODO(zarah): Change this so that local variables don't get unique names.
+      for (var functionScope in placeholderCollector.functionScopes.values) {
+        functionScope.localPlaceholders.forEach(
+            (ph) => allLocals.add(ph.nodes.toSet()));
       }
-      for (int i = 0; i < currentSortedNodes.length; i++) {
-        allSortedLocals[i].addAll(currentSortedNodes[i]);
+    } else {
+      // Build a sorted (by usage) list of local nodes that will be renamed to
+      // the same identifier. So the top-used local variables in all functions
+      // will be renamed first and will all share the same new identifier.
+      for (var functionScope in placeholderCollector.functionScopes.values) {
+        // Add current sorted local identifiers to the whole sorted list
+        // of all local identifiers for all functions.
+        List<LocalPlaceholder> currentSortedPlaceholders =
+            sorted(functionScope.localPlaceholders,
+                compareBy((LocalPlaceholder ph) => -ph.nodes.length));
+        List<Set<Node>> currentSortedNodes =
+            currentSortedPlaceholders.map((ph) => ph.nodes).toList();
+        // Make room in all sorted locals list for new stuff.
+        while (currentSortedNodes.length > allLocals.length) {
+          allLocals.add(new Set<Node>());
+        }
+        for (int i = 0; i < currentSortedNodes.length; i++) {
+          allLocals[i].addAll(currentSortedNodes[i]);
+        }
       }
     }
 
@@ -217,7 +228,7 @@ void renamePlaceholders(
       renamables.add(
           new MemberRenamable(memberName, identifiers, memberRenamer));
     });
-    for (Set<Node> localIdentifiers in allSortedLocals) {
+    for (Set<Node> localIdentifiers in allLocals) {
       renamables.add(new LocalRenamable(localIdentifiers, localRenamer));
     }
     renamables.sort((Renamable renamable1, Renamable renamable2) =>
