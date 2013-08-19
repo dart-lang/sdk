@@ -4,9 +4,7 @@
 
 library barback.asset_set;
 
-import 'dart:async';
 import 'dart:collection';
-import 'dart:io';
 
 import 'asset.dart';
 import 'asset_id.dart';

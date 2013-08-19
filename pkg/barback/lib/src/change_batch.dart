@@ -4,7 +4,6 @@
 
 library barback.change_batch;
 
-import 'asset.dart';
 import 'asset_id.dart';
 
 /// Represents a batch of source asset changes: additions, removals and

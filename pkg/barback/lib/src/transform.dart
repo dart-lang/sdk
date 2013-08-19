@@ -13,7 +13,6 @@ import 'asset_set.dart';
 import 'errors.dart';
 import 'transform_logger.dart';
 import 'transform_node.dart';
-import 'utils.dart';
 
 /// Creates a [Transform] by forwarding to the private constructor.
 ///

@@ -5,7 +5,6 @@
 library barback.transformer;
 
 import 'dart:async';
-import 'dart:io';
 
 import 'asset.dart';
 import 'transform.dart';

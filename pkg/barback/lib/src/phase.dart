@@ -11,7 +11,6 @@ import 'asset.dart';
 import 'asset_cascade.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
-import 'asset_set.dart';
 import 'errors.dart';
 import 'stream_pool.dart';
 import 'transform_node.dart';
@@ -323,7 +322,7 @@ class Phase {
 
   /// Applies all currently wired up and dirty transforms.
   Future _processTransforms() {
-    if (_next == null) return;
+    if (_next == null) return new Future.value();
 
     var newPassThroughs = _passThroughControllers.values
         .map((controller) => controller.node)

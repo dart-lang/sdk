@@ -14,7 +14,6 @@ import 'errors.dart';
 import 'phase.dart';
 import 'transform.dart';
 import 'transformer.dart';
-import 'utils.dart';
 
 /// Describes a transform on a set of assets and its relationship to the build
 /// dependency graph.

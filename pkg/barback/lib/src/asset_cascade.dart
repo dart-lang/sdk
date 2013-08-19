@@ -13,7 +13,6 @@ import 'asset_node.dart';
 import 'build_result.dart';
 import 'cancelable_future.dart';
 import 'errors.dart';
-import 'change_batch.dart';
 import 'package_graph.dart';
 import 'phase.dart';
 import 'transformer.dart';

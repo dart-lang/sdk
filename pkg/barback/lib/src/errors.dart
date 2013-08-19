@@ -5,7 +5,6 @@
 library barback.errors;
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:stack_trace/stack_trace.dart';
 

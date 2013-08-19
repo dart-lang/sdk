@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:stack_trace/stack_trace.dart';
 
+import 'errors.dart';
 import 'utils.dart';
 
 /// An event indicating that the cascade has finished building all assets.

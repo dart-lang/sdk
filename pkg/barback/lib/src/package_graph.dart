@@ -6,9 +6,6 @@ library barback.package_graph;
 
 import 'dart:async';
 
-import 'package:stack_trace/stack_trace.dart';
-
-import 'asset.dart';
 import 'asset_cascade.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
