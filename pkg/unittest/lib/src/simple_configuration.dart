@@ -22,7 +22,7 @@ class _ExpectFailureHandler extends DefaultFailureHandler {
  * advantage of the platform can create a subclass and override methods from
  * this class.
  */
-class SimpleConfiguration implements Configuration {
+class SimpleConfiguration extends Configuration {
   // The VM won't shut down if a receive port is open. Use this to make sure
   // we correctly wait for asynchronous tests.
   ReceivePort _receivePort;
@@ -32,7 +32,7 @@ class SimpleConfiguration implements Configuration {
    * Particularly useful in cases where we have parent/child configurations
    * such as layout tests.
    */
-  final String name = 'Configuration';
+  String get name => 'Configuration';
 
   bool get autoStart => true;
 
@@ -56,7 +56,7 @@ class SimpleConfiguration implements Configuration {
    * The constructor sets up a failure handler for [expect] that redirects
    * [expect] failures to [onExpectFailure].
    */
-  SimpleConfiguration() {
+  SimpleConfiguration() : super.blank() {
     configureExpectFailureHandler(new _ExpectFailureHandler(this));
   }
 
@@ -64,8 +64,6 @@ class SimpleConfiguration implements Configuration {
     _receivePort = new ReceivePort();
     _postMessage('unittest-suite-wait-for-done');
   }
-
-  void onStart() {}
 
   /**
    * Called when each test starts. Useful to show intermediate progress on

@@ -33,7 +33,7 @@ String buildStatusString(int passed, int failed, int errors,
       '$setup:$teardown:$uncaughtError$testDetails';
 }
 
-class TestConfiguration extends SimpleConfiguration {
+class TestConfiguration extends Configuration {
 
   // Some test state that is captured.
   int count = 0; // A count of callbacks.
@@ -44,9 +44,7 @@ class TestConfiguration extends SimpleConfiguration {
   final SendPort _port;
   String _result;
 
-  TestConfiguration(this._port);
-
-  void onInit() {}
+  TestConfiguration(this._port) : super.blank();
 
   void onSummary(int passed, int failed, int errors, List<TestCase> results,
       String uncaughtError) {
