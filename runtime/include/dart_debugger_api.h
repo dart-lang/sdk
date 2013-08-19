@@ -472,6 +472,25 @@ DART_EXPORT Dart_Handle Dart_GetGlobalVariables(intptr_t library_id);
 
 
 /**
+ * Execute the expression given in string \expr in the context
+ * of \target.
+ *
+ * Requires there to be a current isolate.
+ *
+ * The expression is evaluated in the context of \target.
+ * If \target is a Dart object, the expression is evaluated as if
+ * it were an instance method of the class of the object.
+ * TODO(hausner): add other execution contexts, e.g. library and class.
+ * 
+ * \return A handle to the computed value, or an error object if
+ * the compilation of the expression fails, or if the evaluation throws
+ * an error.
+ */
+DART_EXPORT Dart_Handle Dart_EvaluateExpr(Dart_Handle target,
+                                          Dart_Handle expr);
+
+
+/**
  * Returns the class of the given \object.
  *
  * Requires there to be a current isolate.

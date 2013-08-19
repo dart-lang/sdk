@@ -49,6 +49,24 @@ static char const* ToCString(Dart_Handle str) {
 }
 
 
+static int64_t ToInt64(Dart_Handle h) {
+  EXPECT(Dart_IsInteger(h));
+  int64_t i = 0;
+  Dart_Handle res = Dart_IntegerToInt64(h, &i);
+  EXPECT_VALID(res);
+  return i;
+}
+
+
+static double ToDouble(Dart_Handle h) {
+  EXPECT(Dart_IsDouble(h));
+  double d = 0.0;
+  Dart_Handle res = Dart_DoubleValue(h, &d);
+  EXPECT_VALID(res);
+  return d;
+}
+
+
 static char const* BreakpointInfo(Dart_StackTrace trace) {
   static char info_str[128];
   Dart_ActivationFrame frame;
@@ -148,6 +166,28 @@ static void PrintActivationFrame(Dart_ActivationFrame frame) {
     PrintValue(value_handle, true);
     OS::Print("\n");
   }
+}
+
+
+static Dart_Handle GetLocalVariable(Dart_ActivationFrame frame,
+                                    const char* name) {
+  Dart_Handle locals = Dart_GetLocalVariables(frame);
+  EXPECT_VALID(locals);
+  intptr_t list_length = 0;
+  Dart_Handle ret = Dart_ListLength(locals, &list_length);
+  EXPECT_VALID(ret);
+  for (int i = 0; i + 1 < list_length; i += 2) {
+    Dart_Handle name_handle = Dart_ListGetAt(locals, i);
+    EXPECT_VALID(name_handle);
+    EXPECT(Dart_IsString(name_handle));
+    if (strcmp(ToCString(name_handle), name) == 0) {
+      Dart_Handle value_handle = Dart_ListGetAt(locals, i + 1);
+      EXPECT_VALID(value_handle);
+      return value_handle;
+    }
+  }
+  EXPECT(!"local variable not found");
+  return Dart_Null();
 }
 
 
@@ -344,8 +384,7 @@ TEST_CASE(Debug_StepOut) {
   Dart_Handle retval = Invoke("main");
   EXPECT_VALID(retval);
   EXPECT(Dart_IsInteger(retval));
-  int64_t int_value = 0;
-  Dart_IntegerToInt64(retval, &int_value);
+  int64_t int_value = ToInt64(retval);
   EXPECT_EQ(2, int_value);
   EXPECT(breakpoint_hit == true);
 }
@@ -426,8 +465,7 @@ TEST_CASE(Debug_StepInto) {
   Dart_Handle retval = Invoke("main");
   EXPECT_VALID(retval);
   EXPECT(Dart_IsInteger(retval));
-  int64_t int_value = 0;
-  Dart_IntegerToInt64(retval, &int_value);
+  int64_t int_value = ToInt64(retval);
   EXPECT_EQ(7, int_value);
   EXPECT(breakpoint_hit == true);
 }
@@ -472,8 +510,7 @@ TEST_CASE(Debug_IgnoreBP) {
   Dart_Handle retval = Invoke("main");
   EXPECT_VALID(retval);
   EXPECT(Dart_IsInteger(retval));
-  int64_t int_value = 0;
-  Dart_IntegerToInt64(retval, &int_value);
+  int64_t int_value = ToInt64(retval);
   EXPECT_EQ(101, int_value);
   EXPECT(breakpoint_hit == true);
 }
@@ -510,8 +547,7 @@ TEST_CASE(Debug_DeoptimizeFunction) {
   Dart_Handle retval = Invoke("main");
   EXPECT_VALID(retval);
   EXPECT(Dart_IsInteger(retval));
-  int64_t int_value = 0;
-  Dart_IntegerToInt64(retval, &int_value);
+  int64_t int_value = ToInt64(retval);
   EXPECT_EQ(2 * 99, int_value);
   EXPECT(breakpoint_hit == true);
 }
@@ -624,8 +660,7 @@ TEST_CASE(Debug_ClosureBreakpoint) {
   breakpoint_hit_counter = 0;
   Dart_Handle retval = Invoke("main");
   EXPECT_VALID(retval);
-  int64_t int_value = 0;
-  Dart_IntegerToInt64(retval, &int_value);
+  int64_t int_value = ToInt64(retval);
   EXPECT_EQ(442, int_value);
   EXPECT_EQ(2, breakpoint_hit_counter);
 }
@@ -671,8 +706,7 @@ TEST_CASE(Debug_ExprClosureBreakpoint) {
   breakpoint_hit_counter = 0;
   Dart_Handle retval = Invoke("main");
   EXPECT_VALID(retval);
-  int64_t int_value = 0;
-  Dart_IntegerToInt64(retval, &int_value);
+  int64_t int_value = ToInt64(retval);
   EXPECT_EQ(30, int_value);
   EXPECT_EQ(1, breakpoint_hit_counter);
 }
@@ -737,8 +771,7 @@ TEST_CASE(Debug_DeleteBreakpoint) {
   Dart_Handle res = Dart_SetBreakpoint(script_url, line_no);
   EXPECT_VALID(res);
   EXPECT(Dart_IsInteger(res));
-  int64_t bp_id = 0;
-  Dart_IntegerToInt64(res, &bp_id);
+  int64_t bp_id = ToInt64(res);
 
   // Function main() calls foo() 3 times. On the second iteration, the
   // breakpoint is removed by the handler, so we expect the breakpoint
@@ -888,8 +921,7 @@ TEST_CASE(Debug_InspectObject) {
   Dart_Handle triple_six = Invoke("get_int");
   EXPECT_VALID(triple_six);
   EXPECT(Dart_IsInteger(triple_six));
-  int64_t int_value = 0;
-  Dart_IntegerToInt64(triple_six, &int_value);
+  int64_t int_value = ToInt64(triple_six);
   EXPECT_EQ(666, int_value);
   fields = Dart_GetInstanceFields(triple_six);
   EXPECT_VALID(fields);
@@ -1281,8 +1313,7 @@ TEST_CASE(Debug_StackTraceDump1) {
   breakpoint_hit_counter = 0;
   Dart_Handle retval = Invoke("main");
   EXPECT_VALID(retval);
-  int64_t int_value = 0;
-  Dart_IntegerToInt64(retval, &int_value);
+  int64_t int_value = ToInt64(retval);
   EXPECT_EQ(195, int_value);
   EXPECT_EQ(1, breakpoint_hit_counter);
 }
@@ -1445,6 +1476,89 @@ TEST_CASE(Debug_StackTraceDump2) {
   EXPECT(Dart_IsError(retval));
   EXPECT(Dart_IsUnhandledExceptionError(retval));
   EXPECT_EQ(1, breakpoint_hit_counter);
+}
+
+
+void TestEvaluateHandler(Dart_IsolateId isolate_id,
+                         const Dart_CodeLocation& location) {
+  Dart_StackTrace trace;
+  Dart_GetStackTrace(&trace);
+  intptr_t trace_len;
+  Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
+  EXPECT_VALID(res);
+  EXPECT_EQ(1, trace_len);
+  Dart_ActivationFrame frame;
+  res = Dart_GetActivationFrame(trace, 0, &frame);
+  EXPECT_VALID(res);
+
+  // Get the local variable p and evaluate an expression in the
+  // context of p.
+  Dart_Handle p = GetLocalVariable(frame, "p");
+  EXPECT_VALID(p);
+  EXPECT(!Dart_IsNull(p));
+
+  Dart_Handle r = Dart_EvaluateExpr(p, NewString("sqrt(x*x + y*this.y)"));
+  EXPECT_VALID(r);
+  EXPECT(Dart_IsNumber(r));
+  EXPECT_EQ(5.0, ToDouble(r));
+
+  // Set top-level variable to a new value.
+  Dart_Handle h = Dart_EvaluateExpr(p, NewString("_factor = 10"));
+  EXPECT_VALID(h);
+  EXPECT(Dart_IsInteger(h));
+  EXPECT_EQ(10, ToInt64(h));
+
+  // Check that the side effect of the previous expression is
+  // persistent.
+  h = Dart_EvaluateExpr(p, NewString("_factor"));
+  EXPECT_VALID(h);
+  EXPECT(Dart_IsInteger(h));
+  EXPECT_EQ(10, ToInt64(h));
+
+  breakpoint_hit = true;
+  breakpoint_hit_counter++;
+}
+
+
+TEST_CASE(Debug_EvaluateExpr) {
+  const char* kScriptChars =
+      "import 'dart:math';               \n"
+      "main() {                          \n"
+      "  var p = new Point(3, 4);        \n"
+      "  l = [1, 2, 3];        /*BP*/    \n"
+      "  return p;                       \n"
+      "}                                 \n"
+      "var _factor = 2;                  \n"
+      "var l;                            \n"
+      "class Point {                     \n"
+      "  var x, y;                       \n"
+      "  Point(this.x, this.y);          \n"
+      "}                                 \n";
+
+  LoadScript(kScriptChars);
+  Dart_SetPausedEventHandler(&TestEvaluateHandler);
+
+
+  Dart_Handle script_url = NewString(TestCase::url());
+  intptr_t line_no = 4;
+  Dart_Handle res = Dart_SetBreakpoint(script_url, line_no);
+  EXPECT_VALID(res);
+
+  breakpoint_hit = false;
+  Dart_Handle point = Invoke("main");
+  EXPECT_VALID(point);
+  EXPECT(breakpoint_hit == true);
+
+  Dart_Handle r =
+      Dart_EvaluateExpr(point, NewString("_factor * sqrt(x*x + y*y)"));
+  EXPECT_VALID(r);
+  EXPECT(Dart_IsDouble(r));
+  EXPECT_EQ(50.0, ToDouble(r));
+
+  Dart_Handle len = Dart_EvaluateExpr(point, NewString("l.length"));
+  EXPECT_VALID(len);
+  EXPECT(Dart_IsNumber(len));
+  EXPECT_EQ(3, ToInt64(len));
 }
 
 

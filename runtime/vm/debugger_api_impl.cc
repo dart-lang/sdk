@@ -5,6 +5,7 @@
 #include "include/dart_debugger_api.h"
 
 #include "vm/class_finalizer.h"
+#include "vm/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
 #include "vm/debugger.h"
@@ -289,6 +290,12 @@ DART_EXPORT Dart_Handle Dart_SetBreakpoint(
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   UNWRAP_AND_CHECK_PARAM(String, script_url, script_url_in);
+
+  Dart_Handle state = Api::CheckIsolateState(isolate);
+  if (::Dart_IsError(state)) {
+    return state;
+  }
+
   Debugger* debugger = isolate->debugger();
   ASSERT(debugger != NULL);
   SourceBreakpoint* bpt =
@@ -488,6 +495,16 @@ DART_EXPORT Dart_Handle Dart_GetGlobalVariables(intptr_t library_id) {
                          CURRENT_FUNC, library_id);
   }
   return Api::NewHandle(isolate, isolate->debugger()->GetGlobalFields(lib));
+}
+
+
+DART_EXPORT Dart_Handle Dart_EvaluateExpr(Dart_Handle target,
+                                          Dart_Handle expr_in) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  UNWRAP_AND_CHECK_PARAM(Instance, obj, target);
+  UNWRAP_AND_CHECK_PARAM(String, expr, expr_in);
+  return Api::NewHandle(isolate, obj.Evaluate(expr));
 }
 
 

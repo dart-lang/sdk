@@ -50,6 +50,14 @@ const char* MessageParser::Params() const {
 }
 
 
+bool MessageParser::HasParam(const char* name) const {
+  const char* params = Params();
+  ASSERT(params != NULL);
+  dart::JSONReader r(params);
+  return r.Seek(name);
+}
+
+
 intptr_t MessageParser::GetIntParam(const char* name) const {
   const char* params = Params();
   ASSERT(params != NULL);
@@ -470,6 +478,7 @@ static JSONDebuggerCommand debugger_commands[] = {
   { "getClassProperties", DbgMessage::HandleGetClassPropsCmd },
   { "getLibraryProperties", DbgMessage::HandleGetLibPropsCmd },
   { "setLibraryProperties", DbgMessage::HandleSetLibPropsCmd },
+  { "evaluateExpr", DbgMessage::HandleEvaluateExprCmd },
   { "getObjectProperties", DbgMessage::HandleGetObjPropsCmd },
   { "getListElements", DbgMessage::HandleGetListCmd },
   { "getGlobalVariables", DbgMessage::HandleGetGlobalsCmd },
@@ -628,6 +637,54 @@ bool DbgMessage::HandleSetLibPropsCmd(DbgMessage* in_msg) {
   msg.Printf("{\"id\":%d, \"result\": {\"debuggingEnabled\": \"%s\"}}",
              msg_id,
              enabled ? "true" : "false");
+  in_msg->SendReply(&msg);
+  return false;
+}
+
+
+bool DbgMessage::HandleEvaluateExprCmd(DbgMessage* in_msg) {
+  ASSERT(in_msg != NULL);
+  MessageParser msg_parser(in_msg->buffer(), in_msg->buffer_len());
+  int msg_id = msg_parser.MessageId();
+  Dart_Handle target;
+
+  if (msg_parser.HasParam("libraryId")) {
+    in_msg->SendErrorReply(msg_id,
+                           "libararyId evaluation target not supported");
+    return false;
+  } else if (msg_parser.HasParam("classId")) {
+    in_msg->SendErrorReply(msg_id,
+                           "classId evaluation target not supported");
+    return false;
+  } else if (msg_parser.HasParam("objectId")) {
+    intptr_t obj_id = msg_parser.GetIntParam("objectId");
+    target = Dart_GetCachedObject(obj_id);
+  } else {
+    in_msg->SendErrorReply(msg_id, "illegal evaluation target");
+    return false;
+  }
+
+  if (Dart_IsError(target)) {
+    in_msg->SendErrorReply(msg_id, Dart_GetError(target));
+    return false;
+  }
+  char* expr_chars = msg_parser.GetStringParam("expression");
+  Dart_Handle expr = Dart_NewStringFromCString(expr_chars);
+  if (Dart_IsError(expr)) {
+    in_msg->SendErrorReply(msg_id, Dart_GetError(expr));
+    return false;
+  }
+
+  Dart_Handle value = Dart_EvaluateExpr(target, expr);
+  if (Dart_IsError(value)) {
+    in_msg->SendErrorReply(msg_id, Dart_GetError(value));
+    return false;
+  }
+
+  dart::TextBuffer msg(64);
+  msg.Printf("{\"id\":%d, \"result\":", msg_id);
+  FormatRemoteObj(&msg, value);
+  msg.Printf("}");
   in_msg->SendReply(&msg);
   return false;
 }

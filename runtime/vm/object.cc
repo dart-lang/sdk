@@ -9931,6 +9931,58 @@ void UnwindError::PrintToJSONStream(JSONStream* stream, bool ref) const {
 }
 
 
+static RawPatchClass* MakeTempPatchClass(const Class& cls,
+                                         const String& expr) {
+  String& src = String::Handle(String::New("() => "));
+  src = String::Concat(src, expr);
+  src = String::Concat(src, Symbols::Semicolon());
+  Script& script = Script::Handle();
+  script = Script::New(Symbols::Empty(), src, RawScript::kSourceTag);
+  // In order to tokenize the source, we need to get the key to mangle
+  // private names from the library from which the object's class
+  // originates.
+  const Library& lib = Library::Handle(cls.library());
+  ASSERT(!lib.IsNull());
+  const String& lib_key = String::Handle(lib.private_key());
+  script.Tokenize(lib_key);
+
+  const String& src_class_name = String::Handle(Symbols::New(":internal"));
+  const Class& src_class = Class::Handle(
+      Class::New(src_class_name, script, Scanner::kDummyTokenIndex));
+  src_class.set_is_finalized();
+  src_class.set_library(lib);
+  return PatchClass::New(cls, src_class);
+}
+
+
+RawObject* Instance::Evaluate(const String& expr) const {
+  const Class& cls = Class::Handle(clazz());
+  const PatchClass& temp_class =
+      PatchClass::Handle(MakeTempPatchClass(cls, expr));
+  const String& eval_func_name = String::Handle(Symbols::New(":eval"));
+  const Function& eval_func =
+      Function::Handle(Function::New(eval_func_name,
+                                     RawFunction::kRegularFunction,
+                                     false,  // Not static.
+                                     false,  // Not const.
+                                     false,  // Not abstract.
+                                     false,  // Not external.
+                                     temp_class,
+                                     0));
+  eval_func.set_result_type(Type::Handle(Type::DynamicType()));
+  eval_func.set_num_fixed_parameters(1);
+  eval_func.SetNumOptionalParameters(0, true);
+  eval_func.set_is_optimizable(false);
+
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, *this);
+  const Object& result =
+      Object::Handle(DartEntry::InvokeFunction(eval_func, args));
+  return result.raw();
+}
+
+
+
 bool Instance::Equals(const Instance& other) const {
   if (this->raw() == other.raw()) {
     return true;  // "===".

@@ -260,7 +260,9 @@ void DebuggerConnectionHandler::SendError(int debug_fd,
                                           int msg_id,
                                           const char* err_msg) {
   dart::TextBuffer msg(64);
-  msg.Printf("{\"id\": %d, \"error\": \"Error: %s\"}", msg_id, err_msg);
+  msg.Printf("{\"id\": %d, \"error\": \"Error: ", msg_id);
+  msg.AddEscapedString(err_msg);
+  msg.Printf("\"}");
   SendMsg(debug_fd, &msg);
 }
 

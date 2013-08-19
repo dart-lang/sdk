@@ -3693,6 +3693,11 @@ class Instance : public Object {
   // function.
   bool IsCallable(Function* function, Context* context) const;
 
+  // Evaluate the given expression as if it appeared in an instance
+  // method of this instance and return the resulting value, or an
+  // error object if evaluating the expression fails.
+  RawObject* Evaluate(const String& expr) const;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawInstance));
   }
