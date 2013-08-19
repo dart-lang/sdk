@@ -967,7 +967,7 @@ class DartiumBackend(HtmlDartGenerator):
       # Generate to Dart conversion of C++ value.
       if return_type_info.dart_type() == 'bool':
         set_return_value = 'Dart_SetBooleanReturnValue(args, %s)' % (value_expression)
-      elif return_type_info.dart_type() == 'int':
+      elif return_type_info.dart_type() == 'int' and return_type_info.native_type() == 'int':
         set_return_value = 'Dart_SetIntegerReturnValue(args, %s)' % (value_expression)
       elif return_type_info.dart_type() == 'double':
         set_return_value = 'Dart_SetDoubleReturnValue(args, %s)' % (value_expression)
