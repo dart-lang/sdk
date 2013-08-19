@@ -415,6 +415,8 @@ class Assembler : public ValueObject {
   void mulsd(XmmRegister dst, XmmRegister src);
   void divsd(XmmRegister dst, XmmRegister src);
 
+  void addpl(XmmRegister dst, XmmRegister src);
+  void subpl(XmmRegister dst, XmmRegister src);
   void addps(XmmRegister dst, XmmRegister src);
   void subps(XmmRegister dst, XmmRegister src);
   void divps(XmmRegister dst, XmmRegister src);

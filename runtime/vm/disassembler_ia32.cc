@@ -1505,16 +1505,7 @@ int X86Decoder::InstructionDecode(uword pc) {
           PrintCPURegister(regop);
         } else if (*data == 0x0F) {
           data++;
-          if (*data == 0x2F) {
-            data++;
-            int mod, regop, rm;
-            GetModRm(*data, &mod, &regop, &rm);
-            Print("comisd ");
-            PrintXmmRegister(regop);
-            Print(",");
-            PrintXmmRegister(rm);
-            data++;
-          } else if (*data == 0X6E) {
+          if (*data == 0X6E) {
             data++;
             int mod, regop, rm;
             GetModRm(*data, &mod, &regop, &rm);
@@ -1609,8 +1600,20 @@ int X86Decoder::InstructionDecode(uword pc) {
             Print(",");
             PrintXmmRegister(rm);
             data += 2;
+          } else if ((*data == 0xFE) || (*data == 0xFA) || (*data == 0x2F)) {
+            const char* mnemonic = NULL;
+            if (*data == 0xFE) mnemonic = "paddd ";
+            if (*data == 0xFA) mnemonic = "psubd ";
+            if (*data == 0x2F) mnemonic = "comisd ";
+            int mod, regop, rm;
+            GetModRm(*(data+1), &mod, &regop, &rm);
+            Print(mnemonic);
+            PrintXmmRegister(regop);
+            Print(",");
+            PrintXmmRegister(rm);
+            data += 2;
           } else {
-            UNIMPLEMENTED();
+              UNIMPLEMENTED();
           }
         } else if (*data == 0x90) {
           data++;
