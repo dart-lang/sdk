@@ -14,18 +14,18 @@ Language/16_Reference/1_Lexical_Rules/2_Comments_A04_t03: FAIL, OK # co19 issue 
 Language/15_Types/1_Static_Types_A03_t01: FAIL, OK # co19 issue 506
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: FAIL, OK # co19 issue 426
 
-LibTest/math/acos_A01_t01: FAIL, OK # co19 issue 44
-LibTest/math/asin_A01_t01: FAIL, OK # Issue co19 - 44
-LibTest/math/atan_A01_t01: FAIL, OK # Issue co19 - 44
+LibTest/math/acos_A01_t01: PASS, FAIL, OK # co19 issue 44
+LibTest/math/asin_A01_t01: PASS, FAIL, OK # co19 issue 44
+LibTest/math/atan_A01_t01: PASS, FAIL, OK # co19 issue 44
 LibTest/math/cos_A01_t01: PASS, FAIL, OK # co19 issue 44
-LibTest/math/exp_A01_t01: FAIL, OK # Issue co19 - 44
+LibTest/math/exp_A01_t01: PASS, FAIL, OK # co19 issue 44
 LibTest/math/max_A01_t03: FAIL, OK # co19 issue 467
 LibTest/math/min_A01_t03: FAIL, OK # co19 issue 467
 LibTest/math/pow_A01_t01: FAIL, OK # co19 issue 44
 LibTest/math/pow_A11_t01: FAIL, OK # co19 issue 512
 LibTest/math/pow_A13_t01: FAIL, OK # co19 issue 507
 LibTest/math/sin_A01_t01: PASS, FAIL, OK # co19 issue 44
-LibTest/math/tan_A01_t01: FAIL, OK  # Issue co19 - 44
+LibTest/math/tan_A01_t01: PASS, FAIL, OK  # co19 issue 44
 
 LibTest/collection/Queue/iterator_current_A01_t02: FAIL, OK # co19 issue 475
 LibTest/collection/Queue/iterator_moveNext_A01_t02: FAIL, OK # co19 issue 475
