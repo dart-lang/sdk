@@ -185,66 +185,66 @@ LibTest/math/cos_A01_t01: Pass, Fail # Fail on Mac
 Language/05_Variables/05_Variables_A05_t01: fail # Dart issue 12539
 Language/05_Variables/05_Variables_A05_t02: fail # Dart issue 12539
 Language/05_Variables/05_Variables_A05_t03: fail # Dart issue 12539
-Language/05_Variables/05_Variables_A06_t01: fail # co19-roll r546: Please triage this failure
-Language/05_Variables/05_Variables_A06_t02: fail # co19-roll r546: Please triage this failure
-Language/05_Variables/05_Variables_A06_t03: fail # co19-roll r546: Please triage this failure
-Language/05_Variables/05_Variables_A06_t04: fail # co19-roll r546: Please triage this failure
-Language/05_Variables/05_Variables_A06_t05: fail # co19-roll r546: Please triage this failure
-Language/05_Variables/05_Variables_A06_t06: fail # co19-roll r546: Please triage this failure
-Language/05_Variables/05_Variables_A16_t02: fail # co19-roll r546: Please triage this failure
-Language/07_Classes/07_Classes_A11_t02: fail # co19-roll r546: Please triage this failure
-Language/07_Classes/07_Classes_A11_t04: fail # co19-roll r546: Please triage this failure
-Language/07_Classes/3_Setters_A08_t01: fail # co19-roll r546: Please triage this failure
-Language/07_Classes/3_Setters_A08_t02: fail # co19-roll r546: Please triage this failure
-Language/07_Classes/3_Setters_A08_t03: fail # co19-roll r546: Please triage this failure
-Language/07_Classes/3_Setters_A08_t04: fail # co19-roll r546: Please triage this failure
-Language/07_Classes/3_Setters_A08_t05: fail # co19-roll r546: Please triage this failure
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/01_Constants_A01_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/01_Constants_A16_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/01_Constants_A16_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/01_Constants_A17_t03: crash # co19-roll r546: Please triage this failure
-Language/12_Expressions/03_Numbers_A01_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/03_Numbers_A01_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/03_Numbers_A01_t03: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/03_Numbers_A01_t04: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/03_Numbers_A01_t08: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/03_Numbers_A01_t10: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/05_Strings/1_String_Interpolation_A03_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/05_Strings/1_String_Interpolation_A04_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/05_Strings_A02_t46: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/05_Strings_A02_t48: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/05_Strings_A20_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/07_Maps_A01_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A06_t12: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A08_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A08_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A08_t03: fail # co19-roll r546: Please triage this failure
+Language/05_Variables/05_Variables_A06_t01: fail # Dart issue 12543
+Language/05_Variables/05_Variables_A06_t02: fail # Dart issue 12543
+Language/05_Variables/05_Variables_A06_t03: fail # Dart issue 12543
+Language/05_Variables/05_Variables_A06_t04: fail # Dart issue 12543
+Language/05_Variables/05_Variables_A06_t05: fail # Dart issue 12543
+Language/05_Variables/05_Variables_A06_t06: fail # Dart issue 12543
+Language/05_Variables/05_Variables_A16_t02: fail # Dart issue 12544
+Language/07_Classes/07_Classes_A11_t02: fail # Dart issue 12545
+Language/07_Classes/07_Classes_A11_t04: fail # Dart issue 12545
+Language/07_Classes/3_Setters_A08_t01: fail # co19 issue 520
+Language/07_Classes/3_Setters_A08_t02: fail # co19 issue 520
+Language/07_Classes/3_Setters_A08_t03: fail # co19 issue 520
+Language/07_Classes/3_Setters_A08_t04: fail # co19 issue 520
+Language/07_Classes/3_Setters_A08_t05: fail # co19 issue 520
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: fail # Dart issue 12543
+Language/12_Expressions/01_Constants_A01_t01: fail # co19 issue 522
+Language/12_Expressions/01_Constants_A16_t01: fail # co19 issue 525
+Language/12_Expressions/01_Constants_A16_t02: fail # co19 issue 525
+Language/12_Expressions/01_Constants_A17_t03: crash # Dart issue 1681
+Language/12_Expressions/03_Numbers_A01_t01: fail # co19 issue 522
+Language/12_Expressions/03_Numbers_A01_t02: fail # co19 issue 522
+Language/12_Expressions/03_Numbers_A01_t03: fail # co19 issue 522
+Language/12_Expressions/03_Numbers_A01_t04: fail # co19 issue 522
+Language/12_Expressions/03_Numbers_A01_t08: fail # co19 issue 522
+Language/12_Expressions/03_Numbers_A01_t10: fail # co19 issue 522
+Language/12_Expressions/05_Strings/1_String_Interpolation_A03_t02: fail # co19 issue 397
+Language/12_Expressions/05_Strings/1_String_Interpolation_A04_t02: fail # co19 issue 397
+Language/12_Expressions/05_Strings_A02_t46: fail # Dart issue 12547
+Language/12_Expressions/05_Strings_A02_t48: fail # Dart issue 12547
+Language/12_Expressions/05_Strings_A20_t01: fail # Dart issue 12518
+Language/12_Expressions/07_Maps_A01_t01: fail # co19 issue 522
+Language/12_Expressions/12_Instance_Creation/1_New_A06_t12: fail # Dart issue 12549
+Language/12_Expressions/12_Instance_Creation/1_New_A08_t01: fail # co19 issue 397
+Language/12_Expressions/12_Instance_Creation/1_New_A08_t02: fail # co19 issue 397
+Language/12_Expressions/12_Instance_Creation/1_New_A08_t03: fail # co19 issue 397
 Language/12_Expressions/12_Instance_Creation/1_New_A09_t09: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/2_Const_A10_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t05: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t09: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/17_Getter_Invocation_A02_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/18_Assignment_A05_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/18_Assignment_A05_t04: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/18_Assignment_A05_t05: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/18_Assignment_A08_t04: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/30_Identifier_Reference_A05_t02: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/12_Instance_Creation/2_Const_A10_t01: fail # co19 issue 525
+Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: fail # co19 issue 532
+Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t01: fail # Dart issue 12550
+Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: fail # co19 issue 532
+Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: fail # co19 issue 532
+Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t05: fail # co19 issue 533
+Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t09: fail # Dart issue 12549
+Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: fail # Dart issue 12549
+Language/12_Expressions/17_Getter_Invocation_A02_t01: fail # co19 issue 532
+Language/12_Expressions/18_Assignment_A05_t02: fail # co19 issue 532
+Language/12_Expressions/18_Assignment_A05_t04: fail # co19 issue 532
+Language/12_Expressions/18_Assignment_A05_t05: fail # co19 issue 532
+Language/12_Expressions/18_Assignment_A08_t04: fail # co19 issue 532
+Language/12_Expressions/30_Identifier_Reference_A05_t02: fail # Dart issue 12551
 Language/12_Expressions/30_Identifier_Reference_A08_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/32_Type_Test_A04_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/32_Type_Test_A04_t03: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/32_Type_Test_A04_t04: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/33_Type_Cast_A03_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/33_Type_Cast_A03_t03: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/02_Expression_Statements_A01_t06: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/03_Variable_Declaration_A04_t07: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/03_Variable_Declaration_A04_t08: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/06_For_A01_t11: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/32_Type_Test_A04_t02: fail # co19 issue 503
+Language/12_Expressions/32_Type_Test_A04_t03: fail # co19 issue 534
+Language/12_Expressions/32_Type_Test_A04_t04: fail # co19 issue 534
+Language/12_Expressions/33_Type_Cast_A03_t02: fail # co19 issue 534
+Language/12_Expressions/33_Type_Cast_A03_t03: fail # co19 issue 534
+Language/13_Statements/02_Expression_Statements_A01_t06: fail # co19 issue 517
+Language/13_Statements/03_Variable_Declaration_A04_t07: fail # co19 issue 535
+Language/13_Statements/03_Variable_Declaration_A04_t08: fail # co19 issue 535
+Language/13_Statements/06_For_A01_t11: fail # Dart issue 5675
 Language/13_Statements/09_Switch_A01_t02: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/09_Switch_A02_t01: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/09_Switch_A02_t02: fail # co19-roll r546: Please triage this failure
@@ -311,8 +311,6 @@ Utils/tests/Expect/listEquals_A03_t01: fail # co19 issue 500
 Utils/tests/Expect/setEquals_A02_t01: fail # co19 issue 499
 
 
-
-# co19-roll r546 (11.08.2013) caused these failures
 [ $compiler == none && $runtime == vm && $checked ]
 Language/12_Expressions/12_Instance_Creation_A01_t08: fail  # co19 issue 498
 Language/13_Statements/09_Switch_A05_t01: fail  # co19 issue 498
