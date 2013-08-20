@@ -71,6 +71,8 @@ touchevent_test/supported: Fail
 xhr_test: Pass, Fail # Issue 11884
 xhr_cross_origin_test: Pass, Fail # Issue 11884
 
+fileapi_test/directoryReader: Fail  # Issue 12573
+
 [ $runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt || $runtime == safari ]
 audiocontext_test: Skip # Issue 9322
 
