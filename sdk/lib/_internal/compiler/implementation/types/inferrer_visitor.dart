@@ -79,6 +79,12 @@ abstract class TypeSystem<T> {
    * Adds [newType] as an input of [phiType].
    */
   T addPhiInput(Element element, T phiType, T newType);
+
+  /**
+   * Returns a new receiver type for this [selector] applied to
+   * [receiverType].
+   */
+  T refineReceiver(Selector selector, T receiverType);
 }
 
 /**

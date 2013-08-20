@@ -122,6 +122,15 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   TypeMask simplifyPhi(Node node, Element element, TypeMask phiType) {
     return phiType;
   }
+
+  TypeMask refineReceiver(Selector selector, TypeMask receiverType) {
+    // If the receiver is based on an element, we let the type
+    // inferrer handle it. Otherwise, we might prevent it from finding
+    // one-level cycles in the inference graph.
+    if (receiverType.isElement) return receiverType;
+    TypeMask newType = compiler.world.allFunctions.receiverType(selector);
+    return receiverType.intersection(newType, compiler);
+  }
 }
 
 /**
@@ -1582,6 +1591,7 @@ class SimpleTypeInferrerVisitor<T>
   SideEffects sideEffects = new SideEffects.empty();
   final Element outermostElement;
   final InferrerEngine<T> inferrer;
+  final Set<Element> capturedVariables = new Set<Element>();
 
   SimpleTypeInferrerVisitor.internal(analyzedElement,
                                      this.outermostElement,
@@ -1735,11 +1745,14 @@ class SimpleTypeInferrerVisitor<T>
     // same as [newType].
     ClosureClassMap nestedClosureData =
         compiler.closureToClassMapper.getMappingForNestedFunction(node);
-    nestedClosureData.forEachNonBoxedCapturedVariable((variable, field) {
-      // The type may be null for instance contexts: the 'this'
-      // variable and type parameters.
-      if (locals.locals[variable] == null) return;
-      inferrer.recordType(field, locals.locals[variable]);
+    nestedClosureData.forEachCapturedVariable((variable, field) {
+      if (!nestedClosureData.isVariableBoxed(variable)) {
+        // The type may be null for instance contexts: the 'this'
+        // variable and type parameters.
+        if (locals.locals[variable] == null) return;
+        inferrer.recordType(field, locals.locals[variable]);
+      }
+      capturedVariables.add(variable);
     });
 
     return types.functionType;
@@ -2164,17 +2177,32 @@ class SimpleTypeInferrerVisitor<T>
 
   T handleDynamicSend(Node node,
                       Selector selector,
-                      T receiver,
+                      T receiverType,
                       ArgumentsTypes arguments,
                       [CallSite constraint]) {
-    if (selector.mask != receiver) {
-      selector = (receiver == types.dynamicType)
+    if (selector.mask != receiverType) {
+      selector = (receiverType == types.dynamicType)
           ? selector.asUntyped
-          : types.newTypedSelector(receiver, selector);
+          : types.newTypedSelector(receiverType, selector);
       updateSelectorInTree(node, selector);
     }
+
+    // If the receiver of the call is a local, we may know more about
+    // its type by refining it with the potential targets of the
+    // calls. 
+    if (node.asSend() != null) {
+      Node receiver = node.asSend().receiver;
+      if (receiver != null) {
+        Element element = elements[receiver];
+        if (Elements.isLocal(element) && !capturedVariables.contains(element)) {
+          T refinedType = types.refineReceiver(selector, receiverType);
+          locals.update(element, refinedType, node);
+        }
+      }
+    }
+
     return inferrer.registerCalledSelector(
-        node, selector, receiver, outermostElement, arguments,
+        node, selector, receiverType, outermostElement, arguments,
         constraint, sideEffects, inLoop);
   }
 

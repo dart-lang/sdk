@@ -426,6 +426,21 @@ testDoWhile4() {
   return a;
 }
 
+testSpecialization1() {
+  var a = topLevelGetter();
+  a - 42;
+  return a;
+}
+
+testSpecialization2() {
+  var a = topLevelGetter();
+  // Make [a] a captured variable. This should disable receiver
+  // specialization on [a].
+  (() => a.toString())();
+  a - 42;
+  return a;
+}
+
 testReturnInvokeDynamicGetter() => new A().myFactory();
 
 var topLevelConstList = const [42];
@@ -565,6 +580,8 @@ main() {
   testReturnInvokeDynamicGetter();
   testCascade1();
   testCascade2();
+  testSpecialization1();
+  testSpecialization2();
 }
 """;
 
@@ -687,4 +704,6 @@ void main() {
   checkReturn('testCascade1', typesTask.growableListType);
   checkReturn('testCascade2', new TypeMask.nonNullExact(
       typesTask.rawTypeOf(findElement(compiler, 'CascadeHelper'))));
+  checkReturn('testSpecialization1', typesTask.numType);
+  checkReturn('testSpecialization2', typesTask.dynamicType);
 }

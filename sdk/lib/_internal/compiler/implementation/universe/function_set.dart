@@ -49,20 +49,28 @@ class FunctionSet {
    * that may be invoked with the given [selector].
    */
   Iterable<Element> filter(Selector selector) {
+    return query(selector).functions;
+  }
+
+  TypeMask receiverType(Selector selector) {
+    return query(selector).computeMask(compiler);
+  }
+
+  FunctionSetQuery query(Selector selector) {
     SourceString name = selector.name;
     FunctionSetNode node = nodes[name];
     FunctionSetNode noSuchMethods = nodes[Compiler.NO_SUCH_METHOD];
     if (node != null) {
-      return node.query(selector, compiler, noSuchMethods).functions;
+      return node.query(selector, compiler, noSuchMethods);
     }
     // If there is no method that matches [selector] we know we can
     // only hit [:noSuchMethod:].
-    if (noSuchMethods == null) return const <Element>[];
+    if (noSuchMethods == null) return const FunctionSetQuery(const <Element>[]);
     selector = (selector.mask == null)
         ? compiler.noSuchMethodSelector
         : new TypedSelector(selector.mask, compiler.noSuchMethodSelector);
 
-    return noSuchMethods.query(selector, compiler, null).functions;
+    return noSuchMethods.query(selector, compiler, null);
   }
 
   void forEach(Function action) {
@@ -186,11 +194,38 @@ class FunctionSetNode {
   FunctionSetQuery newQuery(Iterable<Element> functions,
                             Selector selector,
                             Compiler compiler) {
-    return new FunctionSetQuery(functions);
+    return new FullFunctionSetQuery(functions);
   }
 }
 
 class FunctionSetQuery {
   final Iterable<Element> functions;
+  TypeMask computeMask(Compiler compiler) => const TypeMask.nonNullEmpty();
   const FunctionSetQuery(this.functions);
+}
+
+class FullFunctionSetQuery extends FunctionSetQuery {
+  TypeMask _mask;
+
+  /**
+   * Compute the type of all potential receivers of this function set.
+   */
+  TypeMask computeMask(Compiler compiler) {
+    if (_mask != null) return _mask;
+    return _mask = new TypeMask.unionOf(functions
+        .expand((element) {
+          ClassElement cls = element.getEnclosingClass();
+          return compiler.world.isUsedAsMixin(cls)
+              ? ([cls]..addAll(compiler.world.mixinUses[cls]))
+              : [cls];
+        })
+        .map((cls) {
+          return compiler.world.hasSubclasses(cls)
+              ? new TypeMask.nonNullSubclass(cls.rawType)
+              : new TypeMask.nonNullExact(cls.rawType);
+        }),
+        compiler);
+  }
+
+  FullFunctionSetQuery(functions) : super(functions);
 }
