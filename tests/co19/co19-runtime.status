@@ -299,8 +299,10 @@ LibTest/isolate/IsolateSink/addError_A01_t01: fail # co19-roll r546: Please tria
 LibTest/isolate/IsolateSink/addError_A01_t02: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateStream/any_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateStream/contains_A02_t01: fail, pass # co19-roll r546: Please triage this failure
+LibTest/isolate/isolate_api/streamSpawnFunction_A02_t03: fail, pass # co19-roll r546: Please triage this failure
 LibTest/isolate/SendPort/send_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/SendPort/send_A02_t04: fail # co19 issue 501
+LibTest/async/Future/Future.delayed_A01_t02: fail, pass # co19 issue 536
 Utils/tests/Expect/listEquals_A02_t01: fail # co19 issue 499
 Utils/tests/Expect/listEquals_A03_t01: fail # co19 issue 500
 Utils/tests/Expect/setEquals_A02_t01: fail # co19 issue 499
