@@ -41,12 +41,6 @@ null_nosuchmethod_test: Fail # Issue: 7413
 date_time7_test: Fail
 unicode_test: Fail
 
-[ $runtime == ie9 && ($system == linux || $system == macos) ]
-*: Skip
-
-[ $runtime == safari && ($system == linux || $system == windows) ]
-*: Skip
-
 [ $runtime == vm ]
 string_trim_unicode_test: Fail  # Bug 6569
 

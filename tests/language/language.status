@@ -97,12 +97,6 @@ call_test: Fail # Issue 1604
 [ $runtime == chrome ]
 
 
-[ $runtime == ie9 && ($system == linux || $system == macos) ]
-*: Skip
-
-[ $runtime == safari && ($system == linux || $system == windows) ]
-*: Skip
-
 [ $browser ]
 
 

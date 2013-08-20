@@ -2,12 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $runtime == ie9 && ($system == linux || $system == macos) ]
-*: Skip
-
-[ $runtime == safari && ($system == linux || $system == windows) ]
-*: Skip
-
 [ $runtime == vm ]
 *: Skip
 

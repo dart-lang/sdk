@@ -369,12 +369,6 @@ element_types_test/supported_template: Fail
 [ $runtime == ff && $system == linux ]
 rtc_test/functionality: Fail # Issue: 12109.
 
-[ $runtime == ie9 && ($system == linux || $system == macos) ]
-*: Skip
-
-[ $runtime == safari && ($system == linux || $system == windows) ]
-*: Skip
-
 # 'html' tests import the HTML library, so they only make sense in
 # a browser environment.
 [ $runtime == vm ]
