@@ -2511,6 +2511,11 @@ bool Class::TypeTest(
   Error& args_malformed_error = Error::Handle();
   for (intptr_t i = 0; i < interfaces.Length(); i++) {
     interface ^= interfaces.At(i);
+    if (!interface.IsFinalized()) {
+      // We may be checking bounds at finalization time. Skipping this
+      // unfinalized interface will postpone bound checking to run time.
+      continue;
+    }
     interface_class = interface.type_class();
     interface_args = interface.arguments();
     if (!interface_args.IsNull() && !interface_args.IsInstantiated()) {
@@ -2522,7 +2527,6 @@ bool Class::TypeTest(
       // parameters of the interface are at the end of the type vector,
       // after the type arguments of the super type of this type.
       // The index of the type parameters is adjusted upon finalization.
-      ASSERT(interface.IsFinalized());
       args_malformed_error = Error::null();
       interface_args = interface_args.InstantiateFrom(type_arguments,
                                                       &args_malformed_error);
