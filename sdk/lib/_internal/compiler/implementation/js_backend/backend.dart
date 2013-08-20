@@ -366,7 +366,9 @@ class JavaScriptBackend extends Backend {
   }
 
   bool canBeUsedForGlobalOptimizations(Element element) {
-    if (element.isParameter() || element.isFieldParameter()) {
+    if (element.isParameter()
+        || element.isFieldParameter()
+        || element.isField()) {
       element = element.enclosingElement;
     }
     return !helpersUsed.contains(element.declaration);
@@ -638,7 +640,7 @@ class JavaScriptBackend extends Backend {
         },
         includeSuperAndInjectedMembers: true);
     }
-    enqueuer.registerInstantiatedClass(cls, elements);
+    enqueueClass(enqueuer, cls, elements);
   }
 
   void registerSpecializedGetInterceptor(Set<ClassElement> classes) {
@@ -660,11 +662,10 @@ class JavaScriptBackend extends Backend {
       if (enqueuer.isResolutionQueue) {
         // TODO(9577): Make it so that these are not needed when there are no
         // native classes.
-        enqueuer.registerStaticUse(getNativeInterceptorMethod);
-        enqueuer.registerStaticUse(defineNativeMethodsFinishMethod);
-        enqueuer.registerStaticUse(initializeDispatchPropertyMethod);
-        enqueuer.registerInstantiatedClass(jsInterceptorClass,
-                                           compiler.globalDependencies);
+        enqueue(enqueuer, getNativeInterceptorMethod, elements);
+        enqueue(enqueuer, defineNativeMethodsFinishMethod, elements);
+        enqueue(enqueuer, initializeDispatchPropertyMethod, elements);
+        enqueueClass(enqueuer, jsInterceptorClass, compiler.globalDependencies);
       }
     }
 
@@ -675,24 +676,31 @@ class JavaScriptBackend extends Backend {
           || cls == compiler.numClass) {
         // The backend will try to optimize number operations and use the
         // `iae` helper directly.
-        enqueuer.registerStaticUse(
-            compiler.findHelper(const SourceString('iae')));
+        enqueue(enqueuer,
+                compiler.findHelper(const SourceString('iae')),
+                elements);
       } else if (cls == compiler.listClass
                  || cls == compiler.stringClass) {
         // The backend will try to optimize array and string access and use the
         // `ioore` and `iae` helpers directly.
-        enqueuer.registerStaticUse(
-            compiler.findHelper(const SourceString('ioore')));
-        enqueuer.registerStaticUse(
-            compiler.findHelper(const SourceString('iae')));
+        enqueue(enqueuer,
+                compiler.findHelper(const SourceString('ioore')),
+                elements);
+        enqueue(enqueuer,
+                compiler.findHelper(const SourceString('iae')),
+                elements);
       } else if (cls == compiler.functionClass) {
-        enqueuer.registerInstantiatedClass(compiler.closureClass, elements);
+        enqueueClass(enqueuer, compiler.closureClass, elements);
       } else if (cls == compiler.mapClass) {
         // The backend will use a literal list to initialize the entries
         // of the map.
-        enqueuer.registerInstantiatedClass(compiler.listClass, elements);
-        enqueuer.registerInstantiatedClass(mapLiteralClass, elements);
+        enqueueClass(enqueuer, compiler.listClass, elements);
+        enqueueClass(enqueuer, mapLiteralClass, elements);
         enqueueInResolution(getMapMaker(), elements);
+      } else if (cls == compiler.boundClosureClass) {
+        // TODO(ngeoffray): Move the bound closure class in the
+        // backend.
+        enqueueClass(enqueuer, compiler.boundClosureClass, elements);
       }
     }
     ClassElement result = null;
@@ -703,8 +711,8 @@ class JavaScriptBackend extends Backend {
                || cls == jsFixedArrayClass
                || cls == jsExtendableArrayClass) {
       addInterceptors(jsArrayClass, enqueuer, elements);
-      enqueuer.registerInstantiatedClass(jsFixedArrayClass, elements);
-      enqueuer.registerInstantiatedClass(jsExtendableArrayClass, elements);
+      enqueueClass(enqueuer, jsFixedArrayClass, elements);
+      enqueueClass(enqueuer, jsExtendableArrayClass, elements);
     } else if (cls == compiler.intClass || cls == jsIntClass) {
       addInterceptors(jsIntClass, enqueuer, elements);
       addInterceptors(jsNumberClass, enqueuer, elements);
@@ -731,11 +739,11 @@ class JavaScriptBackend extends Backend {
   void registerUseInterceptor(Enqueuer enqueuer) {
     assert(!enqueuer.isResolutionQueue);
     if (!enqueuer.nativeEnqueuer.hasInstantiatedNativeClasses()) return;
-    enqueuer.registerStaticUse(getNativeInterceptorMethod);
-    enqueuer.registerStaticUse(defineNativeMethodsFinishMethod);
-    enqueuer.registerStaticUse(initializeDispatchPropertyMethod);
     TreeElements elements = compiler.globalDependencies;
-    enqueuer.registerInstantiatedClass(jsPlainJavaScriptObjectClass, elements);
+    enqueue(enqueuer, getNativeInterceptorMethod, elements);
+    enqueue(enqueuer, defineNativeMethodsFinishMethod, elements);
+    enqueue(enqueuer, initializeDispatchPropertyMethod, elements);
+    enqueueClass(enqueuer, jsPlainJavaScriptObjectClass, elements);
     needToInitializeDispatchProperty = true;
   }
 
@@ -749,10 +757,14 @@ class JavaScriptBackend extends Backend {
     if (jsIndexingBehaviorInterface != null) {
       world.registerIsCheck(jsIndexingBehaviorInterface.computeType(compiler),
                             elements);
-      world.registerStaticUse(
-          compiler.findHelper(const SourceString('isJsIndexable')));
-      world.registerStaticUse(
-          compiler.findInterceptor(const SourceString('dispatchPropertyName')));
+      enqueue(
+          world,
+          compiler.findHelper(const SourceString('isJsIndexable')),
+          elements);
+      enqueue(
+          world,
+          compiler.findInterceptor(const SourceString('dispatchPropertyName')),
+          elements);
     }
 
     if (compiler.enableTypeAssertions) {
@@ -774,7 +786,7 @@ class JavaScriptBackend extends Backend {
   void registerCatchStatement(Enqueuer enqueuer, TreeElements elements) {
     void ensure(ClassElement classElement) {
       if (classElement != null) {
-        enqueuer.registerInstantiatedClass(classElement, elements);
+        enqueueClass(enqueuer, classElement, elements);
       }
     }
     enqueueInResolution(getExceptionUnwrapper(), elements);
@@ -835,7 +847,7 @@ class JavaScriptBackend extends Backend {
     enqueue(enqueuer, getGetRuntimeTypeInfo(), elements);
     enqueue(enqueuer, getComputeSignature(), elements);
     enqueue(enqueuer, getGetRuntimeTypeArguments(), elements);
-    enqueuer.registerInstantiatedClass(compiler.listClass, elements);
+    enqueueClass(enqueuer, compiler.listClass, elements);
   }
 
   void registerRuntimeType(Enqueuer enqueuer, TreeElements elements) {
@@ -843,23 +855,21 @@ class JavaScriptBackend extends Backend {
     enqueueInResolution(getSetRuntimeTypeInfo(), elements);
     enqueueInResolution(getGetRuntimeTypeInfo(), elements);
     registerGetRuntimeTypeArgument(elements);
-    compiler.enqueuer.resolution.registerInstantiatedClass(
-        compiler.listClass, elements);
+    enqueueClass(enqueuer, compiler.listClass, elements);
   }
 
   void registerTypeVariableExpression(TreeElements elements) {
     enqueueInResolution(getSetRuntimeTypeInfo(), elements);
     enqueueInResolution(getGetRuntimeTypeInfo(), elements);
     registerGetRuntimeTypeArgument(elements);
-    compiler.enqueuer.resolution.registerInstantiatedClass(
-        compiler.listClass, elements);
+    enqueueClass(compiler.enqueuer.resolution, compiler.listClass, elements);
     enqueueInResolution(getRuntimeTypeToString(), elements);
     enqueueInResolution(getCreateRuntimeType(), elements);
   }
 
   void registerIsCheck(DartType type, Enqueuer world, TreeElements elements) {
     type = type.unalias(compiler);
-    world.registerInstantiatedClass(compiler.boolClass, elements);
+    enqueueClass(world, compiler.boolClass, elements);
     bool inCheckedMode = compiler.enableTypeAssertions;
     // [registerIsCheck] is also called for checked mode checks, so we
     // need to register checked mode helpers.
@@ -885,7 +895,7 @@ class JavaScriptBackend extends Backend {
           enqueueInResolution(getAssertSubtypeOfRuntimeType(), elements);
         }
       }
-      world.registerInstantiatedClass(compiler.listClass, elements);
+      enqueueClass(world, compiler.listClass, elements);
     }
     if (type is FunctionType) {
       enqueueInResolution(getCheckFunctionSubtype(), elements);
@@ -914,24 +924,20 @@ class JavaScriptBackend extends Backend {
   void registerThrowNoSuchMethod(TreeElements elements) {
     enqueueInResolution(getThrowNoSuchMethod(), elements);
     // Also register the types of the arguments passed to this method.
-    compiler.enqueuer.resolution.registerInstantiatedClass(
-        compiler.listClass, elements);
-    compiler.enqueuer.resolution.registerInstantiatedClass(
-        compiler.stringClass, elements);
+    enqueueClass(compiler.enqueuer.resolution, compiler.listClass, elements);
+    enqueueClass(compiler.enqueuer.resolution, compiler.stringClass, elements);
   }
 
   void registerThrowRuntimeError(TreeElements elements) {
     enqueueInResolution(getThrowRuntimeError(), elements);
     // Also register the types of the arguments passed to this method.
-    compiler.enqueuer.resolution.registerInstantiatedClass(
-        compiler.stringClass, elements);
+    enqueueClass(compiler.enqueuer.resolution, compiler.stringClass, elements);
   }
 
   void registerAbstractClassInstantiation(TreeElements elements) {
     enqueueInResolution(getThrowAbstractClassInstantiationError(), elements);
     // Also register the types of the arguments passed to this method.
-    compiler.enqueuer.resolution.registerInstantiatedClass(
-        compiler.stringClass, elements);
+    enqueueClass(compiler.enqueuer.resolution, compiler.stringClass, elements);
   }
 
   void registerFallThroughError(TreeElements elements) {
@@ -943,8 +949,7 @@ class JavaScriptBackend extends Backend {
     enqueueInResolution(
         compiler.objectClass.lookupLocalMember(Compiler.NO_SUCH_METHOD),
         elements);
-    compiler.enqueuer.resolution.registerInstantiatedClass(
-        compiler.listClass, elements);
+    enqueueClass(compiler.enqueuer.resolution, compiler.listClass, elements);
   }
 
   void registerRequiredType(DartType type, Element enclosingElement) {
@@ -1027,14 +1032,25 @@ class JavaScriptBackend extends Backend {
     enqueue(enqueuer, e, elements);
   }
 
+  void enqueueClass(Enqueuer enqueuer, Element cls, TreeElements elements) {
+    if (cls == null) return;
+    helpersUsed.add(cls.declaration);
+    // Both declaration and implementation may declare fields, so we
+    // add both to the list of helpers.
+    if (cls.declaration != cls.implementation) {
+      helpersUsed.add(cls.implementation);
+    }
+    enqueuer.registerInstantiatedClass(cls, elements);
+  }
+
   void registerConstantMap(TreeElements elements) {
     Element e = compiler.findHelper(const SourceString('ConstantMap'));
     if (e != null) {
-      compiler.enqueuer.resolution.registerInstantiatedClass(e, elements);
+      enqueueClass(compiler.enqueuer.resolution, e, elements);
     }
     e = compiler.findHelper(const SourceString('ConstantProtoMap'));
     if (e != null) {
-      compiler.enqueuer.resolution.registerInstantiatedClass(e, elements);
+      enqueueClass(compiler.enqueuer.resolution, e, elements);
     }
   }
 
