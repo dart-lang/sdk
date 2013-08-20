@@ -232,6 +232,7 @@ LibTest/isolate/SendPort/send_A02_t04: fail # co19 issue 501
 
 
 [ $compiler == none && $runtime == vm && $checked ]
+Language/12_Expressions/12_Instance_Creation_A01_t08: FAIL, OK  # co19 issue 498
 LibTest/core/Set/intersection_A01_t01: pass # co19-roll r546: Please triage this failure
 LibTest/core/Set/intersection_A01_t03: pass # co19-roll r546: Please triage this failure
 LibTest/core/Set/intersection_A03_t01: pass # co19-roll r546: Please triage this failure
