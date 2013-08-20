@@ -617,6 +617,17 @@ void Float32x4ShuffleInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void Simd32x4GetSignMaskInstr::PrintOperandsTo(BufferFormatter* f) const {
+  if (op_kind() == MethodRecognizer::kFloat32x4GetSignMask) {
+    f->Print("Float32x4.getSignMask ");
+  } else {
+    ASSERT(op_kind() == MethodRecognizer::kUint32x4GetSignMask);
+    f->Print("Uint32x4.getSignMask ");
+  }
+  value()->PrintTo(f);
+}
+
+
 void Float32x4ZeroInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("ZERO ");
 }

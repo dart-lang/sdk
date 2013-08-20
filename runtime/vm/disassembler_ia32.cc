@@ -1392,7 +1392,7 @@ int X86Decoder::InstructionDecode(uword pc) {
             Print(",");
             data += PrintRightXmmOperand(data);
           } else if (f0byte == 0x50) {
-            Print("movmskpd ");
+            Print("movmskps ");
             int mod, regop, rm;
             GetModRm(*data, &mod, &regop, &rm);
             PrintCPURegister(regop);

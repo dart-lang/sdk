@@ -934,6 +934,16 @@ class Float32x4 {
   /// Extracted w value.
   double get w => _storage[3];
 
+  /// Extract the sign bit from each lane return them in the first 4 bits.
+  int get signMask {
+    var view = new Uint32List.view(_storage.buffer);
+    var mx = (view[0] & 0x80000000) >> 31;
+    var my = (view[1] & 0x80000000) >> 31;
+    var mz = (view[2] & 0x80000000) >> 31;
+    var mw = (view[3] & 0x80000000) >> 31;
+    return mx | my << 1 | mz << 2 | mw << 3;
+  }
+
   /// Mask passed to [shuffle].
   static const int XXXX = 0x0;
   static const int XXXY = 0x40;
@@ -1192,7 +1202,6 @@ class Float32x4 {
   static const int WWWZ = 0xBF;
   static const int WWWW = 0xFF;
 
-
   /// Shuffle the lane values. [mask] must be one of the 256 shuffle constants.
   Float32x4 shuffle(int m) {
     if (m < 0 || m > 255) {
@@ -1422,6 +1431,15 @@ class Uint32x4 {
   int get z => _storage[2];
   /// Extract 32-bit mask from w lane.
   int get w => _storage[3];
+
+  /// Extract the top bit from each lane return them in the first 4 bits.
+  int get signMask {
+    int mx = (_storage[0] & 0x80000000) >> 31;
+    int my = (_storage[1] & 0x80000000) >> 31;
+    int mz = (_storage[2] & 0x80000000) >> 31;
+    int mw = (_storage[3] & 0x80000000) >> 31;
+    return mx | my << 1 | mz << 2 | mw << 3;
+  }
 
   /// Returns a new [Uint32x4] copied from [this] with a new x value.
   Uint32x4 withX(int x) {

@@ -876,6 +876,9 @@ abstract class Float32x4 {
   /// Extracted w value.
   double get w;
 
+  /// Extract the sign bits from each lane return them in the first 4 bits.
+  int get signMask;
+
   /// Mask passed to [shuffle].
   static const int XXXX = 0x0;
   static const int XXXY = 0x40;
@@ -1214,6 +1217,9 @@ abstract class Uint32x4 {
   int get z;
   /// Extract 32-bit mask from w lane.
   int get w;
+
+  /// Extract the top bit from each lane return them in the first 4 bits.
+  int get signMask;
 
   /// Returns a new [Uint32x4] copied from [this] with a new x value.
   Uint32x4 withX(int x);

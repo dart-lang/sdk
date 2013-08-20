@@ -94,6 +94,7 @@ class Range;
   V(_Float32x4, get:y, Float32x4ShuffleY, 710282243)                           \
   V(_Float32x4, get:z, Float32x4ShuffleZ, 1612806041)                          \
   V(_Float32x4, get:w, Float32x4ShuffleW, 1113701403)                          \
+  V(_Float32x4, get:signMask, Float32x4GetSignMask, 465347632)                 \
   V(_Float32x4, _cmpequal, Float32x4Equal, 1559121703)                         \
   V(_Float32x4, _cmpgt, Float32x4GreaterThan, 1959692892)                      \
   V(_Float32x4, _cmpgte, Float32x4GreaterThanOrEqual, 2128251808)              \
@@ -124,6 +125,7 @@ class Range;
   V(_Uint32x4, get:flagY, Uint32x4GetFlagY, 1226233321)                        \
   V(_Uint32x4, get:flagZ, Uint32x4GetFlagZ, 1455452476)                        \
   V(_Uint32x4, get:flagW, Uint32x4GetFlagW, 1608549245)                        \
+  V(_Uint32x4, get:signMask, Uint32x4GetSignMask, 231202664)                   \
   V(_Uint32x4, select, Uint32x4Select, 881590808)                              \
   V(_Uint32x4, withFlagX, Uint32x4WithFlagX, 1987921054)                       \
   V(_Uint32x4, withFlagY, Uint32x4WithFlagY, 831632614)                        \
@@ -613,6 +615,7 @@ class EmbeddedArray<T, 0> {
   M(IfThenElse)                                                                \
   M(BinaryFloat32x4Op)                                                         \
   M(Float32x4Shuffle)                                                          \
+  M(Simd32x4GetSignMask)                                                       \
   M(Float32x4Constructor)                                                      \
   M(Float32x4Zero)                                                             \
   M(Float32x4Splat)                                                            \
@@ -902,6 +905,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class Float32x4ZeroInstr;
   friend class Float32x4SplatInstr;
   friend class Float32x4ShuffleInstr;
+  friend class Simd32x4GetSignMaskInstr;
   friend class Float32x4ConstructorInstr;
   friend class Float32x4ComparisonInstr;
   friend class Float32x4MinMaxInstr;
@@ -5524,6 +5528,60 @@ class Uint32x4GetFlagInstr : public TemplateDefinition<1> {
   const MethodRecognizer::Kind op_kind_;
 
   DISALLOW_COPY_AND_ASSIGN(Uint32x4GetFlagInstr);
+};
+
+
+class Simd32x4GetSignMaskInstr : public TemplateDefinition<1> {
+ public:
+  Simd32x4GetSignMaskInstr(MethodRecognizer::Kind op_kind, Value* value,
+                           intptr_t deopt_id) : op_kind_(op_kind) {
+    SetInputAt(0, value);
+    deopt_id_ = deopt_id;
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  MethodRecognizer::Kind op_kind() const { return op_kind_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    return kTagged;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    if (op_kind_ == MethodRecognizer::kFloat32x4GetSignMask) {
+      return kUnboxedFloat32x4;
+    }
+    ASSERT(op_kind_ == MethodRecognizer::kUint32x4GetSignMask);
+    return kUnboxedUint32x4;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Simd32x4GetSignMask)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return other->AsSimd32x4GetSignMask()->op_kind() == op_kind();
+  }
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  const MethodRecognizer::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(Simd32x4GetSignMaskInstr);
 };
 
 

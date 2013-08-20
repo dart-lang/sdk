@@ -1422,6 +1422,11 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
     get_modrm(*current, &mod, &regop, &rm);
     AppendToBuffer("movups %s, ", NameOfXMMRegister(regop));
     current += PrintRightXMMOperand(current);
+  } else if (opcode == 0x50) {
+    int mod, regop, rm;
+    get_modrm(*current, &mod, &regop, &rm);
+    AppendToBuffer("movmskps %s,", NameOfCPURegister(regop));
+    current += PrintRightXMMOperand(current);
   } else if (opcode == 0xA2 || opcode == 0x31) {
     // RDTSC or CPUID
     AppendToBuffer("%s", mnemonic);

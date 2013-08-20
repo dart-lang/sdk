@@ -229,6 +229,28 @@ DEFINE_NATIVE_ENTRY(Float32x4_getW, 1) {
 }
 
 
+DEFINE_NATIVE_ENTRY(Float32x4_getSignMask, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
+  uint32_t mx = (bit_cast<uint32_t>(self.x()) & 0x80000000) >> 31;
+  uint32_t my = (bit_cast<uint32_t>(self.y()) & 0x80000000) >> 31;
+  uint32_t mz = (bit_cast<uint32_t>(self.z()) & 0x80000000) >> 31;
+  uint32_t mw = (bit_cast<uint32_t>(self.w()) & 0x80000000) >> 31;
+  uint32_t value = mx | (my << 1) | (mz << 2) | (mw << 3);
+  return Integer::New(value);
+}
+
+
+DEFINE_NATIVE_ENTRY(Uint32x4_getSignMask, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Uint32x4, self, arguments->NativeArgAt(0));
+  uint32_t mx = (self.x() & 0x80000000) >> 31;
+  uint32_t my = (self.y() & 0x80000000) >> 31;
+  uint32_t mz = (self.z() & 0x80000000) >> 31;
+  uint32_t mw = (self.w() & 0x80000000) >> 31;
+  uint32_t value = mx | (my << 1) | (mz << 2) | (mw << 3);
+  return Integer::New(value);
+}
+
+
 DEFINE_NATIVE_ENTRY(Float32x4_shuffle, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, mask, arguments->NativeArgAt(1));

@@ -1507,8 +1507,8 @@ bool FlowGraphOptimizer::InlineFloat32x4Getter(InstanceCallInstr* call,
                 call);
   intptr_t mask = 0;
   if (getter == MethodRecognizer::kFloat32x4Shuffle) {
-    ASSERT(call->ArgumentCount() == 2);
     // Extract shuffle mask.
+    ASSERT(call->ArgumentCount() == 2);
     Definition* mask_definition = call->ArgumentAt(1);
     if (!mask_definition->IsConstant()) {
       // Not a constant.
@@ -1528,13 +1528,29 @@ bool FlowGraphOptimizer::InlineFloat32x4Getter(InstanceCallInstr* call,
       return false;
     }
   }
-  Float32x4ShuffleInstr* instr = new Float32x4ShuffleInstr(
-      getter,
-      new Value(call->ArgumentAt(0)),
-      mask,
-      call->deopt_id());
-  ReplaceCall(call, instr);
-  return true;
+  if (getter == MethodRecognizer::kFloat32x4GetSignMask) {
+    Simd32x4GetSignMaskInstr* instr = new Simd32x4GetSignMaskInstr(
+        getter,
+        new Value(call->ArgumentAt(0)),
+        call->deopt_id());
+    ReplaceCall(call, instr);
+    return true;
+  } else {
+    ASSERT((getter == MethodRecognizer::kFloat32x4Shuffle)  ||
+           (getter == MethodRecognizer::kFloat32x4ShuffleX) ||
+           (getter == MethodRecognizer::kFloat32x4ShuffleY) ||
+           (getter == MethodRecognizer::kFloat32x4ShuffleZ) ||
+           (getter == MethodRecognizer::kFloat32x4ShuffleW));
+    Float32x4ShuffleInstr* instr = new Float32x4ShuffleInstr(
+        getter,
+        new Value(call->ArgumentAt(0)),
+        mask,
+        call->deopt_id());
+    ReplaceCall(call, instr);
+    return true;
+  }
+  UNREACHABLE();
+  return false;
 }
 
 
@@ -1549,12 +1565,21 @@ bool FlowGraphOptimizer::InlineUint32x4Getter(InstanceCallInstr* call,
                 call->deopt_id(),
                 call->env(),
                 call);
-  Uint32x4GetFlagInstr* instr = new Uint32x4GetFlagInstr(
-      getter,
-      new Value(call->ArgumentAt(0)),
-      call->deopt_id());
-  ReplaceCall(call, instr);
-  return true;
+  if (getter == MethodRecognizer::kUint32x4GetSignMask) {
+    Simd32x4GetSignMaskInstr* instr = new Simd32x4GetSignMaskInstr(
+        getter,
+        new Value(call->ArgumentAt(0)),
+        call->deopt_id());
+    ReplaceCall(call, instr);
+    return true;
+  } else {
+    Uint32x4GetFlagInstr* instr = new Uint32x4GetFlagInstr(
+        getter,
+        new Value(call->ArgumentAt(0)),
+        call->deopt_id());
+    ReplaceCall(call, instr);
+    return true;
+  }
 }
 
 
@@ -1692,6 +1717,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     case MethodRecognizer::kFloat32x4ShuffleY:
     case MethodRecognizer::kFloat32x4ShuffleZ:
     case MethodRecognizer::kFloat32x4ShuffleW:
+    case MethodRecognizer::kFloat32x4GetSignMask:
       if (!ic_data.HasReceiverClassId(kFloat32x4Cid) ||
           !ic_data.HasOneTarget()) {
         return false;
@@ -1700,7 +1726,8 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     case MethodRecognizer::kUint32x4GetFlagX:
     case MethodRecognizer::kUint32x4GetFlagY:
     case MethodRecognizer::kUint32x4GetFlagZ:
-    case MethodRecognizer::kUint32x4GetFlagW: {
+    case MethodRecognizer::kUint32x4GetFlagW:
+    case MethodRecognizer::kUint32x4GetSignMask: {
       if (!ic_data.HasReceiverClassId(kUint32x4Cid) ||
           !ic_data.HasOneTarget()) {
         return false;
@@ -6513,6 +6540,12 @@ void ConstantPropagator::VisitFloat32x4Shuffle(Float32x4ShuffleInstr* instr) {
 }
 
 
+void ConstantPropagator::VisitSimd32x4GetSignMask(
+    Simd32x4GetSignMaskInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
 void ConstantPropagator::VisitFloat32x4Zero(Float32x4ZeroInstr* instr) {
   SetValue(instr, non_constant_);
 }
@@ -6563,6 +6596,7 @@ void ConstantPropagator::VisitFloat32x4ToUint32x4(
     Float32x4ToUint32x4Instr* instr) {
   SetValue(instr, non_constant_);
 }
+
 
 void ConstantPropagator::VisitFloat32x4TwoArgShuffle(
     Float32x4TwoArgShuffleInstr* instr) {

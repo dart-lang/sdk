@@ -3041,6 +3041,17 @@ void Uint32x4GetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* Simd32x4GetSignMaskInstr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void Simd32x4GetSignMaskInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
 LocationSummary* Uint32x4SelectInstr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;

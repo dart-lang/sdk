@@ -3030,6 +3030,46 @@ void Float32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* Simd32x4GetSignMaskInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::FpuRegisterLocation(Q5));
+  summary->set_temp(0, Location::RequiresRegister());
+  summary->set_out(Location::RequiresRegister());
+  return summary;
+}
+
+
+void Simd32x4GetSignMaskInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  QRegister value = locs()->in(0).fpu_reg();
+  DRegister dvalue0 = EvenDRegisterOf(value);
+  DRegister dvalue1 = OddDRegisterOf(value);
+
+  Register out = locs()->out().reg();
+  Register temp = locs()->temp(0).reg();
+
+  // X lane.
+  __ vmovrs(out, EvenSRegisterOf(dvalue0));
+  __ Lsr(out, out, 31);
+  // Y lane.
+  __ vmovrs(temp, OddSRegisterOf(dvalue0));
+  __ Lsr(temp, temp, 31);
+  __ orr(out, out, ShifterOperand(temp, LSL, 1));
+  // Z lane.
+  __ vmovrs(temp, EvenSRegisterOf(dvalue1));
+  __ Lsr(temp, temp, 31);
+  __ orr(out, out, ShifterOperand(temp, LSL, 2));
+  // W lane.
+  __ vmovrs(temp, OddSRegisterOf(dvalue1));
+  __ Lsr(temp, temp, 31);
+  __ orr(out, out, ShifterOperand(temp, LSL, 3));
+  // Tag.
+  __ SmiTag(out);
+}
+
+
 LocationSummary* Float32x4ConstructorInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 4;
   const intptr_t kNumTemps = 0;

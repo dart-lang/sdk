@@ -1044,6 +1044,11 @@ CompileType Float32x4ShuffleInstr::ComputeType() const {
 }
 
 
+CompileType Simd32x4GetSignMaskInstr::ComputeType() const {
+  return CompileType::Int();
+}
+
+
 CompileType Float32x4ConstructorInstr::ComputeType() const {
   return CompileType::FromCid(kFloat32x4Cid);
 }
@@ -1107,6 +1112,7 @@ CompileType Float32x4TwoArgShuffleInstr::ComputeType() const {
 CompileType Uint32x4BoolConstructorInstr::ComputeType() const {
   return CompileType::FromCid(kUint32x4Cid);
 }
+
 
 CompileType Uint32x4GetFlagInstr::ComputeType() const {
   return CompileType::FromCid(kBoolCid);
