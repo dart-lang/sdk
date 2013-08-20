@@ -21,7 +21,7 @@ LibTest/core/double/ceil_A01_t05: Fail # co19 issue 428
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t04: Fail # Dart issue 5743
 LibTest/collection/Queue/iterator_current_A01_t02: Fail # co19 issue 475
 LibTest/collection/Queue/iterator_moveNext_A01_t02: Fail # co19 issue 475
-LibTest/core/int/toStringAsExponential_A02_t01: Fail # co19 issue 477
+LibTest/core/int/toStringAsExponential_A02_t01: Fail # co19 issue 539
 
 LibTest/core/Match/pattern_A01_t01: Fail # co19 issue 422
 LibTest/core/RegExp/allMatches_A01_t01: Fail # co19 issue 422
