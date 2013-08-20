@@ -18,7 +18,6 @@ _pure_interfaces = monitored.Set('generator._pure_interfaces', [
     'DOMStringMap',
     'ChildNode',
     'EventListener',
-    'EventHandler',
     'MediaQueryListListener',
     'MutationCallback',
     'ParentNode',
@@ -784,12 +783,6 @@ class CallbackIDLTypeInfo(IDLTypeInfo):
     super(CallbackIDLTypeInfo, self).__init__(idl_type, data)
 
 
-def array_type(data_type):
-  matched = re.match(r'([\w\d_\s]+)\[\]', data_type)
-  if not matched:
-      return None
-  return matched.group(1)
-
 class SequenceIDLTypeInfo(IDLTypeInfo):
   def __init__(self, idl_type, data, item_info):
     super(SequenceIDLTypeInfo, self).__init__(idl_type, data)
@@ -814,11 +807,7 @@ class SequenceIDLTypeInfo(IDLTypeInfo):
     return '%s', 'Vector< RefPtr<%s> >' % item_native_type, 'DartUtilities', 'toNativeVector< RefPtr<%s> >' % item_native_type
 
   def parameter_type(self):
-    native_type = self.native_type()
-    if array_type(native_type):
-      return 'const Vector<RefPtr<%s> > &' % array_type(native_type)
-
-    return native_type
+    return self.native_type()
 
   def pass_native_by_ref(self): return True
 
@@ -1041,7 +1030,6 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'Element': TypeData(clazz='Interface', merged_interface='HTMLElement',
         custom_to_dart=True),
     'EventListener': TypeData(clazz='Interface', custom_to_native=True),
-    'EventHandler': TypeData(clazz='Interface', custom_to_native=True),
     'EventTarget': TypeData(clazz='Interface', custom_to_native=True),
     'HTMLElement': TypeData(clazz='Interface', merged_into='Element',
         custom_to_dart=True),
@@ -1154,7 +1142,7 @@ class TypeRegistry(object):
       item_info = self.TypeInfo(match.group(1) or match.group(2))
       # TODO(vsm): Generalize this code.
       if 'SourceInfo' in type_name:
-        type_data.native_type = 'const Vector<RefPtr<SourceInfo> >& '
+        type_data.native_type = 'Vector<RefPtr<SourceInfo> >'
       return SequenceIDLTypeInfo(type_name, type_data, item_info)
 
     if not type_name in _idl_type_registry:
@@ -1191,7 +1179,8 @@ class TypeRegistry(object):
           type_name, type_data, dart_interface_name, self)
 
     if type_data.clazz == 'TypedList':
-      dart_interface_name = self._renamer.RenameInterfaceId(type_name)
+      dart_interface_name = self._renamer.RenameInterface(
+          self._database.GetInterface(type_name))
       return TypedListIDLTypeInfo(
           type_name, type_data, dart_interface_name, self)
 
@@ -1199,7 +1188,8 @@ class TypeRegistry(object):
       if type_name == 'ArrayBuffer':
         dart_interface_name = 'ByteBuffer'
       else:
-        dart_interface_name = self._renamer.RenameInterfaceId(type_name)
+        dart_interface_name = self._renamer.RenameInterface(
+            self._database.GetInterface(type_name))
       return BasicTypedListIDLTypeInfo(
           type_name, type_data, dart_interface_name, self)
 

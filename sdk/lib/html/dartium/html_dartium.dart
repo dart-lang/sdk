@@ -1361,16 +1361,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DocsEditable()
   void set globalCompositeOperation(String value) native "CanvasRenderingContext2D_globalCompositeOperation_Setter";
 
-  @DomName('CanvasRenderingContext2D.imageSmoothingEnabled')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool get imageSmoothingEnabled native "CanvasRenderingContext2D_imageSmoothingEnabled_Getter";
-
-  @DomName('CanvasRenderingContext2D.imageSmoothingEnabled')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void set imageSmoothingEnabled(bool value) native "CanvasRenderingContext2D_imageSmoothingEnabled_Setter";
-
   @DomName('CanvasRenderingContext2D.lineCap')
   @DocsEditable()
   String get lineCap native "CanvasRenderingContext2D_lineCap_Getter";
@@ -1474,6 +1464,20 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @Experimental()
   num get backingStorePixelRatio native "CanvasRenderingContext2D_webkitBackingStorePixelRatio_Getter";
 
+  @DomName('CanvasRenderingContext2D.webkitImageSmoothingEnabled')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  bool get imageSmoothingEnabled native "CanvasRenderingContext2D_webkitImageSmoothingEnabled_Getter";
+
+  @DomName('CanvasRenderingContext2D.webkitImageSmoothingEnabled')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  void set imageSmoothingEnabled(bool value) native "CanvasRenderingContext2D_webkitImageSmoothingEnabled_Setter";
+
   @DomName('CanvasRenderingContext2D.arc')
   @DocsEditable()
   void $dom_arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native "CanvasRenderingContext2D_arc_Callback";
@@ -1534,11 +1538,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DomName('CanvasRenderingContext2D.createRadialGradient')
   @DocsEditable()
   CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native "CanvasRenderingContext2D_createRadialGradient_Callback";
-
-  @DomName('CanvasRenderingContext2D.drawCustomFocusRing')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool drawCustomFocusRing(Element element) native "CanvasRenderingContext2D_drawCustomFocusRing_Callback";
 
   void _drawImage(canvas_OR_image_OR_imageBitmap_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) {
     if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
@@ -1615,11 +1614,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   void _drawImage_11(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D__drawImage_11_Callback";
 
   void _drawImage_12(canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D__drawImage_12_Callback";
-
-  @DomName('CanvasRenderingContext2D.drawSystemFocusRing')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void drawSystemFocusRing(Element element) native "CanvasRenderingContext2D_drawSystemFocusRing_Callback";
 
   void fill([String winding]) {
     if (winding != null) {
@@ -6992,7 +6986,7 @@ class DataTransferItem extends NativeFieldWrapperClass1 {
 
   @DomName('DataTransferItem.getAsString')
   @DocsEditable()
-  void _getAsString(_StringCallback callback) native "DataTransferItem_getAsString_Callback";
+  void _getAsString([_StringCallback callback]) native "DataTransferItem_getAsString_Callback";
 
   Future<String> getAsString() {
     var completer = new Completer<String>();
@@ -7724,6 +7718,27 @@ class Document extends Node
   @DocsEditable()
   Event $dom_createEvent(String eventType) native "Document_createEvent_Callback";
 
+  NodeIterator $dom_createNodeIterator(Node root, [int whatToShow, NodeFilter filter, bool expandEntityReferences]) {
+    if (expandEntityReferences != null) {
+      return _createNodeIterator_1(root, whatToShow, filter, expandEntityReferences);
+    }
+    if (filter != null) {
+      return _createNodeIterator_2(root, whatToShow, filter);
+    }
+    if (whatToShow != null) {
+      return _createNodeIterator_3(root, whatToShow);
+    }
+    return _createNodeIterator_4(root);
+  }
+
+  NodeIterator _createNodeIterator_1(root, whatToShow, filter, expandEntityReferences) native "Document__createNodeIterator_1_Callback";
+
+  NodeIterator _createNodeIterator_2(root, whatToShow, filter) native "Document__createNodeIterator_2_Callback";
+
+  NodeIterator _createNodeIterator_3(root, whatToShow) native "Document__createNodeIterator_3_Callback";
+
+  NodeIterator _createNodeIterator_4(root) native "Document__createNodeIterator_4_Callback";
+
   @DomName('Document.createRange')
   @DocsEditable()
   Range $dom_createRange() native "Document_createRange_Callback";
@@ -7744,6 +7759,27 @@ class Document extends Node
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   TouchList $dom_createTouchList() native "Document_createTouchList_Callback";
+
+  TreeWalker $dom_createTreeWalker(Node root, [int whatToShow, NodeFilter filter, bool expandEntityReferences]) {
+    if (expandEntityReferences != null) {
+      return _createTreeWalker_1(root, whatToShow, filter, expandEntityReferences);
+    }
+    if (filter != null) {
+      return _createTreeWalker_2(root, whatToShow, filter);
+    }
+    if (whatToShow != null) {
+      return _createTreeWalker_3(root, whatToShow);
+    }
+    return _createTreeWalker_4(root);
+  }
+
+  TreeWalker _createTreeWalker_1(root, whatToShow, filter, expandEntityReferences) native "Document__createTreeWalker_1_Callback";
+
+  TreeWalker _createTreeWalker_2(root, whatToShow, filter) native "Document__createTreeWalker_2_Callback";
+
+  TreeWalker _createTreeWalker_3(root, whatToShow) native "Document__createTreeWalker_3_Callback";
+
+  TreeWalker _createTreeWalker_4(root) native "Document__createTreeWalker_4_Callback";
 
   @DomName('Document.elementFromPoint')
   @DocsEditable()
@@ -10231,9 +10267,9 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   bool hidden;
 
-  String innerHtml;
+  String id;
 
-  InputMethodContext get inputMethodContext;
+  String innerHtml;
 
   bool get isContentEditable;
 
@@ -10252,6 +10288,8 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   String dropzone;
 
   void click();
+
+  InputMethodContext getInputContext();
 
   Element insertAdjacentElement(String where, Element element);
 
@@ -10292,14 +10330,6 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   @DomName('Element.clientWidth')
   @DocsEditable()
   int get clientWidth native "Element_clientWidth_Getter";
-
-  @DomName('Element.id')
-  @DocsEditable()
-  String get id native "Element_id_Getter";
-
-  @DomName('Element.id')
-  @DocsEditable()
-  void set id(String value) native "Element_id_Setter";
 
   @DomName('Element.offsetHeight')
   @DocsEditable()
@@ -10407,11 +10437,6 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   @DomName('Element.getClientRects')
   @DocsEditable()
   List<Rect> getClientRects() native "Element_getClientRects_Callback";
-
-  @DomName('Element.getDestinationInsertionPoints')
-  @DocsEditable()
-  @Experimental() // untriaged
-  List<Node> getDestinationInsertionPoints() native "Element_getDestinationInsertionPoints_Callback";
 
   @DomName('Element.getElementsByClassName')
   @DocsEditable()
@@ -11182,16 +11207,6 @@ typedef void _ErrorCallback(FileError error);
 class ErrorEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory ErrorEvent._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('ErrorEvent.colno')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get colno native "ErrorEvent_colno_Getter";
-
-  @DomName('ErrorEvent.error')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object get error native "ErrorEvent_error_Getter";
 
   @DomName('ErrorEvent.filename')
   @DocsEditable()
@@ -12997,18 +13012,6 @@ class HtmlDocument extends Document {
   @DocsEditable()
   Element get activeElement native "HTMLDocument_activeElement_Getter";
 
-  @DomName('HTMLDocument.captureEvents')
-  @DocsEditable()
-  // http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture
-  @deprecated // deprecated
-  void captureEvents() native "HTMLDocument_captureEvents_Callback";
-
-  @DomName('HTMLDocument.releaseEvents')
-  @DocsEditable()
-  // http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture
-  @deprecated // deprecated
-  void releaseEvents() native "HTMLDocument_releaseEvents_Callback";
-
 
   @DomName('Document.body')
   BodyElement get body => $dom_body;
@@ -13210,6 +13213,14 @@ class HtmlElement extends Element {
   @DocsEditable()
   void set hidden(bool value) native "HTMLElement_hidden_Setter";
 
+  @DomName('HTMLElement.id')
+  @DocsEditable()
+  String get id native "HTMLElement_id_Getter";
+
+  @DomName('HTMLElement.id')
+  @DocsEditable()
+  void set id(String value) native "HTMLElement_id_Setter";
+
   @DomName('HTMLElement.innerHTML')
   @DocsEditable()
   String get innerHtml native "HTMLElement_innerHTML_Getter";
@@ -13217,11 +13228,6 @@ class HtmlElement extends Element {
   @DomName('HTMLElement.innerHTML')
   @DocsEditable()
   void set innerHtml(String value) native "HTMLElement_innerHTML_Setter";
-
-  @DomName('HTMLElement.inputMethodContext')
-  @DocsEditable()
-  @Experimental() // untriaged
-  InputMethodContext get inputMethodContext native "HTMLElement_inputMethodContext_Getter";
 
   @DomName('HTMLElement.isContentEditable')
   @DocsEditable()
@@ -13294,6 +13300,12 @@ class HtmlElement extends Element {
   @DomName('HTMLElement.click')
   @DocsEditable()
   void click() native "HTMLElement_click_Callback";
+
+  @DomName('HTMLElement.getInputContext')
+  @DocsEditable()
+  // http://www.w3.org/TR/ime-api/#the-getinputcontext-method
+  @Experimental()
+  InputMethodContext getInputContext() native "HTMLElement_getInputContext_Callback";
 
   @DomName('HTMLElement.insertAdjacentElement')
   @DocsEditable()
@@ -14160,6 +14172,16 @@ class ImageBitmap extends NativeFieldWrapperClass1 {
   int get width native "ImageBitmap_width_Getter";
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DomName('ImageBitmapCallback')
+@Experimental() // untriaged
+typedef void ImageBitmapCallback(ImageBitmap bitmap);
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -15469,26 +15491,6 @@ class KeyboardEvent extends UIEvent {
   // To suppress missing implicit constructor warnings.
   factory KeyboardEvent._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('KeyboardEvent.DOM_KEY_LOCATION_LEFT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int DOM_KEY_LOCATION_LEFT = 0x01;
-
-  @DomName('KeyboardEvent.DOM_KEY_LOCATION_NUMPAD')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int DOM_KEY_LOCATION_NUMPAD = 0x03;
-
-  @DomName('KeyboardEvent.DOM_KEY_LOCATION_RIGHT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int DOM_KEY_LOCATION_RIGHT = 0x02;
-
-  @DomName('KeyboardEvent.DOM_KEY_LOCATION_STANDARD')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int DOM_KEY_LOCATION_STANDARD = 0x00;
-
   @DomName('KeyboardEvent.altGraphKey')
   @DocsEditable()
   @Experimental() // nonstandard
@@ -15512,11 +15514,6 @@ class KeyboardEvent extends UIEvent {
   @Experimental() // nonstandard
   int get keyLocation native "KeyboardEvent_keyLocation_Getter";
 
-  @DomName('KeyboardEvent.location')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get location native "KeyboardEvent_location_Getter";
-
   @DomName('KeyboardEvent.metaKey')
   @DocsEditable()
   bool get metaKey native "KeyboardEvent_metaKey_Getter";
@@ -15525,14 +15522,9 @@ class KeyboardEvent extends UIEvent {
   @DocsEditable()
   bool get shiftKey native "KeyboardEvent_shiftKey_Getter";
 
-  @DomName('KeyboardEvent.getModifierState')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool getModifierState(String keyArgument) native "KeyboardEvent_getModifierState_Callback";
-
   @DomName('KeyboardEvent.initKeyboardEvent')
   @DocsEditable()
-  void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable, Window view, String keyIdentifier, int location, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native "KeyboardEvent_initKeyboardEvent_Callback";
+  void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable, Window view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native "KeyboardEvent_initKeyboardEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19278,6 +19270,47 @@ class NodeFilter extends NativeFieldWrapperClass1 {
   static const int SHOW_TEXT = 0x00000004;
 
 }
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DomName('NodeIterator')
+@Unstable()
+class NodeIterator extends NativeFieldWrapperClass1 {
+  factory NodeIterator(Node root, int whatToShow) {
+    return document.$dom_createNodeIterator(root, whatToShow, null, false);
+  }
+
+  @DomName('NodeIterator.pointerBeforeReferenceNode')
+  @DocsEditable()
+  bool get pointerBeforeReferenceNode native "NodeIterator_pointerBeforeReferenceNode_Getter";
+
+  @DomName('NodeIterator.referenceNode')
+  @DocsEditable()
+  Node get referenceNode native "NodeIterator_referenceNode_Getter";
+
+  @DomName('NodeIterator.root')
+  @DocsEditable()
+  Node get root native "NodeIterator_root_Getter";
+
+  @DomName('NodeIterator.whatToShow')
+  @DocsEditable()
+  int get whatToShow native "NodeIterator_whatToShow_Getter";
+
+  @DomName('NodeIterator.detach')
+  @DocsEditable()
+  void detach() native "NodeIterator_detach_Callback";
+
+  @DomName('NodeIterator.nextNode')
+  @DocsEditable()
+  Node nextNode() native "NodeIterator_nextNode_Callback";
+
+  @DomName('NodeIterator.previousNode')
+  @DocsEditable()
+  Node previousNode() native "NodeIterator_previousNode_Callback";
+
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -19537,6 +19570,10 @@ class NotificationCenter extends NativeFieldWrapperClass1 {
   @DomName('NotificationCenter.checkPermission')
   @DocsEditable()
   int checkPermission() native "NotificationCenter_checkPermission_Callback";
+
+  @DomName('NotificationCenter.createHTMLNotification')
+  @DocsEditable()
+  Notification createHtmlNotification(String url) native "NotificationCenter_createHTMLNotification_Callback";
 
   @DomName('NotificationCenter.createNotification')
   @DocsEditable()
@@ -20141,9 +20178,7 @@ class Path extends NativeFieldWrapperClass1 {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE)
-class Performance extends EventTarget {
-  // To suppress missing implicit constructor warnings.
-  factory Performance._() { throw new UnsupportedError("Not supported"); }
+class Performance extends NativeFieldWrapperClass1 {
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -20222,21 +20257,6 @@ class Performance extends EventTarget {
   @Experimental()
   // http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming-methods
   void setResourceTimingBufferSize(int maxSize) native "Performance_webkitSetResourceTimingBufferSize_Callback";
-
-  @DomName('Performance.addEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "Performance_addEventListener_Callback";
-
-  @DomName('Performance.dispatchEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool dispatchEvent(Event event) native "Performance_dispatchEvent_Callback";
-
-  @DomName('Performance.removeEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "Performance_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21189,51 +21209,6 @@ class ResourceProgressEvent extends ProgressEvent {
 
 
 @DocsEditable()
-@DomName('RsaKeyGenParams')
-@Experimental() // untriaged
-class RsaKeyGenParams extends Algorithm {
-  // To suppress missing implicit constructor warnings.
-  factory RsaKeyGenParams._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('RsaKeyGenParams.modulusLength')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get modulusLength native "RsaKeyGenParams_modulusLength_Getter";
-
-  @DomName('RsaKeyGenParams.publicExponent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Uint8List get publicExponent native "RsaKeyGenParams_publicExponent_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('RsaSsaParams')
-@Experimental() // untriaged
-class RsaSsaParams extends Algorithm {
-  // To suppress missing implicit constructor warnings.
-  factory RsaSsaParams._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('RsaSsaParams.hash')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Algorithm get hash native "RsaSsaParams_hash_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
 @DomName('RTCDataChannel')
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCDataChannel
 @Experimental()
@@ -21269,39 +21244,9 @@ class RtcDataChannel extends EventTarget {
   @DocsEditable()
   int get bufferedAmount native "RTCDataChannel_bufferedAmount_Getter";
 
-  @DomName('RTCDataChannel.id')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get id native "RTCDataChannel_id_Getter";
-
   @DomName('RTCDataChannel.label')
   @DocsEditable()
   String get label native "RTCDataChannel_label_Getter";
-
-  @DomName('RTCDataChannel.maxRetransmitTime')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get maxRetransmitTime native "RTCDataChannel_maxRetransmitTime_Getter";
-
-  @DomName('RTCDataChannel.maxRetransmits')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get maxRetransmits native "RTCDataChannel_maxRetransmits_Getter";
-
-  @DomName('RTCDataChannel.negotiated')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool get negotiated native "RTCDataChannel_negotiated_Getter";
-
-  @DomName('RTCDataChannel.ordered')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool get ordered native "RTCDataChannel_ordered_Getter";
-
-  @DomName('RTCDataChannel.protocol')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get protocol native "RTCDataChannel_protocol_Getter";
 
   @DomName('RTCDataChannel.readyState')
   @DocsEditable()
@@ -22583,26 +22528,6 @@ class SourceBuffer extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory SourceBuffer._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('SourceBuffer.appendWindowEnd')
-  @DocsEditable()
-  @Experimental() // untriaged
-  num get appendWindowEnd native "SourceBuffer_appendWindowEnd_Getter";
-
-  @DomName('SourceBuffer.appendWindowEnd')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void set appendWindowEnd(num value) native "SourceBuffer_appendWindowEnd_Setter";
-
-  @DomName('SourceBuffer.appendWindowStart')
-  @DocsEditable()
-  @Experimental() // untriaged
-  num get appendWindowStart native "SourceBuffer_appendWindowStart_Getter";
-
-  @DomName('SourceBuffer.appendWindowStart')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void set appendWindowStart(num value) native "SourceBuffer_appendWindowStart_Setter";
-
   @DomName('SourceBuffer.buffered')
   @DocsEditable()
   TimeRanges get buffered native "SourceBuffer_buffered_Getter";
@@ -22633,11 +22558,6 @@ class SourceBuffer extends EventTarget {
   @DocsEditable()
   @Experimental() // untriaged
   void appendBufferView(TypedData data) native "SourceBuffer_appendBufferView_Callback";
-
-  @DomName('SourceBuffer.remove')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void remove(num start, num end) native "SourceBuffer_remove_Callback";
 
   @DomName('SourceBuffer.addEventListener')
   @DocsEditable()
@@ -24009,7 +23929,7 @@ class SubtleCrypto extends NativeFieldWrapperClass1 {
   @DomName('SubtleCrypto.decrypt')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoOperation decrypt(Map algorithm, CryptoKey key) native "SubtleCrypto_decrypt_Callback";
+  CryptoOperation decrypt(Map algorithm) native "SubtleCrypto_decrypt_Callback";
 
   @DomName('SubtleCrypto.digest')
   @DocsEditable()
@@ -24019,12 +23939,7 @@ class SubtleCrypto extends NativeFieldWrapperClass1 {
   @DomName('SubtleCrypto.encrypt')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoOperation encrypt(Map algorithm, CryptoKey key) native "SubtleCrypto_encrypt_Callback";
-
-  @DomName('SubtleCrypto.generateKey')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object generateKey(Map algorithm, bool extractable, List<String> keyUsages) native "SubtleCrypto_generateKey_Callback";
+  CryptoOperation encrypt(Map algorithm) native "SubtleCrypto_encrypt_Callback";
 
   @DomName('SubtleCrypto.importKey')
   @DocsEditable()
@@ -24034,12 +23949,12 @@ class SubtleCrypto extends NativeFieldWrapperClass1 {
   @DomName('SubtleCrypto.sign')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoOperation sign(Map algorithm, CryptoKey key) native "SubtleCrypto_sign_Callback";
+  CryptoOperation sign(Map algorithm) native "SubtleCrypto_sign_Callback";
 
   @DomName('SubtleCrypto.verify')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoOperation verify(Map algorithm, CryptoKey key, TypedData signature) native "SubtleCrypto_verify_Callback";
+  CryptoOperation verify(Map algorithm) native "SubtleCrypto_verify_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24651,11 +24566,6 @@ class Text extends CharacterData {
   @DomName('Text.wholeText')
   @DocsEditable()
   String get wholeText native "Text_wholeText_Getter";
-
-  @DomName('Text.getDestinationInsertionPoints')
-  @DocsEditable()
-  @Experimental() // untriaged
-  List<Node> getDestinationInsertionPoints() native "Text_getDestinationInsertionPoints_Callback";
 
   @DomName('Text.replaceWholeText')
   @DocsEditable()
@@ -25756,6 +25666,73 @@ class TransitionEvent extends Event {
   @DomName('TransitionEvent.pseudoElement')
   @DocsEditable()
   String get pseudoElement native "TransitionEvent_pseudoElement_Getter";
+
+}
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DomName('TreeWalker')
+@Unstable()
+class TreeWalker extends NativeFieldWrapperClass1 {
+  factory TreeWalker(Node root, int whatToShow) {
+    return document.$dom_createTreeWalker(root, whatToShow, null, false);
+  }
+
+  @DomName('TreeWalker.currentNode')
+  @DocsEditable()
+  Node get currentNode native "TreeWalker_currentNode_Getter";
+
+  @DomName('TreeWalker.currentNode')
+  @DocsEditable()
+  void set currentNode(Node value) native "TreeWalker_currentNode_Setter";
+
+  @DomName('TreeWalker.expandEntityReferences')
+  @DocsEditable()
+  // http://dom.spec.whatwg.org/#dom-traversal
+  @deprecated // deprecated
+  bool get expandEntityReferences native "TreeWalker_expandEntityReferences_Getter";
+
+  @DomName('TreeWalker.filter')
+  @DocsEditable()
+  NodeFilter get filter native "TreeWalker_filter_Getter";
+
+  @DomName('TreeWalker.root')
+  @DocsEditable()
+  Node get root native "TreeWalker_root_Getter";
+
+  @DomName('TreeWalker.whatToShow')
+  @DocsEditable()
+  int get whatToShow native "TreeWalker_whatToShow_Getter";
+
+  @DomName('TreeWalker.firstChild')
+  @DocsEditable()
+  Node firstChild() native "TreeWalker_firstChild_Callback";
+
+  @DomName('TreeWalker.lastChild')
+  @DocsEditable()
+  Node lastChild() native "TreeWalker_lastChild_Callback";
+
+  @DomName('TreeWalker.nextNode')
+  @DocsEditable()
+  Node nextNode() native "TreeWalker_nextNode_Callback";
+
+  @DomName('TreeWalker.nextSibling')
+  @DocsEditable()
+  Node nextSibling() native "TreeWalker_nextSibling_Callback";
+
+  @DomName('TreeWalker.parentNode')
+  @DocsEditable()
+  Node parentNode() native "TreeWalker_parentNode_Callback";
+
+  @DomName('TreeWalker.previousNode')
+  @DocsEditable()
+  Node previousNode() native "TreeWalker_previousNode_Callback";
+
+  @DomName('TreeWalker.previousSibling')
+  @DocsEditable()
+  Node previousSibling() native "TreeWalker_previousSibling_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26909,12 +26886,6 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
   @DocsEditable()
   void cancelAnimationFrame(int id) native "Window_cancelAnimationFrame_Callback";
 
-  @DomName('Window.captureEvents')
-  @DocsEditable()
-  // http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture
-  @deprecated // deprecated
-  void captureEvents() native "Window_captureEvents_Callback";
-
   @DomName('Window.close')
   @DocsEditable()
   void close() native "Window_close_Callback";
@@ -26922,6 +26893,82 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
   @DomName('Window.confirm')
   @DocsEditable()
   bool confirm(String message) native "Window_confirm_Callback";
+
+  void _createImageBitmap(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, ImageBitmapCallback callback, [int sx, int sy, int sw, int sh]) {
+    if ((callback is ImageBitmapCallback || callback == null) && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is ImageElement || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
+      _createImageBitmap_1(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback);
+      return;
+    }
+    if ((sh is int || sh == null) && (sw is int || sw == null) && (sy is int || sy == null) && (sx is int || sx == null) && (callback is ImageBitmapCallback || callback == null) && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is ImageElement || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null)) {
+      _createImageBitmap_2(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh);
+      return;
+    }
+    if ((callback is ImageBitmapCallback || callback == null) && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is VideoElement || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
+      _createImageBitmap_3(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback);
+      return;
+    }
+    if ((sh is int || sh == null) && (sw is int || sw == null) && (sy is int || sy == null) && (sx is int || sx == null) && (callback is ImageBitmapCallback || callback == null) && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is VideoElement || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null)) {
+      _createImageBitmap_4(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh);
+      return;
+    }
+    if ((callback is ImageBitmapCallback || callback == null) && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is CanvasRenderingContext2D || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
+      _createImageBitmap_5(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback);
+      return;
+    }
+    if ((sh is int || sh == null) && (sw is int || sw == null) && (sy is int || sy == null) && (sx is int || sx == null) && (callback is ImageBitmapCallback || callback == null) && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is CanvasRenderingContext2D || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null)) {
+      _createImageBitmap_6(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh);
+      return;
+    }
+    if ((callback is ImageBitmapCallback || callback == null) && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is CanvasElement || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
+      _createImageBitmap_7(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback);
+      return;
+    }
+    if ((sh is int || sh == null) && (sw is int || sw == null) && (sy is int || sy == null) && (sx is int || sx == null) && (callback is ImageBitmapCallback || callback == null) && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is CanvasElement || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null)) {
+      _createImageBitmap_8(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh);
+      return;
+    }
+    if ((callback is ImageBitmapCallback || callback == null) && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is ImageData || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
+      _createImageBitmap_9(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback);
+      return;
+    }
+    if ((sh is int || sh == null) && (sw is int || sw == null) && (sy is int || sy == null) && (sx is int || sx == null) && (callback is ImageBitmapCallback || callback == null) && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is ImageData || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null)) {
+      _createImageBitmap_10(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh);
+      return;
+    }
+    if ((callback is ImageBitmapCallback || callback == null) && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is ImageBitmap || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
+      _createImageBitmap_11(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback);
+      return;
+    }
+    if ((sh is int || sh == null) && (sw is int || sw == null) && (sy is int || sy == null) && (sx is int || sx == null) && (callback is ImageBitmapCallback || callback == null) && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is ImageBitmap || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null)) {
+      _createImageBitmap_12(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  void _createImageBitmap_1(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback) native "Window__createImageBitmap_1_Callback";
+
+  void _createImageBitmap_2(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh) native "Window__createImageBitmap_2_Callback";
+
+  void _createImageBitmap_3(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback) native "Window__createImageBitmap_3_Callback";
+
+  void _createImageBitmap_4(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh) native "Window__createImageBitmap_4_Callback";
+
+  void _createImageBitmap_5(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback) native "Window__createImageBitmap_5_Callback";
+
+  void _createImageBitmap_6(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh) native "Window__createImageBitmap_6_Callback";
+
+  void _createImageBitmap_7(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback) native "Window__createImageBitmap_7_Callback";
+
+  void _createImageBitmap_8(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh) native "Window__createImageBitmap_8_Callback";
+
+  void _createImageBitmap_9(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback) native "Window__createImageBitmap_9_Callback";
+
+  void _createImageBitmap_10(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh) native "Window__createImageBitmap_10_Callback";
+
+  void _createImageBitmap_11(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback) native "Window__createImageBitmap_11_Callback";
+
+  void _createImageBitmap_12(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh) native "Window__createImageBitmap_12_Callback";
 
   @DomName('Window.find')
   @DocsEditable()
@@ -26973,12 +27020,6 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
   @DomName('Window.print')
   @DocsEditable()
   void print() native "Window_print_Callback";
-
-  @DomName('Window.releaseEvents')
-  @DocsEditable()
-  // http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture
-  @deprecated // deprecated
-  void releaseEvents() native "Window_releaseEvents_Callback";
 
   @DomName('Window.requestAnimationFrame')
   @DocsEditable()
@@ -28536,6 +28577,140 @@ class _Entity extends Node {
   @DomName('Entity.systemId')
   @DocsEditable()
   String get systemId native "Entity_systemId_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('EntryArray')
+// http://www.w3.org/TR/file-system-api/#the-entry-interface
+@Experimental()
+class _EntryArray extends NativeFieldWrapperClass1 with ListMixin<Entry>, ImmutableListMixin<Entry> implements List<Entry> {
+
+  @DomName('EntryArray.length')
+  @DocsEditable()
+  int get length native "EntryArray_length_Getter";
+
+  Entry operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  Entry _nativeIndexedGetter(int index) native "EntryArray_item_Callback";
+
+  void operator[]=(int index, Entry value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<Entry> mixins.
+  // Entry is the element type.
+
+
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  Entry get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  Entry get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  Entry get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Entry elementAt(int index) => this[index];
+  // -- end List<Entry> mixins.
+
+  @DomName('EntryArray.item')
+  @DocsEditable()
+  Entry item(int index) native "EntryArray_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('EntryArraySync')
+// http://www.w3.org/TR/file-system-api/#idl-def-EntrySync
+@Experimental()
+class _EntryArraySync extends NativeFieldWrapperClass1 with ListMixin<_EntrySync>, ImmutableListMixin<_EntrySync> implements List<_EntrySync> {
+
+  @DomName('EntryArraySync.length')
+  @DocsEditable()
+  int get length native "EntryArraySync_length_Getter";
+
+  _EntrySync operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  _EntrySync _nativeIndexedGetter(int index) native "EntryArraySync_item_Callback";
+
+  void operator[]=(int index, _EntrySync value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<_EntrySync> mixins.
+  // _EntrySync is the element type.
+
+
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  _EntrySync get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  _EntrySync get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  _EntrySync get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  _EntrySync elementAt(int index) => this[index];
+  // -- end List<_EntrySync> mixins.
+
+  @DomName('EntryArraySync.item')
+  @DocsEditable()
+  _EntrySync item(int index) native "EntryArraySync_item_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

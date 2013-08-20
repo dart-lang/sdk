@@ -125,8 +125,3 @@ isolate_stress_test: Pass, Slow # http://dartbug.com/10697
 
 [ $arch == simmips ]
 *: Skip
-
-[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
-# Skipped for in-progress Dartium rull on 8-16-2013
-isolate_stress_test: Skip
-

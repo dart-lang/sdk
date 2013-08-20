@@ -2,16 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# Skipped for in-progress Dartium rull on 8-16-2013
-node_test/iterating: Fail
-websocket_test: skip
-
 async_window_test: Skip #TODO(gram): investigating
 event_test: Skip  # Issue 1996
 interactive_test: Skip # Must be run manually.
-custom/constructor_calls_created_synchronously_test: Pass, Fail
-custom/created_callback_test: Pass, Fail
-custom/document_register_basic_test: Pass, Fail
 
 [ $compiler == dart2js && $runtime != drt ]
 custom_elements_test: Skip
@@ -404,10 +397,3 @@ js_test: Skip                      # Test cannot run under CSP restrictions (tim
 postmessage_structured_test: Skip  # Test cannot run under CSP restrictions (times out).
 safe_dom_test: Skip                # Test cannot run under CSP restrictions (times out).
 shadow_dom_layout_test: Fail, OK   # Test cannot run under CSP restrictions.
-
-# Skipped for in-progress Dartium rull on 8-16-2013
-[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
-mutation_observer_test: Crash
-crypto_test/functional: Fail
-websocket_test/websocket: Timeout
-notifications_test/webkitNotifications: Fail

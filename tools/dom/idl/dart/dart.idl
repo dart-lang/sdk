@@ -67,8 +67,6 @@ interface TimeoutHandler {
 [Supplemental]
 interface CanvasRenderingContext2D {
   [DartName=createImageDataFromImageData] ImageData createImageData(ImageData imagedata);
-
-  [Suppressed] attribute boolean webkitImageSmoothingEnabled;
 };
 
 [Supplemental]
@@ -336,26 +334,6 @@ interface Location {
   [CustomSetter] attribute DOMString hash;
 };
 
-// TODO(jacobr): reenable these new Blink features.
-[Suppressed]
-interface ImageBitmapFactories {};
-
-// See https://chromiumcodereview.appspot.com/15901002 for the V8 implementation of
-// TextEncoder/TextDecoder
-[Suppressed]
-interface TextEncoder {};
-
-[Suppressed]
-interface TextDecoder {};
-
-// TODO(jacobr): renable these as part of fixing dartbug.com/12537
-// We need to apply changes analogous to https://chromiumcodereview.appspot.com/21274004
-// to the Dart bindings so that we can reenable NodeIterator and TreeWalker
-[Suppressed]
-interface NodeIterator {};
-
-[Suppressed]
-interface TreeWalker {};
 
 [Supplemental]
 interface Window : EventTarget {};
