@@ -56,8 +56,7 @@ class PackageGraph {
   /// made available by [provider].
   PackageGraph(this.provider) {
     for (var package in provider.packages) {
-      var cascade = new AssetCascade(this, package,
-          provider.getTransformers(package));
+      var cascade = new AssetCascade(this, package);
       // The initial result for each cascade is "success" since the cascade
       // doesn't start building until some source in that graph is updated.
       _cascadeResults[package] = new BuildResult.success();
@@ -114,5 +113,11 @@ class PackageGraph {
       _cascadeResults[package] = null;
       cascade.removeSources(ids);
     });
+  }
+
+  void updateTransformers(String package,
+      Iterable<Iterable<Transformer>> transformers) {
+    _cascadeResults[package] = null;
+    _cascades[package].updateTransformers(transformers);
   }
 }

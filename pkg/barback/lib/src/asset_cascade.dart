@@ -84,25 +84,9 @@ class AssetCascade {
 
   /// Creates a new [AssetCascade].
   ///
-  /// It loads source assets within [package] using [provider] and then uses
-  /// [transformerPhases] to generate output files from them.
-  //TODO(rnystrom): Better way of specifying transformers and their ordering.
-  AssetCascade(this.graph, this.package,
-      Iterable<Iterable<Transformer>> transformerPhases) {
-    // Flatten the phases to a list so we can traverse backwards to wire up
-    // each phase to its next.
-    var phases = transformerPhases.toList();
-    if (phases.isEmpty) phases = [[]];
-
-    Phase nextPhase = null;
-    for (var transformers in phases.reversed) {
-      nextPhase = new Phase(this, transformers.toList(), nextPhase);
-      nextPhase.onDirty.listen((_) {
-        _newChanges = true;
-        _waitForProcess();
-      });
-      _phases.insert(0, nextPhase);
-    }
+  /// It loads source assets within [package] using [provider].
+  AssetCascade(this.graph, this.package) {
+    _addPhase(new Phase(this, []));
   }
 
   /// Gets the asset identified by [id].
@@ -185,9 +169,40 @@ class AssetCascade {
     });
   }
 
+  /// Sets this cascade's transformer phases to [transformers].
+  void updateTransformers(Iterable<Iterable<Transformer>> transformers) {
+    transformers = transformers.toList();
+
+    for (var i = 0; i < transformers.length; i++) {
+      if (_phases.length > i) {
+        _phases[i].updateTransformers(transformers[i]);
+        continue;
+      }
+
+      _addPhase(_phases.last.addPhase(transformers[i]));
+    }
+
+    if (transformers.length < _phases.length) {
+      for (var i = transformers.length; i < _phases.length; i++) {
+        // TODO(nweiz): actually remove phases rather than emptying them of
+        // transformers.
+        _phases[i].updateTransformers([]);
+      }
+    }
+  }
+
   void reportError(BarbackException error) {
     _accumulatedErrors.add(error);
     _errorsController.add(error);
+  }
+
+  /// Add [phase] to the end of [_phases] and watch its [onDirty] stream.
+  void _addPhase(Phase phase) {
+    phase.onDirty.listen((_) {
+      _newChanges = true;
+      _waitForProcess();
+    });
+    _phases.add(phase);
   }
 
   /// Starts the build process asynchronously if there is work to be done.

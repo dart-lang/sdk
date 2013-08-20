@@ -72,6 +72,10 @@ Set unionAll(Iterable<Set> sets) =>
 Map mapMapValues(Map map, fn(key, value)) =>
   new Map.fromIterable(map.keys, value: (key) => fn(key, map[key]));
 
+/// Returns whether [set1] has exactly the same elements as [set2].
+bool setEquals(Set set1, Set set2) =>
+  set1.length == set2.length && set1.containsAll(set2);
+
 /// Merges [streams] into a single stream that emits events from all sources.
 Stream mergeStreams(Iterable<Stream> streams) {
   streams = streams.toList();

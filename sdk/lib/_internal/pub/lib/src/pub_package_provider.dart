@@ -46,9 +46,6 @@ class PubPackageProvider implements PackageProvider {
   /// Gets the root directory of [package].
   String getPackageDir(String package) => _packageDirs[package];
 
-  // TODO(rnystrom): Actually support transformers.
-  Iterable<Iterable<Transformer>> getTransformers(String package) => [];
-
   Future<Asset> getAsset(AssetId id) {
     var file = path.join(_packageDirs[id.package], id.path);
     return new Future.value(new Asset.fromPath(id, file));

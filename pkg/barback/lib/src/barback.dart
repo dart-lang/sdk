@@ -88,4 +88,12 @@ class Barback {
   /// Removes [removed] from the graph's known set of source assets.
   void removeSources(Iterable<AssetId> removed) =>
       _graph.removeSources(removed);
+
+  /// Sets the transformer phases for [package]'s assets to [transformers].
+  ///
+  /// To the extent that [transformers] is similar to the previous transformer
+  /// phases for [package], the existing asset graph will be preserved.
+  void updateTransformers(String package,
+          Iterable<Iterable<Transformer>> transformers) =>
+      _graph.updateTransformers(package, transformers);
 }

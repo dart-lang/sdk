@@ -21,12 +21,6 @@ abstract class PackageProvider {
   /// dependencies.
   Iterable<String> get packages;
 
-  /// Returns the list of transformer phases that are applicable to [package].
-  ///
-  /// The phases will be run in sequence, with the outputs of one pipelined into
-  /// the next. All [Transformer]s in a single phase will be run in parallel.
-  Iterable<Iterable<Transformer>> getTransformers(String package);
-
   /// Loads an asset from disk.
   ///
   /// This should be re-entrant; it may be called multiple times with the same

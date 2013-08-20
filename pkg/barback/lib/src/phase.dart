@@ -36,7 +36,7 @@ class Phase {
   /// The transformers that can access [inputs].
   ///
   /// Their outputs will be available to the next phase.
-  final List<Transformer> _transformers;
+  final Set<Transformer> _transformers;
 
   /// The inputs that are available for transforms in this phase to consume.
   ///
@@ -102,7 +102,8 @@ class Phase {
   /// The phase after this one.
   ///
   /// Outputs from this phase will be passed to it.
-  final Phase _next;
+  Phase get next => _next;
+  Phase _next;
 
   /// Returns all currently-available output assets for this phase.
   AssetSet get availableOutputs {
@@ -112,7 +113,8 @@ class Phase {
         .map((node) => node.asset));
   }
 
-  Phase(this.cascade, this._transformers, this._next) {
+  Phase(this.cascade, Iterable<Transformer> transformers)
+      : _transformers = transformers.toSet() {
     _onDirtyPool.add(_onDirtyController.stream);
   }
 
@@ -195,6 +197,60 @@ class Phase {
     });
   }
 
+  /// Set this phase's transformers to [transformers].
+  void updateTransformers(Iterable<Transformer> transformers) {
+    _onDirtyController.add(null);
+
+    var newTransformers = transformers.toSet();
+    var oldTransformers = _transformers.toSet();
+    for (var removedTransformer in
+         oldTransformers.difference(newTransformers)) {
+      _transformers.remove(removedTransformer);
+
+      // Remove old transforms for which [removedTransformer] was a transformer.
+      for (var id in _inputs.keys) {
+        // If the transformers are being adjusted for [id], it will
+        // automatically pick up on [removedTransformer] being gone.
+        if (_adjustTransformersFutures.containsKey(id)) continue;
+
+        _transforms[id].removeWhere((transform) {
+          if (transform.transformer != removedTransformer) return false;
+          transform.remove();
+          return true;
+        });
+
+        if (!_transforms[id].isEmpty) continue;
+        _passThroughControllers.putIfAbsent(id, () {
+          return new AssetNodeController.available(
+              _inputs[id].asset, _inputs[id].transform);
+        });
+      }
+    }
+
+    var brandNewTransformers = newTransformers.difference(oldTransformers);
+    if (brandNewTransformers.isEmpty) return;
+    brandNewTransformers.forEach(_transformers.add);
+
+    // If there are any new transformers, start re-adjusting the transforms for
+    // all inputs so we pick up which inputs the new transformers apply to.
+    _inputs.forEach((id, node) {
+      if (_adjustTransformersFutures.containsKey(id)) return;
+      _adjustTransformers(node);
+    });
+  }
+
+  /// Add a new phase after this one with [transformers].
+  ///
+  /// This may only be called on a phase with no phase following it.
+  Phase addPhase(Iterable<Transformer> transformers) {
+    assert(_next == null);
+    _next = new Phase(cascade, transformers);
+    for (var outputs in _outputs.values) {
+      _next.addInput(outputs.first);
+    }
+    return _next;
+  }
+
   /// Asynchronously determines which transformers can consume [node] as a
   /// primary input and creates transforms for them.
   ///
@@ -214,12 +270,13 @@ class Phase {
 
     // Once the input is available, hook up transformers for it. If it changes
     // while that's happening, try again.
-    _adjustTransformersFutures[node.id] = node.tryUntilStable((asset) {
+    _adjustTransformersFutures[node.id] = _tryUntilStable(node,
+        (asset, transformers) {
       var oldTransformers = _transforms[node.id]
           .map((transform) => transform.transformer).toSet();
 
-      return _removeStaleTransforms(asset)
-          .then((_) => _addFreshTransforms(node, oldTransformers));
+      return _removeStaleTransforms(asset, transformers).then((_) =>
+          _addFreshTransforms(node, transformers, oldTransformers));
     }).then((_) {
       _adjustPassThrough(node);
 
@@ -258,11 +315,15 @@ class Phase {
 
   // Remove any old transforms that used to have [asset] as a primary asset but
   // no longer apply to its new contents.
-  Future _removeStaleTransforms(Asset asset) {
+  Future _removeStaleTransforms(Asset asset, Set<Transformer> transformers) {
     return Future.wait(_transforms[asset.id].map((transform) {
-      // TODO(rnystrom): Catch all errors from isPrimary() and redirect to
-      // results.
-      return transform.transformer.isPrimary(asset).then((isPrimary) {
+      return newFuture(() {
+        if (!transformers.contains(transform.transformer)) return false;
+
+        // TODO(rnystrom): Catch all errors from isPrimary() and redirect to
+        // results.
+        return transform.transformer.isPrimary(asset);
+      }).then((isPrimary) {
         if (isPrimary) return;
         _transforms[asset.id].remove(transform);
         _onDirtyPool.remove(transform.onDirty);
@@ -274,11 +335,13 @@ class Phase {
   // Add new transforms for transformers that consider [node]'s asset to be a
   // primary input.
   //
-  // [oldTransformers] is the set of transformers that had [node] as a primary
-  // input prior to this. They don't need to be checked, since they were removed
-  // or preserved in [_removeStaleTransforms].
-  Future _addFreshTransforms(AssetNode node, Set<Transformer> oldTransformers) {
-    return Future.wait(_transformers.map((transformer) {
+  // [oldTransformers] is the set of transformers for which there were
+  // transforms that had [node] as a primary input prior to this. They don't
+  // need to be checked, since their transforms were removed or preserved in
+  // [_removeStaleTransforms].
+  Future _addFreshTransforms(AssetNode node, Set<Transformer> transformers,
+      Set<Transformer> oldTransformers) {
+    return Future.wait(transformers.map((transformer) {
       if (oldTransformers.contains(transformer)) return new Future.value();
 
       // If the asset is unavailable, the results of this [_adjustTransformers]
@@ -319,6 +382,20 @@ class Phase {
       var controller = _passThroughControllers.remove(node.id);
       if (controller != null) controller.setRemoved();
     }
+  }
+
+  /// Like [AssetNode.tryUntilStable], but also re-runs [callback] if this
+  /// phase's transformers are modified.
+  Future _tryUntilStable(AssetNode node,
+      Future callback(Asset asset, Set<Transformer> transformers)) {
+    var oldTransformers;
+    return node.tryUntilStable((asset) {
+      oldTransformers = _transformers.toSet();
+      return callback(asset, _transformers);
+    }).then((result) {
+      if (setEquals(oldTransformers, _transformers)) return result;
+      return _tryUntilStable(node, callback);
+    });
   }
 
   /// Processes this phase.

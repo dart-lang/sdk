@@ -1055,5 +1055,45 @@ main() {
       expectNoAsset("pkg1|c.done");
       buildShouldSucceed();
     });
+
+    test("sees a transformer that's newly applied to a cross-package "
+        "dependency", () {
+      initGraph({
+        "pkg1|a.txt": "pkg2|a.inc",
+        "pkg2|a.inc": "a"
+      }, {
+        "pkg1": [[new ManyToOneTransformer("txt")]],
+        "pkg2": [[new CheckContentTransformer("b", " transformed")]]
+      });
+
+      updateSources(["pkg1|a.txt", "pkg2|a.inc"]);
+      expectAsset("pkg1|a.out", "a");
+      buildShouldSucceed();
+
+      modifyAsset("pkg2|a.inc", "b");
+      updateSources(["pkg2|a.inc"]);
+      expectAsset("pkg1|a.out", "b transformed");
+      buildShouldSucceed();
+    });
+
+    test("doesn't see a transformer that's newly not applied to a "
+        "cross-package dependency", () {
+      initGraph({
+        "pkg1|a.txt": "pkg2|a.inc",
+        "pkg2|a.inc": "a"
+      }, {
+        "pkg1": [[new ManyToOneTransformer("txt")]],
+        "pkg2": [[new CheckContentTransformer("a", " transformed")]]
+      });
+
+      updateSources(["pkg1|a.txt", "pkg2|a.inc"]);
+      expectAsset("pkg1|a.out", "a transformed");
+      buildShouldSucceed();
+
+      modifyAsset("pkg2|a.inc", "b");
+      updateSources(["pkg2|a.inc"]);
+      expectAsset("pkg1|a.out", "b");
+      buildShouldSucceed();
+    });
   });
 }
