@@ -251,7 +251,7 @@ class VMHandles : public Handles<kVMHandleSizeInWords,
                         kOffsetOfRawPtr>() {
 #ifdef DEBUG
     if (FLAG_trace_handles) {
-      OS::PrintErr("*** Starting a new VM handle block 0x%"Px"\n",
+      OS::PrintErr("*** Starting a new VM handle block 0x%" Px "\n",
                    reinterpret_cast<intptr_t>(this));
     }
 #endif

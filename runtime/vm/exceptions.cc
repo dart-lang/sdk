@@ -539,7 +539,7 @@ void Exceptions::CreateAndThrowTypeError(intptr_t location,
     }
     intptr_t line, column;
     script.GetTokenLocation(location, &line, &column);
-    OS::Print("'%s': Failed type check: line %"Pd" pos %"Pd": ",
+    OS::Print("'%s': Failed type check: line %" Pd " pos %" Pd ": ",
               String::Handle(script.url()).ToCString(), line, column);
     if (!dst_name.IsNull() && (dst_name.Length() > 0)) {
       OS::Print("type '%s' is not a subtype of type '%s' of '%s'.\n",

@@ -19,7 +19,7 @@ DEFINE_NATIVE_ENTRY(ObjectArray_allocate, 2) {
       isolate, arguments->NativeArgAt(1));
   if (!length.IsSmi()) {
     const String& error = String::Handle(String::NewFormatted(
-        "Length must be an integer in the range [0..%"Pd"].",
+        "Length must be an integer in the range [0..%" Pd "].",
         Array::kMaxElements));
     const Array& args = Array::Handle(Array::New(1));
     args.SetAt(0, error);
@@ -28,7 +28,7 @@ DEFINE_NATIVE_ENTRY(ObjectArray_allocate, 2) {
   intptr_t len = Smi::Cast(length).Value();
   if (len < 0 || len > Array::kMaxElements) {
     const String& error = String::Handle(String::NewFormatted(
-        "Length (%"Pd") must be an integer in the range [0..%"Pd"].",
+        "Length (%" Pd ") must be an integer in the range [0..%" Pd "].",
         len, Array::kMaxElements));
     const Array& args = Array::Handle(Array::New(1));
     args.SetAt(0, error);

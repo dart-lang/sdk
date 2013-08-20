@@ -83,7 +83,7 @@ void FlowGraphPrinter::PrintOneInstruction(Instruction* instr,
     instr->locs()->PrintTo(&f);
   }
   if (instr->lifetime_position() != -1) {
-    OS::Print("%3"Pd": ", instr->lifetime_position());
+    OS::Print("%3" Pd ": ", instr->lifetime_position());
   }
   if (!instr->IsBlockEntry()) OS::Print("    ");
   OS::Print("%s", str);
@@ -133,7 +133,7 @@ const char* CompileType::ToCString() const {
 
 
 static void PrintICData(BufferFormatter* f, const ICData& ic_data) {
-  f->Print(" IC[%"Pd": ", ic_data.NumberOfChecks());
+  f->Print(" IC[%" Pd ": ", ic_data.NumberOfChecks());
   Function& target = Function::Handle();
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
     GrowableArray<intptr_t> class_ids;
@@ -151,7 +151,7 @@ static void PrintICData(BufferFormatter* f, const ICData& ic_data) {
       f->Print("%s", String::Handle(cls.Name()).ToCString());
     }
     if (count > 0) {
-      f->Print(" #%"Pd, count);
+      f->Print(" #%" Pd, count);
     }
     f->Print(" <%p>", static_cast<void*>(target.raw()));
   }
@@ -162,9 +162,9 @@ static void PrintICData(BufferFormatter* f, const ICData& ic_data) {
 static void PrintUse(BufferFormatter* f, const Definition& definition) {
   if (definition.is_used()) {
     if (definition.HasSSATemp()) {
-      f->Print("v%"Pd, definition.ssa_temp_index());
+      f->Print("v%" Pd, definition.ssa_temp_index());
     } else if (definition.temp_index() != -1) {
-      f->Print("t%"Pd, definition.temp_index());
+      f->Print("t%" Pd, definition.temp_index());
     }
   }
 }
@@ -180,7 +180,7 @@ const char* Instruction::ToCString() const {
 
 void Instruction::PrintTo(BufferFormatter* f) const {
   if (GetDeoptId() != Isolate::kNoDeoptId) {
-    f->Print("%s:%"Pd"(", DebugName(), GetDeoptId());
+    f->Print("%s:%" Pd "(", DebugName(), GetDeoptId());
   } else {
     f->Print("%s(", DebugName());
   }
@@ -203,7 +203,7 @@ void Definition::PrintTo(BufferFormatter* f) const {
     if (HasSSATemp() || (temp_index() != -1)) f->Print(" <- ");
   }
   if (GetDeoptId() != Isolate::kNoDeoptId) {
-    f->Print("%s:%"Pd"(", DebugName(), GetDeoptId());
+    f->Print("%s:%" Pd "(", DebugName(), GetDeoptId());
   } else {
     f->Print("%s(", DebugName());
   }
@@ -283,8 +283,9 @@ const char* Range::ToCString(Range* range) {
 void RangeBoundary::PrintTo(BufferFormatter* f) const {
   switch (kind_) {
     case kSymbol:
-      f->Print("v%"Pd, reinterpret_cast<Definition*>(value_)->ssa_temp_index());
-      if (offset_ != 0) f->Print("%+"Pd, offset_);
+      f->Print("v%" Pd,
+               reinterpret_cast<Definition*>(value_)->ssa_temp_index());
+      if (offset_ != 0) f->Print("%+" Pd, offset_);
       break;
     case kConstant:
       if (value_ == kMinusInfinity) {
@@ -292,7 +293,7 @@ void RangeBoundary::PrintTo(BufferFormatter* f) const {
       } else if (value_ == kPlusInfinity) {
         f->Print("+inf");
       } else {
-        f->Print("%"Pd, value_);
+        f->Print("%" Pd, value_);
       }
       break;
     case kUnknown:
@@ -419,7 +420,7 @@ void GuardFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void StoreInstanceFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s {%"Pd"}, ",
+  f->Print("%s {%" Pd "}, ",
            String::Handle(field().name()).ToCString(),
            field().Offset());
   instance()->PrintTo(f);
@@ -432,7 +433,7 @@ void IfThenElseInstr::PrintOperandsTo(BufferFormatter* f) const {
   left()->PrintTo(f);
   f->Print(" %s ", Token::Str(kind_));
   right()->PrintTo(f);
-  f->Print(" ? %"Pd" : %"Pd,
+  f->Print(" ? %" Pd " : %" Pd,
            if_true_,
            if_false_);
 }
@@ -524,7 +525,7 @@ void CreateClosureInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void LoadFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   instance()->PrintTo(f);
-  f->Print(", %"Pd, offset_in_bytes());
+  f->Print(", %" Pd, offset_in_bytes());
 
   if (field() != NULL) {
     f->Print(" {%s}", String::Handle(field()->name()).ToCString());
@@ -546,7 +547,7 @@ void LoadFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void StoreVMFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   dest()->PrintTo(f);
-  f->Print(", %"Pd", ", offset_in_bytes());
+  f->Print(", %" Pd ", ", offset_in_bytes());
   value()->PrintTo(f);
 }
 
@@ -574,7 +575,7 @@ void ExtractConstructorTypeArgumentsInstr::PrintOperandsTo(
 
 
 void AllocateContextInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%"Pd"", num_context_variables());
+  f->Print("%" Pd "", num_context_variables());
 }
 
 
@@ -806,7 +807,7 @@ void InvokeMathCFunctionInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
   const GrowableArray<Definition*>& defns = initial_definitions_;
-  f->Print("B%"Pd"[graph]:%"Pd, block_id(), GetDeoptId());
+  f->Print("B%" Pd "[graph]:%" Pd, block_id(), GetDeoptId());
   if (defns.length() > 0) {
     f->Print(" {");
     for (intptr_t i = 0; i < defns.length(); ++i) {
@@ -821,14 +822,14 @@ void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
 
 void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
   if (try_index() != CatchClauseNode::kInvalidTryIndex) {
-    f->Print("B%"Pd"[join try_idx %"Pd"]:%"Pd" pred(",
+    f->Print("B%" Pd "[join try_idx %" Pd "]:%" Pd " pred(",
              block_id(), try_index(), GetDeoptId());
   } else {
-    f->Print("B%"Pd"[join]:%"Pd" pred(", block_id(), GetDeoptId());
+    f->Print("B%" Pd "[join]:%" Pd " pred(", block_id(), GetDeoptId());
   }
   for (intptr_t i = 0; i < predecessors_.length(); ++i) {
     if (i > 0) f->Print(", ");
-    f->Print("B%"Pd, predecessors_[i]->block_id());
+    f->Print("B%" Pd, predecessors_[i]->block_id());
   }
   f->Print(")");
   if (phis_ != NULL) {
@@ -848,7 +849,7 @@ void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
 
 
 void PhiInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("v%"Pd" <- phi(", ssa_temp_index());
+  f->Print("v%" Pd " <- phi(", ssa_temp_index());
   for (intptr_t i = 0; i < inputs_.length(); ++i) {
     if (inputs_[i] != NULL) inputs_[i]->PrintTo(f);
     if (i < inputs_.length() - 1) f->Print(", ");
@@ -871,21 +872,21 @@ void PhiInstr::PrintTo(BufferFormatter* f) const {
 
 
 void ParameterInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%"Pd, index());
+  f->Print("%" Pd, index());
 }
 
 
 void CheckStackOverflowInstr::PrintOperandsTo(BufferFormatter* f) const {
-  if (in_loop()) f->Print("depth %"Pd, loop_depth());
+  if (in_loop()) f->Print("depth %" Pd, loop_depth());
 }
 
 
 void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
   if (try_index() != CatchClauseNode::kInvalidTryIndex) {
-    f->Print("B%"Pd"[target try_idx %"Pd"]:%"Pd,
+    f->Print("B%" Pd "[target try_idx %" Pd "]:%" Pd,
              block_id(), try_index(), GetDeoptId());
   } else {
-    f->Print("B%"Pd"[target]:%"Pd, block_id(), GetDeoptId());
+    f->Print("B%" Pd "[target]:%" Pd, block_id(), GetDeoptId());
   }
   if (HasParallelMove()) {
     f->Print(" ");
@@ -895,7 +896,7 @@ void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
 
 
 void CatchBlockEntryInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("B%"Pd"[target catch try_idx %"Pd" catch_try_idx %"Pd"]",
+  f->Print("B%" Pd "[target catch try_idx %" Pd " catch_try_idx %" Pd "]",
            block_id(), try_index(), catch_try_index());
   if (HasParallelMove()) {
     f->Print("\n");
@@ -926,9 +927,9 @@ void GotoInstr::PrintTo(BufferFormatter* f) const {
     f->Print(" ");
   }
   if (GetDeoptId() != Isolate::kNoDeoptId) {
-    f->Print("goto:%"Pd" %"Pd"", GetDeoptId(), successor()->block_id());
+    f->Print("goto:%" Pd " %" Pd "", GetDeoptId(), successor()->block_id());
   } else {
-    f->Print("goto: %"Pd"", successor()->block_id());
+    f->Print("goto: %" Pd "", successor()->block_id());
   }
 }
 
@@ -938,7 +939,7 @@ void BranchInstr::PrintTo(BufferFormatter* f) const {
   f->Print("if ");
   comparison()->PrintTo(f);
 
-  f->Print(" goto (%"Pd", %"Pd")",
+  f->Print(" goto (%" Pd ", %" Pd ")",
             true_successor()->block_id(),
             false_successor()->block_id());
 }

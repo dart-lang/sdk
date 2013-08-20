@@ -53,7 +53,7 @@ UNIT_TEST_CASE(Monitor) {
 
     // Check whether this attempt falls within the exptected time limits.
     int64_t wakeup_time = stop - start;
-    OS::Print("wakeup_time: %"Pd64"\n", wakeup_time);
+    OS::Print("wakeup_time: %" Pd64 "\n", wakeup_time);
     const int kAcceptableTimeJitter = 20;  // Measured in milliseconds.
     const int kAcceptableWakeupDelay = 150;  // Measured in milliseconds.
     if (((wait_time - kAcceptableTimeJitter) <= wakeup_time) &&

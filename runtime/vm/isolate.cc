@@ -273,7 +273,7 @@ void DeferredDouble::Materialize() {
   *double_slot = Double::New(value());
 
   if (FLAG_trace_deoptimization_verbose) {
-    OS::PrintErr("materializing double at %"Px": %g\n",
+    OS::PrintErr("materializing double at %" Px ": %g\n",
                  reinterpret_cast<uword>(slot()), value());
   }
 }
@@ -287,7 +287,7 @@ void DeferredMint::Materialize() {
   *mint_slot = mint.raw();
 
   if (FLAG_trace_deoptimization_verbose) {
-    OS::PrintErr("materializing mint at %"Px": %"Pd64"\n",
+    OS::PrintErr("materializing mint at %" Px ": %" Pd64 "\n",
                  reinterpret_cast<uword>(slot()), value());
   }
 }
@@ -303,7 +303,7 @@ void DeferredFloat32x4::Materialize() {
     float y = raw_float32x4->y();
     float z = raw_float32x4->z();
     float w = raw_float32x4->w();
-    OS::PrintErr("materializing Float32x4 at %"Px": %g,%g,%g,%g\n",
+    OS::PrintErr("materializing Float32x4 at %" Px ": %g,%g,%g,%g\n",
                  reinterpret_cast<uword>(slot()), x, y, z, w);
   }
 }
@@ -319,7 +319,7 @@ void DeferredUint32x4::Materialize() {
     uint32_t y = raw_uint32x4->y();
     uint32_t z = raw_uint32x4->z();
     uint32_t w = raw_uint32x4->w();
-    OS::PrintErr("materializing Uint32x4 at %"Px": %x,%x,%x,%x\n",
+    OS::PrintErr("materializing Uint32x4 at %" Px ": %x,%x,%x,%x\n",
                  reinterpret_cast<uword>(slot()), x, y, z, w);
   }
 }
@@ -329,7 +329,7 @@ void DeferredObjectRef::Materialize() {
   DeferredObject* obj = Isolate::Current()->GetDeferredObject(index());
   *slot() = obj->object();
   if (FLAG_trace_deoptimization_verbose) {
-    OS::PrintErr("writing instance ref at %"Px": %s\n",
+    OS::PrintErr("writing instance ref at %" Px ": %s\n",
                  reinterpret_cast<uword>(slot()),
                  Instance::Handle(obj->object()).ToCString());
   }
@@ -349,7 +349,7 @@ void DeferredObject::Materialize() {
   cls ^= GetClass();
 
   if (FLAG_trace_deoptimization_verbose) {
-    OS::PrintErr("materializing instance of %s (%"Px", %"Pd" fields)\n",
+    OS::PrintErr("materializing instance of %s (%" Px ", %" Pd " fields)\n",
                  cls.ToCString(),
                  reinterpret_cast<uword>(args_),
                  field_count_);
@@ -730,7 +730,7 @@ void Isolate::PrintInvokedFunctions() {
   }
   invoked_functions.Sort(MostUsedFunctionFirst);
   for (int i = 0; i < invoked_functions.length(); i++) {
-    OS::Print("%10"Pd" x %s\n",
+    OS::Print("%10" Pd " x %s\n",
         invoked_functions[i]->usage_counter(),
         invoked_functions[i]->ToFullyQualifiedCString());
   }
@@ -881,7 +881,7 @@ bool Isolate::FetchStacktrace() {
   MonitorLocker ml(status_sync);
   DebuggerStackTrace* stack = Debugger::CollectStackTrace();
   TextBuffer buffer(256);
-  buffer.Printf("{ \"handle\": \"0x%"Px64"\", \"stacktrace\": [ ",
+  buffer.Printf("{ \"handle\": \"0x%" Px64 "\", \"stacktrace\": [ ",
                 reinterpret_cast<int64_t>(isolate));
   intptr_t n_frames = stack->Length();
   String& url = String::Handle();
@@ -894,7 +894,7 @@ bool Isolate::FetchStacktrace() {
     url ^= frame->SourceUrl();
     function ^= frame->function().UserVisibleName();
     buffer.Printf("{ \"url\": \"%s\", ", url.ToCString());
-    buffer.Printf("\"line\": %"Pd", ", frame->LineNumber());
+    buffer.Printf("\"line\": %" Pd ", ", frame->LineNumber());
     buffer.Printf("\"function\": \"%s\", ", function.ToCString());
 
     const Code& code = frame->code();
@@ -922,11 +922,11 @@ bool Isolate::FetchStackFrameDetails() {
   }
   ActivationFrame* frame = stack->ActivationFrameAt(frame_index);
   TextBuffer buffer(256);
-  buffer.Printf("{ \"handle\": \"0x%"Px64"\", \"frame_index\": %"Pd", ",
+  buffer.Printf("{ \"handle\": \"0x%" Px64 "\", \"frame_index\": %" Pd ", ",
        reinterpret_cast<int64_t>(isolate), frame_index);
 
   const Code& code = frame->code();
-  buffer.Printf("\"code\": { \"size\": %"Pd", ", code.Size());
+  buffer.Printf("\"code\": { \"size\": %" Pd ", ", code.Size());
   buffer.Printf("\"alive\": %s, ", code.is_alive() ? "false" : "true");
   buffer.Printf("\"optimized\": %s }, ",
       code.is_optimized() ? "false" : "true");
@@ -943,7 +943,7 @@ bool Isolate::FetchStackFrameDetails() {
     intptr_t token_pos, end_pos;
     frame->VariableAt(i, &var_name, &token_pos, &end_pos, &value);
     buffer.Printf(
-        "{ \"name\": \"%s\", \"pos\": %"Pd", \"end_pos\": %"Pd", "
+        "{ \"name\": \"%s\", \"pos\": %" Pd ", \"end_pos\": %" Pd ", "
         "\"value\": \"%s\" }",
         var_name.ToCString(), token_pos, end_pos, value.ToCString());
   }
@@ -975,7 +975,7 @@ char* Isolate::DoStacktraceInterrupt(Dart_IsolateInterruptCallback cb) {
   if (result == NULL) {
     // Return empty stack.
     TextBuffer buffer(256);
-    buffer.Printf("{ \"handle\": \"0x%"Px64"\", \"stacktrace\": []}",
+    buffer.Printf("{ \"handle\": \"0x%" Px64 "\", \"stacktrace\": []}",
                   reinterpret_cast<int64_t>(this));
 
     result = OS::StrNDup(buffer.buf(), buffer.length());
@@ -1002,18 +1002,18 @@ char* Isolate::GetStatusStackFrame(intptr_t index) {
 // Returns the isolate's general detail information.
 char* Isolate::GetStatusDetails() {
   const char* format = "{\n"
-      "  \"handle\": \"0x%"Px64"\",\n"
+      "  \"handle\": \"0x%" Px64 "\",\n"
       "  \"name\": \"%s\",\n"
-      "  \"port\": %"Pd",\n"
-      "  \"starttime\": %"Pd",\n"
-      "  \"stacklimit\": %"Pd",\n"
+      "  \"port\": %" Pd ",\n"
+      "  \"starttime\": %" Pd ",\n"
+      "  \"stacklimit\": %" Pd ",\n"
       "  \"newspace\": {\n"
-      "    \"used\": %"Pd",\n"
-      "    \"capacity\": %"Pd"\n"
+      "    \"used\": %" Pd ",\n"
+      "    \"capacity\": %" Pd "\n"
       "  },\n"
       "  \"oldspace\": {\n"
-      "    \"used\": %"Pd",\n"
-      "    \"capacity\": %"Pd"\n"
+      "    \"used\": %" Pd ",\n"
+      "    \"capacity\": %" Pd "\n"
       "  }\n"
       "}";
   char buffer[300];

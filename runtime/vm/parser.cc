@@ -58,7 +58,7 @@ class TraceParser : public ValueObject {
         intptr_t line, column;
         script.GetTokenLocation(token_pos, &line, &column);
         PrintIndent();
-        OS::Print("%s (line %"Pd", col %"Pd", token %"Pd")\n",
+        OS::Print("%s (line %" Pd ", col %" Pd ", token %" Pd ")\n",
                   msg, line, column, token_pos);
       }
       indent_++;
@@ -1133,7 +1133,7 @@ void Parser::BuildDispatcherScope(const Function& func,
   for (; i < desc.PositionalCount(); ++i) {
     ParamDesc p;
     char name[64];
-    OS::SNPrint(name, 64, ":p%"Pd, i);
+    OS::SNPrint(name, 64, ":p%" Pd, i);
     p.name = &String::ZoneHandle(Symbols::New(name));
     p.type = &Type::ZoneHandle(Type::DynamicType());
     params.parameters->Add(p);
@@ -3260,7 +3260,7 @@ void Parser::CheckOperatorArity(const MemberDesc& member) {
       member.params.has_optional_named_parameters ||
       (member.params.num_fixed_parameters != expected_num_parameters)) {
     // Subtract receiver when reporting number of expected arguments.
-    ErrorMsg(member.name_pos, "operator %s expects %"Pd" argument(s)",
+    ErrorMsg(member.name_pos, "operator %s expects %" Pd " argument(s)",
         member.name->ToCString(), (expected_num_parameters - 1));
   }
 }
@@ -6852,7 +6852,7 @@ RawString* Parser::FormatMessage(const Script& script,
     if (token_pos >= 0) {
       intptr_t line, column;
       script.GetTokenLocation(token_pos, &line, &column);
-      result = String::NewFormatted("'%s': %s: line %"Pd" pos %"Pd": ",
+      result = String::NewFormatted("'%s': %s: line %" Pd " pos %" Pd ": ",
                                     script_url.ToCString(),
                                     message_header,
                                     line,
@@ -7241,7 +7241,7 @@ void Parser::EnsureSavedCurrentContext() {
 LocalVariable* Parser::CreateTempConstVariable(intptr_t token_pos,
                                                const char* s) {
   char name[64];
-  OS::SNPrint(name, 64, ":%s%"Pd, s, token_pos);
+  OS::SNPrint(name, 64, ":%s%" Pd, s, token_pos);
   LocalVariable* temp =
       new LocalVariable(token_pos,
                         String::ZoneHandle(Symbols::New(name)),

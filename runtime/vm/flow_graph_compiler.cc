@@ -226,7 +226,7 @@ void FlowGraphCompiler::VisitBlocks() {
   for (intptr_t i = 0; i < block_order().length(); ++i) {
     // Compile the block entry.
     BlockEntryInstr* entry = block_order()[i];
-    assembler()->Comment("B%"Pd"", entry->block_id());
+    assembler()->Comment("B%" Pd "", entry->block_id());
     set_current_block(entry);
 
     if (WasCompacted(entry)) {

@@ -950,7 +950,7 @@ UNIT_TEST_CASE(FullSnapshot) {
     TestCase::LoadTestScript(kScriptChars, NULL);
     EXPECT_VALID(Api::CheckIsolateState(isolate));
     timer1.Stop();
-    OS::PrintErr("Without Snapshot: %"Pd64"us\n", timer1.TotalElapsedTime());
+    OS::PrintErr("Without Snapshot: %" Pd64 "us\n", timer1.TotalElapsedTime());
 
     // Write snapshot with object content.
     FullSnapshotWriter writer(&buffer, &malloc_allocator);
@@ -965,7 +965,7 @@ UNIT_TEST_CASE(FullSnapshot) {
   {
     Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
     timer2.Stop();
-    OS::PrintErr("From Snapshot: %"Pd64"us\n", timer2.TotalElapsedTime());
+    OS::PrintErr("From Snapshot: %" Pd64 "us\n", timer2.TotalElapsedTime());
 
     // Invoke a function which returns an object.
     Dart_Handle cls =
@@ -1004,7 +1004,7 @@ UNIT_TEST_CASE(FullSnapshot1) {
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
     EXPECT_VALID(Api::CheckIsolateState(isolate));
     timer1.Stop();
-    OS::PrintErr("Without Snapshot: %"Pd64"us\n", timer1.TotalElapsedTime());
+    OS::PrintErr("Without Snapshot: %" Pd64 "us\n", timer1.TotalElapsedTime());
 
     // Write snapshot with object content.
     FullSnapshotWriter writer(&buffer, &malloc_allocator);
@@ -1024,7 +1024,7 @@ UNIT_TEST_CASE(FullSnapshot1) {
   {
     Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
     timer2.Stop();
-    OS::PrintErr("From Snapshot: %"Pd64"us\n", timer2.TotalElapsedTime());
+    OS::PrintErr("From Snapshot: %" Pd64 "us\n", timer2.TotalElapsedTime());
 
     // Invoke a function which returns an object.
     Dart_Handle cls = Dart_GetClass(TestCase::lib(),

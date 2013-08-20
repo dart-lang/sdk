@@ -352,7 +352,7 @@ static void PrintTypeCheck(
   const Type& instance_type = Type::Handle(instance.GetType());
   ASSERT(instance_type.IsInstantiated());
   if (type.IsInstantiated()) {
-    OS::PrintErr("%s: '%s' %"Pd" %s '%s' %"Pd" (pc: %#"Px").\n",
+    OS::PrintErr("%s: '%s' %" Pd " %s '%s' %" Pd " (pc: %#" Px ").\n",
                  message,
                  String::Handle(instance_type.Name()).ToCString(),
                  Class::Handle(instance_type.type_class()).id(),
@@ -365,7 +365,7 @@ static void PrintTypeCheck(
     Error& malformed_error = Error::Handle();
     const AbstractType& instantiated_type = AbstractType::Handle(
         type.InstantiateFrom(instantiator_type_arguments, &malformed_error));
-    OS::PrintErr("%s: '%s' %s '%s' instantiated from '%s' (pc: %#"Px").\n",
+    OS::PrintErr("%s: '%s' %s '%s' instantiated from '%s' (pc: %#" Px ").\n",
                  message,
                  String::Handle(instance_type.Name()).ToCString(),
                  (result.raw() == Bool::True().raw()) ? "is" : "is !",
@@ -488,7 +488,7 @@ static void UpdateTypeTestCache(
         (last_instantiator_type_arguments.raw() ==
          instantiator_type_arguments.raw())) {
       if (FLAG_trace_type_checks) {
-        OS::PrintErr("%"Pd" ", i);
+        OS::PrintErr("%" Pd " ", i);
         if (type_arguments_replaced) {
           PrintTypeCheck("Duplicate cache entry (canonical.)", instance, type,
               instantiator_type_arguments, result);
@@ -517,10 +517,10 @@ static void UpdateTypeTestCache(
                                        &malformed_error);
       ASSERT(malformed_error.IsNull());  // Malformed types are not optimized.
     }
-    OS::PrintErr("  Updated test cache %p ix: %"Pd" with "
-        "(cid: %"Pd", type-args: %p, instantiator: %p, result: %s)\n"
-        "    instance  [class: (%p '%s' cid: %"Pd"),    type-args: %p %s]\n"
-        "    test-type [class: (%p '%s' cid: %"Pd"), in-type-args: %p %s]\n",
+    OS::PrintErr("  Updated test cache %p ix: %" Pd " with "
+        "(cid: %" Pd ", type-args: %p, instantiator: %p, result: %s)\n"
+        "    instance  [class: (%p '%s' cid: %" Pd "),    type-args: %p %s]\n"
+        "    test-type [class: (%p '%s' cid: %" Pd "), in-type-args: %p %s]\n",
         new_cache.raw(),
         len,
 
@@ -739,7 +739,7 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
                                  target_code.EntryPoint());
   caller_code.SetStaticCallTargetCodeAt(caller_frame->pc(), target_code);
   if (FLAG_trace_patching) {
-    OS::PrintErr("PatchStaticCall: patching from %#"Px" to '%s' %#"Px"\n",
+    OS::PrintErr("PatchStaticCall: patching from %#" Px " to '%s' %#" Px "\n",
         caller_frame->pc(),
         target_function.ToFullyQualifiedCString(),
         target_code.EntryPoint());
@@ -899,8 +899,8 @@ static RawFunction* InlineCacheMissHandler(
       }
     }
     if (FLAG_trace_ic) {
-      OS::PrintErr("InlineCacheMissHandler %d call at %#"Px"' "
-                   "adding <%s> id:%"Pd" -> <%s>\n",
+      OS::PrintErr("InlineCacheMissHandler %d call at %#" Px "' "
+                   "adding <%s> id:%" Pd " -> <%s>\n",
           args.length(),
           caller_frame->pc(),
           Class::Handle(receiver.clazz()).ToCString(),
@@ -1007,8 +1007,9 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerTwoArgs, 3) {
     DartFrameIterator iterator;
     StackFrame* caller_frame = iterator.NextFrame();
     ASSERT(caller_frame != NULL);
-    OS::PrintErr("StaticCallMissHandler at %#"Px" target %s (%"Pd", %"Pd")\n",
-        caller_frame->pc(), target.ToCString(), cids[0], cids[1]);
+    OS::PrintErr("StaticCallMissHandler at %#" Px
+                 " target %s (%" Pd ", %" Pd ")\n",
+                 caller_frame->pc(), target.ToCString(), cids[0], cids[1]);
   }
   arguments.SetReturn(target);
 }
@@ -1178,7 +1179,7 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
   ASSERT(!target_function.IsNull());
   ic_data.AddReceiverCheck(receiver.GetClassId(), target_function);
   if (FLAG_trace_ic) {
-    OS::PrintErr("InvokeField IC miss: adding <%s> id:%"Pd" -> <%s>\n",
+    OS::PrintErr("InvokeField IC miss: adding <%s> id:%" Pd " -> <%s>\n",
         Class::Handle(receiver.clazz()).ToCString(),
         receiver.GetClassId(),
         target_function.ToCString());
@@ -1255,7 +1256,7 @@ DEFINE_RUNTIME_ENTRY(InstanceFunctionLookup, 4) {
       ic_data.AddCheck(class_ids, target_function);
     }
     if (FLAG_trace_ic) {
-      OS::PrintErr("NoSuchMethod IC miss: adding <%s> id:%"Pd" -> <%s>\n",
+      OS::PrintErr("NoSuchMethod IC miss: adding <%s> id:%" Pd " -> <%s>\n",
           Class::Handle(receiver.clazz()).ToCString(),
           receiver_cid,
           target_function.ToCString());
@@ -1368,7 +1369,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     intptr_t osr_id =
         Code::Handle(function.unoptimized_code()).GetDeoptIdForOsr(frame->pc());
     if (FLAG_trace_osr) {
-      OS::Print("Attempting OSR for %s at id=%"Pd", count=%"Pd"\n",
+      OS::Print("Attempting OSR for %s at id=%" Pd ", count=%" Pd "\n",
                 function.ToFullyQualifiedCString(),
                 osr_id,
                 function.usage_counter());
@@ -1403,7 +1404,8 @@ DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
   DartFrameIterator iterator;
   StackFrame* frame = iterator.NextFrame();
   ASSERT(frame != NULL);
-  OS::PrintErr("IC call @%#"Px": ICData: %p cnt:%"Pd" nchecks: %"Pd" %s %s\n",
+  OS::PrintErr("IC call @%#" Px ": ICData: %p cnt:%" Pd " nchecks: %" Pd
+      " %s %s\n",
       frame->pc(),
       ic_data.raw(),
       function.usage_counter(),
@@ -1464,7 +1466,7 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
                                  target_code.EntryPoint());
   caller_code.SetStaticCallTargetCodeAt(frame->pc(), target_code);
   if (FLAG_trace_patching) {
-    OS::PrintErr("FixCallersTarget: patching from %#"Px" to '%s' %#"Px"\n",
+    OS::PrintErr("FixCallersTarget: patching from %#" Px " to '%s' %#" Px "\n",
         frame->pc(),
         Function::Handle(target_code.function()).ToFullyQualifiedCString(),
         target_code.EntryPoint());
@@ -1639,7 +1641,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
   if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
     Function& function = Function::Handle(optimized_code.function());
     OS::PrintErr(
-        "Deoptimizing (reason %"Pd" '%s') at pc %#"Px" '%s' (count %d)\n",
+        "Deoptimizing (reason %" Pd " '%s') at pc %#" Px " '%s' (count %d)\n",
         deopt_reason,
         DeoptReasonToText(deopt_reason),
         caller_frame->pc(),
@@ -1723,7 +1725,7 @@ static void DeoptimizeWithDeoptInfo(const Code& code,
 
   if (FLAG_trace_deoptimization_verbose) {
     for (intptr_t i = 0; i < frame_size; i++) {
-      OS::PrintErr("*%"Pd". [%"Px"] %#014"Px" [%s]\n",
+      OS::PrintErr("*%" Pd ". [%" Px "] %#014" Px " [%s]\n",
                    i,
                    reinterpret_cast<uword>(&start[i]),
                    start[i],
@@ -1814,8 +1816,8 @@ DEFINE_RUNTIME_ENTRY(DeoptimizeMaterialize, 0) {
     script.GetTokenLocation(token_pos, &line, &column);
     String& line_string = String::Handle(script.GetLine(line));
     OS::PrintErr("  Function: %s\n", top_function.ToFullyQualifiedCString());
-    OS::PrintErr("  Line %"Pd": '%s'\n", line, line_string.ToCString());
-    OS::PrintErr("  Deopt args: %"Pd"\n", deopt_arguments);
+    OS::PrintErr("  Line %" Pd ": '%s'\n", line, line_string.ToCString());
+    OS::PrintErr("  Deopt args: %" Pd "\n", deopt_arguments);
   }
 }
 

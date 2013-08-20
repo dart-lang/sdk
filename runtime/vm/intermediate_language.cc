@@ -1458,7 +1458,7 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
       comp->RemoveFromGraph();
       SetComparison(comp);
       if (FLAG_trace_optimization) {
-        OS::Print("Merging comparison v%"Pd"\n", comp->ssa_temp_index());
+        OS::Print("Merging comparison v%" Pd "\n", comp->ssa_temp_index());
       }
       // Clear the comparison's temp index and ssa temp index since the
       // value of the comparison is not used outside the branch anymore.
@@ -2174,7 +2174,7 @@ void ConstraintInstr::InferRange() {
     if (target() == branch->true_successor()) {
       // True unreachable.
       if (FLAG_trace_constant_propagation) {
-        OS::Print("Range analysis: True unreachable (B%"Pd")\n",
+        OS::Print("Range analysis: True unreachable (B%" Pd ")\n",
                   branch->true_successor()->block_id());
       }
       branch->set_constant_target(branch->false_successor());
@@ -2182,7 +2182,7 @@ void ConstraintInstr::InferRange() {
       ASSERT(target() == branch->false_successor());
       // False unreachable.
       if (FLAG_trace_constant_propagation) {
-        OS::Print("Range analysis: False unreachable (B%"Pd")\n",
+        OS::Print("Range analysis: False unreachable (B%" Pd ")\n",
                   branch->false_successor()->block_id());
       }
       branch->set_constant_target(branch->true_successor());

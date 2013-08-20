@@ -412,7 +412,8 @@ class CallSiteInliner : public ValueObject {
     // Collect initial call sites.
     collected_call_sites_->FindCallSites(caller_graph_);
     while (collected_call_sites_->HasCalls()) {
-      TRACE_INLINING(OS::Print("  Depth %"Pd" ----------\n", inlining_depth_));
+      TRACE_INLINING(OS::Print("  Depth %" Pd " ----------\n",
+                               inlining_depth_));
       // Swap collected and inlining arrays and clear the new collecting array.
       call_sites_temp = collected_call_sites_;
       collected_call_sites_ = inlining_call_sites_;
@@ -471,9 +472,9 @@ class CallSiteInliner : public ValueObject {
                         function.optimized_call_site_count(),
                         constant_arguments)) {
       TRACE_INLINING(OS::Print("     Bailout: early heuristics with "
-                               "code size:  %"Pd", "
-                               "call sites: %"Pd", "
-                               "const args: %"Pd"\n",
+                               "code size:  %" Pd ", "
+                               "call sites: %" Pd ", "
+                               "const args: %" Pd "\n",
                                function.optimized_instruction_count(),
                                function.optimized_call_site_count(),
                                constant_arguments));
@@ -623,9 +624,9 @@ class CallSiteInliner : public ValueObject {
         isolate->set_long_jump_base(base);
         isolate->set_deopt_id(prev_deopt_id);
         TRACE_INLINING(OS::Print("     Bailout: heuristics with "
-                                 "code size:  %"Pd", "
-                                 "call sites: %"Pd", "
-                                 "const args: %"Pd"\n",
+                                 "code size:  %" Pd ", "
+                                 "call sites: %" Pd ", "
+                                 "const args: %" Pd "\n",
                                  size,
                                  call_site_count,
                                  constants_count));

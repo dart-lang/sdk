@@ -963,7 +963,7 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
           script.GetTokenLocation(activation->TokenPos(), &line, &col);
           OS::Print("CollectStackTrace error: no saved context in function "
               "'%s' which calls closure '%s' "
-              " in line %"Pd" column %"Pd"\n",
+              " in line %" Pd " column %" Pd "\n",
               caller.ToFullyQualifiedCString(),
               callee.ToFullyQualifiedCString(),
               line, col);
@@ -1191,7 +1191,7 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
       // already exists.
       if (FLAG_verbose_debug) {
         OS::Print("Pending breakpoint for uncompiled function"
-                  " '%s' at line %"Pd" already exists\n",
+                  " '%s' at line %" Pd " already exists\n",
                   target_function.ToFullyQualifiedCString(),
                   source_bpt->LineNumber());
       }
@@ -1202,7 +1202,7 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
     RegisterSourceBreakpoint(source_bpt);
     if (FLAG_verbose_debug) {
       OS::Print("Registering pending breakpoint for "
-                "uncompiled function '%s' at line %"Pd"\n",
+                "uncompiled function '%s' at line %" Pd "\n",
                 target_function.ToFullyQualifiedCString(),
                 source_bpt->LineNumber());
     }
@@ -1286,7 +1286,7 @@ SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
   if (first_token_idx < 0) {
     // Script does not contain the given line number.
     if (FLAG_verbose_debug) {
-      OS::Print("Script '%s' does not contain line number %"Pd"\n",
+      OS::Print("Script '%s' does not contain line number %" Pd "\n",
                 script_url.ToCString(), line_number);
     }
     return NULL;
@@ -1307,7 +1307,7 @@ SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
   }
   if (func.IsNull()) {
     if (FLAG_verbose_debug) {
-      OS::Print("No executable code at line %"Pd" in '%s'\n",
+      OS::Print("No executable code at line %" Pd " in '%s'\n",
                 line_number, script_url.ToCString());
     }
     return NULL;
@@ -1588,7 +1588,7 @@ void Debugger::SingleStepCallback() {
   }
 
   if (FLAG_verbose_debug) {
-    OS::Print(">>> single step break at %s:%"Pd" (func %s token %"Pd")\n",
+    OS::Print(">>> single step break at %s:%" Pd " (func %s token %" Pd ")\n",
               String::Handle(frame->SourceUrl()).ToCString(),
               frame->LineNumber(),
               String::Handle(frame->QualifiedFunctionName()).ToCString(),
@@ -1630,8 +1630,8 @@ void Debugger::SignalBpReached() {
     report_bp = false;
   }
   if (FLAG_verbose_debug) {
-    OS::Print(">>> %s %s breakpoint at %s:%"Pd" "
-              "(token %"Pd") (address %#"Px")\n",
+    OS::Print(">>> %s %s breakpoint at %s:%" Pd " "
+              "(token %" Pd ") (address %#" Px ")\n",
               report_bp ? "hit" : "ignore",
               bpt->IsInternal() ? "internal" : "user",
               String::Handle(bpt->SourceUrl()).ToCString(),

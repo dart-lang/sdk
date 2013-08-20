@@ -171,7 +171,7 @@ void EventHandlerImplementation::WakeupHandler(intptr_t id,
     if (result == -1) {
       perror("Interrupt message failure:");
     }
-    FATAL1("Interrupt message failure. Wrote %"Pd" bytes.", result);
+    FATAL1("Interrupt message failure. Wrote %" Pd " bytes.", result);
   }
 }
 

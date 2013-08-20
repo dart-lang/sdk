@@ -73,7 +73,7 @@ class PerfCodeObserver : public CodeObserver {
                       bool optimized) {
     Dart_FileWriteCallback file_write = Isolate::file_write_callback();
     ASSERT(file_write != NULL);
-    const char* format = "%"Px" %"Px" %s%s\n";
+    const char* format = "%" Px " %" Px " %s%s\n";
     const char* marker = optimized ? "*" : "";
     intptr_t len = OS::SNPrint(NULL, 0, format, base, size, marker, name);
     char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len + 1);

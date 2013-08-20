@@ -294,7 +294,8 @@ void SimulatorDebugger::PrintDartFrame(uword pc, uword fp, uword sp,
   if (token_pos >= 0) {
     script.GetTokenLocation(token_pos, &line, &column);
   }
-  OS::Print("pc=0x%"Px" fp=0x%"Px" sp=0x%"Px" %s%s (%s:%"Pd":%"Pd")\n",
+  OS::Print("pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s%s (%s:%" Pd
+            ":%" Pd ")\n",
             pc, fp, sp,
             is_optimized ? (is_inlined ? "inlined " : "optimized ") : "",
             func_name.ToCString(),
@@ -344,7 +345,7 @@ void SimulatorDebugger::PrintBacktrace() {
                      GetApproximateTokenIndex(code, frame->pc()),
                      code.is_optimized(), false);
     } else {
-      OS::Print("pc=0x%"Px" fp=0x%"Px" sp=0x%"Px" %s frame\n",
+      OS::Print("pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s frame\n",
                 frame->pc(), frame->fp(), frame->sp(),
                 frame->IsEntryFrame() ? "entry" :
                     frame->IsExitFrame() ? "exit" :
@@ -422,7 +423,7 @@ void SimulatorDebugger::Debug() {
     if (last_pc != sim_->get_pc()) {
       last_pc = sim_->get_pc();
       if (Simulator::IsIllegalAddress(last_pc)) {
-        OS::Print("pc is out of bounds: 0x%"Px"\n", last_pc);
+        OS::Print("pc is out of bounds: 0x%" Px "\n", last_pc);
       } else {
         Disassembler::Disassemble(last_pc, last_pc + Instr::kInstrSize);
       }
@@ -976,7 +977,7 @@ void Simulator::HandleIllegalAccess(uword addr, Instr* instr) {
   // it will be possible to disassemble the code and inspect registers.
   char buffer[128];
   snprintf(buffer, sizeof(buffer),
-           "illegal memory access at 0x%"Px", pc=0x%"Px"\n",
+           "illegal memory access at 0x%" Px ", pc=0x%" Px "\n",
            addr, fault_pc);
   SimulatorDebugger dbg(this);
   dbg.Stop(instr, buffer);
@@ -998,7 +999,7 @@ void Simulator::UnalignedAccess(const char* msg, uword addr, Instr* instr) {
   // it will be possible to disassemble the code and inspect registers.
   char buffer[64];
   snprintf(buffer, sizeof(buffer),
-           "unaligned %s at 0x%"Px", pc=%p\n", msg, addr, instr);
+           "unaligned %s at 0x%" Px ", pc=%p\n", msg, addr, instr);
   SimulatorDebugger dbg(this);
   dbg.Stop(instr, buffer);
   // The debugger will return control in non-interactive mode.
@@ -1506,7 +1507,7 @@ void Simulator::SupervisorCall(Instr* instr) {
         Redirection* redirection = Redirection::FromSvcInstruction(instr);
         uword external = redirection->external_function();
         if (FLAG_trace_sim) {
-          OS::Print("Call to host function at 0x%"Pd"\n", external);
+          OS::Print("Call to host function at 0x%" Pd "\n", external);
         }
 
         if ((redirection->call_kind() == kRuntimeCall) ||

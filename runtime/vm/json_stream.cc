@@ -73,7 +73,7 @@ void JSONStream::PrintValueBool(bool b) {
 
 void JSONStream::PrintValue(intptr_t i) {
   PrintCommaIfNeeded();
-  buffer_->Printf("%"Pd"", i);
+  buffer_->Printf("%" Pd "", i);
 }
 
 

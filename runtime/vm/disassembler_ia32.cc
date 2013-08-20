@@ -467,7 +467,7 @@ static const char* ObjectToCStringNoGC(const Object& obj) {
 void X86Decoder::PrintAddress(uword addr) {
   NoGCScope no_gc;
   char addr_buffer[32];
-  OS::SNPrint(addr_buffer, sizeof(addr_buffer), "%#"Px"", addr);
+  OS::SNPrint(addr_buffer, sizeof(addr_buffer), "%#" Px "", addr);
   Print(addr_buffer);
   // Try to print as heap object or stub name
   if (((addr & kSmiTagMask) == kHeapObjectTag) &&

@@ -83,7 +83,7 @@ LetNode::LetNode(intptr_t token_pos)
 LocalVariable* LetNode::AddInitializer(AstNode* node) {
   initializers_.Add(node);
   char name[64];
-  OS::SNPrint(name, sizeof(name), ":lt%"Pd"_%d", token_pos(), vars_.length());
+  OS::SNPrint(name, sizeof(name), ":lt%" Pd "_%d", token_pos(), vars_.length());
   LocalVariable* temp_var =
       new LocalVariable(token_pos(),
                         String::ZoneHandle(Symbols::New(name)),

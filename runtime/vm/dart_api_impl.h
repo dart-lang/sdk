@@ -86,7 +86,7 @@ const char* CanonicalFunction(const char* func);
     intptr_t max = (max_elements);                                             \
     if (len < 0 || len > max) {                                                \
       return Api::NewError(                                                    \
-          "%s expects argument '%s' to be in the range [0..%"Pd"].",           \
+          "%s expects argument '%s' to be in the range [0..%" Pd "].",         \
           CURRENT_FUNC, #length, max);                                         \
     }                                                                          \
   } while (0)

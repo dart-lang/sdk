@@ -145,7 +145,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
   ASSERT(reason() != kDeoptAtCall);
   Assembler* assem = compiler->assembler();
 #define __ assem->
-  __ Comment("Deopt stub for id %"Pd"", deopt_id());
+  __ Comment("Deopt stub for id %" Pd "", deopt_id());
   __ Bind(entry_label());
   if (FLAG_trap_on_deoptimization) __ int3();
 

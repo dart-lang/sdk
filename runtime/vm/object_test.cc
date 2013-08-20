@@ -3263,7 +3263,7 @@ static void PrintMetadata(const char* name, const Object& data) {
   }
   EXPECT(data.IsArray());
   const Array& metadata = Array::Cast(data);
-  OS::Print("Metadata for %s has %"Pd" values:\n", name, metadata.Length());
+  OS::Print("Metadata for %s has %" Pd " values:\n", name, metadata.Length());
   Object& elem = Object::Handle();
   for (int i = 0; i < metadata.Length(); i++) {
     elem = metadata.At(i);

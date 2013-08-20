@@ -1836,7 +1836,7 @@ DART_EXPORT Dart_Handle Dart_MakeExternalString(Dart_Handle str,
   if ((length < str_size) || (length > String::kMaxElements)) {
     return Api::NewError("Dart_MakeExternalString "
                          "expects argument length to be in the range"
-                         "[%"Pd"..%"Pd"].",
+                         "[%" Pd "..%" Pd "].",
                          str_size, String::kMaxElements);
   }
   if (str_obj.InVMHeap()) {
@@ -3879,7 +3879,7 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
                          " snapshot.", CURRENT_FUNC);
   }
   if (snapshot->length() != buffer_len) {
-    return Api::NewError("%s: 'buffer_len' of %"Pd" is not equal to %d which"
+    return Api::NewError("%s: 'buffer_len' of %" Pd " is not equal to %d which"
                          " is the expected length in the snapshot.",
                          CURRENT_FUNC, buffer_len, snapshot->length());
   }
@@ -3981,7 +3981,7 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
   if (cls.NumTypeArguments() == 0) {
     if (number_of_type_arguments != 0) {
       return Api::NewError("Invalid number of type arguments specified, "
-                           "got %"Pd" expected 0", number_of_type_arguments);
+                           "got %" Pd " expected 0", number_of_type_arguments);
     }
     return Api::NewHandle(isolate, Type::NewNonParameterizedType(cls));
   }
@@ -3993,7 +3993,7 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
     }
     if (num_expected_type_arguments != number_of_type_arguments) {
       return Api::NewError("Invalid number of type arguments specified, "
-                           "got %"Pd" expected %"Pd,
+                           "got %" Pd " expected %" Pd,
                            number_of_type_arguments,
                            num_expected_type_arguments);
     }
@@ -4003,7 +4003,7 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
     }
     if (array.Length() != num_expected_type_arguments) {
       return Api::NewError("Invalid type arguments specified, expected an "
-                           "array of len %"Pd" but got an array of len %"Pd,
+                           "array of len %" Pd " but got an array of len %" Pd,
                            number_of_type_arguments,
                            array.Length());
     }

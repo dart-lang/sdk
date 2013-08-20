@@ -232,13 +232,13 @@ static void FormatValue(dart::TextBuffer* buf, Dart_Handle object) {
     intptr_t len = 0;
     Dart_Handle res = Dart_ListLength(object, &len);
     ASSERT_NOT_ERROR(res);
-    buf->Printf("\"kind\":\"list\",\"length\":%"Pd",", len);
+    buf->Printf("\"kind\":\"list\",\"length\":%" Pd ",", len);
   } else {
     buf->Printf("\"kind\":\"object\",");
     intptr_t class_id = 0;
     Dart_Handle res = Dart_GetObjClassId(object, &class_id);
     if (!Dart_IsError(res)) {
-      buf->Printf("\"classId\":%"Pd",", class_id);
+      buf->Printf("\"classId\":%" Pd ",", class_id);
     }
   }
   buf->Printf("\"text\":\"");
@@ -258,7 +258,7 @@ static void FormatValueObj(dart::TextBuffer* buf, Dart_Handle object) {
 static void FormatRemoteObj(dart::TextBuffer* buf, Dart_Handle object) {
   intptr_t obj_id = Dart_CacheObject(object);
   ASSERT(obj_id >= 0);
-  buf->Printf("{\"objectId\":%"Pd",", obj_id);
+  buf->Printf("{\"objectId\":%" Pd ",", obj_id);
   FormatValue(buf, object);
   buf->Printf("}");
 }
@@ -308,9 +308,9 @@ static const char* FormatClassProps(dart::TextBuffer* buf,
   RETURN_IF_ERROR(name);
   buf->Printf("{\"name\":\"%s\",", GetStringChars(name));
   if (super_id > 0) {
-    buf->Printf("\"superclassId\":%"Pd",", super_id);
+    buf->Printf("\"superclassId\":%" Pd ",", super_id);
   }
-  buf->Printf("\"libraryId\":%"Pd",", library_id);
+  buf->Printf("\"libraryId\":%" Pd ",", library_id);
   RETURN_IF_ERROR(static_fields);
   buf->Printf("\"fields\":");
   FormatNamedValueList(buf, static_fields);
@@ -374,7 +374,7 @@ static const char* FormatObjProps(dart::TextBuffer* buf,
   }
   Dart_Handle res = Dart_GetObjClassId(object, &class_id);
   RETURN_IF_ERROR(res);
-  buf->Printf("{\"classId\": %"Pd",", class_id);
+  buf->Printf("{\"classId\": %" Pd ",", class_id);
   buf->Printf("\"kind\":\"object\",\"fields\":");
   Dart_Handle fields = Dart_GetInstanceFields(object);
   RETURN_IF_ERROR(fields);
@@ -391,8 +391,8 @@ static const char* FormatListSlice(dart::TextBuffer* buf,
                                    intptr_t slice_length) {
   intptr_t end_index = index + slice_length;
   ASSERT(end_index <= list_length);
-  buf->Printf("{\"index\":%"Pd",", index);
-  buf->Printf("\"length\":%"Pd",", slice_length);
+  buf->Printf("{\"index\":%" Pd ",", index);
+  buf->Printf("\"length\":%" Pd ",", slice_length);
   buf->Printf("\"elements\":[");
   for (intptr_t i = index; i < end_index; i++) {
     Dart_Handle value = Dart_ListGetAt(list, i);
@@ -926,7 +926,7 @@ bool DbgMessage::HandleSetBpCmd(DbgMessage* in_msg) {
   Dart_Handle res = Dart_IntegerToUint64(bp_id, &bp_id_value);
   ASSERT_NOT_ERROR(res);
   dart::TextBuffer msg(64);
-  msg.Printf("{ \"id\": %d, \"result\": { \"breakpointId\": %"Pu64" }}",
+  msg.Printf("{ \"id\": %d, \"result\": { \"breakpointId\": %" Pu64 " }}",
              msg_id, bp_id_value);
   in_msg->SendReply(&msg);
   return false;
@@ -1049,7 +1049,7 @@ void DbgMsgQueue::SendBreakpointEvent(const Dart_CodeLocation& location) {
   dart::TextBuffer msg(128);
   msg.Printf("{ \"event\": \"paused\", \"params\": { ");
   msg.Printf("\"reason\": \"breakpoint\", ");
-  msg.Printf("\"isolateId\": %"Pd64"", isolate_id_);
+  msg.Printf("\"isolateId\": %" Pd64 "", isolate_id_);
   if (!Dart_IsNull(location.script_url)) {
     ASSERT(Dart_IsString(location.script_url));
     msg.Printf(",\"location\": { \"url\":");
@@ -1071,7 +1071,7 @@ void DbgMsgQueue::SendExceptionEvent(Dart_Handle exception,
   dart::TextBuffer msg(128);
   msg.Printf("{ \"event\": \"paused\", \"params\": {");
   msg.Printf("\"reason\": \"exception\", ");
-  msg.Printf("\"isolateId\": %"Pd64", ", isolate_id_);
+  msg.Printf("\"isolateId\": %" Pd64 ", ", isolate_id_);
   msg.Printf("\"exception\":");
   FormatRemoteObj(&msg, exception);
   FormatLocationFromTrace(&msg, stack_trace, ", ");
@@ -1091,7 +1091,7 @@ void DbgMsgQueue::SendIsolateEvent(Dart_IsolateId isolate_id,
     ASSERT_NOT_ERROR(res);
     msg.Printf("{ \"event\": \"paused\", \"params\": { ");
     msg.Printf("\"reason\": \"interrupted\", ");
-    msg.Printf("\"isolateId\": %"Pd64"", isolate_id);
+    msg.Printf("\"isolateId\": %" Pd64 "", isolate_id);
     FormatLocationFromTrace(&msg, trace, ", ");
     msg.Printf("}}");
   } else {
@@ -1102,7 +1102,7 @@ void DbgMsgQueue::SendIsolateEvent(Dart_IsolateId isolate_id,
       ASSERT(kind == kShutdown);
       msg.Printf("\"reason\": \"shutdown\", ");
     }
-    msg.Printf("\"id\": %"Pd64" ", isolate_id);
+    msg.Printf("\"id\": %" Pd64 " ", isolate_id);
     msg.Printf("}}");
   }
   DebuggerConnectionHandler::BroadcastMsg(&msg);
@@ -1227,10 +1227,10 @@ void DbgMsgQueueList::ListIsolateIds(dart::TextBuffer* msg) {
     return;  // No items in the list.
   }
   DbgMsgQueue* queue = list_;
-  msg->Printf("%"Pd64"", queue->isolate_id());
+  msg->Printf("%" Pd64 "", queue->isolate_id());
   queue = queue->next();
   while (queue != NULL) {
-    msg->Printf(",%"Pd64"", queue->isolate_id());
+    msg->Printf(",%" Pd64 "", queue->isolate_id());
     queue = queue->next();
   }
 }
@@ -1242,9 +1242,9 @@ void DbgMsgQueueList::BptResolvedHandler(Dart_IsolateId isolate_id,
   Dart_EnterScope();
   dart::TextBuffer msg(128);
   msg.Printf("{ \"event\": \"breakpointResolved\", \"params\": {");
-  msg.Printf("\"breakpointId\": %"Pd"", bp_id);
+  msg.Printf("\"breakpointId\": %" Pd "", bp_id);
 
-  msg.Printf(", \"isolateId\":%"Pd64"", isolate_id);
+  msg.Printf(", \"isolateId\":%" Pd64 "", isolate_id);
   ASSERT(!Dart_IsNull(location.script_url));
   ASSERT(Dart_IsString(location.script_url));
   msg.Printf(", \"location\":{\"url\":");

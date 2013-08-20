@@ -1879,7 +1879,7 @@ LocalVariable* EffectGraphVisitor::EnterTempLocalScope(Value* value) {
   ASSERT(value->definition()->temp_index() == temp_index() - 1);
   intptr_t index = GetCurrentTempLocalIndex();
   char name[64];
-  OS::SNPrint(name, 64, ":tmp_local%"Pd, index);
+  OS::SNPrint(name, 64, ":tmp_local%" Pd, index);
   LocalVariable*  var =
       new LocalVariable(0,
                         String::ZoneHandle(Symbols::New(name)),

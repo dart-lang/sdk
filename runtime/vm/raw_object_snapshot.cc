@@ -257,7 +257,7 @@ void RawType::WriteTo(SnapshotWriter* writer,
         reinterpret_cast<uword>(ptr()->type_class_) - kHeapObjectTag +
             Object::tags_offset()));
     if (cid == kUnresolvedClassCid) {
-      OS::Print("Snapshotting unresolved type '%s' at token pos %"Pd"\n",
+      OS::Print("Snapshotting unresolved type '%s' at token pos %" Pd "\n",
                 RawOneByteStringToCString(
                     reinterpret_cast<RawOneByteString*>(
                         reinterpret_cast<RawUnresolvedClass*>(
@@ -265,7 +265,7 @@ void RawType::WriteTo(SnapshotWriter* writer,
                 ptr()->token_pos_);
     } else {
       // Assume cid == kClassId, but it can also be kIllegalCid.
-      OS::Print("Snapshotting unfinalized type '%s' at token pos %"Pd"\n",
+      OS::Print("Snapshotting unfinalized type '%s' at token pos %" Pd "\n",
                 RawOneByteStringToCString(
                     reinterpret_cast<RawOneByteString*>(
                         reinterpret_cast<RawClass*>(
@@ -342,7 +342,7 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
     // to, making sure not to allocate any handles. Unfortunately, we cannot
     // print the script name.
     OS::Print("Snapshotting unfinalized type parameter '%s' of class '%s' at "
-              "token pos %"Pd"\n",
+              "token pos %" Pd "\n",
               RawOneByteStringToCString(
                   reinterpret_cast<RawOneByteString*>(ptr()->name_)),
               RawOneByteStringToCString(

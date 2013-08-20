@@ -303,7 +303,7 @@ static void ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
     EnsureSSATempIndex(graph, current_defn, replacement_defn);
 
     if (FLAG_trace_optimization) {
-      OS::Print("Replacing v%"Pd" with v%"Pd"\n",
+      OS::Print("Replacing v%" Pd " with v%" Pd "\n",
                 current_defn->ssa_temp_index(),
                 replacement_defn->ssa_temp_index());
     }
@@ -312,7 +312,7 @@ static void ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
       OS::Print("Removing %s\n", current->DebugName());
     } else {
       ASSERT(!current_defn->HasUses());
-      OS::Print("Removing v%"Pd".\n", current_defn->ssa_temp_index());
+      OS::Print("Removing v%" Pd ".\n", current_defn->ssa_temp_index());
     }
   }
   iterator->RemoveCurrentFromGraph();
@@ -3825,7 +3825,7 @@ void LICM::Hoist(ForwardInstructionIterator* it,
   // TODO(fschneider): Avoid repeated deoptimization when
   // speculatively hoisting checks.
   if (FLAG_trace_optimization) {
-    OS::Print("Hoisting instruction %s:%"Pd" from B%"Pd" to B%"Pd"\n",
+    OS::Print("Hoisting instruction %s:%" Pd " from B%" Pd " to B%" Pd "\n",
               current->DebugName(),
               current->GetDeoptId(),
               current->GetBlock()->block_id(),
@@ -4174,17 +4174,18 @@ class Place : public ValueObject {
           return field_name;
         }
         return Isolate::Current()->current_zone()->PrintToString(
-            "<v%"Pd".%s>", instance()->ssa_temp_index(), field_name);
+            "<v%" Pd ".%s>", instance()->ssa_temp_index(), field_name);
       }
 
       case kVMField: {
         return Isolate::Current()->current_zone()->PrintToString(
-            "<v%"Pd"@%"Pd">", instance()->ssa_temp_index(), offset_in_bytes());
+            "<v%" Pd "@%" Pd ">",
+            instance()->ssa_temp_index(), offset_in_bytes());
       }
 
       case kIndexed: {
         return Isolate::Current()->current_zone()->PrintToString(
-            "<v%"Pd"[v%"Pd"]>",
+            "<v%" Pd "[v%" Pd "]>",
             instance()->ssa_temp_index(),
             index()->ssa_temp_index());
       }
@@ -4639,7 +4640,7 @@ static PhiPlaceMoves* ComputePhiMoves(
           map->Insert(result);
           places->Add(result);
           if (FLAG_trace_optimization) {
-            OS::Print("  adding place %s as %"Pd"\n",
+            OS::Print("  adding place %s as %" Pd "\n",
                       result->ToCString(),
                       result->id());
           }
@@ -4685,7 +4686,7 @@ static AliasedSet* NumberPlaces(
         places->Add(result);
 
         if (FLAG_trace_optimization) {
-          OS::Print("numbering %s as %"Pd"\n",
+          OS::Print("numbering %s as %" Pd "\n",
                     result->ToCString(),
                     result->id());
         }
@@ -4931,7 +4932,7 @@ class LoadOptimizer : public ValueObject {
           Definition* replacement = (*out_values)[place_id];
           EnsureSSATempIndex(graph_, defn, replacement);
           if (FLAG_trace_optimization) {
-            OS::Print("Replacing load v%"Pd" with v%"Pd"\n",
+            OS::Print("Replacing load v%" Pd " with v%" Pd "\n",
                       defn->ssa_temp_index(),
                       replacement->ssa_temp_index());
           }
@@ -5141,7 +5142,7 @@ class LoadOptimizer : public ValueObject {
       }
 
       if (FLAG_trace_load_optimization) {
-        OS::Print("B%"Pd"\n", block->block_id());
+        OS::Print("B%" Pd "\n", block->block_id());
         OS::Print("  IN: ");
         aliased_set_->PrintSet(in_[preorder_number]);
         OS::Print("\n");
@@ -5205,7 +5206,7 @@ class LoadOptimizer : public ValueObject {
 
       if (FLAG_trace_optimization) {
         for (BitVector::Iterator it(loop_gen); !it.Done(); it.Advance()) {
-          OS::Print("place %s is loop invariant for B%"Pd"\n",
+          OS::Print("place %s is loop invariant for B%" Pd "\n",
                     aliased_set_->places()[it.Current()]->ToCString(),
                     header->block_id());
         }
@@ -5276,7 +5277,7 @@ class LoadOptimizer : public ValueObject {
     phis_.Add(phi);  // Postpone phi insertion until after load forwarding.
 
     if (FLAG_trace_load_optimization) {
-      OS::Print("created pending phi %s for %s at B%"Pd"\n",
+      OS::Print("created pending phi %s for %s at B%" Pd "\n",
                 phi->ToCString(),
                 aliased_set_->places()[place_id]->ToCString(),
                 block->block_id());
@@ -5315,7 +5316,7 @@ class LoadOptimizer : public ValueObject {
           EnsureSSATempIndex(graph_, load, replacement);
 
           if (FLAG_trace_optimization) {
-            OS::Print("Replacing load v%"Pd" with v%"Pd"\n",
+            OS::Print("Replacing load v%" Pd " with v%" Pd "\n",
                       load->ssa_temp_index(),
                       replacement->ssa_temp_index());
           }
@@ -6773,7 +6774,7 @@ void ConstantPropagator::Transform() {
     JoinEntryInstr* join = block->AsJoinEntry();
     if (!reachable_->Contains(block->preorder_number())) {
       if (FLAG_trace_constant_propagation) {
-        OS::Print("Unreachable B%"Pd"\n", block->block_id());
+        OS::Print("Unreachable B%" Pd "\n", block->block_id());
       }
       // Remove all uses in unreachable blocks.
       if (join != NULL) {
@@ -6853,7 +6854,7 @@ void ConstantPropagator::Transform() {
           !defn->IsStoreStaticField() &&
           !defn->IsStoreVMField()) {
         if (FLAG_trace_constant_propagation) {
-          OS::Print("Constant v%"Pd" = %s\n",
+          OS::Print("Constant v%" Pd " = %s\n",
                     defn->ssa_temp_index(),
                     defn->constant_value().ToCString());
         }
@@ -7323,7 +7324,7 @@ static void EliminateAllocation(AllocateObjectInstr* alloc) {
   ASSERT(IsAllocationSinkingCandidate(alloc));
 
   if (FLAG_trace_optimization) {
-    OS::Print("removing allocation from the graph: v%"Pd"\n",
+    OS::Print("removing allocation from the graph: v%" Pd "\n",
               alloc->ssa_temp_index());
   }
 
@@ -7362,7 +7363,7 @@ void AllocationSinking::Optimize() {
       AllocateObjectInstr* alloc = it.Current()->AsAllocateObject();
       if ((alloc != NULL) && IsAllocationSinkingCandidate(alloc)) {
         if (FLAG_trace_optimization) {
-          OS::Print("discovered allocation sinking candidate: v%"Pd"\n",
+          OS::Print("discovered allocation sinking candidate: v%" Pd "\n",
                     alloc->ssa_temp_index());
         }
 

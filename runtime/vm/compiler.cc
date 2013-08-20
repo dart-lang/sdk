@@ -229,12 +229,12 @@ static void InstallUnoptimizedCode(const Function& function) {
   // Disable optimized code.
   ASSERT(function.HasOptimizedCode());
   if (FLAG_trace_compiler) {
-    OS::Print("--> patching entry %#"Px"\n",
+    OS::Print("--> patching entry %#" Px "\n",
               Code::Handle(function.CurrentCode()).EntryPoint());
   }
   function.SwitchToUnoptimizedCode();
   if (FLAG_trace_compiler) {
-    OS::Print("--> restoring entry at %#"Px"\n",
+    OS::Print("--> restoring entry at %#" Px "\n",
               Code::Handle(function.unoptimized_code()).EntryPoint());
   }
 }
@@ -528,7 +528,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           if (osr_id == Isolate::kNoDeoptId) {
             CodePatcher::PatchEntry(Code::Handle(function.CurrentCode()));
             if (FLAG_trace_compiler) {
-              OS::Print("--> patching entry %#"Px"\n",
+              OS::Print("--> patching entry %#" Px "\n",
                   Code::Handle(function.unoptimized_code()).EntryPoint());
             }
           }
@@ -595,7 +595,7 @@ static void DisassembleCode(const Function& function, bool optimized) {
     const uword addr = code.GetPointerOffsetAt(i) + code.EntryPoint();
     Object& obj = Object::Handle();
     obj = *reinterpret_cast<RawObject**>(addr);
-    OS::Print(" %d : %#"Px" '%s'\n",
+    OS::Print(" %d : %#" Px " '%s'\n",
               code.GetPointerOffsetAt(i), addr, obj.ToCString());
   }
   OS::Print("}\n");
@@ -616,7 +616,7 @@ static void DisassembleCode(const Function& function, bool optimized) {
     Smi& reason = Smi::Handle();
     for (intptr_t i = 0; i < deopt_table_length; ++i) {
       DeoptTable::GetEntry(deopt_table, i, &offset, &info, &reason);
-      OS::Print("%4"Pd": 0x%"Px"  %s  (%s)\n",
+      OS::Print("%4" Pd ": 0x%" Px "  %s  (%s)\n",
                 i,
                 start + offset.Value(),
                 info.ToCString(),
@@ -629,7 +629,7 @@ static void DisassembleCode(const Function& function, bool optimized) {
   if (object_table.Length() > 0) {
     OS::Print("Object Table: {\n");
     for (intptr_t i = 0; i < object_table.Length(); i++) {
-      OS::Print("  %"Pd": %s\n", i,
+      OS::Print("  %" Pd ": %s\n", i,
           Object::Handle(object_table.At(i)).ToCString());
     }
     OS::Print("}\n");
@@ -658,22 +658,22 @@ static void DisassembleCode(const Function& function, bool optimized) {
     RawLocalVarDescriptors::VarInfo var_info;
     var_descriptors.GetInfo(i, &var_info);
     if (var_info.kind == RawLocalVarDescriptors::kSavedEntryContext) {
-      OS::Print("  saved caller's CTX reg offset %"Pd"\n", var_info.index);
+      OS::Print("  saved caller's CTX reg offset %" Pd "\n", var_info.index);
     } else if (var_info.kind == RawLocalVarDescriptors::kSavedCurrentContext) {
-      OS::Print("  saved current CTX reg offset %"Pd"\n", var_info.index);
+      OS::Print("  saved current CTX reg offset %" Pd "\n", var_info.index);
     } else {
       if (var_info.kind == RawLocalVarDescriptors::kContextLevel) {
-        OS::Print("  context level %"Pd" scope %d",
+        OS::Print("  context level %" Pd " scope %d",
                   var_info.index, var_info.scope_id);
       } else if (var_info.kind == RawLocalVarDescriptors::kStackVar) {
-        OS::Print("  stack var '%s' offset %"Pd"",
+        OS::Print("  stack var '%s' offset %" Pd "",
                   var_name.ToCString(), var_info.index);
       } else {
         ASSERT(var_info.kind == RawLocalVarDescriptors::kContextVar);
-        OS::Print("  context var '%s' level %d offset %"Pd"",
+        OS::Print("  context var '%s' level %d offset %" Pd "",
                   var_name.ToCString(), var_info.scope_id, var_info.index);
       }
-      OS::Print(" (valid %"Pd"-%"Pd")\n",
+      OS::Print(" (valid %" Pd "-%" Pd ")\n",
                 var_info.begin_pos, var_info.end_pos);
     }
   }
@@ -695,7 +695,7 @@ static void DisassembleCode(const Function& function, bool optimized) {
       offset ^= table.At(i + Code::kSCallTableOffsetEntry);
       function ^= table.At(i + Code::kSCallTableFunctionEntry);
       code ^= table.At(i + Code::kSCallTableCodeEntry);
-      OS::Print("  0x%"Px": %s, %p\n",
+      OS::Print("  0x%" Px ": %s, %p\n",
           start + offset.Value(),
           function.ToFullyQualifiedCString(),
           code.raw());
@@ -726,7 +726,7 @@ static RawError* CompileFunctionHelper(const Function& function,
     ParsedFunction* parsed_function = new ParsedFunction(
         Function::ZoneHandle(function.raw()));
     if (FLAG_trace_compiler) {
-      OS::Print("Compiling %s%sfunction: '%s' @ token %"Pd", size %"Pd"\n",
+      OS::Print("Compiling %s%sfunction: '%s' @ token %" Pd ", size %" Pd "\n",
                 (osr_id == Isolate::kNoDeoptId ? "" : "osr "),
                 (optimized ? "optimized " : ""),
                 function.ToFullyQualifiedCString(),
@@ -758,7 +758,7 @@ static RawError* CompileFunctionHelper(const Function& function,
     per_compile_timer.Stop();
 
     if (FLAG_trace_compiler) {
-      OS::Print("--> '%s' entry: %#"Px" size: %"Pd" time: %"Pd64" us\n",
+      OS::Print("--> '%s' entry: %#" Px " size: %" Pd " time: %" Pd64 " us\n",
                 function.ToFullyQualifiedCString(),
                 Code::Handle(function.CurrentCode()).EntryPoint(),
                 Code::Handle(function.CurrentCode()).Size(),

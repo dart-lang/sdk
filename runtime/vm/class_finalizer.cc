@@ -1415,7 +1415,7 @@ void ClassFinalizer::ApplyMixinTypes(const Class& cls) {
   const Class& mixin_cls = Class::Handle(mixin_type.type_class());
 
   if (FLAG_trace_class_finalization) {
-    OS::Print("Applying mixin type '%s' to '%s' at pos %"Pd"\n",
+    OS::Print("Applying mixin type '%s' to '%s' at pos %" Pd "\n",
               String::Handle(mixin_type.Name()).ToCString(),
               cls.ToCString(),
               cls.token_pos());
@@ -1509,7 +1509,7 @@ void ClassFinalizer::ApplyMixin(const Class& cls) {
   mixin_cls.EnsureIsFinalized(isolate);
 
   if (FLAG_trace_class_finalization) {
-    OS::Print("Applying mixin '%s' to '%s' at pos %"Pd"\n",
+    OS::Print("Applying mixin '%s' to '%s' at pos %" Pd "\n",
               String::Handle(mixin_cls.Name()).ToCString(),
               cls.ToCString(),
               cls.token_pos());
