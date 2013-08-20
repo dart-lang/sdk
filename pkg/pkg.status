@@ -107,10 +107,6 @@ crypto/test/sha1_test: Slow, Pass
 [ $compiler == dart2js ]
 csslib/test/var_test: Fail # looking for VM-specific stack traces, issue 12469
 
-[ $compiler == dart2js && $runtime == drt ]
-third_party/html5lib/test/parser_feature_test: Fail # issue 12466
-csslib: Pass, Fail # issue 12466
-
 [ $browser ]
 analyzer_experimental/test/error_test: Fail, OK # Uses dart:io.
 analyzer_experimental/test/generated/element_test: Fail, OK # Uses dart:io.
