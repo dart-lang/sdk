@@ -14,6 +14,14 @@ import 'vm_trace.dart';
 
 final _terseRegExp = new RegExp(r"(-patch)?(/.*)?$");
 
+/// A RegExp to match V8's stack traces.
+///
+/// V8's traces start with a line that's either just "Error" or else is a
+/// description of the exception that occurred. That description can be multiple
+/// lines, so we just look for any line other than the first that begins with
+/// four spaces and "at".
+final _v8Trace = new RegExp(r"\n    at ");
+
 /// A RegExp to match Firefox's stack traces.
 ///
 /// Firefox's trace frames start with the name of the function in which the
@@ -74,7 +82,7 @@ class Trace implements StackTrace {
   factory Trace.parse(String trace) {
     try {
       if (trace.isEmpty) return new Trace(<Frame>[]);
-      if (trace.startsWith("Error\n")) return new Trace.parseV8(trace);
+      if (trace.contains(_v8Trace)) return new Trace.parseV8(trace);
       if (trace.contains(_firefoxTrace)) return new Trace.parseFirefox(trace);
       if (trace.contains(_friendlyTrace)) return new Trace.parseFriendly(trace);
 
@@ -93,7 +101,12 @@ class Trace implements StackTrace {
 
   /// Parses a string representation of a Chrome/V8 stack trace.
   Trace.parseV8(String trace)
-      : this(trace.split("\n").skip(1).map((line) => new Frame.parseV8(line)));
+      : this(trace.split("\n").skip(1)
+          // It's possible that an Exception's description contains a line that
+          // looks like a V8 trace line, which will screw this up.
+          // Unfortunately, that's impossible to detect.
+          .skipWhile((line) => !line.startsWith("    at "))
+          .map((line) => new Frame.parseV8(line)));
 
   /// Parses a string representation of a Firefox stack trace.
   Trace.parseFirefox(String trace)
