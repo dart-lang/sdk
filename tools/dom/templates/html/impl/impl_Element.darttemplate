@@ -244,7 +244,7 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    */
   @Experimental()
   CssRect get marginEdge;
-$!STREAM_GETTER_SIGNATURES 
+$!STREAM_GETTER_SIGNATURES
 }
 
 // TODO(jacobr): this is an inefficient implementation but it is hard to see
@@ -1170,6 +1170,20 @@ $endif
     Point p = Element._offsetToHelper(parentOffset, parent);
     return new Point(p.x + current.offsetLeft, p.y + current.offsetTop);
   }
+
+$if DART2JS
+  @JSName('innerHTML')
+  @DomName('HTMLElement.innerHTML')
+  String get innerHtml;
+
+  void set innerHtml(String value) {
+    JS('', '#.innerHTML = #', this, value);
+    // Polyfill relies on mutation observers for upgrading, but we want it
+    // immediate.
+    Platform.upgradeCustomElements(this);
+  }
+$endif
+
 $!MEMBERS
 }
 

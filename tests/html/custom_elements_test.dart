@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library custom_elements_test;
-import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_individual_config.dart';
+import 'dart:async';
 import 'dart:html';
+import 'package:unittest/html_individual_config.dart';
+import 'package:unittest/unittest.dart';
 
 class CustomMixin {
   var mixinMethodCalled;
@@ -35,8 +36,19 @@ String get nextTag => 'x-type${nextTagId++}';
 
 class NotAnElement {}
 
+loadPolyfills() {
+  if (!document.supportsRegister) {
+    return HttpRequest.getString('/root_dart/pkg/custom_element/lib/'
+      'custom-elements.debug.js').then((code) {
+      document.head.children.add(new ScriptElement()..text = code);
+    });
+  }
+}
+
 main() {
   useHtmlIndividualConfiguration();
+
+  setUp(loadPolyfills);
 
   group('register', () {
     test('register', () {
@@ -90,6 +102,7 @@ main() {
     test('pre-registration construction', () {
       var tag = nextTag;
       var dom = new Element.html('<div><$tag></$tag></div>');
+
       var preElement = dom.children[0];
       expect(preElement, isNotNull);
       expect(preElement is HtmlElement, isTrue);
@@ -100,6 +113,7 @@ main() {
       });
 
       document.register(tag, CustomType);
+      Platform.upgradeCustomElements(dom);
 
       var postElement = dom.children[0];
       expect(postElement, isNotNull);

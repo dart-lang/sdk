@@ -711,7 +711,7 @@ class DefsElement extends GraphicsElement implements ExternalResourcesRequired {
 @DocsEditable()
 @DomName('SVGDescElement')
 @Unstable()
-class DescElement extends SvgElement {
+class DescElement extends StyledElement {
   // To suppress missing implicit constructor warnings.
   factory DescElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -1199,7 +1199,7 @@ abstract class ExternalResourcesRequired extends NativeFieldWrapperClass1 {
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEBlendElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FEBlendElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -1281,7 +1281,7 @@ class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttrib
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEColorMatrixElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FEColorMatrixElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -1359,7 +1359,7 @@ class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandard
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-class FEComponentTransferElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEComponentTransferElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FEComponentTransferElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -1405,7 +1405,7 @@ class FEComponentTransferElement extends SvgElement implements FilterPrimitiveSt
 @DocsEditable()
 @DomName('SVGFECompositeElement')
 @Unstable()
-class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FECompositeElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FECompositeElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -1500,7 +1500,7 @@ class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAt
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEConvolveMatrixElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FEConvolveMatrixElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -1610,7 +1610,7 @@ class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStand
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEDiffuseLightingElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FEDiffuseLightingElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -1676,7 +1676,7 @@ class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStan
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEDisplacementMapElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FEDisplacementMapElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -1796,7 +1796,7 @@ class FEDistantLightElement extends SvgElement {
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-class FEFloodElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEFloodElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FEFloodElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -1946,7 +1946,7 @@ class FEFuncRElement extends _SVGComponentTransferFunctionElement {
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEGaussianBlurElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FEGaussianBlurElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2008,7 +2008,7 @@ class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandar
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttributes, UriReference, ExternalResourcesRequired {
+class FEImageElement extends StyledElement implements FilterPrimitiveStandardAttributes, UriReference, ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory FEImageElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2066,7 +2066,7 @@ class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttrib
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-class FEMergeElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEMergeElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FEMergeElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2142,7 +2142,7 @@ class FEMergeNodeElement extends SvgElement {
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEMorphologyElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FEMorphologyElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2213,7 +2213,7 @@ class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardA
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-class FEOffsetElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEOffsetElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FEOffsetElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2309,7 +2309,7 @@ class FEPointLightElement extends SvgElement {
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-class FESpecularLightingElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FESpecularLightingElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FESpecularLightingElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2429,7 +2429,7 @@ class FESpotLightElement extends SvgElement {
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-class FETileElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FETileElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FETileElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2479,7 +2479,7 @@ class FETileElement extends SvgElement implements FilterPrimitiveStandardAttribu
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FETurbulenceElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory FETurbulenceElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2573,7 +2573,7 @@ class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardA
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-class FilterElement extends SvgElement implements UriReference, ExternalResourcesRequired {
+class FilterElement extends StyledElement implements UriReference, ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory FilterElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2761,7 +2761,7 @@ class GElement extends GraphicsElement implements ExternalResourcesRequired {
 @DocsEditable()
 @DomName('SVGGraphicsElement')
 @Experimental() // untriaged
-class GraphicsElement extends SvgElement implements Tests {
+class GraphicsElement extends StyledElement implements Tests {
   // To suppress missing implicit constructor warnings.
   factory GraphicsElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -3136,7 +3136,7 @@ class LinearGradientElement extends _GradientElement {
 @DocsEditable()
 @DomName('SVGMarkerElement')
 @Unstable()
-class MarkerElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired {
+class MarkerElement extends StyledElement implements FitToViewBox, ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory MarkerElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -3227,7 +3227,7 @@ class MarkerElement extends SvgElement implements FitToViewBox, ExternalResource
 @DocsEditable()
 @DomName('SVGMaskElement')
 @Unstable()
-class MaskElement extends SvgElement implements ExternalResourcesRequired, Tests {
+class MaskElement extends StyledElement implements ExternalResourcesRequired, Tests {
   // To suppress missing implicit constructor warnings.
   factory MaskElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -4594,7 +4594,7 @@ class PathSegMovetoRel extends PathSeg {
 @DocsEditable()
 @DomName('SVGPatternElement')
 @Unstable()
-class PatternElement extends SvgElement implements FitToViewBox, UriReference, ExternalResourcesRequired, Tests {
+class PatternElement extends StyledElement implements FitToViewBox, UriReference, ExternalResourcesRequired, Tests {
   // To suppress missing implicit constructor warnings.
   factory PatternElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -5130,7 +5130,7 @@ class SetElement extends AnimationElement {
 @DocsEditable()
 @DomName('SVGStopElement')
 @Unstable()
-class StopElement extends SvgElement {
+class StopElement extends StyledElement {
   // To suppress missing implicit constructor warnings.
   factory StopElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -5294,6 +5294,29 @@ class StyleElement extends SvgElement {
 
 
 @DocsEditable()
+@DomName('SVGStyledElement')
+@Unstable()
+class StyledElement extends SvgElement {
+  // To suppress missing implicit constructor warnings.
+  factory StyledElement._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('SVGStyledElement.className')
+  @DocsEditable()
+  AnimatedString get $dom_svgClassName native "SVGStyledElement_className_Getter";
+
+  @DomName('SVGStyledElement.style')
+  @DocsEditable()
+  CssStyleDeclaration get style native "SVGStyledElement_style_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('SVGDocument')
 @Unstable()
 class SvgDocument extends Document {
@@ -5424,19 +5447,17 @@ class SvgElement extends Element {
   // To suppress missing implicit constructor warnings.
   factory SvgElement._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('SVGElement.className')
+  @DomName('SVGElement.id')
   @DocsEditable()
-  @Experimental() // untriaged
-  AnimatedString get $dom_svgClassName native "SVGElement_className_Getter";
+  String get id native "SVGElement_id_Getter";
+
+  @DomName('SVGElement.id')
+  @DocsEditable()
+  void set id(String value) native "SVGElement_id_Setter";
 
   @DomName('SVGElement.ownerSVGElement')
   @DocsEditable()
   SvgSvgElement get ownerSvgElement native "SVGElement_ownerSVGElement_Getter";
-
-  @DomName('SVGElement.style')
-  @DocsEditable()
-  @Experimental() // untriaged
-  CssStyleDeclaration get style native "SVGElement_style_Getter";
 
   @DomName('SVGElement.viewportElement')
   @DocsEditable()
@@ -5702,7 +5723,7 @@ class SwitchElement extends GraphicsElement implements ExternalResourcesRequired
 @DocsEditable()
 @DomName('SVGSymbolElement')
 @Unstable()
-class SymbolElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired {
+class SymbolElement extends StyledElement implements FitToViewBox, ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory SymbolElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -5965,7 +5986,7 @@ class TextPositioningElement extends TextContentElement {
 @DocsEditable()
 @DomName('SVGTitleElement')
 @Unstable()
-class TitleElement extends SvgElement {
+class TitleElement extends StyledElement {
   // To suppress missing implicit constructor warnings.
   factory TitleElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -6503,7 +6524,7 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 with ListMixin<Eleme
 @DocsEditable()
 @DomName('SVGGradientElement')
 @Unstable()
-class _GradientElement extends SvgElement implements UriReference, ExternalResourcesRequired {
+class _GradientElement extends StyledElement implements UriReference, ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory _GradientElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -6649,7 +6670,7 @@ abstract class _SVGCursorElement extends SvgElement implements UriReference, Ext
 @DocsEditable()
 @DomName('SVGFEDropShadowElement')
 @Experimental() // nonstandard
-abstract class _SVGFEDropShadowElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+abstract class _SVGFEDropShadowElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory _SVGFEDropShadowElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -6773,7 +6794,7 @@ abstract class _SVGGlyphElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGGlyphRefElement')
 @Unstable()
-abstract class _SVGGlyphRefElement extends SvgElement implements UriReference {
+abstract class _SVGGlyphRefElement extends StyledElement implements UriReference {
   // To suppress missing implicit constructor warnings.
   factory _SVGGlyphRefElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -6825,7 +6846,7 @@ abstract class _SVGMPathElement extends SvgElement implements UriReference, Exte
 @DocsEditable()
 @DomName('SVGMissingGlyphElement')
 @Unstable()
-abstract class _SVGMissingGlyphElement extends SvgElement {
+abstract class _SVGMissingGlyphElement extends StyledElement {
   // To suppress missing implicit constructor warnings.
   factory _SVGMissingGlyphElement._() { throw new UnsupportedError("Not supported"); }
 
