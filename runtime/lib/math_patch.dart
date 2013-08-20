@@ -20,9 +20,7 @@ double _doublePow(double base, num exponent) {
   if (exponent == 0) {
     return 1.0;  // ECMA-262 15.8.2.13
   }
-  if (exponent is! num) {
-    throw new ArgumentError(null);
-  }
+  if (base == 1.0) return 1.0;
   double doubleExponent = exponent.toDouble();
   if (base.isNaN || exponent.isNaN) {
     return double.NAN;

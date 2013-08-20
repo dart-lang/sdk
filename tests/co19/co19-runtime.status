@@ -38,6 +38,7 @@ LibTest/core/double/parse_A02_t01: Fail # co19 issue 418
 LibTest/math/pow_A01_t01: Fail # co19 issue 44
 LibTest/math/pow_A11_t01: Fail # co19 issue 512
 LibTest/math/pow_A13_t01: Fail # co19 issue 507
+LibTest/math/pow_A18_t01: Fail # co19 issue 507
 
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Fail # Dart issue 5802
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # Dart issue 5894
