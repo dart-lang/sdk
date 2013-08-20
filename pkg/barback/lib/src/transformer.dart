@@ -16,6 +16,15 @@ import 'transform.dart';
 /// files are all examples of transformers. To define your own transformation
 /// step, extend (or implement) this class.
 abstract class Transformer {
+  /// Override this to return a space-separated list of file extensions
+  /// (with leading `.`) that are allowed for the primary inputs to this
+  /// transformer.
+  ///
+  /// If you don't override [isPrimary] yourself, it defaults to allowing any
+  /// asset whose extension matches one of the ones returned by this. If you
+  /// don't override [isPrimary] *or* this, it allows all files.
+  String get allowedExtensions => null;
+
   /// Returns `true` if [input] can be a primary input for this transformer.
   ///
   /// While a transformer can read from multiple input files, one must be the
@@ -28,7 +37,20 @@ abstract class Transformer {
   /// of those to generate the final JS. However you still run dart2js "on" a
   /// single file: the entrypoint Dart file that has your `main()` method.
   /// This entrypoint file would be the primary input.
-  Future<bool> isPrimary(Asset input);
+  ///
+  /// If this is not overridden, defaults to allow any asset whose extension
+  /// matches one of the ones returned by [allowedExtensions]. If *that* is
+  /// not overridden, allows all assets.
+  Future<bool> isPrimary(Asset input) {
+    // Allow all files if [primaryExtensions] is not overridden.
+    if (allowedExtensions == null) return new Future.value(true);
+
+    for (var extension in allowedExtensions.split(" ")) {
+      if (input.id.extension == extension) return new Future.value(true);
+    }
+
+    return new Future.value(false);
+  }
 
   /// Run this transformer on on the primary input specified by [transform].
   ///
