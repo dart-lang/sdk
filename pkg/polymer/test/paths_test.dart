@@ -14,7 +14,7 @@ import 'package:unittest/unittest.dart';
 
 main() {
   useCompactVMConfiguration();
-  group('outdir == basedir:', () {
+  group('paths', () {
     setUp(() {
       utils.path = new path.Builder(style: path.Style.posix);
     });
@@ -23,6 +23,12 @@ main() {
       utils.path = new path.Builder();
     });
 
+    testPaths();
+  });
+}
+
+testPaths() {
+  group('outdir == basedir:', () {
     group('outputPath', () {
       test('mangle automatic', () {
         var pathMapper = _newPathMapper('a', 'a', false);

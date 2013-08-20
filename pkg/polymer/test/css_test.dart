@@ -553,7 +553,7 @@ main() {
     test('test_var', test_var);
     test('test_simple_import', test_simple_import);
     test('test_imports', test_imports);
-    test('test_component_var', test_component_var);
+    group('test_component_var', test_component_var);
     test('test_pseudo_element', test_pseudo_element);
   });
 }
