@@ -177,7 +177,7 @@ class _Utf8Encoder {
     for (stringIndex = start; stringIndex < end; stringIndex++) {
       int codeUnit = str.codeUnitAt(stringIndex);
       // ASCII has the same representation in UTF-8 and UTF-16.
-      if (codeUnit < _ONE_BYTE_LIMIT) {
+      if (codeUnit <= _ONE_BYTE_LIMIT) {
         if (_bufferIndex >= _buffer.length) break;
         _buffer[_bufferIndex++] = codeUnit;
       } else if (_isLeadSurrogate(codeUnit)) {
