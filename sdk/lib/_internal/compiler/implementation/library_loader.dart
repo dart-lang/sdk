@@ -366,7 +366,9 @@ class LibraryLoaderTask extends LibraryLoader {
   void scanPart(Part part, Uri resolvedUri, LibraryElement library) {
     if (!resolvedUri.isAbsolute) throw new ArgumentError(resolvedUri);
     Uri readableUri = compiler.translateResolvedUri(library, resolvedUri, part);
+    if (readableUri == null) return;
     Script sourceScript = compiler.readScript(readableUri, part);
+    if (sourceScript == null) return;
     CompilationUnitElement unit =
         new CompilationUnitElementX(sourceScript, library);
     compiler.withCurrentElement(unit, () {
@@ -389,6 +391,7 @@ class LibraryLoaderTask extends LibraryLoader {
     Uri resolvedUri = base.resolve(tag.uri.dartString.slowToString());
     LibraryElement loadedLibrary =
         createLibrary(handler, library, resolvedUri, tag.uri, resolvedUri);
+    if (loadedLibrary == null) return;
     handler.registerDependency(library, tag, loadedLibrary);
 
     if (!loadedLibrary.hasLibraryName()) {
@@ -413,26 +416,26 @@ class LibraryLoaderTask extends LibraryLoader {
   LibraryElement createLibrary(LibraryDependencyHandler handler,
                                LibraryElement importingLibrary,
                                Uri resolvedUri, Node node, Uri canonicalUri) {
-    bool newLibrary = false;
+    // TODO(johnniwinther): Create erroneous library elements for missing
+    // libraries.
     Uri readableUri =
         compiler.translateResolvedUri(importingLibrary, resolvedUri, node);
     if (readableUri == null) return null;
-    LibraryElement createLibrary() {
-      newLibrary = true;
-      Script script = compiler.readScript(readableUri, node);
-      LibraryElement element = new LibraryElementX(script, canonicalUri);
-      handler.registerNewLibrary(element);
-      native.maybeEnableNative(compiler, element);
-      return element;
-    }
     LibraryElement library;
-    if (canonicalUri == null) {
-      library = createLibrary();
-    } else {
-      library = compiler.libraries.putIfAbsent(canonicalUri.toString(),
-                                               createLibrary);
+    if (canonicalUri != null) {
+      library = compiler.libraries[canonicalUri.toString()];
     }
-    if (newLibrary) {
+    if (library == null) {
+      Script script = compiler.readScript(readableUri, node);
+      if (script == null) return null;
+
+      library = new LibraryElementX(script, canonicalUri);
+      handler.registerNewLibrary(library);
+      native.maybeEnableNative(compiler, library);
+      if (canonicalUri != null) {
+        compiler.libraries[canonicalUri.toString()] = library;
+      }
+      
       compiler.withCurrentElement(library, () {
         compiler.scanner.scanLibrary(library);
         processLibraryTags(handler, library);

@@ -170,14 +170,10 @@ class Compiler extends leg.Compiler {
         // directly. In effect, we don't support truly asynchronous API.
         text = deprecatedFutureValue(provider(resourceUri));
       } catch (exception) {
-        if (node != null) {
-          cancel("$exception", node: node);
-        } else {
-          reportError(
-              null,
-              leg.MessageKind.GENERIC, {'text': 'Error: $exception'});
-          throw new leg.CompilerCancelledException("$exception");
-        }
+        reportError(node,
+                    leg.MessageKind.READ_SCRIPT_ERROR,
+                    {'uri': readableUri, 'exception': exception});
+        return null;
       }
       SourceFile sourceFile = new SourceFile(resourceUri.toString(), text);
       // We use [readableUri] as the URI for the script since need to preserve
@@ -216,34 +212,23 @@ class Compiler extends leg.Compiler {
         }
       }
       if (!allowInternalLibraryAccess) {
-        if (node != null && importingLibrary != null) {
+        if (importingLibrary != null) {
           reportError(
               node,
-              leg.MessageKind.GENERIC,
-              {'text':
-                  'Error: Internal library $resolvedUri is not accessible from '
-                  '${importingLibrary.canonicalUri}.'});
+              leg.MessageKind.INTERNAL_LIBRARY_FROM,
+              {'resolvedUri': resolvedUri,
+               'importingUri': importingLibrary.canonicalUri});
         } else {
           reportError(
-              null,
-              leg.MessageKind.GENERIC,
-              {'text':
-                  'Error: Internal library $resolvedUri is not accessible.'});
+              node,
+              leg.MessageKind.INTERNAL_LIBRARY,
+              {'resolvedUri': resolvedUri});
         }
       }
     }
     if (path == null) {
-      if (node != null) {
-        reportFatalError(
-            node,
-            leg.MessageKind.GENERIC,
-            {'text': 'Error: Library not found ${resolvedUri}.'});
-      } else {
-        reportFatalError(
-            null,
-            leg.MessageKind.GENERIC,
-            {'text': 'Error: Library not found ${resolvedUri}.'});
-      }
+      reportError(node, leg.MessageKind.LIBRARY_NOT_FOUND,
+                  {'resolvedUri': resolvedUri});
       return null;
     }
     if (resolvedUri.path == 'html' ||

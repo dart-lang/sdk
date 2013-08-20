@@ -5,10 +5,7 @@
 part of dart2js;
 
 class Script {
-  // TODO(kasperl): Once MockFile in tests/compiler/dart2js/parser_helper.dart
-  // implements SourceFile, we should be able to type the [file] field as
-  // such.
-  final file;
+  final SourceFile file;
 
   /**
    * The readable URI from which this script was loaded.

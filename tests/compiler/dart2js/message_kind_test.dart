@@ -27,9 +27,15 @@ main() {
     }
   });
   List<String> names = kinds.keys.toList()..sort();
-  List<String> examples = <String>[];
+  Map<String, bool> examples = <String, bool>{};
   for (String name in names) {
     MessageKind kind = kinds[name];
+    bool expectNoHowToFix = false;
+    if (name == 'READ_SCRIPT_ERROR') {
+      // For this we can give no how-to-fix since the underlying error is
+      // unknown.
+      expectNoHowToFix = true;
+    }
     if (name == 'GENERIC' // Shouldn't be used.
         // We can't provoke a crash.
         || name == 'COMPILER_CRASHED'
@@ -37,16 +43,17 @@ main() {
         // We cannot provide examples for patch errors.
         || name.startsWith('PATCH_')) continue;
     if (kind.examples != null) {
-      examples.add(name);
+      examples[name] = expectNoHowToFix;
     } else {
       print("No example in '$name'");
     }
   };
   var cachedCompiler;
-  for (String name in examples) {
+  examples.forEach((String name, bool expectNoHowToFix) {
     Stopwatch sw = new Stopwatch()..start();
-    cachedCompiler = check(kinds[name], cachedCompiler);
+    cachedCompiler = check(kinds[name], cachedCompiler,
+                           expectNoHowToFix: expectNoHowToFix);
     sw.stop();
     print("Checked '$name' in ${sw.elapsedMilliseconds}ms.");
-  }
+  });
 }

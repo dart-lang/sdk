@@ -11,35 +11,91 @@ import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
        show NullSink;
 
 import '../../../sdk/lib/_internal/compiler/compiler.dart'
-       show DiagnosticHandler;
+       show Diagnostic, DiagnosticHandler;
 
 import 'dart:async';
 
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirror.dart';
 
+class DiagnosticMessage {
+  final Uri uri;
+  final int begin;
+  final int end;
+  final String message;
+  final Diagnostic kind;
+
+  DiagnosticMessage(this.uri, this.begin, this.end, this.message, this.kind);
+}
+
+class DiagnosticCollector {
+  List<DiagnosticMessage> messages = <DiagnosticMessage>[];
+
+  void call(Uri uri, int begin, int end, String message,
+                         Diagnostic kind) {
+    messages.add(new DiagnosticMessage(uri, begin, end, message, kind));
+  }
+
+  Iterable<DiagnosticMessage> filterMessagesByKind(Diagnostic kind) {
+    return messages.where(
+      (DiagnosticMessage message) => message.kind == kind);
+  }
+
+  Iterable<DiagnosticMessage> get errors {
+    return filterMessagesByKind(Diagnostic.ERROR);
+  }
+
+  Iterable<DiagnosticMessage> get warnings {
+    return filterMessagesByKind(Diagnostic.WARNING);
+  }
+
+  Iterable<DiagnosticMessage> get hints {
+    return filterMessagesByKind(Diagnostic.HINT);
+  }
+}
+
+DiagnosticHandler createDiagnosticHandler(DiagnosticHandler diagnosticHandler,
+                                          SourceFileProvider provider,
+                                          bool showDiagnostics) {
+  var handler = diagnosticHandler;
+  if (showDiagnostics) {
+    if (diagnosticHandler == null) {
+      handler = new FormattingDiagnosticHandler(provider);
+    } else {
+      var formattingHandler = new FormattingDiagnosticHandler(provider);
+      handler = (Uri uri, int begin, int end, String message, Diagnostic kind) {
+        diagnosticHandler(uri, begin, end, message, kind);
+        formattingHandler(uri, begin, end, message, kind);
+      };
+    }
+  } else if (diagnosticHandler == null) {
+    handler = (Uri uri, int begin, int end, String message, Diagnostic kind) {};
+  }
+  return handler;
+}
+
 Compiler compilerFor(Map<String,String> memorySourceFiles,
                      {DiagnosticHandler diagnosticHandler,
                       List<String> options: const [],
-                      Compiler cachedCompiler}) {
+                      Compiler cachedCompiler,
+                      bool showDiagnostics: true}) {
   Uri script = currentDirectory.resolve(nativeToUriPath(Platform.script));
   Uri libraryRoot = script.resolve('../../../sdk/');
   Uri packageRoot = script.resolve('./packages/');
 
   MemorySourceFileProvider.MEMORY_SOURCE_FILES = memorySourceFiles;
   var provider = new MemorySourceFileProvider();
-  if (diagnosticHandler == null) {
-    diagnosticHandler = new FormattingDiagnosticHandler(provider);
-  }
+  var handler =
+      createDiagnosticHandler(diagnosticHandler, provider, showDiagnostics);
 
   EventSink<String> outputProvider(String name, String extension) {
     if (name != '') throw 'Attempt to output file "$name.$extension"';
     return new NullSink('$name.$extension');
   }
 
-  Compiler compiler = new Compiler(provider.readStringFromUri,
+  Compiler compiler = new Compiler(provider,
                                    outputProvider,
-                                   diagnosticHandler,
+                                   handler,
                                    libraryRoot,
                                    packageRoot,
                                    options);
@@ -79,16 +135,16 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
 
 Future<MirrorSystem> mirrorSystemFor(Map<String,String> memorySourceFiles,
                                      {DiagnosticHandler diagnosticHandler,
-                                      List<String> options: const []}) {
+                                      List<String> options: const [],
+                                      bool showDiagnostics: true}) {
   Uri script = currentDirectory.resolve(nativeToUriPath(Platform.script));
   Uri libraryRoot = script.resolve('../../../sdk/');
   Uri packageRoot = script.resolve('./packages/');
 
   MemorySourceFileProvider.MEMORY_SOURCE_FILES = memorySourceFiles;
   var provider = new MemorySourceFileProvider();
-  if (diagnosticHandler == null) {
-    diagnosticHandler = new FormattingDiagnosticHandler(provider);
-  }
+  var handler =
+      createDiagnosticHandler(diagnosticHandler, provider, showDiagnostics);
 
   List<Uri> libraries = <Uri>[];
   memorySourceFiles.forEach((String path, _) {
@@ -96,5 +152,5 @@ Future<MirrorSystem> mirrorSystemFor(Map<String,String> memorySourceFiles,
   });
 
   return analyze(libraries, libraryRoot, packageRoot,
-                 provider, diagnosticHandler, options);
+                 provider, handler, options);
 }
