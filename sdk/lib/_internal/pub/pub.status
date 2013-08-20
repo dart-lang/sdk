@@ -2,6 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+test/serve/missing_file_test: Pass, Fail # 12570
+
 # Pub only runs on the VM, so just rule out all compilers.
 [ $compiler == dart2js || $compiler == dart2dart ]
 *: Skip
@@ -9,5 +11,3 @@
 # Pub only runs on the standalone VM, not the browser.
 [ $runtime == drt || $runtime == dartium || $runtime == opera ]
 *: Skip
-
-test/serve/missing_file_test: Pass, Fail # 12570
