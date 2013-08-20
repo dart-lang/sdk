@@ -6,15 +6,23 @@
 library path_info_test;
 
 import 'package:path/path.dart' as path;
-import 'package:unittest/compact_vm_config.dart';
-import 'package:unittest/unittest.dart';
 import 'package:polymer/src/info.dart';
 import 'package:polymer/src/paths.dart';
 import 'package:polymer/src/utils.dart' as utils;
+import 'package:unittest/compact_vm_config.dart';
+import 'package:unittest/unittest.dart';
 
 main() {
   useCompactVMConfiguration();
   group('outdir == basedir:', () {
+    setUp(() {
+      utils.path = new path.Builder(style: path.Style.posix);
+    });
+
+    tearDown(() {
+      utils.path = new path.Builder();
+    });
+
     group('outputPath', () {
       test('mangle automatic', () {
         var pathMapper = _newPathMapper('a', 'a', false);

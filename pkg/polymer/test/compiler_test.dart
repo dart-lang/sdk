@@ -6,9 +6,10 @@
 library compiler_test;
 
 import 'package:logging/logging.dart' show Level;
+import 'package:path/path.dart' as path;
+import 'package:polymer/src/messages.dart';
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
-import 'package:polymer/src/messages.dart';
 
 import 'testing.dart';
 
@@ -41,15 +42,15 @@ main() {
 
       var outputs = compiler.output.map((o) => o.path);
       expect(outputs, equals([
-        'out/foo.html.dart',
-        'out/foo.html.dart.map',
-        'out/bar.html.dart',
-        'out/bar.html.dart.map',
-        'out/index.html.dart',
-        'out/index.html.dart.map',
-        'out/index.html_bootstrap.dart',
-        'out/index.html',
-      ]));
+        'foo.html.dart',
+        'foo.html.dart.map',
+        'bar.html.dart',
+        'bar.html.dart.map',
+        'index.html.dart',
+        'index.html.dart.map',
+        'index.html_bootstrap.dart',
+        'index.html',
+      ].map((p) => path.join('out', p))));
     }));
   });
 

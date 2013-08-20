@@ -4,9 +4,11 @@
 
 library css_test;
 
+import 'package:path/path.dart' as path;
+import 'package:polymer/src/messages.dart';
+import 'package:polymer/src/utils.dart' as utils;
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
-import 'package:polymer/src/messages.dart';
 
 import 'testing.dart';
 
@@ -538,10 +540,20 @@ test_pseudo_element() {
 main() {
   useCompactVMConfiguration();
 
-  test('test_simple_var', test_simple_var);
-  test('test_var', test_var);
-  test('test_simple_import', test_simple_import);
-  test('test_imports', test_imports);
-  test('test_component_var', test_component_var);
-  test('test_pseudo_element', test_pseudo_element);
+  group('css', () {
+    setUp(() {
+      utils.path = new path.Builder(style: path.Style.posix);
+    });
+
+    tearDown(() {
+      utils.path = new path.Builder();
+    });
+
+    test('test_simple_var', test_simple_var);
+    test('test_var', test_var);
+    test('test_simple_import', test_simple_import);
+    test('test_imports', test_imports);
+    test('test_component_var', test_component_var);
+    test('test_pseudo_element', test_pseudo_element);
+  });
 }
