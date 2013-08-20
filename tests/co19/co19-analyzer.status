@@ -3,8 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartanalyzer ]
-LibTest/async/Stream/Stream.periodic_A01_t01: Pass, Fail # Issue 12562.
-
 # not clear: g([var foo = foo + 10]) is parameter 'foo' in the scope of its own initialzer?
 Language/06_Functions/2_Formal_Parameters_A02_t02: fail
 

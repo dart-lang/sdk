@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2dart ]
+LibTest/async/Stream/Stream.periodic_A01_t01: Pass, Fail # Issue 12562.
 
 LibTest/math/max_A01_t03: Fail # co19 issue 467
 LibTest/math/min_A01_t03: Fail # co19 issue 467
