@@ -92,15 +92,11 @@ class AssetCascade {
     // Flatten the phases to a list so we can traverse backwards to wire up
     // each phase to its next.
     var phases = transformerPhases.toList();
-
-    // Each phase writes its outputs as inputs to the next phase after it.
-    // Add a phase at the end for the final outputs of the last phase.
-    phases.add([]);
+    if (phases.isEmpty) phases = [[]];
 
     Phase nextPhase = null;
     for (var transformers in phases.reversed) {
-      nextPhase = new Phase(this, _phases.length, transformers.toList(),
-          nextPhase);
+      nextPhase = new Phase(this, transformers.toList(), nextPhase);
       nextPhase.onDirty.listen((_) {
         _newChanges = true;
         _waitForProcess();
@@ -127,7 +123,7 @@ class AssetCascade {
     // * If [id] has never been generated and all active transformers provide
     //   metadata about the file names of assets it can emit, we can prove that
     //   none of them can emit [id] and fail early.
-    return _phases.last.getInput(id).then((node) {
+    return _phases.last.getOutput(id).then((node) {
       // If the requested asset is available, we can just return it.
       if (node != null && node.state.isAvailable) return node;
 

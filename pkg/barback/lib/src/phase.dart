@@ -33,9 +33,6 @@ class Phase {
   /// The cascade that owns this phase.
   final AssetCascade cascade;
 
-  /// This phase's position relative to the other phases. Zero-based.
-  final int _index;
-
   /// The transformers that can access [inputs].
   ///
   /// Their outputs will be available to the next phase.
@@ -107,7 +104,15 @@ class Phase {
   /// Outputs from this phase will be passed to it.
   final Phase _next;
 
-  Phase(this.cascade, this._index, this._transformers, this._next) {
+  /// Returns all currently-available output assets for this phase.
+  AssetSet get availableOutputs {
+    return new AssetSet.from(_outputs.values
+        .map((queue) => queue.first)
+        .where((node) => node.state.isAvailable)
+        .map((node) => node.asset));
+  }
+
+  Phase(this.cascade, this._transformers, this._next) {
     _onDirtyPool.add(_onDirtyController.stream);
   }
 
@@ -176,6 +181,17 @@ class Phase {
     return newFuture(() {
       if (id.package == cascade.package) return _inputs[id];
       return cascade.graph.getAssetNode(id);
+    });
+  }
+
+  /// Gets the asset node for an output [id].
+  ///
+  /// If an output with that ID cannot be found, returns null.
+  Future<AssetNode> getOutput(AssetId id) {
+    return newFuture(() {
+      if (id.package != cascade.package) return cascade.graph.getAssetNode(id);
+      if (!_outputs.containsKey(id)) return null;
+      return _outputs[id].first;
     });
   }
 
@@ -322,8 +338,6 @@ class Phase {
 
   /// Applies all currently wired up and dirty transforms.
   Future _processTransforms() {
-    if (_next == null) return new Future.value();
-
     var newPassThroughs = _passThroughControllers.values
         .map((controller) => controller.node)
         .where((output) {
@@ -339,19 +353,15 @@ class Phase {
 
     if (dirtyTransforms.isEmpty && newPassThroughs.isEmpty) return null;
 
-    var collisions = _passAssetsThrough(newPassThroughs);
+    var collisions = new Set<AssetId>();
+    for (var output in newPassThroughs) {
+      if (_addOutput(output)) collisions.add(output.id);
+    }
+
     return Future.wait(dirtyTransforms.map((transform) {
       return transform.apply().then((outputs) {
         for (var output in outputs) {
-          if (_outputs.containsKey(output.id)) {
-            _outputs[output.id].add(output);
-            collisions.add(output.id);
-          } else {
-            _outputs[output.id] = new Queue<AssetNode>.from([output]);
-            _next.addInput(output);
-          }
-
-          _handleOutputRemoval(output);
+          if (_addOutput(output)) collisions.add(output.id);
         }
       });
     })).then((_) {
@@ -370,28 +380,21 @@ class Phase {
     });
   }
 
-  /// Pass all new assets that aren't consumed by transforms through to the next
-  /// phase.
+  /// Add [output] as an output of this phase, forwarding it to the next phase
+  /// if necessary.
   ///
-  /// Returns a set of asset ids that have collisions between new passed-through
-  /// assets and pre-existing transform outputs.
-  Set<AssetId> _passAssetsThrough(Set<AssetId> newPassThroughs) {
-    var collisions = new Set<AssetId>();
-    for (var output in newPassThroughs) {
-      if (_outputs.containsKey(output.id)) {
-        // There shouldn't be another pass-through asset with the same id.
-        assert(!_outputs[output.id].any((asset) => asset.transform == null));
+  /// Returns whether or not [output] collides with another pre-existing output.
+  bool _addOutput(AssetNode output) {
+    _handleOutputRemoval(output);
 
-        _outputs[output.id].add(output);
-        collisions.add(output.id);
-      } else {
-        _outputs[output.id] = new Queue<AssetNode>.from([output]);
-        _next.addInput(output);
-      }
-
-      _handleOutputRemoval(output);
+    if (_outputs.containsKey(output.id)) {
+      _outputs[output.id].add(output);
+      return true;
     }
-    return collisions;
+
+    _outputs[output.id] = new Queue<AssetNode>.from([output]);
+    if (_next != null) _next.addInput(output);
+    return false;
   }
 
   /// Properly resolve collisions when [output] is removed.
@@ -413,7 +416,7 @@ class Phase {
       // (chronologically) to the next phase. Pump the event queue first to give
       // [_next] a chance to handle the removal of its input before getting a
       // new input.
-      if (wasFirst) {
+      if (wasFirst && _next != null) {
         newFuture(() => _next.addInput(assets.first));
       }
 
