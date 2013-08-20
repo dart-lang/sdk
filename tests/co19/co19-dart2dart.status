@@ -134,7 +134,6 @@ LibTest/math/pow_A01_t01: Fail # Inherited from VM.
 LibTest/math/pow_A11_t01: Fail # Inherited from VM.
 LibTest/math/pow_A13_t01: Fail # Inherited from VM.
 LibTest/math/pow_A18_t01: Fail # Inherited from VM.
-LibTest/math/pow_A19_t01: Fail # Inherited from VM.
 LibTest/math/sin_A01_t01: Fail # Inherited from VM.
 LibTest/math/tan_A01_t01: Fail # Issue co19 - 44
 
