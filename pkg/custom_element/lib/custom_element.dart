@@ -313,6 +313,8 @@ class CustomElement implements Element {
     host.innerHtml = v;
   }
 
+  InputMethodContext get inputMethodContext => host.inputMethodContext;
+
   bool get isContentEditable => host.isContentEditable;
 
   String get lang => host.lang;
@@ -338,7 +340,8 @@ class CustomElement implements Element {
 
   void click() { host.click(); }
 
-  InputMethodContext getInputContext() => host.getInputContext();
+  List<Node> getDestinationInsertionPoints() =>
+    host.getDestinationInsertionPoints();
 
   Element insertAdjacentElement(String where, Element element) =>
     host.insertAdjacentElement(where, element);
