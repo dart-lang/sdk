@@ -28,9 +28,6 @@ async/run_async6_test: Fail # global error handling is not supported. http://dar
 async/stream_controller_async_test: Fail, Pass # http://dartbug.com/11953
 
 
-[ $compiler == dart2js && ($runtime == d8) ]
-typed_data/byte_data_test: Fail, OK # d8 doesn't support DataView
-
 [ $csp ]
 mirrors/*: Skip # Issue 6490
 
