@@ -29,9 +29,6 @@ Language/12_Expressions/01_Constants_A17_t03: fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: fail, OK
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: fail, OK
 
-# co19 issue #389, ceil, floor, truncate and round return integers
-LibTest/core/int/operator_division_A01_t01: fail, OK
-
 # co19 issue #397, List.addLast removed
 LibTest/core/Iterable/where_A01_t07: fail, OK
 
@@ -223,9 +220,6 @@ Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: fail, O
 # co19 issue #433 (wrongly closed), missing @static-warning annotation
 Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t01: fail, OK
 Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t07: fail, OK
-
-# co19 issue #483, static member access through instance
-Language/12_Expressions/15_Method_Invocation/2_Cascaded_Invocation_A01_t19: fail, OK
 
 # co19 issue #530, garbage
 Language/12_Expressions/32_Type_Test_A04_t02: fail, OK

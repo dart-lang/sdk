@@ -8,7 +8,6 @@ javascript_int_overflow_literal_test/01: fail, ok
 # https://code.google.com/p/dart/issues/detail?id=11665
 standalone/io/directory_invalid_arguments_test: fail
 standalone/io/file_constructor_test: fail
-standalone/io/file_fuzz_test: fail
 standalone/io/http_cookie_date_test: fail
 standalone/io/http_headers_test: fail
 standalone/io/http_parser_test: fail
