@@ -12,20 +12,18 @@ patch num pow(num x, num exponent) {
   if ((x is int) && (exponent is int) && (exponent >= 0)) {
     return _intPow(x, exponent);
   }
-  // doublePow will call exponent.toDouble().
-  return _doublePow(x.toDouble(), exponent);
+  return _doublePow(x.toDouble(), exponent.toDouble());
 }
 
-double _doublePow(double base, num exponent) {
-  if (exponent == 0) {
+double _doublePow(double base, double exponent) {
+  if (exponent == 0.0) {
     return 1.0;  // ECMA-262 15.8.2.13
   }
   if (base == 1.0) return 1.0;
-  double doubleExponent = exponent.toDouble();
   if (base.isNaN || exponent.isNaN) {
     return double.NAN;
   }
-  return _pow(base, doubleExponent);
+  return _pow(base, exponent);
 }
 
 double _pow(double base, double exponent) native "Math_doublePow";
