@@ -86,6 +86,8 @@ unittest/test/mirror_matchers_test: Skip # Issue 12151
 observe/test/observe_test: Fail # Issue 11970
 observe/test/path_observer_test: Fail  # Issue 11970
 mdv/test/binding_syntax_test: Fail # Issue 11970
+polymer_expressions/test/eval_test: Fail # Issue 12578
+polymer_expressions/test/syntax_test: Fail # Issue 12578
 serialization/test/serialization_test: Fail # Issue 6490
 serialization/test/no_library_test: Fail # Issue 6490
 
@@ -108,7 +110,6 @@ crypto/test/sha1_test: Slow, Pass
 csslib/test/var_test: Fail # looking for VM-specific stack traces, issue 12469
 
 [ $compiler == dart2js && $runtime == drt ]
-third_party/html5lib/test/parser_feature_test: Fail # issue 12466
 csslib: Pass, Fail # issue 12466
 
 [ $browser ]
