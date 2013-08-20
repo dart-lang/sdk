@@ -92,9 +92,8 @@ main() {
     // Ensuring the wrapper is retained
     var someProperty = new Expando();
     someProperty[parsedFoo] = "hello";
-    // TODO(vsm): Fix this in Dartium.
-    // expect(someProperty[container.firstChild], someProperty[parsedFoo]);
-    // expect(container.firstChild, parsedFoo);
+    expect(container.firstChild, parsedFoo);
+    expect(someProperty[container.firstChild], someProperty[parsedFoo]);
 
     // Having another constructor
     document.register(Bar.tag, Bar);
