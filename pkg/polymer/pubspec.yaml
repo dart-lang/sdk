@@ -1,0 +1,28 @@
+name: polymer
+author: Web UI Authors <web-ui-dev@dartlang.org>
+description: >
+  Polymer.dart is a new type of library for the web, built on top of Web
+  Components, and designed to leverage the evolving web platform on modern
+  browsers.
+homepage: https://www.dartlang.org
+environment:
+  sdk: any
+dependencies:
+  analyzer_experimental: any
+  args: any
+  barback: any
+  browser: any
+  csslib: any
+  custom_element: any
+  html_import: any
+  html5lib: any
+  js: any
+  logging: any
+  mdv: any
+  observe: any
+  path: any
+  polymer_expressions: any
+  shadow_dom: any
+  source_maps: any
+  # TODO(jmesserly): make this a dev_dependency
+  unittest: any

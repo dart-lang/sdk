@@ -1,0 +1,142 @@
+<!doctype html>
+<!--
+   Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+   for details. All rights reserved. Use of this source code is governed by a
+   BSD-style license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title>event path</title>
+    <script src="packages/polymer/testing/testing.js"></script>
+    <script src="packages/unittest/test_controller.js"></script>
+    <!--
+    Test ported from:
+    https://github.com/Polymer/polymer/blob/7936ff8/test/html/event-path.html
+
+    This test actually doesn't test the polymer's event layer. It just ensures
+    that tests are propagated in the right order when using Shadow DOM.
+    -->
+  </head>
+  <body>
+
+  <polymer-element name="x-selector">
+    <template>
+      <div id="selectorDiv">
+        <content id="selectorContent"></content>
+      </div>
+    </template>
+    <script type="application/dart">
+      import 'package:polymer/polymer.dart';
+      @CustomTag("x-selector")
+      class XSelector extends PolymerElement {}
+    </script>
+  </polymer-element>
+
+  <polymer-element name="x-overlay">
+    <template>
+      <content id="overlayContent"></content>
+    </template>
+    <script type="application/dart">
+      import 'package:polymer/polymer.dart';
+      @CustomTag("x-overlay")
+      class XOverlay extends PolymerElement {}
+    </script>
+  </polymer-element>
+
+  <polymer-element name="x-menu" extends="x-selector">
+    <template>
+      <div id="menuDiv">
+        <shadow id="menuShadow"></shadow>
+      </div>
+    </template>
+    <script type="application/dart">
+      import 'package:polymer/polymer.dart';
+      @CustomTag("x-menu")
+      class XMenu extends PolymerElement {}
+    </script>
+  </polymer-element>
+
+  <polymer-element name="x-menu-button">
+    <template>
+    <div>
+      <x-overlay id="overlay">
+        <div id="menuButtonDiv">
+          <x-menu id="menu">
+            <content id="menuButtonContent"></content>
+          </x-menu>
+        </div>
+      </x-overlay>
+      </div>
+    </template>
+    <script type="application/dart">
+      import 'package:polymer/polymer.dart';
+      @CustomTag("x-menu-button")
+      class XMenuButton extends PolymerElement {}
+    </script>
+  </polymer-element>
+
+  <x-menu-button id="menuButton">
+    <div id="item1"><div id="source"></div>Item1</div>
+    <div id="item2">Item2</div>
+  </x-menu-button>
+
+
+  <script type="application/dart">
+    import 'dart:html';
+    import 'dart:async';
+    import 'package:unittest/unittest.dart';
+    import 'package:unittest/html_config.dart';
+
+    main() {
+      useHtmlConfiguration();
+      test('bubbling in the right order', () {
+        // TODO(sigmund): this should change once we port over the
+        // 'WebComponentsReady' event.
+        runAsync(expectAsync0(() {
+          var item1 = query('#item1');
+          var menuButton = query('#menuButton');
+          // Note: polymer uses automatic node finding (menuButton.$.menu)
+          // also note that their node finding code also reachs into the ids
+          // from the parent shadow (menu.$.selectorContent instead of
+          // menu.$.menuShadow.$.selectorContent)
+          var menu = menuButton.shadowRoot.query('#menu');
+          var selector = menu.shadowRoot.query("#menuShadow");
+          var overlay = menuButton.shadowRoot.query('#overlay');
+          var expectedPath = <Node>[
+              item1,
+              menuButton.shadowRoot.query('#menuButtonContent'),
+              selector.olderShadowRoot.query('#selectorContent'),
+              selector.olderShadowRoot.query('#selectorDiv'),
+              menu.shadowRoot.query('#menuShadow').olderShadowRoot,
+              menu.shadowRoot.query('#menuShadow'),
+              menu.shadowRoot.query('#menuDiv'),
+              menu.shadowRoot,
+              menu,
+              menuButton.shadowRoot.query('#menuButtonDiv'),
+              // TODO(sigmund): this test is currently broken because currently
+              // registerElement is sensitive to the order in which each custom
+              // element is registered. When fixed, we should be able to add the
+              // following three targets:
+              //   overlay.shadowRoot.query('#overlayContent'),
+              //   overlay.shadowRoot,
+              //   overlay,
+              menuButton.shadowRoot,
+              menuButton
+          ];
+          var x = 0;
+          for (int i = 0; i < expectedPath.length; i++) {
+            var node = expectedPath[i];
+            expect(node, isNotNull, reason: "Should not be null at $i");
+            node.on['x'].listen(expectAsync1((e) {
+              expect(e.currentTarget, node);
+              expect(x++, i);
+            }));
+          }
+
+          item1.dispatchEvent(new Event('x', canBubble: true));
+        }));
+      });
+    }
+  </script>
+  </body>
+</html>

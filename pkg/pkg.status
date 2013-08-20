@@ -8,9 +8,12 @@
 */packages/*/*: Skip
 */*/packages/*/*: Skip
 */*/*/packages/*/*: Skip
+*/*/*/*/packages/*/*: Skip
 
 # Skip non-test files ending with "_test".
 scheduled_test/lib/*: Skip
+polymer/lib/*: Skip
+polymer/example/*: Skip
 
 scheduled_test/test/scheduled_server_test: Pass, Fail, Slow, Crash # Issue 9231, 9582
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
@@ -138,6 +141,7 @@ oauth2/test/credentials_test: Fail, OK # Uses dart:io.
 oauth2/test/handle_access_token_response_test: Fail, OK # Uses dart:io.
 observe/test/transform_test: Fail, OK # Uses dart:io.
 path/test/io_test: Fail, OK # Uses dart:io.
+polymer/test/*: Fail, OK # Uses dart:io.
 watcher/test/*: Fail, OK # Uses dart:io.
 
 scheduled_test/test/descriptor/async_test: Fail # http://dartbug.com/8440

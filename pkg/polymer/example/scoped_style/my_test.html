@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Compopnent</title>
+</head>
+<body>
+<polymer-element name="my-test" extends="div">
+  <template>
+    <style>
+      p { color: red;}
+    </style>
+    <p>Inside element, should be red</p>
+  </template>
+  <script type="application/dart">
+    import 'package:polymer/polymer.dart';
+
+    @CustomTag('my-test')
+    class MyTest extends PolymerElement {}
+  </script>
+</polymer-element>
+</body>
+</html>
