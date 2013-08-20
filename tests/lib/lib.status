@@ -9,8 +9,6 @@ typed_data/byte_data_test: Pass, Fail # v8 bug: Issue 12293
 [ $compiler == dart2js ]
 math/double_pow_test: Fail
 math/low_test: Fail
-math/math2_test: Fail
-math/math_test: Fail
 math/random_test: Fail
 mirrors/invoke_test: Fail # Issue 11954
 mirrors/class_mirror_type_variables_test: Fail # Issue 12087
@@ -34,6 +32,10 @@ async/stream_controller_async_test: Fail, Pass # http://dartbug.com/11953
 
 [ $csp ]
 mirrors/*: Skip # Issue 6490
+
+[ $compiler == dart2js && $runtime != jsshell && $runtime != safari && $runtime != firefox]
+math/math_test: Fail
+math/math2_test: Fail
 
 [ $compiler == dart2js && $jscl ]
 async/future_test: Fail # Timer interface not supported; dartbug.com/7728.
