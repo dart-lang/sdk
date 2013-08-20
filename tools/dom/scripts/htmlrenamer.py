@@ -375,6 +375,18 @@ renamed_overloads = monitored.Dict('htmldartgenreator.renamed_overloads', {
       'transactionList',
   'IDBDatabase.transaction(DOMString storeName, DOMString mode)':
       'transactionStore',
+  'ImageBitmapFactories.createImageBitmap(HTMLImageElement image)' : 'createImageBitmap0',
+  'ImageBitmapFactories.createImageBitmap(HTMLImageElement image, long sx, long sy, long sw, long sh)' : 'createImageBitmap1',
+  'ImageBitmapFactories.createImageBitmap(HTMLVideoElement video)' : 'createImageBitmap2',
+  'ImageBitmapFactories.createImageBitmap(HTMLVideoElement video, long sx, long sy, long sw, long sh)' : 'createImageBitmap3',
+  'ImageBitmapFactories.createImageBitmap(CanvasRenderingContext2D context)' : 'createImageBitmap4',
+  'ImageBitmapFactories.createImageBitmap(CanvasRenderingContext2D context, long sx, long sy, long sw, long sh)' : 'createImageBitmap5',
+  'ImageBitmapFactories.createImageBitmap(HTMLCanvasElement canvas)' : 'createImageBitmap6',
+  'ImageBitmapFactories.createImageBitmap(HTMLCanvasElement canvas, long sx, long sy, long sw, long sh)' : 'createImageBitmap7',
+  'ImageBitmapFactories.createImageBitmap(ImageData data)' : 'createImageBitmap8',
+  'ImageBitmapFactories.createImageBitmap(ImageData data, long sx, long sy, long sw, long sh)' : 'createImageBitmap9',
+  'ImageBitmapFactories.createImageBitmap(ImageBitmap bitmap)' : 'createImageBitmap10',
+  'ImageBitmapFactories.createImageBitmap(ImageBitmap bitmap, long sx, long sy, long sw, long sh)' : 'createImageBitmap11',
   'RTCDataChannel.send(ArrayBuffer data)': 'sendByteBuffer',
   'RTCDataChannel.send(ArrayBufferView data)': 'sendTypedData',
   'RTCDataChannel.send(Blob data)': 'sendBlob',
@@ -738,14 +750,20 @@ class HtmlRenamer(object):
       if interface.id in _removed_html_interfaces:
         return None
 
-    if interface.id in html_interface_renames:
-      return html_interface_renames[interface.id]
-    elif interface.id.startswith('HTML'):
+    candidate = self.RenameInterfaceId(interface.id)
+    if candidate:
+      return candidate
+
+    if interface.id.startswith('HTML'):
       if any(interface.id in ['Element', 'Document']
              for interface in self._database.Hierarchy(interface)):
         return interface.id[len('HTML'):]
     return self._DartifyName(interface.javascript_binding_name)
 
+  def RenameInterfaceId(self, interface_id):
+    if interface_id in html_interface_renames:
+      return html_interface_renames[interface_id]
+    return None;
 
 
   def RenameMember(self, interface_name, member_node, member, member_prefix='',

@@ -72,7 +72,7 @@ class HtmlDartGenerator(object):
       self.AddConstant(const)
 
     for attr in sorted(interface.attributes, ConstantOutputOrder):
-      if attr.type.id != 'EventListener':
+      if attr.type.id != 'EventHandler' and attr.type.id != 'EventListener':
         self.AddAttribute(attr, declare_only)
 
     # The implementation should define an indexer if the interface directly
@@ -117,7 +117,7 @@ class HtmlDartGenerator(object):
         continue
       for attr in sorted(parent_interface.attributes, ConstantOutputOrder):
         if not FindMatchingAttribute(interface, attr):
-          if attr.type.id != 'EventListener':
+          if attr.type.id != 'EventHandler':
             self.SecondaryContext(parent_interface)
             self.AddAttribute(attr)
 
