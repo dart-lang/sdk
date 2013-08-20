@@ -1201,6 +1201,10 @@ abstract class Uint32x4 {
   Uint32x4 operator&(Uint32x4 other);
   /// The bit-wise xor operator.
   Uint32x4 operator^(Uint32x4 other);
+  /// Addition operator.
+  Uint32x4 operator+(Uint32x4 other);
+  /// Subtraction operator.
+  Uint32x4 operator-(Uint32x4 other);
 
   /// Extract 32-bit mask from x lane.
   int get x;

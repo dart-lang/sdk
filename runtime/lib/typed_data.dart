@@ -2081,6 +2081,14 @@ class _Uint32x4 implements Uint32x4 {
     return _xor(other);
   }
   Uint32x4 _xor(Uint32x4 other) native "Uint32x4_xor";
+  Uint32x4 operator +(Uint32x4 other) {
+    return _add(other);
+  }
+  Uint32x4 _add(Uint32x4 other) native "Uint32x4_add";
+  Uint32x4 operator -(Uint32x4 other) {
+    return _sub(other);
+  }
+  Uint32x4 _sub(Uint32x4 other) native "Uint32x4_sub";
   int get x native "Uint32x4_getX";
   int get y native "Uint32x4_getY";
   int get z native "Uint32x4_getZ";

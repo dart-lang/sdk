@@ -471,6 +471,28 @@ DEFINE_NATIVE_ENTRY(Uint32x4_xor, 2) {
 }
 
 
+DEFINE_NATIVE_ENTRY(Uint32x4_add, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Uint32x4, self, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Uint32x4, other, arguments->NativeArgAt(1));
+  uint32_t _x = self.x() + other.x();
+  uint32_t _y = self.y() + other.y();
+  uint32_t _z = self.z() + other.z();
+  uint32_t _w = self.w() + other.w();
+  return Uint32x4::New(_x, _y, _z, _w);
+}
+
+
+DEFINE_NATIVE_ENTRY(Uint32x4_sub, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Uint32x4, self, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Uint32x4, other, arguments->NativeArgAt(1));
+  uint32_t _x = self.x() - other.x();
+  uint32_t _y = self.y() - other.y();
+  uint32_t _z = self.z() - other.z();
+  uint32_t _w = self.w() - other.w();
+  return Uint32x4::New(_x, _y, _z, _w);
+}
+
+
 DEFINE_NATIVE_ENTRY(Uint32x4_getX, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Uint32x4, self, arguments->NativeArgAt(0));
   uint32_t value = self.x();

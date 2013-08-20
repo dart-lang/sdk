@@ -3632,6 +3632,12 @@ void BinaryUint32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ veorq(result, left, right);
       break;
     }
+    case Token::kADD:
+      UNIMPLEMENTED();
+      break;
+    case Token::kSUB:
+      UNIMPLEMENTED();
+      break;
     default: UNREACHABLE();
   }
 }

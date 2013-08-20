@@ -1396,6 +1396,24 @@ class Uint32x4 {
     return new Uint32x4(_x, _y, _z, _w);
   }
 
+  Uint32x4 operator+(Uint32x4 other) {
+    var r = new Uint32x4(0, 0, 0, 0);
+    r._storage[0] = (_storage[0] + other._storage[0]);
+    r._storage[1] = (_storage[1] + other._storage[1]);
+    r._storage[2] = (_storage[2] + other._storage[2]);
+    r._storage[3] = (_storage[3] + other._storage[3]);
+    return r;
+  }
+
+  Uint32x4 operator-(Uint32x4 other) {
+    var r = new Uint32x4(0, 0, 0, 0);
+    r._storage[0] = (_storage[0] - other._storage[0]);
+    r._storage[1] = (_storage[1] - other._storage[1]);
+    r._storage[2] = (_storage[2] - other._storage[2]);
+    r._storage[3] = (_storage[3] - other._storage[3]);
+    return r;
+  }
+
   /// Extract 32-bit mask from x lane.
   int get x => _storage[0];
   /// Extract 32-bit mask from y lane.

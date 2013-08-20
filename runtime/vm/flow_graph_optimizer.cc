@@ -1083,6 +1083,8 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         operands_type = kDoubleCid;
       } else if (HasOnlyTwoOf(ic_data, kFloat32x4Cid)) {
         operands_type = kFloat32x4Cid;
+      } else if (HasOnlyTwoOf(ic_data, kUint32x4Cid)) {
+        operands_type = kUint32x4Cid;
       } else {
         return false;
       }
