@@ -126,21 +126,6 @@ class _Double implements double {
   int toInt() native "Double_toInt";
   double toDouble() { return this; }
 
-  double pow(num exponent) {
-    if (exponent == 0) {
-      return 1.0;  // ECMA-262 15.8.2.13
-    }
-    if (exponent is! num) {
-      throw new ArgumentError(null);
-    }
-    double doubleExponent = exponent.toDouble();
-    if (isNaN || exponent.isNaN) {
-      return double.NAN;
-    }
-    return _pow(doubleExponent);
-  }
-  double _pow(double exponent) native "Double_pow";
-
   String toStringAsFixed(int fractionDigits) {
     // See ECMAScript-262, 15.7.4.5 for details.
 

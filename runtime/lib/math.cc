@@ -66,6 +66,15 @@ DEFINE_NATIVE_ENTRY(Math_log, 1) {
   return Double::New(log(operand.value()));
 }
 
+DEFINE_NATIVE_ENTRY(Math_doublePow, 2) {
+  const double operand =
+      Double::CheckedHandle(arguments->NativeArgAt(0)).value();
+  GET_NON_NULL_NATIVE_ARGUMENT(
+      Double, exponent_object, arguments->NativeArgAt(1));
+  const double exponent = exponent_object.value();
+  return Double::New(pow(operand, exponent));
+}
+
 
 // Returns the typed-data array store in '_Random._state' field.
 static RawTypedData* GetRandomStateArray(const Instance& receiver) {

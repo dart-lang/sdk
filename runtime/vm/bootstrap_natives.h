@@ -73,7 +73,6 @@ namespace dart {
   V(Double_toStringAsFixed, 2)                                                 \
   V(Double_toStringAsExponential, 2)                                           \
   V(Double_toStringAsPrecision, 2)                                             \
-  V(Double_pow, 2)                                                             \
   V(JSSyntaxRegExp_factory, 4)                                                 \
   V(JSSyntaxRegExp_getPattern, 1)                                              \
   V(JSSyntaxRegExp_getIsMultiLine, 1)                                          \
@@ -110,6 +109,7 @@ namespace dart {
   V(Math_atan2, 2)                                                             \
   V(Math_exp, 1)                                                               \
   V(Math_log, 1)                                                               \
+  V(Math_doublePow, 2)                                                         \
   V(Random_nextState, 1)                                                       \
   V(Random_setupSeed, 2)                                                       \
   V(DateNatives_currentTimeMillis, 0)                                          \

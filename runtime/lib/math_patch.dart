@@ -10,10 +10,42 @@ import "dart:typed_data";
 // an [int], otherwise the result is a [double].
 patch num pow(num x, num exponent) {
   if ((x is int) && (exponent is int) && (exponent >= 0)) {
-    return x.pow(exponent);
+    return _intPow(x, exponent);
   }
-  // Double.pow will call exponent.toDouble().
-  return x.toDouble().pow(exponent);
+  // doublePow will call exponent.toDouble().
+  return _doublePow(x.toDouble(), exponent);
+}
+
+double _doublePow(double base, num exponent) {
+  if (exponent == 0) {
+    return 1.0;  // ECMA-262 15.8.2.13
+  }
+  if (exponent is! num) {
+    throw new ArgumentError(null);
+  }
+  double doubleExponent = exponent.toDouble();
+  if (base.isNaN || exponent.isNaN) {
+    return double.NAN;
+  }
+  return _pow(base, doubleExponent);
+}
+
+double _pow(double base, double exponent) native "Math_doublePow";
+
+int _intPow(int base, int exponent) {
+  // Exponentiation by squaring.
+  int result = 1;
+  while (exponent != 0) {
+    if ((exponent & 1) == 1) {
+      result *= base;
+    }
+    exponent >>= 1;
+    // Skip unnecessary operation (can overflow to Mint or Bigint).
+    if (exponent != 0) {
+      base *= base;
+    }
+  }
+  return result;
 }
 
 patch double atan2(num a, num b) => _atan2(a.toDouble(), b.toDouble());
