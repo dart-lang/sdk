@@ -15,6 +15,16 @@ Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: fail
 # TBF: _f is private, so does not collide
 Language/07_Classes/1_Instance_Methods_A05_t08: fail
 
+# TBD: should we check that argument for dynamic parameter of constant constructor is not compatible with operation that is performed with it?
+Language/12_Expressions/01_Constants_A16_t03: fail
+
+# TBD: should we report _error_ when constant creation uses arguments with types incompatible with parameters?
+Language/12_Expressions/12_Instance_Creation/2_Const_A09_t02: fail
+Language/12_Expressions/12_Instance_Creation/2_Const_A09_t03: fail
+
+# TBF: infinite look: class A {const A();final m = const A();}
+Language/12_Expressions/01_Constants_A17_t03: fail
+
 # co19 issue #380, Strings class has been removed
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: fail, OK
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: fail, OK
@@ -137,59 +147,94 @@ Language/07_Classes/3_Setters_A08_t04: fail, OK
 # co19 issue #516, it is a compile-time error if a class has both a getter and a method with the same name.
 Language/07_Classes/3_Setters_A08_t05: fail, OK
 
+# co19 issue #438, Static variables are initialized lazily, need not be constants
+Language/12_Expressions/01_Constants_A16_t01: fail, OK
+Language/12_Expressions/01_Constants_A16_t02: fail, OK
+
+# co19 issue #517, +5 is not a valid expression
+Language/12_Expressions/01_Constants_A01_t01: fail, OK
+Language/12_Expressions/03_Numbers_A01_t01: fail, OK
+Language/12_Expressions/03_Numbers_A01_t02: fail, OK
+Language/12_Expressions/03_Numbers_A01_t03: fail, OK
+Language/12_Expressions/03_Numbers_A01_t04: fail, OK
+Language/12_Expressions/03_Numbers_A01_t08: fail, OK
+Language/12_Expressions/03_Numbers_A01_t10: fail, OK
+Language/13_Statements/02_Expression_Statements_A01_t06: fail, OK
+
+# co19 issue #518, It is a compile-time error if evaluation of a compile-time constant would raise an exception
+Language/12_Expressions/01_Constants_A11_t01: fail, OK
+Language/12_Expressions/01_Constants_A12_t01: fail, OK
+Language/12_Expressions/01_Constants_A13_t06: fail, OK
+
+# co19 issue #397, List.addLast being removed
+Language/12_Expressions/06_Lists_A06_t01: fail, OK
+
+# co19 issue #519, ++5 is not assignable
+Language/12_Expressions/07_Maps_A01_t01: fail, OK
+
+# co19 issue #420, "throw" requires expression, "rethrow" should be used instead
+Language/12_Expressions/08_Throw_A05_t01: fail, OK
+Language/12_Expressions/08_Throw_A05_t02: fail, OK
+Language/12_Expressions/08_Throw_A05_t03: fail, OK
+
+# co19 issue #454 (wrongly closed)
+Language/12_Expressions/12_Instance_Creation/1_New_A01_t04: fail, OK
+
+# co19 issue #521, attempt to create instance of not a class
+Language/12_Expressions/12_Instance_Creation/1_New_A02_t01: fail, OK
+Language/12_Expressions/12_Instance_Creation/1_New_A02_t02: fail, OK
+Language/12_Expressions/12_Instance_Creation/1_New_A02_t03: fail, OK
+Language/12_Expressions/12_Instance_Creation/1_New_A02_t05: fail, OK
+Language/12_Expressions/12_Instance_Creation/1_New_A02_t07: fail, OK
+Language/12_Expressions/12_Instance_Creation/1_New_A06_t03: fail, OK
+
+# co19 issue #523, new malbound type
+Language/12_Expressions/12_Instance_Creation/1_New_A05_t01: fail, OK
+Language/12_Expressions/12_Instance_Creation/1_New_A05_t02: fail, OK
+Language/12_Expressions/12_Instance_Creation/1_New_A05_t03: fail, OK
+
+# co19 issue #524, new abstract class
+Language/12_Expressions/12_Instance_Creation/1_New_A06_t01: fail, OK
+Language/12_Expressions/12_Instance_Creation/1_New_A06_t02: fail, OK
+Language/12_Expressions/12_Instance_Creation/1_New_A06_t12: fail, OK
+
+# co19 issue #526, use undefined constructor
+Language/12_Expressions/12_Instance_Creation/1_New_A06_t04: fail, OK
+Language/12_Expressions/12_Instance_Creation/1_New_A06_t05: fail, OK
+Language/12_Expressions/12_Instance_Creation/1_New_A06_t06: fail, OK
+
+# co19 issue #527, not enough or extra positional parameters; no such named paramater
+Language/12_Expressions/12_Instance_Creation/1_New_A06_t07: fail, OK
+Language/12_Expressions/12_Instance_Creation/1_New_A06_t08: fail, OK
+Language/12_Expressions/12_Instance_Creation/1_New_A06_t09: fail, OK
+
+# co19 issue #528, Const: wrong number of type arguments
+Language/12_Expressions/12_Instance_Creation_A01_t02: fail, OK
+Language/12_Expressions/12_Instance_Creation_A01_t05: fail, OK
+Language/12_Expressions/12_Instance_Creation_A01_t06: fail, OK
+
+# co19 issue #529, const instance creation with invalid type arguments
+Language/12_Expressions/12_Instance_Creation_A01_t08: fail, OK
+
+# co19 issue #388 (wrongly closed), StringBuffer methods changed
+Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t05: fail, OK
+Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: fail, OK
+
+# co19 issue #433 (wrongly closed), missing @static-warning annotation
+Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t01: fail, OK
+Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t07: fail, OK
+
+# co19 issue #483, static member access through instance
+Language/12_Expressions/15_Method_Invocation/2_Cascaded_Invocation_A01_t19: fail, OK
+
+# co19 issue #530, garbage
+Language/12_Expressions/32_Type_Test_A04_t02: fail, OK
+
+# co19 issue #531, void f(void f()) {f();} is error. Gilad: The formal parameter conflicts with the name of the function.
+Language/13_Statements/04_Local_Function_Declaration_A01_t01: fail, OK
+
+
 # co19-roll r546 (11.08.2013) caused these failures
-Language/12_Expressions/01_Constants_A01_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/01_Constants_A11_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/01_Constants_A12_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/01_Constants_A13_t06: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/01_Constants_A16_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/01_Constants_A16_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/01_Constants_A16_t03: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/01_Constants_A17_t03: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/03_Numbers_A01_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/03_Numbers_A01_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/03_Numbers_A01_t03: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/03_Numbers_A01_t04: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/03_Numbers_A01_t08: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/03_Numbers_A01_t10: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/06_Lists_A06_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/07_Maps_A01_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/08_Throw_A05_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/08_Throw_A05_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/08_Throw_A05_t03: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A01_t04: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A02_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A02_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A02_t03: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A02_t05: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A02_t07: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A05_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A05_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A05_t03: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A06_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A06_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A06_t03: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A06_t04: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A06_t05: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A06_t06: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A06_t07: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A06_t08: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A06_t09: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A06_t12: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/2_Const_A09_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/2_Const_A09_t03: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation_A01_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation_A01_t05: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation_A01_t06: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation_A01_t08: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/15_Method_Invocation/2_Cascaded_Invocation_A01_t19: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t07: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t05: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/32_Type_Test_A04_t02: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/02_Expression_Statements_A01_t06: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/04_Local_Function_Declaration_A01_t01: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/11_Return_A07_t01: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/11_Try_A02_t03: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/11_Try_A03_t03: fail # co19-roll r546: Please triage this failure
