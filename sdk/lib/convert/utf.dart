@@ -22,7 +22,7 @@ const UTF8 = const Utf8Codec();
  * A [Utf8Codec] encodes strings to utf-8 code units (bytes) and decodes
  * UTF-8 code units to strings.
  */
-class Utf8Codec extends Encoding {
+class Utf8Codec extends _Encoding {
   final bool _allowMalformed;
 
   /**
