@@ -725,6 +725,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'Performance.webkitMark',
     'Performance.webkitMeasure',
     'ShadowRoot.getElementsByTagNameNS',
+    'SVGElement.getPresentationAttribute',
     'SVGStyledElement.getPresentationAttribute',
     'WheelEvent.wheelDelta',
     'WorkerGlobalScope.webkitIndexedDB',

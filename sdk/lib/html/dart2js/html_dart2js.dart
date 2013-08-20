@@ -1122,11 +1122,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   @DocsEditable()
   String globalCompositeOperation;
 
-  @DomName('CanvasRenderingContext2D.imageSmoothingEnabled')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool imageSmoothingEnabled;
-
   @DomName('CanvasRenderingContext2D.lineCap')
   @DocsEditable()
   String lineCap;
@@ -1251,16 +1246,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   @DomName('CanvasRenderingContext2D.createRadialGradient')
   @DocsEditable()
   CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native;
-
-  @DomName('CanvasRenderingContext2D.drawCustomFocusRing')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool drawCustomFocusRing(Element element) native;
-
-  @DomName('CanvasRenderingContext2D.drawSystemFocusRing')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void drawSystemFocusRing(Element element) native;
 
   @DomName('CanvasRenderingContext2D.fill')
   @DocsEditable()
@@ -6429,7 +6414,7 @@ class DataTransferItem extends Interceptor native "DataTransferItem" {
   @JSName('getAsString')
   @DomName('DataTransferItem.getAsString')
   @DocsEditable()
-  void _getAsString(_StringCallback callback) native;
+  void _getAsString([_StringCallback callback]) native;
 
   @JSName('getAsString')
   @DomName('DataTransferItem.getAsString')
@@ -9851,15 +9836,14 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   @DocsEditable()
   bool hidden;
 
+  @DomName('Element.id')
+  @DocsEditable()
+  String id;
+
   @JSName('innerHTML')
   @DomName('Element.innerHTML')
   @DocsEditable()
   String innerHtml;
-
-  @DomName('Element.inputMethodContext')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final InputMethodContext inputMethodContext;
 
   @DomName('Element.isContentEditable')
   @DocsEditable()
@@ -9907,6 +9891,12 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   @DocsEditable()
   void click() native;
 
+  @DomName('Element.getInputContext')
+  @DocsEditable()
+  // http://www.w3.org/TR/ime-api/#the-getinputcontext-method
+  @Experimental()
+  InputMethodContext getInputContext() native;
+
   @DomName('Element.ALLOW_KEYBOARD_INPUT')
   @DocsEditable()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-element-requestfullscreen
@@ -9937,10 +9927,6 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   @DomName('Element.clientWidth')
   @DocsEditable()
   final int clientWidth;
-
-  @DomName('Element.id')
-  @DocsEditable()
-  String id;
 
   @DomName('Element.offsetHeight')
   @DocsEditable()
@@ -10033,13 +10019,6 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   @Returns('_ClientRectList')
   @Creates('_ClientRectList')
   List<Rect> getClientRects() native;
-
-  @DomName('Element.getDestinationInsertionPoints')
-  @DocsEditable()
-  @Experimental() // untriaged
-  @Returns('NodeList')
-  @Creates('NodeList')
-  List<Node> getDestinationInsertionPoints() native;
 
   @DomName('Element.getElementsByClassName')
   @DocsEditable()
@@ -10785,16 +10764,6 @@ typedef void _ErrorCallback(FileError error);
 class ErrorEvent extends Event native "ErrorEvent" {
   // To suppress missing implicit constructor warnings.
   factory ErrorEvent._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('ErrorEvent.colno')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int colno;
-
-  @DomName('ErrorEvent.error')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final Object error;
 
   @DomName('ErrorEvent.filename')
   @DocsEditable()
@@ -12497,18 +12466,6 @@ class HtmlDocument extends Document native "HTMLDocument" {
   @DocsEditable()
   final Element activeElement;
 
-  @DomName('HTMLDocument.captureEvents')
-  @DocsEditable()
-  // http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture
-  @deprecated // deprecated
-  void captureEvents() native;
-
-  @DomName('HTMLDocument.releaseEvents')
-  @DocsEditable()
-  // http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture
-  @deprecated // deprecated
-  void releaseEvents() native;
-
 
   @DomName('Document.body')
   BodyElement body;
@@ -13416,6 +13373,16 @@ class ImageBitmap extends Interceptor native "ImageBitmap" {
   @Experimental() // untriaged
   final int width;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DomName('ImageBitmapCallback')
+@Experimental() // untriaged
+typedef void ImageBitmapCallback(ImageBitmap bitmap);
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -13772,6 +13739,8 @@ class InputElement extends HtmlElement implements
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/states-of-the-type-attribute.html#concept-input-type-file-selected
+  @Returns('_EntryArray')
+  @Creates('_EntryArray')
   final List<Entry> entries;
 
   @JSName('webkitGrammar')
@@ -14497,26 +14466,6 @@ class KeyboardEvent extends UIEvent native "KeyboardEvent" {
   // To suppress missing implicit constructor warnings.
   factory KeyboardEvent._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('KeyboardEvent.DOM_KEY_LOCATION_LEFT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int DOM_KEY_LOCATION_LEFT = 0x01;
-
-  @DomName('KeyboardEvent.DOM_KEY_LOCATION_NUMPAD')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int DOM_KEY_LOCATION_NUMPAD = 0x03;
-
-  @DomName('KeyboardEvent.DOM_KEY_LOCATION_RIGHT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int DOM_KEY_LOCATION_RIGHT = 0x02;
-
-  @DomName('KeyboardEvent.DOM_KEY_LOCATION_STANDARD')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int DOM_KEY_LOCATION_STANDARD = 0x00;
-
   @DomName('KeyboardEvent.altGraphKey')
   @DocsEditable()
   @Experimental() // nonstandard
@@ -14541,11 +14490,6 @@ class KeyboardEvent extends UIEvent native "KeyboardEvent" {
   @Experimental() // nonstandard
   final int keyLocation;
 
-  @DomName('KeyboardEvent.location')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int location;
-
   @DomName('KeyboardEvent.metaKey')
   @DocsEditable()
   final bool metaKey;
@@ -14553,11 +14497,6 @@ class KeyboardEvent extends UIEvent native "KeyboardEvent" {
   @DomName('KeyboardEvent.shiftKey')
   @DocsEditable()
   final bool shiftKey;
-
-  @DomName('KeyboardEvent.getModifierState')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool getModifierState(String keyArgument) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18122,6 +18061,11 @@ class NotificationCenter extends Interceptor native "NotificationCenter" {
   @DocsEditable()
   int checkPermission() native;
 
+  @JSName('createHTMLNotification')
+  @DomName('NotificationCenter.createHTMLNotification')
+  @DocsEditable()
+  Notification createHtmlNotification(String url) native;
+
   @DomName('NotificationCenter.createNotification')
   @DocsEditable()
   Notification createNotification(String iconUrl, String title, String body) native;
@@ -18601,9 +18545,7 @@ class Path extends Interceptor native "Path" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE)
-class Performance extends EventTarget native "Performance" {
-  // To suppress missing implicit constructor warnings.
-  factory Performance._() { throw new UnsupportedError("Not supported"); }
+class Performance extends Interceptor native "Performance" {
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.performance)');
@@ -19565,45 +19507,6 @@ class ResourceProgressEvent extends ProgressEvent native "ResourceProgressEvent"
 
 
 @DocsEditable()
-@DomName('RsaKeyGenParams')
-@Experimental() // untriaged
-class RsaKeyGenParams extends Algorithm native "RsaKeyGenParams" {
-  // To suppress missing implicit constructor warnings.
-  factory RsaKeyGenParams._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('RsaKeyGenParams.modulusLength')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int modulusLength;
-
-  @DomName('RsaKeyGenParams.publicExponent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final Uint8List publicExponent;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('RsaSsaParams')
-@Experimental() // untriaged
-class RsaSsaParams extends Algorithm native "RsaSsaParams" {
-  // To suppress missing implicit constructor warnings.
-  factory RsaSsaParams._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('RsaSsaParams.hash')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final Algorithm hash;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
 @DomName('RTCDataChannel')
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCDataChannel
 @Experimental()
@@ -19635,39 +19538,9 @@ class RtcDataChannel extends EventTarget native "RTCDataChannel,DataChannel" {
   @DocsEditable()
   final int bufferedAmount;
 
-  @DomName('RTCDataChannel.id')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int id;
-
   @DomName('RTCDataChannel.label')
   @DocsEditable()
   final String label;
-
-  @DomName('RTCDataChannel.maxRetransmitTime')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int maxRetransmitTime;
-
-  @DomName('RTCDataChannel.maxRetransmits')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int maxRetransmits;
-
-  @DomName('RTCDataChannel.negotiated')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final bool negotiated;
-
-  @DomName('RTCDataChannel.ordered')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final bool ordered;
-
-  @DomName('RTCDataChannel.protocol')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final String protocol;
 
   @DomName('RTCDataChannel.readyState')
   @DocsEditable()
@@ -20865,16 +20738,6 @@ class SourceBuffer extends EventTarget native "SourceBuffer" {
   // To suppress missing implicit constructor warnings.
   factory SourceBuffer._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('SourceBuffer.appendWindowEnd')
-  @DocsEditable()
-  @Experimental() // untriaged
-  num appendWindowEnd;
-
-  @DomName('SourceBuffer.appendWindowStart')
-  @DocsEditable()
-  @Experimental() // untriaged
-  num appendWindowStart;
-
   @DomName('SourceBuffer.buffered')
   @DocsEditable()
   final TimeRanges buffered;
@@ -20902,11 +20765,6 @@ class SourceBuffer extends EventTarget native "SourceBuffer" {
   @DocsEditable()
   @Experimental() // untriaged
   void appendBufferView(TypedData data) native;
-
-  @DomName('SourceBuffer.remove')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void remove(num start, num end) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22033,15 +21891,15 @@ class SubtleCrypto extends Interceptor native "SubtleCrypto" {
   @DomName('SubtleCrypto.decrypt')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoOperation decrypt(Map algorithm, CryptoKey key) {
+  CryptoOperation decrypt(Map algorithm) {
     var algorithm_1 = convertDartToNative_Dictionary(algorithm);
-    return _decrypt_1(algorithm_1, key);
+    return _decrypt_1(algorithm_1);
   }
   @JSName('decrypt')
   @DomName('SubtleCrypto.decrypt')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoOperation _decrypt_1(algorithm, CryptoKey key) native;
+  CryptoOperation _decrypt_1(algorithm) native;
 
   @DomName('SubtleCrypto.digest')
   @DocsEditable()
@@ -22059,28 +21917,15 @@ class SubtleCrypto extends Interceptor native "SubtleCrypto" {
   @DomName('SubtleCrypto.encrypt')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoOperation encrypt(Map algorithm, CryptoKey key) {
+  CryptoOperation encrypt(Map algorithm) {
     var algorithm_1 = convertDartToNative_Dictionary(algorithm);
-    return _encrypt_1(algorithm_1, key);
+    return _encrypt_1(algorithm_1);
   }
   @JSName('encrypt')
   @DomName('SubtleCrypto.encrypt')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoOperation _encrypt_1(algorithm, CryptoKey key) native;
-
-  @DomName('SubtleCrypto.generateKey')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object generateKey(Map algorithm, bool extractable, List<String> keyUsages) {
-    var algorithm_1 = convertDartToNative_Dictionary(algorithm);
-    return _generateKey_1(algorithm_1, extractable, keyUsages);
-  }
-  @JSName('generateKey')
-  @DomName('SubtleCrypto.generateKey')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object _generateKey_1(algorithm, extractable, List<String> keyUsages) native;
+  CryptoOperation _encrypt_1(algorithm) native;
 
   @DomName('SubtleCrypto.importKey')
   @DocsEditable()
@@ -22098,28 +21943,28 @@ class SubtleCrypto extends Interceptor native "SubtleCrypto" {
   @DomName('SubtleCrypto.sign')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoOperation sign(Map algorithm, CryptoKey key) {
+  CryptoOperation sign(Map algorithm) {
     var algorithm_1 = convertDartToNative_Dictionary(algorithm);
-    return _sign_1(algorithm_1, key);
+    return _sign_1(algorithm_1);
   }
   @JSName('sign')
   @DomName('SubtleCrypto.sign')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoOperation _sign_1(algorithm, CryptoKey key) native;
+  CryptoOperation _sign_1(algorithm) native;
 
   @DomName('SubtleCrypto.verify')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoOperation verify(Map algorithm, CryptoKey key, TypedData signature) {
+  CryptoOperation verify(Map algorithm) {
     var algorithm_1 = convertDartToNative_Dictionary(algorithm);
-    return _verify_1(algorithm_1, key, signature);
+    return _verify_1(algorithm_1);
   }
   @JSName('verify')
   @DomName('SubtleCrypto.verify')
   @DocsEditable()
   @Experimental() // untriaged
-  CryptoOperation _verify_1(algorithm, CryptoKey key, TypedData signature) native;
+  CryptoOperation _verify_1(algorithm) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22705,13 +22550,6 @@ class Text extends CharacterData native "Text" {
   @DomName('Text.wholeText')
   @DocsEditable()
   final String wholeText;
-
-  @DomName('Text.getDestinationInsertionPoints')
-  @DocsEditable()
-  @Experimental() // untriaged
-  @Returns('NodeList')
-  @Creates('NodeList')
-  List<Node> getDestinationInsertionPoints() native;
 
   @DomName('Text.replaceWholeText')
   @DocsEditable()
@@ -24979,12 +24817,6 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
   @DocsEditable()
   void alert(String message) native;
 
-  @DomName('Window.captureEvents')
-  @DocsEditable()
-  // http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture
-  @deprecated // deprecated
-  void captureEvents() native;
-
   @DomName('Window.close')
   @DocsEditable()
   void close() native;
@@ -24992,6 +24824,123 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
   @DomName('Window.confirm')
   @DocsEditable()
   bool confirm(String message) native;
+
+  @DomName('Window.createImageBitmap')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _createImageBitmap(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, ImageBitmapCallback callback, [int sx, int sy, int sw, int sh]) {
+    if ((bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is ImageElement || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
+      _createImageBitmap_1(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback);
+      return;
+    }
+    if (sh != null && sw != null && sy != null && sx != null && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is ImageElement || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null)) {
+      _createImageBitmap_2(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh);
+      return;
+    }
+    if ((bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is VideoElement || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
+      _createImageBitmap_3(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback);
+      return;
+    }
+    if (sh != null && sw != null && sy != null && sx != null && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is VideoElement || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null)) {
+      _createImageBitmap_4(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh);
+      return;
+    }
+    if ((bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is CanvasRenderingContext2D || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
+      _createImageBitmap_5(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback);
+      return;
+    }
+    if (sh != null && sw != null && sy != null && sx != null && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is CanvasRenderingContext2D || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null)) {
+      _createImageBitmap_6(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh);
+      return;
+    }
+    if ((bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is CanvasElement || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
+      _createImageBitmap_7(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback);
+      return;
+    }
+    if (sh != null && sw != null && sy != null && sx != null && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is CanvasElement || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null)) {
+      _createImageBitmap_8(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh);
+      return;
+    }
+    if ((bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is ImageData || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
+      var data_1 = convertDartToNative_ImageData(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video);
+      _createImageBitmap_9(data_1, callback);
+      return;
+    }
+    if (sh != null && sw != null && sy != null && sx != null && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is ImageData || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null)) {
+      var data_2 = convertDartToNative_ImageData(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video);
+      _createImageBitmap_10(data_2, callback, sx, sy, sw, sh);
+      return;
+    }
+    if ((bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is ImageBitmap || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
+      _createImageBitmap_11(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback);
+      return;
+    }
+    if (sh != null && sw != null && sy != null && sx != null && (bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video is ImageBitmap || bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video == null)) {
+      _createImageBitmap_12(bitmap_OR_canvas_OR_context_OR_data_OR_image_OR_video, callback, sx, sy, sw, sh);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+  @JSName('createImageBitmap')
+  @DomName('Window.createImageBitmap')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _createImageBitmap_1(ImageElement image, ImageBitmapCallback callback) native;
+  @JSName('createImageBitmap')
+  @DomName('Window.createImageBitmap')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _createImageBitmap_2(ImageElement image, ImageBitmapCallback callback, sx, sy, sw, sh) native;
+  @JSName('createImageBitmap')
+  @DomName('Window.createImageBitmap')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _createImageBitmap_3(VideoElement video, ImageBitmapCallback callback) native;
+  @JSName('createImageBitmap')
+  @DomName('Window.createImageBitmap')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _createImageBitmap_4(VideoElement video, ImageBitmapCallback callback, sx, sy, sw, sh) native;
+  @JSName('createImageBitmap')
+  @DomName('Window.createImageBitmap')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _createImageBitmap_5(CanvasRenderingContext2D context, ImageBitmapCallback callback) native;
+  @JSName('createImageBitmap')
+  @DomName('Window.createImageBitmap')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _createImageBitmap_6(CanvasRenderingContext2D context, ImageBitmapCallback callback, sx, sy, sw, sh) native;
+  @JSName('createImageBitmap')
+  @DomName('Window.createImageBitmap')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _createImageBitmap_7(CanvasElement canvas, ImageBitmapCallback callback) native;
+  @JSName('createImageBitmap')
+  @DomName('Window.createImageBitmap')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _createImageBitmap_8(CanvasElement canvas, ImageBitmapCallback callback, sx, sy, sw, sh) native;
+  @JSName('createImageBitmap')
+  @DomName('Window.createImageBitmap')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _createImageBitmap_9(data, ImageBitmapCallback callback) native;
+  @JSName('createImageBitmap')
+  @DomName('Window.createImageBitmap')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _createImageBitmap_10(data, ImageBitmapCallback callback, sx, sy, sw, sh) native;
+  @JSName('createImageBitmap')
+  @DomName('Window.createImageBitmap')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _createImageBitmap_11(ImageBitmap bitmap, ImageBitmapCallback callback) native;
+  @JSName('createImageBitmap')
+  @DomName('Window.createImageBitmap')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _createImageBitmap_12(ImageBitmap bitmap, ImageBitmapCallback callback, sx, sy, sw, sh) native;
 
   @DomName('Window.find')
   @DocsEditable()
@@ -25062,12 +25011,6 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
   @DomName('Window.print')
   @DocsEditable()
   void print() native;
-
-  @DomName('Window.releaseEvents')
-  @DocsEditable()
-  // http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture
-  @deprecated // deprecated
-  void releaseEvents() native;
 
   @DomName('Window.resizeBy')
   @DocsEditable()
@@ -25584,6 +25527,13 @@ class Worker extends EventTarget implements AbstractWorker native "Worker" {
   @DomName('Worker.terminate')
   @DocsEditable()
   void terminate() native;
+
+  // From AbstractWorker
+
+  @DomName('Worker.onerror')
+  @DocsEditable()
+  @Experimental() // untriaged
+  EventListener onerror;
 
   @DomName('Worker.onerror')
   @DocsEditable()
@@ -26525,6 +26475,132 @@ class _Entity extends Node native "Entity" {
 
 
 @DocsEditable()
+@DomName('EntryArray')
+// http://www.w3.org/TR/file-system-api/#the-entry-interface
+@Experimental()
+class _EntryArray extends Interceptor with ListMixin<Entry>, ImmutableListMixin<Entry> implements JavaScriptIndexingBehavior, List<Entry> native "EntryArray" {
+
+  @DomName('EntryArray.length')
+  @DocsEditable()
+  int get length => JS("int", "#.length", this);
+
+  Entry operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("Entry", "#[#]", this, index);
+  }
+  void operator[]=(int index, Entry value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<Entry> mixins.
+  // Entry is the element type.
+
+
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  Entry get first {
+    if (this.length > 0) {
+      return JS('Entry', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  Entry get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('Entry', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  Entry get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('Entry', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Entry elementAt(int index) => this[index];
+  // -- end List<Entry> mixins.
+
+  @DomName('EntryArray.item')
+  @DocsEditable()
+  Entry item(int index) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('EntryArraySync')
+// http://www.w3.org/TR/file-system-api/#idl-def-EntrySync
+@Experimental()
+class _EntryArraySync extends Interceptor with ListMixin<_EntrySync>, ImmutableListMixin<_EntrySync> implements JavaScriptIndexingBehavior, List<_EntrySync> native "EntryArraySync" {
+
+  @DomName('EntryArraySync.length')
+  @DocsEditable()
+  int get length => JS("int", "#.length", this);
+
+  _EntrySync operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("_EntrySync", "#[#]", this, index);
+  }
+  void operator[]=(int index, _EntrySync value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<_EntrySync> mixins.
+  // _EntrySync is the element type.
+
+
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  _EntrySync get first {
+    if (this.length > 0) {
+      return JS('_EntrySync', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  _EntrySync get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('_EntrySync', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  _EntrySync get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('_EntrySync', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  _EntrySync elementAt(int index) => this[index];
+  // -- end List<_EntrySync> mixins.
+
+  @DomName('EntryArraySync.item')
+  @DocsEditable()
+  _EntrySync item(int index) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
 @DomName('EntrySync')
 // http://www.w3.org/TR/file-system-api/#idl-def-EntrySync
 @Experimental()
@@ -26881,6 +26957,8 @@ abstract class _SharedWorker extends EventTarget implements AbstractWorker nativ
   }
   static _SharedWorker _create_1(scriptURL, name) => JS('_SharedWorker', 'new SharedWorker(#,#)', scriptURL, name);
   static _SharedWorker _create_2(scriptURL) => JS('_SharedWorker', 'new SharedWorker(#)', scriptURL);
+
+  // From AbstractWorker
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
