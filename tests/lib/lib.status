@@ -33,7 +33,7 @@ async/stream_controller_async_test: Fail, Pass # http://dartbug.com/11953
 [ $csp ]
 mirrors/*: Skip # Issue 6490
 
-[ $compiler == dart2js && $runtime != jsshell && $runtime != safari && $runtime != firefox]
+[ $compiler == dart2js && $runtime != jsshell && $runtime != safari && $runtime != ff]
 math/math_test: Fail
 math/math2_test: Fail
 
