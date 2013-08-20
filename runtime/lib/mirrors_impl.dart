@@ -369,6 +369,15 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   final Type _reflectedType;
   final bool _isGeneric;
 
+  bool get hasReflectedType => _reflectedType != null;
+  Type get reflectedType {
+    if (!hasReflectedType) {
+      throw new UnsupportedError(
+          "Declarations of generics have no reflected type");
+    }
+    return _reflectedType;
+  }
+
   Symbol _simpleName;
   Symbol get simpleName {
     // dynamic, void and the function types have their names set eagerly in the
@@ -417,7 +426,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
         // Object has no superclass.
         return null;
       }
-      _superclass = reflectClass(supertype);
+      _superclass = _Mirrors._reflectType(supertype);
     }
     return _superclass;
   }
