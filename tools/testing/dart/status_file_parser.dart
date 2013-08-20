@@ -24,9 +24,11 @@ const OK = "ok";
  */
 const SLOW = "slow";
 
-final RegExp StripComment = new RegExp("^[^#]*");
+final RegExp SplitComment = new RegExp("^([^#]*)(#.*)?\$");
 final RegExp HeaderPattern = new RegExp(r"^\[([^\]]+)\]");
 final RegExp RulePattern = new RegExp(r"\s*([^: ]*)\s*:(.*)");
+final RegExp IssueNumberPattern =
+    new RegExp("Issue ([0-9]+)|dartbug.com/([0-9]+)", caseSensitive: false);
 
 // TODO(whesse): Implement configuration_info library that contains data
 // structures for test configuration, including Section.
@@ -39,6 +41,10 @@ class Section {
 
   bool isEnabled(environment) =>
       condition == null || condition.evaluate(environment);
+
+  String toString() {
+    return "Section: $condition";
+  }
 }
 
 void ReadTestExpectationsInto(TestExpectations expectations,
@@ -75,10 +81,13 @@ void ReadConfigurationInto(path, sections, onDone) {
   sections.add(current);
 
   lines.listen((String line) {
-    Match match = StripComment.firstMatch(line);
-    line = (match == null) ? "" : match[0];
+    Match match = SplitComment.firstMatch(line);
+    line = (match == null) ? "" : match[1];
     line = line.trim();
     if (line.isEmpty) return;
+
+    // Extract the comment to get the issue number if needed.
+    String comment = (match == null || match[2] == null) ? "" : match[2];
 
     match = HeaderPattern.firstMatch(line);
     if (match != null) {
@@ -98,7 +107,16 @@ void ReadConfigurationInto(path, sections, onDone) {
       List<String> tokens = new Tokenizer(expression_string).tokenize();
       SetExpression expression =
           new ExpressionParser(new Scanner(tokens)).parseSetExpression();
-      current.testRules.add(new TestRule(name, expression));
+
+      // Look for issue number in comment.
+      String issueString = null;
+      match = IssueNumberPattern.firstMatch(comment);
+      if (match != null) {
+        issueString = match[1];
+        if (issueString == null) issueString = match[2];
+      }
+      int issue = issueString != null ? int.parse(issueString) : null;
+      current.testRules.add(new TestRule(name, expression, issue));
       return;
     }
 
@@ -111,10 +129,13 @@ void ReadConfigurationInto(path, sections, onDone) {
 class TestRule {
   String name;
   SetExpression expression;
+  int issue;
 
-  TestRule(this.name, this.expression);
+  TestRule(this.name, this.expression, this.issue);
 
-  String toString() => 'TestRule($name, $expression)';
+  bool get hasIssue => issue != null;
+
+  String toString() => 'TestRule($name, $expression, $issue)';
 }
 
 
