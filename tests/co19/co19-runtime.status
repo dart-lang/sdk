@@ -2,29 +2,16 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == none]
-LibTest/math/max_A01_t03: Fail # co19 issue 467
-LibTest/math/min_A01_t03: Fail # co19 issue 467
-
 [ $runtime == vm && $system == windows ]
 LibTest/core/Stopwatch/elapsed_A01_t01: Pass, Fail # Issue 11382.
 LibTest/core/Stopwatch/elapsed_A01_t03: Pass, Fail # Issue 12383.
-
-[ $runtime == vm ]
-Language/07_Classes/6_Constructors_A02_t01: Skip # co19 issue 415.
 
 [ $compiler == none && $runtime == vm ]
 # The following tests fail because they contain number literals with a + prefix (co19 issue 428)
 LibTest/core/double/floor_A01_t05: Fail # co19 issue 428
 LibTest/core/double/ceil_A01_t05: Fail # co19 issue 428
 
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t04: Fail # Dart issue 5743
-LibTest/collection/Queue/iterator_current_A01_t02: Fail # co19 issue 475
-LibTest/collection/Queue/iterator_moveNext_A01_t02: Fail # co19 issue 475
-LibTest/core/int/toStringAsExponential_A02_t01: Fail # co19 issue 539
-
-LibTest/core/Match/pattern_A01_t01: Fail # co19 issue 422
-LibTest/core/RegExp/allMatches_A01_t01: Fail # co19 issue 422
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t04: Fail # Issue 5743
 
 Language/07_Classes/4_Abstract_Instance_Members_A03_t02: Fail # Dart issue 978
 Language/07_Classes/4_Abstract_Instance_Members_A03_t03: Fail # Dart issue 978
@@ -33,24 +20,11 @@ Language/07_Classes/4_Abstract_Instance_Members_A03_t05: Fail # Dart issue 978
 Language/07_Classes/4_Abstract_Instance_Members_A04_t05: Fail # Dart issue 978
 Language/07_Classes/4_Abstract_Instance_Members_A04_t06: Fail # Dart issue 978
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: Fail # Dart issue 6954
-Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: Fail # co19 issue 426
-LibTest/core/double/parse_A02_t01: Fail # co19 issue 418
-LibTest/math/pow_A01_t01: Fail # co19 issue 44
-LibTest/math/pow_A11_t01: Fail # co19 issue 512
-LibTest/math/pow_A13_t01: Fail # co19 issue 507
 LibTest/math/pow_A18_t01: Fail # co19 issue 507
 
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Fail # Dart issue 5802
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # Dart issue 5894
 
-LibTest/core/double/truncate_A01_t03: Fail # truncate/ceil/floor/round returns ints, co19 issue 389
-LibTest/core/double/truncate_A01_t04: Fail # truncate/ceil/floor/round returns ints, co19 issue 389
-LibTest/core/double/ceil_A01_t03: Fail # truncate/ceil/floor/round returns ints, co19 issue 389
-LibTest/core/double/ceil_A01_t04: Fail # truncate/ceil/floor/round returns ints, co19 issue 389
-LibTest/core/double/floor_A01_t03: Fail # truncate/ceil/floor/round returns ints, co19 issue 389
-LibTest/core/double/floor_A01_t04: Fail # truncate/ceil/floor/round returns ints, co19 issue 389
-LibTest/core/double/round_A01_t02: Fail # truncate/ceil/floor/round returns ints, co19 issue 389
-LibTest/core/double/round_A01_t04: Fail # truncate/ceil/floor/round returns ints, co19 issue 389
 
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # Issue 6085
 
@@ -69,13 +43,7 @@ LibTest/core/RegExp/firstMatch_A01_t01: Fail # Issue 12508
 LibTest/core/double/toRadixString_A01_t01: Fail # co19 issue 491
 LibTest/core/int/toRadixString_A01_t01: Fail # co19 issue 492
 
-LibTest/math/sin_A01_t01: Pass, Fail, OK # co19 issue 44
-
-LibTest/isolate/SendPort/send_A02_t02: Skip # co19 issue 493
-
 LibTest/core/String/contains_A01_t02: Fail  # Issue 12508
-
-LibTest/isolate/SendPort/send_A02_t03: Skip # co19 issue 495
 
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail # VM triage, check spec.
 LibTest/isolate/isolate_api/spawnUri_A02_t02: Fail # VM triage, check spec.
@@ -88,8 +56,6 @@ LibTest/core/Iterable/where_A01_t07: Fail # Issue 397
 
 LibTest/core/Set/isSubsetOf_A01_t01: fail # Issue 400
 LibTest/core/Set/isSubsetOf_A01_t02: fail # Issue 400
-
-LibTest/core/Iterable/any_A01_t04: Fail # co19 issue 508.
 
 LibTest/core/String/indexOf_A01_t02: Fail # Issue 427
 LibTest/core/String/lastIndexOf_A01_t02: Fail # Issue 427
@@ -113,8 +79,7 @@ Language/07_Classes/4_Abstract_Instance_Members_A04_t01: Fail # Issue 485
 Language/03_Overview/1_Scoping_A02_t28: Fail # Issue 463
 Language/03_Overview/2_Privacy_A01_t06: Fail # Issue 463
 
-LibTest/async/Timer/Timer.periodic_A01_t01: Pass, Fail # Flaky assumptions on Timer. co19 issue 537
-LibTest/async/Timer/Timer.periodic_A02_t01: Pass, Fail # Flaky assumptions on Timer. co19 issue 537
+LibTest/async/Timer/Timer.periodic_A02_t01: Pass, Fail # co19 issue 537
 
 # end [ $compiler == none && $runtime == vm ]
 
@@ -123,13 +88,6 @@ LibTest/async/Timer/Timer.periodic_A02_t01: Pass, Fail # Flaky assumptions on Ti
 LibTest/async/Future/catchError_A01_t01: Fail # Future constructors have changed # issue 408
 LibTest/core/List/getRange_A01_t01: Fail # getRange now takes end-argument and returns Iterable. Issue 399
 LibTest/core/Set/intersection_A03_t01: Fail # co19 issue 510
-LibTest/core/TypeError/column_A01_t01: Fail # co19 issue 510
-LibTest/core/TypeError/dstName_A01_t01: Fail # co19 issue 510
-LibTest/core/TypeError/dstType_A01_t01: Fail # co19 issue 510
-LibTest/core/TypeError/failedAssertion_A01_t01: Fail # co19 issue 510
-LibTest/core/TypeError/line_A01_t01: Fail # co19 issue 510
-LibTest/core/TypeError/srcType_A01_t01: Fail # co19 issue 510
-LibTest/core/TypeError/url_A01_t01: Fail # co19 issue 510
 LibTest/core/int/operator_division_A01_t01: Fail # co19 issue 509
 
 LibTest/core/Set/intersection_A01_t01: Fail # issue 390
@@ -147,38 +105,15 @@ LibTest/async/Future/catchError_A01_t02: Pass # No AsyncError anymore. Issue 407
 [ $compiler == none && $runtime == vm && $mode == debug ]
 LibTest/isolate/isolate_api/spawnFunction_A02_t01: Crash
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A04_t02: Crash # co19-roll r546: Please triage this failure
-LibTest/async/Stream/Stream.periodic_A01_t01: Fail # co19-roll r546: Please triage this failure
 LibTest/async/Stream/Stream.periodic_A03_t01: Fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateStream/contains_A02_t01: Fail # co19-roll r546: Please triage this failure
-
-[ $compiler == none && $runtime == vm && $system == macos ]
-LibTest/math/exp_A01_t01: Fail, OK # Issue co19 - 44
-LibTest/math/acos_A01_t01: Fail, OK # Issue co19 - 44
-LibTest/math/asin_A01_t01: Fail, OK # Issue co19 - 44
-LibTest/math/atan_A01_t01: Fail, OK # Issue co19 - 44
-LibTest/math/tan_A01_t01: Fail, OK  # Issue co19 - 44
-
-[ $compiler == none && $runtime == vm && $system == linux ]
-LibTest/math/exp_A01_t01: Fail
-
-[ $compiler == none && $runtime == vm && $system != windows && $arch != x64 && $arch != arm ]
-LibTest/math/tan_A01_t01: Pass, Fail
 
 [ $compiler == none && $runtime == vm && $arch != x64 ]
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 
-[ $compiler == none && $runtime == vm && $arch == simarm ]
-LibTest/math/cos_A01_t01: Pass, Fail # Fail on Mac
-
 [ $compiler == none && $runtime == vm && $arch == mips ]
-LibTest/math/cos_A01_t01: Pass, Fail # Fail on Mac
 LibTest/math/log_A01_t01: Fail
-LibTest/math/asin_A01_t01: Fail
-LibTest/math/acos_A01_t01: Fail
 LibTest/core/double/toInt_A01_t01: Fail
-
-[ $compiler == none && $runtime == vm && $arch == simmips ]
-LibTest/math/cos_A01_t01: Pass, Fail # Fail on Mac
 
 # co19-roll r546 (11.08.2013) caused these failures
 [ $compiler == none && $runtime == vm ]
@@ -281,21 +216,10 @@ Language/14_Libraries_and_Scripts/5_URIs_A01_t11: fail # Issue 12521
 Language/14_Libraries_and_Scripts/5_URIs_A01_t14: fail # Issue 12521
 Language/14_Libraries_and_Scripts/5_URIs_A01_t15: fail # Issue 12521
 Language/14_Libraries_and_Scripts/5_URIs_A01_t21: fail # Issue 12518
-Language/15_Types/1_Static_Types_A03_t01: fail # co19 issue 506
-Language/16_Reference/1_Lexical_Rules/2_Comments_A04_t03: fail # co19 issue 505
 LibTest/async/StreamSink/close_A01_t01: fail # co19 503
-LibTest/async/Stream/Stream.periodic_A01_t01: fail, pass # co19-roll r546: Please triage this failure
-LibTest/async/Stream/Stream.periodic_A03_t01: fail, pass # co19-roll r546: Please triage this failure
-LibTest/async/Timer/run_A01_t01: fail, pass # co19-roll r546: Please triage this failure
-LibTest/async/Timer/Timer_A02_t01: fail, pass # co19-roll r546: Please triage this failure
-LibTest/async/Timer/Timer_A02_t01: fail, pass # co19-roll r546: Please triage this failure
-LibTest/async/Timer/Timer.periodic_A02_t01: fail, pass # co19-roll r546: Please triage this failure
-LibTest/core/DateTime/isAtSameMomentAs_A01_t01: fail # co19 issue 503
+
+LibTest/async/Timer/Timer_A02_t01: fail, pass # co19 issue 538
 LibTest/core/DateTime/parse_A03_t01: fail # Issue 12514
-LibTest/core/DateTime/year_A01_t01: fail # co19 issue 504
-LibTest/core/double/parse_A01_t01: fail # co19 issue 503
-LibTest/core/List/skip_A03_t01: fail # co19 issue 502
-LibTest/core/List/take_A02_t01: fail # co19 issue 502
 LibTest/isolate/isolate_api/spawnFunction_A04_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/isolate_api/streamSpawnFunction_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateSink/addError_A01_t01: fail # co19-roll r546: Please triage this failure
@@ -305,67 +229,9 @@ LibTest/isolate/IsolateStream/contains_A02_t01: fail, pass # co19-roll r546: Ple
 LibTest/isolate/isolate_api/streamSpawnFunction_A02_t03: fail, pass # co19-roll r546: Please triage this failure
 LibTest/isolate/SendPort/send_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/SendPort/send_A02_t04: fail # co19 issue 501
-LibTest/async/Future/Future.delayed_A01_t02: fail, pass # co19 issue 536
-Utils/tests/Expect/listEquals_A02_t01: fail # co19 issue 499
-Utils/tests/Expect/listEquals_A03_t01: fail # co19 issue 500
-Utils/tests/Expect/setEquals_A02_t01: fail # co19 issue 499
 
 
 [ $compiler == none && $runtime == vm && $checked ]
-Language/12_Expressions/12_Instance_Creation_A01_t08: fail  # co19 issue 498
-Language/13_Statements/09_Switch_A05_t01: fail  # co19 issue 498
-Language/14_Libraries_and_Scripts/1_Imports_A03_t26: fail  # co19 issue 498
-Language/15_Types/1_Static_Types_A03_t03: fail  # co19 issue 498
-Language/15_Types/1_Static_Types_A03_t04: fail  # co19 issue 498
-LibTest/async/EventTransformStream/asBroadcastStream_A01_t01: fail  # co19 issue 498
-LibTest/async/EventTransformStream/contains_A01_t01: fail  # co19 issue 498
-LibTest/async/EventTransformStream/contains_A02_t01: fail  # co19 issue 498
-LibTest/async/EventTransformStream/distinct_A01_t01: fail  # co19 issue 498
-LibTest/async/EventTransformStream/drain_A01_t01: fail  # co19 issue 498
-LibTest/async/EventTransformStream/firstWhere_A01_t01: fail  # co19 issue 498
-LibTest/async/EventTransformStream/firstWhere_A02_t01: fail  # co19 issue 498
-LibTest/async/EventTransformStream/first_A03_t01: fail  # co19 issue 498
-LibTest/async/EventTransformStream/fold_A01_t01: fail  # co19 issue 498
-LibTest/async/EventTransformStream/fold_A01_t02: fail  # co19 issue 498
-LibTest/async/EventTransformStream/forEach_A01_t01: fail  # co19 issue 498
-LibTest/async/EventTransformStream/forEach_A02_t02: fail  # co19 issue 498
-LibTest/async/EventTransformStream/handleError_A02_t01: fail  # co19 issue 498
-LibTest/async/EventTransformStream/isBroadcast_A01_t02: fail  # co19 issue 498
-LibTest/async/EventTransformStream/lastWhere_A01_t01: fail  # co19 issue 498
-LibTest/async/EventTransformStream/lastWhere_A02_t01: fail  # co19 issue 498
-LibTest/async/EventTransformStream/listen_A01_t01: fail  # co19 issue 498
-LibTest/async/EventTransformStream/listen_A02_t01: fail  # co19 issue 498
-LibTest/async/EventTransformStream/listen_A03_t01: fail  # co19 issue 498
-LibTest/async/EventTransformStream/map_A01_t01: fail  # co19 issue 498
-LibTest/async/EventTransformStream/reduce_A01_t01: fail  # co19 issue 498
-LibTest/async/EventTransformStream/reduce_A01_t02: fail  # co19 issue 498
-LibTest/async/EventTransformStream/singleWhere_A01_t01: fail  # co19 issue 498
-LibTest/async/EventTransformStream/skip_A01_t01: fail  # co19 issue 498
-LibTest/async/EventTransformStream/take_A01_t01: fail  # co19 issue 498
-LibTest/async/EventTransformStream/take_A01_t02: fail  # co19 issue 498
-LibTest/async/EventTransformStream/toList_A01_t01: fail  # co19 issue 498
-LibTest/async/EventTransformStream/toSet_A01_t01: fail  # co19 issue 498
-LibTest/async/EventTransformStream/transform_A01_t01: fail  # co19 issue 498
-LibTest/async/EventTransformStream/where_A01_t01: fail  # co19 issue 498
-LibTest/async/EventTransformStream/where_A01_t02: fail  # co19 issue 498
-LibTest/async/Stream/drain_A01_t01: fail  # co19 issue 498
-LibTest/async/Stream/firstWhere_A01_t01: fail  # co19 issue 498
-LibTest/async/Stream/firstWhere_A02_t01: fail  # co19 issue 498
-LibTest/async/Stream/fold_A01_t01: fail  # co19 issue 498
-LibTest/async/Stream/fold_A01_t02: fail  # co19 issue 498
-LibTest/async/Stream/lastWhere_A01_t01: fail  # co19 issue 498
-LibTest/async/Stream/lastWhere_A02_t01: fail  # co19 issue 498
-LibTest/async/Stream/reduce_A01_t01: fail  # co19 issue 498
-LibTest/async/Stream/reduce_A01_t02: fail  # co19 issue 498
-LibTest/async/Stream/singleWhere_A01_t01: fail  # co19 issue 498
-LibTest/async/Stream/take_A01_t02: fail  # co19 issue 498
-LibTest/async/Stream/transform_A01_t01: fail  # co19 issue 498
-LibTest/async/Stream/where_A01_t01: fail  # co19 issue 498
-LibTest/async/Stream/where_A01_t02: fail  # co19 issue 498
-LibTest/async/StreamEventTransformer/bind_A01_t01: fail  # co19 issue 498
-LibTest/core/DateTime/compareTo_A02_t01: fail  # co19 issue 498
-LibTest/core/List/join_A01_t01: fail  # co19 issue 498
-LibTest/core/List/removeAt_A02_t01: fail  # co19 issue 498
 LibTest/core/Set/intersection_A01_t01: pass # co19-roll r546: Please triage this failure
 LibTest/core/Set/intersection_A01_t03: pass # co19-roll r546: Please triage this failure
 LibTest/core/Set/intersection_A03_t01: pass # co19-roll r546: Please triage this failure
@@ -373,9 +239,6 @@ LibTest/core/int/ceilToDouble_A01_t01: fail  # co19 issue 498
 LibTest/core/int/floorToDouble_A01_t01: fail  # co19 issue 498
 LibTest/core/int/roundToDouble_A01_t01: fail  # co19 issue 498
 LibTest/core/int/truncateToDouble_A01_t01: fail  # co19 issue 498
-LibTest/isolate/IsolateStream/last_A01_t01: fail # co19 issue 498
-LibTest/isolate/IsolateStream/length_A01_t01: fail # co19 issue 498
-LibTest/isolate/IsolateStream/single_A01_t01: fail # co19 issue 498
 LibTest/isolate/isolate_api/spawnFunction_A03_t01: fail # co19 issue 497
 
 # co19-roll r546 (11.08.2013) caused these failures

@@ -17,9 +17,6 @@ LibTest/core/Map/Map_class_A01_t04: Slow, Pass
 # Crashes first, please. Then untriaged bugs. There is a section below
 # for co19 bugs.
 [ $compiler == dart2js ]
-LibTest/math/max_A01_t03: Fail # co19 issue 467
-LibTest/math/min_A01_t03: Fail # co19 issue 467
-
 Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(ahe): Please triage this failure.
 Language/03_Overview/1_Scoping_A02_t06: Fail # TODO(ahe): Please triage this failure.
 Language/05_Variables/05_Variables_A07_t05: Fail # TODO(ahe): Please triage this failure.
@@ -32,16 +29,9 @@ Language/07_Classes/1_Instance_Methods_A06_t01: Fail # TODO(ahe): Please triage 
 Language/07_Classes/1_Instance_Methods_A06_t02: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A07_t01: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/collection/Queue/iterator_current_A01_t02: Fail # co19 issue 475
-LibTest/collection/Queue/iterator_moveNext_A01_t02: Fail # co19 issue 475
 LibTest/core/List/List_A03_t01: Fail # TODO(kasperl): Please triage this failure.
 LibTest/core/double/INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/int/toStringAsExponential_A02_t01: Fail # co19 issue 477.
-LibTest/math/pow_A01_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/math/pow_A11_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/math/pow_A13_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/List/sort_A01_t04: Pass, Slow # http://dartbug.com/11846
 
 
@@ -56,10 +46,6 @@ LibTest/isolate/isolate_api/spawnFunction_A01_t05: Fail, Pass # TODO(ahe): Pleas
 LibTest/isolate/isolate_api/spawnFunction_A03_t01: Fail, Pass # TODO(ahe): Please triage this failure.
 LibTest/isolate/isolate_api/spawnUri_A02_t02: Fail, Pass # TODO(ahe): Please triage this failure.
 LibTest/isolate/isolate_api/spawnUri_A02_t03: Fail, Pass # TODO(ahe): Please triage this failure.
-
-
-[ $compiler == dart2js && $runtime == jsshell && $system == macos ]
-LibTest/math/cos_A01_t01: Fail # TODO(ahe): Please triage this failure.
 
 
 [ $compiler == dart2js ]
@@ -89,32 +75,16 @@ LibTest/core/String/contains_A01_t02: Fail # Issue: 8920
 LibTest/isolate/ReceivePort/toSendPort_A01_t02: Pass, Fail # Issue: 8920
 
 
-# These tests are passing with 'runtime == ie9' but are either skipped or fail
-# on other configurations
-[ $compiler == dart2js && ($runtime == ie10 || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt || $runtime == safari || $runtime == opera || $runtime == d8 || $runtime == jsshell) ]
-LibTest/math/exp_A01_t01: Fail, OK # co19 issue 44
-LibTest/math/sin_A01_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/math/tan_A01_t01: Fail # TODO(ahe): Please triage this failure.
-
 [ $compiler == dart2js && $runtime == jsshell ]
 LibTest/core/Map/Map_class_A01_t04: Pass, Slow # Issue 8096
 LibTest/core/double/round_A01_t01: Fail # TODO(ngeoaffray): Please triage these failure.
 LibTest/core/int/operator_truncating_division_A01_t01: Fail # TODO(ngeoaffray): Please triage these failure.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # TODO(ngeoaffray): Please triage these failure.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail # TODO(ngeoaffray): Please triage these failure.
-LibTest/math/acos_A01_t01: Fail # TODO(ngeoaffray): Please triage these failure.
-LibTest/math/asin_A01_t01: Fail # TODO(ngeoaffray): Please triage these failure.
 
 [ $compiler == dart2js && $checked ]
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t03: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t04: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/TypeError/column_A01_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/TypeError/dstName_A01_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/TypeError/dstType_A01_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/TypeError/failedAssertion_A01_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/TypeError/line_A01_t01: Fail # co19 issue 479
-LibTest/core/TypeError/srcType_A01_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/TypeError/url_A01_t01: Fail # TODO(ahe): Please triage this failure.
 
 
 [ $compiler == dart2js ]
@@ -130,8 +100,6 @@ LibTest/core/List/getRange_A03_t01: Fail, OK # Tests that fail because they use 
 Language/07_Classes/1_Instance_Methods_A02_t05: Fail, OK # These tests need to be updated for new optional parameter syntax and semantics, co19 issue 258:
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A13_t01: Fail, OK # These tests need to be updated for new optional parameter syntax and semantics, co19 issue 258:
 
-LibTest/isolate/SendPort/send_A02_t02: Fail, OK # co19 issue 293
-LibTest/isolate/SendPort/send_A02_t03: Fail, OK # co19 issue 293
 LibTest/isolate/SendPort/send_A02_t04: Fail, OK # co19 issue 293
 
 LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # co19 issue 294
@@ -148,8 +116,6 @@ Language/06_Functions/2_Formal_Parameters_A03_t04: Fail # TODO(ahe): Enforce opt
 Language/06_Functions/2_Formal_Parameters_A03_t06: Fail # TODO(ahe): Enforce optional parameter semantics.
 
 LibTest/isolate/SendPort/send_A02_t01: Fail # Compile-time error: error: not a compile-time constant
-LibTest/isolate/SendPort/send_A02_t02: Fail # Compile-time error: error: not a compile-time constant
-LibTest/isolate/SendPort/send_A02_t03: Fail # Compile-time error: error: not a compile-time constant
 
 LibTest/isolate/isolate_api/spawnUri_A02_t01: Fail # Runtime error: Expect.throws() fails
 LibTest/isolate/isolate_api/spawnUri_A01_t01: Fail # Runtime error: UnsupportedError: Currently spawnUri is not supported without web workers.
@@ -195,23 +161,7 @@ LibTest/core/int/hashCode_A01_t01: Fail, OK # co19 issue 308
 
 Language/03_Overview/2_Privacy_A01_t11: Pass, OK # co19 issue 316
 
-LibTest/core/double/ceil_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
-LibTest/core/double/ceil_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
-LibTest/core/double/floor_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
-LibTest/core/double/floor_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
-LibTest/core/double/round_A01_t02: Fail # truncate/ceil/floor/round returns ints, issue 389
-LibTest/core/double/round_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
-LibTest/core/double/truncate_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
-LibTest/core/double/truncate_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
-
 LibTest/core/Iterable/where_A01_t07: Fail # Issue 397
-
-LibTest/core/Iterable/any_A01_t04: Fail # setRange now takes end-argument. Issue 402
-
-LibTest/core/double/parse_A02_t01: Fail # Issue 418
-
-LibTest/core/Match/pattern_A01_t01: Fail # co19 Issue 400, 422
-LibTest/core/RegExp/allMatches_A01_t01: Fail # co19 Issue 400, 422
 
 
 LibTest/core/String/indexOf_A01_t02: Fail # Issue 427
@@ -240,11 +190,6 @@ LibTest/core/int/remainder_A01_t03: Fail, OK # Leg only has double.
 LibTest/core/int/toDouble_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/toRadixString_A01_t01: Fail, OK # Bad test: uses Expect.fail, Expect.throws, assumes case of result, and uses unsupported radixes.
 LibTest/core/String/contains_A01_t02: Fail, OK # co19 issue 105.
-
-[ $compiler == dart2js && $system == macos ]
-LibTest/math/acos_A01_t01: Fail, OK # co19 issue 44
-LibTest/math/asin_A01_t01: Fail, OK # co19 issue 44
-LibTest/math/atan_A01_t01: Fail, OK # co19 issue 44
 
 #
 # The following tests are failing. Please add the error message
@@ -301,7 +246,6 @@ Language/07_Classes/1_Instance_Methods_A02_t05: Fail # Checks that a compile-tim
 Language/07_Classes/4_Abstract_Instance_Members_A04_t01: Fail # Checks that a compile-time error is produced when the overriding abstract method has fewer named parameters than the instance method being overridden (2 vs 3) and neither  have any required parameters.
 Language/07_Classes/4_Abstract_Instance_Members_A04_t05: Fail # Checks that a compile-time error is produced when the overriding non-abstract  instance method has the same set of named parameters as the abstract method being overriden,  but in a different order.
 Language/07_Classes/4_Abstract_Instance_Members_A04_t06: Fail # Checks that a compile-time error is produced when the overriding non-abstract  instance method has almost the same set of named parameters as the abstract method being overriden,  except for one that has a different name.
-Language/07_Classes/6_Constructors_A02_t01: Fail # Checks that a compile-error is produced when a named constructor definition does not begin with the name of its class.
 
 #
 # Unexpected compile-time errors.
@@ -453,7 +397,6 @@ Language/14_Libraries_and_Scripts/5_URIs_A01_t11: fail # co19-roll r546: Please 
 Language/14_Libraries_and_Scripts/5_URIs_A01_t21: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/5_URIs_A01_t24: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/5_URIs_A01_t25: fail # co19-roll r546: Please triage this failure
-Language/15_Types/1_Static_Types_A03_t01: fail # co19-roll r546: Please triage this failure
 Language/15_Types/3_Type_Declarations/1_Typedef_A06_t01: fail # co19-roll r546: Please triage this failure
 Language/15_Types/3_Type_Declarations/1_Typedef_A06_t02: fail # co19-roll r546: Please triage this failure
 Language/15_Types/3_Type_Declarations/1_Typedef_A06_t03: fail # co19-roll r546: Please triage this failure
@@ -468,21 +411,12 @@ Language/15_Types/4_Interface_Types_A11_t02: crash # co19-roll r546: Please tria
 Language/15_Types/4_Interface_Types_A11_t04: fail # co19-roll r546: Please triage this failure
 Language/15_Types/4_Interface_Types_A12_t10: fail # co19-roll r546: Please triage this failure
 Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: fail # co19-roll r546: Please triage this failure
-Language/16_Reference/1_Lexical_Rules/2_Comments_A04_t03: fail # co19-roll r546: Please triage this failure
 Language/16_Reference/1_Lexical_Rules_A02_t06: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/Stream.periodic_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/Stream.periodic_A03_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Timer/run_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Timer/Timer.periodic_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/core/DateTime/DateTime_A01_t03: fail # co19-roll r546: Please triage this failure
-LibTest/core/DateTime/isAtSameMomentAs_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/core/DateTime/parse_A03_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/DateTime/year_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/core/double/parse_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/core/Duration/operator_div_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/core/List/List_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/List/skip_A03_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/List/take_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/isolate_api/spawnFunction_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/isolate_api/spawnFunction_A03_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/isolate_api/spawnFunction_A04_t01: fail # co19-roll r546: Please triage this failure
@@ -503,9 +437,6 @@ LibTest/isolate/IsolateStream/any_A02_t01: fail # co19-roll r546: Please triage 
 LibTest/isolate/IsolateStream/contains_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/SendPort/send_A01_t01: fail # co19-roll r546: Please triage this failure
 Utils/tests/Expect/identical_A01_t01: fail # co19-roll r546: Please triage this failure
-Utils/tests/Expect/listEquals_A02_t01: fail # co19-roll r546: Please triage this failure
-Utils/tests/Expect/listEquals_A03_t01: fail # co19-roll r546: Please triage this failure
-Utils/tests/Expect/setEquals_A02_t01: fail # co19-roll r546: Please triage this failure
 
 # co19-roll r546 (11.08.2013) caused these failures
 [ $compiler == dart2js && $checked ]
@@ -524,71 +455,14 @@ Language/12_Expressions/19_Conditional_A04_t03: fail # co19-roll r546: Please tr
 Language/12_Expressions/20_Logical_Boolean_Expressions_A03_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/27_Unary_Expressions_A02_t03: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/06_For/1_For_Loop_A01_t08: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/09_Switch_A05_t01: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/1_Imports_A03_t26: fail # co19-roll r546: Please triage this failure
-Language/15_Types/1_Static_Types_A03_t03: fail # co19-roll r546: Please triage this failure
-Language/15_Types/1_Static_Types_A03_t04: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/asBroadcastStream_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/contains_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/contains_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/distinct_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/drain_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/firstWhere_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/firstWhere_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/first_A03_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/fold_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/fold_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/forEach_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/forEach_A02_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/handleError_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/isBroadcast_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/lastWhere_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/lastWhere_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/listen_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/listen_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/listen_A03_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/map_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/reduce_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/reduce_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/singleWhere_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/skip_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/take_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/take_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/toList_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/toSet_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/transform_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/where_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/EventTransformStream/where_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/drain_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/firstWhere_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/firstWhere_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/fold_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/fold_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/lastWhere_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/lastWhere_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/reduce_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/reduce_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/singleWhere_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/take_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/transform_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/where_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/where_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/StreamEventTransformer/bind_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/DateTime/compareTo_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/core/List/getRange_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/List/join_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/List/removeAt_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/core/Set/intersection_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/IsolateStream/last_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/IsolateStream/length_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/IsolateStream/single_A01_t01: fail # co19-roll r546: Please triage this failure
 
 
 # Could this be dart issue 7728?
 # co19-roll r546 (11.08.2013) caused these failures
 [ $compiler == dart2js && ($runtime == d8 || $runtime == jsshell) ]
 LibTest/async/Future/Future.delayed_A01_t01: Fail # co19-roll r546: Please triage this failure
-LibTest/async/Future/Future.delayed_A01_t02: Fail # co19-roll r546: Please triage this failure
 LibTest/async/Future/Future.delayed_A03_t01: fail # co19-roll r546: Please triage this failure
 LibTest/async/Stream/first_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/async/Stream/first_A02_t02: fail # co19-roll r546: Please triage this failure
@@ -598,4 +472,3 @@ LibTest/async/Stream/Stream.fromIterable_A01_t02: fail # co19-roll r546: Please 
 LibTest/async/Stream/Stream.periodic_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/async/Timer/cancel_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/async/Timer/Timer_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Timer/Timer.periodic_A01_t01: fail # co19-roll r546: Please triage this failure

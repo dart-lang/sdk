@@ -1,0 +1,135 @@
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# This file contains the tests that have been identified as broken and have been filed
+# on the co19 issue tracker.
+# In order to qualify here these tests need to fail both on the VM and dart2js.
+
+### GENERAL FAILURES ###
+
+[ $runtime == vm || $compiler == dart2js ]
+Language/07_Classes/6_Constructors_A02_t01: SKIP # co19 issue 415.
+Language/16_Reference/1_Lexical_Rules/2_Comments_A04_t03: FAIL, OK # co19 issue 505
+Language/15_Types/1_Static_Types_A03_t01: FAIL, OK # co19 issue 506
+Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: FAIL, OK # co19 issue 426
+
+LibTest/math/acos_A01_t01: FAIL, OK # co19 issue 44
+LibTest/math/asin_A01_t01: FAIL, OK # Issue co19 - 44
+LibTest/math/atan_A01_t01: FAIL, OK # Issue co19 - 44
+LibTest/math/cos_A01_t01: PASS, FAIL, OK # co19 issue 44
+LibTest/math/exp_A01_t01: FAIL, OK # Issue co19 - 44
+LibTest/math/max_A01_t03: FAIL, OK # co19 issue 467
+LibTest/math/min_A01_t03: FAIL, OK # co19 issue 467
+LibTest/math/pow_A01_t01: FAIL, OK # co19 issue 44
+LibTest/math/pow_A11_t01: FAIL, OK # co19 issue 512
+LibTest/math/pow_A13_t01: FAIL, OK # co19 issue 507
+LibTest/math/sin_A01_t01: PASS, FAIL, OK # co19 issue 44
+LibTest/math/tan_A01_t01: FAIL, OK  # Issue co19 - 44
+
+LibTest/collection/Queue/iterator_current_A01_t02: FAIL, OK # co19 issue 475
+LibTest/collection/Queue/iterator_moveNext_A01_t02: FAIL, OK # co19 issue 475
+
+LibTest/core/double/ceil_A01_t03: FAIL, OK # co19 issue 389
+LibTest/core/double/ceil_A01_t04: FAIL, OK # co19 issue 389
+LibTest/core/double/floor_A01_t03: FAIL, OK # co19 issue 389
+LibTest/core/double/floor_A01_t04: FAIL, OK # co19 issue 389
+LibTest/core/double/round_A01_t02: FAIL, OK # co19 issue 389
+LibTest/core/double/round_A01_t04: FAIL, OK # co19 issue 389
+LibTest/core/double/parse_A02_t01: FAIL, OK # co19 issue 418
+LibTest/core/double/truncate_A01_t03: FAIL, OK # co19 issue 389
+LibTest/core/double/truncate_A01_t04: FAIL, OK # co19 issue 389
+
+LibTest/core/int/toStringAsExponential_A02_t01: FAIL, OK # co19 issue 477
+LibTest/core/Iterable/any_A01_t04: FAIL, OK # co19 issue 508.
+LibTest/core/List/skip_A03_t01: FAIL, OK # co19 issue 502
+LibTest/core/List/take_A02_t01: FAIL, OK # co19 issue 502
+LibTest/core/Match/pattern_A01_t01: FAIL, OK # co19 Issue 400, 422
+LibTest/core/RegExp/allMatches_A01_t01: FAIL, OK # co19 Issue 400, 422
+
+LibTest/async/Stream/Stream.periodic_A01_t01: PASS, FAIL, OK # co19 issue 538
+LibTest/async/Stream/Stream.periodic_A03_t01: PASS, FAIL, OK # co19 issue 538
+LibTest/async/Timer/run_A01_t01: PASS, FAIL, OK # co19 issue 538
+LibTest/async/Timer/Timer.periodic_A01_t01: PASS, FAIL, OK # co19 issue 537
+LibTest/async/Timer/Timer.periodic_A02_t01: PASS, FAIL, OK # co19 issue 538
+LibTest/async/Future/Future.delayed_A01_t02: PASS, FAIL, OK # co19 issue 536
+LibTest/core/DateTime/isAtSameMomentAs_A01_t01: FAIL, OK # co19 issue 503
+LibTest/core/DateTime/year_A01_t01: FAIL, OK # co19 issue 504
+LibTest/core/double/parse_A01_t01: FAIL, OK # co19 issue 503
+
+LibTest/isolate/SendPort/send_A02_t02: SKIP # co19 issue 493
+LibTest/isolate/SendPort/send_A02_t03: SKIP # co19 issue 495
+
+Utils/tests/Expect/listEquals_A02_t01: FAIL, OK # co19 issue 499
+Utils/tests/Expect/listEquals_A03_t01: FAIL, OK # co19 issue 500
+Utils/tests/Expect/setEquals_A02_t01: FAIL, OK # co19 issue 499
+
+
+
+### CHECKED MODE FAILURES ###
+
+[ ($runtime == vm || $compiler == dart2js) && $checked]
+Language/12_Expressions/12_Instance_Creation_A01_t08: FAIL, OK  # co19 issue 498
+Language/13_Statements/09_Switch_A05_t01: FAIL, OK  # co19 issue 498
+Language/14_Libraries_and_Scripts/1_Imports_A03_t26: FAIL, OK  # co19 issue 498
+Language/15_Types/1_Static_Types_A03_t03: FAIL, OK  # co19 issue 498
+Language/15_Types/1_Static_Types_A03_t04: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/asBroadcastStream_A01_t01: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/contains_A01_t01: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/contains_A02_t01: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/distinct_A01_t01: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/drain_A01_t01: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/firstWhere_A01_t01: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/firstWhere_A02_t01: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/first_A03_t01: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/fold_A01_t01: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/fold_A01_t02: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/forEach_A01_t01: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/forEach_A02_t02: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/handleError_A02_t01: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/isBroadcast_A01_t02: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/lastWhere_A01_t01: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/lastWhere_A02_t01: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/listen_A01_t01: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/listen_A02_t01: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/listen_A03_t01: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/map_A01_t01: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/reduce_A01_t01: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/reduce_A01_t02: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/singleWhere_A01_t01: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/skip_A01_t01: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/take_A01_t01: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/take_A01_t02: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/toList_A01_t01: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/toSet_A01_t01: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/transform_A01_t01: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/where_A01_t01: FAIL, OK  # co19 issue 498
+LibTest/async/EventTransformStream/where_A01_t02: FAIL, OK  # co19 issue 498
+LibTest/async/Stream/drain_A01_t01: FAIL, OK  # co19 issue 498
+LibTest/async/Stream/firstWhere_A01_t01: FAIL, OK  # co19 issue 498
+LibTest/async/Stream/firstWhere_A02_t01: FAIL, OK  # co19 issue 498
+LibTest/async/Stream/fold_A01_t01: FAIL, OK  # co19 issue 498
+LibTest/async/Stream/fold_A01_t02: FAIL, OK  # co19 issue 498
+LibTest/async/Stream/lastWhere_A01_t01: FAIL, OK  # co19 issue 498
+LibTest/async/Stream/lastWhere_A02_t01: FAIL, OK  # co19 issue 498
+LibTest/async/Stream/reduce_A01_t01: FAIL, OK  # co19 issue 498
+LibTest/async/Stream/reduce_A01_t02: FAIL, OK  # co19 issue 498
+LibTest/async/Stream/singleWhere_A01_t01: FAIL, OK  # co19 issue 498
+LibTest/async/Stream/take_A01_t02: FAIL, OK  # co19 issue 498
+LibTest/async/Stream/transform_A01_t01: FAIL, OK  # co19 issue 498
+LibTest/async/Stream/where_A01_t01: FAIL, OK  # co19 issue 498
+LibTest/async/Stream/where_A01_t02: FAIL, OK  # co19 issue 498
+LibTest/async/StreamEventTransformer/bind_A01_t01: FAIL, OK  # co19 issue 498
+LibTest/core/DateTime/compareTo_A02_t01: FAIL, OK  # co19 issue 498
+LibTest/core/List/join_A01_t01: FAIL, OK  # co19 issue 498
+LibTest/core/List/removeAt_A02_t01: FAIL, OK  # co19 issue 498
+LibTest/core/TypeError/column_A01_t01: FAIL, OK # co19 issue 510
+LibTest/core/TypeError/dstName_A01_t01: FAIL, OK # co19 issue 510
+LibTest/core/TypeError/dstType_A01_t01: FAIL, OK # co19 issue 510
+LibTest/core/TypeError/failedAssertion_A01_t01: FAIL, OK # co19 issue 510
+LibTest/core/TypeError/line_A01_t01: FAIL, OK # co19 issue 510
+LibTest/core/TypeError/srcType_A01_t01: FAIL, OK # co19 issue 510
+LibTest/core/TypeError/url_A01_t01: FAIL, OK # co19 issue 510
+LibTest/isolate/IsolateStream/last_A01_t01: FAIL, OK # co19 issue 498
+LibTest/isolate/IsolateStream/length_A01_t01: FAIL, OK # co19 issue 498
+LibTest/isolate/IsolateStream/single_A01_t01: FAIL, OK # co19 issue 498
