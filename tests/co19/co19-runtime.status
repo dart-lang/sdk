@@ -113,6 +113,9 @@ Language/07_Classes/4_Abstract_Instance_Members_A04_t01: Fail # Issue 485
 Language/03_Overview/1_Scoping_A02_t28: Fail # Issue 463
 Language/03_Overview/2_Privacy_A01_t06: Fail # Issue 463
 
+LibTest/async/Timer/Timer.periodic_A01_t01: Pass, Fail # Flaky assumptions on Timer. co19 issue 537
+LibTest/async/Timer/Timer.periodic_A02_t01: Pass, Fail # Flaky assumptions on Timer. co19 issue 537
+
 # end [ $compiler == none && $runtime == vm ]
 
 
