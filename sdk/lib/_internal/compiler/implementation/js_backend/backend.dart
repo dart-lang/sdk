@@ -1021,6 +1021,7 @@ class JavaScriptBackend extends Backend {
   // Therefore we need to collect the list of helpers the backend may
   // use.
   void enqueue(Enqueuer enqueuer, Element e, TreeElements elements) {
+    if (e == null) return;
     helpersUsed.add(e.declaration);
     enqueuer.addToWorkList(e);
     elements.registerDependency(e);
