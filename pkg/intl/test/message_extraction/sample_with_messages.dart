@@ -178,6 +178,8 @@ main() {
   var fr = new Intl("fr");
   var english = new Intl("en_US");
   var de = new Intl("de_DE");
+  // Throw in an initialize of a null locale to make sure it doesn't throw.
+  initializeMessages(null);
   initializeMessages(fr.locale).then((_) => printStuff(fr));
   initializeMessages(de.locale).then((_) => printStuff(de));
   printStuff(english);
