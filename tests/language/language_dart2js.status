@@ -207,7 +207,6 @@ instanceof4_test: Fail # Expect.isTrue(false) fails.
 list_literal4_test: Fail # Illegal argument(s): 0 -- checked mode test.
 map_literal4_test: Fail # Attempt to modify an immutable object -- checked mode test.
 named_parameters_type_test: Fail # Expect.equals(expected: <111>, actual: <0>) fails. -- checked mode test.
-type_dartc_test: Fail # Expect.equals(expected: <1>, actual: <0>) -- checked mode test.
 
 class_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
 external_test/16: Fail, OK # Bad test: assumes eager loading.

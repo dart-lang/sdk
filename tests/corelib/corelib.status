@@ -11,7 +11,6 @@ list_test: Pass, Fail # v8 bug: Issue 12293
 
 [ $compiler == none ]
 unicode_test: Fail        # Bug 6706
-*dartc_test: Skip
 compare_to2_test: Fail    # Bug 4018
 
 symbol_test/01: Fail, Pass # bug 11669

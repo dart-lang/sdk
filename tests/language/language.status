@@ -5,16 +5,6 @@
 # This directory contains tests that are intended to show the
 # current state of the language.
 
-# In order to maintain maximum test coverage for all builds,
-# please use the following procedure to mark a test
-# failed on architectures other than the one you are working on.
-#
-# 1) Copy the old version of the test to
-#    tests/language/src/test_name_[dartc|vm]_test.dart.
-#    to maintain coverage.
-# 2) File a bug on each architecture for the failure due to the language change.
-# 3) Update the language/src directory with the updated test.
-
 [ $compiler == dart2js && ($runtime == ie9 || $runtime == ie10) ]
 licm2_test: Skip # Issue: 12298
 
@@ -50,10 +40,6 @@ parameter_initializer6_negative_test: Fail # Issue 3502
 named_parameters_aggregated_test/05: Fail # Compile-time error reported instead of static type warning.
 
 lazy_static3_test: Fail # Issue 3558
-
-# DartC specific tests that should not be run by the VM
-*dartc_test: Skip
-*dartc_negative_test: Skip
 
 compile_time_constant10_test/none: Fail # issue 5214
 
