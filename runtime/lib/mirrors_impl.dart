@@ -924,7 +924,22 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
                          this.isGenerativeConstructor,
                          this.isRedirectingConstructor,
                          this.isFactoryConstructor)
-      : super(reflectee, _s(simpleName));
+      : this.isOperator = _operators.contains(simpleName),
+        super(reflectee, _s(simpleName));
+
+  static const _operators = const ["%", "&", "*", "+", "-", "/", "<", "<<",
+      "<=", "==", ">", ">=", ">>", "[]", "[]=", "^", "|", "~", "unary-", "~/"];
+
+  final bool isStatic;
+  final bool isAbstract;
+  final bool isGetter;
+  final bool isSetter;
+  final bool isConstructor;
+  final bool isConstConstructor;
+  final bool isGenerativeConstructor;
+  final bool isRedirectingConstructor;
+  final bool isFactoryConstructor;
+  final bool isOperator;
 
   DeclarationMirror _owner;
   DeclarationMirror get owner {
@@ -969,19 +984,7 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
     return _parameters;
   }
 
-  final bool isStatic;
-  final bool isAbstract;
-
   bool get isRegularMethod => !isGetter && !isSetter && !isConstructor;
-
-  TypeMirror get isOperator {
-    throw new UnimplementedError(
-        'MethodMirror.isOperator is not implemented');
-  }
-
-  final bool isGetter;
-  final bool isSetter;
-  final bool isConstructor;
 
   Symbol _constructorName = null;
   Symbol get constructorName {
@@ -1003,11 +1006,6 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
     }
     return _constructorName;
   }
-
-  final bool isConstConstructor;
-  final bool isGenerativeConstructor;
-  final bool isRedirectingConstructor;
-  final bool isFactoryConstructor;
 
   String toString() => "MethodMirror on '${_n(simpleName)}'";
 
