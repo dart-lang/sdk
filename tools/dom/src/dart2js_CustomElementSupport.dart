@@ -45,6 +45,9 @@ void _registerCustomElement(context, document, String tag, Type type) {
   if (baseClassName == 'Element') baseClassName = 'HTMLElement';
 
   var baseConstructor = JS('=Object', '#[#]', context, baseClassName);
+  if (JS('bool', "typeof(#) != 'function'", baseConstructor)) {
+    throw new ArgumentError(type);
+  }
 
   var properties = JS('=Object', '{}');
 

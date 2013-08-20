@@ -35,13 +35,4 @@ $!MEMBERS
   ElementList queryAll(String selectors) {
     return new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
   }
-
-  /// Checks if [register] is supported on the current platform.
-  bool get supportsRegister {
-$if DART2JS
-    return JS('bool', '("register" in #)', this);
-$else
-    return true;
-$endif
-  }
 }

@@ -14,6 +14,7 @@ custom/created_callback_test: Pass, Fail
 custom/document_register_basic_test: Pass, Fail
 
 [ $compiler == dart2js && $runtime != drt ]
+custom_elements_test: Skip
 custom/*: Skip
 
 [ $compiler == dart2js && $browser ]
