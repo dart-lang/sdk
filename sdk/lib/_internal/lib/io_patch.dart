@@ -163,7 +163,13 @@ patch class _Platform {
     throw new UnsupportedError("Platform._localHostname");
   }
   patch static _executable() {
-    throw new UnsupportedError("Platform_Executable");
+    throw new UnsupportedError("Platform._executable");
+  }
+  patch static List<String> _executableArguments() {
+    throw new UnsupportedError("Platform._executableArguments");
+  }
+  patch static String _packageRoot() {
+    throw new UnsupportedError("Platform._packageRoot");
   }
   patch static _environment() {
     throw new UnsupportedError("Platform._environment");

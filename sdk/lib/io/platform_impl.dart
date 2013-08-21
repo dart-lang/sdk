@@ -11,6 +11,8 @@ class _Platform {
   external static _localHostname();
   external static _executable();
   external static _environment();
+  external static List<String> _executableArguments();
+  external static String _packageRoot();
   external static String _version();
 
   static int get numberOfProcessors => _numberOfProcessors();
@@ -27,6 +29,8 @@ class _Platform {
   }
 
   static String executable = _executable();
+  static String packageRoot = _packageRoot();
+  static List<String> get executableArguments => _executableArguments();
 
   static Map<String, String> get environment {
     var env = _environment();

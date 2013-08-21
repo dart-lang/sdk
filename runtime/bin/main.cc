@@ -339,6 +339,8 @@ static int ParseArguments(int argc,
     }
   }
 
+  // The arguments to the VM are at positions 1 through i-1 in argv.
+  Platform::SetExecutableArguments(i, argv);
 
   // Get the script name.
   if (i < argc) {
@@ -461,6 +463,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
     return NULL;
   }
 
+  Platform::SetPackageRoot(package_root);
   Dart_Handle io_lib_url = DartUtils::NewString("dart:io");
   CHECK_RESULT(io_lib_url);
   Dart_Handle io_lib = Dart_LookupLibrary(io_lib_url);

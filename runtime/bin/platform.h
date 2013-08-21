@@ -42,8 +42,31 @@ class Platform {
     return executable_name_;
   }
 
+  // Stores and gets the package root.
+  static void SetPackageRoot(const char* package_root) {
+    package_root_ = package_root;
+  }
+  static const char* GetPackageRoot() {
+    return package_root_;
+  }
+
+  // Stores and gets the flags passed to the executable.
+  static void SetExecutableArguments(int script_index, char** argv) {
+    script_index_ = script_index;
+    argv_ = argv;
+  }
+  static int GetScriptIndex() {
+    return script_index_;
+  }
+  static char** GetArgv() {
+    return argv_;
+  }
+
  private:
   static const char* executable_name_;
+  static const char* package_root_;
+  static int script_index_;
+  static char** argv_;  // VM flags are argv_[1 ... script_index_ - 1]
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Platform);

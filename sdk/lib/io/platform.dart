@@ -89,6 +89,22 @@ class Platform {
    */
   static String get script => _nativeScript;
 
+  /**
+   * Returns the flags passed to the executable used to run the script in this
+   * isolate. These are the command-line flags between the executable name
+   * and the script name. Each fetch of executableArguments returns a new
+   * List, containing the flags passed to the executable.
+   */
+  static List<String> get executableArguments => _Platform.executableArguments;
+
+  /**
+   * Returns the value of the --package-root flag passed to the executable
+   * used to run the script in this isolate.  This is the directory in which
+   * Dart packages are looked up.
+   *
+   * If there is no --package-root flag, then the empty string is returned.
+   */
+  static String get packageRoot => _Platform.packageRoot;
 
   /**
    * Returns the version of the current Dart runtime.

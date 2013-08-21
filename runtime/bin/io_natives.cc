@@ -35,6 +35,8 @@ namespace bin {
   V(Platform_LocalHostname, 0)                                                 \
   V(Platform_ExecutableName, 0)                                                \
   V(Platform_Environment, 0)                                                   \
+  V(Platform_ExecutableArguments, 0)                                           \
+  V(Platform_PackageRoot, 0)                                                   \
   V(Platform_GetVersion, 0)                                                    \
   V(Process_Start, 10)                                                         \
   V(Process_Wait, 5)                                                           \
