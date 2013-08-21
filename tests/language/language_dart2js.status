@@ -244,8 +244,6 @@ map_literal1_negative_test: Fail # Negative language test.
 number_identifier_negative_test: Fail # Negative language test.
 operator1_negative_test: Fail # Negative language test.
 prefix23_negative_test: Fail # Negative language test.
-pseudo_kw_illegal_test/03: Fail # Negative language test.
-pseudo_kw_illegal_test/14: Fail # Negative language test.
 scope_negative_test: Fail # Negative language test.
 static_final_field_negative_test: Fail # Negative language test.
 static_top_level_test/00: Fail # Negative language test.

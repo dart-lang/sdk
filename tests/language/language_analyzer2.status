@@ -258,9 +258,6 @@ prefix8_negative_test: fail
 prefix9_negative_test: fail
 prefix11_negative_test: fail
 
-# test issue 11965, 'source' is not built-in identifier anymore
-pseudo_kw_illegal_test/14: fail
-
 # test issue 12156, fails only at runtime
 static_call_wrong_argument_count_negative_test: fail
 
