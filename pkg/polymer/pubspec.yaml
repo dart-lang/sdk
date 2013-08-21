@@ -5,8 +5,6 @@ description: >
   Components, and designed to leverage the evolving web platform on modern
   browsers.
 homepage: https://www.dartlang.org
-environment:
-  sdk: any
 dependencies:
   analyzer_experimental: any
   args: any
