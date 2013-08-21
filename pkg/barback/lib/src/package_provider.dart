@@ -8,7 +8,6 @@ import 'dart:async';
 
 import 'asset.dart';
 import 'asset_id.dart';
-import 'transformer.dart';
 
 /// API for locating and accessing packages on disk.
 ///

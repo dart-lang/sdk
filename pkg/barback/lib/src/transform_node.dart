@@ -132,7 +132,7 @@ class TransformNode {
       // Don't allow partial results from a failed transform.
       newOutputs.clear();
     }).then((_) {
-      if (_isDirty) return [];
+      if (_isDirty) return new Set();
 
       return _adjustOutputs(newOutputs);
     });
