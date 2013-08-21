@@ -86,7 +86,7 @@ import_combinators_test: Fail
 
 [ $runtime == vm || ($runtime == drt && $compiler == none) ]
 first_class_types_literals_test: Fail # issue 11761
-call_test: Fail # Issue 1604
+call_test: Fail # Issue 12602
 
 [ $runtime == chrome ]
 
@@ -290,6 +290,3 @@ null_test/03: Fail    # Issue 12445.
 
 [ $compiler == dart2js ]
 null_test/none: Fail  # Issue 12482
-
-[ $compiler == dartanalyzer ]
-null_test/03: Fail  # Issue 12484
