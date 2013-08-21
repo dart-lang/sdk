@@ -21,7 +21,6 @@ cast_test/05: fail
 
 # TBF: It is a compile-time error if the superclass of a class C appears in the implements clause of C.
 const_constructor_super_test/01: fail
-compile_time_constant10_test/none: fail
 compile_time_constant_c_test/01: fail
 
 # TBF: m([int p = 'String']) and call 'const' instance creation
@@ -181,9 +180,6 @@ black_listed_test/11: fail
 
 # test issue 11581, it is not warning to call dynamic
 call_through_getter_test: fail
-
-# test issue 11582, non-final field with 'const' constructor
-compile_time_constant10_test/none: fail
 
 # test issue 11583, int is valid key for constant map literal
 compile_time_constant_c_test/01: fail
