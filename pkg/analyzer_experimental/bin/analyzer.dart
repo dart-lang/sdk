@@ -8,6 +8,7 @@
 library analyzer;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer_experimental/src/generated/engine.dart';
@@ -80,7 +81,7 @@ class BatchRunner {
     // read line from stdin
     Stream cmdLine = stdin
         .transform(new StringDecoder())
-        .transform(new LineTransformer());
+        .transform(new LineSplitter());
     var subscription = cmdLine.listen((String line) {
       // may be finish
       if (line.isEmpty) {

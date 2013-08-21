@@ -5,6 +5,7 @@
 library scheduled_test.scheduled_process;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'scheduled_test.dart';
@@ -203,7 +204,7 @@ class ScheduledProcess {
       return chunk;
     })
         .transform(new StringDecoder(_encoding))
-        .transform(new LineTransformer()));
+        .transform(new LineSplitter()));
   }
 
   /// Schedule an exception handler that will clean up the process and provide

@@ -7,6 +7,7 @@
 library DartDebugger;
 
 import "dart:async";
+import "dart:convert";
 import "dart:io";
 import "dart:math";
 import "dart:utf";
@@ -393,7 +394,7 @@ class Debugger {
   Debugger(this.targetProcess, this.script) {
     var stdoutStringStream = targetProcess.stdout
         .transform(new StringDecoder())
-        .transform(new LineTransformer());
+        .transform(new LineSplitter());
     stdoutStringStream.listen((line) {
       print("TARG: $line");
       if (line.startsWith("Debugger listening")) {
@@ -406,7 +407,7 @@ class Debugger {
 
     var stderrStringStream = targetProcess.stderr
         .transform(new StringDecoder())
-        .transform(new LineTransformer());
+        .transform(new LineSplitter());
     stderrStringStream.listen((line) {
       print("TARG: $line");
     });

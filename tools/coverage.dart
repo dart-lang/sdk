@@ -13,6 +13,7 @@
 //   --verbose   see the stdout and stderr output of the debug
 //               target process.
 
+import "dart:convert";
 import "dart:io";
 import "dart:utf";
 import "dart:json" as JSON;
@@ -214,7 +215,7 @@ class Debugger {
   Debugger(this.targetProcess) {
     var stdoutStringStream = targetProcess.stdout
         .transform(new StringDecoder())
-        .transform(new LineTransformer());
+        .transform(new LineSplitter());
     stdoutStringStream.listen((line) {
       if (showDebuggeeOutput) {
         print("TARG: $line");
@@ -231,7 +232,7 @@ class Debugger {
 
     var stderrStringStream = targetProcess.stderr
         .transform(new StringDecoder())
-        .transform(new LineTransformer());
+        .transform(new LineSplitter());
     stderrStringStream.listen((line) {
       if (showDebuggeeOutput) {
         print("TARG: $line");

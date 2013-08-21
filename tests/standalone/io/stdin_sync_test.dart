@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:path/path.dart";
+import "dart:convert";
 import "dart:io";
 import "dart:json";
+
+import "package:path/path.dart";
 
 void testReadByte() {
   void test(String line, List<String> expected) {
@@ -16,14 +18,14 @@ void testReadByte() {
       process.stdin.close();
       process.stderr
           .transform(new StringDecoder())
-          .transform(new LineTransformer())
+          .transform(new LineSplitter())
           .fold(new StringBuffer(), (b, d) => b..write(d))
           .then((data) {
             if (data.toString() != '') throw "Bad output: '$data'";
           });
       process.stdout
           .transform(new StringDecoder())
-          .transform(new LineTransformer())
+          .transform(new LineSplitter())
           .fold(new StringBuffer(), (b, d) => b..write(d))
           .then((data) {
             if (data.toString() != 'true') throw "Bad output: '$data'";

@@ -5,6 +5,7 @@
 library scheduled_process_test;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
@@ -367,11 +368,12 @@ ScheduledProcess startDartProcess(String script) {
       var utilsPath = path.absolute(path.join(Platform.script, 'utils.dart'));
       return new File(path.join(dir, 'test.dart')).writeAsString('''
           import 'dart:async';
+          import 'dart:convert';
           import 'dart:io';
 
           var stdinLines = stdin
               .transform(new StringDecoder())
-              .transform(new LineTransformer());
+              .transform(new LineSplitter());
 
           void main() {
             $script

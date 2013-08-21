@@ -4,13 +4,14 @@
 //
 // Utility script to echo stdin to stdout or stderr or both.
 
+import "dart:convert";
 import "dart:io";
 
 main() {
   var subscription;
   subscription = stdin
       .transform(new StringDecoder())
-      .transform(new LineTransformer())
+      .transform(new LineSplitter())
       .listen((String line) {
           // Unsubscribe after the first line.
           subscription.cancel();

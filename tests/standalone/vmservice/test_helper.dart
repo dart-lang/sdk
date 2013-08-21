@@ -5,6 +5,7 @@
 library vmservice_test_helper;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:json' as JSON;
 import 'dart:utf' as UTF;
@@ -97,7 +98,7 @@ class TestLauncher {
       var blank;
       var first = true;
       process.stdout.transform(new StringDecoder())
-                    .transform(new LineTransformer()).listen((line) {
+                    .transform(new LineSplitter()).listen((line) {
         if (line.startsWith('VmService listening on port ')) {
           RegExp portExp = new RegExp(r"\d+");
           var port = portExp.stringMatch(line);
@@ -116,7 +117,7 @@ class TestLauncher {
         print(line);
       });
       process.stderr.transform(new StringDecoder())
-                    .transform(new LineTransformer()).listen((line) {
+                    .transform(new LineSplitter()).listen((line) {
         print(line);
       });
       process.exitCode.then((code) {
