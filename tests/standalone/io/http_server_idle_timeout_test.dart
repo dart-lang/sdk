@@ -7,7 +7,6 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
@@ -15,9 +14,12 @@ import "dart:isolate";
 
 void testTimeoutAfterRequest() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
-    server.idleTimeout = const Duration(milliseconds: 100);
+    server.idleTimeout = null;
 
-    server.listen((request) => request.response.close());
+    server.listen((request) {
+      server.idleTimeout = const Duration(milliseconds: 100);
+      request.response.close();
+    });
 
     Socket.connect("127.0.0.1", server.port).then((socket) {
       var data = "GET / HTTP/1.1\r\nContent-Length: 0\r\n\r\n";
