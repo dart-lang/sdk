@@ -3004,6 +3004,12 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
                                        dst_name);
   }
 
+  if (!node->field().is_final()) {
+    // For now, disable list length guarding on non-final fields by specifying
+    // that the field doesn't have a length. See issue #12485.
+    node->field().set_guarded_list_length(Field::kNoFixedLength);
+  }
+
   store_value = Bind(BuildStoreExprTemp(store_value));
   GuardFieldInstr* guard =
       new GuardFieldInstr(store_value,

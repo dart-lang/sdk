@@ -1577,11 +1577,16 @@ LocationSummary* GuardFieldInstr::MakeLocationSummary() const {
   LocationSummary* summary =
       new LocationSummary(kNumInputs, 0, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  if ((value()->Type()->ToCid() == kDynamicCid) &&
-      (field().guarded_cid() != kSmiCid)) {
+  const bool field_has_length = field().needs_length_check();
+  const bool need_value_temp_reg =
+      (field_has_length || ((value()->Type()->ToCid() == kDynamicCid) &&
+                            (field().guarded_cid() != kSmiCid)));
+  if (need_value_temp_reg) {
     summary->AddTemp(Location::RequiresRegister());
   }
-  if (field().guarded_cid() == kIllegalCid) {
+  const bool need_field_temp_reg =
+      field_has_length || (field().guarded_cid() == kIllegalCid);
+  if (need_field_temp_reg) {
     summary->AddTemp(Location::RequiresRegister());
   }
   return summary;
@@ -1591,6 +1596,17 @@ LocationSummary* GuardFieldInstr::MakeLocationSummary() const {
 void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t field_cid = field().guarded_cid();
   const intptr_t nullability = field().is_nullable() ? kNullCid : kIllegalCid;
+  const intptr_t field_length = field().guarded_list_length();
+  const bool field_has_length = field().needs_length_check();
+  const bool needs_value_temp_reg =
+      (field_has_length || ((value()->Type()->ToCid() == kDynamicCid) &&
+                            (field().guarded_cid() != kSmiCid)));
+  const bool needs_field_temp_reg =
+      field_has_length || (field().guarded_cid() == kIllegalCid);
+  if (field_has_length) {
+    // Currently, we should only see final fields that remember length.
+    ASSERT(field().is_final());
+  }
 
   if (field_cid == kDynamicCid) {
     ASSERT(!compiler->is_optimizing());
@@ -1601,10 +1617,10 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Register value_reg = locs()->in(0).reg();
 
-  Register value_cid_reg = ((value_cid == kDynamicCid) &&
-      (field_cid != kSmiCid)) ? locs()->temp(0).reg() : kNoRegister;
+  Register value_cid_reg = needs_value_temp_reg ?
+      locs()->temp(0).reg() : kNoRegister;
 
-  Register field_reg = (field_cid == kIllegalCid) ?
+  Register field_reg = needs_field_temp_reg ?
       locs()->temp(locs()->temp_count() - 1).reg() : kNoRegister;
 
   Label ok, fail_label;
@@ -1617,7 +1633,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const bool ok_is_fall_through = (deopt != NULL);
 
   if (!compiler->is_optimizing() || (field_cid == kIllegalCid)) {
-    if (!compiler->is_optimizing()) {
+    if (!compiler->is_optimizing() && (field_reg == kNoRegister)) {
       // Currently we can't have different location summaries for optimized
       // and non-optimized code. So instead we manually pick up a register
       // that is known to be free because we know how non-optimizing compiler
@@ -1631,6 +1647,8 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     FieldAddress field_cid_operand(field_reg, Field::guarded_cid_offset());
     FieldAddress field_nullability_operand(
         field_reg, Field::is_nullable_offset());
+    FieldAddress field_length_operand(
+        field_reg, Field::guarded_list_length_offset());
 
     if (value_cid == kDynamicCid) {
       if (value_cid_reg == kNoRegister) {
@@ -1641,39 +1659,181 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       LoadValueCid(compiler, value_cid_reg, value_reg);
 
+      Label skip_length_check;
       __ cmpl(value_cid_reg, field_cid_operand);
-      __ j(EQUAL, &ok);
+      // Value CID != Field guard CID, skip length check.
+      __ j(NOT_EQUAL, &skip_length_check);
+      if (field_has_length) {
+        // Field guard may have remembered list length, check it.
+        if ((field_cid == kArrayCid) || (field_cid == kImmutableArrayCid)) {
+          __ pushl(value_cid_reg);
+          __ movl(value_cid_reg,
+                  FieldAddress(value_reg, Array::length_offset()));
+          __ cmpl(value_cid_reg, Immediate(field_length));
+          __ popl(value_cid_reg);
+        } else if (RawObject::IsTypedDataClassId(field_cid)) {
+          __ pushl(value_cid_reg);
+          __ movl(value_cid_reg,
+                  FieldAddress(value_reg, TypedData::length_offset()));
+          __ cmpl(value_cid_reg, Immediate(field_length));
+          __ popl(value_cid_reg);
+        } else {
+          ASSERT(field_cid == kIllegalCid);
+          // Following jump cannot not occur, fall through.
+        }
+        __ j(NOT_EQUAL, fail);
+      }
+      __ Bind(&skip_length_check);
       __ cmpl(value_cid_reg, field_nullability_operand);
     } else if (value_cid == kNullCid) {
+      // Value in graph known to be null.
+      // Compare with null.
       __ cmpl(field_nullability_operand, Immediate(value_cid));
     } else {
+      // Value in graph known to be non-null.
+      Label skip_length_check;
+      // Compare class id with guard field class id.
       __ cmpl(field_cid_operand, Immediate(value_cid));
+      // If not equal, skip over length check.
+      __ j(NOT_EQUAL, &skip_length_check);
+      // Insert length check.
+      if (field_has_length) {
+        if (value_cid_reg == kNoRegister) {
+          ASSERT(!compiler->is_optimizing());
+          value_cid_reg = EDX;
+          ASSERT((value_cid_reg != value_reg) && (field_reg != value_cid_reg));
+        }
+        ASSERT(value_cid_reg != kNoRegister);
+        if ((field_cid == kArrayCid) || (field_cid == kImmutableArrayCid)) {
+          __ pushl(value_cid_reg);
+          __ movl(value_cid_reg,
+                  FieldAddress(value_reg, Array::length_offset()));
+          __ cmpl(value_cid_reg, Immediate(field_length));
+          __ popl(value_cid_reg);
+        } else if (RawObject::IsTypedDataClassId(field_cid)) {
+          __ pushl(value_cid_reg);
+          __ movl(value_cid_reg,
+                  FieldAddress(value_reg, TypedData::length_offset()));
+          __ cmpl(value_cid_reg, Immediate(field_length));
+          __ popl(value_cid_reg);
+        } else {
+          ASSERT(field_cid == kIllegalCid);
+          // Following jump cannot not occur, fall through.
+        }
+      }
+      // Not identical, possibly null.
+      __ Bind(&skip_length_check);
     }
+    // Jump when class id guard and list length guard are okay.
     __ j(EQUAL, &ok);
 
+
+    // Check if guard field is uninitialized.
     __ cmpl(field_cid_operand, Immediate(kIllegalCid));
+    // Jump to failure path when guard field has been initialized and
+    // the field and value class ids do not not match.
     __ j(NOT_EQUAL, fail);
 
+    // At this point the field guard is being initialized for the first time.
     if (value_cid == kDynamicCid) {
+      // Do not know value's class id.
       __ movl(field_cid_operand, value_cid_reg);
       __ movl(field_nullability_operand, value_cid_reg);
+      if (field_has_length) {
+        Label check_array, local_exit, local_fail;
+        __ cmpl(value_cid_reg, Immediate(kNullCid));
+        __ j(EQUAL, &local_fail);
+        // Check for typed data array.
+        __ cmpl(value_cid_reg, Immediate(kTypedDataFloat32x4ArrayCid));
+        __ j(GREATER, &local_fail);  // Not a typed array or a regular array.
+        __ cmpl(value_cid_reg, Immediate(kTypedDataInt8ArrayCid));
+        __ j(LESS, &check_array);  // Could still be a regular array.
+        // Destroy value_cid_reg (safe because we are finished with it).
+        __ movl(value_cid_reg,
+                FieldAddress(value_reg, TypedData::length_offset()));
+        __ movl(field_length_operand, value_cid_reg);
+        __ jmp(&local_exit);  // Updated field length typed data array.
+        // Check for regular array.
+        __ Bind(&check_array);
+        __ cmpl(value_cid_reg, Immediate(kImmutableArrayCid));
+        __ j(GREATER, &local_fail);
+        __ cmpl(value_cid_reg, Immediate(kArrayCid));
+        __ j(LESS, &local_fail);
+        // Destroy value_cid_reg (safe because we are finished with it).
+        __ movl(value_cid_reg,
+                FieldAddress(value_reg, Array::length_offset()));
+        __ movl(field_length_operand, value_cid_reg);
+        __ jmp(&local_exit);  // Updated field length from regular array.
+
+        __ Bind(&local_fail);
+        __ movl(field_length_operand, Immediate(Field::kNoFixedLength));
+
+        __ Bind(&local_exit);
+      }
     } else {
+      if (value_cid_reg == kNoRegister) {
+          ASSERT(!compiler->is_optimizing());
+          value_cid_reg = EDX;
+          ASSERT((value_cid_reg != value_reg) && (field_reg != value_cid_reg));
+      }
+      ASSERT(value_cid_reg != kNoRegister);
+      ASSERT(field_reg != kNoRegister);
       __ movl(field_cid_operand, Immediate(value_cid));
       __ movl(field_nullability_operand, Immediate(value_cid));
+      if ((value_cid == kArrayCid) || (value_cid == kImmutableArrayCid)) {
+        // Destroy value_cid_reg (safe because we are finished with it).
+        __ movl(value_cid_reg,
+                FieldAddress(value_reg, Array::length_offset()));
+        __ movl(field_length_operand, value_cid_reg);
+      } else if (RawObject::IsTypedDataClassId(value_cid)) {
+        // Destroy value_cid_reg (safe because we are finished with it).
+        __ movl(value_cid_reg,
+                FieldAddress(value_reg, TypedData::length_offset()));
+        __ movl(field_length_operand, value_cid_reg);
+      } else {
+        __ movl(field_length_operand, Immediate(Field::kNoFixedLength));
+      }
     }
 
     if (!ok_is_fall_through) {
       __ jmp(&ok);
     }
   } else {
+    // Field guard class has been initialized and is known.
+
+    if (field_reg != kNoRegister) {
+      __ LoadObject(field_reg, Field::ZoneHandle(field().raw()));
+    }
+
     if (value_cid == kDynamicCid) {
-      // Field's guarded class id is fixed by value's class id is not known.
+      // Value's class id is not known.
       __ testl(value_reg, Immediate(kSmiTagMask));
 
       if (field_cid != kSmiCid) {
         __ j(ZERO, fail);
         __ LoadClassId(value_cid_reg, value_reg);
         __ cmpl(value_cid_reg, Immediate(field_cid));
+      }
+
+      if (field_has_length) {
+        // Jump when Value CID != Field guard CID
+        __ j(NOT_EQUAL, fail);
+
+        // Classes are same, perform guarded list length check.
+        ASSERT(field_reg != kNoRegister);
+        ASSERT(value_cid_reg != kNoRegister);
+        FieldAddress field_length_operand(
+            field_reg, Field::guarded_list_length_offset());
+        if ((field_cid == kArrayCid) || (field_cid == kImmutableArrayCid)) {
+          // Destroy value_cid_reg (safe because we are finished with it).
+          __ movl(value_cid_reg,
+                  FieldAddress(value_reg, Array::length_offset()));
+        } else if (RawObject::IsTypedDataClassId(field_cid)) {
+          // Destroy value_cid_reg (safe because we are finished with it).
+          __ movl(value_cid_reg,
+                  FieldAddress(value_reg, TypedData::length_offset()));
+        }
+        __ cmpl(value_cid_reg, field_length_operand);
       }
 
       if (field().is_nullable() && (field_cid != kNullCid)) {
@@ -1693,6 +1853,21 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       if ((value_cid != field_cid) && (value_cid != nullability)) {
         if (ok_is_fall_through) {
           __ jmp(fail);
+        }
+      } else if (field_has_length && (value_cid == field_cid)) {
+        ASSERT(value_cid_reg != kNoRegister);
+        if ((field_cid == kArrayCid) || (field_cid == kImmutableArrayCid)) {
+          // Destroy value_cid_reg (safe because we are finished with it).
+          __ movl(value_cid_reg,
+                  FieldAddress(value_reg, Array::length_offset()));
+        } else if (RawObject::IsTypedDataClassId(field_cid)) {
+          // Destroy value_cid_reg (safe because we are finished with it).
+          __ movl(value_cid_reg,
+                  FieldAddress(value_reg, TypedData::length_offset()));
+        }
+        __ cmpl(value_cid_reg, Immediate(field_length));
+        if (ok_is_fall_through) {
+          __ j(NOT_EQUAL, fail);
         }
       } else {
         // Nothing to emit.

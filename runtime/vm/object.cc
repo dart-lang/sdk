@@ -59,6 +59,8 @@ DEFINE_FLAG(bool, throw_on_javascript_int_overflow, false,
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
+DECLARE_FLAG(bool, trace_deoptimization);
+DECLARE_FLAG(bool, trace_deoptimization_verbose);
 DECLARE_FLAG(bool, error_on_bad_override);
 
 static const char* kGetterPrefix = "get:";
@@ -5304,6 +5306,7 @@ RawField* Field::New(const String& name,
   result.set_has_initializer(false);
   result.set_guarded_cid(kIllegalCid);
   result.set_is_nullable(false);
+  result.set_guarded_list_length(Field::kUnknownFixedLength);
   result.set_dependent_code(Object::null_array());
   return result.raw();
 }
@@ -5427,6 +5430,12 @@ void Field::DeoptimizeDependentCode() const {
     while (frame != NULL) {
       code = frame->LookupDartCode();
       if (IsDependentCode(code_objects, code)) {
+        if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
+          Function& function = Function::Handle(code.function());
+          OS::PrintErr("Deoptimizing %s because guard on field %s failed.\n",
+              function.ToFullyQualifiedCString(),
+              ToCString());
+        }
         DeoptimizeAt(code, frame->pc());
       }
       frame = iterator.NextFrame();
@@ -5448,6 +5457,12 @@ void Field::DeoptimizeDependentCode() const {
     // If function uses dependent code switch it to unoptimized.
     if (function.CurrentCode() == code.raw()) {
       ASSERT(function.HasOptimizedCode());
+      if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
+        OS::PrintErr("Switching %s to unoptimized code because guard"
+                     " on field %s was violated.\n",
+                     function.ToFullyQualifiedCString(),
+                     ToCString());
+      }
       function.SwitchToUnoptimizedCode();
     }
   }
@@ -5483,6 +5498,37 @@ void Field::UpdateCid(intptr_t cid) const {
   }
 
   // Expected class id or nullability of the field changed.
+  DeoptimizeDependentCode();
+}
+
+
+void Field::UpdateLength(intptr_t list_length) const {
+  ASSERT(is_final() || (!is_final() &&
+                        (list_length < Field::kUnknownFixedLength)));
+  ASSERT((list_length == Field::kNoFixedLength) ||
+         (list_length > Field::kUnknownFixedLength));
+  ASSERT(guarded_cid() != kIllegalCid);
+
+  const bool force_invalidate = (guarded_cid() == kDynamicCid) &&
+                                (list_length != Field::kNoFixedLength);
+
+  const bool list_length_unknown =
+      (guarded_list_length() == Field::kUnknownFixedLength);
+  const bool list_length_changed = (guarded_list_length() != list_length);
+
+  if (list_length_unknown && list_length_changed && !force_invalidate) {
+    // List length set for first time.
+    set_guarded_list_length(list_length);
+    return;
+  }
+
+  if (!list_length_changed && !force_invalidate) {
+    // List length unchanged.
+    return;
+  }
+
+  // Multiple list lengths assigned here, stop tracking length.
+  set_guarded_list_length(Field::kNoFixedLength);
   DeoptimizeDependentCode();
 }
 

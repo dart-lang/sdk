@@ -2087,6 +2087,7 @@ void Parser::CheckConstFieldsInitialized(const Class& cls) {
                String::Handle(field.name()).ToCString());
     } else {
       field.UpdateCid(kNullCid);
+      field.UpdateLength(Field::kNoFixedLength);
     }
   }
 }
