@@ -1427,6 +1427,52 @@ Definition* UnboxDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
+Definition* BoxFloat32x4Instr::Canonicalize(FlowGraph* flow_graph) {
+  if (input_use_list() == NULL) {
+    // Environments can accomodate any representation. No need to box.
+    return value()->definition();
+  }
+
+  // Fold away BoxFloat32x4(UnboxFloat32x4(v)).
+  UnboxFloat32x4Instr* defn = value()->definition()->AsUnboxFloat32x4();
+  if ((defn != NULL) && (defn->value()->Type()->ToCid() == kFloat32x4Cid)) {
+    return defn->value()->definition();
+  }
+
+  return this;
+}
+
+
+Definition* UnboxFloat32x4Instr::Canonicalize(FlowGraph* flow_graph) {
+  // Fold away UnboxFloat32x4(BoxFloat32x4(v)).
+  BoxFloat32x4Instr* defn = value()->definition()->AsBoxFloat32x4();
+  return (defn != NULL) ? defn->value()->definition() : this;
+}
+
+
+Definition* BoxUint32x4Instr::Canonicalize(FlowGraph* flow_graph) {
+  if (input_use_list() == NULL) {
+    // Environments can accomodate any representation. No need to box.
+    return value()->definition();
+  }
+
+  // Fold away BoxUint32x4(UnboxUint32x4(v)).
+  UnboxUint32x4Instr* defn = value()->definition()->AsUnboxUint32x4();
+  if ((defn != NULL) && (defn->value()->Type()->ToCid() == kUint32x4Cid)) {
+    return defn->value()->definition();
+  }
+
+  return this;
+}
+
+
+Definition* UnboxUint32x4Instr::Canonicalize(FlowGraph* flow_graph) {
+  // Fold away UnboxUint32x4(BoxUint32x4(v)).
+  BoxUint32x4Instr* defn = value()->definition()->AsBoxUint32x4();
+  return (defn != NULL) ? defn->value()->definition() : this;
+}
+
+
 Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
   // Only handle strict-compares.
   if (comparison()->IsStrictCompare()) {

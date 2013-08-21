@@ -4409,6 +4409,8 @@ class BoxFloat32x4Instr : public TemplateDefinition<1> {
 
   virtual bool MayThrow() const { return false; }
 
+  Definition* Canonicalize(FlowGraph* flow_graph);
+
  private:
   DISALLOW_COPY_AND_ASSIGN(BoxFloat32x4Instr);
 };
@@ -4438,6 +4440,8 @@ class BoxUint32x4Instr : public TemplateDefinition<1> {
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
   virtual bool MayThrow() const { return false; }
+
+  Definition* Canonicalize(FlowGraph* flow_graph);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BoxUint32x4Instr);
@@ -4536,6 +4540,8 @@ class UnboxFloat32x4Instr : public TemplateDefinition<1> {
 
   virtual bool MayThrow() const { return false; }
 
+  Definition* Canonicalize(FlowGraph* flow_graph);
+
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxFloat32x4Instr);
 };
@@ -4567,6 +4573,8 @@ class UnboxUint32x4Instr : public TemplateDefinition<1> {
   virtual CompileType ComputeType() const;
 
   virtual bool MayThrow() const { return false; }
+
+  Definition* Canonicalize(FlowGraph* flow_graph);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxUint32x4Instr);
