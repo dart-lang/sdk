@@ -19,7 +19,6 @@ custom/*: Skip
 [ $compiler == dart2js && $browser ]
 # Issue 9325 failures
 custom/attribute_changed_callback_test: Fail
-custom/document_register_type_extensions_test: Fail
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug && $system == macos]
 audiobuffersourcenode_test: Pass, Fail, Crash # http://crbug.com/256601
