@@ -393,5 +393,3 @@ safe_dom_test: Skip                # Test cannot run under CSP restrictions (tim
 # Skipped for in-progress Dartium rull on 8-16-2013
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 crypto_test/functional: Fail
-websocket_test/websocket: Timeout
-notifications_test/webkitNotifications: Fail
