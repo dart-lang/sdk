@@ -138,7 +138,6 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: fail # Dar
 Language/12_Expressions/01_Constants_A01_t01: fail # co19 issue 522
 Language/12_Expressions/01_Constants_A16_t01: fail # co19 issue 525
 Language/12_Expressions/01_Constants_A16_t02: fail # co19 issue 525
-Language/12_Expressions/01_Constants_A17_t03: crash # Dart issue 1681
 Language/12_Expressions/03_Numbers_A01_t01: fail # co19 issue 522
 Language/12_Expressions/03_Numbers_A01_t02: fail # co19 issue 522
 Language/12_Expressions/03_Numbers_A01_t03: fail # co19 issue 522

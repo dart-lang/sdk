@@ -255,7 +255,8 @@ Parser::Parser(const Script& script, const Library& library, intptr_t token_pos)
       current_class_(Class::Handle(isolate_)),
       library_(Library::Handle(isolate_, library.raw())),
       try_blocks_list_(NULL),
-      last_used_try_index_(CatchClauseNode::kInvalidTryIndex) {
+      last_used_try_index_(CatchClauseNode::kInvalidTryIndex),
+      unregister_pending_function_(false) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!library.IsNull());
 }
@@ -284,11 +285,25 @@ Parser::Parser(const Script& script,
           isolate_,
           parsed_function->function().origin()).library())),
       try_blocks_list_(NULL),
-      last_used_try_index_(CatchClauseNode::kInvalidTryIndex) {
+      last_used_try_index_(CatchClauseNode::kInvalidTryIndex),
+      unregister_pending_function_(false) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!current_function().IsNull());
   if (FLAG_enable_type_checks) {
     EnsureExpressionTemp();
+  }
+}
+
+
+Parser::~Parser() {
+  if (unregister_pending_function_) {
+    const GrowableObjectArray& pending_functions =
+        GrowableObjectArray::Handle(
+            isolate()->object_store()->pending_functions());
+    ASSERT(pending_functions.Length() > 0);
+    ASSERT(pending_functions.At(pending_functions.Length()-1) ==
+        current_function().raw());
+    pending_functions.RemoveLast();
   }
 }
 
@@ -2360,6 +2375,23 @@ static void SetInvisible(LocalScope* scope, int num_variables, bool invisible) {
 }
 
 
+void Parser::CheckRecursiveInvocation() {
+  const GrowableObjectArray& pending_functions =
+      GrowableObjectArray::Handle(
+          isolate()->object_store()->pending_functions());
+  for (int i = 0; i < pending_functions.Length(); i++) {
+    if (pending_functions.At(i) == current_function().raw()) {
+      const String& fname =
+          String::Handle(current_function().UserVisibleName());
+      ErrorMsg("circular dependency for function %s", fname.ToCString());
+    }
+  }
+  ASSERT(!unregister_pending_function_);
+  pending_functions.Add(current_function());
+  unregister_pending_function_ = true;
+}
+
+
 // Parser is at the opening parenthesis of the formal parameter declaration
 // of function. Parse the formal parameters, initializers and code.
 SequenceNode* Parser::ParseConstructor(const Function& func,
@@ -2371,6 +2403,8 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   ASSERT(!func.IsLocalFunction());
   const Class& cls = Class::Handle(func.Owner());
   ASSERT(!cls.IsNull());
+
+  CheckRecursiveInvocation();
 
   if (func.IsImplicitConstructor()) {
     // Special case: implicit constructor.

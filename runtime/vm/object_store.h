@@ -349,6 +349,10 @@ class ObjectStore {
     pending_classes_ = value.raw();
   }
 
+  RawGrowableObjectArray* pending_functions() const {
+    return pending_functions_;
+  }
+
   RawError* sticky_error() const { return sticky_error_; }
   void set_sticky_error(const Error& value) {
     ASSERT(!value.IsNull());
@@ -485,6 +489,7 @@ class ObjectStore {
   RawLibrary* utf_library_;
   RawGrowableObjectArray* libraries_;
   RawGrowableObjectArray* pending_classes_;
+  RawGrowableObjectArray* pending_functions_;
   RawError* sticky_error_;
   RawString* unhandled_exception_handler_;
   RawContext* empty_context_;
