@@ -10806,6 +10806,7 @@ class ErrorEvent extends Event native "ErrorEvent" {
   @DomName('ErrorEvent.error')
   @DocsEditable()
   @Experimental() // untriaged
+  @Creates('Null')
   final Object error;
 
   @DomName('ErrorEvent.filename')
