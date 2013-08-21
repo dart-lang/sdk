@@ -31,7 +31,6 @@ constructor6_test: Fail           # Issue 6422
 closure_in_initializer_test: Fail # Issue 6422
 
 # Regular bugs which should be fixed.
-const_init6_negative_test: Fail       # Issue 811
 super_first_constructor_test: Fail # Issue 1372.
 
 parameter_initializer6_negative_test: Fail # Issue 3502
@@ -121,8 +120,6 @@ mixin_with_two_implicit_constructors_test: Fail # Issue 11889
 import_core_prefix_test: Fail
 prefix16_test: Fail
 prefix22_test: Fail
-type_annotation_test/04: Fail
-type_annotation_test/06: Fail
 
 # Calling unresolved class constructor:
 call_nonexistent_constructor_test: Fail
@@ -202,7 +199,6 @@ duplicate_implements_test/01: Fail
 duplicate_implements_test/02: Fail
 duplicate_implements_test/03: Fail
 duplicate_implements_test/04: Fail
-interface_factory_constructor_negative_test: Fail
 method_override4_test: Fail
 method_override5_test: Fail
 operator1_negative_test: Fail

@@ -221,9 +221,6 @@ interface_static_non_final_fields_negative_test: fail
 # test issue 11595, It is static warning to create instance (new) of the malformed type
 instantiate_type_variable_negative_test: fail
 
-# test issue 11596. e is Unknown is not a compile time error
-is_not_class2_negative_test: fail
-
 # test issue 11598, Any use of a malbounded type gives rise to a static warning
 mixin_type_parameters_errors_test/01: fail
 mixin_type_parameters_errors_test/02: fail
@@ -251,7 +248,6 @@ prefix6_negative_test: fail
 
 # test issue 11964, Any use of a malformed type gives rise to a static warning.
 prefix8_negative_test: fail
-prefix9_negative_test: fail
 prefix11_negative_test: fail
 
 # test issue 12156, fails only at runtime

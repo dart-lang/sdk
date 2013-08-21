@@ -183,9 +183,6 @@ crypto/test/hmac_md5_test: Fail, Pass
 # not minified.
 unittest/test/*_minified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
 
-[ $compiler == none && $runtime == drt ]
-dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
-
 [ $arch == arm ]
 *: Skip
 

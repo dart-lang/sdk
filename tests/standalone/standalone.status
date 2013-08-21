@@ -127,7 +127,6 @@ vmservice/*: Skip # Do not run standalone vm service tests with dart2js.
 
 [ $compiler == dart2js && $jscl ]
 assert_test: Fail, OK # Assumes unspecified fields on the AssertionError.
-byte_array_test: Fail, OK # ByteArray
 deoptimization_test: Fail, OK # Requires bigint.
 out_of_memory_test: Fail, OK # d8 handles much larger arrays than Dart VM.
 io/options_test: Fail, OK # Cannot pass options to d8.

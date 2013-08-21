@@ -15,7 +15,6 @@ deferred/deferred_constant_test: Pass, Crash, Fail # Issue 9158
 deferred/deferred_class_test: Pass, Crash # Issue 9158
 
 [ $compiler == dart2js && $checked ]
-parameter_bailout_test: Fail, OK
 variable_type_test/03: Fail, OK
 variable_type_test/01: Fail, OK
 

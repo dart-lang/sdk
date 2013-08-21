@@ -62,8 +62,6 @@ typed_data_message_test: Fail
 
 [ $runtime == safari ]
 cross_isolate_message_test: Skip      # Depends on 32/64 bit Safari. See Issue 1120
-mixed_test: Pass,Fail               # Depends on 32/64 bit Safari. See Issue 1120
-mixed2_test: Pass,Fail              # Depends on 32/64 bit Safari. See Issue 1120
 message_test: Skip
 
 [ $runtime == opera ]

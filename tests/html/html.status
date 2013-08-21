@@ -36,9 +36,6 @@ custom/document_register_type_extensions_test: Fail
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
 
-[ $compiler == dart2js && $checked ]
-template_element_test: Fail # BUG(11480): Triage.
-
 [ $compiler == dart2js && ($runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == opera || $runtime == drt || $runtime == dartium)]
 dom_isolates_test: Skip # Need to migrate to new spawnDomFunction.
 
@@ -56,10 +53,6 @@ url_test: Fail # Issue 10096
 [ $compiler == dart2js && $browser && $checked ]
 postmessage_structured_test/typed_arrays: Fail # Issue 10097
 postmessage_structured_test/primitives: Fail # Issue 10097
-
-# Layout tests are only supported on DRT.
-[ $runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
-*layout_test: Skip
 
 [ $runtime == chrome ]
 canvasrenderingcontext2d_test/drawImage_video_element: Pass,Fail # Issue 11836
@@ -294,7 +287,6 @@ touchevent_test/supported: Fail
 blob_constructor_test: Fail
 canvas_test: Fail
 canvas_test: Pass,Fail
-canvas_using_html_test: Fail
 cssstyledeclaration_test: Fail
 document_test/document: Fail # Issue: 7413
 element_add_test: Fail
@@ -305,7 +297,6 @@ element_test/elements: Fail
 element_test/eventListening: Crash
 element_test/eventListening: Fail # Issue: 7413
 element_test/queryAll: Fail
-element_webkit_test: Fail
 fileapi_test: Skip # Timeout.
 form_data_test: Fail # Issue: 7413
 htmlelement_test: Fail
@@ -398,11 +389,9 @@ js_interop_3_test: Skip            # Test cannot run under CSP restrictions (tim
 js_test: Skip                      # Test cannot run under CSP restrictions (times out).
 postmessage_structured_test: Skip  # Test cannot run under CSP restrictions (times out).
 safe_dom_test: Skip                # Test cannot run under CSP restrictions (times out).
-shadow_dom_layout_test: Fail, OK   # Test cannot run under CSP restrictions.
 
 # Skipped for in-progress Dartium rull on 8-16-2013
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
-mutation_observer_test: Crash
 crypto_test/functional: Fail
 websocket_test/websocket: Timeout
 notifications_test/webkitNotifications: Fail
