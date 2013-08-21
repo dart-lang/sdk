@@ -2010,6 +2010,39 @@ DART_EXPORT Dart_Handle Dart_GetNativeStringArgument(Dart_NativeArguments args,
                                                      void** peer);
 
 /**
+ * Gets an integer native argument at some index.
+ * \param args Native arguments structure.
+ * \param arg_index Index of the desired argument in the structure above.
+ * \param value Returns the integer value if the argument is an Integer.
+ * \return Success if no error occurs. Otherwise returns an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_GetNativeIntegerArgument(Dart_NativeArguments args,
+                                                      int index,
+                                                      int64_t* value);
+
+/**
+ * Gets a boolean native argument at some index.
+ * \param args Native arguments structure.
+ * \param arg_index Index of the desired argument in the structure above.
+ * \param value Returns the boolean value if the argument is a Boolean.
+ * \return Success if no error occurs. Otherwise returns an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_GetNativeBooleanArgument(Dart_NativeArguments args,
+                                                      int index,
+                                                      bool* value);
+
+/**
+ * Gets a double native argument at some index.
+ * \param args Native arguments structure.
+ * \param arg_index Index of the desired argument in the structure above.
+ * \param value Returns the double value if the argument is a double.
+ * \return Success if no error occurs. Otherwise returns an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_GetNativeDoubleArgument(Dart_NativeArguments args,
+                                                     int index,
+                                                     double* value);
+
+/**
  * Sets the return value for a native function.
  */
 DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,

@@ -6207,8 +6207,23 @@ static void NativeFoo2(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t i = Dart_GetNativeArgumentCount(args);
   EXPECT_EQ(2, i);
-  Dart_Handle arg = Dart_GetNativeArgument(args, 1);
-  Dart_SetReturnValue(args, Dart_NewInteger(GetValue(arg)));
+  Dart_Handle arg1 = Dart_GetNativeArgument(args, 1);
+  EXPECT_VALID(arg1);
+  int64_t value = 0;
+  EXPECT_VALID(Dart_IntegerToInt64(arg1, &value));
+  int64_t integer_value = 0;
+  Dart_Handle result = Dart_GetNativeIntegerArgument(args,
+                                                     1,
+                                                     &integer_value);
+  EXPECT_VALID(result);
+  EXPECT_EQ(value, integer_value);
+  double double_value;
+  result = Dart_GetNativeDoubleArgument(args, 1, &double_value);
+  EXPECT_VALID(result);
+  bool bool_value;
+  result = Dart_GetNativeBooleanArgument(args, 1, &bool_value);
+  EXPECT(Dart_IsError(result));
+  Dart_SetReturnValue(args, Dart_NewInteger(GetValue(arg1)));
   Dart_ExitScope();
 }
 

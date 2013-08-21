@@ -3719,6 +3719,108 @@ DART_EXPORT Dart_Handle Dart_GetNativeStringArgument(Dart_NativeArguments args,
 }
 
 
+DART_EXPORT Dart_Handle Dart_GetNativeIntegerArgument(Dart_NativeArguments args,
+                                                      int index,
+                                                      int64_t* value) {
+  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  if ((index < 0) || (index >= arguments->NativeArgCount())) {
+    return Api::NewError(
+        "%s: argument 'index' out of range. Expected 0..%d but saw %d.",
+        CURRENT_FUNC, arguments->NativeArgCount() - 1, index);
+  }
+  Isolate* isolate = arguments->isolate();
+  ReusableObjectHandleScope reused_obj_handle(isolate);
+  Object& obj = reused_obj_handle.Handle();
+  obj = arguments->NativeArgAt(index);
+  intptr_t cid = obj.GetClassId();
+  if (cid == kSmiCid) {
+    *value = Smi::Cast(obj).Value();
+    return Api::Success();
+  }
+  if (cid == kMintCid) {
+    *value = Mint::Cast(obj).value();
+    return Api::Success();
+  }
+  if (cid == kBigintCid) {
+    const Bigint& bigint = Bigint::Cast(obj);
+    if (BigintOperations::FitsIntoInt64(bigint)) {
+      *value = BigintOperations::ToInt64(bigint);
+      return Api::Success();
+    }
+    return Api::NewError(
+        "%s: argument %d is a big integer that does not fit in 'value'.",
+        CURRENT_FUNC, index);
+  }
+  return Api::NewError(
+      "%s: argument %d is not an Integer argument.",
+      CURRENT_FUNC, index);
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetNativeBooleanArgument(Dart_NativeArguments args,
+                                                      int index,
+                                                      bool* value) {
+  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  if ((index < 0) || (index >= arguments->NativeArgCount())) {
+    return Api::NewError(
+        "%s: argument 'index' out of range. Expected 0..%d but saw %d.",
+        CURRENT_FUNC, arguments->NativeArgCount() - 1, index);
+  }
+  Isolate* isolate = arguments->isolate();
+  ReusableObjectHandleScope reused_obj_handle(isolate);
+  Object& obj = reused_obj_handle.Handle();
+  obj = arguments->NativeArgAt(index);
+  intptr_t cid = obj.GetClassId();
+  if (cid == kBoolCid) {
+    *value = Bool::Cast(obj).value();
+    return Api::Success();
+  }
+  if (obj.IsNull()) {
+    *value = false;
+    return Api::Success();
+  }
+  return Api::NewError(
+      "%s: argument %d is not a Boolean argument.",
+      CURRENT_FUNC, index);
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetNativeDoubleArgument(Dart_NativeArguments args,
+                                                     int index,
+                                                     double* value) {
+  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  if ((index < 0) || (index >= arguments->NativeArgCount())) {
+    return Api::NewError(
+        "%s: argument 'index' out of range. Expected 0..%d but saw %d.",
+        CURRENT_FUNC, arguments->NativeArgCount() - 1, index);
+  }
+  Isolate* isolate = arguments->isolate();
+  ReusableObjectHandleScope reused_obj_handle(isolate);
+  Object& obj = reused_obj_handle.Handle();
+  obj = arguments->NativeArgAt(index);
+  intptr_t cid = obj.GetClassId();
+  if (cid == kDoubleCid) {
+    *value = Double::Cast(obj).value();
+    return Api::Success();
+  }
+  if (cid == kSmiCid) {
+    *value = Smi::Cast(obj).AsDoubleValue();
+    return Api::Success();
+  }
+  if (cid == kMintCid) {
+    *value = Mint::Cast(obj).AsDoubleValue();
+    return Api::Success();
+  }
+  if (cid == kBigintCid) {
+    *value = Bigint::Cast(obj).AsDoubleValue();
+    return Api::Success();
+  }
+  return Api::NewError(
+      "%s: argument %d is not a Double argument.",
+      CURRENT_FUNC, index);
+}
+
+
 DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
                                      Dart_Handle retval) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
