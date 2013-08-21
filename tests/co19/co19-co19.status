@@ -64,7 +64,8 @@ Utils/tests/Expect/listEquals_A02_t01: FAIL, OK # co19 issue 499
 Utils/tests/Expect/listEquals_A03_t01: FAIL, OK # co19 issue 500
 Utils/tests/Expect/setEquals_A02_t01: FAIL, OK # co19 issue 499
 
-
+LibTest/isolate_api/streamSpawnFunction_A02_t02: Pass, Fail # co19 issue 540
+LibTest/isolate_api/streamSpawnFunction_A02_t03: Pass, Fail # co19 issue 540
 
 ### CHECKED MODE FAILURES ###
 
