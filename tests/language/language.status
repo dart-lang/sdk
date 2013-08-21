@@ -40,8 +40,6 @@ named_parameters_aggregated_test/05: Fail # Compile-time error reported instead 
 
 lazy_static3_test: Fail # Issue 12593
 
-compile_time_constant10_test/none: Fail # issue 5214
-
 export_cyclic_test: Fail, Crash # issue 6060
 duplicate_export_negative_test: Fail # issue 6134
 type_annotation_test/04: Fail # Issue 6970
@@ -260,8 +258,6 @@ get_set_syntax_test/08: Fail # Fixed by https://chromiumcodereview.appspot.com/1
 get_set_syntax_test/13: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/14: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/15: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
-
-compile_time_constant10_test/none: Fail # Triage this.
 
 # Only checked mode reports an error on type assignment
 # problems in compile time constants.
