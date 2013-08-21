@@ -79,13 +79,13 @@ class Range;
   V(_Double, roundToDouble, DoubleRound, 500368418)                            \
   V(_Double, floorToDouble, DoubleFloor, 763548522)                            \
   V(_Double, ceilToDouble, DoubleCeil, 976697019)                              \
-  V(_Double, pow, DoublePow, 1240251670)                                       \
   V(_Double, _modulo, DoubleMod, 1850917533)                                   \
   V(::, sqrt, MathSqrt, 465520247)                                             \
   V(::, sin, MathSin, 730107143)                                               \
   V(::, cos, MathCos, 1282146521)                                              \
   V(::, min, MathMin, 1584022354)                                              \
   V(::, max, MathMax, 328632232)                                               \
+  V(::, _doublePow, MathDoublePow, 2002448359)                                 \
   V(Float32x4, Float32x4., Float32x4Constructor, 1876089990)                   \
   V(Float32x4, Float32x4.zero, Float32x4Zero, 1903586222)                      \
   V(Float32x4, Float32x4.splat, Float32x4Splat, 38462589)                      \
@@ -6344,7 +6344,7 @@ class DoubleToDoubleInstr : public TemplateDefinition<1> {
 class InvokeMathCFunctionInstr : public Definition {
  public:
   InvokeMathCFunctionInstr(ZoneGrowableArray<Value*>* inputs,
-                           InstanceCallInstr* instance_call,
+                           intptr_t original_deopt_id,
                            MethodRecognizer::Kind recognized_kind);
 
   static intptr_t ArgumentCountFor(MethodRecognizer::Kind recognized_kind_);

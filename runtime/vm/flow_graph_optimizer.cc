@@ -1722,7 +1722,7 @@ void FlowGraphOptimizer::ReplaceWithMathCFunction(
     args->Add(new Value(call->ArgumentAt(i)));
   }
   InvokeMathCFunctionInstr* invoke =
-      new InvokeMathCFunctionInstr(args, call, recognized_kind);
+      new InvokeMathCFunctionInstr(args, call->deopt_id(), recognized_kind);
   ReplaceCall(call, invoke);
 }
 
@@ -1861,7 +1861,6 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         return true;
       }
       case MethodRecognizer::kDoubleMod:
-      case MethodRecognizer::kDoublePow:
       case MethodRecognizer::kDoubleRound:
         ReplaceWithMathCFunction(call, recognized_kind);
         return true;
@@ -2769,6 +2768,18 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
         ReplaceCall(call, min_max);
       }
     }
+  } else if (recognized_kind == MethodRecognizer::kMathDoublePow) {
+    // We know that first argument is double, the second is num.
+    // InvokeMathCFunctionInstr requires unboxed doubles. UnboxDouble
+    // instructions contain type checks and conversions to double.
+    ZoneGrowableArray<Value*>* args =
+        new ZoneGrowableArray<Value*>(call->ArgumentCount());
+    for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
+      args->Add(new Value(call->ArgumentAt(i)));
+    }
+    InvokeMathCFunctionInstr* invoke =
+        new InvokeMathCFunctionInstr(args, call->deopt_id(), recognized_kind);
+    ReplaceCall(call, invoke);
   }
 }
 

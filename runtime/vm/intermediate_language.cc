@@ -2528,7 +2528,7 @@ intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
 
 InvokeMathCFunctionInstr::InvokeMathCFunctionInstr(
     ZoneGrowableArray<Value*>* inputs,
-    InstanceCallInstr* instance_call,
+    intptr_t original_deopt_id,
     MethodRecognizer::Kind recognized_kind)
     : inputs_(inputs),
       locs_(NULL),
@@ -2539,7 +2539,7 @@ InvokeMathCFunctionInstr::InvokeMathCFunctionInstr(
     (*inputs)[i]->set_instruction(this);
     (*inputs)[i]->set_use_index(i);
   }
-  deopt_id_ = instance_call->deopt_id();
+  deopt_id_ = original_deopt_id;
 }
 
 
@@ -2555,7 +2555,7 @@ intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
     case MethodRecognizer::kDoubleRound:
       return 1;
     case MethodRecognizer::kDoubleMod:
-    case MethodRecognizer::kDoublePow:
+    case MethodRecognizer::kMathDoublePow:
       return 2;
     default:
       UNREACHABLE();
@@ -2602,7 +2602,7 @@ const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
       return kFloorRuntimeEntry;
     case MethodRecognizer::kDoubleCeil:
       return kCeilRuntimeEntry;
-    case MethodRecognizer::kDoublePow:
+    case MethodRecognizer::kMathDoublePow:
       return kPowRuntimeEntry;
     case MethodRecognizer::kDoubleMod:
       return kModRuntimeEntry;

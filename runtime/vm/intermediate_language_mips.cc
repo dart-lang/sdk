@@ -3540,7 +3540,7 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary() const {
 void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // For pow-function return NaN if exponent is NaN.
   Label do_call, skip_call;
-  if (recognized_kind() == MethodRecognizer::kDoublePow) {
+  if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
     DRegister exp = locs()->in(1).fpu_reg();
     __ cund(exp, exp);
     __ bc1f(&do_call);

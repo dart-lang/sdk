@@ -4256,7 +4256,7 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   // For pow-function return NaN if exponent is NaN.
   Label do_call, skip_call;
-  if (recognized_kind() == MethodRecognizer::kDoublePow) {
+  if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
     XmmRegister exp = locs()->in(1).fpu_reg();
     __ comisd(exp, exp);
     __ j(PARITY_ODD, &do_call, Assembler::kNearJump);  // NaN -> false;
