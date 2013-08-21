@@ -82,9 +82,9 @@ class Trace implements StackTrace {
   factory Trace.parse(String trace) {
     try {
       if (trace.isEmpty) return new Trace(<Frame>[]);
-      if (trace.startsWith("Error\n")) return new Trace.parseV8(trace);
+      if (trace.contains(_v8Trace)) return new Trace.parseV8(trace);
       // Valid Safari traces are a superset of valid Firefox traces.
-      if (trace.contains(_firefoxTrace)) return new Trace.parseFirefox(trace);
+      if (trace.contains(_firefoxTrace)) return new Trace.parseSafari(trace);
       if (trace.contains(_friendlyTrace)) return new Trace.parseFriendly(trace);
 
       // Default to parsing the stack trace as a VM trace. This is also hit on
