@@ -86,6 +86,7 @@ import_combinators_test: Fail
 [ $runtime == vm || ($runtime == drt && $compiler == none) ]
 first_class_types_literals_test: Fail # issue 11761
 call_test: Fail # Issue 12602
+dynamic_prefix_core_test: Fail # Issue 12478
 
 [ $runtime == chrome ]
 
