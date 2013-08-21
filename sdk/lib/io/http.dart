@@ -204,6 +204,17 @@ abstract class HttpServer implements Stream<HttpRequest> {
    * added to each response.
    */
   String serverHeader;
+
+  /**
+   * Get or set the timeout used for idle keep-alive connections. If no further
+   * request is seen within [idleTimeout] after the previous request was
+   * completed, the connection is droped.
+   *
+   * Default is 120 seconds.
+   *
+   * To disable, set [idleTimeout] to `null`.
+   */
+  Duration idleTimeout;
 }
 
 
