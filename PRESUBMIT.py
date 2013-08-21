@@ -14,6 +14,5 @@ def CheckChangeOnCommit(input_api, output_api):
       input_api,
       output_api,
       json_url='http://dart-status.appspot.com/current?format=json')
-  # TODO(ricow): reenable when status page is back in shape
-  # results.extend(status_check)
+  results.extend(status_check)
   return results
