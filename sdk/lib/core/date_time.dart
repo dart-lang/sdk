@@ -5,13 +5,92 @@
 part of dart.core;
 
 /**
- * A DateTime object represents a point in time.
+ * An instant in time, such as July 20, 1969, 8:18pm PST.
  *
- * It can represent time values that are at a distance of at most
- * 8,640,000,000,000,000ms (100,000,000 days) from epoch (1970-01-01 UTC). In
- * other words: [:millisecondsSinceEpoch.abs() <= 8640000000000000:].
+ * Create a DateTime object by using one of the constructors
+ * or by parsing a correctly formatted string,
+ * which complies with a subset of ISO 8601.
+ * Note that hours are specified between 0 and 23,
+ * as in a 24-hour clock.
+ * For example:
  *
- * Also see [Stopwatch] for means to measure time-spans.
+ *     DateTime now = new DateTime.now();
+ *     DateTime berlinWallFell = new DateTime(1989, 11, 9);
+ *     DateTime moonLanding = DateTime.parse("1969-07-20 20:18:00");  // 8:18pm
+ *
+ * A DateTime object is anchored either in the UTC time zone
+ * or in the local time zone of the current computer
+ * when the object is created.
+ *
+ * Once created, neither the value nor the time zone
+ * of a DateTime object may be changed.
+ *
+ * You can use properties to get
+ * the individual units of a DateTime object.
+ *
+ *     assert(berlinWallFell.month == 11);
+ *     assert(moonLanding.hour == 20);
+ *
+ * For convenience and readability,
+ * the DateTime class provides a constant for each day and month
+ * name&mdash;for example, [AUGUST] and [FRIDAY].
+ * You can use these constants to improve code readibility:
+ *
+ *     DateTime berlinWallFell = new DateTime(1989, DateTime.NOVEMBER, 9);
+ *     assert(berlinWallFell.month == DateTime.SATURDAY);
+ *
+ * Day and month values begin at 1, and the week starts on Monday.
+ * That is, the constants [JANUARY] and [MONDAY] are both 1.
+ *
+ * ## Working with UTC and local time
+ *
+ * A DateTime object is in the local time zone
+ * unless explicitly created in the UTC time zone.
+ *
+ *     DateTime dDay = new DateTime.utc(1944, 6, 6);
+ *    
+ * Use [isUtc] to determine whether a DateTime object is based in UTC.
+ * Use the methods [toLocal] and [toUtc]
+ * to get the equivalent date/time value specified in the other time zone.
+ * Use [timeZoneName] to get an abbreviated name of the time zone
+ * for the DateTime object.
+ * To find the difference
+ * between UTC and the time zone of a DateTime object
+ * call [timeZoneOffset].
+ *
+ * ## Comparing DateTime objects
+ *
+ * The DateTime class contains several handy methods,
+ * such as [isAfter], [isBefore], and [isAtSameMomentAs],
+ * for comparing DateTime objects.
+ *
+ *     assert(berlinWallFell.isAfter(moonLanding) == true);
+ *     assert(berlinWallFell.isBefore(moonLanding) == false);
+ *
+ * ## Using DateTime with Duration
+ *
+ * Use the [add] and [subtract] methods with a [Duration] object
+ * to create a new DateTime object based on another.
+ * For example, to find the date that is sixty days after today, write:
+ *
+ *     DateTime today = new DateTime.now();
+ *     DateTime sixtyDaysFromNow = today.add(new Duration(days: 60));
+ *
+ * To find out how much time is between two DateTime objects use
+ * [difference], which returns a [Duration] object:
+ *
+ *     Duration difference = berlinWallFell.difference(dDay);
+ *     assert(difference.inDays == 16592);
+ *
+ * ## Other resources
+ *
+ * See [Duration] to represent a span of time.
+ * See [Stopwatch] to measure timespans.
+ *
+ * The DateTime class does not provide internationalization.
+ * To internationalize your code, use
+ * the [intl](http://pub.dartlang.org/packages/intl) package.
+ *
  */
 class DateTime implements Comparable {
   // Weekday constants that are returned by [weekday] method:
@@ -40,24 +119,34 @@ class DateTime implements Comparable {
   static const int MONTHS_PER_YEAR = 12;
 
   /**
-   * The milliseconds since 1970-01-01T00:00:00Z (UTC). This value is
-   * independent of the time zone.
+   * The number of milliseconds since
+   * the "Unix epoch" 1970-01-01T00:00:00Z (UTC).
    *
-   * See [Stopwatch] for means to measure time-spans.
+   * This value is independent of the time zone.
+   *
+   * This value is at most
+   * 8,640,000,000,000,000ms (100,000,000 days) from the Unix epoch.
+   * In other words: [:millisecondsSinceEpoch.abs() <= 8640000000000000:].
+   *
    */
   final int millisecondsSinceEpoch;
 
   /**
    * True if this [DateTime] is set to UTC time.
+   *
+   *     DateTime dDay = new DateTime.utc(1944, 6, 6);
+   *     assert(dDay.isUtc);
+   *
    */
   final bool isUtc;
 
   /**
-   * Constructs a [DateTime] instance based on the individual parts. The date is
-   * in the local time zone.
+   * Constructs a [DateTime] instance specified in the local time zone.
    *
-   * [month] and [day] are one-based. For example
-   * [:new DateTime(1938, 1, 10):] represents the 10th of January 1938.
+   * For example,
+   * to create a new DateTime object representing April 29, 2014, 6:04am:
+   *
+   *     DateTime annularEclipse = new DateTime(2014, DateTime.APRIL, 29, 6, 4);
    */
   // TODO(8042): This should be a redirecting constructor and not a factory.
   factory DateTime(int year,
@@ -72,12 +161,9 @@ class DateTime implements Comparable {
   }
 
   /**
-   * Constructs a [DateTime] instance based on the individual parts. The date is
-   * in the UTC time zone.
+   * Constructs a [DateTime] instance specified in the UTC time zone.
    *
-   * [month] and [day] are one-based. For example
-   * [:new DateTime.utc(1938, 1, 10):] represents the 10th of January 1938 in
-   * Coordinated Universal Time.
+   *     DateTime dDay = new DateTime.utc(1944, DateTime.JUNE, 6);
    */
   // TODO(8042): This should be a redirecting constructor and not a factory.
   factory DateTime.utc(int year,
@@ -92,8 +178,11 @@ class DateTime implements Comparable {
   }
 
   /**
-   * Constructs a new [DateTime] instance with current date time value in the
+   * Constructs a [DateTime] instance with current date and time in the
    * local time zone.
+   *
+   *     DateTime thisInstant = new DateTime.now();
+   *
    */
   // TODO(8042): This should be a redirecting constructor and not a factory.
   factory DateTime.now() { return new DateTime._now(); }
@@ -159,11 +248,13 @@ class DateTime implements Comparable {
   static const int _MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
 
   /**
-   * Constructs a new [DateTime] instance with the given [millisecondsSinceEpoch].
+   * Constructs a new [DateTime] instance
+   * with the given [millisecondsSinceEpoch].
+   *
    * If [isUtc] is false then the date is in the local time zone.
    *
    * The constructed [DateTime] represents
-   * 1970-01-01T00:00:00Z + [millisecondsSinceEpoch]ms in the given
+   * 1970-01-01T00:00:00Z + [millisecondsSinceEpoch] ms in the given
    * time zone (local or UTC).
    */
   // TODO(lrn): Have two constructors instead of taking an optional bool.
@@ -179,9 +270,14 @@ class DateTime implements Comparable {
 
   /**
    * Returns true if [other] is a [DateTime] at the same moment and in the
-   * same timezone (UTC or local).
+   * same time zone (UTC or local).
    *
-   * See [isAtSameMomentAs] for a comparison that ignores the timezone.
+   *     DateTime dDayUtc   = new DateTime.utc(1944, DateTime.JUNE, 6);
+   *     DateTime dDayLocal = new DateTime(1944, DateTime.JUNE, 6);
+   *
+   *     assert(dDayUtc.isAtSameMomentAs(dDayLocal) == false);
+   *
+   * See [isAtSameMomentAs] for a comparison that adjusts for time zone.
    */
   bool operator ==(other) {
     if (!(other is DateTime)) return false;
@@ -190,38 +286,70 @@ class DateTime implements Comparable {
   }
 
   /**
-   * Returns true if [this] occurs before [other]. The comparison is independent
+   * Returns true if [this] occurs before [other].
+   *
+   * The comparison is independent
    * of whether the time is in UTC or in the local time zone.
+   *
+   *     DateTime berlinWallFell = new DateTime(1989, 11, 9);
+   *     DateTime moonLanding    = DateTime.parse("1969-07-20 20:18:00");
+   *
+   *     assert(berlinWallFell.isBefore(moonLanding) == false);
+   *
    */
   bool isBefore(DateTime other) {
     return millisecondsSinceEpoch < other.millisecondsSinceEpoch;
   }
 
   /**
-   * Returns true if [this] occurs after [other]. The comparison is independent
+   * Returns true if [this] occurs after [other].
+   *
+   * The comparison is independent
    * of whether the time is in UTC or in the local time zone.
+   *
+   *     DateTime berlinWallFell = new DateTime(1989, 11, 9);
+   *     DateTime moonLanding    = DateTime.parse("1969-07-20 20:18:00");
+   *
+   *     assert(berlinWallFell.isAfter(moonLanding) == true);
+   *
    */
   bool isAfter(DateTime other) {
     return millisecondsSinceEpoch > other.millisecondsSinceEpoch;
   }
 
   /**
-   * Returns true if [this] occurs at the same moment as [other]. The
-   * comparison is independent of whether the time is in UTC or in the local
+   * Returns true if [this] occurs at the same moment as [other].
+   *
+   * The comparison is independent of whether the time is in UTC or in the local
    * time zone.
+   *
+   *     DateTime berlinWallFell = new DateTime(1989, 11, 9);
+   *     DateTime moonLanding    = DateTime.parse("1969-07-20 20:18:00");
+   *
+   *     assert(berlinWallFell.isAtSameMomentAs(moonLanding) == false);
    */
   bool isAtSameMomentAs(DateTime other) {
     return millisecondsSinceEpoch == other.millisecondsSinceEpoch;
   }
 
+  /**
+   * Compares this DateTime object to [other],
+   * returning zero if the values are equal.
+   *
+   * This function returns a negative integer
+   * if this DateTime is smaller (earlier) than [other],
+   * or a positive integer if it is greater (later).
+   */
   int compareTo(DateTime other)
       => millisecondsSinceEpoch.compareTo(other.millisecondsSinceEpoch);
 
   int get hashCode => millisecondsSinceEpoch;
 
   /**
-   * Returns [this] in the local time zone. Returns itself if it is already in
-   * the local time zone. Otherwise, this method is equivalent to
+   * Returns this DateTime value in the local time zone.
+   *
+   * Returns [this] if it is already in the local time zone.
+   * Otherwise this method is equivalent to:
    *
    *     new DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch,
    *                                             isUtc: false)
@@ -235,8 +363,10 @@ class DateTime implements Comparable {
   }
 
   /**
-   * Returns [this] in UTC. Returns itself if it is already in UTC. Otherwise,
-   * this method is equivalent to
+   * Returns this DateTime value in the UTC time zone.
+   *
+   * Returns [this] if it is already in UTC.
+   * Otherwise this method is equivalent to:
    *
    *     new DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch,
    *                                             isUtc: true)
@@ -248,8 +378,13 @@ class DateTime implements Comparable {
   }
 
   /**
-   * Returns a human readable string for this instance.
+   * Returns a human-readable string for this instance.
+   *
    * The returned string is constructed for the time zone of this instance.
+   * The `toString()` method provides a simply formatted string.
+   * It does not support internationalized strings.
+   * Use the [intl](http://pub.dartlang.org/packages/intl) package
+   * at the pub shared packages repo.
    */
   String toString() {
     String fourDigits(int n) {
@@ -286,21 +421,41 @@ class DateTime implements Comparable {
     }
   }
 
-  /** Returns a new [DateTime] with the [duration] added to [this]. */
+  /**
+   * Returns a new [DateTime] instance with [duration] added to [this].
+   *
+   *     DateTime today = new DateTime.now();
+   *     DateTime sixtyDaysFromNow = today.add(new Duration(days: 60));
+   */
+
   DateTime add(Duration duration) {
     int ms = millisecondsSinceEpoch;
     return new DateTime.fromMillisecondsSinceEpoch(
         ms + duration.inMilliseconds, isUtc: isUtc);
   }
 
-  /** Returns a new [DateTime] with the [duration] subtracted from [this]. */
+  /**
+   * Returns a new [DateTime] instance with [duration] subtracted from [this].
+   *
+   *     DateTime today = new DateTime.now();
+   *     DateTime sixtyDaysAgo = today.subtract(new Duration(days: 60));
+   */
   DateTime subtract(Duration duration) {
     int ms = millisecondsSinceEpoch;
     return new DateTime.fromMillisecondsSinceEpoch(
         ms - duration.inMilliseconds, isUtc: isUtc);
   }
 
-  /** Returns a [Duration] with the difference of [this] and [other]. */
+  /**
+   * Returns a [Duration] with the difference between [this] and [other].
+   *
+   *     DateTime berlinWallFell = new DateTime(1989, DateTime.NOVEMBER, 9);
+   *     DateTime dDay = new DateTime(1944, DateTime.JUNE, 6);
+   *
+   *     Duration difference = berlinWallFell.difference(dDay);
+   *     assert(difference.inDays == 16592);
+   */
+
   Duration difference(DateTime other) {
     int ms = millisecondsSinceEpoch;
     int otherMs = other.millisecondsSinceEpoch;
@@ -321,15 +476,16 @@ class DateTime implements Comparable {
       int millisecond, bool isUtc);
 
   /**
-   * Returns the abbreviated time-zone name.
-   *
-   * Examples: [:"CET":] or [:"CEST":].
+   * The abbreviated time zone name&mdash;for example,
+   * [:"CET":] or [:"CEST":].
    */
   external String get timeZoneName;
 
   /**
-   * The time-zone offset is the difference between local time and UTC. That is,
-   * the offset is positive for time zones west of UTC.
+   * The time zone offset, which
+   * is the difference between local time and UTC.
+   *
+   * The offset is positive for time zones west of UTC.
    *
    * Note, that JavaScript, Python and C return the difference between UTC and
    * local time. Java, C# and Ruby return the difference between local time and
@@ -338,43 +494,72 @@ class DateTime implements Comparable {
   external Duration get timeZoneOffset;
 
   /**
-   * Returns the year.
+   * The year.
+   *
+   *     DateTime moonLanding = DateTime.parse("1969-07-20 20:18:00");
+   *     assert(moonLanding.year == 1969);
    */
   external int get year;
 
   /**
-   * Returns the month into the year [1..12].
+   * The month [1..12].
+   *
+   *     DateTime moonLanding = DateTime.parse("1969-07-20 20:18:00");
+   *     assert(moonLanding.month == 7);
+   *     assert(moonLanding.month == JULY);
    */
   external int get month;
 
   /**
-   * Returns the day into the month [1..31].
+   * The day of the month [1..31].
+   *
+   *     DateTime moonLanding = DateTime.parse("1969-07-20 20:18:00");
+   *     assert(moonLanding.day == 20);
    */
   external int get day;
 
   /**
-   * Returns the hour into the day [0..23].
+   * The hour of the day, expressed as in a 24-hour clock [0..23].
+   *
+   *     DateTime moonLanding = DateTime.parse("1969-07-20 20:18:00");
+   *     assert(moonLanding.hour == 20);
    */
   external int get hour;
 
   /**
-   * Returns the minute into the hour [0...59].
+   * The minute [0...59].
+   *
+   *     DateTime moonLanding = DateTime.parse("1969-07-20 20:18:00");
+   *     assert(moonLanding.minute == 18);
    */
   external int get minute;
 
   /**
-   * Returns the second into the minute [0...59].
+   * The second [0...59].
+   *
+   *     DateTime moonLanding = DateTime.parse("1969-07-20 20:18:00");
+   *     assert(moonLanding.second == 0);
    */
   external int get second;
 
   /**
-   * Returns the millisecond into the second [0...999].
+   * The millisecond [0...999].
+   *
+   *     DateTime moonLanding = DateTime.parse("1969-07-20 20:18:00");
+   *     assert(moonLanding.millisecond == 0);
    */
   external int get millisecond;
 
   /**
-   * Returns the week day [MON..SUN]. In accordance with ISO 8601
-   * a week starts with Monday which has the value 1.
+   * The day of the week [MONDAY]..[SUNDAY].
+   *
+   * In accordance with ISO 8601
+   * a week starts with Monday, which has the value 1.
+   *
+   *     DateTime moonLanding = DateTime.parse("1969-07-20 20:18:00");
+   *     assert(moonLanding.weekday == 7);
+   *     assert(moonLanding.weekday == DateTime.SUNDAY);
+   *
    */
   external int get weekday;
 }
