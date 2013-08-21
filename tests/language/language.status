@@ -272,6 +272,7 @@ positional_parameters_type_test: Fail # Triage this.
 
 [ $compiler == dart2dart && $minified ]
 super_getter_setter_test: Fail # Issue 11065.
+f_bounded_quantification4_test: Fail # Issue 12605.
 
 # TODO(tball): Assign proper bug numbers.
 class_literal_test: Fail

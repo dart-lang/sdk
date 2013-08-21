@@ -648,10 +648,14 @@ void ClassFinalizer::CheckTypeArgumentBounds(
     ASSERT(type_param.IsFinalized());
     declared_bound = type_param.bound();
     if (!declared_bound.IsObjectType() && !declared_bound.IsDynamicType()) {
+      if (!declared_bound.IsFinalized() && !declared_bound.IsBeingFinalized()) {
+        declared_bound = FinalizeType(cls, declared_bound, kCanonicalize);
+        type_param.set_bound(declared_bound);
+      }
+      ASSERT(declared_bound.IsFinalized() || declared_bound.IsBeingFinalized());
       Error& malformed_error = Error::Handle();
       // Note that the bound may be malformed, in which case the bound check
       // will return an error and the bound check will be postponed to run time.
-      // Note also that the bound may still be unfinalized.
       if (declared_bound.IsInstantiated()) {
         instantiated_bound = declared_bound.raw();
       } else {
@@ -821,15 +825,26 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
       // argument vector.
       const intptr_t offset = num_type_arguments - num_type_parameters;
       AbstractType& type_arg = AbstractType::Handle(Type::DynamicType());
+      for (intptr_t i = 0; i < offset; i++) {
+        // Temporarily set the type arguments of the super classes to dynamic.
+        full_arguments.SetTypeAt(i, type_arg);
+      }
       for (intptr_t i = 0; i < num_type_parameters; i++) {
         // If no type parameters were provided, a raw type is desired, so we
-        // create a vector of DynamicType.
+        // create a vector of dynamic.
         if (!arguments.IsNull()) {
           type_arg = arguments.TypeAt(i);
         }
         ASSERT(type_arg.IsFinalized());  // Index of type parameter is adjusted.
         full_arguments.SetTypeAt(offset + i, type_arg);
       }
+      // Replace the compile-time argument vector (of length zero or
+      // num_type_parameters) of this type being finalized with the still
+      // unfinalized run-time argument vector (of length num_type_arguments).
+      // This type being finalized may be recursively reached via bounds
+      // checking, in which case type arguments of super classes will be seen
+      // as dynamic.
+      parameterized_type.set_arguments(full_arguments);
       // If the type class is a signature class, the full argument vector
       // must include the argument vector of the super type.
       // If the signature class is a function type alias, it is also the owner
