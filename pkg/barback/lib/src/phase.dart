@@ -11,6 +11,7 @@ import 'asset.dart';
 import 'asset_cascade.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
+import 'asset_set.dart';
 import 'errors.dart';
 import 'stream_pool.dart';
 import 'transform_node.dart';

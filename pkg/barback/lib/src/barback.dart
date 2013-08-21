@@ -8,10 +8,12 @@ import 'dart:async';
 
 import 'asset.dart';
 import 'asset_id.dart';
+import 'asset_set.dart';
 import 'build_result.dart';
 import 'errors.dart';
 import 'package_graph.dart';
 import 'package_provider.dart';
+import 'transformer.dart';
 
 /// A general-purpose asynchronous build dependency graph manager.
 ///
@@ -88,6 +90,13 @@ class Barback {
   /// Removes [removed] from the graph's known set of source assets.
   void removeSources(Iterable<AssetId> removed) =>
       _graph.removeSources(removed);
+
+  /// Gets all output assets.
+  ///
+  /// If a build is currently in progress, waits until it completes. The
+  /// returned future will complete with a [BarbackException] if the build is
+  /// not successful.
+  Future<AssetSet> getAllAssets() => _graph.getAllAssets();
 
   /// Sets the transformer phases for [package]'s assets to [transformers].
   ///

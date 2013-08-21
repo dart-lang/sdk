@@ -10,6 +10,7 @@ import 'dart:collection';
 import 'asset.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
+import 'asset_set.dart';
 import 'build_result.dart';
 import 'cancelable_future.dart';
 import 'errors.dart';
@@ -81,6 +82,9 @@ class AssetCascade {
   /// Whether any source assets have been updated or removed since processing
   /// last began.
   var _newChanges = false;
+
+  /// Returns all currently-available output assets from this cascade.
+  AssetSet get availableOutputs => _phases.last.availableOutputs;
 
   /// Creates a new [AssetCascade].
   ///

@@ -10,6 +10,7 @@ import 'package:stack_trace/stack_trace.dart';
 
 import 'asset_id.dart';
 import 'transformer.dart';
+import 'utils.dart';
 
 /// Error thrown when an asset with [id] cannot be found.
 class AssetNotFoundException implements Exception {
@@ -20,10 +21,54 @@ class AssetNotFoundException implements Exception {
   String toString() => "Could not find asset $id.";
 }
 
+/// Replaces any occurrences of [AggregateException] in [errors] with the list
+/// of errors it contains.
+Iterable<BarbackException> flattenAggregateExceptions(
+    Iterable<BarbackException> errors) {
+  return errors.expand((error) {
+    if (error is! AggregateException) return [error];
+    return error.errors;
+  });
+}
+
 /// The interface for exceptions from the barback graph or its transformers.
 ///
 /// These exceptions are never produced by programming errors in barback.
-abstract class BarbackException implements Exception {}
+abstract class BarbackException implements Exception {
+  /// Takes a collection of [BarbackExceptions] and returns a single exception
+  /// that contains them all.
+  ///
+  /// If [errors] is empty, returns `null`. If it only has one error, that
+  /// error is returned. Otherwise, an [AggregateException] is returned.
+  static BarbackException aggregate(Iterable<BarbackException> errors) {
+    if (errors.isEmpty) return null;
+    if (errors.length == 1) return errors.single;
+    return new AggregateException(errors);
+  }
+}
+
+/// An error that wraps a collection of other [BarbackException]s.
+///
+/// It implicitly flattens any [AggregateException]s that occur in the list of
+/// exceptions it wraps.
+class AggregateException implements BarbackException {
+  final Set<BarbackException> errors;
+
+  AggregateException(Iterable<BarbackException> errors)
+      : errors = flattenAggregateExceptions(errors).toSet();
+
+  String toString() {
+    var buffer = new StringBuffer();
+    buffer.writeln("Multiple errors occurred:\n");
+
+    for (var error in errors) {
+      buffer.writeln(prefixLines(error.toString(),
+                                 prefix: "  ", firstPrefix: "- "));
+    }
+
+    return buffer.toString();
+  }
+}
 
 /// Error thrown when two or more transformers both output an asset with [id].
 class AssetCollisionException implements BarbackException {
@@ -66,34 +111,49 @@ class InvalidOutputException implements BarbackException {
       "same package (${transform.primaryId.package}).";
 }
 
-/// Error wrapping an exception thrown by a transform.
-class TransformerException implements BarbackException {
-  /// The transform that threw the exception.
-  final TransformInfo transform;
-
+/// Base class for an error that wraps another.
+abstract class _WrappedException implements BarbackException {
   /// The wrapped exception.
   final error;
 
-  TransformerException(this.transform, this.error);
+  _WrappedException(this.error);
 
-  String toString() => "Transform $transform threw error: $error\n" +
-    new Trace.from(getAttachedStackTrace(error)).terse.toString();
+  String get _message;
+
+  String toString() {
+    var result = "$_message: $error";
+
+    var stack = getAttachedStackTrace(error);
+    if (stack != null) {
+      result = "$result\n${new Trace.from(stack).terse}";
+    }
+
+    return result;
+  }
+}
+
+/// Error wrapping an exception thrown by a transform.
+class TransformerException extends _WrappedException {
+  /// The transform that threw the exception.
+  final TransformInfo transform;
+
+  TransformerException(this.transform, error)
+      : super(error);
+
+  String get _message => "Transform $transform threw error";
 }
 
 /// Error thrown when a source asset [id] fails to load.
 ///
 /// This can be thrown either because the source asset was expected to exist and
 /// did not or because reading it failed somehow.
-class AssetLoadException implements BarbackException {
+class AssetLoadException extends _WrappedException {
   final AssetId id;
 
-  /// The wrapped exception.
-  final error;
+  AssetLoadException(this.id, error)
+      : super(error);
 
-  AssetLoadException(this.id, this.error);
-
-  String toString() => "Failed to load source asset $id: $error\n"
-      "${new Trace.from(getAttachedStackTrace(error)).terse}";
+  String get _message => "Failed to load source asset $id";
 }
 
 /// Information about a single transform in the barback graph.

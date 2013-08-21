@@ -9,7 +9,6 @@ import 'dart:collection';
 import 'dart:io';
 
 import 'package:barback/barback.dart';
-import 'package:barback/src/asset_set.dart';
 import 'package:barback/src/cancelable_future.dart';
 import 'package:barback/src/utils.dart';
 import 'package:path/path.dart' as pathos;
@@ -133,7 +132,7 @@ void removeSourcesSync(Iterable assets) =>
 
 /// Sets the transformers for [package] to [transformers].
 void updateTransformers(String package,
-    Iterable<Iterable<Transformers>> transformers) {
+    Iterable<Iterable<Transformer>> transformers) {
   schedule(() => _barback.updateTransformers(package, transformers),
       "updating transformers for $package");
 }
@@ -259,6 +258,39 @@ void expectNoAsset(String name) {
   }, "get asset $name");
 }
 
+/// Schedules an expectation that the graph will output all of the given
+/// assets, and no others.
+///
+/// [assets] is a list of strings that can be parsed to [AssetID]s.
+void expectAllAssets(Iterable<String> assets) {
+  var expected = assets.map((asset) => new AssetId.parse(asset));
+
+  schedule(() {
+    return _barback.getAllAssets().then((actualAssets) {
+      var actualIds = actualAssets.map((asset) => asset.id).toSet();
+
+      for (var id in expected) {
+        expect(actualIds, contains(id));
+        actualIds.remove(id);
+      }
+
+      expect(actualIds, isEmpty);
+    });
+  }, "get all assets, expecting ${expected.join(', ')}");
+}
+
+/// Schedules an expectation that [Barback.getAllAssets] will return a [Future]
+/// that completes to a error that matches [matcher].
+///
+/// If [match] is a [List], then it expects the completed error to be an
+/// [AggregateException] whose errors match each matcher in the list. Otherwise,
+/// [match] should be a single matcher that the error should match.
+void expectAllAssetsShouldFail(Matcher matcher) {
+  schedule(() {
+    expect(_barback.getAllAssets(), throwsA(matcher));
+  }, "get all assets should fail");
+}
+
 /// Schedules an expectation that a [getAssetById] call for the given asset
 /// won't terminate at this point in the schedule.
 void expectAssetDoesNotComplete(String name) {
@@ -270,6 +302,25 @@ void expectAssetDoesNotComplete(String name) {
         pumpEventQueue(),
         "asset $id");
   }, "asset $id should not complete");
+}
+
+/// Returns a matcher for an [AggregateException] containing errors that match
+/// [matchers].
+Matcher isAggregateException(Iterable<Matcher> errors) {
+  // Match the aggregate error itself.
+  var matchers = [
+    new isInstanceOf<AggregateException>(),
+    transform((error) => error.errors, hasLength(errors.length),
+        'errors.length == ${errors.length}')
+  ];
+
+  // Make sure its contained errors match the matchers.
+  for (var error in errors) {
+    matchers.add(transform((error) => error.errors, contains(error),
+        error.toString()));
+  }
+
+  return allOf(matchers);
 }
 
 /// Returns a matcher for an [AssetNotFoundException] with the given [id].

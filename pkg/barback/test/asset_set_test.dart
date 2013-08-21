@@ -5,7 +5,6 @@
 library barback.test.asset_set_test;
 
 import 'package:barback/barback.dart';
-import 'package:barback/src/asset_set.dart';
 import 'package:unittest/unittest.dart';
 
 import 'utils.dart';

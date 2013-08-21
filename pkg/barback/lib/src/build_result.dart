@@ -24,7 +24,7 @@ class BuildResult {
   bool get succeeded => errors.isEmpty;
 
   BuildResult(Iterable<BarbackException> errors)
-      : errors = errors.toSet();
+      : errors = flattenAggregateExceptions(errors).toSet();
 
   /// Creates a build result indicating a successful build.
   ///

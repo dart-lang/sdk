@@ -9,9 +9,11 @@ import 'dart:async';
 import 'asset_cascade.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
+import 'asset_set.dart';
 import 'build_result.dart';
 import 'errors.dart';
 import 'package_provider.dart';
+import 'transformer.dart';
 import 'utils.dart';
 
 /// The collection of [AssetCascade]s for an entire application.
@@ -52,6 +54,12 @@ class PackageGraph {
   Stream<BarbackException> get errors => _errors;
   Stream<BarbackException> _errors;
 
+  /// The most recent error emitted from a cascade's result stream.
+  ///
+  /// This is used to pipe an unexpected error from a build to the resulting
+  /// [Future] returned by [getAllAssets].
+  var _lastUnexpectedError;
+
   /// Creates a new [PackageGraph] that will transform assets in all packages
   /// made available by [provider].
   PackageGraph(this.provider) {
@@ -72,7 +80,10 @@ class PackageGraph {
         // errors, the result will automatically be considered a success.
         _resultsController.add(new BuildResult(unionAll(
             _cascadeResults.values.map((result) => result.errors))));
-      }, onError: _resultsController.addError);
+      }, onError: (error) {
+        _lastUnexpectedError = error;
+        _resultsController.addError(error);
+      });
     }
 
     _errors = mergeStreams(_cascades.values.map((cascade) => cascade.errors));
@@ -89,6 +100,38 @@ class PackageGraph {
     var cascade = _cascades[id.package];
     if (cascade != null) return cascade.getAssetNode(id);
     return new Future.value(null);
+  }
+
+  /// Gets all output assets.
+  ///
+  /// If a build is currently in progress, waits until it completes. The
+  /// returned future will complete with an error if the build is not
+  /// successful.
+  Future<AssetSet> getAllAssets() {
+    if (_cascadeResults.values.contains(null)) {
+      // A build is still ongoing, so wait for it to complete and try again.
+      return results.first.then((_) => getAllAssets());
+    }
+
+    // If an unexpected error occurred, complete with that.
+    if (_lastUnexpectedError != null) {
+      var error = _lastUnexpectedError;
+      _lastUnexpectedError = null;
+      return new Future.error(error);
+    }
+
+    // If the build completed with an error, complete the future with it.
+    var errors = unionAll(
+        _cascadeResults.values.map((result) => result.errors));
+    if (errors.isNotEmpty) {
+      return new Future.error(BarbackException.aggregate(errors));
+    }
+
+    // Otherwise, return all of the final output assets.
+    var assets = unionAll(_cascades.values.map(
+        (cascade) => cascade.availableOutputs.toSet()));
+
+    return new Future.value(new AssetSet.from(assets));
   }
 
   /// Adds [sources] to the graph's known set of source assets.
