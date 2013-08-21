@@ -39,7 +39,7 @@ https://github.com/dglazkov/Web-Components-Polyfill/blob/master/samples/news
 
       class XNews extends PolymerElement {}
 
-      @polymerInitMethod
+      @initMethod
       _init() {
         registerPolymerElement('x-news', () => new XNews());
       }

@@ -59,21 +59,6 @@
   document.write(
     '<script src="packages/html_import/html_import.min.js"></script>');
 
-  // Whether [node] is under `<body>` or `<head>` and not nested in an
-  // `<element>` or `<polymer-element>` tag.
-  function isTopLevel(node) {
-    var parent = node.parentNode;
-    if (parent == null || parent == document.body || parent == document.head) {
-      return true;
-    }
-    if (parent.localName && (
-        parent.localName == 'element' ||
-        parent.localName == 'polymer-element')) {
-      return false;
-    }
-    return isTopLevel(parent);
-  }
-
   // Extract a Dart import URL from a script tag, which is the 'src' attribute
   // of the script tag, or a data-url with the script contents for inlined code.
   function getScriptUrl(script) {
@@ -84,14 +69,7 @@
       if (index == 0 || (index > 0 && url[index - 1] == '/')) {
         url = "package:" + url.slice(index + 9);
       }
-
-      // TODO(sigmund): remove the timestamp. We added this to work around
-      // a caching bug in dartium (see http://dartbug.com/12074). Note this
-      // doesn't fix caching problems with other libraries imported further in,
-      // and it can also introduce canonicalization problems if the files under
-      // these urls are being imported from other libraries.
-      var time = new Date().getTime();
-      return url + '?' + time;
+      return url;
     } else {
       // TODO(sigmund): investigate how to eliminate the warning in Dartium
       // (changing to text/javascript hides the warning, but seems wrong).
@@ -118,21 +96,20 @@
     }
   }
 
-  // Creates a Dart program that imports [urls] and [mainUrl] and invokes the
-  // _init methods of each library in urls (if present) followed by the main
-  // method of [mainUrl].
+  // Creates a Dart program that imports [urls] and passes them to initPolymer
+  // (which in turn will invoke their main function, their methods marked with
+  // @initMethod, and register any custom tag labeled with @CustomTag).
   function createMain(urls, mainUrl) {
-    var imports = Array(urls.length + 2);
+    var imports = Array(urls.length + 1);
     for (var i = 0; i < urls.length; ++i) {
       imports[i] = 'import "' + urls[i] + '" as i' + i + ';';
     }
     imports[urls.length] = 'import "package:polymer/polymer.dart" as polymer;';
-    imports[urls.length + 1 ] = 'import "' + mainUrl + '" as userMain;';
-    var firstArg = urls.length == 0 ? '[]' :
+    var arg = urls.length == 0 ? '[]' :
         ('[\n      "' + urls.join('",\n      "') + '"\n     ]');
     return (imports.join('\n') +
         '\n\nmain() {\n' +
-        '  polymer.initPolymer(' + firstArg + ', userMain.main);\n' +
+        '  polymer.initPolymer(' + arg + ');\n' +
         '}\n');
   }
 
@@ -142,32 +119,25 @@
     var scripts = document.getElementsByTagName("script");
     var length = scripts.length;
 
-    var dartScripts = []
     var urls = [];
+    var toRemove = [];
 
     // Collect the information we need to replace the script tags
     for (var i = 0; i < length; ++i) {
       var script = scripts[i];
       if (script.type == "application/dart") {
-        dartScripts.push(script);
-        if (isTopLevel(script)) continue;
         urls.push(getScriptUrl(script));
+        toRemove.push(script);
       }
     }
 
-    // Removes all the original script tags under elements, and replace
-    // top-level script tags so we first call each element's _init.
-    for (var i = 0; i < dartScripts.length; ++i) {
-      var script = dartScripts[i];
-      if (isTopLevel(script)) {
-        var newScript = document.createElement('script');
-        newScript.type = "application/dart";
-        newScript.textContent = createMain(urls, getScriptUrl(script));
-        script.parentNode.replaceChild(newScript, script);
-      } else {
-        script.parentNode.removeChild(script);
-      }
-    }
+    toRemove.forEach(function (s) { s.parentNode.removeChild(s); });
+
+    // Append a new script tag that initializes everything.
+    var newScript = document.createElement('script');
+    newScript.type = "application/dart";
+    newScript.textContent = createMain(urls);
+    document.body.appendChild(newScript);
   }
 
   var alreadyRan = false;

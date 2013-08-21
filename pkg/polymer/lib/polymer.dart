@@ -39,21 +39,21 @@ class CustomTag {
  * Metadata used to label static or top-level methods that are called
  * automatically when loading the library of a custom element.
  */
-const polymerInitMethod = const _InitPolymerAnnotation();
+const initMethod = const _InitMethodAnnotation();
 
 /**
- * Initializes a polymer application by: setting up polling for observable
- * changes, initializing MDV, registering and initializing custom elements from
- * each library in [elementLibraries], and finally invoking [userMain].
+ * Initializes a polymer application as follows:
+ *   * set up up polling for observable changes
+ *   *  initialize MDV
+ *   *  for each library in [libraries], register custom elements labeled with
+ *      [CustomTag] and invoke the initialization method on it.
  *
- * There are two mechanisms by which custom elements can be initialized:
- * annotating the class that declares a custom element with [CustomTag] or
- * programatically registering the element in a static or top-level function and
- * annotating that function with [polymerInitMethod].
+ * The initialization on each library is either a method named `main` or
+ * a top-level function and annotated with [initMethod].
  *
- * The urls in [elementLibraries] can be absolute or relative to [srcUrl].
+ * The urls in [libraries] can be absolute or relative to [srcUrl].
  */
-void initPolymer(List<String> elementLibraries, void userMain(), [String srcUrl]) {
+void initPolymer(List<String> libraries, [String srcUrl]) {
   wrapMicrotask(() {
     // DOM events don't yet go through microtasks, so we catch those here.
     new Timer.periodic(new Duration(milliseconds: 125),
@@ -61,10 +61,9 @@ void initPolymer(List<String> elementLibraries, void userMain(), [String srcUrl]
 
     // TODO(jmesserly): mdv should use initMdv instead of mdv.initialize.
     mdv.initialize();
-    for (var lib in elementLibraries) {
-      _registerPolymerElementsOf(lib, srcUrl);
+    for (var lib in libraries) {
+      _loadLibrary(lib, srcUrl);
     }
-    userMain();
   })();
 }
 
@@ -75,13 +74,15 @@ final _libs = currentMirrorSystem().libraries;
  * Reads the library at [uriString] (which can be an absolute URI or a relative
  * URI from [srcUrl]), and:
  *
- *   * Invokes top-level and static functions marked with the
- *     [polymerInitMethod] annotation.
+ *   * If present, invokes `main`.
+ *
+ *   * If present, invokes any top-level and static functions marked
+ *     with the [initMethod] annotation (in the order they appear).
  *
  *   * Registers any [PolymerElement] that is marked with the [CustomTag]
  *     annotation.
  */
-void _registerPolymerElementsOf(String uriString, [String srcUrl]) {
+void _loadLibrary(String uriString, [String srcUrl]) {
   var uri = Uri.parse(uriString);
   if (uri.scheme == '' && srcUrl != null) {
     uri = Uri.parse(path.normalize(path.join(path.dirname(srcUrl), uriString)));
@@ -92,7 +93,12 @@ void _registerPolymerElementsOf(String uriString, [String srcUrl]) {
     return;
   }
 
-  // Search top-level functions marked with @polymerInitMethod
+  // Invoke `main`, if present.
+  if (lib.functions[const Symbol('main')] != null) {
+    lib.invoke(const Symbol('main'), const []);
+  }
+
+  // Search top-level functions marked with @initMethod
   for (var f in lib.functions.values) {
     _maybeInvoke(lib, f);
   }
@@ -107,7 +113,7 @@ void _registerPolymerElementsOf(String uriString, [String srcUrl]) {
       }
     }
 
-    // TODO(sigmund): check also static methods marked with @polymerInitMethod.
+    // TODO(sigmund): check also static methods marked with @initMethod.
     // This is blocked on two bugs:
     //  - dartbug.com/12133 (static methods are incorrectly listed as top-level
     //    in dart2js, so they end up being called twice)
@@ -119,25 +125,25 @@ void _registerPolymerElementsOf(String uriString, [String srcUrl]) {
 void _maybeInvoke(ObjectMirror obj, MethodMirror method) {
   var annotationFound = false;
   for (var meta in method.metadata) {
-    if (identical(meta.reflectee, polymerInitMethod)) {
+    if (identical(meta.reflectee, initMethod)) {
       annotationFound = true;
       break;
     }
   }
   if (!annotationFound) return;
   if (!method.isStatic) {
-    print("warning: methods marked with @polymerInitMethod should be static,"
+    print("warning: methods marked with @initMethod should be static,"
         " ${method.simpleName} is not.");
     return;
   }
   if (!method.parameters.where((p) => !p.isOptional).isEmpty) {
-    print("warning: methods marked with @polymerInitMethod should take no "
+    print("warning: methods marked with @initMethod should take no "
         "arguments, ${method.simpleName} expects some.");
     return;
   }
   obj.invoke(method.simpleName, const []);
 }
 
-class _InitPolymerAnnotation {
-  const _InitPolymerAnnotation();
+class _InitMethodAnnotation {
+  const _InitMethodAnnotation();
 }

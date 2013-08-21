@@ -49,16 +49,16 @@ NestedPrinter generateBootstrapCode(
       ..addLine('')
       ..addLine("import 'package:polymer/polymer.dart';")
       ..addLine("import 'dart:mirrors' show currentMirrorSystem;");
-  if (userMainInfo.userCode != null) {
-    printer..addLine("import '${pathMapper.importUrlFor(info, userMainInfo)}' "
-        "as userMain;\n");
-  }
 
   int i = 0;
   for (var c in global.components.values) {
     if (c.hasConflict) continue;
     printer.addLine("import '${pathMapper.importUrlFor(info, c)}' as i$i;");
     i++;
+  }
+  if (userMainInfo.userCode != null) {
+    printer..addLine("import '${pathMapper.importUrlFor(info, userMainInfo)}' "
+        "as i$i;\n");
   }
 
   printer..addLine('')
@@ -72,10 +72,13 @@ NestedPrinter generateBootstrapCode(
     printer.addLine("'${pathMapper.importUrlFor(info, c)}',");
   }
 
+  if (userMainInfo.userCode != null) {
+    printer.addLine("'${pathMapper.importUrlFor(info, userMainInfo)}',");
+  }
+
   return printer
       ..indent -= 1
       ..addLine('],')
-      ..addLine(userMainInfo.userCode != null ? 'userMain.main,' : '() {},')
       ..addLine(
           "currentMirrorSystem().findLibrary(const Symbol('app_bootstrap'))")
       ..indent += 2

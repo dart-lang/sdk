@@ -7,6 +7,7 @@ library polymer.polymer_element;
 import 'dart:async';
 import 'dart:html';
 import 'dart:mirrors';
+import 'dart:js' as dartJs;
 
 import 'package:custom_element/custom_element.dart';
 import 'package:js/js.dart' as js;
@@ -174,10 +175,20 @@ class PolymerElement extends CustomElement with _EventsMixin {
    * Using Polymer's platform/src/ShadowCSS.js passing the style tag's content.
    */
   void _shimCss(ShadowRoot root, String localName, String extendsName) {
-    // TODO(terry): Remove warning, cast js.context to dynamic because of bug
-    //              https://code.google.com/p/dart/issues/detail?id=6111. The
-    //              js interop package will be patching this until bug is fixed.
-    var platform = (js.context as dynamic).Platform;
+    // TODO(terry): Need to detect if ShadowCSS.js has been loaded.  Under
+    //              Dartium this wouldn't exist.  However, dart:js isn't robust
+    //              to use to detect in both Dartium and dart2js if Platform is
+    //              defined. Instead in Dartium it throws an exception but in
+    //              dart2js it works enough to know if Platform is defined (just
+    //              can't be used for further derefs).  This bug is described
+    //              https://code.google.com/p/dart/issues/detail?id=12548
+    //              When fixed only use dart:js.  This is necessary under
+    //              Dartium (no compile) we want to run w/o the JS polyfill.
+    try {
+      if (dartJs.context["Platform"] == null) { return; }
+    } on NoSuchMethodError catch (e) { return; }
+
+    var platform = js.context["Platform"];
     if (platform == null) return;
     var shadowCss = platform.ShadowCSS;
     if (shadowCss == null) return;
