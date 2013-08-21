@@ -82,7 +82,8 @@ class Trace implements StackTrace {
   factory Trace.parse(String trace) {
     try {
       if (trace.isEmpty) return new Trace(<Frame>[]);
-      if (trace.contains(_v8Trace)) return new Trace.parseV8(trace);
+      if (trace.startsWith("Error\n")) return new Trace.parseV8(trace);
+      // Valid Safari traces are a superset of valid Firefox traces.
       if (trace.contains(_firefoxTrace)) return new Trace.parseFirefox(trace);
       if (trace.contains(_friendlyTrace)) return new Trace.parseFriendly(trace);
 
@@ -108,9 +109,27 @@ class Trace implements StackTrace {
           .skipWhile((line) => !line.startsWith("    at "))
           .map((line) => new Frame.parseV8(line)));
 
+  /// Parses a string representation of an Internet Explorer stack trace.
+  ///
+  /// IE10+ traces look just like V8 traces. Prior to IE10, stack traces can't
+  /// be retrieved.
+  Trace.parseIE(String trace)
+      : this.parseV8(trace);
+
   /// Parses a string representation of a Firefox stack trace.
   Trace.parseFirefox(String trace)
       : this(trace.trim().split("\n")
+          .map((line) => new Frame.parseFirefox(line)));
+
+  /// Parses a string representation of a Safari stack trace.
+  ///
+  /// Safari 6+ stack traces look just like Firefox traces, except that they
+  /// sometimes (e.g. in isolates) have a "[native code]" frame. We just ignore
+  /// this frame to make the stack format more consistent between browsers.
+  /// Prior to Safari 6, stack traces can't be retrieved.
+  Trace.parseSafari(String trace)
+      : this(trace.trim().split("\n")
+          .where((line) => line != '[native code]')
           .map((line) => new Frame.parseFirefox(line)));
 
   /// Parses this package's a string representation of a stack trace.
