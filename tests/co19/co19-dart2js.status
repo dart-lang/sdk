@@ -14,7 +14,7 @@ LibTest/core/List/sort_A01_t04: Pass, Timeout # Must be a bug in jsshell, test s
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 LibTest/core/Map/Map_class_A01_t04: Slow, Pass
 LibTest/isolate/isolate_api/spawnUri_A02_t03: Pass, Fail # Issue 8920
-LibTest/async/Completer/completeError_A02_t01: Fail # Issue 8920
+
 
 # Crashes first, please. Then untriaged bugs. There is a section below
 # for co19 bugs.
@@ -79,7 +79,8 @@ LibTest/isolate/ReceivePort/toSendPort_A01_t02: Pass, Fail # Issue: 8920
 LibTest/isolate/ReceivePort/toSendPort_A01_t01: Pass, Fail # Issue: 8920
 LibTest/core/DateTime/timeZoneName_A01_t01: Fail # Issue: 8920
 LibTest/async/Stream/listen_A04_t01: Pass, Timeout # Issue: 8920
-
+LibTest/async/Completer/completeError_A02_t01: Pass, Fail # Issue 8920
+LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Pass, Timeout # Issue 8920
 
 [ $compiler == dart2js && $runtime == jsshell ]
 LibTest/core/Map/Map_class_A01_t04: Pass, Slow # Issue 8096
