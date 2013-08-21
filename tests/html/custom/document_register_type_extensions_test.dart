@@ -63,7 +63,7 @@ main() {
     expect(fooNewed is UnknownElement, isFalse);
 
     var barNewed = new Bar();
-    var barOuterHtml = '<input is="x-bar"></input>';
+    var barOuterHtml = '<input is="x-bar">';
     expect(barNewed.outerHtml, barOuterHtml);
     expect(barNewed is Bar, isTrue);
     expect(barNewed is InputElement, isTrue);
@@ -77,7 +77,7 @@ main() {
     expect(bazNewed is UnknownElement, isFalse);
 
     var quxNewed = new Qux();
-    var quxOuterHtml = '<input is="x-qux"></input>';
+    var quxOuterHtml = '<input is="x-qux">';
     expect(quxNewed.outerHtml, quxOuterHtml);
     expect(quxNewed is Qux, isTrue);
     expect(quxNewed is InputElement, isTrue);
