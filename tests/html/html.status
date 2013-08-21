@@ -395,6 +395,3 @@ safe_dom_test: Skip                # Test cannot run under CSP restrictions (tim
 crypto_test/functional: Fail
 websocket_test/websocket: Timeout
 notifications_test/webkitNotifications: Fail
-
-[ $compiler == dart2js && $runtime == chrome && $system == macos ]
-custom_elements_test/innerHtml: Pass, Fail  # Issue 12592

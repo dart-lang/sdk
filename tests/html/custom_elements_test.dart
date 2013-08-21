@@ -38,8 +38,11 @@ class NotAnElement {}
 
 loadPolyfills() {
   if (!document.supportsRegister) {
+    // Cache blocker is a workaround for:
+    // https://code.google.com/p/dart/issues/detail?id=11834
+    var cacheBlocker = new DateTime.now().millisecondsSinceEpoch;
     return HttpRequest.getString('/root_dart/pkg/custom_element/lib/'
-      'custom-elements.debug.js').then((code) {
+      'custom-elements.debug.js?cacheBlock=$cacheBlocker').then((code) {
       document.head.children.add(new ScriptElement()..text = code);
     });
   }
