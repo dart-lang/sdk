@@ -8131,6 +8131,11 @@ class Document extends Node
   ElementList queryAll(String selectors) {
     return new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
   }
+
+  /// Checks if [register] is supported on the current platform.
+  bool get supportsRegister {
+    return true;
+  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9010,7 +9015,7 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
   @Experimental()
   ElementStream<Event> get onFullscreenError;
- 
+
 }
 
 // TODO(jacobr): this is an inefficient implementation but it is hard to see
@@ -9993,6 +9998,8 @@ abstract class Element extends Node implements ParentNode, ChildNode {
     Point p = Element._offsetToHelper(parentOffset, parent);
     return new Point(p.x + current.offsetLeft, p.y + current.offsetTop);
   }
+
+
   // To suppress missing implicit constructor warnings.
   factory Element._() { throw new UnsupportedError("Not supported"); }
 
@@ -25908,13 +25915,13 @@ class Url extends NativeFieldWrapperClass1 {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -32249,6 +32256,16 @@ class Platform {
    * error.
    */
   static final supportsSimd = true;
+
+  /**
+   * Upgrade all custom elements in the subtree which have not been upgraded.
+   *
+   * This is needed to cover timing scenarios which the custom element polyfill
+   * does not cover.
+   */
+  void upgradeCustomElements(Node node) {
+    // no-op, provided for dart2js polyfill.
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

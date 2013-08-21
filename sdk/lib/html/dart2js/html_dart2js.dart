@@ -7617,6 +7617,11 @@ class Document extends Node  native "Document"
   ElementList queryAll(String selectors) {
     return new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
   }
+
+  /// Checks if [register] is supported on the current platform.
+  bool get supportsRegister {
+    return JS('bool', '("register" in #)', this);
+  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8474,7 +8479,7 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
   @Experimental()
   ElementStream<Event> get onFullscreenError;
- 
+
 }
 
 // TODO(jacobr): this is an inefficient implementation but it is hard to see
@@ -9615,6 +9620,18 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
     Point p = Element._offsetToHelper(parentOffset, parent);
     return new Point(p.x + current.offsetLeft, p.y + current.offsetTop);
   }
+
+  @JSName('innerHTML')
+  @DomName('HTMLElement.innerHTML')
+  String get innerHtml => JS('String', '#.innerHTML', this);
+
+  void set innerHtml(String value) {
+    JS('', '#.innerHTML = #', this, value);
+    // Polyfill relies on mutation observers for upgrading, but we want it
+    // immediate.
+    Platform.upgradeCustomElements(this);
+  }
+
   // To suppress missing implicit constructor warnings.
   factory Element._() { throw new UnsupportedError("Not supported"); }
 
@@ -9850,11 +9867,6 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   @DomName('Element.hidden')
   @DocsEditable()
   bool hidden;
-
-  @JSName('innerHTML')
-  @DomName('Element.innerHTML')
-  @DocsEditable()
-  String innerHtml;
 
   @DomName('Element.inputMethodContext')
   @DocsEditable()
@@ -30668,9 +30680,6 @@ void _registerCustomElement(context, document, String tag, Type type) {
   if (baseClassName == 'Element') baseClassName = 'HTMLElement';
 
   var baseConstructor = JS('=Object', '#[#]', context, baseClassName);
-  if (JS('bool', "typeof(#) != 'function'", baseConstructor)) {
-    throw new ArgumentError(type);
-  }
 
   var properties = JS('=Object', '{}');
 
@@ -31001,6 +31010,19 @@ class Platform {
    * error.
    */
   static final supportsSimd = false;
+
+  /**
+   * Upgrade all custom elements in the subtree which have not been upgraded.
+   *
+   * This is needed to cover timing scenarios which the custom element polyfill
+   * does not cover.
+   */
+  static void upgradeCustomElements(Node node) {
+    if (JS('bool', '(#.CustomElements && #.CustomElements.upgradeAll)',
+        window, window)) {
+      JS('', '#.CustomElements.upgradeAll(#)', window, node);
+    }
+  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
