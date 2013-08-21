@@ -4,6 +4,8 @@
 
 test/serve/missing_file_test: Pass, Fail # 12570
 test/oauth2/with_an_expired_credentials_refreshes_and_saves_test: Pass, Fail # 12581
+test/hosted/remove_removed_dependency_test: Pass, Fail # 12582
+test/hosted/remove_removed_transitive_dependency_test: Pass, Fail # 12582
 
 # Pub only runs on the VM, so just rule out all compilers.
 [ $compiler == dart2js || $compiler == dart2dart ]
