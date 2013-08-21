@@ -13,7 +13,7 @@ abstract class TypeMask {
   factory TypeMask(DartType base, int kind, bool isNullable)
       => new FlatTypeMask(base, kind, isNullable);
 
-  factory TypeMask.empty() => new FlatTypeMask.empty();
+  const factory TypeMask.empty() = FlatTypeMask.empty;
 
   factory TypeMask.exact(DartType base) => new FlatTypeMask.exact(base);
   factory TypeMask.subclass(DartType base) => new FlatTypeMask.subclass(base);

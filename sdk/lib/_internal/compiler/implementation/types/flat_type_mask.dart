@@ -21,8 +21,6 @@ class FlatTypeMask implements TypeMask {
   FlatTypeMask(DartType base, int kind, bool isNullable)
       : this.internal(base, (kind << 1) | (isNullable ? 1 : 0));
 
-  FlatTypeMask.empty()
-      : this.internal(null, (EMPTY << 1) | 1);
   FlatTypeMask.exact(DartType base)
       : this.internal(base, (EXACT << 1) | 1);
   FlatTypeMask.subclass(DartType base)
@@ -31,6 +29,7 @@ class FlatTypeMask implements TypeMask {
       : this.internal(base, (SUBTYPE << 1) | 1);
 
   const FlatTypeMask.nonNullEmpty(): base = null, flags = 0;
+  const FlatTypeMask.empty() : base = null, flags = 1;
 
   FlatTypeMask.nonNullExact(DartType base)
       : this.internal(base, EXACT << 1);

@@ -220,6 +220,9 @@ class FullFunctionSetQuery extends FunctionSetQuery {
               : [cls];
         })
         .map((cls) {
+          if (compiler.backend.isNullImplementation(cls)) {
+            return const TypeMask.empty();
+          }
           return compiler.world.hasSubclasses(cls)
               ? new TypeMask.nonNullSubclass(cls.rawType)
               : new TypeMask.nonNullExact(cls.rawType);

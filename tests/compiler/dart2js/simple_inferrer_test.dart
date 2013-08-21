@@ -441,6 +441,14 @@ testSpecialization2() {
   return a;
 }
 
+testSpecialization3() {
+  var a = returnDynamic() ? null : 42;
+  a.toString();
+  // Test that calling an [Object] method on [a] will not lead to
+  // infer that [a] is not null;
+  return a;
+}
+
 testReturnInvokeDynamicGetter() => new A().myFactory();
 
 var topLevelConstList = const [42];
@@ -582,6 +590,7 @@ main() {
   testCascade2();
   testSpecialization1();
   testSpecialization2();
+  testSpecialization3();
 }
 """;
 
@@ -706,4 +715,5 @@ void main() {
       typesTask.rawTypeOf(findElement(compiler, 'CascadeHelper'))));
   checkReturn('testSpecialization1', typesTask.numType);
   checkReturn('testSpecialization2', typesTask.dynamicType);
+  checkReturn('testSpecialization3', typesTask.intType.nullable());
 }

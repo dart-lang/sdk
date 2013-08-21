@@ -154,6 +154,8 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   class JSNull extends Interceptor {
     bool operator==(other) => identical(null, other);
     get hashCode => throw "JSNull.hashCode not implemented.";
+    String toString() => 'Null';
+    Type get runtimeType => null;
   }
   class JSBool extends Interceptor implements bool {
   }
