@@ -387,7 +387,11 @@ class SourceVisitor implements ASTVisitor {
   visitDeclaredIdentifier(DeclaredIdentifier node) {
     token(node.keyword);
     space();
-    visitSuffixed(node.type, ' ');
+    visit(node.type);
+    //TODO(pquitslund): avoiding visitSuffixed(..) but we can do better
+    if (node.type != null) {
+      space();
+    }
     visit(node.identifier);
   }
 
@@ -452,8 +456,9 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitFieldDeclaration(FieldDeclaration node) {
-    token(node.keyword);
-    space();
+    needsNewline = true;
+    preservePrecedingNewlines = true;
+    modifier(node.keyword);
     visit(node.fields);
     token(node.semicolon);
   }
@@ -461,7 +466,8 @@ class SourceVisitor implements ASTVisitor {
   visitFieldFormalParameter(FieldFormalParameter node) {
     token(node.keyword);
     space();
-    visitSuffixed(node.type, ' ');
+    visit(node.type);
+    space();
     token(node.thisToken);
     token(node.period);
     visit(node.identifier);
@@ -477,7 +483,7 @@ class SourceVisitor implements ASTVisitor {
     token(node.inKeyword);
     space();
     visit(node.iterator);
-    token(node.leftParenthesis);
+    token(node.rightParenthesis);
     space();
     visit(node.body);
   }
@@ -834,8 +840,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitSimpleFormalParameter(SimpleFormalParameter node) {
-    token(node.keyword);
-    space();
+    modifier(node.keyword);
     visitSuffixed(node.type, ' ');
     visit(node.identifier);
   }
@@ -914,7 +919,9 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    visitSuffixed(node.variables, ';');
+    preservePrecedingNewlines = true;
+    visit(node.variables);
+    token(node.semicolon);
   }
 
   visitTryStatement(TryStatement node) {
@@ -950,7 +957,12 @@ class SourceVisitor implements ASTVisitor {
 
   visitVariableDeclaration(VariableDeclaration node) {
     visit(node.name);
-    visitPrefixed(' = ', node.initializer);
+    if (node.initializer != null) {
+      space();
+      token(node.equals);
+      space();
+      visit(node.initializer);
+    }
   }
 
   visitVariableDeclarationList(VariableDeclarationList node) {
@@ -963,6 +975,7 @@ class SourceVisitor implements ASTVisitor {
   visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     visit(node.variables);
     token(node.semicolon);
+    needsNewline = true;
   }
 
   visitWhileStatement(WhileStatement node) {

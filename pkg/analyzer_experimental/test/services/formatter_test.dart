@@ -21,9 +21,13 @@ main() {
 
     test('CU (1)', () {
       expectCUFormatsTo(
-          'class A  {\n'
+          'class A {\n'
+          '  var z;\n'
+          '  inc(int x) => ++x;\n'
           '}\n',
           'class A {\n'
+          '  var z;\n'
+          '  inc(int x) => ++x;\n'
           '}\n'
         );
     });
@@ -93,6 +97,12 @@ main() {
           'bar() {\n'
           '}\n'
       );
+      expectCUFormatsTo(
+          'const A = 42;\n'
+          'final foo = 32;\n',
+          'const A = 42;\n'
+          'final foo = 32;\n'
+      );
     });
     
     test('CU - imports', () {
@@ -121,7 +131,41 @@ main() {
         );
     });
 
-
+    test('CU (method body)', () {
+      expectCUFormatsTo(
+          'class A {\n'
+          '  foo(path) {\n'
+          '    var buffer = new StringBuffer();\n'
+          '    var file = new File(path);\n'
+          '    return file;\n'
+          '  }\n'
+          '}\n',
+          'class A {\n'
+          '  foo(path) {\n'
+          '    var buffer = new StringBuffer();\n'
+          '    var file = new File(path);\n'
+          '    return file;\n'
+          '  }\n'
+          '}\n'
+      );
+      expectCUFormatsTo(
+          'class A {\n'
+          '  foo(files) {\n'
+          '    for (var  file in files) {\n'
+          '      print(file);\n'
+          '    }\n'
+          '  }\n'
+          '}\n',
+          'class A {\n'
+          '  foo(files) {\n'
+          '    for (var file in files) {\n'
+          '      print(file);\n'
+          '    }\n'
+          '  }\n'
+          '}\n'
+      );
+    });
+    
     test('CU (method indent)', () {
       expectCUFormatsTo(
           'class A {\n'
@@ -132,7 +176,7 @@ main() {
           '  void x() {\n'
           '  }\n'
           '}\n'
-        );
+      );
     });
 
     test('CU (method indent - 2)', () {
@@ -164,7 +208,8 @@ main() {
       expectCUFormatsTo(
           'class A {\n'
           ' int x() { \n'
-          'if (true) {\nreturn 42;\n'
+          'if (true) {\n'
+          'return 42;\n'
           '} else {\n'
           'return 13;\n }\n'
           '   }'
