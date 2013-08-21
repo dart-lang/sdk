@@ -615,14 +615,16 @@ class JavaScriptBackend extends Backend {
         Set<Element> set = interceptedElements.putIfAbsent(
             member.name, () => new Set<Element>());
         set.add(member);
-        if (classElement == jsInterceptorClass) return;
-        if (classElement.isMixinApplication) {
-          MixinApplicationElement mixinApplication = classElement;
-          assert(member.getEnclosingClass() == mixinApplication.mixin);
-          classesMixedIntoNativeClasses.add(mixinApplication.mixin);
-        }
       },
       includeSuperAndInjectedMembers: true);
+
+      //  Walk superclass chain to find mixins.
+      for (; cls != null; cls = cls.superclass) {
+        if (cls.isMixinApplication) {
+          MixinApplicationElement mixinApplication = cls;
+          classesMixedIntoNativeClasses.add(mixinApplication.mixin);
+        }
+      }
     }
   }
 
@@ -755,6 +757,7 @@ class JavaScriptBackend extends Backend {
     jsIndexingBehaviorInterface =
         compiler.findHelper(const SourceString('JavaScriptIndexingBehavior'));
     if (jsIndexingBehaviorInterface != null) {
+      jsIndexingBehaviorInterface.ensureResolved(compiler);
       world.registerIsCheck(jsIndexingBehaviorInterface.computeType(compiler),
                             elements);
       enqueue(
