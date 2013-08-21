@@ -167,7 +167,7 @@ static void HandleStackTrace(Isolate* isolate, JSONStream* js) {
   String& url = String::Handle();
   String& function = String::Handle();
   for (int i = 0; i < n_frames; i++) {
-    ActivationFrame* frame = stack->ActivationFrameAt(i);
+    ActivationFrame* frame = stack->FrameAt(i);
     url ^= frame->SourceUrl();
     function ^= frame->function().UserVisibleName();
     js->OpenObject();

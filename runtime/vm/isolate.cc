@@ -890,7 +890,7 @@ bool Isolate::FetchStacktrace() {
     if (i > 0) {
       buffer.Printf(", ");
     }
-    ActivationFrame* frame = stack->ActivationFrameAt(i);
+    ActivationFrame* frame = stack->FrameAt(i);
     url ^= frame->SourceUrl();
     function ^= frame->function().UserVisibleName();
     buffer.Printf("{ \"url\": \"%s\", ", url.ToCString());
@@ -920,7 +920,7 @@ bool Isolate::FetchStackFrameDetails() {
     // Frame no longer available.
     return NULL;
   }
-  ActivationFrame* frame = stack->ActivationFrameAt(frame_index);
+  ActivationFrame* frame = stack->FrameAt(frame_index);
   TextBuffer buffer(256);
   buffer.Printf("{ \"handle\": \"0x%" Px64 "\", \"frame_index\": %" Pd ", ",
        reinterpret_cast<int64_t>(isolate), frame_index);

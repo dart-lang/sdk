@@ -295,6 +295,11 @@ void ActivationFrame::GetVarDescriptors() {
 }
 
 
+bool ActivationFrame::IsDebuggable() const {
+  return Debugger::IsDebuggable(function());
+}
+
+
 // Calculate the context level at the current token index of the frame.
 intptr_t ActivationFrame::ContextLevel() {
   if (context_level_ < 0 && !ctx_.IsNull()) {
@@ -377,8 +382,8 @@ ActivationFrame* DebuggerStackTrace::GetHandlerFrame(
   Array& handled_types = Array::Handle();
   AbstractType& type = Type::Handle();
   const TypeArguments& no_instantiator = TypeArguments::Handle();
-  for (int frame_index = 0; frame_index < Length(); frame_index++) {
-    ActivationFrame* frame = trace_[frame_index];
+  for (int frame_index = 0; frame_index < UnfilteredLength(); frame_index++) {
+    ActivationFrame* frame = UnfilteredFrameAt(frame_index);
     intptr_t try_index = frame->TryIndex();
     if (try_index < 0) continue;
     handlers = frame->code().exception_handlers();
@@ -580,6 +585,9 @@ const char* ActivationFrame::ToCString() {
 
 void DebuggerStackTrace::AddActivation(ActivationFrame* frame) {
   trace_.Add(frame);
+  if (frame->IsDebuggable()) {
+    user_trace_.Add(frame);
+  }
 }
 
 
@@ -977,10 +985,7 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
         ASSERT(!ctx.IsNull());
         activation->SetContext(ctx);
       }
-      // Check if frame is a debuggable function.
-      if (IsDebuggable(activation->function())) {
-        stack_trace->AddActivation(activation);
-      }
+      stack_trace->AddActivation(activation);
       callee_activation = activation;
       // Get caller's context if this function saved it on entry.
       ctx = activation->GetSavedEntryContext(ctx);
@@ -1603,7 +1608,7 @@ void Debugger::SingleStepCallback() {
     InstrumentForStepping(func);
   } else if (resume_action_ == kStepOut) {
     if (stack_trace_->Length() > 1) {
-      ActivationFrame* caller_frame = stack_trace_->ActivationFrameAt(1);
+      ActivationFrame* caller_frame = stack_trace_->FrameAt(1);
       InstrumentForStepping(caller_frame->function());
     }
   }
@@ -1619,8 +1624,8 @@ void Debugger::SignalBpReached() {
     return;
   }
   DebuggerStackTrace* stack_trace = CollectStackTrace();
-  ASSERT(stack_trace->Length() > 0);
-  ActivationFrame* top_frame = stack_trace->ActivationFrameAt(0);
+  ASSERT(stack_trace->UnfilteredLength() > 0);
+  ActivationFrame* top_frame = stack_trace->UnfilteredFrameAt(0);
   ASSERT(top_frame != NULL);
   CodeBreakpoint* bpt = GetCodeBreakpoint(top_frame->pc());
   ASSERT(bpt != NULL);
@@ -1657,7 +1662,7 @@ void Debugger::SignalBpReached() {
     }
   } else if (resume_action_ == kStepOut) {
     if (stack_trace->Length() > 1) {
-      ActivationFrame* caller_frame = stack_trace->ActivationFrameAt(1);
+      ActivationFrame* caller_frame = stack_trace->FrameAt(1);
       func_to_instrument = caller_frame->function().raw();
     }
   } else {

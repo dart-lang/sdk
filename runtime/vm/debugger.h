@@ -144,6 +144,10 @@ class ActivationFrame : public ZoneAllocated {
   intptr_t LineNumber();
   void SetContext(const Context& ctx) { ctx_ = ctx.raw(); }
 
+  // Returns true if this frame is for a function that is visible
+  // to the user and can be debugged.
+  bool IsDebuggable() const;
+
   // The context level of a frame is the context level at the
   // PC/token index of the frame. It determines the depth of the context
   // chain that belongs to the function of this activation frame.
@@ -201,18 +205,27 @@ class ActivationFrame : public ZoneAllocated {
 class DebuggerStackTrace : public ZoneAllocated {
  public:
   explicit DebuggerStackTrace(int capacity)
-      : trace_(capacity) { }
+      : trace_(capacity),
+        user_trace_(capacity) { }
 
-  intptr_t Length() const { return trace_.length(); }
+  intptr_t Length() const { return user_trace_.length(); }
 
-  ActivationFrame* ActivationFrameAt(int i) const {
-    ASSERT(i < trace_.length());
+  ActivationFrame* FrameAt(int i) const {
+    return user_trace_[i];
+  }
+
+  ActivationFrame* GetHandlerFrame(const Instance& exc_obj) const;
+
+ private:
+  intptr_t UnfilteredLength() const { return trace_.length(); }
+
+  ActivationFrame* UnfilteredFrameAt(int i) const {
     return trace_[i];
   }
-  ActivationFrame* GetHandlerFrame(const Instance& exc_obj) const;
- private:
+
   void AddActivation(ActivationFrame* frame);
   ZoneGrowableArray<ActivationFrame*> trace_;
+  ZoneGrowableArray<ActivationFrame*> user_trace_;
 
   friend class Debugger;
   DISALLOW_COPY_AND_ASSIGN(DebuggerStackTrace);
@@ -315,6 +328,8 @@ class Debugger {
 
   uword GetPatchedStubAddress(uword breakpoint_address);
 
+  static bool IsDebuggable(const Function& func);
+
  private:
   enum ResumeAction {
     kContinue,
@@ -349,8 +364,6 @@ class Debugger {
   static DebuggerStackTrace* CollectStackTrace();
   void SignalBpResolved(SourceBreakpoint *bpt);
   void SignalPausedEvent(ActivationFrame* top_frame);
-
-  static bool IsDebuggable(const Function& func);
 
   intptr_t nextId() { return next_id_++; }
 

@@ -97,7 +97,7 @@ DART_EXPORT Dart_Handle Dart_GetActivationFrame(
                          CURRENT_FUNC);
   }
   *frame = reinterpret_cast<Dart_ActivationFrame>(
-       stack_trace->ActivationFrameAt(frame_index));
+       stack_trace->FrameAt(frame_index));
   return Api::Success();
 }
 
