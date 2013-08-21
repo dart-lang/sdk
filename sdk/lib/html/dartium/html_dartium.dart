@@ -25915,13 +25915,13 @@ class Url extends NativeFieldWrapperClass1 {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -33120,15 +33120,20 @@ class _Utils {
   // DOM node rather than just a class that extends Node.
   static bool isNode(obj) => obj is Node;
 
+  static bool _isBuiltinType(ClassMirror cls) {
+    // TODO(vsm): Find a less hackish way to do this.
+    LibraryMirror lib = cls.owner;
+    String libName = lib.uri.toString();
+    return libName.startsWith('dart:');
+  }
+
   static void register(String tag, Type type) {
     // TODO(vsm): Move these checks into native code.
     if (type == null) {
       throw new UnsupportedError("Invalid null type.");
     }
     ClassMirror cls = reflectClass(type);
-    LibraryMirror lib = cls.owner;
-    String libName = lib.uri.toString();
-    if (libName.startsWith('dart:')) {
+    if (_isBuiltinType(cls)) {
       throw new UnsupportedError("Invalid custom element from $libName.");
     }
     ClassMirror superClass = cls.superclass;
@@ -33141,17 +33146,21 @@ class _Utils {
     bool isElement(ClassMirror cls) =>
       cls != null && cls.qualifiedName == elementName;
 
+    ClassMirror nativeClass = _isBuiltinType(superClass) ? superClass : null;
     while(!isRoot(superClass) && !isElement(superClass)) {
       superClass = superClass.superclass;
+      if (nativeClass == null && _isBuiltinType(superClass)) {
+        nativeClass = superClass;
+      }
     }
 
     if (isRoot(superClass)) {
       throw new UnsupportedError("Invalid custom element doesn't inherit from HtmlElement.");
     }
-    _register(tag, type);
+    _register(tag, type, nativeClass.reflectedType);
   }
 
-  static void _register(String tag, Type type) native "Utils_register";
+  static void _register(String tag, Type customType, Type nativeType) native "Utils_register";
 }
 
 class _NPObject extends NativeFieldWrapperClass1 {
