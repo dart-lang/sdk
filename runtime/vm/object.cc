@@ -7690,57 +7690,85 @@ struct FpDiff {
 };
 
 
+
+// Return Function::null() if function does not exist in lib.
+static RawFunction* GetFunction(const GrowableArray<Library*>& libs,
+                                const char* class_name,
+                                const char* function_name) {
+  Function& func = Function::Handle();
+  String& class_str = String::Handle();
+  String& func_str = String::Handle();
+  Class& cls = Class::Handle();
+  for (intptr_t l = 0; l < libs.length(); l++) {
+    const Library& lib = *libs[l];
+    if (strcmp(class_name, "::") == 0) {
+      func_str = Symbols::New(function_name);
+      func = lib.LookupFunctionAllowPrivate(func_str, NULL);
+    } else {
+      class_str = String::New(class_name);
+      cls = lib.LookupClassAllowPrivate(class_str, NULL);
+      if (!cls.IsNull()) {
+        func_str = String::New(function_name);
+        if (function_name[0] == '.') {
+          func_str = String::Concat(class_str, func_str);
+        }
+        func = cls.LookupFunctionAllowPrivate(func_str);
+      }
+    }
+    if (!func.IsNull()) {
+      return func.raw();
+    }
+  }
+  return Function::null();
+}
+
+
 void Library::CheckFunctionFingerprints() {
   GrowableArray<FpDiff> collected_fp_diffs;
-  Library& lib = Library::Handle();
-  Class& cls = Class::Handle();
+  GrowableArray<Library*> all_libs;
   Function& func = Function::Handle();
-  String& str = String::Handle();
   bool has_errors = false;
 
 #define CHECK_FINGERPRINTS(class_name, function_name, dest, fp)                \
-  func = Function::null();                                                     \
-  if (strcmp(#class_name, "::") == 0) {                                        \
-    str = Symbols::New(#function_name);                                        \
-    func = lib.LookupFunctionAllowPrivate(str, NULL);                          \
-  } else {                                                                     \
-    str = String::New(#class_name);                                            \
-    cls = lib.LookupClassAllowPrivate(str, NULL);                              \
-    if (!cls.IsNull()) {                                                       \
-      if (#function_name[0] == '.') {                                          \
-        str = String::New(#class_name#function_name);                          \
-      } else {                                                                 \
-        str = String::New(#function_name);                                     \
-      }                                                                        \
-      func = cls.LookupFunctionAllowPrivate(str);                              \
-    }                                                                          \
-  }                                                                            \
-  if (!func.IsNull() && (func.SourceFingerprint() != fp)) {                    \
+  func = GetFunction(all_libs, #class_name, #function_name);                   \
+  if (func.IsNull()) {                                                         \
+    has_errors = true;                                                         \
+    OS::Print("Function not found %s.%s\n", #class_name, #function_name);      \
+  } else if (func.SourceFingerprint() != fp) {                                 \
     has_errors = true;                                                         \
     OS::Print("Wrong fingerprint for '%s': expecting %d found %d\n",           \
         func.ToFullyQualifiedCString(), fp, func.SourceFingerprint());         \
     collected_fp_diffs.Add(FpDiff(fp, func.SourceFingerprint()));              \
   }                                                                            \
 
-  lib = Library::CoreLibrary();
+  all_libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
   CORE_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
   CORE_INTEGER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
 
+  all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
+  all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
   RECOGNIZED_LIST(CHECK_FINGERPRINTS);
 
-  lib = Library::MathLibrary();
+  all_libs.Clear();
+  all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
   MATH_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
 
-  lib = Library::TypedDataLibrary();
+  all_libs.Clear();
+  all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
   TYPED_DATA_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
 
 #undef CHECK_FINGERPRINTS
 
+Class& cls = Class::Handle();
+
 #define CHECK_FACTORY_FINGERPRINTS(factory_symbol, cid, fp)                    \
   cls = Isolate::Current()->class_table()->At(cid);                            \
   func = cls.LookupFunctionAllowPrivate(Symbols::factory_symbol());            \
-  ASSERT(!func.IsNull());                                                      \
-  if (func.SourceFingerprint() != fp) {                                        \
+  if (func.IsNull()) {                                                         \
+    has_errors = true;                                                         \
+    OS::Print("Function not found %s.%s\n", cls.ToCString(),                   \
+        Symbols::factory_symbol().ToCString());                                \
+  } else if (func.SourceFingerprint() != fp) {                                 \
     has_errors = true;                                                         \
     OS::Print("Wrong fingerprint for '%s': expecting %d found %d\n",           \
         func.ToFullyQualifiedCString(), fp, func.SourceFingerprint());         \
@@ -7750,6 +7778,7 @@ void Library::CheckFunctionFingerprints() {
   RECOGNIZED_LIST_FACTORY_LIST(CHECK_FACTORY_FINGERPRINTS);
 
 #undef CHECK_FACTORY_FINGERPRINTS
+
   if (has_errors) {
     for (intptr_t i = 0; i < collected_fp_diffs.length(); i++) {
       OS::Print("s/%d/%d/\n",
