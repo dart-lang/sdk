@@ -1083,11 +1083,11 @@ class Uri {
    * pluses to spaces.
    *
    * It will create a byte-list of the decoded characters, and then use
-   * [decode] to decode the byte-list to a String. Default is a UTF_8 decoder.
+   * [decode] to decode the byte-list to a String. Default is a UTF-8 decoder.
    */
   static String decodeQueryComponent(
       String encodedComponent,
-      {String decode(List<int> bytes): decodeUtf8}) {
+      {String decode(List<int> bytes): null}) {
     return _uriDecode(encodedComponent, plusToSpace: true, decode: decode);
   }
 
@@ -1128,12 +1128,12 @@ class Uri {
    * Keys in the query string that have no value are mapped to the
    * empty string.
    *
-   * Each query component will be decoded using [decode]. Default is a UTF_8
+   * Each query component will be decoded using [decode]. Default is a UTF-8
    * decoder.
    */
   static Map<String, String> splitQueryString(
       String query,
-      {String decode(List<int> bytes): decodeUtf8}) {
+      {String decode(List<int> bytes): null}) {
     return query.split("&").fold({}, (map, element) {
       int index = element.indexOf("=");
       if (index == -1) {
@@ -1202,7 +1202,8 @@ class Uri {
             throw new ArgumentError('Malformed URI');
           }
         }
-        for (int codepoint in codepointsToUtf8([ch])) {
+        // TODO(floitsch): don't allocate a new string.
+        for (int codepoint in UTF8.encode(new String.fromCharCode(ch))) {
           result.write(byteToHex(codepoint));
         }
       }
@@ -1243,11 +1244,11 @@ class Uri {
    * If [plusToSpace] is `true`, plus characters will be converted to spaces.
    *
    * The decoder will create a byte-list of the percent-encoded parts, and then
-   * decode the byte-list using [decode]. Default is a UTF_8 decoder.
+   * decode the byte-list using [decode]. Default is a UTF-8 decoder.
    */
   static String _uriDecode(String text,
                            {bool plusToSpace: false,
-                            String decode(List<int> bytes): decodeUtf8}) {
+                            String decode(List<int> bytes): null}) {
     StringBuffer result = new StringBuffer();
     List<int> codepoints = new List<int>();
     for (int i = 0; i < text.length;) {
@@ -1270,7 +1271,8 @@ class Uri {
           if (i == text.length) break;
           ch = text.codeUnitAt(i);
         }
-        result.write(decode(codepoints));
+        result.write(
+            decode == null ? UTF8.decode(codepoints) : decode(codepoints));
       }
     }
     return result.toString();

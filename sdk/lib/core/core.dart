@@ -116,7 +116,7 @@ library dart.core;
 import "dart:collection";
 import "dart:_collection-dev" hide Symbol;
 import "dart:_collection-dev" as _collection_dev;
-import "dart:utf" show codepointsToUtf8, decodeUtf8;
+import "dart:convert" show UTF8;
 
 part "bool.dart";
 part "comparable.dart";
