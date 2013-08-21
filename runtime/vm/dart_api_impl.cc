@@ -3856,7 +3856,7 @@ DART_EXPORT void Dart_SetBooleanReturnValue(Dart_NativeArguments args,
 
 
 DART_EXPORT void Dart_SetIntegerReturnValue(Dart_NativeArguments args,
-                                            intptr_t retval) {
+                                            int64_t retval) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   Isolate* isolate = arguments->isolate();
   CHECK_ISOLATE(isolate);

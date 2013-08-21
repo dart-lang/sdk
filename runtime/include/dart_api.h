@@ -2055,7 +2055,7 @@ DART_EXPORT void Dart_SetBooleanReturnValue(Dart_NativeArguments args,
                                             bool retval);
 
 DART_EXPORT void Dart_SetIntegerReturnValue(Dart_NativeArguments args,
-                                            intptr_t retval);
+                                            int64_t retval);
 
 DART_EXPORT void Dart_SetDoubleReturnValue(Dart_NativeArguments args,
                                            double retval);

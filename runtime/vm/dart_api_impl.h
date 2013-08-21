@@ -203,7 +203,7 @@ class Api : AllStatic {
   static void SetSmiReturnValue(NativeArguments* args, intptr_t retval) {
     args->SetReturnUnsafe(Smi::New(retval));
   }
-  static void SetIntegerReturnValue(NativeArguments* args, intptr_t retval) {
+  static void SetIntegerReturnValue(NativeArguments* args, int64_t retval) {
     args->SetReturnUnsafe(Integer::New(retval));
   }
   static void SetDoubleReturnValue(NativeArguments* args, double retval) {
