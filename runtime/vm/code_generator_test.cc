@@ -224,6 +224,7 @@ CODEGEN_TEST_GENERATE(NativeDecCodegen, test) {
                                         function,
                                         native_name,
                                         native_function,
+                                        local_scope,
                                         false /* not bootstrap native */)));
 }
 
@@ -406,6 +407,7 @@ CODEGEN_TEST_GENERATE(NativeSumCodegen, test) {
                                         function,
                                         native_name,
                                         native_function,
+                                        local_scope,
                                         false /* Not bootstrap native */)));
 }
 
@@ -495,6 +497,7 @@ CODEGEN_TEST_GENERATE(NativeNonNullSumCodegen, test) {
                                         function,
                                         native_name,
                                         native_function,
+                                        local_scope,
                                         false /* Not bootstrap native */)));
 }
 

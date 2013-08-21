@@ -4080,7 +4080,6 @@ void Function::SetNumOptionalParameters(intptr_t num_optional_parameters,
 bool Function::is_optimizable() const {
   if (OptimizableBit::decode(raw_ptr()->kind_tag_) &&
       (script() != Script::null()) &&
-      !is_native() &&
       ((end_token_pos() - token_pos()) < FLAG_huge_method_cutoff_in_tokens)) {
     // Additional check needed for implicit getters.
     if (HasCode() &&

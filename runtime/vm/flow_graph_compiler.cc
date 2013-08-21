@@ -152,7 +152,6 @@ void FlowGraphCompiler::InitCompiler() {
   if (is_leaf) {
     // Remove the stack overflow check at function entry.
     Instruction* first = flow_graph_.graph_entry()->normal_entry()->next();
-    ASSERT(first->IsCheckStackOverflow());
     if (first->IsCheckStackOverflow()) first->RemoveFromGraph();
   }
 }

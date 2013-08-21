@@ -342,6 +342,17 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         if (FLAG_use_inlining) {
           TimerScope timer(FLAG_compiler_stats,
                            &CompilerStats::graphinliner_timer);
+          // Propagate types to create more inlining opportunities.
+          if (FLAG_propagate_types) {
+            FlowGraphTypePropagator propagator(flow_graph);
+            propagator.Propagate();
+            DEBUG_ASSERT(flow_graph->VerifyUseLists());
+          }
+
+          // Use propagated class-ids to create more inlining opportunities.
+          optimizer.ApplyClassIds();
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
+
           FlowGraphInliner inliner(flow_graph, &guarded_fields);
           inliner.Inline();
           // Use lists are maintained and validated by the inliner.

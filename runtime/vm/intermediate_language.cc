@@ -1776,6 +1776,14 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+bool PolymorphicInstanceCallInstr::HasRecognizedTarget() const {
+  return ic_data().HasOneTarget() &&
+      (MethodRecognizer::RecognizeKind(
+          Function::Handle(ic_data().GetTargetAt(0))) !=
+       MethodRecognizer::kUnknown);
+}
+
+
 LocationSummary* StaticCallInstr::MakeLocationSummary() const {
   return MakeCallSummary();
 }

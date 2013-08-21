@@ -165,9 +165,11 @@ class GraphInfoCollector : public ValueObject {
            !it.Done();
            it.Advance()) {
         ++instruction_count_;
-        if (it.Current()->IsStaticCall() ||
-            it.Current()->IsClosureCall() ||
-            it.Current()->IsPolymorphicInstanceCall()) {
+        Instruction* current = it.Current();
+        if (current->IsStaticCall() ||
+            current->IsClosureCall() ||
+            (current->IsPolymorphicInstanceCall() &&
+             !current->AsPolymorphicInstanceCall()->HasRecognizedTarget())) {
           ++call_site_count_;
         }
       }
@@ -184,11 +186,10 @@ class GraphInfoCollector : public ValueObject {
 
 
 // A collection of call sites to consider for inlining.
-class CallSites : public FlowGraphVisitor {
+class CallSites : public ValueObject {
  public:
   explicit CallSites(FlowGraph* flow_graph)
-      : FlowGraphVisitor(flow_graph->postorder()),  // We don't use this order.
-        static_calls_(),
+      : static_calls_(),
         closure_calls_(),
         instance_calls_() { }
 
@@ -269,8 +270,15 @@ class CallSites : public FlowGraphVisitor {
     }
   }
 
-  void FindCallSites(FlowGraph* graph) {
+  void FindCallSites(FlowGraph* graph, intptr_t depth) {
     ASSERT(graph != NULL);
+    // If depth is less than the threshold recursively add call sites.
+    if (depth > FLAG_inlining_depth_threshold) return;
+
+    // Recognized methods are not treated as normal calls. They don't have
+    // calls in themselves, so we keep adding those even when at the threshold.
+    const bool only_recognized_methods =
+        (depth == FLAG_inlining_depth_threshold);
 
     const intptr_t instance_call_start_ix = instance_calls_.length();
     const intptr_t static_call_start_ix = static_calls_.length();
@@ -280,23 +288,37 @@ class CallSites : public FlowGraphVisitor {
       for (ForwardInstructionIterator it(block_it.Current());
            !it.Done();
            it.Advance()) {
-        it.Current()->Accept(this);
+        Instruction* current = it.Current();
+        if (only_recognized_methods) {
+          PolymorphicInstanceCallInstr* instance_call =
+              current->AsPolymorphicInstanceCall();
+          if ((instance_call != NULL) && instance_call->HasRecognizedTarget()) {
+            instance_calls_.Add(InstanceCallInfo(instance_call));
+          }
+          continue;
+        }
+        // Collect all call sites (!only_recognized_methods).
+        ClosureCallInstr* closure_call = current->AsClosureCall();
+        if (closure_call != NULL) {
+          closure_calls_.Add(closure_call);
+          continue;
+        }
+        StaticCallInstr* static_call = current->AsStaticCall();
+        if (static_call != NULL) {
+          if (static_call->function().IsInlineable()) {
+            static_calls_.Add(StaticCallInfo(static_call));
+          }
+          continue;
+        }
+        PolymorphicInstanceCallInstr* instance_call =
+            current->AsPolymorphicInstanceCall();
+        if (instance_call != NULL) {
+          instance_calls_.Add(InstanceCallInfo(instance_call));
+          continue;
+        }
       }
     }
     ComputeCallSiteRatio(static_call_start_ix, instance_call_start_ix);
-  }
-
-  void VisitClosureCall(ClosureCallInstr* call) {
-    closure_calls_.Add(call);
-  }
-
-  void VisitPolymorphicInstanceCall(PolymorphicInstanceCallInstr* call) {
-    instance_calls_.Add(InstanceCallInfo(call));
-  }
-
-  void VisitStaticCall(StaticCallInstr* call) {
-    if (!call->function().IsInlineable()) return;
-    static_calls_.Add(StaticCallInfo(call));
   }
 
  private:
@@ -394,8 +416,6 @@ class CallSiteInliner : public ValueObject {
     return false;
   }
 
-  // TODO(srdjan): Handle large 'skip_static_call_deopt_ids'. Currently
-  // max. size observed is 11 (dart2js).
   void InlineCalls() {
     // If inlining depth is less then one abort.
     if (FLAG_inlining_depth_threshold < 1) return;
@@ -410,7 +430,7 @@ class CallSiteInliner : public ValueObject {
     collected_call_sites_ = &sites1;
     inlining_call_sites_ = &sites2;
     // Collect initial call sites.
-    collected_call_sites_->FindCallSites(caller_graph_);
+    collected_call_sites_->FindCallSites(caller_graph_, inlining_depth_);
     while (collected_call_sites_->HasCalls()) {
       TRACE_INLINING(OS::Print("  Depth %" Pd " ----------\n",
                                inlining_depth_));
@@ -490,7 +510,8 @@ class CallSiteInliner : public ValueObject {
     }
 
     // Abort if the callee has an intrinsic translation.
-    if (Intrinsifier::CanIntrinsify(function)) {
+    if (Intrinsifier::CanIntrinsify(function) &&
+        !function.is_optimizable()) {
       function.set_is_inlinable(false);
       TRACE_INLINING(OS::Print("     Bailout: can intrinsify\n"));
       return false;
@@ -633,10 +654,7 @@ class CallSiteInliner : public ValueObject {
         return false;
       }
 
-      // If depth is less or equal to threshold recursively add call sites.
-      if (inlining_depth_ < FLAG_inlining_depth_threshold) {
-        collected_call_sites_->FindCallSites(callee_graph);
-      }
+      collected_call_sites_->FindCallSites(callee_graph, inlining_depth_);
 
       // Add the function to the cache.
       if (!in_cache) function_cache_.Add(parsed_function);

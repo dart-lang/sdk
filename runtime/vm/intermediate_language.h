@@ -136,6 +136,11 @@ class Range;
 
 // A list of core function that should always be inlined.
 #define INLINE_WHITE_LIST(V)                                                   \
+  V(_ObjectArray, get:length, ObjectArrayLength, 1441000484)                   \
+  V(_ImmutableArray, get:length, ImmutableArrayLength, 1430953867)             \
+  V(_TypedList, get:length, TypedDataLength, 117589485)                        \
+  V(_GrowableObjectArray, get:length, GrowableArrayLength, 767561362)          \
+  V(_StringBase, get:length, StringBaseLength, 1158042795)                     \
   V(ListIterator, moveNext, ListIteratorMoveNext, 657540761)                   \
   V(_GrowableObjectArray, get:iterator, GrowableArrayIterator, 281980741)      \
   V(_GrowableObjectArray, forEach, GrowableArrayForEach, 334448248)
@@ -2702,6 +2707,8 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0> {
   virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
     return instance_call()->PushArgumentAt(index);
   }
+
+  bool HasRecognizedTarget() const;
 
   DECLARE_INSTRUCTION(PolymorphicInstanceCall)
 

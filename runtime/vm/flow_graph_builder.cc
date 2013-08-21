@@ -2850,8 +2850,74 @@ void ValueGraphVisitor::VisitStaticSetterNode(StaticSetterNode* node) {
 }
 
 
+static intptr_t OffsetForLengthGetter(MethodRecognizer::Kind kind) {
+  switch (kind) {
+    case MethodRecognizer::kObjectArrayLength:
+    case MethodRecognizer::kImmutableArrayLength:
+      return Array::length_offset();
+    case MethodRecognizer::kTypedDataLength:
+      // .length is defined in _TypedList which is the base class for internal
+      // and external typed data.
+      ASSERT(TypedData::length_offset() == ExternalTypedData::length_offset());
+      return TypedData::length_offset();
+    case MethodRecognizer::kGrowableArrayLength:
+      return GrowableObjectArray::length_offset();
+    default:
+      UNREACHABLE();
+      return 0;
+  }
+}
+
+
 void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
+  const Function& function = owner()->parsed_function()->function();
+  if (!function.IsClosureFunction()) {
+    MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(function);
+    switch (kind) {
+      case MethodRecognizer::kStringBaseLength: {
+        LocalVariable* receiver_var =
+            node->scope()->LookupVariable(Symbols::This(),
+                                          true);  // Test only.
+        Value* receiver = Bind(new LoadLocalInstr(*receiver_var));
+        // Treat length loads as mutable (i.e. affected by side effects) to
+        // avoid hoisting them since we can't hoist the preceding class-check.
+        // This is because of externalization of strings that affects their
+        // class-id.
+        const bool is_immutable = false;
+        LoadFieldInstr* load = new LoadFieldInstr(
+            receiver,
+            String::length_offset(),
+            Type::ZoneHandle(Type::SmiType()),
+            is_immutable);
+        load->set_result_cid(kSmiCid);
+        load->set_recognized_kind(MethodRecognizer::kStringBaseLength);
+        return ReturnDefinition(load);
+      }
+      case MethodRecognizer::kGrowableArrayLength:
+      case MethodRecognizer::kObjectArrayLength:
+      case MethodRecognizer::kImmutableArrayLength:
+      case MethodRecognizer::kTypedDataLength: {
+        LocalVariable* receiver_var =
+            node->scope()->LookupVariable(Symbols::This(),
+                                          true);  // Test only.
+        Value* receiver = Bind(new LoadLocalInstr(*receiver_var));
+        const bool is_immutable =
+            (kind != MethodRecognizer::kGrowableArrayLength);
+        LoadFieldInstr* load = new LoadFieldInstr(
+            receiver,
+            OffsetForLengthGetter(kind),
+            Type::ZoneHandle(Type::SmiType()),
+            is_immutable);
+        load->set_result_cid(kSmiCid);
+        load->set_recognized_kind(kind);
+        return ReturnDefinition(load);
+      }
+      default:
+        break;
+    }
+  }
   InlineBailout("EffectGraphVisitor::VisitNativeBodyNode");
+  function.set_is_optimizable(false);
   NativeCallInstr* native_call = new NativeCallInstr(node);
   ReturnDefinition(native_call);
 }
@@ -3210,10 +3276,8 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       // memory leaks.
       // In this case, the parser pre-allocates a variable to save the context.
       if (MustSaveRestoreContext(node)) {
-        Value* current_context = Bind(new CurrentContextInstr());
-        Do(BuildStoreTemp(
-            *owner()->parsed_function()->saved_entry_context_var(),
-            current_context));
+        BuildSaveContext(
+            *owner()->parsed_function()->saved_entry_context_var());
         Value* null_context = Bind(new ConstantInstr(Object::ZoneHandle()));
         AddInstruction(new StoreContextInstr(null_context));
       }
@@ -3630,11 +3694,14 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   graph_entry_ = new GraphEntryInstr(*parsed_function(), normal_entry, osr_id_);
   EffectGraphVisitor for_effect(this, 0);
   // This check may be deleted if the generated code is leaf.
-  CheckStackOverflowInstr* check =
-      new CheckStackOverflowInstr(function.token_pos(), 0);
-  // If we are inlining don't actually attach the stack check. We must still
-  // create the stack check in order to allocate a deopt id.
-  if (!IsInlining()) for_effect.AddInstruction(check);
+  // Native functions don't need a stack check at entry.
+  if (!function.is_native()) {
+    CheckStackOverflowInstr* check =
+        new CheckStackOverflowInstr(function.token_pos(), 0);
+    // If we are inlining don't actually attach the stack check. We must still
+    // create the stack check in order to allocate a deopt id.
+    if (!IsInlining()) for_effect.AddInstruction(check);
+  }
   parsed_function()->node_sequence()->Visit(&for_effect);
   AppendFragment(normal_entry, for_effect);
   // Check that the graph is properly terminated.

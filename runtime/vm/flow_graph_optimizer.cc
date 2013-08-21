@@ -1390,23 +1390,6 @@ void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
 }
 
 
-void FlowGraphOptimizer::InlineArrayLengthGetter(InstanceCallInstr* call,
-                                                 intptr_t length_offset,
-                                                 bool is_immutable,
-                                                 MethodRecognizer::Kind kind) {
-  AddReceiverCheck(call);
-
-  LoadFieldInstr* load = new LoadFieldInstr(
-      new Value(call->ArgumentAt(0)),
-      length_offset,
-      Type::ZoneHandle(Type::SmiType()),
-      is_immutable);
-  load->set_result_cid(kSmiCid);
-  load->set_recognized_kind(kind);
-  ReplaceCall(call, load);
-}
-
-
 void FlowGraphOptimizer::InlineGrowableArrayCapacityGetter(
     InstanceCallInstr* call) {
   AddReceiverCheck(call);
@@ -1446,13 +1429,6 @@ static LoadFieldInstr* BuildLoadStringLength(Definition* str) {
 }
 
 
-void FlowGraphOptimizer::InlineStringLengthGetter(InstanceCallInstr* call) {
-  AddReceiverCheck(call);
-  LoadFieldInstr* load = BuildLoadStringLength(call->ArgumentAt(0));
-  ReplaceCall(call, load);
-}
-
-
 void FlowGraphOptimizer::InlineStringIsEmptyGetter(InstanceCallInstr* call) {
   AddReceiverCheck(call);
 
@@ -1472,25 +1448,6 @@ void FlowGraphOptimizer::InlineStringIsEmptyGetter(InstanceCallInstr* call) {
 void FlowGraphOptimizer::InlineObjectCid(InstanceCallInstr* call) {
   LoadClassIdInstr* load = new LoadClassIdInstr(new Value(call->ArgumentAt(0)));
   ReplaceCall(call, load);
-}
-
-
-static intptr_t OffsetForLengthGetter(MethodRecognizer::Kind kind) {
-  switch (kind) {
-    case MethodRecognizer::kObjectArrayLength:
-    case MethodRecognizer::kImmutableArrayLength:
-      return Array::length_offset();
-    case MethodRecognizer::kTypedDataLength:
-      // .length is defined in _TypedList which is the base class for internal
-      // and external typed data.
-      ASSERT(TypedData::length_offset() == ExternalTypedData::length_offset());
-      return TypedData::length_offset();
-    case MethodRecognizer::kGrowableArrayLength:
-      return GrowableObjectArray::length_offset();
-    default:
-      UNREACHABLE();
-      return 0;
-  }
 }
 
 
@@ -1678,33 +1635,8 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
       InlineObjectCid(call);
       return true;
     }
-    case MethodRecognizer::kObjectArrayLength:
-    case MethodRecognizer::kImmutableArrayLength:
-    case MethodRecognizer::kTypedDataLength:
-    case MethodRecognizer::kGrowableArrayLength: {
-      if (!ic_data.HasOneTarget()) {
-        // TODO(srdjan): Implement for mutiple targets.
-        return false;
-      }
-      const bool is_immutable =
-          (recognized_kind == MethodRecognizer::kObjectArrayLength) ||
-          (recognized_kind == MethodRecognizer::kImmutableArrayLength) ||
-          (recognized_kind == MethodRecognizer::kTypedDataLength);
-      InlineArrayLengthGetter(call,
-                              OffsetForLengthGetter(recognized_kind),
-                              is_immutable,
-                              recognized_kind);
-      return true;
-    }
     case MethodRecognizer::kGrowableArrayCapacity:
       InlineGrowableArrayCapacityGetter(call);
-      return true;
-    case MethodRecognizer::kStringBaseLength:
-      if (!ic_data.HasOneTarget()) {
-        // Target is not only StringBase_get_length.
-        return false;
-      }
-      InlineStringLengthGetter(call);
       return true;
     case MethodRecognizer::kStringBaseIsEmpty:
       if (!ic_data.HasOneTarget()) {
@@ -1735,7 +1667,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
       return InlineUint32x4Getter(call, recognized_kind);
     }
     default:
-      ASSERT(recognized_kind == MethodRecognizer::kUnknown);
+      break;
   }
   return false;
 }

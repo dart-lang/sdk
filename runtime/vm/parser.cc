@@ -5018,6 +5018,7 @@ void Parser::ParseNativeFunctionBlock(const ParamList* params,
                                         Function::ZoneHandle(func.raw()),
                                         native_name,
                                         native_function,
+                                        current_block_->scope,
                                         is_bootstrap_native)));
 }
 
