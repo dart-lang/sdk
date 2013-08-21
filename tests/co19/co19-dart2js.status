@@ -17,6 +17,7 @@ LibTest/core/Map/Map_class_A01_t04: Slow, Pass
 # Crashes first, please. Then untriaged bugs. There is a section below
 # for co19 bugs.
 [ $compiler == dart2js ]
+
 Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(ahe): Please triage this failure.
 Language/03_Overview/1_Scoping_A02_t06: Fail # TODO(ahe): Please triage this failure.
 Language/05_Variables/05_Variables_A07_t05: Fail # TODO(ahe): Please triage this failure.
@@ -100,7 +101,7 @@ LibTest/core/List/getRange_A03_t01: Fail, OK # Tests that fail because they use 
 Language/07_Classes/1_Instance_Methods_A02_t05: Fail, OK # These tests need to be updated for new optional parameter syntax and semantics, co19 issue 258:
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A13_t01: Fail, OK # These tests need to be updated for new optional parameter syntax and semantics, co19 issue 258:
 
-LibTest/isolate/SendPort/send_A02_t04: Fail, OK # co19 issue 293
+LibTest/isolate/SendPort/send_A02_t04: Fail, Pass, OK # co19 issue 293 Passes on IE
 
 LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # co19 issue 294
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: Fail, OK # co19 issue 294
@@ -190,6 +191,9 @@ LibTest/core/int/remainder_A01_t03: Fail, OK # Leg only has double.
 LibTest/core/int/toDouble_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/toRadixString_A01_t01: Fail, OK # Bad test: uses Expect.fail, Expect.throws, assumes case of result, and uses unsupported radixes.
 LibTest/core/String/contains_A01_t02: Fail, OK # co19 issue 105.
+
+[ $compiler == dart2js && $runtime == ie9 ]
+LibTest/math/cos_A01_t01: Fail # co19 issue 44
 
 #
 # The following tests are failing. Please add the error message
