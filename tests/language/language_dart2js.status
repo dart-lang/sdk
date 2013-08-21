@@ -90,6 +90,9 @@ compile_time_constant_checked3_test/04: Fail, OK
 compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
+[ $compiler == dart2js && $minified ]
+f_bounded_quantification4_test: Fail # Issue 12605.
+
 [ $compiler == dart2js ]
 function_type_alias6_test/00: Crash # dartbug.com/9792
 function_type_alias9_test/00: Crash # dartbug.com/9792
