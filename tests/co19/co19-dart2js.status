@@ -13,6 +13,7 @@ LibTest/core/List/sort_A01_t04: Pass, Timeout # Must be a bug in jsshell, test s
 
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 LibTest/core/Map/Map_class_A01_t04: Slow, Pass
+LibTest/isolate/isolate_api/spawnUri_A02_t03: Pass, Fail # Issue 8920
 
 # Crashes first, please. Then untriaged bugs. There is a section below
 # for co19 bugs.
@@ -74,6 +75,9 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fa
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Issue: 8920
 LibTest/core/String/contains_A01_t02: Fail # Issue: 8920
 LibTest/isolate/ReceivePort/toSendPort_A01_t02: Pass, Fail # Issue: 8920
+LibTest/isolate/ReceivePort/toSendPort_A01_t01: Fail # Issue: 8920
+LibTest/core/DateTime/timeZoneName_A01_t01: Fail # Issue: 8920
+LibTest/async/Stream/listen_A04_t01: Pass, Timeout # Issue: 8920
 
 
 [ $compiler == dart2js && $runtime == jsshell ]
@@ -194,6 +198,7 @@ LibTest/core/String/contains_A01_t02: Fail, OK # co19 issue 105.
 
 [ $compiler == dart2js && $runtime == ie9 ]
 LibTest/math/cos_A01_t01: Fail # co19 issue 44
+LibTest/async/EventTransformStream/listen_A04_t01: Pass, Timeout # Issue 12595
 
 #
 # The following tests are failing. Please add the error message
