@@ -37,16 +37,8 @@ malformed_test/none: fail
 number_identifier_negative_test: fail
 
 # TBF: we should check conflicts not only for methods, but for accessors too
-override_field_test/01: fail
 override_field_test/02: fail
 override_field_test/03: fail
-field_override3_test/00: Fail # Issue 11496
-field_override3_test/01: Fail # Issue 11496
-field_override3_test/03: Fail # Issue 11496
-getter_override_test/00: Fail # Issue 11496
-getter_override_test/01: Fail # Issue 11496
-setter_override_test/00: Fail # Issue 11496
-setter_override_test/03: Fail # Issue 11496
 method_override7_test/03: Fail # Issue 11496
 method_override8_test/03: Fail # Issue 11496
 
