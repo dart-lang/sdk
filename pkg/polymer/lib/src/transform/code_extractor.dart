@@ -30,7 +30,7 @@ class InlineCodeExtractor extends Transformer {
             !tag.attributes.containsKey('src')) {
           // TODO(sigmund): should we automatically include a library directive
           // if it doesn't have one?
-          var filename = path.basename(inputId.path);
+          var filename = path.url.basename(inputId.path);
           tag.attributes['src'] = '$filename.$count.dart';
           var textContent = tag.nodes.first;
           var id = inputId.addExtension('.$count.dart');

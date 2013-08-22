@@ -48,14 +48,15 @@ Document parseHtml(String contents, String sourcePath, TransformLogger logger,
 AssetId resolve(AssetId source, String url, TransformLogger logger, Span span) {
   if (url == null || url == '') return null;
   var uri = Uri.parse(url);
-  if (uri.host != '' || uri.scheme != '' || path.isAbsolute(url)) {
+  var urlBuilder = path.url;
+  if (uri.host != '' || uri.scheme != '' || urlBuilder.isAbsolute(url)) {
     logger.error('absolute paths not allowed: "$url"', span);
     return null;
   }
 
   var package;
   var targetPath;
-  var segments = path.split(url);
+  var segments = urlBuilder.split(url);
   if (segments[0] == 'packages') {
     if (segments.length < 3) {
       logger.error("incomplete packages/ path. It should have at least 3 "
@@ -63,17 +64,20 @@ AssetId resolve(AssetId source, String url, TransformLogger logger, Span span) {
       return null;
     }
     package = segments[1];
-    targetPath = path.join('lib', path.joinAll(segments.sublist(2)));
+    targetPath = urlBuilder.join('lib',
+        urlBuilder.joinAll(segments.sublist(2)));
   } else if (segments[0] == 'assets') {
     if (segments.length < 3) {
       logger.error("incomplete assets/ path. It should have at least 3 "
           "segments assets/name/path-from-name's-asset-dir", span);
     }
     package = segments[1];
-    targetPath = path.join('asset', path.joinAll(segments.sublist(2)));
+    targetPath = urlBuilder.join('asset',
+        urlBuilder.joinAll(segments.sublist(2)));
   } else {
     package = source.package;
-    targetPath = path.normalize(path.join(path.dirname(source.path), url));
+    targetPath = urlBuilder.normalize(
+        urlBuilder.join(urlBuilder.dirname(source.path), url));
   }
   return new AssetId(package, targetPath);
 }

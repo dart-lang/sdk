@@ -62,7 +62,7 @@ class ScriptCompactor extends Transformer {
       }
 
       var bootstrapId = id.addExtension('_bootstrap.dart');
-      var filename = path.basename(bootstrapId.path);
+      var filename = path.url.basename(bootstrapId.path);
       document.body.nodes.add(parseFragment(
             '<script type="application/dart" src="$filename"></script>'));
 
@@ -97,8 +97,11 @@ class ScriptCompactor extends Transformer {
       return null;
     }
 
-    var upPath = path.joinAll(path.split(sourceId.path).map((_) => '..'));
-    return path.normalize(path.join(sourceId.path, upPath, id.path));
+    var urlBuilder = path.url;
+    var upPath = urlBuilder.joinAll(
+        urlBuilder.split(sourceId.path).map((_) => '..'));
+    return urlBuilder.normalize(
+        urlBuilder.join(sourceId.path, upPath, id.path));
   }
 }
 
