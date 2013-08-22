@@ -32,23 +32,23 @@ GSUTIL = GSUTIL_DIR + '/gsutil'
 DRT_DIR = os.path.join('client', 'tests', 'drt')
 DRT_VERSION = os.path.join(DRT_DIR, 'LAST_VERSION')
 DRT_LATEST_PATTERN = (
-    'gs://dartium-archive/latest/drt-%(osname)s-inc-*.zip')
-DRT_PERMANENT_PATTERN = ('gs://dartium-archive/drt-%(osname)s-inc/drt-'
-                         '%(osname)s-inc-%(num1)s.%(num2)s.zip')
+    'gs://dartium-archive/latest/drt-%(osname)s-%(bot)s-*.zip')
+DRT_PERMANENT_PATTERN = ('gs://dartium-archive/drt-%(osname)s-%(bot)s/drt-'
+                         '%(osname)s-%(bot)s-%(num1)s.%(num2)s.zip')
 
 DARTIUM_DIR = os.path.join('client', 'tests', 'dartium')
 DARTIUM_VERSION = os.path.join(DARTIUM_DIR, 'LAST_VERSION')
 DARTIUM_LATEST_PATTERN = (
-    'gs://dartium-archive/latest/dartium-%(osname)s-inc-*.zip')
-DARTIUM_PERMANENT_PATTERN = ('gs://dartium-archive/dartium-%(osname)s-inc/'
-                             'dartium-%(osname)s-inc-%(num1)s.%(num2)s.zip')
+    'gs://dartium-archive/latest/dartium-%(osname)s-%(bot)s-*.zip')
+DARTIUM_PERMANENT_PATTERN = ('gs://dartium-archive/dartium-%(osname)s-%(bot)s/'
+                             'dartium-%(osname)s-%(bot)s-%(num1)s.%(num2)s.zip')
 
 CHROMEDRIVER_DIR = os.path.join('tools', 'testing', 'dartium-chromedriver')
 CHROMEDRIVER_VERSION = os.path.join(CHROMEDRIVER_DIR, 'LAST_VERSION')
 CHROMEDRIVER_LATEST_PATTERN = (
-    'gs://dartium-archive/latest/chromedriver-%(osname)s-inc-*.zip')
+    'gs://dartium-archive/latest/chromedriver-%(osname)s-%(bot)s-*.zip')
 CHROMEDRIVER_PERMANENT_PATTERN = ('gs://dartium-archive/chromedriver-%(osname)s'
-                                  '-inc/chromedriver-%(osname)s-inc-%(num1)s.'
+                                  '-%(bot)s/chromedriver-%(osname)s-%(bot)s-%(num1)s.'
                                   '%(num2)s.zip')
 
 SDK_DIR = os.path.join(utils.GetBuildRoot(utils.GuessOS(), 'release', 'ia32'),
@@ -57,7 +57,7 @@ SDK_VERSION = os.path.join(SDK_DIR, 'LAST_VERSION')
 SDK_LATEST_PATTERN = 'gs://dart-editor-archive-continuous/latest/VERSION'
 # TODO(efortuna): Once the x64 VM also is optimized, select the version
 # based on whether we are running on a 32-bit or 64-bit system.
-SDK_PERMANENT = ('gs://dart-editor-archive-continuous/%(version_num)s/' + 
+SDK_PERMANENT = ('gs://dart-editor-archive-continuous/%(version_num)s/' +
     'dartsdk-%(osname)s-32.zip')
 
 # Dictionary storing the earliest revision of each download we have stored.
@@ -124,7 +124,7 @@ def EnsureConfig():
     sys.exit(1)
 
 
-def GetDartiumRevision(name, directory, version_file, latest_pattern,
+def GetDartiumRevision(name, bot, directory, version_file, latest_pattern,
     permanent_prefix, revision_num=None):
   """Get the latest binary that is stored in the dartium archive.
 
@@ -146,16 +146,16 @@ def GetDartiumRevision(name, directory, version_file, latest_pattern,
     if not revision_num:
       revision_num = latest[latest.rindex('-') + 1 : latest.index('.')]
       latest = (permanent_prefix[:permanent_prefix.rindex('/')] % { 'osname' :
-          osname } + latest[latest.rindex('/'):])
+          osname, 'bot' : bot } + latest[latest.rindex('/'):])
     else:
       latest = (permanent_prefix % { 'osname' : osname, 'num1' : revision_num,
-          'num2' : revision_num })
+          'num2' : revision_num, 'bot' : bot })
       foundURL = False
       while not foundURL:
         # Test to ensure this URL exists because the dartium-archive builds can
         # have unusual numbering (a range of CL numbers) sometimes.
         result, out = Gsutil('ls', permanent_prefix % {'osname' : osname,
-            'num1': revision_num, 'num2': '*' })
+            'num1': revision_num, 'num2': '*', 'bot': bot })
         if result == 0:
           # First try to find one with the the second number the same as the
           # requested number.
@@ -179,9 +179,9 @@ def GetDartiumRevision(name, directory, version_file, latest_pattern,
           if revision_num <= 0:
             TooEarlyError()
     return latest
-    
-  GetFromGsutil(name, directory, version_file, latest_pattern, osdict, 
-                  FindPermanentUrl, revision_num)
+
+  GetFromGsutil(name, directory, version_file, latest_pattern, osdict,
+                  FindPermanentUrl, revision_num, bot)
 
 
 def GetSdkRevision(name, directory, version_file, latest_pattern,
@@ -216,13 +216,13 @@ def GetSdkRevision(name, directory, version_file, latest_pattern,
         return ''
     latest = (permanent_prefix % { 'osname' : osname, 'version_num': rev_num})
     return latest
-    
+
   GetFromGsutil(name, directory, version_file, latest_pattern, osdict,
                   FindPermanentUrl, revision_num)
 
 
 def GetFromGsutil(name, directory, version_file, latest_pattern,
-    os_name_dict, get_permanent_url, revision_num = ''):
+    os_name_dict, get_permanent_url, revision_num = '', bot = None):
   """Download and unzip the desired file from Google Storage.
     Args:
     name: the name of the desired download
@@ -246,8 +246,8 @@ def GetFromGsutil(name, directory, version_file, latest_pattern,
 
   EnsureConfig()
 
-  # Query for the lastest version
-  pattern = latest_pattern  % { 'osname' : osname }
+  # Query for the latest version
+  pattern = latest_pattern  % { 'osname' : osname, 'bot' : bot }
   result, out = Gsutil('ls', pattern)
   if result == 0:
     # use permanent link instead, just in case the latest zip entry gets deleted
@@ -330,24 +330,32 @@ def main():
                     help='Desired revision number to retrieve for the SDK. If '
                     'unspecified, retrieve the latest SDK build.',
                     action='store', default=None)
+  parser.add_option('-d', '--debug', dest='debug',
+                    help='Download a debug archive instead of a release.',
+                    action='store_true', default=False)
   args, positional = parser.parse_args()
 
   if args.revision and int(args.revision) < LAST_VALID[positional[0]]:
     return TooEarlyError()
 
+  # Use the incremental release bot ('dartium-*-inc') by default.
+  bot = 'inc'
+  if args.debug:
+    bot = 'debug'
+
   if positional[0] == 'dartium':
-    GetDartiumRevision('Dartium', DARTIUM_DIR, DARTIUM_VERSION,
+    GetDartiumRevision('Dartium', bot, DARTIUM_DIR, DARTIUM_VERSION,
                          DARTIUM_LATEST_PATTERN, DARTIUM_PERMANENT_PATTERN,
                          args.revision)
   elif positional[0] == 'chromedriver':
-    GetDartiumRevision('chromedriver', CHROMEDRIVER_DIR, CHROMEDRIVER_VERSION,
+    GetDartiumRevision('chromedriver', bot, CHROMEDRIVER_DIR, CHROMEDRIVER_VERSION,
                          CHROMEDRIVER_LATEST_PATTERN,
                          CHROMEDRIVER_PERMANENT_PATTERN, args.revision)
   elif positional[0] == 'sdk':
     GetSdkRevision('sdk', SDK_DIR, SDK_VERSION, SDK_LATEST_PATTERN,
         SDK_PERMANENT, args.revision)
   elif positional[0] == 'drt':
-    GetDartiumRevision('content_shell', DRT_DIR, DRT_VERSION,
+    GetDartiumRevision('content_shell', bot, DRT_DIR, DRT_VERSION,
                          DRT_LATEST_PATTERN, DRT_PERMANENT_PATTERN,
                          args.revision)
     CopyDrtFont(DRT_DIR)
