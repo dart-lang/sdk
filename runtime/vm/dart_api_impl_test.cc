@@ -6970,6 +6970,11 @@ TEST_CASE(MakeExternalString) {
     EXPECT_EQ(canonical_str, str);
     EXPECT(Dart_IsString(canonical_str));
     EXPECT(!Dart_IsExternalString(canonical_str));
+    void* peer;
+    EXPECT_VALID(Dart_StringGetProperties(str, &size, &length, &peer));
+    EXPECT_EQ(1, size);
+    EXPECT_EQ(1, length);
+    EXPECT_EQ(reinterpret_cast<void*>(&canonical_str_peer), peer);
 
     // Test with a one byte ascii string.
     const char* ascii = "string";

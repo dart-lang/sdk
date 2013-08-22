@@ -13435,6 +13435,7 @@ void OneByteString::SetPeer(const String& str,
   ExternalStringData<uint8_t>* ext_data =
       new ExternalStringData<uint8_t>(NULL, peer, cback);
   AddFinalizer(str, ext_data, OneByteString::Finalize);
+  Isolate::Current()->heap()->SetPeer(str.raw(), peer);
 }
 
 
@@ -13604,6 +13605,7 @@ void TwoByteString::SetPeer(const String& str,
   ExternalStringData<uint16_t>* ext_data =
       new ExternalStringData<uint16_t>(NULL, peer, cback);
   AddFinalizer(str, ext_data, TwoByteString::Finalize);
+  Isolate::Current()->heap()->SetPeer(str.raw(), peer);
 }
 
 
