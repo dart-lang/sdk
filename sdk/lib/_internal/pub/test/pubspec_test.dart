@@ -111,8 +111,38 @@ dependencies:
 ''');
     });
 
+    test("throws if dependency version is not a string", () {
+      expectFormatError('''
+dependencies:
+  foo:
+    mock: ok
+    version: 1.2
+''');
+    });
+
+    test("throws if version is not a version constraint", () {
+      expectFormatError('''
+dependencies:
+  foo:
+    mock: ok
+    version: not constraint
+''');
+    });
+
     test("throws if 'name' is not a string", () {
       expectFormatError('name: [not, a, string]');
+    });
+
+    test("throws if version is not a string", () {
+      expectFormatError('''
+version: 1.0
+''');
+    });
+
+    test("throws if version is not a version", () {
+      expectFormatError('''
+version: not version
+''');
     });
 
     test("throws if 'homepage' is not a string", () {
@@ -211,6 +241,13 @@ environment:
   sdk: []
 ''');
       });
+
+    test("throws if the sdk is not a string", () {
+      expectFormatError('''
+environment:
+  sdk: 1.0
+''');
+    });
 
       test("throws if the sdk isn't a valid version constraint", () {
         expectFormatError('''
