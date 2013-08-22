@@ -408,31 +408,21 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
         deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
     ASSERT(from != kTagged);
     ASSERT(to != kTagged);
-    Value* to_value = NULL;
+    Definition* boxed = NULL;
     if (from == kUnboxedDouble) {
-      BoxDoubleInstr* boxed = new BoxDoubleInstr(use->CopyWithType());
-      use->BindTo(boxed);
-      InsertBefore(insert_before, boxed, NULL, Definition::kValue);
-      to_value = new Value(boxed);
+      boxed = new BoxDoubleInstr(use->CopyWithType());
     } else if (from == kUnboxedUint32x4) {
-      BoxUint32x4Instr* boxed = new BoxUint32x4Instr(use->CopyWithType());
-      use->BindTo(boxed);
-      InsertBefore(insert_before, boxed, NULL, Definition::kValue);
-      to_value = new Value(boxed);
+      boxed = new BoxUint32x4Instr(use->CopyWithType());
     } else if (from == kUnboxedFloat32x4) {
-      BoxFloat32x4Instr* boxed = new BoxFloat32x4Instr(use->CopyWithType());
-      use->BindTo(boxed);
-      InsertBefore(insert_before, boxed, NULL, Definition::kValue);
-      to_value = new Value(boxed);
+      boxed = new BoxFloat32x4Instr(use->CopyWithType());
     } else if (from == kUnboxedMint) {
-      BoxIntegerInstr* boxed = new BoxIntegerInstr(use->CopyWithType());
-      use->BindTo(boxed);
-      InsertBefore(insert_before, boxed, NULL, Definition::kValue);
-      to_value = new Value(boxed);
+      boxed = new BoxIntegerInstr(use->CopyWithType());
     } else {
       UNIMPLEMENTED();
     }
-    ASSERT(to_value != NULL);
+    use->BindTo(boxed);
+    InsertBefore(insert_before, boxed, NULL, Definition::kValue);
+    Value* to_value = new Value(boxed);
     if (to == kUnboxedDouble) {
       converted = new UnboxDoubleInstr(to_value, deopt_id);
     } else if (to == kUnboxedUint32x4) {
