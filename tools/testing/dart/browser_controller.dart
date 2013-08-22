@@ -654,9 +654,10 @@ class BrowserTestRunner {
       return;
     }
 
-    if (status.timeout) {
+    if (status == null || status.timeout) {
       // We don't do anything, this browser is currently being killed and
-      // replaced.
+      // replaced. The browser here can be null if we decided to kill the
+      // browser.
     } else if (status.currentTest != null) {
       status.currentTest.timeoutTimer.cancel();
       status.currentTest.stopwatch.stop();
