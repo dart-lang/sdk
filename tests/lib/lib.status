@@ -127,7 +127,3 @@ convert/streamed_conversion_json_utf8_decode_test: Pass, Slow
 
 [ $arch == simarm ]
 convert/chunked_conversion_utf88_test: Pass, Slow # Issue 12644.
-
-[ $arch == simarm || $arch == arm ]
-typed_data/uint32x4_arithmetic_test: Crash # Unimplemented
-
