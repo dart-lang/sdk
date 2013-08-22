@@ -134,10 +134,10 @@ Pubspec _parseMap(String filePath, Map map, SourceRegistry sources) {
       'The pubspec "version" field should be a semantic version number, '
       'but was "$v".');
 
-  var dependencies = _parseDependencies(filePath, sources,
+  var dependencies = _parseDependencies(name, filePath, sources,
       map['dependencies']);
 
-  var devDependencies = _parseDependencies(filePath, sources,
+  var devDependencies = _parseDependencies(name, filePath, sources,
       map['dev_dependencies']);
 
   // Make sure the same package doesn't appear as both a regular and dev
@@ -265,8 +265,8 @@ VersionConstraint _parseVersionConstraint(yaml, String getMessage(yaml)) {
   }
 }
 
-List<PackageDep> _parseDependencies(String pubspecPath, SourceRegistry sources,
-    yaml) {
+List<PackageDep> _parseDependencies(String packageName, String pubspecPath,
+    SourceRegistry sources, yaml) {
   var dependencies = <PackageDep>[];
 
   // Allow an empty dependencies key.
@@ -279,6 +279,10 @@ List<PackageDep> _parseDependencies(String pubspecPath, SourceRegistry sources,
   }
 
   yaml.forEach((name, spec) {
+    if (name == packageName) {
+      throw new FormatException("Package '$name' cannot depend on itself.");
+    }
+
     var description;
     var sourceName;
 

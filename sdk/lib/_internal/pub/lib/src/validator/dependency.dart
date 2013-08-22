@@ -22,14 +22,6 @@ class DependencyValidator extends Validator {
         return _warnAboutSource(dependency);
       }
 
-      if (dependency.name == entrypoint.root.name) {
-        warnings.add('You don\'t need to explicitly depend on your own '
-                'package.\n'
-            'Pub enables "package:${entrypoint.root.name}" imports '
-                'implicitly.');
-        return new Future.value();
-      }
-
       if (dependency.constraint.isAny) _warnAboutConstraint(dependency);
 
       return new Future.value();

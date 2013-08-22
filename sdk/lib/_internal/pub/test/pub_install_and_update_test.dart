@@ -113,5 +113,30 @@ main() {
       pubCommand(command,
           error: new RegExp("^Incompatible dependencies on 'baz':\n"));
     });
+
+    integration('does not allow a dependency on itself', () {
+      d.dir(appPath, [
+        d.appPubspec({
+          "myapp": {"path": "."}
+        })
+      ]).create();
+
+      pubCommand(command,
+          error: new RegExp("Package 'myapp' cannot depend on itself."));
+    });
+
+    integration('does not allow a dev dependency on itself', () {
+      d.dir(appPath, [
+        d.pubspec({
+          "name": "myapp",
+          "dev_dependencies": {
+            "myapp": {"path": "."}
+          }
+        })
+      ]).create();
+
+      pubCommand(command,
+          error: new RegExp("Package 'myapp' cannot depend on itself."));
+    });
   });
 }

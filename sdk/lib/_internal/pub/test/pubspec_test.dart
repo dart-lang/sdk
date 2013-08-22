@@ -103,6 +103,24 @@ dev_dependencies:
 ''');
     });
 
+    test("throws if it dependes on itself", () {
+      expectFormatError('''
+name: myapp
+dependencies:
+  myapp:
+    mock: ok
+''');
+    });
+
+    test("throws if it has a dev dependency on itself", () {
+      expectFormatError('''
+name: myapp
+dev_dependencies:
+  myapp:
+    mock: ok
+''');
+    });
+
     test("throws if the description isn't valid", () {
       expectFormatError('''
 dependencies:

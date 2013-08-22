@@ -237,15 +237,5 @@ main() {
         });
       });
     });
-
-    integration('has a hosted dependency on itself', () {
-      d.dir(appPath, [
-        d.libPubspec("test_pkg", "1.0.0", deps: {
-          "test_pkg": ">=1.0.0"
-        })
-      ]).create();
-
-      expectValidationWarning(dependency);
-    });
   });
 }
