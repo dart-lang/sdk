@@ -643,49 +643,6 @@ TEST_CASE(NewString) {
 }
 
 
-TEST_CASE(ExternalStringGetPeer) {
-  Dart_Handle result;
-
-  uint8_t data8[] = { 'o', 'n', 'e', 0xFF };
-  int peer_data = 123;
-  void* peer = NULL;
-
-  // Success.
-  Dart_Handle ext8 = Dart_NewExternalLatin1String(data8, ARRAY_SIZE(data8),
-                                                  &peer_data, NULL);
-  EXPECT_VALID(ext8);
-
-  result = Dart_ExternalStringGetPeer(ext8, &peer);
-  EXPECT_VALID(result);
-  EXPECT_EQ(&peer_data, peer);
-
-  // NULL peer.
-  result = Dart_ExternalStringGetPeer(ext8, NULL);
-  EXPECT(Dart_IsError(result));
-  EXPECT_STREQ("Dart_ExternalStringGetPeer expects argument 'peer' to be "
-               "non-null.", Dart_GetError(result));
-
-  // String is not external.
-  peer = NULL;
-  uint8_t utf8_data8[] = { 'o', 'n', 'e', 0x7F };
-  Dart_Handle str8 = Dart_NewStringFromUTF8(utf8_data8, ARRAY_SIZE(data8));
-  EXPECT_VALID(str8);
-  result = Dart_ExternalStringGetPeer(str8, &peer);
-  EXPECT(Dart_IsError(result));
-  EXPECT_STREQ("Dart_ExternalStringGetPeer expects argument 'object' to be "
-               "an external String.", Dart_GetError(result));
-  EXPECT(peer == NULL);
-
-  // Not a String.
-  peer = NULL;
-  result = Dart_ExternalStringGetPeer(Dart_True(), &peer);
-  EXPECT(Dart_IsError(result));
-  EXPECT_STREQ("Dart_ExternalStringGetPeer expects argument 'object' to be "
-               "of type String.", Dart_GetError(result));
-  EXPECT(peer == NULL);
-}
-
-
 static void ExternalStringCallbackFinalizer(void* peer) {
   *static_cast<int*>(peer) *= 2;
 }
@@ -705,9 +662,6 @@ TEST_CASE(ExternalStringCallback) {
         &peer8,
         ExternalStringCallbackFinalizer);
     EXPECT_VALID(obj8);
-    void* api_peer8 = NULL;
-    EXPECT_VALID(Dart_ExternalStringGetPeer(obj8, &api_peer8));
-    EXPECT_EQ(api_peer8, &peer8);
 
     uint16_t data16[] = { 'h', 'e', 'l', 'l', 'o' };
     Dart_Handle obj16 = Dart_NewExternalUTF16String(
@@ -716,9 +670,6 @@ TEST_CASE(ExternalStringCallback) {
         &peer16,
         ExternalStringCallbackFinalizer);
     EXPECT_VALID(obj16);
-    void* api_peer16 = NULL;
-    EXPECT_VALID(Dart_ExternalStringGetPeer(obj16, &api_peer16));
-    EXPECT_EQ(api_peer16, &peer16);
 
     Dart_ExitScope();
   }
@@ -6940,6 +6891,7 @@ static void MakeExternalCback(void* peer) {
 TEST_CASE(MakeExternalString) {
   int peer8 = 40;
   int peer16 = 41;
+  int canonical_str_peer = 42;
   intptr_t length = 0;
   intptr_t expected_length = 0;
   {
@@ -7000,6 +6952,24 @@ TEST_CASE(MakeExternalString) {
     EXPECT(Dart_IsExternalString(empty_str));
     EXPECT_VALID(Dart_StringLength(str, &length));
     EXPECT_EQ(0, length);
+
+    // Test with single character canonical string, it should not become
+    // external string but the peer should be setup for it.
+    Isolate* isolate = Isolate::Current();
+    Dart_Handle canonical_str = Api::NewHandle(isolate, Symbols::New("*"));
+    EXPECT(Dart_IsString(canonical_str));
+    EXPECT(!Dart_IsExternalString(canonical_str));
+    uint8_t ext_canonical_str[kLength];
+    str = Dart_MakeExternalString(canonical_str,
+                                  ext_canonical_str,
+                                  kLength,
+                                  &canonical_str_peer,
+                                  MakeExternalCback);
+    EXPECT(Dart_IsString(str));
+    EXPECT(!Dart_IsExternalString(canonical_str));
+    EXPECT_EQ(canonical_str, str);
+    EXPECT(Dart_IsString(canonical_str));
+    EXPECT(!Dart_IsExternalString(canonical_str));
 
     // Test with a one byte ascii string.
     const char* ascii = "string";
@@ -7071,9 +7041,11 @@ TEST_CASE(MakeExternalString) {
   }
   EXPECT_EQ(40, peer8);
   EXPECT_EQ(41, peer16);
+  EXPECT_EQ(42, canonical_str_peer);
   Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
   EXPECT_EQ(80, peer8);
   EXPECT_EQ(82, peer16);
+  EXPECT_EQ(42, canonical_str_peer);  // "*" Symbol is not removed on GC.
 }
 
 

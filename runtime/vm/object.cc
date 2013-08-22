@@ -13427,6 +13427,23 @@ RawOneByteString* OneByteString::SubStringUnchecked(const String& str,
 }
 
 
+void OneByteString::SetPeer(const String& str,
+                            void* peer,
+                            Dart_PeerFinalizer cback) {
+  ASSERT(!str.IsNull() && str.IsOneByteString());
+  ASSERT(peer != NULL);
+  ExternalStringData<uint8_t>* ext_data =
+      new ExternalStringData<uint8_t>(NULL, peer, cback);
+  AddFinalizer(str, ext_data, OneByteString::Finalize);
+}
+
+
+void OneByteString::Finalize(Dart_WeakPersistentHandle handle, void* peer) {
+  delete reinterpret_cast<ExternalStringData<uint8_t>*>(peer);
+  DeleteWeakPersistentHandle(handle);
+}
+
+
 RawTwoByteString* TwoByteString::EscapeSpecialCharacters(const String& str) {
   intptr_t len = str.Length();
   if (len > 0) {
@@ -13576,6 +13593,23 @@ RawTwoByteString* TwoByteString::Transform(int32_t (*mapping)(int32_t ch),
     i += len;
   }
   return TwoByteString::raw(result);
+}
+
+
+void TwoByteString::SetPeer(const String& str,
+                            void* peer,
+                            Dart_PeerFinalizer cback) {
+  ASSERT(!str.IsNull() && str.IsTwoByteString());
+  ASSERT(peer != NULL);
+  ExternalStringData<uint16_t>* ext_data =
+      new ExternalStringData<uint16_t>(NULL, peer, cback);
+  AddFinalizer(str, ext_data, TwoByteString::Finalize);
+}
+
+
+void TwoByteString::Finalize(Dart_WeakPersistentHandle handle, void* peer) {
+  delete reinterpret_cast<ExternalStringData<uint16_t>*>(peer);
+  DeleteWeakPersistentHandle(handle);
 }
 
 

@@ -198,6 +198,8 @@ BENCHMARK(DartStringAccess) {
   // Create strings.
   uint8_t data8[] = { 'o', 'n', 'e', 0xFF };
   int external_peer_data = 123;
+  intptr_t char_size;
+  intptr_t str_len;
   Dart_Handle external_string = Dart_NewExternalLatin1String(
       data8, ARRAY_SIZE(data8), &external_peer_data, NULL);
   Dart_Handle internal_string = NewString("two");
@@ -209,7 +211,12 @@ BENCHMARK(DartStringAccess) {
     EXPECT_VALID(external_string);
     EXPECT(Dart_IsExternalString(external_string));
     void* external_peer = NULL;
-    EXPECT_VALID(Dart_ExternalStringGetPeer(external_string, &external_peer));
+    EXPECT_VALID(Dart_StringGetProperties(external_string,
+                                          &char_size,
+                                          &str_len,
+                                          &external_peer));
+    EXPECT_EQ(1, char_size);
+    EXPECT_EQ(4, str_len);
     EXPECT_EQ(&external_peer_data, external_peer);
   }
 

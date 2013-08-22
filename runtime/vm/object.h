@@ -4608,7 +4608,6 @@ class String : public Instance {
                           void* peer,
                           Dart_PeerFinalizer cback) const;
 
-
   // Creates a new String object from a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.
   // TODO(7123) - Rename this to FromCString(....).
@@ -4808,6 +4807,12 @@ class OneByteString : public AllStatic {
                                               intptr_t length,
                                               Heap::Space space);
 
+  static void SetPeer(const String& str,
+                      void* peer,
+                      Dart_PeerFinalizer cback);
+
+  static void Finalize(Dart_WeakPersistentHandle handle, void* peer);
+
   static const ClassId kClassId = kOneByteStringCid;
 
   static RawOneByteString* null() {
@@ -4889,6 +4894,12 @@ class TwoByteString : public AllStatic {
   static RawTwoByteString* Transform(int32_t (*mapping)(int32_t ch),
                                      const String& str,
                                      Heap::Space space);
+
+  static void SetPeer(const String& str,
+                      void* peer,
+                      Dart_PeerFinalizer cback);
+
+  static void Finalize(Dart_WeakPersistentHandle handle, void* peer);
 
   static RawTwoByteString* null() {
     return reinterpret_cast<RawTwoByteString*>(Object::null());
