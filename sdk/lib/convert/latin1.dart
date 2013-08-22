@@ -18,6 +18,8 @@ part of dart.convert;
  */
 const LATIN1 = const Latin1Codec();
 
+const int _LATIN1_MASK = 0xFF;
+
 /**
  * A [LatinCodec] encodes strings to ISO Latin-1 (aka ISO-8859-1) bytes
  * and decodes Latin-1 bytes to strings.
@@ -65,96 +67,15 @@ class Latin1Codec extends _Encoding {
 /**
  * This class converts strings of only ISO Latin-1 characters to bytes.
  */
-class Latin1Encoder extends Converter<String, List<int>> {
-  const Latin1Encoder();
-
-  /**
-   * Converts [string] to its Latin-1 bytes (a list of
-   * unsigned 8-bit integers).
-   */
-  List<int> convert(String string) {
-    // TODO(11971): Use Uint8List when possible.
-    List result = new List<int>(string.length);
-    for (int i = 0; i < string.length; i++) {
-      var codeUnit = string.codeUnitAt(i);
-      if ((codeUnit & ~0xFF) != 0) {
-        throw new ArgumentError("String contains non-Latin-1 characters.");
-      }
-      result[i] = codeUnit;
-    }
-    return result;
-  }
-
-  /**
-   * Starts a chunked conversion.
-   *
-   * The converter works more efficiently if the given [sink] is a
-   * [ByteConversionSink].
-   */
-  StringConversionSink startChunkedConversion(
-      ChunkedConversionSink<List<int>> sink) {
-    if (sink is! ByteConversionSink) {
-      sink = new ByteConversionSink.from(sink);
-    }
-    return new _Latin1EncoderSink(sink);
-  }
-
-  // Override the base-class' bind, to provide a better type.
-  Stream<List<int>> bind(Stream<String> stream) => super.bind(stream);
-}
-
-/**
- * This class encodes chunked strings to bytes (unsigned 8-bit
- * integers).
- */
-class _Latin1EncoderSink extends StringConversionSinkBase {
-  static const _DEFAULT_BYTE_BUFFER_SIZE = 1024;
-  final ByteConversionSink _sink;
-
-  // TODO(11971): Use Uint8List when available.
-  List<int> _buffer = new List<int>(_DEFAULT_BYTE_BUFFER_SIZE);
-  int _bufferIndex = 0;
-
-  _Latin1EncoderSink(this._sink);
-
-  void close() {
-    if (_bufferIndex > 0) {
-      _sink.addSlice(_buffer, 0, _bufferIndex, true);
-    } else {
-      _sink.close();
-    }
-  }
-
-  void addSlice(String source, int start, int end, bool isLast) {
-    if (start < 0 || start > source.length) {
-      throw new RangeError.range(start, 0, source.length);
-    }
-    if (end < start || end > source.length) {
-      throw new RangeError.range(end, start, source.length);
-    }
-    for (int i = start; i < end; i++) {
-      int codeUnit = source.codeUnitAt(i);
-      if ((codeUnit & ~0xFF) != 0) {
-        throw new ArgumentError("Source contains non-Latin-1 characters.");
-      }
-      _buffer[_bufferIndex] = codeUnit;
-      _bufferIndex++;
-      if (_bufferIndex == _buffer.length) {
-        _sink.addSlice(_buffer, 0, _bufferIndex, false);
-        _bufferIndex = 0;
-      }
-    }
-    if (isLast) close();
-  }
+class Latin1Encoder extends _UnicodeSubsetEncoder {
+  const Latin1Encoder() : super(_LATIN1_MASK);
 }
 
 /**
  * This class converts Latin-1 bytes (lists of unsigned 8-bit integers)
  * to a string.
  */
-class Latin1Decoder extends Converter<List<int>, String> {
-  final bool _allowInvalid;
-
+class Latin1Decoder extends _UnicodeSubsetDecoder {
   /**
    * Instantiates a new [Latin1Decoder].
    *
@@ -166,34 +87,7 @@ class Latin1Decoder extends Converter<List<int>, String> {
    * Otherwise it throws a [FormatException].
    */
   const Latin1Decoder({ bool allowInvalid: false })
-      : this._allowInvalid = allowInvalid;
-
-  /**
-   * Converts the Latin=1 [bytes] (a list of unsigned 8-bit integers) to the
-   * corresponding string.
-   */
-  String convert(List<int> bytes) {
-    for (int i = 0; i < bytes.length; i++) {
-      int byte = bytes[i];
-      if ((byte & ~0xFF) != 0) {
-        if (!_allowInvalid) {
-          throw new FormatException("Non-byte in byte list");
-        }
-        return _convertInvalid(bytes);
-      }
-    }
-    return new String.fromCharCodes(bytes);
-  }
-
-  String _convertInvalid(List<int> bytes) {
-    StringBuffer buffer = new StringBuffer();
-    for (int i = 0; i < bytes.length; i++) {
-      int value = bytes[i];
-      if ((value & ~0xFF) != 0) value = 0xFFFD;
-      buffer.writeCharCode(value);
-    }
-    return buffer.toString();
-  }
+      : super(allowInvalid, _LATIN1_MASK);
 
   /**
    * Starts a chunked conversion.
@@ -212,9 +106,6 @@ class Latin1Decoder extends Converter<List<int>, String> {
     // TODO(lrn): Use stringSink.asUtf16Sink() if it becomes available.
     return new _Latin1DecoderSink(_allowInvalid, stringSink);
   }
-
-  // Override the base-class's bind, to provide a better type.
-  Stream<String> bind(Stream<List<int>> stream) => super.bind(stream);
 }
 
 class _Latin1DecoderSink extends ByteConversionSinkBase {
@@ -247,7 +138,7 @@ class _Latin1DecoderSink extends ByteConversionSinkBase {
       throw new RangeError.range(end, start, source.length);
     }
     for (int i = start; i < end; i++) {
-      if ((source[i] & ~0xFF) != 0) {
+      if ((source[i] & ~_LATIN1_MASK) != 0) {
         if (_allowInvalid) {
           if (i > start) _addSliceToSink(source, start, i, false);
           // Add UTF-8 encoding of U+FFFD.

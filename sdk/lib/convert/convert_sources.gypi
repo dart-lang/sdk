@@ -7,6 +7,7 @@
   'sources': [
     'convert.dart',
     # The above file needs to be first as it lists the parts below.
+    'ascii.dart',
     'byte_conversion.dart',
     'chunked_conversion.dart',
     'codec.dart',

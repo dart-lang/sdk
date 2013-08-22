@@ -11,6 +11,7 @@ library dart.convert;
 import 'dart:async';
 import 'dart:json' as OLD_JSON_LIB;
 
+part 'ascii.dart';
 part 'byte_conversion.dart';
 part 'chunked_conversion.dart';
 part 'codec.dart';
