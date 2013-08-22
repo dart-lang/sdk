@@ -4,30 +4,26 @@
 
 [ $runtime == vm ]
 browser/*: SkipByDesign  # Browser specific tests
-isolate2_negative_test: Skip  # Issue 12587.
-isolate3_negative_test: Skip  # Issue 12587.
-serialization_test: Skip  # tests dart2js-specific serialization code
-spawn_uri_test: Fail, OK # test uses a ".js" suffix that is bogus on vm.
 unresolved_ports_negative_test: Skip # Issue 6839
 isolate_stress_test: Fail # Issue 12588: This should be able to pass when we have wrapper-less tests.
 
-[ $compiler == none && $runtime == drt ]
+[ $compiler == none ]
+serialization_test: SkipByDesign # Tests dart2js-specific serialization code
+spawn_uri_test: SkipByDesign # Test uses a ".js" URI.
+spawn_uri_negative_test: SkipByDesign # Test uses a ".js" URI.
 isolate2_negative_test: Skip  # Issue 12587.
 isolate3_negative_test: Skip  # Issue 12587.
-serialization_test: Skip  # tests dart2js-specific serialization code
-spawn_uri_test: Skip # uses a .js extension (not for dartium)
-spawn_uri_negative_test: Skip # ditto
 
 [ $analyzer ]
-isolate2_negative_test: fail
-isolate_negative_test: fail
-spawn_function_negative_test: fail
-spawn_uri_negative_test: fail
-spawn_uri_vm_negative_test: fail
-unresolved_ports_negative_test: fail
+isolate2_negative_test: Fail
+isolate_negative_test: Fail
+spawn_function_negative_test: Fail
+spawn_uri_negative_test: Fail
+spawn_uri_vm_negative_test: Fail
+unresolved_ports_negative_test: Fail
 
 [ $compiler == dart2analyzer ]
-isolate_import_negative_test: fail
+isolate_import_negative_test: Fail
 
 [ $compiler == dart2js && $jscl ]
 browser/*: SkipByDesign  # Browser specific tests
@@ -40,50 +36,54 @@ illegal_msg_stream_test: Fail, Pass # Issue 6750
 unresolved_ports_negative_test: Pass, Crash # Issue 10613
 
 [ $compiler == dart2js ]
-serialization_test: Fail # Tries to access class TestingOnly declared in isolate_patch.dart
+serialization_test: Fail # Issue 1882, tries to access class TestingOnly declared in isolate_patch.dart
 illegal_msg_test: Fail # Issue 6750
 stream_mangling_test: Fail # Issue 9245
 
-global_error_handler_test: Pass, Fail # http://dartbug.com/9012 and http://dartbug.com/9024
-global_error_handler_stream_test: Pass, Fail # http://dartbug.com/9012 and http://dartbug.com/9024
-global_error_handler2_test: Pass, Fail # http://dartbug.com/9012 and http://dartbug.com/9024
-global_error_handler_stream2_test: Pass, Fail # http://dartbug.com/9012 and http://dartbug.com/9024
+global_error_handler_test: Pass, Fail # Issue 9012, Issue 9024
+global_error_handler_stream_test: Pass, Fail # Issue 9012, Issue 9024
+global_error_handler2_test: Pass, Fail # Issue 9012, Issue 9024
+global_error_handler_stream2_test: Pass, Fail # Issue 9012, Issue 9024
 
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == ie9 || $runtime == ie10 || $runtime == safari) ]
-browser/typed_data_message_test: Fail
+browser/typed_data_message_test: Fail # Issue 12624
 
-[ $runtime == safari ]
-cross_isolate_message_test: Skip      # Depends on 32/64 bit Safari. See Issue 1120
-message_test: Skip
+[ $compiler == dart2js && $runtime == safari ]
+cross_isolate_message_test: Skip # Issue 12627
+message_test: Skip # Issue 12627
 
-[ $runtime == opera ]
-isolate2_negative_test: Skip # Timeout.
-unresolved_ports_negative_test: Skip # See Issue 6839
+[ $compiler == dart2js && $runtime == opera ]
+isolate2_negative_test: Skip # Issue 12625
+unresolved_ports_negative_test: Skip # Issue 12626
+
+[ $compiler == dart2js ]
+spawn_uri_vm_test: SkipByDesign # Test uses a ".dart" URI.
+spawn_uri_nested_vm_test: SkipByDesign # Test uses a ".dart" URI.
+spawn_uri_vm_negative_test: SkipByDesign # Test uses a ".dart" URI.
 
 [ $compiler == dart2js && $browser ]
-spawn_uri_vm_test: Skip # test uses a ".dart" suffix that only works in vm.
-spawn_uri_nested_vm_test: Skip # test uses a ".dart" suffix that only works in vm.
-spawn_uri_vm_negative_test: Skip # ditto above.
 isolate2_negative_test: Fail, Pass # Issue 7769
 
 [ $compiler == dart2js && $jscl ]
-spawn_uri_negative_test: Pass # for the wrong reasons (not supported in d8)
-spawn_uri_test: Fail, OK # loading another file is not supported in d8
-spawn_uri_vm_negative_test: Skip # ditto above.
-spawn_uri_vm_test: Skip # test uses a ".dart" suffix that only works in vm.
-spawn_uri_nested_vm_test: Skip # test uses a ".dart" suffix that only works in vm.
+spawn_uri_test: SkipByDesign # Loading another file is not supported in JS shell
 
 [ $compiler == dart2js && $runtime == ie9 ]
-spawn_uri_test: Fail
+spawn_uri_test: Fail # Issue 12630
 
 [ $compiler == dart2js && $runtime == none ]
-*: Fail, Pass # TODO(ahe): Triage these tests.
+spawn_function_negative_test: Fail # Issue 12628
+spawn_uri_negative_test: Fail # Issue 12628
+unresolved_ports_negative_test: Fail # Issue 12628
+stream_mangling_test: Pass # Issue 12628
+isolate_negative_test: Fail # Issue 12628
+serialization_test: Pass # Issue 12628
+isolate_import_negative_test: Fail # Issue 12628
+isolate2_negative_test: Fail # Issue 12628
+illegal_msg_test: Pass # Issue 12628
 
 [ $compiler == dart2dart ]
-# Skip until we stabilize language tests.
-*: Skip
+*: Skip # Issue 12629
 
-# TODO(ajohnsen): Fix this as part of library changes.
 [ $compiler == none ]
 isolate_negative_test: Skip # Bug 6890
 
@@ -92,7 +92,7 @@ mandel_isolate_test: Pass, Fail, Timeout # Issue 7952
 mandel_isolate_stream_test: Pass, Fail, Timeout # Issue 7952
 
 [ $compiler == dart2js && ( $runtime == ff || $runtime == safari || $runtime == drt || $runtime == chrome ) ]
-isolate_stress_test: Pass, Slow # http://dartbug.com/10697
+isolate_stress_test: Pass, Slow # Issue 10697
 
 [ $arch == arm || $arch == simarm ]
 *: Skip # Issue 12589
@@ -102,4 +102,3 @@ isolate_stress_test: Pass, Slow # http://dartbug.com/10697
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 isolate_stress_test: Skip # Issue 12537
-
