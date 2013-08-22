@@ -139,8 +139,16 @@ class Phase {
   Phase addPhase(Iterable<Transformer> transformers) {
     assert(_next == null);
     _next = new Phase(cascade, transformers);
-    for (var outputs in _outputs.values) {
-      _next.addInput(outputs.output);
+    for (var output in _outputs.values.toList()) {
+      // Remove [output]'s listeners because now they should get the asset from
+      // [_next], rather than this phase. Any transforms consuming [output] will
+      // be re-run and will consume the output from the new final phase.
+      output.removeListeners();
+
+      // Removing [output]'s listeners will cause it to be removed from
+      // [_outputs], so we have to put it back.
+      _outputs[output.output.id] = output;
+      _next.addInput(output.output);
     }
     return _next;
   }

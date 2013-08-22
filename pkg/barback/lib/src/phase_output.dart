@@ -28,7 +28,7 @@ class PhaseOutput {
 
   /// The asset node for this output.
   AssetNode get output => _outputController.node;
-  final AssetNodeController _outputController;
+  AssetNodeController _outputController;
 
   /// The assets for this output.
   ///
@@ -57,6 +57,18 @@ class PhaseOutput {
     assert(node.id == output.id);
     _assets.add(node);
     _watchAsset(node);
+  }
+
+  /// Removes all existing listeners on [output] without actually closing
+  /// [this].
+  ///
+  /// This marks [output] as removed, but immediately replaces it with a new
+  /// [AssetNode] in the same state as the old output. This is used when adding
+  /// a new [Phase] to cause consumers of the prior phase's outputs to be to
+  /// start consuming the new phase's outputs instead.
+  void removeListeners() {
+    _outputController.setRemoved();
+    _outputController = new AssetNodeController.from(_assets.first);
   }
 
   /// Watches [node] for state changes and adjusts [_assets] and [output]
