@@ -81,6 +81,11 @@ part 'number_format.dart';
  * produce "I see 2 other people in Athens." as output in the default locale.
  *
  * To use a locale other than the default, use the `withLocale` function.
+ * You can set the default locale.
+ *       Intl.defaultLocale = "pt_BR";
+ *
+ * To temporarily use a locale other than the default, use the `withLocale`
+ * function.
  *       var todayString = new DateFormat("pt_BR").format(new DateTime.now());
  *       print(withLocale("pt_BR", () => today(todayString));
  *
@@ -99,7 +104,7 @@ class Intl {
    * can also be set explicitly, and will then apply to any new instances where
    * the locale isn't specified.
    */
-  static String _defaultLocale;
+  static String defaultLocale;
 
   /**
    * The system's locale, as obtained from the window.navigator.language
@@ -345,9 +350,9 @@ class Intl {
     // but must be a static variable in order to be visible to the Intl.message
     // invocation.
     var oldLocale = getCurrentLocale();
-    _defaultLocale = locale;
+    defaultLocale = locale;
     var result = message_function();
-    _defaultLocale = oldLocale;
+    defaultLocale = oldLocale;
     return result;
   }
 
@@ -357,8 +362,8 @@ class Intl {
    * locale.
    */
   static String getCurrentLocale() {
-    if (_defaultLocale == null) _defaultLocale = systemLocale;
-    return _defaultLocale;
+    if (defaultLocale == null) defaultLocale = systemLocale;
+    return defaultLocale;
   }
 
   toString() => "Intl($locale)";
