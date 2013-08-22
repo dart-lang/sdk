@@ -31,7 +31,6 @@ closure_in_initializer_test: Fail # Issue 6422
 # Regular bugs which should be fixed.
 super_first_constructor_test: Fail # Issue 1372.
 parameter_initializer6_negative_test: Fail # Issue 3502
-named_parameters_aggregated_test/05: Fail # Issue 12634
 lazy_static3_test: Fail # Issue 12593
 export_cyclic_test: Fail, Crash # Issue 6060
 duplicate_export_negative_test: Fail # Issue 6134

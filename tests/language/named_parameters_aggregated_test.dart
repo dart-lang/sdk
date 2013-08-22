@@ -49,7 +49,7 @@ main() {
   );
 
   // Expect compile-time error due to missing positional argument.
-  NamedParametersAggregatedTests.F31(b:25, c:35);  /// 05: static type warning
+  Expect.throws(() => NamedParametersAggregatedTests.F31(b:25, c:35), (e) => e is NoSuchMethodError);  /// 05: static type warning
 
   new TypeTester<Callback>();
 
