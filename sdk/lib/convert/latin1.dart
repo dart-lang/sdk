@@ -249,7 +249,7 @@ class _Latin1DecoderSink extends ByteConversionSinkBase {
     for (int i = start; i < end; i++) {
       if ((source[i] & ~0xFF) != 0) {
         if (_allowInvalid) {
-          if (i > start) _addSliceToSink(source, start, i);
+          if (i > start) _addSliceToSink(source, start, i, false);
           // Add UTF-8 encoding of U+FFFD.
           _addSliceToSink(const[0xFFFD], 0, 1, false);
           start = i + 1;
