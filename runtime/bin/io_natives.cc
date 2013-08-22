@@ -21,8 +21,7 @@ namespace bin {
 // builtin_natives.cc instead.
 #define IO_NATIVE_LIST(V)                                                      \
   V(Crypto_GetRandomBytes, 1)                                                  \
-  V(EventHandler_Start, 1)                                                     \
-  V(EventHandler_SendData, 4)                                                  \
+  V(EventHandler_SendData, 3)                                                  \
   V(Filter_CreateZLibDeflate, 3)                                               \
   V(Filter_CreateZLibInflate, 1)                                               \
   V(Filter_End, 1)                                                             \

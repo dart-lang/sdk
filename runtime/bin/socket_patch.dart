@@ -358,17 +358,14 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
 
   _NativeSocket.normal() : typeFlags = TYPE_NORMAL_SOCKET {
     eventHandlers = new List(EVENT_COUNT + 1);
-    _EventHandler._start();
   }
 
   _NativeSocket.listen() : typeFlags = TYPE_LISTENING_SOCKET {
     eventHandlers = new List(EVENT_COUNT + 1);
-    _EventHandler._start();
   }
 
   _NativeSocket.pipe() : typeFlags = TYPE_PIPE {
     eventHandlers = new List(EVENT_COUNT + 1);
-    _EventHandler._start();
   }
 
   int available() {

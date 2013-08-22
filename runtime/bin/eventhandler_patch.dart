@@ -5,28 +5,9 @@
 import 'dart:nativewrappers';
 
 patch class _EventHandler {
-  /* patch */ static void _start() {
-    if (_eventHandler == null) {
-      _eventHandler = new _EventHandlerImpl();
-      _eventHandler._start();
-    }
-  }
-
-  /* patch */ static _sendData(Object sender,
-                               ReceivePort receivePort,
-                               int data) {
-    if (_eventHandler != null) {
-      _eventHandler._sendData(sender, receivePort, data);
-    }
-  }
-
-  static _EventHandlerImpl _eventHandler;
-}
-
-
-class _EventHandlerImpl {
-  _EventHandlerImpl() { }
-  void _start() native "EventHandler_Start";
-  void _sendData(Object sender, ReceivePort receivePort, int data)
+  /* patch */ static void _sendData(Object sender,
+                                    ReceivePort receivePort,
+                                    int data)
       native "EventHandler_SendData";
 }
+

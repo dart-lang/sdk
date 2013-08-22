@@ -165,6 +165,9 @@ void EventHandlerImplementation::WakeupHandler(intptr_t id,
   msg.id = id;
   msg.dart_port = dart_port;
   msg.data = data;
+  // WriteToBlocking will write up to 512 bytes atomically, and since our msg
+  // is smaller than 512, we don't need a thread lock.
+  // See: http://linux.die.net/man/7/pipe, section 'Pipe_buf'.
   intptr_t result =
       FDUtils::WriteToBlocking(interrupt_fds_[1], &msg, kInterruptMessageSize);
   if (result != kInterruptMessageSize) {

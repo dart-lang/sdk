@@ -108,16 +108,15 @@ class EventHandler {
     delegate_.SendData(id, dart_port, data);
   }
 
-  void Shutdown() {
-    delegate_.Shutdown();
-  }
+  /**
+   * Start the event-handler.
+   */
+  static void Start();
 
-  static EventHandler* Start() {
-    EventHandler* handler = new EventHandler();
-    handler->delegate_.Start(handler);
-    return handler;
-  }
-
+  /**
+   * Stop the event-handler. It's expected that there will be no further calls
+   * to SendData after a call to Stop.
+   */
   static void Stop();
 
  private:

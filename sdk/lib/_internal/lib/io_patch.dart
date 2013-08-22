@@ -33,13 +33,9 @@ patch class _Directory {
 }
 
 patch class _EventHandler {
-  patch static void _start() {
-    throw new UnsupportedError("EventHandler._start");
-  }
-
-  patch static _sendData(Object sender,
-                         ReceivePort receivePort,
-                         int data) {
+  patch static void _sendData(Object sender,
+                              ReceivePort receivePort,
+                              int data) {
     throw new UnsupportedError("EventHandler._sendData");
   }
 }

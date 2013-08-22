@@ -21,7 +21,6 @@ class _Timer extends LinkedListEntry<_Timer> implements Timer {
   static Timer _createTimer(void callback(Timer timer),
                             int milliSeconds,
                             bool repeating) {
-    _EventHandler._start();
     _Timer timer = new _Timer._internal();
     timer._callback = callback;
     timer._wakeupTime =
