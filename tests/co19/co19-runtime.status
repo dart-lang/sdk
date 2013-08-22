@@ -104,7 +104,6 @@ LibTest/async/Future/catchError_A01_t02: Pass # No AsyncError anymore. Issue 407
 
 [ $compiler == none && $runtime == vm && $mode == debug ]
 LibTest/isolate/isolate_api/spawnFunction_A02_t01: Crash
-Language/12_Expressions/00_Object_Identity/1_Object_Identity_A04_t02: Crash # co19-roll r546: Please triage this failure
 LibTest/async/Stream/Stream.periodic_A03_t01: Fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateStream/contains_A02_t01: Fail # co19-roll r546: Please triage this failure
 

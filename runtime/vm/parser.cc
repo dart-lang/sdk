@@ -9287,10 +9287,11 @@ static void AddKeyValuePair(GrowableArray<AstNode*>* pairs,
     ASSERT(key->IsLiteralNode());
     const Instance& new_key = key->AsLiteralNode()->literal();
     for (int i = 0; i < pairs->length(); i += 2) {
-      const Instance& key_i =
-          (*pairs)[i]->AsLiteralNode()->literal();
-      ASSERT(key_i.IsString());
-      if (new_key.Equals(key_i)) {
+      const Instance& key_i = (*pairs)[i]->AsLiteralNode()->literal();
+      // The keys of a compile time constant map are compile time
+      // constants, i.e. canonicalized values. Thus, we can compare
+      // raw pointers to check for equality.
+      if (new_key.raw() == key_i.raw()) {
         // Duplicate key found. The new value replaces the previously
         // defined value.
         (*pairs)[i + 1] = value;
