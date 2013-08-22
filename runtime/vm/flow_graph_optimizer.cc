@@ -6979,6 +6979,7 @@ BranchInstr* BranchSimplifier::CloneBranch(BranchInstr* branch,
                                  right,
                                  Object::null_array());
     new_equality_compare->set_ic_data(equality_compare->ic_data());
+    new_equality_compare->set_operation_cid(equality_compare->operation_cid());
     new_comparison = new_equality_compare;
   } else {
     ASSERT(comparison->IsRelationalOp());
@@ -6990,6 +6991,7 @@ BranchInstr* BranchSimplifier::CloneBranch(BranchInstr* branch,
                               right,
                               Object::null_array());
     new_relational_op->set_ic_data(relational_op->ic_data());
+    new_relational_op->set_operation_cid(relational_op->operation_cid());
     new_comparison = new_relational_op;
   }
   return new BranchInstr(new_comparison, branch->is_checked());
