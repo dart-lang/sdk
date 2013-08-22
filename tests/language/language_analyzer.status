@@ -156,11 +156,6 @@ field_method4_negative_test: fail
 # test issue 11591, assigning to the final variable is warning, not error
 final_for_in_variable_test/01: fail
 final_param_negative_test: fail
-final_var_negative_test: fail
-final_variable_assignment_test/01: fail
-final_variable_assignment_test/02: fail
-final_variable_assignment_test/03: fail
-final_variable_assignment_test/04: fail
 getter_no_setter_test/01: fail
 
 # test issue 11592, Function type alias (typedef) is not a constant

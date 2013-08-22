@@ -125,12 +125,6 @@ setter_override_test/00: Fail # Issue 11496
 setter_override_test/03: Fail # Issue 11496
 setter_override2_test/02: Fail # Issue 11496
 
-# Missing compile-time error when modifying final local variables
-final_variable_assignment_test/01: Fail
-final_variable_assignment_test/02: Fail
-final_variable_assignment_test/03: Fail
-final_variable_assignment_test/04: Fail
-
 compile_time_constant10_test/01: Fail # http://dartbug.com/5519
 compile_time_constant10_test/02: Fail # http://dartbug.com/5519
 compile_time_constant_arguments_test/01: Fail # http://dartbug.com/5519

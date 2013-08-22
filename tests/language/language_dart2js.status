@@ -110,10 +110,6 @@ mint_arithmetic_test: Fail # Issue 1533 (big integer arithmetic).
 left_shift_test: Fail # Issue 1533
 factory_redirection_test/01: Fail
 factory_redirection_test/07: Fail
-final_variable_assignment_test/01: Fail
-final_variable_assignment_test/02: Fail
-final_variable_assignment_test/03: Fail
-final_variable_assignment_test/04: Fail
 bad_override_test/01: Fail # Issue 11496
 bad_override_test/02: Fail # Issue 11496
 bad_override_test/06: Fail # Issue 11496
