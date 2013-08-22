@@ -13,6 +13,7 @@
     'converter.dart',
     'encoding.dart',
     'json.dart',
+    'latin1.dart',
     'line_splitter.dart',
     'string_conversion.dart',
     'utf.dart',

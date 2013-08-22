@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * Converters for JSON and UTF-8, as well as support for creating additional 
+ * Converters for JSON and UTF-8, as well as support for creating additional
  * converters.
  */
 library dart.convert;
@@ -17,6 +17,7 @@ part 'codec.dart';
 part 'converter.dart';
 part 'encoding.dart';
 part 'json.dart';
+part 'latin1.dart';
 part 'line_splitter.dart';
 part 'string_conversion.dart';
 part 'utf.dart';
