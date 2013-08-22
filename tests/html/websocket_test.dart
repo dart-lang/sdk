@@ -19,7 +19,7 @@ main() {
 
     test('constructorTest', () {
       expect(() {
-        var socket = new WebSocket('ws://localhost');
+        var socket = new WebSocket('ws://localhost/ws', 'chat');
         expect(socket, isNotNull);
         expect(socket, isWebSocket);
         }, expectation);
@@ -27,7 +27,8 @@ main() {
 
     if (WebSocket.supported) {
       test('echo', () {
-        var socket = new WebSocket('ws://${window.location.host}/ws', 'chat');
+        var socket = new WebSocket('ws://${window.location.host}/ws');
+
         socket.onOpen.first.then((_) {
           socket.send('hello!');
         });
