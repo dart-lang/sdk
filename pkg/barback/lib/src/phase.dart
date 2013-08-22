@@ -13,6 +13,7 @@ import 'asset_node.dart';
 import 'asset_set.dart';
 import 'errors.dart';
 import 'phase_input.dart';
+import 'phase_output.dart';
 import 'stream_pool.dart';
 import 'transformer.dart';
 import 'utils.dart';
@@ -44,15 +45,8 @@ class Phase {
   /// phases, they will be the outputs from the previous phase.
   final _inputs = new Map<AssetId, PhaseInput>();
 
-  /// A map of output ids to the asset node outputs for those ids and the
-  /// transforms that produced those asset nodes.
-  ///
-  /// Usually there's only one node for a given output id. However, it's
-  /// possible for multiple transformers to output an asset with the same id. In
-  /// that case, the chronologically first output emitted is passed forward. We
-  /// keep track of the other nodes so that if that output is removed, we know
-  /// which asset to replace it with.
-  final _outputs = new Map<AssetId, Queue<AssetNode>>();
+  /// The outputs for this phase.
+  final _outputs = new Map<AssetId, PhaseOutput>();
 
   /// A stream that emits an event whenever this phase becomes dirty and needs
   /// to be run.
@@ -77,7 +71,7 @@ class Phase {
   /// Returns all currently-available output assets for this phase.
   AssetSet get availableOutputs {
     return new AssetSet.from(_outputs.values
-        .map((queue) => queue.first)
+        .map((output) => output.output)
         .where((node) => node.state.isAvailable)
         .map((node) => node.asset));
   }
@@ -125,7 +119,7 @@ class Phase {
     return newFuture(() {
       if (id.package != cascade.package) return cascade.graph.getAssetNode(id);
       if (!_outputs.containsKey(id)) return null;
-      return _outputs[id].first;
+      return _outputs[id].output;
     });
   }
 
@@ -146,7 +140,7 @@ class Phase {
     assert(_next == null);
     _next = new Phase(cascade, transformers);
     for (var outputs in _outputs.values) {
-      _next.addInput(outputs.first);
+      _next.addInput(outputs.output);
     }
     return _next;
   }
@@ -158,76 +152,32 @@ class Phase {
   Future process() {
     if (!_inputs.values.any((input) => input.isDirty)) return null;
 
+    var outputIds = new Set<AssetId>();
     return Future.wait(_inputs.values.map((input) {
       if (!input.isDirty) return new Future.value(new Set());
       return input.process().then((outputs) {
-        return outputs.where(_addOutput).map((output) => output.id).toSet();
+        for (var asset in outputs) {
+          outputIds.add(asset.id);
+          if (_outputs.containsKey(asset.id)) {
+            _outputs[asset.id].add(asset);
+          } else {
+            _outputs[asset.id] = new PhaseOutput(this, asset);
+            _outputs[asset.id].output.whenRemoved
+                .then((_) => _outputs.remove(asset.id));
+            if (_next != null) _next.addInput(_outputs[asset.id].output);
+          }
+        }
       });
-    })).then((collisionsList) {
+    })).then((_) {
       // Report collisions in a deterministic order.
-      var collisions = unionAll(collisionsList).toList();
-      collisions.sort((a, b) => a.compareTo(b));
-      for (var collision in collisions) {
-        // Ensure that there's still a collision. It's possible it was resolved
-        // while another transform was running.
-        if (_outputs[collision].length <= 1) continue;
-        cascade.reportError(new AssetCollisionException(
-            _outputs[collision].where((asset) => asset.transform != null)
-                .map((asset) => asset.transform.info),
-            collision));
-      }
-    });
-  }
-
-  /// Add [output] as an output of this phase, forwarding it to the next phase
-  /// if necessary.
-  ///
-  /// Returns whether or not [output] collides with another pre-existing output.
-  bool _addOutput(AssetNode output) {
-    _handleOutputRemoval(output);
-
-    if (_outputs.containsKey(output.id)) {
-      _outputs[output.id].add(output);
-      return true;
-    }
-
-    _outputs[output.id] = new Queue<AssetNode>.from([output]);
-    if (_next != null) _next.addInput(output);
-    return false;
-  }
-
-  /// Properly resolve collisions when [output] is removed.
-  void _handleOutputRemoval(AssetNode output) {
-    output.whenRemoved.then((_) {
-      var assets = _outputs[output.id];
-      if (assets.length == 1) {
-        assert(assets.single == output);
-        _outputs.remove(output.id);
-        return;
-      }
-
-      // If there was more than one asset, we're resolving a collision --
-      // possibly partially.
-      var wasFirst = assets.first == output;
-      assets.remove(output);
-
-      // If this was the first asset, we need to pass the next asset
-      // (chronologically) to the next phase. Pump the event queue first to give
-      // [_next] a chance to handle the removal of its input before getting a
-      // new input.
-      if (wasFirst && _next != null) {
-        newFuture(() => _next.addInput(assets.first));
-      }
-
-      // If there's still a collision, report it. This lets the user know
-      // if they've successfully resolved the collision or not.
-      if (assets.length > 1) {
-        // Pump the event queue to ensure that the removal of the input triggers
-        // a new build to which we can attach the error.
-        newFuture(() => cascade.reportError(new AssetCollisionException(
-            assets.where((asset) => asset.transform != null)
-                .map((asset) => asset.transform.info),
-            output.id)));
+      outputIds = outputIds.toList();
+      outputIds.sort((a, b) => a.compareTo(b));
+      for (var id in outputIds) {
+        // It's possible the output was removed before other transforms in this
+        // phase finished.
+        if (!_outputs.containsKey(id)) continue;
+        var exception = _outputs[id].collisionException;
+        if (exception != null) cascade.reportError(exception);
       }
     });
   }

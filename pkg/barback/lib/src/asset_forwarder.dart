@@ -25,7 +25,9 @@ class AssetForwarder {
   AssetNode get node => _controller.node;
 
   AssetForwarder(AssetNode node)
-      : _controller = new AssetNodeController(node.id, node.transform) {
+      : _controller = new AssetNodeController.from(node) {
+    if (node.state.isRemoved) return;
+
     _subscription = node.onStateChange.listen((state) {
       if (state.isAvailable) {
         _controller.setAvailable(node.asset);
@@ -36,12 +38,6 @@ class AssetForwarder {
         close();
       }
     });
-
-    if (node.state.isAvailable) {
-      _controller.setAvailable(node.asset);
-    } else if (node.state.isRemoved) {
-      close();
-    }
   }
 
   /// Closes the forwarder and marks [node] as removed.
